@@ -130,7 +130,7 @@
     },
     "address_poisoning": {
       "title": "Address poisoning detected",
-      "message": "This address closely resembles one you've used before. It may have been designed to trick you into sending funds to the wrong recipient.",
+      "message": "This address closely resembles one you've interacted with before. It may have been designed to trick you into sending funds to the wrong recipient.",
       "badge": "Poisoned"
     },
     "burn_address": {
