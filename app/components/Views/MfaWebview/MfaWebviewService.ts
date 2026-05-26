@@ -36,9 +36,11 @@ const isOriginAllowed = (origin: string): boolean =>
 
 export const MfaWebviewService = {
   /**
-   * `${approvalPageLink}?projectId=...&notificationId=...#token=${bearer}`
-   * Bearer goes in the URL fragment so it doesn't hit server logs but is still
-   * readable by the SPA's JS for subsequent same-origin XHR.
+   * Dashboard-hosted flow:
+   * `${approvalPageLink}?projectId=...&approvalId=...&mimir_signature=...#auth_token=${bearer}`
+   *
+   * The bearer goes in the URL fragment so it is readable by the dashboard
+   * login JS but is not sent as part of the HTTP request.
    */
   buildWebViewUrl(params: MfaWebviewParams, bearerToken: string): string {
     const {
@@ -47,6 +49,7 @@ export const MfaWebviewService = {
       notificationId,
       requestId,
       approvalId,
+      mimirSignature,
       operationType,
       subjectId,
       server,
@@ -77,9 +80,12 @@ export const MfaWebviewService = {
       url.searchParams.set('notificationId', canonicalRequestId);
     }
     if (approvalId) url.searchParams.set('approvalId', approvalId);
+    if (mimirSignature) {
+      url.searchParams.set('mimir_signature', mimirSignature);
+    }
     if (operationType) url.searchParams.set('operationType', operationType);
     if (subjectId) url.searchParams.set('subjectId', subjectId);
-    url.hash = `token=${encodeURIComponent(bearerToken)}`;
+    url.hash = `auth_token=${encodeURIComponent(bearerToken)}`;
 
     return url.toString();
   },

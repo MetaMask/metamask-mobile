@@ -11,11 +11,11 @@ import type {
  * Handles `https://link.metamask.io/agentic-cli` deeplinks.
  *
  * Preferred query string:
- * `?approvalPageLink=<url>&projectId=<id>&notificationId=<requestId>&operationType=<login|tx_approve>&subjectId=<id>`
+ * `?approvalPageLink=<url>&projectId=<id>&approvalId=<approvalId>&mimir_signature=<sig>`
  *
  * `approvalPageLink` is optional for the production redirect flow. When it is
- * omitted, mobile falls back to the hosted approval page and appends the
- * bearer token as a URL fragment once the user is unlocked.
+ * omitted, mobile falls back to the dashboard-hosted Agentic login page and
+ * appends the bearer token as `#auth_token=...` once the user is unlocked.
  *
  * The pending-deeplink saga (app/store/sagas/index.ts) gates this on
  * vault-unlocked + onboarding-complete, so by the time we run we know the
@@ -28,6 +28,8 @@ interface HandleCliMfaParams {
   notificationId?: string;
   requestId?: string;
   approvalId?: string;
+  mimir_signature?: string;
+  mimirSignature?: string;
   operationType?: Intent | string;
   subjectId?: string;
 
@@ -37,7 +39,7 @@ interface HandleCliMfaParams {
 }
 
 export const DEFAULT_APPROVAL_PAGE_LINK =
-  'https://test-dashboard.web3auth.io/agentic/approval';
+  'https://test-dashboard.web3auth.io/agentic/login';
 
 const decodeParam = (value?: string): string | undefined => {
   if (!value) return undefined;
@@ -58,6 +60,8 @@ export const handleCliMfa = (params: HandleCliMfaParams): void => {
     notificationId,
     requestId,
     approvalId,
+    mimir_signature,
+    mimirSignature,
     operationType,
     subjectId,
     sessionId,
@@ -67,6 +71,7 @@ export const handleCliMfa = (params: HandleCliMfaParams): void => {
 
   const decodedApprovalPageLink = decodeParam(approvalPageLink);
   const decodedServer = decodeParam(server);
+  const decodedMimirSignature = decodeParam(mimirSignature ?? mimir_signature);
   const requestIdentifier = notificationId ?? requestId ?? approvalId;
   const hostedApprovalPageLink =
     decodedApprovalPageLink ??
@@ -97,6 +102,7 @@ export const handleCliMfa = (params: HandleCliMfaParams): void => {
         notificationId,
         requestId,
         approvalId,
+        mimirSignature: decodedMimirSignature,
         operationType: operationType ?? intent,
         subjectId,
       }

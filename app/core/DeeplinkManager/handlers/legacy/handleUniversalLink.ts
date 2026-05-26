@@ -686,6 +686,7 @@ async function handleUniversalLink({
         notificationId?: string;
         requestId?: string;
         approvalId?: string;
+        mimir_signature?: string;
         operationType?: string;
         subjectId?: string;
       };
@@ -698,6 +699,7 @@ async function handleUniversalLink({
         notificationId: cliMfaParams.notificationId,
         requestId: cliMfaParams.requestId,
         approvalId: cliMfaParams.approvalId,
+        mimir_signature: cliMfaParams.mimir_signature,
         operationType: cliMfaParams.operationType,
         subjectId: cliMfaParams.subjectId,
       });
@@ -712,6 +714,7 @@ async function handleUniversalLink({
         notificationId?: string;
         requestId?: string;
         approvalId?: string;
+        mimir_signature?: string;
         operationType?: string;
         subjectId?: string;
         sessionId?: string;
@@ -725,6 +728,7 @@ async function handleUniversalLink({
         notificationId: cliMfaParams.notificationId,
         requestId: cliMfaParams.requestId,
         approvalId: cliMfaParams.approvalId,
+        mimir_signature: cliMfaParams.mimir_signature,
         operationType: cliMfaParams.operationType,
         subjectId: cliMfaParams.subjectId,
         sessionId: cliMfaParams.sessionId,

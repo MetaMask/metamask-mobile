@@ -51,6 +51,7 @@ const MfaWebview: React.FC = () => {
     notificationId,
     requestId,
     approvalId,
+    mimirSignature,
     operationType,
     subjectId,
     sessionId,
@@ -87,6 +88,7 @@ const MfaWebview: React.FC = () => {
             notificationId,
             requestId,
             approvalId,
+            mimirSignature,
             operationType,
             subjectId,
             sessionId,
@@ -109,6 +111,7 @@ const MfaWebview: React.FC = () => {
     approvalId,
     approvalPageLink,
     intent,
+    mimirSignature,
     notificationId,
     operationType,
     projectId,
@@ -200,10 +203,14 @@ const MfaWebview: React.FC = () => {
       />
       <WebView
         ref={webViewRef}
-        source={{
-          uri: webViewUrl,
-          headers: { Authorization: `Bearer ${bearerToken}` },
-        }}
+        source={
+          approvalPageLink
+            ? { uri: webViewUrl }
+            : {
+                uri: webViewUrl,
+                headers: { Authorization: `Bearer ${bearerToken}` },
+              }
+        }
         onMessage={handleMessage}
         onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
         onError={handleHttpError}

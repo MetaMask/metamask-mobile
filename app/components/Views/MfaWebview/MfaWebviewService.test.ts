@@ -2,13 +2,14 @@ import { MfaWebviewService, MAX_MESSAGE_LENGTH } from './MfaWebviewService';
 
 describe('MfaWebviewService', () => {
   describe('buildWebViewUrl', () => {
-    it('builds the hosted approval page URL with the mobile token fragment', () => {
+    it('builds the hosted dashboard login URL with the mobile auth token fragment', () => {
       const url = MfaWebviewService.buildWebViewUrl(
         {
-          approvalPageLink: 'https://developer.metamask.io/agentic/approval',
+          approvalPageLink: 'https://developer.metamask.io/agentic/login',
           projectId: 'project-1',
           notificationId: 'request-1',
           approvalId: 'approval-1',
+          mimirSignature: 'signature-1',
           operationType: 'tx_approve',
           subjectId: 'subject-1',
         },
@@ -16,7 +17,7 @@ describe('MfaWebviewService', () => {
       );
 
       expect(url).toBe(
-        'https://developer.metamask.io/agentic/approval?projectId=project-1&notificationId=request-1&approvalId=approval-1&operationType=tx_approve&subjectId=subject-1#token=bearer%20token',
+        'https://developer.metamask.io/agentic/login?projectId=project-1&notificationId=request-1&approvalId=approval-1&mimir_signature=signature-1&operationType=tx_approve&subjectId=subject-1#auth_token=bearer%20token',
       );
     });
 
@@ -51,7 +52,23 @@ describe('MfaWebviewService', () => {
       expect(parsedUrl.searchParams.get('operationType')).toBe(
         'wallet_mode_change',
       );
-      expect(parsedUrl.hash).toBe('#token=token-1');
+      expect(parsedUrl.hash).toBe('#auth_token=token-1');
+    });
+
+    it('forwards the Mimir signature using the dashboard query param name', () => {
+      const url = MfaWebviewService.buildWebViewUrl(
+        {
+          approvalPageLink: 'https://test-dashboard.web3auth.io/agentic/login',
+          approvalId: 'approval-1',
+          projectId: 'project-1',
+          mimirSignature: 'sig/with+chars',
+        },
+        'token-1',
+      );
+
+      expect(new URL(url).searchParams.get('mimir_signature')).toBe(
+        'sig/with+chars',
+      );
     });
 
     it('keeps the legacy local mock URL shape when no approval page is supplied', () => {

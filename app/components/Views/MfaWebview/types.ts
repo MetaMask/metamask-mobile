@@ -25,6 +25,8 @@ export interface MfaWebviewParams {
   requestId?: string;
   /** Compatibility alias accepted by the hosted page. */
   approvalId?: string;
+  /** Mimir signing signature forwarded from the backend CTA/deeplink. */
+  mimirSignature?: string;
   operationType?: Intent | string;
   subjectId?: string;
 

@@ -28,11 +28,12 @@ describe('handleCliMfa', () => {
     jest.useRealTimers();
   });
 
-  it('uses the hosted approval page when agentic-cli deeplink omits approvalPageLink', () => {
+  it('uses the hosted dashboard login page when agentic-cli deeplink omits approvalPageLink', () => {
     handleCliMfa({
       intent: 'login',
       approvalId: 'approval-1',
       projectId: 'project-1',
+      mimir_signature: 'signature-1',
       operationType: 'wallet_mode_change',
       subjectId: '0xabc',
     });
@@ -45,6 +46,7 @@ describe('handleCliMfa', () => {
       notificationId: undefined,
       requestId: undefined,
       approvalId: 'approval-1',
+      mimirSignature: 'signature-1',
       operationType: 'wallet_mode_change',
       subjectId: '0xabc',
     });
@@ -69,6 +71,7 @@ describe('handleCliMfa', () => {
       notificationId: 'notification-1',
       requestId: undefined,
       approvalId: undefined,
+      mimirSignature: undefined,
       operationType: 'tx_approve',
       subjectId: undefined,
     });
