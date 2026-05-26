@@ -152,7 +152,7 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
             >
               {chartType === ChartType.Candles ? (
                 <Icon
-                  name={IconName.TrendUp}
+                  name={IconName.Diagram}
                   size={IconSize.Lg}
                   color={IconColor.IconAlternative}
                 />
