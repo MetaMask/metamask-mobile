@@ -17,10 +17,12 @@ import { useTokenFiatRate } from '../useTokenFiatRate';
 const FIAT_KEYPAD_CURRENCY = 'SWAPS_FIAT_INPUT';
 
 export const useSourceAmountInput = ({
+  isFiatToggleEnabled,
   sourceAmount,
   sourceToken,
   onSourceAmountChange,
 }: {
+  isFiatToggleEnabled: boolean;
   sourceAmount: string | undefined;
   sourceToken: BridgeToken | undefined;
   onSourceAmountChange: (value: string | undefined) => void;
@@ -29,7 +31,7 @@ export const useSourceAmountInput = ({
   const [fiatAmount, setFiatAmount] = useState<string | undefined>();
   const currentCurrency = useSelector(selectCurrentCurrency);
   const fiatRate = useTokenFiatRate(sourceToken);
-  const canToggle = Boolean(fiatRate && fiatRate > 0);
+  const canToggle = Boolean(isFiatToggleEnabled && fiatRate && fiatRate > 0);
   const amount = isFiatMode ? fiatAmount : sourceAmount;
   const isFiatInputChangeRef = useRef(false);
 
@@ -178,6 +180,10 @@ export const useSourceAmountInput = ({
       return `0 ${sourceToken.symbol}`;
     }
 
+    if (!isFiatToggleEnabled) {
+      return undefined;
+    }
+
     if (!canToggle) {
       return null;
     }
@@ -188,7 +194,14 @@ export const useSourceAmountInput = ({
           minimumFractionDigits: 0,
           maximumFractionDigits: 0,
         });
-  }, [canToggle, currentCurrency, isFiatMode, sourceAmount, sourceToken]);
+  }, [
+    canToggle,
+    currentCurrency,
+    isFiatMode,
+    isFiatToggleEnabled,
+    sourceAmount,
+    sourceToken,
+  ]);
 
   const inputPrefix = isFiatMode
     ? getCurrencySymbol(currentCurrency || 'usd')
