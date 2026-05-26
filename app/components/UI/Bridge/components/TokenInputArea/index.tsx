@@ -51,6 +51,7 @@ import { useAutoSizingFont } from '../../hooks/useAutoSizingFont';
 import { formatAmountWithLocaleSeparators } from '../../utils/formatAmountWithLocaleSeparators';
 import { useFormattedBalanceWithThreshold } from '../../hooks/useFormattedBalanceWithThreshold';
 import { useDisplayCurrencyValue } from '../../hooks/useDisplayCurrencyValue';
+import { formatSecondaryTokenAmount } from '../../utils/sourceAmountInputMode';
 
 export const MAX_INPUT_LENGTH = 36;
 
@@ -169,6 +170,7 @@ interface TokenInputAreaProps {
   balanceCheckAmount?: string;
   onAmountTypeTogglePress?: () => void;
   amountTypeToggleTestID?: string;
+  showFiatAmountAsPrimary?: boolean;
 }
 
 export const TokenInputArea = forwardRef<
@@ -201,6 +203,7 @@ export const TokenInputArea = forwardRef<
       balanceCheckAmount,
       onAmountTypeTogglePress,
       amountTypeToggleTestID,
+      showFiatAmountAsPrimary = false,
     },
     ref,
   ) => {
@@ -256,12 +259,31 @@ export const TokenInputArea = forwardRef<
     });
 
     const defaultCurrencyValue = useDisplayCurrencyValue(tokenAmount, token);
-    const currencyValue =
-      secondaryValue === undefined ? defaultCurrencyValue : secondaryValue;
-    const shouldShowCurrencyValue =
+    const shouldShowFiatAmountAsPrimary = Boolean(
+      tokenType === TokenInputAreaType.Destination &&
+        showFiatAmountAsPrimary &&
+        token &&
+        amount &&
+        Number(amount) > 0,
+    );
+    // Ensures the secondary amount is displayed with the same precision as the source amount
+    const secondaryTokenAmountDisplayValue = shouldShowFiatAmountAsPrimary
+      ? `${formatAmountWithLocaleSeparators(
+          formatSecondaryTokenAmount(amount) ?? amount ?? '0',
+        )} ${token?.symbol}`
+      : undefined;
+    const defaultSecondaryAmountDisplayValue =
+      secondaryTokenAmountDisplayValue ?? defaultCurrencyValue;
+    const secondaryAmountDisplayValue =
+      secondaryValue === undefined
+        ? defaultSecondaryAmountDisplayValue
+        : secondaryValue;
+    const shouldShowSecondaryAmount =
       token &&
-      currencyValue &&
-      (secondaryValue !== undefined || (amount && Number(amount) > 0));
+      secondaryAmountDisplayValue &&
+      (secondaryValue !== undefined ||
+        shouldShowFiatAmountAsPrimary ||
+        (amount && Number(amount) > 0));
 
     const formattedBalance = useFormattedBalanceWithThreshold(
       tokenBalance,
@@ -286,16 +308,18 @@ export const TokenInputArea = forwardRef<
         ? formattedBalance
         : formattedAddress;
 
-    const displayedAmount = useMemo(
-      () =>
-        amount && amount !== '0'
-          ? formatAmountWithLocaleSeparators(amount)
-          : amount,
-      [amount],
-    );
+    const primaryAmountDisplayValue = useMemo(() => {
+      if (shouldShowFiatAmountAsPrimary) {
+        return defaultCurrencyValue;
+      }
+
+      return amount && amount !== '0'
+        ? formatAmountWithLocaleSeparators(amount)
+        : amount;
+    }, [amount, defaultCurrencyValue, shouldShowFiatAmountAsPrimary]);
 
     const { fontSize, onContainerLayout } = useAutoSizingFont({
-      text: `${inputPrefix ?? ''}${displayedAmount || '0'}`,
+      text: `${inputPrefix ?? ''}${primaryAmountDisplayValue || '0'}`,
     });
     const { styles } = useStyles(createStyles, { fontSize, hidden: !subtitle });
 
@@ -318,7 +342,7 @@ export const TokenInputArea = forwardRef<
                   ) : null}
                   <Input
                     ref={inputRef}
-                    value={displayedAmount}
+                    value={primaryAmountDisplayValue}
                     style={styles.input}
                     isDisabled={false}
                     isReadonly={tokenType === TokenInputAreaType.Destination}
@@ -387,8 +411,10 @@ export const TokenInputArea = forwardRef<
               <>
                 <Box style={styles.currencyContainer}>
                   <Box style={styles.secondaryValueContainer}>
-                    {shouldShowCurrencyValue ? (
-                      <Text color={TextColor.Alternative}>{currencyValue}</Text>
+                    {shouldShowSecondaryAmount ? (
+                      <Text color={TextColor.Alternative}>
+                        {secondaryAmountDisplayValue}
+                      </Text>
                     ) : null}
                     {onAmountTypeTogglePress ? (
                       <TouchableOpacity

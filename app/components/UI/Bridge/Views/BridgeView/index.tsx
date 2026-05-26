@@ -529,6 +529,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
                 isLoading={!destTokenAmount && isLoading}
                 style={styles.destTokenArea}
                 isQuoteSponsored={isQuoteSponsored}
+                showFiatAmountAsPrimary={sourceAmountInput.isFiatMode}
               />
             </Box>
 

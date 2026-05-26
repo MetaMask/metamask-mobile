@@ -899,6 +899,23 @@ describe('TokenInputArea', () => {
         expect.objectContaining({ amount: '0.05' }),
       );
     });
+
+    it('shows fiat as primary and token amount as secondary for destination display mode', () => {
+      mockUseDisplayCurrencyValue.mockReturnValue('1,23 €');
+
+      const { getByTestId, getByText } = renderAmountOverrideInput({
+        amount: '1.234567',
+        tokenType: TokenInputAreaType.Destination,
+        showFiatAmountAsPrimary: true,
+      });
+
+      expect(getByTestId('token-input-input').props.value).toBe('1,23 €');
+      expect(getByText('1.23456 TEST')).toBeTruthy();
+      expect(mockUseDisplayCurrencyValue).toHaveBeenCalledWith(
+        '1.234567',
+        mockToken,
+      );
+    });
   });
 
   describe('token button vs select button', () => {

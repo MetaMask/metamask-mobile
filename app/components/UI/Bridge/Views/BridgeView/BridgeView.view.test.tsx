@@ -5,7 +5,10 @@ import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import React from 'react';
 import { Text } from 'react-native';
-import { renderScreenWithRoutes } from '../../../../../../tests/component-view/render';
+import {
+  renderComponentViewScreen,
+  renderScreenWithRoutes,
+} from '../../../../../../tests/component-view/render';
 import Routes from '../../../../../constants/navigation/Routes';
 import { initialStateBridge } from '../../../../../../tests/component-view/presets/bridge';
 import BridgeView from './index';
@@ -144,6 +147,98 @@ describeForPlatforms('BridgeView', () => {
     ).toEqual({ start: 1, end: 1 });
   });
 
+  it('mirrors source fiat mode on the destination amount display', async () => {
+    const state = initialStateBridge({ deterministicFiat: true })
+      .withBridgeRecommendedQuoteEvmSimple()
+      .withOverrides({
+        bridge: {
+          ...DEFAULT_BRIDGE,
+          sourceAmount: '1',
+          selectedDestChainId: '0x1',
+        },
+        engine: {
+          backgroundState: {
+            TokenRatesController: {
+              marketData: {
+                '0x1': {
+                  [USDC_DEST.address]: {
+                    tokenAddress: USDC_DEST.address,
+                    currency: 'ETH',
+                    price: 0.0005,
+                  },
+                },
+              },
+            },
+          },
+        },
+      } as unknown as DeepPartial<RootState>)
+      .build();
+    const bridgeControllerState = (
+      (state as unknown as DeepPartial<RootState>).engine?.backgroundState as
+        | Record<string, unknown>
+        | undefined
+    )?.BridgeController as
+      | {
+          recommendedQuote: Record<string, unknown>;
+          quotes: Record<string, unknown>[];
+        }
+      | undefined;
+    const recommendedQuote = bridgeControllerState?.recommendedQuote;
+    const quote = recommendedQuote?.quote as Record<string, unknown>;
+    const quoteWithTrade = {
+      ...recommendedQuote,
+      quote: {
+        ...quote,
+        bridgeId: 'test-bridge',
+        bridges: ['test-bridge'],
+        steps: [],
+      },
+      trade: {
+        value: '0xde0b6b3a7640000',
+        gasLimit: 0,
+        effectiveGas: 0,
+      },
+    };
+
+    if (bridgeControllerState) {
+      bridgeControllerState.recommendedQuote = quoteWithTrade;
+      bridgeControllerState.quotes = [quoteWithTrade];
+    }
+
+    const { getByTestId, getByText } = renderComponentViewScreen(
+      BridgeView as unknown as React.ComponentType,
+      { name: Routes.BRIDGE.BRIDGE_VIEW },
+      { state },
+    );
+
+    await waitFor(() => {
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.DESTINATION_TOKEN_INPUT).props.value,
+      ).toBe('1');
+    });
+
+    fireEvent.press(
+      getByTestId(BridgeViewSelectorsIDs.SOURCE_AMOUNT_TYPE_TOGGLE),
+    );
+
+    await waitFor(() => {
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.DESTINATION_TOKEN_INPUT).props.value,
+      ).toBe('$1.00');
+    });
+    expect(getByText('1 USDC')).toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(BridgeViewSelectorsIDs.SOURCE_AMOUNT_TYPE_TOGGLE),
+    );
+
+    await waitFor(() => {
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.DESTINATION_TOKEN_INPUT).props.value,
+      ).toBe('1');
+    });
+  });
+
   it('resets source cursor to the end when input is focused again', async () => {
     const { getByTestId, getByText, findByDisplayValue } =
       defaultBridgeWithTokens({
@@ -265,6 +360,8 @@ describeForPlatforms('BridgeView', () => {
           expect.objectContaining({
             srcTokenAmount: '25000000000000000',
           }),
+          expect.anything(),
+          expect.anything(),
           expect.anything(),
         );
       },
