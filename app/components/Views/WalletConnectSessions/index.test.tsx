@@ -2,6 +2,7 @@ import { waitFor } from '@testing-library/react-native';
 import WalletConnectSessions from './';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import Routes from '../../../constants/navigation/Routes';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ExperimentalSelectorsIDs } from '../Settings/ExperimentalSettings/ExperimentalView.testIds';
 import WC2Manager from '../../../core/WalletConnect/WalletConnectV2';
 import { strings } from '../../../../locales/i18n';

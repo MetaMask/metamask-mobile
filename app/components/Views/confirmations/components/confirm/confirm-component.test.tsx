@@ -315,7 +315,6 @@ describe('Confirm', () => {
     });
 
     expect(mockSetOptions).toHaveBeenCalledWith({
-      headerShown: false,
       gestureEnabled: false,
     });
 
