@@ -440,6 +440,29 @@ describe('cryptoUpDown utilities', () => {
       expect(getMarketTargetPrice(market)).toBe(78000);
     });
 
+    it('prefers event price to beat over market threshold', () => {
+      const market = createMockMarket({
+        priceToBeat: 75749.02,
+        outcomes: [
+          {
+            id: 'outcome-1',
+            providerId: 'polymarket',
+            marketId: 'market-1',
+            title: 'BTC Up or Down',
+            description: '',
+            image: '',
+            status: 'open',
+            tokens: [],
+            volume: 0,
+            groupItemTitle: 'BTC',
+            groupItemThreshold: 78000,
+          },
+        ],
+      });
+
+      expect(getMarketTargetPrice(market)).toBe(75749.02);
+    });
+
     it('prefers fetched target price over market threshold fallback', () => {
       const market = createMockMarket({
         outcomes: [
@@ -482,6 +505,14 @@ describe('cryptoUpDown utilities', () => {
       });
 
       expect(resolveCryptoTargetPrice(market, undefined)).toBe(78000);
+    });
+
+    it('falls back to event price to beat when fetched target price is unavailable', () => {
+      const market = createMockMarket({
+        priceToBeat: 76478.64,
+      });
+
+      expect(resolveCryptoTargetPrice(market, undefined)).toBe(76478.64);
     });
   });
 

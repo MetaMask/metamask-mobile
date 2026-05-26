@@ -138,6 +138,10 @@ const isValidTargetPrice = (price: number | undefined): price is number =>
 export function getMarketTargetPrice(
   market: PredictMarket,
 ): number | undefined {
+  if (isValidTargetPrice(market.priceToBeat)) {
+    return market.priceToBeat;
+  }
+
   return market.outcomes.find((outcome) =>
     isValidTargetPrice(outcome.groupItemThreshold),
   )?.groupItemThreshold;
