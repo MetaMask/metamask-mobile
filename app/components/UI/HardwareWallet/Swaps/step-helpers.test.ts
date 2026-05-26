@@ -67,7 +67,7 @@ describe('step-helpers', () => {
       ).toBe('Sent 5 USDC');
     });
 
-    it('handles missing options', () => {
+    it('returns title with empty amount and symbol when options are omitted', () => {
       expect(
         getStepTitle({
           kind: HardwareWalletsSwapsStepKind.Transaction,

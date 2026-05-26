@@ -16,6 +16,7 @@ interface IAnimatedQRCodeProps {
 const MAX_FRAGMENT_LENGTH = 200;
 const DEFAULT_QR_CODE_SIZE = 250;
 const DEFAULT_WRAPPER_SIZE = 300;
+const QR_CODE_PADDING = DEFAULT_WRAPPER_SIZE - DEFAULT_QR_CODE_SIZE;
 
 const createStyles = (theme: Theme, size: number) =>
   StyleSheet.create({
@@ -35,10 +36,8 @@ const AnimatedQRCode = ({
   size = DEFAULT_QR_CODE_SIZE,
 }: IAnimatedQRCodeProps) => {
   const theme = useTheme();
-  const wrapperSize =
-    size === DEFAULT_QR_CODE_SIZE ? DEFAULT_WRAPPER_SIZE : size;
-  const qrCodeSize =
-    size === DEFAULT_QR_CODE_SIZE ? DEFAULT_QR_CODE_SIZE : size;
+  const qrCodeSize = size;
+  const wrapperSize = size + QR_CODE_PADDING;
   const styles = createStyles(theme, wrapperSize);
   const urEncoder = useMemo(
     () =>

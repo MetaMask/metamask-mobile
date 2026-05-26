@@ -98,7 +98,7 @@ export const StepRow = memo(
             />
           ) : null}
         </Box>
-        <Box flex={1} gap={4} marginLeft={3} twClassName="pt-1.5">
+        <Box gap={4} marginLeft={3} twClassName="flex-1 pt-1.5">
           <Text
             variant={TextVariant.BodyMd}
             color={titleColor}
