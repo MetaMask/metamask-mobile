@@ -118,7 +118,7 @@ jobs:
           fi
 
   post-build-source-hash:
-    name: Post build-source-hash commit status
+    name: Compute native build fingerprint
     runs-on: ubuntu-latest
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     permissions:
