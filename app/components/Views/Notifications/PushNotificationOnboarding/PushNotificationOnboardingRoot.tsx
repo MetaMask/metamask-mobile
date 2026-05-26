@@ -6,6 +6,7 @@ import {
   usePushPrePromptVariant,
   type PushPrePromptVariant,
 } from '../../../../util/notifications/hooks/usePushPrePromptVariant';
+import { isE2E } from '../../../../util/test/utils';
 
 type VisibleVariant = Exclude<PushPrePromptVariant, null>;
 interface VisiblePrePrompt {
@@ -13,7 +14,7 @@ interface VisiblePrePrompt {
   variant: VisibleVariant;
 }
 
-const PushNotificationOnboardingRoot = () => {
+const PushNotificationOnboardingRootContent = () => {
   const {
     dismiss: dismissPrePrompt,
     markShown: markPrePromptShown,
@@ -55,6 +56,14 @@ const PushNotificationOnboardingRoot = () => {
       prePromptVariant={currentPrePrompt.variant}
     />
   );
+};
+
+const PushNotificationOnboardingRoot = () => {
+  if (isE2E) {
+    return null;
+  }
+
+  return <PushNotificationOnboardingRootContent />;
 };
 
 export default PushNotificationOnboardingRoot;
