@@ -12,12 +12,11 @@ env:
 jobs:
   rerun-ci:
     if: >-
-      github.event.pull_request.state == 'open' &&
-      (github.event.label.name == 'skip-smart-e2e-selection' ||
-       github.event.label.name == 'skip-e2e' ||
-       github.event.label.name == 'skip-e2e-flakiness-detection' ||
-       github.event.label.name == 'pr-not-ready-for-e2e' ||
-       github.event.label.name == 'force-builds')
+      github.event.label.name == 'skip-smart-e2e-selection' ||
+      github.event.label.name == 'skip-e2e' ||
+      github.event.label.name == 'skip-e2e-flakiness-detection' ||
+      github.event.label.name == 'pr-not-ready-for-e2e' ||
+      github.event.label.name == 'force-builds'
     runs-on: ubuntu-latest
     permissions:
       actions: write
@@ -50,7 +49,6 @@ jobs:
             --repo "$REPO" \
             --branch "$HEAD_REF" \
             --workflow "ci.yml" \
-            --event pull_request \
             --limit 1 \
             --json databaseId \
             --jq '.[0].databaseId')
