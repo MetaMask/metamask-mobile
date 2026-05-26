@@ -380,7 +380,7 @@ jobs:
             echo "| Field | Value |"
             echo "| --- | --- |"
             echo "| Decision | $decision |"
-            echo "| Fingerprint | \`$(value "$SOURCE_FINGERPRINT")\` |"
+            echo "| Native build fingerprint | \`$(value "$SOURCE_FINGERPRINT")\` |"
             echo "| Build type | \`$(value "$BUILD_TYPE")\` |"
             echo "| MetaMask environment | \`$(value "$METAMASK_ENVIRONMENT")\` |"
             echo "| GitHub artifact candidate | $github_candidate |"
