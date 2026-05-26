@@ -60,7 +60,7 @@ const RewardsVipTiersView: React.FC = () => {
 
   const showSkeleton = (!hasAttemptedFetch || isLoading) && !dashboard;
   const showError = hasError && !dashboard;
-  const tiers = dashboard?.tiers ?? [];
+  const tiers = dashboard?.tiers.filter((tier) => tier.tier > 0) ?? [];
   const nextTierId = dashboard?.nextTier?.id;
 
   return (
@@ -82,7 +82,7 @@ const RewardsVipTiersView: React.FC = () => {
               testID={REWARDS_VIP_TIERS_VIEW_TEST_IDS.SKELETON}
             >
               {[0, 1, 2, 3, 4].map((i) => (
-                <Skeleton key={i} style={tw.style('h-12 rounded-xl')} />
+                <Skeleton key={i} style={tw.style('h-16 rounded-xl')} />
               ))}
             </Box>
           ) : showError ? (
@@ -97,7 +97,7 @@ const RewardsVipTiersView: React.FC = () => {
             </Box>
           ) : (
             <Box
-              twClassName="gap-1"
+              twClassName="mx-4 rounded-2xl overflow-hidden bg-section"
               testID={REWARDS_VIP_TIERS_VIEW_TEST_IDS.LIST}
             >
               {tiers.map((tier) => (
@@ -105,6 +105,7 @@ const RewardsVipTiersView: React.FC = () => {
                   key={tier.id}
                   tier={tier}
                   isNext={tier.id === nextTierId}
+                  isLast={tier.id === tiers[tiers.length - 1]?.id}
                 />
               ))}
             </Box>
