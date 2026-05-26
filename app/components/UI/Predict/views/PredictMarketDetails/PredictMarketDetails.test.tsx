@@ -3544,14 +3544,13 @@ describe('PredictMarketDetails', () => {
       );
     });
 
-    it('pauses broad outcome price updates while buy sheet is open', () => {
+    it('pauses and resumes broad outcome price updates as buy sheet visibility changes', () => {
       const { usePredictPrices } = jest.requireMock(
         '../../hooks/usePredictPrices',
       );
       const { useLiveMarketPrices } = jest.requireMock(
         '../../hooks/useLiveMarketPrices',
       );
-      mockIsBuySheetOpen = true;
       const worldCupWinnerMarket = createMockMarket({
         status: 'open',
         outcomes: Array.from({ length: 64 }, (_, index) => ({
@@ -3567,7 +3566,21 @@ describe('PredictMarketDetails', () => {
         })),
       });
 
-      setupPredictMarketDetailsTest(worldCupWinnerMarket);
+      mockIsBuySheetOpen = false;
+      const { rerender } = setupPredictMarketDetailsTest(worldCupWinnerMarket);
+
+      expect(usePredictPrices).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          enabled: true,
+          pollingInterval: 2000,
+        }),
+      );
+      expect(useLiveMarketPrices).toHaveBeenLastCalledWith(expect.any(Array), {
+        enabled: true,
+      });
+
+      mockIsBuySheetOpen = true;
+      rerender(<PredictMarketDetails />);
 
       expect(usePredictPrices).toHaveBeenLastCalledWith(
         expect.objectContaining({
@@ -3578,6 +3591,19 @@ describe('PredictMarketDetails', () => {
       );
       expect(useLiveMarketPrices).toHaveBeenLastCalledWith([], {
         enabled: false,
+      });
+
+      mockIsBuySheetOpen = false;
+      rerender(<PredictMarketDetails />);
+
+      expect(usePredictPrices).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          enabled: true,
+          pollingInterval: 2000,
+        }),
+      );
+      expect(useLiveMarketPrices).toHaveBeenLastCalledWith(expect.any(Array), {
+        enabled: true,
       });
     });
 
