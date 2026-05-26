@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
-import { PaymentOverride } from '@metamask/transaction-pay-controller';
+import { PaymentOverride } from '../../types/transactions';
 import { Alert, Severity } from '../../types/alerts';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';

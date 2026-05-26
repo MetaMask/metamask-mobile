@@ -12,7 +12,7 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { PaymentOverride } from '@metamask/transaction-pay-controller';
+import { PaymentOverride } from '../../types/transactions';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { AssetType } from '../../types/token';
@@ -98,7 +98,7 @@ export function useAutomaticTransactionPayToken({
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId ?? ''),
   );
-  const isMoneyAccountSource =
+  const isMoneyPaymentProvider =
     paymentOverride === PaymentOverride.MoneyAccount &&
     !postQuoteTransactionType;
   const accountOverride = useTransactionAccountOverride();
@@ -119,7 +119,7 @@ export function useAutomaticTransactionPayToken({
     () =>
       getBestToken({
         isHardwareWallet,
-        isMoneyAccountSource,
+        isMoneyPaymentProvider,
         isMoneyAccountWithdraw,
         isQRWallet,
         isWithdraw,
@@ -133,7 +133,7 @@ export function useAutomaticTransactionPayToken({
       }),
     [
       isHardwareWallet,
-      isMoneyAccountSource,
+      isMoneyPaymentProvider,
       isMoneyAccountWithdraw,
       isQRWallet,
       isWithdraw,
@@ -217,17 +217,17 @@ export function useAutomaticTransactionPayToken({
 
   // Re-select the pay token when the user switches between global account and
   // money account. Money account deposits are locked to MUSD on MONAD.
-  const prevIsMoneyAccountSourceRef = useRef(false);
+  const previsMoneyPaymentProviderRef = useRef(false);
   useEffect(() => {
     if (
       disable ||
       !from ||
-      isMoneyAccountSource === prevIsMoneyAccountSourceRef.current ||
+      isMoneyPaymentProvider === previsMoneyPaymentProviderRef.current ||
       postQuoteTransactionType
     ) {
       return;
     }
-    prevIsMoneyAccountSourceRef.current = isMoneyAccountSource;
+    previsMoneyPaymentProviderRef.current = isMoneyPaymentProvider;
 
     if (automaticToken) {
       setPayToken({
@@ -242,7 +242,7 @@ export function useAutomaticTransactionPayToken({
     from,
     postQuoteTransactionType,
     setPayToken,
-    isMoneyAccountSource,
+    isMoneyPaymentProvider,
   ]);
 
   return automaticToken;
@@ -250,7 +250,7 @@ export function useAutomaticTransactionPayToken({
 
 function getBestToken({
   isHardwareWallet,
-  isMoneyAccountSource,
+  isMoneyPaymentProvider,
   isMoneyAccountWithdraw,
   isQRWallet,
   isWithdraw,
@@ -263,7 +263,7 @@ function getBestToken({
   transactionMeta,
 }: {
   isHardwareWallet: boolean;
-  isMoneyAccountSource: boolean;
+  isMoneyPaymentProvider: boolean;
   isMoneyAccountWithdraw: boolean;
   isQRWallet: boolean;
   isWithdraw: boolean;
@@ -290,7 +290,7 @@ function getBestToken({
     return targetTokenFallback;
   }
 
-  if (isMoneyAccountSource) {
+  if (isMoneyPaymentProvider) {
     return { address: MUSD_TOKEN_ADDRESS, chainId: CHAIN_IDS.MONAD };
   }
 

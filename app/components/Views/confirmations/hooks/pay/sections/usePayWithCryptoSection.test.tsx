@@ -1,5 +1,6 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
 import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
@@ -8,6 +9,7 @@ import { useParams } from '../../../../../../util/navigation/navUtils';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { TokenIcon, TokenIconVariant } from '../../../components/token-icon';
 import { MUSD_TOKEN_ADDRESS } from '../../../../../UI/Earn/constants/musd';
+import { PaymentOverride } from '../../../types/transactions';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 import { useIsPerpsBalanceSelected } from '../../../../../UI/Perps/hooks/useIsPerpsBalanceSelected';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
@@ -18,6 +20,10 @@ import { useTransactionPayFiatPayment } from '../useTransactionPayData';
 import { useTransactionPayToken } from '../useTransactionPayToken';
 import { usePayWithCryptoSection } from './usePayWithCryptoSection';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
@@ -66,6 +72,7 @@ const SELECTED_TOKEN_MOCK = {
 };
 
 describe('usePayWithCryptoSection', () => {
+  const useSelectorMock = jest.mocked(useSelector);
   const useNavigationMock = jest.mocked(useNavigation);
   const useFiatFormatterMock = jest.mocked(useFiatFormatter);
   const useParamsMock = jest.mocked(useParams);
@@ -90,6 +97,8 @@ describe('usePayWithCryptoSection', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    useSelectorMock.mockReturnValue(undefined);
 
     useNavigationMock.mockReturnValue({
       navigate: navigateMock,
@@ -693,5 +702,78 @@ describe('usePayWithCryptoSection', () => {
     );
 
     expect(selectedRow).toBeUndefined();
+  });
+
+  describe('money account selected', () => {
+    beforeEach(() => {
+      useSelectorMock.mockReturnValue(PaymentOverride.MoneyAccount);
+    });
+
+    it('suppresses preferred token row checkmark when money account is selected', () => {
+      const { result } = renderHook(() => usePayWithCryptoSection());
+
+      const preferredRow = result.current?.rows.find(
+        (row) => row.id === 'crypto-preferred-token',
+      );
+
+      expect(preferredRow).toEqual(
+        expect.objectContaining({
+          isSelected: false,
+          trailingElement: 'none',
+        }),
+      );
+    });
+
+    it('hides user-selected token row when money account is selected', () => {
+      const distinctSelectedToken = {
+        ...TOKEN_MOCK,
+        address: SELECTED_TOKEN_MOCK.address,
+        symbol: SELECTED_TOKEN_MOCK.symbol,
+        balanceUsd: SELECTED_TOKEN_MOCK.balanceUsd,
+      };
+      usePayWithPreferredTokenMock.mockReturnValue({
+        hasTokens: true,
+        preferredToken: TOKEN_MOCK,
+        selectedToken: distinctSelectedToken,
+      });
+      usePayWithSelectedTokenMock.mockReturnValue({
+        isSelectedDistinctFromAutomatic: true,
+        selectedToken: SELECTED_TOKEN_MOCK,
+        selectToken: selectTokenMock,
+      });
+
+      const { result } = renderHook(() => usePayWithCryptoSection());
+
+      const selectedRow = result.current?.rows.find(
+        (row) => row.id === 'crypto-selected-token',
+      );
+
+      expect(selectedRow).toBeUndefined();
+    });
+
+    it('omits preferred token row when it matches MUSD on MONAD', () => {
+      usePayWithPreferredTokenMock.mockReturnValue({
+        hasTokens: true,
+        preferredToken: {
+          ...TOKEN_MOCK,
+          address: MUSD_TOKEN_ADDRESS,
+          chainId: CHAIN_IDS.MONAD,
+          symbol: 'mUSD',
+        },
+        selectedToken: TOKEN_MOCK,
+      });
+
+      const { result } = renderHook(() => usePayWithCryptoSection());
+
+      const preferredRow = result.current?.rows.find(
+        (row) => row.id === 'crypto-preferred-token',
+      );
+
+      expect(preferredRow).toBeUndefined();
+      expect(result.current?.rows).toHaveLength(1);
+      expect(result.current?.rows[0]).toEqual(
+        expect.objectContaining({ id: 'crypto-other-assets' }),
+      );
+    });
   });
 });

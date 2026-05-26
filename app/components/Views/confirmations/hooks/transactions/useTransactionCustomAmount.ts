@@ -6,7 +6,7 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { PaymentOverride } from '@metamask/transaction-pay-controller';
+import { PaymentOverride } from '../../types/transactions';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useUpdateTransactionPayAmount } from '../pay/useUpdateTransactionPayAmount';
 import { getTokenAddress } from '../../utils/transaction-pay';
