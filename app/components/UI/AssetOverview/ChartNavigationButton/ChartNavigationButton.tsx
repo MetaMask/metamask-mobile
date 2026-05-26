@@ -11,20 +11,34 @@ interface ChartNavigationButtonProps {
   onPress: () => void;
   label: string;
   selected: boolean;
+  /** Override background color for the selected state (A/B test). */
+  selectedColor?: string;
 }
 
 const ChartNavigationButton = ({
   onPress,
   label,
   selected,
+  selectedColor,
 }: ChartNavigationButtonProps) => {
-  const { styles } = useStyles(styleSheet, { selected });
+  const { styles } = useStyles(styleSheet, { selected, selectedColor });
+
+  const getTextColor = () => {
+    if (selected && selectedColor) {
+      return TextColor.Inverse;
+    }
+    if (!selected && selectedColor) {
+      return selectedColor;
+    }
+    return selected ? TextColor.Default : TextColor.Alternative;
+  };
+
   return (
     <TouchableOpacity style={styles.button} onPress={onPress}>
       <Text
         variant={TextVariant.BodySM}
         style={styles.label}
-        color={selected ? TextColor.Default : TextColor.Alternative}
+        color={getTextColor()}
       >
         {label}
       </Text>
