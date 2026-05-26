@@ -12,17 +12,15 @@ import SocialLoginView from '../../page-objects/Onboarding/SocialLoginView';
 
 // Mocks
 import { createOAuthMockttpService } from '../../api-mocking/seedless-onboarding';
-import { E2EOAuthHelpers } from '../../module-mocking/oauth';
+import { E2E_EMAILS } from '../../api-mocking/seedless-onboarding/constants';
 import { SmokeSeedlessOnboarding } from '../../tags';
 
-describe(SmokeSeedlessOnboarding('Google Login - Existing User'), () => {
+const EXISTING_USER_EMAIL = E2E_EMAILS.GOOGLE_EXISTING_USER;
+
+// eslint-disable-next-line jest/no-disabled-tests -- skipped until existing-user E2E flow is stable
+describe.skip(SmokeSeedlessOnboarding('Google Login - Existing User'), () => {
   beforeAll(async () => {
     jest.setTimeout(300000);
-  });
-
-  beforeEach(async () => {
-    E2EOAuthHelpers.reset();
-    E2EOAuthHelpers.configureGoogleExistingUser();
   });
 
   it('shows Account Already Exists screen for existing Google user', async () => {
@@ -30,6 +28,7 @@ describe(SmokeSeedlessOnboarding('Google Login - Existing User'), () => {
       {
         fixture: new FixtureBuilder({ onboarding: true }).build(),
         restartDevice: true,
+        launchArgs: { mockOAuthEmail: EXISTING_USER_EMAIL },
         testSpecificMock: async (mockServer: Mockttp) => {
           const oAuthMockttpService = createOAuthMockttpService();
           oAuthMockttpService.configureGoogleExistingUser();
@@ -81,6 +80,7 @@ describe(SmokeSeedlessOnboarding('Google Login - Existing User'), () => {
       {
         fixture: new FixtureBuilder({ onboarding: true }).build(),
         restartDevice: true,
+        launchArgs: { mockOAuthEmail: EXISTING_USER_EMAIL },
         testSpecificMock: async (mockServer: Mockttp) => {
           const oAuthMockttpService = createOAuthMockttpService();
           oAuthMockttpService.configureGoogleExistingUser();

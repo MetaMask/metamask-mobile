@@ -1,4 +1,5 @@
 import { OAUTH_CONFIG } from './config';
+import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
 import {
   Env as ProfileSyncEnv,
   getEnvUrls,
@@ -54,7 +55,7 @@ jest.mock(
   }),
 );
 
-const mockAppRedirectUri = 'https://link.metamask.io/oauth-redirect';
+const mockAppRedirectUri = `${PREFIXES.METAMASK}${ACTIONS.OAUTH_REDIRECT}`;
 const CURRENT_OAUTH_CONFIG = OAUTH_CONFIG.main_prod;
 
 describe('OAuth Constants', () => {

@@ -287,6 +287,8 @@ export interface LaunchArgs {
   /** Appium specific launch args */
   stop: boolean;
   wait: boolean;
+  /** Optional fixed email for E2E mock OAuth (existing-user seedless tests). */
+  mockOAuthEmail?: string;
 }
 
 /**

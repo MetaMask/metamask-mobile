@@ -21,7 +21,7 @@ interface OAUTH_CONFIG_TYPE {
   IOS_TELEGRAM_AUTH_CONNECTION_ID: string;
 }
 
-enum BUILD_TYPE {
+export enum BUILD_TYPE {
   development = 'development',
   main_prod = 'main_prod',
   main_uat = 'main_uat',

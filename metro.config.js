@@ -66,15 +66,14 @@ module.exports = function (baseConfig) {
       process.env.METAMASK_ENVIRONMENT === 'e2e');
 
   /**
-   * E2E Metro redirects under tests/module-mocking.
-   * Enables both: seedless-onboarding-controller + OAuthLoginHandlers mocks.
-   * True when IS_TEST / METAMASK_ENVIRONMENT=e2e OR E2E_MOCK_OAUTH.
-   * Performance builds set E2E_MOCK_OAUTH=true to keep this mock active
-   * even though isE2E is false (preventing real OAuth calls to production).
+   * E2E / perf Metro redirect for OAuthLoginHandlers only (tests/module-mocking/oauth).
+   * Active when IS_TEST / METAMASK_ENVIRONMENT=e2e OR E2E_MOCK_OAUTH.
+   * Performance builds set E2E_MOCK_OAUTH=true to keep this mock active even
+   * though isE2E is false (preventing real OAuth calls to production).
    */
   const isE2EMockOAuth = process.env.E2E_MOCK_OAUTH === 'true';
 
-  const e2eAllowsSeedlessOAuthMetroMocks = isE2E || isE2EMockOAuth;
+  const e2eAllowsOAuthMetroMocks = isE2E || isE2EMockOAuth;
 
   // For less powerful machines, leave room to do other tasks. For instance,
   // if you have 10 cores but only 16GB, only 3 workers would get used.
@@ -185,25 +184,7 @@ module.exports = function (baseConfig) {
               };
             }
           }
-          if (e2eAllowsSeedlessOAuthMetroMocks) {
-            if (
-              moduleName.endsWith(
-                'controllers/seedless-onboarding-controller',
-              ) ||
-              moduleName.endsWith(
-                'controllers/seedless-onboarding-controller/index',
-              ) ||
-              moduleName === './seedless-onboarding-controller' ||
-              moduleName === '../seedless-onboarding-controller'
-            ) {
-              return {
-                type: 'sourceFile',
-                filePath: path.resolve(
-                  __dirname,
-                  'tests/module-mocking/seedless/index.ts',
-                ),
-              };
-            }
+          if (e2eAllowsOAuthMetroMocks) {
             // Skips native Google/Apple UI; tokens still hit auth server (see module mock).
             if (
               moduleName.endsWith('OAuthService/OAuthLoginHandlers') ||

@@ -1,19 +1,57 @@
 /**
  * Mock OAuthLoginHandlers for E2E Testing
+ *
+ * Random email
  */
 
 import { Platform } from 'react-native';
-import { E2EOAuthHelpers } from '../E2EOAuthHelpers';
+import { LaunchArguments } from 'react-native-launch-arguments';
+import QuickCrypto from 'react-native-quick-crypto';
 
 // Re-export types from real module
 export { AuthConnection } from '../../../../app/core/OAuthService/OAuthInterface';
 
-// Import constants from real module
 import {
   AuthServerUrl,
   web3AuthNetwork,
+  AppleWebClientId,
+  GoogleWebGID,
+  IosGID,
 } from '../../../../app/core/OAuthService/OAuthLoginHandlers/constants';
 import type { BaseHandlerOptions } from '../../../../app/core/OAuthService/OAuthLoginHandlers/baseHandler';
+
+function getMockGoogleOAuthClientId(): string {
+  if (Platform.OS === 'ios') {
+    if (!IosGID) {
+      throw new Error(
+        '[E2E Mock] Missing iOS Google client ID (IosGID / IOS_GOOGLE_CLIENT_ID from OAuth config).',
+      );
+    }
+    return IosGID;
+  }
+  if (!GoogleWebGID) {
+    throw new Error(
+      '[E2E Mock] Missing Android Google server client ID (GoogleWebGID from OAuth config).',
+    );
+  }
+  return GoogleWebGID;
+}
+
+/**
+ * Get the E2E mock email.
+ */
+function getE2EMockEmail(): string {
+  const raw = LaunchArguments.value() as Record<string, unknown>;
+  const launchArgEmail = raw?.mockOAuthEmail;
+  if (typeof launchArgEmail === 'string' && launchArgEmail.length > 0) {
+    console.log('[E2E Mock] Using email from launchArgs:', launchArgEmail);
+    return launchArgEmail;
+  }
+  const rand = QuickCrypto.randomBytes(4).toString('hex').slice(0, 8);
+  const randomEmail = `${rand}${Date.now()}+e2e@web3auth.io`;
+  console.log('[E2E Mock] Generated random email:', randomEmail);
+  return randomEmail;
+}
 
 /**
  * Login result type
@@ -151,7 +189,7 @@ class MockGoogleLoginHandler extends MockBaseLoginHandler {
   }
 
   async login(): Promise<LoginHandlerResult> {
-    const email = E2EOAuthHelpers.getE2EEmail();
+    const email = getE2EMockEmail();
     console.log(`[E2E Mock] Google login with email: ${email}`);
 
     // Simulate brief delay
@@ -177,7 +215,7 @@ class MockGoogleLoginHandler extends MockBaseLoginHandler {
       login_provider: this.authConnection,
       network: params.web3AuthNetwork,
       code_verifier: params.codeVerifier,
-      email: params.email || E2EOAuthHelpers.getE2EEmail(),
+      email: params.email,
     };
   }
 }
@@ -203,7 +241,7 @@ class MockAppleLoginHandler extends MockBaseLoginHandler {
   }
 
   async login(): Promise<LoginHandlerResult> {
-    const email = E2EOAuthHelpers.getE2EEmail();
+    const email = getE2EMockEmail();
     console.log(`[E2E Mock] Apple login with email: ${email}`);
 
     // Simulate brief delay
@@ -245,7 +283,7 @@ class MockAppleLoginHandler extends MockBaseLoginHandler {
       id_token: params.idToken,
       login_provider: this.authConnection,
       network: params.web3AuthNetwork,
-      email: params.email || E2EOAuthHelpers.getE2EEmail(),
+      email: params.email,
     };
   }
 }
@@ -264,13 +302,17 @@ export function createLoginHandler(
   switch (provider) {
     case 'google':
       return new MockGoogleLoginHandler({
-        clientId: 'e2e-mock-google-client-id',
+        clientId: getMockGoogleOAuthClientId(),
         redirectUri: 'metamask://e2e',
       });
-    case 'apple':
-      return new MockAppleLoginHandler({
-        clientId: 'e2e-mock-apple-client-id',
-      });
+    case 'apple': {
+      if (!AppleWebClientId) {
+        throw new Error(
+          '[E2E Mock] Missing Apple client ID (AppleWebClientId from OAuth config).',
+        );
+      }
+      return new MockAppleLoginHandler({ clientId: AppleWebClientId });
+    }
     default:
       throw new Error(`[E2E Mock] Unsupported provider: ${provider}`);
   }

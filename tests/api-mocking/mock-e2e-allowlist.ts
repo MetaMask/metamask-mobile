@@ -6,6 +6,10 @@ export const ALLOWLISTED_HOSTS = [
   '127.0.0.1',
   'localhost',
   '10.0.2.2', // Android emulator host
+  // Seedless OAuth / Web3Auth UAT — real services (proxy forwards; see shim.js)
+  'auth-service.uat-api.cx.metamask.io',
+  '*.node.web3auth.io',
+  '*.uat-node.web3auth.io',
   'metamask.github.io', // Test-snaps and test-dapp pages loaded in browser
 ];
 
