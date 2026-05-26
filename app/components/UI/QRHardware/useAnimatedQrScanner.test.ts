@@ -564,8 +564,8 @@ describe('useAnimatedQrScanner', () => {
         expect(result.current.onError).toBeDefined();
       });
 
-      await act(async () => {
-        await result.current.onError(new Error('Camera initialization failed'));
+      act(() => {
+        result.current.onError(new Error('Camera initialization failed'));
       });
 
       await waitFor(() => {
@@ -588,8 +588,8 @@ describe('useAnimatedQrScanner', () => {
 
       const { result } = renderScannerHook();
 
-      await act(async () => {
-        await result.current.onError(new Error('Camera initialization failed'));
+      act(() => {
+        result.current.onError(new Error('Camera initialization failed'));
       });
 
       await waitFor(() => {
@@ -604,6 +604,7 @@ describe('useAnimatedQrScanner', () => {
 
     it('suppresses analytics failures from the fire-and-forget onError handler', async () => {
       const analyticsError = new Error('Analytics unavailable');
+      // The helper retries with Unknown device metadata after the first builder failure.
       mockCreateEventBuilder.mockImplementationOnce(() => {
         throw analyticsError;
       });
@@ -612,13 +613,16 @@ describe('useAnimatedQrScanner', () => {
       });
       const { result } = renderScannerHook();
 
-      const onErrorResult = result.current.onError(
-        new Error('Camera initialization failed'),
-      );
+      let onErrorResult: unknown;
+      act(() => {
+        onErrorResult = result.current.onError(
+          new Error('Camera initialization failed'),
+        );
+      });
 
       expect(onErrorResult).toBeUndefined();
-      await act(async () => {
-        await Promise.resolve();
+      await waitFor(() => {
+        expect(mockCreateEventBuilder).toHaveBeenCalledTimes(2);
       });
       expect(mockTrackEvent).not.toHaveBeenCalled();
     });

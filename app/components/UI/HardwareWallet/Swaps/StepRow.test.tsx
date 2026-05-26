@@ -48,6 +48,17 @@ jest.mock('../../QRHardware/AnimatedQRCode', () => ({
   default: jest.fn(() => null),
 }));
 
+jest.mock('./StepConnectorLine', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+
+  return {
+    StepConnectorLine: jest.fn(({ testID }: { testID?: string }) =>
+      ReactActual.createElement(View, { testID }),
+    ),
+  };
+});
+
 import AnimatedQRCode from '../../QRHardware/AnimatedQRCode';
 
 const mockAnimatedQRCode = AnimatedQRCode as jest.Mock;
