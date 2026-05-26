@@ -4,20 +4,20 @@ import { CaipChainId, Hex } from '@metamask/utils';
 import { formatUnits } from 'ethers/lib/utils';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import { SolScope } from '@metamask/keyring-api';
-import type { BridgeToken } from '../../../../../UI/Bridge/types';
-import type { RootState } from '../../../../../../reducers';
-import { selectAccountsByChainId } from '../../../../../../selectors/accountTrackerController';
-import { selectSelectedInternalAccountByScope } from '../../../../../../selectors/multichainAccounts/accounts';
-import { selectTokensBalances } from '../../../../../../selectors/tokenBalancesController';
-import { selectTokenMarketData } from '../../../../../../selectors/tokenRatesController';
-import { selectCurrencyRates } from '../../../../../../selectors/currencyRateController';
+import type { BridgeToken } from '../../../../../../UI/Bridge/types';
+import type { RootState } from '../../../../../../../reducers';
+import { selectAccountsByChainId } from '../../../../../../../selectors/accountTrackerController';
+import { selectSelectedInternalAccountByScope } from '../../../../../../../selectors/multichainAccounts/accounts';
+import { selectTokensBalances } from '../../../../../../../selectors/tokenBalancesController';
+import { selectTokenMarketData } from '../../../../../../../selectors/tokenRatesController';
+import { selectCurrencyRates } from '../../../../../../../selectors/currencyRateController';
 import {
   selectMultichainBalances,
   selectMultichainAssetsRates,
-} from '../../../../../../selectors/multichain/multichain';
-import { getSourceTokenCandidates } from './sourceTokenCandidates';
-import { toChecksumAddress } from '../../../../../../util/address';
-import { EVM_SCOPE } from '../../../../../UI/Earn/constants/networks';
+} from '../../../../../../../selectors/multichain/multichain';
+import { getSourceTokenCandidates } from '../sourceTokenCandidates';
+import { toChecksumAddress } from '../../../../../../../util/address';
+import { EVM_SCOPE } from '../../../../../../UI/Earn/constants/networks';
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
