@@ -44,6 +44,7 @@ const OTHER_ADDRESS: Hex = '0x0000000000000000000000000000000000000def';
 const OTHER_ERC20: Hex = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
 
 const ERC20_TRANSFER_SELECTOR = '0xa9059cbb';
+const ERC20_TRANSFER_FROM_SELECTOR = '0x23b872dd';
 
 function padAddress(addr: string): string {
   return addr.replace(/^0x/, '').toLowerCase().padStart(64, '0');
@@ -55,6 +56,19 @@ function padAmount(amount: bigint): string {
 
 function makeTransferCalldata(recipient: string, amount = 1_000_000n): string {
   return ERC20_TRANSFER_SELECTOR + padAddress(recipient) + padAmount(amount);
+}
+
+function makeTransferFromCalldata(
+  from: string,
+  to: string,
+  amount = 1_000_000n,
+): string {
+  return (
+    ERC20_TRANSFER_FROM_SELECTOR +
+    padAddress(from) +
+    padAddress(to) +
+    padAmount(amount)
+  );
 }
 
 function musdTransferInfo(): NonNullable<
@@ -338,6 +352,54 @@ describe('useMoneyAccountTransactions', () => {
           from: OTHER_ADDRESS,
           to: MUSD_TOKEN_ADDRESS,
           data: '0xa9059cbb', // selector only, no recipient/amount
+        } as never,
+      });
+      const { result } = renderHookWithProvider(
+        () => useMoneyAccountTransactions(),
+        { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+      );
+      expect(result.current.allTransactions).toHaveLength(0);
+    });
+
+    it('includes mUSD tokenMethodTransferFrom whose decoded recipient is the money account', () => {
+      const tx = makeTx(TransactionType.tokenMethodTransferFrom, {
+        txParams: {
+          from: OTHER_ADDRESS,
+          to: MUSD_TOKEN_ADDRESS,
+          data: makeTransferFromCalldata(OTHER_ADDRESS, MONEY_ADDRESS),
+        } as never,
+      });
+      const { result } = renderHookWithProvider(
+        () => useMoneyAccountTransactions(),
+        { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+      );
+      expect(result.current.allTransactions).toHaveLength(1);
+      expect(result.current.deposits).toHaveLength(1);
+    });
+
+    it('excludes mUSD tokenMethodTransferFrom whose decoded recipient is not the money account', () => {
+      const tx = makeTx(TransactionType.tokenMethodTransferFrom, {
+        txParams: {
+          from: OTHER_ADDRESS,
+          to: MUSD_TOKEN_ADDRESS,
+          data: makeTransferFromCalldata(OTHER_ADDRESS, OTHER_ADDRESS),
+        } as never,
+      });
+      const { result } = renderHookWithProvider(
+        () => useMoneyAccountTransactions(),
+        { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+      );
+      expect(result.current.allTransactions).toHaveLength(0);
+    });
+
+    it('excludes mUSD tokenMethodTransfer with recipient but missing amount slot', () => {
+      // Recipient decodes to the money account, but amount slot is absent —
+      // we must not include this row (would otherwise render with NaN amount).
+      const tx = makeTx(TransactionType.tokenMethodTransfer, {
+        txParams: {
+          from: OTHER_ADDRESS,
+          to: MUSD_TOKEN_ADDRESS,
+          data: `0xa9059cbb${padAddress(MONEY_ADDRESS)}`,
         } as never,
       });
       const { result } = renderHookWithProvider(

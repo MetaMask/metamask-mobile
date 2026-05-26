@@ -210,6 +210,28 @@ describe('moneyActivityFilters', () => {
         isMusdErc20Transfer(tx({ type: TransactionType.tokenMethodTransfer })),
       ).toBe(false);
     });
+
+    it('returns false on a chain where mUSD is not deployed', () => {
+      const polygon: Hex = '0x89';
+      expect(
+        isMusdErc20Transfer(
+          tx({
+            chainId: polygon,
+            type: TransactionType.tokenMethodTransfer,
+            transferInformation: transferInfo(MUSD_TOKEN_ADDRESS),
+          }),
+        ),
+      ).toBe(false);
+      expect(
+        isMusdErc20Transfer(
+          tx({
+            chainId: polygon,
+            type: TransactionType.tokenMethodTransfer,
+            txParams: { to: MUSD_TOKEN_ADDRESS } as never,
+          }),
+        ),
+      ).toBe(false);
+    });
   });
 
   describe('isMoneyActivityTransaction', () => {

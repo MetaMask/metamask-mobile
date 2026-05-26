@@ -2,7 +2,7 @@ import {
   type TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { isMusdToken } from '../../Earn/constants/musd';
+import { isMusdTokenOnChain } from '../../Earn/constants/musd';
 
 const ERC20_TRANSFER_TYPES: TransactionType[] = [
   TransactionType.tokenMethodTransfer,
@@ -10,16 +10,16 @@ const ERC20_TRANSFER_TYPES: TransactionType[] = [
 ];
 
 /**
- * True when the transaction is an ERC-20 transfer of mUSD (any supported chain).
- * `transferInformation` is only populated by incoming-transaction polling; for
- * locally-signed sends we fall back to `txParams.to`, which for ERC-20 transfer
- * types is always the token contract.
+ * True when the transaction is an ERC-20 transfer of mUSD on a chain where
+ * mUSD is actually deployed. `transferInformation` is only populated by
+ * incoming-transaction polling; for locally-signed sends we fall back to
+ * `txParams.to`, which for ERC-20 transfer types is always the token contract.
  */
 export function isMusdErc20Transfer(tx: TransactionMeta): boolean {
   if (!tx.type || !ERC20_TRANSFER_TYPES.includes(tx.type)) return false;
   return (
-    isMusdToken(tx.transferInformation?.contractAddress) ||
-    isMusdToken(tx.txParams?.to)
+    isMusdTokenOnChain(tx.transferInformation?.contractAddress, tx.chainId) ||
+    isMusdTokenOnChain(tx.txParams?.to, tx.chainId)
   );
 }
 

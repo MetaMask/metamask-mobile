@@ -17,19 +17,43 @@ import {
 import { selectNonReplacedTransactions } from '../../../../selectors/transactionController';
 import { areAddressesEqual } from '../../../../util/address';
 import { decodeTransferData } from '../../../../util/transactions';
-import { isMusdToken } from '../../Earn/constants/musd';
+import { isMusdTokenOnChain } from '../../Earn/constants/musd';
+
+// `0x` + 8 hex chars selector + 64 hex chars (address) + 64 hex chars (uint256).
+const ERC20_TRANSFER_CALLDATA_LENGTH = 138;
+// `0x` + 8 hex chars selector + 3 × 64 hex chars (from, to, uint256).
+const ERC20_TRANSFER_FROM_CALLDATA_LENGTH = 202;
 
 /**
- * For a `tokenMethodTransfer`, the call's recipient lives in the ERC-20
- * `transfer(address,uint256)` calldata, not in `txParams.to` (which is the
- * token contract). Returns `undefined` if the calldata is missing or malformed.
+ * Extracts the call's recipient from ERC-20 `transfer`/`transferFrom` calldata.
+ * For both types, `txParams.to` is the token contract, not the recipient — the
+ * recipient must be decoded from the calldata. Returns `undefined` if the
+ * calldata is missing or truncated; `decodeTransferData` does not throw on
+ * short input, so length must be checked.
  */
 function getErc20TransferRecipient(tx: TransactionMeta): string | undefined {
   const data = tx.txParams?.data;
   if (!data) return undefined;
   try {
-    const [recipient] = decodeTransferData('transfer', data) as string[];
-    return recipient;
+    if (
+      tx.type === TransactionType.tokenMethodTransfer &&
+      data.length >= ERC20_TRANSFER_CALLDATA_LENGTH
+    ) {
+      const [recipient] = decodeTransferData('transfer', data) as string[];
+      return recipient;
+    }
+    if (
+      tx.type === TransactionType.tokenMethodTransferFrom &&
+      data.length >= ERC20_TRANSFER_FROM_CALLDATA_LENGTH
+    ) {
+      // transferFrom(address from, address to, uint256 amount) → recipient at [1].
+      const [, recipient] = decodeTransferData(
+        'transferFrom',
+        data,
+      ) as string[];
+      return recipient;
+    }
+    return undefined;
   } catch {
     return undefined;
   }
@@ -103,18 +127,17 @@ export function useMoneyAccountTransactions(): UseMoneyAccountTransactionsResult
         // `txParams.to` is the recipient).
         if (
           tx.type === TransactionType.incoming &&
-          isMusdToken(tx.transferInformation?.contractAddress) &&
-          tx.txParams?.to !== undefined &&
-          areAddressesEqual(tx.txParams.to, moneyAddress)
+          isMusdTokenOnChain(
+            tx.transferInformation?.contractAddress,
+            tx.chainId,
+          ) &&
+          areAddressesEqual(tx.txParams?.to ?? '', moneyAddress)
         ) {
           return true;
         }
-        // Locally-signed `transfer()` of mUSD whose call recipient is the
-        // money account (e.g. user's EOA depositing into Money).
-        if (
-          tx.type === TransactionType.tokenMethodTransfer &&
-          isMusdErc20Transfer(tx)
-        ) {
+        // Locally-signed `transfer`/`transferFrom` of mUSD whose call recipient
+        // is the money account (e.g. user's EOA depositing into Money).
+        if (isMusdErc20Transfer(tx)) {
           const recipient = getErc20TransferRecipient(tx);
           if (
             recipient !== undefined &&

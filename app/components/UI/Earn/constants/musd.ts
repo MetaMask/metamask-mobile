@@ -51,6 +51,21 @@ export const isMusdToken = (address?: string): boolean => {
 };
 
 /**
+ * Like {@link isMusdToken} but also requires `chainId` to be a chain where
+ * mUSD is actually deployed. Prevents a same-address token on an unsupported
+ * chain from being misclassified as mUSD.
+ */
+export const isMusdTokenOnChain = (
+  address?: string,
+  chainId?: Hex,
+): boolean => {
+  if (!address || !chainId) return false;
+  const expected = MUSD_TOKEN_ADDRESS_BY_CHAIN[chainId];
+  if (!expected) return false;
+  return address.toLowerCase() === expected.toLowerCase();
+};
+
+/**
  * Chains where mUSD CTA should show (buy routes available).
  * BSC is excluded as buy routes are not yet available.
  */

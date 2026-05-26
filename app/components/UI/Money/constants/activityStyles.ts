@@ -7,7 +7,7 @@ import { getIntlNumberFormatter } from '../../../../util/intl';
 import { fromTokenMinimalUnit } from '../../../../util/number/bigint';
 import { decodeTransferData } from '../../../../util/transactions';
 import {
-  isMusdToken,
+  isMusdTokenOnChain,
   MUSD_DECIMALS,
   MUSD_TOKEN,
 } from '../../Earn/constants/musd';
@@ -48,51 +48,101 @@ export function getMoneyAmountPrefixForTransactionMeta(
   return '+';
 }
 
+// `0x` + 8 hex chars selector + 64 hex chars (address) + 64 hex chars (uint256).
+const ERC20_TRANSFER_CALLDATA_LENGTH = 138;
+// `0x` + 8 hex chars selector + 3 × 64 hex chars (from, to, uint256).
+const ERC20_TRANSFER_FROM_CALLDATA_LENGTH = 202;
+
 /**
  * Decoded ERC-20 transfer amount from `txParams.data` (decimal string), or
- * `undefined` if calldata is missing or malformed.
+ * `undefined` if calldata is missing/truncated. `decodeTransferData` does not
+ * throw on truncated input — it returns "NaN" — so length is checked first.
  */
 function getErc20TransferAmount(tx: TransactionMeta): string | undefined {
   const data = tx.txParams?.data;
   if (!data) return undefined;
   try {
-    const decoded = decodeTransferData('transfer', data) as string[];
-    return decoded[1];
+    if (
+      tx.type === EvmTransactionType.tokenMethodTransfer &&
+      data.length >= ERC20_TRANSFER_CALLDATA_LENGTH
+    ) {
+      const decoded = decodeTransferData('transfer', data) as string[];
+      const amount = decoded[1];
+      return Number.isFinite(Number(amount)) ? amount : undefined;
+    }
+    if (
+      tx.type === EvmTransactionType.tokenMethodTransferFrom &&
+      data.length >= ERC20_TRANSFER_FROM_CALLDATA_LENGTH
+    ) {
+      // transferFrom(address from, address to, uint256 amount) → amount at [2].
+      const decoded = decodeTransferData('transferFrom', data) as string[];
+      const amount = decoded[2];
+      return Number.isFinite(Number(amount)) ? amount : undefined;
+    }
+    return undefined;
   } catch {
     return undefined;
   }
 }
 
+export interface ResolvedMusdTransferMeta {
+  amount: string;
+  decimals: number;
+  symbol: string;
+  contractAddress: string;
+}
+
 /**
- * Formatted token amount, e.g. "+1,000.00 mUSD". Prefers `transferInformation`
- * (populated by incoming polling and the standard send flow); for locally-signed
- * mUSD `tokenMethodTransfer` it falls back to decoding `txParams.data` with
- * known mUSD metadata.
+ * Resolves the token metadata for an mUSD `transfer`/`transferFrom`-style row,
+ * preferring `transferInformation` (set by incoming polling + the standard
+ * send flow) and falling back to decoded calldata + known mUSD constants for
+ * locally-signed rows where `transferInformation` is not yet populated.
+ * Returns `undefined` when the calldata is malformed/truncated or the tx isn't
+ * an mUSD transfer on a supported chain.
  */
-export function getMusdDisplayAmountFromTransactionMeta(
+export function resolveMusdTransferMeta(
   tx: TransactionMeta,
-): string {
-  let amount = tx.transferInformation?.amount;
-  let decimals = tx.transferInformation?.decimals;
-  let symbol = tx.transferInformation?.symbol;
+): ResolvedMusdTransferMeta | undefined {
+  const ti = tx.transferInformation;
+  let amount = ti?.amount;
+  let decimals = ti?.decimals;
+  let symbol = ti?.symbol;
+  let contractAddress = ti?.contractAddress;
+
+  const isErc20TransferType =
+    tx.type === EvmTransactionType.tokenMethodTransfer ||
+    tx.type === EvmTransactionType.tokenMethodTransferFrom;
 
   if (
-    (!amount || !symbol || decimals === undefined) &&
-    tx.type === EvmTransactionType.tokenMethodTransfer &&
-    isMusdToken(tx.txParams?.to)
+    (!amount || !symbol || decimals === undefined || !contractAddress) &&
+    isErc20TransferType &&
+    isMusdTokenOnChain(tx.txParams?.to, tx.chainId)
   ) {
     amount = amount ?? getErc20TransferAmount(tx);
     decimals = decimals ?? MUSD_DECIMALS;
     symbol = symbol ?? MUSD_TOKEN.symbol;
+    contractAddress = contractAddress ?? tx.txParams?.to;
   }
 
-  if (!amount || !symbol) return '';
-  if (decimals === undefined) return '';
-  const humanReadable = fromTokenMinimalUnit(amount, decimals);
+  if (!amount || !symbol || decimals === undefined || !contractAddress) {
+    return undefined;
+  }
+  return { amount, decimals, symbol, contractAddress };
+}
+
+/**
+ * Formatted token amount, e.g. "+1,000.00 mUSD". See {@link resolveMusdTransferMeta}.
+ */
+export function getMusdDisplayAmountFromTransactionMeta(
+  tx: TransactionMeta,
+): string {
+  const meta = resolveMusdTransferMeta(tx);
+  if (!meta) return '';
+  const humanReadable = fromTokenMinimalUnit(meta.amount, meta.decimals);
   const num = parseFloat(humanReadable);
   if (isNaN(num)) return '';
   const prefix = getMoneyAmountPrefixForTransactionMeta(tx);
-  return `${prefix}${formatNumber(num)} ${symbol}`;
+  return `${prefix}${formatNumber(num)} ${meta.symbol}`;
 }
 
 export function isIncomingMoneyTransactionMeta(tx: TransactionMeta): boolean {

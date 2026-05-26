@@ -164,6 +164,21 @@ describe('activityStyles', () => {
       });
       expect(getMusdDisplayAmountFromTransactionMeta(tx)).toBe('');
     });
+
+    it('returns empty when mUSD tokenMethodTransfer calldata has a recipient but no amount', () => {
+      // selector + valid recipient slot, but no amount slot — `decodeTransferData`
+      // returns "NaN" for the amount instead of throwing.
+      const recipientHex =
+        '000000000000000000000000bf4bc559f929ce3994ba12d71d564737357bc8c2';
+      const tx = makeTx(TransactionType.tokenMethodTransfer, {
+        transferInformation: undefined,
+        txParams: {
+          to: MUSD_TOKEN_ADDRESS,
+          data: `0xa9059cbb${recipientHex}`,
+        } as never,
+      });
+      expect(getMusdDisplayAmountFromTransactionMeta(tx)).toBe('');
+    });
   });
 
   describe('isIncomingMoneyTransactionMeta', () => {

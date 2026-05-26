@@ -1,5 +1,9 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { isMusdToken, MUSD_TOKEN_ADDRESS_BY_CHAIN } from './musd';
+import {
+  isMusdToken,
+  isMusdTokenOnChain,
+  MUSD_TOKEN_ADDRESS_BY_CHAIN,
+} from './musd';
 
 describe('isMusdToken', () => {
   const MUSD_ADDRESS = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.MAINNET];
@@ -42,5 +46,35 @@ describe('isMusdToken', () => {
     const result = isMusdToken('');
 
     expect(result).toBe(false);
+  });
+});
+
+describe('isMusdTokenOnChain', () => {
+  const MUSD_ADDRESS = MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.MAINNET];
+
+  it('returns true for the mUSD address on a supported chain', () => {
+    expect(isMusdTokenOnChain(MUSD_ADDRESS, CHAIN_IDS.MAINNET)).toBe(true);
+    expect(isMusdTokenOnChain(MUSD_ADDRESS, CHAIN_IDS.LINEA_MAINNET)).toBe(
+      true,
+    );
+    expect(isMusdTokenOnChain(MUSD_ADDRESS, CHAIN_IDS.BSC)).toBe(true);
+    expect(isMusdTokenOnChain(MUSD_ADDRESS, CHAIN_IDS.MONAD)).toBe(true);
+  });
+
+  it('returns false for the mUSD address on an unsupported chain', () => {
+    expect(isMusdTokenOnChain(MUSD_ADDRESS, CHAIN_IDS.POLYGON)).toBe(false);
+    expect(isMusdTokenOnChain(MUSD_ADDRESS, CHAIN_IDS.ARBITRUM)).toBe(false);
+    expect(isMusdTokenOnChain(MUSD_ADDRESS, CHAIN_IDS.OPTIMISM)).toBe(false);
+  });
+
+  it('is case-insensitive', () => {
+    expect(
+      isMusdTokenOnChain(MUSD_ADDRESS.toUpperCase(), CHAIN_IDS.MAINNET),
+    ).toBe(true);
+  });
+
+  it('returns false for missing address or chainId', () => {
+    expect(isMusdTokenOnChain(undefined, CHAIN_IDS.MAINNET)).toBe(false);
+    expect(isMusdTokenOnChain(MUSD_ADDRESS, undefined)).toBe(false);
   });
 });
