@@ -218,6 +218,60 @@ jobs:
           fi
         shell: bash
 
+      - name: Write iOS E2E reuse summary
+        if: ${{ always() }}
+        shell: bash
+        env:
+          SOURCE_FINGERPRINT: ${{ inputs.source-fingerprint }}
+          BUILD_TYPE: ${{ inputs.build_type }}
+          METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+          REUSABLE_FOUND: ${{ steps.find-reusable-build.outputs.found }}
+          REUSABLE_RUN_ID: ${{ steps.find-reusable-build.outputs.run-id }}
+          APP_DOWNLOAD_OUTCOME: ${{ steps.download-reusable-app.outcome }}
+          NEEDS_NATIVE_BUILD: ${{ steps.gate.outputs.needs-native-build }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          value() {
+            if [[ -n "${1:-}" ]]; then
+              printf '%s' "$1"
+            else
+              printf 'n/a'
+            fi
+          }
+
+          yes_no() {
+            case "${1:-}" in
+              true) printf 'yes' ;;
+              false) printf 'no' ;;
+              *) value "$1" ;;
+            esac
+          }
+
+          reuse_run="$(value "$REUSABLE_RUN_ID")"
+          if [[ -n "${REUSABLE_RUN_ID:-}" ]]; then
+            reuse_run="[https://github.com/$REPOSITORY/actions/runs/$REUSABLE_RUN_ID](https://github.com/$REPOSITORY/actions/runs/$REUSABLE_RUN_ID)"
+          fi
+
+          decision="Fresh native build"
+          if [[ "${NEEDS_NATIVE_BUILD:-}" == "false" ]]; then
+            decision="GitHub artifact reuse"
+          fi
+
+          {
+            echo "### iOS E2E build reuse"
+            echo ""
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| Decision | $decision |"
+            echo "| Fingerprint | \`$(value "$SOURCE_FINGERPRINT")\` |"
+            echo "| Build type | \`$(value "$BUILD_TYPE")\` |"
+            echo "| MetaMask environment | \`$(value "$METAMASK_ENVIRONMENT")\` |"
+            echo "| GitHub artifact candidate found | $(yes_no "$REUSABLE_FOUND") |"
+            echo "| Candidate run | $reuse_run |"
+            echo "| Artifact download | $(value "$APP_DOWNLOAD_OUTCOME") |"
+            echo "| Native build needed | $(yes_no "$NEEDS_NATIVE_BUILD") |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
       # -------------------------------------------------------------------------
       # Heavy native setup — only runs on a full native-build path.
       # -------------------------------------------------------------------------

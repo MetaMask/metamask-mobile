@@ -315,6 +315,88 @@ jobs:
           fi
         shell: bash
 
+      - name: Write Android E2E reuse summary
+        if: ${{ always() }}
+        shell: bash
+        env:
+          SOURCE_FINGERPRINT: ${{ inputs.source-fingerprint }}
+          BUILD_TYPE: ${{ inputs.build_type }}
+          METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+          REUSABLE_FOUND: ${{ steps.find-reusable-build.outputs.found }}
+          REUSABLE_RUN_ID: ${{ steps.find-reusable-build.outputs.run-id }}
+          METADATA_VALID: ${{ steps.validate-reusable-metadata.outputs.valid }}
+          APK_DOWNLOAD_OUTCOME: ${{ steps.download-reusable-apk.outcome }}
+          TEST_APK_DOWNLOAD_OUTCOME: ${{ steps.download-reusable-test-apk.outcome }}
+          NAMESPACE_CACHE_HIT: ${{ steps.namespace-apk-cache.outputs.cache-hit }}
+          BRANCH_CACHE_HIT: ${{ steps.apk-cache-restore.outputs.cache-hit }}
+          MAIN_CACHE_HIT: ${{ steps.apk-cache-restore-main.outputs.cache-hit }}
+          BRANCH_CACHE_KEY: android-apk-${{ github.ref_name }}-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ inputs.source-fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          MAIN_CACHE_KEY: android-apk-main-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ inputs.source-fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          NEEDS_NATIVE_BUILD: ${{ steps.gate.outputs.needs-native-build }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          value() {
+            if [[ -n "${1:-}" ]]; then
+              printf '%s' "$1"
+            else
+              printf 'n/a'
+            fi
+          }
+
+          yes_no() {
+            case "${1:-}" in
+              true) printf 'yes' ;;
+              false) printf 'no' ;;
+              *) value "$1" ;;
+            esac
+          }
+
+          reuse_run="$(value "$REUSABLE_RUN_ID")"
+          if [[ -n "${REUSABLE_RUN_ID:-}" ]]; then
+            reuse_run="[https://github.com/$REPOSITORY/actions/runs/$REUSABLE_RUN_ID](https://github.com/$REPOSITORY/actions/runs/$REUSABLE_RUN_ID)"
+          fi
+
+          decision="Fresh native build"
+          if [[ "${NAMESPACE_CACHE_HIT:-}" == "true" ]]; then
+            decision="Namespace APK cache"
+          elif [[ "${REUSABLE_FOUND:-}" == "true" && "${METADATA_VALID:-}" == "true" && "${APK_DOWNLOAD_OUTCOME:-}" == "success" && "${TEST_APK_DOWNLOAD_OUTCOME:-}" == "success" ]]; then
+            decision="GitHub artifact reuse"
+          elif [[ "${BRANCH_CACHE_HIT:-}" == "true" || "${MAIN_CACHE_HIT:-}" == "true" ]]; then
+            decision="Cirrus APK cache"
+          elif [[ "${NEEDS_NATIVE_BUILD:-}" == "false" ]]; then
+            decision="reuse/cache hit"
+          fi
+
+          artifact_download="$(value "$APK_DOWNLOAD_OUTCOME")"
+          if [[ -n "${APK_DOWNLOAD_OUTCOME:-}" || -n "${TEST_APK_DOWNLOAD_OUTCOME:-}" ]]; then
+            artifact_download="apk=$(value "$APK_DOWNLOAD_OUTCOME"), androidTest=$(value "$TEST_APK_DOWNLOAD_OUTCOME")"
+          fi
+
+          branch_cache="$(yes_no "$BRANCH_CACHE_HIT")"
+          main_cache="$(yes_no "$MAIN_CACHE_HIT")"
+          if [[ "${BRANCH_CACHE_HIT:-}" == "true" ]]; then
+            branch_cache="yes (\`$BRANCH_CACHE_KEY\`)"
+          elif [[ "${MAIN_CACHE_HIT:-}" == "true" ]]; then
+            main_cache="yes (\`$MAIN_CACHE_KEY\`)"
+          fi
+
+          {
+            echo "### Android E2E build reuse"
+            echo ""
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| Decision | $decision |"
+            echo "| Fingerprint | \`$(value "$SOURCE_FINGERPRINT")\` |"
+            echo "| Build type | \`$(value "$BUILD_TYPE")\` |"
+            echo "| MetaMask environment | \`$(value "$METAMASK_ENVIRONMENT")\` |"
+            echo "| GitHub artifact candidate found | $(yes_no "$REUSABLE_FOUND") |"
+            echo "| Candidate run | $reuse_run |"
+            echo "| Artifact download | $artifact_download |"
+            echo "| Branch APK cache hit | $branch_cache |"
+            echo "| Main APK cache hit | $main_cache |"
+            echo "| Native build needed | $(yes_no "$NEEDS_NATIVE_BUILD") |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Setup Android Build Environment
         timeout-minutes: 15
         uses: ./.github/actions/setup-e2e-env
