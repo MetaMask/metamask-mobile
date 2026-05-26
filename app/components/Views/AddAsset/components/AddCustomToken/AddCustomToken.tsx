@@ -211,18 +211,7 @@ const AddCustomToken = ({
   );
 
   const networkName = networkConfig?.name ?? '';
-  const networkClientId = useMemo(() => {
-    const endpointClientId = defaultEndpoint?.networkClientId;
-    if (endpointClientId) {
-      return endpointClientId;
-    }
-
-    return (
-      Engine.context.NetworkController.findNetworkClientIdByChainId(
-        chainId as Hex,
-      ) ?? null
-    );
-  }, [chainId, defaultEndpoint?.networkClientId]);
+  const networkClientId = defaultEndpoint?.networkClientId ?? null;
 
   const isAssetsUnifyStateEnabled = useSelector(
     selectIsAssetsUnifyStateEnabled,
@@ -304,7 +293,8 @@ const AddCustomToken = ({
       networkClientId ??
       Engine.context.NetworkController.findNetworkClientIdByChainId(
         chainId as Hex,
-      );
+      ) ??
+      '';
 
     trace({ name: TraceName.ImportTokens });
     await TokensController.addToken({
@@ -312,7 +302,7 @@ const AddCustomToken = ({
       symbol,
       decimals: Number(decimals),
       name,
-      networkClientId: networkClientIdForChain ?? '',
+      networkClientId: networkClientIdForChain,
     });
     endTrace({ name: TraceName.ImportTokens });
 
