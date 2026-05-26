@@ -94,7 +94,6 @@ export function useHwConnectionMonitoring({
 
     const { error } = connectionState;
     if (handledErrorRef.current === error) return;
-    handledErrorRef.current = error;
 
     const parsedError = parseErrorByType(error);
 
@@ -105,6 +104,7 @@ export function useHwConnectionMonitoring({
       if (!hasActiveSigning) {
         return;
       }
+      handledErrorRef.current = error;
       dispatch(
         updateHardwareWalletsSwaps({
           type: HardwareWalletsSwapsEventType.DeviceDisconnected,
@@ -114,6 +114,7 @@ export function useHwConnectionMonitoring({
     }
 
     if (error && isUserCancellation(error)) {
+      handledErrorRef.current = error;
       dispatch(
         updateHardwareWalletsSwaps({
           type: HardwareWalletsSwapsEventType.Rejected,
@@ -121,6 +122,8 @@ export function useHwConnectionMonitoring({
       );
       return;
     }
+
+    handledErrorRef.current = error;
   }, [connectionState, currentStatus, hasActiveSigning, isEnabled, dispatch]);
 
   const resetHandledError = useCallback(() => {

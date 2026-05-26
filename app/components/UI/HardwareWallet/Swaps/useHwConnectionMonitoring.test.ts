@@ -266,6 +266,38 @@ describe('useHwConnectionMonitoring', () => {
     expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
   });
 
+  it('dispatches DEVICE_DISCONNECTED for an existing disconnect error once signing starts', () => {
+    const error = new Error('device disconnected');
+    (parseErrorByType as jest.Mock).mockReturnValue(
+      makeParsedError(ErrorCode.DeviceDisconnected),
+    );
+
+    const readyState = createReadyState();
+    const errorState = createErrorState(error);
+    mockUseHardwareWallet.mockReturnValue(mockContextWith(readyState));
+
+    const { rerender } = renderHook(
+      ({ hasActiveSigning }) =>
+        useHwConnectionMonitoring({
+          isEnabled: true,
+          currentStatus: HardwareWalletsSwapsStatus.Waiting,
+          hasActiveSigning,
+        }),
+      { initialProps: { hasActiveSigning: false } },
+    );
+
+    mockUseHardwareWallet.mockReturnValue(mockContextWith(errorState));
+    rerender({ hasActiveSigning: false });
+
+    expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
+
+    rerender({ hasActiveSigning: true });
+
+    expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
+      type: HardwareWalletsSwapsEventType.DeviceDisconnected,
+    });
+  });
+
   it('dispatches DEVICE_DISCONNECTED for DeviceDisconnected error code', () => {
     const error = new Error('device disconnected');
     (parseErrorByType as jest.Mock).mockReturnValue(
