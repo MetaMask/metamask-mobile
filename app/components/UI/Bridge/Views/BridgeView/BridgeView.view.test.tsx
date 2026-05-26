@@ -35,6 +35,8 @@ import {
   USDT_DEST,
 } from '../../_mocks_/bridgeViewTestConstants';
 import { BridgeTrendingTokensSectionTestIds } from '../../components/BridgeTrendingTokensSection/BridgeTrendingTokensSection.testIds';
+import { TrendingTokensBottomSheetTestIds } from '../../../Trending/components/TrendingTokensBottomSheet/TrendingTokensBottomSheet.testIds';
+import { getTrendingTokenRowItemTestId } from '../../../Trending/components/TrendingTokenRowItem/TrendingTokenRowItem.testIds';
 import {
   setupTrendingApiFetchMock,
   clearTrendingApiMocks,
@@ -902,7 +904,9 @@ describeForPlatforms('BridgeView', () => {
         () => {
           expect(
             getByTestId(
-              'trending-token-row-item-eip155:1/erc20:0x0000000000000000000000000000000000000000',
+              getTrendingTokenRowItemTestId(
+                'eip155:1/erc20:0x0000000000000000000000000000000000000000',
+              ),
             ),
           ).toBeOnTheScreen();
         },
@@ -914,7 +918,7 @@ describeForPlatforms('BridgeView', () => {
         getByTestId(BridgeTrendingTokensSectionTestIds.PRICE_FILTER),
       );
       expect(
-        await findByTestId('trending-token-price-change-bottom-sheet'),
+        await findByTestId(TrendingTokensBottomSheetTestIds.PRICE_CHANGE),
       ).toBeOnTheScreen();
 
       // Entering an amount transitions out of zero state and hides the trending section

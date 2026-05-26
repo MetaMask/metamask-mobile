@@ -25,17 +25,10 @@ describeForPlatforms('WalletActions', () => {
 
   // Migrated from tests/smoke/swap/unified-ui-wallet-actions.spec.ts
   // E2E: 'should display wallet actions bottom sheet when tapping actions button'
-  it('shows swap button when EVM account is selected', () => {
-    const { getByTestId } = renderWalletActionsView({ isEvmSelected: true });
-
-    expect(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
-    ).toBeOnTheScreen();
-  });
-
-  // Migrated from tests/smoke/swap/unified-ui-wallet-actions.spec.ts
-  // E2E: 'should navigate when tapping swap button from wallet actions'
-  it('navigates to bridge view when swap button is pressed', async () => {
+  //      'should navigate when tapping swap button from wallet actions'
+  // The getByTestId call implicitly asserts the swap button is present; pressing
+  // it and waiting for the Bridge route covers both E2E scenarios in one test.
+  it('shows swap button for EVM account and navigates to bridge view when pressed', async () => {
     const state = initialStateWalletActions({
       isEvmSelected: true,
     }).build() as unknown as Record<string, unknown>;
