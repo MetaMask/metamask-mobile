@@ -70,6 +70,9 @@ const PaymentMethodListItem: React.FC<PaymentMethodListItemProps> = ({
       ? formatDelayFromArray(paymentMethod.delay)
       : null;
 
+  const subtitleText =
+    quoteError && quoteErrorMessage ? quoteErrorMessage : delayText;
+
   const cryptoAmount =
     quote?.quote?.amountOut != null && tokenSymbol
       ? formatToken(Number(quote.quote.amountOut), tokenSymbol, {
@@ -105,13 +108,9 @@ const PaymentMethodListItem: React.FC<PaymentMethodListItemProps> = ({
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {paymentMethod.name}
         </Text>
-        {quoteError && quoteErrorMessage ? (
+        {subtitleText ? (
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {quoteErrorMessage}
-          </Text>
-        ) : delayText ? (
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {delayText}
+            {subtitleText}
           </Text>
         ) : null}
       </ListItemColumn>
