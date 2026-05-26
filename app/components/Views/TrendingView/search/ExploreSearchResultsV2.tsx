@@ -113,7 +113,7 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
           onPress={() => handleViewMore(section)}
           hitSlop={8}
           accessibilityRole="button"
-          accessibilityLabel={`${getViewMoreLabel(section.feedId, section.items.length, searchQuery, section.total)} ${item.title}`}
+          accessibilityLabel={`${getViewMoreLabel(section.feedId, section.isLoading ? 0 : section.items.length, searchQuery, section.isLoading ? undefined : section.total)} ${item.title}`}
           style={({ pressed }) => [
             pressedStyle.pressable,
             pressed && { opacity: 0.5 },
@@ -122,9 +122,9 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {getViewMoreLabel(
               section.feedId,
-              section.items.length,
+              section.isLoading ? 0 : section.items.length,
               searchQuery,
-              section.total,
+              section.isLoading ? undefined : section.total,
             )}
           </Text>
           <Icon
