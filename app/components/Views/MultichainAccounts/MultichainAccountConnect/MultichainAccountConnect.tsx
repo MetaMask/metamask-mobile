@@ -50,6 +50,7 @@ import useFavicon from '../../../hooks/useFavicon/useFavicon.ts';
 import {
   AccountConnectProps,
   AccountConnectScreens,
+  NetworkAvatarProps,
 } from '../../MultichainAccounts/shared/AccountConnect.types.ts';
 import { getNetworkImageSource } from '../../../../util/networks/index.js';
 import {
