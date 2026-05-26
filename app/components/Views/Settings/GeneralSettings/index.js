@@ -26,6 +26,7 @@ import {
   setHideZeroBalanceTokens,
   setHapticsEnabled,
 } from '../../../../actions/settings';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import PickComponent from '../../PickComponent';
 import AvatarAccount, {
   AvatarAccountType,

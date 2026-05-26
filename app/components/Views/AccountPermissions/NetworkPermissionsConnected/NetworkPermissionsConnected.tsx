@@ -40,6 +40,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
 import { handleNetworkSwitch } from '../../../../util/networks/handleNetworkSwitch';
 import { getCaip25Caveat } from '../../../../core/Permissions';
