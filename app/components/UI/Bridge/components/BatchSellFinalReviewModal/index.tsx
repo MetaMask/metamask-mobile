@@ -45,7 +45,6 @@ const MAX_VISIBLE_SOURCE_TOKEN_AVATARS = 5;
 const SOURCE_TOKEN_AVATAR_OVERLAP = 12;
 const NETWORK_FEE_VALUES_SKELETON_WIDTH = 150;
 const NETWORK_FEE_SKELETON_HEIGHT = 24;
-const METAMASK_FEE_PERCENT = '0.875';
 
 const getTokenKey = (token: BridgeToken) => `${token.chainId}:${token.address}`;
 
@@ -384,17 +383,21 @@ export function BatchSellFinalReviewModal() {
             ? strings('bridge.insufficient_funds')
             : strings('bridge.batch_sell_sell_all')}
         </Button>
-        <Text
-          variant={TextVariant.BodyXs}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-          twClassName="text-center"
-          testID={BatchSellFinalReviewModalSelectorsIDs.METAMASK_FEE_DISCLOSURE}
-        >
-          {strings('bridge.batch_sell_includes_metamask_fee', {
-            fee: METAMASK_FEE_PERCENT,
-          })}
-        </Text>
+        {batchSellQuoteData.quotePercentFee ? (
+          <Text
+            variant={TextVariant.BodyXs}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
+            testID={
+              BatchSellFinalReviewModalSelectorsIDs.METAMASK_FEE_DISCLOSURE
+            }
+          >
+            {strings('bridge.batch_sell_includes_metamask_fee', {
+              fee: batchSellQuoteData.quotePercentFee,
+            })}
+          </Text>
+        ) : null}
       </Box>
     </BottomSheet>
   );

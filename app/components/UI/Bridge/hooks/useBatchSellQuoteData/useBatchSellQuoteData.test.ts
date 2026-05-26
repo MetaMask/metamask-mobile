@@ -74,8 +74,11 @@ function buildMockRecommendedQuote(
     gasIncluded: boolean;
     gasIncluded7702: boolean;
     gasSponsored: boolean;
+    quoteBpsFee: number | string | null;
   }> = {},
 ) {
+  const { quoteBpsFee = 87.5, ...remainingQuoteOverrides } = quoteOverrides;
+
   return {
     quoteId,
     quote: {
@@ -87,8 +90,9 @@ function buildMockRecommendedQuote(
         symbol: destinationToken.symbol,
       },
       destChainId: Number(destinationToken.chainId),
+      feeData: { metabridge: { quoteBpsFee } },
       ...(priceData ? { priceData } : {}),
-      ...quoteOverrides,
+      ...remainingQuoteOverrides,
     },
     toTokenAmount: { amount, valueInCurrency },
     minToTokenAmount: { amount, valueInCurrency },
@@ -234,6 +238,7 @@ describe('useBatchSellQuoteData', () => {
     expect(result.current.minimumReceived.amount).toBe('200');
     expect(result.current.networkFee.amount).toBe('1.2');
     expect(result.current.networkFee.valueInCurrency).toBe('1.25');
+    expect(result.current.quotePercentFee).toBe('0.875');
     expect(result.current.totalReceived.formatted).toBe('200 USDC');
     expect(result.current.totalReceived.formattedFiat).toBe('$201.34');
     expect(result.current.minimumReceived.formatted).toBe('200 USDC');
@@ -308,6 +313,57 @@ describe('useBatchSellQuoteData', () => {
     const { result } = renderHook(() => useBatchSellQuoteData());
 
     expect(result.current.isGasless).toBe(true);
+  });
+
+  it('derives the MetaMask fee from the quoteBpsFee on quote data', () => {
+    mockBatchSellQuotes = {
+      ...mockBatchSellQuotes,
+      recommendedQuotes: [
+        buildMockRecommendedQuote(
+          ethToken,
+          '123',
+          '123.45',
+          usdcToken,
+          undefined,
+          'dynamic-fee-eth',
+          { quoteBpsFee: 125 },
+        ),
+        buildMockRecommendedQuote(
+          uniToken,
+          '77',
+          '77.89',
+          usdcToken,
+          undefined,
+          'dynamic-fee-uni',
+          { quoteBpsFee: 125 },
+        ),
+      ],
+    };
+
+    const { result } = renderHook(() => useBatchSellQuoteData());
+
+    expect(result.current.quotePercentFee).toBe('1.25');
+  });
+
+  it('does not expose a MetaMask fee when quoteBpsFee is zero', () => {
+    mockBatchSellQuotes = {
+      ...mockBatchSellQuotes,
+      recommendedQuotes: [
+        buildMockRecommendedQuote(
+          ethToken,
+          '123',
+          '123.45',
+          usdcToken,
+          undefined,
+          'zero-fee-eth',
+          { quoteBpsFee: 0 },
+        ),
+      ],
+    };
+
+    const { result } = renderHook(() => useBatchSellQuoteData());
+
+    expect(result.current.quotePercentFee).toBeUndefined();
   });
 
   it('does not fetch Batch Sell trades again for the same quote ids', () => {

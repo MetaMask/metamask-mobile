@@ -187,6 +187,27 @@ function sumRecommendedQuoteAmounts(
   );
 }
 
+function getBatchSellMetamaskFeePercent(
+  recommendedQuotes: BatchSellRecommendedQuote[],
+) {
+  const quoteBpsFee = recommendedQuotes
+    .map((recommendedQuote) => {
+      // TODO: remove this once controller types are updated
+      // @ts-expect-error: controller types are not up to date yet
+      const fee = recommendedQuote.quote.feeData?.metabridge?.quoteBpsFee;
+
+      return fee as number | string | null | undefined;
+    })
+    .find((fee): fee is number | string => fee !== undefined && fee !== null);
+  const parsedQuoteBpsFee =
+    quoteBpsFee === undefined ? undefined : new BigNumber(quoteBpsFee);
+
+  if (!parsedQuoteBpsFee?.isFinite() || parsedQuoteBpsFee.lte(0))
+    return undefined;
+
+  return parsedQuoteBpsFee.div(100).toString();
+}
+
 export function useBatchSellQuoteData({
   shouldUpdateBatchSellTrades = true,
 }: UseBatchSellQuoteDataOptions = {}) {
@@ -375,6 +396,10 @@ export function useBatchSellQuoteData({
         )
       : '-',
   };
+  const quotePercentFee = useMemo(
+    () => getBatchSellMetamaskFeePercent(availableRecommendedQuotes),
+    [availableRecommendedQuotes],
+  );
 
   useEffect(() => {
     if (
@@ -465,5 +490,6 @@ export function useBatchSellQuoteData({
     hasPendingQuoteRows,
     networkFeeIsLoading,
     networkFee: networkFeeData,
+    quotePercentFee,
   };
 }

@@ -57,6 +57,7 @@ interface MockBatchSellQuoteData {
   isGasless: boolean;
   hasAnyQuote: boolean;
   hasPendingQuoteRows: boolean;
+  quotePercentFee?: string;
   networkFee: {
     amount?: string;
     valueInCurrency?: string | null;
@@ -104,6 +105,7 @@ const defaultQuoteData: MockBatchSellQuoteData = {
   isGasless: false,
   hasAnyQuote: true,
   hasPendingQuoteRows: false,
+  quotePercentFee: '1.25',
   networkFee: {
     amount: '1.2',
     valueInCurrency: '1.2',
@@ -187,7 +189,19 @@ describe('BatchSellFinalReviewModal', () => {
     expect(getByText('$1.20')).toBeOnTheScreen();
     expect(getByText('Sell all')).toBeOnTheScreen();
     expect(sellAllButton.props.accessibilityState.disabled).not.toBe(true);
-    expect(getByText('Includes 0.875% MetaMask fee')).toBeOnTheScreen();
+    expect(getByText('Includes 1.25% MetaMask fee')).toBeOnTheScreen();
+  });
+
+  it('hides the MetaMask fee disclosure when quoteBpsFee has no fee', () => {
+    const { queryByTestId } = renderModal({
+      quotePercentFee: undefined,
+    });
+
+    expect(
+      queryByTestId(
+        BatchSellFinalReviewModalSelectorsIDs.METAMASK_FEE_DISCLOSURE,
+      ),
+    ).toBeNull();
   });
 
   it('closes with navigation when the close button is pressed', () => {
