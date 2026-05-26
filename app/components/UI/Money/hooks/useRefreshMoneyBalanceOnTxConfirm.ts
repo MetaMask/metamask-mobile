@@ -96,7 +96,6 @@ const refreshMoneyBalanceQueries = async (address: string) => {
   );
 };
 
-// Test 1. providerBlock: 0x18037d5
 export const useRefreshMoneyBalanceOnTxConfirm = () => {
   useEffect(() => {
     const handleTransactionConfirmed = (transactionMeta: TransactionMeta) => {

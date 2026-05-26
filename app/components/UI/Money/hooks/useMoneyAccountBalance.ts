@@ -129,13 +129,12 @@ const useMoneyAccountBalance = (
     [musdBalanceQuery.isFetching, musdEquivalentBalanceQuery.isFetching],
   );
 
+  const refetchMusdBalance = musdBalanceQuery.refetch;
+  const refetchMusdEquivalentBalance = musdEquivalentBalanceQuery.refetch;
+
   const refetchBalance = useCallback(
-    () =>
-      Promise.all([
-        musdBalanceQuery.refetch(),
-        musdEquivalentBalanceQuery.refetch(),
-      ]),
-    [musdBalanceQuery, musdEquivalentBalanceQuery],
+    () => Promise.all([refetchMusdBalance(), refetchMusdEquivalentBalance()]),
+    [refetchMusdBalance, refetchMusdEquivalentBalance],
   );
 
   const { musdFiat, musdSHFvdFiat, tokenTotal, totalFiat, withdrawableMusd } =
