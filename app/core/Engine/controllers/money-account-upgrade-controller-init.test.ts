@@ -9,10 +9,7 @@ import {
 } from '../messengers/money-account-upgrade-controller-messenger';
 import Engine from '../../Engine';
 import ReduxService from '../../redux';
-import {
-  type MoneyAccountVaultConfig,
-  selectMoneyAccountVaultConfig,
-} from '../../../selectors/featureFlagController/moneyAccount';
+import type { MoneyAccountVaultConfig } from '../../../selectors/featureFlagController/moneyAccount';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 import {
   __resetMoneyAccountUpgradeBootstrapForTesting,
@@ -36,8 +33,6 @@ jest.mock('../../Engine', () => ({
     },
   },
 }));
-
-jest.mock('../../../selectors/featureFlagController/moneyAccount');
 
 jest.mock('../../../selectors/networkController', () => ({
   selectEvmNetworkConfigurationsByChainId: jest.fn(),
@@ -63,7 +58,16 @@ const VAULT_CONFIG: MoneyAccountVaultConfig = {
   lensAddress: '0x0000000000000000000000000000000000000003',
 };
 
-function getInitRequestMock({ isUnlocked }: { isUnlocked: boolean }) {
+function getInitRequestMock({
+  isUnlocked,
+  remoteFeatureFlagsState,
+}: {
+  isUnlocked: boolean;
+  remoteFeatureFlagsState?: {
+    remoteFeatureFlags: Record<string, unknown>;
+    localOverrides: Record<string, unknown>;
+  };
+}) {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
     namespace: MOCK_ANY_NAMESPACE,
   });
@@ -72,6 +76,17 @@ function getInitRequestMock({ isUnlocked }: { isUnlocked: boolean }) {
     // @ts-expect-error: Action not allowed on the mock messenger namespace.
     'KeyringController:getState',
     jest.fn().mockReturnValue({ isUnlocked }),
+  );
+
+  baseMessenger.registerActionHandler(
+    // @ts-expect-error: Action not allowed on the mock messenger namespace.
+    'RemoteFeatureFlagController:getState',
+    jest.fn().mockReturnValue(
+      remoteFeatureFlagsState ?? {
+        remoteFeatureFlags: {},
+        localOverrides: {},
+      },
+    ),
   );
 
   const requestMock = {
@@ -90,7 +105,10 @@ const publishFlagOn = (
   baseMessenger.publish(
     // @ts-expect-error: Event not allowed on the mock messenger namespace.
     'RemoteFeatureFlagController:stateChange',
-    { remoteFeatureFlags: {}, localOverrides: {} },
+    {
+      remoteFeatureFlags: { moneyAccountVaultConfig: VAULT_CONFIG },
+      localOverrides: {},
+    },
   );
 
 const flushAsync = () => new Promise(process.nextTick);
@@ -112,7 +130,6 @@ describe('moneyAccountUpgradeControllerInit', () => {
     (ReduxService as unknown as { store: { getState: jest.Mock } }).store = {
       getState: jest.fn().mockReturnValue({}),
     };
-    jest.mocked(selectMoneyAccountVaultConfig).mockReturnValue(VAULT_CONFIG);
     jest.mocked(selectEvmNetworkConfigurationsByChainId).mockReturnValue({
       [VAULT_CHAIN_ID]: {
         chainId: VAULT_CHAIN_ID,
@@ -201,14 +218,17 @@ describe('moneyAccountUpgradeControllerInit', () => {
     expect(mockedController.init).toHaveBeenCalledTimes(1);
   });
 
-  it('logs an error when the vault config is missing', async () => {
-    jest.mocked(selectMoneyAccountVaultConfig).mockReturnValue(undefined);
+  it('logs an error when the flag is on but the vault config is missing', async () => {
     const { requestMock, baseMessenger } = getInitRequestMock({
       isUnlocked: true,
     });
 
     moneyAccountUpgradeControllerInit(requestMock);
-    publishFlagOn(baseMessenger);
+    // @ts-expect-error: Event not allowed on the mock messenger namespace.
+    baseMessenger.publish('RemoteFeatureFlagController:stateChange', {
+      remoteFeatureFlags: {},
+      localOverrides: {},
+    });
     await flushAsync();
 
     expect(mockedController.init).not.toHaveBeenCalled();
@@ -234,19 +254,6 @@ describe('moneyAccountUpgradeControllerInit', () => {
       );
     });
 
-    it('waits for a stateChange event before bootstrapping, even when the flag selector would report on', async () => {
-      // isMoneyAccountEnabled is mocked to true (cached state would be "on"),
-      // but we should still wait for a fresh stateChange so the vaultConfig
-      // read at bootstrap time is from the same fetch as the flag value.
-      jest.mocked(isMoneyAccountEnabled).mockReturnValue(true);
-      const { requestMock } = getInitRequestMock({ isUnlocked: true });
-
-      moneyAccountUpgradeControllerInit(requestMock);
-      await flushAsync();
-
-      expect(mockedController.init).not.toHaveBeenCalled();
-    });
-
     it('bootstraps once the flag flips on via RemoteFeatureFlagController:stateChange', async () => {
       jest.mocked(isMoneyAccountEnabled).mockReturnValue(false);
       const { requestMock, baseMessenger } = getInitRequestMock({
@@ -259,11 +266,7 @@ describe('moneyAccountUpgradeControllerInit', () => {
       expect(mockedController.init).not.toHaveBeenCalled();
 
       jest.mocked(isMoneyAccountEnabled).mockReturnValue(true);
-      // @ts-expect-error: Event not allowed on the mock messenger namespace.
-      baseMessenger.publish('RemoteFeatureFlagController:stateChange', {
-        remoteFeatureFlags: {},
-        localOverrides: {},
-      });
+      publishFlagOn(baseMessenger);
       await flushAsync();
 
       expect(mockedController.init).toHaveBeenCalledTimes(1);
@@ -278,16 +281,8 @@ describe('moneyAccountUpgradeControllerInit', () => {
       moneyAccountUpgradeControllerInit(requestMock);
 
       jest.mocked(isMoneyAccountEnabled).mockReturnValue(true);
-      // @ts-expect-error: Event not allowed on the mock messenger namespace.
-      baseMessenger.publish('RemoteFeatureFlagController:stateChange', {
-        remoteFeatureFlags: {},
-        localOverrides: {},
-      });
-      // @ts-expect-error: Event not allowed on the mock messenger namespace.
-      baseMessenger.publish('RemoteFeatureFlagController:stateChange', {
-        remoteFeatureFlags: {},
-        localOverrides: {},
-      });
+      publishFlagOn(baseMessenger);
+      publishFlagOn(baseMessenger);
       await flushAsync();
 
       expect(mockedController.init).toHaveBeenCalledTimes(1);
@@ -308,6 +303,56 @@ describe('moneyAccountUpgradeControllerInit', () => {
       await flushAsync();
 
       expect(mockedController.init).not.toHaveBeenCalled();
+    });
+
+    it('bootstraps from the cached RemoteFeatureFlagController state at init time, without waiting for a stateChange event', async () => {
+      // Returning user: the cache is fresh, so `updateRemoteFeatureFlags`
+      // early-returns and no stateChange ever fires. We must still init from
+      // the persisted state restored into the controller at construction.
+      jest.mocked(isMoneyAccountEnabled).mockReturnValue(true);
+      const { requestMock } = getInitRequestMock({
+        isUnlocked: true,
+        remoteFeatureFlagsState: {
+          remoteFeatureFlags: { moneyAccountVaultConfig: VAULT_CONFIG },
+          localOverrides: {},
+        },
+      });
+
+      moneyAccountUpgradeControllerInit(requestMock);
+      await flushAsync();
+
+      expect(mockedController.init).toHaveBeenCalledWith({
+        chainId: VAULT_CHAIN_ID,
+        boringVaultAddress: BORING_VAULT_ADDRESS,
+      });
+    });
+
+    it('initializes from the stateChange event payload, not from Redux', async () => {
+      // The messenger publishes stateChange synchronously inside
+      // BaseController.update(), but the Redux store is updated up to 250ms
+      // later via EngineService.updateBatcher. Reading vaultConfig from
+      // Redux at this point would see stale (often undefined) data, so we
+      // must derive it from the event payload instead.
+      (
+        ReduxService as unknown as { store: { getState: jest.Mock } }
+      ).store.getState.mockReturnValue({});
+      jest.mocked(isMoneyAccountEnabled).mockReturnValue(true);
+      const { requestMock, baseMessenger } = getInitRequestMock({
+        isUnlocked: true,
+      });
+
+      moneyAccountUpgradeControllerInit(requestMock);
+      // @ts-expect-error: Event not allowed on the mock messenger namespace.
+      baseMessenger.publish('RemoteFeatureFlagController:stateChange', {
+        remoteFeatureFlags: { moneyAccountVaultConfig: VAULT_CONFIG },
+        localOverrides: {},
+      });
+      await flushAsync();
+
+      expect(mockedController.init).toHaveBeenCalledWith({
+        chainId: VAULT_CHAIN_ID,
+        boringVaultAddress: BORING_VAULT_ADDRESS,
+      });
     });
   });
 
@@ -347,10 +392,6 @@ describe('moneyAccountUpgradeControllerInit', () => {
 
     it('logs an error when the missing chain is not in PopularList', async () => {
       const UNSUPPORTED_CHAIN_ID = '0xdeadbeef' as Hex;
-      jest.mocked(selectMoneyAccountVaultConfig).mockReturnValue({
-        ...VAULT_CONFIG,
-        chainId: UNSUPPORTED_CHAIN_ID,
-      });
       jest.mocked(selectEvmNetworkConfigurationsByChainId).mockReturnValue({});
 
       const { requestMock, baseMessenger } = getInitRequestMock({
@@ -358,7 +399,16 @@ describe('moneyAccountUpgradeControllerInit', () => {
       });
 
       moneyAccountUpgradeControllerInit(requestMock);
-      publishFlagOn(baseMessenger);
+      // @ts-expect-error: Event not allowed on the mock messenger namespace.
+      baseMessenger.publish('RemoteFeatureFlagController:stateChange', {
+        remoteFeatureFlags: {
+          moneyAccountVaultConfig: {
+            ...VAULT_CONFIG,
+            chainId: UNSUPPORTED_CHAIN_ID,
+          },
+        },
+        localOverrides: {},
+      });
       await flushAsync();
 
       expect(mockAddNetwork).not.toHaveBeenCalled();
