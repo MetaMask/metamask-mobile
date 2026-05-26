@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Pressable } from 'react-native';
+import { Pressable, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -43,6 +43,9 @@ const MoneyBalanceCard = () => {
     totalFiatFormatted,
     apyPercent,
     isAggregatedBalanceLoading,
+    isBalanceFetchError,
+    isBalanceFetching,
+    refetchBalance,
     vaultApyQuery,
   } = useMoneyAccountBalance();
   const { navigateToMoneyHome } = useMoneyNavigation();
@@ -50,7 +53,14 @@ const MoneyBalanceCard = () => {
   const walletHomeOnboardingFlowVisible = useSelector(
     selectWalletHomeOnboardingFlowVisible,
   );
-  const isEmpty = totalFiatRaw === undefined || totalFiatRaw === '0';
+
+  const isRetrying = isBalanceFetchError && isBalanceFetching;
+  const isError = isBalanceFetchError && !isBalanceFetching;
+
+  // Skip isEmpty/isNewUser when fetch failed — balance is unknown.
+  const isEmpty =
+    !isBalanceFetchError &&
+    (totalFiatRaw === undefined || totalFiatRaw === '0');
   const isNewUser = isEmpty && !hasSeenMoneyOnboarding;
 
   let balanceText: string;
@@ -58,7 +68,13 @@ const MoneyBalanceCard = () => {
   let buttonLabel: string;
   let buttonTestId: string;
   let containerTestId: string;
-  if (isNewUser) {
+  if (isError || isRetrying) {
+    balanceText = EMPTY_BALANCE_DISPLAY;
+    buttonVariant = ButtonVariant.Secondary;
+    buttonLabel = strings('money.balance_card.add');
+    buttonTestId = MoneyBalanceCardTestIds.ADD_BUTTON;
+    containerTestId = MoneyBalanceCardTestIds.ERROR_CONTAINER;
+  } else if (isNewUser) {
     balanceText = EMPTY_BALANCE_DISPLAY;
     containerTestId = MoneyBalanceCardTestIds.NEW_USER_CONTAINER;
     if (walletHomeOnboardingFlowVisible) {
@@ -106,6 +122,58 @@ const MoneyBalanceCard = () => {
     });
   }, [navigation]);
 
+  const renderBalanceSlot = () => {
+    if (isAggregatedBalanceLoading || isRetrying) {
+      return (
+        <Skeleton
+          height={24}
+          width={100}
+          testID={MoneyBalanceCardTestIds.BALANCE_SKELETON}
+        />
+      );
+    }
+    if (isError) {
+      return (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-1"
+          testID={MoneyBalanceCardTestIds.BALANCE_ERROR}
+        >
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+          >
+            {strings('money.balance_unavailable')}
+          </Text>
+          <TouchableOpacity
+            onPress={refetchBalance}
+            testID={MoneyBalanceCardTestIds.BALANCE_RETRY}
+          >
+            <ButtonIcon
+              iconName={IconName.Refresh}
+              iconProps={{ color: IconColor.InfoDefault, size: IconSize.Sm }}
+              size={ButtonIconSize.Sm}
+              onPress={refetchBalance}
+              accessibilityLabel={strings('money.balance_retry')}
+            />
+          </TouchableOpacity>
+        </Box>
+      );
+    }
+    return (
+      <Text
+        variant={TextVariant.HeadingMd}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextDefault}
+        testID={MoneyBalanceCardTestIds.BALANCE}
+      >
+        {balanceText}
+      </Text>
+    );
+  };
+
   return (
     <Pressable
       testID={containerTestId}
@@ -145,22 +213,7 @@ const MoneyBalanceCard = () => {
           alignItems={BoxAlignItems.End}
           twClassName="gap-2"
         >
-          {isAggregatedBalanceLoading ? (
-            <Skeleton
-              height={24}
-              width={100}
-              testID={MoneyBalanceCardTestIds.BALANCE_SKELETON}
-            />
-          ) : (
-            <Text
-              variant={TextVariant.HeadingMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
-              testID={MoneyBalanceCardTestIds.BALANCE}
-            >
-              {balanceText}
-            </Text>
-          )}
+          {renderBalanceSlot()}
           {vaultApyQuery.isLoading ? (
             <Skeleton
               height={20}

@@ -40,8 +40,9 @@ import { selectIsCardholder } from '../../../../../selectors/cardController';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import Logger from '../../../../../util/Logger';
-import { AssetType } from '../../../../Views/confirmations/types/token';
+import { MoneyBalanceDisplayState } from '../../types';
 import { Hex } from '@metamask/utils';
+import { AssetType } from '../../../../Views/confirmations/types/token';
 import { MONEY_ONBOARDING_TOTAL_STEPS } from '../../components/MoneyOnboardingCard/MoneyOnboardingCard';
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 
@@ -64,6 +65,9 @@ const MoneyHomeView = () => {
     totalFiatRaw,
     vaultApyQuery,
     isAggregatedBalanceLoading,
+    isBalanceFetchError,
+    isBalanceFetching,
+    refetchBalance,
     apyPercent,
   } = useMoneyAccountBalance();
   const { fiatBalanceAggregatedFormatted: musdFiatFormatted } =
@@ -87,6 +91,17 @@ const MoneyHomeView = () => {
   const homeState = getMoneyHomeState(allTransactions.length);
   const isMilestone = homeState === 'milestone' || homeState === 'filled';
   const isCardholderWithMilestone = isMilestone && isCardholder;
+
+  let displayState: MoneyBalanceDisplayState;
+  if (isBalanceFetchError && isBalanceFetching) {
+    displayState = { kind: 'retrying' };
+  } else if (isBalanceFetchError) {
+    displayState = { kind: 'error', onRetry: refetchBalance };
+  } else if (isAggregatedBalanceLoading) {
+    displayState = { kind: 'loading' };
+  } else {
+    displayState = { kind: 'balance', value: totalFiatFormatted ?? '--.--' };
+  }
 
   const formattedZero = useMemo(
     () => moneyFormatFiat(new BigNumber(0), currentCurrency),
@@ -250,9 +265,8 @@ const MoneyHomeView = () => {
       >
         <MoneyBalanceSummary
           apy={apyPercent}
-          balance={totalFiatFormatted ?? '--.--'}
+          displayState={displayState}
           onApyInfoPress={handleApyInfoPress}
-          isLoading={vaultApyQuery.isLoading || isAggregatedBalanceLoading}
         />
         <MoneyActionButtonRow
           onAddPress={handleAddPress}
@@ -261,13 +275,18 @@ const MoneyHomeView = () => {
         />
         <MoneyOnboardingCard />
         {isOnboardingCardVisible && <Divider />}
-        <MoneyEarnings
-          monthlyEarnings={monthlyEarnings}
-          yearlyEarnings={yearlyEarnings}
-          isLoading={vaultApyQuery.isLoading || isAggregatedBalanceLoading}
-          onInfoPress={handleEarningsInfoPress}
-        />
-        <Divider />
+        {/* Only show earnings if balance is available */}
+        {displayState.kind === 'balance' && (
+          <>
+            <MoneyEarnings
+              monthlyEarnings={monthlyEarnings}
+              yearlyEarnings={yearlyEarnings}
+              isLoading={vaultApyQuery.isLoading || isAggregatedBalanceLoading}
+              onInfoPress={handleEarningsInfoPress}
+            />
+            <Divider />
+          </>
+        )}
         {!isMilestone && (
           <>
             <MoneyHowItWorks

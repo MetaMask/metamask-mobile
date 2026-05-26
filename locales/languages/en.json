@@ -6742,6 +6742,8 @@
     "apy_label": "{{percentage}}% APY",
     "apy_currency_suffix": " • mUSD",
     "apy_info_label": "APY info",
+    "balance_unavailable": "Balance unavailable",
+    "balance_retry": "Retry",
     "onboarding": {
       "step_1": {
         "title": "Fund your account",

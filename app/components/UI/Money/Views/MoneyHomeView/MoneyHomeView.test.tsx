@@ -252,7 +252,11 @@ describe('MoneyHomeView', () => {
       musdSHFvdFiatFormatted: '$2.00',
       totalFiatRaw: '3',
       tokenTotal: undefined,
+      withdrawableMusd: undefined,
       isAggregatedBalanceLoading: false,
+      isBalanceFetchError: false,
+      isBalanceFetching: false,
+      refetchBalance: jest.fn(),
       apyDecimal: 0.05,
       apyPercent: 5,
       apyPercentFormatted: '5%',
@@ -270,7 +274,7 @@ describe('MoneyHomeView', () => {
         },
         isLoading: false,
       },
-    } as ReturnType<typeof useMoneyAccountBalance>);
+    } as unknown as ReturnType<typeof useMoneyAccountBalance>);
 
     mockUseMusdBalance.mockReturnValue({
       hasMusdBalanceOnAnyChain: true,
@@ -341,6 +345,60 @@ describe('MoneyHomeView', () => {
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
     expect(getByTestId(MoneyEarningsTestIds.CONTAINER)).toBeOnTheScreen();
+  });
+
+  describe('balance fetch error state', () => {
+    beforeEach(() => {
+      mockUseMoneyAccountBalance.mockReturnValue({
+        totalFiatFormatted: undefined,
+        musdFiatFormatted: undefined,
+        musdSHFvdFiatFormatted: undefined,
+        totalFiatRaw: undefined,
+        tokenTotal: undefined,
+        withdrawableMusd: undefined,
+        isAggregatedBalanceLoading: false,
+        isBalanceFetchError: true,
+        isBalanceFetching: false,
+        refetchBalance: jest.fn(),
+        apyDecimal: 0.05,
+        apyPercent: 5,
+        apyPercentFormatted: '5%',
+        vaultApyQuery: { data: { apy: 0.05 }, isLoading: false },
+        musdBalanceQuery: { data: undefined, isLoading: false },
+        musdEquivalentBalanceQuery: { data: undefined, isLoading: false },
+      } as unknown as ReturnType<typeof useMoneyAccountBalance>);
+    });
+
+    it('hides MoneyEarnings on balance fetch error', () => {
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        queryByTestId(MoneyEarningsTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('keeps MoneyHowItWorks visible when in empty-transaction state', () => {
+      mockUseMoneyAccountTransactions.mockReturnValue({
+        allTransactions: [],
+        deposits: [],
+        transfers: [],
+        submittedTransactions: [],
+        moneyAddress: '0x0000000000000000000000000000000000000001',
+        mockDataEnabled: false,
+      });
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(getByTestId(MoneyHowItWorksTestIds.CONTAINER)).toBeOnTheScreen();
+    });
+
+    it('still renders the balance summary container', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        getByTestId(MoneyBalanceSummaryTestIds.CONTAINER),
+      ).toBeOnTheScreen();
+    });
   });
 
   it('hides the how it works section in filled state', () => {
@@ -839,12 +897,12 @@ describe('MoneyHomeView', () => {
     });
 
     it('opens the Learn more URL when Learn more is pressed', () => {
-      const { Linking } = jest.requireMock('react-native');
+      const { Linking: MockLinking } = jest.requireMock('react-native');
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       fireEvent.press(getByTestId(MoneyWhatYouGetTestIds.LEARN_MORE_BUTTON));
 
-      expect(Linking.openURL).toHaveBeenCalledWith(
+      expect(MockLinking.openURL).toHaveBeenCalledWith(
         expect.stringContaining('http'),
       );
     });

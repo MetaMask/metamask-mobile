@@ -59,6 +59,9 @@ const createBalanceMock = (
     totalFiatRaw: '1000',
     tokenTotal: undefined,
     isAggregatedBalanceLoading: false,
+    isBalanceFetchError: false,
+    isBalanceFetching: false,
+    refetchBalance: jest.fn(),
     apyDecimal: 0.04,
     apyPercent: 4,
     apyPercentFormatted: '4%',
@@ -487,6 +490,100 @@ describe('MoneyBalanceCard', () => {
       );
       expect(getByTestId(MoneyBalanceCardTestIds.APY_TAG)).toBeOnTheScreen();
       expect(getByTestId(MoneyBalanceCardTestIds.ADD_BUTTON)).toBeOnTheScreen();
+    });
+  });
+
+  describe('error state', () => {
+    beforeEach(() => {
+      mockUseMoneyAccountBalance.mockReturnValue(
+        createBalanceMock({
+          isBalanceFetchError: true,
+          isBalanceFetching: false,
+          totalFiatFormatted: undefined,
+          totalFiatRaw: undefined,
+        }),
+      );
+    });
+
+    it('renders the error container testID', () => {
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      expect(
+        getByTestId(MoneyBalanceCardTestIds.ERROR_CONTAINER),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders the balance-unavailable message', () => {
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      expect(
+        getByTestId(MoneyBalanceCardTestIds.BALANCE_ERROR),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders the retry button', () => {
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      expect(
+        getByTestId(MoneyBalanceCardTestIds.BALANCE_RETRY),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not render the balance text', () => {
+      const { queryByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      expect(
+        queryByTestId(MoneyBalanceCardTestIds.BALANCE),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not render $0.00 as the balance', () => {
+      const { queryByText } = renderWithProvider(<MoneyBalanceCard />);
+
+      expect(queryByText('$0.00')).not.toBeOnTheScreen();
+    });
+
+    it('calls refetchBalance when the retry button is pressed', () => {
+      const mockRefetch = jest.fn();
+      mockUseMoneyAccountBalance.mockReturnValue(
+        createBalanceMock({
+          isBalanceFetchError: true,
+          isBalanceFetching: false,
+          totalFiatFormatted: undefined,
+          totalFiatRaw: undefined,
+          refetchBalance: mockRefetch,
+        }),
+      );
+
+      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
+
+      fireEvent.press(getByTestId(MoneyBalanceCardTestIds.BALANCE_RETRY));
+
+      expect(mockRefetch).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('retrying state (error + fetching)', () => {
+    it('renders the balance skeleton', () => {
+      mockUseMoneyAccountBalance.mockReturnValue(
+        createBalanceMock({
+          isBalanceFetchError: true,
+          isBalanceFetching: true,
+          totalFiatFormatted: undefined,
+          totalFiatRaw: undefined,
+        }),
+      );
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyBalanceCard />,
+      );
+
+      expect(
+        getByTestId(MoneyBalanceCardTestIds.BALANCE_SKELETON),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyBalanceCardTestIds.BALANCE_ERROR),
+      ).not.toBeOnTheScreen();
     });
   });
 });
