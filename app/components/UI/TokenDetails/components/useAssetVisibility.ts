@@ -17,7 +17,6 @@ import {
   getAssetPreferences,
 } from '../../../../selectors/assets/assets-controller';
 import { selectMultichainAssetsAllIgnoredAssets } from '../../../../selectors/multichain/multichain';
-import { selectIsAssetsUnifyStateEnabled } from '../../../../selectors/featureFlagController/assetsUnifyState';
 import { toAssetId } from '../../Bridge/hooks/useAssetMetadata/utils';
 import type { TokenI } from '../../Tokens/types';
 
