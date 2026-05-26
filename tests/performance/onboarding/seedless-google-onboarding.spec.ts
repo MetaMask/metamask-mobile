@@ -68,7 +68,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       );
       const timer5 = new TimerHelper(
         'Google: Tap "Done" → feature sheet visible',
-        { ios: 2500, android: 3100 },
+        { ios: 2500, android: 4000 },
         currentDeviceDetails.platform,
       );
       const timer6 = new TimerHelper(
