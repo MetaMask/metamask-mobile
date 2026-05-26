@@ -286,7 +286,7 @@ const defaultDashboard: VipDashboardState = {
     perpsFeeTitle: 'Perps fee',
     revenueShareTitle: 'Revenue share',
     statsTitle: 'Volume',
-    pointsTitle: 'Points',
+    totalPointsTitle: 'Points',
     equityLockedTitle: 'Earn VIP allocations',
     equityLockedDescription: 'Body copy',
     equityUnlockedTitle: 'VIP allocation unlocked',
@@ -541,7 +541,7 @@ describe('RewardsVipView', () => {
           perpsFeeTitle: 'Perp fees',
           revenueShareTitle: 'Revenue',
           statsTitle: 'Volume V2',
-          pointsTitle: 'Pts',
+          totalPointsTitle: 'Pts',
           periodTitle: 'Apr 1 - May 1',
           equityLockedTitle: 'Allocation',
           equityLockedDescription: 'Body copy',
@@ -560,7 +560,7 @@ describe('RewardsVipView', () => {
 
     const { getAllByText, getByText } = render(<RewardsVipView />);
     expect(getAllByText('VIP Pilot — Custom')[0]).toBeOnTheScreen();
-    expect(getByText('800000 points to next tier')).toBeOnTheScreen();
+    expect(getByText('800k points to next tier')).toBeOnTheScreen();
     expect(getByText('Swap fees')).toBeOnTheScreen();
     expect(getByText('Perp fees')).toBeOnTheScreen();
     expect(getByText('Revenue')).toBeOnTheScreen();
