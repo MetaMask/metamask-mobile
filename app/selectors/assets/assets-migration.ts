@@ -541,6 +541,11 @@ export const getMultiChainBalancesControllerBalances = createDeepEqualSelector(
     (state) =>
       state.engine?.backgroundState?.AssetsController?.assetsInfo ?? {},
     (state) =>
+      state.engine?.backgroundState?.AssetsController?.customAssets ?? {},
+    (state) =>
+      state.engine?.backgroundState?.MultichainAssetsController
+        ?.assetsMetadata ?? {},
+    (state) =>
       state.engine?.backgroundState?.AccountsController?.internalAccounts
         ?.accounts ?? {},
   ],
@@ -549,6 +554,8 @@ export const getMultiChainBalancesControllerBalances = createDeepEqualSelector(
     balances: MultichainBalancesControllerState['balances'],
     assetsBalance: AssetsControllerState['assetsBalance'],
     assetsInfo: AssetsControllerState['assetsInfo'],
+    customAssets: AssetsControllerState['customAssets'],
+    multichainAssetsMetadata: MultichainAssetsControllerState['assetsMetadata'],
     internalAccountsById: AccountsControllerState['internalAccounts']['accounts'],
   ): MultichainBalancesControllerState['balances'] => {
     if (!isAssetsUnifyStateEnabled) {
@@ -580,6 +587,38 @@ export const getMultiChainBalancesControllerBalances = createDeepEqualSelector(
           amount: balance.amount,
           unit: metadata.symbol,
         };
+      }
+    }
+
+    // Add zero-balance placeholder entries for custom non-EVM assets that have
+    // no balance entry yet (e.g. freshly imported tokens awaiting first snap
+    // poll). Without this, selectAllMultichainAssets skips them entirely and
+    // they never appear in the token list.
+    for (const [accountId, assetIds] of Object.entries(customAssets)) {
+      const internalAccount = internalAccountsById[accountId];
+      if (!internalAccount || isEvmAccountType(internalAccount.type)) {
+        continue;
+      }
+
+      const accountBalances = assetsBalance[accountId] ?? {};
+
+      for (const assetId of assetIds) {
+        if (accountBalances[assetId]) {
+          continue; // real balance already handled above
+        }
+
+        const assetType = parseCaipAssetType(assetId);
+        if (assetType.chain.namespace === KnownCaipNamespace.Eip155) {
+          continue;
+        }
+
+        // Prefer symbol from assetsInfo; fall back to MultichainAssetsController metadata
+        const unifyMetadata = assetsInfo[assetId];
+        const multichainMetadata = multichainAssetsMetadata[assetId];
+        const unit = unifyMetadata?.symbol ?? multichainMetadata?.symbol ?? '';
+
+        result[accountId] ??= {};
+        result[accountId][assetId] = { amount: '0', unit };
       }
     }
 

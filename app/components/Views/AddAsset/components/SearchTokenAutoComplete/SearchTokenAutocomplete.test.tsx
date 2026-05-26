@@ -754,7 +754,7 @@ describe('SearchTokenAutocomplete', () => {
       );
     });
 
-    it('does not call AssetsController.addCustomAsset for non-EVM chains', async () => {
+    it('calls AssetsController.addCustomAsset for non-EVM chains when assetsUnify is enabled', async () => {
       mockSelectInternalAccountByScope.mockReturnValue({
         id: 'non-evm-account-id',
         address: 'non-evm-address',
@@ -767,7 +767,50 @@ describe('SearchTokenAutocomplete', () => {
       const [, params] = mockNavigation.navigate.mock.calls[0];
       await params.addTokenList();
 
+      expect(
+        Engine.context.MultichainAssetsController.addAssets,
+      ).toHaveBeenCalled();
+      expect(mockAddCustomAsset).toHaveBeenCalledWith(
+        'non-evm-account-id',
+        mockNonEvmToken.address,
+      );
+    });
+
+    it('does not call AssetsController.addCustomAsset for non-EVM chains when assetsUnify is disabled', async () => {
+      mockSelectInternalAccountByScope.mockReturnValue({
+        id: 'non-evm-account-id',
+        address: 'non-evm-address',
+      });
+      mockSelectIsAssetsUnifyStateEnabled.mockReturnValue(false);
+
+      const utils = renderComponent({ selectedChainId: solanaChainId });
+      selectTokenAndPressNext(utils);
+
+      const [, params] = mockNavigation.navigate.mock.calls[0];
+      await params.addTokenList();
+
+      expect(
+        Engine.context.MultichainAssetsController.addAssets,
+      ).toHaveBeenCalled();
       expect(mockAddCustomAsset).not.toHaveBeenCalled();
+    });
+
+    it('logs error but still tracks analytics when addCustomAsset throws for non-EVM', async () => {
+      mockSelectInternalAccountByScope.mockReturnValue({
+        id: 'non-evm-account-id',
+        address: 'non-evm-address',
+      });
+      mockSelectIsAssetsUnifyStateEnabled.mockReturnValue(true);
+      mockAddCustomAsset.mockRejectedValue(new Error('snap error'));
+
+      const utils = renderComponent({ selectedChainId: solanaChainId });
+      selectTokenAndPressNext(utils);
+
+      const [, params] = mockNavigation.navigate.mock.calls[0];
+      await params.addTokenList();
+
+      expect(mockAddCustomAsset).toHaveBeenCalled();
+      expect(mockTrackEvent).toHaveBeenCalled();
     });
   });
 });

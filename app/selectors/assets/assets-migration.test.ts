@@ -1542,7 +1542,9 @@ describe('getMultiChainBalancesControllerBalances', () => {
                   [solanaTokenAssetId]: { amount: '250.5' },
                 },
               },
+              customAssets: {},
             },
+            MultichainAssetsController: { assetsMetadata: {} },
             AccountsController: {
               internalAccounts: {
                 accounts: {
@@ -1568,6 +1570,172 @@ describe('getMultiChainBalancesControllerBalances', () => {
           [solanaTokenAssetId]: { amount: '250.5', unit: 'USDC' },
         },
       });
+    });
+  });
+
+  describe('edge cases when enabled', () => {
+    it('adds zero-balance placeholder for custom non-EVM asset not yet in assetsBalance', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            MultichainBalancesController: { balances: {} },
+            AssetsController: {
+              assetsInfo: {
+                [solanaTokenAssetId]: {
+                  type: 'token',
+                  decimals: 6,
+                  symbol: 'USDC',
+                },
+              },
+              assetsBalance: {},
+              customAssets: {
+                [mockAccountId2]: [solanaTokenAssetId as CaipAssetType],
+              },
+            },
+            MultichainAssetsController: { assetsMetadata: {} },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId2]: {
+                    id: mockAccountId2,
+                    type: 'solana:data-account',
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+      const result = getMultiChainBalancesControllerBalances(state);
+
+      expect(result).toStrictEqual({
+        [mockAccountId2]: {
+          [solanaTokenAssetId]: { amount: '0', unit: 'USDC' },
+        },
+      });
+    });
+
+    it('falls back to MultichainAssetsController metadata symbol when assetsInfo has no entry', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            MultichainBalancesController: { balances: {} },
+            AssetsController: {
+              assetsInfo: {},
+              assetsBalance: {},
+              customAssets: {
+                [mockAccountId2]: [solanaTokenAssetId as CaipAssetType],
+              },
+            },
+            MultichainAssetsController: {
+              assetsMetadata: {
+                [solanaTokenAssetId as CaipAssetType]: {
+                  fungible: true as const,
+                  symbol: 'USDC',
+                  name: 'USD Coin',
+                  units: [{ decimals: 6, symbol: 'USDC', name: 'USD Coin' }],
+                },
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId2]: {
+                    id: mockAccountId2,
+                    type: 'solana:data-account',
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+      const result = getMultiChainBalancesControllerBalances(state);
+
+      expect(result[mockAccountId2][solanaTokenAssetId]).toStrictEqual({
+        amount: '0',
+        unit: 'USDC',
+      });
+    });
+
+    it('does not overwrite a real balance with the zero placeholder', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            MultichainBalancesController: { balances: {} },
+            AssetsController: {
+              assetsInfo: {
+                [solanaTokenAssetId]: {
+                  type: 'token',
+                  decimals: 6,
+                  symbol: 'USDC',
+                },
+              },
+              assetsBalance: {
+                [mockAccountId2]: {
+                  [solanaTokenAssetId]: { amount: '100' },
+                },
+              },
+              customAssets: {
+                [mockAccountId2]: [solanaTokenAssetId as CaipAssetType],
+              },
+            },
+            MultichainAssetsController: { assetsMetadata: {} },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId2]: {
+                    id: mockAccountId2,
+                    type: 'solana:data-account',
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+      const result = getMultiChainBalancesControllerBalances(state);
+
+      expect(result[mockAccountId2][solanaTokenAssetId]).toStrictEqual({
+        amount: '100',
+        unit: 'USDC',
+      });
+    });
+
+    it('skips EVM custom assets from the non-EVM placeholder logic', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            MultichainBalancesController: { balances: {} },
+            AssetsController: {
+              assetsInfo: {},
+              assetsBalance: {},
+              customAssets: {
+                [mockAccountId]: [erc20AssetId as CaipAssetType],
+              },
+            },
+            MultichainAssetsController: { assetsMetadata: {} },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId]: {
+                    id: mockAccountId,
+                    address: mockAccountAddressLowercase,
+                    type: 'eip155:eoa',
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+      const result = getMultiChainBalancesControllerBalances(state);
+
+      expect(result).toStrictEqual({});
     });
   });
 });
