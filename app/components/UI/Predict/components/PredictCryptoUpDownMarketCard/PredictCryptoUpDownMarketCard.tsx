@@ -60,6 +60,7 @@ import {
   getEventStartTime,
   getCryptoSymbol,
   getVariant,
+  resolveCryptoTargetPrice,
 } from '../../utils/cryptoUpDown';
 import { formatPrice } from '../../utils/format';
 import {
@@ -1130,10 +1131,10 @@ const PredictCryptoUpDownMarketCard: React.FC<
       Boolean(targetPriceEventStartTime) &&
       Boolean(selectedMarket.endDate),
   });
-  const validatedTargetPrice =
-    typeof targetPrice === 'number' && targetPrice > 0
-      ? targetPrice
-      : undefined;
+  const validatedTargetPrice = resolveCryptoTargetPrice(
+    selectedMarket,
+    targetPrice,
+  );
   const chartData = useCryptoUpDownChartData(
     selectedMarket,
     validatedTargetPrice,

@@ -286,6 +286,12 @@ const getChartMarketId = () => {
   return label?.match(/^market:([^;]+)/)?.[1];
 };
 
+const getChartTargetPrice = () => {
+  const chart = screen.getByTestId('mock-predict-crypto-up-down-chart');
+  const label = chart.props.accessibilityLabel as string | undefined;
+  return label?.match(/;target:(.+)$/)?.[1];
+};
+
 const getSelectedTimeSlotMarketId = () => {
   const picker = screen.getByTestId('mock-time-slot-picker');
   const label = picker.props.accessibilityLabel as string | undefined;
@@ -546,6 +552,36 @@ describe('PredictCryptoUpDownDetails', () => {
     ).toBeOnTheScreen();
     expect(screen.getByText('Price to beat')).toBeOnTheScreen();
     expect(screen.getByText('$78,000.00')).toBeOnTheScreen();
+  });
+
+  it('uses market threshold as target price while fetched target is unavailable', () => {
+    const market = createMockMarket({
+      outcomes: [
+        {
+          id: 'outcome-1',
+          providerId: 'polymarket',
+          marketId: 'market-1',
+          title: 'BTC Up or Down',
+          description: '',
+          image: '',
+          status: 'open',
+          tokens: [],
+          volume: 0,
+          groupItemTitle: 'BTC',
+          groupItemThreshold: 77123,
+        },
+      ],
+    });
+    mockUsePredictSeries.mockReturnValue({ data: [market] });
+    mockUseCryptoTargetPrice.mockReturnValue({
+      data: undefined,
+      isFetching: true,
+    });
+
+    render(<PredictCryptoUpDownDetails market={market} onBack={mockOnBack} />);
+
+    expect(screen.getByText('$77,123.00')).toBeOnTheScreen();
+    expect(getChartTargetPrice()).toBe('77123');
   });
 
   it('renders signed positive current price deltas with USD formatting', () => {

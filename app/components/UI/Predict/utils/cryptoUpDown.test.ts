@@ -5,7 +5,9 @@ import {
   getCryptoSymbol,
   getVariant,
   getEventStartTime,
+  getMarketTargetPrice,
   RECURRENCE_TO_DURATION_SECS,
+  resolveCryptoTargetPrice,
   toTimestampSeconds,
 } from './cryptoUpDown';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
@@ -370,6 +372,14 @@ describe('cryptoUpDown utilities', () => {
       expect(result).toBe('2024-01-01T12:00:00.000Z');
     });
 
+    it('computes start time for hourly recurrence', () => {
+      const endDate = '2024-01-01T13:00:00.000Z';
+
+      const result = getEventStartTime(endDate, 'hourly');
+
+      expect(result).toBe('2024-01-01T12:00:00.000Z');
+    });
+
     it('computes start time for 4h recurrence', () => {
       const endDate = '2024-01-01T16:00:00.000Z';
 
@@ -407,6 +417,74 @@ describe('cryptoUpDown utilities', () => {
     });
   });
 
+  describe('target price fallback', () => {
+    it('returns the first valid group item threshold from market outcomes', () => {
+      const market = createMockMarket({
+        outcomes: [
+          {
+            id: 'outcome-1',
+            providerId: 'polymarket',
+            marketId: 'market-1',
+            title: 'BTC Up or Down',
+            description: '',
+            image: '',
+            status: 'open',
+            tokens: [],
+            volume: 0,
+            groupItemTitle: 'BTC',
+            groupItemThreshold: 78000,
+          },
+        ],
+      });
+
+      expect(getMarketTargetPrice(market)).toBe(78000);
+    });
+
+    it('prefers fetched target price over market threshold fallback', () => {
+      const market = createMockMarket({
+        outcomes: [
+          {
+            id: 'outcome-1',
+            providerId: 'polymarket',
+            marketId: 'market-1',
+            title: 'BTC Up or Down',
+            description: '',
+            image: '',
+            status: 'open',
+            tokens: [],
+            volume: 0,
+            groupItemTitle: 'BTC',
+            groupItemThreshold: 78000,
+          },
+        ],
+      });
+
+      expect(resolveCryptoTargetPrice(market, 78123)).toBe(78123);
+    });
+
+    it('falls back to market threshold when fetched target price is unavailable', () => {
+      const market = createMockMarket({
+        outcomes: [
+          {
+            id: 'outcome-1',
+            providerId: 'polymarket',
+            marketId: 'market-1',
+            title: 'BTC Up or Down',
+            description: '',
+            image: '',
+            status: 'open',
+            tokens: [],
+            volume: 0,
+            groupItemTitle: 'BTC',
+            groupItemThreshold: 78000,
+          },
+        ],
+      });
+
+      expect(resolveCryptoTargetPrice(market, undefined)).toBe(78000);
+    });
+  });
+
   describe('toTimestampSeconds', () => {
     it('converts millisecond timestamps to seconds', () => {
       expect(toTimestampSeconds(1777227900000)).toBe(1777227900);
@@ -432,6 +510,10 @@ describe('cryptoUpDown utilities', () => {
 
     it('has 1h duration of 3600 seconds', () => {
       expect(RECURRENCE_TO_DURATION_SECS['1h']).toBe(3600);
+    });
+
+    it('has hourly duration of 3600 seconds', () => {
+      expect(RECURRENCE_TO_DURATION_SECS.hourly).toBe(3600);
     });
 
     it('has 4h duration of 14400 seconds', () => {

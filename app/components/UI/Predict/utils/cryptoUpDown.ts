@@ -102,6 +102,7 @@ export const RECURRENCE_TO_DURATION_SECS: Record<string, number> = {
   '5m': 5 * 60,
   '15m': 15 * 60,
   '1h': 60 * 60,
+  hourly: 60 * 60,
   '4h': 4 * 60 * 60,
   daily: 24 * 60 * 60,
 };
@@ -129,4 +130,26 @@ export function getEventStartTime(
   const endMs = new Date(endDate).getTime();
   if (isNaN(endMs)) return undefined;
   return new Date(endMs - durationMs).toISOString();
+}
+
+const isValidTargetPrice = (price: number | undefined): price is number =>
+  typeof price === 'number' && Number.isFinite(price) && price > 0;
+
+export function getMarketTargetPrice(
+  market: PredictMarket,
+): number | undefined {
+  return market.outcomes.find((outcome) =>
+    isValidTargetPrice(outcome.groupItemThreshold),
+  )?.groupItemThreshold;
+}
+
+export function resolveCryptoTargetPrice(
+  market: PredictMarket,
+  fetchedTargetPrice: number | undefined,
+): number | undefined {
+  if (isValidTargetPrice(fetchedTargetPrice)) {
+    return fetchedTargetPrice;
+  }
+
+  return getMarketTargetPrice(market);
 }

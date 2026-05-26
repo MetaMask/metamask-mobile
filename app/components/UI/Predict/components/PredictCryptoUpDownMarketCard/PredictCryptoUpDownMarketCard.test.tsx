@@ -365,6 +365,28 @@ describe('PredictCryptoUpDownMarketCard', () => {
     );
   });
 
+  it('uses market threshold as target price while fetched target is unavailable', () => {
+    const marketWithThreshold = createMarket({
+      outcomes: [createOutcome({ groupItemThreshold: 77123 })],
+    });
+    mockUsePredictSeries.mockReturnValue({
+      data: [marketWithThreshold],
+      isLoading: false,
+    });
+    mockUseCryptoTargetPrice.mockReturnValue({
+      data: undefined,
+      isFetching: true,
+    });
+
+    renderCard(marketWithThreshold);
+
+    expect(mockUseCryptoUpDownChartData).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'market-live' }),
+      77123,
+      expect.objectContaining({ liveUpdatesEnabled: false }),
+    );
+  });
+
   it('uses a trailing 24-hour coin-history window for daily markets', () => {
     const dailySeries = {
       ...SERIES,

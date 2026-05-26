@@ -42,6 +42,7 @@ import {
   getCryptoSymbol,
   getEventStartTime,
   getVariant,
+  resolveCryptoTargetPrice,
 } from '../../utils/cryptoUpDown';
 import { TimeSlotPicker } from '../TimeSlotPicker';
 import { findLiveMarket, getCurrentSeriesWindowMs } from '../../utils/series';
@@ -258,10 +259,10 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
         !!targetPriceEventStartTime &&
         !!selectedMarket.endDate,
     });
-  const validatedTargetPrice =
-    typeof targetPrice === 'number' && targetPrice > 0
-      ? targetPrice
-      : undefined;
+  const validatedTargetPrice = resolveCryptoTargetPrice(
+    selectedMarket,
+    targetPrice,
+  );
 
   // The chart is always anchored to the currently-live market so its data
   // (BTC price history + live ticks) stays continuous regardless of which
