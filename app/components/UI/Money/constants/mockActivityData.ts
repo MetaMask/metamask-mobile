@@ -6,6 +6,7 @@ import {
 } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
 import { MUSD_TOKEN, MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
+import { CARD_AGGREGATOR_ADDRESS } from './moneyActivityFilters';
 
 export type MoneyActivityFilterType = 'deposit' | 'transfer';
 
@@ -13,6 +14,7 @@ export enum MoneyActivityFilter {
   All = 'all',
   Deposits = 'deposits',
   Transfers = 'transfers',
+  Card = 'card',
 }
 
 /**
@@ -54,6 +56,7 @@ function makeMoneyTx(config: {
   symbol?: string;
   moneySubtitle?: string;
   moneyActivityTitleKey?: MoneyActivityTitleKey;
+  txParams?: Partial<TransactionParams>;
 }): MoneyActivityTransactionMeta {
   const {
     id,
@@ -63,6 +66,7 @@ function makeMoneyTx(config: {
     symbol = MUSD_TOKEN.symbol,
     moneySubtitle,
     moneyActivityTitleKey,
+    txParams,
   } = config;
 
   return {
@@ -71,7 +75,7 @@ function makeMoneyTx(config: {
     networkClientId: MOCK_NETWORK_CLIENT_ID,
     status: TransactionStatus.confirmed,
     time: timestampSec * 1000,
-    txParams: defaultTxParams,
+    txParams: { ...defaultTxParams, ...txParams } as TransactionParams,
     type,
     transferInformation: {
       amount,
@@ -111,9 +115,9 @@ const MOCK_MONEY_TRANSACTIONS: MoneyActivityTransactionMeta[] = [
   makeMoneyTx({
     id: 'money-tx-4',
     timestampSec: 1747083600,
-    type: TransactionType.moneyAccountWithdraw,
+    type: TransactionType.simpleSend,
     amount: '10000000',
-    moneyActivityTitleKey: 'card_transaction',
+    txParams: { to: CARD_AGGREGATOR_ADDRESS },
   }),
   makeMoneyTx({
     id: 'money-tx-5',

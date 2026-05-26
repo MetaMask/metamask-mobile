@@ -6895,7 +6895,8 @@
       "empty": "No activity yet",
       "filter_all": "All",
       "filter_deposits": "Deposits",
-      "filter_transfers": "Transfers"
+      "filter_transfers": "Transfers",
+      "filter_card": "Card"
     },
     "condensed_cards": {
       "how_it_works_title": "How it works",
@@ -9085,6 +9086,7 @@
       "predict_withdraw": "Withdrawal",
       "money_account_deposit": "Deposit to Money Account",
       "money_account_withdraw": "Transfer from Money Account",
+      "money_card_transaction": "Card transaction",
       "default": "Transaction details"
     },
     "label": {

@@ -23,6 +23,7 @@ import {
   getMusdDisplayAmountFromTransactionMeta,
   isIncomingMoneyTransactionMeta,
 } from '../constants/activityStyles';
+import { isCardTransaction } from '../constants/moneyActivityFilters';
 import { buildMoneyActivityFiatLine } from '../utils/moneyActivityFiat';
 import { moneyFormatFiat } from '../utils/moneyFormatFiat';
 import { fromTokenMinimalUnit } from '../../../../util/number/bigint';
@@ -92,6 +93,9 @@ function getLabel(tx: TransactionMeta): string {
   if (extended.moneyActivityTitleKey) {
     return titleKeyToLabel(extended.moneyActivityTitleKey);
   }
+  if (isCardTransaction(tx)) {
+    return strings('money.transaction.card_transaction');
+  }
   // For EIP-7702 batch transactions, derive the label from the most significant
   // nested transaction type (e.g. moneyAccountDeposit, moneyAccountWithdraw).
   if (tx.type === TransactionType.batch) {
@@ -156,6 +160,9 @@ function getIcon(tx: TransactionMeta): IconName {
   const extended = tx as MoneyActivityTransactionMeta;
   if (extended.moneyActivityTitleKey) {
     return titleKeyToIcon(extended.moneyActivityTitleKey);
+  }
+  if (isCardTransaction(tx)) {
+    return IconName.Card;
   }
   // For EIP-7702 batch transactions, derive the icon from the most significant
   // nested transaction type.

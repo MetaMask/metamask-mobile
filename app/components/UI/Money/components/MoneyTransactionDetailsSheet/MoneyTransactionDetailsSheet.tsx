@@ -14,6 +14,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { TransactionDetails } from '../../../../Views/confirmations/components/activity/transaction-details/transaction-details';
 import { useTransactionDetails } from '../../../../Views/confirmations/hooks/activity/useTransactionDetails';
+import { isCardTransaction } from '../../constants/moneyActivityFilters';
 
 const TITLE_KEYS: Partial<Record<TransactionType, string>> = {
   [TransactionType.moneyAccountDeposit]:
@@ -31,6 +32,9 @@ const TITLE_KEYS: Partial<Record<TransactionType, string>> = {
 };
 
 function getTitle(tx: TransactionMeta | undefined): string {
+  if (tx && isCardTransaction(tx)) {
+    return strings('transaction_details.title.money_card_transaction');
+  }
   const type =
     tx?.type === TransactionType.batch
       ? ((tx.nestedTransactions?.find((n) => n.type && n.type in TITLE_KEYS)

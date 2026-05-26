@@ -64,6 +64,22 @@ describe('activityStyles', () => {
       ).toBe('+');
     });
 
+    it('returns minus for a card transaction even though the type alone says +', () => {
+      const CARD_AGGREGATOR_ADDRESS =
+        '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e';
+      const recipientHex = CARD_AGGREGATOR_ADDRESS.replace(/^0x/, '')
+        .toLowerCase()
+        .padStart(64, '0');
+      const amountHex = 1_000_000n.toString(16).padStart(64, '0');
+      const cardTx = makeTx(TransactionType.tokenMethodTransfer, {
+        txParams: {
+          to: MUSD_TOKEN_ADDRESS,
+          data: `0xa9059cbb${recipientHex}${amountHex}`,
+        } as never,
+      });
+      expect(getMoneyAmountPrefixForTransactionMeta(cardTx)).toBe('-');
+    });
+
     it('returns minus for a batch tx with an outgoing nested type', () => {
       expect(
         getMoneyAmountPrefixForTransactionMeta(

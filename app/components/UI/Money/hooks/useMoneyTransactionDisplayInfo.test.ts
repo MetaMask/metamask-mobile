@@ -381,6 +381,62 @@ describe('useMoneyTransactionDisplayInfo — getIconForTransactionType', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Card transactions override label, icon, and direction regardless of type
+// ---------------------------------------------------------------------------
+
+describe('useMoneyTransactionDisplayInfo — card transactions', () => {
+  const CARD_AGGREGATOR_ADDRESS = '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e';
+  const padAddr = (a: string) =>
+    a.replace(/^0x/, '').toLowerCase().padStart(64, '0');
+  const cardTransferData = `0xa9059cbb${padAddr(CARD_AGGREGATOR_ADDRESS)}${'1'.padStart(64, '0')}`;
+
+  function makeCardTransferTx(): TransactionMeta {
+    return makeTx(TransactionType.tokenMethodTransfer, {
+      txParams: {
+        to: MUSD_TOKEN_ADDRESS,
+        data: cardTransferData,
+      },
+    });
+  }
+
+  it('uses the card_transaction label', () => {
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(makeCardTransferTx(), undefined),
+      { state: makeState() },
+    );
+    expect(result.current.label).toBe('money.transaction.card_transaction');
+  });
+
+  it('uses the Card icon', () => {
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(makeCardTransferTx(), undefined),
+      { state: makeState() },
+    );
+    expect(result.current.icon).toBe(IconName.Card);
+  });
+
+  it('is not flagged as incoming', () => {
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(makeCardTransferTx(), undefined),
+      { state: makeState() },
+    );
+    expect(result.current.isIncoming).toBe(false);
+  });
+
+  it('also applies to a simpleSend to the card aggregator', () => {
+    const tx = makeTx(TransactionType.simpleSend, {
+      txParams: { to: CARD_AGGREGATOR_ADDRESS },
+    });
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.label).toBe('money.transaction.card_transaction');
+    expect(result.current.icon).toBe(IconName.Card);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Primary amount — ERC-20 (USDC)
 // ---------------------------------------------------------------------------
 

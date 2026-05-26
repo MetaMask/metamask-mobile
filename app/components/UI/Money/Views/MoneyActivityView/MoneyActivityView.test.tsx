@@ -4,6 +4,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import MOCK_MONEY_TRANSACTIONS from '../../constants/mockActivityData';
 import {
+  isCardTransaction,
   isMoneyActivityDeposit,
   isMoneyActivityTransfer,
 } from '../../constants/moneyActivityFilters';
@@ -67,6 +68,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'money.activity.filter_all': 'All',
       'money.activity.filter_deposits': 'Deposits',
       'money.activity.filter_transfers': 'Transfers',
+      'money.activity.filter_card': 'Card',
     };
     return map[key] ?? key;
   },
@@ -78,6 +80,7 @@ const mockUseMoneyAccountTransactions = jest.mocked(
 
 const MOCK_DEPOSITS = MOCK_MONEY_TRANSACTIONS.filter(isMoneyActivityDeposit);
 const MOCK_TRANSFERS = MOCK_MONEY_TRANSACTIONS.filter(isMoneyActivityTransfer);
+const MOCK_CARDS = MOCK_MONEY_TRANSACTIONS.filter(isCardTransaction);
 
 describe('MoneyActivityView', () => {
   beforeEach(() => {
@@ -86,6 +89,7 @@ describe('MoneyActivityView', () => {
       allTransactions: MOCK_MONEY_TRANSACTIONS,
       deposits: MOCK_DEPOSITS,
       transfers: MOCK_TRANSFERS,
+      cardTransactions: MOCK_CARDS,
       submittedTransactions: [],
       moneyAddress: '0x0000000000000000000000000000000000000001',
       mockDataEnabled: false,
@@ -114,6 +118,7 @@ describe('MoneyActivityView', () => {
     expect(
       getByTestId(MoneyActivityViewTestIds.FILTER_TRANSFERS),
     ).toBeOnTheScreen();
+    expect(getByTestId(MoneyActivityViewTestIds.FILTER_CARD)).toBeOnTheScreen();
   });
 
   it('pressing the back button calls navigation.goBack', () => {
@@ -148,6 +153,20 @@ describe('MoneyActivityView', () => {
 
     fireEvent.press(getByTestId(MoneyActivityViewTestIds.FILTER_TRANSFERS));
 
+    // money-tx-6 is a moneyAccountWithdraw row; non-transfer rows must vanish.
+    expect(getByTestId('activity-mock-tx-money-tx-6')).toBeOnTheScreen();
+    expect(queryByTestId('activity-mock-tx-money-tx-1')).toBeNull();
+    expect(queryByTestId('activity-mock-tx-money-tx-4')).toBeNull();
+  });
+
+  it('shows only card rows when the Card filter is selected', () => {
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <MoneyActivityView />,
+    );
+
+    fireEvent.press(getByTestId(MoneyActivityViewTestIds.FILTER_CARD));
+
+    // money-tx-4 is the mock card_transaction row; non-card rows must vanish.
     expect(getByTestId('activity-mock-tx-money-tx-4')).toBeOnTheScreen();
     expect(queryByTestId('activity-mock-tx-money-tx-1')).toBeNull();
   });
@@ -157,6 +176,7 @@ describe('MoneyActivityView', () => {
       allTransactions: [],
       deposits: [],
       transfers: [],
+      cardTransactions: [],
       submittedTransactions: [],
       moneyAddress: '0x0000000000000000000000000000000000000001',
       mockDataEnabled: false,

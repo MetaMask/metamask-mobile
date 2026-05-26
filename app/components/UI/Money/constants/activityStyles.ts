@@ -11,6 +11,7 @@ import {
   MUSD_DECIMALS,
   MUSD_TOKEN,
 } from '../../Earn/constants/musd';
+import { isCardTransaction } from './moneyActivityFilters';
 
 function formatNumber(num: number): string {
   return getIntlNumberFormatter(I18n.locale, {
@@ -40,6 +41,7 @@ export function getMoneyAmountPrefixForTransactionMeta(
   tx: TransactionMeta,
 ): string {
   if (
+    isCardTransaction(tx) ||
     (tx.type && OUTGOING_EVM_TYPES.includes(tx.type)) ||
     hasOutgoingNestedType(tx)
   ) {
@@ -146,6 +148,7 @@ export function getMusdDisplayAmountFromTransactionMeta(
 }
 
 export function isIncomingMoneyTransactionMeta(tx: TransactionMeta): boolean {
+  if (isCardTransaction(tx)) return false;
   const t = tx.type;
   if (
     t === EvmTransactionType.incoming ||

@@ -10,54 +10,15 @@ import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountCon
 import { selectMoneyActivityMockDataEnabledFlag } from '../selectors/featureFlags';
 import MOCK_MONEY_TRANSACTIONS from '../constants/mockActivityData';
 import {
+  getErc20TransferRecipient,
+  isCardTransaction,
   isMoneyActivityDeposit,
   isMoneyActivityTransfer,
   isMusdErc20Transfer,
 } from '../constants/moneyActivityFilters';
 import { selectNonReplacedTransactions } from '../../../../selectors/transactionController';
 import { areAddressesEqual } from '../../../../util/address';
-import { decodeTransferData } from '../../../../util/transactions';
 import { isMusdTokenOnChain } from '../../Earn/constants/musd';
-
-// `0x` + 8 hex chars selector + 64 hex chars (address) + 64 hex chars (uint256).
-const ERC20_TRANSFER_CALLDATA_LENGTH = 138;
-// `0x` + 8 hex chars selector + 3 × 64 hex chars (from, to, uint256).
-const ERC20_TRANSFER_FROM_CALLDATA_LENGTH = 202;
-
-/**
- * Extracts the call's recipient from ERC-20 `transfer`/`transferFrom` calldata.
- * For both types, `txParams.to` is the token contract, not the recipient — the
- * recipient must be decoded from the calldata. Returns `undefined` if the
- * calldata is missing or truncated; `decodeTransferData` does not throw on
- * short input, so length must be checked.
- */
-function getErc20TransferRecipient(tx: TransactionMeta): string | undefined {
-  const data = tx.txParams?.data;
-  if (!data) return undefined;
-  try {
-    if (
-      tx.type === TransactionType.tokenMethodTransfer &&
-      data.length >= ERC20_TRANSFER_CALLDATA_LENGTH
-    ) {
-      const [recipient] = decodeTransferData('transfer', data) as string[];
-      return recipient;
-    }
-    if (
-      tx.type === TransactionType.tokenMethodTransferFrom &&
-      data.length >= ERC20_TRANSFER_FROM_CALLDATA_LENGTH
-    ) {
-      // transferFrom(address from, address to, uint256 amount) → recipient at [1].
-      const [, recipient] = decodeTransferData(
-        'transferFrom',
-        data,
-      ) as string[];
-      return recipient;
-    }
-    return undefined;
-  } catch {
-    return undefined;
-  }
-}
 
 export interface UseMoneyAccountTransactionsResult {
   /** Confirmed + submitted (filtered) merged, sorted by time descending */
@@ -66,6 +27,8 @@ export interface UseMoneyAccountTransactionsResult {
   deposits: TransactionMeta[];
   /** Confirmed transfers (outgoing) and submitted outgoing */
   transfers: TransactionMeta[];
+  /** Card spends — outgoing transfers to the card aggregator */
+  cardTransactions: TransactionMeta[];
   /** Transactions awaiting confirmation (not in a final on-chain state) */
   submittedTransactions: TransactionMeta[];
   moneyAddress: string | undefined;
@@ -96,6 +59,7 @@ export function useMoneyAccountTransactions(): UseMoneyAccountTransactionsResult
         allTransactions,
         deposits: allTransactions.filter(isMoneyActivityDeposit),
         transfers: allTransactions.filter(isMoneyActivityTransfer),
+        cardTransactions: allTransactions.filter(isCardTransaction),
         submittedTransactions: [],
         moneyAddress,
         mockDataEnabled: true,
@@ -146,6 +110,11 @@ export function useMoneyAccountTransactions(): UseMoneyAccountTransactionsResult
             return true;
           }
         }
+        // Card spends: outgoing transfer to the card aggregator. Failed
+        // card spends are excluded from the activity list per AC.
+        if (isCardTransaction(tx) && tx.status !== TransactionStatus.failed) {
+          return true;
+        }
         return false;
       })
       .sort((a, b) => (b?.time ?? 0) - (a?.time ?? 0));
@@ -158,6 +127,7 @@ export function useMoneyAccountTransactions(): UseMoneyAccountTransactionsResult
       allTransactions: moneyTransactions,
       deposits: moneyTransactions.filter(isMoneyActivityDeposit),
       transfers: moneyTransactions.filter(isMoneyActivityTransfer),
+      cardTransactions: moneyTransactions.filter(isCardTransaction),
       submittedTransactions,
       moneyAddress,
       mockDataEnabled: false,

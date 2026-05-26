@@ -71,6 +71,7 @@ const MoneyActivityView = () => {
     allTransactions,
     deposits,
     transfers,
+    cardTransactions,
     moneyAddress,
     mockDataEnabled,
   } = useMoneyAccountTransactions();
@@ -96,8 +97,11 @@ const MoneyActivityView = () => {
     if (filter === MoneyActivityFilter.Deposits) {
       return deposits;
     }
+    if (filter === MoneyActivityFilter.Card) {
+      return cardTransactions;
+    }
     return transfers;
-  }, [filter, allTransactions, deposits, transfers]);
+  }, [filter, allTransactions, deposits, transfers, cardTransactions]);
 
   const sections = useMemo(
     () => groupByDate(filtered, I18n.locale),
@@ -205,6 +209,19 @@ const MoneyActivityView = () => {
           testID={MoneyActivityViewTestIds.FILTER_TRANSFERS}
         >
           {strings('money.activity.filter_transfers')}
+        </Button>
+        <Button
+          variant={
+            isActive(MoneyActivityFilter.Card)
+              ? ButtonVariant.Primary
+              : ButtonVariant.Secondary
+          }
+          size={ButtonSize.Md}
+          twClassName="min-w-0 shrink px-3"
+          onPress={() => setFilter(MoneyActivityFilter.Card)}
+          testID={MoneyActivityViewTestIds.FILTER_CARD}
+        >
+          {strings('money.activity.filter_card')}
         </Button>
       </Box>
 

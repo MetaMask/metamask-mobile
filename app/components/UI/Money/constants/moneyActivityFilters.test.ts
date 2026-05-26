@@ -5,7 +5,9 @@ import {
 import type { Hex } from '@metamask/utils';
 import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
 import {
+  CARD_AGGREGATOR_ADDRESS,
   getMoneyActivityDateKeyUtc,
+  isCardTransaction,
   isMoneyActivityDeposit,
   isMoneyActivityTransaction,
   isMoneyActivityTransfer,
@@ -228,6 +230,135 @@ describe('moneyActivityFilters', () => {
             chainId: polygon,
             type: TransactionType.tokenMethodTransfer,
             txParams: { to: MUSD_TOKEN_ADDRESS } as never,
+          }),
+        ),
+      ).toBe(false);
+    });
+  });
+
+  describe('isCardTransaction', () => {
+    const ERC20_TRANSFER_SELECTOR = '0xa9059cbb';
+    const padAddr = (a: string) =>
+      a.replace(/^0x/, '').toLowerCase().padStart(64, '0');
+    const padAmt = (n: bigint) => n.toString(16).padStart(64, '0');
+    const makeTransferData = (to: string, amount = 1_000_000n) =>
+      `${ERC20_TRANSFER_SELECTOR}${padAddr(to)}${padAmt(amount)}`;
+
+    it('returns true for a simpleSend to the card aggregator', () => {
+      expect(
+        isCardTransaction(
+          tx({
+            type: TransactionType.simpleSend,
+            txParams: { to: CARD_AGGREGATOR_ADDRESS } as never,
+          }),
+        ),
+      ).toBe(true);
+    });
+
+    it('returns false for a simpleSend to any other address', () => {
+      expect(
+        isCardTransaction(
+          tx({
+            type: TransactionType.simpleSend,
+            txParams: {
+              to: '0x1111111111111111111111111111111111111111',
+            } as never,
+          }),
+        ),
+      ).toBe(false);
+    });
+
+    it('returns true for an ERC-20 transfer whose decoded recipient is the card aggregator', () => {
+      expect(
+        isCardTransaction(
+          tx({
+            type: TransactionType.tokenMethodTransfer,
+            txParams: {
+              to: MUSD_TOKEN_ADDRESS,
+              data: makeTransferData(CARD_AGGREGATOR_ADDRESS),
+            } as never,
+          }),
+        ),
+      ).toBe(true);
+    });
+
+    it('returns false for an ERC-20 transfer whose decoded recipient is not the card aggregator', () => {
+      expect(
+        isCardTransaction(
+          tx({
+            type: TransactionType.tokenMethodTransfer,
+            txParams: {
+              to: MUSD_TOKEN_ADDRESS,
+              data: makeTransferData(
+                '0x2222222222222222222222222222222222222222',
+              ),
+            } as never,
+          }),
+        ),
+      ).toBe(false);
+    });
+
+    it('returns false for unrelated transaction types', () => {
+      expect(
+        isCardTransaction(
+          tx({
+            type: TransactionType.moneyAccountWithdraw,
+            txParams: { to: CARD_AGGREGATOR_ADDRESS } as never,
+          }),
+        ),
+      ).toBe(false);
+    });
+
+    it('returns false for transferFrom even when the call recipient is the card aggregator (out of scope)', () => {
+      // transferFrom is intentionally not supported by the card flow today.
+      const recipientHex = padAddr(CARD_AGGREGATOR_ADDRESS);
+      const fromHex = padAddr('0x3333333333333333333333333333333333333333');
+      const amountHex = padAmt(1_000_000n);
+      expect(
+        isCardTransaction(
+          tx({
+            type: TransactionType.tokenMethodTransferFrom,
+            txParams: {
+              to: MUSD_TOKEN_ADDRESS,
+              data: `0x23b872dd${fromHex}${recipientHex}${amountHex}`,
+            } as never,
+          }),
+        ),
+      ).toBe(false);
+    });
+  });
+
+  describe('deposit/transfer predicates exclude card transactions', () => {
+    const ERC20_TRANSFER_SELECTOR = '0xa9059cbb';
+    const padAddr = (a: string) =>
+      a.replace(/^0x/, '').toLowerCase().padStart(64, '0');
+    const padAmt = (n: bigint) => n.toString(16).padStart(64, '0');
+    const cardTransferData =
+      `${ERC20_TRANSFER_SELECTOR}` +
+      padAddr(CARD_AGGREGATOR_ADDRESS) +
+      padAmt(1_000_000n);
+
+    it('isMoneyActivityTransfer returns false for a simpleSend to the card aggregator', () => {
+      expect(
+        isMoneyActivityTransfer(
+          tx({
+            type: TransactionType.simpleSend,
+            txParams: { to: CARD_AGGREGATOR_ADDRESS } as never,
+          }),
+        ),
+      ).toBe(false);
+    });
+
+    it('isMoneyActivityDeposit returns false for an mUSD transfer to the card aggregator', () => {
+      expect(
+        isMoneyActivityDeposit(
+          tx({
+            type: TransactionType.tokenMethodTransfer,
+            transferInformation: transferInfo(MUSD_TOKEN_ADDRESS),
+            txParams: {
+              to: MUSD_TOKEN_ADDRESS,
+              data: cardTransferData,
+            } as never,
           }),
         ),
       ).toBe(false);

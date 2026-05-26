@@ -7,6 +7,10 @@ import {
 } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
 import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
+import { CARD_AGGREGATOR_ADDRESS ,
+  isMoneyActivityDeposit,
+  isMoneyActivityTransfer,
+} from '../constants/moneyActivityFilters';
 import {
   renderHookWithProvider,
   type ProviderValues,
@@ -16,10 +20,6 @@ import {
   MOCK_KEYRING_CONTROLLER,
 } from '../../../../selectors/keyringController/testUtils';
 import MOCK_MONEY_TRANSACTIONS from '../constants/mockActivityData';
-import {
-  isMoneyActivityDeposit,
-  isMoneyActivityTransfer,
-} from '../constants/moneyActivityFilters';
 import { useMoneyAccountTransactions } from './useMoneyAccountTransactions';
 
 const MOCK_MONEY_ACCOUNT: MoneyAccount = {
@@ -407,6 +407,56 @@ describe('useMoneyAccountTransactions', () => {
         { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
       );
       expect(result.current.allTransactions).toHaveLength(0);
+    });
+
+    it('includes an mUSD tokenMethodTransfer to the card aggregator under cardTransactions', () => {
+      const tx = makeTx(TransactionType.tokenMethodTransfer, {
+        txParams: {
+          from: MONEY_ADDRESS,
+          to: MUSD_TOKEN_ADDRESS,
+          data: makeTransferCalldata(CARD_AGGREGATOR_ADDRESS),
+        } as never,
+      });
+      const { result } = renderHookWithProvider(
+        () => useMoneyAccountTransactions(),
+        { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+      );
+      expect(result.current.allTransactions).toHaveLength(1);
+      expect(result.current.cardTransactions).toHaveLength(1);
+      expect(result.current.deposits).toHaveLength(0);
+      expect(result.current.transfers).toHaveLength(0);
+    });
+
+    it('includes a simpleSend to the card aggregator under cardTransactions', () => {
+      const tx = makeTx(TransactionType.simpleSend, {
+        txParams: {
+          from: MONEY_ADDRESS,
+          to: CARD_AGGREGATOR_ADDRESS,
+        } as never,
+      });
+      const { result } = renderHookWithProvider(
+        () => useMoneyAccountTransactions(),
+        { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+      );
+      expect(result.current.cardTransactions).toHaveLength(1);
+      expect(result.current.transfers).toHaveLength(0);
+    });
+
+    it('excludes failed card transactions per AC', () => {
+      const tx = makeTx(TransactionType.tokenMethodTransfer, {
+        status: TransactionStatus.failed,
+        txParams: {
+          from: MONEY_ADDRESS,
+          to: MUSD_TOKEN_ADDRESS,
+          data: makeTransferCalldata(CARD_AGGREGATOR_ADDRESS),
+        } as never,
+      });
+      const { result } = renderHookWithProvider(
+        () => useMoneyAccountTransactions(),
+        { state: engineState({ moneyActivityMockDataEnabled: false }, [tx]) },
+      );
+      expect(result.current.allTransactions).toHaveLength(0);
+      expect(result.current.cardTransactions).toHaveLength(0);
     });
 
     it('sorts correctly when one transaction has an undefined time (covers ?? 0 fallback)', () => {
