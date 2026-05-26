@@ -14,6 +14,7 @@ const mockCancelBatchSellQuoteParams = jest.fn();
 const mockUpdateBatchSellQuoteParams = Object.assign(jest.fn(), {
   cancel: mockCancelBatchSellQuoteParams,
 });
+const mockGetNewQuote = jest.fn();
 const ethAssetId =
   'eip155:1/erc20:0x1111111111111111111111111111111111111111' as CaipAssetType;
 const uniAssetId =
@@ -41,6 +42,7 @@ interface MockBatchSellQuoteData {
   isSummaryLoading: boolean;
   hasAnyQuote: boolean;
   hasPendingQuoteRows: boolean;
+  needsNewQuote: boolean;
   networkFee: { formatted: string; formattedFiat: string };
   networkFeeIsLoading: boolean;
 }
@@ -71,6 +73,7 @@ const defaultQuoteData: MockBatchSellQuoteData = {
   isSummaryLoading: false,
   hasAnyQuote: true,
   hasPendingQuoteRows: false,
+  needsNewQuote: false,
   networkFee: {
     formatted: '1.20 USDC',
     formattedFiat: '$1.20',
@@ -202,7 +205,10 @@ jest.mock('../../hooks/useBatchSellQuoteRequest', () => ({
     (token: { balance?: string }, percent: number) =>
       token.balance && percent > 0 ? token.balance : '0',
   ),
-  useBatchSellQuoteRequest: jest.fn(() => mockUpdateBatchSellQuoteParams),
+  useBatchSellQuoteRequest: jest.fn(() => ({
+    updateBatchSellQuoteParams: mockUpdateBatchSellQuoteParams,
+    getNewQuote: mockGetNewQuote,
+  })),
 }));
 
 jest.mock('../../hooks/useBatchSellQuoteData', () => ({
@@ -221,6 +227,7 @@ describe('BatchSellReview', () => {
       [uniAssetId]: '154.297',
     };
     mockBatchSellQuoteData = defaultQuoteData;
+    mockGetNewQuote.mockClear();
   });
 
   it('renders the quote review screen', () => {
@@ -496,6 +503,26 @@ describe('BatchSellReview', () => {
     fireEvent.press(getByTestId(BatchSellReviewSelectorsIDs.REVIEW_BUTTON));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.BATCH_SELL_FINAL_REVIEW_MODAL,
+    });
+  });
+
+  it('shows Get new quote when max refresh expires and fetches fresh quotes', () => {
+    mockBatchSellQuoteData = {
+      ...defaultQuoteData,
+      needsNewQuote: true,
+      networkFeeIsLoading: true,
+      hasPendingQuoteRows: true,
+    };
+    const { getByTestId, getByText } = render(<BatchSellReview />);
+    const reviewButton = getByTestId(BatchSellReviewSelectorsIDs.REVIEW_BUTTON);
+
+    fireEvent.press(reviewButton);
+
+    expect(getByText('Get new quote')).toBeOnTheScreen();
+    expect(reviewButton.props.accessibilityState.disabled).not.toBe(true);
+    expect(mockGetNewQuote).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.BATCH_SELL_FINAL_REVIEW_MODAL,
     });
   });

@@ -36,6 +36,7 @@ import {
   type BatchSellQuoteTokenData,
   useBatchSellQuoteData,
 } from '../../hooks/useBatchSellQuoteData';
+import { useBatchSellQuoteRequest } from '../../hooks/useBatchSellQuoteRequest';
 import { useBatchSellHasSufficientGas } from '../../hooks/useBatchSellHasSufficientGas';
 import type { BridgeToken } from '../../types';
 import { BatchSellQuoteDetails } from '../BatchSellQuoteDetailsModal';
@@ -283,6 +284,7 @@ export function BatchSellFinalReviewModal() {
   const batchSellQuoteData = useBatchSellQuoteData({
     shouldUpdateBatchSellTrades: false,
   });
+  const { getNewQuote: handleGetNewQuote } = useBatchSellQuoteRequest();
   const hasSufficientGas = useBatchSellHasSufficientGas({
     isGasless: batchSellQuoteData.isGasless,
     networkFee: batchSellQuoteData.networkFee,
@@ -308,11 +310,26 @@ export function BatchSellFinalReviewModal() {
     !batchSellQuoteData.hasAnyQuote ||
     batchSellQuoteData.hasPendingQuoteRows ||
     hasInsufficientGas;
+  const isButtonDisabled = batchSellQuoteData.needsNewQuote
+    ? false
+    : isSellAllDisabled;
   const isSellAllLoading =
+    !batchSellQuoteData.needsNewQuote &&
     isSellAllDisabled &&
     (batchSellQuoteData.isLoading ||
       batchSellQuoteData.networkFeeIsLoading ||
       batchSellQuoteData.hasPendingQuoteRows);
+  const actionButtonLabel = (() => {
+    if (batchSellQuoteData.needsNewQuote) {
+      return strings('quote_expired_modal.get_new_quote');
+    }
+
+    if (hasInsufficientGas) {
+      return strings('bridge.insufficient_funds');
+    }
+
+    return strings('bridge.batch_sell_sell_all');
+  })();
 
   const handleToggleTokenDetails = () => {
     setIsTokenDetailsExpanded((isExpanded) => !isExpanded);
@@ -375,13 +392,14 @@ export function BatchSellFinalReviewModal() {
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
-          isDisabled={isSellAllDisabled}
+          isDisabled={isButtonDisabled}
           isLoading={isSellAllLoading}
+          onPress={
+            batchSellQuoteData.needsNewQuote ? handleGetNewQuote : undefined
+          }
           testID={BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON}
         >
-          {hasInsufficientGas
-            ? strings('bridge.insufficient_funds')
-            : strings('bridge.batch_sell_sell_all')}
+          {actionButtonLabel}
         </Button>
         {batchSellQuoteData.quotePercentFee ? (
           <Text

@@ -203,8 +203,21 @@ export function useBatchSellQuoteRequest() {
     [quoteRequestData],
   );
 
-  return useMemo(
+  const updateBatchSellQuoteParams = useMemo(
     () => debounce(updateQuoteParams, BATCH_SELL_QUOTE_DEBOUNCE_MS),
     [updateQuoteParams],
+  );
+
+  const getNewQuote = useCallback(() => {
+    Engine.context.BridgeController?.resetState?.();
+    updateBatchSellQuoteParams();
+  }, [updateBatchSellQuoteParams]);
+
+  return useMemo(
+    () => ({
+      updateBatchSellQuoteParams,
+      getNewQuote,
+    }),
+    [getNewQuote, updateBatchSellQuoteParams],
   );
 }

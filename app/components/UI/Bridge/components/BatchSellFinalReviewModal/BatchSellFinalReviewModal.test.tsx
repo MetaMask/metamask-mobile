@@ -10,6 +10,8 @@ import { BatchSellFinalReviewModalSelectorsIDs } from './BatchSellFinalReviewMod
 
 const mockGoBack = jest.fn();
 const mockReplace = jest.fn();
+const mockUpdateBatchSellQuoteParams = jest.fn();
+const mockGetNewQuote = jest.fn();
 const mockUseBatchSellHasSufficientGas = jest.fn((_params: unknown) => true);
 const errorTextColor = lightTheme.colors.error.default;
 const ethAssetId = 'eip155:1/erc20:0x1111111111111111111111111111111111111111';
@@ -57,6 +59,7 @@ interface MockBatchSellQuoteData {
   isGasless: boolean;
   hasAnyQuote: boolean;
   hasPendingQuoteRows: boolean;
+  needsNewQuote: boolean;
   quotePercentFee?: string;
   networkFee: {
     amount?: string;
@@ -105,6 +108,7 @@ const defaultQuoteData: MockBatchSellQuoteData = {
   isGasless: false,
   hasAnyQuote: true,
   hasPendingQuoteRows: false,
+  needsNewQuote: false,
   quotePercentFee: '1.25',
   networkFee: {
     amount: '1.2',
@@ -144,6 +148,13 @@ jest.mock('../../hooks/useBatchSellQuoteData', () => ({
   useBatchSellQuoteData: jest.fn(() => mockBatchSellQuoteData),
 }));
 
+jest.mock('../../hooks/useBatchSellQuoteRequest', () => ({
+  useBatchSellQuoteRequest: jest.fn(() => ({
+    updateBatchSellQuoteParams: mockUpdateBatchSellQuoteParams,
+    getNewQuote: mockGetNewQuote,
+  })),
+}));
+
 jest.mock('../../hooks/useBatchSellHasSufficientGas', () => ({
   useBatchSellHasSufficientGas: (params: unknown) =>
     mockUseBatchSellHasSufficientGas(params),
@@ -163,6 +174,8 @@ describe('BatchSellFinalReviewModal', () => {
     jest.clearAllMocks();
     mockSelectedTokens = defaultSelectedTokens;
     mockBatchSellQuoteData = defaultQuoteData;
+    mockUpdateBatchSellQuoteParams.mockClear();
+    mockGetNewQuote.mockClear();
     mockUseBatchSellHasSufficientGas.mockReturnValue(true);
   });
 
@@ -404,6 +417,26 @@ describe('BatchSellFinalReviewModal', () => {
       getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON).props
         .accessibilityState.busy,
     ).not.toBe(true);
+  });
+
+  it('shows Get new quote when max refresh expires and fetches fresh quotes', () => {
+    mockUseBatchSellHasSufficientGas.mockReturnValue(false);
+
+    const { getByTestId, getByText } = renderModal({
+      needsNewQuote: true,
+      networkFeeIsLoading: true,
+      hasPendingQuoteRows: true,
+    });
+    const button = getByTestId(
+      BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON,
+    );
+
+    fireEvent.press(button);
+
+    expect(getByText('Get new quote')).toBeOnTheScreen();
+    expect(button.props.accessibilityState.disabled).not.toBe(true);
+    expect(button.props.accessibilityState.busy).not.toBe(true);
+    expect(mockGetNewQuote).toHaveBeenCalledTimes(1);
   });
 
   it('updates quote values from live data while mounted', () => {

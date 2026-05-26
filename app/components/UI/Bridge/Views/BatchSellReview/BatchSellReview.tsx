@@ -127,7 +127,8 @@ export function BatchSellReview() {
   const [percentsByTokenKey, setPercentsByTokenKey] = useState<
     Record<string, number>
   >({});
-  const updateBatchSellQuoteParams = useBatchSellQuoteRequest();
+  const { updateBatchSellQuoteParams, getNewQuote: handleGetNewQuote } =
+    useBatchSellQuoteRequest();
   const batchSellQuoteData = useBatchSellQuoteData();
   const hasValidBatchSellInputs = useMemo(
     () =>
@@ -447,13 +448,21 @@ export function BatchSellReview() {
             size={ButtonSize.Lg}
             isFullWidth
             isDisabled={
-              !batchSellQuoteData.hasAnyQuote ||
-              batchSellQuoteData.hasPendingQuoteRows
+              batchSellQuoteData.needsNewQuote
+                ? false
+                : !batchSellQuoteData.hasAnyQuote ||
+                  batchSellQuoteData.hasPendingQuoteRows
             }
-            onPress={handleOpenFinalReview}
+            onPress={
+              batchSellQuoteData.needsNewQuote
+                ? handleGetNewQuote
+                : handleOpenFinalReview
+            }
             testID={BatchSellReviewSelectorsIDs.REVIEW_BUTTON}
           >
-            {strings('bridge.batch_sell_review')}
+            {batchSellQuoteData.needsNewQuote
+              ? strings('quote_expired_modal.get_new_quote')
+              : strings('bridge.batch_sell_review')}
           </Button>
         </Box>
       </Box>

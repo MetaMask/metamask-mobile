@@ -134,6 +134,7 @@ let mockBatchSellQuotes: {
   minimumReceived: { amount: string; valueInCurrency: string | null };
   isLoading: boolean;
   quotesLastFetchedMs?: number;
+  isQuoteGoingToRefresh: boolean;
 } = {
   recommendedQuotes: [
     buildMockRecommendedQuote(ethToken, '123', '123.45'),
@@ -142,6 +143,7 @@ let mockBatchSellQuotes: {
   totalReceived: { amount: '200', valueInCurrency: '201.34' },
   minimumReceived: { amount: '190', valueInCurrency: '191.23' },
   isLoading: false,
+  isQuoteGoingToRefresh: true,
 };
 let mockBatchSellTrades: {
   totalNetworkFee:
@@ -161,8 +163,12 @@ let mockBatchSellTrades: {
   isBatchSellTradeAvailable: true,
 };
 let mockBridgeFeatureFlags: {
+  chains: Record<string, { refreshRate?: number }>;
+  refreshRate: number;
   priceImpactThreshold?: { warning?: number };
 } = {
+  chains: {},
+  refreshRate: 30000,
   priceImpactThreshold: { warning: 0.05 },
 };
 
@@ -211,6 +217,7 @@ describe('useBatchSellQuoteData', () => {
       totalReceived: { amount: '200', valueInCurrency: '201.34' },
       minimumReceived: { amount: '190', valueInCurrency: '191.23' },
       isLoading: false,
+      isQuoteGoingToRefresh: true,
     };
     mockBatchSellTrades = {
       totalNetworkFee: {
@@ -221,6 +228,8 @@ describe('useBatchSellQuoteData', () => {
       isBatchSellTradeAvailable: true,
     };
     mockBridgeFeatureFlags = {
+      chains: {},
+      refreshRate: 30000,
       priceImpactThreshold: { warning: 0.05 },
     };
   });
@@ -233,6 +242,7 @@ describe('useBatchSellQuoteData', () => {
     expect(result.current.isLoading).toBe(false);
     expect(result.current.isSummaryLoading).toBe(false);
     expect(result.current.hasPendingQuoteRows).toBe(false);
+    expect(result.current.needsNewQuote).toBe(false);
     expect(result.current.totalReceived.amount).toBe('200');
     expect(result.current.totalReceived.valueInCurrency).toBe('201.34');
     expect(result.current.minimumReceived.amount).toBe('200');
@@ -313,6 +323,48 @@ describe('useBatchSellQuoteData', () => {
     const { result } = renderHook(() => useBatchSellQuoteData());
 
     expect(result.current.isGasless).toBe(true);
+  });
+
+  it('does not need a new quote when the quote is expired but going to refresh', () => {
+    const now = 60000;
+    const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(now);
+    mockBridgeFeatureFlags = {
+      ...mockBridgeFeatureFlags,
+      refreshRate: 30000,
+    };
+    mockBatchSellQuotes = {
+      ...mockBatchSellQuotes,
+      quotesLastFetchedMs: 1,
+      isQuoteGoingToRefresh: true,
+    };
+
+    const { result } = renderHook(() => useBatchSellQuoteData());
+
+    expect(result.current.needsNewQuote).toBe(false);
+
+    dateNowSpy.mockRestore();
+  });
+
+  it('needs a new quote when the quote is expired and no longer refreshing', () => {
+    const now = 60000;
+    const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(now);
+    mockBridgeFeatureFlags = {
+      ...mockBridgeFeatureFlags,
+      refreshRate: 30000,
+    };
+    mockBatchSellQuotes = {
+      ...mockBatchSellQuotes,
+      quotesLastFetchedMs: 1,
+      isQuoteGoingToRefresh: false,
+    };
+
+    const { result } = renderHook(() => useBatchSellQuoteData());
+
+    expect(result.current.needsNewQuote).toBe(true);
+    expect(result.current.totalReceived.formatted).toBe('200 USDC');
+    expect(result.current.totalReceived.formattedFiat).toBe('$201.34');
+
+    dateNowSpy.mockRestore();
   });
 
   it('derives the MetaMask fee from the quoteBpsFee on quote data', () => {
@@ -500,7 +552,10 @@ describe('useBatchSellQuoteData', () => {
   });
 
   it('falls back to the default warning threshold when the flag is absent', () => {
-    mockBridgeFeatureFlags = { priceImpactThreshold: {} };
+    mockBridgeFeatureFlags = {
+      ...mockBridgeFeatureFlags,
+      priceImpactThreshold: {},
+    };
     mockBatchSellQuotes = {
       ...mockBatchSellQuotes,
       recommendedQuotes: [

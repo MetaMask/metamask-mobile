@@ -89,7 +89,7 @@ describe('useBatchSellQuoteRequest', () => {
     jest.useRealTimers();
   });
 
-  it('returns a debounced function for quote requests', () => {
+  it('returns Batch Sell quote request functions', () => {
     const testState = createBridgeTestState();
 
     const { result } = renderHookWithProvider(
@@ -99,8 +99,11 @@ describe('useBatchSellQuoteRequest', () => {
       },
     );
 
-    expect(typeof result.current).toBe('function');
-    expect(typeof result.current.cancel).toBe('function');
+    expect(typeof result.current.updateBatchSellQuoteParams).toBe('function');
+    expect(typeof result.current.updateBatchSellQuoteParams.cancel).toBe(
+      'function',
+    );
+    expect(typeof result.current.getNewQuote).toBe('function');
   });
 
   it('calculates source amounts from token balance percentages', () => {
@@ -173,7 +176,7 @@ describe('useBatchSellQuoteRequest', () => {
       },
     );
 
-    result.current();
+    result.current.updateBatchSellQuoteParams();
     await flushQuoteRequestDebounce();
 
     const bridgeController = getBridgeControllerMock();
@@ -215,7 +218,7 @@ describe('useBatchSellQuoteRequest', () => {
       },
     );
 
-    result.current();
+    result.current.updateBatchSellQuoteParams();
     await flushQuoteRequestDebounce();
 
     const bridgeController = getBridgeControllerMock();
@@ -258,7 +261,7 @@ describe('useBatchSellQuoteRequest', () => {
       },
     );
 
-    result.current();
+    result.current.updateBatchSellQuoteParams();
     await flushQuoteRequestDebounce();
 
     expect(
@@ -285,7 +288,7 @@ describe('useBatchSellQuoteRequest', () => {
       },
     );
 
-    result.current();
+    result.current.updateBatchSellQuoteParams();
     await flushQuoteRequestDebounce();
 
     expect(
@@ -312,7 +315,7 @@ describe('useBatchSellQuoteRequest', () => {
       },
     );
 
-    result.current();
+    result.current.updateBatchSellQuoteParams();
     await flushQuoteRequestDebounce();
 
     expect(
@@ -338,9 +341,42 @@ describe('useBatchSellQuoteRequest', () => {
       },
     );
 
-    result.current();
+    result.current.updateBatchSellQuoteParams();
     await flushQuoteRequestDebounce();
 
     expect(getBridgeControllerMock().resetState).not.toHaveBeenCalled();
+  });
+
+  it('resets BridgeController state before requesting a new quote', async () => {
+    const testState = createBridgeTestState({
+      bridgeReducerOverrides: {
+        batchSellSourceTokens: [ethToken],
+        batchSellSourceTokenAmounts: {
+          [ethAssetId]: ethToken.balance,
+        },
+        batchSellDestToken: usdcToken,
+      },
+    });
+
+    const { result } = renderHookWithProvider(
+      () => useBatchSellQuoteRequest(),
+      {
+        state: testState,
+      },
+    );
+
+    result.current.getNewQuote();
+
+    expect(getBridgeControllerMock().resetState).toHaveBeenCalledTimes(1);
+    await flushQuoteRequestDebounce();
+    expect(
+      getBridgeControllerMock().updateBridgeQuoteRequestParams,
+    ).toHaveBeenCalledTimes(1);
+    expect(
+      getBridgeControllerMock().resetState.mock.invocationCallOrder[0],
+    ).toBeLessThan(
+      getBridgeControllerMock().updateBridgeQuoteRequestParams.mock
+        .invocationCallOrder[0],
+    );
   });
 });

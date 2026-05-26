@@ -26,6 +26,7 @@ import {
   getSlippageDisplayValue,
 } from '../../components/SlippageModal/utils';
 import type { BridgeToken } from '../../types';
+import { getQuoteRefreshRate, isQuoteExpired } from '../../utils/quoteUtils';
 
 const UNKNOWN_DESTINATION_TOKEN_SYMBOL = 'UNKNOWN';
 const QUOTE_DETAILS_PLACEHOLDER_AMOUNT = '--';
@@ -221,6 +222,7 @@ export function useBatchSellQuoteData({
   const priceImpactWarningThreshold =
     bridgeFeatureFlags?.priceImpactThreshold?.warning ??
     AppConstants.BRIDGE.PRICE_IMPACT_WARNING_THRESHOLD;
+  const refreshRate = getQuoteRefreshRate(bridgeFeatureFlags, sourceTokens[0]);
 
   const destinationTokenSymbol =
     selectedDestinationToken?.symbol ?? UNKNOWN_DESTINATION_TOKEN_SYMBOL;
@@ -316,6 +318,14 @@ export function useBatchSellQuoteData({
   );
   const canDisplayAggregatedQuoteData =
     hasAnyQuote && !hasStaleDestinationQuotes;
+  const needsNewQuote =
+    canDisplayAggregatedQuoteData &&
+    !batchSellQuotes.isLoading &&
+    isQuoteExpired(
+      batchSellQuotes.isQuoteGoingToRefresh,
+      refreshRate,
+      batchSellQuotes.quotesLastFetchedMs ?? null,
+    );
   const isLoading =
     batchSellQuotes.isLoading ||
     !hasQuoteResultsForSelectedTokens ||
@@ -488,6 +498,7 @@ export function useBatchSellQuoteData({
     isGasless,
     hasAnyQuote,
     hasPendingQuoteRows,
+    needsNewQuote,
     networkFeeIsLoading,
     networkFee: networkFeeData,
     quotePercentFee,
