@@ -9,7 +9,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import MoneySectionHeader from '../MoneySectionHeader';
 import { MoneyHowItWorksTestIds } from './MoneyHowItWorks.testIds';
-import { isPositiveNumber } from '../../utils/number';
+import { isPositiveNumberOrZero } from '../../utils/number';
 
 interface MoneyHowItWorksProps {
   /** APY expressed as a percentage (e.g. 3 for 3%). */
@@ -35,7 +35,7 @@ const MoneyHowItWorks = ({
         testID={MoneyHowItWorksTestIds.DESCRIPTION}
       >
         {strings('money.how_it_works.description_prefix')}
-        {!isLoading && isPositiveNumber(apy) && (
+        {!isLoading && isPositiveNumberOrZero(apy) && (
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
