@@ -383,9 +383,9 @@ jobs:
             echo "| Native build fingerprint | \`$(value "$SOURCE_FINGERPRINT")\` |"
             echo "| Build type | \`$(value "$BUILD_TYPE")\` |"
             echo "| MetaMask environment | \`$(value "$METAMASK_ENVIRONMENT")\` |"
-            echo "| GitHub artifact candidate | $github_candidate |"
             echo "| Branch APK cache hit | $branch_cache |"
             echo "| Main APK cache hit | $main_cache |"
+            echo "| GitHub artifact candidate | $github_candidate |"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Setup Android Build Environment
