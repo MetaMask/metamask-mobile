@@ -1,9 +1,18 @@
 import React from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  HeaderStandard,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  useCardOnboardingNavigationHandlers,
+  type CardOnboardingHeaderMode,
+} from '../../hooks/useCardOnboardingNavigationHandlers';
 
 interface OnboardingStepProps {
   title: string;
@@ -16,6 +25,11 @@ interface OnboardingStepProps {
    * @default false
    */
   stickyActions?: boolean;
+  /**
+   * Controls the in-screen header rendered via HeaderStandard.
+   * Navigator headers are hidden; onboarding screens own their header chrome.
+   */
+  headerMode?: CardOnboardingHeaderMode;
 }
 
 const OnboardingStep = ({
@@ -24,8 +38,24 @@ const OnboardingStep = ({
   formFields,
   actions,
   stickyActions = false,
+  headerMode = 'none',
 }: OnboardingStepProps) => {
   const tw = useTailwind();
+  const headerHandlers = useCardOnboardingNavigationHandlers(headerMode);
+
+  const renderHeader = () => {
+    if (headerMode === 'none') {
+      return null;
+    }
+
+    return (
+      <HeaderStandard
+        includesTopInset
+        twClassName="bg-background-default"
+        {...headerHandlers}
+      />
+    );
+  };
 
   const renderContent = () => (
     <>
@@ -63,6 +93,7 @@ const OnboardingStep = ({
         style={tw.style('flex-1 bg-background-default')}
         edges={['bottom']}
       >
+        {renderHeader()}
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={tw.style('flex-1')}
@@ -94,6 +125,7 @@ const OnboardingStep = ({
       style={tw.style('flex-1 bg-background-default')}
       edges={['bottom']}
     >
+      {renderHeader()}
       <KeyboardAwareScrollView
         contentContainerStyle={tw.style('flex-grow px-4')}
         showsVerticalScrollIndicator={false}
