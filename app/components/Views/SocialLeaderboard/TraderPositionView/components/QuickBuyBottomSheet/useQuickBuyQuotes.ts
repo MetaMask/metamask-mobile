@@ -28,8 +28,24 @@ import {
   selectSourceWalletAddress,
 } from '../../../../../../selectors/bridge';
 import { getDecimalChainId } from '../../../../../../util/networks';
+import Logger from '../../../../../../util/Logger';
+import { buildSocialLoggerErrorOptions } from '../../../../../../util/social/socialServiceTelemetry';
+import {
+  SocialLeaderboardEventProperties,
+  useSocialLeaderboardAnalytics,
+} from '../../../analytics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 
 export type QuickBuyQuote = QuoteResponse & L1GasFees & NonEvmFees;
+
+export interface QuickBuyQuotesAnalyticsContext {
+  /** Wallet address of the trader being copied. */
+  traderAddress?: string;
+  /** CAIP-19 of the destination token. */
+  caip19?: string;
+  /** USD amount the user has selected; used as `amount_usd`. */
+  amountUsd?: number;
+}
 
 export type EnrichedQuickBuyQuote = ReturnType<
   typeof selectBridgeQuotesBase
@@ -41,6 +57,7 @@ interface UseQuickBuyQuotesParams {
   sourceToken: BridgeToken | undefined;
   destToken: BridgeToken | undefined;
   sourceTokenAmount: string | undefined;
+  analyticsContext?: QuickBuyQuotesAnalyticsContext;
 }
 
 export interface UseQuickBuyQuotesResult {
@@ -50,6 +67,8 @@ export interface UseQuickBuyQuotesResult {
   quoteFetchError: string | null;
   isNoQuotesAvailable: boolean;
   isActiveQuoteForCurrentTokenPair: boolean;
+  /** Number of quotes returned by the most recent successful request. */
+  quoteCount: number;
 }
 
 const buildQuoteRequest = ({
@@ -120,6 +139,7 @@ export function useQuickBuyQuotes({
   sourceToken,
   destToken,
   sourceTokenAmount,
+  analyticsContext,
 }: UseQuickBuyQuotesParams): UseQuickBuyQuotesResult {
   const slippage = useSelector(selectSlippage);
   const destAddress = useSelector(selectDestAddress);
@@ -127,6 +147,7 @@ export function useQuickBuyQuotes({
   const { gasIncluded, gasIncluded7702 } = useSelector(
     selectGasIncludedQuoteParams,
   );
+  const { track } = useSocialLeaderboardAnalytics();
 
   const [rawQuotes, setRawQuotes] = useState<QuickBuyQuote[]>([]);
   const [isQuoteLoading, setIsQuoteLoading] = useState(false);
@@ -134,6 +155,8 @@ export function useQuickBuyQuotes({
   const [isNoQuotesAvailable, setIsNoQuotesAvailable] = useState(false);
 
   const abortControllerRef = useRef<AbortController | null>(null);
+  // Tracks request timing so the received-event can report latency.
+  const requestStartedAtRef = useRef<number | null>(null);
 
   const resetQuotesIdle = useCallback(() => {
     setRawQuotes([]);
@@ -178,6 +201,42 @@ export function useQuickBuyQuotes({
     setIsQuoteLoading(true);
     setQuoteFetchError(null);
 
+    const requestedAt = Date.now();
+    requestStartedAtRef.current = requestedAt;
+
+    // Shared by REQUESTED + RECEIVED. Null when analytics context is incomplete
+    // — both events guard on this single value instead of duplicating the check.
+    const quotesBaseProps =
+      analyticsContext?.traderAddress && analyticsContext?.caip19
+        ? {
+            [SocialLeaderboardEventProperties.TRADER_ADDRESS]:
+              analyticsContext.traderAddress,
+            [SocialLeaderboardEventProperties.CAIP19]: analyticsContext.caip19,
+            [SocialLeaderboardEventProperties.AMOUNT_USD]:
+              analyticsContext.amountUsd ?? 0,
+            [SocialLeaderboardEventProperties.PAY_WITH_TOKEN]:
+              sourceToken.symbol,
+          }
+        : null;
+
+    if (quotesBaseProps) {
+      track(
+        MetaMetricsEvents.SOCIAL_QUICK_BUY_QUOTES_REQUESTED,
+        quotesBaseProps,
+      );
+    }
+
+    const fireReceived = (quoteCount: number) => {
+      if (quotesBaseProps) {
+        track(MetaMetricsEvents.SOCIAL_QUICK_BUY_QUOTES_RECEIVED, {
+          ...quotesBaseProps,
+          [SocialLeaderboardEventProperties.QUOTE_COUNT]: quoteCount,
+          [SocialLeaderboardEventProperties.LATENCY_MS]:
+            Date.now() - requestedAt,
+        });
+      }
+    };
+
     try {
       const result = await Engine.context.BridgeController.fetchQuotes(
         params,
@@ -193,16 +252,32 @@ export function useQuickBuyQuotes({
       setRawQuotes(result);
       setIsNoQuotesAvailable(result.length === 0);
       setIsQuoteLoading(false);
+      fireReceived(result.length);
     } catch (error) {
       if (controller.signal.aborted) {
         return;
       }
 
       const message = error instanceof Error ? error.message : String(error);
+      Logger.error(
+        error instanceof Error ? error : new Error(message),
+        buildSocialLoggerErrorOptions({
+          surface: 'quick_buy',
+          operation: 'fetch_quotes',
+          extraMessage: 'Error fetching QuickBuy quotes',
+          source: 'useQuickBuyQuotes',
+          error,
+          extraTags: {
+            sourceChainId: sourceToken?.chainId ?? 'unknown',
+            destChainId: destToken?.chainId ?? 'unknown',
+          },
+        }),
+      );
       setQuoteFetchError(message);
       setRawQuotes([]);
       setIsNoQuotesAvailable(false);
       setIsQuoteLoading(false);
+      fireReceived(0);
     }
   }, [
     sourceToken,
@@ -214,6 +289,8 @@ export function useQuickBuyQuotes({
     gasIncluded,
     gasIncluded7702,
     resetQuotesIdle,
+    analyticsContext,
+    track,
   ]);
 
   const debouncedFetchQuotes = useMemo(
@@ -315,5 +392,6 @@ export function useQuickBuyQuotes({
     quoteFetchError,
     isNoQuotesAvailable,
     isActiveQuoteForCurrentTokenPair,
+    quoteCount: enrichedResult.sortedQuotes?.length ?? rawQuotes.length,
   };
 }

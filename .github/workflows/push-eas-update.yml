@@ -92,6 +92,71 @@ jobs:
         run: |
           .github/scripts/validate-pr-commit.sh
 
+  verify-release-branch:
+    name: Verify release branch (production only)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enforce release branch for production channel
+        env:
+          PR_NUMBER: ${{ inputs.pr_number }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          TARGET_CHANNEL: ${{ inputs.channel }}
+        run: |
+          set -euo pipefail
+
+          if [ "${TARGET_CHANNEL}" != "production" ]; then
+            echo "ℹ️  Channel is '${TARGET_CHANNEL}' — release branch check skipped."
+            {
+              echo "### ℹ️ Release branch check skipped"
+              echo ""
+              echo "Channel \`${TARGET_CHANNEL}\` does not require a release branch."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          echo "🔒 Production channel selected — verifying PR head branch..."
+
+          OWNER="${GITHUB_REPOSITORY%%/*}"
+          REPO="${GITHUB_REPOSITORY#*/}"
+
+          pr_details=$(curl -sS \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${OWNER}/${REPO}/pulls/${PR_NUMBER}")
+
+          if ! echo "$pr_details" | jq -e '.id' > /dev/null 2>&1; then
+            echo "::error title=PR not found::Could not resolve PR #${PR_NUMBER}"
+            exit 1
+          fi
+
+          head_ref=$(echo "$pr_details" | jq -r '.head.ref')
+
+          if [[ "$head_ref" != release/* ]]; then
+            {
+              echo "### ❌ Production OTA push rejected"
+              echo ""
+              echo "Production channel pushes are only allowed from a release branch PR."
+              echo ""
+              echo "| Field | Value |"
+              echo "| --- | --- |"
+              echo "| PR | #${PR_NUMBER} |"
+              echo "| Head branch | \`${head_ref}\` |"
+              echo "| Required pattern | \`release/*\` |"
+              echo ""
+              echo "Re-run this workflow against a PR whose head branch is a release branch (for example \`release/7.78.0\`)."
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::error title=Invalid branch for production OTA::PR #${PR_NUMBER} head branch is '${head_ref}' but must match 'release/*'"
+            exit 1
+          fi
+
+          {
+            echo "### ✅ Release branch verified"
+            echo ""
+            echo "PR #${PR_NUMBER} head branch \`${head_ref}\` is a release branch."
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "✅ PR #${PR_NUMBER} head branch '${head_ref}' is a release branch"
+
   ota-summary:
     name: OTA Update Summary
     needs: validate-pr
@@ -115,6 +180,7 @@ jobs:
     name: Setup Dependencies (PR)
     needs:
       - validate-pr
+      - verify-release-branch
     uses: ./.github/workflows/setup-node-modules.yml
     with:
       ref: ${{ needs.validate-pr.outputs.commit_sha }}
@@ -127,6 +193,7 @@ jobs:
     name: Setup Dependencies (Base)
     needs:
       - validate-pr
+      - verify-release-branch
     uses: ./.github/workflows/setup-node-modules.yml
     with:
       ref: ${{ inputs.base_branch }}
@@ -137,7 +204,7 @@ jobs:
 
   prepare:
     name: Load OTA build config
-    needs: [validate-pr]
+    needs: [validate-pr, verify-release-branch]
     runs-on: ubuntu-latest
     outputs:
       github_environment: ${{ steps.config.outputs.github_environment }}
@@ -340,6 +407,7 @@ jobs:
       - fingerprint-comparison
       - approval
       - validate-pr
+      - verify-release-branch
       - setup-dependencies
       - prepare
     if: >

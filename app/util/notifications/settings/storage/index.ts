@@ -1,7 +1,7 @@
-import { createMMKV } from 'react-native-mmkv';
+import { MMKV } from 'react-native-mmkv';
 import { STORAGE_TYPES, STORAGE_IDS, mapStorageTypeToIds } from './constants';
 
-export const notificationStorage = createMMKV({
+export const notificationStorage = new MMKV({
   id: STORAGE_IDS.NOTIFICATIONS,
 });
 
@@ -44,11 +44,11 @@ export class mmStorage {
 
   static clearAllStorages() {
     Object.keys(STORAGE_IDS).forEach((id) => {
-      const storage = createMMKV({ id });
+      const storage = new MMKV({ id });
       storage.clearAll();
     });
 
-    const defaultStorage = createMMKV();
+    const defaultStorage = new MMKV();
     defaultStorage.clearAll();
   }
 }

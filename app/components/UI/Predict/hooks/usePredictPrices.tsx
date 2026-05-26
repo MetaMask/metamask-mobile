@@ -101,13 +101,6 @@ export const usePredictPrices = (
         setPrices(fetchedPrices);
         setError(null);
       }
-
-      // set up next poll if polling is enabled
-      if (pollingInterval && isMountedRef.current) {
-        pollingTimeoutRef.current = setTimeout(() => {
-          fetchPrices();
-        }, pollingInterval);
-      }
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : 'Failed to fetch prices';
@@ -132,11 +125,15 @@ export const usePredictPrices = (
 
       if (isMountedRef.current) {
         setError(errorMessage);
-        setPrices({ providerId: '', results: [] });
       }
     } finally {
       if (isMountedRef.current) {
         setIsFetching(false);
+        if (pollingInterval && enabled) {
+          pollingTimeoutRef.current = setTimeout(() => {
+            fetchPrices();
+          }, pollingInterval);
+        }
       }
     }
     // eslint-disable-next-line react-compiler/react-compiler

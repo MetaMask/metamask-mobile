@@ -26,6 +26,14 @@ import { usePriceImpactViewData } from '../../../../../UI/Bridge/hooks/usePriceI
 import { TextColor } from '@metamask/design-system-react-native';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import { ChainId } from '@metamask/bridge-controller';
+import Logger from '../../../../../../util/Logger';
+
+jest.mock('../../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+  },
+}));
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -144,6 +152,15 @@ jest.mock('../../../../../UI/Bridge/hooks/usePriceImpactViewData', () => ({
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
+
+const mockTrack = jest.fn();
+jest.mock('../../../analytics', () => {
+  const actual = jest.requireActual('../../../analytics');
+  return {
+    ...actual,
+    useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
+  };
+});
 
 const mockDispatch = jest.fn();
 
@@ -880,6 +897,45 @@ describe('useQuickBuyBottomSheet', () => {
       expect(
         Engine.context.BridgeStatusController.submitTx,
       ).not.toHaveBeenCalled();
+    });
+
+    it('logs feature:social when submitTx fails', async () => {
+      const submitError = new Error('user rejected');
+      (
+        Engine.context.BridgeStatusController.submitTx as jest.Mock
+      ).mockRejectedValue(submitError);
+
+      (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+        activeQuote: createActiveQuote(),
+        destTokenAmount: '1',
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyBottomSheet(createPosition(), jest.fn()),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        submitError,
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            feature: 'social',
+            surface: 'quick_buy',
+            operation: 'submit_tx',
+            source: 'useQuickBuyBottomSheet',
+          }),
+          extras: expect.objectContaining({
+            message: 'Error submitting QuickBuy tx at useQuickBuyBottomSheet',
+          }),
+        }),
+      );
     });
   });
 });
