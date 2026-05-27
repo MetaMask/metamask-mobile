@@ -52,6 +52,16 @@ const isInternalError = (code: number): boolean =>
   code === errorCodes.rpc.internal || (code >= -32099 && code <= -32000);
 
 /**
+ * Silent read-only methods that should not trigger user-facing toast
+ * notifications (e.g. "Return to app") since they do not require a
+ * confirmation and are typically polled by dapps in the background.
+ */
+const SILENT_READ_METHODS: ReadonlySet<string> = new Set([
+  'eth_accounts',
+  'eth_chainId',
+]);
+
+/**
  * Connection is a live, runtime representation of a dApp connection.
  */
 export class Connection {
@@ -60,6 +70,12 @@ export class Connection {
   public readonly client: WalletClient;
   public readonly hostApp: IHostApplicationAdapter;
   public readonly bridge: IRPCBridgeAdapter;
+
+  /**
+   * Tracks JSON-RPC request ids for silent read-only methods so we can
+   * suppress user-facing toast notifications when their responses arrive.
+   */
+  private readonly silentReadRequestIds: Set<number | string> = new Set();
 
   private constructor(
     connInfo: ConnectionInfo,
@@ -113,6 +129,18 @@ export class Connection {
         );
       }
 
+      // Track silent read-only requests so we can later suppress toast
+      // notifications when their responses come back through the bridge.
+      const method = data?.method;
+      const requestId = data?.id;
+      if (
+        typeof method === 'string' &&
+        SILENT_READ_METHODS.has(method) &&
+        (typeof requestId === 'number' || typeof requestId === 'string')
+      ) {
+        this.silentReadRequestIds.add(requestId);
+      }
+
       this.bridge.send(payload);
     });
 
@@ -129,31 +157,45 @@ export class Connection {
       // If the payload includes an id, its a JSON-RPC response, otherwise its a notification
       if ('data' in payload && 'id' in payload.data) {
         const responseData = payload.data;
-        // Check if the response is an error (JSON-RPC error responses have an 'error' property)
-        const isError =
-          'error' in responseData && responseData.error !== undefined;
+        const responseId = responseData.id as number | string;
 
-        if (isError) {
-          const errCode = responseData.error.code as number;
-          const errMessage =
-            (responseData.error as Record<string, unknown>).message ??
-            (responseData.error as Record<string, unknown>).reason;
+        // Suppress toast notifications for silent read-only methods
+        // (e.g. eth_accounts, eth_chainId) that are typically polled by
+        // dapps in the background and should not surface "Return to app"
+        // or error toasts to the user. The response is still relayed
+        // back to the dapp below via this.client.sendResponse(payload).
+        const isSilentRead = this.silentReadRequestIds.delete(responseId);
 
-          logger.warn('RPC error response', {
-            connectionId: this.id,
-            code: errCode,
-            message: errMessage,
-          });
+        if (!isSilentRead) {
+          // Check if the response is an error (JSON-RPC error responses have an 'error' property)
+          const isError =
+            'error' in responseData && responseData.error !== undefined;
 
-          if (REJECTION_CODES.has(errCode) || isRejectionMessage(errMessage)) {
-            this.hostApp.showConfirmationRejectionError(this.info);
-          } else if (isInternalError(errCode)) {
-            this.hostApp.showInternalError(this.info);
+          if (isError) {
+            const errCode = responseData.error.code as number;
+            const errMessage =
+              (responseData.error as Record<string, unknown>).message ??
+              (responseData.error as Record<string, unknown>).reason;
+
+            logger.warn('RPC error response', {
+              connectionId: this.id,
+              code: errCode,
+              message: errMessage,
+            });
+
+            if (
+              REJECTION_CODES.has(errCode) ||
+              isRejectionMessage(errMessage)
+            ) {
+              this.hostApp.showConfirmationRejectionError(this.info);
+            } else if (isInternalError(errCode)) {
+              this.hostApp.showInternalError(this.info);
+            } else {
+              this.hostApp.showMethodError(this.info);
+            }
           } else {
-            this.hostApp.showMethodError(this.info);
+            this.hostApp.showReturnToApp(this.info);
           }
-        } else {
-          this.hostApp.showReturnToApp(this.info);
         }
       }
 
@@ -208,6 +250,7 @@ export class Connection {
    */
   public async disconnect(): Promise<void> {
     this.bridge.dispose();
+    this.silentReadRequestIds.clear();
     await this.client.disconnect();
   }
 }
