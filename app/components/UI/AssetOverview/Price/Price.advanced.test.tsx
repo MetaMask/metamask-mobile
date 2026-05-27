@@ -20,14 +20,6 @@ jest.mock('../../../../util/trace', () => ({
   endTrace: (...args: unknown[]) => mockEndTrace(...args),
 }));
 
-const mockSetIsChartBeingTouched = jest.fn();
-jest.mock('../PriceChart/PriceChart.context', () => ({
-  usePriceChart: () => ({
-    isChartBeingTouched: false,
-    setIsChartBeingTouched: mockSetIsChartBeingTouched,
-  }),
-}));
-
 jest.mock(
   '../../../../selectors/featureFlagController/tokenDetailsOhlcvWsIntegration',
   () => ({
@@ -798,56 +790,6 @@ describe('PriceAdvanced', () => {
           assetId: '',
         }),
       );
-    });
-  });
-
-  describe('touch gesture handling', () => {
-    it('sets isChartBeingTouched to true on touch start', () => {
-      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
-      const chartContainer = getByTestId('advanced-chart-touch-container');
-
-      fireEvent(chartContainer, 'touchStart');
-
-      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
-    });
-
-    it('sets isChartBeingTouched to false on touch end', () => {
-      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
-      const chartContainer = getByTestId('advanced-chart-touch-container');
-
-      fireEvent(chartContainer, 'touchStart');
-      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
-
-      fireEvent(chartContainer, 'touchEnd');
-      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(false);
-    });
-
-    it('sets isChartBeingTouched to false on touch cancel', () => {
-      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
-      const chartContainer = getByTestId('advanced-chart-touch-container');
-
-      fireEvent(chartContainer, 'touchStart');
-      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
-
-      fireEvent(chartContainer, 'touchCancel');
-      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(false);
-    });
-
-    it('handles multiple touch start/end cycles', () => {
-      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
-      const chartContainer = getByTestId('advanced-chart-touch-container');
-
-      fireEvent(chartContainer, 'touchStart');
-      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
-
-      fireEvent(chartContainer, 'touchEnd');
-      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(false);
-
-      fireEvent(chartContainer, 'touchStart');
-      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
-
-      fireEvent(chartContainer, 'touchEnd');
-      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(false);
     });
   });
 
