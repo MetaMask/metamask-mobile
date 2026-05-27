@@ -1,3 +1,4 @@
+import { isObject } from '@metamask/utils';
 import type {
   TronSnapMappedRequest,
   TronSnapSignatureResult,
@@ -9,13 +10,6 @@ import type {
   TronWalletConnectSignTransactionParams,
   TronWalletConnectTransaction,
 } from './types';
-
-/**
- * Type guard for plain objects.
- */
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
 
 /**
  * Extract `raw_data_hex` from a WalletConnect transaction container, walking
@@ -70,7 +64,7 @@ export function mapRequestInbound({
   method,
   params,
 }: TronWalletConnectRequest): TronSnapMappedRequest {
-  const param = isRecord(params) ? params : undefined;
+  const param = isObject(params) ? params : undefined;
 
   if (method === 'tron_signMessage') {
     const mappedParams: Partial<TronSnapSignMessageParams> = {};
@@ -163,10 +157,10 @@ export function mapRequestOutbound({
     // Legacy format double-wraps the transaction (`transaction.transaction`);
     // v1 passes it flat (`transaction`). Pick the innermost transaction object.
     const originalTransaction =
-      isRecord(transactionContainer) &&
-      isRecord(transactionContainer.transaction)
+      isObject(transactionContainer) &&
+      isObject(transactionContainer.transaction)
         ? transactionContainer.transaction
-        : isRecord(transactionContainer)
+        : isObject(transactionContainer)
           ? transactionContainer
           : undefined;
 
