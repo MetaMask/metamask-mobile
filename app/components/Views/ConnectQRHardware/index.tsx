@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
+import { CommonActions } from '@react-navigation/native';
 import Engine from '../../../core/Engine';
 import AnimatedQRScannerModal from '../../UI/QRHardware/AnimatedQRScanner';
 import AccountSelector from '../../UI/HardwareWallet/AccountSelector';
@@ -36,6 +37,7 @@ import { ConnectQRHardwareSelectorsIDs } from './ConnectQRHardware.testIds';
 import { useHardwareWallet } from '../../../core/HardwareWallet/contexts/HardwareWalletContext';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { useQrScanErrorForwarding } from '../../../core/HardwareWallet/hooks/useQrScanErrorForwarding';
+import Routes from '../../../constants/navigation/Routes';
 
 interface IConnectQRHardwareProps {
   // TODO: Replace "any" with type
@@ -292,7 +294,12 @@ const ConnectQRHardware = ({ navigation, route }: IConnectQRHardwareProps) => {
       await keyring.forgetDevice();
       return existingQrAccounts;
     });
-    navigation.pop(2);
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+      }),
+    );
   }, [
     KeyringController.state.keyrings,
     createEventBuilder,
