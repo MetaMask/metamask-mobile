@@ -1,6 +1,7 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { EthScope } from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
+import { toChecksumAddress } from '../../../util/address';
 import { Bip44TokensForDefaultPairs } from '../Bridge/constants/default-swap-dest-tokens';
 import { getNativeSourceToken } from '../Bridge/utils/tokenUtils';
 import type { BridgeToken } from '../Bridge/types';
@@ -12,6 +13,11 @@ export const MAINNET_NATIVE_ETH_TOKEN_ADDRESS: Hex =
 /** Mainnet mUSD contract address (TMCU-681 trade-step swap defaults). */
 export const MAINNET_MUSD_TOKEN_ADDRESS: Hex =
   '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+
+/** TokenBalancesController keys are checksummed (see assets-migration). */
+export const MAINNET_MUSD_TOKEN_BALANCE_LOOKUP_ADDRESS = toChecksumAddress(
+  MAINNET_MUSD_TOKEN_ADDRESS,
+) as Hex;
 
 const MAINNET_BTC_CAIP_ASSET_ID =
   'bip122:000000000019d6689c085ae165831e93/slip44:0' as const;
