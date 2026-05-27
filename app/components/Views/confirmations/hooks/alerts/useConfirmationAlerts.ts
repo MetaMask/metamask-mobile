@@ -20,6 +20,7 @@ import { useAddressTrustSignalAlerts } from './useAddressTrustSignalAlerts';
 import { useOriginTrustSignalAlerts } from './useOriginTrustSignalAlerts';
 import { useHeadlessBuyErrorAlert } from './useHeadlessBuyErrorAlert';
 import { useFirstTimeInteractionAlert } from './useFirstTimeInteractionAlert';
+import { useAddressPoisoningAlert } from './useAddressPoisoningAlert';
 import { useTokenContractAlert } from './useTokenContractAlert';
 
 function useSignatureAlerts(): Alert[] {
@@ -46,6 +47,7 @@ function useTransactionAlerts(): Alert[] {
   const headlessBuyErrorAlert = useHeadlessBuyErrorAlert();
   const tokenTrustSignalAlerts = useTokenTrustSignalAlerts();
   const firstTimeInteractionAlert = useFirstTimeInteractionAlert();
+  const addressPoisoningAlert = useAddressPoisoningAlert();
   const tokenContractAlert = useTokenContractAlert();
 
   return useMemo(
@@ -65,6 +67,7 @@ function useTransactionAlerts(): Alert[] {
       ...headlessBuyErrorAlert,
       ...tokenTrustSignalAlerts,
       ...firstTimeInteractionAlert,
+      ...addressPoisoningAlert,
       ...tokenContractAlert,
     ],
     [
@@ -83,6 +86,7 @@ function useTransactionAlerts(): Alert[] {
       headlessBuyErrorAlert,
       tokenTrustSignalAlerts,
       firstTimeInteractionAlert,
+      addressPoisoningAlert,
       tokenContractAlert,
     ],
   );
