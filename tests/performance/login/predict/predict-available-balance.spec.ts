@@ -32,7 +32,7 @@ perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
       // Timer 1: Navigate to Predict tab and verify available balance
       const timer1 = new TimerHelper(
         'Time since user taps Predict button until Available Balance is displayed',
-        { ios: 4500, android: 8000 },
+        { ios: 4500, android: 5000 },
         currentDeviceDetails.platform,
       );
       await TabBarComponent.tapActions();

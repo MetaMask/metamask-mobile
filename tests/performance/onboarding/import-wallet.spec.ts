@@ -38,22 +38,22 @@ test.describe(PerformanceOnboarding, () => {
       );
       const timer2 = new TimerHelper(
         'Time since the user clicks on "Import using SRP" button until SRP field is displayed',
-        { ios: 2000, android: 2000 },
+        { ios: 2000, android: 1500 },
         currentDeviceDetails.platform,
       );
       const timer3 = new TimerHelper(
         'Time since the user clicks on "Continue" button on SRP screen until Password fields are visible',
-        { ios: 1000, android: 2000 },
+        { ios: 1000, android: 1500 },
         currentDeviceDetails.platform,
       );
       const timer4 = new TimerHelper(
         'Time since the user clicks on "Create Password" button until Metrics screen is displayed',
-        { ios: 2000, android: 2000 },
+        { ios: 2000, android: 1500 },
         currentDeviceDetails.platform,
       );
       const timer5 = new TimerHelper(
         'Time since the user clicks on "I agree" button on Metrics screen until Onboarding Success screen is visible',
-        { ios: 2000, android: 2000 },
+        { ios: 2000, android: 1500 },
         currentDeviceDetails.platform,
       );
       const timer6 = new TimerHelper(

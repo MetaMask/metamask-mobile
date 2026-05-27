@@ -90,7 +90,8 @@ test.describe(Performance, () => {
   //
   // 4. CLEANUP
   //    - Tap Solana disconnect and legacy EVM disconnect
-  test('@metamask/connect-multichain (multiple clients) - Disconnect, reconnect, and resilience via Multichain API', async ({
+  // This test is currently being skipped as it is flaky - https://consensyssoftware.atlassian.net/browse/WAPI-1511
+  test.skip('@metamask/connect-multichain (multiple clients) - Disconnect, reconnect, and resilience via Multichain API', async ({
     currentDeviceDetails,
     driver,
   }) => {

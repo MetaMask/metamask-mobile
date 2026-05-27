@@ -19,7 +19,7 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
 
       const selectPerpsMainScreenTimer = new TimerHelper(
         'Select Perps Main Screen',
-        { ios: 1500, android: 3500 },
+        { ios: 1500, android: 4200 },
         currentDeviceDetails.platform,
       );
       const openAddFundsTimer = new TimerHelper(

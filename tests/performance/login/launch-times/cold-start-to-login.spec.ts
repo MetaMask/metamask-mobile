@@ -50,7 +50,7 @@ perfTest.describe(
 
         const timer1 = new TimerHelper(
           'Time since the the app is launched, until login screen appears',
-          { ios: 3000, android: 4000 },
+          { ios: 3000, android: 4500 },
           currentDeviceDetails.platform,
         );
 

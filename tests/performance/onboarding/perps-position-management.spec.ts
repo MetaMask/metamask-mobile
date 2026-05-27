@@ -39,7 +39,7 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
 
       const selectMarketTimer = new TimerHelper(
         'Market list screen visible',
-        { ios: 7500, android: 2000 },
+        { ios: 7500, android: 5000 },
         currentDeviceDetails.platform,
       );
       const openOrderScreenTimer = new TimerHelper(

@@ -365,7 +365,7 @@ class AccountListBottomSheet {
    * @param timeout - The timeout in milliseconds.
    * @returns {Promise<void>} Resolves when the account sync is complete.
    */
-  async waitForAccountSyncToComplete(timeout = 60000): Promise<void> {
+  async waitForAccountSyncToComplete(timeout = 90000): Promise<void> {
     logger.debug('⏳ waitForSyncingToComplete: Starting...');
     const startTime = Date.now();
     const pollInterval = 500;

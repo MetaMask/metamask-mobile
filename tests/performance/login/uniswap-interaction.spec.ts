@@ -31,7 +31,7 @@ perfTest.describe(`${PerformanceLogin}`, () => {
 
       const connectTimer = new TimerHelper(
         'Time since the user taps Connect in MetaMask until Uniswap is displayed',
-        { ios: 15000, android: 20000 },
+        { ios: 15000, android: 5000 },
         platform,
       );
       await loginToAppPlaywright();

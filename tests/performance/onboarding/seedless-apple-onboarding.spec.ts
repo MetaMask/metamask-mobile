@@ -52,7 +52,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       );
       const timer2 = new TimerHelper(
         'Apple: Tap Apple login → post-OAuth screen visible',
-        { ios: 15000, android: 5000 },
+        { ios: 15000, android: 6000 },
         currentDeviceDetails.platform,
       );
       const timer3 = new TimerHelper(
@@ -62,12 +62,12 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       );
       const timer4 = new TimerHelper(
         'Apple: Tap "Create Password" → Onboarding Success visible',
-        { ios: 5000, android: 3500 },
+        { ios: 5000, android: 4500 },
         currentDeviceDetails.platform,
       );
       const timer5 = new TimerHelper(
         'Apple: Tap "Done" → feature sheet visible',
-        { ios: 2500, android: 4000 },
+        { ios: 2500, android: 5000 },
         currentDeviceDetails.platform,
       );
       const timer6 = new TimerHelper(

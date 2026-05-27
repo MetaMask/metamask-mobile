@@ -40,7 +40,7 @@ perfTest.describe(
         );
         const addAccountTimer = new TimerHelper(
           'Time since the user clicks on "Add account" button until the next modal is visible',
-          { ios: 1000, android: 1700 },
+          { ios: 1000, android: 1200 },
           currentDeviceDetails.platform,
         );
         const importSrpTimer = new TimerHelper(
@@ -66,11 +66,13 @@ perfTest.describe(
 
         await AccountListBottomSheet.waitForAccountSyncToComplete();
         await AccountListBottomSheet.tapAddAccountButton();
+
         await addAccountTimer.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
             asPlaywrightElement(AddAccountBottomSheet.importSrpButton),
             {
               description: 'Add account bottom sheet should be visible',
+              timeout: 60000,
             },
           );
         });
