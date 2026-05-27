@@ -739,6 +739,63 @@ describe('ConnectionRegistry', () => {
       expect(mockStore.save).toHaveBeenCalledTimes(1);
     });
 
+    it('skips creating a connection if one with the same id already exists', async () => {
+      // Given: a registry ready to handle connections
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      // When: handling the same deeplink twice sequentially. After the first
+      // call resolves the in-flight `deeplinks` guard is cleared (see finally
+      // block), so the second call would otherwise proceed — the connection
+      // id duplicate check is what must short-circuit it.
+      await registry.handleConnectDeeplink(validDeeplink);
+      jest.clearAllMocks();
+
+      await registry.handleConnectDeeplink(validDeeplink);
+
+      // Then: the second call must not create a duplicate connection nor
+      // surface a loading state or error to the user.
+      expect(Connection.create).not.toHaveBeenCalled();
+      expect(mockConnection.connect).not.toHaveBeenCalled();
+      expect(mockStore.save).not.toHaveBeenCalled();
+      expect(mockHostApp.showConnectionLoading).not.toHaveBeenCalled();
+      expect(mockHostApp.showConnectionError).not.toHaveBeenCalled();
+      expect(mockHostApp.syncConnectionList).not.toHaveBeenCalled();
+    });
+
+    it('allows retrying the same deeplink URL after a previous attempt fails', async () => {
+      // Given: a registry where the first connect() attempt fails
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      mockConnection.connect.mockRejectedValueOnce(new Error('Connect failed'));
+
+      // First call fails — no connection is registered.
+      await registry.handleConnectDeeplink(validDeeplink);
+      expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
+
+      jest.clearAllMocks();
+
+      // When: the same URL is submitted again after the failure. The
+      // `deeplinks` in-flight guard must have been cleared in the finally
+      // block, allowing the retry to proceed.
+      await registry.handleConnectDeeplink(validDeeplink);
+
+      // Then: the retry runs the full happy path.
+      expect(Connection.create).toHaveBeenCalledTimes(1);
+      expect(mockConnection.connect).toHaveBeenCalledTimes(1);
+      expect(mockStore.save).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.showConnectionError).not.toHaveBeenCalled();
+    });
+
     it('should handle deeplinks with no payload parameter', async () => {
       // Given: a registry ready to handle connections
       registry = new ConnectionRegistry(
