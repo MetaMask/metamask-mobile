@@ -298,7 +298,10 @@ class WalletConnect2Session {
 
   public get getAllowedChainIds(): CaipChainId[] {
     return Object.values(this.session.namespaces).flatMap(
-      (ns) => ns?.chains?.map((chain) => chain as CaipChainId) ?? [],
+      (ns) =>
+        ns?.chains?.map((chain) =>
+          normalizeCaipChainIdInboundByAdapter(chain as CaipChainId),
+        ) ?? [],
     );
   }
 
