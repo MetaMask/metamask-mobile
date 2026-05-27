@@ -286,6 +286,11 @@ const defaultDashboard: VipDashboardState = {
     perpsFeeTitle: 'Perps fee',
     revenueShareTitle: 'Revenue share',
     statsTitle: 'Volume',
+    PointsTitle: 'Points',
+    SwapsVolumeTitle: 'Swaps Volume',
+    PointsFromReferralsTitle: 'Points from Referrals',
+    PerpsVolumeTitle: 'Perps Volume',
+    VIPReferralsTitle: 'VIP Referrals',
     totalPointsTitle: 'Points',
     equityLockedTitle: 'Earn VIP allocations',
     equityLockedDescription: 'Body copy',
@@ -541,6 +546,11 @@ describe('RewardsVipView', () => {
           perpsFeeTitle: 'Perp fees',
           revenueShareTitle: 'Revenue',
           statsTitle: 'Volume V2',
+          PointsTitle: 'Points V2',
+          SwapsVolumeTitle: 'Swaps Volume V2',
+          PointsFromReferralsTitle: 'Referral Points V2',
+          PerpsVolumeTitle: 'Perps Volume V2',
+          VIPReferralsTitle: 'VIP Referrals V2',
           totalPointsTitle: 'Pts',
           periodTitle: 'Apr 1 - May 1',
           equityLockedTitle: 'Allocation',
@@ -566,6 +576,11 @@ describe('RewardsVipView', () => {
     expect(getByText('Revenue')).toBeOnTheScreen();
     expect(getByText('↑ 2% next tier')).toBeOnTheScreen();
     expect(getByText('Volume V2')).toBeOnTheScreen();
+    expect(getByText('Points V2')).toBeOnTheScreen();
+    expect(getByText('Swaps Volume V2')).toBeOnTheScreen();
+    expect(getByText('Perps Volume V2')).toBeOnTheScreen();
+    expect(getByText('Referral Points V2')).toBeOnTheScreen();
+    expect(getByText('VIP Referrals V2')).toBeOnTheScreen();
     expect(getByText('Apr 1 - May 1')).toBeOnTheScreen();
     expect(getByText('Pts')).toBeOnTheScreen();
     expect(getByText('Allocation')).toBeOnTheScreen();
