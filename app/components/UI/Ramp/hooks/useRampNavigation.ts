@@ -74,7 +74,6 @@ export const useRampNavigation = () => {
       }
 
       // V2: If assetId is provided and V2 is enabled, route to BuildQuote
-      // TODO: Check for provider support for the token and pass params to BuildQuote to show an error modal
       if (
         isRampsUnifiedV2Enabled &&
         intent?.assetId &&
@@ -85,6 +84,22 @@ export const useRampNavigation = () => {
           intent.assetId,
           rampsTokens?.allTokens ?? [],
         );
+
+        // When tokens have loaded, divert unsupported tokens to the
+        // dedicated modal so users see a clear message instead of landing
+        // on BuildQuote with a missing token name.
+        if (rampsTokens) {
+          const matchedToken = rampsTokens.allTokens.find(
+            (tok) => tok.assetId === controllerAssetId,
+          );
+          if (!matchedToken || !matchedToken.tokenSupported) {
+            navigation.navigate(
+              ...createRampUnsupportedModalNavigationDetails(),
+            );
+            return;
+          }
+        }
+
         try {
           setSelectedToken(controllerAssetId);
         } catch {
@@ -150,7 +165,7 @@ export const useRampNavigation = () => {
       isRampsUnifiedV1Enabled,
       isRampsUnifiedV2Enabled,
       rampRoutingDecision,
-      rampsTokens?.allTokens,
+      rampsTokens,
     ],
   );
 

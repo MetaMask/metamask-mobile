@@ -17,9 +17,11 @@ import { createEligibilityFailedModalNavigationDetails } from '../components/Eli
 import { createRampUnsupportedModalNavigationDetails } from '../components/RampUnsupportedModal/RampUnsupportedModal';
 
 const mockSetSelectedToken = jest.fn();
+let mockTokens: { allTokens: unknown[]; topTokens: unknown[] } | undefined;
 jest.mock('./useRampsTokens', () => ({
   useRampsTokens: () => ({
     setSelectedToken: mockSetSelectedToken,
+    tokens: mockTokens,
   }),
 }));
 jest.mock('@react-navigation/native');
@@ -82,6 +84,7 @@ describe('useRampNavigation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSetSelectedToken.mockClear();
+    mockTokens = undefined;
 
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
@@ -264,6 +267,89 @@ describe('useRampNavigation', () => {
         });
         expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
         expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
+      });
+
+      describe('unsupported token routing', () => {
+        const intent = { assetId: 'eip155:1/erc20:0x123' };
+
+        it('navigates to RampUnsupportedModal when tokens loaded and the resolved assetId is not in allTokens', () => {
+          mockTokens = {
+            allTokens: [
+              {
+                assetId: 'eip155:1/erc20:0xaaa',
+                chainId: 'eip155:1',
+                tokenSupported: true,
+              },
+            ],
+            topTokens: [],
+          };
+          const navDetails = createRampUnsupportedModalNavigationDetails();
+
+          const { result } = renderHookWithProvider(() => useRampNavigation());
+
+          result.current.goToBuy(intent);
+
+          expect(mockSetSelectedToken).not.toHaveBeenCalled();
+          expect(mockNavigate).toHaveBeenCalledWith(...navDetails);
+          expect(mockCreateBuildQuoteNavDetails).not.toHaveBeenCalled();
+        });
+
+        it('navigates to RampUnsupportedModal when the matched token has tokenSupported=false', () => {
+          mockTokens = {
+            allTokens: [
+              {
+                assetId: 'eip155:1/erc20:0x123',
+                chainId: 'eip155:1',
+                tokenSupported: false,
+              },
+            ],
+            topTokens: [],
+          };
+          const navDetails = createRampUnsupportedModalNavigationDetails();
+
+          const { result } = renderHookWithProvider(() => useRampNavigation());
+
+          result.current.goToBuy(intent);
+
+          expect(mockSetSelectedToken).not.toHaveBeenCalled();
+          expect(mockNavigate).toHaveBeenCalledWith(...navDetails);
+          expect(mockCreateBuildQuoteNavDetails).not.toHaveBeenCalled();
+        });
+
+        it('navigates to BuildQuote when the matched token has tokenSupported=true', () => {
+          mockTokens = {
+            allTokens: [
+              {
+                assetId: 'eip155:1/erc20:0x123',
+                chainId: 'eip155:1',
+                tokenSupported: true,
+              },
+            ],
+            topTokens: [],
+          };
+          const mockNavDetails = [
+            Routes.RAMP.TOKEN_SELECTION,
+            {
+              screen: Routes.RAMP.TOKEN_SELECTION,
+              params: {
+                screen: Routes.RAMP.AMOUNT_INPUT,
+                params: { assetId: intent.assetId },
+              },
+            },
+          ] as const;
+          mockCreateBuildQuoteNavDetails.mockReturnValue(mockNavDetails);
+
+          const { result } = renderHookWithProvider(() => useRampNavigation());
+
+          result.current.goToBuy(intent);
+
+          expect(mockSetSelectedToken).toHaveBeenCalledWith(intent.assetId);
+          expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
+            assetId: intent.assetId,
+            buyFlowOrigin: undefined,
+          });
+          expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
+        });
       });
 
       describe('error and unsupported routing takes precedence over V2', () => {
