@@ -75,7 +75,11 @@ const buildDashboard = (
       referrals: 12,
       referralsCap: 50,
     },
-    pointsAllocation: { earned: 24400000, max: 100000000, percent: 24.4 },
+    pointsAllocation: {
+      earned: 24400000,
+      threshold: 100000000,
+      percent: 24.4,
+    },
     tiers: [
       {
         id: 't3',
@@ -85,7 +89,6 @@ const buildDashboard = (
         swapsBps: 15,
         perpsBps: 4,
         revenueShareBps: 1500,
-        equityRebateBps: 0,
         referralCarryoverBps: 1500,
         status: 'current',
       },
@@ -237,7 +240,6 @@ describe('ReferralInfoSection', () => {
             swapsBps: 15,
             perpsBps: 4,
             revenueShareBps: 1500,
-            equityRebateBps: 0,
             referralCarryoverBps: 1500,
             status: 'upcoming',
           },
