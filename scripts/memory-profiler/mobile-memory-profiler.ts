@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* eslint-disable import-x/no-nodejs-modules */
 
-import { execFile } from 'child_process';
+import { execFile, type ChildProcess } from 'child_process';
 import path from 'path';
 import { promises as fs } from 'fs';
 
@@ -12,10 +12,20 @@ const DEFAULT_IOS_APP_ID = 'io.metamask.MetaMask';
 const DEFAULT_IOS_PROCESS_NAME = 'MetaMask';
 const DEFAULT_ITERATIONS = 5;
 const DEFAULT_WAIT_AFTER_FLOW_MS = 1000;
+const DEFAULT_SEND_RECIPIENT_ADDRESS =
+  '0x0000000000000000000000000000000000000001';
+const DEFAULT_SEND_AMOUNT = '25%';
+const DEFAULT_APPIUM_URL = 'http://127.0.0.1:4723/';
+const DEFAULT_APPIUM_STARTUP_TIMEOUT_MS = 60_000;
+const DEFAULT_APPIUM_ELEMENT_TIMEOUT_MS = 20_000;
 const COMMAND_MAX_BUFFER = 50 * 1024 * 1024;
 
 export type MobileMemoryPlatform = 'android' | 'ios';
-export type MobileMemoryFlow = 'idle' | 'relaunch';
+export type MobileMemoryFlow =
+  | 'idle'
+  | 'relaunch'
+  | 'wallet-send-eth-cancel'
+  | 'wallet-send-eth-submit';
 export type MobileMemorySampleMode = 'each' | 'final';
 
 export interface MobileMemoryProfilerOptions {
@@ -33,6 +43,13 @@ export interface MobileMemoryProfilerOptions {
   enableInAppProfiler: boolean;
   waitAfterFlowMs: number;
   intervalMs: number;
+  recipientAddress: string;
+  sendAmount: string;
+  appiumUrl: string;
+  reuseAppium: boolean;
+  appiumStartupTimeoutMs: number;
+  appiumElementTimeoutMs: number;
+  allowTransactionSubmit: boolean;
   pullHermesProfile: boolean;
   hermesProfilePath?: string;
   sourcemapPath?: string;
@@ -120,9 +137,47 @@ export type CommandRunner = (
   options?: { cwd?: string },
 ) => Promise<CommandResult>;
 
+interface AppiumDriver {
+  $(selector: string): AppiumElement;
+  back(): Promise<void>;
+  deleteSession(): Promise<void>;
+  hideKeyboard(): Promise<void>;
+}
+
+interface AppiumElement {
+  click(): Promise<void>;
+  isDisplayed(): Promise<boolean>;
+  setValue(value: string): Promise<void>;
+  waitForDisplayed(options?: { timeout?: number }): Promise<boolean>;
+  waitForEnabled(options?: { timeout?: number }): Promise<boolean>;
+}
+
+interface AppiumRuntime {
+  driver?: AppiumDriver;
+  serverProcess?: ChildProcess;
+}
+
+interface AppiumEndpoint {
+  protocol: 'http' | 'https';
+  hostname: string;
+  port: number;
+  path: string;
+}
+
 const VALID_PLATFORMS: MobileMemoryPlatform[] = ['android', 'ios'];
-const VALID_FLOWS: MobileMemoryFlow[] = ['idle', 'relaunch'];
+const VALID_FLOWS: MobileMemoryFlow[] = [
+  'idle',
+  'relaunch',
+  'wallet-send-eth-cancel',
+  'wallet-send-eth-submit',
+];
 const VALID_SAMPLE_MODES: MobileMemorySampleMode[] = ['each', 'final'];
+const PERCENTAGE_AMOUNTS = new Set(['25', '50', '75', '100']);
+const WALLET_SEND_BUTTON_ID = 'wallet-send-button';
+const RECIPIENT_ADDRESS_INPUT_ID = 'recipient-address-input';
+const REVIEW_BUTTON_ID = 'review-button';
+const CONFIRM_BUTTON_ID = 'confirm-button';
+const CANCEL_BUTTON_ID = 'cancel-button';
 
 const emptyMemoryMetrics = (): MobileMemoryMetrics => ({
   rssBytes: null,
@@ -154,6 +209,13 @@ export function parseMobileMemoryProfilerArgs(
     enableInAppProfiler: false,
     waitAfterFlowMs: DEFAULT_WAIT_AFTER_FLOW_MS,
     intervalMs: 0,
+    recipientAddress: DEFAULT_SEND_RECIPIENT_ADDRESS,
+    sendAmount: DEFAULT_SEND_AMOUNT,
+    appiumUrl: DEFAULT_APPIUM_URL,
+    reuseAppium: false,
+    appiumStartupTimeoutMs: DEFAULT_APPIUM_STARTUP_TIMEOUT_MS,
+    appiumElementTimeoutMs: DEFAULT_APPIUM_ELEMENT_TIMEOUT_MS,
+    allowTransactionSubmit: false,
     pullHermesProfile: false,
     help: false,
   };
@@ -246,6 +308,34 @@ export function parseMobileMemoryProfilerArgs(
           arg,
         );
         break;
+      case '--recipient':
+      case '--recipient-address':
+        mutableOptions.recipientAddress = readArgValue(argv, (index += 1), arg);
+        break;
+      case '--send-amount':
+        mutableOptions.sendAmount = readArgValue(argv, (index += 1), arg);
+        break;
+      case '--appium-url':
+        mutableOptions.appiumUrl = readArgValue(argv, (index += 1), arg);
+        break;
+      case '--reuse-appium':
+        mutableOptions.reuseAppium = true;
+        break;
+      case '--appium-startup-timeout':
+        mutableOptions.appiumStartupTimeoutMs = parseNonNegativeInteger(
+          readArgValue(argv, (index += 1), arg),
+          arg,
+        );
+        break;
+      case '--appium-element-timeout':
+        mutableOptions.appiumElementTimeoutMs = parseNonNegativeInteger(
+          readArgValue(argv, (index += 1), arg),
+          arg,
+        );
+        break;
+      case '--allow-transaction-submit':
+        mutableOptions.allowTransactionSubmit = true;
+        break;
       case '--pull-hermes-profile':
         mutableOptions.pullHermesProfile = true;
         break;
@@ -316,6 +406,18 @@ export function parseMobileMemoryProfilerArgs(
     waitAfterFlowMs:
       mutableOptions.waitAfterFlowMs ?? DEFAULT_WAIT_AFTER_FLOW_MS,
     intervalMs: mutableOptions.intervalMs ?? 0,
+    recipientAddress:
+      mutableOptions.recipientAddress ?? DEFAULT_SEND_RECIPIENT_ADDRESS,
+    sendAmount: mutableOptions.sendAmount ?? DEFAULT_SEND_AMOUNT,
+    appiumUrl: mutableOptions.appiumUrl ?? DEFAULT_APPIUM_URL,
+    reuseAppium: mutableOptions.reuseAppium ?? false,
+    appiumStartupTimeoutMs:
+      mutableOptions.appiumStartupTimeoutMs ??
+      DEFAULT_APPIUM_STARTUP_TIMEOUT_MS,
+    appiumElementTimeoutMs:
+      mutableOptions.appiumElementTimeoutMs ??
+      DEFAULT_APPIUM_ELEMENT_TIMEOUT_MS,
+    allowTransactionSubmit: mutableOptions.allowTransactionSubmit ?? false,
     pullHermesProfile: mutableOptions.pullHermesProfile ?? false,
     hermesProfilePath: mutableOptions.hermesProfilePath,
     sourcemapPath: mutableOptions.sourcemapPath,
@@ -575,48 +677,57 @@ export async function runMobileMemoryProfiler(
   runner: CommandRunner = runCommand,
 ): Promise<MobileMemoryReport> {
   const samples: MobileMemorySample[] = [];
-  await fs.mkdir(options.artifactDir, { recursive: true });
+  const runtime: AppiumRuntime = {};
 
-  if (options.launch) {
-    await launchApp(options, runner);
-    await sleep(options.waitAfterFlowMs);
-  }
+  try {
+    await fs.mkdir(options.artifactDir, { recursive: true });
 
-  samples.push(await collectMemorySample(options, 'baseline', runner));
-
-  for (let iteration = 1; iteration <= options.iterations; iteration += 1) {
-    await runFlowIteration(options, runner);
-
-    if (options.sampleMode === 'each') {
-      samples.push(
-        await collectMemorySample(options, `iteration-${iteration}`, runner),
-      );
+    if (options.launch) {
+      await launchApp(options, runner);
+      await sleep(options.waitAfterFlowMs);
     }
 
-    if (options.intervalMs > 0 && iteration < options.iterations) {
-      await sleep(options.intervalMs);
+    samples.push(await collectMemorySample(options, 'baseline', runner));
+
+    for (let iteration = 1; iteration <= options.iterations; iteration += 1) {
+      await runFlowIteration(options, runner, runtime);
+
+      if (options.sampleMode === 'each') {
+        samples.push(
+          await collectMemorySample(options, `iteration-${iteration}`, runner),
+        );
+      }
+
+      if (options.intervalMs > 0 && iteration < options.iterations) {
+        await sleep(options.intervalMs);
+      }
     }
+
+    if (options.sampleMode === 'final') {
+      samples.push(await collectMemorySample(options, 'final', runner));
+    }
+
+    const hermesProfileCliResult = await maybeRunHermesProfileCli(
+      options,
+      runner,
+    );
+    const report = createMobileMemoryReport({
+      createdAt: new Date().toISOString(),
+      options,
+      samples,
+      hermesProfileCliResult,
+    });
+
+    await fs.mkdir(path.dirname(options.outputPath), { recursive: true });
+    await fs.writeFile(
+      options.outputPath,
+      `${JSON.stringify(report, null, 2)}\n`,
+    );
+
+    return report;
+  } finally {
+    await cleanupAppiumRuntime(runtime);
   }
-
-  if (options.sampleMode === 'final') {
-    samples.push(await collectMemorySample(options, 'final', runner));
-  }
-
-  const hermesProfileCliResult = await maybeRunHermesProfileCli(
-    options,
-    runner,
-  );
-  const report = createMobileMemoryReport({
-    createdAt: new Date().toISOString(),
-    options,
-    samples,
-    hermesProfileCliResult,
-  });
-
-  await fs.mkdir(path.dirname(options.outputPath), { recursive: true });
-  await fs.writeFile(options.outputPath, `${JSON.stringify(report, null, 2)}\n`);
-
-  return report;
 }
 
 export function formatBytes(value: number | null): string {
@@ -640,7 +751,8 @@ Options:
   --ios-process-name <name>     iOS simulator process name. Default: ${DEFAULT_IOS_PROCESS_NAME}
   --device <id>                 adb serial or simctl device id. Default: adb default / booted sim
   --iterations <n>              Number of flow iterations. Default: ${DEFAULT_ITERATIONS}
-  --flow <name>                 idle, relaunch. Default: relaunch
+  --flow <name>                 idle, relaunch, wallet-send-eth-cancel,
+                                wallet-send-eth-submit. Default: relaunch
   --artifact-dir <path>         Artifact directory. Default: ${DEFAULT_ARTIFACT_DIR}
   --output <path>               JSON report path
   --sample <mode>               each, final. Default: each
@@ -648,6 +760,17 @@ Options:
   --enable-in-app-profiler      Pass enableProfiler=true when launching the app
   --wait-after-flow <ms>        Delay after app launch/flow step. Default: ${DEFAULT_WAIT_AFTER_FLOW_MS}
   --interval <ms>               Delay between iterations. Default: 0
+  --recipient-address <addr>    Recipient for wallet-send-eth-* flows.
+                                Default: ${DEFAULT_SEND_RECIPIENT_ADDRESS}
+  --send-amount <value>         Amount for wallet-send-eth-* flows.
+                                Supports keypad values like 0.001 or percentages
+                                25%, 50%, 75%, 100%, max. Default: ${DEFAULT_SEND_AMOUNT}
+  --appium-url <url>            WebDriver endpoint for Appium flows.
+                                Default: ${DEFAULT_APPIUM_URL}
+  --reuse-appium                Connect to an already-running Appium server
+  --appium-startup-timeout <ms> Appium startup timeout. Default: ${DEFAULT_APPIUM_STARTUP_TIMEOUT_MS}
+  --appium-element-timeout <ms> Appium element wait timeout. Default: ${DEFAULT_APPIUM_ELEMENT_TIMEOUT_MS}
+  --allow-transaction-submit    Required with --flow wallet-send-eth-submit
   --pull-hermes-profile         Run yarn react-native-release-profiler --fromDownload
                                 after the memory run. Android only.
   --hermes-profile <path>       Convert a local .cpuprofile with react-native-release-profiler
@@ -663,6 +786,7 @@ Examples:
   yarn llm:mobile:memory -- --platform android --iterations 25 --max-pss-growth 40MiB
   yarn llm:mobile:memory -- --platform ios --flow relaunch --sample final --device booted
   yarn llm:mobile:memory -- --platform android --pull-hermes-profile --sourcemap-path ./sourcemaps
+  yarn llm:mobile:memory -- --flow wallet-send-eth-cancel --iterations 10
 `;
 }
 
@@ -775,6 +899,7 @@ async function collectIosMemorySample(
 async function runFlowIteration(
   options: MobileMemoryProfilerOptions,
   runner: CommandRunner,
+  runtime: AppiumRuntime,
 ): Promise<void> {
   switch (options.flow) {
     case 'idle':
@@ -785,9 +910,496 @@ async function runFlowIteration(
       await launchApp(options, runner);
       await sleep(options.waitAfterFlowMs);
       break;
+    case 'wallet-send-eth-cancel':
+      await runWalletSendEthFlow(options, runtime, {
+        submitTransaction: false,
+      });
+      break;
+    case 'wallet-send-eth-submit':
+      await runWalletSendEthFlow(options, runtime, {
+        submitTransaction: true,
+      });
+      break;
     default:
       assertUnreachable(options.flow);
   }
+}
+
+async function runWalletSendEthFlow(
+  options: MobileMemoryProfilerOptions,
+  runtime: AppiumRuntime,
+  { submitTransaction }: { submitTransaction: boolean },
+): Promise<void> {
+  if (submitTransaction && !options.allowTransactionSubmit) {
+    throw new Error(
+      '--flow wallet-send-eth-submit can broadcast a real transaction. Re-run with --allow-transaction-submit to acknowledge this.',
+    );
+  }
+
+  const appiumDriver = await getAppiumDriver(options, runtime);
+
+  await navigateToWalletHome(appiumDriver, options);
+  await tapElementById(
+    appiumDriver,
+    options,
+    WALLET_SEND_BUTTON_ID,
+    'Wallet Send',
+  );
+  await tapElementByText(appiumDriver, options, 'Ethereum', 'Ethereum asset');
+  await selectSendAmount(appiumDriver, options);
+  await tapElementByText(
+    appiumDriver,
+    options,
+    'Continue',
+    'Send amount Continue',
+  );
+  await setElementValueById(
+    appiumDriver,
+    options,
+    RECIPIENT_ADDRESS_INPUT_ID,
+    options.recipientAddress,
+    'Recipient address input',
+  );
+  await tapElementById(appiumDriver, options, REVIEW_BUTTON_ID, 'Review');
+  await waitForElementById(
+    appiumDriver,
+    options,
+    CONFIRM_BUTTON_ID,
+    'Confirm transaction button',
+  );
+
+  if (submitTransaction) {
+    await tapElementById(
+      appiumDriver,
+      options,
+      CONFIRM_BUTTON_ID,
+      'Confirm transaction',
+    );
+  } else {
+    await tapElementById(
+      appiumDriver,
+      options,
+      CANCEL_BUTTON_ID,
+      'Cancel transaction',
+    );
+    await navigateToWalletHome(appiumDriver, options);
+  }
+
+  await sleep(options.waitAfterFlowMs);
+}
+
+async function getAppiumDriver(
+  options: MobileMemoryProfilerOptions,
+  runtime: AppiumRuntime,
+): Promise<AppiumDriver> {
+  if (runtime.driver) {
+    return runtime.driver;
+  }
+
+  const endpoint = parseAppiumEndpoint(options.appiumUrl);
+
+  if (!options.reuseAppium) {
+    assertBundledAppiumEndpoint(endpoint);
+    const appiumServerModule = (await import(
+      '../../tests/framework/services/appium'
+    )) as {
+      startAppiumServer(timeoutMs?: number): Promise<ChildProcess>;
+    };
+    runtime.serverProcess = await appiumServerModule.startAppiumServer(
+      options.appiumStartupTimeoutMs,
+    );
+  }
+
+  const webdriverioModule = (await import('webdriverio')) as unknown as {
+    remote(config: AppiumRemoteConfig): Promise<AppiumDriver>;
+  };
+  runtime.driver = await webdriverioModule.remote(
+    createAppiumRemoteConfig(options, endpoint),
+  );
+  return runtime.driver;
+}
+
+type AppiumCapabilityValue = string | number | boolean;
+
+interface AppiumRemoteConfig {
+  protocol: 'http' | 'https';
+  hostname: string;
+  port: number;
+  path: string;
+  capabilities: Record<string, AppiumCapabilityValue>;
+}
+
+function createAppiumRemoteConfig(
+  options: MobileMemoryProfilerOptions,
+  endpoint: AppiumEndpoint,
+): AppiumRemoteConfig {
+  const platformName = options.platform === 'android' ? 'Android' : 'iOS';
+  const rawCapabilities: Record<string, AppiumCapabilityValue | undefined> = {
+    platformName,
+    'appium:deviceName': options.deviceId ?? platformName,
+    'appium:udid': options.deviceId,
+    'appium:automationName':
+      options.platform === 'android' ? 'UiAutomator2' : 'XCUITest',
+    'appium:newCommandTimeout': 300,
+    'appium:autoGrantPermissions': true,
+    'appium:autoAcceptAlerts': true,
+    'appium:fullReset': false,
+    'appium:noReset': true,
+    'appium:settings[snapshotMaxDepth]': 62,
+    'appium:settings[waitForSelectorTimeout]': 1000,
+    'appium:waitForQuiescence': false,
+    'appium:animationCoolOffTimeout': 0,
+    'appium:disableWindowAnimation': true,
+    ...(options.platform === 'android'
+      ? {
+          'appium:appPackage': options.appId,
+          'appium:appActivity': options.androidActivity,
+        }
+      : {
+          'appium:bundleId': options.appId,
+        }),
+  };
+
+  return {
+    ...endpoint,
+    capabilities: compactCapabilities(rawCapabilities),
+  };
+}
+
+function compactCapabilities(
+  capabilities: Record<string, AppiumCapabilityValue | undefined>,
+): Record<string, AppiumCapabilityValue> {
+  return Object.fromEntries(
+    Object.entries(capabilities).filter((entry): entry is [
+      string,
+      AppiumCapabilityValue,
+    ] => entry[1] !== undefined),
+  );
+}
+
+async function cleanupAppiumRuntime(runtime: AppiumRuntime): Promise<void> {
+  if (runtime.driver) {
+    try {
+      await runtime.driver.deleteSession();
+    } catch {
+      // Appium cleanup is best-effort so the original profiling error is not
+      // hidden by a failed session shutdown.
+    }
+  }
+
+  if (runtime.serverProcess) {
+    try {
+      const appiumServerModule = (await import(
+        '../../tests/framework/services/appium'
+      )) as {
+        stopAppiumServer(): Promise<string>;
+      };
+      await appiumServerModule.stopAppiumServer();
+    } catch {
+      // Best-effort for the same reason as the WebDriver session cleanup.
+    }
+  }
+}
+
+async function navigateToWalletHome(
+  appiumDriver: AppiumDriver,
+  options: MobileMemoryProfilerOptions,
+): Promise<void> {
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    if (
+      await isElementVisibleById(
+        appiumDriver,
+        options,
+        WALLET_SEND_BUTTON_ID,
+        'Wallet Send',
+        1200,
+      )
+    ) {
+      return;
+    }
+
+    await appiumDriver.back().catch(() => undefined);
+    await sleep(500);
+  }
+
+  throw new Error(
+    'Could not find the wallet Send button. The wallet-send-eth-* flows require an unlocked wallet on, or navigable back to, the Wallet screen.',
+  );
+}
+
+async function selectSendAmount(
+  appiumDriver: AppiumDriver,
+  options: MobileMemoryProfilerOptions,
+): Promise<void> {
+  const amount = options.sendAmount.trim().toLowerCase();
+  const percentageAmount =
+    amount === 'max' ? '100' : amount.match(/^(\d+)%$/u)?.[1];
+
+  if (percentageAmount) {
+    if (!PERCENTAGE_AMOUNTS.has(percentageAmount)) {
+      throw new Error(
+        '--send-amount percentage must be one of: 25%, 50%, 75%, 100%, max',
+      );
+    }
+
+    await tapElementById(
+      appiumDriver,
+      options,
+      `percentage-button-${percentageAmount}`,
+      `${percentageAmount}% amount button`,
+    );
+    return;
+  }
+
+  if (!/^\d+(?:\.\d+)?$/u.test(amount)) {
+    throw new Error(
+      '--send-amount must be a decimal amount or one of: 25%, 50%, 75%, 100%, max',
+    );
+  }
+
+  for (const character of amount) {
+    const keyId =
+      character === '.' ? 'keypad-key-dot' : `keypad-key-${character}`;
+    await tapElementById(
+      appiumDriver,
+      options,
+      keyId,
+      `Amount keypad ${character}`,
+    );
+    await sleep(80);
+  }
+}
+
+async function tapElementById(
+  appiumDriver: AppiumDriver,
+  options: MobileMemoryProfilerOptions,
+  testId: string,
+  description: string,
+): Promise<void> {
+  const appiumElement = await waitForElementById(
+    appiumDriver,
+    options,
+    testId,
+    description,
+  );
+  await appiumElement.waitForEnabled({ timeout: 5000 }).catch(() => undefined);
+  await appiumElement.click();
+  await sleep(250);
+}
+
+async function tapElementByText(
+  appiumDriver: AppiumDriver,
+  options: MobileMemoryProfilerOptions,
+  text: string,
+  description: string,
+): Promise<void> {
+  const appiumElement = await findElement(
+    appiumDriver,
+    textSelectors(options.platform, text),
+    description,
+    options.appiumElementTimeoutMs,
+  );
+  await appiumElement.waitForEnabled({ timeout: 5000 }).catch(() => undefined);
+  await appiumElement.click();
+  await sleep(250);
+}
+
+async function setElementValueById(
+  appiumDriver: AppiumDriver,
+  options: MobileMemoryProfilerOptions,
+  testId: string,
+  value: string,
+  description: string,
+): Promise<void> {
+  const appiumElement = await waitForElementById(
+    appiumDriver,
+    options,
+    testId,
+    description,
+  );
+  await appiumElement.click();
+  await appiumElement.setValue(value);
+  await appiumDriver.hideKeyboard().catch(() => undefined);
+  await sleep(250);
+}
+
+async function waitForElementById(
+  appiumDriver: AppiumDriver,
+  options: MobileMemoryProfilerOptions,
+  testId: string,
+  description: string,
+): Promise<AppiumElement> {
+  return findElement(
+    appiumDriver,
+    idSelectors(options.platform, testId),
+    description,
+    options.appiumElementTimeoutMs,
+  );
+}
+
+async function isElementVisibleById(
+  appiumDriver: AppiumDriver,
+  options: MobileMemoryProfilerOptions,
+  testId: string,
+  description: string,
+  timeoutMs: number,
+): Promise<boolean> {
+  try {
+    const appiumElement = await findElement(
+      appiumDriver,
+      idSelectors(options.platform, testId),
+      description,
+      timeoutMs,
+    );
+    return appiumElement.isDisplayed();
+  } catch {
+    return false;
+  }
+}
+
+async function findElement(
+  appiumDriver: AppiumDriver,
+  selectors: string[],
+  description: string,
+  timeoutMs: number,
+): Promise<AppiumElement> {
+  const timeoutPerSelector = Math.max(Math.floor(timeoutMs / selectors.length), 500);
+
+  for (const selector of selectors) {
+    const appiumElement = appiumDriver.$(selector);
+    try {
+      await appiumElement.waitForDisplayed({ timeout: timeoutPerSelector });
+      return appiumElement;
+    } catch {
+      // Try the next selector form. React Native exposes testID differently on
+      // Android/iOS and across Appium drivers.
+    }
+  }
+
+  throw new Error(
+    `Could not find ${description}. Tried selectors: ${selectors.join(', ')}`,
+  );
+}
+
+function idSelectors(
+  platform: MobileMemoryPlatform,
+  testId: string,
+): string[] {
+  if (platform === 'android') {
+    return [
+      `android=new UiSelector().resourceId(${jsonString(testId)})`,
+      `android=new UiSelector().resourceIdMatches(${jsonString(
+        `.*${escapeRegExp(testId)}.*`,
+      )})`,
+      `~${testId}`,
+      `//*[@resource-id=${xpathLiteral(testId)} or @content-desc=${xpathLiteral(
+        testId,
+      )}]`,
+    ];
+  }
+
+  return [
+    `~${testId}`,
+    `-ios predicate string:name == ${predicateString(
+      testId,
+    )} OR label == ${predicateString(testId)} OR value == ${predicateString(
+      testId,
+    )}`,
+    `//*[@name=${xpathLiteral(testId)} or @label=${xpathLiteral(
+      testId,
+    )} or @value=${xpathLiteral(testId)}]`,
+  ];
+}
+
+function textSelectors(platform: MobileMemoryPlatform, text: string): string[] {
+  if (platform === 'android') {
+    return [
+      `android=new UiSelector().text(${jsonString(text)})`,
+      `android=new UiSelector().textContains(${jsonString(text)})`,
+      `//*[@text=${xpathLiteral(text)} or contains(@text, ${xpathLiteral(
+        text,
+      )}) or @content-desc=${xpathLiteral(text)}]`,
+    ];
+  }
+
+  return [
+    `-ios predicate string:name == ${predicateString(
+      text,
+    )} OR label == ${predicateString(text)} OR value == ${predicateString(
+      text,
+    )}`,
+    `-ios predicate string:name CONTAINS ${predicateString(
+      text,
+    )} OR label CONTAINS ${predicateString(
+      text,
+    )} OR value CONTAINS ${predicateString(text)}`,
+    `//*[contains(@name, ${xpathLiteral(text)}) or contains(@label, ${xpathLiteral(
+      text,
+    )}) or contains(@value, ${xpathLiteral(text)})]`,
+  ];
+}
+
+function parseAppiumEndpoint(appiumUrl: string): AppiumEndpoint {
+  try {
+    const url = new URL(appiumUrl);
+    const protocol = url.protocol.replace(':', '');
+
+    if (protocol !== 'http' && protocol !== 'https') {
+      throw new Error('unsupported protocol');
+    }
+
+    return {
+      protocol,
+      hostname: url.hostname,
+      port: Number(url.port || (protocol === 'https' ? 443 : 80)),
+      path: url.pathname || '/',
+    };
+  } catch (error) {
+    throw new Error(
+      `--appium-url must be an HTTP(S) URL, received "${appiumUrl}": ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
+  }
+}
+
+function assertBundledAppiumEndpoint(endpoint: AppiumEndpoint): void {
+  const defaultEndpoint = parseAppiumEndpoint(DEFAULT_APPIUM_URL);
+
+  if (
+    endpoint.protocol !== defaultEndpoint.protocol ||
+    endpoint.hostname !== defaultEndpoint.hostname ||
+    endpoint.port !== defaultEndpoint.port ||
+    endpoint.path !== defaultEndpoint.path
+  ) {
+    throw new Error(
+      '--appium-url can only target a custom endpoint when --reuse-appium is set. The bundled Appium starter listens on http://127.0.0.1:4723/.',
+    );
+  }
+}
+
+function jsonString(value: string): string {
+  return JSON.stringify(value);
+}
+
+function predicateString(value: string): string {
+  return `"${value.replace(/\\/gu, '\\\\').replace(/"/gu, '\\"')}"`;
+}
+
+function xpathLiteral(value: string): string {
+  if (!value.includes("'")) {
+    return `'${value}'`;
+  }
+
+  if (!value.includes('"')) {
+    return `"${value}"`;
+  }
+
+  return `concat('${value.split("'").join(`',"'",'`)}')`;
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
 }
 
 async function launchApp(

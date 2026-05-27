@@ -121,6 +121,38 @@ describe('mobile-memory-profiler', () => {
       );
     });
 
+    it('parses wallet send confirmation flow options', () => {
+      const options = parseMobileMemoryProfilerArgs([
+        '--flow',
+        'wallet-send-eth-submit',
+        '--recipient-address',
+        '0x000000000000000000000000000000000000dEaD',
+        '--send-amount',
+        '0.001',
+        '--appium-url',
+        'http://127.0.0.1:4723/wd/hub',
+        '--reuse-appium',
+        '--appium-startup-timeout',
+        '15000',
+        '--appium-element-timeout',
+        '5000',
+        '--allow-transaction-submit',
+      ]);
+
+      expect(options).toStrictEqual(
+        expect.objectContaining({
+          flow: 'wallet-send-eth-submit',
+          recipientAddress: '0x000000000000000000000000000000000000dEaD',
+          sendAmount: '0.001',
+          appiumUrl: 'http://127.0.0.1:4723/wd/hub',
+          reuseAppium: true,
+          appiumStartupTimeoutMs: 15000,
+          appiumElementTimeoutMs: 5000,
+          allowTransactionSubmit: true,
+        }),
+      );
+    });
+
     it('rejects invalid choices and unknown options', () => {
       expect(() =>
         parseMobileMemoryProfilerArgs(['--platform', 'web']),
