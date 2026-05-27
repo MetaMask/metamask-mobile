@@ -128,6 +128,25 @@ export class WC2Manager {
         delete this.sessions[event.topic];
       },
     );
+
+    // Single source of truth for re-emitting WC session updates on account changes (EIP155 or adapters).
+    // Update all sessions in parallel
+    Engine.controllerMessenger.subscribe(
+      'AccountTreeController:selectedAccountGroupChange',
+      () => {
+        for (const topic of Object.keys(this.sessions)) {
+          const session = this.sessions[topic];
+          void session
+            .updateSession({ chainId: 0, accounts: [] })
+            .catch((err) => {
+              DevLogger.log(
+                `WC2::selectedAccountGroupChange updateSession failed topic=${topic}`,
+                err,
+              );
+            });
+        }
+      },
+    );
   }
 
   // Milliseconds to wait between consecutive session restorations on startup.

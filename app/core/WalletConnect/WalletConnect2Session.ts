@@ -6,6 +6,7 @@ import {
 import { IWalletKit, WalletKitTypes } from '@reown/walletkit';
 import { SessionTypes } from '@walletconnect/types';
 import { ImageSourcePropType, Linking, Platform } from 'react-native';
+import { isEqual } from 'lodash';
 
 import {
   CaipAccountId,
@@ -390,25 +391,9 @@ class WalletConnect2Session {
         `WC2::updateSession selfReportedUrl=${this.selfReportedUrl} selfReportedHostname=${this.selfReportedHostname} - chainId=${chainId} - accounts=${accounts}`,
       );
 
-      if (accounts.length === 0) {
-        const approvedAccounts = getPermittedAccounts(this.channelId);
-        if (approvedAccounts.length > 0) {
-          DevLogger.log(
-            `WC2::updateSession found approved accounts`,
-            approvedAccounts,
-          );
-          accounts = approvedAccounts;
-        } else {
-          console.warn(
-            `WC2::updateSession no permitted accounts found for topic=${this.session.topic} selfReportedUrl=${this.selfReportedUrl}`,
-          );
-          return;
-        }
-      }
-
       if (chainId === 0) {
         DevLogger.log(
-          `WC2::updateSession invalid chainId --- skip ${typeof chainId} chainId=${chainId} accounts=${accounts})`,
+          `WC2::updateSession invalid chainId --- skip ${typeof chainId} chainId=${chainId})`,
         );
         chainId = parseInt(selectEvmChainId(store.getState()), 16);
         DevLogger.log(
@@ -433,26 +418,25 @@ class WalletConnect2Session {
         namespaces,
       });
 
+      if (isEqual(this.session.namespaces, onlyApprovedNamespaces)) {
+        return;
+      }
+
       await this.web3Wallet.updateSession({
         topic: this.session.topic,
         namespaces: onlyApprovedNamespaces,
       });
 
       // Keep local session in sync with WalletConnect's canonical active session,
-      // then derive chainChanged target from the freshest namespaces.
-      const activeSession =
-        this.web3Wallet.getActiveSessions?.()?.[this.session.topic];
-      if (activeSession) {
-        this.session = activeSession;
-      }
+      this.session.namespaces = onlyApprovedNamespaces;
 
       // We decided not to support chain switching for non-EVM
       // We only keep the chainChanged emission logic for EVM though
-      const doesProposalIncludeEip155 = doesProposalOrSessionIncludeNamespace({
+      const doesSessionIncludeEip155 = doesProposalOrSessionIncludeNamespace({
         proposalOrSession: this.session,
         namespace: KnownCaipNamespace.Eip155,
       });
-      if (doesProposalIncludeEip155) {
+      if (doesSessionIncludeEip155) {
         // Check if the chain is in the approved chains list before emitting event
         const caipChainId = `eip155:${chainId}` as CaipChainId;
         const walletChainIdHex = `0x${chainId.toString(16)}`;
