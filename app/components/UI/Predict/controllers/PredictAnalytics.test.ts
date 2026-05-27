@@ -386,7 +386,8 @@ describe('PredictAnalytics', () => {
       expect(getTrackEventMock()).toHaveBeenCalledTimes(2);
 
       const detailsEvent = getTrackEventMock().mock.calls[0][0] as TrackedEvent;
-      const assetViewedEvent = getTrackEventMock().mock.calls[1][0] as TrackedEvent;
+      const assetViewedEvent = getTrackEventMock().mock
+        .calls[1][0] as TrackedEvent;
 
       expect(detailsEvent.name).toBe(
         MetaMetricsEvents.PREDICT_MARKET_DETAILS_OPENED.category,
@@ -480,9 +481,11 @@ describe('PredictAnalytics', () => {
         entryPoint: 'carousel',
       });
 
-      expect(getTrackEventMock()).toHaveBeenCalledTimes(1);
+      expect(getTrackEventMock()).toHaveBeenCalledTimes(2);
 
       const feedEvent = getTrackEventMock().mock.calls[0][0] as TrackedEvent;
+      const assetViewedEvent = getTrackEventMock().mock
+        .calls[1][0] as TrackedEvent;
 
       expect(feedEvent.name).toBe(
         MetaMetricsEvents.PREDICT_FEED_VIEWED.category,
@@ -494,6 +497,20 @@ describe('PredictAnalytics', () => {
         session_time_in_feed: 98,
         is_session_end: false,
         entry_point: 'carousel',
+      });
+
+      expect(assetViewedEvent.name).toBe(
+        MetaMetricsEvents.ASSET_VIEWED.category,
+      );
+      expect(assetViewedEvent.properties).toMatchObject({
+        session_id: 's1',
+        predict_feed_tab: 'trending',
+        num_feed_pages_viewed_in_session: 3,
+        session_time_in_feed: 98,
+        is_session_end: false,
+        entry_point: 'carousel',
+        trade_type: 'Predict',
+        implementation_type: 'native',
       });
     });
 

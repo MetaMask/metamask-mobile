@@ -296,7 +296,7 @@ export class PredictAnalytics {
 
     analytics.trackEvent(eventBuilder.build());
 
-    if (configKey === 'marketDetailsOpened') {
+    if (configKey === 'feedViewed' || configKey === 'marketDetailsOpened') {
       analytics.trackEvent(
         AnalyticsEventBuilder.createEventBuilder(MetaMetricsEvents.ASSET_VIEWED)
           .addProperties(

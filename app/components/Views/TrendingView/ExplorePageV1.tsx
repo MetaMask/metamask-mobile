@@ -186,6 +186,8 @@ const ExplorePageV1: React.FC<TabProps> = ({
                 navigateToPredictionsList(navigation, 'trending')
               }
               testID="section-header-view-all-predictions"
+              tabName="Now"
+              sectionName="predictions_trending"
             />
             <HorizontalCarousel<PredictMarketType>
               data={predictions.data}
