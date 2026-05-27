@@ -3,7 +3,6 @@ import type {
   MarkAsReadNotificationsParam,
   NotificationServicesControllerEnableNotificationsOptions,
 } from '@metamask/notification-services-controller/notification-services';
-import type { NotificationPreferences } from '@metamask/authenticated-user-storage';
 import Engine from '../../../core/Engine';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 
@@ -73,9 +72,9 @@ export const setMarketingNotificationPreferencesEnabled = async (
   isEnabled: boolean,
 ) => {
   assertIsFeatureEnabled();
-  const preferences = (await Engine.controllerMessenger.call(
+  const preferences = await Engine.controllerMessenger.call(
     GET_NOTIFICATION_PREFERENCES_ACTION,
-  )) as NotificationPreferences | null;
+  );
 
   if (!preferences) {
     return;

@@ -180,4 +180,5 @@ export function useEnableNotificationsByDefaultEffect() {
  */
 export function useStartupNotificationsEffect() {
   useRegisterAndFetchNotifications();
+  useEnableNotificationsByDefaultEffect();
 }
