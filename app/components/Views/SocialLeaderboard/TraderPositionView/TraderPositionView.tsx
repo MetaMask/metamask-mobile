@@ -33,7 +33,7 @@ import { IconName as ComponentLibraryIconName } from '../../../../component-libr
 import ClipboardManager from '../../../../core/ClipboardManager';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
 import { useTheme } from '../../../../util/theme';
-import QuickBuyBottomSheet from './components/QuickBuyBottomSheet';
+import TraderPositionQuickBuy from './components/QuickBuy';
 import TraderPositionHeader from './components/TraderPositionHeader';
 import TraderTokenInfoRow from './components/TraderTokenInfoRow';
 import TraderPositionChartSection from './components/TraderPositionChartSection';
@@ -374,7 +374,7 @@ const TraderPositionView = () => {
             </ButtonHero>
           </Box>
 
-          <QuickBuyBottomSheet
+          <TraderPositionQuickBuy
             isVisible={isQuickBuyVisible}
             position={resolvedPosition ?? null}
             onClose={handleQuickBuyClose}

@@ -4,7 +4,6 @@ import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import type { ListRenderItem } from '@shopify/flash-list';
 import type { TrendingAsset } from '@metamask/assets-controllers';
-import type { PredictMarket as PredictMarketType } from '../../../UI/Predict/types';
 import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
@@ -23,12 +22,10 @@ import PerpsTileRowItem from '../feeds/perps/PerpsTileRowItem';
 import PerpsMarketTileCardSkeleton from '../../Homepage/Sections/Perpetuals/components/PerpsMarketTileCardSkeleton';
 import { navigateToPerpsMarketList } from '../feeds/perps/perpsNavigation';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
-import { PredictionCarouselRowItem } from '../feeds/predictions/PredictionRowItem';
-import PredictionsSkeleton from '../feeds/predictions/PredictionsSkeleton';
+import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarouselSection';
 import { navigateToPredictionsList } from '../feeds/predictions/predictionsNavigation';
 import CardList from '../components/CardList';
 import ExploreScroll from '../components/ExploreScroll';
-import HorizontalCarousel from '../components/HorizontalCarousel';
 import SectionHeader from '../components/SectionHeader';
 import TileCarousel from '../components/TileCarousel';
 import type { TabProps } from '../hooks/useExploreRefresh';
@@ -124,37 +121,7 @@ const CryptoTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
     [],
   );
 
-  const renderPredictionItem: ListRenderItem<PredictMarketType> = useCallback(
-    ({ item, index }) => (
-      <PredictionCarouselRowItem
-        market={item}
-        testIdPrefix="predict-crypto-market-row-item"
-        onCardPress={() =>
-          trackExploreInteracted({
-            interaction_type: 'section_item_tapped',
-            tab_name: 'Crypto',
-            section_name: 'predictions_crypto',
-            asset_type: 'prediction',
-            position: index,
-            item_clicked: item.id,
-          })
-        }
-        onBuyButtonPress={(marketId) =>
-          trackExploreInteracted({
-            interaction_type: 'prediction_voted',
-            tab_name: 'Crypto',
-            section_name: 'predictions_crypto',
-            item_clicked: marketId,
-          })
-        }
-      />
-    ),
-    [],
-  );
-
   const showTokens = tokens.isLoading || tokens.data.length > 0;
-  const showCryptoPredictions =
-    cryptoPredictions.isLoading || cryptoPredictions.data.length > 0;
 
   return (
     <ExploreScroll refreshing={refreshing} onRefresh={onRefresh}>
@@ -190,24 +157,15 @@ const CryptoTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
         </PerpsSectionProvider>
       )}
 
-      {showCryptoPredictions && (
-        <Box>
-          <SectionHeader
-            title={strings('trending.predictions')}
-            onViewAll={() => navigateToPredictionsList(navigation, 'crypto')}
-            testID="section-header-view-all-crypto_predictions"
-            tabName="Crypto"
-            sectionName="predictions_crypto"
-          />
-          <HorizontalCarousel<PredictMarketType>
-            data={cryptoPredictions.data}
-            isLoading={cryptoPredictions.isLoading}
-            renderItem={renderPredictionItem}
-            Skeleton={PredictionsSkeleton}
-            idPrefix="crypto_predictions"
-          />
-        </Box>
-      )}
+      <PredictionsCarouselSection
+        feed={cryptoPredictions}
+        tabName="Crypto"
+        sectionName="predictions_crypto"
+        title={strings('trending.predictions')}
+        testIdPrefix="predict-crypto-market-row-item"
+        idPrefix="crypto_predictions"
+        onViewAll={() => navigateToPredictionsList(navigation, 'crypto')}
+      />
     </ExploreScroll>
   );
 };

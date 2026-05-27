@@ -31,13 +31,20 @@ android.enableJetifier=true
 # Enable AAPT2 PNG crunching
 android.enablePngCrunchInReleaseBuilds=true
 
-# Play Store distribution architectures. x86_64 is excluded because the
-# AAR-bundled libconceal.so (react-native-keychain) and libsecp256k1.so
-# (react-native-fast-crypto) ship 4 KB-aligned x86_64 binaries that fail
-# Play's 16 KB page-size check. No real phone uses x86_64 (Chromebooks/
-# emulators only), so dropping it silences the warning without affecting
-# users. Enforced at packaging time via ndk.abiFilters in app/build.gradle.
-reactNativeArchitectures=armeabi-v7a,arm64-v8a,x86
+# Play Store distribution architectures: ARM-only.
+#
+# x86_64 is excluded because the AAR-bundled libconceal.so
+# (react-native-keychain) and libsecp256k1.so (react-native-fast-crypto)
+# ship 4 KB-aligned x86_64 binaries that fail Play's 16 KB page-size check.
+#
+# x86 is also excluded because shipping x86 without its 64-bit counterpart
+# x86_64 violates Play's 64-bit requirement (every 32-bit ABI must be paired
+# with its 64-bit equivalent). Real Android phones haven't shipped on x86
+# since ~2016; Chromebooks/emulators that could run x86 are also arm64- or
+# x86_64-capable and Play picks one of those instead.
+#
+# Enforced at packaging time via ndk.abiFilters in app/build.gradle.
+reactNativeArchitectures=armeabi-v7a,arm64-v8a
 
 # New Architecture + Hermes
 newArchEnabled=true
