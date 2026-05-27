@@ -639,8 +639,11 @@ class WalletConnect2Session {
       scope: normalizedRequestChainId,
       method,
     });
-    this.requestsToRedirect[requestEvent.id] =
-      isEvmRedirect || isAdapterRedirect;
+
+    // Set only if true, the `needsRedirect` method only deletes entries that are truthy
+    if (isEvmRedirect || isAdapterRedirect) {
+      this.requestsToRedirect[requestEvent.id] = true;
+    }
 
     // If the request is for a non-EVM chain.
     if (!isEIP155Scope(normalizedRequestChainId)) {
