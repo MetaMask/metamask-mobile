@@ -621,10 +621,41 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - OpenSSL-Universal (3.6.0000)
+  - OpenSSL-Universal (3.6.2000)
   - Permission-BluetoothPeripheral (3.10.1):
     - RNPermissions
   - PromisesObjC (2.4.0)
+  - QuickCrypto (1.1.5):
+    - boost
+    - DoubleConversion
+    - fast_float
+    - fmt
+    - glog
+    - hermes-engine
+    - NitroModules
+    - OpenSSL-Universal (~> 3.6.2000)
+    - RCT-Folly
+    - RCT-Folly/Fabric
+    - RCTRequired
+    - RCTTypeSafety
+    - React-callinvoker
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - SocketRocket
+    - Yoga
   - RCT-Folly (2024.11.18.00):
     - boost
     - DoubleConversion
@@ -2464,8 +2495,6 @@ PODS:
     - YttriumWrapper (= 0.10.15)
   - react-native-cookies (6.2.1):
     - React-Core
-  - react-native-fast-crypto (2.2.0):
-    - React
   - react-native-get-random-values (1.11.0):
     - React-Core
   - react-native-gzip (1.1.0):
@@ -2645,21 +2674,17 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-quick-base64 (2.2.0):
-    - React-Core
-  - react-native-quick-crypto (0.7.15):
+  - react-native-quick-base64 (3.0.0):
     - boost
     - DoubleConversion
     - fast_float
     - fmt
     - glog
     - hermes-engine
-    - OpenSSL-Universal
     - RCT-Folly
     - RCT-Folly/Fabric
     - RCTRequired
     - RCTTypeSafety
-    - React
     - React-Core
     - React-debug
     - React-Fabric
@@ -4166,6 +4191,7 @@ DEPENDENCIES:
   - NitroModules (from `../node_modules/react-native-nitro-modules`)
   - OpenSSL-Universal
   - Permission-BluetoothPeripheral (from `../node_modules/react-native-permissions/ios/BluetoothPeripheral`)
+  - QuickCrypto (from `../node_modules/react-native-quick-crypto`)
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCTDeprecation (from `../node_modules/react-native/ReactApple/Libraries/RCTFoundation/RCTDeprecation`)
   - RCTRequired (from `../node_modules/react-native/Libraries/Required`)
@@ -4208,7 +4234,6 @@ DEPENDENCIES:
   - react-native-branch (from `../node_modules/react-native-branch`)
   - "react-native-compat (from `../node_modules/@walletconnect/react-native-compat`)"
   - "react-native-cookies (from `../node_modules/@react-native-cookies/cookies`)"
-  - react-native-fast-crypto (from `../node_modules/react-native-fast-crypto`)
   - react-native-get-random-values (from `../node_modules/react-native-get-random-values`)
   - react-native-gzip (from `../node_modules/react-native-gzip`)
   - react-native-in-app-review (from `../node_modules/react-native-in-app-review`)
@@ -4219,7 +4244,6 @@ DEPENDENCIES:
   - react-native-pager-view (from `../node_modules/react-native-pager-view`)
   - react-native-performance (from `../node_modules/react-native-performance`)
   - react-native-quick-base64 (from `../node_modules/react-native-quick-base64`)
-  - react-native-quick-crypto (from `../node_modules/react-native-quick-crypto`)
   - react-native-randombytes (from `../node_modules/react-native-randombytes`)
   - react-native-release-profiler (from `../node_modules/react-native-release-profiler`)
   - react-native-render-html (from `../node_modules/react-native-render-html`)
@@ -4417,6 +4441,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-nitro-modules"
   Permission-BluetoothPeripheral:
     :path: "../node_modules/react-native-permissions/ios/BluetoothPeripheral"
+  QuickCrypto:
+    :path: "../node_modules/react-native-quick-crypto"
   RCT-Folly:
     :podspec: "../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec"
   RCTDeprecation:
@@ -4499,8 +4525,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@walletconnect/react-native-compat"
   react-native-cookies:
     :path: "../node_modules/@react-native-cookies/cookies"
-  react-native-fast-crypto:
-    :path: "../node_modules/react-native-fast-crypto"
   react-native-get-random-values:
     :path: "../node_modules/react-native-get-random-values"
   react-native-gzip:
@@ -4521,8 +4545,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-performance"
   react-native-quick-base64:
     :path: "../node_modules/react-native-quick-base64"
-  react-native-quick-crypto:
-    :path: "../node_modules/react-native-quick-crypto"
   react-native-randombytes:
     :path: "../node_modules/react-native-randombytes"
   react-native-release-profiler:
@@ -4731,9 +4753,10 @@ SPEC CHECKSUMS:
   nanopb: 438bc412db1928dac798aa6fd75726007be04262
   NativeUtils: 1856148c08a042bbbca306acbe2771db8a9be99b
   NitroModules: ea5dc6c43666f4a75e71e372eaca6d3605856e51
-  OpenSSL-Universal: 9110d21982bb7e8b22a962b6db56a8aa805afde7
+  OpenSSL-Universal: ecee7b138fa75a74ecf00d7ffd248fb584739b9e
   Permission-BluetoothPeripheral: 34ab829f159c6cf400c57bac05f5ba1b0af7a86e
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
+  QuickCrypto: fbb50daf9313753153af0e4f67a9f14ec1a26979
   RCT-Folly: 846fda9475e61ec7bcbf8a3fe81edfcaeb090669
   RCTDeprecation: 5eb1d2eeff5fb91151e8a8eef45b6c7658b6c897
   RCTRequired: cebcf9442fc296c9b89ac791dfd463021d9f6f23
@@ -4776,7 +4799,6 @@ SPEC CHECKSUMS:
   react-native-branch: 76e1f947b40597727e6faa5cba5824d7ecf6c6b0
   react-native-compat: 1d99f40b51a8c8efcd57a921d5ab3b1ab5608736
   react-native-cookies: d648ab7025833b977c0b19e142503034f5f29411
-  react-native-fast-crypto: 6b448866f5310cf203714a21147ef67f735bea8e
   react-native-get-random-values: d16467cf726c618e9c7a8c3c39c31faa2244bbba
   react-native-gzip: ac876c009a2a75f72e82b84fb3f721933c173ab8
   react-native-in-app-review: b3d1eed3d1596ebf6539804778272c4c65e4a400
@@ -4786,8 +4808,7 @@ SPEC CHECKSUMS:
   react-native-netinfo: cec9c4e86083cb5b6aba0e0711f563e2fbbff187
   react-native-pager-view: a0516effb17ca5120ac2113bfd21b91130ad5748
   react-native-performance: b48d1aba7501a54af5e1a7efb0dab1ab25dc734f
-  react-native-quick-base64: 17dc4b8daee50e680d5f57cc3ee6773b6ee0110a
-  react-native-quick-crypto: 871ae85b4f28dc5b10263cb61ce2050d00a21860
+  react-native-quick-base64: e5eea0a73474108a7b80e33ce2c004a414649da2
   react-native-randombytes: 3c8f3e89d12487fd03a2f966c288d495415fc116
   react-native-release-profiler: 12729af9f7bd9b14426bd4610af28d5e4b4a0f0c
   react-native-render-html: 5afc4751f1a98621b3009432ef84c47019dcb2bd

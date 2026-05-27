@@ -197,11 +197,9 @@ android {
         resValue "string", "com_braze_custom_endpoint", "${System.env.MM_BRAZE_SDK_ENDPOINT ?: ''}"
 
         ndk {
-            // Restrict packaged .so files (including those pulled from third-party AARs
-            // like Facebook Conceal and react-native-fast-crypto) to the ABIs listed in
-            // reactNativeArchitectures. Without this, AGP packages every ABI shipped in
-            // dependency AARs regardless, which is what put x86_64 libconceal.so and
-            // libsecp256k1.so into the AAB and triggered Play's 16 KB alignment warning.
+            // Restrict packaged .so files to the ABIs listed in reactNativeArchitectures.
+            // Without this filter, AGP packages every ABI shipped in dependency AARs
+            // regardless of what the app actually targets.
             abiFilters(*reactNativeArchitectures())
         }
 
