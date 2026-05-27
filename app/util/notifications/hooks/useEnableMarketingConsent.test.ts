@@ -105,15 +105,33 @@ describe('useEnableMarketingConsent', () => {
     expect(analytics.identify).toHaveBeenCalledWith({
       ...deviceTraits,
       ...userSettingsTraits,
-    });
-    expect(analytics.identify).toHaveBeenCalledWith({
       [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
     });
-    expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
-    expect(analytics.trackEvent).toHaveBeenCalledWith(
+    expect(analytics.identify).toHaveBeenCalledTimes(1);
+    expect(
+      jest.mocked(analytics.identify).mock.invocationCallOrder[0],
+    ).toBeLessThan(
+      jest.mocked(analytics.trackEvent).mock.invocationCallOrder[0],
+    );
+    expect(analytics.trackEvent).toHaveBeenCalledTimes(2);
+    expect(analytics.trackEvent).toHaveBeenNthCalledWith(
+      1,
       expect.objectContaining({
         name: MetaMetricsEvents.METRICS_OPT_IN.category,
         properties: expect.objectContaining({
+          account_type: AccountType.MetamaskGoogle,
+          location: 'push_pre_prompt',
+          updated_after_onboarding: true,
+        }),
+      }),
+    );
+    expect(analytics.trackEvent).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        name: MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED.category,
+        properties: expect.objectContaining({
+          [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
+          is_metrics_opted_in: true,
           account_type: AccountType.MetamaskGoogle,
           location: 'push_pre_prompt',
           updated_after_onboarding: true,
@@ -136,7 +154,24 @@ describe('useEnableMarketingConsent', () => {
     expect(analytics.identify).toHaveBeenCalledWith({
       [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
     });
-    expect(analytics.trackEvent).not.toHaveBeenCalled();
+    expect(
+      jest.mocked(analytics.identify).mock.invocationCallOrder[0],
+    ).toBeLessThan(
+      jest.mocked(analytics.trackEvent).mock.invocationCallOrder[0],
+    );
+    expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+    expect(analytics.trackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED.category,
+        properties: expect.objectContaining({
+          [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
+          is_metrics_opted_in: true,
+          account_type: AccountType.MetamaskGoogle,
+          location: 'push_pre_prompt',
+          updated_after_onboarding: true,
+        }),
+      }),
+    );
     expect(store.getState().security.dataCollectionForMarketing).toBe(true);
   });
 

@@ -32,16 +32,27 @@ export function useEnableMarketingConsent({
   const accountType = useSelector(selectOnboardingAccountType);
 
   const enableMarketingConsent = useCallback(async () => {
+    const marketingConsentTraits = {
+      [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
+    };
+
     if (hasMarketingConsent) {
       return;
     }
 
-    if (!analytics.isEnabled()) {
+    const shouldOptInToMetrics = !analytics.isEnabled();
+
+    if (shouldOptInToMetrics) {
       await analytics.optIn();
       updateCachedConsent(true);
+    }
+
+    dispatch(setDataCollectionForMarketing(true));
+    if (shouldOptInToMetrics) {
       analytics.identify({
         ...generateDeviceAnalyticsMetaData(),
         ...generateUserSettingsAnalyticsMetaData(),
+        ...marketingConsentTraits,
       });
       analytics.trackEvent(
         AnalyticsEventBuilder.createEventBuilder(
@@ -54,12 +65,22 @@ export function useEnableMarketingConsent({
           })
           .build(),
       );
+    } else {
+      analytics.identify(marketingConsentTraits);
     }
-
-    dispatch(setDataCollectionForMarketing(true));
-    analytics.identify({
-      [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
-    });
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
+      )
+        .addProperties({
+          ...marketingConsentTraits,
+          is_metrics_opted_in: true,
+          updated_after_onboarding: true,
+          location: metricsOptInLocation,
+          ...(accountType && { account_type: accountType }),
+        })
+        .build(),
+    );
 
     if (isSeedlessOnboardingLoginFlow) {
       // Social-login wallets also store marketing opt-in server-side so the
