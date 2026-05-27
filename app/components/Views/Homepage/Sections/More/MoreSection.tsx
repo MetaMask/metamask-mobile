@@ -22,7 +22,7 @@ import { ActionLocation } from '../../../../../util/analytics/actionButtonTracki
 import { getDecimalChainId } from '../../../../../util/networks';
 import { strings } from '../../../../../../locales/i18n';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
+import { HomepageMoreSelectorsIDs } from '../../Homepage.testIds';
 import styles from './MoreSection.styles';
 
 interface MoreActionRowProps {
@@ -123,7 +123,7 @@ const MoreSection = () => {
   return (
     <View
       style={styles.sectionGap}
-      testID={WalletViewSelectorsIDs.HOMEPAGE_MORE_SECTION}
+      testID={HomepageMoreSelectorsIDs.HOMEPAGE_MORE_SECTION}
     >
       <SectionHeader title={strings('homepage.sections.more.title')} />
       <SectionRow>
@@ -131,20 +131,20 @@ const MoreSection = () => {
           label={strings('homepage.sections.more.import_token')}
           startIconName={IconName.Add}
           onPress={handleImportToken}
-          testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
+          testID={HomepageMoreSelectorsIDs.IMPORT_TOKEN_BUTTON}
         />
         <MoreActionRow
           label={strings('homepage.sections.more.import_nft')}
           startIconName={IconName.Add}
           onPress={handleImportNft}
-          testID={WalletViewSelectorsIDs.IMPORT_NFT_BUTTON}
+          testID={HomepageMoreSelectorsIDs.IMPORT_NFT_BUTTON}
         />
         <MoreActionRow
           label={strings('homepage.sections.more.contact_support')}
           startIconName={IconName.MessageQuestion}
           endIconName={IconName.Export}
           onPress={handleContactSupport}
-          testID={WalletViewSelectorsIDs.HOMEPAGE_MORE_CONTACT_SUPPORT_BUTTON}
+          testID={HomepageMoreSelectorsIDs.HOMEPAGE_MORE_CONTACT_SUPPORT_BUTTON}
         />
       </SectionRow>
     </View>

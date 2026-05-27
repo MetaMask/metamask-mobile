@@ -8,7 +8,7 @@ import { ActionLocation } from '../../../../../util/analytics/actionButtonTracki
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
+import { HomepageMoreSelectorsIDs } from '../../Homepage.testIds';
 
 const mockNavigate = jest.fn();
 const mockTrackEvent = jest.fn();
@@ -61,7 +61,7 @@ describe('MoreSection', () => {
     renderSection();
 
     fireEvent.press(
-      screen.getByTestId(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON),
+      screen.getByTestId(HomepageMoreSelectorsIDs.IMPORT_TOKEN_BUTTON),
     );
 
     expect(mockNavigate).toHaveBeenCalledWith('AddAsset', {
@@ -83,7 +83,7 @@ describe('MoreSection', () => {
     renderSection();
 
     fireEvent.press(
-      screen.getByTestId(WalletViewSelectorsIDs.IMPORT_NFT_BUTTON),
+      screen.getByTestId(HomepageMoreSelectorsIDs.IMPORT_NFT_BUTTON),
     );
 
     expect(mockNavigate).toHaveBeenCalledWith('AddAsset', {
@@ -106,7 +106,7 @@ describe('MoreSection', () => {
 
     fireEvent.press(
       screen.getByTestId(
-        WalletViewSelectorsIDs.HOMEPAGE_MORE_CONTACT_SUPPORT_BUTTON,
+        HomepageMoreSelectorsIDs.HOMEPAGE_MORE_CONTACT_SUPPORT_BUTTON,
       ),
     );
 
