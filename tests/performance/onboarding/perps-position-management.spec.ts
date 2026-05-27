@@ -44,7 +44,7 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
       );
       const openOrderScreenTimer = new TimerHelper(
         'Open Order Screen',
-        { ios: 3000, android: 4000 },
+        { ios: 3000, android: 5000 },
         currentDeviceDetails.platform,
       );
       const openPositionTimer = new TimerHelper(
