@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { PredictMarket as PredictMarketType } from '../../types';
 import { PredictEntryPoint } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
@@ -9,6 +10,7 @@ import PredictMarketMultiple from '../PredictMarketMultiple';
 import PredictMarketSportCard from '../PredictMarketSportCard';
 import PredictCryptoUpDownMarketCard from '../PredictCryptoUpDownMarketCard';
 import { isCryptoUpDown } from '../../utils/cryptoUpDown';
+import { selectPredictUpDownEnabledFlag } from '../../selectors/featureFlags';
 
 interface PredictMarketProps {
   market: PredictMarketType;
@@ -32,10 +34,12 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
   transactionActiveAbTests,
 }) => {
   const contextEntryPoint = usePredictEntryPoint();
+  const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
   const entryPoint =
     contextEntryPoint ??
     propEntryPoint ??
     PredictEventValues.ENTRY_POINT.PREDICT_FEED;
+
   if (market.game) {
     return (
       <PredictMarketSportCard
@@ -50,7 +54,7 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
     );
   }
 
-  if (isCryptoUpDown(market)) {
+  if (upDownEnabled && isCryptoUpDown(market)) {
     return (
       <PredictCryptoUpDownMarketCard
         market={market}
