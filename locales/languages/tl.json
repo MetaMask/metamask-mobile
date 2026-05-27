@@ -8457,6 +8457,7 @@
     "main_title": "Mga Reward",
     "vip": {
       "bps_unit": "bps",
+      "badge_label": "VIP Fox {{tier}}",
       "swaps_label": "Mga Swap",
       "perps_label": "Perps",
       "error_title": "We couldn’t load your VIP dashboard",
