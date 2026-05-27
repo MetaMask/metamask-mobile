@@ -13,6 +13,7 @@ import {
 } from '../utils/moneyAccountTransactions';
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
 import Logger from '../../../../util/Logger';
+import { captureException } from '@sentry/react-native';
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
@@ -58,15 +59,32 @@ export function useMoneyAccountDeposit() {
 
     const networkClientId = resolveNetworkClientId(chainIdHex);
 
-    const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
-      amount: BigInt(0),
-      chainId: chainIdHex,
-      boringVault,
-      tellerAddress,
-      accountantAddress,
-      lensAddress,
-      provider,
-    });
+    let approveTx: Awaited<
+      ReturnType<typeof buildMoneyAccountDepositBatch>
+    >['approveTx'];
+    let depositTx: Awaited<
+      ReturnType<typeof buildMoneyAccountDepositBatch>
+    >['depositTx'];
+    try {
+      ({ approveTx, depositTx } = await buildMoneyAccountDepositBatch({
+        amount: BigInt(0),
+        chainId: chainIdHex,
+        boringVault,
+        tellerAddress,
+        accountantAddress,
+        lensAddress,
+        provider,
+      }));
+    } catch (error) {
+      Logger.error(error as Error, `${LOG_TAG} Failed to build deposit batch`);
+      captureException(error as Error, {
+        tags: {
+          feature: 'money-account',
+          context: 'initiateDeposit.build_batch_failed',
+        },
+      });
+      throw error;
+    }
 
     // Navigate early for better UX; recover on failure below.
     navigateToConfirmation({
@@ -95,6 +113,12 @@ export function useMoneyAccountDeposit() {
       });
     } catch (error) {
       Logger.error(error as Error, `${LOG_TAG} Deposit transaction failed`);
+      captureException(error as Error, {
+        tags: {
+          feature: 'money-account',
+          context: 'initiateDeposit.add_batch_failed',
+        },
+      });
       // Rethrow so the caller can roll back navigation / surface a toast.
       throw error;
     }
@@ -132,15 +156,35 @@ export function useMoneyAccountWithdrawal() {
 
     // Placeholder amount — MM Pay re-encodes both calls via
     // `updateMoneyAccountWithdrawTokenAmount` once the user picks an amount.
-    const { withdrawTx, transferTx } = await buildMoneyAccountWithdrawBatch({
-      amount: BigInt(0),
-      chainId: chainIdHex,
-      tellerAddress: tellerAddress as Hex,
-      accountantAddress: accountantAddress as Hex,
-      moneyAccountAddress: primaryMoneyAccount.address as Hex,
-      recipient: recipient as Hex,
-      provider,
-    });
+    let withdrawTx: Awaited<
+      ReturnType<typeof buildMoneyAccountWithdrawBatch>
+    >['withdrawTx'];
+    let transferTx: Awaited<
+      ReturnType<typeof buildMoneyAccountWithdrawBatch>
+    >['transferTx'];
+    try {
+      ({ withdrawTx, transferTx } = await buildMoneyAccountWithdrawBatch({
+        amount: BigInt(0),
+        chainId: chainIdHex,
+        tellerAddress: tellerAddress as Hex,
+        accountantAddress: accountantAddress as Hex,
+        moneyAccountAddress: primaryMoneyAccount.address as Hex,
+        recipient: recipient as Hex,
+        provider,
+      }));
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        `${LOG_TAG} Failed to build withdrawal batch`,
+      );
+      captureException(error as Error, {
+        tags: {
+          feature: 'money-account',
+          context: 'initiateWithdrawal.build_batch_failed',
+        },
+      });
+      throw error;
+    }
 
     // Navigate early for better UX; recover on failure below.
     navigateToConfirmation({
@@ -159,6 +203,12 @@ export function useMoneyAccountWithdrawal() {
       });
     } catch (error) {
       Logger.error(error as Error, `${LOG_TAG} Withdrawal transaction failed`);
+      captureException(error as Error, {
+        tags: {
+          feature: 'money-account',
+          context: 'initiateWithdrawal.add_batch_failed',
+        },
+      });
       // Rethrow so the caller can roll back navigation / surface a toast.
       throw error;
     }

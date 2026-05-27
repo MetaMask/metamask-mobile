@@ -27,6 +27,8 @@ import {
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
+import Logger from '../../../../../util/Logger';
+import { captureException } from '@sentry/react-native';
 import styleSheet from './MoneyAddMoneySheet.styles';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
 
@@ -65,7 +67,15 @@ const MoneyAddMoneySheet: React.FC = () => {
 
   const handleConvertCrypto = useCallback(() => {
     closeAndNavigate(() => {
-      initiateDeposit().catch(() => undefined);
+      initiateDeposit().catch((error: Error) => {
+        Logger.error(error, '[Money Account] initiateDeposit failed');
+        captureException(error, {
+          tags: {
+            feature: 'money-account',
+            context: 'MoneyAddMoneySheet.initiateDeposit_failed',
+          },
+        });
+      });
     });
   }, [closeAndNavigate, initiateDeposit]);
 
