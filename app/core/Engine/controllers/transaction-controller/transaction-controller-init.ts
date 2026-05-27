@@ -257,6 +257,8 @@ async function publishHook({
   }
 
   const { isExternalSign } = transactionMeta;
+  const isRevokeDelegation =
+    transactionMeta.type === TransactionType.revokeDelegation;
 
   const keyringSupports7702 = await accountSupports7702(
     transactionMeta.txParams?.from,
@@ -265,6 +267,7 @@ async function publishHook({
 
   if (
     keyringSupports7702 &&
+    !isRevokeDelegation &&
     (!shouldUseSmartTransaction || !sendBundleSupport || isExternalSign)
   ) {
     const hook = new Delegation7702PublishHook({

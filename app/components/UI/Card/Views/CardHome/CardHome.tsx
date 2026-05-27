@@ -320,7 +320,9 @@ const CardHome = () => {
             cardStatus={data?.card?.status}
             walletAddress={
               isAuthenticated
-                ? data?.primaryFundingAsset?.walletAddress
+                ? primaryToken?.isMoneyAccountEntry
+                  ? strings('card.card_spending_limit.money_account_label')
+                  : data?.primaryFundingAsset?.walletAddress
                 : undefined
             }
           />
@@ -360,6 +362,7 @@ const CardHome = () => {
               actions={data?.actions ?? []}
               isLoading={isLoading}
               isSwapEnabled={isSwapEnabled}
+              isMoneyAccountEntry={!!primaryToken?.isMoneyAccountEntry}
               onAddFunds={actions.addFundsAction}
               onEnableCard={actions.enableCardAction}
             />

@@ -158,14 +158,23 @@ global.crypto = {
 
 process.browser = false;
 
-// EventTarget polyfills for Hyperliquid SDK WebSocket support
+// EventTarget / Event polyfills for Hyperliquid SDK WebSocket support.
+// React Native's WebSocket extends RN's internal EventTarget, whose
+// dispatchEvent validates `event instanceof RNEvent`. The event-target-shim
+// package provides a *different* Event class that fails this check, causing
+// "parameter 1 is not of type 'Event'" TypeErrors when @nktkas/rews dispatches
+// CloseEvent on the native WebSocket. Use RN's own classes so all instanceof
+// checks pass consistently.
 if (
   typeof global.EventTarget === 'undefined' ||
   typeof global.Event === 'undefined'
 ) {
-  const { Event, EventTarget } = require('event-target-shim');
-  global.EventTarget = EventTarget;
-  global.Event = Event;
+  // eslint-disable-next-line @react-native/no-deep-imports -- RN does not export Event/EventTarget at the top level
+  global.Event =
+    require('react-native/src/private/webapis/dom/events/Event').default;
+  // eslint-disable-next-line @react-native/no-deep-imports -- RN does not export EventTarget at the top level
+  global.EventTarget =
+    require('react-native/src/private/webapis/dom/events/EventTarget').default;
 }
 
 if (typeof global.CustomEvent === 'undefined') {
@@ -178,29 +187,17 @@ if (typeof global.CustomEvent === 'undefined') {
 }
 
 // CloseEvent polyfill for @nktkas/rews v2 (used by Hyperliquid SDK WebSocket transport)
-// React Native/Hermes does not provide CloseEvent as a global constructor
 if (typeof global.CloseEvent === 'undefined') {
-  global.CloseEvent = function (type, params) {
-    params = params || {};
-    const event = new global.Event(type, params);
-    event.code = params.code ?? 0;
-    event.reason = params.reason ?? '';
-    event.wasClean = params.wasClean ?? false;
-    return event;
-  };
+  // eslint-disable-next-line @react-native/no-deep-imports -- RN does not export CloseEvent at the top level
+  global.CloseEvent =
+    require('react-native/src/private/webapis/websockets/events/CloseEvent').default;
 }
 
 // MessageEvent polyfill for @nktkas/rews v2 (used by Hyperliquid SDK WebSocket transport)
-// React Native/Hermes does not provide MessageEvent as a global constructor
 if (typeof global.MessageEvent === 'undefined') {
-  global.MessageEvent = function (type, params) {
-    params = params || {};
-    const event = new global.Event(type, params);
-    event.data = params.data ?? null;
-    event.origin = params.origin ?? '';
-    event.lastEventId = params.lastEventId ?? '';
-    return event;
-  };
+  // eslint-disable-next-line @react-native/no-deep-imports -- RN does not export MessageEvent at the top level
+  global.MessageEvent =
+    require('react-native/src/private/webapis/html/events/MessageEvent').default;
 }
 
 class AbortError extends Error {
