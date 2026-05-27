@@ -45,6 +45,7 @@ import {
 } from '@metamask/assets-controllers';
 import {
   TransactionPayControllerGetDelegationTransactionAction,
+  TransactionPayControllerGetPaymentOverrideDataAction,
   TransactionPayControllerGetStateAction,
   TransactionPayControllerGetStrategyAction,
   TransactionPayControllerPolymarketGetDepositWalletAddressAction,
@@ -118,6 +119,7 @@ type InitMessengerActions =
   | TransactionControllerGetStateAction
   | TransactionControllerUpdateTransactionAction
   | TransactionPayControllerGetDelegationTransactionAction
+  | TransactionPayControllerGetPaymentOverrideDataAction
   | TransactionPayControllerGetStateAction
   | TransactionPayControllerGetStrategyAction
   | TransactionPayControllerPolymarketGetDepositWalletAddressAction
@@ -180,6 +182,7 @@ export function getTransactionControllerInitMessenger(
       'TransactionController:getState',
       'TransactionController:updateTransaction',
       'TransactionPayController:getDelegationTransaction',
+      'TransactionPayController:getPaymentOverrideData',
       'TransactionPayController:getState',
       'TransactionPayController:getStrategy',
       'TransactionPayController:polymarketGetDepositWalletAddress',

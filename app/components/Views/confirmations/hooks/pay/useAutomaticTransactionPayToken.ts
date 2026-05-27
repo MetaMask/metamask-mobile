@@ -222,6 +222,7 @@ export function useAutomaticTransactionPayToken({
     if (
       disable ||
       !from ||
+      isMoneyPaymentOverride !== true ||
       isMoneyPaymentOverride === previsMoneyPaymentOverrideRef.current ||
       postQuoteTransactionType
     ) {
