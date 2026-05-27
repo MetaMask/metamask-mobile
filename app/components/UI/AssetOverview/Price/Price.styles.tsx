@@ -33,7 +33,7 @@ const styleSheet = (params: { theme: Theme }) =>
       left: 0,
       top: 0,
       bottom: 0,
-      width: 30,
+      width: 15,
       zIndex: 10,
     } as ViewStyle,
     /** Figma: column, py 12, align start, gap 10; child row is full width */
