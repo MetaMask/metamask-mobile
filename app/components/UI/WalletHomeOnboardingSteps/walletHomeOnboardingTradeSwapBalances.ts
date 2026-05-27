@@ -41,7 +41,7 @@ const selectSelectedAccountMainnetMusdBalanceHex = createSelector(
       return undefined;
     }
 
-    return tokenBalances?.[accountAddress]?.[CHAIN_IDS.MAINNET]?.[
+    return tokenBalances?.[accountAddress as Hex]?.[CHAIN_IDS.MAINNET]?.[
       MAINNET_MUSD_TOKEN_ADDRESS
     ];
   },
@@ -54,7 +54,7 @@ const selectSelectedAccountMainnetEthBalanceHex = createSelector(
       return undefined;
     }
 
-    return tokenBalances?.[accountAddress]?.[CHAIN_IDS.MAINNET]?.[
+    return tokenBalances?.[accountAddress as Hex]?.[CHAIN_IDS.MAINNET]?.[
       MAINNET_NATIVE_ETH_TOKEN_ADDRESS
     ];
   },
