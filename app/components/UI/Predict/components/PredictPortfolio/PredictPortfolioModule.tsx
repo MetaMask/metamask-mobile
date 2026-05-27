@@ -28,7 +28,22 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { executeGuardedAction } = usePredictActionGuard({ navigation });
-  const portfolio = usePredictPortfolio();
+  const {
+    availableBalance,
+    claim,
+    claimableAmount,
+    deposit,
+    hasClaimableWinnings,
+    isClaimPending,
+    isLoading,
+    portfolioValue,
+    positionsBadgeCount,
+    showPnlLine,
+    totalUnrealizedPnlAmount,
+    totalUnrealizedPnlPercent,
+    walletType,
+    withdraw,
+  } = usePredictPortfolio();
 
   const handlePositionsPress = useCallback(() => {
     if (onPositionsPress) {
@@ -45,31 +60,28 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
   const handleAddFundsPress = useCallback(() => {
     executeGuardedAction(
       () =>
-        portfolio.deposit({
+        deposit({
           analyticsProperties: {
             entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
           },
         }),
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.DEPOSIT },
     );
-  }, [executeGuardedAction, portfolio]);
+  }, [deposit, executeGuardedAction]);
 
   const handleWithdrawPress = useCallback(() => {
     executeGuardedAction(
       async () => {
-        if (!portfolio.walletType) {
+        if (!walletType) {
           return;
         }
 
-        if (
-          portfolio.walletType === 'deposit-wallet' &&
-          !enableDepositWalletWithdraw
-        ) {
+        if (walletType === 'deposit-wallet' && !enableDepositWalletWithdraw) {
           onDepositWalletWithdrawPress?.();
           return;
         }
 
-        await portfolio.withdraw();
+        await withdraw();
       },
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.WITHDRAW },
     );
@@ -77,28 +89,28 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
     enableDepositWalletWithdraw,
     executeGuardedAction,
     onDepositWalletWithdrawPress,
-    portfolio,
+    walletType,
+    withdraw,
   ]);
 
   const handleClaimPress = useCallback(() => {
-    executeGuardedAction(() => portfolio.claim(), {
+    executeGuardedAction(() => claim(), {
       attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM,
     });
-  }, [executeGuardedAction, portfolio]);
+  }, [claim, executeGuardedAction]);
 
-  const isWithdrawDisabled =
-    portfolio.availableBalance > 0 && !portfolio.walletType;
+  const isWithdrawDisabled = availableBalance > 0 && !walletType;
 
   return (
     <Box testID={PREDICT_PORTFOLIO_TEST_IDS.MODULE} twClassName="gap-4">
       <PredictPortfolioSummary
-        availableBalance={portfolio.availableBalance}
+        availableBalance={availableBalance}
         isHidden={Boolean(privacyMode)}
-        isLoading={portfolio.isLoading}
-        portfolioValue={portfolio.portfolioValue}
-        showPnlLine={portfolio.showPnlLine}
-        totalUnrealizedPnlAmount={portfolio.totalUnrealizedPnlAmount}
-        totalUnrealizedPnlPercent={portfolio.totalUnrealizedPnlPercent}
+        isLoading={isLoading}
+        portfolioValue={portfolioValue}
+        showPnlLine={showPnlLine}
+        totalUnrealizedPnlAmount={totalUnrealizedPnlAmount}
+        totalUnrealizedPnlPercent={totalUnrealizedPnlPercent}
       />
 
       <PredictPortfolioActions
@@ -106,14 +118,14 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
         onAddFundsPress={handleAddFundsPress}
         onPositionsPress={handlePositionsPress}
         onWithdrawPress={handleWithdrawPress}
-        positionsBadgeCount={portfolio.positionsBadgeCount}
+        positionsBadgeCount={positionsBadgeCount}
       />
 
-      {portfolio.hasClaimableWinnings && (
+      {hasClaimableWinnings && (
         <PredictClaimButton
-          amount={portfolio.claimableAmount}
+          amount={claimableAmount}
           isHidden={Boolean(privacyMode)}
-          isLoading={portfolio.isClaimPending}
+          isLoading={isClaimPending}
           onPress={handleClaimPress}
           testID={PREDICT_PORTFOLIO_TEST_IDS.CLAIM_BUTTON}
         />
