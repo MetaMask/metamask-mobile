@@ -19,11 +19,17 @@ export function BalanceProjection({
   amountFiat,
   projectedYears,
 }: BalanceProjectionProps) {
-  const { vaultApyQuery, apyDecimal } = useMoneyAccountBalance();
+  const { vaultApyQuery, apyDecimal, apyPercent } = useMoneyAccountBalance();
   const formatFiat = useFiatFormatter();
+
+  const amount = useMemo(() => {
+    const value = new BigNumber(amountFiat || '0');
+    return value.isFinite() ? value : null;
+  }, [amountFiat]);
 
   const projected = useMemo(() => {
     if (
+      amount === null ||
       typeof apyDecimal !== 'number' ||
       !isFinite(apyDecimal) ||
       apyDecimal < 0
@@ -31,29 +37,36 @@ export function BalanceProjection({
       return null;
     }
 
-    const amount = new BigNumber(amountFiat || '0');
-    if (!amount.isFinite()) {
-      return null;
-    }
-
     return amount.multipliedBy(
       new BigNumber(1).plus(apyDecimal).pow(projectedYears),
     );
-  }, [amountFiat, apyDecimal, projectedYears]);
+  }, [amount, apyDecimal, projectedYears]);
 
-  if (vaultApyQuery.isLoading || projected === null) {
+  if (vaultApyQuery.isLoading || apyPercent === undefined || amount === null) {
     return null;
   }
 
-  return (
-    <View testID="balance-projection">
-      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-        {strings('confirm.custom_amount.projected_balance', {
-          projectedYears,
-        })}{' '}
-        <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
-          {formatFiat(projected)}
+  if (amount.isGreaterThan(0) && projected !== null) {
+    return (
+      <View testID="balance-projection">
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+          {strings('confirm.custom_amount.projected_balance', {
+            projectedYears,
+          })}{' '}
+          <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
+            {formatFiat(projected)}
+          </Text>
         </Text>
+      </View>
+    );
+  }
+
+  return (
+    <View testID="balance-projection-apy-pitch">
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+        {strings('confirm.custom_amount.earn_up_to_apy', {
+          percentage: apyPercent,
+        })}
       </Text>
     </View>
   );
