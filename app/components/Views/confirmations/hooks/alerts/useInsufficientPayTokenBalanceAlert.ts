@@ -1,4 +1,6 @@
 import { useMemo } from 'react';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { Alert, Severity } from '../../types/alerts';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
@@ -14,9 +16,10 @@ import {
 } from '../pay/useTransactionPayData';
 import { useSelector } from 'react-redux';
 import { selectTickerByChainId } from '../../../../../selectors/networkController';
+import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { RootState } from '../../../../../reducers';
 import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
-import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../pay/useTransactionPaySelectedFiatPaymentMethod';
 
@@ -49,7 +52,18 @@ export function useInsufficientPayTokenBalanceAlert({
     sourceChainId,
   );
 
-  const { balanceUsd, balanceRaw } = payToken ?? {};
+  const transactionId = transactionMeta?.id ?? '';
+  const paymentOverride = useSelector((state: RootState) =>
+    selectPaymentOverrideByTransactionId(state, transactionId),
+  );
+  const isMoneyPaymentOverride =
+    paymentOverride === PaymentOverride.MoneyAccount;
+  const { totalFiatRaw } = useMoneyAccountBalance();
+
+  const { balanceUsd: onChainBalanceUsd, balanceRaw } = payToken ?? {};
+  const balanceUsd = isMoneyPaymentOverride
+    ? (totalFiatRaw ?? '0')
+    : onChainBalanceUsd;
 
   const ticker = useSelector((state: RootState) =>
     selectTickerByChainId(state, sourceChainId),
@@ -111,11 +125,19 @@ export function useInsufficientPayTokenBalanceAlert({
 
   const isInsufficientForFees = useMemo(
     () =>
+      !isMoneyPaymentOverride &&
       !isPostQuote &&
       !isPendingAlert &&
       payToken &&
       totalSourceAmountRaw.isGreaterThan(balanceRaw ?? '0'),
-    [balanceRaw, isPendingAlert, isPostQuote, payToken, totalSourceAmountRaw],
+    [
+      balanceRaw,
+      isMoneyPaymentOverride,
+      isPendingAlert,
+      isPostQuote,
+      payToken,
+      totalSourceAmountRaw,
+    ],
   );
 
   // For post-quote flows, we still need to check if the user has enough native
@@ -127,12 +149,14 @@ export function useInsufficientPayTokenBalanceAlert({
   // payToken is absent as long as we're in a post-quote flow.
   const isInsufficientForSourceNetwork = useMemo(
     () =>
+      !isMoneyPaymentOverride &&
       (payToken || isPostQuote) &&
       !isPayTokenNative &&
       !isPendingAlert &&
       !isSourceGasFeeToken &&
       totalSourceNetworkFeeRaw.isGreaterThan(nativeToken?.balanceRaw ?? '0'),
     [
+      isMoneyPaymentOverride,
       isPayTokenNative,
       isPendingAlert,
       isPostQuote,
