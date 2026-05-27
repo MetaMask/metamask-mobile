@@ -30,9 +30,6 @@ import {
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { NetworkState } from '@metamask/network-controller';
 
-const isEmptyRecord = (record: Record<string, unknown> | undefined) =>
-  !record || Object.keys(record).length === 0;
-
 // ChainId (hex) -> AccountAddress (hex checksummed) -> Balance (hex)
 export const getAccountTrackerControllerAccountsByChainId =
   createDeepEqualSelector(
@@ -56,11 +53,7 @@ export const getAccountTrackerControllerAccountsByChainId =
       assetsInfo: AssetsControllerState['assetsInfo'],
       internalAccountsById: AccountsControllerState['internalAccounts']['accounts'],
     ): AccountTrackerControllerState['accountsByChainId'] => {
-      if (
-        !isAssetsUnifyStateEnabled ||
-        isEmptyRecord(assetsBalance) ||
-        isEmptyRecord(assetsInfo)
-      ) {
+      if (!isAssetsUnifyStateEnabled) {
         return accountsByChainId;
       }
 
@@ -94,17 +87,12 @@ export const getAccountTrackerControllerAccountsByChainId =
 
           const hexChainId = decimalToPrefixedHex(parsedChain.reference);
           const amount = balanceData?.amount ?? '0';
-          const legacyAccountInfo =
-            accountsByChainId[hexChainId]?.[checksummedAddress] ??
-            accountsByChainId[hexChainId]?.[internalAccount.address];
 
           result[hexChainId] ??= {};
           result[hexChainId][checksummedAddress] = {
             // TODO: Use raw value from state when available
             balance: parseBalanceWithDecimals(amount, metadata.decimals),
-            ...(legacyAccountInfo?.stakedBalance
-              ? { stakedBalance: legacyAccountInfo.stakedBalance }
-              : {}),
+            // TODO: Add staked balance when available
           };
         }
       }
@@ -136,11 +124,7 @@ export const getTokensControllerAllTokens = createDeepEqualSelector(
     customAssets: AssetsControllerState['customAssets'],
     internalAccountsById: AccountsControllerState['internalAccounts']['accounts'],
   ): TokensControllerState['allTokens'] => {
-    if (
-      !isAssetsUnifyStateEnabled ||
-      isEmptyRecord(assetsInfo) ||
-      (isEmptyRecord(assetsBalance) && isEmptyRecord(customAssets))
-    ) {
+    if (!isAssetsUnifyStateEnabled) {
       return allTokens;
     }
 
@@ -185,15 +169,6 @@ export const getTokensControllerAllTokens = createDeepEqualSelector(
           assetType.chain.reference,
         ) as Hex;
         const assetAddress = toChecksumHexAddress(assetType.assetReference);
-        const aggregators: string[] | undefined =
-          'aggregators' in metadata && Array.isArray(metadata.aggregators)
-            ? metadata.aggregators.reduce<string[]>((valid, aggregator) => {
-                if (typeof aggregator === 'string') {
-                  valid.push(aggregator);
-                }
-                return valid;
-              }, [])
-            : undefined;
 
         const token: Token = {
           address: assetAddress,
@@ -201,7 +176,6 @@ export const getTokensControllerAllTokens = createDeepEqualSelector(
           decimals: metadata.decimals,
           name: metadata.name,
           image: metadata.image,
-          ...(aggregators?.length ? { aggregators } : {}),
         };
 
         result[hexChainId] ??= {};
@@ -232,7 +206,7 @@ export const getTokensControllerAllIgnoredTokens = createDeepEqualSelector(
     assetPreferences: AssetsControllerState['assetPreferences'],
     internalAccountsById: AccountsControllerState['internalAccounts']['accounts'],
   ): TokensControllerState['allIgnoredTokens'] => {
-    if (!isAssetsUnifyStateEnabled || isEmptyRecord(assetPreferences)) {
+    if (!isAssetsUnifyStateEnabled) {
       return allIgnoredTokens;
     }
 
@@ -293,11 +267,7 @@ export const getTokenBalancesControllerTokenBalances = createDeepEqualSelector(
     customAssets: AssetsControllerState['customAssets'],
     internalAccountsById: AccountsControllerState['internalAccounts']['accounts'],
   ): TokenBalancesControllerState['tokenBalances'] => {
-    if (
-      !isAssetsUnifyStateEnabled ||
-      isEmptyRecord(assetsInfo) ||
-      (isEmptyRecord(assetsBalance) && isEmptyRecord(customAssets))
-    ) {
+    if (!isAssetsUnifyStateEnabled) {
       return tokenBalances;
     }
 
@@ -414,16 +384,11 @@ export const getMultiChainAssetsControllerAccountsAssets =
       customAssets: AssetsControllerState['customAssets'],
       internalAccountsById: AccountsControllerState['internalAccounts']['accounts'],
     ): MultichainAssetsControllerState['accountsAssets'] => {
-      if (
-        !isAssetsUnifyStateEnabled ||
-        (isEmptyRecord(assetsBalance) && isEmptyRecord(customAssets))
-      ) {
+      if (!isAssetsUnifyStateEnabled) {
         return accountsAssets;
       }
 
-      const result: MultichainAssetsControllerState['accountsAssets'] = {
-        ...accountsAssets,
-      };
+      const result: MultichainAssetsControllerState['accountsAssets'] = {};
 
       // Merge assetsBalance and customAssets: accountId -> assetId[]
       const allAssets = Object.fromEntries(
@@ -448,7 +413,7 @@ export const getMultiChainAssetsControllerAccountsAssets =
           continue;
         }
 
-        result[accountId] ??= [];
+        result[accountId] = [];
 
         for (const assetId of assetIds) {
           const assetType = parseCaipAssetType(assetId);
@@ -456,9 +421,7 @@ export const getMultiChainAssetsControllerAccountsAssets =
             continue;
           }
 
-          if (!result[accountId].includes(assetId)) {
-            result[accountId].push(assetId);
-          }
+          result[accountId].push(assetId);
         }
       }
 
@@ -483,13 +446,11 @@ export const getMultiChainAssetsControllerAssetsMetadata =
       assetsMetadata: MultichainAssetsControllerState['assetsMetadata'],
       assetsInfo: AssetsControllerState['assetsInfo'],
     ): MultichainAssetsControllerState['assetsMetadata'] => {
-      if (!isAssetsUnifyStateEnabled || isEmptyRecord(assetsInfo)) {
+      if (!isAssetsUnifyStateEnabled) {
         return assetsMetadata;
       }
 
-      const result: MultichainAssetsControllerState['assetsMetadata'] = {
-        ...assetsMetadata,
-      };
+      const result: MultichainAssetsControllerState['assetsMetadata'] = {};
 
       for (const [assetId, metadata] of Object.entries(assetsInfo)) {
         const assetType = parseCaipAssetType(assetId as CaipAssetType);
@@ -536,7 +497,7 @@ export const getMultiChainAssetsControllerAllIgnoredAssets =
       assetPreferences: AssetsControllerState['assetPreferences'],
       internalAccountsById: AccountsControllerState['internalAccounts']['accounts'],
     ): MultichainAssetsControllerState['allIgnoredAssets'] => {
-      if (!isAssetsUnifyStateEnabled || isEmptyRecord(assetPreferences)) {
+      if (!isAssetsUnifyStateEnabled) {
         return allIgnoredAssets;
       }
 
@@ -590,17 +551,11 @@ export const getMultiChainBalancesControllerBalances = createDeepEqualSelector(
     assetsInfo: AssetsControllerState['assetsInfo'],
     internalAccountsById: AccountsControllerState['internalAccounts']['accounts'],
   ): MultichainBalancesControllerState['balances'] => {
-    if (
-      !isAssetsUnifyStateEnabled ||
-      isEmptyRecord(assetsBalance) ||
-      isEmptyRecord(assetsInfo)
-    ) {
+    if (!isAssetsUnifyStateEnabled) {
       return balances;
     }
 
-    const result: MultichainBalancesControllerState['balances'] = {
-      ...balances,
-    };
+    const result: MultichainBalancesControllerState['balances'] = {};
 
     for (const [accountId, chainIdBalances] of Object.entries(assetsBalance)) {
       const internalAccount = internalAccountsById[accountId];
@@ -608,7 +563,7 @@ export const getMultiChainBalancesControllerBalances = createDeepEqualSelector(
         continue;
       }
 
-      result[accountId] ??= {};
+      result[accountId] = {};
 
       for (const [assetId, balance] of Object.entries(chainIdBalances)) {
         const assetType = parseCaipAssetType(assetId as CaipAssetType);
@@ -645,7 +600,7 @@ export const getCurrencyRateControllerCurrentCurrency = createDeepEqualSelector(
     currentCurrency: CurrencyRateState['currentCurrency'],
     selectedCurrency: AssetsControllerState['selectedCurrency'],
   ): CurrencyRateState['currentCurrency'] => {
-    if (!isAssetsUnifyStateEnabled || selectedCurrency === undefined) {
+    if (!isAssetsUnifyStateEnabled) {
       return currentCurrency;
     }
 
@@ -671,11 +626,7 @@ export const getCurrencyRateControllerCurrencyRates = createDeepEqualSelector(
     assetsInfo: AssetsControllerState['assetsInfo'],
     assetsPrice: AssetsControllerState['assetsPrice'],
   ): CurrencyRateState['currencyRates'] => {
-    if (
-      !isAssetsUnifyStateEnabled ||
-      isEmptyRecord(assetsInfo) ||
-      isEmptyRecord(assetsPrice)
-    ) {
+    if (!isAssetsUnifyStateEnabled) {
       return currencyRates;
     }
 
@@ -740,11 +691,7 @@ export const getTokenRatesControllerMarketData = createDeepEqualSelector(
     currencyRates: CurrencyRateState['currencyRates'],
     networkConfigurationsByChainId: NetworkState['networkConfigurationsByChainId'],
   ): TokenRatesControllerState['marketData'] => {
-    if (
-      !isAssetsUnifyStateEnabled ||
-      isEmptyRecord(assetsPrice) ||
-      isEmptyRecord(assetsInfo)
-    ) {
+    if (!isAssetsUnifyStateEnabled) {
       return marketData;
     }
 
@@ -831,13 +778,12 @@ export const getMultichainAssetsRatesControllerConversionRates =
       conversionRates: MultichainAssetsRatesControllerState['conversionRates'],
       assetsPrice: AssetsControllerState['assetsPrice'],
     ): MultichainAssetsRatesControllerState['conversionRates'] => {
-      if (!isAssetsUnifyStateEnabled || isEmptyRecord(assetsPrice)) {
+      if (!isAssetsUnifyStateEnabled) {
         return conversionRates;
       }
 
-      const result: MultichainAssetsRatesControllerState['conversionRates'] = {
-        ...conversionRates,
-      };
+      const result: MultichainAssetsRatesControllerState['conversionRates'] =
+        {};
 
       for (const [assetId, assetPrice] of Object.entries(assetsPrice) as [
         CaipAssetType,
