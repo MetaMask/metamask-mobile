@@ -62,7 +62,7 @@ const PredictPositionsTabs = ({
             style={tw.style('flex-1')}
             testID={tab.testID}
           >
-            <Box twClassName="items-center gap-3 py-3">
+            <Box twClassName="items-center gap-3">
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={isActive ? FontWeight.Bold : FontWeight.Regular}

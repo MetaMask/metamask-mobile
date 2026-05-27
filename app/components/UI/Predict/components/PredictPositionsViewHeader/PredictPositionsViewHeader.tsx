@@ -87,7 +87,7 @@ const PredictPositionsViewHeader = ({
 
   return (
     <Box
-      twClassName="gap-3 py-3"
+      twClassName="gap-3 py-4"
       testID={PredictPositionsViewSelectorsIDs.SUMMARY}
     >
       <Box
