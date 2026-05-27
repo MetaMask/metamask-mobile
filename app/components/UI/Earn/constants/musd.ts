@@ -73,6 +73,16 @@ export const MUSD_TOKEN_ASSET_ID_BY_CHAIN: Record<Hex, string> = {
 export const MUSD_CURRENCY = 'MUSD';
 export const MUSD_CONVERSION_APY = 3;
 
+/**
+ * Aave receipt-token symbols treated as mUSD-convertible aTokens.
+ * Centralized so Money/Earn/Carousel surfaces stay in lockstep.
+ */
+export const MUSD_CONVERSION_ATOKEN_SYMBOLS: ReadonlySet<string> = new Set([
+  'aUSDC',
+  'aUSDT',
+  'aDAI',
+]);
+
 // Delay before cleaning up toast tracking entries after final transaction status
 export const TOAST_TRACKING_CLEANUP_DELAY_MS = 5000;
 

@@ -35,6 +35,7 @@ import Engine from '../../../core/Engine';
 ///: END:ONLY_INCLUDE_IF
 import { selectAddressHasTokenBalances } from '../../../selectors/tokenBalancesController';
 import { useMusdConversionTokens } from '../Earn/hooks/useMusdConversionTokens';
+import { MUSD_CONVERSION_ATOKEN_SYMBOLS } from '../Earn/constants/musd';
 import {
   fetchCarouselSlidesFromContentful,
   isActive,
@@ -51,7 +52,6 @@ import AppConstants from '../../../core/AppConstants';
 const MAX_CAROUSEL_SLIDES = 8;
 
 const MUSD_CONVERT_ATOKENS_VARIABLE_NAME = 'musdConvertAtokens';
-const ATOKEN_SYMBOLS: ReadonlySet<string> = new Set(['aUSDC', 'aUSDT', 'aDAI']);
 
 // Constants from original styles
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -193,7 +193,10 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
   const dismissedBanners = useSelector(selectDismissedBanners);
   const { tokens: musdConversionTokens } = useMusdConversionTokens();
   const userHoldsAtoken = useMemo(
-    () => musdConversionTokens.some((t) => ATOKEN_SYMBOLS.has(t.symbol)),
+    () =>
+      musdConversionTokens.some((t) =>
+        MUSD_CONVERSION_ATOKEN_SYMBOLS.has(t.symbol),
+      ),
     [musdConversionTokens],
   );
   ///: BEGIN:ONLY_INCLUDE_IF(solana)

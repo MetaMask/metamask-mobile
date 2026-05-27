@@ -29,16 +29,12 @@ interface MusdConversionAssetOverviewCtaProps {
   asset: TokenI;
   testId?: string;
   onDismiss?: () => void;
-  displaySymbol?: string;
 }
-
-const ATOKEN_SYMBOLS = new Set(['aUSDC', 'aUSDT', 'aDAI']);
 
 const MusdConversionAssetOverviewCta = ({
   asset,
   testId = EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA,
   onDismiss,
-  displaySymbol,
 }: MusdConversionAssetOverviewCtaProps) => {
   const { styles } = useStyles(stylesheet, {});
 
@@ -54,7 +50,7 @@ const MusdConversionAssetOverviewCta = ({
 
     const ctaText = strings('earn.musd_conversion.bonus_title', {
       percentage: MUSD_CONVERSION_APY,
-      symbol: displaySymbol ?? asset.symbol,
+      symbol: asset.symbol,
     });
 
     const getRedirectLocation = () => {
@@ -115,18 +111,13 @@ const MusdConversionAssetOverviewCta = ({
         <Text variant={TextVariant.BodySMMedium} style={styles.title}>
           {strings('earn.musd_conversion.bonus_title', {
             percentage: MUSD_CONVERSION_APY,
-            symbol: displaySymbol ?? asset.symbol,
+            symbol: asset.symbol,
           })}
         </Text>
         <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
-          {strings(
-            ATOKEN_SYMBOLS.has(asset.symbol)
-              ? 'earn.musd_conversion.bonus_description_atoken'
-              : 'earn.musd_conversion.bonus_description',
-            {
-              percentage: MUSD_CONVERSION_APY,
-            },
-          )}
+          {strings('earn.musd_conversion.bonus_description', {
+            percentage: MUSD_CONVERSION_APY,
+          })}
         </Text>
       </View>
 

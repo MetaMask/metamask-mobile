@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 import { Linking } from 'react-native';
 import {
   Box,
@@ -46,14 +46,13 @@ import { MUSD_EVENTS_CONSTANTS } from '../../../Earn/constants/events/musdEvents
 import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
 import { getNetworkName } from '../../../Earn/utils/network';
 import Logger from '../../../../../util/Logger';
-import { TooltipModal } from '../../../../Views/confirmations/components/UI/Tooltip/Tooltip';
+import useTooltipModal from '../../../../hooks/useTooltipModal';
 import AppConstants from '../../../../../core/AppConstants';
 
 const { EVENT_LOCATIONS: MUSD_EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
 interface MoneyConvertStablecoinsProps {
   location: string;
-  preferredToken?: { address: string; chainId: string };
 }
 
 const FEATURE_TAGS = [
@@ -147,19 +146,14 @@ const Description = () => (
 
 const MoneyConvertStablecoins = ({
   location,
-  preferredToken,
 }: MoneyConvertStablecoinsProps) => {
-  const { tokens } = useMusdConversionTokens(preferredToken);
+  const { tokens } = useMusdConversionTokens();
   const { initiateMaxConversion, initiateCustomConversion } =
     useMusdConversion();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const [isTooltipOpen, setIsTooltipOpen] = useState(false);
+  const { openTooltipModal } = useTooltipModal();
 
   const hasTokens = tokens.length > 0;
-
-  const handleInfoPress = useCallback(() => {
-    setIsTooltipOpen(true);
-  }, []);
 
   const handleTermsPress = useCallback(() => {
     trackEvent(
@@ -172,6 +166,27 @@ const MoneyConvertStablecoins = ({
     );
     Linking.openURL(AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE);
   }, [createEventBuilder, location, trackEvent]);
+
+  const handleInfoPress = useCallback(() => {
+    openTooltipModal(
+      strings('earn.musd_conversion.convert_and_get_percentage_bonus', {
+        percentage: MUSD_CONVERSION_APY,
+      }),
+      <Text variant={TextVariant.BodyMd}>
+        {strings('earn.musd_conversion.convert_tooltip_description', {
+          percentage: MUSD_CONVERSION_APY,
+        })}{' '}
+        <Text
+          variant={TextVariant.BodyMd}
+          twClassName="underline"
+          onPress={handleTermsPress}
+          testID={MoneyConvertStablecoinsTestIds.TOOLTIP_TERMS_LINK}
+        >
+          {strings('earn.musd_conversion.education.terms_apply')}
+        </Text>
+      </Text>,
+    );
+  }, [openTooltipModal, handleTermsPress]);
 
   const handleMaxPress = useCallback(
     async (token: AssetType) => {
@@ -323,32 +338,6 @@ const MoneyConvertStablecoins = ({
           ))}
         </Box>
       )}
-      <TooltipModal
-        open={isTooltipOpen}
-        setOpen={setIsTooltipOpen}
-        title={strings(
-          'earn.musd_conversion.convert_and_get_percentage_bonus',
-          {
-            percentage: MUSD_CONVERSION_APY,
-          },
-        )}
-        tooltipTestId={MoneyConvertStablecoinsTestIds.TOOLTIP}
-        content={
-          <Text variant={TextVariant.BodyMd}>
-            {strings('earn.musd_conversion.convert_tooltip_description', {
-              percentage: MUSD_CONVERSION_APY,
-            })}{' '}
-            <Text
-              variant={TextVariant.BodyMd}
-              twClassName="underline"
-              onPress={handleTermsPress}
-              testID={MoneyConvertStablecoinsTestIds.TOOLTIP_TERMS_LINK}
-            >
-              {strings('earn.musd_conversion.education.terms_apply')}
-            </Text>
-          </Text>
-        }
-      />
     </Box>
   );
 };

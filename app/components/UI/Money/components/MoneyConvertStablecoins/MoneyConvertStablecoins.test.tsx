@@ -41,6 +41,13 @@ jest.mock('react-native', () => {
 
 const mockUseSelector = useSelector as jest.Mock;
 
+const mockOpenTooltipModal = jest.fn();
+
+jest.mock('../../../../hooks/useTooltipModal', () => ({
+  __esModule: true,
+  default: () => ({ openTooltipModal: mockOpenTooltipModal }),
+}));
+
 const mockUseMusdConversionTokens = jest.fn();
 const mockInitiateMaxConversion = jest.fn();
 const mockInitiateCustomConversion = jest.fn();
@@ -396,36 +403,6 @@ describe('MoneyConvertStablecoins', () => {
     });
   });
 
-  describe('preferredToken prop', () => {
-    it('forwards preferredToken to useMusdConversionTokens when provided', () => {
-      const preferredToken = {
-        address: MOCK_USDT.address,
-        chainId: MOCK_USDT.chainId as string,
-      };
-
-      const ComponentWithPreferredToken =
-        MoneyConvertStablecoins as unknown as React.ComponentType<{
-          location: string;
-          preferredToken?: { address: string; chainId: string };
-        }>;
-
-      render(
-        <ComponentWithPreferredToken
-          location={TEST_LOCATION}
-          preferredToken={preferredToken}
-        />,
-      );
-
-      expect(mockUseMusdConversionTokens).toHaveBeenCalledWith(preferredToken);
-    });
-
-    it('calls useMusdConversionTokens with undefined when preferredToken is not passed', () => {
-      render(<MoneyConvertStablecoins location={TEST_LOCATION} />);
-
-      expect(mockUseMusdConversionTokens).toHaveBeenCalledWith(undefined);
-    });
-  });
-
   describe('info button + tooltip', () => {
     it('renders the info button next to the title', () => {
       const { getByTestId } = render(
@@ -437,30 +414,21 @@ describe('MoneyConvertStablecoins', () => {
       ).toBeOnTheScreen();
     });
 
-    it('does not render the tooltip terms link by default', () => {
-      const { queryByTestId } = render(
-        <MoneyConvertStablecoins location={TEST_LOCATION} />,
-      );
-
-      expect(
-        queryByTestId(MoneyConvertStablecoinsTestIds.TOOLTIP_TERMS_LINK),
-      ).toBeNull();
-    });
-
-    it('opens the tooltip with title and body when the info button is pressed', () => {
-      const { getByTestId, getByText } = render(
+    it('opens the tooltip modal with the localized title and body when pressed', () => {
+      const { getByTestId } = render(
         <MoneyConvertStablecoins location={TEST_LOCATION} />,
       );
 
       fireEvent.press(getByTestId(MoneyConvertStablecoinsTestIds.INFO_BUTTON));
 
-      expect(
-        getByText(
-          strings('earn.musd_conversion.convert_and_get_percentage_bonus', {
-            percentage: MUSD_CONVERSION_APY,
-          }),
-        ),
-      ).toBeOnTheScreen();
+      expect(mockOpenTooltipModal).toHaveBeenCalledTimes(1);
+      const [title, body] = mockOpenTooltipModal.mock.calls[0];
+      expect(title).toBe(
+        strings('earn.musd_conversion.convert_and_get_percentage_bonus', {
+          percentage: MUSD_CONVERSION_APY,
+        }),
+      );
+      const { getByText, getByTestId: getInBody } = render(body);
       expect(
         getByText(
           strings('earn.musd_conversion.convert_tooltip_description', {
@@ -470,30 +438,20 @@ describe('MoneyConvertStablecoins', () => {
         ),
       ).toBeOnTheScreen();
       expect(
-        getByTestId(MoneyConvertStablecoinsTestIds.TOOLTIP_TERMS_LINK),
+        getInBody(MoneyConvertStablecoinsTestIds.TOOLTIP_TERMS_LINK),
       ).toBeOnTheScreen();
     });
 
-    it('renders the tooltip title with the APY percentage substituted', () => {
-      const { getByTestId, getByText } = render(
-        <MoneyConvertStablecoins location={TEST_LOCATION} />,
-      );
-
-      fireEvent.press(getByTestId(MoneyConvertStablecoinsTestIds.INFO_BUTTON));
-
-      expect(
-        getByText(`Convert and get ${MUSD_CONVERSION_APY}%`),
-      ).toBeOnTheScreen();
-    });
-
-    it('tracks the terms-of-use event with the location prop when the terms link is pressed', () => {
+    it('tracks the terms-of-use event and opens the URL when the terms link is pressed', () => {
       const { getByTestId } = render(
         <MoneyConvertStablecoins location={TEST_LOCATION} />,
       );
 
       fireEvent.press(getByTestId(MoneyConvertStablecoinsTestIds.INFO_BUTTON));
+      const [, body] = mockOpenTooltipModal.mock.calls[0];
+      const { getByTestId: getInBody } = render(body);
       fireEvent.press(
-        getByTestId(MoneyConvertStablecoinsTestIds.TOOLTIP_TERMS_LINK),
+        getInBody(MoneyConvertStablecoinsTestIds.TOOLTIP_TERMS_LINK),
       );
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -504,18 +462,6 @@ describe('MoneyConvertStablecoins', () => {
         url: AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
       });
       expect(mockTrackEvent).toHaveBeenCalledWith({ event: 'built' });
-    });
-
-    it('opens the terms-of-use URL when the terms link is pressed', () => {
-      const { getByTestId } = render(
-        <MoneyConvertStablecoins location={TEST_LOCATION} />,
-      );
-
-      fireEvent.press(getByTestId(MoneyConvertStablecoinsTestIds.INFO_BUTTON));
-      fireEvent.press(
-        getByTestId(MoneyConvertStablecoinsTestIds.TOOLTIP_TERMS_LINK),
-      );
-
       expect(Linking.openURL).toHaveBeenCalledWith(
         AppConstants.URLS.MUSD_CONVERSION_BONUS_TERMS_OF_USE,
       );

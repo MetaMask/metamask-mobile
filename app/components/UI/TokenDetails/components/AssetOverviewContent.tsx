@@ -50,12 +50,22 @@ import { useMusdConversionTokens } from '../../Earn/hooks/useMusdConversionToken
 import MoneyConvertStablecoins from '../../Money/components/MoneyConvertStablecoins/MoneyConvertStablecoins';
 import { MONEY_EVENTS_CONSTANTS } from '../../Money/constants/moneyEvents';
 import { isTokenEligibleForMerklRewards } from '../../Earn/components/MerklRewards/hooks/useMerklRewards';
-import { isMusdToken, MUSD_CONVERSION_APY } from '../../Earn/constants/musd';
-import TagBase from '../../../../component-library/base-components/TagBase';
 import {
-  TagShape,
-  TagSeverity,
-} from '../../../../component-library/base-components/TagBase/TagBase.types';
+  isMusdToken,
+  MUSD_CONVERSION_APY,
+  MUSD_CONVERSION_ATOKEN_SYMBOLS,
+} from '../../Earn/constants/musd';
+import { Tag, TagSeverity ,
+  Box,
+  BoxFlexDirection,
+  BoxAlignItems,
+  Icon,
+  IconSize,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useCashNavigation } from '../../../Views/Homepage/Sections/Cash/useCashNavigation';
 import {
   selectIsMusdConversionFlowEnabledFlag,
@@ -78,17 +88,6 @@ import type { TokenSecurityData } from '@metamask/assets-controllers';
 import SecurityTrustEntryCard from '../../SecurityTrust/components/SecurityTrustEntryCard/SecurityTrustEntryCard';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
-import {
-  Box,
-  BoxFlexDirection,
-  BoxAlignItems,
-  Icon,
-  IconSize,
-  FontWeight,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
 import { SecurityBanner } from './SecurityBanner';
 import Badge, {
   BadgeVariant,
@@ -116,8 +115,6 @@ import {
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
-
-const ATOKEN_SYMBOLS = new Set(['aUSDC', 'aUSDT', 'aDAI']);
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -153,7 +150,7 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 20,
       paddingHorizontal: 16,
     } as ViewStyle,
-    musdHeroBonusTag: {
+    musdHeroBonusTagWrapper: {
       marginLeft: 4,
     } as ViewStyle,
   });
@@ -352,14 +349,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const isMerklClaimingEnabled = useSelector(
     selectMerklCampaignClaimingEnabledFlag,
   );
-  const musdConvertPreferredToken = useMemo(
-    () =>
-      token.address && token.chainId
-        ? { address: token.address, chainId: token.chainId }
-        : undefined,
-    [token.address, token.chainId],
-  );
-
   const isTokenEligibleForMerklClaim = useMemo(
     () =>
       isMerklClaimingEnabled &&
@@ -383,7 +372,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const preferredAtoken = useMemo(
     () =>
       musdConvertibleTokens.find((candidate) =>
-        ATOKEN_SYMBOLS.has(candidate.symbol),
+        MUSD_CONVERSION_ATOKEN_SYMBOLS.has(candidate.symbol),
       ),
     [musdConvertibleTokens],
   );
@@ -733,16 +722,13 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                       onPress={navigateToCash}
                       hitSlop={8}
                       testID={TokenOverviewSelectorsIDs.MUSD_HERO_BONUS_TAG}
-                      style={styles.musdHeroBonusTag}
+                      style={styles.musdHeroBonusTagWrapper}
                     >
-                      <TagBase
-                        shape={TagShape.Rectangle}
-                        severity={TagSeverity.Success}
-                      >
+                      <Tag severity={TagSeverity.Success}>
                         {strings('earn.percentage_bonus', {
                           percentage: String(MUSD_CONVERSION_APY),
                         })}
-                      </TagBase>
+                      </Tag>
                     </Pressable>
                   )}
                 </Box>
@@ -818,15 +804,11 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             <AssetOverviewClaimBonus asset={token} />
           )}
           {showMusdConvertSection && preferredAtoken && (
-            <MusdConversionAssetOverviewCta
-              asset={preferredAtoken}
-              displaySymbol="aTokens"
-            />
+            <MusdConversionAssetOverviewCta asset={preferredAtoken} />
           )}
           {showMusdConvertSection && (
             <MoneyConvertStablecoins
               location={MONEY_EVENTS_CONSTANTS.EVENT_LOCATIONS.ASSET_DETAIL}
-              preferredToken={musdConvertPreferredToken}
             />
           )}
           {

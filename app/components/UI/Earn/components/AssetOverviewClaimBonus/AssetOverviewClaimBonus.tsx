@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { Linking, Pressable, StyleSheet } from 'react-native';
+import { Linking, Pressable } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import {
@@ -18,7 +18,7 @@ import {
   Text,
   TextColor,
   TextVariant,
-} from '@metamask/design-system-react-native';
+ Tag, TagSeverity } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { TokenI } from '../../../Tokens/types';
 import { useMerklBonusClaim } from '../MerklRewards/hooks/useMerklBonusClaim';
@@ -39,16 +39,9 @@ import {
 import useTokenBalance from '../../../TokenDetails/hooks/useTokenBalance';
 import { selectAsset } from '../../../../../selectors/assets/assets-list';
 import { toFormattedAddress } from '../../../../../util/address';
-import TagBase, {
-  TagSeverity,
-} from '../../../../../component-library/base-components/TagBase';
 import { useCashNavigation } from '../../../../Views/Homepage/Sections/Cash/useCashNavigation';
 
 const { EVENT_LOCATIONS: MUSD_EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
-
-const styles = StyleSheet.create({
-  bonusTag: { borderRadius: 8, paddingHorizontal: 6 },
-});
 
 interface AssetOverviewClaimBonusProps {
   asset: TokenI;
@@ -304,15 +297,14 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
             testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.BONUS_TAG_PRESSABLE}
             hitSlop={8}
           >
-            <TagBase
+            <Tag
               severity={TagSeverity.Success}
-              style={styles.bonusTag}
               testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.BONUS_TAG}
             >
               {strings('earn.percentage_bonus', {
                 percentage: String(MUSD_CONVERSION_APY),
               })}
-            </TagBase>
+            </Tag>
           </Pressable>
         </Box>
 

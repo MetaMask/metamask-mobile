@@ -41,10 +41,7 @@ export const tokenFiatValue = (
  * - hasConvertibleTokensByChainId(chainId: Hex): boolean - Checks if there are convertible tokens on a given chain.
  * - tokens: AssetType[] - The tokens that are eligible for mUSD conversion.
  */
-export const useMusdConversionTokens = (preferredToken?: {
-  address: string;
-  chainId: string;
-}) => {
+export const useMusdConversionTokens = () => {
   const musdConversionPaymentTokensAllowlist = useSelector(
     selectMusdConversionPaymentTokensAllowlist,
   );
@@ -119,27 +116,8 @@ export const useMusdConversionTokens = (preferredToken?: {
     const others = allowed
       .filter((token) => !STABLECOIN_SYMBOLS.has(token.symbol))
       .sort(byFiatDesc);
-    const sorted = [...stables, ...others];
-
-    if (!preferredToken) {
-      return sorted;
-    }
-
-    const preferredAddress = preferredToken.address.toLowerCase();
-    const preferredChainIdHex = safeFormatChainIdToHex(preferredToken.chainId);
-    const idx = sorted.findIndex(
-      (token) =>
-        token.address.toLowerCase() === preferredAddress &&
-        token.chainId &&
-        safeFormatChainIdToHex(token.chainId) === preferredChainIdHex,
-    );
-
-    if (idx > 0) {
-      return [sorted[idx], ...sorted.slice(0, idx), ...sorted.slice(idx + 1)];
-    }
-
-    return sorted;
-  }, [allTokens, filterAllowedTokens, preferredToken]);
+    return [...stables, ...others];
+  }, [allTokens, filterAllowedTokens]);
 
   const hasConvertibleTokensByChainId = useCallback(
     (chainId: Hex) =>
