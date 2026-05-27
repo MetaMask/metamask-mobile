@@ -93,7 +93,7 @@ const SpendAndEarnPromoCard: React.FC<SpendAndEarnPromoCardProps> = ({
             colors={BUTTON_SHIMMER_COLORS}
             widthFraction={0.7}
             sweepDurationMs={1200}
-            pauseDurationMs={900}
+            pauseDurationMs={6000}
             testID={`${testID}-shimmer`}
           >
             <Button

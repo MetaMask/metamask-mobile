@@ -130,14 +130,14 @@ export const useMoneyAccountCardLinkage =
       moneyAccountAddress: primaryMoneyAccount?.address,
     });
 
-    const canLink = Boolean(
+    const canSubmitDelegation = Boolean(
       hasRequirements &&
         isCardAuthenticated &&
         moneyAccountCardToken &&
-        !isAlreadyDelegated &&
         isMonadSponsorshipEnabled &&
         is7702Ready === true,
     );
+    const canLink = Boolean(canSubmitDelegation && !isAlreadyDelegated);
 
     const showPendingToast = useCallback(() => {
       toastRef?.current?.showToast({
@@ -293,7 +293,7 @@ export const useMoneyAccountCardLinkage =
       async (options?: {
         delegationAmountHuman?: string;
       }): Promise<boolean> => {
-        if (!canLink || !primaryMoneyAccount?.address) {
+        if (!canSubmitDelegation || !primaryMoneyAccount?.address) {
           showErrorToast();
           return false;
         }
@@ -338,7 +338,7 @@ export const useMoneyAccountCardLinkage =
         }
       },
       [
-        canLink,
+        canSubmitDelegation,
         primaryMoneyAccount?.address,
         showErrorToast,
         showPendingToast,

@@ -48,6 +48,8 @@ interface PriceChartProps {
   onChartIndexChange: (index: number) => void;
   /** Match token overview AdvancedChart height. */
   chartHeight?: number;
+  /** Override line color (A/B test). */
+  chartColorOverride?: string;
 }
 
 const PriceChart = ({
@@ -56,6 +58,7 @@ const PriceChart = ({
   isLoading,
   onChartIndexChange,
   chartHeight = TOKEN_OVERVIEW_CHART_HEIGHT,
+  chartColorOverride,
 }: PriceChartProps) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const emptyDisplayTrackedRef = useRef(false);
@@ -67,9 +70,10 @@ const PriceChart = ({
   const { styles, theme } = useStyles(styleSheet, { chartHeight });
   const { themeAppearance } = useTheme();
   const chartColor =
-    themeAppearance === AppThemeKey.light
+    chartColorOverride ??
+    (themeAppearance === AppThemeKey.light
       ? LIGHT_MODE_SUCCESS_GREEN
-      : theme.colors.success.default;
+      : theme.colors.success.default);
 
   useEffect(() => {
     setPositionX(-1);

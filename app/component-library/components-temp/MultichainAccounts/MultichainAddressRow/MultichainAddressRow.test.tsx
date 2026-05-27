@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { act, render, fireEvent } from '@testing-library/react-native';
 import MultichainAddressRow from './MultichainAddressRow';
 import {
   SAMPLE_MULTICHAIN_ADDRESS_ROW_PROPS,
@@ -24,6 +24,10 @@ jest.mock('../../../../util/networks', () => ({
 }));
 
 describe('MultichainAddressRow', () => {
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   it('renders MultichainAddressRow correctly', () => {
     const { getByTestId } = render(
       <MultichainAddressRow {...SAMPLE_MULTICHAIN_ADDRESS_ROW_PROPS} />,
@@ -142,8 +146,9 @@ describe('MultichainAddressRow', () => {
 
     const copyButton = getByTestId(MULTICHAIN_ADDRESS_ROW_COPY_BUTTON_TEST_ID);
 
-    // Simulate pressing the copy button
-    fireEvent.press(copyButton);
+    await act(async () => {
+      fireEvent.press(copyButton);
+    });
 
     // Callback should be called
     expect(mockCallback).toHaveBeenCalled();
@@ -176,12 +181,14 @@ describe('MultichainAddressRow', () => {
   });
 
   it('shows toast when copy button is pressed and toastRef is provided', async () => {
+    jest.useFakeTimers();
     const mockCallback = jest.fn();
     const mockShowToast = jest.fn();
+    const mockCloseToast = jest.fn();
     const mockToastRef = {
       current: {
         showToast: mockShowToast,
-        closeToast: jest.fn(),
+        closeToast: mockCloseToast,
       },
     };
     const copyParams = {
@@ -199,19 +206,31 @@ describe('MultichainAddressRow', () => {
 
     const copyButton = getByTestId(MULTICHAIN_ADDRESS_ROW_COPY_BUTTON_TEST_ID);
 
-    // Simulate pressing the copy button
-    fireEvent.press(copyButton);
-
-    // Wait for async operations
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await act(async () => {
+      fireEvent.press(copyButton);
+    });
 
     // Toast should be called with Plain variant (no icon)
     expect(mockShowToast).toHaveBeenCalled();
     expect(mockShowToast).toHaveBeenCalledWith(
       expect.objectContaining({
         variant: expect.stringContaining('Plain'),
+        labelOptions: [{ label: 'Address copied' }],
+        closeButtonOptions: expect.objectContaining({
+          variant: 'Icon',
+          iconName: IconName.Close,
+        }),
       }),
     );
+
+    const toastOptions = mockShowToast.mock.calls[0][0];
+    toastOptions.closeButtonOptions.onPress();
+    expect(mockCloseToast).toHaveBeenCalled();
+
+    act(() => {
+      // Flush the fake timer that resets the copy feedback icon from check back to copy.
+      jest.advanceTimersByTime(400);
+    });
   });
 
   it('renders truncated address correctly when copyParams is missing', () => {

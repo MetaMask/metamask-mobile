@@ -20,6 +20,22 @@ import {
 import Tab from '../Tab';
 import { TabsBarProps } from './TabsBar.types';
 
+interface TabLayout {
+  x: number;
+  width: number;
+}
+
+/** Dense-array check: sparse arrays make Array.every skip holes and report ready too early. */
+const areAllTabLayoutsMeasured = (
+  layouts: (TabLayout | undefined)[],
+  tabCount: number,
+): boolean =>
+  layouts.length === tabCount &&
+  layouts.every((layout) => layout != null && layout.width > 0);
+
+const createEmptyTabLayouts = (tabCount: number): (TabLayout | undefined)[] =>
+  Array.from({ length: tabCount }, () => undefined);
+
 const TabsBar: React.FC<TabsBarProps> = ({
   tabs,
   activeIndex,
@@ -36,11 +52,12 @@ const TabsBar: React.FC<TabsBarProps> = ({
 
   const underlineAnimated = useRef(new Animated.Value(0)).current;
   const underlineWidthAnimated = useRef(new Animated.Value(0)).current;
-  const tabLayouts = useRef<{ x: number; width: number }[]>([]);
+  const tabLayouts = useRef<(TabLayout | undefined)[]>([]);
   const currentAnimation = useRef<Animated.CompositeAnimation | null>(null);
   const rafCallbackId = useRef<number | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [layoutsReady, setLayoutsReady] = useState(false);
+  const [layoutGeneration, setLayoutGeneration] = useState(0);
   const activeIndexRef = useRef(activeIndex);
 
   // State for automatic overflow detection
@@ -74,7 +91,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
       // Store current tab keys for next comparison
       prevTabKeys.current = tabKeys;
       // Reset all layout state
-      tabLayouts.current = new Array(tabs.length);
+      tabLayouts.current = createEmptyTabLayouts(tabs.length);
       setIsInitialized(false);
       setLayoutsReady(false);
       setScrollEnabled(false);
@@ -85,9 +102,8 @@ const TabsBar: React.FC<TabsBarProps> = ({
         currentAnimation.current = null;
       }
 
-      // Force re-measurement by resetting container width temporarily
-      // This ensures fresh layout measurements for the new tab structure
-      setContainerWidth(0);
+      // Force Tab remount so onLayout fires for every tab after structural changes
+      setLayoutGeneration((generation) => generation + 1);
     }
   }, [tabKeys, tabs.length]);
 
@@ -161,32 +177,32 @@ const TabsBar: React.FC<TabsBarProps> = ({
 
   // Animate when activeIndex changes and layouts are ready
   useEffect(() => {
-    if (activeIndex >= 0 && layoutsReady) {
+    if (
+      activeIndex >= 0 &&
+      layoutsReady &&
+      areAllTabLayoutsMeasured(tabLayouts.current, tabs.length)
+    ) {
       animateToTab(activeIndex);
     }
-  }, [activeIndex, layoutsReady, animateToTab]);
+  }, [activeIndex, layoutsReady, animateToTab, tabKeys, tabs.length]);
 
   // Check if content overflows and update scroll state
   useEffect(() => {
-    if (containerWidth > 0 && tabLayouts.current.length === tabs.length) {
-      // Validate that all tab layouts are defined (prevent sparse array issues)
-      const allLayoutsDefined = tabLayouts.current.every(
-        (layout) => layout && typeof layout.width === 'number',
+    if (
+      containerWidth > 0 &&
+      areAllTabLayoutsMeasured(tabLayouts.current, tabs.length)
+    ) {
+      // Calculate total content width by summing tab widths + gaps
+      const totalTabsWidth = tabLayouts.current.reduce(
+        (sum, layout) => sum + (layout?.width ?? 0),
+        0,
       );
+      const gapsWidth = (tabs.length - 1) * 24; // Account for gaps between tabs
+      const calculatedContentWidth = totalTabsWidth + gapsWidth;
 
-      if (allLayoutsDefined) {
-        // Calculate total content width by summing tab widths + gaps
-        const totalTabsWidth = tabLayouts.current.reduce(
-          (sum, layout) => sum + layout.width,
-          0,
-        );
-        const gapsWidth = (tabs.length - 1) * 24; // Account for gaps between tabs
-        const calculatedContentWidth = totalTabsWidth + gapsWidth;
-
-        // Account for container's px-4 padding (16px * 2 = 32px)
-        const shouldScroll = calculatedContentWidth > containerWidth - 32;
-        setScrollEnabled(shouldScroll);
-      }
+      // Account for container's px-4 padding (16px * 2 = 32px)
+      const shouldScroll = calculatedContentWidth > containerWidth - 32;
+      setScrollEnabled(shouldScroll);
     }
   }, [containerWidth, tabs.length]);
 
@@ -201,7 +217,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
       const { x, width } = layoutEvent.nativeEvent.layout;
 
       // Validate input
-      if (index < 0 || index >= tabs.length || width <= 0) {
+      if (index < 0 || index >= tabs.length || !width || width <= 0) {
         return;
       }
 
@@ -215,9 +231,28 @@ const TabsBar: React.FC<TabsBarProps> = ({
       // Store layout data
       tabLayouts.current[index] = { x, width };
 
-      // Check if all layouts are now available
-      const allLayoutsReady = tabLayouts.current.every(
-        (layout, i) => i >= tabs.length || (layout && layout.width > 0),
+      const activeIdx = activeIndexRef.current;
+      const activeTabLayout = tabLayouts.current[activeIdx];
+      const activeTabHasLayout =
+        activeIdx >= 0 &&
+        activeIdx < tabs.length &&
+        activeTabLayout != null &&
+        activeTabLayout.width > 0;
+
+      // Position underline as soon as the active tab is measured (e.g. after tab add/remove)
+      if (activeTabHasLayout && (!isInitialized || index === activeIdx)) {
+        if (rafCallbackId.current !== null) {
+          cancelAnimationFrame(rafCallbackId.current);
+        }
+        rafCallbackId.current = requestAnimationFrame(() => {
+          rafCallbackId.current = null;
+          animateToTab(activeIdx);
+        });
+      }
+
+      const allLayoutsReady = areAllTabLayoutsMeasured(
+        tabLayouts.current,
+        tabs.length,
       );
 
       if (allLayoutsReady) {
@@ -254,7 +289,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
         }
       }
     },
-    [tabs.length, layoutsReady, containerWidth, animateToTab],
+    [tabs.length, layoutsReady, containerWidth, animateToTab, isInitialized],
   );
 
   // Cleanup effect
@@ -302,7 +337,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
           >
             {tabs.map((tab, index) => (
               <Tab
-                key={tab.key}
+                key={`${tab.key}-${layoutGeneration}`}
                 label={tab.label}
                 isActive={index === activeIndex}
                 isDisabled={tab.isDisabled}
@@ -332,7 +367,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
           >
             {tabs.map((tab, index) => (
               <Tab
-                key={tab.key}
+                key={`${tab.key}-${layoutGeneration}`}
                 label={tab.label}
                 isActive={index === activeIndex}
                 isDisabled={tab.isDisabled}
