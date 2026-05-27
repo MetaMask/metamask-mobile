@@ -35,6 +35,19 @@ export interface PermissionsSummaryTopIconProps {
   containerStyle: StyleProp<ViewStyle>;
 }
 
+/**
+ * Matches iOS VoiceOver aggregation of the dapp avatar letter and network badge
+ * letter (joined with ", "), used by connected-accounts E2E tests.
+ */
+export const getConnectedNetworkPickerAccessibilityLabel = (
+  siteTitle: string,
+  networkName: string,
+): string => {
+  const siteLetter = siteTitle.charAt(0);
+  const networkLetter = networkName.charAt(0);
+  return `${siteLetter}, ${networkLetter}`;
+};
+
 const renderDappAvatar = (
   faviconImageSource: ReturnType<typeof resolvePageFaviconImageSource>,
   iconTitle: string,
@@ -70,6 +83,8 @@ const PermissionsSummaryTopIcon = ({
   const iconTitle = getHost(currentEnsName || url);
   const faviconImageSource = resolvePageFaviconImageSource(icon);
   const showConnectedLayout = isAlreadyConnected && !showPermissionsOnly;
+  const connectedNetworkPickerAccessibilityLabel =
+    getConnectedNetworkPickerAccessibilityLabel(iconTitle, networkName);
 
   return (
     <View style={containerStyle}>
@@ -77,12 +92,22 @@ const PermissionsSummaryTopIcon = ({
         <Pressable
           onPress={onSwitchNetwork}
           testID={ConnectedAccountsSelectorsIDs.NETWORK_PICKER}
+          accessible
+          accessibilityRole="button"
+          accessibilityLabel={connectedNetworkPickerAccessibilityLabel}
         >
-          <BadgeWrapper
-            badge={<BadgeNetwork name={networkName} src={networkImageSource} />}
+          <View
+            accessible={false}
+            importantForAccessibility="no-hide-descendants"
           >
-            {renderDappAvatar(faviconImageSource, iconTitle, true)}
-          </BadgeWrapper>
+            <BadgeWrapper
+              badge={
+                <BadgeNetwork name={networkName} src={networkImageSource} />
+              }
+            >
+              {renderDappAvatar(faviconImageSource, iconTitle, true)}
+            </BadgeWrapper>
+          </View>
         </Pressable>
       ) : (
         renderDappAvatar(faviconImageSource, iconTitle, false)

@@ -541,12 +541,29 @@ const AccountConnect = (props: AccountConnectProps) => {
         labelOptions = [{ label: `${strings('toast.permissions_updated')}` }];
       }
 
-      toastRef?.current?.showToast({
-        variant: ToastVariants.App,
+      const hasFaviconUri =
+        typeof faviconSource === 'object' &&
+        faviconSource !== null &&
+        'uri' in faviconSource &&
+        Boolean(faviconSource.uri);
+
+      const baseToastOptions = {
         labelOptions,
-        appIconSource: faviconSource,
         hasNoTimeout: false,
-      });
+      } as const;
+
+      if (hasFaviconUri) {
+        toastRef?.current?.showToast({
+          ...baseToastOptions,
+          variant: ToastVariants.App,
+          appIconSource: faviconSource,
+        });
+      } else {
+        toastRef?.current?.showToast({
+          ...baseToastOptions,
+          variant: ToastVariants.Plain,
+        });
+      }
     } catch (e) {
       if (e instanceof Error) {
         Logger.error(e, 'Error while trying to connect to a dApp.');
