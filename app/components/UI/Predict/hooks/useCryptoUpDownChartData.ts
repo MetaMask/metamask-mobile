@@ -311,7 +311,7 @@ export const useCryptoUpDownChartData = (
     stableHistoricalData,
   );
   const chartData = mergeLivelinePoints(baseHistoricalData, livePoints);
-  const hasRenderableLiveData = chartData.length >= 2;
+  const hasRenderableChartData = chartData.length >= 2;
   const displayedLiveValue =
     liveLoadingRef.current && typeof historicalValue === 'number'
       ? historicalValue
@@ -353,7 +353,7 @@ export const useCryptoUpDownChartData = (
     return {
       data: chartData,
       value: displayedLiveValue,
-      loading: isLive && (!symbol || (liveLoading && !hasRenderableLiveData)),
+      loading: isLive && (!symbol || !hasRenderableChartData),
       isLive,
       window: LIVE_CHART_WINDOW_SECS,
     };

@@ -1058,6 +1058,15 @@ const getPredictMarketStatus = (
   return PredictMarketStatus.OPEN;
 };
 
+const parseEventPriceToBeat = (
+  event: PolymarketApiEvent,
+): number | undefined => {
+  const priceToBeat = Number(event.eventMetadata?.priceToBeat);
+  return Number.isFinite(priceToBeat) && priceToBeat > 0
+    ? priceToBeat
+    : undefined;
+};
+
 export const parsePolymarketMarket = (
   market: PolymarketApiMarket,
   event: PolymarketApiEvent,
@@ -1168,6 +1177,8 @@ export const parsePolymarketEvents = (
         ? buildOutcomeGroups(outcomes)
         : undefined;
 
+      const priceToBeat = parseEventPriceToBeat(event);
+
       return [
         {
           id: event.id,
@@ -1189,6 +1200,7 @@ export const parsePolymarketEvents = (
           liquidity: event.liquidity,
           volume: event.volume,
           game,
+          ...(priceToBeat !== undefined && { priceToBeat }),
           ...(seriesData && { series: seriesData }),
           ...(event.parentEventId !== undefined && {
             parentMarketId: event.parentEventId,

@@ -81,14 +81,6 @@ jest.mock('../../utils/format', () => ({
   formatPrice: jest.fn((value: number) => `$${value.toFixed(2)}`),
 }));
 
-let mockIsPayWithBottomSheetEnabled = false;
-jest.mock('../../../../Views/confirmations/utils/transaction-pay', () => ({
-  ...jest.requireActual(
-    '../../../../Views/confirmations/utils/transaction-pay',
-  ),
-  isPayWithBottomSheetEnabled: () => mockIsPayWithBottomSheetEnabled,
-}));
-
 jest.mock('../../hooks/usePredictActiveOrder', () => ({
   usePredictActiveOrder: () => ({
     isPlacingOrder: mockIsPlacingOrder,
@@ -232,9 +224,7 @@ jest.mock('./components/PredictBuyAmountSection', () => {
   }) {
     return (
       <Text testID="predict-buy-amount-section">
-        {`Amount Section ${availableBalanceDisplay} placing-${String(
-          isPlacingOrder,
-        )}`}
+        {`Amount Section ${availableBalanceDisplay} placing-${String(isPlacingOrder)}`}
       </Text>
     );
   };
@@ -449,7 +439,6 @@ describe('PredictBuyWithAnyToken', () => {
     mockIsCurrentTokenInsufficient = false;
     mockHasAlternativeBalance = false;
     mockIsPaymentSelectorNavigationLocked = false;
-    mockIsPayWithBottomSheetEnabled = false;
     mockUseSelector.mockImplementation((selector) => {
       if (typeof selector === 'function') {
         return selector({
@@ -805,24 +794,9 @@ describe('PredictBuyWithAnyToken', () => {
       );
     });
 
-    it('navigates to PayWithModal when Change Payment Method is pressed (Case 1)', () => {
+    it('navigates to PayWithBottomSheet when Change Payment Method is pressed (Case 1)', () => {
       mockIsCurrentTokenInsufficient = true;
       mockHasAlternativeBalance = true;
-
-      renderWithProvider(<PredictBuyWithAnyToken {...sheetProps} />);
-      fireEvent.press(screen.getByTestId('predict-buy-action-button'));
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.CONFIRMATION_PAY_WITH_MODAL,
-      );
-      expect(mockLockPaymentSelectorNavigation).toHaveBeenCalledTimes(1);
-      expect(mockHandleConfirm).not.toHaveBeenCalled();
-    });
-
-    it('navigates to PayWithBottomSheet when Change Payment Method is pressed and isPayWithBottomSheetEnabled returns true', () => {
-      mockIsCurrentTokenInsufficient = true;
-      mockHasAlternativeBalance = true;
-      mockIsPayWithBottomSheetEnabled = true;
 
       renderWithProvider(<PredictBuyWithAnyToken {...sheetProps} />);
       fireEvent.press(screen.getByTestId('predict-buy-action-button'));
@@ -830,8 +804,19 @@ describe('PredictBuyWithAnyToken', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET,
       );
-      expect(mockNavigate).not.toHaveBeenCalledWith(
-        Routes.CONFIRMATION_PAY_WITH_MODAL,
+      expect(mockLockPaymentSelectorNavigation).toHaveBeenCalledTimes(1);
+      expect(mockHandleConfirm).not.toHaveBeenCalled();
+    });
+
+    it('navigates to PayWithBottomSheet when Change Payment Method is pressed', () => {
+      mockIsCurrentTokenInsufficient = true;
+      mockHasAlternativeBalance = true;
+
+      renderWithProvider(<PredictBuyWithAnyToken {...sheetProps} />);
+      fireEvent.press(screen.getByTestId('predict-buy-action-button'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET,
       );
       expect(mockLockPaymentSelectorNavigation).toHaveBeenCalledTimes(1);
     });
@@ -906,7 +891,7 @@ describe('PredictBuyWithAnyToken', () => {
 
       expect(mockHandleRetryWithBestPrice).toHaveBeenCalledTimes(1);
       expect(mockNavigate).not.toHaveBeenCalledWith(
-        Routes.CONFIRMATION_PAY_WITH_MODAL,
+        Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET,
       );
     });
 
