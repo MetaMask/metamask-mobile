@@ -6,7 +6,6 @@ import {
 } from '@metamask/transaction-controller';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import type { Hex } from '@metamask/utils';
-import { getBridgeInfo } from '@metamask/perps-controller/constants/hyperLiquidConfig';
 import { getMoneyAccountWithdrawTransactionsData } from '../../../../components/UI/Money/utils/moneyAccountTransactions';
 import Engine from '../../../../core/Engine';
 import ReduxService from '../../../../core/redux/ReduxService';
@@ -23,6 +22,7 @@ async function getMoneyAccountWithdrawPaymentOverrideData<
 >(
   transactionData: ReturnType<typeof selectTransactionDataByTransactionId>,
   messenger: T,
+  recipient: Hex,
 ): Promise<TransactionParams | undefined> {
   const requiredToken = transactionData?.tokens?.[0];
   if (!requiredToken) return undefined;
@@ -34,12 +34,11 @@ async function getMoneyAccountWithdrawPaymentOverrideData<
   const moneyAccountAddress = primaryMoneyAccount.address as Hex;
   const chainId = CHAIN_IDS.MONAD as Hex;
   const { amountHuman } = requiredToken;
-  const { contractAddress } = getBridgeInfo(false);
 
   const params = await getMoneyAccountWithdrawTransactionsData(
     chainId,
     amountHuman,
-    contractAddress as Hex,
+    recipient,
   );
 
   if (!params.length) return undefined;
@@ -85,9 +84,16 @@ export async function getPaymentOverrideData<T extends SignMessenger>(
   );
 
   if (transactionData?.paymentOverride === PaymentOverride.MoneyAccount) {
+    const { TransactionController } = Engine.context;
+    const originalTx = TransactionController.state.transactions?.find(
+      (tx: TransactionMeta) => tx.id === transactionId,
+    );
+    if (!originalTx?.txParams?.from) return undefined;
+
     return getMoneyAccountWithdrawPaymentOverrideData(
       transactionData,
       messenger,
+      originalTx.txParams.from as Hex,
     );
   }
 

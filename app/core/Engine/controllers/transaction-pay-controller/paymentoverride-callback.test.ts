@@ -5,7 +5,6 @@ import { getMoneyAccountWithdrawTransactionsData } from '../../../../components/
 import ReduxService from '../../../../core/redux/ReduxService';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectTransactionDataByTransactionId } from '../../../../selectors/transactionPayController';
-import { getBridgeInfo } from '@metamask/perps-controller/constants/hyperLiquidConfig';
 import { getDelegationTransaction } from '../../../../util/transactions/delegation';
 import { getPaymentOverrideData } from './paymentoverride-callback';
 
@@ -17,6 +16,10 @@ jest.mock('../../../../core/redux/ReduxService', () => ({
 jest.mock('../../../../selectors/transactionPayController');
 jest.mock('../../../../selectors/moneyAccountController');
 jest.mock('../../../../util/transactions/delegation');
+const TRANSACTION_ID = 'tx-1';
+const MONEY_ACCOUNT_ADDRESS = '0xc4ff9e84b5754570812d891ade0bad3952bb5946';
+const USER_EOA = '0x178239802520a9c99dcbd791f81326b70298d629';
+
 jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
   default: {
@@ -26,16 +29,14 @@ jest.mock('../../../../core/Engine', () => ({
           .fn()
           .mockReturnValue('mock-network-client-id'),
       },
+      TransactionController: {
+        state: {
+          transactions: [{ id: TRANSACTION_ID, txParams: { from: USER_EOA } }],
+        },
+      },
     },
   },
 }));
-jest.mock('@metamask/perps-controller/constants/hyperLiquidConfig', () => ({
-  getBridgeInfo: jest.fn(),
-}));
-
-const TRANSACTION_ID = 'tx-1';
-const MONEY_ACCOUNT_ADDRESS = '0xc4ff9e84b5754570812d891ade0bad3952bb5946';
-const BRIDGE_ADDRESS = '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7';
 const DELEGATION_MANAGER = '0xdb9b1e94b5b69df7e401ddbede43491141047db3';
 const DELEGATION_DATA = '0xdelegation-calldata';
 
@@ -59,15 +60,11 @@ const getMoneyAccountWithdrawMock = jest.mocked(
   getMoneyAccountWithdrawTransactionsData,
 );
 const getDelegationTransactionMock = jest.mocked(getDelegationTransaction);
-const getBridgeInfoMock = jest.mocked(getBridgeInfo);
 
 describe('getPaymentOverrideData', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (ReduxService.store.getState as jest.Mock).mockReturnValue({});
-    getBridgeInfoMock.mockReturnValue({
-      contractAddress: BRIDGE_ADDRESS,
-    } as never);
     selectPrimaryMoneyAccountMock.mockReturnValue({
       address: MONEY_ACCOUNT_ADDRESS,
     } as never);
@@ -139,16 +136,15 @@ describe('getPaymentOverrideData', () => {
     expect(result).toBeUndefined();
   });
 
-  it('calls getMoneyAccountWithdrawTransactionsData with Monad chain and bridge address', async () => {
+  it('calls getMoneyAccountWithdrawTransactionsData with Monad chain, amount, and user EOA as recipient', async () => {
     selectTransactionDataMock.mockReturnValue(VALID_TX_DATA as never);
 
     await getPaymentOverrideData(TRANSACTION_ID, mockMessenger);
 
-    expect(getBridgeInfoMock).toHaveBeenCalledWith(false);
     expect(getMoneyAccountWithdrawMock).toHaveBeenCalledWith(
       CHAIN_IDS.MONAD,
       '10.5',
-      BRIDGE_ADDRESS,
+      USER_EOA,
     );
   });
 
