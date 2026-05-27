@@ -11,7 +11,6 @@ import {
   getPredictFeedMockSelector,
 } from '../../Predict.testIds';
 import { DEFAULT_PREDICT_WORLD_CUP_FLAG } from '../../constants/flags';
-import Routes from '../../../../../constants/navigation/Routes';
 import { buildPredictWorldCupAllQuery } from '../../utils/worldCup';
 
 jest.mock('react-native-reanimated', () => {
@@ -93,7 +92,6 @@ const mockHotTabFlag: { enabled: boolean; queryParams?: string } = {
 let mockIsWorldCupMainFeedTabEnabled = false;
 let mockWorldCupConfig = DEFAULT_PREDICT_WORLD_CUP_FLAG;
 let mockIsFeaturedCarouselEnabled = false;
-let mockIsPortfolioEnabled = false;
 let mockIsUpDownEnabled = false;
 
 jest.mock('react-redux', () => {
@@ -108,7 +106,6 @@ jest.mock('../../selectors/featureFlags', () => ({
   selectPredictFeaturedCarouselEnabledFlag:
     'selectPredictFeaturedCarouselEnabledFlag',
   selectPredictHotTabFlag: 'selectPredictHotTabFlag',
-  selectPredictPortfolioEnabledFlag: 'selectPredictPortfolioEnabledFlag',
   selectPredictUpDownEnabledFlag: 'selectPredictUpDownEnabledFlag',
   selectPredictWorldCupConfig: 'selectPredictWorldCupConfig',
   selectPredictWorldCupMainFeedTabEnabledFlag:
@@ -306,7 +303,6 @@ describe('PredictFeed', () => {
     mockIsWorldCupMainFeedTabEnabled = false;
     mockWorldCupConfig = DEFAULT_PREDICT_WORLD_CUP_FLAG;
     mockIsFeaturedCarouselEnabled = false;
-    mockIsPortfolioEnabled = false;
     mockIsUpDownEnabled = false;
     mockUseSelector.mockImplementation((selector: string) => {
       switch (selector) {
@@ -314,8 +310,6 @@ describe('PredictFeed', () => {
           return mockIsFeaturedCarouselEnabled;
         case 'selectPredictHotTabFlag':
           return mockHotTabFlag;
-        case 'selectPredictPortfolioEnabledFlag':
-          return mockIsPortfolioEnabled;
         case 'selectPredictUpDownEnabledFlag':
           return mockIsUpDownEnabled;
         case 'selectPredictWorldCupConfig':
@@ -498,28 +492,6 @@ describe('PredictFeed', () => {
       fireEvent.press(getByTestId(PredictMarketListSelectorsIDs.BACK_BUTTON));
 
       expect(mockNavigation.navigate).toHaveBeenCalled();
-    });
-
-    it('hides temporary Positions button when portfolio flag is disabled', () => {
-      const { queryByTestId } = render(<PredictFeed />);
-
-      expect(
-        queryByTestId(PredictFeedSelectorsIDs.POSITIONS_BUTTON),
-      ).toBeNull();
-    });
-
-    it('navigates to Positions when temporary Positions button is pressed', () => {
-      mockIsPortfolioEnabled = true;
-      const { getByTestId } = render(<PredictFeed />);
-
-      fireEvent.press(getByTestId(PredictFeedSelectorsIDs.POSITIONS_BUTTON));
-
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        Routes.PREDICT.POSITIONS,
-        {
-          initialTab: 'positions',
-        },
-      );
     });
   });
 
