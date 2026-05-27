@@ -58,32 +58,23 @@ jest.mock('./components/QuickBuyQuoteCountdown', () => {
   };
 });
 
-// Render field.label and value.label as ReactNodes so testIDs inside them are accessible.
+// Render children as ReactNodes so testIDs inside them are accessible.
 jest.mock(
   '../../../../../../component-library/components-temp/KeyValueRow',
   () => {
     const ReactMock = jest.requireActual('react');
     const { View } = jest.requireActual('react-native');
+    const passThrough = ({ children }: { children?: React.ReactNode }) =>
+      ReactMock.createElement(View, null, children);
+    const Label = ({ label }: { label: unknown }) =>
+      ReactMock.isValidElement(label)
+        ? label
+        : ReactMock.createElement(View, null);
     return {
       __esModule: true,
-      default: ({
-        field,
-        value,
-      }: {
-        field: { label: unknown; tooltip?: unknown };
-        value?: { label: unknown };
-      }) =>
-        ReactMock.createElement(
-          View,
-          null,
-          ReactMock.isValidElement(field.label)
-            ? field.label
-            : ReactMock.createElement(View, null),
-          ReactMock.isValidElement(value?.label)
-            ? value.label
-            : ReactMock.createElement(View, null),
-        ),
+      KeyValueRowStubs: { Root: passThrough, Section: passThrough, Label },
       TooltipSizes: { Sm: 'sm' },
+      KeyValueRowSectionAlignments: { RIGHT: 'right' },
     };
   },
 );

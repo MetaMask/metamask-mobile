@@ -127,7 +127,9 @@ export const QuoteRow = ({
         >
           <Skeleton hideChildren={loading}>
             <Text variant={TextVariantDS.BodyMd} fontWeight={FontWeight.Medium}>
-              ~ {formattedReceiveAmount} {destToken?.symbol}
+              {formattedReceiveAmount
+                ? `~ ${formattedReceiveAmount} ${destToken?.symbol}`
+                : ''}
             </Text>
           </Skeleton>
           <Skeleton hideChildren={loading}>
@@ -135,7 +137,9 @@ export const QuoteRow = ({
               variant={TextVariantDS.BodySm}
               color={TextColor.TextAlternative}
             >
-              ~ {formattedReceiveAmountFiat}
+              {formattedReceiveAmountFiat
+                ? `~ ${formattedReceiveAmountFiat}`
+                : ''}
             </Text>
           </Skeleton>
         </Box>
