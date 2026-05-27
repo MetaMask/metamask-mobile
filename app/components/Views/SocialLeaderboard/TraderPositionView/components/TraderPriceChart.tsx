@@ -1,4 +1,6 @@
 /* eslint-disable react/no-unstable-nested-components */
+import { Box } from '@metamask/design-system-react-native';
+import type { Trade } from '@metamask/social-controllers';
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Dimensions,
@@ -6,24 +8,20 @@ import {
   PanResponder,
   View,
 } from 'react-native';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { Circle, G, Path, Line as SvgLine } from 'react-native-svg';
 import { AreaChart } from 'react-native-svg-charts';
-import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import type { Trade } from '@metamask/social-controllers';
-import { Box } from '@metamask/design-system-react-native';
-import type { TokenPrice } from '../../../../hooks/useTokenHistoricalPrices';
 import { useStyles } from '../../../../../component-library/hooks';
-import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../../util/theme';
-import { AppThemeKey } from '../../../../../util/theme/models';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import type { TokenPrice } from '../../../../hooks/useTokenHistoricalPrices';
+import NoDataOverlay from '../../../../UI/AssetOverview/NoDataOverlay/NoDataOverlay';
 import {
   CHART_DATA_THRESHOLD,
   TOKEN_OVERVIEW_CHART_HEIGHT,
 } from '../../../../UI/AssetOverview/Price/tokenOverviewChart.constants';
-import styleSheet from '../../../../UI/AssetOverview/PriceChart/PriceChart.styles';
 import PriceChartContext from '../../../../UI/AssetOverview/PriceChart/PriceChart.context';
-import NoDataOverlay from '../../../../UI/AssetOverview/NoDataOverlay/NoDataOverlay';
+import styleSheet from '../../../../UI/AssetOverview/PriceChart/PriceChart.styles';
 import { mapTradesToMarkers } from '../utils/tradeMarkers';
 
 interface LineProps {
@@ -64,7 +62,6 @@ interface TraderPriceChartProps {
 
 const TraderPriceChart = ({
   prices,
-  priceDiff,
   isLoading,
   onChartIndexChange,
   trades,
@@ -77,11 +74,7 @@ const TraderPriceChart = ({
   const [positionX, setPositionX] = useState(-1);
   const [chartRowWidth, setChartRowWidth] = useState(0);
   const { styles, theme } = useStyles(styleSheet, { chartHeight });
-  const { themeAppearance } = useTheme();
-  const chartColor =
-    themeAppearance === AppThemeKey.light
-      ? LIGHT_MODE_SUCCESS_GREEN
-      : theme.colors.success.default;
+  const chartColor = theme.colors.success.default;
 
   useEffect(() => {
     setPositionX(-1);
