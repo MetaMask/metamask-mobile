@@ -2,6 +2,16 @@
   "name": "metamask",
   "version": "7.81.0",
   "private": true,
+  "previewBuilds": {
+    "@metamask/bridge-controller": {
+      "type": "non-breaking",
+      "previewVersion": "73.0.1-preview-8751708e2"
+    },
+    "@metamask/bridge-status-controller": {
+      "type": "non-breaking",
+      "previewVersion": "71.2.0-preview-8751708e2"
+    }
+  },
   "scripts": {
     "install:foundryup": "yarn mm-foundryup",
     "anvil": "node_modules/.bin/anvil",
