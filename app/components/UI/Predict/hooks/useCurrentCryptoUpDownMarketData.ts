@@ -5,6 +5,7 @@ import {
   getEventStartTime,
   getVariant,
   isCryptoUpDown,
+  resolveCryptoTargetPrice,
 } from '../utils/cryptoUpDown';
 import {
   formatSeriesMarketCountdown,
@@ -94,10 +95,9 @@ export const useCurrentCryptoUpDownMarketData = ({
         Boolean(eventStartTime) &&
         Boolean(market.endDate),
     });
-  const priceToBeat =
-    shouldFetchMarketData && typeof targetPrice === 'number' && targetPrice > 0
-      ? targetPrice
-      : undefined;
+  const priceToBeat = shouldFetchMarketData
+    ? resolveCryptoTargetPrice(market, targetPrice)
+    : undefined;
   const chartData = useCryptoUpDownChartData(market, priceToBeat, {
     enabled: shouldFetchMarketData,
   });
