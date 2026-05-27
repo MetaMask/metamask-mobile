@@ -65,6 +65,9 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           await asPlaywrightElement(PerpsDepositView.totalText),
         );
+        await PlaywrightAssertions.expectElementToBeVisible(
+          await asPlaywrightElement(PerpsDepositView.payWithRow),
+        );
       });
 
       performanceTracker.addTimers(

@@ -68,8 +68,12 @@ class PerpsDepositView {
   }
 
   // Pay with row (open selector)
-  get payWithRow(): DetoxElement {
-    return Matchers.getElementByText('Pay with');
+  get payWithRow(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText('Pay with'),
+      appium: () =>
+        PlaywrightMatchers.getElementById('pay-with', { exact: true }),
+    });
   }
 
   get usdcOption(): DetoxElement {
