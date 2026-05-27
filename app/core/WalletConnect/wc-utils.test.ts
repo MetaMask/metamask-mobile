@@ -10,7 +10,7 @@ import {
   normalizeDappUrl,
   isValidUrl,
   getUnverifiedRequestOrigin,
-  isRedirectMethodForChain,
+  isEIP155RedirectMethodForChain,
 } from './wc-utils';
 import type { WalletKitTypes } from '@reown/walletkit';
 import type {
@@ -214,16 +214,16 @@ describe('WalletConnect Utils', () => {
     });
   });
 
-  describe('isRedirectMethodForChain', () => {
+  describe('isEIP155RedirectMethodForChain', () => {
     it('returns true for approved EIP-155 redirect methods', () => {
       expect(
-        isRedirectMethodForChain({
+        isEIP155RedirectMethodForChain({
           scope: 'eip155:1',
           method: 'eth_sendTransaction',
         }),
       ).toBe(true);
       expect(
-        isRedirectMethodForChain({
+        isEIP155RedirectMethodForChain({
           scope: 'eip155:1',
           method: 'wallet_switchEthereumChain',
         }),
@@ -232,19 +232,19 @@ describe('WalletConnect Utils', () => {
 
     it('includes EIP-5792 redirect methods', () => {
       expect(
-        isRedirectMethodForChain({
+        isEIP155RedirectMethodForChain({
           scope: 'eip155:1',
           method: 'wallet_sendCalls',
         }),
       ).toBe(true);
       expect(
-        isRedirectMethodForChain({
+        isEIP155RedirectMethodForChain({
           scope: 'eip155:1',
           method: 'wallet_getCallsStatus',
         }),
       ).toBe(false);
       expect(
-        isRedirectMethodForChain({
+        isEIP155RedirectMethodForChain({
           scope: 'eip155:1',
           method: 'wallet_getCapabilities',
         }),
@@ -253,7 +253,7 @@ describe('WalletConnect Utils', () => {
 
     it('returns false for scopes that only share the EIP-155 namespace prefix', () => {
       expect(
-        isRedirectMethodForChain({
+        isEIP155RedirectMethodForChain({
           scope: 'eip155x:1' as CaipChainId,
           method: 'eth_sendTransaction',
         }),

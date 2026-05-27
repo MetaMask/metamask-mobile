@@ -388,9 +388,9 @@ export const getUnverifiedRequestOrigin = (
 };
 
 /**
- * Determine whether a WalletConnect request method should trigger a deeplink redirect for EVM chains.
+ * Determine whether a WalletConnect request method should trigger a deeplink redirect for EIP155 chains.
  */
-export const isRedirectMethodForChain = ({
+export const isEIP155RedirectMethodForChain = ({
   scope,
   method,
 }: {

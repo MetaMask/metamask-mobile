@@ -43,7 +43,7 @@ import {
   getChainIdForCaipChainId,
   getHostname,
   normalizeDappUrl,
-  isRedirectMethodForChain as isEvmRedirectMethodForChain,
+  isEIP155RedirectMethodForChain,
   isEIP155Scope,
 } from './wc-utils';
 import {
@@ -647,7 +647,7 @@ class WalletConnect2Session {
     const permittedChains = await getPermittedChains(this.channelId);
 
     // Mark redirect before any routing so all namespaces benefit from it.
-    const isEvmRedirect = isEvmRedirectMethodForChain({
+    const isEvmRedirect = isEIP155RedirectMethodForChain({
       scope: normalizedRequestChainId,
       method,
     });
