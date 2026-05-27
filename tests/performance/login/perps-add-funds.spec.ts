@@ -29,7 +29,7 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
       );
       const getQuoteTimer = new TimerHelper(
         'Get Quote',
-        { ios: 6000, android: 6000 },
+        { ios: 6000, android: 7000 },
         currentDeviceDetails.platform,
       );
 

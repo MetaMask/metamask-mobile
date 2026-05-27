@@ -19,6 +19,7 @@ const THRESHOLD_MARGIN = 0.1; // 10% margin
 class TimerHelper {
   private _id: string;
   private _baseThreshold: number | null;
+  private readonly _platform?: 'android' | 'ios';
 
   /**
    * Creates a new TimerHelper and registers a timer in the store.
@@ -32,6 +33,7 @@ class TimerHelper {
     currentPlatform?: 'android' | 'ios',
   ) {
     this._id = id;
+    this._platform = currentPlatform;
     this._baseThreshold = this._resolveThreshold(threshold, currentPlatform);
     TimerStore.createTimer(this.id);
   }
@@ -121,26 +123,31 @@ class TimerHelper {
   }
 
   /**
-   * Measures the execution time of an async action and automatically
-   * subtracts Appium infrastructure overhead to approximate real app latency.
+   * Measures the execution time of an async action.
    *
-   * ### How it works
+   * - **iOS**: subtracts Appium infrastructure overhead (see {@link measureWithOverhead}).
+   * - **Android**: wall-clock only (see {@link measureRaw}) — overhead cannot be
+   * separated reliably when taps overlap with app loading.
    *
-   * 1. Activates overhead tracking (`startOverheadTracking`).
-   * 2. Runs the action while the timer is running.
-   * 3. During the action, framework methods (e.g. `expectElementToBeVisible`,
-   * `waitAndTap`) call `addOverhead()` to register time spent on WebDriver
-   * HTTP calls that represent pure infra cost — not app work.
-   * 4. After stopping the timer the accumulated overhead is subtracted so the
-   * reported duration is closer to what a human would observe visually.
-   *
-   * Overhead is only tracked while a `measure()` call is active; outside of
-   * it `addOverhead()` is a no-op.
+   * Pass `currentPlatform` in the constructor so the correct strategy is chosen.
    *
    * @param action - Async function to measure
    * @returns This TimerHelper instance for chaining
    */
   async measure(action: () => Promise<void>): Promise<TimerHelper> {
+    if (this._platform === 'android') {
+      return this.measureRaw(action);
+    }
+    return this.measureWithOverhead(action);
+  }
+
+  /**
+   * iOS-only measurement path: subtracts Appium overhead from the recorded duration.
+   *
+   * @param action - Async function to measure
+   * @returns This TimerHelper instance for chaining
+   */
+  async measureWithOverhead(action: () => Promise<void>): Promise<TimerHelper> {
     startOverheadTracking();
     this.start();
     try {
@@ -156,13 +163,9 @@ class TimerHelper {
   }
 
   /**
-   * Measures wall-clock execution time of an async action **without**
-   * subtracting Appium infrastructure overhead.
+   * Android-oriented wall-clock measurement (no Appium overhead subtraction).
    *
-   * Use this instead of {@link measure} when the overhead model does not
-   * apply — for example when the action includes a tap whose Appium
-   * round-trip overlaps with real app loading, making it impossible to
-   * separate infra cost from app work.
+   * Prefer {@link measure} in specs — it selects this path on Android automatically.
    *
    * @param action - Async function to measure
    * @returns This TimerHelper instance for chaining

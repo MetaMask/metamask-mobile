@@ -30,7 +30,7 @@ perfTest.describe(
         );
 
         await WalletView.tapOnTokensSection();
-        await WalletView.tapOnToken('USDC');
+        await WalletView.tapOnToken('ETH');
 
         await assetViewScreen.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
