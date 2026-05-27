@@ -2,16 +2,18 @@ import {
   CHAIN_IDS,
   TransactionMeta,
   TransactionStatus,
-  type TransactionParams,
+  type BatchTransactionParams,
 } from '@metamask/transaction-controller';
-import { PaymentOverride } from '@metamask/transaction-pay-controller';
+import {
+  PaymentOverride,
+  type GetPaymentOverrideDataRequest,
+} from '@metamask/transaction-pay-controller';
 import type { Hex } from '@metamask/utils';
 import { getMoneyAccountWithdrawTransactionsData } from '../../../../components/UI/Money/utils/moneyAccountTransactions';
 import Engine from '../../../../core/Engine';
 import ReduxService from '../../../../core/redux/ReduxService';
 import { RootState } from '../../../../reducers';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
-import { selectTransactionDataByTransactionId } from '../../../../selectors/transactionPayController';
 import {
   getDelegationTransaction,
   type SignMessenger,
@@ -23,10 +25,10 @@ async function getMoneyAccountWithdrawPaymentOverrideData<
   messenger: T,
   recipient: Hex,
   amountHuman: string,
-): Promise<TransactionParams | undefined> {
+): Promise<BatchTransactionParams[]> {
   const state = ReduxService.store.getState() as RootState;
   const primaryMoneyAccount = selectPrimaryMoneyAccount(state);
-  if (!primaryMoneyAccount?.address) return undefined;
+  if (!primaryMoneyAccount?.address) return [];
 
   const moneyAccountAddress = primaryMoneyAccount.address as Hex;
   const chainId = CHAIN_IDS.MONAD as Hex;
@@ -37,7 +39,7 @@ async function getMoneyAccountWithdrawPaymentOverrideData<
     recipient,
   );
 
-  if (!params.length) return undefined;
+  if (!params.length) return [];
 
   const { NetworkController } = Engine.context;
   const networkClientId =
@@ -61,38 +63,30 @@ async function getMoneyAccountWithdrawPaymentOverrideData<
 
   const delegation = await getDelegationTransaction(messenger, transactionMeta);
 
-  return {
-    from: moneyAccountAddress,
-    to: delegation.to,
-    data: delegation.data,
-    value: delegation.value,
-  };
+  return [
+    {
+      to: delegation.to,
+      data: delegation.data,
+      value: delegation.value,
+    },
+  ];
 }
 
 export async function getPaymentOverrideData<T extends SignMessenger>(
-  transactionId: string,
+  request: GetPaymentOverrideDataRequest,
   messenger: T,
-  amountHuman: string,
-): Promise<TransactionParams | undefined> {
-  const state = ReduxService.store.getState() as RootState;
-  const transactionData = selectTransactionDataByTransactionId(
-    state,
-    transactionId,
-  );
+): Promise<BatchTransactionParams[]> {
+  const { amount, transaction, transactionData } = request;
 
   if (transactionData?.paymentOverride === PaymentOverride.MoneyAccount) {
-    const { TransactionController } = Engine.context;
-    const originalTx = TransactionController.state.transactions?.find(
-      (tx: TransactionMeta) => tx.id === transactionId,
-    );
-    if (!originalTx?.txParams?.from) return undefined;
+    if (!transaction.txParams?.from) return [];
 
     return getMoneyAccountWithdrawPaymentOverrideData(
       messenger,
-      originalTx.txParams.from as Hex,
-      amountHuman,
+      transaction.txParams.from as Hex,
+      amount,
     );
   }
 
-  return undefined;
+  return [];
 }

@@ -20,8 +20,8 @@ export const TransactionPayControllerInit: MessengerClientInitFunction<
     const transactionPayController = new TransactionPayController({
       getDelegationTransaction: ({ transaction }) =>
         getDelegationTransaction(initMessenger, transaction),
-      getPaymentOverrideData: (transactionId: string, amountHuman: string) =>
-        getPaymentOverrideData(transactionId, initMessenger, amountHuman),
+      getPaymentOverrideData: (request) =>
+        getPaymentOverrideData(request, initMessenger),
       messenger: controllerMessenger,
       polymarket: createPolymarketCallbacks(initMessenger),
       state: persistedState.TransactionPayController,
