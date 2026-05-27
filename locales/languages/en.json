@@ -1119,7 +1119,9 @@
       "unsupported_chain": "This chain is not supported for Quick Buy yet",
       "available_balance": "{{amount}} available",
       "toggle_amount_display": "Switch between token and dollar amount",
-      "includes_mm_fee": "Includes {{fee}}% MM fee"
+      "includes_mm_fee": "Includes {{fee}}% MM fee",
+      "pay_with_no_tokens": "No tokens available to pay with",
+      "pay_with_filter_all": "All"
     }
   },
   "perps": {
@@ -6798,8 +6800,8 @@
     },
     "how_it_works": {
       "title": "How it works",
-      "description_prefix": "Deposit mUSD into your Money account and earn up to",
-      "description_suffix": ". Your balance is dollar-backed and ready to spend, trade, or send anytime."
+      "description_prefix": "Add mUSD and earn up to",
+      "description_suffix": " (variable). Your balance is dollar-backed and ready to spend, trade, or send anytime."
     },
     "musd_row": {
       "add": "Add"
@@ -9233,7 +9235,9 @@
     "predictions": "Predictions",
     "no_results": "No results found",
     "no_results_for_feed": "No {{feedName}} results for \"{{query}}\"",
-    "showing_all_results_for": "We found these results for \"{{query}}\"",
+    "no_results_for_query": "No results found for \"{{query}}\"",
+    "no_results_check_popular": "Check out other popular assets",
+    "showing_all_results_for": "We found {{count}} other results for \"{{query}}\"",
     "popular": "Popular",
     "sites": "Sites",
     "popular_sites": "Popular sites",
@@ -9263,7 +9267,7 @@
     },
     "search_tabs": {
       "all": "All",
-      "crypto": "Cryptos",
+      "crypto": "Crypto",
       "perps": "Perps",
       "stocks": "Stocks",
       "predictions": "Predictions",
