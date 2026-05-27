@@ -253,8 +253,9 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
       searchQuery.trim().length > 0 && !isLoading && flatData.length === 0;
 
     if (!emptyFeedTitle && !allSectionsEmpty) return null;
+    const showOtherResults = flatData.length > 0 && !isLoading;
     return (
-      <Box twClassName="mb-4">
+      <Box twClassName={showOtherResults ? 'mb-4' : ''}>
         <Box twClassName="rounded-xl bg-secondary py-6 px-4 items-center mb-4">
           <TabEmptyState
             description={
@@ -290,7 +291,7 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
             ))}
           </Box>
         </Box>
-        {flatData.length > 0 && !isLoading && (
+        {showOtherResults && (
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings('trending.showing_all_results_for', {
               count: otherResultsCount,
