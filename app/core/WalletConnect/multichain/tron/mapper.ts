@@ -51,6 +51,20 @@ export function extractTronType(
 }
 
 /**
+ * Unwrap a Tron transaction container, walking the legacy double-wrap
+ * (`transaction.transaction`) if present. Returns the innermost transaction
+ * object, or `undefined` if the input is not an object.
+ */
+function unwrapTronTransaction(
+  value: unknown,
+): Record<string, unknown> | undefined {
+  if (!isObject(value)) {
+    return undefined;
+  }
+  return isObject(value.transaction) ? value.transaction : value;
+}
+
+/**
  * Map a WC-shaped Tron request into the Tron Snap's params shape.
  *
  * `tron_signMessage` → `signMessage` (message base64-encoded);
@@ -154,15 +168,7 @@ export function mapRequestOutbound({
     const { transaction: transactionContainer } =
       params as TronWalletConnectSignTransactionParams;
 
-    // Legacy format double-wraps the transaction (`transaction.transaction`);
-    // v1 passes it flat (`transaction`). Pick the innermost transaction object.
-    const originalTransaction =
-      isObject(transactionContainer) &&
-      isObject(transactionContainer.transaction)
-        ? transactionContainer.transaction
-        : isObject(transactionContainer)
-          ? transactionContainer
-          : undefined;
+    const originalTransaction = unwrapTronTransaction(transactionContainer);
 
     const signature = result.signature;
 
