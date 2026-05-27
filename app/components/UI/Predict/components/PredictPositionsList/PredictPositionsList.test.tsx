@@ -57,35 +57,6 @@ jest.mock('../PredictPosition/PredictPosition', () => {
   };
 });
 
-jest.mock('../PredictPositionResolved/PredictPositionResolved', () => {
-  const ReactLib = jest.requireActual('react');
-  const { Pressable, Text } = jest.requireActual('react-native');
-
-  return function MockPredictPositionResolved({
-    onPress,
-    position,
-    privacyMode,
-  }: {
-    onPress?: (position: { id: string }) => void;
-    position: { id: string; title: string };
-    privacyMode: boolean;
-  }) {
-    return ReactLib.createElement(
-      Pressable,
-      {
-        accessibilityLabel: `claimable-${position.id}`,
-        onPress: () => onPress?.(position),
-        testID: 'mock-position-card',
-      },
-      ReactLib.createElement(
-        Text,
-        null,
-        `claimable:${position.title}:${privacyMode ? 'private' : 'public'}`,
-      ),
-    );
-  };
-});
-
 const mockNavigation = {
   navigate: jest.fn(),
 };
@@ -179,18 +150,19 @@ describe('PredictPositionsList', () => {
     mockUseNavigation.mockReturnValue(mockNavigation);
   });
 
-  it('renders claimable positions before open positions', () => {
-    const olderClaimablePosition = createPosition('older-claimable', {
+  it('renders only open positions', () => {
+    const wonPosition = createPosition('won', {
       claimable: true,
-      endDate: '2026-01-01T00:00:00Z',
       status: PredictPositionStatus.WON,
-      title: 'Older claimable',
+      title: 'Won position',
     });
-    const newerClaimablePosition = createPosition('newer-claimable', {
-      claimable: true,
-      endDate: '2026-02-01T00:00:00Z',
-      status: PredictPositionStatus.WON,
-      title: 'Newer claimable',
+    const lostPosition = createPosition('lost', {
+      status: PredictPositionStatus.LOST,
+      title: 'Lost position',
+    });
+    const redeemablePosition = createPosition('redeemable', {
+      status: PredictPositionStatus.REDEEMABLE,
+      title: 'Redeemable position',
     });
     const openPosition = createPosition('open', {
       title: 'Open position',
@@ -198,33 +170,26 @@ describe('PredictPositionsList', () => {
 
     renderList({
       portfolio: createPortfolio({
-        actionableClaimablePositions: [
-          olderClaimablePosition,
-          newerClaimablePosition,
+        actionableClaimablePositions: [wonPosition],
+        openPositions: [
+          wonPosition,
+          lostPosition,
+          redeemablePosition,
+          openPosition,
         ],
-        openPositions: [openPosition],
       }),
     });
 
-    expect(
-      screen.getByTestId(
-        PredictPositionsListSelectorsIDs.CLAIMABLE_POSITIONS_LIST,
-      ),
-    ).toBeOnTheScreen();
     expect(
       screen.getByTestId(PredictPositionsListSelectorsIDs.OPEN_POSITIONS_LIST),
     ).toBeOnTheScreen();
 
     const cards = screen.getAllByTestId('mock-position-card');
-    expect(cards[0]).toHaveProp(
-      'accessibilityLabel',
-      'claimable-newer-claimable',
-    );
-    expect(cards[1]).toHaveProp(
-      'accessibilityLabel',
-      'claimable-older-claimable',
-    );
-    expect(cards[2]).toHaveProp('accessibilityLabel', 'open-open');
+    expect(cards).toHaveLength(1);
+    expect(cards[0]).toHaveProp('accessibilityLabel', 'open-open');
+    expect(screen.queryByText('open:Won position:public')).toBeNull();
+    expect(screen.queryByText('open:Lost position:public')).toBeNull();
+    expect(screen.queryByText('open:Redeemable position:public')).toBeNull();
   });
 
   it('navigates to market details when a position is pressed', () => {
@@ -282,13 +247,6 @@ describe('PredictPositionsList', () => {
     renderList({
       isPrivacyMode: true,
       portfolio: createPortfolio({
-        actionableClaimablePositions: [
-          createPosition('claimable', {
-            claimable: true,
-            status: PredictPositionStatus.WON,
-            title: 'Claimable position',
-          }),
-        ],
         openPositions: [
           createPosition('open', {
             title: 'Open position',
@@ -297,9 +255,6 @@ describe('PredictPositionsList', () => {
       }),
     });
 
-    expect(
-      screen.getByText('claimable:Claimable position:private'),
-    ).toBeOnTheScreen();
     expect(screen.getByText('open:Open position:private')).toBeOnTheScreen();
   });
 });

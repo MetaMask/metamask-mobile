@@ -1,5 +1,5 @@
 import { type NavigationProp, useNavigation } from '@react-navigation/native';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import { ScrollView } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -8,11 +8,10 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../constants/eventNames';
 import type { PredictPortfolioModel } from '../../hooks/usePredictPortfolio';
 import { PredictPositionsListSelectorsIDs } from '../../Predict.testIds';
-import type { PredictPosition } from '../../types';
+import { PredictPositionStatus, type PredictPosition } from '../../types';
 import type { PredictNavigationParamList } from '../../types/navigation';
 import PredictPositionItem from '../PredictPosition/PredictPosition';
 import PredictPositionsEmpty from '../PredictPositionsEmpty';
-import PredictPositionResolved from '../PredictPositionResolved/PredictPositionResolved';
 
 const SKELETON_ROW_COUNT = 3;
 
@@ -57,16 +56,10 @@ const PredictPositionsList = ({
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const tw = useTailwind();
-  const claimablePositions = useMemo(
-    () =>
-      [...portfolio.actionableClaimablePositions].sort(
-        (a, b) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime(),
-      ),
-    [portfolio.actionableClaimablePositions],
+  const openPositions = portfolio.openPositions.filter(
+    (position) => position.status === PredictPositionStatus.OPEN,
   );
-  const openPositions = portfolio.openPositions;
-  const hasPositions =
-    claimablePositions.length > 0 || openPositions.length > 0;
+  const hasPositions = openPositions.length > 0;
 
   const handlePositionPress = useCallback(
     (position: PredictPosition) => {
@@ -93,34 +86,16 @@ const PredictPositionsList = ({
       style={tw.style('flex-1')}
       testID={PredictPositionsListSelectorsIDs.CONTAINER}
     >
-      {claimablePositions.length > 0 && (
-        <Box testID={PredictPositionsListSelectorsIDs.CLAIMABLE_POSITIONS_LIST}>
-          {claimablePositions.map((position) => (
-            <PredictPositionResolved
-              key={`${position.outcomeId}:${position.outcomeIndex}`}
-              position={position}
-              onPress={handlePositionPress}
-              privacyMode={isPrivacyMode}
-            />
-          ))}
-        </Box>
-      )}
-
-      {openPositions.length > 0 && (
-        <Box
-          testID={PredictPositionsListSelectorsIDs.OPEN_POSITIONS_LIST}
-          twClassName={claimablePositions.length > 0 ? 'pt-1' : undefined}
-        >
-          {openPositions.map((position) => (
-            <PredictPositionItem
-              key={`${position.outcomeId}:${position.outcomeIndex}`}
-              position={position}
-              onPress={handlePositionPress}
-              privacyMode={isPrivacyMode}
-            />
-          ))}
-        </Box>
-      )}
+      <Box testID={PredictPositionsListSelectorsIDs.OPEN_POSITIONS_LIST}>
+        {openPositions.map((position) => (
+          <PredictPositionItem
+            key={`${position.outcomeId}:${position.outcomeIndex}`}
+            position={position}
+            onPress={handlePositionPress}
+            privacyMode={isPrivacyMode}
+          />
+        ))}
+      </Box>
     </ScrollView>
   );
 };

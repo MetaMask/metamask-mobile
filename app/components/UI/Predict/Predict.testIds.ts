@@ -89,7 +89,6 @@ export const PredictPositionsEmptySelectorsIDs = {
 } as const;
 
 export const PredictPositionsListSelectorsIDs = {
-  CLAIMABLE_POSITIONS_LIST: 'predict-positions-list-claimable-positions',
   CONTAINER: 'predict-positions-list',
   LOADING_STATE: 'predict-positions-list-loading-state',
   OPEN_POSITIONS_LIST: 'predict-positions-list-open-positions',
