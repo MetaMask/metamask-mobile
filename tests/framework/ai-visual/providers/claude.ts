@@ -152,22 +152,19 @@ export class ClaudeProvider implements AIProvider {
   }
 
   private static parseAnalysisResponse(rawResponse: string): AIAnalysisResult {
-    const hasFail =
-      /\b(fail|failed|issue|problem|bug|error|missing|broken)\b/i.test(
-        rawResponse,
-      );
-    const hasPass =
-      /\b(pass|passed|correct|good|proper|looks good|no issues)\b/i.test(
-        rawResponse,
-      );
-
-    const issues: string[] = hasFail
-      ? ClaudeProvider.extractBulletItems(rawResponse)
-      : [];
-
-    const summaryMatch = rawResponse.match(
-      /(?:summary|overall|conclusion)[:\s]*(.+?)(?=\n\n|$)/i,
+    const issues: string[] = [];
+    const issuesMatch = rawResponse.match(
+      /ISSUES FOUND[:\s]*([\s\S]*?)(?=OVERALL|$)/i,
     );
+    if (issuesMatch) {
+      issues.push(
+        ...ClaudeProvider.extractBulletItems(issuesMatch[1]).filter(
+          (item) => !item.toLowerCase().includes('none'),
+        ),
+      );
+    }
+
+    const summaryMatch = rawResponse.match(/SUMMARY[:\s]*(.+?)(?=\n|$)/i);
     const summary = summaryMatch
       ? summaryMatch[1].trim()
       : rawResponse.split('\n')[0].slice(0, 200);
@@ -175,7 +172,7 @@ export class ClaudeProvider implements AIProvider {
     const overallMatch = rawResponse.match(
       /OVERALL ASSESSMENT[:\s]*([\s\S]*?)$/i,
     );
-    let passed = !hasFail;
+    let passed = true;
     if (overallMatch) {
       const assessment = overallMatch[1].toLowerCase();
       passed = assessment.includes('pass') && !assessment.includes('fail');
