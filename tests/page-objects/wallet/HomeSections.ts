@@ -24,12 +24,14 @@ class TokensFullView {
   }
 
   get stakedEthereumAssetRow(): DetoxElement {
-    return element(
-      by
-        .id(STAKED_ETHEREUM_ASSET_ID)
-        .withDescendant(by.text(STAKED_ETHEREUM_LABEL))
-        .withDescendant(by.text(STAKED_ETHEREUM_AMOUNT))
-        .withDescendant(by.id(BALANCE_TEST_ID)),
+    return Promise.resolve(
+      element(
+        by
+          .id(STAKED_ETHEREUM_ASSET_ID)
+          .withDescendant(by.text(STAKED_ETHEREUM_LABEL))
+          .withDescendant(by.text(STAKED_ETHEREUM_AMOUNT))
+          .withDescendant(by.id(BALANCE_TEST_ID)),
+      ),
     );
   }
 
