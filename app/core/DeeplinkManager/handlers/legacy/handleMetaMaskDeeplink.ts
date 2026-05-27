@@ -13,7 +13,7 @@ import handleRampUrl from './handleRampUrl';
 import { RampType } from '../../../../reducers/fiatOrders/types';
 import { INTERNAL_ORIGINS } from '../../../../constants/transaction';
 
-export function handleMetaMaskDeeplink({
+export async function handleMetaMaskDeeplink({
   handled,
   wcURL,
   origin,

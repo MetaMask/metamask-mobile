@@ -1098,6 +1098,8 @@
       "title": "Buy {{symbol}}",
       "market_cap_label": "Market cap",
       "pay_with": "Pay with",
+      "buy_mode": "Buy",
+      "with": "with",
       "total": "Total",
       "network_fee": "Network fee",
       "slippage": "Slippage",
@@ -1107,7 +1109,10 @@
       "no_quotes": "No quotes available for this token",
       "loading": "Loading...",
       "unavailable": "Swap unavailable",
-      "unsupported_chain": "This chain is not supported for Quick Buy yet"
+      "unsupported_chain": "This chain is not supported for Quick Buy yet",
+      "available_balance": "{{amount}} available",
+      "toggle_amount_display": "Switch between token and dollar amount",
+      "includes_mm_fee": "Includes {{fee}}% MM fee"
     }
   },
   "perps": {
@@ -6862,6 +6867,19 @@
       "send_external": "Send to external address",
       "withdraw_to_bank": "Withdraw to bank"
     },
+    "toasts": {
+      "in_progress_title": "Transaction in progress",
+      "in_progress_body": "This may take a few minutes.",
+      "success_title": "Transaction complete",
+      "deposit_success_body": "{{amount}} added to Money account.",
+      "deposit_success_body_no_amount": "Added to Money account.",
+      "withdraw_success_body": "{{amount}} moved to {{destination}}.",
+      "withdraw_success_body_no_amount": "Moved to {{destination}}.",
+      "deposit_failed_title": "Transaction failed",
+      "deposit_failed_body": "Unable to add funds. Try again.",
+      "withdraw_failed_title": "Transfer failed",
+      "withdraw_failed_body": "Unable to transfer funds. Try again."
+    },
     "apy_tooltip": {
       "title": "Annual Percentage Yield (APY)",
       "paragraph_1": "Your Money account earns up to {{percentage}}% automatically.",
@@ -7193,15 +7211,20 @@
     "confirm": "Confirm",
     "pay_with_bottom_sheet": {
       "title": "Pay with",
+      "withdraw_title": "Withdraw as",
       "last_used": "Last used",
       "bank_and_card": "Bank and card",
       "crypto": "Crypto",
       "perps": "Perps",
       "perps_account": "Perps account",
+      "predict": "Predict",
+      "predict_account": "Predict account",
       "add": "Add",
       "available_balance": "{{balance}} available",
       "other_assets": "Other assets",
-      "other_assets_description": "Select from your tokens"
+      "other_assets_description": "Select from your tokens",
+      "other_assets_withdraw_description": "Select the token you want to withdraw",
+      "money_account": "Money account"
     },
     "staking_footer": {
       "part1": "By continuing, you agree to our ",

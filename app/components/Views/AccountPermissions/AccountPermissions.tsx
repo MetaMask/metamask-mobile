@@ -26,7 +26,9 @@ import {
   getPermittedCaipChainIdsByHostname,
   sortMultichainAccountsByLastSelected,
 } from '../../../core/Permissions';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import AccountConnectMultiSelector from '../AccountConnect/AccountConnectMultiSelector';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
 import Logger from '../../../util/Logger';
 import { useStyles } from '../../../component-library/hooks';
@@ -83,9 +85,11 @@ import {
 import Routes from '../../../constants/navigation/Routes';
 import { parseChainId } from '@walletconnect/utils';
 import { NetworkConfiguration } from '@metamask/network-controller';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { NetworkAvatarProps } from '../AccountConnect/AccountConnect.types';
 import styleSheet from './AccountPermissions.styles';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import AddNewAccount from '../AddNewAccount';
 import { trace, endTrace, TraceName } from '../../../util/trace';
 import { selectAvatarAccountType } from '../../../selectors/settings';
