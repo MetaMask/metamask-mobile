@@ -304,7 +304,11 @@ const TraderPriceChart = ({
               cx={cx}
               cy={cy}
               r={TRADE_MARKER_RADIUS}
-              fill={isBuy ? chartColor : theme.colors.error.default}
+              fill={
+                isBuy
+                  ? theme.colors.success.default
+                  : theme.colors.error.default
+              }
               stroke={theme.colors.background.default}
               strokeWidth={TRADE_MARKER_BORDER_WIDTH}
             />
