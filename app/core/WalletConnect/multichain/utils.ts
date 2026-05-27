@@ -215,7 +215,7 @@ export function caipChainIdHexToDecimal(
   caipChainId: CaipChainId,
 ): CaipChainId {
   const { namespace: ns, reference } = parseCaipChainId(caipChainId);
-  if (ns !== namespace || !reference.startsWith('0x')) {
+  if (ns !== namespace || !/^0x[0-9a-fA-F]+$/u.test(reference)) {
     return caipChainId;
   }
   return `${ns}:${parseInt(reference, 16)}` as CaipChainId;
@@ -231,11 +231,7 @@ export function caipChainIdDecimalToHex(
   caipChainId: CaipChainId,
 ): CaipChainId {
   const { namespace: ns, reference } = parseCaipChainId(caipChainId);
-  if (
-    ns !== namespace ||
-    reference.startsWith('0x') ||
-    !/^\d+$/.test(reference)
-  ) {
+  if (ns !== namespace || !/^\d+$/u.test(reference)) {
     return caipChainId;
   }
   return `${ns}:0x${parseInt(reference, 10).toString(16)}` as CaipChainId;
