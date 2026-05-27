@@ -54,10 +54,7 @@ export function useHwConnectionMonitoring({
     }
     prevWaitingRef.current = isWaiting;
 
-    if (!isEnabled) return;
-    if (!isWaiting) {
-      return;
-    }
+    if (!isEnabled || isWaiting) return;
 
     if (
       baselineStateRef.current &&
@@ -77,8 +74,8 @@ export function useHwConnectionMonitoring({
       if (!hasActiveSigning) {
         return;
       }
-      if (handledErrorRef.current === 'disconnected') return;
-      handledErrorRef.current = 'disconnected';
+      if (handledErrorRef.current === ConnectionStatus.Disconnected) return;
+      handledErrorRef.current = ConnectionStatus.Disconnected;
       dispatch(
         updateHardwareWalletsSwaps({
           type: HardwareWalletsSwapsEventType.DeviceDisconnected,
