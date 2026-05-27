@@ -1,22 +1,16 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { TransactionType } from '@metamask/transaction-controller';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyAddMoneySheet from './MoneyAddMoneySheet';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
-import { useMusdConversionFlowData } from '../../../Earn/hooks/useMusdConversionFlowData';
-import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
-import {
-  MUSD_CONVERSION_DEFAULT_CHAIN_ID,
-  MUSD_TOKEN_ASSET_ID_BY_CHAIN,
-} from '../../../Earn/constants/musd';
+import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
-const mockGetChainIdForBuyFlow = jest.fn();
-const mockGoToBuy = jest.fn();
 const mockInitiateDeposit = jest.fn(() => Promise.resolve());
 
 jest.mock('@react-navigation/native', () => {
@@ -30,14 +24,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../Earn/hooks/useMusdConversionFlowData', () => ({
-  useMusdConversionFlowData: jest.fn(),
-}));
-
-jest.mock('../../../Ramp/hooks/useRampNavigation', () => ({
-  useRampNavigation: jest.fn(),
-}));
-
 jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
   useMusdBalance: jest.fn(),
 }));
@@ -45,6 +31,13 @@ jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
 jest.mock('../../hooks/useMoneyAccount', () => ({
   useMoneyAccountDeposit: jest.fn(),
 }));
+
+jest.mock(
+  '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig',
+  () => ({
+    useMMPayFiatConfig: jest.fn(),
+  }),
+);
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -78,14 +71,6 @@ describe('MoneyAddMoneySheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockGetChainIdForBuyFlow.mockReturnValue(MUSD_CONVERSION_DEFAULT_CHAIN_ID);
-
-    (useMusdConversionFlowData as jest.Mock).mockReturnValue({
-      getChainIdForBuyFlow: mockGetChainIdForBuyFlow,
-    });
-    (useRampNavigation as jest.Mock).mockReturnValue({
-      goToBuy: mockGoToBuy,
-    });
     (useMusdBalance as jest.Mock).mockReturnValue({
       fiatBalanceAggregated: '1203.89',
       fiatBalanceAggregatedFormatted: '$1,203.89',
@@ -94,6 +79,10 @@ describe('MoneyAddMoneySheet', () => {
     });
     (useMoneyAccountDeposit as jest.Mock).mockReturnValue({
       initiateDeposit: mockInitiateDeposit,
+    });
+    (useMMPayFiatConfig as jest.Mock).mockReturnValue({
+      enabledTransactionTypes: [TransactionType.moneyAccountDeposit],
+      maxDelayMinutesForPaymentMethods: 10,
     });
   });
 
@@ -218,7 +207,7 @@ describe('MoneyAddMoneySheet', () => {
     expect(getByText('Add your 42.50 mUSD')).toBeOnTheScreen();
   });
 
-  it('navigates to the Ramps buy flow with mUSD pre-selected when Deposit funds is pressed', () => {
+  it('initiates a deposit with autoSelectFiatPayment when Deposit funds is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
 
     fireEvent.press(
@@ -226,8 +215,8 @@ describe('MoneyAddMoneySheet', () => {
     );
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockGoToBuy).toHaveBeenCalledWith({
-      assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[MUSD_CONVERSION_DEFAULT_CHAIN_ID],
+    expect(mockInitiateDeposit).toHaveBeenCalledWith({
+      autoSelectFiatPayment: true,
     });
   });
 
@@ -242,6 +231,19 @@ describe('MoneyAddMoneySheet', () => {
     expect(mockInitiateDeposit).toHaveBeenCalledWith();
   });
 
+  it('hides the Deposit funds option when moneyAccountDeposit is not in enabledTransactionTypes', () => {
+    (useMMPayFiatConfig as jest.Mock).mockReturnValue({
+      enabledTransactionTypes: [],
+      maxDelayMinutesForPaymentMethods: 10,
+    });
+
+    const { queryByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    expect(
+      queryByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
+    ).toBeNull();
+  });
+
   it('closes the sheet when Move mUSD is pressed (interim, no flow wired yet)', () => {
     const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
 
@@ -249,7 +251,6 @@ describe('MoneyAddMoneySheet', () => {
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     expect(mockNavigate).not.toHaveBeenCalled();
-    expect(mockGoToBuy).not.toHaveBeenCalled();
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
   });
 });

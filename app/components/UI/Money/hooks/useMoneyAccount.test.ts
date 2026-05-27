@@ -198,6 +198,7 @@ describe('useMoneyAccountDeposit', () => {
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
       loader: ConfirmationLoader.CustomAmount,
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
+      autoSelectFiatPayment: undefined,
     });
 
     expect(mockAddTransactionBatch).toHaveBeenCalledWith(
@@ -209,6 +210,20 @@ describe('useMoneyAccountDeposit', () => {
         disableSequential: true,
       }),
     );
+  });
+
+  it('passes autoSelectFiatPayment to navigateToConfirmation', async () => {
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit({ autoSelectFiatPayment: true });
+    });
+
+    expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
+      loader: ConfirmationLoader.CustomAmount,
+      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
+      autoSelectFiatPayment: true,
+    });
   });
 
   it('logs and rethrows when addTransactionBatch fails', async () => {

@@ -5,6 +5,11 @@ import {
   MONEY_ACCOUNT_CURRENCY,
 } from './money-account-deposit-info';
 
+const mockUseParams = jest.fn();
+jest.mock('../../../../../../util/navigation/navUtils', () => ({
+  useParams: () => mockUseParams(),
+}));
+
 const mockUseMoneyAccountDepositNavbar = jest.fn();
 jest.mock('../../../../../UI/Money/hooks/useMoneyAccountDepositNavbar', () => ({
   useMoneyAccountDepositNavbar: () => mockUseMoneyAccountDepositNavbar(),
@@ -34,6 +39,7 @@ describe('MoneyAccountDepositInfo', () => {
     jest.clearAllMocks();
     mockCustomAmountInfo.mockClear();
     mockUseMoneyAccountDepositNavbar.mockReturnValue(undefined);
+    mockUseParams.mockReturnValue({});
   });
 
   it('renders CustomAmountInfo with usd currency', () => {
@@ -73,5 +79,31 @@ describe('MoneyAccountDepositInfo', () => {
         mockCustomAmountInfo.mock.calls.length - 1
       ][0];
     expect(lastCall.hasMax).toBe(true);
+  });
+
+  it('passes autoSelectFiatPayment and hideAccountSelector from route params', () => {
+    mockUseParams.mockReturnValue({ autoSelectFiatPayment: true });
+
+    render(<MoneyAccountDepositInfo />);
+
+    const lastCall =
+      mockCustomAmountInfo.mock.calls[
+        mockCustomAmountInfo.mock.calls.length - 1
+      ][0];
+    expect(lastCall.autoSelectFiatPayment).toBe(true);
+    expect(lastCall.hideAccountSelector).toBe(true);
+  });
+
+  it('does not pass autoSelectFiatPayment when route param is absent', () => {
+    mockUseParams.mockReturnValue({});
+
+    render(<MoneyAccountDepositInfo />);
+
+    const lastCall =
+      mockCustomAmountInfo.mock.calls[
+        mockCustomAmountInfo.mock.calls.length - 1
+      ][0];
+    expect(lastCall.autoSelectFiatPayment).toBeUndefined();
+    expect(lastCall.hideAccountSelector).toBeUndefined();
   });
 });
