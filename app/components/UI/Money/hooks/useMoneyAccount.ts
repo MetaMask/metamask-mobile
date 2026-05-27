@@ -13,7 +13,6 @@ import {
 } from '../utils/moneyAccountTransactions';
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
 import Logger from '../../../../util/Logger';
-import { captureException } from '@sentry/react-native';
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
@@ -76,8 +75,7 @@ export function useMoneyAccountDeposit() {
         provider,
       }));
     } catch (error) {
-      Logger.error(error as Error, `${LOG_TAG} Failed to build deposit batch`);
-      captureException(error as Error, {
+      Logger.error(error as Error, {
         tags: {
           feature: 'money-account',
           context: 'initiateDeposit.build_batch_failed',
@@ -112,8 +110,7 @@ export function useMoneyAccountDeposit() {
         ],
       });
     } catch (error) {
-      Logger.error(error as Error, `${LOG_TAG} Deposit transaction failed`);
-      captureException(error as Error, {
+      Logger.error(error as Error, {
         tags: {
           feature: 'money-account',
           context: 'initiateDeposit.add_batch_failed',
@@ -173,11 +170,7 @@ export function useMoneyAccountWithdrawal() {
         provider,
       }));
     } catch (error) {
-      Logger.error(
-        error as Error,
-        `${LOG_TAG} Failed to build withdrawal batch`,
-      );
-      captureException(error as Error, {
+      Logger.error(error as Error, {
         tags: {
           feature: 'money-account',
           context: 'initiateWithdrawal.build_batch_failed',
@@ -202,8 +195,7 @@ export function useMoneyAccountWithdrawal() {
         transactions: [withdrawTx, transferTx],
       });
     } catch (error) {
-      Logger.error(error as Error, `${LOG_TAG} Withdrawal transaction failed`);
-      captureException(error as Error, {
+      Logger.error(error as Error, {
         tags: {
           feature: 'money-account',
           context: 'initiateWithdrawal.add_batch_failed',
