@@ -492,6 +492,9 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
           'Device unresponsive during blind signing check',
           () => this.#closeTransport(),
         );
+        // Ledger's hw-app-eth getAppConfiguration derives this from response[0] & 0x01:
+        // 1 means arbitrary data/blind signing is enabled, 0 means it is disabled.
+        // Source: https://github.com/LedgerHQ/ledgerjs/blob/main/packages/hw-app-eth/src/getAppConfiguration.ts
         if (arbitraryDataEnabled !== 1) {
           throw createHardwareWalletError(
             ErrorCode.DeviceStateBlindSignNotSupported,
