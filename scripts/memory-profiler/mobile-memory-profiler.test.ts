@@ -5,6 +5,8 @@ import {
   parseByteSize,
   parseIosPsOutput,
   parseMobileMemoryProfilerArgs,
+  prepareDefaultFixtureForWalletSend,
+  recipientAddressInputSelectors,
   type MobileMemorySample,
 } from './mobile-memory-profiler';
 
@@ -129,6 +131,17 @@ describe('mobile-memory-profiler', () => {
         '0x000000000000000000000000000000000000dEaD',
         '--send-amount',
         '0.001',
+        '--fixture',
+        'default',
+        '--fixture-server-port',
+        '12345',
+        '--wallet-password',
+        'secret-password',
+        '--wallet-mnemonic',
+        'test test test test test test test test test test test junk',
+        '--headless-wallet-setup',
+        '--cdp-port',
+        '8092',
         '--appium-url',
         'http://127.0.0.1:4723/wd/hub',
         '--reuse-appium',
@@ -136,6 +149,8 @@ describe('mobile-memory-profiler', () => {
         '15000',
         '--appium-element-timeout',
         '5000',
+        '--expo-dev-url',
+        'http://localhost:8092?disableOnboarding=1',
         '--allow-transaction-submit',
       ]);
 
@@ -144,13 +159,30 @@ describe('mobile-memory-profiler', () => {
           flow: 'wallet-send-eth-submit',
           recipientAddress: '0x000000000000000000000000000000000000dEaD',
           sendAmount: '0.001',
+          fixture: 'default',
+          fixtureServerPort: 12345,
+          walletPassword: 'secret-password',
+          walletMnemonic:
+            'test test test test test test test test test test test junk',
+          headlessWalletSetup: true,
+          cdpPort: 8092,
           appiumUrl: 'http://127.0.0.1:4723/wd/hub',
           reuseAppium: true,
           appiumStartupTimeoutMs: 15000,
           appiumElementTimeoutMs: 5000,
+          expoDevUrl: 'http://localhost:8092?disableOnboarding=1',
           allowTransactionSubmit: true,
         }),
       );
+    });
+
+    it('infers the CDP port from the Expo dev URL', () => {
+      const options = parseMobileMemoryProfilerArgs([
+        '--expo-dev-url',
+        'http://localhost:8092?disableOnboarding=1',
+      ]);
+
+      expect(options.cdpPort).toBe(8092);
     });
 
     it('rejects invalid choices and unknown options', () => {
@@ -170,6 +202,109 @@ describe('mobile-memory-profiler', () => {
       expect(parseByteSize('1kb')).toBe(1000);
       expect(parseByteSize('1KiB')).toBe(1024);
       expect(parseByteSize('1.5MiB')).toBe(1572864);
+    });
+  });
+
+  describe('prepareDefaultFixtureForWalletSend', () => {
+    it('enables Ethereum mainnet and seeds the selected EVM account balance', () => {
+      const fixture: Record<string, unknown> = {
+        state: {
+          engine: {
+            backgroundState: {
+              AccountsController: {
+                internalAccounts: {
+                  selectedAccount: 'account-1',
+                  accounts: {
+                    'account-1': {
+                      address: '0x0000000000000000000000000000000000000abc',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+
+      prepareDefaultFixtureForWalletSend(fixture, {
+        ethereumRpcUrl: 'http://localhost:12345/rpc',
+      });
+
+      const state = fixture.state as Record<string, unknown>;
+      const engine = state.engine as Record<string, unknown>;
+      const backgroundState = engine.backgroundState as Record<string, unknown>;
+      const accountTrackerController =
+        backgroundState.AccountTrackerController as Record<string, unknown>;
+      const accountsByChainId =
+        accountTrackerController.accountsByChainId as Record<string, unknown>;
+      const mainnetAccounts = accountsByChainId['0x1'] as Record<
+        string,
+        unknown
+      >;
+      const accountBalance = mainnetAccounts[
+        '0x0000000000000000000000000000000000000abc'
+      ] as Record<string, unknown>;
+      const networkEnablementController =
+        backgroundState.NetworkEnablementController as Record<string, unknown>;
+      const enabledNetworkMap =
+        networkEnablementController.enabledNetworkMap as Record<
+          string,
+          unknown
+        >;
+      const enabledEvmNetworks = enabledNetworkMap.eip155 as Record<
+        string,
+        unknown
+      >;
+      const preferencesController =
+        backgroundState.PreferencesController as Record<string, unknown>;
+      const networkController =
+        backgroundState.NetworkController as Record<string, unknown>;
+      const networkConfigurations =
+        networkController.networkConfigurationsByChainId as Record<
+          string,
+          unknown
+        >;
+      const mainnetNetwork = networkConfigurations['0x1'] as Record<
+        string,
+        unknown
+      >;
+      const rpcEndpoints = mainnetNetwork.rpcEndpoints as Record<
+        string,
+        unknown
+      >[];
+
+      expect(enabledEvmNetworks['0x1']).toBe(true);
+      expect(accountBalance.balance).toMatch(/^0x/u);
+      expect(preferencesController.useTransactionSimulations).toBe(false);
+      expect(preferencesController.smartTransactionsOptInStatus).toBe(false);
+      expect(mainnetNetwork.defaultRpcEndpointIndex).toBe(1);
+      expect(networkController.selectedNetworkClientId).toBe(
+        'memory-profiler-mainnet',
+      );
+      expect(rpcEndpoints).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            networkClientId: 'mainnet',
+            type: 'infura',
+          }),
+          expect.objectContaining({
+            networkClientId: 'memory-profiler-mainnet',
+            type: 'custom',
+            url: 'http://localhost:12345/rpc',
+          }),
+        ]),
+      );
+    });
+  });
+
+  describe('recipientAddressInputSelectors', () => {
+    it('falls back to the iOS placeholder when the recipient input testID is not exposed', () => {
+      expect(recipientAddressInputSelectors('ios')).toEqual(
+        expect.arrayContaining([
+          '~recipient-address-input',
+          expect.stringContaining('Enter address to send to'),
+        ]),
+      );
     });
   });
 

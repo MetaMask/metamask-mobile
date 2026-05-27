@@ -38,7 +38,16 @@ Create an ETH send confirmation from the wallet and cancel it on each
 iteration:
 
 ```bash
-yarn llm:mobile:memory -- --platform android --flow wallet-send-eth-cancel --iterations 10
+yarn llm:mobile:memory -- --platform android --flow wallet-send-eth-cancel --fixture default --iterations 10
+```
+
+Load a local Expo dev-client bundle before driving the wallet flow. This runs
+headlessly, starts the default fixture server, passes the fixture port as a
+launch arg, loads the Metro URL, and uses the app's local AgenticService CDP
+bridge to prepare the fixture wallet before sampling:
+
+```bash
+yarn llm:mobile:memory -- --platform ios --device booted --flow wallet-send-eth-cancel --fixture default --expo-dev-url "http://localhost:8092?disableOnboarding=1" --headless-wallet-setup
 ```
 
 Submit an ETH send transaction from the wallet on each iteration:
@@ -75,15 +84,42 @@ starts the app.
 ## Wallet Confirmation Flows
 
 The `wallet-send-eth-cancel` and `wallet-send-eth-submit` flows drive the
-installed app through Appium. They assume the wallet is already onboarded,
-unlocked, and on or navigable back to the Wallet screen. The CLI starts a local
-Appium server on `http://127.0.0.1:4723/` by default; use `--reuse-appium` when
-connecting to a server you started yourself, and `--appium-url` to point at a
-custom WebDriver endpoint.
+installed app through Appium. For repeatable local runs, pass
+`--fixture default`; the CLI starts the E2E fixture server on
+`--fixture-server-port` (`12345` by default), passes that port as a mobile
+launch argument, and waits for the app to request `/state.json`. For fully
+headless dev-client runs, add `--headless-wallet-setup`; the CLI calls the
+local AgenticService CDP bridge on `--cdp-port` (inferred from
+`--expo-dev-url`, otherwise `8081`) to unlock or create the fixture wallet with
+`--wallet-password` (`123123123` by default). For send flows, the default
+fixture is patched locally before serving so Ethereum mainnet is enabled and
+the selected EVM account has a local-only ETH balance; no real funds are
+created or moved by fixture setup. The fixture also points Ethereum mainnet at
+the profiler fixture server's local JSON-RPC endpoint and disables transaction
+simulations/smart transactions, so the confirmation can be created without
+Infura, Sentinel, or Blockaid network access. The headless ETH balance seed is
+also reapplied immediately before each send iteration and again after the asset
+picker opens, so balance polling cannot clear the local seed before Ethereum is
+selected. For the default fixture recipient, the flow first tries to select
+`Account 2` from the wallet recipient list, then falls back to typing the
+default external recipient address and accepting the new-address warning if the
+fixture wallet only has one account. Pass `--recipient-address` to exercise a
+specific typed external-address path instead. Without `--fixture`, the wallet
+must already be onboarded, unlocked, funded, and on or navigable back to the
+Wallet screen.
+
+The CLI starts a local Appium server on `http://127.0.0.1:4723/` by default;
+use `--reuse-appium` when connecting to a server you started yourself, and
+`--appium-url` to point at a custom WebDriver endpoint.
 
 The default send amount is `25%`, which uses the send screen percentage button
 and avoids depending on the current fiat/native amount mode. You can also pass
 `--send-amount 0.001`, `50%`, `75%`, `100%`, or `max`.
+
+For local iOS dev-client builds, pass `--expo-dev-url` to load the Metro bundle
+headlessly through Appium before baseline sampling. Pair it with
+`--headless-wallet-setup` when the fixture loads a locked vault or the app lands
+on onboarding before the wallet screen.
 
 `wallet-send-eth-cancel` opens the confirmation screen and taps the confirmation
 footer Cancel button, so it is the safer repeatable leak loop. The submit flow

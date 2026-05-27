@@ -2,6 +2,7 @@
 /* eslint-disable import-x/no-nodejs-modules */
 
 import { execFile, type ChildProcess } from 'child_process';
+import { createServer, type Server } from 'http';
 import path from 'path';
 import { promises as fs } from 'fs';
 
@@ -15,9 +16,19 @@ const DEFAULT_WAIT_AFTER_FLOW_MS = 1000;
 const DEFAULT_SEND_RECIPIENT_ADDRESS =
   '0x0000000000000000000000000000000000000001';
 const DEFAULT_SEND_AMOUNT = '25%';
+const DEFAULT_SEND_ETH_BALANCE_WEI = `0x${(10n * 10n ** 18n).toString(16)}`;
+const RECIPIENT_ADDRESS_PLACEHOLDER = 'Enter address to send to';
+const DEFAULT_FIXTURE = 'none';
+const DEFAULT_FIXTURE_SERVER_PORT = 12345;
+const DEFAULT_WALLET_PASSWORD = '123123123';
+const DEFAULT_WALLET_MNEMONIC =
+  'drive manage close raven tape average sausage pledge riot furnace august tip';
 const DEFAULT_APPIUM_URL = 'http://127.0.0.1:4723/';
 const DEFAULT_APPIUM_STARTUP_TIMEOUT_MS = 60_000;
 const DEFAULT_APPIUM_ELEMENT_TIMEOUT_MS = 20_000;
+const DEFAULT_CDP_PORT = 8081;
+const EXPO_DEV_CLIENT_BUNDLE_TIMEOUT_MS = 120_000;
+const FIXTURE_STATE_REQUEST_TIMEOUT_MS = 180_000;
 const COMMAND_MAX_BUFFER = 50 * 1024 * 1024;
 
 export type MobileMemoryPlatform = 'android' | 'ios';
@@ -27,6 +38,7 @@ export type MobileMemoryFlow =
   | 'wallet-send-eth-cancel'
   | 'wallet-send-eth-submit';
 export type MobileMemorySampleMode = 'each' | 'final';
+export type MobileMemoryFixture = 'none' | 'default';
 
 export interface MobileMemoryProfilerOptions {
   platform: MobileMemoryPlatform;
@@ -45,10 +57,17 @@ export interface MobileMemoryProfilerOptions {
   intervalMs: number;
   recipientAddress: string;
   sendAmount: string;
+  fixture: MobileMemoryFixture;
+  fixtureServerPort: number;
+  walletPassword: string;
+  walletMnemonic: string;
+  headlessWalletSetup: boolean;
+  cdpPort: number;
   appiumUrl: string;
   reuseAppium: boolean;
   appiumStartupTimeoutMs: number;
   appiumElementTimeoutMs: number;
+  expoDevUrl?: string;
   allowTransactionSubmit: boolean;
   pullHermesProfile: boolean;
   hermesProfilePath?: string;
@@ -134,7 +153,7 @@ export interface CommandResult {
 export type CommandRunner = (
   command: string,
   args: string[],
-  options?: { cwd?: string },
+  options?: { cwd?: string; env?: NodeJS.ProcessEnv },
 ) => Promise<CommandResult>;
 
 interface AppiumDriver {
@@ -155,6 +174,7 @@ interface AppiumElement {
 interface AppiumRuntime {
   driver?: AppiumDriver;
   serverProcess?: ChildProcess;
+  fixtureServer?: FixtureServerRuntime;
 }
 
 interface AppiumEndpoint {
@@ -162,6 +182,11 @@ interface AppiumEndpoint {
   hostname: string;
   port: number;
   path: string;
+}
+
+interface FixtureServerRuntime {
+  stop(): Promise<void>;
+  waitForNextStateRequest(timeoutMs?: number): Promise<void>;
 }
 
 const VALID_PLATFORMS: MobileMemoryPlatform[] = ['android', 'ios'];
@@ -172,12 +197,37 @@ const VALID_FLOWS: MobileMemoryFlow[] = [
   'wallet-send-eth-submit',
 ];
 const VALID_SAMPLE_MODES: MobileMemorySampleMode[] = ['each', 'final'];
+const VALID_FIXTURES: MobileMemoryFixture[] = ['none', 'default'];
 const PERCENTAGE_AMOUNTS = new Set(['25', '50', '75', '100']);
 const WALLET_SEND_BUTTON_ID = 'wallet-send-button';
+const LOGIN_PASSWORD_INPUT_ID = 'login-password-input';
+const LOGIN_BUTTON_ID = 'log-in-button';
 const RECIPIENT_ADDRESS_INPUT_ID = 'recipient-address-input';
 const REVIEW_BUTTON_ID = 'review-button';
 const CONFIRM_BUTTON_ID = 'confirm-button';
 const CANCEL_BUTTON_ID = 'cancel-button';
+const ETH_MAINNET_CHAIN_ID = '0x1';
+const ETH_MAINNET_CAIP_CHAIN_ID = 'eip155:1';
+const ETH_NATIVE_ASSET_ID = `${ETH_MAINNET_CAIP_CHAIN_ID}/slip44:60`;
+const ETH_NATIVE_TOKEN_ADDRESS = '0x0000000000000000000000000000000000000000';
+const ETH_MAINNET_RPC_PATH = '/rpc';
+const MEMORY_PROFILER_MAINNET_NETWORK_CLIENT_ID = 'memory-profiler-mainnet';
+const FAKE_TRANSACTION_HASH = `0x${'1'.repeat(64)}`;
+
+type JsonRpcId = string | number | null;
+
+interface JsonRpcPayload {
+  id?: JsonRpcId;
+  jsonrpc?: string;
+  method?: string;
+  params?: unknown;
+}
+
+interface JsonRpcResponse {
+  id: JsonRpcId;
+  jsonrpc: '2.0';
+  result: unknown;
+}
 
 const emptyMemoryMetrics = (): MobileMemoryMetrics => ({
   rssBytes: null,
@@ -211,6 +261,11 @@ export function parseMobileMemoryProfilerArgs(
     intervalMs: 0,
     recipientAddress: DEFAULT_SEND_RECIPIENT_ADDRESS,
     sendAmount: DEFAULT_SEND_AMOUNT,
+    fixture: DEFAULT_FIXTURE,
+    fixtureServerPort: DEFAULT_FIXTURE_SERVER_PORT,
+    walletPassword: DEFAULT_WALLET_PASSWORD,
+    walletMnemonic: DEFAULT_WALLET_MNEMONIC,
+    headlessWalletSetup: false,
     appiumUrl: DEFAULT_APPIUM_URL,
     reuseAppium: false,
     appiumStartupTimeoutMs: DEFAULT_APPIUM_STARTUP_TIMEOUT_MS,
@@ -315,6 +370,34 @@ export function parseMobileMemoryProfilerArgs(
       case '--send-amount':
         mutableOptions.sendAmount = readArgValue(argv, (index += 1), arg);
         break;
+      case '--fixture':
+        mutableOptions.fixture = parseChoice(
+          readArgValue(argv, (index += 1), arg),
+          VALID_FIXTURES,
+          arg,
+        );
+        break;
+      case '--fixture-server-port':
+        mutableOptions.fixtureServerPort = parsePositiveInteger(
+          readArgValue(argv, (index += 1), arg),
+          arg,
+        );
+        break;
+      case '--wallet-password':
+        mutableOptions.walletPassword = readArgValue(argv, (index += 1), arg);
+        break;
+      case '--wallet-mnemonic':
+        mutableOptions.walletMnemonic = readArgValue(argv, (index += 1), arg);
+        break;
+      case '--headless-wallet-setup':
+        mutableOptions.headlessWalletSetup = true;
+        break;
+      case '--cdp-port':
+        mutableOptions.cdpPort = parsePositiveInteger(
+          readArgValue(argv, (index += 1), arg),
+          arg,
+        );
+        break;
       case '--appium-url':
         mutableOptions.appiumUrl = readArgValue(argv, (index += 1), arg);
         break;
@@ -332,6 +415,10 @@ export function parseMobileMemoryProfilerArgs(
           readArgValue(argv, (index += 1), arg),
           arg,
         );
+        break;
+      case '--expo-dev-url':
+      case '--metro-url':
+        mutableOptions.expoDevUrl = readArgValue(argv, (index += 1), arg);
         break;
       case '--allow-transaction-submit':
         mutableOptions.allowTransactionSubmit = true;
@@ -409,6 +496,16 @@ export function parseMobileMemoryProfilerArgs(
     recipientAddress:
       mutableOptions.recipientAddress ?? DEFAULT_SEND_RECIPIENT_ADDRESS,
     sendAmount: mutableOptions.sendAmount ?? DEFAULT_SEND_AMOUNT,
+    fixture: mutableOptions.fixture ?? DEFAULT_FIXTURE,
+    fixtureServerPort:
+      mutableOptions.fixtureServerPort ?? DEFAULT_FIXTURE_SERVER_PORT,
+    walletPassword: mutableOptions.walletPassword ?? DEFAULT_WALLET_PASSWORD,
+    walletMnemonic: mutableOptions.walletMnemonic ?? DEFAULT_WALLET_MNEMONIC,
+    headlessWalletSetup: mutableOptions.headlessWalletSetup ?? false,
+    cdpPort:
+      mutableOptions.cdpPort ??
+      inferPortFromUrl(mutableOptions.expoDevUrl) ??
+      DEFAULT_CDP_PORT,
     appiumUrl: mutableOptions.appiumUrl ?? DEFAULT_APPIUM_URL,
     reuseAppium: mutableOptions.reuseAppium ?? false,
     appiumStartupTimeoutMs:
@@ -417,6 +514,7 @@ export function parseMobileMemoryProfilerArgs(
     appiumElementTimeoutMs:
       mutableOptions.appiumElementTimeoutMs ??
       DEFAULT_APPIUM_ELEMENT_TIMEOUT_MS,
+    expoDevUrl: mutableOptions.expoDevUrl,
     allowTransactionSubmit: mutableOptions.allowTransactionSubmit ?? false,
     pullHermesProfile: mutableOptions.pullHermesProfile ?? false,
     hermesProfilePath: mutableOptions.hermesProfilePath,
@@ -427,6 +525,19 @@ export function parseMobileMemoryProfilerArgs(
     maxJavaHeapGrowthBytes: mutableOptions.maxJavaHeapGrowthBytes,
     help: mutableOptions.help ?? false,
   };
+}
+
+function inferPortFromUrl(url: string | undefined): number | undefined {
+  if (!url) {
+    return undefined;
+  }
+
+  try {
+    const parsedUrl = new URL(url);
+    return parsedUrl.port ? Number(parsedUrl.port) : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 export function parseByteSize(value: string, optionName = 'value'): number {
@@ -682,9 +793,33 @@ export async function runMobileMemoryProfiler(
   try {
     await fs.mkdir(options.artifactDir, { recursive: true });
 
+    runtime.fixtureServer = await startFixtureServer(options);
+    const fixtureStateRequest =
+      runtime.fixtureServer && (options.launch || options.expoDevUrl)
+        ? runtime.fixtureServer.waitForNextStateRequest(
+            FIXTURE_STATE_REQUEST_TIMEOUT_MS,
+          )
+        : undefined;
+
     if (options.launch) {
+      if (shouldTerminateBeforeInitialLaunch(options)) {
+        await terminateApp(options, runner).catch(() => undefined);
+      }
+
       await launchApp(options, runner);
       await sleep(options.waitAfterFlowMs);
+    }
+
+    if (options.expoDevUrl) {
+      await loadExpoDevClientUrl(options, runtime);
+    }
+
+    if (fixtureStateRequest) {
+      await fixtureStateRequest;
+    }
+
+    if (options.headlessWalletSetup) {
+      await setupHeadlessWallet(options, runner);
     }
 
     samples.push(await collectMemorySample(options, 'baseline', runner));
@@ -727,6 +862,7 @@ export async function runMobileMemoryProfiler(
     return report;
   } finally {
     await cleanupAppiumRuntime(runtime);
+    await cleanupFixtureServer(runtime);
   }
 }
 
@@ -765,11 +901,23 @@ Options:
   --send-amount <value>         Amount for wallet-send-eth-* flows.
                                 Supports keypad values like 0.001 or percentages
                                 25%, 50%, 75%, 100%, max. Default: ${DEFAULT_SEND_AMOUNT}
+  --fixture <name>              Start a local E2E fixture server: none, default.
+                                Default: ${DEFAULT_FIXTURE}
+  --fixture-server-port <port>  Local fixture server port. Default: ${DEFAULT_FIXTURE_SERVER_PORT}
+  --wallet-password <value>     Password used to unlock fixture wallet flows.
+                                Default: ${DEFAULT_WALLET_PASSWORD}
+  --wallet-mnemonic <value>     Mnemonic used by headless wallet setup.
+  --headless-wallet-setup       Prepare the wallet through the app's local
+                                AgenticService CDP bridge before sampling.
+  --cdp-port <port>             Metro/CDP port for --headless-wallet-setup.
+                                Defaults to --expo-dev-url port or ${DEFAULT_CDP_PORT}
   --appium-url <url>            WebDriver endpoint for Appium flows.
                                 Default: ${DEFAULT_APPIUM_URL}
   --reuse-appium                Connect to an already-running Appium server
   --appium-startup-timeout <ms> Appium startup timeout. Default: ${DEFAULT_APPIUM_STARTUP_TIMEOUT_MS}
   --appium-element-timeout <ms> Appium element wait timeout. Default: ${DEFAULT_APPIUM_ELEMENT_TIMEOUT_MS}
+  --expo-dev-url <url>          Load an Expo dev-client Metro URL before
+                                sampling, through Appium. Alias: --metro-url
   --allow-transaction-submit    Required with --flow wallet-send-eth-submit
   --pull-hermes-profile         Run yarn react-native-release-profiler --fromDownload
                                 after the memory run. Android only.
@@ -786,7 +934,7 @@ Examples:
   yarn llm:mobile:memory -- --platform android --iterations 25 --max-pss-growth 40MiB
   yarn llm:mobile:memory -- --platform ios --flow relaunch --sample final --device booted
   yarn llm:mobile:memory -- --platform android --pull-hermes-profile --sourcemap-path ./sourcemaps
-  yarn llm:mobile:memory -- --flow wallet-send-eth-cancel --iterations 10
+  yarn llm:mobile:memory -- --flow wallet-send-eth-cancel --fixture default --headless-wallet-setup --iterations 10
 `;
 }
 
@@ -877,14 +1025,21 @@ async function collectIosMemorySample(
   runner: CommandRunner,
 ): Promise<{ pid: number | null; memory: MobileMemoryMetrics }> {
   const simulatorDevice = options.deviceId ?? 'booted';
-  const result = await runner('xcrun', [
-    'simctl',
-    'spawn',
-    simulatorDevice,
-    'ps',
-    '-axo',
-    'pid=,rss=,vsz=,comm=',
-  ]);
+  let result: CommandResult;
+
+  try {
+    result = await runner('xcrun', [
+      'simctl',
+      'spawn',
+      simulatorDevice,
+      'ps',
+      '-axo',
+      'pid=,rss=,vsz=,comm=',
+    ]);
+  } catch {
+    result = await runner('ps', ['-axo', 'pid=,rss=,vsz=,comm=']);
+  }
+
   const parsed = parseIosPsOutput(result.stdout, options.iosProcessName);
 
   if (!parsed) {
@@ -911,12 +1066,12 @@ async function runFlowIteration(
       await sleep(options.waitAfterFlowMs);
       break;
     case 'wallet-send-eth-cancel':
-      await runWalletSendEthFlow(options, runtime, {
+      await runWalletSendEthFlow(options, runner, runtime, {
         submitTransaction: false,
       });
       break;
     case 'wallet-send-eth-submit':
-      await runWalletSendEthFlow(options, runtime, {
+      await runWalletSendEthFlow(options, runner, runtime, {
         submitTransaction: true,
       });
       break;
@@ -927,6 +1082,7 @@ async function runFlowIteration(
 
 async function runWalletSendEthFlow(
   options: MobileMemoryProfilerOptions,
+  runner: CommandRunner,
   runtime: AppiumRuntime,
   { submitTransaction }: { submitTransaction: boolean },
 ): Promise<void> {
@@ -938,6 +1094,11 @@ async function runWalletSendEthFlow(
 
   const appiumDriver = await getAppiumDriver(options, runtime);
 
+  await unlockWalletIfNeeded(appiumDriver, options);
+  if (options.headlessWalletSetup) {
+    await setupHeadlessWallet(options, runner);
+    await sleep(500);
+  }
   await navigateToWalletHome(appiumDriver, options);
   await tapElementById(
     appiumDriver,
@@ -945,6 +1106,10 @@ async function runWalletSendEthFlow(
     WALLET_SEND_BUTTON_ID,
     'Wallet Send',
   );
+  if (options.headlessWalletSetup) {
+    await seedHeadlessEthereumSendState(options, runner);
+    await sleep(250);
+  }
   await tapElementByText(appiumDriver, options, 'Ethereum', 'Ethereum asset');
   await selectSendAmount(appiumDriver, options);
   await tapElementByText(
@@ -953,14 +1118,7 @@ async function runWalletSendEthFlow(
     'Continue',
     'Send amount Continue',
   );
-  await setElementValueById(
-    appiumDriver,
-    options,
-    RECIPIENT_ADDRESS_INPUT_ID,
-    options.recipientAddress,
-    'Recipient address input',
-  );
-  await tapElementById(appiumDriver, options, REVIEW_BUTTON_ID, 'Review');
+  await selectSendRecipient(appiumDriver, options);
   await waitForElementById(
     appiumDriver,
     options,
@@ -974,6 +1132,7 @@ async function runWalletSendEthFlow(
       options,
       CONFIRM_BUTTON_ID,
       'Confirm transaction',
+      { requireEnabled: true },
     );
   } else {
     await tapElementById(
@@ -983,6 +1142,885 @@ async function runWalletSendEthFlow(
       'Cancel transaction',
     );
     await navigateToWalletHome(appiumDriver, options);
+  }
+
+  await sleep(options.waitAfterFlowMs);
+}
+
+async function selectSendRecipient(
+  appiumDriver: AppiumDriver,
+  options: MobileMemoryProfilerOptions,
+): Promise<void> {
+  if (shouldUseHeadlessFixtureRecipient(options)) {
+    const fixtureRecipient = await findElement(
+      appiumDriver,
+      textSelectors(options.platform, 'Account 2'),
+      'Fixture recipient account',
+      Math.min(options.appiumElementTimeoutMs, 3000),
+    ).catch(() => undefined);
+
+    if (fixtureRecipient) {
+      await fixtureRecipient
+        .waitForEnabled({ timeout: 5000 })
+        .catch(() => undefined);
+      await fixtureRecipient.click();
+      await sleep(250);
+      return;
+    }
+  }
+
+  await setElementValue(
+    appiumDriver,
+    recipientAddressInputSelectors(options.platform),
+    options.recipientAddress,
+    'Recipient address input',
+    options.appiumElementTimeoutMs,
+  );
+  await tapElementById(appiumDriver, options, REVIEW_BUTTON_ID, 'Review', {
+    enabledTimeoutMs: Math.max(options.appiumElementTimeoutMs, 20_000),
+    requireEnabled: true,
+  });
+  await dismissNewAddressWarningIfPresent(appiumDriver, options);
+}
+
+function shouldUseHeadlessFixtureRecipient(
+  options: MobileMemoryProfilerOptions,
+): boolean {
+  return (
+    options.headlessWalletSetup &&
+    options.fixture === 'default' &&
+    options.recipientAddress === DEFAULT_SEND_RECIPIENT_ADDRESS
+  );
+}
+
+async function dismissNewAddressWarningIfPresent(
+  appiumDriver: AppiumDriver,
+  options: MobileMemoryProfilerOptions,
+): Promise<void> {
+  const continueButton = await findElement(
+    appiumDriver,
+    textSelectors(options.platform, 'Continue'),
+    'New address warning Continue',
+    3000,
+  ).catch(() => undefined);
+
+  if (!continueButton) {
+    return;
+  }
+
+  await continueButton.waitForEnabled({ timeout: 5000 }).catch(() => undefined);
+  await continueButton.click();
+  await sleep(250);
+}
+
+async function startFixtureServer(
+  options: MobileMemoryProfilerOptions,
+): Promise<FixtureServerRuntime | undefined> {
+  if (options.fixture === 'none') {
+    return undefined;
+  }
+
+  const fixture = await loadDefaultFixture(options);
+  const fixtureServer = createFixtureServer(
+    options.fixtureServerPort,
+    fixture,
+  );
+  await fixtureServer.start();
+
+  return fixtureServer;
+}
+
+async function loadDefaultFixture(
+  options: MobileMemoryProfilerOptions,
+): Promise<unknown> {
+  const fixturePath = path.resolve(
+    process.cwd(),
+    'tests/framework/fixtures/json/default-fixture.json',
+  );
+  const rawFixture = await fs.readFile(fixturePath, 'utf8');
+  const fixture = JSON.parse(rawFixture) as Record<string, unknown>;
+  prepareDefaultFixtureForWalletSend(fixture, {
+    ethereumRpcUrl: `${getFixtureServerBaseUrl(options)}${ETH_MAINNET_RPC_PATH}`,
+  });
+  const state = getMutableRecord(fixture.state);
+  const legalNotices = getMutableRecord(state.legalNotices);
+
+  if (legalNotices) {
+    legalNotices.newPrivacyPolicyToastShownDate = Date.now();
+  }
+
+  return fixture;
+}
+
+export function prepareDefaultFixtureForWalletSend(
+  fixture: Record<string, unknown>,
+  options: { ethereumRpcUrl?: string } = {},
+): void {
+  const state = getOrCreateRecord(fixture, 'state');
+  const engineState = getOrCreateRecord(state, 'engine');
+  const backgroundState = getOrCreateRecord(engineState, 'backgroundState');
+  const accountAddress =
+    getSelectedEvmAccountAddress(backgroundState) ??
+    '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3';
+
+  const currencyRateController = getOrCreateRecord(
+    backgroundState,
+    'CurrencyRateController',
+  );
+  currencyRateController.currentCurrency = 'usd';
+  const currencyRates = getOrCreateRecord(
+    currencyRateController,
+    'currencyRates',
+  );
+  currencyRates.ETH = {
+    conversionDate: Date.now() / 1000,
+    conversionRate: 3000,
+    usdConversionRate: 3000,
+  };
+
+  const accountTrackerController = getOrCreateRecord(
+    backgroundState,
+    'AccountTrackerController',
+  );
+  const legacyAccounts = getOrCreateRecord(accountTrackerController, 'accounts');
+  legacyAccounts[accountAddress] = { balance: DEFAULT_SEND_ETH_BALANCE_WEI };
+  const accountsByChainId = getOrCreateRecord(
+    accountTrackerController,
+    'accountsByChainId',
+  );
+  const mainnetAccounts = getOrCreateRecord(
+    accountsByChainId,
+    ETH_MAINNET_CHAIN_ID,
+  );
+  mainnetAccounts[accountAddress] = { balance: DEFAULT_SEND_ETH_BALANCE_WEI };
+
+  const tokenBalancesController = getOrCreateRecord(
+    backgroundState,
+    'TokenBalancesController',
+  );
+  const tokenBalances = getOrCreateRecord(
+    tokenBalancesController,
+    'tokenBalances',
+  );
+  const accountTokenBalances = getOrCreateRecord(tokenBalances, accountAddress);
+  const mainnetTokenBalances = getOrCreateRecord(
+    accountTokenBalances,
+    ETH_MAINNET_CHAIN_ID,
+  );
+  mainnetTokenBalances[ETH_NATIVE_TOKEN_ADDRESS] =
+    DEFAULT_SEND_ETH_BALANCE_WEI;
+
+  const networkEnablementController = getOrCreateRecord(
+    backgroundState,
+    'NetworkEnablementController',
+  );
+  const enabledNetworkMap = getOrCreateRecord(
+    networkEnablementController,
+    'enabledNetworkMap',
+  );
+  const enabledEvmNetworks = getOrCreateRecord(enabledNetworkMap, 'eip155');
+  enabledEvmNetworks[ETH_MAINNET_CHAIN_ID] = true;
+  const nativeAssetIdentifiers = getOrCreateRecord(
+    networkEnablementController,
+    'nativeAssetIdentifiers',
+  );
+  nativeAssetIdentifiers[ETH_MAINNET_CAIP_CHAIN_ID] = ETH_NATIVE_ASSET_ID;
+
+  const preferencesController = getOrCreateRecord(
+    backgroundState,
+    'PreferencesController',
+  );
+  preferencesController.useTransactionSimulations = false;
+  preferencesController.smartTransactionsOptInStatus = false;
+  preferencesController.securityAlertsEnabled = false;
+
+  if (options.ethereumRpcUrl) {
+    const networkController = getOrCreateRecord(
+      backgroundState,
+      'NetworkController',
+    );
+    const networkConfigurationsByChainId = getOrCreateRecord(
+      networkController,
+      'networkConfigurationsByChainId',
+    );
+    const mainnetConfiguration = getOrCreateRecord(
+      networkConfigurationsByChainId,
+      ETH_MAINNET_CHAIN_ID,
+    );
+    mainnetConfiguration.chainId = ETH_MAINNET_CHAIN_ID;
+    mainnetConfiguration.name = 'Ethereum Main Network';
+    mainnetConfiguration.nativeCurrency = 'ETH';
+    const existingRpcEndpoints = Array.isArray(
+      mainnetConfiguration.rpcEndpoints,
+    )
+      ? (mainnetConfiguration.rpcEndpoints as Record<string, unknown>[])
+      : [];
+    const mainnetInfuraEndpoint = existingRpcEndpoints.find(
+      (endpoint) => endpoint.networkClientId === 'mainnet',
+    ) ?? {
+      failoverUrls: [],
+      networkClientId: 'mainnet',
+      type: 'infura',
+      url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
+    };
+    const otherRpcEndpoints = existingRpcEndpoints.filter(
+      (endpoint) =>
+        endpoint.networkClientId !== 'mainnet' &&
+        endpoint.networkClientId !== MEMORY_PROFILER_MAINNET_NETWORK_CLIENT_ID,
+    );
+    mainnetConfiguration.rpcEndpoints = [
+      mainnetInfuraEndpoint,
+      ...otherRpcEndpoints,
+      {
+        failoverUrls: [],
+        name: 'Memory profiler mainnet RPC',
+        networkClientId: MEMORY_PROFILER_MAINNET_NETWORK_CLIENT_ID,
+        type: 'custom',
+        url: options.ethereumRpcUrl,
+      },
+    ];
+    mainnetConfiguration.defaultRpcEndpointIndex =
+      (mainnetConfiguration.rpcEndpoints as unknown[]).length - 1;
+    networkController.selectedNetworkClientId =
+      MEMORY_PROFILER_MAINNET_NETWORK_CLIENT_ID;
+
+    const networksMetadata = getOrCreateRecord(
+      networkController,
+      'networksMetadata',
+    );
+    networksMetadata[MEMORY_PROFILER_MAINNET_NETWORK_CLIENT_ID] = {
+      EIPS: { '1559': true },
+      status: 'available',
+    };
+    networksMetadata.mainnet = networksMetadata.mainnet ?? {
+      EIPS: { '1559': true },
+      status: 'available',
+    };
+  }
+}
+
+function getFixtureServerBaseUrl(options: MobileMemoryProfilerOptions): string {
+  const host = options.platform === 'android' ? '10.0.2.2' : 'localhost';
+  return `http://${host}:${options.fixtureServerPort}`;
+}
+
+function createFixtureServer(
+  port: number,
+  fixture: unknown,
+): FixtureServerRuntime & { start(): Promise<void> } {
+  let stateRequestCount = 0;
+  const waiters = new Set<{
+    requestCountAtStart: number;
+    timeout?: ReturnType<typeof setTimeout>;
+    resolve: () => void;
+    reject: (error: Error) => void;
+  }>();
+
+  const resolveWaiters = () => {
+    for (const waiter of waiters) {
+      if (stateRequestCount <= waiter.requestCountAtStart) {
+        continue;
+      }
+
+      if (waiter.timeout) {
+        clearTimeout(waiter.timeout);
+      }
+
+      waiters.delete(waiter);
+      waiter.resolve();
+    }
+  };
+
+  const rejectWaiters = (error: Error) => {
+    for (const waiter of waiters) {
+      if (waiter.timeout) {
+        clearTimeout(waiter.timeout);
+      }
+
+      waiters.delete(waiter);
+      waiter.reject(error);
+    }
+  };
+
+  const server = createServer((request, response) => {
+    response.setHeader('Access-Control-Allow-Origin', '*');
+    response.setHeader(
+      'Access-Control-Allow-Methods',
+      'GET, POST, PUT, DELETE',
+    );
+    response.setHeader(
+      'Access-Control-Allow-Headers',
+      'Origin, X-Requested-With, Content-Type, Accept',
+    );
+
+    if (request.method === 'OPTIONS') {
+      response.statusCode = 204;
+      response.end();
+      return;
+    }
+
+    if (request.method === 'GET' && request.url === '/state.json') {
+      response.setHeader('Content-Type', 'application/json');
+      response.end(JSON.stringify(fixture));
+      response.once('finish', () => {
+        stateRequestCount += 1;
+        resolveWaiters();
+      });
+      return;
+    }
+
+    if (request.method === 'POST' && request.url === ETH_MAINNET_RPC_PATH) {
+      readRequestBody(request)
+        .then((body) => {
+          response.setHeader('Content-Type', 'application/json');
+          response.end(JSON.stringify(createFixtureRpcResponse(body)));
+        })
+        .catch((error: Error) => {
+          response.statusCode = 500;
+          response.end(error.message);
+        });
+      return;
+    }
+
+    response.statusCode = 404;
+    response.end();
+  });
+
+  return {
+    async start() {
+      await new Promise<void>((resolve, reject) => {
+        server.once('error', reject);
+        server.once('listening', () => {
+          server.removeListener('error', reject);
+          resolve();
+        });
+        server.listen({ host: 'localhost', port, exclusive: true });
+      });
+    },
+    async stop() {
+      rejectWaiters(
+        new Error(
+          'Fixture server stopped before the app requested fixture state from /state.json.',
+        ),
+      );
+      await closeServer(server);
+    },
+    waitForNextStateRequest(timeoutMs = FIXTURE_STATE_REQUEST_TIMEOUT_MS) {
+      const requestCountAtStart = stateRequestCount;
+
+      return new Promise<void>((resolve, reject) => {
+        const waiter: {
+          requestCountAtStart: number;
+          timeout?: ReturnType<typeof setTimeout>;
+          resolve: () => void;
+          reject: (error: Error) => void;
+        } = {
+          requestCountAtStart,
+          resolve,
+          reject,
+        };
+        waiter.timeout = setTimeout(() => {
+          waiters.delete(waiter);
+          reject(
+            new Error(
+              `Timed out waiting ${timeoutMs}ms for the app to request fixture state from /state.json.`,
+            ),
+          );
+        }, timeoutMs);
+
+        waiters.add(waiter);
+        resolveWaiters();
+      });
+    },
+  };
+}
+
+function readRequestBody(request: NodeJS.ReadableStream): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    request.on('data', (chunk: Buffer | string) => {
+      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+    });
+    request.on('end', () => {
+      resolve(Buffer.concat(chunks).toString('utf8'));
+    });
+    request.on('error', reject);
+  });
+}
+
+function createFixtureRpcResponse(
+  bodyText: string,
+): JsonRpcResponse | JsonRpcResponse[] {
+  const parsedBody = parseJsonRpcBody(bodyText);
+
+  if (Array.isArray(parsedBody)) {
+    return parsedBody.map(createFixtureRpcSingleResponse);
+  }
+
+  return createFixtureRpcSingleResponse(parsedBody);
+}
+
+function parseJsonRpcBody(bodyText: string): JsonRpcPayload | JsonRpcPayload[] {
+  try {
+    const parsed = JSON.parse(bodyText) as unknown;
+    if (Array.isArray(parsed)) {
+      return parsed.map((payload) =>
+        isJsonRpcPayload(payload) ? payload : {},
+      );
+    }
+
+    return isJsonRpcPayload(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function isJsonRpcPayload(value: unknown): value is JsonRpcPayload {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const payload = value as Record<string, unknown>;
+  const id = payload.id;
+  return (
+    (id === undefined ||
+      id === null ||
+      typeof id === 'string' ||
+      typeof id === 'number') &&
+    (payload.method === undefined || typeof payload.method === 'string')
+  );
+}
+
+function createFixtureRpcSingleResponse(
+  payload: JsonRpcPayload,
+): JsonRpcResponse {
+  return {
+    id: payload.id ?? 1,
+    jsonrpc: '2.0',
+    result: getFixtureRpcResult(payload.method),
+  };
+}
+
+function getFixtureRpcResult(method?: string): unknown {
+  switch (method) {
+    case 'eth_accounts':
+      return [];
+    case 'eth_blockNumber':
+      return '0x1234567';
+    case 'eth_call':
+      return '0x';
+    case 'eth_chainId':
+      return ETH_MAINNET_CHAIN_ID;
+    case 'eth_createAccessList':
+      return { accessList: [], gasUsed: '0x5208' };
+    case 'eth_estimateGas':
+      return '0x5208';
+    case 'eth_feeHistory':
+      return {
+        baseFeePerGas: ['0x3B9ACA00', '0x3B9ACA00'],
+        gasUsedRatio: [0.5],
+        oldestBlock: '0x1234566',
+        reward: [['0x3B9ACA00']],
+      };
+    case 'eth_gasPrice':
+    case 'eth_maxPriorityFeePerGas':
+      return '0x3B9ACA00';
+    case 'eth_getBalance':
+      return DEFAULT_SEND_ETH_BALANCE_WEI;
+    case 'eth_getBlockByNumber':
+      return {
+        baseFeePerGas: '0x3B9ACA00',
+        gasLimit: '0x1c9c380',
+        gasUsed: '0x5208',
+        hash: '0xabc123',
+        number: '0x1234567',
+        timestamp: `0x${Math.floor(Date.now() / 1000).toString(16)}`,
+        transactions: [],
+      };
+    case 'eth_getCode':
+      return '0x';
+    case 'eth_getLogs':
+      return [];
+    case 'eth_getTransactionByHash':
+    case 'eth_getTransactionReceipt':
+      return null;
+    case 'eth_getTransactionCount':
+      return '0x0';
+    case 'eth_sendRawTransaction':
+      return FAKE_TRANSACTION_HASH;
+    case 'eth_syncing':
+      return false;
+    case 'net_version':
+      return '1';
+    case 'web3_clientVersion':
+      return 'mobile-memory-profiler/1.0.0';
+    default:
+      return '0x';
+  }
+}
+
+async function closeServer(server: Server): Promise<void> {
+  if (!server.listening) {
+    return;
+  }
+
+  await new Promise<void>((resolve, reject) => {
+    server.once('error', reject);
+    server.once('close', () => {
+      server.removeListener('error', reject);
+      resolve();
+    });
+    server.close();
+  });
+}
+
+function getMutableRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object'
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function getOrCreateRecord(
+  parent: Record<string, unknown>,
+  key: string,
+): Record<string, unknown> {
+  const value = parent[key];
+
+  if (value && typeof value === 'object' && !Array.isArray(value)) {
+    return value as Record<string, unknown>;
+  }
+
+  const record: Record<string, unknown> = {};
+  parent[key] = record;
+  return record;
+}
+
+function getSelectedEvmAccountAddress(
+  backgroundState: Record<string, unknown>,
+): string | undefined {
+  const accountsController = getMutableRecord(
+    backgroundState.AccountsController,
+  );
+  const internalAccounts = getMutableRecord(
+    accountsController.internalAccounts,
+  );
+  const accounts = getMutableRecord(internalAccounts.accounts);
+  const selectedAccountId = internalAccounts.selectedAccount;
+
+  if (typeof selectedAccountId === 'string') {
+    const selectedAccount = getMutableRecord(accounts[selectedAccountId]);
+    const selectedAddress = selectedAccount.address;
+
+    if (typeof selectedAddress === 'string' && isEvmAddress(selectedAddress)) {
+      return selectedAddress;
+    }
+  }
+
+  return Object.values(accounts)
+    .map((account) => getMutableRecord(account).address)
+    .find(
+      (address): address is string =>
+        typeof address === 'string' && isEvmAddress(address),
+    );
+}
+
+function isEvmAddress(address: string): boolean {
+  return /^0x[a-fA-F0-9]{40}$/u.test(address);
+}
+
+async function setupHeadlessWallet(
+  options: MobileMemoryProfilerOptions,
+  runner: CommandRunner,
+): Promise<void> {
+  const walletFixture = {
+    password: options.walletPassword,
+    accounts: [
+      {
+        type: 'mnemonic',
+        value: options.walletMnemonic,
+      },
+    ],
+    settings: {
+      metametrics: false,
+      skipGtmModals: true,
+      skipPerpsTutorial: true,
+      autoLockNever: true,
+      deviceAuthEnabled: false,
+      disableTransactionSimulations: true,
+      seedEthereumBalanceWei: DEFAULT_SEND_ETH_BALANCE_WEI,
+    },
+  };
+  const expression = `globalThis.__AGENTIC__?.setupWallet(${JSON.stringify(
+    walletFixture,
+  )})`;
+
+  let result: CommandResult;
+  try {
+    result = await runner(
+      'node',
+      ['scripts/perps/agentic/cdp-bridge.js', 'eval-async', expression],
+      {
+        env: {
+          ...process.env,
+          WATCHER_PORT: String(options.cdpPort),
+          CDP_TIMEOUT: String(Math.max(options.appiumStartupTimeoutMs, 30_000)),
+        },
+      },
+    );
+  } catch (error) {
+    throw new Error(
+      `Headless wallet setup failed through Metro CDP on port ${
+        options.cdpPort
+      }: ${(error as Error).message}`,
+    );
+  }
+
+  let payload: Record<string, unknown>;
+  try {
+    payload = JSON.parse(result.stdout) as Record<string, unknown>;
+  } catch {
+    throw new Error(
+      `Headless wallet setup returned invalid CDP output: ${result.stdout}`,
+    );
+  }
+
+  if (payload.ok !== true) {
+    throw new Error(
+      `Headless wallet setup failed through Metro CDP on port ${
+        options.cdpPort
+      }: ${String(payload.error ?? 'unknown error')}`,
+    );
+  }
+}
+
+async function seedHeadlessEthereumSendState(
+  options: MobileMemoryProfilerOptions,
+  runner: CommandRunner,
+): Promise<void> {
+  const expression = `globalThis.__AGENTIC__?.seedEthereumSendState(${JSON.stringify(
+    {
+      balanceWei: DEFAULT_SEND_ETH_BALANCE_WEI,
+    },
+  )})`;
+
+  let result: CommandResult;
+  try {
+    result = await runner(
+      'node',
+      ['scripts/perps/agentic/cdp-bridge.js', 'eval', expression],
+      {
+        env: {
+          ...process.env,
+          WATCHER_PORT: String(options.cdpPort),
+          CDP_TIMEOUT: String(Math.max(options.appiumStartupTimeoutMs, 30_000)),
+        },
+      },
+    );
+  } catch (error) {
+    throw new Error(
+      `Headless Ethereum send state seed failed through Metro CDP on port ${
+        options.cdpPort
+      }: ${(error as Error).message}`,
+    );
+  }
+
+  let payload: Record<string, unknown>;
+  try {
+    payload = JSON.parse(result.stdout) as Record<string, unknown>;
+  } catch {
+    throw new Error(
+      `Headless Ethereum send state seed returned invalid CDP output: ${result.stdout}`,
+    );
+  }
+
+  if (payload.ok !== true) {
+    throw new Error(
+      `Headless Ethereum send state seed failed through Metro CDP on port ${
+        options.cdpPort
+      }: ${String(payload.error ?? 'unknown error')}`,
+    );
+  }
+}
+
+async function loadExpoDevClientUrl(
+  options: MobileMemoryProfilerOptions,
+  runtime: AppiumRuntime,
+): Promise<void> {
+  const appiumDriver = await getAppiumDriver(options, runtime);
+
+  if (
+    await isElementVisibleById(
+      appiumDriver,
+      options,
+      WALLET_SEND_BUTTON_ID,
+      'Wallet Send',
+      1000,
+    )
+  ) {
+    return;
+  }
+
+  if (
+    !(await isElementVisible(
+      appiumDriver,
+      expoDevUrlInputSelectors(options.platform),
+      'Expo Dev Launcher URL input',
+      1000,
+    ))
+  ) {
+    if (
+      !(await isElementVisibleByText(
+        appiumDriver,
+        options,
+        'Enter URL manually',
+        1000,
+      ))
+    ) {
+      return;
+    }
+
+    await tapElementByText(
+      appiumDriver,
+      options,
+      'Enter URL manually',
+      'Expo Dev Launcher manual URL control',
+    );
+  }
+
+  const urlInput = await findElement(
+    appiumDriver,
+    expoDevUrlInputSelectors(options.platform),
+    'Expo Dev Launcher URL input',
+    options.appiumElementTimeoutMs,
+  );
+  await urlInput.click();
+  await urlInput.setValue(options.expoDevUrl ?? '');
+
+  await tapElementByText(
+    appiumDriver,
+    options,
+    'Connect',
+    'Expo Dev Launcher Connect',
+  );
+  await waitForExpoDevClientBundle(appiumDriver, options);
+}
+
+async function waitForExpoDevClientBundle(
+  appiumDriver: AppiumDriver,
+  options: MobileMemoryProfilerOptions,
+): Promise<void> {
+  const deadline = Date.now() + EXPO_DEV_CLIENT_BUNDLE_TIMEOUT_MS;
+
+  while (Date.now() < deadline) {
+    const isStillDevLauncher = await isElementVisibleByText(
+      appiumDriver,
+      options,
+      'DEVELOPMENT SERVERS',
+      1000,
+    );
+    const isBundling = await isElementVisibleByText(
+      appiumDriver,
+      options,
+      'Bundling',
+      1000,
+    );
+    const isSplashScreen = await isElementVisibleById(
+      appiumDriver,
+      options,
+      'fox-splash-screen',
+      'MetaMask splash screen',
+      1000,
+    );
+
+    if (!isStillDevLauncher && !isBundling && !isSplashScreen) {
+      await sleep(options.waitAfterFlowMs);
+      return;
+    }
+
+    await sleep(1000);
+  }
+
+  throw new Error(
+    `Expo dev client did not finish loading ${options.expoDevUrl} within ${EXPO_DEV_CLIENT_BUNDLE_TIMEOUT_MS}ms.`,
+  );
+}
+
+async function unlockWalletIfNeeded(
+  appiumDriver: AppiumDriver,
+  options: MobileMemoryProfilerOptions,
+): Promise<void> {
+  const isLoginVisible = await isElementVisibleById(
+    appiumDriver,
+    options,
+    LOGIN_PASSWORD_INPUT_ID,
+    'Login password input',
+    1500,
+  );
+
+  if (!isLoginVisible) {
+    return;
+  }
+
+  await setElementValueById(
+    appiumDriver,
+    options,
+    LOGIN_PASSWORD_INPUT_ID,
+    options.walletPassword,
+    'Login password input',
+  );
+
+  if (
+    await isElementVisibleById(
+      appiumDriver,
+      options,
+      WALLET_SEND_BUTTON_ID,
+      'Wallet Send',
+      1500,
+    )
+  ) {
+    return;
+  }
+
+  if (
+    !(await isElementVisibleById(
+      appiumDriver,
+      options,
+      LOGIN_PASSWORD_INPUT_ID,
+      'Login password input',
+      500,
+    ))
+  ) {
+    return;
+  }
+
+  if (
+    await isElementVisibleById(
+      appiumDriver,
+      options,
+      LOGIN_BUTTON_ID,
+      'Unlock button',
+      1000,
+    )
+  ) {
+    await tapElementById(appiumDriver, options, LOGIN_BUTTON_ID, 'Unlock');
+  } else {
+    await tapElementByText(appiumDriver, options, 'Unlock', 'Unlock').catch(
+      async (error: Error) => {
+        if (
+          await isElementVisibleById(
+            appiumDriver,
+            options,
+            WALLET_SEND_BUTTON_ID,
+            'Wallet Send',
+            1500,
+          )
+        ) {
+          return;
+        }
+
+        throw error;
+      },
+    );
   }
 
   await sleep(options.waitAfterFlowMs);
@@ -1101,6 +2139,18 @@ async function cleanupAppiumRuntime(runtime: AppiumRuntime): Promise<void> {
   }
 }
 
+async function cleanupFixtureServer(runtime: AppiumRuntime): Promise<void> {
+  if (!runtime.fixtureServer) {
+    return;
+  }
+
+  try {
+    await runtime.fixtureServer.stop();
+  } catch {
+    // Best-effort cleanup; the original profiling error is more useful.
+  }
+}
+
 async function navigateToWalletHome(
   appiumDriver: AppiumDriver,
   options: MobileMemoryProfilerOptions,
@@ -1175,6 +2225,10 @@ async function tapElementById(
   options: MobileMemoryProfilerOptions,
   testId: string,
   description: string,
+  tapOptions: {
+    enabledTimeoutMs?: number;
+    requireEnabled?: boolean;
+  } = {},
 ): Promise<void> {
   const appiumElement = await waitForElementById(
     appiumDriver,
@@ -1182,7 +2236,15 @@ async function tapElementById(
     testId,
     description,
   );
-  await appiumElement.waitForEnabled({ timeout: 5000 }).catch(() => undefined);
+  const enabledTimeoutMs = tapOptions.enabledTimeoutMs ?? 5000;
+  const waitForEnabledPromise = appiumElement.waitForEnabled({
+    timeout: enabledTimeoutMs,
+  });
+  if (tapOptions.requireEnabled) {
+    await waitForEnabledPromise;
+  } else {
+    await waitForEnabledPromise.catch(() => undefined);
+  }
   await appiumElement.click();
   await sleep(250);
 }
@@ -1204,6 +2266,25 @@ async function tapElementByText(
   await sleep(250);
 }
 
+async function setElementValue(
+  appiumDriver: AppiumDriver,
+  selectors: string[],
+  value: string,
+  description: string,
+  timeoutMs: number,
+): Promise<void> {
+  const appiumElement = await findElement(
+    appiumDriver,
+    selectors,
+    description,
+    timeoutMs,
+  );
+  await appiumElement.click();
+  await appiumElement.setValue(value);
+  await appiumDriver.hideKeyboard().catch(() => undefined);
+  await sleep(250);
+}
+
 async function setElementValueById(
   appiumDriver: AppiumDriver,
   options: MobileMemoryProfilerOptions,
@@ -1211,16 +2292,13 @@ async function setElementValueById(
   value: string,
   description: string,
 ): Promise<void> {
-  const appiumElement = await waitForElementById(
+  await setElementValue(
     appiumDriver,
-    options,
-    testId,
+    idSelectors(options.platform, testId),
+    value,
     description,
+    options.appiumElementTimeoutMs,
   );
-  await appiumElement.click();
-  await appiumElement.setValue(value);
-  await appiumDriver.hideKeyboard().catch(() => undefined);
-  await sleep(250);
 }
 
 async function waitForElementById(
@@ -1244,10 +2322,38 @@ async function isElementVisibleById(
   description: string,
   timeoutMs: number,
 ): Promise<boolean> {
+  return isElementVisible(
+    appiumDriver,
+    idSelectors(options.platform, testId),
+    description,
+    timeoutMs,
+  );
+}
+
+async function isElementVisibleByText(
+  appiumDriver: AppiumDriver,
+  options: MobileMemoryProfilerOptions,
+  text: string,
+  timeoutMs: number,
+): Promise<boolean> {
+  return isElementVisible(
+    appiumDriver,
+    textSelectors(options.platform, text),
+    text,
+    timeoutMs,
+  );
+}
+
+async function isElementVisible(
+  appiumDriver: AppiumDriver,
+  selectors: string[],
+  description: string,
+  timeoutMs: number,
+): Promise<boolean> {
   try {
     const appiumElement = await findElement(
       appiumDriver,
-      idSelectors(options.platform, testId),
+      selectors,
       description,
       timeoutMs,
     );
@@ -1311,6 +2417,19 @@ function idSelectors(
   ];
 }
 
+export function recipientAddressInputSelectors(
+  platform: MobileMemoryPlatform,
+): string[] {
+  return uniqueStrings([
+    ...idSelectors(platform, RECIPIENT_ADDRESS_INPUT_ID),
+    ...textSelectors(platform, RECIPIENT_ADDRESS_PLACEHOLDER),
+  ]);
+}
+
+function uniqueStrings(values: string[]): string[] {
+  return [...new Set(values)];
+}
+
 function textSelectors(platform: MobileMemoryPlatform, text: string): string[] {
   if (platform === 'android') {
     return [
@@ -1337,6 +2456,17 @@ function textSelectors(platform: MobileMemoryPlatform, text: string): string[] {
       text,
     )}) or contains(@value, ${xpathLiteral(text)})]`,
   ];
+}
+
+function expoDevUrlInputSelectors(platform: MobileMemoryPlatform): string[] {
+  if (platform === 'android') {
+    return [
+      'android=new UiSelector().className("android.widget.EditText")',
+      '//android.widget.EditText',
+    ];
+  }
+
+  return ['//XCUIElementTypeTextField'];
 }
 
 function parseAppiumEndpoint(appiumUrl: string): AppiumEndpoint {
@@ -1406,6 +2536,8 @@ async function launchApp(
   options: MobileMemoryProfilerOptions,
   runner: CommandRunner,
 ): Promise<void> {
+  const launchArguments = buildLaunchArguments(options);
+
   if (options.platform === 'android') {
     const args = getAdbArgs(options, [
       'shell',
@@ -1415,8 +2547,8 @@ async function launchApp(
       `${options.appId}/${options.androidActivity}`,
     ]);
 
-    if (options.enableInAppProfiler) {
-      args.push('--es', 'enableProfiler', 'true');
+    for (const [key, value] of Object.entries(launchArguments)) {
+      args.push('--es', key, value);
     }
 
     await runner('adb', args);
@@ -1430,11 +2562,37 @@ async function launchApp(
     options.appId,
   ];
 
-  if (options.enableInAppProfiler) {
-    args.push('-enableProfiler', 'true');
+  for (const [key, value] of Object.entries(launchArguments)) {
+    args.push(`-${key}`, value);
   }
 
   await runner('xcrun', args);
+}
+
+function buildLaunchArguments(
+  options: MobileMemoryProfilerOptions,
+): Record<string, string> {
+  const launchArguments: Record<string, string> = {};
+
+  if (options.enableInAppProfiler) {
+    launchArguments.enableProfiler = 'true';
+  }
+
+  if (options.fixture !== 'none') {
+    launchArguments.fixtureServerPort = String(options.fixtureServerPort);
+  }
+
+  return launchArguments;
+}
+
+function shouldTerminateBeforeInitialLaunch(
+  options: MobileMemoryProfilerOptions,
+): boolean {
+  return (
+    options.enableInAppProfiler ||
+    options.fixture !== 'none' ||
+    Boolean(options.expoDevUrl)
+  );
 }
 
 async function terminateApp(
@@ -1507,7 +2665,7 @@ async function maybeRunHermesProfileCli(
 function runCommand(
   command: string,
   args: string[],
-  options: { cwd?: string } = {},
+  options: { cwd?: string; env?: NodeJS.ProcessEnv } = {},
 ): Promise<CommandResult> {
   return new Promise((resolve, reject) => {
     execFile(
@@ -1515,6 +2673,7 @@ function runCommand(
       args,
       {
         cwd: options.cwd,
+        env: options.env,
         encoding: 'utf8',
         maxBuffer: COMMAND_MAX_BUFFER,
       },

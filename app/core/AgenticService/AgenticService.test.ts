@@ -16,6 +16,23 @@ import type {
 
 const mockCreateWallet = jest.fn().mockResolvedValue(undefined);
 const mockImportAccount = jest.fn().mockResolvedValue(undefined);
+const mockSubmitPassword = jest.fn().mockResolvedValue(undefined);
+const mockIsUnlocked = jest.fn(() => false);
+const mockEnableNetwork = jest.fn();
+interface MockAccountTrackerState {
+  accountsByChainId: Record<
+    string,
+    Record<string, { balance?: string; stakedBalance?: string }>
+  >;
+}
+const mockAccountTrackerState: MockAccountTrackerState = {
+  accountsByChainId: {},
+};
+const mockAccountTrackerUpdate = jest.fn(
+  (updater: (state: MockAccountTrackerState) => void) =>
+    updater(mockAccountTrackerState),
+);
+const mockSetUseTransactionSimulations = jest.fn();
 
 jest.mock('../Engine', () => ({
   context: {
@@ -44,11 +61,31 @@ jest.mock('../Engine', () => ({
       init: jest.fn().mockResolvedValue(undefined),
     },
     KeyringController: {
+      state: {
+        vault: undefined,
+        keyrings: [],
+        isUnlocked: false,
+        encryptionKey: undefined,
+        encryptionSalt: undefined,
+      },
+      isUnlocked: () => mockIsUnlocked(),
+      submitPassword: (password: string) => mockSubmitPassword(password),
       importAccountWithStrategy: (...args: unknown[]) =>
         mockImportAccount(...args),
     },
     PerpsController: {
       markTutorialCompleted: jest.fn(),
+    },
+    NetworkEnablementController: {
+      enableNetwork: (...args: unknown[]) => mockEnableNetwork(...args),
+    },
+    AccountTrackerController: {
+      update: (updater: (state: MockAccountTrackerState) => void) =>
+        mockAccountTrackerUpdate(updater),
+    },
+    PreferencesController: {
+      setUseTransactionSimulations: (...args: unknown[]) =>
+        mockSetUseTransactionSimulations(...args),
     },
   },
   setSelectedAddress: jest.fn(),
@@ -126,6 +163,19 @@ jest.mock('../SDKConnect/utils/DevLogger', () => ({
 const MockEngine = jest.mocked(Engine);
 
 // ─── Test helpers ───────────────────────────────────────────────────────────
+
+function setMockKeyringState(
+  state: Partial<typeof MockEngine.context.KeyringController.state>,
+) {
+  MockEngine.context.KeyringController.state = {
+    vault: undefined,
+    keyrings: [],
+    isUnlocked: false,
+    encryptionKey: undefined,
+    encryptionSalt: undefined,
+    ...state,
+  } as typeof MockEngine.context.KeyringController.state;
+}
 
 function makeFiber(
   overrides: Partial<FiberNode> & {
@@ -638,6 +688,24 @@ describe('AgenticService.install', () => {
     beforeEach(() => {
       mockCreateWallet.mockClear();
       mockImportAccount.mockClear();
+      mockSubmitPassword.mockClear();
+      mockIsUnlocked.mockClear();
+      mockIsUnlocked.mockReturnValue(false);
+      mockEnableNetwork.mockClear();
+      mockAccountTrackerUpdate.mockClear();
+      mockAccountTrackerState.accountsByChainId = {};
+      mockSetUseTransactionSimulations.mockClear();
+      (
+        MockEngine.context.AccountsController.getSelectedAccount as jest.Mock
+      ).mockReturnValue({
+        id: 'acc-1',
+        address: '0xabc',
+        metadata: { name: 'Account 1' },
+      });
+      (
+        MockEngine.context.AccountsController.listAccounts as jest.Mock
+      ).mockReturnValue([]);
+      setMockKeyringState({});
       mockDispatch.mockClear();
     });
 
@@ -665,6 +733,32 @@ describe('AgenticService.install', () => {
         expect.objectContaining({ type: 'create', password: 'test123' }),
       );
       expect(mockImportAccount).toHaveBeenCalled();
+    });
+
+    it('unlocks an existing fixture vault instead of creating a wallet', async () => {
+      setMockKeyringState({ vault: 'encrypted' });
+
+      const result = await bridge().setupWallet({
+        password: 'test123',
+        accounts: [{ type: 'mnemonic', value: 'word1 word2 word3' }],
+      });
+
+      expect(result.ok).toBe(true);
+      expect(mockCreateWallet).not.toHaveBeenCalled();
+      expect(mockSubmitPassword).toHaveBeenCalledWith('test123');
+    });
+
+    it('does not resubmit the password when an existing vault is unlocked', async () => {
+      setMockKeyringState({ vault: 'encrypted' });
+      mockIsUnlocked.mockReturnValue(true);
+
+      const result = await bridge().setupWallet({
+        password: 'test123',
+        accounts: [],
+      });
+
+      expect(result.ok).toBe(true);
+      expect(mockSubmitPassword).not.toHaveBeenCalled();
     });
 
     it('imports private key accounts', async () => {
@@ -857,6 +951,16 @@ describe('AgenticService.install', () => {
       );
     });
 
+    it('disables transaction simulations when requested', async () => {
+      await bridge().setupWallet({
+        password: 'test123',
+        accounts: [],
+        settings: { disableTransactionSimulations: true },
+      });
+
+      expect(mockSetUseTransactionSimulations).toHaveBeenCalledWith(false);
+    });
+
     it('always dispatches setMultichainAccountsIntroModalSeen', async () => {
       mockDispatch.mockClear();
       await bridge().setupWallet({
@@ -869,6 +973,71 @@ describe('AgenticService.install', () => {
           payload: { seen: true },
         }),
       );
+    });
+
+    it('seeds Ethereum send state when requested', async () => {
+      const account = {
+        id: 'acc-1',
+        address: '0x0000000000000000000000000000000000000abc',
+        metadata: { name: 'Account 1' },
+      };
+      (
+        MockEngine.context.AccountsController.getSelectedAccount as jest.Mock
+      ).mockReturnValue(account);
+      (
+        MockEngine.context.AccountsController.listAccounts as jest.Mock
+      ).mockReturnValue([account]);
+
+      await bridge().setupWallet({
+        password: 'test123',
+        accounts: [],
+        settings: { seedEthereumBalanceWei: '0x123' },
+      });
+
+      expect(mockEnableNetwork).toHaveBeenCalledWith('eip155:1');
+      expect(mockAccountTrackerUpdate).toHaveBeenCalledTimes(1);
+      expect(mockAccountTrackerState.accountsByChainId).toStrictEqual({
+        '0x1': {
+          '0x0000000000000000000000000000000000000abc': {
+            balance: '0x123',
+            stakedBalance: '0x0',
+          },
+        },
+      });
+    });
+
+    it('seeds Ethereum send state without rerunning wallet setup', () => {
+      const account = {
+        id: 'acc-1',
+        address: '0x0000000000000000000000000000000000000abc',
+        metadata: { name: 'Account 1' },
+      };
+      (
+        MockEngine.context.AccountsController.getSelectedAccount as jest.Mock
+      ).mockReturnValue(account);
+      (
+        MockEngine.context.AccountsController.listAccounts as jest.Mock
+      ).mockReturnValue([account]);
+
+      const result = bridge().seedEthereumSendState({
+        balanceWei: '0x456',
+      });
+
+      expect(result).toStrictEqual({
+        ok: true,
+        accountAddress: '0x0000000000000000000000000000000000000abc',
+      });
+      expect(mockCreateWallet).not.toHaveBeenCalled();
+      expect(mockEnableNetwork).toHaveBeenCalledWith('eip155:1');
+      expect(mockAccountTrackerUpdate).toHaveBeenCalledTimes(1);
+      expect(mockAccountTrackerState.accountsByChainId).toStrictEqual({
+        '0x1': {
+          '0x0000000000000000000000000000000000000abc': {
+            balance: '0x456',
+            stakedBalance: '0x0',
+          },
+        },
+      });
     });
   });
 });

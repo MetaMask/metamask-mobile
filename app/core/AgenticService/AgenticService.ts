@@ -26,6 +26,7 @@ import {
 import { setCompletedOnboarding } from '../../actions/onboarding';
 import { mnemonicPhraseToBytes } from '@metamask/key-tree';
 import { AccountImportStrategy } from '@metamask/keyring-controller';
+import type { CaipChainId, Hex } from '@metamask/utils';
 import StorageWrapper from '../../store/storage-wrapper';
 import {
   OPTIN_META_METRICS_UI_SEEN,
@@ -76,6 +77,17 @@ interface FiberRoot {
 interface ReactDevToolsHook {
   renderers: Map<number, unknown>;
   getFiberRoots?: (id: number) => Set<FiberRoot>;
+}
+
+interface AgenticAccountTrackerState {
+  accountsByChainId: Record<
+    Hex,
+    Record<Hex, { balance: Hex; stakedBalance?: Hex }>
+  >;
+}
+
+interface AgenticAccountTrackerController {
+  update(updater: (state: AgenticAccountTrackerState) => void): void;
 }
 
 /** Shape of the __DEV__-only agentic bridge on globalThis. */
@@ -153,12 +165,19 @@ interface AgenticBridge {
       skipPerpsTutorial?: boolean;
       autoLockNever?: boolean;
       deviceAuthEnabled?: boolean;
+      disableTransactionSimulations?: boolean;
+      seedEthereumBalanceWei?: string;
     };
   }) => Promise<{
     ok: boolean;
     error?: string;
     accounts?: { address: string; name: string }[];
   }>;
+  seedEthereumSendState: (settings?: { balanceWei?: string }) => {
+    ok: boolean;
+    accountAddress?: string;
+    error?: string;
+  };
   showStep: (step: { id: string; description: string }) => void;
   hideStep: () => void;
   findFiberByTestId: (testId: string) => boolean;
@@ -233,6 +252,9 @@ function walkFiberRoots(visitor: (rootFiber: FiberNode) => boolean): boolean {
 
 // ─── Shared helpers ─────────────────────────────────────────────────────────
 
+const ETH_MAINNET_CHAIN_ID = '0x1' as Hex;
+const ETH_MAINNET_CAIP_CHAIN_ID = 'eip155:1' as CaipChainId;
+
 /** Map an internal account to the slim shape exposed by the bridge. */
 function toAccountSummary(a: {
   id: string;
@@ -240,6 +262,68 @@ function toAccountSummary(a: {
   metadata: { name: string };
 }): { id: string; address: string; name: string } {
   return { id: a.id, address: a.address, name: a.metadata.name };
+}
+
+function isEvmAddress(address: string): boolean {
+  return /^0x[a-fA-F0-9]{40}$/u.test(address);
+}
+
+function getEvmAccountAddress(
+  selectedAccount: { address: string },
+  accounts: { address: string }[],
+): string | undefined {
+  if (isEvmAddress(selectedAccount.address)) {
+    return selectedAccount.address;
+  }
+
+  return accounts.find((account) => isEvmAddress(account.address))?.address;
+}
+
+function seedEthereumSendState(balanceWei?: string): {
+  ok: boolean;
+  accountAddress?: string;
+  error?: string;
+} {
+  if (!balanceWei) {
+    return { ok: true };
+  }
+
+  const {
+    AccountsController,
+    AccountTrackerController,
+    NetworkEnablementController,
+  } = Engine.context;
+  const accountAddress = getEvmAccountAddress(
+    AccountsController.getSelectedAccount(),
+    AccountsController.listAccounts(),
+  );
+
+  if (!accountAddress) {
+    return {
+      ok: false,
+      error: 'No EVM account available for Ethereum send state seed.',
+    };
+  }
+
+  NetworkEnablementController.enableNetwork(ETH_MAINNET_CAIP_CHAIN_ID);
+  const accountTrackerController =
+    AccountTrackerController as unknown as AgenticAccountTrackerController;
+
+  accountTrackerController.update((state) => {
+    const lowerAddress = accountAddress.toLowerCase() as Hex;
+    state.accountsByChainId = state.accountsByChainId ?? {};
+    state.accountsByChainId[ETH_MAINNET_CHAIN_ID] =
+      state.accountsByChainId[ETH_MAINNET_CHAIN_ID] ?? {};
+    state.accountsByChainId[ETH_MAINNET_CHAIN_ID][lowerAddress] = {
+      ...state.accountsByChainId[ETH_MAINNET_CHAIN_ID][lowerAddress],
+      balance: balanceWei as Hex,
+      stakedBalance:
+        state.accountsByChainId[ETH_MAINNET_CHAIN_ID][lowerAddress]
+          ?.stakedBalance ?? ('0x0' as Hex),
+    };
+  });
+
+  return { ok: true, accountAddress };
 }
 
 /**
@@ -659,6 +743,17 @@ const AgenticService = {
         });
         return found;
       },
+      seedEthereumSendState: (settings = {}) => {
+        try {
+          const result = seedEthereumSendState(settings.balanceWei);
+          if (!result.ok) {
+            Logger.log(`[AgenticService] ${result.error}`);
+          }
+          return result;
+        } catch (e) {
+          return { ok: false, error: String((e as Error).message || e) };
+        }
+      },
       setupWallet: async (fixture) => {
         try {
           const {
@@ -668,28 +763,42 @@ const AgenticService = {
           } = Engine.context;
           const store = ReduxService.store;
           const settings = fixture.settings ?? {};
+          const existingVault = KeyringController.state?.vault;
 
-          // 1. Create wallet from the first mnemonic (same path as onboarding UI)
-          const mnemonicAccount = fixture.accounts.find(
-            (a) => a.type === 'mnemonic',
-          );
-          if (mnemonicAccount) {
-            const mnemonic = mnemonicPhraseToBytes(mnemonicAccount.value);
-            await MultichainAccountService.createMultichainAccountWallet({
-              type: 'restore',
-              password: fixture.password,
-              mnemonic,
-            });
+          if (settings.disableTransactionSimulations === true) {
+            Engine.context.PreferencesController.setUseTransactionSimulations(
+              false,
+            );
+          }
+
+          // 1. Unlock an injected fixture vault, or create wallet from the first mnemonic.
+          if (existingVault) {
+            if (!KeyringController.isUnlocked()) {
+              await KeyringController.submitPassword(fixture.password);
+            }
           } else {
-            await MultichainAccountService.createMultichainAccountWallet({
-              type: 'create',
-              password: fixture.password,
-            });
+            const mnemonicAccount = fixture.accounts.find(
+              (a) => a.type === 'mnemonic',
+            );
+            if (mnemonicAccount) {
+              const mnemonic = mnemonicPhraseToBytes(mnemonicAccount.value);
+              await MultichainAccountService.createMultichainAccountWallet({
+                type: 'restore',
+                password: fixture.password,
+                mnemonic,
+              });
+            } else {
+              await MultichainAccountService.createMultichainAccountWallet({
+                type: 'create',
+                password: fixture.password,
+              });
+            }
           }
 
           // 2. Initialize services (same as Authentication.dispatchLogin)
           await AccountTreeInitService.initializeAccountTree();
           await MultichainAccountService.init();
+          seedEthereumSendState(settings.seedEthereumBalanceWei);
 
           // 3. Import private key accounts
           for (const account of fixture.accounts) {
