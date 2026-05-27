@@ -2,7 +2,7 @@ import type { Theme } from '@metamask/design-tokens';
 import { StyleSheet, ViewStyle } from 'react-native';
 import { TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT } from './tokenOverviewChart.constants';
 
-const styleSheet = (_params: { theme: Theme }) =>
+const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
     wrapper: {
       width: '100%',
@@ -27,6 +27,19 @@ const styleSheet = (_params: { theme: Theme }) =>
     chartContainer: {
       width: '100%',
       alignSelf: 'stretch',
+    } as ViewStyle,
+    edgeOverlay: {
+      position: 'absolute',
+      left: 0,
+      top: 0,
+      bottom: 0,
+      width: 30,
+      zIndex: 10,
+    } as ViewStyle,
+    edgeOverlayDebug: {
+      borderRightWidth: 2,
+      borderRightColor: params.theme.colors.error.default,
+      backgroundColor: params.theme.colors.error.muted,
     } as ViewStyle,
     /** Figma: column, py 12, align start, gap 10; child row is full width */
     timeRangeContainer: {

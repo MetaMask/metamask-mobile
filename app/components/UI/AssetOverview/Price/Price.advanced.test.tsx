@@ -802,95 +802,155 @@ describe('PriceAdvanced', () => {
   });
 
   describe('touch gesture handling', () => {
-    it('sets isChartBeingTouched to true on touch start', () => {
+    it('sets isChartBeingTouched to true on horizontal gesture', () => {
       const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
       const chartContainer = getByTestId('advanced-chart-touch-container');
 
-      fireEvent(chartContainer, 'touchStart', {
+      fireEvent(chartContainer, 'responderGrant', {
         nativeEvent: { pageX: 100, pageY: 100 },
       });
-      fireEvent(chartContainer, 'touchMove', {
+      fireEvent(chartContainer, 'responderMove', {
         nativeEvent: { pageX: 120, pageY: 100 },
       });
 
       expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
     });
 
-    it('sets isChartBeingTouched to false on touch end', () => {
+    it('sets isChartBeingTouched to false on responder release', () => {
       const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
       const chartContainer = getByTestId('advanced-chart-touch-container');
 
-      fireEvent(chartContainer, 'touchStart', {
+      fireEvent(chartContainer, 'responderGrant', {
         nativeEvent: { pageX: 100, pageY: 100 },
       });
-      fireEvent(chartContainer, 'touchMove', {
+      fireEvent(chartContainer, 'responderMove', {
         nativeEvent: { pageX: 120, pageY: 100 },
       });
       expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
 
-      fireEvent(chartContainer, 'touchEnd');
+      fireEvent(chartContainer, 'responderRelease');
       expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(false);
     });
 
-    it('sets isChartBeingTouched to false on touch cancel', () => {
+    it('sets isChartBeingTouched to false on responder terminate', () => {
       const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
       const chartContainer = getByTestId('advanced-chart-touch-container');
 
-      fireEvent(chartContainer, 'touchStart', {
+      fireEvent(chartContainer, 'responderGrant', {
         nativeEvent: { pageX: 100, pageY: 100 },
       });
-      fireEvent(chartContainer, 'touchMove', {
+      fireEvent(chartContainer, 'responderMove', {
         nativeEvent: { pageX: 120, pageY: 100 },
       });
       expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
 
-      fireEvent(chartContainer, 'touchCancel');
+      fireEvent(chartContainer, 'responderTerminate');
       expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(false);
     });
 
-    it('handles multiple touch start/end cycles', () => {
+    it('handles multiple gesture cycles', () => {
       const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
       const chartContainer = getByTestId('advanced-chart-touch-container');
 
-      fireEvent(chartContainer, 'touchStart', {
+      fireEvent(chartContainer, 'responderGrant', {
         nativeEvent: { pageX: 100, pageY: 100 },
       });
-      fireEvent(chartContainer, 'touchMove', {
+      fireEvent(chartContainer, 'responderMove', {
         nativeEvent: { pageX: 120, pageY: 100 },
       });
       expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
 
-      fireEvent(chartContainer, 'touchEnd');
+      fireEvent(chartContainer, 'responderRelease');
       expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(false);
 
-      fireEvent(chartContainer, 'touchStart', {
+      fireEvent(chartContainer, 'responderGrant', {
         nativeEvent: { pageX: 100, pageY: 100 },
       });
-      fireEvent(chartContainer, 'touchMove', {
+      fireEvent(chartContainer, 'responderMove', {
         nativeEvent: { pageX: 120, pageY: 100 },
       });
       expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
 
-      fireEvent(chartContainer, 'touchEnd');
+      fireEvent(chartContainer, 'responderRelease');
       expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(false);
     });
 
     it('does not hijack iOS edge swipe gesture (back navigation)', () => {
       const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
       const chartContainer = getByTestId('advanced-chart-touch-container');
+      const pointerContainer = getByTestId('advanced-chart-pointer-container');
 
       // Simulate touch starting from left edge (iOS back gesture)
-      fireEvent(chartContainer, 'touchStart', {
+      fireEvent(chartContainer, 'responderGrant', {
         nativeEvent: { pageX: 10, pageY: 100 },
       });
+
+      // Chart should be enabled initially (for taps)
+      expect(pointerContainer.props.pointerEvents).toBe('auto');
+
       // Horizontal swipe from edge
-      fireEvent(chartContainer, 'touchMove', {
+      fireEvent(chartContainer, 'responderMove', {
         nativeEvent: { pageX: 50, pageY: 100 },
       });
 
       // Should NOT hijack the gesture - allow iOS back navigation
       expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(false);
       expect(mockSetIsChartBeingTouched).not.toHaveBeenCalledWith(true);
+
+      // Chart should be disabled after detecting edge swipe
+      expect(pointerContainer.props.pointerEvents).toBe('none');
+    });
+
+    it('disables chart pointer events during vertical scroll', () => {
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+      const chartContainer = getByTestId('advanced-chart-touch-container');
+      const pointerContainer = getByTestId('advanced-chart-pointer-container');
+
+      // Start with chart enabled
+      expect(pointerContainer.props.pointerEvents).toBe('auto');
+
+      fireEvent(chartContainer, 'responderGrant', {
+        nativeEvent: { pageX: 100, pageY: 100 },
+      });
+
+      // Chart still enabled (responder doesn't capture on start)
+      expect(pointerContainer.props.pointerEvents).toBe('auto');
+
+      // Vertical gesture
+      fireEvent(chartContainer, 'responderMove', {
+        nativeEvent: { pageX: 100, pageY: 110 },
+      });
+
+      // Chart should be disabled after detecting vertical scroll
+      expect(pointerContainer.props.pointerEvents).toBe('none');
+      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(false);
+
+      fireEvent(chartContainer, 'responderRelease');
+
+      // Chart re-enabled after touch ends
+      expect(pointerContainer.props.pointerEvents).toBe('auto');
+    });
+
+    it('keeps chart pointer events enabled for horizontal pan', () => {
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+      const chartContainer = getByTestId('advanced-chart-touch-container');
+      const pointerContainer = getByTestId('advanced-chart-pointer-container');
+
+      fireEvent(chartContainer, 'responderGrant', {
+        nativeEvent: { pageX: 100, pageY: 100 },
+      });
+
+      // Chart enabled initially (for taps and interactions)
+      expect(pointerContainer.props.pointerEvents).toBe('auto');
+
+      // Horizontal gesture (not from edge)
+      fireEvent(chartContainer, 'responderMove', {
+        nativeEvent: { pageX: 120, pageY: 100 },
+      });
+
+      // Chart should remain enabled for horizontal pan
+      expect(pointerContainer.props.pointerEvents).toBe('auto');
+      expect(mockSetIsChartBeingTouched).toHaveBeenCalledWith(true);
     });
   });
 

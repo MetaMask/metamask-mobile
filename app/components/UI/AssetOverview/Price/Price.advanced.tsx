@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View, type GestureResponderEvent } from 'react-native';
+import { View, Platform } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { strings } from '../../../../../locales/i18n';
@@ -51,7 +51,6 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { selectTokenOverviewChartType } from '../../../../reducers/user/selectors';
 import { setTokenOverviewChartType } from '../../../../actions/user';
-import { usePriceChart } from '../PriceChart/PriceChart.context';
 import type {
   TimePeriod,
   TokenPrice,
@@ -66,6 +65,8 @@ import {
 import { selectTokenDetailsOhlcvWsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsOhlcvWsIntegration';
 
 const EMPTY_INDICATORS: IndicatorType[] = [];
+const IOS_EDGE_OVERLAY_WIDTH = 15; // Width of invisible overlay for iOS back gesture
+const SHOW_EDGE_OVERLAY_DEBUG = true; // Set to true to see the overlay border (dev only)
 
 /**
  * Maps UI time-range selections to the WebSocket candle interval used by
@@ -153,77 +154,10 @@ const PriceAdvanced = ({
   const [crosshairData, setCrosshairData] = useState<CrosshairData | null>(
     null,
   );
-  const { setIsChartBeingTouched } = usePriceChart();
-
-  // Gesture tracking for distinguishing horizontal (chart pan) vs vertical (page scroll) gestures
-  const touchStartRef = useRef<{
-    pageX: number;
-    pageY: number;
-  } | null>(null);
-  const gestureDirectionRef = useRef<
-    'horizontal' | 'vertical' | 'undetermined'
-  >('undetermined');
-
   const handleCrosshairMove = useCallback(
     (data: CrosshairData | null) => setCrosshairData(data),
     [],
   );
-
-  const handleTouchStart = useCallback((event: GestureResponderEvent) => {
-    const { pageX, pageY } = event.nativeEvent;
-    touchStartRef.current = { pageX, pageY };
-    gestureDirectionRef.current = 'undetermined';
-  }, []);
-
-  const handleTouchMove = useCallback(
-    (event: GestureResponderEvent) => {
-      if (
-        !touchStartRef.current ||
-        gestureDirectionRef.current !== 'undetermined'
-      ) {
-        return;
-      }
-
-      const { pageX, pageY } = event.nativeEvent;
-      const deltaX = Math.abs(pageX - touchStartRef.current.pageX);
-      const deltaY = Math.abs(pageY - touchStartRef.current.pageY);
-
-      // Threshold in pixels to determine gesture direction
-      const GESTURE_THRESHOLD = 10;
-
-      // iOS edge swipe threshold - gestures starting near the left edge are likely back navigation
-      const IOS_EDGE_SWIPE_THRESHOLD = 30;
-
-      if (deltaX > GESTURE_THRESHOLD || deltaY > GESTURE_THRESHOLD) {
-        if (deltaX > deltaY) {
-          // Check if this is an iOS edge swipe gesture (back navigation)
-          const isEdgeSwipe =
-            touchStartRef.current.pageX < IOS_EDGE_SWIPE_THRESHOLD;
-
-          if (isEdgeSwipe) {
-            // Allow iOS back gesture, don't hijack it
-            gestureDirectionRef.current = 'vertical';
-            setIsChartBeingTouched(false);
-          } else {
-            // Horizontal gesture in the chart area - chart panning
-            gestureDirectionRef.current = 'horizontal';
-            setIsChartBeingTouched(true);
-          }
-        } else {
-          // Vertical gesture - page scrolling, allow it
-          gestureDirectionRef.current = 'vertical';
-          setIsChartBeingTouched(false);
-        }
-      }
-    },
-    [setIsChartBeingTouched],
-  );
-
-  const handleTouchEnd = useCallback(() => {
-    touchStartRef.current = null;
-    gestureDirectionRef.current = 'undetermined';
-    setIsChartBeingTouched(false);
-  }, [setIsChartBeingTouched]);
 
   const handleChartInteracted = useCallback(
     (payload: ChartInteractedPayload) => {
@@ -660,11 +594,17 @@ const PriceAdvanced = ({
         <View
           testID="advanced-chart-touch-container"
           style={[styles.chartContainer, { height: CHART_HEIGHT }]}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          onTouchCancel={handleTouchEnd}
         >
+          {Platform.OS === 'ios' && (
+            <View
+              style={[
+                styles.edgeOverlay,
+                { width: IOS_EDGE_OVERLAY_WIDTH },
+                SHOW_EDGE_OVERLAY_DEBUG && styles.edgeOverlayDebug,
+              ]}
+              pointerEvents="box-only"
+            />
+          )}
           <AdvancedChart
             ohlcvData={ohlcvData}
             ohlcvSeriesKey={ohlcvSeriesKey}
