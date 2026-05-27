@@ -45,7 +45,6 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
-import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
 import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
 import { trace, TraceName, TraceOperation } from '../../../../../util/trace';
@@ -215,16 +214,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
     return fullMarket || routeMarket;
   }, [markets, routeMarket, needsEnrichment]);
-  useEffect(() => {
-    if (routeMarket?.symbol === 'SPCX' && routeMarket?.maxLeverage === '100') {
-      Logger.log(
-        '[PR-TAT-3262] BUG_MARKER: SPCX carousel route supplied raw maxLeverage 100',
-      );
-      DevLogger.log(
-        '[PR-TAT-3262] BUG_MARKER: SPCX carousel route supplied raw maxLeverage 100',
-      );
-    }
-  }, [routeMarket?.symbol, routeMarket?.maxLeverage]);
   const dispatch = useDispatch();
 
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
