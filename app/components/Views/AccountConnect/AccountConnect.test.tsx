@@ -916,7 +916,7 @@ describe('AccountConnect', () => {
         .mockResolvedValue(undefined);
     });
 
-    it('uses App toast variant after favicon resolves from cache', async () => {
+    it('passes resolved favicon to Network toast variant', async () => {
       const faviconUrl = 'https://example.com/favicon.ico';
       jest.mocked(getFaviconFromCache).mockReturnValue(faviconUrl);
 
@@ -938,8 +938,8 @@ describe('AccountConnect', () => {
       await waitFor(() => {
         expect(mockShowToast).toHaveBeenCalledWith(
           expect.objectContaining({
-            variant: ToastVariants.App,
-            appIconSource: { uri: faviconUrl },
+            variant: ToastVariants.Network,
+            networkImageSource: { uri: faviconUrl },
             hasNoTimeout: false,
             labelOptions: [{ label: expect.any(String) }],
           }),
@@ -947,7 +947,7 @@ describe('AccountConnect', () => {
       });
     });
 
-    it('uses Plain toast variant when favicon lookup returns nothing', async () => {
+    it('still uses Network toast variant when favicon lookup returns nothing', async () => {
       const { getByTestId } = renderAccountConnectWithToast();
 
       await waitFor(() => {
@@ -968,7 +968,7 @@ describe('AccountConnect', () => {
       await waitFor(() => {
         expect(mockShowToast).toHaveBeenCalledWith(
           expect.objectContaining({
-            variant: ToastVariants.Plain,
+            variant: ToastVariants.Network,
             hasNoTimeout: false,
             labelOptions: [{ label: expect.any(String) }],
           }),

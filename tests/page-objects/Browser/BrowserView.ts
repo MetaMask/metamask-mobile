@@ -13,7 +13,6 @@ import {
 } from '../../framework/fixtures/FixtureUtils';
 import { DEFAULT_TAB_ID } from '../../framework/Constants';
 import { Assertions, Gestures, Matchers, Utilities } from '../../framework';
-import ToastModal from '../wallet/ToastModal';
 
 interface TransactionParams {
   [key: string]: string | number | boolean;
@@ -272,12 +271,6 @@ class Browser {
   }
 
   async tapNetworkAvatarOrAccountButtonOnBrowser(): Promise<void> {
-    // Connect/permission toasts (App variant with favicon) can block Android idle sync.
-    await Assertions.expectElementToNotBeVisible(ToastModal.container, {
-      description: 'Connect toast dismissed before opening connected accounts',
-      timeout: 15_000,
-    });
-
     await Gestures.waitAndTap(this.networkAvatarOrAccountButton, {
       elemDescription: 'Network avatar or account button',
     });
