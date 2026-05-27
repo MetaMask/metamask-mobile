@@ -247,12 +247,11 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
     [sections],
   );
 
-  const allSectionsEmpty =
-    searchQuery.trim().length > 0 &&
-    !sections.some((s) => s.isLoading) &&
-    flatData.length === 0;
-
   const listHeader = useMemo(() => {
+    const isLoading = sections.some((s) => s.isLoading);
+    const allSectionsEmpty =
+      searchQuery.trim().length > 0 && !isLoading && flatData.length === 0;
+
     if (!emptyFeedTitle && !allSectionsEmpty) return null;
     return (
       <Box twClassName="mb-4">
@@ -291,7 +290,7 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
             ))}
           </Box>
         </Box>
-        {flatData.length > 0 && !sections.some((s) => s.isLoading) && (
+        {flatData.length > 0 && !isLoading && (
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings('trending.showing_all_results_for', {
               count: otherResultsCount,
@@ -303,7 +302,6 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
     );
   }, [
     emptyFeedTitle,
-    allSectionsEmpty,
     searchQuery,
     flatData.length,
     otherResultsCount,
