@@ -12,6 +12,7 @@ import {
 } from '../../../util/notifications/androidChannels';
 import NotificationService, {
   getPushPermission,
+  getPushPermissionStatus,
   isPushPermissionGranted,
   isPushPermissionPromptable,
 } from './NotificationService';
@@ -181,6 +182,43 @@ describe('isPushPermissionGranted', () => {
   });
 });
 
+describe('getPushPermissionStatus', () => {
+  const arrangeMocks = (status: string) =>
+    jest.mocked(notifee.getNotificationSettings).mockResolvedValue({
+      authorizationStatus: status,
+    } as unknown as NotificationSettings);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it.each([
+    { status: AuthorizationStatus.AUTHORIZED, expected: 'granted' },
+    { status: AuthorizationStatus.PROVISIONAL, expected: 'granted' },
+    { status: AuthorizationStatus.NOT_DETERMINED, expected: 'promptable' },
+    { status: AuthorizationStatus.DENIED, expected: 'denied' },
+  ])(
+    'returns $expected when status is $status',
+    async ({ status, expected }) => {
+      arrangeMocks(status as unknown as string);
+
+      const result = await getPushPermissionStatus();
+
+      expect(result).toBe(expected);
+    },
+  );
+
+  it('returns denied when getNotificationSettings throws', async () => {
+    jest
+      .mocked(notifee.getNotificationSettings)
+      .mockRejectedValue(new Error('TEST ERROR'));
+
+    const result = await getPushPermissionStatus();
+
+    expect(result).toBe('denied');
+  });
+});
+
 describe('isPushPermissionPromptable', () => {
   const arrangeMocks = (status: string) =>
     jest.mocked(notifee.getNotificationSettings).mockResolvedValue({
@@ -192,8 +230,8 @@ describe('isPushPermissionPromptable', () => {
   });
 
   it.each([
-    { status: AuthorizationStatus.AUTHORIZED, expected: true },
-    { status: AuthorizationStatus.PROVISIONAL, expected: true },
+    { status: AuthorizationStatus.AUTHORIZED, expected: false },
+    { status: AuthorizationStatus.PROVISIONAL, expected: false },
     { status: AuthorizationStatus.NOT_DETERMINED, expected: true },
     { status: AuthorizationStatus.DENIED, expected: false },
   ])(

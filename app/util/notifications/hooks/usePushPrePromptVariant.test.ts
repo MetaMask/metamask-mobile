@@ -10,23 +10,36 @@ import { PUSH_PRE_PROMPT_SHOWN, TRUE } from '../../../constants/storage';
 import storageWrapper from '../../../store/storage-wrapper';
 import { renderHookWithProvider } from '../../test/renderWithProvider';
 import { isNotificationsFeatureEnabled } from '../constants';
-import { resolveNativePushPermissionEnabled } from '../utils/push-notification-status';
+import { resolveNativePushPermissionStatus } from '../utils/push-notification-status';
 import { usePushPrePromptVariant } from './usePushPrePromptVariant';
 
 jest.mock('../utils/push-notification-status', () => ({
-  resolveNativePushPermissionEnabled: jest.fn(),
+  resolveNativePushPermissionStatus: jest.fn(),
 }));
 
 jest.mock('../constants', () => ({
   isNotificationsFeatureEnabled: jest.fn(),
 }));
 
-const mockResolveNativePushPermissionEnabled = jest.mocked(
-  resolveNativePushPermissionEnabled,
+const mockResolveNativePushPermissionStatus = jest.mocked(
+  resolveNativePushPermissionStatus,
 );
 const mockIsNotificationsFeatureEnabled = jest.mocked(
   isNotificationsFeatureEnabled,
 );
+
+const mockNativePushPermissionStatus = ({
+  nativeOsPermissionEnabled = true,
+  nativeOsPermissionPromptable = false,
+}: {
+  nativeOsPermissionEnabled?: boolean;
+  nativeOsPermissionPromptable?: boolean;
+} = {}) => {
+  mockResolveNativePushPermissionStatus.mockResolvedValue({
+    nativeOsPermissionEnabled,
+    nativeOsPermissionPromptable,
+  });
+};
 
 const arrangeStorage = (
   values: Partial<Record<string, string | null>> = {},
@@ -91,7 +104,7 @@ describe('usePushPrePromptVariant', () => {
     arrangeSelectors();
     arrangeStorage();
     mockIsNotificationsFeatureEnabled.mockReturnValue(true);
-    mockResolveNativePushPermissionEnabled.mockResolvedValue(true);
+    mockNativePushPermissionStatus();
   });
 
   afterEach(() => {
@@ -99,7 +112,10 @@ describe('usePushPrePromptVariant', () => {
   });
 
   it('returns the push permission prompt when onboarding is complete and native push is disabled', async () => {
-    mockResolveNativePushPermissionEnabled.mockResolvedValue(false);
+    mockNativePushPermissionStatus({
+      nativeOsPermissionEnabled: false,
+      nativeOsPermissionPromptable: true,
+    });
 
     const { result } = renderUsePushPrePromptVariant();
 
@@ -107,7 +123,23 @@ describe('usePushPrePromptVariant', () => {
       expect(result.current.variant).toBe('push_permission');
     });
     expect(result.current.nativeOsPermissionEnabled).toBe(false);
-    expect(mockResolveNativePushPermissionEnabled).toHaveBeenCalledTimes(1);
+    expect(mockResolveNativePushPermissionStatus).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not return a prompt when native push permission was previously denied', async () => {
+    mockNativePushPermissionStatus({
+      nativeOsPermissionEnabled: false,
+      nativeOsPermissionPromptable: false,
+    });
+
+    const { result } = renderUsePushPrePromptVariant();
+
+    await waitFor(() => {
+      expect(result.current.isResolving).toBe(false);
+    });
+    expect(result.current.variant).toBeNull();
+    expect(result.current.nativeOsPermissionEnabled).toBe(false);
+    expect(mockResolveNativePushPermissionStatus).toHaveBeenCalledTimes(1);
   });
 
   it('does not return a prompt before onboarding completes', async () => {
@@ -121,17 +153,17 @@ describe('usePushPrePromptVariant', () => {
       expect(result.current.isResolving).toBe(false);
     });
     expect(result.current.variant).toBeNull();
-    expect(mockResolveNativePushPermissionEnabled).not.toHaveBeenCalled();
+    expect(mockResolveNativePushPermissionStatus).not.toHaveBeenCalled();
   });
 
   it('stays resolving when onboarding completion changes the eligibility inputs', async () => {
     arrangeSelectors({ completedOnboarding: false });
     let resolveNativePushPermission:
       | ((
-          value: Awaited<ReturnType<typeof resolveNativePushPermissionEnabled>>,
+          value: Awaited<ReturnType<typeof resolveNativePushPermissionStatus>>,
         ) => void)
       | undefined;
-    mockResolveNativePushPermissionEnabled.mockReturnValue(
+    mockResolveNativePushPermissionStatus.mockReturnValue(
       new Promise((resolve) => {
         resolveNativePushPermission = resolve;
       }),
@@ -148,7 +180,7 @@ describe('usePushPrePromptVariant', () => {
       expect(result.current.isResolving).toBe(false);
     });
     expect(result.current.variant).toBeNull();
-    expect(mockResolveNativePushPermissionEnabled).not.toHaveBeenCalled();
+    expect(mockResolveNativePushPermissionStatus).not.toHaveBeenCalled();
 
     act(() => {
       store.dispatch(setCompletedOnboarding(true));
@@ -158,7 +190,10 @@ describe('usePushPrePromptVariant', () => {
     expect(result.current.isResolving).toBe(true);
 
     await act(async () => {
-      resolveNativePushPermission?.(false);
+      resolveNativePushPermission?.({
+        nativeOsPermissionEnabled: false,
+        nativeOsPermissionPromptable: true,
+      });
     });
 
     await waitFor(() => {
@@ -179,7 +214,7 @@ describe('usePushPrePromptVariant', () => {
       expect(result.current.isResolving).toBe(false);
     });
     expect(result.current.variant).toBeNull();
-    expect(mockResolveNativePushPermissionEnabled).not.toHaveBeenCalled();
+    expect(mockResolveNativePushPermissionStatus).not.toHaveBeenCalled();
   });
 
   it('does not return a prompt when the default-on feature flag is disabled', async () => {
@@ -191,7 +226,7 @@ describe('usePushPrePromptVariant', () => {
       expect(result.current.isResolving).toBe(false);
     });
     expect(result.current.variant).toBeNull();
-    expect(mockResolveNativePushPermissionEnabled).not.toHaveBeenCalled();
+    expect(mockResolveNativePushPermissionStatus).not.toHaveBeenCalled();
   });
 
   it('does not return a prompt when the notifications feature is disabled', async () => {
@@ -203,7 +238,7 @@ describe('usePushPrePromptVariant', () => {
       expect(result.current.isResolving).toBe(false);
     });
     expect(result.current.variant).toBeNull();
-    expect(mockResolveNativePushPermissionEnabled).not.toHaveBeenCalled();
+    expect(mockResolveNativePushPermissionStatus).not.toHaveBeenCalled();
   });
 
   it('does not return a prompt when local storage says it was shown', async () => {
@@ -216,7 +251,7 @@ describe('usePushPrePromptVariant', () => {
     });
     expect(result.current.variant).toBeNull();
 
-    expect(mockResolveNativePushPermissionEnabled).not.toHaveBeenCalled();
+    expect(mockResolveNativePushPermissionStatus).not.toHaveBeenCalled();
     expect(storageWrapper.setItem).not.toHaveBeenCalled();
   });
 
@@ -235,7 +270,7 @@ describe('usePushPrePromptVariant', () => {
       expect(result.current.isResolving).toBe(false);
     });
     expect(result.current.variant).toBeNull();
-    expect(mockResolveNativePushPermissionEnabled).not.toHaveBeenCalled();
+    expect(mockResolveNativePushPermissionStatus).not.toHaveBeenCalled();
 
     storedPrePromptShown = null;
     rerender(undefined);
@@ -244,7 +279,7 @@ describe('usePushPrePromptVariant', () => {
       expect(result.current.isResolving).toBe(false);
     });
     expect(result.current.variant).toBeNull();
-    expect(mockResolveNativePushPermissionEnabled).not.toHaveBeenCalled();
+    expect(mockResolveNativePushPermissionStatus).not.toHaveBeenCalled();
   });
 
   it('returns the marketing consent prompt when OS push is enabled and Redux marketing consent is missing', async () => {
@@ -254,7 +289,7 @@ describe('usePushPrePromptVariant', () => {
       expect(result.current.variant).toBe('marketing_consent');
     });
     expect(result.current.nativeOsPermissionEnabled).toBe(true);
-    expect(mockResolveNativePushPermissionEnabled).toHaveBeenCalledTimes(1);
+    expect(mockResolveNativePushPermissionStatus).toHaveBeenCalledTimes(1);
   });
 
   it('does not return a prompt when OS push and Redux marketing consent are enabled', async () => {
@@ -279,11 +314,14 @@ describe('usePushPrePromptVariant', () => {
     });
     expect(result.current.variant).toBeNull();
     expect(result.current.nativeOsPermissionEnabled).toBe(true);
-    expect(mockResolveNativePushPermissionEnabled).toHaveBeenCalledTimes(1);
+    expect(mockResolveNativePushPermissionStatus).toHaveBeenCalledTimes(1);
   });
 
   it('does not defer the push permission prompt for social login marketing consent backfill', async () => {
-    mockResolveNativePushPermissionEnabled.mockResolvedValue(false);
+    mockNativePushPermissionStatus({
+      nativeOsPermissionEnabled: false,
+      nativeOsPermissionPromptable: true,
+    });
     const { result } = renderUsePushPrePromptVariant({
       pendingSocialLoginMarketingConsentBackfill: 'google',
     });
@@ -297,10 +335,10 @@ describe('usePushPrePromptVariant', () => {
   it('waits for native push permission before showing marketing consent', async () => {
     let resolveNativePushPermission:
       | ((
-          value: Awaited<ReturnType<typeof resolveNativePushPermissionEnabled>>,
+          value: Awaited<ReturnType<typeof resolveNativePushPermissionStatus>>,
         ) => void)
       | undefined;
-    mockResolveNativePushPermissionEnabled.mockReturnValue(
+    mockResolveNativePushPermissionStatus.mockReturnValue(
       new Promise((resolve) => {
         resolveNativePushPermission = resolve;
       }),
@@ -312,7 +350,10 @@ describe('usePushPrePromptVariant', () => {
     expect(result.current.isResolving).toBe(true);
 
     await act(async () => {
-      resolveNativePushPermission?.(true);
+      resolveNativePushPermission?.({
+        nativeOsPermissionEnabled: true,
+        nativeOsPermissionPromptable: false,
+      });
     });
 
     await waitFor(() => {
@@ -321,7 +362,7 @@ describe('usePushPrePromptVariant', () => {
   });
 
   it('returns null when the native push permission check fails', async () => {
-    mockResolveNativePushPermissionEnabled.mockRejectedValue(
+    mockResolveNativePushPermissionStatus.mockRejectedValue(
       new Error('native permission failed'),
     );
 
@@ -335,7 +376,10 @@ describe('usePushPrePromptVariant', () => {
   });
 
   it('marks the prompt as shown without hiding it until dismissed', async () => {
-    mockResolveNativePushPermissionEnabled.mockResolvedValue(false);
+    mockNativePushPermissionStatus({
+      nativeOsPermissionEnabled: false,
+      nativeOsPermissionPromptable: true,
+    });
     const { result } = renderUsePushPrePromptVariant();
 
     await waitFor(() => {

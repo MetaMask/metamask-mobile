@@ -13,7 +13,7 @@ import {
   setPushPrePromptShown,
 } from '../constants/notification-storage-keys';
 import { isNotificationsFeatureEnabled } from '../constants';
-import { resolveNativePushPermissionEnabled } from '../utils/push-notification-status';
+import { resolveNativePushPermissionStatus } from '../utils/push-notification-status';
 
 export type PushPrePromptVariant =
   | 'push_permission'
@@ -79,12 +79,13 @@ const resolvePrePromptVariant = async (
     };
   }
 
-  const nativeOsPermissionEnabled = await resolveNativePushPermissionEnabled();
+  const { nativeOsPermissionEnabled, nativeOsPermissionPromptable } =
+    await resolveNativePushPermissionStatus();
 
   if (!nativeOsPermissionEnabled) {
     return {
       nativeOsPermissionEnabled,
-      variant: 'push_permission',
+      variant: nativeOsPermissionPromptable ? 'push_permission' : null,
     };
   }
 

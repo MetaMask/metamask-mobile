@@ -1,18 +1,25 @@
-import { isPushPermissionGranted } from '../services/NotificationService';
+import {
+  isPushPermissionGranted,
+  isPushPermissionPromptable,
+} from '../services/NotificationService';
 import {
   resolveNativePushPermissionEnabled,
+  resolveNativePushPermissionStatus,
   resolvePushNotificationStatus,
 } from './push-notification-status';
 
 jest.mock('../services/NotificationService', () => ({
   isPushPermissionGranted: jest.fn(),
+  isPushPermissionPromptable: jest.fn(),
 }));
 
 const mockIsPushPermissionGranted = jest.mocked(isPushPermissionGranted);
+const mockIsPushPermissionPromptable = jest.mocked(isPushPermissionPromptable);
 
 describe('push-notification-status', () => {
   beforeEach(() => {
     mockIsPushPermissionGranted.mockReset();
+    mockIsPushPermissionPromptable.mockReset();
   });
 
   it('checks native permission when controller push is disabled', async () => {
@@ -77,5 +84,19 @@ describe('push-notification-status', () => {
 
     expect(nativePushPermissionEnabled).toBe(true);
     expect(mockIsPushPermissionGranted).toHaveBeenCalledTimes(1);
+    expect(mockIsPushPermissionPromptable).not.toHaveBeenCalled();
+  });
+
+  it('resolves promptable native push permission status', async () => {
+    mockIsPushPermissionGranted.mockResolvedValue(false);
+    mockIsPushPermissionPromptable.mockResolvedValue(true);
+
+    const nativePushPermissionStatus =
+      await resolveNativePushPermissionStatus();
+
+    expect(nativePushPermissionStatus).toEqual({
+      nativeOsPermissionEnabled: false,
+      nativeOsPermissionPromptable: true,
+    });
   });
 });

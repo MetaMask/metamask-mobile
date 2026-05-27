@@ -313,6 +313,25 @@ const NotificationService = new NotificationsService();
 
 export default NotificationService;
 
+export type PushPermissionStatus = 'granted' | 'promptable' | 'denied';
+
+const getPushPermissionStatusFromAuthorizationStatus = (
+  authorizationStatus: AuthorizationStatus,
+): PushPermissionStatus => {
+  if (
+    authorizationStatus === AuthorizationStatus.AUTHORIZED ||
+    authorizationStatus === AuthorizationStatus.PROVISIONAL
+  ) {
+    return 'granted';
+  }
+
+  if (authorizationStatus === AuthorizationStatus.NOT_DETERMINED) {
+    return 'promptable';
+  }
+
+  return 'denied';
+};
+
 export async function requestPushPermissions() {
   const result = await NotificationService.getAllPermissions(true);
   return result.permission === 'authorized';
@@ -328,33 +347,31 @@ export async function getPushPermission() {
   return result.permission;
 }
 
+export async function getPushPermissionStatus(): Promise<PushPermissionStatus> {
+  try {
+    const settings = await notifee.getNotificationSettings();
+    return getPushPermissionStatusFromAuthorizationStatus(
+      settings.authorizationStatus,
+    );
+  } catch {
+    return 'denied';
+  }
+}
+
 /**
  * Returns true when the OS has granted push permission (AUTHORIZED or PROVISIONAL).
  * NOT_DETERMINED and DENIED both return false.
  * Use this to gate registration, settings UI, and pre-prompt eligibility.
  */
 export async function isPushPermissionGranted(): Promise<boolean> {
-  try {
-    const settings = await notifee.getNotificationSettings();
-    return (
-      settings.authorizationStatus === AuthorizationStatus.AUTHORIZED ||
-      settings.authorizationStatus === AuthorizationStatus.PROVISIONAL
-    );
-  } catch {
-    return false;
-  }
+  return (await getPushPermissionStatus()) === 'granted';
 }
 
 /**
  * Returns true when calling requestPermission() will actually show the OS dialog.
- * DENIED returns false (OS will not re-prompt). NOT_DETERMINED returns true.
+ * NOT_DETERMINED returns true. DENIED and already-granted states return false.
  * Use this to short-circuit the OS prompt when permission has already been denied.
  */
 export async function isPushPermissionPromptable(): Promise<boolean> {
-  try {
-    const settings = await notifee.getNotificationSettings();
-    return settings.authorizationStatus !== AuthorizationStatus.DENIED;
-  } catch {
-    return false;
-  }
+  return (await getPushPermissionStatus()) === 'promptable';
 }
