@@ -51,7 +51,7 @@ const MoneyBalanceCard = () => {
     useMoneyAccountInfo();
   const { navigateToMoneyHome } = useMoneyNavigation();
   const hasSeenMoneyOnboarding = useSelector(selectMoneyOnboardingSeen);
-  const walletHomeOnboardingFlowVisible = useSelector(
+  const hasOtherPrimaryCtaOnHome = useSelector(
     selectWalletHomeOnboardingFlowVisible,
   );
 
@@ -105,25 +105,29 @@ const MoneyBalanceCard = () => {
     buttonTestId = MoneyBalanceCardTestIds.ADD_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.UNAVAILABLE_CONTAINER;
   } else if (isNewUser) {
-    buttonVariant = walletHomeOnboardingFlowVisible
+    buttonVariant = hasOtherPrimaryCtaOnHome
       ? ButtonVariant.Secondary
       : ButtonVariant.Primary;
     buttonLabel = strings(
-      walletHomeOnboardingFlowVisible
+      hasOtherPrimaryCtaOnHome
         ? 'homepage.sections.money_empty_state.get_started'
         : 'homepage.sections.money_empty_state.earn',
     );
-    buttonTestId = walletHomeOnboardingFlowVisible
+    buttonTestId = hasOtherPrimaryCtaOnHome
       ? MoneyBalanceCardTestIds.GET_STARTED_BUTTON
       : MoneyBalanceCardTestIds.EARN_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.NEW_USER_CONTAINER;
   } else if (isEmpty) {
-    buttonVariant = ButtonVariant.Primary;
+    buttonVariant = hasOtherPrimaryCtaOnHome
+      ? ButtonVariant.Secondary
+      : ButtonVariant.Primary;
     buttonLabel = strings('homepage.sections.money_empty_state.earn');
     buttonTestId = MoneyBalanceCardTestIds.EARN_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.EMPTY_CONTAINER;
   } else {
-    buttonVariant = ButtonVariant.Secondary;
+    buttonVariant = hasOtherPrimaryCtaOnHome
+      ? ButtonVariant.Secondary
+      : ButtonVariant.Primary;
     buttonLabel = strings('money.balance_card.add');
     buttonTestId = MoneyBalanceCardTestIds.ADD_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.FUNDED_CONTAINER;

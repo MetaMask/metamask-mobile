@@ -72,8 +72,8 @@ import {
   resolvePredictSeriesMarket,
   type PredictMarketWithSeries,
 } from '../../utils/series';
-import { usePredictEntryPoint, usePredictPreviewSheet } from '../../contexts';
-import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
+import { usePredictPreviewSheet } from '../../contexts';
+import { useResolvedPredictEntryPoint } from '../../hooks/useResolvedPredictEntryPoint';
 import { PredictCryptoUpDownMarketCardSelectorsIDs } from '../../Predict.testIds';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import type { LivelinePoint } from '../../../Charts/LivelineChart/LivelineChart.types';
@@ -1067,15 +1067,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { navigateToMarketDetails } = usePredictNavigation();
   const { openBuySheet } = usePredictPreviewSheet();
-  const contextEntryPoint = usePredictEntryPoint();
-  const baseEntryPoint =
-    contextEntryPoint ??
-    propEntryPoint ??
-    PredictEventValues.ENTRY_POINT.PREDICT_FEED;
-  const resolvedEntryPoint = TrendingFeedSessionManager.getInstance()
-    .isFromTrending
-    ? PredictEventValues.ENTRY_POINT.TRENDING
-    : baseEntryPoint;
+  const resolvedEntryPoint = useResolvedPredictEntryPoint(propEntryPoint);
   const { executeGuardedAction } = usePredictActionGuard({ navigation });
   const durationMs = getSeriesDurationMs(market.series.recurrence);
   const windowMs = useSharedSeriesWindowMs(durationMs);

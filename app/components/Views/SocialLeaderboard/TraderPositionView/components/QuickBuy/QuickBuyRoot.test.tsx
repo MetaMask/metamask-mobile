@@ -166,6 +166,7 @@ const buildHookResult = (
   handleAmountAreaPress: jest.fn(),
   handleAmountChange: jest.fn(),
   handleToggleAmountDisplay: jest.fn(),
+  handleSelectSourceToken: jest.fn(),
   handleConfirm: jest.fn(),
   ...overrides,
 });
