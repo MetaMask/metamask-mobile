@@ -209,7 +209,11 @@ class SendView {
     await encapsulatedAction({
       detox: async () => {
         for (const digit of amount.split('')) {
-          const el = Matchers.getElementByText(digit);
+          // The numpad "0" is the second element matching text "0" on screen
+          const el =
+            digit === '0'
+              ? Matchers.getElementByText('0', 1)
+              : Matchers.getElementByText(digit);
           await Gestures.waitAndTap(el, {
             elemDescription: `Numpad digit ${digit}`,
           });

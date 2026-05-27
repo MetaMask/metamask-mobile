@@ -6,7 +6,6 @@ import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import SendView from '../../page-objects/Send/RedesignedSendView';
 import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
-import TestHelpers from '../../helpers.js';
 
 const RECIPIENT_ADDRESS = '0xb1D018BE7a9cFD7AC6c5Cce00835a8F2386173d8';
 

@@ -262,9 +262,12 @@ class ActivitiesView {
   ): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
-        await Assertions.expectElementToBeVisible(this.confirmedLabel, {
-          description: 'Transaction should be confirmed',
-        });
+        await Assertions.expectElementToBeVisible(
+          this.transactionStatus(rowIndex),
+          {
+            description: `Transaction row ${rowIndex} should be confirmed`,
+          },
+        );
       },
       appium: async () => {
         await PlaywrightAssertions.expectConditionWithRetry(

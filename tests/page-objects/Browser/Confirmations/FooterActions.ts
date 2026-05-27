@@ -36,6 +36,7 @@ class FooterActions {
           ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
         );
         await PlaywrightGestures.waitAndTap(el, {
+          timeout,
           checkForDisplayed: true,
           checkForEnabled: true,
         });
