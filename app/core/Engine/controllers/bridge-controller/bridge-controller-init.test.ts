@@ -308,7 +308,7 @@ describe('BridgeController Init', () => {
         // Assert
         const constructorOptions = bridgeControllerClassMock.mock.calls[0][0];
         expect(constructorOptions.getUseAssetsControllerForRates?.()).toBe(
-          true,
+          false,
         );
       });
 
@@ -324,7 +324,7 @@ describe('BridgeController Init', () => {
         // Assert
         const constructorOptions = bridgeControllerClassMock.mock.calls[0][0];
         expect(constructorOptions.getUseAssetsControllerForRates?.()).toBe(
-          true,
+          false,
         );
       });
 
