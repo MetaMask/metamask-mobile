@@ -2230,13 +2230,12 @@ export class PerpsController extends BaseController<
   async depositWithConfirmation(
     params: DepositWithConfirmationParams = {},
   ): Promise<{ result: Promise<string> }> {
-    const provider = await this.#getActiveProviderWhenReady();
-
     const { amount, placeOrder } = params;
 
     let currentDepositId: string | undefined;
 
     try {
+      const provider = await this.#getActiveProviderWhenReady();
       // Clear any stale results when starting a new deposit flow
       // Don't set depositInProgress yet - wait until user confirms
       const {
