@@ -239,13 +239,13 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
               query: searchQuery,
             })}
             descriptionProps={{
-              variant: TextVariant.BodyMd,
+              variant: TextVariant.HeadingSm,
               fontWeight: FontWeight.Bold,
               color: TextColor.TextDefault,
             }}
           />
         </Box>
-        {flatData.length > 0 && (
+        {flatData.length > 0 && !sections.some((s) => s.isLoading) && (
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings('trending.showing_all_results_for', {
               count: otherResultsCount,
@@ -255,7 +255,13 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
         )}
       </Box>
     );
-  }, [emptyFeedTitle, searchQuery, flatData.length, otherResultsCount]);
+  }, [
+    emptyFeedTitle,
+    searchQuery,
+    flatData.length,
+    otherResultsCount,
+    sections,
+  ]);
 
   return (
     <Box twClassName="flex-1 bg-default">
