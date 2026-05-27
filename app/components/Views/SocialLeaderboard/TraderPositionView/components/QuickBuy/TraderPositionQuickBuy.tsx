@@ -26,12 +26,6 @@ const TraderPositionQuickBuy: React.FC<TraderPositionQuickBuyProps> = ({
   marketCap,
   source,
 }) => {
-  // Memoise on primitive fields so the target reference stays stable while
-  // the underlying position doesn't change. Without this, every parent
-  // re-render produces a new target object, which destabilises `destToken`
-  // inside `useQuickBuySetup`, which in turn re-triggers `useQuickBuyQuotes`'
-  // fetch effect — aborting in-flight quotes before they resolve and leaving
-  // the spinner stuck on.
   // Stabilise the derived `target` reference so it doesn't destabilise the
   // `destToken` memo inside `useQuickBuySetup` (which would in turn re-trigger
   // `useQuickBuyQuotes`' fetch effect and abort in-flight quotes).

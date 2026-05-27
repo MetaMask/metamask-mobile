@@ -4418,7 +4418,7 @@ describe('RewardsDataService', () => {
       },
       pointsAllocation: {
         earned: 24400000,
-        max: 100000000,
+        threshold: 100000000,
         percent: 24.4,
       },
       tiers: [
@@ -4430,14 +4430,12 @@ describe('RewardsDataService', () => {
           revenueShareBps: 150,
           swapsBps: 15,
           perpsBps: 4,
-          equityRebateBps: 0,
           referralCarryoverBps: 2000,
           status: 'current',
         },
       ],
       localizedText: {
-        period: 'Mar 31 - Apr 30',
-        progressToNextTier: 'Subline',
+        periodTitle: 'Mar 31 - Apr 30',
         memberIdTitle: 'Member ID',
         swapsFeeTitle: 'Swaps fee',
         perpsFeeTitle: 'Perps fee',
@@ -4446,10 +4444,11 @@ describe('RewardsDataService', () => {
         revenueShareTitle: 'Revenue share',
         nextTierRevenueShareDelta: '↑ 2% next tier',
         statsTitle: 'Volume',
-        statusMessage: 'On track',
-        pointsTitle: 'Points',
-        pointsAllocationTitle: 'Earn VIP allocations',
-        pointsAllocationDescription: 'Body copy',
+        totalPointsTitle: 'Points',
+        equityLockedTitle: 'Earn VIP allocations',
+        equityLockedDescription: 'Body copy',
+        equityUnlockedTitle: 'VIP allocation unlocked',
+        equityUnlockedDescription: 'Unlocked body copy',
       },
     };
 

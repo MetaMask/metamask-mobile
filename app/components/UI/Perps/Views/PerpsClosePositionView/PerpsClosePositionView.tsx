@@ -79,6 +79,7 @@ import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
 import PerpsSlider from '../../components/PerpsSlider/PerpsSlider';
 import PerpsCloseSummary from '../../components/PerpsCloseSummary';
+import { useVipTier } from '../../../Rewards/hooks/useVipTier';
 
 const PerpsClosePositionView: React.FC = () => {
   const theme = useTheme();
@@ -280,6 +281,8 @@ const PerpsClosePositionView: React.FC = () => {
     orderAmount: closingValueString,
   });
 
+  const vipTier = useVipTier();
+
   // Calculate what user will receive (margin - fees)
   // Round each component separately to match what user sees in UI
   // This ensures: displayed margin - displayed fees = displayed receive amount
@@ -396,6 +399,8 @@ const PerpsClosePositionView: React.FC = () => {
         estimatedPoints: rewardsState.estimatedPoints,
         inputMethod: inputMethodRef.current,
         source: routeSource,
+        vipTier: vipTier ?? undefined,
+        vipDiscount: feeResults.feeDiscountPercentage,
       },
       marketPrice: priceData[position.symbol]?.price,
       // Always pass slippage parameters for price context
