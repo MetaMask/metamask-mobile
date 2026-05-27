@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import QuickBuyToolbar from './QuickBuyToolbar';
 import { useQuickBuyContext } from '../useQuickBuyContext';
 
@@ -12,10 +12,13 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
 }));
 
 describe('QuickBuyToolbar', () => {
+  const setActiveScreen = jest.fn();
+
   beforeEach(() => {
     jest.clearAllMocks();
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       formattedExchangeRate: '1 ETH = 1000 USDC',
+      setActiveScreen,
     });
   });
 
@@ -35,9 +38,16 @@ describe('QuickBuyToolbar', () => {
   it('hides the rate tag when exchange rate is undefined', () => {
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       formattedExchangeRate: undefined,
+      setActiveScreen,
     });
 
     render(<QuickBuyToolbar />);
     expect(screen.queryByTestId('quick-buy-rate-tag')).not.toBeOnTheScreen();
+  });
+
+  it('navigates to quoteDetails screen when the rate tag is pressed', () => {
+    render(<QuickBuyToolbar />);
+    fireEvent.press(screen.getByTestId('quick-buy-rate-tag-pressable'));
+    expect(setActiveScreen).toHaveBeenCalledWith('quoteDetails');
   });
 });

@@ -17,13 +17,13 @@ import {
   IconSize,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
-import { strings } from '../../../../../../../../locales/i18n';
-import KeyValueRow from '../../../../../../../component-library/components-temp/KeyValueRow';
-import Routes from '../../../../../../../constants/navigation/Routes';
+import { strings } from '../../../../../../../locales/i18n';
+import KeyValueRow from '../../../../../../component-library/components-temp/KeyValueRow';
+import Routes from '../../../../../../constants/navigation/Routes';
 import type { Hex } from '@metamask/utils';
-import { useQuickBuyContext } from '../useQuickBuyContext';
-import QuickBuySubScreenHeader from '../components/QuickBuySubScreenHeader';
-import QuickBuyQuoteCountdown from '../components/QuickBuyQuoteCountdown';
+import { useQuickBuyContext } from './useQuickBuyContext';
+import QuickBuySubScreenHeader from './components/QuickBuySubScreenHeader';
+import QuickBuyQuoteCountdown from './components/QuickBuyQuoteCountdown';
 
 const styles = StyleSheet.create({
   row: {

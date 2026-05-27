@@ -9,15 +9,15 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
-import { selectCurrentCurrency } from '../../../../../../../selectors/currencyRateController';
-import { fromTokenMinimalUnit } from '../../../../../../../util/number/bigint';
-import formatFiat from '../../../../../../../util/formatFiat';
-import { isGaslessQuote } from '../../../../../../UI/Bridge/utils/isGaslessQuote';
-import { QuoteRow } from '../../../../../../UI/Bridge/components/QuoteSelectorView/QuoteRow';
-import { selectDestToken } from '../../../../../../../core/redux/slices/bridge';
-import { strings } from '../../../../../../../../locales/i18n';
-import { useQuickBuyContext } from '../useQuickBuyContext';
-import QuickBuySubScreenHeader from '../components/QuickBuySubScreenHeader';
+import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
+import { fromTokenMinimalUnit } from '../../../../../../util/number/bigint';
+import formatFiat from '../../../../../../util/formatFiat';
+import { isGaslessQuote } from '../../../../../UI/Bridge/utils/isGaslessQuote';
+import { QuoteRow } from '../../../../../UI/Bridge/components/QuoteSelectorView/QuoteRow';
+import { selectDestToken } from '../../../../../../core/redux/slices/bridge';
+import { strings } from '../../../../../../../locales/i18n';
+import { useQuickBuyContext } from './useQuickBuyContext';
+import QuickBuySubScreenHeader from './components/QuickBuySubScreenHeader';
 
 const QuickBuySelectQuoteScreen: React.FC = () => {
   const {
