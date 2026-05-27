@@ -53,7 +53,6 @@ import { useHomepageTrendingTransactionActiveAbTests } from '../../hooks/useHome
 import { homepageSectionTitleTestId } from '../../Homepage.testIds';
 import { usePerpsNavigationHandlers } from './hooks/usePerpsNavigationHandlers';
 import { useHomepagePerpsPillsEmptyTransactionActiveAbTests } from '../../hooks/useHomepagePerpsPillsEmptyTransactionActiveAbTests';
-import { mergeActiveAbTestAssignmentLists } from '../../../../../util/analytics/activeABTestAssignments';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { usePerpsFeed } from '../../../TrendingView/feeds/perps/usePerpsFeed';
 import { HOMEPAGE_THROTTLE_MS, MAX_ITEMS } from './constants';
@@ -163,6 +162,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       skipInitialFetch: !shouldShowPillsEmptyState,
     });
     const {
+      marketDetailsTransactionActiveAbTests,
       navigateToTutorialOrScreen,
       handleViewAllPerps,
       handleViewMorePerps,
@@ -174,10 +174,6 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     const handleTrendingMarketPress = useCallback(
       (market: PerpsMarketData) => {
-        const interactionActiveAbTests = mergeActiveAbTestAssignmentLists(
-          trendingTransactionActiveAbTests,
-          perpsPillsEmptyTransactionActiveAbTests,
-        );
         track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
           [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
             PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
@@ -185,18 +181,13 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
             PERPS_EVENT_VALUE.BUTTON_CLICKED.OPEN_POSITION,
           [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
             PERPS_EVENT_VALUE.BUTTON_LOCATION.WALLET_HOME,
-          ...(interactionActiveAbTests?.length
-            ? { active_ab_tests: interactionActiveAbTests }
+          ...(marketDetailsTransactionActiveAbTests?.length
+            ? { active_ab_tests: marketDetailsTransactionActiveAbTests }
             : {}),
         });
         handleTilePress(market);
       },
-      [
-        handleTilePress,
-        perpsPillsEmptyTransactionActiveAbTests,
-        trendingTransactionActiveAbTests,
-        track,
-      ],
+      [handleTilePress, marketDetailsTransactionActiveAbTests, track],
     );
 
     const hasFilledPositions = positions.length > 0;

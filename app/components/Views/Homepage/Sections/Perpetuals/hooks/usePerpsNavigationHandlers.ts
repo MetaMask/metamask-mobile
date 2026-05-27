@@ -85,6 +85,7 @@ export const usePerpsNavigationHandlers = ({
   );
 
   return {
+    marketDetailsTransactionActiveAbTests,
     navigateToTutorialOrScreen,
     handleViewAllPerps,
     handleViewMorePerps,
