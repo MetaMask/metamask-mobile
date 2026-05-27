@@ -9233,6 +9233,8 @@
     "predictions": "Predictions",
     "no_results": "No results found",
     "no_results_for_feed": "No {{feedName}} results for \"{{query}}\"",
+    "no_results_for_query": "No results found for \"{{query}}\"",
+    "no_results_check_popular": "Check out other popular assets",
     "showing_all_results_for": "We found {{count}} other results for \"{{query}}\"",
     "popular": "Popular",
     "sites": "Sites",
