@@ -327,21 +327,7 @@ jobs:
         continue-on-error: true
         run: |
           echo "📊 Merging Detox JUnit XML reports..."
-
-          # Install xml2js for XML parsing (lightweight, no full yarn install needed)
-          mkdir -p temp-deps && cd temp-deps
-          npm init -y > /dev/null 2>&1
-          npm install xml2js@0.6.2 --no-audit --no-fund --silent
-
-          # Copy node_modules to workspace for script usage
-          cp -r node_modules ${{ github.workspace }}/
-          cd ${{ github.workspace }}
-
-          # Run merge script
           node .github/scripts/e2e-merge-detox-junit-reports.mjs
-
-          # Clean up temporary node_modules
-          rm -rf node_modules temp-deps
 
       # Merge previous test results with current results to preserve pass/fail history across re-runs.
       # Without this, tests that passed in attempt N but were skipped in attempt N+1 would have no
@@ -352,38 +338,14 @@ jobs:
         continue-on-error: true
         run: |
           echo "📊 Merging previous test results to preserve history..."
-
-          # Install xml2js for XML parsing (lightweight, no full yarn install needed)
-          mkdir -p temp-deps && cd temp-deps
-          npm init -y > /dev/null 2>&1
-          npm install xml2js@0.6.2 --no-audit --no-fund --silent
-
-          # Copy node_modules to workspace for script usage
-          cp -r node_modules ${{ github.workspace }}/
-          cd ${{ github.workspace }}
-
-          # Run merge script to combine previous results with current
           node .github/scripts/e2e-merge-test-results.mjs ./previous-test-results ./tests/reports
-
-          # Clean up temporary node_modules
-          rm -rf node_modules temp-deps
 
       - name: Rebuild merged JUnit after previous-results merge (on re-run)
         if: ${{ !cancelled() && steps.merge-previous-results.outcome == 'success' }}
         continue-on-error: true
         run: |
           echo "📊 Rebuilding merged junit.xml after previous-results merge..."
-
-          mkdir -p temp-deps && cd temp-deps
-          npm init -y > /dev/null 2>&1
-          npm install xml2js@0.6.2 --no-audit --no-fund --silent
-
-          cp -r node_modules ${{ github.workspace }}/
-          cd ${{ github.workspace }}
-
           node .github/scripts/e2e-merge-detox-junit-reports.mjs
-
-          rm -rf node_modules temp-deps
 
       - name: Upload JUnit XML results (Namespace)
         if: ${{ always() && inputs.runner_provider == 'namespace' }}

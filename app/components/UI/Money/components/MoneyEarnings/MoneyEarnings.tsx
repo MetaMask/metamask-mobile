@@ -62,7 +62,7 @@ const MoneyEarnings = ({
   isLoading = false,
   onInfoPress,
 }: MoneyEarningsProps) => (
-  <Box twClassName="px-4 py-3" testID={MoneyEarningsTestIds.CONTAINER}>
+  <Box twClassName="px-4 py-6" testID={MoneyEarningsTestIds.CONTAINER}>
     <MoneySectionHeader
       title={strings('money.earnings.title')}
       onInfoPress={onInfoPress}

@@ -1,10 +1,14 @@
 import React, { useLayoutEffect, useState } from 'react';
 import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Text, {
+import {
+  FontWeight,
+  HeaderBase,
+  IconName,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { Box } from '../../../../../UI/Box/Box';
 import { strings } from '../../../../../../../locales/i18n';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -20,15 +24,12 @@ import {
   useRoute,
 } from '@react-navigation/native';
 
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { SwitchAccountModalSelectorIDs } from '../../../../../../components/Views/confirmations/components/modals/switch-account-type-modal/SwitchAccountModal.testIds';
 import AppConstants from '../../../../../../core/AppConstants';
-import HeaderBase from '../../../../../../component-library/components/HeaderBase';
-import ButtonLink from '../../../../../../component-library/components/Buttons/Button/variants/ButtonLink';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
 import { SMART_ACCOUNT_MODAL_TEST_IDS } from './SmartAccountModal.testIds';
+
+const HEADER_BASE_TITLE_TEST_ID = 'header-title';
 
 interface RootNavigationParamList extends ParamListBase {
   SmartAccount: {
@@ -74,14 +75,12 @@ const SmartAccountModal = () => {
     >
       <HeaderBase
         style={styles.header}
-        startAccessory={
-          <ButtonLink
-            labelTextVariant={TextVariant.BodyMDMedium}
-            label={<Icon name={IconName.ArrowLeft} size={IconSize.Md} />}
-            onPress={() => navigation.goBack()}
-            testID={SwitchAccountModalSelectorIDs.SMART_ACCOUNT_BACK_BUTTON}
-          />
-        }
+        titleTestID={HEADER_BASE_TITLE_TEST_ID}
+        startButtonIconProps={{
+          testID: SwitchAccountModalSelectorIDs.SMART_ACCOUNT_BACK_BUTTON,
+          iconName: IconName.ArrowLeft,
+          onPress: () => navigation.goBack(),
+        }}
       >
         {strings('multichain_accounts.account_details.smart_account')}
       </HeaderBase>
@@ -91,7 +90,7 @@ const SmartAccountModal = () => {
           testID={SMART_ACCOUNT_MODAL_TEST_IDS.CONTAINER}
         >
           <Box style={styles.cardContainer}>
-            <Text variant={TextVariant.BodyMDMedium}>
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {strings('multichain_accounts.smart_account.title')}
             </Text>
             <Box
@@ -99,9 +98,13 @@ const SmartAccountModal = () => {
               flexDirection={FlexDirection.Row}
               alignItems={AlignItems.flexStart}
             >
-              <Text>
+              <Text variant={TextVariant.BodyMd}>
                 {strings('multichain_accounts.smart_account.description')}{' '}
-                <Text color={TextColor.Info} onPress={handleLearnMore}>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.InfoDefault}
+                  onPress={handleLearnMore}
+                >
                   {strings('multichain_accounts.smart_account.learn_more')}
                 </Text>
               </Text>

@@ -22,6 +22,12 @@ import {
   buildEnvValidationSection,
   buildEnvValidationFailureSection,
 } from './env-validation-section';
+import {
+  extractWhatsInRc,
+  buildWhatsInRcSection,
+  buildWhatsInRcFailureSection,
+  type WhatsInRcResult,
+} from './cherry-picks-section';
 import { validateEnv } from './validate-env';
 import type { BuildInfo, TestPlanResult, EnvValidationResult } from './types';
 
@@ -151,6 +157,10 @@ function buildCommentBody(
     iosResult?: EnvValidationResult;
     error?: string;
   },
+  whatsInRc: {
+    result?: WhatsInRcResult;
+    error?: string;
+  },
   testPlanError?: string,
 ): string {
   let body = `${RC_BUILD_COMMENT_MARKER}
@@ -169,6 +179,18 @@ ${buildMoreInfoSection(buildInfo)}
   } else if (envValidation.error) {
     body += `---\n\n`;
     body += buildEnvValidationFailureSection(envValidation.error);
+  }
+
+  // Add "What's in this RC" section (cherry-picks + changelog)
+  if (whatsInRc.result) {
+    const section = buildWhatsInRcSection(whatsInRc.result);
+    if (section) {
+      body += `---\n\n`;
+      body += section;
+    }
+  } else if (whatsInRc.error) {
+    body += `---\n\n`;
+    body += buildWhatsInRcFailureSection(whatsInRc.error);
   }
 
   // Add test plan section
@@ -261,8 +283,24 @@ async function main(): Promise<void> {
     console.log('  - No build-env artifacts found');
   }
 
+  // Extract "What's in this RC" (cherry-picks + changelog) from git history
+  console.log('\n=== What\'s in this RC ===\n');
+  const whatsInRc: { result?: WhatsInRcResult; error?: string } = {};
+
+  try {
+    whatsInRc.result = extractWhatsInRc();
+    console.log(`  - Cherry-picks: ${whatsInRc.result.cherryPicks.length} commit(s)`);
+    console.log(`  - Changelog: ${whatsInRc.result.changelog.length} commit(s)`);
+    if (whatsInRc.result.previousTag) {
+      console.log(`  - Previous release: ${whatsInRc.result.previousTag}`);
+    }
+  } catch (error) {
+    whatsInRc.error = error instanceof Error ? error.message : String(error);
+    console.error(`  - Error: ${whatsInRc.error}`);
+  }
+
   // Build the comment body
-  const commentBody = buildCommentBody(buildInfo, testPlan, envValidation, testPlanError);
+  const commentBody = buildCommentBody(buildInfo, testPlan, envValidation, whatsInRc, testPlanError);
 
   // Post comment and minimize old ones
   console.log(`\n=== Posting Comment to PR #${prNumber} ===\n`);

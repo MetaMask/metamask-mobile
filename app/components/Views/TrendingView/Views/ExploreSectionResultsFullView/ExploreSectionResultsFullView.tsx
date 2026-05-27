@@ -34,14 +34,11 @@ const SectionContent: React.FC<{
   feedId: SearchFeedId;
   searchQuery: string;
   data: unknown[];
-  title: string;
-}> = ({ feedId, searchQuery, data, title }) => {
+}> = ({ feedId, searchQuery, data }) => {
   const tw = useTailwind();
-  const { onScrollBeginDrag } = useScrollTracking(
-    'view_all_scrolled',
-    searchQuery,
-    { section_name: title },
-  );
+  const { onScrollBeginDrag } = useScrollTracking('scrolled', searchQuery, {
+    tab_name: feedId,
+  });
 
   const renderItem: ListRenderItem<unknown> = useCallback(
     ({ item, index }) => (
@@ -50,11 +47,10 @@ const SectionContent: React.FC<{
         item={item}
         index={index}
         searchQuery={searchQuery}
-        sectionTitle={title}
-        interactionType="view_all_item_clicked"
+        tabName="all"
       />
     ),
-    [feedId, searchQuery, title],
+    [feedId, searchQuery],
   );
 
   const keyExtractor = useCallback(
@@ -121,12 +117,7 @@ const ExploreSectionResultsFullView: React.FC = () => {
       </Box>
 
       <Wrapper>
-        <SectionContent
-          feedId={feedId}
-          searchQuery={searchQuery}
-          data={data}
-          title={title}
-        />
+        <SectionContent feedId={feedId} searchQuery={searchQuery} data={data} />
       </Wrapper>
     </Box>
   );
