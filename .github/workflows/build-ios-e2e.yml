@@ -20,7 +20,7 @@ on:
       source-fingerprint:
         description: >-
           Canonical @expo/fingerprint hash for this commit, computed once in
-          the `post-build-source-hash` job. Used for cache keys and cross-run
+          the `native-build-fingerprint` job. Used for cache keys and cross-run
           artifact lookups. When empty (e.g. forked PR where the hash job is
           skipped), the build compiles fresh with no cache reuse.
         required: false
@@ -60,6 +60,7 @@ jobs:
       MM_SECURITY_ALERTS_API_ENABLED: 'true'
       YARN_ENABLE_GLOBAL_CACHE: 'true'
       MM_POOLED_STAKING_ENABLED: 'true'
+      E2E_BUILD_METADATA_ARTIFACT: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-ios-build-metadata
       FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
       FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
       SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
@@ -118,11 +119,69 @@ jobs:
         with:
           fingerprint: ${{ inputs.source-fingerprint }}
           artifact-names: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app"]'
+          metadata-artifact-name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
           github-token: ${{ github.token }}
+
+      - name: Download reusable iOS build metadata from prior run
+        id: download-reusable-metadata
+        if: ${{ steps.find-reusable-build.outputs.found == 'true' }}
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
+          path: .e2e-reusable-metadata/ios
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.find-reusable-build.outputs.run-id }}
+
+      - name: Validate reusable iOS build metadata
+        id: validate-reusable-metadata
+        if: ${{ steps.find-reusable-build.outputs.found == 'true' }}
+        shell: bash
+        env:
+          EXPECTED_FINGERPRINT: ${{ inputs.source-fingerprint }}
+          EXPECTED_BUILD_TYPE: ${{ inputs.build_type }}
+          EXPECTED_METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+          EXPECTED_RUN_ID: ${{ steps.find-reusable-build.outputs.run-id }}
+          EXPECTED_HEAD_SHA: ${{ steps.find-reusable-build.outputs.source-sha }}
+          EXPECTED_ARTIFACTS: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app"]'
+          METADATA_FILE: .e2e-reusable-metadata/ios/ios.json
+        run: |
+          set -euo pipefail
+          echo "valid=false" >> "$GITHUB_OUTPUT"
+          if [[ "${{ steps.download-reusable-metadata.outcome }}" != "success" ]]; then
+            echo "::warning::Reusable iOS metadata download failed; falling back to fresh native build."
+            exit 0
+          fi
+          if [[ ! -f "$METADATA_FILE" ]]; then
+            echo "::warning::Reusable iOS metadata file missing at $METADATA_FILE; falling back to fresh native build."
+            exit 0
+          fi
+          if jq -e \
+            --arg fingerprint "$EXPECTED_FINGERPRINT" \
+            --arg buildType "$EXPECTED_BUILD_TYPE" \
+            --arg metamaskEnvironment "$EXPECTED_METAMASK_ENVIRONMENT" \
+            --arg workflowRunId "$EXPECTED_RUN_ID" \
+            --arg headSha "$EXPECTED_HEAD_SHA" \
+            --argjson artifactNames "$EXPECTED_ARTIFACTS" \
+            '.schemaVersion == 1
+              and .fingerprint == $fingerprint
+              and .platform == "ios"
+              and .buildType == $buildType
+              and .metamaskEnvironment == $metamaskEnvironment
+              and .workflowRunId == $workflowRunId
+              and .headSha == $headSha
+              and .artifactNames == $artifactNames' "$METADATA_FILE" >/dev/null; then
+            echo "valid=true" >> "$GITHUB_OUTPUT"
+            echo "Reusable iOS metadata is valid."
+          else
+            echo "::warning::Reusable iOS metadata did not match current build request; falling back to fresh native build."
+            cat "$METADATA_FILE"
+          fi
 
       - name: Download reusable iOS build from prior run
         id: download-reusable-app
-        if: ${{ steps.find-reusable-build.outputs.found == 'true' }}
+        if: ${{ steps.validate-reusable-metadata.outputs.valid == 'true' }}
         continue-on-error: true
         uses: actions/download-artifact@v4
         with:
@@ -144,17 +203,70 @@ jobs:
         id: gate
         run: |
           if [[ "${{ steps.find-reusable-build.outputs.found }}" == "true" \
+             && "${{ steps.validate-reusable-metadata.outputs.valid }}" == "true" \
              && "${{ steps.download-reusable-app.outcome }}" == "success" ]]; then
             echo "needs-native-build=false" >> "$GITHUB_OUTPUT"
             echo "Reuse path active (cross-run artifact download succeeded); heavy native setup will be skipped."
           else
-            if [[ "${{ steps.find-reusable-build.outputs.found }}" == "true" ]]; then
+            if [[ "${{ steps.find-reusable-build.outputs.found }}" == "true" && "${{ steps.validate-reusable-metadata.outputs.valid }}" != "true" ]]; then
+              echo "::warning::Reusable run was found but metadata validation failed; falling back to fresh native build."
+            elif [[ "${{ steps.find-reusable-build.outputs.found }}" == "true" ]]; then
               echo "::warning::Reusable run was found but artifact download failed (outcome=${{ steps.download-reusable-app.outcome }}); falling back to fresh native build."
             fi
             echo "needs-native-build=true" >> "$GITHUB_OUTPUT"
             echo "No reuse path; full native build + setup will run."
           fi
         shell: bash
+
+      - name: Write iOS E2E reuse summary
+        if: ${{ always() }}
+        shell: bash
+        env:
+          SOURCE_FINGERPRINT: ${{ inputs.source-fingerprint }}
+          BUILD_TYPE: ${{ inputs.build_type }}
+          METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+          REUSABLE_FOUND: ${{ steps.find-reusable-build.outputs.found }}
+          REUSABLE_RUN_ID: ${{ steps.find-reusable-build.outputs.run-id }}
+          APP_DOWNLOAD_OUTCOME: ${{ steps.download-reusable-app.outcome }}
+          NEEDS_NATIVE_BUILD: ${{ steps.gate.outputs.needs-native-build }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          value() {
+            if [[ -n "${1:-}" ]]; then
+              printf '%s' "$1"
+            else
+              printf 'n/a'
+            fi
+          }
+
+          yes_no() {
+            case "${1:-}" in
+              true) printf 'yes' ;;
+              *) printf 'no' ;;
+            esac
+          }
+
+          github_candidate="$(yes_no "$REUSABLE_FOUND")"
+          if [[ -n "${REUSABLE_RUN_ID:-}" ]]; then
+            github_candidate="yes ([https://github.com/$REPOSITORY/actions/runs/$REUSABLE_RUN_ID](https://github.com/$REPOSITORY/actions/runs/$REUSABLE_RUN_ID))"
+          fi
+
+          decision="Fresh native build"
+          if [[ "${NEEDS_NATIVE_BUILD:-}" == "false" ]]; then
+            decision="GitHub artifact reuse"
+          fi
+
+          {
+            echo "### iOS E2E build reuse"
+            echo ""
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| Decision | $decision |"
+            echo "| Native build fingerprint | \`$(value "$SOURCE_FINGERPRINT")\` |"
+            echo "| Build type | \`$(value "$BUILD_TYPE")\` |"
+            echo "| MetaMask environment | \`$(value "$METAMASK_ENVIRONMENT")\` |"
+            echo "| GitHub artifact candidate | $github_candidate |"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       # -------------------------------------------------------------------------
       # Heavy native setup — only runs on a full native-build path.
@@ -385,6 +497,52 @@ jobs:
           chmod +x "$APP_PATH/$BUNDLE_EXEC"
         shell: bash
 
+      - name: Write iOS E2E build metadata
+        shell: bash
+        env:
+          SOURCE_FINGERPRINT: ${{ inputs.source-fingerprint }}
+          BUILD_TYPE: ${{ inputs.build_type }}
+          METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          CHECKOUT_SHA: ${{ github.sha }}
+          GITHUB_REF_VALUE: ${{ github.ref }}
+          GITHUB_REF_NAME_VALUE: ${{ github.ref_name }}
+          GITHUB_EVENT_NAME_VALUE: ${{ github.event_name }}
+          GITHUB_RUN_ID_VALUE: ${{ github.run_id }}
+          ARTIFACT_NAMES: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app"]'
+        run: |
+          set -euo pipefail
+          mkdir -p .e2e-build-metadata
+          jq -n \
+            --arg fingerprint "$SOURCE_FINGERPRINT" \
+            --arg platform "ios" \
+            --arg buildType "$BUILD_TYPE" \
+            --arg metamaskEnvironment "$METAMASK_ENVIRONMENT" \
+            --arg workflowRunId "$GITHUB_RUN_ID_VALUE" \
+            --arg headSha "$HEAD_SHA" \
+            --arg checkoutSha "$CHECKOUT_SHA" \
+            --arg githubRef "$GITHUB_REF_VALUE" \
+            --arg githubRefName "$GITHUB_REF_NAME_VALUE" \
+            --arg githubEventName "$GITHUB_EVENT_NAME_VALUE" \
+            --arg createdAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --argjson artifactNames "$ARTIFACT_NAMES" \
+            '{
+              schemaVersion: 1,
+              fingerprint: $fingerprint,
+              platform: $platform,
+              buildType: $buildType,
+              metamaskEnvironment: $metamaskEnvironment,
+              workflowRunId: $workflowRunId,
+              headSha: $headSha,
+              checkoutSha: $checkoutSha,
+              githubRef: $githubRef,
+              githubRefName: $githubRefName,
+              githubEventName: $githubEventName,
+              artifactNames: $artifactNames,
+              createdAt: $createdAt
+            }' > .e2e-build-metadata/ios.json
+          cat .e2e-build-metadata/ios.json
+
       # Upload the iOS .app file that works in simulators
       - name: Upload iOS APP Artifact (Simulator) (Namespace)
         id: upload-app-namespace
@@ -404,6 +562,28 @@ jobs:
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
           path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          retention-days: 7
+          if-no-files-found: error
+        continue-on-error: true
+
+      - name: Upload iOS build metadata (Namespace)
+        id: upload-metadata-namespace
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
+          path: .e2e-build-metadata/ios.json
+          retention-days: 7
+          if-no-files-found: error
+        continue-on-error: true
+
+      - name: Upload iOS build metadata (current)
+        id: upload-metadata
+        if: ${{ inputs.runner_provider != 'namespace' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
+          path: .e2e-build-metadata/ios.json
           retention-days: 7
           if-no-files-found: error
         continue-on-error: true
@@ -444,6 +624,7 @@ jobs:
           echo ""
           echo "Upload Status Summary:"
           echo "- APP (Simulator): namespace=${{ steps.upload-app-namespace.outcome }} current=${{ steps.upload-app.outcome }}"
+          echo "- Build metadata: namespace=${{ steps.upload-metadata-namespace.outcome }} current=${{ steps.upload-metadata.outcome }}"
           echo "- Source Map: namespace=${{ steps.upload-sourcemap-namespace.outcome }} current=${{ steps.upload-sourcemap.outcome }}"
 
         env:
