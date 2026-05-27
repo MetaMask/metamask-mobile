@@ -770,7 +770,9 @@ describe('Connection', () => {
         expect(mockHostApp.showReturnToApp).not.toHaveBeenCalled();
         expect(mockHostApp.showMethodError).not.toHaveBeenCalled();
         expect(mockHostApp.showInternalError).not.toHaveBeenCalled();
-        expect(mockHostApp.showConfirmationRejectionError).not.toHaveBeenCalled();
+        expect(
+          mockHostApp.showConfirmationRejectionError,
+        ).not.toHaveBeenCalled();
 
         expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledTimes(1);
         expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledWith(
@@ -807,7 +809,9 @@ describe('Connection', () => {
         expect(mockHostApp.showReturnToApp).not.toHaveBeenCalled();
         expect(mockHostApp.showMethodError).not.toHaveBeenCalled();
         expect(mockHostApp.showInternalError).not.toHaveBeenCalled();
-        expect(mockHostApp.showConfirmationRejectionError).not.toHaveBeenCalled();
+        expect(
+          mockHostApp.showConfirmationRejectionError,
+        ).not.toHaveBeenCalled();
 
         expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledTimes(1);
         expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledWith(
