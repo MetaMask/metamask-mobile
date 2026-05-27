@@ -27,6 +27,7 @@ import { setCompletedOnboarding } from '../../actions/onboarding';
 import { mnemonicPhraseToBytes } from '@metamask/key-tree';
 import { AccountImportStrategy } from '@metamask/keyring-controller';
 import type { CaipChainId, Hex } from '@metamask/utils';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 import StorageWrapper from '../../store/storage-wrapper';
 import {
   OPTIN_META_METRICS_UI_SEEN,
@@ -86,8 +87,26 @@ interface AgenticAccountTrackerState {
   >;
 }
 
-interface AgenticAccountTrackerController {
-  update(updater: (state: AgenticAccountTrackerState) => void): void;
+interface AgenticAssetsControllerState {
+  assetsBalance: Record<string, Record<string, { amount: string }>>;
+  assetsInfo: Record<
+    string,
+    {
+      type: 'native' | string;
+      name: string;
+      symbol: string;
+      decimals: number;
+      image?: string;
+    }
+  >;
+}
+
+interface AgenticTokenBalancesControllerState {
+  tokenBalances: Record<Hex, Record<Hex, Record<Hex, Hex>>>;
+}
+
+interface AgenticMutableController<State> {
+  update(updater: (state: State) => void): void;
 }
 
 /** Shape of the __DEV__-only agentic bridge on globalThis. */
@@ -254,6 +273,10 @@ function walkFiberRoots(visitor: (rootFiber: FiberNode) => boolean): boolean {
 
 const ETH_MAINNET_CHAIN_ID = '0x1' as Hex;
 const ETH_MAINNET_CAIP_CHAIN_ID = 'eip155:1' as CaipChainId;
+const ETH_MAINNET_ASSET_ID = 'eip155:1/slip44:60';
+const ETH_NATIVE_TOKEN_ADDRESS =
+  '0x0000000000000000000000000000000000000000' as Hex;
+const WEI_PER_ETH = 10n ** 18n;
 
 /** Map an internal account to the slim shape exposed by the bridge. */
 function toAccountSummary(a: {
@@ -279,6 +302,23 @@ function getEvmAccountAddress(
   return accounts.find((account) => isEvmAddress(account.address))?.address;
 }
 
+function hexWeiToEthAmount(balanceWei: string): string {
+  const wei = BigInt(balanceWei);
+  const wholeEth = wei / WEI_PER_ETH;
+  const fractionalWei = wei % WEI_PER_ETH;
+
+  if (fractionalWei === 0n) {
+    return wholeEth.toString();
+  }
+
+  const fractionalEth = fractionalWei
+    .toString()
+    .padStart(18, '0')
+    .replace(/0+$/u, '');
+
+  return `${wholeEth}.${fractionalEth}`;
+}
+
 function seedEthereumSendState(balanceWei?: string): {
   ok: boolean;
   accountAddress?: string;
@@ -291,10 +331,13 @@ function seedEthereumSendState(balanceWei?: string): {
   const {
     AccountsController,
     AccountTrackerController,
+    AssetsController,
     NetworkEnablementController,
+    TokenBalancesController,
   } = Engine.context;
+  const selectedAccount = AccountsController.getSelectedAccount();
   const accountAddress = getEvmAccountAddress(
-    AccountsController.getSelectedAccount(),
+    selectedAccount,
     AccountsController.listAccounts(),
   );
 
@@ -307,19 +350,63 @@ function seedEthereumSendState(balanceWei?: string): {
 
   NetworkEnablementController.enableNetwork(ETH_MAINNET_CAIP_CHAIN_ID);
   const accountTrackerController =
-    AccountTrackerController as unknown as AgenticAccountTrackerController;
+    AccountTrackerController as unknown as AgenticMutableController<AgenticAccountTrackerState>;
+  const assetsController =
+    AssetsController as unknown as AgenticMutableController<AgenticAssetsControllerState>;
+  const tokenBalancesController =
+    TokenBalancesController as unknown as AgenticMutableController<AgenticTokenBalancesControllerState>;
+  const accountAddressHex = accountAddress as Hex;
+  const lowerAddress = accountAddress.toLowerCase() as Hex;
+  const checksummedAddress = toChecksumHexAddress(accountAddress) as Hex;
+  const accountAddresses = [
+    ...new Set([accountAddressHex, lowerAddress, checksummedAddress]),
+  ];
 
   accountTrackerController.update((state) => {
-    const lowerAddress = accountAddress.toLowerCase() as Hex;
     state.accountsByChainId = state.accountsByChainId ?? {};
     state.accountsByChainId[ETH_MAINNET_CHAIN_ID] =
       state.accountsByChainId[ETH_MAINNET_CHAIN_ID] ?? {};
-    state.accountsByChainId[ETH_MAINNET_CHAIN_ID][lowerAddress] = {
-      ...state.accountsByChainId[ETH_MAINNET_CHAIN_ID][lowerAddress],
+    const mainnetAccounts = state.accountsByChainId[ETH_MAINNET_CHAIN_ID];
+    const existingAccount = accountAddresses
+      .map((address) => mainnetAccounts[address])
+      .find(Boolean);
+    const seededAccount = {
+      ...existingAccount,
       balance: balanceWei as Hex,
-      stakedBalance:
-        state.accountsByChainId[ETH_MAINNET_CHAIN_ID][lowerAddress]
-          ?.stakedBalance ?? ('0x0' as Hex),
+      stakedBalance: existingAccount?.stakedBalance ?? ('0x0' as Hex),
+    };
+    accountAddresses.forEach((address) => {
+      mainnetAccounts[address] = seededAccount;
+    });
+  });
+
+  tokenBalancesController.update((state) => {
+    state.tokenBalances = state.tokenBalances ?? {};
+    accountAddresses.forEach((address) => {
+      state.tokenBalances[address] = state.tokenBalances[address] ?? {};
+      state.tokenBalances[address][ETH_MAINNET_CHAIN_ID] =
+        state.tokenBalances[address][ETH_MAINNET_CHAIN_ID] ?? {};
+      state.tokenBalances[address][ETH_MAINNET_CHAIN_ID][
+        ETH_NATIVE_TOKEN_ADDRESS
+      ] = balanceWei as Hex;
+    });
+  });
+
+  assetsController.update((state) => {
+    state.assetsInfo = state.assetsInfo ?? {};
+    state.assetsBalance = state.assetsBalance ?? {};
+    state.assetsInfo[ETH_MAINNET_ASSET_ID] = {
+      ...state.assetsInfo[ETH_MAINNET_ASSET_ID],
+      type: 'native',
+      name: 'Ethereum',
+      symbol: 'ETH',
+      decimals: 18,
+    };
+    state.assetsBalance[selectedAccount.id] =
+      state.assetsBalance[selectedAccount.id] ?? {};
+    state.assetsBalance[selectedAccount.id][ETH_MAINNET_ASSET_ID] = {
+      ...state.assetsBalance[selectedAccount.id][ETH_MAINNET_ASSET_ID],
+      amount: hexWeiToEthAmount(balanceWei),
     };
   });
 

@@ -7,6 +7,8 @@ import {
   parseMobileMemoryProfilerArgs,
   prepareDefaultFixtureForWalletSend,
   recipientAddressInputSelectors,
+  isRetriableCdpBridgeError,
+  shouldWaitForFixtureStateRequest,
   type MobileMemorySample,
 } from './mobile-memory-profiler';
 
@@ -305,6 +307,56 @@ describe('mobile-memory-profiler', () => {
           expect.stringContaining('Enter address to send to'),
         ]),
       );
+    });
+  });
+
+  describe('shouldWaitForFixtureStateRequest', () => {
+    const runtime = {
+      fixtureServer: {
+        waitForNextStateRequest: jest.fn<Promise<void>, []>(),
+        stop: jest.fn<Promise<void>, []>(),
+      },
+    };
+
+    it('waits for fixture state in fixture-backed app launch mode', () => {
+      const options = parseMobileMemoryProfilerArgs(['--fixture', 'default']);
+
+      expect(shouldWaitForFixtureStateRequest(options, runtime)).toBe(true);
+    });
+
+    it('does not wait when headless wallet setup injects fixture state through CDP', () => {
+      const options = parseMobileMemoryProfilerArgs([
+        '--fixture',
+        'default',
+        '--headless-wallet-setup',
+      ]);
+
+      expect(shouldWaitForFixtureStateRequest(options, runtime)).toBe(false);
+    });
+  });
+
+  describe('isRetriableCdpBridgeError', () => {
+    it('retries transient CDP discovery failures', () => {
+      expect(
+        isRetriableCdpBridgeError(
+          new Error(
+            'ERROR: No debug targets found at http://localhost:8092/json/list',
+          ),
+        ),
+      ).toBe(true);
+      expect(
+        isRetriableCdpBridgeError(
+          new Error('ERROR: Cannot reach Metro at http://localhost:8092'),
+        ),
+      ).toBe(true);
+    });
+
+    it('does not retry app-level bridge failures', () => {
+      expect(
+        isRetriableCdpBridgeError(
+          new Error('Headless wallet setup returned invalid CDP output'),
+        ),
+      ).toBe(false);
     });
   });
 

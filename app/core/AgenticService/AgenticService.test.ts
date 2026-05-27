@@ -25,12 +25,42 @@ interface MockAccountTrackerState {
     Record<string, { balance?: string; stakedBalance?: string }>
   >;
 }
+interface MockAssetsControllerState {
+  assetsBalance: Record<string, Record<string, { amount: string }>>;
+  assetsInfo: Record<
+    string,
+    {
+      type: string;
+      name: string;
+      symbol: string;
+      decimals: number;
+    }
+  >;
+}
+interface MockTokenBalancesControllerState {
+  tokenBalances: Record<string, Record<string, Record<string, string>>>;
+}
 const mockAccountTrackerState: MockAccountTrackerState = {
   accountsByChainId: {},
+};
+const mockAssetsControllerState: MockAssetsControllerState = {
+  assetsBalance: {},
+  assetsInfo: {},
+};
+const mockTokenBalancesControllerState: MockTokenBalancesControllerState = {
+  tokenBalances: {},
 };
 const mockAccountTrackerUpdate = jest.fn(
   (updater: (state: MockAccountTrackerState) => void) =>
     updater(mockAccountTrackerState),
+);
+const mockAssetsControllerUpdate = jest.fn(
+  (updater: (state: MockAssetsControllerState) => void) =>
+    updater(mockAssetsControllerState),
+);
+const mockTokenBalancesControllerUpdate = jest.fn(
+  (updater: (state: MockTokenBalancesControllerState) => void) =>
+    updater(mockTokenBalancesControllerState),
 );
 const mockSetUseTransactionSimulations = jest.fn();
 
@@ -82,6 +112,14 @@ jest.mock('../Engine', () => ({
     AccountTrackerController: {
       update: (updater: (state: MockAccountTrackerState) => void) =>
         mockAccountTrackerUpdate(updater),
+    },
+    AssetsController: {
+      update: (updater: (state: MockAssetsControllerState) => void) =>
+        mockAssetsControllerUpdate(updater),
+    },
+    TokenBalancesController: {
+      update: (updater: (state: MockTokenBalancesControllerState) => void) =>
+        mockTokenBalancesControllerUpdate(updater),
     },
     PreferencesController: {
       setUseTransactionSimulations: (...args: unknown[]) =>
@@ -694,6 +732,11 @@ describe('AgenticService.install', () => {
       mockEnableNetwork.mockClear();
       mockAccountTrackerUpdate.mockClear();
       mockAccountTrackerState.accountsByChainId = {};
+      mockAssetsControllerUpdate.mockClear();
+      mockAssetsControllerState.assetsBalance = {};
+      mockAssetsControllerState.assetsInfo = {};
+      mockTokenBalancesControllerUpdate.mockClear();
+      mockTokenBalancesControllerState.tokenBalances = {};
       mockSetUseTransactionSimulations.mockClear();
       (
         MockEngine.context.AccountsController.getSelectedAccount as jest.Mock
@@ -1002,6 +1045,27 @@ describe('AgenticService.install', () => {
             balance: '0x123',
             stakedBalance: '0x0',
           },
+          '0x0000000000000000000000000000000000000aBc': {
+            balance: '0x123',
+            stakedBalance: '0x0',
+          },
+        },
+      });
+      expect(mockTokenBalancesControllerState.tokenBalances).toStrictEqual({
+        '0x0000000000000000000000000000000000000abc': {
+          '0x1': {
+            '0x0000000000000000000000000000000000000000': '0x123',
+          },
+        },
+        '0x0000000000000000000000000000000000000aBc': {
+          '0x1': {
+            '0x0000000000000000000000000000000000000000': '0x123',
+          },
+        },
+      });
+      expect(mockAssetsControllerState.assetsBalance).toStrictEqual({
+        'acc-1': {
+          'eip155:1/slip44:60': { amount: '0.000000000000000291' },
         },
       });
     });
@@ -1036,6 +1100,71 @@ describe('AgenticService.install', () => {
             balance: '0x456',
             stakedBalance: '0x0',
           },
+          '0x0000000000000000000000000000000000000aBc': {
+            balance: '0x456',
+            stakedBalance: '0x0',
+          },
+        },
+      });
+      expect(mockAssetsControllerState.assetsInfo).toStrictEqual({
+        'eip155:1/slip44:60': {
+          type: 'native',
+          name: 'Ethereum',
+          symbol: 'ETH',
+          decimals: 18,
+        },
+      });
+      expect(mockAssetsControllerState.assetsBalance).toStrictEqual({
+        'acc-1': {
+          'eip155:1/slip44:60': { amount: '0.00000000000000111' },
+        },
+      });
+    });
+
+    it('seeds Ethereum send state for checksummed and lowercase account keys', () => {
+      const account = {
+        id: 'acc-1',
+        address: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+        metadata: { name: 'Account 1' },
+      };
+      mockAccountTrackerState.accountsByChainId = {
+        '0x1': {
+          '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': {
+            balance: '0x0',
+            stakedBalance: '0x0',
+          },
+        },
+      };
+      (
+        MockEngine.context.AccountsController.getSelectedAccount as jest.Mock
+      ).mockReturnValue(account);
+      (
+        MockEngine.context.AccountsController.listAccounts as jest.Mock
+      ).mockReturnValue([account]);
+
+      const result = bridge().seedEthereumSendState({
+        balanceWei: '0x8ac7230489e80000',
+      });
+
+      expect(result).toStrictEqual({
+        ok: true,
+        accountAddress: '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+      });
+      expect(mockAccountTrackerState.accountsByChainId).toStrictEqual({
+        '0x1': {
+          '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': {
+            balance: '0x8ac7230489e80000',
+            stakedBalance: '0x0',
+          },
+          '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3': {
+            balance: '0x8ac7230489e80000',
+            stakedBalance: '0x0',
+          },
+        },
+      });
+      expect(mockAssetsControllerState.assetsBalance).toStrictEqual({
+        'acc-1': {
+          'eip155:1/slip44:60': { amount: '10' },
         },
       });
     });

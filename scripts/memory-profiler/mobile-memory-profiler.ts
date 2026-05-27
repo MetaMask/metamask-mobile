@@ -29,6 +29,8 @@ const DEFAULT_APPIUM_ELEMENT_TIMEOUT_MS = 20_000;
 const DEFAULT_CDP_PORT = 8081;
 const EXPO_DEV_CLIENT_BUNDLE_TIMEOUT_MS = 120_000;
 const FIXTURE_STATE_REQUEST_TIMEOUT_MS = 180_000;
+const CDP_BRIDGE_RETRY_COUNT = 6;
+const CDP_BRIDGE_RETRY_INTERVAL_MS = 2_000;
 const COMMAND_MAX_BUFFER = 50 * 1024 * 1024;
 
 export type MobileMemoryPlatform = 'android' | 'ios';
@@ -783,6 +785,17 @@ export function createMobileMemoryReport({
   };
 }
 
+export function shouldWaitForFixtureStateRequest(
+  options: MobileMemoryProfilerOptions,
+  runtime: AppiumRuntime,
+): boolean {
+  return Boolean(
+    runtime.fixtureServer &&
+      (options.launch || options.expoDevUrl) &&
+      !options.headlessWalletSetup,
+  );
+}
+
 export async function runMobileMemoryProfiler(
   options: MobileMemoryProfilerOptions,
   runner: CommandRunner = runCommand,
@@ -795,7 +808,8 @@ export async function runMobileMemoryProfiler(
 
     runtime.fixtureServer = await startFixtureServer(options);
     const fixtureStateRequest =
-      runtime.fixtureServer && (options.launch || options.expoDevUrl)
+      shouldWaitForFixtureStateRequest(options, runtime) &&
+      runtime.fixtureServer
         ? runtime.fixtureServer.waitForNextStateRequest(
             FIXTURE_STATE_REQUEST_TIMEOUT_MS,
           )
@@ -1096,7 +1110,7 @@ async function runWalletSendEthFlow(
 
   await unlockWalletIfNeeded(appiumDriver, options);
   if (options.headlessWalletSetup) {
-    await setupHeadlessWallet(options, runner);
+    await seedHeadlessEthereumSendState(options, runner);
     await sleep(500);
   }
   await navigateToWalletHome(appiumDriver, options);
@@ -1262,6 +1276,7 @@ export function prepareDefaultFixtureForWalletSend(
   const accountAddress =
     getSelectedEvmAccountAddress(backgroundState) ??
     '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3';
+  const lowerAccountAddress = accountAddress.toLowerCase();
 
   const currencyRateController = getOrCreateRecord(
     backgroundState,
@@ -1284,6 +1299,9 @@ export function prepareDefaultFixtureForWalletSend(
   );
   const legacyAccounts = getOrCreateRecord(accountTrackerController, 'accounts');
   legacyAccounts[accountAddress] = { balance: DEFAULT_SEND_ETH_BALANCE_WEI };
+  legacyAccounts[lowerAccountAddress] = {
+    balance: DEFAULT_SEND_ETH_BALANCE_WEI,
+  };
   const accountsByChainId = getOrCreateRecord(
     accountTrackerController,
     'accountsByChainId',
@@ -1293,6 +1311,9 @@ export function prepareDefaultFixtureForWalletSend(
     ETH_MAINNET_CHAIN_ID,
   );
   mainnetAccounts[accountAddress] = { balance: DEFAULT_SEND_ETH_BALANCE_WEI };
+  mainnetAccounts[lowerAccountAddress] = {
+    balance: DEFAULT_SEND_ETH_BALANCE_WEI,
+  };
 
   const tokenBalancesController = getOrCreateRecord(
     backgroundState,
@@ -1308,6 +1329,16 @@ export function prepareDefaultFixtureForWalletSend(
     ETH_MAINNET_CHAIN_ID,
   );
   mainnetTokenBalances[ETH_NATIVE_TOKEN_ADDRESS] =
+    DEFAULT_SEND_ETH_BALANCE_WEI;
+  const lowerAccountTokenBalances = getOrCreateRecord(
+    tokenBalances,
+    lowerAccountAddress,
+  );
+  const lowerMainnetTokenBalances = getOrCreateRecord(
+    lowerAccountTokenBalances,
+    ETH_MAINNET_CHAIN_ID,
+  );
+  lowerMainnetTokenBalances[ETH_NATIVE_TOKEN_ADDRESS] =
     DEFAULT_SEND_ETH_BALANCE_WEI;
 
   const networkEnablementController = getOrCreateRecord(
@@ -1728,6 +1759,54 @@ function isEvmAddress(address: string): boolean {
   return /^0x[a-fA-F0-9]{40}$/u.test(address);
 }
 
+export function isRetriableCdpBridgeError(error: Error): boolean {
+  return [
+    'Cannot reach Metro',
+    'No debug targets found',
+    'No suitable debug target found',
+    'WebSocket connection closed',
+    'ECONNREFUSED',
+  ].some((message) => error.message.includes(message));
+}
+
+async function runCdpBridgeCommand(
+  options: MobileMemoryProfilerOptions,
+  runner: CommandRunner,
+  args: string[],
+): Promise<CommandResult> {
+  let lastError: Error | undefined;
+
+  for (let attempt = 1; attempt <= CDP_BRIDGE_RETRY_COUNT; attempt++) {
+    try {
+      return await runner(
+        'node',
+        ['scripts/perps/agentic/cdp-bridge.js', ...args],
+        {
+          env: {
+            ...process.env,
+            WATCHER_PORT: String(options.cdpPort),
+            CDP_TIMEOUT: String(
+              Math.max(options.appiumStartupTimeoutMs, 30_000),
+            ),
+          },
+        },
+      );
+    } catch (error) {
+      lastError = error as Error;
+      if (
+        attempt === CDP_BRIDGE_RETRY_COUNT ||
+        !isRetriableCdpBridgeError(lastError)
+      ) {
+        throw lastError;
+      }
+
+      await sleep(CDP_BRIDGE_RETRY_INTERVAL_MS);
+    }
+  }
+
+  throw lastError ?? new Error('Unknown CDP bridge failure.');
+}
+
 async function setupHeadlessWallet(
   options: MobileMemoryProfilerOptions,
   runner: CommandRunner,
@@ -1756,17 +1835,10 @@ async function setupHeadlessWallet(
 
   let result: CommandResult;
   try {
-    result = await runner(
-      'node',
-      ['scripts/perps/agentic/cdp-bridge.js', 'eval-async', expression],
-      {
-        env: {
-          ...process.env,
-          WATCHER_PORT: String(options.cdpPort),
-          CDP_TIMEOUT: String(Math.max(options.appiumStartupTimeoutMs, 30_000)),
-        },
-      },
-    );
+    result = await runCdpBridgeCommand(options, runner, [
+      'eval-async',
+      expression,
+    ]);
   } catch (error) {
     throw new Error(
       `Headless wallet setup failed through Metro CDP on port ${
@@ -1805,17 +1877,7 @@ async function seedHeadlessEthereumSendState(
 
   let result: CommandResult;
   try {
-    result = await runner(
-      'node',
-      ['scripts/perps/agentic/cdp-bridge.js', 'eval', expression],
-      {
-        env: {
-          ...process.env,
-          WATCHER_PORT: String(options.cdpPort),
-          CDP_TIMEOUT: String(Math.max(options.appiumStartupTimeoutMs, 30_000)),
-        },
-      },
-    );
+    result = await runCdpBridgeCommand(options, runner, ['eval', expression]);
   } catch (error) {
     throw new Error(
       `Headless Ethereum send state seed failed through Metro CDP on port ${
@@ -1961,13 +2023,37 @@ async function unlockWalletIfNeeded(
     return;
   }
 
-  await setElementValueById(
-    appiumDriver,
-    options,
-    LOGIN_PASSWORD_INPUT_ID,
-    options.walletPassword,
-    'Login password input',
-  );
+  try {
+    await setElementValueById(
+      appiumDriver,
+      options,
+      LOGIN_PASSWORD_INPUT_ID,
+      options.walletPassword,
+      'Login password input',
+    );
+  } catch (error) {
+    const didUnlock =
+      (await isElementVisibleById(
+        appiumDriver,
+        options,
+        WALLET_SEND_BUTTON_ID,
+        'Wallet Send',
+        1500,
+      )) ||
+      !(await isElementVisibleById(
+        appiumDriver,
+        options,
+        LOGIN_PASSWORD_INPUT_ID,
+        'Login password input',
+        500,
+      ));
+
+    if (didUnlock) {
+      return;
+    }
+
+    throw error;
+  }
 
   if (
     await isElementVisibleById(

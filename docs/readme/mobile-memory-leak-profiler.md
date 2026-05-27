@@ -47,6 +47,7 @@ launch arg, loads the Metro URL, and uses the app's local AgenticService CDP
 bridge to prepare the fixture wallet before sampling:
 
 ```bash
+METAMASK_ENVIRONMENT=e2e IS_TEST=true METAMASK_BUILD_TYPE=main EXPO_NO_TYPESCRIPT_SETUP=1 yarn expo start --port 8092
 yarn llm:mobile:memory -- --platform ios --device booted --flow wallet-send-eth-cancel --fixture default --expo-dev-url "http://localhost:8092?disableOnboarding=1" --headless-wallet-setup
 ```
 
@@ -116,10 +117,13 @@ The default send amount is `25%`, which uses the send screen percentage button
 and avoids depending on the current fiat/native amount mode. You can also pass
 `--send-amount 0.001`, `50%`, `75%`, `100%`, or `max`.
 
-For local iOS dev-client builds, pass `--expo-dev-url` to load the Metro bundle
-headlessly through Appium before baseline sampling. Pair it with
-`--headless-wallet-setup` when the fixture loads a locked vault or the app lands
-on onboarding before the wallet screen.
+For local iOS dev-client builds, run Metro with `METAMASK_ENVIRONMENT=e2e` and
+`IS_TEST=true`, then pass `--expo-dev-url` to load the Metro bundle headlessly
+through Appium before baseline sampling. Pair it with `--headless-wallet-setup`
+when the fixture loads a locked vault or the app lands on onboarding before the
+wallet screen. In that mode the CLI skips waiting for the app to fetch
+`/state.json`; the fixture wallet is injected through AgenticService over CDP,
+and the fixture server stays available for mocked JSON-RPC.
 
 `wallet-send-eth-cancel` opens the confirmation screen and taps the confirmation
 footer Cancel button, so it is the safer repeatable leak loop. The submit flow
