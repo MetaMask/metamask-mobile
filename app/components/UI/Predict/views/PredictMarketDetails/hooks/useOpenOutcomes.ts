@@ -10,6 +10,7 @@ import {
 
 interface UseOpenOutcomesParams {
   market: PredictMarket | null;
+  enabled?: boolean;
 }
 
 interface UseOpenOutcomesResult {
@@ -18,8 +19,11 @@ interface UseOpenOutcomesResult {
   yesPercentage: number;
 }
 
+const EMPTY_PRICE_QUERIES: PriceQuery[] = [];
+
 export const useOpenOutcomes = ({
   market,
+  enabled = true,
 }: UseOpenOutcomesParams): UseOpenOutcomesResult => {
   const closedOutcomes = useMemo(
     () =>
@@ -46,18 +50,23 @@ export const useOpenOutcomes = ({
     [openOutcomesBase],
   );
 
+  const shouldFetchPrices = enabled && priceQueries.length > 0;
+  const activePriceQueries = shouldFetchPrices
+    ? priceQueries
+    : EMPTY_PRICE_QUERIES;
+
   const { prices } = usePredictPrices({
-    queries: priceQueries,
-    enabled: priceQueries.length > 0,
-    pollingInterval: 2000,
+    queries: activePriceQueries,
+    enabled: shouldFetchPrices,
+    pollingInterval: shouldFetchPrices ? 2000 : undefined,
   });
 
   const tokenIds = useMemo(
-    () => priceQueries.map((q) => q.outcomeTokenId),
-    [priceQueries],
+    () => activePriceQueries.map((q) => q.outcomeTokenId),
+    [activePriceQueries],
   );
   const { getPrice: getLivePrice } = useLiveMarketPrices(tokenIds, {
-    enabled: tokenIds.length > 0,
+    enabled: shouldFetchPrices,
   });
 
   // Price precedence: live WebSocket bestAsk > REST entry.sell > base market price.

@@ -153,6 +153,9 @@ jest.mock('../../../../../locales/i18n', () => ({
     if (key === 'rewards.vip.equity_rebate_next_tier' && params) {
       return `↑ ${params.value}% at next tier`;
     }
+    if (key === 'rewards.vip.progress_to_next_tier' && params) {
+      return `${params.pointsRemaining} points to next tier`;
+    }
     const translations: Record<string, string> = {
       'rewards.vip.swaps_label': 'Swaps',
       'rewards.vip.perps_label': 'Perps',
@@ -247,7 +250,11 @@ const defaultDashboard: VipDashboardState = {
     referrals: 2,
     referralsCap: 10,
   },
-  pointsAllocation: { earned: 24_400_000, max: 100_000_000, percent: 24.4 },
+  pointsAllocation: {
+    earned: 24_400_000,
+    threshold: 100_000_000,
+    percent: 24.4,
+  },
   tiers: [
     {
       id: 't3',
@@ -257,7 +264,6 @@ const defaultDashboard: VipDashboardState = {
       revenueShareBps: 1500,
       swapsBps: 87.5,
       perpsBps: 6,
-      equityRebateBps: 0,
       referralCarryoverBps: 1500,
       status: 'current',
     },
@@ -269,26 +275,25 @@ const defaultDashboard: VipDashboardState = {
       revenueShareBps: 2000,
       swapsBps: 15,
       perpsBps: 5,
-      equityRebateBps: 0,
       referralCarryoverBps: 2000,
       status: 'upcoming',
     },
   ],
   localizedText: {
-    period: 'Mar 31 - Apr 30',
-    progressToNextTier: '$800K Swaps • $3.6M Perps to Gold Fox VIP 4',
+    periodTitle: 'Mar 31 - Apr 30',
     memberIdTitle: 'Member ID',
     swapsFeeTitle: 'Swaps fee',
     perpsFeeTitle: 'Perps fee',
+    revenueShareTitle: 'Revenue share',
+    statsTitle: 'Volume',
+    totalPointsTitle: 'Points',
+    equityLockedTitle: 'Earn VIP allocations',
+    equityLockedDescription: 'Body copy',
+    equityUnlockedTitle: 'VIP allocation unlocked',
+    equityUnlockedDescription: 'Unlocked body copy',
     nextTierSwapsFeeDelta: '↓ 12 bps next tier',
     nextTierPerpsFeeDelta: '↓ 3 bps next tier',
-    revenueShareTitle: 'Revenue share',
     nextTierRevenueShareDelta: '↑ 2% next tier',
-    statsTitle: 'Volume',
-    statusMessage: 'On track to reach the next tier in 4 days',
-    pointsTitle: 'Points',
-    pointsAllocationTitle: 'Earn VIP allocations',
-    pointsAllocationDescription: 'Body copy',
   },
   lastFetched: 0,
 };
@@ -493,9 +498,7 @@ describe('RewardsVipView', () => {
     expect(getAllByTestId(VIP_FEE_TILE_TEST_IDS.NEXT)).toHaveLength(2);
   });
 
-  it('hides the equity rebate tile when currentTier.equityRebateBps is 0', () => {
-    // defaultDashboard has equityRebateBps: 0 on every tier, so the 4th
-    // tile must not render. Belt-and-braces sanity check on the default.
+  it('does not render the equity rebate tile', () => {
     mockUseVipDashboard.mockReturnValue({
       dashboard: defaultDashboard,
       isLoading: false,
@@ -509,94 +512,6 @@ describe('RewardsVipView', () => {
     expect(
       queryByTestId(REWARDS_VIP_VIEW_TEST_IDS.EQUITY_REBATE_TILE),
     ).toBeNull();
-  });
-
-  it('renders the equity rebate tile with the current rebate % when currentTier.equityRebateBps > 0', () => {
-    mockUseVipDashboard.mockReturnValue({
-      dashboard: {
-        ...defaultDashboard,
-        currentTier: { id: 't6', name: 'Gold Fox VIP 6', tier: 6 },
-        nextTier: { id: 't7', name: 'Gold Fox VIP 7', tier: 7 },
-        tiers: [
-          {
-            id: 't6',
-            name: 'Gold Fox VIP 6',
-            tier: 6,
-            pointsRequirement: 3_000_000,
-            revenueShareBps: 3000,
-            swapsBps: 8,
-            perpsBps: 3,
-            equityRebateBps: 3000,
-            referralCarryoverBps: 3000,
-            status: 'current',
-          },
-          {
-            id: 't7',
-            name: 'Gold Fox VIP 7',
-            tier: 7,
-            pointsRequirement: 6_000_000,
-            revenueShareBps: 3500,
-            swapsBps: 4,
-            perpsBps: 2,
-            equityRebateBps: 4000,
-            referralCarryoverBps: 3500,
-            status: 'upcoming',
-          },
-        ],
-      },
-      isLoading: false,
-      hasError: false,
-      hasAttemptedFetch: true,
-      fetchVipDashboard: mockFetch,
-    });
-
-    const { getByTestId, getByText } = render(<RewardsVipView />);
-
-    expect(
-      getByTestId(REWARDS_VIP_VIEW_TEST_IDS.EQUITY_REBATE_TILE),
-    ).toBeOnTheScreen();
-    // Tile label
-    expect(getByText('Equity rebate')).toBeOnTheScreen();
-    // ↑ next-tier label ("↑ 40% next tier")
-    expect(getByText('↑ 40% next tier')).toBeOnTheScreen();
-  });
-
-  it('drops the equity rebate next-tier label at the top tier', () => {
-    mockUseVipDashboard.mockReturnValue({
-      dashboard: {
-        ...defaultDashboard,
-        currentTier: { id: 't8', name: 'Gold Fox VIP 8', tier: 8 },
-        nextTier: { id: 't8', name: 'Gold Fox VIP 8', tier: 8 },
-        tiers: [
-          {
-            id: 't8',
-            name: 'Gold Fox VIP 8',
-            tier: 8,
-            pointsRequirement: 16_000_000,
-            revenueShareBps: 4000,
-            swapsBps: 2,
-            perpsBps: 1.5,
-            equityRebateBps: 5000,
-            referralCarryoverBps: 4000,
-            status: 'current',
-          },
-        ],
-      },
-      isLoading: false,
-      hasError: false,
-      hasAttemptedFetch: true,
-      fetchVipDashboard: mockFetch,
-    });
-
-    const { getByTestId, getAllByTestId } = render(<RewardsVipView />);
-
-    expect(
-      getByTestId(REWARDS_VIP_VIEW_TEST_IDS.EQUITY_REBATE_TILE),
-    ).toBeOnTheScreen();
-    // At the top tier the equity rebate tile drops its next-tier copy
-    // (currentTier.tier === nextTier.tier). The other three tiles keep
-    // their backend-provided next-tier strings, so 3 NEXT labels render.
-    expect(getAllByTestId(VIP_FEE_TILE_TEST_IDS.NEXT)).toHaveLength(3);
   });
 
   it('navigates to the Tiers view when the tier benefits header is tapped', () => {
@@ -621,20 +536,20 @@ describe('RewardsVipView', () => {
         ...defaultDashboard,
         program: { id: 'p1', name: 'VIP Pilot — Custom' },
         localizedText: {
-          progressToNextTier: 'Backend subline',
           memberIdTitle: 'Member ID',
           swapsFeeTitle: 'Swap fees',
           perpsFeeTitle: 'Perp fees',
+          revenueShareTitle: 'Revenue',
+          statsTitle: 'Volume V2',
+          totalPointsTitle: 'Pts',
+          periodTitle: 'Apr 1 - May 1',
+          equityLockedTitle: 'Allocation',
+          equityLockedDescription: 'Body copy',
+          equityUnlockedTitle: 'Unlocked allocation',
+          equityUnlockedDescription: 'Unlocked body copy',
           nextTierSwapsFeeDelta: '↓ 12',
           nextTierPerpsFeeDelta: '↓ 3',
-          revenueShareTitle: 'Revenue',
           nextTierRevenueShareDelta: '↑ 2% next tier',
-          statsTitle: 'Volume V2',
-          period: 'Apr 1 - May 1',
-          statusMessage: 'Backend status',
-          pointsTitle: 'Pts',
-          pointsAllocationTitle: 'Allocation',
-          pointsAllocationDescription: 'Body copy',
         },
       },
       isLoading: false,
@@ -645,14 +560,13 @@ describe('RewardsVipView', () => {
 
     const { getAllByText, getByText } = render(<RewardsVipView />);
     expect(getAllByText('VIP Pilot — Custom')[0]).toBeOnTheScreen();
-    expect(getByText('Backend subline')).toBeOnTheScreen();
+    expect(getByText('800k points to next tier')).toBeOnTheScreen();
     expect(getByText('Swap fees')).toBeOnTheScreen();
     expect(getByText('Perp fees')).toBeOnTheScreen();
     expect(getByText('Revenue')).toBeOnTheScreen();
     expect(getByText('↑ 2% next tier')).toBeOnTheScreen();
     expect(getByText('Volume V2')).toBeOnTheScreen();
     expect(getByText('Apr 1 - May 1')).toBeOnTheScreen();
-    expect(getByText('Backend status')).toBeOnTheScreen();
     expect(getByText('Pts')).toBeOnTheScreen();
     expect(getByText('Allocation')).toBeOnTheScreen();
   });

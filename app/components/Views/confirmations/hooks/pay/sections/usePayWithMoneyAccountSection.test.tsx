@@ -15,6 +15,10 @@ jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
 }));
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: jest.fn().mockReturnValue({ goBack: jest.fn() }),
+}));
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string, params?: { balance?: string }) => {
     const translations: Record<string, string> = {

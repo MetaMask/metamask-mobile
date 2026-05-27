@@ -1119,7 +1119,9 @@
       "unsupported_chain": "This chain is not supported for Quick Buy yet",
       "available_balance": "{{amount}} available",
       "toggle_amount_display": "Switch between token and dollar amount",
-      "includes_mm_fee": "Includes {{fee}}% MM fee"
+      "includes_mm_fee": "Includes {{fee}}% MM fee",
+      "pay_with_no_tokens": "No tokens available to pay with",
+      "pay_with_filter_all": "All"
     }
   },
   "perps": {
@@ -6747,6 +6749,10 @@
     "apy_label": "{{percentage}}% APY",
     "apy_currency_suffix": " • mUSD",
     "apy_info_label": "APY info",
+    "balance_unavailable": "Balance unavailable",
+    "balance_retry": "Retry",
+    "balance_feature_disabled": "Money account disabled",
+    "balance_no_account": "Money account not found",
     "onboarding": {
       "step_1": {
         "title": "Fund your account",
@@ -8563,6 +8569,7 @@
     },
     "main_title": "Rewards",
     "vip": {
+      "progress_to_next_tier": "{{pointsRemaining}} points to next tier",
       "bps_unit": "bps",
       "badge_label": "VIP {{tier}}",
       "swaps_label": "Swaps",
