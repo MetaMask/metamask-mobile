@@ -4,6 +4,8 @@ import TestSnaps from '../../page-objects/Browser/TestSnaps';
 import { SmokeSnaps } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../flows/browser.flow';
+import { Mockttp } from 'mockttp';
+import { mockPreferencesSnap } from '../../api-mocking/mock-response-data/snaps/snap-binary-mocks';
 
 jest.setTimeout(150_000);
 
@@ -20,6 +22,9 @@ describe(SmokeSnaps('Get Preferences Snap Tests'), () => {
         restartDevice: true,
         skipReactNativeReload: true,
         disableSynchronization: true,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await mockPreferencesSnap(mockServer);
+        },
       },
       async () => {
         await loginToApp();

@@ -11,6 +11,7 @@ import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { confirmationFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { mockGenesisBlocks } from './mocks';
+import { mockMultichainProviderSnap } from '../../api-mocking/mock-response-data/snaps/snap-binary-mocks';
 
 jest.setTimeout(150_000);
 
@@ -28,6 +29,7 @@ describe(SmokeSnaps('Multichain Provider Snap Tests'), () => {
             Object.assign({}, ...confirmationFeatureFlags),
           );
           await mockGenesisBlocks(mockServer);
+          await mockMultichainProviderSnap(mockServer);
         },
       },
       async () => {

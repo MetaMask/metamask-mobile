@@ -6,6 +6,8 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import TestSnaps from '../../page-objects/Browser/TestSnaps';
 import sdkPackageJson from '@metamask/snaps-sdk/package.json';
 import packageJson from '../../../package.json';
+import { Mockttp } from 'mockttp';
+import { mockClientStatusSnap } from '../../api-mocking/mock-response-data/snaps/snap-binary-mocks';
 
 jest.setTimeout(150_000);
 
@@ -17,6 +19,9 @@ describe(SmokeSnaps('Client Status Snap Tests'), () => {
         restartDevice: true,
         skipReactNativeReload: true,
         disableSynchronization: true,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await mockClientStatusSnap(mockServer);
+        },
       },
       async () => {
         await loginToApp();

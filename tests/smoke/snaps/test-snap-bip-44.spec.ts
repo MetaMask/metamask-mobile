@@ -5,6 +5,8 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import TestSnaps from '../../page-objects/Browser/TestSnaps';
 import Assertions from '../../framework/Assertions';
+import { Mockttp } from 'mockttp';
+import { mockBip44Snap } from '../../api-mocking/mock-response-data/snaps/snap-binary-mocks';
 
 jest.setTimeout(150_000);
 
@@ -16,6 +18,9 @@ describe(SmokeSnaps('BIP-44 Snap Tests'), () => {
         restartDevice: true,
         skipReactNativeReload: true,
         disableSynchronization: true,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await mockBip44Snap(mockServer);
+        },
       },
       async () => {
         await loginToApp();
@@ -114,11 +119,14 @@ describe(SmokeSnaps('BIP-44 Snap Tests'), () => {
         await TestSnaps.selectInDropdown('bip44EntropyDropDown', 'Invalid');
         await TestSnaps.fillMessage('messageBip44Input', 'foo bar');
         await TestSnaps.tapButton('signMessageBip44Button');
+        // Both iOS and Android show the snap's error as a native window.alert()
+        // dialog from the test-snaps page (covers the WebView, so reading from
+        // the in-page result span fails to find browser-webview). Match against
+        // the alert text instead.
         await Assertions.expectTextDisplayed(
           'Entropy source with ID "invalid" not found.',
           { timeout: 30000 },
         );
-        await TestSnaps.dismissAlert();
       },
     );
   });

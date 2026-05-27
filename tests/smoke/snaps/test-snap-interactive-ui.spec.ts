@@ -7,6 +7,8 @@ import TestSnaps from '../../page-objects/Browser/TestSnaps';
 import { Assertions } from '../../framework';
 import Matchers from '../../framework/Matchers';
 import { DateTime } from 'luxon';
+import { Mockttp } from 'mockttp';
+import { mockInteractiveUiSnap } from '../../api-mocking/mock-response-data/snaps/snap-binary-mocks';
 
 jest.setTimeout(150_000);
 
@@ -18,6 +20,9 @@ describe(SmokeSnaps('Interactive UI Snap Tests'), () => {
         restartDevice: true,
         skipReactNativeReload: true,
         disableSynchronization: true,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await mockInteractiveUiSnap(mockServer);
+        },
       },
       async () => {
         await loginToApp();

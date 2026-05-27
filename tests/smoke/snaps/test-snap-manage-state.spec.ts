@@ -4,6 +4,8 @@ import { navigateToBrowserView } from '../../flows/browser.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import TestSnaps from '../../page-objects/Browser/TestSnaps';
+import { Mockttp } from 'mockttp';
+import { mockManageStateSnap } from '../../api-mocking/mock-response-data/snaps/snap-binary-mocks';
 
 jest.setTimeout(150_000);
 
@@ -15,6 +17,9 @@ describe(SmokeSnaps('Manage State Snap Tests'), () => {
         restartDevice: true,
         skipReactNativeReload: true,
         disableSynchronization: true,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await mockManageStateSnap(mockServer);
+        },
       },
       async () => {
         await loginToApp();

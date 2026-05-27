@@ -1,0 +1,10 @@
+{
+  "accept-ranges": "bytes",
+  "access-control-allow-origin": "*",
+  "cache-control": "public, must-revalidate, max-age=31557600",
+  "content-length": "12336",
+  "content-type": "application/octet-stream",
+  "etag": "\"6089ae64c9d548802d1cb3cefc4a4366\"",
+  "last-modified": "Tue, 20 May 2025 09:15:14 GMT",
+  "vary": "Accept-Encoding"
+}

@@ -5,6 +5,8 @@ import { SmokeSnaps } from '../../tags';
 import TestSnaps from '../../page-objects/Browser/TestSnaps';
 import { loginToApp } from '../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../flows/browser.flow';
+import { Mockttp } from 'mockttp';
+import { mockErrorSnap } from '../../api-mocking/mock-response-data/snaps/snap-binary-mocks';
 
 jest.setTimeout(150_000);
 
@@ -16,6 +18,9 @@ describe(SmokeSnaps('Installed Snap Tests'), () => {
         restartDevice: true,
         skipReactNativeReload: true,
         disableSynchronization: true,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await mockErrorSnap(mockServer);
+        },
       },
       async () => {
         await loginToApp();

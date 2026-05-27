@@ -7,6 +7,10 @@ export const flushPromises = () => new Promise(setImmediate);
 // iOS: These are overridden by LaunchArgs at runtime
 export const FALLBACK_FIXTURE_SERVER_PORT = 12345;
 export const FALLBACK_COMMAND_QUEUE_SERVER_PORT = 2446;
+// Mirrors FALLBACK_MOCKSERVER_PORT in tests/framework/Constants.ts. Duplicated
+// here because app code (shim.js, NpmLocation) needs the value at runtime and
+// cannot depend on tests/. If you change one, change the other.
+export const FALLBACK_MOCKSERVER_PORT = 8000;
 export const E2E_TEST_CONFIG_GLOBAL_KEY = '__METAMASK_E2E_TEST_CONFIG__';
 
 // E2E test configuration required in app. Metro/RN can evaluate this module
@@ -50,5 +54,7 @@ export const getFixturesServerPortInApp = () =>
   testConfig.fixtureServerPort ?? FALLBACK_FIXTURE_SERVER_PORT;
 export const getCommandQueueServerPortInApp = () =>
   testConfig.commandQueueServerPort ?? FALLBACK_COMMAND_QUEUE_SERVER_PORT;
+export const getMockServerPortInApp = () =>
+  testConfig.mockServerPort ?? FALLBACK_MOCKSERVER_PORT;
 
 export const isRc = process.env.METAMASK_ENVIRONMENT === 'rc';

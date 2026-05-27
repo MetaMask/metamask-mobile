@@ -5,6 +5,8 @@ import { SmokeSnaps } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../flows/browser.flow';
 import { Assertions, Matchers } from '../../framework';
+import { Mockttp } from 'mockttp';
+import { mockDialogSnap } from '../../api-mocking/mock-response-data/snaps/snap-binary-mocks';
 
 jest.setTimeout(150_000);
 
@@ -16,6 +18,9 @@ describe(SmokeSnaps('UI Links Snap Test'), () => {
         restartDevice: true,
         skipReactNativeReload: true,
         disableSynchronization: true,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await mockDialogSnap(mockServer);
+        },
       },
       async () => {
         await loginToApp();

@@ -2,5 +2,7 @@
 # https://help.github.com/articles/dealing-with-line-endings/
 *.bat text eol=crlf
 
+# Snap binary tarballs stored with .txt extension must not be normalized
+tests/api-mocking/mock-response-data/snaps/snap-binaries-and-headers/*.txt binary
 # Shell scripts must keep LF so they run in WSL on Windows.
 *.sh text eol=lf

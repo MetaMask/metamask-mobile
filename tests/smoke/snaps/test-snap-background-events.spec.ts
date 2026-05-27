@@ -8,6 +8,8 @@ import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
 import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import { TestSnapResultSelectorWebIDS } from '../../selectors/Browser/TestSnaps.selectors';
+import { Mockttp } from 'mockttp';
+import { mockBackgroundEventsSnap } from '../../api-mocking/mock-response-data/snaps/snap-binary-mocks';
 
 jest.setTimeout(150_000);
 
@@ -19,6 +21,9 @@ describe(SmokeSnaps('Background Events Snap Tests'), () => {
         restartDevice: true,
         skipReactNativeReload: true,
         disableSynchronization: true,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await mockBackgroundEventsSnap(mockServer);
+        },
       },
       async () => {
         await loginToApp();
@@ -38,7 +43,11 @@ describe(SmokeSnaps('Background Events Snap Tests'), () => {
         disableSynchronization: true,
       },
       async () => {
-        const futureDate = new Date(Date.now() + 5_000).toISOString();
+        // 10s window: long enough to outlast the snap's scheduling round-trip
+        // (avoiding the "in the past" rejection alert), short enough that
+        // expectTextDisplayed below catches the firing dialog within its
+        // default timeout.
+        const futureDate = new Date(Date.now() + 10_000).toISOString();
 
         await TestSnaps.fillMessage('backgroundEventDateInput', futureDate);
         await TestSnaps.tapButton('scheduleBackgroundEventWithDateButton');
@@ -62,7 +71,10 @@ describe(SmokeSnaps('Background Events Snap Tests'), () => {
         disableSynchronization: true,
       },
       async () => {
-        await TestSnaps.fillMessage('backgroundEventDurationInput', 'PT5S');
+        // 10s window: long enough for snap to accept the schedule before the
+        // duration elapses, short enough for the firing dialog to land within
+        // expectTextDisplayed's default timeout.
+        await TestSnaps.fillMessage('backgroundEventDurationInput', 'PT10S');
         await TestSnaps.tapButton('scheduleBackgroundEventWithDurationButton');
         await TestSnaps.checkResultSpanNotEmpty(
           'scheduleBackgroundEventResultSpan',
@@ -125,11 +137,14 @@ describe(SmokeSnaps('Background Events Snap Tests'), () => {
 
         await TestSnaps.fillMessage('backgroundEventDateInput', pastDate);
         await TestSnaps.tapButton('scheduleBackgroundEventWithDateButton');
+        // Both iOS and Android show the snap's error as a native window.alert()
+        // dialog from the test-snaps page (covers the WebView, so reading from
+        // the in-page result span fails to find browser-webview). Match against
+        // the alert text instead.
         await Assertions.expectTextDisplayed(
           'Cannot schedule an event in the past.',
           { timeout: 30000 },
         );
-        await TestSnaps.dismissAlert();
       },
     );
   });

@@ -4,6 +4,11 @@ import { SmokeSnaps } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../flows/browser.flow';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { Mockttp } from 'mockttp';
+import {
+  mockBip32Snap,
+  mockJsonRpcSnap,
+} from '../../api-mocking/mock-response-data/snaps/snap-binary-mocks';
 
 jest.setTimeout(150_000);
 
@@ -15,6 +20,10 @@ describe(SmokeSnaps('Snap RPC Tests'), () => {
         restartDevice: true,
         skipReactNativeReload: true,
         disableSynchronization: true,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await mockBip32Snap(mockServer);
+          await mockJsonRpcSnap(mockServer);
+        },
       },
       async () => {
         await loginToApp();

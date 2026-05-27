@@ -7,6 +7,8 @@ import TestSnaps from '../../page-objects/Browser/TestSnaps';
 import { getAnvilPortForTest } from '../../framework/fixtures/FixtureUtils';
 import { LocalNodeType } from '../../framework';
 import { defaultOptions } from '../../seeder/anvil-manager';
+import { Mockttp } from 'mockttp';
+import { mockNetworkSnap } from '../../api-mocking/mock-response-data/snaps/snap-binary-mocks';
 
 jest.setTimeout(150_000);
 
@@ -27,6 +29,9 @@ describe(SmokeSnaps('Network Access Snap Tests'), () => {
             },
           },
         ],
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await mockNetworkSnap(mockServer);
+        },
       },
       async () => {
         await loginToApp();

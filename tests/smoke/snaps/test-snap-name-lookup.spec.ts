@@ -12,6 +12,8 @@ import BrowserView from '../../page-objects/Browser/BrowserView';
 import TransactionConfirmView from '../../page-objects/Send/TransactionConfirmView';
 import TokenOverview from '../../page-objects/wallet/TokenOverview';
 import NetworkListModal from '../../page-objects/Network/NetworkListModal';
+import { Mockttp } from 'mockttp';
+import { mockNameLookupSnap } from '../../api-mocking/mock-response-data/snaps/snap-binary-mocks';
 
 jest.setTimeout(150_000);
 
@@ -25,6 +27,9 @@ describe(SmokeSnaps('Name Lookup Snap Tests'), () => {
         restartDevice: true,
         skipReactNativeReload: true,
         disableSynchronization: true,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await mockNameLookupSnap(mockServer);
+        },
       },
       async () => {
         await loginToApp();
