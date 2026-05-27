@@ -36,20 +36,21 @@ export function usePushPermissionNotificationSetup() {
           const hasExistingNotificationPreferences =
             await hasNotificationPreferencesHelper();
 
-          // Marketing prefs are written by either first-time notification
-          // initialization or the explicit AUS update for existing prefs.
-          await enableNotificationsHelper({
-            registerPushNotifications,
-            ...(!hasExistingNotificationPreferences
-              ? {
-                  hasMarketingConsent: true,
-                  productAnnouncementEnabled: true,
-                }
-              : {}),
-          });
           if (hasExistingNotificationPreferences) {
+            // Still run the enable flow for auth, trigger refresh, controller
+            // state, and push registration; existing AUS prefs are updated separately.
+            await enableNotificationsHelper({
+              registerPushNotifications,
+            });
             await setMarketingNotificationPreferencesEnabled(true);
+          } else {
+            await enableNotificationsHelper({
+              hasMarketingConsent: true,
+              productAnnouncementEnabled: true,
+              registerPushNotifications,
+            });
           }
+
           await updateNotificationSubscriptionExpiration();
         } catch (backgroundSetupError) {
           Logger.error(
