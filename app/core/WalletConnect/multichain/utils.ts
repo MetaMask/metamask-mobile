@@ -22,7 +22,6 @@ import {
 } from '@metamask/utils';
 import type { SessionTypes } from '@walletconnect/types';
 import Engine from '../../Engine';
-import { areAddressesEqual } from '../../../util/address';
 import { NamespaceConfig, ProposalParamsLight } from './types';
 
 type NamespaceReferenceSource = Partial<ProposalParamsLight> & {
@@ -127,6 +126,8 @@ export function doesProposalOrSessionIncludeNamespace({
 
 /**
  * Selected address for a CAIP-2 chain, from AccountTree.
+ *
+ * Be careful, this address is not necessarily one that has been permitted.
  */
 function getSelectedAddressByChainId({
   chainId,
@@ -145,7 +146,7 @@ function getSelectedAddressByChainId({
 }
 
 /**
- * Sort the currently selected account first for each chain.
+ * Move the currently selected account to the front for each chain.
  */
 export function prioritizeSelectedCaipAccountIds(
   caipAccountIds: CaipAccountId[],
@@ -154,56 +155,28 @@ export function prioritizeSelectedCaipAccountIds(
     return [...caipAccountIds];
   }
 
-  const selectedAddressByChainId: Partial<Record<CaipChainId, string>> = {};
+  const inputIds = new Set(caipAccountIds);
 
-  for (const caipAccountId of caipAccountIds) {
-    try {
-      const { chainId } = parseCaipAccountId(caipAccountId);
-      if (selectedAddressByChainId[chainId]) {
-        continue;
-      }
+  // get all chainIds
+  const chainIds = new Set(
+    caipAccountIds.map((id) => parseCaipAccountId(id).chainId),
+  );
 
-      selectedAddressByChainId[chainId] =
-        getSelectedAddressByChainId({
-          chainId,
-        }) ?? '';
-    } catch {
-      // Keep invalid IDs in their original order.
-    }
-  }
-
-  return [...caipAccountIds].sort((firstAccountId, secondAccountId) => {
-    try {
-      const firstParsed = parseCaipAccountId(firstAccountId);
-      const secondParsed = parseCaipAccountId(secondAccountId);
-
-      if (firstParsed.chainId !== secondParsed.chainId) {
-        return 0;
-      }
-
-      const selectedAddress = selectedAddressByChainId[firstParsed.chainId];
-      if (!selectedAddress) {
-        return 0;
-      }
-
-      const isFirstSelected = areAddressesEqual(
-        firstParsed.address,
-        selectedAddress,
-      );
-      const isSecondSelected = areAddressesEqual(
-        secondParsed.address,
-        selectedAddress,
-      );
-
-      if (isFirstSelected === isSecondSelected) {
-        return 0;
-      }
-
-      return isFirstSelected ? -1 : 1;
-    } catch {
-      return 0;
-    }
+  // get all selected accounts for those chainIds
+  const selectedAccountIds = Array.from(chainIds).map((chainId) => {
+    const address = getSelectedAddressByChainId({ chainId });
+    return address ? (`${chainId}:${address}` as CaipAccountId) : undefined;
   });
+
+  // filter only selectedAccountIds already on the input list
+  const authorizedSelectedAccountIds = selectedAccountIds.filter(
+    (id): id is CaipAccountId => id !== undefined && inputIds.has(id),
+  );
+
+  // move selectedAccountIds to the front of the list
+  return Array.from(
+    new Set([...authorizedSelectedAccountIds, ...caipAccountIds]),
+  );
 }
 
 /**
