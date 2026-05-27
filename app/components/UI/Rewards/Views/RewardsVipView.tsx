@@ -242,12 +242,12 @@ const RewardsVipView: React.FC = () => {
                 title={dashboard.localizedText.statsTitle}
                 period={dashboard.localizedText.periodTitle}
                 labels={{
-                  points: dashboard.localizedText.PointsTitle,
-                  swapsVolume: dashboard.localizedText.SwapsVolumeTitle,
+                  points: dashboard.localizedText.pointsTitle,
+                  swapsVolume: dashboard.localizedText.swapsVolumeTitle,
                   pointsFromReferrals:
-                    dashboard.localizedText.PointsFromReferralsTitle,
-                  perpsVolume: dashboard.localizedText.PerpsVolumeTitle,
-                  vipReferrals: dashboard.localizedText.VIPReferralsTitle,
+                    dashboard.localizedText.pointsFromReferralsTitle,
+                  perpsVolume: dashboard.localizedText.perpsVolumeTitle,
+                  vipReferrals: dashboard.localizedText.vipReferralsTitle,
                 }}
               />
 

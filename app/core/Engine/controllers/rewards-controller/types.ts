@@ -111,11 +111,11 @@ export type VipLocalizedTextDto = {
   perpsFeeTitle: string;
   revenueShareTitle: string;
   statsTitle: string;
-  PointsTitle: string;
-  SwapsVolumeTitle: string;
-  PointsFromReferralsTitle: string;
-  PerpsVolumeTitle: string;
-  VIPReferralsTitle: string;
+  pointsTitle: string;
+  swapsVolumeTitle: string;
+  pointsFromReferralsTitle: string;
+  perpsVolumeTitle: string;
+  vipReferralsTitle: string;
   totalPointsTitle: string;
   equityLockedTitle: string;
   equityLockedDescription: string;
