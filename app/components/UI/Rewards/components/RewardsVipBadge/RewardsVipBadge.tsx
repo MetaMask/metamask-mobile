@@ -10,7 +10,6 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useVipTier } from '../../hooks/useVipTier';
-import { VIP_GOLD_BACKGROUND_GRADIENT_COLORS } from '../Vip/Vip.constants';
 
 const RewardsVipBadge: React.FC = () => {
   const tw = useTailwind();
