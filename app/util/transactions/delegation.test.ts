@@ -6,9 +6,8 @@ import {
 import { SignMessenger, getDelegationTransaction } from './delegation';
 import { MOCK_ANY_NAMESPACE, Messenger } from '@metamask/messenger';
 import { Hex } from '@metamask/utils';
-import { toHex } from '@metamask/controller-utils';
 
-const mockProviderRequest = jest.fn();
+const mockGetNonceLock = jest.fn();
 
 const mockIsAtomicBatchSupported: jest.MockedFn<
   TransactionController['isAtomicBatchSupported']
@@ -19,13 +18,9 @@ jest.spyOn(Math, 'random').mockReturnValue(0);
 jest.mock('../../core/Engine', () => ({
   context: {
     TransactionController: {
+      getNonceLock: () => mockGetNonceLock(),
       isAtomicBatchSupported: (request: IsAtomicBatchSupportedRequest) =>
         mockIsAtomicBatchSupported(request),
-    },
-    NetworkController: {
-      getNetworkClientById: () => ({
-        provider: { request: (args: unknown) => mockProviderRequest(args) },
-      }),
     },
   },
 }));
@@ -86,7 +81,10 @@ describe('Transaction Delegation Utils', () => {
       },
     ]);
 
-    mockProviderRequest.mockResolvedValue(toHex(NONCE_MOCK));
+    mockGetNonceLock.mockResolvedValue({
+      nonceDetails: { params: { nextNetworkNonce: NONCE_MOCK } },
+      releaseLock: jest.fn(),
+    });
   });
 
   describe('getDelegationTransaction', () => {

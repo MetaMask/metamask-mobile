@@ -134,19 +134,13 @@ async function buildAuthorizationList<MessengerType extends SignMessenger>(
     throw new Error('Upgrade contract address not found');
   }
 
-  const { NetworkController } = Engine.context;
-  const provider = NetworkController.getNetworkClientById(networkClientId)?.provider;
+  const nonceLock = await TransactionController.getNonceLock(
+    from,
+    networkClientId,
+  );
 
-  if (!provider) {
-    throw new Error('Provider not found for network client');
-  }
-
-  const nonceHex = await provider.request({
-    method: 'eth_getTransactionCount',
-    params: [from, 'latest'],
-  });
-
-  const nonce = parseInt(nonceHex as string, 16);
+  const nonce = nonceLock.nonceDetails.params.nextNetworkNonce;
+  nonceLock.releaseLock();
 
   const authorizationSignature = (await messenger.call(
     'KeyringController:signEip7702Authorization',
