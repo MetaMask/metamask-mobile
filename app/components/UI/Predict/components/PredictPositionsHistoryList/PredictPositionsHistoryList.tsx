@@ -18,6 +18,8 @@ const PredictPositionsHistoryList = ({
     <PredictTransactionsView
       emptyState={<PredictPositionsEmpty />}
       isVisible={isVisible}
+      containerStyle="p-0"
+      activityContainerStyle="px-0"
     />
   </Box>
 );
