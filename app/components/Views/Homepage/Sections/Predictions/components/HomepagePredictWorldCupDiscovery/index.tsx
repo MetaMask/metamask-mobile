@@ -5,6 +5,7 @@ import { Box } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import SectionHeader from '../../../../../../../component-library/components-temp/SectionHeader';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../../../Wallet/WalletView.testIds';
 import { PredictEntryPointProvider } from '../../../../../../UI/Predict/contexts';
 import { PredictEventValues } from '../../../../../../UI/Predict/constants/eventNames';

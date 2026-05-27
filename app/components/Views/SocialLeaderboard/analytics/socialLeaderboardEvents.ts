@@ -46,6 +46,7 @@ export const SocialLeaderboardEventValues = {
   AMOUNT_SELECTION_METHOD: {
     PRESET: 'preset',
     CUSTOM_INPUT: 'custom_input',
+    SLIDER: 'slider',
   },
   DISMISS_STAGE: {
     TOKEN_DETAIL: 'token_detail',

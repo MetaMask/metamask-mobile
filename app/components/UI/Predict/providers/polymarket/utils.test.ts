@@ -3,14 +3,16 @@ import EthQuery from '@metamask/eth-query';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
-import { Side, type OrderPreview } from '../../types';
+import { Side, type OrderPreview, type PredictOutcome } from '../../types';
 import { PREDICT_ERROR_CODES } from '../../constants/errors';
 import {
   DEFAULT_CLOB_BASE_URL,
   MATIC_CONTRACTS_V2,
   POLYGON_MAINNET_CHAIN_ID,
+  POLYMARKET_PROVIDER_ID,
 } from './constants';
 import {
+  buildOutcomeGroups,
   calculateConservativeBuyMarketFee,
   clearClobMarketInfoCache,
   clearClobMarketInfoSessionState,
@@ -119,6 +121,49 @@ describe('polymarket utils', () => {
     >);
   });
 
+  it('groups tennis first set markets separately from game lines', () => {
+    const createOutcome = (
+      id: string,
+      sportsMarketType: string,
+    ): PredictOutcome => ({
+      id,
+      providerId: POLYMARKET_PROVIDER_ID,
+      marketId: 'market-1',
+      title: id,
+      description: id,
+      image: 'icon.png',
+      status: 'open',
+      tokens: [{ id: `${id}-token`, title: 'Yes', price: 0.5 }],
+      volume: 100,
+      groupItemTitle: id,
+      sportsMarketType,
+    });
+
+    const groups = buildOutcomeGroups([
+      createOutcome('moneyline', 'moneyline'),
+      createOutcome('set-total', 'tennis_set_totals'),
+      createOutcome('match-total', 'tennis_match_totals'),
+      createOutcome('completed', 'tennis_completed_match'),
+      createOutcome('first-set-winner', 'tennis_first_set_winner'),
+      createOutcome('first-set-total', 'tennis_first_set_totals'),
+    ]);
+
+    expect(groups.map((group) => group.key)).toEqual([
+      'game_lines',
+      'first_set',
+    ]);
+    expect(groups[0].subgroups?.map((group) => group.key)).toEqual([
+      'moneyline',
+      'tennis_set_totals',
+      'tennis_match_totals',
+      'tennis_completed_match',
+    ]);
+    expect(groups[1].subgroups?.map((group) => group.key)).toEqual([
+      'tennis_first_set_winner',
+      'tennis_first_set_totals',
+    ]);
+  });
+
   it('parses World Cup game events with game metadata when team data is available', () => {
     const teamsByAbbreviation: Record<string, PolymarketApiTeam> = {
       usa: {
@@ -212,6 +257,287 @@ describe('polymarket utils', () => {
       expect.objectContaining({
         active: true,
         acceptingOrders: true,
+      }),
+    );
+  });
+
+  it('parses ATP game events from provider metadata when league tag is missing', () => {
+    const teamsByAbbreviation: Record<string, PolymarketApiTeam> = {
+      ivashka: {
+        id: 'team-ivashka',
+        name: 'Ilya Ivashka',
+        logo: 'ivashka.png',
+        abbreviation: 'ivashka',
+        color: 'red',
+        alias: 'I. Ivashka',
+        league: 'atp',
+      },
+      stewart: {
+        id: 'team-stewart',
+        name: 'Hamish Stewart',
+        logo: 'stewart.png',
+        abbreviation: 'stewart',
+        color: 'orange',
+        alias: 'H. Stewart',
+        league: 'atp',
+      },
+    };
+    const event: PolymarketApiEvent = {
+      id: '509179',
+      slug: 'atp-ivashka-stewart-2026-05-22',
+      title: 'Bengaluru 3: Ilya Ivashka vs Hamish Stewart',
+      description: 'ATP match',
+      icon: 'icon.png',
+      closed: false,
+      active: true,
+      series: [
+        {
+          id: '10365',
+          slug: 'atp',
+          title: 'ATP',
+          recurrence: 'daily',
+        },
+      ],
+      markets: [
+        {
+          conditionId: 'condition-1',
+          question: 'Bengaluru 3: Ilya Ivashka vs Hamish Stewart',
+          description: 'Market description',
+          icon: 'icon.png',
+          image: 'image.png',
+          groupItemTitle: '',
+          groupItemThreshold: 0,
+          sportsMarketType: 'moneyline',
+          status: 'open',
+          volumeNum: 100,
+          liquidity: 100,
+          negRisk: false,
+          clobTokenIds: '["token-ivashka","token-stewart"]',
+          outcomes: '["Ilya Ivashka","Hamish Stewart"]',
+          outcomePrices: '["0.625","0.375"]',
+          closed: false,
+          active: true,
+          acceptingOrders: true,
+          resolvedBy: '',
+          orderPriceMinTickSize: 0.01,
+          umaResolutionStatus: '',
+        },
+      ],
+      tags: [
+        { id: 'tennis', label: 'Tennis', slug: 'tennis' },
+        { id: 'games', label: 'Games', slug: 'games' },
+      ],
+      teams: [teamsByAbbreviation.ivashka, teamsByAbbreviation.stewart],
+      liquidity: 100,
+      volume: 100,
+      gameId: '5658375',
+      startTime: '2026-05-22T07:30:00Z',
+      live: false,
+      ended: false,
+    };
+
+    const [market] = parsePolymarketEvents([event], {
+      category: 'hot',
+      teamLookup: (_league, abbreviation) => teamsByAbbreviation[abbreviation],
+      extendedSportsMarketsLeagues: ['atp'],
+    });
+
+    expect(market.game).toEqual(
+      expect.objectContaining({
+        id: '5658375',
+        league: 'atp',
+        startTime: '2026-05-22T07:30:00Z',
+        status: 'scheduled',
+        homeTeam: expect.objectContaining({ abbreviation: 'ivashka' }),
+        awayTeam: expect.objectContaining({ abbreviation: 'stewart' }),
+      }),
+    );
+  });
+
+  it('parses WTA game events from provider metadata when league tag is missing', () => {
+    const teamsByAbbreviation: Record<string, PolymarketApiTeam> = {
+      sasnovi: {
+        id: 'team-sasnovi',
+        name: 'Aliaksandra Sasnovich',
+        logo: 'sasnovi.png',
+        abbreviation: 'sasnovi',
+        color: 'red',
+        alias: 'A. Sasnovich',
+        league: 'wta',
+      },
+      ribera: {
+        id: 'team-ribera',
+        name: 'Marina Bassols Ribera',
+        logo: 'ribera.png',
+        abbreviation: 'ribera',
+        color: 'orange',
+        alias: 'M. Ribera',
+        league: 'wta',
+      },
+    };
+    const event: PolymarketApiEvent = {
+      id: '506439',
+      slug: 'wta-sasnovi-ribera-2026-05-22',
+      title:
+        'Roland Garros, Qualification WTA: Aliaksandra Sasnovich vs Marina Bassols Ribera',
+      description: 'WTA match',
+      icon: 'icon.png',
+      closed: false,
+      active: true,
+      series: [
+        {
+          id: '10366',
+          slug: 'wta',
+          title: 'WTA',
+          recurrence: 'daily',
+        },
+      ],
+      markets: [
+        {
+          conditionId: 'condition-1',
+          question:
+            'Roland Garros, Qualification WTA: Aliaksandra Sasnovich vs Marina Bassols Ribera',
+          description: 'Market description',
+          icon: 'icon.png',
+          image: 'image.png',
+          groupItemTitle: '',
+          groupItemThreshold: 0,
+          sportsMarketType: 'moneyline',
+          status: 'open',
+          volumeNum: 100,
+          liquidity: 100,
+          negRisk: false,
+          clobTokenIds: '["token-sasnovi","token-ribera"]',
+          outcomes: '["Aliaksandra Sasnovich","Marina Bassols Ribera"]',
+          outcomePrices: '["0.735","0.265"]',
+          closed: false,
+          active: true,
+          acceptingOrders: true,
+          resolvedBy: '',
+          orderPriceMinTickSize: 0.01,
+          umaResolutionStatus: '',
+        },
+      ],
+      tags: [
+        { id: 'tennis', label: 'Tennis', slug: 'tennis' },
+        { id: 'games', label: 'Games', slug: 'games' },
+      ],
+      teams: [teamsByAbbreviation.sasnovi, teamsByAbbreviation.ribera],
+      liquidity: 100,
+      volume: 100,
+      gameId: '5655456',
+      startTime: '2026-05-22T09:00:00Z',
+      live: false,
+      ended: false,
+    };
+
+    const [market] = parsePolymarketEvents([event], {
+      category: 'hot',
+      teamLookup: (_league, abbreviation) => teamsByAbbreviation[abbreviation],
+      extendedSportsMarketsLeagues: ['wta'],
+    });
+
+    expect(market.game).toEqual(
+      expect.objectContaining({
+        id: '5655456',
+        league: 'wta',
+        startTime: '2026-05-22T09:00:00Z',
+        status: 'scheduled',
+        homeTeam: expect.objectContaining({ abbreviation: 'sasnovi' }),
+        awayTeam: expect.objectContaining({ abbreviation: 'ribera' }),
+      }),
+    );
+  });
+
+  it('parses ITF game events from provider metadata when league tag is missing', () => {
+    const teamsByAbbreviation: Record<string, PolymarketApiTeam> = {
+      back: {
+        id: 'team-back',
+        name: 'Dayeon Back',
+        logo: 'back.png',
+        abbreviation: 'back',
+        color: 'red',
+        alias: 'D. Back',
+        league: 'itf',
+      },
+      eunjile: {
+        id: 'team-eunjile',
+        name: 'Eun Ji Lee',
+        logo: 'eunjile.png',
+        abbreviation: 'eunjile',
+        color: 'orange',
+        alias: 'E. Lee',
+        league: 'itf',
+      },
+    };
+    const event: PolymarketApiEvent = {
+      id: '506396',
+      slug: 'itf-back-eunjile-2026-05-21',
+      title: 'ITF Changwon: Dayeon Back vs Eun Ji Lee',
+      description: 'ITF match',
+      icon: 'icon.png',
+      closed: false,
+      active: true,
+      series: [
+        {
+          id: '11634',
+          slug: 'itf',
+          title: 'ITF',
+          recurrence: 'daily',
+        },
+      ],
+      markets: [
+        {
+          conditionId: 'condition-1',
+          question: 'ITF Changwon: Dayeon Back vs Eun Ji Lee',
+          description: 'Market description',
+          icon: 'icon.png',
+          image: 'image.png',
+          groupItemTitle: '',
+          groupItemThreshold: 0,
+          sportsMarketType: 'moneyline',
+          status: 'open',
+          volumeNum: 100,
+          liquidity: 100,
+          negRisk: false,
+          clobTokenIds: '["token-back","token-eunjile"]',
+          outcomes: '["Dayeon Back","Eun Ji Lee"]',
+          outcomePrices: '["0.86","0.14"]',
+          closed: false,
+          active: true,
+          acceptingOrders: true,
+          resolvedBy: '',
+          orderPriceMinTickSize: 0.01,
+          umaResolutionStatus: '',
+        },
+      ],
+      tags: [
+        { id: 'tennis', label: 'Tennis', slug: 'tennis' },
+        { id: 'games', label: 'Games', slug: 'games' },
+      ],
+      teams: [teamsByAbbreviation.back, teamsByAbbreviation.eunjile],
+      liquidity: 100,
+      volume: 100,
+      gameId: '1631097223',
+      startTime: '2026-05-21T01:00:00Z',
+      live: false,
+      ended: false,
+    };
+
+    const [market] = parsePolymarketEvents([event], {
+      category: 'hot',
+      teamLookup: (_league, abbreviation) => teamsByAbbreviation[abbreviation],
+      extendedSportsMarketsLeagues: ['itf'],
+    });
+
+    expect(market.game).toEqual(
+      expect.objectContaining({
+        id: '1631097223',
+        league: 'itf',
+        startTime: '2026-05-21T01:00:00Z',
+        status: 'scheduled',
+        homeTeam: expect.objectContaining({ abbreviation: 'back' }),
+        awayTeam: expect.objectContaining({ abbreviation: 'eunjile' }),
       }),
     );
   });

@@ -206,10 +206,18 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(result.current.canLink).toBe(true);
       expect(result.current.hasMoneyAccountRequirements).toBe(true);
       expect(result.current.isCardAuthenticated).toBe(true);
+      expect(result.current.isCardLinkedToMoneyAccount).toBe(false);
       expect(result.current.moneyAccountCardToken).toBe(MOCK_TOKEN);
       expect(result.current.status).toBe('idle');
       expect(result.current.isLinking).toBe(false);
       expect(result.current.error).toBeNull();
+    });
+
+    it('reports isCardLinkedToMoneyAccount=true when the Money Account is already delegated for card', () => {
+      applySelectorMocks(buildSelectors({ isAlreadyDelegated: true }));
+      const { result } = renderLinkageHook();
+
+      expect(result.current.isCardLinkedToMoneyAccount).toBe(true);
     });
 
     it('reports canLink=false when the card is not authenticated', () => {
@@ -787,6 +795,29 @@ describe('useMoneyAccountCardLinkage', () => {
           { label: 'Something went wrong linking your card', isBold: true },
         ],
       });
+    });
+
+    it('still submits the delegation when already delegated (Manage Limit update / revoke path)', async () => {
+      applySelectorMocks(buildSelectors({ isAlreadyDelegated: true }));
+      const { result } = renderLinkageHook();
+
+      // canLink is gated on !isAlreadyDelegated, but submit must work so the
+      // user can change the spending cap or revoke it via Manage Limit.
+      expect(result.current.canLink).toBe(false);
+      expect(result.current.canSubmitMoneyAccountDelegation).toBe(true);
+
+      let returned: boolean | undefined;
+      await act(async () => {
+        returned = await result.current.confirmLinkInBackground({
+          delegationAmountHuman: '0',
+        });
+      });
+
+      expect(returned).toBe(true);
+      expect(mockLinkMoneyAccountCard).toHaveBeenCalledTimes(1);
+      expect(mockLinkMoneyAccountCard).toHaveBeenCalledWith(
+        expect.objectContaining({ delegationAmountHuman: '0' }),
+      );
     });
   });
 

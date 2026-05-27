@@ -1,4 +1,5 @@
 const Routes = {
+  MAIN_FLOW: 'Main',
   HOME_TABS: 'Home',
   WALLET_VIEW: 'WalletView',
   BROWSER_TAB_HOME: 'BrowserTabHome',
@@ -434,6 +435,7 @@ const Routes = {
   },
   MONEY: {
     ROOT: 'MoneyScreens',
+    CONFIRMATIONS_ROOT: 'MoneyConfirmations',
     HOME: 'MoneyHome',
     ACTIVITY: 'MoneyActivity',
     HOW_IT_WORKS: 'MoneyHowItWorks',
