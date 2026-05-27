@@ -653,12 +653,11 @@ const PerpsHomeView = ({
         !showCancelAllSheet &&
         !HOME_SCREEN_CONFIG.ShowHeaderActionButtons && (
           <View style={fixedFooterStyle}>
-            <View style={styles.footerButtonsContainer}>
+            <View style={styles.footerButtonsContainer} accessible={false}>
               <Button
                 variant={ButtonVariant.Secondary}
                 size={ButtonSize.Lg}
                 onPress={handleWithdraw}
-                isFullWidth
                 style={styles.footerButton}
                 testID={PerpsHomeViewSelectorsIDs.WITHDRAW_BUTTON}
               >
@@ -668,7 +667,6 @@ const PerpsHomeView = ({
                 variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}
                 onPress={handleAddFunds}
-                isFullWidth
                 style={styles.footerButton}
                 testID={PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON}
               >

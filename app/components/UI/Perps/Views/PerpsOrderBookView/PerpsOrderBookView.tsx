@@ -678,11 +678,10 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
 
         {/* Action Buttons - Show Modify/Close when position exists, Long/Short otherwise */}
         {existingPosition ? (
-          <View style={styles.actionsContainer}>
+          <View style={styles.actionsContainer} accessible={false}>
             <DSButton
               variant={ButtonVariant.Secondary}
               size={ButtonSizeRNDesignSystem.Lg}
-              isFullWidth
               onPress={handleModifyPress}
               style={styles.actionButtonWrapper}
               testID={PerpsOrderBookViewSelectorsIDs.MODIFY_BUTTON}
@@ -693,7 +692,6 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
             <DSButton
               variant={ButtonVariant.Primary}
               size={ButtonSizeRNDesignSystem.Lg}
-              isFullWidth
               onPress={handleClosePosition}
               style={styles.actionButtonWrapper}
               testID={PerpsOrderBookViewSelectorsIDs.CLOSE_BUTTON}
@@ -704,54 +702,50 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
             </DSButton>
           </View>
         ) : (
-          <View style={styles.actionsContainer}>
-            <View style={styles.actionButtonWrapper}>
-              {buttonColorVariant === 'monochrome' ? (
-                <DSButton
-                  variant={ButtonVariant.Primary}
-                  size={ButtonSizeRNDesignSystem.Lg}
-                  isFullWidth
-                  onPress={handleLongPress}
-                  testID={PerpsOrderBookViewSelectorsIDs.LONG_BUTTON}
-                >
-                  {strings('perps.market.long')}
-                </DSButton>
-              ) : (
-                <ButtonSemantic
-                  severity={ButtonSemanticSeverity.Success}
-                  onPress={handleLongPress}
-                  isFullWidth
-                  size={ButtonSizeRNDesignSystem.Lg}
-                  testID={PerpsOrderBookViewSelectorsIDs.LONG_BUTTON}
-                >
-                  {strings('perps.market.long')}
-                </ButtonSemantic>
-              )}
-            </View>
+          <View style={styles.actionsContainer} accessible={false}>
+            {buttonColorVariant === 'monochrome' ? (
+              <DSButton
+                variant={ButtonVariant.Primary}
+                size={ButtonSizeRNDesignSystem.Lg}
+                onPress={handleLongPress}
+                style={styles.actionButtonWrapper}
+                testID={PerpsOrderBookViewSelectorsIDs.LONG_BUTTON}
+              >
+                {strings('perps.market.long')}
+              </DSButton>
+            ) : (
+              <ButtonSemantic
+                severity={ButtonSemanticSeverity.Success}
+                onPress={handleLongPress}
+                size={ButtonSizeRNDesignSystem.Lg}
+                style={styles.actionButtonWrapper}
+                testID={PerpsOrderBookViewSelectorsIDs.LONG_BUTTON}
+              >
+                {strings('perps.market.long')}
+              </ButtonSemantic>
+            )}
 
-            <View style={styles.actionButtonWrapper}>
-              {buttonColorVariant === 'monochrome' ? (
-                <DSButton
-                  variant={ButtonVariant.Primary}
-                  size={ButtonSizeRNDesignSystem.Lg}
-                  isFullWidth
-                  onPress={handleShortPress}
-                  testID={PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON}
-                >
-                  {strings('perps.market.short')}
-                </DSButton>
-              ) : (
-                <ButtonSemantic
-                  severity={ButtonSemanticSeverity.Danger}
-                  onPress={handleShortPress}
-                  isFullWidth
-                  size={ButtonSizeRNDesignSystem.Lg}
-                  testID={PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON}
-                >
-                  {strings('perps.market.short')}
-                </ButtonSemantic>
-              )}
-            </View>
+            {buttonColorVariant === 'monochrome' ? (
+              <DSButton
+                variant={ButtonVariant.Primary}
+                size={ButtonSizeRNDesignSystem.Lg}
+                onPress={handleShortPress}
+                style={styles.actionButtonWrapper}
+                testID={PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON}
+              >
+                {strings('perps.market.short')}
+              </DSButton>
+            ) : (
+              <ButtonSemantic
+                severity={ButtonSemanticSeverity.Danger}
+                onPress={handleShortPress}
+                size={ButtonSizeRNDesignSystem.Lg}
+                style={styles.actionButtonWrapper}
+                testID={PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON}
+              >
+                {strings('perps.market.short')}
+              </ButtonSemantic>
+            )}
           </View>
         )}
       </View>

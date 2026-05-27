@@ -66,7 +66,7 @@ const PerpsNavigationCard: React.FC<PerpsNavigationCardProps> = ({ items }) => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} accessible={false}>
       {items.map((item, index) => {
         const isFirst = index === 0;
         const isLast = index === items.length - 1;

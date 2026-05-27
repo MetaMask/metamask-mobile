@@ -282,12 +282,12 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
               <Box
                 twClassName="gap-3 mt-4"
                 flexDirection={BoxFlexDirection.Row}
+                accessible={false}
               >
                 <Button
                   variant={ButtonVariant.Secondary}
                   size={ButtonSize.Lg}
                   onPress={handleWithdraw}
-                  isFullWidth
                   twClassName="flex-1"
                   testID={PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON}
                 >
@@ -297,7 +297,6 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                   variant={ButtonVariant.Primary}
                   size={ButtonSize.Lg}
                   onPress={handleAddFunds}
-                  isFullWidth
                   twClassName="flex-1"
                   testID={
                     PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON
