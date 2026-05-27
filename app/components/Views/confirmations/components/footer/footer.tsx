@@ -18,6 +18,7 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import AppConstants from '../../../../../core/AppConstants';
 import ConfirmAlertModal from '../../components/modals/confirm-alert-modal';
+import ScamQuestionnaire from '../../Views/scam-questionnaire';
 import { ResultType } from '../../constants/signatures';
 import { useAlerts } from '../../context/alert-system-context';
 import { useConfirmationContext } from '../../context/confirmation-context';
@@ -81,6 +82,11 @@ export const Footer = () => {
 
   const [confirmAlertModalVisible, setConfirmAlertModalVisible] =
     useState(false);
+  const [scamQuestionnaireVisible, setScamQuestionnaireVisible] =
+    useState(false);
+
+  const shouldShowScamQuestionnaire =
+    isMMSendReq && securityAlertResponse?.result_type === ResultType.Malicious;
 
   const showConfirmAlertModal = useCallback(() => {
     setConfirmAlertModalVisible(true);
@@ -90,27 +96,42 @@ export const Footer = () => {
     setConfirmAlertModalVisible(false);
   }, []);
 
+  const hideScamQuestionnaire = useCallback(() => {
+    setScamQuestionnaireVisible(false);
+  }, []);
+
   const onHandleReject = useCallback(async () => {
     hideConfirmAlertModal();
+    hideScamQuestionnaire();
     await onReject();
-  }, [hideConfirmAlertModal, onReject]);
+  }, [hideConfirmAlertModal, hideScamQuestionnaire, onReject]);
 
   const onHandleConfirm = useCallback(async () => {
     hideConfirmAlertModal();
+    hideScamQuestionnaire();
     try {
       await onConfirm();
     } catch {
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     }
-  }, [hideConfirmAlertModal, onConfirm, navigation]);
+  }, [hideConfirmAlertModal, hideScamQuestionnaire, onConfirm, navigation]);
 
   const onSignConfirm = useCallback(async () => {
+    if (shouldShowScamQuestionnaire) {
+      setScamQuestionnaireVisible(true);
+      return;
+    }
     if (hasDangerAlerts) {
       showConfirmAlertModal();
       return;
     }
     await onConfirm();
-  }, [hasDangerAlerts, onConfirm, showConfirmAlertModal]);
+  }, [
+    shouldShowScamQuestionnaire,
+    hasDangerAlerts,
+    onConfirm,
+    showConfirmAlertModal,
+  ]);
 
   useEffect(() => {
     trackAlertMetrics();
@@ -205,6 +226,13 @@ export const Footer = () => {
         <ConfirmAlertModal
           onReject={onHandleReject}
           onConfirm={onHandleConfirm}
+        />
+      )}
+      {scamQuestionnaireVisible && (
+        <ScamQuestionnaire
+          onReject={onHandleReject}
+          onConfirm={onHandleConfirm}
+          onDismiss={hideScamQuestionnaire}
         />
       )}
       <BottomSheetFooter

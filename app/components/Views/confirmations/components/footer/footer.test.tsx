@@ -21,6 +21,8 @@ import { useConfirmationContext } from '../../context/confirmation-context';
 import { useAlertsConfirmed } from '../../../../hooks/useAlertsConfirmed';
 import { Severity } from '../../types/alerts';
 import { useConfirmationAlertMetrics } from '../../hooks/metrics/useConfirmationAlertMetrics';
+import { useSecurityAlertResponse } from '../../hooks/alerts/useSecurityAlertResponse';
+import { ResultType } from '../../constants/signatures';
 import { merge } from 'lodash';
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
@@ -61,6 +63,12 @@ jest.mock('../../../../hooks/useAlertsConfirmed', () => ({
 
 jest.mock('../../hooks/metrics/useConfirmationAlertMetrics', () => ({
   useConfirmationAlertMetrics: jest.fn(),
+}));
+
+jest.mock('../../hooks/alerts/useSecurityAlertResponse', () => ({
+  useSecurityAlertResponse: jest.fn(() => ({
+    securityAlertResponse: undefined,
+  })),
 }));
 
 jest.mock('../../hooks/pay/useTransactionPayData');
@@ -510,6 +518,84 @@ describe('Footer', () => {
       });
 
       expect(getByText('Confirm')).toBeDefined();
+    });
+  });
+
+  describe('Scam Questionnaire branch', () => {
+    const useSecurityAlertResponseMock = jest.mocked(useSecurityAlertResponse);
+
+    const sendTxState = () =>
+      merge(
+        {},
+        simpleSendTransactionControllerMock,
+        transactionApprovalControllerMock,
+        emptySignatureControllerMock,
+        { securityAlerts: { alerts: {} } },
+      );
+
+    beforeEach(() => {
+      (useAlerts as jest.Mock).mockReturnValue({
+        fieldAlerts: [],
+        hasDangerAlerts: false,
+      });
+    });
+
+    it('renders the questionnaire instead of ConfirmAlertModal when isMMSendReq + Malicious are both true', async () => {
+      useSecurityAlertResponseMock.mockReturnValue({
+        securityAlertResponse: { result_type: ResultType.Malicious } as never,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(<Footer />, {
+        state: sendTxState(),
+      });
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+        );
+      });
+
+      expect(getByTestId('scam-questionnaire-modal')).toBeDefined();
+      expect(queryByTestId('confirm-alert-modal')).toBeNull();
+      expect(mockConfirmSpy).not.toHaveBeenCalled();
+    });
+
+    it('does not render the questionnaire when the PPOM verdict is not Malicious', async () => {
+      useSecurityAlertResponseMock.mockReturnValue({
+        securityAlertResponse: { result_type: ResultType.Warning } as never,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(<Footer />, {
+        state: sendTxState(),
+      });
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+        );
+      });
+
+      expect(queryByTestId('scam-questionnaire-modal')).toBeNull();
+      expect(mockConfirmSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not render the questionnaire when the transaction is not a user-initiated send', async () => {
+      useSecurityAlertResponseMock.mockReturnValue({
+        securityAlertResponse: { result_type: ResultType.Malicious } as never,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(<Footer />, {
+        // personalSignatureConfirmationState is not a simpleSend, so isMMSendReq is false
+        state: personalSignatureConfirmationState,
+      });
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+        );
+      });
+
+      expect(queryByTestId('scam-questionnaire-modal')).toBeNull();
     });
   });
 });

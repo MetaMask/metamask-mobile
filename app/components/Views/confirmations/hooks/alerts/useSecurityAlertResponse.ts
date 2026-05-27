@@ -4,6 +4,7 @@ import { selectSecurityAlertResponseByConfirmationId } from '../../selectors/sec
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useSignatureRequest } from '../signatures/useSignatureRequest';
 import { RootState } from '../../../../../reducers';
+import { ResultType } from '../../constants/signatures';
 
 export function useSecurityAlertResponse() {
   const transactionMetadata = useTransactionMetadataRequest();
@@ -22,6 +23,18 @@ export function useSecurityAlertResponse() {
       ? selectSecurityAlertResponseByConfirmationId(state, confirmationId)
       : undefined,
   );
+
+  // TODO: TEMPORARY — local testing of the scam questionnaire. Forces every
+  // confirmation in dev builds to look malicious so the questionnaire fires.
+  // Remove before merging.
+  if (__DEV__) {
+    return {
+      securityAlertResponse: {
+        result_type: ResultType.Malicious,
+        reason: 'transfer_farming',
+      } as never,
+    };
+  }
 
   // For transactions, prefer the response from TransactionController state
   // as it may be more up-to-date
