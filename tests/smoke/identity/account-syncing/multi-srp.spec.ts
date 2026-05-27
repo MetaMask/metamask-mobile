@@ -25,6 +25,8 @@ import EditAccountName from '../../../page-objects/MultichainAccounts/EditAccoun
 describe.skip(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
   let sharedUserStorageController: UserStorageMockttpController;
 
+  // FORCE E2E
+
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     sharedUserStorageController = createUserStorageController();
