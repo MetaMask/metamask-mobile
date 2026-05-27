@@ -70,6 +70,20 @@ Convert a local iOS-exported `.cpuprofile` into the artifact directory:
 yarn llm:mobile:memory -- --platform ios --hermes-profile /path/to/profile.cpuprofile
 ```
 
+Capture Hermes heap snapshots before and after a flow, then include a shallow
+heap-growth comparison in the memory report:
+
+```bash
+yarn llm:mobile:memory -- --platform ios --device booted --flow wallet-send-eth-cancel --fixture default --expo-dev-url "http://localhost:8092?disableOnboarding=1" --headless-wallet-setup --capture-heap-snapshots
+```
+
+Heap snapshots are written to `<artifact-dir>/heap-snapshots` by default. Use
+`--heap-snapshot-dir` to choose a different directory, and
+`--heap-snapshot-top-count` to control how many growing node groups are included
+in the diff. The comparison groups nodes by heap snapshot `type:name` and ranks
+them by shallow `self_size` growth; it is useful for finding retained object
+classes or large strings, but it is not a dominator or retained-size analysis.
+
 ## Profiler Overlay
 
 The in-app `react-native-release-profiler` overlay is enabled for `rc` and

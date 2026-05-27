@@ -606,6 +606,74 @@ const COMMANDS = {
     };
   },
 
+  async 'heap-snapshot'(client, args) {
+    let outPath = '';
+    let label = 'heap';
+    let collectGarbage = true;
+    for (let i = 0; i < args.length; i++) {
+      if (args[i] === '--out' && i + 1 < args.length) {
+        outPath = args[++i];
+      } else if (args[i] === '--label' && i + 1 < args.length) {
+        label = args[++i];
+      } else if (args[i] === '--no-gc') {
+        collectGarbage = false;
+      }
+    }
+
+    if (!outPath) {
+      const heapDir = path.resolve(
+        process.env.APP_ROOT || process.cwd(),
+        'test-artifacts/mobile-memory/heap-snapshots',
+      );
+      fs.mkdirSync(heapDir, { recursive: true });
+      outPath = path.join(heapDir, `${label}.heapsnapshot`);
+    } else {
+      fs.mkdirSync(path.dirname(outPath), { recursive: true });
+    }
+
+    const fd = fs.openSync(outPath, 'w');
+    let sizeBytes = 0;
+    let chunksCount = 0;
+    const onChunk = (params) => {
+      if (typeof params.chunk === 'string') {
+        fs.writeSync(fd, params.chunk);
+        sizeBytes += Buffer.byteLength(params.chunk, 'utf8');
+        chunksCount += 1;
+      }
+    };
+
+    client.on('HeapProfiler.addHeapSnapshotChunk', onChunk);
+    try {
+      if (collectGarbage) {
+        await client.send('HeapProfiler.collectGarbage', {}, 60000);
+      }
+      await client.send(
+        'HeapProfiler.takeHeapSnapshot',
+        { reportProgress: false },
+        300000,
+      );
+    } finally {
+      client.off('HeapProfiler.addHeapSnapshotChunk', onChunk);
+      fs.closeSync(fd);
+    }
+
+    if (chunksCount === 0) {
+      return {
+        ok: false,
+        error: 'HeapProfiler.takeHeapSnapshot produced no chunks',
+      };
+    }
+
+    return {
+      ok: true,
+      path: outPath,
+      label,
+      sizeBytes,
+      chunksCount,
+      collectedGarbage: collectGarbage,
+    };
+  },
+
   async 'issues-arm'(client) {
     // Installs console.warn/error and global error/unhandledrejection hooks
     // that push into globalThis.__AGENTIC_ISSUES__ (capped at 500 entries).

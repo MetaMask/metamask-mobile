@@ -29,6 +29,7 @@ function createWSClient(wsUrl, timeout) {
     const ws = new WebSocketImpl(wsUrl);
     let msgId = 0;
     const pending = new Map();
+    const listeners = new Map();
 
     const timer = setTimeout(() => {
       ws.close();
@@ -67,6 +68,19 @@ function createWSClient(wsUrl, timeout) {
         close() {
           ws.close();
         },
+        on(method, handler) {
+          const handlers = listeners.get(method) || new Set();
+          handlers.add(handler);
+          listeners.set(method, handlers);
+        },
+        off(method, handler) {
+          const handlers = listeners.get(method);
+          if (!handlers) return;
+          handlers.delete(handler);
+          if (handlers.size === 0) {
+            listeners.delete(method);
+          }
+        },
       });
     };
 
@@ -86,6 +100,10 @@ function createWSClient(wsUrl, timeout) {
           rej(new Error(`CDP error: ${JSON.stringify(msg.error)}`));
         } else {
           res(msg.result);
+        }
+      } else if (msg.method && listeners.has(msg.method)) {
+        for (const handler of listeners.get(msg.method)) {
+          handler(msg.params || {});
         }
       }
     };

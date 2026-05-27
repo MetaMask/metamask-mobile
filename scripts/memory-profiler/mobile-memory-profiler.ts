@@ -31,6 +31,8 @@ const EXPO_DEV_CLIENT_BUNDLE_TIMEOUT_MS = 120_000;
 const FIXTURE_STATE_REQUEST_TIMEOUT_MS = 180_000;
 const CDP_BRIDGE_RETRY_COUNT = 6;
 const CDP_BRIDGE_RETRY_INTERVAL_MS = 2_000;
+const DEFAULT_HEAP_SNAPSHOT_TOP_COUNT = 20;
+const HEAP_SNAPSHOT_NAME_MAX_LENGTH = 240;
 const COMMAND_MAX_BUFFER = 50 * 1024 * 1024;
 
 export type MobileMemoryPlatform = 'android' | 'ios';
@@ -74,6 +76,9 @@ export interface MobileMemoryProfilerOptions {
   pullHermesProfile: boolean;
   hermesProfilePath?: string;
   sourcemapPath?: string;
+  captureHeapSnapshots: boolean;
+  heapSnapshotDir?: string;
+  heapSnapshotTopCount: number;
   maxRssGrowthBytes?: number;
   maxPssGrowthBytes?: number;
   maxNativeHeapGrowthBytes?: number;
@@ -128,6 +133,39 @@ export interface HermesProfileCliResult {
   stderr: string;
 }
 
+export interface MobileHeapSnapshotArtifact {
+  label: string;
+  path: string;
+  sizeBytes: number;
+  chunksCount: number;
+  collectedGarbage: boolean;
+}
+
+export interface HeapSnapshotGrowthEntry {
+  type: string;
+  name: string;
+  countDelta: number;
+  selfSizeDeltaBytes: number;
+  baselineCount: number;
+  finalCount: number;
+  baselineSelfSizeBytes: number;
+  finalSelfSizeBytes: number;
+}
+
+export interface HeapSnapshotComparison {
+  baselineLabel: string;
+  baselinePath: string;
+  baselineNodeCount: number;
+  baselineSelfSizeBytes: number;
+  finalLabel: string;
+  finalPath: string;
+  finalNodeCount: number;
+  finalSelfSizeBytes: number;
+  nodeCountDelta: number;
+  totalSelfSizeDeltaBytes: number;
+  topGrowth: HeapSnapshotGrowthEntry[];
+}
+
 export interface MobileMemoryReport {
   schemaVersion: 1;
   createdAt: string;
@@ -139,6 +177,8 @@ export interface MobileMemoryReport {
   };
   samples: MobileMemorySample[];
   hermesProfileCliResult: HermesProfileCliResult | null;
+  heapSnapshots: MobileHeapSnapshotArtifact[];
+  heapSnapshotComparison: HeapSnapshotComparison | null;
   summary: {
     baseline: MobileMemorySample | null;
     final: MobileMemorySample | null;
@@ -274,6 +314,8 @@ export function parseMobileMemoryProfilerArgs(
     appiumElementTimeoutMs: DEFAULT_APPIUM_ELEMENT_TIMEOUT_MS,
     allowTransactionSubmit: false,
     pullHermesProfile: false,
+    captureHeapSnapshots: false,
+    heapSnapshotTopCount: DEFAULT_HEAP_SNAPSHOT_TOP_COUNT,
     help: false,
   };
 
@@ -438,6 +480,20 @@ export function parseMobileMemoryProfilerArgs(
           readArgValue(argv, (index += 1), arg),
         );
         break;
+      case '--capture-heap-snapshots':
+        mutableOptions.captureHeapSnapshots = true;
+        break;
+      case '--heap-snapshot-dir':
+        mutableOptions.heapSnapshotDir = resolveOutputPath(
+          readArgValue(argv, (index += 1), arg),
+        );
+        break;
+      case '--heap-snapshot-top-count':
+        mutableOptions.heapSnapshotTopCount = parsePositiveInteger(
+          readArgValue(argv, (index += 1), arg),
+          arg,
+        );
+        break;
       case '--max-rss-growth':
         mutableOptions.maxRssGrowthBytes = parseByteSize(
           readArgValue(argv, (index += 1), arg),
@@ -521,6 +577,10 @@ export function parseMobileMemoryProfilerArgs(
     pullHermesProfile: mutableOptions.pullHermesProfile ?? false,
     hermesProfilePath: mutableOptions.hermesProfilePath,
     sourcemapPath: mutableOptions.sourcemapPath,
+    captureHeapSnapshots: mutableOptions.captureHeapSnapshots ?? false,
+    heapSnapshotDir: mutableOptions.heapSnapshotDir,
+    heapSnapshotTopCount:
+      mutableOptions.heapSnapshotTopCount ?? DEFAULT_HEAP_SNAPSHOT_TOP_COUNT,
     maxRssGrowthBytes: mutableOptions.maxRssGrowthBytes,
     maxPssGrowthBytes: mutableOptions.maxPssGrowthBytes,
     maxNativeHeapGrowthBytes: mutableOptions.maxNativeHeapGrowthBytes,
@@ -754,11 +814,15 @@ export function createMobileMemoryReport({
   options,
   samples,
   hermesProfileCliResult,
+  heapSnapshots = [],
+  heapSnapshotComparison = null,
 }: {
   createdAt: string;
   options: MobileMemoryProfilerOptions;
   samples: MobileMemorySample[];
   hermesProfileCliResult: HermesProfileCliResult | null;
+  heapSnapshots?: MobileHeapSnapshotArtifact[];
+  heapSnapshotComparison?: HeapSnapshotComparison | null;
 }): MobileMemoryReport {
   const baseline = samples[0] ?? null;
   const final = samples[samples.length - 1] ?? null;
@@ -776,6 +840,8 @@ export function createMobileMemoryReport({
     },
     samples,
     hermesProfileCliResult,
+    heapSnapshots,
+    heapSnapshotComparison,
     summary: {
       baseline,
       final,
@@ -796,11 +862,163 @@ export function shouldWaitForFixtureStateRequest(
   );
 }
 
+export interface RawHeapSnapshot {
+  snapshot?: {
+    meta?: {
+      node_fields?: string[];
+      node_types?: unknown[];
+    };
+  };
+  nodes?: number[];
+  strings?: string[];
+}
+
+export interface HeapSnapshotAggregate {
+  type: string;
+  name: string;
+  count: number;
+  selfSizeBytes: number;
+}
+
+export interface HeapSnapshotAggregateSummary {
+  nodeCount: number;
+  selfSizeBytes: number;
+}
+
+export function aggregateHeapSnapshot(
+  snapshot: RawHeapSnapshot,
+): Map<string, HeapSnapshotAggregate> {
+  const nodeFields = snapshot.snapshot?.meta?.node_fields;
+  const nodeTypes = snapshot.snapshot?.meta?.node_types;
+  const nodes = snapshot.nodes;
+  const strings = snapshot.strings;
+
+  if (
+    !Array.isArray(nodeFields) ||
+    !Array.isArray(nodeTypes) ||
+    !Array.isArray(nodes) ||
+    !Array.isArray(strings)
+  ) {
+    throw new Error('Invalid heap snapshot: missing node metadata.');
+  }
+
+  const typeIndex = nodeFields.indexOf('type');
+  const nameIndex = nodeFields.indexOf('name');
+  const selfSizeIndex = nodeFields.indexOf('self_size');
+  const typeNames = nodeTypes[typeIndex];
+
+  if (
+    typeIndex === -1 ||
+    nameIndex === -1 ||
+    selfSizeIndex === -1 ||
+    !Array.isArray(typeNames)
+  ) {
+    throw new Error('Invalid heap snapshot: unsupported node field layout.');
+  }
+
+  const aggregates = new Map<string, HeapSnapshotAggregate>();
+  const stride = nodeFields.length;
+
+  for (let index = 0; index < nodes.length; index += stride) {
+    const type = String(typeNames[nodes[index + typeIndex]] ?? 'unknown');
+    const name = strings[nodes[index + nameIndex]] ?? '';
+    const selfSizeBytes = nodes[index + selfSizeIndex] ?? 0;
+    const key = `${type}:${name}`;
+    const aggregate = aggregates.get(key) ?? {
+      type,
+      name,
+      count: 0,
+      selfSizeBytes: 0,
+    };
+
+    aggregate.count += 1;
+    aggregate.selfSizeBytes += selfSizeBytes;
+    aggregates.set(key, aggregate);
+  }
+
+  return aggregates;
+}
+
+export function compareHeapSnapshotAggregates(
+  baseline: Map<string, HeapSnapshotAggregate>,
+  final: Map<string, HeapSnapshotAggregate>,
+  topCount = DEFAULT_HEAP_SNAPSHOT_TOP_COUNT,
+): HeapSnapshotGrowthEntry[] {
+  const keys = new Set([...baseline.keys(), ...final.keys()]);
+  const growth: HeapSnapshotGrowthEntry[] = [];
+
+  for (const key of keys) {
+    const baselineAggregate = baseline.get(key);
+    const finalAggregate = final.get(key);
+    const countDelta =
+      (finalAggregate?.count ?? 0) - (baselineAggregate?.count ?? 0);
+    const selfSizeDeltaBytes =
+      (finalAggregate?.selfSizeBytes ?? 0) -
+      (baselineAggregate?.selfSizeBytes ?? 0);
+
+    if (countDelta <= 0 && selfSizeDeltaBytes <= 0) {
+      continue;
+    }
+
+    growth.push({
+      type: finalAggregate?.type ?? baselineAggregate?.type ?? 'unknown',
+      name: formatHeapSnapshotNodeName(
+        finalAggregate?.name ?? baselineAggregate?.name ?? '',
+      ),
+      countDelta,
+      selfSizeDeltaBytes,
+      baselineCount: baselineAggregate?.count ?? 0,
+      finalCount: finalAggregate?.count ?? 0,
+      baselineSelfSizeBytes: baselineAggregate?.selfSizeBytes ?? 0,
+      finalSelfSizeBytes: finalAggregate?.selfSizeBytes ?? 0,
+    });
+  }
+
+  return growth
+    .sort(
+      (a, b) =>
+        b.selfSizeDeltaBytes - a.selfSizeDeltaBytes ||
+        b.countDelta - a.countDelta,
+    )
+    .slice(0, topCount);
+}
+
+export function summarizeHeapSnapshotAggregates(
+  aggregates: Map<string, HeapSnapshotAggregate>,
+): HeapSnapshotAggregateSummary {
+  let nodeCount = 0;
+  let selfSizeBytes = 0;
+
+  for (const aggregate of aggregates.values()) {
+    nodeCount += aggregate.count;
+    selfSizeBytes += aggregate.selfSizeBytes;
+  }
+
+  return { nodeCount, selfSizeBytes };
+}
+
+function formatHeapSnapshotNodeName(name: string): string {
+  if (name.length <= HEAP_SNAPSHOT_NAME_MAX_LENGTH) {
+    return name;
+  }
+
+  const suffix = `...<${name.length} chars>`;
+  return `${name.slice(0, HEAP_SNAPSHOT_NAME_MAX_LENGTH - suffix.length)}${suffix}`;
+}
+
+async function aggregateHeapSnapshotFile(
+  snapshotPath: string,
+): Promise<Map<string, HeapSnapshotAggregate>> {
+  const raw = await fs.readFile(snapshotPath, 'utf8');
+  return aggregateHeapSnapshot(JSON.parse(raw) as RawHeapSnapshot);
+}
+
 export async function runMobileMemoryProfiler(
   options: MobileMemoryProfilerOptions,
   runner: CommandRunner = runCommand,
 ): Promise<MobileMemoryReport> {
   const samples: MobileMemorySample[] = [];
+  const heapSnapshots: MobileHeapSnapshotArtifact[] = [];
   const runtime: AppiumRuntime = {};
 
   try {
@@ -837,6 +1055,7 @@ export async function runMobileMemoryProfiler(
     }
 
     samples.push(await collectMemorySample(options, 'baseline', runner));
+    await maybeCaptureHeapSnapshot(options, 'baseline', runner, heapSnapshots);
 
     for (let iteration = 1; iteration <= options.iterations; iteration += 1) {
       await runFlowIteration(options, runner, runtime);
@@ -844,6 +1063,12 @@ export async function runMobileMemoryProfiler(
       if (options.sampleMode === 'each') {
         samples.push(
           await collectMemorySample(options, `iteration-${iteration}`, runner),
+        );
+        await maybeCaptureHeapSnapshot(
+          options,
+          `iteration-${iteration}`,
+          runner,
+          heapSnapshots,
         );
       }
 
@@ -854,17 +1079,24 @@ export async function runMobileMemoryProfiler(
 
     if (options.sampleMode === 'final') {
       samples.push(await collectMemorySample(options, 'final', runner));
+      await maybeCaptureHeapSnapshot(options, 'final', runner, heapSnapshots);
     }
 
     const hermesProfileCliResult = await maybeRunHermesProfileCli(
       options,
       runner,
     );
+    const heapSnapshotComparison = await maybeCompareHeapSnapshots(
+      options,
+      heapSnapshots,
+    );
     const report = createMobileMemoryReport({
       createdAt: new Date().toISOString(),
       options,
       samples,
       hermesProfileCliResult,
+      heapSnapshots,
+      heapSnapshotComparison,
     });
 
     await fs.mkdir(path.dirname(options.outputPath), { recursive: true });
@@ -937,6 +1169,12 @@ Options:
                                 after the memory run. Android only.
   --hermes-profile <path>       Convert a local .cpuprofile with react-native-release-profiler
   --sourcemap-path <path>       Sourcemap path passed to react-native-release-profiler
+  --capture-heap-snapshots      Capture Hermes heap snapshots through CDP after
+                                baseline and sampled iterations.
+  --heap-snapshot-dir <path>    Directory for .heapsnapshot files. Defaults to
+                                <artifact-dir>/heap-snapshots
+  --heap-snapshot-top-count <n> Number of growing heap node groups in the diff.
+                                Default: ${DEFAULT_HEAP_SNAPSHOT_TOP_COUNT}
   --max-rss-growth <size>       Fail if RSS grows above size
   --max-pss-growth <size>       Fail if Android PSS grows above size
   --max-native-heap-growth <size>
@@ -979,6 +1217,26 @@ async function main(): Promise<void> {
       report.summary.deltas.virtualSizeBytes,
     )}`,
   );
+
+  if (report.heapSnapshotComparison) {
+    console.log(
+      `Heap snapshot diff: ${report.heapSnapshotComparison.baselineLabel} -> ${report.heapSnapshotComparison.finalLabel}`,
+    );
+    console.log(
+      `Heap snapshot shallow size delta: ${formatBytes(
+        report.heapSnapshotComparison.totalSelfSizeDeltaBytes,
+      )} (${report.heapSnapshotComparison.nodeCountDelta >= 0 ? '+' : ''}${
+        report.heapSnapshotComparison.nodeCountDelta
+      } nodes)`,
+    );
+    for (const entry of report.heapSnapshotComparison.topGrowth.slice(0, 10)) {
+      console.log(
+        `  ${entry.type}:${entry.name || '<anonymous>'} ${formatBytes(
+          entry.selfSizeDeltaBytes,
+        )} (${entry.countDelta >= 0 ? '+' : ''}${entry.countDelta} nodes)`,
+      );
+    }
+  }
 
   if (report.hermesProfileCliResult) {
     console.log(
@@ -1805,6 +2063,95 @@ async function runCdpBridgeCommand(
   }
 
   throw lastError ?? new Error('Unknown CDP bridge failure.');
+}
+
+async function maybeCaptureHeapSnapshot(
+  options: MobileMemoryProfilerOptions,
+  label: string,
+  runner: CommandRunner,
+  heapSnapshots: MobileHeapSnapshotArtifact[],
+): Promise<void> {
+  if (!options.captureHeapSnapshots) {
+    return;
+  }
+
+  const snapshotDir =
+    options.heapSnapshotDir ??
+    path.join(options.artifactDir, 'heap-snapshots');
+  const snapshotPath = path.join(
+    snapshotDir,
+    `${sanitizeArtifactLabel(label)}.heapsnapshot`,
+  );
+  const result = await runCdpBridgeCommand(options, runner, [
+    'heap-snapshot',
+    '--label',
+    label,
+    '--out',
+    snapshotPath,
+  ]);
+  const payload = JSON.parse(result.stdout) as {
+    ok?: boolean;
+    path?: string;
+    sizeBytes?: number;
+    chunksCount?: number;
+    collectedGarbage?: boolean;
+    error?: string;
+  };
+
+  if (payload.ok !== true || !payload.path) {
+    throw new Error(
+      `Heap snapshot capture failed: ${payload.error ?? result.stdout}`,
+    );
+  }
+
+  heapSnapshots.push({
+    label,
+    path: payload.path,
+    sizeBytes: payload.sizeBytes ?? 0,
+    chunksCount: payload.chunksCount ?? 0,
+    collectedGarbage: payload.collectedGarbage ?? true,
+  });
+}
+
+async function maybeCompareHeapSnapshots(
+  options: MobileMemoryProfilerOptions,
+  heapSnapshots: MobileHeapSnapshotArtifact[],
+): Promise<HeapSnapshotComparison | null> {
+  if (!options.captureHeapSnapshots || heapSnapshots.length < 2) {
+    return null;
+  }
+
+  const baseline = heapSnapshots[0];
+  const final = heapSnapshots[heapSnapshots.length - 1];
+  const [baselineAggregate, finalAggregate] = await Promise.all([
+    aggregateHeapSnapshotFile(baseline.path),
+    aggregateHeapSnapshotFile(final.path),
+  ]);
+  const baselineSummary = summarizeHeapSnapshotAggregates(baselineAggregate);
+  const finalSummary = summarizeHeapSnapshotAggregates(finalAggregate);
+
+  return {
+    baselineLabel: baseline.label,
+    baselinePath: baseline.path,
+    baselineNodeCount: baselineSummary.nodeCount,
+    baselineSelfSizeBytes: baselineSummary.selfSizeBytes,
+    finalLabel: final.label,
+    finalPath: final.path,
+    finalNodeCount: finalSummary.nodeCount,
+    finalSelfSizeBytes: finalSummary.selfSizeBytes,
+    nodeCountDelta: finalSummary.nodeCount - baselineSummary.nodeCount,
+    totalSelfSizeDeltaBytes:
+      finalSummary.selfSizeBytes - baselineSummary.selfSizeBytes,
+    topGrowth: compareHeapSnapshotAggregates(
+      baselineAggregate,
+      finalAggregate,
+      options.heapSnapshotTopCount,
+    ),
+  };
+}
+
+function sanitizeArtifactLabel(label: string): string {
+  return label.replace(/[^a-z0-9._-]+/giu, '-');
 }
 
 async function setupHeadlessWallet(

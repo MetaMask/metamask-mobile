@@ -1,5 +1,7 @@
 import {
+  aggregateHeapSnapshot,
   calculateDeltas,
+  compareHeapSnapshotAggregates,
   createMobileMemoryReport,
   parseAndroidMeminfo,
   parseByteSize,
@@ -9,6 +11,7 @@ import {
   recipientAddressInputSelectors,
   isRetriableCdpBridgeError,
   shouldWaitForFixtureStateRequest,
+  summarizeHeapSnapshotAggregates,
   type MobileMemorySample,
 } from './mobile-memory-profiler';
 
@@ -98,6 +101,11 @@ describe('mobile-memory-profiler', () => {
         '/tmp/profile.cpuprofile',
         '--sourcemap-path',
         '/tmp/sourcemaps',
+        '--capture-heap-snapshots',
+        '--heap-snapshot-dir',
+        '/tmp/heaps',
+        '--heap-snapshot-top-count',
+        '12',
         '--max-rss-growth',
         '25MiB',
         '--output',
@@ -119,6 +127,9 @@ describe('mobile-memory-profiler', () => {
           intervalMs: 50,
           hermesProfilePath: '/tmp/profile.cpuprofile',
           sourcemapPath: '/tmp/sourcemaps',
+          captureHeapSnapshots: true,
+          heapSnapshotDir: '/tmp/heaps',
+          heapSnapshotTopCount: 12,
           maxRssGrowthBytes: 25 * 1024 * 1024,
           outputPath: '/tmp/report.json',
         }),
@@ -472,6 +483,86 @@ describe('mobile-memory-profiler', () => {
         },
       ]);
       expect(report.options).not.toHaveProperty('help');
+    });
+  });
+
+  describe('heap snapshot analysis', () => {
+    function createHeapSnapshot(nodes: number[], strings: string[]) {
+      return {
+        snapshot: {
+          meta: {
+            node_fields: ['type', 'name', 'id', 'self_size', 'edge_count'],
+            node_types: [
+              ['hidden', 'object', 'string', 'code', 'array'],
+              'string',
+              'number',
+              'number',
+              'number',
+            ],
+          },
+        },
+        nodes,
+        strings,
+      };
+    }
+
+    it('aggregates heap nodes by type and name', () => {
+      const aggregates = aggregateHeapSnapshot(
+        createHeapSnapshot(
+          [
+            1, 0, 1, 24, 0,
+            1, 0, 2, 40, 0,
+            2, 1, 3, 10, 0,
+          ],
+          ['Controller', 'status'],
+        ),
+      );
+
+      expect(aggregates.get('object:Controller')).toStrictEqual({
+        type: 'object',
+        name: 'Controller',
+        count: 2,
+        selfSizeBytes: 64,
+      });
+      expect(aggregates.get('string:status')).toStrictEqual({
+        type: 'string',
+        name: 'status',
+        count: 1,
+        selfSizeBytes: 10,
+      });
+      expect(summarizeHeapSnapshotAggregates(aggregates)).toStrictEqual({
+        nodeCount: 3,
+        selfSizeBytes: 74,
+      });
+    });
+
+    it('ranks heap growth by self size delta', () => {
+      const baseline = aggregateHeapSnapshot(
+        createHeapSnapshot([1, 0, 1, 24, 0], ['Controller']),
+      );
+      const final = aggregateHeapSnapshot(
+        createHeapSnapshot(
+          [
+            1, 0, 1, 24, 0,
+            1, 0, 2, 88, 0,
+            4, 1, 3, 16, 0,
+          ],
+          ['Controller', 'Array'],
+        ),
+      );
+
+      expect(compareHeapSnapshotAggregates(baseline, final, 1)).toStrictEqual([
+        {
+          type: 'object',
+          name: 'Controller',
+          countDelta: 1,
+          selfSizeDeltaBytes: 88,
+          baselineCount: 1,
+          finalCount: 2,
+          baselineSelfSizeBytes: 24,
+          finalSelfSizeBytes: 112,
+        },
+      ]);
     });
   });
 });
