@@ -2,6 +2,9 @@ import { ConfirmationFooterSelectorIDs } from '../../../../app/components/Views/
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
 import TestHelpers from '../../../helpers';
+import { encapsulatedAction } from '../../../framework/encapsulatedAction';
+import PlaywrightMatchers from '../../../framework/PlaywrightMatchers';
+import PlaywrightGestures from '../../../framework/PlaywrightGestures';
 
 class FooterActions {
   get confirmButton(): DetoxElement {
@@ -15,15 +18,29 @@ class FooterActions {
   }
 
   async tapConfirmButton(timeout?: number): Promise<void> {
-    const isAndroid = device.getPlatform() === 'android';
-    // Android needs extra delay to avoid element being obscured by bottom toast notifications
-    // eslint-disable-next-line no-restricted-syntax
-    if (isAndroid) await TestHelpers.delay(3000);
-    await Gestures.waitAndTap(this.confirmButton, {
-      elemDescription: 'Confirm button',
-      delay: 1800,
-      timeout,
-      waitForElementToDisappear: isAndroid,
+    await encapsulatedAction({
+      detox: async () => {
+        const isAndroid = device.getPlatform() === 'android';
+        // Android needs extra delay to avoid element being obscured by bottom toast notifications
+        // eslint-disable-next-line no-restricted-syntax
+        if (isAndroid) await TestHelpers.delay(3000);
+        await Gestures.waitAndTap(this.confirmButton, {
+          elemDescription: 'Confirm button',
+          delay: 1800,
+          timeout,
+          waitForElementToDisappear: isAndroid,
+        });
+      },
+      appium: async () => {
+        const el = await PlaywrightMatchers.getElementById(
+          ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
+        );
+        await PlaywrightGestures.waitAndTap(el, {
+          timeout,
+          checkForDisplayed: true,
+          checkForEnabled: true,
+        });
+      },
     });
   }
 

@@ -39,7 +39,6 @@ interface QuickBuyAmountSectionProps {
   onAmountAreaPress: () => void;
   onAmountChange: (text: string) => void;
   onToggleAmountDisplay: () => void;
-  rateTag?: React.ReactNode;
 }
 
 const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
@@ -54,7 +53,6 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   onAmountAreaPress,
   onAmountChange,
   onToggleAmountDisplay,
-  rateTag,
 }) => {
   const fiatAmountLabel = usdAmount ? `$${usdAmount}` : '$0';
   const cryptoAmountLabel = estimatedReceiveAmount
@@ -84,8 +82,6 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
         >
           {primaryLabel}
         </Text>
-
-        {rateTag}
 
         {isQuoteLoading ? (
           <ActivityIndicator size="small" />

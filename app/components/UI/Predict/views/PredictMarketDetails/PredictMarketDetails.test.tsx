@@ -128,10 +128,12 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
 
 const mockOpenBuySheet = jest.fn();
 const mockOpenSellSheet = jest.fn();
+let mockIsBuySheetOpen = false;
 jest.mock('../../contexts', () => ({
   usePredictPreviewSheet: () => ({
     openBuySheet: mockOpenBuySheet,
     openSellSheet: mockOpenSellSheet,
+    isBuySheetOpen: mockIsBuySheetOpen,
   }),
 }));
 
@@ -774,6 +776,7 @@ describe('PredictMarketDetails', () => {
   afterEach(() => {
     jest.clearAllMocks();
     mockRunAfterInteractions.mockReset();
+    mockIsBuySheetOpen = false;
   });
 
   afterAll(() => {
@@ -3539,6 +3542,69 @@ describe('PredictMarketDetails', () => {
           queries: expect.any(Array),
         }),
       );
+    });
+
+    it('pauses and resumes broad outcome price updates as buy sheet visibility changes', () => {
+      const { usePredictPrices } = jest.requireMock(
+        '../../hooks/usePredictPrices',
+      );
+      const { useLiveMarketPrices } = jest.requireMock(
+        '../../hooks/useLiveMarketPrices',
+      );
+      const worldCupWinnerMarket = createMockMarket({
+        status: 'open',
+        outcomes: Array.from({ length: 64 }, (_, index) => ({
+          id: `outcome-${index + 1}`,
+          title: `Team ${index + 1}`,
+          groupItemTitle: `Team ${index + 1}`,
+          status: 'open',
+          tokens: [
+            { id: `token-${index + 1}-yes`, title: 'Yes', price: 0.5 },
+            { id: `token-${index + 1}-no`, title: 'No', price: 0.5 },
+          ],
+          volume: 1000000,
+        })),
+      });
+
+      mockIsBuySheetOpen = false;
+      const { rerender } = setupPredictMarketDetailsTest(worldCupWinnerMarket);
+
+      expect(usePredictPrices).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          enabled: true,
+          pollingInterval: 2000,
+        }),
+      );
+      expect(useLiveMarketPrices).toHaveBeenLastCalledWith(expect.any(Array), {
+        enabled: true,
+      });
+
+      mockIsBuySheetOpen = true;
+      rerender(<PredictMarketDetails />);
+
+      expect(usePredictPrices).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          enabled: false,
+          queries: [],
+          pollingInterval: undefined,
+        }),
+      );
+      expect(useLiveMarketPrices).toHaveBeenLastCalledWith([], {
+        enabled: false,
+      });
+
+      mockIsBuySheetOpen = false;
+      rerender(<PredictMarketDetails />);
+
+      expect(usePredictPrices).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          enabled: true,
+          pollingInterval: 2000,
+        }),
+      );
+      expect(useLiveMarketPrices).toHaveBeenLastCalledWith(expect.any(Array), {
+        enabled: true,
+      });
     });
 
     it('handles price fetching errors gracefully', () => {
