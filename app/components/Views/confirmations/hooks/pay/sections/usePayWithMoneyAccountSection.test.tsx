@@ -1,6 +1,9 @@
-import { renderHook } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react-hooks';
 import { TransactionType } from '@metamask/transaction-controller';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import Engine from '../../../../../../core/Engine';
 import { selectPrimaryMoneyAccount } from '../../../../../../selectors/moneyAccountController';
 import { selectMetaMaskPayFlags } from '../../../../../../selectors/featureFlagController/confirmations';
 import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
@@ -32,6 +35,13 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 }));
 jest.mock('../../../../../UI/Money/hooks/useMoneyAccountBalance');
 jest.mock('../../transactions/useTransactionMetadataRequest');
+jest.mock('../../../../../../core/Engine', () => ({
+  context: {
+    TransactionPayController: {
+      setTransactionConfig: jest.fn(),
+    },
+  },
+}));
 
 describe('usePayWithMoneyAccountSection', () => {
   const useSelectorMock = jest.mocked(useSelector);
@@ -40,10 +50,17 @@ describe('usePayWithMoneyAccountSection', () => {
     useTransactionMetadataRequest,
   );
 
-  const moneyAccountMock = { id: 'ma-1', balance: '100' };
+  const MONEY_ACCOUNT_ADDRESS = '0xc4ff9e84b5754570812d891ade0bad3952bb5946';
+  const moneyAccountMock = {
+    id: 'ma-1',
+    balance: '100',
+    address: MONEY_ACCOUNT_ADDRESS,
+  };
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    jest.mocked(useNavigation).mockReturnValue({ goBack: jest.fn() } as never);
 
     useTransactionMetadataRequestMock.mockReturnValue({
       id: 'tx-1',
@@ -193,5 +210,41 @@ describe('usePayWithMoneyAccountSection', () => {
     rerender();
 
     expect(result.current).toBe(firstResult);
+  });
+
+  describe('handlePress', () => {
+    it('sets paymentOverride and refundTo on press', () => {
+      const setConfigMock = jest.mocked(
+        Engine.context.TransactionPayController.setTransactionConfig,
+      );
+      const { result } = renderHook(() => usePayWithMoneyAccountSection());
+
+      act(() => {
+        result.current?.rows[0].onPress();
+      });
+
+      expect(setConfigMock).toHaveBeenCalledWith('tx-1', expect.any(Function));
+
+      const config = {} as Record<string, unknown>;
+      setConfigMock.mock.calls[0][1](config as never);
+
+      expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
+      expect(config.refundTo).toBe(MONEY_ACCOUNT_ADDRESS);
+    });
+
+    it('navigates back on press', () => {
+      const goBackMock = jest.fn();
+      jest
+        .mocked(useNavigation)
+        .mockReturnValue({ goBack: goBackMock } as never);
+
+      const { result } = renderHook(() => usePayWithMoneyAccountSection());
+
+      act(() => {
+        result.current?.rows[0].onPress();
+      });
+
+      expect(goBackMock).toHaveBeenCalled();
+    });
   });
 });

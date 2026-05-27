@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { TransactionType } from '@metamask/transaction-controller';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
+import type { Hex } from '@metamask/utils';
 import { strings } from '../../../../../../../locales/i18n';
 import Engine from '../../../../../../core/Engine';
 import { RootState } from '../../../../../../reducers';
@@ -59,11 +60,14 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
         (config) => {
           (config as Record<string, unknown>).paymentOverride =
             PaymentOverride.MoneyAccount;
+          if (moneyAccount?.address) {
+            config.refundTo = moneyAccount.address as Hex;
+          }
         },
       );
     }
     navigation.goBack();
-  }, [navigation, transactionId]);
+  }, [moneyAccount?.address, navigation, transactionId]);
 
   return useMemo(() => {
     if (!enablePerpsMoneyAccountTransactions || !isSupported || !moneyAccount) {
