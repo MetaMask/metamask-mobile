@@ -72,10 +72,13 @@ export class Connection {
   public readonly bridge: IRPCBridgeAdapter;
 
   /**
-   * Tracks JSON-RPC request ids for silent read-only methods so we can
-   * suppress user-facing toast notifications when their responses arrive.
+   * Tracks the full in-flight request payload for each JSON-RPC request id
+   * so the response handler can apply request-specific behavior (e.g.
+   * suppressing user-facing toasts for silent read-only methods). Entries
+   * are added when a request is forwarded to the bridge and removed once a
+   * response with the matching id is received.
    */
-  private readonly silentReadRequestIds: Set<number | string> = new Set();
+  private readonly requestMap: Map<number | string, unknown> = new Map();
 
   private constructor(
     connInfo: ConnectionInfo,
@@ -129,16 +132,12 @@ export class Connection {
         );
       }
 
-      // Track silent read-only requests so we can later suppress toast
-      // notifications when their responses come back through the bridge.
-      const method = data?.method;
+      // Record the full request payload so the response handler can look up
+      // the originating request (and any of its fields, e.g. `method`) for a
+      // given JSON-RPC id.
       const requestId = data?.id;
-      if (
-        typeof method === 'string' &&
-        SILENT_READ_METHODS.has(method) &&
-        (typeof requestId === 'number' || typeof requestId === 'string')
-      ) {
-        this.silentReadRequestIds.add(requestId);
+      if (typeof requestId === 'number' || typeof requestId === 'string') {
+        this.requestMap.set(requestId, payload);
       }
 
       this.bridge.send(payload);
@@ -159,12 +158,22 @@ export class Connection {
         const responseData = payload.data;
         const responseId = responseData.id as number | string;
 
-        // Suppress toast notifications for silent read-only methods
-        // (e.g. eth_accounts, eth_chainId) that are typically polled by
-        // dapps in the background and should not surface "Return to app"
-        // or error toasts to the user. The response is still relayed
-        // back to the dapp below via this.client.sendResponse(payload).
-        const isSilentRead = this.silentReadRequestIds.delete(responseId);
+        // Look up the originating request for this response id and remove
+        // the entry from the request map. Responses for silent read-only
+        // methods (e.g. eth_accounts, eth_chainId) should not surface
+        // "Return to app" or error toasts to the user. The response itself
+        // is still relayed back to the dapp below via
+        // this.client.sendResponse(payload).
+        const request = this.requestMap.get(responseId);
+        this.requestMap.delete(responseId);
+        const requestData =
+          request && typeof request === 'object' && 'data' in request
+            ? (request.data as Record<string, unknown>)
+            : undefined;
+        const requestMethod = requestData?.method;
+        const isSilentRead =
+          typeof requestMethod === 'string' &&
+          SILENT_READ_METHODS.has(requestMethod);
 
         if (!isSilentRead) {
           // Check if the response is an error (JSON-RPC error responses have an 'error' property)
@@ -250,7 +259,7 @@ export class Connection {
    */
   public async disconnect(): Promise<void> {
     this.bridge.dispose();
-    this.silentReadRequestIds.clear();
+    this.requestMap.clear();
     await this.client.disconnect();
   }
 }
