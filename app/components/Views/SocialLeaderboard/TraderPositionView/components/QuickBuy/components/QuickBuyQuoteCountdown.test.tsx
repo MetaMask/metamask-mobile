@@ -2,6 +2,16 @@ import React from 'react';
 import { act, render, screen } from '@testing-library/react-native';
 import QuickBuyQuoteCountdown from './QuickBuyQuoteCountdown';
 
+// `useFocusEffect` from react-navigation only runs when a NavigationContainer
+// is present. In tests we treat it like a regular `useEffect` so the interval
+// is set up immediately.
+jest.mock('@react-navigation/native', () => ({
+  useFocusEffect: (callback: () => void | (() => void)) => {
+    const ReactMock = jest.requireActual('react');
+    ReactMock.useEffect(callback, [callback]);
+  },
+}));
+
 describe('QuickBuyQuoteCountdown', () => {
   beforeEach(() => {
     jest.useFakeTimers();

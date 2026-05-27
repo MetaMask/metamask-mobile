@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import {
   Box,
@@ -6,6 +6,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useFocusEffect } from '@react-navigation/native';
 
 const styles = StyleSheet.create({
   container: {
@@ -22,23 +23,33 @@ const QuickBuyQuoteCountdown: React.FC<QuickBuyQuoteCountdownProps> = ({
   quotesLastFetchedAt,
   quoteRefreshRateMs,
 }) => {
-  const [secondsRemaining, setSecondsRemaining] = useState(0);
+  const lastFetchedRef = useRef(quotesLastFetchedAt);
+  const refreshRateRef = useRef(quoteRefreshRateMs);
+  lastFetchedRef.current = quotesLastFetchedAt;
+  refreshRateRef.current = quoteRefreshRateMs;
 
-  useEffect(() => {
-    if (!quotesLastFetchedAt) {
-      setSecondsRemaining(0);
-      return;
-    }
+  const computeRemaining = () => {
+    const lastFetched = lastFetchedRef.current;
+    if (!lastFetched) return 0;
+    const elapsed = Date.now() - lastFetched;
+    return Math.max(0, Math.ceil((refreshRateRef.current - elapsed) / 1000));
+  };
 
-    const calc = () => {
-      const elapsed = Date.now() - quotesLastFetchedAt;
-      return Math.max(0, Math.ceil((quoteRefreshRateMs - elapsed) / 1000));
-    };
+  const [secondsRemaining, setSecondsRemaining] = useState(computeRemaining);
 
-    setSecondsRemaining(calc());
-    const interval = setInterval(() => setSecondsRemaining(calc()), 1000);
-    return () => clearInterval(interval);
-  }, [quotesLastFetchedAt, quoteRefreshRateMs]);
+  useFocusEffect(
+    useCallback(() => {
+      // Snap to truth immediately when focus returns (covers the post-overlay
+      // case where ticks were missed while the subtree was suspended).
+      setSecondsRemaining(computeRemaining());
+      const interval = setInterval(() => {
+        setSecondsRemaining(computeRemaining());
+      }, 1000);
+      return () => clearInterval(interval);
+      // computeRemaining only reads refs — safe to omit from deps.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []),
+  );
 
   if (!quotesLastFetchedAt) {
     return null;
