@@ -113,29 +113,6 @@ jest.mock('../components/Onboarding/PersonalDetails', () => 'PersonalDetails');
 jest.mock('../components/Onboarding/PhysicalAddress', () => 'PhysicalAddress');
 jest.mock('../components/Onboarding/Complete', () => 'Complete');
 
-// Mock navigation options
-jest.mock('.', () => ({
-  cardDefaultNavigationOptions: {},
-  headerStyle: {
-    title: { fontSize: 16 },
-    icon: { padding: 8 },
-  },
-}));
-
-// Mock component library components
-jest.mock(
-  '../../../../component-library/components/Buttons/ButtonIcon',
-  () => ({
-    __esModule: true,
-    default: 'ButtonIcon',
-    ButtonIconSizes: {
-      Sm: 'Sm',
-      Md: 'Md',
-      Lg: 'Lg',
-    },
-  }),
-);
-
 jest.mock('../../../../component-library/components/Texts/Text', () => ({
   __esModule: true,
   default: 'Text',
