@@ -51,7 +51,7 @@ import {
   normalizeCaipChainIdInboundByAdapter,
   getScopedPermissionsByAdapters,
   doesProposalOrSessionIncludeNamespace,
-  filterNamespacesBySession,
+  filterNamespaces,
   isRedirectMethodByAdapterChain,
 } from './multichain';
 
@@ -425,8 +425,8 @@ class WalletConnect2Session {
         ...adaptersNamespaces,
       };
 
-      const onlyApprovedNamespaces = filterNamespacesBySession({
-        session: this.session,
+      const onlyApprovedNamespaces = filterNamespaces({
+        proposalOrSession: this.session,
         namespaces,
       });
 

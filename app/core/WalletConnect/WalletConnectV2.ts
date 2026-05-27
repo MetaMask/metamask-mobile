@@ -51,7 +51,7 @@ import {
   buildSessionPropertiesByAdapters,
   enrichCaveatValueByAdapters,
   doesProposalOrSessionIncludeNamespace,
-  filterNamespacesByProposal,
+  filterNamespaces,
   getScopedPermissionsByAdapters,
 } from './multichain';
 import NavigationService from '../NavigationService';
@@ -706,8 +706,8 @@ export class WC2Manager {
         ...adaptersNamespaces,
       };
 
-      const onlyRequiredOrOptionalNamespaces = filterNamespacesByProposal({
-        proposal: proposal.params,
+      const onlyRequiredOrOptionalNamespaces = filterNamespaces({
+        proposalOrSession: proposal.params,
         namespaces,
       });
 

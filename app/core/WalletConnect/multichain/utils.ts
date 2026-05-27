@@ -7,6 +7,12 @@
  * Do not add adapter lookup/dispatch helpers here: those belong in
  * `helpers.ts`.
  */
+
+/**
+ * For these utilities, we base ourselves on the specifications from the proposal, and notably that
+ * all chains in the namespace MUST contain the namespace prefix:
+ * https://specs.walletconnect.com/2.0/specs/clients/sign/namespaces#16-all-chains-in-the-namespace-must-contain-the-namespace-prefix
+ */
 import {
   type CaipAccountId,
   type CaipChainId,
@@ -24,44 +30,44 @@ type NamespaceReferenceSource = Partial<ProposalParamsLight> & {
 };
 
 /**
- * Drop any namespace key the dapp never referenced. WalletKit rejects
- * `approveSession` / `updateSession` payloads that advertise unrequested
- * namespaces.
+ * Unique set of top-level namespace names referenced anywhere in a proposal
+ * or active session (`namespaces`, `optionalNamespaces`, `requiredNamespaces`).
+ *
+ * Both key forms are normalized to the top-level namespace name: bare
+ * (`eip155`) and chain-scoped (`eip155:1` → `eip155`). Spread-merging only
+ * loses values on key collisions, never keys themselves.
  */
-export function filterNamespacesByProposal({
-  proposal,
-  namespaces,
-}: {
-  proposal: ProposalParamsLight;
-  namespaces: Record<string, NamespaceConfig>;
-}): Record<string, NamespaceConfig> {
-  const requestedKeys = new Set([
-    ...Object.keys(proposal.requiredNamespaces ?? {}),
-    ...Object.keys(proposal.optionalNamespaces ?? {}),
-  ]);
-
-  const filtered: Record<string, NamespaceConfig> = {};
-  for (const key of requestedKeys) {
-    if (namespaces[key]) {
-      filtered[key] = namespaces[key];
-    }
-  }
-  return filtered;
+export function getReferencedNamespaces(
+  proposalOrSession: NamespaceReferenceSource,
+): Set<string> {
+  const allNamespaces = {
+    ...(proposalOrSession.namespaces ?? {}),
+    ...(proposalOrSession.optionalNamespaces ?? {}),
+    ...(proposalOrSession.requiredNamespaces ?? {}),
+  };
+  return new Set(
+    Object.keys(allNamespaces).map((key) =>
+      key.includes(':') ? parseCaipChainId(key as CaipChainId).namespace : key,
+    ),
+  );
 }
 
 /**
- * Drop any namespace key the active session did not approve.
+ * Drop any namespace key the dapp never referenced (proposal) or the
+ * session never referenced. WalletKit rejects `approveSession` /
+ * `updateSession` payloads that advertise unreferenced namespaces.
  */
-export function filterNamespacesBySession({
-  session,
+export function filterNamespaces({
+  proposalOrSession,
   namespaces,
 }: {
-  session: { namespaces?: SessionTypes.Struct['namespaces'] };
+  proposalOrSession: NamespaceReferenceSource;
   namespaces: Record<string, NamespaceConfig>;
 }): Record<string, NamespaceConfig> {
+  const referenced = getReferencedNamespaces(proposalOrSession);
   const filtered: Record<string, NamespaceConfig> = {};
-  for (const key of Object.keys(session.namespaces ?? {})) {
-    if (namespaces[key]) {
+  for (const key of Object.keys(namespaces)) {
+    if (referenced.has(key)) {
       filtered[key] = namespaces[key];
     }
   }
@@ -73,7 +79,8 @@ export function filterNamespacesBySession({
  *
  * Dapps can target a namespace either via a top-level key (`<namespace>`)
  * with chains listed in `chains`, or via a chain-scoped key
- * (`<namespace>:<reference>`). Both are accepted; duplicates removed.
+ * (`<namespace>:<reference>`). Chains from both `requiredNamespaces` and
+ * `optionalNamespaces` are merged; duplicates removed.
  */
 export function collectRequestedChainsForNamespace({
   proposal,
@@ -82,29 +89,27 @@ export function collectRequestedChainsForNamespace({
   proposal: ProposalParamsLight;
   namespace: KnownCaipNamespace;
 }): CaipChainId[] {
-  const allNamespaces = {
-    ...(proposal.optionalNamespaces ?? {}),
-    ...(proposal.requiredNamespaces ?? {}),
-  };
   const namespacePrefix = `${namespace}:`;
-  const chains: string[] = [];
+  const chains = new Set<CaipChainId>();
 
-  for (const [key, config] of Object.entries(allNamespaces)) {
-    if (key === namespace) {
-      chains.push(
-        ...(config?.chains?.filter((chain) =>
-          chain.startsWith(namespacePrefix),
-        ) ?? []),
-      );
-      continue;
-    }
-
-    if (key.startsWith(namespacePrefix)) {
-      chains.push(key);
+  for (const map of [
+    proposal.requiredNamespaces ?? {},
+    proposal.optionalNamespaces ?? {},
+  ]) {
+    for (const [key, config] of Object.entries(map)) {
+      if (key === namespace) {
+        for (const chain of config?.chains ?? []) {
+          chains.add(chain as CaipChainId);
+        }
+        continue;
+      }
+      if (key.startsWith(namespacePrefix)) {
+        chains.add(key as CaipChainId);
+      }
     }
   }
 
-  return Array.from(new Set(chains)) as CaipChainId[];
+  return Array.from(chains);
 }
 
 /**
@@ -117,23 +122,7 @@ export function doesProposalOrSessionIncludeNamespace({
   proposalOrSession: NamespaceReferenceSource;
   namespace: KnownCaipNamespace;
 }): boolean {
-  const allNamespaces = {
-    ...(proposalOrSession.namespaces ?? {}),
-    ...(proposalOrSession.optionalNamespaces ?? {}),
-    ...(proposalOrSession.requiredNamespaces ?? {}),
-  };
-  const namespacePrefix = `${namespace}:`;
-
-  return Object.entries(allNamespaces).some(([key, config]) => {
-    if (key === namespace || key.startsWith(namespacePrefix)) {
-      return true;
-    }
-
-    return (
-      config?.chains?.some((chain) => chain.startsWith(namespacePrefix)) ??
-      false
-    );
-  });
+  return getReferencedNamespaces(proposalOrSession).has(namespace);
 }
 
 /**

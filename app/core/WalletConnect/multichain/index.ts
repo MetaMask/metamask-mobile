@@ -13,8 +13,7 @@ export {
 } from './helpers';
 export {
   doesProposalOrSessionIncludeNamespace,
-  filterNamespacesByProposal,
-  filterNamespacesBySession,
+  filterNamespaces,
 } from './utils';
 export type {
   AdapterHandleRequestArgs,

@@ -6,8 +6,7 @@ import {
   caipAccountIdHexToDecimal,
   caipChainIdDecimalToHex,
   caipChainIdHexToDecimal,
-  filterNamespacesByProposal,
-  filterNamespacesBySession,
+  filterNamespaces,
   doesProposalOrSessionIncludeNamespace,
 } from './utils';
 
@@ -21,7 +20,7 @@ const buildNamespace = (
   ...overrides,
 });
 
-describe('multichain/utils - filterNamespacesByProposal', () => {
+describe('multichain/utils - filterNamespaces (proposal)', () => {
   it('keeps only namespaces referenced in the proposal', () => {
     const namespaces = {
       eip155: buildNamespace({ chains: ['eip155:1'] }),
@@ -29,8 +28,8 @@ describe('multichain/utils - filterNamespacesByProposal', () => {
       solana: buildNamespace({ chains: ['solana:mainnet'] }),
     };
 
-    const filtered = filterNamespacesByProposal({
-      proposal: {
+    const filtered = filterNamespaces({
+      proposalOrSession: {
         requiredNamespaces: {
           eip155: {
             methods: [],
@@ -57,8 +56,8 @@ describe('multichain/utils - filterNamespacesByProposal', () => {
       eip155: buildNamespace({ chains: ['eip155:1'] }),
     };
 
-    const filtered = filterNamespacesByProposal({
-      proposal: {
+    const filtered = filterNamespaces({
+      proposalOrSession: {
         requiredNamespaces: {},
         optionalNamespaces: {
           tron: {
@@ -79,8 +78,8 @@ describe('multichain/utils - filterNamespacesByProposal', () => {
 
   it('returns an empty object when nothing was requested', () => {
     expect(
-      filterNamespacesByProposal({
-        proposal: {
+      filterNamespaces({
+        proposalOrSession: {
           optionalNamespaces: {},
           requiredNamespaces: {},
         },
@@ -94,8 +93,8 @@ describe('multichain/utils - filterNamespacesByProposal', () => {
       eip155: buildNamespace({ chains: ['eip155:1'] }),
     };
 
-    const filtered = filterNamespacesByProposal({
-      proposal: {
+    const filtered = filterNamespaces({
+      proposalOrSession: {
         requiredNamespaces: {
           eip155: {
             methods: [],
@@ -114,9 +113,30 @@ describe('multichain/utils - filterNamespacesByProposal', () => {
 
     expect(Object.keys(filtered)).toEqual(['eip155']);
   });
+
+  it('matches chain-scoped proposal keys against top-level namespace names', () => {
+    const namespaces = {
+      eip155: buildNamespace({ chains: ['eip155:1'] }),
+    };
+
+    const filtered = filterNamespaces({
+      proposalOrSession: {
+        requiredNamespaces: {
+          'eip155:1': {
+            methods: [],
+            events: [],
+          },
+        },
+        optionalNamespaces: {},
+      },
+      namespaces,
+    });
+
+    expect(Object.keys(filtered)).toEqual(['eip155']);
+  });
 });
 
-describe('multichain/utils - filterNamespacesBySession', () => {
+describe('multichain/utils - filterNamespaces (session)', () => {
   it('keeps only namespaces approved in the active session', () => {
     const namespaces = {
       eip155: buildNamespace({ chains: ['eip155:1'] }),
@@ -124,8 +144,8 @@ describe('multichain/utils - filterNamespacesBySession', () => {
       solana: buildNamespace({ chains: ['solana:mainnet'] }),
     };
 
-    const filtered = filterNamespacesBySession({
-      session: {
+    const filtered = filterNamespaces({
+      proposalOrSession: {
         namespaces: {
           eip155: buildNamespace(),
           tron: buildNamespace(),
@@ -144,8 +164,8 @@ describe('multichain/utils - filterNamespacesBySession', () => {
       eip155: buildNamespace({ chains: ['eip155:1'] }),
     };
 
-    const filtered = filterNamespacesBySession({
-      session: {
+    const filtered = filterNamespaces({
+      proposalOrSession: {
         namespaces: {
           eip155: buildNamespace(),
           tron: buildNamespace(),
@@ -159,8 +179,8 @@ describe('multichain/utils - filterNamespacesBySession', () => {
 
   it('returns an empty object when the session has no approved namespaces', () => {
     expect(
-      filterNamespacesBySession({
-        session: {},
+      filterNamespaces({
+        proposalOrSession: {},
         namespaces: { eip155: buildNamespace() },
       }),
     ).toEqual({});
