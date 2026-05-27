@@ -3,7 +3,10 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { PredictPortfolioModel } from '../../hooks/usePredictPortfolio';
-import { PredictPositionsViewSelectorsIDs } from '../../Predict.testIds';
+import {
+  PredictPositionsEmptySelectorsIDs,
+  PredictPositionsViewSelectorsIDs,
+} from '../../Predict.testIds';
 import PredictPositionsView from './PredictPositionsView';
 
 jest.mock('react-native-reanimated', () => {
@@ -131,6 +134,9 @@ describe('PredictPositionsView', () => {
       ),
     ).toBeOnTheScreen();
     expect(
+      screen.getByTestId(PredictPositionsEmptySelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(
       screen.queryByTestId(
         PredictPositionsViewSelectorsIDs.HISTORY_TAB_CONTENT,
       ),
@@ -142,6 +148,9 @@ describe('PredictPositionsView', () => {
 
     expect(
       screen.getByTestId(PredictPositionsViewSelectorsIDs.HISTORY_TAB_CONTENT),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PredictPositionsEmptySelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
     expect(
       screen.queryByTestId(

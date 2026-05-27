@@ -81,6 +81,13 @@ export const PredictPositionsViewSelectorsIDs = {
   UNREALIZED_PNL_VALUE: 'predict-positions-view-unrealized-pnl-value',
 } as const;
 
+export const PredictPositionsEmptySelectorsIDs = {
+  BROWSE_MARKETS_CTA: 'predict-positions-empty-browse-markets-cta',
+  CONTAINER: 'predict-positions-empty',
+  DESCRIPTION: 'predict-positions-empty-description',
+  ICON: 'predict-positions-empty-icon',
+} as const;
+
 export const getPredictFeedSelector = {
   tab: (index: number) => `${PredictFeedSelectorsIDs.TABS}-tab-${index}`,
   tabPage: (key: string) => `predict-feed-tab-page-${key}`,

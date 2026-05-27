@@ -19,6 +19,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import PredictPositionsEmpty from '../../components/PredictPositionsEmpty';
 import PredictPositionsViewHeader from '../../components/PredictPositionsViewHeader';
 import { usePredictPortfolio } from '../../hooks/usePredictPortfolio';
 import { PredictPositionsViewSelectorsIDs } from '../../Predict.testIds';
@@ -161,12 +162,16 @@ const PredictPositionsView = () => {
             <Box
               twClassName="flex-1"
               testID={PredictPositionsViewSelectorsIDs.POSITIONS_TAB_CONTENT}
-            />
+            >
+              <PredictPositionsEmpty />
+            </Box>
           ) : (
             <Box
               twClassName="flex-1"
               testID={PredictPositionsViewSelectorsIDs.HISTORY_TAB_CONTENT}
-            />
+            >
+              <PredictPositionsEmpty />
+            </Box>
           )}
         </Box>
       </Box>

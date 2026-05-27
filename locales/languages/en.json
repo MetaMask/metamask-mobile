@@ -2372,6 +2372,10 @@
       "new_prediction": "New prediction",
       "resolved_markets": "Resolved markets"
     },
+    "positions_empty": {
+      "description": "Your predictions will appear here, showing your stake and market movements",
+      "browse_markets": "Browse markets"
+    },
     "tabs": {
       "about": "About",
       "active_positions": "Active positions",
