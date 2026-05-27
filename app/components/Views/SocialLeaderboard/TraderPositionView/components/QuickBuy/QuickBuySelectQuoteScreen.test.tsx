@@ -136,9 +136,22 @@ describe('QuickBuySelectQuoteScreen', () => {
 
   it('shows an empty state when there are no quotes and not loading', () => {
     render(<QuickBuySelectQuoteScreen />);
+    expect(screen.getByTestId('mock-header-title')).toHaveTextContent(
+      'social_leaderboard.quick_buy.select_quote_title',
+    );
     expect(
       screen.getByText('social_leaderboard.quick_buy.no_quotes'),
     ).toBeOnTheScreen();
+  });
+
+  it('allows navigation back from the empty state', () => {
+    const setActiveScreen = jest.fn();
+    (useQuickBuyContext as jest.Mock).mockReturnValue(
+      buildContext({ setActiveScreen }),
+    );
+    render(<QuickBuySelectQuoteScreen />);
+    fireEvent.press(screen.getByTestId('mock-back-button'));
+    expect(setActiveScreen).toHaveBeenCalledWith('quoteDetails');
   });
 
   it('does not show the empty state while loading', () => {

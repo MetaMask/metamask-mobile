@@ -6,7 +6,11 @@ import { positionToQuickBuyTarget } from './types';
 import { selectDefaultSourceToken } from '../../../utils/tokenSelection';
 import { useQuickBuySetup } from './hooks/useQuickBuySetup';
 import { useSourceTokenOptions } from './hooks/useSourceTokenOptions';
-import { useQuickBuyQuotes } from './hooks/useQuickBuyQuotes';
+import {
+  useQuickBuyQuotes,
+  type EnrichedQuickBuyQuote,
+  type UseQuickBuyQuotesResult,
+} from './hooks/useQuickBuyQuotes';
 import { useLatestBalance } from '../../../../../UI/Bridge/hooks/useLatestBalance';
 import useIsInsufficientBalance from '../../../../../UI/Bridge/hooks/useInsufficientBalance';
 import { useHasSufficientGas } from '../../../../../UI/Bridge/hooks/useHasSufficientGas';
@@ -229,18 +233,21 @@ const createSourceToken = (overrides: Partial<BridgeToken> = {}): BridgeToken =>
     ...overrides,
   }) as BridgeToken;
 
-const createActiveQuote = (overrides: Record<string, unknown> = {}) => ({
-  ...overrides,
-  quote: {
-    srcTokenAmount: '10000000000000000',
-    ...((overrides.quote as Record<string, unknown> | undefined) ?? {}),
-  },
-  totalNetworkFee: {
-    amount: '0.0001',
-    ...((overrides.totalNetworkFee as Record<string, unknown> | undefined) ??
-      {}),
-  },
-});
+const createActiveQuote = (
+  overrides: Record<string, unknown> = {},
+): EnrichedQuickBuyQuote =>
+  ({
+    ...overrides,
+    quote: {
+      srcTokenAmount: '10000000000000000',
+      ...((overrides.quote as Record<string, unknown> | undefined) ?? {}),
+    },
+    totalNetworkFee: {
+      amount: '0.0001',
+      ...((overrides.totalNetworkFee as Record<string, unknown> | undefined) ??
+        {}),
+    },
+  }) as EnrichedQuickBuyQuote;
 
 const setupDefaultMocks = () => {
   (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
@@ -753,14 +760,7 @@ describe('useQuickBuyController', () => {
     });
 
     it('is enabled after quote loading settles for the entered amount', () => {
-      const quoteState: {
-        activeQuote: ReturnType<typeof createActiveQuote> | undefined;
-        destTokenAmount: string | undefined;
-        isQuoteLoading: boolean;
-        isNoQuotesAvailable: boolean;
-        quoteFetchError: null;
-        isActiveQuoteForCurrentTokenPair: boolean;
-      } = {
+      const quoteState: UseQuickBuyQuotesResult = {
         activeQuote: undefined,
         destTokenAmount: undefined,
         isQuoteLoading: false,
@@ -805,14 +805,7 @@ describe('useQuickBuyController', () => {
     });
 
     it('is disabled when amount changes after quote loading settles', () => {
-      const quoteState: {
-        activeQuote: ReturnType<typeof createActiveQuote> | undefined;
-        destTokenAmount: string | undefined;
-        isQuoteLoading: boolean;
-        isNoQuotesAvailable: boolean;
-        quoteFetchError: null;
-        isActiveQuoteForCurrentTokenPair: boolean;
-      } = {
+      const quoteState: UseQuickBuyQuotesResult = {
         activeQuote: undefined,
         destTokenAmount: undefined,
         isQuoteLoading: false,
@@ -862,14 +855,7 @@ describe('useQuickBuyController', () => {
     });
 
     const settleQuote = () => {
-      const quoteState: {
-        activeQuote: ReturnType<typeof createActiveQuote> | undefined;
-        destTokenAmount: string | undefined;
-        isQuoteLoading: boolean;
-        isNoQuotesAvailable: boolean;
-        quoteFetchError: null;
-        isActiveQuoteForCurrentTokenPair: boolean;
-      } = {
+      const quoteState: UseQuickBuyQuotesResult = {
         activeQuote: undefined,
         destTokenAmount: undefined,
         isQuoteLoading: false,

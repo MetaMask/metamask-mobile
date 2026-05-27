@@ -80,15 +80,7 @@ const QuickBuySelectQuoteScreen: React.FC = () => {
     ],
   );
 
-  if (!isQuoteLoading && sortedQuotes.length === 0) {
-    return (
-      <Box twClassName="px-4 py-8" alignItems={BoxAlignItems.Center}>
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {strings('social_leaderboard.quick_buy.no_quotes')}
-        </Text>
-      </Box>
-    );
-  }
+  const isEmpty = !isQuoteLoading && sortedQuotes.length === 0;
 
   return (
     <>
@@ -97,16 +89,29 @@ const QuickBuySelectQuoteScreen: React.FC = () => {
         onBack={() => setActiveScreen('quoteDetails')}
         onClose={onClose}
       />
-      <Box twClassName="px-4 pb-2 mb-2">
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {strings('bridge.select_quote_info')}
-        </Text>
-      </Box>
-      <Box twClassName="pb-4">
-        {rows.map((rowProps) => (
-          <QuoteRow key={rowProps.quoteRequestId} {...rowProps} />
-        ))}
-      </Box>
+      {isEmpty ? (
+        <Box twClassName="px-4 py-8" alignItems={BoxAlignItems.Center}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {strings('social_leaderboard.quick_buy.no_quotes')}
+          </Text>
+        </Box>
+      ) : (
+        <>
+          <Box twClassName="px-4 pb-2 mb-2">
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {strings('bridge.select_quote_info')}
+            </Text>
+          </Box>
+          <Box twClassName="pb-4">
+            {rows.map((rowProps) => (
+              <QuoteRow key={rowProps.quoteRequestId} {...rowProps} />
+            ))}
+          </Box>
+        </>
+      )}
     </>
   );
 };
