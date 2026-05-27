@@ -235,7 +235,7 @@ describe('assetsControllerInit', () => {
       expect(isEnabled()).toBe(true);
     });
 
-    it('returns true when feature flag is disabled while hardcoded on for development', () => {
+    it('returns false when feature flag is disabled', () => {
       const requestMock = getInitRequestMock({
         remoteFeatureFlagState: {
           remoteFeatureFlags: {
