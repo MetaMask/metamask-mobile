@@ -93,7 +93,7 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
         isHidden={Boolean(privacyMode)}
         isLoading={portfolio.isLoading}
         portfolioValue={portfolio.portfolioValue}
-        showPnlLine={portfolio.showUnrealizedPnl}
+        showPnlLine={portfolio.showPnlLine}
         totalUnrealizedPnlAmount={portfolio.totalUnrealizedPnlAmount}
         totalUnrealizedPnlPercent={portfolio.totalUnrealizedPnlPercent}
       />

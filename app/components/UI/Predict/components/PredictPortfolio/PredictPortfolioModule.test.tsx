@@ -190,7 +190,20 @@ describe('PredictPortfolioModule', () => {
     expect(screen.getByText('Positions')).toBeOnTheScreen();
   });
 
-  it('routes action presses through the existing guarded flows', () => {
+  it('routes add funds press through the existing guarded flow', () => {
+    renderWithProvider(<PredictPortfolioModule />);
+
+    fireEvent.press(
+      screen.getByTestId(PREDICT_PORTFOLIO_TEST_IDS.ACTION_ADD_FUNDS),
+    );
+    expect(mockDeposit).toHaveBeenCalledWith({
+      analyticsProperties: {
+        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
+      },
+    });
+  });
+
+  it('opens the withdraw fallback for deposit wallets without withdraw support', () => {
     const onDepositWalletWithdrawPress = jest.fn();
     mockUsePredictPortfolio.mockReturnValue(
       createPortfolio({
@@ -203,15 +216,6 @@ describe('PredictPortfolioModule', () => {
         onDepositWalletWithdrawPress={onDepositWalletWithdrawPress}
       />,
     );
-
-    fireEvent.press(
-      screen.getByTestId(PREDICT_PORTFOLIO_TEST_IDS.ACTION_ADD_FUNDS),
-    );
-    expect(mockDeposit).toHaveBeenCalledWith({
-      analyticsProperties: {
-        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
-      },
-    });
 
     fireEvent.press(
       screen.getByTestId(PREDICT_PORTFOLIO_TEST_IDS.ACTION_WITHDRAW),
