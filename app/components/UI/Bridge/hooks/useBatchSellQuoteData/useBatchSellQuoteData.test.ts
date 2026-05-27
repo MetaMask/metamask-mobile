@@ -239,6 +239,7 @@ describe('useBatchSellQuoteData', () => {
 
     expect(result.current.hasAnyQuote).toBe(true);
     expect(result.current.isGasless).toBe(false);
+    expect(result.current.isBatchSellTradeAvailable).toBe(true);
     expect(result.current.isLoading).toBe(false);
     expect(result.current.isSummaryLoading).toBe(false);
     expect(result.current.hasPendingQuoteRows).toBe(false);
@@ -252,9 +253,11 @@ describe('useBatchSellQuoteData', () => {
     expect(result.current.totalReceived.formatted).toBe('200 USDC');
     expect(result.current.totalReceived.formattedFiat).toBe('$201.34');
     expect(result.current.minimumReceived.formatted).toBe('200 USDC');
-    expect(result.current.networkFeeIsLoading).toBe(false);
     expect(result.current.networkFee.formatted).toBe('1.2 ETH');
     expect(result.current.networkFee.formattedFiat).toBe('$1.25');
+    expect(result.current.recommendedQuotes).toEqual(
+      mockBatchSellQuotes.recommendedQuotes,
+    );
     expect(
       Engine.context.BridgeController.updateBatchSellTrades,
     ).toHaveBeenCalledWith(mockBatchSellQuotes.recommendedQuotes);
@@ -505,7 +508,7 @@ describe('useBatchSellQuoteData', () => {
     const { result } = renderHook(() => useBatchSellQuoteData());
 
     expect(result.current.networkFee.formatted).toBe('--');
-    expect(result.current.networkFeeIsLoading).toBe(true);
+    expect(result.current.isBatchSellTradeAvailable).toBe(false);
     expect(result.current.networkFee.formattedFiat).toBe('-');
   });
 

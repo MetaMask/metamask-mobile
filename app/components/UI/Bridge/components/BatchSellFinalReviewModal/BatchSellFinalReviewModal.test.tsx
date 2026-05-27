@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { lightTheme } from '@metamask/design-tokens';
 
 import Routes from '../../../../../constants/navigation/Routes';
@@ -9,9 +9,12 @@ import { BatchSellFinalReviewModal } from './index';
 import { BatchSellFinalReviewModalSelectorsIDs } from './BatchSellFinalReviewModal.testIds';
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
+const mockDispatch = jest.fn();
 const mockUpdateBatchSellQuoteParams = jest.fn();
 const mockGetNewQuote = jest.fn();
+const mockSubmitBatchSellTx = jest.fn();
 const mockUseBatchSellHasSufficientGas = jest.fn((_params: unknown) => true);
 const errorTextColor = lightTheme.colors.error.default;
 const ethAssetId = 'eip155:1/erc20:0x1111111111111111111111111111111111111111';
@@ -38,6 +41,11 @@ const linkToken = {
   decimals: 18,
   symbol: 'LINK',
 };
+const defaultRecommendedQuotes = [
+  { quoteId: 'eth-quote-id' },
+  { quoteId: 'uni-quote-id' },
+];
+let mockIsSubmittingTx = false;
 
 interface MockQuoteTokenData {
   key: string;
@@ -57,10 +65,12 @@ interface MockBatchSellQuoteData {
   isLoading: boolean;
   isSummaryLoading: boolean;
   isGasless: boolean;
+  isBatchSellTradeAvailable: boolean;
   hasAnyQuote: boolean;
   hasPendingQuoteRows: boolean;
   needsNewQuote: boolean;
   quotePercentFee?: string;
+  recommendedQuotes: unknown[];
   networkFee: {
     amount?: string;
     valueInCurrency?: string | null;
@@ -75,7 +85,6 @@ interface MockBatchSellQuoteData {
     formatted: string;
     formattedFiat: string;
   };
-  networkFeeIsLoading: boolean;
 }
 
 const defaultQuoteData: MockBatchSellQuoteData = {
@@ -106,10 +115,12 @@ const defaultQuoteData: MockBatchSellQuoteData = {
   isLoading: false,
   isSummaryLoading: false,
   isGasless: false,
+  isBatchSellTradeAvailable: true,
   hasAnyQuote: true,
   hasPendingQuoteRows: false,
   needsNewQuote: false,
   quotePercentFee: '1.25',
+  recommendedQuotes: defaultRecommendedQuotes,
   networkFee: {
     amount: '1.2',
     valueInCurrency: '1.2',
@@ -124,7 +135,6 @@ const defaultQuoteData: MockBatchSellQuoteData = {
     formatted: '1.20 USDC',
     formattedFiat: '$1.20',
   },
-  networkFeeIsLoading: false,
 };
 let mockSelectedTokens = defaultSelectedTokens;
 let mockBatchSellQuoteData = defaultQuoteData;
@@ -132,16 +142,23 @@ let mockBatchSellQuoteData = defaultQuoteData;
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     goBack: mockGoBack,
+    navigate: mockNavigate,
     replace: mockReplace,
   }),
 }));
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: (state: unknown) => unknown) => selector({}),
+  useDispatch: () => mockDispatch,
 }));
 
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
   selectBatchSellSourceTokens: jest.fn(() => mockSelectedTokens),
+  selectIsSubmittingTx: jest.fn(() => mockIsSubmittingTx),
+  setIsSubmittingTx: jest.fn((isSubmittingTx: boolean) => ({
+    type: 'bridge/setIsSubmittingTx',
+    payload: isSubmittingTx,
+  })),
 }));
 
 jest.mock('../../hooks/useBatchSellQuoteData', () => ({
@@ -160,6 +177,12 @@ jest.mock('../../hooks/useBatchSellHasSufficientGas', () => ({
     mockUseBatchSellHasSufficientGas(params),
 }));
 
+jest.mock('../../hooks/useSubmitBatchSellTx', () => ({
+  useSubmitBatchSellTx: () => ({
+    submitBatchSellTx: mockSubmitBatchSellTx,
+  }),
+}));
+
 function renderModal(overrides: Partial<MockBatchSellQuoteData> = {}) {
   mockBatchSellQuoteData = {
     ...defaultQuoteData,
@@ -173,9 +196,11 @@ describe('BatchSellFinalReviewModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSelectedTokens = defaultSelectedTokens;
+    mockIsSubmittingTx = false;
     mockBatchSellQuoteData = defaultQuoteData;
     mockUpdateBatchSellQuoteParams.mockClear();
     mockGetNewQuote.mockClear();
+    mockSubmitBatchSellTx.mockResolvedValue(undefined);
     mockUseBatchSellHasSufficientGas.mockReturnValue(true);
   });
 
@@ -215,6 +240,45 @@ describe('BatchSellFinalReviewModal', () => {
         BatchSellFinalReviewModalSelectorsIDs.METAMASK_FEE_DISCLOSURE,
       ),
     ).toBeNull();
+  });
+
+  it('submits Batch Sell with the recommended quotes', async () => {
+    const { getByTestId } = renderModal();
+
+    fireEvent.press(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(mockSubmitBatchSellTx).toHaveBeenCalledWith({
+        quoteResponses: defaultRecommendedQuotes,
+      });
+    });
+    expect(mockDispatch).toHaveBeenNthCalledWith(1, {
+      type: 'bridge/setIsSubmittingTx',
+      payload: true,
+    });
+    expect(mockDispatch).toHaveBeenLastCalledWith({
+      type: 'bridge/setIsSubmittingTx',
+      payload: false,
+    });
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+  });
+
+  it('blocks Sell all while submitting', () => {
+    mockIsSubmittingTx = true;
+
+    const { getByTestId, getByText } = renderModal();
+
+    expect(getByText('Submitting')).toBeOnTheScreen();
+    expect(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON).props
+        .accessibilityState.disabled,
+    ).toBe(true);
+    expect(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON).props
+        .accessibilityState.busy,
+    ).toBe(true);
   });
 
   it('closes with navigation when the close button is pressed', () => {
@@ -377,7 +441,7 @@ describe('BatchSellFinalReviewModal', () => {
 
   it('renders a network fee values skeleton while the network fee is loading', () => {
     const { getByTestId, getByText, queryByText } = renderModal({
-      networkFeeIsLoading: true,
+      isBatchSellTradeAvailable: false,
     });
 
     expect(
@@ -395,6 +459,17 @@ describe('BatchSellFinalReviewModal', () => {
     expect(
       getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON).props
         .accessibilityState.busy,
+    ).toBe(true);
+  });
+
+  it('blocks Sell all while the Batch Sell trade is unavailable', () => {
+    const { getByTestId } = renderModal({
+      isBatchSellTradeAvailable: false,
+    });
+
+    expect(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON).props
+        .accessibilityState.disabled,
     ).toBe(true);
   });
 
@@ -424,7 +499,7 @@ describe('BatchSellFinalReviewModal', () => {
 
     const { getByTestId, getByText } = renderModal({
       needsNewQuote: true,
-      networkFeeIsLoading: true,
+      isBatchSellTradeAvailable: false,
       hasPendingQuoteRows: true,
     });
     const button = getByTestId(

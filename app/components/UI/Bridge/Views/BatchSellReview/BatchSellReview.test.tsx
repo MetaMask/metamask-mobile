@@ -44,7 +44,6 @@ interface MockBatchSellQuoteData {
   hasPendingQuoteRows: boolean;
   needsNewQuote: boolean;
   networkFee: { formatted: string; formattedFiat: string };
-  networkFeeIsLoading: boolean;
 }
 
 const defaultQuoteData: MockBatchSellQuoteData = {
@@ -78,7 +77,6 @@ const defaultQuoteData: MockBatchSellQuoteData = {
     formatted: '1.20 USDC',
     formattedFiat: '$1.20',
   },
-  networkFeeIsLoading: false,
 };
 let mockBatchSellQuoteData = defaultQuoteData;
 const defaultSelectedTokens: BridgeToken[] = [
@@ -536,7 +534,6 @@ describe('BatchSellReview', () => {
     mockBatchSellQuoteData = {
       ...defaultQuoteData,
       needsNewQuote: true,
-      networkFeeIsLoading: true,
       hasPendingQuoteRows: true,
     };
     const { getByTestId, getByText } = render(<BatchSellReview />);

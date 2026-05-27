@@ -349,7 +349,6 @@ export function useBatchSellQuoteData({
     () => getBatchSellTradesRequestKey(availableRecommendedQuotes),
     [availableRecommendedQuotes],
   );
-  const networkFeeIsLoading = !batchSellTrades.isBatchSellTradeAvailable;
   const totalReceivedAmount = canDisplayAggregatedQuoteData
     ? totalReceived.amount
     : undefined;
@@ -496,11 +495,12 @@ export function useBatchSellQuoteData({
     isLoading,
     isSummaryLoading,
     isGasless,
+    isBatchSellTradeAvailable: batchSellTrades.isBatchSellTradeAvailable,
     hasAnyQuote,
     hasPendingQuoteRows,
     needsNewQuote,
-    networkFeeIsLoading,
     networkFee: networkFeeData,
     quotePercentFee,
+    recommendedQuotes: availableRecommendedQuotes,
   };
 }
