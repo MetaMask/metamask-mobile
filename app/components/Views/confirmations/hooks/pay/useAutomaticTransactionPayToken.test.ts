@@ -1197,8 +1197,8 @@ describe('useAutomaticTransactionPayToken', () => {
 
     const { rerender } = runHook();
 
-    // Initial selection fires with MUSD
-    expect(setPayTokenMock).toHaveBeenCalledTimes(1);
+    // Initial selection + money-override detection both fire on first render
+    expect(setPayTokenMock).toHaveBeenCalledTimes(2);
     expect(setPayTokenMock).toHaveBeenCalledWith({
       address: MUSD_TOKEN_ADDRESS,
       chainId: CHAIN_IDS.MONAD,

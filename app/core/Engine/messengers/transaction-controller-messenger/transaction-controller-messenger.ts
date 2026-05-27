@@ -189,14 +189,23 @@ export function getTransactionControllerInitMessenger(
       'AnalyticsController:trackEvent',
       'PredictController:beforePublish',
       'PredictController:publish',
+      // @ts-expect-error Not yet in upstream types
       'AssetsController:getStateForTransactionPay',
+      // @ts-expect-error Not yet in upstream types
       'BridgeController:fetchQuotes',
+      // @ts-expect-error Not yet in upstream types
       'GasFeeController:getState',
+      // @ts-expect-error Not yet in upstream types
       'RampsController:getOrder',
+      // @ts-expect-error Not yet in upstream types
       'RampsController:getQuotes',
+      // @ts-expect-error Not yet in upstream types
       'RampsController:getState',
+      // @ts-expect-error Not yet in upstream types
       'TokenBalancesController:getState',
+      // @ts-expect-error Not yet in upstream types
       'TokenRatesController:getState',
+      // @ts-expect-error Not yet in upstream types
       'TokensController:getState',
     ],
     events: [
