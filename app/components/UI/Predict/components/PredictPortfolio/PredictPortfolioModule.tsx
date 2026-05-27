@@ -56,17 +56,20 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
 
   const handleWithdrawPress = useCallback(() => {
     executeGuardedAction(
-      () => {
+      async () => {
+        if (!portfolio.walletType) {
+          return;
+        }
+
         if (
-          !portfolio.walletType ||
-          (portfolio.walletType === 'deposit-wallet' &&
-            !enableDepositWalletWithdraw)
+          portfolio.walletType === 'deposit-wallet' &&
+          !enableDepositWalletWithdraw
         ) {
           onDepositWalletWithdrawPress?.();
           return;
         }
 
-        void portfolio.withdraw();
+        await portfolio.withdraw();
       },
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.WITHDRAW },
     );
@@ -78,7 +81,7 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
   ]);
 
   const handleClaimPress = useCallback(() => {
-    void executeGuardedAction(() => portfolio.claim(), {
+    executeGuardedAction(() => portfolio.claim(), {
       attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM,
     });
   }, [executeGuardedAction, portfolio]);

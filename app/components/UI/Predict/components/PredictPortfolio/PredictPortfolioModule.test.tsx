@@ -192,6 +192,12 @@ describe('PredictPortfolioModule', () => {
 
   it('routes action presses through the existing guarded flows', () => {
     const onDepositWalletWithdrawPress = jest.fn();
+    mockUsePredictPortfolio.mockReturnValue(
+      createPortfolio({
+        walletType: 'deposit-wallet',
+      }),
+    );
+
     renderWithProvider(
       <PredictPortfolioModule
         onDepositWalletWithdrawPress={onDepositWalletWithdrawPress}
@@ -211,6 +217,22 @@ describe('PredictPortfolioModule', () => {
       screen.getByTestId(PREDICT_PORTFOLIO_TEST_IDS.ACTION_WITHDRAW),
     );
     expect(onDepositWalletWithdrawPress).toHaveBeenCalled();
+  });
+
+  it('does not open withdraw fallback while wallet type is loading', () => {
+    const onDepositWalletWithdrawPress = jest.fn();
+    renderWithProvider(
+      <PredictPortfolioModule
+        onDepositWalletWithdrawPress={onDepositWalletWithdrawPress}
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(PREDICT_PORTFOLIO_TEST_IDS.ACTION_WITHDRAW),
+    );
+
+    expect(onDepositWalletWithdrawPress).not.toHaveBeenCalled();
+    expect(mockWithdraw).not.toHaveBeenCalled();
   });
 
   it('uses the real withdraw path when the wallet type supports it', () => {
