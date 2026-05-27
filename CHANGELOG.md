@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.78.1]
 
+### Fixed
+
+- Fixed a crash caused by CloseEvent dispatch on WebSocket failing instanceof validation (#30612)
+
 ## [7.78.0]
 
 ### Added
