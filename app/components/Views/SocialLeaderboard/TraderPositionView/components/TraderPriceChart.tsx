@@ -41,7 +41,16 @@ interface TooltipProps {
 
 /** Smaller than TRADE_MARKER_RADIUS so the end-dot doesn't look like a trade marker. */
 const END_DOT_DIAMETER = 5;
-const TRADE_MARKER_RADIUS = 7;
+/**
+ * Trade marker geometry — the inner colored disk is 16x16 with a 4px ring
+ * matching the chart background. SVG strokes are centered on the circumference,
+ * so we set r = innerRadius + strokeWidth/2 (8 + 2 = 10) to make the ring
+ * sit fully outside the visible inner disk.
+ */
+const TRADE_MARKER_INNER_RADIUS = 8;
+const TRADE_MARKER_BORDER_WIDTH = 4;
+const TRADE_MARKER_RADIUS =
+  TRADE_MARKER_INNER_RADIUS + TRADE_MARKER_BORDER_WIDTH / 2;
 
 interface TraderPriceChartProps {
   prices: TokenPrice[];
@@ -284,12 +293,10 @@ const TraderPriceChart = ({
           const cy = y(priceList[m.index]);
           if (!Number.isFinite(cx) || !Number.isFinite(cy)) return null;
           const isBuy = m.intent === 'enter';
-          // Buy: white fill + green stroke — clearly distinct from the green
-          //   chart line while still reading as a "buy" action.
-          // Sell: red fill + dark background halo — high contrast, matches the
-          //   red values shown in the trades list.
-          // The background-colored strokeWidth halos both markers so they
-          // visually punch through the chart line.
+          // Inner disk uses the same green/red as the rest of the UI; the
+          // ring matches the chart background so the marker reads as a
+          // punched-through dot on the line. background.default adapts to
+          // light/dark automatically.
           return (
             <Circle
               key={m.transactionHash}
@@ -297,9 +304,9 @@ const TraderPriceChart = ({
               cx={cx}
               cy={cy}
               r={TRADE_MARKER_RADIUS}
-              fill={isBuy ? 'lightgreen' : theme.colors.error.default}
-              stroke={isBuy ? 'black' : theme.colors.background.default}
-              strokeWidth={Math.max(2, apx(2))}
+              fill={isBuy ? chartColor : theme.colors.error.default}
+              stroke={theme.colors.background.default}
+              strokeWidth={TRADE_MARKER_BORDER_WIDTH}
             />
           );
         })}
