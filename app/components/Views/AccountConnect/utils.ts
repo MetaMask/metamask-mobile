@@ -31,6 +31,36 @@ export function getRequestedCaip25CaveatValue(
   permissions: unknown,
   origin: string,
 ): Caip25CaveatValue {
+  const caveatValue = getCaip25CaveatValueFromPermissions(permissions);
+
+  try {
+    const existingCaveat = getCaip25Caveat(origin);
+
+    if (!existingCaveat) {
+      return caveatValue;
+    }
+
+    const mergedCaveatValue = mergeCaip25Values(
+      existingCaveat.value,
+      caveatValue,
+    );
+
+    return mergedCaveatValue;
+  } catch (e) {
+    return caveatValue;
+  }
+}
+
+/**
+ * Takes in an incoming value and attempts to return its raw
+ * {@link Caip25CaveatValue}, without merging existing origin permissions.
+ *
+ * @param permissions - The value to extract CAIP-25 caveat value from.
+ * @returns The raw {@link Caip25CaveatValue}.
+ */
+export function getCaip25CaveatValueFromPermissions(
+  permissions: unknown,
+): Caip25CaveatValue {
   const defaultValue: Caip25CaveatValue = {
     optionalScopes: {},
     requiredScopes: {},
@@ -89,18 +119,7 @@ export function getRequestedCaip25CaveatValue(
     return defaultValue;
   }
 
-  try {
-    const existingCaveat = getCaip25Caveat(origin);
-
-    const mergedCaveatValue = mergeCaip25Values(
-      existingCaveat.value,
-      caveatValue,
-    );
-
-    return mergedCaveatValue;
-  } catch (e) {
-    return caveatValue as Caip25CaveatValue;
-  }
+  return caveatValue as Caip25CaveatValue;
 }
 
 /**

@@ -30,7 +30,7 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { BtcScope, SolScope, TrxScope } from '@metamask/keyring-api';
 import { PermissionDoesNotExistError } from '@metamask/permission-controller';
 import { RpcEndpointType, NetworkStatus } from '@metamask/network-controller';
-import { CaipChainId } from '@metamask/utils';
+import { CaipChainId, KnownCaipNamespace } from '@metamask/utils';
 import { WC2VerifyValidation } from '../../../../actions/sdk/state';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { AccountConnectMaliciousWarningSelectorsIDs } from '../../AccountConnect/AccountConnectMaliciousWarning/AccountConnectMaliciousWarning.testIds';
@@ -405,6 +405,12 @@ const getRequestedChainIdsFromUseAccountGroupsForPermissions = () => {
   const { calls } = mockUseAccountGroupsForPermissions.mock;
   expect(calls.length).toBeGreaterThan(0);
   return calls[calls.length - 1][2] as CaipChainId[];
+};
+
+const getRequestedNamespacesFromUseAccountGroupsForPermissions = () => {
+  const { calls } = mockUseAccountGroupsForPermissions.mock;
+  expect(calls.length).toBeGreaterThan(0);
+  return calls[calls.length - 1][3] as string[];
 };
 
 const createMockState = (): DeepPartial<RootState> => ({
@@ -848,6 +854,14 @@ describe('MultichainAccountConnect', () => {
     it('preserves previously-granted scopes when defaulting EIP-1193 requests', () => {
       const origin = 'mockOrigin';
       const state = createMockState();
+      const existingSolanaPermission = createMockCaip25Permission({
+        [SolScope.Devnet]: {
+          accounts: [],
+        },
+      });
+      const existingSolanaCaveatValue =
+        existingSolanaPermission[Caip25EndowmentPermissionName].caveats[0]
+          .value;
       const permissionController = state.engine?.backgroundState
         ?.PermissionController as
         | {
@@ -868,17 +882,20 @@ describe('MultichainAccountConnect', () => {
               subjects: {
                 ...permissionController?.subjects,
                 [origin]: {
-                  permissions: createMockCaip25Permission({
-                    [SolScope.Devnet]: {
-                      accounts: [],
-                    },
-                  }),
+                  permissions: existingSolanaPermission,
                 },
               },
             },
           },
         },
       } as unknown as DeepPartial<RootState>;
+
+      (
+        Engine.context.PermissionController.getCaveat as jest.Mock
+      ).mockReturnValue({
+        type: Caip25CaveatType,
+        value: existingSolanaCaveatValue,
+      });
 
       renderWithProvider(
         <MultichainAccountConnect
@@ -907,6 +924,15 @@ describe('MultichainAccountConnect', () => {
       expect(chainIds).toEqual(expect.arrayContaining(['eip155:1']));
       expect(chainIds).toContain(SolScope.Devnet);
       expect(chainIds).not.toContain(SolScope.Mainnet);
+
+      const namespaces =
+        getRequestedNamespacesFromUseAccountGroupsForPermissions();
+      expect(namespaces).toEqual(
+        expect.arrayContaining([
+          KnownCaipNamespace.Eip155,
+          KnownCaipNamespace.Solana,
+        ]),
+      );
     });
   });
 

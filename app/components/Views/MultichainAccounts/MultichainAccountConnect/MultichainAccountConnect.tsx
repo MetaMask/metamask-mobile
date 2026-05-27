@@ -66,8 +66,8 @@ import {
 import { isUUID } from '../../../../core/SDKConnect/utils/isUUID.ts';
 import useOriginSource from '../../../hooks/useOriginSource.ts';
 import {
+  getCaip25CaveatValueFromPermissions,
   getCaip25PermissionsResponse,
-  getRequestedCaip25CaveatValue,
   mergeCaip25Values,
   // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 } from '../../AccountConnect/utils.ts';
@@ -160,26 +160,19 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   const existingPermissionsCaip25CaveatValue = useMemo(
     () =>
       existingPermissionsForHost
-        ? getRequestedCaip25CaveatValue(
-            existingPermissionsForHost,
-            hostInfo?.metadata?.origin,
-          )
+        ? getCaip25CaveatValueFromPermissions(existingPermissionsForHost)
         : {
             requiredScopes: {},
             optionalScopes: {},
             sessionProperties: {},
             isMultichainOrigin: false,
           },
-    [existingPermissionsForHost, hostInfo?.metadata?.origin],
+    [existingPermissionsForHost],
   );
 
   const requestedCaip25CaveatValue = useMemo(
-    () =>
-      getRequestedCaip25CaveatValue(
-        hostInfo.permissions,
-        hostInfo.metadata.origin,
-      ),
-    [hostInfo.permissions, hostInfo.metadata.origin],
+    () => getCaip25CaveatValueFromPermissions(hostInfo.permissions),
+    [hostInfo.permissions],
   );
 
   const requestedRequestWithExistingPermissions = useMemo(
@@ -208,8 +201,11 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   );
 
   const requestedNamespaces = useMemo(
-    () => getAllNamespacesFromCaip25CaveatValue(requestedCaip25CaveatValue),
-    [requestedCaip25CaveatValue],
+    () =>
+      getAllNamespacesFromCaip25CaveatValue(
+        requestedRequestWithExistingPermissions,
+      ),
+    [requestedRequestWithExistingPermissions],
   );
 
   const requestedNamespacesWithoutWallet = useMemo(
@@ -218,6 +214,14 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
         (namespace) => namespace !== KnownCaipNamespace.Wallet,
       ),
     [requestedNamespaces],
+  );
+
+  const requestedNamespacesFromRequestWithoutWallet = useMemo(
+    () =>
+      getAllNamespacesFromCaip25CaveatValue(requestedCaip25CaveatValue).filter(
+        (namespace) => namespace !== KnownCaipNamespace.Wallet,
+      ),
+    [requestedCaip25CaveatValue],
   );
 
   const networkConfigurations = useSelector(
@@ -321,12 +325,14 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       );
     }
 
-    if (requestedNamespacesWithoutWallet.length > 0) {
+    if (requestedNamespacesFromRequestWithoutWallet.length > 0) {
       return Array.from(
         new Set([
           ...defaultSelectedNetworkList.filter((caipChainId) => {
             const { namespace } = parseCaipChainId(caipChainId);
-            return requestedNamespacesWithoutWallet.includes(namespace);
+            return requestedNamespacesFromRequestWithoutWallet.includes(
+              namespace,
+            );
           }),
           ...alreadyConnectedCaipChainIds,
         ]),
@@ -339,7 +345,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     testNetworkCaipChainIds,
     requestedCaipChainIds,
     currentlySelectedNetwork.chainId,
-    requestedNamespacesWithoutWallet,
+    requestedNamespacesFromRequestWithoutWallet,
     alreadyConnectedCaipChainIds,
   ]);
 
