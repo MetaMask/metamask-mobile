@@ -12,8 +12,6 @@ import {
   Icon,
   IconColor,
   IconSize,
-  IconColor as ReactNativeDsIconColor,
-  IconSize as ReactNativeDsIconSize,
   Spinner,
 } from '@metamask/design-system-react-native';
 import type { MoneyAccount } from '@metamask/money-account-controller';
@@ -155,8 +153,8 @@ export const useMoneyAccountCardLinkage =
         startAccessory: (
           <Box twClassName="pr-3">
             <Spinner
-              color={ReactNativeDsIconColor.IconDefault}
-              spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }}
+              color={IconColor.IconDefault}
+              spinnerIconProps={{ size: IconSize.Lg }}
             />
           </Box>
         ),
