@@ -31,7 +31,7 @@ export function usePushPermissionNotificationSetup() {
     (nativePermissionEnabled: boolean) => {
       const registerPushNotifications = nativePermissionEnabled;
 
-      (async () => {
+      const enableNotifications = async () => {
         try {
           const hasExistingNotificationPreferences =
             await hasNotificationPreferencesHelper();
@@ -57,7 +57,9 @@ export function usePushPermissionNotificationSetup() {
             'Failed to enable notifications from push pre-prompt',
           );
         }
-      })();
+      };
+
+      void enableNotifications();
     },
     [],
   );
