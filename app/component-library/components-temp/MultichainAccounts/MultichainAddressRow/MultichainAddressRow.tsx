@@ -18,14 +18,16 @@ import {
   IconName,
   IconColor,
   FontWeight,
+  AvatarNetwork,
+  AvatarNetworkSize,
 } from '@metamask/design-system-react-native';
-import Avatar, {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../components/Avatars/Avatar';
 import { formatAddress } from '../../../../util/address';
 import { getNetworkImageSource } from '../../../../util/networks';
-import { Icon, MultichainAddressRowProps } from './MultichainAddressRow.types';
+import type {
+  CopyToastOptions,
+  Icon,
+  MultichainAddressRowProps,
+} from './MultichainAddressRow.types';
 import {
   MULTICHAIN_ADDRESS_ROW_NETWORK_ICON_TEST_ID,
   MULTICHAIN_ADDRESS_ROW_NETWORK_NAME_TEST_ID,
@@ -33,8 +35,6 @@ import {
   MULTICHAIN_ADDRESS_ROW_TEST_ID,
   MULTICHAIN_ADDRESS_ROW_COPY_BUTTON_TEST_ID,
 } from './MultichainAddressRow.constants';
-import { ToastVariants, ButtonIconVariant } from '../../../components/Toast';
-import { IconName as ToastIconName } from '../../../components/Icons/Icon';
 
 const MultichainAddressRow = ({
   chainId,
@@ -69,18 +69,21 @@ const MultichainAddressRow = ({
       setIconState('copy');
     }, 400);
 
-    // Show legacy row-managed toast only when both ref and message are provided.
     if (copyParams.toastRef?.current && copyParams.toastMessage) {
-      copyParams.toastRef.current.showToast({
-        variant: ToastVariants.Plain,
-        labelOptions: [{ label: copyParams.toastMessage }],
+      const toastOptions: CopyToastOptions = {
+        variant: 'Plain',
+        labelOptions: [{ label: copyParams.toastMessage ?? '' }],
         hasNoTimeout: false,
         closeButtonOptions: {
-          variant: ButtonIconVariant.Icon,
-          iconName: ToastIconName.Close,
+          variant: 'Icon',
+          iconName: IconName.Close,
           onPress: () => copyParams.toastRef?.current?.closeToast(),
         },
-      });
+      };
+      const showToast = copyParams.toastRef.current.showToast as (
+        toastOptions: CopyToastOptions,
+      ) => void;
+      showToast(toastOptions);
     }
   }, [copyParams]);
 
@@ -118,11 +121,10 @@ const MultichainAddressRow = ({
       testID={testID}
       {...viewProps}
     >
-      <Avatar
-        variant={AvatarVariant.Network}
-        size={AvatarSize.Md}
+      <AvatarNetwork
+        size={AvatarNetworkSize.Md}
         name={networkName}
-        imageSource={networkImageSource}
+        src={networkImageSource}
         testID={MULTICHAIN_ADDRESS_ROW_NETWORK_ICON_TEST_ID}
       />
       <Box
