@@ -61,6 +61,19 @@ const options = {
     // extraSources entry above; ignore the generated copy so we don't
     // double-count it on rebuild.
     'android/app/src/main/assets/InpageBridgeWeb3.js',
+    // Debug preflight runs against Metro. App JS, recipes, and harness scripts
+    // are served/read live from the worktree, so changing them must not force a
+    // native rebuild. Native-affecting inputs remain covered by Expo's default
+    // fingerprint plus projectConfig.extraSources (package/yarn lock, ios/, android/,
+    // app config, patches, react-native config, build/setup scripts, etc.).
+    'app/**',
+    'scripts/perps/agentic/**',
+    'tsconfig.json',
+    // Podfile.lock can be rewritten by the pod-install step during the build.
+    // Key off the source inputs instead (yarn.lock + ios/Podfile) so a freshly
+    // built app does not invalidate itself on the next preflight.
+    'ios/Podfile.lock',
+    'ios/Pods/**',
   ],
 };
 

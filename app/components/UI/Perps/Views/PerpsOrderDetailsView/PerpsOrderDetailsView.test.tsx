@@ -96,6 +96,9 @@ jest.mock('../../utils/formatUtils', () => ({
   formatPerpsFiat: jest.fn((value) => `$${value.toFixed(2)}`),
   formatPositionSize: jest.fn((value) => value.toFixed(4)),
   formatOrderCardDate: jest.fn(() => 'Nov 25, 2025'),
+  PRICE_RANGES_UNIVERSAL: [
+    { min: 0, max: Infinity, decimals: 2, threshold: 0.000001 },
+  ],
 }));
 
 // Mock component-library Button to be testable
@@ -278,6 +281,24 @@ describe('PerpsOrderDetailsView', () => {
     render(<PerpsOrderDetailsView />);
 
     expect(screen.getByText('perps.order_details.price')).toBeOnTheScreen();
+  });
+
+  it('formats order price with adaptive sig-dig ranges', () => {
+    // Arrange
+    const { formatPerpsFiat: mockFormatPerpsFiat } = jest.requireMock(
+      '../../utils/formatUtils',
+    ) as { formatPerpsFiat: jest.Mock };
+
+    // Act
+    render(<PerpsOrderDetailsView />);
+
+    // Assert — the price call (50000) must pass a ranges option
+    const priceCall = mockFormatPerpsFiat.mock.calls.find(
+      (call: unknown[]) => call[0] === 50000,
+    );
+    expect(priceCall).toBeDefined();
+    expect(priceCall[1]).toBeDefined();
+    expect(priceCall[1].ranges).toBeDefined();
   });
 
   it('renders original size, order value and reduce-only rows', () => {
