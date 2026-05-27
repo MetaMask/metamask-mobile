@@ -257,17 +257,6 @@ const TokenBalanceView = ({
   );
 };
 
-const formatTokenBalance = (balance: string): string => {
-  const numericBalance = Number(balance);
-  if (numericBalance === 0) {
-    return '0';
-  }
-  if (numericBalance < 0.00001) {
-    return '< 0.00001';
-  }
-  return parseAmount(balance, 5) || balance;
-};
-
 const TOP_ROW_BALANCE_TEXT_STYLE = {
   textVariant: TextVariant.BodyMDMedium,
   textColor: TextColor.Default,
