@@ -128,6 +128,11 @@
       "title": "Wallet not supported",
       "message": "Hardware wallets aren't supported.\nSwitch wallets to continue."
     },
+    "address_poisoning": {
+      "title": "Address poisoning detected",
+      "message": "This address closely resembles one you've used before. It may have been designed to trick you into sending funds to the wrong recipient.",
+      "badge": "Poisoned"
+    },
     "burn_address": {
       "message": "You're sending your assets to a burn address. If you continue, you'll lose your assets.",
       "title": "Sending assets to burn address"
@@ -712,6 +717,9 @@
     "could_not_resolve_name": "Couldn't resolve name",
     "invalid_address": "Invalid address",
     "contractAddressError": "You are sending tokens to the token's contract address. This may result in the loss of these tokens.",
+    "compare_addresses": "Compare addresses",
+    "entered_malicious": "The Address You Entered",
+    "known_safe_address": "Known Address",
     "smart_contract_address": "Smart contract address",
     "smart_contract_address_warning": "The recipient address may not support direct token transfers, which could result in fund loss. Only continue if you're certain this contract can receive your transfer.",
     "unavailable_network_connection": "Unavailable network connection",
@@ -3746,6 +3754,11 @@
         "title": "Identity",
         "description": "Clears the persisted authentication session. Use this after toggling MM_DEV_API_ENV — otherwise a prod-minted JWT keeps being handed to dev-API consumers until it expires. Current MM_DEV_API_ENV: {{env}}.",
         "clear_auth_session_button": "Clear persisted auth session"
+      },
+      "notifications": {
+        "title": "Notifications",
+        "description": "Reset the push notification pre-prompt flag to re-trigger the sheet on next eligible launch.",
+        "reset_prompt": "Reset push pre-prompt"
       },
       "haptics": {
         "title": "Haptics",
@@ -8555,7 +8568,10 @@
       "swaps_label": "Swaps",
       "perps_label": "Perps",
       "points_label": "Points",
-      "revenue_share_label": "Rev share",
+      "revenue_share_label": "Revenue share",
+      "swap_fees_label": "Swap fees",
+      "perps_fees_label": "Perps fees",
+      "referral_points_label": "Referral points",
       "points_from_referrals_label": "Points from referrals",
       "referrals_label": "VIP Referrals",
       "tier_benefits_title": "Tier benefits",
@@ -8568,7 +8584,7 @@
       "error_description": "Check your connection and try again.",
       "retry_button": "Retry",
       "tiers_title": "Tiers",
-      "tier_thresholds": "{{points}} total",
+      "tier_thresholds": "{{points}} points",
       "bps_value": "{{bps}} bps"
     },
     "referral_title": "Referrals",

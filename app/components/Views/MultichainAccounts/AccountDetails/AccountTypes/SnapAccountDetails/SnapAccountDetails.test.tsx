@@ -8,7 +8,7 @@ import { AccountDetailsIds } from '../../../AccountDetails.testIds';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { ExportCredentialsIds } from '../../ExportCredentials.testIds';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { AvatarAccountType } from '../../../../../../component-library/components/Avatars/Avatar';
+import { AvatarAccountType } from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.types';
 
 const mockIsHDOrFirstPartySnapAccount = jest.fn();
 const mockNavigate = jest.fn();
