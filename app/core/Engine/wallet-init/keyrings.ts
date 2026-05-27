@@ -124,6 +124,7 @@ export function getKeyringBuilders(
       'PhishingController:maybeUpdateState',
       'KeyringController:getAccounts',
       'KeyringController:persistAllKeyrings',
+      'KeyringController:removeAccount',
       'AccountsController:setSelectedAccount',
       'AccountsController:getAccountByAddress',
       'AccountsController:setAccountName',
