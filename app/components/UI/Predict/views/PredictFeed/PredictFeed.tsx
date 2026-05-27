@@ -11,6 +11,7 @@ import {
   RefreshControl,
   Platform,
   LayoutChangeEvent,
+  TouchableOpacity,
 } from 'react-native';
 import PagerView from 'react-native-pager-view';
 import {
@@ -75,6 +76,7 @@ import FeaturedCarousel from '../../components/FeaturedCarousel';
 import PredictWorldCupMainFeedBanner from '../../components/PredictWorldCupMainFeedBanner';
 import {
   selectPredictFeaturedCarouselEnabledFlag,
+  selectPredictPortfolioEnabledFlag,
   selectPredictUpDownEnabledFlag,
 } from '../../selectors/featureFlags';
 import PredictFeedSessionManager from '../../services/PredictFeedSessionManager';
@@ -103,11 +105,31 @@ const AnimatedFlashList = Animated.createAnimatedComponent(
 
 const PredictFeedHeader: React.FC<{
   onDepositWalletWithdrawPress?: () => void;
-}> = ({ onDepositWalletWithdrawPress }) => (
-  <Box twClassName="py-4">
+  onPositionsPress?: () => void;
+  showPositionsButton?: boolean;
+}> = ({
+  onDepositWalletWithdrawPress,
+  onPositionsPress,
+  showPositionsButton,
+}) => (
+  <Box twClassName="gap-3 py-4">
     <PredictBalance
       onDepositWalletWithdrawPress={onDepositWalletWithdrawPress}
     />
+    {showPositionsButton && (
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessibilityLabel={strings('predict.tabs.positions')}
+        onPress={onPositionsPress}
+        testID={PredictFeedSelectorsIDs.POSITIONS_BUTTON}
+      >
+        <Box twClassName="items-center rounded-xl bg-muted px-4 py-3">
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+            {strings('predict.tabs.positions')}
+          </Text>
+        </Box>
+      </TouchableOpacity>
+    )}
   </Box>
 );
 
@@ -153,6 +175,8 @@ interface AnimatedHeaderProps {
   onHeaderLayout: (event: LayoutChangeEvent) => void;
   onTabBarLayout: (event: LayoutChangeEvent) => void;
   onDepositWalletWithdrawPress?: () => void;
+  onPositionsPress?: () => void;
+  showPositionsButton?: boolean;
 }
 
 const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
@@ -166,6 +190,8 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
   onHeaderLayout,
   onTabBarLayout,
   onDepositWalletWithdrawPress,
+  onPositionsPress,
+  showPositionsButton,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -205,6 +231,8 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
       >
         <PredictFeedHeader
           onDepositWalletWithdrawPress={onDepositWalletWithdrawPress}
+          onPositionsPress={onPositionsPress}
+          showPositionsButton={showPositionsButton}
         />
         {isFeaturedCarouselEnabled && (
           <Box twClassName="pb-3">
@@ -754,6 +782,14 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
   const handleDepositWalletWithdrawPress = useCallback(() => {
     withdrawUnavailableSheetRef.current?.onOpenBottomSheet();
   }, []);
+  const predictPortfolioEnabled = useSelector(
+    selectPredictPortfolioEnabledFlag,
+  );
+  const handlePositionsPress = useCallback(() => {
+    navigation.navigate(Routes.PREDICT.POSITIONS, {
+      initialTab: 'positions',
+    });
+  }, [navigation]);
 
   return (
     <SafeAreaView
@@ -801,6 +837,8 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
             onHeaderLayout={onHeaderLayout}
             onTabBarLayout={onTabBarLayout}
             onDepositWalletWithdrawPress={handleDepositWalletWithdrawPress}
+            onPositionsPress={handlePositionsPress}
+            showPositionsButton={predictPortfolioEnabled}
           />
 
           {layoutReady && (

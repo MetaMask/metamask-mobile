@@ -66,6 +66,13 @@ export interface PredictActivityDetailParams {
   activity: PredictActivityItem;
 }
 
+export type PredictPositionsTabKey = 'positions' | 'history';
+
+/** Predict Positions screen parameters */
+export interface PredictPositionsParams {
+  initialTab?: PredictPositionsTabKey;
+}
+
 /** Predict add funds modal parameters */
 export interface PredictAddFundsModalParams {
   /** When true, deposit() is called immediately on mount — skipping the explanation UI. */
@@ -122,6 +129,7 @@ export interface PredictNavigationParamList extends ParamListBase {
   Predict: undefined;
   PredictMarketList: PredictMarketListParams;
   PredictMarketDetails: PredictMarketDetailsParams;
+  PredictPositions: PredictPositionsParams | undefined;
   PredictWorldCup: PredictWorldCupParams | undefined;
   PredictSellPreview: PredictSellPreviewParams;
   PredictBuyPreview: PredictBuyPreviewParams;
