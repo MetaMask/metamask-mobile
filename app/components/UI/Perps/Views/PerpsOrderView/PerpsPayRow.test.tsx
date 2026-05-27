@@ -142,13 +142,13 @@ describe('PerpsPayRow', () => {
     ).toHaveTextContent('USDC');
   });
 
-  it('navigates to pay with modal when row is pressed and not hardware account', () => {
+  it('navigates to pay with bottom sheet when row is pressed and not hardware account', () => {
     const { getByTestId } = renderWithProvider(<PerpsPayRow />);
 
     fireEvent.press(getByTestId(ConfirmationRowComponentIDs.PAY_WITH));
 
     expect(navigateMock).toHaveBeenCalledWith(
-      Routes.CONFIRMATION_PAY_WITH_MODAL,
+      Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET,
     );
     expect(setConfirmationMetricMock).toHaveBeenCalledWith({
       properties: { mm_pay_token_list_opened: true },

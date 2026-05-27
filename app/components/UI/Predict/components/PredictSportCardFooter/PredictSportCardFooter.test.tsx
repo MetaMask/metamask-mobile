@@ -547,7 +547,24 @@ describe('PredictSportCardFooter', () => {
       });
     });
 
-    it('uses trending entry point when from trending feed', async () => {
+    it('uses trending entry point when no explicit entry point and session is active', async () => {
+      mockIsFromTrending.mockReturnValue(true);
+      const market = createMockMarket();
+      setupPositionsMock();
+
+      render(<PredictSportCardFooter market={market} testID="footer" />);
+      fireEvent.press(screen.getByTestId('footer-action-buttons-bet-yes'));
+
+      await waitFor(() => {
+        expect(mockOpenBuySheet).toHaveBeenCalledWith(
+          expect.objectContaining({
+            entryPoint: PredictEventValues.ENTRY_POINT.TRENDING,
+          }),
+        );
+      });
+    });
+
+    it('explicit entry point takes priority over trending session', async () => {
       mockIsFromTrending.mockReturnValue(true);
       const market = createMockMarket();
       setupPositionsMock();
@@ -555,7 +572,7 @@ describe('PredictSportCardFooter', () => {
       render(
         <PredictSportCardFooter
           market={market}
-          entryPoint={PredictEventValues.ENTRY_POINT.PREDICT_FEED}
+          entryPoint={PredictEventValues.ENTRY_POINT.EXPLORE}
           testID="footer"
         />,
       );
@@ -564,7 +581,7 @@ describe('PredictSportCardFooter', () => {
       await waitFor(() => {
         expect(mockOpenBuySheet).toHaveBeenCalledWith(
           expect.objectContaining({
-            entryPoint: PredictEventValues.ENTRY_POINT.TRENDING,
+            entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
           }),
         );
       });

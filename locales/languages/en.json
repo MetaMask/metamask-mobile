@@ -1119,7 +1119,9 @@
       "unsupported_chain": "This chain is not supported for Quick Buy yet",
       "available_balance": "{{amount}} available",
       "toggle_amount_display": "Switch between token and dollar amount",
-      "includes_mm_fee": "Includes {{fee}}% MM fee"
+      "includes_mm_fee": "Includes {{fee}}% MM fee",
+      "pay_with_no_tokens": "No tokens available to pay with",
+      "pay_with_filter_all": "All"
     }
   },
   "perps": {
@@ -6747,6 +6749,8 @@
     "apy_label": "{{percentage}}% APY",
     "apy_currency_suffix": " • mUSD",
     "apy_info_label": "APY info",
+    "deposit_tooltip_title": "Earn up to {{percentage}}%",
+    "deposit_tooltip_description": "Add funds to your Money account and earn up to {{percentage}}% APY automatically. You can add funds by converting your existing stablecoin balance or depositing directly from your bank or card.",
     "balance_unavailable": "Balance unavailable",
     "balance_retry": "Retry",
     "balance_feature_disabled": "Money account disabled",
@@ -6798,8 +6802,8 @@
     },
     "how_it_works": {
       "title": "How it works",
-      "description_prefix": "Deposit mUSD into your Money account and earn up to",
-      "description_suffix": ". Your balance is dollar-backed and ready to spend, trade, or send anytime."
+      "description_prefix": "Add mUSD and earn up to",
+      "description_suffix": " (variable). Your balance is dollar-backed and ready to spend, trade, or send anytime."
     },
     "musd_row": {
       "add": "Add"
@@ -7293,8 +7297,8 @@
       "perps_withdraw": "Withdraw",
       "predict_deposit": "Add Prediction funds",
       "predict_withdraw": "Withdraw",
-      "money_account_add_money": "Add money",
-      "money_account_transfer_money": "Transfer money"
+      "money_account_add_money": "Add funds",
+      "money_account_transfer_money": "Transfer funds"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
@@ -7414,7 +7418,7 @@
       "buy_button": "Buy crypto",
       "buy_predict": "Add funds to your wallet to use Predictions.",
       "buy_perps": "Add funds to your wallet to use Perps.",
-      "projected_five_year_balance": "Projected 5-year balance:"
+      "projected_balance": "Projected {{projectedYears}}-year balance:"
     },
     "unlimited": "Unlimited",
     "all": "All",
@@ -8567,6 +8571,7 @@
     },
     "main_title": "Rewards",
     "vip": {
+      "progress_to_next_tier": "{{pointsRemaining}} points to next tier",
       "bps_unit": "bps",
       "badge_label": "VIP {{tier}}",
       "swaps_label": "Swaps",
@@ -9232,7 +9237,9 @@
     "predictions": "Predictions",
     "no_results": "No results found",
     "no_results_for_feed": "No {{feedName}} results for \"{{query}}\"",
-    "showing_all_results_for": "We found these results for \"{{query}}\"",
+    "no_results_for_query": "No results found for \"{{query}}\"",
+    "no_results_check_popular": "Check out other popular assets",
+    "showing_all_results_for": "We found {{count}} other results for \"{{query}}\"",
     "popular": "Popular",
     "sites": "Sites",
     "popular_sites": "Popular sites",
@@ -9262,7 +9269,7 @@
     },
     "search_tabs": {
       "all": "All",
-      "crypto": "Cryptos",
+      "crypto": "Crypto",
       "perps": "Perps",
       "stocks": "Stocks",
       "predictions": "Predictions",
