@@ -74,7 +74,11 @@ const SpendAndEarnPromoCard: React.FC<SpendAndEarnPromoCardProps> = ({
               {strings(
                 'card.card_spending_limit.spend_and_earn_description_prefix',
               )}
-              <Text color={TextColor.SuccessDefault}>
+              <Text
+                fontWeight={FontWeight.Medium}
+                variant={TextVariant.BodySm}
+                color={TextColor.SuccessDefault}
+              >
                 {strings(
                   'card.card_spending_limit.spend_and_earn_description_apy',
                   { apy: apyPercent },
