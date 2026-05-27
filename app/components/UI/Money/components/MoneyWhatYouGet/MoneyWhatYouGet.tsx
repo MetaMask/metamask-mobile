@@ -17,7 +17,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import MoneySectionHeader from '../MoneySectionHeader';
 import { MoneyWhatYouGetTestIds } from './MoneyWhatYouGet.testIds';
-import { isPositiveNumber } from '../../utils/number';
+import { isPositiveNumberOrZero } from '../../utils/number';
 
 interface MoneyWhatYouGetProps {
   /** APY expressed as a percentage (e.g. 3 for 3%). */
@@ -53,7 +53,7 @@ const MoneyWhatYouGet = ({ apy, onLearnMorePress }: MoneyWhatYouGetProps) => (
       <BenefitRow>
         <Text variant={TextVariant.BodyMd}>
           {`${strings('money.what_you_get.benefit_auto_earn')} `}
-          {isPositiveNumber(apy) && (
+          {isPositiveNumberOrZero(apy) && (
             <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
               {strings('money.apy_label', { percentage: apy })}
             </Text>

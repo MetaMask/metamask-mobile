@@ -30,6 +30,7 @@ interface UseSourceAmountCursorResult {
   ) => void;
   handleKeypadChange: ({ pressedKey, value }: KeypadChangeData) => void;
   resetSourceAmountCursorPosition: () => void;
+  setSourceAmountCursorPositionToEnd: (sourceAmount?: string) => void;
 }
 
 const isDestructiveKey = (pressedKey: Keys) =>
@@ -138,10 +139,17 @@ export const useSourceAmountCursor = ({
     [],
   );
 
+  const setSourceAmountCursorPositionToEnd = useCallback(
+    (nextSourceAmount?: string) =>
+      setRawSourceAmountCursorPosition((nextSourceAmount || '0').length),
+    [],
+  );
+
   return {
     sourceSelection,
     handleSourceSelectionChange,
     handleKeypadChange,
     resetSourceAmountCursorPosition,
+    setSourceAmountCursorPositionToEnd,
   };
 };

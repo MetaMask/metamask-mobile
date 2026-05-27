@@ -69,6 +69,17 @@ jest.mock('../../../../../../Views/confirmations/utils/transaction', () => ({
   },
 }));
 
+let mockIsPayWithBottomSheetEnabled = false;
+jest.mock(
+  '../../../../../../Views/confirmations/utils/transaction-pay',
+  () => ({
+    ...jest.requireActual(
+      '../../../../../../Views/confirmations/utils/transaction-pay',
+    ),
+    isPayWithBottomSheetEnabled: () => mockIsPayWithBottomSheetEnabled,
+  }),
+);
+
 jest.mock('../../../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     if (key === 'confirm.label.pay_with') return 'Pay with';
@@ -109,6 +120,7 @@ describe('PredictPayWithRow', () => {
     mockSelectedPaymentToken = null;
     mockIsHardwareAccount.mockReturnValue(false);
     mockHasTransactionType = true;
+    mockIsPayWithBottomSheetEnabled = false;
   });
 
   it('renders label with payToken symbol', () => {
@@ -161,6 +173,21 @@ describe('PredictPayWithRow', () => {
     fireEvent.press(screen.getByText('Pay with USDC'));
 
     expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.CONFIRMATION_PAY_WITH_MODAL,
+    );
+  });
+
+  it('navigates to pay-with bottom sheet when isPayWithBottomSheetEnabled returns true', () => {
+    mockIsPayWithBottomSheetEnabled = true;
+
+    renderWithProvider(<PredictPayWithRow />);
+
+    fireEvent.press(screen.getByText('Pay with USDC'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET,
+    );
+    expect(mockNavigate).not.toHaveBeenCalledWith(
       Routes.CONFIRMATION_PAY_WITH_MODAL,
     );
   });

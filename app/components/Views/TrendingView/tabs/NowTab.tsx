@@ -4,7 +4,6 @@ import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import type { ListRenderItem } from '@shopify/flash-list';
 import type { TrendingAsset } from '@metamask/assets-controllers';
-import type { PredictMarket as PredictMarketType } from '../../../UI/Predict/types';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
@@ -23,20 +22,19 @@ import PerpsSectionProvider from '../feeds/perps/PerpsSectionProvider';
 import PerpsPillItem from '../feeds/perps/PerpsPillItem';
 import { navigateToPerpsMarketList } from '../feeds/perps/perpsNavigation';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
-import { PredictionCarouselRowItem } from '../feeds/predictions/PredictionRowItem';
-import PredictionsSkeleton from '../feeds/predictions/PredictionsSkeleton';
+import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarouselSection';
 import { navigateToPredictionsList } from '../feeds/predictions/predictionsNavigation';
 import { useStocksFeed } from '../feeds/stocks/useStocksFeed';
 import { getCaipChainIdFromAssetId } from '../../../UI/Trending/components/TrendingTokenRowItem/utils';
 import CardList from '../components/CardList';
 import ExploreScroll from '../components/ExploreScroll';
-import HorizontalCarousel from '../components/HorizontalCarousel';
 import PillScrollList from '../components/PillScrollList';
 import SectionHeader from '../components/SectionHeader';
 import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
 import WhatsHappeningSection from '../../../UI/WhatsHappening';
 import { WhatsHappeningSource } from '../../../UI/WhatsHappening/constants';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { SectionRefreshHandle } from '../../Homepage/types';
 import { selectWhatsHappeningEnabled } from '../../../../selectors/featureFlagController/whatsHappening';
 import { useABTest } from '../../../../hooks';
@@ -123,34 +121,6 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const cryptoMovers = useTokensFeed({ refresh, hideRiskyTokens: true });
   const stocks = useStocksFeed({ refresh });
 
-  const renderPredictionItem: ListRenderItem<PredictMarketType> = useCallback(
-    ({ item, index }) => (
-      <PredictionCarouselRowItem
-        market={item}
-        testIdPrefix="predict-market-row-item"
-        onCardPress={() =>
-          trackExploreInteracted({
-            interaction_type: 'section_item_tapped',
-            tab_name: 'Now',
-            section_name: 'predictions_trending',
-            asset_type: 'prediction',
-            position: index,
-            item_clicked: item.id,
-          })
-        }
-        onBuyButtonPress={(marketId) =>
-          trackExploreInteracted({
-            interaction_type: 'prediction_voted',
-            tab_name: 'Now',
-            section_name: 'predictions_trending',
-            item_clicked: marketId,
-          })
-        }
-      />
-    ),
-    [],
-  );
-
   const renderTokenItem: ListRenderItem<TrendingAsset> = useCallback(
     ({ item, index }) => (
       <TokenRowItem
@@ -174,8 +144,6 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
     [],
   );
 
-  const showPredictions =
-    isPredictEnabled && (predictions.isLoading || predictions.data.length > 0);
   const showCryptoMovers =
     cryptoMovers.isLoading || cryptoMovers.data.length > 0;
   const showStocks = stocks.isLoading || stocks.data.length > 0;
@@ -189,24 +157,19 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
     </Box>
   ) : null;
 
-  const predictionsSection = showPredictions ? (
-    <Box key="predictions">
-      <SectionHeader
-        title={strings('wallet.predict')}
-        onViewAll={() => navigateToPredictionsList(navigation, 'trending')}
-        testID="section-header-view-all-predictions"
-        tabName="Now"
-        sectionName="predictions_trending"
-      />
-      <HorizontalCarousel<PredictMarketType>
-        data={predictions.data}
-        isLoading={predictions.isLoading}
-        renderItem={renderPredictionItem}
-        Skeleton={PredictionsSkeleton}
-        idPrefix="predictions"
-      />
-    </Box>
-  ) : null;
+  const predictionsSection = (
+    <PredictionsCarouselSection
+      key="predictions"
+      feed={predictions}
+      tabName="Now"
+      sectionName="predictions_trending"
+      title={strings('wallet.predict')}
+      testIdPrefix="predict-market-row-item"
+      idPrefix="predictions"
+      onViewAll={() => navigateToPredictionsList(navigation, 'trending')}
+      isEnabled={isPredictEnabled}
+    />
+  );
 
   const orderedIntroSections =
     whatsHappeningExploreVariant.whatsHappeningBeforePredict

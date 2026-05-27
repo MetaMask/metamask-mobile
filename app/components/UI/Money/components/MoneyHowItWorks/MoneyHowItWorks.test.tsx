@@ -62,10 +62,10 @@ describe('MoneyHowItWorks', () => {
     expect(queryByTestId(MoneyHowItWorksTestIds.APY)).not.toBeOnTheScreen();
   });
 
-  it('hides the highlighted APY text when apy is zero', () => {
-    const { queryByTestId } = render(<MoneyHowItWorks apy={0} />);
+  it('shows the highlighted APY text when apy is zero', () => {
+    const { getByTestId } = render(<MoneyHowItWorks apy={0} />);
 
-    expect(queryByTestId(MoneyHowItWorksTestIds.APY)).not.toBeOnTheScreen();
+    expect(getByTestId(MoneyHowItWorksTestIds.APY)).toBeOnTheScreen();
   });
 
   it('hides the highlighted APY text when apy is negative', () => {

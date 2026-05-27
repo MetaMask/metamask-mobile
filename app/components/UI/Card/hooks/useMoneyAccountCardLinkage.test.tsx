@@ -796,6 +796,29 @@ describe('useMoneyAccountCardLinkage', () => {
         ],
       });
     });
+
+    it('still submits the delegation when already delegated (Manage Limit update / revoke path)', async () => {
+      applySelectorMocks(buildSelectors({ isAlreadyDelegated: true }));
+      const { result } = renderLinkageHook();
+
+      // canLink is gated on !isAlreadyDelegated, but submit must work so the
+      // user can change the spending cap or revoke it via Manage Limit.
+      expect(result.current.canLink).toBe(false);
+      expect(result.current.canSubmitMoneyAccountDelegation).toBe(true);
+
+      let returned: boolean | undefined;
+      await act(async () => {
+        returned = await result.current.confirmLinkInBackground({
+          delegationAmountHuman: '0',
+        });
+      });
+
+      expect(returned).toBe(true);
+      expect(mockLinkMoneyAccountCard).toHaveBeenCalledTimes(1);
+      expect(mockLinkMoneyAccountCard).toHaveBeenCalledWith(
+        expect.objectContaining({ delegationAmountHuman: '0' }),
+      );
+    });
   });
 
   describe('reset', () => {
