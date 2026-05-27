@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View } from 'react-native';
+import { View, Platform } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { strings } from '../../../../../locales/i18n';
@@ -54,7 +54,6 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { selectTokenOverviewChartType } from '../../../../reducers/user/selectors';
 import { setTokenOverviewChartType } from '../../../../actions/user';
-import { usePriceChart } from '../PriceChart/PriceChart.context';
 import type {
   TimePeriod,
   TokenPrice,
@@ -160,20 +159,10 @@ const PriceAdvanced = ({
   const [crosshairData, setCrosshairData] = useState<CrosshairData | null>(
     null,
   );
-  const { setIsChartBeingTouched } = usePriceChart();
-
   const handleCrosshairMove = useCallback(
     (data: CrosshairData | null) => setCrosshairData(data),
     [],
   );
-
-  const handleTouchStart = useCallback(() => {
-    setIsChartBeingTouched(true);
-  }, [setIsChartBeingTouched]);
-
-  const handleTouchEnd = useCallback(() => {
-    setIsChartBeingTouched(false);
-  }, [setIsChartBeingTouched]);
 
   const handleChartInteracted = useCallback(
     (payload: ChartInteractedPayload) => {
@@ -648,10 +637,10 @@ const PriceAdvanced = ({
         <View
           testID="advanced-chart-touch-container"
           style={[styles.chartContainer, { height: CHART_HEIGHT }]}
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-          onTouchCancel={handleTouchEnd}
         >
+          {Platform.OS === 'ios' && (
+            <View style={styles.edgeOverlay} pointerEvents="box-only" />
+          )}
           {useAmbientColor && initialAmbientColor === undefined ? (
             <Skeleton height={CHART_HEIGHT} width="100%" />
           ) : (
