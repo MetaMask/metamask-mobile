@@ -35,6 +35,7 @@ import {
   BatchSellFinalReviewModalParams,
   BatchSellFinalReviewSourceTokenData,
 } from './BatchSellFinalReviewModal.types';
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 const MAX_VISIBLE_SOURCE_TOKEN_AVATARS = 5;
 const SOURCE_TOKEN_AVATAR_OVERLAP = 12;
@@ -205,6 +206,7 @@ export function BatchSellFinalReviewModal() {
     useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
   const params = useParams<BatchSellFinalReviewModalParams>();
   const [isTokenDetailsExpanded, setIsTokenDetailsExpanded] = useState(true);
+  const surfaceClass = useElevatedSurface();
 
   const handleToggleTokenDetails = () => {
     setIsTokenDetailsExpanded((isExpanded) => !isExpanded);
@@ -235,6 +237,7 @@ export function BatchSellFinalReviewModal() {
     <BottomSheet
       testID={BatchSellFinalReviewModalSelectorsIDs.SHEET}
       goBack={navigation.goBack}
+      twClassName={surfaceClass}
     >
       <BottomSheetHeader
         onClose={navigation.goBack}

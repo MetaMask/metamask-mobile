@@ -24,6 +24,7 @@ import mmCardRegular from '../../../../../images/mm_card_regular.png';
 import mmCardMetal from '../../../../../images/mm_card_metal.png';
 import styleSheet from './MoneyLinkCardSheet.styles';
 import { MoneyLinkCardSheetTestIds } from './MoneyLinkCardSheet.testIds';
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 /**
  * "Spend and earn" confirmation bottom sheet shown before the Money Account ↔
@@ -41,6 +42,7 @@ const MoneyLinkCardSheet = () => {
   const { confirmLinkInBackground } = useMoneyAccountCardLinkage();
   const { apyPercent } = useMoneyAccountBalance();
   const cardHomeData = useSelector(selectCardHomeData);
+  const surfaceClass = useElevatedSurface();
   const isMetalCard = cardHomeData?.card?.type === CardType.METAL;
 
   const handleGoBack = useCallback(() => {
@@ -70,6 +72,7 @@ const MoneyLinkCardSheet = () => {
       goBack={handleGoBack}
       testID={MoneyLinkCardSheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
+      twClassName={surfaceClass}
     >
       <BottomSheetHeader
         onClose={handleClose}

@@ -13,6 +13,7 @@ import { BatchSellQuoteDetails } from './BatchSellQuoteDetails';
 import { BatchSellQuoteDetailsModalSelectorsIDs } from './BatchSellQuoteDetailsModal.testIds';
 import { BatchSellQuoteDetailsModalParams } from './BatchSellQuoteDetailsModal.types';
 import { strings } from '../../../../../../locales/i18n';
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 export function BatchSellQuoteDetailsModal() {
   const navigation =
@@ -20,6 +21,8 @@ export function BatchSellQuoteDetailsModal() {
   const quoteDetailsParams = useParams<BatchSellQuoteDetailsModalParams>();
   const { tokenData, totalReceived, minimumReceived, isLoading } =
     quoteDetailsParams;
+  const surfaceClass = useElevatedSurface();
+
   const handleOpenMinimumReceivedInfo = () => {
     navigation.replace(
       Routes.BRIDGE.MODALS.BATCH_SELL_MINIMUM_RECEIVED_INFO_MODAL,
@@ -36,6 +39,7 @@ export function BatchSellQuoteDetailsModal() {
     <BottomSheet
       testID={BatchSellQuoteDetailsModalSelectorsIDs.SHEET}
       goBack={navigation.goBack}
+      twClassName={surfaceClass}
     >
       <BottomSheetHeader
         onClose={navigation.goBack}

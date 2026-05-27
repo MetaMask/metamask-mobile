@@ -1,18 +1,19 @@
 import React from 'react';
 import {
-  Box,
-  Text,
-  TextVariant,
-  TextColor,
-  FontWeight,
-  ButtonBase,
-  ButtonBaseSize,
   BottomSheet,
   BottomSheetHeader,
+  Box,
+  ButtonBase,
+  ButtonBaseSize,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import { AccessRestrictedModalProps } from './AccessRestrictedModal.types';
 import { AccessRestrictedModalSelectorsIDs } from './AccessRestrictedModal.testIds';
+import { useElevatedSurface } from '../../../../util/theme/themeUtils';
 
 const AccessRestrictedModal: React.FC<AccessRestrictedModalProps> = ({
   isVisible,
@@ -21,10 +22,13 @@ const AccessRestrictedModal: React.FC<AccessRestrictedModalProps> = ({
 }) => {
   if (!isVisible) return null;
 
+  const surfaceClass = useElevatedSurface();
+
   return (
     <BottomSheet
       onClose={onClose}
       testID={AccessRestrictedModalSelectorsIDs.BOTTOM_SHEET}
+      twClassName={surfaceClass}
     >
       <BottomSheetHeader
         onClose={onClose}
