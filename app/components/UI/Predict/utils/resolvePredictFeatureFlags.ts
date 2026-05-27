@@ -28,11 +28,14 @@ export interface RawFeatureFlags {
   localOverrides?: Record<string, unknown>;
 }
 
-function resolveVersionGatedBooleanFlag(flag: unknown): boolean {
+function resolveVersionGatedBooleanFlag(
+  flag: unknown,
+  fallback = false,
+): boolean {
   return (
     validatedVersionGatedFeatureFlag(
       unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(flag),
-    ) ?? false
+    ) ?? fallback
   );
 }
 
@@ -96,6 +99,14 @@ export function resolvePredictFeatureFlags(
   const predictUpDownEnabled = resolveVersionGatedBooleanFlag(
     flags.predictUpDown,
   );
+  const predictPortfolioEnabled = resolveVersionGatedBooleanFlag(
+    flags.predictPortfolio,
+  );
+  const predictHomepageDiscoveryNbaChampionEnabled =
+    resolveVersionGatedBooleanFlag(
+      flags.predictHomepageDiscoveryNbaChampionEnabled,
+      true,
+    );
   const parsedPredictWorldCup = parse(
     unwrapRemoteFeatureFlag<PredictFeatureFlags['predictWorldCup']>(
       flags.predictWorldCup,
@@ -117,6 +128,8 @@ export function resolvePredictFeatureFlags(
     fakOrdersEnabled,
     predictWithAnyTokenEnabled,
     predictUpDownEnabled,
+    predictPortfolioEnabled,
+    predictHomepageDiscoveryNbaChampionEnabled,
     predictWorldCup,
   };
 }

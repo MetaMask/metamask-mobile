@@ -6,11 +6,6 @@ import { CaipAccountId, CaipAssetType, type Json } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import type { RewardsControllerMethodActions } from './RewardsController-method-action-types';
 
-/**
- * Crockford's Base32 alphabet — excludes I, L, O, U to avoid ambiguity.
- */
-export const BASE32_REGEX = /^[0-9A-HJKMNP-TV-Z]+$/i;
-
 export interface LoginResponseDto {
   sessionId: string;
   subscription: SubscriptionDto;
@@ -61,9 +56,7 @@ export type VipTierRefDto = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type VipProgressDto = {
   percent: number;
-  remainingSwapsUsd: number;
-  remainingPerpsUsd: number;
-  estimatedDaysToNextTier: number;
+  remainingPointsToNextTier: number;
   status: string;
 };
 
@@ -81,6 +74,10 @@ export type VipFeesDto = {
 export type VipVolumeDto = {
   swapsUsd: number;
   perpsUsd: number;
+  points: number;
+  pointsFromReferrals: number;
+  referrals: number;
+  referralsCap: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -95,11 +92,20 @@ export type VipTierDto = {
   id: string;
   name: string;
   tier: number;
-  swapsRequirementUsd: number;
-  perpsRequirementUsd: number;
+  pointsRequirement: number;
   swapsBps: number;
   perpsBps: number;
   revenueShareBps: number;
+  // Equity rebate basis points (raw bps, 1% = 100 bps). 0 below T6.
+  // Surfaced as the 4th carousel tile in RewardsVipView and drives the
+  // post-qualification "Progress to equity" radial in VipPointsSection.
+  // Kept in sync with backend VipTierDto (va-mmcx-rewards PR #573 follow-up).
+  equityRebateBps: number;
+  // Referee → referrer carryover basis points (raw bps, 1% = 100 bps).
+  // Powers the VIP referrals tier-progression credit. 0 at T1.
+  // Plumbed end-to-end but no UI surface yet — kept in DTO so the wire
+  // contract round-trips through Redux state without losing data.
+  referralCarryoverBps: number;
   status: string;
 };
 
@@ -110,6 +116,7 @@ export type VipTierDto = {
 export type VipLocalizedTextDto = {
   period: string;
   progressToNextTier: string;
+  memberIdTitle: string;
   swapsFeeTitle: string;
   perpsFeeTitle: string;
   // The `nextTier…Delta` strings below carry the next tier's absolute value
@@ -118,7 +125,8 @@ export type VipLocalizedTextDto = {
   nextTierSwapsFeeDelta: string;
   nextTierPerpsFeeDelta: string;
   revenueShareTitle: string;
-  volumeTitle: string;
+  nextTierRevenueShareDelta: string;
+  statsTitle: string;
   statusMessage: string;
   pointsTitle: string;
   pointsAllocationTitle: string;
@@ -1541,11 +1549,10 @@ export interface SeasonStatusDto {
   currentTierId: string;
 }
 
-export interface SubscriptionSeasonReferralDetailsDto {
+export interface SubscriptionReferralDetailsDto {
   referralCode: string;
   totalReferees: number;
   referredByCode: string;
-  referralPoints: number;
 }
 
 export interface PointsBoostEnvelopeDto {
@@ -1617,11 +1624,10 @@ export interface ClaimRewardDto {
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type SubscriptionSeasonReferralDetailState = {
+export type SubscriptionReferralDetailState = {
   referralCode: string;
   totalReferees: number;
   referredByCode: string;
-  referralPoints: number;
   lastFetched?: number;
 };
 
@@ -2077,7 +2083,7 @@ export type RewardsControllerState = {
   subscriptions: { [subscriptionId: string]: SubscriptionDto };
   seasons: { [seasonId: string]: SeasonDtoState };
   subscriptionReferralDetails: {
-    [compositeId: string]: SubscriptionSeasonReferralDetailState;
+    [subscriptionId: string]: SubscriptionReferralDetailState;
   };
   subscriptionBenefits: {
     [subscriptionId: string]: SubscriptionBenefitsState;

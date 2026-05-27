@@ -561,8 +561,38 @@ export const PerpsOrderViewSelectorsIDs = {
   // Row touchables that open bottom sheets
   LEVERAGE_ROW: 'perps-order-view-leverage-row',
   LIMIT_PRICE_ROW: 'perps-order-view-limit-price-row',
+  // Slippage
+  SLIPPAGE_ROW: 'perps-order-view-slippage-row',
+  SLIPPAGE_VALUE: 'perps-order-view-slippage-value',
   SERVICE_INTERRUPTION_BANNER: 'perps-order-view-service-interruption-banner',
 };
+
+// ========================================
+// PERPS SLIPPAGE CONFIG BOTTOM SHEET SELECTORS
+// ========================================
+
+export const PerpsSlippageConfigSelectorsIDs = {
+  SET: 'perps-slippage-config-set',
+  EDIT_CHIP: 'perps-slippage-config-edit-chip',
+} as const;
+
+export const getPerpsSlippageConfigSelector = {
+  preset: (pct: number) => `perps-slippage-config-preset-${pct}`,
+};
+
+// ========================================
+// PERPS CUSTOM SLIPPAGE BOTTOM SHEET SELECTORS
+// ========================================
+
+export const PerpsCustomSlippageBottomSheetSelectorsIDs = {
+  DISPLAY: 'perps-custom-slippage-display',
+  DECREMENT: 'perps-custom-slippage-decrement',
+  INCREMENT: 'perps-custom-slippage-increment',
+  KEYPAD: 'perps-custom-slippage-keypad',
+  CANCEL: 'perps-custom-slippage-cancel',
+  SET: 'perps-custom-slippage-set',
+  ERROR: 'perps-custom-slippage-error',
+} as const;
 
 // ========================================
 // PERPS LIMIT PRICE BOTTOM SHEET SELECTORS

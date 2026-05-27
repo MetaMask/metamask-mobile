@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { Pressable } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -23,14 +23,24 @@ import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings'
 import SitesSearchFooter from '../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
 import { useSearchTracking } from '../../../UI/Trending/hooks/useSearchTracking/useSearchTracking';
 import { TimeOption } from '../../../UI/Trending/components/TrendingTokensBottomSheet/TrendingTokenTimeBottomSheet';
-import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 import { strings } from '../../../../../locales/i18n';
-import { trackExploreEvent, useScrollTracking } from './analytics';
+import {
+  trackExploreSearchEvent,
+  useScrollTracking,
+  type SearchFeedPill,
+} from './analytics';
 import { type SearchFeedId, type SearchFeedSection } from './useExploreSearch';
 import SearchFeedRow, { SearchFeedSkeleton, getItemId } from './SearchFeedRow';
 import { MAX_ITEMS_PER_SECTION, getViewMoreLabel } from './viewMoreLabel';
+import type { FlatListItem, ListItemHeader } from './searchTypes';
 
-export { getViewMoreLabel, LOCAL_SEARCH_FEEDS } from './viewMoreLabel';
+const pressedStyle = StyleSheet.create({
+  pressable: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+});
 
 interface ExploreSearchResultsV2Props {
   searchQuery: string;
@@ -38,36 +48,21 @@ interface ExploreSearchResultsV2Props {
   onViewMore: (feedId: SearchFeedId) => void;
   /** When set, renders a "No {title} found" header above the all-results list. */
   emptyFeedTitle?: string;
+  /**
+   * The pill that was active when this component was rendered.
+   * Defaults to 'all'. When an empty-feed fallback is shown (emptyFeedTitle is
+   * set), this will be the specific feed pill the user tapped — analytics must
+   * reflect that, not 'all'.
+   */
+  activeTab?: SearchFeedPill;
 }
-
-interface ListItemHeader {
-  type: 'header';
-  feedId: SearchFeedId;
-  title: string;
-}
-
-interface ListItemData {
-  type: 'item';
-  feedId: SearchFeedId;
-  title: string;
-  data: unknown;
-  /** Zero-based position within its section; used for analytics instead of the flat FlashList index. */
-  sectionIndex: number;
-}
-
-interface ListItemSkeleton {
-  type: 'skeleton';
-  feedId: SearchFeedId;
-  index: number;
-}
-
-type FlatListItem = ListItemHeader | ListItemData | ListItemSkeleton;
 
 const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
   searchQuery,
   sections,
   onViewMore,
   emptyFeedTitle,
+  activeTab = 'all',
 }) => {
   const tw = useTailwind();
   const flashListRef = useRef<FlashListRef<FlatListItem>>(null);
@@ -78,68 +73,75 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
   const { onScrollBeginDrag, resetScrollTracking } = useScrollTracking(
     'scrolled',
     searchQuery,
+    { tab_name: activeTab },
   );
 
   useEffect(() => {
     resetScrollTracking();
-  }, [searchQuery, resetScrollTracking]);
+  }, [searchQuery, activeTab, resetScrollTracking]);
 
   const handleViewMore = useCallback(
     (section: SearchFeedSection) => {
-      trackExploreEvent(MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED, {
-        interaction_type: 'view_all_clicked',
+      trackExploreSearchEvent({
+        interaction_type: 'tab_switched',
         search_query: searchQuery,
-        section_name: section.title,
+        tab_name: section.feedId,
+        previous_tab: activeTab,
+        comes_from_view_all_tap: true,
       });
       onViewMore(section.feedId);
     },
-    [onViewMore, searchQuery],
+    [onViewMore, searchQuery, activeTab],
   );
 
   const renderSectionHeader = useCallback(
-    (item: ListItemHeader, section: SearchFeedSection) => (
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="py-2 bg-default"
-      >
-        <Text
-          variant={TextVariant.HeadingSm}
-          fontWeight={FontWeight.Medium}
-          twClassName="text-alternative"
+    (item: ListItemHeader, section: SearchFeedSection) => {
+      const viewMoreLabel = getViewMoreLabel(
+        section.feedId,
+        section.isLoading ? 0 : section.items.length,
+        searchQuery,
+        section.isLoading ? undefined : section.total,
+      );
+      return (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="py-2 bg-default"
         >
-          {item.title}
-        </Text>
-        <Pressable
-          onPress={() => handleViewMore(section)}
-          hitSlop={8}
-          accessibilityRole="button"
-          accessibilityLabel={`${getViewMoreLabel(section.feedId, section.items.length, searchQuery, section.hasMore)} ${item.title}`}
-          style={({ pressed }) =>
-            tw.style(
-              'flex-row items-center gap-1 rounded px-1',
-              pressed && 'opacity-50',
-            )
-          }
-        >
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {getViewMoreLabel(
-              section.feedId,
-              section.items.length,
-              searchQuery,
-              section.hasMore,
-            )}
+          <Text
+            variant={TextVariant.HeadingSm}
+            fontWeight={FontWeight.Medium}
+            twClassName="text-alternative"
+          >
+            {item.title}
           </Text>
-          <Icon
-            name={IconName.ArrowRight}
-            size={IconSize.Sm}
-            color={IconColor.IconAlternative}
-          />
-        </Pressable>
-      </Box>
-    ),
-    [handleViewMore, searchQuery, tw],
+          <Pressable
+            onPress={() => handleViewMore(section)}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={`${viewMoreLabel} ${item.title}`}
+            style={({ pressed }) => [
+              pressedStyle.pressable,
+              pressed && { opacity: 0.5 },
+            ]}
+          >
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
+              {viewMoreLabel}
+            </Text>
+            <Icon
+              name={IconName.ArrowRight}
+              size={IconSize.Sm}
+              color={IconColor.IconAlternative}
+            />
+          </Pressable>
+        </Box>
+      );
+    },
+    [handleViewMore, searchQuery],
   );
 
   const flatData = useMemo<FlatListItem[]>(() => {
@@ -182,10 +184,10 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
     networkFilter: 'all',
   });
 
-  const renderFooter = useMemo(() => {
-    if (searchQuery.length === 0) return null;
-    return <SitesSearchFooter searchQuery={searchQuery} />;
-  }, [searchQuery]);
+  const renderFooter =
+    searchQuery.length > 0 ? (
+      <SitesSearchFooter searchQuery={searchQuery} />
+    ) : null;
 
   const renderFlatItem: ListRenderItem<FlatListItem> = useCallback(
     ({ item }) => {
@@ -203,12 +205,11 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
           item={item.data}
           index={item.sectionIndex}
           searchQuery={searchQuery}
-          sectionTitle={item.title}
-          interactionType="result_clicked"
+          tabName={activeTab}
         />
       );
     },
-    [renderSectionHeader, sections, searchQuery],
+    [renderSectionHeader, sections, searchQuery, activeTab],
   );
 
   const keyExtractor = useCallback((item: FlatListItem) => {

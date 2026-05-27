@@ -92,16 +92,16 @@ describe('MoneyBalanceSummary', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('hides the APY text and tooltip button when apy is zero', () => {
+  it('shows the APY text and tooltip button when apy is zero', () => {
     const mockInfoPress = jest.fn();
-    const { queryByTestId } = render(
+    const { getByTestId } = render(
       <MoneyBalanceSummary apy={0} onApyInfoPress={mockInfoPress} />,
     );
 
-    expect(queryByTestId(MoneyBalanceSummaryTestIds.APY)).not.toBeOnTheScreen();
+    expect(getByTestId(MoneyBalanceSummaryTestIds.APY)).toBeOnTheScreen();
     expect(
-      queryByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON),
-    ).not.toBeOnTheScreen();
+      getByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('hides the APY tooltip button when isLoading is true', () => {
