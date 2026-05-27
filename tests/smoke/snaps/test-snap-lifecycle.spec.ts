@@ -5,6 +5,7 @@ import { SmokeSnaps } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import { loginToApp } from '../../flows/wallet.flow';
 import { navigateToBrowserView } from '../../flows/browser.flow';
+import { DappVariants } from '../../framework/Constants';
 
 jest.setTimeout(150_000);
 
@@ -12,6 +13,7 @@ describe(SmokeSnaps('Lifecycle hooks Snap Tests'), () => {
   it('runs the onInstall lifecycle hook when the Snap is installed', async () => {
     await withFixtures(
       {
+        dapps: [{ dappVariant: DappVariants.TEST_SNAPS }],
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,

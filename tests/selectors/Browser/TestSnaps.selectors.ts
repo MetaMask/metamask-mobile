@@ -100,6 +100,7 @@ export const TestSnapInputSelectorWebIDS = {
   messageSecp256k1Input: 'bip32Message-secp256k1',
   setStateKeyInput: 'setStateKey',
   setStateKeyUnencryptedInput: 'setStateKeyUnencrypted',
+  fetchUrlInput: 'fetchUrl',
   webSocketUrlInput: 'webSocketUrl',
   personalSignMessageInput: 'personalSignMessage',
   signMessageMultichainMessageInput: 'signMessageMultichain',

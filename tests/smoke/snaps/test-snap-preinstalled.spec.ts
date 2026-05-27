@@ -6,9 +6,15 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import TestSnaps from '../../page-objects/Browser/TestSnaps';
 import Assertions from '../../framework/Assertions';
 import TestHelpers from '../../helpers';
+import { DappVariants } from '../../framework/Constants';
+import { getDappUrlForFixture } from '../../framework/fixtures/FixtureUtils';
 import { testSnapPreinstalledAnalyticsExpectations } from '../../helpers/analytics/expectations/test-snap-preinstalled.analytics';
 
 jest.setTimeout(150_000);
+
+const localhostOrigin = getDappUrlForFixture(0);
+
+const eventToTrack = 'Test Event';
 
 describe(SmokeSnaps('Preinstalled Snap Tests'), () => {
   it.todo('displays the Snap settings page');
@@ -19,7 +25,33 @@ describe(SmokeSnaps('Preinstalled Snap Tests'), () => {
   it('uses `initialConnections` to allow JSON-RPC and tracks an event in Segment with `snap_trackEvent`', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withMetaMetricsOptIn().build(),
+        dapps: [{ dappVariant: DappVariants.TEST_SNAPS }],
+        fixture: new FixtureBuilder()
+          .withMetaMetricsOptIn()
+          .withPermissionController({
+            subjects: {
+              [localhostOrigin]: {
+                origin: localhostOrigin,
+                permissions: {
+                  wallet_snap: {
+                    id: 'preinstalled-snap-localhost',
+                    parentCapability: 'wallet_snap',
+                    invoker: localhostOrigin,
+                    caveats: [
+                      {
+                        type: 'snapIds',
+                        value: {
+                          'npm:@metamask/preinstalled-example-snap': {},
+                        },
+                      },
+                    ],
+                    date: 1713744000000,
+                  },
+                },
+              },
+            },
+          })
+          .build(),
         restartDevice: true,
         skipReactNativeReload: true,
         disableSynchronization: true,

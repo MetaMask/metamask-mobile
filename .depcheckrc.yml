@@ -4,6 +4,7 @@ ignores:
   - '@metamask/browser-playground'
   - '@metamask/oss-attribution-generator'
   - '@metamask/test-dapp-multichain'
+  - '@metamask/test-snaps'
   - 'webpack-cli'
   - '@react-native-community/datetimepicker'
   - '@react-native-community/slider'

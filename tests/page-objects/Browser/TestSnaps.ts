@@ -21,12 +21,10 @@ import Utilities from '../../framework/Utilities';
 import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import { waitForTestSnapsToLoad } from '../../flows/browser.flow';
 import { RetryOptions } from '../../framework';
+import { getDappUrl } from '../../framework/fixtures/FixtureUtils';
 import { Json } from '@metamask/utils';
 import ToastModal from '../wallet/ToastModal';
 import SolanaTestDApp from './SolanaTestDApp';
-
-export const TEST_SNAPS_URL =
-  'https://metamask.github.io/snaps/test-snaps/3.4.2/';
 
 class TestSnaps {
   get getConnectSnapButton(): DetoxElement {
@@ -235,7 +233,7 @@ class TestSnaps {
 
   async navigateToTestSnap(): Promise<void> {
     await Browser.tapUrlInputBox();
-    await Browser.navigateToURL(TEST_SNAPS_URL);
+    await Browser.navigateToURL(getDappUrl(0));
     await waitForTestSnapsToLoad();
   }
 
