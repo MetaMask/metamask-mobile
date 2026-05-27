@@ -55,6 +55,7 @@ describe('usePushPermissionNotificationSetup', () => {
 
     expect(nativePermissionEnabled).toBe(true);
     expect(requestPushPermissions).toHaveBeenCalledTimes(1);
+    expect(hasNotificationPreferences).not.toHaveBeenCalled();
     expect(enableNotifications).not.toHaveBeenCalled();
 
     act(() => {
@@ -70,6 +71,11 @@ describe('usePushPermissionNotificationSetup', () => {
     });
     expect(
       jest.mocked(requestPushPermissions).mock.invocationCallOrder[0],
+    ).toBeLessThan(
+      jest.mocked(hasNotificationPreferences).mock.invocationCallOrder[0],
+    );
+    expect(
+      jest.mocked(hasNotificationPreferences).mock.invocationCallOrder[0],
     ).toBeLessThan(
       jest.mocked(enableNotifications).mock.invocationCallOrder[0],
     );

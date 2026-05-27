@@ -10,7 +10,11 @@ import {
   ChannelId,
   notificationChannels,
 } from '../../../util/notifications/androidChannels';
-import NotificationService, { getPushPermission } from './NotificationService';
+import NotificationService, {
+  getPushPermission,
+  isPushPermissionGranted,
+  isPushPermissionPromptable,
+} from './NotificationService';
 import { store } from '../../../store';
 
 jest.mock('@notifee/react-native', () => ({
@@ -143,6 +147,68 @@ describe('getPushPermission', () => {
     expect(await getPushPermission()).toBe('authorized');
     mocks.mockGetAllPermissions.mockResolvedValue({ permission: 'denied' });
     expect(await getPushPermission()).toBe('denied');
+  });
+});
+
+describe('isPushPermissionGranted', () => {
+  const arrangeMocks = (status: string) =>
+    jest.mocked(notifee.getNotificationSettings).mockResolvedValue({
+      authorizationStatus: status,
+    } as unknown as NotificationSettings);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it.each([
+    { status: AuthorizationStatus.AUTHORIZED, expected: true },
+    { status: AuthorizationStatus.PROVISIONAL, expected: true },
+    { status: AuthorizationStatus.DENIED, expected: false },
+    { status: AuthorizationStatus.NOT_DETERMINED, expected: false },
+  ])(
+    'returns $expected when status is $status',
+    async ({ status, expected }) => {
+      arrangeMocks(status as unknown as string);
+      expect(await isPushPermissionGranted()).toBe(expected);
+    },
+  );
+
+  it('returns false when getNotificationSettings throws', async () => {
+    jest
+      .mocked(notifee.getNotificationSettings)
+      .mockRejectedValue(new Error('TEST ERROR'));
+    expect(await isPushPermissionGranted()).toBe(false);
+  });
+});
+
+describe('isPushPermissionPromptable', () => {
+  const arrangeMocks = (status: string) =>
+    jest.mocked(notifee.getNotificationSettings).mockResolvedValue({
+      authorizationStatus: status,
+    } as unknown as NotificationSettings);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it.each([
+    { status: AuthorizationStatus.AUTHORIZED, expected: true },
+    { status: AuthorizationStatus.PROVISIONAL, expected: true },
+    { status: AuthorizationStatus.NOT_DETERMINED, expected: true },
+    { status: AuthorizationStatus.DENIED, expected: false },
+  ])(
+    'returns $expected when status is $status',
+    async ({ status, expected }) => {
+      arrangeMocks(status as unknown as string);
+      expect(await isPushPermissionPromptable()).toBe(expected);
+    },
+  );
+
+  it('returns false when getNotificationSettings throws', async () => {
+    jest
+      .mocked(notifee.getNotificationSettings)
+      .mockRejectedValue(new Error('TEST ERROR'));
+    expect(await isPushPermissionPromptable()).toBe(false);
   });
 });
 

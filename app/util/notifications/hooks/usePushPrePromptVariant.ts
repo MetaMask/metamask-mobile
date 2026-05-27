@@ -128,12 +128,15 @@ export function usePushPrePromptVariant(): {
   markShown: () => Promise<void>;
   dismiss: () => void;
 } {
-  const isNotificationFeatureFlagOn = useSelector(
+  // Two independent gates:
+  // - `isNotificationsFeatureAvailable` gates the notifications feature itself
+  //   (build flag + `assetsNotificationsEnabled` remote flag).
+  // - `isNotificationsByDefaultFlagOn` gates this post-onboarding nudge
+  //   (`assetsEnableNotificationsByDefault` remote flag).
+  const isNotificationsFeatureAvailable = isNotificationsFeatureEnabled();
+  const isNotificationsByDefaultFlagOn = useSelector(
     getIsNotificationEnabledByDefaultFeatureFlag,
   );
-  // `isNotificationsFeatureEnabled` gates the notifications feature itself;
-  // `assetsEnableNotificationsByDefault` gates this post-onboarding nudge.
-  const isNotificationsFeatureAvailable = isNotificationsFeatureEnabled();
   const completedOnboarding = useSelector(selectCompletedOnboarding);
   const isBasicFunctionalityEnabled = Boolean(
     useSelector(selectBasicFunctionalityEnabled),
@@ -147,8 +150,8 @@ export function usePushPrePromptVariant(): {
 
   const canShowPrePrompt =
     Boolean(completedOnboarding) &&
-    isNotificationFeatureFlagOn &&
     isNotificationsFeatureAvailable &&
+    isNotificationsByDefaultFlagOn &&
     isBasicFunctionalityEnabled;
 
   // Storage resets should affect the next app session/remount, not reopen the

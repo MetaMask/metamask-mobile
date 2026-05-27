@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
+import { Platform } from 'react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import {
   ToastContext,
@@ -56,6 +57,19 @@ jest.mock(
     }),
   }),
 );
+
+jest.mock(
+  '../../../../util/notifications/services/NotificationService',
+  () => ({
+    __esModule: true,
+    isPushPermissionPromptable: jest.fn(),
+  }),
+);
+const mockNotificationService = jest.requireMock(
+  '../../../../util/notifications/services/NotificationService',
+);
+const mockIsPushPermissionPromptable =
+  mockNotificationService.isPushPermissionPromptable as jest.Mock;
 
 jest.mock('./NewUserSheet', () => ({
   __esModule: true,
@@ -223,8 +237,10 @@ const expectPersonalizedAlertsOffToast = () => {
 describe('PushNotificationOnboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    Platform.OS = 'ios';
     mockEnableMarketingConsent.mockResolvedValue(undefined);
     mockRequestPushPermission.mockResolvedValue(false);
+    mockIsPushPermissionPromptable.mockResolvedValue(true);
     mockIdentifyMarketingConsent.mockResolvedValue(undefined);
     mockIdentifyPushNotificationsEnabled.mockResolvedValue(undefined);
   });
@@ -294,6 +310,28 @@ describe('PushNotificationOnboarding', () => {
     expect(mockIdentifyPushNotificationsEnabled).toHaveBeenCalledWith(false);
     expectNotificationsOffToast();
   });
+
+  it.each(['ios', 'android'] as const)(
+    'skips the OS prompt and treats permission as denied on %s when native permission was previously denied',
+    async (platform) => {
+      Platform.OS = platform;
+      mockIsPushPermissionPromptable.mockResolvedValue(false);
+      const { getByTestId } = renderPushNotificationOnboarding();
+
+      fireEvent.press(getByTestId('mock-push-permission-yes'));
+
+      await waitFor(() => {
+        expect(mockOnComplete).toHaveBeenCalledWith('engage');
+      });
+      expect(mockEnableMarketingConsent).toHaveBeenCalledTimes(1);
+      expect(mockRequestPushPermission).not.toHaveBeenCalled();
+      expect(mockTrackOsPromptShown).not.toHaveBeenCalled();
+      expect(mockTrackOsPromptResponse).not.toHaveBeenCalled();
+      expect(mockIdentifyPushNotificationsEnabled).toHaveBeenCalledWith(false);
+      expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(false);
+      expectNotificationsOffToast();
+    },
+  );
 
   it('keeps the pre-prompt pending until the OS prompt result resolves', async () => {
     let resolveRequestPushPermission: (isEnabled: boolean) => void = jest.fn();

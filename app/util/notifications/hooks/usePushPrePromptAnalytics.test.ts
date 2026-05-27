@@ -64,6 +64,11 @@ describe('usePushPrePromptAnalytics', () => {
       () => ['trackPrePromptButtonClicked', 'marketing_consent', 'not_now'],
       'deny',
     ],
+    [
+      'denied with the push permission not now CTA' as const,
+      () => ['trackPrePromptButtonClicked', 'push_permission', 'not_now'],
+      'deny',
+    ],
   ])(
     'tracks the pre-prompt button when %s',
     (_label, getAction, buttonType) => {

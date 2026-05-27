@@ -65,7 +65,7 @@ const renderUseEnableMarketingConsent = ({
         engine: {
           backgroundState: {
             SeedlessOnboardingController: {
-              vault: isSeedlessOnboardingLoginFlow ? 'vault' : null,
+              vault: isSeedlessOnboardingLoginFlow ? 'vault' : undefined,
             },
           },
         },

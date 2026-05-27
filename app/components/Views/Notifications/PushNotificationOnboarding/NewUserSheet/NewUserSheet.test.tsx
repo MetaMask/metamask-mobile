@@ -5,6 +5,8 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../locales/i18n';
 import { NewUserSheetSelectorsIDs } from './NewUserSheet.testIds';
 
+const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => callback?.());
+
 jest.mock(
   '../../../../../component-library/components/BottomSheets/BottomSheet',
   () => {
@@ -13,7 +15,7 @@ jest.mock(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ({ children }: any, ref: any) => {
         MockReact.useImperativeHandle(ref, () => ({
-          onCloseBottomSheet: (callback?: () => void) => callback?.(),
+          onCloseBottomSheet: mockOnCloseBottomSheet,
         }));
         return children;
       },
@@ -82,13 +84,17 @@ describe('NewUserSheet', () => {
     ).toBeOnTheScreen();
   });
 
-  it('calls onYes when Yes is pressed', () => {
+  it('closes the sheet before calling onYes when Yes is pressed', () => {
     const mockOnYes = jest.fn();
     const { getByTestId } = renderWithProvider(
       <NewUserSheet {...defaultProps} onYes={mockOnYes} />,
     );
     fireEvent.press(getByTestId(NewUserSheetSelectorsIDs.BUTTON_YES));
     expect(mockOnYes).toHaveBeenCalledTimes(1);
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    expect(mockOnCloseBottomSheet.mock.invocationCallOrder[0]).toBeLessThan(
+      mockOnYes.mock.invocationCallOrder[0],
+    );
   });
 
   it('calls onNotNow when Not now is pressed', () => {
@@ -98,5 +104,9 @@ describe('NewUserSheet', () => {
     );
     fireEvent.press(getByTestId(NewUserSheetSelectorsIDs.BUTTON_NOT_NOW));
     expect(mockOnNotNow).toHaveBeenCalledTimes(1);
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    expect(mockOnCloseBottomSheet.mock.invocationCallOrder[0]).toBeLessThan(
+      mockOnNotNow.mock.invocationCallOrder[0],
+    );
   });
 });

@@ -1,4 +1,4 @@
-import FCMService from '../services/FCMService';
+import { isPushPermissionGranted } from '../services/NotificationService';
 
 export interface PushNotificationStatus {
   controllerIsPushEnabled: boolean;
@@ -11,9 +11,7 @@ interface ResolvePushNotificationStatusOptions {
 }
 
 export const resolveNativePushPermissionEnabled = async (): Promise<boolean> =>
-  await FCMService.isPushNotificationsEnabled()
-    .then(Boolean)
-    .catch(() => false);
+  await isPushPermissionGranted().catch(() => false);
 
 export const resolvePushNotificationStatus = async ({
   controllerIsPushEnabled,

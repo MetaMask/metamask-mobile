@@ -14,6 +14,7 @@ import { useEnableMarketingConsent } from '../../../../util/notifications/hooks/
 import { usePushPermissionNotificationSetup } from '../../../../util/notifications/hooks/usePushPermissionNotificationSetup';
 import { PushPrePromptVariant } from '../../../../util/notifications/hooks/usePushPrePromptVariant';
 import { usePushPrePromptAnalytics } from '../../../../util/notifications/hooks/usePushPrePromptAnalytics';
+import { isPushPermissionPromptable } from '../../../../util/notifications/services/NotificationService';
 import { TAB_BAR_HEIGHT } from '../../../../component-library/components/Navigation/TabBar/TabBar.constants';
 import ExistingUserSheet from './ExistingUserSheet';
 import NewUserSheet from './NewUserSheet';
@@ -47,10 +48,14 @@ const PushNotificationOnboarding = ({
   onComplete,
   prePromptVariant,
 }: PushNotificationOnboardingProps) => {
+  // Helpers to request OS push permission and finish wiring up notifications once granted.
   const { enableNotificationsInBackground, requestPushPermission } =
     usePushPermissionNotificationSetup();
+
   const { toastRef } = useContext(ToastContext);
   const viewedPrePromptVariant = useRef<PushPrePromptVariant>(null);
+
+  // Analytics emitters for every stage of the pre-prompt → OS prompt funnel.
   const {
     trackPrePromptViewed,
     trackPrePromptDismissed,
@@ -60,6 +65,8 @@ const PushNotificationOnboarding = ({
     identifyMarketingConsent,
     identifyPushNotificationsEnabled,
   } = usePushPrePromptAnalytics();
+
+  // Opt the user into marketing consent (and MetaMetrics if needed) when they accept the prompt.
   const { enableMarketingConsent } = useEnableMarketingConsent({
     metricsOptInLocation: METRICS_OPT_IN_LOCATION,
   });
@@ -179,12 +186,19 @@ const PushNotificationOnboarding = ({
       await enableMarketingConsent();
 
       if (!nativePermissionEnabled) {
-        trackOsPromptShown('push_permission');
-        nativePermissionEnabled = await requestPushPermission();
-        trackOsPromptResponse(
-          'push_permission',
-          nativePermissionEnabled ? 'allowed' : 'denied',
-        );
+        // A "denied" OS state means the dialog will not be shown again
+        // (iOS after any denial; Android 13+ after permanent denial;
+        // Android <13 when the user disabled notifications in Settings).
+        // Skip the request and treat it as denied in all those cases.
+        const isPromptable = await isPushPermissionPromptable();
+        if (isPromptable) {
+          trackOsPromptShown('push_permission');
+          nativePermissionEnabled = await requestPushPermission();
+          trackOsPromptResponse(
+            'push_permission',
+            nativePermissionEnabled ? 'allowed' : 'denied',
+          );
+        }
       }
       identifyPushNotificationsEnabled(nativePermissionEnabled).catch(
         () => undefined,
@@ -193,7 +207,6 @@ const PushNotificationOnboarding = ({
     } finally {
       dismissPrePrompt();
       onComplete('engage');
-      // Complete the rest of notification setup after the prompt closes.
       enableNotificationsInBackground(nativePermissionEnabled);
     }
   }, [
