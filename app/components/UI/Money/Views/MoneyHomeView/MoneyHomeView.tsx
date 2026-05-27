@@ -321,7 +321,6 @@ const MoneyHomeView = () => {
             <Divider />
           </>
         )}
-
         {!isMilestone && (
           <>
             <MoneyHowItWorks
