@@ -60,7 +60,16 @@ export const PredictFeedSelectorsIDs = {
 // ========================================
 
 export const PredictPositionsViewSelectorsIDs = {
+  BACK_BUTTON: 'predict-positions-view-back-button',
+  CLAIM_CTA: 'predict-positions-view-claim-cta',
   CONTAINER: 'predict-positions-view-container',
+  HEADER: 'predict-positions-view-header',
+  HISTORY_TAB: 'predict-positions-view-history-tab',
+  HISTORY_TAB_CONTENT: 'predict-positions-view-history-tab-content',
+  POSITIONS_TAB: 'predict-positions-view-positions-tab',
+  POSITIONS_TAB_CONTENT: 'predict-positions-view-positions-tab-content',
+  SUMMARY: 'predict-positions-view-summary',
+  TABS: 'predict-positions-view-tabs',
 } as const;
 
 export const getPredictFeedSelector = {

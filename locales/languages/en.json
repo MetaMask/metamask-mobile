@@ -2374,7 +2374,9 @@
     },
     "tabs": {
       "about": "About",
+      "active_positions": "Active positions",
       "positions": "Positions",
+      "history": "History",
       "outcomes": "Outcomes"
     },
     "outcome_groups": {
