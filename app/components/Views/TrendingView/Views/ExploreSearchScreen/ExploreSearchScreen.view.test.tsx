@@ -83,7 +83,7 @@ describeForPlatforms('ExploreSearchScreen V2 - Component Tests', () => {
       ).toBeOnTheScreen();
     });
 
-    // Tap the Cryptos pill to switch to the single-feed view
+    // Tap the Crypto pill to switch to the single-feed view
     await actButtonPress(cryptosPill);
 
     // The aggregated results list disappears (replaced by the single-feed FlashList)
@@ -104,7 +104,7 @@ describeForPlatforms('ExploreSearchScreen V2 - Component Tests', () => {
     });
   });
 
-  it('Cryptos section header shows "View all" label (remote search — no exact count)', async () => {
+  it('Crypto section header shows "View all" label (remote search — no exact count)', async () => {
     const { findByTestId, getByTestId, getAllByText } =
       renderExploreSearchScreenWithRoutes();
 
@@ -116,7 +116,7 @@ describeForPlatforms('ExploreSearchScreen V2 - Component Tests', () => {
     // Wait for the aggregated results list to appear
     await findByTestId(ExploreSearchScreenSelectorsIDs.SEARCH_RESULTS_LIST);
 
-    // The Cryptos section header button label should be "View all" because
+    // The Crypto section header button label should be "View all" because
     // tokens use remote pagination and we never have a precise count of
     // remaining items.
     await waitFor(() => {
@@ -125,7 +125,7 @@ describeForPlatforms('ExploreSearchScreen V2 - Component Tests', () => {
     });
 
     // The Pressable wrapping that label has accessibilityLabel = "{label} {title}".
-    // Verify the Cryptos section specifically by checking the accessibility label.
+    // Verify the Crypto section specifically by checking the accessibility label.
     const viewAllCryptosLabel = `${strings('trending.view_all')} ${strings('trending.search_tabs.crypto')}`;
     await waitFor(() => {
       const resultsListEl = getByTestId(
@@ -146,13 +146,13 @@ describeForPlatforms('ExploreSearchScreen V2 - Component Tests', () => {
     );
     await userEvent.type(searchInput, 'btc');
 
-    // Tap Cryptos pill to activate it
+    // Tap Crypto pill to activate it
     const cryptosPill = await findByTestId(
       ExploreSearchScreenSelectorsIDs.PILL_CRYPTOS,
     );
     await actButtonPress(cryptosPill);
 
-    // Cryptos pill should now be selected (active): accessibilityState.selected === true
+    // Crypto pill should now be selected (active): accessibilityState.selected === true
     await waitFor(() => {
       expect(cryptosPill.props.accessibilityState?.selected).toBe(true);
     });
@@ -161,7 +161,7 @@ describeForPlatforms('ExploreSearchScreen V2 - Component Tests', () => {
     const clearButton = getByTestId('explore-search-clear-button');
     await actButtonPress(clearButton);
 
-    // After clearing, the Cryptos pill should remain selected — clearing the
+    // After clearing, the Crypto pill should remain selected — clearing the
     // query must not auto-navigate back to "All".
     await waitFor(() => {
       expect(cryptosPill.props.accessibilityState?.selected).toBe(true);
