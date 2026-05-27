@@ -16,6 +16,7 @@ const FALLBACK_TYPES = [
   TransactionType.predictClaim,
   TransactionType.predictWithdraw,
   TransactionType.musdClaim,
+  TransactionType.revokeDelegation,
 ];
 
 export function TransactionDetailsNetworkFeeRow() {

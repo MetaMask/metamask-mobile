@@ -24,6 +24,7 @@ import {
   PayWithSectionConfig,
 } from '../../../components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
 import { hasTransactionType } from '../../../utils/transaction';
+import { useClearPaymentOverride } from './useClearPaymentOverride';
 
 export const PAY_WITH_PERPS_SECTION_TEST_ID = 'pay-with-section-perps';
 export const PAY_WITH_PERPS_BALANCE_ROW_TEST_ID =
@@ -48,10 +49,13 @@ export function usePayWithPerpsSection(): PayWithSectionConfig | null {
     [formatFiat, perpsAccount?.spendableBalance],
   );
 
+  const clearPaymentOverride = useClearPaymentOverride();
+
   const handleSelect = useCallback(() => {
     onPaymentTokenChange(null);
+    clearPaymentOverride();
     navigation.goBack();
-  }, [navigation, onPaymentTokenChange]);
+  }, [clearPaymentOverride, navigation, onPaymentTokenChange]);
 
   const handleAdd = useCallback(async () => {
     onReject();
