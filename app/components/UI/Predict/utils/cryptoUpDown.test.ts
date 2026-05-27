@@ -463,6 +463,15 @@ describe('cryptoUpDown utilities', () => {
       expect(getMarketTargetPrice(market)).toBe(75749.02);
     });
 
+    it('returns event price to beat when market outcomes are missing', () => {
+      expect(getMarketTargetPrice({ priceToBeat: 75749.02 })).toBe(75749.02);
+    });
+
+    it('returns undefined when market details are unavailable', () => {
+      expect(getMarketTargetPrice(undefined)).toBeUndefined();
+      expect(resolveCryptoTargetPrice(null, undefined)).toBeUndefined();
+    });
+
     it('prefers fetched target price over market threshold fallback', () => {
       const market = createMockMarket({
         outcomes: [

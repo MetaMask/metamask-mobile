@@ -135,20 +135,25 @@ export function getEventStartTime(
 const isValidTargetPrice = (price: number | undefined): price is number =>
   typeof price === 'number' && Number.isFinite(price) && price > 0;
 
+type CryptoTargetPriceMarket = Partial<
+  Pick<PredictMarket, 'outcomes' | 'priceToBeat'>
+>;
+
 export function getMarketTargetPrice(
-  market: PredictMarket,
+  market: CryptoTargetPriceMarket | null | undefined,
 ): number | undefined {
-  if (isValidTargetPrice(market.priceToBeat)) {
+  if (isValidTargetPrice(market?.priceToBeat)) {
     return market.priceToBeat;
   }
 
-  return market.outcomes.find((outcome) =>
+  const outcomes = Array.isArray(market?.outcomes) ? market.outcomes : [];
+  return outcomes.find((outcome) =>
     isValidTargetPrice(outcome.groupItemThreshold),
   )?.groupItemThreshold;
 }
 
 export function resolveCryptoTargetPrice(
-  market: PredictMarket,
+  market: CryptoTargetPriceMarket | null | undefined,
   fetchedTargetPrice: number | undefined,
 ): number | undefined {
   if (isValidTargetPrice(fetchedTargetPrice)) {
