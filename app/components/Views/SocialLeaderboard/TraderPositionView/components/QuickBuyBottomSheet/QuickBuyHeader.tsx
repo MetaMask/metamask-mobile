@@ -10,22 +10,30 @@ import {
   IconName as DsIconName,
   BoxFlexDirection,
   BoxAlignItems,
+  BoxJustifyContent,
 } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/social-controllers';
 import { strings } from '../../../../../../../locales/i18n';
 import { formatCompactUsd } from '../../../../../UI/Rewards/utils/formatUtils';
 import PositionTokenAvatar from '../../../components/PositionTokenAvatar';
+import QuickBuyRateTag from './components/QuickBuyRateTag';
 
 interface QuickBuyHeaderProps {
   position: Position;
   marketCap?: number;
   onClose: () => void;
+  formattedRate?: string;
+  isRateLoading: boolean;
+  onRatePress: () => void;
 }
 
 const QuickBuyHeader: React.FC<QuickBuyHeaderProps> = ({
   position,
   marketCap,
   onClose,
+  formattedRate,
+  isRateLoading,
+  onRatePress,
 }) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
@@ -56,12 +64,24 @@ const QuickBuyHeader: React.FC<QuickBuyHeaderProps> = ({
           : strings('social_leaderboard.quick_buy.market_cap_label')}
       </Text>
     </Box>
-    <ButtonIcon
-      iconName={DsIconName.Close}
-      size={ButtonIconSize.Md}
-      onPress={onClose}
-      testID="quick-buy-close-button"
-    />
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.End}
+      gap={2}
+    >
+      <QuickBuyRateTag
+        formattedRate={formattedRate}
+        isLoading={isRateLoading}
+        onPress={onRatePress}
+      />
+      <ButtonIcon
+        iconName={DsIconName.Close}
+        size={ButtonIconSize.Md}
+        onPress={onClose}
+        testID="quick-buy-close-button"
+      />
+    </Box>
   </Box>
 );
 

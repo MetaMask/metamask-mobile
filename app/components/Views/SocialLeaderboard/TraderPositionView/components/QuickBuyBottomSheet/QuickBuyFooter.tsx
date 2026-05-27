@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { type LayoutChangeEvent, TouchableOpacity, View } from 'react-native';
 import Animated, {
   Easing,
@@ -23,10 +23,7 @@ import {
   BadgeWrapper,
   BadgeWrapperPosition,
   BadgeNetwork,
-  Icon as IconDS,
-  IconSize as IconSizeDS,
 } from '@metamask/design-system-react-native';
-import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import Icon, {
   IconName,
   IconSize,
@@ -34,7 +31,6 @@ import Icon, {
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import type { Hex } from '@metamask/utils';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
-import type { usePriceImpactViewData } from '../../../../../UI/Bridge/hooks/usePriceImpactViewData';
 import SourceTokenPicker from './SourceTokenPicker';
 import { getBridgeTokenImageSource } from './getBridgeTokenImageSource';
 import { strings } from '../../../../../../../locales/i18n';
@@ -46,12 +42,6 @@ const PAY_WITH_ANIMATION_EASING = Easing.out(Easing.cubic);
 
 interface QuickBuyFooterProps {
   usdAmount: string;
-  formattedNetworkFee: string;
-  formattedSlippage: string;
-  formattedMinimumReceived: string;
-  formattedPriceImpact: string;
-  priceImpactViewData: ReturnType<typeof usePriceImpactViewData>;
-  totalAmountUsd: string;
   sourceToken: BridgeToken | undefined;
   sourceChainId: Hex | undefined;
   sourceTokenOptions: BridgeToken[];
@@ -69,12 +59,6 @@ interface QuickBuyFooterProps {
 
 const QuickBuyFooter: React.FC<QuickBuyFooterProps> = ({
   usdAmount,
-  formattedNetworkFee,
-  formattedSlippage,
-  formattedMinimumReceived,
-  formattedPriceImpact,
-  priceImpactViewData,
-  totalAmountUsd,
   sourceToken,
   sourceChainId,
   sourceTokenOptions,
@@ -83,13 +67,11 @@ const QuickBuyFooter: React.FC<QuickBuyFooterProps> = ({
   setIsSourcePickerOpen,
   setSelectedSourceToken,
   sourceBalanceFiat,
-  isTotalLoading,
+  isTotalLoading: _isTotalLoading,
   onPresetPress,
   colors,
 }) => {
   const tw = useTailwind();
-  const isPriceImpactSafe = !priceImpactViewData.icon;
-  const [isTotalExpanded, setIsTotalExpanded] = useState(!isPriceImpactSafe);
 
   // Animate the source picker's real `height` so React Native's layout system
   // re-measures the parent BottomSheet on each frame; this lets the whole sheet
@@ -125,50 +107,6 @@ const QuickBuyFooter: React.FC<QuickBuyFooterProps> = ({
       },
     );
   }, [isSourcePickerOpen, pickerHeight]);
-
-  // Animate the Total fee-breakdown the same way. `isTotalExpanded` can start
-  // `true` (when price impact is unsafe) so we use an `initialized` ref to
-  // commit the first measurement without an animation; subsequent toggles run
-  // through `withTiming` so the parent BottomSheet grows smoothly.
-  const totalBreakdownHeight = useSharedValue(0);
-  const measuredTotalBreakdownHeight = useRef(0);
-  const totalBreakdownInitialized = useRef(false);
-
-  const animatedTotalBreakdownStyle = useAnimatedStyle(() => ({
-    height: totalBreakdownHeight.value,
-  }));
-
-  const handleTotalBreakdownLayout = useCallback(
-    (event: LayoutChangeEvent) => {
-      const { height } = event.nativeEvent.layout;
-      if (height <= 0 || height === measuredTotalBreakdownHeight.current)
-        return;
-      measuredTotalBreakdownHeight.current = height;
-      if (!totalBreakdownInitialized.current) {
-        totalBreakdownInitialized.current = true;
-        totalBreakdownHeight.value = isTotalExpanded ? height : 0;
-        return;
-      }
-      if (isTotalExpanded) {
-        totalBreakdownHeight.value = withTiming(height, {
-          duration: PAY_WITH_ANIMATION_DURATION_MS,
-          easing: PAY_WITH_ANIMATION_EASING,
-        });
-      }
-    },
-    [isTotalExpanded, totalBreakdownHeight],
-  );
-
-  useEffect(() => {
-    if (!totalBreakdownInitialized.current) return;
-    totalBreakdownHeight.value = withTiming(
-      isTotalExpanded ? measuredTotalBreakdownHeight.current : 0,
-      {
-        duration: PAY_WITH_ANIMATION_DURATION_MS,
-        easing: PAY_WITH_ANIMATION_EASING,
-      },
-    );
-  }, [isTotalExpanded, totalBreakdownHeight]);
 
   const handleSourcePickerToggle = useCallback(() => {
     setIsSourcePickerOpen((prev) => !prev);
@@ -207,251 +145,96 @@ const QuickBuyFooter: React.FC<QuickBuyFooterProps> = ({
         </Box>
       </Box>
 
-      {/* Footer details */}
-      <Box twClassName="px-4 pb-6" gap={6}>
-        <Box gap={4}>
-          {/* Pay with card (tap to expand source picker inline) */}
-          <Box twClassName="rounded-xl bg-muted overflow-hidden">
-            <TouchableOpacity
-              onPress={handleSourcePickerToggle}
-              disabled={sourceTokenOptions.length === 0}
-              activeOpacity={0.7}
-              testID="quick-buy-pay-with-row"
+      {/* Pay with card (tap to expand source picker inline) */}
+      <Box twClassName="px-4 pb-6">
+        <Box twClassName="rounded-xl bg-muted overflow-hidden">
+          <TouchableOpacity
+            onPress={handleSourcePickerToggle}
+            disabled={sourceTokenOptions.length === 0}
+            activeOpacity={0.7}
+            testID="quick-buy-pay-with-row"
+          >
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Between}
+              twClassName="px-4 py-3"
             >
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                {strings('social_leaderboard.quick_buy.pay_with')}
+              </Text>
               <Box
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
-                justifyContent={BoxJustifyContent.Between}
-                twClassName="px-4 py-3"
+                gap={2}
               >
+                <BadgeWrapper
+                  position={BadgeWrapperPosition.BottomRight}
+                  badge={
+                    sourceChainId ? (
+                      <BadgeNetwork
+                        name={sourceToken?.symbol ?? ''}
+                        src={getNetworkImageSource({
+                          chainId: sourceChainId,
+                        })}
+                        twClassName="scale-75"
+                      />
+                    ) : null
+                  }
+                >
+                  <AvatarToken
+                    name={sourceToken?.symbol ?? ''}
+                    src={
+                      sourceToken
+                        ? getBridgeTokenImageSource(sourceToken)
+                        : undefined
+                    }
+                    size={AvatarTokenSize.Xs}
+                  />
+                </BadgeWrapper>
                 <Text
                   variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
+                  color={TextColor.TextDefault}
                 >
-                  {strings('social_leaderboard.quick_buy.pay_with')}
+                  {sourceToken?.symbol ?? ''}
                 </Text>
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  gap={2}
-                >
-                  <BadgeWrapper
-                    position={BadgeWrapperPosition.BottomRight}
-                    badge={
-                      sourceChainId ? (
-                        <BadgeNetwork
-                          name={sourceToken?.symbol ?? ''}
-                          src={getNetworkImageSource({
-                            chainId: sourceChainId,
-                          })}
-                          twClassName="scale-75"
-                        />
-                      ) : null
-                    }
-                  >
-                    <AvatarToken
-                      name={sourceToken?.symbol ?? ''}
-                      src={
-                        sourceToken
-                          ? getBridgeTokenImageSource(sourceToken)
-                          : undefined
-                      }
-                      size={AvatarTokenSize.Xs}
-                    />
-                  </BadgeWrapper>
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextDefault}
-                  >
-                    {sourceToken?.symbol ?? ''}
-                  </Text>
-                  {sourceBalanceFiat && (
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextAlternative}
-                    >
-                      {`(${sourceBalanceFiat})`}
-                    </Text>
-                  )}
-                  <Icon
-                    name={
-                      isSourcePickerOpen ? IconName.ArrowUp : IconName.ArrowDown
-                    }
-                    size={IconSize.Sm}
-                    color={colors.icon.alternative}
-                  />
-                </Box>
-              </Box>
-            </TouchableOpacity>
-
-            <Animated.View
-              pointerEvents={isSourcePickerOpen ? 'auto' : 'none'}
-              style={[tw.style('overflow-hidden'), animatedPickerStyle]}
-            >
-              <View
-                onLayout={handlePickerLayout}
-                style={tw.style('absolute inset-x-0 top-0')}
-              >
-                <SourceTokenPicker
-                  options={sourceTokenOptions}
-                  selectedToken={selectedSourceToken}
-                  onSelect={handleSourceTokenSelect}
-                />
-              </View>
-            </Animated.View>
-          </Box>
-
-          {/* Total row (tap to expand fee breakdown) */}
-          <Box>
-            <TouchableOpacity
-              onPress={() => setIsTotalExpanded((prev) => !prev)}
-              testID="quick-buy-total-row"
-            >
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                justifyContent={BoxJustifyContent.Between}
-              >
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  gap={2}
-                >
+                {sourceBalanceFiat && (
                   <Text
                     variant={TextVariant.BodyMd}
                     color={TextColor.TextAlternative}
                   >
-                    {strings('social_leaderboard.quick_buy.total')}
-                  </Text>
-                  <Icon
-                    name={
-                      isTotalExpanded ? IconName.ArrowUp : IconName.ArrowDown
-                    }
-                    size={IconSize.Sm}
-                    color={colors.icon.alternative}
-                  />
-                </Box>
-                {isTotalLoading ? (
-                  <Skeleton
-                    width={56}
-                    height={20}
-                    style={tw.style('rounded-md')}
-                    testID="skeleton-view"
-                  />
-                ) : (
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextDefault}
-                  >
-                    {totalAmountUsd}
+                    {`(${sourceBalanceFiat})`}
                   </Text>
                 )}
+                <Icon
+                  name={
+                    isSourcePickerOpen ? IconName.ArrowUp : IconName.ArrowDown
+                  }
+                  size={IconSize.Sm}
+                  color={colors.icon.alternative}
+                />
               </Box>
-            </TouchableOpacity>
+            </Box>
+          </TouchableOpacity>
 
-            {/* Expanded fee breakdown (subsection of Total) */}
-            <Animated.View
-              style={[tw.style('overflow-hidden'), animatedTotalBreakdownStyle]}
+          <Animated.View
+            pointerEvents={isSourcePickerOpen ? 'auto' : 'none'}
+            style={[tw.style('overflow-hidden'), animatedPickerStyle]}
+          >
+            <View
+              onLayout={handlePickerLayout}
+              style={tw.style('absolute inset-x-0 top-0')}
             >
-              <View
-                onLayout={handleTotalBreakdownLayout}
-                style={tw.style('absolute inset-x-0 top-0 pt-4 pl-4')}
-              >
-                <Box gap={3}>
-                  <Box
-                    flexDirection={BoxFlexDirection.Row}
-                    alignItems={BoxAlignItems.Center}
-                    justifyContent={BoxJustifyContent.Between}
-                  >
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextAlternative}
-                    >
-                      {strings('social_leaderboard.quick_buy.network_fee')}
-                    </Text>
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextDefault}
-                    >
-                      {formattedNetworkFee}
-                    </Text>
-                  </Box>
-                  <Box
-                    flexDirection={BoxFlexDirection.Row}
-                    alignItems={BoxAlignItems.Center}
-                    justifyContent={BoxJustifyContent.Between}
-                  >
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextAlternative}
-                    >
-                      {strings('social_leaderboard.quick_buy.slippage')}
-                    </Text>
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextDefault}
-                    >
-                      {formattedSlippage}
-                    </Text>
-                  </Box>
-                  <Box
-                    flexDirection={BoxFlexDirection.Row}
-                    alignItems={BoxAlignItems.Center}
-                    justifyContent={BoxJustifyContent.Between}
-                  >
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextAlternative}
-                    >
-                      {strings('social_leaderboard.quick_buy.minimum_received')}
-                    </Text>
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextDefault}
-                    >
-                      {formattedMinimumReceived}
-                    </Text>
-                  </Box>
-                  <Box
-                    flexDirection={BoxFlexDirection.Row}
-                    alignItems={BoxAlignItems.Center}
-                    justifyContent={BoxJustifyContent.Between}
-                  >
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextAlternative}
-                    >
-                      {strings('social_leaderboard.quick_buy.price_impact')}
-                    </Text>
-                    <Box
-                      flexDirection={BoxFlexDirection.Row}
-                      alignItems={BoxAlignItems.Center}
-                      gap={1}
-                      testID="quick-buy-price-impact"
-                    >
-                      {priceImpactViewData.icon && (
-                        <IconDS
-                          name={priceImpactViewData.icon.name}
-                          size={IconSizeDS.Sm}
-                          color={priceImpactViewData.icon.color}
-                        />
-                      )}
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        color={
-                          priceImpactViewData.icon
-                            ? priceImpactViewData.textColor
-                            : TextColor.TextDefault
-                        }
-                      >
-                        {formattedPriceImpact}
-                      </Text>
-                    </Box>
-                  </Box>
-                </Box>
-              </View>
-            </Animated.View>
-          </Box>
+              <SourceTokenPicker
+                options={sourceTokenOptions}
+                selectedToken={selectedSourceToken}
+                onSelect={handleSourceTokenSelect}
+              />
+            </View>
+          </Animated.View>
         </Box>
       </Box>
     </Box>

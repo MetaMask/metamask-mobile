@@ -24,7 +24,12 @@ import QuickBuyBottomSheetSkeleton from './QuickBuyBottomSheetSkeleton';
 import QuickBuyConfirmButton from './QuickBuyConfirmButton';
 import QuickBuyFooter from './QuickBuyFooter';
 import QuickBuyHeader from './QuickBuyHeader';
+import QuickBuySubScreenHeader from './components/QuickBuySubScreenHeader';
+import QuickBuyQuoteDetails from './screens/QuickBuyQuoteDetails';
+import QuickBuySelectQuote from './screens/QuickBuySelectQuote';
 import { useQuickBuyBottomSheet } from './useQuickBuyBottomSheet';
+
+type QuickBuyScreen = 'amount' | 'details' | 'selectQuote';
 
 export interface QuickBuyBottomSheetProps {
   isVisible: boolean;
@@ -44,6 +49,8 @@ interface InnerProps {
   traderAddress?: string;
   marketCap?: number;
   source?: 'notification' | 'profile_position' | 'leaderboard';
+  /** Close handler for the BottomSheet itself (animates close vs unmounting). */
+  onSheetClose?: () => void;
 }
 
 const AnimatedScrollView = Animated.createAnimatedComponent(
@@ -58,17 +65,38 @@ const AnimatedScrollView = Animated.createAnimatedComponent(
 const QuickBuyBottomSheetContent: React.FC<InnerProps> = ({
   position,
   onClose,
+  onSheetClose,
   traderAddress,
   marketCap,
   source,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
+  const [screen, setScreen] = useState<QuickBuyScreen>('amount');
+
+  // Use animated sheet close when available (plays closing animation), fall
+  // back to unmounting via onClose for the dismiss event.
+  const handleClose = useCallback(() => {
+    if (onSheetClose) {
+      onSheetClose();
+    } else {
+      onClose();
+    }
+  }, [onSheetClose, onClose]);
+
+  const goTo = useCallback((next: QuickBuyScreen) => setScreen(next), []);
+  const goBack = useCallback(() => {
+    setScreen((prev) =>
+      prev === 'selectQuote' ? 'details' : prev === 'details' ? 'amount' : prev,
+    );
+  }, []);
+
   const {
     hiddenInputRef,
     isUnsupportedChain,
     sourceToken,
     sourceChainId,
+    destToken,
     sourceTokenOptions,
     selectedSourceToken,
     isSourcePickerOpen,
@@ -80,10 +108,20 @@ const QuickBuyBottomSheetContent: React.FC<InnerProps> = ({
     formattedNetworkFee,
     formattedSlippage,
     formattedMinimumReceived,
+    formattedMinimumReceivedFiat,
     formattedPriceImpact,
-    totalAmountUsd,
+    formattedRate,
     isQuoteLoading,
     isTotalLoading,
+    activeQuote,
+    sortedQuotes,
+    selectedQuoteRequestId,
+    setSelectedQuoteRequestId,
+    quotesLastFetchedAt,
+    refreshCount,
+    quoteRefreshRateMs,
+    maxRefreshCount,
+    refetchQuotes,
     isHardwareSolanaBlocked,
     priceImpactViewData,
     isPriceImpactError,
@@ -101,73 +139,150 @@ const QuickBuyBottomSheetContent: React.FC<InnerProps> = ({
     source,
   });
 
+  const subScreenTitle =
+    screen === 'selectQuote'
+      ? strings('social_leaderboard.quick_buy.select_quote_title')
+      : strings('social_leaderboard.quick_buy.quote_details_title');
+
   return (
     <>
       {isUnsupportedChain ? (
-        <Box twClassName="px-4 py-8" alignItems={BoxAlignItems.Center}>
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {strings('social_leaderboard.quick_buy.unsupported_chain')}
-          </Text>
-        </Box>
+        <>
+          <QuickBuyHeader
+            position={position}
+            marketCap={marketCap}
+            onClose={handleClose}
+            formattedRate={undefined}
+            isRateLoading={false}
+            onRatePress={() => undefined}
+          />
+          <Box twClassName="px-4 py-8" alignItems={BoxAlignItems.Center}>
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
+              {strings('social_leaderboard.quick_buy.unsupported_chain')}
+            </Text>
+          </Box>
+        </>
       ) : (
         <>
-          <AnimatedScrollView
-            style={tw.style('shrink')}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
-            <QuickBuyAmountInput
-              usdAmount={usdAmount}
+          {screen === 'amount' && (
+            <QuickBuyHeader
               position={position}
-              estimatedReceiveAmount={estimatedReceiveAmount}
-              isQuoteLoading={isQuoteLoading}
-              hasValidAmount={hasValidAmount}
-              hiddenInputRef={hiddenInputRef}
-              onAmountAreaPress={handleAmountAreaPress}
-              onAmountChange={handleAmountChange}
-              colors={colors}
+              marketCap={marketCap}
+              onClose={handleClose}
+              formattedRate={formattedRate}
+              isRateLoading={isQuoteLoading && hasValidAmount}
+              onRatePress={() => goTo('details')}
             />
+          )}
+          {screen !== 'amount' && (
+            <QuickBuySubScreenHeader
+              title={subScreenTitle}
+              onBack={goBack}
+              onClose={handleClose}
+            />
+          )}
 
-            <QuickBuyBanners
-              isHardwareSolanaBlocked={isHardwareSolanaBlocked}
-              isPriceImpactError={isPriceImpactError}
-              isPriceImpactWarning={
-                !isPriceImpactError && !!priceImpactViewData.icon
-              }
-              formattedPriceImpact={formattedPriceImpact}
-            />
+          {screen === 'amount' && (
+            <>
+              <AnimatedScrollView
+                style={tw.style('shrink')}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+              >
+                <QuickBuyAmountInput
+                  usdAmount={usdAmount}
+                  position={position}
+                  estimatedReceiveAmount={estimatedReceiveAmount}
+                  isQuoteLoading={isQuoteLoading}
+                  hasValidAmount={hasValidAmount}
+                  hiddenInputRef={hiddenInputRef}
+                  onAmountAreaPress={handleAmountAreaPress}
+                  onAmountChange={handleAmountChange}
+                  colors={colors}
+                />
 
-            <QuickBuyFooter
-              usdAmount={usdAmount}
-              formattedNetworkFee={formattedNetworkFee}
-              formattedSlippage={formattedSlippage}
-              formattedMinimumReceived={formattedMinimumReceived}
-              formattedPriceImpact={formattedPriceImpact}
-              priceImpactViewData={priceImpactViewData}
-              sourceToken={sourceToken}
-              totalAmountUsd={totalAmountUsd}
-              sourceChainId={sourceChainId}
-              sourceTokenOptions={sourceTokenOptions}
-              selectedSourceToken={selectedSourceToken}
-              isSourcePickerOpen={isSourcePickerOpen}
-              setIsSourcePickerOpen={setIsSourcePickerOpen}
-              setSelectedSourceToken={setSelectedSourceToken}
-              sourceBalanceFiat={sourceBalanceFiat}
-              isTotalLoading={isTotalLoading}
-              onPresetPress={handlePresetPress}
-              colors={colors}
-            />
-          </AnimatedScrollView>
+                <QuickBuyBanners
+                  isHardwareSolanaBlocked={isHardwareSolanaBlocked}
+                  isPriceImpactError={isPriceImpactError}
+                  isPriceImpactWarning={
+                    !isPriceImpactError && !!priceImpactViewData.icon
+                  }
+                  formattedPriceImpact={formattedPriceImpact}
+                />
 
-          <Box twClassName="px-4 pt-3 pb-4 bg-default">
-            <QuickBuyConfirmButton
-              state={confirmButtonState}
-              label={getButtonLabel()}
-              isDisabled={isConfirmDisabled}
-              onPress={handleConfirm}
-              testID="quick-buy-confirm-button"
-            />
-          </Box>
+                <QuickBuyFooter
+                  usdAmount={usdAmount}
+                  sourceToken={sourceToken}
+                  sourceChainId={sourceChainId}
+                  sourceTokenOptions={sourceTokenOptions}
+                  selectedSourceToken={selectedSourceToken}
+                  isSourcePickerOpen={isSourcePickerOpen}
+                  setIsSourcePickerOpen={setIsSourcePickerOpen}
+                  setSelectedSourceToken={setSelectedSourceToken}
+                  sourceBalanceFiat={sourceBalanceFiat}
+                  isTotalLoading={isTotalLoading}
+                  onPresetPress={handlePresetPress}
+                  colors={colors}
+                />
+              </AnimatedScrollView>
+
+              <Box twClassName="px-4 pt-3 pb-4 bg-default">
+                <QuickBuyConfirmButton
+                  state={confirmButtonState}
+                  label={getButtonLabel()}
+                  isDisabled={isConfirmDisabled}
+                  onPress={handleConfirm}
+                  testID="quick-buy-confirm-button"
+                />
+              </Box>
+            </>
+          )}
+
+          {screen === 'details' && (
+            <AnimatedScrollView
+              style={tw.style('shrink')}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
+              <QuickBuyQuoteDetails
+                activeQuote={activeQuote}
+                sourceToken={sourceToken}
+                destToken={destToken}
+                formattedNetworkFee={formattedNetworkFee}
+                formattedSlippage={formattedSlippage}
+                formattedMinimumReceived={formattedMinimumReceived}
+                formattedMinimumReceivedFiat={formattedMinimumReceivedFiat}
+                formattedRate={formattedRate}
+                quotesLastFetchedAt={quotesLastFetchedAt}
+                refreshCount={refreshCount}
+                quoteRefreshRateMs={quoteRefreshRateMs}
+                maxRefreshCount={maxRefreshCount}
+                refetchQuotes={refetchQuotes}
+                onRatePress={() => goTo('selectQuote')}
+              />
+            </AnimatedScrollView>
+          )}
+
+          {screen === 'selectQuote' && (
+            <AnimatedScrollView
+              style={tw.style('shrink')}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
+              <QuickBuySelectQuote
+                sortedQuotes={sortedQuotes}
+                selectedQuoteRequestId={selectedQuoteRequestId}
+                isLoading={isQuoteLoading}
+                onSelectQuote={(requestId: string) => {
+                  setSelectedQuoteRequestId(requestId);
+                  goBack();
+                }}
+              />
+            </AnimatedScrollView>
+          )}
         </>
       )}
     </>
@@ -178,6 +293,10 @@ const QuickBuyBottomSheetContent: React.FC<InnerProps> = ({
  * Lightweight shell — opens the sheet immediately with just a placeholder
  * so the animation runs on an idle JS thread. The heavy content tree is
  * mounted after the sheet reports its open animation has finished.
+ *
+ * Note: QuickBuyHeader is rendered INSIDE QuickBuyBottomSheetContent (once
+ * content is ready) so that the rate-tag pill has access to live hook data.
+ * During skeleton loading we render a simpler header without the rate pill.
  */
 const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
   position,
@@ -207,27 +326,34 @@ const QuickBuyBottomSheetInner: React.FC<InnerProps> = ({
       isInteractable={!isSubmittingTx}
       onClose={onClose}
     >
-      <QuickBuyHeader
-        position={position}
-        marketCap={marketCap}
-        onClose={handleClose}
-      />
-      {isContentReady ? (
+      {!isContentReady && (
+        <>
+          <QuickBuyHeader
+            position={position}
+            marketCap={marketCap}
+            onClose={handleClose}
+            formattedRate={undefined}
+            isRateLoading={false}
+            onRatePress={() => undefined}
+          />
+          <AnimatedScrollView
+            style={tw.style('shrink')}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <QuickBuyBottomSheetSkeleton />
+          </AnimatedScrollView>
+        </>
+      )}
+      {isContentReady && (
         <QuickBuyBottomSheetContent
           position={position}
           onClose={onClose}
           traderAddress={traderAddress}
           marketCap={marketCap}
           source={source}
+          onSheetClose={handleClose}
         />
-      ) : (
-        <AnimatedScrollView
-          style={tw.style('shrink')}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          <QuickBuyBottomSheetSkeleton />
-        </AnimatedScrollView>
       )}
     </BottomSheet>
   );

@@ -73,6 +73,14 @@ jest.mock('../../../../../UI/Bridge/hooks/useInitialSlippage', () => ({
   useInitialSlippage: jest.fn(),
 }));
 
+jest.mock('../../../../../UI/Bridge/hooks/useDisplayCurrencyValue', () => ({
+  useDisplayCurrencyValue: jest.fn(() => undefined),
+}));
+
+jest.mock('../../../../../UI/Bridge/hooks/useFormattedNetworkFee', () => ({
+  useFormattedNetworkFee: jest.fn(() => '-'),
+}));
+
 jest.mock('../../../../../UI/Bridge/hooks/useRecipientInitialization', () => ({
   useRecipientInitialization: jest.fn(),
 }));
@@ -260,11 +268,18 @@ const setupDefaultMocks = () => {
 
   (useQuickBuyQuotes as jest.Mock).mockReturnValue({
     activeQuote: undefined,
+    sortedQuotes: [],
     destTokenAmount: undefined,
     isQuoteLoading: false,
     isNoQuotesAvailable: false,
     quoteFetchError: null,
     isActiveQuoteForCurrentTokenPair: true,
+    quoteCount: 0,
+    quotesLastFetchedAt: null,
+    refreshCount: 0,
+    quoteRefreshRateMs: 30000,
+    maxRefreshCount: 5,
+    refetchQuotes: jest.fn(),
   });
 
   (useLatestBalance as jest.Mock).mockReturnValue({
@@ -398,6 +413,13 @@ describe('useQuickBuyBottomSheet', () => {
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         isActiveQuoteForCurrentTokenPair: true,
+        sortedQuotes: [],
+        quoteCount: 0,
+        quotesLastFetchedAt: null,
+        refreshCount: 0,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
       });
 
       const { result } = renderHook(() =>
@@ -432,6 +454,13 @@ describe('useQuickBuyBottomSheet', () => {
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         isActiveQuoteForCurrentTokenPair: true,
+        sortedQuotes: [],
+        quoteCount: 0,
+        quotesLastFetchedAt: null,
+        refreshCount: 0,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
       });
 
       renderHook(() => useQuickBuyBottomSheet(createPosition(), jest.fn()));
@@ -477,6 +506,13 @@ describe('useQuickBuyBottomSheet', () => {
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         isActiveQuoteForCurrentTokenPair: true,
+        sortedQuotes: [],
+        quoteCount: 0,
+        quotesLastFetchedAt: null,
+        refreshCount: 0,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
       });
 
       const { result } = renderHook(() =>
@@ -500,6 +536,13 @@ describe('useQuickBuyBottomSheet', () => {
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         isActiveQuoteForCurrentTokenPair: true,
+        sortedQuotes: [],
+        quoteCount: 0,
+        quotesLastFetchedAt: null,
+        refreshCount: 0,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
       });
 
       const { result } = renderHook(() =>
@@ -529,6 +572,13 @@ describe('useQuickBuyBottomSheet', () => {
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         isActiveQuoteForCurrentTokenPair: true,
+        sortedQuotes: [],
+        quoteCount: 0,
+        quotesLastFetchedAt: null,
+        refreshCount: 0,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
       };
 
       (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
@@ -574,6 +624,13 @@ describe('useQuickBuyBottomSheet', () => {
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         isActiveQuoteForCurrentTokenPair: true,
+        sortedQuotes: [],
+        quoteCount: 0,
+        quotesLastFetchedAt: null,
+        refreshCount: 0,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
       };
 
       (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
@@ -624,6 +681,13 @@ describe('useQuickBuyBottomSheet', () => {
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         isActiveQuoteForCurrentTokenPair: true,
+        sortedQuotes: [],
+        quoteCount: 0,
+        quotesLastFetchedAt: null,
+        refreshCount: 0,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
       };
       (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
 
@@ -674,6 +738,13 @@ describe('useQuickBuyBottomSheet', () => {
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         isActiveQuoteForCurrentTokenPair: true,
+        sortedQuotes: [],
+        quoteCount: 0,
+        quotesLastFetchedAt: null,
+        refreshCount: 0,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
       }));
 
       const props = {
@@ -853,6 +924,13 @@ describe('useQuickBuyBottomSheet', () => {
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         isActiveQuoteForCurrentTokenPair: true,
+        sortedQuotes: [],
+        quoteCount: 0,
+        quotesLastFetchedAt: null,
+        refreshCount: 0,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
       });
       (selectShouldUseSmartTransaction as unknown as jest.Mock).mockReturnValue(
         true,
@@ -884,6 +962,13 @@ describe('useQuickBuyBottomSheet', () => {
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         isActiveQuoteForCurrentTokenPair: true,
+        sortedQuotes: [],
+        quoteCount: 0,
+        quotesLastFetchedAt: null,
+        refreshCount: 0,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
       });
 
       const { result } = renderHook(() =>
@@ -912,6 +997,13 @@ describe('useQuickBuyBottomSheet', () => {
         isNoQuotesAvailable: false,
         quoteFetchError: null,
         isActiveQuoteForCurrentTokenPair: true,
+        sortedQuotes: [],
+        quoteCount: 0,
+        quotesLastFetchedAt: null,
+        refreshCount: 0,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
       });
 
       const { result } = renderHook(() =>

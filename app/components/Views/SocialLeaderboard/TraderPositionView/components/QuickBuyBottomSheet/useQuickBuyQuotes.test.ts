@@ -53,6 +53,11 @@ jest.mock('../../../../../../selectors/featureFlagController', () => ({
 jest.mock('../../../../../../core/redux/slices/bridge', () => ({
   selectDestAddress: jest.fn(),
   selectSlippage: jest.fn(),
+  selectBridgeFeatureFlags: jest.fn(() => ({
+    maxRefreshCount: 5,
+    refreshRate: 30000,
+    chains: {},
+  })),
 }));
 
 jest.mock('../../../../../../selectors/bridge', () => ({

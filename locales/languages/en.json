@@ -1107,7 +1107,11 @@
       "no_quotes": "No quotes available for this token",
       "loading": "Loading...",
       "unavailable": "Swap unavailable",
-      "unsupported_chain": "This chain is not supported for Quick Buy yet"
+      "unsupported_chain": "This chain is not supported for Quick Buy yet",
+      "quote_details_title": "Quote details",
+      "select_quote_title": "Select quote",
+      "rate": "Rate",
+      "get_new_quote": "Get new quote"
     }
   },
   "perps": {
