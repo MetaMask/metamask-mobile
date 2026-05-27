@@ -17,7 +17,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import MoneySectionHeader from '../MoneySectionHeader';
 import { MoneyWhatYouGetTestIds } from './MoneyWhatYouGet.testIds';
-import { isPositiveNumberOrZero } from '../../utils/number';
+import { isPositiveNumber, isPositiveNumberOrZero } from '../../utils/number';
 
 interface MoneyWhatYouGetProps {
   /** APY expressed as a percentage (e.g. 3 for 3%). */
