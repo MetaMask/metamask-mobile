@@ -761,6 +761,7 @@
       "husky": false,
       "react-native-inappbrowser-reborn": false,
       "react-native-svg-asset-plugin>sharp": true,
+      "sharp": true,
       "@storybook/builder-webpack5>@swc/core": false,
       "@metamask/sdk-communication-layer>bufferutil": false,
       "@metamask/sdk-communication-layer>utf-8-validate": false,

@@ -16,7 +16,6 @@ import {
   PlaywrightElement,
 } from '../../framework';
 import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
-import { getDriver } from '../../framework/PlaywrightUtilities';
 import {
   QuoteViewSelectorIDs,
   QuoteViewSelectorText,

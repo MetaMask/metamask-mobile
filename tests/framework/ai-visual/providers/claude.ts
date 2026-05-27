@@ -172,9 +172,21 @@ export class ClaudeProvider implements AIProvider {
       ? summaryMatch[1].trim()
       : rawResponse.split('\n')[0].slice(0, 200);
 
+    const overallMatch = rawResponse.match(
+      /OVERALL ASSESSMENT[:\s]*([\s\S]*?)$/i,
+    );
+    let passed = !hasFail;
+    if (overallMatch) {
+      const assessment = overallMatch[1].toLowerCase();
+      passed = assessment.includes('pass') && !assessment.includes('fail');
+    }
+    if (issues.length > 0) {
+      passed = false;
+    }
+
     return {
       success: true,
-      passed: !hasFail || hasPass,
+      passed,
       summary,
       issues,
       rawResponse,
@@ -193,7 +205,7 @@ export class ClaudeProvider implements AIProvider {
 
     const regressions: string[] = [];
     const regressionsMatch = rawResponse.match(
-      /REGRESSIONS FOUND[:\s]*([\s\S]*?)(?=ACCEPTABLE|OVERALL|$)/i,
+      /REGRESSIONS FOUND[:\s]*([\s\S]*?)(?=WARNINGS|ACCEPTABLE|OVERALL|$)/i,
     );
     if (regressionsMatch) {
       regressions.push(
