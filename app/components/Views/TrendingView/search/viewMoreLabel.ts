@@ -34,9 +34,7 @@ export function getViewMoreLabel(
   if (serverTotal !== undefined) {
     if (serverTotal <= MAX_ITEMS_PER_SECTION) return null;
     const hidden = serverTotal - Math.min(visibleCount, MAX_ITEMS_PER_SECTION);
-    return hidden > 0
-      ? strings('trending.view_x_more', { count: hidden })
-      : strings('trending.view_all');
+    return strings('trending.view_x_more', { count: hidden });
   }
 
   const hidden = visibleCount - MAX_ITEMS_PER_SECTION;
