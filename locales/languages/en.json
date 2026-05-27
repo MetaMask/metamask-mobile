@@ -128,6 +128,11 @@
       "title": "Wallet not supported",
       "message": "Hardware wallets aren't supported.\nSwitch wallets to continue."
     },
+    "address_poisoning": {
+      "title": "Address poisoning detected",
+      "message": "This address closely resembles one you've used before. It may have been designed to trick you into sending funds to the wrong recipient.",
+      "badge": "Poisoned"
+    },
     "burn_address": {
       "message": "You're sending your assets to a burn address. If you continue, you'll lose your assets.",
       "title": "Sending assets to burn address"
@@ -712,6 +717,9 @@
     "could_not_resolve_name": "Couldn't resolve name",
     "invalid_address": "Invalid address",
     "contractAddressError": "You are sending tokens to the token's contract address. This may result in the loss of these tokens.",
+    "compare_addresses": "Compare addresses",
+    "entered_malicious": "The Address You Entered",
+    "known_safe_address": "Known Address",
     "smart_contract_address": "Smart contract address",
     "smart_contract_address_warning": "The recipient address may not support direct token transfers, which could result in fund loss. Only continue if you're certain this contract can receive your transfer.",
     "unavailable_network_connection": "Unavailable network connection",
@@ -1111,7 +1119,9 @@
       "unsupported_chain": "This chain is not supported for Quick Buy yet",
       "available_balance": "{{amount}} available",
       "toggle_amount_display": "Switch between token and dollar amount",
-      "includes_mm_fee": "Includes {{fee}}% MM fee"
+      "includes_mm_fee": "Includes {{fee}}% MM fee",
+      "pay_with_no_tokens": "No tokens available to pay with",
+      "pay_with_filter_all": "All"
     }
   },
   "perps": {
@@ -3746,6 +3756,11 @@
         "title": "Identity",
         "description": "Clears the persisted authentication session. Use this after toggling MM_DEV_API_ENV — otherwise a prod-minted JWT keeps being handed to dev-API consumers until it expires. Current MM_DEV_API_ENV: {{env}}.",
         "clear_auth_session_button": "Clear persisted auth session"
+      },
+      "notifications": {
+        "title": "Notifications",
+        "description": "Reset the push notification pre-prompt flag to re-trigger the sheet on next eligible launch.",
+        "reset_prompt": "Reset push pre-prompt"
       },
       "haptics": {
         "title": "Haptics",
@@ -6734,6 +6749,10 @@
     "apy_label": "{{percentage}}% APY",
     "apy_currency_suffix": " • mUSD",
     "apy_info_label": "APY info",
+    "balance_unavailable": "Balance unavailable",
+    "balance_retry": "Retry",
+    "balance_feature_disabled": "Money account disabled",
+    "balance_no_account": "Money account not found",
     "onboarding": {
       "step_1": {
         "title": "Fund your account",
@@ -6781,8 +6800,8 @@
     },
     "how_it_works": {
       "title": "How it works",
-      "description_prefix": "Deposit mUSD into your Money account and earn up to",
-      "description_suffix": ". Your balance is dollar-backed and ready to spend, trade, or send anytime."
+      "description_prefix": "Add mUSD and earn up to",
+      "description_suffix": " (variable). Your balance is dollar-backed and ready to spend, trade, or send anytime."
     },
     "musd_row": {
       "add": "Add"
@@ -8550,6 +8569,7 @@
     },
     "main_title": "Rewards",
     "vip": {
+      "progress_to_next_tier": "{{pointsRemaining}} points to next tier",
       "bps_unit": "bps",
       "badge_label": "VIP {{tier}}",
       "swaps_label": "Swaps",
@@ -9215,7 +9235,9 @@
     "predictions": "Predictions",
     "no_results": "No results found",
     "no_results_for_feed": "No {{feedName}} results for \"{{query}}\"",
-    "showing_all_results_for": "We found these results for \"{{query}}\"",
+    "no_results_for_query": "No results found for \"{{query}}\"",
+    "no_results_check_popular": "Check out other popular assets",
+    "showing_all_results_for": "We found {{count}} other results for \"{{query}}\"",
     "popular": "Popular",
     "sites": "Sites",
     "popular_sites": "Popular sites",
@@ -9245,7 +9267,7 @@
     },
     "search_tabs": {
       "all": "All",
-      "crypto": "Cryptos",
+      "crypto": "Crypto",
       "perps": "Perps",
       "stocks": "Stocks",
       "predictions": "Predictions",

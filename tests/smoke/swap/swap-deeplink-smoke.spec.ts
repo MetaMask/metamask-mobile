@@ -58,6 +58,8 @@ describe(
               type: LocalNodeType.anvil,
               options: {
                 chainId: 1,
+                // Load ERC20 contract state so deep-linked USDC quotes can read balances reliably.
+                loadState: './tests/smoke/swap/withTokens.json',
               },
             },
           ],

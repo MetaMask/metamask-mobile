@@ -2,8 +2,7 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { PredictMarket as PredictMarketType } from '../../types';
 import { PredictEntryPoint } from '../../types/navigation';
-import { PredictEventValues } from '../../constants/eventNames';
-import { usePredictEntryPoint } from '../../contexts';
+import { useResolvedPredictEntryPoint } from '../../hooks/useResolvedPredictEntryPoint';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import PredictMarketSingle from '../PredictMarketSingle';
 import PredictMarketMultiple from '../PredictMarketMultiple';
@@ -33,12 +32,9 @@ const PredictMarket: React.FC<PredictMarketProps> = ({
   onBuyButtonPress,
   transactionActiveAbTests,
 }) => {
-  const contextEntryPoint = usePredictEntryPoint();
+  const entryPoint = useResolvedPredictEntryPoint(propEntryPoint);
   const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
-  const entryPoint =
-    contextEntryPoint ??
-    propEntryPoint ??
-    PredictEventValues.ENTRY_POINT.PREDICT_FEED;
+
   if (market.game) {
     return (
       <PredictMarketSportCard

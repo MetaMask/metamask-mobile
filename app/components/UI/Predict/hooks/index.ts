@@ -35,6 +35,7 @@ export {
 } from './usePredictSearch';
 
 export { usePredictCashOut } from './usePredictCashOut';
+export { usePredictPortfolio } from './usePredictPortfolio';
 
 export {
   usePredictWorldCupMarkets,

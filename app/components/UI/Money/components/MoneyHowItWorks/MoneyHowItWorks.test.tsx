@@ -15,11 +15,9 @@ describe('MoneyHowItWorks', () => {
     const { getByTestId } = render(<MoneyHowItWorks apy={4} />);
 
     const description = getByTestId(MoneyHowItWorksTestIds.DESCRIPTION);
+    expect(description).toHaveTextContent(/Add mUSD and earn up to/);
     expect(description).toHaveTextContent(
-      /Deposit mUSD into your Money account and earn up to/,
-    );
-    expect(description).toHaveTextContent(
-      /Your balance is dollar-backed and ready to spend, trade, or send anytime\./,
+      /\(variable\)\. Your balance is dollar-backed and ready to spend, trade, or send anytime\./,
     );
   });
 
@@ -62,10 +60,10 @@ describe('MoneyHowItWorks', () => {
     expect(queryByTestId(MoneyHowItWorksTestIds.APY)).not.toBeOnTheScreen();
   });
 
-  it('hides the highlighted APY text when apy is zero', () => {
-    const { queryByTestId } = render(<MoneyHowItWorks apy={0} />);
+  it('shows the highlighted APY text when apy is zero', () => {
+    const { getByTestId } = render(<MoneyHowItWorks apy={0} />);
 
-    expect(queryByTestId(MoneyHowItWorksTestIds.APY)).not.toBeOnTheScreen();
+    expect(getByTestId(MoneyHowItWorksTestIds.APY)).toBeOnTheScreen();
   });
 
   it('hides the highlighted APY text when apy is negative', () => {
