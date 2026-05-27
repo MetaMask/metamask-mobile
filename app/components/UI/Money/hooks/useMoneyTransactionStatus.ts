@@ -216,9 +216,11 @@ export const useMoneyTransactionStatus = () => {
           break;
         case TransactionStatus.failed:
         case TransactionStatus.dropped:
-        case TransactionStatus.rejected:
         case TransactionStatus.cancelled:
           showFailedFor(transactionMeta);
+          break;
+        case TransactionStatus.rejected:
+          cancelPendingInProgress(transactionMeta.id);
           break;
         default:
           break;
