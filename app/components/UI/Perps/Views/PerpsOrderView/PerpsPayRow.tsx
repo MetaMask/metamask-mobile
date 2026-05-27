@@ -46,7 +46,6 @@ import { useIsPerpsBalanceSelected } from '../../hooks/useIsPerpsBalanceSelected
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { Hex } from '@metamask/utils';
 import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
-import { isPayWithBottomSheetEnabled } from '../../../../Views/confirmations/utils/transaction-pay';
 
 const tokenIconStyles = StyleSheet.create({
   iconSmall: {
@@ -123,11 +122,7 @@ export const PerpsPayRow = ({
       [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
         PERPS_EVENT_VALUE.INTERACTION_TYPE.PAYMENT_TOKEN_SELECTOR,
     });
-    if (isPayWithBottomSheetEnabled()) {
-      navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET);
-      return;
-    }
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
+    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET);
   }, [canEdit, navigation, setConfirmationMetric, track]);
 
   // Display data: use local state (defaults to Perps balance) so UI always shows "Perps balance" by default

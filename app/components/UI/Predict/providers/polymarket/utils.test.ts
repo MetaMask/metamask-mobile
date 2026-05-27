@@ -1224,4 +1224,41 @@ describe('polymarket utils', () => {
       }),
     ]);
   });
+
+  it('parses crypto up/down price to beat from event metadata', () => {
+    const event: PolymarketApiEvent = {
+      id: 'crypto-event',
+      slug: 'bitcoin-up-or-down-may-26-2026-7pm-et',
+      title: 'Bitcoin Up or Down - May 26, 7PM ET',
+      description: 'Description',
+      icon: '',
+      closed: false,
+      active: true,
+      series: [
+        {
+          id: '10114',
+          slug: 'btc-up-or-down-hourly',
+          title: 'BTC Up or Down Hourly',
+          recurrence: 'hourly',
+        },
+      ],
+      markets: [],
+      tags: [
+        { id: 'crypto', label: 'Crypto', slug: 'crypto' },
+        { id: 'up-or-down', label: 'Up or Down', slug: 'up-or-down' },
+      ],
+      liquidity: 0,
+      volume: 0,
+      eventMetadata: {
+        priceToBeat: 75749.02,
+      },
+    };
+
+    expect(parsePolymarketEvents([event], 'crypto')).toEqual([
+      expect.objectContaining({
+        id: 'crypto-event',
+        priceToBeat: 75749.02,
+      }),
+    ]);
+  });
 });

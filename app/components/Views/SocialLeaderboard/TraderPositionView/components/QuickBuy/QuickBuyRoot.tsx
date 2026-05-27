@@ -9,6 +9,7 @@ import Animated from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
 import { selectIsSubmittingTx } from '../../../../../../core/redux/slices/bridge';
 import QuickBuyAmountScreen from './QuickBuyAmountScreen';
+import QuickBuyPayWithScreen from './QuickBuyPayWithScreen';
 import { QuickBuyProvider } from './QuickBuyContext';
 import { TOP_TRADERS_QUICK_BUY_FEATURES } from './features';
 import QuickBuyBottomSheetSkeleton from './QuickBuyBottomSheetSkeleton';
@@ -35,6 +36,8 @@ function renderActiveScreen(
   }
 
   switch (activeScreen) {
+    case 'payWith':
+      return <QuickBuyPayWithScreen />;
     case 'amount':
     default:
       return <QuickBuyAmountScreen />;
