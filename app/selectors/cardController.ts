@@ -18,10 +18,14 @@ import {
 } from '../components/UI/Card/types';
 import { toCardFundingToken } from '../components/UI/Card/util/toCardTokenAllowance';
 import { buildDelegationTokenList } from '../components/UI/Card/util/buildTokenList';
+import { isMoneyAccountEntry } from '../components/UI/Card/util/isMoneyAccountEntry';
 import { selectSelectedInternalAccountByScope } from './multichainAccounts/accounts';
 import { isEthAccount } from '../core/Multichain/utils';
 import { isMoneyAccountDelegatedForCard } from '../core/Engine/controllers/card-controller/utils/moneyAccountCardToken';
-import { selectPrimaryMoneyAccount } from './moneyAccountController';
+import {
+  selectMoneyAccounts,
+  selectPrimaryMoneyAccount,
+} from './moneyAccountController';
 import { selectCardFeatureFlag } from './featureFlagController/card';
 
 const LINEA_MAINNET_CAIP_CHAIN_ID = 'eip155:59144';
@@ -132,9 +136,16 @@ export const selectCardHomeDataStatus = createSelector(
 
 export const selectCardPrimaryToken = createSelector(
   selectCardHomeData,
-  (data): CardFundingToken | null =>
+  selectMoneyAccounts,
+  (data, moneyAccounts): CardFundingToken | null =>
     data?.primaryFundingAsset
-      ? toCardFundingToken(data.primaryFundingAsset)
+      ? toCardFundingToken(
+          data.primaryFundingAsset,
+          isMoneyAccountEntry(
+            data.primaryFundingAsset.walletAddress,
+            moneyAccounts,
+          ),
+        )
       : null,
 );
 
@@ -147,7 +158,13 @@ export const selectCardAvailableTokens = createSelector(
   selectCardHomeData,
   selectSelectedEvmAccount,
   selectCardFeatureFlag,
-  (data, selectedAccount, cardFeatureFlag): CardFundingToken[] => {
+  selectMoneyAccounts,
+  (
+    data,
+    selectedAccount,
+    cardFeatureFlag,
+    moneyAccounts,
+  ): CardFundingToken[] => {
     const currentAddress = selectedAccount?.address;
     const currentAddressLower = currentAddress?.toLowerCase();
     const fundingAssets = data?.fundingAssets ?? [];
@@ -167,7 +184,12 @@ export const selectCardAvailableTokens = createSelector(
         const assetWallet = asset.walletAddress?.toLowerCase();
         return !assetWallet || assetWallet === currentAddressLower;
       })
-      .map(toCardFundingToken);
+      .map((asset) =>
+        toCardFundingToken(
+          asset,
+          isMoneyAccountEntry(asset.walletAddress, moneyAccounts),
+        ),
+      );
 
     if (!currentAddress) return realEntries;
 
@@ -175,6 +197,11 @@ export const selectCardAvailableTokens = createSelector(
       realEntries
         .filter((t) => t.walletAddress?.toLowerCase() === currentAddressLower)
         .map((t) => `${t.address?.toLowerCase()}-${t.caipChainId}`),
+    );
+
+    const currentAddressIsMoneyAccount = isMoneyAccountEntry(
+      currentAddress,
+      moneyAccounts,
     );
 
     const placeholders = buildDelegationTokenList({
@@ -195,6 +222,7 @@ export const selectCardAvailableTokens = createSelector(
       .map((placeholder) => ({
         ...placeholder,
         walletAddress: currentAddress,
+        isMoneyAccountEntry: currentAddressIsMoneyAccount,
       }));
 
     return sortCardFundingTokens([...realEntries, ...placeholders]);
@@ -203,8 +231,14 @@ export const selectCardAvailableTokens = createSelector(
 
 export const selectCardFundingTokens = createSelector(
   selectCardHomeData,
-  (data): CardFundingToken[] =>
-    (data?.fundingAssets ?? []).map(toCardFundingToken),
+  selectMoneyAccounts,
+  (data, moneyAccounts): CardFundingToken[] =>
+    (data?.fundingAssets ?? []).map((asset) =>
+      toCardFundingToken(
+        asset,
+        isMoneyAccountEntry(asset.walletAddress, moneyAccounts),
+      ),
+    ),
 );
 
 export const selectCardDelegationSettings = createSelector(
@@ -226,13 +260,23 @@ export const selectCardLineaUsdcToken = createSelector(
   selectCardHomeData,
   selectSelectedEvmAccount,
   selectCardFeatureFlag,
-  (data, selectedAccount, cardFeatureFlag): CardFundingToken | null => {
+  selectMoneyAccounts,
+  (
+    data,
+    selectedAccount,
+    cardFeatureFlag,
+    moneyAccounts,
+  ): CardFundingToken | null => {
     const realAsset = (data?.fundingAssets ?? []).find(
       (asset) =>
         asset.chainId === LINEA_MAINNET_CAIP_CHAIN_ID &&
         asset.symbol?.toUpperCase() === CASHBACK_FUNDING_SYMBOL,
     );
-    if (realAsset) return toCardFundingToken(realAsset);
+    if (realAsset)
+      return toCardFundingToken(
+        realAsset,
+        isMoneyAccountEntry(realAsset.walletAddress, moneyAccounts),
+      );
 
     const placeholder = buildDelegationTokenList({
       delegationSettings: data?.delegationSettings ?? null,
@@ -250,9 +294,16 @@ export const selectCardLineaUsdcToken = createSelector(
 
     if (!placeholder) return null;
 
-    return selectedAccount?.address
-      ? { ...placeholder, walletAddress: selectedAccount.address }
-      : placeholder;
+    if (!selectedAccount?.address) return placeholder;
+
+    return {
+      ...placeholder,
+      walletAddress: selectedAccount.address,
+      isMoneyAccountEntry: isMoneyAccountEntry(
+        selectedAccount.address,
+        moneyAccounts,
+      ),
+    };
   },
 );
 

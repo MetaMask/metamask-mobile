@@ -1,10 +1,15 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { Image } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { TransactionType } from '@metamask/transaction-controller';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { strings } from '../../../../../../../locales/i18n';
+import Engine from '../../../../../../core/Engine';
+import { RootState } from '../../../../../../reducers';
 import { selectPrimaryMoneyAccount } from '../../../../../../selectors/moneyAccountController';
 import { selectMetaMaskPayFlags } from '../../../../../../selectors/featureFlagController/confirmations';
+import { selectPaymentOverrideByTransactionId } from '../../../../../../selectors/transactionPayController';
 import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
 import { MUSD_TOKEN } from '../../../../../UI/Earn/constants/musd';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
@@ -27,17 +32,38 @@ const SUPPORTED_TRANSACTION_TYPES = [
 ] as const;
 
 export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
+  const navigation = useNavigation();
   const transactionMeta = useTransactionMetadataRequest();
+  const transactionId = transactionMeta?.id ?? '';
   const moneyAccount = useSelector(selectPrimaryMoneyAccount);
   const { enablePerpsMoneyAccountTransactions } = useSelector(
     selectMetaMaskPayFlags,
   );
   const { totalFiatFormatted } = useMoneyAccountBalance();
 
+  const paymentOverride = useSelector((state: RootState) =>
+    selectPaymentOverrideByTransactionId(state, transactionId),
+  );
+  const isMoneyAccountSelected =
+    paymentOverride === PaymentOverride.MoneyAccount;
+
   const isSupported = hasTransactionType(
     transactionMeta,
     SUPPORTED_TRANSACTION_TYPES as unknown as TransactionType[],
   );
+
+  const handlePress = useCallback(() => {
+    if (transactionId) {
+      Engine.context.TransactionPayController.setTransactionConfig(
+        transactionId,
+        (config) => {
+          (config as Record<string, unknown>).paymentOverride =
+            PaymentOverride.MoneyAccount;
+        },
+      );
+    }
+    navigation.goBack();
+  }, [navigation, transactionId]);
 
   return useMemo(() => {
     if (!enablePerpsMoneyAccountTransactions || !isSupported || !moneyAccount) {
@@ -58,9 +84,10 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
       }),
       title: MUSD_TOKEN.symbol,
       subtitle,
-      isSelected: false,
+      isSelected: isMoneyAccountSelected,
       isLastUsed: false,
-      trailingElement: 'none',
+      trailingElement: isMoneyAccountSelected ? 'checkmark' : 'none',
+      onPress: handlePress,
       testID: PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID,
     };
 
@@ -72,6 +99,8 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
     };
   }, [
     enablePerpsMoneyAccountTransactions,
+    handlePress,
+    isMoneyAccountSelected,
     isSupported,
     moneyAccount,
     totalFiatFormatted,
