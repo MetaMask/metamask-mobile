@@ -7648,7 +7648,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controller@npm:^7.1.1, @metamask/assets-controller@npm:^7.1.2":
+"@metamask/assets-controller@npm:^7.1.1":
   version: 7.1.2
   resolution: "@metamask/assets-controller@npm:7.1.2"
   dependencies:
@@ -7722,7 +7722,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controllers@npm:^108.0.0, @metamask/assets-controllers@npm:^108.0.1, @metamask/assets-controllers@npm:^108.1.0":
+"@metamask/assets-controllers@npm:^108.0.0, @metamask/assets-controllers@npm:^108.1.0":
   version: 108.1.0
   resolution: "@metamask/assets-controllers@npm:108.1.0"
   dependencies:
@@ -9381,6 +9381,27 @@ __metadata:
     immer: "npm:^9.0.6"
     nanoid: "npm:^3.3.8"
   checksum: 10/12c6a675217ff510b837543c6e71ea851a3a7bd4592195f9579e76e2779177d2d4f03fcdd4d5c12585598df73250f32d0d49cb114274fc8187cbc7081bbc913b
+  languageName: node
+  linkType: hard
+
+"@metamask/perps-controller@npm:^6.3.0":
+  version: 6.3.0
+  resolution: "@metamask/perps-controller@npm:6.3.0"
+  dependencies:
+    "@metamask/abi-utils": "npm:^2.0.3"
+    "@metamask/base-controller": "npm:^9.1.0"
+    "@metamask/controller-utils": "npm:^12.1.0"
+    "@metamask/messenger": "npm:^1.2.0"
+    "@metamask/utils": "npm:^11.9.0"
+    "@myx-trade/sdk": "npm:^0.1.265"
+    "@nktkas/hyperliquid": "npm:^0.32.2"
+    bignumber.js: "npm:^9.1.2"
+    reselect: "npm:^5.1.1"
+    uuid: "npm:^8.3.2"
+  dependenciesMeta:
+    "@myx-trade/sdk":
+      optional: true
+  checksum: 10/5dd4a69ad2749e661b8cd3eccf06196039c709b630f364d989989fbe41bcb8dbe5f2db6bb0f6ca556c498dff67b02b3efc3ce4cbe405c15429704fe2002bfb03
   languageName: node
   linkType: hard
 
@@ -35278,8 +35299,8 @@ __metadata:
     "@metamask/analytics-controller": "npm:^1.0.0"
     "@metamask/app-metadata-controller": "npm:^2.0.0"
     "@metamask/approval-controller": "npm:^9.0.0"
-    "@metamask/assets-controller": "npm:^7.1.2"
-    "@metamask/assets-controllers": "npm:^108.0.1"
+    "@metamask/assets-controller": "npm:^8.0.1"
+    "@metamask/assets-controllers": "npm:^108.1.0"
     "@metamask/authenticated-user-storage": "npm:^2.0.0"
     "@metamask/auto-changelog": "npm:^5.3.0"
     "@metamask/base-controller": "npm:^9.0.1"
@@ -35355,6 +35376,7 @@ __metadata:
     "@metamask/notification-services-controller": "npm:24.1.1"
     "@metamask/object-multiplex": "npm:^1.1.0"
     "@metamask/permission-controller": "npm:^13.1.1"
+    "@metamask/perps-controller": "npm:^6.3.0"
     "@metamask/phishing-controller": "npm:^17.2.0"
     "@metamask/post-message-stream": "npm:^10.0.0"
     "@metamask/preferences-controller": "npm:^23.0.0"

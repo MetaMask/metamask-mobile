@@ -280,6 +280,21 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
         addresses as CaipAssetType[],
         selectedNonEvmAccount.id,
       );
+
+      if (isAssetsUnifyStateEnabled) {
+        try {
+          await Promise.all(
+            (addresses as CaipAssetType[]).map((assetId) =>
+              handleAddCustomAsset(assetId, selectedNonEvmAccount.id),
+            ),
+          );
+        } catch (error) {
+          Logger.error(
+            error as Error,
+            'SearchTokenAutoComplete: addCustomAsset failed for non-EVM',
+          );
+        }
+      }
     } else {
       const caipChainId = formatChainIdToCaip(
         selectedChainId as SupportedCaipChainId,
