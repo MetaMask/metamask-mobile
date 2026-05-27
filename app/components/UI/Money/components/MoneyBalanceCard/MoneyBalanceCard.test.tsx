@@ -553,8 +553,8 @@ describe('MoneyBalanceCard', () => {
       beforeEach(() => {
         mockUseMoneyAccountBalance.mockReturnValue(
           createBalanceMock({
-            totalFiatRaw: undefined,
-            totalFiatFormatted: undefined,
+            totalFiatRaw: '0',
+            totalFiatFormatted: '$0.00',
           }),
         );
         mockSelectMoneyOnboardingSeen.mockReturnValue(true);
@@ -607,8 +607,8 @@ describe('MoneyBalanceCard', () => {
       beforeEach(() => {
         mockUseMoneyAccountBalance.mockReturnValue(
           createBalanceMock({
-            totalFiatRaw: undefined,
-            totalFiatFormatted: undefined,
+            totalFiatRaw: '0',
+            totalFiatFormatted: '$0.00',
           }),
         );
         mockSelectMoneyOnboardingSeen.mockReturnValue(false);
