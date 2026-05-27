@@ -211,15 +211,14 @@ describe('MoneyConvertStablecoins', () => {
         <MoneyConvertStablecoins location={TEST_LOCATION} />,
       );
 
-      expect(
-        getByTestId(MoneyConvertStablecoinsTestIds.DESCRIPTION),
-      ).toBeOnTheScreen();
-      expect(
-        getByText(strings('money.convert_stablecoins.description_suffix')),
-      ).toBeOnTheScreen();
-      expect(
-        getByText(' by converting your stablecoins and aTokens to mUSD.'),
-      ).toBeOnTheScreen();
+      const description = getByTestId(
+        MoneyConvertStablecoinsTestIds.DESCRIPTION,
+      );
+      expect(description).toBeOnTheScreen();
+      expect(description).toHaveTextContent(/3% annualized bonus/);
+      expect(description).toHaveTextContent(
+        /by converting your stablecoins and aTokens to mUSD\./,
+      );
     });
 
     it('renders feature tags', () => {

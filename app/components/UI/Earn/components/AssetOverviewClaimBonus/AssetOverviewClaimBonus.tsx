@@ -18,7 +18,9 @@ import {
   Text,
   TextColor,
   TextVariant,
- Tag, TagSeverity } from '@metamask/design-system-react-native';
+  Tag,
+  TagSeverity,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { TokenI } from '../../../Tokens/types';
 import { useMerklBonusClaim } from '../MerklRewards/hooks/useMerklBonusClaim';

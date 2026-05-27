@@ -55,7 +55,9 @@ import {
   MUSD_CONVERSION_APY,
   MUSD_CONVERSION_ATOKEN_SYMBOLS,
 } from '../../Earn/constants/musd';
-import { Tag, TagSeverity ,
+import {
+  Tag,
+  TagSeverity,
   Box,
   BoxFlexDirection,
   BoxAlignItems,
