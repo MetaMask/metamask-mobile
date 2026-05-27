@@ -31,6 +31,7 @@ import {
   formatPnl,
   formatPercentage,
   PRICE_RANGES_MINIMAL_VIEW,
+  PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import {
   formatOrderLabel,
@@ -77,7 +78,7 @@ const getOrderDisplayData = (order: Order): CardDisplayData => {
   const valueText =
     priceValue !== null
       ? formatPerpsFiat(priceValue, {
-          ranges: PRICE_RANGES_MINIMAL_VIEW,
+          ranges: PRICE_RANGES_UNIVERSAL,
         })
       : strings('perps.order.market');
   const labelText = strings(labelKey);

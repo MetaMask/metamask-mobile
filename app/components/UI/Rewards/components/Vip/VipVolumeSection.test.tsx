@@ -35,10 +35,9 @@ describe('VipVolumeSection', () => {
     },
     title: 'Volume',
     period: 'Apr 11 - May 11',
-    status: 'On track to reach the next tier in 4 days',
   };
 
-  it('renders the title, period, swaps/perps amounts, and the status copy passed in by the parent', () => {
+  it('renders the title, period, and volume metrics', () => {
     const { getByTestId, getByText } = render(<VipVolumeSection {...props} />);
 
     expect(getByTestId(VIP_VOLUME_SECTION_TEST_IDS.PERIOD)).toHaveTextContent(
@@ -59,9 +58,6 @@ describe('VipVolumeSection', () => {
     expect(
       getByTestId(VIP_VOLUME_SECTION_TEST_IDS.REFERRALS),
     ).toHaveTextContent(/2\/10/);
-    expect(getByTestId(VIP_VOLUME_SECTION_TEST_IDS.ON_TRACK)).toHaveTextContent(
-      /On track to reach the next tier in 4 days/,
-    );
     expect(getByText('Volume')).toBeOnTheScreen();
   });
 });

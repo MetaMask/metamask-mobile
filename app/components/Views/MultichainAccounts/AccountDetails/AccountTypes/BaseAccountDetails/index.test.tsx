@@ -12,7 +12,7 @@ import { AccountDetailsIds } from '../../../AccountDetails.testIds';
 import { formatAddress } from '../../../../../../util/address';
 import { RootState } from '../../../../../../reducers';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
-import { AvatarAccountType } from '../../../../../../component-library/components/Avatars/Avatar';
+import { AvatarAccountType } from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.types';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
