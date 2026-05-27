@@ -23,45 +23,13 @@ export type NotificationStoragePreferenceSection =
 export type NotificationStoragePreferenceChannelKey =
   | 'pushNotificationsEnabled'
   | 'inAppNotificationsEnabled';
-type NotificationStoragePreferenceSectionUpdater<
-  PreferenceType extends NotificationStoragePreferenceSection,
-> =
-  | NotificationStoragePreferences[PreferenceType]
-  | ((
-      currentSectionPreferences: NotificationStoragePreferences[PreferenceType],
-    ) => NotificationStoragePreferences[PreferenceType]);
 
-const resolveNextSectionPreferences = <
-  PreferenceType extends NotificationStoragePreferenceSection,
->(
-  nextSectionPreferences: NotificationStoragePreferenceSectionUpdater<PreferenceType>,
-  currentSectionPreferences: NotificationStoragePreferences[PreferenceType],
-) => {
-  if (typeof nextSectionPreferences === 'function') {
-    return nextSectionPreferences(currentSectionPreferences);
-  }
-
-  return nextSectionPreferences;
-};
-
-export const useNotificationStoragePreferences = ({
-  enabled,
-}: { enabled?: boolean } = {}) => {
+export const useNotificationStoragePreferences = () => {
   const { data, isLoading, error, refetch } =
     useQuery<NotificationStoragePreferencesResult>({
       queryKey: [GET_ACTION],
-      enabled,
     });
   const queryClient = useQueryClient();
-
-  const getLatestPreferences = useCallback(async () => {
-    try {
-      return await Engine.controllerMessenger.call(GET_ACTION);
-    } catch (err) {
-      Logger.error(err as Error, 'Failed to fetch notification preferences');
-      throw err;
-    }
-  }, []);
 
   const enqueuePersist = useCallback(
     async <
@@ -70,12 +38,9 @@ export const useNotificationStoragePreferences = ({
     >(
       nextPreferences: NotificationStoragePreferences,
       updatedType?: PreferenceType,
-      latestPreferences?: NotificationStoragePreferences,
     ) => {
       try {
-        const latest =
-          latestPreferences ??
-          (await Engine.controllerMessenger.call(GET_ACTION));
+        const latest = await Engine.controllerMessenger.call(GET_ACTION);
         const preferencesToPersist: NotificationStoragePreferences = {
           ...(latest ?? nextPreferences),
           ...(updatedType
@@ -102,11 +67,9 @@ export const useNotificationStoragePreferences = ({
   const updatePreferencesSection = useCallback(
     async <PreferenceType extends NotificationStoragePreferenceSection>(
       type: PreferenceType,
-      nextSectionPreferences: NotificationStoragePreferenceSectionUpdater<PreferenceType>,
+      nextSectionPreferences: NotificationStoragePreferences[PreferenceType],
     ) => {
-      const currentPreferences = data ?? (await getLatestPreferences());
-
-      if (!currentPreferences) {
+      if (!data) {
         Logger.error(
           new Error(
             `No notification preferences found when updating ${type} section, enable notifications first`,
@@ -115,36 +78,28 @@ export const useNotificationStoragePreferences = ({
         return;
       }
 
-      const resolvedSectionPreferences = resolveNextSectionPreferences(
-        nextSectionPreferences,
-        currentPreferences[type],
-      );
       const nextPreferences = {
-        ...currentPreferences,
-        [type]: resolvedSectionPreferences,
+        ...data,
+        [type]: nextSectionPreferences,
       } as NotificationStoragePreferences;
 
       queryClient.setQueryData<NotificationStoragePreferencesResult>(
         [GET_ACTION],
         (previousPreferences) =>
           ({
-            ...(previousPreferences ?? currentPreferences),
-            [type]: resolvedSectionPreferences,
+            ...(previousPreferences ?? nextPreferences),
+            [type]: nextSectionPreferences,
           }) as NotificationStoragePreferences,
       );
 
       try {
-        await enqueuePersist(
-          nextPreferences,
-          type,
-          data ? undefined : currentPreferences,
-        );
+        await enqueuePersist(nextPreferences, type);
       } catch (err) {
         refetch();
         throw err;
       }
     },
-    [data, enqueuePersist, getLatestPreferences, queryClient, refetch],
+    [data, enqueuePersist, queryClient, refetch],
   );
 
   const updatePreference = useCallback(
@@ -153,12 +108,21 @@ export const useNotificationStoragePreferences = ({
       key: NotificationStoragePreferenceChannelKey,
       value: boolean,
     ) => {
-      await updatePreferencesSection(type, (currentSectionPreferences) => ({
-        ...currentSectionPreferences,
+      if (!data) {
+        Logger.error(
+          new Error(
+            'No notification preferences found when updating preference, enable notifications first',
+          ),
+        );
+        return;
+      }
+
+      await updatePreferencesSection(type, {
+        ...data[type],
         [key]: value,
-      }));
+      });
     },
-    [updatePreferencesSection],
+    [data, updatePreferencesSection],
   );
 
   return {
