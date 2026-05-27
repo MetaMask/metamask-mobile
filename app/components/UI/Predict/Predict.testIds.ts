@@ -88,6 +88,14 @@ export const PredictPositionsEmptySelectorsIDs = {
   ICON: 'predict-positions-empty-icon',
 } as const;
 
+export const PredictPositionsListSelectorsIDs = {
+  CLAIMABLE_POSITIONS_LIST: 'predict-positions-list-claimable-positions',
+  CONTAINER: 'predict-positions-list',
+  LOADING_STATE: 'predict-positions-list-loading-state',
+  OPEN_POSITIONS_LIST: 'predict-positions-list-open-positions',
+  SKELETON_ROW: 'predict-positions-list-skeleton-row',
+} as const;
+
 export const getPredictFeedSelector = {
   tab: (index: number) => `${PredictFeedSelectorsIDs.TABS}-tab-${index}`,
   tabPage: (key: string) => `predict-feed-tab-page-${key}`,
