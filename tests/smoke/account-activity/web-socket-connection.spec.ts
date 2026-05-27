@@ -70,7 +70,7 @@ describe(SmokeWalletPlatform('Account Activity WebSocket Connection'), () => {
     );
   });
 
-  it.only('resubscribes after lock and unlock', async () => {
+  it('resubscribes after lock and unlock', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
