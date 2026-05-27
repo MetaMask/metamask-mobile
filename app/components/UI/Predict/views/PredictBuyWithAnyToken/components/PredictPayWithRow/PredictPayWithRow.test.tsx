@@ -69,6 +69,17 @@ jest.mock('../../../../../../Views/confirmations/utils/transaction', () => ({
   },
 }));
 
+let mockIsPayWithBottomSheetEnabled = false;
+jest.mock(
+  '../../../../../../Views/confirmations/utils/transaction-pay',
+  () => ({
+    ...jest.requireActual(
+      '../../../../../../Views/confirmations/utils/transaction-pay',
+    ),
+    isPayWithBottomSheetEnabled: () => mockIsPayWithBottomSheetEnabled,
+  }),
+);
+
 jest.mock('../../../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     if (key === 'confirm.label.pay_with') return 'Pay with';
@@ -109,6 +120,7 @@ describe('PredictPayWithRow', () => {
     mockSelectedPaymentToken = null;
     mockIsHardwareAccount.mockReturnValue(false);
     mockHasTransactionType = true;
+    mockIsPayWithBottomSheetEnabled = false;
   });
 
   it('renders label with payToken symbol', () => {
@@ -163,6 +175,39 @@ describe('PredictPayWithRow', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.CONFIRMATION_PAY_WITH_MODAL,
     );
+  });
+
+  it('navigates to pay-with bottom sheet when isPayWithBottomSheetEnabled returns true', () => {
+    mockIsPayWithBottomSheetEnabled = true;
+
+    renderWithProvider(<PredictPayWithRow />);
+
+    fireEvent.press(screen.getByText('Pay with USDC'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET,
+    );
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.CONFIRMATION_PAY_WITH_MODAL,
+    );
+  });
+
+  it('calls onPaymentSelectorOpen before navigating to pay-with modal', () => {
+    const callOrder: string[] = [];
+    const onPaymentSelectorOpen = jest.fn(() => callOrder.push('lock'));
+    mockNavigate.mockImplementation(() => callOrder.push('navigate'));
+
+    renderWithProvider(
+      <PredictPayWithRow onPaymentSelectorOpen={onPaymentSelectorOpen} />,
+    );
+
+    fireEvent.press(screen.getByText('Pay with USDC'));
+
+    expect(onPaymentSelectorOpen).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.CONFIRMATION_PAY_WITH_MODAL,
+    );
+    expect(callOrder).toStrictEqual(['lock', 'navigate']);
   });
 
   it('does not navigate when disabled prop is true', () => {

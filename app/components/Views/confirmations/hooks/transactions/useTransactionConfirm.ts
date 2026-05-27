@@ -12,12 +12,16 @@ import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/use
 import { isHardwareAccount } from '../../../../../util/address';
 import { createProjectLogger } from '@metamask/utils';
 import { useSelectedGasFeeToken } from '../gas/useGasFeeToken';
-import { hasTransactionType } from '../../utils/transaction';
+import {
+  hasTransactionType,
+  shouldApplyGasFeeSponsorship,
+} from '../../utils/transaction';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupportedSmartTransactions';
 import { cloneDeep } from 'lodash';
 import { useTransactionPayQuotes } from '../pay/useTransactionPayData';
 import { useMusdConfirmNavigation } from '../../../../UI/Earn/hooks/useMusdConfirmNavigation';
+import { useFiatConfirm } from '../pay/useFiatConfirm';
 
 const log = createProjectLogger('transaction-confirm');
 
@@ -39,6 +43,7 @@ export function useTransactionConfirm() {
     transactionMetadata ?? {};
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const quotes = useTransactionPayQuotes();
+  const { onFiatConfirm, isFiatPaymentSelected, orderId } = useFiatConfirm();
   const { navigateOnConfirm: musdConversionNavigateOnConfirm } =
     useMusdConfirmNavigation();
 
@@ -91,7 +96,13 @@ export function useTransactionConfirm() {
     async (options?: {
       onError?: (error: unknown) => void;
       waitForResult?: boolean;
+      existingOrderId?: string;
     }) => {
+      if (isFiatPaymentSelected && !orderId && !options?.existingOrderId) {
+        onFiatConfirm();
+        return;
+      }
+
       if (!transactionMetadata) {
         return;
       }
@@ -101,8 +112,10 @@ export function useTransactionConfirm() {
       // Ensure the persisted `isGasFeeSponsored` flag reflects whether gasless
       // is actually supported (e.g. HW wallets don't support gasless, so the
       // flag must be cleared so the activity list does not show "Paid by MetaMask").
-      updatedMetadata.isGasFeeSponsored =
-        isGaslessSupported && transactionMetadata?.isGasFeeSponsored;
+      updatedMetadata.isGasFeeSponsored = shouldApplyGasFeeSponsorship({
+        transactionMeta: transactionMetadata,
+        isGaslessSupported,
+      });
 
       if (isGaslessSupportedSTX) {
         handleSmartTransaction(updatedMetadata);
@@ -151,12 +164,15 @@ export function useTransactionConfirm() {
       chainId,
       handleGasless7702,
       handleSmartTransaction,
+      isFiatPaymentSelected,
       isFullScreenConfirmation,
       isGaslessSupported,
       isGaslessSupportedSTX,
       navigation,
       musdConversionNavigateOnConfirm,
+      onFiatConfirm,
       onRequestConfirm,
+      orderId,
       selectedGasFeeToken,
       transactionMetadata,
       tryEnableEvmNetwork,

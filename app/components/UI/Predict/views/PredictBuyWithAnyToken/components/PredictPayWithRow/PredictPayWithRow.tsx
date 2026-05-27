@@ -28,6 +28,7 @@ import {
 } from '../../../../../../Views/confirmations/components/token-icon';
 import { isHardwareAccount } from '../../../../../../../util/address';
 import { POLYGON_PUSD } from '../../../../../../Views/confirmations/constants/predict';
+import { isPayWithBottomSheetEnabled } from '../../../../../../Views/confirmations/utils/transaction-pay';
 import { usePredictPaymentToken } from '../../../../hooks/usePredictPaymentToken';
 import { PREDICT_BALANCE_CHAIN_ID } from '../../../../constants/transactions';
 import { usePredictDefaultPaymentToken } from '../../hooks/usePredictDefaultPaymentToken';
@@ -39,6 +40,7 @@ interface PredictPayWithRowProps {
   chevronRight?: boolean;
   variant?: PredictPayWithRowVariant;
   availableBalance?: string;
+  onPaymentSelectorOpen?: () => void;
 }
 
 export function PredictPayWithRow({
@@ -46,6 +48,7 @@ export function PredictPayWithRow({
   chevronRight = false,
   variant = 'pill',
   availableBalance,
+  onPaymentSelectorOpen,
 }: PredictPayWithRowProps) {
   usePredictDefaultPaymentToken();
   const navigation = useNavigation();
@@ -66,8 +69,12 @@ export function PredictPayWithRow({
 
   const handlePress = useCallback(() => {
     if (!canEdit) return;
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
-  }, [canEdit, navigation]);
+    onPaymentSelectorOpen?.();
+    const navigateTo = isPayWithBottomSheetEnabled()
+      ? Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET
+      : Routes.CONFIRMATION_PAY_WITH_MODAL;
+    navigation.navigate(navigateTo);
+  }, [canEdit, navigation, onPaymentSelectorOpen]);
 
   const label = strings('confirm.label.pay_with');
   const displaySymbol = showPredictBalance

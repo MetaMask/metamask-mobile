@@ -43,6 +43,7 @@ import Device from '../../../util/device';
 import AppConstants from '../../../core/AppConstants';
 import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
 import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import downloadFile from '../../../util/browser/downloadFile';
@@ -140,6 +141,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     fromPerps,
     fromBenefit,
     fromCard,
+    fromWhatsHappening,
   }) => {
     const navigation = useNavigation();
     const { styles } = useStyles(styleSheet, {});
@@ -1294,6 +1296,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             screen: Routes.CARD.HOME,
           },
         });
+      } else if (fromWhatsHappening) {
+        // WhatsHappeningDetailView is in the stack navigator so goBack() works correctly.
+        navigation.goBack();
       } else {
         // Navigate to TrendingView/TrendingFeed
         // Note: We use explicit navigation instead of goBack() because the browser
@@ -1303,7 +1308,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           screen: Routes.TRENDING_FEED,
         });
       }
-    }, [navigation, fromPerps, fromBenefit, fromCard]);
+    }, [navigation, fromPerps, fromBenefit, fromCard, fromWhatsHappening]);
 
     const onCancelUrlBar = useCallback(() => {
       hideAutocomplete();

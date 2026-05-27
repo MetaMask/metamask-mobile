@@ -21,7 +21,6 @@ critical:
     - android/settings.gradle
     - android/gradle.properties
     - android/app/build.gradle
-    - bitrise.yml
     - builds.yml
     - .github/workflows/ci.yml
     - .github/workflows/build.yml

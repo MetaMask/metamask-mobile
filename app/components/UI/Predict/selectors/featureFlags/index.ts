@@ -147,6 +147,12 @@ export const selectPredictUpDownEnabledFlag = createSelector(
   (flags) => flags.predictUpDownEnabled,
 );
 
+export const selectPredictHomepageDiscoveryNbaChampionEnabledFlag =
+  createSelector(
+    selectPredictFeatureFlags,
+    (flags) => flags.predictHomepageDiscoveryNbaChampionEnabled,
+  );
+
 export const selectPredictWorldCupConfig = createSelector(
   selectPredictFeatureFlags,
   (flags) => flags.predictWorldCup,
@@ -170,6 +176,11 @@ export const selectPredictWorldCupMainFeedTabEnabledFlag = createSelector(
 export const selectPredictWorldCupScreenEnabledFlag = createSelector(
   selectPredictWorldCupConfig,
   (config) => config.enabled && config.showWorldCupScreen,
+);
+
+export const selectPredictPortfolioEnabledFlag = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.predictPortfolioEnabled,
 );
 
 export const selectPredictFeaturedCarouselEnabledFlag = createSelector(

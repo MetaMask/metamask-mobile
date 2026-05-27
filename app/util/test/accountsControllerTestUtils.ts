@@ -43,7 +43,7 @@ export function createMockUuidFromAddress(address: string): AccountId {
     (_, i) => address.charCodeAt(i) || 0,
   );
   return uuidV4({
-    random: fakeShaFromAddress,
+    random: fakeShaFromAddress as unknown as Uint8Array,
   });
 }
 

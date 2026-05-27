@@ -5,15 +5,20 @@ import { useTransactionPayToken } from '../../../Views/confirmations/hooks/pay/u
 import Engine from '../../../../core/Engine';
 import { parsePayWithToken } from '../utils/parsePayWithToken';
 
+export type PerpsPaymentTokenInput =
+  | AssetType
+  | { address: string; chainId: string }
+  | null;
+
 export interface UsePerpsPaymentTokenResult {
-  onPaymentTokenChange: (token: AssetType | null) => void;
+  onPaymentTokenChange: (token: PerpsPaymentTokenInput) => void;
 }
 
 export function usePerpsPaymentToken(): UsePerpsPaymentTokenResult {
   const { setPayToken } = useTransactionPayToken();
 
   const onPaymentTokenChange = useCallback(
-    (token: AssetType | null) => {
+    (token: PerpsPaymentTokenInput) => {
       const parsed =
         token === null || token === undefined ? null : parsePayWithToken(token);
 

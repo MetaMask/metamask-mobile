@@ -28,7 +28,10 @@ import {
   selectEVMEnabledNetworks,
   selectNonEVMEnabledNetworks,
 } from '../../../selectors/networkEnablementController';
-import { selectLocalTransactions } from '../../../selectors/transactionController';
+import {
+  selectLocalTransactions,
+  selectRelatedChainIdsByTransactionId,
+} from '../../../selectors/transactionController';
 import { baseStyles } from '../../../styles/common';
 import { areAddressesEqual, isHardwareAccount } from '../../../util/address';
 import { getBlockExplorerAddressUrl } from '../../../util/networks';
@@ -43,8 +46,10 @@ import MultichainBridgeTransactionListItem from '../../UI/MultichainBridgeTransa
 import MultichainTransactionListItem from '../../UI/MultichainTransactionListItem';
 import TransactionElement from '../../UI/TransactionElement';
 import TransactionsFooter from '../../UI/Transactions/TransactionsFooter';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import MultichainTransactionsFooter from '../MultichainTransactionsView/MultichainTransactionsFooter';
 import { getAddressUrl } from '../../../core/Multichain/utils';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { CancelSpeedupModal } from '../confirmations/components/modals/cancel-speedup-modal';
 import styleSheet from './UnifiedTransactionsView.styles';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
@@ -167,6 +172,10 @@ const UnifiedTransactionsView = ({
     [enabledNonEVMNetworks],
   );
 
+  const relatedChainIdsByTransactionId = useSelector(
+    selectRelatedChainIdsByTransactionId,
+  );
+
   /** Drop confirmed rows not on currently enabled EVM chains (guards stale query pages). */
   const allConfirmedForEnabledChains = useMemo<TransactionViewModel[]>(() => {
     const chains = enabledEVMChainIds ?? [];
@@ -207,12 +216,18 @@ const UnifiedTransactionsView = ({
         }
 
         const { chainId: _chainId, txParams } = tx;
+
         if (!enabledEvmSet.size) {
           return false;
         }
-        if (!_chainId || !enabledEvmSet.has(String(_chainId).toLowerCase())) {
+
+        const relatedChainIds = relatedChainIdsByTransactionId.get(tx.id) ?? [
+          String(_chainId ?? '').toLowerCase(),
+        ];
+        if (!relatedChainIds.some((id) => enabledEvmSet.has(id))) {
           return false;
         }
+
         const isBridgeTransaction = isBridgeHistoryForEvmTransaction(
           tx,
           bridgeHistoryValues,
@@ -283,6 +298,7 @@ const UnifiedTransactionsView = ({
     enabledEVMChainIds,
     enabledNonEVMChainIds,
     bridgeHistory,
+    relatedChainIdsByTransactionId,
   ]);
 
   const { data, nonEvmTransactionsForSelectedChain } = useMemo<{

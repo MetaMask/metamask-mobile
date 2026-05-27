@@ -15,7 +15,7 @@ export const predictOpenPositionAnalyticsExpectations: AnalyticsExpectations = {
       containProperties: {
         trade_type: 'Predict',
         implementation_type: 'native',
-        entry_point: 'main_trade_button',
+        entry_point: 'homepage_positions',
       },
     },
   ],

@@ -19,8 +19,14 @@ export function getPhishingControllerMessenger(
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    actions: [],
-    events: ['TransactionController:stateChange'],
+    actions: [
+      'AddressBookController:getState',
+      'TransactionController:getState',
+    ],
+    events: [
+      'AddressBookController:stateChange',
+      'TransactionController:stateChange',
+    ],
     messenger,
   });
   return messenger;

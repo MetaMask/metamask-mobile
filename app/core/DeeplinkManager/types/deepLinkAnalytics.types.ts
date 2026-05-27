@@ -51,7 +51,8 @@ export enum DeepLinkRoute {
   PREDICT = 'predict',
   SHIELD = 'shield',
   TRENDING = 'trending',
-  SOCIAL_LEADERBOARD = 'social-leaderboard',
+  WHATS_HAPPENING = 'whats-happening',
+  TOP_TRADERS = 'top-traders',
   SOCIAL_TRADER_POSITION = 'social-trader-position',
   CARD_ONBOARDING = 'card-onboarding',
   CARD_HOME = 'card-home',
@@ -93,6 +94,13 @@ export interface DeepLinkAnalyticsContext {
 
   /** Branch.io parameters for app installation detection */
   branchParams?: BranchParams;
+
+  /**
+   * Fire-and-forget Branch.io fetch started by `handleUniversalLink` so the
+   * interstitial / handler flow isn't blocked on it. Awaited later by
+   * `createDeepLinkUsedEventBuilder` when building the analytics event
+   */
+  branchParamsPromise?: Promise<BranchParams | undefined>;
 
   /** URL parameters */
   urlParams: Partial<DeeplinkUrlParams>;

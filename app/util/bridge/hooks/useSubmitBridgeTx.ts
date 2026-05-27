@@ -21,6 +21,8 @@ import {
   TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
 } from '../../../components/UI/Bridge/components/TokenSelectorItem.abTestConfig';
 import {
+  AMBIENT_PRICE_COLOR_AB_KEY,
+  AMBIENT_PRICE_COLOR_VARIANTS,
   STICKY_FOOTER_SWAP_LABEL_AB_KEY,
   STICKY_FOOTER_SWAP_LABEL_VARIANTS,
 } from '../../../components/UI/TokenDetails/components/abTestConfig';
@@ -69,6 +71,10 @@ export default function useSubmitBridgeTx() {
     STICKY_FOOTER_SWAP_LABEL_AB_KEY,
     STICKY_FOOTER_SWAP_LABEL_VARIANTS,
   );
+  const {
+    variantName: ambientColorVariantName,
+    isActive: isAmbientColorAbActive,
+  } = useABTest(AMBIENT_PRICE_COLOR_AB_KEY, AMBIENT_PRICE_COLOR_VARIANTS);
 
   const abTests = abTestContext?.assetsASSETS2493AbtestTokenDetailsLayout
     ? {
@@ -106,6 +112,15 @@ export default function useSubmitBridgeTx() {
       );
     }
 
+    if (isAmbientColorAbActive) {
+      tests.push(
+        createActiveABTestAssignment(
+          AMBIENT_PRICE_COLOR_AB_KEY,
+          ambientColorVariantName,
+        ),
+      );
+    }
+
     return tests.length > 0 ? tests : undefined;
   }, [
     isNumpadAbActive,
@@ -114,6 +129,8 @@ export default function useSubmitBridgeTx() {
     tokenSelectorVariantName,
     isStickyFooterAbActive,
     stickyFooterVariantName,
+    isAmbientColorAbActive,
+    ambientColorVariantName,
   ]);
 
   const submitBridgeTx = async ({

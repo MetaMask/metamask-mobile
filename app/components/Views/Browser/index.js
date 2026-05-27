@@ -14,6 +14,7 @@ import { deepEqual } from 'fast-equals';
 import { parseCaipAccountId } from '@metamask/utils';
 import { strings } from '../../../../locales/i18n';
 import { selectPermissionControllerState } from '../../../selectors/snaps';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { BrowserViewSelectorsIDs } from '../BrowserTab/BrowserView.testIds';
 import {
   closeTab,
@@ -36,6 +37,7 @@ import {
 import Logger from '../../../util/Logger';
 import getAccountNameWithENS from '../../../util/accounts';
 import Tabs from '../../UI/Tabs';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import BrowserTab from '../BrowserTab/BrowserTab';
 import URL from 'url-parse';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
@@ -50,6 +52,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { MAX_BROWSER_TABS, MAX_MOUNTED_TABS } from './constants';
 import { getMountedTabIds } from './utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import DiscoveryTab from '../DiscoveryTab/DiscoveryTab';
 ///: END:ONLY_INCLUDE_IF
 
@@ -462,6 +465,7 @@ export const BrowserPure = (props) => {
               fromPerps={route.params?.fromPerps}
               fromBenefit={route.params?.fromBenefit}
               fromCard={route.params?.fromCard}
+              fromWhatsHappening={route.params?.fromWhatsHappening}
             />
           ) : (
             <DiscoveryTab
@@ -485,6 +489,7 @@ export const BrowserPure = (props) => {
       route.params?.fromPerps,
       route.params?.fromBenefit,
       route.params?.fromCard,
+      route.params?.fromWhatsHappening,
     ],
   );
 

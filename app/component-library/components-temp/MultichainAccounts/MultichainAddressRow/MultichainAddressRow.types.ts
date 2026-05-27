@@ -1,6 +1,5 @@
 import { CaipChainId } from '@metamask/utils';
 import { IconName } from '@metamask/design-system-react-native';
-import type { ToastRef } from '../../../components/Toast/Toast.types';
 
 export interface Icon {
   /**
@@ -19,6 +18,23 @@ export interface Icon {
   testId: string;
 }
 
+export interface CopyToastOptions {
+  variant: 'Plain';
+  labelOptions: { label: string }[];
+  hasNoTimeout: boolean;
+  closeButtonOptions: {
+    variant: 'Icon';
+    iconName: IconName;
+    onPress: () => void;
+  };
+}
+
+export interface CopyToastRef {
+  // Keep legacy ToastRef structurally assignable without importing deprecated Toast types.
+  showToast(toastOptions: never): void;
+  closeToast(): void;
+}
+
 /**
  * Parameters for the copy operation.
  */
@@ -28,14 +44,13 @@ export interface CopyParams {
    */
   callback: () => Promise<void>;
   /**
-   * Technically optional to keep types simple but toast ref for showing toast notification
-   * should always be present if copyParams is used. This ensures consistent behavior
+   * Optional toast ref for legacy callers that need the row to show a toast.
    */
-  toastRef?: React.RefObject<ToastRef | null>;
+  toastRef?: React.RefObject<CopyToastRef | null>;
   /**
-   * Required toast message. Specify what is being copied e.g. "Address copied", "Private key copied", etc
+   * Toast message used when toastRef is provided.
    */
-  toastMessage: string;
+  toastMessage?: string;
 }
 
 export interface MultichainAddressRowProps {

@@ -1,5 +1,19 @@
 /* eslint-disable import-x/no-commonjs */
 
+const {
+  routeIsolationZones,
+} = require('./scripts/eslint-route-isolation-zones');
+
+// Existing BN.js migration zone, kept in a named const so it can be
+// re-declared by the route-isolation overrides below without duplicating
+// the message text.
+const utilNumberDeprecationZone = {
+  target: 'app',
+  from: 'app/util/number/index.js',
+  message:
+    'app/util/number/index.js is deprecated. Import the BigInt-based replacement from app/util/number/bigint instead. See app/util/number/bigint-migration-reference.test.ts for migration patterns.',
+};
+
 /**
  * Files still allowed to import deprecated `app/util/number/index.js` during
  * the BN.js → BigInt migration. Kept in one array so the default import-fence
@@ -83,7 +97,6 @@ const utilNumberImportBurndownFiles = [
   'app/components/UI/TransactionElement/utils.js',
   'app/components/UI/UrlAutocomplete/Result.tsx',
   'app/components/Views/AssetDetails/index.tsx',
-  'app/components/Views/DetectedTokens/components/Token.tsx',
   'app/components/Views/GasEducationCarousel/index.js',
   'app/components/Views/NetworksManagement/NetworkDetailsView/hooks/useNetworkValidation.ts',
   'app/components/Views/SocialLeaderboard/TraderPositionView/components/QuickBuyBottomSheet/useQuickBuyBottomSheet.ts',
@@ -681,16 +694,7 @@ module.exports = {
         // rule, so allow-listed files remain exempt.
         'import-x/no-restricted-paths': [
           'error',
-          {
-            zones: [
-              {
-                target: 'app',
-                from: 'app/util/number/index.js',
-                message:
-                  'app/util/number/index.js is deprecated. Import the BigInt-based replacement from app/util/number/bigint instead. See app/util/number/bigint-migration-reference.test.ts for migration patterns.',
-              },
-            ],
-          },
+          { zones: [utilNumberDeprecationZone] },
         ],
       },
     },
@@ -724,6 +728,41 @@ module.exports = {
               },
             ],
           },
+        ],
+      },
+    },
+    {
+      // Route-module isolation per ADR 0020 (modularize-routes), scoped to
+      // `app/components/Views/**`. Declared in its own override because the
+      // BN.js migration override above excludes `excludedFiles`, which would
+      // otherwise silently exempt every Views file on the burn-down list
+      // from route isolation. Re-declares the BN.js zone here so that
+      // non-burn-down Views files keep their BN.js fence (ESLint replaces
+      // `import-x/no-restricted-paths` per override rather than merging).
+      // See scripts/eslint-route-isolation-zones.js for zone generation.
+      files: ['app/components/Views/**/*.{ts,tsx,js,jsx}'],
+      excludedFiles: utilNumberImportBurndownFiles,
+      rules: {
+        'import-x/no-restricted-paths': [
+          'error',
+          {
+            zones: [utilNumberDeprecationZone, ...routeIsolationZones],
+          },
+        ],
+      },
+    },
+    {
+      // Burn-down Views files (and all other burn-down files): apply only
+      // the route-isolation zones. The BN.js fence stays disabled while
+      // those files complete their BigInt migration; route isolation must
+      // still apply so new cross-route imports added to a burn-down file
+      // are caught. Route-isolation zones target only `Views/<route>`
+      // paths, so this override is a no-op for non-Views burn-down files.
+      files: utilNumberImportBurndownFiles,
+      rules: {
+        'import-x/no-restricted-paths': [
+          'error',
+          { zones: routeIsolationZones },
         ],
       },
     },

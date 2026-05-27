@@ -3,8 +3,11 @@ import { ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useOnboardingHeader } from '../../../hooks/useOnboardingHeader';
 import { strings } from '../../../../../locales/i18n';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import NetworkDetailsCheckSettings from '../../Settings/NetworkDetailsCheckSettings';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import MetaMetricsAndDataCollectionSection from '../../Settings/SecuritySettings/Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import DeleteMetaMetricsData from '../../Settings/SecuritySettings/Sections/DeleteMetaMetricsData';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';

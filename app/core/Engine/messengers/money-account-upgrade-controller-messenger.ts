@@ -31,9 +31,15 @@ export function getMoneyAccountUpgradeControllerMessenger(
   });
   rootMessenger.delegate({
     actions: [
+      'AuthenticatedUserStorageService:createDelegation',
+      'AuthenticatedUserStorageService:listDelegations',
       'ChompApiService:associateAddress',
+      'ChompApiService:createIntents',
       'ChompApiService:createUpgrade',
+      'ChompApiService:getIntentsByAddress',
       'ChompApiService:getServiceDetails',
+      'ChompApiService:verifyDelegation',
+      'DelegationController:signDelegation',
       'KeyringController:signEip7702Authorization',
       'KeyringController:signPersonalMessage',
       'NetworkController:findNetworkClientIdByChainId',

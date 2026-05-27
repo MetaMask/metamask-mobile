@@ -12,6 +12,8 @@ import {
   buildMoneyAccountWithdrawBatch,
   updateMoneyAccountDepositTokenAmount,
   updateMoneyAccountWithdrawTokenAmount,
+  getMoneyAccountDepositTransactionsData,
+  getMoneyAccountWithdrawTransactionsData,
 } from './moneyAccountTransactions';
 import ReduxService from '../../../../core/redux/ReduxService';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
@@ -88,7 +90,7 @@ const mockSelectMoneyAccountVaultConfig = jest.mocked(
   selectMoneyAccountVaultConfig,
 );
 
-const MOCK_CHAIN_ID = '0x1' as Hex;
+const MOCK_CHAIN_ID = '0x8f' as Hex;
 const MOCK_MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da' as Hex;
 const MOCK_BORING_VAULT = '0xB5F07d769dD60fE54c97dd53101181073DDf21b2' as Hex;
 const MOCK_TELLER = '0x86821F179eaD9F0b3C79b2f8deF0227eEBFDc9f9' as Hex;
@@ -97,7 +99,7 @@ const MOCK_LENS = '0x846a7832022350434B5cC006d07cc9c782469660' as Hex;
 const MOCK_PROVIDER = {} as ethers.providers.Provider;
 
 const MOCK_VAULT_CONFIG: MoneyAccountVaultConfig = {
-  chainId: '0xa4b1',
+  chainId: MOCK_CHAIN_ID,
   boringVault: MOCK_BORING_VAULT,
   tellerAddress: MOCK_TELLER,
   accountantAddress: MOCK_ACCOUNTANT,
@@ -526,6 +528,167 @@ describe('moneyAccountTransactions', () => {
       expect(result.transferTx.params.data.toLowerCase()).toContain(
         MOCK_RECIPIENT_ADDRESS.toLowerCase().slice(2),
       );
+    });
+  });
+
+  describe('getMoneyAccountDepositTransactionsData', () => {
+    beforeEach(() => {
+      mockGetProviderByChainId.mockReturnValue(MOCK_PROVIDER as never);
+      mockSelectMoneyAccountVaultConfig.mockReturnValue(MOCK_VAULT_CONFIG);
+      (
+        jest.mocked(ReduxService) as unknown as {
+          store: { getState: jest.Mock };
+        }
+      ).store = { getState: jest.fn().mockReturnValue({}) };
+    });
+
+    it('returns two hex calldata strings for a valid amount', async () => {
+      mockPreviewDeposit.mockResolvedValue(ethers.BigNumber.from('1000000'));
+
+      const result = await getMoneyAccountDepositTransactionsData(
+        MOCK_CHAIN_ID,
+        '1.0',
+      );
+
+      expect(result).toHaveLength(2);
+      expect(result[0]).toMatch(/^0x/);
+      expect(result[1]).toMatch(/^0x/);
+    });
+
+    it('returns [] when vault config is missing', async () => {
+      mockSelectMoneyAccountVaultConfig.mockReturnValue(undefined);
+
+      const result = await getMoneyAccountDepositTransactionsData(
+        MOCK_CHAIN_ID,
+        '1.0',
+      );
+
+      expect(result).toEqual([]);
+      expect(mockPreviewDeposit).not.toHaveBeenCalled();
+    });
+
+    it('returns [] when provider is missing', async () => {
+      mockGetProviderByChainId.mockReturnValue(undefined as never);
+
+      const result = await getMoneyAccountDepositTransactionsData(
+        MOCK_CHAIN_ID,
+        '1.0',
+      );
+
+      expect(result).toEqual([]);
+      expect(mockPreviewDeposit).not.toHaveBeenCalled();
+    });
+
+    it('calls previewDeposit with the converted token amount', async () => {
+      mockPreviewDeposit.mockResolvedValue(ethers.BigNumber.from('1000000'));
+
+      await getMoneyAccountDepositTransactionsData(MOCK_CHAIN_ID, '1.0');
+
+      // 1.0 with 6 decimals = 1_000_000
+      expect(mockPreviewDeposit).toHaveBeenCalledWith(
+        expect.any(String),
+        '1000000',
+        MOCK_VAULT_CONFIG.boringVault,
+        MOCK_VAULT_CONFIG.accountantAddress,
+      );
+    });
+
+    it('propagates RPC errors', async () => {
+      mockPreviewDeposit.mockRejectedValue(new Error('RPC timeout'));
+
+      await expect(
+        getMoneyAccountDepositTransactionsData(MOCK_CHAIN_ID, '1.0'),
+      ).rejects.toThrow('RPC timeout');
+    });
+  });
+
+  describe('getMoneyAccountWithdrawTransactionsData', () => {
+    const mockGetState = jest.mocked(ReduxService).store.getState as jest.Mock;
+    const mockSelectVaultConfig = jest.mocked(selectMoneyAccountVaultConfig);
+    const mockSelectPrimaryMoneyAccount = jest.mocked(
+      selectPrimaryMoneyAccount,
+    );
+    const mockGetProvider = jest.mocked(getProviderByChainId);
+
+    const MOCK_MONEY_ACCOUNT_ADDRESS =
+      '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef' as Hex;
+    const MOCK_RECIPIENT = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd' as Hex;
+
+    beforeEach(() => {
+      mockGetState.mockReturnValue({});
+      mockSelectVaultConfig.mockReturnValue(MOCK_VAULT_CONFIG);
+      mockSelectPrimaryMoneyAccount.mockReturnValue({
+        address: MOCK_MONEY_ACCOUNT_ADDRESS,
+      } as ReturnType<typeof selectPrimaryMoneyAccount>);
+      mockGetProvider.mockReturnValue(
+        MOCK_PROVIDER as ReturnType<typeof getProviderByChainId>,
+      );
+      mockGetRate.mockResolvedValue(ethers.BigNumber.from('1000000'));
+    });
+
+    it('returns two hex calldata strings for a valid amount', async () => {
+      const result = await getMoneyAccountWithdrawTransactionsData(
+        MOCK_CHAIN_ID,
+        '1.0',
+        MOCK_RECIPIENT,
+      );
+
+      expect(result).toHaveLength(2);
+      expect(result[0]).toMatch(/^0x/);
+      expect(result[1]).toMatch(/^0x/);
+    });
+
+    it('encodes the recipient address in the transfer calldata', async () => {
+      const result = await getMoneyAccountWithdrawTransactionsData(
+        MOCK_CHAIN_ID,
+        '1.0',
+        MOCK_RECIPIENT,
+      );
+
+      expect(result[1].toLowerCase()).toContain(
+        MOCK_RECIPIENT.toLowerCase().slice(2),
+      );
+    });
+
+    it('returns [] when vault config is missing', async () => {
+      mockSelectVaultConfig.mockReturnValue(undefined);
+
+      const result = await getMoneyAccountWithdrawTransactionsData(
+        MOCK_CHAIN_ID,
+        '1.0',
+        MOCK_RECIPIENT,
+      );
+
+      expect(result).toEqual([]);
+      expect(mockGetRate).not.toHaveBeenCalled();
+    });
+
+    it('returns [] when primary money account is missing', async () => {
+      mockSelectPrimaryMoneyAccount.mockReturnValue(undefined);
+
+      const result = await getMoneyAccountWithdrawTransactionsData(
+        MOCK_CHAIN_ID,
+        '1.0',
+        MOCK_RECIPIENT,
+      );
+
+      expect(result).toEqual([]);
+      expect(mockGetRate).not.toHaveBeenCalled();
+    });
+
+    it('returns [] when provider is missing', async () => {
+      mockGetProvider.mockReturnValue(
+        undefined as unknown as ReturnType<typeof getProviderByChainId>,
+      );
+
+      const result = await getMoneyAccountWithdrawTransactionsData(
+        MOCK_CHAIN_ID,
+        '1.0',
+        MOCK_RECIPIENT,
+      );
+
+      expect(result).toEqual([]);
+      expect(mockGetRate).not.toHaveBeenCalled();
     });
   });
 });

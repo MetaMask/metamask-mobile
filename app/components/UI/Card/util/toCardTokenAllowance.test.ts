@@ -99,6 +99,23 @@ describe('toCardFundingToken', () => {
     });
   });
 
+  describe('isMoneyAccountEntry flag', () => {
+    it('defaults to false when no flag is provided', () => {
+      const result = toCardFundingToken(makeAsset());
+      expect(result.isMoneyAccountEntry).toBe(false);
+    });
+
+    it('forwards true when caller passes true', () => {
+      const result = toCardFundingToken(makeAsset(), true);
+      expect(result.isMoneyAccountEntry).toBe(true);
+    });
+
+    it('forwards false when caller passes false explicitly', () => {
+      const result = toCardFundingToken(makeAsset(), false);
+      expect(result.isMoneyAccountEntry).toBe(false);
+    });
+  });
+
   describe('field passthrough', () => {
     it('maps remaining balance to spendableBalance and total cap to spendingCap', () => {
       const asset = makeAsset({

@@ -35,10 +35,16 @@ import PillScrollList from '../components/PillScrollList';
 import SectionHeader from '../components/SectionHeader';
 import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
-import WhatsHappeningSection from '../../Homepage/Sections/WhatsHappening';
-import { WhatsHappeningSource } from '../../Homepage/Sections/WhatsHappening/constants';
+import WhatsHappeningSection from '../../../UI/WhatsHappening';
+import { WhatsHappeningSource } from '../../../UI/WhatsHappening/constants';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { SectionRefreshHandle } from '../../Homepage/types';
 import { selectWhatsHappeningEnabled } from '../../../../selectors/featureFlagController/whatsHappening';
+import { useABTest } from '../../../../hooks';
+import {
+  WHATS_HAPPENING_EXPLORE_AB_KEY,
+  WHATS_HAPPENING_EXPLORE_VARIANTS,
+} from '../abTestConfig';
 
 interface PerpsBlockProps {
   refresh: TabProps['refresh'];
@@ -102,6 +108,10 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const isWhatsHappeningEnabled = useSelector(selectWhatsHappeningEnabled);
+  const { variant: whatsHappeningExploreVariant } = useABTest(
+    WHATS_HAPPENING_EXPLORE_AB_KEY,
+    WHATS_HAPPENING_EXPLORE_VARIANTS,
+  );
 
   const whatsHappeningRef = useRef<SectionRefreshHandle>(null);
 
@@ -171,41 +181,46 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
     cryptoMovers.isLoading || cryptoMovers.data.length > 0;
   const showStocks = stocks.isLoading || stocks.data.length > 0;
 
+  const whatsHappeningSection = isWhatsHappeningEnabled ? (
+    <Box key="whats-happening" twClassName="-mx-4" marginBottom={6}>
+      <WhatsHappeningSection
+        ref={whatsHappeningRef}
+        source={WhatsHappeningSource.Explore}
+      />
+    </Box>
+  ) : null;
+
+  const predictionsSection = showPredictions ? (
+    <Box key="predictions">
+      <SectionHeader
+        title={strings('wallet.predict')}
+        onViewAll={() => navigateToPredictionsList(navigation, 'trending')}
+        testID="section-header-view-all-predictions"
+        tabName="Now"
+        sectionName="predictions_trending"
+      />
+      <HorizontalCarousel<PredictMarketType>
+        data={predictions.data}
+        isLoading={predictions.isLoading}
+        renderItem={renderPredictionItem}
+        Skeleton={PredictionsSkeleton}
+        idPrefix="predictions"
+      />
+    </Box>
+  ) : null;
+
+  const orderedIntroSections =
+    whatsHappeningExploreVariant.whatsHappeningBeforePredict
+      ? [whatsHappeningSection, predictionsSection]
+      : [predictionsSection, whatsHappeningSection];
+
   return (
     <ExploreScroll
       refreshing={refreshing}
       onRefresh={onRefresh}
       testID={TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW}
     >
-      {isWhatsHappeningEnabled && (
-        <Box twClassName="-mx-4" marginBottom={6}>
-          <WhatsHappeningSection
-            ref={whatsHappeningRef}
-            sectionIndex={0}
-            totalSectionsLoaded={1}
-            source={WhatsHappeningSource.Explore}
-          />
-        </Box>
-      )}
-
-      {showPredictions && (
-        <Box>
-          <SectionHeader
-            title={strings('wallet.predict')}
-            onViewAll={() => navigateToPredictionsList(navigation, 'trending')}
-            testID="section-header-view-all-predictions"
-            tabName="Now"
-            sectionName="predictions_trending"
-          />
-          <HorizontalCarousel<PredictMarketType>
-            data={predictions.data}
-            isLoading={predictions.isLoading}
-            renderItem={renderPredictionItem}
-            Skeleton={PredictionsSkeleton}
-            idPrefix="predictions"
-          />
-        </Box>
-      )}
+      {orderedIntroSections}
 
       {showCryptoMovers && (
         <Box>

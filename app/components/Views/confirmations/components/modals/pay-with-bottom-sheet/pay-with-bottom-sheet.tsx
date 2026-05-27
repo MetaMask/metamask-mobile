@@ -10,7 +10,10 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import PayWithSection from '../../UI/pay-with-section';
+import { useDismissOnPaymentChange } from '../../../hooks/pay/useDismissOnPaymentChange';
 import { usePayWithSections } from '../../../hooks/pay/usePayWithSections';
+import { isTransactionPayWithdraw } from '../../../utils/transaction';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 
 export const PAY_WITH_BOTTOM_SHEET_TEST_ID = 'pay-with-bottom-sheet';
 
@@ -18,6 +21,12 @@ export function PayWithBottomSheet() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const { sections } = usePayWithSections();
+  const transactionMeta = useTransactionMetadataRequest();
+  useDismissOnPaymentChange({ dismissOnPayTokenChange: false });
+  const isWithdraw = isTransactionPayWithdraw(transactionMeta);
+  const title = isWithdraw
+    ? strings('confirm.pay_with_bottom_sheet.withdraw_title')
+    : strings('confirm.pay_with_bottom_sheet.title');
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();
@@ -35,9 +44,7 @@ export function PayWithBottomSheet() {
       keyboardAvoidingViewEnabled={false}
     >
       <BottomSheetHeader onClose={handleClose}>
-        <Text variant={TextVariant.HeadingSm}>
-          {strings('confirm.pay_with_bottom_sheet.title')}
-        </Text>
+        <Text variant={TextVariant.HeadingSm}>{title}</Text>
       </BottomSheetHeader>
       <ScrollView testID={`${PAY_WITH_BOTTOM_SHEET_TEST_ID}-scroll`}>
         {sections.map((section) => (

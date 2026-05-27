@@ -15,10 +15,12 @@ import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../../../UI/Earn/selectors/featureFlags';
+import { selectMoneyHomeScreenEnabledFlag } from '../../../../UI/Money/selectors/featureFlags';
 import { useMusdConversionEligibility } from '../../../../UI/Earn/hooks/useMusdConversionEligibility';
 import { useMusdBalance } from '../../../../UI/Earn/hooks/useMusdBalance';
-import { selectMoneyHomeScreenEnabledFlag } from '../../../../UI/Money/selectors/featureFlags';
 import MusdAggregatedRow from './MusdAggregatedRow';
 import { useCashNavigation } from './useCashNavigation';
 
@@ -91,7 +93,11 @@ const CashSection = forwardRef<SectionRefreshHandle, CashSectionProps>(
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
         <Box gap={3}>
-          <SectionHeader title={title} onPress={navigateToCash} />
+          <SectionHeader
+            title={title}
+            onPress={navigateToCash}
+            testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('cash')}
+          />
           {!hasMusdBalanceOnAnyChain ? (
             <SectionRow>
               <CashGetMusdEmptyState key={`cash-empty-${refreshVersion}`} />

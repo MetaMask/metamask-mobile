@@ -61,6 +61,7 @@ import { notificationServicesPushControllerInit } from './controllers/notificati
 import {
   backendWebSocketServiceInit,
   accountActivityServiceInit,
+  ohlcvServiceInit,
 } from './controllers/core-backend';
 import { assetsControllerInit } from './controllers/assets-controller/assets-controller-init';
 import { AppStateWebSocketManager } from '../AppStateWebSocketManager';
@@ -374,6 +375,7 @@ export class Engine {
         ///: END:ONLY_INCLUDE_IF
         BackendWebSocketService: backendWebSocketServiceInit,
         AccountActivityService: accountActivityServiceInit,
+        OHLCVService: ohlcvServiceInit,
         ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
         MultichainAssetsController: multichainAssetsControllerInit,
         MultichainAssetsRatesController: multichainAssetsRatesControllerInit,
@@ -391,12 +393,14 @@ export class Engine {
         // subscribes to ClientController:stateChange before ClientController can emit.
         AssetsController: assetsControllerInit,
         ClientController: clientControllerInit,
+        // PhishingController hydrates known recipients from AddressBookController
+        // during construction for address poisoning checks.
+        AddressBookController: addressBookControllerInit,
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
         RewardsController: rewardsControllerInit,
         RewardsDataService: rewardsDataServiceInit,
         DelegationController: DelegationControllerInit,
-        AddressBookController: addressBookControllerInit,
         ConnectivityController: connectivityControllerInit,
         ProfileMetricsController: profileMetricsControllerInit,
         ProfileMetricsService: profileMetricsServiceInit,
@@ -526,6 +530,7 @@ export class Engine {
     );
     const accountActivityService =
       messengerClientsByName.AccountActivityService;
+    const ohlcvService = messengerClientsByName.OHLCVService;
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const multichainAssetsController =
@@ -603,6 +608,7 @@ export class Engine {
       ///: END:ONLY_INCLUDE_IF
       BackendWebSocketService: backendWebSocketService,
       AccountActivityService: accountActivityService,
+      OHLCVService: ohlcvService,
       AccountsController: accountsController,
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       MultichainBalancesController: multichainBalancesController,

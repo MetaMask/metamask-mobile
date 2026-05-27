@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Switch } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { SmartAccountIds } from '../../../../../MultichainAccounts/SmartAccount.testIds';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import Text, {
