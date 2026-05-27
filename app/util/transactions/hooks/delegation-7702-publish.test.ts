@@ -194,6 +194,25 @@ describe('Delegation 7702 Publish Hook', () => {
   });
 
   describe('returns empty result if', () => {
+    it('transaction type is revokeDelegation', async () => {
+      const result = await hookClass.getHook()(
+        {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.revokeDelegation,
+          isGasFeeSponsored: true,
+          gasFeeTokens: [GAS_FEE_TOKEN_MOCK],
+          selectedGasFeeToken: GAS_FEE_TOKEN_MOCK.tokenAddress,
+        },
+        SIGNED_TX_MOCK,
+      );
+
+      expect(result).toEqual({
+        transactionHash: undefined,
+      });
+      expect(isAtomicBatchSupportedMock).not.toHaveBeenCalled();
+      expect(submitRelayTransactionMock).not.toHaveBeenCalled();
+    });
+
     it('atomic batch is not supported', async () => {
       const result = await hookClass.getHook()(
         TRANSACTION_META_MOCK,

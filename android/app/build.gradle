@@ -163,13 +163,18 @@ def jscFlavor = 'org.webkit:android-jsc:+'
  */
 def reactNativeArchitectures() {
     def value = project.getProperties().get("reactNativeArchitectures")
-    return value ? value.split(",") : ["armeabi-v7a", "x86", "x86_64", "arm64-v8a"]
+    if (value) {
+        return value.split(",").toList()
+    }
+    return ["armeabi-v7a", "x86", "x86_64", "arm64-v8a"]
 }
 
 
 android {
     ndkVersion rootProject.ext.ndkVersion
-
+    lint {
+        baseline = file("lint-baseline.xml")
+    }
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
@@ -179,7 +184,7 @@ android {
         applicationId "io.metamask"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionName "7.79.0"
+        versionName "7.80.0"
         versionCode 4532
         testBuildType System.getProperty('testBuildType', 'debug')
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -190,6 +195,15 @@ android {
         // Braze SDK credentials — names match .android.env / build.sh exports
         resValue "string", "com_braze_api_key", "${System.env.MM_BRAZE_API_KEY_ANDROID ?: ''}"
         resValue "string", "com_braze_custom_endpoint", "${System.env.MM_BRAZE_SDK_ENDPOINT ?: ''}"
+
+        ndk {
+            // Restrict packaged .so files (including those pulled from third-party AARs
+            // like Facebook Conceal and react-native-fast-crypto) to the ABIs listed in
+            // reactNativeArchitectures. Without this, AGP packages every ABI shipped in
+            // dependency AARs regardless, which is what put x86_64 libconceal.so and
+            // libsecp256k1.so into the AAB and triggered Play's 16 KB alignment warning.
+            abiFilters(*reactNativeArchitectures())
+        }
 
         // Explicitly specify supported languages for the app, ensuring the app locales are valid when uploading to the Play Store
         resourceConfigurations += ['en', 'de', 'el', 'es', 'fr', 'hi', 'id', 'ja', 'ko', 'pt', 'ru', 'tl', 'tr', 'vi', 'zh']
@@ -391,7 +405,6 @@ project.afterEvaluate {
 
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
-    implementation(files("../libs/ecies.aar"))
     implementation("com.facebook.react:react-android")
     implementation 'org.apache.commons:commons-compress:1.22'
     androidTestImplementation 'androidx.test:core:1.5.0'

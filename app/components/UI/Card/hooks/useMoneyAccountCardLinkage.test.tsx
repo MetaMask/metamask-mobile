@@ -7,9 +7,15 @@ import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountCon
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import {
   selectCardDelegationSettings,
+  selectCardHomeDataStatus,
   selectIsCardAuthenticated,
+  selectIsCardholder,
   selectIsMoneyAccountDelegatedForCard,
 } from '../../../../selectors/cardController';
+import {
+  selectPendingMoneyAccountCardLink,
+  setPendingMoneyAccountCardLink,
+} from '../../../../core/redux/slices/card';
 import { selectMoneyEnableMoneyAccountFlag } from '../../Money/selectors/featureFlags';
 import { resolveMoneyAccountCardToken } from '../../../../core/Engine/controllers/card-controller/utils/moneyAccountCardToken';
 import Routes from '../../../../constants/navigation/Routes';
@@ -17,8 +23,10 @@ import { BAANX_MAX_LIMIT } from '../constants';
 import { FundingStatus } from '../types';
 import { useMoneyAccountCardLinkage } from './useMoneyAccountCardLinkage';
 
+const mockDispatch = jest.fn();
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
+  useDispatch: () => mockDispatch,
 }));
 
 const mockNavigate = jest.fn();
@@ -118,22 +126,30 @@ const MOCK_TOKEN = {
   delegationContract: '0xdelegation',
 };
 
+type CardHomeDataStatusMock = 'idle' | 'loading' | 'success' | 'error';
+
 const buildSelectors = (
   overrides: {
     primaryMoneyAccount?: { address: string } | undefined;
     vaultConfig?: unknown;
     isMoneyAccountEnabled?: boolean;
     isCardAuthenticated?: boolean;
+    isCardholder?: boolean;
     delegationSettings?: unknown;
     isAlreadyDelegated?: boolean;
+    pendingMoneyAccountCardLink?: boolean;
+    cardHomeDataStatus?: CardHomeDataStatusMock;
   } = {},
 ) => ({
   primaryMoneyAccount: { address: MONEY_ACCOUNT_ADDRESS },
   vaultConfig: { id: 'vault-1' },
   isMoneyAccountEnabled: true,
   isCardAuthenticated: true,
+  isCardholder: false,
   delegationSettings: { ok: true },
   isAlreadyDelegated: false,
+  pendingMoneyAccountCardLink: false,
+  cardHomeDataStatus: 'success' as CardHomeDataStatusMock,
   ...overrides,
 });
 
@@ -146,10 +162,14 @@ const applySelectorMocks = (state: ReturnType<typeof buildSelectors>) => {
       return state.isMoneyAccountEnabled;
     if (selector === selectIsCardAuthenticated)
       return state.isCardAuthenticated;
+    if (selector === selectIsCardholder) return state.isCardholder;
     if (selector === selectCardDelegationSettings)
       return state.delegationSettings;
+    if (selector === selectCardHomeDataStatus) return state.cardHomeDataStatus;
     if (selector === selectIsMoneyAccountDelegatedForCard)
       return state.isAlreadyDelegated;
+    if (selector === selectPendingMoneyAccountCardLink)
+      return state.pendingMoneyAccountCardLink;
     return undefined;
   });
 };
@@ -186,10 +206,18 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(result.current.canLink).toBe(true);
       expect(result.current.hasMoneyAccountRequirements).toBe(true);
       expect(result.current.isCardAuthenticated).toBe(true);
+      expect(result.current.isCardLinkedToMoneyAccount).toBe(false);
       expect(result.current.moneyAccountCardToken).toBe(MOCK_TOKEN);
       expect(result.current.status).toBe('idle');
       expect(result.current.isLinking).toBe(false);
       expect(result.current.error).toBeNull();
+    });
+
+    it('reports isCardLinkedToMoneyAccount=true when the Money Account is already delegated for card', () => {
+      applySelectorMocks(buildSelectors({ isAlreadyDelegated: true }));
+      const { result } = renderLinkageHook();
+
+      expect(result.current.isCardLinkedToMoneyAccount).toBe(true);
     });
 
     it('reports canLink=false when the card is not authenticated', () => {
@@ -258,7 +286,9 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(mockLinkMoneyAccountCard).not.toHaveBeenCalled();
       expect(mockShowToast).toHaveBeenCalledTimes(1);
       expect(mockShowToast.mock.calls[0][0]).toMatchObject({
-        labelOptions: [{ label: "Couldn't link card", isBold: true }],
+        labelOptions: [
+          { label: 'Something went wrong linking your card', isBold: true },
+        ],
       });
     });
 
@@ -300,6 +330,308 @@ describe('useMoneyAccountCardLinkage', () => {
     });
   });
 
+  describe('startLinkFlow (entrypoint branching)', () => {
+    const ORIGIN = {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    } as const;
+
+    it('opens the Link Card sheet when the user is authenticated and can link', () => {
+      const { result } = renderLinkageHook();
+
+      act(() => {
+        result.current.startLinkFlow(ORIGIN);
+      });
+
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.LINK_CARD_SHEET,
+      });
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('no-ops when the user is authenticated and the Money Account is already delegated', () => {
+      applySelectorMocks(buildSelectors({ isAlreadyDelegated: true }));
+      const { result } = renderLinkageHook();
+
+      act(() => {
+        result.current.startLinkFlow(ORIGIN);
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
+    it('shows the error toast and does not navigate when Money Account requirements are missing', () => {
+      applySelectorMocks(buildSelectors({ vaultConfig: undefined }));
+      const { result } = renderLinkageHook();
+
+      act(() => {
+        result.current.startLinkFlow(ORIGIN);
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows the error toast when Monad USDC cannot be resolved AND the user is authenticated', () => {
+      mockResolveMoneyAccountCardToken.mockReturnValueOnce(null);
+      const { result } = renderLinkageHook();
+
+      act(() => {
+        result.current.startLinkFlow(ORIGIN);
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+    });
+
+    it('routes a not-authenticated cardholder to CardAuthentication with postAuthRedirect and sets the pending flag', () => {
+      applySelectorMocks(
+        buildSelectors({ isCardAuthenticated: false, isCardholder: true }),
+      );
+      const { result } = renderLinkageHook();
+
+      act(() => {
+        result.current.startLinkFlow(ORIGIN);
+      });
+
+      expect(mockDispatch).toHaveBeenCalledTimes(1);
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setPendingMoneyAccountCardLink(true),
+      );
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: {
+          screen: Routes.CARD.AUTHENTICATION,
+          params: { postAuthRedirect: ORIGIN, showAuthPrompt: true },
+        },
+      });
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('routes a not-authenticated non-cardholder to Card Onboarding without arming the sheet-resume flag', () => {
+      applySelectorMocks(
+        buildSelectors({ isCardAuthenticated: false, isCardholder: false }),
+      );
+      const { result } = renderLinkageHook();
+
+      act(() => {
+        result.current.startLinkFlow(ORIGIN);
+      });
+
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: { screen: Routes.CARD.ONBOARDING.ROOT },
+      });
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('still routes a not-authenticated cardholder to CardAuthentication when the funding token is null (token resolves after login)', () => {
+      mockResolveMoneyAccountCardToken.mockReturnValueOnce(null);
+      applySelectorMocks(
+        buildSelectors({ isCardAuthenticated: false, isCardholder: true }),
+      );
+      const { result } = renderLinkageHook();
+
+      act(() => {
+        result.current.startLinkFlow(ORIGIN);
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setPendingMoneyAccountCardLink(true),
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: {
+          screen: Routes.CARD.AUTHENTICATION,
+          params: { postAuthRedirect: ORIGIN, showAuthPrompt: true },
+        },
+      });
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('still routes a not-authenticated non-cardholder to onboarding without arming the sheet-resume flag when the funding token is null (token resolves after login)', () => {
+      mockResolveMoneyAccountCardToken.mockReturnValueOnce(null);
+      applySelectorMocks(
+        buildSelectors({ isCardAuthenticated: false, isCardholder: false }),
+      );
+      const { result } = renderLinkageHook();
+
+      act(() => {
+        result.current.startLinkFlow(ORIGIN);
+      });
+
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: { screen: Routes.CARD.ONBOARDING.ROOT },
+      });
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('resume effect (pendingMoneyAccountCardLink)', () => {
+    it('opens the Link Card sheet and clears the flag when authenticated and canLink', () => {
+      applySelectorMocks(buildSelectors({ pendingMoneyAccountCardLink: true }));
+      renderLinkageHook();
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setPendingMoneyAccountCardLink(false),
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.LINK_CARD_SHEET,
+      });
+    });
+
+    it('clears the flag silently when authenticated but already delegated', () => {
+      applySelectorMocks(
+        buildSelectors({
+          pendingMoneyAccountCardLink: true,
+          isAlreadyDelegated: true,
+        }),
+      );
+      renderLinkageHook();
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setPendingMoneyAccountCardLink(false),
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('clears the flag silently when authenticated but requirements are missing', () => {
+      applySelectorMocks(
+        buildSelectors({
+          pendingMoneyAccountCardLink: true,
+          vaultConfig: undefined,
+        }),
+      );
+      renderLinkageHook();
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setPendingMoneyAccountCardLink(false),
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('does nothing while the user is not yet authenticated', () => {
+      applySelectorMocks(
+        buildSelectors({
+          pendingMoneyAccountCardLink: true,
+          isCardAuthenticated: false,
+        }),
+      );
+      renderLinkageHook();
+
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('keeps the flag set when the funding token is null but card home data is still loading', () => {
+      mockResolveMoneyAccountCardToken.mockReturnValue(null);
+      applySelectorMocks(
+        buildSelectors({
+          pendingMoneyAccountCardLink: true,
+          cardHomeDataStatus: 'loading',
+        }),
+      );
+      renderLinkageHook();
+
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('keeps the flag set when the funding token is null and card home data is still idle', () => {
+      mockResolveMoneyAccountCardToken.mockReturnValue(null);
+      applySelectorMocks(
+        buildSelectors({
+          pendingMoneyAccountCardLink: true,
+          cardHomeDataStatus: 'idle',
+        }),
+      );
+      renderLinkageHook();
+
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('clears the flag silently once card home data has loaded but the funding token is still unresolved', () => {
+      mockResolveMoneyAccountCardToken.mockReturnValue(null);
+      applySelectorMocks(
+        buildSelectors({
+          pendingMoneyAccountCardLink: true,
+          cardHomeDataStatus: 'success',
+        }),
+      );
+      renderLinkageHook();
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setPendingMoneyAccountCardLink(false),
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('clears the flag silently when card home data fetch errors and the funding token cannot be resolved', () => {
+      mockResolveMoneyAccountCardToken.mockReturnValue(null);
+      applySelectorMocks(
+        buildSelectors({
+          pendingMoneyAccountCardLink: true,
+          cardHomeDataStatus: 'error',
+        }),
+      );
+      renderLinkageHook();
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setPendingMoneyAccountCardLink(false),
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('opens the sheet on rerender once the funding token resolves after card home data succeeds', () => {
+      mockResolveMoneyAccountCardToken.mockReturnValue(null);
+      applySelectorMocks(
+        buildSelectors({
+          pendingMoneyAccountCardLink: true,
+          cardHomeDataStatus: 'loading',
+        }),
+      );
+      const { rerender } = renderLinkageHook();
+
+      // First render: data still loading, flag must stay set.
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+
+      mockResolveMoneyAccountCardToken.mockReturnValue(MOCK_TOKEN);
+      applySelectorMocks(
+        buildSelectors({
+          pendingMoneyAccountCardLink: true,
+          cardHomeDataStatus: 'success',
+        }),
+      );
+      rerender();
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setPendingMoneyAccountCardLink(false),
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.LINK_CARD_SHEET,
+      });
+    });
+  });
+
   describe('confirmLinkInBackground - happy path', () => {
     it('transitions idle -> pending -> success and calls the controller once with BAANX_MAX_LIMIT and the MA address', async () => {
       mockLinkMoneyAccountCard.mockResolvedValueOnce(undefined);
@@ -332,7 +664,7 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('shows the Predict-style pending toast with a Spinner startAccessory before the success toast', async () => {
+    it('shows the single-line pending toast with a Spinner startAccessory before the success toast', async () => {
       let resolveLink: () => void = () => undefined;
       mockLinkMoneyAccountCard.mockReturnValueOnce(
         new Promise<void>((resolve) => {
@@ -350,11 +682,7 @@ describe('useMoneyAccountCardLinkage', () => {
       const pendingCall = mockShowToast.mock.calls[0]?.[0];
       expect(pendingCall).toMatchObject({
         hasNoTimeout: true,
-        labelOptions: [
-          { label: 'Linking card', isBold: true },
-          { label: '\n', isBold: false },
-          { label: 'Approving spending limit…', isBold: false },
-        ],
+        labelOptions: [{ label: 'Linking your card', isBold: true }],
       });
       expect(pendingCall?.startAccessory).toBeDefined();
 
@@ -365,12 +693,40 @@ describe('useMoneyAccountCardLinkage', () => {
 
       const successCall = mockShowToast.mock.calls[1]?.[0];
       expect(successCall).toMatchObject({
-        labelOptions: [
-          { label: 'Card linked successfully', isBold: true },
-          { label: '\n', isBold: false },
-          { label: 'You can now spend while you earn', isBold: false },
-        ],
+        labelOptions: [{ label: 'Your card is ready to use', isBold: true }],
         hasNoTimeout: false,
+      });
+    });
+
+    it('passes the caller-supplied delegationAmountHuman through to the controller', async () => {
+      mockLinkMoneyAccountCard.mockResolvedValueOnce(undefined);
+
+      const { result } = renderLinkageHook();
+
+      await act(async () => {
+        await result.current.confirmLinkInBackground({
+          delegationAmountHuman: '100',
+        });
+      });
+
+      expect(mockLinkMoneyAccountCard).toHaveBeenCalledWith({
+        moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
+        delegationAmountHuman: '100',
+      });
+    });
+
+    it('falls back to BAANX_MAX_LIMIT when no delegationAmountHuman is provided (sheet caller path)', async () => {
+      mockLinkMoneyAccountCard.mockResolvedValueOnce(undefined);
+
+      const { result } = renderLinkageHook();
+
+      await act(async () => {
+        await result.current.confirmLinkInBackground();
+      });
+
+      expect(mockLinkMoneyAccountCard).toHaveBeenCalledWith({
+        moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
+        delegationAmountHuman: BAANX_MAX_LIMIT,
       });
     });
   });
@@ -393,7 +749,9 @@ describe('useMoneyAccountCardLinkage', () => {
 
       const errorCall = mockShowToast.mock.calls.at(-1)?.[0];
       expect(errorCall).toMatchObject({
-        labelOptions: [{ label: "Couldn't link card", isBold: true }],
+        labelOptions: [
+          { label: 'Something went wrong linking your card', isBold: true },
+        ],
         hasNoTimeout: false,
       });
     });
@@ -433,8 +791,33 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(mockLinkMoneyAccountCard).not.toHaveBeenCalled();
       expect(mockShowToast).toHaveBeenCalledTimes(1);
       expect(mockShowToast.mock.calls[0][0]).toMatchObject({
-        labelOptions: [{ label: "Couldn't link card", isBold: true }],
+        labelOptions: [
+          { label: 'Something went wrong linking your card', isBold: true },
+        ],
       });
+    });
+
+    it('still submits the delegation when already delegated (Manage Limit update / revoke path)', async () => {
+      applySelectorMocks(buildSelectors({ isAlreadyDelegated: true }));
+      const { result } = renderLinkageHook();
+
+      // canLink is gated on !isAlreadyDelegated, but submit must work so the
+      // user can change the spending cap or revoke it via Manage Limit.
+      expect(result.current.canLink).toBe(false);
+      expect(result.current.canSubmitMoneyAccountDelegation).toBe(true);
+
+      let returned: boolean | undefined;
+      await act(async () => {
+        returned = await result.current.confirmLinkInBackground({
+          delegationAmountHuman: '0',
+        });
+      });
+
+      expect(returned).toBe(true);
+      expect(mockLinkMoneyAccountCard).toHaveBeenCalledTimes(1);
+      expect(mockLinkMoneyAccountCard).toHaveBeenCalledWith(
+        expect.objectContaining({ delegationAmountHuman: '0' }),
+      );
     });
   });
 

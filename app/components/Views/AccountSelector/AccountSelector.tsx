@@ -41,6 +41,7 @@ import { store } from '../../../store';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { strings } from '../../../../locales/i18n';
 import { useAccounts } from '../../hooks/useAccounts';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import AddAccountActions from '../AddAccountActions';
 import { AccountListBottomSheetSelectorsIDs } from './AccountListBottomSheet.testIds';
 import { CommonSelectorsIDs } from '../../../util/Common.testIds';
@@ -76,8 +77,11 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const routeParams = useMemo(() => route?.params, [route?.params]);
 
-  const { navigateToAddAccountActions, disableAddAccountButton } =
-    routeParams || {};
+  const {
+    navigateToAddAccountActions,
+    disableAddAccountButton,
+    onSelectAccount: onSelectAccountFromRoute,
+  } = routeParams || {};
 
   const reloadAccounts = useSelector(
     (state: RootState) => state.accounts.reloadAccounts,
@@ -182,6 +186,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       Engine.context.AccountTreeController.setSelectedAccountGroup(
         accountGroup.id,
       );
+      onSelectAccountFromRoute?.(accountGroup);
+
       handleClose();
 
       trackEvent(
@@ -193,7 +199,13 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
           .build(),
       );
     },
-    [accounts?.length, trackEvent, createEventBuilder, handleClose],
+    [
+      accounts?.length,
+      trackEvent,
+      createEventBuilder,
+      handleClose,
+      onSelectAccountFromRoute,
+    ],
   );
 
   const handleAddAccount = useCallback(() => {

@@ -22,6 +22,7 @@ import {
   hasNotificationSubscriptionExpired,
   hasUserTurnedOffNotificationsOnce,
 } from '../constants/notification-storage-keys';
+import { hasNotificationPreferences } from '../../../actions/notification/helpers';
 
 const showPushNush = { nudgeEnablePush: true };
 
@@ -35,6 +36,22 @@ const useEnableAndRefresh = () => {
     },
     [enableNotifications, listNotifications],
   );
+};
+
+const shouldEnableNotificationsOnStartup = async () => {
+  if (await hasNotificationSubscriptionExpired()) {
+    return true;
+  }
+
+  try {
+    return !(await hasNotificationPreferences());
+  } catch (error) {
+    Logger.error(
+      error instanceof Error ? error : new Error(String(error)),
+      'Failed to check notification preferences initialization',
+    );
+    return false;
+  }
 };
 
 const useNotificationStartupSelectors = () => {
@@ -73,7 +90,7 @@ export function useRegisterAndFetchNotifications() {
     const run = async () => {
       try {
         if (isUnlocked && isBasicFunctionalityEnabled && notificationsEnabled) {
-          await enableAndRefresh(await hasNotificationSubscriptionExpired());
+          await enableAndRefresh(await shouldEnableNotificationsOnStartup());
         }
       } catch (error) {
         const errorMessage =

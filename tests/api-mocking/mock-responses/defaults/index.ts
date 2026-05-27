@@ -34,6 +34,7 @@ import { MONEY_ACCOUNT_MOCKS } from './money-account.ts';
 import { STATIC_ASSETS_MOCKS } from './static-assets.ts';
 import { SIGNATURE_INSIGHTS_MOCKS } from './signature-insights.ts';
 import { NFT_API_MOCKS } from './nft-api.ts';
+import { SOCIAL_API_MOCKS } from './social-api.ts';
 
 // Get auth mocks
 const authMocks = getAuthMocks();
@@ -64,6 +65,7 @@ export const DEFAULT_MOCKS = {
     ...(MONEY_ACCOUNT_MOCKS.GET || []),
     ...(STATIC_ASSETS_MOCKS.GET || []),
     ...(NFT_API_MOCKS.GET || []),
+    ...(SOCIAL_API_MOCKS.GET || []),
     // Chains Network Mock - Provides blockchain network data
     {
       urlEndpoint: 'https://chainid.network/chains.json',

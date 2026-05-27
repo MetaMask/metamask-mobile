@@ -10,13 +10,14 @@ import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import { CashSection } from './Sections/Cash';
 import TokensSection from './Sections/Tokens';
-import PerpsSectionWithProvider from './Sections/Perpetuals';
 import { PerpsSection as PerpsSectionBase } from './Sections/Perpetuals/PerpsSection';
+import HomepagePerpsHomeSlot from './Sections/Perpetuals/HomepagePerpsHomeSlot';
 import PredictionsSection from './Sections/Predictions';
 import TopTradersSection from './Sections/TopTraders';
 import DeFiSection from './Sections/DeFi';
 import NFTsSection from './Sections/NFTs';
 import { SectionRefreshHandle } from './types';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
@@ -305,7 +306,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
               (() => {
                 const perpsContent = (
                   <>
-                    <PerpsSectionBase
+                    <HomepagePerpsHomeSlot
                       ref={perpsSectionRef}
                       sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
                       totalSectionsLoaded={totalSectionsLoaded}
@@ -354,19 +355,23 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
           />
           {isPerpsEnabled &&
             (perpsProvidersHoisted ? (
-              <PerpsSectionBase
+              <HomepagePerpsHomeSlot
                 ref={perpsSectionRef}
                 sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
                 totalSectionsLoaded={totalSectionsLoaded}
                 mode={sectionMode}
               />
             ) : (
-              <PerpsSectionWithProvider
-                ref={perpsSectionRef}
-                sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
-                totalSectionsLoaded={totalSectionsLoaded}
-                mode={sectionMode}
-              />
+              <PerpsConnectionProvider suppressErrorView>
+                <PerpsStreamProvider>
+                  <HomepagePerpsHomeSlot
+                    ref={perpsSectionRef}
+                    sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
+                    totalSectionsLoaded={totalSectionsLoaded}
+                    mode={sectionMode}
+                  />
+                </PerpsStreamProvider>
+              </PerpsConnectionProvider>
             ))}
           <PredictionsSection
             ref={predictionsSectionRef}

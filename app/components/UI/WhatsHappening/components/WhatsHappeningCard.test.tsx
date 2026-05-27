@@ -29,6 +29,26 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
 }));
 
 jest.mock(
+  '../../../Views/WhatsHappeningDetailView/hooks/useWhatsHappeningAssetPrices',
+  () => ({
+    useWhatsHappeningAssetPrices: jest.fn(() => ({
+      perpsPriceBySymbol: {},
+    })),
+  }),
+);
+
+jest.mock(
+  '../../../Views/WhatsHappeningDetailView/hooks/useTradeNavigation',
+  () => ({
+    __esModule: true,
+    default: jest.fn(() => ({
+      handleTrade: jest.fn(),
+      canTrade: true,
+    })),
+  }),
+);
+
+jest.mock(
   '../../../Views/WhatsHappeningDetailView/components/RelatedAssetAvatar',
   () => 'RelatedAssetAvatar',
 );
@@ -124,14 +144,14 @@ describe('WhatsHappeningCard', () => {
     expect(screen.queryByText('Neutral')).toBeNull();
   });
 
-  it('renders the asset symbol label when there is a single related asset', () => {
+  it('renders the asset symbol on the pill when there is a single related asset', () => {
     renderWithProvider(
       <WhatsHappeningCard item={baseItem} cardIndex={0} source="homepage" />,
     );
     expect(screen.getByText('BTC')).toBeOnTheScreen();
   });
 
-  it('renders "<symbol> +N" label when there are multiple related assets', () => {
+  it('renders a pill symbol for each related asset', () => {
     const ethAsset = {
       sourceAssetId: 'eth-mainnet',
       symbol: 'ETH',
@@ -153,10 +173,12 @@ describe('WhatsHappeningCard', () => {
     renderWithProvider(
       <WhatsHappeningCard item={item} cardIndex={0} source="homepage" />,
     );
-    expect(screen.getByText('BTC +2')).toBeOnTheScreen();
+    expect(screen.getByText('BTC')).toBeOnTheScreen();
+    expect(screen.getByText('ETH')).toBeOnTheScreen();
+    expect(screen.getByText('SOL')).toBeOnTheScreen();
   });
 
-  it('strips xyz: prefix from symbol in the asset label', () => {
+  it('strips xyz: prefix from symbol on the pill', () => {
     const brentAsset = {
       sourceAssetId: 'brentoil',
       symbol: 'xyz:BRENTOIL',
@@ -174,7 +196,7 @@ describe('WhatsHappeningCard', () => {
     expect(screen.queryByText('xyz:BRENTOIL')).toBeNull();
   });
 
-  it('strips xyz: prefix from symbol in the "+N" label', () => {
+  it('strips xyz: prefix from each pill when multiple assets', () => {
     const brentAsset = {
       sourceAssetId: 'brentoil',
       symbol: 'xyz:BRENTOIL',
@@ -198,8 +220,9 @@ describe('WhatsHappeningCard', () => {
       <WhatsHappeningCard item={item} cardIndex={0} source="homepage" />,
     );
 
-    expect(screen.getByText('BRENTOIL +1')).toBeOnTheScreen();
-    expect(screen.queryByText('xyz:BRENTOIL +1')).toBeNull();
+    expect(screen.getByText('BRENTOIL')).toBeOnTheScreen();
+    expect(screen.getByText('WTI')).toBeOnTheScreen();
+    expect(screen.queryByText('xyz:BRENTOIL')).toBeNull();
   });
 
   it('does not alter symbols that have no xyz: prefix', () => {
@@ -209,7 +232,7 @@ describe('WhatsHappeningCard', () => {
     expect(screen.getByText('BTC')).toBeOnTheScreen();
   });
 
-  it('does not render asset label when relatedAssets is empty', () => {
+  it('does not render asset pills when relatedAssets is empty', () => {
     const item = { ...baseItem, relatedAssets: [] };
     renderWithProvider(
       <WhatsHappeningCard item={item} cardIndex={0} source="homepage" />,
@@ -217,7 +240,7 @@ describe('WhatsHappeningCard', () => {
     expect(screen.queryByText('BTC')).toBeNull();
   });
 
-  it('renders relative time when date is valid', () => {
+  it('renders relative time at the top when date is valid', () => {
     renderWithProvider(
       <WhatsHappeningCard item={baseItem} cardIndex={0} source="homepage" />,
     );

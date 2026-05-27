@@ -12,7 +12,10 @@ import type {
   PerpsTypedMessageParams,
 } from '../types';
 import type { PerpsControllerMessengerBase } from '../types/messenger';
-import { findEvmAccount, getSelectedEvmAccount } from '../utils/accountUtils';
+import {
+  getSelectedEvmAccountDetailsFromMessenger,
+  getSelectedEvmAccountFromMessenger,
+} from '../utils/accountUtils';
 
 // Mirrors KeyringTypes from @metamask/keyring-controller. Inlined to keep this
 // service portable between mobile and the core monorepo.
@@ -61,10 +64,8 @@ export class HyperLiquidWalletService {
    * @returns True for MetaMask hardware keyrings; false for software accounts.
    */
   public isSelectedHardwareWallet(): boolean {
-    const selectedEvmAccount = findEvmAccount(
-      this.#messenger.call(
-        'AccountTreeController:getAccountsFromSelectedAccountGroup',
-      ),
+    const selectedEvmAccount = getSelectedEvmAccountDetailsFromMessenger(
+      this.#messenger,
     );
     if (!selectedEvmAccount || !hasProperty(selectedEvmAccount, 'metadata')) {
       return false;
@@ -122,12 +123,8 @@ export class HyperLiquidWalletService {
     }) => Promise<Hex>;
     getChainId?: () => Promise<number>;
   } {
-    // Get current EVM account via DI accountTree
-    const evmAccount = getSelectedEvmAccount(
-      this.#messenger.call(
-        'AccountTreeController:getAccountsFromSelectedAccountGroup',
-      ),
-    );
+    // Get current EVM account via DI messenger
+    const evmAccount = getSelectedEvmAccountFromMessenger(this.#messenger);
 
     if (!evmAccount?.address) {
       throw new Error(PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED);
@@ -152,10 +149,8 @@ export class HyperLiquidWalletService {
       }): Promise<Hex> => {
         // Get FRESH account on every sign to handle account switches
         // This prevents race conditions where wallet adapter was created with old account
-        const currentEvmAccount = getSelectedEvmAccount(
-          this.#messenger.call(
-            'AccountTreeController:getAccountsFromSelectedAccountGroup',
-          ),
+        const currentEvmAccount = getSelectedEvmAccountFromMessenger(
+          this.#messenger,
         );
 
         if (!currentEvmAccount?.address) {
@@ -200,11 +195,7 @@ export class HyperLiquidWalletService {
    * @returns The CAIP account ID for the current EVM account.
    */
   public async getCurrentAccountId(): Promise<CaipAccountId> {
-    const evmAccount = getSelectedEvmAccount(
-      this.#messenger.call(
-        'AccountTreeController:getAccountsFromSelectedAccountGroup',
-      ),
-    );
+    const evmAccount = getSelectedEvmAccountFromMessenger(this.#messenger);
 
     if (!evmAccount?.address) {
       throw new Error(PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED);

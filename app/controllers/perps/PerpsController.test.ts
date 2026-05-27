@@ -2839,6 +2839,7 @@ describe('PerpsController', () => {
           origin: 'metamask',
           type: 'perpsDeposit',
           skipInitialGasEstimate: true,
+          isInternal: true,
         },
       );
     });
@@ -3230,6 +3231,7 @@ describe('PerpsController', () => {
           origin: 'metamask',
           type: 'perpsDepositAndOrder',
           skipInitialGasEstimate: true,
+          isInternal: true,
         },
       );
       // Should NOT also call with perpsDeposit type
@@ -5251,6 +5253,90 @@ describe('PerpsController', () => {
 
     it('stopMarketDataPreload is safe to call when not started', () => {
       expect(() => controller.stopMarketDataPreload()).not.toThrow();
+    });
+
+    it('clears stale user data cache when the selected account changes', () => {
+      const selectedAddress = '0x2222222222222222222222222222222222222222';
+      const staleAddress = '0x1111111111111111111111111111111111111111';
+      const selectedAccount = {
+        address: selectedAddress,
+        type: 'eip155:eoa',
+        id: 'account-2',
+        options: {},
+        scopes: ['eip155:1'],
+        methods: [],
+        metadata: {
+          name: 'Selected',
+          importTime: 0,
+          keyring: { type: 'HD Key Tree' },
+        },
+      };
+      const mockCall = jest.fn().mockImplementation((action: string) => {
+        if (action === 'AccountsController:getSelectedAccount') {
+          return selectedAccount;
+        }
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [selectedAccount];
+        }
+        return undefined;
+      });
+      const mockMessenger = createMockMessenger({ call: mockCall });
+      const localInfrastructure = createMockInfrastructure();
+      const localController = new TestablePerpsController({
+        messenger: mockMessenger,
+        state: getDefaultPerpsControllerState(),
+        infrastructure: localInfrastructure,
+      });
+      localController.testMarkInitialized();
+      localController.testSetProviders(
+        new Map([['hyperliquid', mockProvider]]),
+      );
+      localController.testUpdate((state) => {
+        state.cachedUserDataByProvider['hyperliquid:mainnet'] = {
+          positions: [],
+          orders: [],
+          accountState: null,
+          timestamp: Date.now(),
+          address: staleAddress,
+        };
+      });
+
+      localController.startMarketDataPreload();
+
+      const selectedAccountChangeHandler = (
+        mockMessenger.subscribe as jest.Mock
+      ).mock.calls.find(
+        ([event]) => event === 'AccountsController:selectedAccountChange',
+      )?.[1] as (() => void) | undefined;
+      const accountGroupChangeHandler = (
+        mockMessenger.subscribe as jest.Mock
+      ).mock.calls.find(
+        ([event]) =>
+          event === 'AccountTreeController:selectedAccountGroupChange',
+      )?.[1] as (() => void) | undefined;
+
+      expect(selectedAccountChangeHandler).toEqual(expect.any(Function));
+      expect(accountGroupChangeHandler).toBe(selectedAccountChangeHandler);
+
+      selectedAccountChangeHandler?.();
+
+      expect(localController.state.cachedUserDataByProvider).toEqual({});
+      expect(localInfrastructure.diskCache.removeItem).toHaveBeenCalledWith(
+        PERPS_DISK_CACHE_USER_DATA,
+      );
+
+      localController.stopMarketDataPreload();
+
+      expect(mockMessenger.unsubscribe).toHaveBeenCalledWith(
+        'AccountsController:selectedAccountChange',
+        selectedAccountChangeHandler,
+      );
+      expect(mockMessenger.unsubscribe).toHaveBeenCalledWith(
+        'AccountTreeController:selectedAccountGroupChange',
+        selectedAccountChangeHandler,
+      );
     });
 
     it('hydrates market data from disk at construction time', () => {

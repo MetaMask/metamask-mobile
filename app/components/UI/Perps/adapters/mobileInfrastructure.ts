@@ -36,6 +36,8 @@ import {
 } from '@metamask/perps-controller';
 import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 import { validatedVersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
+import { store } from '../../../../store';
+import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 import {
   formatVolume,
   formatPerpsFiat,
@@ -304,6 +306,10 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
         caipAccountId: `${string}:${string}:${string}`,
         baseFeeBips: number,
       ) {
+        const isVipEnabled = selectVipProgramEnabled(store.getState());
+        if (!isVipEnabled) {
+          return Promise.resolve(0);
+        }
         return Engine.context.RewardsController.getPerpsDiscountForAccount(
           caipAccountId,
           baseFeeBips,

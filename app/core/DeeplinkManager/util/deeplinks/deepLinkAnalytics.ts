@@ -476,7 +476,7 @@ const routeExtractors: Record<
   [DeepLinkRoute.SHIELD]: extractShieldProperties,
   [DeepLinkRoute.TRENDING]: extractTrendingProperties,
   [DeepLinkRoute.WHATS_HAPPENING]: extractWhatsHappeningProperties,
-  [DeepLinkRoute.SOCIAL_LEADERBOARD]: extractInvalidProperties,
+  [DeepLinkRoute.TOP_TRADERS]: extractInvalidProperties,
   [DeepLinkRoute.SOCIAL_TRADER_POSITION]: extractInvalidProperties,
   [DeepLinkRoute.CARD_ONBOARDING]: extractCardOnboardingProperties,
   [DeepLinkRoute.CARD_HOME]: extractCardHomeProperties,
@@ -611,8 +611,8 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.TRENDING;
     case ACTIONS.WHATS_HAPPENING:
       return DeepLinkRoute.WHATS_HAPPENING;
-    case ACTIONS.SOCIAL_LEADERBOARD:
-      return DeepLinkRoute.SOCIAL_LEADERBOARD;
+    case ACTIONS.TOP_TRADERS:
+      return DeepLinkRoute.TOP_TRADERS;
     case ACTIONS.SOCIAL_TRADER_POSITION:
       return DeepLinkRoute.SOCIAL_TRADER_POSITION;
     case ACTIONS.CARD_ONBOARDING:
@@ -671,8 +671,8 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
         return DeepLinkRoute.TRENDING;
       case 'whats-happening':
         return DeepLinkRoute.WHATS_HAPPENING;
-      case 'social-leaderboard':
-        return DeepLinkRoute.SOCIAL_LEADERBOARD;
+      case 'top-traders':
+        return DeepLinkRoute.TOP_TRADERS;
       case 'social-trader-position':
         return DeepLinkRoute.SOCIAL_TRADER_POSITION;
       case 'card-onboarding':
@@ -705,8 +705,14 @@ export const createDeepLinkUsedEventBuilder = async (
 ): Promise<ReturnType<typeof AnalyticsEventBuilder.createEventBuilder>> => {
   const { url, route, signatureStatus } = context;
 
+  // Resolve the fire-and-forget Branch fetch lazily here so callers don't
+  // block on it. `branchParams` takes precedence for paths (MWP, push) that
+  // resolve it eagerly.
+  const branchParams: BranchParams | undefined =
+    context.branchParams ?? (await (context.branchParamsPromise ?? undefined));
+
   // Pass branchParams to avoid duplicate fetch
-  const wasAppInstalled = await detectAppInstallation(context.branchParams);
+  const wasAppInstalled = await detectAppInstallation(branchParams);
 
   // Extract sensitive properties
   const sensitiveProperties = extractSensitiveProperties(
@@ -714,8 +720,12 @@ export const createDeepLinkUsedEventBuilder = async (
     context.urlParams,
   );
 
-  // Determine interstitial state
-  const interstitial = determineInterstitialState(context);
+  // Use the resolved branchParams so `determineInterstitialState` sees the
+  // same value it did under the previous eager-fetch implementation.
+  const interstitial = determineInterstitialState({
+    ...context,
+    branchParams,
+  });
 
   // Create the AnalyticsEventBuilder with all deep link properties
   const eventBuilder = AnalyticsEventBuilder.createEventBuilder(

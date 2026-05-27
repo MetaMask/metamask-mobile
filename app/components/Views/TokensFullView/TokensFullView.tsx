@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import React, { useCallback, useEffect } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -22,17 +22,15 @@ const TokensFullView = () => {
     selectHomepageSectionsV1Enabled,
   );
 
-  useFocusEffect(
-    useCallback(
-      () => () => {
-        if (isHomepageSectionsV1Enabled) {
-          Engine.context.PreferencesController.setTokenSortConfig(
-            DEFAULT_TOKEN_SORT_CONFIG,
-          );
-        }
-      },
-      [isHomepageSectionsV1Enabled],
-    ),
+  useEffect(
+    () => () => {
+      if (isHomepageSectionsV1Enabled) {
+        Engine.context.PreferencesController.setTokenSortConfig(
+          DEFAULT_TOKEN_SORT_CONFIG,
+        );
+      }
+    },
+    [isHomepageSectionsV1Enabled],
   );
 
   const handleBackPress = useCallback(() => {

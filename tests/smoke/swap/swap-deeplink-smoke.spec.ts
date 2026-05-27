@@ -10,9 +10,13 @@ import { SmokeSwap } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import { asDetoxElement } from '../../framework';
 import QuoteView from '../../page-objects/swaps/QuoteView';
-import { testSpecificMock } from '../../helpers/swap/swap-mocks';
+import {
+  mockSwapPopularTokens,
+  testSpecificMock,
+} from '../../helpers/swap/swap-mocks';
 import TestHelpers from '../../helpers';
 import WalletView from '../../page-objects/wallet/WalletView';
+import { Mockttp } from 'mockttp';
 
 // Deep link URLs for testing unified swap/bridge experience
 // Note: URLs use 'swap' terminology for backward compatibility but redirect to unified bridge experience
@@ -57,7 +61,10 @@ describe(
               },
             },
           ],
-          testSpecificMock,
+          testSpecificMock: async (mockServer: Mockttp) => {
+            await testSpecificMock(mockServer);
+            await mockSwapPopularTokens(mockServer);
+          },
           restartDevice: true,
         },
         async () => {
@@ -78,6 +85,7 @@ describe(
             asDetoxElement(QuoteView.amountInput),
             '1.0',
           );
+          await QuoteView.isQuoteDisplayed();
           await Assertions.expectElementToBeVisible(QuoteView.confirmSwap);
 
           // Verify we can navigate back
@@ -176,7 +184,10 @@ describe(
               },
             },
           ],
-          testSpecificMock,
+          testSpecificMock: async (mockServer: Mockttp) => {
+            await testSpecificMock(mockServer);
+            await mockSwapPopularTokens(mockServer);
+          },
           restartDevice: true,
         },
         async () => {

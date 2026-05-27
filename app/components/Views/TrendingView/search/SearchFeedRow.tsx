@@ -3,10 +3,7 @@ import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { PerpsMarketData } from '@metamask/perps-controller';
 import type { PredictMarket as PredictMarketType } from '../../../UI/Predict/types';
 import type { SiteData } from '../../../UI/Sites/components/SiteRowItem/SiteRowItem';
-import {
-  TokenSearchRowItem,
-  CryptoMoversSearchRowItem,
-} from '../feeds/tokens/TokenRowItem';
+import { TokenSearchRowItem } from '../feeds/tokens/TokenRowItem';
 import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import PerpsRowItem from '../feeds/perps/PerpsRowItem';
 import { PredictionSearchRowItem } from '../feeds/predictions/PredictionRowItem';
@@ -14,22 +11,19 @@ import { SiteRowItem } from '../feeds/sites/SiteRowItem';
 import SiteSkeleton from '../../../UI/Sites/components/SiteSkeleton/SiteSkeleton';
 import type { SearchFeedId } from './useExploreSearch';
 import TapView from './TapView';
-import { trackExploreEvent } from './analytics';
-import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
+import { trackExploreSearchEvent, type SearchFeedPill } from './analytics';
 
 interface SearchFeedRowProps {
   feedId: SearchFeedId;
   item: unknown;
   index: number;
   searchQuery: string;
-  sectionTitle: string;
-  interactionType: string;
+  tabName: SearchFeedPill;
 }
 
 const renderRow = (feedId: SearchFeedId, item: unknown, index: number) => {
   switch (feedId) {
     case 'tokens':
-      return <TokenSearchRowItem token={item as TrendingAsset} index={index} />;
     case 'stocks':
       return <TokenSearchRowItem token={item as TrendingAsset} index={index} />;
     case 'perps':
@@ -41,7 +35,7 @@ const renderRow = (feedId: SearchFeedId, item: unknown, index: number) => {
   }
 };
 
-const getItemId = (feedId: SearchFeedId, item: unknown): string => {
+export const getItemId = (feedId: SearchFeedId, item: unknown): string => {
   switch (feedId) {
     case 'tokens':
     case 'stocks':
@@ -61,20 +55,21 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
   item,
   index,
   searchQuery,
-  sectionTitle,
-  interactionType,
+  tabName,
 }) => {
   const searchQueryRef = useRef(searchQuery);
   searchQueryRef.current = searchQuery;
 
   const handleTap = useCallback(() => {
-    trackExploreEvent(MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED, {
-      interaction_type: interactionType,
+    trackExploreSearchEvent({
+      interaction_type: 'result_clicked',
       search_query: searchQueryRef.current,
-      section_name: sectionTitle,
+      ...(tabName === 'all' ? { section_name: feedId } : {}),
+      tab_name: tabName,
       item_clicked: getItemId(feedId, item),
+      position: index,
     });
-  }, [interactionType, sectionTitle, feedId, item]);
+  }, [feedId, tabName, item, index]);
 
   return <TapView onTap={handleTap}>{renderRow(feedId, item, index)}</TapView>;
 };
@@ -94,13 +89,5 @@ export const SearchFeedSkeleton: React.FC<{ feedId: SearchFeedId }> = ({
       return <TrendingTokensSkeleton />;
   }
 };
-
-/** Crypto-movers variant for the dedicated "Crypto movers" full-view header. */
-export const CryptoMoversFeedSearchRow: React.FC<{
-  token: TrendingAsset;
-  index: number;
-}> = ({ token, index }) => (
-  <CryptoMoversSearchRowItem token={token} index={index} />
-);
 
 export default SearchFeedRow;

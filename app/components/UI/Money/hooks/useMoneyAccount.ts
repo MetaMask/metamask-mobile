@@ -71,7 +71,7 @@ export function useMoneyAccountDeposit() {
     // Navigate early for better UX; recover on failure below.
     navigateToConfirmation({
       loader: ConfirmationLoader.CustomAmount,
-      stack: Routes.MONEY.ROOT,
+      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
     });
 
     try {
@@ -145,7 +145,7 @@ export function useMoneyAccountWithdrawal() {
     // Navigate early for better UX; recover on failure below.
     navigateToConfirmation({
       loader: ConfirmationLoader.CustomAmount,
-      stack: Routes.MONEY.ROOT,
+      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
     });
 
     try {
