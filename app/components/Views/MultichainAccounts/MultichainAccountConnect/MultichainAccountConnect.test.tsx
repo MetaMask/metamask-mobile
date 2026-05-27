@@ -4,6 +4,7 @@ import {
   Caip25EndowmentPermissionName,
   Caip25CaveatType,
   Caip25CaveatValue,
+  KnownSessionProperties,
 } from '@metamask/chain-agnostic-permission';
 import renderWithProvider, {
   DeepPartial,
@@ -26,8 +27,10 @@ import {
   MOCK_ADDRESS_2,
 } from '../../../../util/test/accountsControllerTestUtils';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { BtcScope, SolScope, TrxScope } from '@metamask/keyring-api';
 import { PermissionDoesNotExistError } from '@metamask/permission-controller';
 import { RpcEndpointType, NetworkStatus } from '@metamask/network-controller';
+import { CaipChainId } from '@metamask/utils';
 import { WC2VerifyValidation } from '../../../../actions/sdk/state';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { AccountConnectMaliciousWarningSelectorsIDs } from '../../AccountConnect/AccountConnectMaliciousWarning/AccountConnectMaliciousWarning.testIds';
@@ -360,6 +363,13 @@ jest.mock(
   }),
 );
 
+const { useAccountGroupsForPermissions: mockUseAccountGroupsForPermissions } =
+  jest.requireMock(
+    '../../../hooks/useAccountGroupsForPermissions/useAccountGroupsForPermissions',
+  ) as {
+    useAccountGroupsForPermissions: jest.Mock;
+  };
+
 // Mock useWalletInfo hook
 jest.mock(
   '../../../../components/Views/MultichainAccounts/WalletDetails/hooks/useWalletInfo',
@@ -373,6 +383,7 @@ jest.mock(
 
 const createMockCaip25Permission = (
   optionalScopes: Record<string, { accounts: string[] }>,
+  sessionProperties: Caip25CaveatValue['sessionProperties'] = {},
 ) => ({
   [Caip25EndowmentPermissionName]: {
     parentCapability: Caip25EndowmentPermissionName,
@@ -383,12 +394,18 @@ const createMockCaip25Permission = (
           requiredScopes: {},
           optionalScopes,
           isMultichainOrigin: false,
-          sessionProperties: {},
+          sessionProperties,
         },
       },
     ] as [{ type: string; value: Caip25CaveatValue }],
   },
 });
+
+const getRequestedChainIdsFromUseAccountGroupsForPermissions = () => {
+  const { calls } = mockUseAccountGroupsForPermissions.mock;
+  expect(calls.length).toBeGreaterThan(0);
+  return calls[calls.length - 1][2] as CaipChainId[];
+};
 
 const createMockState = (): DeepPartial<RootState> => ({
   settings: {},
@@ -492,6 +509,57 @@ const createMockState = (): DeepPartial<RootState> => ({
   },
 });
 
+const createSepoliaSelectedState = (): DeepPartial<RootState> => {
+  const state = createMockState();
+
+  return {
+    ...state,
+    engine: {
+      ...state.engine,
+      backgroundState: {
+        ...state.engine?.backgroundState,
+        NetworkController: {
+          selectedNetworkClientId: 'sepolia',
+          networksMetadata: {
+            mainnet: { status: NetworkStatus.Available, EIPS: {} },
+            sepolia: { status: NetworkStatus.Available, EIPS: {} },
+          },
+          networkConfigurationsByChainId: {
+            '0x1': {
+              blockExplorerUrls: ['https://etherscan.io'],
+              chainId: '0x1' as `0x${string}`,
+              defaultRpcEndpointIndex: 0,
+              name: 'Ethereum Mainnet',
+              nativeCurrency: 'ETH',
+              rpcEndpoints: [
+                {
+                  networkClientId: 'mainnet',
+                  type: RpcEndpointType.Infura,
+                  url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
+                },
+              ],
+            },
+            '0xaa36a7': {
+              blockExplorerUrls: ['https://sepolia.etherscan.io'],
+              chainId: '0xaa36a7' as `0x${string}`,
+              defaultRpcEndpointIndex: 0,
+              name: 'Sepolia',
+              nativeCurrency: 'SepoliaETH',
+              rpcEndpoints: [
+                {
+                  networkClientId: 'sepolia',
+                  type: RpcEndpointType.Infura,
+                  url: 'https://sepolia.infura.io/v3/{infuraProjectId}',
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
+  };
+};
+
 mockGetConnection.mockReturnValue(undefined);
 mockIsUUID.mockReturnValue(false);
 
@@ -594,6 +662,252 @@ describe('MultichainAccountConnect', () => {
 
     expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
     expect(getByTestId(CommonSelectorsIDs.CANCEL_BUTTON)).toBeTruthy();
+  });
+
+  describe('default chain selection', () => {
+    it('defaults to EVM networks only for EIP-1193 requests with no specific chains', () => {
+      renderWithProvider(
+        <MultichainAccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: 'mockOrigin',
+                  isEip1193Request: true,
+                },
+                permissions: createMockCaip25Permission({
+                  'wallet:eip155': {
+                    accounts: [],
+                  },
+                }),
+              },
+              permissionRequestId: 'test-eip1193-defaults',
+            },
+          }}
+        />,
+        { state: createMockState() },
+      );
+
+      const chainIds = getRequestedChainIdsFromUseAccountGroupsForPermissions();
+      expect(chainIds).toContain('eip155:1');
+      expect(chainIds.every((chainId) => chainId.startsWith('eip155:'))).toBe(
+        true,
+      );
+    });
+
+    it('includes the selected EVM test network for EIP-1193 requests with no specific chains', () => {
+      renderWithProvider(
+        <MultichainAccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: 'mockOrigin',
+                  isEip1193Request: true,
+                },
+                permissions: createMockCaip25Permission({
+                  'wallet:eip155': {
+                    accounts: [],
+                  },
+                }),
+              },
+              permissionRequestId: 'test-eip1193-testnet-default',
+            },
+          }}
+        />,
+        { state: createSepoliaSelectedState() },
+      );
+
+      const chainIds = getRequestedChainIdsFromUseAccountGroupsForPermissions();
+      expect(chainIds).toEqual(expect.arrayContaining(['eip155:1']));
+      expect(chainIds).toEqual(expect.arrayContaining(['eip155:11155111']));
+      expect(chainIds).not.toContain(SolScope.Mainnet);
+    });
+
+    it('defaults to Solana scopes only for Solana Wallet Standard requests', () => {
+      renderWithProvider(
+        <MultichainAccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: 'mockOrigin',
+                },
+                permissions: createMockCaip25Permission(
+                  {
+                    [SolScope.Mainnet]: {
+                      accounts: [],
+                    },
+                  },
+                  {
+                    [KnownSessionProperties.SolanaAccountChangedNotifications]: true,
+                  },
+                ),
+              },
+              permissionRequestId: 'test-solana-wallet-standard-defaults',
+            },
+          }}
+        />,
+        { state: createMockState() },
+      );
+
+      const chainIds = getRequestedChainIdsFromUseAccountGroupsForPermissions();
+      expect(chainIds).toEqual([SolScope.Mainnet]);
+    });
+
+    it('defaults to Tron scopes only for Tron Wallet Adapter requests', () => {
+      renderWithProvider(
+        <MultichainAccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: 'mockOrigin',
+                },
+                permissions: createMockCaip25Permission(
+                  {
+                    [TrxScope.Mainnet]: {
+                      accounts: [],
+                    },
+                  },
+                  {
+                    [KnownSessionProperties.TronAccountChangedNotifications]: true,
+                  },
+                ),
+              },
+              permissionRequestId: 'test-tron-wallet-adapter-defaults',
+            },
+          }}
+        />,
+        { state: createMockState() },
+      );
+
+      const chainIds = getRequestedChainIdsFromUseAccountGroupsForPermissions();
+      expect(chainIds).toEqual([TrxScope.Mainnet]);
+    });
+
+    it('defaults to Bitcoin scopes only for BIP-122 client requests', () => {
+      renderWithProvider(
+        <MultichainAccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: 'mockOrigin',
+                },
+                permissions: createMockCaip25Permission({
+                  [BtcScope.Mainnet]: {
+                    accounts: [],
+                  },
+                }),
+              },
+              permissionRequestId: 'test-bip122-defaults',
+            },
+          }}
+        />,
+        { state: createMockState() },
+      );
+
+      const chainIds = getRequestedChainIdsFromUseAccountGroupsForPermissions();
+      expect(chainIds).toEqual([BtcScope.Mainnet]);
+    });
+
+    it('uses requested supported chains for EIP-1193 requests with restrictNetworkSwitching', () => {
+      renderWithProvider(
+        <MultichainAccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: 'mockOrigin',
+                  isEip1193Request: true,
+                },
+                permissions: createMockCaip25Permission({
+                  'eip155:1': {
+                    accounts: [],
+                  },
+                }),
+              },
+              permissionRequestId: 'test-eip1193-specific-chain',
+            },
+          }}
+        />,
+        { state: createMockState() },
+      );
+
+      const chainIds = getRequestedChainIdsFromUseAccountGroupsForPermissions();
+      expect(chainIds).toEqual(['eip155:1']);
+    });
+
+    it('preserves previously-granted scopes when defaulting EIP-1193 requests', () => {
+      const origin = 'mockOrigin';
+      const state = createMockState();
+      const permissionController = state.engine?.backgroundState
+        ?.PermissionController as
+        | {
+            subjects?: Record<
+              string,
+              { permissions: ReturnType<typeof createMockCaip25Permission> }
+            >;
+          }
+        | undefined;
+      const stateWithExistingSolanaPermission = {
+        ...state,
+        engine: {
+          ...state.engine,
+          backgroundState: {
+            ...state.engine?.backgroundState,
+            PermissionController: {
+              ...permissionController,
+              subjects: {
+                ...permissionController?.subjects,
+                [origin]: {
+                  permissions: createMockCaip25Permission({
+                    [SolScope.Devnet]: {
+                      accounts: [],
+                    },
+                  }),
+                },
+              },
+            },
+          },
+        },
+      } as unknown as DeepPartial<RootState>;
+
+      renderWithProvider(
+        <MultichainAccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin,
+                  isEip1193Request: true,
+                },
+                permissions: createMockCaip25Permission({
+                  'wallet:eip155': {
+                    accounts: [],
+                  },
+                }),
+              },
+              permissionRequestId: 'test-preserve-existing-solana-scope',
+            },
+          }}
+        />,
+        { state: stateWithExistingSolanaPermission },
+      );
+
+      const chainIds = getRequestedChainIdsFromUseAccountGroupsForPermissions();
+      expect(chainIds).toEqual(expect.arrayContaining(['eip155:1']));
+      expect(chainIds).toContain(SolScope.Devnet);
+      expect(chainIds).not.toContain(SolScope.Mainnet);
+    });
   });
 
   it('handles cancel button press correctly', () => {

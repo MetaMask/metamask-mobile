@@ -84,9 +84,7 @@ import {
   getAllScopesFromCaip25CaveatValue,
   getAllScopesFromPermission,
   getCaipAccountIdsFromCaip25CaveatValue,
-  KnownSessionProperties,
 } from '@metamask/chain-agnostic-permission';
-import { SolScope } from '@metamask/keyring-api';
 import styleSheet from './MultichainAccountConnect.styles.ts';
 import { useStyles } from '../../../../component-library/hooks/index.ts';
 import { getApiAnalyticsProperties } from '../../../../util/metrics/MultichainAPI/getApiAnalyticsProperties.ts';
@@ -131,6 +129,17 @@ const ScreenContainer: React.FC<ScreenContainerProps> = ({
 
 const NETWORK_AVATAR_SIZE = AvatarSize.Xs;
 const NETWORK_AVATAR_VARIANT = AvatarVariant.Network;
+
+const normalizeToCaipChainId = (chainId: string): CaipChainId => {
+  if (chainId.startsWith('0x')) {
+    return `${KnownCaipNamespace.Eip155}:${parseInt(
+      chainId,
+      16,
+    )}` as CaipChainId;
+  }
+
+  return chainId as CaipChainId;
+};
 
 const MultichainAccountConnect = (props: AccountConnectProps) => {
   const { colors } = useTheme();
@@ -198,18 +207,6 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     [requestedCaip25CaveatValue],
   );
 
-  const requestedScopes = useMemo(
-    () => getAllScopesFromCaip25CaveatValue(requestedCaip25CaveatValue),
-    [requestedCaip25CaveatValue],
-  );
-
-  const isSolanaWalletStandardRequest =
-    requestedScopes.length === 1 &&
-    requestedScopes[0] === SolScope.Mainnet &&
-    requestedCaip25CaveatValue.sessionProperties[
-      KnownSessionProperties.SolanaAccountChangedNotifications
-    ];
-
   const requestedNamespaces = useMemo(
     () => getAllNamespacesFromCaip25CaveatValue(requestedCaip25CaveatValue),
     [requestedCaip25CaveatValue],
@@ -262,7 +259,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
 
   const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
 
-  const { origin: channelIdOrHostname, isEip1193Request } = hostInfo.metadata;
+  const { origin: channelIdOrHostname } = hostInfo.metadata;
 
   const sdkV2Connection = useSDKV2Connection(channelIdOrHostname);
   const anonId = sdkV2Connection?.originatorInfo?.anonId;
@@ -295,56 +292,22 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     ];
 
     // If globally selected network is a test network, include that in the default selected networks for connection request
-    const currentlySelectedNetworkChainId = currentlySelectedNetwork.chainId;
+    const currentlySelectedNetworkChainId = normalizeToCaipChainId(
+      currentlySelectedNetwork.chainId,
+    );
     const selectedNetworkIsTestNetwork = testNetworkCaipChainIds.find(
       (network) => network === currentlySelectedNetworkChainId,
     );
 
-    let defaultSelectedNetworkList = selectedNetworkIsTestNetwork
+    const defaultSelectedNetworkList = selectedNetworkIsTestNetwork
       ? [...nonTestNetworkCaipChainIds, selectedNetworkIsTestNetwork]
       : nonTestNetworkCaipChainIds;
-
-    // Filter out Tron networks since they're not yet supported in mobile
-    defaultSelectedNetworkList = defaultSelectedNetworkList.filter(
-      (caipChainId) => {
-        const { namespace } = parseCaipChainId(caipChainId);
-        return namespace !== KnownCaipNamespace.Tron;
-      },
-    );
-
-    // Filter out Bitcoin networks - they should only be included when explicitly requested
-    // This prevents errors when connecting to dApps that don't support Bitcoin
-    defaultSelectedNetworkList = defaultSelectedNetworkList.filter(
-      (caipChainId) => {
-        const { namespace } = parseCaipChainId(caipChainId);
-        return namespace !== KnownCaipNamespace.Bip122;
-      },
-    );
-
-    // If the request is an EIP-1193 request (with no specific chains requested) or a Solana wallet standard request, return the default selected network list
-    // Note: Tron Wallet Adapter requests are not handled here since Tron is not yet supported in mobile
-    if (
-      (requestedCaipChainIds.length === 0 && isEip1193Request) ||
-      isSolanaWalletStandardRequest
-    ) {
-      return defaultSelectedNetworkList;
-    }
-
-    let additionalChains: CaipChainId[] = [];
-    if (isEip1193Request) {
-      additionalChains = nonTestNetworkCaipChainIds.filter((caipChainId) =>
-        requestedNamespacesWithoutWallet.includes(
-          parseCaipChainId(caipChainId).namespace,
-        ),
-      );
-    }
 
     const supportedRequestedCaipChainIds = Array.from(
       new Set([
         ...requestedCaipChainIds.filter((requestedCaipChainId) =>
           allNetworksList.includes(requestedCaipChainId as CaipChainId),
         ),
-        ...additionalChains,
       ]),
     );
 
@@ -358,28 +321,26 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       );
     }
 
-    if (requestedNamespaces.length > 0) {
+    if (requestedNamespacesWithoutWallet.length > 0) {
       return Array.from(
-        new Set(
-          defaultSelectedNetworkList.filter((caipChainId) => {
+        new Set([
+          ...defaultSelectedNetworkList.filter((caipChainId) => {
             const { namespace } = parseCaipChainId(caipChainId);
-            return requestedNamespaces.includes(namespace);
+            return requestedNamespacesWithoutWallet.includes(namespace);
           }),
-        ),
+          ...alreadyConnectedCaipChainIds,
+        ]),
       );
     }
 
-    return defaultSelectedNetworkList;
+    return alreadyConnectedCaipChainIds;
   }, [
     nonTestNetworkCaipChainIds,
     testNetworkCaipChainIds,
     requestedCaipChainIds,
-    isEip1193Request,
     currentlySelectedNetwork.chainId,
-    requestedNamespaces,
     requestedNamespacesWithoutWallet,
     alreadyConnectedCaipChainIds,
-    isSolanaWalletStandardRequest,
   ]);
 
   const {

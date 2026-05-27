@@ -89,7 +89,7 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
   it('should retain Solana permissions when connecting through the EVM provider', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().build(),
+        fixture: new FixtureBuilder().withSolanaAccountPermission().build(),
         dapps: [
           {
             dappVariant: DappVariants.TEST_DAPP,
@@ -132,7 +132,7 @@ describe(SmokeNetworkExpansion('Multiple Standard Dapp Connections'), () => {
   it('should default account selection to already permitted Solana account and requested Ethereum account when "wallet_requestPermissions" is called with specific Ethereum account', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().build(),
+        fixture: new FixtureBuilder().withSolanaAccountPermission().build(),
         dapps: [
           {
             dappVariant: DappVariants.TEST_DAPP,
