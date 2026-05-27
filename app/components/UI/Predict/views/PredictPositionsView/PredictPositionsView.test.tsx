@@ -5,6 +5,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import type { PredictPortfolioModel } from '../../hooks/usePredictPortfolio';
 import {
   PredictPositionsEmptySelectorsIDs,
+  PredictPositionsHistoryListSelectorsIDs,
   PredictPositionsViewSelectorsIDs,
 } from '../../Predict.testIds';
 import PredictPositionsView from './PredictPositionsView';
@@ -33,6 +34,25 @@ jest.mock('../../hooks/usePredictActionGuard', () => ({
     executeGuardedAction: (action: () => void | Promise<void>) => action(),
   }),
 }));
+
+jest.mock('../../components/PredictPositionsHistoryList', () => {
+  const ReactLib = jest.requireActual('react');
+  const { Text, View } = jest.requireActual('react-native');
+  const { PredictPositionsHistoryListSelectorsIDs: testIds } =
+    jest.requireActual('../../Predict.testIds');
+
+  return function MockPredictPositionsHistoryList({
+    isVisible,
+  }: {
+    isVisible: boolean;
+  }) {
+    return ReactLib.createElement(
+      View,
+      { testID: testIds.CONTAINER },
+      ReactLib.createElement(Text, null, `history-visible:${isVisible}`),
+    );
+  };
+});
 
 let mockPrivacyMode = false;
 jest.mock('react-redux', () => ({
@@ -150,8 +170,9 @@ describe('PredictPositionsView', () => {
       screen.getByTestId(PredictPositionsViewSelectorsIDs.HISTORY_TAB_CONTENT),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(PredictPositionsEmptySelectorsIDs.CONTAINER),
+      screen.getByTestId(PredictPositionsHistoryListSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
+    expect(screen.getByText('history-visible:true')).toBeOnTheScreen();
     expect(
       screen.queryByTestId(
         PredictPositionsViewSelectorsIDs.POSITIONS_TAB_CONTENT,
@@ -168,6 +189,9 @@ describe('PredictPositionsView', () => {
 
     expect(
       screen.getByTestId(PredictPositionsViewSelectorsIDs.HISTORY_TAB_CONTENT),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PredictPositionsHistoryListSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
 
     fireEvent.press(

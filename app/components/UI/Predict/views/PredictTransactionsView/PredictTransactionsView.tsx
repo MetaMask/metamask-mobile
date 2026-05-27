@@ -14,6 +14,7 @@ import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
 import { PREDICT_TRANSACTIONS_VIEW_TEST_IDS } from './PredictTransactionsView.testIds';
 interface PredictTransactionsViewProps {
+  emptyState?: React.ReactNode;
   transactions?: unknown[];
   tabLabel?: string;
   isVisible?: boolean;
@@ -60,6 +61,7 @@ const getDateGroupLabel = (
 };
 
 const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
+  emptyState,
   isVisible,
 }) => {
   const tw = useTailwind();
@@ -263,11 +265,13 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
       />
     </Box>
   ) : sections.length === 0 ? (
-    <Box twClassName="items-center justify-center py-10">
-      <TabEmptyState
-        description={strings('predict.transactions.no_transactions')}
-      />
-    </Box>
+    (emptyState ?? (
+      <Box twClassName="items-center justify-center py-10">
+        <TabEmptyState
+          description={strings('predict.transactions.no_transactions')}
+        />
+      </Box>
+    ))
   ) : (
     <SectionList<PredictActivityItem, ActivitySection>
       sections={sections}

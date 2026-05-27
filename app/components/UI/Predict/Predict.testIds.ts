@@ -95,6 +95,10 @@ export const PredictPositionsListSelectorsIDs = {
   SKELETON_ROW: 'predict-positions-list-skeleton-row',
 } as const;
 
+export const PredictPositionsHistoryListSelectorsIDs = {
+  CONTAINER: 'predict-positions-history-list',
+} as const;
+
 export const getPredictFeedSelector = {
   tab: (index: number) => `${PredictFeedSelectorsIDs.TABS}-tab-${index}`,
   tabPage: (key: string) => `predict-feed-tab-page-${key}`,

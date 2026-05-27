@@ -1,5 +1,5 @@
 import React from 'react';
-import { SectionList } from 'react-native';
+import { SectionList, Text } from 'react-native';
 import { act, render, screen, fireEvent } from '@testing-library/react-native';
 import PredictTransactionsView from './PredictTransactionsView';
 import { PredictActivityType } from '../../types';
@@ -124,6 +124,24 @@ describe('PredictTransactionsView', () => {
     render(<PredictTransactionsView />);
 
     expect(screen.getByText('No recent activity')).toBeOnTheScreen();
+  });
+
+  it('displays a custom empty state when provided', () => {
+    (usePredictActivity as jest.Mock).mockReturnValueOnce(
+      createUsePredictActivityValue({
+        data: [],
+        isLoading: false,
+      }),
+    );
+
+    render(
+      <PredictTransactionsView
+        emptyState={<Text testID="custom-empty-state">Custom empty</Text>}
+      />,
+    );
+
+    expect(screen.getByTestId('custom-empty-state')).toBeOnTheScreen();
+    expect(screen.queryByText('No recent activity')).toBeNull();
   });
 
   it('displays all activity items from the activity list', () => {
