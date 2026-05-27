@@ -316,9 +316,7 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(mockLinkMoneyAccountCard).not.toHaveBeenCalled();
       expect(mockShowToast).toHaveBeenCalledTimes(1);
       expect(mockShowToast.mock.calls[0][0]).toMatchObject({
-        labelOptions: [
-          { label: 'Something went wrong linking your card', isBold: true },
-        ],
+        labelOptions: [{ label: 'Something went wrong linking your card' }],
       });
     });
 
@@ -712,7 +710,7 @@ describe('useMoneyAccountCardLinkage', () => {
       const pendingCall = mockShowToast.mock.calls[0]?.[0];
       expect(pendingCall).toMatchObject({
         hasNoTimeout: true,
-        labelOptions: [{ label: 'Linking your card', isBold: true }],
+        labelOptions: [{ label: 'Linking your card' }],
       });
       expect(pendingCall?.startAccessory).toBeDefined();
 
@@ -723,7 +721,7 @@ describe('useMoneyAccountCardLinkage', () => {
 
       const successCall = mockShowToast.mock.calls[1]?.[0];
       expect(successCall).toMatchObject({
-        labelOptions: [{ label: 'Your card is ready to use', isBold: true }],
+        labelOptions: [{ label: 'Your card is ready to use' }],
         hasNoTimeout: false,
       });
     });
@@ -779,9 +777,7 @@ describe('useMoneyAccountCardLinkage', () => {
 
       const errorCall = mockShowToast.mock.calls.at(-1)?.[0];
       expect(errorCall).toMatchObject({
-        labelOptions: [
-          { label: 'Something went wrong linking your card', isBold: true },
-        ],
+        labelOptions: [{ label: 'Something went wrong linking your card' }],
         hasNoTimeout: false,
       });
     });
@@ -821,9 +817,7 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(mockLinkMoneyAccountCard).not.toHaveBeenCalled();
       expect(mockShowToast).toHaveBeenCalledTimes(1);
       expect(mockShowToast.mock.calls[0][0]).toMatchObject({
-        labelOptions: [
-          { label: 'Something went wrong linking your card', isBold: true },
-        ],
+        labelOptions: [{ label: 'Something went wrong linking your card' }],
       });
     });
 

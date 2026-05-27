@@ -9,6 +9,9 @@ import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   Box,
+  Icon,
+  IconColor,
+  IconSize,
   IconColor as ReactNativeDsIconColor,
   IconSize as ReactNativeDsIconSize,
   Spinner,
@@ -145,7 +148,6 @@ export const useMoneyAccountCardLinkage =
         labelOptions: [
           {
             label: strings('money.metamask_card.link_pending_title'),
-            isBold: true,
           },
         ],
         iconName: IconName.Loading,
@@ -167,27 +169,41 @@ export const useMoneyAccountCardLinkage =
         labelOptions: [
           {
             label: strings('money.metamask_card.link_success_title'),
-            isBold: true,
           },
         ],
         iconName: IconName.Confirmation,
         iconColor: theme.colors.success.default,
         hasNoTimeout: false,
+        startAccessory: (
+          <Box twClassName="pr-3">
+            <Icon
+              name={IconName.Confirmation}
+              color={IconColor.SuccessDefault}
+              size={IconSize.Lg}
+            />
+          </Box>
+        ),
       });
     }, [theme.colors.success.default, toastRef]);
 
     const showErrorToast = useCallback(() => {
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
-        labelOptions: [
-          { label: strings('money.metamask_card.link_error'), isBold: true },
-        ],
+        labelOptions: [{ label: strings('money.metamask_card.link_error') }],
         iconName: IconName.Error,
         iconColor: theme.colors.error.default,
-        backgroundColor: theme.colors.error.muted,
         hasNoTimeout: false,
+        startAccessory: (
+          <Box twClassName="pr-3">
+            <Icon
+              name={IconName.Error}
+              color={IconColor.ErrorDefault}
+              size={IconSize.Lg}
+            />
+          </Box>
+        ),
       });
-    }, [theme.colors.error.default, theme.colors.error.muted, toastRef]);
+    }, [theme.colors.error.default, toastRef]);
 
     const openLinkCardSheet = useCallback((): void => {
       if (!canLink || !primaryMoneyAccount?.address) {
