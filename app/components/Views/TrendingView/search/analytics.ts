@@ -82,17 +82,6 @@ export const trackExploreInteracted = (
   );
 };
 
-export const trackExploreEvent = (
-  event: Parameters<typeof AnalyticsEventBuilder.createEventBuilder>[0],
-  properties: Record<string, string>,
-): void => {
-  analytics.trackEvent(
-    AnalyticsEventBuilder.createEventBuilder(event)
-      .addProperties(properties)
-      .build(),
-  );
-};
-
 export const trackExploreSearchEvent = (
   properties: ExploreSearchInteractedProperties,
 ): void => {

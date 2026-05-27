@@ -6747,6 +6747,10 @@
     "apy_label": "{{percentage}}% APY",
     "apy_currency_suffix": " • mUSD",
     "apy_info_label": "APY info",
+    "balance_unavailable": "Balance unavailable",
+    "balance_retry": "Retry",
+    "balance_feature_disabled": "Money account disabled",
+    "balance_no_account": "Money account not found",
     "onboarding": {
       "step_1": {
         "title": "Fund your account",
@@ -8563,6 +8567,7 @@
     },
     "main_title": "Rewards",
     "vip": {
+      "progress_to_next_tier": "{{pointsRemaining}} points to next tier",
       "bps_unit": "bps",
       "badge_label": "VIP {{tier}}",
       "swaps_label": "Swaps",
