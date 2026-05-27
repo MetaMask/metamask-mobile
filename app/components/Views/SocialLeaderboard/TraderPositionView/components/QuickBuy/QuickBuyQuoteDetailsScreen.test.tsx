@@ -58,6 +58,7 @@ jest.mock('./components/QuickBuyQuoteCountdown', () => {
   };
 });
 
+// Render field.label and value.label as ReactNodes so testIDs inside them are accessible.
 jest.mock(
   '../../../../../../component-library/components-temp/KeyValueRow',
   () => {
@@ -65,18 +66,33 @@ jest.mock(
     const { View } = jest.requireActual('react-native');
     return {
       __esModule: true,
-      default: ({ field }: { field: { label: { text?: string } } }) =>
+      default: ({
+        field,
+        value,
+      }: {
+        field: { label: unknown; tooltip?: unknown };
+        value?: { label: unknown };
+      }) =>
         ReactMock.createElement(
           View,
-          { testID: `key-value-row-${field.label.text}` },
           null,
+          ReactMock.isValidElement(field.label)
+            ? field.label
+            : ReactMock.createElement(View, null),
+          ReactMock.isValidElement(value?.label)
+            ? value.label
+            : ReactMock.createElement(View, null),
         ),
+      TooltipSizes: { Sm: 'sm' },
     };
   },
 );
 
+jest.mock('../../../../../../component-library/components/Icons/Icon', () => ({
+  IconName: { Info: 'Info' },
+}));
+
 const buildContext = (overrides = {}) => ({
-  activeQuote: undefined,
   sourceToken: undefined,
   destToken: undefined,
   formattedNetworkFee: '$1.23',
@@ -85,10 +101,7 @@ const buildContext = (overrides = {}) => ({
   formattedMinimumReceivedFiat: '$3,200',
   formattedRate: '1 USDC = 0.0003 ETH',
   quotesLastFetchedAt: Date.now(),
-  refreshCount: 0,
   quoteRefreshRateMs: 30000,
-  maxRefreshCount: 5,
-  refetchQuotes: jest.fn(),
   onClose: jest.fn(),
   setActiveScreen: jest.fn(),
   ...overrides,
@@ -107,31 +120,9 @@ describe('QuickBuyQuoteDetailsScreen', () => {
     );
   });
 
-  it('renders the countdown timer when refresh is not exhausted', () => {
+  it('always renders the countdown timer inline with the rate row', () => {
     render(<QuickBuyQuoteDetailsScreen />);
     expect(screen.getByTestId('mock-countdown')).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId('quick-buy-get-new-quote'),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('renders "Get new quote" button when refresh is exhausted', () => {
-    (useQuickBuyContext as jest.Mock).mockReturnValue(
-      buildContext({ refreshCount: 5, maxRefreshCount: 5 }),
-    );
-    render(<QuickBuyQuoteDetailsScreen />);
-    expect(screen.getByTestId('quick-buy-get-new-quote')).toBeOnTheScreen();
-    expect(screen.queryByTestId('mock-countdown')).not.toBeOnTheScreen();
-  });
-
-  it('calls refetchQuotes when "Get new quote" is pressed', () => {
-    const refetchQuotes = jest.fn();
-    (useQuickBuyContext as jest.Mock).mockReturnValue(
-      buildContext({ refreshCount: 5, maxRefreshCount: 5, refetchQuotes }),
-    );
-    render(<QuickBuyQuoteDetailsScreen />);
-    fireEvent.press(screen.getByTestId('quick-buy-get-new-quote'));
-    expect(refetchQuotes).toHaveBeenCalledTimes(1);
   });
 
   it('calls setActiveScreen("selectQuote") when the rate row is pressed', () => {
@@ -170,12 +161,10 @@ describe('QuickBuyQuoteDetailsScreen', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('shows the bridge provider id when available', () => {
-    const activeQuote = { quote: { bridgeId: 'lifi' } };
-    (useQuickBuyContext as jest.Mock).mockReturnValue(
-      buildContext({ activeQuote }),
-    );
+  it('does not show a "Get new quote" button', () => {
     render(<QuickBuyQuoteDetailsScreen />);
-    expect(screen.getByText('lifi')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('quick-buy-get-new-quote'),
+    ).not.toBeOnTheScreen();
   });
 });

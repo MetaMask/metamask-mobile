@@ -16,6 +16,7 @@ jest.mock('react-redux', () => ({
           BridgeController: { quotes: [], quotesLastFetched: null },
         },
       },
+      bridge: { destToken: null },
     }),
   ),
 }));
@@ -116,10 +117,21 @@ describe('QuickBuySelectQuoteScreen', () => {
   });
 
   it('renders the select quote title in the sub-screen header', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue(
+      buildContext({ isQuoteLoading: true }),
+    );
     render(<QuickBuySelectQuoteScreen />);
     expect(screen.getByTestId('mock-header-title')).toHaveTextContent(
       'social_leaderboard.quick_buy.select_quote_title',
     );
+  });
+
+  it('renders the subtitle text below the header', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue(
+      buildContext({ isQuoteLoading: true }),
+    );
+    render(<QuickBuySelectQuoteScreen />);
+    expect(screen.getByText('bridge.select_quote_info')).toBeOnTheScreen();
   });
 
   it('shows an empty state when there are no quotes and not loading', () => {
@@ -167,7 +179,7 @@ describe('QuickBuySelectQuoteScreen', () => {
   it('calls setActiveScreen("quoteDetails") when back is pressed', () => {
     const setActiveScreen = jest.fn();
     (useQuickBuyContext as jest.Mock).mockReturnValue(
-      buildContext({ setActiveScreen }),
+      buildContext({ isQuoteLoading: true, setActiveScreen }),
     );
     render(<QuickBuySelectQuoteScreen />);
     fireEvent.press(screen.getByTestId('mock-back-button'));
@@ -177,7 +189,7 @@ describe('QuickBuySelectQuoteScreen', () => {
   it('calls onClose when the close button is pressed', () => {
     const onClose = jest.fn();
     (useQuickBuyContext as jest.Mock).mockReturnValue(
-      buildContext({ onClose }),
+      buildContext({ isQuoteLoading: true, onClose }),
     );
     render(<QuickBuySelectQuoteScreen />);
     fireEvent.press(screen.getByTestId('mock-close-button'));

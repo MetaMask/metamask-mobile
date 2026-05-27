@@ -337,16 +337,11 @@ export function useQuickBuyQuotes({
     };
   }, [debouncedFetchQuotes]);
 
-  // Auto-refresh quotes on a fixed interval until the refresh cap is reached.
+  // Auto-refresh quotes on a fixed interval indefinitely.
   // `refreshCount` starts at 0 and increments on each successful fetch, so
   // after the initial fetch (count=1) this effect schedules the next one.
   useEffect(() => {
-    if (
-      !quotesLastFetchedAt ||
-      refreshCount === 0 ||
-      refreshCount >= maxRefreshCount ||
-      isQuoteLoading
-    ) {
+    if (!quotesLastFetchedAt || refreshCount === 0 || isQuoteLoading) {
       return;
     }
 
@@ -361,7 +356,6 @@ export function useQuickBuyQuotes({
   }, [
     quotesLastFetchedAt,
     refreshCount,
-    maxRefreshCount,
     quoteRefreshRateMs,
     isQuoteLoading,
     fetchQuotes,

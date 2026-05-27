@@ -13,7 +13,12 @@ import QuickBuyRateTag from './QuickBuyRateTag';
 import { useQuickBuyContext } from '../useQuickBuyContext';
 
 const QuickBuyToolbar: React.FC = () => {
-  const { formattedExchangeRate, setActiveScreen } = useQuickBuyContext();
+  const { formattedRate, formattedExchangeRate, setActiveScreen } =
+    useQuickBuyContext();
+
+  // Prefer the quote-derived rate (available once a quote is fetched),
+  // fall back to the price-metadata rate for the pre-quote state.
+  const rateLabel = formattedRate ?? formattedExchangeRate;
 
   return (
     <Box
@@ -32,7 +37,7 @@ const QuickBuyToolbar: React.FC = () => {
       </Box>
 
       <QuickBuyRateTag
-        label={formattedExchangeRate}
+        label={rateLabel}
         onPress={() => setActiveScreen('quoteDetails')}
       />
     </Box>

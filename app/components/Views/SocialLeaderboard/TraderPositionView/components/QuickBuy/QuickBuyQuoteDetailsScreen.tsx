@@ -1,13 +1,9 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
-  Button,
-  ButtonSize,
-  ButtonVariant,
   Text,
   TextColor,
   TextVariant,
@@ -18,24 +14,19 @@ import {
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../locales/i18n';
-import KeyValueRow from '../../../../../../component-library/components-temp/KeyValueRow';
+import KeyValueRow, {
+  TooltipSizes,
+} from '../../../../../../component-library/components-temp/KeyValueRow';
+import { IconName as IconNameLegacy } from '../../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../../constants/navigation/Routes';
 import type { Hex } from '@metamask/utils';
 import { useQuickBuyContext } from './useQuickBuyContext';
 import QuickBuySubScreenHeader from './components/QuickBuySubScreenHeader';
 import QuickBuyQuoteCountdown from './components/QuickBuyQuoteCountdown';
 
-const styles = StyleSheet.create({
-  row: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-});
-
 const QuickBuyQuoteDetailsScreen: React.FC = () => {
   const navigation = useNavigation();
   const {
-    activeQuote,
     sourceToken,
     destToken,
     formattedNetworkFee,
@@ -44,15 +35,10 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
     formattedMinimumReceivedFiat,
     formattedRate,
     quotesLastFetchedAt,
-    refreshCount,
     quoteRefreshRateMs,
-    maxRefreshCount,
-    refetchQuotes,
     onClose,
     setActiveScreen,
   } = useQuickBuyContext();
-
-  const isRefreshExhausted = refreshCount >= maxRefreshCount;
 
   const sourceChainId = sourceToken?.chainId
     ? (`0x${Number(sourceToken.chainId).toString(16)}` as Hex)
@@ -80,143 +66,145 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
         onClose={onClose}
       />
 
-      <Box twClassName="px-4 py-4" gap={6}>
-        {/* Timer / refresh CTA row */}
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-        >
-          {isRefreshExhausted ? (
-            <Button
-              variant={ButtonVariant.Primary}
-              size={ButtonSize.Md}
-              onPress={refetchQuotes}
-              testID="quick-buy-get-new-quote"
-            >
-              {strings('social_leaderboard.quick_buy.get_new_quote')}
-            </Button>
-          ) : (
-            <QuickBuyQuoteCountdown
-              quotesLastFetchedAt={quotesLastFetchedAt}
-              quoteRefreshRateMs={quoteRefreshRateMs}
-            />
-          )}
-          {activeQuote?.quote?.bridgeId && (
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {activeQuote.quote.bridgeId}
-            </Text>
-          )}
-        </Box>
-
-        {/* Quote detail rows */}
-        <Box twClassName="rounded-xl bg-muted overflow-hidden" gap={0}>
-          {/* Rate row — tapping opens Select Quote */}
-          <TouchableOpacity
-            onPress={() => setActiveScreen('selectQuote')}
-            testID="quick-buy-rate-row"
-          >
-            <KeyValueRow
-              style={styles.row}
-              field={{
-                label: {
-                  text: strings('social_leaderboard.quick_buy.rate'),
-                },
-              }}
-              value={{
-                label: (
-                  <Box
-                    flexDirection={BoxFlexDirection.Row}
-                    alignItems={BoxAlignItems.Center}
-                    gap={1}
-                  >
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextDefault}
-                    >
-                      {formattedRate ?? '-'}
-                    </Text>
-                    <Icon
-                      name={IconName.ArrowRight}
-                      size={IconSize.Xs}
-                      color={IconColor.IconDefault}
-                    />
-                  </Box>
-                ),
-              }}
-            />
-          </TouchableOpacity>
-
-          {/* Network fee row */}
-          <KeyValueRow
-            style={styles.row}
-            field={{
-              label: {
-                text: strings('social_leaderboard.quick_buy.network_fee'),
-              },
-            }}
-            value={{
-              label: {
-                text: formattedNetworkFee,
-              },
-            }}
-          />
-
-          {/* Slippage row */}
-          <KeyValueRow
-            style={styles.row}
-            field={{
-              label: {
-                text: strings('social_leaderboard.quick_buy.slippage'),
-              },
-            }}
-            value={{
-              label: (
+      <Box twClassName="px-4 pt-3 pb-4" gap={3}>
+        {/* Rate row — countdown inline with label, value opens Select Quote */}
+        <KeyValueRow
+          field={{
+            label: (
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                gap={1}
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('social_leaderboard.quick_buy.rate')}
+                </Text>
+                <QuickBuyQuoteCountdown
+                  quotesLastFetchedAt={quotesLastFetchedAt}
+                  quoteRefreshRateMs={quoteRefreshRateMs}
+                />
+              </Box>
+            ),
+            tooltip: {
+              title: strings('bridge.quote_info_title'),
+              content: strings('bridge.quote_info_content'),
+              size: TooltipSizes.Sm,
+              iconName: IconNameLegacy.Info,
+            },
+          }}
+          value={{
+            label: (
+              <TouchableOpacity
+                onPress={() => setActiveScreen('selectQuote')}
+                testID="quick-buy-rate-row"
+                activeOpacity={0.6}
+              >
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
-                  gap={2}
+                  gap={1}
                 >
                   <Text
                     variant={TextVariant.BodyMd}
-                    color={TextColor.TextDefault}
+                    color={TextColor.TextAlternative}
+                  >
+                    {formattedRate ?? '-'}
+                  </Text>
+                  <Icon
+                    name={IconName.ArrowRight}
+                    size={IconSize.Sm}
+                    color={IconColor.IconAlternative}
+                  />
+                </Box>
+              </TouchableOpacity>
+            ),
+          }}
+        />
+
+        {/* Network fee row */}
+        <KeyValueRow
+          field={{
+            label: {
+              text: strings('social_leaderboard.quick_buy.network_fee'),
+            },
+            tooltip: {
+              title: strings('bridge.network_fee_info_title'),
+              content: strings('bridge.network_fee_info_content'),
+              size: TooltipSizes.Sm,
+              iconName: IconNameLegacy.Info,
+            },
+          }}
+          value={{
+            label: {
+              text: formattedNetworkFee,
+            },
+          }}
+        />
+
+        {/* Slippage row */}
+        <KeyValueRow
+          field={{
+            label: {
+              text: strings('social_leaderboard.quick_buy.slippage'),
+            },
+            tooltip: {
+              title: strings('bridge.slippage_info_title'),
+              content: strings('bridge.slippage_info_description'),
+              size: TooltipSizes.Sm,
+              iconName: IconNameLegacy.Info,
+            },
+          }}
+          value={{
+            label: (
+              <TouchableOpacity
+                onPress={handleEditSlippage}
+                activeOpacity={0.6}
+                testID="quick-buy-edit-slippage"
+              >
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  gap={1}
+                >
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
                   >
                     {formattedSlippage}
                   </Text>
-                  <TouchableOpacity
-                    onPress={handleEditSlippage}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                    testID="quick-buy-edit-slippage"
-                  >
-                    <Icon
-                      name={IconName.Edit}
-                      size={IconSize.Sm}
-                      color={IconColor.IconDefault}
-                    />
-                  </TouchableOpacity>
+                  <Icon
+                    name={IconName.Edit}
+                    size={IconSize.Sm}
+                    color={IconColor.IconAlternative}
+                  />
                 </Box>
-              ),
-            }}
-          />
+              </TouchableOpacity>
+            ),
+          }}
+        />
 
-          {/* Minimum received row */}
-          <KeyValueRow
-            style={styles.row}
-            field={{
-              label: {
-                text: strings('social_leaderboard.quick_buy.minimum_received'),
-              },
-            }}
-            value={{
-              label: {
-                text: minReceivedLabel,
-              },
-            }}
-          />
-        </Box>
+        {/* Minimum received row */}
+        <KeyValueRow
+          field={{
+            label: {
+              text: strings('social_leaderboard.quick_buy.minimum_received'),
+            },
+            tooltip: {
+              title: strings('bridge.minimum_received_tooltip_title'),
+              content: strings('bridge.minimum_received_tooltip_content'),
+              size: TooltipSizes.Sm,
+              iconName: IconNameLegacy.Info,
+            },
+          }}
+          value={{
+            label: {
+              text: minReceivedLabel,
+            },
+          }}
+        />
       </Box>
     </>
   );
