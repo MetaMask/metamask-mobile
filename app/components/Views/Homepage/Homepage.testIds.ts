@@ -1,7 +1,3 @@
-/** E2E selectors for sections rendered on the wallet homepage. */
-export const homepageSectionTitleTestId = (sectionName: string): string =>
-  `homepage-section-title-${sectionName}`;
-
 /**
  * Homepage "More" section and import actions.
  * String values match `WalletViewSelectorsIDs` for Detox/E2E stability.
