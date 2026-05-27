@@ -290,7 +290,6 @@ describe('PredictFeed', () => {
     jest.clearAllMocks();
 
     mockUseNavigation.mockReturnValue(mockNavigation);
-    mockNavigation.canGoBack.mockReturnValue(true);
     mockUseRoute.mockReturnValue({
       params: {
         entryPoint: 'homepage_new_prediction',
