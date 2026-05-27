@@ -403,6 +403,16 @@ tests/websocket/                                                @MetaMask/qa
 app/util/parseAmount.ts                      @MetaMask/swaps-engineers @MetaMask/money-movement
 app/util/parseAmount.test.ts                 @MetaMask/swaps-engineers @MetaMask/money-movement
 
+# Dependency bumps – no code owners assigned
+# Org-level repo rules already restrict approvers to org members.
+# ⚠️ Note: Leaving these rules unassigned disables Code Owner review enforcement for these files.
+patches/
+package.json
+yarn.lock
+
+# Security-sensitive patch – supply-chain review still required
+patches/react-native+0.*.patch       @MetaMask/supply-chain
+
 # Snapshots – no code owners assigned
 # This allows anyone with write access to approve changes to any *.snap files.
 # ⚠️ Note: Leaving this rule unassigned disables Code Owner review enforcement for snapshot files.
