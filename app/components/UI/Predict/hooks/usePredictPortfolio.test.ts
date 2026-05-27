@@ -263,7 +263,7 @@ describe('usePredictPortfolio', () => {
       ({ claimable }: { claimable?: boolean }) =>
         createQuery<PredictPosition[]>({
           data: claimable ? [] : undefined,
-          isLoading: claimable ? false : true,
+          isLoading: !claimable,
         }),
     );
 
