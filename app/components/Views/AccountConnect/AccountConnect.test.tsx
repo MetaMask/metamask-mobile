@@ -7,7 +7,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
 import { WC2VerifyValidation } from '../../../actions/sdk/state';
 import { AccountConnectMaliciousWarningSelectorsIDs } from './AccountConnectMaliciousWarning/AccountConnectMaliciousWarning.testIds';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import Engine from '../../../core/Engine';
 import {
   createMockAccountsControllerState as createMockAccountsControllerStateUtil,
@@ -28,6 +28,21 @@ import { SolScope } from '@metamask/keyring-api';
 import { ConnectedAccountsSelectorsIDs } from './ConnectedAccountModal.testIds';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector/AccountConnectMultiSelector';
 import useOriginSource from '../../hooks/useOriginSource';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../component-library/components/Toast';
+import {
+  getFaviconFromCache,
+  getFaviconURLFromHtml,
+} from '../../../util/favicon';
+
+jest.mock('../../../util/favicon', () => ({
+  ...jest.requireActual('../../../util/favicon'),
+  getFaviconFromCache: jest.fn(),
+  getFaviconURLFromHtml: jest.fn(),
+  cacheFavicon: jest.fn(),
+}));
 
 const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerStateUtil([
   mockAddress1,
@@ -297,9 +312,57 @@ jest.mock('../../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
 mockGetConnection.mockReturnValue(undefined);
 mockIsUUID.mockReturnValue(false);
 
+const mockShowToast = jest.fn();
+const mockToastRef = {
+  current: { showToast: mockShowToast, closeToast: jest.fn() },
+};
+
+const toastTestState: DeepPartial<RootState> = {
+  ...mockInitialState,
+  browser: {
+    visitedDappsByHostname: {},
+    favicons: [],
+  },
+};
+
+const renderAccountConnectWithToast = () =>
+  renderWithProvider(
+    <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+      <AccountConnect
+        route={{
+          params: {
+            hostInfo: {
+              metadata: {
+                id: 'mockId',
+                origin: 'https://example.com',
+                isEip1193Request: true,
+              },
+              permissions: createMockCaip25Permission({
+                'wallet:eip155': {
+                  accounts: [],
+                },
+              }),
+            },
+            permissionRequestId: 'test-connect-toast',
+          },
+        }}
+      />
+    </ToastContext.Provider>,
+    { state: toastTestState },
+  );
+
+const flushFaviconResolution = async () => {
+  await act(async () => {
+    await Promise.resolve();
+  });
+};
+
 describe('AccountConnect', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(getFaviconFromCache).mockReturnValue(undefined);
+    jest.mocked(getFaviconURLFromHtml).mockResolvedValue(undefined);
+    mockShowToast.mockClear();
     (useOriginSource as jest.Mock).mockImplementation(() => ({
       source: 'in-app browser',
       requestSource: 'In-App-Browser',
@@ -843,6 +906,79 @@ describe('AccountConnect', () => {
           entropySource: mockKeyringId,
         });
       });
+    });
+  });
+
+  describe('Connect success toast', () => {
+    beforeEach(() => {
+      Engine.context.PermissionController.acceptPermissionsRequest = jest
+        .fn()
+        .mockResolvedValue(undefined);
+    });
+
+    it('uses App toast variant after favicon resolves from cache', async () => {
+      const faviconUrl = 'https://example.com/favicon.ico';
+      jest.mocked(getFaviconFromCache).mockReturnValue(faviconUrl);
+
+      const { getByTestId } = renderAccountConnectWithToast();
+
+      await waitFor(() => {
+        expect(getFaviconFromCache).toHaveBeenCalledWith('https://example.com');
+      });
+      await flushFaviconResolution();
+
+      fireEvent.press(getByTestId('connect-button'));
+
+      await waitFor(() => {
+        expect(
+          Engine.context.PermissionController.acceptPermissionsRequest,
+        ).toHaveBeenCalled();
+      });
+
+      await waitFor(() => {
+        expect(mockShowToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            variant: ToastVariants.App,
+            appIconSource: { uri: faviconUrl },
+            hasNoTimeout: false,
+            labelOptions: [{ label: expect.any(String) }],
+          }),
+        );
+      });
+    });
+
+    it('uses Plain toast variant when favicon lookup returns nothing', async () => {
+      const { getByTestId } = renderAccountConnectWithToast();
+
+      await waitFor(() => {
+        expect(getFaviconURLFromHtml).toHaveBeenCalledWith(
+          'https://example.com',
+        );
+      });
+      await flushFaviconResolution();
+
+      fireEvent.press(getByTestId('connect-button'));
+
+      await waitFor(() => {
+        expect(
+          Engine.context.PermissionController.acceptPermissionsRequest,
+        ).toHaveBeenCalled();
+      });
+
+      await waitFor(() => {
+        expect(mockShowToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            variant: ToastVariants.Plain,
+            hasNoTimeout: false,
+            labelOptions: [{ label: expect.any(String) }],
+          }),
+        );
+      });
+      expect(mockShowToast).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: ToastVariants.App,
+        }),
+      );
     });
   });
 
