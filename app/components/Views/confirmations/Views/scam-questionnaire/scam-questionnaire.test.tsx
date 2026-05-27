@@ -32,15 +32,17 @@ jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
 const setup = () => {
   const onConfirm = jest.fn();
   const onReject = jest.fn();
+  const onBypass = jest.fn();
   const onDismiss = jest.fn();
   const utils = render(
     <ScamQuestionnaire
       onConfirm={onConfirm}
       onReject={onReject}
+      onBypass={onBypass}
       onDismiss={onDismiss}
     />,
   );
-  return { ...utils, onConfirm, onReject, onDismiss };
+  return { ...utils, onConfirm, onReject, onBypass, onDismiss };
 };
 
 const answerAllClean = (
@@ -75,10 +77,10 @@ describe('ScamQuestionnaire', () => {
     expect(mockTrackStarted).toHaveBeenCalledTimes(1);
   });
 
-  it('starts on Q1 and shows the educational callout', () => {
+  it('starts on Q1', () => {
     const { getByTestId } = setup();
     expect(getByTestId('scam-questionnaire-option-q1_yes')).toBeDefined();
-    expect(getByTestId('scam-questionnaire-callout-info')).toBeDefined();
+    expect(getByTestId('scam-questionnaire-option-q1_no')).toBeDefined();
   });
 
   it('keeps the Continue button disabled until an option is selected', () => {
@@ -157,13 +159,14 @@ describe('ScamQuestionnaire', () => {
     expect(mockTrackWarningContactSupport).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onConfirm and tracks the proceeded event when the bypass text is tapped', () => {
-    const { getByTestId, onConfirm } = setup();
+  it('calls onBypass (not onConfirm) and tracks the proceeded event when the bypass text is tapped', () => {
+    const { getByTestId, onBypass, onConfirm } = setup();
     answerOneRedFlag(getByTestId);
 
     fireEvent.press(getByTestId('scam-warning-proceed'));
 
-    expect(onConfirm).toHaveBeenCalledTimes(1);
+    expect(onBypass).toHaveBeenCalledTimes(1);
+    expect(onConfirm).not.toHaveBeenCalled();
     expect(mockTrackWarningProceeded).toHaveBeenCalledTimes(1);
   });
 
@@ -194,6 +197,7 @@ describe('ScamQuestionnaire', () => {
       <ScamQuestionnaire
         onConfirm={jest.fn()}
         onReject={jest.fn()}
+        onBypass={jest.fn()}
         onDismiss={jest.fn()}
       />,
     );

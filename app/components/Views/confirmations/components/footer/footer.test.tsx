@@ -129,6 +129,7 @@ describe('Footer', () => {
     (useAlerts as jest.Mock).mockReturnValue({
       fieldAlerts: [],
       hasDangerAlerts: false,
+      setAlertConfirmed: jest.fn(),
     });
 
     (useAlertsConfirmed as jest.Mock).mockReturnValue({

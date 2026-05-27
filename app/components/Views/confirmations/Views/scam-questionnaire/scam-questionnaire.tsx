@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Modal } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Modal, StatusBar, View } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+
+import { useTheme } from '../../../../../util/theme';
 
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -22,10 +24,12 @@ import { useScamQuestionnaireMetrics } from './useScamQuestionnaireMetrics';
 import styleSheet from './scam-questionnaire.styles';
 
 export interface ScamQuestionnaireProps {
-  /** Called when the user passes the funnel (all clean) or taps the bypass on the warning screen. The pending transaction should be confirmed. */
+  /** Called when the user passes the funnel cleanly (no red-flag answers). The pending transaction should be confirmed immediately. */
   onConfirm: () => void;
   /** Called when the user taps "Stop this payment" on the warning screen. The pending transaction should be rejected. */
   onReject: () => void;
+  /** Called when the user taps "I understand the risks, continue anyway" on the warning screen. The caller should return the user to the confirm screen, remember that they bypassed (so future Confirm taps skip the questionnaire), and mark the underlying alert as acknowledged. The tx is NOT submitted here — the user still has to tap Confirm on the send screen. */
+  onBypass: () => void;
   /** Called when the user dismisses the questionnaire without finishing (back-button, swipe-down, system back). Caller stays on the confirm screen with the tx still pending. */
   onDismiss: () => void;
 }
@@ -40,11 +44,6 @@ const QUESTION_DEFS: Record<
     titleKey: string;
     subtitleKey: string;
     options: QuestionOption[];
-    callout?: {
-      variant: 'info' | 'warn';
-      titleKey: string;
-      bodyKey: string;
-    };
   }
 > = {
   0: {
@@ -53,11 +52,6 @@ const QUESTION_DEFS: Record<
     titleKey: 'scam_questionnaire.q1.title',
     subtitleKey: 'scam_questionnaire.q1.subtitle',
     options: Q1_OPTIONS,
-    callout: {
-      variant: 'info',
-      titleKey: 'scam_questionnaire.q1.callout_title',
-      bodyKey: 'scam_questionnaire.q1.callout_body',
-    },
   },
   1: {
     id: 'q2',
@@ -72,20 +66,17 @@ const QUESTION_DEFS: Record<
     titleKey: 'scam_questionnaire.q3.title',
     subtitleKey: 'scam_questionnaire.q3.subtitle',
     options: Q3_OPTIONS,
-    callout: {
-      variant: 'warn',
-      titleKey: 'scam_questionnaire.q3.callout_title',
-      bodyKey: 'scam_questionnaire.q3.callout_body',
-    },
   },
 };
 
 export const ScamQuestionnaire: React.FC<ScamQuestionnaireProps> = ({
   onConfirm,
   onReject,
+  onBypass,
   onDismiss,
 }) => {
   const { styles } = useStyles(styleSheet, {});
+  const { themeAppearance, colors } = useTheme();
   const metrics = useScamQuestionnaireMetrics();
 
   const [step, setStep] = useState<Step>(0);
@@ -173,8 +164,8 @@ export const ScamQuestionnaire: React.FC<ScamQuestionnaireProps> = ({
 
   const handleProceed = useCallback(() => {
     metrics.trackWarningProceeded(answers);
-    onConfirm();
-  }, [answers, metrics, onConfirm]);
+    onBypass();
+  }, [answers, metrics, onBypass]);
 
   const handleRequestClose = useCallback(() => {
     metrics.trackDismissed(typeof step === 'number' ? step : 3, answers);
@@ -189,44 +180,45 @@ export const ScamQuestionnaire: React.FC<ScamQuestionnaireProps> = ({
       onRequestClose={handleRequestClose}
       testID="scam-questionnaire-modal"
     >
-      <SafeAreaView style={styles.safeArea}>
-        <SecurityCheckHeader
-          currentStep={typeof step === 'number' ? step : null}
-          totalSteps={TOTAL_QUESTIONS}
-          onBack={handleBack}
-        />
-        {typeof step === 'number' ? (
-          (() => {
-            const def = QUESTION_DEFS[step];
-            return (
-              <QuestionScreen
-                iconName={def.icon}
-                title={strings(def.titleKey)}
-                subtitle={strings(def.subtitleKey)}
-                options={def.options}
-                selectedKey={pendingSelection?.key}
-                callout={
-                  def.callout
-                    ? {
-                        variant: def.callout.variant,
-                        title: strings(def.callout.titleKey),
-                        body: strings(def.callout.bodyKey),
-                      }
-                    : undefined
-                }
-                onSelect={handleSelect}
-                onContinue={handleContinue}
-              />
-            );
-          })()
-        ) : (
-          <ScamWarning
-            onStop={handleStop}
-            onContactSupport={handleContactSupport}
-            onProceed={handleProceed}
+      <SafeAreaProvider>
+        <View style={styles.fullBleed}>
+          <StatusBar
+            barStyle={
+              themeAppearance === 'light' ? 'dark-content' : 'light-content'
+            }
+            backgroundColor={colors.background.default}
           />
-        )}
-      </SafeAreaView>
+          <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+            <SecurityCheckHeader
+              currentStep={typeof step === 'number' ? step : null}
+              totalSteps={TOTAL_QUESTIONS}
+              onBack={handleBack}
+            />
+            {typeof step === 'number' ? (
+              (() => {
+                const def = QUESTION_DEFS[step];
+                return (
+                  <QuestionScreen
+                    iconName={def.icon}
+                    title={strings(def.titleKey)}
+                    subtitle={strings(def.subtitleKey)}
+                    options={def.options}
+                    selectedKey={pendingSelection?.key}
+                    onSelect={handleSelect}
+                    onContinue={handleContinue}
+                  />
+                );
+              })()
+            ) : (
+              <ScamWarning
+                onStop={handleStop}
+                onContactSupport={handleContactSupport}
+                onProceed={handleProceed}
+              />
+            )}
+          </SafeAreaView>
+        </View>
+      </SafeAreaProvider>
     </Modal>
   );
 };

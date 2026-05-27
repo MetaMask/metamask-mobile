@@ -219,9 +219,7 @@
       "title": "Did someone you only know online tell you to send this?",
       "subtitle": "This includes people you met on social media, dating apps, messaging apps, or in a group chat — even if you have spoken on video.",
       "yes": "Yes, someone I met online told me to send this",
-      "no": "No, I am sending this on my own initiative",
-      "callout_title": "Did you know?",
-      "callout_body": "Most pig-butchering victims were first contacted on dating apps, LinkedIn, or WhatsApp by a stranger who built trust over weeks."
+      "no": "No, I am sending this on my own initiative"
     },
     "q2": {
       "title": "What is this payment for?",
@@ -243,9 +241,7 @@
       "title": "Is someone guiding you through this transaction right now?",
       "subtitle": "For example, on a phone call, video chat, or sharing your screen with someone.",
       "yes": "Yes, someone is walking me through the steps right now",
-      "no": "No, I am doing this entirely on my own",
-      "callout_title": "Warning",
-      "callout_body": "Scammers often guide victims step-by-step, sometimes via screen sharing. A legitimate recipient would never need to walk you through a crypto transaction."
+      "no": "No, I am doing this entirely on my own"
     },
     "warning": {
       "title": "You might be getting scammed right now",

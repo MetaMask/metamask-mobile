@@ -17,7 +17,6 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import { QuestionOption } from './scam-questionnaire.constants';
-import { EducationalCallout, CalloutVariant } from './educational-callout';
 import styleSheet from './scam-questionnaire.styles';
 
 export interface QuestionScreenProps {
@@ -26,11 +25,6 @@ export interface QuestionScreenProps {
   subtitle: string;
   options: QuestionOption[];
   selectedKey?: string;
-  callout?: {
-    variant: CalloutVariant;
-    title: string;
-    body: string;
-  };
   onSelect: (option: QuestionOption) => void;
   onContinue: () => void;
 }
@@ -41,7 +35,6 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
   subtitle,
   options,
   selectedKey,
-  callout,
   onSelect,
   onContinue,
 }) => {
@@ -56,6 +49,7 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
           key={option.key}
           style={[styles.option, isSelected && styles.optionSelected]}
           onPress={() => onSelect(option)}
+          activeOpacity={0.85}
           testID={`scam-questionnaire-option-${option.key}`}
           accessibilityRole="radio"
           accessibilityState={{ selected: isSelected }}
@@ -64,7 +58,7 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
             {isSelected && <View style={styles.radioInner} />}
           </View>
           <View style={styles.optionTextContainer}>
-            <Text variant={TextVariant.BodyMD} style={styles.optionTitle}>
+            <Text variant={TextVariant.BodyMDMedium} style={styles.optionTitle}>
               {strings(option.titleKey)}
             </Text>
             {option.subtitleKey && (
@@ -73,19 +67,10 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
               </Text>
             )}
           </View>
-          {option.isRedFlag && (
-            <View style={styles.redFlag}>
-              <Icon
-                name={IconName.Flag}
-                size={IconSize.Sm}
-                color={colors.error.default}
-              />
-            </View>
-          )}
         </TouchableOpacity>
       );
     },
-    [colors.error.default, onSelect, selectedKey, styles],
+    [onSelect, selectedKey, styles],
   );
 
   return (
@@ -102,20 +87,13 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({
             color={colors.text.default}
           />
         </View>
-        <Text variant={TextVariant.HeadingMD} style={styles.title}>
+        <Text variant={TextVariant.HeadingLG} style={styles.title}>
           {title}
         </Text>
         <Text variant={TextVariant.BodyMD} style={styles.subtitle}>
           {subtitle}
         </Text>
         {options.map(renderOption)}
-        {callout && (
-          <EducationalCallout
-            variant={callout.variant}
-            title={callout.title}
-            body={callout.body}
-          />
-        )}
       </ScrollView>
       <View style={styles.footer}>
         <Button

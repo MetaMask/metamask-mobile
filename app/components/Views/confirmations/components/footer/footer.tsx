@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Linking, View } from 'react-native';
 import { providerErrors } from '@metamask/rpc-errors';
 import { useNavigation } from '@react-navigation/native';
@@ -19,6 +19,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import AppConstants from '../../../../../core/AppConstants';
 import ConfirmAlertModal from '../../components/modals/confirm-alert-modal';
 import ScamQuestionnaire from '../../Views/scam-questionnaire';
+import { AlertKeys } from '../../constants/alerts';
 import { ResultType } from '../../constants/signatures';
 import { useAlerts } from '../../context/alert-system-context';
 import { useConfirmationContext } from '../../context/confirmation-context';
@@ -61,6 +62,7 @@ export const Footer = () => {
     hasBlockingAlerts,
     hasDangerAlerts,
     hasUnconfirmedDangerAlerts,
+    setAlertConfirmed,
   } = useAlerts();
   const { onConfirm, onReject } = useConfirmActions();
   const { needsCameraPermission } = useQRHardwareContext();
@@ -84,9 +86,16 @@ export const Footer = () => {
     useState(false);
   const [scamQuestionnaireVisible, setScamQuestionnaireVisible] =
     useState(false);
+  // Tracks whether the user has already gone through the questionnaire and
+  // tapped "I understand the risks, continue anyway." Once true, subsequent
+  // Confirm taps skip both the questionnaire and the existing checkbox modal
+  // — the user has done enough friction.
+  const scamBypassedRef = useRef(false);
 
   const shouldShowScamQuestionnaire =
-    isMMSendReq && securityAlertResponse?.result_type === ResultType.Malicious;
+    !scamBypassedRef.current &&
+    isMMSendReq &&
+    securityAlertResponse?.result_type === ResultType.Malicious;
 
   const showConfirmAlertModal = useCallback(() => {
     setConfirmAlertModalVisible(true);
@@ -99,6 +108,15 @@ export const Footer = () => {
   const hideScamQuestionnaire = useCallback(() => {
     setScamQuestionnaireVisible(false);
   }, []);
+
+  const onScamBypass = useCallback(() => {
+    scamBypassedRef.current = true;
+    // Treat the questionnaire bypass as acknowledgement of the underlying
+    // blockaid alert — flipping the button label from "Review alerts" to
+    // "Confirm" and skipping the existing checkbox modal on the next tap.
+    setAlertConfirmed(AlertKeys.Blockaid, true);
+    setScamQuestionnaireVisible(false);
+  }, [setAlertConfirmed]);
 
   const onHandleReject = useCallback(async () => {
     hideConfirmAlertModal();
@@ -232,6 +250,7 @@ export const Footer = () => {
         <ScamQuestionnaire
           onReject={onHandleReject}
           onConfirm={onHandleConfirm}
+          onBypass={onScamBypass}
           onDismiss={hideScamQuestionnaire}
         />
       )}
