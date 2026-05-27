@@ -8,6 +8,11 @@ describe('QuickBuyBottomSheetSkeleton', () => {
     expect(screen.getByTestId('quick-buy-content-loading')).toBeOnTheScreen();
   });
 
+  it('renders the toolbar rate-tag skeleton', () => {
+    render(<QuickBuyBottomSheetSkeleton />);
+    expect(screen.getByTestId('quick-buy-skeleton-rate-tag')).toBeOnTheScreen();
+  });
+
   it('renders the slider skeleton', () => {
     render(<QuickBuyBottomSheetSkeleton />);
     expect(screen.getByTestId('quick-buy-skeleton-slider')).toBeOnTheScreen();
