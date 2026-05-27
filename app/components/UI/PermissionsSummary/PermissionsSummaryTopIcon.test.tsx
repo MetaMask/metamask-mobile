@@ -14,6 +14,10 @@ describe('getConnectedNetworkPickerAccessibilityLabel', () => {
       ),
     ).toBe('l, E');
   });
+
+  it('returns only the site letter when network name is missing', () => {
+    expect(getConnectedNetworkPickerAccessibilityLabel('localhost')).toBe('l');
+  });
 });
 
 describe('PermissionsSummaryTopIcon', () => {

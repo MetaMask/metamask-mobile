@@ -29,7 +29,7 @@ export interface PermissionsSummaryTopIconProps {
   currentPageInformation: PermissionsSummaryPageInfo;
   isAlreadyConnected?: boolean;
   showPermissionsOnly?: boolean;
-  networkName: string;
+  networkName?: string;
   networkImageSource: ImageOrSvgSrc;
   onSwitchNetwork: () => void;
   containerStyle: StyleProp<ViewStyle>;
@@ -41,11 +41,16 @@ export interface PermissionsSummaryTopIconProps {
  */
 export const getConnectedNetworkPickerAccessibilityLabel = (
   siteTitle: string,
-  networkName: string,
+  networkName?: string,
 ): string => {
   const siteLetter = siteTitle.charAt(0);
-  const networkLetter = networkName.charAt(0);
-  return `${siteLetter}, ${networkLetter}`;
+  const networkLetter = networkName?.charAt(0);
+
+  if (networkLetter) {
+    return `${siteLetter}, ${networkLetter}`;
+  }
+
+  return siteLetter;
 };
 
 const renderDappAvatar = (
