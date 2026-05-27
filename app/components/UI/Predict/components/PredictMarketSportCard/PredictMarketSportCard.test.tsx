@@ -254,15 +254,11 @@ describe('PredictMarketSportCard', () => {
     });
   });
 
-  it('uses trending entry point when opened from trending feed', () => {
+  it('uses trending entry point when no explicit entry point and session is active', () => {
     mockIsFromTrending.mockReturnValue(true);
 
     const { getByTestId } = renderWithProvider(
-      <PredictMarketSportCard
-        market={mockMarket}
-        testID="sport-market-card"
-        entryPoint={PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS}
-      />,
+      <PredictMarketSportCard market={mockMarket} testID="sport-market-card" />,
       { state: initialState },
     );
 
@@ -273,6 +269,30 @@ describe('PredictMarketSportCard', () => {
       expect.objectContaining({
         params: expect.objectContaining({
           entryPoint: PredictEventValues.ENTRY_POINT.TRENDING,
+        }),
+      }),
+    );
+  });
+
+  it('explicit entry point takes priority over trending session', () => {
+    mockIsFromTrending.mockReturnValue(true);
+
+    const { getByTestId } = renderWithProvider(
+      <PredictMarketSportCard
+        market={mockMarket}
+        testID="sport-market-card"
+        entryPoint={PredictEventValues.ENTRY_POINT.EXPLORE}
+      />,
+      { state: initialState },
+    );
+
+    fireEvent.press(getByTestId('sport-market-card'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.PREDICT.ROOT,
+      expect.objectContaining({
+        params: expect.objectContaining({
+          entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
         }),
       }),
     );

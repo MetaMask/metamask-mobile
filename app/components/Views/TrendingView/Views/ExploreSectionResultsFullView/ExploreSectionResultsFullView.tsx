@@ -34,8 +34,7 @@ const SectionContent: React.FC<{
   feedId: SearchFeedId;
   searchQuery: string;
   data: unknown[];
-  title: string;
-}> = ({ feedId, searchQuery, data, title }) => {
+}> = ({ feedId, searchQuery, data }) => {
   const tw = useTailwind();
   const { onScrollBeginDrag } = useScrollTracking('scrolled', searchQuery, {
     tab_name: feedId,
@@ -118,12 +117,7 @@ const ExploreSectionResultsFullView: React.FC = () => {
       </Box>
 
       <Wrapper>
-        <SectionContent
-          feedId={feedId}
-          searchQuery={searchQuery}
-          data={data}
-          title={title}
-        />
+        <SectionContent feedId={feedId} searchQuery={searchQuery} data={data} />
       </Wrapper>
     </Box>
   );
