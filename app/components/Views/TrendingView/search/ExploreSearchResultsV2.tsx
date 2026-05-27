@@ -273,22 +273,29 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
               color: TextColor.TextDefault,
             }}
           />
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {strings('trending.no_results_check_popular')}
-          </Text>
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-2 mt-4"
-          >
-            {POPULAR_ASSETS.map((token, index) => (
-              <CryptoMoversPillItem
-                key={token.assetId}
-                token={token}
-                index={index}
-              />
-            ))}
-          </Box>
+          {!isLoading && !showOtherResults && (
+            <>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                {strings('trending.no_results_check_popular')}
+              </Text>
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                twClassName="gap-2 mt-2"
+              >
+                {POPULAR_ASSETS.map((token, index) => (
+                  <CryptoMoversPillItem
+                    key={token.assetId}
+                    token={token}
+                    index={index}
+                  />
+                ))}
+              </Box>
+            </>
+          )}
         </Box>
         {showOtherResults && (
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
