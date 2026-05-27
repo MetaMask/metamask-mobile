@@ -45,6 +45,7 @@ const QuickBuyActionFooter: React.FC = () => {
     sourceChainId,
     sourceBalanceFiat,
     features,
+    setActiveScreen,
   } = useQuickBuyContext();
 
   const isPriceImpactWarning =
@@ -81,6 +82,7 @@ const QuickBuyActionFooter: React.FC = () => {
           activeOpacity={0.7}
           accessibilityRole="button"
           testID="quick-buy-pay-with-button"
+          onPress={() => setActiveScreen('payWith')}
         >
           <Box
             flexDirection={BoxFlexDirection.Row}
