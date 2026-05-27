@@ -117,8 +117,8 @@ jobs:
             echo "No changes detected"
           fi
 
-  post-build-source-hash:
-    name: Post build-source-hash commit status
+  native-build-fingerprint:
+    name: Compute native build fingerprint
     runs-on: ubuntu-latest
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     permissions:
@@ -147,12 +147,12 @@ jobs:
           max_attempts: 3
           retry_wait_seconds: 30
           command: yarn install --immutable
-      - name: Post build-source-hash commit status
-        if: ${{ inputs.runner_provider != 'namespace' }}
+      - name: Compute native build fingerprint and post build-source-hash
         id: publish
         uses: ./.github/actions/post-build-source-hash
         with:
           github-token: ${{ github.token }}
+          post-status: ${{ inputs.runner_provider != 'namespace' }}
           # Commit statuses must be posted on a real commit SHA (not the merge ref).
           # `find-reusable-build` looks up the status via `run.head_sha` from
           # `listWorkflowRuns`, which GitHub reports as the PR head SHA for pull_request
@@ -1005,12 +1005,12 @@ jobs:
       actions: read
       statuses: read
       pull-requests: read
-    needs: [get_requirements, smart-e2e-selection, post-build-source-hash]
+    needs: [get_requirements, smart-e2e-selection, native-build-fingerprint]
     uses: ./.github/workflows/build-android-e2e.yml
     with:
       build_type: 'main'
       metamask_environment: 'e2e'
-      source-fingerprint: ${{ needs.post-build-source-hash.outputs.fingerprint }}
+      source-fingerprint: ${{ needs.native-build-fingerprint.outputs.fingerprint }}
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
@@ -1046,10 +1046,10 @@ jobs:
       actions: read
       statuses: read
       pull-requests: read
-    needs: [get_requirements, smart-e2e-selection, post-build-source-hash]
+    needs: [get_requirements, smart-e2e-selection, native-build-fingerprint]
     uses: ./.github/workflows/build-ios-e2e.yml
     with:
-      source-fingerprint: ${{ needs.post-build-source-hash.outputs.fingerprint }}
+      source-fingerprint: ${{ needs.native-build-fingerprint.outputs.fingerprint }}
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 

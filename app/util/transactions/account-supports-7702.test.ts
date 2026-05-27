@@ -51,6 +51,15 @@ describe('accountSupports7702', () => {
     );
   });
 
+  it('returns true for Money keyring', async () => {
+    const controller = createMockKeyringController({
+      type: ExtendedKeyringTypes.money,
+    });
+    await expect(accountSupports7702(SAMPLE_ADDRESS, controller)).resolves.toBe(
+      true,
+    );
+  });
+
   it('returns false for Ledger hardware keyring', async () => {
     const controller = createMockKeyringController({
       type: ExtendedKeyringTypes.ledger,
