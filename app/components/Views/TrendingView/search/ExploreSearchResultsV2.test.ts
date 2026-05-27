@@ -95,7 +95,7 @@ describe('getViewMoreLabel', () => {
       expect(getViewMoreLabel('tokens', 3, 'eth', 2101)).toBe('View 2098 more');
     });
 
-    it('returns "View all" when server total exceeds cap but all are already shown', () => {
+    it('returns "View X more" when server total only slightly exceeds cap', () => {
       expect(getViewMoreLabel('predictions', 3, 'nba', 4)).toBe('View 1 more');
       expect(getViewMoreLabel('tokens', 3, 'eth', 4)).toBe('View 1 more');
     });

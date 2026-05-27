@@ -242,11 +242,6 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
     return `${item.feedId}-${getItemId(item.feedId, item.data)}`;
   }, []);
 
-  const otherResultsCount = useMemo(
-    () => sections.reduce((sum, s) => sum + (s.total ?? s.items.length), 0),
-    [sections],
-  );
-
   const listHeader = useMemo(() => {
     const isLoading = sections.some((s) => s.isLoading);
     const allSectionsEmpty =
@@ -254,6 +249,10 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
 
     if (!emptyFeedTitle && !allSectionsEmpty) return null;
     const showOtherResults = flatData.length > 0 && !isLoading;
+    const otherResultsCount = sections.reduce(
+      (sum, s) => sum + (s.total ?? s.items.length),
+      0,
+    );
     return (
       <Box twClassName={showOtherResults ? 'mb-4' : ''}>
         <Box twClassName="rounded-xl bg-secondary py-6 px-4 items-center mb-4">
@@ -301,13 +300,7 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
         )}
       </Box>
     );
-  }, [
-    emptyFeedTitle,
-    searchQuery,
-    flatData.length,
-    otherResultsCount,
-    sections,
-  ]);
+  }, [emptyFeedTitle, searchQuery, flatData.length, sections]);
 
   return (
     <Box twClassName="flex-1 bg-default">
