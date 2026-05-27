@@ -107,6 +107,25 @@ describe('useSourceAmountCursor', () => {
     expect(result.current.sourceSelection).toBeUndefined();
   });
 
+  it('sets controlled selection to the end of the provided amount', () => {
+    const onSourceAmountChange = jest.fn();
+    const { result } = renderHook(() =>
+      useSourceAmountCursor({
+        sourceAmount: '1234',
+        sourceTokenDecimals: 18,
+        maxInputLength: 10,
+        onSourceAmountChange,
+      }),
+    );
+
+    act(() => {
+      result.current.setSourceAmountCursorPositionToEnd('1234');
+    });
+
+    // Raw cursor index 4 maps to formatted cursor index 5 for "1,234".
+    expect(result.current.sourceSelection).toEqual({ start: 5, end: 5 });
+  });
+
   it('allows keypad edits up to max input length', () => {
     const onSourceAmountChange = jest.fn();
 
