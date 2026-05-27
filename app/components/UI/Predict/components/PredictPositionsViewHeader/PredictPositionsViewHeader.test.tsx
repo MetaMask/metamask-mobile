@@ -1,9 +1,33 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react-native';
+import { useNavigation } from '@react-navigation/native';
+import { PredictEventValues } from '../../constants/eventNames';
 import type { PredictPortfolioModel } from '../../hooks/usePredictPortfolio';
 import { PredictPositionsViewSelectorsIDs } from '../../Predict.testIds';
 import PredictPositionsViewHeader from './PredictPositionsViewHeader';
 
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: jest.fn(),
+}));
+
+const mockExecuteGuardedAction = jest.fn();
+jest.mock('../../hooks/usePredictActionGuard', () => ({
+  usePredictActionGuard: () => ({
+    executeGuardedAction: mockExecuteGuardedAction,
+  }),
+}));
+
+const mockNavigation = {
+  navigate: jest.fn(),
+};
+
+const mockUseNavigation = useNavigation as jest.Mock;
 const mockClaim = jest.fn();
 
 const createPortfolio = (
@@ -55,7 +79,6 @@ const renderHeader = ({
   render(
     <PredictPositionsViewHeader
       isPrivacyMode={isPrivacyMode}
-      onClaimPress={mockClaim}
       portfolio={portfolio}
     />,
   );
@@ -63,6 +86,12 @@ const renderHeader = ({
 describe('PredictPositionsViewHeader', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseNavigation.mockReturnValue(mockNavigation);
+    mockExecuteGuardedAction.mockImplementation(
+      async (action: () => void | Promise<void>) => {
+        await action();
+      },
+    );
   });
 
   it('always renders the available balance row for first-time zero state', () => {
@@ -110,7 +139,7 @@ describe('PredictPositionsViewHeader', () => {
     expect(screen.getByText('-$18.47 (-2.1%)')).toBeOnTheScreen();
   });
 
-  it('renders claim CTA inside the header when claimable winnings exist', () => {
+  it('wraps claim CTA presses in the Predict action guard', async () => {
     renderHeader({
       portfolio: createPortfolio({
         claimableAmount: 46.35,
@@ -123,6 +152,12 @@ describe('PredictPositionsViewHeader', () => {
     );
 
     expect(screen.getByText('Claim $46.35')).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(mockExecuteGuardedAction).toHaveBeenCalledWith(
+        expect.any(Function),
+        { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
+      );
+    });
     expect(mockClaim).toHaveBeenCalledTimes(1);
   });
 

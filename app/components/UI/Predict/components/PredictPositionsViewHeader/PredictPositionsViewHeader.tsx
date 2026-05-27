@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import { type NavigationProp, useNavigation } from '@react-navigation/native';
+import React, { useCallback, useMemo } from 'react';
 import {
   Box,
   FontWeight,
@@ -11,14 +12,16 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
+import { PredictEventValues } from '../../constants/eventNames';
+import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import type { PredictPortfolioModel } from '../../hooks/usePredictPortfolio';
 import { PredictPositionsViewSelectorsIDs } from '../../Predict.testIds';
+import type { PredictNavigationParamList } from '../../types/navigation';
 import { formatPercentage, formatPrice } from '../../utils/format';
 import PredictClaimButton from '../PredictActionButtons/PredictClaimButton';
 
 interface PredictPositionsViewHeaderProps {
   isPrivacyMode: boolean;
-  onClaimPress: () => void;
   portfolio: PredictPortfolioModel;
 }
 
@@ -49,10 +52,13 @@ const formatUnrealizedPnl = (amount: number, percent: number | undefined) => {
 
 const PredictPositionsViewHeader = ({
   isPrivacyMode,
-  onClaimPress,
   portfolio,
 }: PredictPositionsViewHeaderProps) => {
+  const navigation =
+    useNavigation<NavigationProp<PredictNavigationParamList>>();
   const tw = useTailwind();
+  const { claim } = portfolio;
+  const { executeGuardedAction } = usePredictActionGuard({ navigation });
   const showUnrealizedPnlRow =
     portfolio.showPnlLine ||
     portfolio.isPositionsLoading ||
@@ -69,6 +75,15 @@ const PredictPositionsViewHeader = ({
       ),
     [portfolio.totalUnrealizedPnlAmount, portfolio.totalUnrealizedPnlPercent],
   );
+
+  const handleClaimPress = useCallback(async () => {
+    await executeGuardedAction(
+      async () => {
+        await claim();
+      },
+      { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
+    );
+  }, [claim, executeGuardedAction]);
 
   return (
     <Box
@@ -167,7 +182,7 @@ const PredictPositionsViewHeader = ({
       {portfolio.hasClaimableWinnings && (
         <PredictClaimButton
           amount={portfolio.claimableAmount}
-          onPress={onClaimPress}
+          onPress={handleClaimPress}
           isLoading={portfolio.isClaimPending}
           isHidden={isPrivacyMode}
           testID={PredictPositionsViewSelectorsIDs.CLAIM_CTA}

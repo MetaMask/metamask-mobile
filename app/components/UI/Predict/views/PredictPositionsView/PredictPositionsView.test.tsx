@@ -25,6 +25,12 @@ jest.mock('../../hooks/usePredictPortfolio', () => ({
   usePredictPortfolio: () => mockUsePredictPortfolio(),
 }));
 
+jest.mock('../../hooks/usePredictActionGuard', () => ({
+  usePredictActionGuard: () => ({
+    executeGuardedAction: (action: () => void | Promise<void>) => action(),
+  }),
+}));
+
 let mockPrivacyMode = false;
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => mockPrivacyMode),

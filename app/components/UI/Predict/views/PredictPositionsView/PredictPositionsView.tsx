@@ -147,7 +147,6 @@ const PredictPositionsView = () => {
         <Box twClassName="px-4">
           <PredictPositionsViewHeader
             isPrivacyMode={Boolean(privacyMode)}
-            onClaimPress={portfolio.claim}
             portfolio={portfolio}
           />
           <PredictPositionsTabs
