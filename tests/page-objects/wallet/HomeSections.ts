@@ -1,12 +1,13 @@
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
-import Assertions from '../../framework/Assertions';
-import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/WalletView.testIds';
-import { BALANCE_TEST_ID } from '../../../app/components/UI/AssetElement/index.constants';
-
-const STAKED_ETHEREUM_ASSET_ID = 'asset-ETH';
-const STAKED_ETHEREUM_LABEL = 'Staked Ethereum';
-const STAKED_ETHEREUM_AMOUNT = '1 ETH';
+import { Assertions, Gestures, Matchers } from '../../framework';
+import {
+  WalletAssetSelectorsIDs,
+  WalletAssetSelectorsRegex,
+  WalletAssetSelectorsText,
+} from '../../selectors/Wallet/WalletView.selectors';
+import {
+  WalletViewSelectorsIDs,
+  WalletViewSelectorsText,
+} from '../../../app/components/Views/Wallet/WalletView.testIds';
 
 class TokensFullView {
   /**
@@ -27,10 +28,12 @@ class TokensFullView {
     return Promise.resolve(
       element(
         by
-          .id(STAKED_ETHEREUM_ASSET_ID)
-          .withDescendant(by.text(STAKED_ETHEREUM_LABEL))
-          .withDescendant(by.text(STAKED_ETHEREUM_AMOUNT))
-          .withDescendant(by.id(BALANCE_TEST_ID)),
+          .id(WalletAssetSelectorsIDs.STAKED_ETHEREUM)
+          .withDescendant(by.text(WalletViewSelectorsText.STAKED_ETHEREUM))
+          .withDescendant(
+            by.text(WalletAssetSelectorsText.STAKED_ETHEREUM_AMOUNT),
+          )
+          .withDescendant(by.text(WalletAssetSelectorsRegex.FIAT_BALANCE)),
       ),
     );
   }
