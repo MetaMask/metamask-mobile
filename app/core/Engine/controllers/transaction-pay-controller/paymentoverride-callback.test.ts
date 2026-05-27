@@ -45,9 +45,11 @@ const MOCK_WITHDRAW_PARAMS = [
   { to: '0xMusd' as Hex, data: '0xtransfer' as Hex, value: '0x0' as Hex },
 ];
 
+const AMOUNT_HUMAN = '10.5';
+
 const VALID_TX_DATA = {
   paymentOverride: PaymentOverride.MoneyAccount,
-  tokens: [{ chainId: '0x8f' as Hex, amountHuman: '10.5' }],
+  tokens: [{ chainId: '0x8f' as Hex, amountHuman: AMOUNT_HUMAN }],
 };
 
 const mockMessenger = {} as never;
@@ -82,7 +84,11 @@ describe('getPaymentOverrideData', () => {
       paymentOverride: undefined,
     } as never);
 
-    const result = await getPaymentOverrideData(TRANSACTION_ID, mockMessenger);
+    const result = await getPaymentOverrideData(
+      TRANSACTION_ID,
+      mockMessenger,
+      AMOUNT_HUMAN,
+    );
 
     expect(result).toBeUndefined();
     expect(getMoneyAccountWithdrawMock).not.toHaveBeenCalled();
@@ -91,28 +97,24 @@ describe('getPaymentOverrideData', () => {
   it('returns undefined when transaction data is undefined', async () => {
     selectTransactionDataMock.mockReturnValue(undefined as never);
 
-    const result = await getPaymentOverrideData(TRANSACTION_ID, mockMessenger);
+    const result = await getPaymentOverrideData(
+      TRANSACTION_ID,
+      mockMessenger,
+      AMOUNT_HUMAN,
+    );
 
     expect(result).toBeUndefined();
-  });
-
-  it('returns undefined when tokens array is empty', async () => {
-    selectTransactionDataMock.mockReturnValue({
-      ...VALID_TX_DATA,
-      tokens: [],
-    } as never);
-
-    const result = await getPaymentOverrideData(TRANSACTION_ID, mockMessenger);
-
-    expect(result).toBeUndefined();
-    expect(getMoneyAccountWithdrawMock).not.toHaveBeenCalled();
   });
 
   it('returns undefined when primary money account is missing', async () => {
     selectTransactionDataMock.mockReturnValue(VALID_TX_DATA as never);
     selectPrimaryMoneyAccountMock.mockReturnValue(undefined);
 
-    const result = await getPaymentOverrideData(TRANSACTION_ID, mockMessenger);
+    const result = await getPaymentOverrideData(
+      TRANSACTION_ID,
+      mockMessenger,
+      AMOUNT_HUMAN,
+    );
 
     expect(result).toBeUndefined();
     expect(getMoneyAccountWithdrawMock).not.toHaveBeenCalled();
@@ -122,7 +124,11 @@ describe('getPaymentOverrideData', () => {
     selectTransactionDataMock.mockReturnValue(VALID_TX_DATA as never);
     selectPrimaryMoneyAccountMock.mockReturnValue({} as never);
 
-    const result = await getPaymentOverrideData(TRANSACTION_ID, mockMessenger);
+    const result = await getPaymentOverrideData(
+      TRANSACTION_ID,
+      mockMessenger,
+      AMOUNT_HUMAN,
+    );
 
     expect(result).toBeUndefined();
   });
@@ -131,7 +137,11 @@ describe('getPaymentOverrideData', () => {
     selectTransactionDataMock.mockReturnValue(VALID_TX_DATA as never);
     getMoneyAccountWithdrawMock.mockResolvedValue([]);
 
-    const result = await getPaymentOverrideData(TRANSACTION_ID, mockMessenger);
+    const result = await getPaymentOverrideData(
+      TRANSACTION_ID,
+      mockMessenger,
+      AMOUNT_HUMAN,
+    );
 
     expect(result).toBeUndefined();
   });
@@ -139,11 +149,11 @@ describe('getPaymentOverrideData', () => {
   it('calls getMoneyAccountWithdrawTransactionsData with Monad chain, amount, and user EOA as recipient', async () => {
     selectTransactionDataMock.mockReturnValue(VALID_TX_DATA as never);
 
-    await getPaymentOverrideData(TRANSACTION_ID, mockMessenger);
+    await getPaymentOverrideData(TRANSACTION_ID, mockMessenger, AMOUNT_HUMAN);
 
     expect(getMoneyAccountWithdrawMock).toHaveBeenCalledWith(
       CHAIN_IDS.MONAD,
-      '10.5',
+      AMOUNT_HUMAN,
       USER_EOA,
     );
   });
@@ -151,7 +161,7 @@ describe('getPaymentOverrideData', () => {
   it('builds TransactionMeta and passes it to getDelegationTransaction', async () => {
     selectTransactionDataMock.mockReturnValue(VALID_TX_DATA as never);
 
-    await getPaymentOverrideData(TRANSACTION_ID, mockMessenger);
+    await getPaymentOverrideData(TRANSACTION_ID, mockMessenger, AMOUNT_HUMAN);
 
     expect(getDelegationTransactionMock).toHaveBeenCalledWith(
       mockMessenger,
@@ -173,7 +183,11 @@ describe('getPaymentOverrideData', () => {
   it('returns TransactionParams with delegation data and money account from', async () => {
     selectTransactionDataMock.mockReturnValue(VALID_TX_DATA as never);
 
-    const result = await getPaymentOverrideData(TRANSACTION_ID, mockMessenger);
+    const result = await getPaymentOverrideData(
+      TRANSACTION_ID,
+      mockMessenger,
+      AMOUNT_HUMAN,
+    );
 
     expect(result).toStrictEqual({
       from: MONEY_ACCOUNT_ADDRESS,

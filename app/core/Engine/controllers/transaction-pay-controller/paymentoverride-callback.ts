@@ -20,20 +20,16 @@ import {
 async function getMoneyAccountWithdrawPaymentOverrideData<
   T extends SignMessenger,
 >(
-  transactionData: ReturnType<typeof selectTransactionDataByTransactionId>,
   messenger: T,
   recipient: Hex,
+  amountHuman: string,
 ): Promise<TransactionParams | undefined> {
-  const requiredToken = transactionData?.tokens?.[0];
-  if (!requiredToken) return undefined;
-
   const state = ReduxService.store.getState() as RootState;
   const primaryMoneyAccount = selectPrimaryMoneyAccount(state);
   if (!primaryMoneyAccount?.address) return undefined;
 
   const moneyAccountAddress = primaryMoneyAccount.address as Hex;
   const chainId = CHAIN_IDS.MONAD as Hex;
-  const { amountHuman } = requiredToken;
 
   const params = await getMoneyAccountWithdrawTransactionsData(
     chainId,
@@ -76,6 +72,7 @@ async function getMoneyAccountWithdrawPaymentOverrideData<
 export async function getPaymentOverrideData<T extends SignMessenger>(
   transactionId: string,
   messenger: T,
+  amountHuman: string,
 ): Promise<TransactionParams | undefined> {
   const state = ReduxService.store.getState() as RootState;
   const transactionData = selectTransactionDataByTransactionId(
@@ -91,9 +88,9 @@ export async function getPaymentOverrideData<T extends SignMessenger>(
     if (!originalTx?.txParams?.from) return undefined;
 
     return getMoneyAccountWithdrawPaymentOverrideData(
-      transactionData,
       messenger,
       originalTx.txParams.from as Hex,
+      amountHuman,
     );
   }
 
