@@ -101,11 +101,6 @@ export function collectRequestedChainsForNamespace({
 
     if (key.startsWith(namespacePrefix)) {
       chains.push(key);
-      chains.push(
-        ...(config?.chains?.filter((chain) =>
-          chain.startsWith(namespacePrefix),
-        ) ?? []),
-      );
     }
   }
 
