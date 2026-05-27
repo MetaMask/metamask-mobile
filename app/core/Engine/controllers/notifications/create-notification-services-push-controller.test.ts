@@ -5,6 +5,8 @@ import {
   defaultState,
   Controller as NotificationServicesPushController,
 } from '@metamask/notification-services-controller/push-services';
+import { Platform } from 'react-native';
+import { getVersion } from 'react-native-device-info';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { createNotificationServicesPushController } from './create-notification-services-push-controller';
 // eslint-disable-next-line import-x/no-namespace
@@ -15,9 +17,18 @@ import { getNotificationServicesPushControllerMessenger } from '../../messengers
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/notification-services-controller/push-services');
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn(() => '7.42.0'),
+}));
 
 describe('Notification Services Controller', () => {
-  beforeEach(() => jest.resetAllMocks());
+  const originalPlatformOs = Platform.OS;
+
+  beforeEach(() => {
+    jest.resetAllMocks();
+    jest.mocked(getVersion).mockReturnValue('7.42.0');
+    Platform.OS = originalPlatformOs;
+  });
 
   const arrangeFirebaseMocks = () => {
     const mockCreateRegToken = jest.spyOn(PushUtilsModule, 'createRegToken');
@@ -58,6 +69,10 @@ describe('Notification Services Controller', () => {
     const assertGetConstructorCall = () =>
       mockConstructor.mock.calls[0][0] as unknown as {
         state: NotificationServicesPushControllerState;
+        config: {
+          appVersion?: string;
+          os?: string;
+        };
       };
 
     const mockDisablePushNotifications = jest
@@ -116,6 +131,42 @@ describe('Notification Services Controller', () => {
     });
     const constructorParams = assertGetConstructorCall();
     expect(constructorParams?.state).toEqual(state);
+  });
+
+  it('passes mobile OS and app version metadata for push registration', () => {
+    Platform.OS = 'android';
+    jest.mocked(getVersion).mockReturnValue('7.80.0');
+
+    const { messenger, assertGetConstructorCall } = arrange();
+    createNotificationServicesPushController({ messenger });
+
+    const constructorParams = assertGetConstructorCall();
+    expect(constructorParams?.config).toEqual(
+      expect.objectContaining({
+        os: 'android',
+        appVersion: '7.80.0',
+      }),
+    );
+  });
+
+  it('omits app version metadata when the version is not API-safe', () => {
+    Platform.OS = 'ios';
+    jest.mocked(getVersion).mockReturnValue('7.80.0-flask.1');
+
+    const { messenger, assertGetConstructorCall } = arrange();
+    createNotificationServicesPushController({ messenger });
+
+    const constructorParams = assertGetConstructorCall();
+    expect(constructorParams?.config).toEqual(
+      expect.not.objectContaining({
+        appVersion: expect.any(String),
+      }),
+    );
+    expect(constructorParams?.config).toEqual(
+      expect.objectContaining({
+        os: 'ios',
+      }),
+    );
   });
 
   it('runs push notification side effect to disable the controller if the mobile device has not enabled push notifications', async () => {
