@@ -311,6 +311,7 @@ class PerformanceReporter {
             logger.info(
               this.qualityGatesReportFormatter.formatConsoleReport(
                 qualityGatesResult,
+                metricsEntry.sessionCreationDurationMs,
               ),
             );
           }

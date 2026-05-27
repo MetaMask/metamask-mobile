@@ -292,6 +292,13 @@ export const test = base.extend<TestLevelFixtures>({
       console.log('⚠️ No timers found in performance tracker');
     }
 
+    // Propagate BrowserStack session creation time (infra overhead, not counted in total)
+    if (deviceProvider.sessionCreationDurationMs !== undefined) {
+      performanceTracker.setSessionCreationDuration(
+        deviceProvider.sessionCreationDurationMs,
+      );
+    }
+
     // Always try to attach performance metrics, even if test failed
     let metrics: MetricsOutput | null = null;
     try {

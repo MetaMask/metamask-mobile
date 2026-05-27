@@ -35,11 +35,13 @@ export class BrowserStackProvider extends BaseServiceProvider {
     const configBuilder = new BrowserStackConfigBuilder(this.project);
     const config = configBuilder.build();
 
+    const sessionCreationStart = Date.now();
     const browser = await remote(config);
+    this.sessionCreationDurationMs = Date.now() - sessionCreationStart;
     this.sessionId = browser.sessionId;
 
     this.logger.info(
-      `Driver created for BrowserStack with session: ${this.sessionId}`,
+      `Driver created for BrowserStack with session: ${this.sessionId} (session creation took ${this.sessionCreationDurationMs}ms)`,
     );
     return browser;
   }

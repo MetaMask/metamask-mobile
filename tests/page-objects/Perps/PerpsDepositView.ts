@@ -67,6 +67,14 @@ class PerpsDepositView {
     return Matchers.getElementByID('confirm-button');
   }
 
+  get infoRow(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText('Info'),
+      appium: () =>
+        PlaywrightMatchers.getElementById('info-row', { exact: true }),
+    });
+  }
+
   // Pay with row (open selector)
   get payWithRow(): EncapsulatedElementType {
     return encapsulated({

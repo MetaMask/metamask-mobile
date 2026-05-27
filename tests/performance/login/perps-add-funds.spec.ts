@@ -63,7 +63,7 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
           await asPlaywrightElement(PerpsDepositView.addFundsButton),
         );
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(PerpsDepositView.totalText),
+          await asPlaywrightElement(PerpsDepositView.infoRow),
         );
         await PlaywrightAssertions.expectElementToBeVisible(
           await asPlaywrightElement(PerpsDepositView.payWithRow),

@@ -59,6 +59,7 @@ export interface MetricsEntry {
   qualityGates?: QualityGatesResult | null;
   videoURL?: string | null;
   sessionId?: string | null;
+  sessionCreationDurationMs?: number;
   profilingData?: ProfilingData | null;
   profilingSummary?: ProfilingSummary | null;
   apiCalls?: NetworkLogEntry[] | null;
