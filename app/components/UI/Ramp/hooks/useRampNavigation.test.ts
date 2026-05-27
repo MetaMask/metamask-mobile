@@ -107,7 +107,7 @@ describe('useRampNavigation', () => {
     mockCreateBuildQuoteNavDetails.mockReturnValue([
       Routes.RAMP.TOKEN_SELECTION,
       {
-        screen: Routes.RAMP.TOKEN_SELECTION,
+        screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
         params: {
           screen: Routes.RAMP.AMOUNT_INPUT,
           params: { assetId: 'eip155:1/erc20:0x123' },
@@ -127,7 +127,7 @@ describe('useRampNavigation', () => {
         const mockNavDetails = [
           Routes.RAMP.TOKEN_SELECTION,
           {
-            screen: Routes.RAMP.TOKEN_SELECTION,
+            screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
             params: {
               screen: Routes.RAMP.AMOUNT_INPUT,
               params: { assetId: intent.assetId },
@@ -244,7 +244,7 @@ describe('useRampNavigation', () => {
         const mockNavDetails = [
           Routes.RAMP.TOKEN_SELECTION,
           {
-            screen: Routes.RAMP.TOKEN_SELECTION,
+            screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
             params: {
               screen: Routes.RAMP.AMOUNT_INPUT,
               params: { assetId: intent.assetId },
