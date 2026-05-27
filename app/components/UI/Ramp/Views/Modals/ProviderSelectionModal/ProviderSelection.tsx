@@ -270,6 +270,10 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
           (q) => q.provider === provider.id && !isCustomActionQuote(q),
         ) ??
         null;
+      const providerError = showQuotes
+        ? quotes?.error?.find((e) => e.provider === provider.id)?.error
+        : undefined;
+      const isUnavailable = Boolean(providerError && !matchedQuote);
       const amountOut = matchedQuote?.quote?.amountOut;
       const cryptoAmount =
         amountOut != null && symbol
@@ -283,14 +287,21 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
           ? formatCurrency(Number(matchedQuote.quote.amountOutInFiat), currency)
           : null;
       const isSelected = selectedProvider?.id === provider.id;
-      const tag = displayQuotes
-        ? getProviderTag(provider.id, matchedQuote, ordersProviders)
-        : null;
+      const tag =
+        !isUnavailable && displayQuotes
+          ? getProviderTag(provider.id, matchedQuote, ordersProviders)
+          : null;
+      const subtitle = isUnavailable ? providerError : tag;
 
       return (
         <ListItemSelect
           isSelected={isSelected}
-          onPress={() => handleProviderSelect(provider, matchedQuote)}
+          isDisabled={isUnavailable}
+          onPress={
+            isUnavailable
+              ? undefined
+              : () => handleProviderSelect(provider, matchedQuote)
+          }
           accessibilityRole="button"
           accessible
         >
@@ -298,12 +309,12 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {provider.name}
             </Text>
-            {tag ? (
+            {subtitle ? (
               <Text
                 variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
               >
-                {tag}
+                {subtitle}
               </Text>
             ) : null}
           </ListItemColumn>
@@ -325,6 +336,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
       selectedProvider,
       selectedPaymentMethod,
       displayQuotes,
+      showQuotes,
       ordersProviders,
       handleProviderSelect,
       formatToken,

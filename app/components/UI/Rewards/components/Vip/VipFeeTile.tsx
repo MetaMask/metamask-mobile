@@ -23,7 +23,7 @@ export const VIP_FEE_TILE_TEST_IDS = {
   NEXT: 'vip-fee-tile-next',
 } as const;
 
-export const VIP_FEE_TILE_WIDTH = 157;
+export const VIP_FEE_TILE_WIDTH = 168;
 
 interface VipFeeTileProps {
   label: string;

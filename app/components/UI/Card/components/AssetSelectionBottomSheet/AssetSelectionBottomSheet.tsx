@@ -3,9 +3,7 @@ import { View, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../../../util/theme';
 import { FundingStatus, CardFundingToken } from '../../types';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+
 import { strings } from '../../../../../../locales/i18n';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -13,6 +11,8 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -277,7 +277,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
       } else {
         closeBottomSheetAndNavigate(() => {
           navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
-            flow: 'manage',
+            flow: 'enable',
             selectedToken: token,
           });
         });
@@ -326,7 +326,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
       return (
         <View style={tw.style('items-center justify-center py-8')}>
           <Text
-            variant={TextVariant.BodySM}
+            variant={TextVariant.BodySm}
             style={tw.style('text-center text-text-alternative')}
           >
             {strings('card.no_tokens_available')}
@@ -398,27 +398,31 @@ const AssetSelectionBottomSheet: React.FC = () => {
                       justifyContent={BoxJustifyContent.Center}
                     >
                       <Text
-                        variant={TextVariant.BodyMD}
+                        variant={TextVariant.BodyMd}
                         style={tw.style('font-semibold')}
                       >
                         {item.symbol} on{' '}
                         {mapCaipChainIdToChainName(item.caipChainId)}
                       </Text>
                       <Text
-                        variant={TextVariant.BodySM}
+                        variant={TextVariant.BodySm}
                         style={tw.style('font-medium text-text-alternative')}
                       >
                         {getFundingStatusText(item.fundingStatus)}
                       </Text>
                       {item.walletAddress && (
                         <Text
-                          variant={TextVariant.BodyXS}
+                          variant={TextVariant.BodyXs}
                           style={tw.style(
                             'font-normal text-text-alternative mt-1',
                           )}
                           numberOfLines={1}
                         >
-                          {truncateAddress(item.walletAddress, 6)}
+                          {item.isMoneyAccountEntry
+                            ? strings(
+                                'card.card_spending_limit.money_account_label',
+                              )
+                            : truncateAddress(item.walletAddress, 6)}
                         </Text>
                       )}
                     </Box>
@@ -427,13 +431,13 @@ const AssetSelectionBottomSheet: React.FC = () => {
                   {/* Balance */}
                   <Box twClassName="items-end">
                     <Text
-                      variant={TextVariant.BodySM}
+                      variant={TextVariant.BodySm}
                       style={tw.style('text-text-default font-medium')}
                     >
                       {item.balanceFiat}
                     </Text>
                     <Text
-                      variant={TextVariant.BodyXS}
+                      variant={TextVariant.BodyXs}
                       style={tw.style('text-text-alternative mt-1')}
                     >
                       {item.balance} {item.symbol}
@@ -468,7 +472,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
       keyboardAvoidingViewEnabled={false}
     >
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
-        <Text variant={TextVariant.HeadingSM}>
+        <Text variant={TextVariant.HeadingSm}>
           {strings('card.select_asset')}
         </Text>
       </BottomSheetHeader>

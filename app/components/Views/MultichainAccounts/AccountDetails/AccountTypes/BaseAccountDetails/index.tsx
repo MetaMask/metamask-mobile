@@ -2,12 +2,22 @@ import React, { useCallback } from 'react';
 import { ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+import {
+  AvatarAccount,
+  AvatarAccountSize,
+  AvatarAccountVariant,
+  FontWeight,
+  HeaderBase,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import styleSheet from './styles';
-import Text, {
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
-import ButtonLink from '../../../../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import { formatAddress } from '../../../../../../util/address';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
@@ -17,15 +27,6 @@ import {
   JustifyContent,
 } from '../../../../../UI/Box/box.types';
 import { Box } from '../../../../../UI/Box/Box';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
-import Avatar, {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../../../../component-library/components/Avatars/Avatar';
-import HeaderBase from '../../../../../../component-library/components/HeaderBase';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { AccountDetailsIds } from '../../../AccountDetails.testIds';
 import { useSelector } from 'react-redux';
@@ -34,6 +35,24 @@ import {
   selectAccountToGroupMap,
 } from '../../../../../../selectors/multichainAccounts/accountTreeController';
 import { selectAvatarAccountType } from '../../../../../../selectors/settings';
+import { AvatarAccountType } from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.types';
+
+/** Matches legacy {@link HEADERBASE_TITLE_TEST_ID} for stable E2E/unit queries. */
+const HEADER_BASE_TITLE_TEST_ID = 'header-title';
+
+const toAvatarAccountVariant = (
+  type: AvatarAccountType,
+): AvatarAccountVariant => {
+  switch (type) {
+    case AvatarAccountType.JazzIcon:
+      return AvatarAccountVariant.Jazzicon;
+    case AvatarAccountType.Blockies:
+      return AvatarAccountVariant.Blockies;
+    case AvatarAccountType.Maskicon:
+    default:
+      return AvatarAccountVariant.Maskicon;
+  }
+};
 
 interface BaseAccountDetailsProps {
   account: InternalAccount;
@@ -45,8 +64,7 @@ export const BaseAccountDetails = ({
   children,
 }: BaseAccountDetailsProps) => {
   const navigation = useNavigation();
-  const { styles, theme } = useStyles(styleSheet, {});
-  const { colors } = theme;
+  const { styles } = useStyles(styleSheet, {});
   const accountAvatarType = useSelector(selectAvatarAccountType);
   const selectWallet = useSelector(selectWalletByAccount);
   const wallet = selectWallet?.(account.id);
@@ -87,14 +105,12 @@ export const BaseAccountDetails = ({
     <SafeAreaView style={styles.safeArea}>
       <HeaderBase
         style={styles.header}
-        startAccessory={
-          <ButtonLink
-            testID={AccountDetailsIds.BACK_BUTTON}
-            labelTextVariant={TextVariant.BodyMDMedium}
-            label={<Icon name={IconName.ArrowLeft} size={IconSize.Md} />}
-            onPress={() => navigation.goBack()}
-          />
-        }
+        titleTestID={HEADER_BASE_TITLE_TEST_ID}
+        startButtonIconProps={{
+          testID: AccountDetailsIds.BACK_BUTTON,
+          iconName: IconName.ArrowLeft,
+          onPress: () => navigation.goBack(),
+        }}
       >
         {account.metadata.name}
       </HeaderBase>
@@ -107,11 +123,10 @@ export const BaseAccountDetails = ({
             flexDirection={FlexDirection.Row}
             justifyContent={JustifyContent.center}
           >
-            <Avatar
-              variant={AvatarVariant.Account}
-              size={AvatarSize.Xl}
-              accountAddress={account.address}
-              type={accountAvatarType}
+            <AvatarAccount
+              address={account.address}
+              size={AvatarAccountSize.Xl}
+              variant={toAvatarAccountVariant(accountAvatarType)}
             />
           </Box>
           <Box style={styles.section}>
@@ -120,7 +135,7 @@ export const BaseAccountDetails = ({
               testID={AccountDetailsIds.ACCOUNT_NAME_LINK}
               onPress={handleEditAccountName}
             >
-              <Text variant={TextVariant.BodyMDMedium}>
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
                 {strings('multichain_accounts.account_details.account_name')}
               </Text>
               <Box
@@ -128,13 +143,17 @@ export const BaseAccountDetails = ({
                 alignItems={AlignItems.center}
                 gap={8}
               >
-                <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextAlternative}
+                >
                   {account.metadata.name}
                 </Text>
                 <Icon
                   name={IconName.Edit}
                   size={IconSize.Md}
-                  color={colors.text.alternative}
+                  color={IconColor.IconAlternative}
                 />
               </Box>
             </TouchableOpacity>
@@ -143,7 +162,7 @@ export const BaseAccountDetails = ({
               testID={AccountDetailsIds.ACCOUNT_ADDRESS_LINK}
               onPress={handleShareAddress}
             >
-              <Text variant={TextVariant.BodyMDMedium}>
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
                 {strings('multichain_accounts.account_details.account_address')}
               </Text>
               <Box
@@ -151,13 +170,17 @@ export const BaseAccountDetails = ({
                 alignItems={AlignItems.center}
                 gap={8}
               >
-                <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextAlternative}
+                >
                   {formatAddress(account.address, 'short')}
                 </Text>
                 <Icon
                   name={IconName.ArrowRight}
                   size={IconSize.Md}
-                  color={colors.text.alternative}
+                  color={IconColor.IconAlternative}
                 />
               </Box>
             </TouchableOpacity>
@@ -166,7 +189,7 @@ export const BaseAccountDetails = ({
               testID={AccountDetailsIds.WALLET_NAME_LINK}
               onPress={handleWalletClick}
             >
-              <Text variant={TextVariant.BodyMDMedium}>
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
                 {strings('multichain_accounts.account_details.wallet')}
               </Text>
               <Box
@@ -174,13 +197,17 @@ export const BaseAccountDetails = ({
                 alignItems={AlignItems.center}
                 gap={8}
               >
-                <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextAlternative}
+                >
                   {wallet?.metadata.name}
                 </Text>
                 <Icon
                   name={IconName.ArrowRight}
                   size={IconSize.Md}
-                  color={colors.text.alternative}
+                  color={IconColor.IconAlternative}
                 />
               </Box>
             </TouchableOpacity>

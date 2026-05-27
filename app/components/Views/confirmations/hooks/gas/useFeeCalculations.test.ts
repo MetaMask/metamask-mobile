@@ -1,4 +1,5 @@
 import { Hex } from '@metamask/utils';
+import { TransactionType } from '@metamask/transaction-controller';
 import { cloneDeep } from 'lodash';
 import { decimalToHex } from '../../../../../util/conversions';
 import { isTestNet } from '../../../../../util/networks';
@@ -87,6 +88,34 @@ describe('useFeeCalculations', () => {
     expect(result.current.preciseNativeFeeInHex).toBe('0x0');
     expect(result.current.maxFeeFiat).toBe('$0');
     expect(result.current.maxFeeNative).toBe('0');
+    expect(result.current.calculateGasEstimate).toBeDefined();
+  });
+
+  it('returns fee calculations when sponsored transaction is revoke delegation', () => {
+    mockUseIsGaslessSupported.mockReturnValue({
+      isSupported: true,
+      isSmartTransaction: false,
+      pending: false,
+    });
+
+    const { result } = renderHookWithProvider(
+      () =>
+        useFeeCalculations({
+          ...transactionMeta,
+          isGasFeeSponsored: true,
+          type: TransactionType.revokeDelegation,
+        }),
+      {
+        state: stakingDepositConfirmationState,
+      },
+    );
+
+    expect(result.current.estimatedFeeFiat).toBe('$0.34');
+    expect(result.current.estimatedFeeNative).toBe('0.0001');
+    expect(result.current.estimatedFeeFiatPrecise).toBe('0.337875011');
+    expect(result.current.preciseNativeFeeInHex).toBe('0x5572e9c22d00');
+    expect(result.current.maxFeeFiat).toBe('$0.86');
+    expect(result.current.maxFeeNative).toBe('0.0002');
     expect(result.current.calculateGasEstimate).toBeDefined();
   });
 

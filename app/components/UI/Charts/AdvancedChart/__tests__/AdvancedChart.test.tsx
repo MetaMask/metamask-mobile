@@ -496,6 +496,9 @@ describe('AdvancedChart', () => {
 
     const webView = getByTestId('mock-webview');
     act(() => {
+      webView.props.onLoadEnd();
+    });
+    act(() => {
       webView.props.onMessage({
         nativeEvent: {
           data: JSON.stringify({
@@ -911,6 +914,9 @@ describe('AdvancedChart', () => {
 
     const webView = getByTestId('mock-webview');
     act(() => {
+      webView.props.onLoadEnd();
+    });
+    act(() => {
       webView.props.onMessage({
         nativeEvent: {
           data: JSON.stringify({
@@ -931,6 +937,9 @@ describe('AdvancedChart', () => {
     );
 
     const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onLoadEnd();
+    });
     act(() => {
       webView.props.onMessage({
         nativeEvent: {
