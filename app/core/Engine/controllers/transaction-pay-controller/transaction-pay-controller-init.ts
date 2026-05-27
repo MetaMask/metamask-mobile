@@ -20,7 +20,6 @@ export const TransactionPayControllerInit: MessengerClientInitFunction<
     const transactionPayController = new TransactionPayController({
       getDelegationTransaction: ({ transaction }) =>
         getDelegationTransaction(initMessenger, transaction),
-      // @ts-expect-error getPaymentOverrideData not yet in upstream types
       getPaymentOverrideData: (transactionId: string, amountHuman: string) =>
         getPaymentOverrideData(transactionId, initMessenger, amountHuman),
       messenger: controllerMessenger,
