@@ -294,7 +294,7 @@ describe('BridgeController Init', () => {
         expect(getUseAssetsControllerForRates?.()).toBe(true);
       });
 
-      it('returns true when the assets unify state feature flag is disabled while hardcoded on for development', () => {
+      it('returns false when the assets unify state feature flag is disabled', () => {
         // Arrange
         const requestMock = buildInitRequestWithCallMock(() => ({
           remoteFeatureFlags: {
