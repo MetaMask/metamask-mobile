@@ -287,6 +287,8 @@ export interface LaunchArgs {
   /** Appium specific launch args */
   stop: boolean;
   wait: boolean;
+  /** Enables the in-app react-native-release-profiler overlay for profiling runs. */
+  enableProfiler: string;
 }
 
 /**

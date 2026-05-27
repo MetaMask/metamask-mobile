@@ -26,6 +26,7 @@ To learn how to contribute to the MetaMask codebase, visit our [Contributor Docs
 - [Development Process](./docs/readme/development-process.md)
 - [Performance](./docs/readme/performance.md)
 - [Release Build Profiling](./docs/readme/release-build-profiler.md)
+- [Mobile Memory Leak Profiling](./docs/readme/mobile-memory-leak-profiler.md)
 - [Storybook](./docs/readme/storybook.md)
 - [Miscellaneous](./docs/readme/miscellaneous.md)
 - [Reassure Performance Testing (pilot)](./docs/readme/reassure.md)

@@ -5,6 +5,7 @@ import RNFS from 'react-native-fs';
 import { startProfiling, stopProfiling } from 'react-native-release-profiler';
 import ShakeDetector from './ShakeDetector';
 import ProfilerManager from './ProfilerManager';
+import { testConfig } from '../../../util/test/utils';
 
 jest.mock('react-native-device-info', () => ({
   getBundleId: jest.fn(),
@@ -25,9 +26,12 @@ jest.mock('react-native-fs', () => ({
   copyFile: jest.fn(),
 }));
 
+const profilerTestConfig = testConfig as { enableProfiler?: string };
+
 describe('ProfilerManager', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    delete profilerTestConfig.enableProfiler;
   });
 
   describe('environment-based enabling', () => {
@@ -46,6 +50,14 @@ describe('ProfilerManager', () => {
       const { toJSON } = render(<ProfilerManager />);
       expect(toJSON()).toBeNull();
       expect(ShakeDetector).not.toHaveBeenCalled();
+    });
+
+    it('enables profiler when requested through launch args', () => {
+      profilerTestConfig.enableProfiler = 'true';
+
+      render(<ProfilerManager />);
+
+      expect(ShakeDetector).toHaveBeenCalled();
     });
   });
 

@@ -11,8 +11,21 @@ import {
   IconName,
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
+import { testConfig } from '../../../util/test/utils';
 
-const shouldEnableProfiler = (() => {
+interface ProfilerTestConfig {
+  enableProfiler?: unknown;
+}
+
+const isProfilerLaunchArgEnabled = (value: unknown) =>
+  value === true || value === 'true' || value === '1';
+
+const shouldEnableProfiler = () => {
+  const profilerConfig = testConfig as ProfilerTestConfig;
+  if (isProfilerLaunchArgEnabled(profilerConfig.enableProfiler)) {
+    return true;
+  }
+
   switch (process.env.METAMASK_ENVIRONMENT) {
     case 'rc':
       return true;
@@ -21,13 +34,13 @@ const shouldEnableProfiler = (() => {
     default:
       return false;
   }
-})();
+};
 
 interface ProfilerManagerProps {
   enabled?: boolean;
 }
 const ProfilerManager: React.FC<ProfilerManagerProps> = ({
-  enabled = shouldEnableProfiler,
+  enabled = shouldEnableProfiler(),
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
@@ -141,6 +154,7 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
             </Box>
             <Box twClassName="flex-row gap-2 mb-3">
               <Pressable
+                testID="toggle-profiler-button"
                 style={tw.style(
                   'flex-1 p-2 rounded-md items-center justify-center',
                   isRecording ? 'bg-error-default' : 'bg-primary-default',

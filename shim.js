@@ -114,6 +114,7 @@ if (isTest) {
   testConfig.commandQueueServerPort = raw?.commandQueueServerPort
     ? raw.commandQueueServerPort
     : FALLBACK_COMMAND_QUEUE_SERVER_PORT;
+  testConfig.enableProfiler = raw?.enableProfiler;
 }
 
 // Fix for https://github.com/facebook/react-native/issues/5667
