@@ -15,7 +15,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { MoneyBalanceSummaryTestIds } from './MoneyBalanceSummary.testIds';
-import { isPositiveNumber } from '../../utils/number';
+import { isPositiveNumberOrZero } from '../../utils/number';
 
 const DEFAULT_BALANCE = '$0.00';
 
@@ -76,7 +76,7 @@ const MoneyBalanceSummary = ({
             testID={MoneyBalanceSummaryTestIds.APY_SKELETON}
           />
         ) : (
-          isPositiveNumber(apy) && (
+          isPositiveNumberOrZero(apy) && (
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
@@ -94,7 +94,7 @@ const MoneyBalanceSummary = ({
             </Text>
           )
         )}
-        {onApyInfoPress && isPositiveNumber(apy) && !isLoading && (
+        {onApyInfoPress && isPositiveNumberOrZero(apy) && !isLoading && (
           <ButtonIcon
             iconName={IconName.Info}
             iconProps={{ color: IconColor.IconAlternative }}
