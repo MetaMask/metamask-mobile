@@ -45,20 +45,31 @@ interface ConnectQrNavigationParams {
   hideMarketingContent?: boolean;
 }
 
+export const getHardwareThemeAssets = (themeAppearance: AppThemeKey) => {
+  const isDarkMode = themeAppearance === AppThemeKey.dark;
+
+  return {
+    qrIconTileClassName: isDarkMode ? 'bg-white' : 'bg-black',
+    qrIconClassName: isDarkMode ? 'text-black' : 'text-white',
+    LedgerLogo: isDarkMode ? LedgerDarkLogo : LedgerLightLogo,
+    KeystoneLogo: isDarkMode ? KeystoneDarkLogo : KeystoneLightLogo,
+    OneKeyLogo: isDarkMode ? OneKeyDarkLogo : OneKeyLightLogo,
+  };
+};
+
 const SelectHardwareWallet = () => {
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
   const tw = useTailwind();
-  const isDarkMode = themeAppearance === AppThemeKey.dark;
-  const qrIconTileStyle = tw.style(
-    'h-10 w-10 rounded-xl',
-    isDarkMode ? 'bg-white' : 'bg-black',
-  );
-  const qrIconClassName = isDarkMode ? 'text-black' : 'text-white';
-  const LedgerLogo = isDarkMode ? LedgerDarkLogo : LedgerLightLogo;
-  const KeystoneLogo = isDarkMode ? KeystoneDarkLogo : KeystoneLightLogo;
-  const OneKeyLogo = isDarkMode ? OneKeyDarkLogo : OneKeyLightLogo;
+  const {
+    qrIconTileClassName,
+    qrIconClassName,
+    LedgerLogo,
+    KeystoneLogo,
+    OneKeyLogo,
+  } = getHardwareThemeAssets(themeAppearance);
+  const qrIconTileStyle = tw.style('h-10 w-10 rounded-xl', qrIconTileClassName);
 
   useEffect(() => {
     navigation.setOptions({
