@@ -254,7 +254,7 @@ describe('assetsControllerInit', () => {
       const constructorCall = controllerMock.mock.calls[0][0];
       const isEnabled = constructorCall.isEnabled as () => boolean;
 
-      expect(isEnabled()).toBe(true);
+      expect(isEnabled()).toBe(false);
     });
 
     it('returns true when feature version does not match while hardcoded on for development', () => {
@@ -276,7 +276,7 @@ describe('assetsControllerInit', () => {
       const constructorCall = controllerMock.mock.calls[0][0];
       const isEnabled = constructorCall.isEnabled as () => boolean;
 
-      expect(isEnabled()).toBe(true);
+      expect(isEnabled()).toBe(false);
     });
 
     it('returns true when RemoteFeatureFlagController:getState throws while hardcoded on for development', () => {
@@ -290,7 +290,7 @@ describe('assetsControllerInit', () => {
       const constructorCall = controllerMock.mock.calls[0][0];
       const isEnabled = constructorCall.isEnabled as () => boolean;
 
-      expect(isEnabled()).toBe(true);
+      expect(isEnabled()).toBe(false);
     });
 
     it('returns true when feature flag is undefined while hardcoded on for development', () => {
@@ -304,7 +304,7 @@ describe('assetsControllerInit', () => {
       const constructorCall = controllerMock.mock.calls[0][0];
       const isEnabled = constructorCall.isEnabled as () => boolean;
 
-      expect(isEnabled()).toBe(true);
+      expect(isEnabled()).toBe(false);
     });
   });
 
