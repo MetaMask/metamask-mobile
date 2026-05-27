@@ -9,6 +9,7 @@ import {
   PayWithSectionConfig,
 } from '../../../components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
 import { useFiatPaymentHighlightedActions } from '../useFiatPaymentHighlightedActions';
+import { useClearPaymentOverride } from './useClearPaymentOverride';
 
 export const PAY_WITH_BANK_CARD_SECTION_TEST_ID = 'pay-with-section-bank-card';
 
@@ -19,6 +20,7 @@ export function usePayWithFiatSection(): PayWithSectionConfig | null {
   const navigation = useNavigation();
   const tw = useTailwind();
   const iconColor = tw.color('icon-alternative');
+  const clearPaymentOverride = useClearPaymentOverride();
 
   return useMemo(() => {
     if (fiatItems.length === 0) {
@@ -28,6 +30,13 @@ export function usePayWithFiatSection(): PayWithSectionConfig | null {
     const rows: PayWithRowConfig[] = fiatItems.map((item) => {
       const rowKey = item.paymentType ?? item.name;
       const isSelected = item.isSelected ?? false;
+
+      const onPress = isSelected
+        ? () => navigation.goBack()
+        : () => {
+            clearPaymentOverride();
+            item.action?.();
+          };
 
       return {
         id: `pay-with-fiat-${rowKey}`,
@@ -41,7 +50,7 @@ export function usePayWithFiatSection(): PayWithSectionConfig | null {
         isSelected,
         isLastUsed: false,
         trailingElement: isSelected ? 'checkmark' : 'none',
-        onPress: isSelected ? () => navigation.goBack() : item.action,
+        onPress,
         testID: `pay-with-fiat-${rowKey}-row`,
       };
     });
@@ -52,5 +61,5 @@ export function usePayWithFiatSection(): PayWithSectionConfig | null {
       testID: PAY_WITH_BANK_CARD_SECTION_TEST_ID,
       rows,
     };
-  }, [fiatItems, iconColor, navigation]);
+  }, [clearPaymentOverride, fiatItems, iconColor, navigation]);
 }

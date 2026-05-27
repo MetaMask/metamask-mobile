@@ -297,7 +297,6 @@ describe('useMoneyTransactionStatus', () => {
 
     it.each([
       ['dropped', TransactionStatus.dropped],
-      ['rejected', TransactionStatus.rejected],
       ['cancelled', TransactionStatus.cancelled],
     ])('statusUpdated with %s → deposit failed toast', (_label, status) => {
       const { statusUpdatedHandler } = renderAndGetHandlers();
@@ -310,6 +309,42 @@ describe('useMoneyTransactionStatus', () => {
       });
 
       expect(depositFailedFn).toHaveBeenCalledTimes(1);
+    });
+
+    it('rejected → no toast (user backed out of confirmation)', () => {
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({
+        transactionMeta: buildTxMeta({
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.rejected,
+        }),
+      });
+
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(depositFailedFn).not.toHaveBeenCalled();
+      expect(depositInProgressFn).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('approved → rejected before delay → no toast and pending in-progress cleared', () => {
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      const tx = buildTxMeta({
+        type: TransactionType.moneyAccountDeposit,
+        status: TransactionStatus.approved,
+      });
+      statusUpdatedHandler({ transactionMeta: tx });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS - 1);
+      statusUpdatedHandler({
+        transactionMeta: { ...tx, status: TransactionStatus.rejected },
+      });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(depositInProgressFn).not.toHaveBeenCalled();
+      expect(depositFailedFn).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
     });
   });
 

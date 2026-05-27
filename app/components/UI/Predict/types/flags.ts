@@ -55,6 +55,7 @@ export interface PredictFeatureFlags {
   predictUpDownEnabled: boolean;
   predictHomepageDiscoveryNbaChampionEnabled: boolean;
   predictWorldCup: PredictWorldCupConfig;
+  predictPortfolioEnabled: boolean;
 }
 
 export interface PredictHotTabFlag extends VersionGatedFeatureFlag {
