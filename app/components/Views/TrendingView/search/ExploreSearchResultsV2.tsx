@@ -116,28 +116,30 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
           >
             {item.title}
           </Text>
-          <Pressable
-            onPress={() => handleViewMore(section)}
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel={`${viewMoreLabel} ${item.title}`}
-            style={({ pressed }) => [
-              pressedStyle.pressable,
-              pressed && { opacity: 0.5 },
-            ]}
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
+          {!section.isLoading && (
+            <Pressable
+              onPress={() => handleViewMore(section)}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel={`${viewMoreLabel} ${item.title}`}
+              style={({ pressed }) => [
+                pressedStyle.pressable,
+                pressed && { opacity: 0.5 },
+              ]}
             >
-              {viewMoreLabel}
-            </Text>
-            <Icon
-              name={IconName.ArrowRight}
-              size={IconSize.Sm}
-              color={IconColor.IconAlternative}
-            />
-          </Pressable>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                {viewMoreLabel}
+              </Text>
+              <Icon
+                name={IconName.ArrowRight}
+                size={IconSize.Sm}
+                color={IconColor.IconAlternative}
+              />
+            </Pressable>
+          )}
         </Box>
       );
     },
