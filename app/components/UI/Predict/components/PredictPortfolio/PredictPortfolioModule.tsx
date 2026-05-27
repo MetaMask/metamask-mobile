@@ -86,6 +86,9 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
     });
   }, [executeGuardedAction, portfolio]);
 
+  const isWithdrawDisabled =
+    portfolio.availableBalance > 0 && !portfolio.walletType;
+
   return (
     <Box testID={PREDICT_PORTFOLIO_TEST_IDS.MODULE} twClassName="gap-4">
       <PredictPortfolioSummary
@@ -99,6 +102,7 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
       />
 
       <PredictPortfolioActions
+        isWithdrawDisabled={isWithdrawDisabled}
         onAddFundsPress={handleAddFundsPress}
         onPositionsPress={handlePositionsPress}
         onWithdrawPress={handleWithdrawPress}

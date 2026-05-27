@@ -225,15 +225,27 @@ describe('PredictPortfolioModule', () => {
 
   it('does not open withdraw fallback while wallet type is loading', () => {
     const onDepositWalletWithdrawPress = jest.fn();
+    mockUsePredictPortfolio.mockReturnValue(
+      createPortfolio({
+        availableBalance: 250,
+      }),
+    );
+
     renderWithProvider(
       <PredictPortfolioModule
         onDepositWalletWithdrawPress={onDepositWalletWithdrawPress}
       />,
     );
 
-    fireEvent.press(
-      screen.getByTestId(PREDICT_PORTFOLIO_TEST_IDS.ACTION_WITHDRAW),
+    const withdrawAction = screen.getByTestId(
+      PREDICT_PORTFOLIO_TEST_IDS.ACTION_WITHDRAW,
     );
+
+    expect(withdrawAction.props.accessibilityState).toEqual({
+      disabled: true,
+    });
+
+    fireEvent.press(withdrawAction);
 
     expect(onDepositWalletWithdrawPress).not.toHaveBeenCalled();
     expect(mockWithdraw).not.toHaveBeenCalled();
