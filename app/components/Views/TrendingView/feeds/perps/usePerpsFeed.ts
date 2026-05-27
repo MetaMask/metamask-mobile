@@ -15,6 +15,9 @@ import { useFeedRefresh } from '../../hooks/useFeedRefresh';
 import type { RefreshConfig } from '../../hooks/useExploreRefresh';
 import { TILE_CAROUSEL_DEFAULT_MAX_TILES } from '../../components/TileCarousel';
 import { fuseSearch, PERPS_FUSE_OPTIONS } from '../search-utils';
+import type { PerpsFeedItem } from '../../../../UI/Perps/types/perpsFeedTypes';
+
+export type { PerpsFeedItem } from '../../../../UI/Perps/types/perpsFeedTypes';
 
 const EMPTY_WATCHLIST_SYMBOLS: string[] = [];
 
@@ -32,13 +35,6 @@ interface UsePerpsFeedOptions {
    * (tile rendering needs this; row rendering does not).
    */
   withTileExtras?: boolean;
-}
-
-/** Per-item enrichment merged in when `withTileExtras` is true. */
-export interface PerpsFeedItem {
-  market: PerpsMarketData;
-  sparkline?: number[];
-  isWatchlisted: boolean;
 }
 
 export interface UsePerpsFeedResult {

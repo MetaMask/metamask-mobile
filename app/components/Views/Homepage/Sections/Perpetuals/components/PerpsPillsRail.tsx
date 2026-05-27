@@ -1,8 +1,8 @@
 import React from 'react';
-import PillScrollList from '../../../../TrendingView/components/PillScrollList';
-import PerpsPillItem from '../../../../TrendingView/feeds/perps/PerpsPillItem';
-import CryptoMoversSkeleton from '../../../../TrendingView/feeds/tokens/CryptoMoversSkeleton';
-import type { PerpsFeedItem } from '../../../../TrendingView/feeds/perps/usePerpsFeed';
+import { PillScrollList } from '../../../../../UI/Trending/components/PillScrollList';
+import { PerpsPillItem } from '../../../../../UI/Perps/components/PerpsPillItem';
+import { SectionPillsSkeleton } from '../../../../../UI/Trending/components/SectionPillsSkeleton';
+import type { PerpsFeedItem } from '../../../../../UI/Perps/types/perpsFeedTypes';
 
 export interface PerpsPillsRailProps {
   data: PerpsFeedItem[];
@@ -23,7 +23,7 @@ const PerpsPillsRail = ({
       <PerpsPillItem item={item} onNavigateToMarketDetails={onPressMarket} />
     )}
     keyExtractor={(item) => item.market.symbol}
-    Skeleton={CryptoMoversSkeleton}
+    Skeleton={SectionPillsSkeleton}
     listTestId="homepage-perps-pills-list"
   />
 );

@@ -3,7 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import Routes from '../../../../../constants/navigation/Routes';
 import PerpsPillItem from './PerpsPillItem';
-import type { PerpsFeedItem } from './usePerpsFeed';
+import type { PerpsFeedItem } from '../../types/perpsFeedTypes';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 
 const mockNavigate = jest.fn();
