@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View } from 'react-native';
+import { View, Platform } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { strings } from '../../../../../locales/i18n';
@@ -68,6 +68,7 @@ import {
 import { selectTokenDetailsOhlcvWsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsOhlcvWsIntegration';
 
 const EMPTY_INDICATORS: IndicatorType[] = [];
+const IOS_EDGE_OVERLAY_WIDTH = 15; // Width of invisible overlay for iOS back gesture
 
 /**
  * Maps UI time-range selections to the WebSocket candle interval used by
@@ -638,6 +639,12 @@ const PriceAdvanced = ({
           testID="advanced-chart-touch-container"
           style={[styles.chartContainer, { height: CHART_HEIGHT }]}
         >
+          {Platform.OS === 'ios' && (
+            <View
+              style={[styles.edgeOverlay, { width: IOS_EDGE_OVERLAY_WIDTH }]}
+              pointerEvents="box-only"
+            />
+          )}
           {useAmbientColor && initialAmbientColor === undefined ? (
             <Skeleton height={CHART_HEIGHT} width="100%" />
           ) : (
