@@ -94,6 +94,9 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       lineChrome,
       visibleFromMs,
       visibleToMs,
+      lineColorOverride,
+      successColorOverride,
+      errorColorOverride,
     },
     ref,
   ) => {
@@ -117,6 +120,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
 
     const activeIndicatorsRef = useRef<Set<IndicatorType>>(new Set());
     const [webViewLoaded, setWebViewLoaded] = useState(false);
+    const webViewLoadedRef = useRef(false);
     const prevPositionLinesRef = useRef(positionLines);
     const prevChartTypeRef = useRef(chartType);
     const prevOhlcvDataRef = useRef<OHLCVBar[]>([]);
@@ -132,8 +136,19 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           enableDrawingTools,
           disabledFeatures,
           lineChrome,
+          lineColorOverride,
+          successColorOverride,
+          errorColorOverride,
         }),
-      [theme, enableDrawingTools, disabledFeatures, lineChrome],
+      [
+        theme,
+        enableDrawingTools,
+        disabledFeatures,
+        lineChrome,
+        lineColorOverride,
+        successColorOverride,
+        errorColorOverride,
+      ],
     );
 
     // Reset all chart state when the WebView reloads due to htmlContent changes
@@ -141,6 +156,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       skeletonHiddenReportedRef.current = false;
       setChartReadyCount(0);
       setWebViewLoaded(false);
+      webViewLoadedRef.current = false;
+      setWebViewError(null);
       activeIndicatorsRef.current.clear();
       prevPositionLinesRef.current = undefined;
       prevChartTypeRef.current = undefined;
@@ -346,7 +363,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           }
 
           case 'ERROR':
-            if (!isChartReady) {
+            if (!isChartReady && webViewLoadedRef.current) {
               setWebViewError(message.payload.message);
             }
             onError?.(message.payload.message);
@@ -386,6 +403,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
 
     const handleLoadEnd = useCallback(() => {
       setWebViewLoaded(true);
+      webViewLoadedRef.current = true;
     }, []);
 
     // ---- Ref API ----
@@ -401,6 +419,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           setLayoutSettling(false);
           setChartReadyCount(0);
           setWebViewLoaded(false);
+          webViewLoadedRef.current = false;
           setWebViewError(null);
           activeIndicatorsRef.current.clear();
           prevPositionLinesRef.current = undefined;

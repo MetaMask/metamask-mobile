@@ -492,6 +492,13 @@ export interface AdvancedChartProps {
    * which can be ahead of the last candle and push the left edge off-screen.
    */
   visibleToMs?: number;
+
+  /** Override the chart line color baked into the HTML template (A/B test). */
+  lineColorOverride?: string;
+  /** Override the candlestick up/success color baked into the HTML template (A/B test). */
+  successColorOverride?: string;
+  /** Override the candlestick down/error color baked into the HTML template (A/B test). */
+  errorColorOverride?: string;
 }
 
 /**

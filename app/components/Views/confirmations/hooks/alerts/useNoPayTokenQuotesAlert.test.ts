@@ -138,6 +138,50 @@ describe('useNoPayTokenQuotesAlert', () => {
     ]);
   });
 
+  it('returns no alerts for fiat when rampsQuote is present', () => {
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: undefined,
+    } as ReturnType<typeof useTransactionPayToken>);
+
+    jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
+      selectedPaymentMethodId: 'pm-card',
+      amountFiat: '50.00',
+      rampsQuote: { id: 'quote-1' },
+    } as never);
+
+    useTransactionPayQuotesMock.mockReturnValue([]);
+
+    const { result } = runHook();
+
+    expect(result.current).toStrictEqual([]);
+  });
+
+  it('returns alert for fiat when sourceAmounts is non-empty but no rampsQuote', () => {
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: undefined,
+    } as ReturnType<typeof useTransactionPayToken>);
+
+    jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
+      selectedPaymentMethodId: 'pm-card',
+      amountFiat: '50.00',
+    });
+
+    useTransactionPaySourceAmountsMock.mockReturnValue([
+      {} as TransactionPaySourceAmount,
+    ]);
+    useTransactionPayQuotesMock.mockReturnValue([]);
+
+    const { result } = runHook();
+
+    expect(result.current).toEqual([
+      expect.objectContaining({
+        key: AlertKeys.NoPayTokenQuotes,
+        severity: Severity.Danger,
+        isBlocking: true,
+      }),
+    ]);
+  });
+
   it('returns no alerts for fiat when amount is not entered', () => {
     jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
       selectedPaymentMethodId: 'pm-card',

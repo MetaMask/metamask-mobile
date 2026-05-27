@@ -136,6 +136,21 @@ describe('useDismissOnPaymentChange', () => {
 
       expect(goBackMock).toHaveBeenCalledTimes(1);
     });
+
+    it('does not dismiss on pay token changes when pay token dismissal is disabled', () => {
+      const { rerender } = renderHook(() =>
+        useDismissOnPaymentChange({ dismissOnPayTokenChange: false }),
+      );
+
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: TOKEN_B,
+        setPayToken: setPayTokenMock,
+      });
+
+      rerender();
+
+      expect(goBackMock).not.toHaveBeenCalled();
+    });
   });
 
   describe('fiat selection changes', () => {
@@ -176,6 +191,20 @@ describe('useDismissOnPaymentChange', () => {
 
       useTransactionPayFiatPaymentMock.mockReturnValue({
         selectedPaymentMethodId: undefined,
+      });
+
+      rerender();
+
+      expect(goBackMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('still dismisses on fiat selection changes when pay token dismissal is disabled', () => {
+      const { rerender } = renderHook(() =>
+        useDismissOnPaymentChange({ dismissOnPayTokenChange: false }),
+      );
+
+      useTransactionPayFiatPaymentMock.mockReturnValue({
+        selectedPaymentMethodId: 'pm-card',
       });
 
       rerender();
