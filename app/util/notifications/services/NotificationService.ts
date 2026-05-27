@@ -368,10 +368,15 @@ export async function isPushPermissionGranted(): Promise<boolean> {
 }
 
 /**
- * Returns true when calling requestPermission() will actually show the OS dialog.
- * NOT_DETERMINED returns true. DENIED and already-granted states return false.
- * Use this to short-circuit the OS prompt when permission has already been denied.
+ * Returns true when requesting push permission may show the OS dialog.
+ * iOS exposes a NOT_DETERMINED state, but Notifee only exposes AUTHORIZED/DENIED
+ * on Android. Treat Android's not-granted state as promptable and let
+ * requestPermission determine whether the OS can show a dialog.
  */
 export async function isPushPermissionPromptable(): Promise<boolean> {
+  if (Platform.OS === 'android') {
+    return !(await isPushPermissionGranted());
+  }
+
   return (await getPushPermissionStatus()) === 'promptable';
 }

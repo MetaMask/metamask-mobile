@@ -227,6 +227,7 @@ describe('isPushPermissionPromptable', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(Platform).OS = 'ios';
   });
 
   it.each([
@@ -237,6 +238,18 @@ describe('isPushPermissionPromptable', () => {
   ])(
     'returns $expected when status is $status',
     async ({ status, expected }) => {
+      arrangeMocks(status as unknown as string);
+      expect(await isPushPermissionPromptable()).toBe(expected);
+    },
+  );
+
+  it.each([
+    { status: AuthorizationStatus.AUTHORIZED, expected: false },
+    { status: AuthorizationStatus.DENIED, expected: true },
+  ])(
+    'returns $expected on android when status is $status',
+    async ({ status, expected }) => {
+      jest.mocked(Platform).OS = 'android';
       arrangeMocks(status as unknown as string);
       expect(await isPushPermissionPromptable()).toBe(expected);
     },
