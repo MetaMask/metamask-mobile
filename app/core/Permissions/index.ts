@@ -558,11 +558,22 @@ export const getPermittedCaipChainIds = async (
   hostname: string,
 ): Promise<CaipChainId[]> => {
   const { PermissionController } = Engine.context;
-  const caveat = PermissionController.getCaveat(
-    hostname,
-    Caip25EndowmentPermissionName,
-    Caip25CaveatType,
-  );
+
+  let caveat;
+  try {
+    caveat = PermissionController.getCaveat(
+      hostname,
+      Caip25EndowmentPermissionName,
+      Caip25CaveatType,
+    );
+  } catch (err) {
+    if (err instanceof PermissionDoesNotExistError) {
+      // suppress expected error in case that the origin
+      // does not have the target permission yet
+      return [];
+    }
+    throw err;
+  }
 
   if (caveat) {
     return getAllScopesFromCaip25CaveatValue(caveat.value).filter(
