@@ -120,6 +120,7 @@ export function useHwConnectionMonitoring({
           type: HardwareWalletsSwapsEventType.Rejected,
         }),
       );
+      return;
     }
 
     handledErrorRef.current = error;
