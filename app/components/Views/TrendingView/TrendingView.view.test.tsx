@@ -213,8 +213,7 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
   });
 
   it('user can search for a trending token from the explore feed', async () => {
-    const { findByPlaceholderText, findByTestId, getByTestId } =
-      renderTrendingViewWithRoutes();
+    const { findByTestId, getByTestId } = renderTrendingViewWithRoutes();
 
     await waitFor(() => {
       expect(
@@ -227,8 +226,8 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
     );
     await actButtonPress(searchButton);
 
-    const searchInput = await findByPlaceholderText(
-      strings('trending.search_placeholder'),
+    const searchInput = await findByTestId(
+      TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT,
     );
     expect(searchInput).toBeOnTheScreen();
 
