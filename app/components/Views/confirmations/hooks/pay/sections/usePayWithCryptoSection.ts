@@ -114,10 +114,11 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);
 
   const handleOtherAssetsPress = useCallback(() => {
+    clearPaymentOverride();
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL, {
       dismissOnSelectCount: 2,
     });
-  }, [navigation]);
+  }, [clearPaymentOverride, navigation]);
 
   const handlePreferredTokenPress = useCallback(() => {
     if (!preferredToken) {
