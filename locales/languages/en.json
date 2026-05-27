@@ -6749,6 +6749,8 @@
     "apy_label": "{{percentage}}% APY",
     "apy_currency_suffix": " • mUSD",
     "apy_info_label": "APY info",
+    "deposit_tooltip_title": "Earn up to {{percentage}}%",
+    "deposit_tooltip_description": "Add funds to your Money account and earn up to {{percentage}}% APY automatically. You can add funds by converting your existing stablecoin balance or depositing directly from your bank or card.",
     "balance_unavailable": "Balance unavailable",
     "balance_retry": "Retry",
     "balance_feature_disabled": "Money account disabled",
@@ -7295,8 +7297,8 @@
       "perps_withdraw": "Withdraw",
       "predict_deposit": "Add Prediction funds",
       "predict_withdraw": "Withdraw",
-      "money_account_add_money": "Add money",
-      "money_account_transfer_money": "Transfer money"
+      "money_account_add_money": "Add funds",
+      "money_account_transfer_money": "Transfer funds"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
@@ -7416,7 +7418,7 @@
       "buy_button": "Buy crypto",
       "buy_predict": "Add funds to your wallet to use Predictions.",
       "buy_perps": "Add funds to your wallet to use Perps.",
-      "projected_five_year_balance": "Projected 5-year balance:"
+      "projected_balance": "Projected {{projectedYears}}-year balance:"
     },
     "unlimited": "Unlimited",
     "all": "All",
