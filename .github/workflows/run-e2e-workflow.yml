@@ -241,7 +241,7 @@ jobs:
           path: artifacts/
 
       - name: Move Android artifacts to expected locations
-        if: ${{ inputs.platform == 'android' }}
+        if: ${{ inputs.platform == 'android' && (inputs.runner_provider == 'namespace' || steps.android-artifacts-cache.outputs.cache-hit != 'true') }}
         run: |
           # Copy from artifacts to expected locations
           # Each artifact is uploaded as a folder so we need to cp from inside the folder
