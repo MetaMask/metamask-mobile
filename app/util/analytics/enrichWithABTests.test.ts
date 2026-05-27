@@ -5,6 +5,23 @@ import { createActiveABTestAssignment } from './activeABTestAssignments';
 import { enrichWithABTests } from './enrichWithABTests';
 
 describe('enrichWithABTests', () => {
+  it('loads swap AB configs when the Analytics barrel initializes first', () => {
+    jest.isolateModules(() => {
+      // Mirrors view-test bootstrap: core/Analytics before ab test registry.
+      /* eslint-disable @typescript-eslint/no-require-imports -- isolateModules load order */
+      require('../../core/Analytics');
+      const {
+        NUMPAD_QUICK_ACTIONS_AB_TEST_ANALYTICS_MAPPING,
+      } = require('../../components/UI/Bridge/components/GaslessQuickPickOptions/abTestConfig');
+      /* eslint-enable @typescript-eslint/no-require-imports */
+
+      expect(
+        NUMPAD_QUICK_ACTIONS_AB_TEST_ANALYTICS_MAPPING
+          .eventPropertyRequirements?.['Asset Viewed'],
+      ).toEqual({ trade_type: 'Swaps' });
+    });
+  });
+
   it('injects one active assignment for a matching allowlisted event', () => {
     const event = AnalyticsEventBuilder.createEventBuilder('Card Button Viewed')
       .addProperties({

@@ -1,4 +1,4 @@
-import { ASSET_VIEWED_PROPERTY } from '../../../../../core/Analytics';
+import { ASSET_VIEWED_PROPERTY } from '../../../../../core/Analytics/trade-transaction-funnel/assetViewedAnalytics';
 import { EVENT_NAME } from '../../../../../core/Analytics/MetaMetrics.events';
 import type { ABTestAnalyticsMapping } from '../../../../../util/analytics/abTestAnalytics.types';
 
