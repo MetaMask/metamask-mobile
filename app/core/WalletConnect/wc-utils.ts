@@ -409,8 +409,7 @@ export const isEIP155RedirectMethodForChain = ({
  * Should be removed when we'll create a specific adapter for Eip155 chains.
  */
 export const isEIP155NameSpace = (namespace: string): boolean =>
-  namespace === KnownCaipNamespace.Eip155 ||
-  namespace === KnownCaipNamespace.Wallet;
+  namespace === KnownCaipNamespace.Eip155;
 
 /**
  * Whether this CAIP chain id belongs to an EIP-155 chain or not.
