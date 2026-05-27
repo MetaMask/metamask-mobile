@@ -20,9 +20,9 @@ const AccessRestrictedModal: React.FC<AccessRestrictedModalProps> = ({
   onClose,
   onContactSupport,
 }) => {
-  if (!isVisible) return null;
-
   const surfaceClass = useElevatedSurface();
+
+  if (!isVisible) return null;
 
   return (
     <BottomSheet
