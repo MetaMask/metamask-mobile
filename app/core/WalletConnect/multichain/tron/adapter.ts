@@ -216,9 +216,7 @@ export function enrichCaveatValue({
     .filter((chain) => SUPPORTED_TRON_SCOPES.has(chain));
 
   const scopesToAdd =
-    normalizedScopes.length > 0
-      ? Array.from(new Set(normalizedScopes))
-      : [TrxScope.Mainnet];
+    normalizedScopes.length > 0 ? normalizedScopes : [TrxScope.Mainnet];
 
   const extraOptionalScopes = Object.fromEntries(
     scopesToAdd.map((scope) => [scope, { accounts: [] }]),
