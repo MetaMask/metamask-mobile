@@ -82,6 +82,7 @@ export function usePerpsWithdrawConfirmation() {
     async function runWithdrawWithConfirmation() {
       navigateToConfirmation({
         loader: ConfirmationLoader.CustomAmount,
+        navigateInParentStack: true,
         stack: Routes.PERPS.ROOT,
       });
 

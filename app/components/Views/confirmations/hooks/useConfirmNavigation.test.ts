@@ -10,10 +10,13 @@ import { act } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
 
 const mockNavigate = jest.fn();
+const mockParentNavigate = jest.fn();
+const mockGetParent = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
+    getParent: mockGetParent,
     navigate: mockNavigate,
   }),
 }));
@@ -46,6 +49,7 @@ function runHook({ transactions }: { transactions?: TransactionMeta[] } = {}) {
 describe('useConfirmNavigation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetParent.mockReturnValue(undefined);
   });
 
   it('navigates to confirmation with stack', () => {
@@ -67,6 +71,38 @@ describe('useConfirmNavigation', () => {
 
     navigateToConfirmation({
       loader: ConfirmationLoader.CustomAmount,
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      { loader: ConfirmationLoader.CustomAmount },
+    );
+  });
+
+  it('navigates to confirmation on the parent stack when requested', () => {
+    mockGetParent.mockReturnValue({ navigate: mockParentNavigate });
+    const { navigateToConfirmation } = runHook().result.current;
+
+    navigateToConfirmation({
+      loader: ConfirmationLoader.CustomAmount,
+      navigateInParentStack: true,
+      stack: Routes.PREDICT.ROOT,
+    });
+
+    expect(mockParentNavigate).toHaveBeenCalledWith(
+      Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      { loader: ConfirmationLoader.CustomAmount },
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('falls back to current navigation when parent stack is unavailable', () => {
+    const { navigateToConfirmation } = runHook().result.current;
+
+    navigateToConfirmation({
+      loader: ConfirmationLoader.CustomAmount,
+      navigateInParentStack: true,
+      stack: Routes.PREDICT.ROOT,
     });
 
     expect(mockNavigate).toHaveBeenCalledWith(

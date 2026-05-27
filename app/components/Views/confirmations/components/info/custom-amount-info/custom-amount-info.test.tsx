@@ -42,9 +42,9 @@ import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTr
 import { useTokenFiatRates } from '../../../hooks/tokens/useTokenFiatRates';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
+import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
-import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
 jest.mock('../../../hooks/tokens/useTokenFiatRates');
@@ -340,6 +340,7 @@ describe('CustomAmountInfo', () => {
     render();
 
     expect(useClearConfirmationOnBackSwipeMock).toHaveBeenCalledWith({
+      enabled: true,
       rejectOnBeforeRemove: true,
       rejectOnBeforeRemoveWithoutGesture: true,
       skipNavigationOnGestureEnd: true,
@@ -369,6 +370,7 @@ describe('CustomAmountInfo', () => {
     render();
 
     expect(useClearConfirmationOnBackSwipeMock).toHaveBeenCalledWith({
+      enabled: true,
       rejectOnBeforeRemove: false,
       rejectOnBeforeRemoveWithoutGesture: false,
       skipNavigationOnGestureEnd: false,
@@ -396,6 +398,26 @@ describe('CustomAmountInfo', () => {
   it('renders keyboard', () => {
     const { getByTestId } = render();
     expect(getByTestId('deposit-keyboard')).toBeDefined();
+  });
+
+  it('enables back-swipe confirmation cleanup by default', () => {
+    render();
+
+    expect(useClearConfirmationOnBackSwipeMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        enabled: true,
+      }),
+    );
+  });
+
+  it('can disable back-swipe confirmation cleanup', () => {
+    render({ clearConfirmationOnBackSwipe: false });
+
+    expect(useClearConfirmationOnBackSwipeMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        enabled: false,
+      }),
+    );
   });
 
   describe('hasExtraBottomPadding', () => {

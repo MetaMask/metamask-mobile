@@ -103,6 +103,7 @@ export interface CustomAmountInfoProps {
    * balance line and otherwise clips behind the system gesture bar.
    */
   hasExtraBottomPadding?: boolean;
+  clearConfirmationOnBackSwipe?: boolean;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
@@ -120,6 +121,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     preferredToken,
     footerText,
     supportAccountSelection,
+    clearConfirmationOnBackSwipe = true,
   }) => {
     const transactionMeta = useTransactionMetadataRequest();
     const isPredictDeposit = hasTransactionType(transactionMeta, [
@@ -131,6 +133,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     }, []);
 
     useClearConfirmationOnBackSwipe({
+      enabled: clearConfirmationOnBackSwipe,
       rejectOnBeforeRemove: isPredictDeposit,
       rejectOnBeforeRemoveWithoutGesture: isPredictDeposit,
       skipNavigationOnGestureEnd: isPredictDeposit,

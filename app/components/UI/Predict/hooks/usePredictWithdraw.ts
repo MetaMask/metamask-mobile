@@ -25,6 +25,7 @@ export const usePredictWithdraw = () => {
     try {
       navigateToConfirmation({
         loader: ConfirmationLoader.CustomAmount,
+        navigateInParentStack: true,
         stack: Routes.PREDICT.ROOT,
       });
 

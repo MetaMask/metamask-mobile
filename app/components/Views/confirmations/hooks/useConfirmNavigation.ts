@@ -1,4 +1,8 @@
-import { useNavigation } from '@react-navigation/native';
+import {
+  type NavigationProp,
+  type ParamListBase,
+  useNavigation,
+} from '@react-navigation/native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -23,11 +27,13 @@ const ROUTE_NO_HEADER = Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER;
 export type ConfirmNavigateOptions = {
   amount?: string;
   headerShown?: boolean;
+  navigateInParentStack?: boolean;
   stack?: string;
 } & ConfirmationParams;
 
 export function useConfirmNavigation() {
-  const { navigate } = useNavigation();
+  const navigation = useNavigation<NavigationProp<ParamListBase>>();
+  const { navigate } = navigation;
   const transactions = useSelector(selectTransactions);
   const [pendingParams, setPendingParams] = useState<ConfirmNavigateOptions>();
   const [transactionsToRemove, setTransactionsToRemove] = useState<string[]>();
@@ -42,7 +48,7 @@ export function useConfirmNavigation() {
 
   const navigateToConfirmation = useCallback(
     (options: ConfirmNavigateOptions) => {
-      const { headerShown, stack, ...params } = options;
+      const { headerShown, navigateInParentStack, stack, ...params } = options;
       const { loader } = params;
 
       if (!loader && stack === Routes.PERPS.ROOT) {
@@ -66,6 +72,18 @@ export function useConfirmNavigation() {
 
       log('Navigating', { route, params, stack });
 
+      if (navigateInParentStack) {
+        const parentNavigation = navigation.getParent();
+
+        if (parentNavigation) {
+          parentNavigation.navigate(route, params);
+          return;
+        }
+
+        navigate(route, params);
+        return;
+      }
+
       if (stack) {
         navigate(stack, { screen: route, params });
         return;
@@ -73,7 +91,7 @@ export function useConfirmNavigation() {
 
       navigate(route, params);
     },
-    [navigate, pendingParams, pendingTransactions],
+    [navigate, navigation, pendingParams, pendingTransactions],
   );
 
   useEffect(() => {

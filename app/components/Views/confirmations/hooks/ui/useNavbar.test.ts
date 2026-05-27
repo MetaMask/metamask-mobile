@@ -148,6 +148,23 @@ describe('useNavbar', () => {
     });
   });
 
+  it('uses the onReject override when provided', () => {
+    const onRejectOverride = jest.fn();
+    (useFullScreenConfirmation as jest.Mock).mockReturnValue({
+      isFullScreenConfirmation: true,
+    });
+
+    renderHook(() => useNavbar(mockTitle, true, undefined, onRejectOverride));
+
+    expect(getNavbar).toHaveBeenCalledWith({
+      title: mockTitle,
+      onReject: onRejectOverride,
+      addBackButton: true,
+      theme: expect.any(Object),
+      overrides: undefined,
+    });
+  });
+
   describe('overrides parameter', () => {
     it('passes overrides to getNavbar when provided', () => {
       (useFullScreenConfirmation as jest.Mock).mockReturnValue({

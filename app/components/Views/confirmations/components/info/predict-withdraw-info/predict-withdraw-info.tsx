@@ -7,9 +7,20 @@ import { POLYGON_PUSD, PREDICT_CURRENCY } from '../../../constants/predict';
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
+import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 
 export function PredictWithdrawInfo() {
-  useNavbar(strings('confirm.title.predict_withdraw'));
+  const rejectConfirmation = useClearConfirmationOnBackSwipe({
+    rejectOnTransitionEnd: true,
+    skipNavigationOnTransitionEnd: true,
+  });
+
+  useNavbar(
+    strings('confirm.title.predict_withdraw'),
+    true,
+    undefined,
+    rejectConfirmation,
+  );
 
   const { canSelectWithdrawToken } = useTransactionPayWithdraw();
 
@@ -25,6 +36,7 @@ export function PredictWithdrawInfo() {
     <CustomAmountInfo
       currency={PREDICT_CURRENCY}
       disablePay={!canSelectWithdrawToken}
+      clearConfirmationOnBackSwipe={false}
     >
       <PredictWithdrawBalance />
     </CustomAmountInfo>

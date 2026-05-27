@@ -73,6 +73,20 @@ describe('useClearConfirmationOnBackSwipe', () => {
     expect(mockOnReject).not.toHaveBeenCalled();
   });
 
+  it('does not set up listeners when disabled', () => {
+    (Device.isIos as jest.Mock).mockReturnValue(true);
+    (Device.isAndroid as jest.Mock).mockReturnValue(false);
+    (useFullScreenConfirmation as jest.Mock).mockReturnValue({
+      isFullScreenConfirmation: true,
+    });
+
+    renderHook(() => useClearConfirmationOnBackSwipe({ enabled: false }));
+
+    expect(mockAddListener).not.toHaveBeenCalled();
+    expect(BackHandler.addEventListener).not.toHaveBeenCalled();
+    expect(mockOnReject).not.toHaveBeenCalled();
+  });
+
   describe('iOS behavior', () => {
     beforeEach(() => {
       (Device.isIos as jest.Mock).mockReturnValue(true);
@@ -289,6 +303,55 @@ describe('useClearConfirmationOnBackSwipe', () => {
 
       expect(mockOnReject).toHaveBeenCalledTimes(1);
       expect(mockOnReject).toHaveBeenCalledWith(undefined, true);
+    });
+
+    it('does not reject on gestureEnd when configured to reject on transitionEnd', () => {
+      renderHook(() =>
+        useClearConfirmationOnBackSwipe({
+          rejectOnTransitionEnd: true,
+          skipNavigationOnTransitionEnd: true,
+        }),
+      );
+      const gestureEndCallback = mockAddListener.mock.calls.find(
+        ([eventName]) => eventName === 'gestureEnd',
+      )?.[1];
+
+      gestureEndCallback();
+
+      expect(mockOnReject).not.toHaveBeenCalled();
+    });
+
+    it('calls onReject with skipNavigation when closing transitionEnd is triggered', () => {
+      renderHook(() =>
+        useClearConfirmationOnBackSwipe({
+          rejectOnTransitionEnd: true,
+          skipNavigationOnTransitionEnd: true,
+        }),
+      );
+      const transitionEndCallback = mockAddListener.mock.calls.find(
+        ([eventName]) => eventName === 'transitionEnd',
+      )?.[1];
+
+      transitionEndCallback({ data: { closing: true } });
+
+      expect(mockOnReject).toHaveBeenCalledTimes(1);
+      expect(mockOnReject).toHaveBeenCalledWith(undefined, true);
+    });
+
+    it('does not reject when opening transitionEnd is triggered', () => {
+      renderHook(() =>
+        useClearConfirmationOnBackSwipe({
+          rejectOnTransitionEnd: true,
+          skipNavigationOnTransitionEnd: true,
+        }),
+      );
+      const transitionEndCallback = mockAddListener.mock.calls.find(
+        ([eventName]) => eventName === 'transitionEnd',
+      )?.[1];
+
+      transitionEndCallback({ data: { closing: false } });
+
+      expect(mockOnReject).not.toHaveBeenCalled();
     });
 
     it('logs onBeforeReject errors and still rejects the confirmation', () => {

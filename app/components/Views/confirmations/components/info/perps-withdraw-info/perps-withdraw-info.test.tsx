@@ -5,11 +5,13 @@ import { strings } from '../../../../../../../locales/i18n';
 import { ARBITRUM_USDC, PERPS_CURRENCY } from '../../../constants/perps';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
+import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import useNavbar from '../../../hooks/ui/useNavbar';
 import { CustomAmountInfo } from '../custom-amount-info';
 import { PerpsWithdrawInfo } from './perps-withdraw-info';
 
 jest.mock('../../../hooks/pay/useTransactionPayWithdraw');
+jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
 jest.mock('../../../hooks/ui/useNavbar');
 jest.mock('../../../hooks/tokens/useAddToken');
 jest.mock('../custom-amount-info', () => ({
@@ -22,11 +24,16 @@ jest.mock('../../perps-confirmations/perps-withdraw-balance', () => ({
 describe('PerpsWithdrawInfo', () => {
   const mockUseTransactionPayWithdraw = jest.mocked(useTransactionPayWithdraw);
   const mockUseAddToken = jest.mocked(useAddToken);
+  const mockUseClearConfirmationOnBackSwipe = jest.mocked(
+    useClearConfirmationOnBackSwipe,
+  );
   const mockUseNavbar = jest.mocked(useNavbar);
   const mockCustomAmountInfo = jest.mocked(CustomAmountInfo);
+  const mockRejectConfirmation = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseClearConfirmationOnBackSwipe.mockReturnValue(mockRejectConfirmation);
 
     mockUseTransactionPayWithdraw.mockReturnValue({
       isWithdraw: true,
@@ -60,8 +67,15 @@ describe('PerpsWithdrawInfo', () => {
   it('registers Arbitrum USDC and sets the Perps withdraw title', () => {
     render(<PerpsWithdrawInfo />);
 
+    expect(mockUseClearConfirmationOnBackSwipe).toHaveBeenCalledWith({
+      rejectOnTransitionEnd: true,
+      skipNavigationOnTransitionEnd: true,
+    });
     expect(mockUseNavbar).toHaveBeenCalledWith(
       strings('confirm.title.perps_withdraw'),
+      true,
+      undefined,
+      mockRejectConfirmation,
     );
     expect(mockUseAddToken).toHaveBeenCalledWith({
       chainId: CHAIN_IDS.ARBITRUM,
@@ -86,6 +100,15 @@ describe('PerpsWithdrawInfo', () => {
 
     expect(mockCustomAmountInfo).toHaveBeenCalledWith(
       expect.objectContaining({ hasExtraBottomPadding: true }),
+      undefined,
+    );
+  });
+
+  it('disables the generic CustomAmountInfo back-swipe listener', () => {
+    render(<PerpsWithdrawInfo />);
+
+    expect(mockCustomAmountInfo).toHaveBeenCalledWith(
+      expect.objectContaining({ clearConfirmationOnBackSwipe: false }),
       undefined,
     );
   });

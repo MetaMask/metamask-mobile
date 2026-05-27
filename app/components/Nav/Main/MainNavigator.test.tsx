@@ -58,6 +58,10 @@ jest.mock('../../UI/Predict', () => {
   };
 });
 
+jest.mock('../../Views/confirmations/components/confirm', () => ({
+  Confirm: () => 'Confirm',
+}));
+
 jest.mock('../../UI/MarketInsights', () => ({
   MarketInsightsView: () => 'MarketInsightsView',
   selectMarketInsightsEnabled: (state: unknown) =>
@@ -379,6 +383,7 @@ describe('MainNavigator', () => {
           headerShown?: boolean;
           animationEnabled?: boolean;
           cardStyleInterpolator?: unknown;
+          gestureEnabled?: boolean;
         };
       }
       return container.root.children
@@ -831,6 +836,7 @@ describe('MainNavigator', () => {
           headerShown?: boolean;
           animationEnabled?: boolean;
           cardStyleInterpolator?: unknown;
+          gestureEnabled?: boolean;
         };
       }
       return container.root.children
@@ -918,6 +924,21 @@ describe('MainNavigator', () => {
       const screen = screenProps?.find((s) => s?.name === 'Send');
 
       expect(screen).toBeDefined();
+    });
+
+    it('includes top-level redesigned confirmation screen with swipe back enabled', () => {
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const screenProps = getScreenProps(container);
+      const screen = screenProps?.find(
+        (s) =>
+          s?.name === Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      );
+
+      expect(screen).toBeDefined();
+      expect(screen?.options?.gestureEnabled).toBe(true);
     });
 
     it('includes AddBookmarkView screen', () => {

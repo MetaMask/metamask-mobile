@@ -145,7 +145,9 @@ import SampleFeature from '../../../features/SampleFeature/components/views/Samp
 ///: END:ONLY_INCLUDE_IF
 import WalletRecovery from '../../Views/WalletRecovery';
 import CardRoutes from '../../UI/Card/routes';
+import { Confirm } from '../../Views/confirmations/components/confirm';
 import { Send } from '../../Views/confirmations/components/send';
+import { getEmptyNavHeader } from '../../Views/confirmations/components/UI/navbar/navbar';
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
@@ -1071,6 +1073,24 @@ const MainNavigator = () => {
   const isSocialLeaderboardEnabled = useSelector(
     selectSocialLeaderboardEnabled,
   );
+  const fullScreenConfirmationOptions = useMemo(
+    () => ({
+      ...getEmptyNavHeader(),
+      ...slideFromRightAnimation,
+      cardStyle: { backgroundColor: colors.background.default },
+      gestureEnabled: true,
+    }),
+    [colors.background.default],
+  );
+  const noHeaderConfirmationOptions = useMemo(
+    () => ({
+      ...slideFromRightAnimation,
+      cardStyle: { backgroundColor: colors.background.default },
+      gestureEnabled: true,
+      headerShown: false,
+    }),
+    [colors.background.default],
+  );
 
   return (
     <Stack.Navigator
@@ -1160,6 +1180,16 @@ const MainNavigator = () => {
           cardStyle: { backgroundColor: colors.background.default },
           ...slideFromRightAnimation,
         }}
+      />
+      <Stack.Screen
+        name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
+        component={Confirm}
+        options={fullScreenConfirmationOptions}
+      />
+      <Stack.Screen
+        name={Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER}
+        component={Confirm}
+        options={noHeaderConfirmationOptions}
       />
       <Stack.Screen name="AddBookmarkView" component={AddBookmarkView} />
       <Stack.Screen name="OfflineModeView" component={OfflineModeView} />

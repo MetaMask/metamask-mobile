@@ -7,9 +7,20 @@ import { ARBITRUM_USDC, PERPS_CURRENCY } from '../../../constants/perps';
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
+import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 
 export function PerpsWithdrawInfo() {
-  useNavbar(strings('confirm.title.perps_withdraw'));
+  const rejectConfirmation = useClearConfirmationOnBackSwipe({
+    rejectOnTransitionEnd: true,
+    skipNavigationOnTransitionEnd: true,
+  });
+
+  useNavbar(
+    strings('confirm.title.perps_withdraw'),
+    true,
+    undefined,
+    rejectConfirmation,
+  );
 
   const { canSelectWithdrawToken } = useTransactionPayWithdraw();
 
@@ -27,6 +38,7 @@ export function PerpsWithdrawInfo() {
       disablePay={!canSelectWithdrawToken}
       hasMax
       hasExtraBottomPadding
+      clearConfirmationOnBackSwipe={false}
     >
       <PerpsWithdrawBalance />
     </CustomAmountInfo>

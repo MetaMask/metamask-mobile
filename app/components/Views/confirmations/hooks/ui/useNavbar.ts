@@ -13,9 +13,11 @@ const useNavbar = (
   title: string,
   addBackButton = true,
   overrides?: NavbarOverrides,
+  onRejectOverride?: () => void,
 ) => {
   const navigation = useNavigation();
-  const { onReject } = useConfirmActions();
+  const { onReject: defaultOnReject } = useConfirmActions();
+  const onReject = onRejectOverride ?? defaultOnReject;
   const theme = useTheme();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
 
@@ -39,6 +41,7 @@ const useNavbar = (
     overrides,
     theme,
     title,
+    onRejectOverride,
   ]);
 };
 

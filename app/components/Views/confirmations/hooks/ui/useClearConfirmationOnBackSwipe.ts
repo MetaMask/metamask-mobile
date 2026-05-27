@@ -11,16 +11,22 @@ import type { RootStackParamList } from '../../../../../core/NavigationService/t
 import { useConfirmationContext } from '../../context/confirmation-context';
 
 interface UseClearConfirmationOnBackSwipeOptions {
+  enabled?: boolean;
   rejectOnBeforeRemove?: boolean;
   rejectOnBeforeRemoveWithoutGesture?: boolean;
+  rejectOnTransitionEnd?: boolean;
   skipNavigationOnGestureEnd?: boolean;
+  skipNavigationOnTransitionEnd?: boolean;
   onBeforeReject?: () => void;
 }
 
 const useClearConfirmationOnBackSwipe = ({
+  enabled = true,
   rejectOnBeforeRemove = false,
   rejectOnBeforeRemoveWithoutGesture = false,
+  rejectOnTransitionEnd = false,
   skipNavigationOnGestureEnd = false,
+  skipNavigationOnTransitionEnd = false,
   onBeforeReject,
 }: UseClearConfirmationOnBackSwipeOptions = {}) => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -52,9 +58,13 @@ const useClearConfirmationOnBackSwipe = ({
   );
 
   useEffect(() => {
-    if (isFullScreenConfirmation) {
+    if (enabled && isFullScreenConfirmation) {
       const unsubscribe = navigation.addListener('gestureEnd', () => {
         isGestureInProgressRef.current = false;
+        if (rejectOnTransitionEnd) {
+          return;
+        }
+
         if (rejectOnBeforeRemove) {
           rejectConfirmation(skipNavigationOnGestureEnd);
           return;
@@ -70,16 +80,46 @@ const useClearConfirmationOnBackSwipe = ({
       };
     }
   }, [
+    enabled,
     isFullScreenConfirmation,
     navigation,
     onReject,
     rejectConfirmation,
     rejectOnBeforeRemove,
+    rejectOnTransitionEnd,
     skipNavigationOnGestureEnd,
   ]);
 
   useEffect(() => {
-    if (isFullScreenConfirmation && rejectOnBeforeRemove) {
+    if (enabled && isFullScreenConfirmation && rejectOnTransitionEnd) {
+      const unsubscribeTransitionEnd = navigation.addListener(
+        'transitionEnd',
+        (event) => {
+          if (!event.data.closing) {
+            return;
+          }
+
+          rejectConfirmation(skipNavigationOnTransitionEnd);
+        },
+      );
+
+      return () => {
+        if (typeof unsubscribeTransitionEnd === 'function') {
+          unsubscribeTransitionEnd();
+        }
+      };
+    }
+  }, [
+    enabled,
+    isFullScreenConfirmation,
+    navigation,
+    rejectConfirmation,
+    rejectOnTransitionEnd,
+    skipNavigationOnTransitionEnd,
+  ]);
+
+  useEffect(() => {
+    if (enabled && isFullScreenConfirmation && rejectOnBeforeRemove) {
       const unsubscribeGestureStart = navigation.addListener(
         'gestureStart',
         () => {
@@ -124,6 +164,7 @@ const useClearConfirmationOnBackSwipe = ({
       };
     }
   }, [
+    enabled,
     isFullScreenConfirmation,
     navigation,
     rejectConfirmation,
@@ -133,7 +174,7 @@ const useClearConfirmationOnBackSwipe = ({
   ]);
 
   useEffect(() => {
-    if (isFullScreenConfirmation && Device.isAndroid()) {
+    if (enabled && isFullScreenConfirmation && Device.isAndroid()) {
       const backHandlerSubscription = BackHandler.addEventListener(
         'hardwareBackPress',
         () => {
@@ -152,6 +193,7 @@ const useClearConfirmationOnBackSwipe = ({
       };
     }
   }, [
+    enabled,
     isFullScreenConfirmation,
     onReject,
     rejectConfirmation,

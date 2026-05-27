@@ -207,11 +207,12 @@ describe('usePredictWithdraw', () => {
 
       expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
         loader: ConfirmationLoader.CustomAmount,
+        navigateInParentStack: true,
         stack: Routes.PREDICT.ROOT,
       });
     });
 
-    it('calls prepareWithdraw with empty options object', async () => {
+    it('calls prepareWithdraw with empty options object when state overrides are empty', async () => {
       mockPrepareWithdraw.mockResolvedValue({ success: true });
 
       const { result } = setupUsePredictWithdrawTest();

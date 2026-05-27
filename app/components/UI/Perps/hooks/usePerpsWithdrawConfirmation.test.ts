@@ -116,6 +116,7 @@ describe('usePerpsWithdrawConfirmation', () => {
 
     expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
       loader: ConfirmationLoader.CustomAmount,
+      navigateInParentStack: true,
       stack: Routes.PERPS.ROOT,
     });
   });
