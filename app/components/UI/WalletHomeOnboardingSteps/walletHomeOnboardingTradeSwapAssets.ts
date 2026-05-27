@@ -30,8 +30,12 @@ export function getMainnetMusdBridgeToken(): BridgeToken {
   return MAINNET_MUSD_BRIDGE_TOKEN;
 }
 
+const MAINNET_ETH_BRIDGE_TOKEN: BridgeToken = getNativeSourceToken(
+  EthScope.Mainnet,
+);
+
 export function getMainnetEthBridgeToken(): BridgeToken {
-  return getNativeSourceToken(EthScope.Mainnet);
+  return MAINNET_ETH_BRIDGE_TOKEN;
 }
 
 export function getMainnetBtcBridgeToken(): BridgeToken {

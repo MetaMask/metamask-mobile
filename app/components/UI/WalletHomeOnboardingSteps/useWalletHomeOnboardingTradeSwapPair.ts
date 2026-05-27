@@ -1,9 +1,6 @@
 import { useSelector } from 'react-redux';
-import { Hex } from '@metamask/utils';
-import type { RootState } from '../../../reducers';
-import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
 import {
-  resolveWalletHomeOnboardingTradeSwapPair,
+  selectWalletHomeOnboardingTradeSwapPair,
   type WalletHomeOnboardingTradeSwapPair,
 } from './walletHomeOnboardingTradeSwapBalances';
 
@@ -13,16 +10,5 @@ import {
 export function useWalletHomeOnboardingTradeSwapPair():
   | WalletHomeOnboardingTradeSwapPair
   | undefined {
-  const accountAddress = useSelector(selectSelectedInternalAccountAddress);
-
-  return useSelector((state: RootState) => {
-    if (!accountAddress) {
-      return undefined;
-    }
-
-    return resolveWalletHomeOnboardingTradeSwapPair(
-      state,
-      accountAddress as Hex,
-    );
-  });
+  return useSelector(selectWalletHomeOnboardingTradeSwapPair);
 }

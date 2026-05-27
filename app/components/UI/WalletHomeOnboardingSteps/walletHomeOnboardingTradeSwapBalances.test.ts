@@ -5,6 +5,8 @@ import {
   hasMainnetEthBalance,
   hasMainnetMusdBalance,
   hasPositiveHexTokenBalance,
+  MAINNET_ETH_TO_BTC_SWAP_PAIR,
+  MAINNET_MUSD_TO_ETH_SWAP_PAIR,
   resolveWalletHomeOnboardingTradeSwapPair,
 } from './walletHomeOnboardingTradeSwapBalances';
 import {
@@ -69,6 +71,20 @@ describe('walletHomeOnboardingTradeSwapBalances', () => {
   });
 
   describe('resolveWalletHomeOnboardingTradeSwapPair', () => {
+    it('returns stable pair object references for repeated resolution', () => {
+      const state = buildStateWithTokenBalance(
+        MAINNET_MUSD_TOKEN_ADDRESS,
+        '0x1',
+      );
+
+      const first = resolveWalletHomeOnboardingTradeSwapPair(state, ACCOUNT);
+      const second = resolveWalletHomeOnboardingTradeSwapPair(state, ACCOUNT);
+
+      expect(first).toBe(MAINNET_MUSD_TO_ETH_SWAP_PAIR);
+      expect(second).toBe(MAINNET_MUSD_TO_ETH_SWAP_PAIR);
+      expect(first).toBe(second);
+    });
+
     it('prefers mUSD → ETH when mUSD balance is positive', () => {
       const state = {
         engine: {
@@ -89,8 +105,7 @@ describe('walletHomeOnboardingTradeSwapBalances', () => {
 
       const pair = resolveWalletHomeOnboardingTradeSwapPair(state, ACCOUNT);
 
-      expect(pair?.sourceToken.symbol).toBe('mUSD');
-      expect(pair?.destToken.symbol).toBe('ETH');
+      expect(pair).toBe(MAINNET_MUSD_TO_ETH_SWAP_PAIR);
     });
 
     it('uses ETH → BTC when only ETH balance is positive', () => {
@@ -101,8 +116,7 @@ describe('walletHomeOnboardingTradeSwapBalances', () => {
 
       const pair = resolveWalletHomeOnboardingTradeSwapPair(state, ACCOUNT);
 
-      expect(pair?.sourceToken.symbol).toBe('ETH');
-      expect(pair?.destToken.symbol).toBe('BTC');
+      expect(pair).toBe(MAINNET_ETH_TO_BTC_SWAP_PAIR);
     });
 
     it('returns undefined when neither mUSD nor ETH balance is positive', () => {

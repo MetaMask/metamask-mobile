@@ -1,8 +1,13 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { BigNumber } from 'ethers';
 import { Hex } from '@metamask/utils';
+import { createSelector } from 'reselect';
 import type { RootState } from '../../../reducers';
-import { selectSingleTokenBalance } from '../../../selectors/tokenBalancesController';
+import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
+import {
+  selectSingleTokenBalance,
+  selectTokensBalances,
+} from '../../../selectors/tokenBalancesController';
 import type { BridgeToken } from '../Bridge/types';
 import {
   getMainnetBtcBridgeToken,
@@ -16,6 +21,70 @@ export interface WalletHomeOnboardingTradeSwapPair {
   sourceToken: BridgeToken;
   destToken: BridgeToken;
 }
+
+/** Stable references so selectors and press handlers avoid per-render allocations. */
+export const MAINNET_MUSD_TO_ETH_SWAP_PAIR: WalletHomeOnboardingTradeSwapPair =
+  {
+    sourceToken: getMainnetMusdBridgeToken(),
+    destToken: getMainnetEthBridgeToken(),
+  };
+
+export const MAINNET_ETH_TO_BTC_SWAP_PAIR: WalletHomeOnboardingTradeSwapPair = {
+  sourceToken: getMainnetEthBridgeToken(),
+  destToken: getMainnetBtcBridgeToken(),
+};
+
+const selectSelectedAccountMainnetMusdBalanceHex = createSelector(
+  [selectSelectedInternalAccountAddress, selectTokensBalances],
+  (accountAddress, tokenBalances) => {
+    if (!accountAddress) {
+      return undefined;
+    }
+
+    return tokenBalances?.[accountAddress]?.[CHAIN_IDS.MAINNET]?.[
+      MAINNET_MUSD_TOKEN_ADDRESS
+    ];
+  },
+);
+
+const selectSelectedAccountMainnetEthBalanceHex = createSelector(
+  [selectSelectedInternalAccountAddress, selectTokensBalances],
+  (accountAddress, tokenBalances) => {
+    if (!accountAddress) {
+      return undefined;
+    }
+
+    return tokenBalances?.[accountAddress]?.[CHAIN_IDS.MAINNET]?.[
+      MAINNET_NATIVE_ETH_TOKEN_ADDRESS
+    ];
+  },
+);
+
+/**
+ * Memoized swap pair for the selected account; output is one of the stable pair constants.
+ */
+export const selectWalletHomeOnboardingTradeSwapPair = createSelector(
+  [
+    selectSelectedInternalAccountAddress,
+    selectSelectedAccountMainnetMusdBalanceHex,
+    selectSelectedAccountMainnetEthBalanceHex,
+  ],
+  (accountAddress, musdBalanceHex, ethBalanceHex) => {
+    if (!accountAddress) {
+      return undefined;
+    }
+
+    if (hasPositiveHexTokenBalance(musdBalanceHex)) {
+      return MAINNET_MUSD_TO_ETH_SWAP_PAIR;
+    }
+
+    if (hasPositiveHexTokenBalance(ethBalanceHex)) {
+      return MAINNET_ETH_TO_BTC_SWAP_PAIR;
+    }
+
+    return undefined;
+  },
+);
 
 function readTokenBalanceHex(
   state: RootState,
@@ -80,17 +149,11 @@ export function resolveWalletHomeOnboardingTradeSwapPair(
   accountAddress: Hex,
 ): WalletHomeOnboardingTradeSwapPair | undefined {
   if (hasMainnetMusdBalance(state, accountAddress)) {
-    return {
-      sourceToken: getMainnetMusdBridgeToken(),
-      destToken: getMainnetEthBridgeToken(),
-    };
+    return MAINNET_MUSD_TO_ETH_SWAP_PAIR;
   }
 
   if (hasMainnetEthBalance(state, accountAddress)) {
-    return {
-      sourceToken: getMainnetEthBridgeToken(),
-      destToken: getMainnetBtcBridgeToken(),
-    };
+    return MAINNET_ETH_TO_BTC_SWAP_PAIR;
   }
 
   return undefined;

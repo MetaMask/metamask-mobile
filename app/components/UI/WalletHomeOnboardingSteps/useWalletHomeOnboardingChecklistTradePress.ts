@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
 import { useWalletHomeOnboardingTradeSwapPair } from './useWalletHomeOnboardingTradeSwapPair';
 
@@ -14,12 +14,16 @@ export function useWalletHomeOnboardingChecklistTradePress(
   goToSwaps: GoToSwapsFromSwapBridgeNavigation,
 ): () => void {
   const swapPair = useWalletHomeOnboardingTradeSwapPair();
+  const swapPairRef = useRef(swapPair);
+  swapPairRef.current = swapPair;
 
   return useCallback(() => {
-    if (swapPair) {
+    const pair = swapPairRef.current;
+
+    if (pair) {
       goToSwaps(
-        swapPair.sourceToken,
-        swapPair.destToken,
+        pair.sourceToken,
+        pair.destToken,
         undefined,
         undefined,
         ActionLocation.ONBOARDING_CHECKLIST,
@@ -34,5 +38,5 @@ export function useWalletHomeOnboardingChecklistTradePress(
       undefined,
       ActionLocation.ONBOARDING_CHECKLIST,
     );
-  }, [goToSwaps, swapPair]);
+  }, [goToSwaps]);
 }
