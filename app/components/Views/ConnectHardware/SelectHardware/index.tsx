@@ -14,7 +14,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { ReactNode, useEffect } from 'react';
-import { Image, Pressable } from 'react-native';
+import { Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
@@ -22,13 +22,17 @@ import TitleStandard from '../../../../component-library/components-temp/TitleSt
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { mockTheme, useAppThemeFromContext } from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
 import { useAnalytics } from '../../../../components/hooks/useAnalytics/useAnalytics';
 import { HardwareDeviceTypes } from '../../../../constants/keyringTypes';
 import { getConnectedDevicesCount } from '../../../../core/HardwareWallets/analytics';
 import SelectHardwareTestIds from './SelectHardware.testIds';
-import LedgerLogo from '../../../../images/hardware-ledger-logo.svg';
-import KeystoneLogo from '../../../../images/hardware-keystone-logo.svg';
-import oneKeyLogo from '../../../../images/hardware-onekey-logo.png';
+import LedgerDarkLogo from '../../../../images/hardware-ledger-dark.svg';
+import LedgerLightLogo from '../../../../images/hardware-ledger-light.svg';
+import KeystoneDarkLogo from '../../../../images/hardware-keystone-dark.svg';
+import KeystoneLightLogo from '../../../../images/hardware-keystone-light.svg';
+import OneKeyDarkLogo from '../../../../images/hardware-onekey-dark.svg';
+import OneKeyLightLogo from '../../../../images/hardware-onekey-light.svg';
 
 interface HardwareOption {
   title: string;
@@ -44,8 +48,17 @@ interface ConnectQrNavigationParams {
 const SelectHardwareWallet = () => {
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { colors } = useAppThemeFromContext() || mockTheme;
+  const { colors, themeAppearance } = useAppThemeFromContext() || mockTheme;
   const tw = useTailwind();
+  const isDarkMode = themeAppearance === AppThemeKey.dark;
+  const qrIconTileStyle = tw.style(
+    'h-10 w-10 rounded-xl',
+    isDarkMode ? 'bg-white' : 'bg-black',
+  );
+  const qrIconClassName = isDarkMode ? 'text-black' : 'text-white';
+  const LedgerLogo = isDarkMode ? LedgerDarkLogo : LedgerLightLogo;
+  const KeystoneLogo = isDarkMode ? KeystoneDarkLogo : KeystoneLightLogo;
+  const OneKeyLogo = isDarkMode ? OneKeyDarkLogo : OneKeyLightLogo;
 
   useEffect(() => {
     navigation.setOptions({
@@ -101,7 +114,7 @@ const SelectHardwareWallet = () => {
     <Box
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
-      twClassName="h-10 w-10 rounded-xl bg-white"
+      style={qrIconTileStyle}
     >
       {icon}
     </Box>
@@ -112,36 +125,30 @@ const SelectHardwareWallet = () => {
       title: HardwareDeviceTypes.LEDGER,
       onPress: navigateToConnectLedger,
       testID: SelectHardwareTestIds.LEDGER_BUTTON,
-      leadingIcon: renderIconTile(
-        <LedgerLogo name="ledger-logo" width={24} height={24} />,
-      ),
+      leadingIcon: <LedgerLogo name="ledger-logo" width={40} height={40} />,
     },
     {
       title: 'Keystone',
       onPress: () => navigateToConnectQRWallet(),
       testID: SelectHardwareTestIds.KEYSTONE_BUTTON,
-      leadingIcon: renderIconTile(
-        <KeystoneLogo name="keystone-logo" width={24} height={22} />,
-      ),
+      leadingIcon: <KeystoneLogo name="keystone-logo" width={40} height={40} />,
     },
     {
       title: 'OneKey',
       onPress: () => navigateToConnectQRWallet({ hideMarketingContent: true }),
       testID: SelectHardwareTestIds.ONEKEY_BUTTON,
-      leadingIcon: (
-        <Image
-          source={oneKeyLogo}
-          resizeMode="contain"
-          style={tw.style('h-10 w-10 rounded-xl')}
-        />
-      ),
+      leadingIcon: <OneKeyLogo name="onekey-logo" width={40} height={40} />,
     },
     {
       title: 'Other QR wallet',
       onPress: () => navigateToConnectQRWallet({ hideMarketingContent: true }),
       testID: SelectHardwareTestIds.OTHER_QR_BUTTON,
       leadingIcon: renderIconTile(
-        <Icon name={IconName.QrCode} size={IconSize.Md} />,
+        <Icon
+          name={IconName.QrCode}
+          size={IconSize.Md}
+          twClassName={qrIconClassName}
+        />,
       ),
     },
   ];
