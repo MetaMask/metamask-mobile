@@ -97,7 +97,6 @@ const OnboardingStep = ({
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={tw.style('flex-1')}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
         >
           <ScrollView
             contentContainerStyle={tw.style('flex-grow px-4')}
