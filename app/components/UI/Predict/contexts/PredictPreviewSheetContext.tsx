@@ -167,6 +167,7 @@ interface PredictPreviewSheetContextValue {
   openBuySheet: (params: PredictBuyPreviewParams) => void;
   openSellSheet: (params: PredictSellPreviewParams) => void;
   dismissPreviewSheet: () => void;
+  isBuySheetOpen: boolean;
 }
 
 const PredictPreviewSheetContext = createContext<
@@ -197,6 +198,7 @@ export const usePredictPreviewSheet = (): PredictPreviewSheetContextValue => {
         });
       },
       dismissPreviewSheet: () => undefined,
+      isBuySheetOpen: false,
     }),
     [navigation],
   );
@@ -485,8 +487,13 @@ export const PredictPreviewSheetProvider: React.FC<
   const onSellDismiss = useCallback(() => setSellParams(null), []);
 
   const contextValue = React.useMemo(
-    () => ({ openBuySheet, openSellSheet, dismissPreviewSheet }),
-    [openBuySheet, openSellSheet, dismissPreviewSheet],
+    () => ({
+      openBuySheet,
+      openSellSheet,
+      dismissPreviewSheet,
+      isBuySheetOpen: Boolean(buyParams),
+    }),
+    [openBuySheet, openSellSheet, dismissPreviewSheet, buyParams],
   );
 
   return (
