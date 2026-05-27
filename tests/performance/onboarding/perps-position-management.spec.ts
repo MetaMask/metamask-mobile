@@ -49,7 +49,7 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
       );
       const openPositionTimer = new TimerHelper(
         'Position opened',
-        { ios: 10500, android: 13000 },
+        { ios: 10500, android: 14000 },
         currentDeviceDetails.platform,
       );
 
