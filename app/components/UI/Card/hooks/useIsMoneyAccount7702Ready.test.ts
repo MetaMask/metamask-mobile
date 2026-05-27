@@ -1,5 +1,6 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
+import Logger from '../../../../util/Logger';
 import { useIsMoneyAccount7702Ready } from './useIsMoneyAccount7702Ready';
 
 jest.mock('react-redux', () => ({
@@ -24,6 +25,11 @@ jest.mock('../../../../selectors/moneyAccountController', () => ({
 }));
 jest.mock('../../../../selectors/featureFlagController/moneyAccount', () => ({
   selectMoneyAccountVaultConfig: jest.fn(),
+}));
+
+jest.mock('../../../../util/Logger', () => ({
+  log: jest.fn(),
+  error: jest.fn(),
 }));
 
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
@@ -119,5 +125,19 @@ describe('useIsMoneyAccount7702Ready', () => {
 
     await waitFor(() => expect(result.current).toBe(false));
     expect(mockIsAtomicBatchSupported).not.toHaveBeenCalled();
+  });
+
+  it('returns false and logs when isAtomicBatchSupported rejects', async () => {
+    applySelectors({ address: ADDRESS, chainId: CHAIN_ID });
+    const rpcError = new Error('RPC timeout');
+    mockIsAtomicBatchSupported.mockRejectedValue(rpcError);
+
+    const { result } = renderHook(() => useIsMoneyAccount7702Ready());
+
+    await waitFor(() => expect(result.current).toBe(false));
+    expect(Logger.error).toHaveBeenCalledWith(
+      rpcError,
+      'useIsMoneyAccount7702Ready: isAtomicBatchSupported failed',
+    );
   });
 });
