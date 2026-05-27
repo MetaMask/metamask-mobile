@@ -225,7 +225,10 @@ export const useMoneyAccountCardLinkage =
 
         navigation.navigate(Routes.CARD.ROOT, {
           screen: Routes.CARD.HOME,
-          params: { screen: Routes.CARD.ONBOARDING.ROOT },
+          params: {
+            screen: Routes.CARD.ONBOARDING.ROOT,
+            params: { postAuthRedirect: origin },
+          },
         });
       },
       [

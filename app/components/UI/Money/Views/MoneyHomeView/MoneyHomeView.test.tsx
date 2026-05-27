@@ -26,6 +26,7 @@ import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { selectIsCardholder } from '../../../../../selectors/cardController';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
+import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
@@ -671,7 +672,10 @@ describe('MoneyHomeView', () => {
 
     fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.CARD_BUTTON));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+      screen: Routes.CARD.HOME,
+      params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+    });
   });
 
   it('opens the APY info sheet when the APY info button is pressed', () => {
@@ -710,7 +714,10 @@ describe('MoneyHomeView', () => {
 
     fireEvent.press(getByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+      screen: Routes.CARD.HOME,
+      params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+    });
   });
 
   it('navigates to potential earnings screen when View potential earnings is pressed', () => {
@@ -1182,7 +1189,10 @@ describe('MoneyHomeView', () => {
 
       fireEvent.press(getByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+      });
     });
   });
 
@@ -1297,7 +1307,10 @@ describe('MoneyHomeView', () => {
 
       fireEvent.press(getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BUTTON));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+      });
     });
   });
 
@@ -1309,7 +1322,10 @@ describe('MoneyHomeView', () => {
 
       fireEvent.press(getByText(strings('money.metamask_card.get_now')));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+      });
     });
 
     it('navigates to the card sign-up flow when the metal card Get now button is pressed', () => {
@@ -1320,7 +1336,10 @@ describe('MoneyHomeView', () => {
 
       fireEvent.press(buttons[1]);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+      });
     });
   });
 });
