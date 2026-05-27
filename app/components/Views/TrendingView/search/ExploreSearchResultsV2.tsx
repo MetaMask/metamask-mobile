@@ -223,6 +223,11 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
     return `${item.feedId}-${getItemId(item.feedId, item.data)}`;
   }, []);
 
+  const otherResultsCount = useMemo(
+    () => sections.reduce((sum, s) => sum + (s.total ?? s.items.length), 0),
+    [sections],
+  );
+
   const listHeader = useMemo(() => {
     if (!emptyFeedTitle) return null;
     return (
@@ -240,14 +245,17 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
             }}
           />
         </Box>
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {strings('trending.showing_all_results_for', {
-            query: searchQuery,
-          })}
-        </Text>
+        {flatData.length > 0 && (
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {strings('trending.showing_all_results_for', {
+              count: otherResultsCount,
+              query: searchQuery,
+            })}
+          </Text>
+        )}
       </Box>
     );
-  }, [emptyFeedTitle, searchQuery]);
+  }, [emptyFeedTitle, searchQuery, flatData.length, otherResultsCount]);
 
   return (
     <Box twClassName="flex-1 bg-default">
