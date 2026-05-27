@@ -351,7 +351,7 @@
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/transaction-controller": "^65.4.0",
     "@metamask/transaction-pay-controller": "^22.7.0",
-    "@metamask/tron-wallet-snap": "npm:@metamask-previews/tron-wallet-snap@1.25.6-preview-8b1573f",
+    "@metamask/tron-wallet-snap": "npm:@metamask-previews/tron-wallet-snap@1.25.6-preview-8440b2d",
     "@metamask/utils": "^11.11.0",
     "@myx-trade/sdk": "^0.1.265",
     "@ngraveio/bc-ur": "^1.1.6",
