@@ -60,6 +60,7 @@ import {
   getEventStartTime,
   getCryptoSymbol,
   getVariant,
+  resolveCryptoTargetPrice,
 } from '../../utils/cryptoUpDown';
 import { formatPrice } from '../../utils/format';
 import {
@@ -72,6 +73,7 @@ import {
   resolvePredictSeriesMarket,
   type PredictMarketWithSeries,
 } from '../../utils/series';
+import { getPredictBuyPrice } from '../../utils/prices';
 import { usePredictEntryPoint, usePredictPreviewSheet } from '../../contexts';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import { PredictCryptoUpDownMarketCardSelectorsIDs } from '../../Predict.testIds';
@@ -189,28 +191,6 @@ const getTokenByTitle = (
   outcome?.tokens.find(
     (token) => token.title.toLowerCase() === title.toLowerCase(),
   ) ?? outcome?.tokens[fallbackIndex];
-
-const getLivePrice = (
-  token: PredictOutcomeToken | undefined,
-  getPrice: ReturnType<typeof useLiveMarketPrices>['getPrice'],
-  restPrices: ReturnType<typeof usePredictPrices>['prices'],
-) => {
-  if (!token) {
-    return undefined;
-  }
-  const liveBestAsk = getPrice(token.id)?.bestAsk;
-  if (typeof liveBestAsk === 'number' && liveBestAsk > 0) {
-    return liveBestAsk;
-  }
-  const restEntry = restPrices.results.find(
-    (r) => r.outcomeTokenId === token.id,
-  );
-  const restSell = restEntry?.entry.sell;
-  if (typeof restSell === 'number' && restSell > 0) {
-    return restSell;
-  }
-  return token.price;
-};
 
 const formatCents = (price?: number) => {
   if (typeof price !== 'number' || !Number.isFinite(price)) {
@@ -984,8 +964,16 @@ const OutcomeButtons = React.memo(
       enabled: isMarketOpen && priceQueries.length > 0,
       pollingInterval: REST_POLLING_INTERVAL_MS,
     });
-    const upPrice = getLivePrice(upToken, getPrice, restPrices);
-    const downPrice = getLivePrice(downToken, getPrice, restPrices);
+    const upPrice = getPredictBuyPrice(
+      upToken,
+      upToken ? getPrice(upToken.id) : undefined,
+      restPrices,
+    );
+    const downPrice = getPredictBuyPrice(
+      downToken,
+      downToken ? getPrice(downToken.id) : undefined,
+      restPrices,
+    );
 
     return (
       <Box
@@ -1143,10 +1131,10 @@ const PredictCryptoUpDownMarketCard: React.FC<
       Boolean(targetPriceEventStartTime) &&
       Boolean(selectedMarket.endDate),
   });
-  const validatedTargetPrice =
-    typeof targetPrice === 'number' && targetPrice > 0
-      ? targetPrice
-      : undefined;
+  const validatedTargetPrice = resolveCryptoTargetPrice(
+    selectedMarket,
+    targetPrice,
+  );
   const chartData = useCryptoUpDownChartData(
     selectedMarket,
     validatedTargetPrice,

@@ -127,6 +127,9 @@ export interface PolymarketApiEvent {
   live?: boolean;
   ended?: boolean;
   parentEventId?: string | number | null;
+  eventMetadata?: {
+    priceToBeat?: number | string | null;
+  };
 }
 
 export interface PolymarketApiActivity {
