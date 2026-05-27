@@ -4,11 +4,33 @@ import {
   mergeAssetViewedProperties,
 } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import { PERPS_EVENT_PROPERTY } from '@metamask/perps-controller';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
 
 // Static helper function - moved outside component to avoid recreation
 const allTrue = (conditionArray: boolean[]): boolean =>
   conditionArray.length > 0 && conditionArray.every(Boolean);
+
+/**
+ * Legacy Perps screen views that reuse OPEN_POSITION for a non-position count.
+ * Skip Asset Viewed for these flows rather than emit incomplete payloads.
+ */
+const PERPS_SCREEN_TYPES_SKIP_ASSET_VIEWED: ReadonlySet<string> = new Set([
+  PERPS_EVENT_VALUE.SCREEN_TYPE.CANCEL_ALL_ORDERS,
+]);
+
+const shouldEmitAssetViewedForPerpsScreenViewed = (
+  perpsScreenViewedProperties: Record<string, unknown>,
+): boolean => {
+  const screenType =
+    perpsScreenViewedProperties[PERPS_EVENT_PROPERTY.SCREEN_TYPE];
+  return !(
+    typeof screenType === 'string' &&
+    PERPS_SCREEN_TYPES_SKIP_ASSET_VIEWED.has(screenType)
+  );
+};
 
 interface EventTrackingOptions {
   eventName: (typeof MetaMetricsEvents)[keyof typeof MetaMetricsEvents];
@@ -67,7 +89,10 @@ export const usePerpsEventTracking = (options?: EventTrackingOptions) => {
       };
       trackEvent(createEventBuilder(eventName).addProperties(props).build());
 
-      if (eventName === MetaMetricsEvents.PERPS_SCREEN_VIEWED) {
+      if (
+        eventName === MetaMetricsEvents.PERPS_SCREEN_VIEWED &&
+        shouldEmitAssetViewedForPerpsScreenViewed(props)
+      ) {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.ASSET_VIEWED)
             .addProperties(mergeAssetViewedProperties('Perps', props))

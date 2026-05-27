@@ -1,6 +1,9 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
-import { PERPS_EVENT_PROPERTY } from '@metamask/perps-controller';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 
@@ -108,6 +111,36 @@ describe('usePerpsEventTracking', () => {
       expect(assetViewedProperties).not.toHaveProperty(
         PERPS_EVENT_PROPERTY.OPEN_POSITION,
       );
+    });
+
+    it('does not track Asset Viewed for cancel_all_orders', () => {
+      const { result } = renderHook(() => usePerpsEventTracking());
+      const customProps = {
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.CANCEL_ALL_ORDERS,
+        [PERPS_EVENT_PROPERTY.OPEN_POSITION]: 3,
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          PERPS_EVENT_VALUE.SOURCE.CANCEL_ALL_ORDERS_BUTTON,
+      };
+
+      act(() => {
+        result.current.track(
+          MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+          customProps,
+        );
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+      );
+
+      const perpsBuilder = mockCreateEventBuilder.mock.results[0].value;
+      expect(perpsBuilder.addProperties).toHaveBeenCalledWith({
+        [PERPS_EVENT_PROPERTY.TIMESTAMP]: 1234567890,
+        ...customProps,
+      });
     });
   });
 });
