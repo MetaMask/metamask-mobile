@@ -171,11 +171,11 @@ export class Connection {
             ? (request.data as Record<string, unknown>)
             : undefined;
         const requestMethod = requestData?.method;
-        const isSilentRead =
+        const isSilentReadRequest =
           typeof requestMethod === 'string' &&
           SILENT_READ_METHODS.has(requestMethod);
 
-        if (!isSilentRead) {
+        if (!isSilentReadRequest) {
           // Check if the response is an error (JSON-RPC error responses have an 'error' property)
           const isError =
             'error' in responseData && responseData.error !== undefined;
