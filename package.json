@@ -625,7 +625,7 @@
     "@welldone-software/why-did-you-render": "^8.0.1",
     "agent-device": "0.14.8",
     "appium": "^2.5.4",
-    "appium-adb": "^9.11.4",
+    "appium-adb": "^14.5.0",
     "appium-chromium-driver": "^2.0.2",
     "appium-uiautomator2-driver": "4.2.7",
     "appium-xcuitest-driver": "9.5.0",
