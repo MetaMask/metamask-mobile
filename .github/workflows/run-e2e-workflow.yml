@@ -49,6 +49,13 @@ on:
         required: false
         type: string
         default: ''
+      source_fingerprint:
+        description: >-
+          Canonical @expo/fingerprint hash used for cross-run Android APK cache
+          restore in test shards. Empty disables APK cache restore.
+        required: false
+        type: string
+        default: ''
       artifact_name_prefix:
         description: 'Optional prefix added to uploaded test artifacts'
         required: false
@@ -64,6 +71,9 @@ jobs:
   test-e2e-mobile:
     name: ${{ inputs.test-suite-name }}
     runs-on: ${{ inputs.runner_provider == 'namespace' && (inputs.platform == 'ios' && 'namespace-profile-metamask-ios-e2e' || 'namespace-profile-metamask-android-build') || (startsWith(github.base_ref, 'release/') && fromJSON(format('["{0}"]', inputs.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg')) || fromJSON(format('["{0}", "low-priority"]', inputs.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg'))) }}
+    permissions:
+      contents: read
+      actions: read
     outputs:
       apk-target-path: ${{ steps.determine-target-paths.outputs.apk-target-path }}
       test-apk-target-path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
@@ -98,6 +108,8 @@ jobs:
       MM_SOLANA_E2E_TEST_SRP: ${{ secrets.MM_SOLANA_E2E_TEST_SRP }}
       MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
       YARN_ENABLE_GLOBAL_CACHE: 'true' # Enable Yarn global cache for faster installs
+      CACHE_GENERATION: v1 # Increment to bust Android artifact cache keys.
+      ANDROID_ARTIFACT_CACHE_KEY_SUFFIX: ${{ inputs.source_fingerprint != '' && inputs.source_fingerprint || github.sha }}
 
     steps:
       - name: Checkout (Namespace)
@@ -137,6 +149,7 @@ jobs:
             ~/Library/Detox
 
       - name: Restore .metamask folder
+        id: restore-metamask
         if: ${{ inputs.runner_provider != 'namespace' }}
         uses: actions/cache@v4
         with:
@@ -144,6 +157,7 @@ jobs:
           key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
 
       - name: Set up E2E environment
+        id: setup-e2e-env
         # Namespace iOS smoke runs many matrix jobs in parallel; CocoaPods + yarn need more
         # headroom than the composite default (see INFRA-3596 / run 25755790077 timeouts).
         timeout-minutes: ${{ inputs.runner_provider == 'namespace' && inputs.platform == 'ios' && 45 || 25 }}
@@ -193,13 +207,35 @@ jobs:
           mkdir -p ${{ steps.determine-target-paths.outputs.apk-target-path }}
           mkdir -p ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
 
+      - name: Restore Android build artifacts from branch cache
+        if: ${{ inputs.platform == 'android' && inputs.runner_provider != 'namespace' }}
+        id: android-artifacts-cache
+        uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+        with:
+          path: |
+            ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
+            ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
+          key: android-apk-${{ github.ref_name }}-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ env.ANDROID_ARTIFACT_CACHE_KEY_SUFFIX }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+
+      - name: Report Android artifact cache status
+        if: ${{ inputs.platform == 'android' && inputs.runner_provider != 'namespace' }}
+        env:
+          BRANCH_ARTIFACT_CACHE_HIT: ${{ steps.android-artifacts-cache.outputs.cache-hit }}
+        run: |
+          if [[ "$BRANCH_ARTIFACT_CACHE_HIT" == "true" ]]; then
+            echo "Android artifact cache hit - skipping artifact download."
+          else
+            echo "Android artifact cache miss - will download artifacts from build job."
+          fi
+
       - name: Download Android build artifacts (Namespace)
         if: ${{ inputs.platform == 'android' && inputs.runner_provider == 'namespace' }}
         uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
         with:
           path: artifacts/
       - name: Download Android build artifacts (current)
-        if: ${{ inputs.platform == 'android' && inputs.runner_provider != 'namespace' }}
+        id: download-android-build-artifacts-current
+        if: ${{ inputs.platform == 'android' && inputs.runner_provider != 'namespace' && steps.android-artifacts-cache.outputs.cache-hit != 'true' }}
         uses: actions/download-artifact@v4
         with:
           path: artifacts/
@@ -305,6 +341,7 @@ jobs:
           find ./previous-test-results -type f -name "*.xml" | head -1 | xargs head -50 || echo "No XML files found"
 
       - name: 🧪 Run E2E tests
+        id: run-e2e-tests
         timeout-minutes: ${{ inputs.test-timeout-minutes }}
         run: |
           echo "Running ${{ inputs.test-suite-name }} tests on ${{ inputs.platform }}"
@@ -376,3 +413,193 @@ jobs:
           name: test-e2e-${{ inputs.artifact_name_prefix }}${{ inputs.test-suite-name }}-screenshots
           path: tests/artifacts/
           retention-days: 7
+
+      - name: Write E2E cache and timing summary
+        if: always()
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          SUITE_NAME: ${{ inputs.test-suite-name }}
+          PLATFORM: ${{ inputs.platform }}
+          RUNNER_PROVIDER: ${{ inputs.runner_provider }}
+          ANDROID_ARTIFACT_CACHE_HIT: ${{ steps.android-artifacts-cache.outputs.cache-hit }}
+          IOS_PODS_CACHE_HIT: ${{ steps.setup-e2e-env.outputs.cocoapods-deps-cache-hit }}
+          IOS_PODS_INSTALL_RAN: ${{ steps.setup-e2e-env.outputs.cocoapods-install-ran }}
+          METAMASK_CACHE_HIT: ${{ steps.restore-metamask.outputs.cache-hit }}
+        run: |
+          node <<'EOF'
+          const fs = require('node:fs');
+
+          const summaryPath = process.env.GITHUB_STEP_SUMMARY;
+          const {
+            GITHUB_TOKEN,
+            REPOSITORY,
+            RUN_ID,
+            RUN_ATTEMPT,
+            SUITE_NAME,
+            PLATFORM,
+            RUNNER_PROVIDER,
+            ANDROID_ARTIFACT_CACHE_HIT,
+            IOS_PODS_CACHE_HIT,
+            IOS_PODS_INSTALL_RAN,
+            METAMASK_CACHE_HIT,
+          } = process.env;
+
+          (async () => {
+          const toState = (value) => {
+            if (value === 'true') return 'hit';
+            if (value === 'false') return 'miss';
+            return 'n/a';
+          };
+
+          const cacheRows = [];
+          if (PLATFORM === 'android' && RUNNER_PROVIDER !== 'namespace') {
+            cacheRows.push(['Android build artifacts', toState(ANDROID_ARTIFACT_CACHE_HIT)]);
+          }
+          if (PLATFORM === 'ios' && RUNNER_PROVIDER !== 'namespace') {
+            cacheRows.push(['CocoaPods dependencies', toState(IOS_PODS_CACHE_HIT)]);
+            cacheRows.push([
+              'CocoaPods install execution',
+              IOS_PODS_INSTALL_RAN === 'true'
+                ? 'ran'
+                : IOS_PODS_INSTALL_RAN === 'false'
+                  ? 'skipped'
+                  : 'n/a',
+            ]);
+          }
+          if (RUNNER_PROVIDER !== 'namespace') {
+            cacheRows.push(['.metamask cache', toState(METAMASK_CACHE_HIT)]);
+          }
+
+          const cacheHits = cacheRows.filter(([, state]) => state === 'hit').length;
+          const cacheMisses = cacheRows.filter(([, state]) => state === 'miss').length;
+
+          const baselineByStep = PLATFORM === 'ios'
+            ? {
+                'Set up E2E environment': 7.9,
+              }
+            : {
+                'Set up E2E environment': 3.7,
+                'Download Android build artifacts (current)': 4.0,
+              };
+
+          const trackedStepNames = [
+            'Set up E2E environment',
+            'Download Android build artifacts (current)',
+            '🧪 Run E2E tests',
+          ];
+
+          let timingRows = [];
+          let timingError = null;
+
+          try {
+            const jobsResponse = await fetch(
+              `https://api.github.com/repos/${REPOSITORY}/actions/runs/${RUN_ID}/attempts/${RUN_ATTEMPT}/jobs?per_page=100`,
+              {
+                headers: {
+                  Authorization: `Bearer ${GITHUB_TOKEN}`,
+                  Accept: 'application/vnd.github+json',
+                  'X-GitHub-Api-Version': '2022-11-28',
+                },
+              },
+            );
+
+            if (!jobsResponse.ok) {
+              throw new Error(`GitHub API returned ${jobsResponse.status}`);
+            }
+
+            const jobsPayload = await jobsResponse.json();
+            const jobs = jobsPayload.jobs || [];
+            const job = jobs.find((candidate) => {
+              const name = candidate.name || '';
+              return (
+                name === SUITE_NAME ||
+                name.endsWith(` / ${SUITE_NAME}`) ||
+                name.endsWith(SUITE_NAME)
+              );
+            });
+
+            if (!job) {
+              throw new Error(`Could not find current job for suite "${SUITE_NAME}"`);
+            }
+
+            const stepsByName = new Map((job.steps || []).map((step) => [step.name, step]));
+
+            for (const stepName of trackedStepNames) {
+              if (PLATFORM === 'ios' && stepName === 'Download Android build artifacts (current)') {
+                continue;
+              }
+
+              const step = stepsByName.get(stepName);
+              if (!step || !step.started_at || !step.completed_at) {
+                timingRows.push([stepName, 'n/a', 'n/a', 'n/a']);
+                continue;
+              }
+
+              const durationMin =
+                (Date.parse(step.completed_at) - Date.parse(step.started_at)) / 60000;
+              const baseline = baselineByStep[stepName];
+              const delta =
+                typeof baseline === 'number' ? `${(durationMin - baseline).toFixed(2)}m` : 'n/a';
+
+              timingRows.push([
+                stepName,
+                `${durationMin.toFixed(2)}m`,
+                typeof baseline === 'number' ? `${baseline.toFixed(2)}m` : 'n/a',
+                delta,
+              ]);
+            }
+          } catch (error) {
+            timingError = error instanceof Error ? error.message : String(error);
+            timingRows = trackedStepNames
+              .filter((stepName) => !(PLATFORM === 'ios' && stepName === 'Download Android build artifacts (current)'))
+              .map((stepName) => [stepName, 'n/a', 'n/a', 'n/a']);
+          }
+
+          let summary = '';
+          summary += `### E2E Cache and Timing Summary (${SUITE_NAME})\n\n`;
+          summary += `- Platform: \`${PLATFORM}\`\n`;
+          summary += `- Runner provider: \`${RUNNER_PROVIDER}\`\n`;
+          summary += `- Cache hits: \`${cacheHits}\`\n`;
+          summary += `- Cache misses: \`${cacheMisses}\`\n\n`;
+
+          if (cacheRows.length > 0) {
+            summary += '| Cache Item | Status |\n';
+            summary += '| --- | --- |\n';
+            for (const [name, state] of cacheRows) {
+              summary += `| ${name} | ${state} |\n`;
+            }
+            summary += '\n';
+          }
+
+          summary += '| Step | Duration | Baseline | Delta |\n';
+          summary += '| --- | --- | --- | --- |\n';
+          for (const [name, duration, baseline, delta] of timingRows) {
+            summary += `| ${name} | ${duration} | ${baseline} | ${delta} |\n`;
+          }
+          summary += '\n';
+
+          if (timingError) {
+            summary += `> Timing delta note: ${timingError}\n`;
+          } else {
+            summary += '> Timing deltas are measured as (current duration - baseline) for the steps with defined baselines.\n';
+          }
+
+          fs.appendFileSync(summaryPath, summary);
+          })().catch((error) => {
+            const message = error instanceof Error ? error.message : String(error);
+            const fallback = [
+              `### E2E Cache and Timing Summary (${SUITE_NAME})`,
+              '',
+              `- Platform: \`${PLATFORM}\``,
+              `- Runner provider: \`${RUNNER_PROVIDER}\``,
+              '',
+              `> Summary generation failed: ${message}`,
+              '',
+            ].join('\n');
+            fs.appendFileSync(summaryPath, fallback);
+          });
+          EOF

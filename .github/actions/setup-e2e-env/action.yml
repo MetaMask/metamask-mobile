@@ -1,6 +1,14 @@
 name: 'Setup E2E Test Environment'
 description: 'Sets up the environment for running E2E tests'
 
+outputs:
+  cocoapods-deps-cache-hit:
+    description: 'Whether CocoaPods dependencies cache hit (iOS, non-Namespace)'
+    value: ${{ steps.cocoapods-deps-cache.outputs.cache-hit }}
+  cocoapods-install-ran:
+    description: 'Whether bundle exec pod install executed in this run'
+    value: ${{ steps.cocoapods-install-ran.outputs.value || steps.cocoapods-install-skipped.outputs.value }}
+
 inputs:
   platform:
     description: 'Platform (ios or android)'
@@ -422,8 +430,22 @@ runs:
           ${{ runner.os }}-cocoapods-specs-
       continue-on-error: true
 
+    - name: Restore CocoaPods dependencies cache
+      if: ${{ inputs.platform == 'ios' && inputs.runner_provider != 'namespace' }}
+      id: cocoapods-deps-cache
+      uses: actions/cache@v4
+      with:
+        path: |
+          ios/Pods
+          ~/Library/Caches/CocoaPods
+        key: ${{ inputs.cache-prefix }}-pods-v1-${{ runner.os }}-${{ hashFiles('ios/Podfile.lock') }}
+        restore-keys: |
+          ${{ inputs.cache-prefix }}-pods-v1-${{ runner.os }}-
+      continue-on-error: true
+
     - name: Install CocoaPods via bundler
-      if: ${{ inputs.platform == 'ios'}}
+      if: ${{ inputs.platform == 'ios' && (inputs.runner_provider == 'namespace' || steps.cocoapods-deps-cache.outputs.cache-hit != 'true') }}
+      id: install-cocoapods
       uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
       with:
         timeout_minutes: ${{ fromJSON(inputs.pod-install-timeout-minutes) }}
@@ -435,6 +457,23 @@ runs:
         command: cd ios && bundle exec pod install --repo-update
       env:
         COCOAPODS_DISABLE_STATS: 'true'
+
+    - name: Mark CocoaPods install ran
+      if: ${{ inputs.platform == 'ios' && (inputs.runner_provider == 'namespace' || steps.cocoapods-deps-cache.outputs.cache-hit != 'true') }}
+      id: cocoapods-install-ran
+      run: echo "value=true" >> "$GITHUB_OUTPUT"
+      shell: bash
+
+    - name: Skip CocoaPods install on dependency cache hit
+      if: ${{ inputs.platform == 'ios' && inputs.runner_provider != 'namespace' && steps.cocoapods-deps-cache.outputs.cache-hit == 'true' }}
+      run: echo "CocoaPods dependency cache hit - skipping pod install."
+      shell: bash
+
+    - name: Mark CocoaPods install skipped
+      if: ${{ inputs.platform == 'ios' && inputs.runner_provider != 'namespace' && steps.cocoapods-deps-cache.outputs.cache-hit == 'true' }}
+      id: cocoapods-install-skipped
+      run: echo "value=false" >> "$GITHUB_OUTPUT"
+      shell: bash
 
     - name: Install applesimutils
       if: ${{ inputs.platform == 'ios' }}
