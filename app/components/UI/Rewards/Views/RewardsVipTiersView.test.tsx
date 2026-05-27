@@ -247,6 +247,7 @@ const dashboardWithTiers: VipDashboardState = {
     referralPointsTitle: 'Referral points',
     nextTierRevenueShareDelta: '↑ 2% next tier',
     nextTierReferralPointsDelta: '↑ 20% next tier',
+    topTierDescription: 'Top tier reached',
     statsTitle: 'Volume',
     pointsTitle: 'Points',
     swapsVolumeTitle: 'Swaps Volume',

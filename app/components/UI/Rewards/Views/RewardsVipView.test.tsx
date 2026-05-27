@@ -297,6 +297,7 @@ const defaultDashboard: VipDashboardState = {
     equityLockedDescription: 'Body copy',
     equityUnlockedTitle: 'VIP allocation unlocked',
     equityUnlockedDescription: 'Unlocked body copy',
+    topTierDescription: 'Top tier reached',
     nextTierSwapsFeeDelta: '↓ 12 bps next tier',
     nextTierPerpsFeeDelta: '↓ 3 bps next tier',
     nextTierRevenueShareDelta: '↑ 2% next tier',
@@ -484,6 +485,11 @@ describe('RewardsVipView', () => {
         ...defaultDashboard,
         currentTier: { id: 't8', name: 'Gold Fox VIP 8', tier: 8 },
         nextTier: { id: 't8', name: 'Gold Fox VIP 8', tier: 8 },
+        progress: {
+          percent: 100,
+          remainingPointsToNextTier: 0,
+          status: 'top_tier',
+        },
         fees: {
           ...defaultDashboard.fees,
           revenueShareBps: 400,
@@ -505,6 +511,9 @@ describe('RewardsVipView', () => {
     expect(
       getByTestId(REWARDS_VIP_VIEW_TEST_IDS.REVENUE_SHARE_TILE),
     ).toBeOnTheScreen();
+    expect(
+      getByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.SUBLINE),
+    ).toHaveTextContent('Top tier reached');
     // Revenue share tile drops its next-tier row on the top tier while the
     // swap, perps, and referral points tiles keep theirs (still sourced from
     // the backend).
@@ -566,6 +575,7 @@ describe('RewardsVipView', () => {
           equityLockedDescription: 'Body copy',
           equityUnlockedTitle: 'Unlocked allocation',
           equityUnlockedDescription: 'Unlocked body copy',
+          topTierDescription: 'Top tier reached custom',
           nextTierSwapsFeeDelta: '↓ 12',
           nextTierPerpsFeeDelta: '↓ 3',
           nextTierRevenueShareDelta: '↑ 2% next tier',

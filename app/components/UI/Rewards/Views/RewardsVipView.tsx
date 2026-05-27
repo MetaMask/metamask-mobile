@@ -104,6 +104,18 @@ const RewardsVipView: React.FC = () => {
           tier.tier === dashboard.currentTier.tier,
       )
     : undefined;
+  const progressSubline = (() => {
+    if (!dashboard) return '';
+    if (dashboard.progress.percent >= 100) {
+      return dashboard.localizedText.topTierDescription;
+    }
+
+    return strings('rewards.vip.progress_to_next_tier', {
+      pointsRemaining: formatCompactValue(
+        dashboard.progress.remainingPointsToNextTier,
+      ),
+    });
+  })();
 
   return (
     <ErrorBoundary navigation={navigation} view="RewardsVipView">
@@ -175,11 +187,7 @@ const RewardsVipView: React.FC = () => {
                   currentTier={dashboard.currentTier}
                   programName={dashboard.program.name}
                   progress={dashboard.progress}
-                  subline={strings('rewards.vip.progress_to_next_tier', {
-                    pointsRemaining: formatCompactValue(
-                      dashboard.progress.remainingPointsToNextTier,
-                    ),
-                  })}
+                  subline={progressSubline}
                   memberIdTitle={dashboard.localizedText.memberIdTitle}
                   memberId={referralCode ?? ''}
                 />
