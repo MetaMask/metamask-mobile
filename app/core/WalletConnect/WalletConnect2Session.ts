@@ -26,7 +26,7 @@ import Logger from '../../util/Logger';
 import { addTransaction } from '../../util/transaction-controller';
 import BackgroundBridge from '../BackgroundBridge/BackgroundBridge';
 import { Minimizer } from '../NativeModules';
-import { getPermittedAccounts, getPermittedChains } from '../Permissions';
+import { getPermittedAccounts, getPermittedCaipChainIds } from '../Permissions';
 import { INTERNAL_ORIGINS } from '../../constants/transaction';
 import getRpcMethodMiddleware, {
   getRpcMethodMiddlewareHooks,
@@ -644,7 +644,7 @@ class WalletConnect2Session {
       });
     }
     const method = requestEvent.params.request.method;
-    const permittedChains = await getPermittedChains(this.channelId);
+    const permittedChains = await getPermittedCaipChainIds(this.channelId);
 
     // Mark redirect before any routing so all namespaces benefit from it.
     const isEvmRedirect = isEIP155RedirectMethodForChain({

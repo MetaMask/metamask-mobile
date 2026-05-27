@@ -20,7 +20,7 @@ import {
   selectNetworkConfigurations,
   selectNetworkConfigurationsByCaipChainId,
 } from '../../selectors/networkController';
-import { getPermittedAccounts, getPermittedChains } from '../Permissions';
+import { getPermittedAccounts, getPermittedCaipChainIds } from '../Permissions';
 import { findExistingNetwork } from '../RPCMethods/lib/ethereum-chain-utils';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { wait } from '../SDKConnect/utils/wait.util';
@@ -224,7 +224,7 @@ export const getScopedPermissions = async ({
 }: {
   channelId: string;
 }) => {
-  const permittedChains = await getPermittedChains(channelId);
+  const permittedChains = await getPermittedCaipChainIds(channelId);
   const evmChains = permittedChains.filter((chain) =>
     chain.startsWith(`${KnownCaipNamespace.Eip155}:`),
   );
@@ -346,7 +346,7 @@ export const hasPermissionsToSwitchChainRequest = async (
     });
   }
 
-  const permittedChains = await getPermittedChains(channelId);
+  const permittedChains = await getPermittedCaipChainIds(channelId);
   const isAllowedChainId = permittedChains.includes(caip2ChainId);
   DevLogger.log(`WC::checkWCPermissions permittedChains: ${permittedChains}`);
 

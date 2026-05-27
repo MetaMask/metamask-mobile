@@ -554,7 +554,7 @@ export const getPermittedAccounts = (
  * @param hostname - Subject to check if permissions exists. Ex: A Dapp is a subject.
  * @returns An array containing permitted CAIP chain IDs for the specified host.
  */
-export const getPermittedChains = async (
+export const getPermittedCaipChainIds = async (
   hostname: string,
 ): Promise<CaipChainId[]> => {
   const { PermissionController } = Engine.context;

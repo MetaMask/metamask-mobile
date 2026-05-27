@@ -114,7 +114,9 @@ jest.mock('../Permissions', () => ({
   getPermittedAccounts: jest
     .fn()
     .mockResolvedValue(['0x1234567890abcdef1234567890abcdef12345678']),
-  getPermittedChains: jest.fn().mockResolvedValue(['eip155:1', 'eip155:137']),
+  getPermittedCaipChainIds: jest
+    .fn()
+    .mockResolvedValue(['eip155:1', 'eip155:137']),
 }));
 jest.mock('../../store', () => ({
   store: {

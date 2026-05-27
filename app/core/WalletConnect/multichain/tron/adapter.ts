@@ -13,7 +13,7 @@ import {
 import { PermissionDoesNotExistError } from '@metamask/permission-controller';
 
 import Engine from '../../../Engine';
-import { getPermittedChains } from '../../../Permissions';
+import { getPermittedCaipChainIds } from '../../../Permissions';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import {
   caipAccountIdDecimalToHex,
@@ -114,7 +114,7 @@ export async function getScopedPermissions({
 }: {
   channelId: string;
 }): Promise<NamespaceConfig | undefined> {
-  const permittedChains = await getPermittedChains(channelId);
+  const permittedChains = await getPermittedCaipChainIds(channelId);
   const tronChains = permittedChains.filter((chain) =>
     chain.startsWith(`${KnownCaipNamespace.Tron}:`),
   );

@@ -40,7 +40,7 @@ jest.mock('../../../app/store', () => {
 
 jest.mock('../Permissions', () => ({
   getPermittedAccounts: jest.fn().mockReturnValue(['0x123']),
-  getPermittedChains: jest.fn().mockResolvedValue(['eip155:1']),
+  getPermittedCaipChainIds: jest.fn().mockResolvedValue(['eip155:1']),
   updatePermittedChains: jest.fn().mockResolvedValue(undefined),
 }));
 

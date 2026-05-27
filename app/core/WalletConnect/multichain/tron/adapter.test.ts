@@ -6,7 +6,7 @@ import { PermissionDoesNotExistError } from '@metamask/permission-controller';
 import type { CaipAccountId, CaipChainId } from '@metamask/utils';
 
 import Engine from '../../../Engine';
-import { getPermittedChains } from '../../../Permissions';
+import { getPermittedCaipChainIds } from '../../../Permissions';
 import { callMultichainRoutingService } from '../router';
 import {
   enrichCaveatValue,
@@ -39,7 +39,7 @@ jest.mock('../../../Engine', () => ({
 }));
 
 jest.mock('../../../Permissions', () => ({
-  getPermittedChains: jest.fn(),
+  getPermittedCaipChainIds: jest.fn(),
 }));
 
 jest.mock('../router', () => ({
@@ -54,7 +54,7 @@ const mockedGetAccountsFromSelectedAccountGroup = Engine.context
   .AccountTreeController.getAccountsFromSelectedAccountGroup as jest.Mock;
 const mockedGetCaveat = Engine.context.PermissionController
   .getCaveat as jest.Mock;
-const mockedGetPermittedChains = getPermittedChains as jest.Mock;
+const mockedGetPermittedCaipChainIds = getPermittedCaipChainIds as jest.Mock;
 const mockedCallMultichainRoutingService =
   callMultichainRoutingService as jest.Mock;
 const mockedGetCaipAccountIdsFromCaip25CaveatValue =
@@ -64,7 +64,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   mockedGetAccountsFromSelectedAccountGroup.mockReturnValue([]);
   mockedGetCaveat.mockReturnValue(undefined);
-  mockedGetPermittedChains.mockResolvedValue([]);
+  mockedGetPermittedCaipChainIds.mockResolvedValue([]);
   mockedCallMultichainRoutingService.mockResolvedValue(undefined);
   mockedGetCaipAccountIdsFromCaip25CaveatValue.mockReturnValue([]);
 });
@@ -145,7 +145,10 @@ describe('multichain/tron - adapter helpers', () => {
   });
 
   it('returns scoped permissions for permitted Tron chains and accounts', async () => {
-    mockedGetPermittedChains.mockResolvedValue(['eip155:1', 'tron:728126428']);
+    mockedGetPermittedCaipChainIds.mockResolvedValue([
+      'eip155:1',
+      'tron:728126428',
+    ]);
     mockedGetCaveat.mockReturnValue({ value: {} });
     mockedGetCaipAccountIdsFromCaip25CaveatValue.mockReturnValue([
       'eip155:1:0xabc',
@@ -163,7 +166,7 @@ describe('multichain/tron - adapter helpers', () => {
   });
 
   it('prioritizes selected Tron account ids when building scoped permissions', async () => {
-    mockedGetPermittedChains.mockResolvedValue(['tron:728126428']);
+    mockedGetPermittedCaipChainIds.mockResolvedValue(['tron:728126428']);
     mockedGetCaveat.mockReturnValue({ value: {} });
     mockedGetCaipAccountIdsFromCaip25CaveatValue.mockReturnValue([
       'tron:728126428:TAddrA',
@@ -182,13 +185,13 @@ describe('multichain/tron - adapter helpers', () => {
   });
 
   it('returns undefined when there are no Tron chains or accounts', async () => {
-    mockedGetPermittedChains.mockResolvedValue(['eip155:1']);
+    mockedGetPermittedCaipChainIds.mockResolvedValue(['eip155:1']);
 
     await expect(
       getScopedPermissions({ channelId: 'wc-topic' }),
     ).resolves.toBeUndefined();
 
-    mockedGetPermittedChains.mockResolvedValue(['tron:728126428']);
+    mockedGetPermittedCaipChainIds.mockResolvedValue(['tron:728126428']);
     mockedGetCaipAccountIdsFromCaip25CaveatValue.mockReturnValue([]);
 
     await expect(
@@ -197,7 +200,7 @@ describe('multichain/tron - adapter helpers', () => {
   });
 
   it('continues when getCaveat throws PermissionDoesNotExistError', async () => {
-    mockedGetPermittedChains.mockResolvedValue(['tron:728126428']);
+    mockedGetPermittedCaipChainIds.mockResolvedValue(['tron:728126428']);
     mockedGetCaveat.mockImplementation(() => {
       throw new PermissionDoesNotExistError('wc-topic', 'endowment:caip25');
     });

@@ -7,7 +7,7 @@ import { IWalletKit } from '@reown/walletkit';
 import WalletConnect2Session from './WalletConnect2Session';
 // eslint-disable-next-line import-x/no-namespace
 import * as wcUtils from './wc-utils';
-import { getPermittedChains } from '../Permissions';
+import { getPermittedCaipChainIds } from '../Permissions';
 import Engine from '../Engine';
 import { SessionTypes } from '@walletconnect/types';
 import { Core } from '@walletconnect/core';
@@ -173,7 +173,7 @@ jest.mock('../Permissions', () => ({
   getPermittedAccounts: jest
     .fn()
     .mockReturnValue(['0x1234567890abcdef1234567890abcdef12345678']),
-  getPermittedChains: jest.fn().mockResolvedValue(['eip155:1']),
+  getPermittedCaipChainIds: jest.fn().mockResolvedValue(['eip155:1']),
   updatePermittedChains: jest.fn(),
 }));
 
@@ -1000,10 +1000,11 @@ describe('WC2Manager', () => {
       const tronAddress = 'TWzeSXq3pVMFRkBNzGzkbmd5DQYwTtCFGS';
       const tronCaipAccount = `tron:728126428:${tronAddress}`;
 
-      const getPermittedChainsMock = getPermittedChains as unknown as jest.Mock;
-      const originalGetPermittedChainsImpl =
-        getPermittedChainsMock.getMockImplementation();
-      getPermittedChainsMock.mockResolvedValue(['tron:728126428']);
+      const getPermittedCaipChainIdsMock =
+        getPermittedCaipChainIds as unknown as jest.Mock;
+      const originalgetPermittedCaipChainIdsImpl =
+        getPermittedCaipChainIdsMock.getMockImplementation();
+      getPermittedCaipChainIdsMock.mockResolvedValue(['tron:728126428']);
 
       const permissionController = Engine.context
         .PermissionController as unknown as { getCaveat: jest.Mock };
@@ -1086,12 +1087,12 @@ describe('WC2Manager', () => {
         tron_method_version: 'v1',
       });
 
-      if (originalGetPermittedChainsImpl) {
-        getPermittedChainsMock.mockImplementation(
-          originalGetPermittedChainsImpl,
+      if (originalgetPermittedCaipChainIdsImpl) {
+        getPermittedCaipChainIdsMock.mockImplementation(
+          originalgetPermittedCaipChainIdsImpl,
         );
       } else {
-        getPermittedChainsMock.mockResolvedValue(['eip155:1']);
+        getPermittedCaipChainIdsMock.mockResolvedValue(['eip155:1']);
       }
       if (originalGetCaveatImpl) {
         permissionController.getCaveat.mockImplementation(
