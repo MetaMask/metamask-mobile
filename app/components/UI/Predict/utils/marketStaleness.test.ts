@@ -263,6 +263,20 @@ describe('marketStaleness', () => {
 
       expect(getVisiblePredictMarket(market, { now: NOW })).toEqual(market);
     });
+
+    it('keeps game markets without filtering stale-priced outcomes', () => {
+      const market = createMarket({
+        id: 'game-market',
+        game: createGame('scheduled'),
+        outcomes: [
+          createOutcome({ id: 'favorite', price: 0.97 }),
+          createOutcome({ id: 'draw', price: 0.04 }),
+          createOutcome({ id: 'underdog', price: 0.03 }),
+        ],
+      });
+
+      expect(getVisiblePredictMarket(market, { now: NOW })).toEqual(market);
+    });
   });
 
   describe('penalties and ranking', () => {
@@ -333,6 +347,22 @@ describe('marketStaleness', () => {
           (market) => market.id,
         ),
       ).toEqual(['highlighted', 'live', 'stale']);
+    });
+
+    it('does not apply staleness ranking penalties to game markets', () => {
+      const stalePricedGame = createMarket({
+        id: 'stale-priced-game',
+        game: createGame('scheduled'),
+        outcomes: [createOutcome({ id: 'heavy-favorite', price: 0.99 })],
+      });
+      const liveOne = createMarket({ id: 'live-one' });
+      const liveTwo = createMarket({ id: 'live-two' });
+
+      expect(
+        getVisiblePredictMarkets([stalePricedGame, liveOne, liveTwo], {
+          now: NOW,
+        }).map((market) => market.id),
+      ).toEqual(['stale-priced-game', 'live-one', 'live-two']);
     });
 
     it('preserves original order when ranking scores tie', () => {
