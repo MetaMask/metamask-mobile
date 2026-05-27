@@ -1,7 +1,9 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import OndoCampaignRwaSelectorView from './OndoCampaignRwaSelectorView';
+import OndoCampaignRwaSelectorView, {
+  getOndoOpenPositionSourceToken,
+} from './OndoCampaignRwaSelectorView';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import {
@@ -723,5 +725,26 @@ describe('OndoCampaignRwaSelectorView', () => {
       fireEvent.press(getByTestId('ondo-rwa-selector-header-search-close'));
       expect(getByTestId('filter-bar')).toBeDefined();
     });
+  });
+});
+
+describe('getOndoOpenPositionSourceToken', () => {
+  it('returns USDT for BNB Chain when the chain ID is hex', () => {
+    expect(getOndoOpenPositionSourceToken('0x38')).toEqual(
+      expect.objectContaining({
+        symbol: 'USDT',
+        chainId: '0x38',
+      }),
+    );
+  });
+
+  it('returns undefined when no chain ID is provided', () => {
+    expect(getOndoOpenPositionSourceToken(undefined)).toBeUndefined();
+  });
+
+  it('returns undefined for unsupported non-EVM chain IDs', () => {
+    expect(
+      getOndoOpenPositionSourceToken('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'),
+    ).toBeUndefined();
   });
 });

@@ -91,7 +91,7 @@ const ONDO_OPEN_POSITION_SOURCE_TOKENS_BY_CHAIN_ID: Partial<
   },
 };
 
-const getOndoOpenPositionSourceToken = (
+export const getOndoOpenPositionSourceToken = (
   chainId: BridgeToken['chainId'] | undefined,
 ): BridgeToken | undefined => {
   if (!chainId) return undefined;
