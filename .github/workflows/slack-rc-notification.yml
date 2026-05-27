@@ -31,6 +31,15 @@ on:
         required: false
         type: string
         default: ''
+      pr_number:
+        description: 'PR number for linking to cherry-picks section in release PR comment'
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  actions: read
+  contents: read
 
 jobs:
   slack-notification:
@@ -41,6 +50,15 @@ jobs:
         with:
           ref: ${{ inputs.source_branch }}
           fetch-depth: 0
+
+      - name: Download Android Play Store check report (optional)
+        id: download-play-store-check
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: android-play-store-check-slack
+          path: android-play-store-check-out
+
       - uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
@@ -65,3 +83,5 @@ jobs:
           BUILD_PIPELINE_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           ANDROID_PUBLIC_URL: ${{ secrets.ANDROID_PUBLIC_BUCKET_URL }}
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          ANDROID_PLAY_STORE_CHECK_MRKDWN_FILE: ${{ github.workspace }}/android-play-store-check-out/android-play-store-check-slack.md

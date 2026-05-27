@@ -10,7 +10,7 @@ import {
   type SeasonStatusState,
   type SeasonTierState,
   type SeasonTierDto,
-  type SubscriptionSeasonReferralDetailState,
+  type SubscriptionReferralDetailState,
   type GeoRewardsMetadata,
   type SubscriptionDto,
   type PaginatedPointsEventsDto,
@@ -53,7 +53,6 @@ import {
   type VipDashboardState,
   type VipFeesResponseDto,
   type VipPerpsFeesState,
-  BASE32_REGEX,
   CampaignType,
 } from './types';
 import {
@@ -492,6 +491,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getOptInStatus',
   'getPerpsTradingCampaignParticipantOutcome',
   'getPerpsDiscountForAccount',
+  'getVipTierForAccount',
   'getPointsEvents',
   'getPointsEventsIfChanged',
   'getPointsEventsLastUpdated',
@@ -1704,6 +1704,65 @@ export class RewardsController extends BaseController<
     }
   }
 
+  async #getVipFeesForSubscriptionId(
+    subscriptionId: string,
+  ): Promise<VipFeesResponseDto | 0 | null> {
+    // Deduplicate concurrent fetches: if there's already an in-flight
+    // request for this subscriptionId, await it instead of firing another.
+    let inFlight = this.#vipFeesFetchInFlight.get(subscriptionId);
+    if (!inFlight) {
+      inFlight = this.#withAuthRetry(
+        () =>
+          this.messenger.call('RewardsDataService:getVipFees', subscriptionId),
+        subscriptionId,
+      ).then((vipFeeResponse): VipFeesResponseDto | 0 => {
+        // Tier-0 response: backend says no VIP fees — return sentinel 0
+        // without caching so the next call re-checks.
+        if (!vipFeeResponse?.fees || vipFeeResponse.vipTier <= 0) {
+          return 0;
+        }
+        this.update((state) => {
+          // Promote the subscription's VIP flag so the rest of the app
+          // reflects the user's VIP status without waiting for a full refresh.
+          const subState = state.subscriptions[subscriptionId];
+          if (subState) {
+            subState.features = {
+              ...subState.features,
+              vip: { enabled: true },
+            };
+          }
+        });
+        return vipFeeResponse;
+      });
+      this.#vipFeesFetchInFlight.set(subscriptionId, inFlight);
+      const cleanup = () => this.#vipFeesFetchInFlight.delete(subscriptionId);
+      inFlight.then(cleanup, cleanup);
+    }
+
+    const result = await inFlight;
+    if (result === 0) return 0;
+    const feeResponse = result as VipFeesResponseDto;
+    if (!feeResponse.fees) return null;
+    return feeResponse;
+  }
+
+  async getVipTierForAccount(account: CaipAccountId): Promise<number | null> {
+    const rewardsEnabled = this.isRewardsFeatureEnabled();
+    if (!rewardsEnabled) return null;
+
+    const subscriptionId = this.getActualSubscriptionId(account);
+    if (!subscriptionId) return null;
+
+    const subscription = this.state.subscriptions[subscriptionId];
+    if (!subscription) return null;
+
+    const vipFeesResponse =
+      await this.#getVipFeesForSubscriptionId(subscriptionId);
+
+    if (!vipFeesResponse) return null;
+    return vipFeesResponse.vipTier;
+  }
+
   /**
    * Get perps fee discount for an account.
    *
@@ -1754,8 +1813,7 @@ export class RewardsController extends BaseController<
   ): Promise<number | null> {
     if (!Number.isFinite(baseFeeBips) || baseFeeBips <= 0) return null;
 
-    const accountState = this.#getAccountState(account);
-    const subscriptionId = accountState?.subscriptionId;
+    const subscriptionId = this.getActualSubscriptionId(account);
     if (!subscriptionId) return null;
 
     const subscription = this.state.subscriptions[subscriptionId];
@@ -1769,57 +1827,26 @@ export class RewardsController extends BaseController<
     ) {
       builderFeeBipsRaw = cached.hyperliquidBuilderFeeBips;
     } else {
-      // Deduplicate concurrent fetches: if there's already an in-flight
-      // request for this subscriptionId, await it instead of firing another.
-      let inFlight = this.#vipFeesFetchInFlight.get(subscriptionId);
-      if (!inFlight) {
-        inFlight = this.#withAuthRetry(
-          () =>
-            this.messenger.call(
-              'RewardsDataService:getVipFees',
-              subscriptionId,
-            ),
-          subscriptionId,
-        ).then((vipFeeResponse): VipFeesResponseDto | 0 => {
-          // Tier-0 response: backend says no VIP fees — return sentinel 0
-          // without caching so the next call re-checks.
-          if (
-            !vipFeeResponse?.fees ||
-            vipFeeResponse.vipTier <= 0 ||
-            !vipFeeResponse.fees.hyperliquid?.builderFeeBips
-          ) {
-            return 0;
-          }
-          const rawBips = vipFeeResponse.fees.hyperliquid.builderFeeBips;
-          const next: VipPerpsFeesState = {
-            hyperliquidBuilderFeeBips: rawBips,
-            lastFetched: Date.now(),
-          };
-          this.update((state) => {
-            state.vipPerpsFees[subscriptionId] = next;
-            // Promote the subscription's VIP flag so the rest of the app
-            // reflects the user's VIP status without waiting for a full refresh.
-            const subState = state.subscriptions[subscriptionId];
-            if (subState) {
-              subState.features = {
-                ...subState.features,
-                vip: { enabled: true },
-              };
-            }
-          });
-          return vipFeeResponse;
-        });
-        this.#vipFeesFetchInFlight.set(subscriptionId, inFlight);
-        const cleanup = () => this.#vipFeesFetchInFlight.delete(subscriptionId);
-        inFlight.then(cleanup, cleanup);
-      }
-
       try {
-        const result = await inFlight;
-        if (result === 0) return 0;
-        const feeResponse = result as VipFeesResponseDto;
-        if (!feeResponse.fees) return null;
-        builderFeeBipsRaw = feeResponse.fees.hyperliquid.builderFeeBips;
+        const vipFeeResponse =
+          await this.#getVipFeesForSubscriptionId(subscriptionId);
+        if (vipFeeResponse === 0) {
+          return 0;
+        }
+        if (!vipFeeResponse?.fees) {
+          return null;
+        }
+        if (!vipFeeResponse.fees.hyperliquid?.builderFeeBips) {
+          return 0;
+        }
+        builderFeeBipsRaw = vipFeeResponse.fees.hyperliquid.builderFeeBips;
+        const next: VipPerpsFeesState = {
+          hyperliquidBuilderFeeBips: builderFeeBipsRaw,
+          lastFetched: Date.now(),
+        };
+        this.update((state) => {
+          state.vipPerpsFees[subscriptionId] = next;
+        });
       } catch (error) {
         Logger.log(
           'RewardsController: VIP fees fetch failed; returning no discount:',
@@ -2242,33 +2269,14 @@ export class RewardsController extends BaseController<
   }
 
   /**
-   * Check if there is an active season
-   * @returns Promise<boolean> - True if there is an active season, false otherwise
-   * An active season exists when getSeasonMetadata('current') returns a value
-   * and the current date is between the season's startDate and endDate
+   * Check if there is an active season.
+   * Temporarily hardcoded to false while no season is configured. Callers
+   * gate season-scoped flows (points estimates, rewards rows, dashboard
+   * fetches) off this; the perps VIP fee discount is independent and
+   * unaffected.
    */
   async hasActiveSeason(): Promise<boolean> {
-    const rewardsEnabled = this.isRewardsFeatureEnabled();
-    if (!rewardsEnabled) {
-      return false;
-    }
-
-    try {
-      const seasonDto = await this.getSeasonMetadata('current');
-      if (!seasonDto) {
-        return false;
-      }
-      return (
-        new Date(seasonDto.endDate) >= new Date() &&
-        new Date(seasonDto.startDate) <= new Date()
-      );
-    } catch (error) {
-      Logger.log(
-        'RewardsController: Failed to check active season:',
-        error instanceof Error ? error.message : String(error),
-      );
-      return false;
-    }
+    return false;
   }
 
   /**
@@ -2493,23 +2501,17 @@ export class RewardsController extends BaseController<
   /**
    * Get referral details with caching
    * @param subscriptionId - The subscription ID for authentication
-   * @param seasonId - The season ID to get referral details for
-   * @returns Promise<SubscriptionSeasonReferralDetailsDto> - The referral details data
+   * @returns Promise<SubscriptionReferralDetailState | null> - The referral details data
    */
   async getReferralDetails(
     subscriptionId: string,
-    seasonId: string,
-  ): Promise<SubscriptionSeasonReferralDetailState | null> {
+  ): Promise<SubscriptionReferralDetailState | null> {
     const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) {
       return null;
     }
-    const compositeKey = this.#createSeasonSubscriptionCompositeKey(
-      seasonId,
-      subscriptionId,
-    );
-    const result = await wrapWithCache<SubscriptionSeasonReferralDetailState>({
-      key: compositeKey,
+    const result = await wrapWithCache<SubscriptionReferralDetailState>({
+      key: subscriptionId,
       ttl: REFERRAL_DETAILS_CACHE_THRESHOLD_MS,
       readCache: (key) => {
         const cached = this.state.subscriptionReferralDetails[key] || undefined;
@@ -2520,17 +2522,15 @@ export class RewardsController extends BaseController<
         this.#withAuthRetry(async () => {
           Logger.log(
             'RewardsController: Fetching fresh referral details data via API call for',
-            { subscriptionId, seasonId },
+            { subscriptionId },
           );
           const referralDetails = await this.messenger.call(
             'RewardsDataService:getReferralDetails',
-            seasonId,
             subscriptionId,
           );
           return {
             referralCode: referralDetails.referralCode,
             totalReferees: referralDetails.totalReferees,
-            referralPoints: referralDetails.referralPoints,
             referredByCode: referralDetails.referredByCode,
             lastFetched: Date.now(),
           };
@@ -2927,14 +2927,6 @@ export class RewardsController extends BaseController<
     }
 
     if (!code.trim()) {
-      return false;
-    }
-
-    if (code.length !== 6) {
-      return false;
-    }
-
-    if (!BASE32_REGEX.test(code)) {
       return false;
     }
 
@@ -4674,11 +4666,7 @@ export class RewardsController extends BaseController<
    */
   invalidateReferralDetailsCache(subscriptionId: string): void {
     this.update((state) => {
-      Object.keys(state.subscriptionReferralDetails).forEach((key) => {
-        if (key.includes(subscriptionId)) {
-          delete state.subscriptionReferralDetails[key];
-        }
-      });
+      delete state.subscriptionReferralDetails[subscriptionId];
     });
 
     Logger.log(
@@ -4726,6 +4714,7 @@ export class RewardsController extends BaseController<
         delete state.vipDashboard?.[subscriptionId];
         delete state.vipPerpsFees?.[subscriptionId];
         delete state.offDeviceSubscriptionAccounts?.[subscriptionId];
+        delete state.subscriptionReferralDetails?.[subscriptionId];
       }
 
       if (shouldInvalidateSeasonCaches) {
@@ -4734,7 +4723,6 @@ export class RewardsController extends BaseController<
           state.unlockedRewards,
           state.activeBoosts,
           state.pointsEvents,
-          state.subscriptionReferralDetails,
         ].forEach((cache) =>
           deleteMatchingCacheEntries(cache, seasonCacheMatches),
         );

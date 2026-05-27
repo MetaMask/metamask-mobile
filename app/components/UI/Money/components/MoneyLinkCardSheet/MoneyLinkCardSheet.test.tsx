@@ -6,9 +6,11 @@ import { MoneyLinkCardSheetTestIds } from './MoneyLinkCardSheet.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import { selectCardHomeData } from '../../../../../selectors/cardController';
+import { CardType } from '../../../Card/types';
+import mmCardRegular from '../../../../../images/mm_card_regular.png';
+import mmCardMetal from '../../../../../images/mm_card_metal.png';
 
-// The real sheet ref invokes the post-close callback after the dismiss
-// animation. We bypass animation in tests by invoking the callback inline.
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockGoBack = jest.fn();
 
@@ -29,6 +31,10 @@ jest.mock('../../../Card/hooks/useMoneyAccountCardLinkage', () => ({
 jest.mock('../../hooks/useMoneyAccountBalance', () => ({
   __esModule: true,
   default: jest.fn(),
+}));
+
+jest.mock('../../../../../selectors/cardController', () => ({
+  selectCardHomeData: jest.fn(),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -61,6 +67,7 @@ const mockUseMoneyAccountCardLinkage =
   >;
 const mockUseMoneyAccountBalance =
   useMoneyAccountBalance as jest.MockedFunction<typeof useMoneyAccountBalance>;
+const mockSelectCardHomeData = selectCardHomeData as unknown as jest.Mock;
 
 describe('MoneyLinkCardSheet', () => {
   let mockConfirmLinkInBackground: jest.Mock;
@@ -74,6 +81,9 @@ describe('MoneyLinkCardSheet', () => {
     mockUseMoneyAccountBalance.mockReturnValue({
       apyPercent: 4,
     } as unknown as ReturnType<typeof useMoneyAccountBalance>);
+    mockSelectCardHomeData.mockReturnValue({
+      card: { type: CardType.VIRTUAL },
+    });
   });
 
   it('renders the container', () => {
@@ -128,18 +138,62 @@ describe('MoneyLinkCardSheet', () => {
     expect(queryByText(/{{apy}}/)).toBeNull();
   });
 
-  it('falls back to 0% APY while the vault APY query has not resolved yet', () => {
+  it('falls back to no-APY copy when the vault APY query has not resolved yet', () => {
     mockUseMoneyAccountBalance.mockReturnValue({
       apyPercent: undefined,
     } as unknown as ReturnType<typeof useMoneyAccountBalance>);
 
-    const { getByText } = renderWithProvider(<MoneyLinkCardSheet />);
+    const { getByText, queryByText } = renderWithProvider(
+      <MoneyLinkCardSheet />,
+    );
 
     expect(
       getByText(
-        strings('money.metamask_card.link_card_sheet_description', { apy: 0 }),
+        strings('money.metamask_card.link_card_sheet_description_no_apy'),
       ),
     ).toBeOnTheScreen();
+    // The APY-bearing copy must not appear when there is no APY.
+    expect(queryByText(/APY/)).toBeNull();
+  });
+
+  describe('card illustration adapts to user card type', () => {
+    const getCardImageSource = (
+      root: ReturnType<typeof renderWithProvider>,
+    ) => {
+      const illustration = root.getByTestId(
+        MoneyLinkCardSheetTestIds.ILLUSTRATION,
+      );
+      const image = illustration.findByProps({ resizeMode: 'contain' });
+      return image.props.source;
+    };
+
+    it('renders the metal card image when the user has a metal card', () => {
+      mockSelectCardHomeData.mockReturnValue({
+        card: { type: CardType.METAL },
+      });
+
+      const root = renderWithProvider(<MoneyLinkCardSheet />);
+
+      expect(getCardImageSource(root)).toBe(mmCardMetal);
+    });
+
+    it('renders the virtual card image when the user has a virtual card', () => {
+      mockSelectCardHomeData.mockReturnValue({
+        card: { type: CardType.VIRTUAL },
+      });
+
+      const root = renderWithProvider(<MoneyLinkCardSheet />);
+
+      expect(getCardImageSource(root)).toBe(mmCardRegular);
+    });
+
+    it('renders the virtual card image when there is no card data available', () => {
+      mockSelectCardHomeData.mockReturnValue(null);
+
+      const root = renderWithProvider(<MoneyLinkCardSheet />);
+
+      expect(getCardImageSource(root)).toBe(mmCardRegular);
+    });
   });
 
   it('dismisses the sheet and dispatches confirmLinkInBackground when the CTA is pressed', () => {

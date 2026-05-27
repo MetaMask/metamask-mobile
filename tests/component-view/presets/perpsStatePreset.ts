@@ -22,6 +22,8 @@ const defaultPerpsControllerState = {
   withdrawalRequests: [] as unknown[],
 };
 
+const defaultConfirmationTransactionId = 'perps-cv-confirmation-tx';
+
 /**
  * Returns a StateFixtureBuilder with minimal state for Perps views.
  * Use .withOverrides() to set PerpsController.isEligible, etc.
@@ -96,12 +98,68 @@ export const initialStatePerps = () =>
           },
           // PerpsMarketBalanceActions -> usePerpsHomeActions -> useConfirmNavigation reads TransactionController
           TransactionController: {
-            transactions: [],
+            transactions: [
+              {
+                id: defaultConfirmationTransactionId,
+                chainId: '0xa4b1',
+                networkClientId: 'arbitrum-mainnet',
+                status: 'unapproved',
+                time: 0,
+                type: 'simpleSend',
+                txParams: {
+                  from: '0x1234567890123456789012345678901234567890',
+                  to: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+                  value: '0x0',
+                  data: '0xa9059cbb000000000000000000000000000000000000000000000000000000000000dead0000000000000000000000000000000000000000000000000000000000000000',
+                },
+              },
+            ],
             transactionBatches: [],
+          },
+          ApprovalController: {
+            pendingApprovals: {
+              [defaultConfirmationTransactionId]: {
+                id: defaultConfirmationTransactionId,
+                type: 'transaction',
+                requestData: {},
+              },
+            },
+          },
+          TransactionPayController: {
+            transactionData: {
+              [defaultConfirmationTransactionId]: {
+                isLoading: false,
+                tokens: [],
+                sourceAmounts: [],
+              },
+            },
+          },
+          CurrencyRateController: {
+            currentCurrency: 'usd',
+            currencyRates: {
+              ETH: {
+                conversionRate: 2500,
+                usdConversionRate: 2500,
+              },
+            },
+          },
+          GasFeeController: {
+            gasFeeEstimatesByChainId: {},
+          },
+          SmartTransactionsController: {
+            smartTransactionsState: {
+              livenessByChainId: {},
+            },
+          },
+          SignatureController: {
+            signatureRequests: {},
+          },
+          MoneyAccountController: {
+            moneyAccounts: {},
           },
           // usePerpsPaymentTokens -> useTokensWithBalance reads TokenBalancesController
           TokenBalancesController: { tokenBalances: {} },
-          // HeroCardView -> useReferralDetails/useSeasonStatus -> selectRewardsSubscriptionId reads RewardsController
+          // HeroCardView -> useReferralDetails reads RewardsController
           RewardsController: {
             activeAccount: null,
           } as Record<string, unknown>,

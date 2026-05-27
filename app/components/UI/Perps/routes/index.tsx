@@ -1,4 +1,3 @@
-import { createStackNavigator } from '@react-navigation/stack';
 import {
   createNativeStackNavigator,
   type NativeStackNavigationOptions,
@@ -44,18 +43,18 @@ import { HIP3DebugView } from '../Debug';
 import PerpsCrossMarginWarningBottomSheet from '../components/PerpsCrossMarginWarningBottomSheet';
 import PerpsSelectProviderView from '../Views/PerpsSelectProviderView';
 import { PayWithModal } from '../../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
+import { PayWithBottomSheet } from '../../../Views/confirmations/components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 /* eslint-disable-next-line */
 import { NavigationContext } from '@react-navigation/core';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 import {
   clearNativeStackNavigatorOptions,
-  clearStackNavigatorOptions,
   transparentModalScreenOptions,
 } from '../../../../constants/navigation/clearStackNavigatorOptions';
 
 const Stack = createNativeStackNavigator<PerpsNavigationParamList>();
-const ModalStack = createStackNavigator();
+const ModalStack = createNativeStackNavigator();
 
 const styles = StyleSheet.create({
   container: {
@@ -63,7 +62,7 @@ const styles = StyleSheet.create({
   },
 });
 
-function getRedesignedConfirmationsHeaderOptions({
+export function getRedesignedConfirmationsHeaderOptions({
   showPerpsHeader = CONFIRMATION_HEADER_CONFIG.DefaultShowPerpsHeader,
 }: PerpsNavigationParamList['RedesignedConfirmations'] = {}): NativeStackNavigationOptions {
   if (showPerpsHeader) {
@@ -77,8 +76,6 @@ function getRedesignedConfirmationsHeaderOptions({
     headerShown: false,
     title: '',
     headerBackVisible: false,
-    contentStyle: { backgroundColor: 'transparent' },
-    ...transparentModalScreenOptions,
   };
 }
 
@@ -138,8 +135,8 @@ const PerpsModalStack = () => {
       <PerpsStreamProvider>
         <ModalStack.Navigator
           screenOptions={{
-            ...clearStackNavigatorOptions,
-            presentation: 'transparentModal',
+            ...clearNativeStackNavigatorOptions,
+            ...transparentModalScreenOptions,
           }}
         >
           <ModalStack.Screen
@@ -176,30 +173,20 @@ const PerpsModalStack = () => {
             component={PerpsSelectProviderView}
             options={{
               title: strings('perps.provider_selector.title'),
-              cardStyle: { backgroundColor: 'transparent' },
             }}
           />
           {/* Action Selection Modals */}
           <ModalStack.Screen
             name={Routes.PERPS.SELECT_MODIFY_ACTION}
             component={PerpsSelectModifyActionView}
-            options={{
-              cardStyle: { backgroundColor: 'transparent' },
-            }}
           />
           <ModalStack.Screen
             name={Routes.PERPS.SELECT_ADJUST_MARGIN_ACTION}
             component={PerpsSelectAdjustMarginActionView}
-            options={{
-              cardStyle: { backgroundColor: 'transparent' },
-            }}
           />
           <ModalStack.Screen
             name={Routes.PERPS.SELECT_ORDER_TYPE}
             component={PerpsSelectOrderTypeView}
-            options={{
-              cardStyle: { backgroundColor: 'transparent' },
-            }}
           />
         </ModalStack.Navigator>
       </PerpsStreamProvider>
@@ -228,16 +215,8 @@ const PerpsClosePositionBottomSheetStack = () => {
       <PerpsStreamProvider>
         <ModalStack.Navigator
           screenOptions={{
-            headerShown: false,
-            presentation: 'modal',
-            cardStyle: {
-              backgroundColor: 'transparent',
-            },
-            cardStyleInterpolator: () => ({
-              overlayStyle: {
-                opacity: 0,
-              },
-            }),
+            ...clearNativeStackNavigatorOptions,
+            ...transparentModalScreenOptions,
           }}
         >
           <ModalStack.Screen
@@ -440,6 +419,15 @@ const PerpsScreenStack = () => {
               component={PayWithModal}
               options={{
                 headerShown: false,
+                ...clearNativeStackNavigatorOptions,
+                ...transparentModalScreenOptions,
+              }}
+            />
+            <Stack.Screen
+              name={Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET}
+              component={PayWithBottomSheet}
+              options={{
+                ...clearNativeStackNavigatorOptions,
                 ...transparentModalScreenOptions,
               }}
             />
