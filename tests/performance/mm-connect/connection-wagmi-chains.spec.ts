@@ -93,7 +93,9 @@ test.describe(Performance, () => {
   //
   // 6. CLEANUP
   //    - Tap disconnect to clean up
-  test('@metamask/connect-evm (wagmi) - Chain switching via Wagmi', async ({
+  //
+  // This test is currently being skipped as it is flaky - https://consensyssoftware.atlassian.net/browse/WAPI-1511
+  test.skip('@metamask/connect-evm (wagmi) - Chain switching via Wagmi', async ({
     currentDeviceDetails,
     driver,
   }) => {

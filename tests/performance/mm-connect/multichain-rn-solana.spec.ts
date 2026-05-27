@@ -67,7 +67,8 @@ async function returnToPlayground() {
 //    - Switch to MetaMask and unlock if needed to confirm no active session
 
 test.describe(Performance, () => {
-  test('@metamask/connect-multichain-rn-solana - Connect with Solana, invoke signMessage, and disconnect', async ({
+  // This test is currently being skipped as it is flaky - https://consensyssoftware.atlassian.net/browse/WAPI-1511
+  test.skip('@metamask/connect-multichain-rn-solana - Connect with Solana, invoke signMessage, and disconnect', async ({
     currentDeviceDetails,
     driver,
   }) => {

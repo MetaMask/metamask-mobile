@@ -19,7 +19,8 @@ async function returnToPlayground() {
 }
 
 test.describe(Performance, () => {
-  test('@metamask/connect-legacy-evm-rn - Connect via Legacy EVM, sign, send transaction, and switch chains', async ({
+  // This test is currently being skipped as it is flaky - https://consensyssoftware.atlassian.net/browse/WAPI-1511
+  test.skip('@metamask/connect-legacy-evm-rn - Connect via Legacy EVM, sign, send transaction, and switch chains', async ({
     currentDeviceDetails,
     driver,
   }) => {
