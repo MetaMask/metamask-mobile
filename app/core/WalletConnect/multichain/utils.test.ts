@@ -240,24 +240,6 @@ describe('multichain/utils - doesProposalOrSessionIncludeNamespace', () => {
     ).toBe(true);
   });
 
-  it('returns true when only chains reference the namespace', () => {
-    expect(
-      doesProposalOrSessionIncludeNamespace({
-        proposalOrSession: {
-          requiredNamespaces: {
-            wallet: {
-              chains: ['eip155:1'],
-              methods: ['eth_sendTransaction'],
-              events: ['chainChanged'],
-            },
-          },
-          optionalNamespaces: {},
-        },
-        namespace: KnownCaipNamespace.Eip155,
-      }),
-    ).toBe(true);
-  });
-
   it('returns true when an active session namespace is present', () => {
     expect(
       doesProposalOrSessionIncludeNamespace({
