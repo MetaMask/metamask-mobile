@@ -5,23 +5,18 @@ import { usePredictBalance } from './usePredictBalance';
 import { predictQueries } from '../queries';
 
 const MOCK_ADDRESS = '0x1234567890123456789012345678901234567890';
+const SECOND_MOCK_ADDRESS = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
 
 const mockGetBalance = jest.fn();
+const mockGetAccountsFromSelectedAccountGroup = jest.fn();
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {
       getBalance: (...args: unknown[]) => mockGetBalance(...args),
     },
     AccountTreeController: {
-      getAccountsFromSelectedAccountGroup: jest.fn(() => [
-        {
-          id: 'test-account-id',
-          address: '0x1234567890123456789012345678901234567890',
-          type: 'eip155:eoa',
-          name: 'Test Account',
-          metadata: { lastSelected: 0 },
-        },
-      ]),
+      getAccountsFromSelectedAccountGroup: () =>
+        mockGetAccountsFromSelectedAccountGroup(),
     },
   },
 }));
@@ -62,6 +57,15 @@ describe('usePredictBalance', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetBalance.mockResolvedValue(100);
+    mockGetAccountsFromSelectedAccountGroup.mockReturnValue([
+      {
+        id: 'test-account-id',
+        address: MOCK_ADDRESS,
+        type: 'eip155:eoa',
+        name: 'Test Account',
+        metadata: { lastSelected: 0 },
+      },
+    ]);
     mockEnsurePolygonNetworkExists.mockResolvedValue(undefined);
   });
 
@@ -86,6 +90,42 @@ describe('usePredictBalance', () => {
       expect(result.current.error).toBeNull();
       expect(mockGetBalance).toHaveBeenCalledWith({
         address: MOCK_ADDRESS,
+      });
+    });
+
+    it('fetches against the new address after the selected account changes', async () => {
+      const { Wrapper } = createWrapper();
+      mockGetBalance.mockImplementation(({ address }) =>
+        Promise.resolve(address === SECOND_MOCK_ADDRESS ? 200 : 100),
+      );
+
+      const { result, rerender } = renderHook(() => usePredictBalance(), {
+        wrapper: Wrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.data).toBe(100);
+      });
+
+      mockGetAccountsFromSelectedAccountGroup.mockReturnValue([
+        {
+          id: 'second-account-id',
+          address: SECOND_MOCK_ADDRESS,
+          type: 'eip155:eoa',
+          name: 'Second Account',
+          metadata: { lastSelected: 1 },
+        },
+      ]);
+
+      rerender({});
+
+      await waitFor(() => {
+        expect(result.current.data).toBe(200);
+      });
+
+      expect(mockGetBalance).toHaveBeenCalledWith({ address: MOCK_ADDRESS });
+      expect(mockGetBalance).toHaveBeenCalledWith({
+        address: SECOND_MOCK_ADDRESS,
       });
     });
   });

@@ -301,9 +301,17 @@ export class ConnectionRegistry {
           message: 'External transactions cannot use internal origins',
         });
       }
-      await this.evictIfAtCapacity();
 
       connInfo = this.toConnectionInfo(connReq);
+      if (this.connections.has(connInfo.id)) {
+        logger.debug(
+          'Already have a connection with this id, skipping',
+          redactUrl(url),
+        );
+        return;
+      }
+
+      await this.evictIfAtCapacity();
 
       this.hostapp.showConnectionLoading(connInfo);
       conn = await Connection.create(
@@ -364,6 +372,7 @@ export class ConnectionRegistry {
 
       if (conn) await this.disconnect(conn.id);
     } finally {
+      this.deeplinks.delete(url);
       // Loading-toast dismissal rules:
       // - On failure, always dismiss the loading toast. Otherwise the user
       //   would briefly see both a "loading" toast and the error toast at

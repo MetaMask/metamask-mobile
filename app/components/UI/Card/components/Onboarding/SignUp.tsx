@@ -417,6 +417,7 @@ const SignUp = () => {
       description={strings('card.card_onboarding.sign_up.description')}
       formFields={renderFormFields()}
       actions={renderActions()}
+      headerMode="back"
     />
   );
 };

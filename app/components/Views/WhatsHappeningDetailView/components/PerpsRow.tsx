@@ -13,6 +13,7 @@ import { formatAssetPrice } from '../utils/formatAssetPrice';
 import type { PerpsPriceEntry } from '../hooks/useWhatsHappeningAssetPrices';
 import AssetRow from './AssetRow';
 import useTradeNavigation from '../hooks/useTradeNavigation';
+import { playImpact, ImpactMoment } from '../../../../util/haptics';
 
 interface PerpsRowProps {
   asset: RelatedAsset;
@@ -53,6 +54,7 @@ const PerpsRow: React.FC<PerpsRowProps> = ({
     if (!perpsMarket) {
       return;
     }
+    playImpact(ImpactMoment.PrimaryCTA);
     trackEvent(
       createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_INTERACTED)
         .addProperties({

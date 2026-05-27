@@ -28,7 +28,6 @@ import {
 } from '../../../../../../Views/confirmations/components/token-icon';
 import { isHardwareAccount } from '../../../../../../../util/address';
 import { POLYGON_PUSD } from '../../../../../../Views/confirmations/constants/predict';
-import { isPayWithBottomSheetEnabled } from '../../../../../../Views/confirmations/utils/transaction-pay';
 import { usePredictPaymentToken } from '../../../../hooks/usePredictPaymentToken';
 import { PREDICT_BALANCE_CHAIN_ID } from '../../../../constants/transactions';
 import { usePredictDefaultPaymentToken } from '../../hooks/usePredictDefaultPaymentToken';
@@ -70,10 +69,7 @@ export function PredictPayWithRow({
   const handlePress = useCallback(() => {
     if (!canEdit) return;
     onPaymentSelectorOpen?.();
-    const navigateTo = isPayWithBottomSheetEnabled()
-      ? Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET
-      : Routes.CONFIRMATION_PAY_WITH_MODAL;
-    navigation.navigate(navigateTo);
+    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET);
   }, [canEdit, navigation, onPaymentSelectorOpen]);
 
   const label = strings('confirm.label.pay_with');

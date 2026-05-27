@@ -26,6 +26,11 @@ import {
 } from '../../Earn/constants/musd';
 import { moneyFormatFiat } from '../utils/moneyFormatFiat';
 import { TELLER_ABI } from '../utils/moneyAccountTransactions';
+import {
+  isMoneyAccountTx,
+  isMoneyDepositTx,
+  nestedTxWithType,
+} from '../utils/moneyTransactionGuards';
 import useMoneyToasts from './useMoneyToasts';
 
 const TELLER_INTERFACE = new ethers.utils.Interface(TELLER_ABI);
@@ -126,29 +131,6 @@ export const useMoneyTransactionStatus = () => {
       pendingCleanups.add(timeoutId);
     };
 
-    const nestedTxWithType = (
-      transactionMeta: TransactionMeta,
-      targetType: TransactionType,
-    ) =>
-      transactionMeta.nestedTransactions?.find(
-        (nested) => nested.type === targetType,
-      );
-
-    const isMoneyDepositTx = (transactionMeta: TransactionMeta) =>
-      transactionMeta.type === TransactionType.moneyAccountDeposit ||
-      Boolean(
-        nestedTxWithType(transactionMeta, TransactionType.moneyAccountDeposit),
-      );
-
-    const isMoneyWithdrawTx = (transactionMeta: TransactionMeta) =>
-      transactionMeta.type === TransactionType.moneyAccountWithdraw ||
-      Boolean(
-        nestedTxWithType(transactionMeta, TransactionType.moneyAccountWithdraw),
-      );
-
-    const isMoneyAccountTx = (transactionMeta: TransactionMeta) =>
-      isMoneyDepositTx(transactionMeta) || isMoneyWithdrawTx(transactionMeta);
-
     const reserveToastKey = (transactionId: string, key: string) => {
       const toastKey = `${transactionId}-${key}`;
       if (shownToastsRef.current.has(toastKey)) return undefined;
@@ -234,9 +216,11 @@ export const useMoneyTransactionStatus = () => {
           break;
         case TransactionStatus.failed:
         case TransactionStatus.dropped:
-        case TransactionStatus.rejected:
         case TransactionStatus.cancelled:
           showFailedFor(transactionMeta);
+          break;
+        case TransactionStatus.rejected:
+          cancelPendingInProgress(transactionMeta.id);
           break;
         default:
           break;

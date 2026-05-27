@@ -91,11 +91,33 @@ describe('useCountdown', () => {
     expect(result.current).toBe('02:00');
   });
 
-  it('handles large countdown values', () => {
+  it('formats values >= 1 hour as H:MM:SS', () => {
     const target = new Date('2026-04-09T13:30:00.000Z').toISOString();
 
     const { result } = renderHook(() => useCountdown(target));
 
-    expect(result.current).toBe('90:00');
+    expect(result.current).toBe('1:30:00');
+  });
+
+  it('formats a full day as H:MM:SS', () => {
+    const target = new Date('2026-04-10T12:00:00.000Z').toISOString();
+
+    const { result } = renderHook(() => useCountdown(target));
+
+    expect(result.current).toBe('24:00:00');
+  });
+
+  it('drops the hours segment when remaining drops below 1 hour', () => {
+    const target = new Date('2026-04-09T13:00:01.000Z').toISOString();
+
+    const { result } = renderHook(() => useCountdown(target));
+
+    expect(result.current).toBe('1:00:01');
+
+    act(() => {
+      jest.advanceTimersByTime(2000);
+    });
+
+    expect(result.current).toBe('59:59');
   });
 });

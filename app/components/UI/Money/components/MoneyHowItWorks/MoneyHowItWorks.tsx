@@ -22,34 +22,47 @@ const MoneyHowItWorks = ({
   apy,
   isLoading = false,
   onHeaderPress,
-}: MoneyHowItWorksProps) => (
-  <Box twClassName="px-4 py-3" testID={MoneyHowItWorksTestIds.CONTAINER}>
-    <MoneySectionHeader
-      title={strings('money.how_it_works.title')}
-      onPress={onHeaderPress}
-    />
-    <Box twClassName="mt-3">
-      <Text
-        variant={TextVariant.BodyMd}
-        color={TextColor.TextAlternative}
-        testID={MoneyHowItWorksTestIds.DESCRIPTION}
-      >
+}: MoneyHowItWorksProps) => {
+  const showApy = !isLoading && isPositiveNumber(apy);
+
+  let descriptionContent: React.ReactNode;
+  if (showApy) {
+    descriptionContent = (
+      <>
         {strings('money.how_it_works.description_prefix')}
-        {!isLoading && isPositiveNumber(apy) && (
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.SuccessDefault}
-            testID={MoneyHowItWorksTestIds.APY}
-          >
-            {' '}
-            {strings('money.apy_label', { percentage: apy })}
-          </Text>
-        )}
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.SuccessDefault}
+          testID={MoneyHowItWorksTestIds.APY}
+        >
+          {' '}
+          {strings('money.apy_label', { percentage: apy })}
+        </Text>
         {strings('money.how_it_works.description_suffix')}
-      </Text>
+      </>
+    );
+  } else {
+    descriptionContent = strings('money.how_it_works.description_no_apy');
+  }
+
+  return (
+    <Box twClassName="px-4 py-3" testID={MoneyHowItWorksTestIds.CONTAINER}>
+      <MoneySectionHeader
+        title={strings('money.how_it_works.title')}
+        onPress={onHeaderPress}
+      />
+      <Box twClassName="mt-3">
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          testID={MoneyHowItWorksTestIds.DESCRIPTION}
+        >
+          {descriptionContent}
+        </Text>
+      </Box>
     </Box>
-  </Box>
-);
+  );
+};
 
 export default MoneyHowItWorks;

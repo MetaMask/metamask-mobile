@@ -1,8 +1,10 @@
 import React from 'react';
+import { PixelRatio } from 'react-native';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PredictCryptoUpDownChart, {
   CRYPTO_UP_DOWN_FORMAT_TIME,
   CRYPTO_UP_DOWN_FORMAT_VALUE,
+  computeBottomPadding,
 } from './PredictCryptoUpDownChart';
 import { useCryptoUpDownChartData } from '../../hooks/useCryptoUpDownChartData';
 import {
@@ -107,7 +109,11 @@ describe('PredictCryptoUpDownChart', () => {
     expect(chart.props.hideControls).toBe(true);
     expect(chart.props.badge).toBe(false);
     expect(chart.props.momentum).toBe(false);
-    expect(chart.props.padding).toEqual({ top: 8, right: 64, bottom: 48 });
+    expect(chart.props.padding).toEqual({
+      top: 8,
+      right: 64,
+      bottom: computeBottomPadding(300, PixelRatio.getFontScale()),
+    });
     expect(chart.props.formatValue).toBe(CRYPTO_UP_DOWN_FORMAT_VALUE);
     expect(chart.props.formatTime).toBe(CRYPTO_UP_DOWN_FORMAT_TIME);
   });
@@ -274,6 +280,28 @@ describe('PredictCryptoUpDownChart', () => {
     expect(onCurrentPriceChange).not.toHaveBeenCalled();
   });
 
+  it('reports current price while Liveline waits for renderable data', () => {
+    const market = createMockMarket();
+    const onCurrentPriceChange = jest.fn();
+
+    mockUseCryptoUpDownChartData.mockReturnValueOnce({
+      data: [{ time: 1, value: 51000 }],
+      value: 51000,
+      loading: true,
+      isLive: true,
+      window: 300,
+    });
+
+    render(
+      <PredictCryptoUpDownChart
+        market={market}
+        onCurrentPriceChange={onCurrentPriceChange}
+      />,
+    );
+
+    expect(onCurrentPriceChange).toHaveBeenCalledWith(51000);
+  });
+
   it('does not report placeholder current price without chart data', () => {
     const market = createMockMarket();
     const onCurrentPriceChange = jest.fn();
@@ -365,6 +393,24 @@ describe('PredictCryptoUpDownChart', () => {
       ['11:59:59 PM local', toUnixSeconds(2024, 0, 1, 23, 59, 59), '11:59:59'],
     ])('formats %s as %p', (_label, input, expected) => {
       expect(formatTime(input)).toBe(expected);
+    });
+  });
+
+  describe('computeBottomPadding', () => {
+    it.each([
+      ['small chart, default font', 280, 1.0, 64],
+      ['large chart, default font', 560, 1.0, 84],
+      ['small chart, 1.5x font', 280, 1.5, 64],
+      ['large chart, 1.5x font', 560, 1.5, 96],
+      ['large chart, 2x font', 560, 2.0, 108],
+      ['below-floor chart shrinks to floor', 100, 1.0, 64],
+    ])('%s -> %dpx', (_label, chartHeight, fontScale, expected) => {
+      expect(computeBottomPadding(chartHeight, fontScale)).toBe(expected);
+    });
+
+    it('never returns less than the minimum padding floor', () => {
+      expect(computeBottomPadding(0, 1.0)).toBeGreaterThanOrEqual(64);
+      expect(computeBottomPadding(50, 0.5)).toBeGreaterThanOrEqual(64);
     });
   });
 });

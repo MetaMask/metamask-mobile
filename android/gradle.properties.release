@@ -31,10 +31,7 @@ android.enableJetifier=true
 # Enable AAPT2 PNG crunching
 android.enablePngCrunchInReleaseBuilds=true
 
-# Play Store distribution architectures. All four ABIs are included now that
-# react-native-fast-crypto (libsecp256k1.so / libcrypto_bridge.so) has been
-# removed and react-native-keychain has been bumped to v10 (libconceal.so
-# fixed). All packaged .so files are 16 KB page-size compliant.
+# ALL architectures for Play Store distribution (differs from E2E which uses x86_64 only)
 reactNativeArchitectures=armeabi-v7a,arm64-v8a,x86,x86_64
 
 # New Architecture + Hermes
