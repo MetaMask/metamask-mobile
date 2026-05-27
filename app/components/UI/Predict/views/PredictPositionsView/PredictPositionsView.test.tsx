@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
+import type { PredictPortfolioModel } from '../../hooks/usePredictPortfolio';
 import { PredictPositionsViewSelectorsIDs } from '../../Predict.testIds';
 import PredictPositionsView from './PredictPositionsView';
 
@@ -19,6 +20,16 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: jest.fn(),
 }));
 
+const mockUsePredictPortfolio = jest.fn();
+jest.mock('../../hooks/usePredictPortfolio', () => ({
+  usePredictPortfolio: () => mockUsePredictPortfolio(),
+}));
+
+let mockPrivacyMode = false;
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => mockPrivacyMode),
+}));
+
 const mockNavigation = {
   canGoBack: jest.fn(),
   goBack: jest.fn(),
@@ -27,6 +38,46 @@ const mockNavigation = {
 
 const mockUseNavigation = useNavigation as jest.Mock;
 const mockUseRoute = useRoute as jest.Mock;
+const mockClaim = jest.fn();
+
+const createPortfolio = (
+  overrides: Partial<PredictPortfolioModel> = {},
+): PredictPortfolioModel => ({
+  accountStateError: null,
+  actionableClaimablePositions: [],
+  activePositions: [],
+  availableBalance: 0,
+  balanceError: null,
+  claim: mockClaim,
+  claimableAmount: 0,
+  claimablePositionCount: 0,
+  claimablePositions: [],
+  claimablePositionsError: null,
+  deposit: jest.fn(),
+  error: null,
+  hasClaimableWinnings: false,
+  isBalanceLoading: false,
+  isClaimPending: false,
+  isDepositPending: false,
+  isLoading: false,
+  isPositionsLoading: false,
+  isRefreshing: false,
+  openPositionCount: 0,
+  openPositions: [],
+  openPositionsError: null,
+  openPositionsValue: 0,
+  portfolioValue: 0,
+  positionsBadgeCount: 0,
+  refetch: jest.fn(),
+  showPnlLine: false,
+  showUnrealizedPnl: false,
+  totalUnrealizedPnlAmount: 0,
+  totalUnrealizedPnlPercent: undefined,
+  walletType: undefined,
+  withdraw: jest.fn(),
+  withdrawTransaction: undefined,
+  ...overrides,
+});
 
 const renderScreen = (initialTab?: 'positions' | 'history') => {
   mockUseRoute.mockReturnValue({
@@ -39,8 +90,10 @@ const renderScreen = (initialTab?: 'positions' | 'history') => {
 describe('PredictPositionsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPrivacyMode = false;
     mockNavigation.canGoBack.mockReturnValue(true);
     mockUseNavigation.mockReturnValue(mockNavigation);
+    mockUsePredictPortfolio.mockReturnValue(createPortfolio());
   });
 
   it('renders the fixed header, summary placeholder, tabs, and positions tab by default', () => {
@@ -55,6 +108,7 @@ describe('PredictPositionsView', () => {
     expect(
       screen.getByTestId(PredictPositionsViewSelectorsIDs.SUMMARY),
     ).toBeOnTheScreen();
+    expect(screen.getByText('$0.00')).toBeOnTheScreen();
     expect(
       screen.getByTestId(PredictPositionsViewSelectorsIDs.TABS),
     ).toBeOnTheScreen();

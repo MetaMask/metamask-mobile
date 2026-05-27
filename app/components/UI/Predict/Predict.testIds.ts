@@ -60,6 +60,10 @@ export const PredictFeedSelectorsIDs = {
 // ========================================
 
 export const PredictPositionsViewSelectorsIDs = {
+  AVAILABLE_BALANCE_LABEL: 'predict-positions-view-available-balance-label',
+  AVAILABLE_BALANCE_SKELETON:
+    'predict-positions-view-available-balance-skeleton',
+  AVAILABLE_BALANCE_VALUE: 'predict-positions-view-available-balance-value',
   BACK_BUTTON: 'predict-positions-view-back-button',
   CLAIM_CTA: 'predict-positions-view-claim-cta',
   CONTAINER: 'predict-positions-view-container',
@@ -69,7 +73,12 @@ export const PredictPositionsViewSelectorsIDs = {
   POSITIONS_TAB: 'predict-positions-view-positions-tab',
   POSITIONS_TAB_CONTENT: 'predict-positions-view-positions-tab-content',
   SUMMARY: 'predict-positions-view-summary',
+  SUMMARY_CARD: 'predict-positions-view-summary-card',
   TABS: 'predict-positions-view-tabs',
+  UNREALIZED_PNL_LABEL: 'predict-positions-view-unrealized-pnl-label',
+  UNREALIZED_PNL_ROW: 'predict-positions-view-unrealized-pnl-row',
+  UNREALIZED_PNL_SKELETON: 'predict-positions-view-unrealized-pnl-skeleton',
+  UNREALIZED_PNL_VALUE: 'predict-positions-view-unrealized-pnl-value',
 } as const;
 
 export const getPredictFeedSelector = {

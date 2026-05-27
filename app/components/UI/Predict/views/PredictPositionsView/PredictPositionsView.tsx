@@ -6,6 +6,7 @@ import {
 } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable } from 'react-native';
+import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Box,
@@ -17,6 +18,9 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import PredictPositionsViewHeader from '../../components/PredictPositionsViewHeader';
+import { usePredictPortfolio } from '../../hooks/usePredictPortfolio';
 import { PredictPositionsViewSelectorsIDs } from '../../Predict.testIds';
 import type {
   PredictNavigationParamList,
@@ -83,6 +87,8 @@ const PredictPositionsView = () => {
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictPositions'>>();
   const tw = useTailwind();
+  const portfolio = usePredictPortfolio();
+  const privacyMode = useSelector(selectPrivacyMode);
   const [activeTab, setActiveTab] = useState<PredictPositionsTabKey>(
     route.params?.initialTab ?? 'positions',
   );
@@ -139,7 +145,11 @@ const PredictPositionsView = () => {
         </Box>
 
         <Box twClassName="px-4">
-          <Box testID={PredictPositionsViewSelectorsIDs.SUMMARY} />
+          <PredictPositionsViewHeader
+            isPrivacyMode={Boolean(privacyMode)}
+            onClaimPress={portfolio.claim}
+            portfolio={portfolio}
+          />
           <PredictPositionsTabs
             tabs={tabs}
             activeTab={activeTab}
