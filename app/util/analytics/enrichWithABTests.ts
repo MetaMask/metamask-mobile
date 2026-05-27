@@ -30,10 +30,24 @@ const cloneEventWithAssignments = <
   return clonedEvent;
 };
 
-const hasEventName = (
+const matchesMapping = (
   mapping: ABTestAnalyticsMapping,
-  eventName: string,
-): boolean => mapping.eventNames.includes(eventName);
+  event: { name: string; properties: Record<string, unknown> },
+): boolean => {
+  if (!mapping.eventNames.includes(event.name)) {
+    return false;
+  }
+
+  const requirements = mapping.eventPropertyRequirements?.[event.name];
+  if (!requirements) {
+    return true;
+  }
+
+  return Object.entries(requirements).every(
+    ([propertyKey, expectedValue]) =>
+      event.properties[propertyKey] === expectedValue,
+  );
+};
 
 export const getRemoteFeatureFlagsFromState = (
   state: StateWithPartialEngine | null | undefined,
@@ -58,7 +72,7 @@ export const enrichWithABTests = <
     event.properties.active_ab_tests,
   );
   const relevantMappings = AB_TEST_ANALYTICS_MAPPINGS.filter((mapping) =>
-    hasEventName(mapping, event.name),
+    matchesMapping(mapping, event),
   );
 
   if (relevantMappings.length === 0) {

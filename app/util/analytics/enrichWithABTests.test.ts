@@ -47,7 +47,7 @@ describe('enrichWithABTests', () => {
     ]);
   });
 
-  it('injects the same swap AB assignments for Asset Viewed as for Unified SwapBridge Page Viewed', () => {
+  it('injects swap AB assignments for Asset Viewed only when trade_type is Swaps', () => {
     const event = AnalyticsEventBuilder.createEventBuilder('Asset Viewed')
       .addProperties({
         trade_type: 'Swaps',
@@ -71,6 +71,28 @@ describe('enrichWithABTests', () => {
       ),
     ]);
   });
+
+  it.each(['Perps', 'Predict'] as const)(
+    'does not inject swap AB assignments for Asset Viewed when trade_type is %s',
+    (tradeType) => {
+      const event = AnalyticsEventBuilder.createEventBuilder('Asset Viewed')
+        .addProperties({
+          trade_type: tradeType,
+          implementation_type: 'native',
+        })
+        .build();
+
+      const result = enrichWithABTests(event, {
+        swapsSWAPS4135AbtestNumpadQuickAmounts: { name: 'treatment' },
+        swapsSWAPS4242AbtestTokenSelectorBalanceLayout: 'control',
+      });
+
+      expect(result.properties).toEqual({
+        trade_type: tradeType,
+        implementation_type: 'native',
+      });
+    },
+  );
 
   it('does nothing when the event is not allowlisted', () => {
     const event = AnalyticsEventBuilder.createEventBuilder('Unrelated Event')
