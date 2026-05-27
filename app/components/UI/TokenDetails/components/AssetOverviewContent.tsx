@@ -379,7 +379,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     [musdConvertibleTokens],
   );
   const { navigateToCash } = useCashNavigation();
-  const isMusdAsset = isMusdToken(token.address);
 
   const securityConfig = useMemo(
     () => getResultTypeConfig(securityData?.resultType),
@@ -719,7 +718,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   {isStockToken(token as BridgeToken) && (
                     <StockBadge token={token as BridgeToken} />
                   )}
-                  {isMusdAsset && (
+                  {showMusdConvertSection && (
                     <Pressable
                       onPress={navigateToCash}
                       hitSlop={8}
@@ -849,7 +848,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           <View style={styles.tokenDetailsWrapper}>
             <TokenDetails asset={token} />
           </View>
-          {isMusdToken(token.address) && (
+          {showMusdConvertSection && (
             <Box twClassName="px-4 py-3">
               <Text
                 variant={TextVariant.HeadingMd}

@@ -162,8 +162,10 @@ jest.mock('../../Earn/components/Musd/MusdConversionAssetOverviewCta', () => ({
 
 const mockUseMusdConversionTokens = jest.fn();
 jest.mock('../../Earn/hooks/useMusdConversionTokens', () => ({
-  useMusdConversionTokens: (...args: unknown[]) =>
-    mockUseMusdConversionTokens(...args),
+  useMusdConversionTokens: (...args: unknown[]) => ({
+    isConversionToken: () => false,
+    ...(mockUseMusdConversionTokens(...args) ?? {}),
+  }),
 }));
 
 jest.mock('../../Earn/hooks/useMusdConversionEligibility', () => ({

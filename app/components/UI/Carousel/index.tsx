@@ -51,8 +51,6 @@ import AppConstants from '../../../core/AppConstants';
 
 const MAX_CAROUSEL_SLIDES = 8;
 
-const MUSD_CONVERT_ATOKENS_VARIABLE_NAME = 'musdConvertAtokens';
-
 // Constants from original styles
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const BANNER_WIDTH = SCREEN_WIDTH - 32;
@@ -312,7 +310,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
       ///: END:ONLY_INCLUDE_IF
 
       if (
-        getSlideVariableName(slide) === MUSD_CONVERT_ATOKENS_VARIABLE_NAME &&
+        getSlideVariableName(slide) === 'musdConvertAtokens' &&
         !userHoldsAtoken
       ) {
         return false;
