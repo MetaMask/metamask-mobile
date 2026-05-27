@@ -316,7 +316,43 @@ class PerformanceReporter {
             );
           }
 
-          // Update failed test entry with quality gates info
+          // Quality gates exceeded → always mark the test as failed in the
+          // report, regardless of what Playwright reports as result.status
+          // (fixture teardown errors can surface as 'interrupted' in some
+          // Playwright versions instead of 'failed').
+          if (qualityGatesResult.hasThresholds && !qualityGatesResult.passed) {
+            metricsEntry.testFailed = true;
+            metricsEntry.failureReason = 'quality_gates_exceeded';
+
+            // Ensure the test is tracked in failedTestsByTeam even when
+            // trackFailedTest() was skipped because result.status was not
+            // 'failed' or 'timedOut'.
+            const teamId = teamInfo.teamId;
+            if (!this.failedTestsByTeam[teamId]) {
+              this.failedTestsByTeam[teamId] = { team: teamInfo, tests: [] };
+            }
+            const alreadyTracked = this.failedTestsByTeam[teamId].tests.find(
+              (t) => t.testName === test.title && t.projectName === projectName,
+            );
+            if (!alreadyTracked) {
+              const sessionIdFromAnnotation =
+                result.annotations?.find((a) => a.type === 'sessionId')
+                  ?.description ?? null;
+              this.failedTestsByTeam[teamId].tests.push({
+                testName: test.title,
+                testFilePath,
+                tags: testTags,
+                status: 'failed',
+                duration: result.duration,
+                projectName,
+                sessionId: sessionIdFromAnnotation,
+                qualityGates: qualityGatesResult,
+                failureReason: 'quality_gates_exceeded',
+              });
+            }
+          }
+
+          // Update existing failed test entry with quality gates details
           if (metricsEntry.testFailed) {
             const updates: Record<string, unknown> = {
               qualityGates: qualityGatesResult,
