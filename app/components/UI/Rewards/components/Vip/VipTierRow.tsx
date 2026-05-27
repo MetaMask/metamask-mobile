@@ -25,7 +25,10 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { formatCompactValue, formatNumber } from '../../utils/formatUtils';
-import type { VipTierDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
+import type {
+  VipLocalizedTextDto,
+  VipTierDto,
+} from '../../../../../core/Engine/controllers/rewards-controller/types';
 import {
   VIP_GOLD_BACKGROUND_MUTED,
   VIP_GOLD_TEXT_DEFAULT,
@@ -48,6 +51,13 @@ export const VIP_TIER_ROW_TEST_IDS = {
 
 interface VipTierRowProps {
   tier: VipTierDto;
+  localizedText: Pick<
+    VipLocalizedTextDto,
+    | 'revenueShareTitle'
+    | 'swapsFeeTitle'
+    | 'perpsFeeTitle'
+    | 'referralPointsTitle'
+  >;
   isNext?: boolean;
   isLast?: boolean;
 }
@@ -126,6 +136,7 @@ const VipTierDetailRow: React.FC<VipTierDetailRowProps> = ({
 
 const VipTierRow: React.FC<VipTierRowProps> = ({
   tier,
+  localizedText,
   isNext = false,
   isLast = false,
 }) => {
@@ -219,26 +230,26 @@ const VipTierRow: React.FC<VipTierRowProps> = ({
         >
           <Box twClassName="gap-2 px-4 pb-5">
             <VipTierDetailRow
-              label={strings('rewards.vip.revenue_share_label')}
+              label={localizedText.revenueShareTitle}
               value={`${revenueSharePercentage}%`}
               testID={VIP_TIER_ROW_TEST_IDS.REVENUE_SHARE_FEE}
             />
             <VipTierDetailRow
-              label={strings('rewards.vip.swap_fees_label')}
+              label={localizedText.swapsFeeTitle}
               value={strings('rewards.vip.bps_value', {
                 bps: tier.swapsBps,
               })}
               testID={VIP_TIER_ROW_TEST_IDS.SWAPS_FEE}
             />
             <VipTierDetailRow
-              label={strings('rewards.vip.perps_fees_label')}
+              label={localizedText.perpsFeeTitle}
               value={strings('rewards.vip.bps_value', {
                 bps: tier.perpsBps,
               })}
               testID={VIP_TIER_ROW_TEST_IDS.PERPS_FEE}
             />
             <VipTierDetailRow
-              label={strings('rewards.vip.referral_points_label')}
+              label={localizedText.referralPointsTitle}
               value={`${referralPointsPercentage}%`}
               testID={VIP_TIER_ROW_TEST_IDS.REFERRAL_POINTS}
             />

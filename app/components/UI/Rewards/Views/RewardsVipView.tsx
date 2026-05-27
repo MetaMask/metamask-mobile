@@ -49,6 +49,7 @@ export const REWARDS_VIP_VIEW_TEST_IDS = {
   REVENUE_SHARE_TILE: 'rewards-vip-view-revenue-share-tile',
   SWAPS_FEE_TILE: 'rewards-vip-view-swaps-fee-tile',
   PERPS_FEE_TILE: 'rewards-vip-view-perps-fee-tile',
+  REFERRAL_POINTS_TILE: 'rewards-vip-view-referral-points-tile',
   EQUITY_REBATE_TILE: 'rewards-vip-view-equity-rebate-tile',
 } as const;
 
@@ -96,6 +97,13 @@ const RewardsVipView: React.FC = () => {
   const showSkeleton = (!hasAttemptedFetch || isLoading) && !dashboard;
   const showError = hasError && !dashboard;
   const headerTitle = dashboard?.program?.name ?? '';
+  const currentTierDetails = dashboard
+    ? dashboard.tiers.find(
+        (tier) =>
+          tier.id === dashboard.currentTier.id ||
+          tier.tier === dashboard.currentTier.tier,
+      )
+    : undefined;
 
   return (
     <ErrorBoundary navigation={navigation} view="RewardsVipView">
@@ -131,7 +139,7 @@ const RewardsVipView: React.FC = () => {
               <Skeleton style={tw.style('h-44 rounded-2xl')} />
               <Skeleton style={tw.style('h-8 w-44 rounded-lg')} />
               <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
-                {[0, 1, 2].map((index) => (
+                {[0, 1, 2, 3].map((index) => (
                   <Skeleton
                     key={index}
                     style={tw.style(
@@ -231,6 +239,15 @@ const RewardsVipView: React.FC = () => {
                       dashboard.localizedText.nextTierPerpsFeeDelta
                     }
                     testID={REWARDS_VIP_VIEW_TEST_IDS.PERPS_FEE_TILE}
+                  />
+                  <VipFeeTile
+                    label={dashboard.localizedText.referralPointsTitle}
+                    currentBps={currentTierDetails?.referralCarryoverBps}
+                    unit="%"
+                    nextTierLabel={
+                      dashboard.localizedText.nextTierReferralPointsDelta
+                    }
+                    testID={REWARDS_VIP_VIEW_TEST_IDS.REFERRAL_POINTS_TILE}
                   />
                 </ScrollView>
               </Box>

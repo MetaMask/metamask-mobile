@@ -285,6 +285,7 @@ const defaultDashboard: VipDashboardState = {
     swapsFeeTitle: 'Swaps fee',
     perpsFeeTitle: 'Perps fee',
     revenueShareTitle: 'Revenue share',
+    referralPointsTitle: 'Referral points',
     statsTitle: 'Volume',
     pointsTitle: 'Points',
     swapsVolumeTitle: 'Swaps Volume',
@@ -299,6 +300,7 @@ const defaultDashboard: VipDashboardState = {
     nextTierSwapsFeeDelta: '↓ 12 bps next tier',
     nextTierPerpsFeeDelta: '↓ 3 bps next tier',
     nextTierRevenueShareDelta: '↑ 2% next tier',
+    nextTierReferralPointsDelta: '↑ 20% next tier',
   },
   lastFetched: 0,
 };
@@ -376,7 +378,7 @@ describe('RewardsVipView', () => {
     expect(getByTestId(REWARDS_VIP_VIEW_TEST_IDS.SKELETON)).toBeOnTheScreen();
     expect(
       getAllByTestId(REWARDS_VIP_VIEW_TEST_IDS.FEE_TILE_SKELETON),
-    ).toHaveLength(3);
+    ).toHaveLength(4);
   });
 
   it('renders skeleton on the pre-fetch idle window so there is no blank flash', () => {
@@ -439,6 +441,11 @@ describe('RewardsVipView', () => {
       getByTestId(REWARDS_VIP_VIEW_TEST_IDS.PERPS_FEE_TILE),
     ).toBeOnTheScreen();
     expect(
+      getByTestId(REWARDS_VIP_VIEW_TEST_IDS.REFERRAL_POINTS_TILE),
+    ).toBeOnTheScreen();
+    expect(getByText('Referral points')).toBeOnTheScreen();
+    expect(getByText('↑ 20% next tier')).toBeOnTheScreen();
+    expect(
       getByTestId(VIP_VOLUME_SECTION_TEST_IDS.CONTAINER),
     ).toBeOnTheScreen();
     expect(
@@ -499,8 +506,9 @@ describe('RewardsVipView', () => {
       getByTestId(REWARDS_VIP_VIEW_TEST_IDS.REVENUE_SHARE_TILE),
     ).toBeOnTheScreen();
     // Revenue share tile drops its next-tier row on the top tier while the
-    // swap and perps tiles keep theirs (still sourced from the backend).
-    expect(getAllByTestId(VIP_FEE_TILE_TEST_IDS.NEXT)).toHaveLength(2);
+    // swap, perps, and referral points tiles keep theirs (still sourced from
+    // the backend).
+    expect(getAllByTestId(VIP_FEE_TILE_TEST_IDS.NEXT)).toHaveLength(3);
   });
 
   it('does not render the equity rebate tile', () => {
@@ -545,6 +553,7 @@ describe('RewardsVipView', () => {
           swapsFeeTitle: 'Swap fees',
           perpsFeeTitle: 'Perp fees',
           revenueShareTitle: 'Revenue',
+          referralPointsTitle: 'Referral points',
           statsTitle: 'Volume V2',
           pointsTitle: 'Points V2',
           swapsVolumeTitle: 'Swaps Volume V2',
@@ -560,6 +569,7 @@ describe('RewardsVipView', () => {
           nextTierSwapsFeeDelta: '↓ 12',
           nextTierPerpsFeeDelta: '↓ 3',
           nextTierRevenueShareDelta: '↑ 2% next tier',
+          nextTierReferralPointsDelta: '↑ 20% next tier',
         },
       },
       isLoading: false,
@@ -574,7 +584,9 @@ describe('RewardsVipView', () => {
     expect(getByText('Swap fees')).toBeOnTheScreen();
     expect(getByText('Perp fees')).toBeOnTheScreen();
     expect(getByText('Revenue')).toBeOnTheScreen();
+    expect(getByText('Referral points')).toBeOnTheScreen();
     expect(getByText('↑ 2% next tier')).toBeOnTheScreen();
+    expect(getByText('↑ 20% next tier')).toBeOnTheScreen();
     expect(getByText('Volume V2')).toBeOnTheScreen();
     expect(getByText('Points V2')).toBeOnTheScreen();
     expect(getByText('Swaps Volume V2')).toBeOnTheScreen();

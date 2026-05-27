@@ -110,6 +110,7 @@ export type VipLocalizedTextDto = {
   swapsFeeTitle: string;
   perpsFeeTitle: string;
   revenueShareTitle: string;
+  referralPointsTitle: string;
   statsTitle: string;
   pointsTitle: string;
   swapsVolumeTitle: string;
@@ -127,6 +128,7 @@ export type VipLocalizedTextDto = {
   nextTierSwapsFeeDelta: string;
   nextTierPerpsFeeDelta: string;
   nextTierRevenueShareDelta: string;
+  nextTierReferralPointsDelta: string;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
