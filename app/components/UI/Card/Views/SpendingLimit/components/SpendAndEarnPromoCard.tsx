@@ -1,11 +1,13 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import {
   Box,
   Button,
   ButtonSize,
   ButtonVariant,
+  FontWeight,
   Text,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -14,7 +16,6 @@ import ShimmerOverlay from './ShimmerOverlay';
 
 export interface SpendAndEarnPromoCardProps {
   apyPercent?: number;
-  cashbackPercent: number;
   onPress: () => void;
   testID?: string;
   accessibilityLabel?: string;
@@ -35,32 +36,17 @@ const PRIMARY_BUTTON_RADIUS = 8;
 /**
  * Promo card highlighting the Money account spend-and-earn benefit.
  *
- * Renders a title, a single-paragraph description that embeds the current APY
- * and mUSD cashback rate, and a dedicated primary CTA. The whole card is
- * pressable; the CTA has a pronounced horizontal shimmer to draw the eye.
+ * Renders a title, description with a highlighted APY rate, and a dedicated
+ * primary CTA. The whole card is pressable; the CTA has a pronounced horizontal
+ * shimmer to draw the eye.
  */
 const SpendAndEarnPromoCard: React.FC<SpendAndEarnPromoCardProps> = ({
   apyPercent,
-  cashbackPercent,
   onPress,
   testID = 'use-money-account-cta',
   accessibilityLabel,
 }) => {
   const tw = useTailwind();
-
-  const description = useMemo(
-    () =>
-      apyPercent !== undefined
-        ? strings('card.card_spending_limit.spend_and_earn_description', {
-            apy: apyPercent,
-            cashback: cashbackPercent,
-          })
-        : strings(
-            'card.card_spending_limit.spend_and_earn_description_no_apy',
-            { cashback: cashbackPercent },
-          ),
-    [apyPercent, cashbackPercent],
-  );
 
   const resolvedAccessibilityLabel =
     accessibilityLabel ??
@@ -77,15 +63,37 @@ const SpendAndEarnPromoCard: React.FC<SpendAndEarnPromoCardProps> = ({
     >
       <Box twClassName="p-4 rounded-2xl bg-background-muted gap-3">
         <Box twClassName="gap-1">
-          <Text
-            variant={TextVariant.BodyMd}
-            twClassName="text-text-default font-medium"
-          >
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
             {strings('card.card_spending_limit.spend_and_earn_title')}
           </Text>
-          <Text variant={TextVariant.BodySm} twClassName="text-text-default">
-            {description}
-          </Text>
+          {apyPercent !== undefined ? (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {strings(
+                'card.card_spending_limit.spend_and_earn_description_prefix',
+              )}
+              <Text color={TextColor.SuccessDefault}>
+                {strings(
+                  'card.card_spending_limit.spend_and_earn_description_apy',
+                  { apy: apyPercent },
+                )}
+              </Text>
+              {strings(
+                'card.card_spending_limit.spend_and_earn_description_suffix',
+              )}
+            </Text>
+          ) : (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {strings(
+                'card.card_spending_limit.spend_and_earn_description_no_apy',
+              )}
+            </Text>
+          )}
         </Box>
         <Box twClassName="self-start">
           <ShimmerOverlay

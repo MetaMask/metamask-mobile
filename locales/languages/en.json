@@ -8344,10 +8344,12 @@
       "money_account_label": "Money account",
       "money_account_token_symbol": "mUSD",
       "use_money_account_cta": "Use Money account",
-      "spend_and_earn_title": "Spend while you earn",
-      "spend_and_earn_description": "Spend with your Money account and earn up to {{apy}}% APY on your balance. Also get {{cashback}}% mUSD back.",
-      "spend_and_earn_description_no_apy": "Spend with your Money account and earn APY on your balance. Also get {{cashback}}% mUSD back.",
-      "spend_and_earn_cta": "Link to Money account"
+      "spend_and_earn_title": "Spend and earn",
+      "spend_and_earn_description_prefix": "Link your balance to your card and get mUSD back on purchases. Plus, earn up to ",
+      "spend_and_earn_description_apy": "{{apy}}% APY",
+      "spend_and_earn_description_suffix": " on your balance.",
+      "spend_and_earn_description_no_apy": "Link your balance to your card and get mUSD back on purchases.",
+      "spend_and_earn_cta": "Link card"
     },
     "cashback_screen": {
       "title": "mUSD Back",

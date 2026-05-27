@@ -320,7 +320,6 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
         {canShowMoneyAccountCta && (
           <SpendAndEarnPromoCard
             apyPercent={moneyAccountApyPercent}
-            cashbackPercent={hasMetalCard ? 3 : 1}
             onPress={selectMoneyAccountAsSource}
           />
         )}
