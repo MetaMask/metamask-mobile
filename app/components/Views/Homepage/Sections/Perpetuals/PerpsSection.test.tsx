@@ -213,11 +213,11 @@ jest.mock('./components/PerpsMarketTileCard', () => {
   };
 });
 
-jest.mock('../../../TrendingView/feeds/perps/PerpsPillItem', () => {
+jest.mock('../../../../UI/Perps/components/PerpsPillItem', () => {
   const { TouchableOpacity, Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({
+    PerpsPillItem: ({
       item,
       onNavigateToMarketDetails,
     }: {
