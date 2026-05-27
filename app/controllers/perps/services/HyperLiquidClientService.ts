@@ -300,6 +300,8 @@ export class HyperLiquidClientService {
         wallet: effectiveWallet as any, // eslint-disable-line @typescript-eslint/no-explicit-any -- Type widening for SDK compatibility
         transport: this.#httpTransport,
       });
+    } else {
+      this.#exchangeClient = undefined;
     }
   }
 

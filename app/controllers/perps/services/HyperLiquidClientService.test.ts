@@ -1659,6 +1659,8 @@ describe('HyperLiquidClientService', () => {
       expect((ExchangeClient as jest.Mock).mock.calls.length).toBe(
         exchangeCallsBefore,
       );
+      // isInitialized() must be false — exchangeClient was never created
+      expect(freshService.isInitialized()).toBe(false);
     });
 
     it('performDisconnection resets isReconnecting flag', async () => {
