@@ -137,6 +137,7 @@ export interface UseQuickBuyControllerResult {
   handleAmountAreaPress: () => void;
   handleAmountChange: (text: string) => void;
   handleToggleAmountDisplay: () => void;
+  handleSelectSourceToken: (token: BridgeToken) => void;
   handleConfirm: () => Promise<void>;
 }
 
@@ -464,6 +465,19 @@ export function useQuickBuyController(
     setAmountDisplayMode((mode) => (mode === 'fiat' ? 'crypto' : 'fiat'));
   }, []);
 
+  const handleSelectSourceToken = useCallback(
+    (token: BridgeToken) => {
+      setSelectedSourceToken(token);
+      setUsdAmount('');
+      setSliderPercent(0);
+      lastSnappedSliderPercentRef.current = 0;
+      lastTrackedAmountRef.current = '';
+      lastInputMethodRef.current =
+        SocialLeaderboardEventValues.AMOUNT_SELECTION_METHOD.SLIDER;
+    },
+    [lastInputMethodRef, lastTrackedAmountRef],
+  );
+
   const handleAmountChange = useCallback(
     (text: string) => {
       lastInputMethodRef.current =
@@ -753,6 +767,7 @@ export function useQuickBuyController(
     handleAmountAreaPress,
     handleAmountChange,
     handleToggleAmountDisplay,
+    handleSelectSourceToken,
     handleConfirm,
   };
 }
