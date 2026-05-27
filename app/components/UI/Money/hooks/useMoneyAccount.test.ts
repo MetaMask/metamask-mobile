@@ -227,10 +227,12 @@ describe('useMoneyAccountDeposit', () => {
     });
 
     expect(caught).toBe(txError);
-    expect(Logger.error).toHaveBeenCalledWith(
-      txError,
-      '[Money Account] Deposit transaction failed',
-    );
+    expect(Logger.error).toHaveBeenCalledWith(txError, {
+      tags: {
+        feature: 'money-account',
+        context: 'initiateDeposit.add_batch_failed',
+      },
+    });
   });
 
   it('throws when networkClientId cannot be resolved', async () => {
@@ -379,10 +381,12 @@ describe('useMoneyAccountWithdrawal', () => {
     });
 
     expect(caught).toBe(txError);
-    expect(Logger.error).toHaveBeenCalledWith(
-      txError,
-      '[Money Account] Withdrawal transaction failed',
-    );
+    expect(Logger.error).toHaveBeenCalledWith(txError, {
+      tags: {
+        feature: 'money-account',
+        context: 'initiateWithdrawal.add_batch_failed',
+      },
+    });
   });
 
   it('throws when networkClientId cannot be resolved', async () => {
