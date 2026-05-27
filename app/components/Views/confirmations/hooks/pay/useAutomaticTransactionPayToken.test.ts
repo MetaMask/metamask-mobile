@@ -18,8 +18,11 @@ import {
   isHardwareAccount,
   isQRHardwareAccount,
 } from '../../../../../util/address';
-import { TransactionType } from '@metamask/transaction-controller';
-import { TransactionPayRequiredToken } from '@metamask/transaction-pay-controller';
+import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
+import {
+  PaymentOverride,
+  TransactionPayRequiredToken,
+} from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
@@ -27,7 +30,9 @@ import { AssetType } from '../../types/token';
 import { useWithdrawTokenFilter } from './useWithdrawTokenFilter';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
+import { MUSD_TOKEN_ADDRESS } from '../../../../UI/Earn/constants/musd';
 import { selectLastWithdrawTokenByType } from '../../../../../selectors/transactionController';
+import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../transactions/useTransactionAccountOverride');
@@ -1076,5 +1081,68 @@ describe('useAutomaticTransactionPayToken', () => {
     rerender(undefined);
 
     expect(setPayTokenMock).not.toHaveBeenCalled();
+  });
+
+  it('selects MUSD on MONAD when payment override is MoneyAccount', () => {
+    jest
+      .mocked(selectPaymentOverrideByTransactionId)
+      .mockReturnValue(PaymentOverride.MoneyAccount);
+
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [
+        {
+          address: TOKEN_ADDRESS_2_MOCK,
+          chainId: CHAIN_ID_2_MOCK,
+        },
+        {
+          address: TOKEN_ADDRESS_1_MOCK,
+          chainId: CHAIN_ID_1_MOCK,
+        },
+      ] as AssetType[],
+      hasTokens: true,
+    });
+
+    runHook();
+
+    expect(setPayTokenMock).toHaveBeenCalledWith({
+      address: MUSD_TOKEN_ADDRESS,
+      chainId: CHAIN_IDS.MONAD,
+    });
+  });
+
+  it('does not select MUSD on MONAD when payment override is MoneyAccount in post-quote flow', () => {
+    jest
+      .mocked(selectPaymentOverrideByTransactionId)
+      .mockReturnValue(PaymentOverride.MoneyAccount);
+
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: transactionIdMock,
+      type: TransactionType.moneyAccountWithdraw,
+      txParams: { from: '0xdc47789de4ceff0e8fe9d15d728af7f17550c164' },
+    } as never);
+
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [
+        {
+          address: TOKEN_ADDRESS_2_MOCK,
+          chainId: CHAIN_ID_2_MOCK,
+        },
+      ] as AssetType[],
+      hasTokens: true,
+    });
+
+    runHook({
+      preferredToken: {
+        address: PREFERRED_TOKEN_ADDRESS_MOCK as Hex,
+        chainId: PREFERRED_CHAIN_ID_MOCK as Hex,
+      },
+    });
+
+    // For moneyAccountWithdraw (post-quote), the preferredToken takes priority,
+    // not the MUSD/MONAD override, because postQuoteTransactionType is set
+    expect(setPayTokenMock).not.toHaveBeenCalledWith({
+      address: MUSD_TOKEN_ADDRESS,
+      chainId: CHAIN_IDS.MONAD,
+    });
   });
 });

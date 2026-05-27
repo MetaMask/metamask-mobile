@@ -1,0 +1,165 @@
+name: 'Android Play Store manifest validation'
+description: >
+  Builds the prodRelease variant used for Play uploads (same manifest merge path), runs Android Lint
+  on that variant, produces a signed release bundle using the repo debug keystore via AGP signing
+  injection, and runs bundletool validate on the AAB.
+
+runs:
+  using: composite
+  steps:
+    - name: Set up JDK 17
+      uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00
+      with:
+        distribution: temurin
+        java-version: '17'
+
+    # Third-party actions such as android-actions/setup-android are not allowlisted for this org;
+    # install SDK components with Google's cmdline-tools + sdkmanager (same packages as android/build.gradle).
+    - name: Cache Gradle
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-android-manifest-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-android-manifest-
+
+    - name: Cache Android SDK
+      id: android-sdk-cache
+      uses: actions/cache@v4
+      with:
+        path: ~/android-sdk
+        key: ${{ runner.os }}-android-sdk-manifest-v2-cmd11076708-api35-ndk26.1-cmake322
+
+    - name: Install Android SDK (cmdline-tools + packages)
+      if: steps.android-sdk-cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        set -euo pipefail
+        CMDLINE_TOOLS_BUILD=11076708
+        SDK_ROOT="${ANDROID_SDK_ROOT:-$HOME/android-sdk}"
+        mkdir -p "$SDK_ROOT"
+        TMPZIP="$(mktemp)"
+        curl -fsSL -o "$TMPZIP" \
+          "https://dl.google.com/android/repository/commandlinetools-linux-${CMDLINE_TOOLS_BUILD}_latest.zip"
+        rm -rf "$SDK_ROOT/cmdline-tools"
+        unzip -q "$TMPZIP" -d "$SDK_ROOT/cmdline-tools-staging"
+        rm -f "$TMPZIP"
+        mkdir -p "$SDK_ROOT/cmdline-tools"
+        mv "$SDK_ROOT/cmdline-tools-staging/cmdline-tools" "$SDK_ROOT/cmdline-tools/latest"
+        rm -rf "$SDK_ROOT/cmdline-tools-staging"
+
+        SDKMANAGER="$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+        # yes exits with SIGPIPE when sdkmanager closes stdin; with pipefail that fails the step.
+        set +o pipefail
+        yes | "$SDKMANAGER" --sdk_root="$SDK_ROOT" --licenses >/dev/null
+        set -o pipefail
+        "$SDKMANAGER" --sdk_root="$SDK_ROOT" \
+          "platform-tools" \
+          "platforms;android-33" \
+          "platforms;android-34" \
+          "platforms;android-35" \
+          "build-tools;33.0.0" \
+          "build-tools;34.0.0" \
+          "build-tools;35.0.0" \
+          "ndk;26.1.10909125" \
+          "cmake;3.22.1"
+
+    - name: Configure Android SDK environment
+      shell: bash
+      run: |
+        SDK_ROOT="${ANDROID_SDK_ROOT:-$HOME/android-sdk}"
+        echo "ANDROID_SDK_ROOT=${SDK_ROOT}" >> "$GITHUB_ENV"
+        echo "ANDROID_HOME=${SDK_ROOT}" >> "$GITHUB_ENV"
+        echo "${SDK_ROOT}/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
+        echo "${SDK_ROOT}/platform-tools" >> "$GITHUB_PATH"
+
+    - uses: actions/setup-node@v6
+      with:
+        node-version-file: '.nvmrc'
+        cache: yarn
+
+    - name: Restore .metamask folder
+      id: restore-metamask
+      uses: actions/cache@v4
+      with:
+        path: .metamask
+        key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
+
+    - name: Install Foundry if cache missed
+      if: steps.restore-metamask.outputs.cache-hit != 'true'
+      shell: bash
+      run: yarn install:foundryup
+
+    - name: Install Yarn dependencies with retry
+      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+      with:
+        timeout_minutes: 10
+        max_attempts: 3
+        retry_wait_seconds: 30
+        command: yarn install --immutable
+
+    - name: Project setup for CI (Android tooling path)
+      shell: bash
+      run: yarn setup:github-ci --no-build-ios
+
+    - name: Write google-services.json
+      shell: bash
+      run: |
+        set -euo pipefail
+        # Caller workflow must set GOOGLE_SERVICES_B64_ANDROID (job env from GitHub secret).
+        if [[ -z "${GOOGLE_SERVICES_B64_ANDROID:-}" ]]; then
+          echo "::error::GOOGLE_SERVICES_B64_ANDROID is not set; cannot run Play-shaped Android build."
+          exit 1
+        fi
+        echo -n "$GOOGLE_SERVICES_B64_ANDROID" | base64 -d > android/app/google-services.json
+
+    - name: Configure Gradle for GitHub Actions
+      shell: bash
+      run: cp android/gradle.properties.github android/gradle.properties
+
+    - name: Cache bundletool
+      id: bundletool-cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ runner.temp }}/bundletool-all.jar
+        key: bundletool-1.18.3-jar
+
+    - name: Download bundletool
+      if: steps.bundletool-cache.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        BUNDLETOOL_URL: https://github.com/google/bundletool/releases/download/1.18.3/bundletool-all-1.18.3.jar
+      run: curl -fsSL -o "${RUNNER_TEMP}/bundletool-all.jar" "$BUNDLETOOL_URL"
+
+    - name: Lint, bundle (debug-signed), validate with bundletool
+      shell: bash
+      env:
+        SENTRY_DISABLE_AUTO_UPLOAD: true
+      run: |
+        set -euo pipefail
+        STORE_FILE="${GITHUB_WORKSPACE}/android/keystores/debug.keystore"
+        cd android
+        chmod +x ./gradlew
+        ./gradlew \
+          :app:lintProdRelease \
+          :app:bundleProdRelease \
+          --no-daemon \
+          --stacktrace \
+          -Pandroid.injected.signing.store.file="$STORE_FILE" \
+          -Pandroid.injected.signing.store.password=android \
+          -Pandroid.injected.signing.key.alias=androiddebugkey \
+          -Pandroid.injected.signing.key.password=android
+
+        # Exactly one AAB for prodRelease (main prod Play track).
+        shopt -s nullglob
+        aabs=( "$GITHUB_WORKSPACE/android/app/build/outputs/bundle/prodRelease/"*.aab )
+        shopt -u nullglob
+        if [[ "${#aabs[@]}" -ne 1 ]]; then
+          echo "::error::Expected exactly one .aab under prodRelease; found ${#aabs[@]}"
+          find "$GITHUB_WORKSPACE/android/app/build/outputs/bundle/prodRelease" -maxdepth 2 -print || true
+          exit 1
+        fi
+        echo "Validating bundle: ${aabs[0]}"
+        java -jar "${RUNNER_TEMP}/bundletool-all.jar" validate --bundle="${aabs[0]}"
