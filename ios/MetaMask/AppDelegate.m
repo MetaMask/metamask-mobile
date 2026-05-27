@@ -120,7 +120,8 @@ static Braze *_braze = nil;
 //
 // Universal links (Branch domains) are forwarded to Branch for proper routing.
 // All other URLs are suppressed here; they are handled exclusively through
-// the JS PUSH_NOTIFICATION_EVENT, tagged with ORIGIN_BRAZE.
+// the JS PUSH_NOTIFICATION_EVENT, tagged with ORIGIN_BRAZE. In-app message
+// URLs are allowed through Braze so custom HTML CTA deeplinks can open the app.
 - (BOOL)braze:(Braze *)braze shouldOpenURL:(BRZURLContext *)context {
   NSString *host = context.url.host;
   if (host &&
@@ -130,6 +131,9 @@ static Braze *_braze = nil;
        [host containsString:@"link-test.metamask.io"])) {
     [[Branch getInstance] handleDeepLink:context.url];
     return NO;
+  }
+  if (context.channel == BRZChannelInAppMessage) {
+    return YES;
   }
   return NO;
 }

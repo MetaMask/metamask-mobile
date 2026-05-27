@@ -153,7 +153,8 @@ extension AppDelegate: BrazeDelegate {
   //
   // Universal links (Branch domains) are forwarded to Branch for proper routing.
   // All other URLs are suppressed here; they are handled exclusively through
-  // the JS PUSH_NOTIFICATION_EVENT, tagged with ORIGIN_BRAZE.
+  // the JS PUSH_NOTIFICATION_EVENT, tagged with ORIGIN_BRAZE. In-app message
+  // URLs are allowed through Braze so custom HTML CTA deeplinks can open the app.
   func braze(_ braze: Braze, shouldOpenURL context: Braze.URLContext) -> Bool {
     if let host = context.url.host,
        host.contains("app.link") ||
@@ -162,6 +163,9 @@ extension AppDelegate: BrazeDelegate {
        host.contains("link-test.metamask.io") {
       Branch.getInstance().handleDeepLink(context.url)
       return false
+    }
+    if context.channel == .inAppMessage {
+      return true
     }
     return false
   }
