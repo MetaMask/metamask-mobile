@@ -3,6 +3,7 @@ import { fireEvent } from '@testing-library/react-native';
 import ExternalAccountCell from './ExternalAccountCell';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../locales/i18n';
+import { EXTERNAL_ACCOUNT_CELL_TEST_IDS } from './ExternalAccountCell.testIds';
 
 // Mock the settings selector
 jest.mock('../../../../../selectors/settings', () => ({
@@ -75,7 +76,9 @@ describe('ExternalAccountCell', () => {
       );
 
       // Network avatar should not be rendered
-      expect(queryByTestId('network-avatar-image')).toBeFalsy();
+      expect(
+        queryByTestId(EXTERNAL_ACCOUNT_CELL_TEST_IDS.NETWORK_AVATAR),
+      ).toBeFalsy();
     });
 
     it('renders with network avatar when chainId is provided', () => {
@@ -88,7 +91,9 @@ describe('ExternalAccountCell', () => {
       );
 
       // Network avatar should be rendered
-      expect(getByTestId('network-avatar-image')).toBeTruthy();
+      expect(
+        getByTestId(EXTERNAL_ACCOUNT_CELL_TEST_IDS.NETWORK_AVATAR),
+      ).toBeTruthy();
     });
 
     it('renders account avatar', () => {
@@ -205,7 +210,9 @@ describe('ExternalAccountCell', () => {
         />,
       );
 
-      expect(getByTestId('network-avatar-image')).toBeTruthy();
+      expect(
+        getByTestId(EXTERNAL_ACCOUNT_CELL_TEST_IDS.NETWORK_AVATAR),
+      ).toBeTruthy();
     });
 
     it('renders correctly with Polygon chain ID', () => {
@@ -217,7 +224,9 @@ describe('ExternalAccountCell', () => {
         />,
       );
 
-      expect(getByTestId('network-avatar-image')).toBeTruthy();
+      expect(
+        getByTestId(EXTERNAL_ACCOUNT_CELL_TEST_IDS.NETWORK_AVATAR),
+      ).toBeTruthy();
     });
 
     it('renders correctly with Optimism chain ID', () => {
@@ -229,7 +238,9 @@ describe('ExternalAccountCell', () => {
         />,
       );
 
-      expect(getByTestId('network-avatar-image')).toBeTruthy();
+      expect(
+        getByTestId(EXTERNAL_ACCOUNT_CELL_TEST_IDS.NETWORK_AVATAR),
+      ).toBeTruthy();
     });
   });
 
