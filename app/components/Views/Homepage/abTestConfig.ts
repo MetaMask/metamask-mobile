@@ -154,3 +154,51 @@ export const HOMEPAGE_PERPS_PILLS_EMPTY_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyti
     validVariants: Object.values(HomepagePerpsPillsEmptyVariant),
     eventNames: [EVENT_NAME.PERPS_UI_INTERACTION],
   };
+
+// ─── Predict positions empty state (wallet Predict section layout) ──────────
+
+/**
+ * LaunchDarkly / remote flag key. Pattern: `{team}{TICKET}Abtest{Name}` — keep in
+ * sync with the flag in LD (team `core`, ticket MCU-747).
+ */
+export const PREDICT_POSITIONS_EMPTY_STATE_AB_KEY =
+  'coreMCU747AbtestPredictPositionsEmptyState';
+
+export enum PredictPositionsEmptyStateVariant {
+  Control = 'control',
+  Treatment = 'treatment',
+}
+
+export const PREDICT_POSITIONS_EMPTY_STATE_VARIANTS = {
+  control: { layout: 'carousel' as const },
+  treatment: { layout: 'list' as const },
+};
+
+export const PREDICT_EMPTY_STATE_CTA_NAMES = {
+  EXPLORE_FEATURED: 'explore_featured',
+  BROWSE_CATEGORY: 'browse_category',
+} as const;
+
+export type PredictEmptyStateCtaName =
+  (typeof PREDICT_EMPTY_STATE_CTA_NAMES)[keyof typeof PREDICT_EMPTY_STATE_CTA_NAMES];
+
+export function getPredictPositionsEmptyStateActiveAbTests(
+  isAssignmentActive: boolean,
+  variantName: string,
+): TransactionActiveAbTestEntry[] | undefined {
+  if (!isAssignmentActive) {
+    return undefined;
+  }
+  return [
+    createActiveABTestAssignment(
+      PREDICT_POSITIONS_EMPTY_STATE_AB_KEY,
+      variantName,
+    ),
+  ];
+}
+
+// Backward-compatible aliases for the existing hook/component names.
+export const PREDICT_HOMEPAGE_DISCOVERY_AB_KEY =
+  PREDICT_POSITIONS_EMPTY_STATE_AB_KEY;
+export const PREDICT_HOMEPAGE_DISCOVERY_VARIANTS =
+  PREDICT_POSITIONS_EMPTY_STATE_VARIANTS;

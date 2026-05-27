@@ -334,6 +334,40 @@ export const validateEmail = (email: string): boolean => {
 export const formatUsd = (value: string | number): string =>
   formatFiat(new BigNumber(value), 'USD');
 
+interface FormatCompactValueOptions {
+  maximumFractionDigits?: number;
+  millionSuffix?: string;
+  thousandSuffix?: string;
+}
+
+/**
+ * Formats a number in compact notation without a currency symbol.
+ * Implemented manually because Hermes does not support `notation: 'compact'`.
+ *
+ * @example formatCompactValue(750000)  // '750k'
+ * @example formatCompactValue(5750000) // '5.75M'
+ */
+export const formatCompactValue = (
+  value: number,
+  options?: FormatCompactValueOptions,
+): string => {
+  const abs = Math.abs(value);
+  const sign = value < 0 ? '-' : '';
+  const maximumFractionDigits = options?.maximumFractionDigits ?? 2;
+  const millionSuffix = options?.millionSuffix ?? 'M';
+  const thousandSuffix = options?.thousandSuffix ?? 'k';
+  const formatValue = (compact: number) =>
+    `${Number(compact.toFixed(maximumFractionDigits))}`;
+
+  if (abs >= 1_000_000) {
+    return `${sign}${formatValue(abs / 1_000_000)}${millionSuffix}`;
+  }
+  if (abs >= 1_000) {
+    return `${sign}${formatValue(abs / 1_000)}${thousandSuffix}`;
+  }
+  return `${sign}${abs}`;
+};
+
 /**
  * Formats a USD amount in compact notation (e.g. $1.5M, $350K).
  * Implemented manually because Hermes does not support `notation: 'compact'`.
@@ -350,18 +384,12 @@ export const formatCompactUsd = (
   const abs = Math.abs(value);
   const sign = value < 0 ? '-' : '';
   const maximumFractionDigits = options?.maximumFractionDigits ?? 1;
-  const formatCompactValue = (compact: number) =>
-    `${Number(compact.toFixed(maximumFractionDigits))}`;
+  const compactValue = formatCompactValue(abs, {
+    maximumFractionDigits,
+    thousandSuffix: 'K',
+  });
 
-  if (abs >= 1_000_000) {
-    const compact = abs / 1_000_000;
-    return `${sign}$${formatCompactValue(compact)}M`;
-  }
-  if (abs >= 1_000) {
-    const compact = abs / 1_000;
-    return `${sign}$${formatCompactValue(compact)}K`;
-  }
-  return `${sign}$${abs}`;
+  return `${sign}$${compactValue}`;
 };
 
 /**

@@ -12,14 +12,14 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   Button,
+  ButtonIcon,
+  ButtonIconSize,
   ButtonSize,
   ButtonVariant,
   FontWeight,
   HeaderStandard,
-  Icon,
   IconColor,
   IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -41,7 +41,12 @@ import {
 import { RootState } from '../../../../../reducers';
 import { BridgeToken } from '../../types';
 import { getBridgeTokenAssetId } from '../../utils/tokenUtils';
-import { getBatchSellInitialSlippage } from '../../components/SlippageModal/utils';
+import {
+  DEFAULT_BATCH_SELL_SLIPPAGE,
+  getBatchSellSlippage,
+  getSlippageDisplayValue,
+} from '../../components/SlippageModal/utils';
+import { BatchSellFinalReviewSourceTokenData } from '../../components/BatchSellFinalReviewModal/BatchSellFinalReviewModal.types';
 import { BatchSellReviewSelectorsIDs } from './BatchSellReview.testIds';
 import { BatchSellReviewTokenRow } from './BatchSellReviewTokenRow';
 
@@ -49,9 +54,26 @@ const DEFAULT_PERCENT = 100;
 const UNKNOWN_DESTINATION_TOKEN_SYMBOL = 'UNKNOWN';
 // TODO(SWAPS-4439): When Batch Sell quote fetching is wired, pass
 // batchSellSlippages[assetId] into each token's BridgeController quote request.
-const HAS_QUOTES = false;
+const HAS_QUOTES = true;
+const QUOTE_DETAILS_PLACEHOLDER_AMOUNT = '--';
+const NETWORK_FEE_PLACEHOLDER = '1.20 USDC';
+const NETWORK_FEE_FIAT_PLACEHOLDER = '$1.20';
+const METAMASK_FEE_PERCENT = '0.875';
 
 const getTokenKey = (token: BridgeToken) => `${token.chainId}:${token.address}`;
+
+function getSourceTokenData(
+  token: BridgeToken,
+): BatchSellFinalReviewSourceTokenData {
+  const sourceTokenData: BatchSellFinalReviewSourceTokenData = {
+    key: getTokenKey(token),
+    tokenSymbol: token.symbol,
+  };
+
+  if (token.image) sourceTokenData.image = token.image;
+
+  return sourceTokenData;
+}
 
 function areBatchSellSlippageMapsEqual(
   first: Record<string, string | undefined>,
@@ -121,7 +143,7 @@ export function BatchSellReview() {
 
       if (!assetId) return slippageByAssetId;
 
-      slippageByAssetId[assetId] = getBatchSellInitialSlippage(
+      slippageByAssetId[assetId] = getBatchSellSlippage(
         batchSellSlippages,
         assetId,
       );
@@ -152,6 +174,51 @@ export function BatchSellReview() {
       screen: Routes.BRIDGE.MODALS.BATCH_SELL_DESTINATION_TOKEN_SELECTOR_MODAL,
     });
   }, [navigation]);
+
+  const getQuoteDetailsParams = useCallback(() => {
+    const destinationTokenSymbol =
+      selectedDestinationToken?.symbol ?? UNKNOWN_DESTINATION_TOKEN_SYMBOL;
+    const placeholderAmount = `${QUOTE_DETAILS_PLACEHOLDER_AMOUNT} ${destinationTokenSymbol}`;
+
+    return {
+      tokenData: selectedTokens.map((token) => {
+        const assetId = getBridgeTokenAssetId(token);
+        const slippage = assetId
+          ? getBatchSellSlippage(batchSellSlippages, assetId)
+          : DEFAULT_BATCH_SELL_SLIPPAGE;
+
+        return {
+          key: getTokenKey(token),
+          tokenSymbol: token.symbol,
+          slippage: getSlippageDisplayValue(slippage),
+          receivedAmount: placeholderAmount,
+        };
+      }),
+      totalReceived: placeholderAmount,
+      minimumReceived: placeholderAmount,
+      isLoading: !HAS_QUOTES,
+    };
+  }, [batchSellSlippages, selectedDestinationToken?.symbol, selectedTokens]);
+
+  const handleOpenQuoteDetails = useCallback(() => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.BATCH_SELL_QUOTE_DETAILS_MODAL,
+      params: getQuoteDetailsParams(),
+    });
+  }, [getQuoteDetailsParams, navigation]);
+
+  const handleOpenFinalReview = useCallback(() => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.BATCH_SELL_FINAL_REVIEW_MODAL,
+      params: {
+        ...getQuoteDetailsParams(),
+        sourceTokens: selectedTokens.map(getSourceTokenData),
+        networkFee: NETWORK_FEE_PLACEHOLDER,
+        networkFeeFiat: NETWORK_FEE_FIAT_PLACEHOLDER,
+        metamaskFeePercent: METAMASK_FEE_PERCENT,
+      },
+    });
+  }, [getQuoteDetailsParams, navigation, selectedTokens]);
 
   const handleSlippagePress = useCallback(
     (token: BridgeToken) => {
@@ -208,10 +275,12 @@ export function BatchSellReview() {
             >
               {strings('bridge.batch_sell_total_received')}
             </Text>
-            <Icon
-              name={IconName.Info}
-              size={IconSize.Sm}
-              color={IconColor.IconDefault}
+            <ButtonIcon
+              iconName={IconName.Info}
+              iconProps={{ color: IconColor.IconDefault }}
+              size={ButtonIconSize.Sm}
+              onPress={handleOpenQuoteDetails}
+              testID={BatchSellReviewSelectorsIDs.TOTAL_RECEIVED_INFO_BUTTON}
             />
           </Box>
           <Box
@@ -289,6 +358,7 @@ export function BatchSellReview() {
             size={ButtonSize.Lg}
             isFullWidth
             isDisabled={!HAS_QUOTES}
+            onPress={handleOpenFinalReview}
             testID={BatchSellReviewSelectorsIDs.REVIEW_BUTTON}
           >
             {strings('bridge.batch_sell_review')}

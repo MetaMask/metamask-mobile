@@ -1,29 +1,22 @@
 name: Nightly Build
 
 # Runs on a schedule (4 AM UTC) like the old nightly-branch-sync.
-# Each build creates its own ephemeral branch via create-build-branch.yml,
-# so the persistent chore/temp-nightly branch is no longer needed.
 #
-# iOS builds use build-and-upload-to-testflight.yml (temp branch, build.yml, TestFlight upload).
-# Android builds use create-build-branch.yml + build.yml (build artifacts only).
+# iOS uses build-and-upload-to-testflight.yml; Android calls build.yml directly.
 #
 # rc depends on exp within each platform stream to ensure the external version
 # service produces sequential numbers (N for exp, N+1 for rc).
-# iOS and Android streams run in parallel; their version numbers will differ
-# but remain unique, which is all TestFlight / Play Store require.
 
 on:
   schedule:
-    # NOTE: Scheduled workflows ALWAYS run from the default branch (main)
     - cron: '0 4 * * *'
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   id-token: write
 
 jobs:
-  # ── iOS exp: build + TestFlight upload ─────────────────────────────────
   ios-exp:
     name: Nightly iOS exp
     uses: ./.github/workflows/build-and-upload-to-testflight.yml
@@ -33,7 +26,6 @@ jobs:
       testflight_group: 'MetaMask BETA & Release Candidates'
     secrets: inherit
 
-  # ── iOS rc: build + TestFlight upload (after exp for sequential versions) ─
   ios-rc:
     name: Nightly iOS rc
     needs: [ios-exp]
@@ -44,47 +36,35 @@ jobs:
       testflight_group: 'MetaMask BETA & Release Candidates'
     secrets: inherit
 
-  # ── Android exp: ephemeral branch + build ──────────────────────────────
-  android-exp-branch:
-    uses: ./.github/workflows/create-build-branch.yml
-    with:
-      source_branch: main
-    secrets: inherit
+  android-exp-generate:
+    uses: ./.github/workflows/generate-build-version.yml
 
   android-exp:
     name: Nightly Android exp
-    needs: [android-exp-branch]
+    needs: [android-exp-generate]
     uses: ./.github/workflows/build.yml
     with:
       build_name: main-exp
       platform: android
-      skip_version_bump: false
-      source_branch: ${{ needs.android-exp-branch.outputs.build_branch }}
+      source_branch: main
+      build_number: ${{ needs.android-exp-generate.outputs.build-version }}
     secrets: inherit
 
-  # ── Android rc: ephemeral branch + build (after exp for sequential versions) ─
-  android-rc-branch:
+  android-rc-generate:
     needs: [android-exp]
-    uses: ./.github/workflows/create-build-branch.yml
-    with:
-      source_branch: main
-    secrets: inherit
+    uses: ./.github/workflows/generate-build-version.yml
 
   android-rc:
     name: Nightly Android rc
-    needs: [android-rc-branch]
+    needs: [android-rc-generate]
     uses: ./.github/workflows/build.yml
     with:
       build_name: main-rc
       platform: android
-      skip_version_bump: false
-      source_branch: ${{ needs.android-rc-branch.outputs.build_branch }}
+      source_branch: main
+      build_number: ${{ needs.android-rc-generate.outputs.build-version }}
     secrets: inherit
 
-  # ── Sentry Size Analysis: upload RC builds ────────────────────────────
-  # Runs in parallel with cleanup/downstream jobs so it never blocks the
-  # critical path. Uploads nightly RC artifacts so Sentry can track binary
-  # size over time, surface actionable insights, and auto-compare nightlies.
   size-analysis-ios:
     name: Sentry Size Analysis (iOS)
     needs: [ios-rc]
@@ -95,26 +75,21 @@ jobs:
         with:
           ref: ${{ github.sha }}
           fetch-depth: 2
-
       - name: Resolve base SHA
         id: base
         run: echo "sha=$(git rev-parse ${{ github.sha }}~1)" >> "$GITHUB_OUTPUT"
-
       - name: Install sentry-cli
         run: curl -sL https://sentry.io/get-cli/ | bash
-
       - name: Download iOS xcarchive
         uses: actions/download-artifact@v4
         with:
           name: ios-xcarchive-main-rc
           path: ./build-artifacts/
-
       - name: Unzip xcarchive
         run: |
           cd ./build-artifacts
           unzip -q ./*.xcarchive.zip
           rm -f ./*.xcarchive.zip
-
       - name: Upload to Sentry Size Analysis
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
@@ -139,20 +114,16 @@ jobs:
         with:
           ref: ${{ github.sha }}
           fetch-depth: 2
-
       - name: Resolve base SHA
         id: base
         run: echo "sha=$(git rev-parse ${{ github.sha }}~1)" >> "$GITHUB_OUTPUT"
-
       - name: Install sentry-cli
         run: curl -sL https://sentry.io/get-cli/ | bash
-
       - name: Download Android AAB
         uses: actions/download-artifact@v4
         with:
           name: android-aab-main-rc
           path: ./build-artifacts/
-
       - name: Upload to Sentry Size Analysis
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
@@ -166,26 +137,3 @@ jobs:
             --head-ref main \
             --vcs-provider github \
             --head-repo-name MetaMask/metamask-mobile
-
-  # ── Cleanup Android ephemeral branches ─────────────────────────────────
-  # iOS ephemeral branches are cleaned up by build-and-upload-to-testflight.yml.
-  cleanup:
-    name: Cleanup Android build branches
-    needs: [android-exp-branch, android-rc-branch, android-exp, android-rc]
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          token: ${{ github.token }}
-      - name: Delete ephemeral branches
-        env:
-          EXP_BRANCH: ${{ needs.android-exp-branch.outputs.build_branch }}
-          RC_BRANCH: ${{ needs.android-rc-branch.outputs.build_branch }}
-        run: |
-          for branch in "$EXP_BRANCH" "$RC_BRANCH"; do
-            if [ -n "$branch" ]; then
-              git push origin --delete "$branch" || true
-              echo "🧹 Deleted: $branch"
-            fi
-          done

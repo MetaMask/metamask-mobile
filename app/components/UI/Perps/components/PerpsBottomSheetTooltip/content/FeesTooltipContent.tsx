@@ -9,7 +9,8 @@ import { strings } from '../../../../../../../locales/i18n';
 import { TooltipContentProps } from './types';
 import createStyles from './FeesTooltipContent.styles';
 import { formatFeeRate } from '../../../hooks/usePerpsOrderFees';
-import FoxIcon from '../../FoxIcon/FoxIcon';
+import FoxRewardIcon from '../../../../../../images/rewards/metamask-rewards-points-vip.svg';
+import RewardsVipBadge from '../../../../Rewards/components/RewardsVipBadge/RewardsVipBadge';
 
 interface FeesTooltipContentProps extends TooltipContentProps {
   data?: {
@@ -24,22 +25,19 @@ interface FeesTooltipContentProps extends TooltipContentProps {
 const FeesTooltipContent = ({ testID, data }: FeesTooltipContentProps) => {
   const { styles } = useStyles(createStyles, {});
 
-  // Use passed fee rates or show N/A if not provided
   const metamaskFee = formatFeeRate(data?.metamaskFeeRate);
   const providerFee = formatFeeRate(data?.protocolFeeRate);
   const originalFee = formatFeeRate(data?.originalMetamaskFeeRate);
   const discountPercentage = data?.feeDiscountPercentage;
 
-  // Check if there's a discount to display
   const hasDiscount = discountPercentage && discountPercentage > 0;
 
   return (
     <View testID={testID}>
-      {/* Discount Banner */}
       {hasDiscount && (
         <View style={styles.discountBanner}>
-          <FoxIcon width={16} height={16} />
-          <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+          <FoxRewardIcon name="fox-reward-icon" width={14} height={14} />
+          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
             {strings('perps.tooltips.fees.discount_message', {
               percentage: discountPercentage.toString(),
             })}
@@ -47,12 +45,12 @@ const FeesTooltipContent = ({ testID, data }: FeesTooltipContentProps) => {
         </View>
       )}
 
-      {/* MetaMask Fee Row */}
       <View style={styles.feeRow}>
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
           {strings('perps.tooltips.fees.metamask_fee')}
         </Text>
         <View style={styles.feeValueContainer}>
+          {hasDiscount && <RewardsVipBadge />}
           {hasDiscount && (
             <Text
               variant={TextVariant.BodyMD}
@@ -68,7 +66,6 @@ const FeesTooltipContent = ({ testID, data }: FeesTooltipContentProps) => {
         </View>
       </View>
 
-      {/* Provider Fee Row */}
       <View style={styles.feeRow}>
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
           {strings('perps.tooltips.fees.provider_fee')}
@@ -78,7 +75,6 @@ const FeesTooltipContent = ({ testID, data }: FeesTooltipContentProps) => {
         </Text>
       </View>
 
-      {/* Bridge Fee Row (when paying with custom token) */}
       {data?.bridgeFeeFormatted ? (
         <View style={styles.feeRow}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>

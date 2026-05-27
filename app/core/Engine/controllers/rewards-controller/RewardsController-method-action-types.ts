@@ -170,6 +170,11 @@ export type RewardsControllerGetOptInStatusAction = {
   handler: RewardsController['getOptInStatus'];
 };
 
+export type RewardsControllerGetVipTierForAccountAction = {
+  type: `RewardsController:getVipTierForAccount`;
+  handler: RewardsController['getVipTierForAccount'];
+};
+
 /**
  * Get perps fee discount for an account.
  *
@@ -825,6 +830,7 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetHasAccountOptedInAction
   | RewardsControllerCheckOptInStatusAgainstCacheAction
   | RewardsControllerGetOptInStatusAction
+  | RewardsControllerGetVipTierForAccountAction
   | RewardsControllerGetPerpsDiscountForAccountAction
   | RewardsControllerGetPointsEventsAction
   | RewardsControllerGetPointsEventsIfChangedAction

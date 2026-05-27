@@ -79,17 +79,6 @@ export const SwapsConfirmButton = ({
     latestAtomicBalance: latestSourceBalance?.atomicBalance,
   });
 
-  const insufficientNativeReserveError = useInsufficientNativeReserveError({
-    amount: sourceAmount,
-    token: sourceToken,
-    latestAtomicBalance: latestSourceBalance?.atomicBalance,
-    walletAddress,
-  });
-
-  const hasInsufficientNativeReserveError = Boolean(
-    insufficientNativeReserveError,
-  );
-
   const {
     activeQuote,
     isLoading,
@@ -99,6 +88,18 @@ export const SwapsConfirmButton = ({
     isNoQuotesAvailable,
     isActiveQuoteForCurrentTokenPair,
   } = useBridgeQuoteDataContext();
+
+  const insufficientNativeReserveError = useInsufficientNativeReserveError({
+    amount: sourceAmount,
+    token: sourceToken,
+    latestAtomicBalance: latestSourceBalance?.atomicBalance,
+    walletAddress,
+    activeQuote,
+  });
+
+  const hasInsufficientNativeReserveError = Boolean(
+    insufficientNativeReserveError,
+  );
 
   const handleConfirm = useBridgeConfirm({
     activeQuote,

@@ -1,5 +1,5 @@
 import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Routes from '../../../../constants/navigation/Routes';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import StakeConfirmationView from '../Views/StakeConfirmationView/StakeConfirmationView';
@@ -16,10 +16,13 @@ import EarnTokenList from '../../Earn/components/EarnTokenList';
 import EarnInputView from '../../Earn/Views/EarnInputView/EarnInputView';
 import EarnWithdrawInputView from '../../Earn/Views/EarnWithdrawInputView/EarnWithdrawInputView';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
-import { clearStackNavigatorOptions } from '../../../../constants/navigation/clearStackNavigatorOptions';
+import {
+  clearNativeStackNavigatorOptions,
+  transparentModalScreenOptions,
+} from '../../../../constants/navigation/clearStackNavigatorOptions';
 
-const Stack = createStackNavigator();
-const ModalStack = createStackNavigator();
+const Stack = createNativeStackNavigator();
+const ModalStack = createNativeStackNavigator();
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ScreenComponent = React.ComponentType<any>;
@@ -30,8 +33,16 @@ const StakeScreenStack = () => {
 
   return (
     <StakeSDKProvider>
-      <Stack.Navigator>
-        <Stack.Screen name={Routes.STAKING.STAKE} component={EarnInputView} />
+      <Stack.Navigator
+        screenOptions={{
+          headerShadowVisible: false,
+        }}
+      >
+        <Stack.Screen
+          name={Routes.STAKING.STAKE}
+          component={EarnInputView}
+          options={{ headerShown: false }}
+        />
         <Stack.Screen
           name={Routes.STAKING.UNSTAKE}
           component={EarnWithdrawInputView}
@@ -40,14 +51,17 @@ const StakeScreenStack = () => {
         <Stack.Screen
           name={Routes.STAKING.STAKE_CONFIRMATION}
           component={StakeConfirmationView as ScreenComponent}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name={Routes.STAKING.UNSTAKE_CONFIRMATION}
           component={UnstakeConfirmationView as ScreenComponent}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name={Routes.STAKING.EARNINGS_HISTORY}
           component={StakeEarningsHistoryView}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
@@ -65,8 +79,8 @@ const StakeModalStack = () => (
   <StakeSDKProvider>
     <ModalStack.Navigator
       screenOptions={{
-        ...clearStackNavigatorOptions,
-        presentation: 'transparentModal',
+        ...clearNativeStackNavigatorOptions,
+        ...transparentModalScreenOptions,
       }}
     >
       <ModalStack.Screen

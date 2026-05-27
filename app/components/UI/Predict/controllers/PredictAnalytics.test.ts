@@ -406,6 +406,31 @@ describe('PredictAnalytics', () => {
       expect(getDevLoggerMock()).toHaveBeenCalledTimes(1);
     });
 
+    it('includes active_ab_tests in market details opened when provided', () => {
+      const abTests = [
+        {
+          key: 'coreMCU747AbtestPredictPositionsEmptyState',
+          value: 'treatment',
+          key_value_pair:
+            'coreMCU747AbtestPredictPositionsEmptyState=treatment',
+        },
+      ];
+
+      predictAnalytics.trackMarketDetailsOpened({
+        marketId: 'm1',
+        marketTitle: 'Market title',
+        entryPoint: 'home_section',
+        marketDetailsViewed: 'about',
+        activeAbTests: abTests,
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.properties).toMatchObject({
+        active_ab_tests: abTests,
+      });
+    });
+
     it('tracks position viewed', () => {
       predictAnalytics.trackPositionViewed({ openPositionsCount: 7 });
 
@@ -451,6 +476,7 @@ describe('PredictAnalytics', () => {
       predictAnalytics.trackFeedViewed({
         sessionId: 's1',
         feedTab: 'trending',
+        predictScreen: 'world_cup',
         numPagesViewed: 3,
         sessionTime: 98,
         entryPoint: 'carousel',
@@ -462,10 +488,41 @@ describe('PredictAnalytics', () => {
       expect(event.properties).toMatchObject({
         session_id: 's1',
         predict_feed_tab: 'trending',
+        predict_screen: 'world_cup',
         num_feed_pages_viewed_in_session: 3,
         session_time_in_feed: 98,
         is_session_end: false,
         entry_point: 'carousel',
+      });
+    });
+
+    it('tracks banner viewed action with action type and banner type', () => {
+      predictAnalytics.trackBannerAction({
+        actionType: 'viewed',
+        bannerType: 'world_cup',
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(MetaMetricsEvents.PREDICT_BANNER_ACTION.category);
+      expect(event.properties).toMatchObject({
+        action_type: 'viewed',
+        banner_type: 'world_cup',
+      });
+    });
+
+    it('tracks banner clicked action with action type and banner type', () => {
+      predictAnalytics.trackBannerAction({
+        actionType: 'clicked',
+        bannerType: 'world_cup',
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(MetaMetricsEvents.PREDICT_BANNER_ACTION.category);
+      expect(event.properties).toMatchObject({
+        action_type: 'clicked',
+        banner_type: 'world_cup',
       });
     });
 

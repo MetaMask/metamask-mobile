@@ -24,12 +24,11 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import TitleSubpage from '../../../../../component-library/components-temp/TitleSubpage';
 import {
-  OPEN_PREDICT_OUTCOME_STATUS,
   PredictMarketStatus,
   type PredictMarket,
-  type PredictOutcome,
   type PredictOutcomeToken,
   type PredictSeries,
 } from '../../types';
@@ -43,14 +42,26 @@ import {
   getCryptoSymbol,
   getEventStartTime,
   getVariant,
+  resolveCryptoTargetPrice,
 } from '../../utils/cryptoUpDown';
 import { TimeSlotPicker } from '../TimeSlotPicker';
-import { findLiveMarket } from '../TimeSlotPicker/TimeSlotPicker.utils';
+import { findLiveMarket, getCurrentSeriesWindowMs } from '../../utils/series';
 import PredictCryptoUpDownChart from '../PredictCryptoUpDownChart';
+import PredictCryptoUpDownPositions from '../PredictCryptoUpDownPositions';
+import { usePredictSeriesPositions } from '../../hooks/usePredictSeriesPositions';
 import PredictMarketDetailsActions from '../../views/PredictMarketDetails/components/PredictMarketDetailsActions';
+import { useOpenOutcomes } from '../../views/PredictMarketDetails/hooks/useOpenOutcomes';
 
-const CHART_HEIGHT_MIN = 330;
-const CHART_HEIGHT_MAX = 430;
+// Chart sizing tuned for the Figma layout: without positions, the chart
+// occupies roughly the middle half of the viewport. When positions exist, the
+// chart shrinks so the first position row remains visible above the sticky
+// action buttons.
+const CHART_HEIGHT_MIN_WITH_POSITIONS = 280;
+const CHART_HEIGHT_MAX_WITH_POSITIONS = 380;
+const CHART_HEIGHT_MIN_NO_POSITIONS = 420;
+const CHART_HEIGHT_MAX_NO_POSITIONS = 560;
+const CHART_HEIGHT_RATIO_WITH_POSITIONS = 0.4;
+const CHART_HEIGHT_RATIO_NO_POSITIONS = 0.55;
 const MARKET_ROLLOVER_TIMEOUT_MAX_MS = 2_147_483_647;
 const NOOP = () => undefined;
 const DEFAULT_CRYPTO_ACCENT_COLOR = 'rgb(245, 158, 11)';
@@ -58,21 +69,19 @@ const CRYPTO_SYMBOL_TO_ACCENT_COLOR: Record<string, string> = {
   BTC: 'rgb(247, 147, 26)',
 };
 
-const getCurrentWindowMs = (durationMs: number) => {
-  const currentTimeMs = Date.now();
-  if (!Number.isFinite(currentTimeMs) || durationMs <= 0) {
-    return 0;
+const splitCurrency = (
+  formatted: string | undefined,
+): { whole: string; fraction: string } => {
+  if (!formatted) {
+    return { whole: '--', fraction: '' };
   }
-
-  return Math.floor(currentTimeMs / durationMs) * durationMs;
+  const dotIdx = formatted.lastIndexOf('.');
+  return dotIdx >= 0
+    ? { whole: formatted.slice(0, dotIdx), fraction: formatted.slice(dotIdx) }
+    : { whole: formatted, fraction: '' };
 };
 
 type PredictMarketWithSeries = PredictMarket & { series: PredictSeries };
-
-const getOpenOutcomes = (market: PredictMarket): PredictOutcome[] =>
-  market.outcomes.filter(
-    (outcome) => outcome.status === OPEN_PREDICT_OUTCOME_STATUS,
-  );
 
 const getEndDateTime = (endDate?: string) => {
   if (!endDate) {
@@ -86,25 +95,6 @@ const getEndDateTime = (endDate?: string) => {
 const hasMarketEnded = (market: PredictMarket) => {
   const endDateTime = getEndDateTime(market.endDate);
   return typeof endDateTime === 'number' && Date.now() >= endDateTime;
-};
-
-const getYesPercentage = (
-  market: PredictMarket,
-  openOutcomes: PredictOutcome[],
-) => {
-  const firstOpenOutcome = openOutcomes[0];
-  const firstTokenPrice = firstOpenOutcome?.tokens?.[0]?.price;
-
-  if (typeof firstTokenPrice === 'number') {
-    return Math.round(firstTokenPrice * 100);
-  }
-
-  const firstOutcomePrice = market.outcomes?.[0]?.tokens?.[0]?.price;
-  if (typeof firstOutcomePrice === 'number') {
-    return Math.round(firstOutcomePrice * 100);
-  }
-
-  return 0;
 };
 
 export interface PredictCryptoUpDownDetailsProps {
@@ -138,10 +128,6 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   const tw = useTailwind();
   const { colors } = useTheme();
   const { height: windowHeight } = useWindowDimensions();
-  const chartAreaHeight = Math.min(
-    CHART_HEIGHT_MAX,
-    Math.max(CHART_HEIGHT_MIN, Math.round(windowHeight * 0.45)),
-  );
   const [selectedMarket, setSelectedMarket] =
     useState<PredictMarketWithSeries>(market);
   const previousMarketIdRef = useRef(market.id);
@@ -162,12 +148,12 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   const selectedEndDateMs = getEndDateTime(selectedMarket.endDate);
   const [currentWindowState, setCurrentWindowState] = useState(() => ({
     durationMs,
-    windowMs: getCurrentWindowMs(durationMs),
+    windowMs: getCurrentSeriesWindowMs(durationMs),
   }));
   const currentWindowMs =
     currentWindowState.durationMs === durationMs
       ? currentWindowState.windowMs
-      : getCurrentWindowMs(durationMs);
+      : getCurrentSeriesWindowMs(durationMs);
   const { endDateMin, endDateMax } = useMemo(() => {
     const seriesWindowAnchorMs = Math.max(
       currentWindowMs,
@@ -187,49 +173,121 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
     endDateMin,
     endDateMax,
   });
+  // Switching time slots shifts the endDate window → new query cache key →
+  // `seriesMarkets` is `undefined` while refetching. Without this ref,
+  // `seedMarkets` momentarily shrinks, which cascades into `hasPositions`
+  // flipping false and resizing the chart (visible layout shift).
+  const stableSeriesMarketsRef = useRef<PredictMarket[] | undefined>(undefined);
+  useEffect(() => {
+    if (seriesMarkets && seriesMarkets.length > 0) {
+      stableSeriesMarketsRef.current = seriesMarkets;
+    }
+  }, [seriesMarkets]);
+  const stableSeriesMarkets =
+    seriesMarkets && seriesMarkets.length > 0
+      ? seriesMarkets
+      : stableSeriesMarketsRef.current;
   const currentSeriesMarkets = useMemo(() => {
-    if (!seriesMarkets?.length) {
+    if (!stableSeriesMarkets?.length) {
       return undefined;
     }
 
-    const hasCurrentSeriesMarket = seriesMarkets.some(
+    const hasCurrentSeriesMarket = stableSeriesMarkets.some(
       (seriesMarket) =>
         seriesMarket.id === market.id ||
         seriesMarket.series?.id === market.series.id,
     );
 
-    return hasCurrentSeriesMarket ? seriesMarkets : undefined;
-  }, [market.id, market.series.id, seriesMarkets]);
+    return hasCurrentSeriesMarket ? stableSeriesMarkets : undefined;
+  }, [market.id, market.series.id, stableSeriesMarkets]);
+  const visibleSlotMarkets = useMemo(
+    () =>
+      (currentSeriesMarkets ?? []).filter(
+        (slotMarket) => !hasMarketEnded(slotMarket),
+      ),
+    [currentSeriesMarkets],
+  );
+
+  const seedMarkets = useMemo<PredictMarket[]>(() => {
+    const map = new Map<string, PredictMarket>();
+    map.set(selectedMarket.id, selectedMarket);
+    currentSeriesMarkets?.forEach((seriesMarket) => {
+      if (!map.has(seriesMarket.id)) {
+        map.set(seriesMarket.id, seriesMarket);
+      }
+    });
+    return Array.from(map.values());
+  }, [currentSeriesMarkets, selectedMarket]);
+
+  const { rows: seriesPositionRows } = usePredictSeriesPositions({
+    seriesId: selectedMarket.series.id,
+    seedMarkets,
+  });
+
+  const hasPositions = seriesPositionRows.length > 0;
+
+  const chartAreaHeight = hasPositions
+    ? Math.min(
+        CHART_HEIGHT_MAX_WITH_POSITIONS,
+        Math.max(
+          CHART_HEIGHT_MIN_WITH_POSITIONS,
+          Math.round(windowHeight * CHART_HEIGHT_RATIO_WITH_POSITIONS),
+        ),
+      )
+    : Math.min(
+        CHART_HEIGHT_MAX_NO_POSITIONS,
+        Math.max(
+          CHART_HEIGHT_MIN_NO_POSITIONS,
+          Math.round(windowHeight * CHART_HEIGHT_RATIO_NO_POSITIONS),
+        ),
+      );
 
   const targetPriceSymbol = getCryptoSymbol(selectedMarket);
   const targetPriceEventStartTime = getEventStartTime(
     selectedMarket.endDate,
     selectedMarket.series.recurrence,
   );
-  const { data: targetPrice } = useCryptoTargetPrice({
-    eventId: selectedMarket.id,
-    symbol: targetPriceSymbol ?? '',
-    eventStartTime: targetPriceEventStartTime ?? '',
-    variant: getVariant(selectedMarket.series.recurrence),
-    endDate: selectedMarket.endDate ?? '',
-    enabled:
-      !!targetPriceSymbol &&
-      !!targetPriceEventStartTime &&
-      !!selectedMarket.endDate,
-  });
-  const validatedTargetPrice =
-    typeof targetPrice === 'number' && targetPrice > 0
-      ? targetPrice
-      : undefined;
+  const { data: targetPrice, isFetching: isTargetPriceFetching } =
+    useCryptoTargetPrice({
+      eventId: selectedMarket.id,
+      symbol: targetPriceSymbol ?? '',
+      eventStartTime: targetPriceEventStartTime ?? '',
+      variant: getVariant(selectedMarket.series.recurrence),
+      endDate: selectedMarket.endDate ?? '',
+      enabled:
+        !!targetPriceSymbol &&
+        !!targetPriceEventStartTime &&
+        !!selectedMarket.endDate,
+    });
+  const validatedTargetPrice = resolveCryptoTargetPrice(
+    selectedMarket,
+    targetPrice,
+  );
 
-  const selectedOpenOutcomes = useMemo(
-    () => getOpenOutcomes(selectedMarket),
-    [selectedMarket],
-  );
-  const selectedYesPercentage = useMemo(
-    () => getYesPercentage(selectedMarket, selectedOpenOutcomes),
-    [selectedMarket, selectedOpenOutcomes],
-  );
+  // The chart is always anchored to the currently-live market so its data
+  // (BTC price history + live ticks) stays continuous regardless of which
+  // time slot the user has selected. Future slots have no chart data of
+  // their own — `selectedMarket` only drives the target line, Up/Down
+  // buttons, and outcomes.
+  const liveMarketForChart = useMemo<PredictMarketWithSeries>(() => {
+    const live = currentSeriesMarkets
+      ? findLiveMarket(currentSeriesMarkets)
+      : undefined;
+    if (!live) {
+      return selectedMarket;
+    }
+    return live.series
+      ? (live as PredictMarketWithSeries)
+      : { ...live, series: market.series };
+  }, [currentSeriesMarkets, market.series, selectedMarket]);
+  const isSelectedMarketLive = liveMarketForChart.id === selectedMarket.id;
+
+  const {
+    openOutcomes: selectedOpenOutcomes,
+    yesPercentage: selectedYesPercentage,
+  } = useOpenOutcomes({
+    market: selectedMarket,
+  });
   const canClaim = Boolean(onClaimPress && hasPositivePnl);
   const shouldRenderActions = Boolean(onBetPress || canClaim);
 
@@ -261,7 +319,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
 
         setCurrentWindowState({
           durationMs,
-          windowMs: getCurrentWindowMs(durationMs),
+          windowMs: getCurrentSeriesWindowMs(durationMs),
         });
         scheduleNextWindowRefresh();
       }, timeUntilNextWindow);
@@ -269,7 +327,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
 
     setCurrentWindowState({
       durationMs,
-      windowMs: getCurrentWindowMs(durationMs),
+      windowMs: getCurrentSeriesWindowMs(durationMs),
     });
     scheduleNextWindowRefresh();
 
@@ -287,10 +345,6 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
     },
     [onBetPress, selectedMarket],
   );
-
-  useEffect(() => {
-    setCurrentPrice(undefined);
-  }, [selectedMarket.id]);
 
   const attachSeries = useCallback(
     (nextMarket: PredictMarket): PredictMarketWithSeries => ({
@@ -408,6 +462,10 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
       : currentPriceDelta >= 0
         ? TextColor.SuccessDefault
         : TextColor.ErrorDefault;
+  const targetPriceParts = splitCurrency(
+    formatCurrencyValue(validatedTargetPrice),
+  );
+  const currentPriceParts = splitCurrency(formatCurrencyValue(currentPrice));
   const currentPriceAccentColor =
     CRYPTO_SYMBOL_TO_ACCENT_COLOR[targetPriceSymbol ?? ''] ??
     DEFAULT_CRYPTO_ACCENT_COLOR;
@@ -419,8 +477,6 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
       testID={PredictCryptoUpDownDetailsSelectorsIDs.SCREEN}
     >
       <HeaderCompactStandard
-        title={title}
-        subtitle={subtitle}
         onBack={onBack}
         backButtonProps={{
           testID: PredictCryptoUpDownDetailsSelectorsIDs.BACK_BUTTON,
@@ -471,7 +527,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
         </Box>
 
         <TimeSlotPicker
-          markets={currentSeriesMarkets ?? []}
+          markets={visibleSlotMarkets}
           selectedMarketId={selectedMarket.id}
           onMarketSelected={(m) => setSelectedMarket(attachSeries(m))}
         />
@@ -488,13 +544,35 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
             >
               Price to beat
             </Text>
-            <Text
-              variant={TextVariant.HeadingLg}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-            >
-              {formatCurrencyValue(validatedTargetPrice) ?? '--'}
-            </Text>
+            {typeof validatedTargetPrice === 'number' ? (
+              <Text
+                variant={TextVariant.DisplayMd}
+                color={TextColor.TextAlternative}
+              >
+                {targetPriceParts.whole}
+                {targetPriceParts.fraction ? (
+                  <Text
+                    variant={TextVariant.HeadingMd}
+                    color={TextColor.TextAlternative}
+                  >
+                    {targetPriceParts.fraction}
+                  </Text>
+                ) : null}
+              </Text>
+            ) : isSelectedMarketLive && isTargetPriceFetching ? (
+              <Skeleton
+                width="70%"
+                height={32}
+                style={tw.style('rounded-md mt-1')}
+              />
+            ) : (
+              <Text
+                variant={TextVariant.DisplayMd}
+                color={TextColor.TextAlternative}
+              >
+                {targetPriceParts.whole}
+              </Text>
+            )}
           </Box>
           <Box twClassName="flex-1">
             <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1">
@@ -515,29 +593,50 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
                 </Text>
               )}
             </Box>
-            <Text
-              variant={TextVariant.HeadingLg}
-              fontWeight={FontWeight.Medium}
-              style={tw.style({ color: currentPriceAccentColor })}
-            >
-              {formatCurrencyValue(currentPrice) ?? '--'}
-            </Text>
+            {typeof currentPrice === 'number' ? (
+              <Text
+                variant={TextVariant.DisplayMd}
+                style={tw.style({ color: currentPriceAccentColor })}
+              >
+                {currentPriceParts.whole}
+                {currentPriceParts.fraction ? (
+                  <Text
+                    variant={TextVariant.HeadingMd}
+                    style={tw.style({ color: currentPriceAccentColor })}
+                  >
+                    {currentPriceParts.fraction}
+                  </Text>
+                ) : null}
+              </Text>
+            ) : (
+              <Skeleton
+                width="70%"
+                height={32}
+                style={tw.style('rounded-md mt-1')}
+              />
+            )}
           </Box>
         </Box>
 
-        <Box twClassName="px-4 pt-3">
+        <Box twClassName="px-4 pt-1">
           <PredictCryptoUpDownChart
-            market={selectedMarket}
+            market={liveMarketForChart}
             targetPrice={validatedTargetPrice}
             onCurrentPriceChange={handleCurrentPriceChange}
             color={currentPriceAccentColor}
             height={chartAreaHeight}
           />
         </Box>
+
+        {hasPositions && (
+          <Box twClassName="pt-2">
+            <PredictCryptoUpDownPositions rows={seriesPositionRows} />
+          </Box>
+        )}
       </ScrollView>
 
       {shouldRenderActions && (
-        <Box twClassName="px-4 pb-4">
+        <Box twClassName="px-4 pb-8">
           <PredictMarketDetailsActions
             isClaimablePositionsLoading={isClaimablePositionsLoading}
             hasPositivePnl={canClaim}

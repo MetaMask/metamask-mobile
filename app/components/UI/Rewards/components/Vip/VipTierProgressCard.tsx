@@ -7,10 +7,6 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   FontWeight,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -20,11 +16,17 @@ import type {
   VipProgressDto,
   VipTierRefDto,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
-import { colorWithOpacity } from '../../../../../util/colors';
-import { useTheme } from '../../../../../util/theme';
+import VipIcon from '../../../../../images/rewards/vip.svg';
+import {
+  VIP_GOLD_BORDER_DEFAULT,
+  VIP_GOLD_BACKGROUND_GRADIENT_COLORS,
+  VIP_GOLD_PROGRESS_GRADIENT_COLORS,
+  VIP_GOLD_TEXT_MUTED,
+} from './Vip.constants';
 
 export const VIP_TIER_PROGRESS_CARD_TEST_IDS = {
   CONTAINER: 'vip-tier-progress-card',
+  BORDER: 'vip-tier-progress-card-border',
   GRADIENT: 'vip-tier-progress-card-gradient',
   PROGRAM: 'vip-tier-progress-card-program',
   PROGRESS_BAR: 'vip-tier-progress-card-bar',
@@ -37,32 +39,31 @@ interface VipTierProgressCardProps {
   programName?: string;
   progress: VipProgressDto;
   subline: string;
+  memberIdTitle: string;
+  memberId: string;
   onPress?: () => void;
 }
 
 const clampPercent = (value: number): number =>
   Math.max(0, Math.min(100, value));
 
-const WARNING_GRADIENT_OPACITY = 0.5;
+const vipTierProgressCardBorderStyle = {
+  borderWidth: 1,
+  borderColor: VIP_GOLD_BORDER_DEFAULT,
+};
 
 const VipTierProgressCard: React.FC<VipTierProgressCardProps> = ({
   currentTier,
   programName,
   progress,
   subline,
+  memberIdTitle,
+  memberId,
   onPress,
 }) => {
   const tw = useTailwind();
-  const { colors } = useTheme();
   const fillWidth: `${number}%` = `${clampPercent(progress.percent)}%`;
-  const gradientColors = React.useMemo(
-    () => [
-      'transparent',
-      'transparent',
-      colorWithOpacity(colors.warning.default, WARNING_GRADIENT_OPACITY),
-    ],
-    [colors.warning.default],
-  );
+  const gradientColors = VIP_GOLD_BACKGROUND_GRADIENT_COLORS;
 
   return (
     <Pressable
@@ -71,64 +72,90 @@ const VipTierProgressCard: React.FC<VipTierProgressCardProps> = ({
       style={tw.style('rounded-2xl')}
       testID={VIP_TIER_PROGRESS_CARD_TEST_IDS.CONTAINER}
     >
-      <LinearGradient
-        colors={gradientColors}
-        locations={[0, 0.55, 1]}
-        start={{ x: 0, y: 1 }}
-        end={{ x: 1, y: 0 }}
-        style={tw.style(
-          'bg-section rounded-2xl border border-muted overflow-hidden',
-        )}
-        testID={VIP_TIER_PROGRESS_CARD_TEST_IDS.GRADIENT}
+      <Box
+        twClassName="rounded-2xl overflow-hidden"
+        style={vipTierProgressCardBorderStyle}
+        testID={VIP_TIER_PROGRESS_CARD_TEST_IDS.BORDER}
       >
-        <Box twClassName="p-4 gap-4">
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Between}
-          >
-            <Icon
-              name={IconName.MetamaskFoxOutline}
-              size={IconSize.Lg}
-              color={IconColor.WarningDefault}
-            />
-          </Box>
-
-          <Box twClassName="gap-1">
-            <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
-              {currentTier.name}
-            </Text>
-            {programName ? (
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-                testID={VIP_TIER_PROGRESS_CARD_TEST_IDS.PROGRAM}
-              >
-                {programName}
-              </Text>
-            ) : null}
-          </Box>
-
-          <Box
-            twClassName="h-3 rounded-full bg-muted overflow-hidden"
-            testID={VIP_TIER_PROGRESS_CARD_TEST_IDS.PROGRESS_BAR}
-          >
+        <LinearGradient
+          colors={gradientColors}
+          start={{ x: 0, y: 1 }}
+          end={{ x: 1, y: 0 }}
+          locations={[0, 0.9]}
+          style={tw.style('bg-section')}
+          testID={VIP_TIER_PROGRESS_CARD_TEST_IDS.GRADIENT}
+        >
+          <Box twClassName="p-4 gap-4">
             <Box
-              twClassName="h-full rounded-full bg-warning-default"
-              style={{ width: fillWidth }}
-              testID={VIP_TIER_PROGRESS_CARD_TEST_IDS.PROGRESS_FILL}
-            />
-          </Box>
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Between}
+            >
+              <VipIcon width={32} height={32} name="VipIcon" />
+              {memberId && (
+                <Box twClassName="items-end">
+                  <Text
+                    variant={TextVariant.BodySm}
+                    fontWeight={FontWeight.Medium}
+                    style={{ color: VIP_GOLD_TEXT_MUTED }}
+                  >
+                    {memberIdTitle}
+                  </Text>
+                  <Text
+                    variant={TextVariant.BodySm}
+                    fontWeight={FontWeight.Medium}
+                    style={{ color: VIP_GOLD_TEXT_MUTED }}
+                  >
+                    {memberId}
+                  </Text>
+                </Box>
+              )}
+            </Box>
 
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.TextAlternative}
-            testID={VIP_TIER_PROGRESS_CARD_TEST_IDS.SUBLINE}
-          >
-            {subline}
-          </Text>
-        </Box>
-      </LinearGradient>
+            <Box>
+              <Text
+                variant={TextVariant.HeadingMd}
+                fontWeight={FontWeight.Bold}
+              >
+                {currentTier.name}
+              </Text>
+              {programName ? (
+                <Text
+                  variant={TextVariant.BodySm}
+                  testID={VIP_TIER_PROGRESS_CARD_TEST_IDS.PROGRAM}
+                >
+                  {programName}
+                </Text>
+              ) : null}
+            </Box>
+            <Box twClassName="gap-1">
+              <Box
+                twClassName="h-3 rounded-full bg-muted overflow-hidden"
+                testID={VIP_TIER_PROGRESS_CARD_TEST_IDS.PROGRESS_BAR}
+              >
+                <LinearGradient
+                  colors={VIP_GOLD_PROGRESS_GRADIENT_COLORS}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={[
+                    tw.style('h-full rounded-full'),
+                    { width: fillWidth },
+                  ]}
+                  testID={VIP_TIER_PROGRESS_CARD_TEST_IDS.PROGRESS_FILL}
+                />
+              </Box>
+
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+                testID={VIP_TIER_PROGRESS_CARD_TEST_IDS.SUBLINE}
+              >
+                {subline}
+              </Text>
+            </Box>
+          </Box>
+        </LinearGradient>
+      </Box>
     </Pressable>
   );
 };

@@ -14,6 +14,7 @@ import { PREDICT_CONSTANTS } from '../constants/errors';
 import { ensureError } from '../utils/predictErrorHandler';
 import { PredictCategory, PredictMarket } from '../types';
 import { filterStandaloneMarkets } from '../utils/feed';
+import { getVisiblePredictMarkets } from '../utils/marketStaleness';
 
 export interface UsePredictMarketDataOptions {
   category?: PredictCategory;
@@ -141,7 +142,9 @@ export const usePredictMarketData = (
 
             nextCursorRef.current = nextCursor;
             setHasMore(Boolean(nextCursor));
-            const visibleMarkets = filterStandaloneMarkets(markets);
+            const visibleMarkets = getVisiblePredictMarkets(
+              filterStandaloneMarkets(markets),
+            );
 
             if (isLoadMore) {
               setMarketData((prevData) => {

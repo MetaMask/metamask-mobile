@@ -3855,6 +3855,52 @@ describe('RewardsController', () => {
     });
   });
 
+  describe('getVipTierForAccount', () => {
+    it('returns null when disabled via isDisabled callback', async () => {
+      const isDisabled = () => true;
+      const disabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled,
+      });
+
+      const result =
+        await disabledController.getVipTierForAccount(CAIP_ACCOUNT_1);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null for accounts the controller has never seen (unhydrated)', async () => {
+      const result = await controller.getVipTierForAccount(CAIP_ACCOUNT_2);
+      expect(result).toBeNull();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('returns null when the account has no linked subscription (unhydrated)', async () => {
+      const accountState = {
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: true,
+        subscriptionId: null,
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+      };
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: { [CAIP_ACCOUNT_1]: accountState as RewardsAccountState },
+          subscriptions: {},
+        },
+        isDisabled: () => false,
+      });
+
+      const result = await controller.getVipTierForAccount(CAIP_ACCOUNT_1);
+
+      expect(result).toBeNull();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+  });
+
   describe('isRewardsFeatureEnabled', () => {
     it('returns true when not disabled', () => {
       const result = controller.isRewardsFeatureEnabled();
@@ -6861,9 +6907,7 @@ describe('RewardsController', () => {
       nextTier: { id: 'gold-fox-vip-4', name: 'Gold Fox VIP 4', tier: 4 },
       progress: {
         percent: 72,
-        remainingSwapsUsd: 800000,
-        remainingPerpsUsd: 3600000,
-        estimatedDaysToNextTier: 4,
+        remainingPointsToNextTier: 800000,
         status: 'on_track',
       },
       fees: {
@@ -6877,10 +6921,14 @@ describe('RewardsController', () => {
       volume: {
         swapsUsd: 4100000,
         perpsUsd: 2300000,
+        points: 24400000,
+        pointsFromReferrals: 500000,
+        referrals: 2,
+        referralsCap: 10,
       },
       pointsAllocation: {
         earned: 24400000,
-        max: 100000000,
+        threshold: 100000000,
         percent: 24.4,
       },
       tiers: [
@@ -6888,27 +6936,29 @@ describe('RewardsController', () => {
           id: 'gold-fox-vip-3',
           name: 'Gold Fox 3',
           tier: 3,
-          swapsRequirementUsd: 7000000,
-          perpsRequirementUsd: 35000000,
+          pointsRequirement: 750000,
           revenueShareBps: 150,
           swapsBps: 15,
           perpsBps: 4,
+          referralCarryoverBps: 2000,
           status: 'current',
         },
       ],
       localizedText: {
-        period: 'Mar 31 - Apr 30',
-        progressToNextTier: 'Subline',
+        periodTitle: 'Mar 31 - Apr 30',
+        memberIdTitle: 'Member ID',
         swapsFeeTitle: 'Swaps fee',
         perpsFeeTitle: 'Perps fee',
         nextTierSwapsFeeDelta: '↓ 12 bps next tier',
         nextTierPerpsFeeDelta: '↓ 3 bps next tier',
         revenueShareTitle: 'Revenue share',
-        volumeTitle: 'Volume',
-        statusMessage: 'On track',
-        pointsTitle: 'Points',
-        pointsAllocationTitle: 'Earn VIP allocations',
-        pointsAllocationDescription: 'Body copy',
+        nextTierRevenueShareDelta: '↑ 2% next tier',
+        statsTitle: 'Volume',
+        totalPointsTitle: 'Points',
+        equityLockedTitle: 'Earn VIP allocations',
+        equityLockedDescription: 'Body copy',
+        equityUnlockedTitle: 'VIP allocation unlocked',
+        equityUnlockedDescription: 'Unlocked body copy',
       },
       ...overrides,
     });
@@ -9471,9 +9521,7 @@ describe('RewardsController', () => {
               nextTier: { id: 't4', name: 'Gold Fox VIP 4', tier: 4 },
               progress: {
                 percent: 72,
-                remainingSwapsUsd: 800000,
-                remainingPerpsUsd: 3600000,
-                estimatedDaysToNextTier: 4,
+                remainingPointsToNextTier: 800000,
                 status: 'on_track',
               },
               fees: {
@@ -9484,22 +9532,31 @@ describe('RewardsController', () => {
                 nextTierSwapsBps: 12,
                 nextTierPerpsBps: 3,
               },
-              volume: { swapsUsd: 4100000, perpsUsd: 2300000 },
-              pointsAllocation: { earned: 0, max: 1, percent: 0 },
+              volume: {
+                swapsUsd: 4100000,
+                perpsUsd: 2300000,
+                points: 24400000,
+                pointsFromReferrals: 500000,
+                referrals: 2,
+                referralsCap: 10,
+              },
+              pointsAllocation: { earned: 0, threshold: 1, percent: 0 },
               tiers: [],
               localizedText: {
-                period: 'Mar 31 - Apr 30',
-                progressToNextTier: 'Subline',
+                periodTitle: 'Mar 31 - Apr 30',
+                memberIdTitle: 'Member ID',
                 swapsFeeTitle: 'Swaps fee',
                 perpsFeeTitle: 'Perps fee',
                 nextTierSwapsFeeDelta: '↓ 12 bps next tier',
                 nextTierPerpsFeeDelta: '↓ 3 bps next tier',
                 revenueShareTitle: 'Revenue share',
-                volumeTitle: 'Volume',
-                statusMessage: 'On track',
-                pointsTitle: 'Points',
-                pointsAllocationTitle: 'Earn VIP allocations',
-                pointsAllocationDescription: 'Body copy',
+                nextTierRevenueShareDelta: '↑ 2% next tier',
+                statsTitle: 'Volume',
+                totalPointsTitle: 'Points',
+                equityLockedTitle: 'Earn VIP allocations',
+                equityLockedDescription: 'Body copy',
+                equityUnlockedTitle: 'VIP allocation unlocked',
+                equityUnlockedDescription: 'Unlocked body copy',
               },
               lastFetched: 123,
             },

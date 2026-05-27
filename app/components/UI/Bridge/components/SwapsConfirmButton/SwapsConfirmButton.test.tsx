@@ -376,7 +376,7 @@ describe('SwapsConfirmButton', () => {
       });
     });
 
-    it('hides label behind loading indicator when submitting', () => {
+    it('marks the button as loading when submitting', () => {
       const submittingState = {
         ...mockState,
         bridge: {
@@ -395,9 +395,9 @@ describe('SwapsConfirmButton', () => {
         },
       );
 
-      // When submitting, buttonIsInLoadingState is true so Button shows
-      // a spinner overlay (label text is rendered but visually hidden via opacity-0)
-      expect(getByTestId('spinner-container')).toBeTruthy();
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.accessibilityState?.disabled).toBe(true);
+      expect(button.props.accessibilityState?.busy).toBe(true);
     });
   });
 
@@ -555,7 +555,7 @@ describe('SwapsConfirmButton', () => {
   });
 
   describe('Button Loading State', () => {
-    it('shows loading indicator when loading without active quote', () => {
+    it('marks the button as loading when loading without active quote', () => {
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
@@ -577,11 +577,10 @@ describe('SwapsConfirmButton', () => {
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
       // Button is disabled (isLoading && !activeQuote)
       expect(button.props.accessibilityState?.disabled).toBe(true);
-      // Spinner overlay is shown (label text rendered but visually hidden via opacity-0)
-      expect(getByTestId('spinner-container')).toBeTruthy();
+      expect(button.props.accessibilityState?.busy).toBe(true);
     });
 
-    it('shows loading indicator when submitting transaction', () => {
+    it('marks the button as loading when submitting transaction', () => {
       const submittingState = {
         ...mockState,
         bridge: {
@@ -602,8 +601,7 @@ describe('SwapsConfirmButton', () => {
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
       expect(button.props.accessibilityState?.disabled).toBe(true);
-      // Spinner overlay is shown (label text rendered but visually hidden via opacity-0)
-      expect(getByTestId('spinner-container')).toBeTruthy();
+      expect(button.props.accessibilityState?.busy).toBe(true);
     });
 
     it('shows loading when awaiting quote (valid amount, no quote, not loading)', () => {
@@ -627,8 +625,7 @@ describe('SwapsConfirmButton', () => {
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
       expect(button.props.accessibilityState?.disabled).toBe(true);
-      // Spinner overlay is shown (label text rendered but visually hidden via opacity-0)
-      expect(getByTestId('spinner-container')).toBeTruthy();
+      expect(button.props.accessibilityState?.busy).toBe(true);
     });
 
     it('is disabled when active quote is for a different token pair (stale quote during token change)', () => {
@@ -821,7 +818,7 @@ describe('SwapsConfirmButton', () => {
           activeQuote: mockBtcQuoteWithUnavailableNetworkFee,
         }));
 
-      const { getByText, getByTestId, queryByTestId } = renderWithProvider(
+      const { getByText, getByTestId } = renderWithProvider(
         <SwapsConfirmButton
           latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
@@ -833,7 +830,7 @@ describe('SwapsConfirmButton', () => {
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
       expect(button.props.accessibilityState?.disabled).toBe(true);
-      expect(queryByTestId('spinner-container')).toBeNull();
+      expect(button.props.accessibilityState?.busy).not.toBe(true);
       expect(getByText(strings('bridge.insufficient_funds'))).toBeTruthy();
     });
   });
@@ -859,8 +856,7 @@ describe('SwapsConfirmButton', () => {
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
       expect(button.props.accessibilityState?.disabled).toBe(true);
-      // Spinner overlay is shown (label text rendered but visually hidden via opacity-0)
-      expect(getByTestId('spinner-container')).toBeTruthy();
+      expect(button.props.accessibilityState?.busy).toBe(true);
     });
 
     it('disables button without loading when amount changes to zero and quote is stale', () => {
