@@ -97,11 +97,14 @@ class TrendingView {
 
   /**
    * Tap a tab in the V2 tabbed Explore layout by its testID.
+   * checkVisibility is disabled because the Tab component uses an opacity-0
+   * spacer text + absolutely-positioned visible text, which confuses Detox's
+   * 75%-coverage visibility heuristic on the Pressable container.
    */
   async tapTab(tabTestID: string): Promise<void> {
     await Gestures.tap(Matchers.getElementByID(tabTestID), {
       elemDescription: `Tap tab ${tabTestID}`,
-      checkStability: true,
+      checkVisibility: false,
     });
   }
 
