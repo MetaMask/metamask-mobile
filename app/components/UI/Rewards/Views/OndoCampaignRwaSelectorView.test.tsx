@@ -674,6 +674,20 @@ describe('OndoCampaignRwaSelectorView', () => {
       expect(queryByTestId('after-hours-sheet')).toBeNull();
     });
 
+    it('uses USDT as the source token for BNB Chain assets when after hours confirm is pressed', () => {
+      const token = buildToken('AAPL', 'eip155:56/erc20:0xaapl');
+      mockUseRwaTokens.mockReturnValue({ data: [token], isLoading: false });
+      const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
+      fireEvent.press(getByTestId('token-row-AAPL'));
+      fireEvent.press(getByTestId('after-hours-confirm'));
+
+      expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
+      const [srcArg, destArg] = mockGoToSwaps.mock.calls[0];
+      expect(srcArg?.symbol).toBe('USDT');
+      expect(srcArg?.chainId).toBe('0x38');
+      expect(destArg?.chainId).toBe('eip155:56');
+    });
+
     it('tracks button_clicked event when after hours confirm is pressed', () => {
       const token = buildToken('AAPL');
       mockUseRwaTokens.mockReturnValue({ data: [token], isLoading: false });
