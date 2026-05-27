@@ -65,6 +65,8 @@ export const DEFAULT_DISABLED_FEATURES: string[] = [
   'go_to_date',
   'show_zoom_and_move_buttons_on_touch',
   'shift_visible_range_on_new_bar',
+  // Disable vertical touch drag in chart so webpage can scroll vertically
+  'vert_touch_drag_scroll',
 ];
 
 /**
