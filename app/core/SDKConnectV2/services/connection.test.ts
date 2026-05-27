@@ -763,6 +763,7 @@ describe('Connection', () => {
         await onClientMessageCallback(requestPayload);
 
         const responsePayload = {
+          name: 'metamask-provider',
           data: { id: 42, jsonrpc: '2.0', result: ['0xabc'] },
         };
         onBridgeResponseCallback(responsePayload);
@@ -798,6 +799,7 @@ describe('Connection', () => {
         await onClientMessageCallback(requestPayload);
 
         const errorResponsePayload = {
+          name: 'metamask-provider',
           data: {
             id: 7,
             jsonrpc: '2.0',
@@ -835,6 +837,7 @@ describe('Connection', () => {
       await onClientMessageCallback(requestPayload);
 
       const responsePayload = {
+        name: 'metamask-provider',
         data: { id: 9, jsonrpc: '2.0', result: '0xsignature' },
       };
       onBridgeResponseCallback(responsePayload);
@@ -863,6 +866,7 @@ describe('Connection', () => {
       await onClientMessageCallback(requestPayload);
 
       const responsePayload = {
+        name: 'metamask-provider',
         data: { id: 1, jsonrpc: '2.0', result: ['0xabc'] },
       };
       onBridgeResponseCallback(responsePayload);

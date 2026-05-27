@@ -72,13 +72,17 @@ export class Connection {
   public readonly bridge: IRPCBridgeAdapter;
 
   /**
-   * Tracks the full in-flight request payload for each JSON-RPC request id
+   * Tracks the full in-flight request payload for each JSON-RPC request,
    * so the response handler can apply request-specific behavior (e.g.
-   * suppressing user-facing toasts for silent read-only methods). Entries
-   * are added when a request is forwarded to the bridge and removed once a
-   * response with the matching id is received.
+   * suppressing user-facing toasts for silent read-only methods).
+   *
+   * Keyed by `${payload.name}:${id}` so requests from different multiplex
+   * channels (e.g. `metamask-provider` vs `metamask-multichain-provider`)
+   * with overlapping JSON-RPC ids do not collide. Entries are added when
+   * a request is forwarded to the bridge and removed once a response with
+   * the matching key is received.
    */
-  private readonly requestMap: Map<number | string, unknown> = new Map();
+  private readonly requestMap: Map<string, unknown> = new Map();
 
   private constructor(
     connInfo: ConnectionInfo,
@@ -132,12 +136,22 @@ export class Connection {
         );
       }
 
-      // Record the full request payload so the response handler can look up
-      // the originating request (and any of its fields, e.g. `method`) for a
-      // given JSON-RPC id.
+      // Record the originating request payload (keyed by multiplex channel
+      // name + JSON-RPC id) so the response handler can look up any of its
+      // fields (e.g. `method`) when the matching response arrives. At runtime
+      // BackgroundBridge wraps payloads with `{ name, data }` via the
+      // json-rpc-middleware-stream multiplex layer, but `payload` is typed as
+      // `unknown` here, so we narrow defensively.
       const requestId = data?.id;
-      if (typeof requestId === 'number' || typeof requestId === 'string') {
-        this.requestMap.set(requestId, payload);
+      if (
+        (typeof requestId === 'number' || typeof requestId === 'string') &&
+        payload &&
+        typeof payload === 'object' &&
+        'name' in payload &&
+        typeof payload.name === 'string'
+      ) {
+        const key = `${payload.name}:${requestId}`;
+        this.requestMap.set(key, payload);
       }
 
       this.bridge.send(payload);
@@ -158,17 +172,27 @@ export class Connection {
         const responseData = payload.data;
         const responseId = responseData.id as number | string;
 
-        // Look up the originating request for this response id and remove
-        // the entry from the request map. Responses for silent read-only
-        // methods (e.g. eth_accounts, eth_chainId) should not surface
-        // "Return to app" or error toasts to the user. The response itself
-        // is still relayed back to the dapp below via
-        // this.client.sendResponse(payload).
-        const request = this.requestMap.get(responseId);
-        this.requestMap.delete(responseId);
+        // Look up the originating request for this response (keyed by
+        // multiplex channel name + JSON-RPC id) and remove the entry from
+        // the request map. Responses for silent read-only methods (e.g.
+        // eth_accounts, eth_chainId) should not surface "Return to app" or
+        // error toasts to the user. The response itself is still relayed
+        // back to the dapp below via this.client.sendResponse(payload).
+        //
+        // At runtime BackgroundBridge wraps responses with `{ name, data }`
+        // via the json-rpc-middleware-stream multiplex layer, but `RPCResponse`
+        // does not declare `name`, so we narrow defensively.
+        let request: unknown;
+        if ('name' in payload && typeof payload.name === 'string') {
+          const key = `${payload.name}:${responseId}`;
+          request = this.requestMap.get(key);
+          this.requestMap.delete(key);
+        }
         const requestData =
           request && typeof request === 'object' && 'data' in request
-            ? (request.data as Record<string, unknown>)
+            ? ((request as { data?: unknown }).data as
+                | Record<string, unknown>
+                | undefined)
             : undefined;
         const requestMethod = requestData?.method;
         const isSilentReadRequest =
