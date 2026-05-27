@@ -96,12 +96,14 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
 
   const renderSectionHeader = useCallback(
     (item: ListItemHeader, section: SearchFeedSection) => {
-      const viewMoreLabel = getViewMoreLabel(
-        section.feedId,
-        section.isLoading ? 0 : section.items.length,
-        searchQuery,
-        section.isLoading ? undefined : section.total,
-      );
+      const viewMoreLabel = section.isLoading
+        ? null
+        : getViewMoreLabel(
+            section.feedId,
+            section.items.length,
+            searchQuery,
+            section.total,
+          );
       return (
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -116,7 +118,7 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
           >
             {item.title}
           </Text>
-          {!section.isLoading && (
+          {viewMoreLabel !== null && (
             <Pressable
               onPress={() => handleViewMore(section)}
               hitSlop={8}
