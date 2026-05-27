@@ -122,7 +122,7 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
 
     handler(makeTx(TransactionType.moneyAccountDeposit));
     await waitFor(() => {
-      expect(mockInvalidateQueries).toHaveBeenCalledTimes(4);
+      expect(mockInvalidateQueries).toHaveBeenCalledTimes(2);
     });
 
     expect(mockInvalidateQueries).toHaveBeenCalledWith({
@@ -147,10 +147,10 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
 
     handler(makeTx(TransactionType.moneyAccountWithdraw));
     await waitFor(() => {
-      expect(mockInvalidateQueries).toHaveBeenCalledTimes(4);
+      expect(mockInvalidateQueries).toHaveBeenCalledTimes(2);
     });
 
-    expect(mockInvalidateQueries).toHaveBeenCalledTimes(4);
+    expect(mockInvalidateQueries).toHaveBeenCalledTimes(2);
   });
 
   it('invalidates on confirmed tx with nested deposit', async () => {
@@ -163,10 +163,10 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
       ]),
     );
     await waitFor(() => {
-      expect(mockInvalidateQueries).toHaveBeenCalledTimes(4);
+      expect(mockInvalidateQueries).toHaveBeenCalledTimes(2);
     });
 
-    expect(mockInvalidateQueries).toHaveBeenCalledTimes(4);
+    expect(mockInvalidateQueries).toHaveBeenCalledTimes(2);
   });
 
   it('invalidates on confirmed tx with nested withdraw', async () => {
@@ -179,10 +179,10 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
       ]),
     );
     await waitFor(() => {
-      expect(mockInvalidateQueries).toHaveBeenCalledTimes(4);
+      expect(mockInvalidateQueries).toHaveBeenCalledTimes(2);
     });
 
-    expect(mockInvalidateQueries).toHaveBeenCalledTimes(4);
+    expect(mockInvalidateQueries).toHaveBeenCalledTimes(2);
   });
 
   it('does not invalidate for non-confirmed status', () => {
@@ -227,9 +227,9 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
 
     handler(makeTx(TransactionType.moneyAccountDeposit));
     await waitFor(() => {
-      expect(mockInvalidateQueries).toHaveBeenCalledTimes(4);
+      expect(mockInvalidateQueries).toHaveBeenCalledTimes(2);
     });
 
-    expect(mockInvalidateQueries).toHaveBeenCalledTimes(4);
+    expect(mockInvalidateQueries).toHaveBeenCalledTimes(2);
   });
 });

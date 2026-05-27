@@ -59,14 +59,13 @@ const invalidateBalanceQueries = async (address: string) =>
   ]);
 
 /**
- * Invalidate + refetch once to establish a fresh baseline snapshot, then retry
- * up to MAX_RETRIES times if subsequent reads are byte-identical to baseline.
- * Guards against RPC nodes serving stale reads immediately after a
- * `transactionConfirmed` event. Fails visibly via Logger.error if the retry
- * budget exhausts.
+ * Capture the pre-invalidation cached snapshot as a baseline, then invalidate +
+ * refetch and compare. Retry up to MAX_RETRIES times if subsequent reads are
+ * byte-identical to baseline. Guards against RPC nodes serving stale reads
+ * immediately after a `transactionConfirmed` event. Fails visibly via
+ * Logger.error if the retry budget exhausts.
  */
 const refreshMoneyBalanceQueries = async (address: string) => {
-  await invalidateBalanceQueries(address);
   const baseline = readBalanceSnapshot(address);
 
   Logger.log(`${LOG_PREFIX} Baseline snapshot established`, { baseline });
@@ -83,7 +82,6 @@ const refreshMoneyBalanceQueries = async (address: string) => {
     }
 
     await invalidateBalanceQueries(address);
-
     const next = readBalanceSnapshot(address);
     const changed = didBalanceChange(baseline, next);
 
