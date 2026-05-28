@@ -105,13 +105,13 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     }
     return strings('onboarding_success.wallet_ready');
   };
+  const shouldSkipSuccessAnimation =
+    Platform.OS === 'android' &&
+    successFlow === ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING;
 
   const renderContent = () => (
     <>
-      {!(
-        Platform.OS === 'android' &&
-        successFlow === ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING
-      ) && (
+      {!shouldSkipSuccessAnimation && (
         <OnboardingSuccessEndAnimation
           onAnimationComplete={() => {
             // No-op: Animation completion not needed in success mode
