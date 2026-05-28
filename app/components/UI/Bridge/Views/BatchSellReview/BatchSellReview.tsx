@@ -384,7 +384,6 @@ export function BatchSellReview() {
               size={ButtonSize.Md}
               testID={BatchSellReviewSelectorsIDs.DESTINATION_TOKEN_PILL}
               onPress={handleOpenDestinationTokenSelector}
-              style={tw.style('rounded-xl px-3 py-3')}
             >
               <Box
                 flexDirection={BoxFlexDirection.Row}
