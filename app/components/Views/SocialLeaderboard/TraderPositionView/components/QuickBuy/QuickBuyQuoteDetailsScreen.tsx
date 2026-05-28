@@ -1,16 +1,12 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  IconName,
   Text,
   TextColor,
   TextVariant,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../locales/i18n';
@@ -25,6 +21,11 @@ import type { Hex } from '@metamask/utils';
 import { useQuickBuyContext } from './useQuickBuyContext';
 import QuickBuySubScreenHeader from './components/QuickBuySubScreenHeader';
 import QuickBuyQuoteCountdown from './components/QuickBuyQuoteCountdown';
+import {
+  QuickBuyQuoteDetailPressableValue,
+  QuickBuyQuoteDetailRow,
+  QuickBuyQuoteDetailTextValue,
+} from './components/QuickBuyQuoteDetailRow';
 
 const QuickBuyQuoteDetailsScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -69,7 +70,6 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
       />
 
       <Box twClassName="px-4 pt-3 pb-4" gap={3}>
-        {/* Rate row — countdown inline with label, value opens Select Quote */}
         <KeyValueRowStubs.Root>
           <KeyValueRowStubs.Section>
             <KeyValueRowStubs.Label
@@ -100,128 +100,42 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
             />
           </KeyValueRowStubs.Section>
           <KeyValueRowStubs.Section align={KeyValueRowSectionAlignments.RIGHT}>
-            <TouchableOpacity
+            <QuickBuyQuoteDetailPressableValue
               onPress={() => setActiveScreen('selectQuote')}
               testID="quick-buy-rate-row"
-              activeOpacity={0.6}
-            >
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                gap={1}
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextDefault}
-                >
-                  {formattedRate ?? '-'}
-                </Text>
-                <Icon
-                  name={IconName.ArrowRight}
-                  size={IconSize.Sm}
-                  color={IconColor.IconDefault}
-                />
-              </Box>
-            </TouchableOpacity>
+              text={formattedRate ?? '-'}
+              iconName={IconName.ArrowRight}
+            />
           </KeyValueRowStubs.Section>
         </KeyValueRowStubs.Root>
 
-        {/* Network fee row */}
-        <KeyValueRowStubs.Root>
-          <KeyValueRowStubs.Section>
-            <KeyValueRowStubs.Label
-              label={
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('social_leaderboard.quick_buy.network_fee')}
-                </Text>
-              }
-              tooltip={{
-                title: strings('bridge.network_fee_info_title'),
-                content: strings('bridge.network_fee_info_content'),
-                size: TooltipSizes.Sm,
-                iconName: IconNameLegacy.Info,
-              }}
-            />
-          </KeyValueRowStubs.Section>
-          <KeyValueRowStubs.Section align={KeyValueRowSectionAlignments.RIGHT}>
-            <KeyValueRowStubs.Label label={{ text: formattedNetworkFee }} />
-          </KeyValueRowStubs.Section>
-        </KeyValueRowStubs.Root>
+        <QuickBuyQuoteDetailRow
+          label={strings('social_leaderboard.quick_buy.network_fee')}
+          tooltipTitle={strings('bridge.network_fee_info_title')}
+          tooltipContent={strings('bridge.network_fee_info_content')}
+          value={<QuickBuyQuoteDetailTextValue text={formattedNetworkFee} />}
+        />
 
-        {/* Slippage row */}
-        <KeyValueRowStubs.Root>
-          <KeyValueRowStubs.Section>
-            <KeyValueRowStubs.Label
-              label={
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('social_leaderboard.quick_buy.slippage')}
-                </Text>
-              }
-              tooltip={{
-                title: strings('bridge.slippage_info_title'),
-                content: strings('bridge.slippage_info_description'),
-                size: TooltipSizes.Sm,
-                iconName: IconNameLegacy.Info,
-              }}
-            />
-          </KeyValueRowStubs.Section>
-          <KeyValueRowStubs.Section align={KeyValueRowSectionAlignments.RIGHT}>
-            <TouchableOpacity
+        <QuickBuyQuoteDetailRow
+          label={strings('social_leaderboard.quick_buy.slippage')}
+          tooltipTitle={strings('bridge.slippage_info_title')}
+          tooltipContent={strings('bridge.slippage_info_description')}
+          value={
+            <QuickBuyQuoteDetailPressableValue
               onPress={handleEditSlippage}
-              activeOpacity={0.6}
               testID="quick-buy-edit-slippage"
-            >
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                gap={1}
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextDefault}
-                >
-                  {formattedSlippage}
-                </Text>
-                <Icon
-                  name={IconName.Edit}
-                  size={IconSize.Sm}
-                  color={IconColor.IconDefault}
-                />
-              </Box>
-            </TouchableOpacity>
-          </KeyValueRowStubs.Section>
-        </KeyValueRowStubs.Root>
-
-        {/* Minimum received row */}
-        <KeyValueRowStubs.Root>
-          <KeyValueRowStubs.Section>
-            <KeyValueRowStubs.Label
-              label={
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('social_leaderboard.quick_buy.minimum_received')}
-                </Text>
-              }
-              tooltip={{
-                title: strings('bridge.minimum_received_tooltip_title'),
-                content: strings('bridge.minimum_received_tooltip_content'),
-                size: TooltipSizes.Sm,
-                iconName: IconNameLegacy.Info,
-              }}
+              text={formattedSlippage}
+              iconName={IconName.Edit}
             />
-          </KeyValueRowStubs.Section>
-          <KeyValueRowStubs.Section align={KeyValueRowSectionAlignments.RIGHT}>
-            <KeyValueRowStubs.Label label={{ text: minReceivedLabel }} />
-          </KeyValueRowStubs.Section>
-        </KeyValueRowStubs.Root>
+          }
+        />
+
+        <QuickBuyQuoteDetailRow
+          label={strings('social_leaderboard.quick_buy.minimum_received')}
+          tooltipTitle={strings('bridge.minimum_received_tooltip_title')}
+          tooltipContent={strings('bridge.minimum_received_tooltip_content')}
+          value={<QuickBuyQuoteDetailTextValue text={minReceivedLabel} />}
+        />
       </Box>
     </>
   );
