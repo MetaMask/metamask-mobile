@@ -67,9 +67,10 @@ const MoneyAddMoneySheet: React.FC = () => {
   }, [navigation]);
 
   const handleConvertCrypto = useCallback(() => {
-    initiateDeposit().catch(() => undefined);
-    sheetRef.current?.onCloseBottomSheet();
-  }, [initiateDeposit]);
+    closeAndNavigate(() => {
+      initiateDeposit().catch(() => undefined);
+    });
+  }, [closeAndNavigate, initiateDeposit]);
 
   // TODO(MUSD-479): point to the Ramps "Add funds" amount-entry screen
   // (Figma 2547:8780). Interim: unified smart-routed Buy flow with mUSD
@@ -96,15 +97,16 @@ const MoneyAddMoneySheet: React.FC = () => {
       }
     }
 
-    initiateDeposit({
-      intent: 'addMusd',
-      preferredPaymentToken: {
-        address: MUSD_TOKEN_ADDRESS_BY_CHAIN[sourceChainId],
-        chainId: sourceChainId,
-      },
-    }).catch(() => undefined);
-    sheetRef.current?.onCloseBottomSheet();
-  }, [initiateDeposit, tokenBalanceByChain]);
+    closeAndNavigate(() => {
+      initiateDeposit({
+        intent: 'addMusd',
+        preferredPaymentToken: {
+          address: MUSD_TOKEN_ADDRESS_BY_CHAIN[sourceChainId],
+          chainId: sourceChainId,
+        },
+      }).catch(() => undefined);
+    });
+  }, [closeAndNavigate, initiateDeposit, tokenBalanceByChain]);
 
   const parsedMusdFiat = Number(fiatBalanceAggregated);
   const hasParsedFiatBalance =
