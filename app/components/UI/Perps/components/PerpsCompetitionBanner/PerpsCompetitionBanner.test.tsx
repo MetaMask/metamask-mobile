@@ -5,6 +5,7 @@ import { selectPerpsCompetitionBannerEnabledFlag } from '../../selectors/feature
 import StorageWrapper from '../../../../../store/storage-wrapper';
 import { PERPS_COMPETITION_BANNER_DISMISSED } from '../../../../../constants/storage';
 import Routes from '../../../../../constants/navigation/Routes';
+import { setPendingDeeplink } from '../../../../../reducers/rewards';
 
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
@@ -131,8 +132,29 @@ describe('PerpsCompetitionBanner', () => {
 
     fireEvent.press(getByTestId('perps-competition-banner'));
 
-    expect(mockDispatch).toHaveBeenCalled();
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setPendingDeeplink({ campaign: 'perps-comp' }),
+    );
     expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
+  });
+
+  it('stays hidden for this session when storage write fails on dismiss', async () => {
+    setupSelector(true);
+    (StorageWrapper.setItem as jest.Mock).mockRejectedValue(
+      new Error('storage write failed'),
+    );
+
+    const { getByTestId, queryByTestId } = render(<PerpsCompetitionBanner />);
+
+    await waitFor(() => {
+      expect(getByTestId('perps-competition-banner')).toBeOnTheScreen();
+    });
+
+    fireEvent.press(getByTestId('perps-competition-banner-close'));
+
+    await waitFor(() => {
+      expect(queryByTestId('perps-competition-banner')).toBeNull();
+    });
   });
 
   it('uses custom testID when provided', async () => {

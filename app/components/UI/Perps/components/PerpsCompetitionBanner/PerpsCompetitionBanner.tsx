@@ -10,6 +10,7 @@ import {
   ButtonIconSize,
   TextVariant,
   TextColor,
+  FontWeight,
   BoxFlexDirection,
   BoxAlignItems,
   BoxBackgroundColor,
@@ -51,7 +52,6 @@ const styles = StyleSheet.create({
   },
   titleText: {
     flex: 1,
-    fontWeight: '500',
   },
 });
 
@@ -117,6 +117,7 @@ const PerpsCompetitionBanner: React.FC<PerpsCompetitionBannerProps> = ({
           >
             <Text
               variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
               color={TextColor.TextDefault}
               numberOfLines={1}
               style={styles.titleText}
