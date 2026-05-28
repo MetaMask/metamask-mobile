@@ -64,6 +64,11 @@ import {
 import type { Span } from '@sentry/core';
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { captureException } from '@sentry/react-native';
+import { discoverAccounts } from '../../../multichain-accounts/discovery';
+
+const mockDiscoverAccounts = discoverAccounts as jest.MockedFunction<
+  typeof discoverAccounts
+>;
 
 const mockTrackOnboarding = trackOnboarding as jest.MockedFunction<
   typeof trackOnboarding
@@ -77,9 +82,16 @@ OAuthLoginService.updateMarketingOptInStatus = jest
   .fn()
   .mockResolvedValue({ is_opt_in: true });
 
+jest.mock('../../../multichain-accounts/discovery', () => ({
+  discoverAccounts: jest.fn().mockResolvedValue(0),
+}));
+
 jest.mock('../../../core/Engine', () => ({
   context: {
     KeyringController: {
+      state: {
+        keyrings: [{ metadata: { id: 'test-keyring-id' } }],
+      },
       createNewVaultAndKeychain: jest.fn().mockResolvedValue(true),
       createNewVaultAndRestore: jest.fn().mockResolvedValue({
         getAccounts: jest.fn().mockResolvedValue(['0x123']),
@@ -695,6 +707,7 @@ describe('ChoosePassword', () => {
       });
 
       await waitFor(() => {
+        expect(mockDiscoverAccounts).toHaveBeenCalledWith('test-keyring-id');
         expect(mockNavigation.reset).toHaveBeenCalledWith({
           index: 0,
           routes: [
