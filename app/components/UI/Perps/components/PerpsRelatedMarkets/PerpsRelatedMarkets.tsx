@@ -98,14 +98,13 @@ const PerpsRelatedMarkets: React.FC<PerpsRelatedMarketsProps> = ({
     });
   }, [currentMarket.symbol, track]);
 
-  const renderedMarkets = markets;
   const symbols = useMemo(
-    () => renderedMarkets.map((market) => market.symbol),
-    [renderedMarkets],
+    () => markets.map((market) => market.symbol),
+    [markets],
   );
   const { sparklines } = useHomepageSparklines(symbols);
 
-  if (renderedMarkets.length === 0) {
+  if (markets.length === 0) {
     return null;
   }
 
@@ -132,7 +131,7 @@ const PerpsRelatedMarkets: React.FC<PerpsRelatedMarketsProps> = ({
         onScrollBeginDrag={handleScrollBeginDrag}
         testID={PerpsRelatedMarketsSelectorsIDs.SCROLL_VIEW}
       >
-        {renderedMarkets.map((market, index) => (
+        {markets.map((market, index) => (
           <PerpsMarketTileCard
             key={market.symbol}
             market={market}
