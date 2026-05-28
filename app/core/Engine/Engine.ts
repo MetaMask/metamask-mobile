@@ -290,7 +290,7 @@ export class Engine {
 
     const mergedInitialState = {
       ...initialState,
-      KeyringController: initialState.KeyringController ?? initialKeyringState,
+      KeyringController: initialKeyringState ?? initialState.KeyringController,
     };
 
     this.#wallet = initializeWallet({
@@ -1575,11 +1575,9 @@ export default {
     instance.setAccountLabel(address, label);
   },
 
-  getQrKeyringScanner: () => 
+  getQrKeyringScanner: () =>
     // TODO: Use the KeyringController to find the appropriate QR keyring bridge instead of using a global.
-     qrKeyringBridge
-  ,
-
+    qrKeyringBridge,
   lookupEnabledNetworks: () => {
     assertEngineExists(instance);
     instance.lookupEnabledNetworks();
