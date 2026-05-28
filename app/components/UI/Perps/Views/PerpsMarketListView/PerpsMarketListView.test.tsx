@@ -85,6 +85,7 @@ const mockSetSearchQuery = jest.fn((q: string) => {
 const mockClearSearch = jest.fn(() => {
   mockSearchQuery = '';
 });
+const mockNavigateToMarketDetails = jest.fn();
 
 jest.mock('../../hooks', () => ({
   useColorPulseAnimation: jest.fn(() => ({
@@ -115,7 +116,7 @@ jest.mock('../../hooks', () => ({
     navigateToActions: jest.fn(),
     navigateToActivity: jest.fn(),
     navigateToRewards: jest.fn(),
-    navigateToMarketDetails: jest.fn(),
+    navigateToMarketDetails: mockNavigateToMarketDetails,
     navigateToHome: jest.fn(),
     navigateToMarketList: jest.fn(),
     navigateBack: jest.fn(),
@@ -712,6 +713,30 @@ describe('PerpsMarketListView', () => {
 
       const btcRows = screen.getAllByTestId('market-row-BTC');
       expect(() => fireEvent.press(btcRows[0])).not.toThrow();
+    });
+
+    it('navigates to SPCX details with market-list source when SPCX is pressed', () => {
+      const spcxMarket: PerpsMarketData = {
+        symbol: 'xyz:SPCX',
+        name: 'SPCX',
+        maxLeverage: '5x',
+        price: '$0.00',
+        change24h: '+$0.00',
+        change24hPercent: '+0.00%',
+        volume: '$0',
+        marketSource: 'xyz',
+      };
+      mockMarketDataForHook.length = 0;
+      mockMarketDataForHook.push(spcxMarket);
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      fireEvent.press(screen.getByTestId('market-row-xyz:SPCX'));
+
+      expect(mockNavigateToMarketDetails).toHaveBeenCalledWith(
+        spcxMarket,
+        'perp_markets',
+      );
     });
   });
 
