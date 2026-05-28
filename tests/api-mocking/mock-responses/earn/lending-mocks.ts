@@ -7,6 +7,8 @@
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../helpers/remoteFeatureFlagsHelper';
 import { setupMockRequest } from '../../helpers/mockHelpers';
+import { getDecodedProxiedURL } from '../../../smoke/notifications/utils/helpers';
+import { safeGetBodyText } from '../../MockServerE2E';
 import { DEFAULT_FIXTURE_ACCOUNT_CHECKSUM } from '../../../framework/fixtures/FixtureBuilder';
 
 /** Lowercase test-account address used in Accounts API CAIP-10 identifiers. */
@@ -235,4 +237,38 @@ export async function setupLendingMocks(
     requestMethod: 'GET',
     responseCode: 200,
   });
+
+  await mockServer
+    .forPost('/proxy')
+    .matching((request) => {
+      try {
+        const url = getDecodedProxiedURL(request.url);
+        return /compliance\.(dev-api|api|uat-api)\.cx\.metamask\.io\/v1\/wallet\/batch/.test(
+          url,
+        );
+      } catch {
+        return false;
+      }
+    })
+    .asPriority(1001)
+    .thenCallback(async (request) => {
+      let addresses: string[] = [];
+      try {
+        const text = await safeGetBodyText(request);
+        if (text) {
+          const parsed = JSON.parse(text) as unknown;
+          if (Array.isArray(parsed)) {
+            addresses = parsed.filter(
+              (a): a is string => typeof a === 'string',
+            );
+          }
+        }
+      } catch {
+        /* ignore malformed body */
+      }
+      return {
+        statusCode: 200,
+        json: addresses.map((address) => ({ address, blocked: false })),
+      };
+    });
 }
