@@ -339,7 +339,7 @@ builds:
       RAMPS_ENVIRONMENT: 'staging'
       RAMP_INTERNAL_BUILD: 'true'
       RAMP_DEV_BUILD: 'true'
-      IS_TEHAS_OVERRIDESST: 'true'
+      HAS_OVERRIDES: 'true'
       IGNORE_BOXLOGS_DEVELOPMENT: 'true'
       IS_SIM_BUILD: 'true'
     secrets: *secrets
