@@ -1,9 +1,14 @@
 import {
   Box,
   Button as DSButton,
+  ButtonSemantic,
+  ButtonSemanticSeverity,
   ButtonVariant,
   ButtonSize as ButtonSizeRNDesignSystem,
   IconName,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import {
   useNavigation,
@@ -34,14 +39,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { setPerpsChartPreferredCandlePeriod } from '../../../../../actions/settings';
-import ButtonSemantic, {
-  ButtonSemanticSeverity,
-} from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
@@ -158,11 +156,6 @@ interface MarketDetailsRouteParams {
   source?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
-
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-const LegacyText = Text;
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-const LegacyButtonSemantic = ButtonSemantic;
 
 const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Use centralized navigation hook for all Perps navigation
@@ -1192,9 +1185,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           style={styles.errorContainer}
           testID={PerpsMarketDetailsViewSelectorsIDs.ERROR}
         >
-          <LegacyText variant={TextVariant.BodySM} color={TextColor.Error}>
+          <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
             {strings('perps.market.details.error_message')}
-          </LegacyText>
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -1414,12 +1407,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           {/* Orders Section - Compact view (includes standalone TP/SL orders) */}
           {displayOrders.length > 0 && (
             <View style={styles.section}>
-              <LegacyText
-                variant={TextVariant.HeadingMD}
-                style={styles.sectionTitle}
-              >
+              <Text variant={TextVariant.HeadingMd} style={styles.sectionTitle}>
                 {strings('perps.market.orders')}
-              </LegacyText>
+              </Text>
               {displayOrders.map((order, index) => (
                 <PerpsCompactOrderRow
                   key={order.orderId}
@@ -1480,20 +1470,20 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
           {/* Risk Disclaimer Section */}
           <View style={styles.section}>
-            <LegacyText
+            <Text
               style={styles.riskDisclaimer}
-              variant={TextVariant.BodyXS}
-              color={TextColor.Alternative}
+              variant={TextVariant.BodyXs}
+              color={TextColor.TextAlternative}
             >
               {strings('perps.risk_disclaimer', riskDisclaimerParams)}{' '}
-              <LegacyText
-                variant={TextVariant.BodyXS}
-                color={TextColor.Alternative}
+              <Text
+                variant={TextVariant.BodyXs}
+                color={TextColor.TextAlternative}
                 onPress={handleTradingViewPress}
               >
                 TradingView.
-              </LegacyText>
-            </LegacyText>
+              </Text>
+            </Text>
           </View>
         </Animated.ScrollView>
       </View>
@@ -1564,7 +1554,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                     {strings('perps.market.long')}
                   </DSButton>
                 ) : (
-                  <LegacyButtonSemantic
+                  <ButtonSemantic
                     severity={ButtonSemanticSeverity.Success}
                     onPress={handleLongPress}
                     isFullWidth
@@ -1573,7 +1563,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                     testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
                   >
                     {strings('perps.market.long')}
-                  </LegacyButtonSemantic>
+                  </ButtonSemantic>
                 )}
               </View>
 
@@ -1590,7 +1580,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                     {strings('perps.market.short')}
                   </DSButton>
                 ) : (
-                  <LegacyButtonSemantic
+                  <ButtonSemantic
                     severity={ButtonSemanticSeverity.Danger}
                     onPress={handleShortPress}
                     isFullWidth
@@ -1599,7 +1589,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                     testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
                   >
                     {strings('perps.market.short')}
-                  </LegacyButtonSemantic>
+                  </ButtonSemantic>
                 )}
               </View>
             </View>
