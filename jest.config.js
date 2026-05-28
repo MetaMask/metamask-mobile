@@ -74,6 +74,7 @@ const config = {
     '.*/e2e/.*\\.spec\\.(ts|js)$',
     '.*/e2e/pages/',
     '.*/e2e/selectors/',
+    '.*\\.integration\\.test\\.(ts|tsx)$',
     '.*\\.view\\.test\\.(ts|tsx)$',
   ],
   coverageReporters: ['text-summary', 'lcov'],
