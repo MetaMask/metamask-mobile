@@ -17,6 +17,7 @@ import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { selectIsMoneyAccountDelegatedForCard } from '../../../../../selectors/cardController';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
+import CardNavigatorDevPanel from './CardNavigatorDevPanel';
 
 const CardDeveloperOptionsSection = () => {
   const dispatch = useDispatch();
@@ -108,6 +109,7 @@ const CardDeveloperOptionsSection = () => {
           )}
         </Text>
       )}
+      <CardNavigatorDevPanel />
     </Box>
   );
 };
