@@ -1,0 +1,47 @@
+##############################################################################################
+#
+# Post-Release-Cut TestFlight Build
+#
+# Fires when a version-bump/X.Y.Z PR merges into main (the Thursday release cut).
+# Builds the newly bumped main branch and distributes to both internal and external
+# TestFlight groups.
+#
+# Follows up the version bump made by merge-version-bump-pr.yml.
+#
+##############################################################################################
+name: Post-Release-Cut TestFlight Build
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    outputs:
+      is-version-bump: ${{ steps.match.outputs.result }}
+    steps:
+      - id: match
+        run: |
+          if [[ "${{ github.event.pull_request.head.ref }}" =~ ^version-bump/[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "result=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "result=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  build-and-upload:
+    needs: [check]
+    if: needs.check.outputs.is-version-bump == 'true'
+    uses: ./.github/workflows/build-and-upload-to-testflight.yml
+    with:
+      source_branch: main
+      environment: exp
+      testflight_group: 'MetaMask BETA & Release Candidates'
+      distribute_external: true
+    secrets: inherit
