@@ -320,7 +320,7 @@ const ChoosePassword = () => {
         endTrace({ name: TraceName.OnboardingJourneyOverall });
 
         dispatch(setDataCollectionForMarketing(isSelected));
-        OAuthLoginService.updateMarketingOptInStatus(isSelected).catch(
+        await OAuthLoginService.updateMarketingOptInStatus(isSelected).catch(
           (err) => {
             Logger.error(err);
           },
