@@ -10,6 +10,7 @@ import Engine from '../../Engine';
 import { analytics } from '../../../util/analytics/analytics';
 import { MetaMetricsEvents } from '../../Analytics';
 import { TransportType } from '../../../components/hooks/useAnalytics/useAnalytics.types';
+import { AgenticCliQrLoginService } from '../../AgenticCli/AgenticCliQrLoginService';
 import Logger from '../../../util/Logger';
 
 jest.mock('../adapters/host-application-adapter');
@@ -19,16 +20,17 @@ jest.mock('./connection');
 jest.mock('react-native');
 jest.mock('@sentry/react-native');
 jest.mock('../../Permissions');
+jest.mock('../../AgenticCli/AgenticCliQrLoginService', () => ({
+  AgenticCliQrLoginService: {
+    waitForKeyringUnlock: jest.fn().mockResolvedValue(undefined),
+    handleConnection: jest.fn().mockImplementation(async ({ conn }) => {
+      await conn.sendAuthToken('cli-token');
+    }),
+  },
+}));
 jest.mock('../../../util/analytics/analytics', () => ({
   analytics: {
     trackEvent: jest.fn(),
-  },
-}));
-jest.mock('../../../util/Logger', () => ({
-  __esModule: true,
-  default: {
-    error: jest.fn(),
-    log: jest.fn(),
   },
 }));
 jest.mock('../../../store', () => ({
@@ -37,6 +39,13 @@ jest.mock('../../../store', () => ({
     getState: jest.fn().mockImplementation(() => ({
       engine: { backgroundState: { NetworkController: {} } },
     })),
+  },
+}));
+jest.mock('../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+    log: jest.fn(),
   },
 }));
 
@@ -73,6 +82,9 @@ const createPersistedConnection = (id: string, overrides: any = {}) => ({
 });
 
 describe('ConnectionRegistry', () => {
+  const agenticCliQrLoginServiceMock = AgenticCliQrLoginService as jest.Mocked<
+    typeof AgenticCliQrLoginService
+  >;
   let registry: ConnectionRegistry;
   let mockHostApp: jest.Mocked<HostApplicationAdapter>;
   let mockStore: jest.Mocked<ConnectionStore>;
@@ -134,6 +146,13 @@ describe('ConnectionRegistry', () => {
     Engine.context.KeyringController.isUnlocked = jest
       .fn()
       .mockReturnValue(true);
+    (
+      Engine.context as unknown as {
+        AuthenticationController: { getBearerToken: jest.Mock };
+      }
+    ).AuthenticationController = {
+      getBearerToken: jest.fn().mockResolvedValue('hydra-token'),
+    };
 
     mockHostApp =
       new HostApplicationAdapter() as jest.Mocked<HostApplicationAdapter>;
@@ -156,14 +175,27 @@ describe('ConnectionRegistry', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       client: {} as any,
       connect: jest.fn().mockResolvedValue(undefined),
+      sendAuthToken: jest.fn().mockResolvedValue(undefined),
       disconnect: jest.fn().mockResolvedValue(undefined),
       resume: jest.fn().mockResolvedValue(undefined),
     } as unknown as jest.Mocked<Connection>;
 
     (Connection.create as jest.Mock).mockResolvedValue(mockConnection);
+    agenticCliQrLoginServiceMock.waitForKeyringUnlock.mockResolvedValue(
+      undefined,
+    );
+    agenticCliQrLoginServiceMock.handleConnection.mockImplementation(
+      async ({ conn }) => {
+        await conn.sendAuthToken('cli-token');
+      },
+    );
 
     // Wait for initialization to complete
     await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   describe('isMwpDeeplink', () => {
@@ -494,84 +526,66 @@ describe('ConnectionRegistry', () => {
       );
     });
 
-    describe('hideConnectionLoading dismissal', () => {
-      const buildDeeplink = (request: ConnectionRequest): string =>
-        `metamask://connect/mwp?p=${encodeURIComponent(JSON.stringify(request))}`;
+    it('waits for the agentic CLI unlock hook before creating a connection', async () => {
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
 
-      it('dismisses the loading toast on success for direct deeplink flows (initialMessage present)', async () => {
-        registry = new ConnectionRegistry(
-          RELAY_URL,
-          mockKeyManager,
-          mockHostApp,
-          mockStore,
-        );
+      const agenticCliRequest: ConnectionRequest = {
+        ...mockConnectionRequest,
+        connectionType: {
+          name: 'agentic-cli',
+        },
+      };
+      const agenticCliDeeplink = `metamask://connect/mwp?p=${encodeURIComponent(
+        JSON.stringify(agenticCliRequest),
+      )}`;
 
-        // mockConnectionRequest already has initialMessage set in beforeEach.
-        await registry.handleConnectDeeplink(validDeeplink);
+      let resolveUnlock: () => void = jest.fn();
+      agenticCliQrLoginServiceMock.waitForKeyringUnlock.mockReturnValue(
+        new Promise<void>((resolve) => {
+          resolveUnlock = resolve;
+        }),
+      );
 
-        expect(mockHostApp.showConnectionLoading).toHaveBeenCalledTimes(1);
-        expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledTimes(1);
+      const promise = registry.handleConnectDeeplink(agenticCliDeeplink);
+      await Promise.resolve();
+
+      expect(Connection.create).not.toHaveBeenCalled();
+      expect(mockConnection.connect).not.toHaveBeenCalled();
+      expect(mockHostApp.showConnectionLoading).not.toHaveBeenCalled();
+
+      resolveUnlock();
+
+      await promise;
+
+      expect(Connection.create).toHaveBeenCalledTimes(1);
+      expect(mockConnection.connect).toHaveBeenCalledWith({
+        ...agenticCliRequest.sessionRequest,
+        mode: 'untrusted',
       });
-
-      it('does NOT dismiss the loading toast on success for QR flows (no initialMessage)', async () => {
-        registry = new ConnectionRegistry(
-          RELAY_URL,
-          mockKeyManager,
-          mockHostApp,
-          mockStore,
-        );
-
-        const qrRequest: ConnectionRequest = {
-          ...mockConnectionRequest,
-          sessionRequest: {
-            ...mockConnectionRequest.sessionRequest,
-            initialMessage: undefined,
-          },
-        };
-        const qrDeeplink = buildDeeplink(qrRequest);
-
-        await registry.handleConnectDeeplink(qrDeeplink);
-
-        // QR flow still shows the loading toast — it just isn't manually
-        // hidden, since the dapp sends wallet_createSession asynchronously
-        // and the toast must stay visible until the autodismiss fires.
-        expect(mockHostApp.showConnectionLoading).toHaveBeenCalledTimes(1);
-        expect(mockHostApp.hideConnectionLoading).not.toHaveBeenCalled();
-
-        // Sanity: the rest of the happy path still ran.
-        expect(mockStore.save).toHaveBeenCalledTimes(1);
-        expect(mockHostApp.syncConnectionList).toHaveBeenCalledWith([
-          mockConnection,
-        ]);
-      });
-
-      it('dismisses the loading toast for QR flows when connect() fails so it does not overlap the error toast', async () => {
-        registry = new ConnectionRegistry(
-          RELAY_URL,
-          mockKeyManager,
-          mockHostApp,
-          mockStore,
-        );
-
-        mockConnection.connect.mockRejectedValue(
-          new Error('handshake timeout'),
-        );
-
-        const qrRequest: ConnectionRequest = {
-          ...mockConnectionRequest,
-          sessionRequest: {
-            ...mockConnectionRequest.sessionRequest,
-            initialMessage: undefined,
-          },
-        };
-        const qrDeeplink = buildDeeplink(qrRequest);
-
-        await registry.handleConnectDeeplink(qrDeeplink);
-
-        expect(mockHostApp.showConnectionLoading).toHaveBeenCalledTimes(1);
-        expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
-        expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledTimes(1);
-      });
+      expect(AgenticCliQrLoginService.handleConnection).toHaveBeenCalledWith(
+        expect.objectContaining({
+          connReq: agenticCliRequest,
+          conn: mockConnection,
+          setStage: expect.any(Function),
+          cleanupConnection: expect.any(Function),
+        }),
+      );
+      expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: mockConnectionInfo.id,
+          metadata: mockConnectionInfo.metadata,
+          expiresAt: expect.any(Number),
+        }),
+      );
+      expect(mockStore.save).not.toHaveBeenCalled();
+      expect(mockHostApp.syncConnectionList).not.toHaveBeenCalledWith([
+        mockConnection,
+      ]);
     });
 
     it('should handle invalid URL gracefully', async () => {
@@ -668,7 +682,6 @@ describe('ConnectionRegistry', () => {
       const connectionError = new Error('Connection failed');
       mockConnection.connect.mockRejectedValue(connectionError);
 
-      const disconnectSpy = jest.spyOn(registry, 'disconnect');
       const eventName =
         MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_FAILED.category;
 
@@ -690,9 +703,8 @@ describe('ConnectionRegistry', () => {
       expect(mockConnection.connect).toHaveBeenCalledTimes(1);
 
       // Failed connection is cleaned up properly
-      expect(disconnectSpy).toHaveBeenCalledWith(mockConnection.id);
-      expect(mockStore.delete).toHaveBeenCalledWith(mockConnection.id);
-      expect(mockHostApp.syncConnectionList).toHaveBeenCalledWith([]);
+      expect(mockConnection.disconnect).toHaveBeenCalledTimes(1);
+      expect(mockStore.delete).not.toHaveBeenCalledWith(mockConnection.id);
 
       expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledTimes(1);
       expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledWith(
@@ -714,8 +726,6 @@ describe('ConnectionRegistry', () => {
           failure_reason: 'Connection failed',
         }),
       );
-
-      disconnectSpy.mockRestore();
     });
 
     it('should be idempotent and ignore duplicate deeplink calls', async () => {
@@ -1068,6 +1078,113 @@ describe('ConnectionRegistry', () => {
       expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
       expect(Connection.create).not.toHaveBeenCalled();
       expect(mockStore.save).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('hideConnectionLoading dismissal', () => {
+    const buildDeeplink = (request: ConnectionRequest): string =>
+      `metamask://connect/mwp?p=${encodeURIComponent(JSON.stringify(request))}`;
+
+    it('dismisses the loading toast on success for direct deeplink flows (initialMessage present)', async () => {
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      // mockConnectionRequest already has initialMessage set in beforeEach.
+      await registry.handleConnectDeeplink(validDeeplink);
+
+      expect(mockHostApp.showConnectionLoading).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledTimes(1);
+    });
+
+    it('does NOT dismiss the loading toast on success for QR flows (no initialMessage)', async () => {
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      const qrRequest: ConnectionRequest = {
+        ...mockConnectionRequest,
+        sessionRequest: {
+          ...mockConnectionRequest.sessionRequest,
+          initialMessage: undefined,
+        },
+      };
+      const qrDeeplink = buildDeeplink(qrRequest);
+
+      await registry.handleConnectDeeplink(qrDeeplink);
+
+      // QR flow still shows the loading toast — it just isn't manually
+      // hidden, since the dapp sends wallet_createSession asynchronously
+      // and the toast must stay visible until the autodismiss fires.
+      expect(mockHostApp.showConnectionLoading).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.hideConnectionLoading).not.toHaveBeenCalled();
+
+      // Sanity: the rest of the happy path still ran.
+      expect(mockStore.save).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.syncConnectionList).toHaveBeenCalledWith([
+        mockConnection,
+      ]);
+    });
+
+    it('dismisses the loading toast on success for agentic CLI QR flows', async () => {
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      const agenticQrRequest: ConnectionRequest = {
+        ...mockConnectionRequest,
+        connectionType: {
+          name: 'agentic-cli',
+        },
+        sessionRequest: {
+          ...mockConnectionRequest.sessionRequest,
+          initialMessage: undefined,
+        },
+      };
+      const agenticQrDeeplink = buildDeeplink(agenticQrRequest);
+
+      await registry.handleConnectDeeplink(agenticQrDeeplink);
+
+      expect(mockHostApp.showConnectionLoading).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledTimes(1);
+      expect(AgenticCliQrLoginService.handleConnection).toHaveBeenCalledTimes(
+        1,
+      );
+    });
+
+    it('dismisses the loading toast for QR flows when connect() fails so it does not overlap the error toast', async () => {
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      mockConnection.connect.mockRejectedValue(new Error('handshake timeout'));
+
+      const qrRequest: ConnectionRequest = {
+        ...mockConnectionRequest,
+        sessionRequest: {
+          ...mockConnectionRequest.sessionRequest,
+          initialMessage: undefined,
+        },
+      };
+      const qrDeeplink = buildDeeplink(qrRequest);
+
+      await registry.handleConnectDeeplink(qrDeeplink);
+
+      expect(mockHostApp.showConnectionLoading).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledTimes(1);
     });
 
     it('should report connect failures to Sentry with dapp/sdk context', async () => {

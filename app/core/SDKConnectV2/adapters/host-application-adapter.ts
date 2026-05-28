@@ -13,13 +13,15 @@ import { ConnectionInfo } from '../types/connection-info';
 import Engine from '../../Engine';
 import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
 import logger from '../services/logger';
+import NavigationService from '../../NavigationService';
+import Routes from '../../../constants/navigation/Routes';
 
 export class HostApplicationAdapter implements IHostApplicationAdapter {
   showConnectionLoading(conninfo: ConnectionInfo): void {
     store.dispatch(
       showSimpleNotification({
         id: conninfo.id,
-        autodismiss: 10000,
+        autodismiss: 15000,
         title: strings('sdk_connect_v2.show_loading.title'),
         description: strings('sdk_connect_v2.show_loading.description', {
           dappName: conninfo.metadata.dapp.name,
@@ -91,6 +93,26 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
         status: 'success',
       }),
     );
+  }
+
+  showOtpCode(conninfo: ConnectionInfo, otp: string, deadline: number): void {
+    NavigationService.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.SDK_CONNECT_V2_OTP,
+      params: {
+        otp,
+        dappName: conninfo.metadata.dapp.name,
+        deadline,
+      },
+    });
+  }
+
+  hideOtpCode(_conninfo: ConnectionInfo): void {
+    const nav = NavigationService.navigation;
+    const currentRoute = nav?.getCurrentRoute()?.name;
+
+    if (currentRoute === Routes.SHEET.SDK_CONNECT_V2_OTP && nav?.canGoBack()) {
+      nav.goBack();
+    }
   }
 
   showNotFoundError(): void {
