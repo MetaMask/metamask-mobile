@@ -49,6 +49,7 @@ import {
   CryptoPriceUpdateCallback,
   GameUpdateCallback,
   GeoBlockResponse,
+  GetActivityParams,
   GetAccountStateParams,
   GetBalanceParams,
   GetMarketsParams,
@@ -892,7 +893,9 @@ export class PolymarketProvider implements PredictProvider {
     }
   }
 
-  public getActivity(_params: { address: string }): Promise<PredictActivity[]> {
+  public getActivity(
+    _params: GetActivityParams & { address: string },
+  ): Promise<PredictActivity[]> {
     return this.fetchActivity(_params);
   }
 

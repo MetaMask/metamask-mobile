@@ -71,6 +71,7 @@ import {
   CryptoPriceUpdateCallback,
   GameUpdateCallback,
   GetAccountStateParams,
+  GetActivityParams,
   GetBalanceParams,
   GetCryptoPriceHistoryParams,
   GetCryptoTargetPriceParams,
@@ -965,7 +966,9 @@ export class PredictController extends BaseController<
     );
   }
 
-  async getActivity(params: { address?: string }): Promise<PredictActivity[]> {
+  async getActivity(
+    params: GetActivityParams = {},
+  ): Promise<PredictActivity[]> {
     return withTrace(
       this.traceable,
       {
@@ -983,8 +986,21 @@ export class PredictController extends BaseController<
         traceData: (activity) => ({ activityCount: activity.length }),
       },
       async () => {
-        const selectedAddress = params.address ?? this.getSigner().address;
-        return this.provider.getActivity({ address: selectedAddress });
+        const { address, limit, offset } = params;
+        const selectedAddress = address ?? this.getSigner().address;
+        const activityParams: GetActivityParams & { address: string } = {
+          address: selectedAddress,
+        };
+
+        if (limit !== undefined) {
+          activityParams.limit = limit;
+        }
+
+        if (offset !== undefined) {
+          activityParams.offset = offset;
+        }
+
+        return this.provider.getActivity(activityParams);
       },
     );
   }
