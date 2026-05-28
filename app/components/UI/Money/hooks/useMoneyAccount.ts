@@ -1,7 +1,8 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
-import { Hex } from '@metamask/utils';
+import { bytesToHex, Hex } from '@metamask/utils';
+import { v4 as uuidv4, parse as uuidParse } from 'uuid';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
@@ -20,6 +21,33 @@ import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConf
 
 const LOG_TAG = '[Money Account]';
 
+export type MoneyAccountDepositIntent = 'convert' | 'addMusd';
+
+const depositIntentByBatchId = new Map<string, MoneyAccountDepositIntent>();
+
+export function getMoneyAccountDepositIntent(
+  batchId: string | undefined,
+): MoneyAccountDepositIntent | undefined {
+  if (!batchId) return undefined;
+  return depositIntentByBatchId.get(batchId.toLowerCase());
+}
+
+export function clearMoneyAccountDepositIntent(
+  batchId: string | undefined,
+): void {
+  if (!batchId) return;
+  depositIntentByBatchId.delete(batchId.toLowerCase());
+}
+
+export interface InitiateDepositOptions {
+  preferredPaymentToken?: {
+    address: Hex;
+    chainId: Hex;
+  };
+  intent?: MoneyAccountDepositIntent;
+  autoSelectFiatPayment?: boolean;
+}
+
 function resolveNetworkClientId(chainId: Hex): string {
   const networkClientId =
     Engine.context.NetworkController.findNetworkClientIdByChainId(chainId);
@@ -29,10 +57,6 @@ function resolveNetworkClientId(chainId: Hex): string {
   return networkClientId;
 }
 
-interface InitiateDepositOptions {
-  autoSelectFiatPayment?: boolean;
-}
-
 export function useMoneyAccountDeposit() {
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
@@ -40,6 +64,8 @@ export function useMoneyAccountDeposit() {
 
   const initiateDeposit = useCallback(
     async (options?: InitiateDepositOptions) => {
+      const preferredPaymentToken = options?.preferredPaymentToken;
+      const intent: MoneyAccountDepositIntent = options?.intent ?? 'convert';
       if (!vaultConfig) {
         throw new Error(`${LOG_TAG} Missing vault config`);
       }
@@ -65,6 +91,9 @@ export function useMoneyAccountDeposit() {
 
       const networkClientId = resolveNetworkClientId(chainIdHex);
 
+      const batchId = bytesToHex(new Uint8Array(uuidParse(uuidv4())));
+      depositIntentByBatchId.set(batchId.toLowerCase(), intent);
+
       const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
         amount: BigInt(0),
         chainId: chainIdHex,
@@ -79,6 +108,7 @@ export function useMoneyAccountDeposit() {
       navigateToConfirmation({
         loader: ConfirmationLoader.CustomAmount,
         stack: Routes.MONEY.CONFIRMATIONS_ROOT,
+        preferredPaymentToken,
         autoSelectFiatPayment: options?.autoSelectFiatPayment,
       });
 
@@ -87,6 +117,7 @@ export function useMoneyAccountDeposit() {
         // MM Pay selects the user's account and moves funds to the money account,
         // so `from` must be the money account and `networkClientId` its chain.
         await addTransactionBatch({
+          batchId,
           from: primaryMoneyAccount.address as Hex,
           networkClientId,
           origin: ORIGIN_METAMASK,
@@ -102,6 +133,7 @@ export function useMoneyAccountDeposit() {
           ],
         });
       } catch (error) {
+        depositIntentByBatchId.delete(batchId.toLowerCase());
         Logger.error(error as Error, `${LOG_TAG} Deposit transaction failed`);
         // Rethrow so the caller can roll back navigation / surface a toast.
         throw error;

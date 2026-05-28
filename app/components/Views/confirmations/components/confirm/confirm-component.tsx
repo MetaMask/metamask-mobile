@@ -28,6 +28,7 @@ import Title from '../title';
 import { Footer, FooterSkeleton } from '../footer';
 import styleSheet from './confirm-component.styles';
 import { TransactionType } from '@metamask/transaction-controller';
+import { Hex } from '@metamask/utils';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
 import { CustomAmountInfoSkeleton } from '../info/custom-amount-info';
@@ -61,6 +62,10 @@ export interface ConfirmationParams {
   loader?: ConfirmationLoader;
   maxValueMode?: boolean;
   forceBottomSheet?: boolean;
+  preferredPaymentToken?: {
+    address: Hex;
+    chainId: Hex;
+  };
 }
 
 const ConfirmWrapped = ({

@@ -94,6 +94,22 @@ describe('MoneyAccountDepositInfo', () => {
     expect(lastCall.hideAccountSelector).toBe(true);
   });
 
+  it('forwards preferredPaymentToken from route params to CustomAmountInfo', () => {
+    const preferredPaymentToken = {
+      address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+      chainId: '0x1',
+    };
+    mockUseParams.mockReturnValueOnce({ preferredPaymentToken });
+
+    render(<MoneyAccountDepositInfo />);
+
+    const lastCall =
+      mockCustomAmountInfo.mock.calls[
+        mockCustomAmountInfo.mock.calls.length - 1
+      ][0];
+    expect(lastCall.preferredToken).toEqual(preferredPaymentToken);
+  });
+
   it('does not pass autoSelectFiatPayment when route param is absent', () => {
     mockUseParams.mockReturnValue({});
 

@@ -30,6 +30,7 @@ import SectionHeader from '../components/SectionHeader';
 import TileCarousel from '../components/TileCarousel';
 import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
+import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
 
 interface CryptoPerpsBlockProps {
   refresh: TabProps['refresh'];
@@ -124,7 +125,11 @@ const CryptoTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const showTokens = tokens.isLoading || tokens.data.length > 0;
 
   return (
-    <ExploreScroll refreshing={refreshing} onRefresh={onRefresh}>
+    <ExploreScroll
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      testID={TrendingViewSelectorsIDs.EXPLORE_CRYPTO_SCROLL_VIEW}
+    >
       {showTokens && (
         <Box>
           <SectionHeader

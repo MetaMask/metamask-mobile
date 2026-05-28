@@ -8,6 +8,7 @@ export const MONEY_ACCOUNT_CURRENCY = 'usd';
 
 export function MoneyAccountDepositInfo() {
   useMoneyAccountDepositNavbar();
+  const { preferredPaymentToken } = useParams<ConfirmationParams>({});
 
   const params = useParams<ConfirmationParams>();
   const autoFiat = params?.autoSelectFiatPayment;
@@ -19,6 +20,7 @@ export function MoneyAccountDepositInfo() {
       hasMax
       hideAccountSelector={autoFiat}
       supportAccountSelection
+      preferredToken={preferredPaymentToken}
     />
   );
 }

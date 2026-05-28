@@ -10,9 +10,9 @@ import {
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  useCardOnboardingNavigationHandlers,
-  type CardOnboardingHeaderMode,
-} from '../../hooks/useCardOnboardingNavigationHandlers';
+  useCardHeaderHandlers,
+  type CardHeaderMode,
+} from '../../hooks/useCardHeaderHandlers';
 
 interface OnboardingStepProps {
   title: string;
@@ -29,7 +29,7 @@ interface OnboardingStepProps {
    * Controls the in-screen header rendered via HeaderStandard.
    * Navigator headers are hidden; onboarding screens own their header chrome.
    */
-  headerMode?: CardOnboardingHeaderMode;
+  headerMode?: CardHeaderMode;
 }
 
 const OnboardingStep = ({
@@ -41,7 +41,7 @@ const OnboardingStep = ({
   headerMode = 'none',
 }: OnboardingStepProps) => {
   const tw = useTailwind();
-  const headerHandlers = useCardOnboardingNavigationHandlers(headerMode);
+  const headerHandlers = useCardHeaderHandlers(headerMode);
 
   const renderHeader = () => {
     if (headerMode === 'none') {

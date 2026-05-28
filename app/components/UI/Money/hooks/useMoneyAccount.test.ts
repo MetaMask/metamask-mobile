@@ -17,6 +17,8 @@ import {
   buildMoneyAccountWithdrawBatch,
 } from '../utils/moneyAccountTransactions';
 import {
+  getMoneyAccountDepositIntent,
+  clearMoneyAccountDepositIntent,
   useMoneyAccountDeposit,
   useMoneyAccountWithdrawal,
 } from './useMoneyAccount';
@@ -198,6 +200,7 @@ describe('useMoneyAccountDeposit', () => {
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
       loader: ConfirmationLoader.CustomAmount,
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
+      preferredPaymentToken: undefined,
       autoSelectFiatPayment: undefined,
     });
 
@@ -222,8 +225,80 @@ describe('useMoneyAccountDeposit', () => {
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
       loader: ConfirmationLoader.CustomAmount,
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
+      preferredPaymentToken: undefined,
       autoSelectFiatPayment: true,
     });
+  });
+
+  it('pre-generates a batchId, registers intent before the await, and forwards preferredPaymentToken', async () => {
+    const preferredPaymentToken = {
+      address: '0xaca92e438df0b2401ff60da7e4337b687a2435da' as Hex,
+      chainId: '0x1' as Hex,
+    };
+
+    let observedBatchId: string | undefined;
+    let intentAtCallTime: ReturnType<typeof getMoneyAccountDepositIntent>;
+    mockAddTransactionBatch.mockImplementationOnce(async (args) => {
+      observedBatchId = (args as { batchId: string }).batchId;
+      intentAtCallTime = getMoneyAccountDepositIntent(observedBatchId);
+      return {} as never;
+    });
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit({
+        preferredPaymentToken,
+        intent: 'addMusd',
+      });
+    });
+
+    expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
+      loader: ConfirmationLoader.CustomAmount,
+      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
+      preferredPaymentToken,
+      autoSelectFiatPayment: undefined,
+    });
+    expect(observedBatchId).toMatch(/^0x[0-9a-f]+$/);
+    expect(intentAtCallTime).toBe('addMusd');
+    clearMoneyAccountDepositIntent(observedBatchId);
+  });
+
+  it('defaults intent to "convert" when omitted', async () => {
+    let observedBatchId: string | undefined;
+    mockAddTransactionBatch.mockImplementationOnce(async (args) => {
+      observedBatchId = (args as { batchId: string }).batchId;
+      return {} as never;
+    });
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit();
+    });
+
+    expect(getMoneyAccountDepositIntent(observedBatchId)).toBe('convert');
+    clearMoneyAccountDepositIntent(observedBatchId);
+  });
+
+  it('clears the registered intent if addTransactionBatch throws', async () => {
+    let observedBatchId: string | undefined;
+    const txError = new Error('batch submission failed');
+    mockAddTransactionBatch.mockImplementationOnce(async (args) => {
+      observedBatchId = (args as { batchId: string }).batchId;
+      throw txError;
+    });
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current
+        .initiateDeposit({ intent: 'addMusd' })
+        .catch(() => undefined);
+    });
+
+    expect(observedBatchId).toBeDefined();
+    expect(getMoneyAccountDepositIntent(observedBatchId)).toBeUndefined();
   });
 
   it('logs and rethrows when addTransactionBatch fails', async () => {
