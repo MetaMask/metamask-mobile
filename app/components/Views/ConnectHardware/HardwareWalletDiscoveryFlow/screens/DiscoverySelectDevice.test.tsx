@@ -1,5 +1,10 @@
 import React from 'react';
-import { fireEvent, render, screen, within } from '@testing-library/react-native';
+import {
+  fireEvent,
+  render,
+  screen,
+  within,
+} from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { IconName } from '@metamask/design-system-react-native';
