@@ -9127,6 +9127,7 @@
       "predict_withdraw": "Withdrawal",
       "money_account_deposit": "Deposit to Money Account",
       "money_account_withdraw": "Transfer from Money Account",
+      "money_account_received": "Received",
       "default": "Transaction details"
     },
     "label": {
@@ -9138,7 +9139,9 @@
       "retry_button": "Try again",
       "total": "Total",
       "account": "Account",
-      "received_total": "Received total"
+      "received_total": "Received total",
+      "from": "From",
+      "token_received": "Token received"
     },
     "summary_title": {
       "bridge_approval": "Approve {{approveSymbol}}",
