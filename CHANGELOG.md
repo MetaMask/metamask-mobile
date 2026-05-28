@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Removed `react-native-fast-crypto` in favor of `react-native-quick-crypto` scrypt; reduces Android AAB size and improves Android 16 KB page-size compliance. ([#30591](https://github.com/MetaMask/metamask-mobile/issues/30591))
+
 ## [7.78.0]
 
 ### Added
