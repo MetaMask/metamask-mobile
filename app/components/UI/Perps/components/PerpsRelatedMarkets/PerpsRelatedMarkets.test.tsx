@@ -82,10 +82,8 @@ const createMarket = (
 });
 
 const collection: RelatedMarketCollection = {
-  id: 'ai',
-  label: 'AI',
-  type: 'thematic',
-  symbols: ['RNDR', 'FET', 'TAO'],
+  id: 'crypto',
+  label: 'Crypto',
 };
 
 describe('PerpsRelatedMarkets', () => {
@@ -143,7 +141,7 @@ describe('PerpsRelatedMarkets', () => {
         interaction_type: RELATED_MARKET_CLICKED,
         [RELATED_MARKETS_EVENT_PROPERTY.SOURCE_MARKET]: 'RNDR',
         [RELATED_MARKETS_EVENT_PROPERTY.MARKET]: 'FET',
-        [RELATED_MARKETS_EVENT_PROPERTY.CATEGORY]: 'ai',
+        [RELATED_MARKETS_EVENT_PROPERTY.CATEGORY]: 'crypto',
         [RELATED_MARKETS_EVENT_PROPERTY.POSITION]: 1,
       },
     );
@@ -178,6 +176,44 @@ describe('PerpsRelatedMarkets', () => {
         interaction_type: 'slide',
         section_viewed: RELATED_MARKETS_SOURCE,
         asset: 'RNDR',
+      }),
+    );
+  });
+
+  it('tracks rail slide again after current market changes', () => {
+    const { rerender } = render(
+      <PerpsRelatedMarkets
+        currentMarket={createMarket('RNDR')}
+        collection={collection}
+        markets={[createMarket('FET')]}
+      />,
+    );
+
+    const scrollView = screen.getByTestId(
+      PerpsRelatedMarketsSelectorsIDs.SCROLL_VIEW,
+    );
+    fireEvent(scrollView, 'scrollBeginDrag');
+
+    rerender(
+      <PerpsRelatedMarkets
+        currentMarket={createMarket('TAO')}
+        collection={collection}
+        markets={[createMarket('FET')]}
+      />,
+    );
+
+    fireEvent(
+      screen.getByTestId(PerpsRelatedMarketsSelectorsIDs.SCROLL_VIEW),
+      'scrollBeginDrag',
+    );
+
+    expect(mockTrack).toHaveBeenCalledTimes(2);
+    expect(mockTrack).toHaveBeenLastCalledWith(
+      MetaMetricsEvents.PERPS_UI_INTERACTION,
+      expect.objectContaining({
+        interaction_type: 'slide',
+        section_viewed: RELATED_MARKETS_SOURCE,
+        asset: 'TAO',
       }),
     );
   });

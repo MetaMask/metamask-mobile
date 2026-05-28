@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useMemo, useRef } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useRef } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -57,6 +57,10 @@ const PerpsRelatedMarkets: React.FC<PerpsRelatedMarketsProps> = ({
   const { track } = usePerpsEventTracking();
   const hasTrackedSlide = useRef(false);
 
+  useEffect(() => {
+    hasTrackedSlide.current = false;
+  }, [currentMarket.symbol]);
+
   const handleMarketPress = useCallback(
     (market: PerpsMarketData, index: number) => {
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
@@ -94,7 +98,7 @@ const PerpsRelatedMarkets: React.FC<PerpsRelatedMarketsProps> = ({
     });
   }, [currentMarket.symbol, track]);
 
-  const renderedMarkets = useMemo(() => markets.slice(0, 20), [markets]);
+  const renderedMarkets = markets;
   const symbols = useMemo(
     () => renderedMarkets.map((market) => market.symbol),
     [renderedMarkets],

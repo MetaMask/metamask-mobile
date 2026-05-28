@@ -15,6 +15,7 @@ import { Linking } from 'react-native';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectPerpsRelatedMarketsEnabledFlag } from '../../selectors/featureFlags';
+import type { PerpsMarketData } from '@metamask/perps-controller';
 
 jest.mock('react-native-modal', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
@@ -140,6 +141,13 @@ jest.mock('../../hooks/usePerpsMarketFills', () => ({
   })),
 }));
 
+jest.mock(
+  '../../../../Views/Homepage/Sections/Perpetuals/hooks/useHomepageSparklines',
+  () => ({
+    useHomepageSparklines: () => ({ sparklines: {} }),
+  }),
+);
+
 // Navigation mock functions
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -157,15 +165,7 @@ const mockIsNotificationsFeatureEnabled = jest.fn();
 
 // Mock route params that can be modified during tests
 const mockRouteParams: {
-  market?: {
-    symbol: string;
-    name: string;
-    price: string;
-    change24h: string;
-    change24hPercent: string;
-    volume: string;
-    maxLeverage: string;
-  };
+  market?: PerpsMarketData;
   monitoringIntent?: {
     asset: string;
     monitor: 'orders' | 'positions' | 'both';
@@ -933,7 +933,7 @@ describe('PerpsMarketDetailsView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders related markets rail when flag is enabled and market has collection', () => {
+  it('renders related markets rail when flag is enabled and market has category', () => {
     const { useSelector } = jest.requireMock('react-redux');
     const mockSelectPerpsEligibility = jest.requireMock(
       '../../selectors/perpsController',
@@ -948,13 +948,15 @@ describe('PerpsMarketDetailsView', () => {
       return undefined;
     });
     mockRouteParams.market = {
-      symbol: 'RNDR',
-      name: 'RNDR',
+      symbol: 'xyz:AAPL',
+      name: 'AAPL',
       price: '$6.00',
       change24h: '+$0.10',
       change24hPercent: '+1.00%',
       volume: '$1M',
       maxLeverage: '20x',
+      marketType: 'equity',
+      isHip3: true,
     };
     mockUsePerpsMarketsImpl.mockReturnValue({
       markets: [
@@ -963,13 +965,15 @@ describe('PerpsMarketDetailsView', () => {
           volumeNumber: 1000000,
         },
         {
-          symbol: 'FET',
-          name: 'FET',
+          symbol: 'xyz:MSFT',
+          name: 'MSFT',
           price: '$0.50',
           change24h: '+$0.01',
           change24hPercent: '+2.00%',
           volume: '$2M',
           maxLeverage: '10x',
+          marketType: 'equity',
+          isHip3: true,
           volumeNumber: 2000000,
         },
       ],
@@ -990,7 +994,7 @@ describe('PerpsMarketDetailsView', () => {
 
     expect(getByTestId(PerpsRelatedMarketsSelectorsIDs.RAIL)).toBeOnTheScreen();
     expect(
-      getByTestId(getPerpsRelatedMarketsSelector.tile('FET')),
+      getByTestId(getPerpsRelatedMarketsSelector.tile('xyz:MSFT')),
     ).toBeOnTheScreen();
   });
 

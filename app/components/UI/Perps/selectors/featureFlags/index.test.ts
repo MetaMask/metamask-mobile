@@ -742,7 +742,7 @@ describe('Perps Feature Flag Selectors', () => {
           backgroundState: {
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
-                perpsRelatedMarketsMobile: true,
+                perpsRelatedMarkets: true,
               },
               cacheTimestamp: 0,
             },
@@ -761,7 +761,7 @@ describe('Perps Feature Flag Selectors', () => {
           backgroundState: {
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
-                perpsRelatedMarketsMobile: {
+                perpsRelatedMarkets: {
                   enabled: true,
                   minimumVersion: '1.0.0',
                 },

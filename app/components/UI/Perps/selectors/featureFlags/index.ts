@@ -83,11 +83,10 @@ export const selectPerpsOrderBookEnabledFlag = createSelector(
 export const selectPerpsRelatedMarketsEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    const remoteFlag =
-      remoteFeatureFlags?.perpsRelatedMarketsMobile as unknown as
-        | VersionGatedFeatureFlag
-        | boolean
-        | undefined;
+    const remoteFlag = remoteFeatureFlags?.perpsRelatedMarkets as unknown as
+      | VersionGatedFeatureFlag
+      | boolean
+      | undefined;
 
     if (typeof remoteFlag === 'boolean') {
       return remoteFlag;
