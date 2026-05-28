@@ -49,7 +49,6 @@ import { SetPayTokenRequest } from '../../../hooks/pay/useAutomaticTransactionPa
 import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useTheme } from '../../../../../../util/theme';
-import { isPayWithBottomSheetEnabled } from '../../../utils/transaction-pay';
 
 interface PayWithRouteParams {
   preferredPaymentToken?: SetPayTokenRequest;
@@ -96,14 +95,9 @@ function PayWithRowInteractive() {
         mm_pay_token_list_opened: true,
       },
     });
-    if (isPayWithBottomSheetEnabled()) {
-      navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET, {
-        preferredPaymentToken,
-      });
-      return;
-    }
-
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
+    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET, {
+      preferredPaymentToken,
+    });
   }, [isDisabled, navigation, preferredPaymentToken, setConfirmationMetric]);
 
   const label = isWithdraw
@@ -278,13 +272,9 @@ function PayWithRowMoneyAccount() {
     setConfirmationMetric({
       properties: { mm_pay_token_list_opened: true },
     });
-    if (isPayWithBottomSheetEnabled()) {
-      navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET, {
-        preferredPaymentToken,
-      });
-      return;
-    }
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
+    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET, {
+      preferredPaymentToken,
+    });
   }, [navigation, preferredPaymentToken, setConfirmationMetric]);
 
   if (!payToken) {
