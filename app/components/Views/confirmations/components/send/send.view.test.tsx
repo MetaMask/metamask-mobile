@@ -7,6 +7,7 @@ import { initialStateWallet } from '../../../../../../tests/component-view/prese
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import Routes from '../../../../../constants/navigation/Routes';
 import { TokenStandard } from '../../types/token';
+import { AddressScanResultType } from '../../types/trustSignals';
 import { HardwareWalletProvider } from '../../../../../core/HardwareWallet/HardwareWalletProvider';
 import {
   getNftRowTestId,
@@ -41,6 +42,7 @@ const EVM_NATIVE_ETH_ASSET_SEND_FIVE = {
 
 const VALID_EVM_RECIPIENT = '0x0000000000000000000000000000000000000002';
 const TOKEN_CONTRACT_ADDRESS = '0x0000000000000000000000000000000000000003';
+const TOKEN_CONTRACT_ADDRESS_SCAN_CACHE_KEY = `0x1:${TOKEN_CONTRACT_ADDRESS}`;
 
 /** Mainnet USDC (6 decimals), high balance — mirrors smoke ERC-20 send E2E fixture. */
 const EVM_USDC_ASSET = {
@@ -476,6 +478,22 @@ describeForPlatforms('Send', () => {
 
       const state = initialStateWallet()
         .withOverrides(sendViewOverrides)
+        .withOverrides({
+          engine: {
+            backgroundState: {
+              PhishingController: {
+                addressScanCache: {
+                  // Keep this test focused on the token-contract alert path.
+                  [TOKEN_CONTRACT_ADDRESS_SCAN_CACHE_KEY]: {
+                    data: {
+                      result_type: AddressScanResultType.Trusted,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        } as unknown as Record<string, unknown>)
         .build();
 
       const { findByTestId, queryByTestId } = renderScreenWithRoutes(
