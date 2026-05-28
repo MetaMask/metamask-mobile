@@ -189,16 +189,6 @@ export const dismissDeveloperMenuPlaywright = async (): Promise<void> => {
 };
 
 /**
- * Dismisses development build screens using Playwright.
- * Handles 'Development servers' and 'Developer menu' screens.
- * These screens are expected to appear when running locally.
- */
-export const dismissDevScreensPlaywright = async (): Promise<void> => {
-  await dismissDevelopmentServerPickerPlaywright();
-  await dismissDeveloperMenuPlaywright();
-};
-
-/**
  * Waits for app initialization and rehydration to complete.
  * This ensures the app is in a stable state before proceeding with tests.
  * Handles the case where React Native reload triggers state rehydration that may
