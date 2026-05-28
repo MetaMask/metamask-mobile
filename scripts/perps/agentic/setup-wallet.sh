@@ -11,28 +11,23 @@
 #   {
 #     "password": "yourpassword",
 #     "accounts": [
-#       { "type": "mnemonic", "value": "word1 word2 ..." },
-#       { "type": "privateKey", "value": "0xabc...", "name": "Trading" }
+#       { "type": "mnemonic", "value": "word1 word2 ...", "name": "Primary" },
+#       { "type": "privateKey", "value": "0xabc...", "name": "Trading" },
+#       { "type": "privateKey", "value": "0xdef...", "name": "MYXTrading" }
 #     ],
-#     "settings": { "metametrics": false, "skipGtmModals": true }
+#     "settings": { "metametrics": true, "skipGtmModals": true, "skipPerpsTutorial": true, "autoLockNever": true, "deviceAuthEnabled": true }
 #   }
 
 set -euo pipefail
 
 cd "$(dirname "$0")/../../.."
 # Source .js.env but only for vars not already set, so caller env takes precedence.
-if [ -f .js.env ]; then
-  while IFS= read -r _line || [ -n "$_line" ]; do
-    [[ "$_line" =~ ^[[:space:]]*(#|$) ]] && continue
-    _line="${_line#export }"
-    _key="${_line%%=*}"
-    _key="${_key//[[:space:]]/}"
-    [[ -n "$_key" && -z "${!_key+x}" ]] && eval "export $_line" 2>/dev/null || true
-  done < .js.env
-  unset _line _key
-fi
+# shellcheck source=lib/safe-env-parser.sh
+. "$(dirname "$0")/lib/safe-env-parser.sh"
+load_js_env
 
 PORT="${WATCHER_PORT:-8081}"
+[[ "$PORT" =~ ^[0-9]+$ ]] || { echo "ERROR: WATCHER_PORT must be numeric (got: $PORT)" >&2; exit 1; }
 SCRIPTS="$(dirname "$0")"
 export CDP_TIMEOUT="${CDP_TIMEOUT:-30000}"
 export CDP_DISCOVERY_RETRIES="${CDP_DISCOVERY_RETRIES:-3}"
@@ -103,50 +98,148 @@ if [ "$ENGINE_OK" != "ready" ]; then
   exit 1
 fi
 
+# Avoid simulator-native react-native-keychain backup crashes while the harness
+# creates/unlocks fixture wallets. Set it only after Engine exists; setting it
+# earlier is a no-op and lets KeyringController state changes hit BackupVault.
+if ! DISABLE_BACKUP=$(cdp_eval "(function(){ globalThis.__AGENTIC_DISABLE_VAULT_BACKUP = true; if (typeof Engine === 'object' && Engine) { Engine.disableAutomaticVaultBackup = true; } return JSON.stringify({agenticDisableVaultBackup: globalThis.__AGENTIC_DISABLE_VAULT_BACKUP === true, facadeDisableAutomaticVaultBackup: !!(Engine && Engine.disableAutomaticVaultBackup)}); })()"); then
+  echo "WARN: could not set vault backup guard before wallet setup"
+  DISABLE_BACKUP='{}'
+fi
+echo "Vault backup guard: $DISABLE_BACKUP"
+
+# Read fixture JSON and escape it for safe embedding in a JS string literal.
+FIXTURE_JSON=$(jq -c '.' "$FIXTURE_PATH")
+ESCAPED_FIXTURE=$(node -p "JSON.stringify(JSON.stringify(JSON.parse(process.argv[1])))" "$FIXTURE_JSON")
+
 # -- Check vault state --
-VAULT_STATE=$(cdp_eval "(function(){ var v = Engine.context.KeyringController.state; return JSON.stringify({hasVault: v.vault !== undefined && v.vault !== null, isUnlocked: v.isUnlocked}); })()")
+VAULT_STATE=$(cdp_eval "(function(){ var v = Engine.context.KeyringController.state; return JSON.stringify({hasVault: v.vault !== undefined && v.vault !== null, isUnlocked: Engine.context.KeyringController.isUnlocked()}); })()")
 HAS_VAULT=$(echo "$VAULT_STATE" | jq -r '.hasVault')
 IS_UNLOCKED=$(echo "$VAULT_STATE" | jq -r '.isUnlocked')
 echo "Vault state: hasVault=$HAS_VAULT, isUnlocked=$IS_UNLOCKED"
 
-# -- Existing vault: just unlock and skip to summary --
 if [ "$HAS_VAULT" = "true" ]; then
   if [ "$IS_UNLOCKED" != "true" ]; then
-    echo "Unlocking existing vault..."
-    bash "$SCRIPTS/unlock-wallet.sh" "$PASSWORD"
+    echo "Unlocking existing vault via CDP KeyringController.submitPassword()..."
+    PASSWORD_JS=$(node -p "JSON.stringify(process.argv[1])" "$PASSWORD")
+    UNLOCK_RESULT=$(cdp_eval_async "(function(){ return Engine.context.KeyringController.submitPassword($PASSWORD_JS).then(function(){ return JSON.stringify({ok:true, unlocked: Engine.context.KeyringController.isUnlocked()}); }).catch(function(e){ return JSON.stringify({ok:false, error:e.message || String(e)}); }); })()")
+    UNLOCK_OK=$(echo "$UNLOCK_RESULT" | jq -r '.ok')
+    UNLOCKED_NOW=$(echo "$UNLOCK_RESULT" | jq -r '.unlocked // false')
+    if [ "$UNLOCK_OK" != "true" ] || [ "$UNLOCKED_NOW" != "true" ]; then
+      echo "ERROR: unlock failed"
+      echo "$UNLOCK_RESULT" | jq .
+      exit 1
+    fi
   else
     echo "Vault already unlocked."
   fi
+
+  echo "Applying fixture accounts/names to existing vault..."
+  APPLY_RESULT=$(cdp_eval_async "(function(){ var fixture = JSON.parse($ESCAPED_FIXTURE); if (!globalThis.__AGENTIC__ || typeof globalThis.__AGENTIC__.applyWalletFixture !== 'function') { return JSON.stringify({ok:false, error:'__AGENTIC__.applyWalletFixture is not installed; reload the app from Metro'}); } return globalThis.__AGENTIC__.applyWalletFixture(fixture).then(function(r){ return JSON.stringify(r); }).catch(function(e){ return JSON.stringify({ok:false, error: e.message || String(e)}); }); })()")
+  APPLY_OK=$(echo "$APPLY_RESULT" | jq -r '.ok')
+  if [ "$APPLY_OK" != "true" ]; then
+    APPLY_ERR=$(echo "$APPLY_RESULT" | jq -r '.error // "unknown error"')
+    echo "ERROR: applyWalletFixture failed — $APPLY_ERR"
+    exit 1
+  fi
+  echo "Wallet fixture apply result:"
+  echo "$APPLY_RESULT" | jq -r '.accounts[]? | "  \(.name): \(.address)"'
 else
-  # -- Call AgenticService.setupWallet() --
+  # -- Call AgenticService.setupWallet() on fresh app only --
   echo "Calling __AGENTIC__.setupWallet()..."
 
-  # Read fixture JSON and escape it for safe embedding in a JS string literal
-  FIXTURE_JSON=$(jq -c '.' "$FIXTURE_PATH")
-  ESCAPED_FIXTURE=$(node -p "JSON.stringify(JSON.stringify(JSON.parse(process.argv[1])))" "$FIXTURE_JSON")
-
-  SETUP_RESULT=$(cdp_eval_async "(function(){ var fixture = JSON.parse($ESCAPED_FIXTURE); return globalThis.__AGENTIC__.setupWallet(fixture).then(function(r){ return JSON.stringify(r); }).catch(function(e){ return JSON.stringify({ok:false, error: e.message || String(e)}); }); })()")
+  SETUP_RESULT=$(cdp_eval_async "(function(){ var fixture = JSON.parse($ESCAPED_FIXTURE); if (!globalThis.__AGENTIC__ || typeof globalThis.__AGENTIC__.setupWallet !== 'function') { return JSON.stringify({ok:false, error:'__AGENTIC__.setupWallet is not installed'}); } return globalThis.__AGENTIC__.setupWallet(fixture).then(function(r){ return JSON.stringify(r); }).catch(function(e){ return JSON.stringify({ok:false, error: e.message || String(e)}); }); })()")
 
   SETUP_OK=$(echo "$SETUP_RESULT" | jq -r '.ok')
   if [ "$SETUP_OK" != "true" ]; then
     SETUP_ERR=$(echo "$SETUP_RESULT" | jq -r '.error // "unknown error"')
-    echo "ERROR: setupWallet failed — $SETUP_ERR"
+    SETUP_STEP=$(echo "$SETUP_RESULT" | jq -r '.step // "unknown-step"')
+    echo "ERROR: setupWallet failed at ${SETUP_STEP} — $SETUP_ERR"
     exit 1
   fi
 
-  echo "Wallet created. Accounts:"
+  echo "Wallet setup result:"
   echo "$SETUP_RESULT" | jq -r '.accounts[]? | "  \(.name): \(.address)"'
   sleep 2
 fi
 
-# -- Summary --
-ACCOUNTS=$(cdp_eval "(function(){ var accs = Object.values(Engine.context.AccountsController.state.internalAccounts.accounts); var eth = accs.filter(function(a){ return a.address.indexOf('0x') === 0; }); return JSON.stringify({total: accs.length, ethAccounts: eth.length, first3: eth.slice(0,3).map(function(a){ return {name: a.metadata.name, address: a.address}; })}); })()")
+# -- Ask the app to leave auth/onboarding after unlock.
+# HomeNav matches the product auth reset path, but some warm/onboarding states
+# land on intermediate post-onboarding screens. Follow with WalletView so the
+# harness proves the user-visible unlocked wallet, not just a populated vault.
+$CDP navigate HomeNav >/dev/null 2>&1 || true
+sleep 1
+$CDP navigate WalletView >/dev/null 2>&1 || true
+sleep 1
+
+# -- Summary + hard validation --
+ACCOUNTS=$(cdp_eval "(function(){ try { var ctx = Engine && Engine.context ? Engine.context : {}; var accountsController = ctx.AccountsController || {}; var keyringController = ctx.KeyringController || {}; var state = accountsController.state || {}; var internalAccounts = state.internalAccounts || {}; var accountsById = internalAccounts.accounts || {}; var accs = Object.values(accountsById); var eth = accs.filter(function(a){ return String(a && a.address || '').indexOf('0x') === 0; }); var route = globalThis.__AGENTIC__ && globalThis.__AGENTIC__.getRoute ? globalThis.__AGENTIC__.getRoute() : null; var selected = null; if (typeof accountsController.getSelectedAccount === 'function') { selected = accountsController.getSelectedAccount(); } else if (internalAccounts.selectedAccount && accountsById[internalAccounts.selectedAccount]) { selected = accountsById[internalAccounts.selectedAccount]; } return JSON.stringify({ok:true, unlocked: typeof keyringController.isUnlocked === 'function' ? keyringController.isUnlocked() : null, routeName: route && route.name, selected: selected ? {name: selected.metadata && selected.metadata.name, address: selected.address} : null, total: accs.length, ethAccounts: eth.length, accounts: eth.map(function(a){ return {name: a && a.metadata && a.metadata.name, address: a && a.address}; }), first3: eth.slice(0,3).map(function(a){ return {name: a && a.metadata && a.metadata.name, address: a && a.address}; })}); } catch (e) { return JSON.stringify({ok:false, error: e && (e.stack || e.message) || String(e)}); } })()")
+ACCOUNTS_OK=$(echo "$ACCOUNTS" | jq -r '.ok // false')
+if [ "$ACCOUNTS_OK" != "true" ]; then
+  echo "ERROR: Unable to read wallet state after setupWallet"
+  echo "$ACCOUNTS" | jq .
+  exit 1
+fi
 TOTAL=$(echo "$ACCOUNTS" | jq -r '.total')
 ETH_COUNT=$(echo "$ACCOUNTS" | jq -r '.ethAccounts')
+UNLOCKED=$(echo "$ACCOUNTS" | jq -r '.unlocked')
+ROUTE_NAME=$(echo "$ACCOUNTS" | jq -r '.routeName // empty')
+EXPECTED_ADDRESSES=$(node - "$FIXTURE_PATH" <<'NODE'
+const fs = require('fs');
+const { Wallet } = require('ethers');
+const fixture = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+const addresses = [];
+for (const account of fixture.accounts || []) {
+  if (account.type === 'mnemonic') {
+    addresses.push(Wallet.fromMnemonic(account.value).address.toLowerCase());
+  } else if (account.type === 'privateKey') {
+    const key = account.value.startsWith('0x') ? account.value : `0x${account.value}`;
+    addresses.push(new Wallet(key).address.toLowerCase());
+  }
+}
+console.log(JSON.stringify(addresses));
+NODE
+)
+MISSING_ADDRESSES=$(ACCOUNTS_JSON="$ACCOUNTS" EXPECTED_JSON="$EXPECTED_ADDRESSES" node <<'NODE'
+const accounts = JSON.parse(process.env.ACCOUNTS_JSON);
+const expected = JSON.parse(process.env.EXPECTED_JSON);
+const actual = new Set((accounts.accounts || accounts.first3 || []).map((a) => String(a.address || '').toLowerCase()));
+const missing = expected.filter((address) => !actual.has(address));
+console.log(JSON.stringify(missing));
+NODE
+)
+if [ "$UNLOCKED" != "true" ]; then
+  echo "ERROR: Wallet setup did not unlock the vault"
+  echo "$ACCOUNTS" | jq .
+  exit 1
+fi
+if [ "$ETH_COUNT" -lt "$ACCOUNT_COUNT" ]; then
+  echo "ERROR: Wallet setup produced $ETH_COUNT ETH account(s), expected at least $ACCOUNT_COUNT from fixture"
+  echo "$ACCOUNTS" | jq .
+  exit 1
+fi
+if [ "$(echo "$MISSING_ADDRESSES" | jq 'length')" != "0" ]; then
+  echo "ERROR: Wallet setup did not import/unlock the expected fixture account(s)"
+  echo "Missing addresses:"
+  echo "$MISSING_ADDRESSES" | jq -r '.[] | "  " + .'
+  echo "Actual wallet state:"
+  echo "$ACCOUNTS" | jq .
+  exit 1
+fi
+case "$ROUTE_NAME" in
+  Login|Onboarding|ExperienceEnhancer|FoxLoader|"")
+    echo "ERROR: Wallet setup did not reach the unlocked wallet UI (route=${ROUTE_NAME:-empty})"
+    echo "$ACCOUNTS" | jq .
+    exit 1
+    ;;
+esac
 echo ""
 echo "=== Wallet Ready ==="
+echo "Route: ${ROUTE_NAME:-unknown}"
+echo "Unlocked: $UNLOCKED"
 echo "Accounts: $ETH_COUNT ETH (${TOTAL} total)"
 echo "$ACCOUNTS" | jq -r '.first3[] | "  \(.name): \(.address)"'
+echo "Selected:"
+echo "$ACCOUNTS" | jq -r '.selected | "  \(.name): \(.address)"'
 echo ""
 echo "Done."
 exit 0

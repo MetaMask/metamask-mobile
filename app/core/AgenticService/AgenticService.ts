@@ -11,11 +11,12 @@ import {
   NavigationContainerRef,
   ParamListBase,
 } from '@react-navigation/native';
-import { Platform } from 'react-native';
+import { Dimensions, Platform } from 'react-native';
 import Logger from '../../util/Logger';
 import ReduxService from '../redux';
 import { persistor } from '../../store';
 import Engine from '../Engine';
+import { Engine as EngineClass } from '../Engine/Engine';
 import {
   passwordSet,
   setExistingUser,
@@ -45,6 +46,8 @@ import Routes from '../../constants/navigation/Routes';
 import SecureKeychain from '../SecureKeychain';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import DevLogger from '../SDKConnect/utils/DevLogger';
+import { addNewHdAccount } from '../../actions/multiSrp';
+import { bufferToHex, privateToAddress } from 'ethereumjs-util';
 
 // ─── Fiber tree types ──────────────────────────────────────────────────────
 
@@ -65,6 +68,19 @@ interface FiberNode {
   stateNode: {
     scrollTo?: (opts: { y: number; animated: boolean }) => void;
     scrollToOffset?: (opts: { offset: number; animated: boolean }) => void;
+    measure?: (
+      callback: (
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+        pageX: number,
+        pageY: number,
+      ) => void,
+    ) => void;
+    measureInWindow?: (
+      callback: (x: number, y: number, width: number, height: number) => void,
+    ) => void;
     [key: string]: unknown;
   } | null;
 }
@@ -81,6 +97,7 @@ interface ReactDevToolsHook {
 /** Shape of the __DEV__-only agentic bridge on globalThis. */
 interface AgenticBridge {
   platform: string;
+  replayHarnessPatch?: string;
   navigate: (name: string, params?: object) => void;
   getRoute: () => unknown;
   getState: () => unknown;
@@ -146,6 +163,9 @@ interface AgenticBridge {
       type: 'mnemonic' | 'privateKey';
       value: string;
       name?: string;
+      count?: number;
+      numberOfAccounts?: number;
+      names?: string[];
     }[];
     settings?: {
       metametrics?: boolean;
@@ -157,12 +177,37 @@ interface AgenticBridge {
   }) => Promise<{
     ok: boolean;
     error?: string;
+    step?: string;
+    accounts?: { address: string; name: string }[];
+  }>;
+  applyWalletFixture: (
+    fixture: Parameters<AgenticBridge['setupWallet']>[0],
+  ) => Promise<{
+    ok: boolean;
+    error?: string;
     accounts?: { address: string; name: string }[];
   }>;
   showStep: (step: { id: string; description: string }) => void;
   hideStep: () => void;
   findFiberByTestId: (testId: string) => boolean;
+  queryUiTarget: (options: {
+    testId?: string;
+    textContains?: string;
+    visibility?: 'tree' | 'viewport';
+  }) => Promise<{
+    present: boolean;
+    visible: boolean;
+    visibility: 'tree' | 'viewport';
+    testId?: string;
+    textContains?: string;
+    textMatched?: boolean;
+    rect?: { x: number; y: number; width: number; height: number };
+    viewport?: { width: number; height: number };
+    error?: string;
+  }>;
 }
+
+type WalletFixture = Parameters<AgenticBridge['setupWallet']>[0];
 
 declare global {
   // eslint-disable-next-line no-var
@@ -242,6 +287,185 @@ function toAccountSummary(a: {
   return { id: a.id, address: a.address, name: a.metadata.name };
 }
 
+function getFixtureMnemonicCount(account?: {
+  count?: number;
+  numberOfAccounts?: number;
+}): number {
+  const raw = account?.count ?? account?.numberOfAccounts ?? 1;
+  const count = Number(raw);
+  if (!Number.isInteger(count) || count < 1 || count > 100) {
+    throw new Error(`Invalid mnemonic account count: ${raw}`);
+  }
+  return count;
+}
+
+function getFixtureAccountNames(
+  account: { name?: string; names?: string[] } | undefined,
+  count: number,
+): string[] {
+  return Array.from({ length: count }, (_unused, index) => {
+    const explicitName = account?.names?.[index];
+    if (typeof explicitName === 'string' && explicitName.trim()) {
+      return explicitName.trim();
+    }
+    if (
+      index === 0 &&
+      typeof account?.name === 'string' &&
+      account.name.trim()
+    ) {
+      return account.name.trim();
+    }
+    return `Account ${index + 1}`;
+  });
+}
+
+interface FixtureEvmAccount {
+  id: string;
+  address: string;
+  metadata: { name: string; keyring?: { type?: string } };
+}
+
+function findEvmAccounts(accounts: Record<string, unknown>) {
+  return (Object.values(accounts) as FixtureEvmAccount[]).filter((account) =>
+    account.address?.startsWith('0x'),
+  );
+}
+
+function isHdFixtureAccount(account: FixtureEvmAccount) {
+  return account.metadata?.keyring?.type === 'HD Key Tree';
+}
+
+function normalizePrivateKey(value: string) {
+  return value.startsWith('0x') ? value.slice(2) : value;
+}
+
+function getPrivateKeyAddress(value: string) {
+  return bufferToHex(
+    privateToAddress(Buffer.from(normalizePrivateKey(value), 'hex')),
+  ).toLowerCase();
+}
+
+function findAccountGroupIdByAccountId(
+  accountTreeController: {
+    state: { accountTree?: { wallets?: Record<string, unknown> } };
+  },
+  accountId: string,
+): string | undefined {
+  const wallets = accountTreeController.state.accountTree?.wallets ?? {};
+  for (const wallet of Object.values(wallets) as {
+    groups?: Record<string, { accounts?: string[] }>;
+  }[]) {
+    for (const group of Object.values(wallet.groups ?? {})) {
+      if (group.accounts?.includes(accountId)) {
+        return (group as { id?: string }).id;
+      }
+    }
+  }
+  return undefined;
+}
+
+function setFixtureAccountName(
+  accountTreeController: {
+    state: { accountTree?: { wallets?: Record<string, unknown> } };
+    setAccountGroupName: (
+      accountGroupId: string,
+      accountGroupName: string,
+    ) => void;
+  },
+  account: { id: string; address: string },
+  name: string,
+) {
+  Engine.setAccountLabel(account.address, name);
+  const groupId = findAccountGroupIdByAccountId(
+    accountTreeController,
+    account.id,
+  );
+  if (!groupId) {
+    throw new Error(
+      `No account group found for fixture account ${account.address}`,
+    );
+  }
+  accountTreeController.setAccountGroupName(groupId, name);
+}
+
+async function materializeFixtureAccounts(
+  fixture: WalletFixture,
+  controllers: {
+    KeyringController: {
+      importAccountWithStrategy: (
+        strategy: AccountImportStrategy,
+        args: string[],
+      ) => Promise<unknown>;
+    };
+    AccountsController: {
+      state: { internalAccounts: { accounts: Record<string, unknown> } };
+    };
+    AccountTreeController: {
+      state: { accountTree?: { wallets?: Record<string, unknown> } };
+      setAccountGroupName: (
+        accountGroupId: string,
+        accountGroupName: string,
+      ) => void;
+    };
+  },
+) {
+  const { KeyringController, AccountsController, AccountTreeController } =
+    controllers;
+  const mnemonicAccount = fixture.accounts.find(
+    (account) => account.type === 'mnemonic',
+  );
+
+  if (mnemonicAccount) {
+    const count = getFixtureMnemonicCount(mnemonicAccount);
+    const names = getFixtureAccountNames(mnemonicAccount, count);
+    let hdAccounts = findEvmAccounts(
+      AccountsController.state.internalAccounts.accounts,
+    ).filter(isHdFixtureAccount);
+
+    for (
+      let accountIndex = hdAccounts.length;
+      accountIndex < count;
+      accountIndex += 1
+    ) {
+      await addNewHdAccount(undefined, names[accountIndex]);
+      hdAccounts = findEvmAccounts(
+        AccountsController.state.internalAccounts.accounts,
+      ).filter(isHdFixtureAccount);
+    }
+
+    hdAccounts.slice(0, count).forEach((account, index) => {
+      setFixtureAccountName(AccountTreeController, account, names[index]);
+    });
+  }
+
+  for (const account of fixture.accounts) {
+    if (account.type !== 'privateKey') continue;
+    const address = getPrivateKeyAddress(account.value);
+    let imported = findEvmAccounts(
+      AccountsController.state.internalAccounts.accounts,
+    ).find((evmAccount) => evmAccount.address.toLowerCase() === address);
+
+    if (!imported) {
+      await KeyringController.importAccountWithStrategy(
+        AccountImportStrategy.privateKey,
+        [`0x${normalizePrivateKey(account.value)}`],
+      );
+      imported = findEvmAccounts(
+        AccountsController.state.internalAccounts.accounts,
+      ).find((evmAccount) => evmAccount.address.toLowerCase() === address);
+    }
+
+    if (!imported) {
+      throw new Error(
+        `Fixture private key import did not create account ${address}`,
+      );
+    }
+    if (account.name) {
+      setFixtureAccountName(AccountTreeController, imported, account.name);
+    }
+  }
+}
+
 /**
  * Walk a fiber sub-tree looking for a scrollable stateNode (scrollTo or
  * scrollToOffset). When `walkSiblings` is false only the child axis is
@@ -271,6 +495,167 @@ function tryScroll(
     current = walkSiblings ? current.sibling : null;
   }
   return false;
+}
+
+function targetMatches(
+  fiber: FiberNode,
+  options: { testId?: string; textContains?: string },
+): boolean {
+  if (options.testId && fiber.memoizedProps?.testID !== options.testId) {
+    return false;
+  }
+  if (options.textContains) {
+    const needle = options.textContains.toLowerCase();
+    const texts = options.testId
+      ? collectFiberTexts(fiber)
+      : collectOwnFiberTexts(fiber);
+    return texts.some((text) => text.toLowerCase().includes(needle));
+  }
+  return Boolean(options.testId);
+}
+
+function findUiTargetFiber(
+  rootFiber: FiberNode,
+  options: { testId?: string; textContains?: string },
+): FiberNode | null {
+  let result: FiberNode | null = null;
+  walkFiber(rootFiber, (fiber) => {
+    if (targetMatches(fiber, options)) {
+      result = fiber;
+      return true;
+    }
+    return false;
+  });
+  return result;
+}
+
+function findMeasurableStateNode(
+  fiber: FiberNode | null,
+): FiberNode['stateNode'] | null {
+  let result: FiberNode['stateNode'] | null = null;
+  walkFiber(fiber, (node) => {
+    const sn = node.stateNode;
+    if (
+      sn &&
+      (typeof sn.measureInWindow === 'function' ||
+        typeof sn.measure === 'function')
+    ) {
+      result = sn;
+      return true;
+    }
+    return false;
+  });
+  return result;
+}
+
+function measureStateNode(
+  stateNode: FiberNode['stateNode'],
+): Promise<{ x: number; y: number; width: number; height: number } | null> {
+  return new Promise((resolve) => {
+    if (!stateNode) {
+      resolve(null);
+      return;
+    }
+    const finish = (x: number, y: number, width: number, height: number) =>
+      resolve({ x, y, width, height });
+    try {
+      if (typeof stateNode.measureInWindow === 'function') {
+        stateNode.measureInWindow(finish);
+        return;
+      }
+      if (typeof stateNode.measure === 'function') {
+        stateNode.measure((_x, _y, width, height, pageX, pageY) =>
+          finish(pageX, pageY, width, height),
+        );
+        return;
+      }
+    } catch (e) {
+      Logger.log(String(e), 'AgenticService.measureStateNode');
+    }
+    resolve(null);
+  });
+}
+
+async function queryUiTarget(options: {
+  testId?: string;
+  textContains?: string;
+  visibility?: 'tree' | 'viewport';
+}): Promise<{
+  present: boolean;
+  visible: boolean;
+  visibility: 'tree' | 'viewport';
+  testId?: string;
+  textContains?: string;
+  textMatched?: boolean;
+  rect?: { x: number; y: number; width: number; height: number };
+  viewport?: { width: number; height: number };
+  error?: string;
+}> {
+  const visibility = options.visibility === 'viewport' ? 'viewport' : 'tree';
+  let target: FiberNode | null = null;
+
+  walkFiberRoots((rootFiber) => {
+    target = findUiTargetFiber(rootFiber, options);
+    return Boolean(target);
+  });
+
+  const base = {
+    present: Boolean(target),
+    visible: Boolean(target) && visibility === 'tree',
+    visibility,
+    testId: options.testId,
+    textContains: options.textContains,
+    textMatched: options.textContains
+      ? Boolean(
+          target &&
+            collectFiberTexts(target).some((text) =>
+              text
+                .toLowerCase()
+                .includes(String(options.textContains).toLowerCase()),
+            ),
+        )
+      : undefined,
+  };
+
+  if (!target || visibility === 'tree') {
+    return base;
+  }
+
+  const stateNode = findMeasurableStateNode(target);
+  if (!stateNode) {
+    return {
+      ...base,
+      visible: false,
+      error:
+        'Target exists in fiber tree but no measurable native node was found',
+    };
+  }
+
+  const rect = await measureStateNode(stateNode);
+  const viewport = Dimensions.get('window');
+  if (!rect) {
+    return {
+      ...base,
+      visible: false,
+      viewport: { width: viewport.width, height: viewport.height },
+      error: 'Target exists in fiber tree but measurement returned no frame',
+    };
+  }
+
+  const visible =
+    rect.width > 0 &&
+    rect.height > 0 &&
+    rect.x < viewport.width &&
+    rect.y < viewport.height &&
+    rect.x + rect.width > 0 &&
+    rect.y + rect.height > 0;
+
+  return {
+    ...base,
+    visible,
+    rect,
+    viewport: { width: viewport.width, height: viewport.height },
+  };
 }
 
 function appendTextContent(value: unknown, out: string[]) {
@@ -308,6 +693,14 @@ function collectFiberTexts(fiber: FiberNode | null): string[] {
     }
     return false;
   });
+  return dedupeTexts(texts);
+}
+
+function collectOwnFiberTexts(fiber: FiberNode | null): string[] {
+  const texts: string[] = [];
+  if (fiber?.memoizedProps?.children !== undefined) {
+    appendTextContent(fiber.memoizedProps.children, texts);
+  }
   return dedupeTexts(texts);
 }
 
@@ -434,6 +827,7 @@ const AgenticService = {
 
     globalThis.__AGENTIC__ = {
       platform: Platform.OS,
+      replayHarnessPatch: 'legacy-wallet-fixture-r2',
       navigate: (name: string, params?: object) =>
         (
           deferredNav as unknown as {
@@ -659,54 +1053,133 @@ const AgenticService = {
         });
         return found;
       },
-      setupWallet: async (fixture) => {
+      queryUiTarget,
+      applyWalletFixture: async (fixture) => {
         try {
+          const {
+            KeyringController,
+            AccountsController,
+            AccountTreeController,
+          } = Engine.context;
+          await AccountTreeInitService.initializeAccountTree();
+          await materializeFixtureAccounts(fixture, {
+            KeyringController,
+            AccountsController,
+            AccountTreeController,
+          });
+          const ethAccs = findEvmAccounts(
+            AccountsController.state.internalAccounts.accounts,
+          ).map(toAccountSummary);
+          return { ok: true, accounts: ethAccs };
+        } catch (e) {
+          return { ok: false, error: String((e as Error).message || e) };
+        }
+      },
+      setupWallet: async (fixture) => {
+        let setupStep = 'start';
+        try {
+          setupStep = 'read-engine';
           const {
             MultichainAccountService,
             KeyringController,
             AccountsController,
+            AccountTreeController,
           } = Engine.context;
           const store = ReduxService.store;
           const settings = fixture.settings ?? {};
+          // Deliberately one-way for the dev harness process: fixture setup
+          // rewrites vault/account state, so automatic backup must stay disabled
+          // for the rest of this simulator session to avoid native keychain
+          // export paths racing the synthetic setup flow.
+          EngineClass.disableAutomaticVaultBackup = true;
 
           // 1. Create wallet from the first mnemonic (same path as onboarding UI)
+          setupStep = 'create-wallet';
           const mnemonicAccount = fixture.accounts.find(
             (a) => a.type === 'mnemonic',
           );
+          let usedLegacyVaultSetup = false;
           if (mnemonicAccount) {
             const mnemonic = mnemonicPhraseToBytes(mnemonicAccount.value);
-            await MultichainAccountService.createMultichainAccountWallet({
-              type: 'restore',
-              password: fixture.password,
-              mnemonic,
-            });
+            try {
+              await MultichainAccountService.createMultichainAccountWallet({
+                type: 'restore',
+                password: fixture.password,
+                mnemonic,
+              });
+            } catch (error) {
+              const message = String((error as Error).message || error);
+              if (
+                !message.includes('Money Keyring') &&
+                !message.includes('No keyringBuilder found')
+              ) {
+                throw error;
+              }
+              Logger.log(
+                '[AgenticService] Falling back to legacy vault restore for historical replay fixture setup',
+              );
+              await KeyringController.createNewVaultAndRestore(
+                fixture.password,
+                mnemonic,
+              );
+              usedLegacyVaultSetup = true;
+            }
           } else {
-            await MultichainAccountService.createMultichainAccountWallet({
-              type: 'create',
-              password: fixture.password,
-            });
+            try {
+              await MultichainAccountService.createMultichainAccountWallet({
+                type: 'create',
+                password: fixture.password,
+              });
+            } catch (error) {
+              const message = String((error as Error).message || error);
+              if (
+                !message.includes('Money Keyring') &&
+                !message.includes('No keyringBuilder found')
+              ) {
+                throw error;
+              }
+              Logger.log(
+                '[AgenticService] Falling back to legacy vault creation for historical replay fixture setup',
+              );
+              await KeyringController.createNewVaultAndKeychain(
+                fixture.password,
+              );
+              usedLegacyVaultSetup = true;
+            }
           }
 
           // 2. Initialize services (same as Authentication.dispatchLogin)
-          await AccountTreeInitService.initializeAccountTree();
-          await MultichainAccountService.init();
-
-          // 3. Import private key accounts
-          for (const account of fixture.accounts) {
-            if (account.type !== 'privateKey') continue;
+          setupStep = 'initialize-services';
+          if (!usedLegacyVaultSetup) {
             try {
-              await KeyringController.importAccountWithStrategy(
-                AccountImportStrategy.privateKey,
-                [account.value],
-              );
-            } catch (e) {
+              await AccountTreeInitService.initializeAccountTree();
+              await MultichainAccountService.init();
+            } catch (error) {
+              const message = String((error as Error).message || error);
+              if (
+                !message.includes('Money Keyring') &&
+                !message.includes('No keyringBuilder found')
+              ) {
+                throw error;
+              }
               Logger.log(
-                `[AgenticService] Failed to import key: ${(e as Error).message}`,
+                '[AgenticService] Skipping multichain account-tree initialization for historical replay fixture setup',
               );
             }
           }
 
+          // 3. Materialize requested fixture accounts. A mnemonic account can
+          // declare count/numberOfAccounts plus names[]; this is generic
+          // fixture semantics, not a dev-account special case.
+          setupStep = 'materialize-srp-accounts';
+          await materializeFixtureAccounts(fixture, {
+            KeyringController,
+            AccountsController,
+            AccountTreeController,
+          });
+
           // 4. Dispatch all onboarding/auth flags
+          setupStep = 'dispatch-onboarding-flags';
           store.dispatch(passwordSet());
           store.dispatch(seedphraseBackedUp());
           store.dispatch(setCompletedOnboarding(true));
@@ -714,6 +1187,7 @@ const AgenticService = {
           store.dispatch(logIn());
 
           // 5. Suppress post-onboarding modals if explicitly requested
+          setupStep = 'persist-modal-settings';
           if (settings.skipGtmModals === true) {
             await Promise.all([
               StorageWrapper.setItem(PERPS_GTM_MODAL_SHOWN, 'true'),
@@ -726,29 +1200,41 @@ const AgenticService = {
 
           // 5b. Set metrics UI as seen (prevents Authentication.unlockWallet
           // from navigating to OptinMetrics after setupWallet resets to Wallet)
+          setupStep = 'persist-metrics-setting';
           if (settings.metametrics !== undefined) {
             await StorageWrapper.setItem(OPTIN_META_METRICS_UI_SEEN, 'true');
           }
 
           // 5c. Mark multichain accounts intro modal as seen
+          setupStep = 'dispatch-multichain-intro-seen';
           store.dispatch(setMultichainAccountsIntroModalSeen(true));
 
           // 6. Skip perps tutorial onboarding if requested
+          setupStep = 'persist-perps-tutorial-setting';
           if (settings.skipPerpsTutorial === true) {
             Engine.context.PerpsController?.markTutorialCompleted();
           }
 
           // 7. Set auto-lock to "Never" (-1) for agentic workflows
+          setupStep = 'dispatch-auto-lock';
           if (settings.autoLockNever === true) {
             ReduxService.store.dispatch(setLockTime(-1));
           }
 
-          // 8. Enable device authentication (biometrics/passcode bypass)
-          if (settings.deviceAuthEnabled === true) {
+          // 8. Enable device authentication only on Android fixture runs.
+          // On iOS simulator, toggling OS auth during synthetic setup can drive
+          // react-native-keychain/quick-crypto secret export on the JS runtime
+          // and crash the app after setupWallet returns. Android is the only
+          // harness path that stores the fixture password for auto-unlock here.
+          setupStep = 'dispatch-device-auth';
+          if (
+            settings.deviceAuthEnabled === true &&
+            Platform.OS === 'android'
+          ) {
             ReduxService.store.dispatch(setOsAuthEnabled(true));
           }
 
-          // 8b. Store password in SecureKeychain for device-auth auto-unlock on reload (Android only — iOS already handles this)
+          // 8b. Store password in SecureKeychain for device-auth auto-unlock on reload (Android only)
           if (
             settings.deviceAuthEnabled === true &&
             Platform.OS === 'android'
@@ -764,6 +1250,7 @@ const AgenticService = {
           }
 
           // 9. Configure MetaMetrics if specified
+          setupStep = 'configure-metametrics';
           if (settings.metametrics === false) {
             await analytics.optOut();
           } else if (settings.metametrics === true) {
@@ -771,22 +1258,24 @@ const AgenticService = {
           }
 
           // 10. Navigate to wallet (same as Authentication.unlockWallet)
+          setupStep = 'navigate-wallet';
           NavigationService.navigation?.reset({
             routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
           });
 
           // 11. Collect all ETH accounts for the summary
-          const ethAccs = (
-            Object.values(
-              AccountsController.state.internalAccounts.accounts,
-            ) as { id: string; address: string; metadata: { name: string } }[]
-          )
-            .filter((a) => a.address?.startsWith('0x'))
-            .map(toAccountSummary);
+          setupStep = 'collect-accounts';
+          const ethAccs = findEvmAccounts(
+            AccountsController.state.internalAccounts.accounts,
+          ).map(toAccountSummary);
 
           return { ok: true, accounts: ethAccs };
         } catch (e) {
-          return { ok: false, error: String((e as Error).message || e) };
+          return {
+            ok: false,
+            step: setupStep,
+            error: String((e as Error).message || e),
+          };
         }
       },
     };
