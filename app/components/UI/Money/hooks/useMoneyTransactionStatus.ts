@@ -34,7 +34,9 @@ import {
 import useMoneyToasts from './useMoneyToasts';
 import {
   clearMoneyAccountDepositIntent,
+  clearMoneyAccountWithdrawIntent,
   getMoneyAccountDepositIntent,
+  getMoneyAccountWithdrawIntent,
 } from './useMoneyAccount';
 
 const TELLER_INTERFACE = new ethers.utils.Interface(TELLER_ABI);
@@ -152,7 +154,8 @@ export const useMoneyTransactionStatus = () => {
           const intent = getMoneyAccountDepositIntent(transactionMeta.batchId);
           showToast(MoneyToastOptions.deposit.inProgress({ intent }));
         } else {
-          showToast(MoneyToastOptions.withdraw.inProgress());
+          const intent = getMoneyAccountWithdrawIntent(transactionMeta.batchId);
+          showToast(MoneyToastOptions.withdraw.inProgress({ intent }));
         }
       }, IN_PROGRESS_DELAY_MS);
       pendingInProgress.set(transactionMeta.id, timeoutId);
@@ -167,7 +170,9 @@ export const useMoneyTransactionStatus = () => {
         showToast(MoneyToastOptions.deposit.failed({ intent }));
         clearMoneyAccountDepositIntent(transactionMeta.batchId);
       } else {
-        showToast(MoneyToastOptions.withdraw.failed());
+        const intent = getMoneyAccountWithdrawIntent(transactionMeta.batchId);
+        showToast(MoneyToastOptions.withdraw.failed({ intent }));
+        clearMoneyAccountWithdrawIntent(transactionMeta.batchId);
       }
       scheduleCleanup(transactionMeta.id, FAILED_KEY);
     };
@@ -203,13 +208,16 @@ export const useMoneyTransactionStatus = () => {
         showToast(MoneyToastOptions.deposit.success({ amountFiat, intent }));
         clearMoneyAccountDepositIntent(transactionMeta.batchId);
       } else {
+        const intent = getMoneyAccountWithdrawIntent(transactionMeta.batchId);
         // TODO: derive destination from tx metadata once Perps/Predict transfers ship.
         showToast(
           MoneyToastOptions.withdraw.success({
             amountFiat,
+            intent,
             destination: strings('money.transfer_sheet.between_accounts'),
           }),
         );
+        clearMoneyAccountWithdrawIntent(transactionMeta.batchId);
       }
       scheduleCleanup(transactionMeta.id, CONFIRMED_KEY);
     };
@@ -232,6 +240,8 @@ export const useMoneyTransactionStatus = () => {
           cancelPendingInProgress(transactionMeta.id);
           if (isMoneyDepositTx(transactionMeta)) {
             clearMoneyAccountDepositIntent(transactionMeta.batchId);
+          } else if (isMoneyAccountTx(transactionMeta)) {
+            clearMoneyAccountWithdrawIntent(transactionMeta.batchId);
           }
           break;
         default:

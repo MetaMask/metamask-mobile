@@ -19,6 +19,8 @@ import {
 import {
   getMoneyAccountDepositIntent,
   clearMoneyAccountDepositIntent,
+  getMoneyAccountWithdrawIntent,
+  clearMoneyAccountWithdrawIntent,
   useMoneyAccountDeposit,
   useMoneyAccountWithdrawal,
 } from './useMoneyAccount';
@@ -456,6 +458,65 @@ describe('useMoneyAccountWithdrawal', () => {
       txError,
       '[Money Account] Withdrawal transaction failed',
     );
+  });
+
+  it('pre-generates a batchId and registers intent before the await', async () => {
+    let observedBatchId: string | undefined;
+    let intentAtCallTime: ReturnType<typeof getMoneyAccountWithdrawIntent>;
+    mockAddTransactionBatch.mockImplementationOnce(async (args) => {
+      observedBatchId = (args as { batchId: string }).batchId;
+      intentAtCallTime = getMoneyAccountWithdrawIntent(observedBatchId);
+      return {} as never;
+    });
+
+    const { result } = renderHook(() => useMoneyAccountWithdrawal());
+
+    await act(async () => {
+      await result.current.initiateWithdrawal({ intent: 'betweenAccounts' });
+    });
+
+    expect(observedBatchId).toMatch(/^0x[0-9a-f]+$/);
+    expect(intentAtCallTime).toBe('betweenAccounts');
+    clearMoneyAccountWithdrawIntent(observedBatchId);
+  });
+
+  it('defaults intent to "betweenAccounts" when omitted', async () => {
+    let observedBatchId: string | undefined;
+    mockAddTransactionBatch.mockImplementationOnce(async (args) => {
+      observedBatchId = (args as { batchId: string }).batchId;
+      return {} as never;
+    });
+
+    const { result } = renderHook(() => useMoneyAccountWithdrawal());
+
+    await act(async () => {
+      await result.current.initiateWithdrawal();
+    });
+
+    expect(getMoneyAccountWithdrawIntent(observedBatchId)).toBe(
+      'betweenAccounts',
+    );
+    clearMoneyAccountWithdrawIntent(observedBatchId);
+  });
+
+  it('clears the registered intent if addTransactionBatch throws', async () => {
+    let observedBatchId: string | undefined;
+    const txError = new Error('batch submission failed');
+    mockAddTransactionBatch.mockImplementationOnce(async (args) => {
+      observedBatchId = (args as { batchId: string }).batchId;
+      throw txError;
+    });
+
+    const { result } = renderHook(() => useMoneyAccountWithdrawal());
+
+    await act(async () => {
+      await result.current
+        .initiateWithdrawal({ intent: 'betweenAccounts' })
+        .catch(() => undefined);
+    });
+
+    expect(observedBatchId).toBeDefined();
+    expect(getMoneyAccountWithdrawIntent(observedBatchId)).toBeUndefined();
   });
 
   it('throws when networkClientId cannot be resolved', async () => {

@@ -227,6 +227,24 @@ describe('useMoneyToasts', () => {
       expect(toast.hasNoTimeout).toBe(true);
     });
 
+    it('inProgress title is "Transaction in progress" when no intent', () => {
+      const { result } = renderHook(() => useMoneyToasts(), { wrapper });
+
+      const toast = result.current.MoneyToastOptions.withdraw.inProgress();
+
+      expect(toast.labelOptions?.[0].label).toBe('Transaction in progress');
+    });
+
+    it('inProgress title is "Transfer in progress" when intent is betweenAccounts', () => {
+      const { result } = renderHook(() => useMoneyToasts(), { wrapper });
+
+      const toast = result.current.MoneyToastOptions.withdraw.inProgress({
+        intent: 'betweenAccounts',
+      });
+
+      expect(toast.labelOptions?.[0].label).toBe('Transfer in progress');
+    });
+
     it('success includes both amount and destination in body', () => {
       const { result } = renderHook(() => useMoneyToasts(), { wrapper });
 
@@ -240,6 +258,36 @@ describe('useMoneyToasts', () => {
       expect(toast.labelOptions).toHaveLength(3);
     });
 
+    it('success title/body is "Transfer complete" / "$50.00 added to Money account." for betweenAccounts', () => {
+      const { result } = renderHook(() => useMoneyToasts(), { wrapper });
+
+      const toast = result.current.MoneyToastOptions.withdraw.success({
+        amountFiat: '$50.00',
+        destination: 'Between accounts',
+        intent: 'betweenAccounts',
+      });
+
+      expect(toast.labelOptions?.[0].label).toBe('Transfer complete');
+      const secondary = toast.labelOptions?.[2].label as React.ReactElement<{
+        children?: React.ReactNode;
+      }>;
+      expect(secondary.props.children).toBe('$50.00 added to Money account.');
+    });
+
+    it('success body falls back to "Added to Money account." when amount missing on betweenAccounts', () => {
+      const { result } = renderHook(() => useMoneyToasts(), { wrapper });
+
+      const toast = result.current.MoneyToastOptions.withdraw.success({
+        destination: 'Between accounts',
+        intent: 'betweenAccounts',
+      });
+
+      const secondary = toast.labelOptions?.[2].label as React.ReactElement<{
+        children?: React.ReactNode;
+      }>;
+      expect(secondary.props.children).toBe('Added to Money account.');
+    });
+
     it('failed surfaces an error toast with the withdraw-specific body', () => {
       const { result } = renderHook(() => useMoneyToasts(), { wrapper });
 
@@ -249,6 +297,22 @@ describe('useMoneyToasts', () => {
       expect(toast.hapticsType).toBe(NotificationMoment.Error);
       expect(toast.labelOptions).toHaveLength(3);
       expect(toast.labelOptions?.[0].label).toEqual(expect.any(String));
+    });
+
+    it('failed title/body is "Transfer failed" / "Unable to transfer funds. Try again."', () => {
+      const { result } = renderHook(() => useMoneyToasts(), { wrapper });
+
+      const toast = result.current.MoneyToastOptions.withdraw.failed({
+        intent: 'betweenAccounts',
+      });
+
+      expect(toast.labelOptions?.[0].label).toBe('Transfer failed');
+      const secondary = toast.labelOptions?.[2].label as React.ReactElement<{
+        children?: React.ReactNode;
+      }>;
+      expect(secondary.props.children).toBe(
+        'Unable to transfer funds. Try again.',
+      );
     });
   });
 
