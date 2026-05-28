@@ -227,10 +227,39 @@ describe('useMoneyAccountDeposit', () => {
     });
 
     expect(caught).toBe(txError);
-    expect(Logger.error).toHaveBeenCalledWith(
-      txError,
-      '[Money Account] Deposit transaction failed',
-    );
+    expect(Logger.error).toHaveBeenCalledWith(txError, {
+      tags: {
+        feature: 'money-account',
+        context: 'initiateDeposit.add_batch_failed',
+      },
+    });
+  });
+
+  it('logs and rethrows when buildMoneyAccountDepositBatch fails', async () => {
+    const buildError = new Error('mUSD not deployed on chain 0xa4b1');
+    mockBuildDepositBatch.mockRejectedValue(buildError);
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    let caught: Error | undefined;
+    await act(async () => {
+      try {
+        await result.current.initiateDeposit();
+      } catch (error) {
+        caught = error as Error;
+      }
+    });
+
+    expect(caught).toBe(buildError);
+    expect(Logger.error).toHaveBeenCalledWith(buildError, {
+      tags: {
+        feature: 'money-account',
+        context: 'initiateDeposit.build_batch_failed',
+      },
+    });
+    // Navigation must not happen if the batch build itself fails.
+    expect(getNavigateToConfirmation()).not.toHaveBeenCalled();
+    expect(mockAddTransactionBatch).not.toHaveBeenCalled();
   });
 
   it('throws when networkClientId cannot be resolved', async () => {
@@ -379,10 +408,39 @@ describe('useMoneyAccountWithdrawal', () => {
     });
 
     expect(caught).toBe(txError);
-    expect(Logger.error).toHaveBeenCalledWith(
-      txError,
-      '[Money Account] Withdrawal transaction failed',
-    );
+    expect(Logger.error).toHaveBeenCalledWith(txError, {
+      tags: {
+        feature: 'money-account',
+        context: 'initiateWithdrawal.add_batch_failed',
+      },
+    });
+  });
+
+  it('logs and rethrows when buildMoneyAccountWithdrawBatch fails', async () => {
+    const buildError = new Error('mUSD not deployed on chain 0xa4b1');
+    mockBuildWithdrawBatch.mockRejectedValue(buildError);
+
+    const { result } = renderHook(() => useMoneyAccountWithdrawal());
+
+    let caught: Error | undefined;
+    await act(async () => {
+      try {
+        await result.current.initiateWithdrawal();
+      } catch (error) {
+        caught = error as Error;
+      }
+    });
+
+    expect(caught).toBe(buildError);
+    expect(Logger.error).toHaveBeenCalledWith(buildError, {
+      tags: {
+        feature: 'money-account',
+        context: 'initiateWithdrawal.build_batch_failed',
+      },
+    });
+    // Navigation must not happen if the batch build itself fails.
+    expect(getNavigateToConfirmation()).not.toHaveBeenCalled();
+    expect(mockAddTransactionBatch).not.toHaveBeenCalled();
   });
 
   it('throws when networkClientId cannot be resolved', async () => {
