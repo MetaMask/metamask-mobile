@@ -98,22 +98,14 @@ class TrendingView {
     this.activeScrollViewID = TrendingViewSelectorsIDs.NOW_SCROLL_VIEW;
   }
 
-  /**
-   * Tap a tab in the V2 tabbed Explore layout by its testID.
-   * checkVisibility is disabled because the Tab component uses an opacity-0
-   * spacer text + absolutely-positioned visible text, which confuses Detox's
-   * 75%-coverage visibility heuristic on the Pressable container.
-   */
   async tapTab(tabTestID: string): Promise<void> {
     await Gestures.tap(Matchers.getElementByID(tabTestID), {
       elemDescription: `Tap tab ${tabTestID}`,
+      // Tab text is absolutely positioned, so Detox can undercount Pressable coverage.
       checkVisibility: false,
     });
   }
 
-  /**
-   * Navigate to the correct tab for a given section (V2 layout).
-   */
   async navigateToSectionTab(sectionTitle: string): Promise<void> {
     const sectionTabConfig = SECTION_TAB_CONFIG[sectionTitle];
 
@@ -197,19 +189,15 @@ class TrendingView {
   async tapViewAll(sectionTitle: string): Promise<void> {
     const id = this.getSectionId(sectionTitle);
     const viewAllButton = Matchers.getElementByID(
-      `section-header-view-all-${id}`,
+      `${TrendingViewSelectorsIDs.VIEW_ALL_BUTTON_PREFIX}${id}`,
     );
 
-    // Try tapping directly first — after navigating to the correct tab
-    // the View All button is typically already visible without scrolling.
-    // Fall back to scrolling within the NowTab scroll view if needed.
     try {
       await Assertions.expectElementToBeVisible(viewAllButton, {
         description: `${sectionTitle} View All button`,
         timeout: 3000,
       });
     } catch {
-      // Not immediately visible — scroll to it within the NowTab scroll view
       const direction = sectionTitle === 'Predictions' ? 'up' : 'down';
       await this.scrollToElementInFeed(
         viewAllButton,
@@ -268,7 +256,6 @@ class TrendingView {
   }
 
   async tapBackFromBrowser(): Promise<void> {
-    // Browser now uses close button (X) to return to feed
     await BrowserView.tapCloseBrowserButton();
   }
 
@@ -317,7 +304,6 @@ class TrendingView {
   ): Promise<void> {
     const targetElement = getElement();
 
-    // Sites section is typically lower in the feed; give scroll retry more time (same idea as WalletView.scrollDownToAssetOverviewMusdCta)
     const scrollOptions: Partial<ScrollOptions> =
       itemType === 'site' ? { timeout: 15000 } : {};
 
