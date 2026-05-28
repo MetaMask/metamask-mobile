@@ -1,14 +1,21 @@
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
-import { navigateToPredictionsList } from './predictionsNavigation';
+import {
+  navigateToExplorePredictionsList,
+  navigateToPredictionsList,
+} from './predictionsNavigation';
 
 describe('navigateToPredictionsList', () => {
-  it('navigates with explore entryPoint and no tab for trending variant', () => {
+  it('navigates with an explicit entryPoint and no tab for trending variant', () => {
     const navigate = jest.fn();
     const navigation = { navigate } as unknown as AppNavigationProp;
 
-    navigateToPredictionsList(navigation, 'trending');
+    navigateToPredictionsList(
+      navigation,
+      'trending',
+      PredictEventValues.ENTRY_POINT.EXPLORE,
+    );
 
     expect(navigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_LIST,
@@ -20,7 +27,11 @@ describe('navigateToPredictionsList', () => {
     const navigate = jest.fn();
     const navigation = { navigate } as unknown as AppNavigationProp;
 
-    navigateToPredictionsList(navigation, 'sports');
+    navigateToPredictionsList(
+      navigation,
+      'sports',
+      PredictEventValues.ENTRY_POINT.EXPLORE,
+    );
 
     expect(navigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_LIST,
@@ -35,7 +46,11 @@ describe('navigateToPredictionsList', () => {
     const navigate = jest.fn();
     const navigation = { navigate } as unknown as AppNavigationProp;
 
-    navigateToPredictionsList(navigation, 'crypto');
+    navigateToPredictionsList(
+      navigation,
+      'crypto',
+      PredictEventValues.ENTRY_POINT.EXPLORE,
+    );
 
     expect(navigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_LIST,
@@ -59,6 +74,18 @@ describe('navigateToPredictionsList', () => {
     expect(navigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_LIST,
       params: { entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED },
+    });
+  });
+
+  it('navigates from Explore with explore entryPoint', () => {
+    const navigate = jest.fn();
+    const navigation = { navigate } as unknown as AppNavigationProp;
+
+    navigateToExplorePredictionsList(navigation, 'trending');
+
+    expect(navigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MARKET_LIST,
+      params: { entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE },
     });
   });
 });

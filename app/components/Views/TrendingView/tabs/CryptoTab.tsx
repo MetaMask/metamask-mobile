@@ -23,7 +23,7 @@ import PerpsMarketTileCardSkeleton from '../../Homepage/Sections/Perpetuals/comp
 import { navigateToPerpsMarketList } from '../feeds/perps/perpsNavigation';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
 import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarouselSection';
-import { navigateToPredictionsList } from '../feeds/predictions/predictionsNavigation';
+import { navigateToExplorePredictionsList } from '../feeds/predictions/predictionsNavigation';
 import CardList from '../components/CardList';
 import ExploreScroll from '../components/ExploreScroll';
 import SectionHeader from '../components/SectionHeader';
@@ -164,7 +164,7 @@ const CryptoTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
         title={strings('trending.predictions')}
         testIdPrefix="predict-crypto-market-row-item"
         idPrefix="crypto_predictions"
-        onViewAll={() => navigateToPredictionsList(navigation, 'crypto')}
+        onViewAll={() => navigateToExplorePredictionsList(navigation, 'crypto')}
       />
     </ExploreScroll>
   );

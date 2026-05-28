@@ -26,3 +26,15 @@ export const navigateToPredictionsList = (
     },
   });
 };
+
+/** Navigate from Explore prediction sections to the Predict market list. */
+export const navigateToExplorePredictionsList = (
+  navigation: AppNavigationProp,
+  variant: PredictionsVariant,
+): void => {
+  navigateToPredictionsList(
+    navigation,
+    variant,
+    PredictEventValues.ENTRY_POINT.EXPLORE,
+  );
+};
