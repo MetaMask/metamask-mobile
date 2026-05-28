@@ -4,6 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import {
+  BadgeCount,
+  BadgeCountSize,
   Icon,
   IconName,
   IconSize,
@@ -314,44 +316,21 @@ const AccountsMenu = () => {
     [isNotificationEnabled],
   );
 
-  const notificationBadgeCount = useMemo(() => {
-    if (unreadNotificationCount > 99) return '99+';
-    return unreadNotificationCount.toString();
-  }, [unreadNotificationCount]);
-
   const renderNotificationsEndAccessory = useMemo(() => {
     if (isNotificationsEnabled && unreadNotificationCount > 0) {
       return (
         <Box style={tw.style('flex-row items-center gap-2')}>
-          <Box
-            style={tw.style(
-              'rounded-lg px-2 py-0.5 min-w-6 items-center justify-center',
-              {
-                backgroundColor: colors.error.default,
-              },
-            )}
-          >
-            <Text
-              style={tw.style('font-medium')}
-              variant={TextVariant.BodyXs}
-              color={TextColor.PrimaryInverse}
-            >
-              {notificationBadgeCount}
-            </Text>
-          </Box>
+          <BadgeCount
+            count={unreadNotificationCount}
+            max={99}
+            size={BadgeCountSize.Sm}
+          />
           {arrowRightIcon}
         </Box>
       );
     }
     return arrowRightIcon;
-  }, [
-    isNotificationsEnabled,
-    unreadNotificationCount,
-    notificationBadgeCount,
-    arrowRightIcon,
-    colors.error.default,
-    tw,
-  ]);
+  }, [isNotificationsEnabled, unreadNotificationCount, arrowRightIcon, tw]);
 
   return (
     <SafeAreaView
