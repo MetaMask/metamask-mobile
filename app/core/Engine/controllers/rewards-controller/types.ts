@@ -81,9 +81,9 @@ export type VipVolumeDto = {
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type VipPointsAllocationDto = {
+export type VipEquityAllocation = {
   earned: number;
-  max: number;
+  threshold: number;
   percent: number;
 };
 
@@ -96,15 +96,6 @@ export type VipTierDto = {
   swapsBps: number;
   perpsBps: number;
   revenueShareBps: number;
-  // Equity rebate basis points (raw bps, 1% = 100 bps). 0 below T6.
-  // Surfaced as the 4th carousel tile in RewardsVipView and drives the
-  // post-qualification "Progress to equity" radial in VipPointsSection.
-  // Kept in sync with backend VipTierDto (va-mmcx-rewards PR #573 follow-up).
-  equityRebateBps: number;
-  // Referee → referrer carryover basis points (raw bps, 1% = 100 bps).
-  // Powers the VIP referrals tier-progression credit. 0 at T1.
-  // Plumbed end-to-end but no UI surface yet — kept in DTO so the wire
-  // contract round-trips through Redux state without losing data.
   referralCarryoverBps: number;
   status: string;
 };
@@ -114,23 +105,23 @@ export type VipTierDto = {
 // on these strings without a local i18n fallback.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type VipLocalizedTextDto = {
-  period: string;
-  progressToNextTier: string;
+  periodTitle: string;
   memberIdTitle: string;
   swapsFeeTitle: string;
   perpsFeeTitle: string;
+  revenueShareTitle: string;
+  statsTitle: string;
+  totalPointsTitle: string;
+  equityLockedTitle: string;
+  equityLockedDescription: string;
+  equityUnlockedTitle: string;
+  equityUnlockedDescription: string;
   // The `nextTier…Delta` strings below carry the next tier's absolute value
   // text (e.g. "↓ 12 bps next tier"), not a delta against the current tier.
   // Naming is kept for wire-contract compatibility with the rewards API.
   nextTierSwapsFeeDelta: string;
   nextTierPerpsFeeDelta: string;
-  revenueShareTitle: string;
   nextTierRevenueShareDelta: string;
-  statsTitle: string;
-  statusMessage: string;
-  pointsTitle: string;
-  pointsAllocationTitle: string;
-  pointsAllocationDescription: string;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -142,7 +133,7 @@ export type VipDashboardDto = {
   progress: VipProgressDto;
   fees: VipFeesDto;
   volume: VipVolumeDto;
-  pointsAllocation: VipPointsAllocationDto;
+  pointsAllocation: VipEquityAllocation;
   tiers: VipTierDto[];
   localizedText: VipLocalizedTextDto;
 };

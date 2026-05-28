@@ -31,6 +31,7 @@ import AppConstants from '../../../core/AppConstants';
 import DeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../../UI/Ramp/hooks/useRampsButtonClickData';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import { useRampNavigation } from '../../UI/Ramp/hooks/useRampNavigation';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';

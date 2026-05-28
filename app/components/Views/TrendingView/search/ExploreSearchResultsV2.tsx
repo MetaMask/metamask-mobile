@@ -33,6 +33,25 @@ import { type SearchFeedId, type SearchFeedSection } from './useExploreSearch';
 import SearchFeedRow, { SearchFeedSkeleton, getItemId } from './SearchFeedRow';
 import { MAX_ITEMS_PER_SECTION, getViewMoreLabel } from './viewMoreLabel';
 import type { FlatListItem, ListItemHeader } from './searchTypes';
+import CryptoMoversPillItem from '../feeds/tokens/CryptoMoversPillItem';
+
+const POPULAR_ASSETS: TrendingAsset[] = [
+  {
+    assetId: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
+    symbol: 'BTC',
+    name: 'Bitcoin',
+  },
+  {
+    assetId: 'eip155:1/slip44:60',
+    symbol: 'ETH',
+    name: 'Ethereum',
+  },
+  {
+    assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+    symbol: 'SOL',
+    name: 'Solana',
+  },
+] as TrendingAsset[];
 
 const pressedStyle = StyleSheet.create({
   pressable: {
@@ -95,46 +114,56 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
   );
 
   const renderSectionHeader = useCallback(
-    (item: ListItemHeader, section: SearchFeedSection) => (
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="py-2 bg-default"
-      >
-        <Text
-          variant={TextVariant.HeadingSm}
-          fontWeight={FontWeight.Medium}
-          twClassName="text-alternative"
+    (item: ListItemHeader, section: SearchFeedSection) => {
+      const viewMoreLabel = section.isLoading
+        ? null
+        : getViewMoreLabel(
+            section.feedId,
+            section.items.length,
+            searchQuery,
+            section.total,
+          );
+      return (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="py-2 bg-default"
         >
-          {item.title}
-        </Text>
-        <Pressable
-          onPress={() => handleViewMore(section)}
-          hitSlop={8}
-          accessibilityRole="button"
-          accessibilityLabel={`${getViewMoreLabel(section.feedId, section.items.length, searchQuery, section.total)} ${item.title}`}
-          style={({ pressed }) => [
-            pressedStyle.pressable,
-            pressed && { opacity: 0.5 },
-          ]}
-        >
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {getViewMoreLabel(
-              section.feedId,
-              section.items.length,
-              searchQuery,
-              section.total,
-            )}
+          <Text
+            variant={TextVariant.HeadingSm}
+            fontWeight={FontWeight.Medium}
+            twClassName="text-alternative"
+          >
+            {item.title}
           </Text>
-          <Icon
-            name={IconName.ArrowRight}
-            size={IconSize.Sm}
-            color={IconColor.IconAlternative}
-          />
-        </Pressable>
-      </Box>
-    ),
+          {viewMoreLabel !== null && (
+            <Pressable
+              onPress={() => handleViewMore(section)}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel={`${viewMoreLabel} ${item.title}`}
+              style={({ pressed }) => [
+                pressedStyle.pressable,
+                pressed && { opacity: 0.5 },
+              ]}
+            >
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                {viewMoreLabel}
+              </Text>
+              <Icon
+                name={IconName.ArrowRight}
+                size={IconSize.Sm}
+                color={IconColor.IconAlternative}
+              />
+            </Pressable>
+          )}
+        </Box>
+      );
+    },
     [handleViewMore, searchQuery],
   );
 
@@ -214,30 +243,71 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
   }, []);
 
   const listHeader = useMemo(() => {
-    if (!emptyFeedTitle) return null;
+    const isLoading = sections.some((s) => s.isLoading);
+    const allSectionsEmpty =
+      searchQuery.trim().length > 0 && !isLoading && flatData.length === 0;
+
+    if (!emptyFeedTitle && !allSectionsEmpty) return null;
+    const showOtherResults = flatData.length > 0 && !isLoading;
+    const otherResultsCount = sections.reduce(
+      (sum, s) => sum + (s.total ?? s.items.length),
+      0,
+    );
     return (
-      <Box twClassName="mb-4">
+      <Box twClassName={showOtherResults ? 'mb-4' : ''}>
         <Box twClassName="rounded-xl bg-secondary py-6 px-4 items-center mb-4">
           <TabEmptyState
-            description={strings('trending.no_results_for_feed', {
-              feedName: emptyFeedTitle,
-              query: searchQuery,
-            })}
+            description={
+              emptyFeedTitle
+                ? strings('trending.no_results_for_feed', {
+                    feedName: emptyFeedTitle,
+                    query: searchQuery,
+                  })
+                : strings('trending.no_results_for_query', {
+                    query: searchQuery,
+                  })
+            }
             descriptionProps={{
-              variant: TextVariant.BodyMd,
+              variant: TextVariant.HeadingSm,
               fontWeight: FontWeight.Bold,
               color: TextColor.TextDefault,
             }}
           />
+          {!isLoading && !showOtherResults && (
+            <>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                {strings('trending.no_results_check_popular')}
+              </Text>
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                twClassName="gap-2 mt-2"
+              >
+                {POPULAR_ASSETS.map((token, index) => (
+                  <CryptoMoversPillItem
+                    key={token.assetId}
+                    token={token}
+                    index={index}
+                  />
+                ))}
+              </Box>
+            </>
+          )}
         </Box>
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {strings('trending.showing_all_results_for', {
-            query: searchQuery,
-          })}
-        </Text>
+        {showOtherResults && (
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {strings('trending.showing_all_results_for', {
+              count: otherResultsCount,
+              query: searchQuery,
+            })}
+          </Text>
+        )}
       </Box>
     );
-  }, [emptyFeedTitle, searchQuery]);
+  }, [emptyFeedTitle, searchQuery, flatData.length, sections]);
 
   return (
     <Box twClassName="flex-1 bg-default">

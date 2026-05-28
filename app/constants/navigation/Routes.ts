@@ -1,4 +1,5 @@
 const Routes = {
+  MAIN_FLOW: 'Main',
   HOME_TABS: 'Home',
   WALLET_VIEW: 'WalletView',
   BROWSER_TAB_HOME: 'BrowserTabHome',

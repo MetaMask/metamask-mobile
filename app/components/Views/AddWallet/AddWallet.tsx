@@ -79,6 +79,11 @@ const AddWallet = () => {
   const handleActionPress = useCallback(
     (config: ActionConfig) => {
       navigation.navigate(config.routeName as never);
+      // Dismiss AddWallet so that hardware wallet completion (pop(2) in HW
+      // screens) lands on AccountSelector rather than back here.
+      if (config.routeName === Routes.HW.CONNECT) {
+        navigation.goBack();
+      }
       trackEvent(createEventBuilder(config.analyticsEvent).build());
     },
     [createEventBuilder, navigation, trackEvent],

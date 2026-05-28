@@ -87,11 +87,13 @@ jest.mock('@metamask/design-system-react-native', () => ({
 
 const mockWebViewProps = jest.fn();
 jest.mock('@metamask/react-native-webview', () => ({
-  WebView: jest.requireActual('react').forwardRef((props, _ref) => {
-    const { View } = jest.requireActual('react-native');
-    mockWebViewProps(props);
-    return <View testID="agentic-dashboard-webview" />;
-  }),
+  WebView: jest
+    .requireActual('react')
+    .forwardRef((props: Record<string, unknown>, _ref: unknown) => {
+      const { View } = jest.requireActual('react-native');
+      mockWebViewProps(props);
+      return <View testID="agentic-dashboard-webview" />;
+    }),
 }));
 
 const getLatestWebViewProps = () => {

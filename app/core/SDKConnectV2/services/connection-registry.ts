@@ -313,11 +313,18 @@ export class ConnectionRegistry {
         await AgenticCliQrLoginService.waitForKeyringUnlock();
       }
 
+      connInfo = this.toConnectionInfo(connReq);
+      if (this.connections.has(connInfo.id)) {
+        logger.debug(
+          'Already have a connection with this id, skipping',
+          redactUrl(url),
+        );
+        return;
+      }
+
       if (!isAgenticCli) {
         await this.evictIfAtCapacity();
       }
-
-      connInfo = this.toConnectionInfo(connReq);
 
       this.hostapp.showConnectionLoading(connInfo);
       if (isAgenticCli) {
@@ -416,6 +423,7 @@ export class ConnectionRegistry {
         }
       }
     } finally {
+      this.deeplinks.delete(url);
       // Loading-toast dismissal rules:
       // - On failure, always dismiss the loading toast. Otherwise the user
       //   would briefly see both a "loading" toast and the error toast at
