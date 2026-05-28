@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { StatusBar } from 'react-native';
+import { Appearance, StatusBar } from 'react-native';
+import { useSelector } from 'react-redux';
 import { brandColor, darkTheme } from '@metamask/design-tokens';
 import {
   ThemeProvider as DesignSystemThemeProvider,
@@ -24,13 +25,32 @@ interface ForcedDarkThemeProviderProps {
 const ForcedDarkThemeProvider: React.FC<ForcedDarkThemeProviderProps> = ({
   children,
 }) => {
+  const appTheme: AppThemeKey = useSelector(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (state: any) => state.user.appTheme,
+  );
+
   useEffect(() => {
     StatusBar.setBarStyle('light-content', true);
     if (Device.isAndroid()) {
       StatusBar.setTranslucent(true);
       StatusBar.setBackgroundColor('transparent');
     }
-  }, []);
+    return () => {
+      // The root ThemeProvider's useAppTheme() only re-runs when the user's
+      // app-theme setting or OS color scheme changes — not on navigation —
+      // so we must restore the status bar ourselves when leaving the VIP flow.
+      const resolved =
+        appTheme === AppThemeKey.os ? Appearance.getColorScheme() : appTheme;
+      const isDark = resolved === AppThemeKey.dark;
+      StatusBar.setBarStyle(isDark ? 'light-content' : 'dark-content', true);
+      if (Device.isAndroid()) {
+        StatusBar.setTranslucent(true);
+        StatusBar.setBackgroundColor('transparent');
+      }
+    };
+  }, [appTheme]);
 
   return (
     <ThemeContext.Provider value={forcedDarkTheme}>

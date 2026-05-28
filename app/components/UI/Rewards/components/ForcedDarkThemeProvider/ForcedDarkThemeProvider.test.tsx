@@ -1,6 +1,8 @@
 import React, { useContext } from 'react';
-import { Platform, StatusBar, Text } from 'react-native';
+import { Appearance, Platform, StatusBar, Text } from 'react-native';
 import { render } from '@testing-library/react-native';
+import { Provider } from 'react-redux';
+import configureMockStore from 'redux-mock-store';
 import { darkTheme } from '@metamask/design-tokens';
 import { ThemeContext } from '../../../../../util/theme';
 import { AppThemeKey, Theme } from '../../../../../util/theme/models';
@@ -14,6 +16,15 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
     Theme: { Light: 'light', Dark: 'dark' },
   };
 });
+
+const mockStore = configureMockStore();
+const renderWithStore = (
+  ui: React.ReactElement,
+  appTheme: AppThemeKey = AppThemeKey.light,
+) => {
+  const store = mockStore({ user: { appTheme } });
+  return render(<Provider store={store}>{ui}</Provider>);
+};
 
 const ThemeProbe: React.FC = () => {
   const theme = useContext<Theme | undefined>(ThemeContext);
@@ -49,7 +60,7 @@ describe('ForcedDarkThemeProvider', () => {
   });
 
   it('renders its children', () => {
-    const { getByText } = render(
+    const { getByText } = renderWithStore(
       <ForcedDarkThemeProvider>
         <Text>child</Text>
       </ForcedDarkThemeProvider>,
@@ -58,7 +69,7 @@ describe('ForcedDarkThemeProvider', () => {
   });
 
   it('supplies the dark theme via ThemeContext to descendants', () => {
-    const { getByTestId } = render(
+    const { getByTestId } = renderWithStore(
       <ForcedDarkThemeProvider>
         <ThemeProbe />
       </ForcedDarkThemeProvider>,
@@ -70,12 +81,52 @@ describe('ForcedDarkThemeProvider', () => {
   });
 
   it('forces StatusBar to light-content on mount', () => {
-    render(
+    renderWithStore(
       <ForcedDarkThemeProvider>
         <Text>child</Text>
       </ForcedDarkThemeProvider>,
     );
     expect(setBarStyleSpy).toHaveBeenCalledWith('light-content', true);
+  });
+
+  it('restores dark-content StatusBar on unmount for a light-theme user', () => {
+    const { unmount } = renderWithStore(
+      <ForcedDarkThemeProvider>
+        <Text>child</Text>
+      </ForcedDarkThemeProvider>,
+      AppThemeKey.light,
+    );
+    setBarStyleSpy.mockClear();
+    unmount();
+    expect(setBarStyleSpy).toHaveBeenCalledWith('dark-content', true);
+  });
+
+  it('restores light-content StatusBar on unmount for a dark-theme user', () => {
+    const { unmount } = renderWithStore(
+      <ForcedDarkThemeProvider>
+        <Text>child</Text>
+      </ForcedDarkThemeProvider>,
+      AppThemeKey.dark,
+    );
+    setBarStyleSpy.mockClear();
+    unmount();
+    expect(setBarStyleSpy).toHaveBeenCalledWith('light-content', true);
+  });
+
+  it('restores StatusBar from OS color scheme on unmount when appTheme is OS', () => {
+    const getColorSchemeSpy = jest
+      .spyOn(Appearance, 'getColorScheme')
+      .mockReturnValue('light');
+    const { unmount } = renderWithStore(
+      <ForcedDarkThemeProvider>
+        <Text>child</Text>
+      </ForcedDarkThemeProvider>,
+      AppThemeKey.os,
+    );
+    setBarStyleSpy.mockClear();
+    unmount();
+    expect(setBarStyleSpy).toHaveBeenCalledWith('dark-content', true);
+    getColorSchemeSpy.mockRestore();
   });
 
   it('on Android, sets translucent status bar and transparent background', () => {
@@ -85,7 +136,7 @@ describe('ForcedDarkThemeProvider', () => {
       get: () => 'android',
     });
 
-    render(
+    renderWithStore(
       <ForcedDarkThemeProvider>
         <Text>child</Text>
       </ForcedDarkThemeProvider>,
@@ -107,7 +158,7 @@ describe('ForcedDarkThemeProvider', () => {
       get: () => 'ios',
     });
 
-    render(
+    renderWithStore(
       <ForcedDarkThemeProvider>
         <Text>child</Text>
       </ForcedDarkThemeProvider>,
