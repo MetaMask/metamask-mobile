@@ -80,7 +80,7 @@ const PredictActivity: React.FC<PredictActivityProps> = ({
     <TouchableOpacity
       onPress={handlePress}
       style={tw.style(
-        'flex-row items-start justify-between w-full',
+        'flex-row items-start justify-between w-full p-2',
         containerStyle,
       )}
     >
