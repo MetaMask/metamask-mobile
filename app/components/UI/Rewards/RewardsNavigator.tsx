@@ -40,6 +40,7 @@ import RewardsUpdateRequired from './components/RewardsUpdateRequired/RewardsUpd
 import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
 import { useReferralDetails } from './hooks/useReferralDetails';
 import { useRewardsNotificationsNudge } from './hooks/useRewardsNotificationsNudge';
+import { useVipTier } from './hooks/useVipTier';
 import useRewardsToast from './hooks/useRewardsToast';
 import { strings } from '../../../../locales/i18n';
 import PerpsTradingCampaignWinningView from './Views/PerpsTradingCampaignWinningView';
@@ -80,6 +81,10 @@ const RewardsNavigator: React.FC = () => {
 
   // Fetch referral details so referral code is available across all rewards screens
   useReferralDetails();
+
+  // Fetch VIP tier so backend-side VIP enrollment updates the local
+  // subscription.features.vip.enabled flag without waiting for a VIP screen visit.
+  useVipTier();
 
   const { showToast, RewardsToastOptions } = useRewardsToast();
 

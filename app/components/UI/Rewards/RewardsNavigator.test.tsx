@@ -262,6 +262,12 @@ jest.mock('./hooks/useReferralDetails', () => ({
   }),
 }));
 
+// Mock useVipTier hook
+const mockUseVipTier = jest.fn(() => null);
+jest.mock('./hooks/useVipTier', () => ({
+  useVipTier: () => mockUseVipTier(),
+}));
+
 // Mock useRewardsNotificationsNudge hook
 const mockShowEnableNotificationsNudge = jest.fn(() => false);
 const mockCloseEnableNotificationsNudge = jest.fn();
@@ -692,6 +698,14 @@ describe('RewardsNavigator', () => {
 
       // Assert
       expect(mockUseGeoRewardsMetadata).toHaveBeenCalledWith({});
+    });
+
+    it('calls useVipTier hook', () => {
+      // Act
+      renderWithNavigation(<RewardsNavigator />);
+
+      // Assert
+      expect(mockUseVipTier).toHaveBeenCalled();
     });
   });
 
