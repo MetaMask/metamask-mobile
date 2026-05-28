@@ -131,9 +131,7 @@ const DiscoverySelectDeviceStory: React.FC<StoryArgs> = ({
             <TouchableOpacity
               key={hwDevice.id}
               onPress={() => onSelectDevice(hwDevice)}
-              testID={`discovery-device-option-${hwDevice.name
-                .toLowerCase()
-                .replace(/\s+/g, '-')}`}
+              testID={`discovery-device-option-${hwDevice.id}`}
             >
               <Box
                 flexDirection={BoxFlexDirection.Row}

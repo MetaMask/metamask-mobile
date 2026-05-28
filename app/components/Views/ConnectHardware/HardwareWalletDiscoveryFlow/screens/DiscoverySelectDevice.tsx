@@ -127,9 +127,7 @@ const DiscoverySelectDeviceScreen: React.FC<
                 <TouchableOpacity
                   key={hwDevice.id}
                   onPress={() => onSelectDevice(hwDevice)}
-                  testID={`discovery-device-option-${hwDevice.name
-                    .toLowerCase()
-                    .replace(/\s+/g, '-')}`}
+                  testID={`discovery-device-option-${hwDevice.id}`}
                 >
                   <Box
                     flexDirection={BoxFlexDirection.Row}
@@ -152,6 +150,7 @@ const DiscoverySelectDeviceScreen: React.FC<
                     </Text>
                     {isSelected && (
                       <Icon
+                        testID={`discovery-device-selected-${hwDevice.id}`}
                         name={IconName.Check}
                         size={IconSize.Md}
                         color={IconColor.IconDefault}

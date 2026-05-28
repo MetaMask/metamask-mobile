@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen, within } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { IconName } from '@metamask/design-system-react-native';
@@ -45,6 +45,9 @@ const TEST_DEVICES: DiscoveredDevice[] = [
   { id: 'nano-x', name: 'Nano X' },
   { id: 'nano-s-plus', name: 'Nano S Plus' },
 ];
+
+const selectedCheckTestId = (deviceId: string) =>
+  `discovery-device-selected-${deviceId}`;
 
 describe('DiscoverySelectDeviceScreen', () => {
   it('renders a visible drag handle using the muted border color', () => {
@@ -96,6 +99,31 @@ describe('DiscoverySelectDeviceScreen', () => {
       screen.getByTestId('discovery-device-option-nano-s-plus'),
     ).toBeOnTheScreen();
     expect(onSelectDevice).toHaveBeenCalledWith(TEST_DEVICES[1]);
+  });
+
+  it('uses unique testIDs per device id when display names match', () => {
+    const duplicateNameDevices: DiscoveredDevice[] = [
+      { id: 'ble-aa:11:22', name: 'Nano X' },
+      { id: 'ble:bb:33:44', name: 'Nano X' },
+    ];
+
+    render(
+      <DiscoverySelectDeviceScreen
+        devices={duplicateNameDevices}
+        selectedDeviceId="ble-aa:11:22"
+        onSelectDevice={jest.fn()}
+        onClose={jest.fn()}
+        onSave={jest.fn()}
+        config={TEST_CONFIG}
+      />,
+    );
+
+    expect(
+      screen.getByTestId('discovery-device-option-ble-aa:11:22'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('discovery-device-option-ble:bb:33:44'),
+    ).toBeOnTheScreen();
   });
 
   it('calls onSave and onClose from the footer and close button', () => {
@@ -229,8 +257,12 @@ describe('DiscoverySelectDeviceScreen', () => {
     );
     const nanoXRow = screen.getByTestId('discovery-device-option-nano-x');
 
-    expect(nanoSPlusRow).toBeOnTheScreen();
-    expect(nanoXRow).toBeOnTheScreen();
+    expect(
+      within(nanoSPlusRow).getByTestId(selectedCheckTestId('nano-s-plus')),
+    ).toBeOnTheScreen();
+    expect(
+      within(nanoXRow).queryByTestId(selectedCheckTestId('nano-x')),
+    ).toBeNull();
   });
 
   it('renders no check icons when no device matches selectedDeviceId', () => {
@@ -245,12 +277,17 @@ describe('DiscoverySelectDeviceScreen', () => {
       />,
     );
 
+    const nanoXRow = screen.getByTestId('discovery-device-option-nano-x');
+    const nanoSPlusRow = screen.getByTestId(
+      'discovery-device-option-nano-s-plus',
+    );
+
     expect(
-      screen.getByTestId('discovery-device-option-nano-x'),
-    ).toBeOnTheScreen();
+      within(nanoXRow).queryByTestId(selectedCheckTestId('nano-x')),
+    ).toBeNull();
     expect(
-      screen.getByTestId('discovery-device-option-nano-s-plus'),
-    ).toBeOnTheScreen();
+      within(nanoSPlusRow).queryByTestId(selectedCheckTestId('nano-s-plus')),
+    ).toBeNull();
   });
 
   it('renders with an empty devices list', () => {
