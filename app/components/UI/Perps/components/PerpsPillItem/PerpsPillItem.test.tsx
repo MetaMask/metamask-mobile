@@ -3,7 +3,8 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import Routes from '../../../../../constants/navigation/Routes';
 import PerpsPillItem from './PerpsPillItem';
-import type { PerpsFeedItem } from './usePerpsFeed';
+import type { PerpsFeedItem } from '../../types/perpsFeedTypes';
+import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 
 const mockNavigate = jest.fn();
 
@@ -79,6 +80,31 @@ describe('PerpsPillItem', () => {
     expect(onCardPress).toHaveBeenCalledTimes(1);
     expect(onNavigateToMarketDetails).toHaveBeenCalledWith(item.market);
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('passes transactionActiveAbTests through to market details params when provided', () => {
+    const item = buildItem('1.5');
+    const transactionActiveAbTests = [
+      createActiveABTestAssignment('flagKeyExample', 'treatment'),
+    ];
+    const { getByTestId } = render(
+      <PerpsPillItem
+        item={item}
+        marketDetailsSource={PERPS_EVENT_VALUE.SOURCE.HOME_SECTION}
+        transactionActiveAbTests={transactionActiveAbTests}
+      />,
+    );
+
+    fireEvent.press(getByTestId('perps-market-tile-card-ETH'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.MARKET_DETAILS,
+      params: {
+        market: item.market,
+        source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
+        transactionActiveAbTests,
+      },
+    });
   });
 
   it('hides change label when change is null, empty, or not a number', () => {
