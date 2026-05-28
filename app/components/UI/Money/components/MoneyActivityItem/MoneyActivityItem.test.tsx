@@ -2,12 +2,13 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import {
   type TransactionMeta,
+  TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { IconName } from '@metamask/design-system-react-native';
 import type { Hex } from '@metamask/utils';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { useMoneyTransactionDisplayInfo } from '../../hooks/useMoneyTransactionDisplayInfo';
-import { MUSD_TOKEN_ADDRESS } from '../../../Earn/constants/musd';
 import MoneyActivityItem from './MoneyActivityItem';
 import { MoneyActivityItemTestIds } from './MoneyActivityItem.testIds';
 
@@ -17,12 +18,6 @@ const baseTx = {
   id: 'tx-row-1',
   chainId: MOCK_CHAIN,
   type: TransactionType.incoming,
-  transferInformation: {
-    amount: '1000000000',
-    symbol: 'mUSD',
-    decimals: 6,
-    contractAddress: MUSD_TOKEN_ADDRESS,
-  },
 } as unknown as TransactionMeta;
 
 jest.mock('../../hooks/useMoneyTransactionDisplayInfo');
@@ -31,13 +26,20 @@ jest.mock('../../../../../util/networks', () => ({
   getNetworkImageSource: jest.fn(() => ({ uri: 'network' })),
 }));
 
-jest.mock(
-  '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken',
-  () => {
-    const { View } = jest.requireActual('react-native');
-    return () => <View testID="mock-avatar-token" />;
-  },
-);
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const { View } = jest.requireActual('react-native');
+  return {
+    ...actual,
+    AvatarIcon: ({
+      iconName,
+      testID,
+    }: {
+      iconName: string;
+      testID?: string;
+    }) => <View testID={testID} accessibilityLabel={iconName} />,
+  };
+});
 
 jest.mock(
   '../../../../../component-library/components/Badges/BadgeWrapper',
@@ -83,6 +85,7 @@ describe('MoneyActivityItem', () => {
       primaryAmount: '+$0.00',
       fiatAmount: '$0.00',
       isIncoming: true,
+      icon: IconName.Arrow2Down,
     });
   });
 
@@ -100,6 +103,14 @@ describe('MoneyActivityItem', () => {
     ).toBeOnTheScreen();
   });
 
+  it('renders the avatar icon', () => {
+    const { getByTestId } = renderWithProvider(
+      <MoneyActivityItem tx={baseTx} moneyAddress="0x1" />,
+    );
+
+    expect(getByTestId(MoneyActivityItemTestIds.ICON)).toBeOnTheScreen();
+  });
+
   it('omits description when hook returns undefined description', () => {
     mockUseMoneyTransactionDisplayInfo.mockReturnValue({
       label: 'Label',
@@ -107,6 +118,7 @@ describe('MoneyActivityItem', () => {
       primaryAmount: '+$0.00',
       fiatAmount: '$0.00',
       isIncoming: false,
+      icon: IconName.Arrow2Down,
     });
 
     const { queryByText } = renderWithProvider(
@@ -116,7 +128,7 @@ describe('MoneyActivityItem', () => {
     expect(queryByText('Description')).toBeNull();
   });
 
-  it('invokes onPress when the row is pressed', () => {
+  it('invokes onPress with transaction id when the row is pressed', () => {
     const onPress = jest.fn();
     const { getByTestId } = renderWithProvider(
       <MoneyActivityItem tx={baseTx} moneyAddress="0x1" onPress={onPress} />,
@@ -125,6 +137,22 @@ describe('MoneyActivityItem', () => {
     fireEvent.press(getByTestId(`${MoneyActivityItemTestIds.ROW}-tx-row-1`));
 
     expect(onPress).toHaveBeenCalledTimes(1);
+    expect(onPress).toHaveBeenCalledWith('tx-row-1');
+  });
+
+  it('shows "Failed" in the description slot for a failed transaction', () => {
+    const failedTx = {
+      ...baseTx,
+      status: TransactionStatus.failed,
+    } as unknown as TransactionMeta;
+
+    const { getByText, queryByText } = renderWithProvider(
+      <MoneyActivityItem tx={failedTx} moneyAddress="0x1" />,
+    );
+
+    expect(getByText('Failed')).toBeOnTheScreen();
+    // Normal description should not appear for failed rows
+    expect(queryByText('Description')).toBeNull();
   });
 
   it('renders network badge subtree when showNetworkBadge is true', () => {
@@ -134,5 +162,35 @@ describe('MoneyActivityItem', () => {
 
     expect(getByTestId('mock-badge-wrapper')).toBeOnTheScreen();
     expect(getByTestId('mock-network-badge')).toBeOnTheScreen();
+    expect(getByTestId(MoneyActivityItemTestIds.ICON)).toBeOnTheScreen();
+  });
+
+  it('renders the AvatarIcon and no longer renders the token avatar', () => {
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <MoneyActivityItem tx={baseTx} moneyAddress="0x1" />,
+    );
+
+    expect(getByTestId(MoneyActivityItemTestIds.ICON)).toBeOnTheScreen();
+    expect(queryByTestId('mock-avatar-token')).toBeNull();
+  });
+
+  it('forwards the icon name from useMoneyTransactionDisplayInfo', () => {
+    mockUseMoneyTransactionDisplayInfo.mockReturnValue({
+      label: 'Label',
+      description: 'Description',
+      primaryAmount: '+$0.00',
+      fiatAmount: '$0.00',
+      isIncoming: true,
+      icon: IconName.SwapHorizontal,
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <MoneyActivityItem tx={baseTx} moneyAddress="0x1" />,
+    );
+
+    expect(getByTestId(MoneyActivityItemTestIds.ICON)).toHaveProp(
+      'accessibilityLabel',
+      IconName.SwapHorizontal,
+    );
   });
 });

@@ -76,6 +76,25 @@ const initialState = {
   },
 };
 
+function stateWithDepositWalletWithdrawEnabled(enabled: boolean) {
+  return {
+    engine: {
+      backgroundState: {
+        ...initialState.engine.backgroundState,
+        RemoteFeatureFlagController: {
+          ...backgroundState.RemoteFeatureFlagController,
+          remoteFeatureFlags: {
+            ...backgroundState.RemoteFeatureFlagController?.remoteFeatureFlags,
+            confirmations_pay_extended: {
+              enableDepositWalletWithdraw: enabled,
+            },
+          },
+        },
+      },
+    },
+  };
+}
+
 describe('PredictBalance', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -385,6 +404,43 @@ describe('PredictBalance', () => {
       // Assert - withdraw is called directly without executeGuardedAction
       expect(mockWithdraw).toHaveBeenCalledTimes(1);
       expect(mockExecuteGuardedAction).not.toHaveBeenCalled();
+    });
+
+    it('calls withdraw for Deposit Wallet users when enableDepositWalletWithdraw flag is on', () => {
+      // Arrange
+      const mockWithdraw = jest.fn();
+      const mockOnDepositWalletWithdrawPress = jest.fn();
+      mockUsePredictBalance.mockReturnValue({
+        data: 100,
+        isLoading: false,
+      });
+      mockUsePredictAccountState.mockReturnValue({
+        data: {
+          address: '0x2222222222222222222222222222222222222222',
+          isDeployed: true,
+          walletType: 'deposit-wallet',
+        },
+        isLoading: false,
+      });
+      mockUsePredictWithdraw.mockReturnValue({
+        withdraw: mockWithdraw,
+      });
+
+      // Act
+      const { getByText } = renderWithProvider(
+        <PredictBalance
+          onDepositWalletWithdrawPress={mockOnDepositWalletWithdrawPress}
+        />,
+        {
+          state: stateWithDepositWalletWithdrawEnabled(true),
+        },
+      );
+      const withdrawButton = getByText(/Withdraw/i);
+      fireEvent.press(withdrawButton);
+
+      // Assert
+      expect(mockWithdraw).toHaveBeenCalledTimes(1);
+      expect(mockOnDepositWalletWithdrawPress).not.toHaveBeenCalled();
     });
 
     it('calls temporary unavailable handler instead of withdrawing for Deposit Wallet users', () => {

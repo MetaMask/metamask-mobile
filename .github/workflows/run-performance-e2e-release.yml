@@ -16,9 +16,10 @@ on:
     branches:
       - 'release/*'
 
-# Required so the reusable workflow run-performance-e2e.yml can use id-token and actions
+# Must be at least as permissive as the called reusable workflow (run-performance-e2e.yml),
+# which transitively requires contents: write via build-{android,ios}-upload-to-browserstack.yml.
 permissions:
-  contents: read
+  contents: write
   id-token: write
   actions: write
 
@@ -37,21 +38,10 @@ jobs:
       - name: Check release trigger conditions
         id: check
         run: |
-          # Always run for manual dispatch
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          # Always run for manual dispatch or release branch pushes
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" || ("${{ github.event_name }}" == "push" && "${{ github.ref_name }}" =~ ^release/) ]]; then
             echo "should-run=true" >> "$GITHUB_OUTPUT"
-            echo "Performance tests triggered by manual dispatch"
-          # For push events, only run if the triggering commit is a metamaskbot version bump
-          elif [[ "${{ github.event_name }}" == "push" ]]; then
-            COMMIT_MESSAGE=$(git log -1 --format="%s" "${{ github.sha }}")
-            COMMIT_AUTHOR=$(git log -1 --format="%ae" "${{ github.sha }}")
-            if [[ "$COMMIT_MESSAGE" =~ "Bump version number" && "$COMMIT_AUTHOR" =~ ^metamaskbot@ ]]; then
-              echo "should-run=true" >> "$GITHUB_OUTPUT"
-              echo "Push triggered by metamaskbot version bump: $COMMIT_MESSAGE"
-            else
-              echo "should-run=false" >> "$GITHUB_OUTPUT"
-              echo "Push is not a metamaskbot version bump — skipping. Author: $COMMIT_AUTHOR | Message: $COMMIT_MESSAGE"
-            fi
+            echo "Performance tests triggered by ${{ github.event_name }}"
           # For scheduled runs, check for recent metamaskbot version bumps
           elif [[ "${{ github.event_name }}" == "schedule" ]]; then
             git fetch --all
@@ -66,11 +56,13 @@ jobs:
               # Check if the commit message contains "Bump version number" (ignore [skip ci])
               COMMIT_MESSAGE=$(git log -1 --format="%s" "$COMMIT_HASH")
               if [[ "$COMMIT_MESSAGE" =~ "Bump version number" ]]; then
-                # Only run if the commit is from the last 30 minutes (to avoid re-running the same commit)
+                # Check if we've already processed this commit by looking for a workflow run with this commit
+                # We'll use a simple approach: check if the commit is from the last 30 minutes
                 COMMIT_TIME=$(git log -1 --format="%ct" "$COMMIT_HASH")
                 CURRENT_TIME=$(date +%s)
                 TIME_DIFF=$((CURRENT_TIME - COMMIT_TIME))
                 
+                # Only run if the commit is from the last 30 minutes (to avoid re-running the same commit)
                 if [[ $TIME_DIFF -lt 1800 ]]; then
                   echo "should-run=true" >> "$GITHUB_OUTPUT"
                   echo "Recent metamaskbot version bump found (within last 30 min): $RECENT_VERSION_BUMP"

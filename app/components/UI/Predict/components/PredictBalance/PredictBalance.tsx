@@ -41,6 +41,7 @@ import { PredictNavigationParamList } from '../../types/navigation';
 import { usePredictWithdraw } from '../../hooks/usePredictWithdraw';
 import { usePredictAccountState } from '../../hooks/usePredictAccountState';
 import { PredictEventValues } from '../../constants/eventNames';
+import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
 import { PREDICT_BALANCE_TEST_IDS } from './PredictBalance.testIds';
 
 // This is a temporary component that will be removed when the deposit flow is fully implemented
@@ -55,6 +56,7 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
 }) => {
   const tw = useTailwind();
   const privacyMode = useSelector(selectPrivacyMode);
+  const { enableDepositWalletWithdraw } = useSelector(selectMetaMaskPayFlags);
 
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
@@ -103,15 +105,18 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
       return;
     }
 
-    // Temporary Deposit Wallet migration guard. Remove this branch and sheet
-    // once Deposit Wallet withdrawals are implemented.
-    if (walletType === 'deposit-wallet') {
+    if (walletType === 'deposit-wallet' && !enableDepositWalletWithdraw) {
       onDepositWalletWithdrawPress?.();
       return;
     }
 
     withdraw();
-  }, [onDepositWalletWithdrawPress, walletType, withdraw]);
+  }, [
+    enableDepositWalletWithdraw,
+    onDepositWalletWithdrawPress,
+    walletType,
+    withdraw,
+  ]);
 
   if (isLoading) {
     return (

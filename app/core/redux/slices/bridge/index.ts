@@ -42,9 +42,13 @@ import { selectCanSignTransactions } from '../../../../selectors/accountsControl
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { hasMinimumRequiredVersion } from './utils/hasMinimumRequiredVersion';
 import { Bip44TokensForDefaultPairs } from '../../../../components/UI/Bridge/constants/default-swap-dest-tokens';
-import { normalizeTokenAddress } from '../../../../components/UI/Bridge/utils/tokenUtils';
+import {
+  normalizeEvmAssetId,
+  normalizeTokenAddress,
+} from '../../../../components/UI/Bridge/utils/tokenUtils';
 import { isStockRwaBridgeToken } from '../../../../components/UI/Bridge/utils/isStockRwaBridgeToken';
 import { selectRWAEnabledFlag } from '../../../../selectors/featureFlagController/rwa';
+import { BridgeTokenMetadata } from '../../../../components/UI/Bridge/constants/tokens';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -91,6 +95,8 @@ export interface BridgeState {
    */
   selectedQuoteRequestId: string | undefined;
   batchSellSourceTokens: BridgeToken[];
+  batchSellDestToken: BridgeToken | undefined;
+  batchSellSlippages: Partial<Record<CaipAssetType, string | undefined>>;
 }
 
 export const initialState: BridgeState = {
@@ -114,7 +120,11 @@ export const initialState: BridgeState = {
   tokenSelectorNetworkFilter: undefined,
   visiblePillChainIds: undefined,
   selectedQuoteRequestId: undefined,
+
+  // Batch Sell
   batchSellSourceTokens: [],
+  batchSellDestToken: undefined,
+  batchSellSlippages: {},
 };
 
 const name = 'bridge';
@@ -250,6 +260,28 @@ const slice = createSlice({
     setBatchSellSourceTokens: (state, action: PayloadAction<BridgeToken[]>) => {
       state.batchSellSourceTokens = action.payload.map(normalizeBridgeToken);
     },
+    setBatchSellDestToken: (
+      state,
+      action: PayloadAction<BridgeToken | undefined>,
+    ) => {
+      state.batchSellDestToken = normalizeBridgeToken(action.payload);
+    },
+    setBatchSellTokenSlippage: (
+      state,
+      action: PayloadAction<{
+        assetId: CaipAssetType;
+        slippage: string | undefined;
+      }>,
+    ) => {
+      state.batchSellSlippages[action.payload.assetId] =
+        action.payload.slippage;
+    },
+    setBatchSellTokenSlippages: (
+      state,
+      action: PayloadAction<BridgeState['batchSellSlippages']>,
+    ) => {
+      state.batchSellSlippages = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(setSourceTokenExchangeRate.pending, (state) => {
@@ -336,21 +368,74 @@ export const selectBridgeFeatureFlags = createSelector(
   },
 );
 
+function getBridgeTokenMetadata(
+  assetId: CaipAssetType,
+): BridgeToken | undefined {
+  const exactMatch = BridgeTokenMetadata[assetId];
+
+  if (exactMatch) {
+    return exactMatch;
+  }
+
+  const normalizedAssetId = normalizeEvmAssetId(assetId);
+  const metadataAssetIds = Object.keys(BridgeTokenMetadata) as CaipAssetType[];
+  const metadataAssetId = metadataAssetIds.find(
+    (bridgeTokenMetadataAssetId) =>
+      normalizeEvmAssetId(bridgeTokenMetadataAssetId) === normalizedAssetId,
+  );
+
+  return metadataAssetId ? BridgeTokenMetadata[metadataAssetId] : undefined;
+}
+
+function getBatchSellDestStablecoinMetadata(
+  stablecoinAssetIds: CaipAssetType[],
+): BridgeToken[] {
+  return stablecoinAssetIds.reduce<BridgeToken[]>(
+    (stablecoins, stablecoinAssetId) => {
+      const tokenMetadata = getBridgeTokenMetadata(stablecoinAssetId);
+
+      if (tokenMetadata) {
+        stablecoins.push(tokenMetadata);
+      }
+
+      return stablecoins;
+    },
+    [],
+  );
+}
+
 export const selectBatchSellDestStablecoinsByChain = createSelector(
   selectBridgeFeatureFlags,
-  (bridgeFeatureFlags): Record<CaipChainId, CaipAssetType[]> =>
-    Object.entries(bridgeFeatureFlags.chains ?? {}).reduce(
-      (stablecoinsByChain, [chainId, chainConfig]) => {
-        const batchSellDestStablecoins = chainConfig.batchSellDestStablecoins;
+  (bridgeFeatureFlags): Partial<Record<CaipChainId, BridgeToken[]>> =>
+    Object.entries(bridgeFeatureFlags.chains ?? {}).reduce<
+      Partial<Record<CaipChainId, BridgeToken[]>>
+    >((stablecoinsByChain, [chainId, chainConfig]) => {
+      const stablecoins = getBatchSellDestStablecoinMetadata(
+        chainConfig.batchSellDestStablecoins ?? [],
+      );
 
-        if (batchSellDestStablecoins) {
-          stablecoinsByChain[chainId as CaipChainId] = batchSellDestStablecoins;
-        }
+      if (stablecoins.length > 0) {
+        stablecoinsByChain[chainId as CaipChainId] = stablecoins;
+      }
 
-        return stablecoinsByChain;
-      },
-      {} as Record<CaipChainId, CaipAssetType[]>,
-    ),
+      return stablecoinsByChain;
+    }, {}),
+);
+
+export const selectBatchSellDestStablecoins = createSelector(
+  selectBridgeFeatureFlags,
+  (_state: RootState, chainId?: BridgeToken['chainId']) =>
+    chainId ? formatChainIdToCaip(chainId) : undefined,
+  (bridgeFeatureFlags, chainId): BridgeToken[] => {
+    if (!chainId) {
+      return [];
+    }
+
+    const batchSellDestStablecoins =
+      bridgeFeatureFlags.chains?.[chainId]?.batchSellDestStablecoins ?? [];
+
+    return getBatchSellDestStablecoinMetadata(batchSellDestStablecoins);
+  },
 );
 
 /**
@@ -487,6 +572,16 @@ export const selectSelectedQuoteRequestId = createSelector(
 export const selectBatchSellSourceTokens = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.batchSellSourceTokens,
+);
+
+export const selectBatchSellDestToken = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.batchSellDestToken,
+);
+
+export const selectBatchSellSlippages = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.batchSellSlippages ?? {},
 );
 
 // Selectors for gas included STX/SendBundle support
@@ -778,4 +873,7 @@ export const {
   setVisiblePillChainIds,
   setSelectedQuoteRequestId,
   setBatchSellSourceTokens,
+  setBatchSellDestToken,
+  setBatchSellTokenSlippage,
+  setBatchSellTokenSlippages,
 } = actions;

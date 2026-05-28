@@ -27,7 +27,7 @@ inputs:
     required: false
     default: 'false'
   base-ref:
-    description: 'PR base branch ref passed to the AI analysis script for diff comparison. When release/*, AI selection is skipped and the full E2E suite is selected.'
+    description: 'PR base branch ref passed to the AI analysis script for diff comparison. When release/* or stable, AI selection is skipped and the full E2E suite is selected.'
     required: false
     default: ''
 outputs:
@@ -57,15 +57,15 @@ runs:
           echo "⏭️ SKIP=true due to 'skip-smart-e2e-selection' label on PR"
         fi
 
-    - name: Check release target branch (full E2E, no AI selection)
+    - name: Check release or stable target branch (full E2E, no AI selection)
       id: check-release-target
       shell: bash
       run: |
         echo "SKIP=false" >> "$GITHUB_OUTPUT"
         BASE='${{ inputs.base-ref }}'
-        if [[ -n "$BASE" && "$BASE" == release/* ]]; then
+        if [[ -n "$BASE" && ( "$BASE" == release/* || "$BASE" == "stable" ) ]]; then
           echo "SKIP=true" >> "$GITHUB_OUTPUT"
-          echo "⏭️ Base branch is release/* — skipping AI E2E selection; full E2E suite will run"
+          echo "⏭️ Base branch is release/* or stable — skipping AI E2E selection; full E2E suite will run"
         fi
 
     - name: Checkout for PR analysis
@@ -142,9 +142,9 @@ runs:
           echo "SKIP_REASON=skip-smart-e2e-selection label found" >> "$GITHUB_OUTPUT"
           echo "ai_confidence=100" >> "$GITHUB_OUTPUT"
         elif [[ "${{ steps.check-release-target.outputs.SKIP }}" == "true" ]]; then
-          echo "⏭️ Skipping AI analysis - PR targets a release branch (release/*)"
+          echo "⏭️ Skipping AI analysis - PR targets a release or stable branch"
           echo "SKIPPED=true" >> "$GITHUB_OUTPUT"
-          echo "SKIP_REASON=PR targets a release branch (release/*)" >> "$GITHUB_OUTPUT"
+          echo "SKIP_REASON=PR targets a release or stable branch (release/* or stable)" >> "$GITHUB_OUTPUT"
           echo "ai_confidence=100" >> "$GITHUB_OUTPUT"
         else
           echo "✅ Running AI analysis for PR #$PR_NUMBER"

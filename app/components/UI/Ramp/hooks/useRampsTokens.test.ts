@@ -5,6 +5,11 @@ import React from 'react';
 import { useRampsTokens } from './useRampsTokens';
 import Engine from '../../../../core/Engine';
 
+jest.mock('../../../../../locales/i18n', () => ({
+  strings: (key: string) => key,
+  locale: 'en',
+}));
+
 jest.mock('../../../../core/Engine', () => ({
   context: {
     RampsController: {
@@ -119,6 +124,18 @@ describe('useRampsTokens', () => {
         wrapper: wrapper(store),
       });
       expect(result.current.error).toBe('Network error');
+    });
+
+    it('returns localized fallback when the token state carries a circuit breaker errorKey', () => {
+      const store = createMockStore({
+        error: 'Execution prevented because the circuit breaker is open',
+        errorKey: 'CIRCUIT_BREAKER_OPEN',
+      });
+      const { result } = renderHook(() => useRampsTokens(), {
+        wrapper: wrapper(store),
+      });
+
+      expect(result.current.error).toBe('fiat_on_ramp.circuit_breaker_open');
     });
   });
 

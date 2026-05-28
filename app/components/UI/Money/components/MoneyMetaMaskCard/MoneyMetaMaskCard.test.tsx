@@ -217,6 +217,95 @@ describe('MoneyMetaMaskCard', () => {
       fireEvent.press(getByText(strings('money.metamask_card.link_title')));
       expect(mockHeader).toHaveBeenCalled();
     });
+
+    describe('hideCardImage', () => {
+      it('does not render the card image when hideCardImage is true', () => {
+        const { queryByTestId } = render(
+          <MoneyMetaMaskCard
+            mode="link"
+            onGetNowPress={jest.fn()}
+            apy={4}
+            hideCardImage
+          />,
+        );
+
+        expect(
+          queryByTestId(MoneyMetaMaskCardTestIds.LINK_CARD_IMAGE),
+        ).not.toBeOnTheScreen();
+      });
+
+      it('still renders cashback / APY bullets and the Link card button when hideCardImage is true', () => {
+        const { getByTestId, getByText } = render(
+          <MoneyMetaMaskCard
+            mode="link"
+            onGetNowPress={jest.fn()}
+            apy={4}
+            hideCardImage
+          />,
+        );
+
+        expect(
+          getByTestId(MoneyMetaMaskCardTestIds.LINK_BULLET_CASHBACK),
+        ).toBeOnTheScreen();
+        expect(
+          getByTestId(MoneyMetaMaskCardTestIds.LINK_BULLET_APY),
+        ).toBeOnTheScreen();
+        expect(getByText('Get 1% mUSD back')).toBeOnTheScreen();
+        expect(getByText('Earn up to 4% APY')).toBeOnTheScreen();
+        expect(
+          getByTestId(MoneyMetaMaskCardTestIds.LINK_BUTTON),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    describe('apy undefined (no-APY copy)', () => {
+      it('renders link_subtitle_no_apy when apy is undefined', () => {
+        const { getByText, queryByText } = render(
+          <MoneyMetaMaskCard mode="link" onGetNowPress={jest.fn()} />,
+        );
+
+        expect(
+          getByText(strings('money.metamask_card.link_subtitle_no_apy')),
+        ).toBeOnTheScreen();
+        expect(
+          queryByText(strings('money.metamask_card.link_subtitle', { apy: 0 })),
+        ).not.toBeOnTheScreen();
+      });
+
+      it('omits the APY bullet when apy is undefined', () => {
+        const { queryByTestId, getByTestId } = render(
+          <MoneyMetaMaskCard mode="link" onGetNowPress={jest.fn()} />,
+        );
+
+        expect(
+          queryByTestId(MoneyMetaMaskCardTestIds.LINK_BULLET_APY),
+        ).not.toBeOnTheScreen();
+        expect(
+          getByTestId(MoneyMetaMaskCardTestIds.LINK_BULLET_CASHBACK),
+        ).toBeOnTheScreen();
+      });
+
+      it('combines hideCardImage and apy undefined into the Card Home variant', () => {
+        const { getByText, queryByTestId } = render(
+          <MoneyMetaMaskCard
+            mode="link"
+            onGetNowPress={jest.fn()}
+            hideCardImage
+          />,
+        );
+
+        expect(
+          queryByTestId(MoneyMetaMaskCardTestIds.LINK_CARD_IMAGE),
+        ).not.toBeOnTheScreen();
+        expect(
+          queryByTestId(MoneyMetaMaskCardTestIds.LINK_BULLET_APY),
+        ).not.toBeOnTheScreen();
+        expect(
+          getByText(strings('money.metamask_card.link_subtitle_no_apy')),
+        ).toBeOnTheScreen();
+        expect(getByText('Get 1% mUSD back')).toBeOnTheScreen();
+      });
+    });
   });
 
   describe('mode="manage"', () => {

@@ -47,6 +47,8 @@ import {
   TransactionPayControllerGetDelegationTransactionAction,
   TransactionPayControllerGetStateAction,
   TransactionPayControllerGetStrategyAction,
+  TransactionPayControllerPolymarketGetDepositWalletAddressAction,
+  TransactionPayControllerPolymarketSubmitDepositWalletBatchAction,
 } from '@metamask/transaction-pay-controller';
 import { RootMessenger } from '../../types';
 import { AnalyticsControllerActions } from '@metamask/analytics-controller';
@@ -118,6 +120,8 @@ type InitMessengerActions =
   | TransactionPayControllerGetDelegationTransactionAction
   | TransactionPayControllerGetStateAction
   | TransactionPayControllerGetStrategyAction
+  | TransactionPayControllerPolymarketGetDepositWalletAddressAction
+  | TransactionPayControllerPolymarketSubmitDepositWalletBatchAction
   | AnalyticsControllerActions
   | PredictControllerBeforePublishAction
   | PredictControllerPublishAction;
@@ -178,6 +182,8 @@ export function getTransactionControllerInitMessenger(
       'TransactionPayController:getDelegationTransaction',
       'TransactionPayController:getState',
       'TransactionPayController:getStrategy',
+      'TransactionPayController:polymarketGetDepositWalletAddress',
+      'TransactionPayController:polymarketSubmitDepositWalletBatch',
       'AnalyticsController:trackEvent',
       'PredictController:beforePublish',
       'PredictController:publish',

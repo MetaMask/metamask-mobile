@@ -24,12 +24,19 @@ export const POLYMARKET_GEOBLOCK_ELIGIBLE = {
 export const POLYMARKET_API_MOCKS = {
   GET: [
     POLYMARKET_GEOBLOCK_ELIGIBLE,
-    // gamma-api: events pagination — consumer reads `data?.data`
+    // gamma-api: events pagination — legacy consumer reads `data?.data`
     {
       urlEndpoint:
         /^https:\/\/gamma-api\.polymarket\.com\/events\/pagination(\?.*)?$/,
       responseCode: 200,
       response: { data: [] },
+    },
+    // gamma-api: events keyset — consumer reads `events` and `next_cursor`
+    {
+      urlEndpoint:
+        /^https:\/\/gamma-api\.polymarket\.com\/events\/keyset(\?.*)?$/,
+      responseCode: 200,
+      response: { events: [], next_cursor: null },
     },
     // gamma-api: public-search — consumer reads `data?.events`
     {
@@ -37,6 +44,23 @@ export const POLYMARKET_API_MOCKS = {
         /^https:\/\/gamma-api\.polymarket\.com\/public-search(\?.*)?$/,
       responseCode: 200,
       response: { events: [] },
+    },
+    {
+      urlEndpoint: /^https:\/\/gamma-api\.polymarket\.com\/events\/\d+(\?.*)?$/,
+      responseCode: 200,
+      response: {
+        id: '1',
+        slug: 'mock-prediction-event',
+        title: 'Mock prediction event',
+        description: 'E2E mock event',
+        icon: 'https://polymarket.com/icon.png',
+        closed: false,
+        series: [],
+        markets: [],
+        tags: [],
+        liquidity: 0,
+        volume: 0,
+      },
     },
     // gamma-api: markets list
     {

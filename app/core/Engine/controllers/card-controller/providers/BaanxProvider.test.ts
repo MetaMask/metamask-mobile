@@ -378,4 +378,126 @@ describe('BaanxProvider', () => {
       expect(message).not.toContain('Expiration Time');
     });
   });
+
+  describe('buildSupportedTokens', () => {
+    const LINEA_CHAIN_ID = 'eip155:59144';
+    const USDC_LINEA_ADDRESS = '0x176211869cA2b568f2A7D4EE941E073a821EE1ff';
+    const WETH_LINEA_ADDRESS = '0xweth';
+    const DELEGATION_CONTRACT = '0xdelegation';
+
+    const delegationSettings = {
+      networks: [
+        {
+          network: 'linea',
+          chainId: '0xe708',
+          environment: 'production',
+          delegationContract: DELEGATION_CONTRACT,
+          tokens: {
+            usdc: {
+              symbol: 'USDC',
+              address: USDC_LINEA_ADDRESS,
+              decimals: 6,
+            },
+          },
+        },
+      ],
+    };
+
+    const buildSupportedTokens = (
+      provider: BaanxProvider,
+      fundingAssets: CardFundingAsset[],
+      settings: typeof delegationSettings | null,
+    ) =>
+      (
+        provider as unknown as {
+          buildSupportedTokens: (
+            assets: CardFundingAsset[],
+            settings: typeof delegationSettings | null,
+          ) => CardFundingAsset[];
+        }
+      ).buildSupportedTokens(fundingAssets, settings);
+
+    it('does not synthesize Inactive placeholders (handled by selectCardAvailableTokens)', () => {
+      const provider = new BaanxProvider({ service: {} as BaanxService });
+      const result = buildSupportedTokens(provider, [], delegationSettings);
+      expect(result).toHaveLength(0);
+    });
+
+    it('preserves Active funding assets and does not duplicate them', () => {
+      const activeAsset: CardFundingAsset = {
+        symbol: 'USDC',
+        name: 'USD Coin',
+        address: USDC_LINEA_ADDRESS,
+        walletAddress: '0xwalletA',
+        decimals: 6,
+        chainId: LINEA_CHAIN_ID,
+        spendableBalance: '100',
+        spendingCap: '1000',
+        priority: 1,
+        status: FundingAssetStatus.Active,
+      };
+
+      const provider = new BaanxProvider({ service: {} as BaanxService });
+      const result = buildSupportedTokens(
+        provider,
+        [activeAsset],
+        delegationSettings,
+      );
+
+      expect(result).toHaveLength(1);
+      expect(result[0].status).toBe(FundingAssetStatus.Active);
+    });
+
+    it('returns fundingAssets unchanged when delegationSettings is null', () => {
+      const provider = new BaanxProvider({ service: {} as BaanxService });
+      const asset: CardFundingAsset = {
+        symbol: 'WETH',
+        name: 'Wrapped Ether',
+        address: WETH_LINEA_ADDRESS,
+        walletAddress: '0xwalletA',
+        decimals: 18,
+        chainId: LINEA_CHAIN_ID,
+        spendableBalance: '1',
+        spendingCap: '10',
+        priority: 1,
+        status: FundingAssetStatus.Active,
+      };
+
+      const result = buildSupportedTokens(provider, [asset], null);
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toStrictEqual(asset);
+    });
+
+    it('returns empty array when delegationSettings has no networks and no fundingAssets', () => {
+      const provider = new BaanxProvider({ service: {} as BaanxService });
+      const result = buildSupportedTokens(provider, [], { networks: [] });
+      expect(result).toHaveLength(0);
+    });
+
+    it('enriches existing assets with delegationContract from matching network', () => {
+      const assetWithoutContract: CardFundingAsset = {
+        symbol: 'USDC',
+        name: 'USD Coin',
+        address: USDC_LINEA_ADDRESS,
+        walletAddress: '0xwalletA',
+        decimals: 6,
+        chainId: LINEA_CHAIN_ID,
+        spendableBalance: '100',
+        spendingCap: '1000',
+        priority: 1,
+        status: FundingAssetStatus.Active,
+      };
+
+      const provider = new BaanxProvider({ service: {} as BaanxService });
+      const result = buildSupportedTokens(
+        provider,
+        [assetWithoutContract],
+        delegationSettings,
+      );
+
+      const usdc = result.find((a) => a.walletAddress === '0xwalletA');
+      expect(usdc?.delegationContract).toBe(DELEGATION_CONTRACT);
+    });
+  });
 });

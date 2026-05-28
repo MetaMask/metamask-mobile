@@ -10,7 +10,10 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
-import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
+import { useIsGasSponsored } from '../gas/useIsGasSponsored';
+
+jest.mock('../transactions/useTransactionMetadataRequest');
+jest.mock('../gas/useIsGasSponsored');
 
 const MOCK_TRANSACTION_META = {
   id: '1',
@@ -25,26 +28,24 @@ const MOCK_TRANSACTION_META_WITH_SIMULATION_FAILS = {
   status: TransactionStatus.unapproved,
   type: TransactionType.contractInteraction,
   chainId: '0x1',
+  txParams: {
+    from: '0x13b7e6EBcd40777099E4c45d407745aB2de1D1F8',
+  },
   simulationFails: {
     reason: 'execution reverted',
   },
 } as unknown as TransactionMeta;
 
-jest.mock('../transactions/useTransactionMetadataRequest');
-jest.mock('../gas/useIsGaslessSupported');
+const mockUseIsGasSponsored = jest.mocked(useIsGasSponsored);
 
 describe('useGasEstimateFailedAlert', () => {
   const mockUseTransactionMetadataRequest = jest.mocked(
     useTransactionMetadataRequest,
   );
-  const useIsGaslessSupportedMock = jest.mocked(useIsGaslessSupported);
+
   beforeEach(() => {
     jest.clearAllMocks();
-    useIsGaslessSupportedMock.mockReturnValue({
-      isSmartTransaction: false,
-      isSupported: false,
-      pending: false,
-    });
+    mockUseIsGasSponsored.mockReturnValue(false);
   });
 
   it('returns alert when simulationFails is truthy', () => {
@@ -113,35 +114,15 @@ describe('useGasEstimateFailedAlert', () => {
     expect(result.current).toEqual([]);
   });
 
-  it('returns no alerts if simulation fails but transaction is gasless or sponsored', () => {
+  it('returns no alerts if simulation fails but network is sponsored', () => {
     mockUseTransactionMetadataRequest.mockReturnValue(
       MOCK_TRANSACTION_META_WITH_SIMULATION_FAILS,
     );
-    useIsGaslessSupportedMock.mockReturnValue({
-      isSmartTransaction: false,
-      isSupported: true,
-      pending: false,
-    });
+    mockUseIsGasSponsored.mockReturnValue(true);
     const { result } = renderHookWithProvider(() =>
       useGasEstimateFailedAlert(),
     );
 
-    expect(result.current[0]).toBe(undefined);
-  });
-
-  it('returns no alerts when gasless support check is pending', () => {
-    mockUseTransactionMetadataRequest.mockReturnValue(
-      MOCK_TRANSACTION_META_WITH_SIMULATION_FAILS,
-    );
-    useIsGaslessSupportedMock.mockReturnValue({
-      isSmartTransaction: false,
-      isSupported: false,
-      pending: true,
-    });
-    const { result } = renderHookWithProvider(() =>
-      useGasEstimateFailedAlert(),
-    );
-
-    expect(result.current[0]).toBe(undefined);
+    expect(result.current).toEqual([]);
   });
 });

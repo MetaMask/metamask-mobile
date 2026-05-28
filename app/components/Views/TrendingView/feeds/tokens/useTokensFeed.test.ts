@@ -15,6 +15,7 @@ const mockUseTrendingSearch = jest.mocked(useTrendingSearch);
 
 describe('useTokensFeed', () => {
   const mockRefetch = jest.fn().mockResolvedValue(undefined);
+  const mockLoadMore = jest.fn();
 
   const sampleTokens = [
     {
@@ -43,6 +44,10 @@ describe('useTokensFeed', () => {
       data: sampleTokens,
       isLoading: false,
       refetch: mockRefetch,
+      loadMore: mockLoadMore,
+      isLoadingMore: false,
+      hasNextPage: false,
+      totalCount: undefined,
     });
   });
 
@@ -54,10 +59,23 @@ describe('useTokensFeed', () => {
     expect(result.current.refetch).toBe(mockRefetch);
   });
 
-  it('filters by query and sorts matches by market cap descending', () => {
+  it('when query is active, returns all data sorted by market cap (skips Fuse re-filter)', () => {
     const { result } = renderHook(() => useTokensFeed({ query: 'wrap' }));
 
-    expect(result.current.data.map((t) => t.symbol)).toEqual(['WBTC', 'WETH']);
+    // useTrendingSearch already searched the API; all items in `data` are
+    // considered relevant. We only sort by marketCap, not fuzzy-filter.
+    expect(result.current.data.map((t) => t.symbol)).toEqual([
+      'WBTC',
+      'WETH',
+      'AAA',
+    ]);
+  });
+
+  it('when query is absent, fuzzy-filters by Fuse and returns only matching items', () => {
+    const { result } = renderHook(() => useTokensFeed({ query: undefined }));
+
+    // Without a query, fuseSearch is a no-op (returns data unchanged).
+    expect(result.current.data).toEqual(sampleTokens);
   });
 
   it('refetches when refresh trigger increments past initial mount', async () => {
@@ -82,6 +100,92 @@ describe('useTokensFeed', () => {
     expect(mockUseTrendingSearch).toHaveBeenCalledWith({
       searchQuery: 'sol',
       enableDebounce: false,
+    });
+  });
+
+  describe('pagination', () => {
+    it('exposes loadMore, isLoadingMore and hasMore when query is present', () => {
+      mockUseTrendingSearch.mockReturnValue({
+        data: sampleTokens,
+        isLoading: false,
+        refetch: mockRefetch,
+        loadMore: mockLoadMore,
+        isLoadingMore: false,
+        hasNextPage: true,
+        totalCount: undefined,
+      });
+
+      const { result } = renderHook(() => useTokensFeed({ query: 'eth' }));
+
+      expect(result.current.loadMore).toBe(mockLoadMore);
+      expect(result.current.isLoadingMore).toBe(false);
+      expect(result.current.hasMore).toBe(true);
+    });
+
+    it('suppresses loadMore, isLoadingMore and hasMore when query is absent', () => {
+      mockUseTrendingSearch.mockReturnValue({
+        data: sampleTokens,
+        isLoading: false,
+        refetch: mockRefetch,
+        loadMore: mockLoadMore,
+        isLoadingMore: false,
+        hasNextPage: true,
+        totalCount: undefined,
+      });
+
+      const { result } = renderHook(() => useTokensFeed({ query: undefined }));
+
+      expect(result.current.loadMore).toBeUndefined();
+      expect(result.current.isLoadingMore).toBeUndefined();
+      expect(result.current.hasMore).toBeUndefined();
+    });
+
+    it('reflects isLoadingMore true while a pagination request is in flight', () => {
+      mockUseTrendingSearch.mockReturnValue({
+        data: sampleTokens,
+        isLoading: false,
+        refetch: mockRefetch,
+        loadMore: mockLoadMore,
+        isLoadingMore: true,
+        hasNextPage: true,
+        totalCount: undefined,
+      });
+
+      const { result } = renderHook(() => useTokensFeed({ query: 'eth' }));
+
+      expect(result.current.isLoadingMore).toBe(true);
+    });
+
+    it('forwards totalCount from useTrendingSearch when query is present', () => {
+      mockUseTrendingSearch.mockReturnValue({
+        data: sampleTokens,
+        isLoading: false,
+        refetch: mockRefetch,
+        loadMore: mockLoadMore,
+        isLoadingMore: false,
+        hasNextPage: true,
+        totalCount: 2101,
+      });
+
+      const { result } = renderHook(() => useTokensFeed({ query: 'eth' }));
+
+      expect(result.current.totalCount).toBe(2101);
+    });
+
+    it('suppresses totalCount when query is absent', () => {
+      mockUseTrendingSearch.mockReturnValue({
+        data: sampleTokens,
+        isLoading: false,
+        refetch: mockRefetch,
+        loadMore: mockLoadMore,
+        isLoadingMore: false,
+        hasNextPage: true,
+        totalCount: 2101,
+      });
+
+      const { result } = renderHook(() => useTokensFeed({ query: undefined }));
+
+      expect(result.current.totalCount).toBeUndefined();
     });
   });
 
@@ -135,6 +239,10 @@ describe('useTokensFeed', () => {
         data: tokensWithSecurity,
         isLoading: false,
         refetch: mockRefetch,
+        loadMore: mockLoadMore,
+        isLoadingMore: false,
+        hasNextPage: false,
+        totalCount: undefined,
       });
     });
 
@@ -168,6 +276,10 @@ describe('useTokensFeed', () => {
         data: [tokensWithSecurity[2]],
         isLoading: false,
         refetch: mockRefetch,
+        loadMore: mockLoadMore,
+        isLoadingMore: false,
+        hasNextPage: false,
+        totalCount: undefined,
       });
 
       const { result } = renderHook(() =>
@@ -182,6 +294,10 @@ describe('useTokensFeed', () => {
         data: [tokensWithSecurity[3]],
         isLoading: false,
         refetch: mockRefetch,
+        loadMore: mockLoadMore,
+        isLoadingMore: false,
+        hasNextPage: false,
+        totalCount: undefined,
       });
 
       const { result } = renderHook(() =>
@@ -196,6 +312,10 @@ describe('useTokensFeed', () => {
         data: [tokensWithSecurity[4]],
         isLoading: false,
         refetch: mockRefetch,
+        loadMore: mockLoadMore,
+        isLoadingMore: false,
+        hasNextPage: false,
+        totalCount: undefined,
       });
 
       const { result } = renderHook(() =>

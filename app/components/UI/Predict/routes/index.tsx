@@ -7,6 +7,8 @@ import {
   transparentModalScreenOptions,
 } from '../../../../constants/navigation/clearStackNavigatorOptions';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
+import { PayWithBottomSheet } from '../../../Views/confirmations/components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet';
+import { PayWithModal } from '../../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import PredictMarketDetails from '../views/PredictMarketDetails';
 import PredictUnavailableModal from '../views/PredictUnavailableModal';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
@@ -119,6 +121,23 @@ const PredictScreenStack = () => {
         <Stack.Screen
           name={Routes.PREDICT.MARKET_DETAILS}
           component={PredictMarketDetails}
+        />
+
+        <Stack.Screen
+          name={Routes.CONFIRMATION_PAY_WITH_MODAL}
+          component={PayWithModal}
+          options={{
+            ...clearNativeStackNavigatorOptions,
+            ...transparentModalScreenOptions,
+          }}
+        />
+        <Stack.Screen
+          name={Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET}
+          component={PayWithBottomSheet}
+          options={{
+            ...clearNativeStackNavigatorOptions,
+            ...transparentModalScreenOptions,
+          }}
         />
       </Stack.Navigator>
     </PredictPreviewSheetProvider>

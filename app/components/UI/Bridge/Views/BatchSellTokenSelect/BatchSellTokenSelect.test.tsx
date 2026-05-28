@@ -2,15 +2,13 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { TextColor as DSTextColor } from '@metamask/design-system-react-native';
 import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
-import {
-  formatAddressToAssetId,
-  formatChainIdToCaip,
-} from '@metamask/bridge-controller';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { BridgeToken } from '../../types';
 import { BatchSellTokenSelect } from './BatchSellTokenSelect';
 import { BatchSellTokenSelectSelectorsIDs } from './BatchSellTokenSelect.testIds';
 import {
   buildBatchSellEligibleChains,
+  getBatchSellDestinationToken,
   removeStablecoinsFromSourceTokens,
   MAX_BATCH_SELL_SOURCE_TOKENS,
   SUPPORTED_BATCH_SELL_CHAIN_IDS,
@@ -25,10 +23,11 @@ import {
 
 const mockDispatch = jest.fn();
 const mockNavigate = jest.fn();
-const mockGoBack = jest.fn();
-const mockSetOptions = jest.fn();
 const mockUseTokensWithBalance = jest.fn();
-let mockStablecoinsByChain: Record<CaipChainId, CaipAssetType[]> = {};
+let mockDestinationStablecoins: BridgeToken[] = [];
+let mockDestinationStablecoinsByChain: Partial<
+  Record<CaipChainId, BridgeToken[]>
+> = {};
 let mockWalletTokens: BridgeToken[] = [];
 let mockPricePercentChangesByAddress: Record<string, number | undefined> = {};
 let mockTokenMarketData: Record<
@@ -38,12 +37,14 @@ let mockTokenMarketData: Record<
 let mockCurrencyRates: Record<string, { conversionRate: number }> = {};
 let mockCurrentCurrency = 'usd';
 let mockNativeCurrencyByChainId: Record<Hex, string | undefined> = {};
+const usdcAssetId =
+  'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
-    goBack: mockGoBack,
-    setOptions: mockSetOptions,
+    goBack: jest.fn(),
+    setOptions: jest.fn(),
   }),
 }));
 
@@ -52,142 +53,15 @@ jest.mock('react-redux', () => ({
   useSelector: (selector: (state: unknown) => unknown) => selector({}),
 }));
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({
-    style: () => ({}),
-  }),
-}));
-
 jest.mock('@metamask/design-system-react-native', () => {
+  const DesignSystem = jest.requireActual(
+    '@metamask/design-system-react-native',
+  );
   const ReactActual = jest.requireActual('react');
-  const { Pressable, Text, View } = jest.requireActual('react-native');
+  const { Pressable, Text } = jest.requireActual('react-native');
 
   return {
-    AvatarBaseShape: { Square: 'square' },
-    AvatarNetwork: ({ testID }: { testID?: string }) => (
-      <View testID={testID} />
-    ),
-    AvatarNetworkSize: { Xs: 'xs' },
-    AvatarToken: ({ testID }: { testID?: string }) => <View testID={testID} />,
-    AvatarTokenSize: { Lg: 'lg' },
-    Box: ({ children, ...props }: { children?: React.ReactNode }) => (
-      <View {...props}>{children}</View>
-    ),
-    BoxAlignItems: { Center: 'center', End: 'flex-end' },
-    BoxFlexDirection: { Row: 'row' },
-    BoxJustifyContent: { Between: 'space-between', Center: 'center' },
-    BottomSheet: ReactActual.forwardRef(
-      (
-        {
-          children,
-          onClose,
-          testID,
-        }: {
-          children?: React.ReactNode;
-          onClose?: () => void;
-          testID?: string;
-        },
-        ref: React.Ref<{
-          onCloseBottomSheet: (callback?: () => void) => void;
-        }>,
-      ) => {
-        ReactActual.useImperativeHandle(ref, () => ({
-          onCloseBottomSheet: (callback?: () => void) => {
-            onClose?.();
-            callback?.();
-          },
-        }));
-
-        return <View testID={testID}>{children}</View>;
-      },
-    ),
-    BottomSheetFooter: ({
-      primaryButtonProps,
-      secondaryButtonProps,
-    }: {
-      primaryButtonProps?: {
-        children?: React.ReactNode;
-        onPress?: () => void;
-        testID?: string;
-      };
-      secondaryButtonProps?: {
-        children?: React.ReactNode;
-        onPress?: () => void;
-        testID?: string;
-      };
-    }) => (
-      <View>
-        {primaryButtonProps && (
-          <Pressable
-            onPress={primaryButtonProps.onPress}
-            testID={primaryButtonProps.testID}
-          >
-            <Text>{primaryButtonProps.children}</Text>
-          </Pressable>
-        )}
-        {secondaryButtonProps && (
-          <Pressable
-            onPress={secondaryButtonProps.onPress}
-            testID={secondaryButtonProps.testID}
-          >
-            <Text>{secondaryButtonProps.children}</Text>
-          </Pressable>
-        )}
-      </View>
-    ),
-    BottomSheetHeader: ({
-      children,
-      closeButtonProps,
-      onClose,
-    }: {
-      children?: React.ReactNode;
-      closeButtonProps?: { testID?: string };
-      onClose?: () => void;
-    }) => (
-      <View>
-        <Text>{children}</Text>
-        <Pressable onPress={onClose} testID={closeButtonProps?.testID} />
-      </View>
-    ),
-    Button: ({
-      children,
-      isDisabled,
-      onPress,
-      testID,
-    }: {
-      children: React.ReactNode;
-      isDisabled?: boolean;
-      onPress?: () => void;
-      testID?: string;
-    }) => (
-      <Pressable
-        accessibilityRole="button"
-        accessibilityState={{ disabled: Boolean(isDisabled) }}
-        disabled={isDisabled}
-        onPress={onPress}
-        testID={testID}
-      >
-        <Text>{children}</Text>
-      </Pressable>
-    ),
-    ButtonBase: ({
-      children,
-      isDisabled,
-      onPress,
-      testID,
-    }: {
-      children: React.ReactNode;
-      isDisabled?: boolean;
-      onPress?: () => void;
-      testID?: string;
-    }) => (
-      <Pressable disabled={isDisabled} onPress={onPress} testID={testID}>
-        {children}
-      </Pressable>
-    ),
-    ButtonIconSize: { Md: 'md' },
-    ButtonSize: { Lg: 'lg' },
-    ButtonVariant: { Primary: 'primary', Secondary: 'secondary' },
+    ...DesignSystem,
     Checkbox: ({
       accessibilityLabel,
       isSelected,
@@ -196,120 +70,17 @@ jest.mock('@metamask/design-system-react-native', () => {
       accessibilityLabel?: string;
       isSelected?: boolean;
       onChange?: () => void;
-    }) => (
-      <Pressable
-        accessibilityLabel={accessibilityLabel}
-        accessibilityRole="checkbox"
-        accessibilityState={{ checked: Boolean(isSelected) }}
-        onPress={onChange}
-      />
-    ),
-    FontWeight: { Medium: 'medium' },
-    Icon: ({ testID }: { testID?: string }) => <View testID={testID} />,
-    IconColor: {
-      IconAlternative: 'icon-alternative',
-      InfoDefault: 'info-default',
-    },
-    IconName: {
-      Arrow2Down: 'Arrow2Down',
-      Arrow2Up: 'Arrow2Up',
-      ArrowDown: 'ArrowDown',
-      VerifiedFilled: 'VerifiedFilled',
-    },
-    IconSize: { Sm: 'sm' },
-    Text: ({ children, ...props }: { children?: React.ReactNode }) => (
-      <Text {...props}>{children}</Text>
-    ),
-    TextField: ({
-      onChangeText,
-      testID,
-      value,
-    }: {
-      onChangeText: (text: string) => void;
-      testID: string;
-      value: string;
-    }) => {
-      const { TextInput } = jest.requireActual('react-native');
-      return (
-        <TextInput onChangeText={onChangeText} testID={testID} value={value} />
-      );
-    },
-    TextColor: {
-      ErrorDefault: 'error-default',
-      PrimaryInverse: 'primary-inverse',
-      SuccessDefault: 'success-default',
-      TextAlternative: 'text-alternative',
-      TextDefault: 'text-default',
-    },
-    TextVariant: {
-      BodyMd: 'body-md',
-      BodySm: 'body-sm',
-      HeadingLg: 'heading-lg',
-      HeadingMd: 'heading-md',
-    },
-    __esModule: true,
-    default: ReactActual,
+    }) =>
+      ReactActual.createElement(Pressable, {
+        accessibilityLabel,
+        accessibilityRole: 'checkbox',
+        accessibilityState: { checked: Boolean(isSelected) },
+        onPress: onChange,
+      }),
+    Text: ({ children, ...props }: { children?: React.ReactNode }) =>
+      ReactActual.createElement(Text, props, children),
   };
 });
-
-jest.mock('react-native-gesture-handler', () => {
-  const { FlatList, ScrollView } = jest.requireActual('react-native');
-  return { FlatList, ScrollView };
-});
-
-jest.mock(
-  '../../../../../component-library/components-temp/HeaderCompactStandard',
-  () => ({
-    getHeaderCompactStandardNavbarOptions: jest.fn((options) => options),
-  }),
-);
-
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
-  const { Text } = jest.requireActual('react-native');
-
-  return {
-    __esModule: true,
-    default: ({ children, ...props }: { children?: React.ReactNode }) => (
-      <Text {...props}>{children}</Text>
-    ),
-    TextColor: {
-      Alternative: 'Alternative',
-      Default: 'Default',
-      Error: 'Error',
-      Success: 'Success',
-    },
-    TextVariant: {
-      BodySM: 'BodySM',
-      BodySMMedium: 'BodySMMedium',
-    },
-  };
-});
-
-jest.mock(
-  '../../../../../component-library/components-temp/Buttons/ButtonToggle',
-  () => {
-    const { Pressable, Text } = jest.requireActual('react-native');
-    return ({
-      isDisabled,
-      label,
-      onPress,
-      testID,
-    }: {
-      isDisabled?: boolean;
-      label: React.ReactNode;
-      onPress?: () => void;
-      testID?: string;
-    }) => (
-      <Pressable disabled={isDisabled} onPress={onPress} testID={testID}>
-        {typeof label === 'string' ? <Text>{label}</Text> : label}
-      </Pressable>
-    );
-  },
-);
-
-jest.mock('../../../../../component-library/components/Buttons/Button', () => ({
-  ButtonSize: { Md: 'md' },
-}));
 
 jest.mock('../../hooks/useTokensWithBalance', () => ({
   useTokensWithBalance: (options?: { chainIds?: CaipChainId[] }) =>
@@ -337,15 +108,17 @@ jest.mock('../../../../../selectors/networkController', () => ({
 }));
 
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
-  selectBatchSellDestStablecoinsByChain: jest.fn(() => mockStablecoinsByChain),
+  resetBridgeState: jest.fn(() => ({
+    type: 'bridge/resetBridgeState',
+  })),
+  selectBatchSellDestStablecoins: jest.fn(() => mockDestinationStablecoins),
+  selectBatchSellDestStablecoinsByChain: jest.fn(
+    () => mockDestinationStablecoinsByChain,
+  ),
   setBatchSellSourceTokens: jest.fn((tokens: BridgeToken[]) => ({
     type: 'bridge/setBatchSellSourceTokens',
     payload: tokens,
   })),
-}));
-
-jest.mock('../../utils', () => ({
-  getTokenImageSource: jest.fn(() => undefined),
 }));
 
 jest.mock('../../components/TokenSelectorItem', () => {
@@ -413,8 +186,6 @@ const getNetworkPillTestId = (chainId: CaipChainId) =>
 describe('filterBatchSellDestinationStablecoins', () => {
   it('excludes configured stablecoins', () => {
     const stablecoinAddress = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
-    const stablecoin =
-      'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
     const highBalanceToken = createToken({
       symbol: 'HIGH',
       address: '0x2222222222222222222222222222222222222222',
@@ -434,7 +205,7 @@ describe('filterBatchSellDestinationStablecoins', () => {
     const result = removeStablecoinsFromSourceTokens({
       tokens: [lowBalanceToken, stablecoinToken, highBalanceToken],
       stablecoinsByChain: {
-        ['eip155:1' as CaipChainId]: [stablecoin],
+        ['eip155:1' as CaipChainId]: [BridgeTokenMetadata[usdcAssetId]],
       },
     });
 
@@ -476,6 +247,30 @@ describe('buildBatchSellEligibleNetworks', () => {
       'eip155:8453',
       'eip155:1',
     ]);
+  });
+});
+
+describe('getBatchSellDestinationToken', () => {
+  it('returns the first configured stablecoin with local metadata', () => {
+    const result = getBatchSellDestinationToken('0x1' as Hex, [
+      BridgeTokenMetadata[usdcAssetId],
+    ]);
+
+    expect(result).toEqual(BridgeTokenMetadata[usdcAssetId]);
+  });
+
+  it('returns undefined when no configured stablecoin matches the source chain', () => {
+    const result = getBatchSellDestinationToken('0x38' as Hex, [
+      BridgeTokenMetadata[usdcAssetId],
+    ]);
+
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when there are no configured stablecoins', () => {
+    const result = getBatchSellDestinationToken('0x1' as Hex, []);
+
+    expect(result).toBeUndefined();
   });
 });
 
@@ -552,7 +347,8 @@ describe('sortBatchSellTokens', () => {
 describe('BatchSellTokenSelect', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockStablecoinsByChain = {};
+    mockDestinationStablecoins = [];
+    mockDestinationStablecoinsByChain = {};
     mockPricePercentChangesByAddress = {};
     mockTokenMarketData = {};
     mockCurrencyRates = {
@@ -583,13 +379,9 @@ describe('BatchSellTokenSelect', () => {
 
   it('renders only eligible wallet tokens', () => {
     const stablecoinAddress = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
-    mockStablecoinsByChain = {
-      ['eip155:1' as CaipChainId]: [
-        formatAddressToAssetId(
-          stablecoinAddress,
-          '0x1' as Hex,
-        ) as CaipAssetType,
-      ],
+    mockDestinationStablecoins = [BridgeTokenMetadata[usdcAssetId]];
+    mockDestinationStablecoinsByChain = {
+      ['eip155:1' as CaipChainId]: mockDestinationStablecoins,
     };
     mockWalletTokens = [
       createToken({ symbol: 'SELL', name: 'Sell Token' }),
@@ -608,6 +400,20 @@ describe('BatchSellTokenSelect', () => {
     ).toBeOnTheScreen();
     expect(getByText('SELL')).toBeOnTheScreen();
     expect(queryByText('USDC')).not.toBeOnTheScreen();
+  });
+
+  it('resets bridge state on unmount', () => {
+    const { unmount } = render(<BatchSellTokenSelect />);
+
+    expect(mockDispatch).not.toHaveBeenCalledWith({
+      type: 'bridge/resetBridgeState',
+    });
+
+    unmount();
+
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: 'bridge/resetBridgeState',
+    });
   });
 
   it('renders network pills only for networks with token balances', () => {
@@ -861,6 +667,74 @@ describe('BatchSellTokenSelect', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('shows the no sellable tokens empty state when wallet only has destination stablecoins', () => {
+    const stablecoin = BridgeTokenMetadata[usdcAssetId];
+    mockDestinationStablecoins = [stablecoin];
+    mockDestinationStablecoinsByChain = {
+      ['eip155:1' as CaipChainId]: [stablecoin],
+    };
+    mockWalletTokens = [
+      createToken({
+        symbol: 'USDC',
+        name: 'USD Coin',
+        address: stablecoin.address,
+        chainId: stablecoin.chainId as Hex,
+        tokenFiatAmount: 100,
+      }),
+    ];
+
+    const { getByTestId, queryByTestId, queryByText } = render(
+      <BatchSellTokenSelect />,
+    );
+
+    expect(
+      getByTestId(BatchSellTokenSelectSelectorsIDs.EMPTY_STATE),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(getNetworkPillTestId('eip155:1' as CaipChainId)),
+    ).not.toBeOnTheScreen();
+    expect(queryByText('USDC')).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(BatchSellTokenSelectSelectorsIDs.NEXT_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('omits stablecoin-only network pills when another chain has a sellable token', () => {
+    const stablecoin = BridgeTokenMetadata[usdcAssetId];
+    mockDestinationStablecoinsByChain = {
+      ['eip155:1' as CaipChainId]: [stablecoin],
+    };
+    mockWalletTokens = [
+      createToken({
+        symbol: 'USDC',
+        name: 'USD Coin',
+        address: stablecoin.address,
+        chainId: stablecoin.chainId as Hex,
+        tokenFiatAmount: 100,
+      }),
+      createToken({
+        symbol: 'BASEA',
+        name: 'Base A',
+        address: '0x2222222222222222222222222222222222222222',
+        chainId: '0x2105' as Hex,
+        tokenFiatAmount: 1,
+      }),
+    ];
+
+    const { getByTestId, getByText, queryByTestId, queryByText } = render(
+      <BatchSellTokenSelect />,
+    );
+
+    expect(
+      getByTestId(getNetworkPillTestId('eip155:8453' as CaipChainId)),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(getNetworkPillTestId('eip155:1' as CaipChainId)),
+    ).not.toBeOnTheScreen();
+    expect(getByText('BASEA')).toBeOnTheScreen();
+    expect(queryByText('USDC')).not.toBeOnTheScreen();
+  });
+
   it('navigates to Explore Tokens from the empty state', () => {
     mockWalletTokens = [];
 
@@ -935,11 +809,12 @@ describe('BatchSellTokenSelect', () => {
     expect(getByText('Max 5 tokens allowed')).toBeOnTheScreen();
     expect(nextButton.props.accessibilityState.disabled).toBe(true);
 
+    mockDispatch.mockClear();
     fireEvent.press(nextButton);
 
     expect(mockDispatch).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalledWith(
-      Routes.BRIDGE.QUOTE_SELECTOR_VIEW,
+      Routes.BRIDGE.BATCH_SELL_REVIEW,
     );
   });
 
@@ -947,9 +822,7 @@ describe('BatchSellTokenSelect', () => {
     const stablecoinAssetId =
       'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
     const selectedToken = createToken({ symbol: 'ONE' });
-    mockStablecoinsByChain = {
-      ['eip155:1' as CaipChainId]: [stablecoinAssetId],
-    };
+    mockDestinationStablecoins = [BridgeTokenMetadata[stablecoinAssetId]];
     mockWalletTokens = [selectedToken];
 
     const { getByTestId, getByText } = render(<BatchSellTokenSelect />);
@@ -988,8 +861,6 @@ describe('BatchSellTokenSelect', () => {
       type: 'bridge/setBatchSellSourceTokens',
       payload: [firstToken, secondToken],
     });
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.BRIDGE.QUOTE_SELECTOR_VIEW,
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.BATCH_SELL_REVIEW);
   });
 });

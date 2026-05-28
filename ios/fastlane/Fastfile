@@ -20,7 +20,7 @@ platform :ios do
     # Convert groups parameter to array (Fastlane CLI passes strings, not arrays)
     groups_param = options[:groups] || ['MetaMask BETA & Release Candidates']
     groups = groups_param.is_a?(Array) ? groups_param : [groups_param]
-    distribute_external = options[:distribute_external].nil? ? true : options[:distribute_external].to_s.downcase == 'true'
+    distribute_external = options[:distribute_external].nil? ? false : options[:distribute_external].to_s.downcase == 'true'
     notify_external_testers = distribute_external
     
     if ipa_path.nil? || ipa_path.empty?

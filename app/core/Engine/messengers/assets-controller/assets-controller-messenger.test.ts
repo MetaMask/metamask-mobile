@@ -68,6 +68,8 @@ describe('getAssetsControllerMessenger', () => {
           'AccountsController:accountBalancesUpdated',
           'PermissionController:stateChange',
           'TransactionController:unapprovedTransactionAdded',
+          'NetworkController:networkRemoved',
+          'NetworkController:networkAdded',
         ]),
       }),
     );

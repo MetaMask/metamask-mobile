@@ -1,21 +1,20 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import { useTheme } from '../../../../util/theme';
 
-import { Linking, Switch, View } from 'react-native';
+import { Switch, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
-import Text, {
+import {
+  FontWeight,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../component-library/hooks';
-import AppConstants from '../../../../core/AppConstants';
 import { useMainNotificationToggle } from './MainNotificationToggle.hooks';
 import styleSheet from './NotificationsSettings.styles';
 import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
 
 export const MAIN_NOTIFICATION_TOGGLE_TEST_ID = 'main-notification-toggle';
-export const MAIN_NOTIFICATION_TOGGLE_LEARN_MORE_TEST_ID =
-  'main-notification-toggle--learn-more-button';
 
 export const MainNotificationToggle = () => {
   const theme = useTheme();
@@ -23,17 +22,20 @@ export const MainNotificationToggle = () => {
 
   const { onToggle, value } = useMainNotificationToggle();
 
-  const goToLearnMore = useCallback(() => {
-    Linking.openURL(AppConstants.URLS.PROFILE_SYNC);
-  }, []);
-
   return (
     <>
+      <Text color={TextColor.TextAlternative} variant={TextVariant.BodySm}>
+        {strings('app_settings.allow_notifications_desc')}
+      </Text>
       <View
         style={styles.switchElement}
         testID={MAIN_NOTIFICATION_TOGGLE_TEST_ID}
       >
-        <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
+        <Text
+          color={TextColor.TextDefault}
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+        >
           {strings('app_settings.allow_notifications')}
         </Text>
         <Switch
@@ -48,19 +50,6 @@ export const MainNotificationToggle = () => {
           ios_backgroundColor={theme.colors.border.muted}
           testID={NotificationSettingsViewSelectorsIDs.NOTIFICATIONS_TOGGLE}
         />
-      </View>
-      <View style={styles.setting}>
-        <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
-          {strings('app_settings.allow_notifications_desc')}{' '}
-          <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Info}
-            onPress={goToLearnMore}
-            testID={MAIN_NOTIFICATION_TOGGLE_LEARN_MORE_TEST_ID}
-          >
-            {strings('notifications.activation_card.learn_more')}
-          </Text>
-        </Text>
       </View>
     </>
   );

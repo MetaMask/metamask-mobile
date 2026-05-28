@@ -3,10 +3,20 @@ import { Box } from '@metamask/design-system-react-native';
 import PredictBetButtons from './PredictBetButtons';
 import PredictClaimButton from './PredictClaimButton';
 import PredictDetailsButtonsSkeleton from '../PredictDetailsButtonsSkeleton';
-import { PredictActionButtonsProps } from './PredictActionButtons.types';
-import { PredictMarketStatus, PredictOutcomeToken } from '../../types';
+import {
+  PredictActionButtonsProps,
+  PredictBetButtonLayout,
+} from './PredictActionButtons.types';
+import {
+  PredictMarketGame,
+  PredictMarketStatus,
+  PredictOutcomeToken,
+} from '../../types';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
-import { isDrawCapableLeague } from '../../constants/sports';
+import {
+  getPrimaryMoneylineOutcomes,
+  isDrawCapableLeague,
+} from '../../constants/sports';
 import {
   BASE_PREDICT_ACTION_BUTTONS_TEST_IDS,
   PREDICT_ACTION_BUTTONS_TEST_IDS,
@@ -26,6 +36,38 @@ interface ButtonConfig {
   drawToken?: PredictOutcomeToken;
 }
 
+type GameTeam = PredictMarketGame['homeTeam'];
+
+const normalizeLabel = (value?: string): string | undefined =>
+  value?.trim().toLowerCase();
+
+const teamMatchesToken = (
+  team: GameTeam,
+  token: PredictOutcomeToken,
+): boolean => {
+  const tokenLabels = [token.shortTitle, token.title]
+    .map(normalizeLabel)
+    .filter((label): label is string => Boolean(label));
+  const teamLabels = [team.abbreviation, team.name, team.alias]
+    .map(normalizeLabel)
+    .filter((label): label is string => Boolean(label));
+
+  return tokenLabels.some((tokenLabel) => teamLabels.includes(tokenLabel));
+};
+
+const getTokenTeam = (
+  token: PredictOutcomeToken,
+  game: PredictMarketGame,
+): GameTeam | undefined => {
+  if (teamMatchesToken(game.homeTeam, token)) {
+    return game.homeTeam;
+  }
+  if (teamMatchesToken(game.awayTeam, token)) {
+    return game.awayTeam;
+  }
+  return undefined;
+};
+
 const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
   market,
   outcome,
@@ -35,25 +77,40 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
   isLoading = false,
   isClaimPending = false,
   isCarousel,
+  buttonLayout,
+  buttonGapClassName,
+  buttonContainerClassName,
   testID = BASE_PREDICT_ACTION_BUTTONS_TEST_IDS.PREDICT_ACTION_BUTTON,
 }) => {
   const isGameMarket = Boolean(market.game);
   const isMarketOpen = market.status === PredictMarketStatus.OPEN;
+  const moneylineOutcomes = useMemo(
+    () => getPrimaryMoneylineOutcomes(market.outcomes),
+    [market.outcomes],
+  );
+  const hasMainMoneylineOutcomes = moneylineOutcomes.some(
+    (marketOutcome) =>
+      marketOutcome.sportsMarketType?.toLowerCase() === 'moneyline',
+  );
+  const primaryOutcome =
+    hasMainMoneylineOutcomes && !moneylineOutcomes.includes(outcome)
+      ? (moneylineOutcomes[0] ?? outcome)
+      : outcome;
 
   const isDrawCapable =
     isGameMarket &&
     market.game &&
     isDrawCapableLeague(market.game.league) &&
-    market.outcomes.length >= 3;
+    moneylineOutcomes.length >= 3;
 
   const sortedOutcomes = useMemo(() => {
     if (!isDrawCapable) {
       return null;
     }
-    return [...market.outcomes].sort(
+    return [...moneylineOutcomes].sort(
       (a, b) => (a.groupItemThreshold ?? 0) - (b.groupItemThreshold ?? 0),
     );
-  }, [isDrawCapable, market.outcomes]);
+  }, [isDrawCapable, moneylineOutcomes]);
 
   const tokenIds = useMemo(() => {
     if (sortedOutcomes) {
@@ -62,8 +119,8 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
         .filter((tokenId): tokenId is string => Boolean(tokenId));
     }
 
-    return outcome.tokens.map((token) => token.id);
-  }, [sortedOutcomes, outcome.tokens]);
+    return primaryOutcome.tokens.map((token) => token.id);
+  }, [sortedOutcomes, primaryOutcome.tokens]);
 
   const { getPrice } = useLiveMarketPrices(tokenIds, {
     enabled: isMarketOpen && !isLoading,
@@ -104,7 +161,7 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
       };
     }
 
-    const tokens = outcome.tokens;
+    const tokens = primaryOutcome.tokens;
     if (tokens.length < 2) {
       return null;
     }
@@ -120,14 +177,17 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
 
     if (isGameMarket && market.game) {
       const { awayTeam, homeTeam } = market.game;
+      const yesTeam = getTokenTeam(yesToken, market.game) ?? awayTeam;
+      const noTeam = getTokenTeam(noToken, market.game) ?? homeTeam;
+
       return {
-        yesLabel: awayTeam.abbreviation,
+        yesLabel: yesTeam.abbreviation,
         yesPrice: Math.round(yesPrice * 100),
-        yesTeamColor: awayTeam.color,
+        yesTeamColor: yesTeam.color,
         yesToken,
-        noLabel: homeTeam.abbreviation,
+        noLabel: noTeam.abbreviation,
         noPrice: Math.round(noPrice * 100),
-        noTeamColor: homeTeam.color,
+        noTeamColor: noTeam.color,
         noToken,
       };
     }
@@ -142,7 +202,13 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
       noTeamColor: undefined,
       noToken,
     };
-  }, [outcome.tokens, isGameMarket, market.game, sortedOutcomes, getPrice]);
+  }, [
+    primaryOutcome.tokens,
+    isGameMarket,
+    market.game,
+    sortedOutcomes,
+    getPrice,
+  ]);
 
   if (isLoading) {
     return (
@@ -172,6 +238,9 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
         onBetPress={onBetPress}
         testID={testID}
         isCarousel={isCarousel}
+        buttonLayout={buttonLayout}
+        buttonGapClassName={buttonGapClassName}
+        buttonContainerClassName={buttonContainerClassName}
       />
     );
   }
@@ -184,8 +253,19 @@ function PredictBetButtonsContainer(props: {
   onBetPress: (token: PredictOutcomeToken) => void;
   testID: string;
   isCarousel?: boolean;
+  buttonLayout?: PredictBetButtonLayout;
+  buttonGapClassName?: string;
+  buttonContainerClassName?: string;
 }) {
-  const { buttonConfig, onBetPress, testID, isCarousel } = props;
+  const {
+    buttonConfig,
+    onBetPress,
+    testID,
+    isCarousel,
+    buttonLayout,
+    buttonGapClassName,
+    buttonContainerClassName = 'w-full mt-4',
+  } = props;
   const { yesToken, drawToken, noToken } = buttonConfig;
 
   const onYesPress = useCallback(
@@ -202,7 +282,7 @@ function PredictBetButtonsContainer(props: {
   );
 
   return (
-    <Box twClassName="w-full mt-4">
+    <Box twClassName={buttonContainerClassName}>
       <PredictBetButtons
         yesLabel={buttonConfig.yesLabel}
         yesPrice={buttonConfig.yesPrice}
@@ -217,6 +297,8 @@ function PredictBetButtonsContainer(props: {
         noTeamColor={buttonConfig.noTeamColor}
         testID={`${testID}${PREDICT_ACTION_BUTTONS_TEST_IDS.PREDICT_BET_BUTTON}`}
         isCarousel={isCarousel}
+        layout={buttonLayout}
+        gapClassName={buttonGapClassName}
       />
     </Box>
   );

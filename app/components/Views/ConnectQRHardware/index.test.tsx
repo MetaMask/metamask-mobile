@@ -2,7 +2,9 @@ import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import ConnectQRHardware from './index';
+import { StyleSheet } from 'react-native';
 import { fireEvent, act, waitFor } from '@testing-library/react-native';
+import { CommonActions } from '@react-navigation/native';
 import { ConnectQRHardwareSelectorsIDs } from './ConnectQRHardware.testIds';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { AccountSelectorSelectorsIDs } from '../../UI/HardwareWallet/AccountSelector/AccountSelector.testIds';
@@ -12,6 +14,7 @@ import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 import { strings } from '../../../../locales/i18n';
+import Routes from '../../../constants/navigation/Routes';
 
 jest.mock('../../../core/Permissions', () => ({
   removeAccountsFromPermissions: jest.fn(),
@@ -36,6 +39,30 @@ jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
     createEventBuilder: mockCreateEventBuilder,
   }),
 }));
+
+jest.mock('react-native-safe-area-context', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View: MockView } = jest.requireActual('react-native');
+  const inset = { top: 44, right: 0, bottom: 0, left: 0 };
+  const frame = { x: 0, y: 0, width: 390, height: 844 };
+
+  return {
+    ...jest.requireActual('react-native-safe-area-context'),
+    SafeAreaInsetsContext: ReactActual.createContext(inset),
+    SafeAreaFrameContext: ReactActual.createContext(frame),
+    SafeAreaView: ({ children, ...props }: { children: React.ReactNode }) =>
+      ReactActual.createElement(MockView, props, children),
+    SafeAreaProvider: ({ children, ...props }: { children: React.ReactNode }) =>
+      ReactActual.createElement(MockView, props, children),
+    SafeAreaConsumer: ({
+      children,
+    }: {
+      children: (safeAreaInsets: typeof inset) => React.ReactNode;
+    }) => children(inset),
+    useSafeAreaInsets: () => inset,
+    useSafeAreaFrame: () => frame,
+  };
+});
 
 jest.mock(
   '../../../core/HardwareWallet/contexts/HardwareWalletContext',
@@ -86,6 +113,8 @@ jest.mock('../../UI/QRHardware/AnimatedQRScanner', () => ({
 }));
 
 const mockedNavigate = {
+  navigate: jest.fn(),
+  dispatch: jest.fn(),
   pop: jest.fn(),
   goBack: jest.fn(),
 };
@@ -270,6 +299,70 @@ describe('ConnectQRHardware', () => {
           ),
         ),
     );
+  });
+
+  it('does not add header top margin when SafeAreaView handles top inset', async () => {
+    mockKeyringController.getAccounts.mockResolvedValue([]);
+
+    const { getByTestId } = renderWithProvider(
+      <ConnectQRHardware navigation={mockedNavigate} />,
+      { state: mockInitialState },
+    );
+
+    await waitFor(() => {
+      expect(mockKeyringController.getAccounts).toHaveBeenCalledTimes(1);
+    });
+
+    const header = getByTestId(ConnectQRHardwareSelectorsIDs.HEADER);
+
+    expect(header).toBeOnTheScreen();
+    expect(StyleSheet.flatten(header.props.style).marginTop).toBeUndefined();
+  });
+
+  it('excludes bottom edge from parent SafeAreaView because instruction owns bottom spacing', async () => {
+    mockKeyringController.getAccounts.mockResolvedValue([]);
+
+    const { getByTestId } = renderWithProvider(
+      <ConnectQRHardware navigation={mockedNavigate} />,
+      { state: mockInitialState },
+    );
+
+    await waitFor(() => {
+      expect(mockKeyringController.getAccounts).toHaveBeenCalledTimes(1);
+    });
+
+    const safeAreaContainer = getByTestId(
+      ConnectQRHardwareSelectorsIDs.CONTAINER,
+    );
+
+    expect(safeAreaContainer.props.edges).toStrictEqual([
+      'top',
+      'left',
+      'right',
+    ]);
+  });
+
+  it('excludes bottom edge from parent SafeAreaView when account selector owns bottom spacing', async () => {
+    mockKeyringController.getAccounts.mockResolvedValue([]);
+
+    const { getByTestId } = renderWithProvider(
+      <ConnectQRHardware navigation={mockedNavigate} />,
+      { state: mockInitialState },
+    );
+
+    const button = getByTestId(ConnectQRHardwareSelectorsIDs.CONTINUE_BUTTON);
+
+    await act(async () => {
+      fireEvent.press(button);
+    });
+
+    await waitFor(() => {
+      expect(mockQrKeyring.getFirstPage).toHaveBeenCalledTimes(1);
+    });
+
+    expect(
+      getByTestId(ConnectQRHardwareSelectorsIDs.CONTAINER).props.edges,
+    ).toStrictEqual(['top', 'left', 'right']);
   });
 
   it('renders first page correctly when user clicks `continue` button', async () => {
@@ -467,6 +560,35 @@ describe('ConnectQRHardware', () => {
       MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN,
     );
     expect(mockTrackEvent).toHaveBeenCalled();
+  });
+
+  it('resets to the home screen after forgetting the QR device', async () => {
+    mockKeyringController.getAccounts.mockResolvedValue([]);
+
+    const { getByTestId } = renderWithProvider(
+      <ConnectQRHardware navigation={mockedNavigate} />,
+      { state: mockInitialState },
+    );
+
+    await act(async () => {
+      fireEvent.press(
+        getByTestId(ConnectQRHardwareSelectorsIDs.CONTINUE_BUTTON),
+      );
+    });
+
+    await act(async () => {
+      fireEvent.press(getByTestId(AccountSelectorSelectorsIDs.FORGET_BUTTON));
+    });
+
+    expect(mockedNavigate.dispatch).toHaveBeenCalledWith(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+      }),
+    );
+    expect(mockedNavigate.navigate).not.toHaveBeenCalled();
+    expect(mockedNavigate.goBack).not.toHaveBeenCalled();
+    expect(mockedNavigate.pop).not.toHaveBeenCalled();
   });
 
   it('includes device type property in continue connection event', async () => {

@@ -385,7 +385,7 @@ const HomepageDiscoveryTabs = forwardRef<
                   tabIcon={IconName.Predictions}
                   keepMounted={false}
                 >
-                  <PredictPreviewSheetProvider>
+                  <PredictPreviewSheetProvider disableBottomSheet>
                     <PredictFeed
                       hideHeader
                       walletHeaderTranslateY={walletHeaderTranslateY}

@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { BackHandler, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import { ActivitiesViewSelectorsIDs } from './ActivitiesView.testIds';
 import { strings } from '../../../../locales/i18n';
@@ -41,10 +42,11 @@ import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import {
   NetworkType,
   useNetworksByCustomNamespace,
-  useNetworksByNamespace,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useStyles } from '../../hooks/useStyles';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import UnifiedTransactionsView from '../UnifiedTransactionsView/UnifiedTransactionsView';
 
 const createStyles = (params) => {
@@ -96,15 +98,17 @@ const ActivityView = () => {
   const networkName = useSelector(selectNetworkName);
 
   const { enabledNetworks, getNetworkInfo } = useCurrentNetworkInfo();
-  const { areAllNetworksSelected } = useNetworksByNamespace({
+  const {
+    areAllNetworksSelected: areAllEvmPopularNetworksEnabled,
+    totalEnabledNetworksCount,
+  } = useNetworksByCustomNamespace({
     networkType: NetworkType.Popular,
+    namespace: KnownCaipNamespace.Eip155,
   });
 
-  const { areAllNetworksSelected: areAllEvmPopularNetworksEnabled } =
-    useNetworksByCustomNamespace({
-      networkType: NetworkType.Popular,
-      namespace: KnownCaipNamespace.Eip155,
-    });
+  const displayAllNetworks = totalEnabledNetworksCount > 1;
+  const showNetworkFilterAvatar =
+    !displayAllNetworks && !areAllEvmPopularNetworksEnabled;
 
   const currentNetworkName = getNetworkInfo(0)?.networkName;
 
@@ -255,7 +259,7 @@ const ActivityView = () => {
                   label={
                     <>
                       <View style={styles.networkManagerWrapper}>
-                        {!areAllNetworksSelected && (
+                        {showNetworkFilterAvatar && (
                           <Avatar
                             variant={AvatarVariant.Network}
                             size={AvatarSize.Xs}
@@ -267,7 +271,7 @@ const ActivityView = () => {
                           variant={TextVariant.BodyMDMedium}
                           numberOfLines={1}
                         >
-                          {enabledNetworks.length > 1
+                          {displayAllNetworks
                             ? strings('wallet.popular_networks')
                             : (currentNetworkName ??
                               strings('wallet.current_network'))}

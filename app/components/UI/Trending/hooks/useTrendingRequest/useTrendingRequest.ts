@@ -1,12 +1,14 @@
 import { useCallback, useMemo, useEffect, useState, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import type { CaipChainId } from '@metamask/utils';
 import {
   getTrendingTokens,
-  SortTrendingBy,
+  TrendingTokensQueryParams,
 } from '@metamask/assets-controllers';
 import { useStableArray } from '../../../Perps/hooks/useStableArray';
 import { TRENDING_NETWORKS_LIST } from '../../utils/trendingNetworksList';
 import { NetworkToCaipChainId } from '../../../NetworkMultiSelector/NetworkMultiSelector.constants';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 
 /**
  * Baseline thresholds for multi-chain requests
@@ -140,24 +142,23 @@ interface FetchOptions {
  * Hook for handling trending tokens request
  * @returns {Object} An object containing the trending tokens results, loading state, error, and a function to trigger fetch
  */
-export const useTrendingRequest = (options: {
-  chainIds?: CaipChainId[];
-  sortBy?: SortTrendingBy;
-  minLiquidity?: number;
-  minVolume24hUsd?: number;
-  maxVolume24hUsd?: number;
-  minMarketCap?: number;
-  maxMarketCap?: number;
-}) => {
+export const useTrendingRequest = (
+  options: {
+    chainIds?: CaipChainId[];
+  } & TrendingTokensQueryParams,
+) => {
   const {
     chainIds: providedChainIds = [],
-    sortBy = 'h24_trending',
+    sort = 'h24_trending',
     minLiquidity: providedMinLiquidity,
     minVolume24hUsd: providedMinVolume24hUsd,
     maxVolume24hUsd,
     minMarketCap = 0,
     maxMarketCap,
   } = options;
+
+  // Get user's selected currency from Redux store (default to 'usd' if not set)
+  const currentCurrency = useSelector(selectCurrentCurrency) || 'usd';
 
   // Use provided chainIds or default to trending networks
   const chainIds = useMemo((): CaipChainId[] => {
@@ -168,13 +169,17 @@ export const useTrendingRequest = (options: {
   }, [providedChainIds]);
 
   // Calculate thresholds based on selected chains
-  const minLiquidity = useMemo(
-    () => providedMinLiquidity ?? getMinLiquidityForChains(chainIds),
+  const minLiquidity: number = useMemo(
+    () =>
+      (providedMinLiquidity as number | undefined) ??
+      getMinLiquidityForChains(chainIds),
     [providedMinLiquidity, chainIds],
   );
 
-  const minVolume24hUsd = useMemo(
-    () => providedMinVolume24hUsd ?? getMinVolume24hForChains(chainIds),
+  const minVolume24hUsd: number = useMemo(
+    () =>
+      (providedMinVolume24hUsd as number | undefined) ??
+      getMinVolume24hForChains(chainIds),
     [providedMinVolume24hUsd, chainIds],
   );
 
@@ -217,7 +222,7 @@ export const useTrendingRequest = (options: {
       try {
         const resultsToStore = await getTrendingTokens({
           chainIds: stableChainIds,
-          sortBy,
+          sort,
           minLiquidity,
           minVolume24hUsd,
           maxVolume24hUsd,
@@ -225,6 +230,7 @@ export const useTrendingRequest = (options: {
           maxMarketCap,
           excludeLabels: ['stable_coin', 'blue_chip'],
           includeTokenSecurityData: true,
+          vsCurrency: currentCurrency.toLowerCase(),
         });
         // Only update state if this is still the current request
         if (currentRequestId === requestIdRef.current) {
@@ -246,12 +252,13 @@ export const useTrendingRequest = (options: {
     },
     [
       stableChainIds,
-      sortBy,
+      sort,
       minLiquidity,
       minVolume24hUsd,
       maxVolume24hUsd,
       minMarketCap,
       maxMarketCap,
+      currentCurrency,
     ],
   );
 

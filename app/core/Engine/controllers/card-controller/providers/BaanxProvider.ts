@@ -1531,9 +1531,9 @@ export class BaanxProvider implements ICardProvider {
   }
 
   /**
-   * Merges user's delegated assets with all tokens from delegation settings.
-   * Tokens already in `assets` (matched by token contract address + chainId) are kept.
-   * Additional tokens from settings are added as inactive with zero balance.
+   * Enriches funding assets with `delegationContract` from matching networks.
+   * Inactive placeholders are synthesized by `selectCardAvailableTokens` so
+   * they reflect the current wallet without requiring a refetch.
    */
   private buildSupportedTokens(
     fundingAssets: CardFundingAsset[],
@@ -1555,50 +1555,11 @@ export class BaanxProvider implements ICardProvider {
       const info =
         cardNetworkInfos[networkName as keyof typeof cardNetworkInfos];
       const chainId = info?.caipChainId ?? `eip155:${network.chainId}`;
-      const isNonProduction = network.environment !== 'production';
 
-      // Enrich existing assets with delegationContract from their matching network
       for (const existing of result) {
         if (existing.chainId === chainId && !existing.delegationContract) {
           existing.delegationContract = network.delegationContract;
         }
-      }
-
-      for (const tokenConfig of Object.values(network.tokens ?? {})) {
-        if (!tokenConfig.address) continue;
-
-        const alreadyExists = result.some(
-          (a) =>
-            a.address?.toLowerCase() === tokenConfig.address.toLowerCase() &&
-            a.chainId === chainId,
-        );
-        if (alreadyExists) continue;
-
-        const chainTokens =
-          this.cardFeatureFlag?.chains?.[chainId]?.tokens ?? [];
-        const sdkToken = chainTokens.find(
-          (t) => t?.symbol?.toLowerCase() === tokenConfig.symbol?.toLowerCase(),
-        );
-
-        result.push({
-          symbol: sdkToken?.symbol ?? tokenConfig.symbol,
-          name: sdkToken?.name ?? tokenConfig.symbol,
-          address:
-            isNonProduction && sdkToken?.address
-              ? sdkToken.address
-              : tokenConfig.address,
-          walletAddress: '',
-          decimals: tokenConfig.decimals,
-          chainId,
-          spendableBalance: '0',
-          spendingCap: '0',
-          priority: Number.MAX_SAFE_INTEGER,
-          status: FundingAssetStatus.Inactive,
-          stagingTokenAddress: isNonProduction
-            ? tokenConfig.address
-            : undefined,
-          delegationContract: network.delegationContract,
-        });
       }
     }
 

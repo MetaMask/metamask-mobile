@@ -150,8 +150,13 @@ export const usePredictBuyConditions = ({
       return null;
     }
 
-    return `${selectedPaymentTokenKey}:${totalPayForPredictBalance}`;
-  }, [selectedPaymentTokenKey, totalPayForPredictBalance]);
+    const amountValue = totalPayForPredictBalance || currentValue;
+    const roundedQuoteAmount = new BigNumber(amountValue)
+      .decimalPlaces(2, BigNumber.ROUND_UP)
+      .toString(10);
+
+    return `${selectedPaymentTokenKey}:${roundedQuoteAmount}`;
+  }, [currentValue, selectedPaymentTokenKey, totalPayForPredictBalance]);
 
   // Tracks the token/amount pair for which a full quote-loading cycle has
   // completed. Keeping the amount in the key makes same-token amount changes

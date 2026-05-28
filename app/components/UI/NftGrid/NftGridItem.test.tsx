@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, act, waitFor } from '@testing-library/react-native';
 import { Nft } from '@metamask/assets-controllers';
+import TestRenderer from 'react-test-renderer';
 import NftGridItem from './NftGridItem';
 
 let mockDisplayNftMedia = true;
@@ -190,5 +191,39 @@ describe('NftGridItem', () => {
     await waitFor(() => {
       expect(queryByTestId('nft-skeleton')).not.toBeNull();
     });
+  });
+
+  it('applies caller style after pressed state styles', () => {
+    const customStyle = { marginHorizontal: 12 };
+
+    let renderer: TestRenderer.ReactTestRenderer | undefined;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    TestRenderer.act(() => {
+      // eslint-disable-next-line @typescript-eslint/no-deprecated
+      renderer = TestRenderer.create(
+        <NftGridItem
+          item={mockNft}
+          onLongPress={mockOnLongPress}
+          source="mobile-nft-list"
+          style={customStyle}
+        />,
+      );
+    });
+
+    if (!renderer) {
+      throw new Error('NftGridItem failed to render');
+    }
+
+    const pressable = renderer.root.findByProps({
+      testID: 'collectible-Test NFT-456',
+    });
+    const resolvedStyle = pressable.props.style({ pressed: true });
+
+    expect(resolvedStyle).toEqual([
+      expect.objectContaining({
+        'self-stretch mb-3': true,
+      }),
+      customStyle,
+    ]);
   });
 });
