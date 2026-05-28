@@ -135,10 +135,10 @@ export const EditMultichainAccountName = () => {
             }}
             placeholder={initialName}
             isError={Boolean(error)}
+            autoFocus
             inputProps={{
               testID: EditAccountNameIds.ACCOUNT_NAME_INPUT,
               spellCheck: false,
-              autoFocus: true,
               keyboardAppearance: themeAppearance,
               autoCapitalize: 'none',
             }}
