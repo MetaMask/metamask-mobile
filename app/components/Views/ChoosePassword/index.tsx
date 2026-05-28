@@ -364,15 +364,7 @@ const ChoosePassword = () => {
 
         const resetAction = CommonActions.reset({
           index: 0,
-          routes: [
-            {
-              name: Routes.ONBOARDING.SUCCESS_FLOW,
-              params: {
-                screen: Routes.ONBOARDING.SUCCESS,
-                params: { showPasswordHint: true },
-              },
-            },
-          ],
+          routes: [{ name: 'HomeNav' }],
         });
         navigation.dispatch(resetAction);
       } else {
