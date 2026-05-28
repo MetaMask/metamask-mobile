@@ -22,6 +22,16 @@ describe('ListItemMultiSelectButton', () => {
     expect(getByTestId(ROW_TEST_ID)).toBeOnTheScreen();
   });
 
+  it('exposes accessibilityRole="button" on the row', () => {
+    const { getByTestId } = render(
+      <ListItemMultiSelectButton>
+        <View />
+      </ListItemMultiSelectButton>,
+    );
+
+    expect(getByTestId(ROW_TEST_ID).props.accessibilityRole).toBe('button');
+  });
+
   it('calls onPress when the button is pressed', () => {
     const mockOnPress = jest.fn();
 

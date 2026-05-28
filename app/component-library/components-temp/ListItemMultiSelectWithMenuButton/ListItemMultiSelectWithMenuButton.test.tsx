@@ -21,6 +21,15 @@ describe('ListItemMultiSelectWithMenuButton', () => {
     expect(getByTestId(ROW_TEST_ID)).toBeOnTheScreen();
   });
 
+  it('exposes accessibilityRole="button" on the row', () => {
+    const { getByTestId } = render(
+      <ListItemMultiSelectWithMenuButton>
+        <View />
+      </ListItemMultiSelectWithMenuButton>,
+    );
+    expect(getByTestId(ROW_TEST_ID).props.accessibilityRole).toBe('button');
+  });
+
   it('should not render checkbox icon when isSelected is false', () => {
     const { queryByTestId } = render(
       <ListItemMultiSelectWithMenuButton>

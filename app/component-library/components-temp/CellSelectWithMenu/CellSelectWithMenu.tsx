@@ -2,7 +2,7 @@
 
 // Third library dependencies.
 import React from 'react';
-import { TouchableWithoutFeedback, View } from 'react-native';
+import { View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../hooks';
@@ -75,27 +75,25 @@ const CellSelectWithMenu = ({
           )}
           {!!secondaryText &&
             (props.onTextClick ? (
-              <TouchableWithoutFeedback>
-                <Pressable
-                  style={styles.containerRow}
-                  onPress={props.onTextClick}
+              <Pressable
+                style={styles.containerRow}
+                onPress={props.onTextClick}
+              >
+                <Text
+                  numberOfLines={1}
+                  variant={DEFAULT_CELLBASE_AVATAR_SECONDARYTEXT_TEXTVARIANT}
+                  style={styles.secondaryText}
                 >
-                  <Text
-                    numberOfLines={1}
-                    variant={DEFAULT_CELLBASE_AVATAR_SECONDARYTEXT_TEXTVARIANT}
-                    style={styles.secondaryText}
-                  >
-                    {secondaryText}
-                  </Text>
-                  {showSecondaryTextIcon && (
-                    <Icon
-                      name={IconName.ArrowDown}
-                      size={IconSize.Xss}
-                      style={styles.arrowStyle}
-                    />
-                  )}
-                </Pressable>
-              </TouchableWithoutFeedback>
+                  {secondaryText}
+                </Text>
+                {showSecondaryTextIcon && (
+                  <Icon
+                    name={IconName.ArrowDown}
+                    size={IconSize.Xss}
+                    style={styles.arrowStyle}
+                  />
+                )}
+              </Pressable>
             ) : (
               <View style={styles.containerRow}>
                 <Text
