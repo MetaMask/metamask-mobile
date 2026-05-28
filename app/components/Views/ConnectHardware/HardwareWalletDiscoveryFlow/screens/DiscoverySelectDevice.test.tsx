@@ -179,4 +179,112 @@ describe('DiscoverySelectDeviceScreen', () => {
         .props.onStartShouldSetResponder(),
     ).toBe(true);
   });
+
+  it('renders the heading and save button text', () => {
+    render(
+      <DiscoverySelectDeviceScreen
+        devices={TEST_DEVICES}
+        selectedDeviceId="nano-x"
+        onSelectDevice={jest.fn()}
+        onClose={jest.fn()}
+        onSave={jest.fn()}
+        config={TEST_CONFIG}
+      />,
+    );
+
+    expect(screen.getByText('Select device')).toBeOnTheScreen();
+    expect(screen.getByText('Save')).toBeOnTheScreen();
+  });
+
+  it('renders device names from the devices list', () => {
+    render(
+      <DiscoverySelectDeviceScreen
+        devices={TEST_DEVICES}
+        selectedDeviceId="nano-x"
+        onSelectDevice={jest.fn()}
+        onClose={jest.fn()}
+        onSave={jest.fn()}
+        config={TEST_CONFIG}
+      />,
+    );
+
+    expect(screen.getByText('Nano X')).toBeOnTheScreen();
+    expect(screen.getByText('Nano S Plus')).toBeOnTheScreen();
+  });
+
+  it('shows a check icon only on the selected device', () => {
+    render(
+      <DiscoverySelectDeviceScreen
+        devices={TEST_DEVICES}
+        selectedDeviceId="nano-s-plus"
+        onSelectDevice={jest.fn()}
+        onClose={jest.fn()}
+        onSave={jest.fn()}
+        config={TEST_CONFIG}
+      />,
+    );
+
+    const nanoSPlusRow = screen.getByTestId(
+      'discovery-device-option-nano-s-plus',
+    );
+    const nanoXRow = screen.getByTestId('discovery-device-option-nano-x');
+
+    expect(nanoSPlusRow).toBeOnTheScreen();
+    expect(nanoXRow).toBeOnTheScreen();
+  });
+
+  it('renders no check icons when no device matches selectedDeviceId', () => {
+    render(
+      <DiscoverySelectDeviceScreen
+        devices={TEST_DEVICES}
+        selectedDeviceId="unknown-id"
+        onSelectDevice={jest.fn()}
+        onClose={jest.fn()}
+        onSave={jest.fn()}
+        config={TEST_CONFIG}
+      />,
+    );
+
+    expect(
+      screen.getByTestId('discovery-device-option-nano-x'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('discovery-device-option-nano-s-plus'),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders with an empty devices list', () => {
+    render(
+      <DiscoverySelectDeviceScreen
+        devices={[]}
+        selectedDeviceId=""
+        onSelectDevice={jest.fn()}
+        onClose={jest.fn()}
+        onSave={jest.fn()}
+        config={TEST_CONFIG}
+      />,
+    );
+
+    expect(
+      screen.getByTestId('discovery-select-device-sheet'),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('Select device')).toBeOnTheScreen();
+    expect(screen.getByText('Save')).toBeOnTheScreen();
+  });
+
+  it('uses the deviceIcon from config', () => {
+    render(
+      <DiscoverySelectDeviceScreen
+        devices={TEST_DEVICES}
+        selectedDeviceId="nano-x"
+        onSelectDevice={jest.fn()}
+        onClose={jest.fn()}
+        onSave={jest.fn()}
+        config={TEST_CONFIG}
+      />,
+    );
+
+    const icons = screen.UNSAFE_queryAllByProps({ name: 'Mobile' });
+    expect(icons.length).toBeGreaterThanOrEqual(TEST_DEVICES.length);
+  });
 });

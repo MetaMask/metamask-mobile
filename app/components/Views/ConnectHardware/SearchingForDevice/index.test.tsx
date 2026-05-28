@@ -108,4 +108,30 @@ describe('SearchingForDevice', () => {
       'Ledger searching animation stopped',
     );
   });
+
+  it('clears the timeout on unmount', () => {
+    const { unmount } = renderWithProvider(<SearchingForDevice />, {
+      state: initialState,
+    });
+
+    unmount();
+
+    act(() => {
+      jest.advanceTimersByTime(500);
+    });
+
+    expect(__mockRiveFireState).not.toHaveBeenCalled();
+  });
+
+  it('renders the Rive animation with correct props', () => {
+    renderWithProvider(<SearchingForDevice />, { state: initialState });
+
+    const rive = screen.getByTestId('ledger-searching-animation');
+    expect(rive).toBeOnTheScreen();
+    expect(rive.props.autoplay).toBe(true);
+    expect(rive.props.fit).toBe('contain');
+    expect(rive.props.alignment).toBe('center');
+    expect(rive.props.artboardName).toBe('Ledger');
+    expect(rive.props.stateMachineName).toBe('Ledger_states');
+  });
 });
