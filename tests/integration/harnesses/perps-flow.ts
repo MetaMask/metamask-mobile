@@ -7,8 +7,8 @@
  * etc.) and exercise the chain ALL the way from hook → Engine →
  * shim controller → real TradingService → real provider → mocked SDK.
  * Catches bugs that live in the hook → controller wiring AND inside
- * TradingService (e.g. the perps reverse-position bug, where TradingService
- * constructs `OrderParams` without `currentPrice` and the provider rejects).
+ * TradingService, including multi-step flows where service-generated
+ * `OrderParams` must stay compatible with provider validation.
  *
  * Both harnesses coexist intentionally:
  *   - `perps.ts`        → Shape A. Fast, sharp failure isolation. Best for
@@ -23,8 +23,7 @@
  *   - `TradingService` — instantiated with the harness's mocked platform deps
  *   - `HyperLiquidProvider` (instantiated through the inner perps harness)
  *   - All in-memory state transitions, validation, asset mapping
- *   - The seam between TradingService and provider — where the perps
- *     reverse-position bug lives
+ *   - The seam between TradingService and provider
  *
  * MOCKED (the I/O boundary + non-perps app surface):
  *   - SDK clients, wallet, subscription cache, readiness cache (via inner harness)
@@ -115,8 +114,8 @@ import {
   type PerpsIntegrationHarness,
   type PerpsHarnessOptions,
 } from './perps';
-import { TradingService } from '../../../app/controllers/perps/services/TradingService';
-import type { ServiceContext } from '../../../app/controllers/perps/services/ServiceContext';
+import { TradingService } from '@metamask/perps-controller/services/TradingService';
+import type { ServiceContext } from '@metamask/perps-controller';
 import { createMockInfrastructure } from '../../../app/components/UI/Perps/__mocks__/serviceMocks';
 
 export interface PerpsFlowHarness {
@@ -196,6 +195,7 @@ export function buildPerpsFlowHarness(
         provider: harness.provider,
         params,
         context: buildServiceContext('closePosition'),
+        reportOrderToDataLake,
       }),
     flipPosition: (params: { position: unknown }) =>
       tradingService.flipPosition({

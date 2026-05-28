@@ -20,6 +20,7 @@
  */
 
 import { renderHook, act } from '@testing-library/react-native';
+import { type OrderResult, type Position } from '@metamask/perps-controller';
 
 import { buildPerpsFlowHarness } from '../../../../../tests/integration/harnesses/perps-flow';
 import { usePerpsTrading } from '../hooks/usePerpsTrading';
@@ -73,22 +74,20 @@ describe('Perps order lifecycle — FLOW integration', () => {
    *     → result.current.flipPosition({ position })
    *       → Engine.context.PerpsController.flipPosition (shim)
    *         → real TradingService.flipPosition
-   *           → constructs OrderParams with size=2x, no currentPrice
+   *           → constructs OrderParams with size=2x
    *           → real provider.placeOrder(orderParams)
-   *             → real validateOrder
-   *               → returns ORDER_PRICE_REQUIRED (production bug)
+   *             → fetches live price for validation
+   *             → mocked SDK exchange.order
    *
-   * Shape A could only catch the bug by calling `provider.validateOrder`
-   * directly. Shape B catches it through the actual user-facing chain —
-   * proving the TradingService → provider seam is genuinely covered.
+   * Shape B catches the actual user-facing chain, proving the
+   * TradingService → provider seam is genuinely covered.
    */
-  describe('reversing a position via the hook chain (production bug)', () => {
-    it('reproduces the ORDER_PRICE_REQUIRED bug end-to-end', async () => {
+  describe('reversing a position via the hook chain', () => {
+    it('places the flip market order end-to-end', async () => {
       // Arrange
       const { harness } = buildPerpsFlowHarness();
       harness.setupTradingReady();
-      const openLongBTC = {
-        coin: 'BTC',
+      const openLongBTC: Position = {
         symbol: 'BTC',
         size: '0.1', // positive = long; flipPosition will compute 2x = 0.2
         entryPrice: '50000',
@@ -100,30 +99,39 @@ describe('Perps order lifecycle — FLOW integration', () => {
         maxLeverage: 50,
         returnOnEquity: '0',
         cumulativeFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
+        takeProfitCount: 0,
+        stopLossCount: 0,
       };
       const { result } = renderHook(() => usePerpsTrading());
 
       // Act — through the real hook → real TradingService → real provider chain
-      let flipResult: Awaited<
-        ReturnType<typeof result.current.flipPosition>
-      > | null = null;
+      let flipResult: OrderResult | null = null;
       await act(async () => {
         flipResult = await result.current.flipPosition({
-          position: openLongBTC as never,
+          symbol: 'BTC',
+          position: openLongBTC,
         });
       });
 
-      // Assert — flipPosition returns a failed result with the right error
-      // code. The bug is reachable because TradingService constructs the
-      // OrderParams without `currentPrice`, and the real provider's
-      // `validateOrder` rejects market orders without a price.
+      // Assert — flipPosition succeeds because the provider fetches the
+      // current market price before running order validation.
       expect(flipResult).not.toBeNull();
-      expect(flipResult).toMatchObject({ success: false });
-      expect((flipResult as { error: string }).error).toMatch(
-        /ORDER_PRICE_REQUIRED/,
+      if (!flipResult) {
+        throw new Error('Expected flipPosition to return a result');
+      }
+      expect(flipResult).toMatchObject({ success: true });
+      expect(harness.mocks.exchangeClient.order).toHaveBeenCalledTimes(1);
+      expect(harness.mocks.exchangeClient.order).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orders: [
+            expect.objectContaining({
+              a: 0,
+              b: false,
+              t: { limit: { tif: 'FrontendMarket' } },
+            }),
+          ],
+        }),
       );
-      // SDK was never called — validation aborted the flow before placement.
-      expect(harness.mocks.exchangeClient.order).not.toHaveBeenCalled();
     });
   });
 });

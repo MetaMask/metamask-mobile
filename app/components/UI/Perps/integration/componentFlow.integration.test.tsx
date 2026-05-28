@@ -8,10 +8,14 @@
  */
 
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { type Position } from '@metamask/perps-controller';
 import React from 'react';
 
 import { buildPerpsComponentHarness } from '../../../../../tests/integration/harnesses/perps-component';
-import { PerpsFlipPositionConfirmSheetSelectorsIDs , PerpsOrderViewSelectorsIDs } from '../Perps.testIds';
+import {
+  PerpsFlipPositionConfirmSheetSelectorsIDs,
+  PerpsOrderViewSelectorsIDs,
+} from '../Perps.testIds';
 import PerpsFlipPositionConfirmSheet from '../components/PerpsFlipPositionConfirmSheet';
 import PerpsOrderView from '../Views/PerpsOrderView/PerpsOrderView';
 
@@ -81,13 +85,12 @@ describe('Perps component flows — integration', () => {
   });
 
   describe('reversing a position from a rendered confirmation sheet', () => {
-    it('surfaces ORDER_PRICE_REQUIRED from a rendered flip button press', async () => {
+    it('submits the flip market order from a rendered button press', async () => {
       // Arrange
       const perps = buildPerpsComponentHarness();
       try {
         perps.harness.setupTradingReady();
-        const openLongBTC = {
-          coin: 'BTC',
+        const openLongBTC: Position = {
           symbol: 'BTC',
           size: '0.1',
           entryPrice: '50000',
@@ -99,6 +102,8 @@ describe('Perps component flows — integration', () => {
           maxLeverage: 50,
           returnOnEquity: '0',
           cumulativeFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
+          takeProfitCount: 0,
+          stopLossCount: 0,
         };
         perps.renderWithFlow(
           <PerpsFlipPositionConfirmSheet position={openLongBTC} />,
@@ -113,20 +118,28 @@ describe('Perps component flows — integration', () => {
 
         // Assert
         await waitFor(() => {
-          expect(perps.mocks.showToast).toHaveBeenCalledWith(
-            expect.objectContaining({
-              labelOptions: expect.arrayContaining([
-                expect.objectContaining({
-                  label: 'Order failed',
-                }),
-              ]),
-            }),
-          );
+          expect(perps.mocks.exchangeClient.order).toHaveBeenCalledTimes(1);
         });
-        expect(perps.mocks.exchangeClient.order).not.toHaveBeenCalled();
-        expect(
-          screen.getByTestId(PerpsFlipPositionConfirmSheetSelectorsIDs.SHEET),
-        ).toBeOnTheScreen();
+        expect(perps.mocks.exchangeClient.order).toHaveBeenCalledWith(
+          expect.objectContaining({
+            orders: [
+              expect.objectContaining({
+                a: 0,
+                b: false,
+                t: { limit: { tif: 'FrontendMarket' } },
+              }),
+            ],
+          }),
+        );
+        expect(perps.mocks.showToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            labelOptions: expect.arrayContaining([
+              expect.objectContaining({
+                label: 'Order filled',
+              }),
+            ]),
+          }),
+        );
       } finally {
         perps.teardown();
       }

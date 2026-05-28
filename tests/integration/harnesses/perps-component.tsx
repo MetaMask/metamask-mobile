@@ -45,7 +45,8 @@ jest.mock('react-native-gesture-handler', () => {
       Simultaneous: jest.fn((...gestures) => gestures),
     },
     PanGestureHandler: ReactActual.forwardRef(
-      ({ children }: { children: React.ReactNode }, _ref) => children,
+      ({ children }: { children: React.ReactNode }, _ref: React.Ref<unknown>) =>
+        children,
     ),
   };
 });
@@ -184,11 +185,15 @@ import {
   PerpsStreamProvider,
   type PerpsStreamManager,
 } from '../../../app/components/UI/Perps/providers/PerpsStreamManager';
+import type {
+  ToastOptions,
+  ToastRef,
+} from '../../../app/component-library/components/Toast/Toast.types';
 import { AccessRestrictedProvider } from '../../../app/components/UI/Compliance';
 import Routes from '../../../app/constants/navigation/Routes';
 import { initialStatePerps } from '../../component-view/presets/perpsStatePreset';
 
-type ToastOptionsForHarness = Record<string, unknown>;
+type ToastOptionsForHarness = ToastOptions;
 
 interface PerpsComponentRenderOptions {
   stateOverrides?: DeepPartial<RootState>;
@@ -319,7 +324,9 @@ export function buildPerpsComponentHarness(
   const flowHarness = buildPerpsFlowHarness(options);
   const showToast = jest.fn<void, [ToastOptionsForHarness]>();
   const closeToast = jest.fn<void, []>();
-  const toastRef = { current: { showToast, closeToast } };
+  const toastRef: React.RefObject<ToastRef | null> = {
+    current: { showToast, closeToast },
+  };
 
   const renderWithFlow = (
     component: React.ReactElement,

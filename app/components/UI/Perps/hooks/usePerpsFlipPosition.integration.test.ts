@@ -1,16 +1,15 @@
 /**
- * Integration test — perps "reverse position" flow.
+ * Integration test — perps validation contract for flip-shaped market orders.
  *
  * Sits next to `usePerpsFlipPosition.test.ts` (a unit test that mocks
  * `usePerpsTrading` wholesale and never reaches the provider). This file
- * exercises the REAL `HyperLiquidProvider.validateOrder` against the exact
- * `OrderParams` shape `TradingService.flipPosition` constructs today.
+ * exercises the REAL `HyperLiquidProvider.validateOrder` against a
+ * flip-shaped market order without caller-provided price data.
  *
- * The bug: market reverse orders aren't given `currentPrice`. Validator's
- * fallback only fires for `orderType === 'limit'`. Result: aborts with
- * `ORDER_PRICE_REQUIRED`. See `app/controllers/perps/providers/HyperLiquidProvider.ts`
- * line ~6745–6770 (validateOrder) and `services/TradingService.ts` line
- * ~1918 (flipPosition).
+ * Direct validation still requires either `currentPrice` or `usdAmount`.
+ * The full TradingService/provider place-order path fetches live price data
+ * before validation, so the user-facing flip flow is covered separately by
+ * `orderLifecycleFlow.integration.test.ts`.
  *
  * Setup is delegated to the perps integration harness — see
  * `tests/integration/harnesses/perps.ts` (rules + factory) and
@@ -23,14 +22,13 @@
 import { buildPerpsIntegrationHarness } from '../../../../../tests/integration/harnesses/perps';
 import { PERPS_ERROR_CODES } from '@metamask/perps-controller';
 
-describe('Perps reverse position — integration', () => {
-  describe('reproduces the production bug', () => {
-    it('rejects a flip-position market order with ORDER_PRICE_REQUIRED', async () => {
+describe('Perps reverse position validation — integration', () => {
+  describe('direct provider validation', () => {
+    it('rejects a market order without price context', async () => {
       const { provider } = buildPerpsIntegrationHarness();
 
-      // Exact OrderParams shape that `TradingService.flipPosition` constructs
-      // when reversing a 1-BTC long: 2x size, market, opposite side,
-      // no currentPrice, no usdAmount.
+      // Flip-shaped order params: 2x size, market, opposite side,
+      // no caller-provided currentPrice, no usdAmount.
       const result = await provider.validateOrder({
         symbol: 'BTC',
         isBuy: false,
@@ -43,7 +41,7 @@ describe('Perps reverse position — integration', () => {
     });
   });
 
-  describe('confirms the bug surface', () => {
+  describe('valid price contexts', () => {
     it('passes when usdAmount is provided (one possible fix shape)', async () => {
       const { provider } = buildPerpsIntegrationHarness();
 
