@@ -14,8 +14,11 @@ const allTrue = (conditionArray: boolean[]): boolean =>
   conditionArray.length > 0 && conditionArray.every(Boolean);
 
 /**
- * Legacy Perps screen views that reuse OPEN_POSITION for a non-position count.
- * Skip Asset Viewed for these flows rather than emit incomplete payloads.
+ * Perps screen types excluded from the parallel Asset Viewed emission.
+ *
+ * `screen_type: 'cancel_all_orders'` (PERPS_EVENT_VALUE.SCREEN_TYPE.CANCEL_ALL_ORDERS)
+ * sends open-order count in legacy `open_position`. `mergeAssetViewedProperties`
+ * would map that to `open_positions_count`, so we skip Asset Viewed for this flow.
  */
 const PERPS_SCREEN_TYPES_SKIP_ASSET_VIEWED: ReadonlySet<string> = new Set([
   PERPS_EVENT_VALUE.SCREEN_TYPE.CANCEL_ALL_ORDERS,
