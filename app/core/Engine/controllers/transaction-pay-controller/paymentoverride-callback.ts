@@ -7,6 +7,7 @@ import {
 import {
   PaymentOverride,
   type GetPaymentOverrideDataRequest,
+  type GetPaymentOverrideDataResponse,
 } from '@metamask/transaction-pay-controller';
 import type { Hex } from '@metamask/utils';
 import { getMoneyAccountWithdrawTransactionsData } from '../../../../components/UI/Money/utils/moneyAccountTransactions';
@@ -75,18 +76,19 @@ async function getMoneyAccountWithdrawPaymentOverrideData<
 export async function getPaymentOverrideData<T extends SignMessenger>(
   request: GetPaymentOverrideDataRequest,
   messenger: T,
-): Promise<BatchTransactionParams[]> {
+): Promise<GetPaymentOverrideDataResponse> {
   const { amount, transaction, transactionData } = request;
 
   if (transactionData?.paymentOverride === PaymentOverride.MoneyAccount) {
-    if (!transaction.txParams?.from) return [];
+    if (!transaction.txParams?.from) return { calls: [] };
 
-    return getMoneyAccountWithdrawPaymentOverrideData(
+    const calls = await getMoneyAccountWithdrawPaymentOverrideData(
       messenger,
       transaction.txParams.from as Hex,
       amount,
     );
+    return { calls };
   }
 
-  return [];
+  return { calls: [] };
 }
