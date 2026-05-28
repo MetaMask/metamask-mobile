@@ -7535,6 +7535,7 @@
     "batch_sell_high_price_impact": "High price impact",
     "batch_sell_high_price_impact_description": "This trade has an estimated {{priceImpact}} price impact, which reflects how much your trade changes the market price. The quote already reflects this.",
     "batch_sell_review": "Review",
+    "batch_sell_searching_best_quotes": "Searching for best quotes",
     "batch_sell_you_sell": "You sell",
     "batch_sell_token_count": "{{tokenCount}} tokens",
     "batch_sell_toggle_you_sell": "Toggle token details",
