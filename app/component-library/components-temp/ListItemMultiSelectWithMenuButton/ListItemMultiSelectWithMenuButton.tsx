@@ -45,20 +45,20 @@ const ListItemMultiSelectWithMenuButton: React.FC<
   });
 
   return (
-    <View style={styles.container}>
-      <Pressable
-        testID={ROW_TEST_ID}
-        style={styles.base}
-        disabled={isDisabled}
-        onPress={props.onPress}
-        onLongPress={props.onLongPress}
-        {...props}
-      >
+    <Pressable
+      testID={ROW_TEST_ID}
+      style={styles.container}
+      disabled={isDisabled}
+      onPress={props.onPress}
+      onLongPress={props.onLongPress}
+      {...props}
+    >
+      <View style={styles.base}>
         <ListItem gap={gap} style={styles.containerColumn}>
           <Checkbox isChecked={isSelected} onPressIn={props.onPress} />
           {children}
         </ListItem>
-      </Pressable>
+      </View>
       {showButtonIcon ? (
         <View style={styles.buttonIcon}>
           <ButtonIcon
@@ -70,7 +70,7 @@ const ListItemMultiSelectWithMenuButton: React.FC<
           />
         </View>
       ) : null}
-    </View>
+    </Pressable>
   );
 };
 

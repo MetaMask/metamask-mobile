@@ -48,19 +48,19 @@ const ListItemMultiSelectButton: React.FC<ListItemMultiSelectButtonProps> = ({
   });
 
   return (
-    <View style={styles.container}>
-      <Pressable
-        testID={ROW_TEST_ID}
-        style={styles.base}
-        disabled={isDisabled}
-        onPress={props.onPress}
-        onLongPress={props.onPress}
-        {...props}
-      >
+    <Pressable
+      testID={ROW_TEST_ID}
+      style={styles.container}
+      disabled={isDisabled}
+      onPress={props.onPress}
+      onLongPress={props.onPress}
+      {...props}
+    >
+      <View style={styles.base}>
         <ListItem gap={gap} style={styles.containerColumn}>
           {children}
         </ListItem>
-      </Pressable>
+      </View>
       {showButtonIcon ? (
         <View style={styles.buttonIcon}>
           <ButtonIcon
@@ -84,7 +84,7 @@ const ListItemMultiSelectButton: React.FC<ListItemMultiSelectButtonProps> = ({
           />
         </View>
       ) : null}
-    </View>
+    </Pressable>
   );
 };
 
