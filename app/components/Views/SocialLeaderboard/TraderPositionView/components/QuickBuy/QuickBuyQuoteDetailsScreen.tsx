@@ -17,7 +17,6 @@ import {
 } from '../../../../../../component-library/components-temp/KeyValueRow';
 import { IconName as IconNameLegacy } from '../../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../../constants/navigation/Routes';
-import type { Hex } from '@metamask/utils';
 import { useQuickBuyContext } from './useQuickBuyContext';
 import QuickBuySubScreenHeader from './components/QuickBuySubScreenHeader';
 import QuickBuyQuoteCountdown from './components/QuickBuyQuoteCountdown';
@@ -43,17 +42,13 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
     setActiveScreen,
   } = useQuickBuyContext();
 
-  const sourceChainId = sourceToken?.chainId
-    ? (`0x${Number(sourceToken.chainId).toString(16)}` as Hex)
-    : undefined;
-  const destChainId = destToken?.chainId
-    ? (`0x${Number(destToken.chainId).toString(16)}` as Hex)
-    : undefined;
-
   const handleEditSlippage = () => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.SWAP_DEFAULT_SLIPPAGE_MODAL,
-      params: { sourceChainId, destChainId },
+      params: {
+        sourceChainId: sourceToken?.chainId,
+        destChainId: destToken?.chainId,
+      },
     });
   };
 

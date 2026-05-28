@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import Routes from '../../../../../../constants/navigation/Routes';
 import QuickBuyQuoteDetailsScreen from './QuickBuyQuoteDetailsScreen';
 import { useQuickBuyContext } from './useQuickBuyContext';
 
@@ -126,10 +127,21 @@ describe('QuickBuyQuoteDetailsScreen', () => {
     expect(setActiveScreen).toHaveBeenCalledWith('selectQuote');
   });
 
-  it('navigates to slippage modal when edit slippage is pressed', () => {
+  it('navigates to slippage modal with token chainIds (including CAIP)', () => {
+    const sourceChainId = '0x1' as const;
+    const destChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+    (useQuickBuyContext as jest.Mock).mockReturnValue(
+      buildContext({
+        sourceToken: { chainId: sourceChainId },
+        destToken: { chainId: destChainId },
+      }),
+    );
     render(<QuickBuyQuoteDetailsScreen />);
     fireEvent.press(screen.getByTestId('quick-buy-edit-slippage'));
-    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.SWAP_DEFAULT_SLIPPAGE_MODAL,
+      params: { sourceChainId, destChainId },
+    });
   });
 
   it('calls setActiveScreen("amount") when back is pressed', () => {
