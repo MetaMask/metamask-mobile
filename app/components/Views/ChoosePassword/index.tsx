@@ -61,7 +61,6 @@ import {
   AccountType,
   getSocialAccountType,
 } from '../../../constants/onboarding';
-import { discoverAccounts } from '../../../multichain-accounts/discovery';
 import type {
   IMetaMetricsEvent,
   ITrackingEvent,
@@ -120,7 +119,6 @@ interface ExtendedKeyringController {
 }
 
 const ChoosePassword = () => {
-  const SOCIAL_DISCOVERY_TIMEOUT_MS = 3000;
   const { colors, themeAppearance } = useContext(ThemeContext);
   const tw = useTailwind();
 
@@ -312,49 +310,6 @@ const ChoosePassword = () => {
     [password, recreateVault, dispatch],
   );
 
-  const runSocialAccountDiscoveryWithTimeout = useCallback(async () => {
-    const keyringId =
-      Engine.context.KeyringController.state.keyrings[0]?.metadata.id;
-    if (!keyringId) {
-      return;
-    }
-
-    let timedOut = false;
-    let timeoutId: ReturnType<typeof setTimeout> | undefined;
-
-    const discoveryPromise = discoverAccounts(keyringId).catch((error) => {
-      if (timedOut) {
-        Logger.error(
-          error as Error,
-          'ChoosePassword: discoverAccounts failed after timeout',
-        );
-        return;
-      }
-
-      throw error;
-    });
-
-    const timeoutPromise = new Promise<void>((resolve) => {
-      timeoutId = setTimeout(() => {
-        timedOut = true;
-        resolve();
-      }, SOCIAL_DISCOVERY_TIMEOUT_MS);
-    });
-
-    try {
-      await Promise.race([discoveryPromise, timeoutPromise]);
-    } catch (error) {
-      Logger.error(
-        error as Error,
-        'ChoosePassword: discoverAccounts failed before onboarding success',
-      );
-    } finally {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-    }
-  }, [SOCIAL_DISCOVERY_TIMEOUT_MS]);
-
   const handlePostWalletCreation = useCallback(
     async (authType: AuthData) => {
       dispatch(passwordSetAction());
@@ -538,9 +493,6 @@ const ChoosePassword = () => {
       Logger.log('previous_screen', previous_screen);
 
       await handleWalletCreation(authType, previous_screen);
-      if (authType.oauth2Login) {
-        await runSocialAccountDiscoveryWithTimeout();
-      }
 
       await handlePostWalletCreation(authType);
 
@@ -569,7 +521,6 @@ const ChoosePassword = () => {
     getOauth2LoginSuccess,
     biometryType,
     handleWalletCreation,
-    runSocialAccountDiscoveryWithTimeout,
     handlePostWalletCreation,
     handleWalletCreationError,
     metrics,
