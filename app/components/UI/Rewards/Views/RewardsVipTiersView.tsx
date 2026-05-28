@@ -19,6 +19,7 @@ import ErrorBoundary from '../../../Views/ErrorBoundary';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { useVipDashboard } from '../hooks/useVipDashboard';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
+import ForcedDarkThemeProvider from '../components/ForcedDarkThemeProvider/ForcedDarkThemeProvider';
 import VipTierRow from '../components/Vip/VipTierRow';
 
 export const REWARDS_VIP_TIERS_VIEW_TEST_IDS = {
@@ -28,7 +29,7 @@ export const REWARDS_VIP_TIERS_VIEW_TEST_IDS = {
   ERROR: 'rewards-vip-tiers-error',
 } as const;
 
-const RewardsVipTiersView: React.FC = () => {
+const RewardsVipTiersViewContent: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
@@ -116,5 +117,11 @@ const RewardsVipTiersView: React.FC = () => {
     </ErrorBoundary>
   );
 };
+
+const RewardsVipTiersView: React.FC = () => (
+  <ForcedDarkThemeProvider>
+    <RewardsVipTiersViewContent />
+  </ForcedDarkThemeProvider>
+);
 
 export default RewardsVipTiersView;
