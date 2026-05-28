@@ -342,6 +342,53 @@ describe('useMoneyTransactionStatus', () => {
       );
     });
 
+    it('forwards intent to deposit.success on confirmed', () => {
+      (
+        getMoneyAccountDepositIntent as jest.MockedFunction<
+          typeof getMoneyAccountDepositIntent
+        >
+      ).mockReturnValueOnce('addMusd');
+
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.confirmed,
+          batchId: '0xBATCH_SUCCESS',
+          txParams: {
+            from: '0x0',
+            data: encodeDepositData(BigInt(12_340_000)),
+          },
+        }),
+      );
+
+      expect(depositSuccessFn).toHaveBeenCalledWith(
+        expect.objectContaining({ intent: 'addMusd' }),
+      );
+    });
+
+    it('forwards intent to deposit.failed on failed', () => {
+      (
+        getMoneyAccountDepositIntent as jest.MockedFunction<
+          typeof getMoneyAccountDepositIntent
+        >
+      ).mockReturnValueOnce('addMusd');
+
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({
+        transactionMeta: buildTxMeta({
+          id: 'tx-id-failed-intent',
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.failed,
+          batchId: '0xBATCH_FAILED_INTENT',
+        }),
+      });
+
+      expect(depositFailedFn).toHaveBeenCalledWith({ intent: 'addMusd' });
+    });
+
     it('confirmed → success toast with decoded fiat amount', () => {
       const { confirmedHandler } = renderAndGetHandlers();
 

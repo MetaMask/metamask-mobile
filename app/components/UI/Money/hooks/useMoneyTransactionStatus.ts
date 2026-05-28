@@ -163,7 +163,8 @@ export const useMoneyTransactionStatus = () => {
       cancelPendingInProgress(transactionMeta.id);
       if (!reserveToastKey(transactionMeta.id, FAILED_KEY)) return;
       if (isMoneyDepositTx(transactionMeta)) {
-        showToast(MoneyToastOptions.deposit.failed());
+        const intent = getMoneyAccountDepositIntent(transactionMeta.batchId);
+        showToast(MoneyToastOptions.deposit.failed({ intent }));
         clearMoneyAccountDepositIntent(transactionMeta.batchId);
       } else {
         showToast(MoneyToastOptions.withdraw.failed());
@@ -198,7 +199,8 @@ export const useMoneyTransactionStatus = () => {
           : undefined;
 
       if (isMoneyDepositTx(transactionMeta)) {
-        showToast(MoneyToastOptions.deposit.success({ amountFiat }));
+        const intent = getMoneyAccountDepositIntent(transactionMeta.batchId);
+        showToast(MoneyToastOptions.deposit.success({ amountFiat, intent }));
         clearMoneyAccountDepositIntent(transactionMeta.batchId);
       } else {
         // TODO: derive destination from tx metadata once Perps/Predict transfers ship.
