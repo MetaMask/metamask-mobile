@@ -115,7 +115,7 @@ describe('getPaymentOverrideData', () => {
       mockMessenger,
     );
 
-    expect(result).toStrictEqual([]);
+    expect(result).toStrictEqual({ calls: [] });
     expect(getMoneyAccountWithdrawMock).not.toHaveBeenCalled();
   });
 
@@ -128,7 +128,7 @@ describe('getPaymentOverrideData', () => {
       mockMessenger,
     );
 
-    expect(result).toStrictEqual([]);
+    expect(result).toStrictEqual({ calls: [] });
   });
 
   it('returns empty array when primary money account is missing', async () => {
@@ -136,7 +136,7 @@ describe('getPaymentOverrideData', () => {
 
     const result = await getPaymentOverrideData(buildRequest(), mockMessenger);
 
-    expect(result).toStrictEqual([]);
+    expect(result).toStrictEqual({ calls: [] });
     expect(getMoneyAccountWithdrawMock).not.toHaveBeenCalled();
   });
 
@@ -145,7 +145,7 @@ describe('getPaymentOverrideData', () => {
 
     const result = await getPaymentOverrideData(buildRequest(), mockMessenger);
 
-    expect(result).toStrictEqual([]);
+    expect(result).toStrictEqual({ calls: [] });
   });
 
   it('returns empty array when withdraw transactions data is empty', async () => {
@@ -153,7 +153,7 @@ describe('getPaymentOverrideData', () => {
 
     const result = await getPaymentOverrideData(buildRequest(), mockMessenger);
 
-    expect(result).toStrictEqual([]);
+    expect(result).toStrictEqual({ calls: [] });
   });
 
   it('returns empty array when transaction has no from', async () => {
@@ -164,7 +164,7 @@ describe('getPaymentOverrideData', () => {
       mockMessenger,
     );
 
-    expect(result).toStrictEqual([]);
+    expect(result).toStrictEqual({ calls: [] });
   });
 
   it('calls getMoneyAccountWithdrawTransactionsData with Monad chain, amount, and user EOA as recipient', async () => {
@@ -200,13 +200,15 @@ describe('getPaymentOverrideData', () => {
   it('returns BatchTransactionParams array with delegation data', async () => {
     const result = await getPaymentOverrideData(buildRequest(), mockMessenger);
 
-    expect(result).toStrictEqual([
-      {
-        to: DELEGATION_MANAGER,
-        data: DELEGATION_DATA,
-        value: '0x0',
-      },
-    ]);
+    expect(result).toStrictEqual({
+      calls: [
+        {
+          to: DELEGATION_MANAGER,
+          data: DELEGATION_DATA,
+          value: '0x0',
+        },
+      ],
+    });
   });
 
   describe('isPostQuote deposit path', () => {
