@@ -101,6 +101,7 @@ class TrendingView {
   async tapTab(tabTestID: string): Promise<void> {
     await Gestures.tap(Matchers.getElementByID(`${tabTestID}-label`), {
       elemDescription: `Tap tab ${tabTestID}`,
+      checkVisibility: false,
     });
   }
 

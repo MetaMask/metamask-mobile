@@ -103,6 +103,16 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
             },
           },
           {
+            section: TrendingViewSelectorsText.SECTION_PERPS,
+            sectionHeaderText: 'Perps movers',
+            verifyItemVisible: () => TrendingView.verifyPerpVisible('BTC'),
+            details: {
+              tapItem: () => TrendingView.tapPerpRow('BTC'),
+              verifyVisible: () => TrendingView.verifyPerpDetailsVisible(),
+              tapBack: () => TrendingView.tapBackFromPerpDetails(),
+            },
+          },
+          {
             section: TrendingViewSelectorsText.SECTION_TOKENS,
             sectionHeaderText: TrendingViewSelectorsText.SECTION_TOKENS,
             verifyItemVisible: () =>
@@ -112,16 +122,6 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
               verifyVisible: () =>
                 TrendingView.verifyTokenDetailsTitleVisible('USD Coin'),
               tapBack: () => TrendingView.tapBackFromTokenDetails(),
-            },
-          },
-          {
-            section: TrendingViewSelectorsText.SECTION_PERPS,
-            sectionHeaderText: 'Perps movers',
-            verifyItemVisible: () => TrendingView.verifyPerpVisible('BTC'),
-            details: {
-              tapItem: () => TrendingView.tapPerpRow('BTC'),
-              verifyVisible: () => TrendingView.verifyPerpDetailsVisible(),
-              tapBack: () => TrendingView.tapBackFromPerpDetails(),
             },
           },
           {
