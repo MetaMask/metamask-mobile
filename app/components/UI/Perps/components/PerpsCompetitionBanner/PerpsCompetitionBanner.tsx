@@ -26,7 +26,7 @@ const competitionImage = require('../../../../../images/perps-competition-banner
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 4,
+    marginTop: -8,
     marginHorizontal: 16,
     marginBottom: 8,
   },
