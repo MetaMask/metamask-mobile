@@ -174,6 +174,10 @@ export function useQuickBuyQuotes({
   const [quotesLastFetchedAt, setQuotesLastFetchedAt] = useState<number | null>(
     null,
   );
+  /** Start time of the most recent fetch attempt (success or failure). */
+  const [quotesLastAttemptAt, setQuotesLastAttemptAt] = useState<number | null>(
+    null,
+  );
   const [refreshCount, setRefreshCount] = useState(0);
 
   const quoteRefreshRateMs = useMemo(
@@ -192,6 +196,7 @@ export function useQuickBuyQuotes({
     setIsNoQuotesAvailable(false);
     setQuoteFetchError(null);
     setQuotesLastFetchedAt(null);
+    setQuotesLastAttemptAt(null);
     setRefreshCount(0);
   }, []);
 
@@ -232,6 +237,7 @@ export function useQuickBuyQuotes({
     setQuoteFetchError(null);
 
     const requestedAt = Date.now();
+    setQuotesLastAttemptAt(requestedAt);
     requestStartedAtRef.current = requestedAt;
 
     // Shared by REQUESTED + RECEIVED. Null when analytics context is incomplete
@@ -341,11 +347,11 @@ export function useQuickBuyQuotes({
   // `refreshCount` starts at 0 and increments on each successful fetch, so
   // after the initial fetch (count=1) this effect schedules the next one.
   useEffect(() => {
-    if (!quotesLastFetchedAt || refreshCount === 0 || isQuoteLoading) {
+    if (!quotesLastAttemptAt || refreshCount === 0 || isQuoteLoading) {
       return;
     }
 
-    const elapsed = Date.now() - quotesLastFetchedAt;
+    const elapsed = Date.now() - quotesLastAttemptAt;
     const delay = Math.max(0, quoteRefreshRateMs - elapsed);
 
     const timer = setTimeout(() => {
@@ -354,7 +360,7 @@ export function useQuickBuyQuotes({
 
     return () => clearTimeout(timer);
   }, [
-    quotesLastFetchedAt,
+    quotesLastAttemptAt,
     refreshCount,
     quoteRefreshRateMs,
     isQuoteLoading,
