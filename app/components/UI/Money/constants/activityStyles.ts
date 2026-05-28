@@ -48,9 +48,9 @@ export function getMoneyAmountPrefixForTransactionMeta(
 }
 
 // `0x` + 8 hex chars selector + 64 hex chars (address) + 64 hex chars (uint256).
-const ERC20_TRANSFER_CALLDATA_LENGTH = 138;
+export const ERC20_TRANSFER_CALLDATA_LENGTH = 138;
 // `0x` + 8 hex chars selector + 3 × 64 hex chars (from, to, uint256).
-const ERC20_TRANSFER_FROM_CALLDATA_LENGTH = 202;
+export const ERC20_TRANSFER_FROM_CALLDATA_LENGTH = 202;
 // Slot offsets into calldata (chars). 10 = `0x` + 8-char selector; each slot
 // is 64 chars (32 bytes). transfer: [recipient, amount]. transferFrom:
 // [from, to, amount].

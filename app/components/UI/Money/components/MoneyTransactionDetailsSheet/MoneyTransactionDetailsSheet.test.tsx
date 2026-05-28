@@ -9,7 +9,9 @@ import { useTransactionDetails } from '../../../../Views/confirmations/hooks/act
 import { otherControllersMock } from '../../../../Views/confirmations/__mocks__/controllers/other-controllers-mock';
 import MoneyTransactionDetailsSheet from './MoneyTransactionDetailsSheet';
 
-jest.mock('../../../../Views/confirmations/hooks/activity/useTransactionDetails');
+jest.mock(
+  '../../../../Views/confirmations/hooks/activity/useTransactionDetails',
+);
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ goBack: jest.fn(), setOptions: jest.fn() }),
@@ -67,8 +69,8 @@ describe('MoneyTransactionDetailsSheet', () => {
     TransactionType.tokenMethodTransferFrom,
   ])('renders MoneyReceivedDetails for %s', (type) => {
     const { getByTestId, queryByTestId } = render(type);
-    expect(getByTestId('money-received-details')).toBeTruthy();
-    expect(queryByTestId('shared-transaction-details')).toBeNull();
+    expect(getByTestId('money-received-details')).toBeOnTheScreen();
+    expect(queryByTestId('shared-transaction-details')).not.toBeOnTheScreen();
   });
 
   it.each([
@@ -77,7 +79,7 @@ describe('MoneyTransactionDetailsSheet', () => {
     TransactionType.musdConversion,
   ])('renders shared TransactionDetails for %s', (type) => {
     const { getByTestId, queryByTestId } = render(type);
-    expect(getByTestId('shared-transaction-details')).toBeTruthy();
-    expect(queryByTestId('money-received-details')).toBeNull();
+    expect(getByTestId('shared-transaction-details')).toBeOnTheScreen();
+    expect(queryByTestId('money-received-details')).not.toBeOnTheScreen();
   });
 });

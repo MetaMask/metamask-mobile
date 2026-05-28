@@ -85,13 +85,13 @@ describe('MoneyReceivedDetails', () => {
 
   it('renders the token received label with the mUSD symbol', () => {
     const { getByText } = render();
-    expect(getByText('Token received')).toBeTruthy();
-    expect(getByText('mUSD')).toBeTruthy();
+    expect(getByText('Token received')).toBeOnTheScreen();
+    expect(getByText('mUSD')).toBeOnTheScreen();
   });
 
   it('renders the fiat hero when buildMoneyActivityFiatLine returns a value', () => {
     const { queryByTestId } = render();
-    expect(queryByTestId('money-received-hero')).toBeTruthy();
+    expect(queryByTestId('money-received-hero')).toBeOnTheScreen();
   });
 
   it('omits the From row when txParams.from is missing', () => {

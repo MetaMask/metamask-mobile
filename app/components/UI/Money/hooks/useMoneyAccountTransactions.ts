@@ -18,11 +18,10 @@ import { selectNonReplacedTransactions } from '../../../../selectors/transaction
 import { areAddressesEqual } from '../../../../util/address';
 import { decodeTransferData } from '../../../../util/transactions';
 import { isMusdOnMoneyAccountChain } from '../../Earn/constants/musd';
-
-// `0x` + 8 hex chars selector + 64 hex chars (address) + 64 hex chars (uint256).
-const ERC20_TRANSFER_CALLDATA_LENGTH = 138;
-// `0x` + 8 hex chars selector + 3 × 64 hex chars (from, to, uint256).
-const ERC20_TRANSFER_FROM_CALLDATA_LENGTH = 202;
+import {
+  ERC20_TRANSFER_CALLDATA_LENGTH,
+  ERC20_TRANSFER_FROM_CALLDATA_LENGTH,
+} from '../constants/activityStyles';
 
 // Statuses that should surface in money activity. `unapproved`/`approved`/
 // `signed` are mid-compose and shouldn't appear yet; `rejected`/`dropped`/
