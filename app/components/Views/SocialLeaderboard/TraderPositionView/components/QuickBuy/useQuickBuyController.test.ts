@@ -451,6 +451,50 @@ describe('useQuickBuyController', () => {
     });
   });
 
+  describe('handleSelectSourceToken', () => {
+    it('updates the selected token and resets amount + slider state', () => {
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: '100',
+        atomicBalance: '100000000',
+      });
+      const usdc = createSourceToken({
+        symbol: 'USDC',
+        currencyExchangeRate: 1,
+      });
+      const usdt = createSourceToken({
+        symbol: 'USDT',
+        address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+        currencyExchangeRate: 1,
+      });
+      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+        options: [usdc, usdt],
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(
+          positionToQuickBuyTarget(createPosition()),
+          jest.fn(),
+        ),
+      );
+
+      act(() => {
+        result.current.handleSliderChange(50);
+        result.current.handleAmountChange('25');
+      });
+
+      expect(result.current.usdAmount).toBe('25');
+      expect(result.current.sliderPercent).toBe(0);
+
+      act(() => {
+        result.current.handleSelectSourceToken(usdt);
+      });
+
+      expect(result.current.selectedSourceToken).toEqual(usdt);
+      expect(result.current.usdAmount).toBe('');
+      expect(result.current.sliderPercent).toBe(0);
+    });
+  });
+
   describe('getButtonLabel', () => {
     it('returns the buy label when all conditions are normal', () => {
       const { result } = renderHook(() =>

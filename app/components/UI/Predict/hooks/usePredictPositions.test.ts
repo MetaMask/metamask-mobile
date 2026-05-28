@@ -5,6 +5,7 @@ import { type PredictPosition, PredictPositionStatus } from '../types';
 import { usePredictPositions } from './usePredictPositions';
 
 const MOCK_ADDRESS = '0x1234567890123456789012345678901234567890';
+const SECOND_MOCK_ADDRESS = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
 
 const mockEnsurePolygonNetworkExists = jest.fn<Promise<void>, []>();
 jest.mock('./usePredictNetworkManagement', () => ({
@@ -103,6 +104,10 @@ describe('usePredictPositions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockEnsurePolygonNetworkExists.mockResolvedValue(undefined);
+    mockGetEvmAccountFromSelectedAccountGroup.mockReturnValue({
+      address: MOCK_ADDRESS,
+      type: 'eip155:eoa',
+    });
     mockGetPositions.mockResolvedValue([]);
     mockUsePredictLivePositions.mockImplementation(() => undefined);
   });
@@ -120,6 +125,43 @@ describe('usePredictPositions', () => {
 
     expect(result.current.data).toEqual([]);
     expect(result.current.error).toBeNull();
+  });
+
+  it('fetches against the new address after the selected account changes', async () => {
+    const { Wrapper } = createWrapper();
+    const firstAccountPosition = createPosition('first-account-position');
+    const secondAccountPosition = createPosition('second-account-position');
+    mockGetPositions.mockImplementation(({ address }) =>
+      Promise.resolve(
+        address === SECOND_MOCK_ADDRESS
+          ? [secondAccountPosition]
+          : [firstAccountPosition],
+      ),
+    );
+
+    const { result, rerender } = renderHook(() => usePredictPositions(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.data).toEqual([firstAccountPosition]);
+    });
+
+    mockGetEvmAccountFromSelectedAccountGroup.mockReturnValue({
+      address: SECOND_MOCK_ADDRESS,
+      type: 'eip155:eoa',
+    });
+
+    rerender({});
+
+    await waitFor(() => {
+      expect(result.current.data).toEqual([secondAccountPosition]);
+    });
+
+    expect(mockGetPositions).toHaveBeenCalledWith({ address: MOCK_ADDRESS });
+    expect(mockGetPositions).toHaveBeenCalledWith({
+      address: SECOND_MOCK_ADDRESS,
+    });
   });
 
   it('returns active and claimable positions when claimable is undefined', async () => {
