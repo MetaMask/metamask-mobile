@@ -112,7 +112,7 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
     // Now tab is active by default and contains the scroll view
     await waitFor(() => {
       expect(
-        getByTestId(TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW),
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_NOW_SCROLL_VIEW),
       ).toBeOnTheScreen();
     });
 

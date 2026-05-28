@@ -1,5 +1,8 @@
 export const TrendingViewSelectorsIDs = {
-  TRENDING_FEED_SCROLL_VIEW: 'trending-feed-scroll-view',
+  EXPLORE_NOW_SCROLL_VIEW: 'explore-now-scroll-view',
+  EXPLORE_RWAS_SCROLL_VIEW: 'explore-rwas-scroll-view',
+  EXPLORE_CRYPTO_SCROLL_VIEW: 'explore-crypto-scroll-view',
+  EXPLORE_DAPPS_SCROLL_VIEW: 'explore-dapps-scroll-view',
   EXPLORE_HEADER_ROOT: 'explore-header-root',
   EXPLORE_SAFE_AREA: 'explore-safe-area',
   SECTION_HEADER_VIEW_ALL_TOKENS: 'section-header-view-all-tokens',

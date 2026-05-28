@@ -9,13 +9,15 @@ import {
   SECTION_BACK_BUTTONS,
   DETAILS_BACK_BUTTONS,
   SECTION_FULL_VIEW_HEADERS,
-  SECTION_TAB_MAP,
+  SECTION_TAB_CONFIG,
 } from '../../locators/Trending/TrendingView.selectors';
 import { PredictMarketListSelectorsIDs } from '../../../app/components/UI/Predict/Predict.testIds';
 import TabBarComponent from '../wallet/TabBarComponent';
 import BrowserView from '../Browser/BrowserView';
 
 class TrendingView {
+  private activeScrollViewID: string = TrendingViewSelectorsIDs.NOW_SCROLL_VIEW;
+
   get searchButton(): DetoxElement {
     return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_BUTTON);
   }
@@ -93,6 +95,7 @@ class TrendingView {
 
   async tapTrendingTab(): Promise<void> {
     await TabBarComponent.tapExploreButton();
+    this.activeScrollViewID = TrendingViewSelectorsIDs.NOW_SCROLL_VIEW;
   }
 
   /**
@@ -112,10 +115,22 @@ class TrendingView {
    * Navigate to the correct tab for a given section (V2 layout).
    */
   async navigateToSectionTab(sectionTitle: string): Promise<void> {
-    const tabTestID = SECTION_TAB_MAP[sectionTitle];
-    if (tabTestID) {
-      await this.tapTab(tabTestID);
+    const sectionTabConfig = SECTION_TAB_CONFIG[sectionTitle];
+
+    if (!sectionTabConfig) {
+      throw new Error(`Unknown Explore section tab config: ${sectionTitle}`);
     }
+
+    await this.tapTab(sectionTabConfig.tabTestID);
+    this.activeScrollViewID = sectionTabConfig.scrollViewTestID;
+
+    await Assertions.expectElementToBeVisible(
+      Matchers.getElementByID(sectionTabConfig.scrollViewTestID),
+      {
+        description: `${sectionTitle} tab content should be visible`,
+        timeout: 10000,
+      },
+    );
   }
 
   async tapSearchButton(): Promise<void> {
@@ -155,7 +170,7 @@ class TrendingView {
   ): Promise<void> {
     await Gestures.scrollToElement(
       targetElement,
-      Matchers.getIdentifier(TrendingViewSelectorsIDs.SCROLL_VIEW),
+      Matchers.getIdentifier(this.activeScrollViewID),
       {
         direction,
         scrollAmount: 300,
@@ -275,13 +290,15 @@ class TrendingView {
     getElement: () => DetoxElement,
     identifier: string,
     itemType: string,
+    options: Partial<ScrollOptions> = {},
   ): Promise<void> {
     const targetElement = getElement();
 
-    // Scroll to element to ensure it's fully visible
     await this.scrollToElementInFeed(
       targetElement,
       `Scroll to ${identifier} ${itemType} row for verification`,
+      'down',
+      options,
     );
 
     await Assertions.expectElementToBeVisible(targetElement, {
@@ -349,17 +366,9 @@ class TrendingView {
   }
 
   async verifySiteVisible(name: string): Promise<void> {
-    const siteRow = () => this.getSiteRow(name);
-
-    // Scroll until Site row is visible (same pattern as WalletView.scrollDownToAssetOverviewMusdCta)
-    await this.scrollToElementInFeed(
-      siteRow(),
-      `Scroll to Site row for ${name}`,
-      'down',
-      { timeout: 15000 },
-    );
-
-    await this.verifyItemVisible(siteRow, name, 'site');
+    await this.verifyItemVisible(() => this.getSiteRow(name), name, 'site', {
+      timeout: 15000,
+    });
   }
 
   async tapSiteRow(name: string): Promise<void> {

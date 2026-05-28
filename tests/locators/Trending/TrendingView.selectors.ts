@@ -12,13 +12,16 @@ export const TrendingViewSelectorsIDs = {
   PREDICTIONS_ROW_ITEM_PREFIX: 'predict-market-row-item-',
   SITE_ROW_ITEM_PREFIX: 'site-row-item-',
   SEARCH_FOOTER_SEARCH_LINK: 'trending-search-footer-search-link',
-  SCROLL_VIEW: AppTrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW,
+  NOW_SCROLL_VIEW: AppTrendingViewSelectorsIDs.EXPLORE_NOW_SCROLL_VIEW,
+  RWAS_SCROLL_VIEW: AppTrendingViewSelectorsIDs.EXPLORE_RWAS_SCROLL_VIEW,
+  CRYPTO_SCROLL_VIEW: AppTrendingViewSelectorsIDs.EXPLORE_CRYPTO_SCROLL_VIEW,
+  DAPPS_SCROLL_VIEW: AppTrendingViewSelectorsIDs.EXPLORE_DAPPS_SCROLL_VIEW,
   SEARCH_RESULTS_LIST: 'trending-search-results-list',
   VIEW_ALL_BUTTON_PREFIX: 'section-header-view-all-',
 } as const;
 
 export const TrendingViewSelectorsText = {
-  // Section titles - must match the actual localized strings from sections.config.tsx
+  // Section titles - must match the actual localized strings rendered by Explore V2 tabs.
   SECTION_PREDICTIONS: 'Predictions',
   SECTION_TOKENS: 'Trending',
   SECTION_STOCKS: 'Stocks',
@@ -37,13 +40,30 @@ export const TrendingTabTestIDs = {
   SITES: 'explore-tabs-bar-tab-5',
 } as const;
 
-// Map each section to its tab testID in the V2 layout
-export const SECTION_TAB_MAP: Record<string, string> = {
-  [TrendingViewSelectorsText.SECTION_PREDICTIONS]: TrendingTabTestIDs.NOW,
-  [TrendingViewSelectorsText.SECTION_TOKENS]: TrendingTabTestIDs.CRYPTO,
-  [TrendingViewSelectorsText.SECTION_PERPS]: TrendingTabTestIDs.NOW,
-  [TrendingViewSelectorsText.SECTION_STOCKS]: TrendingTabTestIDs.NOW,
-  [TrendingViewSelectorsText.SECTION_SITES]: TrendingTabTestIDs.SITES,
+export const SECTION_TAB_CONFIG: Record<
+  string,
+  { tabTestID: string; scrollViewTestID: string }
+> = {
+  [TrendingViewSelectorsText.SECTION_PREDICTIONS]: {
+    tabTestID: TrendingTabTestIDs.NOW,
+    scrollViewTestID: TrendingViewSelectorsIDs.NOW_SCROLL_VIEW,
+  },
+  [TrendingViewSelectorsText.SECTION_TOKENS]: {
+    tabTestID: TrendingTabTestIDs.CRYPTO,
+    scrollViewTestID: TrendingViewSelectorsIDs.CRYPTO_SCROLL_VIEW,
+  },
+  [TrendingViewSelectorsText.SECTION_PERPS]: {
+    tabTestID: TrendingTabTestIDs.NOW,
+    scrollViewTestID: TrendingViewSelectorsIDs.NOW_SCROLL_VIEW,
+  },
+  [TrendingViewSelectorsText.SECTION_STOCKS]: {
+    tabTestID: TrendingTabTestIDs.RWAS,
+    scrollViewTestID: TrendingViewSelectorsIDs.RWAS_SCROLL_VIEW,
+  },
+  [TrendingViewSelectorsText.SECTION_SITES]: {
+    tabTestID: TrendingTabTestIDs.SITES,
+    scrollViewTestID: TrendingViewSelectorsIDs.DAPPS_SCROLL_VIEW,
+  },
 };
 
 // Map section to its full view back button Test ID
