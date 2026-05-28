@@ -11,11 +11,26 @@ import {
 } from './HardwareWalletsSwaps.state';
 
 interface UseHwConnectionMonitoringOptions {
+  /** When false, connection changes are not observed or dispatched. */
   isEnabled: boolean;
+  /** Current hardware-wallet swaps state-machine status from Redux. */
   currentStatus: HardwareWalletsSwapsStatus;
+  /**
+   * True once a sign operation is in flight. Disconnect events are ignored
+   * until signing starts so pre-signing readiness handoffs do not fail the flow.
+   */
   hasActiveSigning: boolean;
 }
 
+/**
+ * Returns whether `current` should be treated as unchanged relative to the
+ * baseline captured when entering {@link HardwareWalletsSwapsStatus.Waiting}.
+ * Used to ignore stale disconnect/error state left over from a prior attempt.
+ *
+ * @param baseline - Connection snapshot taken when Waiting began.
+ * @param current - Latest connection snapshot from hardware wallet context.
+ * @returns True when `current` matches `baseline` (same status and, for
+ */
 export function shouldIgnoreAsBaseline(
   baseline: { status: ConnectionStatus; error?: unknown },
   current: { status: ConnectionStatus; error?: unknown },
@@ -34,6 +49,14 @@ export function shouldIgnoreAsBaseline(
   return true;
 }
 
+/**
+ * Monitors hardware wallet connection state during the swaps signing flow.
+ *
+ * While status is {@link HardwareWalletsSwapsStatus.Waiting}, watches for
+ * disconnects and signing-related errors and dispatches matching
+ * actions. Ignores pre-existing bad
+ * connection state on first entry to Waiting and recoverable transport errors.
+ */
 export function useHwConnectionMonitoring({
   isEnabled,
   currentStatus,
@@ -123,6 +146,7 @@ export function useHwConnectionMonitoring({
     handledErrorRef.current = error;
   }, [connectionState, currentStatus, hasActiveSigning, isEnabled, dispatch]);
 
+  /** Clears deduplication and baseline refs so a retry can observe the same error again. */
   const resetHandledError = useCallback(() => {
     handledErrorRef.current = null;
     baselineStateRef.current = null;
