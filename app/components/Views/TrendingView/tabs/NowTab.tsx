@@ -180,7 +180,7 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
     <ExploreScroll
       refreshing={refreshing}
       onRefresh={onRefresh}
-      testID={TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW}
+      testID={TrendingViewSelectorsIDs.EXPLORE_NOW_SCROLL_VIEW}
     >
       {orderedIntroSections}
 
