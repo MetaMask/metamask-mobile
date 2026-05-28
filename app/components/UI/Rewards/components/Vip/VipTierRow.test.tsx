@@ -25,13 +25,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
     if (key === 'rewards.vip.bps_value' && params) {
       return `${params.bps} bps`;
     }
-    const t: Record<string, string> = {
-      'rewards.vip.revenue_share_label': 'Revenue share',
-      'rewards.vip.swap_fees_label': 'Swap fees',
-      'rewards.vip.perps_fees_label': 'Perps fees',
-      'rewards.vip.referral_points_label': 'Referral points',
-    };
-    return t[key] ?? key;
+    return key;
   },
 }));
 
@@ -47,9 +41,18 @@ const baseTier = {
   status: 'current' as const,
 };
 
+const localizedText = {
+  revenueShareTitle: 'Revenue share',
+  swapsFeeTitle: 'Swap fees',
+  perpsFeeTitle: 'Perps fees',
+  referralPointsTitle: 'Referral points',
+};
+
 describe('VipTierRow', () => {
   it('opens current tier details by default', () => {
-    const { getByTestId } = render(<VipTierRow tier={baseTier} />);
+    const { getByTestId } = render(
+      <VipTierRow tier={baseTier} localizedText={localizedText} />,
+    );
 
     expect(
       getByTestId(`${VIP_TIER_ROW_TEST_IDS.DETAILS}-${baseTier.id}`),
@@ -57,7 +60,9 @@ describe('VipTierRow', () => {
   });
 
   it('renders name, points threshold, and fees for a non-base tier', () => {
-    const { getByText, getByTestId } = render(<VipTierRow tier={baseTier} />);
+    const { getByText, getByTestId } = render(
+      <VipTierRow tier={baseTier} localizedText={localizedText} />,
+    );
 
     expect(getByText('Gold Fox 3')).toBeOnTheScreen();
     expect(
@@ -94,7 +99,9 @@ describe('VipTierRow', () => {
   });
 
   it('keeps the gradient mounted when collapse starts so opacity can animate', () => {
-    const { getByTestId } = render(<VipTierRow tier={baseTier} />);
+    const { getByTestId } = render(
+      <VipTierRow tier={baseTier} localizedText={localizedText} />,
+    );
 
     fireEvent.press(
       getByTestId(`${VIP_TIER_ROW_TEST_IDS.HEADER}-${baseTier.id}`),
@@ -110,7 +117,9 @@ describe('VipTierRow', () => {
 
   it('toggles tier details from the title row', () => {
     const tier = { ...baseTier, status: 'upcoming' as const };
-    const { getByTestId, queryByTestId } = render(<VipTierRow tier={tier} />);
+    const { getByTestId, queryByTestId } = render(
+      <VipTierRow tier={tier} localizedText={localizedText} />,
+    );
 
     expect(
       queryByTestId(`${VIP_TIER_ROW_TEST_IDS.DETAILS}-${tier.id}`),
@@ -135,6 +144,7 @@ describe('VipTierRow', () => {
           revenueShareBps: 0,
           status: 'completed',
         }}
+        localizedText={localizedText}
       />,
     );
     expect(queryByTestId(VIP_TIER_ROW_TEST_IDS.THRESHOLDS)).toBeNull();
@@ -149,6 +159,7 @@ describe('VipTierRow', () => {
           pointsRequirement: 100_000,
           status: 'completed',
         }}
+        localizedText={localizedText}
       />,
     );
     expect(queryByTestId(VIP_TIER_ROW_TEST_IDS.THRESHOLDS)).toBeNull();
