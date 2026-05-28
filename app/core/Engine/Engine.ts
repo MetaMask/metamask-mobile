@@ -1575,9 +1575,9 @@ export default {
     instance.setAccountLabel(address, label);
   },
 
-  getQrKeyringScanner: () =>
-    // TODO: Use the KeyringController to find the appropriate QR keyring bridge instead of using a global.
-    qrKeyringBridge,
+  // TODO: Use the KeyringController to find the appropriate QR keyring bridge instead of using a global.
+  getQrKeyringScanner: () => qrKeyringBridge,
+
   lookupEnabledNetworks: () => {
     assertEngineExists(instance);
     instance.lookupEnabledNetworks();
