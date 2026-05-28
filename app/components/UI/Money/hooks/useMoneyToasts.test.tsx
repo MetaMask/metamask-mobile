@@ -121,6 +121,24 @@ describe('useMoneyToasts', () => {
       expect(toast.labelOptions).toHaveLength(3);
     });
 
+    it('inProgress title is "Converting crypto" when intent is convert (default)', () => {
+      const { result } = renderHook(() => useMoneyToasts(), { wrapper });
+
+      const toast = result.current.MoneyToastOptions.deposit.inProgress();
+
+      expect(toast.labelOptions?.[0].label).toBe('Converting crypto');
+    });
+
+    it('inProgress title is "Adding funds" when intent is addMusd', () => {
+      const { result } = renderHook(() => useMoneyToasts(), { wrapper });
+
+      const toast = result.current.MoneyToastOptions.deposit.inProgress({
+        intent: 'addMusd',
+      });
+
+      expect(toast.labelOptions?.[0].label).toBe('Adding funds');
+    });
+
     it('success has Confirmation icon, Success haptics and includes amount in body', () => {
       const { result } = renderHook(() => useMoneyToasts(), { wrapper });
 

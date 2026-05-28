@@ -45,9 +45,15 @@ export interface WithdrawSuccessParams {
   destination: string;
 }
 
+export type DepositInProgressIntent = 'convert' | 'addMusd';
+
+export interface DepositInProgressParams {
+  intent?: DepositInProgressIntent;
+}
+
 export interface MoneyToastOptionsConfig {
   deposit: {
-    inProgress: () => MoneyToastOptions;
+    inProgress: (params?: DepositInProgressParams) => MoneyToastOptions;
     success: (params: DepositSuccessParams) => MoneyToastOptions;
     failed: () => MoneyToastOptions;
   };
@@ -166,10 +172,14 @@ const useMoneyToasts = (): {
   const MoneyToastOptions: MoneyToastOptionsConfig = useMemo(
     () => ({
       deposit: {
-        inProgress: () => ({
+        inProgress: (params?: DepositInProgressParams) => ({
           ...moneyBaseToastOptions.inProgress,
           labelOptions: getMoneyToastLabels({
-            primary: strings('money.toasts.in_progress_title'),
+            primary: strings(
+              params?.intent === 'addMusd'
+                ? 'money.toasts.deposit_in_progress_title_add_musd'
+                : 'money.toasts.deposit_in_progress_title_convert',
+            ),
             primaryIsBold: true,
             secondary: (
               <Text

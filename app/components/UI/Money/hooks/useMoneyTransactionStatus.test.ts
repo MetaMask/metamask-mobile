@@ -12,6 +12,16 @@ import {
   IN_PROGRESS_DELAY_MS,
 } from './useMoneyTransactionStatus';
 import useMoneyToasts, { MoneyToastOptionsConfig } from './useMoneyToasts';
+import {
+  clearMoneyAccountDepositIntent,
+  getMoneyAccountDepositIntent,
+} from './useMoneyAccount';
+
+jest.mock('./useMoneyAccount', () => ({
+  __esModule: true,
+  getMoneyAccountDepositIntent: jest.fn(),
+  clearMoneyAccountDepositIntent: jest.fn(),
+}));
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { NotificationMoment } from '../../../../util/haptics';
@@ -259,6 +269,77 @@ describe('useMoneyTransactionStatus', () => {
 
       expect(depositInProgressFn).toHaveBeenCalledTimes(1);
       expect(mockShowToast).toHaveBeenCalledWith(baseInProgressToast);
+    });
+
+    it('approved → in-progress toast forwards the batch intent', () => {
+      (
+        getMoneyAccountDepositIntent as jest.MockedFunction<
+          typeof getMoneyAccountDepositIntent
+        >
+      ).mockReturnValueOnce('addMusd');
+
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({
+        transactionMeta: buildTxMeta({
+          id: 'tx-id-intent',
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.approved,
+          batchId: '0xINTENTBATCH',
+        }),
+      });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(getMoneyAccountDepositIntent).toHaveBeenCalledWith(
+        '0xINTENTBATCH',
+      );
+      expect(depositInProgressFn).toHaveBeenCalledWith({ intent: 'addMusd' });
+    });
+
+    it('clears the batch intent on terminal states', () => {
+      const { statusUpdatedHandler, confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.confirmed,
+          batchId: '0xBATCH_CONFIRMED',
+          txParams: {
+            from: '0x0',
+            data: encodeDepositData(BigInt(1)),
+          },
+        }),
+      );
+
+      expect(clearMoneyAccountDepositIntent).toHaveBeenCalledWith(
+        '0xBATCH_CONFIRMED',
+      );
+
+      statusUpdatedHandler({
+        transactionMeta: buildTxMeta({
+          id: 'tx-id-failed',
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.failed,
+          batchId: '0xBATCH_FAILED',
+        }),
+      });
+
+      expect(clearMoneyAccountDepositIntent).toHaveBeenCalledWith(
+        '0xBATCH_FAILED',
+      );
+
+      statusUpdatedHandler({
+        transactionMeta: buildTxMeta({
+          id: 'tx-id-rejected',
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.rejected,
+          batchId: '0xBATCH_REJECTED',
+        }),
+      });
+
+      expect(clearMoneyAccountDepositIntent).toHaveBeenCalledWith(
+        '0xBATCH_REJECTED',
+      );
     });
 
     it('confirmed → success toast with decoded fiat amount', () => {

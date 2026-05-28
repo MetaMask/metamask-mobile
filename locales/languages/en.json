@@ -6899,6 +6899,8 @@
     "toasts": {
       "in_progress_title": "Transaction in progress",
       "in_progress_body": "This may take a few minutes.",
+      "deposit_in_progress_title_convert": "Converting crypto",
+      "deposit_in_progress_title_add_musd": "Adding funds",
       "success_title": "Transaction complete",
       "deposit_success_body": "{{amount}} added to Money account.",
       "deposit_success_body_no_amount": "Added to Money account.",

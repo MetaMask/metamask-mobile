@@ -20,6 +20,32 @@ import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConf
 
 const LOG_TAG = '[Money Account]';
 
+export type MoneyAccountDepositIntent = 'convert' | 'addMusd';
+
+const depositIntentByBatchId = new Map<string, MoneyAccountDepositIntent>();
+
+export function getMoneyAccountDepositIntent(
+  batchId: string | undefined,
+): MoneyAccountDepositIntent | undefined {
+  if (!batchId) return undefined;
+  return depositIntentByBatchId.get(batchId.toLowerCase());
+}
+
+export function clearMoneyAccountDepositIntent(
+  batchId: string | undefined,
+): void {
+  if (!batchId) return;
+  depositIntentByBatchId.delete(batchId.toLowerCase());
+}
+
+export interface InitiateDepositOptions {
+  preferredPaymentToken?: {
+    address: Hex;
+    chainId: Hex;
+  };
+  intent?: MoneyAccountDepositIntent;
+}
+
 function resolveNetworkClientId(chainId: Hex): string {
   const networkClientId =
     Engine.context.NetworkController.findNetworkClientIdByChainId(chainId);
@@ -34,71 +60,83 @@ export function useMoneyAccountDeposit() {
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
   const { navigateToConfirmation } = useConfirmNavigation();
 
-  const initiateDeposit = useCallback(async () => {
-    if (!vaultConfig) {
-      throw new Error(`${LOG_TAG} Missing vault config`);
-    }
-    if (!primaryMoneyAccount?.address) {
-      throw new Error(`${LOG_TAG} Missing money account address`);
-    }
+  const initiateDeposit = useCallback(
+    async (options?: InitiateDepositOptions) => {
+      const preferredPaymentToken = options?.preferredPaymentToken;
+      const intent: MoneyAccountDepositIntent = options?.intent ?? 'convert';
+      if (!vaultConfig) {
+        throw new Error(`${LOG_TAG} Missing vault config`);
+      }
+      if (!primaryMoneyAccount?.address) {
+        throw new Error(`${LOG_TAG} Missing money account address`);
+      }
 
-    const {
-      chainId,
-      boringVault,
-      tellerAddress,
-      accountantAddress,
-      lensAddress,
-    } = vaultConfig;
+      const {
+        chainId,
+        boringVault,
+        tellerAddress,
+        accountantAddress,
+        lensAddress,
+      } = vaultConfig;
 
-    const chainIdHex = chainId as Hex;
-    const provider = getProviderByChainId(chainIdHex);
-    if (!provider) {
-      throw new Error(`${LOG_TAG} No provider available for chain ${chainId}`);
-    }
+      const chainIdHex = chainId as Hex;
+      const provider = getProviderByChainId(chainIdHex);
+      if (!provider) {
+        throw new Error(
+          `${LOG_TAG} No provider available for chain ${chainId}`,
+        );
+      }
 
-    const networkClientId = resolveNetworkClientId(chainIdHex);
+      const networkClientId = resolveNetworkClientId(chainIdHex);
 
-    const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
-      amount: BigInt(0),
-      chainId: chainIdHex,
-      boringVault,
-      tellerAddress,
-      accountantAddress,
-      lensAddress,
-      provider,
-    });
-
-    // Navigate early for better UX; recover on failure below.
-    navigateToConfirmation({
-      loader: ConfirmationLoader.CustomAmount,
-      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
-    });
-
-    try {
-      // We only set the transaction from the money account perspective.
-      // MM Pay selects the user's account and moves funds to the money account,
-      // so `from` must be the money account and `networkClientId` its chain.
-      await addTransactionBatch({
-        from: primaryMoneyAccount.address as Hex,
-        networkClientId,
-        origin: ORIGIN_METAMASK,
-        disableHook: true,
-        disableSequential: true,
-        transactions: [approveTx, depositTx],
-        requiredAssets: [
-          {
-            address: getMoneyAccountDepositAssetAddress(chainIdHex),
-            amount: '0x0' as Hex,
-            standard: 'erc20',
-          },
-        ],
+      const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
+        amount: BigInt(0),
+        chainId: chainIdHex,
+        boringVault,
+        tellerAddress,
+        accountantAddress,
+        lensAddress,
+        provider,
       });
-    } catch (error) {
-      Logger.error(error as Error, `${LOG_TAG} Deposit transaction failed`);
-      // Rethrow so the caller can roll back navigation / surface a toast.
-      throw error;
-    }
-  }, [navigateToConfirmation, primaryMoneyAccount, vaultConfig]);
+
+      // Navigate early for better UX; recover on failure below.
+      navigateToConfirmation({
+        loader: ConfirmationLoader.CustomAmount,
+        stack: Routes.MONEY.CONFIRMATIONS_ROOT,
+        preferredPaymentToken,
+      });
+
+      try {
+        // We only set the transaction from the money account perspective.
+        // MM Pay selects the user's account and moves funds to the money account,
+        // so `from` must be the money account and `networkClientId` its chain.
+        const { batchId } = await addTransactionBatch({
+          from: primaryMoneyAccount.address as Hex,
+          networkClientId,
+          origin: ORIGIN_METAMASK,
+          disableHook: true,
+          disableSequential: true,
+          transactions: [approveTx, depositTx],
+          requiredAssets: [
+            {
+              address: getMoneyAccountDepositAssetAddress(chainIdHex),
+              amount: '0x0' as Hex,
+              standard: 'erc20',
+            },
+          ],
+        });
+
+        if (batchId) {
+          depositIntentByBatchId.set(batchId.toLowerCase(), intent);
+        }
+      } catch (error) {
+        Logger.error(error as Error, `${LOG_TAG} Deposit transaction failed`);
+        // Rethrow so the caller can roll back navigation / surface a toast.
+        throw error;
+      }
+    },
+    [navigateToConfirmation, primaryMoneyAccount, vaultConfig],
+  );
 
   return { initiateDeposit };
 }

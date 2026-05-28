@@ -17,6 +17,8 @@ import {
   buildMoneyAccountWithdrawBatch,
 } from '../utils/moneyAccountTransactions';
 import {
+  getMoneyAccountDepositIntent,
+  clearMoneyAccountDepositIntent,
   useMoneyAccountDeposit,
   useMoneyAccountWithdrawal,
 } from './useMoneyAccount';
@@ -198,6 +200,7 @@ describe('useMoneyAccountDeposit', () => {
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
       loader: ConfirmationLoader.CustomAmount,
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
+      preferredPaymentToken: undefined,
     });
 
     expect(mockAddTransactionBatch).toHaveBeenCalledWith(
@@ -209,6 +212,47 @@ describe('useMoneyAccountDeposit', () => {
         disableSequential: true,
       }),
     );
+  });
+
+  it('forwards preferredPaymentToken to navigateToConfirmation and tags batch intent', async () => {
+    mockAddTransactionBatch.mockResolvedValue({ batchId: '0xBATCH' } as never);
+
+    const preferredPaymentToken = {
+      address: '0xaca92e438df0b2401ff60da7e4337b687a2435da' as Hex,
+      chainId: '0x1' as Hex,
+    };
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit({
+        preferredPaymentToken,
+        intent: 'addMusd',
+      });
+    });
+
+    expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
+      loader: ConfirmationLoader.CustomAmount,
+      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
+      preferredPaymentToken,
+    });
+    expect(getMoneyAccountDepositIntent('0xBATCH')).toBe('addMusd');
+    clearMoneyAccountDepositIntent('0xBATCH');
+  });
+
+  it('defaults intent to "convert" when omitted', async () => {
+    mockAddTransactionBatch.mockResolvedValue({
+      batchId: '0xBATCH2',
+    } as never);
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit();
+    });
+
+    expect(getMoneyAccountDepositIntent('0xBATCH2')).toBe('convert');
+    clearMoneyAccountDepositIntent('0xBATCH2');
   });
 
   it('logs and rethrows when addTransactionBatch fails', async () => {
