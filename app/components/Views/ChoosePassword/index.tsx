@@ -60,9 +60,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   AccountType,
   getSocialAccountType,
-  ONBOARDING_SUCCESS_FLOW,
 } from '../../../constants/onboarding';
-import { discoverAccounts } from '../../../multichain-accounts/discovery';
 import type {
   IMetaMetricsEvent,
   ITrackingEvent,
@@ -312,28 +310,6 @@ const ChoosePassword = () => {
     [password, recreateVault, dispatch],
   );
 
-  /**
-   * Social login skips manual backup and navigates straight to onboarding success.
-   * Multichain snap account discovery still runs asynchronously after wallet creation
-   * SRP onboarding absorbs that window during manual backup;
-   * await discovery here so snap/account-tree work finishes on the loader, not on success.
-   */
-  const runSocialAccountDiscovery = useCallback(async () => {
-    try {
-      const keyringId =
-        Engine.context.KeyringController.state.keyrings[0]?.metadata.id;
-      if (!keyringId) {
-        return;
-      }
-      await discoverAccounts(keyringId);
-    } catch (error) {
-      Logger.error(
-        error as Error,
-        'ChoosePassword: discoverAccounts failed before onboarding success',
-      );
-    }
-  }, []);
-
   const handlePostWalletCreation = useCallback(
     async (authType: AuthData) => {
       dispatch(passwordSetAction());
@@ -386,10 +362,7 @@ const ChoosePassword = () => {
           routes: [
             {
               name: Routes.ONBOARDING.SUCCESS,
-              params: {
-                showPasswordHint: true,
-                successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
-              },
+              params: { showPasswordHint: true },
             },
           ],
         });
@@ -521,10 +494,6 @@ const ChoosePassword = () => {
 
       await handleWalletCreation(authType, previous_screen);
 
-      if (authType.oauth2Login) {
-        await runSocialAccountDiscovery();
-      }
-
       await handlePostWalletCreation(authType);
 
       track(MetaMetricsEvents.WALLET_CREATED, {
@@ -552,7 +521,6 @@ const ChoosePassword = () => {
     getOauth2LoginSuccess,
     biometryType,
     handleWalletCreation,
-    runSocialAccountDiscovery,
     handlePostWalletCreation,
     handleWalletCreationError,
     metrics,
