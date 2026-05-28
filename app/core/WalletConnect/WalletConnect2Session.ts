@@ -418,17 +418,15 @@ class WalletConnect2Session {
         namespaces,
       });
 
-      if (isEqual(this.session.namespaces, onlyApprovedNamespaces)) {
-        return;
+      if (!isEqual(this.session.namespaces, onlyApprovedNamespaces)) {
+        await this.web3Wallet.updateSession({
+          topic: this.session.topic,
+          namespaces: onlyApprovedNamespaces,
+        });
+
+        // Keep local session in sync with WalletConnect's canonical active session,
+        this.session.namespaces = onlyApprovedNamespaces;
       }
-
-      await this.web3Wallet.updateSession({
-        topic: this.session.topic,
-        namespaces: onlyApprovedNamespaces,
-      });
-
-      // Keep local session in sync with WalletConnect's canonical active session,
-      this.session.namespaces = onlyApprovedNamespaces;
 
       // We decided not to support chain switching for non-EVM
       // We only keep the chainChanged emission logic for EVM though
