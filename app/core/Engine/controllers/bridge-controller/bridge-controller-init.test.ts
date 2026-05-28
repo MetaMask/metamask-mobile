@@ -312,7 +312,7 @@ describe('BridgeController Init', () => {
         );
       });
 
-      it('returns false when the feature flag is absent', () => {
+      it('returns true when the feature flag is absent while hardcoded on for development', () => {
         // Arrange
         const requestMock = buildInitRequestWithCallMock(() => ({
           remoteFeatureFlags: {},

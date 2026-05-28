@@ -1,16 +1,8 @@
 import React from 'react';
-import { render, fireEvent, act } from '@testing-library/react-native';
+import { render, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import {
-  NavigationContainer,
-  NavigationProp,
-  ParamListBase,
-} from '@react-navigation/native';
-import { Alert } from 'react-native';
-import OnboardingNavigator, {
-  PostEmailNavigationOptions,
-  KYCStatusNavigationOptions,
-} from './OnboardingNavigator';
+import { NavigationContainer } from '@react-navigation/native';
+import OnboardingNavigator from './OnboardingNavigator';
 import { useCardSDK } from '../sdk';
 import { CardSDK } from '../sdk/CardSDK';
 import { useParams } from '../../../../util/navigation/navUtils';
@@ -61,11 +53,11 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-// Mock @react-navigation/stack
-jest.mock('@react-navigation/stack', () => {
+// Mock @react-navigation/native-stack
+jest.mock('@react-navigation/native-stack', () => {
   const { View } = jest.requireActual('react-native');
   return {
-    createStackNavigator: () => ({
+    createNativeStackNavigator: () => ({
       Navigator: ({
         children,
         ...props
@@ -120,29 +112,6 @@ jest.mock('../components/Onboarding/KYCPending', () => 'KYCPending');
 jest.mock('../components/Onboarding/PersonalDetails', () => 'PersonalDetails');
 jest.mock('../components/Onboarding/PhysicalAddress', () => 'PhysicalAddress');
 jest.mock('../components/Onboarding/Complete', () => 'Complete');
-
-// Mock navigation options
-jest.mock('.', () => ({
-  cardDefaultNavigationOptions: {},
-  headerStyle: {
-    title: { fontSize: 16 },
-    icon: { padding: 8 },
-  },
-}));
-
-// Mock component library components
-jest.mock(
-  '../../../../component-library/components/Buttons/ButtonIcon',
-  () => ({
-    __esModule: true,
-    default: 'ButtonIcon',
-    ButtonIconSizes: {
-      Sm: 'Sm',
-      Md: 'Md',
-      Lg: 'Lg',
-    },
-  }),
-);
 
 jest.mock('../../../../component-library/components/Texts/Text', () => ({
   __esModule: true,
@@ -912,172 +881,6 @@ describe('OnboardingNavigator', () => {
       expect(stackNavigator?.props.initialRouteName).toBe(
         Routes.CARD.ONBOARDING.VERIFY_IDENTITY,
       );
-    });
-  });
-
-  describe('Navigation Options', () => {
-    describe('PostEmailNavigationOptions', () => {
-      let mockNavigation: Partial<NavigationProp<ParamListBase>>;
-
-      beforeEach(() => {
-        mockNavigation = {
-          navigate: jest.fn(),
-          goBack: jest.fn(),
-        };
-
-        jest.spyOn(Alert, 'alert');
-      });
-
-      afterEach(() => {
-        jest.restoreAllMocks();
-      });
-
-      it('renders close button in header right', () => {
-        const options = PostEmailNavigationOptions({
-          navigation: mockNavigation as NavigationProp<ParamListBase>,
-        });
-        const HeaderRight = options.headerRight as () => React.ReactElement;
-        const headerRightElement = HeaderRight();
-        const { getByTestId } = render(headerRightElement);
-
-        expect(getByTestId('exit-onboarding-button')).toBeTruthy();
-      });
-
-      it('displays exit confirmation alert when close button is pressed', () => {
-        const options = PostEmailNavigationOptions({
-          navigation: mockNavigation as NavigationProp<ParamListBase>,
-        });
-        const HeaderRight = options.headerRight as () => React.ReactElement;
-        const headerRightElement = HeaderRight();
-        const { getByTestId } = render(headerRightElement);
-
-        const closeButton = getByTestId('exit-onboarding-button');
-        fireEvent.press(closeButton);
-
-        expect(Alert.alert).toHaveBeenCalledWith(
-          'mocked_card.card_onboarding.exit_confirmation.title',
-          'mocked_card.card_onboarding.exit_confirmation.message',
-          expect.any(Array),
-        );
-      });
-
-      it('navigates to WALLET.HOME when exit is confirmed in alert', () => {
-        const options = PostEmailNavigationOptions({
-          navigation: mockNavigation as NavigationProp<ParamListBase>,
-        });
-        const HeaderRight = options.headerRight as () => React.ReactElement;
-        const headerRightElement = HeaderRight();
-        const { getByTestId } = render(headerRightElement);
-
-        const closeButton = getByTestId('exit-onboarding-button');
-        fireEvent.press(closeButton);
-
-        const alertCall = (Alert.alert as jest.Mock).mock.calls[0];
-        const destructiveButton = alertCall[2][1];
-
-        destructiveButton.onPress();
-
-        expect(mockNavigation.navigate).toHaveBeenCalledWith('WALLET_HOME');
-      });
-
-      it('has gestureEnabled set to false', () => {
-        const options = PostEmailNavigationOptions({
-          navigation: mockNavigation as NavigationProp<ParamListBase>,
-        });
-
-        expect(options.gestureEnabled).toBe(false);
-      });
-
-      it('renders empty header left', () => {
-        const options = PostEmailNavigationOptions({
-          navigation: mockNavigation as NavigationProp<ParamListBase>,
-        });
-        const HeaderLeft = options.headerLeft as () => React.ReactElement;
-        const headerLeftElement = HeaderLeft();
-
-        expect(headerLeftElement).toBeTruthy();
-      });
-
-      it('renders empty header title', () => {
-        const options = PostEmailNavigationOptions({
-          navigation: mockNavigation as NavigationProp<ParamListBase>,
-        });
-        const HeaderTitle = options.headerTitle as () => React.ReactElement;
-        const headerTitleElement = HeaderTitle();
-
-        expect(headerTitleElement).toBeTruthy();
-      });
-    });
-
-    describe('KYCStatusNavigationOptions', () => {
-      let mockNavigation: Partial<NavigationProp<ParamListBase>>;
-
-      beforeEach(() => {
-        mockNavigation = {
-          navigate: jest.fn(),
-          goBack: jest.fn(),
-        };
-
-        jest.spyOn(Alert, 'alert');
-      });
-
-      afterEach(() => {
-        jest.restoreAllMocks();
-      });
-
-      it('renders close button in header right', () => {
-        const options = KYCStatusNavigationOptions({
-          navigation: mockNavigation as NavigationProp<ParamListBase>,
-        });
-        const HeaderRight = options.headerRight as () => React.ReactElement;
-        const headerRightElement = HeaderRight();
-        const { getByTestId } = render(headerRightElement);
-
-        expect(getByTestId('exit-onboarding-button')).toBeTruthy();
-      });
-
-      it('navigates directly to WALLET.HOME without alert when close button is pressed', () => {
-        const options = KYCStatusNavigationOptions({
-          navigation: mockNavigation as NavigationProp<ParamListBase>,
-        });
-        const HeaderRight = options.headerRight as () => React.ReactElement;
-        const headerRightElement = HeaderRight();
-        const { getByTestId } = render(headerRightElement);
-
-        const closeButton = getByTestId('exit-onboarding-button');
-        fireEvent.press(closeButton);
-
-        expect(Alert.alert).not.toHaveBeenCalled();
-        expect(mockNavigation.navigate).toHaveBeenCalledWith('WALLET_HOME');
-      });
-
-      it('has gestureEnabled set to false', () => {
-        const options = KYCStatusNavigationOptions({
-          navigation: mockNavigation as NavigationProp<ParamListBase>,
-        });
-
-        expect(options.gestureEnabled).toBe(false);
-      });
-
-      it('renders empty header left', () => {
-        const options = KYCStatusNavigationOptions({
-          navigation: mockNavigation as NavigationProp<ParamListBase>,
-        });
-        const HeaderLeft = options.headerLeft as () => React.ReactElement;
-        const headerLeftElement = HeaderLeft();
-
-        expect(headerLeftElement).toBeTruthy();
-      });
-
-      it('renders empty header title', () => {
-        const options = KYCStatusNavigationOptions({
-          navigation: mockNavigation as NavigationProp<ParamListBase>,
-        });
-        const HeaderTitle = options.headerTitle as () => React.ReactElement;
-        const headerTitleElement = HeaderTitle();
-
-        expect(headerTitleElement).toBeTruthy();
-      });
     });
   });
 

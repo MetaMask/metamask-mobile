@@ -12,7 +12,7 @@ export const ExploreSearchScreenSelectorsIDs = {
   PILL_ROW: 'explore-search-pills',
   /** "All" pill */
   PILL_ALL: 'explore-search-pill-all',
-  /** Cryptos / tokens feed pill */
+  /** Crypto / tokens feed pill */
   PILL_CRYPTOS: 'explore-search-pill-tokens',
   /** Perps feed pill */
   PILL_PERPS: 'explore-search-pill-perps',
