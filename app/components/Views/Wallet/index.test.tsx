@@ -95,10 +95,10 @@ jest.mock('../../../selectors/featureFlagController/homepage', () => ({
   ),
 }));
 
-// Control Money home screen feature flag per test (default false so existing tests are unaffected)
-let mockMoneyHomeScreenEnabled = false;
+// Control Money account feature flag per test (default false so existing tests are unaffected)
+let mockMoneyAccountEnabled = false;
 jest.mock('../../UI/Money/selectors/featureFlags', () => ({
-  selectMoneyHomeScreenEnabledFlag: jest.fn(() => mockMoneyHomeScreenEnabled),
+  selectMoneyEnableMoneyAccountFlag: jest.fn(() => mockMoneyAccountEnabled),
 }));
 
 // Mock MoneyBalanceCard so the integration test does not depend on its hooks/contexts.
@@ -2052,12 +2052,12 @@ describe('MoneyBalanceCard slot', () => {
   });
 
   afterEach(() => {
-    mockMoneyHomeScreenEnabled = false;
+    mockMoneyAccountEnabled = false;
     mockHomepageSectionsEnabled = false;
   });
 
   it('renders the MoneyBalanceCard when both feature flags are enabled', () => {
-    mockMoneyHomeScreenEnabled = true;
+    mockMoneyAccountEnabled = true;
     mockHomepageSectionsEnabled = true;
 
     //@ts-expect-error navigation params intentionally omitted (same as render(Wallet))
@@ -2067,7 +2067,7 @@ describe('MoneyBalanceCard slot', () => {
   });
 
   it('does not render the MoneyBalanceCard when only the Money flag is enabled', () => {
-    mockMoneyHomeScreenEnabled = true;
+    mockMoneyAccountEnabled = true;
     mockHomepageSectionsEnabled = false;
 
     //@ts-expect-error navigation params intentionally omitted (same as render(Wallet))
@@ -2077,7 +2077,7 @@ describe('MoneyBalanceCard slot', () => {
   });
 
   it('does not render the MoneyBalanceCard when only the Homepage sections flag is enabled', () => {
-    mockMoneyHomeScreenEnabled = false;
+    mockMoneyAccountEnabled = false;
     mockHomepageSectionsEnabled = true;
 
     //@ts-expect-error navigation params intentionally omitted (same as render(Wallet))
@@ -2087,7 +2087,7 @@ describe('MoneyBalanceCard slot', () => {
   });
 
   it('does not render the MoneyBalanceCard when both feature flags are disabled', () => {
-    mockMoneyHomeScreenEnabled = false;
+    mockMoneyAccountEnabled = false;
     mockHomepageSectionsEnabled = false;
 
     //@ts-expect-error navigation params intentionally omitted (same as render(Wallet))
