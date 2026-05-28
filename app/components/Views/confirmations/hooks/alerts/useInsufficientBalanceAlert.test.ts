@@ -3,6 +3,7 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { useInsufficientBalanceAlert } from './useInsufficientBalanceAlert';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useAccountNativeBalance } from '../useAccountNativeBalance';
@@ -21,6 +22,7 @@ import {
   useIsTransactionPayLoading,
   useTransactionPayFiatPayment,
 } from '../pay/useTransactionPayData';
+import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { Hex } from '@metamask/utils';
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
@@ -61,6 +63,10 @@ jest.mock('../../../../UI/Ramp/hooks/useRampNavigation', () => ({
 jest.mock('../gas/useIsGaslessSupported');
 jest.mock('../pay/useTransactionPayHasSourceAmount');
 jest.mock('../pay/useTransactionPayData');
+jest.mock('../../../../../selectors/transactionPayController', () => ({
+  ...jest.requireActual('../../../../../selectors/transactionPayController'),
+  selectPaymentOverrideByTransactionId: jest.fn().mockReturnValue(undefined),
+}));
 
 describe('useInsufficientBalanceAlert', () => {
   const mockUseTransactionMetadataRequest = jest.mocked(
@@ -84,6 +90,9 @@ describe('useInsufficientBalanceAlert', () => {
   );
   const useTransactionPayFiatPaymentMock = jest.mocked(
     useTransactionPayFiatPayment,
+  );
+  const selectPaymentOverrideByTransactionIdMock = jest.mocked(
+    selectPaymentOverrideByTransactionId,
   );
 
   const mockChainId = '0x1' as Hex;
@@ -148,6 +157,7 @@ describe('useInsufficientBalanceAlert', () => {
 
     useIsTransactionPayLoadingMock.mockReturnValue(false);
     useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
+    selectPaymentOverrideByTransactionIdMock.mockReturnValue(undefined);
   });
 
   it('return empty array when no transaction metadata is available', () => {
@@ -320,6 +330,16 @@ describe('useInsufficientBalanceAlert', () => {
     useTransactionPayFiatPaymentMock.mockReturnValue({
       selectedPaymentMethodId: 'apple-pay-123',
     } as ReturnType<typeof useTransactionPayFiatPayment>);
+
+    const { result } = renderHook(() => useInsufficientBalanceAlert());
+
+    expect(result.current).toEqual([]);
+  });
+
+  it('returns empty array when money account payment override is active', () => {
+    selectPaymentOverrideByTransactionIdMock.mockReturnValue(
+      PaymentOverride.MoneyAccount,
+    );
 
     const { result } = renderHook(() => useInsufficientBalanceAlert());
 
