@@ -24,12 +24,20 @@ export interface PillScrollListProps<T> {
   /** @default 12 */
   maxPills?: number;
   listTestId?: string;
+  /**
+   * Outer wrapper Tailwind classes. Defaults to Explore spacing (`mt-3 mb-9`).
+   * Pass a slimmer value (e.g. `-mx-4 bg-transparent`) when the parent already
+   * applies vertical gap (e.g. homepage section `Box gap={3}` + column `gap={8}`).
+   */
+  wrapperTwClassName?: string;
 }
 
 /**
  * Two-row horizontal scroll of pill-shaped items. Used for "crypto movers".
  * Splits incoming data evenly between the two rows.
  */
+const DEFAULT_WRAPPER_TW = '-mx-4 bg-transparent mt-3 mb-9' as const;
+
 function PillScrollList<T>({
   data,
   isLoading,
@@ -38,6 +46,7 @@ function PillScrollList<T>({
   Skeleton,
   maxPills = DEFAULT_MAX_PILLS,
   listTestId,
+  wrapperTwClassName = DEFAULT_WRAPPER_TW,
 }: PillScrollListProps<T>) {
   const tw = useTailwind();
   const displayData = useMemo(() => data.slice(0, maxPills), [data, maxPills]);
@@ -54,7 +63,7 @@ function PillScrollList<T>({
     ));
 
   return (
-    <Box twClassName="-mx-4 bg-transparent mt-3 mb-9">
+    <Box twClassName={wrapperTwClassName}>
       {isLoading && (
         <Box twClassName="px-4">
           <Skeleton />

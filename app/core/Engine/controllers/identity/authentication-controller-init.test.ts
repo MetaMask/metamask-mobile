@@ -44,6 +44,7 @@ describe('AuthenticationControllerInit', () => {
     expect(controllerMock).toHaveBeenCalledWith({
       messenger: expect.any(Object),
       state: undefined,
+      config: { env: 'prd' },
       metametrics: {
         agent: 'mobile',
         getMetaMetricsId: expect.any(Function),
@@ -61,5 +62,23 @@ describe('AuthenticationControllerInit', () => {
 
     expect(constructorArgs?.metametrics.getAppVersion?.()).toBe('7.42.0');
     expect(jest.mocked(getVersion)).toHaveBeenCalled();
+  });
+
+  describe('when MM_DEV_API_ENV=dev', () => {
+    beforeEach(() => {
+      process.env.MM_DEV_API_ENV = 'dev';
+    });
+
+    afterEach(() => {
+      delete process.env.MM_DEV_API_ENV;
+    });
+
+    it('mints the JWT against the dev OIDC endpoint', () => {
+      authenticationControllerInit(getInitRequestMock());
+
+      expect(jest.mocked(AuthenticationController)).toHaveBeenCalledWith(
+        expect.objectContaining({ config: { env: 'dev' } }),
+      );
+    });
   });
 });

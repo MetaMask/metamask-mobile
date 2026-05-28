@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 
 import { ConfirmationUIType } from '../../ConfirmationView.testIds';
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -122,27 +123,24 @@ export const Confirm = ({
   });
 
   useEffect(() => {
-    if (approvalRequest) {
-      const options = {
-        headerShown: false,
-        // If there is an approvalRequest, we need to allow the user to swipe to reject the confirmation
-        gestureEnabled: true,
-      };
+    const options: NativeStackNavigationOptions = {
+      // If not, keep the loading state in place until there is a request that can be rejected.
+      gestureEnabled: Boolean(approvalRequest),
+    };
 
-      if (isFullScreenConfirmation) {
-        // If the confirmation is full screen, we need to show the header
-        options.headerShown = true;
-      }
-      navigation.setOptions(options);
+    if (approvalRequest) {
+      options.headerShown = Boolean(isFullScreenConfirmation);
     }
+
+    navigation.setOptions(options);
   }, [approvalRequest, isFullScreenConfirmation, navigation]);
 
   useEffect(() => {
     if (!approvalRequest) {
       const backHandlerSubscription = BackHandler.addEventListener(
         'hardwareBackPress',
-        // Do nothing if back button is pressed for Android in case of no approvalRequest (loading state)
-        () => undefined,
+        // Keep users on the loading state until there is an approval request that can be rejected.
+        () => true,
       );
 
       return () => {

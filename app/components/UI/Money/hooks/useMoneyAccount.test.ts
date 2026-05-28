@@ -197,7 +197,7 @@ describe('useMoneyAccountDeposit', () => {
 
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
       loader: ConfirmationLoader.CustomAmount,
-      stack: Routes.MONEY.ROOT,
+      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
     });
 
     expect(mockAddTransactionBatch).toHaveBeenCalledWith(
@@ -345,7 +345,7 @@ describe('useMoneyAccountWithdrawal', () => {
 
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
       loader: ConfirmationLoader.CustomAmount,
-      stack: Routes.MONEY.ROOT,
+      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
     });
 
     expect(mockAddTransactionBatch).toHaveBeenCalledWith(

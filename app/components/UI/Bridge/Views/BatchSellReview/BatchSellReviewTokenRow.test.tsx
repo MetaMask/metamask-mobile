@@ -40,16 +40,24 @@ jest.mock('@metamask/design-system-react-native', () => {
     BoxFlexDirection: { Row: 'row' },
     ButtonIcon: ({
       accessibilityLabel,
+      isDisabled,
       onPress,
       testID,
     }: {
       accessibilityLabel?: string;
+      isDisabled?: boolean;
       onPress?: () => void;
       testID?: string;
     }) =>
       ReactActual.createElement(
         RNPressable,
-        { accessibilityLabel, onPress, testID },
+        {
+          accessibilityLabel,
+          accessibilityState: { disabled: Boolean(isDisabled) },
+          disabled: isDisabled,
+          onPress: isDisabled ? undefined : onPress,
+          testID,
+        },
         null,
       ),
     ButtonIconSize: { Md: 'md' },
@@ -98,7 +106,7 @@ jest.mock('./BatchSellPercentageSlider', () => {
 
 describe('BatchSellReviewTokenRow', () => {
   const mockOnPercentChange = jest.fn();
-  const mockOnCustomizePress = jest.fn();
+  const mockOnSlippagePress = jest.fn();
   const mockOnRemovePress = jest.fn();
 
   beforeEach(() => {
@@ -112,7 +120,7 @@ describe('BatchSellReviewTokenRow', () => {
         tokenKey={mockTokenKey}
         percent={100}
         onPercentChange={mockOnPercentChange}
-        onCustomizePress={mockOnCustomizePress}
+        onSlippagePress={mockOnSlippagePress}
         onRemovePress={mockOnRemovePress}
       />,
     );
@@ -160,14 +168,14 @@ describe('BatchSellReviewTokenRow', () => {
     expect(mockOnPercentChange).toHaveBeenCalledWith(mockTokenKey, 75);
   });
 
-  it('forwards customize and remove presses', () => {
+  it('forwards slippage and remove presses', () => {
     const { getByTestId } = render(
       <BatchSellReviewTokenRow
         token={mockToken}
         tokenKey={mockTokenKey}
         percent={100}
         onPercentChange={mockOnPercentChange}
-        onCustomizePress={mockOnCustomizePress}
+        onSlippagePress={mockOnSlippagePress}
         onRemovePress={mockOnRemovePress}
       />,
     );
@@ -183,7 +191,28 @@ describe('BatchSellReviewTokenRow', () => {
       ),
     );
 
-    expect(mockOnCustomizePress).toHaveBeenCalledWith(mockToken);
+    expect(mockOnSlippagePress).toHaveBeenCalledWith(mockToken);
     expect(mockOnRemovePress).toHaveBeenCalledWith(mockToken);
+  });
+
+  it('disables remove presses', () => {
+    const { getByTestId } = render(
+      <BatchSellReviewTokenRow
+        token={mockToken}
+        tokenKey={mockTokenKey}
+        percent={100}
+        onPercentChange={mockOnPercentChange}
+        onRemovePress={mockOnRemovePress}
+        isRemoveTokenDisabled
+      />,
+    );
+    const removeButton = getByTestId(
+      `${BatchSellReviewSelectorsIDs.REMOVE_BUTTON}-${mockTokenKey}`,
+    );
+
+    fireEvent.press(removeButton);
+
+    expect(removeButton.props.accessibilityState.disabled).toBe(true);
+    expect(mockOnRemovePress).not.toHaveBeenCalled();
   });
 });

@@ -60,7 +60,7 @@ const RewardsVipTiersView: React.FC = () => {
 
   const showSkeleton = (!hasAttemptedFetch || isLoading) && !dashboard;
   const showError = hasError && !dashboard;
-  const tiers = dashboard?.tiers ?? [];
+  const tiers = dashboard?.tiers.filter((tier) => tier.tier > 0) ?? [];
   const nextTierId = dashboard?.nextTier?.id;
 
   return (
@@ -75,27 +75,29 @@ const RewardsVipTiersView: React.FC = () => {
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'header-back-button' }}
         />
-        <ScrollView contentContainerStyle={tw.style('p-4 gap-2 pb-8')}>
+        <ScrollView contentContainerStyle={tw.style('py-4 gap-2 pb-8')}>
           {showSkeleton ? (
             <Box
-              twClassName="gap-2"
+              twClassName="gap-2 px-4"
               testID={REWARDS_VIP_TIERS_VIEW_TEST_IDS.SKELETON}
             >
               {[0, 1, 2, 3, 4].map((i) => (
-                <Skeleton key={i} style={tw.style('h-12 rounded-xl')} />
+                <Skeleton key={i} style={tw.style('h-16 rounded-xl')} />
               ))}
             </Box>
           ) : showError ? (
-            <RewardsErrorBanner
-              title={strings('rewards.vip.error_title')}
-              description={strings('rewards.vip.error_description')}
-              onConfirm={fetchVipDashboard}
-              confirmButtonLabel={strings('rewards.vip.retry_button')}
-              testID={REWARDS_VIP_TIERS_VIEW_TEST_IDS.ERROR}
-            />
+            <Box twClassName="px-4">
+              <RewardsErrorBanner
+                title={strings('rewards.vip.error_title')}
+                description={strings('rewards.vip.error_description')}
+                onConfirm={fetchVipDashboard}
+                confirmButtonLabel={strings('rewards.vip.retry_button')}
+                testID={REWARDS_VIP_TIERS_VIEW_TEST_IDS.ERROR}
+              />
+            </Box>
           ) : (
             <Box
-              twClassName="gap-1"
+              twClassName="mx-4 rounded-2xl overflow-hidden bg-section"
               testID={REWARDS_VIP_TIERS_VIEW_TEST_IDS.LIST}
             >
               {tiers.map((tier) => (
@@ -103,6 +105,7 @@ const RewardsVipTiersView: React.FC = () => {
                   key={tier.id}
                   tier={tier}
                   isNext={tier.id === nextTierId}
+                  isLast={tier.id === tiers[tiers.length - 1]?.id}
                 />
               ))}
             </Box>

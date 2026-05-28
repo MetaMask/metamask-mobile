@@ -15,6 +15,7 @@ import RewardsVipView, { REWARDS_VIP_VIEW_TEST_IDS } from './RewardsVipView';
 import { VIP_TIER_PROGRESS_CARD_TEST_IDS } from '../components/Vip/VipTierProgressCard';
 import { VIP_VOLUME_SECTION_TEST_IDS } from '../components/Vip/VipVolumeSection';
 import { VIP_POINTS_SECTION_TEST_IDS } from '../components/Vip/VipPointsSection';
+import { VIP_FEE_TILE_TEST_IDS } from '../components/Vip/VipFeeTile';
 
 const mockDispatch = jest.fn();
 const mockGoBack = jest.fn();
@@ -89,9 +90,15 @@ jest.mock('@metamask/design-system-react-native', () => {
     BoxJustifyContent: { Between: 'between', Center: 'center', End: 'end' },
     Text: ({ children, ...rest }: { children?: React.ReactNode }) =>
       ReactActual.createElement(Text, rest, children),
-    TextColor: { TextAlternative: 'alt', SuccessDefault: 'success' },
+    TextColor: {
+      TextDefault: 'default',
+      TextAlternative: 'alt',
+      SuccessDefault: 'success',
+      WarningDefault: 'warning',
+    },
     TextVariant: {
       DisplayMd: 'displayMd',
+      HeadingLg: 'headingLg',
       HeadingMd: 'headingMd',
       HeadingSm: 'headingSm',
       BodyMd: 'bodyMd',
@@ -100,13 +107,20 @@ jest.mock('@metamask/design-system-react-native', () => {
     },
     FontWeight: { Medium: 'medium', Bold: 'bold' },
     Icon: passthrough,
-    IconColor: { IconAlternative: 'alt', SuccessDefault: 'success' },
+    IconColor: {
+      IconAlternative: 'alt',
+      SuccessDefault: 'success',
+      WarningDefault: 'warning',
+    },
     IconName: {
+      ArrowDown: 'ArrowDown',
       ArrowRight: 'ArrowRight',
+      ArrowUp: 'ArrowUp',
+      MetamaskFoxOutline: 'MetamaskFoxOutline',
       TrendUp: 'TrendUp',
       UserCircleAdd: 'UserCircleAdd',
     },
-    IconSize: { Sm: 'sm', Md: 'md' },
+    IconSize: { Sm: 'sm', Md: 'md', Lg: 'lg' },
     Skeleton,
   };
 });
@@ -129,11 +143,26 @@ jest.mock('react-native-svg', () => {
 jest.mock('../../../../../locales/i18n', () => ({
   __esModule: true,
   default: { locale: 'en-US' },
-  strings: jest.fn((key: string) => {
+  strings: jest.fn((key: string, params?: Record<string, unknown>) => {
+    if (key === 'rewards.vip.next_tier_value' && params) {
+      return `${params.value} next tier`;
+    }
+    if (key === 'rewards.vip.equity_rebate_header' && params) {
+      return `Equity rebate: ${params.value}%`;
+    }
+    if (key === 'rewards.vip.equity_rebate_next_tier' && params) {
+      return `↑ ${params.value}% at next tier`;
+    }
+    if (key === 'rewards.vip.progress_to_next_tier' && params) {
+      return `${params.pointsRemaining} points to next tier`;
+    }
     const translations: Record<string, string> = {
       'rewards.vip.swaps_label': 'Swaps',
       'rewards.vip.perps_label': 'Perps',
+      'rewards.vip.tier_benefits_title': 'Tier benefits',
       'rewards.vip.bps_unit': 'bps',
+      'rewards.vip.equity_rebate_label': 'Equity rebate',
+      'rewards.vip.equity_rebate_top_tier': 'Top tier reached.',
       'rewards.vip.error_title': 'Error title',
       'rewards.vip.error_description': 'Error description',
       'rewards.vip.retry_button': 'Retry',
@@ -202,32 +231,69 @@ const defaultDashboard: VipDashboardState = {
   nextTier: { id: 't4', name: 'Gold Fox VIP 4', tier: 4 },
   progress: {
     percent: 72,
-    remainingSwapsUsd: 800_000,
-    remainingPerpsUsd: 3_600_000,
-    estimatedDaysToNextTier: 4,
+    remainingPointsToNextTier: 800_000,
     status: 'on_track',
   },
   fees: {
+    revenueShareBps: 150,
     swapsBps: 15,
     perpsBps: 4,
+    nextTierRevenueShareBps: 200,
     nextTierSwapsBps: 12,
     nextTierPerpsBps: 3,
   },
-  volume: { swapsUsd: 4_100_000, perpsUsd: 2_300_000 },
-  pointsAllocation: { earned: 24_400_000, max: 100_000_000, percent: 24.4 },
-  tiers: [],
+  volume: {
+    swapsUsd: 4_100_000,
+    perpsUsd: 2_300_000,
+    points: 24_400_000,
+    pointsFromReferrals: 500_000,
+    referrals: 2,
+    referralsCap: 10,
+  },
+  pointsAllocation: {
+    earned: 24_400_000,
+    threshold: 100_000_000,
+    percent: 24.4,
+  },
+  tiers: [
+    {
+      id: 't3',
+      name: 'Gold Fox VIP 3',
+      tier: 3,
+      pointsRequirement: 150_000,
+      revenueShareBps: 1500,
+      swapsBps: 87.5,
+      perpsBps: 6,
+      referralCarryoverBps: 1500,
+      status: 'current',
+    },
+    {
+      id: 't4',
+      name: 'Gold Fox VIP 4',
+      tier: 4,
+      pointsRequirement: 250_000,
+      revenueShareBps: 2000,
+      swapsBps: 15,
+      perpsBps: 5,
+      referralCarryoverBps: 2000,
+      status: 'upcoming',
+    },
+  ],
   localizedText: {
-    period: 'Mar 31 - Apr 30',
-    progressToNextTier: '$800K Swaps • $3.6M Perps to Gold Fox VIP 4',
+    periodTitle: 'Mar 31 - Apr 30',
+    memberIdTitle: 'Member ID',
     swapsFeeTitle: 'Swaps fee',
     perpsFeeTitle: 'Perps fee',
+    revenueShareTitle: 'Revenue share',
+    statsTitle: 'Volume',
+    totalPointsTitle: 'Points',
+    equityLockedTitle: 'Earn VIP allocations',
+    equityLockedDescription: 'Body copy',
+    equityUnlockedTitle: 'VIP allocation unlocked',
+    equityUnlockedDescription: 'Unlocked body copy',
     nextTierSwapsFeeDelta: '↓ 12 bps next tier',
     nextTierPerpsFeeDelta: '↓ 3 bps next tier',
-    volumeTitle: 'Volume',
-    statusMessage: 'On track to reach the next tier in 4 days',
-    pointsTitle: 'Points',
-    pointsAllocationTitle: 'Earn VIP allocations',
-    pointsAllocationDescription: 'Body copy',
+    nextTierRevenueShareDelta: '↑ 2% next tier',
   },
   lastFetched: 0,
 };
@@ -278,10 +344,10 @@ describe('RewardsVipView', () => {
       fetchVipDashboard: mockFetch,
     });
 
-    const { getByTestId, getByText } = render(<RewardsVipView />);
+    const { getAllByText, getByTestId } = render(<RewardsVipView />);
 
     expect(getByTestId(REWARDS_VIEW_SELECTORS.VIP_VIEW)).toBeOnTheScreen();
-    expect(getByText('VIP Pilot')).toBeOnTheScreen();
+    expect(getAllByText('VIP Pilot')[0]).toBeOnTheScreen();
     expect(
       getByTestId(REWARDS_VIP_VIEW_TEST_IDS.INVITE_BUTTON),
     ).toBeOnTheScreen();
@@ -300,9 +366,12 @@ describe('RewardsVipView', () => {
       fetchVipDashboard: mockFetch,
     });
 
-    const { getByTestId } = render(<RewardsVipView />);
+    const { getAllByTestId, getByTestId } = render(<RewardsVipView />);
 
     expect(getByTestId(REWARDS_VIP_VIEW_TEST_IDS.SKELETON)).toBeOnTheScreen();
+    expect(
+      getAllByTestId(REWARDS_VIP_VIEW_TEST_IDS.FEE_TILE_SKELETON),
+    ).toHaveLength(3);
   });
 
   it('renders skeleton on the pre-fetch idle window so there is no blank flash', () => {
@@ -351,6 +420,14 @@ describe('RewardsVipView', () => {
     ).toBeOnTheScreen();
     expect(getByText('Gold Fox VIP 3')).toBeOnTheScreen();
     expect(
+      getByTestId(REWARDS_VIP_VIEW_TEST_IDS.TIER_BENEFITS_CAROUSEL),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(REWARDS_VIP_VIEW_TEST_IDS.REVENUE_SHARE_TILE),
+    ).toBeOnTheScreen();
+    expect(getByText('Revenue share')).toBeOnTheScreen();
+    expect(getByText('↑ 2% next tier')).toBeOnTheScreen();
+    expect(
       getByTestId(REWARDS_VIP_VIEW_TEST_IDS.SWAPS_FEE_TILE),
     ).toBeOnTheScreen();
     expect(
@@ -364,37 +441,18 @@ describe('RewardsVipView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('navigates to the Tiers view when the tier card is tapped', () => {
-    mockUseVipDashboard.mockReturnValue({
-      dashboard: defaultDashboard,
-      isLoading: false,
-      hasError: false,
-      hasAttemptedFetch: true,
-      fetchVipDashboard: mockFetch,
-    });
-
-    const { getByTestId } = render(<RewardsVipView />);
-    fireEvent.press(getByTestId(VIP_TIER_PROGRESS_CARD_TEST_IDS.CONTAINER));
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIP_TIERS_VIEW);
-  });
-
-  it('uses backend-provided program.name and localizedText overrides when present', () => {
+  it('renders an up arrow when next-tier revenue share equals current revenue share', () => {
     mockUseVipDashboard.mockReturnValue({
       dashboard: {
         ...defaultDashboard,
-        program: { id: 'p1', name: 'VIP Pilot — Custom' },
+        fees: {
+          ...defaultDashboard.fees,
+          revenueShareBps: 150,
+          nextTierRevenueShareBps: 150,
+        },
         localizedText: {
-          progressToNextTier: 'Backend subline',
-          swapsFeeTitle: 'Swap fees',
-          perpsFeeTitle: 'Perp fees',
-          nextTierSwapsFeeDelta: '↓ 12',
-          nextTierPerpsFeeDelta: '↓ 3',
-          volumeTitle: 'Volume V2',
-          period: 'Apr 1 - May 1',
-          statusMessage: 'Backend status',
-          pointsTitle: 'Pts',
-          pointsAllocationTitle: 'Allocation',
-          pointsAllocationDescription: 'Body copy',
+          ...defaultDashboard.localizedText,
+          nextTierRevenueShareDelta: '↑ 1.5% next tier',
         },
       },
       isLoading: false,
@@ -404,13 +462,111 @@ describe('RewardsVipView', () => {
     });
 
     const { getByText } = render(<RewardsVipView />);
-    expect(getByText('VIP Pilot — Custom')).toBeOnTheScreen();
-    expect(getByText('Backend subline')).toBeOnTheScreen();
+
+    expect(getByText('↑ 1.5% next tier')).toBeOnTheScreen();
+  });
+
+  it('hides the revenue share next-tier label when the user is on the top tier', () => {
+    mockUseVipDashboard.mockReturnValue({
+      dashboard: {
+        ...defaultDashboard,
+        currentTier: { id: 't8', name: 'Gold Fox VIP 8', tier: 8 },
+        nextTier: { id: 't8', name: 'Gold Fox VIP 8', tier: 8 },
+        fees: {
+          ...defaultDashboard.fees,
+          revenueShareBps: 400,
+          nextTierRevenueShareBps: 400,
+        },
+        localizedText: {
+          ...defaultDashboard.localizedText,
+          nextTierRevenueShareDelta: '',
+        },
+      },
+      isLoading: false,
+      hasError: false,
+      hasAttemptedFetch: true,
+      fetchVipDashboard: mockFetch,
+    });
+
+    const { getByTestId, getAllByTestId } = render(<RewardsVipView />);
+
+    expect(
+      getByTestId(REWARDS_VIP_VIEW_TEST_IDS.REVENUE_SHARE_TILE),
+    ).toBeOnTheScreen();
+    // Revenue share tile drops its next-tier row on the top tier while the
+    // swap and perps tiles keep theirs (still sourced from the backend).
+    expect(getAllByTestId(VIP_FEE_TILE_TEST_IDS.NEXT)).toHaveLength(2);
+  });
+
+  it('does not render the equity rebate tile', () => {
+    mockUseVipDashboard.mockReturnValue({
+      dashboard: defaultDashboard,
+      isLoading: false,
+      hasError: false,
+      hasAttemptedFetch: true,
+      fetchVipDashboard: mockFetch,
+    });
+
+    const { queryByTestId } = render(<RewardsVipView />);
+
+    expect(
+      queryByTestId(REWARDS_VIP_VIEW_TEST_IDS.EQUITY_REBATE_TILE),
+    ).toBeNull();
+  });
+
+  it('navigates to the Tiers view when the tier benefits header is tapped', () => {
+    mockUseVipDashboard.mockReturnValue({
+      dashboard: defaultDashboard,
+      isLoading: false,
+      hasError: false,
+      hasAttemptedFetch: true,
+      fetchVipDashboard: mockFetch,
+    });
+
+    const { getByTestId } = render(<RewardsVipView />);
+    fireEvent.press(
+      getByTestId(REWARDS_VIP_VIEW_TEST_IDS.TIER_BENEFITS_HEADER),
+    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIP_TIERS_VIEW);
+  });
+
+  it('uses backend-provided program.name and localizedText overrides when present', () => {
+    mockUseVipDashboard.mockReturnValue({
+      dashboard: {
+        ...defaultDashboard,
+        program: { id: 'p1', name: 'VIP Pilot — Custom' },
+        localizedText: {
+          memberIdTitle: 'Member ID',
+          swapsFeeTitle: 'Swap fees',
+          perpsFeeTitle: 'Perp fees',
+          revenueShareTitle: 'Revenue',
+          statsTitle: 'Volume V2',
+          totalPointsTitle: 'Pts',
+          periodTitle: 'Apr 1 - May 1',
+          equityLockedTitle: 'Allocation',
+          equityLockedDescription: 'Body copy',
+          equityUnlockedTitle: 'Unlocked allocation',
+          equityUnlockedDescription: 'Unlocked body copy',
+          nextTierSwapsFeeDelta: '↓ 12',
+          nextTierPerpsFeeDelta: '↓ 3',
+          nextTierRevenueShareDelta: '↑ 2% next tier',
+        },
+      },
+      isLoading: false,
+      hasError: false,
+      hasAttemptedFetch: true,
+      fetchVipDashboard: mockFetch,
+    });
+
+    const { getAllByText, getByText } = render(<RewardsVipView />);
+    expect(getAllByText('VIP Pilot — Custom')[0]).toBeOnTheScreen();
+    expect(getByText('800k points to next tier')).toBeOnTheScreen();
     expect(getByText('Swap fees')).toBeOnTheScreen();
     expect(getByText('Perp fees')).toBeOnTheScreen();
+    expect(getByText('Revenue')).toBeOnTheScreen();
+    expect(getByText('↑ 2% next tier')).toBeOnTheScreen();
     expect(getByText('Volume V2')).toBeOnTheScreen();
     expect(getByText('Apr 1 - May 1')).toBeOnTheScreen();
-    expect(getByText('Backend status')).toBeOnTheScreen();
     expect(getByText('Pts')).toBeOnTheScreen();
     expect(getByText('Allocation')).toBeOnTheScreen();
   });

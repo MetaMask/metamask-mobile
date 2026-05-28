@@ -108,14 +108,13 @@ jest.mock('../../../../../selectors/networkController', () => ({
 }));
 
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
+  resetBridgeState: jest.fn(() => ({
+    type: 'bridge/resetBridgeState',
+  })),
   selectBatchSellDestStablecoins: jest.fn(() => mockDestinationStablecoins),
   selectBatchSellDestStablecoinsByChain: jest.fn(
     () => mockDestinationStablecoinsByChain,
   ),
-  setBatchSellDestToken: jest.fn((token: BridgeToken | undefined) => ({
-    type: 'bridge/setBatchSellDestToken',
-    payload: token,
-  })),
   setBatchSellSourceTokens: jest.fn((tokens: BridgeToken[]) => ({
     type: 'bridge/setBatchSellSourceTokens',
     payload: tokens,
@@ -403,16 +402,17 @@ describe('BatchSellTokenSelect', () => {
     expect(queryByText('USDC')).not.toBeOnTheScreen();
   });
 
-  it('resets Batch Sell source and destination tokens on entry', () => {
-    render(<BatchSellTokenSelect />);
+  it('resets bridge state on unmount', () => {
+    const { unmount } = render(<BatchSellTokenSelect />);
+
+    expect(mockDispatch).not.toHaveBeenCalledWith({
+      type: 'bridge/resetBridgeState',
+    });
+
+    unmount();
 
     expect(mockDispatch).toHaveBeenCalledWith({
-      type: 'bridge/setBatchSellSourceTokens',
-      payload: [],
-    });
-    expect(mockDispatch).toHaveBeenCalledWith({
-      type: 'bridge/setBatchSellDestToken',
-      payload: undefined,
+      type: 'bridge/resetBridgeState',
     });
   });
 

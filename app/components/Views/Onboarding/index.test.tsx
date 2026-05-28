@@ -1002,7 +1002,12 @@ describe('Onboarding', () => {
         await googleOAuthFunction(true);
       });
 
-      expect(mockCreateLoginHandler).toHaveBeenCalledWith('ios', 'google');
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'ios',
+        'google',
+        false,
+        undefined,
+      );
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
         'mockGoogleHandler',
         false,
@@ -1053,7 +1058,12 @@ describe('Onboarding', () => {
         await googleOAuthFunction(true);
       });
 
-      expect(mockCreateLoginHandler).toHaveBeenCalledWith('android', 'google');
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'android',
+        'google',
+        false,
+        undefined,
+      );
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
         'mockGoogleHandler',
         false,
@@ -1107,7 +1117,12 @@ describe('Onboarding', () => {
         await appleOAuthFunction(true);
       });
 
-      expect(mockCreateLoginHandler).toHaveBeenCalledWith('ios', 'apple');
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'ios',
+        'apple',
+        false,
+        undefined,
+      );
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
         'mockAppleHandler',
         false,
@@ -1429,7 +1444,12 @@ describe('Onboarding', () => {
         await appleOAuthFunction(false);
       });
 
-      expect(mockCreateLoginHandler).toHaveBeenCalledWith('ios', 'apple');
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'ios',
+        'apple',
+        false,
+        undefined,
+      );
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
         'mockAppleHandler',
         true,
@@ -1617,7 +1637,12 @@ describe('Onboarding', () => {
           }),
         }),
       );
-      expect(mockCreateLoginHandler).toHaveBeenCalledWith('ios', 'google');
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'ios',
+        'google',
+        false,
+        undefined,
+      );
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
         'mockGoogleHandler',
         false,
@@ -1699,7 +1724,12 @@ describe('Onboarding', () => {
           }),
         }),
       );
-      expect(mockCreateLoginHandler).toHaveBeenCalledWith('ios', 'google');
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'ios',
+        'google',
+        false,
+        undefined,
+      );
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
         'mockGoogleHandler',
         true,
@@ -1796,6 +1826,70 @@ describe('Onboarding', () => {
           name: MetaMetricsEvents.WALLET_GOOGLE_IOS_ERROR_VIEWED.category,
           properties: expect.objectContaining({
             account_type: AccountType.MetamaskGoogle,
+          }),
+        }),
+      );
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.SOCIAL_LOGIN_FAILED.category,
+          properties: expect.objectContaining({
+            account_type: AccountType.MetamaskGoogle,
+            is_rehydration: 'false',
+            failure_type: 'error',
+            error_category: 'provider_login',
+          }),
+        }),
+      );
+    });
+
+    it('tracks Social Login Failed when createLoginHandler rejects an invalid provider before OAuthService', async () => {
+      Platform.OS = 'ios';
+      (Device.isIos as jest.Mock).mockReturnValue(true);
+      (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
+      mockCreateLoginHandler.mockImplementation(() => {
+        throw new OAuthError(
+          'Invalid provider',
+          OAuthErrorType.InvalidProvider,
+        );
+      });
+      mockAnalytics.trackEvent.mockClear();
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      await act(async () => {
+        await navCall[1].params.onPressContinueWithGoogle(true);
+        await flushPromises();
+        await flushPromises();
+      });
+
+      expect(mockOAuthService.handleOAuthLogin).not.toHaveBeenCalled();
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.SOCIAL_LOGIN_FAILED.category,
+          properties: expect.objectContaining({
+            account_type: AccountType.MetamaskGoogle,
+            is_rehydration: 'false',
+            failure_type: 'error',
+            error_category: 'provider_login',
           }),
         }),
       );
@@ -2081,11 +2175,17 @@ describe('Onboarding', () => {
       });
 
       // Verify fallback was attempted
-      expect(mockCreateLoginHandler).toHaveBeenCalledWith('android', 'google');
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'android',
+        'google',
+        false,
+        undefined,
+      );
       expect(mockCreateLoginHandler).toHaveBeenCalledWith(
         'android',
         'google',
         true,
+        undefined,
       );
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
 
@@ -2145,11 +2245,17 @@ describe('Onboarding', () => {
       });
 
       // Verify fallback was attempted
-      expect(mockCreateLoginHandler).toHaveBeenCalledWith('android', 'google');
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'android',
+        'google',
+        false,
+        undefined,
+      );
       expect(mockCreateLoginHandler).toHaveBeenCalledWith(
         'android',
         'google',
         true,
+        undefined,
       );
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
 
@@ -2211,11 +2317,17 @@ describe('Onboarding', () => {
         await googleOAuthFunction(true);
       });
 
-      expect(mockCreateLoginHandler).toHaveBeenCalledWith('android', 'google');
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'android',
+        'google',
+        false,
+        undefined,
+      );
       expect(mockCreateLoginHandler).toHaveBeenCalledWith(
         'android',
         'google',
         true,
+        undefined,
       );
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
 
@@ -2278,11 +2390,17 @@ describe('Onboarding', () => {
       });
 
       // Verify fallback was attempted
-      expect(mockCreateLoginHandler).toHaveBeenCalledWith('android', 'google');
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'android',
+        'google',
+        false,
+        undefined,
+      );
       expect(mockCreateLoginHandler).toHaveBeenCalledWith(
         'android',
         'google',
         true,
+        undefined,
       );
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
 
@@ -2334,11 +2452,17 @@ describe('Onboarding', () => {
       });
 
       // Verify fallback was attempted
-      expect(mockCreateLoginHandler).toHaveBeenCalledWith('android', 'google');
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'android',
+        'google',
+        false,
+        undefined,
+      );
       expect(mockCreateLoginHandler).toHaveBeenCalledWith(
         'android',
         'google',
         true,
+        undefined,
       );
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
 
@@ -2390,11 +2514,17 @@ describe('Onboarding', () => {
       });
 
       // Verify fallback was attempted
-      expect(mockCreateLoginHandler).toHaveBeenCalledWith('android', 'google');
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'android',
+        'google',
+        false,
+        undefined,
+      );
       expect(mockCreateLoginHandler).toHaveBeenCalledWith(
         'android',
         'google',
         true,
+        undefined,
       );
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
 
@@ -2446,11 +2576,17 @@ describe('Onboarding', () => {
       });
 
       // Verify fallback was attempted
-      expect(mockCreateLoginHandler).toHaveBeenCalledWith('android', 'google');
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'android',
+        'google',
+        false,
+        undefined,
+      );
       expect(mockCreateLoginHandler).toHaveBeenCalledWith(
         'android',
         'google',
         true,
+        undefined,
       );
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
 

@@ -6,6 +6,7 @@ import App from '../../Nav/App';
 import SecureKeychain from '../../../core/SecureKeychain';
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 import Logger from '../../../util/Logger';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
 import ThemeProvider from '../../../component-library/providers/ThemeProvider/ThemeProvider';
 import { ToastContextWrapper } from '../../../component-library/components/Toast';

@@ -2,7 +2,7 @@ import {
   TimePeriod,
   TokenPrice,
 } from '../../../../components/hooks/useTokenHistoricalPrices';
-import React, { useMemo, useState } from 'react';
+import React, { useLayoutEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { strings } from '../../../../../locales/i18n';
@@ -20,6 +20,7 @@ import {
 import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import { AppThemeKey } from '../../../../util/theme/models';
 
+import { AMBIENT_NEGATIVE_COLOR } from '../../TokenDetails/components/abTestConfig';
 import PriceChart from '../PriceChart/PriceChart';
 import { distributeDataPoints } from '../PriceChart/utils';
 import styleSheet from './Price.styles';
@@ -36,6 +37,8 @@ export interface PriceLegacyProps {
   timePeriod: TimePeriod;
   chartNavigationButtons?: TimePeriod[];
   onTimePeriodChange?: (period: TimePeriod) => void;
+  onPriceDirectionChange?: (isPositive: boolean) => void;
+  useAmbientColor?: boolean;
 }
 
 const PriceLegacy = ({
@@ -48,6 +51,8 @@ const PriceLegacy = ({
   timePeriod,
   chartNavigationButtons = [],
   onTimePeriodChange,
+  onPriceDirectionChange,
+  useAmbientColor = false,
 }: PriceLegacyProps) => {
   const [activeChartIndex, setActiveChartIndex] = useState<number>(-1);
 
@@ -94,9 +99,41 @@ const PriceLegacy = ({
   const displayDiff = diff ?? priceDiff;
   const diffSign = displayDiff > 0 ? '+' : displayDiff < 0 ? '-' : '';
 
+  useLayoutEffect(() => {
+    if (!isLoading) {
+      onPriceDirectionChange?.(priceDiff >= 0);
+    }
+  }, [priceDiff, isLoading, onPriceDirectionChange]);
+
   const { styles, theme } = useStyles(styleSheet);
   const { themeAppearance } = useTheme();
   const isLightMode = themeAppearance === AppThemeKey.light;
+
+  const ambientSuccessGreen = isLightMode
+    ? LIGHT_MODE_SUCCESS_GREEN
+    : theme.colors.success.default;
+
+  // Initial ambient color for chart/buttons - based on non-hover price diff
+  const initialAmbientColor = useMemo(() => {
+    if (!useAmbientColor) return undefined;
+    return priceDiff >= 0 ? ambientSuccessGreen : AMBIENT_NEGATIVE_COLOR;
+  }, [useAmbientColor, priceDiff, ambientSuccessGreen]);
+
+  // Dynamic ambient color for price diff text only - changes during chart hover
+  const ambientColor = useMemo(() => {
+    if (!useAmbientColor) return undefined;
+    return displayDiff >= 0 ? ambientSuccessGreen : AMBIENT_NEGATIVE_COLOR;
+  }, [useAmbientColor, displayDiff, ambientSuccessGreen]);
+
+  const getPriceDiffStyle = () => {
+    if (ambientColor) {
+      return { color: ambientColor };
+    }
+    if (isLightMode && displayDiff > 0) {
+      return { color: LIGHT_MODE_SUCCESS_GREEN };
+    }
+    return undefined;
+  };
 
   return (
     <>
@@ -150,11 +187,7 @@ const PriceLegacy = ({
                     ? TextColor.ErrorDefault
                     : TextColor.TextAlternative
               }
-              style={
-                isLightMode && displayDiff > 0
-                  ? { color: LIGHT_MODE_SUCCESS_GREEN }
-                  : undefined
-              }
+              style={getPriceDiffStyle()}
               allowFontScaling={false}
             >
               {diffSign}
@@ -189,6 +222,7 @@ const PriceLegacy = ({
           priceDiff={priceDiff}
           isLoading={isLoading}
           onChartIndexChange={handleChartInteraction}
+          chartColorOverride={initialAmbientColor}
         />
       </Box>
       {chartNavigationButtons.length > 0 && onTimePeriodChange && (
@@ -203,6 +237,7 @@ const PriceLegacy = ({
                   )}
                   onPress={() => onTimePeriodChange(label)}
                   selected={timePeriod === label}
+                  selectedColor={initialAmbientColor}
                 />
               ))}
             </View>

@@ -6,11 +6,6 @@ import { CaipAccountId, CaipAssetType, type Json } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import type { RewardsControllerMethodActions } from './RewardsController-method-action-types';
 
-/**
- * Crockford's Base32 alphabet — excludes I, L, O, U to avoid ambiguity.
- */
-export const BASE32_REGEX = /^[0-9A-HJKMNP-TV-Z]+$/i;
-
 export interface LoginResponseDto {
   sessionId: string;
   subscription: SubscriptionDto;
@@ -61,9 +56,7 @@ export type VipTierRefDto = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type VipProgressDto = {
   percent: number;
-  remainingSwapsUsd: number;
-  remainingPerpsUsd: number;
-  estimatedDaysToNextTier: number;
+  remainingPointsToNextTier: number;
   status: string;
 };
 
@@ -71,20 +64,26 @@ export type VipProgressDto = {
 export type VipFeesDto = {
   swapsBps: number;
   perpsBps: number;
+  revenueShareBps: number;
   nextTierSwapsBps: number;
   nextTierPerpsBps: number;
+  nextTierRevenueShareBps: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type VipVolumeDto = {
   swapsUsd: number;
   perpsUsd: number;
+  points: number;
+  pointsFromReferrals: number;
+  referrals: number;
+  referralsCap: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type VipPointsAllocationDto = {
+export type VipEquityAllocation = {
   earned: number;
-  max: number;
+  threshold: number;
   percent: number;
 };
 
@@ -93,10 +92,11 @@ export type VipTierDto = {
   id: string;
   name: string;
   tier: number;
-  swapsRequirementUsd: number;
-  perpsRequirementUsd: number;
+  pointsRequirement: number;
   swapsBps: number;
   perpsBps: number;
+  revenueShareBps: number;
+  referralCarryoverBps: number;
   status: string;
 };
 
@@ -105,17 +105,23 @@ export type VipTierDto = {
 // on these strings without a local i18n fallback.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type VipLocalizedTextDto = {
-  period: string;
-  progressToNextTier: string;
+  periodTitle: string;
+  memberIdTitle: string;
   swapsFeeTitle: string;
   perpsFeeTitle: string;
+  revenueShareTitle: string;
+  statsTitle: string;
+  totalPointsTitle: string;
+  equityLockedTitle: string;
+  equityLockedDescription: string;
+  equityUnlockedTitle: string;
+  equityUnlockedDescription: string;
+  // The `nextTier…Delta` strings below carry the next tier's absolute value
+  // text (e.g. "↓ 12 bps next tier"), not a delta against the current tier.
+  // Naming is kept for wire-contract compatibility with the rewards API.
   nextTierSwapsFeeDelta: string;
   nextTierPerpsFeeDelta: string;
-  volumeTitle: string;
-  statusMessage: string;
-  pointsTitle: string;
-  pointsAllocationTitle: string;
-  pointsAllocationDescription: string;
+  nextTierRevenueShareDelta: string;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -127,7 +133,7 @@ export type VipDashboardDto = {
   progress: VipProgressDto;
   fees: VipFeesDto;
   volume: VipVolumeDto;
-  pointsAllocation: VipPointsAllocationDto;
+  pointsAllocation: VipEquityAllocation;
   tiers: VipTierDto[];
   localizedText: VipLocalizedTextDto;
 };
@@ -1534,11 +1540,10 @@ export interface SeasonStatusDto {
   currentTierId: string;
 }
 
-export interface SubscriptionSeasonReferralDetailsDto {
+export interface SubscriptionReferralDetailsDto {
   referralCode: string;
   totalReferees: number;
   referredByCode: string;
-  referralPoints: number;
 }
 
 export interface PointsBoostEnvelopeDto {
@@ -1610,11 +1615,10 @@ export interface ClaimRewardDto {
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type SubscriptionSeasonReferralDetailState = {
+export type SubscriptionReferralDetailState = {
   referralCode: string;
   totalReferees: number;
   referredByCode: string;
-  referralPoints: number;
   lastFetched?: number;
 };
 
@@ -2070,7 +2074,7 @@ export type RewardsControllerState = {
   subscriptions: { [subscriptionId: string]: SubscriptionDto };
   seasons: { [seasonId: string]: SeasonDtoState };
   subscriptionReferralDetails: {
-    [compositeId: string]: SubscriptionSeasonReferralDetailState;
+    [subscriptionId: string]: SubscriptionReferralDetailState;
   };
   subscriptionBenefits: {
     [subscriptionId: string]: SubscriptionBenefitsState;

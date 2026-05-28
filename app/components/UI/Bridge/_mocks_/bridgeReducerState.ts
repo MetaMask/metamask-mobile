@@ -40,4 +40,5 @@ export const mockBridgeReducerState: BridgeState = {
   selectedQuoteRequestId: undefined,
   batchSellSourceTokens: [],
   batchSellDestToken: undefined,
+  batchSellSlippages: {},
 };

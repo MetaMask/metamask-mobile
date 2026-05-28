@@ -81,6 +81,7 @@ import PerpsOHLCVBar from '../../components/PerpsOHLCVBar';
 import PerpsOICapWarning from '../../components/PerpsOICapWarning';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
 import PerpsPriceDeviationWarning from '../../components/PerpsPriceDeviationWarning';
+import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import PerpsStopLossPromptBanner from '../../components/PerpsStopLossPromptBanner';
 import TradingViewChart, {
   type OhlcData,
@@ -120,6 +121,7 @@ import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPref
 import {
   selectPerpsButtonColorTestVariant,
   selectPerpsOrderBookEnabledFlag,
+  selectPerpsServiceInterruptionBannerEnabledFlag,
 } from '../../selectors/featureFlags';
 import {
   MarketInsightsEntryCard,
@@ -244,8 +246,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
   const { gate } = useComplianceGate(selectedAddress ?? '');
 
-  // Feature flag for Order Book visibility
+  // Feature flags
   const isOrderBookEnabled = useSelector(selectPerpsOrderBookEnabledFlag);
+  const isServiceInterruptionBannerEnabled = useSelector(
+    selectPerpsServiceInterruptionBannerEnabledFlag,
+  );
 
   // Feature flag for Market Insights in Perps
   const isPerpsInsightsEnabled = useSelector(selectMarketInsightsPerpsEnabled);
@@ -590,6 +595,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       [PERPS_EVENT_PROPERTY.OPEN_ORDER]: openOrders.length,
       market_insights_displayed:
         isPerpsInsightsEnabled && Boolean(perpsInsightsReport),
+      [PERPS_EVENT_PROPERTY.OUTAGE_BANNER_SHOWN]:
+        isServiceInterruptionBannerEnabled,
       // A/B Test context (TAT-1937) - for baseline exposure tracking
       ...(isButtonColorTestEnabled && {
         [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
@@ -1342,6 +1349,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               />
             )}
           </View>
+
+          {/* Service Interruption Banner */}
+          <PerpsServiceInterruptionBanner
+            testID={
+              PerpsMarketDetailsViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER
+            }
+          />
 
           {/* OI Cap Warning - Shows when market is at capacity */}
           {market?.symbol && isAtOICap && (

@@ -21,21 +21,18 @@ export default defineConfig({
   projects: [
     {
       name: 'android',
-      testMatch: [
-        'tests/performance/**/*.spec.ts',
-        'tests/performance/**/*.spec.js',
-      ],
+      testMatch: 'tests/performance/fixtures/test.spec.ts', // DEMO TEST USING WITHFIXTURES
       use: {
         platform: Platform.ANDROID,
         device: {
           provider: ProviderName.EMULATOR,
-          name: 'Samsung Galaxy S24 Ultra',
-          osVersion: '14', // 14 for local testing
+          name: 'Pixel_5_Pro_API_34',
+          osVersion: '13', // 14 for local testing
         },
         app: {
           packageName: 'io.metamask',
           launchableActivity: 'io.metamask.MainActivity',
-          buildPath: 'PATH-TO-BUILD', // Path to your .apk file
+          // buildPath: 'PATH-TO-BUILD', // Path to your .apk file
         },
       },
     },
@@ -59,8 +56,7 @@ export default defineConfig({
     },
     {
       name: 'ios',
-      testMatch:
-        'tests/performance/login/launch-times/cold-start-to-login.spec.ts',
+      testMatch: 'tests/performance/fixtures/test.spec.ts', // DEMO TEST USING WITHFIXTURES
       use: {
         platform: Platform.IOS,
         device: {

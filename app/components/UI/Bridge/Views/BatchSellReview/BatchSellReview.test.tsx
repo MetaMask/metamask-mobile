@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
-import { Hex } from '@metamask/utils';
+import { CaipAssetType, Hex } from '@metamask/utils';
 
 import { BridgeToken } from '../../types';
 import { BatchSellReview } from './BatchSellReview';
@@ -9,7 +9,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
-const mockSelectedTokens: BridgeToken[] = [
+const defaultSelectedTokens: BridgeToken[] = [
   {
     address: '0x1111111111111111111111111111111111111111',
     chainId: '0x1' as Hex,
@@ -25,6 +25,13 @@ const mockSelectedTokens: BridgeToken[] = [
     balance: '154.297',
   },
 ];
+const thirdSelectedToken: BridgeToken = {
+  address: '0x3333333333333333333333333333333333333333',
+  chainId: '0x1' as Hex,
+  decimals: 18,
+  symbol: 'LINK',
+  balance: '42.123',
+};
 const usdcToken: BridgeToken = {
   address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
   chainId: '0x1' as Hex,
@@ -39,8 +46,11 @@ const musdToken: BridgeToken = {
   symbol: 'MUSD',
   image: 'musd-image-url',
 };
+let mockSelectedTokens: BridgeToken[] = defaultSelectedTokens;
 let mockSelectedDestinationToken: BridgeToken | undefined = usdcToken;
 let mockDestinationTokens: BridgeToken[] = [usdcToken];
+let mockBatchSellSlippages: Partial<Record<CaipAssetType, string | undefined>> =
+  {};
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -51,13 +61,27 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
+  resetBridgeState: jest.fn(() => ({
+    type: 'bridge/resetBridgeState',
+  })),
   selectBatchSellSourceTokens: jest.fn(() => mockSelectedTokens),
   selectBatchSellDestStablecoins: jest.fn(() => mockDestinationTokens),
   selectBatchSellDestToken: jest.fn(() => mockSelectedDestinationToken),
+  selectBatchSellSlippages: jest.fn(() => mockBatchSellSlippages),
   setBatchSellDestToken: jest.fn((token: BridgeToken) => ({
     type: 'bridge/setBatchSellDestToken',
     payload: token,
   })),
+  setBatchSellSourceTokens: jest.fn((tokens: BridgeToken[]) => ({
+    type: 'bridge/setBatchSellSourceTokens',
+    payload: tokens,
+  })),
+  setBatchSellTokenSlippages: jest.fn(
+    (slippage: Partial<Record<CaipAssetType, string | undefined>>) => ({
+      type: 'bridge/setBatchSellTokenSlippages',
+      payload: slippage,
+    }),
+  ),
 }));
 
 jest.mock('react-redux', () => ({
@@ -67,16 +91,22 @@ jest.mock('react-redux', () => ({
 
 jest.mock('./BatchSellReviewTokenRow', () => {
   const ReactActual = jest.requireActual('react');
-  const { Text, View } = jest.requireActual('react-native');
+  const { Pressable, Text, View } = jest.requireActual('react-native');
 
   return {
     BatchSellReviewTokenRow: ({
+      isRemoveTokenDisabled,
+      onRemovePress,
+      onSlippagePress,
       percent,
       token,
       tokenKey,
     }: {
+      isRemoveTokenDisabled?: boolean;
+      onRemovePress: (token: BridgeToken) => void;
+      onSlippagePress: (token: BridgeToken) => void;
       percent: number;
-      token: { symbol: string };
+      token: BridgeToken;
       tokenKey: string;
     }) =>
       ReactActual.createElement(
@@ -84,6 +114,18 @@ jest.mock('./BatchSellReviewTokenRow', () => {
         { testID: `batch-sell-review-token-row-${tokenKey}` },
         ReactActual.createElement(Text, null, token.symbol),
         ReactActual.createElement(Text, null, `${percent}%`),
+        ReactActual.createElement(Pressable, {
+          onPress: () => onSlippagePress(token),
+          testID: `batch-sell-review-customize-button-${tokenKey}`,
+        }),
+        ReactActual.createElement(Pressable, {
+          accessibilityState: { disabled: Boolean(isRemoveTokenDisabled) },
+          disabled: isRemoveTokenDisabled,
+          onPress: isRemoveTokenDisabled
+            ? undefined
+            : () => onRemovePress(token),
+          testID: `batch-sell-review-remove-button-${tokenKey}`,
+        }),
       ),
   };
 });
@@ -91,8 +133,10 @@ jest.mock('./BatchSellReviewTokenRow', () => {
 describe('BatchSellReview', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSelectedTokens = defaultSelectedTokens;
     mockSelectedDestinationToken = usdcToken;
     mockDestinationTokens = [usdcToken];
+    mockBatchSellSlippages = {};
   });
 
   it('renders the quote loading screen', () => {
@@ -119,12 +163,12 @@ describe('BatchSellReview', () => {
     expect(getAllByText('100%')).toHaveLength(mockSelectedTokens.length);
   });
 
-  it('keeps the review button disabled while quotes load', () => {
+  it('enables the review button while quote placeholders are available', () => {
     const { getByTestId, getByText } = render(<BatchSellReview />);
     const reviewButton = getByTestId(BatchSellReviewSelectorsIDs.REVIEW_BUTTON);
 
     expect(getByText('Review')).toBeOnTheScreen();
-    expect(reviewButton.props.accessibilityState.disabled).toBe(true);
+    expect(reviewButton.props.accessibilityState.disabled).not.toBe(true);
   });
 
   it('shows UNKNOWN when there is no destination token match', () => {
@@ -136,7 +180,7 @@ describe('BatchSellReview', () => {
 
     expect(getByText('UNKNOWN')).toBeOnTheScreen();
     expect(queryByText('USDC')).toBeNull();
-    expect(reviewButton.props.accessibilityState.disabled).toBe(true);
+    expect(reviewButton.props.accessibilityState.disabled).not.toBe(true);
   });
 
   it('opens the destination stablecoin selector modal from the pill', () => {
@@ -148,6 +192,99 @@ describe('BatchSellReview', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.BATCH_SELL_DESTINATION_TOKEN_SELECTOR_MODAL,
+    });
+  });
+
+  it('opens the quote details modal from the total received info button', () => {
+    const { getByTestId } = render(<BatchSellReview />);
+
+    fireEvent.press(
+      getByTestId(BatchSellReviewSelectorsIDs.TOTAL_RECEIVED_INFO_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.BATCH_SELL_QUOTE_DETAILS_MODAL,
+      params: {
+        tokenData: [
+          {
+            key: '0x1:0x1111111111111111111111111111111111111111',
+            tokenSymbol: 'ETH',
+            slippage: '2%',
+            receivedAmount: '-- USDC',
+          },
+          {
+            key: '0x1:0x2222222222222222222222222222222222222222',
+            tokenSymbol: 'UNI',
+            slippage: '2%',
+            receivedAmount: '-- USDC',
+          },
+        ],
+        totalReceived: '-- USDC',
+        minimumReceived: '-- USDC',
+        isLoading: false,
+      },
+    });
+  });
+
+  it('opens the final review modal from the review button', () => {
+    const { getByTestId } = render(<BatchSellReview />);
+
+    fireEvent.press(getByTestId(BatchSellReviewSelectorsIDs.REVIEW_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.BATCH_SELL_FINAL_REVIEW_MODAL,
+      params: {
+        tokenData: [
+          {
+            key: '0x1:0x1111111111111111111111111111111111111111',
+            tokenSymbol: 'ETH',
+            slippage: '2%',
+            receivedAmount: '-- USDC',
+          },
+          {
+            key: '0x1:0x2222222222222222222222222222222222222222',
+            tokenSymbol: 'UNI',
+            slippage: '2%',
+            receivedAmount: '-- USDC',
+          },
+        ],
+        totalReceived: '-- USDC',
+        minimumReceived: '-- USDC',
+        isLoading: false,
+        sourceTokens: [
+          {
+            key: '0x1:0x1111111111111111111111111111111111111111',
+            tokenSymbol: 'ETH',
+          },
+          {
+            key: '0x1:0x2222222222222222222222222222222222222222',
+            tokenSymbol: 'UNI',
+          },
+        ],
+        networkFee: '1.20 USDC',
+        networkFeeFiat: '$1.20',
+        metamaskFeePercent: '0.875',
+      },
+    });
+  });
+
+  it('opens the slippage modal for a selected token row', () => {
+    const { getByTestId } = render(<BatchSellReview />);
+
+    fireEvent.press(
+      getByTestId(
+        `${BatchSellReviewSelectorsIDs.CUSTOMIZE_BUTTON}-0x1:0x1111111111111111111111111111111111111111`,
+      ),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.BATCH_SELL_DEFAULT_SLIPPAGE_MODAL,
+      params: {
+        sourceChainId: '0x1',
+        destChainId: '0x1',
+        batchSellAssetId:
+          'eip155:1/erc20:0x1111111111111111111111111111111111111111',
+      },
     });
   });
 
@@ -170,6 +307,50 @@ describe('BatchSellReview', () => {
     expect(mockDispatch).toHaveBeenCalledWith({
       type: 'bridge/setBatchSellDestToken',
       payload: usdcToken,
+    });
+  });
+
+  it('resets bridge state on unmount', () => {
+    const { unmount } = render(<BatchSellReview />);
+
+    mockDispatch.mockClear();
+    unmount();
+
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: 'bridge/resetBridgeState',
+    });
+  });
+
+  it('removes a token when more than two source tokens are selected', () => {
+    mockSelectedTokens = [...defaultSelectedTokens, thirdSelectedToken];
+    const { getByTestId } = render(<BatchSellReview />);
+
+    mockDispatch.mockClear();
+    fireEvent.press(
+      getByTestId(
+        `${BatchSellReviewSelectorsIDs.REMOVE_BUTTON}-0x1:0x2222222222222222222222222222222222222222`,
+      ),
+    );
+
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: 'bridge/setBatchSellSourceTokens',
+      payload: [defaultSelectedTokens[0], thirdSelectedToken],
+    });
+  });
+
+  it('disables token removal when two source tokens are selected', () => {
+    const { getByTestId } = render(<BatchSellReview />);
+    const removeButton = getByTestId(
+      `${BatchSellReviewSelectorsIDs.REMOVE_BUTTON}-0x1:0x2222222222222222222222222222222222222222`,
+    );
+
+    mockDispatch.mockClear();
+    fireEvent.press(removeButton);
+
+    expect(removeButton.props.accessibilityState.disabled).toBe(true);
+    expect(mockDispatch).not.toHaveBeenCalledWith({
+      type: 'bridge/setBatchSellSourceTokens',
+      payload: expect.any(Array),
     });
   });
 });

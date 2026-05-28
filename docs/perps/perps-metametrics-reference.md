@@ -97,6 +97,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 - `percent_pnl` (optional): P&L as percentage (number, used for pnl_hero_card screen)
 - `button_clicked` (optional): Button that led to this screen (entry point tracking, see [Entry Point Tracking](#entry-point-tracking))
 - `button_location` (optional): Location of the button clicked (entry point tracking, see [Entry Point Tracking](#entry-point-tracking))
+- `outage_banner_shown` (optional): Whether the service interruption banner is displayed (boolean, used for perps_home, asset_details, trading screens)
 - `ab_test_button_color` (optional): Button color test variant (`'control' | 'monochrome'`), only included when test is enabled (for baseline exposure tracking)
 - Future AB tests: `ab_test_{test_name}` (see [Multiple Concurrent Tests](#multiple-concurrent-tests))
 
