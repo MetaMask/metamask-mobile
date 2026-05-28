@@ -68,10 +68,10 @@ const USDY_CAIP19 =
   'eip155:1/erc20:0x96f6ef951840721adbf46ac996b59e0235cb985c' as const;
 const USDY_DECIMALS = 18;
 
-const ONDO_OPEN_POSITION_SOURCE_TOKENS: Partial<
-  Record<CaipChainId, BridgeToken>
+const ONDO_OPEN_POSITION_SOURCE_TOKENS_BY_CHAIN_ID: Partial<
+  Record<Hex, BridgeToken>
 > = {
-  'eip155:1': {
+  '0x1': {
     address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
     symbol: 'USDC',
     name: 'USD Coin',
@@ -80,7 +80,7 @@ const ONDO_OPEN_POSITION_SOURCE_TOKENS: Partial<
     image:
       'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
   },
-  'eip155:56': {
+  '0x38': {
     address: '0x55d398326f99059ff775485246999027b3197955',
     symbol: 'USDT',
     name: 'Tether USD',
@@ -89,6 +89,22 @@ const ONDO_OPEN_POSITION_SOURCE_TOKENS: Partial<
     image:
       'https://static.cx.metamask.io/api/v1/tokenIcons/56/0x55d398326f99059ff775485246999027b3197955.png',
   },
+};
+
+export const getOndoOpenPositionSourceToken = (
+  chainId: BridgeToken['chainId'] | undefined,
+): BridgeToken | undefined => {
+  if (!chainId) return undefined;
+
+  if (chainId.startsWith('0x')) {
+    return ONDO_OPEN_POSITION_SOURCE_TOKENS_BY_CHAIN_ID[chainId as Hex];
+  }
+
+  if (!chainId.startsWith('eip155:')) return undefined;
+
+  return ONDO_OPEN_POSITION_SOURCE_TOKENS_BY_CHAIN_ID[
+    caipChainIdToHex(chainId as CaipChainId)
+  ];
 };
 
 // ParamListBase requires an index signature, which interfaces don't support
@@ -306,7 +322,7 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
       };
       const openPositionSourceToken =
         mode === 'open_position'
-          ? (ondoUsdSrcToken ?? ONDO_OPEN_POSITION_SOURCE_TOKENS[destChainId])
+          ? (ondoUsdSrcToken ?? getOndoOpenPositionSourceToken(destChainId))
           : undefined;
 
       if (!isTokenTradingOpen(destToken)) {
@@ -482,9 +498,9 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
                 const openPositionSourceToken =
                   mode === 'open_position'
                     ? (ondoUsdSrcToken ??
-                      ONDO_OPEN_POSITION_SOURCE_TOKENS[
-                        afterHoursPendingToken.chainId as CaipChainId
-                      ])
+                      getOndoOpenPositionSourceToken(
+                        afterHoursPendingToken.chainId,
+                      ))
                     : undefined;
                 trackEvent(
                   createEventBuilder(

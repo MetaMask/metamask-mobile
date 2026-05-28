@@ -141,13 +141,13 @@ describe('useMoneyTransactionDisplayInfo — getLabelForTransactionType', () => 
     expect(result.current.label).toBe('money.transaction.deposited');
   });
 
-  it('returns deposited for incoming type', () => {
+  it('returns received for incoming type (external mUSD arriving at the money account)', () => {
     const tx = makeTx(TransactionType.incoming);
     const { result } = renderHookWithProvider(
       () => useMoneyTransactionDisplayInfo(tx, undefined),
       { state: makeState() },
     );
-    expect(result.current.label).toBe('money.transaction.deposited');
+    expect(result.current.label).toBe('money.transaction.received');
   });
 
   it('returns sent for moneyAccountWithdraw type', () => {
@@ -166,6 +166,24 @@ describe('useMoneyTransactionDisplayInfo — getLabelForTransactionType', () => 
       { state: makeState() },
     );
     expect(result.current.label).toBe('money.transaction.sent');
+  });
+
+  it('returns received for tokenMethodTransfer type', () => {
+    const tx = makeTx(TransactionType.tokenMethodTransfer);
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.label).toBe('money.transaction.received');
+  });
+
+  it('returns received for tokenMethodTransferFrom type', () => {
+    const tx = makeTx(TransactionType.tokenMethodTransferFrom);
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.label).toBe('money.transaction.received');
   });
 
   it('returns converted for musdConversion type', () => {
@@ -310,6 +328,24 @@ describe('useMoneyTransactionDisplayInfo — getIconForTransactionType', () => {
       { state: makeState() },
     );
     expect(result.current.icon).toBe(IconName.Arrow2UpRight);
+  });
+
+  it('returns Arrow2Down for tokenMethodTransfer type', () => {
+    const tx = makeTx(TransactionType.tokenMethodTransfer);
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.icon).toBe(IconName.Arrow2Down);
+  });
+
+  it('returns Arrow2Down for tokenMethodTransferFrom type', () => {
+    const tx = makeTx(TransactionType.tokenMethodTransferFrom);
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeState() },
+    );
+    expect(result.current.icon).toBe(IconName.Arrow2Down);
   });
 
   it('returns Arrow2Down (default) for unrecognised type', () => {
@@ -606,15 +642,19 @@ describe('useMoneyTransactionDisplayInfo — description', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Fiat formatting — mUSD via market rate
+// Fiat formatting — mUSD pegged via the Money Account chain (Monad)
 // ---------------------------------------------------------------------------
 
 const MUSD_CHECKSUM = safeToChecksumAddress(MUSD_TOKEN_ADDRESS) as string;
+// mUSD activity is gated to the Money Account chain (Monad). `CHAIN_IDS.MONAD`
+// would be cleaner but we keep the literal here to avoid pulling the constants
+// import into this large test file.
+const MUSD_CHAIN_ID: Hex = '0x8f';
 
 const musedTx: TransactionMeta = {
   id: 'tx-musd',
   type: TransactionType.incoming,
-  chainId: CHAIN_ID,
+  chainId: MUSD_CHAIN_ID,
   transferInformation: {
     amount: '1000000000',
     symbol: 'mUSD',
@@ -639,7 +679,7 @@ function musedMarketState(tokenPrice: number) {
         },
         TokenRatesController: {
           marketData: {
-            [CHAIN_ID]: {
+            [MUSD_CHAIN_ID]: {
               [MUSD_CHECKSUM]: { price: tokenPrice },
             },
           },
@@ -647,7 +687,7 @@ function musedMarketState(tokenPrice: number) {
         TokensController: { allTokens: {} },
         NetworkController: {
           networkConfigurationsByChainId: {
-            [CHAIN_ID]: { nativeCurrency: 'ETH' },
+            [MUSD_CHAIN_ID]: { nativeCurrency: 'ETH' },
           },
         },
       },
@@ -656,7 +696,7 @@ function musedMarketState(tokenPrice: number) {
 }
 
 describe('useMoneyTransactionDisplayInfo — mUSD fiat formatting', () => {
-  it('formats fiat in USD via market rate', () => {
+  it('formats fiat in USD via the peg (ignoring market rate)', () => {
     const { result } = renderHookWithProvider(
       () => useMoneyTransactionDisplayInfo(musedTx, undefined),
       { state: musedMarketState(1 / 3000) },
@@ -668,7 +708,7 @@ describe('useMoneyTransactionDisplayInfo — mUSD fiat formatting', () => {
     expect(result.current.primaryAmount).toContain('mUSD');
   });
 
-  it('uses market rate and ETH→fiat conversion for non-USD currencies', () => {
+  it('converts mUSD to EUR via the peg (ignoring market rate)', () => {
     const state = {
       engine: {
         backgroundState: {
@@ -684,7 +724,7 @@ describe('useMoneyTransactionDisplayInfo — mUSD fiat formatting', () => {
           },
           TokenRatesController: {
             marketData: {
-              [CHAIN_ID]: {
+              [MUSD_CHAIN_ID]: {
                 [MUSD_CHECKSUM]: { price: 0.0004 },
               },
             },
@@ -692,7 +732,7 @@ describe('useMoneyTransactionDisplayInfo — mUSD fiat formatting', () => {
           TokensController: { allTokens: {} },
           NetworkController: {
             networkConfigurationsByChainId: {
-              [CHAIN_ID]: { nativeCurrency: 'ETH' },
+              [MUSD_CHAIN_ID]: { nativeCurrency: 'ETH' },
             },
           },
         },
