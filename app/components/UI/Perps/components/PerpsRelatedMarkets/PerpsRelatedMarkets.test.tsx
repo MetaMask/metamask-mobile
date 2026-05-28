@@ -75,7 +75,9 @@ describe('PerpsRelatedMarkets', () => {
     expect(
       screen.getByTestId(PerpsRelatedMarketsSelectorsIDs.RAIL),
     ).toBeOnTheScreen();
-    expect(screen.getByText('Related markets')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsRelatedMarketsSelectorsIDs.HEADER),
+    ).toBeOnTheScreen();
     expect(
       screen.getByTestId(getPerpsRelatedMarketsSelector.tile('FET')),
     ).toBeOnTheScreen();
