@@ -438,6 +438,7 @@ describe('MoneyHomeView', () => {
       mockUseMoneyAccountInfo.mockReturnValue({
         hasMoneyAccount: false,
         primaryMoneyAccount: undefined,
+        isMoneyAccountFeatureEnabled: true,
       });
 
       const { getByTestId, queryByTestId } = renderWithProvider(
@@ -532,6 +533,7 @@ describe('MoneyHomeView', () => {
       mockUseMoneyAccountInfo.mockReturnValue({
         hasMoneyAccount: false,
         primaryMoneyAccount: undefined,
+        isMoneyAccountFeatureEnabled: true,
       });
       mockUseMoneyAccountTransactions.mockReturnValue({
         allTransactions: [],
