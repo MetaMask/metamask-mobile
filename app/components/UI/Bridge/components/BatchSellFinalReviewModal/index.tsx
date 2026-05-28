@@ -313,9 +313,16 @@ export function BatchSellFinalReviewModal() {
       selectedTokens,
     ],
   );
-  const hasInsufficientGas = hasSufficientGas === false;
+  const isBatchSellTradesLoading = batchSellQuoteData.isBatchSellTradesLoading;
+  const hasInsufficientGaslessDestinationToken =
+    batchSellQuoteData.isGasless &&
+    !isBatchSellTradesLoading &&
+    !batchSellQuoteData.isBatchSellTradeAvailable;
+  const hasInsufficientGas =
+    hasSufficientGas === false || hasInsufficientGaslessDestinationToken;
   const isSellAllDisabled =
     batchSellQuoteData.isLoading ||
+    isBatchSellTradesLoading ||
     !batchSellQuoteData.isBatchSellTradeAvailable ||
     !batchSellQuoteData.hasAnyQuote ||
     batchSellQuoteData.hasPendingQuoteRows ||
@@ -328,7 +335,7 @@ export function BatchSellFinalReviewModal() {
     !batchSellQuoteData.needsNewQuote &&
     isSellAllDisabled &&
     (batchSellQuoteData.isLoading ||
-      !batchSellQuoteData.isBatchSellTradeAvailable ||
+      isBatchSellTradesLoading ||
       isSubmittingTx ||
       batchSellQuoteData.hasPendingQuoteRows);
   const actionButtonLabel = (() => {
@@ -421,7 +428,7 @@ export function BatchSellFinalReviewModal() {
       <NetworkFeeRow
         networkFee={batchSellQuoteData.networkFee}
         hasInsufficientGas={hasInsufficientGas}
-        isLoading={!batchSellQuoteData.isBatchSellTradeAvailable}
+        isLoading={isBatchSellTradesLoading}
         onInfoPress={handleOpenNetworkFeeInfo}
       />
       <Box paddingHorizontal={4} paddingTop={4} paddingBottom={4} gap={2}>

@@ -154,6 +154,7 @@ let mockBatchSellTrades: {
       }
     | undefined;
   isBatchSellTradeAvailable: boolean;
+  isLoading: boolean;
 } = {
   totalNetworkFee: {
     amount: '1.2',
@@ -161,6 +162,7 @@ let mockBatchSellTrades: {
     asset: ethNetworkFeeAsset,
   },
   isBatchSellTradeAvailable: true,
+  isLoading: false,
 };
 let mockBridgeFeatureFlags: {
   chains: Record<string, { refreshRate?: number }>;
@@ -226,6 +228,7 @@ describe('useBatchSellQuoteData', () => {
         asset: ethNetworkFeeAsset,
       },
       isBatchSellTradeAvailable: true,
+      isLoading: false,
     };
     mockBridgeFeatureFlags = {
       chains: {},
@@ -240,6 +243,7 @@ describe('useBatchSellQuoteData', () => {
     expect(result.current.hasAnyQuote).toBe(true);
     expect(result.current.isGasless).toBe(false);
     expect(result.current.isBatchSellTradeAvailable).toBe(true);
+    expect(result.current.isBatchSellTradesLoading).toBe(false);
     expect(result.current.isLoading).toBe(false);
     expect(result.current.isSummaryLoading).toBe(false);
     expect(result.current.hasPendingQuoteRows).toBe(false);
@@ -326,6 +330,18 @@ describe('useBatchSellQuoteData', () => {
     const { result } = renderHook(() => useBatchSellQuoteData());
 
     expect(result.current.isGasless).toBe(true);
+  });
+
+  it('returns the Batch Sell trades loading state', () => {
+    mockBatchSellTrades = {
+      ...mockBatchSellTrades,
+      isBatchSellTradeAvailable: false,
+      isLoading: true,
+    };
+
+    const { result } = renderHook(() => useBatchSellQuoteData());
+
+    expect(result.current.isBatchSellTradesLoading).toBe(true);
   });
 
   it('does not need a new quote when the quote is expired but going to refresh', () => {
@@ -503,12 +519,14 @@ describe('useBatchSellQuoteData', () => {
     mockBatchSellTrades = {
       totalNetworkFee: undefined,
       isBatchSellTradeAvailable: false,
+      isLoading: false,
     };
 
     const { result } = renderHook(() => useBatchSellQuoteData());
 
     expect(result.current.networkFee.formatted).toBe('--');
     expect(result.current.isBatchSellTradeAvailable).toBe(false);
+    expect(result.current.isBatchSellTradesLoading).toBe(false);
     expect(result.current.networkFee.formattedFiat).toBe('-');
   });
 

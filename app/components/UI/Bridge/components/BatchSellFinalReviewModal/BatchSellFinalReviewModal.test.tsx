@@ -66,6 +66,7 @@ interface MockBatchSellQuoteData {
   isSummaryLoading: boolean;
   isGasless: boolean;
   isBatchSellTradeAvailable: boolean;
+  isBatchSellTradesLoading: boolean;
   hasAnyQuote: boolean;
   hasPendingQuoteRows: boolean;
   needsNewQuote: boolean;
@@ -116,6 +117,7 @@ const defaultQuoteData: MockBatchSellQuoteData = {
   isSummaryLoading: false,
   isGasless: false,
   isBatchSellTradeAvailable: true,
+  isBatchSellTradesLoading: false,
   hasAnyQuote: true,
   hasPendingQuoteRows: false,
   needsNewQuote: false,
@@ -442,6 +444,7 @@ describe('BatchSellFinalReviewModal', () => {
   it('renders a network fee values skeleton while the network fee is loading', () => {
     const { getByTestId, getByText, queryByText } = renderModal({
       isBatchSellTradeAvailable: false,
+      isBatchSellTradesLoading: true,
     });
 
     expect(
@@ -471,6 +474,34 @@ describe('BatchSellFinalReviewModal', () => {
       getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON).props
         .accessibilityState.disabled,
     ).toBe(true);
+  });
+
+  it('shows insufficient funds when gasless destination-token fee cannot be covered', () => {
+    const { getByTestId, getByText, queryByTestId } = renderModal({
+      isGasless: true,
+      isBatchSellTradeAvailable: false,
+      isBatchSellTradesLoading: false,
+    });
+    const getTextColor = (text: string) =>
+      StyleSheet.flatten(getByText(text).props.style).color;
+
+    expect(
+      queryByTestId(
+        BatchSellFinalReviewModalSelectorsIDs.NETWORK_FEE_VALUES_SKELETON,
+      ),
+    ).toBeNull();
+    expect(getByText('Insufficient funds')).toBeOnTheScreen();
+    expect(getTextColor('Network fee')).toBe(errorTextColor);
+    expect(getTextColor('1.20 USDC')).toBe(errorTextColor);
+    expect(getTextColor('$1.20')).toBe(errorTextColor);
+    expect(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON).props
+        .accessibilityState.disabled,
+    ).toBe(true);
+    expect(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON).props
+        .accessibilityState.busy,
+    ).not.toBe(true);
   });
 
   it('blocks Sell all and highlights the network fee when gas is insufficient', () => {
