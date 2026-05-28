@@ -50,6 +50,9 @@ import {
 } from '../components/abTestConfig';
 import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import { AppThemeKey } from '../../../../util/theme/models';
+import { playImpact, ImpactMoment } from '../../../../util/haptics';
+import AssetDetailsQuickBuy from '../components/AssetDetailsQuickBuy';
+import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -157,6 +160,18 @@ const TokenDetails: React.FC<{
   const navigation = useNavigation();
   const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
     useState(false);
+  const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
+
+  const handleQuickBuyPress = useCallback(() => {
+    // Primary CTA opening the quick buy flow — same impact moment as the
+    // social leaderboard buy CTA.
+    playImpact(ImpactMoment.PrimaryCTA);
+    setIsQuickBuyVisible(true);
+  }, []);
+
+  const handleQuickBuyClose = useCallback(() => {
+    setIsQuickBuyVisible(false);
+  }, []);
   const { variant: ambientColorVariant } = useABTest(
     AMBIENT_PRICE_COLOR_AB_KEY,
     AMBIENT_PRICE_COLOR_VARIANTS,
@@ -381,6 +396,8 @@ const TokenDetails: React.FC<{
           useAmbientColor={useAmbientColor}
           onSwapPress={onCtaClicked}
           onBuyPress={onCtaClicked}
+          onQuickBuyPress={handleQuickBuyPress}
+          quickBuyTestID={TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON}
         />
       )}
       {isInsightsDisclaimerVisible && (
@@ -388,6 +405,11 @@ const TokenDetails: React.FC<{
           onClose={() => setIsInsightsDisclaimerVisible(false)}
         />
       )}
+      <AssetDetailsQuickBuy
+        isVisible={isQuickBuyVisible}
+        token={token}
+        onClose={handleQuickBuyClose}
+      />
     </View>
   );
 };

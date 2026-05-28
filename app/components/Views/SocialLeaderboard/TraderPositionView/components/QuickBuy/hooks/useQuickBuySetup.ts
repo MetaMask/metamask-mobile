@@ -1,16 +1,15 @@
-import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
-import { CaipChainId, Hex } from '@metamask/utils';
 import {
   formatAddressToAssetId,
   formatChainIdToHex,
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
-import type { QuickBuyTarget } from '../types';
-import { useAssetMetadata } from '../../../../../../UI/Bridge/hooks/useAssetMetadata';
-import { chainNameToId } from '../../../../utils/chainMapping';
-import type { BridgeToken } from '../../../../../../UI/Bridge/types';
+import { CaipChainId, Hex } from '@metamask/utils';
+import { useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import { selectIsBridgeEnabledSourceFactory } from '../../../../../../../core/redux/slices/bridge';
+import { useAssetMetadata } from '../../../../../../UI/Bridge/hooks/useAssetMetadata';
+import type { BridgeToken } from '../../../../../../UI/Bridge/types';
+import type { QuickBuyTarget } from '../types';
 
 export interface QuickBuySetupResult {
   /** The destination chain ID (hex or CAIP) for this position's chain */
@@ -35,11 +34,10 @@ export const useQuickBuySetup = (
   const position = target;
   const isBridgeEnabledSource = useSelector(selectIsBridgeEnabledSourceFactory);
 
-  // Destination chain from the position — hex for EVM, CAIP for non-EVM
+  // Destination chain from the target — hex for EVM, CAIP for non-EVM.
   const destChainId = useMemo(() => {
     if (!position) return undefined;
-    const caipId = chainNameToId(position.chain);
-    if (!caipId) return undefined;
+    const caipId = position.chain;
     if (isNonEvmChainId(caipId)) return caipId;
     if (!isBridgeEnabledSource(caipId)) return undefined;
     return formatChainIdToHex(caipId);

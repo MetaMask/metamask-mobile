@@ -281,6 +281,19 @@ jest.mock('../../MarketInsights', () => ({
   MarketInsightsDisclaimerBottomSheet: () => null,
 }));
 
+const mockAssetDetailsQuickBuy = jest.fn(
+  (_props: Record<string, unknown>) => null,
+);
+jest.mock('../components/AssetDetailsQuickBuy', () => ({
+  __esModule: true,
+  default: (props: Record<string, unknown>) => mockAssetDetailsQuickBuy(props),
+}));
+
+jest.mock('../../../../util/haptics', () => ({
+  playImpact: jest.fn(),
+  ImpactMoment: { PrimaryCTA: 'primaryCta' },
+}));
+
 describe('TokenDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -404,6 +417,26 @@ describe('TokenDetails', () => {
 
       expect(getByText('Buy')).toBeOnTheScreen();
       expect(queryByText('Swap')).toBeNull();
+    });
+  });
+
+  describe('Quick Buy', () => {
+    it('mounts AssetDetailsQuickBuy hidden by default and opens it when the sticky lightning button is pressed', () => {
+      render(<TokenDetails />);
+
+      expect(mockAssetDetailsQuickBuy).toHaveBeenCalledWith(
+        expect.objectContaining({ isVisible: false }),
+      );
+
+      const lastCallArgs =
+        mockAssetDetailsQuickBuy.mock.calls[
+          mockAssetDetailsQuickBuy.mock.calls.length - 1
+        ][0];
+      expect(lastCallArgs).toEqual(
+        expect.objectContaining({
+          token: expect.objectContaining({ symbol: 'DAI', chainId: '0x1' }),
+        }),
+      );
     });
   });
 

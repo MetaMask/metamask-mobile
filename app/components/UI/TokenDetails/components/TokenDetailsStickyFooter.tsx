@@ -1,42 +1,45 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import type { TokenSecurityData } from '@metamask/assets-controllers';
 import {
   Button,
+  ButtonAnimated,
   ButtonVariant,
   IconName,
   IconSize,
   TextColor,
 } from '@metamask/design-system-react-native';
-import type { TokenSecurityData } from '@metamask/assets-controllers';
+import FlashFilledIcon from './assets/flash-filled.svg';
+import { useNavigation } from '@react-navigation/native';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import { StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
-import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
+import Routes from '../../../../constants/navigation/Routes';
+import { useABTest } from '../../../../hooks/useABTest';
+import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
+import { ONDO_RESTRICTED_COUNTRIES } from '../../../../util/ondoGeoRestrictions';
+import { LIGHT_MODE_SUCCESS_GREEN, useTheme } from '../../../../util/theme';
 import { AppThemeKey } from '../../../../util/theme/models';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
+import type { BridgeToken } from '../../Bridge/types';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
-import { useABTest } from '../../../../hooks/useABTest';
+import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
+import type { TokenDetailsRouteParams } from '../constants/constants';
+import { useStickyFooterTracking } from '../hooks/useStickyFooterTracking';
+import { useStickyTokenActions } from '../hooks/useStickyTokenActions';
 import {
   AMBIENT_NEGATIVE_COLOR,
   STICKY_FOOTER_SWAP_LABEL_AB_KEY,
   STICKY_FOOTER_SWAP_LABEL_VARIANTS,
 } from './abTestConfig';
-import { useStickyFooterTracking } from '../hooks/useStickyFooterTracking';
-import Routes from '../../../../constants/navigation/Routes';
-import type { BridgeToken } from '../../Bridge/types';
-import type { TokenDetailsRouteParams } from '../constants/constants';
-import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
-import { ONDO_RESTRICTED_COUNTRIES } from '../../../../util/ondoGeoRestrictions';
 import RwaUnavailableBottomSheet, {
   type RwaUnavailableBottomSheetRef,
 } from './RwaUnavailableBottomSheet/RwaUnavailableBottomSheet';
-import { useStickyTokenActions } from '../hooks/useStickyTokenActions';
-import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
 
 const styles = StyleSheet.create({
   footer: {
     flexDirection: 'row',
+    alignItems: 'center',
     paddingVertical: 4,
   },
   button: {
@@ -45,6 +48,15 @@ const styles = StyleSheet.create({
   subsequentButton: {
     flex: 1,
     marginLeft: 16,
+  },
+  quickBuyButton: {
+    width: 48,
+    height: 48,
+    marginLeft: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderRadius: 999,
   },
 });
 
@@ -73,6 +85,10 @@ interface TokenStickyFooterProps {
   onSwapPress?: () => void;
   /** Optional callback fired when the buy button is pressed (for additional tracking by the parent). */
   onBuyPress?: () => void;
+  /** Optional callback fired when the quick buy (lightning) button is pressed. When omitted the button is not rendered. */
+  onQuickBuyPress?: () => void;
+  /** Optional testID for the quick buy button. */
+  quickBuyTestID?: string;
   /** Page name sent with swap/bridge analytics. Defaults to `'MainView'`. */
   sourcePage?: string;
   /** When true, use success (green) accent; when false, use error (red) accent. Null means not yet resolved. */
@@ -93,6 +109,8 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   buyTestID,
   onSwapPress,
   onBuyPress,
+  onQuickBuyPress,
+  quickBuyTestID,
   sourcePage,
   isPricePositive = null,
   useAmbientColor = false,
@@ -117,6 +135,14 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   const successBg = getSuccessClass('bg', 'bg-success-default');
   const successBorder = getSuccessClass('border', 'border-success-default');
   const successText = getSuccessClass('text', 'text-success-default');
+
+  // Raw hex of the same success accent — needed for inline SVG fills and
+  // border colors where twrnc class strings can't reach (e.g. raw react-native-svg).
+  const successColorHex = useErrorAccent
+    ? AMBIENT_NEGATIVE_COLOR
+    : isLightMode
+      ? LIGHT_MODE_SUCCESS_GREEN
+      : colors.success.default;
 
   const secondaryTextProps = useMemo(
     () => ({ twClassName: successText }) as const,
@@ -320,6 +346,33 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
           >
             {strings('asset_overview.buy_button')}
           </Button>
+        )}
+        {onQuickBuyPress && (
+          <ButtonAnimated
+            testID={quickBuyTestID}
+            accessibilityRole="button"
+            accessibilityLabel={strings('asset_overview.buy_button')}
+            style={[styles.quickBuyButton, { borderColor: successColorHex }]}
+            onPress={() => {
+              trackStickyFooterTapped({
+                ctaType: 'quick_buy',
+                balanceFiatUsd,
+                tokenAddress: token.address ?? '',
+                chainId: token.chainId ?? '',
+              });
+              handleFooterAction(
+                onQuickBuyPress,
+                strings('asset_overview.buy_button'),
+              );
+            }}
+          >
+            <FlashFilledIcon
+              name="FlashFilled"
+              width={20}
+              height={20}
+              fill={successColorHex}
+            />
+          </ButtonAnimated>
         )}
       </View>
       <RwaUnavailableBottomSheet ref={rwaUnavailableSheetRef} />

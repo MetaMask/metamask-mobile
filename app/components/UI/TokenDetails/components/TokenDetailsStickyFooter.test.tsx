@@ -73,8 +73,20 @@ jest.mock('@metamask/design-system-react-native', () => {
         <Text>{children}</Text>
       </View>
     ),
+    ButtonAnimated: ({
+      testID,
+      onPress,
+      children,
+      ...rest
+    }: Record<string, unknown>) => (
+      <View testID={testID} onPress={onPress} {...rest}>
+        {children as React.ReactNode}
+      </View>
+    ),
   };
 });
+
+jest.mock('./assets/flash-filled.svg', () => 'FlashFilledIcon');
 
 const mockOnBuy = jest.fn();
 const mockOnSwap = jest.fn();
@@ -751,6 +763,85 @@ describe('TokenDetailsStickyFooter', () => {
 
       expect(onBuyPress).toHaveBeenCalled();
       expect(mockOnBuy).toHaveBeenCalled();
+    });
+  });
+
+  describe('quick buy button', () => {
+    const quickBuyTestID = 'quick-buy-btn';
+
+    it('does not render the quick buy button when onQuickBuyPress is not provided', () => {
+      const { queryByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          quickBuyTestID={quickBuyTestID}
+        />,
+      );
+      expect(queryByTestId(quickBuyTestID)).toBeNull();
+    });
+
+    it('renders the quick buy button when onQuickBuyPress is provided', () => {
+      const onQuickBuyPress = jest.fn();
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          onQuickBuyPress={onQuickBuyPress}
+          quickBuyTestID={quickBuyTestID}
+        />,
+      );
+      expect(getByTestId(quickBuyTestID)).toBeTruthy();
+    });
+
+    it('invokes onQuickBuyPress on press', () => {
+      const onQuickBuyPress = jest.fn();
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          onQuickBuyPress={onQuickBuyPress}
+          quickBuyTestID={quickBuyTestID}
+        />,
+      );
+
+      fireEvent.press(getByTestId(quickBuyTestID));
+
+      expect(onQuickBuyPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('tracks "quick_buy" cta type on press', () => {
+      const onQuickBuyPress = jest.fn();
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          onQuickBuyPress={onQuickBuyPress}
+          quickBuyTestID={quickBuyTestID}
+          balanceFiatUsd={50}
+        />,
+      );
+
+      fireEvent.press(getByTestId(quickBuyTestID));
+
+      expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith({
+        ctaType: 'quick_buy',
+        balanceFiatUsd: 50,
+        tokenAddress: '0x123',
+        chainId: '0x1',
+      });
+    });
+
+    it('blocks quick buy when token is a geo-restricted stock', () => {
+      mockIsStockToken.mockReturnValue(true);
+      (useSelector as jest.Mock).mockReturnValue('US');
+      const onQuickBuyPress = jest.fn();
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          onQuickBuyPress={onQuickBuyPress}
+          quickBuyTestID={quickBuyTestID}
+        />,
+      );
+
+      fireEvent.press(getByTestId(quickBuyTestID));
+
+      expect(onQuickBuyPress).not.toHaveBeenCalled();
     });
   });
 });
