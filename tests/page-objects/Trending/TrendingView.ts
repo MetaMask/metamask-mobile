@@ -99,10 +99,8 @@ class TrendingView {
   }
 
   async tapTab(tabTestID: string): Promise<void> {
-    await Gestures.tap(Matchers.getElementByID(tabTestID), {
+    await Gestures.tap(Matchers.getElementByID(`${tabTestID}-label`), {
       elemDescription: `Tap tab ${tabTestID}`,
-      // Tab text is absolutely positioned, so Detox can undercount Pressable coverage.
-      checkVisibility: false,
     });
   }
 
@@ -113,8 +111,10 @@ class TrendingView {
       throw new Error(`Unknown Explore section tab config: ${sectionTitle}`);
     }
 
-    await this.tapTab(sectionTabConfig.tabTestID);
-    this.activeScrollViewID = sectionTabConfig.scrollViewTestID;
+    if (this.activeScrollViewID !== sectionTabConfig.scrollViewTestID) {
+      await this.tapTab(sectionTabConfig.tabTestID);
+      this.activeScrollViewID = sectionTabConfig.scrollViewTestID;
+    }
 
     await Assertions.expectElementToBeVisible(
       Matchers.getElementByID(sectionTabConfig.scrollViewTestID),
