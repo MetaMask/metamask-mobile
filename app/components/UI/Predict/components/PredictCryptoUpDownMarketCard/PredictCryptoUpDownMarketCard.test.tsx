@@ -18,6 +18,7 @@ import PredictCryptoUpDownMarketCard, {
 } from './PredictCryptoUpDownMarketCard';
 import { usePredictSeries } from '../../hooks/usePredictSeries';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
+import { usePredictPrices } from '../../hooks/usePredictPrices';
 import { useCryptoUpDownChartData } from '../../hooks/useCryptoUpDownChartData';
 import { useCryptoTargetPrice } from '../../hooks/useCryptoTargetPrice';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
@@ -44,6 +45,10 @@ jest.mock('../../hooks/useCryptoTargetPrice', () => ({
 
 jest.mock('../../hooks/useLiveMarketPrices', () => ({
   useLiveMarketPrices: jest.fn(),
+}));
+
+jest.mock('../../hooks/usePredictPrices', () => ({
+  usePredictPrices: jest.fn(),
 }));
 
 const mockOpenBuySheet = jest.fn();
@@ -277,6 +282,7 @@ describe('getSparklineDisplayPoints', () => {
 describe('PredictCryptoUpDownMarketCard', () => {
   const mockUsePredictSeries = usePredictSeries as jest.Mock;
   const mockUseLiveMarketPrices = useLiveMarketPrices as jest.Mock;
+  const mockUsePredictPrices = usePredictPrices as jest.Mock;
   const mockUseCryptoUpDownChartData = useCryptoUpDownChartData as jest.Mock;
   const mockUseCryptoTargetPrice = useCryptoTargetPrice as jest.Mock;
 
@@ -300,6 +306,12 @@ describe('PredictCryptoUpDownMarketCard', () => {
         tokenId === 'up-token'
           ? { tokenId, price: 0.4, bestBid: 0.39, bestAsk: 0.4 }
           : { tokenId, price: 0.6, bestBid: 0.59, bestAsk: 0.6 },
+    });
+    mockUsePredictPrices.mockReturnValue({
+      prices: { providerId: '', results: [] },
+      isFetching: false,
+      error: null,
+      refetch: jest.fn(),
     });
     mockUseCryptoUpDownChartData.mockReturnValue({
       data: [
@@ -353,6 +365,28 @@ describe('PredictCryptoUpDownMarketCard', () => {
     );
   });
 
+  it('uses market threshold as target price while fetched target is unavailable', () => {
+    const marketWithThreshold = createMarket({
+      outcomes: [createOutcome({ groupItemThreshold: 77123 })],
+    });
+    mockUsePredictSeries.mockReturnValue({
+      data: [marketWithThreshold],
+      isLoading: false,
+    });
+    mockUseCryptoTargetPrice.mockReturnValue({
+      data: undefined,
+      isFetching: true,
+    });
+
+    renderCard(marketWithThreshold);
+
+    expect(mockUseCryptoUpDownChartData).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'market-live' }),
+      77123,
+      expect.objectContaining({ liveUpdatesEnabled: false }),
+    );
+  });
+
   it('uses a trailing 24-hour coin-history window for daily markets', () => {
     const dailySeries = {
       ...SERIES,
@@ -403,7 +437,7 @@ describe('PredictCryptoUpDownMarketCard', () => {
     expect(
       screen.getByText(/LIVE · [34]:[0-5][0-9]:[0-5][0-9]/),
     ).toBeOnTheScreen();
-    expect(screen.getByText(/Resets every 4:00:00/)).toBeOnTheScreen();
+    expect(screen.getByText(/Resets every 4 hours/)).toBeOnTheScreen();
   });
 
   it('navigates to the live market details when the card body is pressed', () => {
@@ -525,6 +559,39 @@ describe('PredictCryptoUpDownMarketCard', () => {
     expect(mockOpenBuySheet).not.toHaveBeenCalled();
   });
 
+  it('falls back to REST buy prices when live prices are temporarily unavailable', () => {
+    mockUseLiveMarketPrices.mockReturnValue({
+      getPrice: () => undefined,
+    });
+    mockUsePredictPrices.mockReturnValue({
+      prices: {
+        providerId: 'polymarket',
+        results: [
+          {
+            marketId: 'market-live',
+            outcomeId: 'outcome-up-down',
+            outcomeTokenId: 'up-token',
+            entry: { buy: 0.42, sell: 0.38 },
+          },
+          {
+            marketId: 'market-live',
+            outcomeId: 'outcome-up-down',
+            outcomeTokenId: 'down-token',
+            entry: { buy: 0.62, sell: 0.58 },
+          },
+        ],
+      },
+      isFetching: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+
+    renderCard();
+
+    expect(screen.getByText('Up · 42¢')).toBeOnTheScreen();
+    expect(screen.getByText('Down · 62¢')).toBeOnTheScreen();
+  });
+
   it('does not open the buy sheet when the selected market is closed', () => {
     const closedMarket = createMarket({ status: 'closed' });
     mockUsePredictSeries.mockReturnValue({
@@ -593,5 +660,56 @@ describe('PredictCryptoUpDownMarketCard', () => {
     expect(
       screen.getByTestId(PredictCryptoUpDownMarketCardSelectorsIDs.SPARKLINE),
     ).toBeOnTheScreen();
+  });
+
+  it('accepts fresh series data when the same live market id changes materially', () => {
+    const market = createMarket({ id: 'market-live' });
+    mockUsePredictSeries.mockReturnValue({
+      data: [market],
+      isLoading: false,
+    });
+
+    const { rerender } = renderCard(market);
+
+    const firstResolved = mockUseCryptoUpDownChartData.mock.calls.at(-1)?.[0];
+    expect(firstResolved?.id).toBe('market-live');
+    expect(firstResolved?.status).toBe('open');
+
+    const closedMarket = createMarket({ id: 'market-live', status: 'closed' });
+    mockUsePredictSeries.mockReturnValue({
+      data: [closedMarket],
+      isLoading: false,
+    });
+
+    rerender(<PredictCryptoUpDownMarketCard market={market} />);
+
+    const secondResolved = mockUseCryptoUpDownChartData.mock.calls.at(-1)?.[0];
+    expect(secondResolved).not.toBe(firstResolved);
+    expect(secondResolved?.status).toBe('closed');
+  });
+
+  it('advances the resolved market when the series refetch yields a different live market id', () => {
+    const market = createMarket({ id: 'market-live' });
+    mockUsePredictSeries.mockReturnValue({
+      data: [market],
+      isLoading: false,
+    });
+
+    const { rerender } = renderCard(market);
+
+    const firstResolved = mockUseCryptoUpDownChartData.mock.calls.at(-1)?.[0];
+    expect(firstResolved?.id).toBe('market-live');
+
+    const nextLiveMarket = createMarket({ id: 'market-next' });
+    mockUsePredictSeries.mockReturnValue({
+      data: [nextLiveMarket],
+      isLoading: false,
+    });
+
+    rerender(<PredictCryptoUpDownMarketCard market={market} />);
+
+    const secondResolved = mockUseCryptoUpDownChartData.mock.calls.at(-1)?.[0];
+    expect(secondResolved).not.toBe(firstResolved);
+    expect(secondResolved?.id).toBe('market-next');
   });
 });

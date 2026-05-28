@@ -68,12 +68,12 @@ const PerpsTradingCampaignLeaderboardView: React.FC = () => {
 
   const leaderboardUserPosition = useMemo(
     () =>
-      position
+      position?.rank
         ? { rank: position.rank, neighbors: position.neighbors ?? [] }
         : null,
     [position],
   );
-
+  const hasPosition = Boolean(leaderboardUserPosition);
   const isCampaignComplete =
     campaign != null && getCampaignStatus(campaign) === 'complete';
 
@@ -107,7 +107,7 @@ const PerpsTradingCampaignLeaderboardView: React.FC = () => {
           contentContainerStyle={tw.style('pb-4')}
         >
           {/* User position header */}
-          {isOptedIn && (
+          {isOptedIn && hasPosition && (
             <>
               <Box twClassName="p-4">
                 <PerpsTradingCampaignStatsHeader

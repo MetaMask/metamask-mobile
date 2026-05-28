@@ -58,7 +58,7 @@ on:
         value: ${{ jobs.trigger-build.outputs.android_version_code }}
 
 permissions:
-  contents: read
+  contents: write
   pull-requests: read
   actions: write
   id-token: write # required by build.yml
