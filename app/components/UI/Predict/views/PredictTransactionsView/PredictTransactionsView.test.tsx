@@ -3,6 +3,7 @@ import { SectionList, Text } from 'react-native';
 import { act, render, screen, fireEvent } from '@testing-library/react-native';
 import PredictTransactionsView from './PredictTransactionsView';
 import { PredictActivityType } from '../../types';
+import { PREDICT_TRANSACTIONS_VIEW_TEST_IDS } from './PredictTransactionsView.testIds';
 
 /**
  * Mock Strategy:
@@ -69,9 +70,14 @@ jest.mock('../../components/PredictActivity/PredictActivity', () => {
 // Mock usePredictActivity hook - external data dependency
 jest.mock('../../hooks/usePredictActivity', () => ({
   usePredictActivity: jest.fn(() => ({
+    activity: [],
     data: [],
+    error: null,
     isLoading: false,
     isRefetching: false,
+    isFetchingNextPage: false,
+    hasNextPage: false,
+    fetchNextPage: jest.fn(),
     refetch: jest.fn(),
   })),
 }));
@@ -87,18 +93,33 @@ describe('PredictTransactionsView', () => {
 
   const createUsePredictActivityValue = (
     overrides: Partial<{
+      activity: unknown[];
       data: unknown[];
+      error: Error | null;
       isLoading: boolean;
       isRefetching: boolean;
+      isFetchingNextPage: boolean;
+      hasNextPage: boolean;
+      fetchNextPage: jest.Mock;
       refetch: jest.Mock;
     }> = {},
-  ) => ({
-    data: [],
-    isLoading: false,
-    isRefetching: false,
-    refetch: jest.fn(),
-    ...overrides,
-  });
+  ) => {
+    const data = overrides.data ?? overrides.activity ?? [];
+    const activity = overrides.activity ?? data;
+
+    return {
+      error: null,
+      isLoading: false,
+      isRefetching: false,
+      isFetchingNextPage: false,
+      hasNextPage: false,
+      fetchNextPage: jest.fn(),
+      refetch: jest.fn(),
+      ...overrides,
+      activity,
+      data,
+    };
+  };
 
   it('displays loading indicator when activity data loads', () => {
     (usePredictActivity as jest.Mock).mockReturnValueOnce(
@@ -124,6 +145,30 @@ describe('PredictTransactionsView', () => {
     render(<PredictTransactionsView />);
 
     expect(screen.getByText('No recent activity')).toBeOnTheScreen();
+  });
+
+  it('displays retryable error state when initial activity request fails', async () => {
+    const mockRefetch = jest.fn();
+    (usePredictActivity as jest.Mock).mockReturnValueOnce(
+      createUsePredictActivityValue({
+        data: [],
+        error: new Error('Network error'),
+        refetch: mockRefetch,
+      }),
+    );
+
+    render(<PredictTransactionsView />);
+
+    expect(
+      screen.getByTestId(PREDICT_TRANSACTIONS_VIEW_TEST_IDS.ERROR_STATE),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText('No recent activity')).toBeNull();
+
+    await act(async () => {
+      fireEvent.press(screen.getByText('Retry'));
+    });
+
+    expect(mockRefetch).toHaveBeenCalledTimes(1);
   });
 
   it('displays a custom empty state when provided', () => {
@@ -395,5 +440,102 @@ describe('PredictTransactionsView', () => {
     });
 
     expect(mockRefetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('fetches next activity page when the list end is reached', () => {
+    const mockFetchNextPage = jest.fn();
+    const mockTimestamp = Math.floor(Date.now() / 1000);
+    (usePredictActivity as jest.Mock).mockReturnValueOnce(
+      createUsePredictActivityValue({
+        hasNextPage: true,
+        fetchNextPage: mockFetchNextPage,
+        data: [
+          {
+            id: 'pageable',
+            title: 'Market Pageable',
+            outcome: 'Yes',
+            entry: {
+              type: 'buy',
+              amount: 10,
+              price: 0.5,
+              timestamp: mockTimestamp,
+            },
+          },
+        ],
+      }),
+    );
+
+    render(<PredictTransactionsView />);
+
+    fireEvent(screen.UNSAFE_getByType(SectionList), 'endReached');
+
+    expect(mockFetchNextPage).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    { hasNextPage: false, isFetchingNextPage: false },
+    { hasNextPage: true, isFetchingNextPage: true },
+  ])(
+    'does not fetch next activity page when pagination is guarded: %p',
+    ({ hasNextPage, isFetchingNextPage }) => {
+      const mockFetchNextPage = jest.fn();
+      const mockTimestamp = Math.floor(Date.now() / 1000);
+      (usePredictActivity as jest.Mock).mockReturnValueOnce(
+        createUsePredictActivityValue({
+          hasNextPage,
+          isFetchingNextPage,
+          fetchNextPage: mockFetchNextPage,
+          data: [
+            {
+              id: 'guarded',
+              title: 'Market Guarded',
+              outcome: 'Yes',
+              entry: {
+                type: 'buy',
+                amount: 10,
+                price: 0.5,
+                timestamp: mockTimestamp,
+              },
+            },
+          ],
+        }),
+      );
+
+      render(<PredictTransactionsView />);
+
+      fireEvent(screen.UNSAFE_getByType(SectionList), 'endReached');
+
+      expect(mockFetchNextPage).not.toHaveBeenCalled();
+    },
+  );
+
+  it('displays footer loader while fetching the next activity page', () => {
+    const mockTimestamp = Math.floor(Date.now() / 1000);
+    (usePredictActivity as jest.Mock).mockReturnValueOnce(
+      createUsePredictActivityValue({
+        isFetchingNextPage: true,
+        data: [
+          {
+            id: 'loading-more',
+            title: 'Market Loading More',
+            outcome: 'Yes',
+            entry: {
+              type: 'buy',
+              amount: 10,
+              price: 0.5,
+              timestamp: mockTimestamp,
+            },
+          },
+        ],
+      }),
+    );
+
+    render(<PredictTransactionsView />);
+
+    expect(
+      screen.getByTestId(
+        PREDICT_TRANSACTIONS_VIEW_TEST_IDS.FOOTER_ACTIVITY_INDICATOR,
+      ),
+    ).toBeOnTheScreen();
   });
 });

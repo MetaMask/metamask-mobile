@@ -17,6 +17,7 @@ import { PredictEventValues } from '../../constants/eventNames';
 import { TraceName } from '../../../../../util/trace';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
+import PredictOffline from '../../components/PredictOffline';
 import { PREDICT_TRANSACTIONS_VIEW_TEST_IDS } from './PredictTransactionsView.testIds';
 interface PredictTransactionsViewProps {
   emptyState?: React.ReactNode;
@@ -75,9 +76,13 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
 }) => {
   const tw = useTailwind();
   const {
-    data: activity = [],
+    activity,
+    error,
     isLoading,
     isRefetching,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
     refetch,
   } = usePredictActivity();
 
@@ -264,7 +269,35 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
 
   const keyExtractor = useCallback((item: PredictActivityItem) => item.id, []);
 
+  const handleEndReached = useCallback(() => {
+    if (!hasNextPage || isFetchingNextPage) {
+      return;
+    }
+
+    void fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  const handleRetry = useCallback(() => {
+    void refetch();
+  }, [refetch]);
+
+  const renderFooter = useCallback(() => {
+    if (!isFetchingNextPage) {
+      return null;
+    }
+
+    return (
+      <Box twClassName="items-center justify-center py-4">
+        <ActivityIndicator
+          size="small"
+          testID={PREDICT_TRANSACTIONS_VIEW_TEST_IDS.FOOTER_ACTIVITY_INDICATOR}
+        />
+      </Box>
+    );
+  }, [isFetchingNextPage]);
+
   const shouldShowLoadingState = isLoading && sections.length === 0;
+  const shouldShowErrorState = Boolean(error) && sections.length === 0;
 
   const renderContent = shouldShowLoadingState ? (
     <Box twClassName="items-center justify-center h-full">
@@ -273,6 +306,11 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
         testID={PREDICT_TRANSACTIONS_VIEW_TEST_IDS.ACTIVITY_INDICATOR}
       />
     </Box>
+  ) : shouldShowErrorState ? (
+    <PredictOffline
+      onRetry={handleRetry}
+      testID={PREDICT_TRANSACTIONS_VIEW_TEST_IDS.ERROR_STATE}
+    />
   ) : sections.length === 0 ? (
     (emptyState ?? (
       <Box twClassName="items-center justify-center py-10">
@@ -295,6 +333,9 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
       onRefresh={() => {
         void refetch();
       }}
+      onEndReached={handleEndReached}
+      onEndReachedThreshold={0.5}
+      ListFooterComponent={renderFooter}
       maxToRenderPerBatch={20}
       initialNumToRender={20}
       windowSize={12}
