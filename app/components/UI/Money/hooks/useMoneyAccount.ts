@@ -1,7 +1,8 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
-import { Hex } from '@metamask/utils';
+import { bytesToHex, Hex } from '@metamask/utils';
+import { v4 as uuidv4, parse as uuidParse } from 'uuid';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
@@ -89,6 +90,14 @@ export function useMoneyAccountDeposit() {
 
       const networkClientId = resolveNetworkClientId(chainIdHex);
 
+      // Pre-generate the batchId so intent is registered before the first
+      // status event can fire. Status updates from the controller can run
+      // synchronously inside addTransactionBatch (e.g. on immediate failure),
+      // so storing intent only after the await resolves leaves a window where
+      // the toast falls back to the default 'convert' label.
+      const batchId = bytesToHex(new Uint8Array(uuidParse(uuidv4())));
+      depositIntentByBatchId.set(batchId.toLowerCase(), intent);
+
       const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
         amount: BigInt(0),
         chainId: chainIdHex,
@@ -110,7 +119,8 @@ export function useMoneyAccountDeposit() {
         // We only set the transaction from the money account perspective.
         // MM Pay selects the user's account and moves funds to the money account,
         // so `from` must be the money account and `networkClientId` its chain.
-        const { batchId } = await addTransactionBatch({
+        await addTransactionBatch({
+          batchId,
           from: primaryMoneyAccount.address as Hex,
           networkClientId,
           origin: ORIGIN_METAMASK,
@@ -125,11 +135,8 @@ export function useMoneyAccountDeposit() {
             },
           ],
         });
-
-        if (batchId) {
-          depositIntentByBatchId.set(batchId.toLowerCase(), intent);
-        }
       } catch (error) {
+        depositIntentByBatchId.delete(batchId.toLowerCase());
         Logger.error(error as Error, `${LOG_TAG} Deposit transaction failed`);
         // Rethrow so the caller can roll back navigation / surface a toast.
         throw error;
