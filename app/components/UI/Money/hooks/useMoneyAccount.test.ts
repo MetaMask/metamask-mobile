@@ -220,8 +220,6 @@ describe('useMoneyAccountDeposit', () => {
       chainId: '0x1' as Hex,
     };
 
-    // Capture the batchId at the moment addTransactionBatch is called, then
-    // verify intent was registered for that id BEFORE the call resolved.
     let observedBatchId: string | undefined;
     let intentAtCallTime: ReturnType<typeof getMoneyAccountDepositIntent>;
     mockAddTransactionBatch.mockImplementationOnce(async (args) => {

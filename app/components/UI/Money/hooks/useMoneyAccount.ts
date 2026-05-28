@@ -90,11 +90,6 @@ export function useMoneyAccountDeposit() {
 
       const networkClientId = resolveNetworkClientId(chainIdHex);
 
-      // Pre-generate the batchId so intent is registered before the first
-      // status event can fire. Status updates from the controller can run
-      // synchronously inside addTransactionBatch (e.g. on immediate failure),
-      // so storing intent only after the await resolves leaves a window where
-      // the toast falls back to the default 'convert' label.
       const batchId = bytesToHex(new Uint8Array(uuidParse(uuidv4())));
       depositIntentByBatchId.set(batchId.toLowerCase(), intent);
 
