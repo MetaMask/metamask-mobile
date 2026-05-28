@@ -66,10 +66,10 @@ describe('marketUtils', () => {
       ).toBe('stocks');
     });
 
-    it('returns crypto when marketType is unknown string', () => {
+    it('returns crypto when marketType is crypto (not in mapping table)', () => {
       expect(
         getMarketTypeFilter({
-          marketType: 'unknown' as string,
+          marketType: 'crypto',
           isNewMarket: false,
         }),
       ).toBe('crypto');

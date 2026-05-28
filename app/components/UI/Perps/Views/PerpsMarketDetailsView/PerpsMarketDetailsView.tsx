@@ -1259,12 +1259,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         }}
         endButtonIconProps={[
           {
-            iconName: IconName.Search,
-            onPress: handleCategorySearchPress,
-            testID: PerpsMarketHeaderSelectorsIDs.CATEGORY_SEARCH_BUTTON,
-            accessibilityLabel: strings('perps.market_details.category_search'),
-          },
-          {
             iconName: IconName.Expand,
             onPress: handleFullscreenChartOpen,
             testID: `${PerpsMarketDetailsViewSelectorsIDs.HEADER}-fullscreen-button`,
@@ -1273,6 +1267,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             iconName: isWatchlist ? IconName.StarFilled : IconName.Star,
             onPress: handleWatchlistPress,
             testID: PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON,
+          },
+          {
+            iconName: IconName.Search,
+            onPress: handleCategorySearchPress,
+            testID: PerpsMarketHeaderSelectorsIDs.CATEGORY_SEARCH_BUTTON,
+            accessibilityLabel: strings('perps.market_details.category_search'),
           },
         ]}
         testID={PerpsMarketDetailsViewSelectorsIDs.HEADER}
