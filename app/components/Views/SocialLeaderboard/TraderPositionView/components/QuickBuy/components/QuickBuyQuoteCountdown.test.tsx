@@ -53,6 +53,17 @@ describe('QuickBuyQuoteCountdown', () => {
     expect(screen.getByText('0:09')).toBeOnTheScreen();
   });
 
+  it('shows minutes when quoteRefreshRateMs is at least 60 seconds', () => {
+    const now = Date.now();
+    render(
+      <QuickBuyQuoteCountdown
+        quotesLastFetchedAt={now}
+        quoteRefreshRateMs={90000}
+      />,
+    );
+    expect(screen.getByText('1:30')).toBeOnTheScreen();
+  });
+
   it('ticks down every second', () => {
     const now = Date.now();
     render(

@@ -7,6 +7,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { formatQuoteCountdown } from '../utils/formatQuoteCountdown';
 
 const styles = StyleSheet.create({
   container: {
@@ -55,13 +56,10 @@ const QuickBuyQuoteCountdown: React.FC<QuickBuyQuoteCountdownProps> = ({
     return null;
   }
 
-  const formatted =
-    secondsRemaining < 10 ? `0${secondsRemaining}` : `${secondsRemaining}`;
-
   return (
     <Box style={styles.container}>
       <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-        {`0:${formatted}`}
+        {formatQuoteCountdown(secondsRemaining)}
       </Text>
     </Box>
   );
