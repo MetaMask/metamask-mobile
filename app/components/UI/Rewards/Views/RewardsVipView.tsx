@@ -27,7 +27,7 @@ import ErrorBoundary from '../../../Views/ErrorBoundary';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { useVipDashboard } from '../hooks/useVipDashboard';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
-import ForcedDarkThemeProvider from '../components/Vip/ForcedDarkThemeProvider';
+import ForcedDarkThemeProvider from '../components/ForcedDarkThemeProvider/ForcedDarkThemeProvider';
 import VipFeeTile, {
   VIP_FEE_TILE_TEST_IDS,
   VIP_FEE_TILE_WIDTH,
