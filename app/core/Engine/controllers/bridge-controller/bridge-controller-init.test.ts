@@ -410,5 +410,29 @@ describe('BridgeController Init', () => {
       handleBridgeFetch(url, options);
       expect(handleFetch).toHaveBeenCalledWith(url.toString(), options);
     });
+
+    it('should use fetch if the url includes obtainGaslessBatch', async () => {
+      const url = new URL('http://localhost:3000/obtainGaslessBatch');
+      const options = {
+        body: JSON.stringify({ quotes: [] }),
+        headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
+      };
+      const response = {
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+      } as unknown as Response;
+      const fetchMock = jest
+        .spyOn(globalThis, 'fetch')
+        .mockResolvedValue(response);
+
+      await expect(handleBridgeFetch(url, options)).resolves.toBe(response);
+
+      expect(fetchMock).toHaveBeenCalledWith(url.toString(), options);
+      expect(handleFetch).not.toHaveBeenCalled();
+
+      fetchMock.mockRestore();
+    });
   });
 });
