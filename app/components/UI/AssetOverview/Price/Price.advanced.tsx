@@ -324,7 +324,7 @@ const PriceAdvanced = ({
   // TradingView Advanced Charts Bar.time expects milliseconds
   // https://www.tradingview.com/charting-library-docs/latest/api/interfaces/Datafeed.Bar/
   // OHLCVService delivers bars with `timestamp` in Unix seconds — multiply by 1000
-  const realtimeBar = useMemo(() => {
+  const realtimeBarOriginal = useMemo(() => {
     if (!wsEnabled || !latestBar) return undefined;
     return {
       time: latestBar.timestamp * 1000,
@@ -389,7 +389,33 @@ const PriceAdvanced = ({
 
   // Use last bar's close price for consistent percentage calculation with chart data
   const lastBarClose = ohlcvData[ohlcvData.length - 1]?.close;
-  const realtimeClose = wsEnabled ? latestBar?.close : undefined;
+  // --- DEV ONLY: simulate rapid positive/negative price flipping ---
+  const [_devSimClose, _setDevSimClose] = useState<number | null>(null);
+  useEffect(() => {
+    if (!__DEV__) return;
+    const base = dynamicComparePrice ?? lastBarClose ?? currentPrice;
+    if (!base) return;
+    let flip = true;
+    const id = setInterval(() => {
+      const offset = base * 0.002; // oscillate ±0.2% around compare price
+      _setDevSimClose(flip ? base + offset : base - offset);
+      flip = !flip;
+    }, 1500);
+    return () => clearInterval(id);
+  }, [dynamicComparePrice, lastBarClose, currentPrice]);
+  const realtimeClose =
+    __DEV__ && _devSimClose !== null
+      ? _devSimClose
+      : wsEnabled
+        ? latestBar?.close
+        : undefined;
+  const realtimeBar = useMemo(() => {
+    if (__DEV__ && _devSimClose !== null && realtimeBarOriginal) {
+      return { ...realtimeBarOriginal, close: _devSimClose };
+    }
+    return realtimeBarOriginal;
+  }, [realtimeBarOriginal, _devSimClose]);
+  // --- END DEV ONLY ---
   const displayPrice =
     crosshairData?.close ?? realtimeClose ?? lastBarClose ?? currentPrice;
   const displayDiff = useMemo(() => {
