@@ -1,6 +1,7 @@
 import React from 'react';
 import type { PredictMarket } from '../../../../../UI/Predict/types';
 import type { TransactionActiveAbTestEntry } from '../../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import type { UseHomepagePredictWorldCupMarketsResult } from '../hooks/useHomepagePredictWorldCupMarkets';
 import type { UseHomepagePredictTaggedMarketsResult } from '../hooks/useHomepagePredictTaggedMarkets';
 import type { PredictionsTrendingHeaderTestId } from '../predictionsSectionTypes';
 import type { PredictEmptyStateCtaName } from '../../../abTestConfig';
@@ -18,7 +19,7 @@ export interface HomepagePredictTrendingMarketsProps {
   markets: PredictMarket[];
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   /** Required when `discoveryLayout` is `list` (World Cup discovery rail). */
-  worldCupHomepage?: UseHomepagePredictTaggedMarketsResult;
+  worldCupHomepage?: UseHomepagePredictWorldCupMarketsResult;
   /** Required when `discoveryLayout` is `list` (NBA champion event, separate from World Cup tag). */
   nbaChampionHomepage?: UseHomepagePredictTaggedMarketsResult;
   emptyStateTransactionActiveAbTests?: TransactionActiveAbTestEntry[];
