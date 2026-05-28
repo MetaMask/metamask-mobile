@@ -1,15 +1,17 @@
 import { renderHook } from '@testing-library/react-hooks';
-import { type PaymentMethod } from '@metamask/ramps-controller';
+import { type PaymentMethod, type Provider } from '@metamask/ramps-controller';
 import { TransactionType } from '@metamask/transaction-controller';
 import { useFiatPaymentHighlightedActions } from './useFiatPaymentHighlightedActions';
 import { useMMPayFiatConfig } from './useMMPayFiatConfig';
 import { useTransactionPayFiatPayment } from './useTransactionPayData';
+import { useFiatRouteProviderAvailability } from './useFiatRouteProviderAvailability';
 import { useRampsPaymentMethods } from '../../../../UI/Ramp/hooks/useRampsPaymentMethods';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import Engine from '../../../../../core/Engine';
 
 jest.mock('./useMMPayFiatConfig');
 jest.mock('./useTransactionPayData');
+jest.mock('./useFiatRouteProviderAvailability');
 jest.mock('../../../../UI/Ramp/hooks/useRampsPaymentMethods');
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../../../../../core/Engine', () => ({
@@ -41,6 +43,9 @@ describe('useFiatPaymentHighlightedActions', () => {
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
+  const useFiatRouteProviderAvailabilityMock = jest.mocked(
+    useFiatRouteProviderAvailability,
+  );
   const updateFiatPaymentMock = jest.mocked(
     Engine.context.TransactionPayController.updateFiatPayment,
   );
@@ -60,6 +65,11 @@ describe('useFiatPaymentHighlightedActions', () => {
       id: TRANSACTION_ID_MOCK,
       type: TRANSACTION_TYPE_MOCK,
     } as ReturnType<typeof useTransactionMetadataRequest>);
+    useFiatRouteProviderAvailabilityMock.mockReturnValue({
+      isAvailable: true,
+      isLoading: false,
+      provider: undefined,
+    });
   });
 
   it('returns empty array when transaction type is not in enabledTransactionTypes', () => {
@@ -141,6 +151,60 @@ describe('useFiatPaymentHighlightedActions', () => {
     const fiatPayment = { selectedPaymentMethodId: undefined };
     updateFiatPaymentMock.mock.calls[0][0].callback(fiatPayment);
     expect(fiatPayment.selectedPaymentMethodId).toBe('pm-card');
+  });
+
+  it('returns empty array when a Money Account deposit lacks the locked fiat route', () => {
+    useMMPayFiatConfigMock.mockReturnValue({
+      enabledTransactionTypes: [TransactionType.moneyAccountDeposit],
+      maxDelayMinutesForPaymentMethods: 10,
+    });
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: TRANSACTION_ID_MOCK,
+      type: TransactionType.moneyAccountDeposit,
+    } as ReturnType<typeof useTransactionMetadataRequest>);
+    useFiatRouteProviderAvailabilityMock.mockReturnValue({
+      isAvailable: false,
+      isLoading: false,
+      provider: undefined,
+    });
+
+    const { result } = renderHook(() => useFiatPaymentHighlightedActions());
+
+    expect(result.current).toEqual([]);
+  });
+
+  it('still returns payment methods for a Money Account deposit when the locked route is available', () => {
+    useMMPayFiatConfigMock.mockReturnValue({
+      enabledTransactionTypes: [TransactionType.moneyAccountDeposit],
+      maxDelayMinutesForPaymentMethods: 10,
+    });
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: TRANSACTION_ID_MOCK,
+      type: TransactionType.moneyAccountDeposit,
+    } as ReturnType<typeof useTransactionMetadataRequest>);
+    useFiatRouteProviderAvailabilityMock.mockReturnValue({
+      isAvailable: true,
+      isLoading: false,
+      provider: { id: 'transak-native' } as unknown as Provider,
+    });
+
+    const { result } = renderHook(() => useFiatPaymentHighlightedActions());
+
+    expect(result.current).toHaveLength(1);
+  });
+
+  it('does not apply the Money Account route gate to other transaction types', () => {
+    // useFiatRouteProviderAvailability mock defaults to isAvailable: true; flip
+    // it to false to confirm the gate only fires for moneyAccountDeposit.
+    useFiatRouteProviderAvailabilityMock.mockReturnValue({
+      isAvailable: false,
+      isLoading: false,
+      provider: undefined,
+    });
+
+    const { result } = renderHook(() => useFiatPaymentHighlightedActions());
+
+    expect(result.current).toHaveLength(1);
   });
 
   it('calls updateFiatPayment to deselect when action is fired on selected item', () => {

@@ -48,6 +48,9 @@ import Logger from '../../../../../../util/Logger';
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
 jest.mock('../../../hooks/tokens/useTokenFiatRates');
 jest.mock('../../../hooks/pay/useAutomaticTransactionPayToken');
+jest.mock('../../../hooks/pay/useEnsureProviderForPayAsset', () => ({
+  useEnsureProviderForPayAsset: jest.fn(),
+}));
 jest.mock('../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../../hooks/transactions/useTransactionCustomAmount');
 jest.mock('../../../context/confirmation-context');

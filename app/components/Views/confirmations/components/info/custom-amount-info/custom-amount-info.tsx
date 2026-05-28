@@ -23,6 +23,7 @@ import {
   SetPayTokenRequest,
   useAutomaticTransactionPayToken,
 } from '../../../hooks/pay/useAutomaticTransactionPayToken';
+import { useEnsureProviderForPayAsset } from '../../../hooks/pay/useEnsureProviderForPayAsset';
 import { useTransactionPayPostQuote } from '../../../hooks/pay/useTransactionPayPostQuote';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { AlertMessage } from '../../alerts/alert-message';
@@ -124,6 +125,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       disable: disablePay,
       preferredToken,
     });
+    useEnsureProviderForPayAsset();
     useTransactionPayMetrics();
     useTransactionPayPostQuote(); // Set isPostQuote=true for post-quote transactions
 

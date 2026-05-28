@@ -1,10 +1,12 @@
 import { useMemo } from 'react';
 import { type PaymentMethod } from '@metamask/ramps-controller';
+import { TransactionType } from '@metamask/transaction-controller';
 import Engine from '../../../../../core/Engine';
 import { useRampsPaymentMethods } from '../../../../UI/Ramp/hooks/useRampsPaymentMethods';
 import { formatDelayFromArray } from '../../../../UI/Ramp/Aggregator/utils';
 import { useMMPayFiatConfig } from './useMMPayFiatConfig';
 import { useTransactionPayFiatPayment } from './useTransactionPayData';
+import { useFiatRouteProviderAvailability } from './useFiatRouteProviderAvailability';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { HighlightedItem } from '../../types/token';
 import { hasTransactionType } from '../../utils/transaction';
@@ -28,8 +30,24 @@ export function useFiatPaymentHighlightedActions(): HighlightedItem[] {
     enabledTransactionTypes,
   );
 
+  // Money Account v0 is hard-locked to a single fiat route (Transak Native).
+  // When that provider isn't in the user's region we must not surface a fiat
+  // payment option, otherwise the user lands on an empty payment-methods
+  // state with no recoverable path (TRAM-3597).
+  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+  ]);
+  const { isAvailable: isLockedRouteAvailable } =
+    useFiatRouteProviderAvailability();
+  const isLockedRouteUnavailable =
+    isMoneyAccountDeposit && !isLockedRouteAvailable;
+
   return useMemo(() => {
-    if (!isFiatEnabled || paymentMethods.length === 0) {
+    if (
+      !isFiatEnabled ||
+      isLockedRouteUnavailable ||
+      paymentMethods.length === 0
+    ) {
       return [];
     }
 
@@ -40,6 +58,7 @@ export function useFiatPaymentHighlightedActions(): HighlightedItem[] {
       );
   }, [
     isFiatEnabled,
+    isLockedRouteUnavailable,
     maxDelayMinutesForPaymentMethods,
     paymentMethods,
     transactionId,

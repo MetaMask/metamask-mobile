@@ -54,7 +54,7 @@ import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import { BUILD_QUOTE_TEST_IDS } from './BuildQuote.testIds';
 import { createPaymentSelectionModalNavigationDetails } from '../Modals/PaymentSelectionModal';
-import { createTokenNotAvailableModalNavigationDetails } from '../Modals/TokenNotAvailableModal';
+import { useEnsureProviderForAsset } from '../../hooks/useEnsureProviderForAsset';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
@@ -253,92 +253,23 @@ function BuildQuote() {
     paymentMethods.length,
   ]);
 
-  // Tracks which provider:token combination was last shown the modal,
-  // so we don't duplicate-navigate within the same visit but DO re-show
-  // when the combination changes.
-  const lastShownUnavailableKeyRef = useRef<string>('');
-
-  // Bump a counter on screen focus so the modal effect re-evaluates
-  // when the user navigates away (e.g. token selection) and comes back.
+  // Bump a counter on screen focus so the auto-select hook re-evaluates the
+  // "no supporting provider" path when the user navigates away (e.g. token
+  // selection) and comes back.
   const [focusTrigger, setFocusTrigger] = useState(0);
   useFocusEffect(
     useCallback(() => {
-      lastShownUnavailableKeyRef.current = '';
       setFocusTrigger((c) => c + 1);
     }, []),
   );
 
-  // When no provider is selected (e.g. first-time user in a region without
-  // Transak), pick the first provider that supports the selected token.
-  useEffect(() => {
-    if (
-      !isOnBuildQuoteScreen ||
-      selectedProvider ||
-      !effectiveAssetId ||
-      providers.length === 0
-    ) {
-      return;
-    }
-    const supportingProvider = providers.find((p) =>
-      providerSupportsAsset(p, effectiveAssetId),
-    );
-    if (supportingProvider) {
-      setSelectedProvider(supportingProvider, { autoSelected: true });
-    }
-  }, [
-    isOnBuildQuoteScreen,
-    selectedProvider,
-    effectiveAssetId,
-    providers,
-    setSelectedProvider,
-  ]);
-
-  // When the selected token is unavailable for the current provider, silently
-  // switch to any other provider that supports the token. Only fall through to
-  // the "Token Not Available" modal when no provider supports the token.
-  useEffect(() => {
-    if (!isOnBuildQuoteScreen || !isTokenUnavailable) {
-      lastShownUnavailableKeyRef.current = '';
-      return;
-    }
-
-    if (effectiveAssetId) {
-      const supportingProvider = providers.find(
-        (p) =>
-          p.id !== selectedProvider?.id &&
-          providerSupportsAsset(p, effectiveAssetId),
-      );
-      if (supportingProvider) {
-        setSelectedProvider(supportingProvider, { autoSelected: true });
-        return;
-      }
-    }
-
-    const key = `${selectedProvider?.id}:${effectiveAssetId}`;
-    if (lastShownUnavailableKeyRef.current === key) return;
-
-    const timer = setTimeout(() => {
-      lastShownUnavailableKeyRef.current = key;
-      navigation.navigate(
-        ...createTokenNotAvailableModalNavigationDetails({
-          assetId: effectiveAssetId ?? '',
-          buyFlowOrigin: params?.buyFlowOrigin,
-        }),
-      );
-    }, 600);
-
-    return () => clearTimeout(timer);
-  }, [
-    isOnBuildQuoteScreen,
-    params?.buyFlowOrigin,
+  useEnsureProviderForAsset({
+    enabled: isOnBuildQuoteScreen,
+    assetId: effectiveAssetId,
     isTokenUnavailable,
-    effectiveAssetId,
-    navigation,
-    selectedProvider?.id,
-    focusTrigger,
-    providers,
-    setSelectedProvider,
-  ]);
+    buyFlowOrigin: params?.buyFlowOrigin,
+    refreshKey: focusTrigger,
+  });
 
   const currency = userRegion?.country?.currency || 'USD';
   const { currencyPrefix, currencySuffix } = useMemo(() => {
