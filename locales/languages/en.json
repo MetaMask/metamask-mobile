@@ -3039,6 +3039,14 @@
     "option_connect_apps_sites": "Connect to apps or sites",
     "continue": "Continue"
   },
+  "onboarding_crypto_experience_questionnaire": {
+    "title": "What's your experience with crypto?",
+    "option_new": "New",
+    "option_beginner": "Beginner",
+    "option_intermediate": "Intermediate",
+    "option_advanced": "Advanced",
+    "continue": "Continue"
+  },
   "template_confirmation": {
     "ok": "OK",
     "cancel": "Cancel"

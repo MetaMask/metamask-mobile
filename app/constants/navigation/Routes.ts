@@ -192,6 +192,7 @@ const Routes = {
     REHYDRATE: 'Rehydrate',
     WALLET_CREATION_ERROR: 'WalletCreationError',
     INTEREST_QUESTIONNAIRE: 'OnboardingInterestQuestionnaire',
+    CRYPTO_EXPERIENCE_QUESTIONNAIRE: 'OnboardingCryptoExperienceQuestionnaire',
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',

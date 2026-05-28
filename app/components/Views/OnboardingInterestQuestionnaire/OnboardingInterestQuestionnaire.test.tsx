@@ -11,6 +11,7 @@ import {
 } from '../../../util/test/analyticsMock';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { strings } from '../../../../locales/i18n';
+import Routes from '../../../constants/navigation/Routes';
 
 jest.mock('../../hooks/useAnalytics/useAnalytics');
 
@@ -343,7 +344,7 @@ describe('OnboardingInterestQuestionnaire', () => {
       );
     });
 
-    it('calls onComplete after pressing Continue', async () => {
+    it('navigates to crypto experience questionnaire with onComplete on Continue', async () => {
       renderComponent();
 
       await act(async () => {
@@ -355,11 +356,19 @@ describe('OnboardingInterestQuestionnaire', () => {
       });
 
       await waitFor(() => {
-        expect(mockOnComplete).toHaveBeenCalledTimes(1);
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.ONBOARDING.CRYPTO_EXPERIENCE_QUESTIONNAIRE,
+          expect.objectContaining({
+            onComplete: mockOnComplete,
+          }),
+        );
       });
+      expect(mockOnComplete).not.toHaveBeenCalled();
     });
 
-    it('does not navigate to another screen on Continue', async () => {
+    it('passes accountType to crypto experience when route supplies accountType', async () => {
+      mockInterestQuestionnaireRouteParams.accountType = 'imported';
+
       renderComponent();
 
       await act(async () => {
@@ -370,7 +379,13 @@ describe('OnboardingInterestQuestionnaire', () => {
         );
       });
 
-      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.ONBOARDING.CRYPTO_EXPERIENCE_QUESTIONNAIRE,
+        expect.objectContaining({
+          onComplete: mockOnComplete,
+          accountType: 'imported',
+        }),
+      );
     });
   });
 });
