@@ -72,14 +72,13 @@ const DiscoverySelectDeviceScreen: React.FC<
       testID="discovery-select-device-sheet"
     >
       <TouchableOpacity
-        style={[
-          styles.overlay,
-          { backgroundColor: colors.overlay?.default ?? 'rgba(0,0,0,0.6)' },
-        ]}
+        testID="discovery-select-device-overlay"
+        style={[styles.overlay, { backgroundColor: colors.overlay.default }]}
         activeOpacity={1}
         onPress={onClose}
       >
         <SafeAreaView
+          testID="discovery-select-device-sheet-content"
           edges={['bottom']}
           style={[
             styles.sheet,
@@ -88,6 +87,7 @@ const DiscoverySelectDeviceScreen: React.FC<
           onStartShouldSetResponder={() => true}
         >
           <View
+            testID="discovery-select-device-drag-handle"
             style={[
               styles.dragHandle,
               { backgroundColor: colors.border.muted },

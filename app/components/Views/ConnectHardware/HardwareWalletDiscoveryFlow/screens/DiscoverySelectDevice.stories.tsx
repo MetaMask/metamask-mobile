@@ -17,6 +17,7 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import type { DiscoveredDevice } from '../../../../../core/HardwareWallet/types';
@@ -44,7 +45,7 @@ const mockDevices: DiscoveredDevice[] = [
 ];
 
 const mockConfig: DeviceUIConfig = {
-  walletType: 'ledger',
+  walletType: HardwareWalletType.Ledger,
   discoveryTimeoutMs: 15000,
   animationSource: 0,
   artboardName: 'searching',
