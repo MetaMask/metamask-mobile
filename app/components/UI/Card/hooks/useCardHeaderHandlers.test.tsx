@@ -1,16 +1,18 @@
 import React from 'react';
 import { Alert, Pressable } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
-import { useCardOnboardingNavigationHandlers } from './useCardOnboardingNavigationHandlers';
+import { useCardHeaderHandlers } from './useCardHeaderHandlers';
 import Routes from '../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockReset = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
+    reset: mockReset,
   }),
 }));
 
@@ -22,10 +24,10 @@ const HookProbe = ({
   headerMode,
   handlerKey,
 }: {
-  headerMode: Parameters<typeof useCardOnboardingNavigationHandlers>[0];
+  headerMode: Parameters<typeof useCardHeaderHandlers>[0];
   handlerKey: 'onBack' | 'onClose';
 }) => {
-  const handlers = useCardOnboardingNavigationHandlers(headerMode);
+  const handlers = useCardHeaderHandlers(headerMode);
   const handler = handlers[handlerKey];
 
   return (
@@ -35,7 +37,7 @@ const HookProbe = ({
   );
 };
 
-describe('useCardOnboardingNavigationHandlers', () => {
+describe('useCardHeaderHandlers', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.spyOn(Alert, 'alert');
@@ -95,9 +97,24 @@ describe('useCardOnboardingNavigationHandlers', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
   });
 
+  it('resets navigator to Card Home for close-reset-home header mode', () => {
+    const { getByTestId } = render(
+      <HookProbe headerMode="close-reset-home" handlerKey="onClose" />,
+    );
+
+    fireEvent.press(getByTestId('handler-button'));
+
+    expect(Alert.alert).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockReset).toHaveBeenCalledWith({
+      index: 0,
+      routes: [{ name: Routes.CARD.HOME }],
+    });
+  });
+
   it('returns no handlers for none header mode', () => {
     const NoneProbe = () => {
-      const handlers = useCardOnboardingNavigationHandlers('none');
+      const handlers = useCardHeaderHandlers('none');
       return (
         <Pressable testID="none-handler-button" onPress={handlers.onClose}>
           Trigger
@@ -112,5 +129,6 @@ describe('useCardOnboardingNavigationHandlers', () => {
     expect(Alert.alert).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockReset).not.toHaveBeenCalled();
   });
 });
