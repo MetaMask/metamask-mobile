@@ -81,6 +81,7 @@ import PerpsOHLCVBar from '../../components/PerpsOHLCVBar';
 import PerpsOICapWarning from '../../components/PerpsOICapWarning';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
 import PerpsPriceDeviationWarning from '../../components/PerpsPriceDeviationWarning';
+import PerpsRelatedMarkets from '../../components/PerpsRelatedMarkets';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import PerpsStopLossPromptBanner from '../../components/PerpsStopLossPromptBanner';
 import TradingViewChart, {
@@ -121,6 +122,7 @@ import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPref
 import {
   selectPerpsButtonColorTestVariant,
   selectPerpsOrderBookEnabledFlag,
+  selectPerpsRelatedMarketsEnabledFlag,
   selectPerpsServiceInterruptionBannerEnabledFlag,
 } from '../../selectors/featureFlags';
 import {
@@ -142,6 +144,7 @@ import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
 import { getMarketHoursStatus } from '../../utils/marketHours';
 import { normalizeMarketDetailsOrders } from '../../normalization/normalizeMarketDetailsOrders';
 import { ensureError } from '../../../../../util/errorUtils';
+import { getRelatedMarketsForMarket } from '../../utils/relatedMarkets';
 import {
   type TransactionActiveAbTestEntry,
   withPendingTransactionActiveAbTests,
@@ -200,12 +203,17 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     transactionActiveAbTests,
   } = route.params || {};
   const { track } = usePerpsEventTracking();
+  const isRelatedMarketsEnabled = useSelector(
+    selectPerpsRelatedMarketsEnabledFlag,
+  );
 
   // Get full market data from stream to ensure all fields (including maxLeverage) are available
   // This handles cases where navigation passes minimal market data (e.g., from Recent Activity)
   // Skip fetching if routeMarket already has maxLeverage (performance optimization)
   const needsEnrichment = !routeMarket?.maxLeverage;
-  const { markets } = usePerpsMarkets({ skipInitialFetch: !needsEnrichment });
+  const { markets } = usePerpsMarkets({
+    skipInitialFetch: !needsEnrichment && !isRelatedMarketsEnabled,
+  });
   const market = useMemo(() => {
     // If route market already has all required fields, use it directly
     if (!needsEnrichment) return routeMarket;
@@ -214,6 +222,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
     return fullMarket || routeMarket;
   }, [markets, routeMarket, needsEnrichment]);
+  const relatedMarketsResult = useMemo(
+    () =>
+      isRelatedMarketsEnabled
+        ? getRelatedMarketsForMarket(market, markets)
+        : null,
+    [isRelatedMarketsEnabled, market, markets],
+  );
   const dispatch = useDispatch();
 
   const [isEligibilityModalVisible, setIsEligibilityModalVisible] =
@@ -578,6 +593,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // reflects the actual display state rather than a loading-time snapshot.
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+    resetKey: market?.symbol,
     conditions: [
       !!market,
       !!marketStats,
@@ -1454,6 +1470,15 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               }
             />
           </View>
+
+          {/* Related Markets Section */}
+          {relatedMarketsResult ? (
+            <PerpsRelatedMarkets
+              currentMarket={market}
+              collection={relatedMarketsResult.collection}
+              markets={relatedMarketsResult.markets}
+            />
+          ) : null}
 
           {/* Recent Trades Section */}
           {market?.symbol && (

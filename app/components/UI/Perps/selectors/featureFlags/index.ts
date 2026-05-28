@@ -75,6 +75,29 @@ export const selectPerpsOrderBookEnabledFlag = createSelector(
 );
 
 /**
+ * Selector for Related Markets rail feature flag.
+ * Controls visibility of the discovery rail on Perps market details.
+ *
+ * @returns boolean - true if the related markets rail should be shown.
+ */
+export const selectPerpsRelatedMarketsEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.perpsRelatedMarketsMobile as unknown as
+        | VersionGatedFeatureFlag
+        | boolean
+        | undefined;
+
+    if (typeof remoteFlag === 'boolean') {
+      return remoteFlag;
+    }
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
  * Selector for button color A/B test variant from LaunchDarkly
  * TAT-1937: Tests impact of button colors (green/red vs white/white) on trading behavior
  *

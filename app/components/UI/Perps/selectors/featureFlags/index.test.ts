@@ -3,6 +3,7 @@ import {
   selectPerpsServiceInterruptionBannerEnabledFlag,
   selectPerpsGtmOnboardingModalEnabledFlag,
   selectPerpsOrderBookEnabledFlag,
+  selectPerpsRelatedMarketsEnabledFlag,
   selectPerpsButtonColorTestVariant,
   selectHip3ConfigVersion,
   selectPerpsDefaultPayTokenWhenNoBalanceEnabledFlag,
@@ -716,6 +717,62 @@ describe('Perps Feature Flag Selectors', () => {
         );
         expect(result).toBe(false);
       });
+    });
+  });
+
+  describe('selectPerpsRelatedMarketsEnabledFlag', () => {
+    it('returns false when remote flag is not set', () => {
+      const result = selectPerpsRelatedMarketsEnabledFlag({
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {},
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('returns boolean remote flag values directly', () => {
+      const result = selectPerpsRelatedMarketsEnabledFlag({
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                perpsRelatedMarketsMobile: true,
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      });
+
+      expect(result).toBe(true);
+    });
+
+    it('returns version-gated remote flag when valid', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+
+      const result = selectPerpsRelatedMarketsEnabledFlag({
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                perpsRelatedMarketsMobile: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      });
+
+      expect(result).toBe(true);
     });
   });
 
