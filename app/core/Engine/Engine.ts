@@ -202,6 +202,7 @@ import { complianceControllerInit } from './controllers/compliance/compliance-co
 import { chompApiServiceInit } from './controllers/chomp-api-service-init';
 import { moneyAccountUpgradeControllerInit } from './controllers/money-account-upgrade-controller-init';
 import { initializeWallet } from './wallet-init/initialization';
+import { qrKeyringBridge } from './wallet-init/keyrings';
 import { Wallet } from '@metamask/wallet';
 
 // TODO: Replace "any" with type
@@ -1574,13 +1575,10 @@ export default {
     instance.setAccountLabel(address, label);
   },
 
-  getQrKeyringScanner: () => {
-    assertEngineExists(instance);
-    const qrKeyring = instance.keyringController.getKeyringsByType(
-      QrKeyring.type,
-    )[0] as QrKeyring;
-    return qrKeyring.bridge as QrKeyringDeferredPromiseBridge;
-  },
+  getQrKeyringScanner: () => 
+    // TODO: Use the KeyringController to find the appropriate QR keyring bridge instead of using a global.
+     qrKeyringBridge
+  ,
 
   lookupEnabledNetworks: () => {
     assertEngineExists(instance);

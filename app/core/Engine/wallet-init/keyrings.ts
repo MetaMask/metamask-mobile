@@ -27,6 +27,19 @@ import {
   scanRequested,
 } from '../../redux/slices/qrKeyringScanner';
 
+// This is initialized globally as it is used in lots of UI contexts.
+export const qrKeyringBridge = new QrKeyringDeferredPromiseBridge({
+  onScanRequested: (request) => {
+    store.dispatch(scanRequested(request));
+  },
+  onScanResolved: () => {
+    store.dispatch(scanCompleted());
+  },
+  onScanRejected: () => {
+    store.dispatch(scanCompleted());
+  },
+});
+
 export function getKeyringBuilders(
   messenger: RootMessenger,
 ): KeyringControllerOptions['keyringBuilders'] {
@@ -38,20 +51,8 @@ export function getKeyringBuilders(
 
   const keyrings = [];
 
-  const qrBridge = new QrKeyringDeferredPromiseBridge({
-    onScanRequested: (request) => {
-      store.dispatch(scanRequested(request));
-    },
-    onScanResolved: () => {
-      store.dispatch(scanCompleted());
-    },
-    onScanRejected: () => {
-      store.dispatch(scanCompleted());
-    },
-  });
-
   const qrKeyringBuilder = () => {
-    const keyring = new QrKeyring({ bridge: qrBridge });
+    const keyring = new QrKeyring({ bridge: qrKeyringBridge });
     // To fix the bug in #9560, forgetDevice will reset all keyring properties
     // to default.
     keyring.forgetDevice();
