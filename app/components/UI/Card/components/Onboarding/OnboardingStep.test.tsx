@@ -59,7 +59,6 @@ jest.mock('@metamask/design-system-react-native', () => {
       BodyMd: 'BodyMd',
     },
     HeaderStandard: () => null,
-    HeaderStandard: () => null,
   };
 });
 
