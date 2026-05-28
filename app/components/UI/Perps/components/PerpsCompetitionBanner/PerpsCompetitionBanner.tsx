@@ -1,14 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { Image, StyleSheet, Pressable, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import {
   Box,
   Text,
-  Icon,
   IconName,
-  IconSize,
-  IconColor,
   ButtonIcon,
   ButtonIconSize,
   TextVariant,
@@ -24,9 +21,12 @@ import StorageWrapper from '../../../../../store/storage-wrapper';
 import { PERPS_COMPETITION_BANNER_DISMISSED } from '../../../../../constants/storage';
 import type { PerpsCompetitionBannerProps } from './PerpsCompetitionBanner.types';
 
+// eslint-disable-next-line import-x/no-commonjs, @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+const competitionImage = require('../../../../../images/perps-competition-banner.png');
+
 const styles = StyleSheet.create({
   container: {
-    marginTop: 8,
+    marginTop: 4,
     marginHorizontal: 16,
     marginBottom: 8,
   },
@@ -36,12 +36,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     gap: 16,
   },
-  iconContainer: {
+  bannerImage: {
     width: 72,
     height: 72,
-    borderRadius: 5000,
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderRadius: 12,
   },
   textContainer: {
     flex: 1,
@@ -65,17 +63,25 @@ const PerpsCompetitionBanner: React.FC<PerpsCompetitionBannerProps> = ({
 
   useEffect(() => {
     const checkDismissed = async () => {
-      const value = await StorageWrapper.getItem(
-        PERPS_COMPETITION_BANNER_DISMISSED,
-      );
-      setIsDismissed(value === 'true');
+      try {
+        const value = await StorageWrapper.getItem(
+          PERPS_COMPETITION_BANNER_DISMISSED,
+        );
+        setIsDismissed(value === 'true');
+      } catch {
+        setIsDismissed(false);
+      }
     };
     checkDismissed();
   }, []);
 
   const handleDismiss = useCallback(async () => {
-    await StorageWrapper.setItem(PERPS_COMPETITION_BANNER_DISMISSED, 'true');
     setIsDismissed(true);
+    try {
+      await StorageWrapper.setItem(PERPS_COMPETITION_BANNER_DISMISSED, 'true');
+    } catch {
+      // Dismiss is best-effort; banner stays hidden for this session
+    }
   }, []);
 
   const handlePress = useCallback(() => {
@@ -87,28 +93,18 @@ const PerpsCompetitionBanner: React.FC<PerpsCompetitionBannerProps> = ({
   }
 
   return (
-    <TouchableOpacity
-      style={styles.container}
-      onPress={handlePress}
-      activeOpacity={0.7}
-      testID={testID}
-    >
+    <Pressable style={styles.container} onPress={handlePress} testID={testID}>
       <Box
         style={styles.banner}
         backgroundColor={BoxBackgroundColor.BackgroundMuted}
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
       >
-        <Box
-          style={styles.iconContainer}
-          backgroundColor={BoxBackgroundColor.BackgroundMuted}
-        >
-          <Icon
-            name={IconName.Star}
-            size={IconSize.Xl}
-            color={IconColor.WarningDefault}
-          />
-        </Box>
+        <Image
+          source={competitionImage}
+          style={styles.bannerImage}
+          testID={`${testID}-image`}
+        />
 
         <Box style={styles.textContainer}>
           <Box
@@ -124,19 +120,21 @@ const PerpsCompetitionBanner: React.FC<PerpsCompetitionBannerProps> = ({
             >
               {strings('perps.competition_banner.title')}
             </Text>
-            <ButtonIcon
-              iconName={IconName.Close}
-              size={ButtonIconSize.Sm}
-              onPress={handleDismiss}
-              testID={`${testID}-close`}
-            />
+            <View onStartShouldSetResponder={() => true}>
+              <ButtonIcon
+                iconName={IconName.Close}
+                size={ButtonIconSize.Sm}
+                onPress={handleDismiss}
+                testID={`${testID}-close`}
+              />
+            </View>
           </Box>
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {strings('perps.competition_banner.description')}
           </Text>
         </Box>
       </Box>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

@@ -77,11 +77,9 @@ describe('PerpsCompetitionBanner', () => {
     const { getByText } = render(<PerpsCompetitionBanner />);
 
     await waitFor(() => {
-      expect(getByText('Perps trading competition')).toBeOnTheScreen();
+      expect(getByText('Competition leaderboard')).toBeOnTheScreen();
       expect(
-        getByText(
-          'Join our trading competition today with a $50,000 prize pool',
-        ),
+        getByText('See where you rank in the Perps trading competition'),
       ).toBeOnTheScreen();
     });
   });
@@ -104,6 +102,20 @@ describe('PerpsCompetitionBanner', () => {
       );
       expect(queryByTestId('perps-competition-banner')).toBeNull();
     });
+  });
+
+  it('does not navigate when close button is pressed', async () => {
+    setupSelector(true);
+
+    const { getByTestId } = render(<PerpsCompetitionBanner />);
+
+    await waitFor(() => {
+      expect(getByTestId('perps-competition-banner')).toBeOnTheScreen();
+    });
+
+    fireEvent.press(getByTestId('perps-competition-banner-close'));
+
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('navigates to rewards view when banner is tapped', async () => {
