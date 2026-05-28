@@ -1,12 +1,19 @@
 import NavigationService from '../../../core/NavigationService';
 import Routes from '../../../constants/navigation/Routes';
 import { AgenticCliDashboardWebviewService } from './AgenticCliDashboardWebviewService';
+import { devApiEnv } from '../../../core/devApiEnv';
+
+jest.mock('../../../core/devApiEnv', () => ({
+  devApiEnv: jest.fn(() => 'dev'),
+}));
 
 jest.mock('../../../core/NavigationService', () => ({
   navigation: {
     navigate: jest.fn(),
   },
 }));
+
+const mockDevApiEnv = devApiEnv as jest.MockedFunction<typeof devApiEnv>;
 
 describe('AgenticCliDashboardWebviewService', () => {
   const devGlobal = global as typeof globalThis & { __DEV__?: boolean };
@@ -21,6 +28,7 @@ describe('AgenticCliDashboardWebviewService', () => {
   beforeEach(() => {
     jest.useRealTimers();
     devGlobal.__DEV__ = originalDev;
+    mockDevApiEnv.mockReturnValue('dev');
     navigateMock.mockReset();
   });
 
@@ -73,6 +81,25 @@ describe('AgenticCliDashboardWebviewService', () => {
       expect(
         AgenticCliDashboardWebviewService.shouldLoadInWebView(
           'http://localhost:5173/agentic/login#auth_token=token',
+        ),
+      ).toBe(false);
+    });
+
+    it('only allows dev dashboard hosts when MM_DEV_API_ENV=dev', () => {
+      mockDevApiEnv.mockReturnValue('dev');
+      devGlobal.__DEV__ = false;
+
+      expect(
+        AgenticCliDashboardWebviewService.shouldLoadInWebView(
+          'https://test-dashboard.web3auth.io/agentic/login#auth_token=token',
+        ),
+      ).toBe(true);
+
+      mockDevApiEnv.mockReturnValue('prod');
+
+      expect(
+        AgenticCliDashboardWebviewService.shouldLoadInWebView(
+          'https://test-dashboard.web3auth.io/agentic/login#auth_token=token',
         ),
       ).toBe(false);
     });
@@ -208,6 +235,8 @@ describe('AgenticCliDashboardWebviewService', () => {
 
   describe('navigation helpers', () => {
     it('allows configured dashboard origins and blocks invalid URLs', () => {
+      mockDevApiEnv.mockReturnValue('dev');
+
       expect(
         AgenticCliDashboardWebviewService.isOriginAllowed(
           'https://dashboard.w3a.io',
@@ -225,6 +254,17 @@ describe('AgenticCliDashboardWebviewService', () => {
       ).toBe(true);
       expect(
         AgenticCliDashboardWebviewService.shouldLoadInWebView('not-a-url'),
+      ).toBe(false);
+    });
+
+    it('blocks dev dashboard hosts in production API env', () => {
+      mockDevApiEnv.mockReturnValue('prod');
+      devGlobal.__DEV__ = false;
+
+      expect(
+        AgenticCliDashboardWebviewService.shouldLoadInWebView(
+          'https://test-dashboard.web3auth.io/agentic/login#auth_token=token',
+        ),
       ).toBe(false);
     });
 

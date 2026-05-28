@@ -1,5 +1,6 @@
 import NavigationService from '../../../core/NavigationService';
 import Routes from '../../../constants/navigation/Routes';
+import { devApiEnv } from '../../../core/devApiEnv';
 import {
   AGENTIC_CLI_DASHBOARD_MESSAGE_SOURCE,
   type AgenticCliDashboardWebviewParams,
@@ -11,10 +12,14 @@ const WEBVIEW_TIMEOUT_MS = 5 * 60 * 1000;
 
 const PRODUCTION_ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
   /^https:\/\/dashboard\.w3a\.io$/,
-  /^https:\/\/test-dashboard\.web3auth\.io$/,
-  /^https:\/\/dev-dashboard\.web3auth\.io$/,
   /^https:\/\/auth\.web3auth\.io$/,
   /^https:\/\/[a-z0-9-]+\.cx\.metamask\.io$/,
+];
+
+/** Non-prod dashboard hosts used when `MM_DEV_API_ENV=dev`. */
+const DEV_API_ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
+  /^https:\/\/test-dashboard\.web3auth\.io$/,
+  /^https:\/\/dev-dashboard\.web3auth\.io$/,
 ];
 
 const DEVELOPMENT_ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
@@ -23,13 +28,19 @@ const DEVELOPMENT_ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
   /^http:\/\/localhost(?::\d+)?$/,
 ];
 
-const getAllowedOriginPatterns = (): RegExp[] =>
-  __DEV__
-    ? [
-        ...PRODUCTION_ALLOWED_ORIGIN_PATTERNS,
-        ...DEVELOPMENT_ALLOWED_ORIGIN_PATTERNS,
-      ]
-    : PRODUCTION_ALLOWED_ORIGIN_PATTERNS;
+const getAllowedOriginPatterns = (): RegExp[] => {
+  const patterns = [...PRODUCTION_ALLOWED_ORIGIN_PATTERNS];
+
+  if (devApiEnv() === 'dev') {
+    patterns.push(...DEV_API_ALLOWED_ORIGIN_PATTERNS);
+  }
+
+  if (__DEV__) {
+    patterns.push(...DEVELOPMENT_ALLOWED_ORIGIN_PATTERNS);
+  }
+
+  return patterns;
+};
 
 interface PendingRequest {
   resolve: (cliToken: string) => void;
