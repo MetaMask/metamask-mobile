@@ -60,22 +60,24 @@ const TRANSFER_FROM_AMOUNT_START = 10 + 64 + 64;
 const TRANSFER_FROM_AMOUNT_END = 10 + 64 + 64 + 64;
 
 /**
- * Decoded ERC-20 transfer amount from `txParams.data` (decimal string), or
+ * Decoded ERC-20 transfer amount from calldata (decimal string), or
  * `undefined` if calldata is missing/truncated/non-hex. We slice the uint256
  * slot ourselves and parse with `BigInt` to avoid the precision loss in
  * `decodeTransferData`'s `parseInt(slot, 16)` (which truncates above 2^53).
  */
-function getErc20TransferAmount(tx: TransactionMeta): string | undefined {
-  const data = tx.txParams?.data;
+function decodeErc20TransferAmount(
+  data: string | undefined,
+  type: EvmTransactionType | undefined,
+): string | undefined {
   if (!data) return undefined;
   let slot: string | undefined;
   if (
-    tx.type === EvmTransactionType.tokenMethodTransfer &&
+    type === EvmTransactionType.tokenMethodTransfer &&
     data.length >= ERC20_TRANSFER_CALLDATA_LENGTH
   ) {
     slot = data.substring(TRANSFER_AMOUNT_START, TRANSFER_AMOUNT_END);
   } else if (
-    tx.type === EvmTransactionType.tokenMethodTransferFrom &&
+    type === EvmTransactionType.tokenMethodTransferFrom &&
     data.length >= ERC20_TRANSFER_FROM_CALLDATA_LENGTH
   ) {
     slot = data.substring(TRANSFER_FROM_AMOUNT_START, TRANSFER_FROM_AMOUNT_END);
@@ -100,8 +102,10 @@ export interface ResolvedMusdTransferMeta {
  * row on a Money Account chain, preferring `transferInformation` (set by
  * incoming polling + the standard send flow) and falling back to decoded
  * calldata + known mUSD constants for locally-signed rows where
- * `transferInformation` is not yet populated. Returns `undefined` when the
- * row isn't mUSD on a Money Account chain or the calldata is malformed.
+ * `transferInformation` is not yet populated. For EIP-7702 batches (e.g.
+ * Money Account withdrawals), scans `nestedTransactions` for the inner mUSD
+ * ERC-20 transfer and decodes its calldata. Returns `undefined` when the row
+ * isn't mUSD on a Money Account chain or the calldata is malformed.
  *
  * Enforced precondition matters even though current callers pre-filter — the
  * name promises "mUSD" semantics and downstream code (e.g. the peg-fiat path)
@@ -125,10 +129,33 @@ export function resolveMusdTransferMeta(
     isErc20TransferType &&
     isMusdOnMoneyAccountChain(tx.txParams?.to, tx.chainId)
   ) {
-    amount = amount ?? getErc20TransferAmount(tx);
+    amount = amount ?? decodeErc20TransferAmount(tx.txParams?.data, tx.type);
     decimals = decimals ?? MUSD_DECIMALS;
     symbol = symbol ?? MUSD_TOKEN.symbol;
     contractAddress = contractAddress ?? tx.txParams?.to;
+  }
+
+  if (
+    (!amount || !symbol || decimals === undefined || !contractAddress) &&
+    tx.type === EvmTransactionType.batch
+  ) {
+    const nestedMusdTransfer = tx.nestedTransactions?.find(
+      (nested) =>
+        (nested.type === EvmTransactionType.tokenMethodTransfer ||
+          nested.type === EvmTransactionType.tokenMethodTransferFrom) &&
+        isMusdOnMoneyAccountChain(nested.to, tx.chainId),
+    );
+    if (nestedMusdTransfer) {
+      amount =
+        amount ??
+        decodeErc20TransferAmount(
+          nestedMusdTransfer.data,
+          nestedMusdTransfer.type,
+        );
+      decimals = decimals ?? MUSD_DECIMALS;
+      symbol = symbol ?? MUSD_TOKEN.symbol;
+      contractAddress = contractAddress ?? nestedMusdTransfer.to;
+    }
   }
 
   if (!amount || !symbol || decimals === undefined || !contractAddress) {

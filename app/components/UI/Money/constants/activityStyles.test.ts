@@ -166,6 +166,49 @@ describe('activityStyles', () => {
       expect(getMusdDisplayAmountFromTransactionMeta(tx)).toBe('');
     });
 
+    it('decodes the nested mUSD transfer amount for a batch withdrawal', () => {
+      // 0.10 mUSD = 100_000 in 6-decimal minimal units.
+      const amountHex = 100_000n.toString(16).padStart(64, '0');
+      const recipientHex =
+        '000000000000000000000000bf4bc559f929ce3994ba12d71d564737357bc8c2';
+      const transferData = `0xa9059cbb${recipientHex}${amountHex}`;
+
+      const tx = makeTx(TransactionType.batch, {
+        transferInformation: undefined,
+        nestedTransactions: [
+          { type: TransactionType.moneyAccountWithdraw } as never,
+          {
+            type: TransactionType.tokenMethodTransfer,
+            to: MUSD_TOKEN_ADDRESS,
+            data: transferData,
+          } as never,
+        ],
+      });
+
+      const line = getMusdDisplayAmountFromTransactionMeta(tx);
+      expect(line.startsWith('-')).toBe(true);
+      expect(line).toContain('0.10');
+      expect(line).toContain('mUSD');
+    });
+
+    it('returns empty for a batch whose nested transfer is not mUSD', () => {
+      const amountHex = 100_000n.toString(16).padStart(64, '0');
+      const recipientHex =
+        '000000000000000000000000bf4bc559f929ce3994ba12d71d564737357bc8c2';
+      const tx = makeTx(TransactionType.batch, {
+        transferInformation: undefined,
+        nestedTransactions: [
+          { type: TransactionType.moneyAccountWithdraw } as never,
+          {
+            type: TransactionType.tokenMethodTransfer,
+            to: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+            data: `0xa9059cbb${recipientHex}${amountHex}`,
+          } as never,
+        ],
+      });
+      expect(getMusdDisplayAmountFromTransactionMeta(tx)).toBe('');
+    });
+
     it('returns empty when mUSD tokenMethodTransfer calldata has a recipient but no amount', () => {
       // selector + valid recipient slot, but no amount slot — `decodeTransferData`
       // returns "NaN" for the amount instead of throwing.

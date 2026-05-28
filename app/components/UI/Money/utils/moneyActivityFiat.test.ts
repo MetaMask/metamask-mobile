@@ -198,6 +198,30 @@ describe('moneyActivityFiat', () => {
       expect(line).not.toMatch(/39,977/);
     });
 
+    it('decodes a batch withdrawal fiat amount from the nested mUSD transfer and prefixes with -', () => {
+      // 0.10 mUSD = 100_000 in 6-decimal minimal units.
+      const amountHex = 100_000n.toString(16).padStart(64, '0');
+      const recipientHex =
+        '000000000000000000000000bf4bc559f929ce3994ba12d71d564737357bc8c2';
+      const tx = {
+        id: '1',
+        chainId: MOCK_CHAIN_ID,
+        type: TransactionType.batch,
+        nestedTransactions: [
+          { type: TransactionType.moneyAccountWithdraw },
+          {
+            type: TransactionType.tokenMethodTransfer,
+            to: MUSD_TOKEN_ADDRESS,
+            data: `0xa9059cbb${recipientHex}${amountHex}`,
+          },
+        ],
+      } as unknown as TransactionMeta;
+
+      const line = buildMoneyActivityFiatLine(tx, mockRates, 'usd', {});
+
+      expect(line).toMatch(/^-.*0\.10/);
+    });
+
     it('falls back to calldata-decoded amount for locally-signed mUSD tokenMethodTransfer without transferInformation', () => {
       // 1,000.000000 mUSD = 1_000_000_000 in 6-decimal minimal units.
       const amountHex = 1_000_000_000n.toString(16).padStart(64, '0');
