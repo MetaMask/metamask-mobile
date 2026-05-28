@@ -159,6 +159,24 @@ describe('usePredictPortfolio', () => {
     expect(result.current.positionsBadgeCount).toBe(1);
   });
 
+  it('loads account state for positions-only portfolios', () => {
+    const openPosition = createPosition('open', {
+      currentValue: 50,
+    });
+    mockUsePredictPositions.mockImplementation(
+      ({ claimable }: { claimable?: boolean }) =>
+        createQuery<PredictPosition[]>({
+          data: claimable ? [] : [openPosition],
+        }),
+    );
+
+    renderHook(() => usePredictPortfolio());
+
+    expect(mockUsePredictAccountState).toHaveBeenCalledWith({
+      enabled: true,
+    });
+  });
+
   it('counts only actionable won claimable positions in value, claim amount, and badge', () => {
     const openPosition = createPosition('open', { currentValue: 100 });
     const wonClaimablePosition = createPosition('won', {
@@ -189,6 +207,26 @@ describe('usePredictPortfolio', () => {
     expect(result.current.openPositionCount).toBe(1);
     expect(result.current.claimablePositionCount).toBe(1);
     expect(result.current.positionsBadgeCount).toBe(2);
+  });
+
+  it('loads account state for claimable-only portfolios', () => {
+    const wonClaimablePosition = createPosition('won', {
+      claimable: true,
+      currentValue: 46.35,
+      status: PredictPositionStatus.WON,
+    });
+    mockUsePredictPositions.mockImplementation(
+      ({ claimable }: { claimable?: boolean }) =>
+        createQuery<PredictPosition[]>({
+          data: claimable ? [wonClaimablePosition] : [],
+        }),
+    );
+
+    renderHook(() => usePredictPortfolio());
+
+    expect(mockUsePredictAccountState).toHaveBeenCalledWith({
+      enabled: true,
+    });
   });
 
   it('hides the secondary P&L line below the one-cent threshold', () => {
@@ -320,5 +358,17 @@ describe('usePredictPortfolio', () => {
     expect(activeRefetch).toHaveBeenCalled();
     expect(claimableRefetch).toHaveBeenCalled();
     expect(accountStateRefetch).toHaveBeenCalled();
+  });
+
+  it('keeps account state errors out of the portfolio-level error', () => {
+    const accountStateError = new Error('account state failed');
+    mockUsePredictAccountState.mockReturnValue(
+      createQuery({ error: accountStateError }),
+    );
+
+    const { result } = renderHook(() => usePredictPortfolio());
+
+    expect(result.current.error).toBeNull();
+    expect(result.current.accountStateError).toBe(accountStateError);
   });
 });
