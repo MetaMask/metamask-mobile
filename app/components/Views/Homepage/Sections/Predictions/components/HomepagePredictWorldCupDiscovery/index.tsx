@@ -152,6 +152,9 @@ const HomepagePredictWorldCupDiscovery: React.FC<
           entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
           title: btcWindowMarket?.title ?? BTC_UP_OR_DOWN_5M_SERIES.title,
           image: btcWindowMarket?.image,
+          ...(transactionActiveAbTests?.length && {
+            transactionActiveAbTests,
+          }),
         },
         { throughRoot: true },
       );
