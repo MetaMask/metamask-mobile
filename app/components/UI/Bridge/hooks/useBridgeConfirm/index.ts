@@ -5,24 +5,33 @@ import { setIsSubmittingTx } from '../../../../../core/redux/slices/bridge';
 import Routes from '../../../../../constants/navigation/Routes';
 import useSubmitBridgeTx from '../../../../../util/bridge/hooks/useSubmitBridgeTx';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
-import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+import type {
+  InputCurrencyMode,
+  MetaMetricsSwapsEventSource,
+} from '@metamask/bridge-controller';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import { useBridgeInputCurrencyMode } from '../useBridgeInputCurrencyMode';
 
 interface Params {
   activeQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] | null;
   location: MetaMetricsSwapsEventSource;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+  inputCurrencyMode?: InputCurrencyMode;
 }
 
 export const useBridgeConfirm = ({
   activeQuote,
   location,
   transactionActiveAbTests,
+  inputCurrencyMode,
 }: Params) => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const { submitBridgeTx } = useSubmitBridgeTx();
   const walletAddress = useSelector(selectSourceWalletAddress);
+  const contextInputCurrencyMode = useBridgeInputCurrencyMode();
+  const resolvedInputCurrencyMode =
+    inputCurrencyMode ?? contextInputCurrencyMode;
 
   const handleConfirm = async () => {
     try {
@@ -33,6 +42,7 @@ export const useBridgeConfirm = ({
           quoteResponse: activeQuote,
           location,
           transactionActiveAbTests,
+          inputCurrencyMode: resolvedInputCurrencyMode,
         });
       }
     } catch (error) {

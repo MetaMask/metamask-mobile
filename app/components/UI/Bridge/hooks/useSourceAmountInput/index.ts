@@ -13,6 +13,11 @@ import {
 import { formatCurrency, getCurrencySymbol } from '../../utils/currencyUtils';
 import { useSourceAmountCursor } from '../useSourceAmountCursor';
 import { useTokenFiatRate } from '../useTokenFiatRate';
+import Engine from '../../../../../core/Engine';
+import {
+  InputCurrencyMode,
+  UnifiedSwapBridgeEventName,
+} from '@metamask/bridge-controller';
 
 const FIAT_KEYPAD_CURRENCY = 'SWAPS_FIAT_INPUT';
 
@@ -34,6 +39,9 @@ export const useSourceAmountInput = ({
   const canToggle = Boolean(isFiatToggleEnabled && fiatRate && fiatRate > 0);
   const amount = isFiatMode ? fiatAmount : sourceAmount;
   const isFiatInputChangeRef = useRef(false);
+  const inputCurrencyMode = isFiatMode
+    ? InputCurrencyMode.FIAT
+    : InputCurrencyMode.CRYPTO;
 
   const handleAmountChange = useCallback(
     (value: string | undefined) => {
@@ -143,6 +151,19 @@ export const useSourceAmountInput = ({
       return;
     }
 
+    const nextInputCurrencyMode = isFiatMode
+      ? InputCurrencyMode.CRYPTO
+      : InputCurrencyMode.FIAT;
+
+    Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
+      UnifiedSwapBridgeEventName.InputChanged,
+      {
+        input: 'input_currency_mode',
+        input_value: nextInputCurrencyMode,
+        input_currency_mode: nextInputCurrencyMode,
+      },
+    );
+
     if (isFiatMode) {
       setSourceAmountCursorPositionToEnd(sourceAmount);
       setIsFiatMode(false);
@@ -215,6 +236,7 @@ export const useSourceAmountInput = ({
     handleKeypadChange,
     handleSelectionChange,
     handleToggle,
+    inputCurrencyMode,
     inputPrefix,
     isFiatMode,
     keypadCurrency: isFiatMode

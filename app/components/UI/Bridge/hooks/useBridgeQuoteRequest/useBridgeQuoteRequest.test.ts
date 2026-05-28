@@ -1,7 +1,10 @@
 import { BigNumber } from 'ethers';
 import { act } from '@testing-library/react-native';
 
-import { isSolanaChainId } from '@metamask/bridge-controller';
+import {
+  InputCurrencyMode,
+  isSolanaChainId,
+} from '@metamask/bridge-controller';
 
 import '../../_mocks_/initialState';
 import { DEBOUNCE_WAIT, useBridgeQuoteRequest } from './';
@@ -84,6 +87,11 @@ const spyUpdateBridgeQuoteRequestParams = jest.spyOn(
   Engine.context.BridgeController,
   'updateBridgeQuoteRequestParams',
 );
+
+const defaultQuoteRequestContext = () =>
+  expect.objectContaining({
+    input_currency_mode: InputCurrencyMode.CRYPTO,
+  });
 
 const mockSelectSourceWalletAddress =
   selectSourceWalletAddress as jest.MockedFunction<
@@ -252,7 +260,7 @@ describe('useBridgeQuoteRequest', () => {
       expect.objectContaining({
         srcTokenAmount: '1500000000000000000', // 1.5 ETH in wei
       }),
-      undefined,
+      defaultQuoteRequestContext(),
       0,
       1,
     );
@@ -278,7 +286,7 @@ describe('useBridgeQuoteRequest', () => {
       expect.objectContaining({
         srcTokenAmount: '0',
       }),
-      undefined,
+      defaultQuoteRequestContext(),
       0,
       1,
     );
@@ -315,7 +323,7 @@ describe('useBridgeQuoteRequest', () => {
       expect.objectContaining({
         srcTokenAmount: '1000500000', // 1000.5 with 6 decimals
       }),
-      undefined,
+      defaultQuoteRequestContext(),
       0,
       1,
     );
@@ -391,7 +399,7 @@ describe('useBridgeQuoteRequest', () => {
       expect.objectContaining({
         destWalletAddress: destSolanaAddress,
       }),
-      undefined,
+      defaultQuoteRequestContext(),
       0,
       1,
     );
@@ -421,7 +429,7 @@ describe('useBridgeQuoteRequest', () => {
         expect.objectContaining({
           gasIncluded: true,
         }),
-        undefined,
+        defaultQuoteRequestContext(),
         0,
         1,
       );
@@ -447,7 +455,7 @@ describe('useBridgeQuoteRequest', () => {
         expect.objectContaining({
           gasIncluded: false,
         }),
-        undefined,
+        defaultQuoteRequestContext(),
         0,
         1,
       );
@@ -486,7 +494,7 @@ describe('useBridgeQuoteRequest', () => {
         expect.objectContaining({
           gasIncluded7702: true,
         }),
-        undefined,
+        defaultQuoteRequestContext(),
         0,
         1,
       );
@@ -508,7 +516,7 @@ describe('useBridgeQuoteRequest', () => {
         expect.objectContaining({
           gasIncluded7702: false,
         }),
-        undefined,
+        defaultQuoteRequestContext(),
         0,
         1,
       );
@@ -554,7 +562,7 @@ describe('useBridgeQuoteRequest', () => {
           gasIncluded: false,
           gasIncluded7702: false,
         }),
-        undefined,
+        defaultQuoteRequestContext(),
         0,
         1,
       );
@@ -583,7 +591,7 @@ describe('useBridgeQuoteRequest', () => {
         expect.objectContaining({
           insufficientBal: false,
         }),
-        undefined,
+        defaultQuoteRequestContext(),
         0,
         1,
       );
@@ -615,7 +623,7 @@ describe('useBridgeQuoteRequest', () => {
         expect.objectContaining({
           insufficientBal: true,
         }),
-        undefined,
+        defaultQuoteRequestContext(),
         0,
         1,
       );
@@ -647,7 +655,7 @@ describe('useBridgeQuoteRequest', () => {
         expect.objectContaining({
           insufficientBal: true,
         }),
-        undefined,
+        defaultQuoteRequestContext(),
         0,
         1,
       );

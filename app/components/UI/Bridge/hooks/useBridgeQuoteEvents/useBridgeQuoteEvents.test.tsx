@@ -3,7 +3,10 @@ import { useBridgeQuoteEvents } from '.';
 import Engine from '../../../../../core/Engine';
 import { createBridgeTestState } from '../../testUtils';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
-import { RequestStatus } from '@metamask/bridge-controller';
+import {
+  InputCurrencyMode,
+  RequestStatus,
+} from '@metamask/bridge-controller';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -110,6 +113,7 @@ describe('useBridgeQuoteEvents', () => {
         can_submit: true,
         gas_included: false,
         gas_included_7702: false,
+        input_currency_mode: InputCurrencyMode.CRYPTO,
         price_impact: -0.001991570073761955,
         provider: 'lifi_jupiter',
         quoted_time_minutes: 0.08333333333333333,

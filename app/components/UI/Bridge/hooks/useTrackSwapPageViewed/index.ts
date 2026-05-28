@@ -7,8 +7,11 @@ import {
   selectDestToken,
   selectSourceToken,
 } from '../../../../../core/redux/slices/bridge';
+import { InputCurrencyMode } from '@metamask/bridge-controller';
 
-export const useTrackSwapPageViewed = () => {
+export const useTrackSwapPageViewed = (
+  inputCurrencyMode = InputCurrencyMode.CRYPTO,
+) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
@@ -27,6 +30,7 @@ export const useTrackSwapPageViewed = () => {
         token_symbol_destination: destToken?.symbol,
         token_address_source: sourceToken.address,
         token_address_destination: destToken?.address,
+        input_currency_mode: inputCurrencyMode,
       };
       trackEvent(
         createEventBuilder(MetaMetricsEvents.SWAP_PAGE_VIEWED)
@@ -34,5 +38,11 @@ export const useTrackSwapPageViewed = () => {
           .build(),
       );
     }
-  }, [sourceToken, destToken, trackEvent, createEventBuilder]);
+  }, [
+    sourceToken,
+    destToken,
+    inputCurrencyMode,
+    trackEvent,
+    createEventBuilder,
+  ]);
 };

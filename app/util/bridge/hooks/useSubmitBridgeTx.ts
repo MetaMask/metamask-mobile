@@ -1,7 +1,11 @@
-import type {
-  MetaMetricsSwapsEventSource,
-  QuoteMetadata,
-  QuoteResponse,
+import {
+  getQuotesReceivedProperties,
+  InputCurrencyMode,
+  UnifiedSwapBridgeEventName,
+  type MetaMetricsSwapsEventSource,
+  type QuoteMetadata,
+  type QuoteResponse,
+  type RequiredEventContextFromClient,
 } from '@metamask/bridge-controller';
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
@@ -36,6 +40,9 @@ import {
   createActiveABTestAssignment,
   normalizeActiveABTestAssignments,
 } from '../../analytics/activeABTestAssignments';
+
+type QuotesReceivedContext =
+  RequiredEventContextFromClient[UnifiedSwapBridgeEventName.QuotesReceived];
 
 function mergeTransactionActiveAbTests(
   ...groups: (TransactionActiveAbTestEntry[] | undefined)[]
@@ -137,12 +144,14 @@ export default function useSubmitBridgeTx() {
     quoteResponse,
     location,
     transactionActiveAbTests: transactionActiveAbTestsFromRoute,
+    inputCurrencyMode = InputCurrencyMode.CRYPTO,
   }: {
     quoteResponse: QuoteResponse & QuoteMetadata;
     /** The entry point from which the user initiated the swap or bridge */
     location?: MetaMetricsSwapsEventSource;
     /** Route-carried tests (e.g. homepage trending sections) merged at submit time */
     transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+    inputCurrencyMode?: InputCurrencyMode;
   }) => {
     if (!walletAddress) {
       throw new Error('Wallet address is not set');
@@ -165,8 +174,14 @@ export default function useSubmitBridgeTx() {
             abTests,
             activeAbTests: mergedActiveAbTests,
             tokenSecurityTypeDestination,
+            inputCurrencyMode,
           });
         }
+        const quotesReceivedContext: QuotesReceivedContext = {
+          ...getQuotesReceivedProperties(quoteResponse),
+          input_currency_mode: inputCurrencyMode,
+        };
+
         return await Engine.context.BridgeStatusController.submitTx(
           walletAddress,
           {
@@ -174,7 +189,7 @@ export default function useSubmitBridgeTx() {
             approval: quoteResponse.approval ?? undefined,
           },
           stxEnabled,
-          undefined, // quotesReceivedContext
+          quotesReceivedContext,
           location,
           abTests,
           mergedActiveAbTests,

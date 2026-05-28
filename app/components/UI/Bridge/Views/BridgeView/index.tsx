@@ -119,6 +119,7 @@ import {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button/Button.types.ts';
 import { useIsNetworkFeeUnavailable } from '../../hooks/useIsNetworkFeeUnavailable/index.ts';
+import { BridgeInputCurrencyModeProvider } from '../../hooks/useBridgeInputCurrencyMode';
 
 const SCROLL_NEAR_BOTTOM_PX = 160;
 
@@ -248,6 +249,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
 
   const updateQuoteParams = useBridgeQuoteRequest({
     latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
+    inputCurrencyMode: sourceAmountInput.inputCurrencyMode,
   });
 
   const {
@@ -330,6 +332,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     isNetworkFeeUnavailable,
     isSubmitDisabled,
     isPriceImpactWarningVisible: shouldShowPriceImpactWarning,
+    inputCurrencyMode: sourceAmountInput.inputCurrencyMode,
   });
 
   const isZeroState = !sourceAmount || !(Number(sourceAmount) > 0);
@@ -370,7 +373,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     headerTitle = `${strings('swaps.title')}/${strings('bridge.title')}`;
   }
 
-  useTrackSwapPageViewed();
+  useTrackSwapPageViewed(sourceAmountInput.inputCurrencyMode);
 
   const handleSourceMaxPress = () => {
     if (latestSourceBalance?.displayBalance) {
@@ -712,36 +715,40 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
             </Box>
           </ScrollView>
 
-          <BridgeViewFooter
-            location={location}
-            latestSourceBalance={latestSourceBalance}
-            transactionActiveAbTests={transactionActiveAbTests}
-          />
-
-          <SwapsKeypad
-            ref={keypadRef}
-            value={sourceAmountInput.keypadValue}
-            onChange={sourceAmountInput.handleKeypadChange}
-            currency={sourceAmountInput.keypadCurrency}
-            decimals={sourceAmountInput.keypadDecimals}
+          <BridgeInputCurrencyModeProvider
+            value={sourceAmountInput.inputCurrencyMode}
           >
-            {sourceAmount && sourceAmount !== '0' ? (
-              <SwapsConfirmButton
-                location={location}
-                latestSourceBalance={latestSourceBalance}
-                transactionActiveAbTests={transactionActiveAbTests}
-                testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
-              />
-            ) : (
-              <GaslessQuickPickOptions
-                token={sourceToken}
-                tokenBalance={latestSourceBalance?.displayBalance}
-                onMaxPress={handleSourceMaxPress}
-                isQuoteSponsored={isQuoteSponsored}
-                onAmountSelect={handleSourcePresetAmountSelect}
-              />
-            )}
-          </SwapsKeypad>
+            <BridgeViewFooter
+              location={location}
+              latestSourceBalance={latestSourceBalance}
+              transactionActiveAbTests={transactionActiveAbTests}
+            />
+
+            <SwapsKeypad
+              ref={keypadRef}
+              value={sourceAmountInput.keypadValue}
+              onChange={sourceAmountInput.handleKeypadChange}
+              currency={sourceAmountInput.keypadCurrency}
+              decimals={sourceAmountInput.keypadDecimals}
+            >
+              {sourceAmount && sourceAmount !== '0' ? (
+                <SwapsConfirmButton
+                  location={location}
+                  latestSourceBalance={latestSourceBalance}
+                  transactionActiveAbTests={transactionActiveAbTests}
+                  testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
+                />
+              ) : (
+                <GaslessQuickPickOptions
+                  token={sourceToken}
+                  tokenBalance={latestSourceBalance?.displayBalance}
+                  onMaxPress={handleSourceMaxPress}
+                  isQuoteSponsored={isQuoteSponsored}
+                  onAmountSelect={handleSourcePresetAmountSelect}
+                />
+              )}
+            </SwapsKeypad>
+          </BridgeInputCurrencyModeProvider>
         </Box>
       </ScreenView>
     </SafeAreaView>

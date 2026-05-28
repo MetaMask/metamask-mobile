@@ -24,7 +24,8 @@ export const PriceImpactModal = () => {
   const { goBack } = useNavigation();
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const [loading, setLoading] = useState(false);
-  const { type, token, location } = useParams<PriceImpactModalRouterParams>();
+  const { type, token, location, inputCurrencyMode } =
+    useParams<PriceImpactModalRouterParams>();
   const sheetRef = useRef<BottomSheetRef>(null);
   const tokenBalance = useLatestBalance({
     address: token?.address,
@@ -38,6 +39,7 @@ export const PriceImpactModal = () => {
   const confirmBridge = useBridgeConfirm({
     activeQuote,
     location,
+    inputCurrencyMode,
   });
   const priceImpactViewData = usePriceImpactViewData(
     activeQuote?.quote.priceData?.priceImpact,

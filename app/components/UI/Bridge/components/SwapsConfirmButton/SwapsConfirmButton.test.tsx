@@ -23,6 +23,7 @@ import Engine from '../../../../../core/Engine';
 import { setSourceAmount } from '../../../../../core/redux/slices/bridge';
 import {
   ChainId,
+  InputCurrencyMode,
   MetaMetricsSwapsEventSource,
 } from '@metamask/bridge-controller';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
@@ -1118,6 +1119,8 @@ describe('SwapsConfirmButton', () => {
           expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
             quoteResponse: mockActiveQuote,
             location: 'Main View',
+            transactionActiveAbTests: undefined,
+            inputCurrencyMode: InputCurrencyMode.CRYPTO,
           });
           expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
         });
@@ -1177,6 +1180,8 @@ describe('SwapsConfirmButton', () => {
           expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
             quoteResponse: solanaActiveQuote,
             location: 'Main View',
+            transactionActiveAbTests: undefined,
+            inputCurrencyMode: InputCurrencyMode.CRYPTO,
           });
           expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
         });
@@ -1324,6 +1329,7 @@ describe('SwapsConfirmButton', () => {
           features: mockWarningFeatures,
           mode: TokenWarningModalMode.Execution,
           location: MetaMetricsSwapsEventSource.MainView,
+          inputCurrencyMode: InputCurrencyMode.CRYPTO,
         },
       });
     });
@@ -1536,6 +1542,7 @@ describe('SwapsConfirmButton', () => {
         screen: Routes.BRIDGE.MODALS.MISSING_PRICE_MODAL,
         params: {
           location: MetaMetricsSwapsEventSource.MainView,
+          inputCurrencyMode: InputCurrencyMode.CRYPTO,
         },
       });
     });
@@ -1607,6 +1614,7 @@ describe('SwapsConfirmButton', () => {
           type: PriceImpactModalType.Execution,
           token: mockState.bridge?.sourceToken,
           location: MetaMetricsSwapsEventSource.MainView,
+          inputCurrencyMode: InputCurrencyMode.CRYPTO,
         },
       });
     });
@@ -1681,6 +1689,7 @@ describe('SwapsConfirmButton', () => {
           type: PriceImpactModalType.Execution,
           token: mockState.bridge?.sourceToken,
           location: MetaMetricsSwapsEventSource.MainView,
+          inputCurrencyMode: InputCurrencyMode.CRYPTO,
         },
       });
       expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
@@ -1756,6 +1765,7 @@ describe('SwapsConfirmButton', () => {
         screen: Routes.BRIDGE.MODALS.MISSING_PRICE_MODAL,
         params: {
           location: MetaMetricsSwapsEventSource.MainView,
+          inputCurrencyMode: InputCurrencyMode.CRYPTO,
         },
       });
       expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
@@ -1880,6 +1890,7 @@ describe('SwapsConfirmButton', () => {
           type: PriceImpactModalType.Execution,
           token: mockState.bridge?.sourceToken,
           location: MetaMetricsSwapsEventSource.MainView,
+          inputCurrencyMode: InputCurrencyMode.CRYPTO,
         },
       });
       expect(mockSubmitBridgeTx).not.toHaveBeenCalled();

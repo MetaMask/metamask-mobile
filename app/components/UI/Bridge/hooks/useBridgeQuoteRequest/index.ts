@@ -1,8 +1,9 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import Engine from '../../../../../core/Engine';
 import {
   formatAddressToCaipReference,
   type GenericQuoteRequest,
+  type InputCurrencyMode,
 } from '@metamask/bridge-controller';
 import { useSelector } from 'react-redux';
 import {
@@ -25,11 +26,13 @@ import useIsInsufficientBalance from '../useInsufficientBalance';
 import { useLatestBalance } from '../useLatestBalance';
 import { BigNumber } from 'ethers';
 import { useInsufficientNativeReserveError } from '../useInsufficientNativeReserveError';
+import { useBridgeInputCurrencyMode } from '../useBridgeInputCurrencyMode';
 
 export const DEBOUNCE_WAIT = 300;
 
 interface UseBridgeQuoteRequestOptions {
   latestSourceAtomicBalance?: BigNumber;
+  inputCurrencyMode?: InputCurrencyMode;
 }
 
 /**
@@ -47,7 +50,13 @@ export const useBridgeQuoteRequest = (
   const walletAddress = useSelector(selectSourceWalletAddress);
   const destAddress = useSelector(selectDestAddress);
   const context = useUnifiedSwapBridgeContext();
-  const { latestSourceAtomicBalance } = options;
+  const contextInputCurrencyMode = useBridgeInputCurrencyMode();
+  const {
+    latestSourceAtomicBalance,
+    inputCurrencyMode = contextInputCurrencyMode,
+  } = options;
+  const inputCurrencyModeRef = useRef(inputCurrencyMode);
+  inputCurrencyModeRef.current = inputCurrencyMode;
   const hasLatestSourceBalanceOverride = 'latestSourceAtomicBalance' in options;
 
   const latestSourceBalance = useLatestBalance(
@@ -128,7 +137,10 @@ export const useBridgeQuoteRequest = (
 
     await Engine.context.BridgeController.updateBridgeQuoteRequestParams(
       params,
-      context,
+      {
+        ...context,
+        input_currency_mode: inputCurrencyModeRef.current,
+      },
       0,
       1,
     );
