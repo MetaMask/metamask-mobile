@@ -17,6 +17,10 @@ const baseConfig = require('./jest.config.js');
  */
 module.exports = {
   ...baseConfig,
+  // Unit coverage already owns the repo-wide collectCoverageFrom list. Let
+  // integration tests report coverage for the production files they execute so
+  // CI shards stay small while still contributing to merged PR coverage.
+  collectCoverageFrom: undefined,
   testPathIgnorePatterns: (baseConfig.testPathIgnorePatterns || []).filter(
     (pattern) => !pattern.includes('integration'),
   ),
