@@ -3,10 +3,7 @@ import { useBridgeQuoteEvents } from '.';
 import Engine from '../../../../../core/Engine';
 import { createBridgeTestState } from '../../testUtils';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
-import {
-  InputCurrencyMode,
-  RequestStatus,
-} from '@metamask/bridge-controller';
+import { InputCurrencyMode, RequestStatus } from '@metamask/bridge-controller';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
