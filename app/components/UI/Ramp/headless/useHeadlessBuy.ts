@@ -190,6 +190,13 @@ export function useHeadlessBuy(): HeadlessBuyResult {
         );
       }
 
+      // Capture the session id at function entry. If a concurrent
+      // startHeadlessBuy() swaps the active session while we're awaiting
+      // getQuotesRaw below, calling getActiveSessionId() post-await would
+      // return the *new* session's id, and failSession would terminate the
+      // wrong session with this call's error.
+      const sessionIdAtStart = getActiveSessionId();
+
       const fiatCurrency =
         params.currency ?? userRegion?.country?.currency ?? undefined;
       const staticRejection = buildStaticBoundsRejection({
@@ -200,9 +207,8 @@ export function useHeadlessBuy(): HeadlessBuyResult {
         providers: providers ?? [],
       });
       if (staticRejection) {
-        const activeId = getActiveSessionId();
-        if (activeId) {
-          failSession(activeId, staticRejection, 'LIMIT_EXCEEDED');
+        if (sessionIdAtStart) {
+          failSession(sessionIdAtStart, staticRejection, 'LIMIT_EXCEEDED');
         }
         throw staticRejection;
       }
@@ -266,9 +272,8 @@ export function useHeadlessBuy(): HeadlessBuyResult {
           source: 'network-reject',
         };
 
-        const activeId = getActiveSessionId();
-        if (activeId) {
-          failSession(activeId, error, code);
+        if (sessionIdAtStart) {
+          failSession(sessionIdAtStart, error, code);
         }
         throw error;
       }
