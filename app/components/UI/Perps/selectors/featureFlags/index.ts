@@ -280,6 +280,24 @@ export const selectPerpsMYXProviderEnabledFlag = createSelector(
 );
 
 /**
+ * Selector for Perps Competition Banner feature flag
+ * Controls visibility of the competition promotion banner on Perps home screen
+ *
+ * @returns boolean - true if competition banner should be shown, false otherwise
+ */
+export const selectPerpsCompetitionBannerEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag =
+      process.env.MM_PERPS_COMPETITION_BANNER_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.perpsCompetitionBannerEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
  * Selector for default pay token when no perps balance feature flag.
  * When enabled: preselect allowlist token with highest balance in Pay row when user has no perps balance,
  * and show "Add funds" CTA on market details when no token can be preselected.
