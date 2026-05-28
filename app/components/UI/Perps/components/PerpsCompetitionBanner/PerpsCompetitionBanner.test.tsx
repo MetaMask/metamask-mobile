@@ -6,9 +6,20 @@ import StorageWrapper from '../../../../../store/storage-wrapper';
 import { PERPS_COMPETITION_BANNER_DISMISSED } from '../../../../../constants/storage';
 import Routes from '../../../../../constants/navigation/Routes';
 import { setPendingDeeplink } from '../../../../../reducers/rewards';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
+
+const COMPETITION_BANNER_BUTTON = {
+  ENGAGE: 'competition_banner_engage',
+  CLOSE: 'competition_banner_close',
+} as const;
 
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
+const mockTrack = jest.fn();
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -24,6 +35,12 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../../store/storage-wrapper', () => ({
   getItem: jest.fn(),
   setItem: jest.fn(),
+}));
+
+jest.mock('../../hooks/usePerpsEventTracking', () => ({
+  usePerpsEventTracking: jest.fn(() => ({
+    track: mockTrack,
+  })),
 }));
 
 const { useSelector } = jest.requireMock('react-redux');
@@ -166,6 +183,63 @@ describe('PerpsCompetitionBanner', () => {
 
     await waitFor(() => {
       expect(getByTestId('custom-banner')).toBeOnTheScreen();
+    });
+  });
+
+  it('tracks PERPS_UI_INTERACTION with engage payload when banner is tapped', async () => {
+    setupSelector(true);
+
+    const { getByTestId } = render(<PerpsCompetitionBanner />);
+
+    await waitFor(() => {
+      expect(getByTestId('perps-competition-banner')).toBeOnTheScreen();
+    });
+
+    fireEvent.press(getByTestId('perps-competition-banner'));
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.PERPS_UI_INTERACTION,
+      {
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+        [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.BANNER,
+        [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: COMPETITION_BANNER_BUTTON.ENGAGE,
+        [PERPS_EVENT_PROPERTY.LOCATION]:
+          PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
+      },
+    );
+  });
+
+  it('tracks PERPS_UI_INTERACTION with close payload when close button is pressed', async () => {
+    setupSelector(true);
+
+    const { getByTestId } = render(<PerpsCompetitionBanner />);
+
+    await waitFor(() => {
+      expect(getByTestId('perps-competition-banner')).toBeOnTheScreen();
+    });
+
+    fireEvent.press(getByTestId('perps-competition-banner-close'));
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.PERPS_UI_INTERACTION,
+      {
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+        [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: COMPETITION_BANNER_BUTTON.CLOSE,
+        [PERPS_EVENT_PROPERTY.LOCATION]:
+          PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
+      },
+    );
+  });
+
+  it('does not track any event when banner is not rendered', async () => {
+    setupSelector(false);
+
+    render(<PerpsCompetitionBanner />);
+
+    await waitFor(() => {
+      expect(mockTrack).not.toHaveBeenCalled();
     });
   });
 });
