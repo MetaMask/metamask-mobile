@@ -41,7 +41,6 @@ export const ResetNavigationToHome = CommonActions.reset({
 
 interface OnboardingSuccessRouteParams {
   successFlow?: ONBOARDING_SUCCESS_FLOW;
-  showPasswordHint?: boolean;
 }
 
 interface OnboardingSuccessParamList {
@@ -52,13 +51,11 @@ interface OnboardingSuccessParamList {
 interface OnboardingSuccessProps {
   onDone: () => void;
   successFlow: ONBOARDING_SUCCESS_FLOW;
-  showPasswordHint?: boolean;
 }
 
 export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   onDone,
   successFlow,
-  showPasswordHint = false,
 }) => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -111,7 +108,10 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
 
   const renderContent = () => (
     <>
-      {!(Platform.OS === 'android' && showPasswordHint) && (
+      {!(
+        Platform.OS === 'android' &&
+        successFlow === ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING
+      ) && (
         <OnboardingSuccessEndAnimation
           onAnimationComplete={() => {
             // No-op: Animation completion not needed in success mode
@@ -194,7 +194,6 @@ export const OnboardingSuccess = () => {
   return (
     <OnboardingSuccessComponent
       successFlow={successFlow}
-      showPasswordHint={route?.params?.showPasswordHint}
       onDone={() => navigation.dispatch(nextScreen)}
     />
   );
