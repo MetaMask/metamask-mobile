@@ -159,7 +159,7 @@ const MultichainBridgeTransactionListItem = ({
           </ListItem.Date>
           <ListItem.Content style={style.listItemContent}>
             <ListItem.Icon>{renderTxElementIcon()}</ListItem.Icon>
-            <ListItem.Body>
+            <ListItem.Body style={style.listItemBody}>
               <ListItem.Title
                 numberOfLines={1}
                 style={style.listItemTitle as TextStyle}
