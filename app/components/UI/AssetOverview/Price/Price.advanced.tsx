@@ -440,16 +440,17 @@ const PriceAdvanced = ({
     ? LIGHT_MODE_SUCCESS_GREEN
     : theme.colors.success.default;
 
-  // Initial ambient color for chart/buttons - based on non-crosshair price diff
-  // This stays constant even when user hovers crosshair
+  // Price diff used for the initial/ambient color of the chart, time-range
+  // selector, back button, and sticky footer.  Intentionally excludes
+  // realtimeBar so the color locks to the REST snapshot and only changes on
+  // timeframe / asset switches — not on every WS tick.
   const initialPriceDiff = useMemo(() => {
-    const rtClose = realtimeBar?.close;
     const lbClose = ohlcvData[ohlcvData.length - 1]?.close;
-    const currentDisplayPrice = rtClose ?? lbClose ?? currentPrice;
+    const currentDisplayPrice = lbClose ?? currentPrice;
 
     if (dynamicComparePrice === null) return null;
     return currentDisplayPrice - dynamicComparePrice;
-  }, [realtimeBar, ohlcvData, currentPrice, dynamicComparePrice]);
+  }, [ohlcvData, currentPrice, dynamicComparePrice]);
 
   const initialAmbientColor = useMemo(() => {
     if (!useAmbientColor) return undefined;
