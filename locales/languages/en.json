@@ -9014,7 +9014,7 @@
       "label_notional_volume": "Notional volume",
       "pending": "Pending",
       "qualified": "Qualified",
-      "open_position_cta": "Open Position",
+      "open_position_cta": "Trade now",
       "leaderboard_title": "Leaderboard",
       "leaderboard_total_participants": "{{count}} participants",
       "last_updated": "Last updated: {{time}}",
