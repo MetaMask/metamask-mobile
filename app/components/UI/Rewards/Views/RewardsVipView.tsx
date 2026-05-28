@@ -27,6 +27,7 @@ import ErrorBoundary from '../../../Views/ErrorBoundary';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { useVipDashboard } from '../hooks/useVipDashboard';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
+import ForcedDarkThemeProvider from '../components/ForcedDarkThemeProvider/ForcedDarkThemeProvider';
 import VipFeeTile, {
   VIP_FEE_TILE_TEST_IDS,
   VIP_FEE_TILE_WIDTH,
@@ -49,13 +50,14 @@ export const REWARDS_VIP_VIEW_TEST_IDS = {
   REVENUE_SHARE_TILE: 'rewards-vip-view-revenue-share-tile',
   SWAPS_FEE_TILE: 'rewards-vip-view-swaps-fee-tile',
   PERPS_FEE_TILE: 'rewards-vip-view-perps-fee-tile',
+  REFERRAL_POINTS_TILE: 'rewards-vip-view-referral-points-tile',
   EQUITY_REBATE_TILE: 'rewards-vip-view-equity-rebate-tile',
 } as const;
 
 const BENEFIT_TILE_GAP = 12;
 const BENEFIT_TILE_SNAP_INTERVAL = VIP_FEE_TILE_WIDTH + BENEFIT_TILE_GAP;
 
-const RewardsVipView: React.FC = () => {
+const RewardsVipViewContent: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
@@ -96,6 +98,25 @@ const RewardsVipView: React.FC = () => {
   const showSkeleton = (!hasAttemptedFetch || isLoading) && !dashboard;
   const showError = hasError && !dashboard;
   const headerTitle = dashboard?.program?.name ?? '';
+  const currentTierDetails = dashboard
+    ? dashboard.tiers.find(
+        (tier) =>
+          tier.id === dashboard.currentTier.id ||
+          tier.tier === dashboard.currentTier.tier,
+      )
+    : undefined;
+  const progressSubline = (() => {
+    if (!dashboard) return '';
+    if (dashboard.progress.percent >= 100) {
+      return dashboard.localizedText.topTierDescription;
+    }
+
+    return strings('rewards.vip.progress_to_next_tier', {
+      pointsRemaining: formatCompactValue(
+        dashboard.progress.remainingPointsToNextTier,
+      ),
+    });
+  })();
 
   return (
     <ErrorBoundary navigation={navigation} view="RewardsVipView">
@@ -131,7 +152,7 @@ const RewardsVipView: React.FC = () => {
               <Skeleton style={tw.style('h-44 rounded-2xl')} />
               <Skeleton style={tw.style('h-8 w-44 rounded-lg')} />
               <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
-                {[0, 1, 2].map((index) => (
+                {[0, 1, 2, 3].map((index) => (
                   <Skeleton
                     key={index}
                     style={tw.style(
@@ -167,11 +188,7 @@ const RewardsVipView: React.FC = () => {
                   currentTier={dashboard.currentTier}
                   programName={dashboard.program.name}
                   progress={dashboard.progress}
-                  subline={strings('rewards.vip.progress_to_next_tier', {
-                    pointsRemaining: formatCompactValue(
-                      dashboard.progress.remainingPointsToNextTier,
-                    ),
-                  })}
+                  subline={progressSubline}
                   memberIdTitle={dashboard.localizedText.memberIdTitle}
                   memberId={referralCode ?? ''}
                 />
@@ -232,6 +249,15 @@ const RewardsVipView: React.FC = () => {
                     }
                     testID={REWARDS_VIP_VIEW_TEST_IDS.PERPS_FEE_TILE}
                   />
+                  <VipFeeTile
+                    label={dashboard.localizedText.referralPointsTitle}
+                    currentBps={currentTierDetails?.referralCarryoverBps}
+                    unit="%"
+                    nextTierLabel={
+                      dashboard.localizedText.nextTierReferralPointsDelta
+                    }
+                    testID={REWARDS_VIP_VIEW_TEST_IDS.REFERRAL_POINTS_TILE}
+                  />
                 </ScrollView>
               </Box>
 
@@ -241,6 +267,14 @@ const RewardsVipView: React.FC = () => {
                 volume={dashboard.volume}
                 title={dashboard.localizedText.statsTitle}
                 period={dashboard.localizedText.periodTitle}
+                labels={{
+                  points: dashboard.localizedText.pointsTitle,
+                  swapsVolume: dashboard.localizedText.swapsVolumeTitle,
+                  pointsFromReferrals:
+                    dashboard.localizedText.pointsFromReferralsTitle,
+                  perpsVolume: dashboard.localizedText.perpsVolumeTitle,
+                  vipReferrals: dashboard.localizedText.vipReferralsTitle,
+                }}
               />
 
               {/* Divider */}
@@ -266,6 +300,12 @@ const RewardsVipView: React.FC = () => {
     </ErrorBoundary>
   );
 };
+
+const RewardsVipView: React.FC = () => (
+  <ForcedDarkThemeProvider>
+    <RewardsVipViewContent />
+  </ForcedDarkThemeProvider>
+);
 
 // Re-export tile test ids for tests that want to assert at the tile level.
 export { VIP_FEE_TILE_TEST_IDS };

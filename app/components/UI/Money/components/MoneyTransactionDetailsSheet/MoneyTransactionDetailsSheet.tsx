@@ -15,12 +15,25 @@ import { strings } from '../../../../../../locales/i18n';
 import { TransactionDetails } from '../../../../Views/confirmations/components/activity/transaction-details/transaction-details';
 import { useTransactionDetails } from '../../../../Views/confirmations/hooks/activity/useTransactionDetails';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
+import { MoneyReceivedDetails } from './MoneyReceivedDetails';
+
+const RECEIVED_TYPES: TransactionType[] = [
+  TransactionType.incoming,
+  TransactionType.tokenMethodTransfer,
+  TransactionType.tokenMethodTransferFrom,
+];
 
 const TITLE_KEYS: Partial<Record<TransactionType, string>> = {
   [TransactionType.moneyAccountDeposit]:
     'transaction_details.title.money_account_deposit',
   [TransactionType.moneyAccountWithdraw]:
     'transaction_details.title.money_account_withdraw',
+  [TransactionType.incoming]:
+    'transaction_details.title.money_account_received',
+  [TransactionType.tokenMethodTransfer]:
+    'transaction_details.title.money_account_received',
+  [TransactionType.tokenMethodTransferFrom]:
+    'transaction_details.title.money_account_received',
   [TransactionType.musdConversion]: 'transaction_details.title.musd_conversion',
   [TransactionType.musdClaim]: 'transaction_details.title.musd_claim',
   [TransactionType.perpsDeposit]: 'transaction_details.title.perps_deposit',
@@ -48,6 +61,9 @@ const MoneyTransactionDetailsSheet = () => {
   const { transactionMeta } = useTransactionDetails();
   const surfaceClass = useElevatedSurface();
   const title = getTitle(transactionMeta);
+  const isReceived = Boolean(
+    transactionMeta?.type && RECEIVED_TYPES.includes(transactionMeta.type),
+  );
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -64,7 +80,7 @@ const MoneyTransactionDetailsSheet = () => {
       <BottomSheetHeader onClose={handleClose}>
         <Text variant={TextVariant.HeadingMd}>{title}</Text>
       </BottomSheetHeader>
-      <TransactionDetails />
+      {isReceived ? <MoneyReceivedDetails /> : <TransactionDetails />}
     </BottomSheet>
   );
 };

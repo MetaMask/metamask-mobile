@@ -58,8 +58,13 @@ jest.mock('@metamask/design-system-react-native', () => {
       HeadingLg: 'HeadingLg',
       BodyMd: 'BodyMd',
     },
+    HeaderStandard: () => null,
   };
 });
+
+jest.mock('../../hooks/useCardOnboardingNavigationHandlers', () => ({
+  useCardOnboardingNavigationHandlers: jest.fn(() => ({})),
+}));
 
 describe('OnboardingStep Component', () => {
   const defaultProps = {
