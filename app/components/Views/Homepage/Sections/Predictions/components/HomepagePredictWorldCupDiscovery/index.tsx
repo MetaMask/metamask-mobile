@@ -9,13 +9,16 @@ import SectionHeader from '../../../../../../../component-library/components-tem
 import { WalletViewSelectorsIDs } from '../../../../../Wallet/WalletView.testIds';
 import { PredictEntryPointProvider } from '../../../../../../UI/Predict/contexts';
 import { PredictEventValues } from '../../../../../../UI/Predict/constants/eventNames';
-import { SHOW_BTC_UP_DOWN_5M_ROW } from '../../../../../../UI/Predict/constants/btcUpDown5mSeries';
+import { BTC_UP_OR_DOWN_5M_SERIES } from '../../../../../../UI/Predict/constants/btcUpDown5mSeries';
 import {
   PREDICT_EMPTY_STATE_CTA_NAMES,
   type PredictEmptyStateCtaName,
 } from '../../../../abTestConfig';
 import { PREDICT_WORLD_CUP_TAB_KEYS } from '../../../../../../UI/Predict/constants/worldCupTabs';
+import { useCurrentCryptoUpDownMarketData } from '../../../../../../UI/Predict/hooks/useCurrentCryptoUpDownMarketData';
+import { usePredictNavigation } from '../../../../../../UI/Predict/hooks/usePredictNavigation';
 import {
+  selectPredictEnabledFlag,
   selectPredictHomepageDiscoveryNbaChampionEnabledFlag,
   selectPredictWorldCupScreenEnabledFlag,
 } from '../../../../../../UI/Predict/selectors/featureFlags';
@@ -60,12 +63,24 @@ const HomepagePredictWorldCupDiscovery: React.FC<
   onTreatmentCtaClick,
 }) => {
   const navigation = useNavigation();
+  const { navigateToMarketDetails } = usePredictNavigation();
   const worldCupScreenEnabled = useSelector(
     selectPredictWorldCupScreenEnabledFlag,
   );
+  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const showNbaChampionDiscoveryRow = useSelector(
     selectPredictHomepageDiscoveryNbaChampionEnabledFlag,
   );
+  const {
+    marketId: btcMarketId,
+    market: btcWindowMarket,
+    currentPrice: btcSpotUsd,
+    priceToBeat,
+    countdown: btcCountdown,
+  } = useCurrentCryptoUpDownMarketData({
+    series: BTC_UP_OR_DOWN_5M_SERIES,
+    enabled: isPredictEnabled,
+  });
   const championshipRowKind = showNbaChampionDiscoveryRow
     ? 'nba'
     : 'world_cup_winner';
@@ -73,35 +88,6 @@ const HomepagePredictWorldCupDiscovery: React.FC<
     championshipRowKind === 'world_cup_winner'
       ? WORLD_CUP_CTA_CATEGORY_NAME
       : 'nba';
-
-  /*
-   * TODO: When `predict/crypto-updown-feed-card` is merged, remove
-   * SHOW_BTC_UP_DOWN_5M_ROW and uncomment the shared hook wiring below.
-   *
-   * import { BTC_UP_OR_DOWN_5M_SERIES } from '../../../../../../UI/Predict/constants/btcUpDown5mSeries';
-   * import { useCurrentCryptoUpDownMarketData } from '../../../../../../UI/Predict/hooks/useCurrentCryptoUpDownMarketData';
-   * import { usePredictNavigation } from '../../../../../../UI/Predict/hooks/usePredictNavigation';
-   * import {
-   *   selectPredictEnabledFlag,
-   *   selectPredictWorldCupScreenEnabledFlag,
-   * } from '../../../../../../UI/Predict/selectors/featureFlags';
-   *
-   * const { navigateToMarketDetails } = usePredictNavigation();
-   * const isPredictEnabled = useSelector(selectPredictEnabledFlag);
-   * const {
-   *   marketId: btcMarketId,
-   *   market: btcWindowMarket,
-   *   currentPrice: btcSpotUsd,
-   *   priceToBeat,
-   *   countdown: btcCountdown,
-   * } = useCurrentCryptoUpDownMarketData({
-   *   series: BTC_UP_OR_DOWN_5M_SERIES,
-   *   enabled: isPredictEnabled,
-   * });
-   */
-  const btcSpotUsd = undefined;
-  const priceToBeat = undefined;
-  const btcCountdown = '--:--';
 
   const { marketData, isFetching, hasMore } = worldCup;
   const { marketData: nbaMarketData, isFetching: isNbaFetching } = nbaChampion;
@@ -159,24 +145,18 @@ const HomepagePredictWorldCupDiscovery: React.FC<
       PREDICT_EMPTY_STATE_CTA_NAMES.BROWSE_CATEGORY,
       'crypto',
     );
-    /*
-     * TODO: When `predict/crypto-updown-feed-card` is merged, uncomment this
-     * branch with the shared hook data above so the BTC row opens the live
-     * market directly.
-     *
-     * if (btcMarketId) {
-     *   navigateToMarketDetails(
-     *     {
-     *       marketId: btcMarketId,
-     *       entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
-     *       title: btcWindowMarket?.title ?? BTC_UP_OR_DOWN_5M_SERIES.title,
-     *       image: btcWindowMarket?.image,
-     *     },
-     *     { throughRoot: true },
-     *   );
-     *   return;
-     * }
-     */
+    if (btcMarketId) {
+      navigateToMarketDetails(
+        {
+          marketId: btcMarketId,
+          entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+          title: btcWindowMarket?.title ?? BTC_UP_OR_DOWN_5M_SERIES.title,
+          image: btcWindowMarket?.image,
+        },
+        { throughRoot: true },
+      );
+      return;
+    }
     navigation.navigate(Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_LIST,
       params: {
@@ -185,7 +165,15 @@ const HomepagePredictWorldCupDiscovery: React.FC<
         ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
       },
     });
-  }, [navigation, onTreatmentCtaClick, transactionActiveAbTests]);
+  }, [
+    btcMarketId,
+    btcWindowMarket?.image,
+    btcWindowMarket?.title,
+    navigateToMarketDetails,
+    navigation,
+    onTreatmentCtaClick,
+    transactionActiveAbTests,
+  ]);
 
   const goToWorldCup = useCallback(
     (initialTab: string) => {
@@ -254,14 +242,12 @@ const HomepagePredictWorldCupDiscovery: React.FC<
         entryPoint={PredictEventValues.ENTRY_POINT.HOME_SECTION}
       >
         <Box twClassName="px-4 mt-3">
-          {SHOW_BTC_UP_DOWN_5M_ROW ? (
-            <BtcLiveRow
-              onPress={handleBtcRow}
-              btcSpotUsd={btcSpotUsd}
-              priceToBeat={priceToBeat}
-              countdown={btcCountdown}
-            />
-          ) : null}
+          <BtcLiveRow
+            onPress={handleBtcRow}
+            btcSpotUsd={btcSpotUsd}
+            priceToBeat={priceToBeat}
+            countdown={btcCountdown}
+          />
           <ChampionshipRow
             state={championshipRow}
             onPress={handleChampionshipRowPress}
