@@ -11,6 +11,7 @@ import {
   RWA_STOCK_ASSET_ID,
 } from '../../api-mocking/mock-responses/trending-api-mocks';
 import { setupMockEvents } from '../../api-mocking/helpers/mockHelpers';
+import { getDecodedProxiedURL } from '../notifications/utils/helpers';
 import {
   remoteFeatureFlagTrendingTokensEnabled,
   remoteFeatureFlagPredictEnabled,
@@ -22,10 +23,45 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
     await setupRemoteFeatureFlagsMock(mockServer, {
       ...remoteFeatureFlagTrendingTokensEnabled(),
       ...remoteFeatureFlagPredictEnabled(),
+      explorePageV2Enabled: false,
     });
 
     // Setup API mocks using centralized definition
     await setupMockEvents(mockServer, TRENDING_API_MOCKS);
+
+    await mockServer
+      .forPost('/proxy')
+      .matching((request) => {
+        try {
+          const url = getDecodedProxiedURL(request.url);
+          return /compliance\.(dev-api|api|uat-api)\.cx\.metamask\.io\/v1\/wallet\/batch/.test(
+            url,
+          );
+        } catch {
+          return false;
+        }
+      })
+      .asPriority(1001)
+      .thenCallback(async (request) => {
+        let addresses: string[] = [];
+        try {
+          const text = await request.body.getText();
+          if (text) {
+            const parsed = JSON.parse(text) as unknown;
+            if (Array.isArray(parsed)) {
+              addresses = parsed.filter(
+                (a): a is string => typeof a === 'string',
+              );
+            }
+          }
+        } catch {
+          /* ignore malformed body */
+        }
+        return {
+          statusCode: 200,
+          json: addresses.map((address) => ({ address, blocked: false })),
+        };
+      });
   };
 
   it('Navigate to all sections full views via View All and return to feed', async () => {
