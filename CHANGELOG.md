@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Uncategorized
+
+- chore(deps): bump the `@metamask/tron-wallet-snap` to `^1.25.6` (#30200)
+
 ## [7.78.0]
 
 ### Added
