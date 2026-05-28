@@ -2,7 +2,8 @@ import { useCallback } from 'react';
 import { generateDeterministicRandomNumber } from '@metamask/remote-feature-flag-controller';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 
-const TREATMENT_ROLLOUT_THRESHOLD = 0.25;
+// TODO: remove __DEV__ override before experiment ships at 25% rollout
+const TREATMENT_ROLLOUT_THRESHOLD = __DEV__ ? 1 : 0.25;
 
 /**
  * Returns a function that resolves whether the onboarding interest questionnaire

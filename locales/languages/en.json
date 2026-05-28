@@ -3027,9 +3027,9 @@
   "onboarding_interest_questionnaire": {
     "title": "What do you want to do with MetaMask?",
     "description": "Select all that apply.",
-    "option_buy_and_sell_crypto": "Buy and sell crypto",
+    "option_buy_and_sell_crypto": "Buy and sell crypto tokens",
     "option_consolidate_wallets": "Consolidate your wallets",
-    "option_advanced_trades": "Make advanced trades",
+    "option_advanced_trades": "Trade perpetuals",
     "option_predict_sports_events": "Predict sports and events",
     "option_crypto_as_money": "Use crypto as money",
     "option_connect_apps_sites": "Connect to apps or sites",
