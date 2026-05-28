@@ -95,7 +95,7 @@ const RewardsVipTiersView: React.FC = () => {
                 testID={REWARDS_VIP_TIERS_VIEW_TEST_IDS.ERROR}
               />
             </Box>
-          ) : (
+          ) : dashboard ? (
             <Box
               twClassName="mx-4 rounded-2xl overflow-hidden bg-section"
               testID={REWARDS_VIP_TIERS_VIEW_TEST_IDS.LIST}
@@ -104,12 +104,13 @@ const RewardsVipTiersView: React.FC = () => {
                 <VipTierRow
                   key={tier.id}
                   tier={tier}
+                  localizedText={dashboard.localizedText}
                   isNext={tier.id === nextTierId}
                   isLast={tier.id === tiers[tiers.length - 1]?.id}
                 />
               ))}
             </Box>
-          )}
+          ) : null}
         </ScrollView>
       </SafeAreaView>
     </ErrorBoundary>
