@@ -288,12 +288,10 @@ export const selectPerpsMYXProviderEnabledFlag = createSelector(
 export const selectPerpsCompetitionBannerEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    const localFlag =
-      process.env.MM_PERPS_COMPETITION_BANNER_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.perpsCompetitionBannerEnabled as unknown as VersionGatedFeatureFlag;
 
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
 );
 
