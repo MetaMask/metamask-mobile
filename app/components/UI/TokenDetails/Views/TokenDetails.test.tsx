@@ -16,6 +16,7 @@ import {
   AMBIENT_PRICE_COLOR_AB_KEY,
 } from '../components/abTestConfig';
 import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
+import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 
 const mockUseSelector = jest.fn();
 jest.mock('react-redux', () => ({
@@ -421,21 +422,33 @@ describe('TokenDetails', () => {
   });
 
   describe('Quick Buy', () => {
-    it('mounts AssetDetailsQuickBuy hidden by default and opens it when the sticky lightning button is pressed', () => {
+    const getLastQuickBuyProps = () =>
+      mockAssetDetailsQuickBuy.mock.calls[
+        mockAssetDetailsQuickBuy.mock.calls.length - 1
+      ][0];
+
+    it('mounts AssetDetailsQuickBuy hidden by default with the current token', () => {
       render(<TokenDetails />);
 
       expect(mockAssetDetailsQuickBuy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isVisible: false,
+          token: expect.objectContaining({ symbol: 'DAI', chainId: '0x1' }),
+        }),
+      );
+    });
+
+    it('opens AssetDetailsQuickBuy when the sticky lightning button is pressed', () => {
+      const { getByTestId } = render(<TokenDetails />);
+
+      expect(getLastQuickBuyProps()).toEqual(
         expect.objectContaining({ isVisible: false }),
       );
 
-      const lastCallArgs =
-        mockAssetDetailsQuickBuy.mock.calls[
-          mockAssetDetailsQuickBuy.mock.calls.length - 1
-        ][0];
-      expect(lastCallArgs).toEqual(
-        expect.objectContaining({
-          token: expect.objectContaining({ symbol: 'DAI', chainId: '0x1' }),
-        }),
+      fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON));
+
+      expect(getLastQuickBuyProps()).toEqual(
+        expect.objectContaining({ isVisible: true }),
       );
     });
   });

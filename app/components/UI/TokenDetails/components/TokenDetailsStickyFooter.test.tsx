@@ -788,7 +788,7 @@ describe('TokenDetailsStickyFooter', () => {
           quickBuyTestID={quickBuyTestID}
         />,
       );
-      expect(getByTestId(quickBuyTestID)).toBeTruthy();
+      expect(getByTestId(quickBuyTestID)).toBeOnTheScreen();
     });
 
     it('invokes onQuickBuyPress on press', () => {
