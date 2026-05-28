@@ -997,7 +997,7 @@ jobs:
       ${{
         !cancelled() &&
         needs.get_requirements.outputs.android_e2e_needed == 'true' &&
-        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
+        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
       }}
     permissions:
       contents: read
@@ -1026,7 +1026,7 @@ jobs:
       changed_files: ${{ needs.get_requirements.outputs.changed_files }}
       selected_tags: >-
         ${{
-          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
       runner_provider: ${{ inputs.runner_provider }}
@@ -1038,7 +1038,7 @@ jobs:
       ${{
         !cancelled() &&
         needs.get_requirements.outputs.ios_e2e_needed == 'true' &&
-        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
+        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
       }}
     permissions:
       contents: read
@@ -1074,7 +1074,7 @@ jobs:
       changed_files: ${{ needs.get_requirements.outputs.changed_files }}
       selected_tags: >-
         ${{
-          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 80 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
+          (fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags) ||
           '["ALL"]'
         }}
       runner_provider: ${{ inputs.runner_provider }}
