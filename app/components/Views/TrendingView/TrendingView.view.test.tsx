@@ -3,6 +3,7 @@ import { describeForPlatforms } from '../../../../tests/component-view/platform'
 import { renderTrendingViewWithRoutes } from '../../../../tests/component-view/renderers/trending';
 import { strings } from '../../../../locales/i18n';
 import { TrendingViewSelectorsIDs } from './TrendingView.testIds';
+import { EXPLORE_TAB_INDEX } from './TrendingView';
 import {
   setupTrendingApiFetchMock,
   clearTrendingApiMocks,
@@ -27,6 +28,13 @@ const TRENDING_UNISWAP_ID =
   'trending-token-row-item-eip155:1/erc20:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd';
 const TRENDING_BNB_ID =
   'trending-token-row-item-eip155:56/erc20:0xBTC0000000000000000000000000000000000000';
+const getExploreTabTestId = (tabIndex: number) =>
+  `explore-tabs-bar-tab-${tabIndex}`;
+const EXPLORE_TAB_TEST_IDS = {
+  RWAS: getExploreTabTestId(EXPLORE_TAB_INDEX.RWAS),
+  CRYPTO: getExploreTabTestId(EXPLORE_TAB_INDEX.CRYPTO),
+  DAPPS: getExploreTabTestId(EXPLORE_TAB_INDEX.SITES),
+} as const;
 
 const assertTrendingTokenRowsVisibility = async (opts: {
   visible: { id: string; name?: string; pricePercentageChange?: string }[];
@@ -71,20 +79,22 @@ const actButtonPress = async (elem: ReactTestInstance) => {
   }
 };
 
+const navigateToExploreTab = async (
+  tabTestID: string,
+  getByTestId: RenderAPI['getByTestId'],
+) => {
+  await waitFor(() => {
+    expect(getByTestId(tabTestID)).toBeOnTheScreen();
+  });
+  await actButtonPress(getByTestId(tabTestID));
+};
+
 /**
  * Navigates to the Crypto tab in the V2 tabbed Explore layout.
  * Trending tokens (and their "View All" button) live in the Crypto tab.
  */
-const navigateToCryptoTab = async (getAllByText: RenderAPI['getAllByText']) => {
-  const cryptoTabLabel = strings('trending.tabs.crypto');
-  await waitFor(() => {
-    const matches = getAllByText(cryptoTabLabel);
-    expect(matches.length).toBeGreaterThan(0);
-  });
-  // There may be multiple "Crypto" text nodes (tab bar + section headers);
-  // the tab button is always the first occurrence in the render tree.
-  await actButtonPress(getAllByText(cryptoTabLabel)[0]);
-};
+const navigateToCryptoTab = async (getByTestId: RenderAPI['getByTestId']) =>
+  navigateToExploreTab(EXPLORE_TAB_TEST_IDS.CRYPTO, getByTestId);
 
 describeForPlatforms('ExploreFeed - Component Tests', () => {
   beforeEach(() => {
@@ -96,8 +106,7 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
   });
 
   it('Explore screen shows safe area, header and title and user can open trending full view', async () => {
-    const { getByTestId, getByText, getAllByText } =
-      renderTrendingViewWithRoutes();
+    const { getByTestId, getByText } = renderTrendingViewWithRoutes();
 
     await waitFor(() => {
       expect(
@@ -117,7 +126,7 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
     });
 
     // Trending tokens and their View All button are in the Crypto tab
-    await navigateToCryptoTab(getAllByText);
+    await navigateToCryptoTab(getByTestId);
 
     const viewAllButton = getByTestId(
       TrendingViewSelectorsIDs.SECTION_HEADER_VIEW_ALL_TOKENS,
@@ -133,11 +142,11 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
   });
 
   it('user sees trending tokens section with mocked data', async () => {
-    const { findByText, queryByTestId, getAllByText } =
+    const { findByText, queryByTestId, getByTestId } =
       renderTrendingViewWithRoutes();
 
     // Trending tokens are in the Crypto tab
-    await navigateToCryptoTab(getAllByText);
+    await navigateToCryptoTab(getByTestId);
 
     await waitFor(async () => {
       expect(await findByText('Ethereum')).toBeOnTheScreen();
@@ -166,11 +175,10 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
   });
 
   it('user navigates to trending tokens full view', async () => {
-    const { getByTestId, queryByTestId, getAllByText } =
-      renderTrendingViewWithRoutes();
+    const { getByTestId, queryByTestId } = renderTrendingViewWithRoutes();
 
     // Trending tokens and their View All button are in the Crypto tab
-    await navigateToCryptoTab(getAllByText);
+    await navigateToCryptoTab(getByTestId);
 
     await waitFor(() => {
       expect(
@@ -209,6 +217,61 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
           pricePercentageChange: '+12.80%',
         },
       ],
+    });
+  });
+
+  it('user switches between Explore V2 tabs and sees tab-specific sections', async () => {
+    const { getByTestId, getByText, queryAllByTestId } =
+      renderTrendingViewWithRoutes();
+
+    await waitFor(() => {
+      expect(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_NOW_SCROLL_VIEW),
+      ).toBeOnTheScreen();
+      expect(getByText(strings('trending.crypto_movers'))).toBeOnTheScreen();
+    });
+
+    await navigateToExploreTab(EXPLORE_TAB_TEST_IDS.CRYPTO, getByTestId);
+    await waitFor(() => {
+      expect(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_CRYPTO_SCROLL_VIEW),
+      ).toBeOnTheScreen();
+      expect(getByText(strings('trending.trending_tokens'))).toBeOnTheScreen();
+      expect(getByTestId(TRENDING_ETHEREUM_ID)).toBeOnTheScreen();
+    });
+
+    await navigateToExploreTab(EXPLORE_TAB_TEST_IDS.RWAS, getByTestId);
+    await waitFor(() => {
+      expect(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_RWAS_SCROLL_VIEW),
+      ).toBeOnTheScreen();
+      expect(getByText(strings('trending.stocks'))).toBeOnTheScreen();
+      expect(
+        getByText('Ondo US Dollar Yield (Ondo Tokenized)'),
+      ).toBeOnTheScreen();
+    });
+
+    await navigateToExploreTab(EXPLORE_TAB_TEST_IDS.DAPPS, getByTestId);
+    await waitFor(() => {
+      expect(
+        queryAllByTestId(TrendingViewSelectorsIDs.EXPLORE_DAPPS_SCROLL_VIEW),
+      ).toHaveLength(1);
+      expect(getByText(strings('trending.ecosystems'))).toBeOnTheScreen();
+      expect(getByText(strings('trending.popular'))).toBeOnTheScreen();
+      expect(queryAllByTestId('site-row-item-Uniswap')).toHaveLength(1);
+    });
+  });
+
+  it('opens the requested Explore V2 tab from route params', async () => {
+    const { getByText, queryAllByTestId } = renderTrendingViewWithRoutes({
+      initialParams: { initialTab: EXPLORE_TAB_INDEX.SITES },
+    });
+
+    await waitFor(() => {
+      expect(
+        queryAllByTestId(TrendingViewSelectorsIDs.EXPLORE_DAPPS_SCROLL_VIEW),
+      ).toHaveLength(1);
+      expect(getByText(strings('trending.ecosystems'))).toBeOnTheScreen();
     });
   });
 
@@ -270,11 +333,11 @@ describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
       return mockTrendingTokensData;
     });
 
-    const { findByText, getByTestId, queryByTestId, getAllByText } =
+    const { findByText, getByTestId, queryByTestId } =
       renderTrendingViewWithRoutes();
 
     // Trending tokens and their View All button are in the Crypto tab
-    await navigateToCryptoTab(getAllByText);
+    await navigateToCryptoTab(getByTestId);
 
     await waitFor(() => {
       expect(
@@ -331,11 +394,11 @@ describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
   });
 
   it('user can search on trending tokens full view', async () => {
-    const { findByPlaceholderText, getByTestId, queryByTestId, getAllByText } =
+    const { findByPlaceholderText, getByTestId, queryByTestId } =
       renderTrendingViewWithRoutes();
 
     // Trending tokens and their View All button are in the Crypto tab
-    await navigateToCryptoTab(getAllByText);
+    await navigateToCryptoTab(getByTestId);
 
     await waitFor(() => {
       expect(
