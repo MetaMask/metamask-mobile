@@ -40,7 +40,7 @@ test.describe(`${Performance} ${System} ${PerformanceLogin} ${PerformanceSwaps}`
       });
 
       await QuoteView.selectNetworkAndTokenTo('Solana', 'SOL');
-      await QuoteView.enterSourceTokenAmount('1');
+      await QuoteView.enterSourceTokenAmount('0.1');
 
       const timer2 = new TimerHelper(
         'Time since the user enters the amount until the quote is displayed',
