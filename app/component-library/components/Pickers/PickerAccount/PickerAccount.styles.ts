@@ -27,7 +27,6 @@ const styleSheet = (params: {
       ...(style as ViewStyle),
       flexDirection: 'row',
       borderWidth: 0,
-      borderRadius: 2,
     },
     accountAddressLabel: {
       color: colors.text.alternative,
