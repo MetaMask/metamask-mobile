@@ -18,7 +18,9 @@ import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmat
 export function PredictClaimInfo() {
   useModalNavbar();
   usePredictClaimConfirmationMetrics();
-  useClearConfirmationOnBackSwipe();
+  useClearConfirmationOnBackSwipe({
+    rejectOnBeforeRemove: true,
+  });
 
   return (
     <>

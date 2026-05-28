@@ -56,5 +56,8 @@ describe('PredictClaimInfo', () => {
     render(<PredictClaimInfo />);
 
     expect(useClearConfirmationOnBackSwipe).toHaveBeenCalledTimes(1);
+    expect(useClearConfirmationOnBackSwipe).toHaveBeenCalledWith({
+      rejectOnBeforeRemove: true,
+    });
   });
 });

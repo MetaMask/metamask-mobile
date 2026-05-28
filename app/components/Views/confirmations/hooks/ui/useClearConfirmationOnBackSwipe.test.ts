@@ -83,6 +83,79 @@ describe('useClearConfirmationOnBackSwipe', () => {
       expect(mockOnReject).toHaveBeenCalledTimes(1);
     });
 
+    it('calls onReject with skipNavigation when beforeRemove follows a gestureStart event', () => {
+      renderHook(() =>
+        useClearConfirmationOnBackSwipe({ rejectOnBeforeRemove: true }),
+      );
+      const gestureStartCallback = mockAddListener.mock.calls.find(
+        ([eventName]) => eventName === 'gestureStart',
+      )?.[1];
+      const beforeRemoveCallback = mockAddListener.mock.calls.find(
+        ([eventName]) => eventName === 'beforeRemove',
+      )?.[1];
+
+      gestureStartCallback();
+      beforeRemoveCallback();
+
+      expect(mockOnReject).toHaveBeenCalledTimes(1);
+      expect(mockOnReject).toHaveBeenCalledWith(undefined, true);
+    });
+
+    it('does not reject on beforeRemove without a gestureStart event', () => {
+      renderHook(() =>
+        useClearConfirmationOnBackSwipe({ rejectOnBeforeRemove: true }),
+      );
+      const beforeRemoveCallback = mockAddListener.mock.calls.find(
+        ([eventName]) => eventName === 'beforeRemove',
+      )?.[1];
+
+      beforeRemoveCallback();
+
+      expect(mockOnReject).not.toHaveBeenCalled();
+    });
+
+    it('does not reject on beforeRemove after a gestureCancel event', () => {
+      renderHook(() =>
+        useClearConfirmationOnBackSwipe({ rejectOnBeforeRemove: true }),
+      );
+      const gestureStartCallback = mockAddListener.mock.calls.find(
+        ([eventName]) => eventName === 'gestureStart',
+      )?.[1];
+      const gestureCancelCallback = mockAddListener.mock.calls.find(
+        ([eventName]) => eventName === 'gestureCancel',
+      )?.[1];
+      const beforeRemoveCallback = mockAddListener.mock.calls.find(
+        ([eventName]) => eventName === 'beforeRemove',
+      )?.[1];
+
+      gestureStartCallback();
+      gestureCancelCallback();
+      beforeRemoveCallback();
+
+      expect(mockOnReject).not.toHaveBeenCalled();
+    });
+
+    it('does not reject twice when multiple dismissal events are triggered', () => {
+      renderHook(() =>
+        useClearConfirmationOnBackSwipe({ rejectOnBeforeRemove: true }),
+      );
+      const gestureStartCallback = mockAddListener.mock.calls.find(
+        ([eventName]) => eventName === 'gestureStart',
+      )?.[1];
+      const gestureEndCallback = mockAddListener.mock.calls.find(
+        ([eventName]) => eventName === 'gestureEnd',
+      )?.[1];
+      const beforeRemoveCallback = mockAddListener.mock.calls.find(
+        ([eventName]) => eventName === 'beforeRemove',
+      )?.[1];
+
+      gestureStartCallback();
+      beforeRemoveCallback();
+      gestureEndCallback();
+
+      expect(mockOnReject).toHaveBeenCalledTimes(1);
+    });
+
     it('calls unsubscribe when unmounted', () => {
       const { unmount } = renderHook(() => useClearConfirmationOnBackSwipe());
       unmount();
