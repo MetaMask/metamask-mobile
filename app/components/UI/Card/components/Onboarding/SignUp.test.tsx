@@ -752,7 +752,7 @@ describe('SignUp Component', () => {
   });
 
   describe('Navigation', () => {
-    it('goes back to the existing authentication screen when "I already have an account" is pressed (direct card flow)', () => {
+    it('navigates to authentication when "I already have an account" is pressed (direct card flow)', () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <SignUp />
@@ -764,8 +764,8 @@ describe('SignUp Component', () => {
       );
       fireEvent.press(alreadyHaveAccountButton);
 
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION);
+      expect(mockGoBack).not.toHaveBeenCalled();
     });
 
     it('forwards postAuthRedirect to authentication when opened from Money', () => {

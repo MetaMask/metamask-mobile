@@ -80,7 +80,7 @@ const SignUp = () => {
       navigation.navigate(Routes.CARD.AUTHENTICATION, { postAuthRedirect });
       return;
     }
-    navigation.goBack();
+    navigation.navigate(Routes.CARD.AUTHENTICATION);
   }, [navigation, postAuthRedirect]);
 
   useEffect(() => {
