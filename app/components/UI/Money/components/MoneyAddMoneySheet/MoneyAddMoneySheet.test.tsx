@@ -276,6 +276,23 @@ describe('MoneyAddMoneySheet', () => {
     });
   });
 
+  it('calls initiateDeposit before closing the sheet so the navigation queue does not race the unmount', () => {
+    const order: string[] = [];
+    mockInitiateDeposit.mockImplementationOnce(() => {
+      order.push('initiateDeposit');
+      return Promise.resolve();
+    });
+    mockOnCloseBottomSheet.mockImplementationOnce(() => {
+      order.push('onCloseBottomSheet');
+    });
+
+    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION));
+
+    expect(order).toEqual(['initiateDeposit', 'onCloseBottomSheet']);
+  });
+
   it('falls back to the default mUSD chain when no per-chain balances are available', () => {
     (useMusdBalance as jest.Mock).mockReturnValue({
       fiatBalanceAggregated: '12.34',

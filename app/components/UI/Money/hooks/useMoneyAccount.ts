@@ -89,17 +89,10 @@ export function useMoneyAccountDeposit() {
 
       const networkClientId = resolveNetworkClientId(chainIdHex);
 
-      const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
-        amount: BigInt(0),
-        chainId: chainIdHex,
-        boringVault,
-        tellerAddress,
-        accountantAddress,
-        lensAddress,
-        provider,
-      });
-
-      // Navigate early for better UX; recover on failure below.
+      // Navigate synchronously, before any await. useConfirmNavigation's
+      // "reject pending then queue" branch relies on state inside the caller's
+      // component tree; if the caller (e.g. a closing bottom sheet) unmounts
+      // before the queued effect runs, the navigation is lost.
       navigateToConfirmation({
         loader: ConfirmationLoader.CustomAmount,
         stack: Routes.MONEY.CONFIRMATIONS_ROOT,
@@ -107,6 +100,16 @@ export function useMoneyAccountDeposit() {
       });
 
       try {
+        const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
+          amount: BigInt(0),
+          chainId: chainIdHex,
+          boringVault,
+          tellerAddress,
+          accountantAddress,
+          lensAddress,
+          provider,
+        });
+
         // We only set the transaction from the money account perspective.
         // MM Pay selects the user's account and moves funds to the money account,
         // so `from` must be the money account and `networkClientId` its chain.
