@@ -190,7 +190,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_spending_limit.spend_and_earn_description_prefix':
         'Link your balance to your card and get mUSD back on purchases. Plus, earn up to ',
       'card.card_spending_limit.spend_and_earn_description_suffix':
-        ' on your balance.',
+        ' (variable) on your balance.',
       'card.card_spending_limit.spend_and_earn_description_no_apy':
         'Link your balance to your card and get mUSD back on purchases.',
       'card.card_spending_limit.spend_and_earn_cta': 'Link card',
@@ -1104,7 +1104,7 @@ describe('SpendingLimit Component', () => {
       expect(screen.getByText('Spend and earn')).toBeOnTheScreen();
       expect(
         screen.getByText(
-          /Link your balance to your card and get mUSD back on purchases\. Plus, earn up to 4% APY on your balance\./,
+          /Link your balance to your card and get mUSD back on purchases\. Plus, earn up to 4% APY \(variable\) on your balance\./,
         ),
       ).toBeOnTheScreen();
       expect(screen.getByText('Link card')).toBeOnTheScreen();
@@ -1143,7 +1143,7 @@ describe('SpendingLimit Component', () => {
 
       expect(
         screen.getByText(
-          /Link your balance to your card and get mUSD back on purchases\. Plus, earn up to 4% APY on your balance\./,
+          /Link your balance to your card and get mUSD back on purchases\. Plus, earn up to 4% APY \(variable\) on your balance\./,
         ),
       ).toBeOnTheScreen();
     });
