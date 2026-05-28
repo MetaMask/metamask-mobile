@@ -3,12 +3,14 @@ import {
   getAssetsControllerMessenger,
   getAssetsControllerInitMessenger,
   type AssetsControllerInitMessenger,
-  type AssetsControllerMessenger,
 } from '../../messengers/assets-controller';
 import type { MessengerClientInitRequest } from '../../types';
 import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { assetsControllerInit } from './assets-controller-init';
-import { AssetsController } from '@metamask/assets-controller';
+import {
+  AssetsController,
+  AssetsControllerMessenger,
+} from '@metamask/assets-controller';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import {
   ASSETS_UNIFY_STATE_FLAG,

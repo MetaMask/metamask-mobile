@@ -1,35 +1,24 @@
 import { TransactionType } from '@metamask/transaction-controller';
-import { BigNumber } from 'bignumber.js';
 import perpsPayTokenIcon from 'images/perps-pay-token-icon.png';
 import { useCallback } from 'react';
 import { Image } from 'react-native';
 import { useSelector } from 'react-redux';
-import { strings } from '../../../../../locales/i18n';
-import useFiatFormatter from '../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { useTransactionMetadataRequest } from '../../../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import {
   AssetType,
-  HighlightedItem,
   type TokenListItem,
 } from '../../../Views/confirmations/types/token';
-import { isPayWithBottomSheetEnabled } from '../../../Views/confirmations/utils/transaction-pay';
 import { hasTransactionType } from '../../../Views/confirmations/utils/transaction';
 import { selectPerpsPayWithAnyTokenAllowlistAssets } from '../selectors/featureFlags';
-import { selectPerpsAccountState } from '../selectors/perpsController';
 import { useIsPerpsBalanceSelected } from './useIsPerpsBalanceSelected';
-import { usePerpsPaymentToken } from './usePerpsPaymentToken';
-import Routes from '../../../../constants/navigation/Routes';
-import { usePerpsTrading } from './usePerpsTrading';
-import { useNavigation } from '@react-navigation/native';
-import useApprovalRequest from '../../../Views/confirmations/hooks/useApprovalRequest';
+
 /** URI for the perps balance token icon, shared with PerpsPayRow and pay-with modal. */
 const resolvedPerpsIcon = Image.resolveAssetSource(perpsPayTokenIcon);
 export const PERPS_BALANCE_ICON_URI = resolvedPerpsIcon?.uri ?? '';
 
 /**
- * Returns a filter that prepends a synthetic "Perps balance" token to the list
- * when the transaction type is perpsDepositAndOrder. The token shows the perps
- * account balance, USDC icon, and label "Perps balance".
+ * Returns a filter that applies allowlist filtering and deselects other tokens
+ * when the Perps balance is selected for perpsDepositAndOrder transactions.
  *
  * Uses PerpsController state (Redux) so it works in any screen, including
  * PayWithModal and confirmations where PerpsStreamProvider is not mounted.
@@ -39,40 +28,9 @@ export function usePerpsBalanceTokenFilter(): (
 ) => TokenListItem[] {
   const transactionMeta = useTransactionMetadataRequest();
   const isPerpsBalanceSelected = useIsPerpsBalanceSelected();
-  const perpsAccount = useSelector(selectPerpsAccountState);
   const allowListAssets = useSelector(
     selectPerpsPayWithAnyTokenAllowlistAssets,
   );
-  const formatFiat = useFiatFormatter({ currency: 'usd' });
-
-  const { depositWithConfirmation } = usePerpsTrading();
-
-  const isPerpsDepositAndOrder = hasTransactionType(transactionMeta, [
-    TransactionType.perpsDepositAndOrder,
-  ]);
-
-  const { onReject: handleReject } = useApprovalRequest();
-
-  const navigation = useNavigation();
-
-  const handlePerpsDepositPress = useCallback(() => {
-    handleReject();
-    depositWithConfirmation()
-      .then(() => {
-        navigation.navigate(
-          Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-          {
-            showPerpsHeader: true,
-          },
-        );
-      })
-      .catch(() => {
-        // Deposit flow handles errors (e.g. user rejection or missing network).
-      });
-  }, [navigation, depositWithConfirmation, handleReject]);
-
-  const { onPaymentTokenChange: onPerpsPaymentTokenChange } =
-    usePerpsPaymentToken();
 
   const filterAllowedTokens = useCallback(
     (tokens: AssetType[]): TokenListItem[] => {
@@ -83,13 +41,6 @@ export function usePerpsBalanceTokenFilter(): (
       ) {
         return tokens;
       }
-
-      const spendableBalance = perpsAccount?.spendableBalance || '0';
-      const balanceInSelectedCurrency = formatFiat(
-        new BigNumber(spendableBalance),
-      );
-
-      const perpsBalanceName = strings('perps.adjust_margin.perps_balance');
 
       let mappedTokens = tokens.map((token) => ({
         ...token,
@@ -105,43 +56,9 @@ export function usePerpsBalanceTokenFilter(): (
         });
       }
 
-      if (!isPerpsDepositAndOrder) {
-        return mappedTokens;
-      }
-
-      if (isPayWithBottomSheetEnabled()) {
-        return mappedTokens;
-      }
-
-      const highlightedAction: HighlightedItem = {
-        position: 'outside_of_asset_list',
-        icon: PERPS_BALANCE_ICON_URI,
-        name: perpsBalanceName,
-        name_description: balanceInSelectedCurrency,
-        fiat: balanceInSelectedCurrency,
-        fiat_description: balanceInSelectedCurrency,
-        isSelected: isPerpsBalanceSelected,
-        action: () => onPerpsPaymentTokenChange(null),
-        actions: [
-          {
-            buttonLabel: strings('perps.add_funds'),
-            onPress: handlePerpsDepositPress,
-          },
-        ],
-      };
-
-      return [highlightedAction, ...mappedTokens];
+      return mappedTokens;
     },
-    [
-      handlePerpsDepositPress,
-      isPerpsDepositAndOrder,
-      allowListAssets,
-      formatFiat,
-      onPerpsPaymentTokenChange,
-      isPerpsBalanceSelected,
-      perpsAccount?.spendableBalance,
-      transactionMeta,
-    ],
+    [allowListAssets, isPerpsBalanceSelected, transactionMeta],
   );
 
   return filterAllowedTokens;

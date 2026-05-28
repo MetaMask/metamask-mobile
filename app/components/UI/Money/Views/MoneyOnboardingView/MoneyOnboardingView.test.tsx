@@ -109,7 +109,7 @@ describe('MoneyOnboardingView', () => {
     it('renders the first step footer text', () => {
       const { getByText } = render(<MoneyOnboardingView />);
       expect(
-        getByText('APY is variable and may change at any time.'),
+        getByText('APY is variable and not guaranteed.'),
       ).toBeOnTheScreen();
     });
   });

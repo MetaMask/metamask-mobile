@@ -465,6 +465,7 @@ const PersonalDetails = () => {
       description={strings('card.card_onboarding.personal_details.description')}
       formFields={renderFormFields()}
       actions={renderActions()}
+      headerMode="close-with-confirmation"
     />
   );
 };

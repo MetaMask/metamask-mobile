@@ -24,16 +24,16 @@ describe('getViewMoreLabel', () => {
       );
     });
 
-    it('returns "view_all" when items equal MAX_ITEMS_PER_SECTION', () => {
-      expect(getViewMoreLabel('perps', MAX_ITEMS_PER_SECTION, 'eth')).toBe(
-        'trending.view_all',
-      );
+    it('returns null when items equal MAX_ITEMS_PER_SECTION (nothing hidden)', () => {
+      expect(
+        getViewMoreLabel('perps', MAX_ITEMS_PER_SECTION, 'eth'),
+      ).toBeNull();
     });
 
-    it('returns "view_all" when items are fewer than MAX_ITEMS_PER_SECTION', () => {
-      expect(getViewMoreLabel('sites', MAX_ITEMS_PER_SECTION - 1, 'eth')).toBe(
-        'trending.view_all',
-      );
+    it('returns null when items are fewer than MAX_ITEMS_PER_SECTION', () => {
+      expect(
+        getViewMoreLabel('sites', MAX_ITEMS_PER_SECTION - 1, 'eth'),
+      ).toBeNull();
     });
   });
 
@@ -44,7 +44,7 @@ describe('getViewMoreLabel', () => {
       );
     });
 
-    it('returns "view_all" when total equals visible items', () => {
+    it('returns null when total equals MAX_ITEMS_PER_SECTION (nothing hidden)', () => {
       expect(
         getViewMoreLabel(
           'predictions',
@@ -52,26 +52,24 @@ describe('getViewMoreLabel', () => {
           'eth',
           MAX_ITEMS_PER_SECTION,
         ),
-      ).toBe('trending.view_all');
+      ).toBeNull();
     });
 
-    it('falls back to "view_all" when no total is provided (should not normally occur)', () => {
+    it('falls back to "view_all" when no total is provided and items exceed cap', () => {
       expect(
         getViewMoreLabel('predictions', MAX_ITEMS_PER_SECTION + 2, 'eth'),
       ).toBe('trending.view_all');
     });
   });
 
-  describe('loading state — component passes 0 items and no serverTotal', () => {
-    // When a section is loading, ExploreSearchResultsV2 passes visibleCount=0 and
-    // serverTotal=undefined so that stale data from the previous query does not
-    // produce a "View X more" count while skeletons are shown.
+  describe('loading state — component skips getViewMoreLabel entirely (section.isLoading guard)', () => {
+    // ExploreSearchResultsV2 now returns null directly when section.isLoading is true
+    // without calling getViewMoreLabel. These tests verify that if it were called with
+    // 0 items and no serverTotal, it would correctly return null (nothing to show).
     it.each(['perps', 'stocks', 'sites', 'tokens', 'predictions'] as const)(
-      '%s: returns "view_all" during loading (0 items, no serverTotal)',
+      '%s: returns null with 0 items and no serverTotal',
       (feedId) => {
-        expect(getViewMoreLabel(feedId, 0, 'eth', undefined)).toBe(
-          'trending.view_all',
-        );
+        expect(getViewMoreLabel(feedId, 0, 'eth', undefined)).toBeNull();
       },
     );
   });
@@ -91,7 +89,7 @@ describe('getViewMoreLabel', () => {
       );
     });
 
-    it('returns "view_all" when total equals MAX_ITEMS_PER_SECTION', () => {
+    it('returns null when total equals MAX_ITEMS_PER_SECTION (nothing hidden)', () => {
       expect(
         getViewMoreLabel(
           'tokens',
@@ -99,11 +97,11 @@ describe('getViewMoreLabel', () => {
           'eth',
           MAX_ITEMS_PER_SECTION,
         ),
-      ).toBe('trending.view_all');
+      ).toBeNull();
     });
 
-    it('returns "view_all" when total is not greater than visible items', () => {
-      expect(getViewMoreLabel('tokens', 3, 'eth', 2)).toBe('trending.view_all');
+    it('returns null when total is less than or equal to MAX_ITEMS_PER_SECTION', () => {
+      expect(getViewMoreLabel('tokens', 3, 'eth', 2)).toBeNull();
     });
 
     it('returns "view_all" when query is empty regardless of total', () => {

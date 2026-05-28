@@ -102,12 +102,14 @@ const MoneyOnboardingView = () => {
         body: strings('money.rive_onboarding.step3_body', {
           percentage: CARD_CASHBACK_PERCENTAGE,
         }),
+        footerText: strings('money.rive_onboarding.step3_footer_text'),
         durationMs: MONEY_ONBOARDING_STEP_DURATION_MS,
         buttonLabel: strings('money.rive_onboarding.continue'),
       },
       {
         title: strings('money.rive_onboarding.step4_title'),
         body: strings('money.rive_onboarding.step4_body'),
+        footerText: strings('money.rive_onboarding.step4_footer_text'),
         durationMs: MONEY_ONBOARDING_STEP_DURATION_MS,
         buttonLabel: strings('money.rive_onboarding.continue'),
       },

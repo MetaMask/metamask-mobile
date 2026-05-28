@@ -8,7 +8,7 @@ import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
 } from '../../framework/fixtures/FixtureBuilder';
 import WalletView from '../../page-objects/wallet/WalletView';
-import NetworkListModal from '../../page-objects/Network/NetworkListModal';
+import TokensFullView from '../../page-objects/wallet/HomeSections';
 import NetworkManager from '../../page-objects/wallet/NetworkManager';
 import { SmokeStake } from '../../tags';
 import Assertions from '../../framework/Assertions';
@@ -47,6 +47,7 @@ describe(SmokeStake('Stake from Actions'), (): void => {
               nickname: 'Localhost',
               ticker: 'ETH',
             })
+            .withNetworkEnabledMap({ eip155: { [chainId]: true } })
             .build();
         },
         localNodeOptions: [
@@ -132,16 +133,18 @@ describe(SmokeStake('Stake from Actions'), (): void => {
       },
       async () => {
         await loginToApp();
+
+        await Assertions.expectElementToBeVisible(WalletView.earnButton, {
+          timeout: 45000,
+          description:
+            'Earn button should be visible after balance loads from fixture state',
+        });
+
         // Earn and stake flows keep recurring native timers; with sync on, Detox waits for
         // idle indefinitely after opening stake. Keep sync off through confirm, then re-enable
         // for Activity (FlashList row text is unreliable with sync disabled on iOS).
         await device.disableSynchronization();
         try {
-          await Assertions.expectElementToBeVisible(WalletView.earnButton, {
-            timeout: 45000,
-            description:
-              'Earn button should be visible after balance loads from mocked API',
-          });
           await WalletView.tapOnEarnButton();
           await Assertions.expectElementToBeVisible(StakeView.stakeContainer);
           await StakeView.enterAmount(AMOUNT_TO_STAKE);
@@ -173,12 +176,10 @@ describe(SmokeStake('Stake from Actions'), (): void => {
         // Navigate to TokensFullView and filter by Localhost
         await NetworkManager.navigateToTokensFullView();
         await NetworkManager.openNetworkManager();
-        await NetworkListModal.changeNetworkTo('Localhost');
+        await NetworkManager.tapNetwork('eip155:1');
 
         // Verify staked asset in wallet (now in TokensFullView)
-        await Assertions.expectTextDisplayed('Staked Ethereum');
-        await Assertions.expectTextDisplayed('1 ETH');
-        await Assertions.expectTextDisplayed('$4,291.85');
+        await TokensFullView.expectStakedEthereumRowWithBalancesVisible();
       },
     );
   });
