@@ -104,7 +104,7 @@ const createPortfolio = (
   totalUnrealizedPnlPercent: undefined,
   walletType: undefined,
   withdraw: jest.fn(),
-  withdrawTransaction: undefined,
+  withdrawTransaction: null,
   ...overrides,
 });
 

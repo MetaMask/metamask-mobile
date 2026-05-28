@@ -58,7 +58,7 @@ const PredictPositionsEmpty = ({
         testID={PredictPositionsEmptySelectorsIDs.ICON}
         style={tw.style('mb-4 h-[72px] w-[72px] items-center justify-center')}
       >
-        <EmptyIcon width={72} height={72} />
+        <EmptyIcon name="predict-positions-empty" width={72} height={72} />
       </Box>
       <Text
         variant={TextVariant.BodySm}
