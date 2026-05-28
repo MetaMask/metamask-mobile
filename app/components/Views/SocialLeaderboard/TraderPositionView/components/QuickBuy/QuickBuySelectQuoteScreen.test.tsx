@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import QuickBuySelectQuoteScreen from './QuickBuySelectQuoteScreen';
 import { useQuickBuyContext } from './useQuickBuyContext';
 
@@ -13,10 +14,8 @@ jest.mock('react-redux', () => ({
       engine: {
         backgroundState: {
           CurrencyRateController: { currentCurrency: 'USD' },
-          BridgeController: { quotes: [], quotesLastFetched: null },
         },
       },
-      bridge: { destToken: null },
     }),
   ),
 }));
@@ -67,10 +66,12 @@ jest.mock(
         quoteRequestId,
         onPress,
         selected,
+        receiveAmount,
       }: {
         quoteRequestId: string;
         onPress: (id: string) => void;
         selected: boolean;
+        receiveAmount?: string;
       }) =>
         ReactMock.createElement(
           TouchableOpacity,
@@ -78,6 +79,11 @@ jest.mock(
             testID: `quote-row-${quoteRequestId}`,
             onPress: () => onPress(quoteRequestId),
           },
+          ReactMock.createElement(
+            Text,
+            { testID: `quote-row-receive-${quoteRequestId}` },
+            receiveAmount ?? 'no-receive',
+          ),
           ReactMock.createElement(
             Text,
             null,
@@ -105,6 +111,7 @@ const buildContext = (overrides = {}) => ({
   selectedQuoteRequestId: undefined,
   setSelectedQuoteRequestId: jest.fn(),
   isQuoteLoading: false,
+  destToken: undefined,
   onClose: jest.fn(),
   setActiveScreen: jest.fn(),
   ...overrides,
@@ -171,6 +178,31 @@ describe('QuickBuySelectQuoteScreen', () => {
     render(<QuickBuySelectQuoteScreen />);
     expect(screen.getByTestId('quote-row-q1')).toBeOnTheScreen();
     expect(screen.getByTestId('quote-row-q2')).toBeOnTheScreen();
+  });
+
+  it('formats receive amount using destToken from context, not Redux', () => {
+    const destToken = {
+      symbol: 'USDC',
+      decimals: 6,
+      address: '0xusdc',
+      chainId: '0x1',
+    } as BridgeToken;
+    (useQuickBuyContext as jest.Mock).mockReturnValue(
+      buildContext({
+        destToken,
+        sortedQuotes: [
+          {
+            ...makeQuote('q1'),
+            quote: {
+              ...makeQuote('q1').quote,
+              destTokenAmount: '1500000',
+            },
+          },
+        ],
+      }),
+    );
+    render(<QuickBuySelectQuoteScreen />);
+    expect(screen.getByTestId('quote-row-receive-q1')).toHaveTextContent('1.5');
   });
 
   it('calls setSelectedQuoteRequestId and navigates back when a quote is selected', () => {

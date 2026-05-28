@@ -14,7 +14,6 @@ import { fromTokenMinimalUnit } from '../../../../../../util/number/bigint';
 import formatFiat from '../../../../../../util/formatFiat';
 import { isGaslessQuote } from '../../../../../UI/Bridge/utils/isGaslessQuote';
 import { QuoteRow } from '../../../../../UI/Bridge/components/QuoteSelectorView/QuoteRow';
-import { selectDestToken } from '../../../../../../core/redux/slices/bridge';
 import { strings } from '../../../../../../../locales/i18n';
 import { useQuickBuyContext } from './useQuickBuyContext';
 import QuickBuySubScreenHeader from './components/QuickBuySubScreenHeader';
@@ -25,12 +24,12 @@ const QuickBuySelectQuoteScreen: React.FC = () => {
     selectedQuoteRequestId,
     setSelectedQuoteRequestId,
     isQuoteLoading,
+    destToken,
     onClose,
     setActiveScreen,
   } = useQuickBuyContext();
 
   const currency = useSelector(selectCurrentCurrency);
-  const destToken = useSelector(selectDestToken);
   const bestQuote = sortedQuotes[0];
 
   const rows = useMemo(
