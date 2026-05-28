@@ -2,10 +2,11 @@
 
 // Third library dependencies.
 import React from 'react';
-import { TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { TouchableWithoutFeedback, View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../hooks';
+import Pressable from '../Pressable';
 import Tag from '../../../component-library/components/Tags/Tag';
 
 // Internal dependencies.
@@ -75,7 +76,7 @@ const CellSelectWithMenu = ({
           {!!secondaryText &&
             (props.onTextClick ? (
               <TouchableWithoutFeedback>
-                <TouchableOpacity
+                <Pressable
                   style={styles.containerRow}
                   onPress={props.onTextClick}
                 >
@@ -93,7 +94,7 @@ const CellSelectWithMenu = ({
                       style={styles.arrowStyle}
                     />
                   )}
-                </TouchableOpacity>
+                </Pressable>
               </TouchableWithoutFeedback>
             ) : (
               <View style={styles.containerRow}>
