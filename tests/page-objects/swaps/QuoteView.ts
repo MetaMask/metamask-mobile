@@ -135,8 +135,18 @@ class QuoteView {
     });
   }
 
-  get keypadDeleteButton(): DetoxElement {
-    return Matchers.getElementByID(QuoteViewSelectorIDs.KEYPAD_DELETE_BUTTON);
+  get keypadDeleteButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(QuoteViewSelectorIDs.KEYPAD_DELETE_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          QuoteViewSelectorIDs.KEYPAD_DELETE_BUTTON,
+          {
+            exact: true,
+          },
+        ),
+    });
   }
 
   get maxLink(): DetoxElement {
@@ -445,6 +455,14 @@ class QuoteView {
       },
       appium: async () => {
         await this.tapSourceAmountInput();
+        await PlaywrightGestures.waitAndTap(
+          await asPlaywrightElement(this.keypadDeleteButton),
+          {
+            checkForDisplayed: true,
+            checkForEnabled: true,
+            delay: 1000,
+          },
+        );
         let digitEl: PlaywrightElement;
         for (const digit of amount) {
           if (await PlatformDetector.isAndroid()) {
