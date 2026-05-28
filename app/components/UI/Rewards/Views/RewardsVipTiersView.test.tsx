@@ -87,15 +87,26 @@ jest.mock('@metamask/design-system-react-native', () => {
       IconDefault: 'default',
       SuccessDefault: 'success',
     },
-    IconName: { Check: 'Check', CheckBold: 'CheckBold' },
-    IconSize: { Sm: 'sm', Md: 'md' },
+    IconName: {
+      ArrowDown: 'ArrowDown',
+      ArrowUp: 'ArrowUp',
+      Check: 'Check',
+      CheckBold: 'CheckBold',
+    },
+    IconSize: { Sm: 'sm', Md: 'md', Lg: 'lg' },
     Skeleton,
   };
 });
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: (...args: unknown[]) => args }),
-}));
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const ReactActual = jest.requireActual('react');
+  return {
+    useTailwind: () => ({ style: (...args: unknown[]) => args }),
+    ThemeProvider: ({ children }: { children: React.ReactNode }) =>
+      ReactActual.createElement(ReactActual.Fragment, null, children),
+    Theme: { Light: 'light', Dark: 'dark' },
+  };
+});
 
 jest.mock('../components/RewardsErrorBanner', () => {
   const ReactActual = jest.requireActual('react');
@@ -134,15 +145,19 @@ jest.mock('../../../../../locales/i18n', () => ({
   default: { locale: 'en-US' },
   strings: jest.fn((key: string, params?: Record<string, unknown>) => {
     if (key === 'rewards.vip.tier_thresholds' && params) {
-      return `${params.points} total`;
+      return `${params.points} points`;
     }
     if (key === 'rewards.vip.bps_value' && params) {
       return `${params.bps} bps`;
     }
     const t: Record<string, string> = {
       'rewards.vip.tiers_title': 'Tiers',
+      'rewards.vip.revenue_share_label': 'Revenue share',
+      'rewards.vip.swap_fees_label': 'Swap fees',
       'rewards.vip.swaps_label': 'Swaps',
+      'rewards.vip.perps_fees_label': 'Perps fees',
       'rewards.vip.perps_label': 'Perps',
+      'rewards.vip.referral_points_label': 'Referral points',
       'rewards.vip.error_title': 'Error',
       'rewards.vip.error_description': 'Error description',
       'rewards.vip.retry_button': 'Retry',
@@ -198,7 +213,11 @@ const dashboardWithTiers: VipDashboardState = {
     referrals: 2,
     referralsCap: 10,
   },
-  pointsAllocation: { earned: 24_400_000, max: 100_000_000, percent: 24.4 },
+  pointsAllocation: {
+    earned: 24_400_000,
+    threshold: 100_000_000,
+    percent: 24.4,
+  },
   tiers: [
     {
       id: 'default',
@@ -208,7 +227,6 @@ const dashboardWithTiers: VipDashboardState = {
       revenueShareBps: 0,
       swapsBps: 87.5,
       perpsBps: 10,
-      equityRebateBps: 0,
       referralCarryoverBps: 0,
       status: 'completed',
     },
@@ -220,26 +238,33 @@ const dashboardWithTiers: VipDashboardState = {
       revenueShareBps: 150,
       swapsBps: 15,
       perpsBps: 4,
-      equityRebateBps: 0,
       referralCarryoverBps: 2000,
       status: 'current',
     },
   ],
   localizedText: {
-    period: 'Mar 31 - Apr 30',
-    progressToNextTier: 'Subline',
+    periodTitle: 'Mar 31 - Apr 30',
     memberIdTitle: 'Member ID',
     swapsFeeTitle: 'Swaps fee',
     perpsFeeTitle: 'Perps fee',
     nextTierSwapsFeeDelta: '↓ 12 bps next tier',
     nextTierPerpsFeeDelta: '↓ 3 bps next tier',
     revenueShareTitle: 'Revenue share',
+    referralPointsTitle: 'Referral points',
     nextTierRevenueShareDelta: '↑ 2% next tier',
+    nextTierReferralPointsDelta: '↑ 20% next tier',
+    topTierDescription: 'Top tier reached',
     statsTitle: 'Volume',
-    statusMessage: 'On track',
     pointsTitle: 'Points',
-    pointsAllocationTitle: 'Earn VIP allocations',
-    pointsAllocationDescription: 'Body copy',
+    swapsVolumeTitle: 'Swaps Volume',
+    pointsFromReferralsTitle: 'Points from Referrals',
+    perpsVolumeTitle: 'Perps Volume',
+    vipReferralsTitle: 'VIP Referrals',
+    totalPointsTitle: 'Points',
+    equityLockedTitle: 'Earn VIP allocations',
+    equityLockedDescription: 'Body copy',
+    equityUnlockedTitle: 'VIP allocation unlocked',
+    equityUnlockedDescription: 'Unlocked body copy',
   },
   lastFetched: 0,
 };
@@ -281,12 +306,14 @@ describe('RewardsVipTiersView', () => {
     });
   });
 
-  it('renders one row per tier returned by the backend', () => {
-    const { getByTestId, getByText } = render(<RewardsVipTiersView />);
+  it('renders one row per VIP tier returned by the backend', () => {
+    const { getByTestId, getByText, queryByText } = render(
+      <RewardsVipTiersView />,
+    );
 
     expect(getByTestId(REWARDS_VIP_TIERS_VIEW_TEST_IDS.ROOT)).toBeOnTheScreen();
     expect(getByTestId(REWARDS_VIP_TIERS_VIEW_TEST_IDS.LIST)).toBeOnTheScreen();
-    expect(getByText('Default')).toBeOnTheScreen();
+    expect(queryByText('Default')).toBeNull();
     expect(getByText('Gold Fox 3')).toBeOnTheScreen();
     expect(getByText('Tiers')).toBeOnTheScreen();
     expect(mockUseTrackRewardsPageView).toHaveBeenCalledWith({

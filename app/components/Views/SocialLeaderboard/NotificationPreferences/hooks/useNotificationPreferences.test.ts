@@ -446,6 +446,68 @@ describe('useNotificationPreferences', () => {
       );
     });
 
+    it('keeps the optimistic overlay while a PUT is in flight even if the query data momentarily reports the pre-PUT value (no snap-back)', async () => {
+      // Simulate a stale refetch landing between the optimistic cache write
+      // and the PUT resolving: the second render of the hook receives query
+      // data that no longer matches the optimistic overlay.
+      const remoteWithMute = buildRemote({
+        socialAI: {
+          ...DEFAULT_SOCIAL_AI_PREFERENCES,
+          mutedTraderProfileIds: ['trader-x'],
+        },
+      });
+      const remoteWithoutMute = buildRemote();
+
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({ data: remoteWithoutMute }),
+      );
+
+      let resolvePut: () => void = () => undefined;
+      const putPromise = new Promise<void>((resolve) => {
+        resolvePut = resolve;
+      });
+      mockCall.mockImplementation(async (action: string) => {
+        if (action === GET_ACTION) return remoteWithoutMute;
+        if (action === PUT_ACTION) return putPromise;
+        return undefined;
+      });
+
+      const { result, rerender } = renderHook(() =>
+        useNotificationPreferences(),
+      );
+
+      act(() => {
+        result.current.toggleTraderNotification('trader-x');
+      });
+
+      expect(result.current.isTraderNotificationEnabled('trader-x')).toBe(
+        false,
+      );
+
+      mockUseQuery.mockReturnValue(
+        makeQueryResult({ data: remoteWithoutMute }),
+      );
+      rerender({});
+
+      expect(result.current.isTraderNotificationEnabled('trader-x')).toBe(
+        false,
+      );
+
+      await act(async () => {
+        resolvePut();
+        await putPromise;
+      });
+
+      mockUseQuery.mockReturnValue(makeQueryResult({ data: remoteWithMute }));
+      rerender({});
+
+      await waitFor(() => {
+        expect(result.current.isTraderNotificationEnabled('trader-x')).toBe(
+          false,
+        );
+      });
+    });
+
     it('rolls back from the optimistic cache update when the PUT fails', async () => {
       mockUseQuery.mockReturnValue(makeQueryResult({ data: buildRemote() }));
       mockCall.mockImplementation(async (action: string) => {

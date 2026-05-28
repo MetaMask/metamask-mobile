@@ -86,6 +86,9 @@ export class BrowserStackConfigBuilder {
           osVersion: device.osVersion,
           platformName,
           deviceOrientation: device.orientation,
+          projectName:
+            process.env.BROWSERSTACK_BUILD_NAME ||
+            `${projectName} ${platformName}`,
           buildName:
             process.env.BROWSERSTACK_BUILD_NAME ||
             `${projectName} ${platformName}`,

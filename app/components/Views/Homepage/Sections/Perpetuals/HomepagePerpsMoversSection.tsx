@@ -20,12 +20,16 @@ import useHomeViewedEvent, {
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import type { PerpsSectionProps } from './PerpsSectionWithProvider';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import PillScrollList from '../../../TrendingView/components/PillScrollList';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import PerpsPillItem from '../../../TrendingView/feeds/perps/PerpsPillItem';
 import {
   usePerpsFeed,
   type PerpsFeedItem,
+  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 } from '../../../TrendingView/feeds/perps/usePerpsFeed';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import CryptoMoversSkeleton from '../../../TrendingView/feeds/tokens/CryptoMoversSkeleton';
 import Routes from '../../../../../constants/navigation/Routes';
 import { usePerpsNavigationHandlers } from './hooks/usePerpsNavigationHandlers';

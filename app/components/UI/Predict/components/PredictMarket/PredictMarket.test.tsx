@@ -11,6 +11,10 @@ import PredictMarket from './';
 import PredictCryptoUpDownMarketCard from '../PredictCryptoUpDownMarketCard';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
+jest.mock('../../selectors/featureFlags', () => ({
+  selectPredictUpDownEnabledFlag: jest.fn(() => true),
+}));
+
 // Mock the sub-components
 jest.mock('../PredictMarketSingle', () => {
   const { View, Text } = jest.requireActual('react-native');
@@ -242,8 +246,13 @@ const transactionActiveAbTests: TransactionActiveAbTestEntry[] = [
 function setupPredictMarketTest(
   market: PredictMarketType,
   props: Partial<React.ComponentProps<typeof PredictMarket>> = {},
+  { upDownEnabled = true }: { upDownEnabled?: boolean } = {},
 ) {
   jest.clearAllMocks();
+  const { selectPredictUpDownEnabledFlag } = jest.requireMock(
+    '../../selectors/featureFlags',
+  );
+  selectPredictUpDownEnabledFlag.mockReturnValue(upDownEnabled);
   return renderWithProvider(<PredictMarket {...props} market={market} />, {
     state: initialState,
   });
@@ -284,6 +293,17 @@ describe('PredictMarket', () => {
     expect(getByTestId('predict-crypto-up-down-market-card')).toBeOnTheScreen();
     expect(queryByTestId('predict-market-single')).toBeNull();
     expect(queryByTestId('predict-market-multiple')).toBeNull();
+  });
+
+  it('does not render PredictCryptoUpDownMarketCard when predictUpDownEnabled flag is off', () => {
+    const { queryByTestId } = setupPredictMarketTest(
+      mockCryptoUpDownMarket,
+      {},
+      { upDownEnabled: false },
+    );
+
+    expect(queryByTestId('predict-crypto-up-down-market-card')).toBeNull();
+    expect(queryByTestId('predict-market-single')).toBeOnTheScreen();
   });
 
   it('passes transactionActiveAbTests to PredictCryptoUpDownMarketCard for crypto Up/Down markets', () => {
