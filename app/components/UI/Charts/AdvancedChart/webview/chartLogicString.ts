@@ -605,6 +605,7 @@ function handleAddIndicator(payload) {
   try {
     var chart = window.chartWidget.activeChart();
     var studyName, inputs;
+    var forceOverlay = false;
 
     switch (indicatorName) {
       case 'MACD':
@@ -615,9 +616,25 @@ function handleAddIndicator(payload) {
         studyName = 'Relative Strength Index';
         inputs = { in_0: 14 };
         break;
+      case 'MA5':
+        studyName = 'Moving Average';
+        inputs = { in_0: 5 };
+        forceOverlay = true;
+        break;
+      case 'MA10':
+        studyName = 'Moving Average';
+        inputs = { in_0: 10 };
+        forceOverlay = true;
+        break;
+      case 'MA20':
+        studyName = 'Moving Average';
+        inputs = { in_0: 20 };
+        forceOverlay = true;
+        break;
       case 'MA200':
         studyName = 'Moving Average';
         inputs = { in_0: 200 };
+        forceOverlay = true;
         break;
       default:
         studyName = indicatorName;
@@ -626,7 +643,7 @@ function handleAddIndicator(payload) {
     }
 
     chart
-      .createStudy(studyName, false, false, inputs)
+      .createStudy(studyName, forceOverlay, false, inputs)
       .then(function (studyId) {
         window.activeStudies.set(indicatorName, studyId);
         sendToReactNative('INDICATOR_ADDED', {
@@ -724,7 +741,8 @@ function getSeriesColorOverrides(color) {
  */
 function applySeriesColors() {
   if (!window.chartWidget) return;
-  const color = window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
+  const color =
+    window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
   try {
     window.chartWidget.applyOverrides(getSeriesColorOverrides(color));
     var series = window.chartWidget.activeChart().getSeries();
@@ -2257,7 +2275,8 @@ function createLineLastPriceLine() {
 
   var lastBar = window.ohlcvData[window.ohlcvData.length - 1];
   var chart = window.chartWidget.activeChart();
-  const color = window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
+  const color =
+    window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
   var seriesPt = resolveLineEndOverlayPoint(chart);
   var linePrice =
     seriesPt && isFinite(seriesPt.price) ? seriesPt.price : lastBar.close;
@@ -3039,7 +3058,8 @@ function refreshLineEndDot() {
     return;
   }
 
-  const color = window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
+  const color =
+    window.CONFIG.theme.lineColor || window.CONFIG.theme.successColor;
 
   function placeLineEndIcon() {
     if (placementGen !== window.__lineEndDotPlacementGen) {
