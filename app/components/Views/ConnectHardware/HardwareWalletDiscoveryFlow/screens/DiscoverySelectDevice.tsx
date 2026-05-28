@@ -87,7 +87,12 @@ const DiscoverySelectDeviceScreen: React.FC<
           ]}
           onStartShouldSetResponder={() => true}
         >
-          <View style={styles.dragHandle} />
+          <View
+            style={[
+              styles.dragHandle,
+              { backgroundColor: colors.border.muted },
+            ]}
+          />
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}

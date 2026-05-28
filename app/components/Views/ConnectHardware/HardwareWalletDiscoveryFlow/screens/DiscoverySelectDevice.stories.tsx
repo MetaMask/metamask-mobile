@@ -17,6 +17,7 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import type { DiscoveredDevice } from '../../../../../core/HardwareWallet/types';
 import type { DeviceUIConfig } from '../DiscoveryFlow.types';
@@ -91,10 +92,13 @@ const DiscoverySelectDeviceStory: React.FC<StoryArgs> = ({
   config,
 }) => {
   const tw = useTailwind();
+  const { colors } = useTheme();
 
   return (
     <SafeAreaView edges={['bottom']} style={styles.sheet}>
-      <View style={styles.dragHandle} />
+      <View
+        style={[styles.dragHandle, { backgroundColor: colors.border.muted }]}
+      />
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}

@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import { StyleSheet, View } from 'react-native';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { IconName } from '@metamask/design-system-react-native';
 import DiscoverySelectDeviceScreen from './DiscoverySelectDevice';
@@ -45,6 +46,32 @@ const TEST_DEVICES: DiscoveredDevice[] = [
 ];
 
 describe('DiscoverySelectDeviceScreen', () => {
+  it('renders a visible drag handle using the muted border color', () => {
+    const { UNSAFE_getAllByType } = render(
+      <DiscoverySelectDeviceScreen
+        devices={TEST_DEVICES}
+        selectedDeviceId="nano-x"
+        onSelectDevice={jest.fn()}
+        onClose={jest.fn()}
+        onSave={jest.fn()}
+        config={TEST_CONFIG}
+      />,
+    );
+
+    const dragHandle = UNSAFE_getAllByType(View).find(({ props }) => {
+      const style = StyleSheet.flatten(props.style);
+
+      return style?.width === 40 && style?.height === 4;
+    });
+
+    expect(dragHandle).toBeDefined();
+    expect(StyleSheet.flatten(dragHandle?.props.style)).toEqual(
+      expect.objectContaining({
+        backgroundColor: expect.any(String),
+      }),
+    );
+  });
+
   it('calls onSelectDevice with the tapped device', () => {
     const onSelectDevice = jest.fn();
 
