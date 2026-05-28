@@ -84,6 +84,46 @@ jest.mock('../../hooks/useUpdateFundingPriority', () => ({
 
 jest.mock('../../../../../util/Logger');
 
+jest.mock(
+  '../../../../../component-library/components/BottomSheets/BottomSheet',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+
+    const MockBottomSheet = ReactActual.forwardRef(
+      (
+        {
+          children,
+          isFullscreen,
+        }: { children: React.ReactNode; isFullscreen?: boolean },
+        ref: React.Ref<{
+          onCloseBottomSheet: (callback?: () => void) => void;
+        }>,
+      ) => {
+        ReactActual.useImperativeHandle(ref, () => ({
+          onCloseBottomSheet: (callback?: () => void) => {
+            callback?.();
+          },
+        }));
+
+        return ReactActual.createElement(
+          View,
+          {
+            accessibilityState: { expanded: Boolean(isFullscreen) },
+            testID: 'asset-selection-bottom-sheet',
+          },
+          children,
+        );
+      },
+    );
+
+    return {
+      __esModule: true,
+      default: MockBottomSheet,
+    };
+  },
+);
+
 // Create a mock tailwind function that can be called and has a style method
 const mockTw = Object.assign(
   jest.fn((className: string) => ({ className })),
@@ -98,7 +138,12 @@ const mockTw = Object.assign(
 );
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  Theme: {
+    Light: 'light',
+    Dark: 'dark',
+  },
   useTailwind: () => mockTw,
+  useTheme: () => 'light',
 }));
 
 jest.mock('react-native-gesture-handler', () => {
@@ -106,6 +151,7 @@ jest.mock('react-native-gesture-handler', () => {
   return {
     ...jest.requireActual('react-native-gesture-handler'),
     FlatList: RN.FlatList,
+    ScrollView: RN.ScrollView,
   };
 });
 
@@ -114,7 +160,9 @@ import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { CaipChainId } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';
-import AssetSelectionBottomSheet from './AssetSelectionBottomSheet';
+import AssetSelectionBottomSheet, {
+  AssetSelectionBottomSheetSelectors,
+} from './AssetSelectionBottomSheet';
 import {
   FundingStatus,
   CardFundingToken,
@@ -186,6 +234,43 @@ const createMockDelegationSettings = (): DelegationSettingsResponse => ({
     self: '/api/v1/settings',
   },
 });
+
+const createMockMultiNetworkDelegationSettings =
+  (): DelegationSettingsResponse => ({
+    networks: [
+      ...createMockDelegationSettings().networks,
+      {
+        network: 'base',
+        environment: 'production',
+        chainId: '8453',
+        delegationContract: '0xdelegation-base',
+        tokens: {
+          USDC: {
+            symbol: 'USDC',
+            decimals: 6,
+            address: '0xbase',
+          },
+        },
+      },
+      {
+        network: 'monad',
+        environment: 'production',
+        chainId: '143',
+        delegationContract: '0xdelegation-monad',
+        tokens: {
+          USDC: {
+            symbol: 'USDC',
+            decimals: 6,
+            address: '0xmonad',
+          },
+        },
+      },
+    ],
+    count: 3,
+    _links: {
+      self: '/api/v1/settings',
+    },
+  });
 
 // Helper function to setup component with useParams and useCardHomeData
 const setupComponent = (paramsOverrides: Record<string, unknown> = {}) => {
@@ -296,12 +381,53 @@ describe('AssetSelectionBottomSheet', () => {
       expect(getByText('Select token and network')).toBeOnTheScreen();
     });
 
+    it('renders fullscreen picker chrome with search, list, and network filters', () => {
+      const lineaToken = createMockToken({
+        symbol: 'USDC',
+        address: '0xlinea',
+        caipChainId: 'eip155:59144' as CaipChainId,
+      });
+      const baseToken = createMockToken({
+        symbol: 'DAI',
+        address: '0xbase',
+        caipChainId: 'eip155:8453' as CaipChainId,
+      });
+      const delegationSettings = createMockMultiNetworkDelegationSettings();
+
+      const { getByTestId, getByText } = setupComponent({
+        tokensWithAllowances: [lineaToken, baseToken],
+        delegationSettings,
+      });
+
+      expect(
+        getByTestId('asset-selection-bottom-sheet').props.accessibilityState,
+      ).toEqual({ expanded: true });
+      expect(getByText('Select token and network')).toBeOnTheScreen();
+      expect(
+        getByTestId(AssetSelectionBottomSheetSelectors.SEARCH_INPUT),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(AssetSelectionBottomSheetSelectors.SEARCH_INPUT_FIELD),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(AssetSelectionBottomSheetSelectors.NETWORK_FILTER_BAR),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(AssetSelectionBottomSheetSelectors.NETWORK_FILTER_ALL),
+      ).toBeOnTheScreen();
+      expect(getByText('All')).toBeOnTheScreen();
+      expect(getByText('USDC on Linea')).toBeOnTheScreen();
+      expect(getByText('DAI on Base')).toBeOnTheScreen();
+    });
+
     it('displays loading indicator when delegation settings is null', () => {
-      const { UNSAFE_getByType, queryByText } = setupComponent({
+      const { getByTestId, queryByText } = setupComponent({
         delegationSettings: null,
       });
 
-      expect(UNSAFE_getByType('ActivityIndicator' as never)).toBeTruthy();
+      expect(
+        getByTestId(AssetSelectionBottomSheetSelectors.LOADING),
+      ).toBeOnTheScreen();
       expect(queryByText('No tokens available')).not.toBeOnTheScreen();
     });
 
@@ -380,6 +506,79 @@ describe('AssetSelectionBottomSheet', () => {
   });
 
   describe('token filtering', () => {
+    it('derives network chips from delegation settings intersected with visible rows', () => {
+      const lineaToken = createMockToken({
+        symbol: 'USDC',
+        address: '0xlinea',
+        caipChainId: 'eip155:59144' as CaipChainId,
+      });
+      const baseToken = createMockToken({
+        symbol: 'DAI',
+        address: '0xbase',
+        caipChainId: 'eip155:8453' as CaipChainId,
+      });
+      const solanaToken = createMockToken({
+        symbol: 'SOL',
+        address: '0xsol',
+        caipChainId: SolScope.Mainnet,
+      });
+      const delegationSettings = createMockMultiNetworkDelegationSettings();
+
+      const balanceMap = new Map([
+        [
+          getAssetBalanceKey(lineaToken),
+          { rawTokenBalance: 1, balanceFiat: '$10.00', rawFiatNumber: 10 },
+        ],
+        [
+          getAssetBalanceKey(baseToken),
+          { rawTokenBalance: 1, balanceFiat: '$20.00', rawFiatNumber: 20 },
+        ],
+      ]);
+
+      const { getByTestId, queryByTestId, toJSON } = setupComponent({
+        tokensWithAllowances: [lineaToken, baseToken, solanaToken],
+        delegationSettings,
+        balanceMap,
+      });
+
+      const lineaFilterId =
+        AssetSelectionBottomSheetSelectors.getNetworkFilter('eip155:59144');
+      const baseFilterId =
+        AssetSelectionBottomSheetSelectors.getNetworkFilter('eip155:8453');
+
+      expect(getByTestId(lineaFilterId)).toBeOnTheScreen();
+      expect(getByTestId(baseFilterId)).toBeOnTheScreen();
+      expect(
+        queryByTestId(
+          AssetSelectionBottomSheetSelectors.getNetworkFilter('eip155:143'),
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(
+          AssetSelectionBottomSheetSelectors.getNetworkFilter(SolScope.Mainnet),
+        ),
+      ).not.toBeOnTheScreen();
+
+      const renderedJson = JSON.stringify(toJSON());
+      expect(renderedJson.indexOf(baseFilterId)).toBeLessThan(
+        renderedJson.indexOf(lineaFilterId),
+      );
+    });
+
+    it('hides network filters when only one eligible network remains', () => {
+      const token = createMockToken();
+      const delegationSettings = createMockDelegationSettings();
+
+      const { queryByTestId } = setupComponent({
+        tokensWithAllowances: [token],
+        delegationSettings,
+      });
+
+      expect(
+        queryByTestId(AssetSelectionBottomSheetSelectors.NETWORK_FILTER_BAR),
+      ).not.toBeOnTheScreen();
+    });
+
     it('shows Solana tokens', () => {
       const solanaToken = createMockToken({
         symbol: 'SOL',
@@ -398,6 +597,85 @@ describe('AssetSelectionBottomSheet', () => {
 
       expect(getByText(/SOL on/)).toBeOnTheScreen();
       expect(getByText(/USDC on/)).toBeOnTheScreen();
+    });
+
+    it('filters by token label, symbol, address, and Money account text', () => {
+      const usdcToken = createMockToken({
+        symbol: 'USDC',
+        address: '0xusdc',
+      });
+      const usdtToken = createMockToken({
+        symbol: 'USDT',
+        address: '0xusdt',
+      });
+      const moneyAccountToken = createMockToken({
+        symbol: 'USDC',
+        address: '0xmoney',
+        isMoneyAccountEntry: true,
+      });
+      const delegationSettings = createMockDelegationSettings();
+
+      const { getByTestId, getByText, queryByText } = setupComponent({
+        tokensWithAllowances: [usdcToken, usdtToken, moneyAccountToken],
+        delegationSettings,
+      });
+
+      const searchInput = getByTestId(
+        AssetSelectionBottomSheetSelectors.SEARCH_INPUT_FIELD,
+      );
+
+      fireEvent.changeText(searchInput, 'usdt');
+      expect(getByText('USDT on Linea')).toBeOnTheScreen();
+      expect(queryByText('USDC on Linea')).not.toBeOnTheScreen();
+
+      fireEvent.changeText(searchInput, '0xusdc');
+      expect(getByText('USDC on Linea')).toBeOnTheScreen();
+      expect(queryByText('USDT on Linea')).not.toBeOnTheScreen();
+
+      fireEvent.changeText(searchInput, 'money account');
+      expect(getByText('Money account')).toBeOnTheScreen();
+      expect(queryByText('USDC on Linea')).not.toBeOnTheScreen();
+    });
+
+    it('clears search and network filters', () => {
+      const lineaToken = createMockToken({
+        symbol: 'USDC',
+        address: '0xlinea',
+        caipChainId: 'eip155:59144' as CaipChainId,
+      });
+      const baseToken = createMockToken({
+        symbol: 'DAI',
+        address: '0xbase',
+        caipChainId: 'eip155:8453' as CaipChainId,
+      });
+      const delegationSettings = createMockMultiNetworkDelegationSettings();
+
+      const { getByTestId, getByText, queryByText } = setupComponent({
+        tokensWithAllowances: [lineaToken, baseToken],
+        delegationSettings,
+      });
+
+      fireEvent.press(
+        getByTestId(
+          AssetSelectionBottomSheetSelectors.getNetworkFilter('eip155:8453'),
+        ),
+      );
+      expect(getByText('DAI on Base')).toBeOnTheScreen();
+      expect(queryByText('USDC on Linea')).not.toBeOnTheScreen();
+
+      fireEvent.changeText(
+        getByTestId(AssetSelectionBottomSheetSelectors.SEARCH_INPUT_FIELD),
+        'nothing matches this',
+      );
+      expect(
+        getByTestId(AssetSelectionBottomSheetSelectors.EMPTY_FILTER_RESULTS),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(
+        getByTestId(AssetSelectionBottomSheetSelectors.CLEAR_FILTERS_BUTTON),
+      );
+      expect(getByText('USDC on Linea')).toBeOnTheScreen();
+      expect(getByText('DAI on Base')).toBeOnTheScreen();
     });
   });
 
@@ -1000,14 +1278,25 @@ describe('AssetSelectionBottomSheet', () => {
       expect(queryByText(/0x/)).not.toBeOnTheScreen();
     });
 
-    it('replaces the truncated hex with the Money Account label when isMoneyAccountEntry is true', () => {
+    it('renders Money account rows without network badge or token balance', () => {
       const moneyAccountToken = createMockToken({
-        symbol: 'mUSD',
+        symbol: 'USDC',
         address: '0xmusd',
         walletAddress: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
         isMoneyAccountEntry: true,
+        fundingStatus: FundingStatus.Enabled,
       });
       const delegationSettings = createMockDelegationSettings();
+      const balanceMap = new Map([
+        [
+          getAssetBalanceKey(moneyAccountToken),
+          {
+            rawTokenBalance: 42,
+            balanceFiat: '$12.34',
+            rawFiatNumber: 12.34,
+          },
+        ],
+      ]);
 
       mockSdk.getSupportedTokensByChainId.mockReturnValue([
         {
@@ -1018,12 +1307,29 @@ describe('AssetSelectionBottomSheet', () => {
         },
       ]);
 
-      const { getByText, queryByText } = setupComponent({
-        tokensWithAllowances: [moneyAccountToken],
-        delegationSettings,
-      });
+      const { getByTestId, getByText, queryByTestId, queryByText } =
+        setupComponent({
+          tokensWithAllowances: [moneyAccountToken],
+          delegationSettings,
+          balanceMap,
+        });
 
       expect(getByText('Money account')).toBeOnTheScreen();
+      expect(getByText('Enabled')).toBeOnTheScreen();
+      expect(getByText('$12.34')).toBeOnTheScreen();
+      expect(
+        getByTestId(AssetSelectionBottomSheetSelectors.MONEY_ACCOUNT_ICON),
+      ).toBeOnTheScreen();
+      expect(queryByText('42.000000 mUSD')).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(
+          AssetSelectionBottomSheetSelectors.getAssetNetworkBadge(
+            moneyAccountToken.symbol,
+            moneyAccountToken.caipChainId,
+          ),
+        ),
+      ).not.toBeOnTheScreen();
+      expect(queryByText('mUSD')).not.toBeOnTheScreen();
       expect(queryByText(/0xaa\.\.\./)).not.toBeOnTheScreen();
     });
 
@@ -1168,7 +1474,7 @@ describe('AssetSelectionBottomSheet', () => {
   });
 
   describe('priority token highlighting', () => {
-    it('highlights priority token with border', () => {
+    it('marks the priority token as selected', () => {
       const token = createMockToken({
         symbol: 'EURe',
         address: '0xeure',
@@ -1194,7 +1500,9 @@ describe('AssetSelectionBottomSheet', () => {
       const tokenItem = getByTestId(
         `asset-select-item-EURe-${token.caipChainId}`,
       );
-      expect(tokenItem).toBeTruthy();
+      expect(tokenItem.props.accessibilityState).toEqual({
+        selected: true,
+      });
     });
   });
 });

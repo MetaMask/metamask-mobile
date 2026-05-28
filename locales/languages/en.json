@@ -8388,8 +8388,11 @@
     "select_asset": "Select token and network",
     "search_tokens": "Search tokens",
     "no_tokens_found": "No tokens found",
+    "clear_filters": "Clear filters",
     "no_tokens_available": "No tokens available",
     "asset_selection": {
+      "all": "All",
+      "all_networks": "All networks",
       "enabled": "Enabled",
       "limited": "Limited",
       "not_enabled": "Not enabled",
