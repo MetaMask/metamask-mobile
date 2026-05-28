@@ -117,6 +117,10 @@ jest.mock('@reown/walletkit', () => {
 });
 
 jest.mock('../Engine', () => ({
+  controllerMessenger: {
+    subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
+  },
   context: {
     AccountsController: {
       getSelectedAccount: jest.fn().mockReturnValue({
