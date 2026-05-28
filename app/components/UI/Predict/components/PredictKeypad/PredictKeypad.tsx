@@ -8,12 +8,12 @@ import Button, {
 import Keypad from '../../../../Base/Keypad';
 
 interface PredictKeypadProps {
-  isInputFocused: boolean;
+  isKeypadOpen: boolean;
   currentValue: number;
   currentValueUSDString: string;
   setCurrentValue: (value: number) => void;
   setCurrentValueUSDString: (value: string) => void;
-  setIsInputFocused: (focused: boolean) => void;
+  setIsKeypadOpen: (open: boolean) => void;
   hideHeader?: boolean;
 }
 
@@ -26,12 +26,12 @@ export interface PredictKeypadHandles {
 const PredictKeypad = forwardRef<PredictKeypadHandles, PredictKeypadProps>(
   (
     {
-      isInputFocused,
+      isKeypadOpen,
       currentValue,
       currentValueUSDString,
       setCurrentValue,
       setCurrentValueUSDString,
-      setIsInputFocused,
+      setIsKeypadOpen,
       hideHeader = false,
     },
     ref,
@@ -39,8 +39,8 @@ const PredictKeypad = forwardRef<PredictKeypadHandles, PredictKeypadProps>(
     const tw = useTailwind();
 
     const handleAmountPress = useCallback(() => {
-      setIsInputFocused(true);
-    }, [setIsInputFocused]);
+      setIsKeypadOpen(true);
+    }, [setIsKeypadOpen]);
 
     const handleKeypadAmountPress = useCallback(
       (amount: number) => {
@@ -58,9 +58,9 @@ const PredictKeypad = forwardRef<PredictKeypadHandles, PredictKeypadProps>(
         setCurrentValueUSDString(cleanedValue);
         setCurrentValue(parseFloat(cleanedValue) || 0);
       }
-      setIsInputFocused(false);
+      setIsKeypadOpen(false);
     }, [
-      setIsInputFocused,
+      setIsKeypadOpen,
       currentValueUSDString,
       setCurrentValueUSDString,
       setCurrentValue,
@@ -93,9 +93,9 @@ const PredictKeypad = forwardRef<PredictKeypadHandles, PredictKeypadProps>(
           adjustedValue = value.replace('.', '');
         }
 
-        // Set focus flag immediately
-        if (!isInputFocused) {
-          setIsInputFocused(true);
+        // Open the keypad immediately on any keystroke
+        if (!isKeypadOpen) {
+          setIsKeypadOpen(true);
         }
 
         // Enforce 9-digit limit (ignoring non-digits). Block the change if exceeded.
@@ -129,14 +129,14 @@ const PredictKeypad = forwardRef<PredictKeypadHandles, PredictKeypadProps>(
       },
       [
         currentValue,
-        isInputFocused,
+        isKeypadOpen,
         setCurrentValue,
         setCurrentValueUSDString,
-        setIsInputFocused,
+        setIsKeypadOpen,
       ],
     );
 
-    if (!isInputFocused) return null;
+    if (!isKeypadOpen) return null;
 
     return (
       <View style={tw.style('py-4')}>

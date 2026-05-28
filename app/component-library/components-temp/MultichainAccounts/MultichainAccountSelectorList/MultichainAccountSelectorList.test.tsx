@@ -48,6 +48,7 @@ import {
   createMockInternalAccountsWithAddresses,
 } from '../test-utils';
 import { AccountCellIds } from '../AccountCell/AccountCell.testIds';
+import { ACCOUNT_LIST_CELL_CHECKBOX_ICON_TEST_ID } from './AccountListCell/AccountListCell.testIds';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -526,8 +527,7 @@ describe('MultichainAccountSelectorList', () => {
       );
     });
 
-    // eslint-disable-next-line jest/no-disabled-tests
-    it.skip('filters across multiple wallets', async () => {
+    it('filters across multiple wallets', async () => {
       const account1 = createMockAccountGroup(
         'keyring:wallet1/group1',
         'Account 1',
@@ -1287,7 +1287,9 @@ describe('MultichainAccountSelectorList', () => {
       expect(account2Checkboxes.length).toEqual(1); // Only container (unselected account, no icon rendered)
 
       // Check that there are no checked checkbox icons (since none are selected)
-      expect(queryByTestId('checkbox-icon-component')).toBeFalsy();
+      expect(
+        queryByTestId(ACCOUNT_LIST_CELL_CHECKBOX_ICON_TEST_ID),
+      ).toBeFalsy();
     });
 
     it('calls onSelectAccount when checkbox is pressed', () => {

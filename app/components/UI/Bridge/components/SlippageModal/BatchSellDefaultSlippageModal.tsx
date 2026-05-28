@@ -9,7 +9,7 @@ import {
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { DefaultSlippageModalContent } from './DefaultSlippageModal';
 import { BatchSellSlippageModalParams } from './types';
-import { getBatchSellInitialSlippage } from './utils';
+import { getBatchSellSlippage } from './utils';
 
 export const BatchSellDefaultSlippageModal = () => {
   const navigation = useNavigation();
@@ -17,7 +17,7 @@ export const BatchSellDefaultSlippageModal = () => {
   const batchSellSlippages = useSelector(selectBatchSellSlippages);
   const { sourceChainId, destChainId, batchSellAssetId } =
     useParams<BatchSellSlippageModalParams>();
-  const initialSlippage = getBatchSellInitialSlippage(
+  const initialSlippage = getBatchSellSlippage(
     batchSellSlippages,
     batchSellAssetId,
   );

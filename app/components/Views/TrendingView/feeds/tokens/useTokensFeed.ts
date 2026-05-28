@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useRef, useEffect } from 'react';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { useTrendingSearch } from '../../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 import { useFeedRefresh } from '../../hooks/useFeedRefresh';
@@ -23,6 +23,7 @@ export interface UseTokensFeedResult {
   loadMore?: () => void;
   isLoadingMore?: boolean;
   hasMore?: boolean;
+  totalCount?: number;
 }
 
 /** Trending tokens feed; same source for the home list, "crypto movers" pills, and search. */
@@ -31,25 +32,62 @@ export const useTokensFeed = ({
   refresh,
   hideRiskyTokens = false,
 }: UseTokensFeedOptions = {}): UseTokensFeedResult => {
-  const { data, isLoading, refetch, loadMore, isLoadingMore, hasNextPage } =
-    useTrendingSearch({
-      searchQuery: query,
-      enableDebounce: false,
-    });
+  const {
+    data,
+    isLoading,
+    refetch,
+    loadMore,
+    isLoadingMore,
+    hasNextPage,
+    totalCount,
+  } = useTrendingSearch({
+    searchQuery: query,
+    enableDebounce: false,
+  });
 
   useFeedRefresh(refresh, refetch);
 
+  /**
+   * firstPageSizeRef records how many items were in the first page response so
+   * that subsequent pages can be appended without resorting. A single effect
+   * handles both concerns: reset on query change (and bail out immediately so
+   * a stale data.length is never captured on the same render), then capture the
+   * boundary once the initial load settles.
+   */
+  const firstPageSizeRef = useRef<number | null>(null);
+  const prevQueryRef = useRef(query);
+
+  useEffect(() => {
+    if (prevQueryRef.current !== query) {
+      firstPageSizeRef.current = null;
+      prevQueryRef.current = query;
+      return;
+    }
+    if (!isLoading && !isLoadingMore && firstPageSizeRef.current === null) {
+      firstPageSizeRef.current = data.length;
+    }
+  }, [query, isLoading, isLoadingMore, data.length]);
+
   const filteredData = useMemo(() => {
-    // Skip Fuse when a query is active: useTrendingSearch already merges API
-    // search results, and re-filtering would silently drop paginated items.
-    const searched = query?.trim()
-      ? data.sort((a, b) => (b.marketCap ?? 0) - (a.marketCap ?? 0))
-      : fuseSearch(
-          data,
-          query,
-          TOKEN_FUSE_OPTIONS,
-          (a, b) => (b.marketCap ?? 0) - (a.marketCap ?? 0),
-        );
+    let searched: TrendingAsset[];
+
+    if (query?.trim()) {
+      // Sort only the first-page slice; subsequent pages are appended as-is so
+      // that pagination order is preserved rather than interleaved by market cap.
+      const boundary = firstPageSizeRef.current ?? data.length;
+      const firstPage = data
+        .slice(0, boundary)
+        .sort((a, b) => (b.marketCap ?? 0) - (a.marketCap ?? 0));
+      const rest = data.slice(boundary);
+      searched = [...firstPage, ...rest];
+    } else {
+      searched = fuseSearch(
+        data,
+        query,
+        TOKEN_FUSE_OPTIONS,
+        (a, b) => (b.marketCap ?? 0) - (a.marketCap ?? 0),
+      );
+    }
 
     if (!hideRiskyTokens) return searched;
 
@@ -59,6 +97,9 @@ export const useTokensFeed = ({
         !resultType || resultType === 'Verified' || resultType === 'Benign'
       );
     });
+    // firstPageSizeRef is a ref — intentionally excluded from deps so that
+    // boundary captures the snapshot set by the effect, not a stale closure.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, query, hideRiskyTokens]);
 
   return {
@@ -68,5 +109,6 @@ export const useTokensFeed = ({
     loadMore: query ? loadMore : undefined,
     isLoadingMore: query ? isLoadingMore : undefined,
     hasMore: query ? hasNextPage : undefined,
+    totalCount: query ? totalCount : undefined,
   };
 };

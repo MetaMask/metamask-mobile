@@ -93,6 +93,7 @@ describe('PerpsOrderTransactionView', () => {
     });
     mockUsePerpsOrderFees.mockReturnValue({
       totalFee: 10.5,
+      undiscountedTotalFee: 10.5,
       protocolFee: 7.5,
       metamaskFee: 3,
       protocolFeeRate: 0.1,
@@ -165,6 +166,7 @@ describe('PerpsOrderTransactionView', () => {
   it('shows exact fee values for fees less than 0.01', () => {
     mockUsePerpsOrderFees.mockReturnValue({
       totalFee: 0.005,
+      undiscountedTotalFee: 0.005,
       protocolFee: 0.003,
       metamaskFee: 0.002,
       protocolFeeRate: 0.1,
@@ -185,6 +187,7 @@ describe('PerpsOrderTransactionView', () => {
   it('formats fees normally when they are exactly 0.01', () => {
     mockUsePerpsOrderFees.mockReturnValue({
       totalFee: 0.03,
+      undiscountedTotalFee: 0.03,
       protocolFee: 0.01,
       metamaskFee: 0.01,
       protocolFeeRate: 0.1,
@@ -208,6 +211,7 @@ describe('PerpsOrderTransactionView', () => {
   it('formats fees with exact values regardless of size', () => {
     mockUsePerpsOrderFees.mockReturnValue({
       totalFee: 0.015,
+      undiscountedTotalFee: 0.015,
       protocolFee: 0.012,
       metamaskFee: 0.003,
       protocolFeeRate: 0.1,
@@ -228,6 +232,7 @@ describe('PerpsOrderTransactionView', () => {
   it('handles mixed small and large fees correctly with exact values', () => {
     mockUsePerpsOrderFees.mockReturnValue({
       totalFee: 0.025,
+      undiscountedTotalFee: 0.025,
       protocolFee: 0.02,
       metamaskFee: 0.005,
       protocolFeeRate: 0.1,
@@ -248,6 +253,7 @@ describe('PerpsOrderTransactionView', () => {
   it('handles edge case: fee just below 0.01 threshold with exact values', () => {
     mockUsePerpsOrderFees.mockReturnValue({
       totalFee: 0.029,
+      undiscountedTotalFee: 0.029,
       protocolFee: 0.0099,
       metamaskFee: 0.0099,
       protocolFeeRate: 0.1,
@@ -272,6 +278,7 @@ describe('PerpsOrderTransactionView', () => {
   it('handles edge case: fee just above 0.01 threshold with exact values', () => {
     mockUsePerpsOrderFees.mockReturnValue({
       totalFee: 0.0201,
+      undiscountedTotalFee: 0.0201,
       protocolFee: 0.0101,
       metamaskFee: 0.01,
       protocolFeeRate: 0.1,
@@ -292,6 +299,7 @@ describe('PerpsOrderTransactionView', () => {
   it('shows exact values for all fees when all are below 0.01', () => {
     mockUsePerpsOrderFees.mockReturnValue({
       totalFee: 0.008,
+      undiscountedTotalFee: 0.008,
       protocolFee: 0.005,
       metamaskFee: 0.003,
       protocolFeeRate: 0.1,

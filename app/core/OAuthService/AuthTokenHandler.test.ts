@@ -34,7 +34,37 @@ jest.mock('../../util/device', () => ({
 }));
 
 jest.mock('./OAuthLoginHandlers/constants', () => ({
+  AuthConnectionConfig: {
+    android: {
+      apple: {
+        authConnectionId: 'mm-apple-test-android',
+      },
+      google: {
+        authConnectionId: 'mm-google-test-android',
+      },
+      telegram: {
+        authConnectionId: 'mm-telegram-test-android',
+        clientId: 'telegram-client-id-android',
+      },
+    },
+    ios: {
+      apple: {
+        authConnectionId: 'mm-apple-test-ios',
+      },
+      google: {
+        authConnectionId: 'mm-google-test-ios',
+      },
+      telegram: {
+        authConnectionId: 'mm-telegram-test-ios',
+        clientId: 'telegram-client-id-ios',
+      },
+    },
+  },
   IosGID: 'mock-ios-google-client-id',
+  SupportedPlatforms: {
+    Android: 'android',
+    IOS: 'ios',
+  },
 }));
 
 jest.mock('react-native', () => {
@@ -50,6 +80,9 @@ jest.mock('react-native', () => {
 const mockPlatform = Platform;
 
 const mockServerUrl = 'https://test-auth-server.com';
+const expectedCreateLoginHandlerOptions = {
+  telegramLoginEnabled: true,
+};
 
 describe('AuthTokenHandler', () => {
   const mockLoginHandler = {
@@ -106,6 +139,8 @@ describe('AuthTokenHandler', () => {
       expect(mockCreateLoginHandler).toHaveBeenCalledWith(
         Platform.OS,
         mockConnection,
+        false,
+        expectedCreateLoginHandlerOptions,
       );
       expect(fetchSpy).toHaveBeenCalledWith(
         `${mockServerUrl}${AUTH_SERVER_TOKEN_PATH}`,
@@ -153,6 +188,8 @@ describe('AuthTokenHandler', () => {
       expect(mockCreateLoginHandler).toHaveBeenCalledWith(
         Platform.OS,
         AuthConnection.Apple,
+        false,
+        expectedCreateLoginHandlerOptions,
       );
       expect(result.idTokens).toEqual(['apple-id-token']);
     });
@@ -304,6 +341,65 @@ describe('AuthTokenHandler', () => {
 
       expect(fetchSpy).not.toHaveBeenCalled();
     });
+
+    it('uses the Android Telegram client id for Telegram refresh requests', async () => {
+      fetchSpy.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValueOnce({
+          id_token: 'new-id-token',
+          access_token: 'new-access-token',
+          metadata_access_token: 'new-metadata-access-token',
+        }),
+      });
+
+      await AuthTokenHandler.refreshJWTToken({
+        connection: AuthConnection.Telegram,
+        refreshToken: mockRefreshToken,
+      });
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        `${mockServerUrl}${AUTH_SERVER_TOKEN_PATH}`,
+        expect.objectContaining({
+          body: JSON.stringify({
+            client_id: 'telegram-client-id-android',
+            login_provider: AuthConnection.Telegram,
+            network: 'test-network',
+            refresh_token: mockRefreshToken,
+            grant_type: 'refresh_token',
+          }),
+        }),
+      );
+    });
+
+    it('uses the iOS Telegram client id for Telegram refresh requests', async () => {
+      fetchSpy.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValueOnce({
+          id_token: 'new-id-token',
+          access_token: 'new-access-token',
+          metadata_access_token: 'new-metadata-access-token',
+        }),
+      });
+      mockDeviceIsIos.mockReturnValue(true);
+
+      await AuthTokenHandler.refreshJWTToken({
+        connection: AuthConnection.Telegram,
+        refreshToken: mockRefreshToken,
+      });
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        `${mockServerUrl}${AUTH_SERVER_TOKEN_PATH}`,
+        expect.objectContaining({
+          body: JSON.stringify({
+            client_id: 'telegram-client-id-ios',
+            login_provider: AuthConnection.Telegram,
+            network: 'test-network',
+            refresh_token: mockRefreshToken,
+            grant_type: 'refresh_token',
+          }),
+        }),
+      );
+    });
   });
 
   describe('renewRefreshToken', () => {
@@ -332,6 +428,8 @@ describe('AuthTokenHandler', () => {
       expect(mockCreateLoginHandler).toHaveBeenCalledWith(
         Platform.OS,
         mockConnection,
+        false,
+        expectedCreateLoginHandlerOptions,
       );
       expect(fetchSpy).toHaveBeenCalledWith(
         `${mockServerUrl}${AUTH_SERVER_RENEW_PATH}`,
@@ -373,6 +471,8 @@ describe('AuthTokenHandler', () => {
       expect(mockCreateLoginHandler).toHaveBeenCalledWith(
         Platform.OS,
         AuthConnection.Apple,
+        false,
+        expectedCreateLoginHandlerOptions,
       );
       expect(result.newRefreshToken).toBe('apple-refresh-token');
     });
@@ -451,6 +551,8 @@ describe('AuthTokenHandler', () => {
       expect(mockCreateLoginHandler).toHaveBeenCalledWith(
         Platform.OS,
         mockConnection,
+        false,
+        expectedCreateLoginHandlerOptions,
       );
       expect(fetchSpy).toHaveBeenCalledWith(
         `${mockServerUrl}${AUTH_SERVER_REVOKE_PATH}`,
@@ -483,6 +585,8 @@ describe('AuthTokenHandler', () => {
       expect(mockCreateLoginHandler).toHaveBeenCalledWith(
         Platform.OS,
         AuthConnection.Apple,
+        false,
+        expectedCreateLoginHandlerOptions,
       );
       expect(result).toBeUndefined();
     });
@@ -599,6 +703,8 @@ describe('AuthTokenHandler', () => {
       expect(mockCreateLoginHandler).toHaveBeenCalledWith(
         'android',
         AuthConnection.Google,
+        false,
+        expectedCreateLoginHandlerOptions,
       );
       expect(result.idTokens).toEqual(['android-id-token']);
     });
@@ -645,11 +751,15 @@ describe('AuthTokenHandler', () => {
         1,
         Platform.OS,
         AuthConnection.Google,
+        false,
+        expectedCreateLoginHandlerOptions,
       );
       expect(mockCreateLoginHandler).toHaveBeenNthCalledWith(
         2,
         Platform.OS,
         AuthConnection.Apple,
+        false,
+        expectedCreateLoginHandlerOptions,
       );
     });
   });

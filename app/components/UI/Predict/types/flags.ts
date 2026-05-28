@@ -37,7 +37,11 @@ export interface PredictWorldCupConfig extends VersionGatedFeatureFlag {
   seriesId: string;
   tagSlug: string;
   gamesTagId: string;
-  bannerImageUrl?: string;
+  bannerImage?: {
+    url: string;
+    width: number;
+    height: number;
+  };
   stages: PredictWorldCupStageConfig[];
 }
 
@@ -49,7 +53,9 @@ export interface PredictFeatureFlags {
   fakOrdersEnabled: boolean;
   predictWithAnyTokenEnabled: boolean;
   predictUpDownEnabled: boolean;
+  predictHomepageDiscoveryNbaChampionEnabled: boolean;
   predictWorldCup: PredictWorldCupConfig;
+  predictPortfolioEnabled: boolean;
 }
 
 export interface PredictHotTabFlag extends VersionGatedFeatureFlag {

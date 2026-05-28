@@ -83,30 +83,50 @@ let _runId = null;
 let _artifactList = null;
 
 /**
- * Fetches the ID of the latest successful CI workflow run on `main`.
+ * Fetches the ID of the latest successful CI workflow run on `main` triggered
+ * by a `push` (merge-queue merge) or `schedule` event.
+ *
+ * These two event types always upload artifacts to standard GitHub storage.
+ * `workflow_dispatch` runs with runner_provider=namespace upload to Namespace's
+ * own storage instead, which is invisible to the standard GitHub artifacts API
+ * and would cause all artifact-based metrics to silently drop from the output.
+ * `workflow_call` runs are PR shadow runs — also not useful here.
+ *
+ * The GitHub API only supports a single `event` filter per request, so both
+ * event types are fetched in parallel and the most recently created run wins.
  *
  * @returns {Promise<string>}
  */
 async function getLatestCiRunId() {
-  const url = `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?branch=main&status=success&per_page=1`;
-  const res = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${GITHUB_TOKEN}`,
-      Accept: 'application/vnd.github+json',
-    },
-  });
+  const headers = {
+    Authorization: `Bearer ${GITHUB_TOKEN}`,
+    Accept: 'application/vnd.github+json',
+  };
 
-  if (!res.ok) {
-    throw new Error(`Failed to fetch CI workflow runs: ${res.status} ${res.statusText}`);
-  }
+  const fetchLatestForEvent = async (event) => {
+    const url = `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?branch=main&status=success&event=${event}&per_page=1`;
+    const res = await fetch(url, { headers });
+    if (!res.ok) {
+      throw new Error(`Failed to fetch CI workflow runs (event=${event}): ${res.status} ${res.statusText}`);
+    }
+    const data = await res.json();
+    return data.workflow_runs?.[0] ?? null;
+  };
 
-  const data = await res.json();
-  const run = data.workflow_runs?.[0];
+  const [pushRun, scheduleRun] = await Promise.all([
+    fetchLatestForEvent('push'),
+    fetchLatestForEvent('schedule'),
+  ]);
+
+  const run = [pushRun, scheduleRun]
+    .filter(Boolean)
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
+
   if (!run) {
-    throw new Error('No successful CI workflow runs found on main');
+    throw new Error('No successful CI workflow runs found on main (push or schedule)');
   }
 
-  console.log(`[run] Using latest successful ci run #${run.run_number} (id=${run.id}, ${run.created_at})`);
+  console.log(`[run] Using latest successful ci run #${run.run_number} (id=${run.id}, event=${run.event}, ${run.created_at})`);
   return String(run.id);
 }
 

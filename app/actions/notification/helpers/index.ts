@@ -1,5 +1,8 @@
 import EventEmitter2 from 'eventemitter2';
-import type { MarkAsReadNotificationsParam } from '@metamask/notification-services-controller/notification-services';
+import type {
+  MarkAsReadNotificationsParam,
+  NotificationServicesControllerEnableNotificationsOptions,
+} from '@metamask/notification-services-controller/notification-services';
 import Engine from '../../../core/Engine';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 
@@ -38,9 +41,25 @@ export const assertIsFeatureEnabled = () => {
  * - This is used during onboarding and for the notifications settings toggle
  * - Enables wallet notifications, feature announcements, and push notifications
  */
-export const enableNotifications = async () => {
+export const enableNotifications = async (
+  options?: NotificationServicesControllerEnableNotificationsOptions,
+) => {
   assertIsFeatureEnabled();
-  await Engine.context.NotificationServicesController.enableMetamaskNotifications();
+  await Engine.context.NotificationServicesController.enableMetamaskNotifications(
+    options,
+  );
+};
+
+/**
+ * Checks whether the authenticated user storage already has notification preferences.
+ * A missing AUS row is returned as `null` by the service.
+ */
+export const hasNotificationPreferences = async () => {
+  assertIsFeatureEnabled();
+  const preferences = await Engine.controllerMessenger.call(
+    'AuthenticatedUserStorageService:getNotificationPreferences',
+  );
+  return preferences != null;
 };
 
 /**
@@ -146,16 +165,4 @@ export const markNotificationsAsRead = async (
   await Engine.context.NotificationServicesController.markMetamaskNotificationsAsRead(
     notifications,
   );
-};
-
-/**
- * Developer options/User toggle to reset notifications
- * (in case their UserStorage or notifications become corrupt)
- * @throws if there is an error resetting notifications
- */
-export const resetNotifications = async () => {
-  assertIsFeatureEnabled();
-  await Engine.context.NotificationServicesController.createOnChainTriggers({
-    resetNotifications: true,
-  });
 };

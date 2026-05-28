@@ -285,6 +285,26 @@ describe('handlePredictUrl', () => {
       });
     });
 
+    it('preserves utm_source attribution for World Cup feed links', async () => {
+      jest.mocked(selectPredictWorldCupConfig).mockReturnValue({
+        ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
+        enabled: true,
+        showWorldCupScreen: true,
+      });
+
+      await handlePredictUrl({
+        predictPath: '?feed=world-cup&utm_source=twitter&tab=live',
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.WORLD_CUP,
+        params: {
+          entryPoint: 'deeplink_twitter',
+          initialTab: 'live',
+        },
+      });
+    });
+
     it('passes a valid configured stage tab to the World Cup screen', async () => {
       jest.mocked(selectPredictWorldCupConfig).mockReturnValue({
         ...DEFAULT_PREDICT_WORLD_CUP_FLAG,

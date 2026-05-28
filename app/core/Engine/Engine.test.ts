@@ -164,6 +164,31 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('MoneyAccountController');
   });
 
+  it('hydrates address poisoning known recipients from persisted address book state', () => {
+    const knownAddress = '0x111122223333444455556666777788889999aaaa';
+    const candidateAddress = '0x1111ffffffffffffffffffffffffffffffffaaaa';
+
+    const engine = Engine.init(TEST_ANALYTICS_ID, {
+      AddressBookController: {
+        addressBook: {
+          '0x1': {
+            [knownAddress]: {
+              address: knownAddress,
+              chainId: '0x1',
+              isEns: false,
+              memo: '',
+              name: 'Known recipient',
+            },
+          },
+        },
+      },
+    });
+
+    expect(
+      engine.context.PhishingController.checkAddressPoisoning(candidateAddress),
+    ).toEqual([expect.objectContaining({ knownAddress })]);
+  });
+
   it('calling Engine.init twice returns the same instance', () => {
     const engine = Engine.init(TEST_ANALYTICS_ID, {});
     const newEngine = Engine.init(TEST_ANALYTICS_ID, {});

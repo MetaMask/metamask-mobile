@@ -9,7 +9,13 @@ import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModa
 import SignModal from '../../page-objects/MMConnect/SignModal';
 import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
-import { DappServer, DappVariants, TestDapps, sleep } from '../../framework';
+import {
+  DappServer,
+  DappVariants,
+  PlaywrightGestures,
+  TestDapps,
+  sleep,
+} from '../../framework';
 import {
   getDappUrlForBrowser,
   setupAdbReverse,
@@ -25,7 +31,6 @@ import {
   switchToMobileBrowser,
 } from '../../flows/native-browser.flow';
 import PlaywrightUtilities from '../../framework/PlaywrightUtilities';
-import { APP_PACKAGE_IDS } from '../../framework/Constants';
 
 const DAPP_PORT = 8090;
 
@@ -133,9 +138,7 @@ test.describe(Performance, () => {
       // Wait here to make sure UI is visible before attempted interaction
       await sleep(1000);
       // We're only using Android for now
-      await PlaywrightUtilities.launchApp({
-        packageName: APP_PACKAGE_IDS.ANDROID,
-      });
+      await PlaywrightGestures.activateApp(currentDeviceDetails);
       await unlockIfLockScreenVisible();
 
       // Change selected account to Account 3 in MetaMask

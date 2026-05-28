@@ -44,6 +44,7 @@ const arrangeMocks = (options?: {
     loadMore: jest.fn(),
     isLoadingMore: false,
     hasNextPage: false,
+    totalCount: undefined,
   });
   mockSortTrendingTokens.mockImplementation((tokens) => tokens);
 };
