@@ -5,10 +5,7 @@ import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { PerpsMarketData } from '@metamask/perps-controller';
 import type { PredictMarket as PredictMarketType } from '../../../UI/Predict/types';
 import type { SiteData } from '../../../UI/Sites/components/SiteRowItem/SiteRowItem';
-import SearchFeedRow, {
-  SearchFeedSkeleton,
-  CryptoMoversFeedSearchRow,
-} from './SearchFeedRow';
+import SearchFeedRow, { SearchFeedSkeleton } from './SearchFeedRow';
 import { trackExploreSearchEvent } from './analytics';
 
 const MockPressable = Pressable;
@@ -212,16 +209,5 @@ describe('SearchFeedSkeleton', () => {
 
     rerender(<SearchFeedSkeleton feedId="perps" />);
     expect(getByTestId('stub-trending-token-skeleton')).toBeTruthy();
-  });
-});
-
-describe('CryptoMoversFeedSearchRow', () => {
-  it('renders CryptoMoversSearchRowItem with token and index', () => {
-    const token = { assetId: 'btc', symbol: 'BTC' } as TrendingAsset;
-    const { getByTestId } = render(
-      <CryptoMoversFeedSearchRow token={token} index={2} />,
-    );
-
-    expect(getByTestId('stub-crypto-movers-search').props.children).toBe('btc');
   });
 });

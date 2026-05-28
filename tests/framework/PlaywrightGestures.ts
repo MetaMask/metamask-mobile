@@ -157,8 +157,9 @@ export default class PlaywrightGestures {
     },
   ): Promise<void> {
     const {
-      delay = 0,
       timeout = 10000,
+      delay = 500,
+      timeout,
       checkForDisplayed = true,
       checkForEnabled = false,
       waitForInteractive = false,

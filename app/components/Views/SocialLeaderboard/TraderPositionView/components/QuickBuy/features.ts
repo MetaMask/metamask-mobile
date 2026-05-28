@@ -5,7 +5,7 @@ export const TOP_TRADERS_QUICK_BUY_FEATURES: QuickBuyFeatures = {
   tradeModes: ['buy'],
   quoteDetails: false,
   selectQuote: false,
-  payWithSheet: false,
+  payWithSheet: true,
   highPriceImpactModal: false,
   fiatCryptoToggle: true,
 };

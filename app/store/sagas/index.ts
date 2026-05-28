@@ -53,6 +53,7 @@ import {
   watchMarketingAttributionOnClearOnboarding,
   watchMarketingAttributionOnConsentChange,
 } from './marketingAttribution';
+import { getDevAutoUnlockPassword } from '../../util/environment';
 
 /**
  * Safety ceiling: if `MainNavigator` never mounts (e.g. the user stays on
@@ -251,6 +252,17 @@ export function* appLockStateMachine() {
  */
 export function* requestAuthOnAppStart() {
   try {
+    const devAutoUnlockPassword = getDevAutoUnlockPassword();
+    if (devAutoUnlockPassword) {
+      const { KeyringController } = Engine.context;
+      if (!KeyringController.isUnlocked() && KeyringController.state?.vault) {
+        yield call(Authentication.unlockWallet, {
+          password: devAutoUnlockPassword,
+        });
+        return;
+      }
+    }
+
     yield call(tryBiometricUnlock);
   } catch (_) {
     // If authentication fails, navigate to login screen

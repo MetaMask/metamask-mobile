@@ -106,6 +106,9 @@ jest.mock('../../app/core/Engine', () => {
           supportsCashback: true,
         }),
       },
+      PhishingController: {
+        checkAddressPoisoning: jest.fn().mockReturnValue([]),
+      },
       TokensController: {
         addTokens() {
           return undefined;

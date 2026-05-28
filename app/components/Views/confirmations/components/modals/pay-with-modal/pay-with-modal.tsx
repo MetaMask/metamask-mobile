@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { Hex } from '@metamask/utils';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import Engine from '../../../../../../core/Engine';
@@ -22,11 +22,7 @@ import {
   useTransactionPayFiatPayment,
   useTransactionPayRequiredTokens,
 } from '../../../hooks/pay/useTransactionPayData';
-import { useFiatPaymentHighlightedActions } from '../../../hooks/pay/useFiatPaymentHighlightedActions';
-import {
-  getAvailableTokens,
-  isPayWithBottomSheetEnabled,
-} from '../../../utils/transaction-pay';
+import { getAvailableTokens } from '../../../utils/transaction-pay';
 import { useTransactionPayBlockedTokens } from '../../../hooks/pay/useTransactionPayBlockedTokens';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { TransactionType } from '@metamask/transaction-controller';
@@ -67,11 +63,6 @@ export function PayWithModal() {
   const { isWithdraw } = useTransactionPayWithdraw();
   const requiredTokens = useTransactionPayRequiredTokens();
   const fiatPayment = useTransactionPayFiatPayment();
-  const fiatHighlightedActions = useFiatPaymentHighlightedActions();
-  const effectiveFiatHighlightedActions = useMemo(
-    () => (isPayWithBottomSheetEnabled() ? [] : fiatHighlightedActions),
-    [fiatHighlightedActions],
-  );
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const { filterAllowedTokens: musdTokenFilter } = useMusdConversionTokens();
   const { onPaymentTokenChange: onMusdPaymentTokenChange } =
@@ -236,16 +227,10 @@ export function PayWithModal() {
         filteredTokens = predictBalanceTokenFilter(availableTokens);
       }
 
-      const wrappedTokens = wrapHighlightedItemCallbacks(filteredTokens);
-      const wrappedFiatActions = wrapHighlightedItemCallbacks(
-        effectiveFiatHighlightedActions,
-      );
-
-      return [...wrappedFiatActions, ...wrappedTokens];
+      return wrapHighlightedItemCallbacks(filteredTokens);
     },
     [
       blockedTokens,
-      effectiveFiatHighlightedActions,
       fiatPayment,
       withdrawTokenFilter,
       musdTokenFilter,
