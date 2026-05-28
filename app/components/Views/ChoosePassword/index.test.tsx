@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, act, fireEvent, waitFor } from '@testing-library/react-native';
+import { CommonActions } from '@react-navigation/native';
 import configureMockStore from 'redux-mock-store';
 import {
   ONBOARDING,
@@ -212,6 +213,7 @@ const mockNavigation = {
   replace: jest.fn(),
   setParams: jest.fn(),
   reset: jest.fn(),
+  dispatch: jest.fn(),
 };
 
 const mockRoute: {
@@ -664,7 +666,7 @@ describe('ChoosePassword', () => {
       mockComponentAuthenticationType.mockRestore();
     });
 
-    it('navigates to OnboardingSuccess after OAuth wallet creation', async () => {
+    it('dispatches reset to HomeNav after OAuth wallet creation', async () => {
       (
         Authentication.componentAuthenticationType as jest.Mock
       ).mockResolvedValue({
@@ -695,15 +697,12 @@ describe('ChoosePassword', () => {
       });
 
       await waitFor(() => {
-        expect(mockNavigation.reset).toHaveBeenCalledWith({
-          index: 0,
-          routes: [
-            {
-              name: 'OnboardingSuccess',
-              params: { showPasswordHint: true },
-            },
-          ],
-        });
+        expect(mockNavigation.dispatch).toHaveBeenCalledWith(
+          CommonActions.reset({
+            index: 0,
+            routes: [{ name: 'HomeNav' }],
+          }),
+        );
         expect(mockTrackEvent).toHaveBeenCalled();
         expect(mockMetrics.addTraitsToUser).toHaveBeenCalled();
       });

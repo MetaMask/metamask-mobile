@@ -92,7 +92,12 @@ import { setDataCollectionForMarketing } from '../../../actions/security';
 import { selectAttributionRecord } from '../../../selectors/attribution';
 import { getWalletSetupCompletedAttributionAnalyticsProps } from '../../../util/analytics/walletSetupCompletedAttribution';
 import { ChoosePasswordRouteParams } from './ChoosePassword.types';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  RouteProp,
+  CommonActions,
+} from '@react-navigation/native';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
@@ -357,15 +362,11 @@ const ChoosePassword = () => {
           Logger.error(analyticsError as Error);
         }
 
-        navigation.reset({
+        const resetAction = CommonActions.reset({
           index: 0,
-          routes: [
-            {
-              name: Routes.ONBOARDING.SUCCESS,
-              params: { showPasswordHint: true },
-            },
-          ],
+          routes: [{ name: 'HomeNav' }],
         });
+        navigation.dispatch(resetAction);
       } else {
         const seedPhrase = await tryExportSeedPhrase(password);
         (
