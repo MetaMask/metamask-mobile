@@ -1,4 +1,5 @@
 import React, { useCallback, useLayoutEffect } from 'react';
+import { Platform } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -40,6 +41,7 @@ export const ResetNavigationToHome = CommonActions.reset({
 
 interface OnboardingSuccessRouteParams {
   successFlow?: ONBOARDING_SUCCESS_FLOW;
+  showPasswordHint?: boolean;
 }
 
 interface OnboardingSuccessParamList {
@@ -50,11 +52,13 @@ interface OnboardingSuccessParamList {
 interface OnboardingSuccessProps {
   onDone: () => void;
   successFlow: ONBOARDING_SUCCESS_FLOW;
+  showPasswordHint?: boolean;
 }
 
 export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   onDone,
   successFlow,
+  showPasswordHint = false,
 }) => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -107,11 +111,13 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
 
   const renderContent = () => (
     <>
-      <OnboardingSuccessEndAnimation
-        onAnimationComplete={() => {
-          // No-op: Animation completion not needed in success mode
-        }}
-      />
+      {!(Platform.OS === 'android' && showPasswordHint) && (
+        <OnboardingSuccessEndAnimation
+          onAnimationComplete={() => {
+            // No-op: Animation completion not needed in success mode
+          }}
+        />
+      )}
       <Text
         variant={TextVariant.DisplayMd}
         fontFamily={FontFamily.Accent}
@@ -188,6 +194,7 @@ export const OnboardingSuccess = () => {
   return (
     <OnboardingSuccessComponent
       successFlow={successFlow}
+      showPasswordHint={route?.params?.showPasswordHint}
       onDone={() => navigation.dispatch(nextScreen)}
     />
   );
