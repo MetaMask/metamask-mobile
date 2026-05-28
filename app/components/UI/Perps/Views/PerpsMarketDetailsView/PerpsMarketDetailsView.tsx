@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-deprecated */
 import {
   Box,
   Button as DSButton,
@@ -159,6 +158,11 @@ interface MarketDetailsRouteParams {
   source?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
+
+// eslint-disable-next-line @typescript-eslint/no-deprecated
+const LegacyText = Text;
+// eslint-disable-next-line @typescript-eslint/no-deprecated
+const LegacyButtonSemantic = ButtonSemantic;
 
 const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Use centralized navigation hook for all Perps navigation
@@ -1188,9 +1192,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           style={styles.errorContainer}
           testID={PerpsMarketDetailsViewSelectorsIDs.ERROR}
         >
-          <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+          <LegacyText variant={TextVariant.BodySM} color={TextColor.Error}>
             {strings('perps.market.details.error_message')}
-          </Text>
+          </LegacyText>
         </View>
       </SafeAreaView>
     );
@@ -1410,9 +1414,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           {/* Orders Section - Compact view (includes standalone TP/SL orders) */}
           {displayOrders.length > 0 && (
             <View style={styles.section}>
-              <Text variant={TextVariant.HeadingMD} style={styles.sectionTitle}>
+              <LegacyText
+                variant={TextVariant.HeadingMD}
+                style={styles.sectionTitle}
+              >
                 {strings('perps.market.orders')}
-              </Text>
+              </LegacyText>
               {displayOrders.map((order, index) => (
                 <PerpsCompactOrderRow
                   key={order.orderId}
@@ -1473,20 +1480,20 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
           {/* Risk Disclaimer Section */}
           <View style={styles.section}>
-            <Text
+            <LegacyText
               style={styles.riskDisclaimer}
               variant={TextVariant.BodyXS}
               color={TextColor.Alternative}
             >
               {strings('perps.risk_disclaimer', riskDisclaimerParams)}{' '}
-              <Text
+              <LegacyText
                 variant={TextVariant.BodyXS}
                 color={TextColor.Alternative}
                 onPress={handleTradingViewPress}
               >
                 TradingView.
-              </Text>
-            </Text>
+              </LegacyText>
+            </LegacyText>
           </View>
         </Animated.ScrollView>
       </View>
@@ -1557,7 +1564,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                     {strings('perps.market.long')}
                   </DSButton>
                 ) : (
-                  <ButtonSemantic
+                  <LegacyButtonSemantic
                     severity={ButtonSemanticSeverity.Success}
                     onPress={handleLongPress}
                     isFullWidth
@@ -1566,7 +1573,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                     testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
                   >
                     {strings('perps.market.long')}
-                  </ButtonSemantic>
+                  </LegacyButtonSemantic>
                 )}
               </View>
 
@@ -1583,7 +1590,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                     {strings('perps.market.short')}
                   </DSButton>
                 ) : (
-                  <ButtonSemantic
+                  <LegacyButtonSemantic
                     severity={ButtonSemanticSeverity.Danger}
                     onPress={handleShortPress}
                     isFullWidth
@@ -1592,7 +1599,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                     testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
                   >
                     {strings('perps.market.short')}
-                  </ButtonSemantic>
+                  </LegacyButtonSemantic>
                 )}
               </View>
             </View>

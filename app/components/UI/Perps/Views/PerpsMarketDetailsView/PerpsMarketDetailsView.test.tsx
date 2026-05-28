@@ -3540,6 +3540,82 @@ describe('PerpsMarketDetailsView', () => {
       expect(queryByText('100')).toBeNull();
     });
 
+    it('passes enriched SPCX leverage defaults to order screen', async () => {
+      const { usePerpsMarketData } = jest.requireMock('../../hooks');
+      mockRouteParams.market = {
+        symbol: 'xyz:SPCX',
+        name: 'SPCX',
+        price: '$0.00',
+        change24h: '+$0.00',
+        change24hPercent: '+0.00%',
+        volume: '$0',
+        maxLeverage: '100',
+      };
+
+      mockUsePerpsMarketsImpl.mockImplementation(() => ({
+        markets: [
+          {
+            symbol: 'xyz:SPCX',
+            name: 'SPCX',
+            price: '$0.00',
+            change24h: '+$0.00',
+            change24hPercent: '+0.00%',
+            volume: '$0',
+            maxLeverage: '5x',
+            volumeNumber: 0,
+          },
+        ],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      }));
+      usePerpsMarketData.mockReturnValue({
+        marketData: { szDecimals: 2, maxLeverage: 5 },
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      try {
+        const { getByTestId, getByText } = renderWithProvider(
+          <PerpsConnectionProvider>
+            <PerpsMarketDetailsView />
+          </PerpsConnectionProvider>,
+          {
+            state: initialState,
+          },
+        );
+
+        await waitFor(() => {
+          expect(getByText('5x')).toBeOnTheScreen();
+        });
+
+        await act(async () => {
+          fireEvent.press(
+            getByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
+          );
+        });
+
+        expect(mockNavigateToOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            asset: 'xyz:SPCX',
+            defaultMaxLeverage: 5,
+            defaultSzDecimals: 2,
+            direction: 'long',
+            source: 'perp_asset_screen',
+          }),
+        );
+      } finally {
+        usePerpsMarketData.mockReturnValue({
+          marketData: null,
+          isLoading: false,
+          error: null,
+          refetch: jest.fn(),
+        });
+      }
+    });
+
     it('enriches unformatted route market without market source', async () => {
       mockRouteParams.market = {
         symbol: 'SPCX',
