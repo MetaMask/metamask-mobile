@@ -132,6 +132,7 @@ const buildHookResult = (
   isSourcePickerOpen: false,
   setIsSourcePickerOpen: jest.fn(),
   setSelectedSourceToken: jest.fn(),
+  currentCurrency: 'USD',
   amountDisplayMode: 'fiat',
   usdAmount: '',
   sliderPercent: 0,

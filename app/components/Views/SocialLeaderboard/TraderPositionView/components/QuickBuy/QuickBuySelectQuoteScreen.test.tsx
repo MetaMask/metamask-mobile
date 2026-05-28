@@ -8,18 +8,6 @@ jest.mock('./useQuickBuyContext', () => ({
   useQuickBuyContext: jest.fn(),
 }));
 
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn((selector: (s: unknown) => unknown) =>
-    selector({
-      engine: {
-        backgroundState: {
-          CurrencyRateController: { currentCurrency: 'USD' },
-        },
-      },
-    }),
-  ),
-}));
-
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
@@ -112,6 +100,7 @@ const buildContext = (overrides = {}) => ({
   setSelectedQuoteRequestId: jest.fn(),
   isQuoteLoading: false,
   destToken: undefined,
+  currentCurrency: 'USD',
   onClose: jest.fn(),
   setActiveScreen: jest.fn(),
   ...overrides,

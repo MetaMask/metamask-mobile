@@ -8,8 +8,6 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useSelector } from 'react-redux';
-import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import { fromTokenMinimalUnit } from '../../../../../../util/number/bigint';
 import formatFiat from '../../../../../../util/formatFiat';
 import { isGaslessQuote } from '../../../../../UI/Bridge/utils/isGaslessQuote';
@@ -25,11 +23,10 @@ const QuickBuySelectQuoteScreen: React.FC = () => {
     setSelectedQuoteRequestId,
     isQuoteLoading,
     destToken,
+    currentCurrency,
     onClose,
     setActiveScreen,
   } = useQuickBuyContext();
-
-  const currency = useSelector(selectCurrentCurrency);
   const bestQuote = sortedQuotes[0];
 
   const rows = useMemo(
@@ -43,7 +40,7 @@ const QuickBuySelectQuoteScreen: React.FC = () => {
                   quote.gasFee?.effective?.valueInCurrency ??
                   '0'),
           ),
-          currency,
+          currentCurrency,
         ),
         receiveAmount: destToken
           ? fromTokenMinimalUnit(
@@ -70,7 +67,7 @@ const QuickBuySelectQuoteScreen: React.FC = () => {
     [
       sortedQuotes,
       bestQuote,
-      currency,
+      currentCurrency,
       destToken,
       isQuoteLoading,
       selectedQuoteRequestId,

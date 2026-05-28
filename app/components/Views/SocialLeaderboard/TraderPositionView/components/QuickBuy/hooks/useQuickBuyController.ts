@@ -113,6 +113,7 @@ export interface UseQuickBuyControllerResult {
   setSelectedSourceToken: React.Dispatch<
     React.SetStateAction<BridgeToken | undefined>
   >;
+  currentCurrency: string;
   // amount
   amountDisplayMode: QuickBuyAmountDisplayMode;
   usdAmount: string;
@@ -809,6 +810,7 @@ export function useQuickBuyController(
     isSourcePickerOpen,
     setIsSourcePickerOpen,
     setSelectedSourceToken,
+    currentCurrency,
     amountDisplayMode,
     usdAmount,
     sliderPercent,
