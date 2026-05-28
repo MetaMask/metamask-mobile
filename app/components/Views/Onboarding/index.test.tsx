@@ -84,12 +84,12 @@ import { endTrace, TraceName } from '../../../util/trace';
 // Mock netinfo - using existing mock
 jest.mock('@react-native-community/netinfo');
 
-// Create a mutable mock for isE2E that can be controlled per test
-let mockIsE2E = false;
+// Create a mutable mock for hasOverrides that can be controlled per test
+let mockHasOverrides = false;
 jest.mock('../../../util/test/utils', () => ({
   ...jest.requireActual('../../../util/test/utils'),
-  get isE2E() {
-    return mockIsE2E;
+  get hasOverrides() {
+    return mockHasOverrides;
   },
 }));
 
@@ -2783,7 +2783,7 @@ describe('Onboarding', () => {
         success: false,
         vault: null,
       });
-      mockIsE2E = false;
+      mockHasOverrides = false;
     });
 
     it('returns early when route.params.delete is true', async () => {
@@ -2809,7 +2809,7 @@ describe('Onboarding', () => {
 
     it('skips vault backup check when running in E2E test environment', async () => {
       // Arrange
-      mockIsE2E = true;
+      mockHasOverrides = true;
       mockGetVaultFromBackup.mockClear();
 
       // Act
@@ -2829,7 +2829,7 @@ describe('Onboarding', () => {
       expect(mockGetVaultFromBackup).not.toHaveBeenCalled();
 
       // Cleanup
-      mockIsE2E = false;
+      mockHasOverrides = false;
     });
 
     it('checks migration error flag when not E2E and no delete param', async () => {

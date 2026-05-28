@@ -1,6 +1,6 @@
 import { GroupTraits, UserTraits } from '@segment/analytics-react-native';
 import { IMetaMetrics, ITrackingEvent } from './MetaMetrics.types';
-import { isE2E } from '../../util/test/utils';
+import { hasOverrides } from '../../util/test/utils';
 import MetaMetricsTestUtils from './MetaMetricsTestUtils';
 import { analytics } from '../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
@@ -200,7 +200,7 @@ class MetaMetrics implements IMetaMetrics {
       return;
     }
 
-    if (isE2E) {
+    if (hasOverrides) {
       MetaMetricsTestUtils.getInstance().trackEvent(event);
       return;
     }

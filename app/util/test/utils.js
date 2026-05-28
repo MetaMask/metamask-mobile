@@ -41,10 +41,9 @@ export const isTest =
 // IS_PERFORMANCE_TEST opts out of E2E runtime overhead (ReadOnlyNetworkStore,
 // command polling) while keeping METAMASK_ENVIRONMENT='e2e' so the build still
 // works on feature branches with e2e signing/secrets.
-export const isE2E =
+export const hasOverrides =
   process.env.IS_PERFORMANCE_TEST !== 'true' &&
-  (process.env.IS_TEST === 'true' ||
-    process.env.METAMASK_ENVIRONMENT === 'e2e');
+  process.env.HAS_OVERRIDES === 'true';
 export const enableApiCallLogs = process.env.LOG_API_CALLS === 'true';
 export const getFixturesServerPortInApp = () =>
   testConfig.fixtureServerPort ?? FALLBACK_FIXTURE_SERVER_PORT;

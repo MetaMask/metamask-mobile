@@ -5,15 +5,15 @@ import Engine from '../../../core/Engine';
 import SDKConnect from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
 import { waitForCondition, waitForKeychainUnlocked } from '../utils/wait.util';
-import { isE2E } from '../../../util/test/utils';
+import { hasOverrides } from '../../../util/test/utils';
 
 async function postInit(instance: SDKConnect) {
   if (!instance.state._initialized) {
     throw new Error(`SDKConnect::postInit() - not initialized`);
   }
 
-  if (isE2E) {
-    DevLogger.log(`SDKConnect::postInit() - SKIP -- E2E`);
+  if (hasOverrides) {
+    DevLogger.log(`SDKConnect::postInit() - SKIP -- hasOverrides`);
     instance.state._postInitialized = true;
     return;
   }

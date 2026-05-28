@@ -35,7 +35,7 @@ import { LaunchArguments } from 'react-native-launch-arguments';
 import {
   FALLBACK_FIXTURE_SERVER_PORT,
   FALLBACK_COMMAND_QUEUE_SERVER_PORT,
-  isE2E,
+  hasOverrides,
   isTest,
   enableApiCallLogs,
   testConfig,
@@ -79,14 +79,14 @@ require('react-native-browser-polyfill'); // eslint-disable-line import-x/no-com
 import 'expo';
 
 // Log early if running in E2E mode to help diagnose accidental js.env flags
-if (isE2E) {
+if (hasOverrides) {
   // eslint-disable-next-line no-console
   console.warn(
-    '[E2E MODE] App running with isE2E=true. If unexpected, check your .js.env and unset IS_TEST or METAMASK_ENVIRONMENT=e2e.',
+    '[E2E MODE] App running with hasOverrides=true. If unexpected, check your .js.env and unset HAS_OVERRIDES',
   );
   // eslint-disable-next-line no-console
   console.warn(
-    `IS_TEST=${process.env.IS_TEST || 'unset'} METAMASK_ENVIRONMENT=${
+    `HAS_OVERRIDES=${process.env.HAS_OVERRIDES || 'unset'} METAMASK_ENVIRONMENT=${
       process.env.METAMASK_ENVIRONMENT || 'unset'
     }`,
   );
