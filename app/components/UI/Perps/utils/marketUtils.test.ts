@@ -12,7 +12,11 @@ import {
   type CandleData,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
-import { getAssetIconUrl, getAssetIconUrls } from './marketUtils';
+import {
+  getAssetIconUrl,
+  getAssetIconUrls,
+  getMarketTypeFilter,
+} from './marketUtils';
 
 jest.mock('@metamask/perps-controller', () => {
   const actual = jest.requireActual('@metamask/perps-controller');
@@ -25,6 +29,53 @@ jest.mock('@metamask/perps-controller', () => {
 });
 
 describe('marketUtils', () => {
+  describe('getMarketTypeFilter', () => {
+    it('returns stocks for equity marketType', () => {
+      expect(
+        getMarketTypeFilter({ marketType: 'equity', isNewMarket: false }),
+      ).toBe('stocks');
+    });
+
+    it('returns commodities for commodity marketType', () => {
+      expect(
+        getMarketTypeFilter({ marketType: 'commodity', isNewMarket: false }),
+      ).toBe('commodities');
+    });
+
+    it('returns forex for forex marketType', () => {
+      expect(
+        getMarketTypeFilter({ marketType: 'forex', isNewMarket: false }),
+      ).toBe('forex');
+    });
+
+    it('returns all for new markets without marketType', () => {
+      expect(
+        getMarketTypeFilter({ marketType: undefined, isNewMarket: true }),
+      ).toBe('all');
+    });
+
+    it('returns crypto for markets without marketType and not new', () => {
+      expect(
+        getMarketTypeFilter({ marketType: undefined, isNewMarket: false }),
+      ).toBe('crypto');
+    });
+
+    it('prioritizes marketType over isNewMarket', () => {
+      expect(
+        getMarketTypeFilter({ marketType: 'equity', isNewMarket: true }),
+      ).toBe('stocks');
+    });
+
+    it('returns crypto when marketType is unknown string', () => {
+      expect(
+        getMarketTypeFilter({
+          marketType: 'unknown' as string,
+          isNewMarket: false,
+        }),
+      ).toBe('crypto');
+    });
+  });
+
   describe('calculateFundingCountdown', () => {
     beforeEach(() => {
       jest.useFakeTimers();

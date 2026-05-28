@@ -394,6 +394,7 @@ export const PerpsMarketHeaderSelectorsIDs = {
   PRICE_CHANGE_TITLE_SECTION: 'perps-market-header-price-change-title-section',
   MORE_BUTTON: 'perps-market-header-more-button',
   FAVORITE_BUTTON: 'perps-market-header-favorite-button',
+  CATEGORY_SEARCH_BUTTON: 'perps-market-header-category-search-button',
 };
 
 // ========================================

@@ -10,8 +10,27 @@ import {
   HYPERLIQUID_ASSET_ICONS_BASE_URL,
   METAMASK_PERPS_ICONS_BASE_URL,
   type PerpsMarketData,
+  type MarketTypeFilter,
 } from '@metamask/perps-controller';
 import type { BadgeType } from '../components/PerpsBadge/PerpsBadge.types';
+
+const MARKET_TYPE_TO_FILTER: Record<string, MarketTypeFilter> = {
+  equity: 'stocks',
+  commodity: 'commodities',
+  forex: 'forex',
+};
+
+export const getMarketTypeFilter = (
+  market: Pick<PerpsMarketData, 'marketType' | 'isNewMarket'>,
+): MarketTypeFilter => {
+  if (market.marketType && MARKET_TYPE_TO_FILTER[market.marketType]) {
+    return MARKET_TYPE_TO_FILTER[market.marketType];
+  }
+  if (market.isNewMarket) {
+    return 'all';
+  }
+  return 'crypto';
+};
 
 /**
  * Determine badge type for a market based on its metadata
