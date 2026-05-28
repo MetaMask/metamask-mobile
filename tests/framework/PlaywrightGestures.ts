@@ -159,7 +159,6 @@ export default class PlaywrightGestures {
     const {
       timeout = 10000,
       delay = 500,
-      timeout,
       checkForDisplayed = true,
       checkForEnabled = false,
       waitForInteractive = false,
