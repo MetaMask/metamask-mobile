@@ -15,6 +15,7 @@ concurrency:
 jobs:
   analyze:
     name: Analyze
+    continue-on-error: true
     if: >-
       github.event_name == 'pull_request'
       && !(github.event.pull_request.head.repo.fork || github.event.repository.fork)
@@ -45,7 +46,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           mode: pr-risk-analysis
-          add-comment: false
+          add-comment: true
           add-label: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
           litellm-api-key: ${{ secrets.LITELLM_API_KEY }}
