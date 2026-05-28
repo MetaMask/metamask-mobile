@@ -60,6 +60,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   AccountType,
   getSocialAccountType,
+  ONBOARDING_SUCCESS_FLOW,
 } from '../../../constants/onboarding';
 import type {
   IMetaMetricsEvent,
@@ -355,7 +356,9 @@ const ChoosePassword = () => {
           routes: [
             {
               name: Routes.ONBOARDING.SUCCESS,
-              params: { showPasswordHint: true },
+              params: {
+                successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
+              },
             },
           ],
         });
