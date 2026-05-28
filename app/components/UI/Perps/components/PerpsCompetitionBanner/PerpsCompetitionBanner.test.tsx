@@ -7,10 +7,12 @@ import { PERPS_COMPETITION_BANNER_DISMISSED } from '../../../../../constants/sto
 import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
+const mockDispatch = jest.fn();
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
+  useDispatch: () => mockDispatch,
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -129,6 +131,7 @@ describe('PerpsCompetitionBanner', () => {
 
     fireEvent.press(getByTestId('perps-competition-banner'));
 
+    expect(mockDispatch).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
   });
 

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Image, StyleSheet, Pressable, View } from 'react-native';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import {
   Box,
@@ -19,6 +19,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { selectPerpsCompetitionBannerEnabledFlag } from '../../selectors/featureFlags';
 import StorageWrapper from '../../../../../store/storage-wrapper';
 import { PERPS_COMPETITION_BANNER_DISMISSED } from '../../../../../constants/storage';
+import { setPendingDeeplink } from '../../../../../reducers/rewards';
 import type { PerpsCompetitionBannerProps } from './PerpsCompetitionBanner.types';
 
 // eslint-disable-next-line import-x/no-commonjs, @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
@@ -59,6 +60,7 @@ const PerpsCompetitionBanner: React.FC<PerpsCompetitionBannerProps> = ({
 }) => {
   const isEnabled = useSelector(selectPerpsCompetitionBannerEnabledFlag);
   const navigation = useNavigation();
+  const dispatch = useDispatch();
   const [isDismissed, setIsDismissed] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -85,8 +87,9 @@ const PerpsCompetitionBanner: React.FC<PerpsCompetitionBannerProps> = ({
   }, []);
 
   const handlePress = useCallback(() => {
+    dispatch(setPendingDeeplink({ campaign: 'perps-comp' }));
     navigation.navigate(Routes.REWARDS_VIEW);
-  }, [navigation]);
+  }, [navigation, dispatch]);
 
   if (!isEnabled || isDismissed !== false) {
     return null;
