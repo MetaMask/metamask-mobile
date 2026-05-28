@@ -569,6 +569,80 @@ describe('useHeadlessBuy', () => {
         );
       });
 
+      it('fails the session captured at getQuotes() entry, not whatever is active after the await', async () => {
+        // Regression: if a concurrent startHeadlessBuy() swaps the active
+        // session while getQuotesRaw is in flight, getActiveSessionId() after
+        // the await would return the *new* session's id. Failing that session
+        // with the in-flight call's error would terminate the wrong session.
+        let resolveQuotes: (value: unknown) => void = () => undefined;
+        mockGetQuotesRaw.mockReturnValueOnce(
+          new Promise((resolve) => {
+            resolveQuotes = resolve;
+          }),
+        );
+
+        const { result } = renderHook(() => useHeadlessBuy());
+        const firstCallbacks = {
+          onOrderCreated: jest.fn(),
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        };
+        let firstSessionId: string | undefined;
+        act(() => {
+          firstSessionId = result.current.startHeadlessBuy(
+            startParams,
+            firstCallbacks,
+          ).sessionId;
+        });
+
+        // Kick off getQuotes against session A; it will await resolveQuotes.
+        const quotesPromise = result.current
+          .getQuotes(baseQuotesParams)
+          .catch(() => undefined);
+
+        // While the await is pending, swap to session B.
+        const secondCallbacks = {
+          onOrderCreated: jest.fn(),
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        };
+        let secondSessionId: string | undefined;
+        act(() => {
+          secondSessionId = result.current.startHeadlessBuy(
+            startParams,
+            secondCallbacks,
+          ).sessionId;
+        });
+        expect(secondSessionId).not.toBe(firstSessionId);
+
+        await act(async () => {
+          resolveQuotes(
+            quoteResponse({
+              error: [
+                { provider: 'transak', error: 'Below minimum buy amount' },
+              ],
+            }),
+          );
+          await quotesPromise;
+        });
+
+        // The bug we're guarding against: under the racy code path, the
+        // post-await getActiveSessionId() returned session B's id, so
+        // failSession terminated session B with session A's error. With the
+        // fix, the id captured at getQuotes() entry (session A) is used —
+        // it's already closed by startHeadlessBuy(B), so the failSession call
+        // is a no-op. Session B must remain alive and unfailed.
+        expect(secondCallbacks.onError).not.toHaveBeenCalled();
+        expect(secondCallbacks.onClose).not.toHaveBeenCalled();
+        expect(getSession(secondSessionId as string)).toBeDefined();
+        // Session A was cancelled by starting session B, so its onClose
+        // fired with the consumer_cancelled reason — not the network error.
+        expect(firstCallbacks.onClose).toHaveBeenCalledWith({
+          reason: 'consumer_cancelled',
+        });
+        expect(firstCallbacks.onError).not.toHaveBeenCalled();
+      });
+
       it('normalizes malformed provider rejections to unknown/no-message details', async () => {
         mockGetQuotesRaw.mockResolvedValueOnce(
           quoteResponse({
