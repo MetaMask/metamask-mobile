@@ -430,6 +430,129 @@ describe('useMoneyTransactionDisplayInfo — ERC-20 primary amount', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Primary amount — non-stable ERC-20 (LINK)
+// ---------------------------------------------------------------------------
+
+describe('useMoneyTransactionDisplayInfo — non-stable ERC-20 primary amount', () => {
+  // LINK is an 18-decimal ERC-20 that is *not* USD-pegged, so the displayed
+  // amount must be derived from market data + ETH→USD rate, not by
+  // reinterpreting `requiredAssets[0].amount` (which is always a 6-decimal
+  // USD-equivalent) as LINK-minimal-units.
+  const LINK_ADDRESS: Hex = '0x514910771AF9Ca656af840dff83E8264EcF986CA';
+  const LINK_CHECKSUM = safeToChecksumAddress(LINK_ADDRESS) as string;
+
+  function makeLinkState(args: {
+    linkToEthPrice?: number;
+    ethUsdConversionRate?: number;
+  }): ProviderValues['state'] {
+    return {
+      engine: {
+        backgroundState: {
+          CurrencyRateController: {
+            currentCurrency: 'usd',
+            currencyRates:
+              args.ethUsdConversionRate !== undefined
+                ? {
+                    ETH: {
+                      conversionRate: args.ethUsdConversionRate,
+                      usdConversionRate: args.ethUsdConversionRate,
+                    },
+                  }
+                : {},
+          },
+          TokenRatesController: {
+            marketData:
+              args.linkToEthPrice !== undefined
+                ? {
+                    [CHAIN_ID]: {
+                      [LINK_CHECKSUM]: { price: args.linkToEthPrice },
+                    },
+                  }
+                : {},
+          },
+          TokensController: {
+            allTokens: {
+              [CHAIN_ID]: {
+                '0xSomeWallet': [
+                  {
+                    address: LINK_ADDRESS,
+                    symbol: 'LINK',
+                    decimals: 18,
+                    image: undefined,
+                  },
+                ],
+              },
+            },
+          },
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              [CHAIN_ID]: { nativeCurrency: 'ETH' },
+            },
+          },
+        },
+      },
+    } as unknown as ProviderValues['state'];
+  }
+
+  it('converts 6-decimal USD requiredAssets amount to LINK via market data × ETH→USD', () => {
+    // requiredAsset.amount = 2_000_000 (= $2.00 in 6-decimal USD-equivalent).
+    // LINK→ETH = 0.004 (1 LINK = 0.004 ETH).
+    // ETH→USD = 3250 → LINK→USD = 0.004 × 3250 = 13 USD per LINK.
+    // Expected pay amount = $2 / $13 ≈ 0.153846 LINK.
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
+      metamaskPay: { tokenAddress: LINK_ADDRESS, chainId: CHAIN_ID },
+      requiredAssets: [{ address: USDC_ADDRESS, amount: '2000000' }],
+    });
+
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      {
+        state: makeLinkState({
+          linkToEthPrice: 0.004,
+          ethUsdConversionRate: 3250,
+        }),
+      },
+    );
+
+    expect(result.current.primaryAmount).toBe('+0.153846 LINK');
+  });
+
+  it('leaves primaryAmount empty when LINK has no market data (regression: must not show "+0.00 LINK")', () => {
+    // This is the screenshot bug: LINK with decimals=18 and no market rate.
+    // The old code interpreted requiredAsset.amount (6-decimal USD-equivalent)
+    // as LINK-minimal-units, producing "+0.00 LINK". The new code must leave
+    // primaryAmount empty when there is no reliable price.
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
+      metamaskPay: { tokenAddress: LINK_ADDRESS, chainId: CHAIN_ID },
+      requiredAssets: [{ address: USDC_ADDRESS, amount: '2000000' }],
+    });
+
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeLinkState({}) },
+    );
+
+    expect(result.current.primaryAmount).toBe('');
+  });
+
+  it('leaves primaryAmount empty when LINK has a market price but ETH→USD rate is missing', () => {
+    // marketData price alone is token→ETH; without ETH→USD we cannot compute
+    // a USD price for the pay token.
+    const tx = makeTx(TransactionType.moneyAccountDeposit, {
+      metamaskPay: { tokenAddress: LINK_ADDRESS, chainId: CHAIN_ID },
+      requiredAssets: [{ address: USDC_ADDRESS, amount: '2000000' }],
+    });
+
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(tx, undefined),
+      { state: makeLinkState({ linkToEthPrice: 0.004 }) },
+    );
+
+    expect(result.current.primaryAmount).toBe('');
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Primary amount — native token (ETH)
 // ---------------------------------------------------------------------------
 
