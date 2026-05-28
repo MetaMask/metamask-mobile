@@ -366,8 +366,11 @@ const ChoosePassword = () => {
           index: 0,
           routes: [
             {
-              name: Routes.ONBOARDING.SUCCESS,
-              params: { showPasswordHint: true },
+              name: Routes.ONBOARDING.SUCCESS_FLOW,
+              params: {
+                screen: Routes.ONBOARDING.SUCCESS,
+                params: { showPasswordHint: true },
+              },
             },
           ],
         });
