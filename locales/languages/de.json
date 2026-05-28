@@ -8457,6 +8457,7 @@
     "main_title": "Belohnungen",
     "vip": {
       "bps_unit": "Basispunkte",
+      "badge_label": "VIP Fox {{tier}}",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
       "error_title": "We couldn’t load your VIP dashboard",
