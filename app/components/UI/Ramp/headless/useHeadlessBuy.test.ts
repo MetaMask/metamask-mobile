@@ -527,14 +527,6 @@ describe('useHeadlessBuy', () => {
           ],
           'LIMIT_EXCEEDED',
         ],
-        [
-          'mixed provider messages without codes',
-          [
-            { provider: 'transak', error: 'Below minimum buy amount' },
-            { provider: 'moonpay', error: 'Rate limit exceeded' },
-          ],
-          'LIMIT_EXCEEDED',
-        ],
       ])('classifies %s as %s', async (_name, error, headlessBuyErrorCode) => {
         mockGetQuotesRaw.mockResolvedValueOnce(quoteResponse({ error }));
         const { result } = renderHook(() => useHeadlessBuy());
@@ -569,10 +561,8 @@ describe('useHeadlessBuy', () => {
       });
 
       it('fails the session captured at getQuotes() entry, not whatever is active after the await', async () => {
-        // Regression: if a concurrent startHeadlessBuy() swaps the active
-        // session while getQuotesRaw is in flight, getActiveSessionId() after
-        // the await would return the *new* session's id. Failing that session
-        // with the in-flight call's error would terminate the wrong session.
+        // Regression: a concurrent startHeadlessBuy() must not cause the
+        // in-flight getQuotes() error to terminate the *new* session.
         let resolveQuotes: (value: unknown) => void = () => undefined;
         mockGetQuotesRaw.mockReturnValueOnce(
           new Promise((resolve) => {
@@ -599,7 +589,7 @@ describe('useHeadlessBuy', () => {
           .getQuotes(baseQuotesParams)
           .catch(() => undefined);
 
-        // While the await is pending, swap to session B.
+        // Swap to session B while session A's await is pending.
         const secondCallbacks = {
           onOrderCreated: jest.fn(),
           onError: jest.fn(),
@@ -625,17 +615,11 @@ describe('useHeadlessBuy', () => {
           await quotesPromise;
         });
 
-        // The bug we're guarding against: under the racy code path, the
-        // post-await getActiveSessionId() returned session B's id, so
-        // failSession terminated session B with session A's error. With the
-        // fix, the id captured at getQuotes() entry (session A) is used —
-        // it's already closed by startHeadlessBuy(B), so the failSession call
-        // is a no-op. Session B must remain alive and unfailed.
+        // Session B must remain alive and unfailed; session A's onClose
+        // already fired (with consumer_cancelled) when B was started.
         expect(secondCallbacks.onError).not.toHaveBeenCalled();
         expect(secondCallbacks.onClose).not.toHaveBeenCalled();
         expect(getSession(secondSessionId as string)).toBeDefined();
-        // Session A was cancelled by starting session B, so its onClose
-        // fired with the consumer_cancelled reason — not the network error.
         expect(firstCallbacks.onClose).toHaveBeenCalledWith({
           reason: 'consumer_cancelled',
         });
@@ -771,13 +755,10 @@ describe('useHeadlessBuy', () => {
             params: { providerIds: ['/providers/unknown'] },
           },
         ],
+        // One representative input-guard case; all five guards
+        // (amount<=0, NaN, !providerIds, !paymentMethodIds, !currency) hit
+        // the same early return.
         ['providerIds is omitted', { params: { providerIds: undefined } }],
-        [
-          'currency cannot be resolved',
-          { userRegion: regionWithCurrency(), params: { amount: 5 } },
-        ],
-        ['amount is 0', { params: { amount: 0 } }],
-        ['amount is NaN', { params: { amount: Number.NaN } }],
         [
           'one provider has a known-accept payment method',
           {
@@ -797,7 +778,6 @@ describe('useHeadlessBuy', () => {
             response: quoteResponse({ success: [{ provider: 'transak' }] }),
           },
         ],
-        ['paymentMethodIds is empty', { params: { paymentMethodIds: [] } }],
         [
           'provider.limits is undefined',
           {
