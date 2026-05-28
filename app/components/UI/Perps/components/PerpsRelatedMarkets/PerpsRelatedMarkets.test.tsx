@@ -17,6 +17,7 @@ import PerpsRelatedMarkets from './PerpsRelatedMarkets';
 
 const mockNavigate = jest.fn();
 const mockTrack = jest.fn();
+const mockUseHomepageSparklines = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -30,12 +31,41 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   }),
 }));
 
-jest.mock('../PerpsTokenLogo', () => {
-  const { View } = jest.requireActual('react-native');
-  return function MockPerpsTokenLogo({ testID }: { testID?: string }) {
-    return <View testID={testID} />;
-  };
-});
+jest.mock(
+  '../../../../Views/Homepage/Sections/Perpetuals/hooks/useHomepageSparklines',
+  () => ({
+    useHomepageSparklines: (...args: unknown[]) =>
+      mockUseHomepageSparklines(...args),
+  }),
+);
+
+jest.mock(
+  '../../../../Views/Homepage/Sections/Perpetuals/components/PerpsMarketTileCard',
+  () => {
+    const { Text, TouchableOpacity, View } = jest.requireActual('react-native');
+    return function MockPerpsMarketTileCard({
+      market,
+      onPress,
+      sparklineData,
+      testID,
+    }: {
+      market: PerpsMarketData;
+      onPress?: () => void;
+      sparklineData?: number[];
+      testID?: string;
+    }) {
+      return (
+        <TouchableOpacity testID={testID} onPress={onPress}>
+          <Text>{market.symbol}</Text>
+          <Text>{market.change24hPercent}</Text>
+          <View testID={`sparkline-${market.symbol}`}>
+            <Text>{sparklineData?.length ?? 0}</Text>
+          </View>
+        </TouchableOpacity>
+      );
+    };
+  },
+);
 
 const createMarket = (
   symbol: string,
@@ -61,9 +91,15 @@ const collection: RelatedMarketCollection = {
 describe('PerpsRelatedMarkets', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseHomepageSparklines.mockReturnValue({
+      sparklines: {
+        FET: [1, 2, 3],
+        TAO: [3, 2, 1],
+      },
+    });
   });
 
-  it('renders related market tiles with price and 24h change', () => {
+  it('renders related market tiles with homepage sparkline format', () => {
     render(
       <PerpsRelatedMarkets
         currentMarket={createMarket('RNDR')}
@@ -81,12 +117,9 @@ describe('PerpsRelatedMarkets', () => {
     expect(
       screen.getByTestId(getPerpsRelatedMarketsSelector.tile('FET')),
     ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(getPerpsRelatedMarketsSelector.tilePrice('FET')),
-    ).toHaveTextContent('$1.00');
-    expect(
-      screen.getByTestId(getPerpsRelatedMarketsSelector.tileChange('FET')),
-    ).toHaveTextContent('+1.00%');
+    expect(mockUseHomepageSparklines).toHaveBeenCalledWith(['FET', 'TAO']);
+    expect(screen.getByTestId('sparkline-FET')).toHaveTextContent('3');
+    expect(screen.getAllByText('+1.00%')).toHaveLength(2);
   });
 
   it('tracks tile tap and navigates with related markets source', () => {

@@ -1,20 +1,21 @@
 import React, { memo, useCallback, useMemo, useRef } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Box, BoxAlignItems, Card } from '@metamask/design-system-react-native';
 import {
-  getPerpsDisplaySymbol,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
+import {
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+import PerpsMarketTileCard from '../../../../Views/Homepage/Sections/Perpetuals/components/PerpsMarketTileCard';
+import { useHomepageSparklines } from '../../../../Views/Homepage/Sections/Perpetuals/hooks/useHomepageSparklines';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
   getPerpsRelatedMarketsSelector,
@@ -26,7 +27,6 @@ import {
   RELATED_MARKETS_SOURCE,
   type RelatedMarketCollection,
 } from '../../utils/relatedMarkets';
-import PerpsTokenLogo from '../PerpsTokenLogo';
 
 export interface PerpsRelatedMarketsProps {
   currentMarket: PerpsMarketData;
@@ -44,17 +44,9 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 16,
-    gap: 8,
-  },
-  tile: {
-    width: 64,
-    minHeight: 112,
+    gap: 10,
   },
 });
-
-const isPositiveChange = (market: PerpsMarketData) =>
-  !market.change24hPercent?.startsWith('-') &&
-  !market.change24h?.startsWith('-');
 
 const PerpsRelatedMarkets: React.FC<PerpsRelatedMarketsProps> = ({
   currentMarket,
@@ -103,6 +95,11 @@ const PerpsRelatedMarkets: React.FC<PerpsRelatedMarketsProps> = ({
   }, [currentMarket.symbol, track]);
 
   const renderedMarkets = useMemo(() => markets.slice(0, 20), [markets]);
+  const symbols = useMemo(
+    () => renderedMarkets.map((market) => market.symbol),
+    [renderedMarkets],
+  );
+  const { sparklines } = useHomepageSparklines(symbols);
 
   if (renderedMarkets.length === 0) {
     return null;
@@ -116,8 +113,8 @@ const PerpsRelatedMarkets: React.FC<PerpsRelatedMarketsProps> = ({
     >
       <View style={styles.header}>
         <Text
-          variant={TextVariant.HeadingMD}
-          color={TextColor.Default}
+          variant={TextVariant.HeadingMd}
+          color={TextColor.TextDefault}
           testID={PerpsRelatedMarketsSelectorsIDs.HEADER}
         >
           {strings('perps.market.related_markets')}
@@ -131,62 +128,15 @@ const PerpsRelatedMarkets: React.FC<PerpsRelatedMarketsProps> = ({
         onScrollBeginDrag={handleScrollBeginDrag}
         testID={PerpsRelatedMarketsSelectorsIDs.SCROLL_VIEW}
       >
-        {renderedMarkets.map((market, index) => {
-          const changeColor = isPositiveChange(market)
-            ? TextColor.Success
-            : TextColor.Error;
-
-          return (
-            <Card
-              key={market.symbol}
-              onPress={() => handleMarketPress(market, index)}
-              testID={getPerpsRelatedMarketsSelector.tile(market.symbol)}
-              touchableOpacityProps={{ activeOpacity: 0.7 }}
-              style={styles.tile}
-              twClassName="items-center border-muted bg-default rounded-md px-2 py-3"
-            >
-              <Box alignItems={BoxAlignItems.Center} gap={2}>
-                <PerpsTokenLogo
-                  symbol={market.symbol}
-                  size={28}
-                  testID={getPerpsRelatedMarketsSelector.tileLogo(
-                    market.symbol,
-                  )}
-                />
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Default}
-                  numberOfLines={1}
-                  testID={getPerpsRelatedMarketsSelector.tileSymbol(
-                    market.symbol,
-                  )}
-                >
-                  {getPerpsDisplaySymbol(market.symbol)}
-                </Text>
-                <Text
-                  variant={TextVariant.BodyXS}
-                  color={TextColor.Alternative}
-                  numberOfLines={1}
-                  testID={getPerpsRelatedMarketsSelector.tilePrice(
-                    market.symbol,
-                  )}
-                >
-                  {market.price}
-                </Text>
-                <Text
-                  variant={TextVariant.BodyXS}
-                  color={changeColor}
-                  numberOfLines={1}
-                  testID={getPerpsRelatedMarketsSelector.tileChange(
-                    market.symbol,
-                  )}
-                >
-                  {market.change24hPercent}
-                </Text>
-              </Box>
-            </Card>
-          );
-        })}
+        {renderedMarkets.map((market, index) => (
+          <PerpsMarketTileCard
+            key={market.symbol}
+            market={market}
+            sparklineData={sparklines[market.symbol]}
+            onPress={() => handleMarketPress(market, index)}
+            testID={getPerpsRelatedMarketsSelector.tile(market.symbol)}
+          />
+        ))}
       </ScrollView>
     </View>
   );

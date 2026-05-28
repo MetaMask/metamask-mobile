@@ -1,18 +1,13 @@
-import {
-  PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
-  type PerpsMarketData,
-} from '@metamask/perps-controller';
+import { type PerpsMarketData } from '@metamask/perps-controller';
 
-export const RELATED_MARKETS_SOURCE = PERPS_EVENT_VALUE.SOURCE.RELATED_MARKETS;
-export const RELATED_MARKET_CLICKED =
-  PERPS_EVENT_VALUE.INTERACTION_TYPE.RELATED_MARKET_CLICKED;
+export const RELATED_MARKETS_SOURCE = 'related_markets';
+export const RELATED_MARKET_CLICKED = 'related_market_clicked';
 
 export const RELATED_MARKETS_EVENT_PROPERTY = {
-  SOURCE_MARKET: PERPS_EVENT_PROPERTY.SOURCE_MARKET,
-  MARKET: PERPS_EVENT_PROPERTY.MARKET,
-  CATEGORY: PERPS_EVENT_PROPERTY.CATEGORY,
-  POSITION: PERPS_EVENT_PROPERTY.POSITION,
+  SOURCE_MARKET: 'source_market',
+  MARKET: 'market',
+  CATEGORY: 'category',
+  POSITION: 'position',
 } as const;
 
 export type RelatedMarketCollectionType =
