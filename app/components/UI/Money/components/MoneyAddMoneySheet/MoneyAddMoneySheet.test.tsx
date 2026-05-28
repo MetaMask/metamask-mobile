@@ -11,6 +11,7 @@ import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../Earn/constants/musd';
+import Logger from '../../../../../util/Logger';
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockNavigate = jest.fn();
@@ -44,6 +45,11 @@ jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
 
 jest.mock('../../hooks/useMoneyAccount', () => ({
   useMoneyAccountDeposit: jest.fn(),
+}));
+
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { error: jest.fn(), log: jest.fn() },
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -240,6 +246,25 @@ describe('MoneyAddMoneySheet', () => {
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     expect(mockInitiateDeposit).toHaveBeenCalledWith();
+  });
+
+  it('logs via Logger.error when initiateDeposit rejects', async () => {
+    const depositError = new Error('mUSD not deployed on chain 0xa4b1');
+    mockInitiateDeposit.mockRejectedValueOnce(depositError);
+
+    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    fireEvent.press(
+      getByTestId(MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION),
+    );
+
+    // Flush the rejected promise so the .catch handler runs.
+    await Promise.resolve();
+
+    expect(Logger.error).toHaveBeenCalledWith(
+      depositError,
+      '[Money Account] initiateDeposit failed',
+    );
   });
 
   it('closes the sheet when Move mUSD is pressed (interim, no flow wired yet)', () => {
