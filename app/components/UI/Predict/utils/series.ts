@@ -108,6 +108,9 @@ export const formatSeriesMarketCountdown = (
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 };
 
+const pluralize = (count: number, unit: string): string =>
+  `${count} ${unit}${count === 1 ? '' : 's'}`;
+
 export const formatSeriesDuration = (durationMs: number): string => {
   if (!Number.isFinite(durationMs) || durationMs <= 0) {
     return '--';
@@ -115,16 +118,22 @@ export const formatSeriesDuration = (durationMs: number): string => {
 
   const totalSeconds = Math.round(durationMs / 1000);
 
-  if (totalSeconds >= SECONDS_PER_HOUR) {
-    const hours = Math.floor(totalSeconds / SECONDS_PER_HOUR);
-    const minutes = Math.floor(
-      (totalSeconds % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE,
-    );
-    const seconds = totalSeconds % SECONDS_PER_MINUTE;
+  if (
+    totalSeconds >= SECONDS_PER_WEEK &&
+    totalSeconds % SECONDS_PER_WEEK === 0
+  ) {
+    return pluralize(totalSeconds / SECONDS_PER_WEEK, 'week');
+  }
 
-    return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds
-      .toString()
-      .padStart(2, '0')}`;
+  if (totalSeconds >= SECONDS_PER_DAY && totalSeconds % SECONDS_PER_DAY === 0) {
+    return pluralize(totalSeconds / SECONDS_PER_DAY, 'day');
+  }
+
+  if (
+    totalSeconds >= SECONDS_PER_HOUR &&
+    totalSeconds % SECONDS_PER_HOUR === 0
+  ) {
+    return pluralize(totalSeconds / SECONDS_PER_HOUR, 'hour');
   }
 
   const minutes = Math.floor(totalSeconds / SECONDS_PER_MINUTE);

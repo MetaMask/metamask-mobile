@@ -175,15 +175,15 @@ class QuoteView {
         });
       },
       appium: async () => {
+        const testId = this.getTokenElementId(chainId, symbol);
         let tokenElement: PlaywrightElement;
         if (await PlatformDetector.isAndroid()) {
-          tokenElement = await PlaywrightMatchers.getElementById(
-            this.getTokenElementId(chainId, symbol),
-            { exact: false },
-          );
+          tokenElement = await PlaywrightMatchers.getElementById(testId, {
+            exact: false,
+          });
         } else {
-          tokenElement = await PlaywrightMatchers.getElementByNameiOS(
-            this.getTokenElementId(chainId, symbol),
+          tokenElement = await PlaywrightMatchers.getElementByXPath(
+            `//*[@name='${testId}']`,
           );
         }
         await PlaywrightAssertions.expectElementToBeVisible(tokenElement, {
@@ -243,8 +243,22 @@ class QuoteView {
   }
 
   async dismissKeypad(): Promise<void> {
-    await Gestures.waitAndTap(this.rateLabel, {
-      elemDescription: 'Tap rate label to dismiss keypad',
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.waitAndTap(this.rateLabel, {
+          elemDescription: 'Tap rate label to dismiss keypad',
+        });
+      },
+      appium: async () => {
+        const scrollView = await PlaywrightMatchers.getElementById(
+          QuoteViewSelectorIDs.BRIDGE_VIEW_SCROLL,
+          { exact: true },
+        );
+        await PlaywrightGestures.waitAndTap(scrollView, {
+          checkForDisplayed: true,
+          checkForEnabled: true,
+        });
+      },
     });
   }
 
@@ -393,20 +407,25 @@ class QuoteView {
       },
       appium: async () => {
         await this.tapSourceAmountInput();
-        let digitEl: PlaywrightElement;
-        for (const digit of amount) {
-          if (await PlatformDetector.isAndroid()) {
-            digitEl = await PlaywrightMatchers.getElementByText(digit);
+        const isAndroid = await PlatformDetector.isAndroid();
+        for (const digit of amount.split('')) {
+          const keyName =
+            digit === '.' ? 'keypad-key-dot' : `keypad-key-${digit}`;
+          let el: PlaywrightElement;
+          if (isAndroid) {
+            el = await PlaywrightMatchers.getElementById(keyName, {
+              exact: true,
+            });
           } else {
-            digitEl = await PlaywrightMatchers.getElementByXPath(
-              `//*[contains(@name,'keypad-key-${digit}')]`,
+            el = await PlaywrightMatchers.getElementByXPath(
+              `//*[contains(@name,'${keyName}')]`,
             );
           }
-          await PlaywrightAssertions.expectElementToBeVisible(digitEl, {
+          await PlaywrightAssertions.expectElementToBeVisible(el, {
             timeout: TIMEOUT.KEYPAD_DIGIT,
             description: `Keypad digit ${digit} should be visible`,
           });
-          await PlaywrightGestures.waitAndTap(digitEl, {
+          await PlaywrightGestures.waitAndTap(el, {
             checkForDisplayed: true,
             checkForEnabled: true,
             delay: 1000,

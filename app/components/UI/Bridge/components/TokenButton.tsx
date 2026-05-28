@@ -9,8 +9,6 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
 import { Theme } from '../../../../util/theme/models';
-import { Box } from '../../Box/Box';
-import { FlexDirection, AlignItems, JustifyContent } from '../../Box/box.types';
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../component-library/components/Badges/BadgeWrapper';
@@ -42,6 +40,10 @@ const createStyles = (params: StylesParams) => {
       borderRadius: 16,
     },
     pillContainer: {
+      flexDirection: 'row' as const,
+      alignItems: 'flex-end' as const,
+      justifyContent: 'flex-end' as const,
+      gap: 8,
       backgroundColor: theme.colors.background.muted,
       borderRadius: 100,
       paddingLeft: 8,
@@ -67,31 +69,27 @@ export const TokenButton: React.FC<TokenProps> = ({
 }) => {
   const { styles } = useStyles(createStyles, {});
   return (
-    <TouchableOpacity onPress={onPress} testID={testID}>
-      <Box
-        style={styles.pillContainer}
-        flexDirection={FlexDirection.Row}
-        alignItems={AlignItems.flexEnd}
-        justifyContent={JustifyContent.flexEnd}
-        gap={8}
+    <TouchableOpacity
+      onPress={onPress}
+      testID={testID}
+      style={styles.pillContainer}
+    >
+      <BadgeWrapper
+        badgePosition={BadgePosition.BottomRight}
+        badgeElement={
+          <Badge
+            variant={BadgeVariant.Network}
+            imageSource={networkImageSource}
+            name={networkName}
+          />
+        }
       >
-        <BadgeWrapper
-          badgePosition={BadgePosition.BottomRight}
-          badgeElement={
-            <Badge
-              variant={BadgeVariant.Network}
-              imageSource={networkImageSource}
-              name={networkName}
-            />
-          }
-        >
-          <TokenIcon symbol={symbol} icon={iconUrl} style={styles.icon} />
-        </BadgeWrapper>
+        <TokenIcon symbol={symbol} icon={iconUrl} style={styles.icon} />
+      </BadgeWrapper>
 
-        <Text style={styles.tokenSymbol} variant={TextVariant.HeadingLG}>
-          {symbol}
-        </Text>
-      </Box>
+      <Text style={styles.tokenSymbol} variant={TextVariant.HeadingLG}>
+        {symbol}
+      </Text>
     </TouchableOpacity>
   );
 };

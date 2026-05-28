@@ -224,9 +224,7 @@ jest.mock('./components/PredictBuyAmountSection', () => {
   }) {
     return (
       <Text testID="predict-buy-amount-section">
-        {`Amount Section ${availableBalanceDisplay} placing-${String(
-          isPlacingOrder,
-        )}`}
+        {`Amount Section ${availableBalanceDisplay} placing-${String(isPlacingOrder)}`}
       </Text>
     );
   };
@@ -796,7 +794,7 @@ describe('PredictBuyWithAnyToken', () => {
       );
     });
 
-    it('navigates to PayWithModal when Change Payment Method is pressed (Case 1)', () => {
+    it('navigates to PayWithBottomSheet when Change Payment Method is pressed (Case 1)', () => {
       mockIsCurrentTokenInsufficient = true;
       mockHasAlternativeBalance = true;
 
@@ -804,10 +802,23 @@ describe('PredictBuyWithAnyToken', () => {
       fireEvent.press(screen.getByTestId('predict-buy-action-button'));
 
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.CONFIRMATION_PAY_WITH_MODAL,
+        Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET,
       );
       expect(mockLockPaymentSelectorNavigation).toHaveBeenCalledTimes(1);
       expect(mockHandleConfirm).not.toHaveBeenCalled();
+    });
+
+    it('navigates to PayWithBottomSheet when Change Payment Method is pressed', () => {
+      mockIsCurrentTokenInsufficient = true;
+      mockHasAlternativeBalance = true;
+
+      renderWithProvider(<PredictBuyWithAnyToken {...sheetProps} />);
+      fireEvent.press(screen.getByTestId('predict-buy-action-button'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET,
+      );
+      expect(mockLockPaymentSelectorNavigation).toHaveBeenCalledTimes(1);
     });
 
     it('renders Add Funds mode (Case 2) when token is insufficient with no alternatives', () => {
@@ -880,7 +891,7 @@ describe('PredictBuyWithAnyToken', () => {
 
       expect(mockHandleRetryWithBestPrice).toHaveBeenCalledTimes(1);
       expect(mockNavigate).not.toHaveBeenCalledWith(
-        Routes.CONFIRMATION_PAY_WITH_MODAL,
+        Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET,
       );
     });
 

@@ -351,6 +351,7 @@ const ConfirmEmail = () => {
       formFields={renderFormFields()}
       actions={renderActions()}
       stickyActions
+      headerMode="back"
     />
   );
 };

@@ -4,10 +4,10 @@ import {
   PERPS_EVENT_VALUE,
   getPerpsDisplaySymbol,
 } from '@metamask/perps-controller';
-import { TextColor } from '@metamask/design-system-react-native';
 import PerpsTokenLogo from '../../../../UI/Perps/components/PerpsTokenLogo';
 import type { PerpsNavigationParamList } from '../../../../UI/Perps/types/navigation';
 import Routes from '../../../../../constants/navigation/Routes';
+import { formatPercentChange } from '../formatPercentChange';
 import ExplorePill from '../../components/ExplorePill';
 import type { PerpsFeedItem } from './usePerpsFeed';
 
@@ -38,27 +38,10 @@ const PerpsPillItem: React.FC<PerpsPillItemProps> = ({
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { market } = item;
 
-  const { changeLabel, changeTextColor } = useMemo(() => {
-    const raw = market.change24hPercent;
-    const n = parseFloat(String(raw));
-    if (raw == null || raw === '' || Number.isNaN(n)) {
-      return {
-        changeLabel: undefined,
-        changeTextColor: TextColor.TextAlternative,
-      };
-    }
-    if (n === 0) {
-      return {
-        changeLabel: '0.00%',
-        changeTextColor: TextColor.TextAlternative,
-      };
-    }
-    return {
-      changeLabel: `${n > 0 ? '+' : ''}${n.toFixed(2)}%`,
-      changeTextColor:
-        n > 0 ? TextColor.SuccessDefault : TextColor.ErrorDefault,
-    };
-  }, [market.change24hPercent]);
+  const { changeLabel, changeTextColor } = useMemo(
+    () => formatPercentChange(market.change24hPercent),
+    [market.change24hPercent],
+  );
 
   const onPress = () => {
     onCardPress?.();

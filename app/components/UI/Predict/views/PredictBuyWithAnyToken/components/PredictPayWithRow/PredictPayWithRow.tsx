@@ -69,7 +69,7 @@ export function PredictPayWithRow({
   const handlePress = useCallback(() => {
     if (!canEdit) return;
     onPaymentSelectorOpen?.();
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
+    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET);
   }, [canEdit, navigation, onPaymentSelectorOpen]);
 
   const label = strings('confirm.label.pay_with');

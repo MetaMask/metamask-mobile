@@ -36,6 +36,7 @@ interface HeaderCompactStandardMockProps {
 interface TimeSlotPickerMockProps {
   onMarketSelected: (market: PredictMarket) => void;
   markets: PredictMarket[];
+  selectedMarketId?: string;
 }
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -157,8 +158,15 @@ jest.mock('../TimeSlotPicker', () => {
   const { View, TouchableOpacity } = jest.requireActual('react-native');
   return {
     TimeSlotPicker: jest.fn(
-      ({ onMarketSelected, markets }: TimeSlotPickerMockProps) => (
-        <View testID="mock-time-slot-picker">
+      ({
+        onMarketSelected,
+        markets,
+        selectedMarketId,
+      }: TimeSlotPickerMockProps) => (
+        <View
+          testID="mock-time-slot-picker"
+          accessibilityLabel={`selected:${selectedMarketId ?? 'none'}`}
+        >
           {markets.map((m) => (
             <TouchableOpacity
               key={m.id}
@@ -276,6 +284,18 @@ const getChartMarketId = () => {
   const chart = screen.getByTestId('mock-predict-crypto-up-down-chart');
   const label = chart.props.accessibilityLabel as string | undefined;
   return label?.match(/^market:([^;]+)/)?.[1];
+};
+
+const getChartTargetPrice = () => {
+  const chart = screen.getByTestId('mock-predict-crypto-up-down-chart');
+  const label = chart.props.accessibilityLabel as string | undefined;
+  return label?.match(/;target:(.+)$/)?.[1];
+};
+
+const getSelectedTimeSlotMarketId = () => {
+  const picker = screen.getByTestId('mock-time-slot-picker');
+  const label = picker.props.accessibilityLabel as string | undefined;
+  return label?.match(/^selected:(.+)$/)?.[1];
 };
 
 const getPositionsRowIds = () => {
@@ -532,6 +552,36 @@ describe('PredictCryptoUpDownDetails', () => {
     ).toBeOnTheScreen();
     expect(screen.getByText('Price to beat')).toBeOnTheScreen();
     expect(screen.getByText('$78,000.00')).toBeOnTheScreen();
+  });
+
+  it('uses market threshold as target price while fetched target is unavailable', () => {
+    const market = createMockMarket({
+      outcomes: [
+        {
+          id: 'outcome-1',
+          providerId: 'polymarket',
+          marketId: 'market-1',
+          title: 'BTC Up or Down',
+          description: '',
+          image: '',
+          status: 'open',
+          tokens: [],
+          volume: 0,
+          groupItemTitle: 'BTC',
+          groupItemThreshold: 77123,
+        },
+      ],
+    });
+    mockUsePredictSeries.mockReturnValue({ data: [market] });
+    mockUseCryptoTargetPrice.mockReturnValue({
+      data: undefined,
+      isFetching: true,
+    });
+
+    render(<PredictCryptoUpDownDetails market={market} onBack={mockOnBack} />);
+
+    expect(screen.getByText('$77,123.00')).toBeOnTheScreen();
+    expect(getChartTargetPrice()).toBe('77123');
   });
 
   it('renders signed positive current price deltas with USD formatting', () => {
@@ -795,15 +845,58 @@ describe('PredictCryptoUpDownDetails', () => {
     }
   });
 
-  it('passes selected market to chart component and updates subtitle when a different time slot is selected', () => {
+  it('updates the selected time slot when a different time slot is pressed', () => {
+    const market = createMockMarket();
+
+    render(<PredictCryptoUpDownDetails market={market} onBack={mockOnBack} />);
+
+    expect(getSelectedTimeSlotMarketId()).toBe('market-1');
+
+    fireEvent.press(screen.getByTestId('mock-time-slot-market-2'));
+
+    expect(getSelectedTimeSlotMarketId()).toBe('market-2');
+  });
+
+  it('anchors the chart to the live market and keeps it stable when the user selects a future time slot', () => {
+    const now = Date.UTC(2026, 0, 1, 0, 0, 0);
+    const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(now);
+    try {
+      const liveMarket = createMockMarket({
+        id: 'live-market',
+        endDate: new Date(now + 60_000).toISOString(),
+      });
+      const futureMarket = createMockMarket({
+        id: 'future-market',
+        endDate: new Date(now + 5 * 60_000).toISOString(),
+      });
+      mockUsePredictSeries.mockReturnValue({
+        data: [liveMarket, futureMarket],
+      });
+
+      render(
+        <PredictCryptoUpDownDetails market={liveMarket} onBack={mockOnBack} />,
+      );
+
+      expect(getChartMarketId()).toBe('live-market');
+      expect(getSelectedTimeSlotMarketId()).toBe('live-market');
+
+      fireEvent.press(screen.getByTestId('mock-time-slot-future-market'));
+
+      expect(getChartMarketId()).toBe('live-market');
+      expect(getSelectedTimeSlotMarketId()).toBe('future-market');
+    } finally {
+      dateNowSpy.mockRestore();
+    }
+  });
+
+  it('falls back to the selected market for the chart when the series has no live market', () => {
     const market = createMockMarket();
 
     render(<PredictCryptoUpDownDetails market={market} onBack={mockOnBack} />);
 
     expect(getChartMarketId()).toBe('market-1');
 
-    const timeSlot2 = screen.getByTestId('mock-time-slot-market-2');
-    fireEvent.press(timeSlot2);
+    fireEvent.press(screen.getByTestId('mock-time-slot-market-2'));
 
     expect(getChartMarketId()).toBe('market-2');
   });
@@ -980,7 +1073,7 @@ describe('PredictCryptoUpDownDetails', () => {
         scheduledCallbacks[0]();
       });
 
-      expect(getChartMarketId()).toBe('later-market');
+      expect(getSelectedTimeSlotMarketId()).toBe('later-market');
     } finally {
       clearTimeoutSpy.mockRestore();
       setTimeoutSpy.mockRestore();
@@ -1082,6 +1175,37 @@ describe('PredictCryptoUpDownDetails', () => {
       expect(lastCall).toEqual(
         expect.objectContaining({ seriesId: 'btc-15m' }),
       );
+    });
+
+    it('keeps prior seedMarkets stable when usePredictSeries transiently returns undefined after a time slot change', () => {
+      const liveMarket = createMockMarket({ id: 'market-1' });
+      const nextMarket = createMockMarket({
+        id: 'market-2',
+        endDate: '2026-04-09T19:50:00Z',
+      });
+      mockUsePredictSeries.mockReturnValue({
+        data: [liveMarket, nextMarket],
+      });
+
+      render(
+        <PredictCryptoUpDownDetails market={liveMarket} onBack={mockOnBack} />,
+      );
+
+      const getLastSeedMarketIds = () =>
+        (
+          mockUsePredictSeriesPositions.mock.calls.at(-1)?.[0].seedMarkets as {
+            id: string;
+          }[]
+        )
+          .map((m) => m.id)
+          .sort();
+
+      expect(getLastSeedMarketIds()).toEqual(['market-1', 'market-2']);
+
+      mockUsePredictSeries.mockReturnValue({ data: undefined });
+      fireEvent.press(screen.getByTestId('mock-time-slot-market-2'));
+
+      expect(getLastSeedMarketIds()).toEqual(['market-1', 'market-2']);
     });
   });
 });

@@ -156,6 +156,7 @@ const Complete = () => {
       description=""
       formFields={renderFormFields()}
       actions={renderActions()}
+      headerMode="back"
     />
   );
 };

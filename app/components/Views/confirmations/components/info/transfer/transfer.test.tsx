@@ -42,6 +42,9 @@ jest.mock('../../../../../../core/Engine', () => {
       NetworkController: {
         getNetworkConfigurationByNetworkClientId: jest.fn(),
       },
+      PhishingController: {
+        checkAddressPoisoning: jest.fn().mockReturnValue([]),
+      },
       GasFeeController: {
         startPolling: jest.fn(),
         stopPollingByPollingToken: jest.fn(),

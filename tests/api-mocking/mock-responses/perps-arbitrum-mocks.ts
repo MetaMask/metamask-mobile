@@ -14,6 +14,7 @@ import {
   RampsRegion,
 } from '../../framework';
 import { safeGetBodyText } from '../MockServerE2E.ts';
+import { getDecodedProxiedURL } from '../../smoke/notifications/utils/helpers.ts';
 
 const logger = createLogger({
   name: 'PerpsArbitrumMocks',
@@ -516,6 +517,40 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
           'Content-Type': 'application/json',
           'Cache-Control': 'public, max-age=3600',
         },
+      };
+    });
+
+  await mockServer
+    .forPost('/proxy')
+    .matching((request) => {
+      try {
+        const decodedUrl = getDecodedProxiedURL(request.url);
+        return /compliance\.(dev-api|api|uat-api)\.cx\.metamask\.io\/v1\/wallet\/batch/.test(
+          decodedUrl,
+        );
+      } catch {
+        return false;
+      }
+    })
+    .asPriority(1001)
+    .thenCallback(async (request) => {
+      let addresses: string[] = [];
+      try {
+        const text = await safeGetBodyText(request);
+        if (text) {
+          const parsed = JSON.parse(text) as unknown;
+          if (Array.isArray(parsed)) {
+            addresses = parsed.filter(
+              (a): a is string => typeof a === 'string',
+            );
+          }
+        }
+      } catch {
+        /* ignore malformed body */
+      }
+      return {
+        statusCode: 200,
+        json: addresses.map((address) => ({ address, blocked: false })),
       };
     });
 };

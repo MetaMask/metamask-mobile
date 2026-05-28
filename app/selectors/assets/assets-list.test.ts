@@ -148,13 +148,13 @@ const mockState = ({
             '0x1': {
               '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab': [
                 {
-                  address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+                  address: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84',
                   decimals: 18,
                   symbol: 'stETH',
                   name: 'Lido Staked Ether',
                   aggregators: ['UniswapLabs', 'Metamask', 'Aave'],
                   image:
-                    'https://static.cx.metamask.io/api/v1/tokenIcons/10/0xae7ab96520de3a18e5e111b5eaab095312d7fe84.png',
+                    'https://static.cx.metamask.io/api/v1/tokenIcons/10/0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84.png',
                 },
                 {
                   address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
@@ -185,13 +185,13 @@ const mockState = ({
           tokenBalances: {
             '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab': {
               '0x1': {
-                '0xae7ab96520de3a18e5e111b5eaab095312d7fe84':
-                  '0x56BC75E2D63100000', // 100000000000000000000 (100 18 decimals)
+                '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84':
+                  '0x56bc75e2d63100000', // 100000000000000000000 (100 18 decimals)
                 '0x6B175474E89094C44Da98b954EedeAC495271d0F':
-                  '0xAD78EBC5AC6200000', // 200000000000000000000 (200 18 decimals)
+                  '0xad78ebc5ac6200000', // 200000000000000000000 (200 18 decimals)
               },
               '0xa': {
-                '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85': '0x3B9ACA00', // 1000000000 (1000 6 decimals)
+                '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85': '0x3b9aca00', // 1000000000 (1000 6 decimals)
               },
             },
           },
@@ -204,8 +204,8 @@ const mockState = ({
                 currency: 'ETH',
                 price: 1,
               },
-              '0xae7ab96520de3a18e5e111b5eaab095312d7fe84': {
-                tokenAddress: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+              '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84': {
+                tokenAddress: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84',
                 currency: 'ETH',
                 price: 0.00009,
               },
@@ -319,16 +319,144 @@ const mockState = ({
           accountsByChainId: {
             '0x1': {
               '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab': {
-                balance: '0x8AC7230489E80000', // 10000000000000000000 (10 - 18 decimals)
-                stakedBalance: '0x56BC75E2D63100000', // 100000000000000000000 (100 18 decimals)
+                balance: '0x8ac7230489e80000', // 10000000000000000000 (10 - 18 decimals)
+                stakedBalance: '0x56bc75e2d63100000', // 100000000000000000000 (100 18 decimals)
               },
             },
             '0xa': {
               '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab': {
-                balance: '0xDE0B6B3A7640000', // 1000000000000000000 (1 - 18 decimals)
+                balance: '0xde0b6b3a7640000', // 1000000000000000000 (1 - 18 decimals)
               },
             },
           },
+        },
+        AssetsController: {
+          selectedCurrency: 'USD',
+          assetsInfo: {
+            'eip155:1/slip44:60': {
+              type: 'native',
+              symbol: 'ETH',
+              name: 'Ethereum',
+              decimals: 18,
+            },
+            'eip155:10/slip44:60': {
+              type: 'native',
+              symbol: 'ETH',
+              name: 'Ethereum',
+              decimals: 18,
+            },
+            'eip155:1/erc20:0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84': {
+              type: 'erc20',
+              symbol: 'stETH',
+              name: 'Lido Staked Ether',
+              decimals: 18,
+              aggregators: ['UniswapLabs', 'Metamask', 'Aave'],
+              image:
+                'https://static.cx.metamask.io/api/v1/tokenIcons/10/0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84.png',
+            },
+            'eip155:1/erc20:0x6B175474E89094C44Da98b954EedeAC495271d0F': {
+              type: 'erc20',
+              symbol: 'DAI',
+              name: 'Dai Stablecoin',
+              decimals: 18,
+              image:
+                'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x6B175474E89094C44Da98b954EedeAC495271d0F.png',
+            },
+            'eip155:10/erc20:0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85': {
+              type: 'erc20',
+              symbol: 'USDC',
+              name: 'USDCoin',
+              decimals: 6,
+              image:
+                'https://static.cx.metamask.io/api/v1/tokenIcons/10/0x0b2c639c533813f4aa9d7837caf62653d097ff85.png',
+            },
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501': {
+              type: 'native',
+              symbol: 'SOL',
+              name: 'Solana',
+              decimals: 9,
+              image:
+                'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png',
+            },
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN':
+              {
+                type: 'token',
+                symbol: 'JUP',
+                name: 'Jupiter',
+                decimals: 6,
+                image:
+                  'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token/JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN.png',
+              },
+          },
+          assetsBalance: {
+            'd7f11451-9d79-4df4-a012-afd253443639': {
+              'eip155:1/slip44:60': { amount: '10' },
+              'eip155:10/slip44:60': { amount: '1' },
+              'eip155:1/erc20:0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84': {
+                amount: '100',
+              },
+              'eip155:1/erc20:0x6B175474E89094C44Da98b954EedeAC495271d0F': {
+                amount: '200',
+              },
+              'eip155:10/erc20:0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85': {
+                amount: '1000',
+              },
+            },
+            '2d89e6a0-b4e6-45a8-a707-f10cef143b42': {
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501': {
+                amount: '10',
+              },
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN':
+                { amount: '200' },
+            },
+          },
+          assetsPrice: {
+            'eip155:1/slip44:60': {
+              assetPriceType: 'fungible',
+              price: 2400,
+              usdPrice: 2400,
+              lastUpdated: 1717334400000,
+            },
+            'eip155:10/slip44:60': {
+              assetPriceType: 'fungible',
+              price: 2400,
+              usdPrice: 2400,
+              lastUpdated: 1717334400000,
+            },
+            'eip155:1/erc20:0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84': {
+              assetPriceType: 'fungible',
+              price: 0.216,
+              usdPrice: 0.216,
+              lastUpdated: 1717334400000,
+            },
+            'eip155:1/erc20:0x6B175474E89094C44Da98b954EedeAC495271d0F': {
+              assetPriceType: 'fungible',
+              price: 4.8,
+              usdPrice: 4.8,
+              lastUpdated: 1717334400000,
+            },
+            'eip155:10/erc20:0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85': {
+              assetPriceType: 'fungible',
+              price: 12,
+              usdPrice: 12,
+              lastUpdated: 1717334400000,
+            },
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501': {
+              assetPriceType: 'fungible',
+              price: 163.55,
+              usdPrice: 163.55,
+              lastUpdated: 1717334400000,
+            },
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN':
+              {
+                assetPriceType: 'fungible',
+                price: 0.463731,
+                usdPrice: 0.463731,
+                lastUpdated: 1717334400000,
+              },
+          },
+          customAssets: {},
+          assetPreferences: {},
         },
         NetworkEnablementController: {
           enabledNetworkMap: {
@@ -364,16 +492,16 @@ describe('selectAssetsBySelectedAccountGroup', () => {
       '0x1': [
         {
           accountType: 'eip155:eoa',
-          assetId: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+          assetId: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84',
           isNative: false,
-          address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+          address: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84',
           image:
-            'https://static.cx.metamask.io/api/v1/tokenIcons/10/0xae7ab96520de3a18e5e111b5eaab095312d7fe84.png',
+            'https://static.cx.metamask.io/api/v1/tokenIcons/10/0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84.png',
           name: 'Lido Staked Ether',
           symbol: 'stETH',
           accountId: 'd7f11451-9d79-4df4-a012-afd253443639',
           decimals: 18,
-          rawBalance: '0x56BC75E2D63100000',
+          rawBalance: '0x56bc75e2d63100000',
           balance: '100',
           fiat: {
             balance: 21.6,
@@ -393,7 +521,7 @@ describe('selectAssetsBySelectedAccountGroup', () => {
           symbol: 'DAI',
           accountId: 'd7f11451-9d79-4df4-a012-afd253443639',
           decimals: 18,
-          rawBalance: '0xAD78EBC5AC6200000',
+          rawBalance: '0xad78ebc5ac6200000',
           balance: '200',
           fiat: {
             balance: 960,
@@ -412,7 +540,7 @@ describe('selectAssetsBySelectedAccountGroup', () => {
           symbol: 'ETH',
           accountId: 'd7f11451-9d79-4df4-a012-afd253443639',
           decimals: 18,
-          rawBalance: '0x8AC7230489E80000',
+          rawBalance: '0x8ac7230489e80000',
           balance: '10',
           fiat: {
             balance: 24000,
@@ -434,7 +562,7 @@ describe('selectAssetsBySelectedAccountGroup', () => {
           symbol: 'USDC',
           accountId: 'd7f11451-9d79-4df4-a012-afd253443639',
           decimals: 6,
-          rawBalance: '0x3B9ACA00',
+          rawBalance: '0x3b9aca00',
           balance: '1000',
           fiat: {
             balance: 12000,
@@ -453,7 +581,7 @@ describe('selectAssetsBySelectedAccountGroup', () => {
           symbol: 'ETH',
           accountId: 'd7f11451-9d79-4df4-a012-afd253443639',
           decimals: 18,
-          rawBalance: '0xDE0B6B3A7640000',
+          rawBalance: '0xde0b6b3a7640000',
           balance: '1',
           fiat: {
             balance: 2400,
@@ -551,7 +679,7 @@ describe('selectSortedAssetsBySelectedAccountGroup', () => {
         isStaked: false,
       },
       {
-        address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+        address: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84',
         chainId: '0x1',
         isStaked: false,
       },
@@ -579,7 +707,7 @@ describe('selectSortedAssetsBySelectedAccountGroup', () => {
         isStaked: false,
       },
       {
-        address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+        address: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84',
         chainId: '0x1',
         isStaked: false,
       },
@@ -599,12 +727,26 @@ describe('selectSortedAssetsBySelectedAccountGroup', () => {
               '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab': {
                 '0x1': {
                   // stETH has zero balance
-                  '0xae7ab96520de3a18e5e111b5eaab095312d7fe84': '0x0',
+                  '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84': '0x0',
                   '0x6B175474E89094C44Da98b954EedeAC495271d0F':
-                    '0xAD78EBC5AC6200000',
+                    '0xad78ebc5ac6200000',
                 },
                 '0xa': {
-                  '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85': '0x3B9ACA00',
+                  '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85': '0x3b9aca00',
+                },
+              },
+            },
+          },
+          AssetsController: {
+            ...mockState().engine.backgroundState.AssetsController,
+            assetsBalance: {
+              ...mockState().engine.backgroundState.AssetsController
+                .assetsBalance,
+              'd7f11451-9d79-4df4-a012-afd253443639': {
+                ...mockState().engine.backgroundState.AssetsController
+                  .assetsBalance['d7f11451-9d79-4df4-a012-afd253443639'],
+                'eip155:1/erc20:0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84': {
+                  amount: '0',
                 },
               },
             },
@@ -617,7 +759,7 @@ describe('selectSortedAssetsBySelectedAccountGroup', () => {
     const addresses = result.map((r) => r.address);
 
     // stETH zero-balance token should still be present when flag is off
-    expect(addresses).toContain('0xae7ab96520de3a18e5e111b5eaab095312d7fe84');
+    expect(addresses).toContain('0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84');
   });
 
   it('filters out zero-balance non-native tokens when hideZeroBalanceTokens is true', () => {
@@ -633,13 +775,27 @@ describe('selectSortedAssetsBySelectedAccountGroup', () => {
               '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab': {
                 '0x1': {
                   // stETH has zero balance
-                  '0xae7ab96520de3a18e5e111b5eaab095312d7fe84': '0x0',
+                  '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84': '0x0',
                   // DAI has non-zero balance
                   '0x6B175474E89094C44Da98b954EedeAC495271d0F':
-                    '0xAD78EBC5AC6200000',
+                    '0xad78ebc5ac6200000',
                 },
                 '0xa': {
-                  '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85': '0x3B9ACA00',
+                  '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85': '0x3b9aca00',
+                },
+              },
+            },
+          },
+          AssetsController: {
+            ...mockState().engine.backgroundState.AssetsController,
+            assetsBalance: {
+              ...mockState().engine.backgroundState.AssetsController
+                .assetsBalance,
+              'd7f11451-9d79-4df4-a012-afd253443639': {
+                ...mockState().engine.backgroundState.AssetsController
+                  .assetsBalance['d7f11451-9d79-4df4-a012-afd253443639'],
+                'eip155:1/erc20:0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84': {
+                  amount: '0',
                 },
               },
             },
@@ -653,7 +809,7 @@ describe('selectSortedAssetsBySelectedAccountGroup', () => {
 
     // stETH (zero balance, non-native) should be filtered out
     expect(addresses).not.toContain(
-      '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+      '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84',
     );
     // DAI (non-zero balance) should remain
     expect(addresses).toContain('0x6B175474E89094C44Da98b954EedeAC495271d0F');
@@ -680,7 +836,22 @@ describe('selectSortedAssetsBySelectedAccountGroup', () => {
               },
               '0xa': {
                 '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab': {
-                  balance: '0xDE0B6B3A7640000',
+                  balance: '0xde0b6b3a7640000',
+                },
+              },
+            },
+          },
+          AssetsController: {
+            ...mockState().engine.backgroundState.AssetsController,
+            assetsBalance: {
+              ...mockState().engine.backgroundState.AssetsController
+                .assetsBalance,
+              'd7f11451-9d79-4df4-a012-afd253443639': {
+                ...mockState().engine.backgroundState.AssetsController
+                  .assetsBalance['d7f11451-9d79-4df4-a012-afd253443639'],
+                'eip155:1/slip44:60': { amount: '0' },
+                'eip155:1/erc20:0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84': {
+                  amount: '0',
                 },
               },
             },
@@ -908,7 +1079,7 @@ describe('createSelectSortedAssetsBySelectedAccountGroup', () => {
           isStaked: false,
         },
         {
-          address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+          address: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84',
           chainId: '0x1',
           isStaked: false,
         },
@@ -1201,14 +1372,14 @@ describe('selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance', () => {
               '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab': {
                 '0x1': {
                   // stETH has zero balance
-                  '0xae7ab96520de3a18e5e111b5eaab095312d7fe84': '0x0',
+                  '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84': '0x0',
                   // DAI has non-zero balance
                   '0x6B175474E89094C44Da98b954EedeAC495271d0F':
-                    '0xAD78EBC5AC6200000',
+                    '0xad78ebc5ac6200000',
                 },
                 '0xa': {
                   // USDC has non-zero balance
-                  '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85': '0x3B9ACA00',
+                  '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85': '0x3b9aca00',
                 },
               },
             },
@@ -1224,7 +1395,22 @@ describe('selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance', () => {
               },
               '0xa': {
                 '0x2bd63233fe369b0f13eaf25292af5a9b63d2b7ab': {
-                  balance: '0xDE0B6B3A7640000',
+                  balance: '0xde0b6b3a7640000',
+                },
+              },
+            },
+          },
+          AssetsController: {
+            ...mockState().engine.backgroundState.AssetsController,
+            assetsBalance: {
+              ...mockState().engine.backgroundState.AssetsController
+                .assetsBalance,
+              'd7f11451-9d79-4df4-a012-afd253443639': {
+                ...mockState().engine.backgroundState.AssetsController
+                  .assetsBalance['d7f11451-9d79-4df4-a012-afd253443639'],
+                'eip155:1/slip44:60': { amount: '0' },
+                'eip155:1/erc20:0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84': {
+                  amount: '0',
                 },
               },
             },
@@ -1242,7 +1428,7 @@ describe('selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance', () => {
 
     // stETH (zero balance) should be filtered out
     expect(addresses).not.toContain(
-      '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+      '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84',
     );
     // ETH on 0x1 (zero balance) should be filtered out
     expect(
@@ -1484,6 +1670,11 @@ describe('selectAsset', () => {
       baseState.engine.backgroundState.TokenBalancesController
         .tokenBalances as Record<string, unknown>
     )[account2AddressLowercased] = {};
+    baseState.engine.backgroundState.AssetsController.assetsBalance[
+      account2Id
+    ] = {
+      'eip155:1/slip44:60': { amount: '1' },
+    };
 
     // Test Group 1: should return account 1 balances
     const stateForGroup1 = withSelectedGroup(baseState, group1Id, account1Id);
@@ -1583,14 +1774,14 @@ describe('selectAsset', () => {
   it('returns asset with aggregators', () => {
     const state = mockState();
     const result = selectAsset(state, {
-      address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+      address: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84',
       chainId: '0x1',
       isStaked: false,
     });
 
     expect(result).toEqual({
       chainId: '0x1',
-      address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84',
+      address: '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84',
       symbol: 'stETH',
       ticker: 'stETH',
       name: 'Lido Staked Ether',
@@ -1600,9 +1791,9 @@ describe('selectAsset', () => {
       isETH: false,
       isNative: false,
       isStaked: false,
-      logo: 'https://static.cx.metamask.io/api/v1/tokenIcons/10/0xae7ab96520de3a18e5e111b5eaab095312d7fe84.png',
+      logo: 'https://static.cx.metamask.io/api/v1/tokenIcons/10/0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84.png',
       image:
-        'https://static.cx.metamask.io/api/v1/tokenIcons/10/0xae7ab96520de3a18e5e111b5eaab095312d7fe84.png',
+        'https://static.cx.metamask.io/api/v1/tokenIcons/10/0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84.png',
       aggregators: ['UniswapLabs', 'Metamask', 'Aave'],
       accountType: EthAccountType.Eoa,
     });
@@ -2093,7 +2284,7 @@ describe('selectHasEligibleSwapSource', () => {
   const SOLANA = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
   const DAI_ADDRESS = '0x6B175474E89094C44Da98b954EedeAC495271d0F';
   const USDC_ADDRESS = '0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85';
-  const STETH_ADDRESS = '0xae7ab96520de3a18e5e111b5eaab095312d7fe84';
+  const STETH_ADDRESS = '0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84';
 
   interface AssetFixture {
     assetId: string;

@@ -822,6 +822,7 @@ const PhysicalAddress = () => {
       description={strings('card.card_onboarding.physical_address.description')}
       formFields={renderFormFields()}
       actions={renderActions()}
+      headerMode="close-with-confirmation"
     />
   );
 };

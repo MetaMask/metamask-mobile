@@ -1045,8 +1045,7 @@
       "title": "Notifications de {{traderName}}",
       "allow_push_notifications": "Autoriser les notifications push",
       "allow_push_notifications_desc": "Recevez des notifications concernant l’activité de trading de {{traderName}}",
-      "manage_traders": "Gérer les traders que vous suivez",
-      "save": "Sauvegarder"
+      "manage_traders": "Gérer les traders que vous suivez"
     },
     "trader_notifications_setup": {
       "description": "Recevez des alertes en temps réel sur les transactions des traders que vous suivez",
@@ -8463,7 +8462,7 @@
       "error_description": "Check your connection and try again.",
       "retry_button": "Retry",
       "tiers_title": "Tiers",
-      "tier_thresholds": "{{points}} total",
+      "tier_thresholds": "{{points}} points",
       "bps_value": "{{bps}} bps",
       "equity_rebate_label": "Equity rebate",
       "equity_rebate_header": "Equity rebate: {{value}}%",

@@ -60,7 +60,7 @@ import { CardActions, CardScreens } from '../util/metrics';
 export type LimitType = 'full' | 'restricted';
 
 export interface UseSpendingLimitParams {
-  flow: 'manage' | 'enable' | 'onboarding';
+  flow: 'manage' | 'enable' | 'onboarding' | 'enable_card';
   initialToken?: CardFundingToken | null;
   priorityToken?: CardFundingToken | null;
   allTokens: CardFundingToken[];
@@ -96,6 +96,7 @@ export interface UseSpendingLimitReturn {
   isFaucetCheckLoading: boolean;
 
   isMoneyAccountSource: boolean;
+  isMoneyAccountLocked: boolean;
   canShowMoneyAccountCta: boolean;
   selectMoneyAccountAsSource: () => void;
   moneyAccountTotalFiatFormatted: string | undefined;
@@ -165,7 +166,13 @@ const useSpendingLimit = ({
   const [isMoneyAccountSource, setIsMoneyAccountSource] = useState(false);
 
   const isOnboardingFlow = flow === 'onboarding';
-  const isMoneyAccountPreselectAllowed = flow !== 'enable';
+  const isEnableCardFlow = flow === 'enable_card';
+  const isEnableFlow = flow === 'enable';
+  const isManageFlow = flow === 'manage';
+  const isOnboardingLikeFlow = isOnboardingFlow || isEnableCardFlow;
+  const isMoneyAccountPreselectAllowed = isOnboardingLikeFlow;
+  const isEnablingNotEnabledToken =
+    isEnableFlow && initialToken?.fundingStatus === FundingStatus.NotEnabled;
 
   const {
     moneyAccountCardToken,
@@ -342,6 +349,17 @@ const useSpendingLimit = ({
     }
 
     if (
+      isManageFlow &&
+      priorityToken?.isMoneyAccountEntry &&
+      !hasUserExitedMoneyAccountSourceRef.current
+    ) {
+      setIsMoneyAccountSource(true);
+      applySelectedToken(priorityToken);
+      setHasInitialized(true);
+      return;
+    }
+
+    if (
       isMoneyAccountPreselectAllowed &&
       canLinkMoneyAccount &&
       !hasUserExitedMoneyAccountSourceRef.current
@@ -422,6 +440,7 @@ const useSpendingLimit = ({
     delegationSettings,
     sdk,
     applySelectedToken,
+    isManageFlow,
     isMoneyAccountPreselectAllowed,
     canLinkMoneyAccount,
     isMoneyAccountBalanceLoading,
@@ -533,10 +552,14 @@ const useSpendingLimit = ({
   }, [moneyAccountCardToken, applySelectedToken]);
 
   const canShowMoneyAccountCta =
-    isMoneyAccountPreselectAllowed &&
+    (isOnboardingLikeFlow || isEnablingNotEnabledToken) &&
     !isMoneyAccountSource &&
     isMoneyAccountFunded &&
     canLinkMoneyAccount;
+
+  const isMoneyAccountLocked = Boolean(
+    isManageFlow && priorityToken?.isMoneyAccountEntry,
+  );
 
   const handleLimitSelect = useCallback(() => {
     navigation.navigate(
@@ -760,6 +783,7 @@ const useSpendingLimit = ({
     isFaucetCheckLoading,
 
     isMoneyAccountSource,
+    isMoneyAccountLocked,
     canShowMoneyAccountCta,
     selectMoneyAccountAsSource,
     moneyAccountTotalFiatFormatted,

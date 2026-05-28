@@ -1714,11 +1714,56 @@ describe('useSpendingLimit', () => {
       expect(result.current.canShowMoneyAccountCta).toBe(false);
     });
 
-    it('preselects Money Account in the manage flow when funded + requirements met', () => {
+    it('locks the manage flow to Money Account when the priority token has isMoneyAccountEntry (even with zero balance)', () => {
+      mockUseMoneyAccountCardLinkage.mockReturnValue(
+        buildLinkageReturn({
+          hasMoneyAccountRequirements: true,
+          isCardAuthenticated: true,
+          moneyAccountCardToken: MONEY_ACCOUNT_TOKEN,
+          canLink: true,
+        }),
+      );
+      mockUseMoneyAccountBalance.mockReturnValue(
+        buildBalanceReturn({ tokenTotal: new BigNumber(0) }),
+      );
+      const priorityToken = createMockToken({
+        symbol: 'mUSD',
+        isMoneyAccountEntry: true,
+      });
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({ flow: 'manage', priorityToken }),
+        ),
+      );
+
+      expect(result.current.isMoneyAccountSource).toBe(true);
+      expect(result.current.isMoneyAccountLocked).toBe(true);
+      expect(result.current.selectedToken).toEqual(priorityToken);
+      expect(result.current.canShowMoneyAccountCta).toBe(false);
+    });
+
+    it('does NOT lock on onboarding-like flows even when Money Account is preselected as source', () => {
+      setupFunded();
+
+      const { result: onboarding } = renderHook(() =>
+        useSpendingLimit(createDefaultParams({ flow: 'onboarding' })),
+      );
+      expect(onboarding.current.isMoneyAccountSource).toBe(true);
+      expect(onboarding.current.isMoneyAccountLocked).toBe(false);
+
+      const { result: enableCard } = renderHook(() =>
+        useSpendingLimit(createDefaultParams({ flow: 'enable_card' })),
+      );
+      expect(enableCard.current.isMoneyAccountSource).toBe(true);
+      expect(enableCard.current.isMoneyAccountLocked).toBe(false);
+    });
+
+    it('preselects Money Account on the enable_card flow when funded + requirements met', () => {
       setupFunded();
 
       const { result } = renderHook(() =>
-        useSpendingLimit(createDefaultParams({ flow: 'manage' })),
+        useSpendingLimit(createDefaultParams({ flow: 'enable_card' })),
       );
 
       expect(result.current.isMoneyAccountSource).toBe(true);
@@ -1726,14 +1771,78 @@ describe('useSpendingLimit', () => {
       expect(result.current.canShowMoneyAccountCta).toBe(false);
     });
 
-    it('does NOT preselect Money Account in the enable flow (managing an existing asset)', () => {
+    it('shows the Money Account CTA on the enable_card flow after the user exits Money Account mode', () => {
       setupFunded();
 
+      const { result, rerender } = renderHook(() =>
+        useSpendingLimit(createDefaultParams({ flow: 'enable_card' })),
+      );
+
+      expect(result.current.isMoneyAccountSource).toBe(true);
+
+      mockUseSelector.mockReturnValue({
+        id: 'account-2',
+        address: '0xaccount2',
+        metadata: { name: 'Account 2' },
+      });
+      rerender();
+
+      expect(result.current.isMoneyAccountSource).toBe(false);
+      expect(result.current.canShowMoneyAccountCta).toBe(true);
+      expect(result.current.isMoneyAccountLocked).toBe(false);
+    });
+
+    it('does NOT lock the manage flow when the priority token is not a money-account entry, even when Money Account is funded', () => {
+      setupFunded();
+      const priorityToken = createMockToken({ symbol: 'USDC' });
+
       const { result } = renderHook(() =>
-        useSpendingLimit(createDefaultParams({ flow: 'enable' })),
+        useSpendingLimit(
+          createDefaultParams({ flow: 'manage', priorityToken }),
+        ),
       );
 
       expect(result.current.isMoneyAccountSource).toBe(false);
+      expect(result.current.canShowMoneyAccountCta).toBe(false);
+    });
+
+    it('does NOT preselect Money Account in the enable flow when the initial token is already Enabled', () => {
+      setupFunded();
+      const initialToken = createMockToken({
+        symbol: 'USDC',
+        fundingStatus: FundingStatus.Enabled,
+      });
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams({ flow: 'enable', initialToken })),
+      );
+
+      expect(result.current.isMoneyAccountSource).toBe(false);
+      expect(result.current.canShowMoneyAccountCta).toBe(false);
+    });
+
+    it('shows the Money Account CTA in the enable flow when the initial token is NotEnabled and Money Account is funded', () => {
+      setupFunded();
+      const initialToken = createMockToken({
+        symbol: 'USDC',
+        fundingStatus: FundingStatus.NotEnabled,
+      });
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams({ flow: 'enable', initialToken })),
+      );
+
+      expect(result.current.isMoneyAccountSource).toBe(false);
+      expect(result.current.canShowMoneyAccountCta).toBe(true);
+    });
+
+    it('does NOT show the Money Account CTA on the manage flow regardless of funding', () => {
+      setupFunded();
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams({ flow: 'manage' })),
+      );
+
       expect(result.current.canShowMoneyAccountCta).toBe(false);
     });
 
@@ -1749,11 +1858,17 @@ describe('useSpendingLimit', () => {
       expect(result.current.selectedToken).toEqual(initialToken);
     });
 
-    it('exits Money Account mode and exposes the switch-back CTA when the user changes account from the picker in the manage flow', () => {
+    it('exits Money Account mode when the user changes account from the picker in the manage flow (CTA stays hidden on manage)', () => {
       setupFunded();
+      const priorityToken = createMockToken({
+        symbol: 'mUSD',
+        isMoneyAccountEntry: true,
+      });
 
       const { result, rerender } = renderHook(() =>
-        useSpendingLimit(createDefaultParams({ flow: 'manage' })),
+        useSpendingLimit(
+          createDefaultParams({ flow: 'manage', priorityToken }),
+        ),
       );
 
       expect(result.current.isMoneyAccountSource).toBe(true);
@@ -1766,13 +1881,16 @@ describe('useSpendingLimit', () => {
       rerender();
 
       expect(result.current.isMoneyAccountSource).toBe(false);
-      expect(result.current.canShowMoneyAccountCta).toBe(true);
+      expect(result.current.canShowMoneyAccountCta).toBe(false);
     });
 
     it('exits Money Account mode when the picker invokes onSelectAccount, even with the same already-selected account', () => {
       setupFunded();
 
-      const priorityToken = createMockToken({ symbol: 'USDC' });
+      const priorityToken = createMockToken({
+        symbol: 'mUSD',
+        isMoneyAccountEntry: true,
+      });
       const { result } = renderHook(() =>
         useSpendingLimit(
           createDefaultParams({ flow: 'manage', priorityToken }),
@@ -1780,7 +1898,7 @@ describe('useSpendingLimit', () => {
       );
 
       expect(result.current.isMoneyAccountSource).toBe(true);
-      expect(result.current.selectedToken).toEqual(MONEY_ACCOUNT_TOKEN);
+      expect(result.current.selectedToken).toEqual(priorityToken);
 
       // Open the picker (this captures the onSelectAccount callback)
       act(() => {
@@ -1799,15 +1917,20 @@ describe('useSpendingLimit', () => {
       });
 
       expect(result.current.isMoneyAccountSource).toBe(false);
-      expect(result.current.canShowMoneyAccountCta).toBe(true);
-      expect(result.current.selectedToken).toEqual(priorityToken);
+      expect(result.current.canShowMoneyAccountCta).toBe(false);
     });
 
     it('does not re-trigger Money Account auto-preselect after exiting via the picker callback', () => {
       setupFunded();
+      const priorityToken = createMockToken({
+        symbol: 'mUSD',
+        isMoneyAccountEntry: true,
+      });
 
       const { result, rerender } = renderHook(() =>
-        useSpendingLimit(createDefaultParams({ flow: 'manage' })),
+        useSpendingLimit(
+          createDefaultParams({ flow: 'manage', priorityToken }),
+        ),
       );
 
       expect(result.current.isMoneyAccountSource).toBe(true);
@@ -1826,19 +1949,25 @@ describe('useSpendingLimit', () => {
 
       expect(result.current.isMoneyAccountSource).toBe(false);
 
-      // Subsequent re-renders (while Money Account is still funded + linkable)
-      // must NOT silently re-select Money Account — the user just opted out.
+      // Subsequent re-renders (priority token still flagged) must NOT silently
+      // re-select Money Account — the user just opted out.
       rerender();
 
       expect(result.current.isMoneyAccountSource).toBe(false);
-      expect(result.current.canShowMoneyAccountCta).toBe(true);
+      expect(result.current.canShowMoneyAccountCta).toBe(false);
     });
 
     it('submit on the manage flow goes back instead of replacing to Card Home (Money Account source path)', async () => {
       setupFunded();
+      const priorityToken = createMockToken({
+        symbol: 'mUSD',
+        isMoneyAccountEntry: true,
+      });
 
       const { result } = renderHook(() =>
-        useSpendingLimit(createDefaultParams({ flow: 'manage' })),
+        useSpendingLimit(
+          createDefaultParams({ flow: 'manage', priorityToken }),
+        ),
       );
 
       await act(async () => {
