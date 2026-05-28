@@ -83,7 +83,7 @@ describeForPlatforms('ExploreSearchScreen V2 - Component Tests', () => {
       ).toBeOnTheScreen();
     });
 
-    // Tap the Cryptos pill to switch to the single-feed view
+    // Tap the Crypto pill to switch to the single-feed view
     await actButtonPress(cryptosPill);
 
     // The aggregated results list disappears (replaced by the single-feed FlashList)
@@ -104,8 +104,10 @@ describeForPlatforms('ExploreSearchScreen V2 - Component Tests', () => {
     });
   });
 
-  it('Cryptos section header shows "View all" label (remote search — no exact count)', async () => {
-    const { findByTestId, getByTestId, getAllByText } =
+  it('Crypto section header hides "View all" when results fit within the cap', async () => {
+    // The mock returns 3 tokens (= MAX_ITEMS_PER_SECTION), so getViewMoreLabel
+    // returns null and the "View all" button should not be rendered.
+    const { findByTestId, getByTestId, queryByText } =
       renderExploreSearchScreenWithRoutes();
 
     const searchInput = getByTestId(
@@ -116,25 +118,18 @@ describeForPlatforms('ExploreSearchScreen V2 - Component Tests', () => {
     // Wait for the aggregated results list to appear
     await findByTestId(ExploreSearchScreenSelectorsIDs.SEARCH_RESULTS_LIST);
 
-    // The Cryptos section header button label should be "View all" because
-    // tokens use remote pagination and we never have a precise count of
-    // remaining items.
+    // With only 3 results (≤ MAX_ITEMS_PER_SECTION) the "View all" button must
+    // not be rendered — there is nothing more to reveal.
     await waitFor(() => {
-      const viewAllLabels = getAllByText(strings('trending.view_all'));
-      expect(viewAllLabels.length).toBeGreaterThanOrEqual(1);
-    });
-
-    // The Pressable wrapping that label has accessibilityLabel = "{label} {title}".
-    // Verify the Cryptos section specifically by checking the accessibility label.
-    const viewAllCryptosLabel = `${strings('trending.view_all')} ${strings('trending.search_tabs.crypto')}`;
-    await waitFor(() => {
+      const viewAllCryptosLabel = `${strings('trending.view_all')} ${strings('trending.search_tabs.crypto')}`;
       const resultsListEl = getByTestId(
         ExploreSearchScreenSelectorsIDs.SEARCH_RESULTS_LIST,
       );
       const pressables = resultsListEl.findAll(
         (node) => node.props.accessibilityLabel === viewAllCryptosLabel,
       );
-      expect(pressables.length).toBeGreaterThan(0);
+      expect(pressables.length).toBe(0);
+      expect(queryByText(strings('trending.view_all'))).toBeNull();
     });
   });
 
@@ -146,13 +141,13 @@ describeForPlatforms('ExploreSearchScreen V2 - Component Tests', () => {
     );
     await userEvent.type(searchInput, 'btc');
 
-    // Tap Cryptos pill to activate it
+    // Tap Crypto pill to activate it
     const cryptosPill = await findByTestId(
       ExploreSearchScreenSelectorsIDs.PILL_CRYPTOS,
     );
     await actButtonPress(cryptosPill);
 
-    // Cryptos pill should now be selected (active): accessibilityState.selected === true
+    // Crypto pill should now be selected (active): accessibilityState.selected === true
     await waitFor(() => {
       expect(cryptosPill.props.accessibilityState?.selected).toBe(true);
     });
@@ -161,7 +156,7 @@ describeForPlatforms('ExploreSearchScreen V2 - Component Tests', () => {
     const clearButton = getByTestId('explore-search-clear-button');
     await actButtonPress(clearButton);
 
-    // After clearing, the Cryptos pill should remain selected — clearing the
+    // After clearing, the Crypto pill should remain selected — clearing the
     // query must not auto-navigate back to "All".
     await waitFor(() => {
       expect(cryptosPill.props.accessibilityState?.selected).toBe(true);

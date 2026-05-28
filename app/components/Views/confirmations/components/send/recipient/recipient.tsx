@@ -22,10 +22,12 @@ import { useContacts } from '../../../hooks/send/useContacts';
 import { useRecipientPageReset } from '../../../hooks/send/useRecipientPageReset';
 import { useRouteParams } from '../../../hooks/send/useRouteParams';
 import { useSendActions } from '../../../hooks/send/useSendActions';
+import { useAddressPoisoningDetection } from '../../../hooks/send/useAddressPoisoningDetection';
 import { useToAddressValidation } from '../../../hooks/send/useToAddressValidation';
 import { RecipientInput } from '../../recipient-input';
 import { RecipientList } from '../../recipient-list/recipient-list';
 import { RecipientType } from '../../UI/recipient';
+import { AddressPoisoningAlertContent } from '../address-poisoning-alert-content/address-poisoning-alert-content';
 import { SendAlertModal } from '../send-alert-modal';
 import { styleSheet } from './recipient.styles';
 
@@ -47,6 +49,12 @@ export const Recipient = () => {
     loading,
     resolvedAddress,
   } = useToAddressValidation();
+
+  const recipientCandidateAddress =
+    !toAddressError && !loading ? resolvedAddress || to : undefined;
+  const { bestMatch: poisoningMatch } = useAddressPoisoningDetection(
+    recipientCandidateAddress,
+  );
 
   const {
     alerts,
@@ -133,6 +141,7 @@ export const Recipient = () => {
       pastedRecipient === toAddressValidated &&
       !toAddressError &&
       !toAddressWarning &&
+      !poisoningMatch &&
       !loading &&
       !isAlertCheckPending &&
       !hasUnacknowledgedAlerts
@@ -145,6 +154,7 @@ export const Recipient = () => {
     toAddressError,
     toAddressValidated,
     toAddressWarning,
+    poisoningMatch,
     loading,
     isAlertCheckPending,
     hasUnacknowledgedAlerts,
@@ -228,6 +238,24 @@ export const Recipient = () => {
           </ScrollView>
           {(to || '').length > 0 && !isRecipientSelectedFromList && (
             <Box twClassName="px-4 py-4">
+              {poisoningMatch && recipientCandidateAddress && (
+                <Banner
+                  testID="address-poisoning-warning-banner"
+                  variant={BannerVariant.Alert}
+                  severity={BannerAlertSeverity.Error}
+                  style={styles.banner}
+                  title={strings('alert_system.address_poisoning.title')}
+                  description={strings(
+                    'alert_system.address_poisoning.message',
+                  )}
+                >
+                  <AddressPoisoningAlertContent
+                    address={recipientCandidateAddress}
+                    knownAddress={poisoningMatch.knownAddress}
+                    diffIndices={poisoningMatch.diffIndices}
+                  />
+                </Banner>
+              )}
               {toAddressWarning && (
                 <Banner
                   testID="to-address-warning-banner"

@@ -1,10 +1,9 @@
 import React from 'react';
 import QuickBuyAmountSection from './components/QuickBuyAmountSection';
-import QuickBuyRateTag from './components/QuickBuyRateTag';
 import { useQuickBuyContext } from './useQuickBuyContext';
 
 /**
- * Amount section primitive — primary amount, rate tag, balance, hidden input.
+ * Amount section primitive — primary amount, balance, hidden input.
  */
 const QuickBuyAmount: React.FC = () => {
   const {
@@ -16,7 +15,6 @@ const QuickBuyAmount: React.FC = () => {
     sourceBalanceFiat,
     isQuoteLoading,
     hiddenInputRef,
-    formattedExchangeRate,
     handleAmountAreaPress,
     handleAmountChange,
     handleToggleAmountDisplay,
@@ -35,7 +33,6 @@ const QuickBuyAmount: React.FC = () => {
       onAmountAreaPress={handleAmountAreaPress}
       onAmountChange={handleAmountChange}
       onToggleAmountDisplay={handleToggleAmountDisplay}
-      rateTag={<QuickBuyRateTag label={formattedExchangeRate} />}
     />
   );
 };

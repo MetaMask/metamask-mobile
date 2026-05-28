@@ -387,7 +387,6 @@ export interface RootStackParamList extends ParamListBase {
   WhatsNewModal: undefined;
   TurnOffRememberMeModal: undefined;
   UpdateNeededModal: undefined;
-  DetectedTokens: undefined;
   SRPRevealQuiz: SRPRevealQuizParams | undefined;
   WalletActions: undefined;
   TradeWalletActions: undefined;

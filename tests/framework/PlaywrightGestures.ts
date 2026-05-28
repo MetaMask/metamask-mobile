@@ -81,6 +81,7 @@ export default class PlaywrightGestures {
     elem: PlaywrightElement,
     options?: {
       delay?: number;
+      timeout?: number;
       checkForDisplayed?: boolean;
       checkForEnabled?: boolean;
       checkForStable?: boolean;
@@ -88,17 +89,18 @@ export default class PlaywrightGestures {
   ): Promise<void> {
     const {
       delay = 500,
+      timeout,
       checkForDisplayed = true,
       checkForEnabled = true,
       checkForStable = false,
     } = options || {};
 
     if (checkForDisplayed) {
-      await elem.unwrap().waitForDisplayed({ timeout: 10000 });
+      await elem.unwrap().waitForDisplayed({ timeout: timeout ?? 10000 });
     }
 
     if (checkForEnabled) {
-      await elem.unwrap().waitForEnabled({ timeout: 5000 });
+      await elem.unwrap().waitForEnabled({ timeout: timeout ?? 5000 });
     }
 
     if (checkForStable) {

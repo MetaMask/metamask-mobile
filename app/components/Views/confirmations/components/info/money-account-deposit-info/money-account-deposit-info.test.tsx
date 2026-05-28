@@ -5,9 +5,9 @@ import {
   MONEY_ACCOUNT_CURRENCY,
 } from './money-account-deposit-info';
 
-jest.mock('../../../hooks/ui/useNavbar', () => ({
-  __esModule: true,
-  default: jest.fn(),
+const mockUseMoneyAccountDepositNavbar = jest.fn();
+jest.mock('../../../../../UI/Money/hooks/useMoneyAccountDepositNavbar', () => ({
+  useMoneyAccountDepositNavbar: () => mockUseMoneyAccountDepositNavbar(),
 }));
 
 const mockCustomAmountInfo = jest.fn();
@@ -26,13 +26,14 @@ jest.mock('../custom-amount-info', () => ({
 
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) =>
-    ({ 'confirm.title.money_account_add_money': 'Add money' })[key] ?? key,
+    ({ 'confirm.title.money_account_add_money': 'Add funds' })[key] ?? key,
 }));
 
 describe('MoneyAccountDepositInfo', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockCustomAmountInfo.mockClear();
+    mockUseMoneyAccountDepositNavbar.mockReturnValue(undefined);
   });
 
   it('renders CustomAmountInfo with usd currency', () => {
@@ -44,12 +45,10 @@ describe('MoneyAccountDepositInfo', () => {
     );
   });
 
-  it('sets navbar title via useNavbar', () => {
-    const useNavbar = jest.requireMock('../../../hooks/ui/useNavbar').default;
-
+  it('installs the navbar via useMoneyAccountDepositNavbar', () => {
     render(<MoneyAccountDepositInfo />);
 
-    expect(useNavbar).toHaveBeenCalledWith('Add money');
+    expect(mockUseMoneyAccountDepositNavbar).toHaveBeenCalledTimes(1);
   });
 
   it('MONEY_ACCOUNT_CURRENCY is usd', () => {
