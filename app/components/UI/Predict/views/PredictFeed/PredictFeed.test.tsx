@@ -132,13 +132,18 @@ jest.mock('../../components/PredictMarket', () => {
   const { View, Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: jest.fn(({ testID }) => (
-      <View testID={testID}>
+    default: jest.fn(({ testID, entryPoint }) => (
+      <View testID={testID} accessibilityLabel={entryPoint}>
         <Text>Market Card</Text>
       </View>
     )),
   };
 });
+
+import PredictMarket from '../../components/PredictMarket';
+import { PredictEventValues } from '../../constants/eventNames';
+
+const mockPredictMarket = PredictMarket as jest.Mock;
 
 jest.mock('../../components/PredictMarketSkeleton', () => {
   const { View } = jest.requireActual('react-native');
@@ -795,7 +800,7 @@ describe('PredictFeed', () => {
       );
     });
 
-    it('starts session with undefined entry point when not provided', () => {
+    it('starts session with predict_feed when entry point is not provided', () => {
       mockUseRoute.mockReturnValue({
         params: {},
       });
@@ -803,8 +808,29 @@ describe('PredictFeed', () => {
       render(<PredictFeed />);
 
       expect(mockSessionManager.startSession).toHaveBeenCalledWith(
-        undefined,
+        PredictEventValues.ENTRY_POINT.PREDICT_FEED,
         'trending',
+      );
+      expect(mockPredictMarket.mock.calls[0][0].entryPoint).toBe(
+        PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+      );
+    });
+
+    it('passes explore entryPoint to market list items from route params', () => {
+      mockUseRoute.mockReturnValue({
+        params: {
+          entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
+        },
+      });
+
+      render(<PredictFeed />);
+
+      expect(mockSessionManager.startSession).toHaveBeenCalledWith(
+        PredictEventValues.ENTRY_POINT.EXPLORE,
+        'trending',
+      );
+      expect(mockPredictMarket.mock.calls[0][0].entryPoint).toBe(
+        PredictEventValues.ENTRY_POINT.EXPLORE,
       );
     });
   });

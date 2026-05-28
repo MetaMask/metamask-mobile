@@ -272,6 +272,10 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
 }) => {
   const tw = useTailwind();
   const listRef = useRef<PredictFlashListRef>(null);
+  const route =
+    useRoute<RouteProp<PredictNavigationParamList, 'PredictMarketList'>>();
+  const listEntryPoint =
+    route.params?.entryPoint ?? PredictEventValues.ENTRY_POINT.PREDICT_FEED;
 
   const [hasEverBeenActive, setHasEverBeenActive] = useState(isActive);
   useEffect(() => {
@@ -317,7 +321,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     (info: { item: PredictMarketType; index: number }) => (
       <PredictMarketListItem
         market={info.item}
-        entryPoint={PredictEventValues.ENTRY_POINT.PREDICT_FEED}
+        entryPoint={listEntryPoint}
         testID={getPredictMarketListSelector.marketCardByCategory(
           category,
           info.index + 1, // E2E tests use 1-based indexing
@@ -325,7 +329,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
         transactionActiveAbTests={transactionActiveAbTests}
       />
     ),
-    [category, transactionActiveAbTests],
+    [category, listEntryPoint, transactionActiveAbTests],
   );
 
   const keyExtractor = useCallback((item: PredictMarketType) => item.id, []);
@@ -698,7 +702,10 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
 
   useEffect(() => {
     sessionManager.enableAppStateListener();
-    sessionManager.startSession(route.params?.entryPoint, initialTabKey);
+    sessionManager.startSession(
+      route.params?.entryPoint ?? PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+      initialTabKey,
+    );
 
     return () => {
       sessionManager.endSession();
