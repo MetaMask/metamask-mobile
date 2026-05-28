@@ -255,7 +255,6 @@ describe('MoneyHomeView', () => {
     } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>);
 
     mockUseMoneyAccountInfo.mockReturnValue({
-      isMoneyAccountFeatureEnabled: true,
       hasMoneyAccount: true,
       primaryMoneyAccount: {
         address: '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B',
@@ -435,30 +434,8 @@ describe('MoneyHomeView', () => {
   });
 
   describe('displayState precedence matrix', () => {
-    it('featureDisabled — renders feature-disabled message, hides MoneyEarnings', () => {
-      mockUseMoneyAccountInfo.mockReturnValue({
-        isMoneyAccountFeatureEnabled: false,
-        hasMoneyAccount: true,
-        primaryMoneyAccount: {
-          address: '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B',
-        },
-      } as ReturnType<typeof useMoneyAccountInfo>);
-
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <MoneyHomeView />,
-      );
-
-      expect(
-        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_FEATURE_DISABLED),
-      ).toBeOnTheScreen();
-      expect(
-        queryByTestId(MoneyEarningsTestIds.CONTAINER),
-      ).not.toBeOnTheScreen();
-    });
-
     it('noAccount — renders no-account message, hides MoneyEarnings', () => {
       mockUseMoneyAccountInfo.mockReturnValue({
-        isMoneyAccountFeatureEnabled: true,
         hasMoneyAccount: false,
         primaryMoneyAccount: undefined,
       });
@@ -472,25 +449,6 @@ describe('MoneyHomeView', () => {
       ).toBeOnTheScreen();
       expect(
         queryByTestId(MoneyEarningsTestIds.CONTAINER),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('featureDisabled takes precedence over noAccount', () => {
-      mockUseMoneyAccountInfo.mockReturnValue({
-        isMoneyAccountFeatureEnabled: false,
-        hasMoneyAccount: false,
-        primaryMoneyAccount: undefined,
-      });
-
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <MoneyHomeView />,
-      );
-
-      expect(
-        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_FEATURE_DISABLED),
-      ).toBeOnTheScreen();
-      expect(
-        queryByTestId(MoneyBalanceSummaryTestIds.BALANCE_NO_ACCOUNT),
       ).not.toBeOnTheScreen();
     });
 
@@ -570,9 +528,8 @@ describe('MoneyHomeView', () => {
       });
     });
 
-    it('MoneyHowItWorks stays mounted in featureDisabled state (empty tx count)', () => {
+    it('MoneyHowItWorks stays mounted in noAccount state (empty tx count)', () => {
       mockUseMoneyAccountInfo.mockReturnValue({
-        isMoneyAccountFeatureEnabled: false,
         hasMoneyAccount: false,
         primaryMoneyAccount: undefined,
       });

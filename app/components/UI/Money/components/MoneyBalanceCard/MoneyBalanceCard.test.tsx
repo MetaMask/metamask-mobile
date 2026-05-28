@@ -97,7 +97,6 @@ const createInfoMock = (
   overrides: Partial<ReturnType<typeof useMoneyAccountInfo>> = {},
 ): ReturnType<typeof useMoneyAccountInfo> =>
   ({
-    isMoneyAccountFeatureEnabled: true,
     hasMoneyAccount: true,
     primaryMoneyAccount: {
       address: '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B',
@@ -733,43 +732,10 @@ describe('MoneyBalanceCard', () => {
     });
   });
 
-  describe('featureDisabled state', () => {
-    beforeEach(() => {
-      mockUseMoneyAccountInfo.mockReturnValue(
-        createInfoMock({ isMoneyAccountFeatureEnabled: false }),
-      );
-    });
-
-    it('renders the feature-disabled message in the balance slot', () => {
-      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
-
-      expect(
-        getByTestId(MoneyBalanceCardTestIds.BALANCE_FEATURE_DISABLED),
-      ).toHaveTextContent(strings('money.balance_feature_disabled'));
-    });
-
-    it('does not render the balance text', () => {
-      const { queryByTestId } = renderWithProvider(<MoneyBalanceCard />);
-
-      expect(
-        queryByTestId(MoneyBalanceCardTestIds.BALANCE),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('does not render the balance error message', () => {
-      const { queryByTestId } = renderWithProvider(<MoneyBalanceCard />);
-
-      expect(
-        queryByTestId(MoneyBalanceCardTestIds.BALANCE_ERROR),
-      ).not.toBeOnTheScreen();
-    });
-  });
-
   describe('noAccount state', () => {
     beforeEach(() => {
       mockUseMoneyAccountInfo.mockReturnValue(
         createInfoMock({
-          isMoneyAccountFeatureEnabled: true,
           hasMoneyAccount: false,
           primaryMoneyAccount: undefined,
         }),
