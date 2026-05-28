@@ -12,6 +12,7 @@ import PerpsMarketList from '../PerpsMarketList';
 import styleSheet from './PerpsMarketTypeSection.styles';
 import PerpsRowSkeleton from '../PerpsRowSkeleton';
 import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 export interface PerpsMarketTypeSectionProps {
   /** Section title (e.g., "Perps", "Stocks", "Commodities") */
@@ -26,6 +27,8 @@ export interface PerpsMarketTypeSectionProps {
   isLoading?: boolean;
   /** Analytics source identifying the parent screen (e.g., 'perps_home') */
   source?: string;
+  /** Bound onto market-list/details routes for downstream transaction attribution. */
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   /** Test ID for component */
   testID?: string;
   /** Optional style override for the section container */
@@ -66,6 +69,7 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
   sortBy = 'volume',
   isLoading,
   source,
+  transactionActiveAbTests,
   testID,
   style,
   headerStyle,
@@ -80,18 +84,27 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
       params: {
         defaultMarketTypeFilter: marketType,
         source,
+        ...(transactionActiveAbTests?.length
+          ? { transactionActiveAbTests }
+          : {}),
       },
     });
-  }, [navigation, marketType, source]);
+  }, [navigation, marketType, source, transactionActiveAbTests]);
 
   const handleMarketPress = useCallback(
     (market: PerpsMarketData) => {
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
-        params: { market, source },
+        params: {
+          market,
+          source,
+          ...(transactionActiveAbTests?.length
+            ? { transactionActiveAbTests }
+            : {}),
+        },
       });
     },
-    [navigation, source],
+    [navigation, source, transactionActiveAbTests],
   );
 
   // Show skeleton during initial load

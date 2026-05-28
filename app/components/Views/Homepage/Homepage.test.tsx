@@ -106,10 +106,16 @@ jest.mock('../../UI/Perps', () => ({
   selectPerpsEnabledFlag: jest.fn(() => true),
 }));
 
-jest.mock('../../UI/Perps/providers/PerpsConnectionProvider', () => ({
-  PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
-    children,
-}));
+jest.mock('../../UI/Perps/providers/PerpsConnectionProvider', () => {
+  const actual = jest.requireActual(
+    '../../UI/Perps/providers/PerpsConnectionProvider',
+  );
+  return {
+    ...actual,
+    PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
+      children,
+  };
+});
 
 jest.mock('../../UI/Perps/providers/PerpsStreamManager', () => ({
   PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
