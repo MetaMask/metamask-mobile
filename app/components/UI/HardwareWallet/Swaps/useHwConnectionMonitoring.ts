@@ -54,7 +54,7 @@ export function useHwConnectionMonitoring({
     }
     prevWaitingRef.current = isWaiting;
 
-    if (!isEnabled || isWaiting) return;
+    if (!isEnabled || !isWaiting) return;
 
     if (
       baselineStateRef.current &&
