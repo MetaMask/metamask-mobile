@@ -1079,6 +1079,51 @@ describe('useQuickBuyController', () => {
     });
   });
 
+  describe('selectedQuoteRequestId', () => {
+    const quoteWithRequestId = (requestId: string) =>
+      createActiveQuote({
+        quote: { requestId, srcTokenAmount: '10000000000000000' },
+      });
+
+    it('clears manual selection when requestId is not in the current quote batch', () => {
+      let sortedQuotes = [quoteWithRequestId('quote-a')];
+      (useQuickBuyQuotes as jest.Mock).mockImplementation(() => ({
+        activeQuote: sortedQuotes[0],
+        sortedQuotes,
+        destTokenAmount: '1',
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+        quoteCount: sortedQuotes.length,
+        quotesLastFetchedAt: Date.now(),
+        refreshCount: 1,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
+      }));
+
+      const props = {
+        target: positionToQuickBuyTarget(createPosition()),
+        onClose: jest.fn(),
+      };
+      const { result, rerender } = renderHook(
+        ({ target, onClose }) => useQuickBuyController(target, onClose),
+        { initialProps: props },
+      );
+
+      act(() => {
+        result.current.setSelectedQuoteRequestId('quote-a');
+      });
+      expect(result.current.selectedQuoteRequestId).toBe('quote-a');
+
+      sortedQuotes = [quoteWithRequestId('quote-b')];
+      rerender(props);
+
+      expect(result.current.selectedQuoteRequestId).toBeUndefined();
+    });
+  });
+
   describe('handleClose', () => {
     it('calls the onClose prop', () => {
       const onClose = jest.fn();

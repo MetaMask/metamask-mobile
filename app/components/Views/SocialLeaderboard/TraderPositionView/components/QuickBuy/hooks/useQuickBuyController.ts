@@ -333,6 +333,19 @@ export function useQuickBuyController(
     setSelectedQuoteRequestId(undefined);
   }, [sourceToken, destToken, sourceTokenAmount, slippage]);
 
+  // Each fetch (including auto-refresh) returns quotes with new requestIds.
+  useEffect(() => {
+    if (!selectedQuoteRequestId) {
+      return;
+    }
+    const hasMatchingQuote = sortedQuotes.some(
+      (quote) => quote.quote.requestId === selectedQuoteRequestId,
+    );
+    if (!hasMatchingQuote) {
+      setSelectedQuoteRequestId(undefined);
+    }
+  }, [selectedQuoteRequestId, sortedQuotes]);
+
   const formattedNetworkFee = useFormattedNetworkFee(activeQuote ?? null);
 
   const networkFeeRawUsd = useMemo(() => {
