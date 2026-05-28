@@ -13,6 +13,16 @@
       ]
     },
     {
+      "type": "mnemonic",
+      "value": "optional second seed phrase goes here replace with real words",
+      "name": "Team SRP 1",
+      "count": 2,
+      "names": [
+        "Team SRP 1",
+        "Team SRP 2"
+      ]
+    },
+    {
       "type": "privateKey",
       "value": "0xYourPrivateKeyHex",
       "name": "Trading"

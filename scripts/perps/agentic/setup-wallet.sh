@@ -20,15 +20,18 @@
 
 set -euo pipefail
 
-cd "$(dirname "$0")/../../.."
+# Resolve the script directory to an absolute path BEFORE cd, so sourcing and
+# helper paths work regardless of the caller's CWD (e.g. ./setup-wallet.sh).
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$SCRIPT_DIR/../../.."
 # Source .js.env but only for vars not already set, so caller env takes precedence.
 # shellcheck source=lib/safe-env-parser.sh
-. "$(dirname "$0")/lib/safe-env-parser.sh"
+. "$SCRIPT_DIR/lib/safe-env-parser.sh"
 load_js_env
 
 PORT="${WATCHER_PORT:-8081}"
 [[ "$PORT" =~ ^[0-9]+$ ]] || { echo "ERROR: WATCHER_PORT must be numeric (got: $PORT)" >&2; exit 1; }
-SCRIPTS="$(dirname "$0")"
+SCRIPTS="$SCRIPT_DIR"
 export CDP_TIMEOUT="${CDP_TIMEOUT:-30000}"
 export CDP_DISCOVERY_RETRIES="${CDP_DISCOVERY_RETRIES:-3}"
 CDP="node $SCRIPTS/cdp-bridge.js"
@@ -40,7 +43,9 @@ cdp_eval_async() { $CDP eval-async "$1" 2>/dev/null | jq -r '.'; }
 # -- Parse args --
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --fixture) FIXTURE_PATH="$2"; shift 2 ;;
+    --fixture)
+      [ $# -ge 2 ] || { echo "ERROR: --fixture requires a path argument"; exit 2; }
+      FIXTURE_PATH="$2"; shift 2 ;;
     -h|--help) echo "Usage: setup-wallet.sh [--fixture path.json]"; exit 0 ;;
     *)         echo "Unknown arg: $1"; exit 2 ;;
   esac
@@ -77,7 +82,12 @@ for i in $(seq 0 $((ACCOUNT_COUNT - 1))); do
   fi
   [ -z "$ACC_VALUE" ] && { echo "ERROR: accounts[$i].value is empty"; exit 1; }
 done
-echo "Fixture OK: password + ${ACCOUNT_COUNT} account(s)"
+# Expected EVM account total = sum of mnemonic counts + one per private key.
+# A mnemonic entry with count=N materializes N HD accounts, not one, so the
+# entry count alone (ACCOUNT_COUNT) under-counts and would let setup pass while
+# silently missing HD accounts.
+EXPECTED_ETH_TOTAL=$(jq -r '[.accounts[] | if .type == "mnemonic" then (.count // .numberOfAccounts // 1) else 1 end] | add // 0' "$FIXTURE_PATH")
+echo "Fixture OK: password + ${ACCOUNT_COUNT} entry(ies), ${EXPECTED_ETH_TOTAL} expected EVM account(s)"
 
 # -- Check CDP --
 $CDP eval "JSON.stringify({ok:true})" >/dev/null 2>&1 || { echo "ERROR: CDP not reachable"; exit 1; }
@@ -98,14 +108,16 @@ if [ "$ENGINE_OK" != "ready" ]; then
   exit 1
 fi
 
-# Avoid simulator-native react-native-keychain backup crashes while the harness
-# creates/unlocks fixture wallets. Set it only after Engine exists; setting it
-# earlier is a no-op and lets KeyringController state changes hit BackupVault.
-if ! DISABLE_BACKUP=$(cdp_eval "(function(){ globalThis.__AGENTIC_DISABLE_VAULT_BACKUP = true; if (typeof Engine === 'object' && Engine) { Engine.disableAutomaticVaultBackup = true; } return JSON.stringify({agenticDisableVaultBackup: globalThis.__AGENTIC_DISABLE_VAULT_BACKUP === true, facadeDisableAutomaticVaultBackup: !!(Engine && Engine.disableAutomaticVaultBackup)}); })()"); then
-  echo "WARN: could not set vault backup guard before wallet setup"
+# The backup subscriber reads the Engine *class* static
+# `disableAutomaticVaultBackup`. AgenticService.setupWallet/applyWalletFixture
+# set that static authoritatively before any account import/rename. The
+# CDP-exposed `Engine` is the facade object, not the class, so we cannot set the
+# static from here — only record harness intent for observability.
+if ! DISABLE_BACKUP=$(cdp_eval "(function(){ globalThis.__AGENTIC_DISABLE_VAULT_BACKUP = true; return JSON.stringify({agenticDisableVaultBackup: globalThis.__AGENTIC_DISABLE_VAULT_BACKUP === true}); })()"); then
+  echo "WARN: could not record vault backup guard intent before wallet setup"
   DISABLE_BACKUP='{}'
 fi
-echo "Vault backup guard: $DISABLE_BACKUP"
+echo "Vault backup guard intent: $DISABLE_BACKUP"
 
 # Read fixture JSON and escape it for safe embedding in a JS string literal.
 FIXTURE_JSON=$(jq -c '.' "$FIXTURE_PATH")
@@ -118,19 +130,14 @@ IS_UNLOCKED=$(echo "$VAULT_STATE" | jq -r '.isUnlocked')
 echo "Vault state: hasVault=$HAS_VAULT, isUnlocked=$IS_UNLOCKED"
 
 if [ "$HAS_VAULT" = "true" ]; then
-  if [ "$IS_UNLOCKED" != "true" ]; then
-    echo "Unlocking existing vault via CDP KeyringController.submitPassword()..."
-    PASSWORD_JS=$(node -p "JSON.stringify(process.argv[1])" "$PASSWORD")
-    UNLOCK_RESULT=$(cdp_eval_async "(function(){ return Engine.context.KeyringController.submitPassword($PASSWORD_JS).then(function(){ return JSON.stringify({ok:true, unlocked: Engine.context.KeyringController.isUnlocked()}); }).catch(function(e){ return JSON.stringify({ok:false, error:e.message || String(e)}); }); })()")
-    UNLOCK_OK=$(echo "$UNLOCK_RESULT" | jq -r '.ok')
-    UNLOCKED_NOW=$(echo "$UNLOCK_RESULT" | jq -r '.unlocked // false')
-    if [ "$UNLOCK_OK" != "true" ] || [ "$UNLOCKED_NOW" != "true" ]; then
-      echo "ERROR: unlock failed"
-      echo "$UNLOCK_RESULT" | jq .
-      exit 1
-    fi
-  else
+  # Do NOT unlock here with a bare KeyringController.submitPassword(): that
+  # bypasses the real auth flow (multichain init + dispatchLogin/password state)
+  # and can leave Redux/auth state stale. applyWalletFixture unlocks via
+  # Authentication.unlockWallet() when the vault is locked.
+  if [ "$IS_UNLOCKED" = "true" ]; then
     echo "Vault already unlocked."
+  else
+    echo "Vault locked — applyWalletFixture will unlock via Authentication.unlockWallet() (real post-login flow)."
   fi
 
   echo "Applying fixture accounts/names to existing vault..."
@@ -190,7 +197,18 @@ const fixture = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
 const addresses = [];
 for (const account of fixture.accounts || []) {
   if (account.type === 'mnemonic') {
-    addresses.push(Wallet.fromMnemonic(account.value).address.toLowerCase());
+    const rawCount =
+      account.count != null
+        ? account.count
+        : account.numberOfAccounts != null
+        ? account.numberOfAccounts
+        : 1;
+    const count = Number(rawCount);
+    for (let i = 0; i < count; i += 1) {
+      addresses.push(
+        Wallet.fromMnemonic(account.value, `m/44'/60'/0'/0/${i}`).address.toLowerCase(),
+      );
+    }
   } else if (account.type === 'privateKey') {
     const key = account.value.startsWith('0x') ? account.value : `0x${account.value}`;
     addresses.push(new Wallet(key).address.toLowerCase());
@@ -212,8 +230,8 @@ if [ "$UNLOCKED" != "true" ]; then
   echo "$ACCOUNTS" | jq .
   exit 1
 fi
-if [ "$ETH_COUNT" -lt "$ACCOUNT_COUNT" ]; then
-  echo "ERROR: Wallet setup produced $ETH_COUNT ETH account(s), expected at least $ACCOUNT_COUNT from fixture"
+if [ "$ETH_COUNT" -lt "$EXPECTED_ETH_TOTAL" ]; then
+  echo "ERROR: Wallet setup produced $ETH_COUNT ETH account(s), expected at least $EXPECTED_ETH_TOTAL from fixture"
   echo "$ACCOUNTS" | jq .
   exit 1
 fi

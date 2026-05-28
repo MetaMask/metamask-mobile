@@ -27,6 +27,7 @@ import {
 import { setCompletedOnboarding } from '../../actions/onboarding';
 import { mnemonicPhraseToBytes } from '@metamask/key-tree';
 import { AccountImportStrategy } from '@metamask/keyring-controller';
+import type { AccountGroupId } from '@metamask/account-api';
 import StorageWrapper from '../../store/storage-wrapper';
 import {
   OPTIN_META_METRICS_UI_SEEN,
@@ -46,8 +47,12 @@ import Routes from '../../constants/navigation/Routes';
 import SecureKeychain from '../SecureKeychain';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import DevLogger from '../SDKConnect/utils/DevLogger';
-import { addNewHdAccount } from '../../actions/multiSrp';
+import {
+  addNewHdAccount,
+  importNewSecretRecoveryPhrase,
+} from '../../actions/multiSrp';
 import { bufferToHex, privateToAddress } from 'ethereumjs-util';
+import Authentication from '../Authentication';
 
 // ─── Fiber tree types ──────────────────────────────────────────────────────
 
@@ -287,7 +292,7 @@ function toAccountSummary(a: {
   return { id: a.id, address: a.address, name: a.metadata.name };
 }
 
-function getFixtureMnemonicCount(account?: {
+export function getFixtureMnemonicCount(account?: {
   count?: number;
   numberOfAccounts?: number;
 }): number {
@@ -299,7 +304,7 @@ function getFixtureMnemonicCount(account?: {
   return count;
 }
 
-function getFixtureAccountNames(
+export function getFixtureAccountNames(
   account: { name?: string; names?: string[] } | undefined,
   count: number,
 ): string[] {
@@ -345,6 +350,120 @@ function getPrivateKeyAddress(value: string) {
   ).toLowerCase();
 }
 
+interface FixtureHdWallet {
+  keyringId?: string;
+  accounts: FixtureEvmAccount[];
+}
+
+function getHdFixtureWallets(
+  accountsController: {
+    state: { internalAccounts: { accounts: Record<string, unknown> } };
+  },
+  accountTreeController: {
+    state: { accountTree?: { wallets?: Record<string, unknown> } };
+  },
+): FixtureHdWallet[] {
+  const evmById = new Map(
+    findEvmAccounts(accountsController.state.internalAccounts.accounts).map(
+      (account) => [account.id, account],
+    ),
+  );
+  const wallets = accountTreeController.state.accountTree?.wallets ?? {};
+  const result: FixtureHdWallet[] = [];
+  for (const wallet of Object.values(wallets) as {
+    metadata?: { entropy?: { id?: string } };
+    groups?: Record<
+      string,
+      { accounts?: string[]; metadata?: { entropy?: { groupIndex?: number } } }
+    >;
+  }[]) {
+    const entropyId = wallet.metadata?.entropy?.id;
+    if (!entropyId) continue;
+    const accounts = Object.values(wallet.groups ?? {})
+      .map((group) => ({
+        index: group.metadata?.entropy?.groupIndex ?? Number.MAX_SAFE_INTEGER,
+        account: group.accounts?.[0]
+          ? evmById.get(group.accounts[0])
+          : undefined,
+      }))
+      .filter((entry): entry is { index: number; account: FixtureEvmAccount } =>
+        Boolean(entry.account),
+      )
+      .sort((left, right) => left.index - right.index)
+      .map((entry) => entry.account);
+    if (accounts.length > 0) {
+      result.push({ keyringId: entropyId, accounts });
+    }
+  }
+  if (result.length > 0) {
+    return result;
+  }
+  const legacyHdAccounts = findEvmAccounts(
+    accountsController.state.internalAccounts.accounts,
+  ).filter(isHdFixtureAccount);
+  return legacyHdAccounts.length > 0 ? [{ accounts: legacyHdAccounts }] : [];
+}
+
+async function ensureFixtureMnemonicAccounts(
+  mnemonicAccount: WalletFixture['accounts'][number],
+  mnemonicIndex: number,
+  controllers: {
+    AccountsController: {
+      state: { internalAccounts: { accounts: Record<string, unknown> } };
+    };
+    AccountTreeController: {
+      state: { accountTree?: { wallets?: Record<string, unknown> } };
+      setAccountGroupName: (
+        accountGroupId: AccountGroupId,
+        accountGroupName: string,
+      ) => void;
+    };
+  },
+) {
+  const { AccountsController, AccountTreeController } = controllers;
+  const count = getFixtureMnemonicCount(mnemonicAccount);
+  const names = getFixtureAccountNames(mnemonicAccount, count);
+  let hdWallets = getHdFixtureWallets(
+    AccountsController,
+    AccountTreeController,
+  );
+
+  while (hdWallets.length <= mnemonicIndex) {
+    await importNewSecretRecoveryPhrase(mnemonicAccount.value, {
+      shouldSelectAccount: false,
+    });
+    await AccountTreeInitService.initializeAccountTree();
+    hdWallets = getHdFixtureWallets(AccountsController, AccountTreeController);
+  }
+
+  let wallet = hdWallets[mnemonicIndex];
+  if (!wallet) {
+    throw new Error(
+      `No HD wallet found for fixture mnemonic ${mnemonicIndex + 1}`,
+    );
+  }
+
+  for (
+    let accountIndex = wallet.accounts.length;
+    accountIndex < count;
+    accountIndex += 1
+  ) {
+    await addNewHdAccount(wallet.keyringId, names[accountIndex]);
+    await AccountTreeInitService.initializeAccountTree();
+    hdWallets = getHdFixtureWallets(AccountsController, AccountTreeController);
+    wallet = hdWallets[mnemonicIndex];
+    if (!wallet) {
+      throw new Error(
+        `No HD wallet found after adding fixture account ${accountIndex + 1}`,
+      );
+    }
+  }
+
+  wallet.accounts.slice(0, count).forEach((account, index) => {
+    setFixtureAccountName(AccountTreeController, account, names[index]);
+  });
+}
+
 function findAccountGroupIdByAccountId(
   accountTreeController: {
     state: { accountTree?: { wallets?: Record<string, unknown> } };
@@ -368,7 +487,7 @@ function setFixtureAccountName(
   accountTreeController: {
     state: { accountTree?: { wallets?: Record<string, unknown> } };
     setAccountGroupName: (
-      accountGroupId: string,
+      accountGroupId: AccountGroupId,
       accountGroupName: string,
     ) => void;
   },
@@ -380,12 +499,16 @@ function setFixtureAccountName(
     accountTreeController,
     account.id,
   );
+  // Legacy vault fallback skips account-tree init, so no group exists yet.
+  // The account label set above is sufficient; skip the group rename instead
+  // of throwing and crashing fixture setup.
   if (!groupId) {
-    throw new Error(
-      `No account group found for fixture account ${account.address}`,
+    DevLogger.log(
+      `[AgenticService] No account group for fixture account ${account.address}; skipped group rename`,
     );
+    return;
   }
-  accountTreeController.setAccountGroupName(groupId, name);
+  accountTreeController.setAccountGroupName(groupId as AccountGroupId, name);
 }
 
 async function materializeFixtureAccounts(
@@ -403,7 +526,7 @@ async function materializeFixtureAccounts(
     AccountTreeController: {
       state: { accountTree?: { wallets?: Record<string, unknown> } };
       setAccountGroupName: (
-        accountGroupId: string,
+        accountGroupId: AccountGroupId,
         accountGroupName: string,
       ) => void;
     };
@@ -411,57 +534,50 @@ async function materializeFixtureAccounts(
 ) {
   const { KeyringController, AccountsController, AccountTreeController } =
     controllers;
-  const mnemonicAccount = fixture.accounts.find(
+  const mnemonicAccounts = fixture.accounts.filter(
     (account) => account.type === 'mnemonic',
   );
 
-  if (mnemonicAccount) {
-    const count = getFixtureMnemonicCount(mnemonicAccount);
-    const names = getFixtureAccountNames(mnemonicAccount, count);
-    let hdAccounts = findEvmAccounts(
-      AccountsController.state.internalAccounts.accounts,
-    ).filter(isHdFixtureAccount);
-
-    for (
-      let accountIndex = hdAccounts.length;
-      accountIndex < count;
-      accountIndex += 1
-    ) {
-      await addNewHdAccount(undefined, names[accountIndex]);
-      hdAccounts = findEvmAccounts(
-        AccountsController.state.internalAccounts.accounts,
-      ).filter(isHdFixtureAccount);
-    }
-
-    hdAccounts.slice(0, count).forEach((account, index) => {
-      setFixtureAccountName(AccountTreeController, account, names[index]);
+  for (const [mnemonicIndex, mnemonicAccount] of mnemonicAccounts.entries()) {
+    await ensureFixtureMnemonicAccounts(mnemonicAccount, mnemonicIndex, {
+      AccountsController,
+      AccountTreeController,
     });
   }
 
   for (const account of fixture.accounts) {
     if (account.type !== 'privateKey') continue;
-    const address = getPrivateKeyAddress(account.value);
-    let imported = findEvmAccounts(
-      AccountsController.state.internalAccounts.accounts,
-    ).find((evmAccount) => evmAccount.address.toLowerCase() === address);
-
-    if (!imported) {
-      await KeyringController.importAccountWithStrategy(
-        AccountImportStrategy.privateKey,
-        [`0x${normalizePrivateKey(account.value)}`],
-      );
-      imported = findEvmAccounts(
+    // One bad private key shouldn't abort the whole fixture: log and continue.
+    // setup-wallet.sh validates the full expected account set afterwards.
+    try {
+      const address = getPrivateKeyAddress(account.value);
+      let imported = findEvmAccounts(
         AccountsController.state.internalAccounts.accounts,
       ).find((evmAccount) => evmAccount.address.toLowerCase() === address);
-    }
 
-    if (!imported) {
-      throw new Error(
-        `Fixture private key import did not create account ${address}`,
+      if (!imported) {
+        await KeyringController.importAccountWithStrategy(
+          AccountImportStrategy.privateKey,
+          [`0x${normalizePrivateKey(account.value)}`],
+        );
+        imported = findEvmAccounts(
+          AccountsController.state.internalAccounts.accounts,
+        ).find((evmAccount) => evmAccount.address.toLowerCase() === address);
+      }
+
+      if (!imported) {
+        throw new Error(
+          `Fixture private key import did not create account ${address}`,
+        );
+      }
+      if (account.name) {
+        setFixtureAccountName(AccountTreeController, imported, account.name);
+      }
+    } catch (e) {
+      Logger.log(
+        String(e),
+        'AgenticService.materializeFixtureAccounts.privateKey',
       );
-    }
-    if (account.name) {
-      setFixtureAccountName(AccountTreeController, imported, account.name);
     }
   }
 }
@@ -556,8 +672,21 @@ function measureStateNode(
       resolve(null);
       return;
     }
-    const finish = (x: number, y: number, width: number, height: number) =>
-      resolve({ x, y, width, height });
+    let settled = false;
+    const settle = (
+      value: { x: number; y: number; width: number; height: number } | null,
+    ) => {
+      if (settled) return;
+      settled = true;
+      resolve(value);
+    };
+    // Native measure callbacks never fire for detached/off-screen views;
+    // fall back to null after a short delay so callers don't hang forever.
+    const timeout = setTimeout(() => settle(null), 2500);
+    const finish = (x: number, y: number, width: number, height: number) => {
+      clearTimeout(timeout);
+      settle({ x, y, width, height });
+    };
     try {
       if (typeof stateNode.measureInWindow === 'function') {
         stateNode.measureInWindow(finish);
@@ -572,7 +701,8 @@ function measureStateNode(
     } catch (e) {
       Logger.log(String(e), 'AgenticService.measureStateNode');
     }
-    resolve(null);
+    clearTimeout(timeout);
+    settle(null);
   });
 }
 
@@ -591,7 +721,8 @@ async function queryUiTarget(options: {
   viewport?: { width: number; height: number };
   error?: string;
 }> {
-  const visibility = options.visibility === 'viewport' ? 'viewport' : 'tree';
+  const visibility: 'tree' | 'viewport' =
+    options.visibility === 'viewport' ? 'viewport' : 'tree';
   let target: FiberNode | null = null;
 
   walkFiberRoots((rootFiber) => {
@@ -1061,6 +1192,17 @@ const AgenticService = {
             AccountsController,
             AccountTreeController,
           } = Engine.context;
+          // The backup subscriber reads the Engine class static, so set it on
+          // the class (not the facade) before importing/renaming accounts to
+          // avoid racing native keychain export during fixture apply.
+          EngineClass.disableAutomaticVaultBackup = true;
+          // Unlock via the real auth flow (loginVaultCreation + dispatchLogin +
+          // post-login) rather than a bare KeyringController.submitPassword, so
+          // multichain services and Redux/auth state are consistent before we
+          // mutate accounts.
+          if (!KeyringController.isUnlocked()) {
+            await Authentication.unlockWallet({ password: fixture.password });
+          }
           await AccountTreeInitService.initializeAccountTree();
           await materializeFixtureAccounts(fixture, {
             KeyringController,
