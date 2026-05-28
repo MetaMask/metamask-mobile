@@ -53,6 +53,11 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
     SUPPORTED_TRANSACTION_TYPES as unknown as TransactionType[],
   );
 
+  const isWithdrawType = hasTransactionType(transactionMeta, [
+    TransactionType.perpsWithdraw,
+    TransactionType.predictWithdraw,
+  ]);
+
   const handlePress = useCallback(() => {
     if (transactionId) {
       Engine.context.TransactionPayController.setTransactionConfig(
@@ -60,14 +65,14 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
         (config) => {
           (config as Record<string, unknown>).paymentOverride =
             PaymentOverride.MoneyAccount;
-          if (moneyAccount?.address) {
+          if (moneyAccount?.address && !isWithdrawType) {
             config.refundTo = moneyAccount.address as Hex;
           }
         },
       );
     }
     navigation.goBack();
-  }, [moneyAccount?.address, navigation, transactionId]);
+  }, [isWithdrawType, moneyAccount?.address, navigation, transactionId]);
 
   return useMemo(() => {
     if (!enablePerpsMoneyAccountTransactions || !isSupported || !moneyAccount) {

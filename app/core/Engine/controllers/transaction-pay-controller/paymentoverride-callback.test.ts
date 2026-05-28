@@ -8,7 +8,10 @@ import {
   type GetPaymentOverrideDataRequest,
 } from '@metamask/transaction-pay-controller';
 import type { Hex } from '@metamask/utils';
-import { getMoneyAccountWithdrawTransactionsData } from '../../../../components/UI/Money/utils/moneyAccountTransactions';
+import {
+  getMoneyAccountDepositTransactionsData,
+  getMoneyAccountWithdrawTransactionsData,
+} from '../../../../components/UI/Money/utils/moneyAccountTransactions';
 import ReduxService from '../../../../core/redux/ReduxService';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { getDelegationTransaction } from '../../../../util/transactions/delegation';
@@ -45,6 +48,11 @@ const MOCK_WITHDRAW_PARAMS = [
   { to: '0xMusd' as Hex, data: '0xtransfer' as Hex, value: '0x0' as Hex },
 ];
 
+const MOCK_DEPOSIT_PARAMS = [
+  { to: '0xMusd' as Hex, data: '0xapprove' as Hex, value: '0x0' as Hex },
+  { to: '0xTeller' as Hex, data: '0xdeposit' as Hex, value: '0x0' as Hex },
+];
+
 const AMOUNT_HUMAN = '10.5';
 
 const TRANSACTION_META_MOCK = {
@@ -75,6 +83,9 @@ const selectPrimaryMoneyAccountMock = jest.mocked(selectPrimaryMoneyAccount);
 const getMoneyAccountWithdrawMock = jest.mocked(
   getMoneyAccountWithdrawTransactionsData,
 );
+const getMoneyAccountDepositMock = jest.mocked(
+  getMoneyAccountDepositTransactionsData,
+);
 const getDelegationTransactionMock = jest.mocked(getDelegationTransaction);
 
 describe('getPaymentOverrideData', () => {
@@ -85,6 +96,7 @@ describe('getPaymentOverrideData', () => {
       address: MONEY_ACCOUNT_ADDRESS,
     } as never);
     getMoneyAccountWithdrawMock.mockResolvedValue(MOCK_WITHDRAW_PARAMS);
+    getMoneyAccountDepositMock.mockResolvedValue(MOCK_DEPOSIT_PARAMS);
     getDelegationTransactionMock.mockResolvedValue({
       data: DELEGATION_DATA as Hex,
       to: DELEGATION_MANAGER as Hex,
@@ -195,5 +207,55 @@ describe('getPaymentOverrideData', () => {
         value: '0x0',
       },
     ]);
+  });
+
+  describe('isPostQuote deposit path', () => {
+    function buildPostQuoteRequest(
+      overrides?: Partial<GetPaymentOverrideDataRequest>,
+    ): GetPaymentOverrideDataRequest {
+      return buildRequest({
+        transactionData: {
+          ...VALID_TX_DATA,
+          isPostQuote: true,
+        } as GetPaymentOverrideDataRequest['transactionData'],
+        ...overrides,
+      });
+    }
+
+    it('calls getMoneyAccountDepositTransactionsData with Monad chain and amount', async () => {
+      await getPaymentOverrideData(buildPostQuoteRequest(), mockMessenger);
+
+      expect(getMoneyAccountDepositMock).toHaveBeenCalledWith(
+        CHAIN_IDS.MONAD,
+        AMOUNT_HUMAN,
+      );
+    });
+
+    it('does not call withdraw or delegation functions', async () => {
+      await getPaymentOverrideData(buildPostQuoteRequest(), mockMessenger);
+
+      expect(getMoneyAccountWithdrawMock).not.toHaveBeenCalled();
+      expect(getDelegationTransactionMock).not.toHaveBeenCalled();
+    });
+
+    it('returns deposit transaction params directly', async () => {
+      const result = await getPaymentOverrideData(
+        buildPostQuoteRequest(),
+        mockMessenger,
+      );
+
+      expect(result).toStrictEqual(MOCK_DEPOSIT_PARAMS);
+    });
+
+    it('returns empty array when deposit transactions data is empty', async () => {
+      getMoneyAccountDepositMock.mockResolvedValue([]);
+
+      const result = await getPaymentOverrideData(
+        buildPostQuoteRequest(),
+        mockMessenger,
+      );
+
+      expect(result).toStrictEqual([]);
+    });
   });
 });

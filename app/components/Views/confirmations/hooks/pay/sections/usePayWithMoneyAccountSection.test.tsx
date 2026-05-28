@@ -232,6 +232,32 @@ describe('usePayWithMoneyAccountSection', () => {
       expect(config.refundTo).toBe(MONEY_ACCOUNT_ADDRESS);
     });
 
+    it.each([TransactionType.perpsWithdraw, TransactionType.predictWithdraw])(
+      'does not set refundTo for %s transactions',
+      (txType) => {
+        useTransactionMetadataRequestMock.mockReturnValue({
+          id: 'tx-1',
+          type: txType,
+          txParams: {},
+        } as never);
+
+        const setConfigMock = jest.mocked(
+          Engine.context.TransactionPayController.setTransactionConfig,
+        );
+        const { result } = renderHook(() => usePayWithMoneyAccountSection());
+
+        act(() => {
+          result.current?.rows[0].onPress();
+        });
+
+        const config = {} as Record<string, unknown>;
+        setConfigMock.mock.calls[0][1](config as never);
+
+        expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
+        expect(config.refundTo).toBeUndefined();
+      },
+    );
+
     it('navigates back on press', () => {
       const goBackMock = jest.fn();
       jest

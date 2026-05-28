@@ -9,7 +9,10 @@ import {
   type GetPaymentOverrideDataRequest,
 } from '@metamask/transaction-pay-controller';
 import type { Hex } from '@metamask/utils';
-import { getMoneyAccountWithdrawTransactionsData } from '../../../../components/UI/Money/utils/moneyAccountTransactions';
+import {
+  getMoneyAccountDepositTransactionsData,
+  getMoneyAccountWithdrawTransactionsData,
+} from '../../../../components/UI/Money/utils/moneyAccountTransactions';
 import Engine from '../../../../core/Engine';
 import ReduxService from '../../../../core/redux/ReduxService';
 import { RootState } from '../../../../reducers';
@@ -72,6 +75,14 @@ async function getMoneyAccountWithdrawPaymentOverrideData<
   ];
 }
 
+async function getMoneyAccountDepositPaymentOverrideData(
+  amountHuman: string,
+): Promise<BatchTransactionParams[]> {
+  const chainId = CHAIN_IDS.MONAD as Hex;
+
+  return await getMoneyAccountDepositTransactionsData(chainId, amountHuman);
+}
+
 export async function getPaymentOverrideData<T extends SignMessenger>(
   request: GetPaymentOverrideDataRequest,
   messenger: T,
@@ -79,6 +90,10 @@ export async function getPaymentOverrideData<T extends SignMessenger>(
   const { amount, transaction, transactionData } = request;
 
   if (transactionData?.paymentOverride === PaymentOverride.MoneyAccount) {
+    if (transactionData?.isPostQuote) {
+      return getMoneyAccountDepositPaymentOverrideData(amount);
+    }
+
     if (!transaction.txParams?.from) return [];
 
     return getMoneyAccountWithdrawPaymentOverrideData(
