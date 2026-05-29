@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import type { StyleProp, ViewStyle } from 'react-native';
+import React, { forwardRef, useCallback } from 'react';
+import type { StyleProp, View, ViewStyle } from 'react-native';
 import {
   Pressable as RNGHPressable,
   type PressableStateCallbackType,
@@ -16,31 +16,31 @@ import type { PressableGHProps } from './Pressable.types';
  * scroll/list tree. Mixing RN core `Pressable` with RNGH scroll views
  * causes swipe/scroll gesture conflicts on Android.
  */
-const PressableGH = ({
-  style,
-  accessibilityRole = 'button',
-  children,
-  ...props
-}: PressableGHProps) => {
-  const { colors } = useTheme();
+const PressableGH = forwardRef<View, PressableGHProps>(
+  ({ style, accessibilityRole = 'button', children, ...props }, ref) => {
+    const { colors } = useTheme();
 
-  const composedStyle = useCallback(
-    (state: PressableStateCallbackType): StyleProp<ViewStyle> => [
-      typeof style === 'function' ? style(state) : style,
-      state.pressed && { backgroundColor: colors.background.pressed },
-    ],
-    [style, colors.background.pressed],
-  );
+    const composedStyle = useCallback(
+      (state: PressableStateCallbackType): StyleProp<ViewStyle> => [
+        typeof style === 'function' ? style(state) : style,
+        state.pressed && { backgroundColor: colors.background.pressed },
+      ],
+      [style, colors.background.pressed],
+    );
 
-  return (
-    <RNGHPressable
-      accessibilityRole={accessibilityRole}
-      {...props}
-      style={composedStyle}
-    >
-      {children}
-    </RNGHPressable>
-  );
-};
+    return (
+      <RNGHPressable
+        ref={ref}
+        accessibilityRole={accessibilityRole}
+        {...props}
+        style={composedStyle}
+      >
+        {children}
+      </RNGHPressable>
+    );
+  },
+);
+
+PressableGH.displayName = 'PressableGH';
 
 export default PressableGH;
