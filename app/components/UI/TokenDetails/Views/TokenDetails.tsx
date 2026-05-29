@@ -415,8 +415,13 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
   const openedAtRef = useRef<number>(Date.now());
   const closeSourceRef = useRef<TokenDetailsExitAction | null>(null);
 
+  const firedRef = useRef(false);
+
   const fireClosedRef = useRef<() => void>(() => undefined);
   fireClosedRef.current = () => {
+    if (firedRef.current) return;
+    firedRef.current = true;
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_CLOSED)
         .addProperties({
@@ -441,6 +446,7 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
       } else if (nextAppState === 'active') {
         closeSourceRef.current = null;
         openedAtRef.current = Date.now();
+        firedRef.current = false;
       }
     });
 
@@ -463,6 +469,7 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
     useCallback(() => {
       closeSourceRef.current = null;
       openedAtRef.current = Date.now();
+      firedRef.current = false;
 
       return () => {
         if (closeSourceRef.current === 'cta_clicked') {
