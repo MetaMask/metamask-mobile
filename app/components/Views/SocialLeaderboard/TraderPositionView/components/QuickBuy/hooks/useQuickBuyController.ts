@@ -604,17 +604,23 @@ export function useQuickBuyController(
 
     // Shared by the SUBMITTED + COMPLETED (success / failure) events. Built
     // once here so the success vs failure delta stays small at the call sites.
-    const tradeBaseProps =
-      submittedTraderAddress && submittedCaip19
-        ? {
-            [SocialLeaderboardEventProperties.TRADER_ADDRESS]:
-              submittedTraderAddress,
-            [SocialLeaderboardEventProperties.CAIP19]: submittedCaip19,
-            [SocialLeaderboardEventProperties.ASSET_NAME]: submittedAssetName,
-            [SocialLeaderboardEventProperties.AMOUNT_USD]: amountUsd,
-            [SocialLeaderboardEventProperties.PAY_WITH_TOKEN]: submittedPayWith,
-          }
-        : null;
+    // Keyed on the asset (caip19), not the trader: entry points without a
+    // trader (e.g. asset details) still record trade-level analytics, and
+    // trader_address is only attached when a trader is in context.
+    const tradeBaseProps = submittedCaip19
+      ? {
+          ...(submittedTraderAddress
+            ? {
+                [SocialLeaderboardEventProperties.TRADER_ADDRESS]:
+                  submittedTraderAddress,
+              }
+            : {}),
+          [SocialLeaderboardEventProperties.CAIP19]: submittedCaip19,
+          [SocialLeaderboardEventProperties.ASSET_NAME]: submittedAssetName,
+          [SocialLeaderboardEventProperties.AMOUNT_USD]: amountUsd,
+          [SocialLeaderboardEventProperties.PAY_WITH_TOKEN]: submittedPayWith,
+        }
+      : null;
 
     if (tradeBaseProps) {
       trackTradeSubmitted(tradeBaseProps);

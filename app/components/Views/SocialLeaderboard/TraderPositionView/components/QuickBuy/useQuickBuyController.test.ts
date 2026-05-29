@@ -51,6 +51,8 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 const mockTrackAmountSelected = jest.fn();
+const mockTrackTradeSubmitted = jest.fn();
+const mockTrackTradeCompleted = jest.fn();
 
 jest.mock('./hooks/useQuickBuyAnalytics', () => ({
   useQuickBuyAnalytics: () => ({
@@ -62,8 +64,8 @@ jest.mock('./hooks/useQuickBuyAnalytics', () => ({
       submitStartedAtRef: { current: null },
     },
     trackAmountSelected: mockTrackAmountSelected,
-    trackTradeSubmitted: jest.fn(),
-    trackTradeCompleted: jest.fn(),
+    trackTradeSubmitted: mockTrackTradeSubmitted,
+    trackTradeCompleted: mockTrackTradeCompleted,
     markTradeSubmitted: jest.fn(),
   }),
 }));
@@ -1070,7 +1072,7 @@ describe('useQuickBuyController', () => {
       }));
 
       const props = {
-        target: positionToQuickBuyTarget(createPosition()),
+        target: createTarget(),
         onClose: jest.fn(),
       };
       const { result, rerender } = renderHook(
@@ -1223,6 +1225,84 @@ describe('useQuickBuyController', () => {
           }),
         }),
       );
+    });
+
+    describe('trade-level analytics', () => {
+      const mockSuccessfulSubmit = () => {
+        (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+          activeQuote: createActiveQuote(),
+          destTokenAmount: '1',
+          isQuoteLoading: false,
+          isNoQuotesAvailable: false,
+          quoteFetchError: null,
+          isActiveQuoteForCurrentTokenPair: true,
+          sortedQuotes: [],
+          quoteCount: 0,
+          quotesLastFetchedAt: null,
+          refreshCount: 0,
+          quoteRefreshRateMs: 30000,
+          maxRefreshCount: 5,
+          refetchQuotes: jest.fn(),
+        });
+      };
+
+      it('tracks trade submitted and completed when no trader is in context (asset details entry)', async () => {
+        mockSuccessfulSubmit();
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn(), {
+            source: 'asset_details',
+          }),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(mockTrackTradeSubmitted).toHaveBeenCalledWith(
+          expect.objectContaining({ caip19: expect.any(String) }),
+        );
+        expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
+          expect.objectContaining({ caip19: expect.any(String) }),
+        );
+      });
+
+      it('omits trader_address from trade props when no trader is in context', async () => {
+        mockSuccessfulSubmit();
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn(), {
+            source: 'asset_details',
+          }),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(mockTrackTradeSubmitted).toHaveBeenCalledWith(
+          expect.not.objectContaining({ trader_address: expect.anything() }),
+        );
+      });
+
+      it('includes trader_address in trade props when a trader is in context', async () => {
+        mockSuccessfulSubmit();
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn(), {
+            traderAddress: '0xTRADER',
+            source: 'leaderboard',
+          }),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(mockTrackTradeSubmitted).toHaveBeenCalledWith(
+          expect.objectContaining({ trader_address: '0xTRADER' }),
+        );
+      });
     });
   });
 });
