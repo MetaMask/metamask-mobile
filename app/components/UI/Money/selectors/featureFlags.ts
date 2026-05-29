@@ -58,7 +58,6 @@ export const selectMoneyTokensBlocklist = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): WildcardTokenList =>
     getWildcardTokenListFromConfig(
-      // TODO: Add to remote feature flag registry
       remoteFeatureFlags?.earnMoneyPaymentTokensBlocklist,
       'earnMoneyPaymentTokensBlocklist',
       process.env.MM_MONEY_PAYMENT_TOKENS_BLOCKLIST,
@@ -81,7 +80,6 @@ export const selectMoneyNoFeeTokens = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): WildcardTokenList =>
     getWildcardTokenListFromConfig(
-      // TODO: Add to remote feature flag registry
       remoteFeatureFlags?.earnMoneyDepositNoFeeTokens,
       'earnMoneyDepositNoFeeTokens',
       process.env.MM_MONEY_DEPOSIT_NO_FEE_TOKENS,
@@ -145,7 +143,6 @@ const VALID_SORT_MODES: MoneyTokensSortMode[] = [
 export const selectMoneyTokensSortMode = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): MoneyTokensSortMode => {
-    // TODO: Add to remote feature flag registry
     const remote = remoteFeatureFlags?.earnMoneyTokensSortMode;
     if (
       typeof remote === 'string' &&

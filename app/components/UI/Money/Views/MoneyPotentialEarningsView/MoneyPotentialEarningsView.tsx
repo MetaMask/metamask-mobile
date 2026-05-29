@@ -68,7 +68,7 @@ const MoneyPotentialEarningsView = () => {
       return;
     }
     try {
-      initiateDeposit({
+      await initiateDeposit({
         preferredPaymentToken: {
           address: defaultToken.address as Hex,
           chainId: defaultToken.chainId as Hex,
