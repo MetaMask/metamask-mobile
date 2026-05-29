@@ -1,6 +1,5 @@
 // Third party dependencies.
 import PropTypes from 'prop-types';
-import { HeaderStandard } from '@metamask/design-system-react-native';
 import React, { PureComponent } from 'react';
 import { Linking, StyleSheet, Switch, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -37,6 +36,7 @@ import {
   Text,
   TextColor,
   TextVariant,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import Button, {
   ButtonVariants,

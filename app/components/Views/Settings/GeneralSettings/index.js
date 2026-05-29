@@ -1,5 +1,4 @@
 import PropTypes from 'prop-types';
-import { HeaderStandard } from '@metamask/design-system-react-native';
 import React, { PureComponent } from 'react';
 import {
   StyleSheet,
@@ -41,6 +40,7 @@ import {
   Text,
   TextColor,
   TextVariant,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
