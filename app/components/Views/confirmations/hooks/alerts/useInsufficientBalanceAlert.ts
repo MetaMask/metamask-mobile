@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
@@ -22,8 +21,6 @@ import {
   useIsTransactionPayLoading,
   useTransactionPayFiatPayment,
 } from '../pay/useTransactionPayData';
-import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
-import { RootState } from '../../../../../reducers';
 
 const IGNORE_TYPES = [
   TransactionType.moneyAccountWithdraw,
@@ -49,20 +46,13 @@ export const useInsufficientBalanceAlert = ({
   const isQuotesLoading = useIsTransactionPayLoading();
   const fiatPayment = useTransactionPayFiatPayment();
   const isFiatPaymentSelected = Boolean(fiatPayment?.selectedPaymentMethodId);
-  const transactionId = transactionMetadata?.id ?? '';
-  const paymentOverride = useSelector((state: RootState) =>
-    selectPaymentOverrideByTransactionId(state, transactionId),
-  );
-  const isMoneyPaymentOverride =
-    paymentOverride === PaymentOverride.MoneyAccount;
 
   return useMemo(() => {
     if (
       !transactionMetadata ||
       isTransactionValueUpdating ||
       isUsingPay ||
-      isFiatPaymentSelected ||
-      isMoneyPaymentOverride
+      isFiatPaymentSelected
     ) {
       return [];
     }
@@ -142,7 +132,6 @@ export const useInsufficientBalanceAlert = ({
     transactionMetadata,
     isTransactionValueUpdating,
     isFiatPaymentSelected,
-    isMoneyPaymentOverride,
     isGaslessCheckPending,
     isGaslessSupported,
     isSimulationEnabled,
