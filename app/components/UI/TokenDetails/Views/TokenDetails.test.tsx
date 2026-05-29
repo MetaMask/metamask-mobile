@@ -53,8 +53,12 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
+    addListener: jest.fn(() => jest.fn()),
   }),
   useRoute: () => ({ params: mockRouteParams() }),
+  useFocusEffect: jest.fn((cb: () => () => void) => {
+    cb();
+  }),
 }));
 
 const defaultUseTokenPriceReturn = {
