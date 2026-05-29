@@ -53,6 +53,7 @@ export interface MarketDetailsOpenedArgs {
   gameStatus?: string;
   gamePeriod?: string | null;
   gameClock?: string | null;
+  activeAbTests?: TransactionActiveAbTestEntry[];
 }
 
 export interface FeedViewedArgs {

@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { usePredictPrices } from '../../../hooks/usePredictPrices';
 import { useLiveMarketPrices } from '../../../hooks/useLiveMarketPrices';
+import { getPredictBuyPrice } from '../../../utils/prices';
 import {
   OPEN_PREDICT_OUTCOME_STATUS,
   type PriceQuery,
@@ -10,7 +11,7 @@ import {
 
 interface UseOpenOutcomesParams {
   market: PredictMarket | null;
-  isMarketFetching: boolean;
+  enabled?: boolean;
 }
 
 interface UseOpenOutcomesResult {
@@ -19,9 +20,11 @@ interface UseOpenOutcomesResult {
   yesPercentage: number;
 }
 
+const EMPTY_PRICE_QUERIES: PriceQuery[] = [];
+
 export const useOpenOutcomes = ({
   market,
-  isMarketFetching,
+  enabled = true,
 }: UseOpenOutcomesParams): UseOpenOutcomesResult => {
   const closedOutcomes = useMemo(
     () =>
@@ -48,39 +51,36 @@ export const useOpenOutcomes = ({
     [openOutcomesBase],
   );
 
+  const shouldFetchPrices = enabled && priceQueries.length > 0;
+  const activePriceQueries = shouldFetchPrices
+    ? priceQueries
+    : EMPTY_PRICE_QUERIES;
+
   const { prices } = usePredictPrices({
-    queries: priceQueries,
-    enabled: !isMarketFetching && priceQueries.length > 0,
+    queries: activePriceQueries,
+    enabled: shouldFetchPrices,
+    pollingInterval: shouldFetchPrices ? 2000 : undefined,
   });
 
   const tokenIds = useMemo(
-    () => priceQueries.map((q) => q.outcomeTokenId),
-    [priceQueries],
+    () => activePriceQueries.map((q) => q.outcomeTokenId),
+    [activePriceQueries],
   );
   const { getPrice: getLivePrice } = useLiveMarketPrices(tokenIds, {
-    enabled: !isMarketFetching && tokenIds.length > 0,
+    enabled: shouldFetchPrices,
   });
 
-  // Price precedence: live WebSocket bestAsk > REST entry.sell > base market price.
+  // Price precedence: live WebSocket bestAsk > REST buy price > base market price.
   const openOutcomes = useMemo(
     () =>
       openOutcomesBase.map((outcome) => ({
         ...outcome,
-        tokens: outcome.tokens.map((token) => {
-          const liveBestAsk = getLivePrice(token.id)?.bestAsk;
-          if (typeof liveBestAsk === 'number' && liveBestAsk > 0) {
-            return { ...token, price: liveBestAsk };
-          }
-
-          const priceResult = prices.results.find(
-            (r) => r.outcomeTokenId === token.id,
-          );
-          const realTimePrice = priceResult?.entry.sell;
-          return {
-            ...token,
-            price: realTimePrice ?? token.price,
-          };
-        }),
+        tokens: outcome.tokens.map((token) => ({
+          ...token,
+          price:
+            getPredictBuyPrice(token, getLivePrice(token.id), prices) ??
+            token.price,
+        })),
       })),
     [openOutcomesBase, prices, getLivePrice],
   );

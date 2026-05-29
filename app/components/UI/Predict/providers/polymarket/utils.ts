@@ -1044,6 +1044,29 @@ export const sortMarkets = ({
   return markets;
 };
 
+const getPredictMarketStatus = (
+  market: PolymarketApiMarket,
+): PredictMarketStatus => {
+  if (market.closed || market.status === PredictMarketStatus.CLOSED) {
+    return PredictMarketStatus.CLOSED;
+  }
+
+  if (market.status === PredictMarketStatus.RESOLVED) {
+    return PredictMarketStatus.RESOLVED;
+  }
+
+  return PredictMarketStatus.OPEN;
+};
+
+const parseEventPriceToBeat = (
+  event: PolymarketApiEvent,
+): number | undefined => {
+  const priceToBeat = Number(event.eventMetadata?.priceToBeat);
+  return Number.isFinite(priceToBeat) && priceToBeat > 0
+    ? priceToBeat
+    : undefined;
+};
+
 export const parsePolymarketMarket = (
   market: PolymarketApiMarket,
   event: PolymarketApiEvent,
@@ -1060,7 +1083,9 @@ export const parsePolymarketMarket = (
     market.groupItemThreshold != null
       ? Number(market.groupItemThreshold)
       : undefined,
-  status: market.closed ? PredictMarketStatus.CLOSED : PredictMarketStatus.OPEN,
+  status: getPredictMarketStatus(market),
+  active: market.active,
+  acceptingOrders: market.acceptingOrders,
   volume: market.volumeNum ?? 0,
   liquidity: market.liquidity ?? 0,
   tokens: parsePolymarketMarketOutcomes(market, event, game),
@@ -1152,6 +1177,8 @@ export const parsePolymarketEvents = (
         ? buildOutcomeGroups(outcomes)
         : undefined;
 
+      const priceToBeat = parseEventPriceToBeat(event);
+
       return [
         {
           id: event.id,
@@ -1163,6 +1190,7 @@ export const parsePolymarketEvents = (
           status: event.closed
             ? PredictMarketStatus.CLOSED
             : PredictMarketStatus.OPEN,
+          active: event.active,
           recurrence: getRecurrence(event.series),
           endDate: event.endDate,
           category,
@@ -1172,6 +1200,7 @@ export const parsePolymarketEvents = (
           liquidity: event.liquidity,
           volume: event.volume,
           game,
+          ...(priceToBeat !== undefined && { priceToBeat }),
           ...(seriesData && { series: seriesData }),
           ...(event.parentEventId !== undefined && {
             parentMarketId: event.parentEventId,
@@ -1372,11 +1401,16 @@ export const fetchEventsFromPolymarketApi = async (
   };
 };
 
+export interface SearchEventsResult {
+  events: PolymarketApiEvent[];
+  totalResults: number;
+}
+
 export const searchEventsFromPolymarketApi = async ({
   q,
   limit = 20,
   page = 1,
-}: SearchMarketsParams): Promise<PolymarketApiEvent[]> => {
+}: SearchMarketsParams): Promise<SearchEventsResult> => {
   const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
 
   DevLogger.log('Searching markets via Polymarket API:', {
@@ -1403,8 +1437,10 @@ export const searchEventsFromPolymarketApi = async ({
   }
 
   const data = await response.json();
-  const eventsData = data?.events;
-  return Array.isArray(eventsData) ? eventsData : [];
+  return {
+    events: Array.isArray(data?.events) ? data.events : [],
+    totalResults: (data?.pagination?.totalResults as number) ?? 0,
+  };
 };
 
 export interface PolymarketCarouselItem {

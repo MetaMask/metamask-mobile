@@ -3,7 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import ExploreSearchBar from './ExploreSearchBar';
 import { useSelector } from 'react-redux';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
-import { strings } from '../../../../../../locales/i18n';
+import { TrendingViewSelectorsIDs } from '../../TrendingView.testIds';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -82,7 +82,7 @@ describe('ExploreSearchBar', () => {
       const mockOnSearchChange = jest.fn();
       const mockOnCancel = jest.fn();
 
-      const { getByPlaceholderText } = render(
+      const { getByTestId } = render(
         <ExploreSearchBar
           type="interactive"
           searchQuery=""
@@ -91,8 +91,8 @@ describe('ExploreSearchBar', () => {
         />,
       );
 
-      const input = getByPlaceholderText(
-        strings('trending.search_placeholder'),
+      const input = getByTestId(
+        TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT,
       );
 
       fireEvent.changeText(input, 'ethereum');
@@ -193,7 +193,7 @@ describe('ExploreSearchBar', () => {
       const mockOnSearchChange = jest.fn();
       const mockOnCancel = jest.fn();
 
-      const { getByPlaceholderText } = render(
+      const { getByTestId } = render(
         <ExploreSearchBar
           type="interactive"
           searchQuery=""
@@ -202,8 +202,8 @@ describe('ExploreSearchBar', () => {
         />,
       );
 
-      const input = getByPlaceholderText(
-        strings('trending.search_placeholder'),
+      const input = getByTestId(
+        TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT,
       );
 
       expect(input.props.autoFocus).toBe(true);

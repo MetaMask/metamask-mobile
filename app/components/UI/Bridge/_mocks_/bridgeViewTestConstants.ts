@@ -24,6 +24,18 @@ export const USDC_DEST: Pick<
   name: 'USD Coin',
 };
 
+/** USDT (mainnet) token used in deeplink and bridge view tests. */
+export const USDT_DEST: Pick<
+  BridgeToken,
+  'address' | 'chainId' | 'decimals' | 'symbol' | 'name'
+> = {
+  address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+  chainId: '0x1',
+  decimals: 6,
+  symbol: 'USDT',
+  name: 'Tether USD',
+};
+
 /** Default bridge slice values for view tests (source amount + source/dest tokens). */
 export const DEFAULT_BRIDGE = {
   sourceAmount: '1',

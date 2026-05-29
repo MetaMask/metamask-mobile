@@ -8,6 +8,7 @@ import {
   PublishHook,
   PublishHookResult,
   TransactionMeta,
+  TransactionType,
   decodeAuthorizationSignature,
 } from '@metamask/transaction-controller';
 import { Hex, createProjectLogger } from '@metamask/utils';
@@ -42,6 +43,7 @@ import { NetworkClientId } from '@metamask/network-controller';
 import { isE2ETest } from '../util';
 import {
   getClientForTransactionMetadata,
+  getClientVersionForTransactionMetadata,
   sanitizeOrigin,
 } from '../../../constants/smartTransactions';
 
@@ -107,6 +109,11 @@ export class Delegation7702PublishHook {
     transactionMeta: TransactionMeta,
     _signedTx: string,
   ): Promise<PublishHookResult> {
+    if (transactionMeta.type === TransactionType.revokeDelegation) {
+      log('Skipping: revokeDelegation must publish as top-level setCode');
+      return EMPTY_RESULT;
+    }
+
     const { chainId, gasFeeTokens, selectedGasFeeToken, txParams } =
       transactionMeta;
 
@@ -200,6 +207,7 @@ export class Delegation7702PublishHook {
       metadata: {
         txType: transactionMeta.type,
         client: getClientForTransactionMetadata(),
+        clientVersion: getClientVersionForTransactionMetadata(),
         origin: sanitizeOrigin(transactionMeta.origin),
       },
     };

@@ -14,6 +14,7 @@
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import nock from 'nock';
 import { clearAllNockMocks, disableNetConnect } from './nockHelpers';
+import { clearSitesCache } from '../../../app/components/UI/Sites/hooks/useSiteData/useSitesData';
 
 export interface MockTrendingToken {
   assetId: string;
@@ -85,9 +86,27 @@ export const mockBnbChainToken: MockTrendingToken[] = [
   },
 ];
 
+export const mockRwaStocksData = [
+  {
+    assetId: 'eip155:1/erc20:0x96f6ef951840721adbf46ac996b59e0235cb985c',
+    name: 'Ondo US Dollar Yield (Ondo Tokenized)',
+    symbol: 'USDY',
+    decimals: 18,
+    price: '1.05',
+    aggregatedUsdVolume: 500000,
+    marketCap: 200000000,
+    pricePercentChange1d: '0.12',
+    rwaData: { instrumentType: 'stock' },
+  },
+];
+
 const TRENDING_ORIGIN = 'https://token.api.cx.metamask.io';
 const TRENDING_PATH = '/v3/tokens/trending';
 const TOKEN_SEARCH_PATH = '/tokens/search';
+const NFT_API_ORIGIN = 'https://nft.api.cx.metamask.io';
+const EXPLORE_SITES_PATH = '/explore/sites';
+const FAVICON_HTML =
+  '<html><head><link rel="icon" href="/favicon.ico"></head><body></body></html>';
 
 /**
  * Sets up the nock mock for the trending tokens API.
@@ -116,8 +135,39 @@ export function setupTrendingApiFetchMock(
   nock(TRENDING_ORIGIN)
     .get(TOKEN_SEARCH_PATH)
     .query(true)
-    .reply(200, { count: 0, data: [] })
+    .reply(200, (uri: string) => {
+      const url = new URL(uri, TRENDING_ORIGIN);
+      const query = url.searchParams.get('query') ?? '';
+
+      if (query.includes('Ondo Tokenized')) {
+        return { count: mockRwaStocksData.length, data: mockRwaStocksData };
+      }
+
+      return { count: 0, data: [] };
+    })
     .persist();
+
+  nock(NFT_API_ORIGIN)
+    .get(EXPLORE_SITES_PATH)
+    .query(true)
+    .reply(200, {
+      dapps: [
+        {
+          id: 'uniswap',
+          name: 'Uniswap',
+          website: 'https://uniswap.org',
+          logoSrc: 'https://uniswap.org/favicon.ico',
+          featured: true,
+        },
+      ],
+    })
+    .persist();
+
+  nock('https://portfolio.metamask.io')
+    .get('/')
+    .reply(200, FAVICON_HTML)
+    .persist();
+  nock('https://uniswap.org').get('/').reply(200, FAVICON_HTML).persist();
 }
 
 /**
@@ -126,5 +176,6 @@ export function setupTrendingApiFetchMock(
  */
 export function clearTrendingApiMocks(): void {
   jest.clearAllMocks();
+  clearSitesCache();
   clearAllNockMocks();
 }

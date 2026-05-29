@@ -4,14 +4,81 @@ import { fireEvent, render } from '@testing-library/react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { BatchSellQuoteDetails, BatchSellQuoteDetailsModal } from './index';
 import { BatchSellQuoteDetailsModalSelectorsIDs } from './BatchSellQuoteDetailsModal.testIds';
-import {
-  BatchSellQuoteDetailsModalParams,
-  BatchSellQuoteDetailsProps,
-} from './BatchSellQuoteDetailsModal.types';
+import { BatchSellQuoteDetailsProps } from './BatchSellQuoteDetailsModal.types';
 
 const mockGoBack = jest.fn();
 const mockReplace = jest.fn();
-let mockRouteParams: BatchSellQuoteDetailsModalParams;
+const ethAssetId = 'eip155:1/erc20:0x1111111111111111111111111111111111111111';
+const uniAssetId = 'eip155:1/erc20:0x2222222222222222222222222222222222222222';
+const linkAssetId = 'eip155:1/erc20:0x3333333333333333333333333333333333333333';
+const linkSourceToken = {
+  address: '0x3333333333333333333333333333333333333333',
+  chainId: '0x1',
+  decimals: 18,
+  symbol: 'LINK',
+};
+const defaultSourceTokens = [
+  {
+    address: '0x1111111111111111111111111111111111111111',
+    chainId: '0x1',
+    decimals: 18,
+    symbol: 'ETH',
+  },
+  {
+    address: '0x2222222222222222222222222222222222222222',
+    chainId: '0x1',
+    decimals: 18,
+    symbol: 'UNI',
+  },
+];
+
+interface MockQuoteTokenData {
+  key: string;
+  tokenSymbol: string;
+  slippage: string;
+  receivedAmount: string;
+  receivedAmountFiat: string;
+  isLoading: boolean;
+  isHighPriceImpact: boolean;
+  isQuoteUnavailable: boolean;
+}
+
+interface MockBatchSellQuoteData {
+  tokenData: Record<string, MockQuoteTokenData>;
+  totalReceived: { formatted: string };
+  minimumReceived: { formatted: string };
+  isSummaryLoading: boolean;
+}
+
+const defaultQuoteData: MockBatchSellQuoteData = {
+  tokenData: {
+    [ethAssetId]: {
+      key: 'eth',
+      tokenSymbol: 'ETH',
+      slippage: '0.5%',
+      receivedAmount: '3,456.78 USDC',
+      receivedAmountFiat: '$3,456.78',
+      isLoading: false,
+      isHighPriceImpact: false,
+      isQuoteUnavailable: false,
+    },
+    [uniAssetId]: {
+      key: 'uni',
+      tokenSymbol: 'UNI',
+      slippage: '0.5%',
+      receivedAmount: '500 USDC',
+      receivedAmountFiat: '$500.00',
+      isLoading: false,
+      isHighPriceImpact: false,
+      isQuoteUnavailable: false,
+    },
+  },
+  totalReceived: { formatted: '7,638.23 USDC' },
+  minimumReceived: { formatted: '7,485.47 USDC' },
+  isSummaryLoading: false,
+};
+let mockSelectedTokens = defaultSourceTokens;
+let mockBatchSellQuoteData = defaultQuoteData;
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -20,11 +87,28 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('../../../../../util/navigation/navUtils', () => ({
-  useParams: () => mockRouteParams,
+jest.mock('react-redux', () => ({
+  useSelector: (selector: (state: unknown) => unknown) => selector({}),
 }));
 
-const defaultParams: BatchSellQuoteDetailsModalParams = {
+jest.mock('../../../../../core/redux/slices/bridge', () => ({
+  selectBatchSellSourceTokens: jest.fn(() => mockSelectedTokens),
+}));
+
+jest.mock('../../hooks/useBatchSellQuoteData', () => ({
+  getBatchSellOrderedQuoteTokenData: jest.fn(
+    (
+      sourceTokens: typeof defaultSourceTokens,
+      tokenData: Record<string, MockQuoteTokenData>,
+    ) =>
+      sourceTokens
+        .map((token) => tokenData[`eip155:1/erc20:${token.address}`])
+        .filter(Boolean),
+  ),
+  useBatchSellQuoteData: jest.fn(() => mockBatchSellQuoteData),
+}));
+
+const defaultDetailsProps: BatchSellQuoteDetailsProps = {
   tokenData: [
     {
       key: 'eth',
@@ -39,15 +123,13 @@ const defaultParams: BatchSellQuoteDetailsModalParams = {
       receivedAmount: '500 USDC',
     },
   ],
-  totalReceived: '7,638.23 USDC',
-  minimumReceived: '7,485.47 USDC',
+  totalReceived: { formatted: '7,638.23 USDC' },
+  minimumReceived: { formatted: '7,485.47 USDC' },
 };
 
-function renderModal(
-  overrides: Partial<BatchSellQuoteDetailsModalParams> = {},
-) {
-  mockRouteParams = {
-    ...defaultParams,
+function renderModal(overrides: Partial<typeof defaultQuoteData> = {}) {
+  mockBatchSellQuoteData = {
+    ...defaultQuoteData,
     ...overrides,
   };
 
@@ -57,10 +139,11 @@ function renderModal(
 describe('BatchSellQuoteDetailsModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockRouteParams = defaultParams;
+    mockSelectedTokens = defaultSourceTokens;
+    mockBatchSellQuoteData = defaultQuoteData;
   });
 
-  it('renders the sheet header and quote rows from route params', () => {
+  it('renders the sheet header and quote rows from live quote data', () => {
     const { getAllByText, getByTestId, getByText } = renderModal();
 
     expect(
@@ -103,23 +186,23 @@ describe('BatchSellQuoteDetailsModal', () => {
     expect(getByText('7,485.47 USDC')).toBeOnTheScreen();
   });
 
-  it('renders skeletons for quote amounts while loading', () => {
-    const { getByTestId, getByText, queryByText } = renderModal({
-      isLoading: true,
+  it('renders summary skeletons while loading', () => {
+    const { getByTestId, getByText, queryByTestId, queryByText } = renderModal({
+      isSummaryLoading: true,
     });
 
     expect(getByText('ETH • 0.5% slippage')).toBeOnTheScreen();
     expect(getByText('UNI • 0.5% slippage')).toBeOnTheScreen();
     expect(
-      getByTestId(
+      queryByTestId(
         `${BatchSellQuoteDetailsModalSelectorsIDs.QUOTE_ROW_RECEIVED_AMOUNT_SKELETON}-eth`,
       ),
-    ).toBeOnTheScreen();
+    ).toBeNull();
     expect(
-      getByTestId(
+      queryByTestId(
         `${BatchSellQuoteDetailsModalSelectorsIDs.QUOTE_ROW_RECEIVED_AMOUNT_SKELETON}-uni`,
       ),
-    ).toBeOnTheScreen();
+    ).toBeNull();
     expect(
       getByTestId(
         BatchSellQuoteDetailsModalSelectorsIDs.TOTAL_RECEIVED_SKELETON,
@@ -135,13 +218,90 @@ describe('BatchSellQuoteDetailsModal', () => {
         BatchSellQuoteDetailsModalSelectorsIDs.MINIMUM_RECEIVED_INFO_BUTTON,
       ),
     ).toBeOnTheScreen();
-    expect(queryByText('3,456.78 USDC')).toBeNull();
+    expect(queryByText('3,456.78 USDC')).toBeOnTheScreen();
     expect(queryByText('7,638.23 USDC')).toBeNull();
+  });
+
+  it('renders row-level loading and unavailable states', () => {
+    mockSelectedTokens = [...defaultSourceTokens, linkSourceToken];
+    const { getAllByText, getByTestId, getByText, queryByTestId } = renderModal(
+      {
+        tokenData: {
+          ...defaultQuoteData.tokenData,
+          [uniAssetId]: {
+            ...defaultQuoteData.tokenData[uniAssetId],
+            isLoading: true,
+          },
+          [linkAssetId]: {
+            key: 'link',
+            tokenSymbol: 'LINK',
+            slippage: '0.5%',
+            receivedAmount: '-- USDC',
+            receivedAmountFiat: '-',
+            isLoading: false,
+            isHighPriceImpact: false,
+            isQuoteUnavailable: true,
+          },
+        },
+        totalReceived: { formatted: '3,456.78 USDC' },
+        minimumReceived: { formatted: '3,456.78 USDC' },
+        isSummaryLoading: false,
+      },
+    );
+
+    expect(getAllByText('3,456.78 USDC').length).toBeGreaterThan(0);
+    expect(
+      queryByTestId(
+        `${BatchSellQuoteDetailsModalSelectorsIDs.QUOTE_ROW_RECEIVED_AMOUNT_SKELETON}-eth`,
+      ),
+    ).toBeNull();
+    expect(
+      getByTestId(
+        `${BatchSellQuoteDetailsModalSelectorsIDs.QUOTE_ROW_RECEIVED_AMOUNT_SKELETON}-uni`,
+      ),
+    ).toBeOnTheScreen();
+    expect(getByText('UNI • 0.5% slippage')).toBeOnTheScreen();
+    expect(getByText('No quote available')).toBeOnTheScreen();
+  });
+
+  it('updates quote rows from live quote data while mounted', () => {
+    const { getByTestId, getByText, queryByTestId, rerender } = renderModal({
+      tokenData: {
+        [ethAssetId]: {
+          ...defaultQuoteData.tokenData[ethAssetId],
+          isLoading: true,
+        },
+        [uniAssetId]: {
+          ...defaultQuoteData.tokenData[uniAssetId],
+          isLoading: true,
+        },
+      },
+      totalReceived: { formatted: '-- USDC' },
+      minimumReceived: { formatted: '-- USDC' },
+      isSummaryLoading: true,
+    });
+
+    expect(
+      getByTestId(
+        `${BatchSellQuoteDetailsModalSelectorsIDs.QUOTE_ROW_RECEIVED_AMOUNT_SKELETON}-eth`,
+      ),
+    ).toBeOnTheScreen();
+
+    mockBatchSellQuoteData = defaultQuoteData;
+
+    rerender(<BatchSellQuoteDetailsModal />);
+
+    expect(getByText('3,456.78 USDC')).toBeOnTheScreen();
+    expect(
+      queryByTestId(
+        `${BatchSellQuoteDetailsModalSelectorsIDs.QUOTE_ROW_RECEIVED_AMOUNT_SKELETON}-eth`,
+      ),
+    ).toBeNull();
   });
 
   it('hides quote rows when token details are collapsed', () => {
     const props: BatchSellQuoteDetailsProps = {
-      ...defaultParams,
+      ...defaultDetailsProps,
       isTokenDetailsExpanded: false,
     };
     const { getByText, queryByText } = render(
@@ -159,7 +319,7 @@ describe('BatchSellQuoteDetailsModal', () => {
   it('calls onMinimumReceivedInfoPress when the info button is pressed', () => {
     const onMinimumReceivedInfoPress = jest.fn();
     const props: BatchSellQuoteDetailsProps = {
-      ...defaultParams,
+      ...defaultDetailsProps,
       onMinimumReceivedInfoPress,
     };
     const { getByTestId } = render(<BatchSellQuoteDetails {...props} />);
@@ -187,7 +347,6 @@ describe('BatchSellQuoteDetailsModal', () => {
       {
         sourceModal: {
           screen: Routes.BRIDGE.MODALS.BATCH_SELL_QUOTE_DETAILS_MODAL,
-          params: defaultParams,
         },
       },
     );

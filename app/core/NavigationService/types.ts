@@ -19,8 +19,6 @@ import type { BrowserParams } from '../../components/Views/Browser/Browser.types
 // Bridge params
 import type { BridgeRouteParams } from '../../components/UI/Bridge/hooks/useSwapBridgeNavigation';
 import type { BridgeTokenSelectorRouteParams } from '../../components/UI/Bridge/components/BridgeTokenSelector/BridgeTokenSelector';
-import type { BatchSellQuoteDetailsModalParams } from '../../components/UI/Bridge/components/BatchSellQuoteDetailsModal/BatchSellQuoteDetailsModal.types';
-import type { BatchSellFinalReviewModalParams } from '../../components/UI/Bridge/components/BatchSellFinalReviewModal/BatchSellFinalReviewModal.types';
 import type { BatchSellNetworkFeeInfoModalParams } from '../../components/UI/Bridge/components/BatchSellNetworkFeeInfoModal/BatchSellNetworkFeeInfoModal.types';
 import type { BatchSellMinimumReceivedInfoModalParams } from '../../components/UI/Bridge/components/BatchSellMinimumReceivedInfoModal/BatchSellMinimumReceivedInfoModal.types';
 import type {
@@ -387,7 +385,6 @@ export interface RootStackParamList extends ParamListBase {
   WhatsNewModal: undefined;
   TurnOffRememberMeModal: undefined;
   UpdateNeededModal: undefined;
-  DetectedTokens: undefined;
   SRPRevealQuiz: SRPRevealQuizParams | undefined;
   WalletActions: undefined;
   TradeWalletActions: undefined;
@@ -551,8 +548,8 @@ export interface RootStackParamList extends ParamListBase {
   BlockaidModal: BlockaidModalParams;
   RecipientSelectorModal: undefined;
   BatchSellDestinationTokenSelectorModal: undefined;
-  BatchSellQuoteDetailsModal: BatchSellQuoteDetailsModalParams;
-  BatchSellFinalReviewModal: BatchSellFinalReviewModalParams;
+  BatchSellQuoteDetailsModal: undefined;
+  BatchSellFinalReviewModal: undefined;
   BatchSellNetworkFeeInfoModal: BatchSellNetworkFeeInfoModalParams | undefined;
   BatchSellMinimumReceivedInfoModal:
     | BatchSellMinimumReceivedInfoModalParams
@@ -632,8 +629,6 @@ export interface RootStackParamList extends ParamListBase {
 
   // Notification routes
   NotificationsView: undefined;
-  OptIn: undefined;
-  OptInStack: undefined;
   NotificationsDetails: NotificationDetailsParams | undefined;
 
   // Staking routes

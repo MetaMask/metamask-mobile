@@ -107,7 +107,6 @@ describe('useExploreSearchV2', () => {
       loadMore: mockTokensLoadMore,
       isLoadingMore: false,
       hasMore: true,
-      totalCount: undefined,
     });
   });
 
@@ -202,7 +201,7 @@ describe('useExploreSearchV2', () => {
   });
 
   describe('predictions pagination fields', () => {
-    it('exposes fetchMore, isFetchingMore, and hasMore on the predictions section', () => {
+    it('exposes fetchMore, isFetchingMore, and hasMore on the predictions section without a query', () => {
       const { result } = renderV2();
       const predictionsSection = result.current.sections.find(
         (s) => s.feedId === 'predictions',
@@ -227,10 +226,40 @@ describe('useExploreSearchV2', () => {
       );
       expect(predictionsSection?.hasMore).toBe(false);
     });
+
+    it('exposes fetchMore, isFetchingMore, and hasMore on predictions when a search query is active', () => {
+      jest.useFakeTimers();
+
+      const mockSearchFetchMore = jest.fn();
+
+      (usePredictionsFeed as jest.Mock).mockReturnValue({
+        data: mockPredictionsData,
+        isLoading: false,
+        fetchMore: mockSearchFetchMore,
+        isFetchingMore: false,
+        hasMore: true,
+      });
+
+      const { result } = renderHook(() => useExploreSearchV2('bitcoin'));
+
+      act(() => {
+        jest.advanceTimersByTime(250);
+      });
+
+      const predictionsSection = result.current.sections.find(
+        (s) => s.feedId === 'predictions',
+      );
+
+      expect(predictionsSection?.fetchMore).toBe(mockSearchFetchMore);
+      expect(predictionsSection?.isFetchingMore).toBe(false);
+      expect(predictionsSection?.hasMore).toBe(true);
+
+      jest.useRealTimers();
+    });
   });
 
   describe('tokens pagination fields', () => {
-    it('exposes fetchMore (loadMore), isFetchingMore, and hasMore on the tokens section', () => {
+    it('exposes fetchMore, isFetchingMore, and hasMore on the tokens section', () => {
       const { result } = renderV2();
       const tokensSection = result.current.sections.find(
         (s) => s.feedId === 'tokens',
@@ -247,7 +276,6 @@ describe('useExploreSearchV2', () => {
         loadMore: mockTokensLoadMore,
         isLoadingMore: false,
         hasMore: false,
-        totalCount: undefined,
       });
 
       const { result } = renderV2();
@@ -257,7 +285,7 @@ describe('useExploreSearchV2', () => {
       expect(tokensSection?.hasMore).toBe(false);
     });
 
-    it('forwards totalCount from the tokens feed to the tokens section', () => {
+    it('forwards totalCount from the tokens feed as section.total', () => {
       (useTokensFeed as jest.Mock).mockReturnValue({
         data: mockTokensData,
         isLoading: false,
@@ -271,15 +299,15 @@ describe('useExploreSearchV2', () => {
       const tokensSection = result.current.sections.find(
         (s) => s.feedId === 'tokens',
       );
-      expect(tokensSection?.totalCount).toBe(2101);
+      expect(tokensSection?.total).toBe(2101);
     });
 
-    it('passes undefined totalCount when the feed has no totalCount', () => {
+    it('passes undefined total when the tokens feed has no totalCount', () => {
       const { result } = renderV2();
       const tokensSection = result.current.sections.find(
         (s) => s.feedId === 'tokens',
       );
-      expect(tokensSection?.totalCount).toBeUndefined();
+      expect(tokensSection?.total).toBeUndefined();
     });
   });
 

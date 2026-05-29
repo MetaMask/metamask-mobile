@@ -9,11 +9,15 @@ import { usePerpsMarkets } from '../../../../UI/Perps/hooks';
 import type { PerpsMarketDataWithVolumeNumber } from '../../../../UI/Perps/hooks/usePerpsMarkets';
 import { PerpsConnectionContext } from '../../../../UI/Perps/providers/PerpsConnectionProvider';
 import { selectPerpsWatchlistMarkets } from '../../../../UI/Perps/selectors/perpsController';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useHomepageSparklines } from '../../../Homepage/Sections/Perpetuals/hooks/useHomepageSparklines';
 import { useFeedRefresh } from '../../hooks/useFeedRefresh';
 import type { RefreshConfig } from '../../hooks/useExploreRefresh';
 import { TILE_CAROUSEL_DEFAULT_MAX_TILES } from '../../components/TileCarousel';
 import { fuseSearch, PERPS_FUSE_OPTIONS } from '../search-utils';
+import type { PerpsFeedItem } from '../../../../UI/Perps/types/perpsFeedTypes';
+
+export type { PerpsFeedItem } from '../../../../UI/Perps/types/perpsFeedTypes';
 
 const EMPTY_WATCHLIST_SYMBOLS: string[] = [];
 
@@ -24,18 +28,13 @@ interface UsePerpsFeedOptions {
   variant?: PerpsVariant;
   query?: string;
   refresh?: RefreshConfig;
+  /** Skips the underlying market fetch until this feed is actually needed. */
+  skipInitialFetch?: boolean;
   /**
    * When true, fetch sparklines + watchlist flags and attach them to each item
    * (tile rendering needs this; row rendering does not).
    */
   withTileExtras?: boolean;
-}
-
-/** Per-item enrichment merged in when `withTileExtras` is true. */
-export interface PerpsFeedItem {
-  market: PerpsMarketData;
-  sparkline?: number[];
-  isWatchlisted: boolean;
 }
 
 export interface UsePerpsFeedResult {
@@ -113,6 +112,7 @@ export const usePerpsFeed = ({
   variant = 'all',
   query,
   refresh,
+  skipInitialFetch = false,
   withTileExtras = false,
 }: UsePerpsFeedOptions = {}): UsePerpsFeedResult => {
   const connectionContext = useContext(PerpsConnectionContext);
@@ -121,7 +121,7 @@ export const usePerpsFeed = ({
     isLoading,
     refresh: refetch,
     isRefreshing,
-  } = usePerpsMarkets();
+  } = usePerpsMarkets({ skipInitialFetch });
 
   useFeedRefresh(refresh, refetch);
 

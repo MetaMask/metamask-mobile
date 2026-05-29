@@ -45,6 +45,7 @@ import useNetworkInfo from '../../../../hooks/useNetworkInfo';
 import TagColored, {
   TagColor,
 } from '../../../../../../../component-library/components-temp/TagColored';
+import { shouldApplyGasFeeSponsorship } from '../../../../utils/transaction';
 
 const PaidByMetaMask = () => (
   <TagColored
@@ -262,10 +263,7 @@ const GasFeesDetailsRow = ({
   const transactionBatchesMetadata = useTransactionBatchesMetadata();
   const gasFeeToken = useSelectedGasFeeToken();
   const metamaskFeeFiat = gasFeeToken?.metamaskFeeFiat;
-  const {
-    userFeeLevel: isUserFeeLevelExists,
-    isGasFeeSponsored: doesSentinelAllowSponsorship,
-  } = transactionMetadata ?? {};
+  const { userFeeLevel: isUserFeeLevelExists } = transactionMetadata ?? {};
 
   const hideFiatForTestnet = useHideFiatForTestnet(
     transactionMetadata?.chainId,
@@ -274,7 +272,10 @@ const GasFeesDetailsRow = ({
 
   // Gasless support (including HW check) is centralized in useIsGaslessSupported.
   const { isSupported: isGaslessSupported } = useIsGaslessSupported();
-  const isGasFeeSponsored = isGaslessSupported && doesSentinelAllowSponsorship;
+  const isGasFeeSponsored = shouldApplyGasFeeSponsorship({
+    transactionMeta: transactionMetadata,
+    isGaslessSupported,
+  });
 
   const handleNetworkFeeTooltipClickedEvent = () => {
     trackTooltipClickedEvent({

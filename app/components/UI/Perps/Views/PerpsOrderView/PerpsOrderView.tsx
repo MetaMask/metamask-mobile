@@ -155,6 +155,7 @@ import { useConfirmActions } from '../../../../Views/confirmations/hooks/useConf
 import { useInsufficientPayTokenBalanceAlert } from '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert';
 import { useNoPayTokenQuotesAlert } from '../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert';
 import { useInitPerpsPaymentToken } from './useInitPerpsPaymentToken';
+import { useVipTier } from '../../../Rewards/hooks/useVipTier';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -499,6 +500,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   });
 
   const estimatedFees = feeResults.totalFee;
+  const undiscountedEstimatedFees = feeResults.undiscountedTotalFee;
 
   // Deposit/bridge fees from transaction pay (when paying with custom token)
   const payTotals = useTransactionPayTotals();
@@ -518,6 +520,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   );
 
   const feesToDisplay = hasCustomTokenSelected ? combinedFees : estimatedFees;
+  const undiscountedFeesToDisplay = hasCustomTokenSelected
+    ? undiscountedEstimatedFees + depositFeeUsd
+    : undiscountedEstimatedFees;
   const isFeesLoading =
     feeResults.isLoadingMetamaskFee ||
     (hasCustomTokenSelected && isPayTotalsLoading);
@@ -574,6 +579,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     isFeesLoading: feeResults.isLoadingMetamaskFee,
     orderAmount: orderForm.amount,
   });
+
+  const vipTier = useVipTier();
 
   // Track order type viewed event using unified declarative API (main's event structure)
   usePerpsEventTracking({
@@ -1182,18 +1189,17 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             estimatedPoints: feeResults.estimatedPoints,
             inputMethod: inputMethodRef.current,
             source,
-            // Trade action: 'create_position' for first trade, 'increase_exposure' for adding to existing
-            // Note: flip_position is tracked separately via TradingService.flipPosition
             tradeAction: currentMarketPosition
               ? 'increase_exposure'
               : 'create_position',
-            // Pay with any token: track when user paid with a custom token (not Perps balance)
             tradeWithToken: hasCustomTokenSelected,
             ...(hasCustomTokenSelected &&
               payToken && {
                 mmPayTokenSelected: payToken.symbol ?? '',
                 mmPayNetworkSelected: String(payToken.chainId ?? ''),
               }),
+            vipTier: vipTier ?? undefined,
+            vipDiscount: feeResults.feeDiscountPercentage,
           },
         };
 
@@ -1294,6 +1300,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       maxSlippageSource,
       estimatedSlippageBps,
       exceedsMaxSlippage,
+      vipTier,
     ],
   );
 
@@ -1800,13 +1807,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             ) : (
               <PerpsFeesDisplay
                 feeDiscountPercentage={rewardsState.feeDiscountPercentage}
-                formatFeeText={
-                  !hasValidAmount
-                    ? PERPS_CONSTANTS.FallbackDataDisplay
-                    : formatPerpsFiat(feesToDisplay, {
-                        ranges: PRICE_RANGES_MINIMAL_VIEW,
-                      })
+                fee={hasValidAmount ? feesToDisplay : undefined}
+                originalFee={
+                  hasValidAmount ? undiscountedFeesToDisplay : undefined
                 }
+                placeholder={PERPS_CONSTANTS.FallbackDataDisplay}
                 testID={PerpsOrderViewSelectorsIDs.FEES_VALUE}
                 variant={TextVariant.BodySM}
               />

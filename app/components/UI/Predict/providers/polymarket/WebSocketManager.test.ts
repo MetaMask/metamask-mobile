@@ -1,14 +1,23 @@
 import { AppState, AppStateStatus } from 'react-native';
+import Logger from '../../../../../util/Logger';
 import { endTrace, trace, TraceName } from '../../../../../util/trace';
 import { GameCache } from './GameCache';
+import { POLYMARKET_PROVIDER_ID } from './constants';
+import { PREDICT_CONSTANTS } from '../../constants/errors';
 import { WebSocketManager } from './WebSocketManager';
 
 jest.mock('./GameCache');
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { error: jest.fn(), log: jest.fn() },
+}));
 jest.mock('../../../../../util/trace', () => ({
   ...jest.requireActual('../../../../../util/trace'),
   trace: jest.fn(),
   endTrace: jest.fn(),
 }));
+
+const mockedLoggerError = jest.mocked(Logger.error);
 
 const mockGameCacheInstance = {
   updateGame: jest.fn(),
@@ -2156,6 +2165,603 @@ describe('WebSocketManager', () => {
       expect(
         newManager.getConnectionStatus().cryptoPriceSubscriptionCount,
       ).toBe(0);
+    });
+  });
+
+  describe('market subscriber callback isolation', () => {
+    it('continues invoking remaining subscribers under same subscription key when one callback throws', () => {
+      const manager = WebSocketManager.getInstance();
+      const throwingCallback = jest.fn(() => {
+        throw new Error('market subscriber failed');
+      });
+      const healthyCallback = jest.fn();
+
+      manager.subscribeToMarketPrices(['token1'], throwingCallback);
+      manager.subscribeToMarketPrices(['token1'], healthyCallback);
+      mockWebSocketInstances[0].simulateOpen();
+      mockWebSocketInstances[0].simulateMessage({
+        event_type: 'price_change',
+        market: 'market-1',
+        price_changes: [
+          {
+            asset_id: 'token1',
+            price: '0.65',
+            best_bid: '0.64',
+            best_ask: '0.65',
+          },
+        ],
+        timestamp: '2025-01-12T12:00:00Z',
+      });
+
+      expect(throwingCallback).toHaveBeenCalledTimes(1);
+      expect(healthyCallback).toHaveBeenCalledTimes(1);
+    });
+
+    it('continues invoking subscribers across different subscription keys when one callback throws', () => {
+      const manager = WebSocketManager.getInstance();
+      const throwingCallback = jest.fn(() => {
+        throw new Error('market subscriber failed');
+      });
+      const healthyCallback = jest.fn();
+
+      manager.subscribeToMarketPrices(['token1'], throwingCallback);
+      manager.subscribeToMarketPrices(['token2'], healthyCallback);
+      mockWebSocketInstances[0].simulateOpen();
+      mockWebSocketInstances[0].simulateMessage({
+        event_type: 'price_change',
+        market: 'market-1',
+        price_changes: [
+          {
+            asset_id: 'token1',
+            price: '0.65',
+            best_bid: '0.64',
+            best_ask: '0.65',
+          },
+          {
+            asset_id: 'token2',
+            price: '0.35',
+            best_bid: '0.34',
+            best_ask: '0.35',
+          },
+        ],
+        timestamp: '2025-01-12T12:00:00Z',
+      });
+
+      expect(throwingCallback).toHaveBeenCalledTimes(1);
+      expect(healthyCallback).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps delivering updates to a healthy subscriber after a peer threw on a prior message', () => {
+      const manager = WebSocketManager.getInstance();
+      const throwingCallback = jest.fn().mockImplementationOnce(() => {
+        throw new Error('market subscriber failed');
+      });
+      const healthyCallback = jest.fn();
+
+      manager.subscribeToMarketPrices(['token1'], throwingCallback);
+      manager.subscribeToMarketPrices(['token1'], healthyCallback);
+      mockWebSocketInstances[0].simulateOpen();
+
+      mockWebSocketInstances[0].simulateMessage({
+        event_type: 'price_change',
+        market: 'market-1',
+        price_changes: [
+          {
+            asset_id: 'token1',
+            price: '0.65',
+            best_bid: '0.64',
+            best_ask: '0.65',
+          },
+        ],
+        timestamp: '2025-01-12T12:00:00Z',
+      });
+      mockWebSocketInstances[0].simulateMessage({
+        event_type: 'price_change',
+        market: 'market-1',
+        price_changes: [
+          {
+            asset_id: 'token1',
+            price: '0.66',
+            best_bid: '0.65',
+            best_ask: '0.66',
+          },
+        ],
+        timestamp: '2025-01-12T12:00:01Z',
+      });
+
+      expect(throwingCallback).toHaveBeenCalledTimes(2);
+      expect(healthyCallback).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('error observability', () => {
+    it('logs to Logger.error with structured context when a market subscriber throws', () => {
+      const manager = WebSocketManager.getInstance();
+      const throwingCallback = jest.fn(() => {
+        throw new Error('market subscriber failed');
+      });
+
+      manager.subscribeToMarketPrices(['token1'], throwingCallback);
+      mockWebSocketInstances[0].simulateOpen();
+      mockedLoggerError.mockClear();
+      mockWebSocketInstances[0].simulateMessage({
+        event_type: 'price_change',
+        market: 'market-1',
+        price_changes: [
+          {
+            asset_id: 'token1',
+            price: '0.65',
+            best_bid: '0.64',
+            best_ask: '0.65',
+          },
+        ],
+        timestamp: '2025-01-12T12:00:00Z',
+      });
+
+      expect(mockedLoggerError).toHaveBeenCalledTimes(1);
+      const [errorArg, optionsArg] = mockedLoggerError.mock.calls[0];
+      expect(errorArg).toBeInstanceOf(Error);
+      expect((errorArg as Error).message).toBe('market subscriber failed');
+      expect(optionsArg).toMatchObject({
+        tags: {
+          feature: PREDICT_CONSTANTS.FEATURE_NAME,
+          provider: POLYMARKET_PROVIDER_ID,
+          channel: 'market',
+        },
+        context: {
+          name: 'WebSocketManager',
+          data: {
+            method: 'handleMarketMessage',
+            subscriptionKey: 'token1',
+          },
+        },
+      });
+    });
+
+    it('logs to Logger.error when market WebSocket onerror fires', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.subscribeToMarketPrices(['token1'], jest.fn());
+      mockedLoggerError.mockClear();
+
+      mockWebSocketInstances[0].simulateError();
+
+      expect(mockedLoggerError).toHaveBeenCalledTimes(1);
+      const [errorArg, optionsArg] = mockedLoggerError.mock.calls[0];
+      expect(errorArg).toBeInstanceOf(Error);
+      expect(optionsArg).toMatchObject({
+        tags: {
+          feature: PREDICT_CONSTANTS.FEATURE_NAME,
+          provider: POLYMARKET_PROVIDER_ID,
+          channel: 'market',
+        },
+        context: {
+          name: 'WebSocketManager',
+          data: { method: 'onerror' },
+        },
+      });
+    });
+
+    it('logs to Logger.error when sports WebSocket onerror fires', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.subscribeToGame('123', jest.fn());
+      mockedLoggerError.mockClear();
+
+      mockWebSocketInstances[0].simulateError();
+
+      expect(mockedLoggerError).toHaveBeenCalledTimes(1);
+      expect(mockedLoggerError.mock.calls[0][1]).toMatchObject({
+        tags: { channel: 'sports' },
+        context: { data: { method: 'onerror' } },
+      });
+    });
+
+    it('logs to Logger.error when RTDS WebSocket onerror fires', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.subscribeToCryptoPrices(['btc/usd'], jest.fn());
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      mockedLoggerError.mockClear();
+
+      rtdsInstance.simulateError();
+
+      expect(mockedLoggerError).toHaveBeenCalledTimes(1);
+      expect(mockedLoggerError.mock.calls[0][1]).toMatchObject({
+        tags: { channel: 'rtds' },
+        context: { data: { method: 'onerror' } },
+      });
+    });
+  });
+
+  describe('reconnect scheduling mutex', () => {
+    it('does not stack timeouts when sports onclose fires multiple times in succession', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.subscribeToGame('123', jest.fn());
+      mockWebSocketInstances[0].simulateOpen();
+
+      const countAfterOpen = mockWebSocketInstances.length;
+
+      mockWebSocketInstances[0].simulateClose();
+      mockWebSocketInstances[0].simulateClose();
+
+      jest.advanceTimersByTime(60000);
+
+      expect(mockWebSocketInstances.length).toBe(countAfterOpen + 1);
+    });
+
+    it('does not stack timeouts when market onclose fires multiple times in succession', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.subscribeToMarketPrices(['token1'], jest.fn());
+      mockWebSocketInstances[0].simulateOpen();
+
+      const countAfterOpen = mockWebSocketInstances.length;
+
+      mockWebSocketInstances[0].simulateClose();
+      mockWebSocketInstances[0].simulateClose();
+
+      jest.advanceTimersByTime(60000);
+
+      expect(mockWebSocketInstances.length).toBe(countAfterOpen + 1);
+    });
+
+    it('does not stack timeouts when RTDS onclose fires multiple times in succession', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.subscribeToCryptoPrices(['btc/usd'], jest.fn());
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+
+      const countAfterOpen = mockWebSocketInstances.length;
+
+      rtdsInstance.simulateClose();
+      rtdsInstance.simulateClose();
+
+      jest.advanceTimersByTime(60000);
+
+      expect(mockWebSocketInstances.length).toBe(countAfterOpen + 1);
+    });
+
+    it('does not burn reconnect attempt budget when sports onclose fires duplicate times before the first reconnect fires', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.subscribeToGame('123', jest.fn());
+      mockWebSocketInstances[0].simulateOpen();
+
+      mockWebSocketInstances[0].simulateClose();
+      mockWebSocketInstances[0].simulateClose();
+      mockWebSocketInstances[0].simulateClose();
+
+      jest.advanceTimersByTime(3000);
+      expect(mockWebSocketInstances).toHaveLength(2);
+
+      for (let i = 1; i <= 4; i++) {
+        const lastIdx = mockWebSocketInstances.length - 1;
+        mockWebSocketInstances[lastIdx].simulateClose();
+        jest.advanceTimersByTime((i + 1) * 3000);
+      }
+
+      expect(mockWebSocketInstances).toHaveLength(6);
+
+      const lastIdx = mockWebSocketInstances.length - 1;
+      mockWebSocketInstances[lastIdx].simulateClose();
+      jest.advanceTimersByTime(60000);
+
+      expect(mockWebSocketInstances).toHaveLength(6);
+    });
+  });
+
+  describe('market price cache', () => {
+    const simulatePriceMessage = (
+      ws: MockWebSocket,
+      tokenId: string,
+      price: string,
+    ) => {
+      ws.simulateMessage({
+        event_type: 'price_change',
+        market: 'm1',
+        price_changes: [
+          {
+            asset_id: tokenId,
+            price,
+            best_bid: price,
+            best_ask: price,
+          },
+        ],
+        timestamp: '2025-01-12T12:00:00Z',
+      });
+    };
+
+    it('delivers cached prices synchronously to a new subscriber when prices are available', () => {
+      const manager = WebSocketManager.getInstance();
+      const firstCallback = jest.fn();
+      manager.subscribeToMarketPrices(['token1'], firstCallback);
+      mockWebSocketInstances[0].simulateOpen();
+      simulatePriceMessage(mockWebSocketInstances[0], 'token1', '0.65');
+      firstCallback.mockClear();
+
+      const lateCallback = jest.fn();
+      manager.subscribeToMarketPrices(['token1'], lateCallback);
+
+      expect(lateCallback).toHaveBeenCalledTimes(1);
+      expect(lateCallback).toHaveBeenCalledWith([
+        { tokenId: 'token1', price: 0.65, bestBid: 0.65, bestAsk: 0.65 },
+      ]);
+    });
+
+    it('does not invoke a new subscriber if no cached prices exist for the requested tokens', () => {
+      const manager = WebSocketManager.getInstance();
+      const firstCallback = jest.fn();
+      manager.subscribeToMarketPrices(['token1'], firstCallback);
+      mockWebSocketInstances[0].simulateOpen();
+      simulatePriceMessage(mockWebSocketInstances[0], 'token1', '0.65');
+
+      const otherTokenCallback = jest.fn();
+      manager.subscribeToMarketPrices(['token2'], otherTokenCallback);
+
+      expect(otherTokenCallback).not.toHaveBeenCalled();
+    });
+
+    it('only delivers cached prices for tokens the new subscriber requested', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.subscribeToMarketPrices(['token1', 'token2'], jest.fn());
+      mockWebSocketInstances[0].simulateOpen();
+      mockWebSocketInstances[0].simulateMessage({
+        event_type: 'price_change',
+        market: 'm1',
+        price_changes: [
+          {
+            asset_id: 'token1',
+            price: '0.10',
+            best_bid: '0.10',
+            best_ask: '0.10',
+          },
+          {
+            asset_id: 'token2',
+            price: '0.90',
+            best_bid: '0.90',
+            best_ask: '0.90',
+          },
+        ],
+        timestamp: '2025-01-12T12:00:00Z',
+      });
+
+      const lateCallback = jest.fn();
+      manager.subscribeToMarketPrices(['token2'], lateCallback);
+
+      expect(lateCallback).toHaveBeenCalledTimes(1);
+      expect(lateCallback.mock.calls[0][0]).toEqual([
+        { tokenId: 'token2', price: 0.9, bestBid: 0.9, bestAsk: 0.9 },
+      ]);
+    });
+
+    it('serves the most recent price after multiple updates for the same token', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.subscribeToMarketPrices(['token1'], jest.fn());
+      mockWebSocketInstances[0].simulateOpen();
+      simulatePriceMessage(mockWebSocketInstances[0], 'token1', '0.50');
+      simulatePriceMessage(mockWebSocketInstances[0], 'token1', '0.65');
+      simulatePriceMessage(mockWebSocketInstances[0], 'token1', '0.72');
+
+      const lateCallback = jest.fn();
+      manager.subscribeToMarketPrices(['token1'], lateCallback);
+
+      expect(lateCallback).toHaveBeenCalledWith([
+        { tokenId: 'token1', price: 0.72, bestBid: 0.72, bestAsk: 0.72 },
+      ]);
+    });
+
+    it('clears cache on resetInstance so a fresh manager has no stale prices', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.subscribeToMarketPrices(['token1'], jest.fn());
+      mockWebSocketInstances[0].simulateOpen();
+      simulatePriceMessage(mockWebSocketInstances[0], 'token1', '0.65');
+
+      WebSocketManager.resetInstance();
+      mockWebSocketInstances = [];
+
+      const freshManager = WebSocketManager.getInstance();
+      const lateCallback = jest.fn();
+      freshManager.subscribeToMarketPrices(['token1'], lateCallback);
+
+      expect(lateCallback).not.toHaveBeenCalled();
+    });
+
+    it('clears cache when the last subscriber unsubscribes so the next subscription gets fresh data', () => {
+      const manager = WebSocketManager.getInstance();
+      const callback = jest.fn();
+      const unsubscribe = manager.subscribeToMarketPrices(['token1'], callback);
+      mockWebSocketInstances[0].simulateOpen();
+      simulatePriceMessage(mockWebSocketInstances[0], 'token1', '0.65');
+
+      unsubscribe();
+
+      const lateCallback = jest.fn();
+      manager.subscribeToMarketPrices(['token1'], lateCallback);
+
+      expect(lateCallback).not.toHaveBeenCalled();
+    });
+
+    it('clears cache when the app goes to background so resumed sessions do not replay stale prices', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.subscribeToMarketPrices(['token1'], jest.fn());
+      mockWebSocketInstances[0].simulateOpen();
+      simulatePriceMessage(mockWebSocketInstances[0], 'token1', '0.65');
+
+      expect(appStateCallback).not.toBeNull();
+      if (appStateCallback) {
+        appStateCallback('background');
+      }
+
+      const lateCallback = jest.fn();
+      manager.subscribeToMarketPrices(['token1'], lateCallback);
+
+      expect(lateCallback).not.toHaveBeenCalled();
+    });
+
+    it('isolates a throwing callback during cached snapshot delivery and logs to Logger.error', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.subscribeToMarketPrices(['token1'], jest.fn());
+      mockWebSocketInstances[0].simulateOpen();
+      simulatePriceMessage(mockWebSocketInstances[0], 'token1', '0.65');
+      mockedLoggerError.mockClear();
+
+      const throwingCallback = jest.fn(() => {
+        throw new Error('subscriber threw on snapshot');
+      });
+      expect(() =>
+        manager.subscribeToMarketPrices(['token1'], throwingCallback),
+      ).not.toThrow();
+
+      expect(throwingCallback).toHaveBeenCalledTimes(1);
+      expect(mockedLoggerError).toHaveBeenCalledTimes(1);
+      expect(mockedLoggerError.mock.calls[0][1]).toMatchObject({
+        tags: { channel: 'market' },
+        context: { data: { method: 'subscribeToMarketPrices' } },
+      });
+    });
+  });
+
+  describe('market heartbeat staleness detection', () => {
+    it('closes the socket and reconnects when no message arrives within the stale threshold', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.subscribeToMarketPrices(['token1'], jest.fn());
+      const ws = mockWebSocketInstances[0];
+      ws.simulateOpen();
+
+      const countAfterOpen = mockWebSocketInstances.length;
+
+      jest.advanceTimersByTime(60000 + 5000);
+
+      expect(ws.close).toHaveBeenCalled();
+
+      ws.simulateClose();
+      jest.advanceTimersByTime(3000);
+
+      expect(mockWebSocketInstances.length).toBeGreaterThan(countAfterOpen);
+    });
+
+    it('does not close the socket while messages keep arriving below the stale threshold', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.subscribeToMarketPrices(['token1'], jest.fn());
+      const ws = mockWebSocketInstances[0];
+      ws.simulateOpen();
+
+      for (let i = 0; i < 10; i++) {
+        jest.advanceTimersByTime(5000);
+        ws.simulateMessage({
+          event_type: 'price_change',
+          market: 'm1',
+          price_changes: [
+            {
+              asset_id: 'token1',
+              price: '0.50',
+              best_bid: '0.50',
+              best_ask: '0.50',
+            },
+          ],
+          timestamp: '2025-01-12T12:00:00Z',
+        });
+      }
+
+      expect(ws.close).not.toHaveBeenCalled();
+    });
+
+    it('logs to Logger.error with structured context when market heartbeat fires reconnect', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.subscribeToMarketPrices(['token1'], jest.fn());
+      mockWebSocketInstances[0].simulateOpen();
+      mockedLoggerError.mockClear();
+
+      jest.advanceTimersByTime(65000);
+
+      expect(mockedLoggerError).toHaveBeenCalled();
+      const optionsArg = mockedLoggerError.mock.calls[0][1];
+      expect(optionsArg).toMatchObject({
+        tags: { channel: 'market' },
+        context: {
+          name: 'WebSocketManager',
+          data: { method: 'marketHeartbeat' },
+        },
+      });
+    });
+
+    it('stops the heartbeat timer on disconnect so it does not fire after unsubscribe', () => {
+      const manager = WebSocketManager.getInstance();
+      const unsubscribe = manager.subscribeToMarketPrices(
+        ['token1'],
+        jest.fn(),
+      );
+      const ws = mockWebSocketInstances[0];
+      ws.simulateOpen();
+      unsubscribe();
+      mockedLoggerError.mockClear();
+
+      jest.advanceTimersByTime(120000);
+
+      expect(mockedLoggerError).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('RTDS heartbeat staleness detection', () => {
+    it('closes the RTDS socket and reconnects when no message arrives within the RTDS stale threshold', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.subscribeToCryptoPrices(['btc/usd'], jest.fn());
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+
+      const countAfterOpen = mockWebSocketInstances.length;
+
+      jest.advanceTimersByTime(15000 + 5000);
+
+      expect(rtdsInstance.close).toHaveBeenCalled();
+
+      rtdsInstance.simulateClose();
+      jest.advanceTimersByTime(3000);
+
+      expect(mockWebSocketInstances.length).toBeGreaterThan(countAfterOpen);
+    });
+
+    it('does not close the RTDS socket while messages keep arriving below the threshold', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.subscribeToCryptoPrices(['btc/usd'], jest.fn());
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+
+      for (let i = 0; i < 5; i++) {
+        jest.advanceTimersByTime(4000);
+        rtdsInstance.simulateMessage({
+          topic: 'crypto_prices_chainlink',
+          type: 'update',
+          timestamp: 1700000000 + i,
+          payload: {
+            symbol: 'btc/usd',
+            timestamp: 1700000000 + i,
+            value: 67234.5,
+          },
+        });
+      }
+
+      expect(rtdsInstance.close).not.toHaveBeenCalled();
+    });
+
+    it('logs to Logger.error with structured context when RTDS heartbeat fires reconnect', () => {
+      const manager = WebSocketManager.getInstance();
+      manager.subscribeToCryptoPrices(['btc/usd'], jest.fn());
+      const rtdsInstance =
+        mockWebSocketInstances[mockWebSocketInstances.length - 1];
+      rtdsInstance.simulateOpen();
+      mockedLoggerError.mockClear();
+
+      jest.advanceTimersByTime(20000);
+
+      expect(mockedLoggerError).toHaveBeenCalled();
+      expect(mockedLoggerError.mock.calls[0][1]).toMatchObject({
+        tags: { channel: 'rtds' },
+        context: {
+          name: 'WebSocketManager',
+          data: { method: 'rtdsHeartbeat' },
+        },
+      });
     });
   });
 });
