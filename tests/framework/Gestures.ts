@@ -104,7 +104,7 @@ export default class Gestures {
       checkEnabled = true,
       elemDescription,
       waitForElementToDisappear = false,
-      delay = 500,
+      delay = BASE_DEFAULTS.actionDelay,
     } = options;
 
     const fn = () =>
