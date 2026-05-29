@@ -70,7 +70,7 @@ const getCliDashboardTokenUrl = (dashboardAuthUrl?: string): string => {
     return dashboardAuthUrl;
   }
 
-  const sdkenv = buildType.includes('dev') ? Env.DEV : Env.UAT;
+  const sdkenv = Env.DEV;
   const url = new URL(SDK.getEnvUrls(sdkenv).authApiUrl);
   url.pathname = CLI_DASHBOARD_TOKEN_PATH;
   return url.toString();
