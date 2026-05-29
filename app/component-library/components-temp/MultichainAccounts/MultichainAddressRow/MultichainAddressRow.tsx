@@ -69,8 +69,8 @@ const MultichainAddressRow = ({
       setIconState('copy');
     }, 400);
 
-    // Show toast if ref provided
-    if (copyParams.toastRef?.current) {
+    // Show legacy row-managed toast only when both ref and message are provided.
+    if (copyParams.toastRef?.current && copyParams.toastMessage) {
       copyParams.toastRef.current.showToast({
         variant: ToastVariants.Plain,
         labelOptions: [{ label: copyParams.toastMessage }],

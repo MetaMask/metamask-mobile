@@ -10,12 +10,13 @@ import {
   IconColor,
   IconName,
   IconSize,
+  Tag,
+  TagSeverity,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import Tag from '../../../../../../component-library/components/Tags/Tag';
 import { strings } from '../../../../../../../locales/i18n';
 import { PayWithRowConfig } from '../../modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
 
@@ -96,9 +97,11 @@ const PaymentMethodRow = ({
           </Text>
           {isLastUsed ? (
             <Tag
-              label={strings('confirm.pay_with_bottom_sheet.last_used')}
+              severity={TagSeverity.Info}
               testID={`${resolvedTestID}-last-used-tag`}
-            />
+            >
+              {strings('confirm.pay_with_bottom_sheet.last_used')}
+            </Tag>
           ) : null}
         </Box>
         {subtitle ? (

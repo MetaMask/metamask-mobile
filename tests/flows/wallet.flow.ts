@@ -40,7 +40,7 @@ import PlaywrightUtilities from '../framework/PlaywrightUtilities';
 import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
 import MetaMetricsOptInView from '../page-objects/Onboarding/MetaMetricsOptInView';
 import PredictModalView from '../page-objects/Predict/PredictModalView';
-
+import OnboardingInterestQuestionnaireView from '../page-objects/Onboarding/OnboardingInterestQuestionnaireView';
 const logger = createLogger({
   name: 'WalletFlow',
 });
@@ -231,6 +231,9 @@ export const importWalletWithRecoveryPhrase = async ({
 
     await MetaMetricsOptInView.tapAgreeButton();
   }
+  if (optInToMetrics) {
+    await OnboardingInterestQuestionnaireView.tapContinueButton();
+  }
   //'Should dismiss Enable device Notifications checks alert'
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
     description: 'Onboarding Success View should be visible',
@@ -341,6 +344,10 @@ export const CreateNewWallet = async ({
 
   await MetaMetricsOptInView.tapAgreeButton();
   await device.disableSynchronization(); // Detox is hanging after wallet creation
+
+  if (optInToMetrics) {
+    await OnboardingInterestQuestionnaireView.tapContinueButton();
+  }
 
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
     description: 'Onboarding Success View should be visible',

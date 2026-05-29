@@ -18,6 +18,7 @@ import {
 } from '../../../../../util/networks/customNetworks';
 import { caipChainIdToHex } from '../../../Rewards/utils/formatUtils';
 import { TimeOption } from '../TrendingTokensBottomSheet/TrendingTokenTimeBottomSheet';
+import { getCurrencySymbol } from '../../../../../util/number/bigint';
 
 export const getCaipChainIdFromAssetId = (assetId: string): CaipChainId =>
   assetId.split('/')[0] as CaipChainId;
@@ -51,25 +52,41 @@ export const getNetworkBadgeSource = (
 };
 
 /**
- * Formats a number as compact USD currency string
+ * Formats a number as compact currency string with magnitude abbreviations
  * @param value - The number to format
- * @returns Formatted string (e.g., "$13B", "$34.2M", "$850.5K", "$532.50")
+ * @param currencyCode - ISO 4217 currency code (e.g. 'USD', 'EUR'). Defaults to 'USD'.
+ * @returns Formatted string (e.g., "$13B", "€34.2M", "£850.5K", "$532.50")
  */
-export function formatCompactUSD(value: number): string {
+export function formatCompactCurrency(
+  value: number,
+  currencyCode: string = 'USD',
+): string {
   const num = Number(value);
   if (isNaN(num)) return 'Invalid number';
 
   const absNum = Math.abs(num);
+  const lowercaseCode = currencyCode.toLowerCase();
+  // TypeScript doesn't know if lowercaseCode is a valid currency, but getCurrencySymbol handles unknown codes
+  const symbolFromMap = getCurrencySymbol(
+    lowercaseCode as Parameters<typeof getCurrencySymbol>[0],
+  );
+
+  // If getCurrencySymbol returned the code itself (no symbol found), use uppercase
+  const symbol =
+    symbolFromMap === lowercaseCode
+      ? currencyCode.toUpperCase()
+      : symbolFromMap;
+
   let formatted: string;
 
   if (absNum >= 1_000_000_000) {
-    formatted = `$${(num / 1_000_000_000).toFixed(0)}B`; // e.g. 13B
+    formatted = `${symbol}${(num / 1_000_000_000).toFixed(0)}B`; // e.g. 13B
   } else if (absNum >= 1_000_000) {
-    formatted = `$${(num / 1_000_000).toFixed(1)}M`; // e.g. 34.2M
+    formatted = `${symbol}${(num / 1_000_000).toFixed(1)}M`; // e.g. 34.2M
   } else if (absNum >= 1_000) {
-    formatted = `$${(num / 1_000).toFixed(1)}K`; // e.g. 850.5K
+    formatted = `${symbol}${(num / 1_000).toFixed(1)}K`; // e.g. 850.5K
   } else {
-    formatted = `$${num.toFixed(2)}`; // e.g. 532.50
+    formatted = `${symbol}${num.toFixed(2)}`; // e.g. 532.50
   }
 
   return formatted;
@@ -80,11 +97,18 @@ export function formatCompactUSD(value: number): string {
  * Shows dash for zero values
  * @param marketCap - Market capitalization value
  * @param volume - Trading volume value
+ * @param currencyCode - ISO 4217 currency code (e.g. 'USD', 'EUR'). Defaults to 'USD'.
  * @returns Formatted string (e.g., "$13B cap • $34.2M vol" or "— cap • — vol" for zeros)
  */
-export function formatMarketStats(marketCap: number, volume: number): string {
-  const capStr = marketCap === 0 ? '-' : formatCompactUSD(marketCap);
-  const volStr = volume === 0 ? '-' : formatCompactUSD(volume);
+export function formatMarketStats(
+  marketCap: number,
+  volume: number,
+  currencyCode: string = 'USD',
+): string {
+  const capStr =
+    marketCap === 0 ? '-' : formatCompactCurrency(marketCap, currencyCode);
+  const volStr =
+    volume === 0 ? '-' : formatCompactCurrency(volume, currencyCode);
   return `${capStr} cap • ${volStr} vol`;
 }
 

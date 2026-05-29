@@ -30,6 +30,7 @@ import { selectCardUserLocation } from '../../../../../selectors/cardController'
 import { CardMessageBoxType, type CardLocation } from '../../types';
 import { CardActions, CardScreens } from '../../util/metrics';
 import OnboardingStep from '../../components/Onboarding/OnboardingStep';
+import NavigationService from '../../../../../core/NavigationService';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { countryCodeToFlag } from '../../util/countryCodeToFlag';
 
@@ -41,7 +42,12 @@ const autoComplete = Platform.select<TextInputProps['autoComplete']>({
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type CardAuthenticationParams = {
-  CardAuthentication: { showAuthPrompt?: boolean } | undefined;
+  CardAuthentication:
+    | {
+        showAuthPrompt?: boolean;
+        postAuthRedirect?: { screen: string; params?: object };
+      }
+    | undefined;
 };
 
 const CardAuthentication = () => {
@@ -51,6 +57,7 @@ const CardAuthentication = () => {
   const route =
     useRoute<RouteProp<CardAuthenticationParams, 'CardAuthentication'>>();
   const showAuthPrompt = route.params?.showAuthPrompt ?? false;
+  const postAuthRedirect = route.params?.postAuthRedirect;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -207,6 +214,11 @@ const CardAuthentication = () => {
           return;
         }
 
+        if (postAuthRedirect) {
+          NavigationService.navigation?.goBack();
+          return;
+        }
+
         // Successful login — navigate to home
         navigation.reset({
           index: 0,
@@ -228,6 +240,7 @@ const CardAuthentication = () => {
       dispatch,
       trackEvent,
       createEventBuilder,
+      postAuthRedirect,
     ],
   );
 

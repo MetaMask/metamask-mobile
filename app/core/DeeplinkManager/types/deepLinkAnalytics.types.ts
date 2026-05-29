@@ -52,7 +52,7 @@ export enum DeepLinkRoute {
   SHIELD = 'shield',
   TRENDING = 'trending',
   WHATS_HAPPENING = 'whats-happening',
-  SOCIAL_LEADERBOARD = 'social-leaderboard',
+  TOP_TRADERS = 'top-traders',
   SOCIAL_TRADER_POSITION = 'social-trader-position',
   CARD_ONBOARDING = 'card-onboarding',
   CARD_HOME = 'card-home',

@@ -900,12 +900,6 @@ const EarnInputView = () => {
     navigateToLearnMoreModal,
   ]);
 
-  useEffect(() => {
-    navigation.setOptions({
-      headerShown: false,
-    });
-  }, [navigation]);
-
   const headerTitle = useMemo(() => {
     const isLending =
       earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING;

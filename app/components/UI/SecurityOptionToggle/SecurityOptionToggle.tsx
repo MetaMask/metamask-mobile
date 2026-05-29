@@ -1,10 +1,12 @@
 import React, { useCallback } from 'react';
 import { Switch, View } from 'react-native';
 import { createStyles } from './styles';
-import Text, {
+import {
+  FontWeight,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { useTheme } from '../../../util/theme';
 
 interface SecurityOptionsToggleProps {
@@ -41,7 +43,11 @@ const SecurityOptionToggle = ({
   return (
     <View style={styles.container}>
       <View style={styles.titleContainer}>
-        <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          style={styles.title}
+        >
           {title}
         </Text>
         <View style={styles.switchElement}>
@@ -62,8 +68,9 @@ const SecurityOptionToggle = ({
       </View>
       {description ? (
         <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
           style={styles.desc}
         >
           {description}

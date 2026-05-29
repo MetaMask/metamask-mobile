@@ -77,3 +77,19 @@ export function ensureError(error: unknown, context?: string): Error {
       : 'Unknown error',
   );
 }
+
+/**
+ * Hyperliquid rejects user-scoped exchange writes (`agentSetAbstraction`,
+ * `userSetAbstraction`, `setReferrer`, ...) with this exact message when the
+ * wallet has never funded a Hyperliquid account. It is a benign pre-account
+ * state, not an error we should forward to Sentry.
+ *
+ * @param error - The caught error.
+ * @returns True if the error matches the Hyperliquid "user not on chain yet" rejection.
+ */
+export function isHyperLiquidUserNotFoundError(error: unknown): boolean {
+  const lower = ensureError(error).message.toLowerCase();
+  return (
+    lower.includes('user or api wallet') && lower.includes('does not exist')
+  );
+}

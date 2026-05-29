@@ -328,7 +328,15 @@ jobs:
         with:
           node-version-file: '.nvmrc'
 
-      - name: Download shards test artifacts (XMLs + Screenshots)
+      - name: Download shards test artifacts (XMLs + Screenshots) (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
+        continue-on-error: true
+        with:
+          path: all-test-artifacts/
+          pattern: 'test-e2e-main-*-ios-*'
+      - name: Download shards test artifacts (XMLs + Screenshots) (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
         uses: actions/download-artifact@v4
         continue-on-error: true
         with:
@@ -345,27 +353,34 @@ jobs:
           list-suites: 'failed'
           list-tests: 'failed'
 
-      - name: Upload all test artifacts (XMLs + Screenshots)
+      - name: Upload all test artifacts (XMLs + Screenshots) (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: e2e-smoke-ios-all-test-artifacts
+          path: all-test-artifacts/
+          retention-days: 7
+      - name: Upload all test artifacts (XMLs + Screenshots) (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: e2e-smoke-ios-all-test-artifacts
           path: all-test-artifacts/
           retention-days: 7
 
+      - name: Install CI script dependencies
+        continue-on-error: true
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: cd .github/scripts && yarn --immutable
+
       - name: Create mobile JSON test report
         id: create-json-report
         continue-on-error: true
         run: |
-          # Create a temporary directory for xml2js to avoid conflicts
-          mkdir -p temp-deps && cd temp-deps
-          npm init -y
-          npm install xml2js@0.5.0 --no-audit --no-fund
-
-          # Copy node_modules to workspace
-          cp -r node_modules ${{ github.workspace }}/
-
-          # Run the mobile test report generator
-          cd ${{ github.workspace }}
           TEST_RESULTS_PATH=all-test-artifacts \
           TEST_RUNS_PATH=test/test-results/test-runs-ios.json \
           RUN_ID=${{ github.run_id }} \
@@ -373,11 +388,15 @@ jobs:
           GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
           node .github/scripts/e2e-create-json-test-report.mjs
 
-          # Clean up temporary node_modules
-          rm -rf node_modules
-
-      - name: Upload JSON test report
-        if: steps.create-json-report.outcome == 'success'
+      - name: Upload JSON test report (Namespace)
+        if: ${{ steps.create-json-report.outcome == 'success' && inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: test-e2e-ios-json-report
+          path: test/test-results/test-runs-ios.json
+          retention-days: 7
+      - name: Upload JSON test report (current)
+        if: ${{ steps.create-json-report.outcome == 'success' && inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: test-e2e-ios-json-report

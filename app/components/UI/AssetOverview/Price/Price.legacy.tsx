@@ -140,6 +140,7 @@ const PriceLegacy = ({
             </View>
           ) : (
             <Text
+              testID={TokenOverviewSelectorsIDs.TODAYS_CHANGE}
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
               color={

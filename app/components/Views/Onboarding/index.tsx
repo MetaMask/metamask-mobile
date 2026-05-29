@@ -21,7 +21,7 @@ import { strings } from '../../../../locales/i18n';
 import { useSelector, useDispatch } from 'react-redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import Device from '../../../util/device';
-import BaseNotification from '../../UI/Notification/BaseNotification';
+import BaseNotification from '../../../component-library/components-temp/BaseNotification';
 import ElevatedView from 'react-native-elevated-view';
 import { loadingSet, loadingUnset } from '../../../actions/user';
 import {
@@ -39,6 +39,7 @@ import {
   storePna25Acknowledged as storePna25AcknowledgedAction,
 } from '../../../actions/legalNotices';
 import { selectGoogleLoginIosUnsupportedBlockingEnabled } from '../../../selectors/featureFlagController/googleLoginIosUnsupportedBlocking';
+import { selectTelegramLoginEnabled } from '../../../selectors/featureFlagController/seedlessTelegramLogin';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -87,6 +88,7 @@ import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
+import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { setupSentry } from '../../../util/sentry/utils';
 import ErrorBoundary from '../ErrorBoundary';
@@ -163,6 +165,10 @@ const Onboarding = () => {
   );
   const isGoogleLoginIosUnsupportedBlockingEnabled = useSelector(
     selectGoogleLoginIosUnsupportedBlockingEnabled,
+  );
+  const isTelegramLoginEnabled = useSelector(selectTelegramLoginEnabled);
+  const walletSetupAttributionAnalyticsProps = useSelector(
+    selectWalletSetupCompletedAttributionAnalyticsProps,
   );
 
   const setLoading = useCallback(
@@ -460,6 +466,7 @@ const Onboarding = () => {
 
       track(MetaMetricsEvents.SOCIAL_LOGIN_COMPLETED, {
         account_type: accountType,
+        ...walletSetupAttributionAnalyticsProps,
       });
       if (createWallet) {
         if (result.existingUser) {
@@ -529,7 +536,13 @@ const Onboarding = () => {
         });
       }
     },
-    [navigation, track, dispatch, onboardingVersion],
+    [
+      navigation,
+      track,
+      dispatch,
+      onboardingVersion,
+      walletSetupAttributionAnalyticsProps,
+    ],
   );
 
   const handleOAuthLoginError = useCallback(
@@ -572,7 +585,8 @@ const Onboarding = () => {
           error.code === OAuthErrorType.UserCancelled ||
           error.code === OAuthErrorType.UserDismissed ||
           error.code === OAuthErrorType.GoogleLoginError ||
-          error.code === OAuthErrorType.AppleLoginError
+          error.code === OAuthErrorType.AppleLoginError ||
+          error.code === OAuthErrorType.TelegramLoginError
         ) {
           // QA: do not show error sheet if user cancelled
           return;
@@ -604,6 +618,7 @@ const Onboarding = () => {
                 Platform.OS,
                 AuthConnection.Google,
                 true, // Use browser fallback
+                undefined,
               );
               const result = await OAuthLoginService.handleOAuthLogin(
                 fallbackHandler,
@@ -653,6 +668,7 @@ const Onboarding = () => {
         }
         // Show error sheet for auth server or seedless controller errors
         if (
+          error.code === OAuthErrorType.InvalidProvider ||
           error.code === OAuthErrorType.AuthServerError ||
           error.code === OAuthErrorType.LoginError
         ) {
@@ -811,6 +827,18 @@ const Onboarding = () => {
           dispatch(setIosGoogleWarningSheetLastDismissedAt(Date.now()));
         }
 
+        if (provider === AuthConnection.Telegram && !isTelegramLoginEnabled) {
+          await handleLoginError(
+            new OAuthError(
+              'Telegram login is not available',
+              OAuthErrorType.InvalidProvider,
+            ),
+            provider,
+            createWallet,
+          );
+          return;
+        }
+
         socialLoginTraceCtx.current = trace({
           name: TraceName.OnboardingSocialLoginAttempt,
           op: TraceOperation.OnboardingUserJourney,
@@ -819,7 +847,14 @@ const Onboarding = () => {
         });
 
         setLoading();
-        const loginHandler = createLoginHandler(Platform.OS, provider);
+        const loginHandler = createLoginHandler(
+          Platform.OS,
+          provider,
+          false,
+          provider === AuthConnection.Telegram
+            ? { telegramLoginEnabled: true }
+            : undefined,
+        );
         try {
           const result = await OAuthLoginService.handleOAuthLogin(
             loginHandler,
@@ -857,6 +892,7 @@ const Onboarding = () => {
       handlePostSocialLogin,
       handleExistingUser,
       isGoogleLoginIosUnsupportedBlockingEnabled,
+      isTelegramLoginEnabled,
     ],
   );
 
@@ -872,6 +908,12 @@ const Onboarding = () => {
     [onPressContinueWithSocialLogin],
   );
 
+  const onPressContinueWithTelegram = useCallback(
+    async (createWallet: boolean): Promise<void> =>
+      onPressContinueWithSocialLogin(createWallet, AuthConnection.Telegram),
+    [onPressContinueWithSocialLogin],
+  );
+
   const handleCtaActions = useCallback(
     async (actionType: string): Promise<void> => {
       if (SEEDLESS_ONBOARDING_ENABLED) {
@@ -883,6 +925,7 @@ const Onboarding = () => {
             onPressImport,
             onPressContinueWithGoogle,
             onPressContinueWithApple,
+            ...(isTelegramLoginEnabled ? { onPressContinueWithTelegram } : {}),
             createWallet: actionType === 'create',
           },
         });
@@ -899,6 +942,8 @@ const Onboarding = () => {
       onPressContinueWithGoogle,
       onPressContinueWithApple,
       dispatch,
+      onPressContinueWithTelegram,
+      isTelegramLoginEnabled,
     ],
   );
 

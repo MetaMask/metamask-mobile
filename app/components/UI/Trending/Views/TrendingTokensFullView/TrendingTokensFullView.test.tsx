@@ -98,6 +98,10 @@ const arrangeMocks = () => {
       data: options.data ?? [],
       isLoading: options.isLoading ?? false,
       refetch: mockRefetch,
+      loadMore: jest.fn(),
+      isLoadingMore: false,
+      hasNextPage: false,
+      totalCount: undefined,
     });
   };
 

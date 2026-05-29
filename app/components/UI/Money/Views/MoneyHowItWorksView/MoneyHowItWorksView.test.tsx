@@ -38,6 +38,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Deposit mUSD into your Money account and earn up to 4% APY (variable) automatically. Funds go into a DeFi vault that generates returns across audited lending markets—no staking, no claiming, no lock-ups.',
       'money.how_it_works_page.description_2':
         'Your Money balance is your spending balance. Link your MetaMask Card to spend at 150M+ merchants worldwide. Your money keeps earning until the moment you use it.',
+      'money.how_it_works_page.description_3':
+        'Money account is powered by Monad.',
       'money.how_it_works_page.faq_title': 'Frequently asked questions',
       'money.how_it_works_page.faq_placeholder_answer': 'Coming soon.',
       'money.how_it_works_page.faq_q1': 'How does the 4% APY work?',
@@ -84,6 +86,17 @@ describe('MoneyHowItWorksView', () => {
     expect(
       getByTestId(MoneyHowItWorksViewTestIds.DESCRIPTION_2),
     ).toBeOnTheScreen();
+  });
+
+  it('renders the Monad attribution as the third description paragraph', () => {
+    const { getByTestId, getByText } = renderWithProvider(
+      <MoneyHowItWorksView />,
+    );
+
+    expect(
+      getByTestId(MoneyHowItWorksViewTestIds.DESCRIPTION_3),
+    ).toBeOnTheScreen();
+    expect(getByText('Money account is powered by Monad.')).toBeOnTheScreen();
   });
 
   it('renders the FAQ title', () => {

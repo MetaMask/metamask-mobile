@@ -9,7 +9,7 @@ import {
   WalletCreationErrorCtaType,
 } from '../../../constants/onboarding';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
+import { AuthConnection } from '@metamask/seedless-onboarding-controller';
 import { Authentication } from '../../../core';
 import AppConstants from '../../../core/AppConstants';
 import Routes from '../../../constants/navigation/Routes';

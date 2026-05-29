@@ -10,12 +10,12 @@ import {
   Box,
   BoxAlignItems,
   BoxJustifyContent,
+  HeaderStandard,
   Text,
   TextVariant,
   TextColor,
 } from '@metamask/design-system-react-native';
 import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { strings } from '../../../../../../../locales/i18n';
 import styleSheet from './PaymentSelectionModal.styles';
@@ -259,7 +259,7 @@ function PaymentSelectionModal() {
     <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
       <View style={styles.containerOuter}>
         <View style={styles.paymentPanelContent}>
-          <HeaderCompactStandard
+          <HeaderStandard
             title={strings('fiat_on_ramp.pay_with')}
             onClose={() => sheetRef.current?.onCloseBottomSheet()}
             closeButtonProps={{

@@ -3635,6 +3635,7 @@ describe('PerpsMarketDetailsView', () => {
         MetaMetricsEvents.MARKET_INSIGHTS_OPENED,
         expect.objectContaining({
           perps_market: 'BTC',
+          source: 'perps',
           asset_symbol: 'BTC',
           digest_id: 'b9265d68-d776-55ad-9cc6-gdbbbf07fg033',
         }),

@@ -8,6 +8,7 @@ import {
   selectPredictFeeCollectionFlag,
   selectPredictGtmOnboardingModalEnabledFlag,
   selectPredictHomeFeaturedVariant,
+  selectPredictHomepageDiscoveryNbaChampionEnabledFlag,
   selectPredictHotTabFlag,
   selectPredictUpDownEnabledFlag,
   selectPredictWithAnyTokenEnabledFlag,
@@ -1473,6 +1474,11 @@ describe('Predict Feature Flag Selectors', () => {
       expect(
         selectPredictWorldCupScreenEnabledFlag(mockedEmptyFlagsState),
       ).toBe(false);
+      expect(
+        selectPredictHomepageDiscoveryNbaChampionEnabledFlag(
+          mockedEmptyFlagsState,
+        ),
+      ).toBe(true);
     });
 
     it('returns normalized config and gated booleans when enabled', () => {
@@ -1534,6 +1540,31 @@ describe('Predict Feature Flag Selectors', () => {
 
       expect(selectPredictWorldCupConfig(state)).toEqual(
         DEFAULT_PREDICT_WORLD_CUP_FLAG,
+      );
+    });
+  });
+
+  describe('selectPredictHomepageDiscoveryNbaChampionEnabledFlag', () => {
+    it('returns false when the remote flag is disabled', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictHomepageDiscoveryNbaChampionEnabled: {
+                  enabled: false,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      expect(selectPredictHomepageDiscoveryNbaChampionEnabledFlag(state)).toBe(
+        false,
       );
     });
   });

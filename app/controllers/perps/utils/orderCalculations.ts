@@ -4,6 +4,7 @@ import {
   formatHyperLiquidPrice,
   formatHyperLiquidSize,
 } from './hyperLiquidAdapter';
+import { BASIS_POINTS_DIVISOR } from '../constants/hyperLiquidConfig';
 import {
   MAX_ORDER_MARGIN_BUFFER,
   ORDER_SLIPPAGE_CONFIG,
@@ -58,7 +59,10 @@ export type CalculateOrderPriceAndSizeParams = {
   finalPositionSize: number;
   currentPrice: number;
   limitPrice?: string;
-  slippage?: number;
+  // Max slippage in basis points (e.g. 300 = 3%). Only applied to market orders;
+  // limit orders use limitPrice directly. Falls back to ORDER_SLIPPAGE_CONFIG
+  // .DefaultMarketSlippageBps when omitted on a market order.
+  maxSlippageBps?: number;
   szDecimals: number;
 };
 
@@ -314,7 +318,7 @@ export function calculateOrderPriceAndSize(
     finalPositionSize,
     currentPrice,
     limitPrice,
-    slippage,
+    maxSlippageBps,
     szDecimals,
   } = params;
 
@@ -322,9 +326,12 @@ export function calculateOrderPriceAndSize(
   let formattedSize: string;
 
   if (orderType === 'market') {
-    // Market orders: add slippage (3% conservative default)
-    const slippageValue =
-      slippage ?? ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps / 10000;
+    // Market orders: apply slippage buffer to the live price so HyperLiquid
+    // receives a worst-case acceptable limit price. Falls back to the
+    // documented default if the caller does not provide one.
+    const effectiveBps =
+      maxSlippageBps ?? ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps;
+    const slippageValue = effectiveBps / BASIS_POINTS_DIVISOR;
     orderPrice = isBuy
       ? currentPrice * (1 + slippageValue)
       : currentPrice * (1 - slippageValue);

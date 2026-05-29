@@ -83,6 +83,11 @@ jest.mock('../hooks/useTokenActions', () => ({
   useTokenActions: () => mockUseTokenActions(),
 }));
 
+const mockUseStickyTokenActions = jest.fn();
+jest.mock('../hooks/useStickyTokenActions', () => ({
+  useStickyTokenActions: () => mockUseStickyTokenActions(),
+}));
+
 const defaultUseTokenTransactionsReturn = {
   transactions: [],
   submittedTxs: [],
@@ -263,7 +268,10 @@ describe('TokenDetails', () => {
       onBuy: mockOnBuy,
       onSend: jest.fn(),
       onReceive: jest.fn(),
-      handleStickySwapPress: mockHandleStickySwapPress,
+    });
+    mockUseStickyTokenActions.mockReturnValue({
+      onBuy: mockOnBuy,
+      onSwap: mockHandleStickySwapPress,
       hasEligibleSwapTokens: true,
       networkModal: null,
     });
@@ -348,11 +356,9 @@ describe('TokenDetails', () => {
     });
 
     it('shows only Buy when user has no eligible swap tokens', () => {
-      mockUseTokenActions.mockReturnValue({
+      mockUseStickyTokenActions.mockReturnValue({
         onBuy: mockOnBuy,
-        onSend: jest.fn(),
-        onReceive: jest.fn(),
-        handleStickySwapPress: mockHandleStickySwapPress,
+        onSwap: mockHandleStickySwapPress,
         hasEligibleSwapTokens: false,
         networkModal: null,
       });

@@ -7,6 +7,7 @@ import {
   type CardControllerMessenger,
 } from './types';
 import {
+  CardLinkageInProgressError,
   CardProviderError,
   CardProviderErrorCode,
   CardStatus,
@@ -1866,6 +1867,9 @@ describe('CardController — data pass-throughs', () => {
         provider,
         messenger: handle.messenger,
       });
+      const fetchCardHomeDataSpy = jest
+        .spyOn(controller, 'fetchCardHomeData')
+        .mockResolvedValue(undefined);
 
       const linkPromise = controller.linkMoneyAccountCard({
         moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
@@ -1918,6 +1922,44 @@ describe('CardController — data pass-throughs', () => {
         }),
         mockTokenSet,
       );
+      // Refreshes cardHomeData so selectIsMoneyAccountDelegatedForCard flips
+      // to true immediately after a successful link — see the call right
+      // after `provider.approveFunding` in CardController.linkMoneyAccountCard.
+      expect(fetchCardHomeDataSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('still resolves when the post-link fetchCardHomeData refresh rejects (linkage already succeeded — refresh errors are swallowed)', async () => {
+      const mockChallenge = jest.fn().mockResolvedValue({
+        delegationToken: 'jwt-refresh',
+        nonce: 'nonce-refresh',
+        expiresAt: '2099-01-01',
+      });
+      const mockApproveFunding = jest.fn().mockResolvedValue(undefined);
+      const provider = buildMockProvider({
+        fetchDelegationChallenge: mockChallenge,
+        approveFunding: mockApproveFunding,
+        generateCardDelegationSignatureMessage: mockGenerateSiwe,
+      });
+
+      const handle = buildLinkMessenger();
+      const controller = buildLinkController({
+        provider,
+        messenger: handle.messenger,
+      });
+      jest
+        .spyOn(controller, 'fetchCardHomeData')
+        .mockRejectedValue(new Error('refresh boom'));
+
+      const linkPromise = controller.linkMoneyAccountCard({
+        moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
+        delegationAmountHuman: '2199023255551',
+      });
+
+      await waitFor(() => handle.addTransactionCalls.length > 0);
+      handle.emitConfirmed();
+
+      await expect(linkPromise).resolves.toBeUndefined();
+      expect(mockApproveFunding).toHaveBeenCalledTimes(1);
     });
 
     it('subscribes to transactionConfirmed BEFORE submitting the transaction (closes the race)', async () => {
@@ -1979,6 +2021,9 @@ describe('CardController — data pass-throughs', () => {
         provider,
         messenger: handle.messenger,
       });
+      const fetchCardHomeDataSpy = jest
+        .spyOn(controller, 'fetchCardHomeData')
+        .mockResolvedValue(undefined);
 
       const linkPromise = controller.linkMoneyAccountCard({
         moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
@@ -1990,6 +2035,9 @@ describe('CardController — data pass-throughs', () => {
 
       await expect(linkPromise).rejects.toThrow('out of gas');
       expect(mockApproveFunding).not.toHaveBeenCalled();
+      // Refresh is only triggered on the success path — failed transactions
+      // must NOT refresh card home data.
+      expect(fetchCardHomeDataSpy).not.toHaveBeenCalled();
     });
 
     it('fails closed when Monad USDC is missing from delegation settings (after refetch)', async () => {
@@ -2078,6 +2126,182 @@ describe('CardController — data pass-throughs', () => {
           delegationAmountHuman: '',
         }),
       ).rejects.toThrow('Delegation amount is required');
+    });
+
+    describe('singleflight', () => {
+      const buildHangingController = () => {
+        let resolveApproveFunding!: () => void;
+        let rejectApproveFunding!: (reason: unknown) => void;
+        const approveFundingGate = new Promise<void>((resolve, reject) => {
+          resolveApproveFunding = resolve;
+          rejectApproveFunding = reject;
+        });
+        const mockApproveFunding = jest
+          .fn()
+          .mockImplementation(() => approveFundingGate);
+        const mockChallenge = jest.fn().mockResolvedValue({
+          delegationToken: 'jwt-1',
+          nonce: 'nonce-1',
+          expiresAt: '2099-01-01',
+        });
+        const provider = buildMockProvider({
+          fetchDelegationChallenge: mockChallenge,
+          approveFunding: mockApproveFunding,
+          generateCardDelegationSignatureMessage: mockGenerateSiwe,
+        });
+
+        const handle = buildLinkMessenger();
+        const controller = buildLinkController({
+          provider,
+          messenger: handle.messenger,
+        });
+        jest
+          .spyOn(controller, 'fetchCardHomeData')
+          .mockResolvedValue(undefined);
+
+        return {
+          controller,
+          handle,
+          provider,
+          mockApproveFunding,
+          mockChallenge,
+          resolveApproveFunding,
+          rejectApproveFunding,
+        };
+      };
+
+      it('reports false before any linkage and true while a linkage is in flight', async () => {
+        const { controller, handle, resolveApproveFunding } =
+          buildHangingController();
+
+        expect(controller.isLinkageInProgress()).toBe(false);
+
+        const linkPromise = controller.linkMoneyAccountCard({
+          moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
+          delegationAmountHuman: '2199023255551',
+        });
+
+        // Let the async prefix run up to where `approveFunding` is awaited.
+        await waitFor(() => handle.addTransactionCalls.length > 0);
+        handle.emitConfirmed();
+        await waitFor(() => controller.isLinkageInProgress() === true, 100);
+
+        expect(controller.isLinkageInProgress()).toBe(true);
+
+        resolveApproveFunding();
+        await linkPromise;
+
+        expect(controller.isLinkageInProgress()).toBe(false);
+      });
+
+      it('rejects a concurrent linkMoneyAccountCard call with CardLinkageInProgressError without doing any provider/messenger work', async () => {
+        const {
+          controller,
+          handle,
+          mockApproveFunding,
+          mockChallenge,
+          resolveApproveFunding,
+        } = buildHangingController();
+
+        const firstCall = controller.linkMoneyAccountCard({
+          moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
+          delegationAmountHuman: '2199023255551',
+        });
+
+        await waitFor(() => handle.addTransactionCalls.length > 0);
+        handle.emitConfirmed();
+        await waitFor(() => mockApproveFunding.mock.calls.length === 1);
+
+        const callsBefore = {
+          challenge: mockChallenge.mock.calls.length,
+          approveFunding: mockApproveFunding.mock.calls.length,
+          signPersonalMessage: handle.signPersonalMessageCalls.length,
+          addTransaction: handle.addTransactionCalls.length,
+        };
+
+        await expect(
+          controller.linkMoneyAccountCard({
+            moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
+            delegationAmountHuman: '2199023255551',
+          }),
+        ).rejects.toBeInstanceOf(CardLinkageInProgressError);
+
+        // The second call must NOT have touched signing, transaction
+        // submission, or the provider's funding endpoint.
+        expect(mockChallenge.mock.calls.length).toBe(callsBefore.challenge);
+        expect(mockApproveFunding.mock.calls.length).toBe(
+          callsBefore.approveFunding,
+        );
+        expect(handle.signPersonalMessageCalls.length).toBe(
+          callsBefore.signPersonalMessage,
+        );
+        expect(handle.addTransactionCalls.length).toBe(
+          callsBefore.addTransaction,
+        );
+
+        // The first call still has to finish cleanly so the flag clears.
+        resolveApproveFunding();
+        await firstCall;
+        expect(controller.isLinkageInProgress()).toBe(false);
+      });
+
+      it('clears the in-flight flag after a successful linkage so subsequent calls succeed', async () => {
+        const {
+          controller,
+          handle,
+          mockApproveFunding,
+          resolveApproveFunding,
+        } = buildHangingController();
+
+        const firstCall = controller.linkMoneyAccountCard({
+          moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
+          delegationAmountHuman: '2199023255551',
+        });
+        await waitFor(() => handle.addTransactionCalls.length > 0);
+        handle.emitConfirmed();
+        await waitFor(() => mockApproveFunding.mock.calls.length === 1);
+        resolveApproveFunding();
+        await firstCall;
+
+        expect(controller.isLinkageInProgress()).toBe(false);
+
+        const secondCall = controller.linkMoneyAccountCard({
+          moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
+          delegationAmountHuman: '2199023255551',
+        });
+        await waitFor(() => handle.addTransactionCalls.length === 2);
+        handle.emitConfirmed();
+        await waitFor(() => mockApproveFunding.mock.calls.length === 2);
+        await secondCall;
+      });
+
+      it('clears the in-flight flag after a failed linkage so subsequent calls succeed', async () => {
+        const { controller, handle, mockApproveFunding, rejectApproveFunding } =
+          buildHangingController();
+
+        const firstCall = controller.linkMoneyAccountCard({
+          moneyAccountAddress: MONEY_ACCOUNT_ADDRESS,
+          delegationAmountHuman: '2199023255551',
+        });
+        await waitFor(() => handle.addTransactionCalls.length > 0);
+        handle.emitConfirmed();
+        await waitFor(() => mockApproveFunding.mock.calls.length === 1);
+
+        rejectApproveFunding(new Error('post-approval refused'));
+        await expect(firstCall).rejects.toThrow('post-approval refused');
+
+        expect(controller.isLinkageInProgress()).toBe(false);
+
+        // A subsequent call is NOT blocked by the previous failure.
+        await expect(
+          controller.linkMoneyAccountCard({
+            moneyAccountAddress: 'not-an-address',
+            delegationAmountHuman: '2199023255551',
+          }),
+        ).rejects.toThrow('Invalid Money account address');
+        // And the flag is cleared again after the synchronous throw.
+        expect(controller.isLinkageInProgress()).toBe(false);
+      });
     });
   });
 

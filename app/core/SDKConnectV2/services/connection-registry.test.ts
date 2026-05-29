@@ -10,6 +10,7 @@ import Engine from '../../Engine';
 import { analytics } from '../../../util/analytics/analytics';
 import { MetaMetricsEvents } from '../../Analytics';
 import { TransportType } from '../../../components/hooks/useAnalytics/useAnalytics.types';
+import Logger from '../../../util/Logger';
 
 jest.mock('../adapters/host-application-adapter');
 jest.mock('../store/connection-store');
@@ -23,6 +24,13 @@ jest.mock('../../../util/analytics/analytics', () => ({
     trackEvent: jest.fn(),
   },
 }));
+jest.mock('../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+    log: jest.fn(),
+  },
+}));
 jest.mock('../../../store', () => ({
   store: {
     dispatch: jest.fn(),
@@ -33,6 +41,7 @@ jest.mock('../../../store', () => ({
 }));
 
 const mockTrackEvent = analytics.trackEvent as jest.Mock;
+const mockLoggerError = Logger.error as jest.Mock;
 
 // Factory functions for creating mock objects
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -85,6 +94,11 @@ describe('ConnectionRegistry', () => {
         channel: 'handshake:aabbccdd-1122-3344-5566-778899aabbcc',
         mode: 'trusted',
         expiresAt: Date.now() + 600_000,
+        // Direct deeplink flows always include an initialMessage; QR flows do not.
+        initialMessage: {
+          type: 'message',
+          payload: { method: 'wallet_createSession' },
+        },
       },
       metadata: {
         dapp: {
@@ -261,6 +275,40 @@ describe('ConnectionRegistry', () => {
       await expect(registry.handleMwpDeeplink(null)).rejects.toThrow(
         'Invalid MWP deeplink: [invalid URL]',
       );
+    });
+
+    it('should report dispatch failures to Sentry via Logger.error', async () => {
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      const dispatchError = new Error('boom');
+      const spyHandleConnectDeeplink = jest
+        .spyOn(registry, 'handleConnectDeeplink')
+        .mockRejectedValue(dispatchError);
+
+      await registry.handleMwpDeeplink(validDeeplink);
+
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        dispatchError,
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            feature: 'mm-connect',
+            operation: 'handle_mwp_deeplink',
+          }),
+          context: expect.objectContaining({
+            name: 'mwp_deeplink',
+            data: expect.objectContaining({
+              url: expect.stringContaining('[REDACTED]'),
+            }),
+          }),
+        }),
+      );
+
+      spyHandleConnectDeeplink.mockRestore();
     });
   });
 
@@ -442,10 +490,88 @@ describe('ConnectionRegistry', () => {
           transport_type: TransportType.MWP,
           sdk_version: '2.0.0',
           sdk_platform: 'JavaScript',
-          dapp_name: 'Test DApp',
-          dapp_url: 'https://test.dapp',
         }),
       );
+    });
+
+    describe('hideConnectionLoading dismissal', () => {
+      const buildDeeplink = (request: ConnectionRequest): string =>
+        `metamask://connect/mwp?p=${encodeURIComponent(JSON.stringify(request))}`;
+
+      it('dismisses the loading toast on success for direct deeplink flows (initialMessage present)', async () => {
+        registry = new ConnectionRegistry(
+          RELAY_URL,
+          mockKeyManager,
+          mockHostApp,
+          mockStore,
+        );
+
+        // mockConnectionRequest already has initialMessage set in beforeEach.
+        await registry.handleConnectDeeplink(validDeeplink);
+
+        expect(mockHostApp.showConnectionLoading).toHaveBeenCalledTimes(1);
+        expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledTimes(1);
+      });
+
+      it('does NOT dismiss the loading toast on success for QR flows (no initialMessage)', async () => {
+        registry = new ConnectionRegistry(
+          RELAY_URL,
+          mockKeyManager,
+          mockHostApp,
+          mockStore,
+        );
+
+        const qrRequest: ConnectionRequest = {
+          ...mockConnectionRequest,
+          sessionRequest: {
+            ...mockConnectionRequest.sessionRequest,
+            initialMessage: undefined,
+          },
+        };
+        const qrDeeplink = buildDeeplink(qrRequest);
+
+        await registry.handleConnectDeeplink(qrDeeplink);
+
+        // QR flow still shows the loading toast — it just isn't manually
+        // hidden, since the dapp sends wallet_createSession asynchronously
+        // and the toast must stay visible until the autodismiss fires.
+        expect(mockHostApp.showConnectionLoading).toHaveBeenCalledTimes(1);
+        expect(mockHostApp.hideConnectionLoading).not.toHaveBeenCalled();
+
+        // Sanity: the rest of the happy path still ran.
+        expect(mockStore.save).toHaveBeenCalledTimes(1);
+        expect(mockHostApp.syncConnectionList).toHaveBeenCalledWith([
+          mockConnection,
+        ]);
+      });
+
+      it('dismisses the loading toast for QR flows when connect() fails so it does not overlap the error toast', async () => {
+        registry = new ConnectionRegistry(
+          RELAY_URL,
+          mockKeyManager,
+          mockHostApp,
+          mockStore,
+        );
+
+        mockConnection.connect.mockRejectedValue(
+          new Error('handshake timeout'),
+        );
+
+        const qrRequest: ConnectionRequest = {
+          ...mockConnectionRequest,
+          sessionRequest: {
+            ...mockConnectionRequest.sessionRequest,
+            initialMessage: undefined,
+          },
+        };
+        const qrDeeplink = buildDeeplink(qrRequest);
+
+        await registry.handleConnectDeeplink(qrDeeplink);
+
+        expect(mockHostApp.showConnectionLoading).toHaveBeenCalledTimes(1);
+        expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
+        expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledTimes(1);
+      });
     });
 
     it('should handle invalid URL gracefully', async () => {
@@ -585,10 +711,6 @@ describe('ConnectionRegistry', () => {
         expect.objectContaining({
           remote_session_id: mockConnectionRequest.sessionRequest.id,
           transport_type: TransportType.MWP,
-          sdk_version: '2.0.0',
-          sdk_platform: 'JavaScript',
-          dapp_name: 'Test DApp',
-          dapp_url: 'https://test.dapp',
           failure_reason: 'Connection failed',
         }),
       );
@@ -889,6 +1011,73 @@ describe('ConnectionRegistry', () => {
       expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
       expect(Connection.create).not.toHaveBeenCalled();
       expect(mockStore.save).not.toHaveBeenCalled();
+    });
+
+    it('should report connect failures to Sentry with dapp/sdk context', async () => {
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      const connectionError = new Error('Connection failed');
+      mockConnection.connect.mockRejectedValue(connectionError);
+
+      await registry.handleConnectDeeplink(validDeeplink);
+
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        connectionError,
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            feature: 'mm-connect',
+            operation: 'handle_connect_deeplink',
+          }),
+          context: expect.objectContaining({
+            name: 'mwp_deeplink',
+            data: expect.objectContaining({
+              url: expect.stringContaining('[REDACTED]'),
+              dapp_url: 'https://test.dapp',
+              dapp_name: 'Test DApp',
+              sdk_version: '2.0.0',
+              sdk_platform: 'JavaScript',
+            }),
+          }),
+        }),
+      );
+    });
+
+    it('should report parse failures to Sentry even when no connection request is available', async () => {
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      const invalidDeeplink = 'metamask://connect/mwp?p=not-json';
+
+      await registry.handleConnectDeeplink(invalidDeeplink);
+
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            feature: 'mm-connect',
+            operation: 'handle_connect_deeplink',
+          }),
+          context: expect.objectContaining({
+            name: 'mwp_deeplink',
+            data: expect.objectContaining({
+              url: expect.stringContaining('[REDACTED]'),
+              dapp_url: undefined,
+              dapp_name: undefined,
+              sdk_version: undefined,
+              sdk_platform: undefined,
+            }),
+          }),
+        }),
+      );
     });
   });
 

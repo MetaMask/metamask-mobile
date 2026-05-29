@@ -38,8 +38,8 @@ jobs:
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-build' || (startsWith(github.base_ref, 'release/') && fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe-xl"]') || fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe-xl", "low-priority"]')) }}
     outputs:
       artifacts-url: ${{ steps.set-artifacts-url.outputs.artifacts-url }}
-      app-uploaded: ${{ steps.upload-app.outcome == 'success' }}
-      sourcemap-uploaded: ${{ steps.upload-sourcemap.outcome == 'success' }}
+      app-uploaded: ${{ steps.upload-app-namespace.outcome == 'success' || steps.upload-app.outcome == 'success' }}
+      sourcemap-uploaded: ${{ steps.upload-sourcemap-namespace.outcome == 'success' || steps.upload-sourcemap.outcome == 'success' }}
     env:
       XCODE_CACHE_VERSION: 1
       RCT_NO_LAUNCH_PACKAGER: 1
@@ -112,7 +112,8 @@ jobs:
 
       - name: Find reusable build from prior run
         id: find-reusable-build
-        if: ${{ steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' }}
+        # Match Android: skip cross-run GitHub artifact reuse on Namespace until backend parity is proven.
+        if: ${{ inputs.runner_provider != 'namespace' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' }}
         uses: ./.github/actions/find-reusable-build
         with:
           fingerprint: ${{ inputs.source-fingerprint }}
@@ -385,8 +386,20 @@ jobs:
         shell: bash
 
       # Upload the iOS .app file that works in simulators
-      - name: Upload iOS APP Artifact (Simulator)
+      - name: Upload iOS APP Artifact (Simulator) (Namespace)
+        id: upload-app-namespace
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
+          path: ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
+          retention-days: 7
+          if-no-files-found: error
+        continue-on-error: true
+
+      - name: Upload iOS APP Artifact (Simulator) (current)
         id: upload-app
+        if: ${{ inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
@@ -399,8 +412,20 @@ jobs:
       # Both paths produce it: `yarn build:ios:main:e2e` via
       # `scripts/ios/bundle-js-and-sentry-upload.sh` and `yarn build:repack:ios`
       # via `scripts/repack.js` both write to `sourcemaps/ios/index.js.map`.
-      - name: Upload iOS Source Map
+      - name: Upload iOS Source Map (Namespace)
+        id: upload-sourcemap-namespace
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-index.js.map
+          path: sourcemaps/ios/index.js.map
+          retention-days: 7
+          if-no-files-found: error
+        continue-on-error: true
+
+      - name: Upload iOS Source Map (current)
         id: upload-sourcemap
+        if: ${{ inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-index.js.map
@@ -418,8 +443,8 @@ jobs:
           echo "📦 Artifacts available at: ${ARTIFACTS_URL}"
           echo ""
           echo "Upload Status Summary:"
-          echo "- APP (Simulator): ${{ steps.upload-app.outcome }}"
-          echo "- Source Map: ${{ steps.upload-sourcemap.outcome }}"
+          echo "- APP (Simulator): namespace=${{ steps.upload-app-namespace.outcome }} current=${{ steps.upload-app.outcome }}"
+          echo "- Source Map: namespace=${{ steps.upload-sourcemap-namespace.outcome }} current=${{ steps.upload-sourcemap.outcome }}"
 
         env:
           GITHUB_REPOSITORY: '${{ github.repository }}'

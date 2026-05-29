@@ -37,6 +37,65 @@ export function getSelectedEvmAccount(
   return getEvmAccountFromAccountGroup(accounts);
 }
 
+type SelectedEvmAccountMessenger = {
+  call(
+    actionType:
+      | 'AccountsController:getSelectedAccount'
+      | 'AccountTreeController:getAccountsFromSelectedAccountGroup',
+  ): unknown;
+};
+
+function isAccountLike(
+  value: unknown,
+): value is InternalAccount | PerpsInternalAccount {
+  const account = value as { address?: unknown; type?: unknown } | null;
+
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    typeof account?.address === 'string' &&
+    typeof account.type === 'string'
+  );
+}
+
+export function getSelectedEvmAccountDetailsFromMessenger(
+  messenger: SelectedEvmAccountMessenger,
+): InternalAccount | PerpsInternalAccount | undefined {
+  try {
+    const selectedAccount = messenger.call(
+      'AccountsController:getSelectedAccount',
+    );
+    if (isAccountLike(selectedAccount)) {
+      const evmAccount = findEvmAccount([selectedAccount]);
+      if (evmAccount) {
+        return evmAccount;
+      }
+    }
+  } catch {
+    // Fall back to the selected account group if the direct lookup is unavailable.
+  }
+
+  try {
+    const selectedAccountGroup = messenger.call(
+      'AccountTreeController:getAccountsFromSelectedAccountGroup',
+    );
+    return Array.isArray(selectedAccountGroup)
+      ? (findEvmAccount(selectedAccountGroup.filter(isAccountLike)) ??
+          undefined)
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+export function getSelectedEvmAccountFromMessenger(
+  messenger: SelectedEvmAccountMessenger,
+): { address: string } | undefined {
+  const evmAccount = getSelectedEvmAccountDetailsFromMessenger(messenger);
+
+  return evmAccount ? { address: evmAccount.address } : undefined;
+}
+
 export type ReturnOnEquityInput = {
   unrealizedPnl: string | number;
   returnOnEquity: string | number;

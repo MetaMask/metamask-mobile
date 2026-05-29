@@ -8,3 +8,6 @@ export {
   default as SpendingLimitOptionsSheet,
   createSpendingLimitOptionsNavigationDetails,
 } from './SpendingLimitOptionsSheet';
+
+export { default as SpendAndEarnPromoCard } from './SpendAndEarnPromoCard';
+export type { SpendAndEarnPromoCardProps } from './SpendAndEarnPromoCard';

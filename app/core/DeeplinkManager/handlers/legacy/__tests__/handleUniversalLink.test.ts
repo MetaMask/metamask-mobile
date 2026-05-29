@@ -918,14 +918,14 @@ describe('handleUniversalLink', () => {
     });
   });
 
-  describe('ACTIONS.SOCIAL_LEADERBOARD', () => {
-    it('navigates to social leaderboard without showing interstitial', async () => {
-      const leaderboardUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SOCIAL_LEADERBOARD}?ignored=true`;
+  describe('ACTIONS.TOP_TRADERS', () => {
+    it('navigates to top traders without showing interstitial', async () => {
+      const leaderboardUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.TOP_TRADERS}?ignored=true`;
       const leaderboardUrlObj = {
         ...urlObj,
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         href: leaderboardUrl,
-        pathname: `/${ACTIONS.SOCIAL_LEADERBOARD}`,
+        pathname: `/${ACTIONS.TOP_TRADERS}`,
         search: '?ignored=true',
       };
 

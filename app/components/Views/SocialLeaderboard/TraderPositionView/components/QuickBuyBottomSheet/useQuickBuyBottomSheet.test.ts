@@ -145,6 +145,15 @@ jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
+const mockTrack = jest.fn();
+jest.mock('../../../analytics', () => {
+  const actual = jest.requireActual('../../../analytics');
+  return {
+    ...actual,
+    useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
+  };
+});
+
 const mockDispatch = jest.fn();
 
 const createPosition = (overrides: Partial<Position> = {}): Position =>

@@ -7,12 +7,11 @@ import { RiveOnboardingStepperTestIds } from '../../../RiveOnboardingStepper/Riv
 import { __clearLastMockedMethods } from '../../../../../__mocks__/rive-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 
-const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
+  useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
 jest.mock('react-redux', () => ({
@@ -116,10 +115,18 @@ describe('MoneyOnboardingView', () => {
   });
 
   describe('Navigation', () => {
-    it('calls navigation.goBack when close button is pressed', () => {
+    it('dispatches setMoneyOnboardingSeen and navigates to Money home when close button is pressed', () => {
       const { getByTestId } = render(<MoneyOnboardingView />);
+
       fireEvent.press(getByTestId(RiveOnboardingStepperTestIds.CLOSE_BUTTON));
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'SET_MONEY_ONBOARDING_SEEN' }),
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+      });
     });
 
     it('dispatches setMoneyOnboardingSeen and navigates to Money home on completion', () => {

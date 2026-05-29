@@ -17,10 +17,10 @@ import NetworksManagementView from '../../Views/NetworksManagement/NetworksManag
 import NetworkDetailsView from '../../Views/NetworksManagement/NetworkDetailsView';
 import ExperimentalSettings from '../../Views/Settings/ExperimentalSettings';
 import NotificationsSettings from '../../Views/Settings/NotificationsSettings';
+import NotificationSettingsSection from '../../Views/Settings/NotificationsSettings/NotificationSettingsSection';
 import RegionSelector from '../../UI/Ramp/Views/Settings/RegionSelector/RegionSelector';
 import NotificationsView from '../../Views/Notifications';
 import NotificationsDetails from '../../Views/Notifications/Details';
-import OptIn from '../../Views/Notifications/OptIn';
 import AppInformation from '../../Views/Settings/AppInformation';
 import DeveloperOptions from '../../Views/Settings/DeveloperOptions';
 import Contacts from '../../Views/Settings/Contacts';
@@ -109,7 +109,7 @@ import { BridgeTransactionDetails } from '../../UI/Bridge/components/Transaction
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import {
   PerpsScreenStack,
-  PerpsModalStack,
+  PerpsModalStackWithErrorGate,
   PerpsTutorialCarousel,
   selectPerpsEnabledFlag,
 } from '../../UI/Perps';
@@ -128,7 +128,6 @@ import {
   TopTradersView,
   TraderProfileView,
   TraderPositionView,
-  NotificationPreferencesView,
 } from '../../Views/SocialLeaderboard';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
@@ -144,7 +143,6 @@ import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
-import BonusCodeBottomSheet from '../../UI/Rewards/components/Tabs/OverviewTab/WaysToEarn/BonusCodeBottomSheet';
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
 import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
@@ -182,17 +180,28 @@ const slideFromRightAnimation = {
   }),
 };
 
-const WalletModalFlow = () => (
-  <Stack.Navigator
-    screenOptions={clearStackNavigatorOptionsWithTransitionAnimation}
-  >
-    <Stack.Screen
-      name={'Wallet'}
-      component={Wallet}
-      options={{ headerShown: false, animationEnabled: false }}
-    />
-  </Stack.Navigator>
-);
+const fadeAnimation = {
+  animationEnabled: true,
+  gestureEnabled: false,
+  transitionSpec: {
+    open: { animation: 'timing', config: { duration: 320 } },
+    close: { animation: 'timing', config: { duration: 320 } },
+  },
+  cardStyleInterpolator: ({ current, next }) => ({
+    cardStyle: {
+      opacity: next
+        ? next.progress.interpolate({
+            inputRange: [0, 1],
+            outputRange: [1, 0],
+          })
+        : current.progress.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0, 1],
+          }),
+    },
+    overlayStyle: { opacity: 0 },
+  }),
+};
 
 /* eslint-disable react/prop-types */
 const AssetStackFlow = (props) => (
@@ -237,33 +246,27 @@ const AssetNavigator = (props) => (
 );
 /* eslint-enable react/prop-types */
 
-const WalletTabStackFlow = () => (
-  <Stack.Navigator initialRouteName={'WalletView'}>
-    <Stack.Screen
-      name="WalletView"
-      component={WalletModalFlow}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
-      component={RevealPrivateCredential}
-      options={{ headerShown: false }}
-    />
-  </Stack.Navigator>
-);
-
-const WalletTabModalFlow = () => {
+const WalletTabStackFlow = () => {
   const { colors } = useTheme();
   return (
     <Stack.Navigator
+      initialRouteName={'WalletView'}
       screenOptions={{
-        ...clearStackNavigatorOptionsWithTransitionAnimation,
         cardStyle: { backgroundColor: colors.background.default },
       }}
     >
       <Stack.Screen
-        name={Routes.WALLET.TAB_STACK_FLOW}
-        component={WalletTabStackFlow}
+        name="WalletView"
+        component={Wallet}
+        options={{
+          headerShown: false,
+          animationEnabled: false,
+        }}
+      />
+      <Stack.Screen
+        name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
+        component={RevealPrivateCredential}
+        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   );
@@ -325,11 +328,6 @@ const RewardsHome = () => {
       <Stack.Screen
         name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
         component={RewardsBottomSheetModal}
-        options={{ presentation: 'transparentModal' }}
-      />
-      <Stack.Screen
-        name={Routes.MODAL.REWARDS_BONUS_CODE_BOTTOM_SHEET}
-        component={BonusCodeBottomSheet}
         options={{ presentation: 'transparentModal' }}
       />
       <Stack.Screen
@@ -431,21 +429,6 @@ const SnapsSettingsStack = () => (
   </Stack.Navigator>
 );
 ///: END:ONLY_INCLUDE_IF
-
-const NotificationsOptInStack = () => (
-  <Stack.Navigator initialRouteName={Routes.NOTIFICATIONS.OPT_IN}>
-    <Stack.Screen
-      name={Routes.NOTIFICATIONS.OPT_IN}
-      component={OptIn}
-      options={{ headerShown: false }}
-    />
-    <Stack.Screen
-      name={Routes.SETTINGS.NOTIFICATIONS}
-      component={NotificationsSettings}
-      options={NotificationsSettings.navigationOptions}
-    />
-  </Stack.Navigator>
-);
 
 const SettingsFlow = () => {
   const { colors } = useTheme();
@@ -608,7 +591,12 @@ const SettingsFlow = () => {
       <Stack.Screen
         name={Routes.SETTINGS.NOTIFICATIONS}
         component={NotificationsSettings}
-        options={NotificationsSettings.navigationOptions}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION}
+        component={NotificationSettingsSection}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name={Routes.SETTINGS.BACKUP_AND_SYNC}
@@ -845,7 +833,7 @@ const HomeTabs = () => {
         <Tab.Screen
           name={Routes.WALLET.HOME}
           options={options.home}
-          component={WalletTabModalFlow}
+          component={WalletTabStackFlow}
         />
 
         {/* Explore Tab (w/ hidden browser) */}
@@ -876,7 +864,7 @@ const HomeTabs = () => {
         <Tab.Screen
           name={Routes.MODAL.TRADE_WALLET_ACTIONS}
           options={options.trade}
-          component={WalletTabModalFlow}
+          component={WalletTabStackFlow}
         />
 
         {/* Activity Tab (replaced by Money when feature flag is on) */}
@@ -961,21 +949,21 @@ const OfflineModeView = () => (
 
 /* eslint-disable react/prop-types */
 const NotificationsModeView = (props) => (
-  <Stack.Navigator>
+  <Stack.Navigator screenOptions={{ headerShown: true }}>
     <Stack.Screen
       name={Routes.NOTIFICATIONS.VIEW}
       component={NotificationsView}
-      options={NotificationsView.navigationOptions}
+      options={{ headerShown: false }}
     />
     <Stack.Screen
       name={Routes.SETTINGS.NOTIFICATIONS}
       component={NotificationsSettings}
-      options={NotificationsSettings.navigationOptions}
+      options={{ headerShown: false }}
     />
     <Stack.Screen
-      name={Routes.NOTIFICATIONS.OPT_IN}
-      component={OptIn}
-      options={OptIn.navigationOptions}
+      name={Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION}
+      component={NotificationSettingsSection}
+      options={{ headerShown: false }}
     />
     <Stack.Screen
       name={Routes.NOTIFICATIONS.DETAILS}
@@ -1190,6 +1178,14 @@ const MainNavigator = () => {
         component={TokenListRoutes}
       />
       <Stack.Screen
+        name={Routes.RAMP.HEADLESS_ENTRY}
+        component={TokenListRoutes}
+        options={{
+          ...clearStackNavigatorOptionsWithTransitionAnimation,
+          presentation: 'transparentModal',
+        }}
+      />
+      <Stack.Screen
         name={Routes.RAMP.BUY}
         options={{
           cardStyle: { backgroundColor: colors.background.default },
@@ -1247,7 +1243,7 @@ const MainNavigator = () => {
           <Stack.Screen
             name={Routes.MONEY.ONBOARDING}
             component={MoneyOnboardingView}
-            options={{ headerShown: false }}
+            options={{ headerShown: false, ...fadeAnimation }}
           />
           <Stack.Screen
             name={Routes.MONEY.MODALS.ROOT}
@@ -1291,7 +1287,7 @@ const MainNavigator = () => {
           />
           <Stack.Screen
             name={Routes.PERPS.MODALS.ROOT}
-            component={PerpsModalStack}
+            component={PerpsModalStackWithErrorGate}
             options={{
               ...clearStackNavigatorOptionsWithTransitionAnimation,
               presentation: 'transparentModal',
@@ -1372,13 +1368,6 @@ const MainNavigator = () => {
           options={{ headerShown: false, ...slideFromRightAnimation }}
         />
       )}
-      {isSocialLeaderboardEnabled && (
-        <Stack.Screen
-          name={Routes.SOCIAL_LEADERBOARD.NOTIFICATION_PREFERENCES}
-          component={NotificationPreferencesView}
-          options={{ headerShown: false, ...slideFromRightAnimation }}
-        />
-      )}
       <>
         <Stack.Screen
           name={Routes.EXPLORE_SEARCH}
@@ -1432,11 +1421,6 @@ const MainNavigator = () => {
           options={{ headerShown: false }}
         />
       )}
-      <Stack.Screen
-        name={Routes.NOTIFICATIONS.OPT_IN_STACK}
-        component={NotificationsOptInStack}
-        options={NotificationsOptInStack.navigationOptions}
-      />
       <Stack.Screen
         name="DeFiProtocolPositionDetails"
         component={DeFiProtocolPositionDetails}

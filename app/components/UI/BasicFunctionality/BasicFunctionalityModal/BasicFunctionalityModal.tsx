@@ -94,10 +94,7 @@ const BasicFunctionalityModal = () => {
           .build(),
       );
     });
-    if (
-      route.params.caller === Routes.SETTINGS.NOTIFICATIONS ||
-      route.params.caller === Routes.NOTIFICATIONS.OPT_IN
-    ) {
+    if (route.params.caller === Routes.SETTINGS.NOTIFICATIONS) {
       await enableNotificationsFromModal();
     }
   };

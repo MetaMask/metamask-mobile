@@ -41,7 +41,6 @@ import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import {
   NetworkType,
   useNetworksByCustomNamespace,
-  useNetworksByNamespace,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useStyles } from '../../hooks/useStyles';
 import ErrorBoundary from '../ErrorBoundary';
@@ -96,15 +95,17 @@ const ActivityView = () => {
   const networkName = useSelector(selectNetworkName);
 
   const { enabledNetworks, getNetworkInfo } = useCurrentNetworkInfo();
-  const { areAllNetworksSelected } = useNetworksByNamespace({
+  const {
+    areAllNetworksSelected: areAllEvmPopularNetworksEnabled,
+    totalEnabledNetworksCount,
+  } = useNetworksByCustomNamespace({
     networkType: NetworkType.Popular,
+    namespace: KnownCaipNamespace.Eip155,
   });
 
-  const { areAllNetworksSelected: areAllEvmPopularNetworksEnabled } =
-    useNetworksByCustomNamespace({
-      networkType: NetworkType.Popular,
-      namespace: KnownCaipNamespace.Eip155,
-    });
+  const displayAllNetworks = totalEnabledNetworksCount > 1;
+  const showNetworkFilterAvatar =
+    !displayAllNetworks && !areAllEvmPopularNetworksEnabled;
 
   const currentNetworkName = getNetworkInfo(0)?.networkName;
 
@@ -255,7 +256,7 @@ const ActivityView = () => {
                   label={
                     <>
                       <View style={styles.networkManagerWrapper}>
-                        {!areAllNetworksSelected && (
+                        {showNetworkFilterAvatar && (
                           <Avatar
                             variant={AvatarVariant.Network}
                             size={AvatarSize.Xs}
@@ -267,7 +268,7 @@ const ActivityView = () => {
                           variant={TextVariant.BodyMDMedium}
                           numberOfLines={1}
                         >
-                          {enabledNetworks.length > 1
+                          {displayAllNetworks
                             ? strings('wallet.popular_networks')
                             : (currentNetworkName ??
                               strings('wallet.current_network'))}

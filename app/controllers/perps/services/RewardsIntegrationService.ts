@@ -5,7 +5,7 @@ import {
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type { PerpsPlatformDependencies } from '../types';
 import type { PerpsControllerMessengerBase } from '../types/messenger';
-import { getSelectedEvmAccount } from '../utils/accountUtils';
+import { getSelectedEvmAccountFromMessenger } from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';
 import { formatAccountToCaipAccountId } from '../utils/rewardsUtils';
 
@@ -63,11 +63,7 @@ export class RewardsIntegrationService {
    */
   async calculateUserFeeDiscount(): Promise<number | undefined> {
     try {
-      const evmAccount = getSelectedEvmAccount(
-        this.#messenger.call(
-          'AccountTreeController:getAccountsFromSelectedAccountGroup',
-        ),
-      );
+      const evmAccount = getSelectedEvmAccountFromMessenger(this.#messenger);
 
       if (!evmAccount) {
         this.#deps.debugLogger.log(

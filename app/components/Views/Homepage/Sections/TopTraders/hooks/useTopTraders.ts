@@ -6,7 +6,10 @@ import type {
   FetchLeaderboardOptions,
 } from '@metamask/social-controllers';
 import Logger from '../../../../../../util/Logger';
-import { useFollowToggleMany } from '../../../../../hooks/useFollowToggle';
+import {
+  useFollowToggleMany,
+  type FollowToggleAnalyticsContext,
+} from '../../../../../hooks/useFollowToggle';
 import { selectIsUnlocked } from '../../../../../../selectors/keyringController';
 import type { TopTrader } from '../types';
 import {
@@ -22,7 +25,10 @@ export interface UseTopTradersResult {
   isFetching: boolean;
   error: string | null;
   refresh: () => Promise<void>;
-  toggleFollow: (addressOrId: string) => void;
+  toggleFollow: (
+    addressOrId: string,
+    analyticsContext?: FollowToggleAnalyticsContext,
+  ) => Promise<void>;
 }
 
 interface UseTopTradersOptions {
@@ -59,6 +65,7 @@ export const useTopTraders = (
 
     return data.traders.map((entry) => ({
       id: entry.profileId,
+      address: entry.addresses?.[0] ?? '',
       rank: entry.rank,
       overallRank: entry.rank,
       username: entry.name,

@@ -17,7 +17,10 @@ import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
 import { useHasInsufficientBalance } from '../useHasInsufficientBalance';
 import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
-import { useIsTransactionPayLoading } from '../pay/useTransactionPayData';
+import {
+  useIsTransactionPayLoading,
+  useTransactionPayFiatPayment,
+} from '../pay/useTransactionPayData';
 import { Hex } from '@metamask/utils';
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
@@ -78,6 +81,9 @@ describe('useInsufficientBalanceAlert', () => {
   const useHasInsufficientBalanceMock = jest.mocked(useHasInsufficientBalance);
   const useIsTransactionPayLoadingMock = jest.mocked(
     useIsTransactionPayLoading,
+  );
+  const useTransactionPayFiatPaymentMock = jest.mocked(
+    useTransactionPayFiatPayment,
   );
 
   const mockChainId = '0x1' as Hex;
@@ -141,6 +147,7 @@ describe('useInsufficientBalanceAlert', () => {
     });
 
     useIsTransactionPayLoadingMock.mockReturnValue(false);
+    useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
   });
 
   it('return empty array when no transaction metadata is available', () => {
@@ -303,6 +310,16 @@ describe('useInsufficientBalanceAlert', () => {
 
   it('returns empty array when using pay source amounts', () => {
     useTransactionPayHasSourceAmountMock.mockReturnValue(true);
+
+    const { result } = renderHook(() => useInsufficientBalanceAlert());
+
+    expect(result.current).toEqual([]);
+  });
+
+  it('returns empty array when fiat payment method is selected', () => {
+    useTransactionPayFiatPaymentMock.mockReturnValue({
+      selectedPaymentMethodId: 'apple-pay-123',
+    } as ReturnType<typeof useTransactionPayFiatPayment>);
 
     const { result } = renderHook(() => useInsufficientBalanceAlert());
 

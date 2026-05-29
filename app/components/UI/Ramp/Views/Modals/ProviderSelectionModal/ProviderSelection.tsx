@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
-import { StyleSheet } from 'react-native';
-import { FlatList } from 'react-native-gesture-handler';
 import {
+  HeaderStandard,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -11,8 +10,9 @@ import {
   TextColor,
   FontWeight,
 } from '@metamask/design-system-react-native';
+import { StyleSheet } from 'react-native';
+import { FlatList } from 'react-native-gesture-handler';
 import { PaymentType } from '@consensys/on-ramp-sdk';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import ListItemSelect from '../../../../../../component-library/components/List/ListItemSelect';
 import ListItemColumn, {
   WidthType,
@@ -341,7 +341,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
   if (providers.length === 0) {
     return (
       <Box twClassName="flex-1 min-h-0">
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('fiat_on_ramp.providers')}
           onBack={showBackButton ? onBack : undefined}
         />
@@ -361,7 +361,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
 
   return (
     <Box twClassName="flex-1 min-h-0">
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('fiat_on_ramp.providers')}
         onBack={showBackButton ? onBack : undefined}
       />

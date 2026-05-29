@@ -9,6 +9,8 @@ import type {
   NetworkControllerGetStateAction,
   NetworkControllerGetNetworkClientByIdAction,
   NetworkControllerStateChangeEvent,
+  NetworkControllerNetworkAddedEvent,
+  NetworkControllerNetworkRemovedEvent,
 } from '@metamask/network-controller';
 import type {
   AccountsControllerAccountBalancesUpdatesEvent,
@@ -81,7 +83,9 @@ type AssetsControllerAllowedEvents =
   | TransactionControllerIncomingTransactionsReceivedEvent
   | AccountsControllerAccountBalancesUpdatesEvent
   | PermissionControllerStateChange
-  | TransactionControllerUnapprovedTransactionAddedEvent;
+  | TransactionControllerUnapprovedTransactionAddedEvent
+  | NetworkControllerNetworkRemovedEvent
+  | NetworkControllerNetworkAddedEvent;
 
 /** Re-export package type so init receives the type expected by AssetsController constructor. */
 export type AssetsControllerMessenger = PackageAssetsControllerMessenger;
@@ -134,6 +138,8 @@ export function getAssetsControllerMessenger(
       'AccountsController:accountBalancesUpdated',
       'PermissionController:stateChange',
       'TransactionController:unapprovedTransactionAdded',
+      'NetworkController:networkRemoved',
+      'NetworkController:networkAdded',
     ],
     messenger,
   });

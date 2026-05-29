@@ -39,11 +39,10 @@ describe('worldCup queries', () => {
 
   it('fetches All markets with the World Cup tag query and pagination', async () => {
     const markets = [createMarket()];
-    mockGetMarkets.mockResolvedValue(markets);
+    mockGetMarkets.mockResolvedValue({ markets, nextCursor: null });
 
     const options = predictWorldCupOptions.all(DEFAULT_PREDICT_WORLD_CUP_FLAG, {
       limit: 10,
-      offset: 20,
     });
     const result = await (options.queryFn as () => Promise<PredictMarket[]>)();
 
@@ -52,19 +51,20 @@ describe('worldCup queries', () => {
       customQueryParams:
         'active=true&archived=false&closed=false&tag_slug=fifa-world-cup&order=volume24hr&ascending=false',
       limit: 10,
-      offset: 20,
     });
     expect(result).toEqual(markets);
   });
 
   it('fetches Props markets with the games tag excluded and pagination', async () => {
-    mockGetMarkets.mockResolvedValue([createMarket()]);
+    mockGetMarkets.mockResolvedValue({
+      markets: [createMarket()],
+      nextCursor: null,
+    });
 
     const options = predictWorldCupOptions.props(
       DEFAULT_PREDICT_WORLD_CUP_FLAG,
       {
         limit: 25,
-        offset: 50,
       },
     );
     await (options.queryFn as () => Promise<PredictMarket[]>)();
@@ -74,12 +74,14 @@ describe('worldCup queries', () => {
       customQueryParams:
         'active=true&archived=false&closed=false&tag_slug=fifa-world-cup&exclude_tag_id=100639&order=volume&ascending=false',
       limit: 25,
-      offset: 50,
     });
   });
 
   it('fetches Live markets with series, games tag, and live filters', async () => {
-    mockGetMarkets.mockResolvedValue([createMarket()]);
+    mockGetMarkets.mockResolvedValue({
+      markets: [createMarket()],
+      nextCursor: null,
+    });
 
     const options = predictWorldCupOptions.live(
       DEFAULT_PREDICT_WORLD_CUP_FLAG,
@@ -94,11 +96,10 @@ describe('worldCup queries', () => {
       customQueryParams:
         'active=true&archived=false&closed=false&series_id=11433&tag_id=100639&live=true&order=startDate',
       limit: 5,
-      offset: 0,
     });
   });
 
-  it('fetches stage markets with repeated event IDs and sorts by match start time', async () => {
+  it('fetches stage markets with repeated event IDs', async () => {
     const baseGame = {
       id: 'game-later',
       startTime: '2026-06-13T20:00:00.000Z',
@@ -136,7 +137,10 @@ describe('worldCup queries', () => {
         startTime: '2026-06-12T20:00:00.000Z',
       },
     });
-    mockGetMarkets.mockResolvedValue([laterMarket, earlierMarket]);
+    mockGetMarkets.mockResolvedValue({
+      markets: [laterMarket, earlierMarket],
+      nextCursor: null,
+    });
 
     const options = predictWorldCupOptions.stage({
       key: 'group-stage',
@@ -149,13 +153,15 @@ describe('worldCup queries', () => {
       customQueryParams:
         'active=true&archived=false&closed=false&id=123&id=456',
       limit: 2,
-      offset: 0,
     });
-    expect(result.map((market) => market.id)).toEqual(['earlier', 'later']);
+    expect(result.map((market) => market.id)).toEqual(['later', 'earlier']);
   });
 
   it('uses lightweight availability requests for Live, Props, and stages', async () => {
-    mockGetMarkets.mockResolvedValue([createMarket()]);
+    mockGetMarkets.mockResolvedValue({
+      markets: [createMarket()],
+      nextCursor: null,
+    });
 
     await (
       predictWorldCupOptions.availability.live(DEFAULT_PREDICT_WORLD_CUP_FLAG)
@@ -174,18 +180,17 @@ describe('worldCup queries', () => {
 
     expect(mockGetMarkets).toHaveBeenNthCalledWith(
       1,
-      expect.objectContaining({ limit: 1, offset: 0 }),
+      expect.objectContaining({ limit: 1 }),
     );
     expect(mockGetMarkets).toHaveBeenNthCalledWith(
       2,
-      expect.objectContaining({ limit: 1, offset: 0 }),
+      expect.objectContaining({ limit: 1 }),
     );
     expect(mockGetMarkets).toHaveBeenNthCalledWith(
       3,
       expect.objectContaining({
         customQueryParams: 'active=true&archived=false&closed=false&id=999',
         limit: 1,
-        offset: 0,
       }),
     );
   });

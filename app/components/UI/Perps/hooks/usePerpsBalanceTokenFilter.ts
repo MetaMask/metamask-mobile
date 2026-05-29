@@ -12,6 +12,7 @@ import {
   HighlightedItem,
   type TokenListItem,
 } from '../../../Views/confirmations/types/token';
+import { isPayWithBottomSheetEnabled } from '../../../Views/confirmations/utils/transaction-pay';
 import { hasTransactionType } from '../../../Views/confirmations/utils/transaction';
 import { selectPerpsPayWithAnyTokenAllowlistAssets } from '../selectors/featureFlags';
 import { selectPerpsAccountState } from '../selectors/perpsController';
@@ -105,6 +106,10 @@ export function usePerpsBalanceTokenFilter(): (
       }
 
       if (!isPerpsDepositAndOrder) {
+        return mappedTokens;
+      }
+
+      if (isPayWithBottomSheetEnabled()) {
         return mappedTokens;
       }
 

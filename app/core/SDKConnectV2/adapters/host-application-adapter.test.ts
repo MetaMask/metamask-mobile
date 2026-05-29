@@ -81,7 +81,7 @@ describe('HostApplicationAdapter', () => {
       expect(showSimpleNotification).toHaveBeenCalledTimes(1);
       expect(showSimpleNotification).toHaveBeenCalledWith({
         id: 'session-123',
-        autodismiss: 8000,
+        autodismiss: 10000,
         title: 'sdk_connect_v2.show_loading.title',
         description: 'sdk_connect_v2.show_loading.description',
         status: 'pending',

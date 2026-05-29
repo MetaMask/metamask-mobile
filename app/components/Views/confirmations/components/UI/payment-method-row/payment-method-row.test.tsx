@@ -44,6 +44,16 @@ describe('PaymentMethodRow', () => {
     ).toBeOnTheScreen();
   });
 
+  it('renders the Last used label inside the tag with the localised string', () => {
+    const { getByTestId } = render(
+      <PaymentMethodRow {...baseProps} isLastUsed />,
+    );
+
+    expect(
+      getByTestId('payment-method-row-usdc-last-used-tag'),
+    ).toHaveTextContent('confirm.pay_with_bottom_sheet.last_used');
+  });
+
   it('does not render Last used tag when isLastUsed is false', () => {
     const { queryByTestId } = render(<PaymentMethodRow {...baseProps} />);
 

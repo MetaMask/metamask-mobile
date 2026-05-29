@@ -13,6 +13,14 @@ jest.mock('../../selectors/socialController', () => ({
   selectFollowingProfileIds: jest.fn(),
 }));
 
+const mockTrack = jest.fn();
+jest.mock(
+  '../Views/SocialLeaderboard/analytics/useSocialLeaderboardAnalytics',
+  () => ({
+    useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
+  }),
+);
+
 jest.mock('../../util/Logger', () => ({
   error: jest.fn(),
 }));
@@ -43,6 +51,7 @@ describe('useFollowToggle', () => {
       followed: [],
       unfollowed: [],
     });
+    mockTrack.mockReset();
   });
 
   describe('isFollowing', () => {
@@ -128,6 +137,25 @@ describe('useFollowToggle', () => {
       expect(Logger.error).toHaveBeenCalledWith(
         expect.any(Error),
         'useFollowToggle: toggleFollow failed',
+      );
+    });
+
+    it('fires a SOCIAL_TRADER_FOLLOW_INTERACTION analytics event when analyticsContext is provided', async () => {
+      const { result } = renderHook(() => useFollowToggle('trader-1'));
+
+      await act(async () => {
+        await result.current.toggleFollow({
+          source: 'leaderboard',
+          traderAddress: '0xabc',
+          traderUsername: 'alice',
+          traderRank: 3,
+        });
+      });
+
+      expect(mockTrack).toHaveBeenCalledTimes(1);
+      expect(mockTrack).toHaveBeenCalledWith(
+        expect.objectContaining({ category: expect.any(String) }),
+        expect.objectContaining({ action: 'follow', source: 'leaderboard' }),
       );
     });
 
@@ -292,5 +320,52 @@ describe('useFollowToggleMany', () => {
     await act(async () => {
       resolveCall({ followed: [], unfollowed: [] });
     });
+  });
+
+  it('retains optimistic overrides that have not yet been matched by redux', async () => {
+    // Simulate a pending follow for trader-1 that redux has not yet confirmed.
+    // The optimistic state says trader-1 is followed (true), but redux still
+    // reports an empty list — so the override should be kept.
+    let resolveCall: (value: unknown) => void = () => undefined;
+    (Engine.controllerMessenger.call as jest.Mock).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveCall = resolve;
+        }),
+    );
+
+    const { result } = renderHook(() => useFollowToggleMany());
+
+    // Kick off the follow (optimistic = true) without resolving the API call.
+    await act(async () => {
+      result.current.toggleFollow('trader-1');
+    });
+
+    // Redux updates to an empty list (hasn't caught up yet).
+    mockUseSelector.mockReturnValue([]);
+    await act(async () => {
+      resolveCall({ followed: [], unfollowed: [] });
+    });
+
+    // The optimistic override should still reflect the intended state.
+    expect(result.current.isFollowing('trader-1')).toBe(true);
+  });
+
+  it('removes optimistic overrides once redux catches up with the intended value', async () => {
+    const { result } = renderHook(() => useFollowToggleMany());
+
+    // Follow the trader optimistically.
+    await act(async () => {
+      await result.current.toggleFollow('trader-1');
+    });
+
+    // Now redux reflects the follow — the optimistic override is no longer needed.
+    mockUseSelector.mockReturnValue(['trader-1']);
+    await act(async () => {
+      // Trigger a re-render so the cleanup effect sees the updated selector.
+    });
+
+    // isFollowing should still be true (from redux now, not the optimistic map).
+    expect(result.current.isFollowing('trader-1')).toBe(true);
   });
 });

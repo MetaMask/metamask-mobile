@@ -1,3 +1,5 @@
+import type { InternalAccount } from '@metamask/keyring-internal-api';
+
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type { AccountState } from '../types';
 
@@ -5,8 +7,127 @@ import {
   addSpotBalanceToAccountState,
   aggregateAccountStates,
   calculateWeightedReturnOnEquity,
+  getSelectedEvmAccountDetailsFromMessenger,
+  getSelectedEvmAccountFromMessenger,
   getSpotBalance,
 } from './accountUtils';
+
+type SelectedEvmAccountMessenger = Parameters<
+  typeof getSelectedEvmAccountFromMessenger
+>[0];
+
+const SELECTED_ADDRESS = '0x1111111111111111111111111111111111111111';
+const GROUP_ADDRESS = '0x2222222222222222222222222222222222222222';
+const NON_EVM_ADDRESS = 'bc1qselectedaccount';
+
+function buildAccount(
+  address: string,
+  id: string,
+  type: InternalAccount['type'] = 'eip155:eoa',
+): InternalAccount {
+  return {
+    address,
+    id,
+    type,
+    options: {},
+    methods: [],
+    metadata: {
+      name: id,
+      importTime: Date.now(),
+      keyring: {
+        type: 'HD Key Tree',
+      },
+    },
+    scopes: ['eip155:0'],
+  } as InternalAccount;
+}
+
+function buildMessenger(
+  call: (actionType: string) => InternalAccount | InternalAccount[],
+): SelectedEvmAccountMessenger {
+  return { call };
+}
+
+describe('getSelectedEvmAccountFromMessenger', () => {
+  it('returns selected account details when requested', () => {
+    const selectedAccount = buildAccount(SELECTED_ADDRESS, 'selected');
+    const groupedAccount = buildAccount(GROUP_ADDRESS, 'grouped');
+    const messenger = buildMessenger((actionType: string) => {
+      switch (actionType) {
+        case 'AccountsController:getSelectedAccount':
+          return selectedAccount;
+        case 'AccountTreeController:getAccountsFromSelectedAccountGroup':
+          return [groupedAccount];
+        default:
+          throw new Error(`Unexpected action: ${actionType}`);
+      }
+    });
+
+    expect(getSelectedEvmAccountDetailsFromMessenger(messenger)).toBe(
+      selectedAccount,
+    );
+  });
+
+  it('prefers the selected account over the first evm account in the selected group', () => {
+    const selectedAccount = buildAccount(SELECTED_ADDRESS, 'selected');
+    const groupedAccount = buildAccount(GROUP_ADDRESS, 'grouped');
+    const messenger = buildMessenger((actionType: string) => {
+      switch (actionType) {
+        case 'AccountsController:getSelectedAccount':
+          return selectedAccount;
+        case 'AccountTreeController:getAccountsFromSelectedAccountGroup':
+          return [groupedAccount];
+        default:
+          throw new Error(`Unexpected action: ${actionType}`);
+      }
+    });
+
+    expect(getSelectedEvmAccountFromMessenger(messenger)).toStrictEqual({
+      address: SELECTED_ADDRESS,
+    });
+  });
+
+  it('falls back to the selected account group when selected account lookup is unavailable', () => {
+    const groupedAccount = buildAccount(GROUP_ADDRESS, 'grouped');
+    const messenger = buildMessenger((actionType: string) => {
+      switch (actionType) {
+        case 'AccountsController:getSelectedAccount':
+          throw new Error('Selected account unavailable');
+        case 'AccountTreeController:getAccountsFromSelectedAccountGroup':
+          return [groupedAccount];
+        default:
+          throw new Error(`Unexpected action: ${actionType}`);
+      }
+    });
+
+    expect(getSelectedEvmAccountFromMessenger(messenger)).toStrictEqual({
+      address: GROUP_ADDRESS,
+    });
+  });
+
+  it('falls back to the selected account group when the selected account is not evm', () => {
+    const selectedAccount = buildAccount(
+      NON_EVM_ADDRESS,
+      'selected',
+      'bip122:p2wpkh',
+    );
+    const groupedAccount = buildAccount(GROUP_ADDRESS, 'grouped');
+    const messenger = buildMessenger((actionType: string) => {
+      switch (actionType) {
+        case 'AccountsController:getSelectedAccount':
+          return selectedAccount;
+        case 'AccountTreeController:getAccountsFromSelectedAccountGroup':
+          return [groupedAccount];
+        default:
+          throw new Error(`Unexpected action: ${actionType}`);
+      }
+    });
+
+    expect(getSelectedEvmAccountFromMessenger(messenger)).toStrictEqual({
+      address: GROUP_ADDRESS,
+    });
+  });
+});
 
 describe('aggregateAccountStates', () => {
   const fallback: AccountState = {

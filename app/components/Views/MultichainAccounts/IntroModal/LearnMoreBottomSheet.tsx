@@ -10,10 +10,9 @@ import {
   Button,
   ButtonVariant,
   ButtonBaseSize,
+  BottomSheet,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../component-library/components/BottomSheets/BottomSheet';
 import { useNavigation, useTheme } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
@@ -63,7 +62,11 @@ const LearnMoreBottomSheet: React.FC<LearnMoreBottomSheetProps> = ({
   }, [isCheckboxChecked, navigation, isBasicFunctionalityEnabled, dispatch]);
 
   return (
-    <BottomSheet ref={sheetRef} onClose={onClose}>
+    <BottomSheet
+      ref={sheetRef}
+      onClose={onClose}
+      testID={LEARN_MORE_BOTTOM_SHEET_TEST_IDS.BOTTOM_SHEET}
+    >
       <View style={styles.container}>
         <View style={styles.header}>
           <ButtonIcon

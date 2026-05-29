@@ -126,6 +126,47 @@ describe('MYXWalletService', () => {
       expect(address).toBe(mockEvmAccount.address);
     });
 
+    it('uses the selected EVM account for signer address and signing', async () => {
+      const selectedAccount = {
+        ...mockEvmAccount,
+        address: '0x2222222222222222222222222222222222222222',
+      };
+      const groupAccount = {
+        ...mockEvmAccount,
+        address: '0x3333333333333333333333333333333333333333',
+      };
+      (mockMessenger.call as jest.Mock).mockImplementation((action: string) => {
+        if (action === 'AccountsController:getSelectedAccount') {
+          return selectedAccount;
+        }
+        if (
+          action === 'AccountTreeController:getAccountsFromSelectedAccountGroup'
+        ) {
+          return [groupAccount];
+        }
+        if (action === 'KeyringController:getState') {
+          return { isUnlocked: true };
+        }
+        if (action === 'KeyringController:signTypedMessage') {
+          return Promise.resolve('0xSignatureResult');
+        }
+        return undefined;
+      });
+
+      const signer = service.createEthersSigner();
+
+      await expect(signer.getAddress()).resolves.toBe(selectedAccount.address);
+      await signer.signTypedData({ name: 'MYX' }, { Test: [] }, {});
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'KeyringController:signTypedMessage',
+        expect.objectContaining({
+          from: selectedAccount.address,
+        }),
+        'V4',
+      );
+    });
+
     it('getAddress() throws when account disappears', async () => {
       const signer = service.createEthersSigner();
 

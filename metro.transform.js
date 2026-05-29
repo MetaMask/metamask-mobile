@@ -27,7 +27,7 @@ const availableFeatures = new Set([
   'experimental',
 ]);
 
-// Legacy (main) hardcoded feature sets — used when CODE_FENCING_FEATURES is not set (e.g. Bitrise / local)
+// Legacy (main) hardcoded feature sets — used when CODE_FENCING_FEATURES is not set (e.g. local dev)
 const mainFeatureSet = new Set([
   'snaps',
   'keyring-snaps',
@@ -58,7 +58,7 @@ const experimentalFeatureSet = new Set([...mainFeatureSet, 'experimental']);
 
 /**
  * Gets features from METAMASK_BUILD_TYPE + METAMASK_ENVIRONMENT (main branch logic).
- * Used when CODE_FENCING_FEATURES is not set (Bitrise or local).
+ * Used when CODE_FENCING_FEATURES is not set (local dev).
  *
  * @returns {Set<string>} The set of features to be included in the build.
  */
@@ -96,7 +96,7 @@ function getBuildTypeFeaturesFromEnv() {
  * fences to remove.
  *
  * Default (GH Actions): use CODE_FENCING_FEATURES from env (set by apply-build-config.js from builds.yml).
- * Fallback (Bitrise / local): use METAMASK_BUILD_TYPE + METAMASK_ENVIRONMENT with hardcoded sets.
+ * Fallback (local): use METAMASK_BUILD_TYPE + METAMASK_ENVIRONMENT with hardcoded sets.
  *
  * @returns {Set<string>} The set of features to be included in the build.
  */
@@ -108,7 +108,7 @@ function getBuildTypeFeatures() {
     const features = JSON.parse(process.env.CODE_FENCING_FEATURES);
     featureSet = new Set(features);
   } else {
-    // Fallback for Bitrise / local dev builds
+    // Fallback for local dev builds
     featureSet = getBuildTypeFeaturesFromEnv();
   }
 

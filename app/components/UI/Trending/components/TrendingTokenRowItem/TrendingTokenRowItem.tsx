@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import Text, {
   TextColor,
   TextVariant,
@@ -33,6 +34,7 @@ import type { TrendingFilterContext } from '../TrendingTokensList/TrendingTokens
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import { useTrendingTokenPress } from '../../hooks/useTrendingTokenPress/useTrendingTokenPress';
 import SecurityTrustInlineBadge from '../../../SecurityTrust/components/SecurityTrustInlineBadge/SecurityTrustInlineBadge';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 
 /**
  * Gets the text color for price percentage change
@@ -135,6 +137,7 @@ const TrendingTokenRowItem = ({
   testIdInstanceKey,
 }: TrendingTokenRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
+  const currentCurrency = useSelector(selectCurrentCurrency) || 'usd';
 
   const caipChainId = useMemo(
     () => getCaipChainIdFromAssetId(token.assetId),
@@ -232,12 +235,13 @@ const TrendingTokenRowItem = ({
           {formatMarketStats(
             token.marketCap ?? 0,
             token.aggregatedUsdVolume ?? 0,
+            currentCurrency,
           )}
         </Text>
       </View>
       <View style={styles.rightContainer}>
         <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-          {formatPriceWithSubscriptNotation(token.price)}
+          {formatPriceWithSubscriptNotation(token.price, currentCurrency)}
         </Text>
         {parseFloat(token.price) === 0 ? (
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>

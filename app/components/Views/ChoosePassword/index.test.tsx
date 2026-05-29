@@ -6,6 +6,7 @@ import {
   PREVIOUS_SCREEN,
   PROTECT,
 } from '../../../constants/navigation';
+import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import Routes from '../../../constants/navigation/Routes';
 import { Provider } from 'react-redux';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -19,6 +20,8 @@ import StorageWrapper from '../../../store/storage-wrapper';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import { Authentication } from '../../../core';
+import ReduxService from '../../../core/redux';
+import type { ReduxStore } from '../../../core/redux/types';
 import { InteractionManager, Platform } from 'react-native';
 import { EVENT_NAME } from '../../../core/Analytics';
 import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEventBuilder';
@@ -199,6 +202,7 @@ const initialState = {
   },
 };
 const store = mockStore(initialState);
+ReduxService.store = store as unknown as ReduxStore;
 
 const mockNavigation = {
   setOptions: jest.fn(),
@@ -696,7 +700,9 @@ describe('ChoosePassword', () => {
           routes: [
             {
               name: 'OnboardingSuccess',
-              params: { showPasswordHint: true },
+              params: {
+                successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
+              },
             },
           ],
         });

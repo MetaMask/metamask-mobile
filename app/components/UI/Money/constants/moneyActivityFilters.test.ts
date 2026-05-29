@@ -23,7 +23,7 @@ function tx(overrides: Partial<TransactionMeta>): TransactionMeta {
 
 describe('moneyActivityFilters', () => {
   describe('isMoneyActivityDeposit', () => {
-    it('returns true for incoming, moneyAccountDeposit, and musdConversion', () => {
+    it('returns true for incoming and moneyAccountDeposit', () => {
       expect(
         isMoneyActivityDeposit(tx({ type: TransactionType.incoming })),
       ).toBe(true);
@@ -32,8 +32,24 @@ describe('moneyActivityFilters', () => {
           tx({ type: TransactionType.moneyAccountDeposit }),
         ),
       ).toBe(true);
+    });
+
+    it('returns false for musdConversion (no longer classified as a deposit)', () => {
       expect(
         isMoneyActivityDeposit(tx({ type: TransactionType.musdConversion })),
+      ).toBe(false);
+    });
+
+    it('returns true for a batch tx with a nested moneyAccountDeposit', () => {
+      expect(
+        isMoneyActivityDeposit(
+          tx({
+            type: TransactionType.batch,
+            nestedTransactions: [
+              { type: TransactionType.moneyAccountDeposit } as TransactionMeta,
+            ],
+          }),
+        ),
       ).toBe(true);
     });
 
@@ -61,6 +77,19 @@ describe('moneyActivityFilters', () => {
       ).toBe(true);
       expect(
         isMoneyActivityTransfer(tx({ type: TransactionType.simpleSend })),
+      ).toBe(true);
+    });
+
+    it('returns true for a batch tx with a nested moneyAccountWithdraw', () => {
+      expect(
+        isMoneyActivityTransfer(
+          tx({
+            type: TransactionType.batch,
+            nestedTransactions: [
+              { type: TransactionType.moneyAccountWithdraw } as TransactionMeta,
+            ],
+          }),
+        ),
       ).toBe(true);
     });
 

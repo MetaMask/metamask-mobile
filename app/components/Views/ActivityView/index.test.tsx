@@ -139,6 +139,8 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 let mockAreAllEvmPopularNetworksEnabled = false;
+/** Must mirror controller: label uses totalEnabledNetworksCount > 1 */
+let mockTotalEnabledNetworksCount = 2;
 
 jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
   useNetworksByNamespace: () => ({
@@ -151,6 +153,7 @@ jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
   useNetworksByCustomNamespace: () => ({
     networks: [],
     areAllNetworksSelected: mockAreAllEvmPopularNetworksEnabled,
+    totalEnabledNetworksCount: mockTotalEnabledNetworksCount,
   }),
   NetworkType: {
     Popular: 'popular',
@@ -286,6 +289,7 @@ describe('ActivityView', () => {
     mockPerpsEnabled = false;
     mockPredictEnabled = false;
     mockAreAllEvmPopularNetworksEnabled = false;
+    mockTotalEnabledNetworksCount = 2;
     clearRenderedTabs();
     mockRoute.params = {};
   });
@@ -301,12 +305,26 @@ describe('ActivityView', () => {
     });
 
     it('displays "Popular networks" text when multiple networks are enabled', () => {
+      mockTotalEnabledNetworksCount = 2;
+      mockAreAllEvmPopularNetworksEnabled = false;
+
       const { getByText } = renderComponent(mockInitialState);
 
       expect(getByText('Popular networks')).toBeOnTheScreen();
     });
 
+    it('does not render network avatar beside Popular networks when multiple networks enabled', () => {
+      mockTotalEnabledNetworksCount = 2;
+      mockAreAllEvmPopularNetworksEnabled = false;
+
+      const { getByText, queryByTestId } = renderComponent(mockInitialState);
+
+      expect(getByText('Popular networks')).toBeOnTheScreen();
+      expect(queryByTestId('network-avatar-image')).toBeNull();
+    });
+
     it('displays network name when single network is enabled', () => {
+      mockTotalEnabledNetworksCount = 1;
       const singleNetworkInfo = {
         enabledNetworks: [{ chainId: '0x1', enabled: true }],
         getNetworkInfo: jest.fn(() => ({

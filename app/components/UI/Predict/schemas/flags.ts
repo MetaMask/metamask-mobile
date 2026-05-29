@@ -76,7 +76,13 @@ export const PredictWorldCupSchema = defaulted(
       string(),
       () => DEFAULT_PREDICT_WORLD_CUP_FLAG.gamesTagId,
     ),
-    bannerImageUrl: optional(string()),
+    bannerImage: optional(
+      object({
+        url: string(),
+        width: number(),
+        height: number(),
+      }),
+    ),
     stages: defaulted(array(PredictWorldCupStageSchema), () => []),
   }),
   () => DEFAULT_PREDICT_WORLD_CUP_FLAG,

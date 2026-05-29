@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
-import { DefaultSlippageModal } from './DefaultSlippageModal';
+import { act, render, fireEvent } from '@testing-library/react-native';
+import { SwapDefaultSlippageModal as DefaultSlippageModal } from './SwapDefaultSlippageModal';
 import Routes from '../../../../../constants/navigation/Routes';
 
 // Mock BottomSheet
@@ -17,27 +17,6 @@ jest.mock(
         (props: { children: unknown }, _ref: unknown) => (
           <View testID="bottom-sheet">{props.children as React.ReactNode}</View>
         ),
-      ),
-    };
-  },
-);
-
-// Mock HeaderCompactStandard
-jest.mock(
-  '../../../../../component-library/components-temp/HeaderCompactStandard',
-  () => {
-    const ReactNative = jest.requireActual('react-native');
-    const { View, Text, TouchableOpacity } = ReactNative;
-
-    return {
-      __esModule: true,
-      default: (props: { title: string; onClose: () => void }) => (
-        <View testID="header-center">
-          <Text>{props.title}</Text>
-          <TouchableOpacity onPress={props.onClose} accessibilityLabel="Close">
-            <Text>Close</Text>
-          </TouchableOpacity>
-        </View>
       ),
     };
   },
@@ -99,22 +78,11 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-// Mock i18n
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => {
-    const translations: Record<string, string> = {
-      'bridge.slippage': 'Slippage',
-      'bridge.default_slippage_description': 'Set your slippage tolerance',
-      'bridge.submit': 'Submit',
-    };
-    return translations[key] || key;
-  }),
-}));
-
 import { useGetSlippageOptions } from '../../hooks/useGetSlippageOptions';
 import { useSlippageConfig } from '../../hooks/useSlippageConfig';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { AUTO_SLIPPAGE_VALUE } from './constants';
+import { strings } from '../../../../../../locales/i18n';
 
 const mockUseGetSlippageOptions = useGetSlippageOptions as jest.MockedFunction<
   typeof useGetSlippageOptions
@@ -215,7 +183,7 @@ describe('DefaultSlippageModal', () => {
     it('closes bottom sheet when close is called', () => {
       const { getByLabelText } = render(<DefaultSlippageModal />);
 
-      const closeButton = getByLabelText('Close');
+      const closeButton = getByLabelText(strings('bridge.close'));
       fireEvent.press(closeButton);
 
       // Bottom sheet close is handled internally by ref
@@ -237,7 +205,7 @@ describe('DefaultSlippageModal', () => {
 
       expect(mockGoBack).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-        screen: Routes.BRIDGE.MODALS.CUSTOM_SLIPPAGE_MODAL,
+        screen: Routes.BRIDGE.MODALS.SWAP_CUSTOM_SLIPPAGE_MODAL,
         params: {
           sourceChainId: '0x1',
           destChainId: undefined,
@@ -272,7 +240,9 @@ describe('DefaultSlippageModal', () => {
 
       // Call the handler with a value - it should return a function
       const pressHandler = handleDefaultOptionPress('2');
-      pressHandler();
+      act(() => {
+        pressHandler();
+      });
 
       // Re-render and verify hook was called with new value
       rerender(<DefaultSlippageModal />);
@@ -327,7 +297,9 @@ describe('DefaultSlippageModal', () => {
       const call = mockUseGetSlippageOptions.mock.calls[0][0];
       const handleDefaultOptionPress = call.onDefaultOptionPress;
       const pressHandler = handleDefaultOptionPress('3');
-      pressHandler();
+      act(() => {
+        pressHandler();
+      });
 
       // Re-render to apply state change
       rerender(<DefaultSlippageModal />);
@@ -393,7 +365,11 @@ describe('DefaultSlippageModal', () => {
     it('renders description text', () => {
       const { getByText } = render(<DefaultSlippageModal />);
 
-      expect(getByText('Set your slippage tolerance')).toBeOnTheScreen();
+      expect(
+        getByText(
+          "Your transaction won't go through if the price changes more than the slippage percent.",
+        ),
+      ).toBeOnTheScreen();
     });
 
     it('renders DefaultSlippageButtonGroup with options', () => {

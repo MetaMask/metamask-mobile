@@ -8,6 +8,7 @@ import AppleWhiteIcon from 'images/apple-white.svg';
 import { OnboardingSheetSelectorIDs } from './OnboardingSheet.testIds';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import AppConstants from '../../../core/AppConstants';
+import { colors as commonColors } from '../../../styles/common';
 import {
   Box,
   BoxAlignItems,
@@ -17,6 +18,9 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
+  Icon,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -30,6 +34,7 @@ export interface OnboardingSheetParams {
   onPressImport?: () => void;
   onPressContinueWithGoogle?: (createWallet: boolean) => void;
   onPressContinueWithApple?: (createWallet: boolean) => void;
+  onPressContinueWithTelegram?: (createWallet: boolean) => void;
   createWallet?: boolean;
 }
 
@@ -47,6 +52,7 @@ const OnboardingSheet = () => {
     onPressImport,
     onPressContinueWithGoogle,
     onPressContinueWithApple,
+    onPressContinueWithTelegram,
     createWallet = false,
   } = params ?? {};
   const { colors } = useTheme();
@@ -73,6 +79,12 @@ const OnboardingSheet = () => {
   const onPressContinueWithAppleAction = () => {
     if (onPressContinueWithApple) {
       onPressContinueWithApple(createWallet);
+    }
+  };
+
+  const onPressContinueWithTelegramAction = () => {
+    if (onPressContinueWithTelegram) {
+      onPressContinueWithTelegram(createWallet);
     }
   };
 
@@ -168,6 +180,30 @@ const OnboardingSheet = () => {
               ? strings('onboarding.continue_with_apple')
               : strings('onboarding.sign_in_with_apple')}
           </Button>
+          {onPressContinueWithTelegram ? (
+            <Button
+              variant={ButtonVariant.Secondary}
+              onPress={onPressContinueWithTelegramAction}
+              testID={OnboardingSheetSelectorIDs.TELEGRAM_LOGIN_BUTTON}
+              startAccessory={
+                <Icon
+                  name={IconName.Telegram}
+                  size={IconSize.Lg}
+                  style={tw.style({ color: commonColors.telegramBlue })}
+                />
+              }
+              isFullWidth
+              size={ButtonSize.Lg}
+              style={tw.style('border border-muted', {
+                backgroundColor: colors.text.default,
+              })}
+              textProps={{ style: { color: colors.background.default } }}
+            >
+              {createWallet
+                ? strings('onboarding.continue_with_telegram')
+                : strings('onboarding.sign_in_with_telegram')}
+            </Button>
+          ) : null}
         </Box>
         <Box
           flexDirection={BoxFlexDirection.Row}

@@ -9,7 +9,7 @@ import {
 import { PerpsTraceNames, PerpsTraceOperations } from '../types';
 import type { PerpsPlatformDependencies } from '../types';
 import type { PerpsControllerMessengerBase } from '../types/messenger';
-import { getSelectedEvmAccount } from '../utils/accountUtils';
+import { getSelectedEvmAccountFromMessenger } from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';
 
 /**
@@ -131,11 +131,7 @@ export class DataLakeService {
 
     try {
       const token = await this.#getBearerToken();
-      const evmAccount = getSelectedEvmAccount(
-        this.#messenger.call(
-          'AccountTreeController:getAccountsFromSelectedAccountGroup',
-        ),
-      );
+      const evmAccount = getSelectedEvmAccountFromMessenger(this.#messenger);
 
       if (!evmAccount || !token) {
         this.#deps.debugLogger.log('DataLake API: Missing requirements', {

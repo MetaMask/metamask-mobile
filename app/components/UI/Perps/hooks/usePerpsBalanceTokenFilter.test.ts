@@ -16,6 +16,7 @@ import { useNavigation } from '@react-navigation/native';
 import useApprovalRequest from '../../../Views/confirmations/hooks/useApprovalRequest';
 import { selectPerpsAccountState } from '../selectors/perpsController';
 import { selectPerpsPayWithAnyTokenAllowlistAssets } from '../selectors/featureFlags';
+import { isPayWithBottomSheetEnabled } from '../../../Views/confirmations/utils/transaction-pay';
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
@@ -42,6 +43,10 @@ jest.mock('images/perps-pay-token-icon.png', () => ({
   uri: 'perps-pay-token-icon-uri',
 }));
 
+jest.mock('../../../Views/confirmations/utils/transaction-pay', () => ({
+  ...jest.requireActual('../../../Views/confirmations/utils/transaction-pay'),
+  isPayWithBottomSheetEnabled: jest.fn(() => false),
+}));
 jest.mock('../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter', () =>
   jest.fn(
     () => (value: { toNumber: () => number }) =>
@@ -70,6 +75,10 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
 const mockUseApprovalRequest = useApprovalRequest as jest.MockedFunction<
   typeof useApprovalRequest
 >;
+const mockIsPayWithBottomSheetEnabled =
+  isPayWithBottomSheetEnabled as jest.MockedFunction<
+    typeof isPayWithBottomSheetEnabled
+  >;
 
 describe('usePerpsBalanceTokenFilter', () => {
   const chainId = '0xa4b1';
@@ -80,6 +89,7 @@ describe('usePerpsBalanceTokenFilter', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsPayWithBottomSheetEnabled.mockReturnValue(false);
     mockUseTransactionMetadataRequest.mockReturnValue(undefined);
     mockUseIsPerpsBalanceSelected.mockReturnValue(false);
     mockUseSelector.mockImplementation(
@@ -400,6 +410,63 @@ describe('usePerpsBalanceTokenFilter', () => {
         highlightedAction.action();
         expect(mockOnPerpsPaymentTokenChange).toHaveBeenCalledWith(null);
       }
+    });
+
+    it('omits the synthetic perps balance row when the new Pay With bottom sheet is enabled', () => {
+      mockIsPayWithBottomSheetEnabled.mockReturnValue(true);
+      const inputTokens: AssetType[] = [
+        {
+          address: '0xabc',
+          chainId,
+          symbol: 'USDC',
+          name: 'USD Coin',
+          balance: '100',
+        } as AssetType,
+      ];
+
+      const { result } = renderHook(() => usePerpsBalanceTokenFilter());
+      const output = result.current(inputTokens);
+
+      expect(output).toHaveLength(1);
+      expect(isHighlightedItemOutsideAssetList(output[0])).toBe(false);
+      expect((output[0] as AssetType).address).toBe('0xabc');
+    });
+
+    it('still applies the allowlist filter when the new Pay With bottom sheet is enabled', () => {
+      mockIsPayWithBottomSheetEnabled.mockReturnValue(true);
+      const allowlistKey = `${chainId}.0xusdc`.toLowerCase();
+      mockUseSelector.mockImplementation(
+        (selector: (state: unknown) => unknown) => {
+          if (selector === selectPerpsAccountState)
+            return { spendableBalance: '100.00' };
+          if (selector === selectPerpsPayWithAnyTokenAllowlistAssets)
+            return [allowlistKey];
+          return [];
+        },
+      );
+      const inputTokens: AssetType[] = [
+        {
+          address: '0xusdc',
+          chainId,
+          symbol: 'USDC',
+          name: 'USD Coin',
+          balance: '500',
+        } as AssetType,
+        {
+          address: '0xother',
+          chainId,
+          symbol: 'OTHER',
+          name: 'Other',
+          balance: '100',
+        } as AssetType,
+      ];
+
+      const { result } = renderHook(() => usePerpsBalanceTokenFilter());
+      const output = result.current(inputTokens);
+
+      expect(output).toHaveLength(1);
+      expect(isHighlightedItemOutsideAssetList(output[0])).toBe(false);
+      expect((output[0] as AssetType).address).toBe('0xusdc');
     });
   });
 });

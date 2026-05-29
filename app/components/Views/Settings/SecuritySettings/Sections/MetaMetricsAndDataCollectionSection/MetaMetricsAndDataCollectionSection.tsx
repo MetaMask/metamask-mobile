@@ -3,16 +3,19 @@ import {
   META_METRICS_DATA_MARKETING_SECTION,
   META_METRICS_SECTION,
 } from '../../SecuritySettings.constants';
-import Text, {
+import {
+  FontWeight,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { SecurityPrivacyViewSelectorsIDs } from '../../SecurityPrivacyView.testIds';
 import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
+import { TextVariant as LibraryTextVariant } from '../../../../../../component-library/components/Texts/Text';
 import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../../../../constants/urls';
 import React, { useEffect, useState } from 'react';
 import createStyles from '../../SecuritySettings.styles';
@@ -226,7 +229,11 @@ const MetaMetricsAndDataCollectionSection: React.FC<
   const renderMetaMetricsSection = () => (
     <View style={styles.halfSetting} testID={META_METRICS_SECTION}>
       <View style={styles.titleContainer}>
-        <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          style={styles.title}
+        >
           {strings('app_settings.metametrics_title')}
         </Text>
         <View style={styles.switchElement}>
@@ -246,14 +253,16 @@ const MetaMetricsAndDataCollectionSection: React.FC<
         </View>
       </View>
       <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
         style={styles.desc}
       >
         {strings('app_settings.metametrics_description')}{' '}
         <Button
           variant={ButtonVariants.Link}
           size={ButtonSize.Auto}
+          labelTextVariant={LibraryTextVariant.BodySMMedium}
           onPress={() => Linking.openURL(HOW_TO_MANAGE_METRAMETRICS_SETTINGS)}
           label={strings('app_settings.learn_more')}
         />
@@ -267,7 +276,11 @@ const MetaMetricsAndDataCollectionSection: React.FC<
       testID={META_METRICS_DATA_MARKETING_SECTION}
     >
       <View style={styles.titleContainer}>
-        <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          style={styles.title}
+        >
           {strings('app_settings.data_collection_title')}
         </Text>
         <View style={styles.switchElement}>
@@ -287,8 +300,9 @@ const MetaMetricsAndDataCollectionSection: React.FC<
         </View>
       </View>
       <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
         style={styles.desc}
       >
         {strings('app_settings.data_collection_description')}

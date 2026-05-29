@@ -68,7 +68,7 @@ All provider access must go through `AggregatedPerpsProvider` → `ProviderRoute
 Single `PerpsAlwaysOnProvider` at wallet root owns lifecycle. All `PerpsConnectionProvider` instances use `manageLifecycle={false}`.
 
 - **New `PerpsConnectionProvider` with lifecycle** — adding a `PerpsConnectionProvider` without `manageLifecycle={false}` creates reference-count bugs. Only `PerpsAlwaysOnProvider` manages connect/disconnect.
-- **Unthrottled WS → setState** — every WS tick triggers state update. Must use `useLivePrices` with appropriate `throttleMs` (100ms for charts, 2s for lists, 10s for order forms).
+- **Unthrottled WS → setState** — every WS tick triggers state update. Must use `useLivePrices` with appropriate `throttleMs` (100ms for charts, 2s for lists, 10s for order forms). Exception: subscriptions that must react to user form input within the same tick (e.g. the L2 order-book subscription in `usePerpsEstimatedSlippage`) can use a sub-second cadence via `PERFORMANCE_CONFIG.SlippageEstimateThrottleMs`; downstream `useMemo` must keep per-tick work cheap so the faster cadence does not cause render pressure.
 - **Per-component WS subscription** — creating a new WebSocket connection per component instead of using `PerpsStreamManager` shared subscriptions with reference counting.
 - **WS subscription leak** — subscribing on mount without unsubscribing on unmount or market switch. `PerpsStreamManager` handles ref counting but custom subscriptions must clean up.
 - **Stale data after async gap** — reading position/order state, awaiting something, then using the stale read. WS updates change state between awaits. Re-read after async boundaries.
