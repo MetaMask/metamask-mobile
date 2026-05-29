@@ -616,16 +616,16 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                 }
                 description={
                   securityData.resultType === 'Malicious'
-                    ? token.symbol
+                    ? token.symbol || token.name
                       ? strings('security_trust.malicious_token_description', {
-                          symbol: token.symbol,
+                          symbol: token.symbol || token.name,
                         })
                       : strings(
                           'security_trust.malicious_token_description_no_symbol',
                         )
-                    : token.symbol
+                    : token.symbol || token.name
                       ? strings('security_trust.suspicious_token_description', {
-                          symbol: token.symbol,
+                          symbol: token.symbol || token.name,
                         })
                       : strings(
                           'security_trust.suspicious_token_description_no_symbol',
