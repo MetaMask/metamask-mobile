@@ -29,6 +29,7 @@ import type { PillToggleCardListTab } from '../components/PillToggleCardList';
 import SectionHeader from '../components/SectionHeader';
 import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
+import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
 
 interface RwaPerpsBlockProps {
   refresh: TabProps['refresh'];
@@ -122,7 +123,11 @@ const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const showStocks = stocks.isLoading || stocks.data.length > 0;
 
   return (
-    <ExploreScroll refreshing={refreshing} onRefresh={onRefresh}>
+    <ExploreScroll
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      testID={TrendingViewSelectorsIDs.EXPLORE_RWAS_SCROLL_VIEW}
+    >
       <PredictionsCarouselSection
         feed={politics}
         tabName="RWAs"

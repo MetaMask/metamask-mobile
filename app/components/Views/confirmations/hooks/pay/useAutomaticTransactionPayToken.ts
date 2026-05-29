@@ -219,16 +219,18 @@ export function useAutomaticTransactionPayToken({
   // money account. Money account deposits are locked to MUSD on MONAD.
   const previsMoneyPaymentOverrideRef = useRef(false);
   useEffect(() => {
+    const prev = previsMoneyPaymentOverrideRef.current;
+    previsMoneyPaymentOverrideRef.current = !!isMoneyPaymentOverride;
+
     if (
       disable ||
       !from ||
       isMoneyPaymentOverride !== true ||
-      isMoneyPaymentOverride === previsMoneyPaymentOverrideRef.current ||
+      isMoneyPaymentOverride === prev ||
       postQuoteTransactionType
     ) {
       return;
     }
-    previsMoneyPaymentOverrideRef.current = isMoneyPaymentOverride;
 
     if (automaticToken) {
       setPayToken({
