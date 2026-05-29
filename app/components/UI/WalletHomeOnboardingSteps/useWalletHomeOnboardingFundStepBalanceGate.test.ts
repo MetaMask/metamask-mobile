@@ -55,7 +55,7 @@ describe('useWalletHomeOnboardingFundStepBalanceGate', () => {
 
     rerender({
       enabled: true,
-      accountGroupBalance: { totalBalanceInUserCurrency: 0 },
+      accountGroupBalance: null,
       groupId: 'wallet-1/group-1',
     });
 
@@ -165,7 +165,7 @@ describe('useWalletHomeOnboardingFundStepBalanceGate', () => {
       {
         initialProps: {
           enabled: true,
-          accountGroupBalance: null,
+          accountGroupBalance: { totalBalanceInUserCurrency: 500 },
           groupId: 'wallet-1/group-1',
         },
       },
