@@ -117,10 +117,10 @@ jest.mock(
   '../../components/PerpsBottomSheetTooltip',
   () => 'PerpsBottomSheetTooltip',
 );
-jest.mock('../../components/PerpsSlider', () => {
+jest.mock('../../../Slider', () => {
   const ReactModule = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
-  return function MockPerpsSlider({
+  return function MockSlider({
     onValueChange,
   }: {
     onValueChange?: (value: number) => void;

@@ -66,9 +66,9 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 // Following best practice: "Use mocks only when necessary"
 jest.mock('../../../../Base/Keypad', () => 'Keypad');
 
-jest.mock('../../components/PerpsSlider/PerpsSlider', () => ({
+jest.mock('../../../Slider', () => ({
   __esModule: true,
-  default: 'PerpsSlider',
+  default: 'Slider',
 }));
 
 // Mock PerpsAmountDisplay to allow triggering onPress but keep it simple

@@ -31,7 +31,7 @@ import { usePerpsAdjustMarginData } from '../../hooks/usePerpsAdjustMarginData';
 import { TraceName } from '../../../../../util/trace';
 import Logger from '../../../../../util/Logger';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
-import PerpsSlider from '../../components/PerpsSlider';
+import Slider from '../../../Slider';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import Keypad from '../../../../Base/Keypad';
@@ -280,7 +280,7 @@ const PerpsAdjustMarginView: React.FC = () => {
         {/* Slider - Hide when keypad is active */}
         {!isInputFocused && (
           <View style={styles.sliderSection}>
-            <PerpsSlider
+            <Slider
               value={marginAmount}
               onValueChange={handleSliderChange}
               minimumValue={0}

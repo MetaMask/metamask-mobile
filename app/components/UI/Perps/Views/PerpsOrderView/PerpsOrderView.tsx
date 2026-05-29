@@ -82,7 +82,7 @@ import PerpsSlippageBottomSheet from '../../components/PerpsSlippageBottomSheet'
 import PerpsOICapWarning from '../../components/PerpsOICapWarning';
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
-import PerpsSlider from '../../components/PerpsSlider';
+import Slider from '../../../Slider';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -1449,7 +1449,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         {/* Amount Slider - Hide when keypad is active */}
         {!isInputFocused && (
           <View style={styles.sliderSection}>
-            <PerpsSlider
+            <Slider
               value={parseFloat(orderForm.amount || '0')}
               onValueChange={(value) => {
                 inputMethodRef.current = 'slider';

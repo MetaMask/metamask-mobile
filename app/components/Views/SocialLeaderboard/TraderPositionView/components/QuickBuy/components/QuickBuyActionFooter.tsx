@@ -22,7 +22,7 @@ import { strings } from '../../../../../../../../locales/i18n';
 import QuickBuyConfirmButton from '../QuickBuyConfirmButton';
 import QuickBuyBanners from '../QuickBuyBanners';
 import { useQuickBuyContext } from '../useQuickBuyContext';
-import { QuickBuyPercentageSlider } from './QuickBuyPercentageSlider';
+import Slider from '../../../../../../UI/Slider';
 import { getNetworkImageSource } from '../../../../../../../util/networks';
 import { getBridgeTokenImageSource } from '../getBridgeTokenImageSource';
 
@@ -57,14 +57,18 @@ const QuickBuyActionFooter: React.FC = () => {
 
   return (
     <Box twClassName="px-4 pb-4">
-      {/* Slider — reduced top padding to tighten gap with the amount section */}
-      <Box twClassName="pt-2 pb-3">
-        <QuickBuyPercentageSlider
-          value={sliderPercent}
-          onValueChange={handleSliderChange}
-          disabled={maxSpendUsd <= 0}
-        />
-      </Box>
+      {/* Slider — internal padding is provided by the Slider component */}
+      <Slider
+        value={sliderPercent}
+        onValueChange={handleSliderChange}
+        minimumValue={0}
+        maximumValue={100}
+        step={25}
+        showPercentageLabels
+        disabled={maxSpendUsd <= 0}
+        testID="quick-buy-percentage-slider"
+        formatAccessibilityValueText={(v) => `${v}%`}
+      />
 
       {/* Pay with row */}
       <Box

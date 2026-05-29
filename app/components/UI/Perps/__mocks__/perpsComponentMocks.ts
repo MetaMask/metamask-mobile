@@ -48,9 +48,9 @@ export const setupPerpsComponentMocks = () => {
   // Mock complex UI components
   jest.mock('../../../../Base/Keypad', () => 'Keypad');
 
-  jest.mock('../../components/PerpsSlider/PerpsSlider', () => ({
+  jest.mock('../../../Slider', () => ({
     __esModule: true,
-    default: 'PerpsSlider',
+    default: 'Slider',
   }));
 
   jest.mock('../../components/PerpsAmountDisplay', () => ({
