@@ -276,6 +276,10 @@ function getPayTokenUsdPrice(args: {
  * Formats a token amount with symbol. USD-pegged stables use 2 fixed decimals
  * (e.g. "+1.00 USDC"); other tokens show up to 6 decimals with trailing zeros
  * trimmed (e.g. "+0.000445 ETH", "+0.02 LINK").
+ *
+ * Returns `''` when the amount is too small to represent at this precision
+ * (it would render as "+0 TOKEN") since showing nothing is preferable to a misleading
+ * zero.
  */
 function formatPrimaryTokenAmount(
   amount: BigNumber,
@@ -292,6 +296,9 @@ function formatPrimaryTokenAmount(
   }
   const fixed = amount.toFixed(6, BigNumber.ROUND_DOWN);
   const trimmed = fixed.replace(/(\.\d*[1-9])0+$/, '$1').replace(/\.0+$/, '');
+  if (trimmed === '0') {
+    return '';
+  }
   return `+${trimmed} ${symbol}`;
 }
 

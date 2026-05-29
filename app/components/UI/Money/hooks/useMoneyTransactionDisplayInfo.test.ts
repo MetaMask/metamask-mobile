@@ -540,6 +540,19 @@ describe('useMoneyTransactionDisplayInfo — non-stable ERC-20 primary amount', 
 
     expect(result.current.primaryAmount).toBe('');
   });
+
+  it('leaves primaryAmount empty (not +0) when the token amount underflows 6 decimals', () => {
+    // High-unit-value token: token→ETH 400 × ETH→USD 2500 = $1,000,000 per token.
+    // $0.50 / $1,000,000 = 0.0000005, which rounds down to "0.000000" at 6
+    // decimals. We must show nothing rather than a misleading "+0 LINK" — this
+    // is the same class of bug MUSD-857 fixed, just one decimal place over.
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(makeLinkDepositTx(), undefined),
+      { state: makeLinkState({ tokenToEthPrice: 400, ethUsdRate: 2500 }) },
+    );
+
+    expect(result.current.primaryAmount).toBe('');
+  });
 });
 
 // ---------------------------------------------------------------------------
