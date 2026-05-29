@@ -14,6 +14,8 @@ prepare_react_native_project!
 # Ensures that versions from Gemfile is respected
 ensure_bundler!
 
+$VCEnableFrameProcessors = false
+
 install! 'cocoapods',
   :deterministic_uuids => false
 
