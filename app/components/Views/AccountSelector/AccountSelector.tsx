@@ -7,7 +7,6 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -28,6 +27,7 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  HeaderStandard,
   FontWeight,
   Text,
   TextVariant,
