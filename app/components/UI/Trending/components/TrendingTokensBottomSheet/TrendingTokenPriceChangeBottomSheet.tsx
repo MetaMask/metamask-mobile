@@ -1,4 +1,5 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
+import { TrendingTokensBottomSheetTestIds } from './TrendingTokensBottomSheet.testIds';
 import { HeaderStandard } from '@metamask/design-system-react-native';
 import { View, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { useTheme } from '../../../../../util/theme';
@@ -147,7 +148,7 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
       shouldNavigateBack={false}
       ref={sheetRef}
       onClose={handleSheetClose}
-      testID="trending-token-price-change-bottom-sheet"
+      testID={TrendingTokensBottomSheetTestIds.PRICE_CHANGE}
     >
       <HeaderStandard
         title={strings('trending.sort_by')}
