@@ -333,7 +333,11 @@ describe('useExploreSearchV2', () => {
       expect(usePerpsFeed).toHaveBeenCalledWith({ query: '' });
       expect(useStocksFeed).toHaveBeenCalledWith({ query: '' });
       expect(usePredictionsFeed).toHaveBeenCalledWith(
-        expect.objectContaining({ variant: 'trending', query: '' }),
+        expect.objectContaining({
+          variant: 'trending',
+          query: '',
+          pageSize: 20,
+        }),
       );
       expect(useSitesFeed).toHaveBeenCalledWith({ query: '' });
     });
