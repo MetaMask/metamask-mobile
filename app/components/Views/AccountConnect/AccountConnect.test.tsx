@@ -1399,7 +1399,7 @@ describe('AccountConnect', () => {
       });
     });
 
-    it('uses the wc2 url for WalletConnect connections', async () => {
+    it('uses `wc2Metadata.url` for WalletConnect connections', async () => {
       const channelId = 'walletconnect-origin.com';
       const wcUrl = 'https://wc-dapp.com';
 
