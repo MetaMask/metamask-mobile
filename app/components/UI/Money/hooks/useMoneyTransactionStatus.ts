@@ -10,6 +10,7 @@ import { useEffect, useRef } from 'react';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { fromTokenMinimalUnitString } from '../../../../util/number/bigint';
+import { strings } from '../../../../../locales/i18n';
 import { store } from '../../../../store';
 import {
   selectCurrencyRates,
@@ -242,7 +243,8 @@ export const useMoneyTransactionStatus = () => {
         clearMoneyAccountDepositIntent(transactionMeta.batchId);
       } else {
         const destination =
-          resolveWithdrawDestination(transactionMeta) ?? 'your account';
+          resolveWithdrawDestination(transactionMeta) ??
+          strings('money.toasts.withdraw_fallback_destination');
         showToast(
           MoneyToastOptions.withdraw.success({ amountFiat, destination }),
         );
