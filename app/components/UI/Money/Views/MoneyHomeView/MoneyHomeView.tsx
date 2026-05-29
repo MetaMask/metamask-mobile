@@ -88,8 +88,7 @@ const MoneyHomeView = () => {
     }
   }, [refetchBalance]);
 
-  const { isMoneyAccountFeatureEnabled, hasMoneyAccount } =
-    useMoneyAccountInfo();
+  const { hasMoneyAccount } = useMoneyAccountInfo();
   const { fiatBalanceAggregatedFormatted: musdFiatFormatted } =
     useMusdBalance();
 
@@ -113,9 +112,7 @@ const MoneyHomeView = () => {
   const isCardholderWithMilestone = isMilestone && isCardholder;
 
   let displayState: MoneyBalanceDisplayState;
-  if (!isMoneyAccountFeatureEnabled) {
-    displayState = { kind: 'featureDisabled' };
-  } else if (!hasMoneyAccount) {
+  if (!hasMoneyAccount) {
     displayState = { kind: 'noAccount' };
   } else if (isBalanceFetchError && isBalanceFetching) {
     displayState = { kind: 'retrying' };
