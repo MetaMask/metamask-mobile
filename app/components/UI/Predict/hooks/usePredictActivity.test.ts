@@ -186,6 +186,35 @@ describe('usePredictActivity', () => {
     });
   });
 
+  it('keeps the first activity when offset pages return duplicate ids', async () => {
+    const { Wrapper } = createWrapper();
+    const firstPage = createActivityPage(PREDICT_ACTIVITY_PAGE_SIZE, 'first');
+    const duplicateActivity = {
+      ...firstPage[PREDICT_ACTIVITY_PAGE_SIZE - 1],
+      title: 'First page copy',
+    };
+    const uniqueActivity = createActivityPage(1, 'second')[0];
+    mockGetActivity
+      .mockResolvedValueOnce(firstPage)
+      .mockResolvedValueOnce([duplicateActivity, uniqueActivity]);
+
+    const { result } = renderHook(() => usePredictActivity(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.hasNextPage).toBe(true);
+    });
+
+    await act(async () => {
+      await result.current.fetchNextPage();
+    });
+
+    await waitFor(() => {
+      expect(result.current.data).toEqual([...firstPage, uniqueActivity]);
+    });
+  });
+
   it('stops pagination when the previous page is shorter than the limit', async () => {
     const { Wrapper } = createWrapper();
     mockGetActivity.mockResolvedValueOnce(createActivityPage(1));

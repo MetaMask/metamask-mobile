@@ -48,10 +48,22 @@ export function usePredictActivity({
     PredictActivityQueryKey
   >(predictQueries.activity.options({ address, limit }));
 
-  const activity = useMemo(
-    () => queryResult.data?.pages.flatMap((page) => page) ?? [],
-    [queryResult.data],
-  );
+  const activity = useMemo(() => {
+    const seenActivityIds = new Set<string>();
+
+    return (
+      queryResult.data?.pages.flatMap((page) =>
+        page.filter((activityItem) => {
+          if (seenActivityIds.has(activityItem.id)) {
+            return false;
+          }
+
+          seenActivityIds.add(activityItem.id);
+          return true;
+        }),
+      ) ?? []
+    );
+  }, [queryResult.data]);
 
   useEffect(() => {
     if (!queryResult.error) return;

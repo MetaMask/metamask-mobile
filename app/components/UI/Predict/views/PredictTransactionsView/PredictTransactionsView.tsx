@@ -1,6 +1,7 @@
 import React, { useMemo, useEffect, useCallback } from 'react';
 import {
   ActivityIndicator,
+  Pressable,
   SectionList,
   ViewStyle,
   StyleProp,
@@ -79,6 +80,7 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
     activity,
     error,
     isLoading,
+    isFetching,
     isRefetching,
     isFetchingNextPage,
     hasNextPage,
@@ -277,26 +279,53 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
     void fetchNextPage();
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
+  const hasFooterError = Boolean(error) && sections.length > 0 && hasNextPage;
+
   const handleRetry = useCallback(() => {
     void refetch();
   }, [refetch]);
 
   const renderFooter = useCallback(() => {
-    if (!isFetchingNextPage) {
+    if (isFetchingNextPage) {
+      return (
+        <Box twClassName="items-center justify-center py-4">
+          <ActivityIndicator
+            size="small"
+            testID={
+              PREDICT_TRANSACTIONS_VIEW_TEST_IDS.FOOTER_ACTIVITY_INDICATOR
+            }
+          />
+        </Box>
+      );
+    }
+
+    if (!hasFooterError) {
       return null;
     }
 
     return (
-      <Box twClassName="items-center justify-center py-4">
-        <ActivityIndicator
-          size="small"
-          testID={PREDICT_TRANSACTIONS_VIEW_TEST_IDS.FOOTER_ACTIVITY_INDICATOR}
-        />
+      <Box
+        twClassName="items-center justify-center gap-2 py-4"
+        testID={PREDICT_TRANSACTIONS_VIEW_TEST_IDS.FOOTER_ERROR_STATE}
+      >
+        <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+          {strings('predict.error.description')}
+        </Text>
+        <Pressable
+          accessibilityRole="button"
+          onPress={handleEndReached}
+          testID={PREDICT_TRANSACTIONS_VIEW_TEST_IDS.FOOTER_RETRY_BUTTON}
+        >
+          <Text variant={TextVariant.BodyMd} twClassName="text-primary-default">
+            {strings('predict.error.retry')}
+          </Text>
+        </Pressable>
       </Box>
     );
-  }, [isFetchingNextPage]);
+  }, [handleEndReached, hasFooterError, isFetchingNextPage]);
 
-  const shouldShowLoadingState = isLoading && sections.length === 0;
+  const shouldShowLoadingState =
+    (isLoading || (Boolean(error) && isFetching)) && sections.length === 0;
   const shouldShowErrorState = Boolean(error) && sections.length === 0;
 
   const renderContent = shouldShowLoadingState ? (

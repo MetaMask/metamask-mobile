@@ -74,6 +74,7 @@ jest.mock('../../hooks/usePredictActivity', () => ({
     data: [],
     error: null,
     isLoading: false,
+    isFetching: false,
     isRefetching: false,
     isFetchingNextPage: false,
     hasNextPage: false,
@@ -97,6 +98,7 @@ describe('PredictTransactionsView', () => {
       data: unknown[];
       error: Error | null;
       isLoading: boolean;
+      isFetching: boolean;
       isRefetching: boolean;
       isFetchingNextPage: boolean;
       hasNextPage: boolean;
@@ -110,6 +112,7 @@ describe('PredictTransactionsView', () => {
     return {
       error: null,
       isLoading: false,
+      isFetching: false,
       isRefetching: false,
       isFetchingNextPage: false,
       hasNextPage: false,
@@ -169,6 +172,23 @@ describe('PredictTransactionsView', () => {
     });
 
     expect(mockRefetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('displays loading feedback while retrying an initial activity error', () => {
+    (usePredictActivity as jest.Mock).mockReturnValueOnce(
+      createUsePredictActivityValue({
+        data: [],
+        error: new Error('Network error'),
+        isFetching: true,
+      }),
+    );
+
+    render(<PredictTransactionsView />);
+
+    expect(screen.getByTestId('activity-indicator')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PREDICT_TRANSACTIONS_VIEW_TEST_IDS.ERROR_STATE),
+    ).toBeNull();
   });
 
   it('displays a custom empty state when provided', () => {
@@ -537,5 +557,44 @@ describe('PredictTransactionsView', () => {
         PREDICT_TRANSACTIONS_VIEW_TEST_IDS.FOOTER_ACTIVITY_INDICATOR,
       ),
     ).toBeOnTheScreen();
+  });
+
+  it('displays a footer retry state when a later activity page fails', () => {
+    const mockFetchNextPage = jest.fn();
+    const mockTimestamp = Math.floor(Date.now() / 1000);
+    (usePredictActivity as jest.Mock).mockReturnValueOnce(
+      createUsePredictActivityValue({
+        error: new Error('Next page failed'),
+        hasNextPage: true,
+        fetchNextPage: mockFetchNextPage,
+        data: [
+          {
+            id: 'loaded-before-error',
+            title: 'Market Loaded',
+            outcome: 'Yes',
+            entry: {
+              type: 'buy',
+              amount: 10,
+              price: 0.5,
+              timestamp: mockTimestamp,
+            },
+          },
+        ],
+      }),
+    );
+
+    render(<PredictTransactionsView />);
+
+    expect(
+      screen.getByTestId(PREDICT_TRANSACTIONS_VIEW_TEST_IDS.FOOTER_ERROR_STATE),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(
+        PREDICT_TRANSACTIONS_VIEW_TEST_IDS.FOOTER_RETRY_BUTTON,
+      ),
+    );
+
+    expect(mockFetchNextPage).toHaveBeenCalledTimes(1);
   });
 });

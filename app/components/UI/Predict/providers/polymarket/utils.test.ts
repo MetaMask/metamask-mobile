@@ -28,10 +28,15 @@ import {
   getOrderBook,
   getRawBalance,
   parsePolymarketEvents,
+  parsePolymarketActivity,
   previewOrder,
   searchEventsFromPolymarketApi,
 } from './utils';
-import type { PolymarketApiEvent, PolymarketApiTeam } from './types';
+import type {
+  PolymarketApiActivity,
+  PolymarketApiEvent,
+  PolymarketApiTeam,
+} from './types';
 
 const mockSignTypedMessage = jest.fn();
 
@@ -119,6 +124,43 @@ describe('polymarket utils', () => {
     } as ReturnType<
       typeof Engine.context.NetworkController.getNetworkClientById
     >);
+  });
+
+  const createRawActivity = (
+    overrides: Partial<PolymarketApiActivity> = {},
+  ): PolymarketApiActivity => ({
+    type: 'TRADE',
+    side: 'BUY',
+    price: 0.5,
+    usdcSize: 10,
+    timestamp: 100,
+    transactionHash: '0xtransaction',
+    conditionId: 'condition-1',
+    outcomeIndex: 0,
+    title: 'Market',
+    outcome: 'Yes',
+    icon: 'icon.png',
+    ...overrides,
+  });
+
+  it('parses activity with deterministic ids when transaction hash is missing', () => {
+    const rawActivity = createRawActivity({
+      transactionHash: undefined as unknown as string,
+    });
+
+    const firstParse = parsePolymarketActivity([rawActivity]);
+    const secondParse = parsePolymarketActivity([rawActivity]);
+
+    expect(firstParse[0].id).toBe(secondParse[0].id);
+  });
+
+  it('parses same-transaction activity rows with distinct ids', () => {
+    const parsedActivity = parsePolymarketActivity([
+      createRawActivity({ conditionId: 'condition-1', outcomeIndex: 0 }),
+      createRawActivity({ conditionId: 'condition-2', outcomeIndex: 1 }),
+    ]);
+
+    expect(parsedActivity[0].id).not.toBe(parsedActivity[1].id);
   });
 
   it('groups tennis first set markets separately from game lines', () => {
