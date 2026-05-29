@@ -1,3 +1,4 @@
+import '../nodeNativeUtilsShim.cjs';
 import { test as base, type FullProject } from '@playwright/test';
 import {
   WebDriverConfig,

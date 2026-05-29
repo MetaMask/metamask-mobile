@@ -4,6 +4,7 @@ import {
   USER_STORAGE_GROUPS_FEATURE_KEY,
   USER_STORAGE_WALLETS_FEATURE_KEY,
 } from '@metamask/account-tree-controller';
+import { DEFAULT_FIXTURE_ACCOUNT_CHECKSUM } from '../../../framework/fixtures/FixtureBuilder';
 
 const accountsStorageUrl = `https://user-storage.api.cx.metamask.io/api/v1/userstorage/${USER_STORAGE_FEATURE_NAMES.accounts}`;
 
@@ -13,8 +14,44 @@ const multichainWalletsUrl = `https://user-storage.api.cx.metamask.io/api/v1/use
 
 const multichainGroupsUrl = `https://user-storage.api.cx.metamask.io/api/v1/userstorage/${USER_STORAGE_GROUPS_FEATURE_KEY}`;
 
+const notificationPreferencesUrl =
+  'https://user-storage.api.cx.metamask.io/api/v1/preferences/notifications';
+
+const notificationPreferences = {
+  walletActivity: {
+    inAppNotificationsEnabled: true,
+    pushNotificationsEnabled: true,
+    accounts: [
+      {
+        address: DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
+        enabled: true,
+      },
+    ],
+  },
+  // Feature announcements are controlled by marketing in-app preferences.
+  marketing: {
+    inAppNotificationsEnabled: true,
+    pushNotificationsEnabled: false,
+  },
+  perps: {
+    inAppNotificationsEnabled: true,
+    pushNotificationsEnabled: true,
+  },
+  socialAI: {
+    inAppNotificationsEnabled: true,
+    pushNotificationsEnabled: true,
+    txAmountLimit: 100,
+    mutedTraderProfileIds: [],
+  },
+};
+
 export const USER_STORAGE_MOCK: MockEventsObject = {
   GET: [
+    {
+      urlEndpoint: notificationPreferencesUrl,
+      responseCode: 200,
+      response: notificationPreferences,
+    },
     {
       urlEndpoint: contactStorageUrl,
       responseCode: 200,
@@ -37,6 +74,11 @@ export const USER_STORAGE_MOCK: MockEventsObject = {
     },
   ],
   PUT: [
+    {
+      urlEndpoint: notificationPreferencesUrl,
+      responseCode: 200,
+      response: 'OK',
+    },
     {
       urlEndpoint:
         /^https:\/\/user-storage\.api\.cx\.metamask\.io\/api\/v1\/userstorage\/accounts_v2\/[a-fA-F0-9]+$/,

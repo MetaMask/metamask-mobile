@@ -8,9 +8,15 @@ import React from 'react';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { PredictMarket } from '../../types';
-import PredictBuyPreview from './PredictBuyPreview';
+import PredictBuyPreview, {
+  predictBuyPreviewDismissedViaBackRef,
+  predictBuyPreviewOrderInitiatedRef,
+} from './PredictBuyPreview';
 import { PredictNavigationParamList } from '../../types/navigation';
-import { PredictEventValues } from '../../constants/eventNames';
+import {
+  PredictEventValues,
+  PredictDismissalMethod,
+} from '../../constants/eventNames';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 // Mock Engine
@@ -225,6 +231,14 @@ const mockRoute: RouteProp<PredictNavigationParamList, 'PredictBuyPreview'> = {
   },
 };
 
+let mockBeforeRemoveCallback: (() => void) | null = null;
+const mockAddListener = jest.fn((event: string, cb: () => void) => {
+  if (event === 'beforeRemove') {
+    mockBeforeRemoveCallback = cb;
+  }
+  return jest.fn();
+});
+
 const mockNavigation: NavigationProp<PredictNavigationParamList> = {
   goBack: mockGoBack,
   dispatch: mockDispatch,
@@ -232,7 +246,7 @@ const mockNavigation: NavigationProp<PredictNavigationParamList> = {
   reset: jest.fn(),
   setParams: jest.fn(),
   setOptions: jest.fn(),
-  addListener: jest.fn(),
+  addListener: mockAddListener,
   removeListener: jest.fn(),
   canGoBack: jest.fn(),
   isFocused: jest.fn(),
@@ -280,6 +294,8 @@ describe('PredictBuyPreview', () => {
     mockAccountOptedIn = null;
     mockEstimatedPoints = null;
     mockRewardsError = false;
+
+    mockBeforeRemoveCallback = null;
 
     // Setup default mocks
     mockUseNavigation.mockReturnValue(mockNavigation);
@@ -2527,6 +2543,174 @@ describe('PredictBuyPreview', () => {
       fireEvent.press($20Button);
 
       expect(screen.getByText('To win')).toBeOnTheScreen();
+    });
+  });
+
+  describe('beforeRemove dismiss tracking (screen mode)', () => {
+    const trackBetslipDismissed =
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      require('../../../../../core/Engine').context.PredictController
+        .trackBetslipDismissed;
+
+    beforeEach(() => {
+      predictBuyPreviewDismissedViaBackRef.current = false;
+      predictBuyPreviewOrderInitiatedRef.current = false;
+      mockUseRoute.mockReturnValue({
+        ...mockRoute,
+        params: { ...mockRoute.params, trackSwipeDismiss: true },
+      });
+    });
+
+    it('registers a beforeRemove listener in screen mode', () => {
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      expect(mockAddListener).toHaveBeenCalledWith(
+        'beforeRemove',
+        expect.any(Function),
+      );
+    });
+
+    it('tracks swipe dismissal via beforeRemove when back ref is false', () => {
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      predictBuyPreviewDismissedViaBackRef.current = false;
+      mockBeforeRemoveCallback?.();
+
+      expect(trackBetslipDismissed).toHaveBeenCalledWith(
+        expect.objectContaining({
+          dismissalMethod: PredictDismissalMethod.SWIPE,
+        }),
+      );
+    });
+
+    it('tracks back-button dismissal via beforeRemove when back ref is true', () => {
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      predictBuyPreviewDismissedViaBackRef.current = true;
+      mockBeforeRemoveCallback?.();
+
+      expect(trackBetslipDismissed).toHaveBeenCalledWith(
+        expect.objectContaining({
+          dismissalMethod: PredictDismissalMethod.BACK_BUTTON,
+        }),
+      );
+    });
+
+    it('does not track dismissal when order was initiated', () => {
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      predictBuyPreviewOrderInitiatedRef.current = true;
+      mockBeforeRemoveCallback?.();
+
+      expect(trackBetslipDismissed).not.toHaveBeenCalled();
+    });
+
+    it('resets dismissedViaBackRef on mount so a previous back-button session does not bleed into next swipe', () => {
+      // Simulate a stale true value left over from a previous session
+      predictBuyPreviewDismissedViaBackRef.current = true;
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      // ref should be cleared on mount — swipe dismissal must not be misclassified
+      mockBeforeRemoveCallback?.();
+
+      expect(trackBetslipDismissed).toHaveBeenCalledWith(
+        expect.objectContaining({
+          dismissalMethod: PredictDismissalMethod.SWIPE,
+        }),
+      );
+    });
+
+    it('does not call trackBetslipDismissed directly on back-button press when trackSwipeDismiss is true (beforeRemove owns tracking)', () => {
+      // trackSwipeDismiss=true is already set by beforeEach via mockRoute override
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+      trackBetslipDismissed.mockClear();
+
+      fireEvent.press(screen.getByTestId('back-button'));
+
+      // The direct call must be skipped — beforeRemove will fire it once goBack() resolves
+      expect(trackBetslipDismissed).not.toHaveBeenCalled();
+      // The ref must be set so beforeRemove classifies it as BACK_BUTTON
+      expect(predictBuyPreviewDismissedViaBackRef.current).toBe(true);
+    });
+
+    it('does not register a beforeRemove listener when trackSwipeDismiss is absent (pre-existing flagless path)', () => {
+      mockUseRoute.mockReturnValue(mockRoute);
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      mockBeforeRemoveCallback?.();
+
+      expect(trackBetslipDismissed).not.toHaveBeenCalled();
+    });
+
+    it('does not track back-button dismissal when order was already initiated (flagless screen mode)', () => {
+      mockUseRoute.mockReturnValue(mockRoute);
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      // Set after mount — the mount effect resets it to false
+      predictBuyPreviewOrderInitiatedRef.current = true;
+      trackBetslipDismissed.mockClear();
+
+      fireEvent.press(screen.getByTestId('back-button'));
+
+      expect(trackBetslipDismissed).not.toHaveBeenCalled();
+    });
+
+    it('tracks back-button dismissal when no order was initiated (flagless screen mode)', () => {
+      mockUseRoute.mockReturnValue(mockRoute);
+      predictBuyPreviewOrderInitiatedRef.current = false;
+      trackBetslipDismissed.mockClear();
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      fireEvent.press(screen.getByTestId('back-button'));
+
+      expect(trackBetslipDismissed).toHaveBeenCalledWith(
+        expect.objectContaining({
+          dismissalMethod: PredictDismissalMethod.BACK_BUTTON,
+        }),
+      );
+    });
+
+    it('does not fire trackBetslipDismissed when beforeRemove fires after a successful order (StackActions.pop)', () => {
+      // Simulate a successful order: result arrives, component dispatches pop,
+      // beforeRemove fires — the orderInitiated gate must suppress the event.
+      mockPlaceOrderResult = {
+        success: true,
+        response: { transactionHash: '0xabc' },
+      };
+
+      const { rerender } = renderWithProvider(<PredictBuyPreview />, {
+        state: initialState,
+      });
+
+      // Rerender to trigger the result useEffect which sets orderInitiatedRef and dispatches pop
+      rerender(<PredictBuyPreview />);
+
+      // Simulate navigation stack removing the screen (the pop that was dispatched)
+      mockBeforeRemoveCallback?.();
+
+      expect(trackBetslipDismissed).not.toHaveBeenCalled();
+    });
+
+    it('does not fire trackBetslipDismissed when beforeRemove fires after Place Bet is pressed (onPlaceBet sets orderInitiatedRef synchronously)', () => {
+      // This test drives the full UI path: the user enters an amount, presses
+      // Place Bet (which sets orderInitiatedRef = true synchronously before
+      // awaiting placeOrder), and then beforeRemove fires while the order is
+      // still in-flight. The gate must suppress the dismissal event.
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      fireEvent.press(screen.getByText('$20'));
+      fireEvent.press(screen.getByText('Done'));
+      fireEvent.press(
+        screen.getByTestId('predict-buy-preview-place-bet-button'),
+      );
+
+      mockBeforeRemoveCallback?.();
+
+      expect(trackBetslipDismissed).not.toHaveBeenCalled();
     });
   });
 });

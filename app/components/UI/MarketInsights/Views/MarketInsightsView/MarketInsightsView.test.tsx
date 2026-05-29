@@ -32,6 +32,7 @@ let mockRouteParams: {
   token?: Record<string, unknown>;
   isPerps?: boolean;
   hasPerpsPosition?: boolean;
+  source?: 'token_details' | 'perps' | 'unknown';
 } = {
   assetSymbol: 'ETH',
   assetIdentifier: 'eip155:1/erc20:0x123',

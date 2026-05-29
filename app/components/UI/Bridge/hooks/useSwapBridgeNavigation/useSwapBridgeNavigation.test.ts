@@ -128,11 +128,13 @@ jest.mock('../../utils/tokenUtils', () => ({
   getNativeSourceToken: jest.fn(),
 }));
 
-const mockFetchPopularTokens = jest.fn();
-jest.mock('../useInitialBridgeTokens', () => ({
-  useInitialBridgeTokens: jest.fn().mockReturnValue({
-    fetchPopularTokens: () => mockFetchPopularTokens(),
-  }),
+const mockFetchPopularTokens = jest.fn().mockResolvedValue(undefined);
+jest.mock('../useFetchPopularTokens', () => ({
+  useFetchPopularTokens: jest.fn(
+    () =>
+      (...args: unknown[]) =>
+        mockFetchPopularTokens(...args),
+  ),
 }));
 
 describe('useSwapBridgeNavigation', () => {

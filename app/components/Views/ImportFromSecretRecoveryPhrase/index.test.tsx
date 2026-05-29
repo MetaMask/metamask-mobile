@@ -1,19 +1,23 @@
 import React from 'react';
-import renderWithProvider, {
-  renderScreen,
+import baseRenderWithProvider, {
+  renderScreen as baseRenderScreen,
 } from '../../../util/test/renderWithProvider';
+import ReduxService from '../../../core/redux';
+import type { ReduxStore } from '../../../core/redux/types';
 import ImportFromSecretRecoveryPhrase from '.';
 import Routes from '../../../constants/navigation/Routes';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { ImportFromSeedSelectorsIDs } from './ImportFromSeed.testIds';
 import { strings } from '../../../../locales/i18n';
 import { Authentication } from '../../../core';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.testIds';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { MIN_PASSWORD_LENGTH } from '../../../util/password';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { Alert, InteractionManager } from 'react-native';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
@@ -26,9 +30,6 @@ import {
   endTrace,
 } from '../../../util/trace';
 import type { Span } from '@sentry/core';
-import ReduxService from '../../../core/redux/ReduxService';
-import { RootState } from '../../../reducers';
-import { ReduxStore } from '../../../core/redux/types';
 
 jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => {
   const keyboard = {
@@ -112,47 +113,27 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => {
   };
 });
 
+function renderWithProvider(
+  ...args: Parameters<typeof baseRenderWithProvider>
+) {
+  const result = baseRenderWithProvider(...args);
+  ReduxService.store = result.store as unknown as ReduxStore;
+  return result;
+}
+
+function renderScreen(...args: Parameters<typeof baseRenderScreen>) {
+  const result = baseRenderScreen(...args);
+  ReduxService.store = result.store as unknown as ReduxStore;
+  return result;
+}
+
 describe('ImportFromSecretRecoveryPhrase', () => {
-  const createMockReduxStore = (
-    stateOverrides?: Partial<RootState>,
-  ): ReduxStore => {
-    const defaultState = {
-      user: {
-        existingUser: false,
-        passwordSet: true,
-        seedphraseBackedUp: false,
-      },
-      security: {
-        allowLoginWithRememberMe: false,
-      },
-      settings: {
-        lockTime: -1,
-      },
-      ...(stateOverrides || {}),
-    } as RootState;
-
-    return {
-      dispatch: jest.fn(),
-      getState: jest.fn(() => defaultState),
-      subscribe: jest.fn(),
-      replaceReducer: jest.fn(),
-      [Symbol.observable]: jest.fn(),
-    } as unknown as ReduxStore;
-  };
-
   afterEach(() => {
     jest.clearAllMocks();
-    // Restore Redux store mock after clearing mocks
-    const mockStore = createMockReduxStore();
-    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
   });
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // Mock Redux store for all tests
-    const mockStore = createMockReduxStore();
-    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
-
     mockUseKeyboardState.mockImplementation(
       (selector: (state: { isVisible: boolean }) => boolean) =>
         selector({ isVisible: false }),

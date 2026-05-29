@@ -3,7 +3,6 @@ import {
   selectAllAssets as _selectAllAssets,
   selectAssetsBySelectedAccountGroup as _selectAssetsBySelectedAccountGroup,
   getNativeTokenAddress,
-  TokenListState,
   AssetListState,
   AccountGroupAssets,
 } from '@metamask/assets-controllers';
@@ -158,6 +157,40 @@ function callSelectAssetsBySelectedAccountGroup(
 export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
   getStateForAssetSelector,
   (assetsState) => callSelectAssetsBySelectedAccountGroup(assetsState),
+);
+
+/**
+ * Cheap boolean check: does the selected account group hold any
+ * non-excluded positive-fiat-balance asset
+ */
+export const selectHasEligibleSwapSource = createSelector(
+  [
+    selectAssetsBySelectedAccountGroup,
+    (_state: RootState, excludedChainId: string | undefined) => excludedChainId,
+    (
+      _state: RootState,
+      _excludedChainId: string | undefined,
+      excludedAddress: string | undefined,
+    ) => excludedAddress,
+  ],
+  (assetsByChain, excludedChainId, excludedAddress): boolean => {
+    for (const chainAssets of Object.values(assetsByChain)) {
+      for (const asset of chainAssets) {
+        if ((asset.fiat?.balance ?? 0) <= 0) continue;
+
+        const isExcludedToken =
+          asset.chainId === excludedChainId &&
+          excludedAddress !== undefined &&
+          asset.assetId.toLowerCase() === excludedAddress.toLowerCase();
+
+        if (!isExcludedToken) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  },
 );
 
 const EMPTY_ACCOUNT_GROUP_ASSETS: AccountGroupAssets = {};

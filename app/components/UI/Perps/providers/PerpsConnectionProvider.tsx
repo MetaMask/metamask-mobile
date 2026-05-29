@@ -277,7 +277,7 @@ export const PerpsConnectionProvider: React.FC<
   );
 
   useEffect(() => {
-    if (!connectionState.error) {
+    if (!connectionState.error || suppressErrorView) {
       lastErrorBreadcrumbRef.current = null;
       return;
     }
@@ -296,7 +296,7 @@ export const PerpsConnectionProvider: React.FC<
       },
     });
     lastErrorBreadcrumbRef.current = connectionState.error;
-  }, [connectionState.error, retryAttempts]);
+  }, [connectionState.error, retryAttempts, suppressErrorView]);
 
   // Environment-level error handling - show error screen if connection failed
   // This ensures NO Perps screen can render when there's a connection error

@@ -257,6 +257,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     isInsufficientBalance,
     isConfirming,
     isPayFeesLoading,
+    isPaySystemSettling,
     blockingPayAlertMessage,
     outcomeTokenPrice: outcomeToken?.price,
     isSheetMode,
@@ -273,7 +274,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
 
   const handleChangePaymentMethod = useCallback(() => {
     lockPaymentSelectorNavigation();
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
+    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET);
   }, [lockPaymentSelectorNavigation, navigation]);
 
   const handleAddFunds = useCallback(() => {

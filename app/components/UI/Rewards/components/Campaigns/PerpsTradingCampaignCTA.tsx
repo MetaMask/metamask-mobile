@@ -69,7 +69,7 @@ const PerpsTradingCampaignCTA: React.FC<PerpsTradingCampaignCTAProps> = ({
     return null;
   }
 
-  // Opted in — show "Open Position"
+  // Opted in — show "Trade now"
   if (isOptedIn) {
     return (
       <Box twClassName="p-4 mb-2">

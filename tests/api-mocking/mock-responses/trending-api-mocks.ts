@@ -162,10 +162,50 @@ export const TRENDING_API_MOCKS: MockEventsObject = {
       priority: 1000,
     },
     {
+      urlEndpoint: /https:\/\/gamma-api\.polymarket\.com\/events\/keyset.*/,
+      responseCode: 200,
+      response: {
+        events: [
+          {
+            id: '1',
+            title: 'Will Bitcoin hit $100k?',
+            slug: 'bitcoin-100k',
+            icon: 'https://polymarket.com/icon.png',
+            description: 'Bitcoin price prediction',
+            startDate: '2024-01-01T00:00:00Z',
+            endDate: '2024-12-31T23:59:59Z',
+            markets: [
+              {
+                conditionId: '123',
+                question: 'Will Bitcoin hit $100k?',
+                status: 'open',
+                outcomes: '["Yes", "No"]',
+                outcomePrices: '["0.6", "0.4"]',
+                clobTokenIds: '["1", "2"]',
+                volumeNum: 1000000,
+                liquidity: 500000,
+                orderPriceMinTickSize: 0.01,
+                active: true,
+                closed: false,
+                sportsMarketType: 'moneyline',
+                groupItemTitle: 'Bitcoin',
+              },
+            ],
+            tags: [{ label: 'Crypto', slug: 'crypto' }],
+            volume: 1000000,
+            liquidity: 500000,
+          },
+        ],
+        next_cursor: null,
+      },
+      priority: 1000,
+    },
+    {
       // Event details fetched when user taps a prediction row in the trending feed.
       // Returns the same Bitcoin event payload as /events/pagination so the detail
-      // screen renders without crashing.
-      urlEndpoint: /https:\/\/gamma-api\.polymarket\.com\/events\/1(\?.*)?$/,
+      // screen renders without crashing. Matches any numeric event id (highlights,
+      // prefetch) — not only id "1".
+      urlEndpoint: /https:\/\/gamma-api\.polymarket\.com\/events\/\d+(\?.*)?$/,
       responseCode: 200,
       response: {
         id: '1',

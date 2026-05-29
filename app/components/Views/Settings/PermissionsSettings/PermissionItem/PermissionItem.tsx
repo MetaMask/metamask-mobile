@@ -1,9 +1,11 @@
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import Text, {
+import {
+  FontWeight,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 
 import Icon, {
@@ -34,17 +36,22 @@ const PermissionItem: React.FC<PermissionListItemProps> = ({
       </View>
       <View style={styles.contentContainer}>
         <View style={styles.row}>
-          <Text variant={TextVariant.BodyLGMedium}>{item.dappHostName}</Text>
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+            {item.dappHostName}
+          </Text>
         </View>
         <View style={styles.row}>
-          <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+          <Text color={TextColor.TextAlternative} variant={TextVariant.BodyMd}>
             {item.numberOfAccountPermissions}{' '}
             {item.numberOfAccountPermissions > 1
               ? strings('app_settings.accounts')
               : strings('app_settings.account')}
           </Text>
-          <Text style={styles.dot}> • </Text>
-          <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
+          <Text style={styles.dot} variant={TextVariant.BodyMd}>
+            {' '}
+            •{' '}
+          </Text>
+          <Text color={TextColor.TextAlternative} variant={TextVariant.BodyMd}>
             {item.numberOfNetworkPermissions}{' '}
             {item.numberOfNetworkPermissions > 1
               ? strings('app_settings.networks')

@@ -10,12 +10,12 @@ import {
   Box,
   BoxAlignItems,
   BoxJustifyContent,
+  HeaderStandard,
   Text,
   TextVariant,
   TextColor,
 } from '@metamask/design-system-react-native';
 import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { strings } from '../../../../../../../locales/i18n';
 import styleSheet from './PaymentSelectionModal.styles';
@@ -167,10 +167,19 @@ function PaymentSelectionModal() {
             quote.quote?.paymentMethod === paymentMethod.id &&
             !isCustomAction(quote),
         ) ?? null;
+      const hasSuccessQuoteForMethod = (quotes?.success ?? []).some(
+        (q) => q.quote?.paymentMethod === paymentMethod.id,
+      );
       const hasQuoteError =
-        !matchedQuote &&
-        (quotes?.error?.length ?? 0) > 0 &&
-        (quotes?.success?.length ?? 0) === 0;
+        !quotesLoading && quotes !== null && !hasSuccessQuoteForMethod;
+      const providerErrorMessage = selectedProvider
+        ? quotes?.error?.find(
+            (e) => e.provider === selectedProvider.id && e.error,
+          )?.error
+        : undefined;
+      const quoteErrorMessage = hasQuoteError
+        ? (providerErrorMessage ?? strings('fiat_on_ramp.quote_unavailable'))
+        : undefined;
 
       return (
         <PaymentMethodListItem
@@ -181,6 +190,7 @@ function PaymentSelectionModal() {
           quote={matchedQuote}
           quoteLoading={quotesLoading}
           quoteError={hasQuoteError}
+          quoteErrorMessage={quoteErrorMessage}
           currency={currency}
           tokenSymbol={tokenSymbol}
         />
@@ -189,6 +199,7 @@ function PaymentSelectionModal() {
     [
       handlePaymentMethodPress,
       selectedPaymentMethod,
+      selectedProvider,
       amount,
       quotes,
       quotesLoading,
@@ -219,18 +230,7 @@ function PaymentSelectionModal() {
         </ScrollView>
       );
     }
-    // Filter out payment methods that have no available quote once quotes
-    // have loaded. This avoids showing dead-end options to the user.
-    // Custom-action quotes (e.g. PayPal) count as available since they have
-    // their own checkout flow even without a standard priced quote.
-    const visiblePaymentMethods =
-      !quotesLoading && quotes
-        ? paymentMethods.filter((pm) =>
-            quotes.success?.some((q) => q.quote?.paymentMethod === pm.id),
-          )
-        : paymentMethods;
-
-    if (visiblePaymentMethods.length === 0) {
+    if (paymentMethods.length === 0) {
       return (
         <ScrollView
           style={styles.list}
@@ -246,7 +246,7 @@ function PaymentSelectionModal() {
     return (
       <FlatList
         style={styles.list}
-        data={visiblePaymentMethods}
+        data={paymentMethods}
         renderItem={renderPaymentMethod}
         keyExtractor={(item) => item.id}
         keyboardDismissMode="none"
@@ -259,7 +259,7 @@ function PaymentSelectionModal() {
     <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
       <View style={styles.containerOuter}>
         <View style={styles.paymentPanelContent}>
-          <HeaderCompactStandard
+          <HeaderStandard
             title={strings('fiat_on_ramp.pay_with')}
             onClose={() => sheetRef.current?.onCloseBottomSheet()}
             closeButtonProps={{

@@ -173,35 +173,63 @@ export const selectSortedTransactions = createDeepEqualSelector(
     ),
 );
 
+function findLatestMetaMaskPayToken(
+  transactions: TransactionMeta[],
+  transactionType: string | undefined,
+  excludeTransactionId?: string,
+): MetaMaskPayToken | undefined {
+  if (!transactionType) {
+    return undefined;
+  }
+
+  const latestTransaction = [...transactions]
+    .reverse()
+    .find(
+      (transaction) =>
+        (!excludeTransactionId || transaction.id !== excludeTransactionId) &&
+        matchesTransactionType(transaction, transactionType) &&
+        transaction.metamaskPay?.tokenAddress &&
+        transaction.metamaskPay?.chainId,
+    );
+
+  const tokenAddress = latestTransaction?.metamaskPay?.tokenAddress;
+  const chainId = latestTransaction?.metamaskPay?.chainId;
+
+  if (!tokenAddress || !chainId) {
+    return undefined;
+  }
+
+  return {
+    address: tokenAddress,
+    chainId,
+  };
+}
+
 export const selectLastWithdrawTokenByType = createSelector(
   selectNonReplacedTransactions,
   (_state: RootState, transactionType?: string) => transactionType,
-  (transactions, transactionType): MetaMaskPayToken | undefined => {
-    if (!transactionType) {
-      return undefined;
-    }
+  (transactions, transactionType): MetaMaskPayToken | undefined =>
+    findLatestMetaMaskPayToken(transactions, transactionType),
+);
 
-    const latestTransaction = [...transactions]
-      .reverse()
-      .find(
-        (transaction) =>
-          matchesTransactionType(transaction, transactionType) &&
-          transaction.metamaskPay?.tokenAddress &&
-          transaction.metamaskPay?.chainId,
-      );
-
-    const tokenAddress = latestTransaction?.metamaskPay?.tokenAddress;
-    const chainId = latestTransaction?.metamaskPay?.chainId;
-
-    if (!tokenAddress || !chainId) {
-      return undefined;
-    }
-
-    return {
-      address: tokenAddress,
-      chainId,
-    };
-  },
+export const selectLastUsedPaymentMethod = createSelector(
+  selectNonReplacedTransactions,
+  (_state: RootState, transactionType?: string) => transactionType,
+  (
+    _state: RootState,
+    _transactionType?: string,
+    currentTransactionId?: string,
+  ) => currentTransactionId,
+  (
+    transactions,
+    transactionType,
+    currentTransactionId,
+  ): MetaMaskPayToken | undefined =>
+    findLatestMetaMaskPayToken(
+      transactions,
+      transactionType,
+      currentTransactionId,
+    ),
 );
 
 export const selectSortedEVMTransactionsForSelectedAccountGroup =

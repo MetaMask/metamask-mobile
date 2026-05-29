@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { Pressable } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
@@ -24,51 +24,35 @@ import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings'
 import SitesSearchFooter from '../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
 import { useSearchTracking } from '../../../UI/Trending/hooks/useSearchTracking/useSearchTracking';
 import { TimeOption } from '../../../UI/Trending/components/TrendingTokensBottomSheet/TrendingTokenTimeBottomSheet';
-import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
-import { trackExploreEvent, useScrollTracking } from './analytics';
-import {
-  useExploreSearch,
-  type SearchFeedId,
-  type SearchFeedSection,
-} from './useExploreSearch';
-import SearchFeedRow, { SearchFeedSkeleton } from './SearchFeedRow';
+import { trackExploreSearchEvent, useScrollTracking } from './analytics';
+import { useExploreSearch, type SearchFeedSection } from './useExploreSearch';
+import SearchFeedRow, { SearchFeedSkeleton, getItemId } from './SearchFeedRow';
+import { MAX_ITEMS_PER_SECTION } from './viewMoreLabel';
+import type { FlatListItem, ListItemHeader } from './searchTypes';
 
-const MAX_ITEMS_PER_SECTION = 3;
+const pressedStyle = StyleSheet.create({
+  pressable: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+});
 
 interface ExploreSearchResultsProps {
   searchQuery: string;
 }
-
-interface ListItemHeader {
-  type: 'header';
-  feedId: SearchFeedId;
-  title: string;
-  hasMore: boolean;
-}
-
-interface ListItemData {
-  type: 'item';
-  feedId: SearchFeedId;
-  title: string;
-  data: unknown;
-}
-
-interface ListItemSkeleton {
-  type: 'skeleton';
-  feedId: SearchFeedId;
-  index: number;
-}
-
-type FlatListItem = ListItemHeader | ListItemData | ListItemSkeleton;
 
 const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   searchQuery,
 }) => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const tw = useTailwind();
-  const { sections } = useExploreSearch(searchQuery);
+  const { sections } = useExploreSearch(searchQuery, {
+    truncateWithoutQuery: true,
+    titleVariant: 'v1',
+  });
   const flashListRef = useRef<FlashListRef<FlatListItem>>(null);
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
@@ -77,6 +61,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   const { onScrollBeginDrag, resetScrollTracking } = useScrollTracking(
     'scrolled',
     searchQuery,
+    { tab_name: 'all' },
   );
 
   useEffect(() => {
@@ -85,10 +70,12 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
 
   const handleViewMore = useCallback(
     (section: SearchFeedSection) => {
-      trackExploreEvent(MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED, {
-        interaction_type: 'view_all_clicked',
+      trackExploreSearchEvent({
+        interaction_type: 'tab_switched',
         search_query: searchQuery,
-        section_name: section.title,
+        tab_name: section.feedId,
+        previous_tab: 'all',
+        comes_from_view_all_tap: true,
       });
       navigation.navigate(Routes.EXPLORE_SECTION_RESULTS_FULL_VIEW, {
         feedId: section.feedId,
@@ -121,12 +108,10 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
             hitSlop={8}
             accessibilityRole="button"
             accessibilityLabel={`${strings('trending.view_all')} ${item.title}`}
-            style={({ pressed }) =>
-              tw.style(
-                'flex-row items-center gap-1 rounded px-1',
-                pressed && 'opacity-50',
-              )
-            }
+            style={({ pressed }) => [
+              pressedStyle.pressable,
+              pressed && { opacity: 0.5 },
+            ]}
           >
             <Text
               variant={TextVariant.BodyMd}
@@ -143,7 +128,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         )}
       </Box>
     ),
-    [handleViewMore, tw],
+    [handleViewMore],
   );
 
   const flatData = useMemo<FlatListItem[]>(() => {
@@ -162,9 +147,8 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
           result.push({ type: 'skeleton', feedId, index: i });
         }
       } else {
-        const visibleItems = items.slice(0, MAX_ITEMS_PER_SECTION);
-        visibleItems.forEach((data) => {
-          result.push({ type: 'item', feedId, title, data });
+        items.slice(0, MAX_ITEMS_PER_SECTION).forEach((data, sectionIndex) => {
+          result.push({ type: 'item', feedId, title, data, sectionIndex });
         });
       }
     });
@@ -189,13 +173,13 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     networkFilter: 'all',
   });
 
-  const renderFooter = useMemo(() => {
-    if (searchQuery.length === 0) return null;
-    return <SitesSearchFooter searchQuery={searchQuery} />;
-  }, [searchQuery]);
+  const renderFooter =
+    searchQuery.length > 0 ? (
+      <SitesSearchFooter searchQuery={searchQuery} />
+    ) : null;
 
   const renderFlatItem: ListRenderItem<FlatListItem> = useCallback(
-    ({ item, index }) => {
+    ({ item }) => {
       if (item.type === 'header') {
         const section = sections.find((s) => s.feedId === item.feedId);
         if (!section) return null;
@@ -208,21 +192,20 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         <SearchFeedRow
           feedId={item.feedId}
           item={item.data}
-          index={index}
+          index={item.sectionIndex}
           searchQuery={searchQuery}
-          sectionTitle={item.title}
-          interactionType="result_clicked"
+          tabName="all"
         />
       );
     },
     [renderSectionHeader, sections, searchQuery],
   );
 
-  const keyExtractor = useCallback((item: FlatListItem, index: number) => {
+  const keyExtractor = useCallback((item: FlatListItem) => {
     if (item.type === 'header') return `header-${item.feedId}`;
     if (item.type === 'skeleton')
       return `skeleton-${item.feedId}-${item.index}`;
-    return `${item.feedId}-${index}`;
+    return `${item.feedId}-${getItemId(item.feedId, item.data)}`;
   }, []);
 
   return (

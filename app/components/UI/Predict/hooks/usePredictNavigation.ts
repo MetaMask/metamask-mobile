@@ -1,9 +1,17 @@
 import { StackActions, useNavigation } from '@react-navigation/native';
 import { useCallback } from 'react';
 import Routes from '../../../../constants/navigation/Routes';
-import { PredictBuyPreviewParams } from '../types/navigation';
+import {
+  PredictBuyPreviewParams,
+  PredictMarketDetailsParams,
+} from '../types/navigation';
 
 interface NavigateToBuyPreviewOptions {
+  throughRoot?: boolean;
+  replace?: boolean;
+}
+
+interface NavigateToMarketDetailsOptions {
   throughRoot?: boolean;
   replace?: boolean;
 }
@@ -32,5 +40,26 @@ export const usePredictNavigation = () => {
     [navigation],
   );
 
-  return { navigateToBuyPreview };
+  const navigateToMarketDetails = useCallback(
+    (
+      params: PredictMarketDetailsParams,
+      options?: NavigateToMarketDetailsOptions,
+    ) => {
+      if (options?.replace) {
+        navigation.dispatch(
+          StackActions.replace(Routes.PREDICT.MARKET_DETAILS, params),
+        );
+      } else if (options?.throughRoot) {
+        navigation.navigate(Routes.PREDICT.ROOT, {
+          screen: Routes.PREDICT.MARKET_DETAILS,
+          params,
+        });
+      } else {
+        navigation.navigate(Routes.PREDICT.MARKET_DETAILS, params);
+      }
+    },
+    [navigation],
+  );
+
+  return { navigateToBuyPreview, navigateToMarketDetails };
 };

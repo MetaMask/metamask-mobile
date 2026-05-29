@@ -62,7 +62,7 @@ const MoneyMoreSheet = () => {
   const options: MenuOption[] = [
     {
       label: strings('money.more_sheet.how_it_works'),
-      icon: IconName.Info,
+      icon: IconName.Book,
       onPress: handleHowItWorks,
       testID: MoneyMoreSheetTestIds.HOW_IT_WORKS_OPTION,
     },

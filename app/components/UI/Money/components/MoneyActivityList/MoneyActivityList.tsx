@@ -17,7 +17,7 @@ interface MoneyActivityListProps {
   moneyAddress?: string;
   onViewAllPress?: () => void;
   onHeaderPress?: () => void;
-  onItemPress?: () => void;
+  onItemPress?: (transactionId: string) => void;
 }
 
 const MoneyActivityList = ({

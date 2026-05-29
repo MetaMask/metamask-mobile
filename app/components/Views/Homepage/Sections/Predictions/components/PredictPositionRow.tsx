@@ -55,6 +55,7 @@ export const PredictPositionRow = ({
       onPress={handlePress}
       accessibilityRole="button"
       accessibilityLabel={`${title} - ${outcome}`}
+      testID={`predict-position-row-${position.id}`}
       style={tw.style('flex-row items-start px-4 py-3 gap-4')}
     >
       {position.icon ? (

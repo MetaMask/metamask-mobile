@@ -60,6 +60,11 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
       flex: 1,
     },
+    slippageValueRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
     infoIcon: {
       marginLeft: 0,
       padding: 10, // Increases touch target from 20x20 to 40x40 for better accessibility
@@ -70,6 +75,10 @@ const createStyles = (colors: Colors) =>
     infoSection: {
       paddingHorizontal: 16,
       borderRadius: 12,
+    },
+    infoSectionSpacer: {
+      flex: 1,
+      minHeight: 16,
     },
     infoRow: {
       flexDirection: 'row',
