@@ -126,9 +126,15 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       TransactionType.predictDeposit,
     ]);
 
+    const clearPendingPredictDeposit = useCallback(() => {
+      Engine.context.PredictController.clearPendingDeposit();
+    }, []);
+
     useClearConfirmationOnBackSwipe({
       rejectOnBeforeRemove: isPredictDeposit,
+      rejectOnBeforeRemoveWithoutGesture: isPredictDeposit,
       skipNavigationOnGestureEnd: isPredictDeposit,
+      onBeforeReject: isPredictDeposit ? clearPendingPredictDeposit : undefined,
     });
 
     const { canSelectWithdrawToken } = useTransactionPayWithdraw();
@@ -407,7 +413,8 @@ function ConfirmButton({
 }: Readonly<{ alertTitle: string | undefined; disableConfirm?: boolean }>) {
   const { styles } = useStyles(styleSheet, {});
   const { hasBlockingAlerts } = useAlerts();
-  const { isHeadlessBuyInProgress } = useConfirmationContext();
+  const { isHeadlessBuyInProgress, setIsConfirmationSubmitting } =
+    useConfirmationContext();
   const isLoading = useIsTransactionPayLoading();
   const { onConfirm } = useConfirmActions();
   const disabled =
@@ -416,6 +423,16 @@ function ConfirmButton({
     Boolean(disableConfirm) ||
     isHeadlessBuyInProgress;
   const buttonLabel = useButtonLabel();
+
+  const handleConfirm = useCallback(async () => {
+    setIsConfirmationSubmitting(true);
+    try {
+      await onConfirm();
+    } catch (error) {
+      setIsConfirmationSubmitting(false);
+      throw error;
+    }
+  }, [onConfirm, setIsConfirmationSubmitting]);
 
   return (
     <Button
@@ -426,7 +443,7 @@ function ConfirmButton({
       isDisabled={disabled}
       isLoading={isHeadlessBuyInProgress}
       loadingText={strings('confirm.preparing_order')}
-      onPress={() => onConfirm()}
+      onPress={handleConfirm}
       testID={ConfirmationFooterSelectorIDs.CONFIRM_BUTTON}
     >
       {alertTitle ?? buttonLabel}
