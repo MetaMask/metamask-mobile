@@ -1,0 +1,177 @@
+diff --git a/android/src/main/java/com/rivereactnative/RiveReactNativeView.kt b/android/src/main/java/com/rivereactnative/RiveReactNativeView.kt
+index 25746a8300c5c85889a263f8afeb703a08e834b0..5a1f97f3166d76aaebec5abd25997bd923ca11d0 100644
+--- a/android/src/main/java/com/rivereactnative/RiveReactNativeView.kt
++++ b/android/src/main/java/com/rivereactnative/RiveReactNativeView.kt
+@@ -993,13 +993,12 @@ class RiveReactNativeView(private val context: ThemedReactContext) : FrameLayout
+       return
+     }
+ 
+-    val queue = Volley.newRequestQueue(context)
+-
+-    val stringRequest = RNRiveFileRequest(
+-      url, listener
+-    ) { error -> handleURLAssetError(url, error, isUserHandlingErrors) }
+-
+-    queue.add(stringRequest)
++    val loader = ResourceLoaderFactory.getLoader(url, context)
++    loader.loadResource(
++      url,
++      listener,
++      { error -> handleURLAssetError(url, error, isUserHandlingErrors) }
++    )
+   }
+ 
+   private fun processAssetBytes(bytes: ByteArray, asset: FileAsset) {
+@@ -1220,3 +1219,62 @@ data class PropertyListener(
+   val propertyType: String,
+   val job: Job
+ )
++
++
++interface ResourceLoader {
++  fun loadResource(
++    url: String,
++    listener: Response.Listener<ByteArray>,
++    errorListener: Response.ErrorListener
++  )
++}
++
++// Standard Volley HTTP implementation
++class VolleyHttpLoader(private val context: ThemedReactContext) : ResourceLoader {
++  override fun loadResource(
++    url: String,
++    listener: Response.Listener<ByteArray>,
++    errorListener: Response.ErrorListener
++  ) {
++    // Use your existing RNRiveFileRequest for HTTP
++    val queue = Volley.newRequestQueue(context)
++
++    val request = RNRiveFileRequest(
++      url, listener, errorListener
++    )
++
++    queue.add(request)
++  }
++}
++
++// Direct file system implementation
++class FileSystemLoader : ResourceLoader {
++  override fun loadResource(
++    url: String,
++    listener: Response.Listener<ByteArray>,
++    errorListener: Response.ErrorListener
++  ) {
++    try {
++      // Extract file path from file:// URL
++      val filePath = url.substring(7) // Remove "file://"
++      val file = java.io.File(filePath)
++
++      // Read file directly
++      val data = file.readBytes()
++      listener.onResponse(data)
++    } catch (e: Exception) {
++      // Pretend the error came from Volley, which is how http URLs are loaded
++      errorListener.onErrorResponse(VolleyError(e))
++    }
++  }
++}
++
++// Factory class that returns the appropriate loader
++object ResourceLoaderFactory {
++  fun getLoader(url: String, context: ThemedReactContext): ResourceLoader {
++    return when {
++      url.startsWith("file://") -> FileSystemLoader()
++      else -> VolleyHttpLoader(context)
++    }
++  }
++}
+diff --git a/ios/RiveReactNativeView.swift b/ios/RiveReactNativeView.swift
+index 4a218ed11dc662b023554fe2e4ff54eb57a9d35f..348f798359b046201252b1b841b9f2fb8fe1d3e4 100644
+--- a/ios/RiveReactNativeView.swift
++++ b/ios/RiveReactNativeView.swift
+@@ -346,7 +346,7 @@ class RiveReactNativeView: RCTView, RivePlayerDelegate, RiveStateMachineDelegate
+       }
+       resourceName = nil
+       resourceFromBundle = false
+-      downloadUrlAsset(url: url) { [weak self] data in
++      loadUrlAsset(url: url) { [weak self] data in
+         guard let self = self else { return }
+         guard !data.isEmpty else {
+           handleRiveError(error: createIncorrectRiveURL(url))
+@@ -472,13 +472,13 @@ class RiveReactNativeView: RCTView, RivePlayerDelegate, RiveStateMachineDelegate
+             return
+         }
+         
+-        downloadUrlAsset(url: sourceAssetId) { [weak self] data in
++        loadUrlAsset(url: sourceAssetId) { [weak self] data in
+             self?.processAssetBytes(data, asset: asset, factory: factory)
+         }
+     }
+     
+     private func handleSourceUrl(_ sourceUrl: String, asset: RiveFileAsset, factory: RiveFactory) {
+-        downloadUrlAsset(url: sourceUrl) { [weak self] data in
++        loadUrlAsset(url: sourceUrl) { [weak self] data in
+             self?.processAssetBytes(data, asset: asset, factory: factory)
+         }
+     }
+@@ -516,22 +516,46 @@ class RiveReactNativeView: RCTView, RivePlayerDelegate, RiveStateMachineDelegate
+         }
+     }
+     
+-    private func downloadUrlAsset(url: String, listener: @escaping (Data) -> Void) {
++    private func loadUrlAsset(url: String, listener: @escaping (Data) -> Void) {
+         guard isValidUrl(url) else {
+             handleInvalidUrlError(url: url)
+             return
+         }
+         
+-        let queue = URLSession.shared
+-        guard let requestUrl = URL(string: url) else {
++        guard let assetUrl = URL(string: url) else {
+             handleInvalidUrlError(url: url)
+             return
+         }
+         
+-        let request = URLRequest(url: requestUrl)
++        if assetUrl.isFileURL {
++            loadFileUrlAsset(url: assetUrl, listener: listener)
++        } else {
++            loadRemoteUrlAsset(url: assetUrl, listener: listener)
++        }
++    }
++
++    private func loadFileUrlAsset(url: URL, listener: @escaping (Data) -> Void) {
++        DispatchQueue.global(qos: .background).async { [weak self] in
++            do {
++                let fileData = try Data(contentsOf: url)
++                DispatchQueue.main.async {
++                    listener(fileData)
++                }
++            } catch {
++                DispatchQueue.main.async {
++                    self?.handleInvalidUrlError(url: url.absoluteString)
++                }
++            }
++        }
++    }
++
++    private func loadRemoteUrlAsset(url: URL, listener: @escaping (Data) -> Void) {
++        let queue = URLSession.shared
++        let request = URLRequest(url: url)
++
+         let task = queue.dataTask(with: request) {[weak self] data, response, error in
+             if error != nil {
+-                self?.handleInvalidUrlError(url: url)
++                self?.handleInvalidUrlError(url: url.absoluteString)
+             } else if let data = data {
+                 listener(data)
+             }
+@@ -542,7 +566,7 @@ class RiveReactNativeView: RCTView, RivePlayerDelegate, RiveStateMachineDelegate
+     
+     private func isValidUrl(_ url: String) -> Bool {
+         if let url = URL(string: url) {
+-            return UIApplication.shared.canOpenURL(url)
++            return url.isFileURL || UIApplication.shared.canOpenURL(url)
+         } else {
+             return false
+         }
