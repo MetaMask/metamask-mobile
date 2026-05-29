@@ -14,6 +14,7 @@ describe(SmokeSnaps('WASM Snap Tests'), () => {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await loginToApp();
@@ -30,6 +31,7 @@ describe(SmokeSnaps('WASM Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.fillMessage('wasmInput', '23');

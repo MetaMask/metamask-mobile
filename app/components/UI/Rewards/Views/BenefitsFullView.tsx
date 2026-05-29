@@ -1,4 +1,8 @@
-import { Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  HeaderStandard,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import React, { useState } from 'react';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { strings } from '../../../../../locales/i18n';
@@ -12,7 +16,6 @@ import { useBenefits } from '../hooks/useBenefits.ts';
 import { SubscriptionBenefitDto } from '../../../../core/Engine/controllers/rewards-controller/types.ts';
 import BenefitCard from '../components/Benefits/BenefitCard.tsx';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import { useNavigation } from '@react-navigation/native';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import TheMiracleFooter from '../components/Benefits/TheMiracleFooter.tsx';
@@ -59,7 +62,7 @@ const BenefitsFullView = () => {
         style={tw.style('flex-1 bg-default')}
         testID={REWARDS_VIEW_SELECTORS.LIST_BENEFIT_VIEW}
       >
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('rewards.benefits.title')}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'header-back-button' }}

@@ -226,7 +226,7 @@ describe('ShareAddress', () => {
     // Arrange
     const rendered = render();
     const { root } = rendered;
-    const touchableOpacities = root.findAllByType(TouchableOpacity);
+    const touchableOpacities = root.findAllByType(TouchableOpacity as never);
     const backButton = touchableOpacities.find(
       (touchable) =>
         touchable.props.accessible === true && touchable.props.onPress,

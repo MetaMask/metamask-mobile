@@ -16,7 +16,7 @@ const setBookmarks = (bookmarks: { url: string; name: string }[]) => {
 describe('useBrowserFavoritesSites', () => {
   beforeEach(() => mockUseSelector.mockReset());
 
-  it('maps bookmarks to SiteData with prefixed URL and extracted display URL', () => {
+  it('maps bookmarks to SiteData with prefixed URL and full display URL', () => {
     setBookmarks([{ url: 'uniswap.org', name: 'Uniswap' }]);
     const { result } = renderHook(() => useBrowserFavoritesSites());
 
@@ -28,6 +28,16 @@ describe('useBrowserFavoritesSites', () => {
         displayUrl: 'uniswap.org',
         storedBookmarkUrl: 'uniswap.org',
       }),
+    );
+  });
+
+  it('shows full path in displayUrl for favorites', () => {
+    setBookmarks([
+      { url: 'https://app.uniswap.org/swap?chain=1', name: 'Uniswap' },
+    ]);
+    const { result } = renderHook(() => useBrowserFavoritesSites());
+    expect(result.current.data[0].displayUrl).toBe(
+      'app.uniswap.org/swap?chain=1',
     );
   });
 

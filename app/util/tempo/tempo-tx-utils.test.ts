@@ -200,8 +200,8 @@ describe('tempo-tx-utils', () => {
     it('return true for Tempo Mainnet', () => {
       expect(isTempoChain('0x1079')).toBe(true);
     });
-    it('return true for Tempo Moderato Testnet', () => {
-      expect(isTempoChain('0xa5bf')).toBe(true);
+    it('return false for Tempo Moderato Testnet', () => {
+      expect(isTempoChain('0xa5bf')).toBe(false);
     });
     it('return false for Polygon Mainnet', () => {
       expect(isTempoChain('0x89')).toBe(false);
@@ -215,11 +215,8 @@ describe('tempo-tx-utils', () => {
         gasFeeToken: '0x20c0000000000000000000000000000000000000',
       });
     });
-    it('return params for Tempo Moderato Testnet', () => {
-      expect(getTempoExtraOptionsForChain('0xa5bf')).toEqual({
-        excludeNativeTokenForFee: true,
-        gasFeeToken: '0x20c0000000000000000000000000000000000000',
-      });
+    it('return an empty object for Tempo Moderato Testnet', () => {
+      expect(getTempoExtraOptionsForChain('0xa5bf')).toEqual({});
     });
     it('return an empty object for Polygon Mainnet', () => {
       expect(getTempoExtraOptionsForChain('0x89')).toEqual({});

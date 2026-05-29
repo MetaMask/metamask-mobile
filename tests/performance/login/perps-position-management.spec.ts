@@ -1,7 +1,7 @@
 import { test } from '../../framework/fixture';
 
 import TimerHelper from '../../framework/TimerHelper';
-import { PerformancePreps } from '../../tags.performance.js';
+import { Performance, PerformancePreps } from '../../tags.performance.js';
 import {
   loginToAppPlaywright,
   selectAccountByDevice,
@@ -21,7 +21,7 @@ import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 import { asPlaywrightElement } from '../../framework/EncapsulatedElement';
 
 /* Scenario 5: Perps onboarding + add funds 10 USD ARB.USDC + Open Position + Close Position */
-test.describe(PerformancePreps, () => {
+test.describe(`${Performance} ${PerformancePreps}`, () => {
   test(
     'Perps open position and close it',
     { tag: '@mm-perps-engineering-team' },

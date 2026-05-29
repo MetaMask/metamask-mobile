@@ -18,7 +18,7 @@ interface HandleRewardsUrlParams {
 interface RewardsNavigationParams {
   referral?: string;
   page?: 'campaigns' | 'musd' | 'benefits';
-  campaign?: 'ondo' | 'season1';
+  campaign?: 'ondo' | 'season1' | 'perps-comp';
 }
 
 /**
@@ -34,7 +34,7 @@ const parseRewardsNavigationParams = (
   );
 
   const pageParam = urlParams.get('page');
-  const campaignParam = urlParams.get('campaign');
+  const campaignParam = urlParams.get('campaign') ?? urlParams.get('~campaign');
 
   return {
     referral:
@@ -43,7 +43,7 @@ const parseRewardsNavigationParams = (
     page: (['campaigns', 'musd', 'benefits'].includes(pageParam ?? '')
       ? pageParam
       : undefined) as RewardsNavigationParams['page'],
-    campaign: (['ondo', 'season1'].includes(campaignParam ?? '')
+    campaign: (['ondo', 'season1', 'perps-comp'].includes(campaignParam ?? '')
       ? campaignParam
       : undefined) as RewardsNavigationParams['campaign'],
   };

@@ -3,7 +3,10 @@ import { useSelector } from 'react-redux';
 import { prefixUrlWithProtocol } from '../../../../../util/browser';
 import { selectBrowserHistoryWithType } from '../../../../../selectors/browser';
 import type { SiteData } from '../../components/SiteRowItem/SiteRowItem';
-import { extractDisplayUrl } from '../useSiteData/useSitesData';
+import {
+  extractDisplayUrl,
+  extractFullDisplayUrl,
+} from '../useSiteData/useSitesData';
 
 const MAX_RECENT_SITES = 5;
 
@@ -29,7 +32,7 @@ const toSiteData = (entry: HistoryEntry, index: number): SiteData => {
     id: `browser-recent-${normalizeUrlKey(url)}-${index}`,
     name: entry.name?.trim() || extractDisplayUrl(url),
     url,
-    displayUrl: extractDisplayUrl(url),
+    displayUrl: extractFullDisplayUrl(url),
   };
 };
 

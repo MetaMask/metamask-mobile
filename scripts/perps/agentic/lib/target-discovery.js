@@ -94,8 +94,12 @@ async function discoverTarget(port) {
   let candidates = targets.filter(
     (t) =>
       t.webSocketDebuggerUrl &&
-      t.title &&
-      (/react/i.test(t.title) || /hermes/i.test(t.title)),
+      // Pre-RN-0.81 titles say "React Native"/"Hermes". RN 0.81+ Bridgeless
+      // titles are bundle-id-only (e.g. "io.metamask.MetaMask (mm-5)") and
+      // the runtime kind is in `description` instead.
+      ((t.title &&
+        (/react/i.test(t.title) || /hermes/i.test(t.title))) ||
+        /bridgeless|hermes/i.test(t.description || '')),
   );
 
   // Filter by device name if IOS_SIMULATOR is set
@@ -167,8 +171,12 @@ async function discoverAllTargets(port) {
   const candidates = (targets || []).filter(
     (t) =>
       t.webSocketDebuggerUrl &&
-      t.title &&
-      (/react/i.test(t.title) || /hermes/i.test(t.title)),
+      // Pre-RN-0.81 titles say "React Native"/"Hermes". RN 0.81+ Bridgeless
+      // titles are bundle-id-only (e.g. "io.metamask.MetaMask (mm-5)") and
+      // the runtime kind is in `description` instead.
+      ((t.title &&
+        (/react/i.test(t.title) || /hermes/i.test(t.title))) ||
+        /bridgeless|hermes/i.test(t.description || '')),
   );
 
   // Sort by page number descending (JS runtime has higher page number)

@@ -22,10 +22,12 @@ import { getOrdersProviders } from '../../../../../../reducers/fiatOrders';
 import { selectRampsOrdersForSelectedAccountGroup } from '../../../../../../selectors/rampsController';
 import { completedOrdersFromRampsOrders } from '../../../utils/determinePreferredProvider';
 import { providerSupportsAsset } from '../../../utils/providerSupportsAsset';
+import { parseUserFacingError } from '../../../utils/parseUserFacingError';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './ProviderSelectionModal.styles';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { strings } from '../../../../../../../locales/i18n';
 
 export interface ProviderSelectionModalParams {
   amount?: number;
@@ -184,7 +186,14 @@ function ProviderSelectionModal() {
           providers={displayProviders}
           quotes={quotes}
           quotesLoading={quotesLoading}
-          quotesError={quotesError}
+          quotesError={
+            quotesError
+              ? parseUserFacingError(
+                  quotesError,
+                  strings('fiat_on_ramp.no_quotes_available'),
+                )
+              : null
+          }
           showQuotes={!skipQuotes && amount > 0 && !!selectedPaymentMethod}
           showBackButton={hasPaymentModalInStack}
           ordersProviders={ordersProviders.filter(

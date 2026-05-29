@@ -29,11 +29,11 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  HeaderStandard,
   IconName,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './BuildQuote.styles';
@@ -69,6 +69,7 @@ import {
 
 import TruncatedError from '../../components/TruncatedError';
 import { PROVIDER_LINKS } from '../../Aggregator/types';
+import { failSession } from '../../headless/sessionRegistry';
 const BAILED_ORDER_STATUSES = new Set<RampsOrderStatus>([
   RampsOrderStatus.Precreated,
   RampsOrderStatus.IdExpired,
@@ -159,10 +160,24 @@ function BuildQuote() {
 
   useEffect(() => {
     if (params?.nativeFlowError) {
+      if (
+        params.headlessSessionId &&
+        failSession(
+          params.headlessSessionId,
+          {
+            code: 'AUTH_FAILED',
+            message: params.nativeFlowError,
+          },
+          'AUTH_FAILED',
+        )
+      ) {
+        navigation.setParams({ nativeFlowError: undefined });
+        return;
+      }
       setRampsError(params.nativeFlowError);
       navigation.setParams({ nativeFlowError: undefined });
     }
-  }, [params?.nativeFlowError, navigation]);
+  }, [params?.headlessSessionId, params?.nativeFlowError, navigation]);
 
   const {
     userRegion,
@@ -443,6 +458,7 @@ function BuildQuote() {
     loading: selectedQuoteLoading,
     error: quoteFetchError,
   } = useRampsQuotes(quoteFetchEnabled ? quoteFetchParams : null);
+  const hasQuoteFetchError = quoteFetchError !== null;
 
   /*
    * Tracks RAMPS_QUOTE_ERROR
@@ -450,7 +466,7 @@ function BuildQuote() {
   const lastTrackedQuoteErrorRef = useRef<unknown>(null);
   useEffect(() => {
     if (
-      quoteFetchError &&
+      hasQuoteFetchError &&
       quoteFetchError !== lastTrackedQuoteErrorRef.current
     ) {
       lastTrackedQuoteErrorRef.current = quoteFetchError;
@@ -472,10 +488,11 @@ function BuildQuote() {
           .build(),
       );
     }
-    if (!quoteFetchError) {
+    if (!hasQuoteFetchError) {
       lastTrackedQuoteErrorRef.current = null;
     }
   }, [
+    hasQuoteFetchError,
     quoteFetchError,
     amountAsNumber,
     currency,
@@ -627,6 +644,9 @@ function BuildQuote() {
         assetId: selectedToken?.assetId ?? '',
       });
     } catch (err) {
+      if (failSession(params?.headlessSessionId, err)) {
+        return;
+      }
       setRampsError((err as Error).message);
     } finally {
       setIsContinueLoading(false);
@@ -642,6 +662,7 @@ function BuildQuote() {
     selectedPaymentMethod?.id,
     rampRoutingDecision,
     userRegion?.regionCode,
+    params?.headlessSessionId,
     trackEvent,
     createEventBuilder,
     continueWithQuote,
@@ -657,7 +678,7 @@ function BuildQuote() {
     hasAmount &&
     hasSettledQuoteAmount &&
     !selectedQuoteLoading &&
-    !quoteFetchError &&
+    !hasQuoteFetchError &&
     quotesResponse !== null &&
     selectedQuote === null;
 
@@ -737,7 +758,7 @@ function BuildQuote() {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <HeaderCompactStandard
+        <HeaderStandard
           title={
             selectedToken?.symbol
               ? strings('fiat_on_ramp.buy', { ticker: selectedToken.symbol })
@@ -810,12 +831,12 @@ function BuildQuote() {
                 onPress={
                   isTokenUnavailable ? undefined : handlePaymentPillPress
                 }
-                testID="build-quote-payment-pill"
+                testID={BUILD_QUOTE_TEST_IDS.PAYMENT_PILL}
               />
             </View>
           </View>
 
-          {quoteFetchError && (
+          {hasQuoteFetchError ? (
             <BannerAlert
               severity={BannerAlertSeverity.Error}
               description={parseUserFacingError(
@@ -823,7 +844,7 @@ function BuildQuote() {
                 strings('deposit.buildQuote.quoteFetchError'),
               )}
             />
-          )}
+          ) : null}
 
           <View style={styles.actionSection}>
             {hasAmount ? (

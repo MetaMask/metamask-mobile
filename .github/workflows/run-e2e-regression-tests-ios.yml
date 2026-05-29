@@ -9,6 +9,14 @@ on:
         description: 'Send Slack notification even when all tests pass'
         type: boolean
         default: false
+      runner_provider:
+        description: Runner provider for this manual trial run
+        required: true
+        type: choice
+        options:
+          - current
+          - namespace
+        default: current
 
 permissions:
   contents: read
@@ -23,6 +31,8 @@ jobs:
       contents: read
       id-token: write
     uses: ./.github/workflows/build-ios-e2e.yml
+    with:
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   regression-confirmations-ios:
@@ -39,6 +49,7 @@ jobs:
       test_suite_tag: 'RegressionConfirmations'
       split_number: ${{ matrix.split }}
       total_splits: 4
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   regression-trade-ios:
@@ -55,6 +66,7 @@ jobs:
       test_suite_tag: 'RegressionTrade'
       split_number: ${{ matrix.split }}
       total_splits: 4
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   regression-wallet-platform-ios:
@@ -71,6 +83,7 @@ jobs:
       test_suite_tag: 'RegressionWalletPlatform'
       split_number: ${{ matrix.split }}
       total_splits: 4
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   regression-accounts-ios:
@@ -87,6 +100,7 @@ jobs:
       test_suite_tag: 'RegressionAccounts'
       split_number: ${{ matrix.split }}
       total_splits: 4
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   regression-network-abstraction-ios:
@@ -103,6 +117,7 @@ jobs:
       test_suite_tag: 'RegressionNetworkAbstractions'
       split_number: ${{ matrix.split }}
       total_splits: 4
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   regression-network-expansion-ios:
@@ -119,6 +134,7 @@ jobs:
       test_suite_tag: 'RegressionNetworkExpansion'
       split_number: ${{ matrix.split }}
       total_splits: 4
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   regression-assets-ios:
@@ -135,6 +151,7 @@ jobs:
       test_suite_tag: 'RegressionAssets'
       split_number: ${{ matrix.split }}
       total_splits: 2
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   regression-ux-ios:
@@ -151,11 +168,12 @@ jobs:
       test_suite_tag: 'RegressionWalletUX'
       split_number: ${{ matrix.split }}
       total_splits: 1
+      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   report-ios-regression-tests:
     name: Report iOS Regression Tests
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
     if: always()
     needs:
       - regression-confirmations-ios
@@ -168,10 +186,23 @@ jobs:
       - regression-ux-ios
 
     steps:
+      - name: Checkout (Namespace)
+        uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
+
       - name: Checkout
         uses: actions/checkout@v4
+        if: ${{ inputs.runner_provider != 'namespace' }}
 
-      - name: Download shards test artifacts (XMLs + Screenshots)
+      - name: Download shards test artifacts (XMLs + Screenshots) (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
+        continue-on-error: true
+        with:
+          path: all-test-artifacts/
+          pattern: '*-ios-*-test-*'
+      - name: Download shards test artifacts (XMLs + Screenshots) (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
         uses: actions/download-artifact@v4
         continue-on-error: true
         with:
@@ -188,12 +219,22 @@ jobs:
           list-suites: 'failed'
           list-tests: 'failed'
 
-      - name: Upload all test artifacts (XMLs + Screenshots)
+      - name: Upload all test artifacts (XMLs + Screenshots) (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        continue-on-error: true
+        with:
+          name: e2e-regression-ios-all-test-artifacts
+          path: all-test-artifacts/
+          retention-days: 7
+      - name: Upload all test artifacts (XMLs + Screenshots) (current)
+        if: ${{ inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         continue-on-error: true
         with:
           name: e2e-regression-ios-all-test-artifacts
           path: all-test-artifacts/
+          retention-days: 7
 
       - name: Generate Test Summary
         id: summary

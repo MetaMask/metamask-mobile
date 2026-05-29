@@ -47,7 +47,9 @@ import { renderShortText } from '../../../util/general';
 import { prefixUrlWithProtocol } from '../../../util/browser';
 import { formatTimestampToYYYYMMDD } from '../../../util/date';
 import MAX_TOKEN_ID_LENGTH from './nftDetails.utils';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { InitSendLocation } from '../confirmations/constants/send';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 
 const NftDetails = () => {
@@ -528,6 +530,12 @@ const NftDetails = () => {
             </Text>
           ) : null}
 
+          <NftDetailsInformationRow
+            title={strings('collectible.collection')}
+            value={collectible.collection?.name}
+            titleStyle={styles.informationRowTitleStyle}
+            valueStyle={styles.informationRowValueStyle}
+          />
           <NftDetailsInformationRow
             title={strings('nft_details.unique_token_holders')}
             value={collectible.collection?.ownerCount}

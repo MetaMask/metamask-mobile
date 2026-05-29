@@ -1,6 +1,6 @@
 import { parseUnits } from 'ethers/lib/utils';
 import { PredictPositionStatus, type PredictPosition } from '../../../types';
-import { MIN_COLLATERAL_BALANCE_FOR_CLAIM } from '../constants';
+import { MIN_PUSD_BALANCE_FOR_CLAIM_GAS } from '../constants';
 import { POLYMARKET_V2_PROTOCOL } from '../protocol/definitions';
 import { planClaim, getClaimRequirements } from './claim';
 import { getRawTokenBalance } from './core';
@@ -67,7 +67,7 @@ const signer = {
 };
 
 const gasStationThresholdRaw = BigInt(
-  parseUnits(MIN_COLLATERAL_BALANCE_FOR_CLAIM.toString(), 6).toString(),
+  parseUnits(MIN_PUSD_BALANCE_FOR_CLAIM_GAS.toString(), 6).toString(),
 );
 
 describe('preflight workflow planners', () => {
@@ -109,7 +109,20 @@ describe('preflight workflow planners', () => {
     );
   });
 
-  it('builds claim transactions as repairs, wrap, adapter claim, then exact-deficit unwrap', async () => {
+  it('builds deposit maintenance allowance repairs even without legacy balance', async () => {
+    mockGetRawTokenBalance.mockResolvedValueOnce(0n);
+
+    const plan = await planDepositMaintenance({
+      protocol: POLYMARKET_V2_PROTOCOL,
+      safeAddress: '0x1111111111111111111111111111111111111111',
+    });
+
+    expect(plan.transactions.map((transaction) => transaction.to)).toEqual([
+      '0x1000000000000000000000000000000000000000',
+    ]);
+  });
+
+  it('builds claim transactions as repairs, wrap, adapter claim, then exact pUSD gas transfer', async () => {
     mockGetRawTokenBalance.mockResolvedValueOnce(10n).mockResolvedValueOnce(0n);
 
     const plan = await planClaim({
@@ -119,12 +132,12 @@ describe('preflight workflow planners', () => {
       safeAddress: '0x9999999999999999999999999999999999999999',
     });
 
-    expect(plan.gasStationDeficit).toBe(gasStationThresholdRaw);
+    expect(plan.gasTokenDeficit).toBe(gasStationThresholdRaw);
     expect(plan.transactions.map((transaction) => transaction.to)).toEqual([
       '0x1000000000000000000000000000000000000000',
       POLYMARKET_V2_PROTOCOL.collateral.onrampAddress,
       POLYMARKET_V2_PROTOCOL.claim.standardTarget,
-      POLYMARKET_V2_PROTOCOL.collateral.offrampAddress,
+      POLYMARKET_V2_PROTOCOL.collateral.tradingToken,
     ]);
   });
 
@@ -181,27 +194,7 @@ describe('preflight workflow planners', () => {
     );
   });
 
-  it('builds withdraw fallback as repairs, optional unwrap, then usdce transfer', async () => {
-    mockGetRawTokenBalance
-      .mockResolvedValueOnce(1_000_000n)
-      .mockResolvedValueOnce(1_000_000n);
-
-    const plan = await planWithdraw({
-      protocol: POLYMARKET_V2_PROTOCOL,
-      signer,
-      safeAddress: '0x9999999999999999999999999999999999999999',
-      requestedAmountRaw: BigInt(parseUnits('2', 6).toString()),
-      mode: 'usdce-deficit-unwrap',
-    });
-
-    expect(plan.transactions.map((transaction) => transaction.to)).toEqual([
-      '0x1000000000000000000000000000000000000000',
-      POLYMARKET_V2_PROTOCOL.collateral.offrampAddress,
-      POLYMARKET_V2_PROTOCOL.collateral.legacyUsdceToken,
-    ]);
-  });
-
-  it('builds withdraw preferred mode as repairs followed by pusd transfer', async () => {
+  it('builds withdraw as repairs, wrap, then pUSD transfer', async () => {
     mockGetRawTokenBalance.mockResolvedValueOnce(1_000_000n);
 
     const plan = await planWithdraw({
@@ -209,7 +202,23 @@ describe('preflight workflow planners', () => {
       signer,
       safeAddress: '0x9999999999999999999999999999999999999999',
       requestedAmountRaw: BigInt(parseUnits('2', 6).toString()),
-      mode: 'pusd-transfer',
+    });
+
+    expect(plan.transactions.map((transaction) => transaction.to)).toEqual([
+      '0x1000000000000000000000000000000000000000',
+      POLYMARKET_V2_PROTOCOL.collateral.onrampAddress,
+      POLYMARKET_V2_PROTOCOL.collateral.tradingToken,
+    ]);
+  });
+
+  it('builds withdraw allowance repairs even without legacy balance', async () => {
+    mockGetRawTokenBalance.mockResolvedValueOnce(0n);
+
+    const plan = await planWithdraw({
+      protocol: POLYMARKET_V2_PROTOCOL,
+      signer,
+      safeAddress: '0x9999999999999999999999999999999999999999',
+      requestedAmountRaw: BigInt(parseUnits('2', 6).toString()),
     });
 
     expect(plan.transactions.map((transaction) => transaction.to)).toEqual([

@@ -2,9 +2,13 @@ import {
   SignTypedDataVersion,
   type TypedMessageParams,
 } from '@metamask/keyring-controller';
-import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
+import {
+  CHAIN_IDS,
+  TransactionType,
+  type TransactionMeta,
+} from '@metamask/transaction-controller';
 import { Hex, numberToHex } from '@metamask/utils';
-import { getAddress, parseUnits } from 'ethers/lib/utils';
+import { getAddress, Interface, parseUnits } from 'ethers/lib/utils';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../../util/Logger';
 import { analytics } from '../../../../../util/analytics/analytics';
@@ -17,6 +21,8 @@ import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
 import { filterSupportedLeagues } from '../../constants/sports';
 import { SERIES_MAX_EVENTS } from '../../utils/series';
 import {
+  CryptoPriceHistoryPoint,
+  GetCryptoPriceHistoryParams,
   GetPriceHistoryParams,
   GetCryptoTargetPriceParams,
   GetPriceParams,
@@ -35,6 +41,8 @@ import {
 } from '../../types';
 import {
   AccountState,
+  BeforeSignClaimParams,
+  BeforeSignClaimResult,
   ClaimOrderParams,
   ClaimOrderResponse,
   ConnectionStatus,
@@ -44,7 +52,9 @@ import {
   GetAccountStateParams,
   GetBalanceParams,
   GetMarketsParams,
+  GetMarketsResult,
   GetPositionsParams,
+  OrderbookCallback,
   OrderPreview,
   OrderResult,
   PlaceOrderParams,
@@ -55,36 +65,34 @@ import {
   PrepareWithdrawResponse,
   PreviewOrderParams,
   PriceUpdateCallback,
+  PublishClaimParams,
+  PublishClaimResult,
+  SearchMarketsParams,
   Signer,
   SignWithdrawParams,
   SignWithdrawResponse,
 } from '../types';
 import {
-  MIN_COLLATERAL_BALANCE_FOR_CLAIM,
+  COLLATERAL_TOKEN_DECIMALS,
   ORDER_RATE_LIMIT_MS,
   POLYGON_MAINNET_CHAIN_ID,
   POLYMARKET_PROVIDER_ID,
   SAFE_EXEC_GAS_LIMIT,
 } from './constants';
-import { PERMIT2_ADDRESS } from './safe/constants';
 import {
   computeProxyAddress,
   createPermit2FeeAuthorization,
-  createSafeFeeAuthorization,
-  getClaimTransaction,
-  getDeployProxyWalletTransaction,
-  getProxyWalletAllowancesTransaction,
-  getSafeUsdcAmount,
-  getSafeUsdcAmountRaw,
-  getWithdrawTransactionCallData,
-  hasAllowances,
+  getSafeTransferAmount,
+  getSafeTransferAmountRaw,
 } from './safe/utils';
-import { Permit2FeeAuthorization, SafeFeeAuthorization } from './safe/types';
+import { Permit2FeeAuthorization } from './safe/types';
 import {
   ApiKeyCreds,
   OrderType,
+  SignatureType,
   PolymarketApiActivity,
   PolymarketApiEvent,
+  PolymarketApiEventsKeysetResponse,
   PolymarketApiTeam,
   PolymarketPosition,
 } from './types';
@@ -94,18 +102,18 @@ import {
   fetchEventsFromPolymarketApi,
   fetchCarouselFromPolymarketApi,
   getBalance,
-  getContractConfig,
   getL2Headers,
   fetchChildEventsFromGammaApi,
   getMarketDetailsFromGammaApi,
-  mergeChildEventsIntoParent,
-  getOrderTypedData,
+  getOrderBook,
   getPolymarketEndpoints,
+  getRawBalance,
+  mergeChildEventsIntoParent,
   parsePolymarketActivity,
   parsePolymarketEvents,
   parsePolymarketPositions,
   previewOrder,
-  submitClobOrder,
+  searchEventsFromPolymarketApi,
 } from './utils';
 import { PredictFeatureFlags } from '../../types/flags';
 import {
@@ -117,23 +125,37 @@ import { GameCache } from './GameCache';
 import { TeamsCache } from './TeamsCache';
 import { WebSocketManager } from './WebSocketManager';
 import {
-  getProtocolDepositTokenAddress,
   getProtocolWithdrawTokenAddress,
-  resolvePolymarketProtocol,
+  POLYMARKET_V2_PROTOCOL,
   type PolymarketProtocolDefinition,
 } from './protocol/definitions';
 import {
   buildProtocolUnsignedOrder,
   getPreviewFeeRateBpsForProtocol,
-  getProtocolOrderTypedData,
   getProtocolVerifyingContract,
   serializeProtocolRelayerOrder,
+  signProtocolOrder,
 } from './protocol/orderCodec';
 import { submitProtocolClobOrder } from './protocol/transport';
-import { buildClaimTransaction } from './preflight/claim';
+import {
+  buildClaimTransaction,
+  planDepositWalletClaim,
+} from './preflight/claim';
 import { buildDepositMaintenanceTransaction } from './preflight/deposit';
+import { planDepositWalletPreflight } from './preflight/depositWallet';
+import { buildLegacySafeMigrationSweepTransaction } from './preflight/legacySafeMigration';
 import { buildTradeAllowancesTx } from './preflight/trade';
 import { buildWithdrawTransaction } from './preflight/withdraw';
+import {
+  deriveDepositWalletAddress,
+  executeDepositWalletBatch,
+  getDepositWalletRelayerTransactionId,
+  requestDepositWalletCreate,
+  syncDepositWalletCollateralBalanceAllowance,
+  toDepositWalletCalls,
+  waitForDepositWalletDeployed,
+  waitForDepositWalletTransaction,
+} from './depositWallet';
 
 export type SignTypedMessageFn = (
   params: TypedMessageParams,
@@ -160,6 +182,81 @@ interface OptimisticPositionUpdate {
   positionId?: string;
 }
 
+const ERC20_TRANSFER_INTERFACE = new Interface([
+  'function transfer(address to, uint256 value)',
+]);
+
+type ChainlinkCandleInterval = '1m' | '5m' | '15m' | '1h';
+
+/**
+ * The Polymarket Chainlink-candles endpoint accepts a hard allowlist of
+ * `limit` values — exactly 15, 30, or 60. Sending any other value returns a
+ * 400 with `{"error":"limit must be one of 15, 30, or 60"}`. The variant
+ * configs below MUST stick to this allowlist or the sparkline goes blank.
+ */
+type ChainlinkCandleLimit = 15 | 30 | 60;
+
+interface ChainlinkCandle {
+  time?: number;
+  close?: number;
+}
+
+interface ChainlinkCandlesResponse {
+  candles?: ChainlinkCandle[];
+}
+
+const DEFAULT_CHAINLINK_CANDLE_CONFIG: {
+  interval: ChainlinkCandleInterval;
+  limit: ChainlinkCandleLimit;
+} = {
+  interval: '1m',
+  limit: 60,
+};
+
+const CHAINLINK_CANDLE_CONFIG_BY_VARIANT: Record<
+  string,
+  { interval: ChainlinkCandleInterval; limit: ChainlinkCandleLimit }
+> = {
+  fiveminute: { interval: '1m', limit: 15 },
+  fifteen: { interval: '1m', limit: 30 },
+  hourly: { interval: '1m', limit: 60 },
+  fourhour: { interval: '5m', limit: 60 },
+  daily: { interval: '1h', limit: 30 },
+};
+
+const toUnixSeconds = (timestamp?: string): number | undefined => {
+  const trimmedTimestamp = timestamp?.trim();
+  if (!trimmedTimestamp) {
+    return undefined;
+  }
+
+  const numericTimestamp = Number(trimmedTimestamp);
+  if (Number.isFinite(numericTimestamp)) {
+    return numericTimestamp > 9999999999
+      ? Math.floor(numericTimestamp / 1000)
+      : Math.floor(numericTimestamp);
+  }
+
+  const timeMs = new Date(trimmedTimestamp).getTime();
+  if (!Number.isFinite(timeMs)) {
+    return undefined;
+  }
+
+  return Math.floor(timeMs / 1000);
+};
+
+const isWithinWindow = ({
+  timestamp,
+  startSeconds,
+  endSeconds,
+}: {
+  timestamp: number;
+  startSeconds?: number;
+  endSeconds?: number;
+}) =>
+  (startSeconds === undefined || timestamp >= startSeconds) &&
+  (endSeconds === undefined || timestamp <= endSeconds);
+
 export class PolymarketProvider implements PredictProvider {
   readonly providerId = POLYMARKET_PROVIDER_ID;
   readonly name = 'Polymarket';
@@ -168,6 +265,7 @@ export class PolymarketProvider implements PredictProvider {
 
   #apiKeysByProtocolAddress: Map<string, ApiKeyCreds> = new Map();
   #accountStateByAddress: Map<string, AccountState> = new Map();
+  #safeAddressesWithZeroLegacyUsdceBalance = new Set<string>();
   #lastBuyOrderTimestampByAddress: Map<string, number> = new Map();
   #buyOrderInProgressByAddress: Map<string, boolean> = new Map();
   #optimisticPositionUpdatesByAddress = new Map<
@@ -183,6 +281,38 @@ export class PolymarketProvider implements PredictProvider {
     getFeatureFlags: () => PredictFeatureFlags;
   }) {
     this.#getFeatureFlags = getFeatureFlags;
+  }
+
+  #getAccountStateCacheKey(ownerAddress: string): string {
+    return getAddress(ownerAddress).toLowerCase();
+  }
+
+  #getCachedAccountState(ownerAddress: string): AccountState | undefined {
+    return this.#accountStateByAddress.get(
+      this.#getAccountStateCacheKey(ownerAddress),
+    );
+  }
+
+  #setCachedAccountState(
+    ownerAddress: string,
+    accountState: AccountState,
+  ): void {
+    this.#accountStateByAddress.set(
+      this.#getAccountStateCacheKey(ownerAddress),
+      accountState,
+    );
+  }
+
+  public invalidateAccountState(ownerAddress: string): void {
+    try {
+      this.#accountStateByAddress.delete(
+        this.#getAccountStateCacheKey(ownerAddress),
+      );
+    } catch (error) {
+      DevLogger.log('PolymarketProvider: Failed to invalidate account state', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
   }
 
   #getSupportedLeagues(): PredictSportsLeague[] {
@@ -227,6 +357,38 @@ export class PolymarketProvider implements PredictProvider {
         TeamsCache.getInstance().ensureTeamsLoaded(league, abbreviations),
       ),
     );
+  }
+
+  async #parseEventsToMarkets({
+    events,
+    category,
+    filterEmptyOutcomes = false,
+  }: {
+    events: PolymarketApiEvent[];
+    category: PredictCategory;
+    filterEmptyOutcomes?: boolean;
+  }): Promise<PredictMarket[]> {
+    const supportedLeagues = this.#getSupportedLeagues();
+    const liveSportsEnabled = supportedLeagues.length > 0;
+
+    await this.#ensureTeamsLoadedForEvents(events, supportedLeagues);
+
+    const teamLookup = this.#createTeamLookup(liveSportsEnabled);
+
+    let markets = parsePolymarketEvents(events, {
+      category,
+      sortMarketsBy: 'price',
+      teamLookup,
+      extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
+    });
+
+    if (filterEmptyOutcomes) {
+      markets = markets.filter((m) => m.outcomes.length > 0);
+    }
+
+    return liveSportsEnabled
+      ? GameCache.getInstance().overlayOnMarkets(markets)
+      : markets;
   }
 
   /**
@@ -324,7 +486,36 @@ export class PolymarketProvider implements PredictProvider {
   }
 
   #getProtocol(): PolymarketProtocolDefinition {
-    return resolvePolymarketProtocol(this.#getFeatureFlags());
+    return POLYMARKET_V2_PROTOCOL;
+  }
+
+  #getLegacyUsdceBalanceCacheKey(safeAddress: string): string {
+    return getAddress(safeAddress).toLowerCase();
+  }
+
+  async #getLegacyUsdceBalance({
+    safeAddress,
+    protocol,
+  }: {
+    safeAddress: string;
+    protocol: PolymarketProtocolDefinition;
+  }): Promise<bigint> {
+    const cacheKey = this.#getLegacyUsdceBalanceCacheKey(safeAddress);
+
+    if (this.#safeAddressesWithZeroLegacyUsdceBalance.has(cacheKey)) {
+      return 0n;
+    }
+
+    const balance = await getRawBalance({
+      address: safeAddress,
+      tokenAddress: protocol.collateral.legacyUsdceToken,
+    });
+
+    if (balance === 0n) {
+      this.#safeAddressesWithZeroLegacyUsdceBalance.add(cacheKey);
+    }
+
+    return balance;
   }
 
   #pickExecutor(executors: string[]): string {
@@ -340,12 +531,14 @@ export class PolymarketProvider implements PredictProvider {
     fakOrdersEnabled,
     permit2FeeReady,
     permit2AllowanceReady,
+    manualFeeCollectionSupported = true,
   }: {
     preview: OrderPreview;
     feeCollection: PredictFeatureFlags['feeCollection'];
     fakOrdersEnabled: boolean;
     permit2FeeReady: boolean;
     permit2AllowanceReady: boolean;
+    manualFeeCollectionSupported?: boolean;
   }): OrderType {
     if (
       !this.#shouldUseFakOrderType({
@@ -359,7 +552,11 @@ export class PolymarketProvider implements PredictProvider {
 
     const hasFees = preview.fees !== undefined && preview.fees.totalFee > 0;
 
-    if (!hasFees || (permit2FeeReady && permit2AllowanceReady)) {
+    if (
+      !hasFees ||
+      !manualFeeCollectionSupported ||
+      (permit2FeeReady && permit2AllowanceReady)
+    ) {
       return OrderType.FAK;
     }
 
@@ -391,213 +588,57 @@ export class PolymarketProvider implements PredictProvider {
     throw new Error(error ?? PREDICT_ERROR_CODES.PLACE_ORDER_FAILED);
   }
 
-  async #submitOrderV1({
+  async #submitOrder({
     signer,
     preview,
     protocol,
   }: {
     signer: Signer;
     preview: OrderPreview;
-    protocol: Extract<PolymarketProtocolDefinition, { key: 'v1' }>;
+    protocol: PolymarketProtocolDefinition;
   }) {
-    const chainId = POLYGON_MAINNET_CHAIN_ID;
-    const makerAddress =
-      this.#accountStateByAddress.get(signer.address)?.address ??
-      computeProxyAddress(signer.address);
-
-    if (!makerAddress) {
-      throw new Error('Maker address not found');
-    }
-
-    const order = buildProtocolUnsignedOrder({
+    const accountState = await this.getAccountState({
+      ownerAddress: signer.address,
+    });
+    const isDepositWallet = accountState.walletType === 'deposit-wallet';
+    const tradingWalletAddress = accountState.address;
+    const verifyingContract = getProtocolVerifyingContract({
       protocol,
-      preview,
-      makerAddress,
-      signerAddress: signer.address,
+      negRisk: preview.negRisk,
     });
 
-    const typedData = getOrderTypedData({
-      order,
-      chainId,
-      verifyingContract:
-        getContractConfig(chainId)[
-          preview.negRisk ? 'negRiskExchange' : 'exchange'
-        ],
-    });
-
-    const signature = await signer.signTypedMessage(
-      { data: typedData, from: signer.address },
-      SignTypedDataVersion.V4,
-    );
-
-    const signedOrder = {
-      ...order,
-      signature,
-    };
-    const signerApiKey = await this.getApiKey({
-      address: signer.address,
-      protocol,
-    });
-    const { feeCollection, fakOrdersEnabled } = this.#getFeatureFlags();
-    const shouldUsePermit2 = this.#hasPermit2Config({
-      permit2Enabled: preview.fees?.permit2Enabled,
-      executors: preview.fees?.executors,
-    });
-
-    let feeAuthorization:
-      | SafeFeeAuthorization
-      | Permit2FeeAuthorization
-      | undefined;
-    let executor: string | undefined;
-    let permit2FeeReady = false;
-
-    if (preview.fees !== undefined && preview.fees.totalFee > 0) {
-      const safeAddress = computeProxyAddress(signer.address);
-      const feeAmountInUsdc = BigInt(
-        parseUnits(preview.fees.totalFee.toString(), 6).toString(),
-      );
-
-      if (shouldUsePermit2) {
-        permit2FeeReady = true;
-        executor = this.#pickExecutor(preview.fees.executors ?? []);
-        feeAuthorization = await createPermit2FeeAuthorization({
-          safeAddress,
-          signer,
-          amount: feeAmountInUsdc,
-          spender: executor,
-        });
-      } else {
-        feeAuthorization = await createSafeFeeAuthorization({
-          safeAddress,
-          signer,
-          amount: feeAmountInUsdc,
-          to: preview.fees.collector,
-        });
-      }
-    }
-
-    let allowancesTx: { to: string; data: string } | undefined;
-    let permit2AllowanceReady = false;
-    const hasSafeFeeAuth = feeAuthorization !== undefined && !permit2FeeReady;
-
-    if (feeCollection.permit2Enabled && !hasSafeFeeAuth) {
-      try {
-        const accountState = await this.getAccountState({
-          ownerAddress: signer.address,
-        });
-
-        if (accountState.hasAllowances) {
-          permit2AllowanceReady = true;
-        } else {
-          const allowanceTx = await getProxyWalletAllowancesTransaction({
-            signer,
-            extraUsdcSpenders: [PERMIT2_ADDRESS],
-          });
-
-          allowancesTx = allowanceTx.params;
-          permit2AllowanceReady = true;
-        }
-      } catch (allowanceError) {
-        DevLogger.log(
-          'PolymarketProvider: Failed to generate allowances transaction',
-          { error: allowanceError },
-        );
-        Logger.error(
-          allowanceError instanceof Error
-            ? allowanceError
-            : new Error(String(allowanceError)),
-          this.getErrorContext('placeOrder:allowancesTx', {
-            operation: 'generate_allowances_tx',
-          }),
-        );
-      }
-    }
-
-    const orderType = this.#getPlaceOrderType({
-      preview,
-      feeCollection,
-      fakOrdersEnabled,
-      permit2FeeReady,
-      permit2AllowanceReady,
-    });
-
-    const clobOrder = serializeProtocolRelayerOrder({
-      signedOrder,
-      owner: signerApiKey.apiKey,
-      orderType,
-      side: preview.side,
-    });
-    const body = JSON.stringify(clobOrder);
-    const headers = await getL2Headers({
-      l2HeaderArgs: {
-        method: 'POST',
-        requestPath: `/order`,
-        body,
-      },
-      address: clobOrder.order.signer ?? '',
-      apiKey: signerApiKey,
-    });
-
-    const orderResult = await submitClobOrder({
-      headers,
-      clobOrder,
-      feeAuthorization,
-      executor,
-      allowancesTx,
-    });
-
-    if (!orderResult.success) {
-      DevLogger.log('PolymarketProvider: Place order failed', {
-        error: orderResult.error,
-        errorDetails: undefined,
-        side: preview.side,
-        outcomeTokenId: preview.outcomeTokenId,
-      });
-      this.#throwPlaceOrderError({
-        error: orderResult.error,
-        side: preview.side,
+    let depositWalletSetupUpdatedState = false;
+    if (isDepositWallet) {
+      depositWalletSetupUpdatedState = await this.ensureDepositWalletReady({
+        ownerAddress: signer.address,
+        depositWalletAddress: tradingWalletAddress,
+        protocol,
+        getSigner: () => signer,
+        operation: 'deposit_wallet_order_preflight',
       });
     }
-
-    return orderResult.response;
-  }
-
-  async #submitOrderV2({
-    signer,
-    preview,
-    protocol,
-  }: {
-    signer: Signer;
-    preview: OrderPreview;
-    protocol: Extract<PolymarketProtocolDefinition, { key: 'v2' }>;
-  }) {
-    const safeAddress =
-      this.#accountStateByAddress.get(signer.address)?.address ??
-      computeProxyAddress(signer.address);
 
     const order = buildProtocolUnsignedOrder({
       protocol,
       preview: {
         ...preview,
-        feeRateBps: getPreviewFeeRateBpsForProtocol({ protocol, preview }),
+        feeRateBps: getPreviewFeeRateBpsForProtocol(),
       },
-      makerAddress: safeAddress,
-      signerAddress: getAddress(signer.address),
+      makerAddress: tradingWalletAddress,
+      signerAddress: isDepositWallet
+        ? tradingWalletAddress
+        : getAddress(signer.address),
+      signatureType: isDepositWallet
+        ? SignatureType.POLY_1271
+        : SignatureType.POLY_GNOSIS_SAFE,
     });
 
-    const typedData = getProtocolOrderTypedData({
+    const signature = await signProtocolOrder({
+      signer,
       protocol,
       order,
-      verifyingContract: getProtocolVerifyingContract({
-        protocol,
-        negRisk: preview.negRisk,
-      }),
+      verifyingContract,
     });
-
-    const signature = await signer.signTypedMessage(
-      { data: typedData, from: signer.address },
-      SignTypedDataVersion.V4,
-    );
 
     const signedOrder = {
       ...order,
@@ -605,13 +646,23 @@ export class PolymarketProvider implements PredictProvider {
     };
     const signerApiKey = await this.getApiKey({
       address: signer.address,
-      protocol,
     });
+
+    if (isDepositWallet && depositWalletSetupUpdatedState) {
+      await this.syncDepositWalletBalanceAllowanceForOrderIfNeeded({
+        protocol,
+        signerAddress: signer.address,
+        apiKey: signerApiKey,
+      });
+    }
+
     const { feeCollection, fakOrdersEnabled } = this.#getFeatureFlags();
-    const shouldUsePermit2 = this.#hasPermit2Config({
-      permit2Enabled: preview.fees?.permit2Enabled,
-      executors: preview.fees?.executors,
-    });
+    const shouldUsePermit2 =
+      !isDepositWallet &&
+      this.#hasPermit2Config({
+        permit2Enabled: preview.fees?.permit2Enabled,
+        executors: preview.fees?.executors,
+      });
 
     let feeAuthorization: Permit2FeeAuthorization | undefined;
     let executor: string | undefined;
@@ -627,7 +678,7 @@ export class PolymarketProvider implements PredictProvider {
       );
       executor = this.#pickExecutor(preview.fees.executors ?? []);
       feeAuthorization = await createPermit2FeeAuthorization({
-        safeAddress,
+        safeAddress: tradingWalletAddress,
         signer,
         amount: feeAmount,
         spender: executor,
@@ -639,27 +690,53 @@ export class PolymarketProvider implements PredictProvider {
     let allowancesTx: { to: string; data: string } | undefined;
     let permit2AllowanceReady = false;
 
-    try {
-      allowancesTx = await buildTradeAllowancesTx({
-        signer,
-        safeAddress,
-        protocol,
-      });
-      permit2AllowanceReady = true;
-    } catch (allowanceError) {
-      DevLogger.log(
-        'PolymarketProvider: Failed to generate v2 allowances transaction',
-        { error: allowanceError },
+    if (isDepositWallet) {
+      const legacySafeAddress = computeProxyAddress(signer.address);
+      const legacySafeDeployed = await isSmartContractAddress(
+        legacySafeAddress,
+        numberToHex(POLYGON_MAINNET_CHAIN_ID),
       );
-      Logger.error(
-        allowanceError instanceof Error
-          ? allowanceError
-          : new Error(String(allowanceError)),
-        this.getErrorContext('placeOrder:v2AllowancesTx', {
-          operation: 'generate_allowances_tx_v2',
-        }),
-      );
-      throw new Error('Failed to prepare v2 trade preflight');
+
+      if (legacySafeDeployed) {
+        const sweepTransaction = await buildLegacySafeMigrationSweepTransaction(
+          {
+            signer,
+            legacySafeAddress,
+            depositWalletAddress: tradingWalletAddress,
+            protocol,
+          },
+        );
+
+        allowancesTx = sweepTransaction?.params;
+      }
+    } else {
+      try {
+        const safeLegacyUsdceBalance = await this.#getLegacyUsdceBalance({
+          safeAddress: tradingWalletAddress,
+          protocol,
+        });
+        allowancesTx = await buildTradeAllowancesTx({
+          signer,
+          safeAddress: tradingWalletAddress,
+          protocol,
+          safeUsdceBalance: safeLegacyUsdceBalance,
+        });
+        permit2AllowanceReady = true;
+      } catch (allowanceError) {
+        DevLogger.log(
+          'PolymarketProvider: Failed to generate v2 allowances transaction',
+          { error: allowanceError },
+        );
+        Logger.error(
+          allowanceError instanceof Error
+            ? allowanceError
+            : new Error(String(allowanceError)),
+          this.getErrorContext('placeOrder:v2AllowancesTx', {
+            operation: 'generate_allowances_tx_v2',
+          }),
+        );
+        throw new Error('Failed to prepare v2 trade preflight');
+      }
     }
 
     const orderType = this.#getPlaceOrderType({
@@ -668,6 +745,7 @@ export class PolymarketProvider implements PredictProvider {
       fakOrdersEnabled,
       permit2FeeReady,
       permit2AllowanceReady,
+      manualFeeCollectionSupported: !isDepositWallet,
     });
 
     const clobOrder = serializeProtocolRelayerOrder({
@@ -683,7 +761,7 @@ export class PolymarketProvider implements PredictProvider {
         requestPath: `/order`,
         body,
       },
-      address: clobOrder.order.signer ?? '',
+      address: signer.address,
       apiKey: signerApiKey,
     });
 
@@ -697,7 +775,7 @@ export class PolymarketProvider implements PredictProvider {
     });
 
     if (!orderResult.success) {
-      DevLogger.log('PolymarketProvider: Place order V2 failed', {
+      DevLogger.log('PolymarketProvider: Place order failed', {
         error: orderResult.error,
         errorDetails: undefined,
         side: preview.side,
@@ -824,12 +902,10 @@ export class PolymarketProvider implements PredictProvider {
 
   private async getApiKey({
     address,
-    protocol,
   }: {
     address: string;
-    protocol: Pick<PolymarketProtocolDefinition, 'key' | 'transport'>;
   }): Promise<ApiKeyCreds> {
-    const cacheKey = `${protocol.key}:${protocol.transport.clobBaseUrl}:${address}`;
+    const cacheKey = address;
     const cachedApiKey = this.#apiKeysByProtocolAddress.get(cacheKey);
     if (cachedApiKey) {
       return cachedApiKey;
@@ -837,9 +913,6 @@ export class PolymarketProvider implements PredictProvider {
 
     const apiKeyCreds = await createApiKey({
       address,
-      clobVersion: protocol.key,
-      clobBaseUrl:
-        protocol.key === 'v2' ? protocol.transport.clobBaseUrl : undefined,
     });
     this.#apiKeysByProtocolAddress.set(cacheKey, apiKeyCreds);
     return apiKeyCreds;
@@ -858,35 +931,19 @@ export class PolymarketProvider implements PredictProvider {
     return elapsed < ORDER_RATE_LIMIT_MS;
   }
 
-  public async getMarkets(params?: GetMarketsParams): Promise<PredictMarket[]> {
+  public async getMarkets(
+    params?: GetMarketsParams,
+  ): Promise<GetMarketsResult> {
     try {
-      const supportedLeagues = this.#getSupportedLeagues();
-      const liveSportsEnabled = supportedLeagues.length > 0;
-
-      // Step 1: Fetch raw events from API
-      const { events, category, isSearch } =
+      const { events, category, nextCursor } =
         await fetchEventsFromPolymarketApi(params);
 
-      // Step 2: If live sports enabled, extract needed teams and fetch only those
-      await this.#ensureTeamsLoadedForEvents(events, supportedLeagues);
-
-      // Step 3: Create team lookup and parse events
-      const teamLookup = this.#createTeamLookup(liveSportsEnabled);
-
-      const parsedMarkets = parsePolymarketEvents(events, {
+      const markets = await this.#parseEventsToMarkets({
+        events,
         category,
-        sortMarketsBy: 'price',
-        teamLookup,
-        extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
       });
 
-      const markets = isSearch
-        ? parsedMarkets.filter((m) => m.outcomes.length > 0)
-        : parsedMarkets;
-
-      return liveSportsEnabled
-        ? GameCache.getInstance().overlayOnMarkets(markets)
-        : markets;
+      return { markets, nextCursor };
     } catch (error) {
       DevLogger.log('Error getting markets via Polymarket API:', error);
 
@@ -894,13 +951,47 @@ export class PolymarketProvider implements PredictProvider {
         error instanceof Error ? error : new Error(String(error)),
         this.getErrorContext('getMarkets', {
           category: params?.category,
-          status: params?.status,
-          sortBy: params?.sortBy,
-          hasSearchQuery: !!params?.q,
+          hasAfterCursor: Boolean(params?.afterCursor),
         }),
       );
 
-      return [];
+      return { markets: [], nextCursor: null };
+    }
+  }
+
+  public async searchMarkets(
+    params: SearchMarketsParams,
+  ): Promise<{ markets: PredictMarket[]; totalResults: number }> {
+    const query = params.q.trim();
+
+    if (!query) {
+      return { markets: [], totalResults: 0 };
+    }
+
+    try {
+      const { events, totalResults } = await searchEventsFromPolymarketApi({
+        ...params,
+        q: query,
+      });
+
+      const markets = await this.#parseEventsToMarkets({
+        events,
+        category: PolymarketProvider.FALLBACK_CATEGORY,
+        filterEmptyOutcomes: true,
+      });
+
+      return { markets, totalResults };
+    } catch (error) {
+      DevLogger.log('Error searching markets via Polymarket API:', error);
+
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('searchMarkets', {
+          hasSearchQuery: Boolean(query),
+        }),
+      );
+
+      return { markets: [], totalResults: 0 };
     }
   }
 
@@ -921,16 +1012,23 @@ export class PolymarketProvider implements PredictProvider {
       });
 
       const response = await fetch(
-        `${GAMMA_API_ENDPOINT}/events?${queryParams.toString()}`,
+        `${GAMMA_API_ENDPOINT}/events/keyset?${queryParams.toString()}`,
       );
 
       if (!response.ok) {
         throw new Error('Failed to fetch series events');
       }
 
-      const events = (await response.json()) as PolymarketApiEvent[];
+      const responseData =
+        (await response.json()) as PolymarketApiEventsKeysetResponse;
 
-      if (!Array.isArray(events) || events.length === 0) {
+      if (!Array.isArray(responseData.events)) {
+        throw new Error('Malformed keyset series events response');
+      }
+
+      const events = responseData.events;
+
+      if (events.length === 0) {
         return [];
       }
 
@@ -1086,6 +1184,104 @@ export class PolymarketProvider implements PredictProvider {
     }
   }
 
+  public async getCryptoPriceHistory(
+    params: GetCryptoPriceHistoryParams,
+  ): Promise<CryptoPriceHistoryPoint[]> {
+    const { symbol, eventStartTime, variant, endDate } = params;
+
+    try {
+      const normalizedSymbol = symbol.trim().toUpperCase();
+      if (!normalizedSymbol) {
+        throw new Error('symbol parameter is required');
+      }
+
+      const { CHAINLINK_CANDLES_ENDPOINT } = getPolymarketEndpoints();
+      const { interval, limit } =
+        CHAINLINK_CANDLE_CONFIG_BY_VARIANT[variant] ??
+        DEFAULT_CHAINLINK_CANDLE_CONFIG;
+      const startSeconds = toUnixSeconds(eventStartTime);
+      const endSeconds = toUnixSeconds(endDate);
+      const searchParams = new URLSearchParams({
+        symbol: normalizedSymbol,
+        interval,
+        limit: String(limit),
+      });
+
+      const response = await fetch(
+        `${CHAINLINK_CANDLES_ENDPOINT}?${searchParams.toString()}`,
+        { method: 'GET' },
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to get crypto price history');
+      }
+
+      const data = (await response.json()) as ChainlinkCandlesResponse;
+
+      if (!Array.isArray(data?.candles)) {
+        return [];
+      }
+
+      const validCandles = data.candles.filter(
+        (entry): entry is { time: number; close: number } =>
+          typeof entry?.time === 'number' &&
+          Number.isFinite(entry.time) &&
+          typeof entry?.close === 'number' &&
+          Number.isFinite(entry.close),
+      );
+
+      const candlesInWindow = validCandles.filter((entry) =>
+        isWithinWindow({
+          timestamp: entry.time,
+          startSeconds,
+          endSeconds,
+        }),
+      );
+
+      if (
+        validCandles.length > 0 &&
+        candlesInWindow.length === 0 &&
+        (typeof startSeconds === 'number' || typeof endSeconds === 'number')
+      ) {
+        DevLogger.log(
+          'Predict crypto up/down: Chainlink candles response returned data but every candle was filtered out by the requested window. The window is likely older than limit * interval.',
+          {
+            symbol: normalizedSymbol,
+            variant,
+            interval,
+            limit,
+            startSeconds,
+            endSeconds,
+            firstCandleSeconds: validCandles[0]?.time,
+            lastCandleSeconds: validCandles[validCandles.length - 1]?.time,
+          },
+        );
+      }
+
+      return candlesInWindow.map((entry) => ({
+        timestamp: entry.time,
+        value: entry.close,
+      }));
+    } catch (error) {
+      DevLogger.log(
+        'Error getting crypto price history via Polymarket Chainlink candles API:',
+        error,
+      );
+
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('getCryptoPriceHistory', {
+          symbol,
+          eventStartTime,
+          variant,
+          endDate,
+        } as Record<string, unknown>),
+      );
+
+      throw error;
+    }
+  }
+
   public async getCryptoTargetPrice(
     params: GetCryptoTargetPriceParams,
   ): Promise<number | null> {
@@ -1100,7 +1296,7 @@ export class PolymarketProvider implements PredictProvider {
 
       const data: unknown = await response.json();
       const parsed = data as { openPrice?: number } | undefined;
-      if (typeof parsed?.openPrice !== 'number') {
+      if (typeof parsed?.openPrice !== 'number' || parsed.openPrice <= 0) {
         throw new Error('Crypto target price API returned unexpected shape');
       }
       return parsed.openPrice;
@@ -1586,7 +1782,9 @@ export class PolymarketProvider implements PredictProvider {
       throw new Error('Address is required');
     }
 
-    const predictAddress = computeProxyAddress(address);
+    const predictAddress =
+      this.#getCachedAccountState(address)?.address ??
+      (await this.getAccountState({ ownerAddress: address })).address;
 
     const queryParams = new URLSearchParams({
       limit: limit.toString(),
@@ -1607,20 +1805,33 @@ export class PolymarketProvider implements PredictProvider {
       queryParams.set('eventId', marketId);
     }
 
-    const response = await fetch(
-      `${DATA_API_ENDPOINT}/positions?${queryParams.toString()}`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+    const positionsUrl = `${DATA_API_ENDPOINT}/positions?${queryParams.toString()}`;
+    const response = await fetch(positionsUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
       },
-    );
+    });
 
     if (!response.ok) {
       throw new Error('Failed to get positions');
     }
-    const positionsData = (await response.json()) as PolymarketPosition[];
+    const positionsText = await response.text();
+    let positionsData: PolymarketPosition[];
+    try {
+      positionsData = JSON.parse(positionsText) as PolymarketPosition[];
+    } catch (parseError) {
+      const snippet = positionsText.slice(0, 200).replace(/\s+/gu, ' ');
+      DevLogger.log('PolymarketProvider: non-JSON positions response', {
+        url: positionsUrl,
+        status: response.status,
+        contentType: response.headers.get('content-type'),
+        bodySnippet: snippet,
+      });
+      throw new Error(
+        `Polymarket positions returned non-JSON (status ${response.status}): ${snippet}`,
+      );
+    }
 
     const teamLookup = this.#createTeamLookup(
       this.#getSupportedLeagues().length > 0,
@@ -1656,7 +1867,7 @@ export class PolymarketProvider implements PredictProvider {
 
     try {
       const predictAddress =
-        this.#accountStateByAddress.get(address)?.address ??
+        this.#getCachedAccountState(address)?.address ??
         (await this.getAccountState({ ownerAddress: address })).address;
 
       const queryParams = new URLSearchParams({
@@ -1702,7 +1913,7 @@ export class PolymarketProvider implements PredictProvider {
     const { DATA_API_ENDPOINT } = getPolymarketEndpoints();
 
     const predictAddress =
-      this.#accountStateByAddress.get(address)?.address ??
+      this.#getCachedAccountState(address)?.address ??
       (await this.getAccountState({ ownerAddress: address })).address;
 
     const response = await fetch(
@@ -1734,20 +1945,13 @@ export class PolymarketProvider implements PredictProvider {
     },
   ): Promise<OrderPreview> {
     const { feeCollection, fakOrdersEnabled } = this.#getFeatureFlags();
-    const protocol = this.#getProtocol();
     const basePreview = await previewOrder({
       ...params,
       feeCollection,
-      isV2: protocol.key === 'v2',
-      clobBaseUrl:
-        protocol.key === 'v2' ? protocol.transport.clobBaseUrl : undefined,
     });
     const normalizedPreview = {
       ...basePreview,
-      feeRateBps: getPreviewFeeRateBpsForProtocol({
-        protocol,
-        preview: basePreview,
-      }),
+      feeRateBps: getPreviewFeeRateBpsForProtocol(),
     };
 
     let orderType = OrderType.FOK;
@@ -1829,18 +2033,11 @@ export class PolymarketProvider implements PredictProvider {
 
     try {
       const protocol = this.#getProtocol();
-      const orderResponse =
-        protocol.key === 'v2'
-          ? await this.#submitOrderV2({
-              signer,
-              preview,
-              protocol,
-            })
-          : await this.#submitOrderV1({
-              signer,
-              preview,
-              protocol,
-            });
+      const orderResponse = await this.#submitOrder({
+        signer,
+        preview,
+        protocol,
+      });
 
       if (side === Side.BUY) {
         this.#lastBuyOrderTimestampByAddress.set(signer.address, Date.now());
@@ -1934,66 +2131,32 @@ export class PolymarketProvider implements PredictProvider {
         throw new Error('Signer address is required for claim');
       }
 
-      // Get safe address from cache or fetch it
-      let safeAddress: string | undefined;
+      let safeAddress: Hex;
       try {
-        safeAddress =
-          this.#accountStateByAddress.get(signer.address)?.address ??
-          computeProxyAddress(signer.address);
+        safeAddress = computeProxyAddress(signer.address);
       } catch (error) {
         throw new Error(
-          `Failed to retrieve account state: ${
+          `Failed to compute safe address: ${
             error instanceof Error ? error.message : 'Unknown error'
           }`,
         );
       }
 
-      if (!safeAddress) {
-        throw new Error('Safe address not found for claim');
-      }
-
-      if (protocol.key === 'v2') {
-        const claimTransaction = await buildClaimTransaction({
-          signer,
-          positions,
-          safeAddress,
-          protocol,
-        });
-
-        return {
-          chainId: POLYGON_MAINNET_CHAIN_ID,
-          transactions: [claimTransaction],
-        };
-      }
-
-      const signerBalance = await getBalance({ address: signer.address });
-      const includeTransferTransaction =
-        signerBalance < MIN_COLLATERAL_BALANCE_FOR_CLAIM;
-
-      // Generate claim transaction
-      let claimTransaction;
-      try {
-        claimTransaction = await getClaimTransaction({
-          signer,
-          positions,
-          safeAddress,
-          includeTransferTransaction,
-        });
-      } catch (error) {
-        throw new Error(
-          `Failed to generate claim transaction: ${
-            error instanceof Error ? error.message : 'Unknown error'
-          }`,
-        );
-      }
-
-      if (!claimTransaction || claimTransaction.length === 0) {
-        throw new Error('No claim transaction generated');
-      }
+      const safeLegacyUsdceBalance = await this.#getLegacyUsdceBalance({
+        safeAddress,
+        protocol,
+      });
+      const claimTransaction = await buildClaimTransaction({
+        signer,
+        positions,
+        safeAddress,
+        protocol,
+        safeLegacyUsdceBalance,
+      });
 
       return {
         chainId: POLYGON_MAINNET_CHAIN_ID,
-        transactions: claimTransaction,
+        transactions: [claimTransaction],
       };
     } catch (error) {
       // Log error for debugging
@@ -2006,6 +2169,165 @@ export class PolymarketProvider implements PredictProvider {
       // Re-throw with clear error message
       throw error;
     }
+  }
+
+  public async beforeSignClaim({
+    transactionMeta,
+    signer,
+    positions,
+  }: BeforeSignClaimParams): Promise<BeforeSignClaimResult | undefined> {
+    if (!positions || positions.length === 0) {
+      throw new Error('No claimable positions found for claim signing');
+    }
+
+    const accountState = await this.getAccountState({
+      ownerAddress: signer.address,
+    });
+
+    if (accountState.walletType !== 'deposit-wallet') {
+      return undefined;
+    }
+
+    DevLogger.log('PolymarketProvider: Deposit wallet claim beforeSign', {
+      operation: 'deposit_wallet_claim_before_sign',
+      walletType: 'deposit-wallet',
+      signerAddress: signer.address,
+      depositWalletAddress: accountState.address,
+      transactionId: transactionMeta.id,
+      positionCount: positions.length,
+    });
+
+    return {
+      updateTransaction: (transaction: TransactionMeta) => {
+        transaction.isExternalSign = true;
+        transaction.selectedGasFeeToken = undefined;
+        transaction.isGasFeeTokenIgnoredIfBalance = false;
+        delete transaction.txParams.nonce;
+      },
+    };
+  }
+
+  public async publishClaim({
+    transactionMeta,
+    signer,
+    positions,
+  }: PublishClaimParams): Promise<PublishClaimResult> {
+    if (!positions || positions.length === 0) {
+      throw new Error('No claimable positions found for claim publish');
+    }
+
+    const protocol = this.#getProtocol();
+    const accountState = await this.getAccountState({
+      ownerAddress: signer.address,
+    });
+
+    if (accountState.walletType !== 'deposit-wallet') {
+      return { transactionHash: undefined };
+    }
+
+    if (transactionMeta.isExternalSign !== true) {
+      throw new Error(
+        'Deposit wallet claim publish requires external-sign transaction',
+      );
+    }
+
+    try {
+      const calls = await planDepositWalletClaim({
+        positions,
+        walletAddress: accountState.address,
+        protocol,
+      });
+
+      DevLogger.log(
+        'PolymarketProvider: Deposit wallet claim publish started',
+        {
+          operation: 'deposit_wallet_claim_publish',
+          walletType: 'deposit-wallet',
+          signerAddress: signer.address,
+          depositWalletAddress: accountState.address,
+          transactionId: transactionMeta.id,
+          positionCount: positions.length,
+          callCount: calls.length,
+        },
+      );
+
+      const executeResponse = await executeDepositWalletBatch({
+        signer,
+        walletAddress: accountState.address,
+        calls,
+      });
+      const transactionID =
+        getDepositWalletRelayerTransactionId(executeResponse);
+
+      if (!transactionID) {
+        throw new Error(
+          'Polymarket deposit wallet claim response missing transactionID',
+        );
+      }
+
+      const transactionHash = await waitForDepositWalletTransaction({
+        transactionID,
+      });
+
+      DevLogger.log(
+        'PolymarketProvider: Deposit wallet claim publish submitted',
+        {
+          operation: 'deposit_wallet_claim_publish',
+          walletType: 'deposit-wallet',
+          signerAddress: signer.address,
+          depositWalletAddress: accountState.address,
+          transactionId: transactionMeta.id,
+          relayerTransactionID: transactionID,
+          positionCount: positions.length,
+          callCount: calls.length,
+          transactionHash,
+        },
+      );
+
+      return { transactionHash };
+    } catch (error) {
+      DevLogger.log('PolymarketProvider: Deposit wallet claim publish failed', {
+        operation: 'deposit_wallet_claim_publish',
+        walletType: 'deposit-wallet',
+        signerAddress: signer.address,
+        depositWalletAddress: accountState.address,
+        transactionId: transactionMeta.id,
+        positionCount: positions.length,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('publishClaim', {
+          operation: 'deposit_wallet_claim_publish',
+          walletType: 'deposit-wallet',
+          positionCount: positions.length,
+        }),
+      );
+
+      throw error;
+    }
+  }
+
+  private async syncDepositWalletBalanceAllowanceForSignerIfNeeded({
+    signerAddress,
+  }: {
+    signerAddress: string;
+  }): Promise<void> {
+    const accountState = await this.getAccountState({
+      ownerAddress: signerAddress,
+    });
+
+    if (accountState.walletType !== 'deposit-wallet') {
+      return;
+    }
+
+    const apiKey = await this.getApiKey({ address: signerAddress });
+    await syncDepositWalletCollateralBalanceAllowance({
+      protocol: this.#getProtocol(),
+      signerAddress,
+      apiKey,
+    });
   }
 
   public confirmClaim({
@@ -2023,6 +2345,26 @@ export class PolymarketProvider implements PredictProvider {
         outcomeTokenId: position.outcomeTokenId,
         marketId: position.marketId,
       });
+    });
+
+    this.syncDepositWalletBalanceAllowanceForSignerIfNeeded({
+      signerAddress: signer.address,
+    }).catch((error) => {
+      DevLogger.log(
+        'PolymarketProvider: Deposit wallet claim balance-allowance sync failed',
+        {
+          operation: 'deposit_wallet_claim_balance_allowance_sync',
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
+      );
+
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('confirmClaim', {
+          operation: 'deposit_wallet_claim_balance_allowance_sync',
+          walletType: 'deposit-wallet',
+        }),
+      );
     });
   }
 
@@ -2081,7 +2423,7 @@ export class PolymarketProvider implements PredictProvider {
       throw new Error('Signer address is required for deposit preparation');
     }
 
-    const depositTokenAddress = getProtocolDepositTokenAddress(protocol);
+    const depositTokenAddress = protocol.collateral.tradingToken;
 
     if (!depositTokenAddress) {
       throw new Error('Collateral contract address not configured');
@@ -2099,56 +2441,50 @@ export class PolymarketProvider implements PredictProvider {
       throw new Error('Account address not found in account state');
     }
 
-    if (!accountState.isDeployed) {
-      const deployTransaction = await getDeployProxyWalletTransaction({
-        signer,
+    const buildDepositTransferTransaction = (toAddress: string) => {
+      const depositTransactionCallData = generateTransferData('transfer', {
+        toAddress,
+        amount: '0x0',
       });
 
-      if (!deployTransaction) {
-        throw new Error('Failed to get deploy proxy wallet transaction params');
+      if (!depositTransactionCallData) {
+        throw new Error(
+          'Failed to generate transfer data for deposit transaction',
+        );
       }
 
-      if (!deployTransaction.params?.to || !deployTransaction.params?.data) {
-        throw new Error('Invalid deploy transaction: missing params');
-      }
-
-      transactions.push(deployTransaction);
-
-      // Set user trait for Polymarket account creation via MetaMask
-      this.setPolymarketAccountCreatedTrait();
-    }
-
-    const depositTransactionCallData = generateTransferData('transfer', {
-      toAddress: accountState.address,
-      amount: '0x0',
-    });
-
-    if (!depositTransactionCallData) {
-      throw new Error(
-        'Failed to generate transfer data for deposit transaction',
-      );
-    }
-
-    const depositTransaction = {
-      params: {
-        to: depositTokenAddress as Hex,
-        data: depositTransactionCallData as Hex,
-      },
-      type: TransactionType.predictDeposit,
+      return {
+        params: {
+          to: depositTokenAddress as Hex,
+          data: depositTransactionCallData as Hex,
+        },
+        type: TransactionType.predictDeposit,
+      };
     };
 
-    if (protocol.key === 'v2') {
-      transactions.push(depositTransaction);
+    if (accountState.walletType === 'deposit-wallet') {
+      const legacySafeAddress = computeProxyAddress(signer.address);
+      const legacySafeDeployed = await isSmartContractAddress(
+        legacySafeAddress,
+        numberToHex(POLYGON_MAINNET_CHAIN_ID),
+      );
 
-      const maintenanceTransaction = await buildDepositMaintenanceTransaction({
-        signer,
-        safeAddress: accountState.address,
-        protocol,
-      });
+      if (legacySafeDeployed) {
+        const sweepTransaction = await buildLegacySafeMigrationSweepTransaction(
+          {
+            signer,
+            legacySafeAddress,
+            depositWalletAddress: accountState.address,
+            protocol,
+          },
+        );
 
-      if (maintenanceTransaction) {
-        transactions.push(maintenanceTransaction);
+        if (sweepTransaction) {
+          transactions.push(sweepTransaction);
+        }
       }
+
+      transactions.push(buildDepositTransferTransaction(accountState.address));
 
       return {
         chainId: CHAIN_IDS.POLYGON,
@@ -2156,31 +2492,28 @@ export class PolymarketProvider implements PredictProvider {
       };
     }
 
-    if (!accountState.hasAllowances) {
-      const { feeCollection: depositFeeCollection } = this.#getFeatureFlags();
-      const extraUsdcSpenders = depositFeeCollection.permit2Enabled
-        ? [PERMIT2_ADDRESS]
-        : [];
-      const allowanceTransaction = await getProxyWalletAllowancesTransaction({
-        signer,
-        extraUsdcSpenders,
-      });
-
-      if (!allowanceTransaction) {
-        throw new Error('Failed to get proxy wallet allowances transaction');
-      }
-
-      if (
-        !allowanceTransaction.params?.to ||
-        !allowanceTransaction.params?.data
-      ) {
-        throw new Error('Invalid allowance transaction: missing params');
-      }
-
-      transactions.push(allowanceTransaction);
+    if (!accountState.isDeployed) {
+      throw new Error(
+        'Legacy Safe account state must be deployed for deposits',
+      );
     }
 
-    transactions.push(depositTransaction);
+    transactions.push(buildDepositTransferTransaction(accountState.address));
+
+    const preExistingSafeUsdceBalance = await this.#getLegacyUsdceBalance({
+      safeAddress: accountState.address,
+      protocol,
+    });
+    const maintenanceTransaction = await buildDepositMaintenanceTransaction({
+      signer,
+      safeAddress: accountState.address,
+      protocol,
+      preExistingSafeUsdceBalance,
+    });
+
+    if (maintenanceTransaction) {
+      transactions.push(maintenanceTransaction);
+    }
 
     return {
       chainId: CHAIN_IDS.POLYGON,
@@ -2188,21 +2521,57 @@ export class PolymarketProvider implements PredictProvider {
     };
   }
 
+  async #hasPolymarketActivity({
+    address,
+  }: {
+    address: string;
+  }): Promise<boolean> {
+    const { DATA_API_ENDPOINT } = getPolymarketEndpoints();
+    const queryParams = new URLSearchParams({
+      user: address,
+      limit: '1',
+    });
+    const response = await fetch(
+      `${DATA_API_ENDPOINT}/activity?${queryParams.toString()}`,
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch Polymarket activity');
+    }
+
+    const activityRaw: unknown = await response.json();
+
+    if (!Array.isArray(activityRaw)) {
+      throw new Error('Polymarket activity response must be an array');
+    }
+
+    return activityRaw.length > 0;
+  }
+
   public async getAccountState(
     params: GetAccountStateParams,
   ): Promise<AccountState> {
     try {
-      const { ownerAddress } = params;
+      const { ownerAddress, forceRefresh } = params;
 
       if (!ownerAddress) {
         throw new Error('Owner address is required');
       }
 
-      // Get or compute safe address
-      const cachedAddress = this.#accountStateByAddress.get(ownerAddress);
-      let address: string;
+      const normalizedOwnerAddress = getAddress(ownerAddress);
+
+      if (!forceRefresh) {
+        const cachedAccountState = this.#getCachedAccountState(
+          normalizedOwnerAddress,
+        );
+        if (cachedAccountState) {
+          return cachedAccountState;
+        }
+      }
+
+      let legacySafeAddress: Hex;
       try {
-        address = cachedAddress?.address ?? computeProxyAddress(ownerAddress);
+        legacySafeAddress = computeProxyAddress(normalizedOwnerAddress);
       } catch (error) {
         throw new Error(
           `Failed to compute safe address: ${
@@ -2211,40 +2580,41 @@ export class PolymarketProvider implements PredictProvider {
         );
       }
 
-      if (!address) {
-        throw new Error('Failed to get safe address');
+      const legacySafeIsDeployed = await isSmartContractAddress(
+        legacySafeAddress,
+        numberToHex(POLYGON_MAINNET_CHAIN_ID),
+      );
+
+      if (legacySafeIsDeployed) {
+        const hasActivity = await this.#hasPolymarketActivity({
+          address: legacySafeAddress,
+        });
+
+        if (hasActivity) {
+          const accountState: AccountState = {
+            address: legacySafeAddress,
+            isDeployed: true,
+            walletType: 'safe',
+          };
+          this.#setCachedAccountState(normalizedOwnerAddress, accountState);
+          return accountState;
+        }
       }
 
-      // Check deployment status and allowances
-      let isDeployed: boolean;
-      let hasAllowancesResult: boolean;
-      const { feeCollection: flagFeeCollection } = this.#getFeatureFlags();
-      const extraUsdcSpenders = flagFeeCollection.permit2Enabled
-        ? [PERMIT2_ADDRESS]
-        : [];
-      try {
-        [isDeployed, hasAllowancesResult] = await Promise.all([
-          isSmartContractAddress(
-            address,
-            numberToHex(POLYGON_MAINNET_CHAIN_ID),
-          ),
-          hasAllowances({ address, extraUsdcSpenders }),
-        ]);
-      } catch (error) {
-        throw new Error(
-          `Failed to check account state: ${
-            error instanceof Error ? error.message : 'Unknown error'
-          }`,
-        );
-      }
-
-      const accountState = {
-        address: address as `0x${string}`,
-        isDeployed,
-        hasAllowances: hasAllowancesResult,
+      const depositWalletAddress = deriveDepositWalletAddress(
+        normalizedOwnerAddress,
+      );
+      const depositWalletIsDeployed = await isSmartContractAddress(
+        depositWalletAddress,
+        numberToHex(POLYGON_MAINNET_CHAIN_ID),
+      );
+      const accountState: AccountState = {
+        address: depositWalletAddress,
+        isDeployed: depositWalletIsDeployed,
+        walletType: 'deposit-wallet',
       };
 
-      this.#accountStateByAddress.set(ownerAddress, accountState);
+      this.#setCachedAccountState(normalizedOwnerAddress, accountState);
 
       return accountState;
     } catch (error) {
@@ -2262,25 +2632,375 @@ export class PolymarketProvider implements PredictProvider {
       throw new Error('address is required');
     }
 
-    const predictAddress =
-      this.#accountStateByAddress.get(address)?.address ??
-      computeProxyAddress(address);
     const protocol = this.#getProtocol();
+    const accountState =
+      this.#getCachedAccountState(address) ??
+      (await this.getAccountState({ ownerAddress: address }));
 
-    if (protocol.key !== 'v2') {
-      return await getBalance({ address: predictAddress });
+    if (accountState.walletType === 'safe') {
+      const [pusdBalance, legacyUsdceBalance] = await Promise.all([
+        getBalance({
+          address: accountState.address,
+          tokenAddress: protocol.collateral.tradingToken,
+        }),
+        this.#getLegacyUsdceBalance({
+          safeAddress: accountState.address,
+          protocol,
+        }),
+      ]);
+
+      return (
+        pusdBalance +
+        Number(legacyUsdceBalance) / 10 ** COLLATERAL_TOKEN_DECIMALS
+      );
     }
 
-    const balances = await Promise.all(
-      protocol.collateral.balanceTokens.map((tokenAddress) =>
-        getBalance({
-          address: predictAddress,
-          tokenAddress,
-        }),
-      ),
+    const depositPusdRaw = await getRawBalance({
+      address: accountState.address,
+      tokenAddress: protocol.collateral.tradingToken,
+    });
+    const legacySafeAddress = computeProxyAddress(address);
+    const legacySafeDeployed = await isSmartContractAddress(
+      legacySafeAddress,
+      numberToHex(POLYGON_MAINNET_CHAIN_ID),
     );
 
-    return balances.reduce((sum, balance) => sum + balance, 0);
+    let legacyPusdRaw = 0n;
+    let legacyUsdceRaw = 0n;
+    if (legacySafeDeployed) {
+      [legacyPusdRaw, legacyUsdceRaw] = await Promise.all([
+        getRawBalance({
+          address: legacySafeAddress,
+          tokenAddress: protocol.collateral.tradingToken,
+        }),
+        this.#getLegacyUsdceBalance({
+          safeAddress: legacySafeAddress,
+          protocol,
+        }),
+      ]);
+    }
+
+    return (
+      Number(depositPusdRaw + legacyPusdRaw + legacyUsdceRaw) /
+      10 ** COLLATERAL_TOKEN_DECIMALS
+    );
+  }
+
+  private getErc20TransferRecipient(data?: string): Hex | undefined {
+    if (!data) {
+      return undefined;
+    }
+
+    try {
+      const [recipient] = ERC20_TRANSFER_INTERFACE.decodeFunctionData(
+        'transfer',
+        data,
+      );
+      return getAddress(String(recipient)) as Hex;
+    } catch {
+      return undefined;
+    }
+  }
+
+  private getDepositWalletDepositTransaction(transactionMeta: TransactionMeta):
+    | {
+        ownerAddress: Hex;
+        depositWalletAddress: Hex;
+      }
+    | undefined {
+    const ownerAddress = transactionMeta.txParams.from;
+
+    if (!ownerAddress) {
+      return undefined;
+    }
+
+    const nestedTransactions = transactionMeta.nestedTransactions ?? [];
+    const predictDepositTransactions = nestedTransactions.filter(
+      (transaction) =>
+        transaction.type === TransactionType.predictDeposit ||
+        transaction.type === TransactionType.predictDepositAndOrder,
+    );
+
+    if (predictDepositTransactions.length !== 1) {
+      return undefined;
+    }
+
+    const [depositTransaction] = predictDepositTransactions;
+    const protocol = this.#getProtocol();
+
+    try {
+      if (
+        !depositTransaction.to ||
+        getAddress(depositTransaction.to) !==
+          getAddress(protocol.collateral.tradingToken)
+      ) {
+        return undefined;
+      }
+    } catch {
+      return undefined;
+    }
+
+    const recipient = this.getErc20TransferRecipient(depositTransaction.data);
+
+    if (!recipient) {
+      return undefined;
+    }
+
+    const depositWalletAddress = deriveDepositWalletAddress(ownerAddress);
+
+    if (getAddress(recipient) !== getAddress(depositWalletAddress)) {
+      return undefined;
+    }
+
+    return {
+      ownerAddress: getAddress(ownerAddress) as Hex,
+      depositWalletAddress,
+    };
+  }
+
+  public isDepositWalletDepositTransaction(
+    transactionMeta: TransactionMeta,
+  ): boolean {
+    return Boolean(this.getDepositWalletDepositTransaction(transactionMeta));
+  }
+
+  private async ensureDepositWalletReady({
+    ownerAddress,
+    depositWalletAddress,
+    protocol,
+    getSigner,
+    operation = 'deposit_wallet_preflight',
+  }: {
+    ownerAddress: string;
+    depositWalletAddress: Hex;
+    protocol: PolymarketProtocolDefinition;
+    getSigner: (address?: string) => Signer;
+    operation?: string;
+  }): Promise<boolean> {
+    let updatedState = false;
+    let depositWalletDeploymentConfirmed = false;
+
+    DevLogger.log('PolymarketProvider: Deposit wallet preflight started', {
+      operation,
+      walletType: 'deposit-wallet',
+      from: ownerAddress,
+      depositWalletAddress,
+    });
+
+    const depositWalletIsDeployed = await isSmartContractAddress(
+      depositWalletAddress,
+      numberToHex(POLYGON_MAINNET_CHAIN_ID),
+    );
+
+    if (!depositWalletIsDeployed) {
+      const createResponse = await requestDepositWalletCreate({
+        ownerAddress,
+      });
+      const transactionID =
+        getDepositWalletRelayerTransactionId(createResponse);
+
+      if (!transactionID) {
+        throw new Error(
+          'Polymarket deposit wallet creation response missing transactionID',
+        );
+      }
+
+      DevLogger.log('PolymarketProvider: Waiting for deposit wallet create', {
+        operation: 'deposit_wallet_create',
+        walletType: 'deposit-wallet',
+        transactionID,
+        from: ownerAddress,
+        depositWalletAddress,
+      });
+
+      await waitForDepositWalletTransaction({
+        transactionID,
+        requireCompletion: true,
+      });
+
+      DevLogger.log(
+        'PolymarketProvider: Waiting for deposit wallet relayer registry',
+        {
+          operation: 'deposit_wallet_relayer_registry',
+          walletType: 'deposit-wallet',
+          from: ownerAddress,
+          depositWalletAddress,
+        },
+      );
+
+      await waitForDepositWalletDeployed({
+        walletAddress: depositWalletAddress,
+      });
+      depositWalletDeploymentConfirmed = true;
+
+      this.#setCachedAccountState(ownerAddress, {
+        address: depositWalletAddress,
+        isDeployed: true,
+        walletType: 'deposit-wallet',
+      });
+      this.setPolymarketAccountCreatedTrait();
+      updatedState = true;
+    }
+
+    const preflightPlan = await planDepositWalletPreflight({
+      walletAddress: depositWalletAddress,
+      protocol,
+    });
+
+    DevLogger.log('PolymarketProvider: Deposit wallet preflight planned', {
+      operation: 'deposit_wallet_allowance_preflight',
+      walletType: 'deposit-wallet',
+      from: ownerAddress,
+      depositWalletAddress,
+      missingRequirementsCount: preflightPlan.missingRequirements.length,
+    });
+
+    if (preflightPlan.transactions.length > 0) {
+      if (!depositWalletDeploymentConfirmed) {
+        await waitForDepositWalletDeployed({
+          walletAddress: depositWalletAddress,
+        });
+      }
+
+      const signer = getSigner(ownerAddress);
+      const executeResponse = await executeDepositWalletBatch({
+        signer,
+        walletAddress: depositWalletAddress,
+        calls: toDepositWalletCalls(preflightPlan.transactions),
+      });
+      const transactionID =
+        getDepositWalletRelayerTransactionId(executeResponse);
+
+      if (!transactionID) {
+        throw new Error(
+          'Polymarket deposit wallet batch response missing transactionID',
+        );
+      }
+
+      DevLogger.log('PolymarketProvider: Waiting for deposit wallet batch', {
+        operation: 'deposit_wallet_batch',
+        walletType: 'deposit-wallet',
+        transactionID,
+        from: ownerAddress,
+        depositWalletAddress,
+        missingRequirementsCount: preflightPlan.missingRequirements.length,
+      });
+
+      await waitForDepositWalletTransaction({
+        transactionID,
+        requireCompletion: true,
+      });
+      updatedState = true;
+    }
+
+    DevLogger.log('PolymarketProvider: Deposit wallet preflight completed', {
+      operation,
+      walletType: 'deposit-wallet',
+      from: ownerAddress,
+      depositWalletAddress,
+    });
+
+    return updatedState;
+  }
+
+  public async beforePublishDepositWalletDeposit({
+    transactionMeta,
+    getSigner,
+  }: {
+    transactionMeta: TransactionMeta;
+    getSigner: (address?: string) => Signer;
+  }): Promise<boolean> {
+    const depositWalletDeposit =
+      this.getDepositWalletDepositTransaction(transactionMeta);
+
+    if (!depositWalletDeposit) {
+      return true;
+    }
+
+    const { ownerAddress, depositWalletAddress } = depositWalletDeposit;
+    const protocol = this.#getProtocol();
+
+    try {
+      await this.ensureDepositWalletReady({
+        ownerAddress,
+        depositWalletAddress,
+        protocol,
+        getSigner,
+      });
+
+      return true;
+    } catch (error) {
+      DevLogger.log('PolymarketProvider: Deposit wallet preflight failed', {
+        operation: 'deposit_wallet_preflight',
+        walletType: 'deposit-wallet',
+        from: ownerAddress,
+        depositWalletAddress,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('beforePublishDepositWalletDeposit', {
+          operation: 'deposit_wallet_preflight',
+          walletType: 'deposit-wallet',
+        }),
+      );
+      throw error;
+    }
+  }
+
+  private async syncDepositWalletBalanceAllowanceForOrderIfNeeded({
+    protocol,
+    signerAddress,
+    apiKey,
+  }: {
+    protocol: PolymarketProtocolDefinition;
+    signerAddress: string;
+    apiKey: ApiKeyCreds;
+  }): Promise<void> {
+    try {
+      await syncDepositWalletCollateralBalanceAllowance({
+        protocol,
+        signerAddress,
+        apiKey,
+      });
+    } catch (error) {
+      DevLogger.log(
+        'PolymarketProvider: Deposit wallet order balance-allowance sync failed',
+        {
+          operation: 'deposit_wallet_order_balance_allowance_sync',
+          error: error instanceof Error ? error.message : 'Unknown error',
+        },
+      );
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('placeOrder:depositWalletBalanceAllowanceSync', {
+          operation: 'deposit_wallet_order_balance_allowance_sync',
+          walletType: 'deposit-wallet',
+        }),
+      );
+    }
+  }
+
+  public async syncDepositWalletBalanceAllowanceForDepositTransaction({
+    transactionMeta,
+    signerAddress,
+  }: {
+    transactionMeta: TransactionMeta;
+    signerAddress: string;
+  }): Promise<void> {
+    const depositWalletDeposit =
+      this.getDepositWalletDepositTransaction(transactionMeta);
+
+    if (!depositWalletDeposit) {
+      return;
+    }
+
+    const apiKey = await this.getApiKey({ address: signerAddress });
+    await syncDepositWalletCollateralBalanceAllowance({
+      protocol: this.#getProtocol(),
+      signerAddress,
+      apiKey,
+    });
   }
 
   public async prepareWithdraw(
@@ -2294,7 +3014,7 @@ export class PolymarketProvider implements PredictProvider {
     }
 
     const safeAddress =
-      this.#accountStateByAddress.get(signer.address)?.address ??
+      this.#getCachedAccountState(signer.address)?.address ??
       (await this.getAccountState({ ownerAddress: signer.address })).address;
 
     const withdrawTokenAddress = getProtocolWithdrawTokenAddress(protocol);
@@ -2329,35 +3049,26 @@ export class PolymarketProvider implements PredictProvider {
     }
 
     const safeAddress =
-      this.#accountStateByAddress.get(signer.address)?.address ??
+      this.#getCachedAccountState(signer.address)?.address ??
       computeProxyAddress(signer.address);
 
-    const amount = getSafeUsdcAmount(callData);
-    const requestedAmountRaw = getSafeUsdcAmountRaw(callData);
+    const amount = getSafeTransferAmount(callData);
+    const requestedAmountRaw = getSafeTransferAmountRaw(callData);
 
-    if (protocol.key === 'v2') {
-      const signedWithdrawTransaction = await buildWithdrawTransaction({
-        signer,
-        safeAddress,
-        requestedAmountRaw,
-        mode: protocol.workflow.withdrawMode,
-        protocol,
-      });
-
-      return {
-        callData: signedWithdrawTransaction.params.data,
-        amount,
-      };
-    }
-
-    const signedCallData = await getWithdrawTransactionCallData({
-      data: callData,
+    const safeLegacyUsdceBalance = await this.#getLegacyUsdceBalance({
+      safeAddress,
+      protocol,
+    });
+    const signedWithdrawTransaction = await buildWithdrawTransaction({
       signer,
       safeAddress,
+      requestedAmountRaw,
+      protocol,
+      safeLegacyUsdceBalance,
     });
 
     return {
-      callData: signedCallData,
+      callData: signedWithdrawTransaction.params.data,
       amount,
     };
   }
@@ -2377,6 +3088,28 @@ export class PolymarketProvider implements PredictProvider {
       tokenIds,
       callback,
     );
+  }
+
+  public subscribeToOrderbook(
+    tokenId: string,
+    callback: OrderbookCallback,
+  ): () => void {
+    const ws = WebSocketManager.getInstance();
+    const wsUnsubscribe = ws.subscribeToOrderbook(tokenId, callback);
+
+    // Bootstrap with a REST snapshot so the chart has data before the first
+    // WS `book` event arrives. `getOrderBook` defaults to v1; `previewOrder`
+    // does not currently thread v2 either, so no protocol plumbing is needed.
+    getOrderBook({ tokenId })
+      .then((book) => ws.seedOrderbookSnapshot(tokenId, book))
+      .catch((err) => {
+        DevLogger.log('PolymarketProvider: orderbook bootstrap failed', {
+          err,
+          tokenId,
+        });
+      });
+
+    return wsUnsubscribe;
   }
 
   public subscribeToCryptoPrices(

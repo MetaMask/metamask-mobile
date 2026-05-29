@@ -15,18 +15,42 @@ const styles = StyleSheet.create({
 
 /**
  * View that renders an action modal
+ *
+ * @param {object} props
+ * @param {string} [props.cancelTestID]
+ * @param {string} [props.confirmTestID]
+ * @param {string} [props.cancelText]
+ * @param {React.ReactNode} [props.children]
+ * @param {string} [props.confirmText]
+ * @param {boolean} [props.confirmDisabled]
+ * @param {string} [props.cancelButtonMode]
+ * @param {string} [props.confirmButtonMode]
+ * @param {boolean} [props.displayCancelButton]
+ * @param {boolean} [props.displayConfirmButton]
+ * @param {() => void} [props.onCancelPress]
+ * @param {() => void} [props.onConfirmPress]
+ * @param {() => void} [props.onRequestClose]
+ * @param {boolean} [props.modalVisible]
+ * @param {object} [props.modalStyle]
+ * @param {object} [props.viewWrapperStyle]
+ * @param {object} [props.viewContainerStyle]
+ * @param {object} [props.actionContainerStyle]
+ * @param {object} [props.childrenContainerStyle]
+ * @param {boolean} [props.verticalButtons]
+ * @param {boolean} [props.propagateSwipe]
+ * @param {boolean} [props.cancelButtonDisabled]
  */
 export default function ActionModal({
-  cancelTestID,
-  confirmTestID,
-  cancelText,
+  cancelTestID = '',
+  confirmTestID = '',
+  cancelText = strings('action_view.cancel'),
   children,
-  confirmText,
-  confirmDisabled,
-  cancelButtonMode,
-  confirmButtonMode,
-  displayCancelButton,
-  displayConfirmButton,
+  confirmText = strings('action_view.confirm'),
+  confirmDisabled = false,
+  cancelButtonMode = 'neutral',
+  confirmButtonMode = 'warning',
+  displayCancelButton = true,
+  displayConfirmButton = true,
   onCancelPress,
   onConfirmPress,
   onRequestClose,
@@ -38,7 +62,7 @@ export default function ActionModal({
   childrenContainerStyle,
   verticalButtons,
   propagateSwipe,
-  cancelButtonDisabled,
+  cancelButtonDisabled = false,
 }) {
   const { colors } = useTheme();
 
@@ -79,19 +103,6 @@ export default function ActionModal({
     </Modal>
   );
 }
-
-ActionModal.defaultProps = {
-  cancelButtonMode: 'neutral',
-  cancelButtonDisabled: false,
-  confirmButtonMode: 'warning',
-  confirmTestID: '',
-  cancelTestID: '',
-  cancelText: strings('action_view.cancel'),
-  confirmText: strings('action_view.confirm'),
-  confirmDisabled: false,
-  displayCancelButton: true,
-  displayConfirmButton: true,
-};
 
 ActionModal.propTypes = {
   cancelButtonDisabled: PropTypes.bool,

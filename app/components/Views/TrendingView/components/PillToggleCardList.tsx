@@ -18,6 +18,8 @@ export interface PillToggleCardListProps<T> {
   idPrefix: string;
   /** Defaults to first tab. */
   defaultPillKey?: string;
+  /** Called whenever the active pill changes. */
+  onPillChange?: (key: string) => void;
   testIdPrefix?: string;
   listTestId?: string;
 }
@@ -35,6 +37,7 @@ function PillToggleCardList<T>({
   Skeleton,
   idPrefix,
   defaultPillKey,
+  onPillChange,
   testIdPrefix = DEFAULT_TEST_ID_PREFIX,
   listTestId,
 }: PillToggleCardListProps<T>) {
@@ -43,12 +46,17 @@ function PillToggleCardList<T>({
   const active = tabs.find((p) => p.key === activeKey) ?? tabs[0];
   const pills: PillOption[] = tabs.map(({ key, name }) => ({ key, name }));
 
+  const handleSelect = (key: string) => {
+    setActiveKey(key);
+    onPillChange?.(key);
+  };
+
   return (
     <Box testID={testIdPrefix} twClassName="mt-2 mb-9">
       <PillRow
         pills={pills}
         activeKey={activeKey}
-        onSelect={setActiveKey}
+        onSelect={handleSelect}
         testIdPrefix={testIdPrefix}
       />
       <CardList<T>

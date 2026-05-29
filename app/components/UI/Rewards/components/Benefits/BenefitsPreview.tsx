@@ -2,11 +2,16 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  BoxJustifyContent,
   Icon,
+  IconColor,
   IconName,
   IconSize,
   Skeleton,
+  Tag,
+  TagSeverity,
   Text,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React from 'react';
@@ -37,24 +42,50 @@ const BenefitsPreview = () => {
   const hasBenefits = benefits.length > 0;
   const topBenefits = benefits.slice(0, 3);
 
+  const benefitsCountLabel =
+    benefits.length > 99 ? '99+' : String(benefits.length);
+
+  const benefitsCountBadge =
+    benefits.length > 0 ? (
+      <Tag severity={TagSeverity.Neutral}>
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          {strings('rewards.benefits.available_count', {
+            count: benefitsCountLabel,
+          })}
+        </Text>
+      </Tag>
+    ) : null;
+
   const displayHeader = hasBenefits ? (
     <Pressable onPress={handleNavigateToBenefitsFullView}>
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-2"
+        justifyContent={BoxJustifyContent.Between}
+        twClassName="w-full"
       >
-        <Text variant={TextVariant.HeadingMd}>
-          {strings('rewards.benefits.title')}
-        </Text>
-        <Icon name={IconName.ArrowRight} size={IconSize.Md} />
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-1"
+        >
+          <Text variant={TextVariant.HeadingMd}>
+            {strings('rewards.benefits.title')}
+          </Text>
+          <Icon
+            name={IconName.ArrowRight}
+            size={IconSize.Md}
+            color={IconColor.IconAlternative}
+          />
+        </Box>
+        {benefitsCountBadge}
       </Box>
     </Pressable>
   ) : (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="gap-2"
+      twClassName="gap-1"
     >
       <Text variant={TextVariant.HeadingMd}>
         {strings('rewards.benefits.title')}

@@ -98,7 +98,7 @@ const mockDeviceIsAndroid = jest.requireMock('../../../../util/device')
   .isAndroid as jest.Mock;
 const mockLinkingOpenURL = jest.requireMock(
   'react-native/Libraries/Linking/Linking',
-).openURL as jest.Mock;
+).default.openURL as jest.Mock;
 const mockInAppBrowser = jest.requireMock('react-native-inappbrowser-reborn')
   .default as {
   openAuth: jest.Mock;

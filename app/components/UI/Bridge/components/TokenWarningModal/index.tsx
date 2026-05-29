@@ -28,10 +28,7 @@ import {
 import { hasMissingPriceData } from '../../utils/hasMissingPriceData';
 import { getNegativeFeatureLabels } from '../../../SecurityTrust/utils/securityUtils';
 import { getBridgeTokenSecurityConfig } from '../../utils/tokenSecurityUtils';
-import {
-  SecurityDataType,
-  SecurityFeature,
-} from '../../hooks/usePopularTokens';
+import { SecurityDataType, SecurityFeature } from '../../types';
 import {
   BottomSheetFooter,
   BottomSheetHeader,

@@ -124,9 +124,9 @@ const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
         )}
       </Box>
       <Text
-        variant={TextVariant.HeadingMd}
+        variant={TextVariant.BodyMd}
         color={config.textColor}
-        fontWeight={'600' as FontWeight}
+        fontWeight={FontWeight.Medium}
       >
         {config.label}
       </Text>

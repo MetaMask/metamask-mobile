@@ -7,7 +7,7 @@ import { ButtonBaseSize } from '@metamask/design-system-react-native';
 
 export type PredictBetButtonVariant = 'yes' | 'no' | 'draw';
 
-export type PredictBetButtonLayout = 'inline' | 'stacked';
+export type PredictBetButtonLayout = 'inline' | 'inlineNoSeparator' | 'stacked';
 
 export interface PredictBetButtonProps {
   label: string;
@@ -36,6 +36,8 @@ export interface PredictBetButtonsProps {
   disabled?: boolean;
   testID?: string;
   isCarousel?: boolean;
+  layout?: PredictBetButtonLayout;
+  gapClassName?: string;
 }
 
 export interface PredictClaimButtonProps {
@@ -57,4 +59,7 @@ export interface PredictActionButtonsProps {
   isClaimPending?: boolean;
   testID?: string;
   isCarousel?: boolean;
+  buttonLayout?: PredictBetButtonLayout;
+  buttonGapClassName?: string;
+  buttonContainerClassName?: string;
 }

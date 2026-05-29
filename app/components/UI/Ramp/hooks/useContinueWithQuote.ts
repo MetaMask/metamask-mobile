@@ -328,6 +328,7 @@ export function useContinueWithQuote(
             currency: effectiveCurrency,
             cryptocurrency: effectiveCryptoSymbol,
             orderId: buyWidget.orderId?.trim() || undefined,
+            headlessSessionId: ctx.headlessSessionId,
           }),
         );
       } catch (error) {

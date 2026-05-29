@@ -85,6 +85,16 @@ describe('useBrowserRecentsSites', () => {
     setHistory([{ url: 'https://example.com/path', name: '' }]);
     const { result } = renderHook(() => useBrowserRecentsSites());
     expect(result.current.data[0].name).toBe('example.com');
-    expect(result.current.data[0].displayUrl).toBe('example.com');
+    expect(result.current.data[0].displayUrl).toBe('example.com/path');
+  });
+
+  it('shows full path in displayUrl for recents', () => {
+    setHistory([
+      { url: 'https://app.uniswap.org/swap?chain=1', name: 'Uniswap' },
+    ]);
+    const { result } = renderHook(() => useBrowserRecentsSites());
+    expect(result.current.data[0].displayUrl).toBe(
+      'app.uniswap.org/swap?chain=1',
+    );
   });
 });

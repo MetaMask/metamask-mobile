@@ -80,15 +80,17 @@ export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
     return null;
   }
 
-  // Don't render token amount for perps and predict deposit transactions
-  const isPerpsOrPredictDeposit = hasTransactionType(transaction, [
+  // Don't render token amount for perps, predict, and money-account deposit
+  // transactions — they have custom amount entry UIs.
+  const isCustomAmountDeposit = hasTransactionType(transaction, [
+    TransactionType.moneyAccountDeposit,
     TransactionType.perpsDeposit,
     TransactionType.perpsDepositAndOrder,
     TransactionType.predictDeposit,
     TransactionType.predictDepositAndOrder,
   ]);
 
-  if (isPerpsOrPredictDeposit) {
+  if (isCustomAmountDeposit) {
     return null;
   }
 

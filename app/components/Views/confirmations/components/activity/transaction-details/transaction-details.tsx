@@ -32,6 +32,7 @@ export const SUMMARY_SECTION_TYPES = [
   TransactionType.moneyAccountWithdraw,
   TransactionType.perpsDeposit,
   TransactionType.predictDeposit,
+  TransactionType.predictWithdraw,
 ];
 
 export function TransactionDetails() {

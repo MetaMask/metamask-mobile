@@ -231,7 +231,9 @@ class PerpsMarketDetailsView {
         await Utilities.waitForElementToBeEnabled(
           this.longButton as DetoxElement,
         );
-        await Gestures.waitAndTap(this.longButton);
+        await Gestures.waitAndTap(this.longButton, {
+          elemDescription: 'Perps Long button',
+        });
       },
       appium: async () => {
         await PlaywrightGestures.waitAndTap(

@@ -1100,6 +1100,56 @@ describe('useBridgeQuoteData', () => {
     consoleErrorSpy.mockRestore();
   });
 
+  it('skips validation for gas-included quotes on Solana', async () => {
+    const mockQuoteWithGasIncluded = {
+      ...mockQuoteWithMetadata,
+      quote: {
+        ...mockQuoteWithMetadata.quote,
+        gasIncluded: true,
+      },
+    };
+
+    (selectBridgeQuotes as unknown as jest.Mock).mockImplementation(() => ({
+      recommendedQuote: mockQuoteWithGasIncluded,
+      alternativeQuotes: [],
+    }));
+
+    const bridgeReducerOverrides = {
+      sourceToken: {
+        symbol: 'SOL',
+        chainId: SolScope.Mainnet,
+        address: '11111111111111111111111111111112',
+        decimals: 9,
+      },
+      destToken: {
+        symbol: 'USDC',
+        chainId: SolScope.Mainnet,
+        address:
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        decimals: 6,
+      },
+    };
+
+    const testState = createBridgeTestState({
+      bridgeReducerOverrides,
+    });
+
+    const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
+      state: testState,
+    });
+
+    // Wait for the hook to stabilize
+    await waitFor(() => {
+      expect(result.current.activeQuote).toEqual(mockQuoteWithGasIncluded);
+    });
+
+    // Verify that validateBridgeTx was never called for gas-included quotes
+    expect(mockValidateBridgeTx).not.toHaveBeenCalled();
+
+    // Verify that no blockaid error is set
+    expect(result.current.blockaidError).toBe(null);
+  });
+
   // Test validQuotes filtering
   describe('validQuotes filtering', () => {
     it('returns filtered validQuotes that match destination token', () => {

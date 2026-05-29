@@ -17,6 +17,8 @@ import {
 import Tag from '../../../../../component-library/components/Tags/Tag';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
+import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
+import Logger from '../../../../../util/Logger';
 import styleSheet from './MoneyTransferSheet.styles';
 import { MoneyTransferSheetTestIds } from './MoneyTransferSheet.testIds';
 
@@ -37,15 +39,22 @@ const MoneyTransferSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
+  const { initiateWithdrawal } = useMoneyAccountWithdrawal();
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
   const handleBetweenAccounts = useCallback(() => {
-    // eslint-disable-next-line no-alert
-    alert('Under construction 🚧');
-  }, []);
+    sheetRef.current?.onCloseBottomSheet(() => {
+      initiateWithdrawal().catch((error: Error) => {
+        Logger.error(
+          error,
+          '[MoneyTransferSheet] Withdrawal initiation failed',
+        );
+      });
+    });
+  }, [initiateWithdrawal]);
 
   const handlePerpsAccount = useCallback(() => {
     // eslint-disable-next-line no-alert

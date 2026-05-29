@@ -1,4 +1,5 @@
 export enum AlertKeys {
+  AddressPoisoning = 'address_poisoning',
   AddressTrustSignalMalicious = 'address_trust_signal_malicious',
   AddressTrustSignalWarning = 'address_trust_signal_warning',
   BatchedUnusedApprovals = 'batched_unused_approvals',
@@ -21,6 +22,7 @@ export enum AlertKeys {
   OriginTrustSignalWarning = 'origin_trust_signal_warning',
   PendingTransaction = 'pending_transaction',
   PerpsDepositMinimum = 'perps_deposit_minimum',
+  HeadlessBuyError = 'headless_buy_error',
   MMPayHardwareAccount = 'mmpay_hardware_account',
   SignedOrSubmitted = 'signed_or_submitted',
   TokenContractAddress = 'token_contract_address',

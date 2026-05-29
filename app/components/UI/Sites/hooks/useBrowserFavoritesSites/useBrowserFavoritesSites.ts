@@ -5,6 +5,7 @@ import { selectBrowserBookmarksWithType } from '../../../../../selectors/browser
 import type { SiteData } from '../../components/SiteRowItem/SiteRowItem';
 import {
   extractDisplayUrl,
+  extractFullDisplayUrl,
   matchesSiteQuery,
 } from '../useSiteData/useSitesData';
 
@@ -19,7 +20,7 @@ const toSiteData = (entry: BookmarkEntry, index: number): SiteData => {
     id: `browser-favorite-${url}-${index}`,
     name: entry.name?.trim() || extractDisplayUrl(url),
     url,
-    displayUrl: extractDisplayUrl(url),
+    displayUrl: extractFullDisplayUrl(url),
     storedBookmarkUrl: entry.url,
   };
 };

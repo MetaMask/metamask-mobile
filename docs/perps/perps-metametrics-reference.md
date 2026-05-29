@@ -97,6 +97,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 - `percent_pnl` (optional): P&L as percentage (number, used for pnl_hero_card screen)
 - `button_clicked` (optional): Button that led to this screen (entry point tracking, see [Entry Point Tracking](#entry-point-tracking))
 - `button_location` (optional): Location of the button clicked (entry point tracking, see [Entry Point Tracking](#entry-point-tracking))
+- `outage_banner_shown` (optional): Whether the service interruption banner is displayed (boolean, used for perps_home, asset_details, trading screens)
 - `ab_test_button_color` (optional): Button color test variant (`'control' | 'monochrome'`), only included when test is enabled (for baseline exposure tracking)
 - Future AB tests: `ab_test_{test_name}` (see [Multiple Concurrent Tests](#multiple-concurrent-tests))
 
@@ -126,7 +127,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 - `input_method` (optional): How value was entered: `'slider' | 'keyboard' | 'preset' | 'manual' | 'percentage_button'`
 - `candle_period` (optional): Selected candle period
 - `favorites_count` (optional): Total number of markets in watchlist after toggle (number, used with `favorite_toggled`)
-- `button_clicked` (optional): Button identifier for entry point tracking (see [Entry Point Tracking](#entry-point-tracking)): `'deposit'` | `'withdraw'` | `'perps_home'` | `'tutorial'` | `'tooltip'` | `'market_list'` | `'open_position'` | `'magnifying_glass'` | `'crypto'` | `'stocks'` | `'give_feedback'`
+- `button_clicked` (optional): Button identifier for entry point tracking (see [Entry Point Tracking](#entry-point-tracking)): `'deposit'` | `'withdraw'` | `'perps_home'` | `'tutorial'` | `'tooltip'` | `'market_list'` | `'open_position'` | `'magnifying_glass'` | `'crypto'` | `'stocks'` | `'give_feedback'` | `'competition_banner_engage'` | `'competition_banner_close'`
 - `button_location` (optional): Location of the button for entry point tracking (see [Entry Point Tracking](#entry-point-tracking)): `'perps_home'` | `'perps_tutorial'` | `'perps_home_empty_state'` | `'perps_asset_screen'` | `'perps_tab'` | `'trade_menu_action'` | `'wallet_home'` | `'market_list'` | `'screen'` | `'tooltip'` | `'perp_market_details'` | `'order_book'` | `'full_screen_chart'`
 - `initial_payment_method` (optional): Payment method before change (e.g. `'perps_balance'` or token symbol; used with `payment_method_changed`)
 - `new_payment_method` (optional): Payment method after change (e.g. `'perps_balance'` or token symbol; used with `payment_method_changed`)
@@ -445,22 +446,24 @@ Entry point tracking captures how users navigate to screens, enabling analysis o
 
 ### Button Clicked Values
 
-| Value                | Description                             |
-| -------------------- | --------------------------------------- |
-| `'deposit'`          | Add funds / deposit button              |
-| `'withdraw'`         | Withdraw funds button                   |
-| `'perps_home'`       | Navigate to perps home button           |
-| `'tutorial'`         | Learn more / tutorial button            |
-| `'tooltip'`          | Got it button in tooltip bottom sheets  |
-| `'market_list'`      | Market list navigation button           |
-| `'open_position'`    | Tap on a position card                  |
-| `'magnifying_glass'` | Search icon button                      |
-| `'crypto'`           | Crypto tab in market list               |
-| `'stocks'`           | Stocks & Commodities tab in market list |
-| `'commodities'`      | Commodities tab                         |
-| `'forex'`            | Forex tab                               |
-| `'new'`              | New markets                             |
-| `'give_feedback'`    | Give feedback button                    |
+| Value                         | Description                                               |
+| ----------------------------- | --------------------------------------------------------- |
+| `'deposit'`                   | Add funds / deposit button                                |
+| `'withdraw'`                  | Withdraw funds button                                     |
+| `'perps_home'`                | Navigate to perps home button                             |
+| `'tutorial'`                  | Learn more / tutorial button                              |
+| `'tooltip'`                   | Got it button in tooltip bottom sheets                    |
+| `'market_list'`               | Market list navigation button                             |
+| `'open_position'`             | Tap on a position card                                    |
+| `'magnifying_glass'`          | Search icon button                                        |
+| `'crypto'`                    | Crypto tab in market list                                 |
+| `'stocks'`                    | Stocks & Commodities tab in market list                   |
+| `'commodities'`               | Commodities tab                                           |
+| `'forex'`                     | Forex tab                                                 |
+| `'new'`                       | New markets                                               |
+| `'give_feedback'`             | Give feedback button                                      |
+| `'competition_banner_engage'` | User tapped the competition banner to navigate to rewards |
+| `'competition_banner_close'`  | User dismissed the competition banner                     |
 
 ### Button Location Values
 

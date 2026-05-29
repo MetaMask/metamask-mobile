@@ -18,8 +18,8 @@ import type { PredictKeypadHandles } from '../../../../components/PredictKeypad'
 
 interface PredictBuyAmountSectionProps {
   currentValueUSDString: string;
-  keypadRef: React.RefObject<PredictKeypadHandles>;
-  isInputFocused: boolean;
+  keypadRef: React.RefObject<PredictKeypadHandles | null>;
+  isKeypadOpen: boolean;
   isBalanceLoading: boolean;
   isBalancePulsing: boolean;
   availableBalanceDisplay: string;
@@ -32,7 +32,7 @@ interface PredictBuyAmountSectionProps {
 const PredictBuyAmountSection = ({
   currentValueUSDString,
   keypadRef,
-  isInputFocused,
+  isKeypadOpen,
   isBalanceLoading,
   isBalancePulsing,
   availableBalanceDisplay,
@@ -75,7 +75,7 @@ const PredictBuyAmountSection = ({
           onPress={() =>
             !isPlacingOrder && keypadRef.current?.handleAmountPress()
           }
-          isActive={isInputFocused && !isPlacingOrder}
+          isActive={isKeypadOpen && !isPlacingOrder}
           hasError={false}
         />
       </Box>

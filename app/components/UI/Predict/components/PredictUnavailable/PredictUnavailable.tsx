@@ -12,6 +12,7 @@ import {
   TextVariant,
   BoxAlignItems,
   BoxJustifyContent,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { InteractionManager, TouchableOpacity } from 'react-native';
@@ -22,7 +23,6 @@ import { strings } from '../../../../../../locales/i18n';
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet.types';
 import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button/Button.types';
 import { PREDICT_UNAVAILABLE_TEST_IDS } from './PredictUnavailable.testIds';
 
@@ -116,7 +116,7 @@ const PredictUnavailable = forwardRef<
       isInteractable
       onClose={handleSheetClosed}
     >
-      <HeaderCompactStandard
+      <HeaderStandard
         testID="header"
         title={strings('predict.unavailable.title')}
         onClose={handleClose}

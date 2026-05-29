@@ -1,12 +1,30 @@
+interface QuoteStreamCompleteMock {
+  quoteCount?: number;
+  hasQuotes?: boolean;
+  reason?: string;
+  context?: Record<string, unknown>;
+}
+
+const toSSEEvent = (event: string, data: object) =>
+  `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+
 /**
  * Wraps quote fixture objects as an SSE-formatted response string.
  * Required because bridge-controller uses fetchServerEvents (SSE parser)
  * which expects lines prefixed with "data: ". Raw JSON returns zero quotes.
  */
-export function toSSEResponse(quotes: object[]): string {
-  return quotes
-    .map((q) => `event: quote\ndata: ${JSON.stringify(q)}\n\n`)
-    .join('');
+export function toSSEResponse(
+  quotes: object[],
+  complete: QuoteStreamCompleteMock = {},
+): string {
+  const quoteEvents = quotes.map((q) => toSSEEvent('quote', q)).join('');
+  const completeEvent = {
+    quoteCount: quotes.length,
+    hasQuotes: quotes.length > 0,
+    ...complete,
+  };
+
+  return `${quoteEvents}${toSSEEvent('complete', completeEvent)}`;
 }
 
 export const localNodeOptions = {
