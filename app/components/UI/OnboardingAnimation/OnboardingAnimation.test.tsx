@@ -16,7 +16,6 @@ jest.mock('../../../util/test/utils', () => ({
   get hasTestOverrides() {
     return mockHasTestOverrides;
   },
-  isQa: false,
   isTestEnvironment: true,
   enableApiCallLogs: false,
   getFixturesServerPortInApp: () => 12345,
