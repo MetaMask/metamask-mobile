@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text } from 'react-native';
+import { Text, type View } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
 
 jest.mock('react-native-gesture-handler', () => {
@@ -62,5 +62,17 @@ describe('PressableGH', () => {
     );
 
     expect(getByLabelText('Action')).toBeOnTheScreen();
+  });
+
+  it('forwards a ref to the underlying view', () => {
+    const ref = React.createRef<View>();
+    render(
+      <PressableGH ref={ref} onPress={jest.fn()}>
+        <Text>x</Text>
+      </PressableGH>,
+    );
+
+    expect(ref.current).not.toBeNull();
+    expect(typeof ref.current?.measure).toBe('function');
   });
 });

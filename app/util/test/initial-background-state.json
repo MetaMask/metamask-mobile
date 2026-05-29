@@ -698,6 +698,8 @@
   },
   "BridgeController": {
     "assetExchangeRates": {},
+    "batchSellTrades": null,
+    "batchSellTradesLoadingStatus": null,
     "minimumBalanceForRentExemptionInLamports": "0",
     "quoteFetchError": null,
     "quoteRequest": [
