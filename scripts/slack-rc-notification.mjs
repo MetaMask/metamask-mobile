@@ -126,8 +126,9 @@ function buildSlackMessage(options) {
   ];
 
   // Add link to cherry-picks section in PR comment
+  // Note: GitHub prefixes user-provided anchor IDs with 'user-content-' for security
   if (prNumber) {
-    const cherryPicksLink = `<${REPO_URL}/pull/${prNumber}#cherry-picks|View cherry-picks>`;
+    const cherryPicksLink = `<${REPO_URL}/pull/${prNumber}#user-content-cherry-picks|View cherry-picks>`;
     blocks.push(
       {
         type: 'divider',
