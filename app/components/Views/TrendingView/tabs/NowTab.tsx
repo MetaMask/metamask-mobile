@@ -17,10 +17,7 @@ import { TokenRowItem } from '../feeds/tokens/TokenRowItem';
 import CryptoMoversPillItem from '../feeds/tokens/CryptoMoversPillItem';
 import CryptoMoversSkeleton from '../feeds/tokens/CryptoMoversSkeleton';
 import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
-import {
-  mapTimeOptionToSortBy,
-  TimeOption,
-} from '../../../UI/Trending/components/TrendingTokensBottomSheet';
+import { TimeOption } from '../../../UI/Trending/components/TrendingTokensBottomSheet';
 import { usePerpsFeed, type PerpsFeedItem } from '../feeds/perps/usePerpsFeed';
 import PerpsSectionProvider from '../feeds/perps/PerpsSectionProvider';
 import PerpsPillItem from '../feeds/perps/PerpsPillItem';
@@ -103,7 +100,6 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
 };
 
 const CRYPTO_MOVERS_TIME_OPTION = TimeOption.OneHour;
-const CRYPTO_MOVERS_SORT_BY = mapTimeOptionToSortBy(CRYPTO_MOVERS_TIME_OPTION);
 const CRYPTO_MOVERS_ROW_COUNT = 3;
 const CRYPTO_MOVERS_MAX_PILLS = 18;
 
@@ -130,7 +126,6 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const cryptoMovers = useTokensFeed({
     refresh,
     hideRiskyTokens: true,
-    sortBy: CRYPTO_MOVERS_SORT_BY,
     timeOption: CRYPTO_MOVERS_TIME_OPTION,
   });
   const stocks = useStocksFeed({ refresh });

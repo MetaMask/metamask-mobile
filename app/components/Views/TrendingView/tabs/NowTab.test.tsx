@@ -428,7 +428,6 @@ describe('NowTab — Crypto Movers', () => {
     expect(mockUseTokensFeed).toHaveBeenCalledWith({
       refresh: defaultRefresh,
       hideRiskyTokens: true,
-      sortBy: 'h1_trending',
       timeOption: '1h',
     });
 

@@ -106,21 +106,9 @@ describe('useTokensFeed', () => {
     });
   });
 
-  it('passes sortBy option into useTrendingSearch', () => {
-    renderHook(() => useTokensFeed({ sortBy: 'h1_trending' }));
-
-    expect(mockUseTrendingSearch).toHaveBeenCalledWith({
-      searchQuery: undefined,
-      enableDebounce: false,
-      sortBy: 'h1_trending',
-      sortTrendingTokensOptions: undefined,
-    });
-  });
-
-  it('passes timeOption into local price-change sorting options', () => {
+  it('passes timeOption into request and local price-change sorting options', () => {
     renderHook(() =>
       useTokensFeed({
-        sortBy: 'h1_trending',
         timeOption: TimeOption.OneHour,
       }),
     );

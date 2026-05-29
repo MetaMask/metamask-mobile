@@ -1,13 +1,11 @@
 import { useMemo, useRef, useEffect } from 'react';
-import type {
-  SortTrendingBy,
-  TrendingAsset,
-} from '@metamask/assets-controllers';
+import type { TrendingAsset } from '@metamask/assets-controllers';
 import { useTrendingSearch } from '../../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 import { useFeedRefresh } from '../../hooks/useFeedRefresh';
 import type { RefreshConfig } from '../../hooks/useExploreRefresh';
 import { fuseSearch, TOKEN_FUSE_OPTIONS } from '../search-utils';
 import {
+  mapTimeOptionToSortBy,
   PriceChangeOption,
   SortDirection,
   TimeOption,
@@ -22,9 +20,7 @@ interface UseTokensFeedOptions {
    * Use for surfaces that don't display a security badge.
    */
   hideRiskyTokens?: boolean;
-  /** Sort option forwarded to the trending tokens request. */
-  sortBy?: SortTrendingBy;
-  /** Time option used when locally sorting by price change. */
+  /** Time option used for request and local price-change sorting. */
   timeOption?: TimeOption;
 }
 
@@ -43,9 +39,10 @@ export const useTokensFeed = ({
   query,
   refresh,
   hideRiskyTokens = false,
-  sortBy,
   timeOption,
 }: UseTokensFeedOptions = {}): UseTokensFeedResult => {
+  const sortBy = timeOption ? mapTimeOptionToSortBy(timeOption) : undefined;
+
   const {
     data,
     isLoading,

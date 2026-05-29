@@ -15,16 +15,18 @@ interface PillRow<T> {
   startIndex: number;
 }
 
+const normalizeRowCount = (rowCount: number) =>
+  Math.max(1, Math.floor(rowCount));
+
 function splitIntoRows<T>(items: T[], rowCount: number): PillRow<T>[] {
   if (items.length === 0) return [];
 
-  const normalizedRowCount = Math.max(1, Math.floor(rowCount));
   const rows: PillRow<T>[] = [];
   let start = 0;
 
-  for (let rowIndex = 0; rowIndex < normalizedRowCount; rowIndex++) {
+  for (let rowIndex = 0; rowIndex < rowCount; rowIndex++) {
     const remainingItems = items.length - start;
-    const remainingRows = normalizedRowCount - rowIndex;
+    const remainingRows = rowCount - rowIndex;
     const rowSize = Math.ceil(remainingItems / remainingRows);
     const row = items.slice(start, start + rowSize);
 
@@ -76,9 +78,10 @@ function PillScrollList<T>({
 }: PillScrollListProps<T>) {
   const tw = useTailwind();
   const displayData = useMemo(() => data.slice(0, maxPills), [data, maxPills]);
+  const normalizedRowCount = normalizeRowCount(rowCount);
   const rows = useMemo(
-    () => splitIntoRows(displayData, rowCount),
-    [displayData, rowCount],
+    () => splitIntoRows(displayData, normalizedRowCount),
+    [displayData, normalizedRowCount],
   );
 
   const renderRow = (items: T[], startIndex: number) =>
@@ -92,7 +95,7 @@ function PillScrollList<T>({
     <Box twClassName={wrapperTwClassName}>
       {isLoading && (
         <Box twClassName="px-4">
-          <Skeleton rowCount={rowCount} />
+          <Skeleton rowCount={normalizedRowCount} />
         </Box>
       )}
       {!isLoading && rows.length > 0 && (
