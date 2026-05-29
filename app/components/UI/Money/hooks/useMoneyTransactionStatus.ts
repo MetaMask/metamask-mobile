@@ -75,7 +75,9 @@ function resolveWithdrawDestination(
     store.getState(),
     recipient,
   );
-  return account?.metadata?.name ?? renderShortAddress(recipient);
+  if (!account) return renderShortAddress(recipient);
+  const accountName = account.metadata?.name?.trim();
+  return accountName || strings('money.toasts.withdraw_fallback_destination');
 }
 
 function decodeTellerAmount(
