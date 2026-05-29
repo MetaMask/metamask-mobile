@@ -10,8 +10,8 @@ import styleSheet from './PerpsMarketFiltersBar.styles';
  * PerpsMarketFiltersBar Component
  *
  * Two-row filter bar for the markets list:
- * - Row 1: Category badges (Crypto, Stocks, Commodities, Forex)
- * - Row 2: Sort dropdown (volume, price change, funding rate, etc.)
+ * - Row 1: Category segments (All, Crypto, Stocks, Commodities, Forex)
+ * - Row 2: Sort select button (volume, price change, funding rate, etc.)
  *
  * @example
  * ```tsx
