@@ -95,7 +95,7 @@ const WhatsHappeningAssetPill: React.FC<WhatsHappeningAssetPillProps> = ({
       twClassName="rounded-full"
     >
       <RelatedAssetAvatar
-        name={asset.name ?? asset.symbol}
+        name={asset.name || asset.symbol}
         image={image}
         size={AVATAR_SIZE}
       />
