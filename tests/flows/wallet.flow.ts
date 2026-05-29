@@ -40,6 +40,7 @@ import PlaywrightUtilities from '../framework/PlaywrightUtilities';
 import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
 import MetaMetricsOptInView from '../page-objects/Onboarding/MetaMetricsOptInView';
 import PredictModalView from '../page-objects/Predict/PredictModalView';
+import OnboardingCryptoExperienceQuestionnaireView from '../page-objects/Onboarding/OnboardingCryptoExperienceQuestionnaireView';
 import OnboardingInterestQuestionnaireView from '../page-objects/Onboarding/OnboardingInterestQuestionnaireView';
 const logger = createLogger({
   name: 'WalletFlow',
@@ -233,6 +234,7 @@ export const importWalletWithRecoveryPhrase = async ({
   }
   if (optInToMetrics) {
     await OnboardingInterestQuestionnaireView.tapContinueButton();
+    await OnboardingCryptoExperienceQuestionnaireView.tapContinueButton();
   }
   //'Should dismiss Enable device Notifications checks alert'
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
@@ -347,6 +349,7 @@ export const CreateNewWallet = async ({
 
   if (optInToMetrics) {
     await OnboardingInterestQuestionnaireView.tapContinueButton();
+    await OnboardingCryptoExperienceQuestionnaireView.tapContinueButton();
   }
 
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
