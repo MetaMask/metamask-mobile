@@ -1,4 +1,3 @@
-import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
 import {
   KeyringMetadata,
   SignTypedDataVersion,
@@ -7,7 +6,7 @@ import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../Engine';
 import {
   LedgerKeyring,
-  LedgerMobileBridge,
+  type MobileLedgerBridge,
 } from '@metamask/eth-ledger-bridge-keyring';
 import {
   LEDGER_BIP44_PATH,
@@ -66,30 +65,36 @@ export const withLedgerKeyring = async <CallbackResult = void>(
 /**
  * Connects to the ledger device by requesting some metadata from it.
  *
- * @param transport - The transport to use to connect to the device
+ * @param sessionId - The DMK session ID from the adapter's connection
  * @param deviceId - The device ID to connect to
  * @returns The name of the currently open application on the device
  */
 export const connectLedgerHardware = async (
-  transport: BleTransport,
+  sessionId: string,
   deviceId: string,
   abortSignal?: AbortSignal,
 ): Promise<string> => {
   throwIfLedgerOperationAborted(abortSignal);
 
+  console.log('[DMK] connectLedgerHardware - sessionId:', sessionId, 'deviceId:', deviceId);
+
   const bridge = await withLedgerKeyring(async ({ keyring }) => {
     keyring.setHdPath(LEDGER_LIVE_PATH);
     keyring.setDeviceId(deviceId);
 
-    const ledgerBridge = keyring.bridge as LedgerMobileBridge;
-    await ledgerBridge.updateTransportMethod(transport);
+    const ledgerBridge = keyring.bridge as MobileLedgerBridge;
+    console.log('[DMK] connectLedgerHardware - calling updateSessionId:', sessionId);
+    await ledgerBridge.updateSessionId(sessionId);
+    console.log('[DMK] connectLedgerHardware - updateSessionId done');
     return ledgerBridge;
   });
 
   // Keep the BLE exchange outside the KeyringController mutex. Hardware-wallet
   // flows are serialized at the adapter/provider layer.
   throwIfLedgerOperationAborted(abortSignal);
+  console.log('[DMK] connectLedgerHardware - calling getAppNameAndVersion');
   const appAndVersion = await bridge.getAppNameAndVersion();
+  console.log('[DMK] connectLedgerHardware - app:', appAndVersion.appName, 'version:', appAndVersion.version);
   return appAndVersion.appName;
 };
 
@@ -98,7 +103,7 @@ export const connectLedgerHardware = async (
  */
 export const openEthereumAppOnLedger = async (): Promise<void> => {
   const bridge = await withLedgerKeyring(
-    async ({ keyring }) => keyring.bridge as LedgerMobileBridge,
+    async ({ keyring }) => keyring.bridge as MobileLedgerBridge,
   );
   await bridge.openEthApp();
 };
@@ -108,7 +113,7 @@ export const openEthereumAppOnLedger = async (): Promise<void> => {
  */
 export const closeRunningAppOnLedger = async (): Promise<void> => {
   const bridge = await withLedgerKeyring(
-    async ({ keyring }) => keyring.bridge as LedgerMobileBridge,
+    async ({ keyring }) => keyring.bridge as MobileLedgerBridge,
   );
   await bridge.closeApps();
 };
@@ -210,6 +215,7 @@ export const getLedgerAccountsByOperation = async (
       balance: '0x0',
     }));
   } catch (e) {
+    console.log('[DMK] getLedgerAccountsByOperation - error:', e);
     /* istanbul ignore next */
     if (isEthAppNotOpenError(e)) {
       throw new Error(strings('ledger.eth_app_not_open_message'));
@@ -227,6 +233,7 @@ export const getLedgerAccountsByOperation = async (
     ) {
       throw new Error(strings('ledger.ledger_disconnected'));
     }
+    console.log('[DMK] getLedgerAccountsByOperation - UNHANDLED error:', e);
     throw new Error(strings('ledger.unspecified_error_during_connect'));
   }
 };

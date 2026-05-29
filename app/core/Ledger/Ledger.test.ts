@@ -17,9 +17,8 @@ import Engine from '../../core/Engine';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import {
   LedgerKeyring,
-  LedgerMobileBridge,
+  type MobileLedgerBridge,
 } from '@metamask/eth-ledger-bridge-keyring';
-import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
 import PAGINATION_OPERATIONS from '../../constants/pagination';
 import {
   LEDGER_BIP44_PATH,
@@ -60,13 +59,13 @@ const MockRemoveAccountsFromPermissions = jest.mocked(
 // (e.g. `getAppNameAndVersion`, `openEthApp`), so they need to be jest mocks.
 const mockBridge = {
   getAppNameAndVersion: jest.fn(),
-  updateTransportMethod: jest.fn(),
+  updateSessionId: jest.fn(),
   openEthApp: jest.fn(),
   closeApps: jest.fn(),
 };
 
 const ledgerKeyring = new LedgerKeyring({
-  bridge: mockBridge as unknown as LedgerMobileBridge,
+  bridge: mockBridge as unknown as MobileLedgerBridge,
 });
 
 describe('Ledger core', () => {
@@ -151,24 +150,24 @@ describe('Ledger core', () => {
   });
 
   describe('connectLedgerHardware', () => {
-    const mockTransport = 'foo' as unknown as BleTransport;
-    it('calls keyring.setTransport', async () => {
-      await connectLedgerHardware(mockTransport, 'bar');
-      expect(mockBridge.updateTransportMethod).toHaveBeenCalled();
+    const mockSessionId = 'mock-session-id';
+    it('calls keyring.updateSessionId', async () => {
+      await connectLedgerHardware(mockSessionId, 'bar');
+      expect(mockBridge.updateSessionId).toHaveBeenCalled();
     });
 
     it('calls keyring.getAppAndVersion', async () => {
-      await connectLedgerHardware(mockTransport, 'bar');
+      await connectLedgerHardware(mockSessionId, 'bar');
       expect(mockBridge.getAppNameAndVersion).toHaveBeenCalled();
     });
 
     it('returns app name correctly', async () => {
-      const value = await connectLedgerHardware(mockTransport, 'bar');
+      const value = await connectLedgerHardware(mockSessionId, 'bar');
       expect(value).toBe('appName');
     });
 
     it('calls keyring.setHdPath and keyring.setDeviceId if deviceId is different', async () => {
-      await connectLedgerHardware(mockTransport, 'bar');
+      await connectLedgerHardware(mockSessionId, 'bar');
       expect(ledgerKeyring.setHdPath).toHaveBeenCalled();
       expect(ledgerKeyring.setDeviceId).toHaveBeenCalled();
     });
@@ -190,23 +189,23 @@ describe('Ledger core', () => {
         },
       );
 
-      await expect(connectLedgerHardware(mockTransport, 'bar')).resolves.toBe(
+      await expect(connectLedgerHardware(mockSessionId, 'bar')).resolves.toBe(
         'Ethereum',
       );
 
-      expect(mockBridge.updateTransportMethod).toHaveBeenCalled();
+      expect(mockBridge.updateSessionId).toHaveBeenCalled();
       expect(mockBridge.getAppNameAndVersion).toHaveBeenCalled();
       expect(events).toEqual(['withKeyring settled', 'getAppNameAndVersion']);
     });
 
     it('skips app metadata request when aborted before the BLE exchange starts', async () => {
       const abortController = new AbortController();
-      mockBridge.updateTransportMethod.mockImplementationOnce(async () => {
+      mockBridge.updateSessionId.mockImplementationOnce(async () => {
         abortController.abort();
       });
 
       const resultPromise = connectLedgerHardware(
-        mockTransport,
+        mockSessionId,
         'bar',
         abortController.signal,
       );
@@ -224,7 +223,7 @@ describe('Ledger core', () => {
       abortController.abort();
 
       const error = await connectLedgerHardware(
-        mockTransport,
+        mockSessionId,
         'bar',
         abortController.signal,
       ).catch((caughtError) => caughtError);
@@ -236,7 +235,7 @@ describe('Ledger core', () => {
       expect(
         MockEngine.context.KeyringController.withKeyring,
       ).not.toHaveBeenCalled();
-      expect(mockBridge.updateTransportMethod).not.toHaveBeenCalled();
+      expect(mockBridge.updateSessionId).not.toHaveBeenCalled();
       expect(mockBridge.getAppNameAndVersion).not.toHaveBeenCalled();
     });
 
@@ -251,7 +250,7 @@ describe('Ledger core', () => {
           }),
       );
 
-      await expect(connectLedgerHardware(mockTransport, 'bar')).rejects.toThrow(
+      await expect(connectLedgerHardware(mockSessionId, 'bar')).rejects.toThrow(
         'Expected LedgerKeyring',
       );
     });

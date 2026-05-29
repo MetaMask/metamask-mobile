@@ -8,7 +8,7 @@ import {
 
 import { createAdapter } from '../adapters';
 import { HardwareWalletAdapter } from '../types';
-import DevLogger from '../../SDKConnect/utils/DevLogger';
+
 
 interface UseAdapterLifecycleOptions {
   walletType: HardwareWalletType | null;
@@ -27,16 +27,6 @@ interface UseAdapterLifecycleResult {
   initializeAdapter: (adapter: HardwareWalletAdapter) => void;
 }
 
-/**
- * Manages the hardware wallet adapter lifecycle: creates the appropriate adapter
- * when the effective wallet type changes, subscribes to transport state changes,
- * and cleans up on unmount.
- *
- * The provider always keeps an adapter instance — for non-hardware accounts,
- * a NonHardwareAdapter (null-object pattern) is created so consumers never
- * need to null-check. NonHardwareAdapter methods are no-ops or return "ready"
- * immediately.
- */
 export const useAdapterLifecycle = ({
   walletType,
   adapterRef,
@@ -48,19 +38,26 @@ export const useAdapterLifecycle = ({
   const previousTransportAvailableRef = useRef<boolean | null>(null);
   const transportCleanupRef = useRef<(() => void) | null>(null);
 
+  const handleDeviceEventRef = useRef(handleDeviceEvent);
+  handleDeviceEventRef.current = handleDeviceEvent;
+  const handleErrorRef = useRef(handleError);
+  handleErrorRef.current = handleError;
+  const updateConnectionStateRef = useRef(updateConnectionState);
+  updateConnectionStateRef.current = updateConnectionState;
+
   const createAdapterWithCallbacks = useCallback(
     (targetType: HardwareWalletType) =>
       createAdapter(targetType, {
         onDisconnect: (error) => {
           if (error) {
-            handleError(error);
+            handleErrorRef.current(error);
           } else {
-            updateConnectionState({ status: ConnectionStatus.Disconnected });
+            updateConnectionStateRef.current({ status: ConnectionStatus.Disconnected });
           }
         },
-        onDeviceEvent: handleDeviceEvent,
+        onDeviceEvent: (payload) => handleDeviceEventRef.current(payload),
       }),
-    [handleDeviceEvent, handleError, updateConnectionState],
+    [],
   );
 
   const initializeAdapter = useCallback(
@@ -73,7 +70,7 @@ export const useAdapterLifecycle = ({
       if (adapter.onTransportStateChange) {
         transportCleanupRef.current = adapter.onTransportStateChange(
           (isAvailable) => {
-            DevLogger.log(
+            console.log(
               '[HardwareWallet] Transport state changed:',
               isAvailable,
             );
@@ -84,16 +81,12 @@ export const useAdapterLifecycle = ({
         setIsTransportAvailable(true);
       }
     },
-    // Stable ref (adapterRef) — not needed as a dep
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
 
   useEffect(() => {
     if (adapterRef.current) {
-      adapterRef.current.disconnect().catch(() => {
-        // Ignore disconnect errors during cleanup
-      });
+      adapterRef.current.destroy?.();
       adapterRef.current = null;
     }
 
@@ -102,9 +95,8 @@ export const useAdapterLifecycle = ({
     const adapter = walletType
       ? createAdapterWithCallbacks(walletType)
       : createAdapter(null, {
-          // eslint-disable-next-line no-empty-function
           onDisconnect: () => {},
-          onDeviceEvent: handleDeviceEvent,
+          onDeviceEvent: (payload) => handleDeviceEventRef.current(payload),
         });
 
     initializeAdapter(adapter);
@@ -113,17 +105,12 @@ export const useAdapterLifecycle = ({
       transportCleanupRef.current?.();
       transportCleanupRef.current = null;
       if (adapterRef.current) {
-        adapterRef.current.disconnect().catch(() => {
-          // Ignore cleanup errors
-        });
+        adapterRef.current.destroy?.();
         adapterRef.current = null;
       }
     };
-    // Stable ref (adapterRef) — not needed as a dep
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     walletType,
-    handleDeviceEvent,
     createAdapterWithCallbacks,
     initializeAdapter,
   ]);

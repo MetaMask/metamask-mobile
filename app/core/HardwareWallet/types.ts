@@ -148,6 +148,13 @@ export interface HardwareWalletAdapter {
    * an active operation.
    */
   getTransportDisabledErrorCode(): ErrorCode | null;
+
+  /**
+   * Tear down the adapter: stop BLE monitoring, close sessions, release native
+   * resources. Called when the adapter is being discarded (provider unmount,
+   * wallet-type change).
+   */
+  destroy(): void;
 }
 
 /**

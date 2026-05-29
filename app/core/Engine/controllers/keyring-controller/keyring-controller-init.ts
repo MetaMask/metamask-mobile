@@ -9,9 +9,9 @@ import {
 import { QrKeyring } from '@metamask/eth-qr-keyring';
 import {
   LedgerKeyring,
-  LedgerMobileBridge,
-  LedgerTransportMiddleware,
+  LedgerDMKBridge,
 } from '@metamask/eth-ledger-bridge-keyring';
+import { getDmk } from '../../../Ledger/dmk';
 import { HdKeyring } from '@metamask/eth-hd-keyring';
 import { MoneyKeyring } from '@metamask/eth-money-keyring';
 import { hmacSha512 } from '@metamask/native-utils';
@@ -63,7 +63,7 @@ export const keyringControllerInit: MessengerClientInitFunction<
 
   additionalKeyrings.push(qrKeyringBuilder);
 
-  const bridge = new LedgerMobileBridge(new LedgerTransportMiddleware());
+  const bridge = new LedgerDMKBridge({ dmk: getDmk() });
   const ledgerKeyringBuilder = () => new LedgerKeyring({ bridge });
   ledgerKeyringBuilder.type = LedgerKeyring.type;
 

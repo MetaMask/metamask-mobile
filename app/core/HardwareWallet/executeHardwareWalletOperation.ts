@@ -81,9 +81,12 @@ export async function executeHardwareWalletOperation({
 
   try {
     const deviceId = await getDeviceIdForAddress(address);
+    console.log('[DMK] executeHardwareWalletOperation - address:', address, 'deviceId:', deviceId, 'opType:', operationType);
     const isReady = await ensureDeviceReady(deviceId);
+    console.log('[DMK] executeHardwareWalletOperation - isReady:', isReady);
 
     if (!isReady) {
+      console.log('[DMK] executeHardwareWalletOperation - device not ready, rejecting');
       await rejectOnce();
       return false;
     }
@@ -93,10 +96,13 @@ export async function executeHardwareWalletOperation({
       rejectOnce().catch(() => undefined);
     });
 
+    console.log('[DMK] executeHardwareWalletOperation - calling execute()');
     await execute();
+    console.log('[DMK] executeHardwareWalletOperation - execute() done');
     hideAwaitingConfirmation();
     return true;
   } catch (error) {
+    console.log('[DMK] executeHardwareWalletOperation - error:', error);
     if (hasShownConfirmation) {
       hideAwaitingConfirmation();
     }

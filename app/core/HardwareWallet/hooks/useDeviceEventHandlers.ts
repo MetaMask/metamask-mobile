@@ -13,7 +13,7 @@ import {
   HardwareWalletRefs,
 } from './useHardwareWalletStateManager';
 import { parseErrorByType, createHardwareWalletError } from '../errors';
-import DevLogger from '../../SDKConnect/utils/DevLogger';
+
 
 /** Options for the {@link useDeviceEventHandlers} hook. */
 interface UseDeviceEventHandlersOptions {
@@ -178,7 +178,7 @@ export const useDeviceEventHandlers = ({
 
         default:
           if (__DEV__) {
-            DevLogger.log(
+            console.log(
               '[HardwareWallet] Unknown device event:',
               payload.event,
             );

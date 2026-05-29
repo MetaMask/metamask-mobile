@@ -11,7 +11,7 @@ import {
   HardwareWalletAdapter,
 } from '../types';
 import { parseErrorByType } from '../errors';
-import DevLogger from '../../SDKConnect/utils/DevLogger';
+
 
 const INITIAL_DEVICE_SELECTION: DeviceSelectionState = {
   devices: [],
@@ -70,11 +70,11 @@ export const useDeviceDiscovery = ({
 
     if (!adapter?.requiresDeviceDiscovery) return;
 
-    DevLogger.log('[HardwareWallet] Starting adapter device discovery');
+    console.log('[HardwareWallet] Starting adapter device discovery');
 
     const cleanupFn = adapter.startDeviceDiscovery(
       (device: DiscoveredDevice) => {
-        DevLogger.log('[HardwareWallet] Device found:', device.name, device.id);
+        console.log('[HardwareWallet] Device found:', device.name, device.id);
         setDeviceSelection((prev) => {
           const exists = prev.devices.some((d) => d.id === device.id);
           if (exists) return prev;
@@ -85,7 +85,7 @@ export const useDeviceDiscovery = ({
         });
       },
       (error: Error) => {
-        DevLogger.log('[HardwareWallet] Device discovery error:', error);
+        console.log('[HardwareWallet] Device discovery error:', error);
         const scanError = parseErrorByType(
           error,
           walletType ?? adapter.walletType,
@@ -105,7 +105,7 @@ export const useDeviceDiscovery = ({
 
   useEffect(() => {
     if (connectionState.status === ConnectionStatus.Scanning) {
-      DevLogger.log('[HardwareWallet] Scanning state entered');
+      console.log('[HardwareWallet] Scanning state entered');
       startDiscovery();
       return () => stopDiscovery();
     }
