@@ -436,17 +436,26 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
   };
 
   useEffect(() => {
+    // On iOS, `inactive` is transient (Control Center, notifications, Face ID, etc.)
+    // and does not background the app. Only `background` means the user left the app.
+    // Returning from background may pass through `inactive` before `active`; preserve
+    // `lastAppState` across that intermediate state (see AppStateEventListener).
+    let lastAppState = AppState.currentState;
+
     const subscription = AppState.addEventListener('change', (nextAppState) => {
-      if (nextAppState === 'background' || nextAppState === 'inactive') {
-        // Guard: prevent duplicate events from multiple AppState transitions (background → inactive)
-        if (closeSourceRef.current !== 'app_backgrounded') {
-          closeSourceRef.current = 'app_backgrounded';
-          fireClosedRef.current();
-        }
-      } else if (nextAppState === 'active') {
+      const prevAppState = lastAppState;
+
+      if (nextAppState === 'background') {
+        closeSourceRef.current = 'app_backgrounded';
+        fireClosedRef.current();
+      } else if (nextAppState === 'active' && prevAppState === 'background') {
         closeSourceRef.current = null;
         openedAtRef.current = Date.now();
         firedRef.current = false;
+      }
+
+      if (!(nextAppState === 'inactive' && prevAppState === 'background')) {
+        lastAppState = nextAppState;
       }
     });
 
@@ -537,14 +546,16 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
     trackTokenDetailsOpened,
   ]);
 
+  const handleCtaClicked = useCallback(() => {
+    closeSourceRef.current = 'cta_clicked';
+  }, []);
+
   return (
     <TokenDetails
       token={token}
       onMarketInsightsDisplayResolved={handleMarketInsightsDisplayResolved}
       onStickyButtonsResolved={setResolvedStickyButtons}
-      onCtaClicked={() => {
-        closeSourceRef.current = 'cta_clicked';
-      }}
+      onCtaClicked={handleCtaClicked}
     />
   );
 };
