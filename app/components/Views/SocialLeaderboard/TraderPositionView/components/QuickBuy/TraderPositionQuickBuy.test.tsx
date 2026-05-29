@@ -1,7 +1,7 @@
-import type { Position } from '@metamask/social-controllers';
-import { render } from '@testing-library/react-native';
 import React from 'react';
+import { render } from '@testing-library/react-native';
 import TraderPositionQuickBuy from './TraderPositionQuickBuy';
+import type { Position } from '@metamask/social-controllers';
 
 const mockQuickBuyRoot = jest.fn((_props: unknown) => null);
 

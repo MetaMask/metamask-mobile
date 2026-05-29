@@ -1,4 +1,8 @@
-import type { TokenSecurityData } from '@metamask/assets-controllers';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import { View, StyleSheet } from 'react-native';
+import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Button,
   ButtonAnimated,
@@ -7,34 +11,30 @@ import {
   IconSize,
   TextColor,
 } from '@metamask/design-system-react-native';
-import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
+import type { TokenSecurityData } from '@metamask/assets-controllers';
 import { strings } from '../../../../../locales/i18n';
-import Routes from '../../../../constants/navigation/Routes';
-import { useABTest } from '../../../../hooks/useABTest';
-import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
-import { ONDO_RESTRICTED_COUNTRIES } from '../../../../util/ondoGeoRestrictions';
-import { LIGHT_MODE_SUCCESS_GREEN, useTheme } from '../../../../util/theme';
+import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import { AppThemeKey } from '../../../../util/theme/models';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
-import type { BridgeToken } from '../../Bridge/types';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
-import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
-import type { TokenDetailsRouteParams } from '../constants/constants';
-import { useStickyFooterTracking } from '../hooks/useStickyFooterTracking';
-import { useStickyTokenActions } from '../hooks/useStickyTokenActions';
+import { useABTest } from '../../../../hooks/useABTest';
 import {
   AMBIENT_NEGATIVE_COLOR,
   STICKY_FOOTER_SWAP_LABEL_AB_KEY,
   STICKY_FOOTER_SWAP_LABEL_VARIANTS,
 } from './abTestConfig';
-import FlashFilledIcon from './assets/flash-filled.svg';
+import { useStickyFooterTracking } from '../hooks/useStickyFooterTracking';
+import Routes from '../../../../constants/navigation/Routes';
+import type { BridgeToken } from '../../Bridge/types';
+import type { TokenDetailsRouteParams } from '../constants/constants';
+import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
+import { ONDO_RESTRICTED_COUNTRIES } from '../../../../util/ondoGeoRestrictions';
 import RwaUnavailableBottomSheet, {
   type RwaUnavailableBottomSheetRef,
 } from './RwaUnavailableBottomSheet/RwaUnavailableBottomSheet';
+import { useStickyTokenActions } from '../hooks/useStickyTokenActions';
+import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
+import FlashFilledIcon from './assets/flash-filled.svg';
 
 const styles = StyleSheet.create({
   footer: {

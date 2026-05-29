@@ -1,15 +1,15 @@
+import { useMemo } from 'react';
+import { useSelector } from 'react-redux';
+import { CaipChainId, Hex } from '@metamask/utils';
 import {
   formatAddressToAssetId,
   formatChainIdToHex,
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
-import { CaipChainId, Hex } from '@metamask/utils';
-import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
-import { selectIsBridgeEnabledSourceFactory } from '../../../../../../../core/redux/slices/bridge';
+import type { QuickBuyTarget } from '../types';
 import { useAssetMetadata } from '../../../../../../UI/Bridge/hooks/useAssetMetadata';
 import type { BridgeToken } from '../../../../../../UI/Bridge/types';
-import type { QuickBuyTarget } from '../types';
+import { selectIsBridgeEnabledSourceFactory } from '../../../../../../../core/redux/slices/bridge';
 
 export interface QuickBuySetupResult {
   /** The destination chain ID (hex or CAIP) for this position's chain */
