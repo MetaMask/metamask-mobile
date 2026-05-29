@@ -1,5 +1,6 @@
 import { getDeviceIdForAddress } from './helpers';
 import { isUserCancellation } from './errors';
+import DevLogger from '../SDKConnect/utils/DevLogger';
 
 /**
  * Options for {@link executeHardwareWalletOperation}: resolve the device, gate on readiness,
@@ -81,12 +82,12 @@ export async function executeHardwareWalletOperation({
 
   try {
     const deviceId = await getDeviceIdForAddress(address);
-    console.log('[DMK] executeHardwareWalletOperation - address:', address, 'deviceId:', deviceId, 'opType:', operationType);
+    DevLogger.log('[DMK] executeHardwareWalletOperation - address:', address, 'deviceId:', deviceId, 'opType:', operationType);
     const isReady = await ensureDeviceReady(deviceId);
-    console.log('[DMK] executeHardwareWalletOperation - isReady:', isReady);
+    DevLogger.log('[DMK] executeHardwareWalletOperation - isReady:', isReady);
 
     if (!isReady) {
-      console.log('[DMK] executeHardwareWalletOperation - device not ready, rejecting');
+      DevLogger.log('[DMK] executeHardwareWalletOperation - device not ready, rejecting');
       await rejectOnce();
       return false;
     }
@@ -96,13 +97,13 @@ export async function executeHardwareWalletOperation({
       rejectOnce().catch(() => undefined);
     });
 
-    console.log('[DMK] executeHardwareWalletOperation - calling execute()');
+    DevLogger.log('[DMK] executeHardwareWalletOperation - calling execute()');
     await execute();
-    console.log('[DMK] executeHardwareWalletOperation - execute() done');
+    DevLogger.log('[DMK] executeHardwareWalletOperation - execute() done');
     hideAwaitingConfirmation();
     return true;
   } catch (error) {
-    console.log('[DMK] executeHardwareWalletOperation - error:', error);
+    DevLogger.log('[DMK] executeHardwareWalletOperation - error:', error);
     if (hasShownConfirmation) {
       hideAwaitingConfirmation();
     }

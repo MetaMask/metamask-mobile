@@ -60,6 +60,17 @@ export interface HardwareWalletAdapter {
   isConnected(): boolean;
 
   /**
+   * The currently connected device ID, or null if not connected.
+   */
+  readonly deviceId: string | null;
+
+  /**
+   * Attempt to reconnect to a known device by scanning in the background
+   * without showing the scanning UI. Returns true if connected.
+   */
+  backgroundReconnect?(targetDeviceId: string, timeoutMs?: number): Promise<boolean>;
+
+  /**
    * Reset the adapter state without emitting events.
    * Used when closing device selection to ensure clean state for next attempt.
    */

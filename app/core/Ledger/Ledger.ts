@@ -2,6 +2,7 @@ import {
   KeyringMetadata,
   SignTypedDataVersion,
 } from '@metamask/keyring-controller';
+import DevLogger from '../SDKConnect/utils/DevLogger';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../Engine';
 import {
@@ -76,25 +77,25 @@ export const connectLedgerHardware = async (
 ): Promise<string> => {
   throwIfLedgerOperationAborted(abortSignal);
 
-  console.log('[DMK] connectLedgerHardware - sessionId:', sessionId, 'deviceId:', deviceId);
+  DevLogger.log('[DMK] connectLedgerHardware - sessionId:', sessionId, 'deviceId:', deviceId);
 
   const bridge = await withLedgerKeyring(async ({ keyring }) => {
     keyring.setHdPath(LEDGER_LIVE_PATH);
     keyring.setDeviceId(deviceId);
 
     const ledgerBridge = keyring.bridge as MobileLedgerBridge;
-    console.log('[DMK] connectLedgerHardware - calling updateSessionId:', sessionId);
+    DevLogger.log('[DMK] connectLedgerHardware - calling updateSessionId:', sessionId);
     await ledgerBridge.updateSessionId(sessionId);
-    console.log('[DMK] connectLedgerHardware - updateSessionId done');
+    DevLogger.log('[DMK] connectLedgerHardware - updateSessionId done');
     return ledgerBridge;
   });
 
   // Keep the BLE exchange outside the KeyringController mutex. Hardware-wallet
   // flows are serialized at the adapter/provider layer.
   throwIfLedgerOperationAborted(abortSignal);
-  console.log('[DMK] connectLedgerHardware - calling getAppNameAndVersion');
+  DevLogger.log('[DMK] connectLedgerHardware - calling getAppNameAndVersion');
   const appAndVersion = await bridge.getAppNameAndVersion();
-  console.log('[DMK] connectLedgerHardware - app:', appAndVersion.appName, 'version:', appAndVersion.version);
+  DevLogger.log('[DMK] connectLedgerHardware - app:', appAndVersion.appName, 'version:', appAndVersion.version);
   return appAndVersion.appName;
 };
 
@@ -215,7 +216,7 @@ export const getLedgerAccountsByOperation = async (
       balance: '0x0',
     }));
   } catch (e) {
-    console.log('[DMK] getLedgerAccountsByOperation - error:', e);
+    DevLogger.log('[DMK] getLedgerAccountsByOperation - error:', e);
     /* istanbul ignore next */
     if (isEthAppNotOpenError(e)) {
       throw new Error(strings('ledger.eth_app_not_open_message'));
@@ -233,7 +234,7 @@ export const getLedgerAccountsByOperation = async (
     ) {
       throw new Error(strings('ledger.ledger_disconnected'));
     }
-    console.log('[DMK] getLedgerAccountsByOperation - UNHANDLED error:', e);
+    DevLogger.log('[DMK] getLedgerAccountsByOperation - UNHANDLED error:', e);
     throw new Error(strings('ledger.unspecified_error_during_connect'));
   }
 };
