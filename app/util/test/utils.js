@@ -30,14 +30,12 @@ export const isQa =
   process.env.METAMASK_ENVIRONMENT === 'e2e' ||
   process.env.METAMASK_ENVIRONMENT === 'exp';
 /**
- * TODO: Update this condition once we change E2E builds to use release instead of debug
+ * Used to enable features on testing environments: dev, test, and e2e.
  */
-export const isTest =
-  process.env.METAMASK_ENVIRONMENT !== 'production' &&
-  process.env.METAMASK_ENVIRONMENT !== 'pre-release' &&
-  process.env.METAMASK_ENVIRONMENT !== 'beta' &&
-  process.env.METAMASK_ENVIRONMENT !== 'rc' &&
-  process.env.METAMASK_ENVIRONMENT !== 'exp';
+export const isTestEnvironment =
+  process.env.METAMASK_ENVIRONMENT === 'dev' ||
+  process.env.METAMASK_ENVIRONMENT === 'test' ||
+  process.env.METAMASK_ENVIRONMENT === 'e2e';
 // IS_PERFORMANCE_TEST opts out of E2E runtime overhead (ReadOnlyNetworkStore,
 // command polling) while keeping METAMASK_ENVIRONMENT='e2e' so the build still
 // works on feature branches with e2e signing/secrets.

@@ -75,7 +75,7 @@ import { BrowserViewSelectorsIDs } from './BrowserView.testIds';
 import { trackDappViewedEvent } from '../../../util/metrics';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
-import { isTest } from '../../../util/test/utils.js';
+import { isTestEnvironment } from '../../../util/test/utils.js';
 import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../hooks/useStyles';
@@ -1537,7 +1537,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                         testID={BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID}
                         applicationNameForUserAgent={'WebView MetaMaskMobile'}
                         onFileDownload={handleOnFileDownload}
-                        webviewDebuggingEnabled={isTest}
+                        webviewDebuggingEnabled={isTestEnvironment}
                         paymentRequestEnabled
                         allowFileDownloads={isTabActive}
                         suppressJavaScriptDialogs={!canShowJsDialogs}

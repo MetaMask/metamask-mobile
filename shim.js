@@ -36,7 +36,7 @@ import {
   FALLBACK_FIXTURE_SERVER_PORT,
   FALLBACK_COMMAND_QUEUE_SERVER_PORT,
   hasTestOverrides,
-  isTest,
+  isTestEnvironment,
   enableApiCallLogs,
   testConfig,
 } from './app/util/test/utils.js';
@@ -106,7 +106,7 @@ if (hasTestOverrides) {
 //          adb reverse to transparently map these hardcoded ports to dynamically allocated ports.
 //          Example: App connects to localhost:12345, adb reverse maps it to host port 30002.
 //          See FixtureHelper.ts for the port mapping implementation.
-if (isTest) {
+if (isTestEnvironment) {
   const raw = LaunchArguments.value();
   testConfig.fixtureServerPort = raw?.fixtureServerPort
     ? raw.fixtureServerPort
@@ -263,7 +263,7 @@ if (typeof localStorage !== 'undefined') {
   localStorage.debug = isDev ? '*' : '';
 }
 
-if (enableApiCallLogs || isTest) {
+if (enableApiCallLogs || isTestEnvironment) {
   (async () => {
     const raw = LaunchArguments.value();
     const mockServerPort = raw?.mockServerPort ?? defaultMockPort;
