@@ -108,7 +108,7 @@ const OnboardingCryptoExperienceQuestionnaire = () => {
         MetaMetricsEvents.ONBOARDING_CRYPTO_EXPERIENCE_QUESTION_SUBMITTED,
       )
         .addProperties({
-          experience_level: selectedLevel,
+          name: selectedLevel,
           skipped,
           ...(accountType && { account_type: accountType }),
         })

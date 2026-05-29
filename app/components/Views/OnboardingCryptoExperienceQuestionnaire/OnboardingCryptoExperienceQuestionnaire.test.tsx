@@ -193,14 +193,14 @@ describe('OnboardingCryptoExperienceQuestionnaire', () => {
       );
       expect(builderInstance.addProperties).toHaveBeenCalledWith(
         expect.objectContaining({
-          experience_level: null,
+          name: null,
           skipped: true,
         }),
       );
       expect(mockTrackEvent).toHaveBeenCalledTimes(2);
     });
 
-    it('fires Submitted with experience_level and skipped=false when selected', async () => {
+    it('fires Submitted with name and skipped=false when selected', async () => {
       renderComponent();
 
       fireEvent.press(
@@ -221,7 +221,7 @@ describe('OnboardingCryptoExperienceQuestionnaire', () => {
 
       expect(builderInstance.addProperties).toHaveBeenCalledWith(
         expect.objectContaining({
-          experience_level: 'intermediate',
+          name: 'intermediate',
           skipped: false,
         }),
       );
