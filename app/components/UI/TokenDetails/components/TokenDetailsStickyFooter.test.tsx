@@ -634,8 +634,9 @@ describe('TokenDetailsStickyFooter', () => {
       expect(mockOnBuy).not.toHaveBeenCalled();
     });
 
-    it('does not call onSwapPress when security warning modal is shown', () => {
+    it('calls onSwapPress before navigating to security warning modal', () => {
       const onSwapPress = jest.fn();
+      mockIsStockToken.mockReturnValue(false);
       mockGetResultTypeConfig.mockReturnValue({
         icon: 'warning',
         iconColor: 'warning',
@@ -658,13 +659,15 @@ describe('TokenDetailsStickyFooter', () => {
 
       fireEvent.press(getByText('Swap'));
 
-      // Main assertion: onSwapPress should not be called when modal is shown
-      expect(onSwapPress).not.toHaveBeenCalled();
+      // onSwapPress marks exit_action before the modal blurs the screen
+      expect(onSwapPress).toHaveBeenCalled();
+      // action is deferred to onProceed inside the modal
       expect(mockOnSwap).not.toHaveBeenCalled();
     });
 
-    it('does not call onBuyPress when security warning modal is shown', () => {
+    it('calls onBuyPress before navigating to security warning modal', () => {
       const onBuyPress = jest.fn();
+      mockIsStockToken.mockReturnValue(false);
       mockGetResultTypeConfig.mockReturnValue({
         icon: 'warning',
         iconColor: 'warning',
@@ -687,8 +690,9 @@ describe('TokenDetailsStickyFooter', () => {
 
       fireEvent.press(getByText('Buy'));
 
-      // Main assertion: onBuyPress should not be called when modal is shown
-      expect(onBuyPress).not.toHaveBeenCalled();
+      // onBuyPress marks exit_action before the modal blurs the screen
+      expect(onBuyPress).toHaveBeenCalled();
+      // action is deferred to onProceed inside the modal
       expect(mockOnBuy).not.toHaveBeenCalled();
     });
   });

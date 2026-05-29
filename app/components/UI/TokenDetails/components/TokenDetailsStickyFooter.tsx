@@ -211,6 +211,8 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
         return;
       }
 
+      onNavigate?.();
+
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET,
         params: {
@@ -218,10 +220,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
           iconColor: config.iconColor,
           title: config.sheetTitle,
           description: config.getSheetDescription(token.symbol),
-          onProceed: () => {
-            onNavigate?.();
-            action();
-          },
+          onProceed: action,
           source,
           severity: securityData?.resultType,
           tokenAddress: token.address,
