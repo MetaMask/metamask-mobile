@@ -248,6 +248,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const navigation = useNavigation();
   const resetNavigationLockRef = useRef<(() => void) | null>(null);
   const { isTokenTradingOpen, isStockToken } = useRWAToken();
+
   const { trackEvent, createEventBuilder } = useAnalytics();
   const tronNativeToken = isTronNativeToken(token) ? token : null;
 
@@ -615,12 +616,20 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                 }
                 description={
                   securityData.resultType === 'Malicious'
-                    ? strings('security_trust.malicious_token_description', {
-                        symbol: token.symbol,
-                      })
-                    : strings('security_trust.suspicious_token_description', {
-                        symbol: token.symbol,
-                      })
+                    ? token.symbol
+                      ? strings('security_trust.malicious_token_description', {
+                          symbol: token.symbol,
+                        })
+                      : strings(
+                          'security_trust.malicious_token_description_no_symbol',
+                        )
+                    : token.symbol
+                      ? strings('security_trust.suspicious_token_description', {
+                          symbol: token.symbol,
+                        })
+                      : strings(
+                          'security_trust.suspicious_token_description_no_symbol',
+                        )
                 }
                 className="mx-4 mb-3 gap-4"
                 onPress={handleSecurityBadgePress}

@@ -88,7 +88,9 @@ export const getResultTypeConfig = (
         },
         sheetTitle: strings('security_trust.risky_token_title'),
         getSheetDescription: (symbol) =>
-          strings('security_trust.risky_token_description', { symbol }),
+          symbol
+            ? strings('security_trust.risky_token_description', { symbol })
+            : strings('security_trust.risky_token_description_no_symbol'),
       };
     case 'Malicious':
       return {
@@ -108,9 +110,13 @@ export const getResultTypeConfig = (
         },
         sheetTitle: strings('security_trust.malicious_token_title'),
         getSheetDescription: (symbol) =>
-          strings('security_trust.malicious_token_sheet_description', {
-            symbol,
-          }),
+          symbol
+            ? strings('security_trust.malicious_token_sheet_description', {
+                symbol,
+              })
+            : strings(
+                'security_trust.malicious_token_sheet_description_no_symbol',
+              ),
       };
     default:
       return {
