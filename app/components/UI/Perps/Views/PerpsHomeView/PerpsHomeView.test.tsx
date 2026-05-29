@@ -51,6 +51,7 @@ jest.mock('@react-navigation/native', () => ({
 const mockUseSelector = jest.fn<boolean, [unknown]>(() => false);
 jest.mock('react-redux', () => ({
   useSelector: (selector: unknown) => mockUseSelector(selector),
+  useDispatch: () => jest.fn(),
 }));
 
 // Mock components to prevent complex module initialization chains

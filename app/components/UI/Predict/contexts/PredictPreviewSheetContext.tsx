@@ -391,6 +391,19 @@ export const PredictPreviewSheetProvider: React.FC<
       return;
     }
 
+    // When multiple sheet-mode providers are mounted simultaneously (e.g.
+    // HomeTabs + PredictScreenStack while the user is inside the Predict
+    // stack), only the topmost (most recently mounted, innermost in the
+    // tree) provider should fire the toast — earlier-mounted providers
+    // also hold their own `lastBuyParamsRef` and would otherwise duplicate
+    // the toast (and the `clearOrderError` timer).
+    if (
+      providerIdRef.current === null ||
+      !isActiveSheetModeProvider(providerIdRef.current)
+    ) {
+      return;
+    }
+
     const lastParams = lastBuyParamsRef.current;
     // Use `closeButtonOptions` (with `ButtonVariants.Link`) rather than
     // `linkButtonOptions` so the Retry sits inline on the right of the row

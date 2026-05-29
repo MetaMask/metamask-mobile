@@ -9,37 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.79.0]
 
-### Uncategorized
-
-- Fixed a bug that could allow prediction orders on markets that are no longer accepting bets. (#30403)
-- chore: build android in prod (#30506)
-- Add claude.md file to wrap agents.md (#30395)
-- chore(release): sync stable to main for version 7.77.2 (#30457)
-- Added metrics to explore search V2 (#30376)
-- chore(release): sync stable to main for version 7.77.0 (#30396)
-- Removed the Palm network from the popular networks picker. (#30371)
-- [CHANGED] Patched native crypto dependencies for Android 16KB page size compliance (Play Store requirement) and removed (#30119)
-  pre-built ecies.aar
-- Remove tokensChainsCache from file storage (#30356)
-- chore(release): sync stable to main for version 7.77.0 (#30340)
-- Add forward-looking CODEOWNERS glob for mobile assets namespace. (#30305)
-- Set up batch sell quotes (#29831)
-- Bump assets controller to v7.2.1 (#30067)
-- Added a World Cup tab to the Predict feed when enabled. (#30205)
-- Token details performance tweaking (#30214)
-- chore(theme): gate pure-black dark mode behind pureBlackDarkMode flag (#30068)
-- Adds websocket streaming integration for ohlcv data (#29739)
-- Improve predict explore re-renders (#30135)
-- chore(release): sync stable to main for version 7.76.3 (#30122)
-- chore(release): sync stable to main for version 7.76.0 (#30099)
-- Add mUSD support on Monad (#29897)
-- Remove TokenListController (#29872)
-- Enables money account withdrawal flow (#29862)
-- Aligned previously base-enabled custom network logos (Stable, Flow, XDC, Fraxtal, Hemi, Plasma, Lukso, Rootstock, MSU, Lens, (#29943)
-  Plume) to a square format consistent with Popular networks
-- Update assets controllers for tokensList (#29743)
-- No-changelog (#29920)
-
 ### Added
 
 - Polished the Money Account Home with the spendable mUSD balance in the token row subtitle, a "No fee" badge and "Add" button on (#30437)
@@ -188,6 +157,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed an issue where EIP-7702 authorization signatures with leading zero bytes in `r` or `s` could be rejected by relays and (#29717)
   public RPCs.
 - @metamask/mobile - Fixed: Add CMAKE_VERSION override to build.yml to fix Android CI build after RN 0.81.5 upgrade (#29899)
+
+## [7.78.0]
+
+### Added
+
+- Added a Braze-driven promotional banner to the wallet home screen. (#29301)
+- Added a Money Account onboarding flow. (#30137)
+- Added a postonboarding checklist on the wallet home shown when the balance is empty. (#28851)
+- Added an optional onboarding interest questionnaire after metrics opt-in for eligible users. (#30056)
+- Added a "Paid by MetaMask" treatment on the mUSD conversion confirmation screen when MetaMask fully sponsors the network, provider, and gas fees. (#30120)
+- Added the Money Account withdrawal flow. (#29862)
+- Added mUSD support on Monad. (#29897)
+- Added Batch Sell token selection for selling up to five same-network tokens. (#29690)
+- Added a sort control to a trader's Open and Closed positions on the Top Traders profile screen. (#30027)
+- Added a World Cup promotional banner to the Predict feed. (#30070)
+- Added websocket streaming integration for OHLCV data. (#29739)
+- Added handling for on-ramp provider return deeplinks so users land directly on their order details after completing or cancelling a purchase with an external provider. (#29858)
+- Added an AI disclaimer to the What's Happening section. (#30352)
+- Added price-change pills on related assets. (#30259)
+- Showed the bonus benefits menu for users with the VIP feature enabled. (#29888)
+- Displayed the total benefits count on the Rewards benefits preview header. (#30063)
+
+### Changed
+
+- Updated the primary CTA on the Money Account onboarding stepper to read "Add funds". (#29909)
+- Updated Predict buy previews to include market fees in totals and balance checks. (#29881)
+- Updated Bridge navigation to use the native stack with in-screen headers for Bridge, token selection, and quote selection. (#29829)
+- Updated the mUSD bonus calculator in Rewards with a fresh design. (#29758)
+- Updated the Rewards "theMiracle" logo to be theme-aware. (#30213)
+- Aligned previously base-enabled custom network logos (Stable, Flow, XDC, Fraxtal, Hemi, Plasma, Lukso, Rootstock, MSU, Lens, Plume) to a square format consistent with Popular networks. (#29943)
+- Aligned carousel card heights for accessibility. (#30201)
+- Improved the empty DeFi state navigation to point to Trending v2. (#29927)
+- Improved retry behavior when QR hardware wallet signing scans fail. (#29741)
+- Removed gas alerts from the confirmation modal in gasless flows and updated the 10 MON minimum-reserve alert copy. (#29835)
+
+### Fixed
+
+- Fixed a regression where gas estimate alerts had stopped showing in confirmations. (#30266)
+- Fixed underline positioning in the React Native Scrollable Tab View. (#30133)
+- Fixed a bug where failed builder fee approval was permanently cached, causing subsequent Perps orders to fail. (#30095)
+- Fixed a bug that could repeatedly prompt hardware wallet users while Perps was idle. (#30114)
+- Fixed iOS header inset for Perps order screens. (#30143)
+- Fixed a bug where a trader's positions could appear stale on the Top Traders profile and position screens, and added pull-to-refresh on both screens. (#30039)
+- Fixed limit order margin calculation to use the limit price instead of the market price, preventing "insufficient margin" errors. (#29800)
+- Fixed a bug that could leave the swap quote area blank during slippage refresh. (#29975)
+- Fixed the Account List opening too quickly. (#29859)
+- Fixed an issue where EIP-7702 authorization signatures with leading zero bytes in `r` or `s` could be rejected by relays and public RPCs. (#29717)
 
 ## [7.77.2]
 
@@ -11692,8 +11708,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
+<<<<<<< HEAD
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.79.0...HEAD
 [7.79.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.77.2...v7.79.0
+||||||| 7d197020d9
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.77.2...HEAD
+=======
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.78.0...HEAD
+[7.78.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.77.2...v7.78.0
+>>>>>>> release/7.79.0
 [7.77.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.77.1...v7.77.2
 [7.77.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.77.0...v7.77.1
 [7.77.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.76.3...v7.77.0

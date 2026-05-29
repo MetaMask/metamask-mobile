@@ -1134,6 +1134,10 @@
       "description": "Some services may be unavailable while the team works on a fix.",
       "contact_support": "Contact support"
     },
+    "competition_banner": {
+      "title": "Competition leaderboard",
+      "description": "See where you rank in the Perps trading competition"
+    },
     "today": "Today",
     "yesterday": "Yesterday",
     "unrealized_pnl": "Unrealized P&L",
@@ -2366,6 +2370,7 @@
     "outcome_groups": {
       "game_lines": "Game Lines",
       "first_half": "1st Half",
+      "first_set": "1st Set",
       "team_totals": "Team Totals",
       "touchdowns": "Touchdowns",
       "rushing": "Rushing",
@@ -2387,6 +2392,7 @@
       "moneyline": "Moneyline",
       "spreads": "Spreads",
       "totals": "Totals",
+      "nrfi": "Will there be a run in the first inning?",
       "both_teams_to_score": "Both Teams to Score",
       "first_half_moneyline": "1H Moneyline",
       "first_half_spreads": "1H Spreads",
@@ -2406,7 +2412,12 @@
       "soccer_anytime_goalscorer": "Goalscorers",
       "soccer_exact_score": "Exact Score",
       "soccer_halftime_result": "Halftime Result",
-      "total_corners": "Corners"
+      "total_corners": "Corners",
+      "tennis_set_totals": "Total Sets",
+      "tennis_match_totals": "Total Games",
+      "tennis_first_set_totals": "1st Set Total Games",
+      "tennis_first_set_winner": "1st Set Winner",
+      "tennis_completed_match": "Completed Match"
     },
     "sell_position": "Sell position",
     "odds": "Odds",
@@ -8820,7 +8831,7 @@
       "checking_opt_in_status": "Checking opt in status",
       "swap": "Swap",
       "swap_ondo_assets": "Swap Ondo Assets",
-      "open_position": "Open Position",
+      "open_position": "Trade now",
       "how_it_works": "How it works",
       "ondo": {
         "entries_closed_title": "Entries closed",
@@ -8942,7 +8953,7 @@
       "label_notional_volume": "Notional volume",
       "pending": "Pending",
       "qualified": "Qualified",
-      "open_position_cta": "Open Position",
+      "open_position_cta": "Trade now",
       "leaderboard_title": "Leaderboard",
       "leaderboard_total_participants": "{{count}} participants",
       "last_updated": "Last updated: {{time}}",
@@ -9174,7 +9185,9 @@
     "predictions": "Predictions",
     "no_results": "No results found",
     "no_results_for_feed": "No {{feedName}} results for \"{{query}}\"",
-    "showing_all_results_for": "We found these results for \"{{query}}\"",
+    "no_results_for_query": "No results found for \"{{query}}\"",
+    "no_results_check_popular": "Check out other popular assets",
+    "showing_all_results_for": "We found {{count}} other results for \"{{query}}\"",
     "popular": "Popular",
     "sites": "Sites",
     "popular_sites": "Popular sites",
@@ -9204,7 +9217,7 @@
     },
     "search_tabs": {
       "all": "All",
-      "crypto": "Cryptos",
+      "crypto": "Crypto",
       "perps": "Perps",
       "stocks": "Stocks",
       "predictions": "Predictions",

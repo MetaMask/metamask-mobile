@@ -80,6 +80,7 @@ import PerpsNavigationCard, {
   NavigationItem,
 } from '../../components/PerpsNavigationCard/PerpsNavigationCard';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
+import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
 
 interface PerpsHomeViewProps {
   hideHeader?: boolean;
@@ -521,6 +522,11 @@ const PerpsHomeView = ({
         {/* Balance Actions Component */}
         <PerpsMarketBalanceActions
           showActionButtons={HOME_SCREEN_CONFIG.ShowHeaderActionButtons}
+        />
+
+        {/* Competition Banner */}
+        <PerpsCompetitionBanner
+          testID={PerpsHomeViewSelectorsIDs.COMPETITION_BANNER}
         />
 
         {/* Positions Section */}
