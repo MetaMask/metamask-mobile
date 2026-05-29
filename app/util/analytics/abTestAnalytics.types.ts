@@ -9,4 +9,9 @@ export interface ABTestAnalyticsMapping {
   eventPropertyRequirements?: Readonly<
     Record<string, Readonly<Record<string, string>>>
   >;
+  /**
+   * When set, `active_ab_tests` for this flag is only injected if every entry
+   * matches `event.properties` (strict `===`). Omit for unconditional injection.
+   */
+  injectWhenPropertiesMatch?: Readonly<Record<string, unknown>>;
 }

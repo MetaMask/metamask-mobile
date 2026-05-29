@@ -770,6 +770,7 @@ export const initialState = {
     slippage: '0.5',
     batchSellSlippages: {},
     batchSellSourceTokens: [],
+    batchSellSourceTokenAmounts: {},
     batchSellDestToken: undefined,
     isSubmittingTx: false,
     bridgeViewMode: undefined,

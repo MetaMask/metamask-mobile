@@ -30,14 +30,15 @@ const cloneEventWithAssignments = <
   return clonedEvent;
 };
 
-const matchesMapping = (
+const hasEventName = (
+  mapping: ABTestAnalyticsMapping,
+  eventName: string,
+): boolean => mapping.eventNames.includes(eventName);
+
+const eventMatchesPropertyRequirements = (
   mapping: ABTestAnalyticsMapping,
   event: { name: string; properties: Record<string, unknown> },
 ): boolean => {
-  if (!mapping.eventNames.includes(event.name)) {
-    return false;
-  }
-
   const requirements = mapping.eventPropertyRequirements?.[event.name];
   if (!requirements) {
     return true;
@@ -46,6 +47,19 @@ const matchesMapping = (
   return Object.entries(requirements).every(
     ([propertyKey, expectedValue]) =>
       event.properties[propertyKey] === expectedValue,
+  );
+};
+
+const eventMatchesInjectGate = (
+  properties: Record<string, unknown>,
+  mapping: ABTestAnalyticsMapping,
+): boolean => {
+  const gate = mapping.injectWhenPropertiesMatch;
+  if (!gate || Object.keys(gate).length === 0) {
+    return true;
+  }
+  return Object.entries(gate).every(
+    ([propertyKey, expected]) => properties[propertyKey] === expected,
   );
 };
 
@@ -71,8 +85,11 @@ export const enrichWithABTests = <
   const existingAssignments = normalizeActiveABTestAssignments(
     event.properties.active_ab_tests,
   );
-  const relevantMappings = AB_TEST_ANALYTICS_MAPPINGS.filter((mapping) =>
-    matchesMapping(mapping, event),
+  const relevantMappings = AB_TEST_ANALYTICS_MAPPINGS.filter(
+    (mapping) =>
+      hasEventName(mapping, event.name) &&
+      eventMatchesPropertyRequirements(mapping, event) &&
+      eventMatchesInjectGate(event.properties, mapping),
   );
 
   if (relevantMappings.length === 0) {

@@ -63,6 +63,7 @@ export default defineConfig({
           provider: ProviderName.SIMULATOR,
           osVersion: '26.2',
           name: 'iPhone 16 Pro',
+          udid: '',
         },
         app: {
           appId: 'io.metamask.MetaMask',
