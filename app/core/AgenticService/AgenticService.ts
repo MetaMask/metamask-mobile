@@ -53,6 +53,7 @@ import {
 } from '../../actions/multiSrp';
 import { bufferToHex, privateToAddress } from 'ethereumjs-util';
 import Authentication from '../Authentication';
+import { Wallet as EthersWallet } from 'ethers';
 
 // ─── Fiber tree types ──────────────────────────────────────────────────────
 
@@ -350,6 +351,13 @@ function getPrivateKeyAddress(value: string) {
   ).toLowerCase();
 }
 
+function getMnemonicFirstAddress(value: string) {
+  return EthersWallet.fromMnemonic(
+    value,
+    "m/44'/60'/0'/0/0",
+  ).address.toLowerCase();
+}
+
 interface FixtureHdWallet {
   keyringId?: string;
   accounts: FixtureEvmAccount[];
@@ -423,20 +431,22 @@ async function ensureFixtureMnemonicAccounts(
   const { AccountsController, AccountTreeController } = controllers;
   const count = getFixtureMnemonicCount(mnemonicAccount);
   const names = getFixtureAccountNames(mnemonicAccount, count);
-  let hdWallets = getHdFixtureWallets(
-    AccountsController,
-    AccountTreeController,
-  );
+  const firstAddress = getMnemonicFirstAddress(mnemonicAccount.value);
+  const findWallet = () =>
+    getHdFixtureWallets(AccountsController, AccountTreeController).find(
+      (hdWallet) =>
+        hdWallet.accounts[0]?.address.toLowerCase() === firstAddress,
+    );
 
-  while (hdWallets.length <= mnemonicIndex) {
+  let wallet = findWallet();
+  if (!wallet) {
     await importNewSecretRecoveryPhrase(mnemonicAccount.value, {
       shouldSelectAccount: false,
     });
     await AccountTreeInitService.initializeAccountTree();
-    hdWallets = getHdFixtureWallets(AccountsController, AccountTreeController);
+    wallet = findWallet();
   }
 
-  let wallet = hdWallets[mnemonicIndex];
   if (!wallet) {
     throw new Error(
       `No HD wallet found for fixture mnemonic ${mnemonicIndex + 1}`,
@@ -450,8 +460,7 @@ async function ensureFixtureMnemonicAccounts(
   ) {
     await addNewHdAccount(wallet.keyringId, names[accountIndex]);
     await AccountTreeInitService.initializeAccountTree();
-    hdWallets = getHdFixtureWallets(AccountsController, AccountTreeController);
-    wallet = hdWallets[mnemonicIndex];
+    wallet = findWallet();
     if (!wallet) {
       throw new Error(
         `No HD wallet found after adding fixture account ${accountIndex + 1}`,
@@ -474,9 +483,9 @@ function findAccountGroupIdByAccountId(
   for (const wallet of Object.values(wallets) as {
     groups?: Record<string, { accounts?: string[] }>;
   }[]) {
-    for (const group of Object.values(wallet.groups ?? {})) {
+    for (const [groupId, group] of Object.entries(wallet.groups ?? {})) {
       if (group.accounts?.includes(accountId)) {
-        return (group as { id?: string }).id;
+        return groupId;
       }
     }
   }
