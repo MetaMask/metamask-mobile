@@ -5,12 +5,12 @@ import Engine from '../Engine';
 import { store } from '../../store';
 import { strings } from '../../../locales/i18n';
 import logger, { redactUrl } from '../SDKConnectV2/services/logger';
-import { authEnv, devApiEnv, type DevApiEnv } from '../devApiEnv';
 import { AgenticCliDashboardWebviewService } from '../../components/Views/AgenticCliDashboardWebview/AgenticCliDashboardWebviewService';
 import { Connection } from '../SDKConnectV2/services/connection';
 import { ConnectionRequest } from '../SDKConnectV2/types/connection-request';
 import { buildTypeMapping } from '../OAuthService/OAuthLoginHandlers/constants';
 import AppConstants from '../AppConstants';
+import { Env } from '@metamask/profile-sync-controller/sdk';
 
 const CLI_DASHBOARD_TOKEN_PATH = '/api/v2/mm-qr-login/token';
 const ENGINE_READY_POLL_MS = 250;
@@ -46,10 +46,9 @@ interface HandleAgenticCliConnectionParams {
   cleanupConnection: (conn: Connection) => Promise<void>;
 }
 
-const getDashboardWebviewUrl = (): string => (
-    DASHBOARD_WEBVIEW_URL_BY_ENV[buildType] ??
-    DASHBOARD_WEBVIEW_URL_BY_ENV.main_prod
-  );
+const getDashboardWebviewUrl = (): string =>
+  DASHBOARD_WEBVIEW_URL_BY_ENV[buildType] ??
+  DASHBOARD_WEBVIEW_URL_BY_ENV.main_prod;
 
 const isDevCliDashboardAuthUrl = (dashboardAuthUrl: string): boolean => {
   try {
@@ -71,7 +70,12 @@ const getCliDashboardTokenUrl = (dashboardAuthUrl?: string): string => {
     return dashboardAuthUrl;
   }
 
-  const url = new URL(SDK.getEnvUrls(authEnv()).authApiUrl);
+  const sdkenv = buildType.includes('dev')
+    ? Env.DEV
+    : buildType.includes('uat')
+      ? Env.UAT
+      : Env.PRD;
+  const url = new URL(SDK.getEnvUrls(sdkenv).authApiUrl);
   url.pathname = CLI_DASHBOARD_TOKEN_PATH;
   return url.toString();
 };
