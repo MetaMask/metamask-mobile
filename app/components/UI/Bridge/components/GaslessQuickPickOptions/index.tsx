@@ -14,6 +14,7 @@ import {
   NUMPAD_QUICK_ACTIONS_VARIANTS,
   NumpadQuickActionsVariant,
 } from './abTestConfig';
+import { useBridgeInputCurrencyMode } from '../../hooks/useBridgeInputCurrencyMode';
 
 interface GaslessQuickPickOptionsProps {
   token?: BridgeToken;
@@ -30,6 +31,7 @@ export const GaslessQuickPickOptions = ({
   tokenBalance,
   isQuoteSponsored,
 }: GaslessQuickPickOptionsProps) => {
+  const inputCurrencyMode = useBridgeInputCurrencyMode();
   const { variantName, isActive } = useABTest(
     NUMPAD_QUICK_ACTIONS_AB_KEY,
     NUMPAD_QUICK_ACTIONS_VARIANTS,
@@ -45,6 +47,7 @@ export const GaslessQuickPickOptions = ({
         {
           input: 'token_amount_source',
           input_value: inputValue,
+          input_currency_mode: inputCurrencyMode,
           ...(preset && { input_amount_preset: preset }),
           // This Bridge-specific event bypasses the shared analytics wrappers,
           // so its A/B context still needs to be attached manually here.
@@ -59,7 +62,7 @@ export const GaslessQuickPickOptions = ({
         },
       );
     },
-    [isActive, variantName],
+    [inputCurrencyMode, isActive, variantName],
   );
 
   const onQuickOptionPress = useCallback(

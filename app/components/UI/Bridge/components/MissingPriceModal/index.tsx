@@ -2,7 +2,10 @@ import React, { useCallback, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+import type {
+  InputCurrencyMode,
+  MetaMetricsSwapsEventSource,
+} from '@metamask/bridge-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
@@ -28,6 +31,7 @@ import {
 
 export interface MissingPriceModalParams {
   location: MetaMetricsSwapsEventSource;
+  inputCurrencyMode?: InputCurrencyMode;
 }
 
 export const MissingPriceModal = () => {
@@ -35,7 +39,7 @@ export const MissingPriceModal = () => {
     useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
   const sheetRef = useRef<BottomSheetRef>(null);
   const [loading, setLoading] = useState(false);
-  const { location } = useParams<MissingPriceModalParams>();
+  const { location, inputCurrencyMode } = useParams<MissingPriceModalParams>();
 
   const sourceToken = useSelector(selectSourceToken);
   const tokenBalance = useLatestBalance({
@@ -50,6 +54,7 @@ export const MissingPriceModal = () => {
   const confirmBridge = useBridgeConfirm({
     activeQuote,
     location,
+    inputCurrencyMode,
   });
 
   const handleClose = useCallback(() => {

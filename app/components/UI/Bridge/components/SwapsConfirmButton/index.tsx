@@ -41,6 +41,7 @@ import { TokenWarningModalMode } from '../TokenWarningModal/constants';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { useInsufficientNativeReserveError } from '../../hooks/useInsufficientNativeReserveError';
 import { useIsNetworkFeeUnavailable } from '../../hooks/useIsNetworkFeeUnavailable';
+import { useBridgeInputCurrencyMode } from '../../hooks/useBridgeInputCurrencyMode';
 
 interface Props {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
@@ -57,6 +58,7 @@ export const SwapsConfirmButton = ({
   transactionActiveAbTests,
 }: Props) => {
   const navigation = useNavigation();
+  const inputCurrencyMode = useBridgeInputCurrencyMode();
 
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const destToken = useSelector(selectDestToken);
@@ -185,6 +187,7 @@ export const SwapsConfirmButton = ({
         features: securityData.metadata?.features ?? [],
         mode: TokenWarningModalMode.Execution,
         location,
+        inputCurrencyMode,
       };
       navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
@@ -198,6 +201,7 @@ export const SwapsConfirmButton = ({
         screen: Routes.BRIDGE.MODALS.MISSING_PRICE_MODAL,
         params: {
           location,
+          inputCurrencyMode,
         },
       });
       return;
@@ -223,6 +227,7 @@ export const SwapsConfirmButton = ({
           type: PriceImpactModalType.Execution,
           token: sourceToken,
           location,
+          inputCurrencyMode,
         },
       });
       return;

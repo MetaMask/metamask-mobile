@@ -8,7 +8,11 @@ import {
   DummyQuotesNoApproval,
   DummyQuotesWithApproval,
 } from '../../../../tests/api-mocking/mock-responses/bridge-api-quotes';
-import { QuoteMetadata, QuoteResponse } from '@metamask/bridge-controller';
+import {
+  InputCurrencyMode,
+  QuoteMetadata,
+  QuoteResponse,
+} from '@metamask/bridge-controller';
 import { backgroundState } from '../../test/initial-root-state';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { selectSourceWalletAddress } from '../../../selectors/bridge';
@@ -29,6 +33,11 @@ let mockSubmitIntent: jest.Mock<
   Promise<TransactionMeta>,
   [{ quoteResponse: BridgeQuoteResponse; accountAddress: string }]
 >;
+
+const defaultQuotesReceivedContext = () =>
+  expect.objectContaining({
+    input_currency_mode: InputCurrencyMode.CRYPTO,
+  });
 
 jest.mock('../../../core/Engine', () => {
   mockSubmitTx = jest.fn<
@@ -216,7 +225,7 @@ describe('useSubmitBridgeTx', () => {
         approval: undefined,
       },
       true,
-      undefined,
+      defaultQuotesReceivedContext(),
       undefined,
       undefined,
       undefined,
@@ -267,7 +276,7 @@ describe('useSubmitBridgeTx', () => {
         approval: undefined,
       },
       true,
-      undefined,
+      defaultQuotesReceivedContext(),
       undefined,
       undefined,
       [
@@ -313,7 +322,7 @@ describe('useSubmitBridgeTx', () => {
         approval: mockQuoteResponse.approval ?? undefined,
       },
       true,
-      undefined,
+      defaultQuotesReceivedContext(),
       undefined,
       undefined,
       undefined,
@@ -520,6 +529,7 @@ describe('useSubmitBridgeTx', () => {
       abTests: undefined,
       activeAbTests: undefined,
       tokenSecurityTypeDestination: null,
+      inputCurrencyMode: InputCurrencyMode.CRYPTO,
     });
 
     // Re-render with an active assignment to verify submitIntent forwards activeAbTests.
@@ -553,6 +563,7 @@ describe('useSubmitBridgeTx', () => {
         }),
       ],
       tokenSecurityTypeDestination: null,
+      inputCurrencyMode: InputCurrencyMode.CRYPTO,
     });
     expect(mockSubmitTx).not.toHaveBeenCalled();
     expect(txResult).toEqual(mockIntentResult);
@@ -597,7 +608,7 @@ describe('useSubmitBridgeTx', () => {
         approval: undefined,
       },
       true,
-      undefined,
+      defaultQuotesReceivedContext(),
       undefined,
       undefined,
       [
@@ -650,7 +661,7 @@ describe('useSubmitBridgeTx', () => {
       '0x1234567890123456789012345678901234567890',
       expect.any(Object),
       expect.any(Boolean),
-      undefined,
+      defaultQuotesReceivedContext(),
       undefined,
       undefined,
       undefined,

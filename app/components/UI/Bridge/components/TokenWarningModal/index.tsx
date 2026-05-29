@@ -4,7 +4,10 @@ import { useSelector } from 'react-redux';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+import type {
+  InputCurrencyMode,
+  MetaMetricsSwapsEventSource,
+} from '@metamask/bridge-controller';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -56,6 +59,7 @@ export interface TokenWarningModalParams {
   features: SecurityFeature[];
   mode: TokenWarningModalMode;
   location: MetaMetricsSwapsEventSource;
+  inputCurrencyMode?: InputCurrencyMode;
 }
 
 export const getTokenWarningContent = (
@@ -100,6 +104,7 @@ export const TokenWarningModal = () => {
     features = [],
     mode,
     location,
+    inputCurrencyMode,
   } = useParams<TokenWarningModalParams>();
 
   const sourceToken = useSelector(selectSourceToken);
@@ -118,6 +123,7 @@ export const TokenWarningModal = () => {
   const confirmBridge = useBridgeConfirm({
     activeQuote,
     location,
+    inputCurrencyMode,
   });
 
   const handleClose = useCallback(() => {
@@ -128,6 +134,7 @@ export const TokenWarningModal = () => {
     if (hasMissingPriceData(activeQuote)) {
       navigation.replace(Routes.BRIDGE.MODALS.MISSING_PRICE_MODAL, {
         location,
+        inputCurrencyMode,
       });
       return;
     }
@@ -146,6 +153,7 @@ export const TokenWarningModal = () => {
         type: PriceImpactModalType.Execution,
         token: sourceToken,
         location,
+        inputCurrencyMode,
       });
       return;
     }
@@ -159,6 +167,7 @@ export const TokenWarningModal = () => {
     navigation,
     sourceToken,
     location,
+    inputCurrencyMode,
   ]);
 
   const {

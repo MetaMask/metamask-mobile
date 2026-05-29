@@ -8,6 +8,7 @@ import { useEffect, useMemo } from 'react';
 import Engine from '../../../../../core/Engine';
 import {
   getQuotesReceivedProperties,
+  InputCurrencyMode,
   QuoteWarning,
   UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
@@ -26,6 +27,7 @@ export const useBridgeQuoteEvents = ({
   hasTxAlert,
   isSubmitDisabled,
   isPriceImpactWarningVisible,
+  inputCurrencyMode = InputCurrencyMode.CRYPTO,
 }: {
   hasInsufficientBalance: boolean;
   hasInsufficientNativeReserveError: boolean;
@@ -35,6 +37,7 @@ export const useBridgeQuoteEvents = ({
   hasTxAlert: boolean;
   isSubmitDisabled: boolean;
   isPriceImpactWarningVisible: boolean;
+  inputCurrencyMode?: InputCurrencyMode;
 }) => {
   const { quoteFetchError, quotesRefreshCount } = useSelector(
     selectBridgeControllerState,
@@ -77,13 +80,16 @@ export const useBridgeQuoteEvents = ({
     if (!isLoading && quotesRefreshCount > 0 && !quoteFetchError) {
       Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
         UnifiedSwapBridgeEventName.QuotesReceived,
-        getQuotesReceivedProperties(
-          activeQuote,
-          warnings,
-          !isSubmitDisabled,
-          recommendedQuote,
-          fromTokenBalanceInUsd,
-        ),
+        {
+          ...getQuotesReceivedProperties(
+            activeQuote,
+            warnings,
+            !isSubmitDisabled,
+            recommendedQuote,
+            fromTokenBalanceInUsd,
+          ),
+          input_currency_mode: inputCurrencyMode,
+        },
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
