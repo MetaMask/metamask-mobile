@@ -10,7 +10,7 @@ import { Connection } from '../SDKConnectV2/services/connection';
 import { ConnectionRequest } from '../SDKConnectV2/types/connection-request';
 import { buildTypeMapping } from '../OAuthService/OAuthLoginHandlers/constants';
 import AppConstants from '../AppConstants';
-import { authEnv } from '../devApiEnv';
+import { Env } from '@metamask/profile-sync-controller/sdk';
 
 const CLI_DASHBOARD_TOKEN_PATH = '/api/v2/mm-qr-login/token';
 const ENGINE_READY_POLL_MS = 250;
@@ -70,7 +70,8 @@ const getCliDashboardTokenUrl = (dashboardAuthUrl?: string): string => {
     return dashboardAuthUrl;
   }
 
-  const url = new URL(SDK.getEnvUrls(authEnv()).authApiUrl);
+  const sdkenv = buildType.includes('dev') ? Env.DEV : Env.UAT;
+  const url = new URL(SDK.getEnvUrls(sdkenv).authApiUrl);
   url.pathname = CLI_DASHBOARD_TOKEN_PATH;
   return url.toString();
 };
