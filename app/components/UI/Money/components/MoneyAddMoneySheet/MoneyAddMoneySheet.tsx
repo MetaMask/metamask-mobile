@@ -22,8 +22,10 @@ import { useMusdConversionFlowData } from '../../../Earn/hooks/useMusdConversion
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+  MUSD_TOKEN_ADDRESS_BY_CHAIN,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../Earn/constants/musd';
+import { Hex } from '@metamask/utils';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
@@ -50,6 +52,7 @@ const MoneyAddMoneySheet: React.FC = () => {
     fiatBalanceAggregatedFormatted,
     hasMusdBalanceOnAnyChain,
     tokenBalanceAggregated,
+    tokenBalanceByChain,
   } = useMusdBalance();
   const { getChainIdForBuyFlow } = useMusdConversionFlowData();
   const { goToBuy } = useRampNavigation();
@@ -81,11 +84,29 @@ const MoneyAddMoneySheet: React.FC = () => {
     });
   }, [closeAndNavigate, getChainIdForBuyFlow, goToBuy]);
 
-  // TODO: wire to the "move external mUSD → Money Account" flow once the
-  // dedicated ticket lands. Interim: close sheet.
   const handleMoveMusd = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet();
-  }, []);
+    let sourceChainId: Hex = MUSD_CONVERSION_DEFAULT_CHAIN_ID;
+    let bestBalance = new BigNumber(0);
+    for (const [chainId, balance] of Object.entries(
+      tokenBalanceByChain ?? {},
+    )) {
+      const candidate = new BigNumber(balance ?? 0);
+      if (candidate.isGreaterThan(bestBalance)) {
+        sourceChainId = chainId as Hex;
+        bestBalance = candidate;
+      }
+    }
+
+    closeAndNavigate(() => {
+      initiateDeposit({
+        intent: 'addMusd',
+        preferredPaymentToken: {
+          address: MUSD_TOKEN_ADDRESS_BY_CHAIN[sourceChainId],
+          chainId: sourceChainId,
+        },
+      }).catch(() => undefined);
+    });
+  }, [closeAndNavigate, initiateDeposit, tokenBalanceByChain]);
 
   const parsedMusdFiat = Number(fiatBalanceAggregated);
   const hasParsedFiatBalance =

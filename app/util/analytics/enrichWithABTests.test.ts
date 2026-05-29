@@ -200,6 +200,56 @@ describe('enrichWithABTests', () => {
     },
   );
 
+  it('skips injectWhen-gated mappings when event properties do not match', () => {
+    const event = AnalyticsEventBuilder.createEventBuilder('Home Viewed')
+      .addProperties({
+        section_name: 'tokens',
+        is_empty: true,
+      })
+      .build();
+
+    const result = enrichWithABTests(event, {
+      homeTMCU725AbtestHomepagePerpsPillsEmptyState: 'treatment',
+    });
+
+    expect(result.properties.active_ab_tests).toBeUndefined();
+  });
+
+  it('skips homepage perps pills mapping when perps section is not empty', () => {
+    const event = AnalyticsEventBuilder.createEventBuilder('Home Viewed')
+      .addProperties({
+        section_name: 'perps',
+        is_empty: false,
+      })
+      .build();
+
+    const result = enrichWithABTests(event, {
+      homeTMCU725AbtestHomepagePerpsPillsEmptyState: 'treatment',
+    });
+
+    expect(result.properties.active_ab_tests).toBeUndefined();
+  });
+
+  it('applies injectWhen-gated homepage perps pills mapping on Home Viewed when gate matches', () => {
+    const event = AnalyticsEventBuilder.createEventBuilder('Home Viewed')
+      .addProperties({
+        section_name: 'perps',
+        is_empty: true,
+      })
+      .build();
+
+    const result = enrichWithABTests(event, {
+      homeTMCU725AbtestHomepagePerpsPillsEmptyState: 'control',
+    });
+
+    expect(result.properties.active_ab_tests).toEqual([
+      createActiveABTestAssignment(
+        'homeTMCU725AbtestHomepagePerpsPillsEmptyState',
+        'control',
+      ),
+    ]);
+  });
+
   it('leaves non-A/B properties and sensitive properties unchanged', () => {
     const event = AnalyticsEventBuilder.createEventBuilder('Card Button Viewed')
       .addProperties({
