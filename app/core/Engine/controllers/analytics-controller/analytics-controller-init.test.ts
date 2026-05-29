@@ -38,7 +38,7 @@ jest.mock('./platform-adapter-e2e', () => ({
 }));
 
 jest.mock('../../../../util/test/utils', () => ({
-  hasOverrides: false,
+  hasTestOverrides: false,
 }));
 
 jest.mock('../../../Braze', () => ({
@@ -186,15 +186,15 @@ describe('analyticsControllerInit', () => {
       expect(createPlatformAdapter).toHaveBeenCalled();
     });
 
-    it('uses E2E platform adapter when hasOverrides is true', () => {
+    it('uses E2E platform adapter when hasTestOverrides is true', () => {
       jest.resetModules();
       jest.doMock('../../../../util/test/utils', () => ({
-        hasOverrides: true,
+        hasTestOverrides: true,
       }));
       const { createPlatformAdapter: createE2E } = jest.requireMock(
         './platform-adapter-e2e',
       );
-      // Re-require to pick up the new hasOverrides mock
+      // Re-require to pick up the new hasTestOverrides mock
       const { analyticsControllerInit: initFn } = jest.requireMock(
         './analytics-controller-init',
       );

@@ -1445,7 +1445,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
     const webViewTestProps = useMemo(
       () =>
-        process.env.HAS_OVERRIDES === 'true' ? { javaScriptEnabled: true } : {},
+        process.env.HAS_TEST_OVERRIDES === 'true'
+          ? { javaScriptEnabled: true }
+          : {},
       [],
     );
 

@@ -184,7 +184,7 @@ const reduxState = ReduxService.store.getState();
 const persistedState = await ControllerStorage.getAllPersistedState();
 
 // Choose state source based on environment
-const state = hasOverrides
+const state = hasTestOverrides
   ? reduxState?.engine?.backgroundState
   : (persistedState?.backgroundState ?? {});
 ```

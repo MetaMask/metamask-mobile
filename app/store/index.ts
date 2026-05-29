@@ -5,7 +5,7 @@ import createSagaMiddleware, { SagaMiddleware } from 'redux-saga';
 import { rootSaga } from './sagas';
 import rootReducer, { RootState } from '../reducers';
 import ReadOnlyNetworkStore from '../util/test/network-store';
-import { hasOverrides } from '../util/test/utils';
+import { hasTestOverrides } from '../util/test/utils';
 import { trace, endTrace, TraceName, TraceOperation } from '../util/trace';
 import thunk from 'redux-thunk';
 import persistConfig from './persistConfig';
@@ -36,7 +36,7 @@ const createStoreAndPersistor = async () => {
     op: TraceOperation.StoreInit,
   });
   // Obtain the initial state from ReadOnlyNetworkStore for E2E tests.
-  const initialState = hasOverrides
+  const initialState = hasTestOverrides
     ? await ReadOnlyNetworkStore.getState()
     : undefined;
 
@@ -96,7 +96,7 @@ const createStoreAndPersistor = async () => {
 (async () => {
   try {
     await createStoreAndPersistor();
-    if (hasOverrides) {
+    if (hasTestOverrides) {
       // Delay to give the store time to hydrate before first poll
       setTimeout(async () => {
         try {

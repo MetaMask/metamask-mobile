@@ -40,7 +40,7 @@ import { selectWalletHomeOnboardingSteps } from '../../../selectors/onboarding';
 import { WalletHomeOnboardingStepsSelectors } from './WalletHomeOnboardingSteps.testIds';
 import Logger from '../../../util/Logger';
 import onboardChecklistV05Animation from '../../../animations/onboard_checklist_v05.riv';
-import { hasOverrides } from '../../../util/test/utils';
+import { hasTestOverrides } from '../../../util/test/utils';
 import {
   WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_ARTBOARD,
   WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_TRIGGER,
@@ -236,7 +236,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   );
 
   useEffect(() => {
-    if (hasOverrides) {
+    if (hasTestOverrides) {
       return;
     }
     if (suspendRiveForCurtain) {
@@ -252,7 +252,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
    * showing the previous bitmap (RN Image can reuse the drawable until the new asset finishes decoding).
    */
   useEffect(() => {
-    if (hasOverrides) {
+    if (hasTestOverrides) {
       return;
     }
     (
@@ -295,7 +295,11 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   );
 
   useLayoutEffect(() => {
-    if (!skipIntroAfterDeferredNavReturn || hasOverrides || isAwaitingBalance) {
+    if (
+      !skipIntroAfterDeferredNavReturn ||
+      hasTestOverrides ||
+      isAwaitingBalance
+    ) {
       return;
     }
     const timeoutId = setTimeout(() => {
@@ -334,7 +338,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     }
     Animated.timing(progressRatioAnim, {
       toValue: target,
-      duration: hasOverrides
+      duration: hasTestOverrides
         ? 0
         : WALLET_HOME_ONBOARDING_CHECKLIST_PROGRESS_BAR_MS,
       easing: Easing.out(Easing.cubic),
@@ -359,7 +363,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     const fromIndex = stepIndexRef.current;
     const fromIsLast = isLastStepRef.current;
 
-    if (hasOverrides) {
+    if (hasTestOverrides) {
       if (fromIsLast) {
         dispatch(suppressWalletHomeOnboardingSteps('flow_completed'));
       } else {
@@ -376,7 +380,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
         if (onCoordinatedFlowExit) {
           Animated.timing(checklistFadeOpacity, {
             toValue: 0,
-            duration: hasOverrides
+            duration: hasTestOverrides
               ? 0
               : WALLET_HOME_POST_ONBOARDING_FADE_OUT_MS,
             easing: Easing.out(Easing.cubic),
@@ -397,7 +401,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
           toValue: walletHomeOnboardingChecklistSlideDownExitDistancePx(
             Dimensions.get('window').height,
           ),
-          duration: hasOverrides
+          duration: hasTestOverrides
             ? 0
             : WALLET_HOME_ONBOARDING_CHECKLIST_SLIDE_DOWN_OUT_MS,
           easing: Easing.in(Easing.cubic),
@@ -469,7 +473,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     if (fromIsLast) {
       Animated.timing(progressRatioAnim, {
         toValue: 1,
-        duration: hasOverrides
+        duration: hasTestOverrides
           ? 0
           : WALLET_HOME_ONBOARDING_CHECKLIST_PROGRESS_BAR_MS,
         easing: Easing.out(Easing.cubic),
@@ -497,7 +501,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   ]);
 
   useLayoutEffect(() => {
-    if (hasOverrides) {
+    if (hasTestOverrides) {
       return;
     }
     if (
@@ -551,7 +555,9 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
             setIsAwaitingDeferredNavResumeHold(false);
           }
         },
-        hasOverrides ? 0 : WALLET_HOME_ONBOARDING_FUND_RETURN_BALANCE_GRACE_MS,
+        hasTestOverrides
+          ? 0
+          : WALLET_HOME_ONBOARDING_FUND_RETURN_BALANCE_GRACE_MS,
       );
       return () => {
         clearTimeout(graceTimer);
@@ -560,7 +566,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
 
     setIsAwaitingDeferredNavResumeHold(true);
 
-    const holdMs = hasOverrides
+    const holdMs = hasTestOverrides
       ? 0
       : WALLET_HOME_ONBOARDING_POST_NAV_RESUME_HOLD_MS;
     resumeHoldAfterReturnTimerRef.current = setTimeout(() => {
@@ -586,7 +592,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
    * deferred-return timer — e.g. incoming transfer while the checklist is visible.
    */
   useEffect(() => {
-    if (hasOverrides) {
+    if (hasTestOverrides) {
       return;
     }
     if (!isFocused || isAwaitingBalance || stepIndex !== 0) {
@@ -631,7 +637,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     const kind = currentStepKindRef.current;
     const { shouldDeferAdvanceUntilReturn, fundOpensOnramp } =
       walletHomeOnboardingPrimaryDeferDecision({
-        hasOverrides,
+        hasTestOverrides,
         kind,
         onFundPrimaryPress,
         onTradePrimaryPress,
@@ -731,7 +737,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
               )}
               testID={`${testID}-hero-awaiting-balance`}
             />
-          ) : !hasOverrides ? (
+          ) : !hasTestOverrides ? (
             <Rive
               key={`wallet-home-checklist-rive-${currentStep.kind}`}
               ref={checklistRiveRef}

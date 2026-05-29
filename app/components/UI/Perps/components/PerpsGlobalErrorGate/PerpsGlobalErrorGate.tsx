@@ -9,7 +9,7 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
 import { ensureError } from '../../../../../util/errorUtils';
-import { hasOverrides } from '../../../../../util/test/utils';
+import { hasTestOverrides } from '../../../../../util/test/utils';
 
 const ANALYTICS_DEBOUNCE_MS = 1000;
 
@@ -26,7 +26,7 @@ export const PerpsGlobalErrorGate: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [error, setError] = useState<string | null>(() => {
-    if (hasOverrides) return null;
+    if (hasTestOverrides) return null;
     return PerpsConnectionManager.getConnectionState().error;
   });
   const [isConnecting, setIsConnecting] = useState(false);
@@ -39,7 +39,7 @@ export const PerpsGlobalErrorGate: React.FC<{ children: React.ReactNode }> = ({
   const lastTrackedRetryRef = useRef<number>(0);
 
   useEffect(() => {
-    if (hasOverrides) return;
+    if (hasTestOverrides) return;
 
     const updateState = () => {
       const state = PerpsConnectionManager.getConnectionState();

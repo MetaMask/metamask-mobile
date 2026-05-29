@@ -1,12 +1,12 @@
 /**
  * Verify E2E bridge wiring without UI:
- * - Forces hasOverrides=true
+ * - Forces hasTestOverrides=true
  * - Applies controller mocks
  * - Asserts calculateLiquidationPrice returns entryPrice (0.0% distance scenario)
  */
 
 // NOTE: Do not import the module under test at file scope.
-// Each test controls the hasOverrides flag via jest.doMock and then requires the module.
+// Each test controls the hasTestOverrides flag via jest.doMock and then requires the module.
 
 // Minimal controller stub with update()
 class DummyPerpsController {
@@ -25,7 +25,9 @@ class DummyPerpsController {
 describe('e2eBridgePerps (no UI)', () => {
   it.skip('applies controller mocks and overrides getAccountState', async () => {
     // Given E2E mode
-    jest.doMock('../../../../util/test/utils', () => ({ hasOverrides: true }));
+    jest.doMock('../../../../util/test/utils', () => ({
+      hasTestOverrides: true,
+    }));
     // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
     const { applyE2EControllerMocks } = require('./e2eBridgePerps');
     const controller = new DummyPerpsController() as unknown as Record<
@@ -51,7 +53,9 @@ describe('e2eBridgePerps (no UI)', () => {
   });
 
   it('exposes a mock stream manager in E2E', () => {
-    jest.doMock('../../../../util/test/utils', () => ({ hasOverrides: true }));
+    jest.doMock('../../../../util/test/utils', () => ({
+      hasTestOverrides: true,
+    }));
     // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
     const { getE2EMockStreamManager } = require('./e2eBridgePerps');
     const stream = getE2EMockStreamManager();
@@ -59,10 +63,10 @@ describe('e2eBridgePerps (no UI)', () => {
   });
 });
 /*
-  Tests the hasOverrides switch behavior for e2eBridgePerps without depending on E2E files existing.
+  Tests the hasTestOverrides switch behavior for e2eBridgePerps without depending on E2E files existing.
 */
 
-describe('e2eBridgePerps - hasOverrides switch', () => {
+describe('e2eBridgePerps - hasTestOverrides switch', () => {
   const mockConsoleWarn = jest
     .spyOn(console, 'warn')
     .mockImplementation(() => undefined);
@@ -80,23 +84,27 @@ describe('e2eBridgePerps - hasOverrides switch', () => {
     jest.clearAllMocks();
   });
 
-  it('returns null/no-op when hasOverrides is false', () => {
+  it('returns null/no-op when hasTestOverrides is false', () => {
     jest.resetModules();
-    jest.doMock('../../../../util/test/utils', () => ({ hasOverrides: false }));
+    jest.doMock('../../../../util/test/utils', () => ({
+      hasTestOverrides: false,
+    }));
 
     jest.isolateModules(() => {
       // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
       const bridge = require('./e2eBridgePerps');
-      // getE2EMockStreamManager should be null in non-hasOverrides
+      // getE2EMockStreamManager should be null in non-hasTestOverrides
       expect(bridge.getE2EMockStreamManager()).toBeNull();
       // applyE2EControllerMocks should be a no-op and not throw
       expect(() => bridge.applyE2EControllerMocks({})).not.toThrow();
     });
   });
 
-  it('does not throw when hasOverrides is true but E2E modules are absent', () => {
+  it('does not throw when hasTestOverrides is true but E2E modules are absent', () => {
     jest.resetModules();
-    jest.doMock('../../../../util/test/utils', () => ({ hasOverrides: true }));
+    jest.doMock('../../../../util/test/utils', () => ({
+      hasTestOverrides: true,
+    }));
     // Mock E2E modules as absent (empty stubs)
     jest.doMock(
       '../../../../../tests/controller-mocking/mock-responses/perps/perps-e2e-mocks',
@@ -120,7 +128,9 @@ describe('e2eBridgePerps - hasOverrides switch', () => {
   });
 
   it.skip('returns E2E mock manager and applies controller mocks when modules exist', () => {
-    jest.doMock('../../../../util/test/utils', () => ({ hasOverrides: true }));
+    jest.doMock('../../../../util/test/utils', () => ({
+      hasTestOverrides: true,
+    }));
 
     const mockReset = jest.fn();
     const mockService = {

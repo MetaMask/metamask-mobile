@@ -10,7 +10,7 @@ import {
 } from 'expo-updates';
 import extractEthJsErrorMessage from '../extractEthJsErrorMessage';
 import { regex } from '../regex';
-import { hasOverrides, isQa } from '../test/utils';
+import { hasTestOverrides, isQa } from '../test/utils';
 import { store } from '../../store';
 import { Performance } from '../../core/Performance';
 import Device from '../device';
@@ -606,7 +606,7 @@ export async function setupSentry(
   const dsn = process.env.MM_SENTRY_DSN;
 
   // Disable Sentry for E2E tests or when DSN is not provided
-  if (hasOverrides || !dsn) {
+  if (hasTestOverrides || !dsn) {
     return;
   }
 

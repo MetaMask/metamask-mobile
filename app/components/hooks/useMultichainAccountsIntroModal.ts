@@ -6,7 +6,7 @@ import Routes from '../../constants/navigation/Routes';
 import StorageWrapper from '../../store/storage-wrapper';
 import { CURRENT_APP_VERSION, LAST_APP_VERSION } from '../../constants/storage';
 
-const hasTestOverrides = process.env.HAS_OVERRIDES === 'true';
+const hasTestOverrides = process.env.HAS_TEST_OVERRIDES === 'true';
 
 /**
  * Hook to handle showing the multichain accounts intro modal

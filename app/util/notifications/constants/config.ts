@@ -1,5 +1,5 @@
 import Engine from '../../../core/Engine';
-import { hasOverrides } from '../../test/utils';
+import { hasTestOverrides } from '../../test/utils';
 
 /**
  * This feature flag compromises of a build-time flag as well as a remote flag.
@@ -9,7 +9,7 @@ import { hasOverrides } from '../../test/utils';
  * @returns boolean if notifications feature is enabled.
  */
 export const isNotificationsFeatureEnabled = () => {
-  if (hasOverrides) {
+  if (hasTestOverrides) {
     return true;
   }
 

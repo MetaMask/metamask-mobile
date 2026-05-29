@@ -120,7 +120,7 @@ function writeBuildEnvJson(buildName) {
     'REWARDS_API_URL',
     'MM_PORTFOLIO_URL',
     'RAMPS_ENVIRONMENT',
-    'HAS_OVERRIDES',
+    'HAS_TEST_OVERRIDES',
     // Additional env vars for full environment info
     'PORTFOLIO_API_URL',
     'SECURITY_ALERTS_API_URL',

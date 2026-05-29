@@ -48,7 +48,7 @@ jobs:
       PLATFORM: ios
       METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
       METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
-      HAS_OVERRIDES: true
+      HAS_TEST_OVERRIDES: true
       E2E: 'true'
       IGNORE_BOXLOGS_DEVELOPMENT: true
       CI: 'true'
@@ -416,7 +416,7 @@ jobs:
           PLATFORM: ios
           METAMASK_ENVIRONMENT: main
           METAMASK_BUILD_TYPE: main
-          HAS_OVERRIDES: true
+          HAS_TEST_OVERRIDES: true
           IS_SIM_BUILD: 'true' # Ensures simulator build (.app) not device build (.ipa)
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: 'true'
@@ -446,7 +446,7 @@ jobs:
           PLATFORM: ios
           METAMASK_ENVIRONMENT: qa
           METAMASK_BUILD_TYPE: main
-          HAS_OVERRIDES: true
+          HAS_TEST_OVERRIDES: true
           E2E: 'true'
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: 'true'

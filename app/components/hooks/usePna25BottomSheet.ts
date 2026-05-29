@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import { selectShouldShowPna25Notice } from '../../selectors/legalNotices';
 import Routes from '../../constants/navigation/Routes';
 
-const hasTestOverrides = process.env.HAS_OVERRIDES === 'true';
+const hasTestOverrides = process.env.HAS_TEST_OVERRIDES === 'true';
 
 /**
  * Hook to handle showing the PNA25 privacy notice bottom sheet

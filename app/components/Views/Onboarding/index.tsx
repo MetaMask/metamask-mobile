@@ -53,7 +53,7 @@ import {
   resetMetricsOptInUISeen,
 } from '../../../util/metrics/metricsOptInUIUtils';
 import { ThemeContext } from '../../../util/theme';
-import { hasOverrides } from '../../../util/test/utils';
+import { hasTestOverrides } from '../../../util/test/utils';
 import { OnboardingSelectorIDs } from './Onboarding.testIds';
 import Routes from '../../../constants/navigation/Routes';
 import { selectExistingUser } from '../../../reducers/user/selectors';
@@ -303,10 +303,10 @@ const Onboarding = () => {
 
       hasCheckedVaultBackup.current = true;
 
-      // Skip check when hasOverrides is true
+      // Skip check when hasTestOverrides is true
       // E2E tests start with fresh state but may have vault backups from fixtures/previous runs
       // This would trigger false positive vault recovery redirects and break onboarding tests
-      if (hasOverrides) {
+      if (hasTestOverrides) {
         return;
       }
 
@@ -1233,7 +1233,7 @@ const Onboarding = () => {
 
         <FadeOutOverlay />
 
-        {!hasOverrides && (
+        {!hasTestOverrides && (
           <FoxAnimation hasFooter={false} trigger={startFoxAnimation} />
         )}
 

@@ -7,7 +7,7 @@ import {
 } from '@metamask/analytics-controller';
 import { createPlatformAdapter } from './platform-adapter';
 import { createPlatformAdapter as createE2EPlatformAdapter } from './platform-adapter-e2e';
-import { hasOverrides } from '../../../../util/test/utils';
+import { hasTestOverrides } from '../../../../util/test/utils';
 import { getBrazePlugin } from '../../../Braze';
 import type { AnalyticsControllerInitMessenger } from '../../messengers/analytics-controller-messenger';
 import type { AccountsControllerState } from '@metamask/accounts-controller';
@@ -66,7 +66,7 @@ export const analyticsControllerInit: MessengerClientInitFunction<
     analyticsId,
   };
 
-  const platformAdapter = hasOverrides
+  const platformAdapter = hasTestOverrides
     ? createE2EPlatformAdapter()
     : createPlatformAdapter([getBrazePlugin()]);
 

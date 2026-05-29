@@ -9,7 +9,7 @@ import { View, Animated, Easing, StyleSheet } from 'react-native';
 import Rive, { Fit, Alignment, RiveRef } from 'rive-react-native';
 
 import MetaMaskWordmarkAnimation from '../../../animations/metamask_wordmark_animation_build-up.riv';
-import { hasOverrides } from '../../../util/test/utils';
+import { hasTestOverrides } from '../../../util/test/utils';
 import Logger from '../../../util/Logger';
 
 import { useAppThemeFromContext } from '../../../util/theme';
@@ -69,14 +69,14 @@ const OnboardingAnimation = ({
   const logoRef = useRef<RiveRef>(null);
   const logoPosition = useMemo(() => new Animated.Value(0), []);
   const buttonsOpacity = useMemo(
-    () => new Animated.Value(hasOverrides ? 1 : 0),
+    () => new Animated.Value(hasTestOverrides ? 1 : 0),
     [],
   );
 
   const { themeAppearance } = useAppThemeFromContext();
   const styles = createStyles();
 
-  const [isPlaying, setIsPlaying] = useState(hasOverrides);
+  const [isPlaying, setIsPlaying] = useState(hasTestOverrides);
 
   const moveLogoUp = useCallback(() => {
     Animated.parallel([
@@ -96,7 +96,7 @@ const OnboardingAnimation = ({
   }, [logoPosition, buttonsOpacity]);
 
   const startRiveAnimation = useCallback(() => {
-    if (hasOverrides) {
+    if (hasTestOverrides) {
       logoPosition.setValue(-180);
       buttonsOpacity.setValue(1);
       setStartFoxAnimation(true);
@@ -146,7 +146,7 @@ const OnboardingAnimation = ({
           ]}
           pointerEvents="none"
         >
-          {!hasOverrides && (
+          {!hasTestOverrides && (
             <Rive
               ref={logoRef}
               style={styles.image}

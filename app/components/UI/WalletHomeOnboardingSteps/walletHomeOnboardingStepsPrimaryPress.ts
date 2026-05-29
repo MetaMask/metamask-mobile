@@ -10,14 +10,14 @@ export interface WalletHomeOnboardingPrimaryDeferDecision {
  * from navigation (or until the fund balance gate passes for on-ramp).
  */
 export function walletHomeOnboardingPrimaryDeferDecision(args: {
-  hasOverrides: boolean;
+  hasTestOverrides: boolean;
   kind: WalletHomeOnboardingStepKind;
   onFundPrimaryPress?: () => void;
   onTradePrimaryPress?: () => void;
   onNotificationsPrimaryPress?: () => void;
 }): WalletHomeOnboardingPrimaryDeferDecision {
   const {
-    hasOverrides,
+    hasTestOverrides,
     kind,
     onFundPrimaryPress,
     onTradePrimaryPress,
@@ -25,7 +25,7 @@ export function walletHomeOnboardingPrimaryDeferDecision(args: {
   } = args;
   const fundOpensOnramp = kind === 'fund' && Boolean(onFundPrimaryPress);
   const shouldDeferAdvanceUntilReturn =
-    !hasOverrides &&
+    !hasTestOverrides &&
     ((kind === 'trade' && Boolean(onTradePrimaryPress)) ||
       (kind === 'notifications' && Boolean(onNotificationsPrimaryPress)) ||
       fundOpensOnramp);

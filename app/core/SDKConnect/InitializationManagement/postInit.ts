@@ -5,15 +5,15 @@ import Engine from '../../../core/Engine';
 import SDKConnect from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
 import { waitForCondition, waitForKeychainUnlocked } from '../utils/wait.util';
-import { hasOverrides } from '../../../util/test/utils';
+import { hasTestOverrides } from '../../../util/test/utils';
 
 async function postInit(instance: SDKConnect) {
   if (!instance.state._initialized) {
     throw new Error(`SDKConnect::postInit() - not initialized`);
   }
 
-  if (hasOverrides) {
-    DevLogger.log(`SDKConnect::postInit() - SKIP -- hasOverrides`);
+  if (hasTestOverrides) {
+    DevLogger.log(`SDKConnect::postInit() - SKIP -- hasTestOverrides`);
     instance.state._postInitialized = true;
     return;
   }

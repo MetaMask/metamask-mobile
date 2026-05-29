@@ -87,7 +87,7 @@ import {
 } from '../../../util/trace';
 import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
-import { hasOverrides } from '../../../util/test/utils';
+import { hasTestOverrides } from '../../../util/test/utils';
 import { AccountImportStrategy } from '@metamask/keyring-controller';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { selectAttributionRecord } from '../../../selectors/attribution';
@@ -685,7 +685,7 @@ const ChoosePassword = () => {
             twClassName="flex-1 px-4"
             gap={6}
           >
-            {!hasOverrides && <FoxRiveLoaderAnimation />}
+            {!hasTestOverrides && <FoxRiveLoaderAnimation />}
           </Box>
         ) : (
           <KeyboardAwareScrollView

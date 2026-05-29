@@ -18,7 +18,7 @@ import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
-// E2E environment setup - mocks auto-configure via hasOverrides flag
+// E2E environment setup - mocks auto-configure via hasTestOverrides flag
 
 const logger = createLogger({
   name: 'PerpsPositionSpec',
