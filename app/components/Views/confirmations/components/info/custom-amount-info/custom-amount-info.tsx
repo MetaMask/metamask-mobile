@@ -128,6 +128,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     useClearConfirmationOnBackSwipe({
       rejectOnBeforeRemove: isPredictDeposit,
+      skipNavigationOnGestureEnd: isPredictDeposit,
     });
 
     const { canSelectWithdrawToken } = useTransactionPayWithdraw();

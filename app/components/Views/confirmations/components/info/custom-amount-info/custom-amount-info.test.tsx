@@ -325,6 +325,7 @@ describe('CustomAmountInfo', () => {
 
     expect(useClearConfirmationOnBackSwipeMock).toHaveBeenCalledWith({
       rejectOnBeforeRemove: true,
+      skipNavigationOnGestureEnd: true,
     });
   });
 
@@ -333,6 +334,7 @@ describe('CustomAmountInfo', () => {
 
     expect(useClearConfirmationOnBackSwipeMock).toHaveBeenCalledWith({
       rejectOnBeforeRemove: false,
+      skipNavigationOnGestureEnd: false,
     });
   });
 
