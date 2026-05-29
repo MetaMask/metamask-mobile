@@ -1278,4 +1278,164 @@ describe('AccountConnect', () => {
       ).toBeNull();
     });
   });
+
+  describe('referrer in CONNECT_REQUEST_COMPLETED', () => {
+    beforeEach(() => {
+      mockGetConnection.mockReset();
+      mockGetConnection.mockReturnValue(undefined);
+      mockIsUUID.mockReset();
+      mockIsUUID.mockReturnValue(false);
+      mockedTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+      Engine.context.PermissionController.acceptPermissionsRequest = jest
+        .fn()
+        .mockResolvedValue(undefined);
+    });
+
+    const renderForReferrer = (
+      origin: string,
+      stateOverrides: DeepPartial<RootState>,
+    ) =>
+      renderWithProvider(
+        <AccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin,
+                  isEip1193Request: true,
+                },
+                permissions: createMockCaip25Permission({
+                  'wallet:eip155': { accounts: [] },
+                }),
+              },
+              permissionRequestId: 'test-referrer',
+            },
+          }}
+        />,
+        { state: { ...mockInitialState, ...stateOverrides } },
+      );
+
+    it('uses the self-reported dapp url for SDKv2 (MMConnect) connections', async () => {
+      const channelId = '550e8400-e29b-41d4-a716-446655440000';
+      const dappUrl = 'https://mmconnect-dapp.com';
+      mockIsUUID.mockReturnValue(true);
+
+      const { getByTestId } = renderForReferrer(channelId, {
+        sdk: {
+          v2Connections: {
+            [channelId]: {
+              isV2: true,
+              originatorInfo: { url: dappUrl, anonId: 'anon-1' },
+            },
+          },
+          wc2Metadata: { id: '' },
+        },
+      });
+
+      fireEvent.press(getByTestId('connect-button'));
+
+      await waitFor(() => {
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({ referrer: dappUrl }),
+        );
+      });
+      expect(mockAddProperties).not.toHaveBeenCalledWith(
+        expect.objectContaining({ referrer: channelId }),
+      );
+    });
+
+    it('uses empty string referrer for SDKv2 connections without a self-reported dapp url', async () => {
+      const channelId = '550e8400-e29b-41d4-a716-446655440099';
+      mockIsUUID.mockReturnValue(true);
+
+      const { getByTestId } = renderForReferrer(channelId, {
+        sdk: {
+          v2Connections: {
+            [channelId]: {
+              isV2: true,
+              originatorInfo: { anonId: 'anon-2' },
+            },
+          },
+          wc2Metadata: { id: '' },
+        },
+      });
+
+      fireEvent.press(getByTestId('connect-button'));
+
+      await waitFor(() => {
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({ referrer: '' }),
+        );
+      });
+      expect(mockAddProperties).not.toHaveBeenCalledWith(
+        expect.objectContaining({ referrer: channelId }),
+      );
+    });
+
+    it('uses the self-reported dapp url for SDKv1 (legacy SDK) connections', async () => {
+      const channelId = '660e8400-e29b-41d4-a716-446655440111';
+      const dappUrl = 'https://sdkv1-dapp.com';
+      mockIsUUID.mockReturnValue(true);
+      mockGetConnection.mockReturnValue({
+        originatorInfo: { url: dappUrl },
+      });
+
+      const { getByTestId } = renderForReferrer(channelId, {
+        sdk: {
+          v2Connections: {},
+          wc2Metadata: { id: '' },
+        },
+      });
+
+      fireEvent.press(getByTestId('connect-button'));
+
+      await waitFor(() => {
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({ referrer: dappUrl }),
+        );
+      });
+    });
+
+    it('uses the wc2 url for WalletConnect connections', async () => {
+      const channelId = 'walletconnect-origin.com';
+      const wcUrl = 'https://wc-dapp.com';
+
+      const { getByTestId } = renderForReferrer(channelId, {
+        sdk: {
+          v2Connections: {},
+          wc2Metadata: { id: 'wc-id', url: wcUrl },
+        },
+      });
+
+      fireEvent.press(getByTestId('connect-button'));
+
+      await waitFor(() => {
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({ referrer: wcUrl }),
+        );
+      });
+    });
+
+    it('falls back to the hostname for non-SDK / non-WC connections', async () => {
+      const origin = 'https://example.com';
+
+      const { getByTestId } = renderForReferrer(origin, {
+        sdk: {
+          v2Connections: {},
+          wc2Metadata: { id: '' },
+        },
+      });
+
+      fireEvent.press(getByTestId('connect-button'));
+
+      await waitFor(() => {
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({ referrer: origin }),
+        );
+      });
+    });
+  });
 });

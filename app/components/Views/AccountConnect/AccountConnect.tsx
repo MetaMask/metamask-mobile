@@ -166,6 +166,10 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const sdkV2Connection = useSDKV2Connection(channelIdOrHostname);
   const anonId = sdkV2Connection?.originatorInfo?.anonId;
+  const isOriginMMSDKV2RemoteConn = useMemo(
+    () => Boolean(sdkV2Connection?.isV2),
+    [sdkV2Connection?.isV2],
+  );
 
   const isChannelId = isUUID(channelIdOrHostname);
 
@@ -290,12 +294,16 @@ const AccountConnect = (props: AccountConnectProps) => {
     ],
   );
 
-  const dappUrl = sdkConnection?.originatorInfo?.url ?? '';
+  const dappUrl =
+    sdkConnection?.originatorInfo?.url ??
+    sdkV2Connection?.originatorInfo?.url ??
+    '';
 
-  // Should be the self reported dapp url if SDK or WC connection, empty/null if no self reported dapp url.
+  // Should be the self reported dapp url if SDKv1, SDKv2, or WC connection,
+  // empty/null if no self reported dapp url.
   // If not SDK or WC connection, i.e. a regular external connection, it should be the hostname.
   let referrer = channelIdOrHostname;
-  if (isOriginMMSDKRemoteConn) {
+  if (isOriginMMSDKRemoteConn || isOriginMMSDKV2RemoteConn) {
     referrer = dappUrl;
   } else if (isOriginWalletConnect) {
     referrer = wc2Metadata?.url;
