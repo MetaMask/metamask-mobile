@@ -12,6 +12,7 @@ const WEBVIEW_TIMEOUT_MS = 5 * 60 * 1000;
 
 const PRODUCTION_ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
   /^https:\/\/dashboard\.w3a\.io$/,
+  /^https:\/\/uat-dashboard\.web3auth\.io$/,
   /^https:\/\/auth\.web3auth\.io$/,
   /^https:\/\/[a-z0-9-]+\.cx\.metamask\.io$/,
 ];
