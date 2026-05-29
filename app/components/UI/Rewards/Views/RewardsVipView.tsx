@@ -27,6 +27,7 @@ import ErrorBoundary from '../../../Views/ErrorBoundary';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { useVipDashboard } from '../hooks/useVipDashboard';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
+import ForcedDarkThemeProvider from '../components/ForcedDarkThemeProvider/ForcedDarkThemeProvider';
 import VipFeeTile, {
   VIP_FEE_TILE_TEST_IDS,
   VIP_FEE_TILE_WIDTH,
@@ -56,7 +57,7 @@ export const REWARDS_VIP_VIEW_TEST_IDS = {
 const BENEFIT_TILE_GAP = 12;
 const BENEFIT_TILE_SNAP_INTERVAL = VIP_FEE_TILE_WIDTH + BENEFIT_TILE_GAP;
 
-const RewardsVipView: React.FC = () => {
+const RewardsVipViewContent: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
@@ -299,6 +300,12 @@ const RewardsVipView: React.FC = () => {
     </ErrorBoundary>
   );
 };
+
+const RewardsVipView: React.FC = () => (
+  <ForcedDarkThemeProvider>
+    <RewardsVipViewContent />
+  </ForcedDarkThemeProvider>
+);
 
 // Re-export tile test ids for tests that want to assert at the tile level.
 export { VIP_FEE_TILE_TEST_IDS };

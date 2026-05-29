@@ -651,13 +651,15 @@ jobs:
       # TEMP: artifact fallback for non-Namespace runners.
       # Remove these two steps once Namespace passes the trial and becomes the default.
       - name: Download CI JS deps artifact
+        id: download-ci-js-deps
         if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           name: ci-js-deps
           path: .
       - name: Extract CI JS deps
-        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
         run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
       - uses: ./.github/actions/setup-ci-js-deps
         with:
@@ -717,13 +719,15 @@ jobs:
       # TEMP: artifact fallback for non-Namespace runners.
       # Remove these two steps once Namespace passes the trial and becomes the default.
       - name: Download CI JS deps artifact
+        id: download-ci-js-deps
         if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           name: ci-js-deps
           path: .
       - name: Extract CI JS deps
-        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
         run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
       - uses: ./.github/actions/setup-ci-js-deps
         with:
@@ -902,13 +906,15 @@ jobs:
       # TEMP: artifact fallback for non-Namespace runners.
       # Remove these two steps once Namespace passes the trial and becomes the default.
       - name: Download CI JS deps artifact
+        id: download-ci-js-deps
         if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           name: ci-js-deps
           path: .
       - name: Extract CI JS deps
-        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' }}
+        if: ${{ inputs.runner_provider != 'namespace' && needs.prepare-ci-js-deps.result == 'success' && steps.download-ci-js-deps.outcome == 'success' }}
         run: tar -xzf ci-js-deps.tar.gz && rm ci-js-deps.tar.gz
       - uses: ./.github/actions/setup-ci-js-deps
         with:
