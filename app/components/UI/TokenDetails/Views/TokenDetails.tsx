@@ -53,6 +53,7 @@ import { AppThemeKey } from '../../../../util/theme/models';
 import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import AssetDetailsQuickBuy from '../components/AssetDetailsQuickBuy';
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
+import { selectAssetDetailsShowQuickBuyEnabled } from '../../../../selectors/featureFlagController/assetDetailsShowQuickBuy';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -210,6 +211,7 @@ const TokenDetails: React.FC<{
   const networkName = networkConfigurationByChainId?.name;
 
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const isQuickBuyEnabled = useSelector(selectAssetDetailsShowQuickBuyEnabled);
 
   const {
     currentPrice,
@@ -396,7 +398,7 @@ const TokenDetails: React.FC<{
           useAmbientColor={useAmbientColor}
           onSwapPress={onCtaClicked}
           onBuyPress={onCtaClicked}
-          onQuickBuyPress={handleQuickBuyPress}
+          onQuickBuyPress={isQuickBuyEnabled ? handleQuickBuyPress : undefined}
           quickBuyTestID={TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON}
         />
       )}
@@ -405,11 +407,13 @@ const TokenDetails: React.FC<{
           onClose={() => setIsInsightsDisclaimerVisible(false)}
         />
       )}
-      <AssetDetailsQuickBuy
-        isVisible={isQuickBuyVisible}
-        token={token}
-        onClose={handleQuickBuyClose}
-      />
+      {isQuickBuyEnabled && (
+        <AssetDetailsQuickBuy
+          isVisible={isQuickBuyVisible}
+          token={token}
+          onClose={handleQuickBuyClose}
+        />
+      )}
     </View>
   );
 };

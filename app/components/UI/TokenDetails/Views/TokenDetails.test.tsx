@@ -11,6 +11,7 @@ import {
   selectDepositActiveFlag,
   selectDepositMinimumVersionFlag,
 } from '../../../../selectors/featureFlagController/deposit';
+import { selectAssetDetailsShowQuickBuyEnabled } from '../../../../selectors/featureFlagController/assetDetailsShowQuickBuy';
 import {
   AMBIENT_NEGATIVE_COLOR,
   AMBIENT_PRICE_COLOR_AB_KEY,
@@ -342,6 +343,7 @@ describe('TokenDetails', () => {
       if (selector === getRampNetworks) return [];
       if (selector === selectDepositActiveFlag) return false;
       if (selector === selectDepositMinimumVersionFlag) return null;
+      if (selector === selectAssetDetailsShowQuickBuyEnabled) return true;
       return undefined;
     });
   });
@@ -450,6 +452,27 @@ describe('TokenDetails', () => {
       expect(getLastQuickBuyProps()).toEqual(
         expect.objectContaining({ isVisible: true }),
       );
+    });
+
+    it('hides the lightning button and does not mount AssetDetailsQuickBuy when the flag is disabled', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectNetworkConfigurationByChainId)
+          return { name: 'Ethereum' };
+        if (selector === selectPerpsEnabledFlag) return false;
+        if (selector === selectMerklCampaignClaimingEnabledFlag) return false;
+        if (selector === getRampNetworks) return [];
+        if (selector === selectDepositActiveFlag) return false;
+        if (selector === selectDepositMinimumVersionFlag) return null;
+        if (selector === selectAssetDetailsShowQuickBuyEnabled) return false;
+        return undefined;
+      });
+
+      const { queryByTestId } = render(<TokenDetails />);
+
+      expect(
+        queryByTestId(TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON),
+      ).toBeNull();
+      expect(mockAssetDetailsQuickBuy).not.toHaveBeenCalled();
     });
   });
 
