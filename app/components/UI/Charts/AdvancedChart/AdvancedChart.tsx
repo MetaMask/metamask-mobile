@@ -130,25 +130,26 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const tradingViewOpenInterceptRef = useRef(0);
     const skeletonHiddenReportedRef = useRef(false);
 
+    // Capture the color overrides baked into the HTML template so the
+    // SET_THEME_COLORS effect can skip sending when colors haven't diverged.
+    const initialLineColorRef = useRef(lineColorOverride);
+    const initialSuccessColorRef = useRef(successColorOverride);
+    const initialErrorColorRef = useRef(errorColorOverride);
+    const themeColorsSentRef = useRef(false);
+
     const htmlContent = useMemo(
       () =>
         createAdvancedChartTemplate(theme, {
           enableDrawingTools,
           disabledFeatures,
           lineChrome,
-          lineColorOverride,
-          successColorOverride,
-          errorColorOverride,
+          lineColorOverride: initialLineColorRef.current,
+          successColorOverride: initialSuccessColorRef.current,
+          errorColorOverride: initialErrorColorRef.current,
         }),
-      [
-        theme,
-        enableDrawingTools,
-        disabledFeatures,
-        lineChrome,
-        lineColorOverride,
-        successColorOverride,
-        errorColorOverride,
-      ],
+      // Color overrides intentionally excluded — hot-swapped via SET_THEME_COLORS.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [theme, enableDrawingTools, disabledFeatures, lineChrome],
     );
 
     // Reset all chart state when the WebView reloads due to htmlContent changes
@@ -164,6 +165,10 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       prevOhlcvDataRef.current = [];
       prevOhlcvSeriesKeyRef.current = undefined;
       ohlcvSeriesStaleSnapshotRef.current = null;
+      themeColorsSentRef.current = false;
+      initialLineColorRef.current = lineColorOverride;
+      initialSuccessColorRef.current = successColorOverride;
+      initialErrorColorRef.current = errorColorOverride;
     }, [htmlContent]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // ---- Helpers ----
@@ -587,6 +592,46 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         payload: resolveLineChromeOptions(lineChrome),
       });
     }, [lineChrome, chartReadyCount, postMessage]);
+
+    // Hot-swap chart colors via postMessage whenever overrides change.
+    // Gates on webViewLoaded (not chartReady) so messages sent during chart
+    // init get queued in pendingMessages and drained inside onChartReady —
+    // before the first overlay paint — eliminating stale-color flashes.
+    // Skips only the very first invocation (mount) when colors already match
+    // the HTML template; all subsequent changes always send.
+    useEffect(() => {
+      if (!webViewLoaded) return;
+      if (!themeColorsSentRef.current) {
+        // First run after webViewLoaded: skip only if colors still match template
+        const colorsMatch =
+          lineColorOverride === initialLineColorRef.current &&
+          successColorOverride === initialSuccessColorRef.current &&
+          errorColorOverride === initialErrorColorRef.current;
+        themeColorsSentRef.current = true;
+        if (colorsMatch) return;
+      }
+      const effectiveSuccessColor =
+        successColorOverride ?? theme.colors.success.default;
+      const effectiveLineColor = lineColorOverride ?? effectiveSuccessColor;
+      const effectiveErrorColor =
+        errorColorOverride ?? theme.colors.error.default;
+      postMessage({
+        type: 'SET_THEME_COLORS',
+        payload: {
+          lineColor: effectiveLineColor,
+          successColor: effectiveSuccessColor,
+          errorColor: effectiveErrorColor,
+        },
+      });
+    }, [
+      lineColorOverride,
+      successColorOverride,
+      errorColorOverride,
+      webViewLoaded,
+      postMessage,
+      theme.colors.success.default,
+      theme.colors.error.default,
+    ]);
 
     const showSkeleton = isLoading || !isChartReady || layoutSettling;
 
