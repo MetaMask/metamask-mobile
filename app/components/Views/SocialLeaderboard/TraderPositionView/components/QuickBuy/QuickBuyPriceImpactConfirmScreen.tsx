@@ -38,8 +38,11 @@ const QuickBuyPriceImpactConfirmScreen: React.FC = () => {
 
   const handleProceed = useCallback(async () => {
     setLoading(true);
-    await handleConfirm();
-    setLoading(false);
+    try {
+      await handleConfirm();
+    } finally {
+      setLoading(false);
+    }
   }, [handleConfirm]);
 
   return (
