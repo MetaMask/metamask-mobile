@@ -16,9 +16,12 @@ import {
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
-import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
+import { getMemoizedInternalAccountByAddress } from '../../../../selectors/accountsController';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
-import { toChecksumAddress } from '../../../../util/address';
+import {
+  renderShortAddress,
+  toChecksumAddress,
+} from '../../../../util/address';
 import {
   MUSD_DECIMALS,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
@@ -38,6 +41,41 @@ import {
 } from './useMoneyAccount';
 
 const TELLER_INTERFACE = new ethers.utils.Interface(TELLER_ABI);
+const ERC20_TRANSFER_INTERFACE = new ethers.utils.Interface([
+  'function transfer(address to, uint256 amount)',
+]);
+
+function decodeErc20TransferRecipient(
+  data: string | undefined,
+): string | undefined {
+  if (!data) return undefined;
+  try {
+    const [to] = ERC20_TRANSFER_INTERFACE.decodeFunctionData('transfer', data);
+    return to as string;
+  } catch (error) {
+    Logger.error(
+      error as Error,
+      'useMoneyTransactionStatus: failed to decode erc20 transfer calldata',
+    );
+    return undefined;
+  }
+}
+
+function resolveWithdrawDestination(
+  transactionMeta: TransactionMeta,
+): string | undefined {
+  const transferNested = nestedTxWithType(
+    transactionMeta,
+    TransactionType.tokenMethodTransfer,
+  );
+  const recipient = decodeErc20TransferRecipient(transferNested?.data);
+  if (!recipient) return undefined;
+  const account = getMemoizedInternalAccountByAddress(
+    store.getState(),
+    recipient,
+  );
+  return account?.metadata?.name ?? renderShortAddress(recipient);
+}
 
 function decodeTellerAmount(
   type: TransactionType,
@@ -204,8 +242,7 @@ export const useMoneyTransactionStatus = () => {
         clearMoneyAccountDepositIntent(transactionMeta.batchId);
       } else {
         const destination =
-          selectSelectedInternalAccount(store.getState())?.metadata?.name ??
-          'Money account';
+          resolveWithdrawDestination(transactionMeta) ?? 'your account';
         showToast(
           MoneyToastOptions.withdraw.success({ amountFiat, destination }),
         );
