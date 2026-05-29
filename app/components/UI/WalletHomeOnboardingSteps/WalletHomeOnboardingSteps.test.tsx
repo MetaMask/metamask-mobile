@@ -20,6 +20,7 @@ import {
 } from './walletHomeOnboardingChecklistRive';
 import { WALLET_HOME_ONBOARDING_VISIBLE_STEPS } from './walletHomeOnboardingStepsModel';
 import { ONBOARDING_CHECKLIST_STEPPER_AB_KEY } from './abTestConfig';
+import { strings } from '../../../../locales/i18n';
 
 const mockUseIsFocused = jest.fn(() => true);
 
@@ -648,6 +649,24 @@ describe('WalletHomeOnboardingSteps', () => {
           getByTestId(`${progressTestId}-segment-${index}`),
         ).toBeOnTheScreen();
       });
+    });
+
+    it('hides checklist title and step counter for treatment', () => {
+      const { queryByText } = renderWithStepperArm('treatment');
+
+      expect(
+        queryByText(strings('wallet.home_onboarding_steps.get_started_title')),
+      ).toBeNull();
+      expect(queryByText('1/3')).toBeNull();
+    });
+
+    it('shows checklist title and step counter for control', () => {
+      const { getByText } = renderWithStepperArm('control');
+
+      expect(
+        getByText(strings('wallet.home_onboarding_steps.get_started_title')),
+      ).toBeOnTheScreen();
+      expect(getByText('1/3')).toBeOnTheScreen();
     });
 
     it('does not animate continuous progress to 100% on last-step complete for treatment', () => {

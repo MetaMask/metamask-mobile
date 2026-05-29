@@ -17,10 +17,9 @@ export interface WalletHomeOnboardingStepperProps {
 /**
  * Treatment indicator for the onboarding checklist stepper experiment (TMCU-828).
  *
- * Renders one discrete segment per visible checklist step. Segments up to and
- * including the active step are filled; upcoming steps are muted. This replaces
- * the continuous fill bar so users see how many concrete steps remain rather
- * than an abstract percentage.
+ * Renders one discrete segment per visible checklist step (4px tall, 4px gap
+ * per Home 2026 Figma). Segments up to and including the active step use
+ * success-default; upcoming segments use success-muted.
  */
 const WalletHomeOnboardingStepper = ({
   totalSteps,
@@ -33,7 +32,7 @@ const WalletHomeOnboardingStepper = ({
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
-      gap={2}
+      gap={1}
       twClassName="w-full"
       accessibilityLabel={accessibilityLabel}
       testID={testID}
@@ -44,8 +43,8 @@ const WalletHomeOnboardingStepper = ({
           <View
             key={index}
             style={tw.style(
-              'h-2 flex-1 rounded-full overflow-hidden',
-              isFilled ? 'bg-success-default' : 'bg-muted',
+              'h-1 flex-1 rounded-lg',
+              isFilled ? 'bg-success-default' : 'bg-success-muted',
             )}
             testID={`${testID}-segment-${index}`}
           />

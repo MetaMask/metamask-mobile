@@ -857,30 +857,32 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
         flexDirection={BoxFlexDirection.Column}
         gap={4}
         testID={testID}
-        twClassName="rounded-2xl overflow-hidden"
+        twClassName="rounded-2xl"
       >
         <Box
           flexDirection={BoxFlexDirection.Column}
           gap={4}
           twClassName="w-full"
         >
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Between}
-            gap={2}
-          >
-            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
-              {strings('wallet.home_onboarding_steps.get_started_title')}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-              fontWeight={FontWeight.Medium}
+          {!useDiscreteStepper ? (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Between}
+              gap={2}
             >
-              {displayStepIndex + 1}/{totalSteps}
-            </Text>
-          </Box>
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
+                {strings('wallet.home_onboarding_steps.get_started_title')}
+              </Text>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+                fontWeight={FontWeight.Medium}
+              >
+                {displayStepIndex + 1}/{totalSteps}
+              </Text>
+            </Box>
+          ) : null}
 
           {useDiscreteStepper ? (
             <WalletHomeOnboardingStepper
