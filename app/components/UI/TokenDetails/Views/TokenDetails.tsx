@@ -53,7 +53,7 @@ import { AppThemeKey } from '../../../../util/theme/models';
 import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import AssetDetailsQuickBuy from '../components/AssetDetailsQuickBuy';
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
-import { selectAssetDetailsShowQuickBuyEnabled } from '../../../../selectors/featureFlagController/assetDetailsShowQuickBuy';
+import { selectSocialAiAssetDetailsQuickBuyEnabled } from '../../../../selectors/featureFlagController/socialAiAssetDetailsQuickBuy';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -211,7 +211,9 @@ const TokenDetails: React.FC<{
   const networkName = networkConfigurationByChainId?.name;
 
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  const isQuickBuyEnabled = useSelector(selectAssetDetailsShowQuickBuyEnabled);
+  const isQuickBuyEnabled = useSelector(
+    selectSocialAiAssetDetailsQuickBuyEnabled,
+  );
 
   const {
     currentPrice,

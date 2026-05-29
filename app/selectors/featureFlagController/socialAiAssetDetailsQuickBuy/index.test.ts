@@ -1,6 +1,6 @@
 import {
-  selectAssetDetailsShowQuickBuyEnabled,
-  ASSET_DETAILS_SHOW_QUICK_BUY_FLAG_KEY,
+  selectSocialAiAssetDetailsQuickBuyEnabled,
+  SOCIAL_AI_ASSET_DETAILS_QUICK_BUY_FLAG_KEY,
 } from '.';
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../../util/remoteFeatureFlag';
@@ -16,7 +16,7 @@ jest.mock(
   }),
 );
 
-describe('selectAssetDetailsShowQuickBuyEnabled', () => {
+describe('selectSocialAiAssetDetailsQuickBuyEnabled', () => {
   let mockHasMinimumRequiredVersion: jest.SpyInstance;
 
   beforeEach(() => {
@@ -33,14 +33,14 @@ describe('selectAssetDetailsShowQuickBuyEnabled', () => {
   });
 
   it('exposes the client-config flag key for registry alignment', () => {
-    expect(ASSET_DETAILS_SHOW_QUICK_BUY_FLAG_KEY).toBe(
-      'assetDetailsShowQuickBuy',
+    expect(SOCIAL_AI_ASSET_DETAILS_QUICK_BUY_FLAG_KEY).toBe(
+      'socialAiAssetDetailsQuickBuy',
     );
   });
 
   it('returns true when enabled is true and minimum version passes', () => {
-    const result = selectAssetDetailsShowQuickBuyEnabled.resultFunc({
-      [ASSET_DETAILS_SHOW_QUICK_BUY_FLAG_KEY]: {
+    const result = selectSocialAiAssetDetailsQuickBuyEnabled.resultFunc({
+      [SOCIAL_AI_ASSET_DETAILS_QUICK_BUY_FLAG_KEY]: {
         value: { enabled: true, minimumVersion: '7.73' },
       },
     });
@@ -48,8 +48,8 @@ describe('selectAssetDetailsShowQuickBuyEnabled', () => {
   });
 
   it('returns true for direct version-gated shape (no wrapper)', () => {
-    const result = selectAssetDetailsShowQuickBuyEnabled.resultFunc({
-      [ASSET_DETAILS_SHOW_QUICK_BUY_FLAG_KEY]: {
+    const result = selectSocialAiAssetDetailsQuickBuyEnabled.resultFunc({
+      [SOCIAL_AI_ASSET_DETAILS_QUICK_BUY_FLAG_KEY]: {
         enabled: true,
         minimumVersion: '7.73',
       },
@@ -58,8 +58,8 @@ describe('selectAssetDetailsShowQuickBuyEnabled', () => {
   });
 
   it('returns false when enabled is false', () => {
-    const result = selectAssetDetailsShowQuickBuyEnabled.resultFunc({
-      [ASSET_DETAILS_SHOW_QUICK_BUY_FLAG_KEY]: {
+    const result = selectSocialAiAssetDetailsQuickBuyEnabled.resultFunc({
+      [SOCIAL_AI_ASSET_DETAILS_QUICK_BUY_FLAG_KEY]: {
         value: { enabled: false, minimumVersion: '7.73' },
       },
     });
@@ -68,8 +68,8 @@ describe('selectAssetDetailsShowQuickBuyEnabled', () => {
 
   it('returns false when minimum version requirement fails', () => {
     mockHasMinimumRequiredVersion.mockReturnValue(false);
-    const result = selectAssetDetailsShowQuickBuyEnabled.resultFunc({
-      [ASSET_DETAILS_SHOW_QUICK_BUY_FLAG_KEY]: {
+    const result = selectSocialAiAssetDetailsQuickBuyEnabled.resultFunc({
+      [SOCIAL_AI_ASSET_DETAILS_QUICK_BUY_FLAG_KEY]: {
         value: { enabled: true, minimumVersion: '99.0.0' },
       },
     });
@@ -77,12 +77,14 @@ describe('selectAssetDetailsShowQuickBuyEnabled', () => {
   });
 
   it('returns false when flag is missing', () => {
-    expect(selectAssetDetailsShowQuickBuyEnabled.resultFunc({})).toBe(false);
+    expect(selectSocialAiAssetDetailsQuickBuyEnabled.resultFunc({})).toBe(
+      false,
+    );
   });
 
   it('returns false for malformed payload', () => {
-    const result = selectAssetDetailsShowQuickBuyEnabled.resultFunc({
-      [ASSET_DETAILS_SHOW_QUICK_BUY_FLAG_KEY]: {
+    const result = selectSocialAiAssetDetailsQuickBuyEnabled.resultFunc({
+      [SOCIAL_AI_ASSET_DETAILS_QUICK_BUY_FLAG_KEY]: {
         value: { variant: 'enabled', minimumVersion: '7.73' },
       },
     });

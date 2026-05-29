@@ -11,7 +11,7 @@ import {
   selectDepositActiveFlag,
   selectDepositMinimumVersionFlag,
 } from '../../../../selectors/featureFlagController/deposit';
-import { selectAssetDetailsShowQuickBuyEnabled } from '../../../../selectors/featureFlagController/assetDetailsShowQuickBuy';
+import { selectSocialAiAssetDetailsQuickBuyEnabled } from '../../../../selectors/featureFlagController/socialAiAssetDetailsQuickBuy';
 import {
   AMBIENT_NEGATIVE_COLOR,
   AMBIENT_PRICE_COLOR_AB_KEY,
@@ -343,7 +343,7 @@ describe('TokenDetails', () => {
       if (selector === getRampNetworks) return [];
       if (selector === selectDepositActiveFlag) return false;
       if (selector === selectDepositMinimumVersionFlag) return null;
-      if (selector === selectAssetDetailsShowQuickBuyEnabled) return true;
+      if (selector === selectSocialAiAssetDetailsQuickBuyEnabled) return true;
       return undefined;
     });
   });
@@ -463,7 +463,8 @@ describe('TokenDetails', () => {
         if (selector === getRampNetworks) return [];
         if (selector === selectDepositActiveFlag) return false;
         if (selector === selectDepositMinimumVersionFlag) return null;
-        if (selector === selectAssetDetailsShowQuickBuyEnabled) return false;
+        if (selector === selectSocialAiAssetDetailsQuickBuyEnabled)
+          return false;
         return undefined;
       });
 
