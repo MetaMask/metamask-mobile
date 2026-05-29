@@ -31,7 +31,7 @@ export const SEEDLESS_ONBOARDING_ENABLED =
  * @param isDev - Whether the build is a development build
  * @returns The mapped build type
  */
-const buildTypeMapping = (buildType: string, isDev: boolean) => {
+export const buildTypeMapping = (buildType: string, isDev: boolean) => {
   switch (buildType) {
     case 'qa':
       return 'main_uat';

@@ -9,13 +9,24 @@ import { authEnv, devApiEnv, type DevApiEnv } from '../devApiEnv';
 import { AgenticCliDashboardWebviewService } from '../../components/Views/AgenticCliDashboardWebview/AgenticCliDashboardWebviewService';
 import { Connection } from '../SDKConnectV2/services/connection';
 import { ConnectionRequest } from '../SDKConnectV2/types/connection-request';
+import { buildTypeMapping } from '../OAuthService/OAuthLoginHandlers/constants';
+import AppConstants from '../AppConstants';
 
 const CLI_DASHBOARD_TOKEN_PATH = '/api/v2/mm-qr-login/token';
 const ENGINE_READY_POLL_MS = 250;
 
-const DASHBOARD_WEBVIEW_URL_BY_ENV: Record<DevApiEnv, string> = {
-  dev: 'https://test-dashboard.web3auth.io/agentic/login',
-  prod: 'https://dashboard.w3a.io/agentic/login',
+const buildType = buildTypeMapping(
+  AppConstants.METAMASK_BUILD_TYPE || 'main',
+  AppConstants.IS_DEV || process.env.METAMASK_ENVIRONMENT === 'dev',
+);
+
+const DASHBOARD_WEBVIEW_URL_BY_ENV: Record<string, string> = {
+  main_dev: 'https://test-dashboard.web3auth.io/agentic/login',
+  main_uat: 'https://uat-dashboard.web3auth.io/agentic/login',
+  main_prod: 'https://dashboard.w3a.io/agentic/login',
+  flask_dev: 'https://test-dashboard.web3auth.io/agentic/login',
+  flask_uat: 'https://uat-dashboard.web3auth.io/agentic/login',
+  flask_prod: 'https://dashboard.w3a.io/agentic/login',
 };
 
 const DEV_CLI_DASHBOARD_AUTH_ORIGIN_PATTERNS: RegExp[] = [
@@ -35,8 +46,10 @@ interface HandleAgenticCliConnectionParams {
   cleanupConnection: (conn: Connection) => Promise<void>;
 }
 
-const getDashboardWebviewUrl = (): string =>
-  DASHBOARD_WEBVIEW_URL_BY_ENV[devApiEnv()];
+const getDashboardWebviewUrl = (): string => (
+    DASHBOARD_WEBVIEW_URL_BY_ENV[buildType] ??
+    DASHBOARD_WEBVIEW_URL_BY_ENV.main_prod
+  );
 
 const isDevCliDashboardAuthUrl = (dashboardAuthUrl: string): boolean => {
   try {
