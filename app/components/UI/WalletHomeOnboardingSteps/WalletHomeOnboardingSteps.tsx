@@ -480,6 +480,13 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     };
 
     if (fromIsLast) {
+      // Discrete stepper has no continuous fill — skip the 100% bar animation so
+      // treatment users are not left with disabled buttons and no visual feedback.
+      if (useDiscreteStepper) {
+        scheduleOutroHoldThenSlide();
+        return;
+      }
+
       Animated.timing(progressRatioAnim, {
         toValue: 1,
         duration: isE2E ? 0 : WALLET_HOME_ONBOARDING_CHECKLIST_PROGRESS_BAR_MS,
@@ -505,6 +512,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     slideX,
     slideY,
     checklistFadeOpacity,
+    useDiscreteStepper,
   ]);
 
   useLayoutEffect(() => {

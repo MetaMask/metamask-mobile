@@ -1,4 +1,5 @@
 import React from 'react';
+import { Animated } from 'react-native';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import WalletHomeOnboardingSteps from './WalletHomeOnboardingSteps';
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -591,10 +592,21 @@ describe('WalletHomeOnboardingSteps', () => {
     const progressTestId = WalletHomeOnboardingStepsSelectors.PROGRESS_LABEL;
     const firstSegmentTestId = `${progressTestId}-segment-0`;
 
-    const renderWithStepperArm = (variantName?: 'control' | 'treatment') =>
+    const renderWithStepperArm = (
+      variantName?: 'control' | 'treatment',
+      onboardingOverrides?: {
+        walletHomeOnboardingSteps?: {
+          suppressedReason: null;
+          stepIndex: number;
+        };
+      },
+    ) =>
       renderWithProvider(<WalletHomeOnboardingSteps testID="steps-root" />, {
         state: {
-          onboarding: { ...baseOnboarding },
+          onboarding: {
+            ...baseOnboarding,
+            ...onboardingOverrides,
+          },
           engine: {
             backgroundState: {
               ...backgroundState,
@@ -636,6 +648,38 @@ describe('WalletHomeOnboardingSteps', () => {
           getByTestId(`${progressTestId}-segment-${index}`),
         ).toBeOnTheScreen();
       });
+    });
+
+    it('does not animate continuous progress to 100% on last-step complete for treatment', () => {
+      const timingSpy = jest.spyOn(Animated, 'timing');
+      const { getByTestId } = renderWithStepperArm('treatment', {
+        walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 2 },
+      });
+
+      fireEvent.press(getByTestId(primaryTestId));
+
+      const progressFillToCompleteCalls = timingSpy.mock.calls.filter(
+        ([, config]) => config?.toValue === 1,
+      );
+      expect(progressFillToCompleteCalls).toHaveLength(0);
+
+      timingSpy.mockRestore();
+    });
+
+    it('animates continuous progress to 100% on last-step complete for control', () => {
+      const timingSpy = jest.spyOn(Animated, 'timing');
+      const { getByTestId } = renderWithStepperArm('control', {
+        walletHomeOnboardingSteps: { suppressedReason: null, stepIndex: 2 },
+      });
+
+      fireEvent.press(getByTestId(primaryTestId));
+
+      const progressFillToCompleteCalls = timingSpy.mock.calls.filter(
+        ([, config]) => config?.toValue === 1,
+      );
+      expect(progressFillToCompleteCalls.length).toBeGreaterThan(0);
+
+      timingSpy.mockRestore();
     });
   });
 });
