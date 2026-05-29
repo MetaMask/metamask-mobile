@@ -37,7 +37,10 @@ export function getStepTitle(
       symbol,
     });
   }
-  if (step.status === HardwareWalletsSwapsStepStatus.Signing) {
+  if (
+    step.status === HardwareWalletsSwapsStepStatus.Signing ||
+    step.status === HardwareWalletsSwapsStepStatus.Rejected
+  ) {
     return strings('bridge.hardware_wallet_progress.sending_token', {
       amount,
       symbol,

@@ -55,6 +55,18 @@ describe('step-helpers', () => {
       ).toBe('Sending 5 USDC');
     });
 
+    it('returns sending title for rejected transaction step', () => {
+      expect(
+        getStepTitle(
+          {
+            kind: HardwareWalletsSwapsStepKind.Transaction,
+            status: HardwareWalletsSwapsStepStatus.Rejected,
+          },
+          { amount: '5', tokenSymbol: 'USDC' },
+        ),
+      ).toBe('Sending 5 USDC');
+    });
+
     it('returns sent title for signed transaction step', () => {
       expect(
         getStepTitle(
@@ -67,7 +79,7 @@ describe('step-helpers', () => {
       ).toBe('Sent 5 USDC');
     });
 
-    it('handles missing options', () => {
+    it('returns title with empty amount and symbol when options are omitted', () => {
       expect(
         getStepTitle({
           kind: HardwareWalletsSwapsStepKind.Transaction,
