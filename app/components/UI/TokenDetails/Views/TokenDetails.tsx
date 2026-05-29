@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, AppState } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -13,12 +13,17 @@ import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import {
   TokenDetailsSource,
   type TokenDetailsRouteParams,
+  type TokenDetailsExitAction,
 } from '../constants/constants';
 import { Theme } from '@metamask/design-tokens';
 import { useStyles } from '../../../hooks/useStyles';
 import { RootState } from '../../../../reducers';
 import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
 import { isCaipAssetType, type CaipAssetType } from '@metamask/utils';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
@@ -139,7 +144,13 @@ const TokenDetails: React.FC<{
     severity: string | undefined;
   }) => void;
   onStickyButtonsResolved?: (shown: 'both' | 'buy' | 'swap' | null) => void;
-}> = ({ token, onMarketInsightsDisplayResolved, onStickyButtonsResolved }) => {
+  onCtaClicked?: () => void;
+}> = ({
+  token,
+  onMarketInsightsDisplayResolved,
+  onStickyButtonsResolved,
+  onCtaClicked,
+}) => {
   const { styles, theme } = useStyles(styleSheet, {});
   const { themeAppearance } = useTheme();
   const isLightMode = themeAppearance === AppThemeKey.light;
@@ -282,6 +293,7 @@ const TokenDetails: React.FC<{
         hasSecurityDataError={Boolean(securityDataError)}
         onPriceDirectionChange={handlePriceDirectionChange}
         useAmbientColor={useAmbientColor}
+        onExitAction={onCtaClicked}
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
         stakedTrxAsset={stakedTrxAsset}
         inLockPeriodBalance={inLockPeriodBalance}
@@ -356,6 +368,8 @@ const TokenDetails: React.FC<{
           sourcePage="TokenDetailsView"
           isPricePositive={chartPricePositive}
           useAmbientColor={useAmbientColor}
+          onSwapPress={onCtaClicked}
+          onBuyPress={onCtaClicked}
         />
       )}
       {isInsightsDisclaimerVisible && (
@@ -385,6 +399,48 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
   >(undefined);
 
   const trackTokenDetailsOpened = useTokenDetailsOpenedTracking(token);
+
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const openedAtRef = useRef<number>(Date.now());
+  const closeSourceRef = useRef<TokenDetailsExitAction | null>(null);
+
+  const fireClosedRef = useRef<() => void>(() => undefined);
+  fireClosedRef.current = () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_CLOSED)
+        .addProperties({
+          chain_id: token.chainId,
+          token_symbol: token.symbol,
+          token_address: token.address,
+          exit_action: closeSourceRef.current ?? 'back_navigation',
+          time_on_screen_ms: Date.now() - openedAtRef.current,
+        })
+        .build(),
+    );
+  };
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'background' || nextAppState === 'inactive') {
+        closeSourceRef.current = 'app_backgrounded';
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      closeSourceRef.current = null;
+      openedAtRef.current = Date.now();
+
+      return () => {
+        fireClosedRef.current();
+      };
+    }, []),
+  );
 
   /**
    * Defer TOKEN_DETAILS_OPENED until both market insights and perps market
@@ -449,6 +505,9 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
       token={token}
       onMarketInsightsDisplayResolved={handleMarketInsightsDisplayResolved}
       onStickyButtonsResolved={setResolvedStickyButtons}
+      onCtaClicked={() => {
+        closeSourceRef.current = 'cta_clicked';
+      }}
     />
   );
 };
