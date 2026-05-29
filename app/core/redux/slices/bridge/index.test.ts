@@ -31,8 +31,6 @@ import reducer, {
   selectBatchSellDestToken,
   selectBatchSellDestStablecoins,
   selectBatchSellDestStablecoinsByChain,
-  selectHardwareWalletsSwaps,
-  updateHardwareWalletsSwaps,
   selectBatchSellQuotes,
   selectBatchSellSlippages,
   setBatchSellTokenSlippage,
@@ -52,11 +50,6 @@ import {
 import { RootState } from '../../../../reducers';
 import { cloneDeep } from 'lodash';
 import { BridgeTokenMetadata } from '../../../../components/UI/Bridge/constants/tokens';
-import {
-  HardwareWalletsSwapsEventType,
-  HardwareWalletsSwapsStatus,
-  initialHardwareWalletsSwapsState,
-} from '../../../../components/UI/HardwareWallet/Swaps/HardwareWalletsSwaps.state';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 
 describe('bridge slice', () => {
@@ -128,7 +121,6 @@ describe('bridge slice', () => {
         visiblePillChainIds: undefined,
         selectedQuoteRequestId: undefined,
         abTestContext: undefined,
-        hardwareWalletsSwaps: initialHardwareWalletsSwapsState,
         batchSellSourceTokens: [],
         batchSellSourceTokenAmounts: {},
         batchSellDestToken: undefined,
@@ -1077,39 +1069,6 @@ describe('bridge slice', () => {
       const result = selectSelectedQuoteRequestId(mockState);
 
       expect(result).toBe('quote-request-789');
-    });
-  });
-
-  describe('selectHardwareWalletsSwaps', () => {
-    it('returns initial hardware wallet swaps state from bridge state', () => {
-      const mockState = {
-        bridge: initialState,
-      } as RootState;
-
-      expect(selectHardwareWalletsSwaps(mockState)).toEqual(
-        initialHardwareWalletsSwapsState,
-      );
-    });
-
-    it('returns updated hardware wallet swaps state after reducer action', () => {
-      const bridgeState = reducer(
-        initialState,
-        updateHardwareWalletsSwaps({
-          type: HardwareWalletsSwapsEventType.Start,
-          payload: { totalSteps: 1 },
-        }),
-      );
-      const mockState = {
-        bridge: bridgeState,
-      } as RootState;
-
-      expect(selectHardwareWalletsSwaps(mockState)).toEqual({
-        ...initialHardwareWalletsSwapsState,
-        status: HardwareWalletsSwapsStatus.Waiting,
-        currentStep: 1,
-        totalSteps: 1,
-        steps: expect.any(Array),
-      });
     });
   });
 
