@@ -1,8 +1,9 @@
 import React from 'react';
 import {
   HeaderBase,
-  HeaderBaseVariant,
   IconName,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
@@ -17,9 +18,9 @@ interface MoneyHeaderProps {
 const MoneyHeader = ({ onMenuPress }: MoneyHeaderProps) => (
   <HeaderBase
     testID={MoneyHeaderTestIds.CONTAINER}
-    variant={HeaderBaseVariant.Display}
     twClassName="px-4"
-    titleTestID={MoneyHeaderTestIds.TITLE}
+    startAccessoryWrapperProps={{ style: { width: 0 } }}
+    childrenWrapperProps={{ style: { flex: 1, alignItems: 'flex-start' } }}
     endButtonIconProps={[
       {
         iconName: IconName.MoreVertical,
@@ -29,7 +30,9 @@ const MoneyHeader = ({ onMenuPress }: MoneyHeaderProps) => (
       },
     ]}
   >
-    {strings('money.title')}
+    <Text variant={TextVariant.HeadingLg} testID={MoneyHeaderTestIds.TITLE}>
+      {strings('money.title')}
+    </Text>
   </HeaderBase>
 );
 
