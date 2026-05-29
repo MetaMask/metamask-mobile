@@ -87,6 +87,7 @@ const attemptDepositTransaction =
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
         networkClientId,
         origin: ORIGIN_METAMASK,
+        isInternal: true,
         type: TransactionType.stakingDeposit,
       });
     } catch (e) {
