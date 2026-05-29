@@ -189,6 +189,7 @@ const PopularTokenRow: React.FC<PopularTokenRowProps> = ({ token }) => {
     <TouchableOpacity
       onPress={handleRowPress}
       activeOpacity={0.7}
+      testID={`popular-token-row-${token.symbol}`}
       style={tw.style('flex-row items-center py-2')}
     >
       {/* Token Avatar */}

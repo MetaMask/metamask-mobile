@@ -39,5 +39,7 @@ export const mockBridgeReducerState: BridgeState = {
   visiblePillChainIds: undefined,
   selectedQuoteRequestId: undefined,
   batchSellSourceTokens: [],
+  batchSellSourceTokenAmounts: {},
   batchSellDestToken: undefined,
+  batchSellSlippages: {},
 };

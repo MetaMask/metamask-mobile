@@ -1,5 +1,9 @@
 import React, { useEffect, useRef } from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
+import {
+  createStackNavigator,
+  TransitionPresets,
+} from '@react-navigation/stack';
+import { darkTheme } from '@metamask/design-tokens';
 import Routes from '../../../constants/navigation/Routes';
 import OnboardingNavigator from './OnboardingNavigator';
 import RewardsDashboard from './Views/RewardsDashboard';
@@ -33,7 +37,6 @@ import { useNavigation, useNavigationState } from '@react-navigation/native';
 import { useTheme } from '../../../util/theme';
 import useRewardsVersionGuard from './hooks/useRewardsVersionGuard';
 import RewardsUpdateRequired from './components/RewardsUpdateRequired/RewardsUpdateRequired';
-import { useSeasonStatus } from './hooks/useSeasonStatus';
 import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
 import { useReferralDetails } from './hooks/useReferralDetails';
 import { useRewardsNotificationsNudge } from './hooks/useRewardsNotificationsNudge';
@@ -71,9 +74,6 @@ const RewardsNavigator: React.FC = () => {
 
   // Set candidate subscription ID in Redux state when component mounts and account changes
   useCandidateSubscriptionId();
-
-  // This is used to fetch season status data when the component mounts
-  useSeasonStatus({ onlyForExplicitFetch: false });
 
   // Fetch geo rewards metadata so optinAllowedForGeo is available across all rewards screens
   useGeoRewardsMetadata({});
@@ -228,12 +228,24 @@ const RewardsNavigator: React.FC = () => {
           <Stack.Screen
             name={Routes.REWARDS_VIP_VIEW}
             component={RewardsVipView}
-            options={{ headerShown: false }}
+            options={{
+              headerShown: false,
+              ...TransitionPresets.SlideFromRightIOS,
+              cardStyle: {
+                backgroundColor: darkTheme.colors.background.default,
+              },
+            }}
           />
           <Stack.Screen
             name={Routes.REWARDS_VIP_TIERS_VIEW}
             component={RewardsVipTiersView}
-            options={{ headerShown: false }}
+            options={{
+              headerShown: false,
+              ...TransitionPresets.SlideFromRightIOS,
+              cardStyle: {
+                backgroundColor: darkTheme.colors.background.default,
+              },
+            }}
           />
           <Stack.Screen
             name={Routes.REWARDS_CAMPAIGNS_VIEW}

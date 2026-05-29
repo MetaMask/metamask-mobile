@@ -132,6 +132,17 @@ export const POLYMARKET_API_DOWN = async (mockServer: Mockttp) => {
 
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
+    url: /^https:\/\/gamma-api\.polymarket\.com\/events\/keyset/,
+    responseCode: 500,
+    response: {
+      error: 'Internal Server Error',
+      message: 'Service temporarily unavailable',
+      statusCode: 500,
+    },
+  });
+
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
     url: /^https:\/\/gamma-api\.polymarket\.com\/events\/\d+/,
     responseCode: 500,
     response: {
@@ -1376,7 +1387,7 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (
  * Mock for all Polymarket endpoints (positions, redeemable positions, activity, UpNL, order book, and value)
  * Mock for Polymarket market feeds API
  * Returns market feed data using the proxy pattern (consistent with other mocks)
- * Intercepts proxy calls to gamma-api.polymarket.com/events/pagination
+ * Intercepts proxy calls to gamma-api.polymarket.com/events/pagination and /events/keyset
  */
 export const POLYMARKET_MARKET_FEEDS_MOCKS = async (mockServer: Mockttp) => {
   // Mock proxy calls to gamma-api.polymarket.com (consistent with other mocks)
@@ -1385,7 +1396,8 @@ export const POLYMARKET_MARKET_FEEDS_MOCKS = async (mockServer: Mockttp) => {
     .matching((request) => {
       const url = new URL(request.url).searchParams.get('url');
       return Boolean(
-        url?.includes('gamma-api.polymarket.com/events/pagination'),
+        url?.includes('gamma-api.polymarket.com/events/pagination') ||
+          url?.includes('gamma-api.polymarket.com/events/keyset'),
       );
     })
     .asPriority(PRIORITY.BASE)
@@ -1427,13 +1439,20 @@ export const POLYMARKET_MARKET_FEEDS_MOCKS = async (mockServer: Mockttp) => {
         selectedFeed = POLYMARKET_TRENDING_FEED;
       }
 
-      // Return the feed data in the correct API structure
+      const isKeysetRequest = polymarketUrl.pathname.endsWith('/events/keyset');
+
+      // Return the feed data in the correct API structure for the requested endpoint.
       return {
         statusCode: 200,
-        json: {
-          data: selectedFeed.data,
-          pagination: selectedFeed.pagination,
-        },
+        json: isKeysetRequest
+          ? {
+              events: selectedFeed.data,
+              next_cursor: null,
+            }
+          : {
+              data: selectedFeed.data,
+              pagination: selectedFeed.pagination,
+            },
       };
     });
 

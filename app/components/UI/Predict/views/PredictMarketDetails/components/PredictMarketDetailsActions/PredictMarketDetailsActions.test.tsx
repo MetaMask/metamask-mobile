@@ -1,5 +1,9 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
+import type {
+  ReactTestRendererJSON,
+  ReactTestRendererNode,
+} from 'react-test-renderer';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import {
   PredictMarket,
@@ -64,6 +68,40 @@ const createProps = (
   ...overrides,
 });
 
+const flattenStyle = (style: unknown): Record<string, unknown> => {
+  if (Array.isArray(style)) {
+    return Object.assign({}, ...style.map(flattenStyle));
+  }
+
+  if (style && typeof style === 'object') {
+    return style as Record<string, unknown>;
+  }
+
+  return {};
+};
+
+type JsonTree = ReactTestRendererNode | ReactTestRendererNode[] | null;
+
+const findJsonNodes = (
+  node: JsonTree,
+  predicate: (jsonNode: ReactTestRendererJSON) => boolean,
+): ReactTestRendererJSON[] => {
+  if (Array.isArray(node)) {
+    return node.flatMap((child) => findJsonNodes(child, predicate));
+  }
+
+  if (!node || typeof node !== 'object') {
+    return [];
+  }
+
+  const jsonNode = node as ReactTestRendererJSON;
+
+  return [
+    ...(predicate(jsonNode) ? [jsonNode] : []),
+    ...findJsonNodes(jsonNode.children ?? [], predicate),
+  ];
+};
+
 describe('PredictMarketDetailsActions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -103,6 +141,25 @@ describe('PredictMarketDetailsActions', () => {
     expect(onBuyPress).toHaveBeenNthCalledWith(2, openOutcome.tokens[1]);
   });
 
+  it('reserves button height in the action columns', () => {
+    const props = createProps();
+
+    const { toJSON } = renderWithProvider(
+      <PredictMarketDetailsActions {...props} />,
+    );
+
+    const actionColumns = findJsonNodes(toJSON(), (node) => {
+      const style = flattenStyle(node.props.style);
+      return (
+        node.props.accessibilityRole !== 'button' &&
+        style.flexGrow === 1 &&
+        style.minHeight === 48
+      );
+    });
+
+    expect(actionColumns).toHaveLength(2);
+  });
+
   it('falls back to market tokens when open outcomes are unavailable', () => {
     const onBuyPress = jest.fn();
     const fallbackMarket = createMarket();
@@ -126,6 +183,43 @@ describe('PredictMarketDetailsActions', () => {
       2,
       fallbackMarket.outcomes[0].tokens[1],
     );
+  });
+
+  it('formats payout estimates with fixed USD decimals', () => {
+    const props = createProps({
+      showPayoutEstimate: true,
+      openOutcomes: [
+        createOutcome({
+          tokens: [
+            { id: 'token-yes', title: 'Yes', price: 0.65 },
+            { id: 'token-no', title: 'No', price: 0.004 },
+          ],
+        }),
+      ],
+    });
+
+    renderWithProvider(<PredictMarketDetailsActions {...props} />);
+
+    expect(screen.getByText('$100.00 -> $153.85')).toBeOnTheScreen();
+    expect(screen.getByText('$100.00 -> --')).toBeOnTheScreen();
+  });
+
+  it('hides payout estimates for prices outside the display range', () => {
+    const props = createProps({
+      showPayoutEstimate: true,
+      openOutcomes: [
+        createOutcome({
+          tokens: [
+            { id: 'token-yes', title: 'Yes', price: 1 },
+            { id: 'token-no', title: 'No', price: 0.0012820513 },
+          ],
+        }),
+      ],
+    });
+
+    renderWithProvider(<PredictMarketDetailsActions {...props} />);
+
+    expect(screen.getAllByText('$100.00 -> --')).toHaveLength(2);
   });
 
   it('renders skeleton while market details are loading', () => {

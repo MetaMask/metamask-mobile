@@ -151,7 +151,7 @@ describe('PerpsStopLossPromptBanner', () => {
       expect(onSetStopLoss).not.toHaveBeenCalled();
     });
 
-    it('shows loading indicator instead of button text when loading', () => {
+    it('marks the button as loading when loading', () => {
       const { getByTestId } = renderWithProvider(
         <PerpsStopLossPromptBanner
           variant="stop_loss"
@@ -164,12 +164,11 @@ describe('PerpsStopLossPromptBanner', () => {
         { state: initialState },
       );
 
-      // Button's internal spinner is shown
-      expect(getByTestId('spinner-container')).toBeTruthy();
-      // Button still exists but shows loading indicator
-      expect(
-        getByTestId(PerpsStopLossPromptSelectorsIDs.SET_STOP_LOSS_BUTTON),
-      ).toBeTruthy();
+      const button = getByTestId(
+        PerpsStopLossPromptSelectorsIDs.SET_STOP_LOSS_BUTTON,
+      );
+      expect(button).toBeDisabled();
+      expect(button.props.accessibilityState?.busy).toBe(true);
     });
 
     it('does not trigger action when loading', () => {
@@ -186,8 +185,13 @@ describe('PerpsStopLossPromptBanner', () => {
         { state: initialState },
       );
 
-      // Button's internal spinner is shown, no toggle to interact with
-      expect(getByTestId('spinner-container')).toBeTruthy();
+      const button = getByTestId(
+        PerpsStopLossPromptSelectorsIDs.SET_STOP_LOSS_BUTTON,
+      );
+      fireEvent.press(button);
+
+      expect(button.props.accessibilityState?.busy).toBe(true);
+      expect(onSetStopLoss).not.toHaveBeenCalled();
     });
 
     it('formats price correctly', () => {

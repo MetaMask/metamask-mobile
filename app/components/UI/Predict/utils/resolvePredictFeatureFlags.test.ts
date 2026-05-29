@@ -32,6 +32,8 @@ describe('resolvePredictFeatureFlags', () => {
       fakOrdersEnabled: false,
       predictWithAnyTokenEnabled: false,
       predictUpDownEnabled: false,
+      predictPortfolioEnabled: false,
+      predictHomepageDiscoveryNbaChampionEnabled: true,
       predictWorldCup: DEFAULT_PREDICT_WORLD_CUP_FLAG,
     });
   });
@@ -189,6 +191,39 @@ describe('resolvePredictFeatureFlags', () => {
     expect(result.predictWithAnyTokenEnabled).toBe(false);
   });
 
+  describe('predictHomepageDiscoveryNbaChampionEnabled', () => {
+    it('defaults to true to preserve the NBA champion discovery row', () => {
+      const result = resolvePredictFeatureFlags({});
+
+      expect(result.predictHomepageDiscoveryNbaChampionEnabled).toBe(true);
+    });
+
+    it('returns false when the remote flag is disabled and version gate passes', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'enabled' in flag &&
+          'minimumVersion' in flag
+        ) {
+          return (flag as { enabled: boolean }).enabled;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHomepageDiscoveryNbaChampionEnabled: {
+            enabled: false,
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.predictHomepageDiscoveryNbaChampionEnabled).toBe(false);
+    });
+  });
+
   describe('predictWorldCup', () => {
     it('returns default disabled config when flag is missing', () => {
       const result = resolvePredictFeatureFlags({});
@@ -236,7 +271,11 @@ describe('resolvePredictFeatureFlags', () => {
             showMainFeedBanner: true,
             showMainFeedTab: true,
             showWorldCupScreen: true,
-            bannerImageUrl: 'https://example.com/banner.png',
+            bannerImage: {
+              url: 'https://example.com/banner.png',
+              width: 400,
+              height: 200,
+            },
             stages: [
               {
                 key: 'group_stage',
@@ -255,7 +294,11 @@ describe('resolvePredictFeatureFlags', () => {
         showMainFeedBanner: true,
         showMainFeedTab: true,
         showWorldCupScreen: true,
-        bannerImageUrl: 'https://example.com/banner.png',
+        bannerImage: {
+          url: 'https://example.com/banner.png',
+          width: 400,
+          height: 200,
+        },
         stages: [
           {
             key: 'group_stage',
@@ -278,6 +321,134 @@ describe('resolvePredictFeatureFlags', () => {
       });
 
       expect(result.predictWorldCup).toEqual(DEFAULT_PREDICT_WORLD_CUP_FLAG);
+    });
+  });
+
+  describe('predictPortfolioEnabled', () => {
+    it('returns false when flag is missing', () => {
+      const result = resolvePredictFeatureFlags({});
+
+      expect(result.predictPortfolioEnabled).toBe(false);
+    });
+
+    it('returns true when enabled and version gate passes', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'minimumVersion' in flag &&
+          !('leagues' in flag) &&
+          !('seriesId' in flag)
+        ) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictPortfolio: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.predictPortfolioEnabled).toBe(true);
+    });
+
+    it('returns false when flag is disabled', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'minimumVersion' in flag &&
+          !('leagues' in flag) &&
+          !('seriesId' in flag)
+        ) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictPortfolio: {
+            enabled: false,
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.predictPortfolioEnabled).toBe(false);
+    });
+
+    it('returns false when flag is malformed', () => {
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictPortfolio: {
+            enabled: 'true',
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.predictPortfolioEnabled).toBe(false);
+    });
+
+    it('returns false when version gate fails', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'minimumVersion' in flag &&
+          !('leagues' in flag) &&
+          !('seriesId' in flag)
+        ) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictPortfolio: {
+            enabled: true,
+            minimumVersion: '99.0.0',
+          },
+        },
+      });
+
+      expect(result.predictPortfolioEnabled).toBe(false);
+    });
+
+    it('unwraps progressive rollout shape', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'minimumVersion' in flag &&
+          !('leagues' in flag) &&
+          !('seriesId' in flag)
+        ) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictPortfolio: {
+            name: 'group-a',
+            value: {
+              enabled: true,
+              minimumVersion: '1.0.0',
+            },
+          },
+        },
+      });
+
+      expect(result.predictPortfolioEnabled).toBe(true);
     });
   });
 

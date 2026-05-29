@@ -269,13 +269,15 @@ describe('useOHLCVRealtime', () => {
         jest.advanceTimersByTime(500);
       });
 
-      // Advance past staleness threshold (10s) + one check interval (5s)
+      // Advance past staleness threshold (5s) + one check interval (5s)
       await act(async () => {
-        jest.advanceTimersByTime(10_000 + 5_000);
+        jest.advanceTimersByTime(5_000 + 5_000);
       });
 
-      expect(mockFetch).toHaveBeenCalledTimes(1);
-      const fetchUrl = mockFetch.mock.calls[0][0] as string;
+      // Called twice: once immediately after subscribe, once from staleness check
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+      // Check the last fetch call (from staleness check)
+      const fetchUrl = mockFetch.mock.calls[1][0] as string;
       expect(fetchUrl).toContain('price.api.cx.metamask.io/v3/ohlcv/');
       expect(fetchUrl).toContain('/latest');
       expect(fetchUrl).toContain('timePeriod=1d');
@@ -332,7 +334,8 @@ describe('useOHLCVRealtime', () => {
         jest.advanceTimersByTime(3_000);
       });
 
-      expect(mockFetch).not.toHaveBeenCalled();
+      // Only called once immediately after subscribe, not again since WS is active
+      expect(mockFetch).toHaveBeenCalledTimes(1);
       expect(result.current.latestBar).not.toBeNull();
     });
 
@@ -367,9 +370,8 @@ describe('useOHLCVRealtime', () => {
         });
       });
 
-      // pollLatest() is called immediately when chain goes down
-      // No need to advance time for staleness check
-      expect(mockFetch).toHaveBeenCalledTimes(1);
+      // Called twice: once immediately after subscribe, once when chain goes down
+      expect(mockFetch).toHaveBeenCalledTimes(2);
     });
 
     it('does not poll when chainStatusChanged is for a different chain', async () => {
@@ -391,12 +393,13 @@ describe('useOHLCVRealtime', () => {
         });
       });
 
-      // Advance but not past staleness threshold from subscribe time (10s)
+      // Advance but not past staleness threshold from subscribe time (5s)
       await act(async () => {
-        jest.advanceTimersByTime(5_000);
+        jest.advanceTimersByTime(3_000);
       });
 
-      expect(mockFetch).not.toHaveBeenCalled();
+      // Only called once immediately after subscribe, not again for different chain
+      expect(mockFetch).toHaveBeenCalledTimes(1);
     });
 
     it('handles REST API failure gracefully', async () => {
@@ -413,10 +416,11 @@ describe('useOHLCVRealtime', () => {
 
       // Force staleness
       await act(async () => {
-        jest.advanceTimersByTime(10_000 + 5_000);
+        jest.advanceTimersByTime(5_000 + 5_000);
       });
 
-      expect(mockFetch).toHaveBeenCalledTimes(1);
+      // Called twice: once immediately after subscribe, once from staleness check
+      expect(mockFetch).toHaveBeenCalledTimes(2);
       expect(result.current.latestBar).toBeNull();
     });
 
