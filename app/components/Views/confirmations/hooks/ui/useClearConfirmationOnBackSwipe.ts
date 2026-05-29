@@ -3,40 +3,69 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { useCallback, useEffect, useRef } from 'react';
 import { BackHandler } from 'react-native';
 import Device from '../../../../../util/device';
+import Logger from '../../../../../util/Logger';
+import { ensureError } from '../../../../../util/errorUtils';
 import { useConfirmActions } from '../useConfirmActions';
 import { useFullScreenConfirmation } from './useFullScreenConfirmation';
 import type { RootStackParamList } from '../../../../../core/NavigationService/types';
+import { useConfirmationContext } from '../../context/confirmation-context';
 
 interface UseClearConfirmationOnBackSwipeOptions {
   rejectOnBeforeRemove?: boolean;
+  rejectOnBeforeRemoveWithoutGesture?: boolean;
+  skipNavigationOnGestureEnd?: boolean;
+  onBeforeReject?: () => void;
 }
 
 const useClearConfirmationOnBackSwipe = ({
   rejectOnBeforeRemove = false,
+  rejectOnBeforeRemoveWithoutGesture = false,
+  skipNavigationOnGestureEnd = false,
+  onBeforeReject,
 }: UseClearConfirmationOnBackSwipeOptions = {}) => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const { onReject } = useConfirmActions();
+  const { isConfirmationSubmitting } = useConfirmationContext();
   const hasRejectedRef = useRef(false);
   const isGestureInProgressRef = useRef(false);
+  const isConfirmationSubmittingRef = useRef(isConfirmationSubmitting);
+
+  useEffect(() => {
+    isConfirmationSubmittingRef.current = isConfirmationSubmitting;
+  }, [isConfirmationSubmitting]);
 
   const rejectConfirmation = useCallback(
     (skipNavigation = false) => {
-      if (hasRejectedRef.current) {
+      if (hasRejectedRef.current || isConfirmationSubmittingRef.current) {
         return;
+      }
+
+      try {
+        onBeforeReject?.();
+      } catch (error) {
+        Logger.error(
+          ensureError(error),
+          'useClearConfirmationOnBackSwipe: onBeforeReject failed',
+        );
       }
 
       hasRejectedRef.current = true;
       onReject(undefined, skipNavigation);
     },
-    [onReject],
+    [onBeforeReject, onReject],
   );
 
   useEffect(() => {
     if (isFullScreenConfirmation) {
       const unsubscribe = navigation.addListener('gestureEnd', () => {
         isGestureInProgressRef.current = false;
-        rejectConfirmation();
+        if (rejectOnBeforeRemove) {
+          rejectConfirmation(skipNavigationOnGestureEnd);
+          return;
+        }
+
+        onReject();
       });
 
       return () => {
@@ -45,7 +74,14 @@ const useClearConfirmationOnBackSwipe = ({
         }
       };
     }
-  }, [isFullScreenConfirmation, navigation, rejectConfirmation]);
+  }, [
+    isFullScreenConfirmation,
+    navigation,
+    onReject,
+    rejectConfirmation,
+    rejectOnBeforeRemove,
+    skipNavigationOnGestureEnd,
+  ]);
 
   useEffect(() => {
     if (isFullScreenConfirmation && rejectOnBeforeRemove) {
@@ -64,7 +100,14 @@ const useClearConfirmationOnBackSwipe = ({
       const unsubscribeBeforeRemove = navigation.addListener(
         'beforeRemove',
         () => {
-          if (!isGestureInProgressRef.current) {
+          const shouldRejectBeforeRemove =
+            isGestureInProgressRef.current ||
+            rejectOnBeforeRemoveWithoutGesture;
+
+          if (
+            isConfirmationSubmittingRef.current ||
+            !shouldRejectBeforeRemove
+          ) {
             return;
           }
 
@@ -90,6 +133,7 @@ const useClearConfirmationOnBackSwipe = ({
     navigation,
     rejectConfirmation,
     rejectOnBeforeRemove,
+    rejectOnBeforeRemoveWithoutGesture,
   ]);
 
   useEffect(() => {
@@ -97,7 +141,12 @@ const useClearConfirmationOnBackSwipe = ({
       const backHandlerSubscription = BackHandler.addEventListener(
         'hardwareBackPress',
         () => {
-          rejectConfirmation();
+          if (rejectOnBeforeRemove) {
+            rejectConfirmation();
+          } else {
+            onReject();
+          }
+
           return true;
         },
       );
@@ -106,7 +155,14 @@ const useClearConfirmationOnBackSwipe = ({
         backHandlerSubscription.remove();
       };
     }
-  }, [isFullScreenConfirmation, rejectConfirmation]);
+  }, [
+    isFullScreenConfirmation,
+    onReject,
+    rejectConfirmation,
+    rejectOnBeforeRemove,
+  ]);
+
+  return rejectConfirmation;
 };
 
 export default useClearConfirmationOnBackSwipe;
