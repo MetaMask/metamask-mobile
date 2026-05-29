@@ -1,38 +1,38 @@
-import { renderHook, act } from '@testing-library/react-native';
-import { useSelector, useDispatch } from 'react-redux';
+import { ChainId } from '@metamask/bridge-controller';
+import { TextColor } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/social-controllers';
-import { useQuickBuyController } from './hooks/useQuickBuyController';
-import { positionToQuickBuyTarget } from './types';
+import { act, renderHook } from '@testing-library/react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import Engine from '../../../../../../core/Engine';
+import {
+  selectBridgeFeatureFlags,
+  selectDestAddress,
+  selectIsEvmNonEvmBridge,
+  selectIsNonEvmNonEvmBridge,
+  selectIsSolanaSourced,
+  selectIsSubmittingTx,
+  selectSlippage,
+} from '../../../../../../core/redux/slices/bridge';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
+import { selectSourceWalletAddress } from '../../../../../../selectors/bridge';
+import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
+import { selectShouldUseSmartTransaction } from '../../../../../../selectors/smartTransactionsController';
+import Logger from '../../../../../../util/Logger';
+import { useHasSufficientGas } from '../../../../../UI/Bridge/hooks/useHasSufficientGas';
+import useIsInsufficientBalance from '../../../../../UI/Bridge/hooks/useInsufficientBalance';
+import { useLatestBalance } from '../../../../../UI/Bridge/hooks/useLatestBalance';
+import { usePriceImpactViewData } from '../../../../../UI/Bridge/hooks/usePriceImpactViewData';
+import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import { selectDefaultSourceToken } from '../../../utils/tokenSelection';
-import { useQuickBuySetup } from './hooks/useQuickBuySetup';
-import { useSourceTokenOptions } from './hooks/useSourceTokenOptions';
+import { useQuickBuyController } from './hooks/useQuickBuyController';
 import {
   useQuickBuyQuotes,
   type EnrichedQuickBuyQuote,
   type UseQuickBuyQuotesResult,
 } from './hooks/useQuickBuyQuotes';
-import { useLatestBalance } from '../../../../../UI/Bridge/hooks/useLatestBalance';
-import useIsInsufficientBalance from '../../../../../UI/Bridge/hooks/useInsufficientBalance';
-import { useHasSufficientGas } from '../../../../../UI/Bridge/hooks/useHasSufficientGas';
-import { selectShouldUseSmartTransaction } from '../../../../../../selectors/smartTransactionsController';
-import Engine from '../../../../../../core/Engine';
-import {
-  selectIsSubmittingTx,
-  selectDestAddress,
-  selectSlippage,
-  selectIsEvmNonEvmBridge,
-  selectIsNonEvmNonEvmBridge,
-  selectIsSolanaSourced,
-  selectBridgeFeatureFlags,
-} from '../../../../../../core/redux/slices/bridge';
-import { selectSourceWalletAddress } from '../../../../../../selectors/bridge';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
-import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
-import { usePriceImpactViewData } from '../../../../../UI/Bridge/hooks/usePriceImpactViewData';
-import { TextColor } from '@metamask/design-system-react-native';
-import type { BridgeToken } from '../../../../../UI/Bridge/types';
-import { ChainId } from '@metamask/bridge-controller';
-import Logger from '../../../../../../util/Logger';
+import { useQuickBuySetup } from './hooks/useQuickBuySetup';
+import { useSourceTokenOptions } from './hooks/useSourceTokenOptions';
+import { positionToQuickBuyTarget } from './types';
 
 jest.mock('../../../../../../util/Logger', () => ({
   __esModule: true,
