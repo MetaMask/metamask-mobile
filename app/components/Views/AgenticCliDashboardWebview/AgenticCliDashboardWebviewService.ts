@@ -31,9 +31,7 @@ const DEVELOPMENT_ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
 const getAllowedOriginPatterns = (): RegExp[] => {
   const patterns = [...PRODUCTION_ALLOWED_ORIGIN_PATTERNS];
 
-  if (devApiEnv() === 'dev') {
-    patterns.push(...DEV_API_ALLOWED_ORIGIN_PATTERNS);
-  }
+  patterns.push(...DEV_API_ALLOWED_ORIGIN_PATTERNS);
 
   if (__DEV__) {
     patterns.push(...DEVELOPMENT_ALLOWED_ORIGIN_PATTERNS);

@@ -268,6 +268,22 @@ describe('AgenticCliDashboardWebviewService', () => {
       ).toBe(false);
     });
 
+    it('allows UAT dashboard origin in production API env', () => {
+      mockDevApiEnv.mockReturnValue('prod');
+      devGlobal.__DEV__ = false;
+
+      expect(
+        AgenticCliDashboardWebviewService.isOriginAllowed(
+          'https://uat-dashboard.web3auth.io',
+        ),
+      ).toBe(true);
+      expect(
+        AgenticCliDashboardWebviewService.shouldLoadInWebView(
+          'https://uat-dashboard.web3auth.io/agentic/login#auth_token=token',
+        ),
+      ).toBe(true);
+    });
+
     it('resolves an open request when the WebView posts a CLI token', async () => {
       const promise = AgenticCliDashboardWebviewService.open(dashboardParams);
       const requestId = navigateMock.mock.calls[0][1].requestId;

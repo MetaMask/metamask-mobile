@@ -9,8 +9,8 @@ const RELAY_URLS = {
   PROD: 'wss://mm-sdk-relay.api.cx.metamask.io/connection/websocket',
 } as const;
 
-/** Must match `devApiEnv()` used by agentic CLI auth/dashboard URL selection. */
-const relayURL = devApiEnv() === 'dev' ? RELAY_URLS.DEV : RELAY_URLS.PROD;
+const relayURL =
+  process.env.METAMASK_ENVIRONMENT === 'dev' ? RELAY_URLS.DEV : RELAY_URLS.PROD;
 const keymanager = new KeyManager();
 const hostapp = new HostApplicationAdapter();
 const store = new ConnectionStore('sdk-connect-v2/connections');

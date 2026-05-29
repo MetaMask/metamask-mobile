@@ -5,17 +5,28 @@ import Engine from '../Engine';
 import { store } from '../../store';
 import { strings } from '../../../locales/i18n';
 import logger, { redactUrl } from '../SDKConnectV2/services/logger';
-import { authEnv, devApiEnv, type DevApiEnv } from '../devApiEnv';
 import { AgenticCliDashboardWebviewService } from '../../components/Views/AgenticCliDashboardWebview/AgenticCliDashboardWebviewService';
 import { Connection } from '../SDKConnectV2/services/connection';
 import { ConnectionRequest } from '../SDKConnectV2/types/connection-request';
+import { buildTypeMapping } from '../OAuthService/OAuthLoginHandlers/constants';
+import AppConstants from '../AppConstants';
+import { Env } from '@metamask/profile-sync-controller/sdk';
 
 const CLI_DASHBOARD_TOKEN_PATH = '/api/v2/mm-qr-login/token';
 const ENGINE_READY_POLL_MS = 250;
 
-const DASHBOARD_WEBVIEW_URL_BY_ENV: Record<DevApiEnv, string> = {
-  dev: 'https://test-dashboard.web3auth.io/agentic/login',
-  prod: 'https://dashboard.w3a.io/agentic/login',
+const buildType = buildTypeMapping(
+  AppConstants.METAMASK_BUILD_TYPE || 'main',
+  AppConstants.IS_DEV || process.env.METAMASK_ENVIRONMENT === 'dev',
+);
+
+const DASHBOARD_WEBVIEW_URL_BY_ENV: Record<string, string> = {
+  main_dev: 'https://test-dashboard.web3auth.io/agentic/login',
+  main_uat: 'https://dev-dashboard.web3auth.io/agentic/login',
+  main_prod: 'https://dashboard.w3a.io/agentic/login',
+  flask_dev: 'https://test-dashboard.web3auth.io/agentic/login',
+  flask_uat: 'https://dev-dashboard.web3auth.io/agentic/login',
+  flask_prod: 'https://dashboard.w3a.io/agentic/login',
 };
 
 const DEV_CLI_DASHBOARD_AUTH_ORIGIN_PATTERNS: RegExp[] = [
@@ -36,7 +47,8 @@ interface HandleAgenticCliConnectionParams {
 }
 
 const getDashboardWebviewUrl = (): string =>
-  DASHBOARD_WEBVIEW_URL_BY_ENV[devApiEnv()];
+  DASHBOARD_WEBVIEW_URL_BY_ENV[buildType] ??
+  DASHBOARD_WEBVIEW_URL_BY_ENV.main_prod;
 
 const isDevCliDashboardAuthUrl = (dashboardAuthUrl: string): boolean => {
   try {
@@ -58,7 +70,8 @@ const getCliDashboardTokenUrl = (dashboardAuthUrl?: string): string => {
     return dashboardAuthUrl;
   }
 
-  const url = new URL(SDK.getEnvUrls(authEnv()).authApiUrl);
+  const sdkenv = Env.DEV;
+  const url = new URL(SDK.getEnvUrls(sdkenv).authApiUrl);
   url.pathname = CLI_DASHBOARD_TOKEN_PATH;
   return url.toString();
 };
