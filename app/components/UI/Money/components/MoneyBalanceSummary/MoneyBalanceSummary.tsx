@@ -8,6 +8,7 @@ import {
   FontWeight,
   IconColor,
   IconName,
+  IconSize,
   Skeleton,
   Text,
   TextColor,
@@ -15,94 +16,69 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { MoneyBalanceSummaryTestIds } from './MoneyBalanceSummary.testIds';
-import { isPositiveNumber } from '../../utils/number';
-
-const DEFAULT_BALANCE = '$0.00';
+import { isPositiveNumberOrZero } from '../../utils/number';
+import { MoneyBalanceDisplayState } from '../../types';
 
 interface MoneyBalanceSummaryProps {
+  displayState: MoneyBalanceDisplayState;
   /**
-   * Formatted balance string (e.g. "$0.00"). Falls back to "$0.00" when omitted.
-   */
-  balance?: string;
-  /**
-   * APY expressed as a percentage (e.g. 3 for 3%).
+   * APY expressed as a percentage (e.g. 3 for 3%). Hidden in non-balance states.
    */
   apy: number | undefined;
-  /**
-   * Render a loading skeleton in place of the balance value.
-   */
-  isLoading?: boolean;
   /**
    * Handler for the APY info icon. Opens the APY tooltip sheet.
    */
   onApyInfoPress?: () => void;
 }
 
-const MoneyBalanceSummary = ({
-  balance = DEFAULT_BALANCE,
-  apy,
-  isLoading = false,
-  onApyInfoPress,
-}: MoneyBalanceSummaryProps) => (
-  <Box twClassName="pt-3" testID={MoneyBalanceSummaryTestIds.CONTAINER}>
-    <Box twClassName="px-4">
-      <Text
-        variant={TextVariant.HeadingLg}
-        fontWeight={FontWeight.Bold}
-        testID={MoneyBalanceSummaryTestIds.TITLE}
-      >
-        {strings('money.title')}
-      </Text>
-    </Box>
+const BalanceSkeleton = () => (
+  <Skeleton
+    height={48}
+    width={160}
+    twClassName="mb-2 rounded-md"
+    testID={MoneyBalanceSummaryTestIds.BALANCE_SKELETON}
+  />
+);
 
-    <Box twClassName="px-4 pt-2">
-      {isLoading ? (
+const MoneyBalanceSummary = ({
+  displayState,
+  apy,
+  onApyInfoPress,
+}: MoneyBalanceSummaryProps) => {
+  const showApy = displayState.kind === 'balance';
+
+  const renderApySlot = () => {
+    if (displayState.kind === 'loading' || displayState.kind === 'retrying') {
+      return (
         <Skeleton
-          height={48}
-          width={160}
-          twClassName="mb-2 rounded-md"
-          testID={MoneyBalanceSummaryTestIds.BALANCE_SKELETON}
+          height={24}
+          width={94}
+          twClassName="rounded-md"
+          testID={MoneyBalanceSummaryTestIds.APY_SKELETON}
         />
-      ) : (
+      );
+    }
+    if (!showApy || !isPositiveNumberOrZero(apy)) {
+      return null;
+    }
+    return (
+      <>
         <Text
-          variant={TextVariant.DisplayLg}
-          fontWeight={FontWeight.Bold}
-          testID={MoneyBalanceSummaryTestIds.BALANCE}
-          twClassName="mb-2"
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.SuccessDefault}
+          testID={MoneyBalanceSummaryTestIds.APY}
         >
-          {balance}
+          {strings('money.apy_label', { percentage: apy })}
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+          >
+            {strings('money.apy_currency_suffix')}
+          </Text>
         </Text>
-      )}
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="gap-1"
-      >
-        {isLoading ? (
-          <Skeleton
-            height={24}
-            width={94}
-            twClassName="rounded-md"
-            testID={MoneyBalanceSummaryTestIds.APY_SKELETON}
-          />
-        ) : (
-          isPositiveNumber(apy) && (
-            <Box
-              twClassName="self-start rounded-md bg-success-muted px-2 py-0.5"
-              testID={MoneyBalanceSummaryTestIds.APY_TAG}
-            >
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.SuccessDefault}
-                testID={MoneyBalanceSummaryTestIds.APY}
-              >
-                {strings('money.apy_label', { percentage: apy })}
-              </Text>
-            </Box>
-          )
-        )}
-        {onApyInfoPress && isPositiveNumber(apy) && !isLoading && (
+        {onApyInfoPress && displayState.kind === 'balance' && (
           <ButtonIcon
             iconName={IconName.Info}
             iconProps={{ color: IconColor.IconAlternative }}
@@ -112,9 +88,92 @@ const MoneyBalanceSummary = ({
             testID={MoneyBalanceSummaryTestIds.APY_INFO_BUTTON}
           />
         )}
+      </>
+    );
+  };
+
+  const renderBalanceSlot = () => {
+    switch (displayState.kind) {
+      case 'loading':
+        return <BalanceSkeleton />;
+      case 'retrying':
+        return <BalanceSkeleton />;
+      case 'error':
+        return (
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="mb-2 gap-2"
+            testID={MoneyBalanceSummaryTestIds.BALANCE_ERROR}
+          >
+            <Text
+              variant={TextVariant.BodyLg}
+              color={TextColor.TextAlternative}
+            >
+              {strings('money.balance_unavailable')}
+            </Text>
+            <ButtonIcon
+              iconName={IconName.Refresh}
+              iconProps={{ color: IconColor.InfoDefault, size: IconSize.Lg }}
+              size={ButtonIconSize.Sm}
+              onPress={displayState.onRetry}
+              accessibilityLabel={strings('money.balance_retry')}
+              testID={MoneyBalanceSummaryTestIds.BALANCE_RETRY}
+            />
+          </Box>
+        );
+      case 'balance':
+        return (
+          <Text
+            variant={TextVariant.DisplayLg}
+            fontWeight={FontWeight.Bold}
+            testID={MoneyBalanceSummaryTestIds.BALANCE}
+            twClassName="mb-2"
+          >
+            {displayState.value}
+          </Text>
+        );
+      case 'noAccount':
+        return (
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            testID={MoneyBalanceSummaryTestIds.BALANCE_NO_ACCOUNT}
+            twClassName="mb-2"
+          >
+            {strings('money.balance_no_account')}
+          </Text>
+        );
+      case 'unavailable':
+        return (
+          <Text
+            variant={TextVariant.BodyLg}
+            color={TextColor.TextAlternative}
+            testID={MoneyBalanceSummaryTestIds.BALANCE_UNAVAILABLE}
+            twClassName="mb-2"
+          >
+            {strings('money.balance_unavailable')}
+          </Text>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <Box twClassName="pt-3" testID={MoneyBalanceSummaryTestIds.CONTAINER}>
+      <Box twClassName="px-4 pt-2">
+        {renderBalanceSlot()}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-1"
+        >
+          {renderApySlot()}
+        </Box>
       </Box>
     </Box>
-  </Box>
-);
+  );
+};
 
 export default MoneyBalanceSummary;

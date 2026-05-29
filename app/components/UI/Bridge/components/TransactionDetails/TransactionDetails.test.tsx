@@ -3,6 +3,7 @@ import { BridgeTransactionDetails } from './TransactionDetails';
 import {
   TransactionMeta,
   TransactionStatus,
+  TransactionType,
 } from '@metamask/transaction-controller';
 import Routes from '../../../../../constants/navigation/Routes';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
@@ -272,5 +273,29 @@ describe('BridgeTransactionDetails', () => {
     );
 
     expect(getByTestId('paid-by-metamask')).toBeOnTheScreen();
+  });
+
+  it('does not show "Paid by MetaMask" for a sponsored revoke delegation transaction', () => {
+    mockIsHardwareAccount.mockReturnValue(false);
+
+    const sponsoredRevokeDelegationTx = {
+      ...mockEVMTx,
+      isGasFeeSponsored: true,
+      type: TransactionType.revokeDelegation,
+    } as TransactionMeta;
+
+    const { queryByTestId } = renderScreen(
+      () => (
+        <BridgeTransactionDetails
+          route={{ params: { evmTxMeta: sponsoredRevokeDelegationTx } }}
+        />
+      ),
+      {
+        name: Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS,
+      },
+      { state: mockState },
+    );
+
+    expect(queryByTestId('paid-by-metamask')).not.toBeOnTheScreen();
   });
 });

@@ -12,7 +12,6 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import TokenNetworkFilterBar from '../../components/TokenNetworkFilterBar';
 import TokenListItem from '../../components/TokenListItem';
 import { createUnsupportedTokenModalNavigationDetails } from '../Modals/UnsupportedTokenModal/UnsupportedTokenModal';
@@ -22,6 +21,7 @@ import {
   Text,
   TextVariant,
   FontWeight,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
@@ -337,7 +337,7 @@ function TokenSelection() {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <HeaderCompactStandard
+          <HeaderStandard
             title={strings('deposit.token_modal.select_token')}
             onBack={handleHeaderBack}
             backButtonProps={{ testID: 'deposit-back-navbar-button' }}
@@ -359,7 +359,7 @@ function TokenSelection() {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <HeaderCompactStandard
+          <HeaderStandard
             title={strings('deposit.token_modal.select_token')}
             onBack={handleHeaderBack}
             backButtonProps={{ testID: 'deposit-back-navbar-button' }}
@@ -386,7 +386,7 @@ function TokenSelection() {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('deposit.token_modal.select_token')}
           onBack={handleHeaderBack}
           backButtonProps={{ testID: 'deposit-back-navbar-button' }}

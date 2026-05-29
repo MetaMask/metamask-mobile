@@ -360,12 +360,13 @@ describe('TransactionDetails', () => {
       TransactionType.moneyAccountWithdraw,
       TransactionType.perpsDeposit,
       TransactionType.predictDeposit,
+      TransactionType.predictWithdraw,
     ])('includes %s', (type) => {
       expect(SUMMARY_SECTION_TYPES).toContain(type);
     });
 
-    it('contains exactly 6 transaction types', () => {
-      expect(SUMMARY_SECTION_TYPES).toHaveLength(6);
+    it('contains exactly 7 transaction types', () => {
+      expect(SUMMARY_SECTION_TYPES).toHaveLength(7);
     });
   });
 });

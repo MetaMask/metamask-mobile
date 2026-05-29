@@ -140,7 +140,6 @@ jest.mock('../../../reducers/swaps', () => ({
 
 jest.mock('../../../selectors/tokensController', () => ({
   selectTokens: jest.fn(),
-  selectTokensControllerState: jest.fn(),
   selectAllTokens: jest.fn(),
 }));
 

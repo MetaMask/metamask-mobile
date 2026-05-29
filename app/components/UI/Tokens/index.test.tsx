@@ -486,7 +486,7 @@ describe('Tokens', () => {
               expect.objectContaining({ address: MUSD_TOKEN_ADDRESS }),
             ]),
           }),
-          expect.anything(),
+          undefined,
         );
       });
     });
@@ -527,7 +527,7 @@ describe('Tokens', () => {
               expect.objectContaining({ address: MUSD_TOKEN_ADDRESS }),
             ]),
           }),
-          expect.anything(),
+          undefined,
         );
       });
     });
@@ -572,7 +572,7 @@ describe('Tokens', () => {
               expect.objectContaining({ address: MUSD_TOKEN_ADDRESS }),
             ]),
           }),
-          expect.anything(),
+          undefined,
         );
       });
     });

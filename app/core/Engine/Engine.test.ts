@@ -126,7 +126,6 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('AccountTrackerController');
     expect(engine.context).toHaveProperty('AddressBookController');
     expect(engine.context).toHaveProperty('AssetsContractController');
-    expect(engine.context).toHaveProperty('TokenListController');
     expect(engine.context).toHaveProperty('TokenDetectionController');
     expect(engine.context).toHaveProperty('NftDetectionController');
     expect(engine.context).toHaveProperty('NftController');
@@ -163,6 +162,31 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('ConnectivityController');
     expect(engine.context).toHaveProperty('AiDigestController');
     expect(engine.context).toHaveProperty('MoneyAccountController');
+  });
+
+  it('hydrates address poisoning known recipients from persisted address book state', () => {
+    const knownAddress = '0x111122223333444455556666777788889999aaaa';
+    const candidateAddress = '0x1111ffffffffffffffffffffffffffffffffaaaa';
+
+    const engine = Engine.init(TEST_ANALYTICS_ID, {
+      AddressBookController: {
+        addressBook: {
+          '0x1': {
+            [knownAddress]: {
+              address: knownAddress,
+              chainId: '0x1',
+              isEns: false,
+              memo: '',
+              name: 'Known recipient',
+            },
+          },
+        },
+      },
+    });
+
+    expect(
+      engine.context.PhishingController.checkAddressPoisoning(candidateAddress),
+    ).toEqual([expect.objectContaining({ knownAddress })]);
   });
 
   it('calling Engine.init twice returns the same instance', () => {
@@ -384,7 +408,6 @@ describe('Engine', () => {
         cacheTimestamp: 0,
       },
     };
-    const keyringState = null;
     const analyticsId = '24d24a09-b210-4971-9601-4603c60b23c3';
     const enableRpcFailoverSpy = jest.spyOn(
       NetworkController.prototype,
@@ -404,7 +427,7 @@ describe('Engine', () => {
         },
       });
 
-    Engine.init(analyticsId, state, keyringState);
+    Engine.init(analyticsId, state);
 
     // We can't await RemoteFeatureFlagController:stateChange because can't
     // guarantee it hasn't been called already, so this is the next best option
@@ -428,7 +451,6 @@ describe('Engine', () => {
         cacheTimestamp: 0,
       },
     };
-    const keyringState = null;
     const analyticsId = '24d24a09-b210-4971-9601-4603c60b23c3';
     const disableRpcFailoverSpy = jest.spyOn(
       NetworkController.prototype,
@@ -448,7 +470,7 @@ describe('Engine', () => {
         },
       });
 
-    Engine.init(analyticsId, state, keyringState);
+    Engine.init(analyticsId, state);
 
     // We can't await RemoteFeatureFlagController:stateChange because can't
     // guarantee it hasn't been called already, so this is the next best option
@@ -814,17 +836,13 @@ describe('Engine', () => {
       },
     );
 
-    const engine = Engine.init(
-      TEST_ANALYTICS_ID,
-      {
-        ...backgroundState,
-        KeyringController: {
-          ...backgroundState.KeyringController,
-          isUnlocked: true,
-        },
+    const engine = Engine.init(TEST_ANALYTICS_ID, {
+      ...backgroundState,
+      KeyringController: {
+        ...backgroundState.KeyringController,
+        isUnlocked: true,
       },
-      null,
-    );
+    });
 
     const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
 
@@ -845,17 +863,13 @@ describe('Engine', () => {
       },
     );
 
-    const engine = Engine.init(
-      TEST_ANALYTICS_ID,
-      {
-        ...backgroundState,
-        KeyringController: {
-          ...backgroundState.KeyringController,
-          isUnlocked: true,
-        },
+    const engine = Engine.init(TEST_ANALYTICS_ID, {
+      ...backgroundState,
+      KeyringController: {
+        ...backgroundState.KeyringController,
+        isUnlocked: true,
       },
-      null,
-    );
+    });
 
     const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
 
@@ -895,17 +909,13 @@ describe('Engine', () => {
       },
     );
 
-    const engine = Engine.init(
-      TEST_ANALYTICS_ID,
-      {
-        ...backgroundState,
-        KeyringController: {
-          ...backgroundState.KeyringController,
-          isUnlocked: false,
-        },
+    const engine = Engine.init(TEST_ANALYTICS_ID, {
+      ...backgroundState,
+      KeyringController: {
+        ...backgroundState.KeyringController,
+        isUnlocked: false,
       },
-      null,
-    );
+    });
 
     const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
 
@@ -1357,7 +1367,8 @@ describe('Engine', () => {
             'state' in controller &&
             Boolean(controller.state) &&
             (!isEmpty(controller.state) ||
-              controllerName === 'ComplianceController'),
+              controllerName === 'ComplianceController' ||
+              controllerName === 'MoneyAccountUpgradeController'),
         )
         .map(([controllerName]) => controllerName);
 
@@ -1366,6 +1377,19 @@ describe('Engine', () => {
       const sortedControllersInState = Object.keys(state).sort();
       const sortedExpectedControllers = controllersWithState.sort();
       expect(sortedControllersInState).toEqual(sortedExpectedControllers);
+    });
+  });
+
+  describe('resetState', () => {
+    it('calls MoneyAccountController.clearState', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const clearStateSpy = jest
+        .spyOn(engine.context.MoneyAccountController, 'clearState')
+        .mockImplementation(() => undefined);
+
+      await engine.resetState();
+
+      expect(clearStateSpy).toHaveBeenCalled();
     });
   });
 });

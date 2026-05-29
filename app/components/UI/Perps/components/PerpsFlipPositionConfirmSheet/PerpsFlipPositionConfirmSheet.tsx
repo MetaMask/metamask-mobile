@@ -33,15 +33,12 @@ import {
 } from '../../hooks';
 import { usePerpsFlipPosition } from '../../hooks/usePerpsFlipPosition';
 import { usePerpsLivePrices, usePerpsTopOfBook } from '../../hooks/stream';
-import {
-  formatPerpsFiat,
-  PRICE_RANGES_MINIMAL_VIEW,
-} from '../../utils/formatUtils';
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import PerpsFeesDisplay from '../PerpsFeesDisplay';
 import RewardsAnimations, {
   RewardAnimationState,
 } from '../../../Rewards/components/RewardPointsAnimation';
+import { useVipTier } from '../../../Rewards/hooks/useVipTier';
 
 const PerpsFlipPositionConfirmSheet: React.FC<
   PerpsFlipPositionConfirmSheetProps
@@ -131,9 +128,24 @@ const PerpsFlipPositionConfirmSheet: React.FC<
     },
   });
 
+  const vipTier = useVipTier();
+
   const handleReverse = useCallback(async () => {
-    await handleFlipPosition(position);
-  }, [position, handleFlipPosition]);
+    await handleFlipPosition(position, {
+      totalFee: feeResults.totalFee,
+      marketPrice: markPrice || price,
+      vipTier: vipTier ?? undefined,
+      vipDiscount: feeResults.feeDiscountPercentage,
+    });
+  }, [
+    position,
+    handleFlipPosition,
+    feeResults.totalFee,
+    feeResults.feeDiscountPercentage,
+    markPrice,
+    price,
+    vipTier,
+  ]);
 
   const footerButtons = useMemo(
     () => [
@@ -250,12 +262,15 @@ const PerpsFlipPositionConfirmSheet: React.FC<
               </Text>
               <PerpsFeesDisplay
                 feeDiscountPercentage={rewardsState.feeDiscountPercentage}
-                formatFeeText={
+                fee={
                   !hasValidAmount || feeResults.isLoadingMetamaskFee
-                    ? '--'
-                    : formatPerpsFiat(feeResults.totalFee, {
-                        ranges: PRICE_RANGES_MINIMAL_VIEW,
-                      })
+                    ? undefined
+                    : feeResults.totalFee
+                }
+                originalFee={
+                  !hasValidAmount || feeResults.isLoadingMetamaskFee
+                    ? undefined
+                    : feeResults.undiscountedTotalFee
                 }
                 testID={PerpsFlipPositionConfirmSheetSelectorsIDs.FEES_VALUE}
                 variant={TextVariant.BodyMD}

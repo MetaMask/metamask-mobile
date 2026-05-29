@@ -430,10 +430,10 @@ declare module '@sentry/react-native' {
   export { getDataFromUri } from '@sentry/react-native/dist/js/wrapper';
 
   // Enforce exception to be of type Error for more reliable stack traces - https://docs.sentry.io/platforms/javascript/usage/#capturing-errors
-  import { ExclusiveEventHintOrCaptureContext } from '@sentry/core/build/types/utils/prepareEvent';
+  // Hint type matches @sentry/core captureException without deep imports (not in package "exports").
   export function captureException(
     exception: Error,
-    hint?: ExclusiveEventHintOrCaptureContext,
+    hint?: Parameters<typeof import('@sentry/core').captureException>[1],
   ): string;
 }
 declare module '@tommasini/react-native-scrollable-tab-view';

@@ -14,7 +14,6 @@ import type { GeolocationControllerGetGeolocationAction } from '@metamask/geoloc
 import {
   RewardsDataServiceLoginAction,
   RewardsDataServiceEstimatePointsAction,
-  RewardsDataServiceGetPerpsDiscountAction,
   RewardsDataServiceGetSeasonStatusAction,
   RewardsDataServiceGetReferralDetailsAction,
   RewardsDataServiceMobileOptinAction,
@@ -59,6 +58,8 @@ import {
   RewardsDataServiceOptInToCampaignAction,
   RewardsDataServiceGetCampaignParticipantStatusAction,
   RewardsDataServiceGetBenefitsAction,
+  RewardsDataServiceGetVIPDashboardAction,
+  RewardsDataServiceGetVipFeesAction,
   RewardsDataServicePostBenefitImpressionAction,
   RewardsDataServiceGetClientVersionRequirementsAction,
   RewardsDataServiceGetOndoCampaignLeaderboardAction,
@@ -71,6 +72,7 @@ import {
   RewardsDataServiceGetPerpsTradingCampaignLeaderboardAction,
   RewardsDataServiceGetPerpsTradingCampaignLeaderboardPositionAction,
   RewardsDataServiceGetPerpsTradingCampaignVolumeAction,
+  RewardsDataServiceGetPerpsTradingCampaignParticipantOutcomeAction,
 } from '../../controllers/rewards-controller/services/rewards-data-service';
 import { RootMessenger } from '../../types';
 
@@ -88,7 +90,6 @@ type AllowedActions =
   | RewardsDataServiceGetPointsEventsAction
   | RewardsDataServiceGetPointsEventsLastUpdatedAction
   | RewardsDataServiceEstimatePointsAction
-  | RewardsDataServiceGetPerpsDiscountAction
   | RewardsDataServiceGetSeasonStatusAction
   | RewardsDataServiceGetReferralDetailsAction
   | RewardsDataServiceMobileOptinAction
@@ -126,7 +127,10 @@ type AllowedActions =
   | RewardsDataServiceGetOndoCampaignParticipantOutcomeAction
   | RewardsDataServiceGetPerpsTradingCampaignLeaderboardAction
   | RewardsDataServiceGetPerpsTradingCampaignLeaderboardPositionAction
-  | RewardsDataServiceGetPerpsTradingCampaignVolumeAction;
+  | RewardsDataServiceGetPerpsTradingCampaignVolumeAction
+  | RewardsDataServiceGetVIPDashboardAction
+  | RewardsDataServiceGetVipFeesAction
+  | RewardsDataServiceGetPerpsTradingCampaignParticipantOutcomeAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =
@@ -178,7 +182,6 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getPointsEvents',
       'RewardsDataService:getPointsEventsLastUpdated',
       'RewardsDataService:estimatePoints',
-      'RewardsDataService:getPerpsDiscount',
       'RewardsDataService:getSeasonStatus',
       'RewardsDataService:getReferralDetails',
       'RewardsDataService:mobileOptin',
@@ -205,6 +208,8 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:setRewardsEnvUrl',
       'RewardsDataService:getDefaultRewardsEnvUrl',
       'RewardsDataService:getBenefits',
+      'RewardsDataService:getVIPDashboard',
+      'RewardsDataService:getVipFees',
       'RewardsDataService:postBenefitImpression',
       'RewardsDataService:getClientVersionRequirements',
       'RewardsDataService:getOndoCampaignLeaderboard',
@@ -217,6 +222,7 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getPerpsTradingCampaignLeaderboard',
       'RewardsDataService:getPerpsTradingCampaignLeaderboardPosition',
       'RewardsDataService:getPerpsTradingCampaignVolume',
+      'RewardsDataService:getPerpsTradingCampaignParticipantOutcome',
     ],
     events: [
       'AccountTreeController:selectedAccountGroupChange',

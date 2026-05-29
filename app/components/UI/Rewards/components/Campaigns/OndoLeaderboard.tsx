@@ -27,6 +27,7 @@ import {
   formatRateOfReturn,
   formatTierDisplayName,
 } from './OndoLeaderboard.utils';
+import { ONDO_GM_TIER_MAX_WINNERS } from '../../utils/ondoCampaignConstants';
 
 export const CAMPAIGN_LEADERBOARD_TEST_IDS = {
   CONTAINER: 'campaign-leaderboard-container',
@@ -275,7 +276,7 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
               key={`${entry.rank}-${entry.referralCode}`}
               entry={entry}
               isCurrentUser={isCurrentUser(entry)}
-              showCrown={!isPreview}
+              showCrown={!isPreview && entry.rank <= ONDO_GM_TIER_MAX_WINNERS}
               isCampaignComplete={isCampaignComplete}
               formatPrimaryMetric={(e) => formatRateOfReturn(e.rateOfReturn)}
               isPositivePrimaryMetric={(e) => e.rateOfReturn >= 0}
@@ -289,7 +290,9 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
                   key={`neighbor-${entry.rank}-${entry.referralCode}`}
                   entry={entry}
                   isCurrentUser={isCurrentUser(entry)}
-                  showCrown={!isPreview}
+                  showCrown={
+                    !isPreview && entry.rank <= ONDO_GM_TIER_MAX_WINNERS
+                  }
                   isCampaignComplete={isCampaignComplete}
                   formatPrimaryMetric={(e) =>
                     formatRateOfReturn(e.rateOfReturn)

@@ -9,7 +9,9 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
+import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
@@ -55,6 +57,7 @@ const formatAmount = (value: string | number): string => {
 const Cashback: React.FC = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
+  const headerHandlers = useCardHeaderHandlers('back');
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -222,6 +225,11 @@ const Cashback: React.FC = () => {
       edges={['bottom']}
       testID={CashbackSelectors.CONTAINER}
     >
+      <HeaderStandard
+        includesTopInset
+        twClassName="bg-background-default"
+        {...headerHandlers}
+      />
       <Box twClassName="flex-1 px-4">
         {requiresLineaFunding ? (
           <Box twClassName="pt-4" testID={CashbackSelectors.FUNDING_WARNING}>

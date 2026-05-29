@@ -205,6 +205,7 @@ describe('NftDetails', () => {
     );
 
     expect(getByText(TEST_COLLECTIBLE.name)).toBeOnTheScreen();
+    expect(getByText(TEST_COLLECTIBLE.collection.name)).toBeOnTheScreen();
   });
 
   it('tracks NFT Details Opened event with mobile-nft-list source', () => {

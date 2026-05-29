@@ -3,11 +3,23 @@ import { Platform } from 'react-native';
 import Device from '.';
 
 describe('Device', () => {
+  const originalOS = Platform.OS;
+
+  afterEach(() => {
+    Object.defineProperty(Platform, 'OS', {
+      value: originalOS,
+      writable: true,
+      configurable: true,
+    });
+  });
+
   describe('isAndroid + isIos', () => {
     it('should return expected values when Platform.OS is "android"', () => {
-      jest.doMock('react-native/Libraries/Utilities/Platform', () => ({
-        OS: 'android',
-      }));
+      Object.defineProperty(Platform, 'OS', {
+        value: 'android',
+        writable: true,
+        configurable: true,
+      });
       expect(Device.isAndroid()).toBe(true);
       expect(Device.isIos()).toBe(false);
     });

@@ -1,26 +1,25 @@
 import React from 'react';
-import { HeaderStandard, IconName } from '@metamask/design-system-react-native';
+import {
+  HeaderBase,
+  HeaderBaseVariant,
+  IconName,
+} from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../locales/i18n';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
 
 interface MoneyHeaderProps {
-  /**
-   * Handler for the back/navigation button
-   */
-  onBackPress: () => void;
   /**
    * Handler for the options menu button
    */
   onMenuPress: () => void;
 }
 
-const MoneyHeader = ({ onBackPress, onMenuPress }: MoneyHeaderProps) => (
-  <HeaderStandard
+const MoneyHeader = ({ onMenuPress }: MoneyHeaderProps) => (
+  <HeaderBase
     testID={MoneyHeaderTestIds.CONTAINER}
-    onBack={onBackPress}
-    backButtonProps={{
-      accessibilityLabel: 'Back',
-      testID: MoneyHeaderTestIds.BACK_BUTTON,
-    }}
+    variant={HeaderBaseVariant.Display}
+    twClassName="px-4"
+    titleTestID={MoneyHeaderTestIds.TITLE}
     endButtonIconProps={[
       {
         iconName: IconName.MoreVertical,
@@ -29,7 +28,9 @@ const MoneyHeader = ({ onBackPress, onMenuPress }: MoneyHeaderProps) => (
         testID: MoneyHeaderTestIds.MENU_BUTTON,
       },
     ]}
-  />
+  >
+    {strings('money.title')}
+  </HeaderBase>
 );
 
 export default MoneyHeader;

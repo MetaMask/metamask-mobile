@@ -45,7 +45,9 @@ import {
 import { TokenI } from '../../components/UI/Tokens/types';
 import { createSelector } from 'reselect';
 import { selectSelectedAccountGroupInternalAccounts } from '../multichainAccounts/accountTreeController';
-import { selectAccountTokensAcrossChains } from './evm';
+import { selectAccountTokensAcrossChainsForAddress } from './evm';
+import { selectSelectedInternalAccountByScope } from '../multichainAccounts/accounts';
+import { EVM_SCOPE } from '../../components/UI/Earn/constants/networks';
 import { MULTICHAIN_ACCOUNT_TYPE_TO_MAINNET } from '../../core/Multichain/constants';
 import { isTronSpecialAsset } from '../../core/Multichain/utils';
 import {
@@ -169,16 +171,6 @@ export const selectMultichainAssetsRates = createDeepEqualSelector(
   (conversionRates) => conversionRates,
   { devModeChecks: { identityFunctionCheck: 'never' } },
 );
-
-/**
- * @deprecated
- * This selector accesses deprecated AssetsController state directly.
- * It is only used in the useTokenHistoricalPrices hook.
- */
-export function selectMultichainHistoricalPrices(state: RootState) {
-  return state.engine.backgroundState.MultichainAssetsRatesController
-    .historicalPrices;
-}
 
 export const selectMultichainTokenListForAccountId = createDeepEqualSelector(
   getMultiChainBalancesControllerBalances,
@@ -322,12 +314,27 @@ export const selectMultichainTokenListForAccountsAnyChain =
   );
 
 /**
+ * EVM tokens resolved from the EVM-scoped account within the selected account
+ * group, regardless of the currently active network. This prevents non-EVM
+ * active networks (e.g. TRON) from causing `selectSelectedInternalAccount` to
+ * resolve to a non-EVM address that has no EVM balance data.
+ */
+const selectAccountTokensAcrossChainsForEvmScope = createSelector(
+  (state: RootState) => state,
+  selectSelectedInternalAccountByScope,
+  (state, accountByScope) => {
+    const evmAddress = accountByScope(EVM_SCOPE)?.address;
+    return selectAccountTokensAcrossChainsForAddress(state, evmAddress);
+  },
+);
+
+/**
  * Unified selector: EVM tokens (native + ERC20) for the selected EVM address
  * plus non-EVM tokens (e.g., TRX) across all accounts in the selected account group.
  * Returns a map keyed by chainId (hex for EVM, CAIP-2 for non-EVM) to TokenI[].
  */
 export const selectAccountTokensAcrossChainsUnified = createDeepEqualSelector(
-  selectAccountTokensAcrossChains,
+  selectAccountTokensAcrossChainsForEvmScope,
   selectSelectedAccountGroupInternalAccounts,
   (state: RootState) => state,
   (evmTokensByChain, selectedGroupAccounts, state) => {

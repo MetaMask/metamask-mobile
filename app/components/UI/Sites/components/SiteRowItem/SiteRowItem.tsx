@@ -129,7 +129,6 @@ const SiteRowItem = ({ site, onPress, onRemoveFavorite }: SiteRowItemProps) => {
             />
           </TouchableOpacity>
         )}
-        <Icon name={IconName.Arrow2UpRight} size={IconSize.Md} />
       </Box>
     </TouchableOpacity>
   );

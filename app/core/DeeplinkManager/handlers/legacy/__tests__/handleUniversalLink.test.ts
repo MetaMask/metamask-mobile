@@ -15,9 +15,14 @@ import handleDeepLinkModalDisplay from '../handleDeepLinkModalDisplay';
 import handleBrowserUrl from '../handleBrowserUrl';
 import { DeepLinkModalLinkType } from '../../../../../components/UI/DeepLinkModal';
 import handleMetaMaskDeeplink from '../handleMetaMaskDeeplink';
+import Logger from '../../../../../util/Logger';
+import type { DeepLinkAnalyticsContext } from '../../../types/deepLinkAnalytics.types';
+import handleRampReturnUrl from '../handleRampReturnUrl';
 import { SHIELD_WEBSITE_URL } from '../../../../../constants/shield';
 import { handleSocialLeaderboardUrl } from '../handleSocialLeaderboardUrl';
 import { handleSocialTraderPositionUrl } from '../handleSocialTraderPositionUrl';
+import { handleWhatsHappeningUrl } from '../handleWhatsHappeningUrl';
+import { handleSwapUrl } from '../handleSwapUrl';
 // eslint-disable-next-line import-x/no-namespace
 import * as signatureUtils from '../../../utils/verifySignature';
 
@@ -33,6 +38,7 @@ jest.mock('../../../../NativeModules', () => ({
 }));
 jest.mock('../handleDeepLinkModalDisplay');
 jest.mock('../handleRampUrl');
+jest.mock('../handleRampReturnUrl');
 jest.mock('../handleHomeUrl');
 jest.mock('../handleSwapUrl');
 jest.mock('../handleBrowserUrl');
@@ -42,6 +48,7 @@ jest.mock('../handleRewardsUrl');
 jest.mock('../handlePredictUrl');
 jest.mock('../handleFastOnboarding');
 jest.mock('../handleTrendingUrl');
+jest.mock('../handleWhatsHappeningUrl');
 jest.mock('../handleSocialLeaderboardUrl');
 jest.mock('../handleSocialTraderPositionUrl');
 jest.mock('../../../../redux', () => ({
@@ -134,6 +141,11 @@ describe('handleUniversalLink', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    // `handleMetaMaskDeeplink` is async and its returned promise is
+    // `.catch`ed by the call site. The auto-mock returns `undefined`, so
+    // restore the async contract for all tests by default.
+    mockHandleMetaMaskDeeplink.mockResolvedValue(undefined);
+
     mockSDKConnectGetInstance.mockImplementation(() => ({
       getConnections: jest.fn(),
       connectToChannel: jest.fn(),
@@ -182,6 +194,46 @@ describe('handleUniversalLink', () => {
         });
       },
     );
+
+    // `handleMetaMaskDeeplink` is async and deliberately not awaited here.
+    // Make sure rejections are observed (logged) rather than surfacing as
+    // unhandled promise rejections. This covers the synchronous security
+    // throw for `INTERNAL_ORIGINS` and any async handler rejection.
+    it('swallows and logs rejections from handleMetaMaskDeeplink', async () => {
+      const loggerErrorSpy = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(() => undefined);
+      const rejectionError = new Error(
+        'External transactions cannot use internal origins',
+      );
+      mockHandleMetaMaskDeeplink.mockRejectedValueOnce(rejectionError);
+
+      const testUrl = `https://link.metamask.io/${ACTIONS.CONNECT}`;
+      const { urlObj: testUrlObj } = extractURLParams(
+        `metamask://${ACTIONS.CONNECT}`,
+      );
+
+      await expect(
+        handleUniversalLink({
+          instance,
+          handled,
+          urlObj: testUrlObj,
+          browserCallBack: mockBrowserCallBack,
+          url: testUrl,
+          source: 'origin',
+        }),
+      ).resolves.not.toThrow();
+
+      // Flush the promise attached via `.catch` at the call site.
+      await Promise.resolve();
+
+      expect(loggerErrorSpy).toHaveBeenCalledWith(
+        rejectionError,
+        'DeepLinkManager: handleMetaMaskDeeplink failed',
+      );
+
+      loggerErrorSpy.mockRestore();
+    });
   });
 
   describe('ACTIONS.BUY_CRYPTO', () => {
@@ -203,6 +255,32 @@ describe('handleUniversalLink', () => {
         source: 'test-source',
       });
 
+      expect(handled).toHaveBeenCalled();
+    });
+  });
+
+  describe('ACTIONS.ON_RAMP', () => {
+    it('calls handleRampReturnUrl with the path after the action', async () => {
+      const onRampPath = '/return?orderId=order-99';
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.ON_RAMP}${onRampPath}`;
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.ON_RAMP}${onRampPath}`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      expect(handleRampReturnUrl).toHaveBeenCalledWith({
+        rampReturnPath: onRampPath,
+      });
       expect(handled).toHaveBeenCalled();
     });
   });
@@ -286,14 +364,16 @@ describe('handleUniversalLink', () => {
     });
 
     describe('ACTIONS.SWAP', () => {
-      it('calls _handleSwap with correct path of "swap" when action is SWAP', async () => {
-        const swapUrl = `${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.SWAP}/some-swap-path`;
+      it('calls handleSwapUrl with the full swapPath when action is SWAP', async () => {
+        const swapQueryParams =
+          '?from=eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48&to=eip155:137/erc20:0x2791bca1f2de4661ed88a30c99a7a9449aa84174&amount=1000000';
+        const swapUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.SWAP}${swapQueryParams}`;
         const swapUrlObj = {
           ...urlObj,
           href: swapUrl,
-          pathname: `/${ACTIONS.SWAP}/some-swap-path`,
+          pathname: `/${ACTIONS.SWAP}`,
         };
-        url = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.SWAP}/some-swap-path`;
+        url = swapUrl;
 
         await handleUniversalLink({
           instance,
@@ -304,6 +384,9 @@ describe('handleUniversalLink', () => {
           source: 'test-source',
         });
 
+        expect(handleSwapUrl).toHaveBeenCalledWith({
+          swapPath: swapQueryParams,
+        });
         expect(handled).toHaveBeenCalled();
       });
     });
@@ -833,6 +916,31 @@ describe('handleUniversalLink', () => {
     });
   });
 
+  describe('ACTIONS.WHATS_HAPPENING', () => {
+    it('calls _handleWhatsHappening without showing interstitial', async () => {
+      const whatsHappeningUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.WHATS_HAPPENING}`;
+      const whatsHappeningUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: whatsHappeningUrl,
+        pathname: `/${ACTIONS.WHATS_HAPPENING}`,
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: whatsHappeningUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: whatsHappeningUrl,
+        source: 'test-source',
+      });
+
+      expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+      expect(handleWhatsHappeningUrl).toHaveBeenCalledWith();
+      expect(handled).toHaveBeenCalled();
+    });
+  });
+
   describe('ACTIONS.SOCIAL_TRADER_POSITION', () => {
     it('calls _handleSocialTraderPosition when action is SOCIAL_TRADER_POSITION', async () => {
       const positionUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SOCIAL_TRADER_POSITION}?positionId=position-1&traderId=trader-1&deduplication_id=dedup-1&notification_event=follow_newtrade_buy`;
@@ -863,14 +971,14 @@ describe('handleUniversalLink', () => {
     });
   });
 
-  describe('ACTIONS.SOCIAL_LEADERBOARD', () => {
-    it('navigates to social leaderboard without showing interstitial', async () => {
-      const leaderboardUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SOCIAL_LEADERBOARD}?ignored=true`;
+  describe('ACTIONS.TOP_TRADERS', () => {
+    it('navigates to top traders without showing interstitial', async () => {
+      const leaderboardUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.TOP_TRADERS}?ignored=true`;
       const leaderboardUrlObj = {
         ...urlObj,
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         href: leaderboardUrl,
-        pathname: `/${ACTIONS.SOCIAL_LEADERBOARD}`,
+        pathname: `/${ACTIONS.TOP_TRADERS}`,
         search: '?ignored=true',
       };
 
@@ -2054,7 +2162,7 @@ describe('handleUniversalLink', () => {
 
     let mockAnalytics: MockMetricsInstance;
     let mockCreateEventBuilder: jest.MockedFunction<
-      () => Promise<MockEventBuilder>
+      (context: DeepLinkAnalyticsContext) => Promise<MockEventBuilder>
     >;
     const { analytics } = jest.requireMock(
       '../../../../../util/analytics/analytics',
@@ -2083,13 +2191,13 @@ describe('handleUniversalLink', () => {
       };
       analytics.trackEvent = mockAnalytics.trackEvent;
 
-      mockCreateEventBuilder = jest.fn(() =>
+      mockCreateEventBuilder = jest.fn((_context: DeepLinkAnalyticsContext) =>
         Promise.resolve({
           addProperties: jest.fn().mockReturnThis(),
           addSensitiveProperties: jest.fn().mockReturnThis(),
           build: jest.fn().mockReturnValue({ eventName: 'DEEP_LINK_USED' }),
         }),
-      );
+      ) as typeof mockCreateEventBuilder;
       createDeepLinkUsedEventBuilder.mockImplementation(mockCreateEventBuilder);
     });
 
@@ -2442,12 +2550,22 @@ describe('handleUniversalLink', () => {
         getLatestReferringParams: jest.Mock;
       };
 
+      // Pull the promise passed to createDeepLinkUsedEventBuilder and await
+      // it so we can assert on the *resolved* value. The handler no longer
+      // awaits the Branch fetch itself; it passes the Promise through to
+      // analytics instead.
+      const getResolvedBranchParams = async (): Promise<unknown> => {
+        const lastCallContext = mockCreateEventBuilder.mock.calls.at(-1)?.[0];
+        expect(lastCallContext?.branchParamsPromise).toBeInstanceOf(Promise);
+        return await lastCallContext?.branchParamsPromise;
+      };
+
       beforeEach(() => {
         jest.clearAllMocks();
         branch.getLatestReferringParams.mockClear();
       });
 
-      it('includes branchParams in analytics context for whitelisted actions', async () => {
+      it('forwards resolved Branch params to analytics for whitelisted actions', async () => {
         const mockBranchParams = {
           '+clicked_branch_link': true,
           '+is_first_session': false,
@@ -2470,14 +2588,12 @@ describe('handleUniversalLink', () => {
           source: 'test-source',
         });
 
-        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-          expect.objectContaining({
-            branchParams: mockBranchParams,
-          }),
+        await expect(getResolvedBranchParams()).resolves.toEqual(
+          mockBranchParams,
         );
       });
 
-      it('includes branchParams in analytics context for modal display path', async () => {
+      it('forwards resolved Branch params to analytics for modal display path', async () => {
         const mockBranchParams = {
           '+clicked_branch_link': true,
           '+is_first_session': true,
@@ -2508,14 +2624,12 @@ describe('handleUniversalLink', () => {
           source: 'test-source',
         });
 
-        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-          expect.objectContaining({
-            branchParams: mockBranchParams,
-          }),
+        await expect(getResolvedBranchParams()).resolves.toEqual(
+          mockBranchParams,
         );
       });
 
-      it('includes undefined branchParams in analytics context when Branch.io returns null', async () => {
+      it('resolves Branch promise to undefined when Branch.io returns null', async () => {
         branch.getLatestReferringParams.mockResolvedValue(null);
 
         url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.WC}?uri=wc:test`;
@@ -2534,14 +2648,10 @@ describe('handleUniversalLink', () => {
           source: 'test-source',
         });
 
-        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-          expect.objectContaining({
-            branchParams: undefined,
-          }),
-        );
+        await expect(getResolvedBranchParams()).resolves.toBeUndefined();
       });
 
-      it('includes undefined branchParams in analytics context when Branch.io returns empty object', async () => {
+      it('resolves Branch promise to undefined when Branch.io returns empty object', async () => {
         branch.getLatestReferringParams.mockResolvedValue({});
 
         url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.WC}?uri=wc:test`;
@@ -2560,14 +2670,10 @@ describe('handleUniversalLink', () => {
           source: 'test-source',
         });
 
-        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-          expect.objectContaining({
-            branchParams: undefined,
-          }),
-        );
+        await expect(getResolvedBranchParams()).resolves.toBeUndefined();
       });
 
-      it('includes undefined branchParams in analytics context when Branch.io fetch fails', async () => {
+      it('resolves Branch promise to undefined when Branch.io fetch fails', async () => {
         branch.getLatestReferringParams.mockRejectedValue(
           new Error('Branch.io error'),
         );
@@ -2588,18 +2694,56 @@ describe('handleUniversalLink', () => {
           source: 'test-source',
         });
 
-        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-          expect.objectContaining({
-            branchParams: undefined,
-          }),
-        );
+        await expect(getResolvedBranchParams()).resolves.toBeUndefined();
       });
 
-      it('includes undefined branchParams in analytics context when Branch.io fetch times out', async () => {
+      it('resolves Branch promise to undefined when Branch.io fetch exceeds 500 ms', async () => {
+        jest.useFakeTimers();
+        try {
+          branch.getLatestReferringParams.mockImplementation(
+            () =>
+              new Promise((resolve) => {
+                setTimeout(() => resolve({}), 1000);
+              }),
+          );
+
+          url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.WC}?uri=wc:test`;
+          urlObj = {
+            hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+            pathname: `/${ACTIONS.WC}`,
+            href: url,
+          } as ReturnType<typeof extractURLParams>['urlObj'];
+
+          const handlerDone = handleUniversalLink({
+            instance,
+            handled,
+            urlObj,
+            browserCallBack: mockBrowserCallBack,
+            url,
+            source: 'test-source',
+          });
+
+          // Advance past the 500 ms timeout but not the 1000 ms Branch resolve.
+          await jest.advanceTimersByTimeAsync(600);
+          await handlerDone;
+
+          await expect(getResolvedBranchParams()).resolves.toBeUndefined();
+        } finally {
+          jest.useRealTimers();
+        }
+      });
+
+      it('does not block the handler path when Branch.io is slow (>500 ms)', async () => {
+        // Slow Branch fetch (2 s) should NOT delay the analytics event
+        // emission. Before the fire-and-forget refactor, this call would
+        // await Branch inside `handleUniversalLink` and block modal/handler
+        // for up to 500 ms. After the refactor, the event builder is called
+        // synchronously within the same tick; only `trackDeepLinkAnalytics`
+        // awaits the promise internally.
         branch.getLatestReferringParams.mockImplementation(
           () =>
             new Promise((resolve) => {
-              setTimeout(() => resolve({}), 1000);
+              setTimeout(() => resolve({ '+clicked_branch_link': true }), 2000);
             }),
         );
 
@@ -2610,6 +2754,7 @@ describe('handleUniversalLink', () => {
           href: url,
         } as ReturnType<typeof extractURLParams>['urlObj'];
 
+        const start = Date.now();
         await handleUniversalLink({
           instance,
           handled,
@@ -2618,13 +2763,15 @@ describe('handleUniversalLink', () => {
           url,
           source: 'test-source',
         });
+        const elapsed = Date.now() - start;
 
-        // Should still proceed with undefined branchParams
-        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-          expect.objectContaining({
-            branchParams: undefined,
-          }),
-        );
+        // Analytics was triggered synchronously relative to the handler flow.
+        // Even though Branch itself will take 2 s to resolve, the event
+        // builder was called without waiting.
+        expect(mockCreateEventBuilder).toHaveBeenCalled();
+        // Generous bound to avoid CI flakiness, tight enough to fail if we
+        // regressed to awaiting Branch (which would push this >=500 ms).
+        expect(elapsed).toBeLessThan(200);
       });
     });
   });

@@ -1,7 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import { StyleSheet } from 'react-native';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import {
   BottomSheet,
   type BottomSheetRef,
@@ -12,6 +11,7 @@ import {
   ButtonVariant,
   ButtonBaseSize,
   Box,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import {
@@ -97,7 +97,7 @@ function ProcessingInfoModal() {
 
   return (
     <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
-      <HeaderCompactStandard
+      <HeaderStandard
         onClose={handleClose}
         closeButtonProps={{
           testID: PROCESSING_INFO_MODAL_TEST_IDS.CLOSE_BUTTON,

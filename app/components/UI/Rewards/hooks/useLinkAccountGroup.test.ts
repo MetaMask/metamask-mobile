@@ -103,6 +103,25 @@ describe('useLinkAccountGroup', () => {
       iconName: 'error',
       hapticsType: 'error',
     }),
+    enableNotificationsNudge: jest.fn().mockReturnValue({
+      variant: 'plain',
+      hapticsType: 'warning',
+    }),
+    loading: jest.fn().mockReturnValue({
+      variant: 'loading',
+    }),
+    outcomeWinner: jest.fn().mockReturnValue({
+      variant: 'plain',
+      hapticsType: 'success',
+    }),
+    outcomeNonWinner: jest.fn().mockReturnValue({
+      variant: 'icon',
+      hapticsType: 'warning',
+    }),
+    warning: jest.fn().mockReturnValue({
+      variant: 'icon',
+      hapticsType: 'warning',
+    }),
   };
 
   // Mock account data

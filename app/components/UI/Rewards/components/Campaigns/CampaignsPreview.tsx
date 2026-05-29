@@ -57,7 +57,7 @@ const CampaignsPreview: React.FC = () => {
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-2"
+          twClassName="gap-1"
         >
           {(isLoading || !hasLoaded) && !hasFeaturedCampaigns && (
             <ActivityIndicator size="small" color={colors.primary.default} />

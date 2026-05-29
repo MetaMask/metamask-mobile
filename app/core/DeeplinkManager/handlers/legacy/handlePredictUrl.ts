@@ -1,10 +1,19 @@
 import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
+import ReduxService from '../../../redux';
 import {
   isPredictTabKey,
   type PredictTabKey,
 } from '../../../../components/UI/Predict/constants/feedTabs';
+import {
+  PREDICT_WORLD_CUP_FEED_PARAM,
+  resolvePredictWorldCupInitialTab,
+  type PredictWorldCupTabKey,
+} from '../../../../components/UI/Predict/constants/worldCupTabs';
+import { DEFAULT_PREDICT_WORLD_CUP_FLAG } from '../../../../components/UI/Predict/constants/flags';
+import { selectPredictWorldCupConfig } from '../../../../components/UI/Predict/selectors/featureFlags';
+import type { PredictWorldCupConfig } from '../../../../components/UI/Predict/types/flags';
 
 interface HandlePredictUrlParams {
   predictPath: string;
@@ -18,6 +27,8 @@ interface PredictNavigationParams {
   market?: string; // Market ID
   utmSource?: string; // UTM source for analytics tracking
   tab?: PredictTabKey; // Feed tab (when no market param)
+  worldCupTab?: PredictWorldCupTabKey; // World Cup feed initial tab
+  feed?: string; // Dedicated feed key
   query?: string; // Search query (when no market param)
 }
 
@@ -37,14 +48,84 @@ const parsePredictNavigationParams = (
   const utmSource = urlParams.get('utm_source');
   const tabParam = urlParams.get('tab')?.toLowerCase();
   const tab = isPredictTabKey(tabParam) ? tabParam : undefined;
+  const feed = urlParams.get('feed')?.toLowerCase();
   const query = urlParams.get('query') || urlParams.get('q') || undefined;
 
   return {
     market: marketId || undefined,
     utmSource: utmSource || undefined,
     tab,
+    worldCupTab: tabParam,
+    feed: feed || undefined,
     query,
   };
+};
+
+const getPredictWorldCupConfig = (): PredictWorldCupConfig => {
+  try {
+    return selectPredictWorldCupConfig(ReduxService.store.getState());
+  } catch (error) {
+    DevLogger.log(
+      '[handlePredictUrl] Unable to read World Cup config, using default:',
+      error,
+    );
+    return DEFAULT_PREDICT_WORLD_CUP_FLAG;
+  }
+};
+
+const getMarketListParams = ({
+  entryPoint,
+  tab,
+  query,
+}: {
+  entryPoint: string;
+  tab?: PredictTabKey;
+  query?: string;
+}) => ({
+  entryPoint,
+  ...(tab && { tab }),
+  ...(query && { query }),
+});
+
+const handleMarketListNavigation = ({
+  entryPoint,
+  tab,
+  query,
+}: {
+  entryPoint: string;
+  tab?: PredictTabKey;
+  query?: string;
+}) => {
+  NavigationService.navigation.navigate(Routes.PREDICT.ROOT, {
+    screen: Routes.PREDICT.MARKET_LIST,
+    params: getMarketListParams({ entryPoint, tab, query }),
+  });
+};
+
+const handleWorldCupNavigation = ({
+  requestedTab,
+  entryPoint,
+}: {
+  requestedTab?: PredictWorldCupTabKey;
+  entryPoint: string;
+}) => {
+  const config = getPredictWorldCupConfig();
+
+  if (config.enabled && config.showWorldCupScreen) {
+    NavigationService.navigation.navigate(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.WORLD_CUP,
+      params: {
+        entryPoint,
+        initialTab: resolvePredictWorldCupInitialTab(requestedTab, config),
+      },
+    });
+    return;
+  }
+
+  DevLogger.log(
+    '[handlePredictUrl] World Cup screen disabled, fallback to market list',
+  );
+  handleMarketListNavigation({ entryPoint });
 };
 
 /**
@@ -62,10 +143,7 @@ const handleMarketNavigation = (marketId: string, entryPoint: string) => {
     DevLogger.log(
       '[handlePredictUrl] No market ID provided, fallback to market list',
     );
-    NavigationService.navigation.navigate(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_LIST,
-      params: { entryPoint },
-    });
+    handleMarketListNavigation({ entryPoint });
     return;
   }
 
@@ -95,6 +173,8 @@ const handleMarketNavigation = (marketId: string, entryPoint: string) => {
  * - https://link.metamask.io/predict?tab=crypto
  * - https://link.metamask.io/predict?q=bitcoin
  * - https://link.metamask.io/predict?query=bitcoin
+ * - https://link.metamask.io/predict?feed=world-cup
+ * - https://link.metamask.io/predict?feed=world-cup&tab=live
  *
  * Origin/EntryPoint handling:
  * - Base entryPoint is origin if provided, otherwise 'deeplink'
@@ -104,6 +184,7 @@ const handleMarketNavigation = (marketId: string, entryPoint: string) => {
  * Navigation behavior:
  * - No market param: Navigate to market list
  * - market=X or marketId=X: Navigate directly to market details for market X
+ * - feed=world-cup: Navigate to the dedicated World Cup feed when enabled
  * - Optional tab param when no market: Open feed on a specific tab
  * - query=X or q=X: Open feed with search overlay showing results for X
  */
@@ -141,26 +222,23 @@ export const handlePredictUrl = async ({
 
     if (navParams.market) {
       handleMarketNavigation(navParams.market, entryPoint);
+    } else if (navParams.feed === PREDICT_WORLD_CUP_FEED_PARAM) {
+      handleWorldCupNavigation({
+        requestedTab: navParams.worldCupTab,
+        entryPoint,
+      });
     } else {
       DevLogger.log('[handlePredictUrl] No market parameter, showing list');
-      NavigationService.navigation.navigate(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_LIST,
-        params: {
-          entryPoint,
-          tab: navParams.tab,
-          query: navParams.query,
-        },
+      handleMarketListNavigation({
+        entryPoint,
+        tab: navParams.tab,
+        query: navParams.query,
       });
     }
   } catch (error) {
     DevLogger.log('Failed to handle predict deeplink:', error);
     // Fallback to market list on error
     // Default to 'deeplink' entry point for error fallback
-    NavigationService.navigation.navigate(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_LIST,
-      params: {
-        entryPoint: 'deeplink',
-      },
-    });
+    handleMarketListNavigation({ entryPoint: 'deeplink' });
   }
 };

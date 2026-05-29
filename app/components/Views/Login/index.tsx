@@ -44,7 +44,9 @@ import { Dispatch } from 'redux';
 import { DeviceAuthenticationButton } from '../../UI/DeviceAuthenticationButton';
 import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createRestoreWalletNavDetailsNested } from '../RestoreWallet/RestoreWallet';
 import { parseVaultValue } from '../../../util/validators';
 import { getVaultFromBackup } from '../../../core/BackupVault';
@@ -134,12 +136,15 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       op: TraceOperation.Login,
     });
     trackOnboarding(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, saveOnboardingEvent);
-    BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+    const backHandlerSubscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      handleBackPress,
+    );
 
     setStartFoxAnimation('Start');
 
     return () => {
-      BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
+      backHandlerSubscription.remove();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

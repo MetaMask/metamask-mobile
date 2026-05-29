@@ -55,6 +55,10 @@ export const ConfirmationFooterSelectorIDs = {
   CONFIRM_BUTTON: 'confirm-button',
 } as const;
 
+export const ConfirmationLoaderSelectorIDs = {
+  TRANSFER: 'confirm-loader-transfer',
+} as const;
+
 export const ConfirmAlertModalSelectorsIDs = {
   CONFIRM_ALERT_CHECKBOX: 'confirm-alert-checkbox',
   CONFIRM_ALERT_BUTTON: 'confirm-alert-confirm-button',

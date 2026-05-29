@@ -127,10 +127,29 @@
         },
         "CardController": {
           "activeProviderId": "baanx",
+          "cardHomeData": {
+            "account": null,
+            "actions": [
+              {
+                "enabled": true,
+                "type": "add_funds"
+              }
+            ],
+            "alerts": [],
+            "availableFundingAssets": [],
+            "card": null,
+            "delegationSettings": null,
+            "fundingAssets": [],
+            "primaryFundingAsset": null
+          },
+          "cardHomeDataStatus": "success",
           "cardholderAccounts": [],
           "isAuthenticated": false,
           "providerData": {},
           "selectedCountry": null
+        },
+        "ClientController": {
+          "isUiOpen": false
         },
         "ComplianceController": {
           "lastCheckedAt": null,
@@ -176,6 +195,7 @@
         "MoneyAccountController": {
           "moneyAccounts": {}
         },
+        "MoneyAccountUpgradeController": {},
         "MultichainAssetsController": {
           "accountsAssets": {},
           "assetsMetadata": {}
@@ -352,12 +372,12 @@
         },
         "PerpsController": {
           "accountState": {
-            "spendableBalance": "8000.00",
-            "withdrawableBalance": "8000.00",
             "marginUsed": "2000.00",
             "returnOnEquity": "0",
+            "spendableBalance": "8000.00",
             "totalBalance": "10000.00",
-            "unrealizedPnl": "150.00"
+            "unrealizedPnl": "150.00",
+            "withdrawableBalance": "8000.00"
           },
           "activeProvider": "hyperliquid",
           "cachedMarketDataByProvider": {},
@@ -556,43 +576,13 @@
           }
         },
         "SnapController": {},
+        "SocialController": {
+          "followingAddresses": [],
+          "followingProfileIds": [],
+          "leaderboardEntries": []
+        },
         "TokenBalancesController": {
           "tokenBalances": {}
-        },
-        "TokenListController": {
-          "tokensChainsCache": {
-            "0x1": {
-              "data": [
-                {
-                  "0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f": {
-                    "address": "0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f",
-                    "aggregators": [
-                      "Aave",
-                      "Bancor",
-                      "CMC",
-                      "Crypto.com",
-                      "CoinGecko",
-                      "1inch",
-                      "PMM",
-                      "Synthetix",
-                      "Zerion",
-                      "Lifi"
-                    ],
-                    "decimals": 18,
-                    "fees": {
-                      "0x5fd79d46eba7f351fe49bff9e87cdea6c821ef9f": 0,
-                      "0xda4ef8520b1a57d7d63f1e249606d1a459698876": 0
-                    },
-                    "iconUrl": "https://static.cx.metamask.io/api/v1/tokenIcons/1/0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f.png",
-                    "name": "Synthetix Network Token",
-                    "occurrences": 10,
-                    "symbol": "SNX",
-                    "type": "erc20"
-                  }
-                }
-              ]
-            }
-          }
         },
         "TokenRatesController": {
           "marketData": {}
@@ -620,6 +610,7 @@
       "getStartedAgg": false,
       "getStartedDeposit": false,
       "getStartedSell": false,
+      "hasAgreedTransakNativePolicy": false,
       "networks": [
         {
           "active": true,
@@ -707,6 +698,7 @@
       "accountType": "metamask",
       "completedOnboarding": true,
       "events": [],
+      "iosGoogleWarningSheetLastDismissedAt": null,
       "onboardingVersion": "7.74.0 (4138)",
       "pendingSocialLoginMarketingConsentBackfill": null
     },
@@ -738,9 +730,11 @@
       "activeBoostsError": false,
       "activeBoostsLoading": false,
       "activeTab": "overview",
-      "balanceRefereePortion": 0,
       "balanceTotal": 0,
       "balanceUpdatedAt": null,
+      "benefits": [],
+      "benefitsError": false,
+      "benefitsLoading": false,
       "bulkLink": {
         "failedAccounts": 0,
         "initialSubscriptionId": null,
@@ -765,6 +759,9 @@
       "onboardingActiveStep": "INTRO",
       "onboardingReferralCode": null,
       "ondoCampaignActivity": {},
+      "ondoCampaignDeposits": null,
+      "ondoCampaignDepositsError": false,
+      "ondoCampaignDepositsLoading": false,
       "ondoCampaignLeaderboard": null,
       "ondoCampaignLeaderboardError": false,
       "ondoCampaignLeaderboardLoading": false,
@@ -774,6 +771,14 @@
       "optinAllowedForGeo": null,
       "optinAllowedForGeoError": false,
       "optinAllowedForGeoLoading": false,
+      "pendingDeeplink": null,
+      "perpsTradingCampaignLeaderboard": null,
+      "perpsTradingCampaignLeaderboardError": false,
+      "perpsTradingCampaignLeaderboardLoading": false,
+      "perpsTradingCampaignLeaderboardPositions": {},
+      "perpsTradingCampaignVolume": null,
+      "perpsTradingCampaignVolumeError": false,
+      "perpsTradingCampaignVolumeLoading": false,
       "pointsEvents": null,
       "refereeCount": 0,
       "referralCode": null,
@@ -822,6 +827,7 @@
       "basicFunctionalityEnabled": true,
       "deepLinkModalDisabled": false,
       "deviceNotificationEnabled": false,
+      "hapticsEnabled": true,
       "hideZeroBalanceTokens": false,
       "lockTime": 30000,
       "perpsChartPreferences": {

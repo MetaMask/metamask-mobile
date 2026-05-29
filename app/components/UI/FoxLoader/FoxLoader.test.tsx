@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, act, screen } from '@testing-library/react-native';
+import { render, act, screen, waitFor } from '@testing-library/react-native';
 import FoxLoader, { _resetAnimationStateForTesting } from './FoxLoader';
 import { FoxLoaderSelectorsIDs } from './FoxLoader.testIds';
 import { hideAsync } from 'expo-splash-screen';
@@ -103,6 +103,28 @@ describe('FoxLoader', () => {
       screen.getByTestId(FoxLoaderSelectorsIDs.RIVE_WRAPPER),
     ).toBeOnTheScreen();
     expect(screen.getByTestId('mock-rive-animation')).toBeOnTheScreen();
+  });
+
+  it('returns null and completes immediately in E2E', async () => {
+    mockIsE2E = true;
+    const onAnimationComplete = jest.fn();
+
+    render(
+      <FoxLoader
+        appServicesReady={false}
+        onAnimationComplete={onAnimationComplete}
+      />,
+    );
+
+    expect(screen.queryByTestId(FoxLoaderSelectorsIDs.CONTAINER)).toBeNull();
+    expect(
+      screen.queryByTestId(FoxLoaderSelectorsIDs.ANIMATION_WRAPPER),
+    ).toBeNull();
+    expect(screen.queryByTestId(FoxLoaderSelectorsIDs.STATIC_FOX)).toBeNull();
+    expect(screen.queryByTestId(FoxLoaderSelectorsIDs.RIVE_WRAPPER)).toBeNull();
+    expect(screen.queryByTestId('mock-rive-animation')).toBeNull();
+    await waitFor(() => expect(onAnimationComplete).toHaveBeenCalledTimes(1));
+    expect(hideAsync).toHaveBeenCalledTimes(1);
   });
 
   it('calls onAnimationComplete when Rive reaches ExitState', () => {

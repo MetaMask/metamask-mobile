@@ -1,14 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  Button,
-  ButtonVariant,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import React, { useEffect, useMemo } from 'react';
+import { View } from 'react-native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
 
 import { strings } from '../../../../../../locales/i18n';
@@ -18,7 +10,6 @@ import {
   useParams,
 } from '../../../../../util/navigation/navUtils';
 import { useStyles } from '../../../../hooks/useStyles';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import Logger from '../../../../../util/Logger';
 
 // Imported from concrete files instead of `../../headless` to avoid a
@@ -28,9 +19,12 @@ import Logger from '../../../../../util/Logger';
 // at evaluation time inside this module.
 import {
   closeSession,
+  failSession,
   getSession,
   setStatus,
 } from '../../headless/sessionRegistry';
+import { setHeadlessEntryCardTouchThrough } from '../../headless/headlessEntryNavigation';
+import { useHeadlessSessionDismissal } from '../../headless/useHeadlessSessionDismissal';
 import { getChainIdFromAssetId } from '../../headless/useHeadlessBuy';
 import useContinueWithQuote, {
   type ContinueWithQuoteContext,
@@ -42,11 +36,7 @@ import { getQuoteProviderName } from '../../types';
 
 import styleSheet from './HeadlessHost.styles';
 
-export const HEADLESS_HOST_HEADER_TEST_ID = 'headless-host-header';
-export const HEADLESS_HOST_BACK_BUTTON_TEST_ID = 'headless-host-back-button';
-export const HEADLESS_HOST_LOADER_TEST_ID = 'headless-host-loader';
-export const HEADLESS_HOST_NO_SESSION_TEST_ID = 'headless-host-no-session';
-export const HEADLESS_HOST_CANCEL_BUTTON_TEST_ID = 'headless-host-cancel';
+export const HEADLESS_HOST_CONTAINER_TEST_ID = 'headless-host-container';
 
 export interface HeadlessHostParams {
   /** Session id created by `useHeadlessBuy().startHeadlessBuy(...)`. */
@@ -68,22 +58,33 @@ export interface HeadlessHostParams {
 export const createHeadlessHostNavDetails =
   createNavigationDetails<HeadlessHostParams>(Routes.RAMP.HEADLESS_HOST);
 
-/**
- * Headless Host screen.
- *
- * Acts as the (stable) stack base for the headless buy flow:
- * - On focus, picks up the live session by `headlessSessionId`.
- * - Derives a `ContinueWithQuoteContext` directly from `session.params.quote` (no controller selections needed).
- * - Calls `useContinueWithQuote().continueWithQuote(...)` exactly once, using the session status as a guard so re-focuses caused by the Transak auth loop don't re-trigger the flow.
- * - Surfaces `nativeFlowError` (set by OtpCode on routing failure) as `onError('AUTH_FAILED', ...)` and closes the session.
- * - When no session is found (e.g. consumer cancelled meanwhile), shows a passive "no session" message with a cancel/back affordance.
- */
 function HeadlessHost() {
   const navigation = useNavigation();
+  const isFocused = useIsFocused();
   const { styles } = useStyles(styleSheet, {});
   const { headlessSessionId, nativeFlowError } =
     useParams<HeadlessHostParams>();
   const session = getSession(headlessSessionId);
+
+  useEffect(() => {
+    setHeadlessEntryCardTouchThrough(navigation, isFocused);
+
+    return () => {
+      setHeadlessEntryCardTouchThrough(navigation, false);
+    };
+  }, [navigation, isFocused]);
+
+  useHeadlessSessionDismissal(headlessSessionId);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+      if (e.data.action.type === 'RESET') {
+        return;
+      }
+      closeSession(headlessSessionId, { reason: 'user_dismissed' });
+    });
+    return unsubscribe;
+  }, [navigation, headlessSessionId]);
 
   const { userRegion } = useRampsUserRegion();
   const { paymentMethods } = useRampsPaymentMethods();
@@ -108,18 +109,6 @@ function HeadlessHost() {
     : null;
   const walletAddress = useRampAccountAddress(chainId ?? ('' as CaipChainId));
 
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  // Reset UI state whenever a new session is wired up, so the second (and
-  // subsequent) headless buy starts with a clean slate.
-  useEffect(() => {
-    setErrorMessage(null);
-  }, [headlessSessionId]);
-
-  const handleBack = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
-
   // Auth-loop error path: OtpCode resets back to the Host with
   // `nativeFlowError` set when post-OTP routing fails. Forward to the
   // consumer once and close the session.
@@ -127,30 +116,18 @@ function HeadlessHost() {
   // Re-reads from the registry rather than using the render-time `session`
   // reference so that if the processing effect's .catch already closed the
   // session (both paths firing simultaneously), this becomes a no-op and the
-  // consumer's onError is not called a second time (Bug 1 / Bug 2 fix).
+  // consumer's onError is not called a second time.
   useEffect(() => {
     if (!nativeFlowError) {
       return;
     }
-    const liveSession = getSession(headlessSessionId);
-    if (!liveSession) {
-      return;
-    }
-    setErrorMessage(nativeFlowError);
-    try {
-      liveSession.callbacks.onError({
+    failSession(
+      headlessSessionId,
+      {
         code: 'AUTH_FAILED',
         message: nativeFlowError,
-      });
-    } catch (e) {
-      Logger.error(e as Error, 'HeadlessHost: onError callback threw');
-    }
-    closeSession(
-      headlessSessionId,
-      { reason: 'unknown' },
-      {
-        terminalStatus: 'failed',
       },
+      'AUTH_FAILED',
     );
   }, [nativeFlowError, headlessSessionId]);
 
@@ -168,24 +145,21 @@ function HeadlessHost() {
   // `walletAddress` begins as null while `useRampAccountAddress` resolves
   // async. The effect body validates chainId before deferring on wallet:
   // a null chainId also yields walletAddress === null (falsy chain id), so
-  // the invalid-assetId branch must run first or the host would spin forever.
-  // After chainId is valid, defer (leave status as 'pending') until
+  // the invalid-assetId branch must run first or the host would defer
+  // forever. After chainId is valid, defer (leave status as 'pending') until
   // walletAddress settles — a non-null value is a required input for
   // widget/order URLs.
-  // When it resolves the effect re-fires (walletAddress is a dep) and
-  // proceeds with the real address. The status guard prevents a second
-  // invocation once continued.
   //
   // `session` is intentionally excluded from deps and re-read inside via
   // `getSession(headlessSessionId)`. This removes the fragile object-reference
   // dep and lets the .catch handler confirm the session is still live before
   // firing onError (preventing duplicate callbacks when nativeFlowError and
-  // the promise rejection race — see previous fixes).
+  // the promise rejection race).
   //
   // `continueWithQuote` is async with no cancellation API; on unmount (or when
   // deps change after this run has started the promise) we must not call
-  // `setErrorMessage`, consumer callbacks, or `closeSession` from a late
-  // rejection — avoids setState-on-unmounted warnings and spurious `onClose`.
+  // consumer callbacks or `closeSession` from a late rejection — avoids
+  // spurious `onClose`/`onError` after the consumer already moved on.
   useEffect(() => {
     let cancelled = false;
     const currentSession = getSession(headlessSessionId);
@@ -198,29 +172,11 @@ function HeadlessHost() {
     // Invalid assetId must run before the wallet deferral: when chainId is
     // null we still call useRampAccountAddress with a falsy chain id, which
     // yields walletAddress === null. If we deferred on wallet first, we'd
-    // spin forever and never surface the UNKNOWN invalid-assetId error.
+    // never surface the UNKNOWN invalid-assetId error.
     if (!chainId) {
       const message = `HeadlessHost: invalid assetId "${currentSession.params.assetId}"`;
       Logger.error(new Error(message));
-      try {
-        currentSession.callbacks.onError({
-          code: 'UNKNOWN',
-          message,
-        });
-      } catch (e) {
-        Logger.error(e as Error, 'HeadlessHost: onError callback threw');
-      }
-      // closeSession alone does not trigger a re-render; without setState the
-      // render-time `session` ref stays truthy and the loader would spin
-      // forever. Surface the same message in UI as other error paths.
-      setErrorMessage(message);
-      closeSession(
-        headlessSessionId,
-        { reason: 'unknown' },
-        {
-          terminalStatus: 'failed',
-        },
-      );
+      failSession(headlessSessionId, { code: 'UNKNOWN', message });
       return;
     }
     // Defer until walletAddress resolves — avoids calling continueWithQuote
@@ -262,30 +218,19 @@ function HeadlessHost() {
       }
       const message =
         error?.message ?? strings('deposit.buildQuote.unexpectedError');
+      Logger.error(
+        error,
+        `HeadlessHost: continueWithQuote rejected: ${message}`,
+      );
       // Re-read from the registry: the nativeFlowError effect may have already
       // closed this session if auth failure arrived via params simultaneously
       // with the promise rejection. If so, bail — the consumer already got
-      // onError from the nativeFlowError path (Bug 1 fix).
+      // onError from the nativeFlowError path.
       const liveSession = getSession(headlessSessionId);
       if (!liveSession) {
         return;
       }
-      setErrorMessage(message);
-      try {
-        liveSession.callbacks.onError({
-          code: 'UNKNOWN',
-          message,
-        });
-      } catch (e) {
-        Logger.error(e as Error, 'HeadlessHost: onError callback threw');
-      }
-      closeSession(
-        headlessSessionId,
-        { reason: 'unknown' },
-        {
-          terminalStatus: 'failed',
-        },
-      );
+      failSession(headlessSessionId, error);
     });
     return () => {
       cancelled = true;
@@ -301,54 +246,11 @@ function HeadlessHost() {
   ]);
 
   return (
-    <SafeAreaView edges={['top']} style={styles.container}>
-      <HeaderCompactStandard
-        testID={HEADLESS_HOST_HEADER_TEST_ID}
-        title={strings('app_settings.fiat_on_ramp.headless_host.title')}
-        onBack={handleBack}
-        backButtonProps={{ testID: HEADLESS_HOST_BACK_BUTTON_TEST_ID }}
-      />
-      <View style={styles.body}>
-        {errorMessage ? (
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.ErrorDefault}
-            style={styles.text}
-          >
-            {errorMessage}
-          </Text>
-        ) : session ? (
-          <>
-            <ActivityIndicator
-              size="large"
-              style={styles.spinner}
-              testID={HEADLESS_HOST_LOADER_TEST_ID}
-            />
-            <Text variant={TextVariant.BodyMd} style={styles.text}>
-              {strings('app_settings.fiat_on_ramp.headless_host.loading')}
-            </Text>
-          </>
-        ) : (
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            style={styles.text}
-            testID={HEADLESS_HOST_NO_SESSION_TEST_ID}
-          >
-            {strings('app_settings.fiat_on_ramp.headless_host.no_session')}
-          </Text>
-        )}
-        <View style={styles.cancelRow}>
-          <Button
-            variant={ButtonVariant.Tertiary}
-            onPress={handleBack}
-            testID={HEADLESS_HOST_CANCEL_BUTTON_TEST_ID}
-          >
-            {strings('app_settings.fiat_on_ramp.headless_host.cancel')}
-          </Button>
-        </View>
-      </View>
-    </SafeAreaView>
+    <View
+      testID={HEADLESS_HOST_CONTAINER_TEST_ID}
+      pointerEvents="none"
+      style={styles.container}
+    />
   );
 }
 

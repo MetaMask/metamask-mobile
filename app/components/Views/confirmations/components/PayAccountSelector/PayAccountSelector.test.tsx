@@ -11,10 +11,14 @@ import { otherControllersMock } from '../../__mocks__/controllers/other-controll
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { useTransactionAccountOverride } from '../../hooks/transactions/useTransactionAccountOverride';
+import { replaceAccountInNestedTransactions } from '../../utils/transaction-pay';
 import PayAccountSelector from './PayAccountSelector';
 
 jest.mock('../../hooks/transactions/useTransactionMetadataRequest');
 jest.mock('../../hooks/transactions/useTransactionAccountOverride');
+jest.mock('../../utils/transaction-pay', () => ({
+  replaceAccountInNestedTransactions: jest.fn(),
+}));
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -55,6 +59,9 @@ const useTransactionMetadataRequestMock = jest.mocked(
 );
 const useTransactionAccountOverrideMock = jest.mocked(
   useTransactionAccountOverride,
+);
+const replaceAccountInNestedTransactionsMock = jest.mocked(
+  replaceAccountInNestedTransactions,
 );
 
 const setTransactionConfigMock = jest.mocked(
@@ -202,5 +209,55 @@ describe('PayAccountSelector', () => {
     });
 
     expect(setTransactionConfigMock).not.toHaveBeenCalled();
+    expect(replaceAccountInNestedTransactionsMock).not.toHaveBeenCalled();
+  });
+
+  it('rewrites nested transactions using existing accountOverride as the old address', async () => {
+    const nestedTransactions = [{ data: '0xabcd' }];
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: 'mock-tx-id',
+      type: TransactionType.moneyAccountDeposit,
+      txParams: { from: '0xFromAddress' },
+      nestedTransactions,
+    } as never);
+    useTransactionAccountOverrideMock.mockReturnValue(
+      '0xOverrideAddress' as Hex,
+    );
+
+    const { getByTestId } = render();
+
+    await act(async () => {
+      fireEvent.press(getByTestId('account-selector'));
+    });
+
+    expect(replaceAccountInNestedTransactionsMock).toHaveBeenCalledWith({
+      transactionId: 'mock-tx-id',
+      nestedTransactions,
+      oldAddress: '0xOverrideAddress',
+      newAddress: '0xSelectedAddress',
+    });
+  });
+
+  it('rewrites nested transactions using txParams.from when no accountOverride is set', async () => {
+    const nestedTransactions = [{ data: '0xabcd' }];
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: 'mock-tx-id',
+      type: TransactionType.moneyAccountDeposit,
+      txParams: { from: '0xFromAddress' },
+      nestedTransactions,
+    } as never);
+
+    const { getByTestId } = render();
+
+    await act(async () => {
+      fireEvent.press(getByTestId('account-selector'));
+    });
+
+    expect(replaceAccountInNestedTransactionsMock).toHaveBeenCalledWith({
+      transactionId: 'mock-tx-id',
+      nestedTransactions,
+      oldAddress: '0xFromAddress',
+      newAddress: '0xSelectedAddress',
+    });
   });
 });

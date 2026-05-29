@@ -19,6 +19,8 @@ import StorageWrapper from '../../../store/storage-wrapper';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import { Authentication } from '../../../core';
+import ReduxService from '../../../core/redux';
+import type { ReduxStore } from '../../../core/redux/types';
 import { InteractionManager, Platform } from 'react-native';
 import { EVENT_NAME } from '../../../core/Analytics';
 import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEventBuilder';
@@ -52,6 +54,10 @@ jest.mock('@metamask/key-tree', () => ({
 
 import ChoosePassword from './index.tsx';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import {
+  AccountType,
+  ONBOARDING_SUCCESS_FLOW,
+} from '../../../constants/onboarding';
 import {
   TraceName,
   TraceOperation,
@@ -199,6 +205,7 @@ const initialState = {
   },
 };
 const store = mockStore(initialState);
+ReduxService.store = store as unknown as ReduxStore;
 
 const mockNavigation = {
   setOptions: jest.fn(),
@@ -468,6 +475,21 @@ describe('ChoosePassword', () => {
         ),
       ).toBeOnTheScreen();
     });
+
+    it('toggles password visibility when the show/hide icon is pressed', async () => {
+      const component = renderWithProviders(<ChoosePassword />);
+      await waitForInit();
+
+      const showPasswordButton = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_SHOW_ICON_ID,
+      );
+
+      await act(async () => {
+        fireEvent.press(showPasswordButton);
+      });
+
+      expect(showPasswordButton).toBeOnTheScreen();
+    });
   });
 
   describe('Form Validation', () => {
@@ -681,7 +703,9 @@ describe('ChoosePassword', () => {
           routes: [
             {
               name: 'OnboardingSuccess',
-              params: { showPasswordHint: true },
+              params: {
+                successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
+              },
             },
           ],
         });
@@ -1104,6 +1128,7 @@ describe('ChoosePassword', () => {
         ...mockRoute.params,
         [PREVIOUS_SCREEN]: ONBOARDING,
         oauthLoginSuccess: true,
+        provider: 'google',
       };
 
       const component = renderWithProviders(<ChoosePassword />);
@@ -1128,6 +1153,7 @@ describe('ChoosePassword', () => {
             params: expect.objectContaining({
               metricsEnabled: true,
               error: walletError,
+              accountType: AccountType.MetamaskGoogle,
             }),
           },
         ],

@@ -149,7 +149,6 @@ const basePosition: PerpsTradingCampaignLeaderboardPositionDto = {
   rank: 4,
   pnl: 1000,
   notionalVolume: 10_000,
-  marginDeployed: 2000,
   qualified: true,
   neighbors: [],
   computedAt: '2025-01-01T00:00:00.000Z',
@@ -259,6 +258,49 @@ describe('PerpsTradingCampaignLeaderboardView', () => {
       expect.objectContaining({
         position: basePosition,
         isLoading: false,
+      }),
+    );
+  });
+
+  it('does not render the stats header when opted in without a position', () => {
+    mockUseGetParticipant.mockReturnValue({
+      status: { optedIn: true, participantCount: 10 },
+      isLoading: false,
+      hasError: false,
+      refetch: jest.fn(),
+    });
+
+    const { queryByTestId } = render(<PerpsTradingCampaignLeaderboardView />);
+
+    expect(queryByTestId('perps-lb-stats-header-mock')).toBeNull();
+    expect(mockUseGetPosition).toHaveBeenCalledWith(CAMPAIGN_ID);
+  });
+
+  it('does not render the stats header or user leaderboard position when rank is invalid', () => {
+    mockUseGetParticipant.mockReturnValue({
+      status: { optedIn: true, participantCount: 10 },
+      isLoading: false,
+      hasError: false,
+      refetch: jest.fn(),
+    });
+    mockUseGetPosition.mockReturnValue({
+      position: {
+        ...basePosition,
+        rank: null,
+        neighbors: null,
+      } as unknown as PerpsTradingCampaignLeaderboardPositionDto,
+      isLoading: false,
+      hasError: false,
+      hasFetched: true,
+      refetch: jest.fn(),
+    });
+
+    const { queryByTestId } = render(<PerpsTradingCampaignLeaderboardView />);
+
+    expect(queryByTestId('perps-lb-stats-header-mock')).toBeNull();
+    expect(mockPerpsLeaderboard).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userPosition: null,
       }),
     );
   });

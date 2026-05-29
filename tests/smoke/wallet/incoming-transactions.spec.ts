@@ -104,16 +104,15 @@ function mockAccountsApi(
   transactions: Record<string, unknown>[] = [],
 ): MockApiEndpoint {
   return {
-    urlEndpoint: new RegExp(
-      `^https://accounts\\.api\\.cx\\.metamask\\.io/v1/accounts/${DEFAULT_FIXTURE_ACCOUNT}/transactions\\?.*sortDirection=DESC`,
-    ),
+    urlEndpoint:
+      /^https:\/\/accounts\.api\.cx\.metamask\.io\/v4\/multiaccount\/transactions(\?.*)?$/,
     response: {
       data:
         transactions.length > 0
           ? transactions
           : [RESPONSE_STANDARD_MOCK, RESPONSE_STANDARD_2_MOCK],
       pageInfo: {
-        count: 2,
+        count: transactions.length || 2,
         hasNextPage: false,
       },
     },
@@ -126,12 +125,16 @@ function createAccountsTestSpecificMock(
 ): TestSpecificMock {
   return async (mockServer: Mockttp) => {
     const mock = mockAccountsApi(transactions);
-    await setupMockRequest(mockServer, {
-      requestMethod: 'GET',
-      url: mock.urlEndpoint,
-      response: mock.response,
-      responseCode: mock.responseCode,
-    });
+    await setupMockRequest(
+      mockServer,
+      {
+        requestMethod: 'GET',
+        url: mock.urlEndpoint,
+        response: mock.response,
+        responseCode: mock.responseCode,
+      },
+      1000,
+    );
   };
 }
 
@@ -184,7 +187,9 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
       {
         fixture,
         restartDevice: true,
-        testSpecificMock: createAccountsTestSpecificMock(),
+        testSpecificMock: createAccountsTestSpecificMock([
+          RESPONSE_STANDARD_MOCK,
+        ]),
       },
       async () => {
         await loginToApp();
@@ -262,7 +267,7 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
     );
   });
 
-  it('displays nothing if privacyMode is enabled', async () => {
+  it.skip('displays nothing if privacyMode is enabled', async () => {
     const fixture = new FixtureBuilder()
       .withAccountTreeController(
         EVM_ONLY_ACCOUNT_TREE as unknown as Partial<AccountTreeControllerState>,

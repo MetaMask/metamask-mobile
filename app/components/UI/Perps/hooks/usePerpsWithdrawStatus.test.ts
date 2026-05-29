@@ -83,6 +83,16 @@ describe('usePerpsWithdrawStatus', () => {
             labelOptions: [{ label: 'Withdrawal failed', isBold: true }],
             hapticsType: NotificationMoment.Error,
           })),
+          withdrawalStartFailed: jest.fn(() => ({
+            variant: ToastVariants.Icon,
+            iconName: IconName.Warning,
+            hasNoTimeout: false,
+            labelOptions: [
+              { label: 'Something went wrong', isBold: true },
+              { label: 'Your withdrawal was not started' },
+            ],
+            hapticsType: NotificationMoment.Error,
+          })),
         },
       },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

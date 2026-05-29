@@ -329,8 +329,22 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_BRIDGE_BUTTON);
   }
 
-  get walletSendButton(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SEND_BUTTON);
+  get walletSendButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SEND_BUTTON),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            WalletViewSelectorsIDs.WALLET_SEND_BUTTON,
+            { exact: true },
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId(
+            WalletViewSelectorsIDs.WALLET_SEND_BUTTON,
+          ),
+      },
+    });
   }
 
   // mUSD conversion (Earn) - asset list CTA, education screen, token list CTA, asset overview CTA
@@ -905,17 +919,30 @@ class WalletView {
       overshootSwipe?: { direction: 'up' | 'down'; percentage?: number };
     } = {},
   ): Promise<void> {
-    await this.scrollAndTapSection(
-      this.predictionsSectionHeader,
-      'Predictions section',
-      direction,
-      {
-        overshootSwipe: options.overshootSwipe ?? {
-          direction: 'up',
-          percentage: 0.15,
-        },
+    const getScrollOptions = (scrollDirection: 'up' | 'down') => ({
+      overshootSwipe: options.overshootSwipe ?? {
+        direction:
+          scrollDirection === 'down' ? ('up' as const) : ('down' as const),
+        percentage: 0.15,
       },
-    );
+    });
+
+    try {
+      await this.scrollAndTapSection(
+        this.predictionsSectionHeader,
+        'Predictions section',
+        direction,
+        getScrollOptions(direction),
+      );
+    } catch {
+      const fallbackDirection = direction === 'down' ? 'up' : 'down';
+      await this.scrollAndTapSection(
+        this.predictionsSectionHeader,
+        'Predictions section',
+        fallbackDirection,
+        getScrollOptions(fallbackDirection),
+      );
+    }
   }
 
   async scrollAndTapPredictionsPosition(positionName: string): Promise<void> {
@@ -1156,8 +1183,8 @@ class WalletView {
   }
 
   async tapWalletSendButton(): Promise<void> {
-    await Gestures.waitAndTap(this.walletSendButton, {
-      elemDescription: 'Wallet Send Button',
+    await UnifiedGestures.waitAndTap(this.walletSendButton, {
+      description: 'Wallet Send Button',
     });
   }
 

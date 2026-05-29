@@ -81,51 +81,11 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => {
-    const tw = (...args: unknown[]) => args;
-    tw.style = (...args: unknown[]) => args;
-    return tw;
-  },
-}));
-
-jest.mock(
-  '../../../../component-library/components-temp/HeaderCompactStandard',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { View, Text, Pressable } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({
-        title,
-        onBack,
-        backButtonProps,
-        endButtonIconProps,
-      }: {
-        title: string;
-        onBack: () => void;
-        backButtonProps?: { testID?: string };
-        endButtonIconProps?: { testID?: string; onPress?: () => void }[];
-      }) =>
-        ReactActual.createElement(
-          View,
-          { testID: 'header' },
-          ReactActual.createElement(Text, null, title),
-          ReactActual.createElement(Pressable, {
-            onPress: onBack,
-            testID: backButtonProps?.testID ?? 'header-back-button',
-          }),
-          ...(endButtonIconProps ?? []).map((btn, index) =>
-            ReactActual.createElement(Pressable, {
-              key: `end-${String(index)}`,
-              onPress: btn.onPress,
-              testID: btn.testID ?? `header-end-button-${String(index)}`,
-            }),
-          ),
-        ),
-    };
-  },
-);
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const tw = (..._args: unknown[]) => ({});
+  tw.style = jest.fn(() => ({}));
+  return { useTailwind: () => tw };
+});
 
 jest.mock('../../../Views/ErrorBoundary', () => {
   const ReactActual = jest.requireActual('react');
@@ -445,7 +405,9 @@ describe('OndoCampaignStatsView', () => {
       hasError: false,
     });
     const { getByText } = render(<OndoCampaignStatsView />);
-    const title = getByText('rewards.ondo_outcome_banner.winner_pending.title');
+    const title = getByText(
+      'rewards.campaign_outcome_banner.winner_pending.title',
+    );
     fireEvent.press(title);
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW,
@@ -475,7 +437,7 @@ describe('OndoCampaignStatsView', () => {
     });
     const { queryByText } = render(<OndoCampaignStatsView />);
     expect(
-      queryByText('rewards.ondo_outcome_banner.winner_pending.title'),
+      queryByText('rewards.campaign_outcome_banner.winner_pending.title'),
     ).toBeNull();
   });
 
@@ -543,7 +505,7 @@ describe('OndoCampaignStatsView', () => {
     ).toBeDefined();
   });
 
-  it('shows outflow and a separate days-held row when the portfolio has cashed out', () => {
+  it('shows outflow, total inflow, and days held when the portfolio has cashed out', () => {
     mockUseGetCampaignParticipantStatus.mockReturnValue({
       status: { optedIn: true, participantCount: 1 },
       isLoading: false,
@@ -574,6 +536,10 @@ describe('OndoCampaignStatsView', () => {
     expect(
       getByText('rewards.ondo_campaign_stats.label_outflow'),
     ).toBeDefined();
+    expect(
+      getByText('rewards.ondo_campaign_stats.label_total_inflow'),
+    ).toBeDefined();
+    expect(getByText('$11,000.00')).toBeDefined();
     const daysHeldLabels = getAllByText(
       'rewards.ondo_campaign_stats.label_days_held',
     );
@@ -636,6 +602,29 @@ describe('OndoCampaignStatsView', () => {
     });
     const { getByText } = render(<OndoCampaignStatsView />);
     expect(getByText('+15.00%')).toBeDefined();
+  });
+
+  it('hides total inflow when there is no cashed out value', () => {
+    mockUseGetOndoPortfolioPosition.mockReturnValue({
+      ...portfolioDefaults,
+      portfolio: {
+        positions: [],
+        summary: {
+          totalCurrentValue: '15000',
+          totalBookValue: '13000',
+          totalUsdDeposited: '13000',
+          netDeposit: '12500',
+          totalCashedOut: '0',
+          portfolioPnl: '2000',
+          portfolioPnlPercent: '0.15',
+        },
+        computedAt: '2024-01-01T00:00:00Z',
+      },
+    });
+    const { queryByText } = render(<OndoCampaignStatsView />);
+    expect(
+      queryByText('rewards.ondo_campaign_stats.label_total_inflow'),
+    ).toBeNull();
   });
 
   it('shows negative return with error color class when portfolio return is negative', () => {
@@ -1024,7 +1013,9 @@ describe('OndoCampaignStatsView', () => {
       hasError: false,
     });
     const { getByText } = render(<OndoCampaignStatsView />);
-    const title = getByText('rewards.ondo_outcome_banner.winner_pending.title');
+    const title = getByText(
+      'rewards.campaign_outcome_banner.winner_pending.title',
+    );
     fireEvent.press(title);
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.REWARDS_ONDO_CAMPAIGN_WINNING_VIEW,

@@ -902,13 +902,13 @@ describe('usePredictPrices', () => {
   });
 
   describe('polling with errors', () => {
-    it('stops polling after error', async () => {
+    it('continues polling after a transient error so a flaky network does not freeze the price floor', async () => {
       jest.useFakeTimers();
 
       const mockError = new Error('Network error');
-      (
-        Engine.context.PredictController.getPrices as jest.Mock
-      ).mockRejectedValueOnce(mockError);
+      (Engine.context.PredictController.getPrices as jest.Mock)
+        .mockRejectedValueOnce(mockError)
+        .mockResolvedValue(mockPrices);
 
       const { result } = renderHook(() =>
         usePredictPrices({
@@ -930,14 +930,55 @@ describe('usePredictPrices', () => {
         1,
       );
 
-      act(() => {
-        jest.advanceTimersByTime(10000);
+      await act(async () => {
+        jest.advanceTimersByTime(5000);
+        await Promise.resolve();
       });
 
-      expect(Engine.context.PredictController.getPrices).toHaveBeenCalledTimes(
-        1,
+      await waitFor(() => {
+        expect(
+          Engine.context.PredictController.getPrices,
+        ).toHaveBeenCalledTimes(2);
+      });
+      await waitFor(() => {
+        expect(result.current.error).toBeNull();
+      });
+      expect(result.current.prices).toEqual(mockPrices);
+    });
+
+    it('preserves last-good prices when a subsequent poll errors', async () => {
+      jest.useFakeTimers();
+
+      (Engine.context.PredictController.getPrices as jest.Mock)
+        .mockResolvedValueOnce(mockPrices)
+        .mockRejectedValueOnce(new Error('Network error'));
+
+      const { result } = renderHook(() =>
+        usePredictPrices({
+          queries: [
+            {
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+            },
+          ],
+          pollingInterval: 5000,
+        }),
       );
-      expect(result.current.error).toBe('Network error');
+
+      await waitFor(() => {
+        expect(result.current.prices).toEqual(mockPrices);
+      });
+
+      await act(async () => {
+        jest.advanceTimersByTime(5000);
+        await Promise.resolve();
+      });
+
+      await waitFor(() => {
+        expect(result.current.error).toBe('Network error');
+      });
+      expect(result.current.prices).toEqual(mockPrices);
     });
 
     it('can manually refetch after error', async () => {

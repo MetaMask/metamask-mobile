@@ -1,7 +1,6 @@
 import { Box } from '@metamask/design-system-react-native';
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { usePredictLivePositions } from '../../hooks/usePredictLivePositions';
 import { usePredictCashOut } from '../../hooks/usePredictCashOut';
 import {
   PredictMarket,
@@ -29,7 +28,6 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
   claimablePositions,
   testID = PREDICT_PICKS_TEST_ID,
 }) => {
-  const { livePositions } = usePredictLivePositions(positions);
   const { onCashOut } = usePredictCashOut({
     market,
     callerName: 'PredictPicks',
@@ -43,7 +41,7 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
   if (usePositionDetail) {
     return (
       <Box testID={testID} twClassName="flex-col pt-3">
-        {livePositions.map((position) => (
+        {positions.map((position) => (
           <PredictPositionDetail
             key={position.id}
             position={position}
@@ -65,7 +63,7 @@ const PredictPicks: React.FC<PredictPicksProps> = ({
 
   return (
     <Box testID={testID} twClassName="flex-col">
-      {livePositions.map((position) => (
+      {positions.map((position) => (
         <PredictPickItem
           key={position.id}
           position={position}

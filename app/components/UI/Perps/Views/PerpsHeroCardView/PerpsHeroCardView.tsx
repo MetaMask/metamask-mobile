@@ -64,7 +64,6 @@ import {
   getPerpsHeroCardViewSelector,
 } from '../../Perps.testIds';
 import { useReferralDetails } from '../../../Rewards/hooks/useReferralDetails';
-import { useSeasonStatus } from '../../../Rewards/hooks/useSeasonStatus';
 import { ensureError } from '../../../../../util/errorUtils';
 
 // To add a new card, add the image to the array.
@@ -96,9 +95,6 @@ const PerpsHeroCardView: React.FC = () => {
   const isReferralEnabled = useSelector(
     selectPerpsRewardsReferralCodeEnabledFlag,
   );
-
-  // Fetch season status to populate seasonId (required by useReferralDetails)
-  useSeasonStatus({ onlyForExplicitFetch: false });
 
   // Fetch referral details to ensure code is available for display
   useReferralDetails();
@@ -232,11 +228,9 @@ const PerpsHeroCardView: React.FC = () => {
 
           {/* Asset Info Row */}
           <View style={styles.heroCardAssetRow}>
-            <PerpsTokenLogo
-              symbol={data.asset}
-              size={14.5}
-              style={styles.assetIcon}
-            />
+            <View style={styles.assetIcon}>
+              <PerpsTokenLogo symbol={data.asset} size={14.5} />
+            </View>
             <Text
               variant={TextVariant.BodySMMedium}
               style={styles.assetName}
