@@ -1,15 +1,37 @@
+import { useEffect } from 'react';
 import { addBreadcrumb } from '@sentry/react-native';
+import Logger, { type LoggerErrorOptions } from '../Logger';
 
 /**
- * The set of SocialService API endpoints we instrument.
- * Matches the `queryKey` prefixes used in the three hooks.
+ * Sentry tag value for Social product errors. Query in Sentry: `feature:social`.
+ * Matches the Perps pattern (`feature:perps` in perpsConfig.ts).
+ */
+export const SOCIAL_SENTRY_FEATURE = 'social' as const;
+
+/**
+ * UI surface within the Social feature — used for Sentry filtering alongside `feature:social`.
+ */
+export type SocialSurface =
+  | 'top_traders'
+  | 'quick_buy'
+  | 'trader_profile'
+  | 'trader_position'
+  | 'followed_traders'
+  | 'follow';
+
+/**
+ * SocialService / SocialController operations we instrument.
+ * Aligns with react-query `queryKey` prefixes and follow/unfollow messenger actions.
  */
 export type SocialEndpoint =
   | 'leaderboard'
   | 'following'
   | 'open_positions'
   | 'closed_positions'
-  | 'position_by_id';
+  | 'position_by_id'
+  | 'trader_profile'
+  | 'follow'
+  | 'unfollow';
 
 /**
  * Coarse-grained error category derived from the thrown error shape.
@@ -34,7 +56,7 @@ export type SocialErrorCategory =
  * the string second argument to Logger.error while preserving it.
  */
 export interface SocialErrorExtras {
-  /** Original log message — preserved verbatim for backward-compatible Sentry searches. */
+  /** Sentry Additional Data `message` — set from `extraMessage` (optionally via `formatSocialExtraMessage`). */
   message: string;
   endpoint: SocialEndpoint;
   errorCategory: SocialErrorCategory;
@@ -93,7 +115,7 @@ export function categoriseSocialError(error: unknown): SocialErrorCategory {
 /**
  * Build the enriched extras object for an existing Logger.error call.
  *
- * The `legacyMessage` string is preserved verbatim under `message` so
+ * The `extraMessage` string is preserved verbatim under `message` so
  * any existing Sentry searches on that string keep working. Structured
  * fields are added alongside without replacing the existing event.
  *
@@ -106,7 +128,7 @@ export function categoriseSocialError(error: unknown): SocialErrorCategory {
  * Logger.error(
  *   err,
  *   buildSocialErrorExtras({
- *     legacyMessage: 'useTopTraders: leaderboard fetch failed',
+ *     extraMessage: 'useTopTraders: leaderboard fetch failed',
  *     endpoint: 'leaderboard',
  *     error: err,
  *   }),
@@ -114,41 +136,131 @@ export function categoriseSocialError(error: unknown): SocialErrorCategory {
  * ```
  */
 export function buildSocialErrorExtras({
-  legacyMessage,
+  extraMessage,
   endpoint,
   error,
   queryParams,
   durationMs,
 }: {
-  legacyMessage: string;
+  extraMessage: string;
   endpoint: SocialEndpoint;
   error: unknown;
   queryParams?: Record<string, string | number | boolean>;
   durationMs?: number;
-}): SocialErrorExtras {
+}): Record<string, unknown> {
   const errorCategory = categoriseSocialError(error);
   const httpStatus = extractHttpStatus(error);
   const errorMessage =
     error instanceof Error ? error.message : String(error ?? '');
 
-  const extras: SocialErrorExtras = {
-    message: legacyMessage,
+  return {
+    message: extraMessage,
     endpoint,
     errorCategory,
     errorMessage,
+    ...(httpStatus !== undefined && { httpStatus }),
+    ...(durationMs !== undefined && { durationMs }),
+    ...(queryParams !== undefined && { queryParams }),
+  } satisfies SocialErrorExtras;
+}
+
+/**
+ * Human-readable Sentry `extras.message` with an optional hook/component name.
+ *
+ * @example formatSocialExtraMessage('Error submitting QuickBuy tx', 'useQuickBuyBottomSheet')
+ * // → 'Error submitting QuickBuy tx at useQuickBuyBottomSheet'
+ */
+export function formatSocialExtraMessage(
+  message: string,
+  source?: string,
+): string {
+  if (!source) {
+    return message;
+  }
+  return `${message} at ${source}`;
+}
+
+/**
+ * Build searchable Logger.error options for Social surfaces (Top Traders, Quick Buy, …).
+ *
+ * Pass `source` (hook or component name) to append `at {source}` to `extras.message`.
+ * Sentry stack traces also show file/line; `source` helps Discover search and quick scans.
+ *
+ * @example
+ * Logger.error(
+ *   err,
+ *   buildSocialLoggerErrorOptions({
+ *     surface: 'quick_buy',
+ *     operation: 'submit_tx',
+ *     extraMessage: 'Error submitting QuickBuy tx',
+ *     source: 'useQuickBuyBottomSheet',
+ *     error: err,
+ *   }),
+ * );
+ */
+export function buildSocialLoggerErrorOptions({
+  surface,
+  operation,
+  extraMessage,
+  source,
+  error,
+  endpoint,
+  queryParams,
+  durationMs,
+  extraTags,
+}: {
+  surface: SocialSurface;
+  operation: string;
+  /** Short human-readable description (without the `at {source}` suffix). */
+  extraMessage: string;
+  /** Hook, component, or function name appended as `at {source}` on extras.message. */
+  source?: string;
+  error: unknown;
+  endpoint?: SocialEndpoint;
+  queryParams?: Record<string, string | number | boolean>;
+  durationMs?: number;
+  extraTags?: Record<string, string | number>;
+}): LoggerErrorOptions {
+  const errorCategory = categoriseSocialError(error);
+  const message = formatSocialExtraMessage(extraMessage, source);
+  const extras: Record<string, unknown> = endpoint
+    ? buildSocialErrorExtras({
+        extraMessage: message,
+        endpoint,
+        error,
+        queryParams,
+        durationMs,
+      })
+    : {
+        message,
+        errorCategory,
+        errorMessage:
+          error instanceof Error ? error.message : String(error ?? ''),
+        ...(queryParams !== undefined && { queryParams }),
+        ...(durationMs !== undefined && { durationMs }),
+      };
+
+  return {
+    tags: {
+      feature: SOCIAL_SENTRY_FEATURE,
+      surface,
+      operation,
+      errorCategory,
+      ...(endpoint !== undefined && { endpoint }),
+      ...(source !== undefined && { source }),
+      ...extraTags,
+    },
+    context: {
+      name: 'social',
+      data: {
+        operation,
+        ...(source !== undefined && { source }),
+        ...(endpoint !== undefined && { endpoint }),
+        ...(queryParams !== undefined && { queryParams }),
+      },
+    },
+    extras,
   };
-
-  if (httpStatus !== undefined) {
-    extras.httpStatus = httpStatus;
-  }
-  if (durationMs !== undefined) {
-    extras.durationMs = durationMs;
-  }
-  if (queryParams !== undefined) {
-    extras.queryParams = queryParams;
-  }
-
-  return extras;
 }
 
 /**
@@ -165,6 +277,68 @@ export function buildSocialErrorExtras({
  * breadcrumbs.message:"status=401"
  * breadcrumbs.message:"category=auth_failure"
  */
+/** Shared fields for logging a SocialService / Social UI failure to Sentry. */
+export interface SocialServiceFailureContext {
+  surface: SocialSurface;
+  operation: string;
+  extraMessage: string;
+  source: string;
+  endpoint?: SocialEndpoint;
+  queryParams?: Record<string, string | number | boolean>;
+}
+
+/**
+ * Normalise react-query error values for hook return types.
+ */
+export function formatSocialQueryErrorMessage(error: unknown): string | null {
+  if (!error) {
+    return null;
+  }
+  return error instanceof Error ? error.message : String(error);
+}
+
+/**
+ * Log a Social feature failure with `feature:social` tags and an optional breadcrumb.
+ */
+export function reportSocialServiceFailure(
+  error: unknown,
+  context: SocialServiceFailureContext,
+  options?: { breadcrumb?: boolean },
+): void {
+  const err = error instanceof Error ? error : new Error(String(error ?? ''));
+  Logger.error(
+    err,
+    buildSocialLoggerErrorOptions({
+      ...context,
+      error,
+    }),
+  );
+  if (options?.breadcrumb !== false && context.endpoint !== undefined) {
+    addSocialBreadcrumb({
+      endpoint: context.endpoint,
+      errorCategory: categoriseSocialError(error),
+      httpStatus: extractHttpStatus(error),
+      queryParams: context.queryParams,
+    });
+  }
+}
+
+/**
+ * Emit Sentry telemetry when a react-query hook surfaces an error.
+ */
+export function useLogSocialQueryError(
+  error: unknown,
+  context: SocialServiceFailureContext,
+): void {
+  useEffect(() => {
+    if (error) {
+      reportSocialServiceFailure(error, context);
+    }
+    // Only re-run when `error` changes; context is fixed per hook call site.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- context is stable per mount
+  }, [error]);
+}
+
 export function addSocialBreadcrumb({
   endpoint,
   errorCategory,

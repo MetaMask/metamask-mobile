@@ -106,8 +106,9 @@ import {
 } from '../types';
 import { PredictFeatureFlags } from '../types/flags';
 
-import { ensureError } from '../utils/predictErrorHandler';
+import { resolveCryptoTargetPrice } from '../utils/cryptoUpDown';
 import { validateMarketBettable } from '../utils/marketState';
+import { ensureError } from '../utils/predictErrorHandler';
 import { resolvePredictFeatureFlags } from '../utils/resolvePredictFeatureFlags';
 import { validateDepositTransactions } from '../utils/validateTransactions';
 import { PredictAnalytics } from './PredictAnalytics';
@@ -648,11 +649,13 @@ export class PredictController extends BaseController<
     );
   }
 
-  async searchMarkets(params: SearchMarketsParams): Promise<PredictMarket[]> {
+  async searchMarkets(
+    params: SearchMarketsParams,
+  ): Promise<{ markets: PredictMarket[]; totalResults: number }> {
     const query = params.q.trim();
 
     if (!query) {
-      return [];
+      return { markets: [], totalResults: 0 };
     }
 
     return withTrace(
@@ -672,7 +675,7 @@ export class PredictController extends BaseController<
           hasSearchQuery: Boolean(query),
         },
         fallbackErrorCode: PREDICT_ERROR_CODES.MARKETS_FAILED,
-        traceData: (markets) => ({ marketCount: markets.length }),
+        traceData: (result) => ({ marketCount: result.markets.length }),
       },
       async () =>
         this.provider.searchMarkets({
@@ -789,20 +792,14 @@ export class PredictController extends BaseController<
         }
 
         Logger.log(
-          `[${PREDICT_CONSTANTS.FEATURE_NAME}] Crypto target price API failed for event ${params.eventId}, falling back to groupItemThreshold`,
+          `[${PREDICT_CONSTANTS.FEATURE_NAME}] Crypto target price API failed for event ${params.eventId}, falling back to market metadata`,
         );
 
         try {
           const market = await this.provider.getMarketDetails({
             marketId: params.eventId,
           });
-          if (!market?.outcomes?.length) {
-            return null;
-          }
-          const threshold = market.outcomes[0].groupItemThreshold;
-          return typeof threshold === 'number' && threshold > 0
-            ? threshold
-            : null;
+          return resolveCryptoTargetPrice(market, undefined) ?? null;
         } catch {
           return null;
         }
@@ -1595,6 +1592,7 @@ export class PredictController extends BaseController<
       const batchResult = await addTransactionBatch({
         from: signer.address as Hex,
         origin: ORIGIN_METAMASK,
+        isInternal: true,
         networkClientId,
         disableHook: true,
         disableSequential: true,
@@ -2018,6 +2016,7 @@ export class PredictController extends BaseController<
       const batchResult = await addTransactionBatch({
         from: signer.address as Hex,
         origin: ORIGIN_METAMASK,
+        isInternal: true,
         networkClientId,
         disableHook: true,
         disableSequential: true,
@@ -2163,6 +2162,7 @@ export class PredictController extends BaseController<
       const batchResult = await addTransactionBatch({
         from: signer.address as Hex,
         origin: ORIGIN_METAMASK,
+        isInternal: true,
         networkClientId,
         disableHook: true,
         disableSequential: true,
@@ -2783,6 +2783,7 @@ export class PredictController extends BaseController<
       const { batchId } = await addTransactionBatch({
         from: signer.address as Hex,
         origin: ORIGIN_METAMASK,
+        isInternal: true,
         networkClientId: this.messenger.call(
           'NetworkController:findNetworkClientIdByChainId',
           chainId,

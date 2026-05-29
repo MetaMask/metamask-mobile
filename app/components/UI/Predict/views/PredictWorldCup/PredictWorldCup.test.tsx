@@ -6,6 +6,7 @@ import PredictWorldCup, {
 import Routes from '../../../../../constants/navigation/Routes';
 import { DEFAULT_PREDICT_WORLD_CUP_FLAG } from '../../constants/flags';
 import { PredictEventValues } from '../../constants/eventNames';
+import { PREDICT_WORLD_CUP_FALLBACK_STAGE_TAB_KEYS } from '../../constants/worldCupTabs';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -156,6 +157,10 @@ describe('PredictWorldCup', () => {
       { key: 'all', label: 'All' },
       { key: 'live', label: 'Live', isLive: true },
       { key: 'props', label: 'Props' },
+      ...PREDICT_WORLD_CUP_FALLBACK_STAGE_TAB_KEYS.map((key) => ({
+        key,
+        label: key,
+      })),
     ];
     mockAvailability = {
       live: true,
@@ -197,11 +202,42 @@ describe('PredictWorldCup', () => {
       screen.getByTestId(`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.TAB}-props`),
     ).toBeOnTheScreen();
     expect(
-      screen.queryByTestId(`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.TAB}-group-a`),
-    ).toBeNull();
+      screen.getByTestId(`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.TAB}-group_a`),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.TAB}-group_l`),
+    ).toBeOnTheScreen();
     expect(
       screen.getByTestId(PREDICT_WORLD_CUP_SCREEN_TEST_IDS.EMPTY_STATE),
     ).toBeOnTheScreen();
+  });
+
+  it('maps hyphenated group tab param to canonical stage key for default stages', () => {
+    mockRouteParams = { initialTab: 'group-b' };
+
+    render(<PredictWorldCup />);
+
+    expect(
+      screen.getByTestId(PREDICT_WORLD_CUP_SCREEN_TEST_IDS.INITIAL_TAB),
+    ).toHaveTextContent('group_b');
+  });
+
+  it('matches configured stage when URL uses hyphens but flag uses underscores', () => {
+    mockRouteParams = { initialTab: 'group-stage' };
+    mockConfig = {
+      ...mockConfig,
+      stages: [{ key: 'group_stage', eventIds: ['1'] }],
+    };
+    mockAvailability = {
+      ...mockAvailability,
+      stages: { group_stage: true },
+    };
+
+    render(<PredictWorldCup />);
+
+    expect(
+      screen.getByTestId(PREDICT_WORLD_CUP_SCREEN_TEST_IDS.INITIAL_TAB),
+    ).toHaveTextContent('group_stage');
   });
 
   it('uses a valid requested initial tab', () => {

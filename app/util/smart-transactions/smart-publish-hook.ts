@@ -22,6 +22,7 @@ import { Hex } from '@metamask/utils';
 import { getTransactionById, isLegacyTransaction } from '../transactions';
 import {
   getClientForTransactionMetadata,
+  getClientVersionForTransactionMetadata,
   sanitizeOrigin,
 } from '../../constants/smartTransactions';
 
@@ -313,6 +314,7 @@ class SmartTransactionHook {
             signedTx.metadata = {
               txType: transactionMeta.type,
               client: getClientForTransactionMetadata(),
+              clientVersion: getClientVersionForTransactionMetadata(),
               origin: sanitizeOrigin(transactionMeta.origin),
             };
           }
@@ -326,6 +328,7 @@ class SmartTransactionHook {
           metadata: {
             txType: this.#transactionMeta.type,
             client: getClientForTransactionMetadata(),
+            clientVersion: getClientVersionForTransactionMetadata(),
             origin: sanitizeOrigin(this.#transactionMeta.origin),
           },
         },
@@ -340,6 +343,7 @@ class SmartTransactionHook {
         metadata: {
           txType: this.#transactionMeta.type,
           client: getClientForTransactionMetadata(),
+          clientVersion: getClientVersionForTransactionMetadata(),
           origin: sanitizeOrigin(this.#transactionMeta.origin),
         },
       }));

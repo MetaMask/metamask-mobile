@@ -1,6 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import BigNumber from 'bignumber.js';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -18,13 +19,16 @@ import Tag from '../../../../../component-library/components/Tags/Tag';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useMusdConversionFlowData } from '../../../Earn/hooks/useMusdConversionFlowData';
-import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+  MUSD_TOKEN_ADDRESS_BY_CHAIN,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../Earn/constants/musd';
+import { Hex } from '@metamask/utils';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import styleSheet from './MoneyAddMoneySheet.styles';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
 
@@ -41,8 +45,15 @@ const MoneyAddMoneySheet: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
+  const surfaceClass = useElevatedSurface();
 
-  const { totalFiatFormatted } = useMoneyAccountBalance();
+  const {
+    fiatBalanceAggregated,
+    fiatBalanceAggregatedFormatted,
+    hasMusdBalanceOnAnyChain,
+    tokenBalanceAggregated,
+    tokenBalanceByChain,
+  } = useMusdBalance();
   const { getChainIdForBuyFlow } = useMusdConversionFlowData();
   const { goToBuy } = useRampNavigation();
   const { initiateDeposit } = useMoneyAccountDeposit();
@@ -73,22 +84,43 @@ const MoneyAddMoneySheet: React.FC = () => {
     });
   }, [closeAndNavigate, getChainIdForBuyFlow, goToBuy]);
 
-  // TODO: wire to the "move external mUSD → Money Account" flow once the
-  // dedicated ticket lands. Interim: close sheet.
   const handleMoveMusd = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet();
-  }, []);
+    let sourceChainId: Hex = MUSD_CONVERSION_DEFAULT_CHAIN_ID;
+    let bestBalance = new BigNumber(0);
+    for (const [chainId, balance] of Object.entries(
+      tokenBalanceByChain ?? {},
+    )) {
+      const candidate = new BigNumber(balance ?? 0);
+      if (candidate.isGreaterThan(bestBalance)) {
+        sourceChainId = chainId as Hex;
+        bestBalance = candidate;
+      }
+    }
 
-  let moveMusdLabel: string;
-  if (totalFiatFormatted) {
-    moveMusdLabel = strings('money.add_money_sheet.move_musd', {
-      amount: totalFiatFormatted,
+    closeAndNavigate(() => {
+      initiateDeposit({
+        intent: 'addMusd',
+        preferredPaymentToken: {
+          address: MUSD_TOKEN_ADDRESS_BY_CHAIN[sourceChainId],
+          chainId: sourceChainId,
+        },
+      }).catch(() => undefined);
     });
-  } else {
-    moveMusdLabel = strings('money.add_money_sheet.move_musd_no_amount');
-  }
+  }, [closeAndNavigate, initiateDeposit, tokenBalanceByChain]);
 
-  const options: Option[] = [
+  const parsedMusdFiat = Number(fiatBalanceAggregated);
+  const hasParsedFiatBalance =
+    Number.isFinite(parsedMusdFiat) && parsedMusdFiat > 0;
+  const hasMusdBalance = hasMusdBalanceOnAnyChain || hasParsedFiatBalance;
+
+  const moveMusdAmount = hasParsedFiatBalance
+    ? fiatBalanceAggregatedFormatted
+    : new BigNumber(tokenBalanceAggregated).toFixed(2);
+  const moveMusdLabel = hasMusdBalance
+    ? strings('money.add_money_sheet.move_musd', { amount: moveMusdAmount })
+    : '';
+
+  const baseOptions: Option[] = [
     {
       label: strings('money.add_money_sheet.convert_crypto'),
       description: strings('money.add_money_sheet.convert_crypto_description'),
@@ -105,15 +137,21 @@ const MoneyAddMoneySheet: React.FC = () => {
       onPress: handleDepositFunds,
       testID: MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
     },
-    {
-      label: moveMusdLabel,
-      description: strings('money.add_money_sheet.move_musd_description'),
-      descriptionTestID: MoneyAddMoneySheetTestIds.MOVE_MUSD_DESCRIPTION,
-      icon: IconName.Add,
-      onPress: handleMoveMusd,
-      testID: MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
-    },
   ];
+
+  const options: Option[] = hasMusdBalance
+    ? [
+        ...baseOptions,
+        {
+          label: moveMusdLabel,
+          description: strings('money.add_money_sheet.move_musd_description'),
+          descriptionTestID: MoneyAddMoneySheetTestIds.MOVE_MUSD_DESCRIPTION,
+          icon: IconName.Add,
+          onPress: handleMoveMusd,
+          testID: MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
+        },
+      ]
+    : baseOptions;
 
   return (
     <BottomSheet
@@ -121,6 +159,7 @@ const MoneyAddMoneySheet: React.FC = () => {
       goBack={handleGoBack}
       testID={MoneyAddMoneySheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
+      twClassName={surfaceClass}
     >
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         <Text variant={TextVariant.HeadingSm}>

@@ -128,6 +128,11 @@
       "title": "Wallet not supported",
       "message": "Hardware wallets aren't supported.\nSwitch wallets to continue."
     },
+    "address_poisoning": {
+      "title": "Address poisoning detected",
+      "message": "This address closely resembles one you've used before. It may have been designed to trick you into sending funds to the wrong recipient.",
+      "badge": "Poisoned"
+    },
     "burn_address": {
       "message": "You're sending your assets to a burn address. If you continue, you'll lose your assets.",
       "title": "Sending assets to burn address"
@@ -712,6 +717,9 @@
     "could_not_resolve_name": "Couldn't resolve name",
     "invalid_address": "Invalid address",
     "contractAddressError": "You are sending tokens to the token's contract address. This may result in the loss of these tokens.",
+    "compare_addresses": "Compare addresses",
+    "entered_malicious": "The Address You Entered",
+    "known_safe_address": "Known Address",
     "smart_contract_address": "Smart contract address",
     "smart_contract_address_warning": "The recipient address may not support direct token transfers, which could result in fund loss. Only continue if you're certain this contract can receive your transfer.",
     "unavailable_network_connection": "Unavailable network connection",
@@ -1047,8 +1055,7 @@
       "title": "Notifications from {{traderName}}",
       "allow_push_notifications": "Allow push notifications",
       "allow_push_notifications_desc": "Get notified on {{traderName}}'s trading activity",
-      "manage_traders": "Manage traders you follow",
-      "save": "Save"
+      "manage_traders": "Manage traders you follow"
     },
     "trader_notifications_setup": {
       "description": "Get real-time alerts on trades from the traders you follow",
@@ -1098,6 +1105,8 @@
       "title": "Buy {{symbol}}",
       "market_cap_label": "Market cap",
       "pay_with": "Pay with",
+      "buy_mode": "Buy",
+      "with": "with",
       "total": "Total",
       "network_fee": "Network fee",
       "slippage": "Slippage",
@@ -1107,7 +1116,16 @@
       "no_quotes": "No quotes available for this token",
       "loading": "Loading...",
       "unavailable": "Swap unavailable",
-      "unsupported_chain": "This chain is not supported for Quick Buy yet"
+      "unsupported_chain": "This chain is not supported for Quick Buy yet",
+      "quote_details_title": "Quote details",
+      "select_quote_title": "Select quote",
+      "rate": "Rate",
+      "get_new_quote": "Get new quote",
+      "available_balance": "{{amount}} available",
+      "toggle_amount_display": "Switch between token and dollar amount",
+      "includes_mm_fee": "Includes {{fee}}% MM fee",
+      "pay_with_no_tokens": "No tokens available to pay with",
+      "pay_with_filter_all": "All"
     }
   },
   "perps": {
@@ -1133,6 +1151,10 @@
       "title": "We're experiencing an outage",
       "description": "Some services may be unavailable while the team works on a fix.",
       "contact_support": "Contact support"
+    },
+    "competition_banner": {
+      "title": "Competition leaderboard",
+      "description": "See where you rank in the Perps trading competition"
     },
     "today": "Today",
     "yesterday": "Yesterday",
@@ -1857,7 +1879,7 @@
         "provider_fee": "Provider fee",
         "bridge_fee": "Bridge fee",
         "total": "Total fees",
-        "discount_message": "You're saving {{percentage}}% with MetaMask Rewards."
+        "discount_message": "You're saving {{percentage}}% on fees as a VIP."
       },
       "closing_fees": {
         "title": "Closing fees",
@@ -2262,6 +2284,21 @@
   },
   "predict": {
     "title": "MetaMask Predictions",
+    "homepage_discovery": {
+      "btc_title": "BTC Price: {{price}}",
+      "btc_price_to_beat": "Price to beat: {{price}}",
+      "btc_live": "Live",
+      "nba_2026_champion_title": "NBA 2026 Champion",
+      "fifa_world_cup_2026_title": "FIFA World Cup 2026",
+      "events_in_total": "{{count}} events in total",
+      "events_in_total_overflow": "{{count}}+ events in total",
+      "props_pill": "Props",
+      "championship_unavailable": "No championship market to show yet.",
+      "mens_world_cup_title": "Men's World Cup",
+      "mens_world_cup_events": "{{count}} men's world cup events",
+      "mens_world_cup_events_overflow": "{{count}}+ men's world cup events",
+      "winner_unavailable": "No World Cup markets to show yet."
+    },
     "world_cup": {
       "title": "World Cup",
       "banner_title": "World Cup 2026",
@@ -2333,7 +2370,9 @@
       "ended": "Ended",
       "resolved_early": "Resolved early",
       "disclaimer": "This information may be incomplete. All market rules, resolution criteria, and final outcomes are governed solely by Polymarket. Trades should be made based on the full rules available on Polymarket.",
-      "your_picks": "Your picks"
+      "your_picks": "Your picks",
+      "entry": "Entry",
+      "claim": "Claim"
     },
     "tab": {
       "no_predictions_description": "Your predictions will appear here, showing your stake and market movement.",
@@ -2349,6 +2388,7 @@
     "outcome_groups": {
       "game_lines": "Game Lines",
       "first_half": "1st Half",
+      "first_set": "1st Set",
       "team_totals": "Team Totals",
       "touchdowns": "Touchdowns",
       "rushing": "Rushing",
@@ -2370,6 +2410,7 @@
       "moneyline": "Moneyline",
       "spreads": "Spreads",
       "totals": "Totals",
+      "nrfi": "Will there be a run in the first inning?",
       "both_teams_to_score": "Both Teams to Score",
       "first_half_moneyline": "1H Moneyline",
       "first_half_spreads": "1H Spreads",
@@ -2389,10 +2430,16 @@
       "soccer_anytime_goalscorer": "Goalscorers",
       "soccer_exact_score": "Exact Score",
       "soccer_halftime_result": "Halftime Result",
-      "total_corners": "Corners"
+      "total_corners": "Corners",
+      "tennis_set_totals": "Total Sets",
+      "tennis_match_totals": "Total Games",
+      "tennis_first_set_totals": "1st Set Total Games",
+      "tennis_first_set_winner": "1st Set Winner",
+      "tennis_completed_match": "Completed Match"
     },
     "sell_position": "Sell position",
     "odds": "Odds",
+    "your_positions": "Your positions",
     "cash_out": "Cash out",
     "cash_out_info": "Funds will be added to your available balance",
     "buy_preview_outcome_at_price": "{{outcome}} at {{price}}",
@@ -2437,6 +2484,11 @@
     "markets_won": "Markets won",
     "won_markets_text": "Won {{count}} market{{s}}",
     "available_balance": "Available balance",
+    "portfolio": {
+      "available_amount": "{{amount}} available",
+      "value_accessibility": "Portfolio value, {{value}}",
+      "value_hidden_accessibility": "Portfolio value hidden"
+    },
     "claim_amount_text": "Claim ${{amount}}",
     "claim_winnings_text": "Claim winnings",
     "claiming_text": "Claiming...",
@@ -2983,9 +3035,9 @@
   "onboarding_interest_questionnaire": {
     "title": "What do you want to do with MetaMask?",
     "description": "Select all that apply.",
-    "option_buy_and_sell_crypto": "Buy and sell crypto",
+    "option_buy_and_sell_crypto": "Buy and sell crypto tokens",
     "option_consolidate_wallets": "Consolidate your wallets",
-    "option_advanced_trades": "Make advanced trades",
+    "option_advanced_trades": "Trade perpetuals",
     "option_predict_sports_events": "Predict sports and events",
     "option_crypto_as_money": "Use crypto as money",
     "option_connect_apps_sites": "Connect to apps or sites",
@@ -3717,6 +3769,11 @@
         "title": "Identity",
         "description": "Clears the persisted authentication session. Use this after toggling MM_DEV_API_ENV — otherwise a prod-minted JWT keeps being handed to dev-API consumers until it expires. Current MM_DEV_API_ENV: {{env}}.",
         "clear_auth_session_button": "Clear persisted auth session"
+      },
+      "notifications": {
+        "title": "Notifications",
+        "description": "Reset the push notification pre-prompt flag to re-trigger the sheet on next eligible launch.",
+        "reset_prompt": "Reset push pre-prompt"
       },
       "haptics": {
         "title": "Haptics",
@@ -5264,6 +5321,11 @@
       "title": "Nothing to see here",
       "message": "This is where you can find notifications once there’s activity in your wallet. "
     },
+    "disabled": {
+      "title": "Turn on notifications",
+      "message": "Choose what you're notified about and how.",
+      "cta": "Notification settings"
+    },
     "list": {
       "0": "All",
       "1": "Wallet",
@@ -5299,6 +5361,16 @@
           "time": "1h ago",
           "title": "Received 0.25 ETH",
           "message": "From 0x9a21…4f8c · $640.29"
+        },
+        "toast": {
+          "notifications_on": {
+            "title": "Notifications are on",
+            "description": "We'll send you transactions, price alerts, and updates."
+          },
+          "notifications_off": {
+            "title": "Notifications are off",
+            "description": "Turn them on anytime in Settings → Notifications."
+          }
         }
       },
       "existing_user": {
@@ -5307,8 +5379,20 @@
         "card_title": "What you'll get",
         "card_description": "Personalized alerts and updates tailored to your trading activity.",
         "button_confirm": "Confirm",
-        "button_not_now": "Not now"
-      }
+        "button_not_now": "Not now",
+        "toast": {
+          "personalized_alerts_on": {
+            "title": "Personalized alerts is on",
+            "description": "Manage this anytime in Settings."
+          },
+          "personalized_alerts_off": {
+            "title": "Personalized alerts is off",
+            "description": "Turn it on anytime in Settings."
+          }
+        }
+      },
+      "toast_enabled": "Notifications enabled",
+      "toast_settings_hint": "You can enable notifications any time in Settings > Notifications"
     }
   },
   "protect_your_wallet_modal": {
@@ -6700,29 +6784,45 @@
     "apy_label": "{{percentage}}% APY",
     "apy_currency_suffix": " • mUSD",
     "apy_info_label": "APY info",
+    "deposit_tooltip_title": "Earn up to {{percentage}}%",
+    "deposit_tooltip_description": "Add funds to your Money account and earn up to {{percentage}}% APY automatically. You can add funds by converting your existing stablecoin balance or depositing directly from your bank or card.",
+    "balance_unavailable": "Balance unavailable",
+    "balance_retry": "Retry",
+    "balance_no_account": "Money account not found",
     "onboarding": {
-      "step_progress": "Step {{current}} of {{total}}",
-      "title": "Add money",
-      "description": "Fund your account and start earning APY.",
-      "add": "Add funds",
-      "step2_title": "Get your MetaMask Card",
-      "step2_description": "Spend your Money balance while it earns, anywhere Mastercard is accepted.",
-      "step2_cta": "Get card",
-      "link_card_title": "Link your MetaMask Card",
-      "link_card_description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
-      "link_card_cta": "Link card"
+      "step_1": {
+        "title": "Fund your account",
+        "description": "Drop in some funds. Your Money account will handle the rest.",
+        "cta": "Add funds"
+      },
+      "step_2": {
+        "no_card_account": {
+          "title": "Get your MetaMask Card",
+          "description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
+          "cta_primary": "Get card",
+          "cta_secondary": "Skip"
+        },
+        "unlinked_card_account": {
+          "title": "Link your MetaMask Card",
+          "description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
+          "cta_primary": "Link card",
+          "cta_secondary": "Skip"
+        }
+      }
     },
     "rive_onboarding": {
       "step1_title": "Money accounts are here",
       "step1_body": "Earn up to {{percentage}}% APY on your balance, available across your entire wallet.",
-      "step1_footer_text": "APY is variable and may change at any time.",
+      "step1_footer_text": "APY is variable and not guaranteed.",
       "step2_title": "Earn automatically",
       "step2_body": "Move stablecoins with no exchange fees. Funds start earning right away.",
-      "step2_footer_text": "Provided by Veda and Steakhouse Financial.",
+      "step2_footer_text": "Money account uses Veda infrastructure.",
       "step3_title": "Spend anywhere",
       "step3_body": "Get up to {{percentage}}% back on purchases by linking your Money account to a MetaMask card.",
+      "step3_footer_text": "Includes Steakhouse Financial monitoring.",
       "step4_title": "Trade and earn in one place",
       "step4_body": "Use your Money balance to trade across MetaMask while still earning yield.",
+      "step4_footer_text": "Powered by Monad.",
       "continue": "Continue"
     },
     "action": {
@@ -6738,8 +6838,9 @@
     },
     "how_it_works": {
       "title": "How it works",
-      "description_prefix": "Deposit mUSD into your Money account and earn up to",
-      "description_suffix": ". Your balance is dollar-backed and ready to spend, trade, or send anytime."
+      "description_prefix": "Add mUSD to your Money account and earn up to",
+      "description_suffix": " (variable). Your balance is dollar-backed and ready to spend, trade, or send anytime.",
+      "description_no_apy": "Add mUSD to your Money account. Your balance is dollar-backed and ready to spend, trade, or send anytime."
     },
     "musd_row": {
       "add": "Add"
@@ -6755,9 +6856,9 @@
       "description": "See how your money can grow over time by converting your crypto to mUSD.",
       "description_with_amounts_prefix": "Convert your {{total}} in assets and you could earn up to",
       "description_with_amounts_suffix": "in one year.",
-      "convert": "Convert",
+      "add": "Add",
       "convert_cta": "Convert your crypto",
-      "no_fee": "No MetaMask fee",
+      "no_fee": "No fee",
       "view_all": "View all",
       "view_potential_earnings": "View potential earnings"
     },
@@ -6769,16 +6870,17 @@
       "cashback": "{{percentage}}% mUSD back",
       "get_now": "Get now",
       "link_title": "Link MetaMask Card",
-      "link_subtitle": "Spend your Money balance and earn on purchases. Plus, up to {{apy}}% APY on your balance.",
+      "link_subtitle": "Spend your Money balance and earn on purchases. Plus, up to {{apy}}% APY (variable) on your balance.",
       "link_subtitle_no_apy": "Spend your Money balance and earn on purchases.",
       "link_bullet_cashback": "Get {{percentage}}% mUSD back",
-      "link_bullet_apy": "Earn up to {{apy}}% APY",
+      "link_bullet_apy": "Earn up to {{apy}}% APY (variable)",
       "link_card": "Link card",
       "link_pending_title": "Linking your card",
       "link_success_title": "Your card is ready to use",
       "link_error": "Something went wrong linking your card",
       "link_card_sheet_title": "Spend and earn",
-      "link_card_sheet_description": "Link your card so you can spend your Money balance and earn mUSD back on purchases—all while earning up to {{apy}}% APY.",
+      "link_card_sheet_description_prefix": "Link your card so you can spend your Money balance and earn mUSD back on purchases—all while earning up to",
+      "link_card_sheet_description_suffix": " (variable).",
       "link_card_sheet_description_no_apy": "Link your card so you can spend your Money balance and earn mUSD back on purchases.",
       "link_card_sheet_cta": "Link card",
       "manage_card": "Manage",
@@ -6787,6 +6889,7 @@
     "what_you_get": {
       "title": "What you get",
       "benefit_auto_earn": "Auto-earn up to",
+      "benefit_auto_earn_variable": "(variable)",
       "benefit_dollar_backed": "Keep your money secure in mUSD, a 1:1 dollar-backed stablecoin",
       "benefit_liquidity": "Get full liquidity with no lockups, so you can trade or withdraw anytime",
       "benefit_spend_prefix": "Spend at 150M+ merchants with MetaMask Card and earn ",
@@ -6804,8 +6907,7 @@
       "convert_crypto_description": "From any account",
       "deposit_funds": "Deposit funds",
       "deposit_funds_description": "From debit card or bank",
-      "move_musd": "Transfer your {{amount}} mUSD",
-      "move_musd_no_amount": "Transfer your mUSD",
+      "move_musd": "Add your {{amount}} mUSD",
       "move_musd_description": "From your balance",
       "receive_external": "Receive from external wallet",
       "coming_soon": "Coming soon"
@@ -6824,6 +6926,25 @@
       "send_external": "Send to external address",
       "withdraw_to_bank": "Withdraw to bank"
     },
+    "toasts": {
+      "in_progress_title": "Transaction in progress",
+      "in_progress_body": "This may take a few minutes.",
+      "deposit_in_progress_title_convert": "Converting crypto",
+      "deposit_in_progress_title_add_musd": "Adding funds",
+      "success_title": "Transaction complete",
+      "deposit_success_title_convert": "Conversion complete",
+      "deposit_success_title_add_musd": "Funds added",
+      "deposit_success_body": "{{amount}} added to Money account.",
+      "deposit_success_body_no_amount": "Added to Money account.",
+      "withdraw_success_body": "{{amount}} moved to {{destination}}.",
+      "withdraw_success_body_no_amount": "Moved to {{destination}}.",
+      "deposit_failed_title_convert": "Conversion failed",
+      "deposit_failed_title_add_musd": "Failed to add funds",
+      "deposit_failed_body_convert": "Unable to convert. Try again.",
+      "deposit_failed_body_add_musd": "Unable to add funds. Try again.",
+      "withdraw_failed_title": "Transfer failed",
+      "withdraw_failed_body": "Unable to transfer funds. Try again."
+    },
     "apy_tooltip": {
       "title": "Annual Percentage Yield (APY)",
       "paragraph_1": "Your Money account earns up to {{percentage}}% automatically.",
@@ -6836,7 +6957,7 @@
     },
     "earn_crypto_info_sheet": {
       "title": "Earn on your crypto",
-      "body": "Illustration assumes {{percentage}}% Annual Percentage Yield (APY) remains unchanged for one year. APY is variable and may change due to various factors. No guarantee of return."
+      "body": "Illustration assumes {{percentage}}% Annual Percentage Yield (APY) remains unchanged for one year. APY is variable and is not guaranteed. No guarantee of return."
     },
     "activity": {
       "title": "Activity",
@@ -6881,8 +7002,9 @@
     "how_it_works_page": {
       "header_title": "Money",
       "section_title": "How it works",
-      "description_1": "Deposit mUSD into your Money account and earn up to {{percentage}}% APY (variable) automatically. Funds go into a DeFi vault that generates returns across audited lending markets—no staking, no claiming, no lock-ups.",
+      "description_1": "Add mUSD into your Money account and earn up to {{percentage}}% APY (variable) automatically. Funds go into a DeFi vault, administered by Veda with risk monitoring by Steakhouse Financial. The rate is generated by third-party DeFi platforms that deploy funds in blockchain protocols. No staking, no claiming, no lock-ups.",
       "description_2": "Your Money balance is your spending balance. Link your MetaMask Card to spend at 150M+ merchants worldwide. Your money keeps earning until the moment you use it.",
+      "description_3": "Money account is powered by Monad.",
       "faq_title": "Frequently asked questions",
       "faq_placeholder_answer": "Coming soon.",
       "faq_q1": "How does the {{percentage}}% APY work?",
@@ -7154,15 +7276,20 @@
     "confirm": "Confirm",
     "pay_with_bottom_sheet": {
       "title": "Pay with",
+      "withdraw_title": "Withdraw as",
       "last_used": "Last used",
       "bank_and_card": "Bank and card",
       "crypto": "Crypto",
       "perps": "Perps",
       "perps_account": "Perps account",
+      "predict": "Predict",
+      "predict_account": "Predict account",
       "add": "Add",
       "available_balance": "{{balance}} available",
       "other_assets": "Other assets",
-      "other_assets_description": "Select from your tokens"
+      "other_assets_description": "Select from your tokens",
+      "other_assets_withdraw_description": "Select the token you want to withdraw",
+      "money_account": "Money account"
     },
     "staking_footer": {
       "part1": "By continuing, you agree to our ",
@@ -7215,8 +7342,8 @@
       "perps_withdraw": "Withdraw",
       "predict_deposit": "Add Prediction funds",
       "predict_withdraw": "Withdraw",
-      "money_account_add_money": "Add money",
-      "money_account_transfer_money": "Transfer money"
+      "money_account_add_money": "Add funds",
+      "money_account_transfer_money": "Transfer funds"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
@@ -7336,7 +7463,7 @@
       "buy_button": "Buy crypto",
       "buy_predict": "Add funds to your wallet to use Predictions.",
       "buy_perps": "Add funds to your wallet to use Perps.",
-      "projected_five_year_balance": "Projected 5-year balance:"
+      "projected_balance": "Projected {{projectedYears}}-year balance:"
     },
     "unlimited": "Unlimited",
     "all": "All",
@@ -7393,6 +7520,9 @@
     "batch_sell_total_received": "Total received",
     "batch_sell_minimum_received": "Minimum received",
     "batch_sell_quote_details_row": "{{tokenSymbol}} • {{slippage}} slippage",
+    "batch_sell_no_quote_available": "No quote available",
+    "batch_sell_high_price_impact": "High price impact",
+    "batch_sell_high_price_impact_description": "This trade has an estimated {{priceImpact}} price impact, which reflects how much your trade changes the market price. The quote already reflects this.",
     "batch_sell_review": "Review",
     "batch_sell_you_sell": "You sell",
     "batch_sell_token_count": "{{tokenCount}} tokens",
@@ -7432,6 +7562,7 @@
     "quote_info_title": "Rate",
     "network_fee_info_title": "Network fee",
     "network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is.",
+    "batch_sell_network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is. If you don't have enough to cover the fee, we'll take it from the token you're converting to.",
     "network_fee_info_content_sponsored": "This network fee is paid by MetaMask, so you can transact without {{nativeToken}} in your account.",
     "points": "Est. points",
     "points_tooltip": "Points",
@@ -8281,10 +8412,12 @@
       "money_account_label": "Money account",
       "money_account_token_symbol": "mUSD",
       "use_money_account_cta": "Use Money account",
-      "spend_and_earn_title": "Spend while you earn",
-      "spend_and_earn_description": "Spend with your Money account and earn up to {{apy}}% APY on your balance. Also get {{cashback}}% mUSD back.",
-      "spend_and_earn_description_no_apy": "Spend with your Money account and earn APY on your balance. Also get {{cashback}}% mUSD back.",
-      "spend_and_earn_cta": "Link to Money account"
+      "spend_and_earn_title": "Spend and earn",
+      "spend_and_earn_description_prefix": "Link your balance to your card and get mUSD back on purchases. Plus, earn up to ",
+      "spend_and_earn_description_apy": "{{apy}}% APY",
+      "spend_and_earn_description_suffix": " (variable) on your balance.",
+      "spend_and_earn_description_no_apy": "Link your balance to your card and get mUSD back on purchases.",
+      "spend_and_earn_cta": "Link card"
     },
     "cashback_screen": {
       "title": "mUSD Back",
@@ -8512,12 +8645,16 @@
     },
     "main_title": "Rewards",
     "vip": {
+      "progress_to_next_tier": "{{pointsRemaining}} points to next tier",
       "bps_unit": "bps",
-      "badge_label": "VIP {{tier}}",
+      "badge_label": "VIP Fox {{tier}}",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
       "points_label": "Points",
-      "revenue_share_label": "Rev share",
+      "revenue_share_label": "Revenue share",
+      "swap_fees_label": "Swap fees",
+      "perps_fees_label": "Perps fees",
+      "referral_points_label": "Referral points",
       "points_from_referrals_label": "Points from referrals",
       "referrals_label": "VIP Referrals",
       "tier_benefits_title": "Tier benefits",
@@ -8530,7 +8667,7 @@
       "error_description": "Check your connection and try again.",
       "retry_button": "Retry",
       "tiers_title": "Tiers",
-      "tier_thresholds": "{{points}} total",
+      "tier_thresholds": "{{points}} points",
       "bps_value": "{{bps}} bps"
     },
     "referral_title": "Referrals",
@@ -8820,7 +8957,7 @@
       "checking_opt_in_status": "Checking opt in status",
       "swap": "Swap",
       "swap_ondo_assets": "Swap Ondo Assets",
-      "open_position": "Open Position",
+      "open_position": "Trade now",
       "how_it_works": "How it works",
       "ondo": {
         "entries_closed_title": "Entries closed",
@@ -8942,7 +9079,7 @@
       "label_notional_volume": "Notional volume",
       "pending": "Pending",
       "qualified": "Qualified",
-      "open_position_cta": "Open Position",
+      "open_position_cta": "Trade now",
       "leaderboard_title": "Leaderboard",
       "leaderboard_total_participants": "{{count}} participants",
       "last_updated": "Last updated: {{time}}",
@@ -9055,6 +9192,7 @@
       "predict_withdraw": "Withdrawal",
       "money_account_deposit": "Deposit to Money Account",
       "money_account_withdraw": "Transfer from Money Account",
+      "money_account_received": "Received",
       "default": "Transaction details"
     },
     "label": {
@@ -9066,7 +9204,9 @@
       "retry_button": "Try again",
       "total": "Total",
       "account": "Account",
-      "received_total": "Received total"
+      "received_total": "Received total",
+      "from": "From",
+      "token_received": "Token received"
     },
     "summary_title": {
       "bridge_approval": "Approve {{approveSymbol}}",
@@ -9174,7 +9314,9 @@
     "predictions": "Predictions",
     "no_results": "No results found",
     "no_results_for_feed": "No {{feedName}} results for \"{{query}}\"",
-    "showing_all_results_for": "We found these results for \"{{query}}\"",
+    "no_results_for_query": "No results found for \"{{query}}\"",
+    "no_results_check_popular": "Check out other popular assets",
+    "showing_all_results_for": "We found {{count}} other results for \"{{query}}\"",
     "popular": "Popular",
     "sites": "Sites",
     "popular_sites": "Popular sites",
@@ -9204,7 +9346,7 @@
     },
     "search_tabs": {
       "all": "All",
-      "crypto": "Cryptos",
+      "crypto": "Crypto",
       "perps": "Perps",
       "stocks": "Stocks",
       "predictions": "Predictions",
@@ -9367,6 +9509,12 @@
       "import_nfts": "Import NFTs",
       "import_nfts_description": "Easily add your collectibles",
       "view_more": "View more",
+      "more": {
+        "title": "More",
+        "import_token": "Import a token",
+        "import_nft": "Import an NFT",
+        "contact_support": "Contact support"
+      },
       "positions": {
         "no_tp_sl": "No TP/SL"
       }
@@ -9395,5 +9543,8 @@
       "social": "Social",
       "other": "Other"
     }
+  },
+  "stepper_card": {
+    "more_information": "More information"
   }
 }

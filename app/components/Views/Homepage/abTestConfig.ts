@@ -148,9 +148,96 @@ export const HOMEPAGE_PERPS_PILLS_EMPTY_VARIANTS: Record<
   },
 };
 
-export const HOMEPAGE_PERPS_PILLS_EMPTY_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+/**
+ * Shared third argument for `useABTest` on this experiment (exposure +
+ * consistent variation labels).
+ */
+export const HOMEPAGE_PERPS_PILLS_EMPTY_AB_TEST_EXPOSURE_OPTIONS = {
+  experimentName: 'Homepage Perps empty state pills',
+  variationNames: {
+    control: 'Tile carousel empty state',
+    treatment: 'Explore Perps Movers pills empty state',
+  },
+} as const;
+
+/**
+ * Builds `active_ab_tests` entries for perps transaction flows when the user is
+ * on the homepage perps **empty** surface and the flag assignment is active.
+ */
+export function getHomepagePerpsPillsEmptyTransactionActiveAbTests(
+  isAssignmentActive: boolean,
+  variantName: string,
+): TransactionActiveAbTestEntry[] | undefined {
+  if (!isAssignmentActive) {
+    return undefined;
+  }
+  return [
+    createActiveABTestAssignment(
+      HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY,
+      variantName,
+    ),
+  ];
+}
+
+/** Must match `HomeSectionNames.PERPS` in `useHomeViewedEvent` (avoid importing here — circular deps). */
+const HOMEPAGE_SECTION_NAME_PERPS = 'perps' as const;
+
+/** `Home Viewed` — homepage perps slot with empty-surface experiment exposure. */
+export const HOMEPAGE_PERPS_PILLS_EMPTY_AB_TEST_HOME_VIEWED_MAPPING: ABTestAnalyticsMapping =
   {
     flagKey: HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY,
     validVariants: Object.values(HomepagePerpsPillsEmptyVariant),
-    eventNames: [EVENT_NAME.PERPS_UI_INTERACTION],
+    eventNames: [EVENT_NAME.HOME_VIEWED],
+    injectWhenPropertiesMatch: {
+      section_name: HOMEPAGE_SECTION_NAME_PERPS,
+      is_empty: true,
+    },
   };
+
+// ─── Predict positions empty state (wallet Predict section layout) ──────────
+
+/**
+ * LaunchDarkly / remote flag key. Pattern: `{team}{TICKET}Abtest{Name}` — keep in
+ * sync with the flag in LD (team `core`, ticket MCU-747).
+ */
+export const PREDICT_POSITIONS_EMPTY_STATE_AB_KEY =
+  'coreMCU747AbtestPredictPositionsEmptyState';
+
+export enum PredictPositionsEmptyStateVariant {
+  Control = 'control',
+  Treatment = 'treatment',
+}
+
+export const PREDICT_POSITIONS_EMPTY_STATE_VARIANTS = {
+  control: { layout: 'carousel' as const },
+  treatment: { layout: 'list' as const },
+};
+
+export const PREDICT_EMPTY_STATE_CTA_NAMES = {
+  EXPLORE_FEATURED: 'explore_featured',
+  BROWSE_CATEGORY: 'browse_category',
+} as const;
+
+export type PredictEmptyStateCtaName =
+  (typeof PREDICT_EMPTY_STATE_CTA_NAMES)[keyof typeof PREDICT_EMPTY_STATE_CTA_NAMES];
+
+export function getPredictPositionsEmptyStateActiveAbTests(
+  isAssignmentActive: boolean,
+  variantName: string,
+): TransactionActiveAbTestEntry[] | undefined {
+  if (!isAssignmentActive) {
+    return undefined;
+  }
+  return [
+    createActiveABTestAssignment(
+      PREDICT_POSITIONS_EMPTY_STATE_AB_KEY,
+      variantName,
+    ),
+  ];
+}
+
+// Backward-compatible aliases for the existing hook/component names.
+export const PREDICT_HOMEPAGE_DISCOVERY_AB_KEY =
+  PREDICT_POSITIONS_EMPTY_STATE_AB_KEY;
+export const PREDICT_HOMEPAGE_DISCOVERY_VARIANTS =
+  PREDICT_POSITIONS_EMPTY_STATE_VARIANTS;

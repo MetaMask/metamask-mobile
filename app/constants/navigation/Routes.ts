@@ -1,4 +1,5 @@
 const Routes = {
+  MAIN_FLOW: 'Main',
   HOME_TABS: 'Home',
   WALLET_VIEW: 'WalletView',
   BROWSER_TAB_HOME: 'BrowserTabHome',
@@ -131,7 +132,6 @@ const Routes = {
   WHATS_HAPPENING_DETAIL: 'WhatsHappeningDetailView',
   SITES_FULL_VIEW: 'SitesFullView',
   EXPLORE_SEARCH: 'ExploreSearch',
-  EXPLORE_SECTION_RESULTS_FULL_VIEW: 'ExploreSectionResultsFullView',
   REWARDS_ONBOARDING_FLOW: 'RewardsOnboardingFlow',
   REWARDS_ONBOARDING_INTRO: 'RewardsOnboardingIntro',
   REWARD_BENEFITS_FULL_VIEW: 'BenefitsFullView',
@@ -332,6 +332,7 @@ const Routes = {
       BATCH_SELL_NETWORK_FEE_INFO_MODAL: 'BatchSellNetworkFeeInfoModal',
       BATCH_SELL_MINIMUM_RECEIVED_INFO_MODAL:
         'BatchSellMinimumReceivedInfoModal',
+      BATCH_SELL_PRICE_IMPACT_INFO_MODAL: 'BatchSellPriceImpactInfoModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
@@ -404,8 +405,6 @@ const Routes = {
   CONFIRMATION_PAY_WITH_NETWORK_MODAL: 'ConfirmationPayWithNetworkModal',
   NOTIFICATIONS: {
     VIEW: 'NotificationsView',
-    OPT_IN: 'OptIn',
-    OPT_IN_STACK: 'OptInStack',
     DETAILS: 'NotificationsDetails',
   },
   STAKING: {
@@ -438,6 +437,7 @@ const Routes = {
   },
   MONEY: {
     ROOT: 'MoneyScreens',
+    CONFIRMATIONS_ROOT: 'MoneyConfirmations',
     HOME: 'MoneyHome',
     ACTIVITY: 'MoneyActivity',
     HOW_IT_WORKS: 'MoneyHowItWorks',
