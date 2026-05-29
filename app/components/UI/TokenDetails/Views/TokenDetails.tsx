@@ -247,6 +247,16 @@ const TokenDetails: React.FC<{
     networkName,
   });
 
+  const handleBuy = useCallback(() => {
+    onCtaClicked?.();
+    onBuy();
+  }, [onBuy, onCtaClicked]);
+
+  const handleSend = useCallback(async () => {
+    onCtaClicked?.();
+    await onSend();
+  }, [onSend, onCtaClicked]);
+
   const {
     transactions,
     submittedTxs,
@@ -281,8 +291,8 @@ const TokenDetails: React.FC<{
         chartNavigationButtons={chartNavigationButtons}
         isPerpsEnabled={isPerpsEnabled}
         currentCurrency={currentCurrency}
-        onBuy={onBuy}
-        onSend={onSend}
+        onBuy={handleBuy}
+        onSend={handleSend}
         onReceive={onReceive}
         onMarketInsightsDisplayResolved={onMarketInsightsDisplayResolved}
         onMarketInsightsDisclaimerPress={() =>
@@ -387,6 +397,7 @@ const TokenDetails: React.FC<{
  */
 export const TokenDetailsRouteWrapper: React.FC = () => {
   const route = useRoute();
+  const navigation = useNavigation();
   const token = route.params as TokenDetailsRouteParams;
 
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
@@ -422,7 +433,13 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextAppState) => {
       if (nextAppState === 'background' || nextAppState === 'inactive') {
-        closeSourceRef.current = 'app_backgrounded';
+        if (closeSourceRef.current !== 'app_backgrounded') {
+          closeSourceRef.current = 'app_backgrounded';
+          fireClosedRef.current();
+        }
+      } else if (nextAppState === 'active') {
+        closeSourceRef.current = null;
+        openedAtRef.current = Date.now();
       }
     });
 
@@ -431,13 +448,25 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', () => {
+      if (closeSourceRef.current !== 'app_backgrounded') {
+        fireClosedRef.current();
+      }
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
   useFocusEffect(
     useCallback(() => {
       closeSourceRef.current = null;
       openedAtRef.current = Date.now();
 
       return () => {
-        fireClosedRef.current();
+        if (closeSourceRef.current === 'cta_clicked') {
+          fireClosedRef.current();
+        }
       };
     }, []),
   );
