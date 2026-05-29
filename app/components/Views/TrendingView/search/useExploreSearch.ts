@@ -113,6 +113,12 @@ export const useExploreSearch = (
         title: t('trending.search_tabs.stocks', 'trending.stocks'),
         items: trim(stocks.data),
         isLoading: isDebouncing || stocks.isLoading,
+        ...(exposePagination && {
+          fetchMore: stocks.loadMore,
+          isFetchingMore: stocks.isLoadingMore,
+          hasMore: stocks.hasMore,
+          total: stocks.totalCount,
+        }),
       },
       {
         feedId: 'predictions',
@@ -152,6 +158,10 @@ export const useExploreSearch = (
     perps.isLoading,
     stocks.data,
     stocks.isLoading,
+    stocks.loadMore,
+    stocks.isLoadingMore,
+    stocks.hasMore,
+    stocks.totalCount,
     predictions.data,
     predictions.isLoading,
     predictions.fetchMore,

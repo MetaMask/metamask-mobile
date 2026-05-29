@@ -24,7 +24,10 @@ import { navigateToPerpsMarketList } from '../feeds/perps/perpsNavigation';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
 import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarouselSection';
 import { navigateToPredictionsList } from '../feeds/predictions/predictionsNavigation';
-import { useStocksFeed } from '../feeds/stocks/useStocksFeed';
+import {
+  STOCKS_FEED_PREVIEW_PAGE_SIZE,
+  useStocksFeed,
+} from '../feeds/stocks/useStocksFeed';
 import { getCaipChainIdFromAssetId } from '../../../UI/Trending/components/TrendingTokenRowItem/utils';
 import CardList from '../components/CardList';
 import ExploreScroll from '../components/ExploreScroll';
@@ -119,7 +122,10 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
 
   const predictions = usePredictionsFeed({ refresh });
   const cryptoMovers = useTokensFeed({ refresh, hideRiskyTokens: true });
-  const stocks = useStocksFeed({ refresh });
+  const stocks = useStocksFeed({
+    refresh,
+    pageSize: STOCKS_FEED_PREVIEW_PAGE_SIZE,
+  });
 
   const renderTokenItem: ListRenderItem<TrendingAsset> = useCallback(
     ({ item, index }) => (

@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Platform } from 'react-native';
+import { ActivityIndicator, Platform } from 'react-native';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import {
   useNavigation,
@@ -26,6 +26,7 @@ import type { PerpsMarketData } from '@metamask/perps-controller';
 import type { PredictMarket as PredictMarketType } from '../../../../UI/Predict/types';
 import type { SiteData } from '../../../../UI/Sites/components/SiteRowItem/SiteRowItem';
 import PerpsSectionProvider from '../../feeds/perps/PerpsSectionProvider';
+import { useStocksFeed } from '../../feeds/stocks/useStocksFeed';
 import SearchFeedRow from '../../search/SearchFeedRow';
 import { useScrollTracking } from '../../search/analytics';
 import type { SearchFeedId } from '../../search/useExploreSearch';
@@ -34,7 +35,10 @@ const SectionContent: React.FC<{
   feedId: SearchFeedId;
   searchQuery: string;
   data: unknown[];
-}> = ({ feedId, searchQuery, data }) => {
+  fetchMore?: () => void;
+  isFetchingMore?: boolean;
+  hasMore?: boolean;
+}> = ({ feedId, searchQuery, data, fetchMore, isFetchingMore, hasMore }) => {
   const tw = useTailwind();
   const { onScrollBeginDrag } = useScrollTracking('scrolled', searchQuery, {
     tab_name: feedId,
@@ -70,6 +74,12 @@ const SectionContent: React.FC<{
     [feedId],
   );
 
+  const handleEndReached = useCallback(() => {
+    if (hasMore && fetchMore) {
+      fetchMore();
+    }
+  }, [fetchMore, hasMore]);
+
   return (
     <FlashList
       data={data}
@@ -78,6 +88,36 @@ const SectionContent: React.FC<{
       contentContainerStyle={tw.style('px-4')}
       showsVerticalScrollIndicator={false}
       onScrollBeginDrag={onScrollBeginDrag}
+      onEndReached={handleEndReached}
+      onEndReachedThreshold={0.3}
+      ListFooterComponent={
+        isFetchingMore ? (
+          <ActivityIndicator
+            style={tw.style('py-4')}
+            accessibilityLabel="Loading more results"
+          />
+        ) : null
+      }
+    />
+  );
+};
+
+const StocksSectionContent: React.FC<{
+  searchQuery: string;
+  initialData: unknown[];
+}> = ({ searchQuery, initialData }) => {
+  const { data, isLoading, loadMore, isLoadingMore, hasMore } = useStocksFeed({
+    query: searchQuery,
+  });
+
+  return (
+    <SectionContent
+      feedId="stocks"
+      searchQuery={searchQuery}
+      data={isLoading ? initialData : data}
+      fetchMore={loadMore}
+      isFetchingMore={isLoadingMore}
+      hasMore={hasMore}
     />
   );
 };
@@ -117,7 +157,15 @@ const ExploreSectionResultsFullView: React.FC = () => {
       </Box>
 
       <Wrapper>
-        <SectionContent feedId={feedId} searchQuery={searchQuery} data={data} />
+        {feedId === 'stocks' ? (
+          <StocksSectionContent searchQuery={searchQuery} initialData={data} />
+        ) : (
+          <SectionContent
+            feedId={feedId}
+            searchQuery={searchQuery}
+            data={data}
+          />
+        )}
       </Wrapper>
     </Box>
   );
