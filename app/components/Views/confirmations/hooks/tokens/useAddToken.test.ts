@@ -8,6 +8,7 @@ import {
   otherControllersMock,
 } from '../../__mocks__/controllers/other-controllers-mock';
 import { Token } from '@metamask/assets-controllers';
+import { selectIsAssetsUnifyStateEnabled } from '../../../../../selectors/featureFlagController/assetsUnifyState';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -17,9 +18,20 @@ jest.mock('../../../../../core/Engine', () => ({
     TokensController: {
       addToken: jest.fn(),
     },
+    AssetsController: {
+      addCustomAsset: jest.fn(),
+    },
   },
 }));
 
+jest.mock(
+  '../../../../../selectors/featureFlagController/assetsUnifyState',
+  () => ({
+    selectIsAssetsUnifyStateEnabled: jest.fn(() => false),
+  }),
+);
+
+const ACCOUNT_ID_MOCK = 'mock-account-id';
 const TOKEN_ADDRESS_MOCK = '0x1234' as const;
 const CHAIN_ID_MOCK = '0x1' as const;
 const NETWORK_CLIENT_ID = 'mockNetworkClientId';
@@ -43,6 +55,21 @@ async function runHook({
       state: merge({}, otherControllersMock, {
         engine: {
           backgroundState: {
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [ACCOUNT_ID_MOCK]: {
+                    id: ACCOUNT_ID_MOCK,
+                    address: accountMock,
+                    metadata: {
+                      name: 'Account 1',
+                      keyring: { type: 'HD Key Tree' },
+                    },
+                  },
+                },
+                selectedAccount: ACCOUNT_ID_MOCK,
+              },
+            },
             TokensController: {
               allTokens: {
                 [CHAIN_ID_MOCK]: {
@@ -65,6 +92,9 @@ async function runHook({
 
 describe('useAddToken', () => {
   const mockAddToken = jest.mocked(Engine.context.TokensController.addToken);
+  const mockAddCustomAsset = jest.mocked(
+    Engine.context.AssetsController.addCustomAsset,
+  );
 
   const mockFindNetworkClientIdByChainId = jest.mocked(
     Engine.context.NetworkController.findNetworkClientIdByChainId,
@@ -75,6 +105,10 @@ describe('useAddToken', () => {
 
     mockFindNetworkClientIdByChainId.mockReturnValue(NETWORK_CLIENT_ID);
     mockAddToken.mockResolvedValue([]);
+    mockAddCustomAsset.mockResolvedValue(undefined);
+    (selectIsAssetsUnifyStateEnabled as unknown as jest.Mock).mockReturnValue(
+      false,
+    );
   });
 
   it('adds token if not present', async () => {
@@ -99,5 +133,46 @@ describe('useAddToken', () => {
     });
 
     expect(mockAddToken).not.toHaveBeenCalled();
+  });
+
+  it('does not call addCustomAsset when assetsUnifyState is disabled', async () => {
+    await runHook();
+
+    expect(mockAddToken).toHaveBeenCalled();
+    expect(mockAddCustomAsset).not.toHaveBeenCalled();
+  });
+
+  it('calls addCustomAsset when assetsUnifyState is enabled', async () => {
+    (selectIsAssetsUnifyStateEnabled as unknown as jest.Mock).mockReturnValue(
+      true,
+    );
+
+    await runHook();
+
+    expect(mockAddToken).toHaveBeenCalled();
+    expect(mockAddCustomAsset).toHaveBeenCalledWith(
+      ACCOUNT_ID_MOCK,
+      expect.stringContaining('erc20'),
+      {
+        address: TOKEN_ADDRESS_MOCK,
+        chainId: CHAIN_ID_MOCK,
+        decimals: DECIMALS_MOCK,
+        name: NAME_MOCK,
+        symbol: SYMBOL_MOCK,
+      },
+    );
+  });
+
+  it('does not add token if already present with assetsUnifyState enabled', async () => {
+    (selectIsAssetsUnifyStateEnabled as unknown as jest.Mock).mockReturnValue(
+      false,
+    );
+
+    await runHook({
+      existingTokens: [{ address: TOKEN_ADDRESS_MOCK }],
+    });
+
+    expect(mockAddToken).not.toHaveBeenCalled();
+    expect(mockAddCustomAsset).not.toHaveBeenCalled();
   });
 });
