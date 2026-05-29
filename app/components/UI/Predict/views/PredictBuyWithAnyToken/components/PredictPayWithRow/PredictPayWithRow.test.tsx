@@ -155,13 +155,13 @@ describe('PredictPayWithRow', () => {
     expect(screen.queryByTestId(/token-icon/)).toBeNull();
   });
 
-  it('navigates to pay-with modal on press', () => {
+  it('navigates to pay-with bottom sheet on press', () => {
     renderWithProvider(<PredictPayWithRow />);
 
     fireEvent.press(screen.getByText('Pay with USDC'));
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.CONFIRMATION_PAY_WITH_MODAL,
+      Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET,
     );
   });
 
@@ -178,7 +178,7 @@ describe('PredictPayWithRow', () => {
 
     expect(onPaymentSelectorOpen).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.CONFIRMATION_PAY_WITH_MODAL,
+      Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET,
     );
     expect(callOrder).toStrictEqual(['lock', 'navigate']);
   });
@@ -382,13 +382,13 @@ describe('PredictPayWithRow', () => {
       expect(screen.getByText(/USDC/)).toBeOnTheScreen();
     });
 
-    it('navigates to pay-with modal on press', () => {
+    it('navigates to pay-with bottom sheet on press', () => {
       renderWithProvider(<PredictPayWithRow variant="row" />);
 
       fireEvent.press(screen.getByText('Pay with'));
 
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.CONFIRMATION_PAY_WITH_MODAL,
+        Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET,
       );
     });
 

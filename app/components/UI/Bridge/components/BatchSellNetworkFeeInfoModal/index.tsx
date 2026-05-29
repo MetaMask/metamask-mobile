@@ -48,7 +48,7 @@ export function BatchSellNetworkFeeInfoModal() {
           color={TextColor.TextAlternative}
           testID={BatchSellNetworkFeeInfoModalSelectorsIDs.DESCRIPTION}
         >
-          {strings('bridge.network_fee_info_content')}
+          {strings('bridge.batch_sell_network_fee_info_content')}
         </Text>
       </Box>
     </BottomSheet>

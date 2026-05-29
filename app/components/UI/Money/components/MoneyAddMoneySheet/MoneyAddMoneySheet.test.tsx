@@ -9,8 +9,10 @@ import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+  MUSD_TOKEN_ADDRESS_BY_CHAIN,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../Earn/constants/musd';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockNavigate = jest.fn();
@@ -91,6 +93,7 @@ describe('MoneyAddMoneySheet', () => {
       fiatBalanceAggregatedFormatted: '$1,203.89',
       hasMusdBalanceOnAnyChain: true,
       tokenBalanceAggregated: '1203.89',
+      tokenBalanceByChain: { [CHAIN_IDS.MAINNET]: '1203.89' },
     });
     (useMoneyAccountDeposit as jest.Mock).mockReturnValue({
       initiateDeposit: mockInitiateDeposit,
@@ -146,6 +149,7 @@ describe('MoneyAddMoneySheet', () => {
       fiatBalanceAggregatedFormatted: 'CA$1,500.00',
       hasMusdBalanceOnAnyChain: true,
       tokenBalanceAggregated: '1500.00',
+      tokenBalanceByChain: { [CHAIN_IDS.MAINNET]: '1500.00' },
     });
     const { getByText } = renderWithProvider(<MoneyAddMoneySheet />);
 
@@ -158,6 +162,7 @@ describe('MoneyAddMoneySheet', () => {
       fiatBalanceAggregatedFormatted: '$0.00',
       hasMusdBalanceOnAnyChain: false,
       tokenBalanceAggregated: '0',
+      tokenBalanceByChain: {},
     });
 
     const { queryByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
@@ -173,6 +178,7 @@ describe('MoneyAddMoneySheet', () => {
       fiatBalanceAggregatedFormatted: '$0.00',
       hasMusdBalanceOnAnyChain: false,
       tokenBalanceAggregated: '0',
+      tokenBalanceByChain: {},
     });
 
     const { queryByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
@@ -188,6 +194,7 @@ describe('MoneyAddMoneySheet', () => {
       fiatBalanceAggregatedFormatted: '$12.34',
       hasMusdBalanceOnAnyChain: true,
       tokenBalanceAggregated: '12.34',
+      tokenBalanceByChain: { [CHAIN_IDS.MAINNET]: '12.34' },
     });
 
     const { getByTestId, getByText } = renderWithProvider(
@@ -206,6 +213,7 @@ describe('MoneyAddMoneySheet', () => {
       fiatBalanceAggregatedFormatted: '$0.00',
       hasMusdBalanceOnAnyChain: true,
       tokenBalanceAggregated: '42.5',
+      tokenBalanceByChain: { [CHAIN_IDS.MAINNET]: '42.5' },
     });
 
     const { getByTestId, getByText } = renderWithProvider(
@@ -242,14 +250,51 @@ describe('MoneyAddMoneySheet', () => {
     expect(mockInitiateDeposit).toHaveBeenCalledWith();
   });
 
-  it('closes the sheet when Move mUSD is pressed (interim, no flow wired yet)', () => {
+  it('initiates a deposit pre-selecting mUSD on the highest-balance chain when Move mUSD is pressed', () => {
+    (useMusdBalance as jest.Mock).mockReturnValue({
+      fiatBalanceAggregated: '1500.00',
+      fiatBalanceAggregatedFormatted: '$1,500.00',
+      hasMusdBalanceOnAnyChain: true,
+      tokenBalanceAggregated: '1500.00',
+      tokenBalanceByChain: {
+        [CHAIN_IDS.MAINNET]: '500.00',
+        [CHAIN_IDS.LINEA_MAINNET]: '1000.00',
+      },
+    });
+
     const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
 
     fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION));
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).not.toHaveBeenCalled();
-    expect(mockGoToBuy).not.toHaveBeenCalled();
-    expect(mockInitiateDeposit).not.toHaveBeenCalled();
+    expect(mockInitiateDeposit).toHaveBeenCalledWith({
+      intent: 'addMusd',
+      preferredPaymentToken: {
+        address: MUSD_TOKEN_ADDRESS_BY_CHAIN[CHAIN_IDS.LINEA_MAINNET],
+        chainId: CHAIN_IDS.LINEA_MAINNET,
+      },
+    });
+  });
+
+  it('falls back to the default mUSD chain when no per-chain balances are available', () => {
+    (useMusdBalance as jest.Mock).mockReturnValue({
+      fiatBalanceAggregated: '12.34',
+      fiatBalanceAggregatedFormatted: '$12.34',
+      hasMusdBalanceOnAnyChain: true,
+      tokenBalanceAggregated: '12.34',
+      tokenBalanceByChain: undefined,
+    });
+
+    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION));
+
+    expect(mockInitiateDeposit).toHaveBeenCalledWith({
+      intent: 'addMusd',
+      preferredPaymentToken: {
+        address: MUSD_TOKEN_ADDRESS_BY_CHAIN[MUSD_CONVERSION_DEFAULT_CHAIN_ID],
+        chainId: MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+      },
+    });
   });
 });

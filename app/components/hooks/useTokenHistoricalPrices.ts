@@ -73,7 +73,21 @@ const useTokenHistoricalPrices = ({
           name: TraceName.FetchHistoricalPrices,
           data: { uri: uri.toString() },
         });
-        const response = await fetch(uri.toString());
+
+        // Add 3 second timeout to prevent infinite hang
+        const FETCH_TIMEOUT_MS = 3000;
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(
+            () => reject(new Error('Historical prices fetch timeout')),
+            FETCH_TIMEOUT_MS,
+          );
+        });
+
+        const response = await Promise.race([
+          fetch(uri.toString()),
+          timeoutPromise,
+        ]);
+
         endTrace({ name: TraceName.FetchHistoricalPrices });
         if (response.status === 204) {
           setPrices([]);

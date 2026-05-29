@@ -116,6 +116,10 @@ jest.mock('../PerpsFeesDisplay', () => {
   };
 });
 
+jest.mock('../../../Rewards/hooks/useVipTier', () => ({
+  useVipTier: () => null,
+}));
+
 jest.mock('../../../Rewards/components/RewardPointsAnimation', () => ({
   __esModule: true,
   default: () => null,
@@ -341,7 +345,13 @@ describe('PerpsFlipPositionConfirmSheet', () => {
     fireEvent.press(screen.getByText('Flip'));
 
     await waitFor(() => {
-      expect(mockHandleFlipPosition).toHaveBeenCalledWith(mockLongPosition);
+      expect(mockHandleFlipPosition).toHaveBeenCalledWith(
+        mockLongPosition,
+        expect.objectContaining({
+          totalFee: expect.any(Number),
+          marketPrice: expect.any(Number),
+        }),
+      );
     });
   });
 

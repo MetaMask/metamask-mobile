@@ -754,7 +754,7 @@ describe('SearchTokenAutocomplete', () => {
       );
     });
 
-    it('does not call AssetsController.addCustomAsset for non-EVM chains', async () => {
+    it('calls AssetsController.addCustomAsset for non-EVM chains', async () => {
       mockSelectInternalAccountByScope.mockReturnValue({
         id: 'non-evm-account-id',
         address: 'non-evm-address',
@@ -767,7 +767,10 @@ describe('SearchTokenAutocomplete', () => {
       const [, params] = mockNavigation.navigate.mock.calls[0];
       await params.addTokenList();
 
-      expect(mockAddCustomAsset).not.toHaveBeenCalled();
+      expect(mockAddCustomAsset).toHaveBeenCalledWith(
+        'non-evm-account-id',
+        'solana-address-123',
+      );
     });
   });
 });
