@@ -90,7 +90,7 @@ const navigateToExploreTab = async (
 };
 
 /**
- * Navigates to the Crypto tab in the V2 tabbed Explore layout.
+ * Navigates to the Crypto tab in the tabbed Explore layout.
  * Trending tokens (and their "View All" button) live in the Crypto tab.
  */
 const navigateToCryptoTab = async (getByTestId: RenderAPI['getByTestId']) =>
@@ -220,7 +220,7 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
     });
   });
 
-  it('user switches between Explore V2 tabs and sees tab-specific sections', async () => {
+  it('user switches between Explore tabs and sees tab-specific sections', async () => {
     const { getByTestId, getByText, queryAllByTestId } =
       renderTrendingViewWithRoutes();
 
@@ -262,7 +262,7 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
     });
   });
 
-  it('opens the requested Explore V2 tab from route params', async () => {
+  it('opens the requested Explore tab from route params', async () => {
     const { getByText, queryAllByTestId } = renderTrendingViewWithRoutes({
       initialParams: { initialTab: EXPLORE_TAB_INDEX.SITES },
     });

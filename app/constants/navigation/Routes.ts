@@ -132,7 +132,6 @@ const Routes = {
   WHATS_HAPPENING_DETAIL: 'WhatsHappeningDetailView',
   SITES_FULL_VIEW: 'SitesFullView',
   EXPLORE_SEARCH: 'ExploreSearch',
-  EXPLORE_SECTION_RESULTS_FULL_VIEW: 'ExploreSectionResultsFullView',
   REWARDS_ONBOARDING_FLOW: 'RewardsOnboardingFlow',
   REWARDS_ONBOARDING_INTRO: 'RewardsOnboardingIntro',
   REWARD_BENEFITS_FULL_VIEW: 'BenefitsFullView',
