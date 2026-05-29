@@ -146,7 +146,7 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => {
   return { useAnalytics: () => createMockUseAnalyticsHook() };
 });
 
-jest.mock('../../../UI/AssetOverview/PriceChart', () => {
+jest.mock('../../../UI/AssetOverview/PriceChart/PriceChart', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
