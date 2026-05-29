@@ -48,8 +48,10 @@ describe('PerpsProductPills', () => {
     );
   });
 
-  it('tracks analytics event on pill press', () => {
-    const { getByTestId } = renderWithProvider(<PerpsProductPills />);
+  it('tracks analytics event on pill press with source', () => {
+    const { getByTestId } = renderWithProvider(
+      <PerpsProductPills source="perps_home" />,
+    );
 
     fireEvent.press(getByTestId('perps-product-pills-stocks'));
 
@@ -58,6 +60,7 @@ describe('PerpsProductPills', () => {
       expect.objectContaining({
         product: 'stocks',
         pill_position: 1,
+        source: 'perps_home',
       }),
     );
   });

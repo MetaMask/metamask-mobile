@@ -528,7 +528,6 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
           searchQuery={searchQuery}
           handleSelectAsset={handleSelectAsset}
           selectedAsset={selectedAssets}
-          chainId={selectedChainId ?? ''}
           networkName={networkName}
           alreadyAddedTokens={alreadyAddedTokens}
           isLoading={isLoading}

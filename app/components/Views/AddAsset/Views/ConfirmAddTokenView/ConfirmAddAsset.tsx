@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -6,6 +6,7 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
 import getHeaderCompactStandardNavbarOptions from '../../../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
+import Logger from '../../../../../util/Logger';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
@@ -40,23 +41,21 @@ const ConfirmAddAsset = () => {
   const { selectedAsset, networkName, addTokenList } = useParams<{
     selectedAsset: ImportAsset[];
     networkName: string;
-    addTokenList: () => void;
+    addTokenList: () => Promise<void>;
   }>();
 
   const tw = useTailwind();
   const navigation = useNavigation();
+  const [isImporting, setIsImporting] = useState(false);
 
-  /**
-   * Go to wallet page
-   */
-  const goToWalletPage = () => {
+  const goToWalletPage = useCallback(() => {
     navigation.navigate(Routes.WALLET.HOME, {
       screen: Routes.WALLET.TAB_STACK_FLOW,
       params: {
         screen: Routes.WALLET_VIEW,
       },
     });
-  };
+  }, [navigation]);
 
   const updateNavBar = useCallback(() => {
     navigation.setOptions(
@@ -71,6 +70,22 @@ const ConfirmAddAsset = () => {
   useEffect(() => {
     updateNavBar();
   }, [updateNavBar]);
+
+  const handleImport = useCallback(async () => {
+    if (isImporting) {
+      return;
+    }
+
+    setIsImporting(true);
+
+    try {
+      await addTokenList();
+      goToWalletPage();
+    } catch (error) {
+      Logger.error(error as Error, 'ConfirmAddAsset: failed to import tokens');
+      setIsImporting(false);
+    }
+  }, [addTokenList, goToWalletPage, isImporting]);
 
   return (
     <SafeAreaView
@@ -104,13 +119,11 @@ const ConfirmAddAsset = () => {
                   />
                 }
               >
-                {asset.image && (
-                  <AvatarToken
-                    name={asset.symbol}
-                    imageSource={{ uri: asset.image }}
-                    size={AvatarSize.Lg}
-                  />
-                )}
+                <AvatarToken
+                  name={asset.symbol}
+                  imageSource={asset.image ? { uri: asset.image } : undefined}
+                  size={AvatarSize.Lg}
+                />
               </BadgeWrapper>
             </Box>
 
@@ -136,15 +149,15 @@ const ConfirmAddAsset = () => {
             label: strings('confirmation_modal.cancel_cta'),
             variant: ButtonVariants.Secondary,
             size: ButtonSize.Lg,
+            isDisabled: isImporting,
           },
           {
-            onPress: async () => {
-              await addTokenList();
-              goToWalletPage();
-            },
+            onPress: handleImport,
             label: strings('swaps.Import'),
             variant: ButtonVariants.Primary,
             size: ButtonSize.Lg,
+            isDisabled: isImporting,
+            loading: isImporting,
           },
         ]}
         buttonsAlignment={ButtonsAlignment.Horizontal}

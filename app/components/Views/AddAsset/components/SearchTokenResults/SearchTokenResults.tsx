@@ -44,10 +44,6 @@ interface Props {
    */
   searchQuery: string;
   /**
-   * ChainID of the network
-   */
-  chainId: string;
-  /**
    * Symbol of the network
    */
   ticker?: string;
@@ -164,13 +160,11 @@ const SearchTokenResults = ({
                   />
                 }
               >
-                {image && (
-                  <AvatarToken
-                    name={symbol}
-                    imageSource={{ uri: image }}
-                    size={AvatarSize.Lg}
-                  />
-                )}
+                <AvatarToken
+                  name={symbol}
+                  imageSource={image ? { uri: image } : undefined}
+                  size={AvatarSize.Lg}
+                />
               </BadgeWrapper>
             </Box>
             <Box twClassName="flex-1 justify-center px-1">

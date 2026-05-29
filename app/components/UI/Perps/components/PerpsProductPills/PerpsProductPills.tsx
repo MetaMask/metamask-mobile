@@ -65,6 +65,7 @@ const PerpsProductPills: React.FC<PerpsProductPillsProps> = ({
         [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: `product_pill_tapped`,
         [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
           PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
+        [PERPS_EVENT_PROPERTY.SOURCE]: source,
         product: category,
         pill_position: index,
       });
@@ -80,7 +81,7 @@ const PerpsProductPills: React.FC<PerpsProductPillsProps> = ({
           : {}),
       });
     },
-    [track, perpsNavigation, transactionActiveAbTests],
+    [track, perpsNavigation, source, transactionActiveAbTests],
   );
 
   return (
