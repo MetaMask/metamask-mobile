@@ -81,6 +81,7 @@ import PerpsNavigationCard, {
 } from '../../components/PerpsNavigationCard/PerpsNavigationCard';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
+import PerpsProductPills from '../../components/PerpsProductPills';
 
 interface PerpsHomeViewProps {
   hideHeader?: boolean;
@@ -579,6 +580,12 @@ const PerpsHomeView = ({
             ))}
           </View>
         </PerpsHomeSection>
+
+        {/* Product Pills Row */}
+        <PerpsProductPills
+          source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+          transactionActiveAbTests={transactionActiveAbTests}
+        />
 
         {/* Watchlist Section */}
         <PerpsWatchlistMarkets
