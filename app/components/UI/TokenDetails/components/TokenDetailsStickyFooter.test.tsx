@@ -98,6 +98,11 @@ jest.mock('../hooks/useStickyFooterTracking', () => ({
   useStickyFooterTracking: () => mockTrackStickyFooterTapped,
 }));
 
+const mockGetResultTypeConfig = jest.fn();
+jest.mock('../../SecurityTrust/utils/securityUtils', () => ({
+  getResultTypeConfig: (...args: unknown[]) => mockGetResultTypeConfig(...args),
+}));
+
 const mockToken: TokenDetailsRouteParams = {
   address: '0x123',
   symbol: 'ETH',
@@ -127,6 +132,7 @@ describe('TokenDetailsStickyFooter', () => {
       variantName: StickyFooterSwapLabelVariant.Control,
       isActive: false,
     });
+    mockGetResultTypeConfig.mockReturnValue({});
   });
 
   describe('button visibility', () => {
@@ -560,6 +566,130 @@ describe('TokenDetailsStickyFooter', () => {
       fireEvent.press(getByText('Buy'));
 
       expect(mockOnBuy).toHaveBeenCalled();
+    });
+  });
+
+  describe('onSwapPress and onBuyPress callback timing', () => {
+    it('calls onSwapPress only when navigation occurs (not geo-restricted)', () => {
+      const onSwapPress = jest.fn();
+      mockIsStockToken.mockReturnValue(false);
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          onSwapPress={onSwapPress}
+        />,
+      );
+
+      fireEvent.press(getByText('Swap'));
+
+      expect(onSwapPress).toHaveBeenCalled();
+      expect(mockOnSwap).toHaveBeenCalled();
+    });
+
+    it('does not call onSwapPress when geo-restricted', () => {
+      const onSwapPress = jest.fn();
+      mockIsStockToken.mockReturnValue(true);
+      (useSelector as jest.Mock).mockReturnValue('US');
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          onSwapPress={onSwapPress}
+        />,
+      );
+
+      fireEvent.press(getByText('Swap'));
+
+      expect(onSwapPress).not.toHaveBeenCalled();
+      expect(mockOnSwap).not.toHaveBeenCalled();
+    });
+
+    it('calls onBuyPress only when navigation occurs (not geo-restricted)', () => {
+      const onBuyPress = jest.fn();
+      mockIsStockToken.mockReturnValue(false);
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter {...defaultProps} onBuyPress={onBuyPress} />,
+      );
+
+      fireEvent.press(getByText('Buy'));
+
+      expect(onBuyPress).toHaveBeenCalled();
+      expect(mockOnBuy).toHaveBeenCalled();
+    });
+
+    it('does not call onBuyPress when geo-restricted', () => {
+      const onBuyPress = jest.fn();
+      mockIsStockToken.mockReturnValue(true);
+      (useSelector as jest.Mock).mockReturnValue('GB');
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter {...defaultProps} onBuyPress={onBuyPress} />,
+      );
+
+      fireEvent.press(getByText('Buy'));
+
+      expect(onBuyPress).not.toHaveBeenCalled();
+      expect(mockOnBuy).not.toHaveBeenCalled();
+    });
+
+    it('does not call onSwapPress when security warning modal is shown', () => {
+      const onSwapPress = jest.fn();
+      mockGetResultTypeConfig.mockReturnValue({
+        icon: 'warning',
+        iconColor: 'warning',
+        sheetTitle: 'Warning',
+        getSheetDescription: () => 'This token may be risky',
+      });
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          onSwapPress={onSwapPress}
+          securityData={
+            {
+              resultType: 'Warning',
+              features: {},
+            } as TokenSecurityData
+          }
+        />,
+      );
+
+      fireEvent.press(getByText('Swap'));
+
+      // Main assertion: onSwapPress should not be called when modal is shown
+      expect(onSwapPress).not.toHaveBeenCalled();
+      expect(mockOnSwap).not.toHaveBeenCalled();
+    });
+
+    it('does not call onBuyPress when security warning modal is shown', () => {
+      const onBuyPress = jest.fn();
+      mockGetResultTypeConfig.mockReturnValue({
+        icon: 'warning',
+        iconColor: 'warning',
+        sheetTitle: 'Warning',
+        getSheetDescription: () => 'This token may be risky',
+      });
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          onBuyPress={onBuyPress}
+          securityData={
+            {
+              resultType: 'Spam',
+              features: {},
+            } as TokenSecurityData
+          }
+        />,
+      );
+
+      fireEvent.press(getByText('Buy'));
+
+      // Main assertion: onBuyPress should not be called when modal is shown
+      expect(onBuyPress).not.toHaveBeenCalled();
+      expect(mockOnBuy).not.toHaveBeenCalled();
     });
   });
 });
