@@ -55,6 +55,7 @@ import type { OnboardingInterestQuestionnaireRouteParams } from '../../component
 
 // Perps navigation params
 import type { PerpsNavigationParamList } from '../../components/UI/Perps/types/navigation';
+import type { TrendingTokensFullViewParams } from '../../components/UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
 
 // QR Scanner params
 import type { QRScannerParams } from '../../components/Views/QRScanner/QRScanner.types';
@@ -519,7 +520,7 @@ export interface RootStackParamList extends ParamListBase {
   TokensFullView: undefined;
   CashTokensFullView: undefined;
   MoneyScreens: undefined;
-  TrendingTokensFullView: undefined;
+  TrendingTokensFullView: TrendingTokensFullViewParams | undefined;
   RWATokensFullView: undefined;
 
   // Vault recovery routes

@@ -20,6 +20,22 @@ jest.mock('../feeds/tokens/useTokensFeed', () => ({
   useTokensFeed: jest.fn(() => ({ data: [], isLoading: false })),
 }));
 
+jest.mock('../feeds/tokens/CryptoMoversPillItem', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { createElement } = require('react');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { Text } = require('react-native');
+  return {
+    __esModule: true,
+    default: ({ token }: { token: { assetId: string; symbol: string } }) =>
+      createElement(
+        Text,
+        { testID: `section-pill-${token.assetId}` },
+        token.symbol,
+      ),
+  };
+});
+
 const mockUseABTest = jest.fn();
 jest.mock('../../../../hooks', () => ({
   useABTest: (...args: unknown[]) =>
@@ -121,6 +137,8 @@ import { selectPredictEnabledFlag } from '../../../UI/Predict';
 import { selectWhatsHappeningEnabled } from '../../../../selectors/featureFlagController/whatsHappening';
 import NowTab from './NowTab';
 import type { RefreshConfig } from '../hooks/useExploreRefresh';
+import { useTokensFeed } from '../feeds/tokens/useTokensFeed';
+import Routes from '../../../../constants/navigation/Routes';
 
 const defaultRefresh: RefreshConfig = { trigger: 0, silentRefresh: true };
 const defaultTabProps = {
@@ -176,6 +194,10 @@ const mockControlAbTest = () =>
     variantName: WhatsHappeningExploreVariant.Control,
     isActive: true,
   });
+
+const mockUseTokensFeed = useTokensFeed as jest.MockedFunction<
+  typeof useTokensFeed
+>;
 
 const mockTreatmentAbTest = () =>
   mockUseABTest.mockReturnValue({
@@ -360,5 +382,94 @@ describe('NowTab — Perps Movers "View All" navigation', () => {
     renderNowTab();
 
     expect(screen.queryByTestId('section-header-view-all-perps')).toBeNull();
+  });
+});
+
+describe('NowTab — Crypto Movers', () => {
+  const mockUseSelector = useSelector as jest.MockedFunction<
+    typeof useSelector
+  >;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectPerpsEnabledFlag) return false;
+      if (selector === selectPredictEnabledFlag) return false;
+      if (selector === selectWhatsHappeningEnabled) return false;
+      return undefined;
+    });
+    mockControlAbTest();
+    mockUseTokensFeed.mockReturnValue({
+      data: [
+        {
+          assetId: 'eip155:1/erc20:0x1',
+          symbol: 'ONE',
+          priceChangePct: { h1: '1.23' },
+        },
+        {
+          assetId: 'eip155:1/erc20:0x2',
+          symbol: 'TWO',
+          priceChangePct: { h1: '2.34' },
+        },
+        {
+          assetId: 'eip155:1/erc20:0x3',
+          symbol: 'THREE',
+          priceChangePct: { h1: '3.45' },
+        },
+      ] as never,
+      isLoading: false,
+      refetch: jest.fn(),
+    });
+  });
+
+  it('requests and opens Crypto Movers with the 1h filter', () => {
+    renderNowTab();
+
+    expect(mockUseTokensFeed).toHaveBeenCalledWith({
+      refresh: defaultRefresh,
+      hideRiskyTokens: true,
+      sortBy: 'h1_trending',
+      timeOption: '1h',
+    });
+
+    fireEvent.press(
+      screen.getByTestId('section-header-view-all-crypto_movers'),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
+      { initialTimeOption: '1h' },
+    );
+  });
+
+  it('renders Crypto Movers across three rows', () => {
+    renderNowTab();
+
+    expect(
+      screen.getByTestId('explore-crypto_movers-pills-list-row-0'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('explore-crypto_movers-pills-list-row-1'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('explore-crypto_movers-pills-list-row-2'),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders up to 18 Crypto Movers pills', () => {
+    mockUseTokensFeed.mockReturnValue({
+      data: Array.from({ length: 19 }, (_, index) => ({
+        assetId: `eip155:1/erc20:0x${index}`,
+        symbol: `T${index}`,
+        priceChangePct: { h1: String(index) },
+      })) as never,
+      isLoading: false,
+      refetch: jest.fn(),
+    });
+
+    renderNowTab();
+
+    expect(screen.getByTestId('section-pill-eip155:1/erc20:0x17')).toBeTruthy();
+    expect(screen.queryByTestId('section-pill-eip155:1/erc20:0x18')).toBeNull();
   });
 });

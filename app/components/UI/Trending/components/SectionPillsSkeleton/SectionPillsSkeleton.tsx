@@ -38,7 +38,13 @@ const SkeletonRow: React.FC<{ prefix: string }> = ({ prefix }) => (
   </Box>
 );
 
-const SectionPillsSkeleton: React.FC = () => {
+interface SectionPillsSkeletonProps {
+  rowCount?: number;
+}
+
+const SectionPillsSkeleton: React.FC<SectionPillsSkeletonProps> = ({
+  rowCount = 2,
+}) => {
   const tw = useTailwind();
 
   return (
@@ -50,8 +56,9 @@ const SectionPillsSkeleton: React.FC = () => {
         contentContainerStyle={tw.style('flex-col gap-2 pr-0')}
       >
         <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-2">
-          <SkeletonRow prefix="r1" />
-          <SkeletonRow prefix="r2" />
+          {Array.from({ length: rowCount }).map((_, rowIndex) => (
+            <SkeletonRow key={rowIndex} prefix={`r${rowIndex}`} />
+          ))}
         </Box>
       </ScrollView>
     </Box>

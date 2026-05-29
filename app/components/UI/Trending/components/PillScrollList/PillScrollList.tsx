@@ -8,11 +8,34 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 const DEFAULT_MAX_PILLS = 12;
+const DEFAULT_ROW_COUNT = 2;
 
-function splitIntoTwoRows<T>(items: T[]): [T[], T[]] {
-  if (items.length === 0) return [[], []];
-  const mid = Math.ceil(items.length / 2);
-  return [items.slice(0, mid), items.slice(mid)];
+interface PillRow<T> {
+  items: T[];
+  startIndex: number;
+}
+
+function splitIntoRows<T>(items: T[], rowCount: number): PillRow<T>[] {
+  if (items.length === 0) return [];
+
+  const normalizedRowCount = Math.max(1, Math.floor(rowCount));
+  const rows: PillRow<T>[] = [];
+  let start = 0;
+
+  for (let rowIndex = 0; rowIndex < normalizedRowCount; rowIndex++) {
+    const remainingItems = items.length - start;
+    const remainingRows = normalizedRowCount - rowIndex;
+    const rowSize = Math.ceil(remainingItems / remainingRows);
+    const row = items.slice(start, start + rowSize);
+
+    if (row.length > 0) {
+      rows.push({ items: row, startIndex: start });
+    }
+
+    start += rowSize;
+  }
+
+  return rows;
 }
 
 export interface PillScrollListProps<T> {
@@ -20,9 +43,11 @@ export interface PillScrollListProps<T> {
   isLoading: boolean;
   renderItem: (item: T, index: number) => React.ReactNode;
   keyExtractor: (item: T) => string;
-  Skeleton: React.ComponentType;
+  Skeleton: React.ComponentType<{ rowCount?: number }>;
   /** @default 12 */
   maxPills?: number;
+  /** @default 2 */
+  rowCount?: number;
   listTestId?: string;
   /**
    * Outer wrapper Tailwind classes. Defaults to Explore spacing (`mt-3 mb-9`).
@@ -33,8 +58,8 @@ export interface PillScrollListProps<T> {
 }
 
 /**
- * Two-row horizontal scroll of pill-shaped items. Used for "crypto movers".
- * Splits incoming data evenly between the two rows.
+ * Multi-row horizontal scroll of pill-shaped items. Used for compact movers sections.
+ * Splits incoming data evenly between rows.
  */
 const DEFAULT_WRAPPER_TW = '-mx-4 bg-transparent mt-3 mb-9' as const;
 
@@ -45,14 +70,15 @@ function PillScrollList<T>({
   keyExtractor,
   Skeleton,
   maxPills = DEFAULT_MAX_PILLS,
+  rowCount = DEFAULT_ROW_COUNT,
   listTestId,
   wrapperTwClassName = DEFAULT_WRAPPER_TW,
 }: PillScrollListProps<T>) {
   const tw = useTailwind();
   const displayData = useMemo(() => data.slice(0, maxPills), [data, maxPills]);
-  const [row1, row2] = useMemo(
-    () => splitIntoTwoRows(displayData),
-    [displayData],
+  const rows = useMemo(
+    () => splitIntoRows(displayData, rowCount),
+    [displayData, rowCount],
   );
 
   const renderRow = (items: T[], startIndex: number) =>
@@ -66,10 +92,10 @@ function PillScrollList<T>({
     <Box twClassName={wrapperTwClassName}>
       {isLoading && (
         <Box twClassName="px-4">
-          <Skeleton />
+          <Skeleton rowCount={rowCount} />
         </Box>
       )}
-      {!isLoading && (row1.length > 0 || row2.length > 0) && (
+      {!isLoading && rows.length > 0 && (
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -79,24 +105,19 @@ function PillScrollList<T>({
           contentContainerStyle={tw.style('flex-col px-4')}
         >
           <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-2">
-            {row1.length > 0 ? (
+            {rows.map((row, rowIndex) => (
               <Box
+                key={rowIndex}
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
                 twClassName="flex-nowrap gap-2"
+                testID={
+                  listTestId ? `${listTestId}-row-${rowIndex}` : undefined
+                }
               >
-                {renderRow(row1, 0)}
+                {renderRow(row.items, row.startIndex)}
               </Box>
-            ) : null}
-            {row2.length > 0 ? (
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                twClassName="flex-nowrap gap-2"
-              >
-                {renderRow(row2, row1.length)}
-              </Box>
-            ) : null}
+            ))}
           </Box>
         </ScrollView>
       )}

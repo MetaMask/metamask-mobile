@@ -1,9 +1,17 @@
 import { useMemo, useRef, useEffect } from 'react';
-import type { TrendingAsset } from '@metamask/assets-controllers';
+import type {
+  SortTrendingBy,
+  TrendingAsset,
+} from '@metamask/assets-controllers';
 import { useTrendingSearch } from '../../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 import { useFeedRefresh } from '../../hooks/useFeedRefresh';
 import type { RefreshConfig } from '../../hooks/useExploreRefresh';
 import { fuseSearch, TOKEN_FUSE_OPTIONS } from '../search-utils';
+import {
+  PriceChangeOption,
+  SortDirection,
+  TimeOption,
+} from '../../../../UI/Trending/components/TrendingTokensBottomSheet';
 
 interface UseTokensFeedOptions {
   /** Search query; when present, results are sorted by market cap descending. */
@@ -14,6 +22,10 @@ interface UseTokensFeedOptions {
    * Use for surfaces that don't display a security badge.
    */
   hideRiskyTokens?: boolean;
+  /** Sort option forwarded to the trending tokens request. */
+  sortBy?: SortTrendingBy;
+  /** Time option used when locally sorting by price change. */
+  timeOption?: TimeOption;
 }
 
 export interface UseTokensFeedResult {
@@ -31,6 +43,8 @@ export const useTokensFeed = ({
   query,
   refresh,
   hideRiskyTokens = false,
+  sortBy,
+  timeOption,
 }: UseTokensFeedOptions = {}): UseTokensFeedResult => {
   const {
     data,
@@ -43,6 +57,14 @@ export const useTokensFeed = ({
   } = useTrendingSearch({
     searchQuery: query,
     enableDebounce: false,
+    sortBy,
+    sortTrendingTokensOptions: timeOption
+      ? {
+          option: PriceChangeOption.PriceChange,
+          direction: SortDirection.Descending,
+          timeOption,
+        }
+      : undefined,
   });
 
   useFeedRefresh(refresh, refetch);
