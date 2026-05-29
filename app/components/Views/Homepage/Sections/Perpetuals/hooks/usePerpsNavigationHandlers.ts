@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
@@ -9,18 +9,28 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { selectIsFirstTimePerpsUser } from '../../../../../UI/Perps/selectors/perpsController';
 import type { PerpsNavigationParamList } from '../../../../../UI/Perps/types/navigation';
 import type { TransactionActiveAbTestEntry } from '../../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import { mergeActiveAbTestAssignmentLists } from '../../../../../../util/analytics/activeABTestAssignments';
 
 interface UsePerpsNavigationHandlersArgs {
-  isDedicatedTrendingSection?: boolean;
   trendingTransactionActiveAbTests?: TransactionActiveAbTestEntry[];
+  extraTransactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 export const usePerpsNavigationHandlers = ({
-  isDedicatedTrendingSection = false,
   trendingTransactionActiveAbTests,
+  extraTransactionActiveAbTests,
 }: UsePerpsNavigationHandlersArgs = {}) => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
+
+  const marketDetailsTransactionActiveAbTests = useMemo(
+    () =>
+      mergeActiveAbTestAssignmentLists(
+        trendingTransactionActiveAbTests,
+        extraTransactionActiveAbTests,
+      ),
+    [trendingTransactionActiveAbTests, extraTransactionActiveAbTests],
+  );
 
   const navigateToTutorialOrScreen = useCallback(
     (screen: string, params: Record<string, unknown>) => {
@@ -40,36 +50,42 @@ export const usePerpsNavigationHandlers = ({
   const handleViewAllPerps = useCallback(() => {
     navigateToTutorialOrScreen(Routes.PERPS.PERPS_HOME, {
       source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
+      ...(marketDetailsTransactionActiveAbTests?.length
+        ? {
+            transactionActiveAbTests: marketDetailsTransactionActiveAbTests,
+          }
+        : {}),
     });
-  }, [navigateToTutorialOrScreen]);
+  }, [marketDetailsTransactionActiveAbTests, navigateToTutorialOrScreen]);
 
   const handleViewMorePerps = useCallback(() => {
     navigateToTutorialOrScreen(Routes.PERPS.MARKET_LIST, {
       source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
+      ...(marketDetailsTransactionActiveAbTests?.length
+        ? {
+            transactionActiveAbTests: marketDetailsTransactionActiveAbTests,
+          }
+        : {}),
     });
-  }, [navigateToTutorialOrScreen]);
+  }, [marketDetailsTransactionActiveAbTests, navigateToTutorialOrScreen]);
 
   const handleTilePress = useCallback(
     (market: PerpsMarketData) => {
       navigateToTutorialOrScreen(Routes.PERPS.MARKET_DETAILS, {
         market,
         source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
-        ...(isDedicatedTrendingSection &&
-        trendingTransactionActiveAbTests?.length
+        ...(marketDetailsTransactionActiveAbTests?.length
           ? {
-              transactionActiveAbTests: trendingTransactionActiveAbTests,
+              transactionActiveAbTests: marketDetailsTransactionActiveAbTests,
             }
           : {}),
       });
     },
-    [
-      isDedicatedTrendingSection,
-      navigateToTutorialOrScreen,
-      trendingTransactionActiveAbTests,
-    ],
+    [marketDetailsTransactionActiveAbTests, navigateToTutorialOrScreen],
   );
 
   return {
+    marketDetailsTransactionActiveAbTests,
     navigateToTutorialOrScreen,
     handleViewAllPerps,
     handleViewMorePerps,
