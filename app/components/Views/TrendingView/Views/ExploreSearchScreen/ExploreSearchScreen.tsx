@@ -13,7 +13,7 @@ import { Box } from '@metamask/design-system-react-native';
 import { FlashList, FlashListRef, ListRenderItem } from '@shopify/flash-list';
 import ExploreSearchBar from '../../components/ExploreSearchBar/ExploreSearchBar';
 import PillRow, { type PillOption } from '../../components/PillRow';
-import ExploreSearchResultsV2 from '../../search/ExploreSearchResultsV2';
+import ExploreSearchResults from '../../search/ExploreSearchResults';
 import SearchFeedRow, {
   SearchFeedSkeleton,
   getItemId,
@@ -24,9 +24,9 @@ import {
   type SearchFeedPill,
 } from '../../search/analytics';
 import {
-  useExploreSearchV2,
   type SearchFeedId,
-} from '../../search/useExploreSearchV2';
+  useExploreSearch,
+} from '../../search/useExploreSearch';
 import PerpsSectionProvider from '../../feeds/perps/PerpsSectionProvider';
 import SitesSearchFooter from '../../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
 import { strings } from '../../../../../../locales/i18n';
@@ -137,19 +137,19 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
   );
 };
 
-interface ExploreSearchV2ContentProps {
+interface ExploreSearchContentProps {
   searchQuery: string;
 }
 
 /**
- * Renders the pill filter row and content pane for the V2 search experience.
- * Must be a child of PerpsSectionProvider because useExploreSearchV2
+ * Renders the pill filter row and content pane for the search experience.
+ * Must be a child of PerpsSectionProvider because useExploreSearch
  * internally calls usePerpsFeed, which requires PerpsStreamProvider.
  *
- * A single useExploreSearchV2 instance is shared across the pill row and the
+ * A single useExploreSearch instance is shared across the pill row and the
  * active content pane, so switching pills never triggers new API calls.
  */
-const ExploreSearchV2Content: React.FC<ExploreSearchV2ContentProps> = ({
+const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
   searchQuery,
 }) => {
   const [activePill, setActivePill] = useState<ActivePill>(ALL_PILL_KEY);
@@ -158,7 +158,9 @@ const ExploreSearchV2Content: React.FC<ExploreSearchV2ContentProps> = ({
   const searchQueryRef = useRef(searchQuery);
   searchQueryRef.current = searchQuery;
 
-  const { sections } = useExploreSearchV2(searchQuery);
+  const { sections } = useExploreSearch(searchQuery, {
+    exposePagination: true,
+  });
 
   const pills = useMemo<PillOption[]>(
     () => [
@@ -186,7 +188,7 @@ const ExploreSearchV2Content: React.FC<ExploreSearchV2ContentProps> = ({
     setActivePill(key as ActivePill);
   }, []);
 
-  // Used by ExploreSearchResultsV2's "View all" button — the analytics event is
+  // Used by ExploreSearchResults' "View all" button — the analytics event is
   // already fired inside handleViewMore there, so we only update state here.
   const handleViewMoreSelect = useCallback((key: string) => {
     setActivePill(key as ActivePill);
@@ -225,7 +227,7 @@ const ExploreSearchV2Content: React.FC<ExploreSearchV2ContentProps> = ({
           hasMore={activeSection?.hasMore}
         />
       ) : (
-        <ExploreSearchResultsV2
+        <ExploreSearchResults
           searchQuery={searchQuery}
           sections={sections}
           onViewMore={handleViewMoreSelect}
@@ -263,7 +265,7 @@ const ExploreSearchScreen: React.FC = () => {
       </Box>
 
       <PerpsSectionProvider>
-        <ExploreSearchV2Content searchQuery={searchQuery} />
+        <ExploreSearchContent searchQuery={searchQuery} />
       </PerpsSectionProvider>
     </Box>
   );

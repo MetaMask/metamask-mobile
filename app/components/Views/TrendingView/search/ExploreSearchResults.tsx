@@ -61,7 +61,7 @@ const pressedStyle = StyleSheet.create({
   },
 });
 
-interface ExploreSearchResultsV2Props {
+interface ExploreSearchResultsProps {
   searchQuery: string;
   sections: SearchFeedSection[];
   onViewMore: (feedId: SearchFeedId) => void;
@@ -76,7 +76,7 @@ interface ExploreSearchResultsV2Props {
   activeTab?: SearchFeedPill;
 }
 
-const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
+const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   searchQuery,
   sections,
   onViewMore,
@@ -329,4 +329,4 @@ const ExploreSearchResultsV2: React.FC<ExploreSearchResultsV2Props> = ({
   );
 };
 
-export default ExploreSearchResultsV2;
+export default ExploreSearchResults;

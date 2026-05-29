@@ -60,8 +60,8 @@ describe(SmokeWalletPlatform('Trending Search Smoke Test'), () => {
         // 6. Type a query
         await TrendingView.typeSearchQuery('test');
 
-        // 7. Verify V2 pill row and aggregated results are visible
-        await TrendingView.verifySearchV2PillsVisible();
+        // 7. Verify pill row and aggregated results are visible
+        await TrendingView.verifySearchPillsVisible();
 
         await TrendingView.verifySearchResultsListVisible();
 

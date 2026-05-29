@@ -460,7 +460,7 @@ class TrendingView {
     );
   }
 
-  async verifySearchV2PillsVisible(): Promise<void> {
+  async verifySearchPillsVisible(): Promise<void> {
     await Assertions.expectElementToBeVisible(this.searchAllPill, {
       description: 'All search pill should be visible',
       timeout: 10000,
