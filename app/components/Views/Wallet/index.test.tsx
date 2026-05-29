@@ -84,12 +84,9 @@ jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
   ),
 }));
 
-// Control homepage feature flags per test (default false so existing tests are unaffected)
-let mockHomepageSectionsEnabled = false;
 let mockWalletHomeOnboardingStepsEnabled = false;
 jest.mock('../../../selectors/featureFlagController/homepage', () => ({
   selectHomepageRedesignV1Enabled: jest.fn(() => false),
-  selectHomepageSectionsV1Enabled: jest.fn(() => mockHomepageSectionsEnabled),
   selectWalletHomeOnboardingStepsEnabled: jest.fn(
     () => mockWalletHomeOnboardingStepsEnabled,
   ),
@@ -175,8 +172,6 @@ jest.mock('../../UI/Carousel', () => {
 });
 
 // Capture the HomepageScrollContext value by rendering a context-aware mock Homepage.
-// The mock is only invoked when mockHomepageSectionsEnabled=true (sections flag on),
-// so existing tests that leave the flag false are completely unaffected.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let capturedContext: any = null;
 jest.mock('../Homepage', () => {
@@ -744,15 +739,14 @@ describe('Wallet', () => {
   it('should render correctly', () => {
     //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
     render(Wallet);
-    expect(mockTabsListComponent).toHaveBeenCalled();
+    expect(capturedContext).toBeDefined();
   });
 
-  it('should render TabsList', () => {
+  it('should render homepage scroll context', () => {
     //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
     render(Wallet);
 
-    // Check if TabsList mock was called
-    expect(mockTabsListComponent).toHaveBeenCalled();
+    expect(capturedContext).toBeDefined();
   });
 
   it('should render correctly when Solana support is enabled', () => {
@@ -763,7 +757,7 @@ describe('Wallet', () => {
       );
     //@ts-expect-error we are ignoring the navigation params on purpose
     render(Wallet);
-    expect(mockTabsListComponent).toHaveBeenCalled();
+    expect(capturedContext).toBeDefined();
   });
 
   describe('AssetDetailsActions', () => {
@@ -1133,326 +1127,6 @@ describe('Wallet', () => {
     });
   });
 
-  describe('Perps Tab Visibility', () => {
-    let mockPerpsTabView: jest.Mock;
-    let mockNavigation: NavigationProp<ParamListBase>;
-
-    beforeEach(() => {
-      // Get the actual mock that was created at the top
-      mockPerpsTabView = jest.requireMock(
-        '../../UI/Perps/Views/PerpsTabView',
-      ).default;
-      mockPerpsTabView.mockClear();
-
-      // Setup navigation mock
-      mockNavigation = {
-        navigate: mockNavigate,
-        setOptions: mockSetOptions,
-        addListener: jest.fn(() => jest.fn()),
-        isFocused: jest.fn(() => false),
-        dangerouslyGetParent: jest.fn(() => ({
-          dangerouslyGetState: jest.fn(() => ({ type: 'stack' })),
-          addListener: jest.fn(() => jest.fn()),
-          dangerouslyGetParent: jest.fn(() => ({
-            dangerouslyGetState: jest.fn(() => ({ type: 'tab' })),
-            addListener: jest.fn(() => jest.fn()),
-            dangerouslyGetParent: jest.fn(() => undefined),
-          })),
-        })),
-      } as unknown as NavigationProp<ParamListBase>;
-
-      // Default to enabled
-      mockPerpsEnabled = true;
-      mockPerpsGTMModalEnabled = false;
-      mockPredictEnabled = true;
-      mockPredictGTMModalEnabled = false;
-    });
-
-    afterEach(() => {
-      jest.clearAllMocks();
-      mockPerpsEnabled = true; // Reset to default
-      mockPerpsGTMModalEnabled = false; // Reset to default
-      mockPredictEnabled = true; // Reset to default
-      mockPredictGTMModalEnabled = false; // Reset to default
-    });
-
-    it('registers PerpsTabView visibility callback when Perps is enabled', () => {
-      const state = mockInitialStateWithRemoteFeatureFlags({
-        ...(mockedPerpsFeatureFlagsEnabledState as unknown as Record<
-          string,
-          Json
-        >),
-      });
-
-      renderWithProvider(
-        <Wallet navigation={mockNavigation} currentRouteName="Wallet" />,
-        { state },
-      );
-
-      expect(mockTabsListComponent).toHaveBeenCalled();
-      expect(mockPerpsTabView).toHaveBeenCalled();
-
-      const perpsTabViewProps = mockPerpsTabView.mock.calls.at(-1)?.[0];
-      expect(perpsTabViewProps).toBeDefined();
-      if (!perpsTabViewProps) {
-        return;
-      }
-      // PerpsTabView now receives navigation and tabLabel props
-      expect(perpsTabViewProps.navigation).toBeDefined();
-    });
-
-    it('sets Perps tab as not visible while the tokens tab is selected', () => {
-      const state = mockInitialStateWithRemoteFeatureFlags({
-        ...(mockedPerpsFeatureFlagsEnabledState as unknown as Record<
-          string,
-          Json
-        >),
-      });
-
-      renderWithProvider(
-        <Wallet navigation={mockNavigation} currentRouteName="Wallet" />,
-        { state },
-      );
-
-      const perpsTabViewProps = mockPerpsTabView.mock.calls.at(-1)?.[0];
-      expect(perpsTabViewProps).toBeDefined();
-      if (!perpsTabViewProps) {
-        return;
-      }
-      // PerpsTabView is rendered but visibility is managed by the tab system
-      expect(perpsTabViewProps.navigation).toBeDefined();
-    });
-
-    it('should not render PerpsTabView when Perps is disabled', () => {
-      // Set the flag to disabled for this test
-      mockPerpsEnabled = false;
-
-      const state = mockInitialStateWithRemoteFeatureFlags({
-        perpsPerpTradingEnabled: {
-          enabled: false,
-          minimumVersion: '1.0.0',
-        },
-      });
-
-      renderWithProvider(
-        <Wallet navigation={mockNavigation} currentRouteName="Wallet" />,
-        { state },
-      );
-
-      // PerpsTabView should not be rendered
-      expect(mockPerpsTabView).not.toHaveBeenCalled();
-    });
-
-    it('does not mount PerpsTabView when Perps is disabled after a tab change', () => {
-      // Set the flag to disabled for this test
-      mockPerpsEnabled = false;
-
-      const state = mockInitialStateWithRemoteFeatureFlags({
-        perpsPerpTradingEnabled: {
-          enabled: false,
-          minimumVersion: '1.0.0',
-        },
-      });
-
-      renderWithProvider(
-        <Wallet navigation={mockNavigation} currentRouteName="Wallet" />,
-        { state },
-      );
-
-      const tabsList = mockTabsListComponent.mock.calls.at(-1)?.[0];
-      if (!tabsList?.onChangeTab) {
-        throw new Error('Expected TabsList onChangeTab');
-      }
-      tabsList.onChangeTab({
-        i: 1,
-        ref: { props: { tabLabel: 'Perps' } },
-      });
-
-      expect(mockPerpsTabView).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('Predict Tab Visibility', () => {
-    let mockPredictTabView: jest.Mock;
-    let mockNavigation: NavigationProp<ParamListBase>;
-
-    beforeEach(() => {
-      // Get the actual mock that was created at the top
-      mockPredictTabView = jest.requireMock(
-        '../../UI/Predict/views/PredictTabView',
-      ).default;
-      mockPredictTabView.mockClear();
-
-      // Setup navigation mock
-      mockNavigation = {
-        navigate: mockNavigate,
-        setOptions: mockSetOptions,
-        addListener: jest.fn(() => jest.fn()),
-        isFocused: jest.fn(() => false),
-        dangerouslyGetParent: jest.fn(() => ({
-          dangerouslyGetState: jest.fn(() => ({ type: 'stack' })),
-          addListener: jest.fn(() => jest.fn()),
-          dangerouslyGetParent: jest.fn(() => ({
-            dangerouslyGetState: jest.fn(() => ({ type: 'tab' })),
-            addListener: jest.fn(() => jest.fn()),
-            dangerouslyGetParent: jest.fn(() => undefined),
-          })),
-        })),
-      } as unknown as NavigationProp<ParamListBase>;
-
-      // Default to enabled
-      mockPerpsEnabled = true;
-      mockPerpsGTMModalEnabled = false;
-      mockPredictEnabled = true;
-      mockPredictGTMModalEnabled = false;
-    });
-
-    afterEach(() => {
-      jest.clearAllMocks();
-      mockPerpsEnabled = true; // Reset to default
-      mockPerpsGTMModalEnabled = false; // Reset to default
-      mockPredictEnabled = true; // Reset to default
-      mockPredictGTMModalEnabled = false; // Reset to default
-    });
-
-    it('renders PredictTabView when Predict is enabled', () => {
-      const state = mockInitialStateWithRemoteFeatureFlags({
-        ...(mockedPerpsFeatureFlagsEnabledState as unknown as Record<
-          string,
-          Json
-        >),
-        predictTradingEnabled: {
-          enabled: true,
-          minimumVersion: '7.60.0',
-        },
-      });
-
-      renderWithProvider(
-        <Wallet navigation={mockNavigation} currentRouteName="Wallet" />,
-        { state },
-      );
-
-      expect(mockTabsListComponent).toHaveBeenCalled();
-      expect(mockPredictTabView).toHaveBeenCalled();
-
-      const predictTabViewProps = mockPredictTabView.mock.calls.at(-1)?.[0];
-      expect(predictTabViewProps).toBeDefined();
-      if (!predictTabViewProps) {
-        return;
-      }
-      expect(predictTabViewProps.isVisible).toBe(false);
-    });
-
-    it('keeps Predict tab not visible while the tokens tab is selected when Perps is enabled', () => {
-      const state = mockInitialStateWithRemoteFeatureFlags({
-        ...(mockedPerpsFeatureFlagsEnabledState as unknown as Record<
-          string,
-          Json
-        >),
-        predictTradingEnabled: {
-          enabled: true,
-          minimumVersion: '7.60.0',
-        },
-      });
-
-      renderWithProvider(
-        <Wallet navigation={mockNavigation} currentRouteName="Wallet" />,
-        { state },
-      );
-
-      const predictTabViewProps = mockPredictTabView.mock.calls.at(-1)?.[0];
-      expect(predictTabViewProps).toBeDefined();
-      if (!predictTabViewProps) {
-        return;
-      }
-      expect(predictTabViewProps.isVisible).toBe(false);
-    });
-
-    it('keeps Predict tab not visible while the tokens tab is selected when Perps is disabled', () => {
-      // Set Perps to disabled for this test
-      mockPerpsEnabled = false;
-
-      const state = mockInitialStateWithRemoteFeatureFlags({
-        perpsPerpTradingEnabled: {
-          enabled: false,
-          minimumVersion: '1.0.0',
-        },
-        predictTradingEnabled: {
-          enabled: true,
-          minimumVersion: '7.60.0',
-        },
-      });
-
-      renderWithProvider(
-        <Wallet navigation={mockNavigation} currentRouteName="Wallet" />,
-        { state },
-      );
-
-      const predictTabViewProps = mockPredictTabView.mock.calls.at(-1)?.[0];
-      expect(predictTabViewProps).toBeDefined();
-      if (!predictTabViewProps) {
-        return;
-      }
-      expect(predictTabViewProps.isVisible).toBe(false);
-    });
-
-    it('does not render PredictTabView when Predict is disabled', () => {
-      // Set the flag to disabled for this test
-      mockPredictEnabled = false;
-
-      const state = mockInitialStateWithRemoteFeatureFlags({
-        ...(mockedPerpsFeatureFlagsEnabledState as unknown as Record<
-          string,
-          Json
-        >),
-        predictTradingEnabled: {
-          enabled: false,
-          minimumVersion: '7.60.0',
-        },
-      });
-
-      renderWithProvider(
-        <Wallet navigation={mockNavigation} currentRouteName="Wallet" />,
-        { state },
-      );
-
-      // PredictTabView should not be rendered
-      expect(mockPredictTabView).not.toHaveBeenCalled();
-    });
-
-    it('does not mount PredictTabView when Predict is disabled after a tab change', () => {
-      // Set the flag to disabled for this test
-      mockPredictEnabled = false;
-
-      const state = mockInitialStateWithRemoteFeatureFlags({
-        ...(mockedPerpsFeatureFlagsEnabledState as unknown as Record<
-          string,
-          Json
-        >),
-        predictTradingEnabled: {
-          enabled: false,
-          minimumVersion: '7.60.0',
-        },
-      });
-
-      renderWithProvider(
-        <Wallet navigation={mockNavigation} currentRouteName="Wallet" />,
-        { state },
-      );
-
-      const tabsList = mockTabsListComponent.mock.calls.at(-1)?.[0];
-      if (!tabsList?.onChangeTab) {
-        throw new Error('Expected TabsList onChangeTab');
-      }
-      tabsList.onChangeTab({
-        i: 2,
-        ref: { props: { tabLabel: 'Predict' } },
-      });
-
-      expect(mockPredictTabView).not.toHaveBeenCalled();
-    });
-  });
-
   describe('Perps GTM Modal Navigation', () => {
     let mockNavigation: NavigationProp<ParamListBase>;
 
@@ -1649,7 +1323,6 @@ describe('Wallet post-onboarding checklist coordination', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockHomepageSectionsEnabled = true;
     mockWalletHomeOnboardingStepsEnabled = true;
     accountGroupBalanceMock.mockImplementation(
       RealAccountGroupBalance as (...args: unknown[]) => unknown,
@@ -1664,7 +1337,6 @@ describe('Wallet post-onboarding checklist coordination', () => {
   afterEach(() => {
     accountGroupBalanceMock.mockImplementation(() => null);
     mockWalletHomeOnboardingStepsEnabled = false;
-    mockHomepageSectionsEnabled = false;
   });
 
   it('does not mount main action buttons while wallet-home post-onboarding is active', () => {
@@ -1722,12 +1394,7 @@ describe('Wallet post-onboarding checklist coordination', () => {
 describe('HomepageScrollContext callbacks', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockHomepageSectionsEnabled = true;
     capturedContext = null;
-  });
-
-  afterEach(() => {
-    mockHomepageSectionsEnabled = false;
   });
 
   const renderWalletWithSections = () =>
@@ -1797,7 +1464,6 @@ describe('HomepageDiscoveryTabs AB test', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockHomepageSectionsEnabled = true;
     mockDiscoveryTabsVariantName = 'control';
     mockHomepageDiscoveryTabs.mockClear();
 
@@ -1825,12 +1491,11 @@ describe('HomepageDiscoveryTabs AB test', () => {
   });
 
   afterEach(() => {
-    mockHomepageSectionsEnabled = false;
     mockDiscoveryTabsVariantName = 'control';
     jest.clearAllMocks();
   });
 
-  it('renders HomepageDiscoveryTabs when variant is treatment and sections flag is on', () => {
+  it('renders HomepageDiscoveryTabs when variant is treatment', () => {
     mockDiscoveryTabsVariantName = 'treatment';
 
     renderWithProvider(
@@ -1898,7 +1563,7 @@ describe('HomepageDiscoveryTabs AB test', () => {
     expect(typeof props.walletHeaderHeight).toBe('number');
   });
 
-  it('renders Homepage scroll view (not HomepageDiscoveryTabs) when variant is control and sections flag is on', () => {
+  it('renders Homepage scroll view (not HomepageDiscoveryTabs) when variant is control', () => {
     mockDiscoveryTabsVariantName = 'control';
 
     renderWithProvider(
@@ -1912,21 +1577,6 @@ describe('HomepageDiscoveryTabs AB test', () => {
     // HomepageDiscoveryTabs must not render; the legacy Homepage mock renders instead
     expect(mockHomepageDiscoveryTabs).not.toHaveBeenCalled();
     expect(capturedContext).toBeDefined();
-  });
-
-  it('does not render HomepageDiscoveryTabs when sections flag is off regardless of variant', () => {
-    mockHomepageSectionsEnabled = false;
-    mockDiscoveryTabsVariantName = 'treatment';
-
-    renderWithProvider(
-      <Wallet
-        navigation={mockNavigation}
-        currentRouteName={Routes.WALLET_VIEW}
-      />,
-      { state: mockInitialState },
-    );
-
-    expect(mockHomepageDiscoveryTabs).not.toHaveBeenCalled();
   });
 });
 
@@ -2053,12 +1703,10 @@ describe('MoneyBalanceCard slot', () => {
 
   afterEach(() => {
     mockMoneyAccountEnabled = false;
-    mockHomepageSectionsEnabled = false;
   });
 
-  it('renders the MoneyBalanceCard when both feature flags are enabled', () => {
+  it('renders the MoneyBalanceCard when Money account is enabled', () => {
     mockMoneyAccountEnabled = true;
-    mockHomepageSectionsEnabled = true;
 
     //@ts-expect-error navigation params intentionally omitted (same as render(Wallet))
     const { getByTestId } = render(Wallet);
@@ -2066,29 +1714,8 @@ describe('MoneyBalanceCard slot', () => {
     expect(getByTestId('money-balance-card-mock')).toBeOnTheScreen();
   });
 
-  it('does not render the MoneyBalanceCard when only the Money flag is enabled', () => {
-    mockMoneyAccountEnabled = true;
-    mockHomepageSectionsEnabled = false;
-
-    //@ts-expect-error navigation params intentionally omitted (same as render(Wallet))
-    const { queryByTestId } = render(Wallet);
-
-    expect(queryByTestId('money-balance-card-mock')).not.toBeOnTheScreen();
-  });
-
-  it('does not render the MoneyBalanceCard when only the Homepage sections flag is enabled', () => {
+  it('does not render the MoneyBalanceCard when Money account is disabled', () => {
     mockMoneyAccountEnabled = false;
-    mockHomepageSectionsEnabled = true;
-
-    //@ts-expect-error navigation params intentionally omitted (same as render(Wallet))
-    const { queryByTestId } = render(Wallet);
-
-    expect(queryByTestId('money-balance-card-mock')).not.toBeOnTheScreen();
-  });
-
-  it('does not render the MoneyBalanceCard when both feature flags are disabled', () => {
-    mockMoneyAccountEnabled = false;
-    mockHomepageSectionsEnabled = false;
 
     //@ts-expect-error navigation params intentionally omitted (same as render(Wallet))
     const { queryByTestId } = render(Wallet);

@@ -491,7 +491,7 @@ describe('Tokens', () => {
       });
     });
 
-    it('includes mUSD when conversion flow is enabled but homepage sections are disabled (legacy wallet view)', async () => {
+    it('includes mUSD when conversion flow is enabled but Money Hub is disabled', async () => {
       const stateWithMusdEnabled = clone(initialRootState);
       (
         stateWithMusdEnabled as Record<string, unknown> &
@@ -532,7 +532,7 @@ describe('Tokens', () => {
       });
     });
 
-    it('excludes mUSD from token list when conversion flow, money hub, and homepage sections are all enabled', async () => {
+    it('excludes mUSD from token list when conversion flow and Money Hub are enabled', async () => {
       const stateWithBothEnabled = clone(initialRootState);
       (
         stateWithBothEnabled as Record<string, unknown> &
@@ -546,10 +546,6 @@ describe('Tokens', () => {
             minimumVersion: '1.0.0',
           },
           earnMoneyHubEnabled: {
-            enabled: true,
-            minimumVersion: '1.0.0',
-          },
-          homepageSectionsV1: {
             enabled: true,
             minimumVersion: '1.0.0',
           },

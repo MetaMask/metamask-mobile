@@ -20,7 +20,6 @@ import Utilities from '../../framework/Utilities';
 import { createLogger, LogLevel } from '../../framework/logger';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 const logger = createLogger({
   name: 'PerpsAddFundsSpec',
@@ -73,9 +72,7 @@ describe.skip(
             .build(),
           restartDevice: true,
           testSpecificMock: async (mockServer: Mockttp) => {
-            await setupRemoteFeatureFlagsMock(mockServer, {
-              ...remoteFeatureFlagHomepageSectionsV1Enabled(),
-            });
+            await setupRemoteFeatureFlagsMock(mockServer, {});
             await PERPS_ARBITRUM_MOCKS(mockServer);
             await mockPerpsGeolocation(
               mockServer,

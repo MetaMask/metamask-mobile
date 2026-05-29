@@ -3298,17 +3298,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  homepageSectionsV1: {
-    name: 'homepageSectionsV1',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      minimumVersion: '7.70.0',
-      enabled: true,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   homeTMCU610AbtestWalletHomePostOnboardingSteps: {
     name: 'homeTMCU610AbtestWalletHomePostOnboardingSteps',
     type: FeatureFlagType.Remote,
