@@ -1,5 +1,7 @@
-import { DeviceManagementKitBuilder } from '@ledgerhq/device-management-kit';
-import type { DeviceManagementKit } from '@ledgerhq/device-management-kit';
+import {
+  DeviceManagementKitBuilder,
+  type DeviceManagementKit,
+} from '@ledgerhq/device-management-kit';
 import { RNBleTransportFactory } from '@ledgerhq/device-transport-kit-react-native-ble';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 
