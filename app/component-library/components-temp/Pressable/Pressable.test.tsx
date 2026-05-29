@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text, type View } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
 
 import { mockTheme } from '../../../util/theme';
@@ -94,6 +94,18 @@ describe('Pressable', () => {
     const resting = flatten(getByTestId('p').props.style);
     expect(resting.backgroundColor).toBe(RESTING);
     expect(resting.padding).toBe(16);
+  });
+
+  it('forwards a ref to the underlying view', () => {
+    const ref = React.createRef<View>();
+    render(
+      <Pressable ref={ref} onPress={jest.fn()}>
+        <Text>x</Text>
+      </Pressable>,
+    );
+
+    expect(ref.current).not.toBeNull();
+    expect(typeof ref.current?.measure).toBe('function');
   });
 
   it('resolves a function-form caller style on render', () => {

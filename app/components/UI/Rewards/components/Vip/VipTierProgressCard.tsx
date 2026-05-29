@@ -23,6 +23,8 @@ import {
   VIP_GOLD_PROGRESS_GRADIENT_COLORS,
   VIP_GOLD_TEXT_MUTED,
 } from './Vip.constants';
+import { useTheme } from '../../../../../util/theme';
+import { AppThemeKey } from '../../../../../util/theme/models';
 
 export const VIP_TIER_PROGRESS_CARD_TEST_IDS = {
   CONTAINER: 'vip-tier-progress-card',
@@ -52,6 +54,8 @@ const vipTierProgressCardBorderStyle = {
   borderColor: VIP_GOLD_BORDER_DEFAULT,
 };
 
+const vipGoldTextMutedStyle = { color: VIP_GOLD_TEXT_MUTED };
+
 const VipTierProgressCard: React.FC<VipTierProgressCardProps> = ({
   currentTier,
   programName,
@@ -62,6 +66,13 @@ const VipTierProgressCard: React.FC<VipTierProgressCardProps> = ({
   onPress,
 }) => {
   const tw = useTailwind();
+  const { themeAppearance } = useTheme();
+  const mutedTextStyle =
+    themeAppearance === AppThemeKey.dark ? vipGoldTextMutedStyle : undefined;
+  const mutedTextColor =
+    themeAppearance === AppThemeKey.dark
+      ? undefined
+      : TextColor.TextAlternative;
   const fillWidth: `${number}%` = `${clampPercent(progress.percent)}%`;
   const gradientColors = VIP_GOLD_BACKGROUND_GRADIENT_COLORS;
 
@@ -97,14 +108,16 @@ const VipTierProgressCard: React.FC<VipTierProgressCardProps> = ({
                   <Text
                     variant={TextVariant.BodySm}
                     fontWeight={FontWeight.Medium}
-                    style={{ color: VIP_GOLD_TEXT_MUTED }}
+                    color={mutedTextColor}
+                    style={mutedTextStyle}
                   >
                     {memberIdTitle}
                   </Text>
                   <Text
                     variant={TextVariant.BodySm}
                     fontWeight={FontWeight.Medium}
-                    style={{ color: VIP_GOLD_TEXT_MUTED }}
+                    color={mutedTextColor}
+                    style={mutedTextStyle}
                   >
                     {memberId}
                   </Text>
