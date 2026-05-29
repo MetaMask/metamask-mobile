@@ -1,6 +1,11 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import OnboardingSuccessEndAnimation from './index';
+import Logger from '../../../../util/Logger';
+
+jest.mock('../../../../util/Logger', () => ({
+  error: jest.fn(),
+}));
 
 // Mock Rive
 let mockRiveRef: unknown = null;
@@ -9,11 +14,19 @@ jest.mock('rive-react-native', () => {
   const { View } = jest.requireActual('react-native');
 
   const MockRive = MockReact.forwardRef(
-    (props: { testID?: string; style?: unknown }, ref: React.Ref<unknown>) => {
+    (
+      props: {
+        testID?: string;
+        style?: unknown;
+        onError?: (error: { message: string; type: string }) => void;
+      },
+      ref: React.Ref<unknown>,
+    ) => {
       MockReact.useImperativeHandle(ref, () => mockRiveRef);
       return MockReact.createElement(View, {
         testID: props.testID || 'mock-rive',
-        style: props.style, // Pass through the style prop
+        style: props.style,
+        onError: props.onError,
       });
     },
   );
@@ -51,8 +64,8 @@ describe('OnboardingSuccessEndAnimation', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     mockIsE2EValue = false;
-    // Reset mock Rive ref
     mockRiveRef = null;
+    jest.mocked(Logger.error).mockClear();
   });
 
   afterEach(() => {
@@ -212,7 +225,6 @@ describe('OnboardingSuccessEndAnimation', () => {
 
   it('handles Rive animation errors gracefully', () => {
     // Arrange
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
     const mockSetInputState = jest.fn(() => {
       throw new Error('Rive animation error');
     });
@@ -235,13 +247,55 @@ describe('OnboardingSuccessEndAnimation', () => {
     jest.advanceTimersByTime(100);
 
     // Assert
-    expect(consoleSpy).toHaveBeenCalledWith(
-      'Error with Rive animation:',
-      expect.any(Error),
+    expect(Logger.error).toHaveBeenCalledWith(expect.any(Error), {
+      message: 'OnboardingSuccessEndAnimation: Rive state transition failed',
+      stateMachine: 'OnboardingLoader',
+      transition: 'Only_End',
+      isDarkMode: false,
+    });
+  });
+
+  it('logs when Rive ref is unavailable before animation setup', () => {
+    mockRiveRef = null;
+    const mockOnAnimationComplete = jest.fn();
+
+    render(
+      <OnboardingSuccessEndAnimation
+        onAnimationComplete={mockOnAnimationComplete}
+      />,
     );
 
-    // Cleanup
-    consoleSpy.mockRestore();
+    jest.advanceTimersByTime(100);
+
+    expect(Logger.error).toHaveBeenCalledWith(expect.any(Error), {
+      message:
+        'OnboardingSuccessEndAnimation: Rive ref unavailable before animation setup',
+      isDarkMode: false,
+    });
+  });
+
+  it('logs native Rive onError callbacks', () => {
+    const mockOnAnimationComplete = jest.fn();
+    const { getByTestId } = render(
+      <OnboardingSuccessEndAnimation
+        onAnimationComplete={mockOnAnimationComplete}
+      />,
+    );
+
+    const riveView = getByTestId('mock-rive');
+    riveView.props.onError?.({
+      message: 'Failed to load Rive file',
+      type: 'FileNotFound',
+    });
+
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'Failed to load Rive file' }),
+      {
+        message: 'OnboardingSuccessEndAnimation: Rive onError (FileNotFound)',
+        riveErrorType: 'FileNotFound',
+        isDarkMode: false,
+      },
+    );
   });
 
   it('triggers animation when isDarkMode dependency changes', () => {
