@@ -1,9 +1,8 @@
-import React, { useCallback, useEffect, useRef } from 'react';
-import Rive, { Fit, Alignment, RiveRef, RNRiveError } from 'rive-react-native';
+import React, { useEffect, useRef } from 'react';
+import Rive, { Fit, Alignment, RiveRef } from 'rive-react-native';
 import { useTheme } from '../../../../util/theme';
 import { getScreenDimensions } from '../../../../util/onboarding';
 import { isE2E } from '../../../../util/test/utils';
-import Logger from '../../../../util/Logger';
 import {
   Box,
   BoxAlignItems,
@@ -27,60 +26,24 @@ const OnboardingSuccessEndAnimation: React.FC<
 
   const { screenWidth, screenHeight, animationHeight } = getScreenDimensions();
 
-  const logRiveFailure = useCallback(
-    (stage: string, error: Error, context?: Record<string, unknown>) => {
-      Logger.error(error, {
-        message: `OnboardingSuccessEndAnimation: ${stage}`,
-        ...context,
-      });
-    },
-    [],
-  );
-
-  const handleRiveError = useCallback(
-    (riveError: RNRiveError) => {
-      logRiveFailure(
-        `Rive onError (${riveError.type})`,
-        new Error(riveError.message),
-        {
-          riveErrorType: riveError.type,
-          isDarkMode,
-        },
-      );
-    },
-    [isDarkMode, logRiveFailure],
-  );
-
   useEffect(() => {
     if (isE2E) return;
     const timeoutId = setTimeout(() => {
-      if (!riveRef.current) {
-        logRiveFailure(
-          'Rive ref unavailable before animation setup',
-          new Error('riveRef.current is null'),
-          { isDarkMode },
-        );
-        return;
-      }
-
-      try {
-        riveRef.current.setInputState(
-          'OnboardingLoader',
-          'Dark mode',
-          isDarkMode,
-        );
-        riveRef.current.fireState('OnboardingLoader', 'Only_End');
-      } catch (error) {
-        logRiveFailure('Rive state transition failed', error as Error, {
-          stateMachine: 'OnboardingLoader',
-          transition: 'Only_End',
-          isDarkMode,
-        });
+      if (riveRef.current) {
+        try {
+          riveRef.current.setInputState(
+            'OnboardingLoader',
+            'Dark mode',
+            isDarkMode,
+          );
+        } catch {
+          // Rive may not be ready yet; animation still plays via autoplay
+        }
       }
     }, 100);
 
     return () => clearTimeout(timeoutId);
-  }, [isDarkMode, logRiveFailure]);
+  }, [isDarkMode]);
 
   return (
     <Box
@@ -105,7 +68,6 @@ const OnboardingSuccessEndAnimation: React.FC<
             autoplay
             fit={Fit.Contain}
             alignment={Alignment.Center}
-            onError={handleRiveError}
           />
         )}
       </Box>
