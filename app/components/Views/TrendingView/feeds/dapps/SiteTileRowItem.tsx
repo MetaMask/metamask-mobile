@@ -55,17 +55,23 @@ const styleSheet = ({ theme }: { theme: Theme }) =>
 
 interface SiteTileRowItemProps {
   site: SiteData;
+  /** Called synchronously before the card's navigation press fires. */
+  onCardPress?: () => void;
 }
 
 /**
  * Compact tile (icon, title, url) for Explore "Recents" / "Networks" carousels.
  */
-const SiteTileRowItem: React.FC<SiteTileRowItemProps> = ({ site }) => {
+const SiteTileRowItem: React.FC<SiteTileRowItemProps> = ({
+  site,
+  onCardPress,
+}) => {
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet);
   const tw = useTailwind();
 
   const onPress = () => {
+    onCardPress?.();
     navigation.navigate(Routes.BROWSER.HOME, {
       screen: Routes.BROWSER.VIEW,
       params: {
@@ -103,11 +109,6 @@ const SiteTileRowItem: React.FC<SiteTileRowItemProps> = ({ site }) => {
             />
           )}
         </Box>
-        <Icon
-          name={IconName.Arrow2UpRight}
-          size={IconSize.Sm}
-          color={IconColor.IconDefault}
-        />
       </Box>
 
       <Text

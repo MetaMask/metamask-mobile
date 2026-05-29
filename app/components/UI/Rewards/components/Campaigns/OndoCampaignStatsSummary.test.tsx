@@ -24,16 +24,18 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: (...args: unknown[]) => args }),
-}));
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const tw = (..._args: unknown[]) => ({});
+  tw.style = jest.fn(() => ({}));
+  return { useTailwind: () => tw };
+});
 
-jest.mock('./OndoCampaignOutcomeBanners', () => {
+jest.mock('./CampaignOutcomeBanners', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    OndoGmCampaignOutcomeBanner: ({
+    CampaignOutcomeBanner: ({
       outcomeStatus,
       winnerVerificationCode,
     }: {

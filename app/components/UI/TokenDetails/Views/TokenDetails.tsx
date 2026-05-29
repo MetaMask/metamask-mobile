@@ -37,6 +37,14 @@ import MultichainTransactionsView from '../../../Views/MultichainTransactionsVie
 import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
 import { MarketInsightsDisclaimerBottomSheet } from '../../MarketInsights';
+import { useABTest } from '../../../../hooks/useABTest';
+import {
+  AMBIENT_NEGATIVE_COLOR,
+  AMBIENT_PRICE_COLOR_AB_KEY,
+  AMBIENT_PRICE_COLOR_VARIANTS,
+} from '../components/abTestConfig';
+import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -132,10 +140,17 @@ const TokenDetails: React.FC<{
   }) => void;
   onStickyButtonsResolved?: (shown: 'both' | 'buy' | 'swap' | null) => void;
 }> = ({ token, onMarketInsightsDisplayResolved, onStickyButtonsResolved }) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles, theme } = useStyles(styleSheet, {});
+  const { themeAppearance } = useTheme();
+  const isLightMode = themeAppearance === AppThemeKey.light;
   const navigation = useNavigation();
   const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
     useState(false);
+  const { variant: ambientColorVariant } = useABTest(
+    AMBIENT_PRICE_COLOR_AB_KEY,
+    AMBIENT_PRICE_COLOR_VARIANTS,
+  );
+  const useAmbientColor = ambientColorVariant.useAmbientPriceColor;
 
   const caip19AssetId = useMemo((): CaipAssetType | null => {
     try {
@@ -182,6 +197,28 @@ const TokenDetails: React.FC<{
     chartNavigationButtons,
   } = useTokenPrice({ token });
 
+  const [chartPricePositive, setChartPricePositive] = useState<boolean | null>(
+    null,
+  );
+  const handlePriceDirectionChange = useCallback((isPositive: boolean) => {
+    setChartPricePositive(isPositive);
+  }, []);
+
+  const ambientIconColor = useMemo(() => {
+    if (!useAmbientColor || chartPricePositive === null) return undefined;
+
+    const successColor = isLightMode
+      ? LIGHT_MODE_SUCCESS_GREEN
+      : theme.colors.success.default;
+
+    return chartPricePositive ? successColor : AMBIENT_NEGATIVE_COLOR;
+  }, [
+    useAmbientColor,
+    chartPricePositive,
+    isLightMode,
+    theme.colors.success.default,
+  ]);
+
   const {
     balance,
     fiatBalance,
@@ -197,7 +234,6 @@ const TokenDetails: React.FC<{
   const { onBuy, onSend, onReceive } = useTokenActions({
     token,
     networkName,
-    currentTokenBalance: balance,
   });
 
   const {
@@ -244,6 +280,8 @@ const TokenDetails: React.FC<{
         securityData={securityData}
         isSecurityDataLoading={isSecurityDataLoading}
         hasSecurityDataError={Boolean(securityDataError)}
+        onPriceDirectionChange={handlePriceDirectionChange}
+        useAmbientColor={useAmbientColor}
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
         stakedTrxAsset={stakedTrxAsset}
         inLockPeriodBalance={inLockPeriodBalance}
@@ -268,7 +306,11 @@ const TokenDetails: React.FC<{
   );
   return (
     <View style={styles.wrapper}>
-      <TokenDetailsInlineHeader onBackPress={() => navigation.goBack()} />
+      <TokenDetailsInlineHeader
+        onBackPress={() => navigation.goBack()}
+        iconColor={ambientIconColor}
+        useAmbientColor={useAmbientColor}
+      />
 
       {txLoading ? (
         renderLoader()
@@ -303,7 +345,7 @@ const TokenDetails: React.FC<{
           location={TransactionDetailLocation.AssetDetails}
         />
       )}
-      {!txLoading && (
+      {!txLoading && !(useAmbientColor && chartPricePositive === null) && (
         <TokenDetailsStickyFooter
           token={token}
           securityData={securityData}
@@ -312,6 +354,8 @@ const TokenDetails: React.FC<{
           currentTokenBalance={balance}
           onStickyButtonsResolved={onStickyButtonsResolved}
           sourcePage="TokenDetailsView"
+          isPricePositive={chartPricePositive}
+          useAmbientColor={useAmbientColor}
         />
       )}
       {isInsightsDisclaimerVisible && (

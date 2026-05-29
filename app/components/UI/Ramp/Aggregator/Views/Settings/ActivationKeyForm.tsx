@@ -6,14 +6,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 // External dependencies
 import Row from '../../components/Row';
 import ScreenLayout from '../../components/ScreenLayout';
-import { Label } from '@metamask/design-system-react-native';
+import { Label, HeaderStandard } from '@metamask/design-system-react-native';
 import TextField from '../../../../../../component-library/components/Form/TextField';
 import Button, {
   ButtonVariants,
   ButtonSize,
 } from '../../../../../../component-library/components/Buttons/Button';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
-
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
   createNavigationDetails,
@@ -75,7 +73,7 @@ function ActivationKeyForm() {
 
   return (
     <SafeAreaView edges={['top']} style={style.container}>
-      <HeaderCompactStandard
+      <HeaderStandard
         testID={ACTIVATION_KEY_FORM_HEADER_TEST_ID}
         title={title}
         onBack={handleBack}

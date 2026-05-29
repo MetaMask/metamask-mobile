@@ -6,6 +6,7 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useUpdateTransactionPayAmount } from '../pay/useUpdateTransactionPayAmount';
 import { getTokenAddress } from '../../utils/transaction-pay';
@@ -27,6 +28,9 @@ import {
   useTransactionPayIsPostQuote,
   useTransactionPayTotals,
 } from '../pay/useTransactionPayData';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../../../reducers';
+import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
 import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEvents';
 
@@ -240,6 +244,7 @@ export function useTransactionCustomAmount({
 
 function useTokenBalance(tokenUsdRate: number) {
   const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
+  const transactionId = transactionMeta?.id ?? '';
 
   const { payToken } = useTransactionPayToken();
 
@@ -253,7 +258,11 @@ function useTokenBalance(tokenUsdRate: number) {
     .multipliedBy(tokenUsdRate)
     .toNumber();
 
-  const { tokenTotal: moneyAccountTokenTotal } = useMoneyAccountBalance();
+  const { withdrawableMusd, totalFiatRaw } = useMoneyAccountBalance();
+
+  const paymentOverride = useSelector((state: RootState) =>
+    selectPaymentOverrideByTransactionId(state, transactionId),
+  );
 
   if (hasTransactionType(transactionMeta, [TransactionType.perpsWithdraw])) {
     const perpsState = Engine.context.PerpsController?.state;
@@ -264,14 +273,16 @@ function useTokenBalance(tokenUsdRate: number) {
   if (
     hasTransactionType(transactionMeta, [TransactionType.moneyAccountWithdraw])
   ) {
-    // `tokenTotal` is mUSD-denominated (mUSD + musdSHFvd). Use mUSD's fiat rate
-    // on the canonical chain only — not the pay-token address from tx metadata.
-    if (moneyAccountTokenTotal === undefined) {
+    // Only vmUSD shares (converted via vault rate) are withdrawable through the
+    // teller — bare mUSD in the account is not part of this flow.
+    if (withdrawableMusd === undefined) {
       return 0;
     }
-    return new BigNumber(moneyAccountTokenTotal)
-      .multipliedBy(tokenUsdRate)
-      .toNumber();
+    return withdrawableMusd.multipliedBy(tokenUsdRate).toNumber();
+  }
+
+  if (paymentOverride === PaymentOverride.MoneyAccount) {
+    return totalFiatRaw ? parseFloat(totalFiatRaw) : 0;
   }
 
   return hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])

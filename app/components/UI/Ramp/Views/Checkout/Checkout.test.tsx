@@ -58,6 +58,7 @@ jest.mock('../../utils/v2OrderToast', () => ({
 jest.mock('../../headless/sessionRegistry', () => ({
   getSession: jest.fn(),
   closeSession: jest.fn(),
+  failSession: jest.fn(),
 }));
 
 jest.mock('../../../../../util/Logger', () => ({
@@ -75,6 +76,10 @@ jest.mock('../../Aggregator/sdk', () => ({
   useRampSDK: jest.fn(() => null),
 }));
 
+jest.mock('uuid', () => ({
+  v4: jest.fn(() => 'mock-uuid-xyz'),
+}));
+
 let capturedOnNavigationStateChange:
   | ((state: { url: string; loading?: boolean }) => void)
   | undefined;
@@ -90,6 +95,8 @@ jest.mock('@metamask/react-native-webview', () => {
       onNavigationStateChange,
       onHttpError,
       onShouldStartLoadWithRequest,
+      onLoadStart,
+      onLoadEnd,
       testID,
     }: {
       onNavigationStateChange?: (state: {
@@ -100,11 +107,29 @@ jest.mock('@metamask/react-native-webview', () => {
         nativeEvent: { url: string; statusCode: number };
       }) => void;
       onShouldStartLoadWithRequest?: (req: { url: string }) => boolean;
+      onLoadStart?: () => void;
+      onLoadEnd?: (e: { nativeEvent: { url: string } }) => void;
       testID?: string;
     }) => {
       capturedOnNavigationStateChange = onNavigationStateChange;
       return (
         <View testID={testID ?? 'checkout-webview'}>
+          <Button
+            testID="trigger-load-start"
+            title="TriggerLoadStart"
+            onPress={() => onLoadStart?.()}
+          />
+          <Button
+            testID="trigger-load-end"
+            title="TriggerLoadEnd"
+            onPress={() =>
+              onLoadEnd?.({
+                nativeEvent: {
+                  url: 'https://provider.example.com/checkout',
+                },
+              })
+            }
+          />
           <Button
             testID="trigger-callback-navigation"
             title="TriggerCallback"
@@ -170,6 +195,18 @@ jest.mock('@metamask/react-native-webview', () => {
             }
           />
           <Button
+            testID="trigger-http-error-callback"
+            title="TriggerHttpErrorCallback"
+            onPress={() =>
+              onHttpError?.({
+                nativeEvent: {
+                  url: `${getCallbackBaseUrl()}?orderId=123`,
+                  statusCode: 503,
+                },
+              })
+            }
+          />
+          <Button
             testID="trigger-should-start-load"
             title="TriggerShouldStartLoad"
             onPress={() =>
@@ -208,6 +245,7 @@ describe('Checkout', () => {
   const mockAddOrder = jest.fn();
   const mockGetOrderFromCallback = jest.fn();
   const mockAddPrecreatedOrder = jest.fn();
+  const mockHeadlessEntrySetOptions = jest.fn();
   const mockNavigation = {
     setOptions: jest.fn(),
     reset: jest.fn(),
@@ -243,7 +281,13 @@ describe('Checkout', () => {
     const nav = require('@react-navigation/native');
     nav.useNavigation.mockReturnValue(mockNavigation);
     mockNavigation.getParent.mockReset();
-    mockNavigation.getParent.mockImplementation(() => ({ pop: jest.fn() }));
+    mockHeadlessEntrySetOptions.mockReset();
+    mockNavigation.getParent.mockImplementation(() => ({
+      pop: jest.fn(),
+      getParent: () => ({
+        setOptions: mockHeadlessEntrySetOptions,
+      }),
+    }));
   });
 
   describe('handleNavigationStateChange (callback flow)', () => {
@@ -618,6 +662,8 @@ describe('Checkout', () => {
       .getSession as jest.Mock;
     const mockCloseSession = jest.requireMock('../../headless/sessionRegistry')
       .closeSession as jest.Mock;
+    const mockFailSession = jest.requireMock('../../headless/sessionRegistry')
+      .failSession as jest.Mock;
     const showV2OrderToastMock = jest.requireMock('../../utils/v2OrderToast')
       .showV2OrderToast as jest.Mock;
 
@@ -641,8 +687,14 @@ describe('Checkout', () => {
     beforeEach(() => {
       mockGetSession.mockReset();
       mockCloseSession.mockReset();
+      mockFailSession.mockReset();
       mockParentPop = jest.fn();
-      mockNavigation.getParent.mockReturnValue({ pop: mockParentPop });
+      mockNavigation.getParent.mockImplementation(() => ({
+        pop: mockParentPop,
+        getParent: () => ({
+          setOptions: mockHeadlessEntrySetOptions,
+        }),
+      }));
       mockGetOrderFromCallback.mockResolvedValue(mockOrder);
       mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
     });
@@ -673,34 +725,12 @@ describe('Checkout', () => {
         reason: 'completed',
       });
       expect(mockParentPop).toHaveBeenCalled();
-      expect(mockNavigation.reset).not.toHaveBeenCalled();
-      expect(showV2OrderToastMock).not.toHaveBeenCalled();
-    });
-
-    it('still adds the order to Redux and dispatches protect-wallet when headless', async () => {
-      mockGetSession.mockReturnValue({
-        id: 'hs-1',
-        status: 'continued',
-        callbacks: {
-          onOrderCreated: jest.fn(),
-          onError: jest.fn(),
-          onClose: jest.fn(),
-        },
-      });
-      mockUseParams.mockReturnValue(callbackFlowParams);
-
-      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
-
-      await act(async () => {
-        fireEvent.press(getByTestId('trigger-callback-navigation'));
-      });
-
-      await waitFor(() => {
-        expect(mockAddOrder).toHaveBeenCalledWith(mockOrder);
-      });
+      expect(mockAddOrder).toHaveBeenCalledWith(mockOrder);
       expect(mockDispatch).toHaveBeenCalledWith({
         type: 'PROTECT_WALLET_MODAL_VISIBLE',
       });
+      expect(mockNavigation.reset).not.toHaveBeenCalled();
+      expect(showV2OrderToastMock).not.toHaveBeenCalled();
     });
 
     it('swallows consumer onOrderCreated errors and still closes + pops', async () => {
@@ -738,6 +768,125 @@ describe('Checkout', () => {
         reason: 'completed',
       });
       expect(mockParentPop).toHaveBeenCalled();
+    });
+
+    it('surfaces callback processing failures through onError and skips the ErrorView', async () => {
+      mockUseParams.mockReturnValue(callbackFlowParams);
+      mockGetOrderFromCallback.mockRejectedValueOnce(
+        new Error('callback failed'),
+      );
+      mockFailSession.mockReturnValue({
+        code: 'UNKNOWN',
+        message: 'callback failed',
+      });
+
+      const { getByTestId, queryByText } = renderWithProvider(
+        <Checkout />,
+        {},
+        true,
+        false,
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-callback-navigation'));
+      });
+
+      await waitFor(() => {
+        expect(mockFailSession).toHaveBeenCalledWith('hs-1', expect.any(Error));
+      });
+      expect(mockParentPop).toHaveBeenCalled();
+      expect(showV2OrderToastMock).not.toHaveBeenCalled();
+      expect(queryByText('callback failed')).toBeNull();
+    });
+
+    it('surfaces provider WebView HTTP errors through onError when headless', async () => {
+      mockUseParams.mockReturnValue(callbackFlowParams);
+      mockFailSession.mockReturnValue({
+        code: 'UNKNOWN',
+        message: 'fiat_on_ramp_aggregator.webview_received_error',
+      });
+
+      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-http-error-main-uri'));
+        fireEvent.press(getByTestId('trigger-http-error-main-uri'));
+      });
+
+      expect(mockFailSession).toHaveBeenCalledTimes(1);
+      expect(mockParentPop).toHaveBeenCalledTimes(1);
+    });
+
+    it('treats an empty provider callback as user dismissal when headless', async () => {
+      mockUseParams.mockReturnValue(callbackFlowParams);
+
+      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-callback-empty-query'));
+      });
+
+      expect(mockCloseSession).toHaveBeenCalledWith('hs-1', {
+        reason: 'user_dismissed',
+      });
+      expect(mockParentPop).toHaveBeenCalled();
+      expect(mockGetOrderFromCallback).not.toHaveBeenCalled();
+    });
+
+    it('closes and dismisses the headless flow when the checkout close button is pressed', () => {
+      mockUseParams.mockReturnValue(callbackFlowParams);
+
+      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
+
+      fireEvent.press(getByTestId('checkout-close-button'));
+      fireEvent.press(getByTestId('checkout-close-button'));
+
+      expect(mockCloseSession).toHaveBeenCalledTimes(1);
+      expect(mockParentPop).toHaveBeenCalledTimes(1);
+    });
+
+    it('closes and dismisses the headless flow when Checkout unmounts with a live session', () => {
+      mockGetSession.mockReturnValue({
+        id: 'hs-1',
+        status: 'continued',
+        callbacks: {
+          onOrderCreated: jest.fn(),
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        },
+      });
+      mockUseParams.mockReturnValue(callbackFlowParams);
+
+      const { unmount } = renderWithProvider(<Checkout />, {}, true, false);
+
+      unmount();
+
+      expect(mockCloseSession).toHaveBeenCalledWith('hs-1', {
+        reason: 'user_dismissed',
+      });
+      expect(mockParentPop).toHaveBeenCalled();
+    });
+
+    it('keeps the headless entry card touch-through until Checkout finishes the first WebView load', () => {
+      mockUseParams.mockReturnValue(callbackFlowParams);
+
+      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
+
+      expect(mockHeadlessEntrySetOptions).toHaveBeenCalledWith({
+        cardStyle: {
+          backgroundColor: 'transparent',
+          pointerEvents: 'none',
+        },
+      });
+
+      fireEvent.press(getByTestId('trigger-load-end'));
+
+      expect(mockHeadlessEntrySetOptions).toHaveBeenCalledWith({
+        cardStyle: {
+          backgroundColor: 'transparent',
+          pointerEvents: 'auto',
+        },
+      });
     });
 
     it('falls back to the regular reset + toast when session id is present but session is missing from registry', async () => {
@@ -790,6 +939,495 @@ describe('Checkout', () => {
       expect(showV2OrderToastMock).toHaveBeenCalled();
       expect(mockCloseSession).not.toHaveBeenCalled();
       expect(mockParentPop).not.toHaveBeenCalled();
+    });
+
+    it('attributes RAMPS_CHECKOUT_CLOSED to callback_success after a successful headless callback', async () => {
+      mockGetSession.mockReturnValue({
+        id: 'hs-1',
+        status: 'continued',
+        callbacks: {
+          onOrderCreated: jest.fn(),
+          onError: jest.fn(),
+          onClose: jest.fn(),
+        },
+      });
+      mockUseParams.mockReturnValue(callbackFlowParams);
+
+      const { getByTestId, unmount } = renderWithProvider(
+        <Checkout />,
+        {},
+        true,
+        false,
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-callback-navigation'));
+      });
+      unmount();
+
+      const closedIdx = mockCreateEventBuilder.mock.calls.findIndex(
+        (c) => c[0] === MetaMetricsEvents.RAMPS_CHECKOUT_CLOSED,
+      );
+      expect(closedIdx).toBeGreaterThanOrEqual(0);
+      expect(mockAddProperties.mock.calls[closedIdx]?.[0]).toMatchObject({
+        close_source: 'callback_success',
+        callback_reached: true,
+      });
+    });
+  });
+
+  describe('WebView funnel analytics', () => {
+    const findEventProps = (eventName: unknown) => {
+      const idx = mockCreateEventBuilder.mock.calls.findIndex(
+        (c) => c[0] === eventName,
+      );
+      return idx >= 0 ? mockAddProperties.mock.calls[idx]?.[0] : undefined;
+    };
+
+    const findAllEventProps = (eventName: unknown) =>
+      mockCreateEventBuilder.mock.calls
+        .map((call, idx) =>
+          call[0] === eventName ? mockAddProperties.mock.calls[idx]?.[0] : null,
+        )
+        .filter((p): p is Record<string, unknown> => p !== null);
+
+    it('fires RAMPS_CHECKOUT_OPENED on mount with checkout_session_id = effectiveOrderId when present', () => {
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout?token=secret',
+        providerName: 'MoonPay',
+        providerCode: 'moonpay',
+        walletAddress: '0xabc',
+        orderId: 'order-123',
+      });
+
+      renderWithProvider(<Checkout />, {}, true, false);
+
+      const props = findEventProps(MetaMetricsEvents.RAMPS_CHECKOUT_OPENED);
+      expect(props).toMatchObject({
+        checkout_session_id: 'order-123',
+        location: 'Checkout',
+        ramp_type: 'UNIFIED_BUY_2',
+        provider_name: 'MoonPay',
+        initial_url_path: 'https://provider.example.com/checkout',
+        has_callback_flow: true,
+        order_id: 'order-123',
+      });
+    });
+
+    it('fires RAMPS_CHECKOUT_OPENED with UUID checkout_session_id when no order ID present', () => {
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'Test',
+      });
+
+      renderWithProvider(<Checkout />, {}, true, false);
+
+      const props = findEventProps(MetaMetricsEvents.RAMPS_CHECKOUT_OPENED);
+      expect(props).toMatchObject({
+        checkout_session_id: 'mock-uuid-xyz',
+        has_callback_flow: false,
+      });
+      expect((props as { order_id?: string }).order_id).toBeUndefined();
+    });
+
+    it('fires RAMPS_CHECKOUT_URL_CHANGED with step_index + previous_url_path and dedups repeats', async () => {
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'Test',
+        onNavigationStateChange: jest.fn(),
+      });
+
+      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-dedup-navigation'));
+        fireEvent.press(getByTestId('trigger-dedup-navigation'));
+      });
+
+      const urlChanges = findAllEventProps(
+        MetaMetricsEvents.RAMPS_CHECKOUT_URL_CHANGED,
+      );
+      expect(urlChanges).toHaveLength(1);
+      expect(urlChanges[0]).toMatchObject({
+        url_path: 'https://custom-dedup-url.example.com/',
+        step_index: 1,
+        is_callback_url: false,
+      });
+    });
+
+    it('fires RAMPS_CHECKOUT_CALLBACK_DETECTED exactly once when callback URL arrives', async () => {
+      mockGetOrderFromCallback.mockResolvedValue({
+        providerOrderId: 'po-1',
+        cryptoCurrency: { symbol: 'ETH' },
+        cryptoAmount: '1',
+        status: 'COMPLETED',
+      });
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'Test',
+        providerCode: 'moonpay',
+        walletAddress: '0xabc',
+      });
+
+      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-callback-navigation'));
+      });
+
+      const callbackDetected = findAllEventProps(
+        MetaMetricsEvents.RAMPS_CHECKOUT_CALLBACK_DETECTED,
+      );
+      expect(callbackDetected).toHaveLength(1);
+      expect(callbackDetected[0]).toMatchObject({
+        url_path: expect.stringContaining('fake-callback'),
+        step_index: 1,
+      });
+      expect(
+        (callbackDetected[0] as { time_since_open_ms: number })
+          .time_since_open_ms,
+      ).toBeGreaterThanOrEqual(0);
+    });
+
+    it('fires RAMPS_CHECKOUT_LOAD_COMPLETED with load_success=true on successful load', async () => {
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'Test',
+      });
+
+      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-load-start'));
+        fireEvent.press(getByTestId('trigger-load-end'));
+      });
+
+      const props = findEventProps(
+        MetaMetricsEvents.RAMPS_CHECKOUT_LOAD_COMPLETED,
+      );
+      expect(props).toMatchObject({
+        url_path: 'https://provider.example.com/checkout',
+        load_success: true,
+      });
+      expect(
+        (props as { load_duration_ms: number }).load_duration_ms,
+      ).toBeGreaterThanOrEqual(0);
+    });
+
+    it('fires RAMPS_CHECKOUT_HTTP_ERROR_RECEIVED and subsequent LOAD_COMPLETE has load_success=false', async () => {
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'Test',
+      });
+
+      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-load-start'));
+        fireEvent.press(getByTestId('trigger-http-error-main-uri'));
+        fireEvent.press(getByTestId('trigger-load-end'));
+      });
+
+      const httpError = findEventProps(
+        MetaMetricsEvents.RAMPS_CHECKOUT_HTTP_ERROR_RECEIVED,
+      );
+      expect(httpError).toMatchObject({
+        url_path: 'https://provider.example.com/checkout',
+        status_code: 502,
+        is_initial_url: true,
+      });
+
+      const loadComplete = findEventProps(
+        MetaMetricsEvents.RAMPS_CHECKOUT_LOAD_COMPLETED,
+      );
+      expect(loadComplete).toMatchObject({ load_success: false });
+    });
+
+    it('fires LOAD_COMPLETED with load_success=true on retry after a terminal HTTP error', async () => {
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'Test',
+      });
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <Checkout />,
+        {},
+        true,
+        false,
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-load-start'));
+        fireEvent.press(getByTestId('trigger-http-error-main-uri'));
+        fireEvent.press(getByTestId('trigger-load-end'));
+      });
+
+      await act(async () => {
+        fireEvent.press(getByText('Try again'));
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-load-start'));
+        fireEvent.press(getByTestId('trigger-load-end'));
+      });
+
+      const loadCompletes = findAllEventProps(
+        MetaMetricsEvents.RAMPS_CHECKOUT_LOAD_COMPLETED,
+      );
+      expect(loadCompletes.length).toBeGreaterThanOrEqual(2);
+      expect(loadCompletes[loadCompletes.length - 1]).toMatchObject({
+        url_path: 'https://provider.example.com/checkout',
+        load_success: true,
+      });
+    });
+
+    it('reports is_initial_url=false for callback URL HTTP errors (terminal but not the initial page)', async () => {
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'Test',
+        providerCode: 'moonpay',
+        walletAddress: '0xabc',
+      });
+
+      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-http-error-callback'));
+      });
+
+      const httpError = findEventProps(
+        MetaMetricsEvents.RAMPS_CHECKOUT_HTTP_ERROR_RECEIVED,
+      );
+      expect(httpError).toMatchObject({
+        status_code: 503,
+        is_initial_url: false,
+      });
+    });
+
+    it('fires RAMPS_CHECKOUT_CLOSED with close_source=user_close_button when X is pressed', () => {
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'Test',
+      });
+
+      const { getByTestId, unmount } = renderWithProvider(
+        <Checkout />,
+        {},
+        true,
+        false,
+      );
+
+      fireEvent.press(getByTestId('checkout-close-button'));
+      unmount();
+
+      const closed = findEventProps(MetaMetricsEvents.RAMPS_CHECKOUT_CLOSED);
+      expect(closed).toMatchObject({
+        close_source: 'user_close_button',
+        callback_reached: false,
+      });
+    });
+
+    it('fires RAMPS_CHECKOUT_CLOSED with callback_success and callback_reached=true after successful callback', async () => {
+      mockGetOrderFromCallback.mockResolvedValue({
+        providerOrderId: 'po-1',
+        cryptoCurrency: { symbol: 'ETH' },
+        cryptoAmount: '1',
+        status: 'COMPLETED',
+      });
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'Test',
+        providerCode: 'moonpay',
+        walletAddress: '0xabc',
+      });
+
+      const { getByTestId, unmount } = renderWithProvider(
+        <Checkout />,
+        {},
+        true,
+        false,
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-callback-navigation'));
+      });
+      unmount();
+
+      const closed = findEventProps(MetaMetricsEvents.RAMPS_CHECKOUT_CLOSED);
+      expect(closed).toMatchObject({
+        close_source: 'callback_success',
+        callback_reached: true,
+      });
+    });
+
+    it('fires RAMPS_CHECKOUT_CLOSED with close_source=background on unmount without signal', () => {
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'Test',
+      });
+
+      const { unmount } = renderWithProvider(<Checkout />, {}, true, false);
+
+      unmount();
+
+      const closed = findEventProps(MetaMetricsEvents.RAMPS_CHECKOUT_CLOSED);
+      expect(closed).toMatchObject({ close_source: 'background' });
+    });
+
+    it('does not fire LOAD_COMPLETE when onLoadEnd arrives without a matching onLoadStart', async () => {
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'Test',
+      });
+
+      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-load-end'));
+      });
+
+      const loadCompletes = findAllEventProps(
+        MetaMetricsEvents.RAMPS_CHECKOUT_LOAD_COMPLETED,
+      );
+      expect(loadCompletes).toHaveLength(0);
+    });
+
+    it('fires LOAD_COMPLETE only once when the same URL completes loading twice', async () => {
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'Test',
+      });
+
+      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-load-start'));
+        fireEvent.press(getByTestId('trigger-load-end'));
+        fireEvent.press(getByTestId('trigger-load-start'));
+        fireEvent.press(getByTestId('trigger-load-end'));
+      });
+
+      const loadCompletes = findAllEventProps(
+        MetaMetricsEvents.RAMPS_CHECKOUT_LOAD_COMPLETED,
+      );
+      expect(loadCompletes).toHaveLength(1);
+    });
+
+    it('dedups URL_CHANGE when only the query string differs (same path)', () => {
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'Test',
+      });
+
+      renderWithProvider(<Checkout />, {}, true, false);
+
+      act(() => {
+        capturedOnNavigationStateChange?.({
+          url: 'https://provider.example.com/step?token=abc',
+          loading: false,
+        });
+        capturedOnNavigationStateChange?.({
+          url: 'https://provider.example.com/step?token=xyz',
+          loading: false,
+        });
+      });
+
+      const urlChanges = findAllEventProps(
+        MetaMetricsEvents.RAMPS_CHECKOUT_URL_CHANGED,
+      );
+      expect(urlChanges).toHaveLength(1);
+      expect(urlChanges[0]).toMatchObject({
+        url_path: 'https://provider.example.com/step',
+        step_index: 1,
+      });
+    });
+
+    it('fires RAMPS_CHECKOUT_CLOSED with close_source=callback_error when getOrderFromCallback returns null', async () => {
+      mockGetOrderFromCallback.mockResolvedValue(null);
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'Test',
+        providerCode: 'moonpay',
+        walletAddress: '0xabc',
+      });
+
+      const { getByTestId, unmount } = renderWithProvider(
+        <Checkout />,
+        {},
+        true,
+        false,
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-callback-navigation'));
+      });
+      unmount();
+
+      const closed = findEventProps(MetaMetricsEvents.RAMPS_CHECKOUT_CLOSED);
+      expect(closed).toMatchObject({ close_source: 'callback_error' });
+    });
+
+    it('fires RAMPS_CHECKOUT_CLOSED with close_source=http_error after a terminal HTTP error', async () => {
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'Test',
+      });
+
+      const { getByTestId, unmount } = renderWithProvider(
+        <Checkout />,
+        {},
+        true,
+        false,
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-http-error-main-uri'));
+      });
+      unmount();
+
+      const closed = findEventProps(MetaMetricsEvents.RAMPS_CHECKOUT_CLOSED);
+      expect(closed).toMatchObject({ close_source: 'http_error' });
+    });
+
+    it('redacts query strings and fragments from every url field (PII audit)', async () => {
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout?email=user@example.com&token=secret#frag',
+        providerName: 'Test',
+        onNavigationStateChange: jest.fn(),
+      });
+
+      const { getByTestId, unmount } = renderWithProvider(
+        <Checkout />,
+        {},
+        true,
+        false,
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-dedup-navigation'));
+        fireEvent.press(getByTestId('trigger-load-start'));
+        fireEvent.press(getByTestId('trigger-load-end'));
+      });
+      unmount();
+
+      const urlFieldNames = [
+        'initial_url_path',
+        'url_path',
+        'previous_url_path',
+        'last_url_path',
+        'previous_url_path',
+      ];
+      for (const propsCall of mockAddProperties.mock.calls) {
+        const props = propsCall[0] as Record<string, unknown>;
+        for (const field of urlFieldNames) {
+          const value = props[field];
+          if (typeof value === 'string' && value.length > 0) {
+            expect(value).not.toContain('?');
+            expect(value).not.toContain('#');
+            expect(value).not.toContain('@');
+          }
+        }
+      }
     });
   });
 });

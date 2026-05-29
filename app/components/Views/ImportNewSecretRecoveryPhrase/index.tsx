@@ -48,6 +48,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import { Authentication } from '../../../core';
 import Routes from '../../../constants/navigation/Routes';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import Logger from '../../../util/Logger';
 import { v4 as uuidv4 } from 'uuid';

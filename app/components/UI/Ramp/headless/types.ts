@@ -149,15 +149,17 @@ export interface HeadlessBuyCallbacks {
  * the UI normally renders. Phase 3 only uses `UNKNOWN`; later phases route
  * limit/auth/etc. errors through it.
  */
+export type HeadlessBuyErrorCode =
+  | 'NO_QUOTES'
+  | 'LIMIT_EXCEEDED'
+  | 'KYC_REQUIRED'
+  | 'AUTH_FAILED'
+  | 'QUOTE_FAILED'
+  | 'USER_CANCELLED'
+  | 'UNKNOWN';
+
 export interface HeadlessBuyError {
-  code:
-    | 'NO_QUOTES'
-    | 'LIMIT_EXCEEDED'
-    | 'KYC_REQUIRED'
-    | 'AUTH_FAILED'
-    | 'QUOTE_FAILED'
-    | 'USER_CANCELLED'
-    | 'UNKNOWN';
+  code: HeadlessBuyErrorCode;
   message?: string;
   details?: Record<string, unknown>;
 }

@@ -1,25 +1,33 @@
 import type { RelatedAsset } from '@metamask/ai-controllers';
 import { isNonEvmChainId } from '@metamask/bridge-controller';
 import { CaipAssetType, parseCaipAssetType } from '@metamask/utils';
-import type { ImageSourcePropType } from 'react-native';
 import { getTokenIconUrl, getTokenImageSource } from '../../../UI/Bridge/utils';
 import { getAssetIconUrls } from '../../../UI/Perps/utils/marketUtils';
 import { K_PREFIX_ASSETS } from '../../../UI/Perps/components/PerpsTokenLogo/PerpsAssetBgConfig';
 
 /**
- * Image source for a market-overview `RelatedAsset`.
- *
- * Resolution order: CAIP-19 wallet CDN + bundled PNG (regular crypto tokens) →
- * Perps SVG via `hlPerpsMarket` when `caip19` is empty (synthetic-only assets
- * like `xyz:TSLA`) → bundled icon by symbol.
- *
- * `hlPerpsMarket` is NOT consulted when `caip19` is populated because regular
- * crypto tokens (BTC, ETH) carry it too, and Perps CDN only serves SVGs that
- * `AvatarToken` cannot render remotely.
+ * Discriminated result from {@link getRelatedAssetImageSource}.
+ * `bundled` — local require() number, safe for AvatarToken.
+ * `png` — wallet-CDN PNG URI, safe for AvatarToken.
+ * `perps` — remote Perps SVG; use expo-image/PerpsTokenLogo (AvatarToken
+ * cannot reliably load remote SVGs). `symbol` is the raw market id.
+ */
+export type RelatedAssetImage =
+  | { kind: 'bundled'; source: number }
+  | { kind: 'png'; uri: string }
+  | { kind: 'perps'; symbol: string; primary: string; fallback?: string }
+  | undefined;
+
+/**
+ * Resolves the image source for a market-overview `RelatedAsset`.
+ * Order: (1) wallet CDN/bundled PNG via CAIP-19, (2) Perps SVG via
+ * `hlPerpsMarket` when `caip19` is absent (e.g. xyz:TSLA, xyz:BRENT),
+ * (3) bundled icon by symbol. `hlPerpsMarket` is skipped when `caip19` is
+ * set because the Perps CDN only serves SVGs that AvatarToken cannot render.
  */
 export const getRelatedAssetImageSource = (
   asset: RelatedAsset,
-): ImageSourcePropType | undefined => {
+): RelatedAssetImage => {
   // 1. Wallet CDN via CAIP-19 (PNG — works with AvatarToken)
   const firstCaip = asset.caip19?.[0];
   if (firstCaip) {
@@ -29,7 +37,18 @@ export const getRelatedAssetImageSource = (
         firstCaip as CaipAssetType,
         isNonEvmChainId(chainId),
       );
-      return getTokenImageSource(asset.symbol, cdnUrl);
+      const source = getTokenImageSource(asset.symbol, cdnUrl);
+      if (typeof source === 'number') {
+        return { kind: 'bundled', source };
+      }
+      if (
+        source &&
+        typeof source === 'object' &&
+        'uri' in source &&
+        typeof source.uri === 'string'
+      ) {
+        return { kind: 'png', uri: source.uri };
+      }
     } catch {
       // Invalid or unsupported CAIP-19 string — fall through
     }
@@ -40,10 +59,19 @@ export const getRelatedAssetImageSource = (
   if (firstHlPerpsMarket && !asset.caip19?.length) {
     const urls = getAssetIconUrls(firstHlPerpsMarket, K_PREFIX_ASSETS);
     if (urls) {
-      return { uri: urls.primary };
+      return {
+        kind: 'perps',
+        symbol: firstHlPerpsMarket,
+        primary: urls.primary,
+        fallback: urls.fallback,
+      };
     }
   }
 
   // 3. Bundled icons only (symbol lookup)
-  return getTokenImageSource(asset.symbol, undefined);
+  const source = getTokenImageSource(asset.symbol, undefined);
+  if (typeof source === 'number') {
+    return { kind: 'bundled', source };
+  }
+  return undefined;
 };

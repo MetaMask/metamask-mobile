@@ -43,6 +43,11 @@ jest.mock('../views/PredictFeed', () => {
   );
 });
 
+jest.mock('../views/PredictWorldCup', () => {
+  const { View } = jest.requireActual('react-native');
+  return () => <View testID="predict-world-cup" />;
+});
+
 jest.mock('../views/PredictMarketDetails', () => {
   const { View } = jest.requireActual('react-native');
   return () => <View testID="predict-market-details" />;
@@ -93,13 +98,21 @@ jest.mock('../../../Views/confirmations/components/confirm', () => ({
 jest.mock(
   '../../../../constants/navigation/clearStackNavigatorOptions',
   () => ({
-    clearStackNavigatorOptions: {},
+    clearNativeStackNavigatorOptions: {},
+    transparentModalScreenOptions: {},
   }),
 );
 
-let navigationRef: React.RefObject<
-  NavigationContainerRef<Record<string, unknown>>
->;
+jest.mock(
+  '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations',
+  () => ({
+    useEmptyNavHeaderForConfirmations: () => ({ headerShown: false }),
+  }),
+);
+
+let navigationRef: React.RefObject<NavigationContainerRef<
+  Record<string, unknown>
+> | null>;
 
 const renderWithNavigation = (component: React.ReactElement) =>
   render(
@@ -133,6 +146,16 @@ describe('PredictScreenStack', () => {
     });
 
     expect(screen.getByTestId('predict-market-details')).toBeOnTheScreen();
+  });
+
+  it('navigates to WORLD_CUP screen', async () => {
+    renderWithNavigation(<PredictScreenStack />);
+
+    await act(async () => {
+      navigationRef.current?.navigate(Routes.PREDICT.WORLD_CUP);
+    });
+
+    expect(screen.getByTestId('predict-world-cup')).toBeOnTheScreen();
   });
 
   it('navigates to BUY_PREVIEW with PredictBuyPreview when payWithAnyToken is off', async () => {

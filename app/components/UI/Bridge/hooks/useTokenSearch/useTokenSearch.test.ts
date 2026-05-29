@@ -80,12 +80,19 @@ describe('useTokenSearch', () => {
   it('should find tokens by symbol', () => {
     const { result } = renderHook(() => useTokenSearch({ tokens: mockTokens }));
 
+    // Advance timers to allow throttled tokens to be set (1250ms throttle)
+    act(() => {
+      jest.advanceTimersByTime(1500);
+    });
+
     act(() => {
       result.current.setSearchString('ETH');
     });
 
-    // Advance timers to trigger the debounce
-    jest.advanceTimersByTime(500);
+    // Advance timers to trigger the debounce (300ms default)
+    act(() => {
+      jest.advanceTimersByTime(500);
+    });
 
     expect(result.current.searchResults[0].symbol).toBe('ETH');
   });
@@ -94,11 +101,16 @@ describe('useTokenSearch', () => {
     const { result } = renderHook(() => useTokenSearch({ tokens: mockTokens }));
 
     act(() => {
+      jest.advanceTimersByTime(1500);
+    });
+
+    act(() => {
       result.current.setSearchString('Coin');
     });
 
-    // Advance timers to trigger the debounce
-    jest.advanceTimersByTime(500);
+    act(() => {
+      jest.advanceTimersByTime(500);
+    });
 
     expect(result.current.searchResults[0].symbol).toBe('USDC');
   });
@@ -107,11 +119,16 @@ describe('useTokenSearch', () => {
     const { result } = renderHook(() => useTokenSearch({ tokens: mockTokens }));
 
     act(() => {
+      jest.advanceTimersByTime(1500);
+    });
+
+    act(() => {
       result.current.setSearchString('0x1');
     });
 
-    // Advance timers to trigger the debounce
-    jest.advanceTimersByTime(500);
+    act(() => {
+      jest.advanceTimersByTime(500);
+    });
 
     expect(result.current.searchResults[0].symbol).toBe('ETH');
   });
@@ -120,11 +137,16 @@ describe('useTokenSearch', () => {
     const { result } = renderHook(() => useTokenSearch({ tokens: mockTokens }));
 
     act(() => {
+      jest.advanceTimersByTime(1500);
+    });
+
+    act(() => {
       result.current.setSearchString('NONEXISTENT');
     });
 
-    // Advance timers to trigger the debounce
-    jest.advanceTimersByTime(500);
+    act(() => {
+      jest.advanceTimersByTime(500);
+    });
 
     expect(result.current.searchResults).toHaveLength(0);
   });
@@ -133,11 +155,16 @@ describe('useTokenSearch', () => {
     const { result } = renderHook(() => useTokenSearch({ tokens: mockTokens }));
 
     act(() => {
+      jest.advanceTimersByTime(1500);
+    });
+
+    act(() => {
       result.current.setSearchString('USD'); // Should match both USDC and USDT
     });
 
-    // Advance timers to trigger the debounce
-    jest.advanceTimersByTime(500);
+    act(() => {
+      jest.advanceTimersByTime(500);
+    });
 
     expect(result.current.searchResults).toHaveLength(2);
     expect(result.current.searchResults[0].symbol).toBe('USDC'); // Higher fiat value should be first
@@ -148,11 +175,16 @@ describe('useTokenSearch', () => {
     const { result } = renderHook(() => useTokenSearch({ tokens: [] }));
 
     act(() => {
+      jest.advanceTimersByTime(1500);
+    });
+
+    act(() => {
       result.current.setSearchString('ETH');
     });
 
-    // Advance timers to trigger the debounce
-    jest.advanceTimersByTime(500);
+    act(() => {
+      jest.advanceTimersByTime(500);
+    });
 
     expect(result.current.searchResults).toHaveLength(0);
   });
@@ -163,11 +195,16 @@ describe('useTokenSearch', () => {
     );
 
     act(() => {
+      jest.advanceTimersByTime(1500);
+    });
+
+    act(() => {
       result.current.setSearchString('ETH');
     });
 
-    // Advance timers to trigger the debounce
-    jest.advanceTimersByTime(500);
+    act(() => {
+      jest.advanceTimersByTime(500);
+    });
 
     expect(result.current.searchResults).toHaveLength(0);
   });
@@ -191,11 +228,16 @@ describe('useTokenSearch', () => {
     );
 
     act(() => {
+      jest.advanceTimersByTime(1500);
+    });
+
+    act(() => {
       result.current.setSearchString('TKN'); // Should match all tokens
     });
 
-    // Advance timers to trigger the debounce
-    jest.advanceTimersByTime(500);
+    act(() => {
+      jest.advanceTimersByTime(500);
+    });
 
     expect(result.current.searchResults.length).toBeLessThanOrEqual(20); // MAX_TOKENS_RESULTS is 20
   });

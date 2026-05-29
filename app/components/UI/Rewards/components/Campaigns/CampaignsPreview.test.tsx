@@ -20,7 +20,11 @@ jest.mock('@metamask/design-system-react-native', () => {
 });
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: (...args: unknown[]) => args }),
+  useTailwind: () => {
+    const tw = (..._args: unknown[]) => ({});
+    tw.style = jest.fn(() => ({}));
+    return tw;
+  },
 }));
 
 jest.mock('../../hooks/useRewardCampaigns');
@@ -117,6 +121,20 @@ describe('CampaignsPreview', () => {
   });
 
   it('renders the section with no campaigns when none are featured', () => {
+    const { getByTestId, queryByTestId } = render(<CampaignsPreview />);
+
+    expect(
+      getByTestId(REWARDS_VIEW_SELECTORS.CAMPAIGNS_PREVIEW),
+    ).toBeOnTheScreen();
+    expect(queryByTestId('campaign-tile-campaign-1')).toBeNull();
+  });
+
+  it('treats undefined campaigns as an empty list for featured selection', () => {
+    mockUseRewardCampaigns.mockReturnValue({
+      ...mockHookDefaults,
+      campaigns: undefined as unknown as CampaignDto[],
+    });
+
     const { getByTestId, queryByTestId } = render(<CampaignsPreview />);
 
     expect(

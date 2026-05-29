@@ -1,15 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { View, TouchableOpacity, RefreshControl } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
-import styleSheet from '../../Deposit/Views/BankDetails/BankDetails.styles';
-import { useNavigation } from '@react-navigation/native';
-import { useParams } from '../../../../../util/navigation/navUtils';
-import Routes from '../../../../../constants/navigation/Routes';
-import { useStyles } from '../../../../hooks/useStyles';
-import ScreenLayout from '../../Aggregator/components/ScreenLayout';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
-import { strings } from '../../../../../../locales/i18n';
 import {
+  HeaderStandard,
   Text,
   TextVariant,
   TextColor,
@@ -21,6 +12,15 @@ import {
   ButtonVariant,
   ButtonSize,
 } from '@metamask/design-system-react-native';
+import { View, TouchableOpacity, RefreshControl } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
+import styleSheet from '../../Deposit/Views/BankDetails/BankDetails.styles';
+import { useNavigation } from '@react-navigation/native';
+import { useParams } from '../../../../../util/navigation/navUtils';
+import Routes from '../../../../../constants/navigation/Routes';
+import { useStyles } from '../../../../hooks/useStyles';
+import ScreenLayout from '../../Aggregator/components/ScreenLayout';
+import { strings } from '../../../../../../locales/i18n';
 import Loader from '../../../../../component-library/components-temp/Loader/Loader';
 import BankDetailRow from '../../Deposit/components/BankDetailRow';
 import {
@@ -312,7 +312,7 @@ const V2BankDetails = () => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <HeaderCompactStandard
+        <HeaderStandard
           title={headerTitle}
           onBack={handleHeaderBack}
           backButtonProps={{ testID: 'deposit-back-navbar-button' }}

@@ -1,11 +1,8 @@
 import React from 'react';
-import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { act, screen, waitFor } from '@testing-library/react-native';
 
 import HeadlessHost, {
-  HEADLESS_HOST_BACK_BUTTON_TEST_ID,
-  HEADLESS_HOST_CANCEL_BUTTON_TEST_ID,
-  HEADLESS_HOST_LOADER_TEST_ID,
-  HEADLESS_HOST_NO_SESSION_TEST_ID,
+  HEADLESS_HOST_CONTAINER_TEST_ID,
   createHeadlessHostNavDetails,
   type HeadlessHostParams,
 } from './HeadlessHost';
@@ -30,8 +27,20 @@ import Routes from '../../../../../constants/navigation/Routes';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockAddListener = jest.fn();
+const mockHeadlessEntrySetOptions = jest.fn();
 const mockContinueWithQuote = jest.fn();
 const mockUseContinueWithQuoteOptions = jest.fn();
+let mockIsFocused = true;
+
+interface BeforeRemoveEvent {
+  data: { action: { type: string } };
+}
+let registeredBeforeRemoveListener: ((e?: BeforeRemoveEvent) => void) | null =
+  null;
+const DEFAULT_GO_BACK_EVENT: BeforeRemoveEvent = {
+  data: { action: { type: 'GO_BACK' } },
+};
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -40,7 +49,14 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       goBack: mockGoBack,
       navigate: mockNavigate,
+      addListener: mockAddListener,
+      getParent: () => ({
+        getParent: () => ({
+          setOptions: mockHeadlessEntrySetOptions,
+        }),
+      }),
     }),
+    useIsFocused: () => mockIsFocused,
   };
 });
 
@@ -158,6 +174,16 @@ describe('HeadlessHost', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     __resetSessionRegistryForTests();
+    registeredBeforeRemoveListener = null;
+    mockIsFocused = true;
+    mockAddListener.mockImplementation(
+      (eventName: string, listener: (e?: BeforeRemoveEvent) => void) => {
+        if (eventName === 'beforeRemove') {
+          registeredBeforeRemoveListener = listener;
+        }
+        return jest.fn();
+      },
+    );
     mockUseRampAccountAddress.mockReturnValue('0xWALLET');
     mockUseRampsUserRegion.mockReturnValue({
       userRegion: { country: { currency: 'EUR' } },
@@ -180,39 +206,47 @@ describe('HeadlessHost', () => {
       expect(params).toEqual({ headlessSessionId: 'headless-buy-abc' });
     });
 
-    it('renders the no-session message when the session id is unknown', () => {
-      renderHost({ headlessSessionId: 'headless-buy-not-real' });
-      expect(
-        screen.getByTestId(HEADLESS_HOST_NO_SESSION_TEST_ID),
-      ).toBeOnTheScreen();
-      expect(
-        screen.queryByTestId(HEADLESS_HOST_LOADER_TEST_ID),
-      ).not.toBeOnTheScreen();
-      expect(mockContinueWithQuote).not.toHaveBeenCalled();
-    });
-
-    it('renders the loader while a matching session is being orchestrated', () => {
-      // Make continueWithQuote hang so the loader stays on screen.
-      mockContinueWithQuote.mockImplementation(
-        () => new Promise(() => undefined),
-      );
+    it('renders only a transparent container — no header, spinner, or buttons after Phase 9.5', () => {
       const session = seedSession(buildAggregatorQuote());
       renderHost({ headlessSessionId: session.id });
       expect(
-        screen.getByTestId(HEADLESS_HOST_LOADER_TEST_ID),
+        screen.getByTestId(HEADLESS_HOST_CONTAINER_TEST_ID),
       ).toBeOnTheScreen();
+      expect(screen.getByTestId(HEADLESS_HOST_CONTAINER_TEST_ID)).toHaveProp(
+        'pointerEvents',
+        'none',
+      );
+      expect(screen.queryByText(/Cancel/i)).not.toBeOnTheScreen();
+      expect(screen.queryByText(/Preparing/i)).not.toBeOnTheScreen();
+      expect(screen.queryByText(/no longer active/i)).not.toBeOnTheScreen();
+      expect(mockHeadlessEntrySetOptions).toHaveBeenCalledWith({
+        cardStyle: {
+          backgroundColor: 'transparent',
+          pointerEvents: 'none',
+        },
+      });
     });
 
-    it('navigates back when the cancel button is pressed', () => {
-      renderHost();
-      fireEvent.press(screen.getByTestId(HEADLESS_HOST_CANCEL_BUTTON_TEST_ID));
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    it('renders the transparent container even with no session — no UI affordances surface to the user', () => {
+      renderHost({ headlessSessionId: 'headless-buy-not-real' });
+      expect(
+        screen.getByTestId(HEADLESS_HOST_CONTAINER_TEST_ID),
+      ).toBeOnTheScreen();
+      expect(mockContinueWithQuote).not.toHaveBeenCalled();
     });
 
-    it('navigates back when the header back button is pressed', () => {
-      renderHost();
-      fireEvent.press(screen.getByTestId(HEADLESS_HOST_BACK_BUTTON_TEST_ID));
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    it('restores the headless entry card to interactive when the Host is not focused', () => {
+      mockIsFocused = false;
+      const session = seedSession(buildAggregatorQuote());
+
+      renderHost({ headlessSessionId: session.id });
+
+      expect(mockHeadlessEntrySetOptions).toHaveBeenCalledWith({
+        cardStyle: {
+          backgroundColor: 'transparent',
+          pointerEvents: 'auto',
+        },
+      });
     });
   });
 
@@ -296,21 +330,14 @@ describe('HeadlessHost', () => {
     it('skips orchestration when the session has already been cancelled', async () => {
       const quote = buildAggregatorQuote();
       const session = seedSession(quote);
-      // Mark the session terminal *before* the screen mounts: the focus
-      // effect must respect that and avoid a stale re-trigger.
       closeSession(session.id, { reason: 'consumer_cancelled' });
       renderHost({ headlessSessionId: session.id });
-      // No session left → the no-session branch renders, continueWithQuote
-      // is never called.
-      expect(
-        screen.getByTestId(HEADLESS_HOST_NO_SESSION_TEST_ID),
-      ).toBeOnTheScreen();
       expect(mockContinueWithQuote).not.toHaveBeenCalled();
     });
   });
 
   describe('Error handling', () => {
-    it('forwards a malformed assetId as onError(UNKNOWN, ...) and closes the session', async () => {
+    it('forwards a malformed assetId as onError(UNKNOWN, ...) and closes the session', () => {
       // Real hook: falsy chain id → null wallet. The invalid-assetId branch
       // must run before the wallet deferral or the effect would return early
       // forever (regression guard for guard ordering).
@@ -326,12 +353,9 @@ describe('HeadlessHost', () => {
       expect(callbacks.onClose).toHaveBeenCalledWith({ reason: 'unknown' });
       expect(getSession(session.id)).toBeUndefined();
       expect(mockContinueWithQuote).not.toHaveBeenCalled();
-      await waitFor(() => {
-        expect(screen.getByText(/not-a-caip-19/)).toBeOnTheScreen();
-      });
     });
 
-    it('surfaces a continueWithQuote rejection as onError(UNKNOWN, ...) and renders the message', async () => {
+    it('surfaces a continueWithQuote rejection as onError(UNKNOWN, ...)', async () => {
       mockContinueWithQuote.mockRejectedValueOnce(new Error('quote expired'));
       const quote = buildAggregatorQuote();
       const session = seedSession(quote);
@@ -345,10 +369,27 @@ describe('HeadlessHost', () => {
       });
       expect(callbacks.onClose).toHaveBeenCalledWith({ reason: 'unknown' });
       expect(getSession(session.id)).toBeUndefined();
-      expect(screen.getByText('quote expired')).toBeOnTheScreen();
     });
 
-    it('does not run the continueWithQuote rejection path after unmount', async () => {
+    it('surfaces limit failures as onError(LIMIT_EXCEEDED, ...)', async () => {
+      const limitError = new Error('Daily limit exceeded');
+      limitError.name = 'LimitExceededError';
+      mockContinueWithQuote.mockRejectedValueOnce(limitError);
+      const quote = buildNativeQuote();
+      const session = seedSession(quote);
+      const callbacks = session.callbacks;
+      renderHost({ headlessSessionId: session.id });
+      await waitFor(() => {
+        expect(callbacks.onError).toHaveBeenCalledWith({
+          code: 'LIMIT_EXCEEDED',
+          message: 'Daily limit exceeded',
+        });
+      });
+      expect(callbacks.onClose).toHaveBeenCalledWith({ reason: 'unknown' });
+      expect(getSession(session.id)).toBeUndefined();
+    });
+
+    it('does not surface a continueWithQuote rejection that arrives after unmount', async () => {
       let rejectDeferred: ((error: Error) => void) | undefined;
       mockContinueWithQuote.mockImplementation(
         () =>
@@ -364,15 +405,19 @@ describe('HeadlessHost', () => {
         expect(mockContinueWithQuote).toHaveBeenCalledTimes(1),
       );
       unmount();
+      expect(callbacks.onClose).toHaveBeenCalledTimes(1);
+      expect(callbacks.onClose).toHaveBeenCalledWith({
+        reason: 'user_dismissed',
+      });
+      expect(getSession(session.id)).toBeUndefined();
       await act(async () => {
         rejectDeferred?.(new Error('late failure'));
       });
       expect(callbacks.onError).not.toHaveBeenCalled();
-      expect(callbacks.onClose).not.toHaveBeenCalled();
-      expect(getSession(session.id)?.status).toBe('continued');
+      expect(callbacks.onClose).toHaveBeenCalledTimes(1);
     });
 
-    it('forwards a nativeFlowError param as onError(AUTH_FAILED, ...), renders it, and closes the session', () => {
+    it('forwards a nativeFlowError param as onError(AUTH_FAILED, ...) and closes the session', () => {
       const quote = buildNativeQuote();
       const session = seedSession(quote);
       const callbacks = session.callbacks;
@@ -386,10 +431,7 @@ describe('HeadlessHost', () => {
       });
       expect(callbacks.onClose).toHaveBeenCalledWith({ reason: 'unknown' });
       expect(getSession(session.id)).toBeUndefined();
-      // The auth-error path also short-circuits the continue-on-focus effect
-      // — we never want to push EnterEmail again on top of the error message.
       expect(mockContinueWithQuote).not.toHaveBeenCalled();
-      expect(screen.getByText('OTP rejected')).toBeOnTheScreen();
     });
 
     it('does not crash when the consumer onError callback throws', async () => {
@@ -410,9 +452,122 @@ describe('HeadlessHost', () => {
         },
       );
       renderHost({ headlessSessionId: session.id });
-      // Even though onError throws, the close path still runs and the
-      // session is gone from the registry.
       await waitFor(() => expect(getSession(session.id)).toBeUndefined());
+    });
+  });
+
+  describe('Dismissal (Phase 8 + 9.5)', () => {
+    it('registers a beforeRemove listener that synchronously closes the session with user_dismissed', () => {
+      const quote = buildAggregatorQuote();
+      const session = seedSession(quote);
+      const callbacks = session.callbacks;
+      renderHost({ headlessSessionId: session.id });
+      expect(mockAddListener).toHaveBeenCalledWith(
+        'beforeRemove',
+        expect.any(Function),
+      );
+      expect(typeof registeredBeforeRemoveListener).toBe('function');
+
+      registeredBeforeRemoveListener?.(DEFAULT_GO_BACK_EVENT);
+
+      expect(callbacks.onClose).toHaveBeenCalledTimes(1);
+      expect(callbacks.onClose).toHaveBeenCalledWith({
+        reason: 'user_dismissed',
+      });
+      expect(getSession(session.id)).toBeUndefined();
+    });
+
+    it('does NOT close the session when beforeRemove fires for a RESET action (stack rebuild guard)', () => {
+      const quote = buildAggregatorQuote();
+      const session = seedSession(quote);
+      const callbacks = session.callbacks;
+      renderHost({ headlessSessionId: session.id });
+      expect(typeof registeredBeforeRemoveListener).toBe('function');
+
+      registeredBeforeRemoveListener?.({
+        data: { action: { type: 'RESET' } },
+      });
+
+      expect(callbacks.onClose).not.toHaveBeenCalled();
+      expect(getSession(session.id)).toBeDefined();
+    });
+
+    it('fires onClose({ reason: "user_dismissed" }) once when the host unmounts mid-flow without a terminal status', async () => {
+      mockContinueWithQuote.mockImplementation(
+        () => new Promise(() => undefined),
+      );
+      const quote = buildAggregatorQuote();
+      const session = seedSession(quote);
+      const callbacks = session.callbacks;
+      const { unmount } = renderHost({ headlessSessionId: session.id });
+      await waitFor(() =>
+        expect(mockContinueWithQuote).toHaveBeenCalledTimes(1),
+      );
+
+      unmount();
+
+      expect(callbacks.onClose).toHaveBeenCalledTimes(1);
+      expect(callbacks.onClose).toHaveBeenCalledWith({
+        reason: 'user_dismissed',
+      });
+      expect(getSession(session.id)).toBeUndefined();
+    });
+
+    it('does not fire a second onClose when the session was already closed by Phase 6 success before unmount', async () => {
+      mockContinueWithQuote.mockImplementation(
+        () => new Promise(() => undefined),
+      );
+      const quote = buildAggregatorQuote();
+      const session = seedSession(quote);
+      const callbacks = session.callbacks;
+      const { unmount } = renderHost({ headlessSessionId: session.id });
+      await waitFor(() =>
+        expect(mockContinueWithQuote).toHaveBeenCalledTimes(1),
+      );
+
+      closeSession(session.id, { reason: 'completed' });
+      expect(callbacks.onClose).toHaveBeenCalledTimes(1);
+      expect(callbacks.onClose).toHaveBeenCalledWith({ reason: 'completed' });
+
+      registeredBeforeRemoveListener?.(DEFAULT_GO_BACK_EVENT);
+      unmount();
+
+      expect(callbacks.onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not fire a second onClose when a Phase 7 nativeFlowError already closed the session before unmount', () => {
+      const quote = buildNativeQuote();
+      const session = seedSession(quote);
+      const callbacks = session.callbacks;
+      const { unmount } = renderHost({
+        headlessSessionId: session.id,
+        nativeFlowError: 'OTP rejected',
+      });
+
+      expect(callbacks.onClose).toHaveBeenCalledTimes(1);
+      expect(callbacks.onClose).toHaveBeenCalledWith({ reason: 'unknown' });
+
+      registeredBeforeRemoveListener?.(DEFAULT_GO_BACK_EVENT);
+      unmount();
+
+      expect(callbacks.onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('no-ops on unmount when the host mounted against an already-terminated session', () => {
+      const quote = buildAggregatorQuote();
+      const session = seedSession(quote);
+      const callbacks = session.callbacks;
+      closeSession(session.id, { reason: 'consumer_cancelled' });
+      expect(callbacks.onClose).toHaveBeenCalledTimes(1);
+      expect(callbacks.onClose).toHaveBeenCalledWith({
+        reason: 'consumer_cancelled',
+      });
+
+      const { unmount } = renderHost({ headlessSessionId: session.id });
+      registeredBeforeRemoveListener?.(DEFAULT_GO_BACK_EVENT);
+      unmount();
+
+      expect(callbacks.onClose).toHaveBeenCalledTimes(1);
     });
   });
 });

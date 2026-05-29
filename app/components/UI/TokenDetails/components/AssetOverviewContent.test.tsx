@@ -388,7 +388,7 @@ describe('AssetOverviewContent', () => {
           onClose: expect.any(Function),
           contentKey: 'geo_block',
         }),
-        {},
+        undefined,
       );
 
       // Extract onClose from the last render call and invoke it
@@ -428,6 +428,7 @@ describe('AssetOverviewContent', () => {
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
         caip19: 'eip155:1/erc20:0x123',
+        source: 'token_details',
         asset_symbol: 'eth',
         digest_id: 'a8154c57-c665-449c-8bb5-fcaae96ef922',
       });
@@ -913,7 +914,7 @@ describe('AssetOverviewContent', () => {
 
         expect(tokenDetailsActionsSpy).toHaveBeenCalledWith(
           expect.objectContaining({ hasBalance: expectedHasBalance }),
-          expect.anything(),
+          undefined,
         );
       },
     );

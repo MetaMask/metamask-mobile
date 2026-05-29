@@ -14,7 +14,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { OndoGmCampaignOutcomeBanner } from '../components/Campaigns/OndoCampaignOutcomeBanners';
+import { CampaignOutcomeBanner } from '../components/Campaigns/CampaignOutcomeBanners';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
@@ -126,6 +126,10 @@ const OndoCampaignStatsView: React.FC = () => {
 
   const netInflowValue = portfolioData?.summary
     ? formatUsd(portfolioData.summary.netDeposit)
+    : '-';
+
+  const totalInflowValue = portfolioData?.summary
+    ? formatUsd(portfolioData.summary.totalUsdDeposited)
     : '-';
 
   const hasCashedOut = portfolioData?.summary
@@ -268,9 +272,16 @@ const OndoCampaignStatsView: React.FC = () => {
               </Box>
             )}
 
-            {/* Days held (when outflow row present) */}
+            {/* Total inflow | Days held (when outflow row present) */}
             {!isCampaignComplete && hasCashedOut && (
               <Box flexDirection={BoxFlexDirection.Row}>
+                <StatCell
+                  label={strings(
+                    'rewards.ondo_campaign_stats.label_total_inflow',
+                  )}
+                  value={totalInflowValue}
+                  isLoading={portfolioLoading}
+                />
                 <StatCell
                   label={strings('rewards.ondo_campaign_stats.label_days_held')}
                   value={daysHeldValue}
@@ -278,13 +289,12 @@ const OndoCampaignStatsView: React.FC = () => {
                   valueColor={TextColor.TextDefault}
                   suffix={isQualified ? <CheckIcon /> : undefined}
                 />
-                <Box twClassName="flex-1" />
               </Box>
             )}
 
             {/* ── Outcome banner (campaign ended) ── */}
             {isCampaignComplete && participantOutcome && (
-              <OndoGmCampaignOutcomeBanner
+              <CampaignOutcomeBanner
                 outcomeStatus={participantOutcome.outcomeStatus}
                 winnerVerificationCode={
                   participantOutcome.winnerVerificationCode

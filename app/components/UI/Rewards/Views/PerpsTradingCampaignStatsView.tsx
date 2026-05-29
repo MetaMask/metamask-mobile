@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -35,6 +35,8 @@ import {
   formatUsd,
 } from '../utils/formatUtils';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
+import { CampaignOutcomeBanner } from '../components/Campaigns/CampaignOutcomeBanners';
+import { usePerpsTradingCampaignParticipantOutcome } from '../hooks/usePerpsTradingCampaignParticipantOutcome';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type PerpsTradingCampaignStatsRouteParams = {
@@ -45,7 +47,6 @@ export const PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS = {
   CONTAINER: 'perps-campaign-stats-view-container',
   PERFORMANCE_PNL: 'perps-campaign-stats-view-performance-pnl',
   PERFORMANCE_VOLUME: 'perps-campaign-stats-view-performance-volume',
-  PERFORMANCE_MARGIN: 'perps-campaign-stats-view-performance-margin',
   QUALIFIED_CARD: 'perps-campaign-stats-view-qualified-card',
   QUALIFY_FOR_RANK_CARD: 'perps-campaign-stats-view-qualify-for-rank-card',
   LAST_COMPUTED: 'perps-campaign-stats-view-last-computed',
@@ -86,24 +87,32 @@ const PerpsTradingCampaignStatsView: React.FC = () => {
       isOptedIn ? campaignId : undefined,
     );
 
-  const pnlValue = position ? formatSignedUsd(position.pnl) : '—';
-  const pnlColor = position
-    ? position.pnl >= 0
-      ? TextColor.SuccessDefault
-      : TextColor.ErrorDefault
-    : TextColor.TextDefault;
+  const pnl =
+    position != null && Number.isFinite(position.pnl) ? position.pnl : null;
+  const notionalVolume =
+    position != null && Number.isFinite(position.notionalVolume)
+      ? position.notionalVolume
+      : null;
 
-  const volumeValue = position ? formatUsd(position.notionalVolume) : '—';
-  const marginValue = position ? formatUsd(position.marginDeployed) : '—';
+  const pnlValue = pnl != null ? formatSignedUsd(pnl) : '—';
+  const pnlColor =
+    pnl != null
+      ? pnl >= 0
+        ? TextColor.SuccessDefault
+        : TextColor.ErrorDefault
+      : TextColor.TextDefault;
+
+  const volumeValue = notionalVolume != null ? formatUsd(notionalVolume) : '—';
   const isQualified = position != null && position.qualified;
   const isPending = position != null && !position.qualified;
 
   const isCampaignComplete =
     campaign != null && getCampaignStatus(campaign) === 'complete';
 
-  const notionalGap = position
-    ? Math.max(0, PERPS_QUALIFICATION_NOTIONAL_USD - position.notionalVolume)
-    : 0;
+  const notionalGap =
+    notionalVolume != null
+      ? Math.max(0, PERPS_QUALIFICATION_NOTIONAL_USD - notionalVolume)
+      : 0;
 
   const showQualifiedCard =
     !isCampaignComplete && isQualified && position != null;
@@ -112,6 +121,18 @@ const PerpsTradingCampaignStatsView: React.FC = () => {
     !isCampaignComplete && isPending && position != null && notionalGap > 0;
 
   const positionError = hasError && !position;
+
+  const { outcome: participantOutcome } =
+    usePerpsTradingCampaignParticipantOutcome(
+      isCampaignComplete && isOptedIn ? campaignId : undefined,
+    );
+
+  const navigateToWinningView = useCallback(() => {
+    navigation.navigate(Routes.REWARDS_PERPS_TRADING_CAMPAIGN_WINNING_VIEW, {
+      campaignId,
+      campaignName: campaign?.name ?? '',
+    });
+  }, [navigation, campaignId, campaign]);
 
   return (
     <ErrorBoundary navigation={navigation} view="PerpsTradingCampaignStatsView">
@@ -145,6 +166,7 @@ const PerpsTradingCampaignStatsView: React.FC = () => {
               isLoading={isLoading}
               showComputedAt={false}
               showPnl={false}
+              isCampaignComplete={isCampaignComplete}
             />
           </Box>
           <Box twClassName="my-1 border-b border-border-muted" />
@@ -161,24 +183,17 @@ const PerpsTradingCampaignStatsView: React.FC = () => {
                 valueColor={pnlColor}
                 testID={PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_PNL}
               />
-              <Box twClassName="flex-1" />
-            </Box>
-
-            <Box flexDirection={BoxFlexDirection.Row}>
-              <StatCell
-                label={strings('rewards.perps_trading_campaign.label_volume')}
-                value={volumeValue}
-                isLoading={isLoading}
-                suffix={isQualified ? <CheckIcon /> : undefined}
-                testID={PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_VOLUME}
-              />
-              <StatCell
-                label={strings('rewards.perps_trading_campaign.label_margin')}
-                value={marginValue}
-                isLoading={isLoading}
-                suffix={isQualified ? <CheckIcon /> : undefined}
-                testID={PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_MARGIN}
-              />
+              {!isCampaignComplete ? (
+                <StatCell
+                  label={strings('rewards.perps_trading_campaign.label_volume')}
+                  value={volumeValue}
+                  isLoading={isLoading}
+                  suffix={isQualified ? <CheckIcon /> : undefined}
+                  testID={PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_VOLUME}
+                />
+              ) : (
+                <Box twClassName="flex-1" />
+              )}
             </Box>
 
             {showQualifiedCard && (
@@ -251,6 +266,17 @@ const PerpsTradingCampaignStatsView: React.FC = () => {
                   time: formatRewardsTimeOnly(new Date(position.computedAt)),
                 })}
               </Text>
+            )}
+
+            {/* ── Outcome banner (campaign ended) ── */}
+            {isCampaignComplete && participantOutcome && (
+              <CampaignOutcomeBanner
+                outcomeStatus={participantOutcome.outcomeStatus}
+                winnerVerificationCode={
+                  participantOutcome.winnerVerificationCode
+                }
+                onWinnerPress={navigateToWinningView}
+              />
             )}
 
             {/* ── Error banner ── */}

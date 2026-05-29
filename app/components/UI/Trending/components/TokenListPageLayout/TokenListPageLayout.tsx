@@ -38,6 +38,10 @@ export interface TokenListPageLayoutProps {
   extraFilters?: React.ReactNode;
   /** Optional extra bottom sheets rendered at the end */
   extraBottomSheets?: React.ReactNode;
+  /** Called when the user scrolls near the end of the list to fetch the next page. */
+  onLoadMore?: () => void;
+  /** Whether a pagination request is in flight. */
+  isLoadingMore?: boolean;
 }
 
 /**
@@ -59,6 +63,8 @@ const TokenListPageLayout: React.FC<TokenListPageLayoutProps> = ({
   allowedNetworks,
   extraFilters,
   extraBottomSheets,
+  onLoadMore,
+  isLoadingMore,
 }) => {
   const tw = useTailwind();
   const theme = useAppThemeFromContext();
@@ -88,6 +94,7 @@ const TokenListPageLayout: React.FC<TokenListPageLayoutProps> = ({
           priceChangeButtonText={filters.priceChangeButtonText}
           onPriceChangePress={filters.handlePriceChangePress}
           isPriceChangeDisabled={searchResults.length === 0}
+          priceChangeIconName={filters.priceChangeSortDirectionIcon}
           networkName={filters.selectedNetworkName}
           onNetworkPress={filters.handleAllNetworksPress}
           extraFilters={extraFilters}
@@ -103,6 +110,8 @@ const TokenListPageLayout: React.FC<TokenListPageLayoutProps> = ({
         selectedTimeOption={filters.selectedTimeOption}
         filterContext={filters.filterContext}
         theme={theme}
+        onLoadMore={onLoadMore}
+        isLoadingMore={isLoadingMore}
       />
 
       <TrendingTokenNetworkBottomSheet

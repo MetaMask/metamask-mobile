@@ -60,11 +60,30 @@ jobs:
       platform: all
     secrets: inherit
 
+  derive-slack-semver:
+    name: Derive Slack channel semver
+    needs: push-ota
+    if: success()
+    runs-on: ubuntu-latest
+    outputs:
+      semver: ${{ steps.derive.outputs.semver }}
+    steps:
+      - name: Derive semver from source branch
+        id: derive
+        run: |
+          BRANCH="${{ inputs.source_branch || github.ref_name }}"
+          BRANCH="${BRANCH#refs/heads/}"
+          # release/7.76.3-ota -> 7.76.3-ota
+          SEMVER="${BRANCH#release/}"
+          echo "semver=${SEMVER}" >> "$GITHUB_OUTPUT"
+          echo "Branch: $BRANCH, semver: $SEMVER"
+
   slack-notification:
     name: Slack RC Notification
-    needs: push-ota
+    needs: [push-ota, derive-slack-semver]
     if: success()
     uses: ./.github/workflows/slack-rc-notification.yml
     with:
       source_branch: ${{ inputs.source_branch || github.ref_name }}
+      semver: ${{ needs.derive-slack-semver.outputs.semver }}
     secrets: inherit

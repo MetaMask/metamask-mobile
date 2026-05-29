@@ -13,6 +13,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import type {
+  CampaignParticipantOutcomeStatus,
   PerpsTradingCampaignLeaderboardDto,
   PerpsTradingCampaignLeaderboardPositionDto,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
@@ -20,6 +21,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { formatSignedUsd, formatUsd } from '../../utils/formatUtils';
 import { PERPS_QUALIFICATION_NOTIONAL_USD } from '../../utils/perpsCampaignConstants';
 import { PendingTag, StatCell } from './OndoCampaignStatsSummary';
+import { CampaignOutcomeBanner } from './CampaignOutcomeBanners';
 
 const PERPS_NOTIONAL_THRESHOLD_LABEL = formatUsd(
   PERPS_QUALIFICATION_NOTIONAL_USD,
@@ -30,7 +32,6 @@ export const PERPS_CAMPAIGN_STATS_SUMMARY_TEST_IDS = {
   RANK: 'perps-campaign-stats-summary-rank',
   PNL: 'perps-campaign-stats-summary-pnl',
   NOTIONAL_VOLUME: 'perps-campaign-stats-summary-notional-volume',
-  MARGIN_DEPLOYED: 'perps-campaign-stats-summary-margin-deployed',
   PENDING_TAG: 'perps-campaign-stats-summary-pending-tag',
   QUALIFIED_TAG: 'perps-campaign-stats-summary-qualified-tag',
   QUALIFIED_CARD: 'perps-campaign-stats-summary-qualified-card',
@@ -43,12 +44,18 @@ export interface PerpsCampaignStatsSummaryProps {
   leaderboard: PerpsTradingCampaignLeaderboardDto | null;
   /** When false, pending (not yet qualified) users see a {@link PendingTag} next to rank. */
   isCampaignComplete?: boolean;
+  outcomeStatus?: CampaignParticipantOutcomeStatus;
+  winnerVerificationCode?: string | null;
+  onWinnerPress?: () => void;
 }
 
 const PerpsCampaignStatsSummary: React.FC<PerpsCampaignStatsSummaryProps> = ({
   leaderboardPosition,
   leaderboard: _leaderboard,
   isCampaignComplete = false,
+  outcomeStatus,
+  winnerVerificationCode,
+  onWinnerPress,
 }) => {
   const isPending =
     leaderboardPosition != null && !leaderboardPosition.qualified;
@@ -71,10 +78,6 @@ const PerpsCampaignStatsSummary: React.FC<PerpsCampaignStatsSummaryProps> = ({
 
   const volumeDisplay = leaderboardPosition
     ? formatUsd(leaderboardPosition.notionalVolume)
-    : '—';
-
-  const marginDisplay = leaderboardPosition
-    ? formatUsd(leaderboardPosition.marginDeployed)
     : '—';
 
   const notionalGap = leaderboardPosition
@@ -125,18 +128,16 @@ const PerpsCampaignStatsSummary: React.FC<PerpsCampaignStatsSummaryProps> = ({
           testID={PERPS_CAMPAIGN_STATS_SUMMARY_TEST_IDS.PNL}
         />
       </Box>
-      <Box flexDirection={BoxFlexDirection.Row}>
-        <StatCell
-          label={strings('rewards.perps_trading_campaign.label_volume')}
-          value={volumeDisplay}
-          testID={PERPS_CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOTIONAL_VOLUME}
-        />
-        <StatCell
-          label={strings('rewards.perps_trading_campaign.label_margin')}
-          value={marginDisplay}
-          testID={PERPS_CAMPAIGN_STATS_SUMMARY_TEST_IDS.MARGIN_DEPLOYED}
-        />
-      </Box>
+      {!isCampaignComplete && (
+        <Box flexDirection={BoxFlexDirection.Row}>
+          <StatCell
+            label={strings('rewards.perps_trading_campaign.label_volume')}
+            value={volumeDisplay}
+            testID={PERPS_CAMPAIGN_STATS_SUMMARY_TEST_IDS.NOTIONAL_VOLUME}
+          />
+          <Box twClassName="flex-1" />
+        </Box>
+      )}
 
       {showQualifiedCard && (
         <Box
@@ -179,6 +180,14 @@ const PerpsCampaignStatsSummary: React.FC<PerpsCampaignStatsSummaryProps> = ({
             )}
           </Text>
         </Box>
+      )}
+
+      {isCampaignComplete && outcomeStatus != null && onWinnerPress != null && (
+        <CampaignOutcomeBanner
+          outcomeStatus={outcomeStatus}
+          winnerVerificationCode={winnerVerificationCode ?? null}
+          onWinnerPress={onWinnerPress}
+        />
       )}
     </Box>
   );

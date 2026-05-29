@@ -16,6 +16,21 @@ export {
 // Appium utilities
 export { startAppiumServer, stopAppiumServer } from './appium';
 
+// Local device command handlers
+export {
+  DeviceCommandHandler,
+  AndroidDeviceCommandHandler,
+  IOSDeviceCommandHandler,
+  type ClearAppDataOptions,
+  type DeviceCommandHandlerOptions,
+  type DeviceCommandLogger,
+  type InstallAppOptions,
+  type IsAppInstalledOptions,
+  type PlatformDeviceCommandHandler,
+  type ReinstallAppOptions,
+  type UninstallAppOptions,
+} from './device-commands';
+
 // BrowserStack specific exports
 export {
   BrowserStackAPI,

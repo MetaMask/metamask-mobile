@@ -1,7 +1,9 @@
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { TextVariant } from '@metamask/design-system-react-native';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
+import {
+  HeaderStandard,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { getCampaignMechanicsButtonProps } from '../../utils/campaignHeaderUtils';
 
@@ -22,7 +24,7 @@ const CampaignViewHeader: React.FC<CampaignViewHeaderProps> = ({
 }) => {
   const navigation = useNavigation();
   return (
-    <HeaderCompactStandard
+    <HeaderStandard
       title={title}
       titleProps={{ variant: TextVariant.HeadingSm }}
       onBack={() => navigation.goBack()}

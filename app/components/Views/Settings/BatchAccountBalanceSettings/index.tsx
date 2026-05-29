@@ -1,16 +1,17 @@
 import React, { useCallback } from 'react';
-import { View, Switch, Platform } from 'react-native';
+import { View, Switch } from 'react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectIsMultiAccountBalancesEnabled } from '../../../../selectors/preferencesController';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 import { useStyles } from '../../../../component-library/hooks';
-import Text, {
-  TextVariant,
+import {
+  FontWeight,
+  Text,
   TextColor,
-} from '../../../../component-library/components/Texts/Text';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import styleSheet from './index.styles';
 import {
   BATCH_BALANCE_REQUESTS_SECTION,
@@ -24,7 +25,7 @@ const BatchAccountBalanceSettings = () => {
   const theme = useTheme();
   const { colors } = theme;
   const { styles } = useStyles(styleSheet, {});
-  const { addTraitsToUser } = useAnalytics();
+  const { identify } = useAnalytics();
 
   const isMultiAccountBalancesEnabled = useSelector(
     selectIsMultiAccountBalancesEnabled,
@@ -35,19 +36,23 @@ const BatchAccountBalanceSettings = () => {
       PreferencesController.setIsMultiAccountBalancesEnabled(
         multiAccountBalancesEnabled,
       );
-      addTraitsToUser({
+      identify({
         [UserProfileProperty.MULTI_ACCOUNT_BALANCE]: multiAccountBalancesEnabled
           ? UserProfileProperty.ON
           : UserProfileProperty.OFF,
       });
     },
-    [PreferencesController, addTraitsToUser],
+    [PreferencesController, identify],
   );
 
   return (
     <View style={styles.halfSetting} testID={BATCH_BALANCE_REQUESTS_SECTION}>
       <View style={styles.titleContainer}>
-        <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          style={styles.title}
+        >
           {strings('app_settings.batch_balance_requests_title')}
         </Text>
         <View style={styles.switchElement}>
@@ -61,16 +66,14 @@ const BatchAccountBalanceSettings = () => {
             thumbColor={theme.brandColors.white}
             style={styles.switch}
             ios_backgroundColor={colors.border.muted}
-            {...generateTestId(
-              Platform,
-              SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID,
-            )}
+            testID={SECURITY_PRIVACY_MULTI_ACCOUNT_BALANCES_TOGGLE_ID}
           />
         </View>
       </View>
       <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
         style={styles.desc}
       >
         {strings('app_settings.batch_balance_requests_description')}

@@ -89,6 +89,18 @@ describe('useLinkAccountAddress', () => {
     loading: jest.fn().mockReturnValue({
       variant: 'loading',
     }),
+    outcomeWinner: jest.fn().mockReturnValue({
+      variant: 'plain',
+      hapticsType: 'success',
+    }),
+    outcomeNonWinner: jest.fn().mockReturnValue({
+      variant: 'icon',
+      hapticsType: 'warning',
+    }),
+    warning: jest.fn().mockReturnValue({
+      variant: 'icon',
+      hapticsType: 'warning',
+    }),
   };
 
   const mockAccount: InternalAccount = {

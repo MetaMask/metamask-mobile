@@ -38,6 +38,8 @@ interface PerpsTradingCampaignStatsHeaderProps {
   showPnl?: boolean;
   /** When true, shows formatted `computedAt` time on the same row as PnL, right-aligned in alternative text color. */
   showComputedAt?: boolean;
+  /** When true, suppresses the "Pending" tag — qualification is locked once the campaign ends. */
+  isCampaignComplete?: boolean;
 }
 
 const PerpsTradingCampaignStatsHeader: React.FC<
@@ -47,19 +49,25 @@ const PerpsTradingCampaignStatsHeader: React.FC<
   isLoading = false,
   showPnl = true,
   showComputedAt = true,
+  isCampaignComplete = false,
 }) => {
   const tw = useTailwind();
 
   const isPending = position != null && !position.qualified;
   const isQualified = position != null && position.qualified;
+  const rank =
+    position != null && Number.isFinite(position.rank) ? position.rank : null;
+  const pnl =
+    position != null && Number.isFinite(position.pnl) ? position.pnl : null;
 
-  const rankValue = position ? String(position.rank).padStart(2, '0') : '—';
-  const pnlValue = position ? formatSignedUsd(position.pnl) : '—';
-  const pnlColor = position
-    ? position.pnl >= 0
-      ? TextColor.SuccessDefault
-      : TextColor.ErrorDefault
-    : TextColor.TextDefault;
+  const rankValue = rank != null ? String(rank).padStart(2, '0') : '—';
+  const pnlValue = pnl != null ? formatSignedUsd(pnl) : '—';
+  const pnlColor =
+    pnl != null
+      ? pnl >= 0
+        ? TextColor.SuccessDefault
+        : TextColor.ErrorDefault
+      : TextColor.TextDefault;
 
   const computedAtLabel = position?.computedAt
     ? strings('rewards.perps_trading_campaign.last_updated', {
@@ -80,7 +88,7 @@ const PerpsTradingCampaignStatsHeader: React.FC<
           <Text variant={TextVariant.HeadingMd}>
             {strings('rewards.perps_trading_campaign.label_your_rank')}
           </Text>
-          {isPending && (
+          {isPending && !isCampaignComplete && (
             <PendingTag testID={PERPS_STATS_HEADER_TEST_IDS.PENDING_TAG} />
           )}
           {isQualified && (

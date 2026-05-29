@@ -24,7 +24,7 @@ import { formatPercentChange, formatUsd } from '../../utils/formatUtils';
 import { ONDO_GM_REQUIRED_QUALIFIED_DAYS } from '../../utils/ondoCampaignConstants';
 import { formatTierDisplayName } from './OndoLeaderboard.utils';
 import RewardsErrorBanner from '../RewardsErrorBanner';
-import { OndoGmCampaignOutcomeBanner } from './OndoCampaignOutcomeBanners';
+import { CampaignOutcomeBanner } from './CampaignOutcomeBanners';
 
 const CELL_STYLE = { flex: 1 } as const;
 
@@ -244,7 +244,7 @@ const OndoCampaignStatsSummary: React.FC<OndoCampaignStatsSummaryProps> = ({
 
       {/* Outcome banner (campaign ended) */}
       {isCampaignComplete && outcomeStatus != null && onWinnerPress != null && (
-        <OndoGmCampaignOutcomeBanner
+        <CampaignOutcomeBanner
           outcomeStatus={outcomeStatus}
           winnerVerificationCode={winnerVerificationCode ?? null}
           onWinnerPress={onWinnerPress}

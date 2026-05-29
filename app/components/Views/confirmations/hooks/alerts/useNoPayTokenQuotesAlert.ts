@@ -56,7 +56,7 @@ export function useNoPayTokenQuotesAlert() {
     hasSelectedFiatPaymentMethod &&
     hasValidFiatAmount &&
     !isQuotesLoading &&
-    sourceAmounts?.length === 0 &&
+    !fiatPayment?.rampsQuote &&
     quotes?.length === 0;
 
   // Post-quote flows (e.g. money account withdraw MUSD -> MUSD) can end up with

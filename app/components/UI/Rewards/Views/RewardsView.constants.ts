@@ -3,19 +3,14 @@
  */
 export const REWARDS_VIEW_SELECTORS = {
   SAFE_AREA_VIEW: 'rewards-view-safe-area',
+  TITLE: 'rewards-view-title',
   REFERRAL_BUTTON: 'rewards-view-referral-button',
   SETTINGS_BUTTON: 'rewards-view-settings-button',
+  VIP_BUTTON: 'rewards-view-vip-button',
+  VIP_VIEW: 'rewards-view-vip-view',
   SEASON_SUMMARY_PLACEHOLDER: 'rewards-view-season-summary-placeholder',
-  TAB_CONTENT_ACTIVITY: 'rewards-view-tab-content-activity',
-  TAB_CONTENT_OVERVIEW: 'rewards-view-tab-content-overview',
-  TAB_CONTENT_LEVELS: 'rewards-view-tab-content-levels',
   TAB_CONTENT_PREVIOUS_SEASON: 'rewards-view-tab-content-previous-season',
   TAB_CONTROL: 'rewards-view-tab-control',
-  ACTIVE_BOOST_CARD: 'rewards-view-active-boost-card',
-  ACTIVE_BOOST_CARD_NAME: 'rewards-view-active-boost-card-name',
-  ACTIVE_BOOST_CARD_TIME_REMAINING:
-    'rewards-view-active-boost-card-time-remaining',
-  ACTIVE_BOOST_CARD_ICON: 'rewards-view-active-boost-card-icon',
   TIER_IMAGE: 'rewards-view-tier-image',
   TIER_NAME: 'rewards-view-tier-name',
   TIER_POINTS_NEEDED: 'rewards-view-tier-points-needed',
@@ -55,13 +50,6 @@ export const REWARDS_VIEW_SELECTORS = {
   PREVIOUS_SEASON_LEVEL: 'rewards-view-previous-season-level',
   PREVIOUS_SEASON_REFERRAL_DETAILS:
     'rewards-view-previous-season-referral-details',
-  FLATLIST: 'flatlist',
-  ACTIVITY_ROW: 'activity-row',
-  ACTIVITY_EVENT_ROW_TITLE: 'activity-event-row-title',
-  ACTIVITY_EVENT_ROW_VALUE: 'activity-event-row-value',
-  ACTIVITY_EVENT_ROW_DETAILS: 'activity-event-row-details',
-  ACTIVITY_EVENT_ROW_DATE: 'activity-event-row-date',
-  ACTIVITY_EVENT_ROW_BONUS: 'activity-event-row-bonus',
   // Benefits
   TOP_BENEFIT_SECTION: 'rewards-view-top-benefit-section',
   TOP_BENEFIT_DETAILS: 'rewards-view-top-benefit-details',

@@ -20,3 +20,9 @@ export class QRHardwareScanError extends HardwareWalletError {
     this.metadata = options.metadata;
   }
 }
+
+export function isQRHardwareScanError(
+  error: unknown,
+): error is QRHardwareScanError {
+  return error instanceof QRHardwareScanError;
+}

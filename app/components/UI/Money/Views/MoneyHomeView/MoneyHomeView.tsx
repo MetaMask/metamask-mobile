@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo } from 'react';
-import { ScrollView, Linking } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { Linking, RefreshControl, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -25,9 +25,11 @@ import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import styleSheet from './MoneyHomeView.styles';
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
+import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
-import { showMoneyActivityUnderConstructionAlert } from '../../constants/showMoneyActivityUnderConstructionAlert';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
+import { useOnboardingStep, STEPPER_IDS } from '../../hooks/useOnboardingStep';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import { calculateProjectedEarnings } from '../../utils/projections';
@@ -36,10 +38,14 @@ import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import AppConstants from '../../../../../core/AppConstants';
 import NavigationService from '../../../../../core/NavigationService';
 import { selectIsCardholder } from '../../../../../selectors/cardController';
+import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
+import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import Logger from '../../../../../util/Logger';
-import { AssetType } from '../../../../Views/confirmations/types/token';
+import { useTheme } from '../../../../../util/theme';
+import { MoneyBalanceDisplayState } from '../../types';
 import { Hex } from '@metamask/utils';
-
+import { AssetType } from '../../../../Views/confirmations/types/token';
+import { MONEY_ONBOARDING_TOTAL_STEPS } from '../../components/MoneyOnboardingCard/MoneyOnboardingCard';
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 
 type MoneyHomeState = 'empty' | 'milestone' | 'filled';
@@ -50,51 +56,108 @@ const getMoneyHomeState = (transactionCount: number): MoneyHomeState => {
   return 'filled';
 };
 
-/** Placeholder until Money home actions are implemented */
-// eslint-disable-next-line no-alert
-const displayUnderConstructionAlert = () => alert('Under construction 🚧');
-
 const MoneyHomeView = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
   const currentCurrency = useSelector(selectCurrentCurrency);
+  const { colors } = useTheme();
 
   const {
     totalFiatFormatted,
     totalFiatRaw,
     vaultApyQuery,
     isAggregatedBalanceLoading,
+    isBalanceFetchError,
+    isBalanceFetching,
+    refetchBalance,
     apyPercent,
   } = useMoneyAccountBalance();
 
+  // Pull-to-refresh state
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handlePullRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await refetchBalance();
+    } catch (error) {
+      Logger.error(error as Error, '[MoneyHomeView] Pull-to-refresh failed');
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetchBalance]);
+
+  const { hasMoneyAccount } = useMoneyAccountInfo();
+  const { fiatBalanceAggregatedFormatted: musdFiatFormatted } =
+    useMusdBalance();
+
   const { tokens: conversionTokens } = useMusdConversionTokens();
   const { initiateCustomConversion } = useMusdConversion();
-  const { allTransactions, moneyAddress } = useMoneyAccountTransactions();
+  const { allTransactions, moneyAddress, mockDataEnabled } =
+    useMoneyAccountTransactions();
 
   const isCardholder = useSelector(selectIsCardholder);
+  const { startLinkFlow } = useMoneyAccountCardLinkage();
+  const geolocation = useSelector(getDetectedGeolocation);
+  const isUS = geolocation?.toUpperCase().split('-')[0] === 'US';
+
+  const { isVisible: isOnboardingCardVisible } = useOnboardingStep({
+    stepperId: STEPPER_IDS.MONEY,
+    totalSteps: MONEY_ONBOARDING_TOTAL_STEPS,
+  });
 
   const homeState = getMoneyHomeState(allTransactions.length);
   const isMilestone = homeState === 'milestone' || homeState === 'filled';
   const isCardholderWithMilestone = isMilestone && isCardholder;
+
+  let displayState: MoneyBalanceDisplayState;
+  if (!hasMoneyAccount) {
+    displayState = { kind: 'noAccount' };
+  } else if (isBalanceFetchError && isBalanceFetching) {
+    displayState = { kind: 'retrying' };
+  } else if (isBalanceFetchError) {
+    displayState = { kind: 'error', onRetry: refetchBalance };
+  } else if (isAggregatedBalanceLoading) {
+    displayState = { kind: 'loading' };
+  } else if (totalFiatFormatted === undefined) {
+    displayState = { kind: 'unavailable' };
+  } else {
+    displayState = { kind: 'balance', value: totalFiatFormatted };
+  }
 
   const formattedZero = useMemo(
     () => moneyFormatFiat(new BigNumber(0), currentCurrency),
     [currentCurrency],
   );
 
-  const projectedEarnings = useMemo(() => {
+  const monthlyEarnings = useMemo(() => {
     if (!totalFiatRaw || !apyPercent) return formattedZero;
     const balance = new BigNumber(totalFiatRaw);
     if (balance.isZero() || balance.isNaN()) return formattedZero;
-    const earnings = calculateProjectedEarnings(balance.toNumber(), apyPercent);
+    const earnings = calculateProjectedEarnings(
+      balance.toNumber(),
+      apyPercent,
+      1 / 12,
+    );
     if (!Number.isFinite(earnings)) return formattedZero;
-    return moneyFormatFiat(new BigNumber(earnings), currentCurrency);
+    const formatted = moneyFormatFiat(new BigNumber(earnings), currentCurrency);
+    return formatted === formattedZero ? formatted : `+${formatted}`;
   }, [totalFiatRaw, apyPercent, currentCurrency, formattedZero]);
 
-  const handleBackPress = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
+  const yearlyEarnings = useMemo(() => {
+    if (!totalFiatRaw || !apyPercent) return formattedZero;
+    const balance = new BigNumber(totalFiatRaw);
+    if (balance.isZero() || balance.isNaN()) return formattedZero;
+    const earnings = calculateProjectedEarnings(
+      balance.toNumber(),
+      apyPercent,
+      1,
+    );
+    if (!Number.isFinite(earnings)) return formattedZero;
+    const formatted = moneyFormatFiat(new BigNumber(earnings), currentCurrency);
+    return formatted === formattedZero ? formatted : `+${formatted}`;
+  }, [totalFiatRaw, apyPercent, currentCurrency, formattedZero]);
 
   const handleMenuPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
@@ -119,14 +182,11 @@ const MoneyHomeView = () => {
   }, [navigation]);
 
   const handleLinkCardPress = useCallback(() => {
-    navigation.navigate(Routes.CARD.ROOT, {
-      screen: Routes.CARD.HOME,
+    startLinkFlow({
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
     });
-  }, [navigation]);
-
-  const handleGetNowPress = useCallback(() => {
-    navigation.navigate(Routes.CARD.ROOT);
-  }, [navigation]);
+  }, [startLinkFlow]);
 
   const handleApyInfoPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
@@ -138,9 +198,14 @@ const MoneyHomeView = () => {
   const handleEarningsInfoPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.EARNINGS_INFO_SHEET,
-      params: { apy: apyPercent },
     });
-  }, [navigation, apyPercent]);
+  }, [navigation]);
+
+  const handleEarnCryptoInfoPress = useCallback(() => {
+    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.EARN_CRYPTO_INFO_SHEET,
+    });
+  }, [navigation]);
 
   const handleMusdRowPress = useCallback(() => {
     NavigationService.navigation.navigate('Asset', {
@@ -148,8 +213,6 @@ const MoneyHomeView = () => {
       source: TokenDetailsSource.MobileTokenListPage,
     });
   }, []);
-
-  const handleHeaderPress = displayUnderConstructionAlert;
 
   const handleTokenConvertPress = useCallback(
     async (token: AssetType) => {
@@ -159,7 +222,6 @@ const MoneyHomeView = () => {
             address: token.address as Hex,
             chainId: token.chainId as Hex,
           },
-          navigationStack: Routes.MONEY.ROOT,
         });
       } catch (error) {
         Logger.error(error as Error, {
@@ -188,29 +250,29 @@ const MoneyHomeView = () => {
   }, [navigation]);
   const handleActivityHeaderPress = handleViewAllActivityPress;
 
-  const handleActivityItemPress = useCallback(() => {
-    showMoneyActivityUnderConstructionAlert();
-  }, []);
+  const handleActivityItemPress = useCallback(
+    (transactionId: string) => {
+      navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.TRANSACTION_DETAILS_SHEET,
+        params: { transactionId },
+      });
+    },
+    [navigation],
+  );
 
-  const handleOnboardingCtaPress = useCallback(() => {
-    if (isCardholderWithMilestone) {
-      handleLinkCardPress();
-      return;
-    }
+  let metamaskCardMode: 'upsell' | 'link' | 'manage';
+  if (isCardholderWithMilestone && isUS) {
+    metamaskCardMode = 'manage';
+  } else if (isCardholderWithMilestone) {
+    metamaskCardMode = 'link';
+  } else {
+    metamaskCardMode = 'upsell';
+  }
 
-    if (isMilestone) {
-      handleCardPress();
-      return;
-    }
-
-    handleAddPress();
-  }, [
-    isCardholderWithMilestone,
-    isMilestone,
-    handleLinkCardPress,
-    handleCardPress,
-    handleAddPress,
-  ]);
+  // No selector yet for the user's card balance — fall back to a locale-
+  // formatted zero so the manage row always shows a value rather than a
+  // blank slot under "Avail. balance".
+  const cardBalance: string = formattedZero;
 
   return (
     <Box
@@ -218,39 +280,44 @@ const MoneyHomeView = () => {
       twClassName="flex-1 bg-default"
       testID={MoneyHomeViewTestIds.CONTAINER}
     >
-      <MoneyHeader
-        onBackPress={handleBackPress}
-        onMenuPress={handleMenuPress}
-      />
+      <MoneyHeader onMenuPress={handleMenuPress} />
       <ScrollView
         testID={MoneyHomeViewTestIds.SCROLL_VIEW}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handlePullRefresh}
+            tintColor={colors.icon.default}
+            colors={[colors.primary.default]}
+          />
+        }
       >
         <MoneyBalanceSummary
           apy={apyPercent}
-          balance={totalFiatFormatted ?? '--.--'}
+          displayState={displayState}
           onApyInfoPress={handleApyInfoPress}
-          isLoading={vaultApyQuery.isLoading || isAggregatedBalanceLoading}
         />
         <MoneyActionButtonRow
           onAddPress={handleAddPress}
           onTransferPress={handleTransferPress}
           onCardPress={handleCardPress}
         />
-        <MoneyOnboardingCard
-          currentStep={isMilestone ? 2 : 1}
-          variant={isCardholderWithMilestone ? 'link-card' : 'get-card'}
-          onCtaPress={handleOnboardingCtaPress}
-        />
-        <Divider />
-        <MoneyEarnings
-          lifetimeEarnings={formattedZero}
-          projectedEarnings={projectedEarnings}
-          isLoading={vaultApyQuery.isLoading || isAggregatedBalanceLoading}
-          onInfoPress={handleEarningsInfoPress}
-        />
-        <Divider />
+        <MoneyOnboardingCard />
+        {isOnboardingCardVisible && <Divider />}
+        {/* Only show earnings if balance is available */}
+        {displayState.kind === 'balance' && (
+          <>
+            <MoneyEarnings
+              monthlyEarnings={monthlyEarnings}
+              yearlyEarnings={yearlyEarnings}
+              isLoading={vaultApyQuery.isLoading || isAggregatedBalanceLoading}
+              onInfoPress={handleEarningsInfoPress}
+            />
+            <Divider />
+          </>
+        )}
         {!isMilestone && (
           <>
             <MoneyHowItWorks
@@ -261,6 +328,7 @@ const MoneyHomeView = () => {
             <MoneyMusdTokenRow
               onPress={handleMusdRowPress}
               onAddPress={handleAddPress}
+              balance={musdFiatFormatted}
             />
             <Divider />
           </>
@@ -270,9 +338,15 @@ const MoneyHomeView = () => {
             <MoneyActivityList
               transactions={allTransactions}
               moneyAddress={moneyAddress}
-              onViewAllPress={handleViewAllActivityPress}
+              onViewAllPress={
+                allTransactions.length < 5
+                  ? undefined
+                  : handleViewAllActivityPress
+              }
               onHeaderPress={handleActivityHeaderPress}
-              onItemPress={handleActivityItemPress}
+              onItemPress={
+                mockDataEnabled ? undefined : handleActivityItemPress
+              }
             />
             <Divider />
           </>
@@ -282,19 +356,22 @@ const MoneyHomeView = () => {
             <MoneyPotentialEarnings
               tokens={conversionTokens}
               apy={apyPercent}
-              condensed={isMilestone}
               onTokenPress={handleTokenConvertPress}
               onViewAllPress={handleEarnCryptoPress}
               onHeaderPress={handleEarnCryptoPress}
+              onInfoPress={handleEarnCryptoInfoPress}
             />
             <Divider />
           </>
         )}
         <MoneyMetaMaskCard
-          mode={isCardholderWithMilestone ? 'link' : 'upsell'}
-          onGetNowPress={handleGetNowPress}
-          onHeaderPress={handleHeaderPress}
+          mode={metamaskCardMode}
+          onGetNowPress={handleCardPress}
+          onHeaderPress={handleCardPress}
           onLinkPress={handleLinkCardPress}
+          onManagePress={handleCardPress}
+          showMetalCard={isUS}
+          cardBalance={cardBalance}
           apy={apyPercent}
         />
         <Divider />
@@ -309,13 +386,16 @@ const MoneyHomeView = () => {
           </>
         )}
         {!isMilestone && (
-          <MoneyWhatYouGet
-            apy={apyPercent}
-            onLearnMorePress={handleLearnMorePress}
-          />
+          <>
+            <MoneyWhatYouGet
+              apy={apyPercent}
+              onLearnMorePress={handleLearnMorePress}
+            />
+            <Divider />
+          </>
         )}
+        <MoneyFooter onAddMoneyPress={handleAddPress} />
       </ScrollView>
-      <MoneyFooter onAddMoneyPress={handleAddPress} />
     </Box>
   );
 };

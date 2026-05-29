@@ -186,6 +186,32 @@ describe('backupVault file', () => {
       expect(response).toEqual(mockedSuccessResponse);
     });
 
+    it('should still succeed if reading the existing backup throws (e.g. Android Keystore key invalidation)', async () => {
+      const newVault = 'new-vault';
+
+      // Simulate a stale entry already in the keychain
+      await setInternetCredentials(
+        VAULT_BACKUP_KEY,
+        VAULT_BACKUP_KEY,
+        dummyPassword,
+      );
+
+      // Simulate Android Keystore throwing on the read
+      (getInternetCredentials as jest.Mock).mockImplementationOnce(() => {
+        throw new Error('Android Keystore key permanently invalidated');
+      });
+
+      const keyringState: KeyringControllerState = {
+        vault: newVault,
+        keyrings: [],
+        isUnlocked: false,
+      };
+
+      const response = await backupVault(keyringState);
+
+      expect(response).toEqual({ success: true, vault: newVault });
+    });
+
     it('should reset vault before backup', async () => {
       const mockedSuccessResponse = { success: true };
 

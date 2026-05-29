@@ -77,20 +77,20 @@ describe('useSendActions', () => {
     expect(result.current.handleCancelPress).toBeDefined();
   });
 
-  it('calls navigation.navigate with correct params when evm ', () => {
+  it('calls navigation.navigate with correct params when evm ', async () => {
     const { result } = renderHookWithProvider(
       () => useSendActions(),
       mockState,
     );
     jest.spyOn(SendUtils, 'submitEvmTransaction').mockImplementation(jest.fn());
-    result.current.handleSubmitPress();
+    await result.current.handleSubmitPress();
     expect(mockNavigate).toHaveBeenCalledWith('RedesignedConfirmations', {
       params: { maxValueMode: undefined },
       loader: 'transfer',
     });
   });
 
-  it('normalizes trailing dot values before submitting evm transaction', () => {
+  it('normalizes trailing dot values before submitting evm transaction', async () => {
     mockUseSendContext.mockReturnValue({
       asset: {
         chainId: '0x1',
@@ -111,7 +111,7 @@ describe('useSendActions', () => {
       () => useSendActions(),
       mockState,
     );
-    result.current.handleSubmitPress();
+    await result.current.handleSubmitPress();
 
     expect(submitSpy).toHaveBeenCalledWith(
       expect.objectContaining({ value: '0' }),

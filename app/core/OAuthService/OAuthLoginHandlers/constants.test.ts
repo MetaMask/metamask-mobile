@@ -1,8 +1,16 @@
 import { OAUTH_CONFIG } from './config';
 import {
+  Env as ProfileSyncEnv,
+  getEnvUrls,
+  getOidcClientId,
+  Platform as ProfileSyncPlatform,
+} from '@metamask/profile-sync-controller/sdk';
+import {
   AppRedirectUri,
   web3AuthNetwork,
   AuthServerUrl,
+  w3aAuthServerUrl,
+  profileSyncEnv,
   GoogleWebGID,
   AppleWebClientId,
   AppleServerRedirectUri,
@@ -46,7 +54,9 @@ jest.mock(
   }),
 );
 
-const mockAppRedirectUri = 'metamask://oauth-redirect';
+const mockAppRedirectUri = 'https://link.metamask.io/oauth-redirect';
+const CURRENT_OAUTH_CONFIG = OAUTH_CONFIG.main_prod;
+
 describe('OAuth Constants', () => {
   describe('AppRedirectUri', () => {
     it('should generate correct redirect URI', () => {
@@ -55,19 +65,37 @@ describe('OAuth Constants', () => {
   });
 
   describe('Environment-based constants', () => {
-    const CURRENT_OAUTH_CONFIG = OAUTH_CONFIG.main_prod;
-
     it('should have web3AuthNetwork from jest config', () => {
       expect(web3AuthNetwork).toBe('sapphire_mainnet');
     });
 
     it('should have AuthServerUrl from jest config', () => {
       expect(AuthServerUrl).toBe(CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL);
+      expect(w3aAuthServerUrl).toBe(CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL);
     });
 
-    it('should have Android configuration from jest config', () => {
-      expect(GoogleWebGID).toBe('androidGoogleWebClientId');
-      expect(AppleWebClientId).toBe('AppleClientId');
+    it('should derive Telegram backend values from profile sync SDK', () => {
+      const profileSyncUrls = getEnvUrls(profileSyncEnv);
+
+      expect(profileSyncEnv).toBe(ProfileSyncEnv.PRD);
+      expect(profileSyncUrls.authApiUrl).toBe(
+        'https://authentication.api.cx.metamask.io',
+      );
+      expect(`${profileSyncUrls.oidcApiUrl}/oauth2/token`).toBe(
+        'https://oidc.api.cx.metamask.io/oauth2/token',
+      );
+      expect(getOidcClientId(profileSyncEnv, ProfileSyncPlatform.MOBILE)).toBe(
+        '75fa62a3-9ca0-4b91-9fe5-76bec86b0257',
+      );
+    });
+
+    it('should have Android configuration from config', () => {
+      expect(GoogleWebGID).toBe(
+        CURRENT_OAUTH_CONFIG.ANDROID_GOOGLE_SERVER_CLIENT_ID,
+      );
+      expect(AppleWebClientId).toBe(
+        CURRENT_OAUTH_CONFIG.ANDROID_APPLE_CLIENT_ID,
+      );
     });
 
     it('should generate correct Apple server redirect URI', () => {
@@ -142,8 +170,8 @@ describe('getIosGoogleConfig', () => {
     const config = getIosGoogleConfig();
 
     expect(config).toEqual({
-      clientId: 'iosGoogleClientId',
-      redirectUri: 'iosGoogleRedirectUri',
+      clientId: CURRENT_OAUTH_CONFIG.IOS_GOOGLE_CLIENT_ID,
+      redirectUri: CURRENT_OAUTH_CONFIG.IOS_GOOGLE_REDIRECT_URI,
     });
   });
 
@@ -155,8 +183,8 @@ describe('getIosGoogleConfig', () => {
     const config = getIosGoogleConfig();
 
     expect(config).toEqual({
-      clientId: 'iosGoogleClientId',
-      redirectUri: 'iosGoogleRedirectUri',
+      clientId: CURRENT_OAUTH_CONFIG.IOS_GOOGLE_CLIENT_ID,
+      redirectUri: CURRENT_OAUTH_CONFIG.IOS_GOOGLE_REDIRECT_URI,
     });
   });
 
@@ -166,7 +194,9 @@ describe('getIosGoogleConfig', () => {
 
     const config = getIosGoogleConfig();
 
-    expect(config.clientId).toBe('androidGoogleWebClientId');
+    expect(config.clientId).toBe(
+      CURRENT_OAUTH_CONFIG.ANDROID_GOOGLE_SERVER_CLIENT_ID,
+    );
     expect(config.redirectUri).toContain('link.metamask.io');
   });
 
@@ -188,7 +218,9 @@ describe('getIosGoogleConfig', () => {
 
     const config = getIosGoogleConfig();
 
-    expect(config.clientId).toBe('androidGoogleWebClientId');
+    expect(config.clientId).toBe(
+      CURRENT_OAUTH_CONFIG.ANDROID_GOOGLE_SERVER_CLIENT_ID,
+    );
     expect(config.redirectUri).toContain('link.metamask.io');
   });
 
@@ -200,8 +232,8 @@ describe('getIosGoogleConfig', () => {
     const config = getIosGoogleConfig();
 
     expect(config).toEqual({
-      clientId: 'iosGoogleClientId',
-      redirectUri: 'iosGoogleRedirectUri',
+      clientId: CURRENT_OAUTH_CONFIG.IOS_GOOGLE_CLIENT_ID,
+      redirectUri: CURRENT_OAUTH_CONFIG.IOS_GOOGLE_REDIRECT_URI,
     });
   });
 });

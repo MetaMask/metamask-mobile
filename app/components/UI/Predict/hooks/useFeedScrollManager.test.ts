@@ -436,6 +436,179 @@ describe('useFeedScrollManager', () => {
     });
   });
 
+  describe('wallet header coordination', () => {
+    interface ScrollHandler {
+      onScroll?: (event: { contentOffset: { y: number } }) => void;
+    }
+
+    const patchReanimatedMock = () => {
+      const reanimated = jest.requireMock('react-native-reanimated');
+      reanimated.withTiming = mockWithTiming;
+      reanimated.runOnJS = mockRunOnJS;
+    };
+
+    it('accepts walletHeaderTranslateY and walletHeaderHeight without error', () => {
+      patchReanimatedMock();
+      const walletHeaderTranslateY = { value: 0 };
+      const props = createDefaultProps({
+        walletHeaderTranslateY,
+        walletHeaderHeight: 100,
+      });
+
+      expect(() => renderHook(() => useFeedScrollManager(props))).not.toThrow();
+    });
+
+    it('hides predict header by combined header + tab bar height when scrolling down past threshold', async () => {
+      patchReanimatedMock();
+      const walletHeaderTranslateY = { value: 0 };
+      const props = createDefaultProps({
+        walletHeaderTranslateY,
+        walletHeaderHeight: 100,
+      });
+
+      const { result } = renderHook(() => useFeedScrollManager(props));
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(result.current.layoutReady).toBe(true);
+      });
+
+      const handler = result.current.scrollHandler as unknown as ScrollHandler;
+
+      mockWithTiming.mockClear();
+
+      act(() => {
+        handler.onScroll?.({ contentOffset: { y: 0 } });
+        handler.onScroll?.({ contentOffset: { y: 300 } });
+      });
+
+      // withTiming should have been called with -(headerHeight + tabBarHeight) = -(120 + 48) = -168
+      const calledValues = mockWithTiming.mock.calls.map((call) => call[0]);
+      expect(calledValues).toContain(-168);
+    });
+
+    it('animates walletHeaderTranslateY in lock-step with predict header', async () => {
+      patchReanimatedMock();
+      const walletHeaderTranslateY = { value: 0 };
+      const props = createDefaultProps({
+        walletHeaderTranslateY,
+        walletHeaderHeight: 100,
+      });
+
+      const { result } = renderHook(() => useFeedScrollManager(props));
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(result.current.layoutReady).toBe(true);
+      });
+
+      const handler = result.current.scrollHandler as unknown as ScrollHandler;
+
+      act(() => {
+        handler.onScroll?.({ contentOffset: { y: 0 } });
+        handler.onScroll?.({ contentOffset: { y: 300 } });
+      });
+
+      expect(walletHeaderTranslateY.value).toBe(-100);
+    });
+
+    it('restores walletHeaderTranslateY when scrolling up past threshold', async () => {
+      patchReanimatedMock();
+      const walletHeaderTranslateY = { value: 0 };
+      const props = createDefaultProps({
+        walletHeaderTranslateY,
+        walletHeaderHeight: 100,
+      });
+
+      const { result } = renderHook(() => useFeedScrollManager(props));
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(result.current.layoutReady).toBe(true);
+      });
+
+      const handler = result.current.scrollHandler as unknown as ScrollHandler;
+
+      // Scroll down to hide
+      act(() => {
+        handler.onScroll?.({ contentOffset: { y: 0 } });
+        handler.onScroll?.({ contentOffset: { y: 300 } });
+      });
+      expect(walletHeaderTranslateY.value).toBe(-100);
+
+      // Scroll up past threshold to restore
+      act(() => {
+        handler.onScroll?.({ contentOffset: { y: 50 } });
+        handler.onScroll?.({ contentOffset: { y: -250 } });
+      });
+
+      expect(walletHeaderTranslateY.value).toBe(0);
+      expect(result.current.headerTranslateY.value).toBe(0);
+    });
+
+    it('hides only by headerHeight (predict tabs stay pinned) when walletHeaderTranslateY is omitted', async () => {
+      patchReanimatedMock();
+      const props = createDefaultProps();
+
+      const { result } = renderHook(() => useFeedScrollManager(props));
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(result.current.layoutReady).toBe(true);
+      });
+
+      const handler = result.current.scrollHandler as unknown as ScrollHandler;
+
+      mockWithTiming.mockClear();
+
+      act(() => {
+        handler.onScroll?.({ contentOffset: { y: 0 } });
+        handler.onScroll?.({ contentOffset: { y: 300 } });
+      });
+
+      const calledValues = mockWithTiming.mock.calls.map((call) => call[0]);
+      // Standalone path: only -headerHeight (-120), not -(headerHeight + tabBarHeight) (-168)
+      expect(calledValues).toContain(-120);
+      expect(calledValues).not.toContain(-168);
+    });
+
+    it('does not throw when walletHeaderTranslateY is omitted', async () => {
+      patchReanimatedMock();
+      const props = createDefaultProps();
+
+      const { result } = renderHook(() => useFeedScrollManager(props));
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(result.current.layoutReady).toBe(true);
+      });
+
+      const handler = result.current.scrollHandler as unknown as ScrollHandler;
+
+      expect(() => {
+        act(() => {
+          handler.onScroll?.({ contentOffset: { y: 0 } });
+          handler.onScroll?.({ contentOffset: { y: 300 } });
+        });
+      }).not.toThrow();
+    });
+  });
+
   describe('onLayout callbacks', () => {
     it('provides onHeaderLayout callback', () => {
       const props = createDefaultProps();

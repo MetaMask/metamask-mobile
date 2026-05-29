@@ -1,12 +1,10 @@
 import React from 'react';
-import { Linking } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyApyInfoSheet from './MoneyApyInfoSheet';
 import { MoneyApyInfoSheetTestIds } from './MoneyApyInfoSheet.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import AppConstants from '../../../../../core/AppConstants';
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockGoBack = jest.fn();
@@ -116,42 +114,10 @@ describe('MoneyApyInfoSheet', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders the Learn More footer button', () => {
-    const { getByTestId } = renderWithProvider(<MoneyApyInfoSheet />);
+  it('does not render a Learn More footer button', () => {
+    const { queryByTestId } = renderWithProvider(<MoneyApyInfoSheet />);
 
-    expect(
-      getByTestId(MoneyApyInfoSheetTestIds.LEARN_MORE_BUTTON),
-    ).toBeOnTheScreen();
-  });
-
-  it('renders the correct label on the Learn More button', () => {
-    const { getByText } = renderWithProvider(<MoneyApyInfoSheet />);
-
-    expect(
-      getByText(strings('money.apy_tooltip.learn_more')),
-    ).toBeOnTheScreen();
-  });
-
-  it('opens the learn more URL when the footer button is pressed', () => {
-    const openURLSpy = jest
-      .spyOn(Linking, 'openURL')
-      .mockResolvedValue(undefined);
-
-    const { getByTestId } = renderWithProvider(<MoneyApyInfoSheet />);
-
-    fireEvent.press(getByTestId(MoneyApyInfoSheetTestIds.LEARN_MORE_BUTTON));
-
-    expect(openURLSpy).toHaveBeenCalledWith(AppConstants.URLS.MUSD_LEARN_MORE);
-  });
-
-  it('does not close the sheet when the Learn More button is pressed', () => {
-    jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
-
-    const { getByTestId } = renderWithProvider(<MoneyApyInfoSheet />);
-
-    fireEvent.press(getByTestId(MoneyApyInfoSheetTestIds.LEARN_MORE_BUTTON));
-
-    expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
+    expect(queryByTestId('money-apy-info-sheet-learn-more-button')).toBeNull();
   });
 
   it('closes the sheet when the close button is pressed', () => {

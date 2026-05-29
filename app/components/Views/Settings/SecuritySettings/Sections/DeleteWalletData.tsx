@@ -1,5 +1,4 @@
 import React from 'react';
-import { Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import SettingsButtonSection from '../../../../UI/SettingsButtonSection';
 import { strings } from '../../../../../../locales/i18n';
@@ -23,9 +22,7 @@ const DeleteWalletData = () => {
       sectionTitle={strings('app_settings.delete_wallet_data_title')}
       sectionButtonText={strings('app_settings.delete_wallet_data_button')}
       needsModal={false}
-      descriptionText={
-        <Text>{strings('app_settings.delete_wallet_data_description')}</Text>
-      }
+      descriptionText={strings('app_settings.delete_wallet_data_description')}
       testID={SECURITY_SETTINGS_DELETE_WALLET_BUTTON}
       onPress={showDeleteWalletModal}
     />

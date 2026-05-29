@@ -103,13 +103,24 @@ export const useCurrentNetworkInfo = (): CurrentNetworkInfo => {
 
   const hasEnabledNetworks = enabledNetworks.length > 0;
 
-  return {
-    enabledNetworks,
-    getNetworkInfo,
-    getNetworkInfoByChainId,
-    isDisabled,
-    hasEnabledNetworks,
-    isNetworkEnabledForDefi,
-    hasMultipleNamespacesEnabled,
-  };
+  return useMemo(
+    () => ({
+      enabledNetworks,
+      getNetworkInfo,
+      getNetworkInfoByChainId,
+      isDisabled,
+      hasEnabledNetworks,
+      isNetworkEnabledForDefi,
+      hasMultipleNamespacesEnabled,
+    }),
+    [
+      enabledNetworks,
+      getNetworkInfo,
+      getNetworkInfoByChainId,
+      isDisabled,
+      hasEnabledNetworks,
+      isNetworkEnabledForDefi,
+      hasMultipleNamespacesEnabled,
+    ],
+  );
 };

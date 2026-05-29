@@ -5,7 +5,6 @@ const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
     list: {
       paddingBottom: 16,
-      backgroundColor: params.theme.colors.background.default,
     },
     row: {
       flexDirection: 'row',
@@ -14,6 +13,11 @@ const styleSheet = (params: { theme: Theme }) =>
       paddingHorizontal: 16,
       paddingVertical: 8,
       minHeight: 59,
+    },
+    rowLabelContainer: {
+      flex: 1,
+      flexDirection: 'column',
+      gap: 2,
     },
     disabledRowContent: {
       flex: 1,

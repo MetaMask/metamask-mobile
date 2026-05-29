@@ -172,16 +172,6 @@ export const selectMultichainAssetsRates = createDeepEqualSelector(
   { devModeChecks: { identityFunctionCheck: 'never' } },
 );
 
-/**
- * @deprecated
- * This selector accesses deprecated AssetsController state directly.
- * It is only used in the useTokenHistoricalPrices hook.
- */
-export function selectMultichainHistoricalPrices(state: RootState) {
-  return state.engine.backgroundState.MultichainAssetsRatesController
-    .historicalPrices;
-}
-
 export const selectMultichainTokenListForAccountId = createDeepEqualSelector(
   getMultiChainBalancesControllerBalances,
   getMultiChainAssetsControllerAccountsAssets,

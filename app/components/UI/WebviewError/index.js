@@ -1,16 +1,11 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Image, StyleSheet, View, Text, Platform } from 'react-native';
+import { Image, StyleSheet, View, Text } from 'react-native';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
 import { fontStyles } from '../../../styles/common';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import generateTestId from '../../../../wdio/utils/generateTestId';
-import {
-  ERROR_PAGE_MESSAGE,
-  ERROR_PAGE_RETURN_BUTTON,
-  ERROR_PAGE_TITLE,
-} from '../../../../wdio/screen-objects/testIDs/BrowserScreen/ExternalWebsites.testIds';
+import { WebviewErrorSelectorsIDs } from './WebviewError.testIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -102,13 +97,13 @@ export default class WebviewError extends PureComponent {
         <View style={styles.textWrapper}>
           <Text
             style={styles.errorTitle}
-            {...generateTestId(Platform, ERROR_PAGE_TITLE)}
+            testID={WebviewErrorSelectorsIDs.TITLE}
           >
             {strings('webview_error.title')}
           </Text>
           <Text
             style={styles.errorMessage}
-            {...generateTestId(Platform, ERROR_PAGE_MESSAGE)}
+            testID={WebviewErrorSelectorsIDs.MESSAGE}
           >
             {strings('webview_error.message')}
           </Text>
@@ -118,7 +113,7 @@ export default class WebviewError extends PureComponent {
         </View>
         <View
           style={styles.buttonWrapper}
-          {...generateTestId(Platform, ERROR_PAGE_RETURN_BUTTON)}
+          testID={WebviewErrorSelectorsIDs.RETURN_BUTTON}
         >
           <StyledButton type={'confirm'} onPress={this.returnHome}>
             {strings('webview_error.return_home')}

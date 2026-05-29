@@ -10,6 +10,7 @@ import { getPasswordForScenario } from '../../../framework/utils/TestConstants.j
 import LoginView from '../../../page-objects/wallet/LoginView';
 import WalletView from '../../../page-objects/wallet/WalletView';
 import {
+  Performance,
   PerformanceLogin,
   PerformanceLaunch,
 } from '../../../tags.performance.js';
@@ -26,53 +27,59 @@ import {
  * The test measures:
  * 1. Time to tap Unlock and display the wallet screen again
  */
-perfTest.describe(`${PerformanceLogin} ${PerformanceLaunch}`, () => {
-  perfTest(
-    'Measure Warm Start: Login To Wallet Screen',
-    { tag: '@metamask-mobile-platform' },
-    async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
-      await loginToAppPlaywright();
-      await PlaywrightAssertions.expectElementToBeVisible(
-        asPlaywrightElement(WalletView.totalBalance),
-        {
-          description:
-            'Wallet account icon should be visible before warm start',
-        },
-      );
-
-      await PlaywrightGestures.backgroundApp(35);
-      await PlaywrightGestures.activateApp(currentDeviceDetails);
-      await PlaywrightAssertions.expectElementToBeVisible(
-        asPlaywrightElement(LoginView.passwordInput),
-        {
-          description: 'Login title should be visible',
-        },
-      );
-      const loginPassword = getPasswordForScenario('login');
-      await LoginView.enterPassword(loginPassword);
-
-      const timer1 = new TimerHelper(
-        'Time since the user clicks on unlock button, until the app unlocks',
-        { ios: 2500, android: 2500 },
-        currentDeviceDetails.platform,
-      );
-
-      await LoginView.tapLoginButton();
-      await timer1.measure(async () => {
+perfTest.describe(
+  `${Performance} ${PerformanceLogin} ${PerformanceLaunch}`,
+  () => {
+    perfTest(
+      'Measure Warm Start: Login To Wallet Screen',
+      { tag: '@metamask-mobile-platform' },
+      async (
+        { currentDeviceDetails, driver, performanceTracker },
+        testInfo,
+      ) => {
+        await loginToAppPlaywright();
         await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(WalletView.container),
+          asPlaywrightElement(WalletView.totalBalance),
           {
-            description: 'Wallet balance should be visible',
+            description:
+              'Wallet account icon should be visible before warm start',
           },
         );
-        // await WalletView.waitForBalanceToStabilize();
-      });
 
-      performanceTracker.addTimers(timer1);
+        await PlaywrightGestures.backgroundApp(35);
+        await PlaywrightGestures.activateApp(currentDeviceDetails);
+        await PlaywrightAssertions.expectElementToBeVisible(
+          asPlaywrightElement(LoginView.passwordInput),
+          {
+            description: 'Login title should be visible',
+          },
+        );
+        const loginPassword = getPasswordForScenario('login');
+        await LoginView.enterPassword(loginPassword);
 
-      console.log('Warm Start Login to Wallet Performance Test completed');
-      console.log(`Warm Start Login to Wallet: ${timer1.getDuration()}ms`);
-      console.log(`Total Time: ${timer1.getDuration() ?? 0}ms`);
-    },
-  );
-});
+        const timer1 = new TimerHelper(
+          'Time since the user clicks on unlock button, until the app unlocks',
+          { ios: 2500, android: 2500 },
+          currentDeviceDetails.platform,
+        );
+
+        await LoginView.tapLoginButton();
+        await timer1.measure(async () => {
+          await PlaywrightAssertions.expectElementToBeVisible(
+            asPlaywrightElement(WalletView.container),
+            {
+              description: 'Wallet balance should be visible',
+            },
+          );
+          // await WalletView.waitForBalanceToStabilize();
+        });
+
+        performanceTracker.addTimers(timer1);
+
+        console.log('Warm Start Login to Wallet Performance Test completed');
+        console.log(`Warm Start Login to Wallet: ${timer1.getDuration()}ms`);
+        console.log(`Total Time: ${timer1.getDuration() ?? 0}ms`);
+      },
+    );
+  },
+);
