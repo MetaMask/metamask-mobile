@@ -3368,17 +3368,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  moneyHomeScreenEnabled: {
-    name: 'moneyHomeScreenEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      minimumVersion: '0.0.0',
-      enabled: false,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   nonZeroUnusedApprovals: {
     name: 'nonZeroUnusedApprovals',
     type: FeatureFlagType.Remote,
@@ -4754,17 +4743,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       minimumVersion: '0.0.0',
-      enabled: false,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  exploreSearchV2: {
-    name: 'exploreSearchV2',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      minimumVersion: '7.79.0',
       enabled: false,
     },
     status: FeatureFlagStatus.Active,

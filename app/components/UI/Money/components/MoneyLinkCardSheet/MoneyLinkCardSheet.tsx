@@ -10,7 +10,9 @@ import {
   BoxAlignItems,
   BoxJustifyContent,
   ButtonSize,
+  FontWeight,
   Text,
+  TextColor,
   TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
@@ -59,12 +61,23 @@ const MoneyLinkCardSheet = () => {
     });
   }, [confirmLinkInBackground]);
 
-  const description =
-    apyPercent === undefined
-      ? strings('money.metamask_card.link_card_sheet_description_no_apy')
-      : strings('money.metamask_card.link_card_sheet_description', {
-          apy: apyPercent,
-        });
+  const description: React.ReactNode =
+    apyPercent === undefined ? (
+      strings('money.metamask_card.link_card_sheet_description_no_apy')
+    ) : (
+      <>
+        {strings('money.metamask_card.link_card_sheet_description_prefix')}
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.SuccessDefault}
+        >
+          {' '}
+          {strings('money.apy_label', { percentage: apyPercent })}
+        </Text>
+        {strings('money.metamask_card.link_card_sheet_description_suffix')}
+      </>
+    );
 
   return (
     <BottomSheet
@@ -100,6 +113,7 @@ const MoneyLinkCardSheet = () => {
           </Text>
           <Text
             variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
             twClassName="text-center"
             testID={MoneyLinkCardSheetTestIds.DESCRIPTION}
           >

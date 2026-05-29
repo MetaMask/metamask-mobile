@@ -1117,6 +1117,10 @@
       "loading": "Loading...",
       "unavailable": "Swap unavailable",
       "unsupported_chain": "This chain is not supported for Quick Buy yet",
+      "quote_details_title": "Quote details",
+      "select_quote_title": "Select quote",
+      "rate": "Rate",
+      "get_new_quote": "Get new quote",
       "available_balance": "{{amount}} available",
       "toggle_amount_display": "Switch between token and dollar amount",
       "includes_mm_fee": "Includes {{fee}}% MM fee",
@@ -5357,6 +5361,16 @@
           "time": "1h ago",
           "title": "Received 0.25 ETH",
           "message": "From 0x9a21…4f8c · $640.29"
+        },
+        "toast": {
+          "notifications_on": {
+            "title": "Notifications are on",
+            "description": "We'll send you transactions, price alerts, and updates."
+          },
+          "notifications_off": {
+            "title": "Notifications are off",
+            "description": "Turn them on anytime in Settings → Notifications."
+          }
         }
       },
       "existing_user": {
@@ -5365,8 +5379,20 @@
         "card_title": "What you'll get",
         "card_description": "Personalized alerts and updates tailored to your trading activity.",
         "button_confirm": "Confirm",
-        "button_not_now": "Not now"
-      }
+        "button_not_now": "Not now",
+        "toast": {
+          "personalized_alerts_on": {
+            "title": "Personalized alerts is on",
+            "description": "Manage this anytime in Settings."
+          },
+          "personalized_alerts_off": {
+            "title": "Personalized alerts is off",
+            "description": "Turn it on anytime in Settings."
+          }
+        }
+      },
+      "toast_enabled": "Notifications enabled",
+      "toast_settings_hint": "You can enable notifications any time in Settings > Notifications"
     }
   },
   "protect_your_wallet_modal": {
@@ -6762,7 +6788,6 @@
     "deposit_tooltip_description": "Add funds to your Money account and earn up to {{percentage}}% APY automatically. You can add funds by converting your existing stablecoin balance or depositing directly from your bank or card.",
     "balance_unavailable": "Balance unavailable",
     "balance_retry": "Retry",
-    "balance_feature_disabled": "Money account disabled",
     "balance_no_account": "Money account not found",
     "onboarding": {
       "step_1": {
@@ -6848,13 +6873,14 @@
       "link_subtitle": "Spend your Money balance and earn on purchases. Plus, up to {{apy}}% APY (variable) on your balance.",
       "link_subtitle_no_apy": "Spend your Money balance and earn on purchases.",
       "link_bullet_cashback": "Get {{percentage}}% mUSD back",
-      "link_bullet_apy": "Earn up to {{apy}}% APY",
+      "link_bullet_apy": "Earn up to {{apy}}% APY (variable)",
       "link_card": "Link card",
       "link_pending_title": "Linking your card",
       "link_success_title": "Your card is ready to use",
       "link_error": "Something went wrong linking your card",
       "link_card_sheet_title": "Spend and earn",
-      "link_card_sheet_description": "Link your card so you can spend your Money balance and earn mUSD back on purchases—all while earning up to {{apy}}% APY.",
+      "link_card_sheet_description_prefix": "Link your card so you can spend your Money balance and earn mUSD back on purchases—all while earning up to",
+      "link_card_sheet_description_suffix": " (variable).",
       "link_card_sheet_description_no_apy": "Link your card so you can spend your Money balance and earn mUSD back on purchases.",
       "link_card_sheet_cta": "Link card",
       "manage_card": "Manage",
@@ -7494,6 +7520,9 @@
     "batch_sell_total_received": "Total received",
     "batch_sell_minimum_received": "Minimum received",
     "batch_sell_quote_details_row": "{{tokenSymbol}} • {{slippage}} slippage",
+    "batch_sell_no_quote_available": "No quote available",
+    "batch_sell_high_price_impact": "High price impact",
+    "batch_sell_high_price_impact_description": "This trade has an estimated {{priceImpact}} price impact, which reflects how much your trade changes the market price. The quote already reflects this.",
     "batch_sell_review": "Review",
     "batch_sell_you_sell": "You sell",
     "batch_sell_token_count": "{{tokenCount}} tokens",
@@ -7533,6 +7562,7 @@
     "quote_info_title": "Rate",
     "network_fee_info_title": "Network fee",
     "network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is.",
+    "batch_sell_network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is. If you don't have enough to cover the fee, we'll take it from the token you're converting to.",
     "network_fee_info_content_sponsored": "This network fee is paid by MetaMask, so you can transact without {{nativeToken}} in your account.",
     "points": "Est. points",
     "points_tooltip": "Points",
@@ -8359,10 +8389,12 @@
       "money_account_label": "Money account",
       "money_account_token_symbol": "mUSD",
       "use_money_account_cta": "Use Money account",
-      "spend_and_earn_title": "Spend while you earn",
-      "spend_and_earn_description": "Spend with your Money account and earn up to {{apy}}% APY on your balance. Also get {{cashback}}% mUSD back.",
-      "spend_and_earn_description_no_apy": "Spend with your Money account and earn APY on your balance. Also get {{cashback}}% mUSD back.",
-      "spend_and_earn_cta": "Link to Money account"
+      "spend_and_earn_title": "Spend and earn",
+      "spend_and_earn_description_prefix": "Link your balance to your card and get mUSD back on purchases. Plus, earn up to ",
+      "spend_and_earn_description_apy": "{{apy}}% APY",
+      "spend_and_earn_description_suffix": " (variable) on your balance.",
+      "spend_and_earn_description_no_apy": "Link your balance to your card and get mUSD back on purchases.",
+      "spend_and_earn_cta": "Link card"
     },
     "cashback_screen": {
       "title": "mUSD Back",
