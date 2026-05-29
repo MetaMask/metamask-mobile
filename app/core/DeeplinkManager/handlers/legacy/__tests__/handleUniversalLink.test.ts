@@ -22,6 +22,7 @@ import { SHIELD_WEBSITE_URL } from '../../../../../constants/shield';
 import { handleSocialLeaderboardUrl } from '../handleSocialLeaderboardUrl';
 import { handleSocialTraderPositionUrl } from '../handleSocialTraderPositionUrl';
 import { handleWhatsHappeningUrl } from '../handleWhatsHappeningUrl';
+import { handleSwapUrl } from '../handleSwapUrl';
 // eslint-disable-next-line import-x/no-namespace
 import * as signatureUtils from '../../../utils/verifySignature';
 
@@ -363,14 +364,16 @@ describe('handleUniversalLink', () => {
     });
 
     describe('ACTIONS.SWAP', () => {
-      it('calls _handleSwap with correct path of "swap" when action is SWAP', async () => {
-        const swapUrl = `${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.SWAP}/some-swap-path`;
+      it('calls handleSwapUrl with the full swapPath when action is SWAP', async () => {
+        const swapQueryParams =
+          '?from=eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48&to=eip155:137/erc20:0x2791bca1f2de4661ed88a30c99a7a9449aa84174&amount=1000000';
+        const swapUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.SWAP}${swapQueryParams}`;
         const swapUrlObj = {
           ...urlObj,
           href: swapUrl,
-          pathname: `/${ACTIONS.SWAP}/some-swap-path`,
+          pathname: `/${ACTIONS.SWAP}`,
         };
-        url = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.SWAP}/some-swap-path`;
+        url = swapUrl;
 
         await handleUniversalLink({
           instance,
@@ -381,6 +384,9 @@ describe('handleUniversalLink', () => {
           source: 'test-source',
         });
 
+        expect(handleSwapUrl).toHaveBeenCalledWith({
+          swapPath: swapQueryParams,
+        });
         expect(handled).toHaveBeenCalled();
       });
     });

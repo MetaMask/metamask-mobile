@@ -14,12 +14,17 @@ import { AnvilManager } from '../../../seeder/anvil-manager';
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
 import { getDecodedProxiedURL } from '../../notifications/utils/helpers';
+import type { AssetsControllerState } from '@metamask/assets-controller';
 
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 
 const USDC_ADDRESS = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
 const DAI_ADDRESS = '0x6B175474E89094C44Da98b954EedeAC495271d0F';
 const TEST_ACCOUNT = DEFAULT_FIXTURE_ACCOUNT_CHECKSUM.toLowerCase();
+const USDC_ASSET_ID = `eip155:1/erc20:${USDC_ADDRESS.toLowerCase()}`;
+const LOCAL_CHAIN_ID = '0x539';
+const LOCAL_USDC_ASSET_ID = `eip155:1337/erc20:${USDC_ADDRESS.toLowerCase()}`;
+const LOCAL_NATIVE_ASSET_ID = 'eip155:1337/slip44:60';
 
 /**
  * Mock Accounts API V4/V2 to return ETH + USDC + DAI balances on Mainnet.
@@ -28,6 +33,70 @@ const TEST_ACCOUNT = DEFAULT_FIXTURE_ACCOUNT_CHECKSUM.toLowerCase();
  * Without these mocks, USDC does not appear in the token picker.
  */
 async function setupAccountsApiMocks(mockServer: Mockttp): Promise<void> {
+  await setupMockRequest(
+    mockServer,
+    {
+      url: /^https:\/\/tokens\.api\.cx\.metamask\.io\/v2\/supportedNetworks(\?.*)?$/,
+      response: {
+        fullSupport: ['eip155:1', 'eip155:1337'],
+        partialSupport: [],
+      },
+      requestMethod: 'GET',
+      responseCode: 200,
+    },
+    1000,
+  );
+
+  await setupMockRequest(
+    mockServer,
+    {
+      url: /^https:\/\/tokens\.api\.cx\.metamask\.io\/v3\/assets\?.*$/,
+      response: [
+        {
+          assetId: USDC_ASSET_ID,
+          symbol: 'USDC',
+          name: 'USD Coin',
+          decimals: 6,
+        },
+        {
+          assetId: LOCAL_USDC_ASSET_ID,
+          symbol: 'USDC',
+          name: 'USD Coin',
+          decimals: 6,
+        },
+      ],
+      requestMethod: 'GET',
+      responseCode: 200,
+    },
+    1000,
+  );
+
+  await setupMockRequest(
+    mockServer,
+    {
+      url: /^https:\/\/price\.api\.cx\.metamask\.io\/v3\/spot-prices(\?.*)?$/,
+      response: {
+        [USDC_ASSET_ID]: {
+          price: 1,
+          pricePercentChange1d: 0,
+          marketCap: 1000000000,
+          totalVolume: 1000000,
+          usd: 1,
+        },
+        [LOCAL_USDC_ASSET_ID]: {
+          price: 1,
+          pricePercentChange1d: 0,
+          marketCap: 1000000000,
+          totalVolume: 1000000,
+          usd: 1,
+        },
+      },
+      requestMethod: 'GET',
+      responseCode: 200,
+    },
+    1000,
+  );
+
   await setupMockRequest(mockServer, {
     url: /accounts\.api\.cx\.metamask\.io\/v4\/multiaccount\/balances/,
     response: {
@@ -71,6 +140,62 @@ async function setupAccountsApiMocks(mockServer: Mockttp): Promise<void> {
     requestMethod: 'GET',
     responseCode: 200,
   });
+
+  await setupMockRequest(
+    mockServer,
+    {
+      url: /accounts\.api\.cx\.metamask\.io\/v5\/multiaccount\/balances/,
+      response: {
+        count: 4,
+        balances: [
+          {
+            object: 'token',
+            assetId: 'eip155:1/slip44:60',
+            symbol: 'ETH',
+            name: 'Ether',
+            type: 'native',
+            decimals: 18,
+            balance: '10.000000000000000000',
+            accountId: `eip155:1:${TEST_ACCOUNT}`,
+          },
+          {
+            object: 'token',
+            assetId: USDC_ASSET_ID,
+            symbol: 'USDC',
+            name: 'USD Coin',
+            type: 'erc20',
+            decimals: 6,
+            balance: '10000.000000',
+            accountId: `eip155:1:${TEST_ACCOUNT}`,
+          },
+          {
+            object: 'token',
+            assetId: LOCAL_USDC_ASSET_ID,
+            symbol: 'USDC',
+            name: 'USD Coin',
+            type: 'erc20',
+            decimals: 6,
+            balance: '10000.000000',
+            accountId: `eip155:1337:${TEST_ACCOUNT}`,
+          },
+          {
+            object: 'token',
+            assetId: `eip155:1/erc20:${DAI_ADDRESS.toLowerCase()}`,
+            symbol: 'DAI',
+            name: 'Dai Stablecoin',
+            type: 'erc20',
+            decimals: 18,
+            balance: '5000.000000000000000000',
+            accountId: `eip155:1:${TEST_ACCOUNT}`,
+          },
+        ],
+        unprocessedNetworks: [],
+      },
+      requestMethod: 'GET',
+      responseCode: 200,
+    },
+    1000,
+  );
 
   await setupMockRequest(mockServer, {
     url: /accounts\.api\.cx\.metamask\.io\/v2\/accounts\/[^/]+\/balances/,
@@ -288,14 +413,27 @@ describe(SmokeConfirmations('Send ERC20 asset'), () => {
               ? (node.getPort() ?? AnvilPort())
               : undefined;
 
-          return new FixtureBuilder()
+          const fixture = new FixtureBuilder()
             .withNetworkController({
-              chainId: '0x539',
+              chainId: LOCAL_CHAIN_ID,
               rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
               type: 'custom',
               nickname: 'Local RPC',
               ticker: 'ETH',
             })
+            .withTokens(
+              [
+                {
+                  address: USDC_ADDRESS,
+                  symbol: 'USDC',
+                  decimals: 6,
+                  name: 'USD Coin',
+                },
+              ],
+              LOCAL_CHAIN_ID,
+              TEST_ACCOUNT,
+            )
+            .withTokenRates(LOCAL_CHAIN_ID, USDC_ADDRESS, 1)
             .withTokensForAllPopularNetworks([
               {
                 address: '0x0000000000000000000000000000000000000000',
@@ -317,6 +455,86 @@ describe(SmokeConfirmations('Send ERC20 asset'), () => {
               },
             ])
             .build();
+
+          fixture.state.engine.backgroundState.TokenBalancesController.tokenBalances =
+            {
+              ...fixture.state.engine.backgroundState.TokenBalancesController
+                .tokenBalances,
+              [TEST_ACCOUNT]: {
+                ...fixture.state.engine.backgroundState.TokenBalancesController
+                  .tokenBalances[TEST_ACCOUNT],
+                [LOCAL_CHAIN_ID]: {
+                  [USDC_ADDRESS]: '0x2540be400',
+                },
+              },
+            };
+
+          const backgroundState = fixture.state.engine.backgroundState;
+          const selectedAccountId =
+            backgroundState.AccountsController.internalAccounts.selectedAccount;
+          const existingAssetsController = (backgroundState.AssetsController ??
+            {}) as Partial<AssetsControllerState>;
+          const now = Date.now();
+
+          backgroundState.AssetsController = {
+            ...existingAssetsController,
+            selectedCurrency: 'usd',
+            assetsInfo: {
+              ...existingAssetsController.assetsInfo,
+              [LOCAL_NATIVE_ASSET_ID]: {
+                type: 'native',
+                symbol: 'ETH',
+                name: 'Ethereum',
+                decimals: 18,
+              },
+              [LOCAL_USDC_ASSET_ID]: {
+                type: 'erc20',
+                symbol: 'USDC',
+                name: 'USD Coin',
+                decimals: 6,
+              },
+            },
+            assetsBalance: {
+              ...existingAssetsController.assetsBalance,
+              [selectedAccountId]: {
+                ...existingAssetsController.assetsBalance?.[selectedAccountId],
+                [LOCAL_NATIVE_ASSET_ID]: {
+                  amount: '10',
+                },
+                [LOCAL_USDC_ASSET_ID]: {
+                  amount: '10000',
+                },
+              },
+            },
+            assetsPrice: {
+              ...existingAssetsController.assetsPrice,
+              [LOCAL_NATIVE_ASSET_ID]: {
+                assetPriceType: 'fungible' as const,
+                price: 1,
+                usdPrice: 1,
+                lastUpdated: now,
+              },
+              [LOCAL_USDC_ASSET_ID]: {
+                assetPriceType: 'fungible' as const,
+                price: 1,
+                usdPrice: 1,
+                lastUpdated: now,
+              },
+            },
+            customAssets: {
+              ...existingAssetsController.customAssets,
+              [selectedAccountId]: [
+                ...new Set([
+                  ...(existingAssetsController.customAssets?.[
+                    selectedAccountId
+                  ] ?? []),
+                  LOCAL_USDC_ASSET_ID,
+                ]),
+              ],
+            },
+          };
+
+          return fixture;
         },
         testSpecificMock: setupAccountsApiMocks,
         restartDevice: true,
