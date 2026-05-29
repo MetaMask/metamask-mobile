@@ -1,7 +1,7 @@
-import React from 'react';
-import { render } from '@testing-library/react-native';
-import TraderPositionQuickBuy from './TraderPositionQuickBuy';
 import type { Position } from '@metamask/social-controllers';
+import { render } from '@testing-library/react-native';
+import React from 'react';
+import TraderPositionQuickBuy from './TraderPositionQuickBuy';
 
 const mockQuickBuyRoot = jest.fn((_props: unknown) => null);
 
@@ -15,8 +15,6 @@ jest.mock('./features', () => ({
   TOP_TRADERS_QUICK_BUY_FEATURES: { tradeModes: ['buy'] },
 }));
 
-// Real `positionToQuickBuyTarget` exercises `chainNameToId` via the social
-// chain mapping, returning `null` when the chain name is unsupported.
 jest.mock('./types', () => {
   const actual = jest.requireActual('./types');
   return { positionToQuickBuyTarget: actual.positionToQuickBuyTarget };

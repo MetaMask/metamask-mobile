@@ -221,9 +221,6 @@ const createPosition = (overrides: Partial<Position> = {}): Position =>
     ...overrides,
   }) as Position;
 
-// `positionToQuickBuyTarget` returns `QuickBuyTarget | null` (when the social
-// `chain` name doesn't map to a CAIP id). All fixtures here use supported
-// chains, so this helper narrows the type for the hook's non-null `target` arg.
 const createTarget = (overrides: Partial<Position> = {}) => {
   const target = positionToQuickBuyTarget(createPosition(overrides));
   if (!target) throw new Error('createTarget: position chain is not mapped');

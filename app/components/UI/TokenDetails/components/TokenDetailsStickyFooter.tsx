@@ -7,7 +7,6 @@ import {
   IconSize,
   TextColor,
 } from '@metamask/design-system-react-native';
-import FlashFilledIcon from './assets/flash-filled.svg';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -32,6 +31,7 @@ import {
   STICKY_FOOTER_SWAP_LABEL_AB_KEY,
   STICKY_FOOTER_SWAP_LABEL_VARIANTS,
 } from './abTestConfig';
+import FlashFilledIcon from './assets/flash-filled.svg';
 import RwaUnavailableBottomSheet, {
   type RwaUnavailableBottomSheetRef,
 } from './RwaUnavailableBottomSheet/RwaUnavailableBottomSheet';
@@ -136,8 +136,6 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   const successBorder = getSuccessClass('border', 'border-success-default');
   const successText = getSuccessClass('text', 'text-success-default');
 
-  // Raw hex of the same success accent — needed for inline SVG fills and
-  // border colors where twrnc class strings can't reach (e.g. raw react-native-svg).
   const successColorHex = useErrorAccent
     ? AMBIENT_NEGATIVE_COLOR
     : isLightMode

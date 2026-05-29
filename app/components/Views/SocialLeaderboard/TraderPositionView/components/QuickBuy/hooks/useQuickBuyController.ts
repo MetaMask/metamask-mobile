@@ -1,86 +1,87 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  playSuccessNotification,
-  playErrorNotification,
-} from '../../../../../../../util/haptics';
-import { TextInput } from 'react-native';
-import { useSelector, useDispatch } from 'react-redux';
+import { isNonEvmChainId } from '@metamask/bridge-controller';
+import type { Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { TextInput } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import { selectCurrentCurrency } from '../../../../../../../selectors/currencyRateController';
+import {
+  playErrorNotification,
+  playSuccessNotification,
+} from '../../../../../../../util/haptics';
+import { getIntlNumberFormatter } from '../../../../../../../util/intl';
+import {
+  dotAndCommaDecimalFormatter,
+  isNumberValue,
+} from '../../../../../../../util/number/bigint';
+import { useDisplayCurrencyValue } from '../../../../../../UI/Bridge/hooks/useDisplayCurrencyValue';
+import { useFormattedNetworkFee } from '../../../../../../UI/Bridge/hooks/useFormattedNetworkFee';
+import type { BridgeToken } from '../../../../../../UI/Bridge/types';
+import {
+  formatCurrency,
+  formatMinimumReceived,
+} from '../../../../../../UI/Bridge/utils/currencyUtils';
+import { isGaslessQuote } from '../../../../../../UI/Bridge/utils/isGaslessQuote';
+import { selectDefaultSourceToken } from '../../../../utils/tokenSelection';
+import { snapToPercentageStep } from '../components/QuickBuyPercentageSlider';
 import type {
   QuickBuyAmountDisplayMode,
   QuickBuyAnalyticsContext,
   QuickBuyTarget,
 } from '../types';
-import { useQuickBuyAnalytics } from './useQuickBuyAnalytics';
 import { formatExchangeRate } from '../utils/formatExchangeRate';
 import { getMetamaskFeePercent } from '../utils/getMetamaskFeePercent';
-import { snapToPercentageStep } from '../components/QuickBuyPercentageSlider';
-import type { Hex } from '@metamask/utils';
-import type { BridgeToken } from '../../../../../../UI/Bridge/types';
-import { selectDefaultSourceToken } from '../../../../utils/tokenSelection';
-import { useQuickBuySetup } from './useQuickBuySetup';
-import { useSourceTokenOptions } from './useSourceTokenOptions';
+import { useQuickBuyAnalytics } from './useQuickBuyAnalytics';
 import {
   useQuickBuyQuotes,
   type EnrichedQuickBuyQuote,
 } from './useQuickBuyQuotes';
-import { getIntlNumberFormatter } from '../../../../../../../util/intl';
-import { useDisplayCurrencyValue } from '../../../../../../UI/Bridge/hooks/useDisplayCurrencyValue';
-import {
-  formatMinimumReceived,
-  formatCurrency,
-} from '../../../../../../UI/Bridge/utils/currencyUtils';
-import { useFormattedNetworkFee } from '../../../../../../UI/Bridge/hooks/useFormattedNetworkFee';
-import { isGaslessQuote } from '../../../../../../UI/Bridge/utils/isGaslessQuote';
-import { selectCurrentCurrency } from '../../../../../../../selectors/currencyRateController';
-import {
-  isNumberValue,
-  dotAndCommaDecimalFormatter,
-} from '../../../../../../../util/number/bigint';
-import { isNonEvmChainId } from '@metamask/bridge-controller';
+import { useQuickBuySetup } from './useQuickBuySetup';
+import { useSourceTokenOptions } from './useSourceTokenOptions';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { useGasFeeEstimates } from '../../../../../confirmations/hooks/gas/useGasFeeEstimates';
+import I18n, { strings } from '../../../../../../../../locales/i18n';
+import Routes from '../../../../../../../constants/navigation/Routes';
+import Engine from '../../../../../../../core/Engine';
 import {
-  setSourceAmount,
-  setSourceToken,
-  setDestToken,
-  selectIsSubmittingTx,
+  selectBridgeFeatureFlags,
   selectDestAddress,
-  selectSlippage,
   selectIsEvmNonEvmBridge,
   selectIsNonEvmNonEvmBridge,
   selectIsSolanaSourced,
-  selectBridgeFeatureFlags,
+  selectIsSubmittingTx,
+  selectSlippage,
+  setDestToken,
   setIsSubmittingTx,
+  setSourceAmount,
+  setSourceToken,
 } from '../../../../../../../core/redux/slices/bridge';
-import { useLatestBalance } from '../../../../../../UI/Bridge/hooks/useLatestBalance';
-import useIsInsufficientBalance from '../../../../../../UI/Bridge/hooks/useInsufficientBalance';
-import { useHasSufficientGas } from '../../../../../../UI/Bridge/hooks/useHasSufficientGas';
-import { useIsNetworkFeeUnavailable } from '../../../../../../UI/Bridge/hooks/useIsNetworkFeeUnavailable';
-import { useInitialSlippage } from '../../../../../../UI/Bridge/hooks/useInitialSlippage';
-import { usePriceImpactViewData } from '../../../../../../UI/Bridge/hooks/usePriceImpactViewData';
-import {
-  parsePriceImpact,
-  exceedsPriceImpactErrorThreshold,
-} from '../../../../../../UI/Bridge/utils/getPriceImpactViewData';
-import { selectShouldUseSmartTransaction } from '../../../../../../../selectors/smartTransactionsController';
-import { useRefreshSmartTransactionsLiveness } from '../../../../../../hooks/useRefreshSmartTransactionsLiveness';
-import { useIsGasIncludedSTXSendBundleSupported } from '../../../../../../UI/Bridge/hooks/useIsGasIncludedSTXSendBundleSupported';
-import { useRecipientInitialization } from '../../../../../../UI/Bridge/hooks/useRecipientInitialization';
-import { selectSourceWalletAddress } from '../../../../../../../selectors/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../../selectors/accountsController';
+import { selectSourceWalletAddress } from '../../../../../../../selectors/bridge';
+import { selectShouldUseSmartTransaction } from '../../../../../../../selectors/smartTransactionsController';
 import { isHardwareAccount } from '../../../../../../../util/address';
-import Engine from '../../../../../../../core/Engine';
-import Routes from '../../../../../../../constants/navigation/Routes';
-import I18n, { strings } from '../../../../../../../../locales/i18n';
-import { calcTokenValue } from '../../../../../../../util/transactions';
 import Logger from '../../../../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../../../../util/social/socialServiceTelemetry';
+import { calcTokenValue } from '../../../../../../../util/transactions';
+import { useRefreshSmartTransactionsLiveness } from '../../../../../../hooks/useRefreshSmartTransactionsLiveness';
+import { toAssetId } from '../../../../../../UI/Bridge/hooks/useAssetMetadata/utils';
+import { useHasSufficientGas } from '../../../../../../UI/Bridge/hooks/useHasSufficientGas';
+import { useInitialSlippage } from '../../../../../../UI/Bridge/hooks/useInitialSlippage';
+import useIsInsufficientBalance from '../../../../../../UI/Bridge/hooks/useInsufficientBalance';
+import { useIsGasIncludedSTXSendBundleSupported } from '../../../../../../UI/Bridge/hooks/useIsGasIncludedSTXSendBundleSupported';
+import { useIsNetworkFeeUnavailable } from '../../../../../../UI/Bridge/hooks/useIsNetworkFeeUnavailable';
+import { useLatestBalance } from '../../../../../../UI/Bridge/hooks/useLatestBalance';
+import { usePriceImpactViewData } from '../../../../../../UI/Bridge/hooks/usePriceImpactViewData';
+import { useRecipientInitialization } from '../../../../../../UI/Bridge/hooks/useRecipientInitialization';
+import {
+  exceedsPriceImpactErrorThreshold,
+  parsePriceImpact,
+} from '../../../../../../UI/Bridge/utils/getPriceImpactViewData';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { useGasFeeEstimates } from '../../../../../confirmations/hooks/gas/useGasFeeEstimates';
 import {
   SocialLeaderboardEventProperties,
   SocialLeaderboardEventValues,
 } from '../../../../analytics';
-import { toAssetId } from '../../../../../../UI/Bridge/hooks/useAssetMetadata/utils';
 
 export type QuickBuyButtonError =
   | 'insufficient_balance'
@@ -604,9 +605,6 @@ export function useQuickBuyController(
 
     // Shared by the SUBMITTED + COMPLETED (success / failure) events. Built
     // once here so the success vs failure delta stays small at the call sites.
-    // Keyed on the asset (caip19), not the trader: entry points without a
-    // trader (e.g. asset details) still record trade-level analytics, and
-    // trader_address is only attached when a trader is in context.
     const tradeBaseProps = submittedCaip19
       ? {
           ...(submittedTraderAddress
