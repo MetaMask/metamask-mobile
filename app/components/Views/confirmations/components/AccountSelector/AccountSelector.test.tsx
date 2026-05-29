@@ -21,6 +21,20 @@ jest.mock('../../../../../component-library/hooks', () => ({
   }),
 }));
 
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => {
+    const tw = (..._args: unknown[]) => ({});
+    tw.style = (...args: unknown[]) =>
+      args.reduce<Record<string, unknown>>((acc, arg) => {
+        if (typeof arg === 'object' && arg !== null) {
+          return { ...acc, ...(arg as Record<string, unknown>) };
+        }
+        return acc;
+      }, {});
+    return tw;
+  },
+}));
+
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
   // eslint-disable-next-line @typescript-eslint/no-require-imports
