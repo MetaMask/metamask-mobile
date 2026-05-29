@@ -109,7 +109,7 @@ import {
   MoneyTabScreenStack,
 } from '../../UI/Money/routes';
 import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
-import { selectMoneyHomeScreenEnabledFlag } from '../../UI/Money/selectors/featureFlags';
+import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import {
@@ -647,9 +647,7 @@ const HomeTabs = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
-  const isMoneyHomeScreenEnabled = useSelector(
-    selectMoneyHomeScreenEnabledFlag,
-  );
+  const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
 
   const accountsLength = useSelector(selectAccountsLength);
 
@@ -882,7 +880,7 @@ const HomeTabs = () => {
         />
 
         {/* Activity Tab (replaced by Money when feature flag is on) */}
-        {isMoneyHomeScreenEnabled ? (
+        {isMoneyAccountEnabled ? (
           <Tab.Screen
             name={Routes.MONEY.ROOT}
             options={options.money}
@@ -1051,9 +1049,7 @@ const MainNavigator = () => {
   }, [dispatch]);
 
   // Get feature flag state for conditional Money home screen registration
-  const isMoneyHomeScreenEnabled = useSelector(
-    selectMoneyHomeScreenEnabledFlag,
-  );
+  const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
   // Get feature flag state for conditional Perps screen registration
   const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
   const isPerpsEnabled = useMemo(() => perpsEnabledFlag, [perpsEnabledFlag]);
@@ -1256,7 +1252,7 @@ const MainNavigator = () => {
           presentation: 'transparentModal',
         }}
       />
-      {isMoneyHomeScreenEnabled && (
+      {isMoneyAccountEnabled && (
         <>
           <Stack.Screen
             name={Routes.MONEY.ROOT}
