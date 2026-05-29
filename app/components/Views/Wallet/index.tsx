@@ -10,6 +10,12 @@ import React, {
 } from 'react';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { SectionRefreshHandle } from '../Homepage/types';
+
+/** Matches HomepageDiscoveryTabs imperative handle (kept local for ADR-0020). */
+interface WalletDiscoveryTabsRef {
+  refresh: () => Promise<void>;
+  goToPerpsTab: () => void;
+}
 import { useBalanceRefresh, useHomepageEntryPoint } from './hooks';
 
 import {
@@ -766,6 +772,34 @@ const Wallet = ({
   const isDiscoveryTabsTreatment =
     discoveryTabsVariantName === HubPageDiscoveryTabsVariant.Treatment;
 
+  const isPerpsEnabled = isPerpsFlagEnabled;
+
+  const homepageDiscoveryTabsRef = useRef<WalletDiscoveryTabsRef>(null);
+
+  const handlePerpsTabDeepLink = useCallback(() => {
+    if (isDiscoveryTabsTreatment) {
+      homepageDiscoveryTabsRef.current?.goToPerpsTab();
+      return;
+    }
+    navigation.navigate(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.PERPS_HOME,
+      params: { source: 'deeplink' },
+    });
+  }, [isDiscoveryTabsTreatment, navigation]);
+
+  const handleNetworkSelectorDeepLink = useCallback(() => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.NETWORK_SELECTOR,
+    });
+  }, [navigation]);
+
+  useHomeDeepLinkEffects({
+    navigation,
+    isPerpsEnabled,
+    onPerpsTabSelected: handlePerpsTabDeepLink,
+    onNetworkSelectorSelected: handleNetworkSelectorDeepLink,
+  });
+
   // translateY slides the header up; negative marginBottom collapses the layout
   // space it occupied so the content below moves up in sync.
   const animatedHeaderStyle = useAnimatedStyle(() => {
@@ -848,7 +882,10 @@ const Wallet = ({
     setRefreshing(true);
 
     try {
-      await Promise.all([refreshBalance(), homepageRef.current?.refresh()]);
+      const refreshHomepage = isDiscoveryTabsTreatment
+        ? homepageDiscoveryTabsRef.current?.refresh()
+        : homepageRef.current?.refresh();
+      await Promise.all([refreshBalance(), refreshHomepage]);
     } catch (error) {
       Logger.error(error as Error, 'Error refreshing wallet');
     } finally {
@@ -859,7 +896,7 @@ const Wallet = ({
         setRefreshing(false);
       }
     }
-  }, [refreshBalance]);
+  }, [refreshBalance, isDiscoveryTabsTreatment]);
 
   const subscribeToScroll = useCallback((cb: () => void) => {
     scrollSubscribersRef.current.add(cb);
@@ -1157,7 +1194,7 @@ const Wallet = ({
                 >
                   {isDiscoveryTabsTreatment ? (
                     <HomepageDiscoveryTabs
-                      ref={homepageRef}
+                      ref={homepageDiscoveryTabsRef}
                       portfolioHeader={portfolioHeader}
                       onPortfolioScroll={handleHomepageScroll}
                       walletHeaderOffset={headerHeight + insets.top}

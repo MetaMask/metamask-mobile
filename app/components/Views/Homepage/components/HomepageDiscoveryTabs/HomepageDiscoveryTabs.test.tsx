@@ -205,6 +205,12 @@ describe('HomepageDiscoveryTabs', () => {
       expect(typeof ref.current?.refresh).toBe('function');
     });
 
+    it('exposes goToPerpsTab via ref', () => {
+      const ref = React.createRef<{ goToPerpsTab: () => void }>();
+      render(<HomepageDiscoveryTabs ref={ref} />);
+      expect(typeof ref.current?.goToPerpsTab).toBe('function');
+    });
+
     it('calling refresh does not throw', async () => {
       const ref = React.createRef<{ refresh: () => Promise<void> }>();
       render(<HomepageDiscoveryTabs ref={ref} />);
