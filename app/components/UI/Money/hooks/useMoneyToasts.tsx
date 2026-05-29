@@ -38,8 +38,6 @@ export type MoneyToastOptions = Omit<
 
 export type DepositIntent = 'convert' | 'addMusd';
 
-export type WithdrawIntent = 'betweenAccounts';
-
 export interface DepositInProgressParams {
   intent?: DepositIntent;
 }
@@ -53,18 +51,8 @@ export interface DepositFailedParams {
   intent?: DepositIntent;
 }
 
-export interface WithdrawInProgressParams {
-  intent?: WithdrawIntent;
-}
-
 export interface WithdrawSuccessParams {
   amountFiat?: string;
-  destination?: string;
-  intent?: WithdrawIntent;
-}
-
-export interface WithdrawFailedParams {
-  intent?: WithdrawIntent;
 }
 
 export interface MoneyToastOptionsConfig {
@@ -74,9 +62,9 @@ export interface MoneyToastOptionsConfig {
     failed: (params?: DepositFailedParams) => MoneyToastOptions;
   };
   withdraw: {
-    inProgress: (params?: WithdrawInProgressParams) => MoneyToastOptions;
+    inProgress: () => MoneyToastOptions;
     success: (params: WithdrawSuccessParams) => MoneyToastOptions;
-    failed: (params?: WithdrawFailedParams) => MoneyToastOptions;
+    failed: () => MoneyToastOptions;
   };
 }
 
@@ -258,14 +246,10 @@ const useMoneyToasts = (): {
         }),
       },
       withdraw: {
-        inProgress: (params?: WithdrawInProgressParams) => ({
+        inProgress: () => ({
           ...moneyBaseToastOptions.inProgress,
           labelOptions: getMoneyToastLabels({
-            primary: strings(
-              params?.intent === 'betweenAccounts'
-                ? 'money.toasts.withdraw_in_progress_title_between_accounts'
-                : 'money.toasts.in_progress_title',
-            ),
+            primary: strings('money.toasts.withdraw_in_progress_title'),
             primaryIsBold: true,
             secondary: (
               <Text
@@ -278,53 +262,27 @@ const useMoneyToasts = (): {
           }),
           closeButtonOptions,
         }),
-        success: ({
-          amountFiat,
-          destination,
-          intent,
-        }: WithdrawSuccessParams) => {
-          const isBetweenAccounts = intent === 'betweenAccounts';
-          let body: string;
-          if (isBetweenAccounts) {
-            body = amountFiat
-              ? strings('money.toasts.withdraw_success_body_between_accounts', {
-                  amount: amountFiat,
-                })
-              : strings(
-                  'money.toasts.withdraw_success_body_no_amount_between_accounts',
-                );
-          } else if (amountFiat) {
-            body = strings('money.toasts.withdraw_success_body', {
-              amount: amountFiat,
-              destination: destination ?? '',
-            });
-          } else {
-            body = strings('money.toasts.withdraw_success_body_no_amount', {
-              destination: destination ?? '',
-            });
-          }
-          return {
-            ...moneyBaseToastOptions.success,
-            labelOptions: getMoneyToastLabels({
-              primary: strings(
-                isBetweenAccounts
-                  ? 'money.toasts.withdraw_success_title_between_accounts'
-                  : 'money.toasts.success_title',
-              ),
-              primaryIsBold: true,
-              secondary: (
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextAlternative}
-                >
-                  {body}
-                </Text>
-              ),
-            }),
-            closeButtonOptions,
-          };
-        },
-        failed: (_params?: WithdrawFailedParams) => ({
+        success: ({ amountFiat }: WithdrawSuccessParams) => ({
+          ...moneyBaseToastOptions.success,
+          labelOptions: getMoneyToastLabels({
+            primary: strings('money.toasts.withdraw_success_title'),
+            primaryIsBold: true,
+            secondary: (
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {amountFiat
+                  ? strings('money.toasts.withdraw_success_body', {
+                      amount: amountFiat,
+                    })
+                  : strings('money.toasts.withdraw_success_body_no_amount')}
+              </Text>
+            ),
+          }),
+          closeButtonOptions,
+        }),
+        failed: () => ({
           ...moneyBaseToastOptions.error,
           labelOptions: getMoneyToastLabels({
             primary: strings('money.toasts.withdraw_failed_title'),

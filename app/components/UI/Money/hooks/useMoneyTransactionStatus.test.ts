@@ -14,17 +14,13 @@ import {
 import useMoneyToasts, { MoneyToastOptionsConfig } from './useMoneyToasts';
 import {
   clearMoneyAccountDepositIntent,
-  clearMoneyAccountWithdrawIntent,
   getMoneyAccountDepositIntent,
-  getMoneyAccountWithdrawIntent,
 } from './useMoneyAccount';
 
 jest.mock('./useMoneyAccount', () => ({
   __esModule: true,
   getMoneyAccountDepositIntent: jest.fn(),
   clearMoneyAccountDepositIntent: jest.fn(),
-  getMoneyAccountWithdrawIntent: jest.fn(),
-  clearMoneyAccountWithdrawIntent: jest.fn(),
 }));
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
@@ -497,7 +493,7 @@ describe('useMoneyTransactionStatus', () => {
       expect(depositInProgressFn).not.toHaveBeenCalled();
     });
 
-    it('confirmed → success toast with destination and decoded amount', () => {
+    it('confirmed → success toast with decoded amount', () => {
       const { confirmedHandler } = renderAndGetHandlers();
 
       confirmedHandler(
@@ -514,31 +510,6 @@ describe('useMoneyTransactionStatus', () => {
       expect(withdrawSuccessFn).toHaveBeenCalledTimes(1);
       const params = withdrawSuccessFn.mock.calls[0][0];
       expect(params.amountFiat).toContain('50.00');
-      expect(params.destination).toBeDefined();
-    });
-
-    it('forwards the withdraw intent (and clears it) on confirmation', () => {
-      jest
-        .mocked(getMoneyAccountWithdrawIntent)
-        .mockReturnValueOnce('betweenAccounts');
-
-      const { confirmedHandler } = renderAndGetHandlers();
-
-      const withdrawMeta = buildTxMeta({
-        type: TransactionType.moneyAccountWithdraw,
-        status: TransactionStatus.confirmed,
-        batchId: '0xabc' as `0x${string}`,
-        txParams: {
-          from: '0x0',
-          data: encodeWithdrawData(BigInt(1_000_000)),
-        },
-      });
-
-      confirmedHandler(withdrawMeta);
-
-      expect(withdrawSuccessFn).toHaveBeenCalledTimes(1);
-      expect(withdrawSuccessFn.mock.calls[0][0].intent).toBe('betweenAccounts');
-      expect(clearMoneyAccountWithdrawIntent).toHaveBeenCalledWith('0xabc');
     });
 
     it('failed → withdraw failed toast', () => {
@@ -553,41 +524,6 @@ describe('useMoneyTransactionStatus', () => {
 
       expect(withdrawFailedFn).toHaveBeenCalledTimes(1);
       expect(depositFailedFn).not.toHaveBeenCalled();
-    });
-
-    it('forwards the withdraw intent (and clears it) on failure', () => {
-      jest
-        .mocked(getMoneyAccountWithdrawIntent)
-        .mockReturnValueOnce('betweenAccounts');
-
-      const { statusUpdatedHandler } = renderAndGetHandlers();
-
-      statusUpdatedHandler({
-        transactionMeta: buildTxMeta({
-          type: TransactionType.moneyAccountWithdraw,
-          status: TransactionStatus.failed,
-          batchId: '0xdef' as `0x${string}`,
-        }),
-      });
-
-      expect(withdrawFailedFn).toHaveBeenCalledTimes(1);
-      expect(withdrawFailedFn.mock.calls[0][0]?.intent).toBe('betweenAccounts');
-      expect(clearMoneyAccountWithdrawIntent).toHaveBeenCalledWith('0xdef');
-    });
-
-    it('rejected withdraw clears the registered intent', () => {
-      const { statusUpdatedHandler } = renderAndGetHandlers();
-
-      statusUpdatedHandler({
-        transactionMeta: buildTxMeta({
-          type: TransactionType.moneyAccountWithdraw,
-          status: TransactionStatus.rejected,
-          batchId: '0xfeed' as `0x${string}`,
-        }),
-      });
-
-      expect(clearMoneyAccountWithdrawIntent).toHaveBeenCalledWith('0xfeed');
-      expect(withdrawFailedFn).not.toHaveBeenCalled();
     });
   });
 

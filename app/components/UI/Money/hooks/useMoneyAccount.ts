@@ -39,34 +39,12 @@ export function clearMoneyAccountDepositIntent(
   depositIntentByBatchId.delete(batchId.toLowerCase());
 }
 
-export type MoneyAccountWithdrawIntent = 'betweenAccounts';
-
-const withdrawIntentByBatchId = new Map<string, MoneyAccountWithdrawIntent>();
-
-export function getMoneyAccountWithdrawIntent(
-  batchId: string | undefined,
-): MoneyAccountWithdrawIntent | undefined {
-  if (!batchId) return undefined;
-  return withdrawIntentByBatchId.get(batchId.toLowerCase());
-}
-
-export function clearMoneyAccountWithdrawIntent(
-  batchId: string | undefined,
-): void {
-  if (!batchId) return;
-  withdrawIntentByBatchId.delete(batchId.toLowerCase());
-}
-
 export interface InitiateDepositOptions {
   preferredPaymentToken?: {
     address: Hex;
     chainId: Hex;
   };
   intent?: MoneyAccountDepositIntent;
-}
-
-export interface InitiateWithdrawalOptions {
-  intent?: MoneyAccountWithdrawIntent;
 }
 
 function resolveNetworkClientId(chainId: Hex): string {
@@ -171,75 +149,60 @@ export function useMoneyAccountWithdrawal() {
   const recipient = useSelector(selectEvmAddress);
   const { navigateToConfirmation } = useConfirmNavigation();
 
-  const initiateWithdrawal = useCallback(
-    async (options?: InitiateWithdrawalOptions) => {
-      const intent: MoneyAccountWithdrawIntent =
-        options?.intent ?? 'betweenAccounts';
-      if (!vaultConfig) {
-        throw new Error(`${LOG_TAG} Missing vault config`);
-      }
-      if (!primaryMoneyAccount?.address) {
-        throw new Error(`${LOG_TAG} Missing money account address`);
-      }
-      if (!recipient) {
-        throw new Error(`${LOG_TAG} Missing recipient EVM address`);
-      }
+  const initiateWithdrawal = useCallback(async () => {
+    if (!vaultConfig) {
+      throw new Error(`${LOG_TAG} Missing vault config`);
+    }
+    if (!primaryMoneyAccount?.address) {
+      throw new Error(`${LOG_TAG} Missing money account address`);
+    }
+    if (!recipient) {
+      throw new Error(`${LOG_TAG} Missing recipient EVM address`);
+    }
 
-      const { chainId, tellerAddress, accountantAddress } = vaultConfig;
+    const { chainId, tellerAddress, accountantAddress } = vaultConfig;
 
-      const chainIdHex = chainId as Hex;
-      const provider = getProviderByChainId(chainIdHex);
-      if (!provider) {
-        throw new Error(
-          `${LOG_TAG} No provider available for chain ${chainId}`,
-        );
-      }
+    const chainIdHex = chainId as Hex;
+    const provider = getProviderByChainId(chainIdHex);
+    if (!provider) {
+      throw new Error(`${LOG_TAG} No provider available for chain ${chainId}`);
+    }
 
-      const networkClientId = resolveNetworkClientId(chainIdHex);
+    const networkClientId = resolveNetworkClientId(chainIdHex);
 
-      const batchId = bytesToHex(new Uint8Array(uuidParse(uuidv4())));
-      withdrawIntentByBatchId.set(batchId.toLowerCase(), intent);
+    // Placeholder amount — MM Pay re-encodes both calls via
+    // `updateMoneyAccountWithdrawTokenAmount` once the user picks an amount.
+    const { withdrawTx, transferTx } = await buildMoneyAccountWithdrawBatch({
+      amount: BigInt(0),
+      chainId: chainIdHex,
+      tellerAddress: tellerAddress as Hex,
+      accountantAddress: accountantAddress as Hex,
+      moneyAccountAddress: primaryMoneyAccount.address as Hex,
+      recipient: recipient as Hex,
+      provider,
+    });
 
-      // Placeholder amount — MM Pay re-encodes both calls via
-      // `updateMoneyAccountWithdrawTokenAmount` once the user picks an amount.
-      const { withdrawTx, transferTx } = await buildMoneyAccountWithdrawBatch({
-        amount: BigInt(0),
-        chainId: chainIdHex,
-        tellerAddress: tellerAddress as Hex,
-        accountantAddress: accountantAddress as Hex,
-        moneyAccountAddress: primaryMoneyAccount.address as Hex,
-        recipient: recipient as Hex,
-        provider,
+    // Navigate early for better UX; recover on failure below.
+    navigateToConfirmation({
+      loader: ConfirmationLoader.CustomAmount,
+      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
+    });
+
+    try {
+      await addTransactionBatch({
+        from: primaryMoneyAccount.address as Hex,
+        networkClientId,
+        origin: ORIGIN_METAMASK,
+        disableHook: true,
+        disableSequential: true,
+        transactions: [withdrawTx, transferTx],
       });
-
-      // Navigate early for better UX; recover on failure below.
-      navigateToConfirmation({
-        loader: ConfirmationLoader.CustomAmount,
-        stack: Routes.MONEY.CONFIRMATIONS_ROOT,
-      });
-
-      try {
-        await addTransactionBatch({
-          batchId,
-          from: primaryMoneyAccount.address as Hex,
-          networkClientId,
-          origin: ORIGIN_METAMASK,
-          disableHook: true,
-          disableSequential: true,
-          transactions: [withdrawTx, transferTx],
-        });
-      } catch (error) {
-        withdrawIntentByBatchId.delete(batchId.toLowerCase());
-        Logger.error(
-          error as Error,
-          `${LOG_TAG} Withdrawal transaction failed`,
-        );
-        // Rethrow so the caller can roll back navigation / surface a toast.
-        throw error;
-      }
-    },
-    [navigateToConfirmation, primaryMoneyAccount, recipient, vaultConfig],
-  );
+    } catch (error) {
+      Logger.error(error as Error, `${LOG_TAG} Withdrawal transaction failed`);
+      // Rethrow so the caller can roll back navigation / surface a toast.
+      throw error;
+    }
+  }, [navigateToConfirmation, primaryMoneyAccount, recipient, vaultConfig]);
 
   return { initiateWithdrawal };
 }
