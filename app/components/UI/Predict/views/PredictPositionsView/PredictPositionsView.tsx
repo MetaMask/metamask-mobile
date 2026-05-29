@@ -128,6 +128,9 @@ const PredictPositionsView = () => {
     setActiveTab(tab);
   }, []);
 
+  const isPositionsTabActive = activeTab === 'positions';
+  const isHistoryTabActive = activeTab === 'history';
+
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-default')}
@@ -159,26 +162,31 @@ const PredictPositionsView = () => {
         </Box>
 
         <Box twClassName="flex-1 px-4">
-          {activeTab === 'positions' ? (
-            <Box
-              twClassName="flex-1"
-              testID={PredictPositionsViewSelectorsIDs.POSITIONS_TAB_CONTENT}
-            >
-              <PredictPositionsList
-                isPrivacyMode={Boolean(privacyMode)}
-                portfolio={portfolio}
-              />
-            </Box>
-          ) : (
-            <Box
-              twClassName="flex-1"
-              testID={PredictPositionsViewSelectorsIDs.HISTORY_TAB_CONTENT}
-            >
-              <PredictPositionsHistoryList
-                isVisible={activeTab === 'history'}
-              />
-            </Box>
-          )}
+          <Box
+            accessibilityElementsHidden={!isPositionsTabActive}
+            importantForAccessibility={
+              isPositionsTabActive ? 'auto' : 'no-hide-descendants'
+            }
+            pointerEvents={isPositionsTabActive ? 'auto' : 'none'}
+            style={tw.style('flex-1', !isPositionsTabActive && 'hidden')}
+            testID={PredictPositionsViewSelectorsIDs.POSITIONS_TAB_CONTENT}
+          >
+            <PredictPositionsList
+              isPrivacyMode={Boolean(privacyMode)}
+              portfolio={portfolio}
+            />
+          </Box>
+          <Box
+            accessibilityElementsHidden={!isHistoryTabActive}
+            importantForAccessibility={
+              isHistoryTabActive ? 'auto' : 'no-hide-descendants'
+            }
+            pointerEvents={isHistoryTabActive ? 'auto' : 'none'}
+            style={tw.style('flex-1', !isHistoryTabActive && 'hidden')}
+            testID={PredictPositionsViewSelectorsIDs.HISTORY_TAB_CONTENT}
+          >
+            <PredictPositionsHistoryList isVisible={isHistoryTabActive} />
+          </Box>
         </Box>
       </Box>
     </SafeAreaView>

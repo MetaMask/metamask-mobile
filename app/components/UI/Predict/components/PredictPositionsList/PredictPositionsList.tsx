@@ -71,7 +71,7 @@ const PredictPositionsList = ({
     [navigation],
   );
 
-  if (portfolio.isPositionsLoading && !hasPositions) {
+  if (portfolio.isOpenPositionsLoading && !hasPositions) {
     return <PredictPositionsListSkeleton />;
   }
 

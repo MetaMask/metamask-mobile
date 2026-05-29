@@ -17,7 +17,10 @@ import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import type { PredictPortfolioModel } from '../../hooks/usePredictPortfolio';
 import { PredictPositionsViewSelectorsIDs } from '../../Predict.testIds';
 import type { PredictNavigationParamList } from '../../types/navigation';
-import { formatPercentage, formatPrice } from '../../utils/format';
+import {
+  formatPredictUnrealizedPnLStringParts,
+  formatPrice,
+} from '../../utils/format';
 import PredictClaimButton from '../PredictActionButtons/PredictClaimButton';
 
 interface PredictPositionsViewHeaderProps {
@@ -25,28 +28,19 @@ interface PredictPositionsViewHeaderProps {
   portfolio: PredictPortfolioModel;
 }
 
-const formatSignedPrice = (amount: number) => {
-  const sign = amount >= 0 ? '+' : '-';
-
-  return `${sign}${formatPrice(Math.abs(amount), {
-    minimumDecimals: 2,
-    maximumDecimals: 2,
-  })}`;
-};
-
 const formatUnrealizedPnl = (amount: number, percent: number | undefined) => {
-  const formattedAmount = formatSignedPrice(amount);
+  const parts = formatPredictUnrealizedPnLStringParts({
+    cashUpnl: amount,
+    percentUpnl: percent ?? 0,
+  });
 
   if (percent === undefined) {
-    return formattedAmount;
+    return parts.amount;
   }
 
-  const formattedPercent =
-    percent >= 0 ? `+${formatPercentage(percent)}` : formatPercentage(percent);
-
   return strings('predict.unrealized_pnl_value', {
-    amount: formattedAmount,
-    percent: formattedPercent,
+    amount: parts.amount,
+    percent: parts.percent,
   });
 };
 
@@ -61,7 +55,7 @@ const PredictPositionsViewHeader = ({
   const { executeGuardedAction } = usePredictActionGuard({ navigation });
   const showUnrealizedPnlRow =
     portfolio.showPnlLine ||
-    portfolio.isPositionsLoading ||
+    portfolio.isOpenPositionsLoading ||
     Boolean(portfolio.openPositionsError);
   const unrealizedPnlColor =
     portfolio.totalUnrealizedPnlAmount >= 0
@@ -146,7 +140,7 @@ const PredictPositionsViewHeader = ({
               >
                 {strings('predict.unrealized_pnl_label')}
               </Text>
-              {portfolio.isPositionsLoading ? (
+              {portfolio.isOpenPositionsLoading ? (
                 <Skeleton
                   width={120}
                   height={20}

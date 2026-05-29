@@ -50,6 +50,7 @@ const createPortfolio = (
   isClaimPending: false,
   isDepositPending: false,
   isLoading: false,
+  isOpenPositionsLoading: false,
   isPositionsLoading: false,
   isRefreshing: false,
   openPositionCount: 0,
@@ -183,7 +184,7 @@ describe('PredictPositionsViewHeader', () => {
     renderHeader({
       portfolio: createPortfolio({
         isBalanceLoading: true,
-        isPositionsLoading: true,
+        isOpenPositionsLoading: true,
       }),
     });
 
@@ -197,6 +198,24 @@ describe('PredictPositionsViewHeader', () => {
         PredictPositionsViewSelectorsIDs.UNREALIZED_PNL_SKELETON,
       ),
     ).toBeOnTheScreen();
+  });
+
+  it('does not render a P&L skeleton when only claimable positions are loading', () => {
+    renderHeader({
+      portfolio: createPortfolio({
+        isPositionsLoading: true,
+        isOpenPositionsLoading: false,
+      }),
+    });
+
+    expect(
+      screen.queryByTestId(PredictPositionsViewSelectorsIDs.UNREALIZED_PNL_ROW),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(
+        PredictPositionsViewSelectorsIDs.UNREALIZED_PNL_SKELETON,
+      ),
+    ).toBeNull();
   });
 
   it('renders fallback text for balance and P&L errors', () => {
