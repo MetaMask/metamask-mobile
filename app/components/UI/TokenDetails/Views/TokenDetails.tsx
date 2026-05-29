@@ -452,10 +452,7 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
   // Fire on back-button / stack pop (screen actually removed, not just blurred by a modal)
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', () => {
-      // Guard: prevent duplicate event if AppState already fired for backgrounding
-      if (closeSourceRef.current !== 'app_backgrounded') {
-        fireClosedRef.current();
-      }
+      fireClosedRef.current();
     });
 
     return unsubscribe;
