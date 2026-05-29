@@ -98,9 +98,15 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: (...args: unknown[]) => args }),
-}));
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const ReactActual = jest.requireActual('react');
+  return {
+    useTailwind: () => ({ style: (...args: unknown[]) => args }),
+    ThemeProvider: ({ children }: { children: React.ReactNode }) =>
+      ReactActual.createElement(ReactActual.Fragment, null, children),
+    Theme: { Light: 'light', Dark: 'dark' },
+  };
+});
 
 jest.mock('../components/RewardsErrorBanner', () => {
   const ReactActual = jest.requireActual('react');
@@ -244,8 +250,16 @@ const dashboardWithTiers: VipDashboardState = {
     nextTierSwapsFeeDelta: '↓ 12 bps next tier',
     nextTierPerpsFeeDelta: '↓ 3 bps next tier',
     revenueShareTitle: 'Revenue share',
+    referralPointsTitle: 'Referral points',
     nextTierRevenueShareDelta: '↑ 2% next tier',
+    nextTierReferralPointsDelta: '↑ 20% next tier',
+    topTierDescription: 'Top tier reached',
     statsTitle: 'Volume',
+    pointsTitle: 'Points',
+    swapsVolumeTitle: 'Swaps Volume',
+    pointsFromReferralsTitle: 'Points from Referrals',
+    perpsVolumeTitle: 'Perps Volume',
+    vipReferralsTitle: 'VIP Referrals',
     totalPointsTitle: 'Points',
     equityLockedTitle: 'Earn VIP allocations',
     equityLockedDescription: 'Body copy',

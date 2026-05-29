@@ -29,6 +29,11 @@ jest.mock('../../../../../../../locales/i18n', () => ({
     ({ 'confirm.title.money_account_add_money': 'Add funds' })[key] ?? key,
 }));
 
+const mockUseParams = jest.fn(() => ({}));
+jest.mock('../../../../../../util/navigation/navUtils', () => ({
+  useParams: () => mockUseParams(),
+}));
+
 describe('MoneyAccountDepositInfo', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -73,5 +78,31 @@ describe('MoneyAccountDepositInfo', () => {
         mockCustomAmountInfo.mock.calls.length - 1
       ][0];
     expect(lastCall.hasMax).toBe(true);
+  });
+
+  it('forwards preferredPaymentToken from route params to CustomAmountInfo', () => {
+    const preferredPaymentToken = {
+      address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+      chainId: '0x1',
+    };
+    mockUseParams.mockReturnValueOnce({ preferredPaymentToken });
+
+    render(<MoneyAccountDepositInfo />);
+
+    const lastCall =
+      mockCustomAmountInfo.mock.calls[
+        mockCustomAmountInfo.mock.calls.length - 1
+      ][0];
+    expect(lastCall.preferredToken).toEqual(preferredPaymentToken);
+  });
+
+  it('passes undefined preferredToken when no preferredPaymentToken in params', () => {
+    render(<MoneyAccountDepositInfo />);
+
+    const lastCall =
+      mockCustomAmountInfo.mock.calls[
+        mockCustomAmountInfo.mock.calls.length - 1
+      ][0];
+    expect(lastCall.preferredToken).toBeUndefined();
   });
 });

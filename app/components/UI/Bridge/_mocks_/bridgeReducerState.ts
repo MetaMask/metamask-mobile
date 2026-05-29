@@ -41,6 +41,7 @@ export const mockBridgeReducerState: BridgeState = {
   selectedQuoteRequestId: undefined,
   hardwareWalletsSwaps: initialHardwareWalletsSwapsState,
   batchSellSourceTokens: [],
+  batchSellSourceTokenAmounts: {},
   batchSellDestToken: undefined,
   batchSellSlippages: {},
 };
