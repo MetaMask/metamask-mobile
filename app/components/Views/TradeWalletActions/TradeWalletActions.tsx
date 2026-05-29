@@ -34,6 +34,7 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletActionsBottomSheetSelectorsIDs } from '../WalletActions/WalletActionsBottomSheet.testIds';
 import { strings } from '../../../../locales/i18n';
 import { AnimationDuration } from '../../../component-library/constants/animation.constants';
@@ -42,9 +43,13 @@ import Routes from '../../../constants/navigation/Routes';
 import AppConstants from '../../../core/AppConstants';
 import { selectIsSwapsEnabled } from '../../../core/redux/slices/bridge';
 import { RootState } from '../../../reducers';
-import { selectCanSignTransactions } from '../../../selectors/accountsController';
+import {
+  selectCanSignTransactions,
+  selectSelectedInternalAccountAddress,
+} from '../../../selectors/accountsController';
 import { earnSelectors } from '../../../selectors/earnController';
 import { selectChainId } from '../../../selectors/networkController';
+import { isHardwareAccount } from '../../../util/address';
 import { getDecimalChainId } from '../../../util/networks';
 import {
   SwapBridgeNavigationLocation,
@@ -110,6 +115,12 @@ function TradeWalletActions() {
   const { isEligible: isEarnEligible } = useStakingEligibility();
 
   const canSignTransactions = useSelector(selectCanSignTransactions);
+  const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
+  const isHardwareWallet = selectedAddress
+    ? Boolean(isHardwareAccount(selectedAddress))
+    : false;
+  const shouldRenderBatchSell =
+    BATCH_SELL_ENABLED && AppConstants.SWAPS.ACTIVE && !isHardwareWallet;
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
 
@@ -298,7 +309,7 @@ function TradeWalletActions() {
                   `px-0`,
                 )}
               >
-                {BATCH_SELL_ENABLED && AppConstants.SWAPS.ACTIVE && (
+                {shouldRenderBatchSell && (
                   <ActionListItem
                     label={
                       <View style={tw.style('flex-row items-center gap-2')}>

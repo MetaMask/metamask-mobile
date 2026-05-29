@@ -52,12 +52,16 @@ import { fontStyles } from '../../../../styles/common';
 import Logger from '../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
 import { useTheme } from '../../../../util/theme';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useNotificationStoragePreferences } from '../../Settings/NotificationsSettings/hooks/useNotificationStoragePreferences';
 import {
   TraderRow,
   TraderRowSkeleton,
+  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 } from '../../Homepage/Sections/TopTraders/components';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { TRADER_ROW_HEIGHT } from '../../Homepage/Sections/TopTraders/components/TraderRow';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useTopTraders } from '../../Homepage/Sections/TopTraders/hooks';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 

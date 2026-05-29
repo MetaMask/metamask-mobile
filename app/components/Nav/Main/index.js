@@ -34,6 +34,7 @@ import {
 } from '../../../actions/notification';
 
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
+import PushNotificationOnboardingRoot from '../../Views/Notifications/PushNotificationOnboarding/PushNotificationOnboardingRoot';
 import MainNavigator from './MainNavigator';
 import { query } from '@metamask/controller-utils';
 import EarnTransactionMonitor from '../../UI/Earn/components/EarnTransactionMonitor';
@@ -72,6 +73,7 @@ import {
   DEPRECATED_NETWORKS,
   NETWORKS_CHAIN_ID,
 } from '../../../constants/network';
+import Routes from '../../../constants/navigation/Routes';
 import WarningAlert from '../../../components/UI/WarningAlert';
 import { GOERLI_DEPRECATED_ARTICLE } from '../../../constants/urls';
 import {
@@ -434,6 +436,7 @@ const Main = (props) => {
         <ProtectYourWalletModal navigation={props.navigation} />
         <RootRPCMethodsUI navigation={props.navigation} />
         <ProtectWalletMandatoryModal />
+        <PushNotificationOnboardingRoot />
       </View>
     </React.Fragment>
   );
@@ -520,13 +523,13 @@ const MainFlow = () => {
   const { colors } = useTheme();
   return (
     <Stack.Navigator
-      initialRouteName={'Main'}
+      initialRouteName={Routes.MAIN_FLOW}
       screenOptions={{
         headerShown: false,
         cardStyle: { backgroundColor: colors.background.default },
       }}
     >
-      <Stack.Screen name={'Main'} component={ConnectedMain} />
+      <Stack.Screen name={Routes.MAIN_FLOW} component={ConnectedMain} />
       <Stack.Screen
         name={'ReviewModal'}
         component={ReviewModal}

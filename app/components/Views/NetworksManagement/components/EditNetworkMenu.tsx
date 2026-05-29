@@ -6,6 +6,7 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import AccountAction from '../../AccountAction';
 
 import { NetworkManagementItem } from '../NetworksManagementView.types';

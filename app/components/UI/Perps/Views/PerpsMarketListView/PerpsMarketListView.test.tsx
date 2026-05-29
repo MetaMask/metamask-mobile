@@ -9,6 +9,7 @@ import PerpsMarketListView from './PerpsMarketListView';
 import { type PerpsMarketData } from '@metamask/perps-controller';
 import { PerpsMarketListViewSelectorsIDs } from '../../Perps.testIds';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -85,6 +86,7 @@ const mockSetSearchQuery = jest.fn((q: string) => {
 const mockClearSearch = jest.fn(() => {
   mockSearchQuery = '';
 });
+const mockNavigateToMarketDetails = jest.fn();
 
 jest.mock('../../hooks', () => ({
   useColorPulseAnimation: jest.fn(() => ({
@@ -115,7 +117,7 @@ jest.mock('../../hooks', () => ({
     navigateToActions: jest.fn(),
     navigateToActivity: jest.fn(),
     navigateToRewards: jest.fn(),
-    navigateToMarketDetails: jest.fn(),
+    navigateToMarketDetails: mockNavigateToMarketDetails,
     navigateToHome: jest.fn(),
     navigateToMarketList: jest.fn(),
     navigateBack: jest.fn(),
@@ -554,6 +556,7 @@ describe('PerpsMarketListView', () => {
     mockSearchQuery = '';
     mockSetSearchQuery.mockClear();
     mockClearSearch.mockClear();
+    mockNavigateToMarketDetails.mockClear();
 
     // Suppress console warnings for Animated during tests
     originalConsoleError = console.error;
@@ -712,6 +715,30 @@ describe('PerpsMarketListView', () => {
 
       const btcRows = screen.getAllByTestId('market-row-BTC');
       expect(() => fireEvent.press(btcRows[0])).not.toThrow();
+    });
+
+    it('carries route transactionActiveAbTests when a market opens market details', () => {
+      const transactionActiveAbTests = [
+        createActiveABTestAssignment(
+          'homeTMCU725AbtestHomepagePerpsPillsEmptyState',
+          'treatment',
+        ),
+      ];
+      mockUseRoute.mockReturnValue({
+        key: 'PerpsMarketListView-123',
+        name: 'PerpsMarketListView',
+        params: { transactionActiveAbTests },
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      fireEvent.press(screen.getAllByTestId('market-row-BTC')[0]);
+
+      expect(mockNavigateToMarketDetails).toHaveBeenCalledWith(
+        mockMarketData[0],
+        'perp_markets',
+        transactionActiveAbTests,
+      );
     });
   });
 

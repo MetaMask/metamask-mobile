@@ -31,8 +31,8 @@ import {
 import { formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketSingle.styles';
 import { PredictEventValues } from '../../constants/eventNames';
-import { usePredictEntryPoint, usePredictPreviewSheet } from '../../contexts';
-import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
+import { usePredictPreviewSheet } from '../../contexts';
+import { useResolvedPredictEntryPoint } from '../../hooks/useResolvedPredictEntryPoint';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 interface SemiCircleYesPercentageProps {
@@ -145,16 +145,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   onBuyButtonPress,
   transactionActiveAbTests,
 }) => {
-  const contextEntryPoint = usePredictEntryPoint();
-  const baseEntryPoint =
-    contextEntryPoint ??
-    propEntryPoint ??
-    PredictEventValues.ENTRY_POINT.PREDICT_FEED;
-
-  const resolvedEntryPoint = TrendingFeedSessionManager.getInstance()
-    .isFromTrending
-    ? PredictEventValues.ENTRY_POINT.TRENDING
-    : baseEntryPoint;
+  const resolvedEntryPoint = useResolvedPredictEntryPoint(propEntryPoint);
 
   const outcome = market.outcomes[0];
   const navigation =

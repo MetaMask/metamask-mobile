@@ -122,6 +122,7 @@ export type PredictMarket = {
   parentMarketId?: string | number | null;
   childMarketIds?: string[];
   isHighlighted?: boolean;
+  priceToBeat?: number;
 };
 
 export type PredictSeries = {
