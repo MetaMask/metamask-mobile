@@ -95,7 +95,7 @@ export async function getPaymentOverrideData<T extends SignMessenger>(
       return getMoneyAccountDepositPaymentOverrideData(amount);
     }
 
-    if (!transaction.txParams?.from) return [];
+    if (!transaction.txParams?.from) return { calls: [] };
 
     const calls = await getMoneyAccountWithdrawPaymentOverrideData(
       messenger,
