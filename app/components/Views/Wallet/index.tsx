@@ -176,6 +176,7 @@ import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
 import { suppressWalletHomeOnboardingSteps } from '../../../actions/onboarding';
 import { WALLET_HOME_POST_ONBOARDING_REVEAL_MS } from '../../UI/WalletHomeOnboardingSteps';
+import { useWalletHomeOnboardingChecklistTradePress } from '../../UI/WalletHomeOnboardingSteps/useWalletHomeOnboardingChecklistTradePress';
 import {
   IconColor,
   IconName,
@@ -747,16 +748,8 @@ const Wallet = ({
     sourcePage: 'MainView',
   });
 
-  /** Trade checklist primary — Segment location per TMCU-680. */
-  const goToSwapsFromOnboardingChecklist = useCallback(() => {
-    goToSwaps(
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      ActionLocation.ONBOARDING_CHECKLIST,
-    );
-  }, [goToSwaps]);
+  const onTradePrimaryPress =
+    useWalletHomeOnboardingChecklistTradePress(goToSwaps);
   const handleWalletHomeOnboardingNotificationsPrimary = useCallback(() => {
     navigation.navigate(Routes.SETTINGS_VIEW, {
       screen: Routes.SETTINGS.NOTIFICATIONS,
@@ -1367,7 +1360,7 @@ const Wallet = ({
   const walletHomeAccountGroupBalanceProps = {
     onCoordinatedFlowExit: runWalletHomePostOnboardingComplete,
     suspendRiveForCurtain: postOnboardingExitAnimating,
-    onTradePrimaryPress: goToSwapsFromOnboardingChecklist,
+    onTradePrimaryPress,
     onNotificationsPrimaryPress: handleWalletHomeOnboardingNotificationsPrimary,
   };
 

@@ -121,6 +121,24 @@ describe('useMoneyToasts', () => {
       expect(toast.labelOptions).toHaveLength(3);
     });
 
+    it('inProgress title is "Converting crypto" when intent is convert (default)', () => {
+      const { result } = renderHook(() => useMoneyToasts(), { wrapper });
+
+      const toast = result.current.MoneyToastOptions.deposit.inProgress();
+
+      expect(toast.labelOptions?.[0].label).toBe('Converting crypto');
+    });
+
+    it('inProgress title is "Adding funds" when intent is addMusd', () => {
+      const { result } = renderHook(() => useMoneyToasts(), { wrapper });
+
+      const toast = result.current.MoneyToastOptions.deposit.inProgress({
+        intent: 'addMusd',
+      });
+
+      expect(toast.labelOptions?.[0].label).toBe('Adding funds');
+    });
+
     it('success has Confirmation icon, Success haptics and includes amount in body', () => {
       const { result } = renderHook(() => useMoneyToasts(), { wrapper });
 
@@ -136,6 +154,27 @@ describe('useMoneyToasts', () => {
       expect(toast.labelOptions?.[0].label).toEqual(expect.any(String));
     });
 
+    it('success title is "Conversion complete" when intent is convert (default)', () => {
+      const { result } = renderHook(() => useMoneyToasts(), { wrapper });
+
+      const toast = result.current.MoneyToastOptions.deposit.success({
+        amountFiat: '$25.00',
+      });
+
+      expect(toast.labelOptions?.[0].label).toBe('Conversion complete');
+    });
+
+    it('success title is "Funds added" when intent is addMusd', () => {
+      const { result } = renderHook(() => useMoneyToasts(), { wrapper });
+
+      const toast = result.current.MoneyToastOptions.deposit.success({
+        amountFiat: '$25.00',
+        intent: 'addMusd',
+      });
+
+      expect(toast.labelOptions?.[0].label).toBe('Funds added');
+    });
+
     it('failed has CircleX icon, Error haptics and a descriptive body', () => {
       const { result } = renderHook(() => useMoneyToasts(), { wrapper });
 
@@ -147,6 +186,32 @@ describe('useMoneyToasts', () => {
       expect(toast.hapticsType).toBe(NotificationMoment.Error);
       expect(toast.labelOptions).toHaveLength(3);
       expect(toast.labelOptions?.[0].label).toEqual(expect.any(String));
+    });
+
+    it('failed title/body is "Conversion failed" / "Unable to convert. Try again." for convert (default)', () => {
+      const { result } = renderHook(() => useMoneyToasts(), { wrapper });
+
+      const toast = result.current.MoneyToastOptions.deposit.failed();
+
+      expect(toast.labelOptions?.[0].label).toBe('Conversion failed');
+      const secondary = toast.labelOptions?.[2].label as React.ReactElement<{
+        children?: React.ReactNode;
+      }>;
+      expect(secondary.props.children).toBe('Unable to convert. Try again.');
+    });
+
+    it('failed title/body is "Failed to add funds" / "Unable to add funds. Try again." for addMusd', () => {
+      const { result } = renderHook(() => useMoneyToasts(), { wrapper });
+
+      const toast = result.current.MoneyToastOptions.deposit.failed({
+        intent: 'addMusd',
+      });
+
+      expect(toast.labelOptions?.[0].label).toBe('Failed to add funds');
+      const secondary = toast.labelOptions?.[2].label as React.ReactElement<{
+        children?: React.ReactNode;
+      }>;
+      expect(secondary.props.children).toBe('Unable to add funds. Try again.');
     });
   });
 

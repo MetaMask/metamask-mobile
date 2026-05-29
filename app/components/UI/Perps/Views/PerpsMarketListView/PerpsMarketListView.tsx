@@ -68,6 +68,7 @@ const PerpsMarketListView = ({
   const defaultMarketTypeFilter =
     route.params?.defaultMarketTypeFilter ?? 'all';
   const defaultSortOptionId = route.params?.defaultSortOptionId;
+  const transactionActiveAbTests = route.params?.transactionActiveAbTests;
 
   const fadeAnimation = useRef(new Animated.Value(0)).current;
   const [isSortFieldSheetVisible, setIsSortFieldSheetVisible] = useState(false);
@@ -109,10 +110,11 @@ const PerpsMarketListView = ({
         perpsNavigation.navigateToMarketDetails(
           market,
           PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
+          transactionActiveAbTests,
         );
       }
     },
-    [onMarketSelect, perpsNavigation],
+    [onMarketSelect, perpsNavigation, transactionActiveAbTests],
   );
 
   // Compute available categories based on market counts (hide empty categories)
