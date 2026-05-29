@@ -142,7 +142,7 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
                 gap={1}
               >
                 <Icon
-                  name={IconName.Danger}
+                  name={IconName.Warning}
                   size={IconSize.Sm}
                   color={IconColor.ErrorDefault}
                 />

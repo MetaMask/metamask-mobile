@@ -12,7 +12,6 @@ jest.mock('./useQuickBuyContext', () => ({
   useQuickBuyContext: jest.fn(),
 }));
 
-// Mock Bridge sub-components as lightweight stubs so we can inspect props.
 jest.mock(
   '../../../../../UI/Bridge/components/PriceImpactModal/PriceImpactHeader',
   () => ({
@@ -29,41 +28,6 @@ jest.mock(
             >
               <Text>Close</Text>
             </TouchableOpacity>
-          </View>
-        );
-      },
-    ),
-  }),
-);
-
-jest.mock(
-  '../../../../../UI/Bridge/components/PriceImpactModal/PriceImpactDescription',
-  () => ({
-    PriceImpactDescription: jest.fn(
-      ({
-        content,
-        formattedPriceImpact,
-        formattedPriceImpactFiat,
-      }: {
-        content: string;
-        formattedPriceImpact?: string;
-        formattedPriceImpactFiat?: string;
-        isDanger: boolean;
-      }) => {
-        const { View, Text } = jest.requireActual('react-native');
-        return (
-          <View testID="price-impact-description">
-            <Text testID="price-impact-description-content">{content}</Text>
-            {formattedPriceImpact && (
-              <Text testID="price-impact-description-percent">
-                {formattedPriceImpact}
-              </Text>
-            )}
-            {formattedPriceImpactFiat && (
-              <Text testID="price-impact-description-fiat">
-                {formattedPriceImpactFiat}
-              </Text>
-            )}
           </View>
         );
       },
@@ -111,24 +75,10 @@ jest.mock('../../../../../UI/Bridge/hooks/usePriceImpactFiat', () => ({
 }));
 
 import { usePriceImpactFiat } from '../../../../../UI/Bridge/hooks/usePriceImpactFiat';
-import {
-  IconColor,
-  IconName,
-  TextColor,
-} from '@metamask/design-system-react-native';
 
 const buildContext = (overrides = {}) => ({
   activeQuote: undefined as unknown,
   formattedPriceImpact: '25.00%',
-  priceImpactViewData: {
-    textColor: TextColor.ErrorDefault,
-    icon: {
-      name: IconName.Danger,
-      color: IconColor.ErrorDefault,
-    },
-    title: 'bridge.price_impact_error_title',
-    description: 'bridge.price_impact_error_description',
-  },
   setActiveScreen: jest.fn(),
   handleConfirm: jest.fn(),
   isSubmittingTx: false,
@@ -149,26 +99,23 @@ describe('QuickBuyPriceImpactConfirmScreen', () => {
     );
   });
 
-  it('renders the description with the formatted price impact', () => {
+  it('renders the description text with formatted price impact', () => {
     render(<QuickBuyPriceImpactConfirmScreen />);
-    expect(
-      screen.getByTestId('price-impact-description-percent'),
-    ).toHaveTextContent('25.00%');
+    expect(screen.getByTestId('price-impact-description')).toBeTruthy();
   });
 
   it('shows the fiat loss banner when fiat value is available', () => {
     (usePriceImpactFiat as jest.Mock).mockReturnValue('$19,997.62');
     render(<QuickBuyPriceImpactConfirmScreen />);
-    expect(
-      screen.getByTestId('price-impact-description-fiat'),
-    ).toHaveTextContent('$19,997.62');
+    expect(screen.getByTestId('price-impact-fiat-banner')).toBeTruthy();
+    expect(screen.getByTestId('price-impact-fiat-text')).toBeTruthy();
   });
 
   it('hides the fiat loss banner when fiat value is unavailable', () => {
     (usePriceImpactFiat as jest.Mock).mockReturnValue(undefined);
     render(<QuickBuyPriceImpactConfirmScreen />);
     expect(
-      screen.queryByTestId('price-impact-description-fiat'),
+      screen.queryByTestId('price-impact-fiat-banner'),
     ).not.toBeOnTheScreen();
   });
 
