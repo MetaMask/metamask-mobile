@@ -32,6 +32,7 @@ export function getCardControllerMessenger(
       'AccountTreeController:getState',
       'RemoteFeatureFlagController:getState',
       'KeyringController:signPersonalMessage',
+      'MoneyAccountUpgradeController:upgradeAccount',
       'NetworkController:findNetworkClientIdByChainId',
       'TransactionController:addTransaction',
       'TransactionController:addTransactionBatch',

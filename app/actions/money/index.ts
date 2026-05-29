@@ -6,14 +6,16 @@ import { selectPrimaryMoneyAccount } from '../../selectors/moneyAccountControlle
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
 import { whenMoneyAccountUpgradeReady } from '../../core/Engine/controllers/money-account-upgrade-controller-init';
+import {
+  __resetMoneyAccountUpgradeRunnerForTesting,
+  runMoneyAccountUpgrade,
+} from '../../core/Engine/controllers/money-account-upgrade-controller-runner';
 
 const LOG_PREFIX = '[upgradeMoneyAccount]';
 
-const upgradesInFlight = new Set<Hex>();
-
 /** @internal For test use only. */
 export const __resetUpgradesInFlightForTesting = () => {
-  upgradesInFlight.clear();
+  __resetMoneyAccountUpgradeRunnerForTesting();
 };
 
 export const upgradeMoneyAccount =
@@ -27,24 +29,25 @@ export const upgradeMoneyAccount =
       return;
     }
 
-    if (upgradesInFlight.has(address)) {
+    const { promise, reused } = runMoneyAccountUpgrade({
+      address,
+      upgradeAccount: async (upgradeAddress) => {
+        await whenMoneyAccountUpgradeReady();
+        await Engine.context.MoneyAccountUpgradeController.upgradeAccount(
+          upgradeAddress,
+        );
+      },
+    });
+
+    if (reused) {
       Logger.log(LOG_PREFIX, 'upgrade already in flight; skipping', {
         address,
       });
       return;
     }
 
-    upgradesInFlight.add(address);
-    whenMoneyAccountUpgradeReady()
-      .then(() =>
-        Engine.context.MoneyAccountUpgradeController.upgradeAccount(address),
-      )
-      .catch((error: unknown) => {
-        const wrapped =
-          error instanceof Error ? error : new Error(String(error));
-        Logger.error(wrapped, `${LOG_PREFIX} failed`);
-      })
-      .finally(() => {
-        upgradesInFlight.delete(address);
-      });
+    promise.catch((error: unknown) => {
+      const wrapped = error instanceof Error ? error : new Error(String(error));
+      Logger.error(wrapped, `${LOG_PREFIX} failed`);
+    });
   };

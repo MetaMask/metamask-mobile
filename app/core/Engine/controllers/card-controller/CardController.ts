@@ -49,6 +49,7 @@ import {
   awaitTransactionConfirmed,
   type AwaitTransactionConfirmedMessenger,
 } from './utils/awaitTransactionConfirmed';
+import { ensureMoneyAccount7702Ready } from './utils/ensureMoneyAccount7702Ready';
 import { resolveMoneyAccountCardToken } from './utils/moneyAccountCardToken';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { toTokenMinimalUnit } from '../../../../util/number/bigint';
@@ -926,8 +927,11 @@ export class CardController extends BaseController<
    * Pre-flight enforces two invariants before submission:
    * 1. Monad gas sponsorship feature flag is enabled (the relay must accept
    * sponsorship for this chain).
-   * 2. The money account is EIP-7702-upgraded on Monad (so the relay can
-   * redeem the delegation without the account itself signing the tx).
+   * 2. The money account is EIP-7702-ready on the card token chain (so the
+   * relay can redeem the delegation without the account itself signing the tx).
+   * If the Money Account is not EIP-7702-ready on the card token chain yet,
+   * the full Money Account upgrade flow is completed before the approve is
+   * submitted.
    *
    * Race-safe by construction: subscribes to
    * `TransactionController:transactionConfirmed` BEFORE submitting the
@@ -1004,26 +1008,6 @@ export class CardController extends BaseController<
       );
     }
 
-    const { delegationToken, nonce } = await provider.fetchDelegationChallenge(
-      { network: 'monad', address: fromAddress },
-      tokens,
-    );
-
-    const signatureMessage = this.generateCardDelegationSignatureMessage({
-      network: 'monad',
-      address: fromAddress,
-      nonce,
-      caipChainId: cardToken.caipChainId ?? 'eip155:143',
-    });
-
-    const sigHash = await this.messenger.call(
-      'KeyringController:signPersonalMessage',
-      {
-        data: `0x${Buffer.from(signatureMessage, 'utf8').toString('hex')}`,
-        from: fromAddress,
-      },
-    );
-
     const tokenAddress = cardToken.stagingTokenAddress ?? cardToken.address;
     if (!tokenAddress) {
       throw new CardProviderError(
@@ -1072,23 +1056,31 @@ export class CardController extends BaseController<
       );
     }
 
-    // Pre-flight 2: the money account itself must be EIP-7702-upgraded on
-    // Monad. Without the delegation contract installed, the relay cannot
-    // submit on its behalf and the approve would silently require MON on the
-    // money account (the exact failure mode this code path is here to avoid).
-    const atomicBatchSupport = await this.messenger.call(
-      'TransactionController:isAtomicBatchSupported',
-      { address: fromAddress as Hex, chainIds: [hexChainId] },
+    await ensureMoneyAccount7702Ready({
+      messenger: this.messenger,
+      address: fromAddress as Hex,
+      chainId: hexChainId,
+    });
+
+    const { delegationToken, nonce } = await provider.fetchDelegationChallenge(
+      { network: 'monad', address: fromAddress },
+      tokens,
     );
-    const monadEntry = atomicBatchSupport.find(
-      (entry) => entry.chainId === hexChainId,
+
+    const signatureMessage = this.generateCardDelegationSignatureMessage({
+      network: 'monad',
+      address: fromAddress,
+      nonce,
+      caipChainId: cardToken.caipChainId ?? 'eip155:143',
+    });
+
+    const sigHash = await this.messenger.call(
+      'KeyringController:signPersonalMessage',
+      {
+        data: `0x${Buffer.from(signatureMessage, 'utf8').toString('hex')}`,
+        from: fromAddress,
+      },
     );
-    if (!monadEntry?.isSupported) {
-      throw new CardProviderError(
-        CardProviderErrorCode.Unknown,
-        'Money account is not 7702-upgraded on Monad',
-      );
-    }
 
     const { transactionMeta: confirmedMeta } = await awaitTransactionConfirmed({
       messenger: this

@@ -207,7 +207,7 @@ describe('useMoneyAccountCardLinkage', () => {
     // Default: no in-flight linkage. Singleflight-specific tests override
     // this within their own `it` blocks.
     mockIsLinkageInProgress.mockReturnValue(false);
-    // Default: 7702 upgrade resolved. Gating tests override per-case.
+    // Default: 7702 upgrade resolved. Link visibility no longer depends on it.
     mockUseIsMoneyAccount7702Ready.mockReturnValue(true);
   });
 
@@ -274,16 +274,16 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(result.current.canLink).toBe(false);
     });
 
-    it('reports canLink=false when the money account is not 7702-upgraded on Monad', () => {
+    it('reports canLink=true when the money account is not 7702-upgraded on Monad', () => {
       mockUseIsMoneyAccount7702Ready.mockReturnValue(false);
       const { result } = renderLinkageHook();
-      expect(result.current.canLink).toBe(false);
+      expect(result.current.canLink).toBe(true);
     });
 
-    it('reports canLink=false while the 7702 readiness check is still pending', () => {
+    it('reports canLink=true while the 7702 readiness check is still pending', () => {
       mockUseIsMoneyAccount7702Ready.mockReturnValue(undefined);
       const { result } = renderLinkageHook();
-      expect(result.current.canLink).toBe(false);
+      expect(result.current.canLink).toBe(true);
     });
   });
 
