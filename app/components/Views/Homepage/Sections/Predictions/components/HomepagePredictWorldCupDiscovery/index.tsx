@@ -23,6 +23,7 @@ import {
   pickWorldCupWinnerMarket,
   resolveNbaChampionHomepageMarket,
 } from '../../utils/marketResolvers';
+import type { UseHomepagePredictWorldCupMarketsResult } from '../../hooks/useHomepagePredictWorldCupMarkets';
 import type { UseHomepagePredictTaggedMarketsResult } from '../../hooks/useHomepagePredictTaggedMarkets';
 import type { PredictionsTrendingHeaderTestId } from '../../predictionsSectionTypes';
 import type { TransactionActiveAbTestEntry } from '../../../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
@@ -39,7 +40,7 @@ export interface HomepagePredictWorldCupDiscoveryProps {
     transactionActiveAbTests?: TransactionActiveAbTestEntry[],
   ) => void;
   headerTestIdKey: PredictionsTrendingHeaderTestId;
-  worldCup: UseHomepagePredictTaggedMarketsResult;
+  worldCup: UseHomepagePredictWorldCupMarketsResult;
   nbaChampion: UseHomepagePredictTaggedMarketsResult;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   onTreatmentCtaClick?: (
