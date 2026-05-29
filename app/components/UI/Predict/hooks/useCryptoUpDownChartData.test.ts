@@ -179,6 +179,43 @@ describe('useCryptoUpDownChartData', () => {
       expect(result.current.loading).toBe(false);
     });
 
+    it('keeps loading true until the live chart has enough points to render', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+      historicalData = [];
+
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
+
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: 51000,
+          timestamp: 100,
+        });
+      });
+
+      expect(result.current.data).toEqual([{ time: 100, value: 51000 }]);
+      expect(result.current.value).toBe(51000);
+      expect(result.current.loading).toBe(true);
+
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: 51500,
+          timestamp: 110,
+        });
+      });
+
+      expect(result.current.data).toEqual([
+        { time: 100, value: 51000 },
+        { time: 110, value: 51500 },
+      ]);
+      expect(result.current.value).toBe(51500);
+      expect(result.current.loading).toBe(false);
+    });
+
     it('preserves second-based live timestamps', () => {
       const { Wrapper } = createWrapper();
       const market = createMarket();

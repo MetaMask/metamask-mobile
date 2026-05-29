@@ -184,12 +184,8 @@ jest.mock('@tanstack/react-query', () => {
 jest.mock('./hooks', () => {
   const actual = jest.requireActual('./hooks') as Record<string, unknown>;
   const tagQueries = actual.HOMEPAGE_PREDICT_TAG_QUERIES as {
-    worldCup: string;
     nbaChampion: string;
   };
-  // Two distinct jest mocks under the hood so tests can target each feed
-  // independently (`.mockReturnValue(...)` on either still works); the
-  // consolidated `useHomepagePredictTaggedMarkets` dispatches by tag query.
   const worldCupMock = jest.fn(() =>
     worldCupMarketsWithDiscoveryChampionship(),
   );
@@ -210,11 +206,12 @@ jest.mock('./hooks', () => {
       error: null,
       refetch: jest.fn(),
     })),
+    useHomepagePredictWorldCupMarkets: worldCupMock,
     useHomepagePredictTaggedMarkets: jest.fn(
       ({ customQueryParams }: { customQueryParams: string }) =>
         customQueryParams === tagQueries.nbaChampion
           ? nbaMock()
-          : worldCupMock(),
+          : worldCupHomepageMarketsMock([]),
     ),
     __mockUsePredictWorldCupHomepageMarkets: worldCupMock,
     __mockUsePredictNbaChampionHomepageMarkets: nbaMock,

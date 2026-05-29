@@ -59,6 +59,7 @@ const getStories = () => {
     "./app/component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList.stories.tsx": require("../app/component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList.stories.tsx"),
     "./app/component-library/components-temp/MultichainAccounts/MultichainAddressRow/MultichainAddressRow.stories.tsx": require("../app/component-library/components-temp/MultichainAccounts/MultichainAddressRow/MultichainAddressRow.stories.tsx"),
     "./app/component-library/components-temp/MultichainAccounts/MultichainAddressRowsList/MultichainAddressRowsList.stories.tsx": require("../app/component-library/components-temp/MultichainAccounts/MultichainAddressRowsList/MultichainAddressRowsList.stories.tsx"),
+    "./app/component-library/components-temp/Pressable/Pressable.stories.tsx": require("../app/component-library/components-temp/Pressable/Pressable.stories.tsx"),
     "./app/component-library/components-temp/Price/PercentageChange/PercentageChange.stories.tsx": require("../app/component-library/components-temp/Price/PercentageChange/PercentageChange.stories.tsx"),
     "./app/component-library/components-temp/SectionHeader/SectionHeader.stories.tsx": require("../app/component-library/components-temp/SectionHeader/SectionHeader.stories.tsx"),
     "./app/component-library/components-temp/TabBar/TabBar.stories.tsx": require("../app/component-library/components-temp/TabBar/TabBar.stories.tsx"),

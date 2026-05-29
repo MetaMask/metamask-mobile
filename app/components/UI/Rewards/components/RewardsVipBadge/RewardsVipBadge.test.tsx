@@ -16,7 +16,7 @@ describe('RewardsVipBadge', () => {
     mockUseVipTier.mockReturnValue(1);
     const { getByTestId } = render(<RewardsVipBadge />);
 
-    expect(getByTestId('rewards-vip-badge')).toHaveTextContent('VIP 1');
+    expect(getByTestId('rewards-vip-badge')).toHaveTextContent('VIP Fox 1');
   });
 
   it('renders nothing if vip tier is null', () => {
