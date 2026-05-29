@@ -20,6 +20,10 @@ jest.mock('../../../Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: () => ({ goToBuy: jest.fn() }),
 }));
 
+jest.mock('../../../../Views/Wallet/hooks/useBalanceRefresh', () => ({
+  useBalanceRefresh: jest.fn(() => ({ refreshBalance: jest.fn() })),
+}));
+
 jest.mock('../../../../../selectors/assets/balances', () => ({
   // Factory: selectBalanceBySelectedAccountGroup(popularChainIds?) -> (state) => value
   selectBalanceBySelectedAccountGroup: jest.fn(() => () => null),

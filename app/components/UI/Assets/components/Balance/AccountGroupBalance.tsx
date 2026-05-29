@@ -19,7 +19,10 @@ import { selectWalletHomeOnboardingStepsEnabled } from '../../../../../selectors
 import {
   selectShouldShowWalletHomeOnboardingSteps,
   selectWalletHomeOnboardingSkipInitialBalanceWait,
+  selectWalletHomeOnboardingSteps,
 } from '../../../../../selectors/onboarding';
+import { useBalanceRefresh } from '../../../../Views/Wallet/hooks/useBalanceRefresh';
+import { useWalletHomeOnboardingFundStepBalanceGate } from '../../../WalletHomeOnboardingSteps/useWalletHomeOnboardingFundStepBalanceGate';
 import { selectEvmChainId } from '../../../../../selectors/networkController';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { TEST_NETWORK_IDS } from '../../../../../constants/network';
@@ -76,6 +79,12 @@ const AccountGroupBalance = ({
   const walletHomeOnboardingSkipInitialBalanceWait = useSelector(
     selectWalletHomeOnboardingSkipInitialBalanceWait,
   );
+  const walletHomeOnboardingStepsState = useSelector(
+    selectWalletHomeOnboardingSteps,
+  );
+  const walletHomeOnboardingStepIndex =
+    walletHomeOnboardingStepsState.stepIndex ?? 0;
+  const { refreshBalance } = useBalanceRefresh();
   const { goToBuy } = useRampNavigation();
   const onFundPrimaryPressWithChecklistAnalytics =
     useWalletHomeOnboardingChecklistFundPress(goToBuy);
@@ -114,8 +123,10 @@ const AccountGroupBalance = ({
   // Track if balance has been fetched to prevent flash of empty state
   const [hasBalanceFetched, setHasBalanceFetched] = useState(false);
   const initialBalanceRef = useRef<number | null>(null);
+  const initialAccountGroupBalanceRef = useRef<number | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const currentGroupIdRef = useRef<string | null>(null);
+  const fundStepBalanceRefreshRequestedRef = useRef(false);
 
   useEffect(() => {
     const groupId = groupBalance?.groupId ?? null;
@@ -125,6 +136,7 @@ const AccountGroupBalance = ({
       // Reset all tracking state for new account
       setHasBalanceFetched(false);
       initialBalanceRef.current = null;
+      initialAccountGroupBalanceRef.current = null;
       currentGroupIdRef.current = groupId;
 
       // Clear existing timeout
@@ -143,6 +155,11 @@ const AccountGroupBalance = ({
       initialBalanceRef.current = groupBalance.totalBalanceInUserCurrency;
     }
 
+    if (initialAccountGroupBalanceRef.current === null && accountGroupBalance) {
+      initialAccountGroupBalanceRef.current =
+        accountGroupBalance.totalBalanceInUserCurrency;
+    }
+
     // Track balance changes - if EITHER balance updates from initial value, mark as fetched
     // We track both groupBalance AND accountGroupBalance since empty state uses accountGroupBalance
     if (groupBalance && initialBalanceRef.current !== null) {
@@ -156,8 +173,13 @@ const AccountGroupBalance = ({
         currentBalance > 0 &&
         accountGroupCurrentBalance !== null &&
         accountGroupCurrentBalance > 0;
+      const accountGroupBecamePositive =
+        accountGroupCurrentBalance !== null &&
+        accountGroupCurrentBalance > 0 &&
+        (initialAccountGroupBalanceRef.current === null ||
+          initialAccountGroupBalanceRef.current === 0);
 
-      if (hasChanged || bothExistAndNonZero) {
+      if (hasChanged || bothExistAndNonZero || accountGroupBecamePositive) {
         setHasBalanceFetched(true);
         if (timeoutRef.current) {
           clearTimeout(timeoutRef.current);
@@ -206,13 +228,35 @@ const AccountGroupBalance = ({
   const inWalletHomePostOnboardingFlow =
     isWalletHomeOnboardingStepsEnabled && shouldShowWalletHomeOnboardingSteps;
 
+  const isWalletHomeOnboardingFundStep =
+    inWalletHomePostOnboardingFlow && walletHomeOnboardingStepIndex === 0;
+
   /** While the flow is active, always use the checklist surface — never the balance row (avoids a flash before loading/empty state is known). */
   const showWalletHomeOnboardingStepsTile = inWalletHomePostOnboardingFlow;
 
   const canAdvanceFundStepAfterBalance =
-    hasBalanceFetched &&
-    accountGroupBalance != null &&
-    accountGroupBalance.totalBalanceInUserCurrency > 0;
+    useWalletHomeOnboardingFundStepBalanceGate({
+      enabled: isWalletHomeOnboardingFundStep,
+      accountGroupBalance,
+      groupId: groupBalance?.groupId ?? null,
+    });
+
+  useEffect(() => {
+    if (
+      !isWalletHomeOnboardingFundStep ||
+      !walletHomeOnboardingSkipInitialBalanceWait ||
+      fundStepBalanceRefreshRequestedRef.current
+    ) {
+      return;
+    }
+
+    fundStepBalanceRefreshRequestedRef.current = true;
+    void refreshBalance();
+  }, [
+    isWalletHomeOnboardingFundStep,
+    refreshBalance,
+    walletHomeOnboardingSkipInitialBalanceWait,
+  ]);
 
   const renderBalanceOrEmpty = () =>
     !isLoading && shouldShowEmptyState ? (
