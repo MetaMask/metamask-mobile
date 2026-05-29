@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  createStackNavigator,
-  StackNavigationOptions,
-} from '@react-navigation/stack';
+  createNativeStackNavigator,
+  NativeStackNavigationOptions,
+} from '@react-navigation/native-stack';
 import Routes from '../../../../constants/navigation/Routes';
 import SignUp from '../components/Onboarding/SignUp';
 import ConfirmEmail from '../components/Onboarding/ConfirmEmail';
@@ -27,10 +27,10 @@ import { CardUserPhase } from '../types';
 import Complete from '../components/Onboarding/Complete';
 import LockManagerService from '../../../../core/LockManagerService';
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 // All onboarding screens render HeaderStandard in-screen via OnboardingStep.
-const onboardingScreenOptions: StackNavigationOptions = {
+const onboardingScreenOptions: NativeStackNavigationOptions = {
   headerShown: false,
   gestureEnabled: false,
 };

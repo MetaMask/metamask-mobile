@@ -15,6 +15,7 @@ import Engine from '../../../core/Engine/Engine';
 import { strings } from '../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import Logger from '../../../util/Logger';
+import { Platform } from 'react-native';
 import {
   SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE,
   setWalletHomeOnboardingStepsEligible,
@@ -252,6 +253,28 @@ describe('OnboardingSuccessComponent', () => {
     );
 
     expect(getByTestId('onboarding-success-end-animation')).toBeOnTheScreen();
+  });
+
+  it('hides OnboardingSuccessEndAnimation on Android for seedless onboarding flow', () => {
+    const originalPlatform = Platform.OS;
+    Object.defineProperty(Platform, 'OS', {
+      writable: true,
+      value: 'android',
+    });
+
+    const { queryByTestId } = renderWithProvider(
+      <OnboardingSuccessComponent
+        onDone={jest.fn()}
+        successFlow={ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING}
+      />,
+    );
+
+    expect(queryByTestId('onboarding-success-end-animation')).toBeNull();
+
+    Object.defineProperty(Platform, 'OS', {
+      writable: true,
+      value: originalPlatform,
+    });
   });
 
   it('hides manage default settings button for SETTINGS_BACKUP flow', () => {

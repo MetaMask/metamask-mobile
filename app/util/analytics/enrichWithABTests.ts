@@ -35,6 +35,19 @@ const hasEventName = (
   eventName: string,
 ): boolean => mapping.eventNames.includes(eventName);
 
+const eventMatchesInjectGate = (
+  properties: Record<string, unknown>,
+  mapping: ABTestAnalyticsMapping,
+): boolean => {
+  const gate = mapping.injectWhenPropertiesMatch;
+  if (!gate || Object.keys(gate).length === 0) {
+    return true;
+  }
+  return Object.entries(gate).every(
+    ([propertyKey, expected]) => properties[propertyKey] === expected,
+  );
+};
+
 export const getRemoteFeatureFlagsFromState = (
   state: StateWithPartialEngine | null | undefined,
 ): Record<string, unknown> => {
@@ -57,8 +70,10 @@ export const enrichWithABTests = <
   const existingAssignments = normalizeActiveABTestAssignments(
     event.properties.active_ab_tests,
   );
-  const relevantMappings = AB_TEST_ANALYTICS_MAPPINGS.filter((mapping) =>
-    hasEventName(mapping, event.name),
+  const relevantMappings = AB_TEST_ANALYTICS_MAPPINGS.filter(
+    (mapping) =>
+      hasEventName(mapping, event.name) &&
+      eventMatchesInjectGate(event.properties, mapping),
   );
 
   if (relevantMappings.length === 0) {
