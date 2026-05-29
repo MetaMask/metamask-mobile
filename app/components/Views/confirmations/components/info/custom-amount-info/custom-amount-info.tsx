@@ -121,7 +121,14 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     footerText,
     supportAccountSelection,
   }) => {
-    useClearConfirmationOnBackSwipe();
+    const transactionMeta = useTransactionMetadataRequest();
+    const isPredictDeposit = hasTransactionType(transactionMeta, [
+      TransactionType.predictDeposit,
+    ]);
+
+    useClearConfirmationOnBackSwipe({
+      rejectOnBeforeRemove: isPredictDeposit,
+    });
 
     const { canSelectWithdrawToken } = useTransactionPayWithdraw();
 
@@ -148,7 +155,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     }
     const shouldHideAccountSelector =
       hideAccountSelector && !fiatEverSelectedRef.current;
-    const transactionMeta = useTransactionMetadataRequest();
     const transactionId = transactionMeta?.id;
     const accountOverride = useTransactionAccountOverride();
     const isWithdraw = isTransactionPayWithdraw(transactionMeta);
