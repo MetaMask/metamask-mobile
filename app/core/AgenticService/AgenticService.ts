@@ -351,6 +351,38 @@ function getPrivateKeyAddress(value: string) {
   ).toLowerCase();
 }
 
+function isExpectedLegacyAccountTreeInitError(error: unknown) {
+  const message = String((error as Error).message || error);
+  return (
+    message.includes('Money Keyring') ||
+    message.includes('No keyringBuilder found')
+  );
+}
+
+async function initializeFixtureAccountTree(
+  options: {
+    allowLegacyAccountTreeInitFailure?: boolean;
+  } = {},
+) {
+  try {
+    await AccountTreeInitService.initializeAccountTree();
+  } catch (error) {
+    if (
+      !options.allowLegacyAccountTreeInitFailure ||
+      !isExpectedLegacyAccountTreeInitError(error)
+    ) {
+      throw error;
+    }
+    // Historical replay vaults can lack the multichain keyring builder. In that
+    // mode AccountsController remains the source of truth for fixture validation
+    // and account labels; group renames are skipped when no account-tree group
+    // exists.
+    Logger.log(
+      '[AgenticService] Skipping fixture account-tree refresh for historical replay fixture setup',
+    );
+  }
+}
+
 function getMnemonicFirstAddress(value: string) {
   return EthersWallet.fromMnemonic(
     value,
@@ -427,6 +459,7 @@ async function ensureFixtureMnemonicAccounts(
       ) => void;
     };
   },
+  options: { allowLegacyAccountTreeInitFailure?: boolean } = {},
 ) {
   const { AccountsController, AccountTreeController } = controllers;
   const count = getFixtureMnemonicCount(mnemonicAccount);
@@ -443,7 +476,7 @@ async function ensureFixtureMnemonicAccounts(
     await importNewSecretRecoveryPhrase(mnemonicAccount.value, {
       shouldSelectAccount: false,
     });
-    await AccountTreeInitService.initializeAccountTree();
+    await initializeFixtureAccountTree(options);
     wallet = findWallet();
   }
 
@@ -459,7 +492,7 @@ async function ensureFixtureMnemonicAccounts(
     accountIndex += 1
   ) {
     await addNewHdAccount(wallet.keyringId, names[accountIndex]);
-    await AccountTreeInitService.initializeAccountTree();
+    await initializeFixtureAccountTree(options);
     wallet = findWallet();
     if (!wallet) {
       throw new Error(
@@ -540,6 +573,7 @@ async function materializeFixtureAccounts(
       ) => void;
     };
   },
+  options: { allowLegacyAccountTreeInitFailure?: boolean } = {},
 ) {
   const { KeyringController, AccountsController, AccountTreeController } =
     controllers;
@@ -548,10 +582,15 @@ async function materializeFixtureAccounts(
   );
 
   for (const [mnemonicIndex, mnemonicAccount] of mnemonicAccounts.entries()) {
-    await ensureFixtureMnemonicAccounts(mnemonicAccount, mnemonicIndex, {
-      AccountsController,
-      AccountTreeController,
-    });
+    await ensureFixtureMnemonicAccounts(
+      mnemonicAccount,
+      mnemonicIndex,
+      {
+        AccountsController,
+        AccountTreeController,
+      },
+      options,
+    );
   }
 
   for (const account of fixture.accounts) {
@@ -1212,7 +1251,7 @@ const AgenticService = {
           if (!KeyringController.isUnlocked()) {
             await Authentication.unlockWallet({ password: fixture.password });
           }
-          await AccountTreeInitService.initializeAccountTree();
+          await initializeFixtureAccountTree();
           await materializeFixtureAccounts(fixture, {
             KeyringController,
             AccountsController,
@@ -1259,11 +1298,7 @@ const AgenticService = {
                 mnemonic,
               });
             } catch (error) {
-              const message = String((error as Error).message || error);
-              if (
-                !message.includes('Money Keyring') &&
-                !message.includes('No keyringBuilder found')
-              ) {
+              if (!isExpectedLegacyAccountTreeInitError(error)) {
                 throw error;
               }
               Logger.log(
@@ -1282,11 +1317,7 @@ const AgenticService = {
                 password: fixture.password,
               });
             } catch (error) {
-              const message = String((error as Error).message || error);
-              if (
-                !message.includes('Money Keyring') &&
-                !message.includes('No keyringBuilder found')
-              ) {
+              if (!isExpectedLegacyAccountTreeInitError(error)) {
                 throw error;
               }
               Logger.log(
@@ -1306,11 +1337,7 @@ const AgenticService = {
               await AccountTreeInitService.initializeAccountTree();
               await MultichainAccountService.init();
             } catch (error) {
-              const message = String((error as Error).message || error);
-              if (
-                !message.includes('Money Keyring') &&
-                !message.includes('No keyringBuilder found')
-              ) {
+              if (!isExpectedLegacyAccountTreeInitError(error)) {
                 throw error;
               }
               Logger.log(
@@ -1323,11 +1350,15 @@ const AgenticService = {
           // declare count/numberOfAccounts plus names[]; this is generic
           // fixture semantics, not a dev-account special case.
           setupStep = 'materialize-srp-accounts';
-          await materializeFixtureAccounts(fixture, {
-            KeyringController,
-            AccountsController,
-            AccountTreeController,
-          });
+          await materializeFixtureAccounts(
+            fixture,
+            {
+              KeyringController,
+              AccountsController,
+              AccountTreeController,
+            },
+            { allowLegacyAccountTreeInitFailure: usedLegacyVaultSetup },
+          );
 
           // 4. Dispatch all onboarding/auth flags
           setupStep = 'dispatch-onboarding-flags';
