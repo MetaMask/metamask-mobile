@@ -151,7 +151,7 @@ describe('StepRow', () => {
         shouldPause: false,
         size: 240,
       }),
-      {},
+      undefined,
     );
   });
 
