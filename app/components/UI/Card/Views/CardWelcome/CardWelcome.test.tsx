@@ -7,6 +7,17 @@ import { CardWelcomeSelectors } from './CardWelcome.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { MONEY_HOME_CARD_ORIGIN } from '../../hooks/useCardPostAuthRedirect';
+
+const mockUseCardPostAuthRedirect = jest.fn();
+
+jest.mock('../../hooks/useCardPostAuthRedirect', () => ({
+  useCardPostAuthRedirect: () => mockUseCardPostAuthRedirect(),
+  MONEY_HOME_CARD_ORIGIN: {
+    screen: 'Money',
+    params: { screen: 'MoneyHome' },
+  },
+}));
 
 // Mocks
 const mockNavigate = jest.fn();
@@ -81,6 +92,7 @@ describe('CardWelcome', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseCardPostAuthRedirect.mockReturnValue(undefined);
     mockNavigate.mockClear();
     mockGoBack.mockClear();
     mockTrackEvent.mockClear();
@@ -167,7 +179,10 @@ describe('CardWelcome', () => {
 
       fireEvent.press(getByTestId(CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ONBOARDING.ROOT);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.ONBOARDING.ROOT,
+        undefined,
+      );
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.CARD_BUTTON_CLICKED,
       );
@@ -185,10 +200,47 @@ describe('CardWelcome', () => {
 
       fireEvent.press(getByTestId(CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.AUTHENTICATION,
+        undefined,
+      );
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.CARD_BUTTON_CLICKED,
       );
+    });
+
+    it('forwards postAuthRedirect to onboarding when opened from Money (non-cardholder)', () => {
+      mockUseCardPostAuthRedirect.mockReturnValue(MONEY_HOME_CARD_ORIGIN);
+      store = createTestStore({ cardholderAccounts: [] });
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <CardWelcome />
+        </Provider>,
+      );
+
+      fireEvent.press(getByTestId(CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ONBOARDING.ROOT, {
+        postAuthRedirect: MONEY_HOME_CARD_ORIGIN,
+      });
+    });
+
+    it('forwards postAuthRedirect to authentication when opened from Money (cardholder)', () => {
+      mockUseCardPostAuthRedirect.mockReturnValue(MONEY_HOME_CARD_ORIGIN);
+      store = createTestStore({
+        cardholderAccounts: ['0x1234567890abcdef'],
+      });
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <CardWelcome />
+        </Provider>,
+      );
+
+      fireEvent.press(getByTestId(CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION, {
+        postAuthRedirect: MONEY_HOME_CARD_ORIGIN,
+      });
     });
   });
 });
