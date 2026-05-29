@@ -170,6 +170,11 @@ const mockRouteParams: {
     asset: string;
     monitor: 'orders' | 'positions' | 'both';
   };
+  transactionActiveAbTests?: {
+    key: string;
+    value: string;
+    key_value_pair?: string;
+  }[];
 } = {
   market: {
     symbol: 'BTC',
@@ -837,6 +842,7 @@ describe('PerpsMarketDetailsView', () => {
       volume: '$1.23B',
       maxLeverage: '40x',
     };
+    mockRouteParams.transactionActiveAbTests = undefined;
 
     // Reset order fills mock to default
     mockUsePerpsLiveFillsImpl.mockReturnValue({
@@ -1687,6 +1693,57 @@ describe('PerpsMarketDetailsView', () => {
           error: null,
           refetch: jest.fn(),
         });
+      }
+    });
+
+    it('passes transaction active A/B tests to order screen when present on route', async () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      const transactionActiveAbTests = [
+        {
+          key: 'homeTMCU725AbtestHomepagePerpsPillsEmptyState',
+          value: 'treatment',
+          key_value_pair:
+            'homeTMCU725AbtestHomepagePerpsPillsEmptyState=treatment',
+        },
+      ];
+
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        return undefined;
+      });
+      mockRouteParams.transactionActiveAbTests = transactionActiveAbTests;
+
+      try {
+        const { getByTestId } = renderWithProvider(
+          <PerpsConnectionProvider>
+            <PerpsMarketDetailsView />
+          </PerpsConnectionProvider>,
+          {
+            state: initialState,
+          },
+        );
+
+        const longButton = getByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
+        );
+        await act(async () => {
+          fireEvent.press(longButton);
+        });
+
+        expect(mockNavigateToOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            direction: 'long',
+            asset: 'BTC',
+            transactionActiveAbTests,
+          }),
+        );
+      } finally {
+        mockRouteParams.transactionActiveAbTests = undefined;
       }
     });
 

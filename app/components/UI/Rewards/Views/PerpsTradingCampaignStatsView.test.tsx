@@ -289,6 +289,37 @@ describe('PerpsTradingCampaignStatsView', () => {
     ).toBeDefined();
   });
 
+  it('shows fallback performance values when position numeric fields are invalid', () => {
+    mockUseGetPosition.mockReturnValue({
+      position: {
+        ...basePosition,
+        pnl: null,
+        notionalVolume: null,
+        qualified: false,
+      } as unknown as PerpsTradingCampaignLeaderboardPositionDto,
+      isLoading: false,
+      hasError: false,
+      hasFetched: true,
+      refetch: jest.fn(),
+    });
+
+    const { getByTestId, queryByTestId } = render(
+      <PerpsTradingCampaignStatsView />,
+    );
+
+    expect(
+      getByTestId(PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_PNL).props
+        .children,
+    ).toBe('—');
+    expect(
+      getByTestId(PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_VOLUME).props
+        .children,
+    ).toBe('—');
+    expect(
+      queryByTestId(PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.QUALIFY_FOR_RANK_CARD),
+    ).toBeNull();
+  });
+
   it('shows last-computed when position has a timestamp', () => {
     const { getByTestId } = render(<PerpsTradingCampaignStatsView />);
     const el = getByTestId(PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.LAST_COMPUTED);

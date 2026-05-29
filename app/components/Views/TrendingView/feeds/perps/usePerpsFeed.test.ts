@@ -223,4 +223,10 @@ describe('usePerpsFeed', () => {
       },
     );
   });
+
+  it('passes skipInitialFetch through to usePerpsMarkets', () => {
+    renderFeed({ skipInitialFetch: true });
+
+    expect(usePerpsMarkets).toHaveBeenCalledWith({ skipInitialFetch: true });
+  });
 });

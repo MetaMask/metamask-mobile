@@ -18,7 +18,8 @@ import {
 import Utilities from '../Utilities';
 import {
   dismissDevScreens,
-  dismissDevScreensPlaywright,
+  dismissDeveloperMenuPlaywright,
+  dismissDevelopmentServerPickerPlaywright,
 } from '../../flows/general.flow';
 import TestHelpers from '../../helpers';
 import MockServerE2E from '../../api-mocking/MockServerE2E';
@@ -566,6 +567,7 @@ export async function withFixtures(
     ResourceType.ACCOUNT_ACTIVITY_WS,
   );
   let testError: Error | null = null;
+  let didAttemptPlaywrightDevelopmentServerPickerDismissal = false;
 
   try {
     // Step 1: Start local nodes (Anvil/Ganache)
@@ -689,6 +691,10 @@ export async function withFixtures(
           await PlaywrightUtilities.launchApp(currentDeviceDetails, {
             launchArgs: testArgs,
           });
+          if (process.env.CI !== 'true') {
+            await dismissDevelopmentServerPickerPlaywright();
+            didAttemptPlaywrightDevelopmentServerPickerDismissal = true;
+          }
           await appStateRequest;
         } catch (error) {
           appStateRequest.catch(() => undefined);
@@ -712,7 +718,10 @@ export async function withFixtures(
       if (FrameworkDetector.isDetox()) {
         await dismissDevScreens();
       } else if (FrameworkDetector.isAppium()) {
-        await dismissDevScreensPlaywright();
+        if (!didAttemptPlaywrightDevelopmentServerPickerDismissal) {
+          await dismissDevelopmentServerPickerPlaywright();
+        }
+        await dismissDeveloperMenuPlaywright();
       }
     }
 

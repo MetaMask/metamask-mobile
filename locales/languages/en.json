@@ -1148,6 +1148,10 @@
       "description": "Some services may be unavailable while the team works on a fix.",
       "contact_support": "Contact support"
     },
+    "competition_banner": {
+      "title": "Competition leaderboard",
+      "description": "See where you rank in the Perps trading competition"
+    },
     "today": "Today",
     "yesterday": "Yesterday",
     "unrealized_pnl": "Unrealized P&L",
@@ -3028,9 +3032,9 @@
   "onboarding_interest_questionnaire": {
     "title": "What do you want to do with MetaMask?",
     "description": "Select all that apply.",
-    "option_buy_and_sell_crypto": "Buy and sell crypto",
+    "option_buy_and_sell_crypto": "Buy and sell crypto tokens",
     "option_consolidate_wallets": "Consolidate your wallets",
-    "option_advanced_trades": "Make advanced trades",
+    "option_advanced_trades": "Trade perpetuals",
     "option_predict_sports_events": "Predict sports and events",
     "option_crypto_as_money": "Use crypto as money",
     "option_connect_apps_sites": "Connect to apps or sites",
@@ -5354,6 +5358,16 @@
           "time": "1h ago",
           "title": "Received 0.25 ETH",
           "message": "From 0x9a21…4f8c · $640.29"
+        },
+        "toast": {
+          "notifications_on": {
+            "title": "Notifications are on",
+            "description": "We'll send you transactions, price alerts, and updates."
+          },
+          "notifications_off": {
+            "title": "Notifications are off",
+            "description": "Turn them on anytime in Settings → Notifications."
+          }
         }
       },
       "existing_user": {
@@ -5362,8 +5376,20 @@
         "card_title": "What you'll get",
         "card_description": "Personalized alerts and updates tailored to your trading activity.",
         "button_confirm": "Confirm",
-        "button_not_now": "Not now"
-      }
+        "button_not_now": "Not now",
+        "toast": {
+          "personalized_alerts_on": {
+            "title": "Personalized alerts is on",
+            "description": "Manage this anytime in Settings."
+          },
+          "personalized_alerts_off": {
+            "title": "Personalized alerts is off",
+            "description": "Turn it on anytime in Settings."
+          }
+        }
+      },
+      "toast_enabled": "Notifications enabled",
+      "toast_settings_hint": "You can enable notifications any time in Settings > Notifications"
     }
   },
   "protect_your_wallet_modal": {
@@ -6900,13 +6926,19 @@
     "toasts": {
       "in_progress_title": "Transaction in progress",
       "in_progress_body": "This may take a few minutes.",
+      "deposit_in_progress_title_convert": "Converting crypto",
+      "deposit_in_progress_title_add_musd": "Adding funds",
       "success_title": "Transaction complete",
+      "deposit_success_title_convert": "Conversion complete",
+      "deposit_success_title_add_musd": "Funds added",
       "deposit_success_body": "{{amount}} added to Money account.",
       "deposit_success_body_no_amount": "Added to Money account.",
       "withdraw_success_body": "{{amount}} moved to {{destination}}.",
       "withdraw_success_body_no_amount": "Moved to {{destination}}.",
-      "deposit_failed_title": "Transaction failed",
-      "deposit_failed_body": "Unable to add funds. Try again.",
+      "deposit_failed_title_convert": "Conversion failed",
+      "deposit_failed_title_add_musd": "Failed to add funds",
+      "deposit_failed_body_convert": "Unable to convert. Try again.",
+      "deposit_failed_body_add_musd": "Unable to add funds. Try again.",
       "withdraw_failed_title": "Transfer failed",
       "withdraw_failed_body": "Unable to transfer funds. Try again."
     },
@@ -7485,6 +7517,9 @@
     "batch_sell_total_received": "Total received",
     "batch_sell_minimum_received": "Minimum received",
     "batch_sell_quote_details_row": "{{tokenSymbol}} • {{slippage}} slippage",
+    "batch_sell_no_quote_available": "No quote available",
+    "batch_sell_high_price_impact": "High price impact",
+    "batch_sell_high_price_impact_description": "This trade has an estimated {{priceImpact}} price impact, which reflects how much your trade changes the market price. The quote already reflects this.",
     "batch_sell_review": "Review",
     "batch_sell_you_sell": "You sell",
     "batch_sell_token_count": "{{tokenCount}} tokens",
@@ -7524,6 +7559,7 @@
     "quote_info_title": "Rate",
     "network_fee_info_title": "Network fee",
     "network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is.",
+    "batch_sell_network_fee_info_content": "Network fees depend on how busy the network is and how complex your transaction is. If you don't have enough to cover the fee, we'll take it from the token you're converting to.",
     "network_fee_info_content_sponsored": "This network fee is paid by MetaMask, so you can transact without {{nativeToken}} in your account.",
     "points": "Est. points",
     "points_tooltip": "Points",
@@ -8583,7 +8619,7 @@
     "vip": {
       "progress_to_next_tier": "{{pointsRemaining}} points to next tier",
       "bps_unit": "bps",
-      "badge_label": "VIP {{tier}}",
+      "badge_label": "VIP Fox {{tier}}",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
       "points_label": "Points",
@@ -9015,7 +9051,7 @@
       "label_notional_volume": "Notional volume",
       "pending": "Pending",
       "qualified": "Qualified",
-      "open_position_cta": "Open Position",
+      "open_position_cta": "Trade now",
       "leaderboard_title": "Leaderboard",
       "leaderboard_total_participants": "{{count}} participants",
       "last_updated": "Last updated: {{time}}",
@@ -9128,6 +9164,7 @@
       "predict_withdraw": "Withdrawal",
       "money_account_deposit": "Deposit to Money Account",
       "money_account_withdraw": "Transfer from Money Account",
+      "money_account_received": "Received",
       "default": "Transaction details"
     },
     "label": {
@@ -9139,7 +9176,9 @@
       "retry_button": "Try again",
       "total": "Total",
       "account": "Account",
-      "received_total": "Received total"
+      "received_total": "Received total",
+      "from": "From",
+      "token_received": "Token received"
     },
     "summary_title": {
       "bridge_approval": "Approve {{approveSymbol}}",
@@ -9442,6 +9481,12 @@
       "import_nfts": "Import NFTs",
       "import_nfts_description": "Easily add your collectibles",
       "view_more": "View more",
+      "more": {
+        "title": "More",
+        "import_token": "Import a token",
+        "import_nft": "Import an NFT",
+        "contact_support": "Contact support"
+      },
       "positions": {
         "no_tp_sl": "No TP/SL"
       }
