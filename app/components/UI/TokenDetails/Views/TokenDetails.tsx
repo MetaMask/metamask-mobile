@@ -433,6 +433,7 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextAppState) => {
       if (nextAppState === 'background' || nextAppState === 'inactive') {
+        // Guard: prevent duplicate events from multiple AppState transitions (background → inactive)
         if (closeSourceRef.current !== 'app_backgrounded') {
           closeSourceRef.current = 'app_backgrounded';
           fireClosedRef.current();
@@ -448,8 +449,10 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
     };
   }, []);
 
+  // Fire on back-button / stack pop (screen actually removed, not just blurred by a modal)
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', () => {
+      // Guard: prevent duplicate event if AppState already fired for backgrounding
       if (closeSourceRef.current !== 'app_backgrounded') {
         fireClosedRef.current();
       }
@@ -458,6 +461,7 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
     return unsubscribe;
   }, [navigation]);
 
+  // Fire on CTA-driven blur (screen stays in stack but loses focus to a new route)
   useFocusEffect(
     useCallback(() => {
       closeSourceRef.current = null;
