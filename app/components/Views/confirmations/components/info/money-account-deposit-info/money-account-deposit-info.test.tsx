@@ -80,6 +80,16 @@ describe('MoneyAccountDepositInfo', () => {
     expect(lastCall.hasMax).toBe(true);
   });
 
+  it('passes compactSpacing=true to CustomAmountInfo', () => {
+    render(<MoneyAccountDepositInfo />);
+
+    const lastCall =
+      mockCustomAmountInfo.mock.calls[
+        mockCustomAmountInfo.mock.calls.length - 1
+      ][0];
+    expect(lastCall.compactSpacing).toBe(true);
+  });
+
   it('forwards preferredPaymentToken from route params to CustomAmountInfo', () => {
     const preferredPaymentToken = {
       address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',

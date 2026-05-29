@@ -16,6 +16,7 @@ export function MoneyAccountDepositInfo() {
       hasMax
       supportAccountSelection
       preferredToken={preferredPaymentToken}
+      compactSpacing
     />
   );
 }

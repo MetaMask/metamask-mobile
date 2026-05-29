@@ -18,16 +18,8 @@ import {
 import Tag from '../../../../../component-library/components/Tags/Tag';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
-import { useMusdConversionFlowData } from '../../../Earn/hooks/useMusdConversionFlowData';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
-import {
-  MUSD_CONVERSION_DEFAULT_CHAIN_ID,
-  MUSD_TOKEN_ADDRESS_BY_CHAIN,
-  MUSD_TOKEN_ASSET_ID_BY_CHAIN,
-} from '../../../Earn/constants/musd';
-import { Hex } from '@metamask/utils';
-import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
-import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
+import { useMoneyAccountAddRouting } from '../../hooks/useMoneyAccountAddRouting';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import styleSheet from './MoneyAddMoneySheet.styles';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
@@ -50,13 +42,10 @@ const MoneyAddMoneySheet: React.FC = () => {
   const {
     fiatBalanceAggregated,
     fiatBalanceAggregatedFormatted,
-    hasMusdBalanceOnAnyChain,
     tokenBalanceAggregated,
-    tokenBalanceByChain,
   } = useMusdBalance();
-  const { getChainIdForBuyFlow } = useMusdConversionFlowData();
-  const { goToBuy } = useRampNavigation();
-  const { initiateDeposit } = useMoneyAccountDeposit();
+  const { hasMusdBalance, convertCrypto, depositFunds, moveMusd } =
+    useMoneyAccountAddRouting();
 
   const closeAndNavigate = useCallback((navigateFn: () => void) => {
     sheetRef.current?.onCloseBottomSheet(navigateFn);
@@ -68,50 +57,25 @@ const MoneyAddMoneySheet: React.FC = () => {
 
   const handleConvertCrypto = useCallback(() => {
     closeAndNavigate(() => {
-      initiateDeposit().catch(() => undefined);
+      convertCrypto();
     });
-  }, [closeAndNavigate, initiateDeposit]);
+  }, [closeAndNavigate, convertCrypto]);
 
-  // TODO(MUSD-479): point to the Ramps "Add funds" amount-entry screen
-  // (Figma 2547:8780). Interim: unified smart-routed Buy flow with mUSD
-  // pre-selected so the destination matches the Money Hub experience.
   const handleDepositFunds = useCallback(() => {
-    const chainId = getChainIdForBuyFlow
-      ? getChainIdForBuyFlow()
-      : MUSD_CONVERSION_DEFAULT_CHAIN_ID;
     closeAndNavigate(() => {
-      goToBuy({ assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[chainId] });
+      depositFunds();
     });
-  }, [closeAndNavigate, getChainIdForBuyFlow, goToBuy]);
+  }, [closeAndNavigate, depositFunds]);
 
   const handleMoveMusd = useCallback(() => {
-    let sourceChainId: Hex = MUSD_CONVERSION_DEFAULT_CHAIN_ID;
-    let bestBalance = new BigNumber(0);
-    for (const [chainId, balance] of Object.entries(
-      tokenBalanceByChain ?? {},
-    )) {
-      const candidate = new BigNumber(balance ?? 0);
-      if (candidate.isGreaterThan(bestBalance)) {
-        sourceChainId = chainId as Hex;
-        bestBalance = candidate;
-      }
-    }
-
     closeAndNavigate(() => {
-      initiateDeposit({
-        intent: 'addMusd',
-        preferredPaymentToken: {
-          address: MUSD_TOKEN_ADDRESS_BY_CHAIN[sourceChainId],
-          chainId: sourceChainId,
-        },
-      }).catch(() => undefined);
+      moveMusd();
     });
-  }, [closeAndNavigate, initiateDeposit, tokenBalanceByChain]);
+  }, [closeAndNavigate, moveMusd]);
 
   const parsedMusdFiat = Number(fiatBalanceAggregated);
   const hasParsedFiatBalance =
     Number.isFinite(parsedMusdFiat) && parsedMusdFiat > 0;
-  const hasMusdBalance = hasMusdBalanceOnAnyChain || hasParsedFiatBalance;
 
   const moveMusdAmount = hasParsedFiatBalance
     ? fiatBalanceAggregatedFormatted
