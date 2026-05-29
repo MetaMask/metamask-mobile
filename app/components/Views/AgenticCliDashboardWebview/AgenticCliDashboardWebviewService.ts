@@ -12,7 +12,6 @@ const WEBVIEW_TIMEOUT_MS = 5 * 60 * 1000;
 
 const PRODUCTION_ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
   /^https:\/\/dashboard\.w3a\.io$/,
-  /^https:\/\/uat-dashboard\.web3auth\.io$/,
   /^https:\/\/auth\.web3auth\.io$/,
   /^https:\/\/[a-z0-9-]+\.cx\.metamask\.io$/,
 ];
@@ -32,9 +31,7 @@ const DEVELOPMENT_ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
 const getAllowedOriginPatterns = (): RegExp[] => {
   const patterns = [...PRODUCTION_ALLOWED_ORIGIN_PATTERNS];
 
-  if (devApiEnv() === 'dev') {
-    patterns.push(...DEV_API_ALLOWED_ORIGIN_PATTERNS);
-  }
+  patterns.push(...DEV_API_ALLOWED_ORIGIN_PATTERNS);
 
   if (__DEV__) {
     patterns.push(...DEVELOPMENT_ALLOWED_ORIGIN_PATTERNS);
