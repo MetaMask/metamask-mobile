@@ -51,8 +51,11 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
   const { isPriceImpactError, handleConfirm } = controller;
 
   const handleBuy = useCallback(async () => {
-    if (features.highPriceImpactModal && isPriceImpactError) {
-      setActiveScreen('priceImpactConfirm');
+    if (isPriceImpactError) {
+      // We guard here to ensure no high-impact trade ever silently proceeds.
+      if (features.highPriceImpactModal) {
+        setActiveScreen('priceImpactConfirm');
+      }
       return;
     }
     await handleConfirm();
@@ -63,8 +66,15 @@ export const QuickBuyProvider: React.FC<QuickBuyProviderProps> = ({
     setActiveScreen,
   ]);
 
+  // When the modal feature is off the button must be disabled for any
+  // high-impact quote, since there is no other safeguard in place.
+  const isConfirmDisabled =
+    controller.isConfirmDisabled ||
+    (isPriceImpactError && !features.highPriceImpactModal);
+
   const value: QuickBuyContextValue = {
     ...controller,
+    isConfirmDisabled,
     target,
     features,
     analyticsContext,

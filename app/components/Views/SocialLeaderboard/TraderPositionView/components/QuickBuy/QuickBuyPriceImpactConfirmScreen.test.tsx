@@ -101,14 +101,14 @@ describe('QuickBuyPriceImpactConfirmScreen', () => {
 
   it('renders the description text with formatted price impact', () => {
     render(<QuickBuyPriceImpactConfirmScreen />);
-    expect(screen.getByTestId('price-impact-description')).toBeTruthy();
+    expect(screen.getByTestId('price-impact-description')).toBeOnTheScreen();
   });
 
   it('shows the fiat loss banner when fiat value is available', () => {
     (usePriceImpactFiat as jest.Mock).mockReturnValue('$19,997.62');
     render(<QuickBuyPriceImpactConfirmScreen />);
-    expect(screen.getByTestId('price-impact-fiat-banner')).toBeTruthy();
-    expect(screen.getByTestId('price-impact-fiat-text')).toBeTruthy();
+    expect(screen.getByTestId('price-impact-fiat-banner')).toBeOnTheScreen();
+    expect(screen.getByTestId('price-impact-fiat-text')).toBeOnTheScreen();
   });
 
   it('hides the fiat loss banner when fiat value is unavailable', () => {
