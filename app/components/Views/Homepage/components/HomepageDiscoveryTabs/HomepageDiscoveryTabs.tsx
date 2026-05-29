@@ -32,7 +32,7 @@ import {
   getStreamManagerInstance,
 } from '../../../../UI/Perps/providers/PerpsStreamManager';
 import { PredictPreviewSheetProvider } from '../../../../UI/Predict/contexts';
-import { HomepageDiscoveryTabsHandle } from '../../types';
+import { HomepageDiscoveryTabsHandle, SectionRefreshHandle } from '../../types';
 import { IconName } from '../../../../../component-library/components/Icons/Icon/Icon.types';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './HomepageDiscoveryTabs.styles';
