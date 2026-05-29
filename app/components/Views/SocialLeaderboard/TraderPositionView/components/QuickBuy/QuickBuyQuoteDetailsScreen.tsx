@@ -3,7 +3,10 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  Icon,
+  IconColor,
   IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -36,6 +39,8 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
     formattedMinimumReceived,
     formattedMinimumReceivedFiat,
     formattedRate,
+    formattedPriceImpact,
+    isPriceImpactError,
     quotesLastFetchedAt,
     quoteRefreshRateMs,
     onClose,
@@ -124,6 +129,33 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
             />
           }
         />
+
+        {isPriceImpactError && (
+          <QuickBuyQuoteDetailRow
+            label={strings('bridge.price_impact_info_title')}
+            tooltipTitle={strings('bridge.price_impact_info_title')}
+            tooltipContent={strings('bridge.price_impact_info_description')}
+            value={
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                gap={1}
+              >
+                <Icon
+                  name={IconName.Danger}
+                  size={IconSize.Sm}
+                  color={IconColor.ErrorDefault}
+                />
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.ErrorDefault}
+                >
+                  {formattedPriceImpact}
+                </Text>
+              </Box>
+            }
+          />
+        )}
 
         <QuickBuyQuoteDetailRow
           label={strings('social_leaderboard.quick_buy.minimum_received')}

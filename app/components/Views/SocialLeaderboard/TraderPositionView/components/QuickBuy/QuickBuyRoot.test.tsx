@@ -90,6 +90,20 @@ jest.mock('./components/QuickBuyActionFooter', () => {
   };
 });
 
+jest.mock('./QuickBuyPriceImpactConfirmScreen', () => {
+  const ReactMock = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactMock.createElement(
+        Text,
+        { testID: 'mock-price-impact-confirm' },
+        'price-impact-confirm',
+      ),
+  };
+});
+
 jest.mock('./QuickBuyBottomSheetSkeleton', () => {
   const ReactMock = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');
@@ -232,6 +246,36 @@ describe('QuickBuyRoot', () => {
     expect(screen.getByTestId('mock-toolbar')).toBeOnTheScreen();
     expect(screen.getByTestId('mock-amount-section')).toBeOnTheScreen();
     expect(screen.getByTestId('mock-action-footer')).toBeOnTheScreen();
+  });
+
+  it('renders the price impact confirm screen via the children override', () => {
+    const MockPriceImpactConfirmScreen = () => {
+      const React2 = jest.requireActual('react');
+      const { Text: RNText } = jest.requireActual('react-native');
+      return React2.createElement(
+        RNText,
+        { testID: 'mock-price-impact-confirm' },
+        'price-impact-confirm',
+      );
+    };
+
+    renderWithProvider(
+      <QuickBuyRoot
+        isVisible
+        target={positionToQuickBuyTarget(createPosition())}
+        features={TOP_TRADERS_QUICK_BUY_FEATURES}
+        onClose={jest.fn()}
+      >
+        <MockPriceImpactConfirmScreen />
+      </QuickBuyRoot>,
+    );
+
+    act(() => {
+      storedOnOpenCallback?.();
+    });
+
+    // children override is rendered regardless of activeScreen value
+    expect(screen.getByTestId('mock-price-impact-confirm')).toBeOnTheScreen();
   });
 
   it('shows unsupported chain message without amount flow', () => {
