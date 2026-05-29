@@ -8,7 +8,6 @@ import {
   shouldIgnoreAsBaseline,
   useHwConnectionMonitoring,
 } from './useHwConnectionMonitoring';
-import { updateHardwareWalletsSwaps } from '../../../../core/redux/slices/bridge';
 import {
   HardwareWalletsSwapsStatus,
   HardwareWalletsSwapsEventType,
@@ -17,6 +16,13 @@ import type { HardwareWalletContextValue } from '../../../../core/HardwareWallet
 import { useHardwareWallet } from '../../../../core/HardwareWallet';
 import { isUserCancellation } from '../../../../core/HardwareWallet/errors/helpers';
 import { parseErrorByType } from '../../../../core/HardwareWallet/errors/parser';
+
+const mockUpdateHardwareWalletsSwaps = jest.fn((action) => action);
+
+jest.mock('../../../../core/redux/slices/bridge', () => ({
+  updateHardwareWalletsSwaps: (action: unknown) =>
+    mockUpdateHardwareWalletsSwaps(action),
+}));
 
 jest.mock('../../../../core/HardwareWallet', () => ({
   useHardwareWallet: jest.fn(),
@@ -28,10 +34,6 @@ jest.mock('../../../../core/HardwareWallet/errors/helpers', () => ({
 
 jest.mock('../../../../core/HardwareWallet/errors/parser', () => ({
   parseErrorByType: jest.fn(),
-}));
-
-jest.mock('../../../../core/redux/slices/bridge', () => ({
-  updateHardwareWalletsSwaps: jest.fn((action) => action),
 }));
 
 const mockDispatch = jest.fn((action: unknown) => action);
@@ -184,7 +186,7 @@ describe('useHwConnectionMonitoring', () => {
   it('dispatches DEVICE_DISCONNECTED when connection state changes to Disconnected during signing', () => {
     renderAndTransitionToWaiting(createDisconnectedState());
 
-    expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
+    expect(mockUpdateHardwareWalletsSwaps).toHaveBeenCalledWith({
       type: HardwareWalletsSwapsEventType.DeviceDisconnected,
     });
   });
@@ -192,7 +194,7 @@ describe('useHwConnectionMonitoring', () => {
   it('ignores Disconnected readiness handoff before signing starts', () => {
     renderAndTransitionToWaiting(createDisconnectedState(), false);
 
-    expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
+    expect(mockUpdateHardwareWalletsSwaps).not.toHaveBeenCalled();
   });
 
   it('dispatches DEVICE_DISCONNECTED again after progress re-enters Waiting', () => {
@@ -222,11 +224,11 @@ describe('useHwConnectionMonitoring', () => {
     );
     rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
 
-    expect(updateHardwareWalletsSwaps).toHaveBeenCalledTimes(2);
-    expect(updateHardwareWalletsSwaps).toHaveBeenNthCalledWith(1, {
+    expect(mockUpdateHardwareWalletsSwaps).toHaveBeenCalledTimes(2);
+    expect(mockUpdateHardwareWalletsSwaps).toHaveBeenNthCalledWith(1, {
       type: HardwareWalletsSwapsEventType.DeviceDisconnected,
     });
-    expect(updateHardwareWalletsSwaps).toHaveBeenNthCalledWith(2, {
+    expect(mockUpdateHardwareWalletsSwaps).toHaveBeenNthCalledWith(2, {
       type: HardwareWalletsSwapsEventType.DeviceDisconnected,
     });
   });
@@ -239,7 +241,7 @@ describe('useHwConnectionMonitoring', () => {
 
     renderAndTransitionToWaiting(createErrorState(error));
 
-    expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
+    expect(mockUpdateHardwareWalletsSwaps).toHaveBeenCalledWith({
       type: HardwareWalletsSwapsEventType.DeviceDisconnected,
     });
   });
@@ -252,7 +254,7 @@ describe('useHwConnectionMonitoring', () => {
 
     renderAndTransitionToWaiting(createErrorState(error), false);
 
-    expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
+    expect(mockUpdateHardwareWalletsSwaps).not.toHaveBeenCalled();
   });
 
   it('ignores DeviceDisconnected error code before signing starts', () => {
@@ -263,7 +265,7 @@ describe('useHwConnectionMonitoring', () => {
 
     renderAndTransitionToWaiting(createErrorState(error), false);
 
-    expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
+    expect(mockUpdateHardwareWalletsSwaps).not.toHaveBeenCalled();
   });
 
   it('dispatches DEVICE_DISCONNECTED for an existing disconnect error once signing starts', () => {
@@ -289,11 +291,11 @@ describe('useHwConnectionMonitoring', () => {
     mockUseHardwareWallet.mockReturnValue(mockContextWith(errorState));
     rerender({ hasActiveSigning: false });
 
-    expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
+    expect(mockUpdateHardwareWalletsSwaps).not.toHaveBeenCalled();
 
     rerender({ hasActiveSigning: true });
 
-    expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
+    expect(mockUpdateHardwareWalletsSwaps).toHaveBeenCalledWith({
       type: HardwareWalletsSwapsEventType.DeviceDisconnected,
     });
   });
@@ -306,7 +308,7 @@ describe('useHwConnectionMonitoring', () => {
 
     renderAndTransitionToWaiting(createErrorState(error));
 
-    expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
+    expect(mockUpdateHardwareWalletsSwaps).toHaveBeenCalledWith({
       type: HardwareWalletsSwapsEventType.DeviceDisconnected,
     });
   });
@@ -320,7 +322,7 @@ describe('useHwConnectionMonitoring', () => {
 
     renderAndTransitionToWaiting(createErrorState(error));
 
-    expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
+    expect(mockUpdateHardwareWalletsSwaps).toHaveBeenCalledWith({
       type: HardwareWalletsSwapsEventType.Rejected,
     });
   });
@@ -334,7 +336,7 @@ describe('useHwConnectionMonitoring', () => {
 
     renderAndTransitionToWaiting(createErrorState(error));
 
-    expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
+    expect(mockUpdateHardwareWalletsSwaps).not.toHaveBeenCalled();
   });
 
   it('does not dispatch when isEnabled is false', () => {
@@ -350,7 +352,7 @@ describe('useHwConnectionMonitoring', () => {
       }),
     );
 
-    expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
+    expect(mockUpdateHardwareWalletsSwaps).not.toHaveBeenCalled();
   });
 
   it('does not dispatch when status is not Waiting', () => {
@@ -366,7 +368,7 @@ describe('useHwConnectionMonitoring', () => {
       }),
     );
 
-    expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
+    expect(mockUpdateHardwareWalletsSwaps).not.toHaveBeenCalled();
   });
 
   it('does not repeatedly dispatch for ignored recoverable connection errors', () => {
@@ -377,11 +379,11 @@ describe('useHwConnectionMonitoring', () => {
 
     const { rerender } = renderAndTransitionToWaiting(createErrorState(error));
 
-    expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
+    expect(mockUpdateHardwareWalletsSwaps).not.toHaveBeenCalled();
 
     rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
 
-    expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
+    expect(mockUpdateHardwareWalletsSwaps).not.toHaveBeenCalled();
   });
 
   it('does not dispatch for non-error, non-disconnected states', () => {
@@ -395,7 +397,7 @@ describe('useHwConnectionMonitoring', () => {
       }),
     );
 
-    expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
+    expect(mockUpdateHardwareWalletsSwaps).not.toHaveBeenCalled();
   });
 
   it('returns resetHandledError', () => {
@@ -432,14 +434,14 @@ describe('useHwConnectionMonitoring', () => {
     mockUseHardwareWallet.mockReturnValue(mockContextWith(disconnectedState));
     rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
 
-    expect(updateHardwareWalletsSwaps).toHaveBeenCalledTimes(1);
+    expect(mockUpdateHardwareWalletsSwaps).toHaveBeenCalledTimes(1);
 
     result.current.resetHandledError();
 
     mockUseHardwareWallet.mockReturnValue(mockContextWith(disconnectedState));
     rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
 
-    expect(updateHardwareWalletsSwaps).toHaveBeenCalledTimes(1);
+    expect(mockUpdateHardwareWalletsSwaps).toHaveBeenCalledTimes(1);
   });
 
   it('resetHandledError allows re-dispatch after a subsequent connection state change', () => {
@@ -462,7 +464,7 @@ describe('useHwConnectionMonitoring', () => {
     mockUseHardwareWallet.mockReturnValue(mockContextWith(disconnectedState));
     rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
 
-    expect(updateHardwareWalletsSwaps).toHaveBeenCalledTimes(1);
+    expect(mockUpdateHardwareWalletsSwaps).toHaveBeenCalledTimes(1);
 
     result.current.resetHandledError();
 
@@ -472,7 +474,7 @@ describe('useHwConnectionMonitoring', () => {
     mockUseHardwareWallet.mockReturnValue(mockContextWith(disconnectedState));
     rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
 
-    expect(updateHardwareWalletsSwaps).toHaveBeenCalledTimes(2);
+    expect(mockUpdateHardwareWalletsSwaps).toHaveBeenCalledTimes(2);
   });
 
   it('does not dispatch DEVICE_DISCONNECTED twice for the same disconnect while Waiting', () => {
@@ -480,11 +482,11 @@ describe('useHwConnectionMonitoring', () => {
       createDisconnectedState(),
     );
 
-    expect(updateHardwareWalletsSwaps).toHaveBeenCalledTimes(1);
+    expect(mockUpdateHardwareWalletsSwaps).toHaveBeenCalledTimes(1);
 
     rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
 
-    expect(updateHardwareWalletsSwaps).toHaveBeenCalledTimes(1);
+    expect(mockUpdateHardwareWalletsSwaps).toHaveBeenCalledTimes(1);
   });
 
   it('does not dispatch REJECTED twice for the same error while Waiting', () => {
@@ -496,11 +498,11 @@ describe('useHwConnectionMonitoring', () => {
 
     const { rerender } = renderAndTransitionToWaiting(createErrorState(error));
 
-    expect(updateHardwareWalletsSwaps).toHaveBeenCalledTimes(1);
+    expect(mockUpdateHardwareWalletsSwaps).toHaveBeenCalledTimes(1);
 
     rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
 
-    expect(updateHardwareWalletsSwaps).toHaveBeenCalledTimes(1);
+    expect(mockUpdateHardwareWalletsSwaps).toHaveBeenCalledTimes(1);
   });
 
   it('ignores pre-existing Disconnected state when first entering Waiting', () => {
@@ -516,7 +518,7 @@ describe('useHwConnectionMonitoring', () => {
       }),
     );
 
-    expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
+    expect(mockUpdateHardwareWalletsSwaps).not.toHaveBeenCalled();
   });
 
   it('ignores pre-existing ErrorState when first entering Waiting', () => {
@@ -538,7 +540,7 @@ describe('useHwConnectionMonitoring', () => {
       }),
     );
 
-    expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
+    expect(mockUpdateHardwareWalletsSwaps).not.toHaveBeenCalled();
   });
 
   it('dispatches after recovery when a new ErrorState occurs following stale baseline', () => {
@@ -566,7 +568,7 @@ describe('useHwConnectionMonitoring', () => {
       { initialProps: { currentStatus: HardwareWalletsSwapsStatus.Waiting } },
     );
 
-    expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
+    expect(mockUpdateHardwareWalletsSwaps).not.toHaveBeenCalled();
 
     mockUseHardwareWallet.mockReturnValue(mockContextWith(readyState));
     rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
@@ -576,7 +578,7 @@ describe('useHwConnectionMonitoring', () => {
     );
     rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
 
-    expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
+    expect(mockUpdateHardwareWalletsSwaps).toHaveBeenCalledWith({
       type: HardwareWalletsSwapsEventType.DeviceDisconnected,
     });
   });
@@ -597,7 +599,7 @@ describe('useHwConnectionMonitoring', () => {
       { initialProps: { currentStatus: HardwareWalletsSwapsStatus.Waiting } },
     );
 
-    expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
+    expect(mockUpdateHardwareWalletsSwaps).not.toHaveBeenCalled();
 
     mockUseHardwareWallet.mockReturnValue(mockContextWith(readyState));
     rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
@@ -607,7 +609,7 @@ describe('useHwConnectionMonitoring', () => {
     );
     rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
 
-    expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
+    expect(mockUpdateHardwareWalletsSwaps).toHaveBeenCalledWith({
       type: HardwareWalletsSwapsEventType.DeviceDisconnected,
     });
   });
@@ -638,7 +640,7 @@ describe('useHwConnectionMonitoring', () => {
     );
     rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
 
-    expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
+    expect(mockUpdateHardwareWalletsSwaps).not.toHaveBeenCalled();
 
     mockUseHardwareWallet.mockReturnValue(mockContextWith(readyState));
     rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
@@ -648,6 +650,6 @@ describe('useHwConnectionMonitoring', () => {
     );
     rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
 
-    expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
+    expect(mockUpdateHardwareWalletsSwaps).not.toHaveBeenCalled();
   });
 });
