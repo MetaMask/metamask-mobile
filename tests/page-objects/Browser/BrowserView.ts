@@ -142,7 +142,7 @@ class Browser {
   }
 
   async tapUrlInputBox(): Promise<void> {
-    await Gestures.waitAndTap(this.urlInputBoxID, {
+    await Gestures.tap(this.urlInputBoxID, {
       elemDescription: 'URL input box',
     });
   }
@@ -326,30 +326,13 @@ class Browser {
     url: string,
     options: { skipUrlEditorDismissal?: boolean } = {},
   ): Promise<void> {
-    await Gestures.typeText(this.urlInputBoxID, url, {
-      hideKeyboard: true,
+    await Gestures.replaceText(this.urlInputBoxID, url, {
       elemDescription: 'URL input box',
     });
-    // After typing the URL + "\n", `onSubmitEditing` triggers navigation but
-    // does not always blur the URL bar `TextInput` under RN 0.81 / React 19
-    // on Android. The result is that the URL editor "Cancel" button stays
-    // mounted while the navigation completes, and the right-side action
-    // buttons in the top bar (close, network/account avatar) remain hidden.
-    // Defensively tap Cancel to drop the URL bar back into its non-editing
-    // state so subsequent gestures can target those buttons.
-    //
-    // Callers can opt-out via `skipUrlEditorDismissal: true` when the
-    // dismissal would race with concurrent app work that breaks Detox sync —
-    // notably `browser-phishing.spec.ts`, where phishing detection triggers
-    // AsyncStorage v2 writes that interact badly with Detox's
-    // `AsyncStorageIdlingResource` if dismissal taps land on top of them.
-    if (!options.skipUrlEditorDismissal) {
-      if (await Utilities.isElementVisible(this.cancelUrlInputButton, 1000)) {
-        await Gestures.waitAndTap(this.cancelUrlInputButton, {
-          elemDescription: 'Cancel URL input (dismiss URL editor)',
-        });
-      }
-    }
+
+    await Gestures.tap(Matchers.getElementByText(url, 1), {
+      elemDescription: 'URL list item',
+    });
   }
 
   /**
