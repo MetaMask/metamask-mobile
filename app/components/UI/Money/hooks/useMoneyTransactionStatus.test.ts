@@ -16,6 +16,7 @@ import {
   clearMoneyAccountDepositIntent,
   getMoneyAccountDepositIntent,
 } from './useMoneyAccount';
+import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 
 jest.mock('./useMoneyAccount', () => ({
   __esModule: true,
@@ -48,6 +49,12 @@ jest.mock('../../../../selectors/currencyRateController', () => ({
 jest.mock('../../../../selectors/networkController', () => ({
   ...jest.requireActual('../../../../selectors/networkController'),
   selectNetworkConfigurations: jest.fn(() => undefined),
+}));
+jest.mock('../../../../selectors/accountsController', () => ({
+  ...jest.requireActual('../../../../selectors/accountsController'),
+  selectSelectedInternalAccount: jest.fn(() => ({
+    metadata: { name: 'Account 1' },
+  })),
 }));
 jest.mock('../../../../util/theme', () => ({
   useAppThemeFromContext: jest.fn(() => ({
@@ -493,7 +500,7 @@ describe('useMoneyTransactionStatus', () => {
       expect(depositInProgressFn).not.toHaveBeenCalled();
     });
 
-    it('confirmed → success toast with decoded amount', () => {
+    it('confirmed → success toast with decoded amount and selected-account name', () => {
       const { confirmedHandler } = renderAndGetHandlers();
 
       confirmedHandler(
@@ -510,6 +517,29 @@ describe('useMoneyTransactionStatus', () => {
       expect(withdrawSuccessFn).toHaveBeenCalledTimes(1);
       const params = withdrawSuccessFn.mock.calls[0][0];
       expect(params.amountFiat).toContain('50.00');
+      expect(params.destination).toBe('Account 1');
+    });
+
+    it('falls back to "Money account" when no internal account name is resolvable', () => {
+      jest.mocked(selectSelectedInternalAccount).mockReturnValueOnce(undefined);
+
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          type: TransactionType.moneyAccountWithdraw,
+          status: TransactionStatus.confirmed,
+          txParams: {
+            from: '0x0',
+            data: encodeWithdrawData(BigInt(10_000_000)),
+          },
+        }),
+      );
+
+      expect(withdrawSuccessFn).toHaveBeenCalledTimes(1);
+      expect(withdrawSuccessFn.mock.calls[0][0].destination).toBe(
+        'Money account',
+      );
     });
 
     it('failed → withdraw failed toast', () => {

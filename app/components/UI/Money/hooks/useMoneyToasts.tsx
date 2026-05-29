@@ -53,6 +53,7 @@ export interface DepositFailedParams {
 
 export interface WithdrawSuccessParams {
   amountFiat?: string;
+  destination: string;
 }
 
 export interface MoneyToastOptionsConfig {
@@ -262,7 +263,7 @@ const useMoneyToasts = (): {
           }),
           closeButtonOptions,
         }),
-        success: ({ amountFiat }: WithdrawSuccessParams) => ({
+        success: ({ amountFiat, destination }: WithdrawSuccessParams) => ({
           ...moneyBaseToastOptions.success,
           labelOptions: getMoneyToastLabels({
             primary: strings('money.toasts.withdraw_success_title'),
@@ -275,8 +276,11 @@ const useMoneyToasts = (): {
                 {amountFiat
                   ? strings('money.toasts.withdraw_success_body', {
                       amount: amountFiat,
+                      destination,
                     })
-                  : strings('money.toasts.withdraw_success_body_no_amount')}
+                  : strings('money.toasts.withdraw_success_body_no_amount', {
+                      destination,
+                    })}
               </Text>
             ),
           }),

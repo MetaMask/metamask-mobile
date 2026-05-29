@@ -239,11 +239,12 @@ describe('useMoneyToasts', () => {
       expect(secondary.props.children).toBe('This may take a few minutes.');
     });
 
-    it('success title/body is "Transfer complete" / "$50.00 added to Money account."', () => {
+    it('success title/body interpolates the destination account name', () => {
       const { result } = renderHook(() => useMoneyToasts(), { wrapper });
 
       const toast = result.current.MoneyToastOptions.withdraw.success({
         amountFiat: '$50.00',
+        destination: 'Account 1',
       });
 
       expect(toast.iconName).toBe(IconName.Confirmation);
@@ -252,18 +253,20 @@ describe('useMoneyToasts', () => {
       const secondary = toast.labelOptions?.[2].label as React.ReactElement<{
         children?: React.ReactNode;
       }>;
-      expect(secondary.props.children).toBe('$50.00 added to Money account.');
+      expect(secondary.props.children).toBe('$50.00 added to Account 1.');
     });
 
-    it('success body falls back to "Added to Money account." when amount is missing', () => {
+    it('success body falls back to "Added to {{destination}}." when amount is missing', () => {
       const { result } = renderHook(() => useMoneyToasts(), { wrapper });
 
-      const toast = result.current.MoneyToastOptions.withdraw.success({});
+      const toast = result.current.MoneyToastOptions.withdraw.success({
+        destination: 'My main wallet',
+      });
 
       const secondary = toast.labelOptions?.[2].label as React.ReactElement<{
         children?: React.ReactNode;
       }>;
-      expect(secondary.props.children).toBe('Added to Money account.');
+      expect(secondary.props.children).toBe('Added to My main wallet.');
     });
 
     it('failed title/body is "Transfer failed" / "Unable to transfer funds. Try again."', () => {
@@ -289,7 +292,11 @@ describe('useMoneyToasts', () => {
       ['deposit.success', () => ({ amountFiat: '$1.00' }), 'success'],
       ['deposit.failed', () => ({}), 'failed'],
       ['withdraw.inProgress', () => ({}), 'inProgress'],
-      ['withdraw.success', () => ({ amountFiat: '$1.00' }), 'success'],
+      [
+        'withdraw.success',
+        () => ({ amountFiat: '$1.00', destination: 'Account 1' }),
+        'success',
+      ],
       ['withdraw.failed', () => ({}), 'failed'],
     ])('exposes a Close button on %s', (key, paramsFactory, _builder) => {
       const { result } = renderHook(() => useMoneyToasts(), { wrapper });

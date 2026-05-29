@@ -16,6 +16,7 @@ import {
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
+import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
 import { toChecksumAddress } from '../../../../util/address';
 import {
@@ -202,7 +203,12 @@ export const useMoneyTransactionStatus = () => {
         showToast(MoneyToastOptions.deposit.success({ amountFiat, intent }));
         clearMoneyAccountDepositIntent(transactionMeta.batchId);
       } else {
-        showToast(MoneyToastOptions.withdraw.success({ amountFiat }));
+        const destination =
+          selectSelectedInternalAccount(store.getState())?.metadata?.name ??
+          'Money account';
+        showToast(
+          MoneyToastOptions.withdraw.success({ amountFiat, destination }),
+        );
       }
       scheduleCleanup(transactionMeta.id, CONFIRMED_KEY);
     };
