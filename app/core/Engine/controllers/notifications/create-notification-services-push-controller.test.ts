@@ -133,9 +133,25 @@ describe('Notification Services Controller', () => {
     expect(constructorParams?.state).toEqual(state);
   });
 
-  it('passes mobile OS and app version metadata for push registration', () => {
+  it.each(['7.80', '7.80.0'])(
+    'passes app version %s for push registration',
+    (appVersion) => {
+      jest.mocked(getVersion).mockReturnValue(appVersion);
+
+      const { messenger, assertGetConstructorCall } = arrange();
+      createNotificationServicesPushController({ messenger });
+
+      const constructorParams = assertGetConstructorCall();
+      expect(constructorParams?.config).toEqual(
+        expect.objectContaining({
+          appVersion,
+        }),
+      );
+    },
+  );
+
+  it('passes mobile OS metadata for push registration', () => {
     Platform.OS = 'android';
-    jest.mocked(getVersion).mockReturnValue('7.80.0');
 
     const { messenger, assertGetConstructorCall } = arrange();
     createNotificationServicesPushController({ messenger });
@@ -144,14 +160,31 @@ describe('Notification Services Controller', () => {
     expect(constructorParams?.config).toEqual(
       expect.objectContaining({
         os: 'android',
-        appVersion: '7.80.0',
       }),
     );
   });
 
-  it('omits app version metadata when the version is not API-safe', () => {
-    Platform.OS = 'ios';
-    jest.mocked(getVersion).mockReturnValue('7.80.0-flask.1');
+  it.each(['7', '7.80.0.1', '7.80.0-flask.1', '7.80.0+build.1', 'v7.80.0'])(
+    'omits app version metadata when version %s is not API-safe',
+    (appVersion) => {
+      jest.mocked(getVersion).mockReturnValue(appVersion);
+
+      const { messenger, assertGetConstructorCall } = arrange();
+      createNotificationServicesPushController({ messenger });
+
+      const constructorParams = assertGetConstructorCall();
+      expect(constructorParams?.config).toEqual(
+        expect.not.objectContaining({
+          appVersion: expect.any(String),
+        }),
+      );
+    },
+  );
+
+  it('omits app version metadata when the version lookup fails', () => {
+    jest.mocked(getVersion).mockImplementation(() => {
+      throw new Error('Version lookup failed');
+    });
 
     const { messenger, assertGetConstructorCall } = arrange();
     createNotificationServicesPushController({ messenger });
@@ -162,6 +195,16 @@ describe('Notification Services Controller', () => {
         appVersion: expect.any(String),
       }),
     );
+  });
+
+  it('still passes OS metadata when app version metadata is omitted', () => {
+    Platform.OS = 'ios';
+    jest.mocked(getVersion).mockReturnValue('7.80.0-flask.1');
+
+    const { messenger, assertGetConstructorCall } = arrange();
+    createNotificationServicesPushController({ messenger });
+
+    const constructorParams = assertGetConstructorCall();
     expect(constructorParams?.config).toEqual(
       expect.objectContaining({
         os: 'ios',
