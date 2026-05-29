@@ -38,6 +38,13 @@ import {
 } from '../../../actions/onboarding';
 import { selectWalletHomeOnboardingSteps } from '../../../selectors/onboarding';
 import { WalletHomeOnboardingStepsSelectors } from './WalletHomeOnboardingSteps.testIds';
+import { useABTest } from '../../../hooks';
+import {
+  ONBOARDING_CHECKLIST_STEPPER_AB_KEY,
+  ONBOARDING_CHECKLIST_STEPPER_AB_TEST_EXPOSURE_OPTIONS,
+  ONBOARDING_CHECKLIST_STEPPER_VARIANTS,
+} from './abTestConfig';
+import WalletHomeOnboardingStepper from './WalletHomeOnboardingStepper';
 import Logger from '../../../util/Logger';
 import onboardChecklistV05Animation from '../../../animations/onboard_checklist_v05.riv';
 import { isE2E } from '../../../util/test/utils';
@@ -134,6 +141,16 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     selectWalletHomeOnboardingSteps,
   );
   const stepIndex = walletHomeOnboardingStepsState.stepIndex ?? 0;
+
+  // Onboarding checklist stepper experiment (TMCU-828). This component only
+  // mounts once the user passes the checklist gate, so exposure is scoped to
+  // eligible users automatically. Control keeps the continuous progress bar.
+  const { variant: stepperAbVariant } = useABTest(
+    ONBOARDING_CHECKLIST_STEPPER_AB_KEY,
+    ONBOARDING_CHECKLIST_STEPPER_VARIANTS,
+    ONBOARDING_CHECKLIST_STEPPER_AB_TEST_EXPOSURE_OPTIONS,
+  );
+  const useDiscreteStepper = stepperAbVariant.useDiscreteStepper;
 
   useWalletHomeOnboardingChecklistHomeViewed({
     isAwaitingBalance,
@@ -857,21 +874,30 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
             </Text>
           </Box>
 
-          <Box
-            twClassName="h-2 w-full rounded-full bg-muted overflow-hidden"
-            accessibilityLabel={progressLabel}
-            testID={WalletHomeOnboardingStepsSelectors.PROGRESS_LABEL}
-            onLayout={(e) => {
-              setProgressTrackWidth(e.nativeEvent.layout.width);
-            }}
-          >
-            <Animated.View
-              style={[
-                tw.style('h-full rounded-full bg-success-default'),
-                { width: progressFillWidth },
-              ]}
+          {useDiscreteStepper ? (
+            <WalletHomeOnboardingStepper
+              totalSteps={totalSteps}
+              currentStepIndex={visualStepIndexForProgress}
+              accessibilityLabel={progressLabel}
+              testID={WalletHomeOnboardingStepsSelectors.PROGRESS_LABEL}
             />
-          </Box>
+          ) : (
+            <Box
+              twClassName="h-2 w-full rounded-full bg-muted overflow-hidden"
+              accessibilityLabel={progressLabel}
+              testID={WalletHomeOnboardingStepsSelectors.PROGRESS_LABEL}
+              onLayout={(e) => {
+                setProgressTrackWidth(e.nativeEvent.layout.width);
+              }}
+            >
+              <Animated.View
+                style={[
+                  tw.style('h-full rounded-full bg-success-default'),
+                  { width: progressFillWidth },
+                ]}
+              />
+            </Box>
+          )}
         </Box>
 
         {/*

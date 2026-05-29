@@ -17,6 +17,8 @@ import {
   WALLET_HOME_ONBOARDING_CHECKLIST_STEP_FULL_TRANSITION_MS,
   WALLET_HOME_ONBOARDING_POST_NAV_RESUME_HOLD_MS,
 } from './walletHomeOnboardingChecklistRive';
+import { WALLET_HOME_ONBOARDING_VISIBLE_STEPS } from './walletHomeOnboardingStepsModel';
+import { ONBOARDING_CHECKLIST_STEPPER_AB_KEY } from './abTestConfig';
 
 const mockUseIsFocused = jest.fn(() => true);
 
@@ -582,6 +584,58 @@ describe('WalletHomeOnboardingSteps', () => {
       expect(store.getState().onboarding.walletHomeOnboardingSteps).toEqual(
         expect.objectContaining({ stepIndex: 1 }),
       );
+    });
+  });
+
+  describe('onboarding checklist stepper experiment (TMCU-828)', () => {
+    const progressTestId = WalletHomeOnboardingStepsSelectors.PROGRESS_LABEL;
+    const firstSegmentTestId = `${progressTestId}-segment-0`;
+
+    const renderWithStepperArm = (variantName?: 'control' | 'treatment') =>
+      renderWithProvider(<WalletHomeOnboardingSteps testID="steps-root" />, {
+        state: {
+          onboarding: { ...baseOnboarding },
+          engine: {
+            backgroundState: {
+              ...backgroundState,
+              RemoteFeatureFlagController: {
+                ...backgroundState.RemoteFeatureFlagController,
+                remoteFeatureFlags: {
+                  ...backgroundState.RemoteFeatureFlagController
+                    ?.remoteFeatureFlags,
+                  ...(variantName
+                    ? { [ONBOARDING_CHECKLIST_STEPPER_AB_KEY]: variantName }
+                    : {}),
+                },
+              },
+            },
+          },
+        },
+      });
+
+    it('renders the continuous progress bar (no segments) for control', () => {
+      const { getByTestId, queryByTestId } = renderWithStepperArm('control');
+
+      expect(getByTestId(progressTestId)).toBeOnTheScreen();
+      expect(queryByTestId(firstSegmentTestId)).toBeNull();
+    });
+
+    it('renders the continuous progress bar when no arm is assigned', () => {
+      const { getByTestId, queryByTestId } = renderWithStepperArm();
+
+      expect(getByTestId(progressTestId)).toBeOnTheScreen();
+      expect(queryByTestId(firstSegmentTestId)).toBeNull();
+    });
+
+    it('renders the discrete stepper with one segment per visible step for treatment', () => {
+      const { getByTestId } = renderWithStepperArm('treatment');
+
+      expect(getByTestId(progressTestId)).toBeOnTheScreen();
+      WALLET_HOME_ONBOARDING_VISIBLE_STEPS.forEach((_, index) => {
+        expect(
+          getByTestId(`${progressTestId}-segment-${index}`),
+        ).toBeOnTheScreen();
+      });
     });
   });
 });
