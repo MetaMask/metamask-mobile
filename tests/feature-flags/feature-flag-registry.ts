@@ -4759,17 +4759,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  exploreSearchV2: {
-    name: 'exploreSearchV2',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      minimumVersion: '7.79.0',
-      enabled: false,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   assetsASSETS3205AbtestAmbientPriceColor: {
     name: 'assetsASSETS3205AbtestAmbientPriceColor',
     type: FeatureFlagType.Remote,

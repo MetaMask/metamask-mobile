@@ -8,13 +8,11 @@ import React, {
 import { ActivityIndicator, Keyboard, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
 import { FlashList, FlashListRef, ListRenderItem } from '@shopify/flash-list';
 import ExploreSearchBar from '../../components/ExploreSearchBar/ExploreSearchBar';
 import PillRow, { type PillOption } from '../../components/PillRow';
-import ExploreSearchResults from '../../search/ExploreSearchResults';
 import ExploreSearchResultsV2 from '../../search/ExploreSearchResultsV2';
 import SearchFeedRow, {
   SearchFeedSkeleton,
@@ -32,7 +30,6 @@ import {
 import PerpsSectionProvider from '../../feeds/perps/PerpsSectionProvider';
 import SitesSearchFooter from '../../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
 import { strings } from '../../../../../../locales/i18n';
-import { selectExploreSearchV2Flag } from '../../../../../selectors/featureFlagController/exploreSearchV2';
 import { MAX_ITEMS_PER_SECTION } from '../../search/viewMoreLabel';
 
 const ALL_PILL_KEY = 'all' as const;
@@ -244,7 +241,6 @@ const ExploreSearchScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const [searchQuery, setSearchQuery] = useState('');
-  const isExploreSearchV2Enabled = useSelector(selectExploreSearchV2Flag);
 
   const handleSearchCancel = useCallback(() => {
     setSearchQuery('');
@@ -267,11 +263,7 @@ const ExploreSearchScreen: React.FC = () => {
       </Box>
 
       <PerpsSectionProvider>
-        {isExploreSearchV2Enabled ? (
-          <ExploreSearchV2Content searchQuery={searchQuery} />
-        ) : (
-          <ExploreSearchResults searchQuery={searchQuery} />
-        )}
+        <ExploreSearchV2Content searchQuery={searchQuery} />
       </PerpsSectionProvider>
     </Box>
   );
