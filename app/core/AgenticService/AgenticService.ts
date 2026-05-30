@@ -1,11 +1,9 @@
 /**
- * AgenticService — __DEV__-only bridge for AI coding agents.
+ * AgenticService — __DEV__-only bridge for Farmslot recipe runners.
  *
- * This file is NEVER bundled in production builds (guarded by __DEV__).
- * It intentionally uses loose types, inline casts, and minimal abstractions
- * because it is throwaway dev tooling — not shared library code. Do not
- * apply production code standards (strict types, full error handling,
- * abstraction layers) here; keep it pragmatic and easy to change.
+ * This file is not bundled in production builds. It exposes a stable control
+ * surface for deterministic local recipes while keeping user-visible proof
+ * flows on the real app path.
  */
 import {
   NavigationContainerRef,
@@ -54,6 +52,8 @@ import {
 import { bufferToHex, privateToAddress } from 'ethereumjs-util';
 import Authentication from '../Authentication';
 import { Wallet as EthersWallet } from 'ethers';
+import PerpsConnectionManager from '../../components/UI/Perps/services/PerpsConnectionManager';
+import { getStreamManagerInstance } from '../../components/UI/Perps/providers/PerpsStreamManager';
 
 // ─── Fiber tree types ──────────────────────────────────────────────────────
 
@@ -195,6 +195,7 @@ interface AgenticBridge {
   }>;
   showStep: (step: { id: string; description: string }) => void;
   hideStep: () => void;
+  refreshPerpsStreams: () => Promise<{ ok: boolean; positions: number }>;
   findFiberByTestId: (testId: string) => boolean;
   queryUiTarget: (options: {
     testId?: string;
@@ -1220,6 +1221,19 @@ const AgenticService = {
       },
       hideStep: () => {
         _stepHudCallback?.(null);
+      },
+      refreshPerpsStreams: async () => {
+        await PerpsConnectionManager.ensureConnected({
+          source: 'agentic_refresh_perps_streams',
+          suppressError: true,
+        });
+        const streamManager = getStreamManagerInstance();
+        streamManager.clearAllChannels();
+        const positions = await Engine.context.PerpsController.getPositions();
+        return {
+          ok: true,
+          positions: Array.isArray(positions) ? positions.length : 0,
+        };
       },
       findFiberByTestId: (testId: string): boolean => {
         let found = false;

@@ -56,6 +56,7 @@ jest.mock('../Engine', () => ({
     },
     PerpsController: {
       markTutorialCompleted: jest.fn(),
+      getPositions: jest.fn().mockResolvedValue([]),
     },
   },
   setSelectedAddress: jest.fn(),
@@ -69,6 +70,22 @@ jest.mock('../Engine/Engine', () => ({
   Engine: class {
     static disableAutomaticVaultBackup = false;
   },
+}));
+
+const mockEnsureConnected = jest.fn().mockResolvedValue(undefined);
+const mockClearAllChannels = jest.fn();
+
+jest.mock('../../components/UI/Perps/services/PerpsConnectionManager', () => ({
+  __esModule: true,
+  default: {
+    ensureConnected: (...args: unknown[]) => mockEnsureConnected(...args),
+  },
+}));
+
+jest.mock('../../components/UI/Perps/providers/PerpsStreamManager', () => ({
+  getStreamManagerInstance: () => ({
+    clearAllChannels: (...args: unknown[]) => mockClearAllChannels(...args),
+  }),
 }));
 
 // Authentication pulls in the full auth/keychain stack; stub the singleton.
@@ -125,9 +142,18 @@ jest.mock('../../actions/settings', () => ({
 jest.mock('@metamask/key-tree', () => ({
   mnemonicPhraseToBytes: jest.fn((s: string) => new Uint8Array(s.length)),
 }));
-jest.mock('../../store/storage-wrapper', () => ({
-  setItem: jest.fn().mockResolvedValue(undefined),
-}));
+jest.mock('../../store/storage-wrapper', () => {
+  const storageWrapper = {
+    getItem: jest.fn().mockResolvedValue(null),
+    setItem: jest.fn().mockResolvedValue(undefined),
+  };
+  return {
+    __esModule: true,
+    default: storageWrapper,
+    getItem: storageWrapper.getItem,
+    setItem: storageWrapper.setItem,
+  };
+});
 jest.mock('../../constants/storage', () => ({
   OPTIN_META_METRICS_UI_SEEN: 'optin_meta_metrics_ui_seen',
   PERPS_GTM_MODAL_SHOWN: 'perps_gtm',
@@ -470,6 +496,24 @@ describe('AgenticService.install', () => {
   it('goBack delegates to deferred navigation', () => {
     bridge().goBack();
     expect(mockDeferredNav.goBack).toHaveBeenCalled();
+  });
+
+  it('refreshPerpsStreams reconnects streams and reports position count', async () => {
+    mockEnsureConnected.mockClear();
+    mockClearAllChannels.mockClear();
+    (
+      MockEngine.context.PerpsController.getPositions as jest.Mock
+    ).mockResolvedValue([{ coin: 'ETH' }, { coin: 'BTC' }]);
+
+    await expect(bridge().refreshPerpsStreams()).resolves.toEqual({
+      ok: true,
+      positions: 2,
+    });
+    expect(mockEnsureConnected).toHaveBeenCalledWith({
+      source: 'agentic_refresh_perps_streams',
+      suppressError: true,
+    });
+    expect(mockClearAllChannels).toHaveBeenCalledTimes(1);
   });
 
   it('listAccounts returns mapped accounts', () => {
