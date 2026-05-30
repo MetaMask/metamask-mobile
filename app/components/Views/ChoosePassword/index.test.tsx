@@ -54,7 +54,10 @@ jest.mock('@metamask/key-tree', () => ({
 
 import ChoosePassword from './index.tsx';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { AccountType } from '../../../constants/onboarding';
+import {
+  AccountType,
+  ONBOARDING_SUCCESS_FLOW,
+} from '../../../constants/onboarding';
 import {
   TraceName,
   TraceOperation,
@@ -700,7 +703,9 @@ describe('ChoosePassword', () => {
           routes: [
             {
               name: 'OnboardingSuccess',
-              params: { showPasswordHint: true },
+              params: {
+                successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
+              },
             },
           ],
         });

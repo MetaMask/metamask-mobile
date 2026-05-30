@@ -132,7 +132,6 @@ const Routes = {
   WHATS_HAPPENING_DETAIL: 'WhatsHappeningDetailView',
   SITES_FULL_VIEW: 'SitesFullView',
   EXPLORE_SEARCH: 'ExploreSearch',
-  EXPLORE_SECTION_RESULTS_FULL_VIEW: 'ExploreSectionResultsFullView',
   REWARDS_ONBOARDING_FLOW: 'RewardsOnboardingFlow',
   REWARDS_ONBOARDING_INTRO: 'RewardsOnboardingIntro',
   REWARD_BENEFITS_FULL_VIEW: 'BenefitsFullView',
@@ -331,6 +330,7 @@ const Routes = {
       BATCH_SELL_NETWORK_FEE_INFO_MODAL: 'BatchSellNetworkFeeInfoModal',
       BATCH_SELL_MINIMUM_RECEIVED_INFO_MODAL:
         'BatchSellMinimumReceivedInfoModal',
+      BATCH_SELL_PRICE_IMPACT_INFO_MODAL: 'BatchSellPriceImpactInfoModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },

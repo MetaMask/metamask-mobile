@@ -3200,14 +3200,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  explorePageV2Enabled: {
-    name: 'explorePageV2Enabled',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: true,
-    status: FeatureFlagStatus.Active,
-  },
-
   forceRampsStagingEnvironment: {
     name: 'forceRampsStagingEnvironment',
     type: FeatureFlagType.Remote,
@@ -3376,17 +3368,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  moneyHomeScreenEnabled: {
-    name: 'moneyHomeScreenEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      minimumVersion: '0.0.0',
-      enabled: false,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   nonZeroUnusedApprovals: {
     name: 'nonZeroUnusedApprovals',
     type: FeatureFlagType.Remote,
@@ -3476,6 +3457,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       minimumVersion: '7.62.0',
       enabled: true,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsCompetitionBannerEnabled: {
+    name: 'perpsCompetitionBannerEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      minimumVersion: '0.0.0',
+      enabled: false,
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4454,18 +4446,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  exploreSectionsOrder: {
-    name: 'exploreSectionsOrder',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      home: ['predictions', 'tokens', 'perps', 'stocks', 'sites'],
-      quickActions: ['tokens', 'perps', 'stocks', 'predictions', 'sites'],
-      search: ['tokens', 'perps', 'stocks', 'predictions', 'sites'],
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   extensionUxPna25: {
     name: 'extensionUxPna25',
     type: FeatureFlagType.Remote,
@@ -4763,17 +4743,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       minimumVersion: '0.0.0',
-      enabled: false,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  exploreSearchV2: {
-    name: 'exploreSearchV2',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      minimumVersion: '7.79.0',
       enabled: false,
     },
     status: FeatureFlagStatus.Active,

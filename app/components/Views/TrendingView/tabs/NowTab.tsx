@@ -17,6 +17,7 @@ import { TokenRowItem } from '../feeds/tokens/TokenRowItem';
 import CryptoMoversPillItem from '../feeds/tokens/CryptoMoversPillItem';
 import CryptoMoversSkeleton from '../feeds/tokens/CryptoMoversSkeleton';
 import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
+import { TimeOption } from '../../../UI/Trending/components/TrendingTokensBottomSheet';
 import { usePerpsFeed, type PerpsFeedItem } from '../feeds/perps/usePerpsFeed';
 import PerpsSectionProvider from '../feeds/perps/PerpsSectionProvider';
 import PerpsPillItem from '../feeds/perps/PerpsPillItem';
@@ -98,6 +99,10 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
   );
 };
 
+const CRYPTO_MOVERS_TIME_OPTION = TimeOption.OneHour;
+const CRYPTO_MOVERS_ROW_COUNT = 3;
+const CRYPTO_MOVERS_MAX_PILLS = 18;
+
 const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const perpsNavigation =
@@ -118,7 +123,11 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   }, [refresh.trigger]);
 
   const predictions = usePredictionsFeed({ refresh });
-  const cryptoMovers = useTokensFeed({ refresh, hideRiskyTokens: true });
+  const cryptoMovers = useTokensFeed({
+    refresh,
+    hideRiskyTokens: true,
+    timeOption: CRYPTO_MOVERS_TIME_OPTION,
+  });
   const stocks = useStocksFeed({ refresh });
 
   const renderTokenItem: ListRenderItem<TrendingAsset> = useCallback(
@@ -180,7 +189,7 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
     <ExploreScroll
       refreshing={refreshing}
       onRefresh={onRefresh}
-      testID={TrendingViewSelectorsIDs.TRENDING_FEED_SCROLL_VIEW}
+      testID={TrendingViewSelectorsIDs.EXPLORE_NOW_SCROLL_VIEW}
     >
       {orderedIntroSections}
 
@@ -189,7 +198,9 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
           <SectionHeader
             title={strings('trending.crypto_movers')}
             onViewAll={() =>
-              navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW)
+              navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW, {
+                initialTimeOption: CRYPTO_MOVERS_TIME_OPTION,
+              })
             }
             testID="section-header-view-all-crypto_movers"
             tabName="Now"
@@ -202,6 +213,7 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
               <CryptoMoversPillItem
                 token={token}
                 index={index}
+                timeOption={CRYPTO_MOVERS_TIME_OPTION}
                 onCardPress={() =>
                   trackExploreInteracted({
                     interaction_type: 'section_item_tapped',
@@ -219,6 +231,8 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
             keyExtractor={(token) => token.assetId ?? ''}
             Skeleton={CryptoMoversSkeleton}
             listTestId="explore-crypto_movers-pills-list"
+            rowCount={CRYPTO_MOVERS_ROW_COUNT}
+            maxPills={CRYPTO_MOVERS_MAX_PILLS}
           />
         </Box>
       )}
