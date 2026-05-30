@@ -2,6 +2,8 @@ import React from 'react';
 import { Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
+  AvatarNetwork,
+  AvatarNetworkSize,
   Box,
   Text,
   TextVariant,
@@ -13,8 +15,6 @@ import {
   BoxAlignItems,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
-import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
-import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 
 import { NetworkManagementItem } from '../NetworksManagementView.types';
 import { NetworksManagementViewSelectorsIDs } from '../NetworksManagementView.testIds';
@@ -45,8 +45,8 @@ const AdditionalNetworkItem = ({ item, onAdd }: AdditionalNetworkItemProps) => {
         <Box twClassName="mr-4">
           <AvatarNetwork
             name={item.name}
-            size={AvatarSize.Md}
-            imageSource={item.imageSource}
+            size={AvatarNetworkSize.Md}
+            src={item.imageSource}
           />
         </Box>
         <Text variant={TextVariant.BodyMd}>{item.name}</Text>
