@@ -955,18 +955,12 @@ function getRowValue(
     maxTexts?: number;
   } = {},
 ): string | null {
-  try {
-    const rowTexts = findRowTexts(label, options);
-    if (!rowTexts) {
-      return null;
-    }
-    const matcher = new RegExp(pattern);
-    return (
-      rowTexts.find((text) => text !== label && matcher.test(text)) ?? null
-    );
-  } catch {
+  const rowTexts = findRowTexts(label, options);
+  if (!rowTexts) {
     return null;
   }
+  const matcher = new RegExp(pattern);
+  return rowTexts.find((text) => text !== label && matcher.test(text)) ?? null;
 }
 
 // ─── Step HUD callback registry ─────────────────────────────────────────────
