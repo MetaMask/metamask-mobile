@@ -107,6 +107,7 @@ const Routes = {
   REFERRAL_REWARDS_VIEW: 'ReferralRewardsView',
   REWARDS_SETTINGS_VIEW: 'RewardsSettingsView',
   REWARDS_DASHBOARD: 'RewardsDashboard',
+  REWARDS_VIP_SPLASH_VIEW: 'RewardsVipSplashView',
   REWARDS_VIP_VIEW: 'RewardsVipView',
   REWARDS_VIP_TIERS_VIEW: 'RewardsVipTiersView',
   REWARDS_CAMPAIGNS_VIEW: 'RewardsCampaignsView',
