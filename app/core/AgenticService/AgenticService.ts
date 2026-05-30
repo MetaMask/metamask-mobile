@@ -596,37 +596,28 @@ async function materializeFixtureAccounts(
 
   for (const account of fixture.accounts) {
     if (account.type !== 'privateKey') continue;
-    // One bad private key shouldn't abort the whole fixture: log and continue.
-    // setup-wallet.sh validates the full expected account set afterwards.
-    try {
-      const address = getPrivateKeyAddress(account.value);
-      let imported = findEvmAccounts(
+    const address = getPrivateKeyAddress(account.value);
+    let imported = findEvmAccounts(
+      AccountsController.state.internalAccounts.accounts,
+    ).find((evmAccount) => evmAccount.address.toLowerCase() === address);
+
+    if (!imported) {
+      await KeyringController.importAccountWithStrategy(
+        AccountImportStrategy.privateKey,
+        [`0x${normalizePrivateKey(account.value)}`],
+      );
+      imported = findEvmAccounts(
         AccountsController.state.internalAccounts.accounts,
       ).find((evmAccount) => evmAccount.address.toLowerCase() === address);
+    }
 
-      if (!imported) {
-        await KeyringController.importAccountWithStrategy(
-          AccountImportStrategy.privateKey,
-          [`0x${normalizePrivateKey(account.value)}`],
-        );
-        imported = findEvmAccounts(
-          AccountsController.state.internalAccounts.accounts,
-        ).find((evmAccount) => evmAccount.address.toLowerCase() === address);
-      }
-
-      if (!imported) {
-        throw new Error(
-          `Fixture private key import did not create account ${address}`,
-        );
-      }
-      if (account.name) {
-        setFixtureAccountName(AccountTreeController, imported, account.name);
-      }
-    } catch (e) {
-      Logger.log(
-        String(e),
-        'AgenticService.materializeFixtureAccounts.privateKey',
+    if (!imported) {
+      throw new Error(
+        `Fixture private key import did not create account ${address}`,
       );
+    }
+    if (account.name) {
+      setFixtureAccountName(AccountTreeController, imported, account.name);
     }
   }
 }
