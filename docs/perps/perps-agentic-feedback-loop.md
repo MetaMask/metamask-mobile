@@ -24,8 +24,6 @@ validate-recipe.sh          # Orchestrates flow execution
   |
   +-- teams/perps/
         +-- flows/           # 12 parameterized flow JSONs
-        +-- evals/           # Hierarchical eval ref collections
-        +-- evals.json       # Built-in eval refs
         +-- pre-conditions.js # Named pre-condition checks
 ```
 
@@ -37,8 +35,8 @@ validate-recipe.sh          # Orchestrates flow execution
 # 1. Check app + Metro + CDP are connected
 yarn a:status
 
-# 2. Run a built-in eval ref (single CDP eval)
-bash scripts/perps/agentic/app-state.sh eval-ref perps/positions
+# 2. Read app/controller state for debugging
+bash scripts/perps/agentic/app-state.sh status
 
 # 3. Run a flow (multi-step UI sequence)
 bash scripts/perps/agentic/validate-recipe.sh \
@@ -111,8 +109,8 @@ String form for simple checks, object form for parameterized checks. Shorthand `
 
 Enforced by `node scripts/perps/agentic/validate-flow-schema.js`:
 
-1. **Eval steps must assert.** Every `eval_sync`, `eval_async`, `eval_ref` step needs an `"assert"` block. Use `{"operator":"not_null"}` at minimum.
-2. **Terminal step must assert.** The last step must be an asserting eval or a `log_watch`. Never end on `wait`, `navigate`, or `press`.
+1. **State-read steps must assert.** Any direct CDP state read needs an `"assert"` block. Use `{"operator":"not_null"}` at minimum.
+2. **Terminal step must assert.** The last step must prove the intended outcome. Never end on a pure navigation or press.
 3. **No unknown actions.** Only recognized action types are allowed.
 4. **Inputs must match params.** Every `{{param}}` in steps must have a matching key in `inputs`.
 
@@ -137,40 +135,12 @@ Full schema: `scripts/perps/agentic/schemas/flow.schema.json`
 
 ---
 
-## Eval Refs
+## Recipe v1 typed state reads
 
-Eval refs are named CDP eval expressions in `teams/perps/evals.json` and `teams/perps/evals/*.json`. Unlike flows (multi-step UI sequences), eval refs are single eval calls.
-
-```bash
-# List all eval refs
-bash scripts/perps/agentic/app-state.sh eval-ref --list
-
-# Run an eval ref
-bash scripts/perps/agentic/app-state.sh eval-ref perps/positions
-bash scripts/perps/agentic/app-state.sh eval-ref perps/core/watchlist
-bash scripts/perps/agentic/app-state.sh eval-ref perps/setup/testnet-mode
-```
-
-**Built-in eval refs** (`perps/`): positions, auth, balances, markets, orders, state, providers, pre-trade, post-trade, place-order
-
-**Extended eval refs** (`perps/core/`): pump-market, tpsl-orders, positions-by-symbol, leverage-config, watchlist
-
-**Setup eval refs** (`perps/setup/`): testnet-mode, current-provider
-
-### eval_ref in Flows
-
-Use `eval_ref` inside a flow to run a built-in eval ref and assert on its result:
-
-```json
-{
-  "id": "check-pos",
-  "action": "eval_ref",
-  "ref": "positions",
-  "assert": { "operator": "length_gt", "field": "positions", "value": 0 }
-}
-```
-
----
+Recipe v1 recipes should use manifest-declared MetaMask actions such as
+`metamask.wallet.read_state`, `metamask.perps.read_positions`, and
+`metamask.perps.read_orders` for reusable state assertions. Raw CDP evaluation is
+reserved for debugging or for implementing a reviewed runner action.
 
 ## CDP Commands
 
@@ -184,11 +154,10 @@ $CDP status                     # Route + account snapshot
 $CDP get-route                  # Current route name
 $CDP eval "<expression>"        # Sync JS eval (ES5 only)
 $CDP eval-async "<expression>"  # Async eval (Promise, use .then())
-$CDP eval-ref perps/positions    # Run a named eval ref
 $CDP check-pre-conditions '<json>'  # Validate pre-conditions
 $CDP press-test-id <testId>     # Press by testID
 $CDP scroll-view --test-id <id> # Scroll a view
-$CDP set-input <testId> "val"   # Type into input
+$CDP set-input <testId> "val"   # Debug-only visible input helper
 ```
 
 **ES5 only.** No arrow functions, no `const`/`let`, no template literals, no top-level `await`.
@@ -207,16 +176,15 @@ $CDP eval-async "await Engine.context.getPos()"   # top-level await
 
 ## Shell Commands
 
-| Command                                                                                      | Purpose                                                        |
-| -------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| `app-state.sh status\|route\|eval\|eval-async\|eval-ref\|accounts\|press\|scroll\|set-input` | State queries and UI interaction                               |
-| `app-navigate.sh <Route> [params-json]`                                                      | Navigate + auto-screenshot. `--list` discovers all live routes |
-| `screenshot.sh [label]`                                                                      | Cross-platform screenshot (iOS simctl / Android adb)           |
-| `validate-recipe.sh <path> [--dry-run] [--skip-manual] [--step <id>]`                        | Execute a flow/recipe against the live app                     |
-| `validate-flow-schema.js`                                                                    | Validate all flows against authoring rules                     |
-| `validate-pre-conditions.js`                                                                 | Verify pre-condition expressions and assertions                |
-| `start-metro.sh --platform ios\|android`                                                     | Start or attach to Metro                                       |
-| `setup-wallet.sh`                                                                            | Seed wallet from `.agent/wallet-fixture.json`                  |
+| Command                                                                            | Purpose                                         |
+| ---------------------------------------------------------------------------------- | ----------------------------------------------- |
+| `app-state.sh status\|route\|eval\|eval-async\|accounts\|press\|scroll\|set-input` | State queries and UI interaction                |
+| `app-navigate.sh <Route> [params-json]`                                            | Navigate and discover live routes with `--list` |
+| `validate-recipe.sh <path> [--dry-run] [--skip-manual] [--step <id>]`              | Execute a flow/recipe against the live app      |
+| `validate-flow-schema.js`                                                          | Validate all flows against authoring rules      |
+| `validate-pre-conditions.js`                                                       | Verify pre-condition expressions and assertions |
+| `start-metro.sh --platform ios\|android`                                           | Start or attach to Metro                        |
+| `setup-wallet.sh`                                                                  | Seed wallet from `.agent/wallet-fixture.json`   |
 
 ---
 
@@ -245,10 +213,10 @@ The toolkit interacts with React components by `testID` — no coordinates neede
 ```bash
 bash app-state.sh press <testId>                         # tap a button
 bash app-state.sh scroll --test-id <testId> --offset 300 # scroll down
-bash app-state.sh set-input <testId> "0.5"               # type into input
+bash app-state.sh set-input <testId> "0.5"               # debug-only input helper
 ```
 
-In flows, use `press`, `scroll`, `set_input`, `type_keypad`, `clear_keypad`, and `wait_for` actions.
+In Recipe v1, prefer manifest-declared actions such as `ui.press`, `ui.scroll`, and semantic `metamask.perps.*` actions. Use raw input helpers only when the proof specifically needs visible typing.
 
 **Keypad pattern:** Always clear before typing — use `clear_keypad` (count: 8) before `type_keypad` to wipe any pre-filled value. Assert the displayed amount matches before submitting.
 
@@ -258,11 +226,11 @@ In flows, use `press`, `scroll`, `set_input`, `type_keypad`, `clear_keypad`, and
 
 Gherkin maps naturally to flow JSON:
 
-| Gherkin                     | Flow equivalent                                                   |
-| --------------------------- | ----------------------------------------------------------------- |
-| **Given** (preconditions)   | `pre_conditions` array                                            |
-| **When** (user actions)     | `navigate`, `press`, `set_input`, `type_keypad`, `wait_for` steps |
-| **Then** (expected outcome) | `eval_sync`/`eval_async` steps with `assert`                      |
+| Gherkin                     | Flow equivalent                                         |
+| --------------------------- | ------------------------------------------------------- |
+| **Given** (preconditions)   | `pre_conditions` array                                  |
+| **When** (user actions)     | manifest-declared UI or semantic MetaMask actions       |
+| **Then** (expected outcome) | typed read/assert actions with explicit expected values |
 
 **Example:**
 
@@ -304,19 +272,18 @@ Then the close position screen is shown
           }
         },
         {
-          "id": "wait-market",
-          "action": "wait_for",
-          "route": "PerpsMarketDetails"
-        },
-        {
           "id": "press-close",
           "action": "press",
           "test_id": "perps-market-details-close-button"
         },
         {
-          "id": "wait-close-screen",
-          "action": "wait_for",
-          "route": "PerpsClosePosition"
+          "id": "assert-close-screen",
+          "action": "metamask.wallet.read_state",
+          "assert": {
+            "operator": "eq",
+            "field": "route.name",
+            "value": "PerpsClosePosition"
+          }
         }
       ]
     }
@@ -354,7 +321,6 @@ bash scripts/perps/agentic/validate-recipe.sh \
 | App crash / white screen | `bash preflight.sh --platform <p>`                                                |
 | eval returns undefined   | Use `eval-async` with `.then(function(r){ return JSON.stringify(r) })`            |
 | "SyntaxError" in eval    | ES5 violation — check for arrow functions, const/let, template literals           |
-| Eval ref assertion fails | Check `eval-ref --list` for correct name; re-read the eval ref JSON               |
 | adb reverse lost         | `adb reverse tcp:PORT tcp:PORT`                                                   |
 | Route not found          | Check route name in the table below; cdp-bridge handles nested routing            |
 
