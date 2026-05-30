@@ -1,13 +1,13 @@
-import { SpeculosTestHelper } from '../../e2e/speculos/speculos-ble-test-helper/src';
+import { SpeculosTestHelper } from '../speculos-ble-test-helper/src';
 
 const SPECULOS_HOST = process.env.SPECULOS_HOST ?? '127.0.0.1';
 const CONTROL_API_PORT = parseInt(process.env.CONTROL_API_PORT ?? '5002', 10);
-const SPECULOS_API_PORT = parseInt(process.env.SPECULOS_API_PORT ?? '5000', 10);
+const SPECULOS_API_PORT = parseInt(process.env.SPECULOS_API_PORT ?? '5100', 10);
 
 const describeIf =
   process.env.RUN_SPECULOS_E2E === '1' ? describe : describe.skip;
 
-describeIf('Ledger BLE Smoke Test', () => {
+describeIf('Ledger BLE E2E Smoke Test', () => {
   let helper: SpeculosTestHelper;
 
   beforeAll(async () => {

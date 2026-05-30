@@ -47,6 +47,7 @@
   "include": [
     "app/declarations/index.d.ts",
     "app/**/*",
+    "e2e/speculos/**/*",
     "node_modules/expect-webdriverio",
     "node_modules/expect-webdriverio/jest",
     "tests/**/*",
