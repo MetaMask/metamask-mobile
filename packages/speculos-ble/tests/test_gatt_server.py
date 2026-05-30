@@ -145,3 +145,72 @@ async def test_apdu_log_size_limit():
         chunk = _chunk0(total=1, data=bytes([i]))
         await server._on_write(object(), chunk)
     assert len(server.apdu_log) <= 3
+
+
+@pytest.mark.asyncio
+async def test_send_notification_no_subscribers():
+    async def on_apdu(apdu):
+        return b"\x90\x00"
+
+    server = LedgerGattServer(on_apdu=on_apdu)
+    await server.send_notification(b"\x90\x00")
+
+
+@pytest.mark.asyncio
+async def test_send_notification_to_no_device():
+    async def on_apdu(apdu):
+        return b"\x90\x00"
+
+    server = LedgerGattServer(on_apdu=on_apdu)
+    await server.send_notification_to(object(), b"\x90\x00")
+
+
+@pytest.mark.asyncio
+async def test_subscription_tracking():
+    async def on_apdu(apdu):
+        return b"\x90\x00"
+
+    server = LedgerGattServer(on_apdu=on_apdu)
+
+    conn1 = object()
+    conn2 = object()
+
+    server._on_subscription(conn1, notify_enabled=True, indicate_enabled=False)
+    assert conn1 in server._subscribed_connections
+
+    server._on_subscription(conn2, notify_enabled=True, indicate_enabled=False)
+    assert conn2 in server._subscribed_connections
+    assert len(server._subscribed_connections) == 2
+
+    server._on_subscription(conn1, notify_enabled=False, indicate_enabled=False)
+    assert conn1 not in server._subscribed_connections
+    assert conn2 in server._subscribed_connections
+
+    server.reset()
+    assert len(server._subscribed_connections) == 0
+
+
+@pytest.mark.asyncio
+async def test_exchange_lock_serializes_apdus():
+    call_order = []
+
+    async def slow_on_apdu(apdu):
+        call_order.append(f"start-{apdu[0]}")
+        await asyncio.sleep(0.1)
+        call_order.append(f"end-{apdu[0]}")
+        return b"\x90\x00"
+
+    server = LedgerGattServer(on_apdu=slow_on_apdu)
+
+    chunk1 = _chunk0(total=1, data=bytes([0x01]))
+    chunk2 = _chunk0(total=1, data=bytes([0x02]))
+
+    await asyncio.gather(
+        server._on_write(object(), chunk1),
+        server._on_write(object(), chunk2),
+    )
+
+    assert call_order[0].startswith("start-")
+    assert call_order[1].startswith("end-")
+    assert call_order[2].startswith("start-")
+    assert call_order[3].startswith("end-")

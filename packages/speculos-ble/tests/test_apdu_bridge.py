@@ -2,6 +2,7 @@
 
 import asyncio
 import pytest
+from unittest.mock import AsyncMock
 
 from speculos_ble.apdu_bridge import ApduBridge
 from speculos_ble.types import SIGNING_INS_BYTES
@@ -54,3 +55,76 @@ class TestErrorInjection:
         assert bridge._error_injection is not None
         bridge._error_injection = None
         assert bridge._error_injection is None
+
+
+class TestApduBridgeAsync:
+    @pytest.mark.asyncio
+    async def test_handle_apdu_calls_speculos_exchange(self):
+        bridge = ApduBridge()
+        mock_response = bytes([0x90, 0x00])
+        bridge._speculos.exchange = AsyncMock(return_value=mock_response)
+        bridge._speculos.connect = AsyncMock()
+        bridge._speculos.disconnect = AsyncMock()
+        await bridge.start()
+
+        result = await bridge.handle_apdu(bytes([0xB0, 0x01, 0x00, 0x00, 0x00]))
+        assert result == mock_response
+        bridge._speculos.exchange.assert_called_once()
+        await bridge.stop()
+
+    @pytest.mark.asyncio
+    async def test_signing_detected_event(self):
+        bridge = ApduBridge()
+        bridge._speculos.exchange = AsyncMock(return_value=bytes([0x90, 0x00]))
+        bridge._speculos.connect = AsyncMock()
+        bridge._speculos.disconnect = AsyncMock()
+        await bridge.start()
+
+        bridge.clear_signing_flag()
+        assert not bridge.signing_detected.is_set()
+        await bridge.handle_apdu(bytes([0xE0, 0x08, 0x00, 0x00, 0x00]))
+        assert bridge.signing_detected.is_set()
+        await bridge.stop()
+
+    @pytest.mark.asyncio
+    async def test_error_injection_returns_injected(self):
+        bridge = ApduBridge()
+        bridge._speculos.exchange = AsyncMock(return_value=bytes([0x90, 0x00]))
+        bridge._speculos.connect = AsyncMock()
+        bridge._speculos.disconnect = AsyncMock()
+        await bridge.start()
+
+        bridge.inject_error(bytes([0x69, 0x85]))
+        result = await bridge.handle_apdu(bytes([0xE0, 0x08, 0x00, 0x00, 0x00]))
+        assert result == bytes([0x69, 0x85])
+        bridge._speculos.exchange.assert_not_called()
+        await bridge.stop()
+
+    @pytest.mark.asyncio
+    async def test_error_injection_cleared_after_use(self):
+        bridge = ApduBridge()
+        bridge._speculos.exchange = AsyncMock(return_value=bytes([0x90, 0x00]))
+        bridge._speculos.connect = AsyncMock()
+        bridge._speculos.disconnect = AsyncMock()
+        await bridge.start()
+
+        bridge.inject_error(bytes([0x69, 0x85]))
+        r1 = await bridge.handle_apdu(bytes([0xE0, 0x08, 0x00, 0x00, 0x00]))
+        assert r1 == bytes([0x69, 0x85])
+        assert bridge._error_injection is None
+        await bridge.handle_apdu(bytes([0xE0, 0x08, 0x00, 0x00, 0x00]))
+        bridge._speculos.exchange.assert_called_once()
+        await bridge.stop()
+
+    @pytest.mark.asyncio
+    async def test_non_signing_apdu_does_not_set_event(self):
+        bridge = ApduBridge()
+        bridge._speculos.exchange = AsyncMock(return_value=bytes([0x90, 0x00]))
+        bridge._speculos.connect = AsyncMock()
+        bridge._speculos.disconnect = AsyncMock()
+        await bridge.start()
+
+        bridge.clear_signing_flag()
+        await bridge.handle_apdu(bytes([0xE0, 0x10, 0x00, 0x00, 0x00]))
+        assert not bridge.signing_detected.is_set()
+        await bridge.stop()

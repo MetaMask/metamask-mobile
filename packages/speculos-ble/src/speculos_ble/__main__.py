@@ -22,25 +22,33 @@ from .types import (
 
 logger = logging.getLogger(__name__)
 
-NETSIM_INI_PATHS = [
-    "/tmp/netsim.ini",
-    os.path.expanduser("~/.bumble/netsim.ini"),
-]
+
+def _netsim_ini_path() -> str | None:
+    from bumble.transport.android_netsim import get_ini_dir, ini_file_name
+
+    ini_dir = get_ini_dir()
+    if ini_dir is None:
+        return None
+    return str(ini_dir / ini_file_name(0))
 
 
 async def _wait_for_netsim(timeout: float = 30.0) -> None:
     import time
 
+    ini_path = _netsim_ini_path()
+    if ini_path is None:
+        raise RuntimeError(
+            "Cannot determine netsim ini directory for this platform"
+        )
+
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
-        for path in NETSIM_INI_PATHS:
-            if os.path.exists(path):
-                logger.info("Found netsim config at %s", path)
-                return
+        if os.path.exists(ini_path):
+            logger.info("Found netsim config at %s", ini_path)
+            return
         await asyncio.sleep(0.5)
     raise FileNotFoundError(
-        f"netsim.ini not found after {timeout}s. "
-        f"Searched: {', '.join(NETSIM_INI_PATHS)}"
+        f"netsim.ini not found after {timeout}s. Expected at: {ini_path}"
     )
 
 

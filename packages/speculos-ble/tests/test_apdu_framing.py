@@ -145,3 +145,72 @@ class TestApduReassembler:
             for chunk in chunks:
                 result = reassembler.feed(chunk)
             assert result == apdu, f"Roundtrip failed for size {size}"
+
+
+class TestLedgerTransportCompatibility:
+    def test_getAddress_apdu_roundtrip(self):
+        apdu = bytes.fromhex("E002000014058000002C8000003C800000008000000000000000")
+        chunks = fragment_apdu(apdu, mtu=150)
+        assert len(chunks) == 1
+
+        reassembler = ApduReassembler()
+        result = reassembler.feed(chunks[0])
+        assert result == apdu
+
+    def test_signTransaction_large_apdu_roundtrip(self):
+        apdu = bytes([0xE0, 0x04, 0x00, 0x00]) + bytes(range(200))
+        chunks = fragment_apdu(apdu, mtu=23)
+        assert len(chunks) > 1
+
+        reassembler = ApduReassembler()
+        final = None
+        for chunk in chunks:
+            final = reassembler.feed(chunk)
+        assert final == apdu
+
+    def test_mtu_probe_not_mangled(self):
+        reassembler = ApduReassembler()
+        probe = bytes([0x08, 0x00, 0x00, 0x00, 0x00, 0x9C, 0x00])
+        result = reassembler.feed(probe)
+        assert result is None
+
+    def test_mtu_156_single_chunk_getAddress(self):
+        apdu = bytes.fromhex("E002000014058000002C8000003C800000008000000000000000")
+        chunks = fragment_apdu(apdu, mtu=156)
+        assert len(chunks) == 1
+        tag, idx, total = struct.unpack_from(">BHH", chunks[0])
+        assert tag == BLE_TAG_ID
+        assert idx == 0
+        assert total == len(apdu)
+
+    def test_send_format_matches_ledgerhq(self):
+        apdu = bytes([0xE0, 0x02, 0x00, 0x00, 0x04, 0x01, 0x02, 0x03, 0x04])
+        mtu = 23
+        chunks = fragment_apdu(apdu, mtu)
+
+        assert chunks[0][0] == 0x05
+        seq_idx = struct.unpack_from(">H", chunks[0], 1)[0]
+        assert seq_idx == 0
+        total_len = struct.unpack_from(">H", chunks[0], 3)[0]
+        assert total_len == len(apdu)
+        assert chunks[0][5:] == apdu[: mtu - 5]
+
+        if len(chunks) > 1:
+            assert chunks[1][0] == 0x05
+            seq_idx_1 = struct.unpack_from(">H", chunks[1], 1)[0]
+            assert seq_idx_1 == 1
+            assert chunks[1][3:] == apdu[mtu - 5 :]
+
+    def test_receive_chunk0_header_layout(self):
+        reassembler = ApduReassembler()
+        data = bytes([0xAA, 0xBB, 0xCC])
+        frame = struct.pack(">BHH", 0x05, 0, len(data)) + data
+
+        result = reassembler.feed(frame)
+        assert result == data
+
+    def test_receive_rejects_wrong_tag_like_ledgerhq(self):
+        reassembler = ApduReassembler()
+        frame = bytes([0x06, 0x00, 0x00, 0x00, 0x03, 0x01, 0x02, 0x03])
+        result = reassembler.feed(frame)
+        assert result is None

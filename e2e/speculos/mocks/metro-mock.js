@@ -1,3 +1,4 @@
+/* eslint-disable import-x/no-commonjs */
 /**
  * Metro config for Speculos E2E testing.
  *
@@ -14,6 +15,7 @@
  *   module.exports = withSpeculosTransport(defaultConfig);
  */
 
+// eslint-disable-next-line import-x/no-nodejs-modules
 const path = require('path');
 
 const SMART_TRANSPORT_PATH = path.resolve(__dirname, 'SmartTransport.ts');
@@ -23,13 +25,26 @@ function withSpeculosTransport(baseConfig) {
     return baseConfig;
   }
 
+  const originalResolveRequest = baseConfig.resolver?.resolveRequest;
+
   return {
     ...baseConfig,
     resolver: {
       ...baseConfig.resolver,
-      extraNodeModules: {
-        ...(baseConfig.resolver?.extraNodeModules || {}),
-        '@ledgerhq/react-native-hw-transport-ble': SMART_TRANSPORT_PATH,
+      resolveRequest: (context, moduleName, platform) => {
+        if (moduleName === '@ledgerhq/react-native-hw-transport-ble') {
+          const origin = context.originModulePath || '';
+          if (origin !== SMART_TRANSPORT_PATH) {
+            return {
+              type: 'sourceFile',
+              filePath: SMART_TRANSPORT_PATH,
+            };
+          }
+        }
+        if (originalResolveRequest) {
+          return originalResolveRequest(context, moduleName, platform);
+        }
+        return context.resolveRequest(context, moduleName, platform);
       },
     },
   };

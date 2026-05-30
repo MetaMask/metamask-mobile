@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "speculos-ble"
 version = "0.1.0"
 description = "Virtual BLE Ledger device for E2E testing with Speculos"
-requires-python = ">=3.10"
+requires-python = ">=3.10,<3.14"
 dependencies = [
     "bumble>=0.0.228",
     "grpcio>=1.62.0,<2",

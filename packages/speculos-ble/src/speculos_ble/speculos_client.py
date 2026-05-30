@@ -16,10 +16,15 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+class SpeculosTimeoutError(Exception):
+    """Raised when a Speculos TCP operation times out."""
+
+
 class SpeculosTcpClient:
-    def __init__(self, host: str = "127.0.0.1", port: int = 9999) -> None:
+    def __init__(self, host: str = "127.0.0.1", port: int = 9999, timeout: float = 30.0) -> None:
         self._host = host
         self._port = port
+        self._timeout = timeout
         self._reader: asyncio.StreamReader | None = None
         self._writer: asyncio.StreamWriter | None = None
         self._lock = asyncio.Lock()
@@ -52,6 +57,14 @@ class SpeculosTcpClient:
 
                 await self._send(apdu)
                 return await self._recv()
+            except asyncio.TimeoutError:
+                msg = (
+                    f"Speculos operation timed out after {self._timeout}s "
+                    f"(APDU: {apdu.hex()})"
+                )
+                logger.error(msg)
+                await self.disconnect()
+                raise SpeculosTimeoutError(msg) from None
             except (ConnectionError, OSError, asyncio.IncompleteReadError):
                 logger.warning("Speculos connection lost, reconnecting")
                 await self.disconnect()
@@ -63,14 +76,18 @@ class SpeculosTcpClient:
         assert self._writer is not None
         length_prefix = struct.pack(">I", len(apdu))
         self._writer.write(length_prefix + apdu)
-        await self._writer.drain()
+        await asyncio.wait_for(self._writer.drain(), timeout=self._timeout)
         logger.debug("Sent APDU (%d bytes): %s", len(apdu), apdu.hex())
 
     async def _recv(self) -> bytes:
         assert self._reader is not None
-        length_data = await self._reader.readexactly(4)
+        length_data = await asyncio.wait_for(
+            self._reader.readexactly(4), timeout=self._timeout,
+        )
         raw_length = struct.unpack(">I", length_data)[0]
-        response = await self._reader.readexactly(raw_length)
+        response = await asyncio.wait_for(
+            self._reader.readexactly(raw_length), timeout=self._timeout,
+        )
         logger.debug("Recv APDU (%d bytes): %s", len(response), response.hex())
         return response
 
