@@ -10,9 +10,10 @@ import os
 
 import aiohttp
 import pytest
+import pytest_asyncio
 
 CONTROL_API = os.environ.get("CONTROL_API_URL", "http://127.0.0.1:5002")
-SPECULOS_API = os.environ.get("SPECULOS_API_URL", "http://127.0.0.1:5000")
+SPECULOS_API = os.environ.get("SPECULOS_API_URL", "http://127.0.0.1:5100")
 
 
 def _is_integration_enabled():
@@ -25,7 +26,7 @@ pytestmark = pytest.mark.skipif(
 )
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def http():
     async with aiohttp.ClientSession() as session:
         yield session
