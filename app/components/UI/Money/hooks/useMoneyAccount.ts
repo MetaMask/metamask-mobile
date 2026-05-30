@@ -45,6 +45,7 @@ export interface InitiateDepositOptions {
     chainId: Hex;
   };
   intent?: MoneyAccountDepositIntent;
+  autoSelectFiatPayment?: boolean;
 }
 
 function resolveNetworkClientId(chainId: Hex): string {
@@ -108,6 +109,7 @@ export function useMoneyAccountDeposit() {
         loader: ConfirmationLoader.CustomAmount,
         stack: Routes.MONEY.CONFIRMATIONS_ROOT,
         preferredPaymentToken,
+        autoSelectFiatPayment: options?.autoSelectFiatPayment,
       });
 
       try {
