@@ -9,6 +9,7 @@ import {
   race,
   delay,
   join,
+  spawn,
 } from 'redux-saga/effects';
 import NavigationService from '../../core/NavigationService';
 import Routes from '../../constants/navigation/Routes';
@@ -77,7 +78,9 @@ export function* startSDKServicesInitialization() {
   // Keep a single task so normal deeplinks can warm services in the background
   // and SDK/WC deeplinks can join that same work when they require it.
   if (!sdkServicesInitializationTask) {
-    sdkServicesInitializationTask = yield fork(initializeSDKServices);
+    // Detached so callers that only want to warm SDK services are not blocked
+    // by WC/SDK startup; SDK/WC deeplinks still join this task explicitly.
+    sdkServicesInitializationTask = yield spawn(initializeSDKServices);
   }
 
   return sdkServicesInitializationTask;

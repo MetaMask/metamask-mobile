@@ -777,6 +777,45 @@ describe('handleDeeplinkSaga', () => {
           });
         });
 
+        it('does not wait for SDK services before parsing non-SDK deeplinks', async () => {
+          const rewardsLink = 'https://link.metamask.io/rewards';
+          AppStateEventProcessor.pendingDeeplink = rewardsLink;
+          Engine.context.KeyringController.isUnlocked = jest
+            .fn()
+            .mockReturnValue(true);
+
+          let resolveSDKConnectInit: () => void = () => undefined;
+          (SDKConnect.init as jest.Mock).mockImplementationOnce(
+            () =>
+              new Promise<void>((resolve) => {
+                resolveSDKConnectInit = resolve;
+              }),
+          );
+
+          const sagaPromise = expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              onboarding: { completedOnboarding: true },
+            })
+            .dispatch(checkForDeeplink())
+            .silentRun(100);
+
+          await Promise.resolve();
+          await Promise.resolve();
+
+          expect(WC2Manager.init).toHaveBeenCalledWith({});
+          expect(SDKConnect.init).toHaveBeenCalledWith({ context: 'Nav/App' });
+          expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(
+            rewardsLink,
+            expect.objectContaining({
+              origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+            }),
+          );
+
+          resolveSDKConnectInit();
+          await sagaPromise;
+        });
+
         it('waits for SDK services before parsing SDK/WalletConnect deeplinks', async () => {
           AppStateEventProcessor.pendingDeeplink =
             'https://link.metamask.io/connect?channelId=test-channel-id';
