@@ -1,9 +1,6 @@
 import { StyleSheet } from 'react-native';
 import type { Theme } from '../../../../../util/theme/models';
 
-const ADR58_DEBUG_BANNER_BACKGROUND = 'red';
-const ADR58_DEBUG_BANNER_TEXT = 'white';
-
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
   const { colors } = theme;
@@ -131,19 +128,6 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     positionsOrdersContainer: {
       paddingHorizontal: 16,
-    },
-    adr58DebugBanner: {
-      backgroundColor: ADR58_DEBUG_BANNER_BACKGROUND,
-      marginHorizontal: 16,
-      marginBottom: 8,
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-      borderRadius: 8,
-    },
-    adr58DebugBannerText: {
-      color: ADR58_DEBUG_BANNER_TEXT,
-      fontWeight: '700',
-      textAlign: 'center',
     },
     whatsHappeningSection: {
       borderTopWidth: 1,

@@ -5,7 +5,7 @@ import React, {
   useEffect,
   useMemo,
 } from 'react';
-import { View, Modal, NativeScrollEvent, Text } from 'react-native';
+import { View, Modal, NativeScrollEvent } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   SafeAreaView,
@@ -219,9 +219,6 @@ const PerpsHomeView = ({
 
   // Calculate positions subtitle with P&L
   const hasPositions = positions.length > 0;
-  const hasAdr58BtcPosition = positions.some(
-    (position) => position.symbol?.toUpperCase() === 'BTC',
-  );
   const { positionsSubtitle, positionsSubtitleColor, positionsSubtitleSuffix } =
     useMemo(() => {
       const pnlNum = parseFloat(unrealizedPnl);
@@ -538,17 +535,6 @@ const PerpsHomeView = ({
         <PerpsCompetitionBanner
           testID={PerpsHomeViewSelectorsIDs.COMPETITION_BANNER}
         />
-
-        {hasAdr58BtcPosition ? (
-          <View
-            style={styles.adr58DebugBanner}
-            testID="adr58-btc-position-banner"
-          >
-            <Text style={styles.adr58DebugBannerText}>
-              ADR58 POC: BTC POSITION DETECTED
-            </Text>
-          </View>
-        ) : null}
 
         {/* Positions Section */}
         <PerpsHomeSection

@@ -93,14 +93,18 @@ describe('AgentStepHud', () => {
       callback({
         id: 'fail 1/2',
         description:
-          'Confirm the BTC banner appears\nValidate the exact debug banner text\nsubflow: Perps setup\nerror: Timed out waiting for banner',
+          'Complete the validation checkpoint\nDuplicate metadata line should stay hidden\nsubflow: Prepare scenario\nerror: Timed out waiting for checkpoint',
       });
     });
 
-    expect(getByText(/Confirm the BTC banner appears/)).toBeOnTheScreen();
-    expect(getByText('Perps setup')).toBeOnTheScreen();
-    expect(getByText('error: Timed out waiting for banner')).toBeOnTheScreen();
-    expect(queryByText('Validate the exact debug banner text')).toBeNull();
+    expect(getByText(/Complete the validation checkpoint/)).toBeOnTheScreen();
+    expect(getByText('Prepare scenario')).toBeOnTheScreen();
+    expect(
+      getByText('error: Timed out waiting for checkpoint'),
+    ).toBeOnTheScreen();
+    expect(
+      queryByText('Duplicate metadata line should stay hidden'),
+    ).toBeNull();
   });
 
   it('hides overlay when callback fires with null', () => {
