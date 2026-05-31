@@ -2,9 +2,11 @@ import { View } from 'react-native';
 import { Image } from 'expo-image';
 import {
   BadgeIcon,
-  IconSize,
   BadgeStatus,
   BadgeStatusStatus,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+  IconSize,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NotificationMenuItem } from '../../../../util/notifications/notification-states/types/NotificationMenuItem';
@@ -15,13 +17,12 @@ import React, {
   useMemo,
 } from 'react';
 import useStyles from '../List/useStyles';
-import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
-import { BOTTOM_BADGEWRAPPER_BADGEPOSITION } from '../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
 import METAMASK_FOX from '../../../../images/branding/fox.png';
 
 export const TEST_IDS = {
   CONTAINER: 'notification-menu-item-icon:container',
   ICON: 'notification-menu-item-icon:icon',
+  BADGE_ICON: 'notification-menu-item-icon:badge-icon',
 };
 
 type NotificationIconProps = Pick<
@@ -63,11 +64,12 @@ function NotificationIcon(props: NotificationIconProps) {
     ({ children }) =>
       props.badgeIcon ? (
         <BadgeWrapper
-          badgePosition={BOTTOM_BADGEWRAPPER_BADGEPOSITION}
-          badgeElement={
+          position={BadgeWrapperPosition.BottomRight}
+          badge={
             <BadgeIcon
               iconName={props.badgeIcon}
               iconProps={{ size: IconSize.Lg }}
+              testID={TEST_IDS.BADGE_ICON}
             />
           }
         >
