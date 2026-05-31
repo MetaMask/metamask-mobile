@@ -1,369 +1,47 @@
-# Perps Agentic Toolkit
+# Perps agentic feedback loop
 
-The agentic toolkit lets AI agents interact with a running MetaMask Mobile app via CDP (Chrome DevTools Protocol). Agents execute parameterized flows — JSON test sequences that navigate screens, press buttons, type values, and assert state — to verify their own code changes without human intervention.
+MetaMask Mobile exposes a development-only agentic bridge so external Farmslot
+Recipe v1 runners can control the app, seed deterministic fixtures, show a small
+HUD, and capture proof from the real UI path.
 
-The toolkit lives at `scripts/perps/agentic/`. It works on both iOS Simulator and Android Emulator.
+## Repository boundary
 
----
+The Mobile repository owns the product integration only:
 
-## Architecture
+- `app/core/AgenticService/` installs `globalThis.__AGENTIC__` in `__DEV__`.
+- `scripts/perps/agentic/cdp-bridge.js` connects external tools to the React
+  Native CDP target.
+- `scripts/perps/agentic/setup-wallet.sh` applies wallet fixtures through the
+  bridge.
+- `scripts/perps/agentic/app-state.sh`, `app-navigate.sh`, and `screenshot.sh`
+  are small diagnostics used by humans and external runners.
 
-```
-Agent (Claude Code / Cursor / etc.)
-  |
-  v
-validate-recipe.sh          # Orchestrates flow execution
-  |
-  +-- cdp-bridge.js         # CDP engine (WebSocket -> Metro -> Hermes)
-  |     +-- lib/ws-client.js        # WebSocket connection
-  |     +-- lib/target-discovery.js  # Find the right CDP target
-  |     +-- lib/cdp-eval.js         # Eval sync/async via CDP
-  |     +-- lib/config.js           # Port + env resolution
-  |     +-- lib/assert.js           # Assertion operators
-  |     +-- lib/registry.js         # Pre-condition registry
-  |
-  +-- teams/perps/
-        +-- flows/           # 12 parameterized flow JSONs
-        +-- pre-conditions.js # Named pre-condition checks
-```
+Recipe definitions, flow composition, action manifests, trace/summary output,
+and MetaMask domain actions are maintained by the external Recipe v1 runner.
+Do not add task-specific recipes or reusable runner actions to Mobile.
 
----
+## Human workflow
 
-## Quick Start
+Use Mobile scripts to start and inspect a controllable runtime:
 
 ```bash
-# 1. Check app + Metro + CDP are connected
+yarn a:ios
 yarn a:status
-
-# 2. Read app/controller state for debugging
-bash scripts/perps/agentic/app-state.sh status
-
-# 3. Run a flow (multi-step UI sequence)
-bash scripts/perps/agentic/validate-recipe.sh \
-  scripts/perps/agentic/teams/perps/flows/market-discovery.json --skip-manual
-
-# 4. Dry-run a flow (prints steps without executing)
-bash scripts/perps/agentic/validate-recipe.sh \
-  scripts/perps/agentic/teams/perps/flows/trade-open-market.json --dry-run
-
-# 5. Run all flows (dry-run)
-for f in scripts/perps/agentic/teams/perps/flows/*.json; do
-  bash scripts/perps/agentic/validate-recipe.sh "$f" --dry-run --skip-manual
-done
+yarn a:navigate WalletView
+yarn a:reload
 ```
 
----
+Use the recipe-harness skill or external runner to execute Recipe v1 scenarios.
+The runner consumes Mobile's bridge and writes its own evidence artifacts.
 
-## Flows
+## HUD intent
 
-A flow is a parameterized JSON file that `validate-recipe.sh` executes step-by-step against the live app. Each flow declares its parameters in an `inputs` block, its required app state in `pre_conditions`, and a sequence of `steps`.
+The HUD is a human-facing proof aid. It should display one concise current
+intent, optionally one subflow/context line, and failure details when useful. It
+must not duplicate internal action names or task-specific debug text.
 
-### Parameter Templating
+## Fixture workflow
 
-Flows use `{{param}}` tokens in titles, expressions, test_ids, and params. Defaults come from the `inputs` block:
-
-```json
-{
-  "title": "Trade — market {{side}} {{symbol}} ${{usdAmount}}",
-  "inputs": {
-    "side": { "type": "string", "default": "long" },
-    "symbol": { "type": "string", "default": "BTC" },
-    "usdAmount": { "type": "string", "default": "10" }
-  }
-}
-```
-
-When run standalone, `inputs` defaults are applied. When called via `flow_ref`, the parent provides values that override defaults. Params without a default are required.
-
-### Pre-Conditions
-
-Pre-conditions gate flow execution. If any check fails, the runner aborts with a clear error and hint.
-
-```json
-"pre_conditions": [
-  "wallet.unlocked",
-  "perps.ready_to_trade",
-  { "name": "perps.open_position", "symbol": "{{symbol}}" }
-]
-```
-
-String form for simple checks, object form for parameterized checks. Shorthand `"perps.open_position(symbol={{symbol}})"` is also supported.
-
-**Available pre-conditions** (from `teams/perps/pre-conditions.js`):
-
-| Name                               | Description                                       |
-| ---------------------------------- | ------------------------------------------------- |
-| `wallet.unlocked`                  | Wallet is unlocked and navigable                  |
-| `perps.feature_enabled`            | PerpsController is available                      |
-| `perps.trading_flag`               | Perps trading remote flag is on                   |
-| `perps.ready_to_trade`             | Provider is authenticated                         |
-| `perps.sufficient_balance`         | Account has non-zero balance                      |
-| `perps.open_position`              | Open position exists (optionally by symbol)       |
-| `perps.open_position_tpsl`         | Position with TP/SL exists (optionally by symbol) |
-| `perps.open_limit_order`           | Open limit order exists (optionally by symbol)    |
-| `perps.not_in_watchlist`           | Symbol is not in watchlist                        |
-| `ui.homepage_redesign_v1_enabled`  | Homepage redesign V1 flag is on                   |
-| `ui.homepage_redesign_v1_disabled` | Homepage redesign V1 flag is off                  |
-
-### Authoring Rules
-
-Enforced by `node scripts/perps/agentic/validate-flow-schema.js`:
-
-1. **State-read steps must assert.** Any direct CDP state read needs an `"assert"` block. Use `{"operator":"not_null"}` at minimum.
-2. **Terminal step must assert.** The last step must prove the intended outcome. Never end on a pure navigation or press.
-3. **No unknown actions.** Only recognized action types are allowed.
-4. **Inputs must match params.** Every `{{param}}` in steps must have a matching key in `inputs`.
-
-Full schema: `scripts/perps/agentic/schemas/flow.schema.json`
-
-### Available Flows
-
-| Flow                   | Inputs (defaults)                                                             | Pre-conditions                                                  |
-| ---------------------- | ----------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| `activity-view`        | `tab` ("trades")                                                              | wallet.unlocked, perps.feature_enabled                          |
-| `market-discovery`     | `symbol` ("BTC")                                                              | wallet.unlocked, perps.feature_enabled                          |
-| `market-watchlist`     | `symbol` ("BTC")                                                              | wallet.unlocked, perps.feature_enabled, perps.not_in_watchlist  |
-| `order-limit-cancel`   | `symbol` (required)                                                           | wallet.unlocked, perps.open_limit_order                         |
-| `order-limit-place`    | `side` ("long"), `symbol` ("BTC"), `usdAmount` ("10"), `limitPrice` ("60000") | wallet.unlocked, perps.ready_to_trade                           |
-| `position-add-margin`  | `symbol` (required), `marginAmount` (required)                                | wallet.unlocked, perps.open_position                            |
-| `setup-account`        | `address` (required)                                                          | wallet.unlocked                                                 |
-| `setup-testnet`        | _(none)_                                                                      | wallet.unlocked, perps.feature_enabled                          |
-| `tpsl-create`          | `symbol` (required), `tpPreset` ("25"), `slPreset` ("-10")                    | wallet.unlocked, perps.open_position                            |
-| `tpsl-edit`            | `symbol` (required), `tpPreset` ("50"), `slPreset` ("-25")                    | wallet.unlocked, perps.open_position_tpsl                       |
-| `trade-close-position` | `symbol` (required)                                                           | wallet.unlocked, perps.open_position                            |
-| `trade-open-market`    | `side` ("long"), `symbol` ("BTC"), `usdAmount` ("10")                         | wallet.unlocked, perps.ready_to_trade, perps.sufficient_balance |
-
----
-
-## Recipe v1 typed state reads
-
-Recipe v1 recipes should use manifest-declared MetaMask actions such as
-`metamask.wallet.read_state`, `metamask.perps.read_positions`, and
-`metamask.perps.read_orders` for reusable state assertions. Raw CDP evaluation is
-reserved for debugging or for implementing a reviewed runner action.
-
-## CDP Commands
-
-All CDP commands go through `cdp-bridge.js` or `app-state.sh` wrappers:
-
-```bash
-CDP="node scripts/perps/agentic/cdp-bridge.js"
-AS="bash scripts/perps/agentic/app-state.sh"
-
-$CDP status                     # Route + account snapshot
-$CDP get-route                  # Current route name
-$CDP eval "<expression>"        # Sync JS eval (ES5 only)
-$CDP eval-async "<expression>"  # Async eval (Promise, use .then())
-$CDP check-pre-conditions '<json>'  # Validate pre-conditions
-$CDP press-test-id <testId>     # Press by testID
-$CDP scroll-view --test-id <id> # Scroll a view
-$CDP set-input <testId> "val"   # Debug-only visible input helper
-```
-
-**ES5 only.** No arrow functions, no `const`/`let`, no template literals, no top-level `await`.
-
-```bash
-# Good:
-$CDP eval "var x = Engine.context.PerpsController.state; JSON.stringify(x)"
-$CDP eval-async "Engine.context.PerpsController.getPositions().then(function(r){ return JSON.stringify(r) })"
-
-# Bad:
-$CDP eval "const x = () => Engine.context"       # arrow + const
-$CDP eval-async "await Engine.context.getPos()"   # top-level await
-```
-
----
-
-## Shell Commands
-
-| Command                                                                            | Purpose                                         |
-| ---------------------------------------------------------------------------------- | ----------------------------------------------- |
-| `app-state.sh status\|route\|eval\|eval-async\|accounts\|press\|scroll\|set-input` | State queries and UI interaction                |
-| `app-navigate.sh <Route> [params-json]`                                            | Navigate and discover live routes with `--list` |
-| `validate-recipe.sh <path> [--dry-run] [--skip-manual] [--step <id>]`              | Execute a flow/recipe against the live app      |
-| `validate-flow-schema.js`                                                          | Validate all flows against authoring rules      |
-| `validate-pre-conditions.js`                                                       | Verify pre-condition expressions and assertions |
-| `start-metro.sh --platform ios\|android`                                           | Start or attach to Metro                        |
-| `setup-wallet.sh`                                                                  | Seed wallet from `.agent/wallet-fixture.json`   |
-
----
-
-## Assertions
-
-Every asserting step includes `"assert": { "operator": "<op>", "field": "<path>", "value": <expected> }`.
-
-| Operator       | Passes when                                   |
-| -------------- | --------------------------------------------- |
-| `not_null`     | `actual != null`                              |
-| `eq`           | `actual === expected`                         |
-| `gt`           | `actual > expected` (number)                  |
-| `length_eq`    | `actual.length === expected`                  |
-| `length_gt`    | `actual.length > expected`                    |
-| `contains`     | `actual.includes(expected)` (string or array) |
-| `not_contains` | `!actual.includes(expected)`                  |
-
-`field` is a dot-path into the result JSON (e.g. `"route"`, `"positions.0.symbol"`). Omit or set to `null` to assert on the entire result. Double-encoded JSON strings are automatically unwrapped.
-
----
-
-## UI Interactions
-
-The toolkit interacts with React components by `testID` — no coordinates needed. Under the hood, it walks the React fiber tree via `__REACT_DEVTOOLS_GLOBAL_HOOK__`.
-
-```bash
-bash app-state.sh press <testId>                         # tap a button
-bash app-state.sh scroll --test-id <testId> --offset 300 # scroll down
-bash app-state.sh set-input <testId> "0.5"               # debug-only input helper
-```
-
-In Recipe v1, prefer manifest-declared actions such as `ui.press`, `ui.scroll`, and semantic `metamask.perps.*` actions. Use raw input helpers only when the proof specifically needs visible typing.
-
-**Keypad pattern:** Always clear before typing — use `clear_keypad` (count: 8) before `type_keypad` to wipe any pre-filled value. Assert the displayed amount matches before submitting.
-
----
-
-## Gherkin to Flow Translation
-
-Gherkin maps naturally to flow JSON:
-
-| Gherkin                     | Flow equivalent                                         |
-| --------------------------- | ------------------------------------------------------- |
-| **Given** (preconditions)   | `pre_conditions` array                                  |
-| **When** (user actions)     | manifest-declared UI or semantic MetaMask actions       |
-| **Then** (expected outcome) | typed read/assert actions with explicit expected values |
-
-**Example:**
-
-```gherkin
-Given the wallet is unlocked
-  And BTC has an open position
-When the user navigates to BTC market detail
-  And presses the Close Position button
-Then the close position screen is shown
-```
-
-```json
-{
-  "title": "Close BTC position",
-  "inputs": {
-    "symbol": { "type": "string", "description": "Market symbol" }
-  },
-  "validate": {
-    "runtime": {
-      "pre_conditions": [
-        "wallet.unlocked",
-        { "name": "perps.open_position", "symbol": "{{symbol}}" }
-      ],
-      "steps": [
-        {
-          "id": "nav",
-          "action": "navigate",
-          "target": "PerpsMarketDetails",
-          "params": {
-            "market": {
-              "symbol": "{{symbol}}",
-              "name": "{{symbol}}",
-              "price": "0",
-              "change24h": "0",
-              "change24hPercent": "0",
-              "volume": "0",
-              "maxLeverage": "100"
-            }
-          }
-        },
-        {
-          "id": "press-close",
-          "action": "press",
-          "test_id": "perps-market-details-close-button"
-        },
-        {
-          "id": "assert-close-screen",
-          "action": "metamask.wallet.read_state",
-          "assert": {
-            "operator": "eq",
-            "field": "route.name",
-            "value": "PerpsClosePosition"
-          }
-        }
-      ]
-    }
-  }
-}
-```
-
----
-
-## Recipes
-
-Recipes compose multiple flows via `flow_ref` for integration-level validation. They live in `scripts/perps/agentic/teams/<team>/recipes/` and prove that end-to-end scenarios work across flow boundaries.
-
-See `teams/perps/recipes/full-trade-lifecycle.json` for an example that chains: wallet home → mainnet → perps → testnet → clear position → open market → TP/SL (presets) → close — all via `flow_ref`.
-
-```bash
-# Run a recipe
-bash scripts/perps/agentic/validate-recipe.sh \
-  scripts/perps/agentic/teams/perps/recipes/full-trade-lifecycle.json
-
-# Dry-run
-bash scripts/perps/agentic/validate-recipe.sh \
-  scripts/perps/agentic/teams/perps/recipes/full-trade-lifecycle.json --dry-run
-```
-
----
-
-## Error Recovery
-
-| Symptom                  | Fix                                                                               |
-| ------------------------ | --------------------------------------------------------------------------------- |
-| Metro crash / no output  | `bash start-metro.sh --platform <p>`                                              |
-| CDP "not connected"      | Check Metro running + device booted. Poll for `__AGENTIC__` (5-120s after unlock) |
-| Hot reload resets app    | `app-navigate.sh WalletTabHome` then target screen                                |
-| App crash / white screen | `bash preflight.sh --platform <p>`                                                |
-| eval returns undefined   | Use `eval-async` with `.then(function(r){ return JSON.stringify(r) })`            |
-| "SyntaxError" in eval    | ES5 violation — check for arrow functions, const/let, template literals           |
-| adb reverse lost         | `adb reverse tcp:PORT tcp:PORT`                                                   |
-| Route not found          | Check route name in the table below; cdp-bridge handles nested routing            |
-
----
-
-## Routes and State Paths
-
-### Perps Routes
-
-| Route                   | Description                               | Params                                                                                                                         |
-| ----------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `PerpsMarketListView`   | Perps home (positions, orders, watchlist) |                                                                                                                                |
-| `PerpsTrendingView`     | Market list (all markets)                 |                                                                                                                                |
-| `PerpsMarketDetails`    | Market detail view                        | `{"market":{"symbol":"BTC","name":"BTC","price":"0","change24h":"0","change24hPercent":"0","volume":"0","maxLeverage":"100"}}` |
-| `PerpsActivity`         | Activity history                          | `{"redirectToPerpsTransactions":true}`                                                                                         |
-| `PerpsClosePosition`    | Close a position                          |                                                                                                                                |
-| `PerpsTPSL`             | Take-profit / stop-loss                   |                                                                                                                                |
-| `PerpsAdjustMargin`     | Adjust position margin                    |                                                                                                                                |
-| `PerpsOrderDetailsView` | Order detail view                         |                                                                                                                                |
-| `PerpsOrderBook`        | Order book depth                          |                                                                                                                                |
-| `PerpsWithdraw`         | Withdraw funds                            |                                                                                                                                |
-| `PerpsTutorial`         | Onboarding tutorial                       |                                                                                                                                |
-
-Other useful routes: `WalletTabHome`, `SettingsView`, `DeveloperOptions`, `BrowserTabHome`.
-
-### Engine Controller Paths
-
-```bash
-Engine.context.PerpsController.state              # Positions, orders, balances, config
-Engine.context.NetworkController.state             # Network selection
-Engine.context.AccountsController.state            # Accounts, selected account
-Engine.context.RemoteFeatureFlagController.state   # Feature flags
-Engine.context.PreferencesController.state         # User preferences
-```
-
-### Common PerpsController Methods
-
-| Method                      | Returns                 | Description              |
-| --------------------------- | ----------------------- | ------------------------ |
-| `getPositions()`            | `Promise<Position[]>`   | Open positions           |
-| `getAccountState()`         | `Promise<AccountState>` | Balances, margin         |
-| `getMarketDataWithPrices()` | `Promise<Market[]>`     | Markets with live prices |
-| `getOpenOrders()`           | `Promise<Order[]>`      | Active limit/stop orders |
-| `getTradeConfiguration()`   | `Promise<TradeConfig>`  | Leverage limits, fees    |
-| `placeOrder(params)`        | `Promise<OrderResult>`  | Submit an order          |
-| `closePosition({symbol})`   | `Promise<CloseResult>`  | Close by symbol          |
+Local fixture files belong under `.agent/` and must not be committed. The bridge
+supports fixture setup so recipes can start from a deterministic wallet state,
+while still validating behavior through the real app runtime.

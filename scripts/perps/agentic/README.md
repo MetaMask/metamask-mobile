@@ -1,74 +1,46 @@
-# Mobile Perps Agentic Toolkit
+# Mobile agentic bridge
 
-This directory contains the low-level Mobile transport used by the MetaMask
-Recipe v1 runner. It is not the authoring surface for new portable recipes. New
-recipes should target the runner action manifest and use `ui.*`, `wait`,
-`watch_logs`, `metamask.wallet.*`, and `metamask.perps.*` actions declared by the
-runner.
+This directory contains the MetaMask Mobile product-side bridge used by external
+Farmslot Recipe v1 runners. It is not the recipe authoring surface.
 
-## Directory map
+## Ownership boundary
 
-```text
-scripts/perps/agentic/
-  cdp-bridge.js              CDP client for status, route, raw eval, press, scroll, and input helpers
-  app-state.sh               Shell wrapper for common debug/status commands
-  app-navigate.sh            Route navigation helper for local debugging
-  setup-wallet.sh            Fixture-based wallet setup used by the runner
-  teams/perps/flows/         Existing domain flows used as migration/reference material
-  teams/perps/pre-conditions.js
-```
+Mobile owns only the code required to make a development build controllable and
+observable:
 
-## Recommended workflow
+- `cdp-bridge.js` and `lib/cdp-eval.js` connect to the React Native Hermes CDP
+  target.
+- `app-state.sh`, `app-navigate.sh`, and `screenshot.sh` provide small local
+  diagnostics for humans and runners.
+- `setup-wallet.sh` applies deterministic wallet fixtures through the
+  `AgenticService` bridge.
+- Metro/preflight scripts start, stop, reload, and check a development runtime.
+
+Portable recipes, flow composition, action manifests, and MetaMask domain
+actions live outside the Mobile repository in the external recipe runner. The
+Mobile repository should not grow task-specific recipes or reusable recipe
+actions.
+
+## Local bridge commands
+
+From the repository root:
 
 ```bash
-# Confirm Metro/CDP/device wiring
 yarn a:status
-
-# Debug current route/account state
-bash scripts/perps/agentic/app-state.sh status
-
-# Validate the fixture wallet setup path used by Recipe v1
-bash scripts/perps/agentic/setup-wallet.sh --fixture .agent/wallet-fixture.json
+yarn a:navigate <route-name>
+yarn a:reload
+yarn a:ios      # start/reuse an iOS development runtime
+yarn a:android  # start/reuse an Android development runtime
 ```
 
-## Recipe v1 authoring rules
+Use the recipe-harness skill or the external runner for Recipe v1 execution.
+Those tools consume this bridge but own recipe semantics and evidence output.
 
-- Treat `action-manifest.json` as the source of truth for allowed actions.
-- Prefer semantic domain actions over exposing controller/eval details in recipes.
-- Keep setup and teardown explicit so repeated proof runs start from a stable state.
-- Use UI actions when the human proof must show the interaction; use typed domain
-  reads/assertions when direct controller state is the clearer proof.
-- Keep low-level CDP helpers inside runner adapters unless the runner declares a
-  reviewed, typed action for them.
+## Fixture setup
 
-## Useful debug commands
+Create a local fixture at `.agent/wallet-fixture.json` when deterministic wallet
+state is required. `setup-wallet.sh` validates the file and applies it through
+`globalThis.__AGENTIC__` in a development build.
 
-```bash
-bash scripts/perps/agentic/app-state.sh status
-bash scripts/perps/agentic/app-state.sh route
-bash scripts/perps/agentic/app-state.sh accounts
-bash scripts/perps/agentic/app-state.sh press <testId>
-bash scripts/perps/agentic/app-state.sh scroll --test-id <testId> --offset 300
-bash scripts/perps/agentic/app-state.sh set-input <testId> "0.5"
-bash scripts/perps/agentic/app-navigate.sh PerpsMarketDetails '{"market":{"symbol":"BTC"}}'
-```
-
-Raw eval remains available through `cdp-bridge.js` for investigation and runner
-implementation work. Do not use raw eval to fabricate a passing proof state.
-
-## Existing flow reference
-
-The files under `teams/perps/flows/` document prior perps UI paths and can be
-used as reference while migrating to Recipe v1. New reusable behavior should be
-implemented as a small number of parameterized `metamask.perps.*` actions or
-composable Recipe v1 flows rather than duplicating one file per scenario.
-
-## Error recovery
-
-| Symptom | Fix |
-| --- | --- |
-| Metro crash / no output | `bash scripts/perps/agentic/start-metro.sh --platform <ios|android>` |
-| CDP target missing | Confirm the app was launched through the harness and run `yarn a:status` |
-| Hot reload resets app | Navigate back to the expected route before continuing validation |
-| App crash / white screen | Re-run the preflight/harness launch path for the target device |
-| Raw eval syntax error | Use Hermes-compatible ES5 syntax in ad-hoc debug expressions |
+Do not commit real fixture secrets or task-specific validation recipes to this
+repository.
