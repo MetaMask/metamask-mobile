@@ -328,114 +328,118 @@ export const useSellDestTokenOptions = (
         .networkConfigurationsByChainId,
   );
 
-  return useMemo(() => candidates.map((candidate) => {
-      // Stables are EVM-only in STABLECOIN_CANDIDATES, so skip Solana branch.
-      if (!accountAddress) {
+  return useMemo(
+    () =>
+      candidates.map((candidate) => {
+        // Stables are EVM-only in STABLECOIN_CANDIDATES, so skip Solana branch.
+        if (!accountAddress) {
+          return {
+            ...candidate,
+            balance: '0',
+            balanceFiat: addCurrencySymbol(
+              '0.00',
+              currentCurrency as Parameters<typeof addCurrencySymbol>[1],
+            ),
+            tokenFiatAmount: 0,
+            currencyExchangeRate: 1.0,
+          };
+        }
+
+        const chainId = candidate.chainId as Hex;
+        const rawBalance = getCachedErc20Balance(
+          tokenBalances,
+          accountAddress,
+          chainId,
+          candidate.address,
+        );
+
+        if (!hasNonZeroHexBalance(rawBalance)) {
+          // Show $0.00 for stables the user doesn't hold — we know their price.
+          return {
+            ...candidate,
+            balance: '0',
+            balanceFiat: addCurrencySymbol(
+              '0.00',
+              currentCurrency as Parameters<typeof addCurrencySymbol>[1],
+            ),
+            tokenFiatAmount: 0,
+            currencyExchangeRate: 1.0,
+          };
+        }
+
+        let displayBalance: string;
+        try {
+          displayBalance = formatUnits(rawBalance, candidate.decimals);
+        } catch {
+          return {
+            ...candidate,
+            balance: '0',
+            balanceFiat: addCurrencySymbol(
+              '0.00',
+              currentCurrency as Parameters<typeof addCurrencySymbol>[1],
+            ),
+            tokenFiatAmount: 0,
+            currencyExchangeRate: 1.0,
+          };
+        }
+
+        const balanceNum = parseFloat(displayBalance);
+        if (isNaN(balanceNum) || balanceNum <= 0) {
+          return {
+            ...candidate,
+            balance: '0',
+            balanceFiat: addCurrencySymbol(
+              '0.00',
+              currentCurrency as Parameters<typeof addCurrencySymbol>[1],
+            ),
+            tokenFiatAmount: 0,
+            currencyExchangeRate: 1.0,
+          };
+        }
+
+        const networkConfig = allNetworkConfigs?.[chainId];
+        const nativeTicker = networkConfig?.nativeCurrency;
+        const nativeConversionRate = nativeTicker
+          ? (currencyRates?.[nativeTicker]?.usdConversionRate ?? 0)
+          : 0;
+
+        const tokenPrice =
+          tokenMarketData?.[chainId as `0x${string}`]?.[
+            candidate.address.toLowerCase() as `0x${string}`
+          ]?.price ??
+          tokenMarketData?.[chainId as `0x${string}`]?.[
+            candidate.address as `0x${string}`
+          ]?.price;
+
+        let exchangeRate: number;
+        if (tokenPrice !== undefined && nativeConversionRate > 0) {
+          exchangeRate = tokenPrice * nativeConversionRate;
+        } else {
+          // Stablecoins: fall back to $1.00 when price data is unavailable.
+          exchangeRate = 1.0;
+        }
+
+        const fiatValue = balanceNum * exchangeRate;
+
         return {
           ...candidate,
-          balance: '0',
+          balance: displayBalance,
           balanceFiat: addCurrencySymbol(
-            '0.00',
+            fiatValue.toFixed(2),
             currentCurrency as Parameters<typeof addCurrencySymbol>[1],
           ),
-          tokenFiatAmount: 0,
-          currencyExchangeRate: 1.0,
+          tokenFiatAmount: fiatValue,
+          currencyExchangeRate: exchangeRate,
         };
-      }
-
-      const chainId = candidate.chainId as Hex;
-      const rawBalance = getCachedErc20Balance(
-        tokenBalances,
-        accountAddress,
-        chainId,
-        candidate.address,
-      );
-
-      if (!hasNonZeroHexBalance(rawBalance)) {
-        // Show $0.00 for stables the user doesn't hold — we know their price.
-        return {
-          ...candidate,
-          balance: '0',
-          balanceFiat: addCurrencySymbol(
-            '0.00',
-            currentCurrency as Parameters<typeof addCurrencySymbol>[1],
-          ),
-          tokenFiatAmount: 0,
-          currencyExchangeRate: 1.0,
-        };
-      }
-
-      let displayBalance: string;
-      try {
-        displayBalance = formatUnits(rawBalance, candidate.decimals);
-      } catch {
-        return {
-          ...candidate,
-          balance: '0',
-          balanceFiat: addCurrencySymbol(
-            '0.00',
-            currentCurrency as Parameters<typeof addCurrencySymbol>[1],
-          ),
-          tokenFiatAmount: 0,
-          currencyExchangeRate: 1.0,
-        };
-      }
-
-      const balanceNum = parseFloat(displayBalance);
-      if (isNaN(balanceNum) || balanceNum <= 0) {
-        return {
-          ...candidate,
-          balance: '0',
-          balanceFiat: addCurrencySymbol(
-            '0.00',
-            currentCurrency as Parameters<typeof addCurrencySymbol>[1],
-          ),
-          tokenFiatAmount: 0,
-          currencyExchangeRate: 1.0,
-        };
-      }
-
-      const networkConfig = allNetworkConfigs?.[chainId];
-      const nativeTicker = networkConfig?.nativeCurrency;
-      const nativeConversionRate = nativeTicker
-        ? (currencyRates?.[nativeTicker]?.usdConversionRate ?? 0)
-        : 0;
-
-      const tokenPrice =
-        tokenMarketData?.[chainId as `0x${string}`]?.[
-          candidate.address.toLowerCase() as `0x${string}`
-        ]?.price ??
-        tokenMarketData?.[chainId as `0x${string}`]?.[
-          candidate.address as `0x${string}`
-        ]?.price;
-
-      let exchangeRate: number;
-      if (tokenPrice !== undefined && nativeConversionRate > 0) {
-        exchangeRate = tokenPrice * nativeConversionRate;
-      } else {
-        // Stablecoins: fall back to $1.00 when price data is unavailable.
-        exchangeRate = 1.0;
-      }
-
-      const fiatValue = balanceNum * exchangeRate;
-
-      return {
-        ...candidate,
-        balance: displayBalance,
-        balanceFiat: addCurrencySymbol(
-          fiatValue.toFixed(2),
-          currentCurrency as Parameters<typeof addCurrencySymbol>[1],
-        ),
-        tokenFiatAmount: fiatValue,
-        currencyExchangeRate: exchangeRate,
-      };
-    }), [
-    candidates,
-    accountAddress,
-    tokenBalances,
-    tokenMarketData,
-    currencyRates,
-    currentCurrency,
-    allNetworkConfigs,
-  ]);
+      }),
+    [
+      candidates,
+      accountAddress,
+      tokenBalances,
+      tokenMarketData,
+      currencyRates,
+      currentCurrency,
+      allNetworkConfigs,
+    ],
+  );
 };

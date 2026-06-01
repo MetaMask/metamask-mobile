@@ -1,7 +1,11 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { formatUnits } from 'ethers/lib/utils';
-import { isSolanaChainId , isNonEvmChainId , formatChainIdToHex } from '@metamask/bridge-controller';
+import {
+  isSolanaChainId,
+  isNonEvmChainId,
+  formatChainIdToHex,
+} from '@metamask/bridge-controller';
 import { SolScope } from '@metamask/keyring-api';
 import type { Hex, CaipChainId } from '@metamask/utils';
 import type { BridgeToken } from '../../../../../../UI/Bridge/types';
