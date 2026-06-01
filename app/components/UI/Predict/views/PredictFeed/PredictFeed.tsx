@@ -252,6 +252,7 @@ const PredictMarketListItem: React.FC<PredictMarketListItemProps> = ({
 interface PredictTabContentProps {
   category: PredictCategory;
   isActive: boolean;
+  listEntryPoint: PredictEntryPoint;
   scrollHandler: ReturnType<typeof useAnimatedScrollHandler>;
   headerHeight: number;
   tabBarHeight: number;
@@ -263,6 +264,7 @@ interface PredictTabContentProps {
 const PredictTabContent: React.FC<PredictTabContentProps> = ({
   category,
   isActive,
+  listEntryPoint,
   scrollHandler,
   headerHeight,
   tabBarHeight,
@@ -317,7 +319,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     (info: { item: PredictMarketType; index: number }) => (
       <PredictMarketListItem
         market={info.item}
-        entryPoint={PredictEventValues.ENTRY_POINT.PREDICT_FEED}
+        entryPoint={listEntryPoint}
         testID={getPredictMarketListSelector.marketCardByCategory(
           category,
           info.index + 1, // E2E tests use 1-based indexing
@@ -325,7 +327,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
         transactionActiveAbTests={transactionActiveAbTests}
       />
     ),
-    [category, transactionActiveAbTests],
+    [category, listEntryPoint, transactionActiveAbTests],
   );
 
   const keyExtractor = useCallback((item: PredictMarketType) => item.id, []);
@@ -448,6 +450,7 @@ interface PredictFeedTabsProps {
   tabs: FeedTab[];
   activeIndex: number;
   onPageChange: (index: number) => void;
+  listEntryPoint: PredictEntryPoint;
   scrollHandler: ReturnType<typeof useAnimatedScrollHandler>;
   headerHeight: number;
   tabBarHeight: number;
@@ -460,6 +463,7 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
   tabs,
   activeIndex,
   onPageChange,
+  listEntryPoint,
   scrollHandler,
   headerHeight,
   tabBarHeight,
@@ -499,6 +503,7 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
           <PredictTabContent
             category={tab.key}
             isActive={index === activeIndex}
+            listEntryPoint={listEntryPoint}
             scrollHandler={scrollHandler}
             headerHeight={headerHeight}
             tabBarHeight={tabBarHeight}
@@ -644,6 +649,7 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
 
 interface PredictFeedProps {
   hideHeader?: boolean;
+  entryPoint?: PredictEntryPoint;
   onHeaderHiddenChange?: (hidden: boolean) => void;
   walletHeaderTranslateY?: SharedValue<number>;
   walletHeaderHeight?: number;
@@ -651,6 +657,7 @@ interface PredictFeedProps {
 
 const PredictFeed: React.FC<PredictFeedProps> = ({
   hideHeader = false,
+  entryPoint: propEntryPoint,
   onHeaderHiddenChange,
   walletHeaderTranslateY,
   walletHeaderHeight,
@@ -663,6 +670,9 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictMarketList'>>();
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
+  const feedEntryPoint = propEntryPoint ?? route.params?.entryPoint;
+  const listEntryPoint =
+    feedEntryPoint ?? PredictEventValues.ENTRY_POINT.PREDICT_FEED;
 
   const headerRef = useRef<View>(null);
   const tabBarRef = useRef<View>(null);
@@ -691,20 +701,20 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
     traceName: TraceName.PredictFeedView,
     conditions: [!isSearchVisible],
     debugContext: {
-      entryPoint: route.params?.entryPoint,
+      entryPoint: feedEntryPoint,
       isSearchVisible,
     },
   });
 
   useEffect(() => {
     sessionManager.enableAppStateListener();
-    sessionManager.startSession(route.params?.entryPoint, initialTabKey);
+    sessionManager.startSession(feedEntryPoint, initialTabKey);
 
     return () => {
       sessionManager.endSession();
       sessionManager.disableAppStateListener();
     };
-  }, [route.params?.entryPoint, sessionManager, initialTabKey]);
+  }, [feedEntryPoint, sessionManager, initialTabKey]);
 
   useFocusEffect(
     useCallback(() => {
@@ -808,6 +818,7 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
               tabs={tabs}
               activeIndex={activeIndex}
               onPageChange={handlePageChange}
+              listEntryPoint={listEntryPoint}
               scrollHandler={scrollHandler}
               headerHeight={headerHeight}
               tabBarHeight={tabBarHeight + 6}
