@@ -14,7 +14,6 @@ import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import Engine from '../../../../../core/Engine';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
-import { calcTokenAmount } from '../../../../../util/transactions';
 import {
   type PostTradeBottomSheetParams,
   PostTradeStatus,
@@ -25,44 +24,6 @@ interface Params {
   location: MetaMetricsSwapsEventSource;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
-
-type ActiveQuote = NonNullable<
-  ReturnType<typeof useBridgeQuoteData>['activeQuote']
->;
-
-const getDestAmount = (activeQuote: ActiveQuote) => {
-  if (activeQuote.toTokenAmount?.amount) {
-    return activeQuote.toTokenAmount.amount;
-  }
-
-  const atomicDestAmount = activeQuote.quote.destTokenAmount;
-  const destDecimals = activeQuote.quote.destAsset.decimals;
-  if (!atomicDestAmount || destDecimals === undefined) {
-    return undefined;
-  }
-
-  try {
-    return calcTokenAmount(atomicDestAmount, destDecimals).toFixed(5);
-  } catch {
-    return undefined;
-  }
-};
-
-const getSubmittedTransactionHash = (
-  submittedTransaction:
-    | Awaited<ReturnType<ReturnType<typeof useSubmitBridgeTx>['submitBridgeTx']>>
-    | undefined,
-) => {
-  if (
-    submittedTransaction &&
-    'hash' in submittedTransaction &&
-    typeof submittedTransaction.hash === 'string'
-  ) {
-    return submittedTransaction.hash;
-  }
-
-  return undefined;
-};
 
 export const useBridgeConfirm = ({
   activeQuote,
@@ -82,20 +43,14 @@ export const useBridgeConfirm = ({
       return;
     }
 
-    const baseModalParams: Omit<
-      PostTradeBottomSheetParams,
-      | 'status'
-      | 'transactionMetaId'
-      | 'transactionHash'
-      | 'initialTransactionStatus'
-    > = {
+    const modalTokenParams = {
       sourceAmount: sourceAmount ?? activeQuote.sentAmount?.amount,
-      destAmount: getDestAmount(activeQuote),
+      destAmount: activeQuote.toTokenAmount?.amount,
       sourceToken,
       destToken,
     };
     let modalParams: PostTradeBottomSheetParams = {
-      ...baseModalParams,
+      ...modalTokenParams,
       status: PostTradeStatus.InProgress,
     };
 
@@ -107,12 +62,18 @@ export const useBridgeConfirm = ({
         location,
         transactionActiveAbTests,
       });
+      const transactionHash =
+        submittedTransaction &&
+        'hash' in submittedTransaction &&
+        typeof submittedTransaction.hash === 'string'
+          ? submittedTransaction.hash
+          : undefined;
 
       modalParams = {
-        ...baseModalParams,
+        ...modalTokenParams,
         status: PostTradeStatus.InProgress,
         transactionMetaId: submittedTransaction?.id,
-        transactionHash: getSubmittedTransactionHash(submittedTransaction),
+        transactionHash,
         initialTransactionStatus: submittedTransaction?.status,
       };
 
@@ -121,7 +82,7 @@ export const useBridgeConfirm = ({
     } catch (error) {
       console.error('Error submitting bridge tx', error);
       modalParams = {
-        ...baseModalParams,
+        ...modalTokenParams,
         status: PostTradeStatus.Failed,
       };
     } finally {

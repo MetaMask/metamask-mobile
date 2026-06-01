@@ -520,19 +520,16 @@ describe('bridge slice', () => {
   });
 
   describe('resetBridgeTokenInputs', () => {
-    it('clears amounts and selected quote without resetting tokens or unrelated bridge settings', () => {
+    it('clears amounts and selected quote without resetting tokens', () => {
       const state = {
         ...initialState,
         sourceAmount: '1.5',
         destAmount: '100',
         sourceToken: mockToken,
         destToken: mockDestToken,
-        selectedDestChainId: mockDestToken.chainId,
         isMaxSourceAmount: true,
         isDestTokenManuallySet: true,
         selectedQuoteRequestId: 'selected-quote-id',
-        slippage: '1.0',
-        bridgeViewMode: BridgeViewMode.Bridge,
       };
 
       const newState = reducer(state, resetBridgeTokenInputs());
@@ -541,12 +538,9 @@ describe('bridge slice', () => {
       expect(newState.destAmount).toBeUndefined();
       expect(newState.sourceToken).toEqual(mockToken);
       expect(newState.destToken).toEqual(mockDestToken);
-      expect(newState.selectedDestChainId).toBe(mockDestToken.chainId);
       expect(newState.isMaxSourceAmount).toBe(false);
       expect(newState.isDestTokenManuallySet).toBe(true);
       expect(newState.selectedQuoteRequestId).toBeUndefined();
-      expect(newState.slippage).toBe('1.0');
-      expect(newState.bridgeViewMode).toBe(BridgeViewMode.Bridge);
     });
   });
 

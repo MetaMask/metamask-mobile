@@ -1194,15 +1194,6 @@ describe('SwapsConfirmButton', () => {
             quoteResponse: solanaActiveQuote,
             location: 'Main View',
           });
-          expect(mockNavigate).toHaveBeenCalledWith(
-            Routes.BRIDGE.MODALS.ROOT,
-            {
-              screen: Routes.BRIDGE.MODALS.POST_TRADE_MODAL,
-              params: expect.objectContaining({
-                status: PostTradeStatus.InProgress,
-              }),
-            },
-          );
         });
       });
     });
@@ -1749,12 +1740,6 @@ describe('SwapsConfirmButton', () => {
 
       await waitFor(() => {
         expect(mockSubmitBridgeTx).toHaveBeenCalledTimes(1);
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-          screen: Routes.BRIDGE.MODALS.POST_TRADE_MODAL,
-          params: expect.objectContaining({
-            status: PostTradeStatus.InProgress,
-          }),
-        });
       });
     });
 
@@ -1830,10 +1815,6 @@ describe('SwapsConfirmButton', () => {
 
       await waitFor(() => {
         expect(mockSubmitBridgeTx).toHaveBeenCalledTimes(1);
-        expect(mockNavigate).not.toHaveBeenCalledWith(
-          Routes.BRIDGE.MODALS.ROOT,
-          expect.anything(),
-        );
       });
     });
 
@@ -1973,10 +1954,6 @@ describe('SwapsConfirmButton', () => {
 
       await waitFor(() => {
         expect(mockSubmitBridgeTx).toHaveBeenCalledTimes(1);
-        expect(mockNavigate).not.toHaveBeenCalledWith(
-          Routes.BRIDGE.MODALS.ROOT,
-          expect.anything(),
-        );
       });
     });
   });

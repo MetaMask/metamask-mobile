@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View } from 'react-native';
 import type { StyleProp, ViewStyle } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -50,16 +50,10 @@ import {
 import styleSheet from './PostTradeBottomSheet.styles';
 import { usePostTradeTxStatus } from './usePostTradeTxStatus';
 
-const getTitleKey = (status: PostTradeStatus) => {
-  switch (status) {
-    case PostTradeStatus.Success:
-      return 'bridge.post_trade_modal.swap_complete';
-    case PostTradeStatus.Failed:
-      return 'bridge.post_trade_modal.swap_failed';
-    case PostTradeStatus.InProgress:
-    default:
-      return 'bridge.post_trade_modal.swap_in_progress';
-  }
+const TITLE_KEYS: Record<PostTradeStatus, string> = {
+  [PostTradeStatus.InProgress]: 'bridge.post_trade_modal.swap_in_progress',
+  [PostTradeStatus.Success]: 'bridge.post_trade_modal.swap_complete',
+  [PostTradeStatus.Failed]: 'bridge.post_trade_modal.swap_failed',
 };
 
 export const getTradeSubtitle = ({
@@ -99,41 +93,34 @@ const StatusIcon = ({
   status: PostTradeStatus;
   loadingIconContainerStyle: StyleProp<ViewStyle>;
 }) => {
-  switch (status) {
-    case PostTradeStatus.Success:
-      return (
-        <AvatarIcon
-          iconName={DSIconName.CheckBold}
-          severity={AvatarIconSeverity.Success}
-          size={AvatarIconSize.Xl}
-          testID={PostTradeBottomSheetTestIds.STATUS_ICON}
-        />
-      );
-    case PostTradeStatus.Failed:
-      return (
-        <AvatarIcon
-          iconName={DSIconName.Error}
-          severity={AvatarIconSeverity.Error}
-          size={AvatarIconSize.Xl}
-          testID={PostTradeBottomSheetTestIds.STATUS_ICON}
-        />
-      );
-    case PostTradeStatus.InProgress:
-    default:
-      return (
-        <View
-          style={loadingIconContainerStyle}
-          testID={PostTradeBottomSheetTestIds.STATUS_ICON}
-        >
-          <Spinner
-            color={DSIconColor.PrimaryDefault}
-            spinnerIconProps={{
-              size: DSIconSize.Xl,
-            }}
-          />
-        </View>
-      );
+  if (status !== PostTradeStatus.InProgress) {
+    const isSuccess = status === PostTradeStatus.Success;
+
+    return (
+      <AvatarIcon
+        iconName={isSuccess ? DSIconName.CheckBold : DSIconName.Error}
+        severity={
+          isSuccess ? AvatarIconSeverity.Success : AvatarIconSeverity.Error
+        }
+        size={AvatarIconSize.Xl}
+        testID={PostTradeBottomSheetTestIds.STATUS_ICON}
+      />
+    );
   }
+
+  return (
+    <View
+      style={loadingIconContainerStyle}
+      testID={PostTradeBottomSheetTestIds.STATUS_ICON}
+    >
+      <Spinner
+        color={DSIconColor.PrimaryDefault}
+        spinnerIconProps={{
+          size: DSIconSize.Xl,
+        }}
+      />
+    </View>
+  );
 };
 
 export const PostTradeBottomSheet = () => {
@@ -175,21 +162,12 @@ export const PostTradeBottomSheet = () => {
     status,
   ]);
 
-  const subtitle = useMemo(
-    () =>
-      getTradeSubtitle({
-        sourceAmount: params.sourceAmount,
-        destAmount: params.destAmount,
-        sourceToken: params.sourceToken,
-        destToken: params.destToken,
-      }),
-    [
-      params.destAmount,
-      params.destToken,
-      params.sourceAmount,
-      params.sourceToken,
-    ],
-  );
+  const subtitle = getTradeSubtitle({
+    sourceAmount: params.sourceAmount,
+    destAmount: params.destAmount,
+    sourceToken: params.sourceToken,
+    destToken: params.destToken,
+  });
 
   const handleClose = () => {
     sheetRef.current?.onCloseBottomSheet();
@@ -211,9 +189,7 @@ export const PostTradeBottomSheet = () => {
     }
     dispatch(setSourceAmount(params.sourceAmount));
 
-    if (Engine.context.BridgeController?.resetState) {
-      Engine.context.BridgeController.resetState();
-    }
+    Engine.context.BridgeController?.resetState?.();
 
     sheetRef.current?.onCloseBottomSheet(() => {
       updateQuoteParams();
@@ -263,7 +239,7 @@ export const PostTradeBottomSheet = () => {
           style={styles.title}
           testID={PostTradeBottomSheetTestIds.TITLE}
         >
-          {strings(getTitleKey(status))}
+          {strings(TITLE_KEYS[status])}
         </Text>
         {subtitle ? (
           <Text
