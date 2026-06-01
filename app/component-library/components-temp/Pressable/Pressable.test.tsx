@@ -114,5 +114,10 @@ describe('Pressable', () => {
       expect('backgroundColor' in def).toBe(false);
       expect('opacity' in hi).toBe(false);
     });
+
+    it('none variant returns an empty overlay (no opacity, no background)', () => {
+      const overlay = pressedStyleFor(PressableVariant.None, PRESSED_BG);
+      expect(overlay).toEqual({});
+    });
   });
 });

@@ -32,6 +32,7 @@ Use the `PressableVariant` enum-like const (matches the MMDS pattern used by
 | ---------------------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | `PressableVariant.Default`   | Lowers caller subtree opacity to `0.7` on press.                                   | The general case: buttons, icon affordances, inline tappable elements, anywhere `TouchableOpacity` was previously used. |
 | `PressableVariant.Highlight` | Composites `colors.background.pressed` over the caller's resting surface on press. | List rows, settings rows, sheet rows — surfaces where a backdrop highlight is the established design pattern.           |
+| `PressableVariant.None`      | Applies no visual feedback.                                                        | Only when the caller renders its own press-state styling internally (e.g. `useState(pressed)` toggling its own bg).     |
 
 The `Default` variant mirrors the familiar `TouchableOpacity` model and
 is the safe choice when migrating any existing call site. The

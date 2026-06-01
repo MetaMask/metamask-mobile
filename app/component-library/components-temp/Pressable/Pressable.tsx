@@ -20,10 +20,17 @@ export const PRESSED_OPACITY = 0.7;
 export const pressedStyleFor = (
   variant: PressableVariant,
   pressedBackgroundColor: string,
-): ViewStyle =>
-  variant === PressableVariant.Highlight
-    ? { backgroundColor: pressedBackgroundColor }
-    : { opacity: PRESSED_OPACITY };
+): ViewStyle => {
+  switch (variant) {
+    case PressableVariant.Highlight:
+      return { backgroundColor: pressedBackgroundColor };
+    case PressableVariant.None:
+      return {};
+    case PressableVariant.Default:
+    default:
+      return { opacity: PRESSED_OPACITY };
+  }
+};
 
 /**
  * Design-system Pressable.
