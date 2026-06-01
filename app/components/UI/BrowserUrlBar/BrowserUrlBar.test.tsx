@@ -273,7 +273,7 @@ describe('BrowserUrlBar', () => {
       { state: mockInitialState },
     );
 
-    const urlText = getByText('https://example.com');
+    const urlText = getByText('https://example.com/');
 
     // Press the URL text to trigger the focus callback
     fireEvent.press(urlText);
