@@ -98,14 +98,11 @@ export function getStepDescription(step: HardwareWalletsSwapsStep) {
 /** Visual state for the circular step indicator in {@link StepRow}. */
 export interface StepIconResult {
   /** Icon to render for completed or rejected steps. */
-  name: typeof IconName.Check | typeof IconName.Close | undefined;
+  name?: typeof IconName.Check | typeof IconName.Close;
   /** Icon color for completed or rejected steps. */
-  color:
-    | typeof IconColor.SuccessDefault
-    | typeof IconColor.ErrorDefault
-    | undefined;
+  color?: typeof IconColor.SuccessDefault | typeof IconColor.ErrorDefault;
   /** 1-based step number shown while the step is waiting. */
-  label: string | undefined;
+  label?: string;
   /** Whether to render a signing spinner instead of an icon or label. */
   isSigning: boolean;
 }
@@ -125,7 +122,6 @@ export function getStepIcon(
     return {
       name: IconName.Check,
       color: IconColor.SuccessDefault,
-      label: undefined,
       isSigning: false,
     };
   }
@@ -134,23 +130,17 @@ export function getStepIcon(
     return {
       name: IconName.Close,
       color: IconColor.ErrorDefault,
-      label: undefined,
       isSigning: false,
     };
   }
 
   if (step.status === HardwareWalletsSwapsStepStatus.Signing) {
     return {
-      name: undefined,
-      color: undefined,
-      label: undefined,
       isSigning: true,
     };
   }
 
   return {
-    name: undefined,
-    color: undefined,
     label: `${index + 1}`,
     isSigning: false,
   };

@@ -150,7 +150,6 @@ describe('step-helpers', () => {
       expect(result).toEqual({
         name: IconName.Check,
         color: IconColor.SuccessDefault,
-        label: undefined,
         isSigning: false,
       });
     });
@@ -166,7 +165,6 @@ describe('step-helpers', () => {
       expect(result).toEqual({
         name: IconName.Close,
         color: IconColor.ErrorDefault,
-        label: undefined,
         isSigning: false,
       });
     });
@@ -180,9 +178,6 @@ describe('step-helpers', () => {
         0,
       );
       expect(result).toEqual({
-        name: undefined,
-        color: undefined,
-        label: undefined,
         isSigning: true,
       });
     });
@@ -196,8 +191,6 @@ describe('step-helpers', () => {
         2,
       );
       expect(result).toEqual({
-        name: undefined,
-        color: undefined,
         label: '3',
         isSigning: false,
       });
