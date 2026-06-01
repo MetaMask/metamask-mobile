@@ -12,7 +12,6 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import useSubmitBridgeTx from '../../../../../util/bridge/hooks/useSubmitBridgeTx';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
-import Engine from '../../../../../core/Engine';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import {
@@ -80,7 +79,6 @@ export const useBridgeConfirm = ({
 
       dispatch(resetBridgeTokenInputs());
       dispatch(incrementBridgeBalanceRefreshKey());
-      Engine.context.BridgeController?.resetState?.();
     } catch (error) {
       console.error('Error submitting bridge tx', error);
       modalParams = {

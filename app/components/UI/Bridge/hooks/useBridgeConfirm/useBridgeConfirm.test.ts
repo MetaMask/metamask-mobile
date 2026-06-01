@@ -7,7 +7,6 @@ import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PostTradeStatus } from '../../components/PostTradeBottomSheet/PostTradeBottomSheet.types';
 import { mockBridgeReducerState } from '../../_mocks_/bridgeReducerState';
-import Engine from '../../../../../core/Engine';
 import type { RootState } from '../../../../../reducers';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 
@@ -156,7 +155,6 @@ describe('useBridgeConfirm', () => {
         await result.current();
       });
 
-      expect(Engine.context.BridgeController.resetState).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalled();
     });
   });

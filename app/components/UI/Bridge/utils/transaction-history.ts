@@ -28,14 +28,18 @@ import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
+export const isBridgeTxHistoryItemBridge = (
+  bridgeTxHistoryItem: BridgeHistoryItem,
+) =>
+  bridgeTxHistoryItem.quote.srcChainId !== bridgeTxHistoryItem.quote.destChainId;
+
 export const getSwapBridgeTxActivityTitle = (
   bridgeTxHistoryItem: BridgeHistoryItem,
 ): string | undefined => {
   const { quote } = bridgeTxHistoryItem;
 
   // Swap
-  const isSwap = quote.srcAsset.chainId === quote.destAsset.chainId;
-  if (isSwap) {
+  if (!isBridgeTxHistoryItemBridge(bridgeTxHistoryItem)) {
     return strings('swaps.transaction_label.swap', {
       sourceToken: quote.srcAsset.symbol,
       destinationToken: quote.destAsset.symbol,
