@@ -542,6 +542,10 @@ const Routes = {
   },
   FEATURE_FLAG_OVERRIDE: 'FeatureFlagOverride',
   SECURITY_TRUST: 'SecurityTrust',
+  MFA_WEBVIEW: {
+    ID: 'MfaWebview',
+    CONFIRM: 'MfaConfirmation',
+  },
 };
 
 export default Routes;
