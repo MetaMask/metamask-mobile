@@ -349,6 +349,7 @@ const defaultFeatureFlags: PredictFeatureFlags = {
   predictWithAnyTokenEnabled: false,
   predictUpDownEnabled: false,
   predictPortfolioEnabled: false,
+  predictHomeRedesignEnabled: false,
   predictHomepageDiscoveryNbaChampionEnabled: true,
   predictWorldCup: DEFAULT_PREDICT_WORLD_CUP_FLAG,
 };

@@ -1,7 +1,8 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import BigNumber from 'bignumber.js';
+import { TransactionType } from '@metamask/transaction-controller';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -18,16 +19,14 @@ import {
 import Tag from '../../../../../component-library/components/Tags/Tag';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
-import { useMusdConversionFlowData } from '../../../Earn/hooks/useMusdConversionFlowData';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
-  MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../Earn/constants/musd';
 import { Hex } from '@metamask/utils';
-import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
+import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import styleSheet from './MoneyAddMoneySheet.styles';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
@@ -54,9 +53,12 @@ const MoneyAddMoneySheet: React.FC = () => {
     tokenBalanceAggregated,
     tokenBalanceByChain,
   } = useMusdBalance();
-  const { getChainIdForBuyFlow } = useMusdConversionFlowData();
-  const { goToBuy } = useRampNavigation();
   const { initiateDeposit } = useMoneyAccountDeposit();
+  const { enabledTransactionTypes } = useMMPayFiatConfig();
+  const isFiatDepositEnabled = useMemo(
+    () => enabledTransactionTypes.includes(TransactionType.moneyAccountDeposit),
+    [enabledTransactionTypes],
+  );
 
   const closeAndNavigate = useCallback((navigateFn: () => void) => {
     sheetRef.current?.onCloseBottomSheet(navigateFn);
@@ -72,17 +74,11 @@ const MoneyAddMoneySheet: React.FC = () => {
     });
   }, [closeAndNavigate, initiateDeposit]);
 
-  // TODO(MUSD-479): point to the Ramps "Add funds" amount-entry screen
-  // (Figma 2547:8780). Interim: unified smart-routed Buy flow with mUSD
-  // pre-selected so the destination matches the Money Hub experience.
   const handleDepositFunds = useCallback(() => {
-    const chainId = getChainIdForBuyFlow
-      ? getChainIdForBuyFlow()
-      : MUSD_CONVERSION_DEFAULT_CHAIN_ID;
     closeAndNavigate(() => {
-      goToBuy({ assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[chainId] });
+      initiateDeposit({ autoSelectFiatPayment: true }).catch(() => undefined);
     });
-  }, [closeAndNavigate, getChainIdForBuyFlow, goToBuy]);
+  }, [closeAndNavigate, initiateDeposit]);
 
   const handleMoveMusd = useCallback(() => {
     let sourceChainId: Hex = MUSD_CONVERSION_DEFAULT_CHAIN_ID;
@@ -129,14 +125,21 @@ const MoneyAddMoneySheet: React.FC = () => {
       onPress: handleConvertCrypto,
       testID: MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
     },
-    {
-      label: strings('money.add_money_sheet.deposit_funds'),
-      description: strings('money.add_money_sheet.deposit_funds_description'),
-      descriptionTestID: MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_DESCRIPTION,
-      icon: IconName.AttachMoney,
-      onPress: handleDepositFunds,
-      testID: MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
-    },
+    ...(isFiatDepositEnabled
+      ? [
+          {
+            label: strings('money.add_money_sheet.deposit_funds'),
+            description: strings(
+              'money.add_money_sheet.deposit_funds_description',
+            ),
+            descriptionTestID:
+              MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_DESCRIPTION,
+            icon: IconName.AttachMoney,
+            onPress: handleDepositFunds,
+            testID: MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
+          },
+        ]
+      : []),
   ];
 
   const options: Option[] = hasMusdBalance

@@ -25,6 +25,7 @@ import { TabsIconListRef } from '../../../../../component-library/components-tem
 import Homepage from '../../Homepage';
 import PerpsHomeView from '../../../../UI/Perps/Views/PerpsHomeView/PerpsHomeView';
 import PredictFeed from '../../../../UI/Predict/views/PredictFeed';
+import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
 import { PerpsConnectionProvider } from '../../../../UI/Perps/providers/PerpsConnectionProvider';
 import {
   PerpsStreamProvider,
@@ -388,6 +389,7 @@ const HomepageDiscoveryTabs = forwardRef<
                   <PredictPreviewSheetProvider disableBottomSheet>
                     <PredictFeed
                       hideHeader
+                      entryPoint={PredictEventValues.ENTRY_POINT.PREDICT_FEED}
                       walletHeaderTranslateY={walletHeaderTranslateY}
                       walletHeaderHeight={walletHeaderHeight}
                       onHeaderHiddenChange={animateIcons}

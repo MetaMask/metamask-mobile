@@ -2,6 +2,7 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Hex } from 'viem';
 import { createProjectLogger } from '@metamask/utils';
+import Engine from '../../../../../core/Engine';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import {
   isHardwareAccount,
@@ -13,7 +14,10 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
-import { useTransactionPayRequiredTokens } from './useTransactionPayData';
+import {
+  useTransactionPayFiatPayment,
+  useTransactionPayRequiredTokens,
+} from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { AssetType } from '../../types/token';
 import {
@@ -24,6 +28,7 @@ import {
 import { useSelector } from 'react-redux';
 import {
   selectMetaMaskPayTokensFlags,
+  selectMetaMaskPayFiatFlags,
   PreferredToken,
   getPreferredTokensForTransactionType,
 } from '../../../../../selectors/featureFlagController/confirmations';
@@ -33,6 +38,7 @@ import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/t
 import { MUSD_TOKEN_ADDRESS } from '../../../../UI/Earn/constants/musd';
 import { useWithdrawTokenFilter } from './useWithdrawTokenFilter';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
+import { useRampsPaymentMethods } from '../../../../UI/Ramp/hooks/useRampsPaymentMethods';
 
 export interface SetPayTokenRequest {
   address: Hex;
@@ -42,14 +48,18 @@ export interface SetPayTokenRequest {
 const log = createProjectLogger('transaction-pay');
 
 export function useAutomaticTransactionPayToken({
+  autoSelectFiatPayment = false,
   disable = false,
   preferredToken,
 }: {
+  autoSelectFiatPayment?: boolean;
   disable?: boolean;
   preferredToken?: SetPayTokenRequest;
 } = {}) {
   const isUpdated = useRef<string | undefined>(undefined);
   const { payToken, setPayToken } = useTransactionPayToken();
+  const fiatPayment = useTransactionPayFiatPayment();
+  const hasFiatPaymentSelected = Boolean(fiatPayment?.selectedPaymentMethodId);
   const requiredTokens = useTransactionPayRequiredTokens();
   const { availableTokens } = useTransactionPayAvailableTokens();
   const payTokensFlags = useSelector(selectMetaMaskPayTokensFlags);
@@ -149,10 +159,18 @@ export function useAutomaticTransactionPayToken({
 
   const automaticToken = useMemo(() => selectBestToken(), [selectBestToken]);
 
+  const { paymentMethods } = useRampsPaymentMethods();
+  const fiatFlags = useSelector(selectMetaMaskPayFiatFlags);
+  const isFiatEnabled = hasTransactionType(
+    transactionMeta,
+    fiatFlags.enabledTransactionTypes,
+  );
+
   useEffect(() => {
     if (
       disable ||
       payToken ||
+      hasFiatPaymentSelected ||
       !transactionId ||
       isUpdated.current === transactionId
     ) {
@@ -161,6 +179,31 @@ export function useAutomaticTransactionPayToken({
 
     if (!automaticToken) {
       log('No automatic pay token found');
+      return;
+    }
+
+    if (autoSelectFiatPayment) {
+      if (!isFiatEnabled || paymentMethods.length === 0) {
+        return;
+      }
+
+      const eligibleMethod = paymentMethods.find(
+        (pm) =>
+          !pm.delay ||
+          pm.delay[1] <= fiatFlags.maxDelayMinutesForPaymentMethods,
+      );
+
+      if (eligibleMethod) {
+        Engine.context.TransactionPayController.updateFiatPayment({
+          transactionId,
+          callback: (fp) => {
+            fp.selectedPaymentMethodId = eligibleMethod.id;
+          },
+        });
+      }
+
+      isUpdated.current = transactionId;
+      log('Auto-selected fiat payment method', eligibleMethod?.name);
       return;
     }
 
@@ -173,9 +216,14 @@ export function useAutomaticTransactionPayToken({
 
     log('Automatically selected pay token', automaticToken);
   }, [
+    autoSelectFiatPayment,
     automaticToken,
     disable,
+    fiatFlags,
+    hasFiatPaymentSelected,
+    isFiatEnabled,
     payToken,
+    paymentMethods,
     requiredTokens,
     setPayToken,
     tokens,
@@ -191,6 +239,7 @@ export function useAutomaticTransactionPayToken({
     const accountKey = `${from ?? ''}:${accountOverride ?? ''}`;
     if (
       disable ||
+      hasFiatPaymentSelected ||
       !from ||
       prevAccountKeyRef.current === accountKey ||
       postQuoteTransactionType
@@ -211,6 +260,7 @@ export function useAutomaticTransactionPayToken({
     automaticToken,
     disable,
     from,
+    hasFiatPaymentSelected,
     postQuoteTransactionType,
     setPayToken,
   ]);
@@ -221,6 +271,7 @@ export function useAutomaticTransactionPayToken({
   useEffect(() => {
     if (
       disable ||
+      hasFiatPaymentSelected ||
       !from ||
       isMoneyPaymentOverride === previsMoneyPaymentOverrideRef.current ||
       postQuoteTransactionType
@@ -240,6 +291,7 @@ export function useAutomaticTransactionPayToken({
     automaticToken,
     disable,
     from,
+    hasFiatPaymentSelected,
     postQuoteTransactionType,
     setPayToken,
     isMoneyPaymentOverride,

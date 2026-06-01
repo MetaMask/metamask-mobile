@@ -31,6 +31,7 @@ interface PushPrePromptEligibility {
   canShowPrePrompt: boolean;
   hasPrePromptBeenShown: boolean;
   hasMarketingConsent: boolean;
+  isMarketingConsentResolutionPending: boolean;
   pendingSocialLoginMarketingConsentBackfill: string | null;
 }
 
@@ -38,12 +39,14 @@ const getResolutionKey = ({
   canShowPrePrompt,
   hasPrePromptBeenShown,
   hasMarketingConsent,
+  isMarketingConsentResolutionPending,
   pendingSocialLoginMarketingConsentBackfill,
 }: PushPrePromptEligibility) =>
   [
     `canShowPrePrompt:${canShowPrePrompt}`,
     `hasPrePromptBeenShown:${hasPrePromptBeenShown}`,
     `hasMarketingConsent:${hasMarketingConsent}`,
+    `isMarketingConsentResolutionPending:${isMarketingConsentResolutionPending}`,
     `pendingSocialLoginMarketingConsentBackfill:${
       pendingSocialLoginMarketingConsentBackfill ?? 'null'
     }`,
@@ -96,7 +99,10 @@ const resolvePrePromptVariant = async (
     };
   }
 
-  if (eligibility.pendingSocialLoginMarketingConsentBackfill) {
+  if (
+    eligibility.isMarketingConsentResolutionPending ||
+    eligibility.pendingSocialLoginMarketingConsentBackfill
+  ) {
     return {
       nativeOsPermissionEnabled,
       variant: null,
@@ -149,6 +155,30 @@ export function usePushPrePromptVariant(): {
     selectPendingSocialLoginMarketingConsentBackfill,
   );
 
+  const [startupMarketingConsent, setStartupMarketingConsent] = useState<
+    boolean | null
+  >(() =>
+    pendingSocialLoginMarketingConsentBackfill ? null : hasMarketingConsent,
+  );
+
+  useEffect(() => {
+    if (
+      startupMarketingConsent !== null ||
+      pendingSocialLoginMarketingConsentBackfill
+    ) {
+      return;
+    }
+
+    setStartupMarketingConsent(hasMarketingConsent);
+  }, [
+    hasMarketingConsent,
+    pendingSocialLoginMarketingConsentBackfill,
+    startupMarketingConsent,
+  ]);
+
+  const isMarketingConsentResolutionPending = startupMarketingConsent === null;
+  const startupHasMarketingConsent = startupMarketingConsent === true;
+
   const canShowPrePrompt =
     Boolean(completedOnboarding) &&
     isNotificationsFeatureAvailable &&
@@ -167,13 +197,15 @@ export function usePushPrePromptVariant(): {
     () => ({
       canShowPrePrompt,
       hasPrePromptBeenShown,
-      hasMarketingConsent,
+      hasMarketingConsent: startupHasMarketingConsent,
+      isMarketingConsentResolutionPending,
       pendingSocialLoginMarketingConsentBackfill,
     }),
     [
       canShowPrePrompt,
       hasPrePromptBeenShown,
-      hasMarketingConsent,
+      isMarketingConsentResolutionPending,
+      startupHasMarketingConsent,
       pendingSocialLoginMarketingConsentBackfill,
     ],
   );
