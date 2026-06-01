@@ -232,6 +232,8 @@ export const PerpsHomeViewSelectorsIDs = {
   POSITIONS_PNL_VALUE: 'perps-home-positions-pnl-value',
   SERVICE_INTERRUPTION_BANNER: 'perps-service-interruption-banner',
   COMPETITION_BANNER: 'perps-home-competition-banner',
+  // ADR58 POC (DO NOT MERGE): debug banner shown when an open BTC position exists
+  ADR58_DEBUG_BANNER: 'perps-home-adr58-debug-banner',
   // TabBar mock items (for testing)
   TAB_BAR_WALLET: 'tab-bar-item-wallet',
   TAB_BAR_BROWSER: 'tab-bar-item-browser',

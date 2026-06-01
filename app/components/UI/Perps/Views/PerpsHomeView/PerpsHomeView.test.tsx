@@ -745,6 +745,54 @@ describe('PerpsHomeView', () => {
     expect(queryByText('perps.home.orders')).toBeNull();
   });
 
+  // ADR58 POC (DO NOT MERGE): debug banner shown when an open BTC position exists
+  describe('ADR58 POC debug banner', () => {
+    const btcPosition = {
+      symbol: 'BTC',
+      size: '0.5',
+      entryPrice: '50000',
+      positionValue: '25000',
+      unrealizedPnl: '100',
+      marginUsed: '1000',
+      leverage: { type: 'cross' as const, value: 25 },
+      liquidationPrice: '48000',
+      maxLeverage: 50,
+      returnOnEquity: '10',
+      cumulativeFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
+      roi: '10',
+      takeProfitPrice: undefined,
+      stopLossPrice: undefined,
+      takeProfitCount: 0,
+      stopLossCount: 0,
+      marketPrice: '50200',
+      timestamp: Date.now(),
+    };
+
+    it('shows the red banner with exact text when an open BTC position exists', () => {
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        positions: [btcPosition],
+      });
+
+      const { getByTestId, getByText } = render(<PerpsHomeView />);
+
+      const banner = getByTestId('perps-home-adr58-debug-banner');
+      expect(banner).toBeTruthy();
+      expect(getByText('ADR58 POC: BTC POSITION DETECTED')).toBeTruthy();
+    });
+
+    it('does not show the banner when there is no open BTC position', () => {
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        positions: [{ ...btcPosition, symbol: 'ETH' }],
+      });
+
+      const { queryByTestId } = render(<PerpsHomeView />);
+
+      expect(queryByTestId('perps-home-adr58-debug-banner')).toBeNull();
+    });
+  });
+
   it('navigates to wallet home when back button is pressed', () => {
     // Arrange
     const { getByTestId } = render(<PerpsHomeView />);

@@ -135,6 +135,14 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingTop: 28,
       marginBottom: 36,
     },
+    // ADR58 POC (DO NOT MERGE): debug banner shown when an open BTC position exists
+    adr58DebugBanner: {
+      backgroundColor: colors.error.default,
+      padding: 12,
+    },
+    adr58DebugBannerText: {
+      color: colors.error.inverse,
+    },
   });
 };
 

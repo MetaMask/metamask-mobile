@@ -5,7 +5,7 @@ import React, {
   useEffect,
   useMemo,
 } from 'react';
-import { View, Modal, NativeScrollEvent } from 'react-native';
+import { View, Modal, NativeScrollEvent, Text } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   SafeAreaView,
@@ -535,6 +535,18 @@ const PerpsHomeView = ({
         <PerpsCompetitionBanner
           testID={PerpsHomeViewSelectorsIDs.COMPETITION_BANNER}
         />
+
+        {/* ADR58 POC (DO NOT MERGE): red debug banner when an open BTC position exists */}
+        {positions.some((position) => position.symbol === 'BTC') && (
+          <View
+            testID={PerpsHomeViewSelectorsIDs.ADR58_DEBUG_BANNER}
+            style={styles.adr58DebugBanner}
+          >
+            <Text style={styles.adr58DebugBannerText}>
+              ADR58 POC: BTC POSITION DETECTED
+            </Text>
+          </View>
+        )}
 
         {/* Positions Section */}
         <PerpsHomeSection
