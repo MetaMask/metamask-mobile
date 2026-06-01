@@ -1,11 +1,11 @@
-import React, { useMemo } from 'react';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import type { CaipChainId, Hex } from '@metamask/utils';
-import { QuickBuy } from '../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/quickBuy';
+import React, { useMemo } from 'react';
 import { TOP_TRADERS_QUICK_BUY_FEATURES } from '../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/features';
+import { QuickBuy } from '../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/quickBuy';
 import type {
-  QuickBuyTarget,
   QuickBuyAnalyticsContext,
+  QuickBuyTarget,
 } from '../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/types';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 
@@ -37,12 +37,7 @@ const AssetDetailsQuickBuy: React.FC<AssetDetailsQuickBuyProps> = ({
   const tokenName = token?.name;
 
   const target = useMemo<QuickBuyTarget | null>(() => {
-    if (
-      !chainId ||
-      tokenAddress === undefined ||
-      tokenSymbol === undefined ||
-      tokenName === undefined
-    ) {
+    if (!chainId || tokenAddress === undefined) {
       return null;
     }
     let chain: CaipChainId | undefined;
@@ -54,8 +49,8 @@ const AssetDetailsQuickBuy: React.FC<AssetDetailsQuickBuyProps> = ({
     if (!chain) return null;
     return {
       tokenAddress,
-      tokenSymbol,
-      tokenName,
+      tokenSymbol: tokenSymbol ?? '',
+      tokenName: tokenName ?? tokenSymbol ?? '',
       chain,
     };
   }, [chainId, tokenAddress, tokenSymbol, tokenName]);

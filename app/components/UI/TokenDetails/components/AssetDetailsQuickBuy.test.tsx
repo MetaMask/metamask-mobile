@@ -58,6 +58,53 @@ describe('AssetDetailsQuickBuy', () => {
     );
   });
 
+  it('builds a target for a native asset without a name by falling back to the symbol', () => {
+    const nativeToken = {
+      address: '0x0000000000000000000000000000000000000000',
+      symbol: 'ETH',
+      chainId: '0x1',
+    } as unknown as TokenDetailsRouteParams;
+
+    render(
+      <AssetDetailsQuickBuy
+        isVisible
+        token={nativeToken}
+        onClose={jest.fn()}
+      />,
+    );
+
+    expect(mockQuickBuyRoot).toHaveBeenCalledWith(
+      expect.objectContaining({
+        target: {
+          tokenAddress: '0x0000000000000000000000000000000000000000',
+          tokenSymbol: 'ETH',
+          tokenName: 'ETH',
+          chain: 'eip155:1',
+        },
+      }),
+    );
+  });
+
+  it('passes null target when token has no address', () => {
+    const tokenNoAddress = {
+      symbol: 'TKN',
+      name: 'Token',
+      chainId: '0x1',
+    } as unknown as TokenDetailsRouteParams;
+
+    render(
+      <AssetDetailsQuickBuy
+        isVisible
+        token={tokenNoAddress}
+        onClose={jest.fn()}
+      />,
+    );
+
+    expect(mockQuickBuyRoot).toHaveBeenCalledWith(
+      expect.objectContaining({ target: null }),
+    );
+  });
+
   it('passes null target when token is null', () => {
     render(<AssetDetailsQuickBuy isVisible token={null} onClose={jest.fn()} />);
 
