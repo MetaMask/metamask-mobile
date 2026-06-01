@@ -103,6 +103,16 @@ const isDailyMarket = (market: PredictMarket): boolean =>
 
 const isGameMarket = (market: PredictMarket): boolean => Boolean(market.game);
 
+/**
+ * Whether the underlying game has finished. For game markets this is the
+ * authoritative completion signal: a match is over once the provider reports a
+ * terminal status or stamps an end time. We intentionally avoid the
+ * market-level `endDate` here because live matches routinely run past their
+ * scheduled end (stoppage time, halftime, extra time, penalties).
+ */
+const isGameOver = (market: PredictMarket): boolean =>
+  market.game?.status === 'ended' || Boolean(market.game?.endTime);
+
 const getHoursUntilEndDate = (
   market: PredictMarket,
   options?: PredictMarketStalenessOptions,
@@ -123,8 +133,11 @@ export const isPredictMarketExpiredByTime = (
   market: PredictMarket,
   options?: PredictMarketStalenessOptions,
 ): boolean => {
-  if (market.game?.status === 'ended') {
-    return true;
+  // Game markets expire based on the game's own lifecycle, never the scheduled
+  // `endDate`. This keeps ongoing matches that run long (stoppage/extra time,
+  // penalties) visible instead of being filtered out as stale.
+  if (isGameMarket(market)) {
+    return isGameOver(market);
   }
 
   if (!isDailyMarket(market)) {

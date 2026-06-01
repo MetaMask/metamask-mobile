@@ -21,7 +21,6 @@ import {
   resolvePredictWorldCupStageLabel,
 } from '../utils/worldCup';
 import {
-  fetchPredictWorldCupMarkets,
   fetchPredictWorldCupMarketsPage,
   PREDICT_WORLD_CUP_PAGE_SIZE,
 } from '../services/worldCup';
