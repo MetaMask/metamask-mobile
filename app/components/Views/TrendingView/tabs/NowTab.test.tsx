@@ -446,7 +446,7 @@ describe('NowTab — Predictions navigation', () => {
 
     renderNowTab();
 
-    expect(screen.getByText('World cup predictions')).toBeOnTheScreen();
+    expect(screen.getByText('World Cup predictions')).toBeOnTheScreen();
 
     fireEvent.press(screen.getByTestId(predictSectionTestId));
 

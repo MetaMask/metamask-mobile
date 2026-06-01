@@ -145,7 +145,7 @@ describe('SportsTab — Predictions carousel', () => {
 
     renderSportsTab();
 
-    expect(screen.getByText('World cup predictions')).toBeOnTheScreen();
+    expect(screen.getByText('World Cup predictions')).toBeOnTheScreen();
 
     fireEvent.press(
       screen.getByTestId('section-header-view-all-sports_predictions'),
