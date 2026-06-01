@@ -83,8 +83,13 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
   const walletType = accountState?.walletType;
   const isWithdrawDisabled = hasBalance && !walletType;
   const actionButtonStyle = tw.style(
-    'flex-1 h-12 items-center justify-center px-2',
+    'flex-1',
+    predictPortfolioEnabled && 'h-12 items-center justify-center px-2',
   );
+  const actionButtonSize = predictPortfolioEnabled ? ButtonSize.Lg : undefined;
+  const actionButtonLabelTextVariant = predictPortfolioEnabled
+    ? ComponentTextVariant.BodySMMedium
+    : undefined;
 
   useEffect(() => {
     if (!isDepositPending) {
@@ -232,9 +237,9 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
           {predictPortfolioEnabled && (
             <Button
               variant={ButtonVariants.Secondary}
-              size={ButtonSize.Lg}
+              size={actionButtonSize}
               style={actionButtonStyle}
-              labelTextVariant={ComponentTextVariant.BodySMMedium}
+              labelTextVariant={actionButtonLabelTextVariant}
               label={strings('predict.tabs.positions')}
               onPress={handlePositionsPress}
               testID={PREDICT_BALANCE_TEST_IDS.POSITIONS_BUTTON}
@@ -244,18 +249,18 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
             variant={
               hasBalance ? ButtonVariants.Secondary : ButtonVariants.Primary
             }
-            size={ButtonSize.Lg}
+            size={actionButtonSize}
             style={actionButtonStyle}
-            labelTextVariant={ComponentTextVariant.BodySMMedium}
+            labelTextVariant={actionButtonLabelTextVariant}
             label={strings('predict.deposit.add_funds')}
             onPress={handleAddFunds}
           />
           {hasBalance && (
             <Button
               variant={ButtonVariants.Secondary}
-              size={ButtonSize.Lg}
+              size={actionButtonSize}
               style={actionButtonStyle}
-              labelTextVariant={ComponentTextVariant.BodySMMedium}
+              labelTextVariant={actionButtonLabelTextVariant}
               label={strings('predict.deposit.withdraw')}
               onPress={handleWithdraw}
               isDisabled={isWithdrawDisabled}

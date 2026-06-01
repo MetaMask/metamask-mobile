@@ -4,7 +4,10 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PredictBalance from './PredictBalance';
 import { strings } from '../../../../../../locales/i18n';
-import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button';
+import {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../../../component-library/components/Buttons/Button';
 import { PREDICT_BALANCE_TEST_IDS } from './PredictBalance.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 
@@ -417,6 +420,40 @@ describe('PredictBalance', () => {
 
       // Assert
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.POSITIONS);
+    });
+
+    it('uses compact action button sizing only when portfolio feature flag is enabled', () => {
+      // Arrange
+      mockUsePredictBalance.mockReturnValue({
+        data: 100,
+        isLoading: false,
+      });
+
+      // Act
+      const enabledRender = renderWithProvider(<PredictBalance />, {
+        state: stateWithPredictPortfolioEnabled(true),
+      });
+
+      // Assert
+      expect(
+        enabledRender.UNSAFE_getAllByProps({
+          size: ButtonSize.Lg,
+          variant: ButtonVariants.Secondary,
+        }),
+      ).toHaveLength(3);
+
+      enabledRender.unmount();
+
+      const disabledRender = renderWithProvider(<PredictBalance />, {
+        state: stateWithPredictPortfolioEnabled(false),
+      });
+
+      expect(
+        disabledRender.UNSAFE_queryAllByProps({
+          size: ButtonSize.Lg,
+          variant: ButtonVariants.Secondary,
+        }),
+      ).toHaveLength(0);
     });
 
     it('calls deposit function with analytics properties when Add Funds button is pressed', () => {
