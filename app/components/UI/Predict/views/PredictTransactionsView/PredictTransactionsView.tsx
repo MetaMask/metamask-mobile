@@ -32,7 +32,10 @@ import { TraceName } from '../../../../../util/trace';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
 import { PREDICT_TRANSACTIONS_VIEW_TEST_IDS } from './PredictTransactionsView.testIds';
-import { PredictPositionsHistoryListSelectorsIDs } from '../../Predict.testIds';
+import {
+  getPredictPositionsHistoryListSelector,
+  PredictPositionsHistoryListSelectorsIDs,
+} from '../../Predict.testIds';
 import type { PredictNavigationParamList } from '../../types/navigation';
 import Routes from '../../../../../constants/navigation/Routes';
 
@@ -94,7 +97,9 @@ const ClaimPendingPositionRow = ({
         'flex-row items-start justify-between w-full p-2',
         containerStyle,
       )}
-      testID={PredictPositionsHistoryListSelectorsIDs.CLAIM_PENDING_ROW}
+      testID={getPredictPositionsHistoryListSelector.claimPendingRow(
+        position.id,
+      )}
     >
       <Box twClassName="h-10 w-10 items-center justify-center rounded-full bg-muted mr-3 overflow-hidden mt-1">
         {position.icon ? (

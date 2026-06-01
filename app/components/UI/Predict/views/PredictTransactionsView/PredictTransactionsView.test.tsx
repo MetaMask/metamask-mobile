@@ -7,7 +7,10 @@ import {
   PredictPositionStatus,
   type PredictPosition,
 } from '../../types';
-import { PredictPositionsHistoryListSelectorsIDs } from '../../Predict.testIds';
+import {
+  getPredictPositionsHistoryListSelector,
+  PredictPositionsHistoryListSelectorsIDs,
+} from '../../Predict.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../constants/eventNames';
 
@@ -256,9 +259,46 @@ describe('PredictTransactionsView', () => {
       />,
     );
 
-    expect(screen.UNSAFE_getByType(SectionList)).toBeTruthy();
+    expect(
+      screen.getByTestId(
+        PredictPositionsHistoryListSelectorsIDs.CLAIM_PENDING_SECTION,
+      ),
+    ).toBeOnTheScreen();
     expect(screen.getByText('Claim pending')).toBeOnTheScreen();
     expect(screen.queryByText('No recent activity')).toBeNull();
+  });
+
+  it('uses unique test IDs for multiple claim pending positions', () => {
+    (usePredictActivity as jest.Mock).mockReturnValueOnce(
+      createUsePredictActivityValue({
+        data: [],
+        isLoading: false,
+      }),
+    );
+
+    render(
+      <PredictTransactionsView
+        claimPendingPositions={[
+          createClaimPendingPosition({ id: 'claimable-position-1' }),
+          createClaimPendingPosition({ id: 'claimable-position-2' }),
+        ]}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(
+        getPredictPositionsHistoryListSelector.claimPendingRow(
+          'claimable-position-1',
+        ),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        getPredictPositionsHistoryListSelector.claimPendingRow(
+          'claimable-position-2',
+        ),
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('hides claim pending amounts in privacy mode', () => {
@@ -296,7 +336,9 @@ describe('PredictTransactionsView', () => {
 
     fireEvent.press(
       screen.getByTestId(
-        PredictPositionsHistoryListSelectorsIDs.CLAIM_PENDING_ROW,
+        getPredictPositionsHistoryListSelector.claimPendingRow(
+          'claimable-position',
+        ),
       ),
     );
 

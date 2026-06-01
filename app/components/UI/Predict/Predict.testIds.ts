@@ -100,6 +100,11 @@ export const PredictPositionsHistoryListSelectorsIDs = {
   CONTAINER: 'predict-positions-history-list',
 } as const;
 
+export const getPredictPositionsHistoryListSelector = {
+  claimPendingRow: (positionId: string) =>
+    `${PredictPositionsHistoryListSelectorsIDs.CLAIM_PENDING_ROW}-${positionId}`,
+} as const;
+
 export const getPredictFeedSelector = {
   tab: (index: number) => `${PredictFeedSelectorsIDs.TABS}-tab-${index}`,
   tabPage: (key: string) => `predict-feed-tab-page-${key}`,
