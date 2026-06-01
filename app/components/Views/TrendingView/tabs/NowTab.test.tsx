@@ -424,11 +424,11 @@ describe('NowTab — Perps Movers "View All" navigation', () => {
     ).toBeGreaterThan(0);
   });
 
-  it('keeps pill skeletons visible until price change data is available', () => {
+  it('renders placeholder perps when price change data is unavailable after loading', () => {
     mockUsePerpsFeed.mockReturnValue({
       data: [
         { market: { symbol: 'BTC', change24hPercent: '' } },
-        { market: { symbol: 'ETH', change24hPercent: '0%' } },
+        { market: { symbol: 'ETH', change24hPercent: undefined } },
       ] as never,
       isLoading: false,
       refetch: jest.fn(),
@@ -437,9 +437,9 @@ describe('NowTab — Perps Movers "View All" navigation', () => {
 
     renderNowTab();
 
-    expect(
-      screen.getAllByTestId('section-pills-skeleton').length,
-    ).toBeGreaterThan(0);
+    expect(screen.queryByTestId('section-pills-skeleton')).toBeNull();
+    expect(screen.getByTestId('perps-pill-BTC')).toBeOnTheScreen();
+    expect(screen.getByTestId('perps-pill-ETH')).toBeOnTheScreen();
   });
 
   it('does not render pill skeletons when price change data is valid but filtered out', () => {
