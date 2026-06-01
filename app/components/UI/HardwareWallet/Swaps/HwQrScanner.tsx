@@ -24,7 +24,7 @@ import Engine from '../../../../core/Engine';
 import { ETHSignature } from '@keystonehq/bc-ur-registry-eth';
 import { stringify as uuidStringify } from 'uuid';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
-import { useAnimatedQrScanner } from '../../QRHardware/useAnimatedQrScanner';
+import { useAnimatedQrScanner } from './hooks/useAnimatedQrScanner';
 import { HwQrScannerSelectorsIDs } from './HwQrScanner.testIds';
 import { useHardwareWallet } from '../../../../core/HardwareWallet';
 import frameImage from '../../../../images/frame.png';

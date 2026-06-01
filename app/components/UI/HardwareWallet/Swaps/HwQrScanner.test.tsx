@@ -77,7 +77,7 @@ jest.mock('../../../../core/Engine', () => ({
   })),
 }));
 
-jest.mock('../../QRHardware/useAnimatedQrScanner', () => ({
+jest.mock('./hooks/useAnimatedQrScanner', () => ({
   useAnimatedQrScanner: (options: unknown) => mockUseAnimatedQrScanner(options),
 }));
 

@@ -169,8 +169,8 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       const callbacks = getCapturedCallbacks();
       const onError = expectCapturedCallback(callbacks.onError);
       const mockError = new Error('Camera initialization failed');
-      act(() => {
-        onError(mockError);
+      await act(async () => {
+        await onError(mockError);
       });
 
       await waitFor(() => {
@@ -190,40 +190,6 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       });
     });
 
-    it('suppresses analytics failures from the fire-and-forget camera error handler', async () => {
-      const analyticsError = new Error('Analytics unavailable');
-      // The helper retries with Unknown device metadata after the first builder failure.
-      mockCreateEventBuilder.mockImplementationOnce(() => {
-        throw analyticsError;
-      });
-      mockCreateEventBuilder.mockImplementationOnce(() => {
-        throw analyticsError;
-      });
-
-      render(<AnimatedQRScannerModal {...defaultProps} />);
-
-      await waitFor(() => {
-        const callbacks = getCapturedCallbacks();
-        expect(callbacks.onError).not.toBeNull();
-      });
-
-      const callbacks = getCapturedCallbacks();
-      const onError = expectCapturedCallback(callbacks.onError);
-      let onErrorResult: unknown;
-      act(() => {
-        onErrorResult = onError(new Error('Camera initialization failed'));
-      });
-
-      expect(onErrorResult).toBeUndefined();
-      await waitFor(() => {
-        expect(mockCreateEventBuilder).toHaveBeenCalledTimes(2);
-      });
-      expect(mockTrackEvent).not.toHaveBeenCalled();
-      expect(mockOnScanError).toHaveBeenCalledWith(
-        'Camera initialization failed',
-      );
-    });
-
     it('does not track metrics when error is falsy', async () => {
       render(<AnimatedQRScannerModal {...defaultProps} />);
 
@@ -234,8 +200,8 @@ describe('AnimatedQRScannerModal - Metrics', () => {
 
       const callbacks = getCapturedCallbacks();
       const onError = expectCapturedCallback(callbacks.onError);
-      act(() => {
-        onError(null as unknown as Error);
+      await act(async () => {
+        await onError(null as unknown as Error);
       });
 
       await waitFor(() => {
@@ -255,8 +221,8 @@ describe('AnimatedQRScannerModal - Metrics', () => {
 
       const callbacks = getCapturedCallbacks();
       const onError = expectCapturedCallback(callbacks.onError);
-      act(() => {
-        onError(null as unknown as Error);
+      await act(async () => {
+        await onError(null as unknown as Error);
       });
 
       await waitFor(() => {
@@ -1203,8 +1169,8 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       const callbacks = getCapturedCallbacks();
       const onError = expectCapturedCallback(callbacks.onError);
       const mockError = new Error('Camera error');
-      act(() => {
-        onError(mockError);
+      await act(async () => {
+        await onError(mockError);
       });
 
       await waitFor(() => {

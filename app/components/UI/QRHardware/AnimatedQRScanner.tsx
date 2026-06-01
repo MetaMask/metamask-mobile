@@ -10,6 +10,8 @@ import React, {
   useRef,
 } from 'react';
 import {
+  AppState,
+  AppStateStatus,
   Image,
   Linking,
   Text,
@@ -29,6 +31,8 @@ import { strings } from '../../../../locales/i18n';
 import { URRegistryDecoder } from '@keystonehq/ur-decoder';
 import Modal from 'react-native-modal';
 import { UR } from '@ngraveio/bc-ur';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { SUPPORTED_UR_TYPE } from '../../../constants/qr';
 import { useTheme } from '../../../util/theme';
 import { Theme } from '../../../util/theme/models';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
@@ -37,20 +41,43 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
+import { withQrKeyring } from '../../../core/QrKeyring/QrKeyring';
+import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 import {
   createQRHardwareScanError,
   getQRHardwareScanErrorTitle,
   type QRHardwareScanError,
   QRHardwareScanErrorType,
 } from '../../../core/HardwareWallet/errors';
-import {
-  buildQrHardwareWalletErrorAnalyticsProperties,
-  getExpectedURTypes,
-  isSameScanError,
-  sendQrHardwareErrorAnalytics,
-  useCameraPermissionRefresh,
-} from './AnimatedQRScanner.utils';
+import { isSameScanError } from './AnimatedQRScanner.utils';
 import usePrevious from '../../../components/hooks/usePrevious';
+
+/**
+ * Builds {@link MetaMetricsEvents.HARDWARE_WALLET_ERROR} properties for QR hardware flows.
+ *
+ * - `error_category` — set for decode / scan pipeline failures (not for native camera errors).
+ * - `received_ur_type` — only when `error_category` is `wrong_ur_type` (decoded UR type mismatch).
+ * - `is_ur_format` — whether the scanned payload (trimmed) starts with `ur:` (case-insensitive).
+ */
+function buildQrHardwareWalletErrorAnalyticsProperties(options: {
+  error: string;
+  error_category?: QRHardwareScanErrorType;
+  is_ur_format: boolean;
+  received_ur_type?: string;
+}): Record<string, unknown> {
+  const { error, error_category, is_ur_format, received_ur_type } = options;
+  const payload: Record<string, unknown> = {
+    error,
+    is_ur_format,
+  };
+  if (error_category !== undefined) {
+    payload.error_category = error_category;
+  }
+  if (error_category === QRHardwareScanErrorType.WrongURType) {
+    payload.received_ur_type = received_ur_type ?? '';
+  }
+  return payload;
+}
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -242,14 +269,54 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
 
   const cameraDevice = useCameraDevice('back');
   const { hasPermission, requestPermission } = useCameraPermission();
+  const appState = useRef(AppState.currentState);
 
-  const expectedURTypes = useMemo(() => getExpectedURTypes(purpose), [purpose]);
+  let expectedURTypes: string[];
+  if (purpose === QrScanRequestType.PAIR) {
+    expectedURTypes = [
+      SUPPORTED_UR_TYPE.CRYPTO_HDKEY,
+      SUPPORTED_UR_TYPE.CRYPTO_ACCOUNT,
+    ];
+  } else {
+    expectedURTypes = [SUPPORTED_UR_TYPE.ETH_SIGNATURE];
+  }
 
-  useCameraPermissionRefresh({
-    isActive: visible,
-    hasPermission,
-    requestPermission,
-  });
+  const refreshCameraPermission = useCallback(() => {
+    if (!visible || hasPermission) {
+      return;
+    }
+
+    requestPermission();
+  }, [hasPermission, requestPermission, visible]);
+
+  useEffect(() => {
+    refreshCameraPermission();
+  }, [refreshCameraPermission]);
+
+  useEffect(() => {
+    if (!visible) {
+      return undefined;
+    }
+
+    const subscription = AppState.addEventListener(
+      'change',
+      (nextAppState: AppStateStatus) => {
+        const hasReturnedToForeground =
+          /inactive|background/.test(appState.current) &&
+          nextAppState === 'active';
+
+        appState.current = nextAppState;
+
+        if (hasReturnedToForeground) {
+          refreshCameraPermission();
+        }
+      },
+    );
+
+    return () => {
+      subscription?.remove?.();
+    };
+  }, [refreshCameraPermission, visible]);
 
   const resetDecoder = useCallback(() => {
     setURDecoder(new URRegistryDecoder());
@@ -272,10 +339,30 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
   // Helper to send analytics with device name
   const sendErrorAnalytics = useCallback(
     async (properties: Record<string, unknown>) => {
-      await sendQrHardwareErrorAnalytics(properties, {
-        trackEvent,
-        createEventBuilder,
-      });
+      try {
+        const deviceName = await withQrKeyring(async ({ keyring }) =>
+          keyring.getName(),
+        );
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
+            .addProperties({
+              ...properties,
+              device_model: deviceName,
+              device_type: HardwareDeviceTypes.QR,
+            })
+            .build(),
+        );
+      } catch (e) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
+            .addProperties({
+              ...properties,
+              device_model: 'Unknown',
+              device_type: HardwareDeviceTypes.QR,
+            })
+            .build(),
+        );
+      }
     },
     [trackEvent, createEventBuilder],
   );
@@ -290,14 +377,14 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
   }, [onQRHardwareScanError, scanError]);
 
   const onError = useCallback(
-    (error: Error) => {
+    async (error: Error) => {
       if (onScanError && error) {
         sendErrorAnalytics(
           buildQrHardwareWalletErrorAnalyticsProperties({
             error: error.message,
             is_ur_format: false,
           }),
-        ).catch(() => undefined);
+        );
         onScanError(error.message);
       }
     },

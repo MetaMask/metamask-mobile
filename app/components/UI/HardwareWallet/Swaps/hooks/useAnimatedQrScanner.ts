@@ -8,20 +8,20 @@ import {
 import { URRegistryDecoder } from '@keystonehq/ur-decoder';
 import { UR } from '@ngraveio/bc-ur';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
-import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import { useAnalytics } from '../../../../../components/hooks/useAnalytics/useAnalytics';
 import {
   createQRHardwareScanError,
   getQRHardwareScanErrorTitle,
   type QRHardwareScanError,
   QRHardwareScanErrorType,
-} from '../../../core/HardwareWallet/errors';
+} from '../../../../../core/HardwareWallet/errors';
 import {
   buildQrHardwareWalletErrorAnalyticsProperties,
   getExpectedURTypes,
   isSameScanError,
   sendQrHardwareErrorAnalytics,
   useCameraPermissionRefresh,
-} from './AnimatedQRScanner.utils';
+} from './qrScannerUtils';
 
 interface UseAnimatedQrScannerOptions {
   isActive: boolean;
@@ -123,7 +123,6 @@ export function useAnimatedQrScanner({
 
   const handleScanSuccess = useCallback(
     (ur: UR) => {
-      // Avoid duplicate camera frames resolving the same animated QR payload.
       scanSuccessActiveRef.current = true;
       lastForwardedScanErrorRef.current = null;
       onScanSuccess(ur);

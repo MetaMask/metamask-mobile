@@ -3,16 +3,16 @@ import { AppState } from 'react-native';
 import { URRegistryDecoder } from '@keystonehq/ur-decoder';
 import { useCameraPermission } from 'react-native-vision-camera';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import type { JsonMap } from '../../../core/Analytics/MetaMetrics.types';
-import { SUPPORTED_UR_TYPE } from '../../../constants/qr';
-import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
-import { QRHardwareScanErrorType } from '../../../core/HardwareWallet/errors';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import type { JsonMap } from '../../../../../core/Analytics/MetaMetrics.types';
+import { SUPPORTED_UR_TYPE } from '../../../../../constants/qr';
+import { HardwareDeviceTypes } from '../../../../../constants/keyringTypes';
+import { QRHardwareScanErrorType } from '../../../../../core/HardwareWallet/errors';
 
 import {
   getCapturedCallbacks,
   resetCapturedCallbacks,
-} from '../../../__mocks__/react-native-vision-camera';
+} from '../../../../../__mocks__/react-native-vision-camera';
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
@@ -21,7 +21,7 @@ const mockAddProperties = jest.fn<{ build: typeof mockBuild }, [JsonMap]>(
   (_properties) => ({ build: mockBuild }),
 );
 
-jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
+jest.mock('../../../../../components/hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(() => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder.mockReturnValue({
@@ -30,7 +30,7 @@ jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
   })),
 }));
 
-jest.mock('../../../core/QrKeyring/QrKeyring', () => ({
+jest.mock('../../../../../core/QrKeyring/QrKeyring', () => ({
   withQrKeyring: jest.fn(async (callback) =>
     callback({
       keyring: { getName: jest.fn().mockResolvedValue('MockDevice') },
@@ -55,7 +55,7 @@ jest.mock('@keystonehq/ur-decoder', () => ({
 
 jest.mock('react-native-vision-camera');
 
-jest.mock('../../../../locales/i18n', () => ({
+jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
@@ -583,7 +583,7 @@ describe('useAnimatedQrScanner', () => {
 
     it('falls back to unknown device metadata when keyring lookup fails', async () => {
       jest
-        .requireMock('../../../core/QrKeyring/QrKeyring')
+        .requireMock('../../../../../core/QrKeyring/QrKeyring')
         .withQrKeyring.mockRejectedValueOnce(new Error('No QR keyring'));
 
       const { result } = renderScannerHook();
@@ -604,7 +604,6 @@ describe('useAnimatedQrScanner', () => {
 
     it('suppresses analytics failures from the fire-and-forget onError handler', async () => {
       const analyticsError = new Error('Analytics unavailable');
-      // The helper retries with Unknown device metadata after the first builder failure.
       mockCreateEventBuilder.mockImplementationOnce(() => {
         throw analyticsError;
       });
