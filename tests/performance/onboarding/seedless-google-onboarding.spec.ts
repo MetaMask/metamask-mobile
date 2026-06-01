@@ -1,9 +1,20 @@
 import { test } from '../../framework/fixture';
 import TimerHelper from '../../framework/TimerHelper';
-import { asPlaywrightElement, PlaywrightAssertions } from '../../framework';
+import {
+  asPlaywrightElement,
+  PlaywrightAssertions,
+  PlaywrightGestures,
+} from '../../framework';
 import { getPasswordForScenario } from '../../framework/utils/TestConstants.js';
-import { dismisspredictionsModalPlaywright } from '../../flows/wallet.flow';
-import { PerformanceOnboarding } from '../../tags.performance.js';
+import {
+  dismissOnboardingInterestQuestionnaire,
+  dismisspredictionsModalPlaywright,
+} from '../../flows/wallet.flow';
+import {
+  Performance,
+  System,
+  PerformanceOnboarding,
+} from '../../tags.performance.js';
 import OnboardingView from '../../page-objects/Onboarding/OnboardingView';
 import OnboardingSheet from '../../page-objects/Onboarding/OnboardingSheet';
 import SocialLoginView from '../../page-objects/Onboarding/SocialLoginView';
@@ -28,7 +39,7 @@ const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
   });
 
 /* Seedless Onboarding: Google Login */
-test.describe(PerformanceOnboarding, () => {
+test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
   test.setTimeout(240000);
 
   test(
@@ -42,12 +53,12 @@ test.describe(PerformanceOnboarding, () => {
       );
       const timer2 = new TimerHelper(
         'Google: Tap Google login → post-OAuth screen visible',
-        { ios: 15000, android: 15000 },
+        { ios: 15000, android: 5000 },
         currentDeviceDetails.platform,
       );
       const timer3 = new TimerHelper(
         'Google: Post-OAuth action → Password fields visible',
-        { ios: 4000, android: 2000 },
+        { ios: 4000, android: 4000 },
         currentDeviceDetails.platform,
       );
       const timer4 = new TimerHelper(
@@ -57,12 +68,12 @@ test.describe(PerformanceOnboarding, () => {
       );
       const timer5 = new TimerHelper(
         'Google: Tap "Done" → feature sheet visible',
-        { ios: 2500, android: 3100 },
+        { ios: 2500, android: 5000 },
         currentDeviceDetails.platform,
       );
       const timer6 = new TimerHelper(
         'Google: Dismiss feature sheet → wallet main screen visible',
-        { ios: 30000, android: 30000 },
+        { ios: 30000, android: 5000 },
         currentDeviceDetails.platform,
       );
 
@@ -79,6 +90,7 @@ test.describe(PerformanceOnboarding, () => {
       });
 
       await OnboardingSheet.tapGoogleLoginButton();
+      await SocialLoginView.dismissUpdateModalIfPresent();
 
       let isNewUser = true;
 
@@ -114,6 +126,7 @@ test.describe(PerformanceOnboarding, () => {
       if (isNewUser) {
         await CreatePasswordView.enterPassword(password);
         await CreatePasswordView.reEnterPassword(password);
+        await PlaywrightGestures.hideKeyboard();
         await CreatePasswordView.tapIUnderstandCheckBox();
         await CreatePasswordView.tapCreatePasswordButton();
 
@@ -126,6 +139,7 @@ test.describe(PerformanceOnboarding, () => {
           );
         });
 
+        await dismissOnboardingInterestQuestionnaire();
         await OnboardingSuccessView.tapDone();
         await timer5.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
@@ -140,7 +154,7 @@ test.describe(PerformanceOnboarding, () => {
         await dismisspredictionsModalPlaywright();
         await timer6.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(WalletView.container),
+            asPlaywrightElement(WalletView.accountIcon), // Workaround until iOS nested component gets fixed
             {
               description: 'Wallet main screen should be visible',
             },

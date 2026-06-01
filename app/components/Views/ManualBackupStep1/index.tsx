@@ -53,6 +53,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import type { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { Authentication } from '../../../core';
 import { ManualBackUpStepsSelectorsIDs } from './ManualBackUpSteps.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import SeedPhraseConcealer from '../RevealPrivateCredential/components/SeedPhraseConcealer';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
@@ -322,15 +323,16 @@ const ManualBackupStep1 = () => {
                 placeholder={strings('manual_backup_step_1.password')}
                 value={password}
                 onChangeText={onPasswordChange}
-                secureTextEntry
-                onSubmitEditing={tryUnlock}
-                testID={ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT}
-                accessibilityLabel={
-                  ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT
-                }
-                keyboardAppearance={themeAppearance}
-                autoCapitalize="none"
                 autoFocus
+                inputProps={{
+                  secureTextEntry: true,
+                  onSubmitEditing: tryUnlock,
+                  testID: ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT,
+                  accessibilityLabel:
+                    ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT,
+                  keyboardAppearance: themeAppearance,
+                  autoCapitalize: 'none',
+                }}
               />
               {warningIncorrectPassword && (
                 <Text

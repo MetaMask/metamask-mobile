@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useMemo } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import CheckBox from '@react-native-community/checkbox';
 import { useSelector } from 'react-redux';
@@ -13,12 +13,7 @@ import { createStyle } from './styles';
 import AccountDetails from '../AccountDetails';
 import StyledButton from '../../../UI/StyledButton';
 import { selectProviderConfig } from '../../../../selectors/networkController';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
-import {
-  ACCOUNT_SELECTOR_FORGET_BUTTON,
-  ACCOUNT_SELECTOR_NEXT_BUTTON,
-  ACCOUNT_SELECTOR_PREVIOUS_BUTTON,
-} from '../../../../../wdio/screen-objects/testIDs/Components/AccountSelector.testIds';
+import { AccountSelectorSelectorsIDs } from './AccountSelector.testIds';
 import { toFormattedAddress } from '../../../../util/address';
 
 interface ISelectQRAccountsProps {
@@ -122,7 +117,7 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
         <TouchableOpacity
           style={styles.paginationItem}
           onPress={prevPage}
-          {...generateTestId(Platform, ACCOUNT_SELECTOR_PREVIOUS_BUTTON)}
+          testID={AccountSelectorSelectorsIDs.PREVIOUS_BUTTON}
         >
           <Icon name={'chevron-left'} color={colors.primary.default} />
           <Text style={styles.paginationText}>
@@ -132,7 +127,7 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
         <TouchableOpacity
           style={styles.paginationItem}
           onPress={nextPage}
-          {...generateTestId(Platform, ACCOUNT_SELECTOR_NEXT_BUTTON)}
+          testID={AccountSelectorSelectorsIDs.NEXT_BUTTON}
         >
           <Text style={styles.paginationText}>
             {strings('account_selector.next')}
@@ -153,7 +148,7 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
           type={'transparent-blue'}
           onPress={onForget}
           containerStyle={[styles.button]}
-          {...generateTestId(Platform, ACCOUNT_SELECTOR_FORGET_BUTTON)}
+          testID={AccountSelectorSelectorsIDs.FORGET_BUTTON}
         >
           {strings('account_selector.forget')}
         </StyledButton>

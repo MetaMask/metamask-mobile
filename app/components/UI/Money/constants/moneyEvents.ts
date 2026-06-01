@@ -1,5 +1,6 @@
 const EVENT_LOCATIONS = {
   MONEY_HUB: 'money_hub',
+  ASSET_DETAIL: 'asset_detail',
 };
 
 const MONEY_HUB_STATES = {

@@ -7,6 +7,7 @@ import { sortTrendingTokens } from '../../utils/sortTrendingTokens';
 import {
   PriceChangeOption,
   SortDirection,
+  TimeOption,
 } from '../../components/TrendingTokensBottomSheet';
 import { isEqual } from 'lodash';
 
@@ -42,6 +43,7 @@ export const useTrendingSearch = (opts?: {
   sortTrendingTokensOptions?: {
     option: PriceChangeOption;
     direction: SortDirection;
+    timeOption?: TimeOption;
   };
 }) => {
   const {
@@ -70,20 +72,26 @@ export const useTrendingSearch = (opts?: {
   }, [searchQuery, enableDebounce]);
 
   // There is a chance you will get 0 results
-  const { results: searchResults, isLoading: isSearchLoading } =
-    useSearchRequest({
-      query: debouncedQuery || '',
-      limit: 20,
-      chainIds: chainIds ?? undefined,
-      includeMarketData,
-    });
+  const {
+    results: searchResults,
+    isLoading: isSearchLoading,
+    loadMore,
+    isLoadingMore,
+    hasNextPage,
+    totalCount,
+  } = useSearchRequest({
+    query: debouncedQuery || '',
+    limit: 20,
+    chainIds: chainIds ?? undefined,
+    includeMarketData,
+  });
 
   const {
     results: trendingResults,
     isLoading: isTrendingLoading,
     fetch: fetchTrendingTokens,
   } = useTrendingRequest({
-    sortBy,
+    sort: sortBy,
     chainIds: chainIds ?? undefined,
   });
 
@@ -93,6 +101,7 @@ export const useTrendingSearch = (opts?: {
         trendingResults,
         sortTrendingTokensOptions.option,
         sortTrendingTokensOptions.direction,
+        sortTrendingTokensOptions.timeOption,
       );
     }
 
@@ -151,5 +160,13 @@ export const useTrendingSearch = (opts?: {
       isSearchLoading
     : isTrendingLoading;
 
-  return { data, isLoading, refetch: fetchTrendingTokens };
+  return {
+    data,
+    isLoading,
+    refetch: fetchTrendingTokens,
+    loadMore,
+    isLoadingMore,
+    hasNextPage,
+    totalCount: debouncedQuery?.trim() ? totalCount : undefined,
+  };
 };

@@ -31,8 +31,9 @@ import {
 import { formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketSingle.styles';
 import { PredictEventValues } from '../../constants/eventNames';
-import { usePredictEntryPoint, usePredictPreviewSheet } from '../../contexts';
-import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
+import { usePredictPreviewSheet } from '../../contexts';
+import { useResolvedPredictEntryPoint } from '../../hooks/useResolvedPredictEntryPoint';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 interface SemiCircleYesPercentageProps {
   percentage: number;
@@ -128,6 +129,11 @@ interface PredictMarketSingleProps {
   testID?: string;
   entryPoint?: PredictEntryPoint;
   isCarousel?: boolean;
+  /** Called synchronously before the card's navigation press fires. */
+  onCardPress?: () => void;
+  /** Called when the user taps a buy button (before betslip opens). */
+  onBuyButtonPress?: (marketId: string) => void;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
@@ -135,17 +141,11 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   testID,
   entryPoint: propEntryPoint,
   isCarousel = false,
+  onCardPress,
+  onBuyButtonPress,
+  transactionActiveAbTests,
 }) => {
-  const contextEntryPoint = usePredictEntryPoint();
-  const baseEntryPoint =
-    contextEntryPoint ??
-    propEntryPoint ??
-    PredictEventValues.ENTRY_POINT.PREDICT_FEED;
-
-  const resolvedEntryPoint = TrendingFeedSessionManager.getInstance()
-    .isFromTrending
-    ? PredictEventValues.ENTRY_POINT.TRENDING
-    : baseEntryPoint;
+  const resolvedEntryPoint = useResolvedPredictEntryPoint(propEntryPoint);
 
   const outcome = market.outcomes[0];
   const navigation =
@@ -185,6 +185,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   const yesPercentage = getYesPercentage();
 
   const handleBuy = (token: PredictOutcomeToken) => {
+    onBuyButtonPress?.(market.id);
     executeGuardedAction(
       () => {
         openBuySheet({
@@ -192,6 +193,9 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
           outcome,
           outcomeToken: token,
           entryPoint: resolvedEntryPoint,
+          ...(transactionActiveAbTests?.length && {
+            transactionActiveAbTests,
+          }),
         });
       },
       {
@@ -204,6 +208,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
     <TouchableOpacity
       testID={testID}
       onPress={() => {
+        onCardPress?.();
         navigation.navigate(Routes.PREDICT.ROOT, {
           screen: Routes.PREDICT.MARKET_DETAILS,
           params: {
@@ -211,6 +216,9 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             entryPoint: resolvedEntryPoint,
             title: market.title,
             image: getImageUrl(),
+            ...(transactionActiveAbTests?.length && {
+              transactionActiveAbTests,
+            }),
           },
         });
       }}

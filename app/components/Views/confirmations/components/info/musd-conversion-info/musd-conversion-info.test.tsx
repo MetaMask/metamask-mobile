@@ -53,7 +53,7 @@ describe('MusdConversionInfo', () => {
       chainId: '0x1' as Hex,
     };
     mockUseParams.mockReturnValue(mockParams);
-    mockUseMusdConversionNavbar.mockReturnValue(undefined);
+    mockUseMusdConversionNavbar.mockReturnValue({ TooltipNode: <></> });
   });
 
   afterEach(() => {
@@ -153,7 +153,7 @@ describe('MusdConversionInfo', () => {
         expect.objectContaining({
           preferredToken: preferredPaymentToken,
         }),
-        {},
+        undefined,
       );
     });
   });
@@ -168,7 +168,7 @@ describe('MusdConversionInfo', () => {
         expect.objectContaining({
           hidePayTokenAmount: true,
         }),
-        {},
+        undefined,
       );
     });
   });

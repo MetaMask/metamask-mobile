@@ -84,7 +84,17 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
   });
 
   const totalBalance = perpsAccount?.totalBalance || '0';
-  const isBalanceEmpty = BigNumber(totalBalance).isZero();
+  const spendableBalance = perpsAccount?.spendableBalance || '0';
+  // "Empty" gates on totalBalance — venue equity. Accounts with all collateral
+  // tied up in open positions have spendableBalance = 0 but totalBalance > 0;
+  // they are funded users who should see the normal balance + Withdraw/Add Funds
+  // surface, not the $0 empty state.
+  //
+  // During loading, totalBalance may carry a sentinel string
+  // (PERPS_CONSTANTS.FallbackDataDisplay = '--'). Treat non-finite parses
+  // as empty so skeleton / empty-state renders until real data lands.
+  const totalBn = BigNumber(totalBalance);
+  const isBalanceEmpty = !totalBn.isFinite() || totalBn.isZero();
 
   // Use hook for eligibility checks and action handlers
   // Determine button location based on whether balance is empty (empty state) or not (home)
@@ -179,14 +189,6 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
     [stopBalanceAnimation],
   );
 
-  // Order-entry surface reads availableToTradeBalance (withdrawable +
-  // unreserved spot collateral). Withdraw surfaces keep reading
-  // availableBalance directly.
-  const availableBalance =
-    perpsAccount?.availableToTradeBalance ??
-    perpsAccount?.availableBalance ??
-    '0';
-
   // Show skeleton while loading initial account data
   if (isInitialLoading) {
     return <PerpsMarketBalanceActionsSkeleton />;
@@ -268,7 +270,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                 isHidden={privacyMode}
                 length={SensitiveTextLength.Short}
               >
-                {formatPerpsBalance(availableBalance)}
+                {formatPerpsBalance(spendableBalance)}
               </SensitiveText>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {' '}

@@ -18,6 +18,7 @@ import { PredictEventValues } from '../constants/eventNames';
 import { predictQueries } from '../queries';
 import { PlaceOrderParams, Side, type Result } from '../types';
 import { formatPrice } from '../utils/format';
+import { getPredictBuyAllInCost } from '../utils/orders';
 import { checkPlaceOrderError } from '../utils/predictErrorHandler';
 import { usePredictBalance } from './usePredictBalance';
 import { usePredictDeposit } from './usePredictDeposit';
@@ -175,10 +176,11 @@ export function usePredictPlaceOrder(
   const placeOrder = useCallback(
     async (orderParams: PlaceOrderParams): Promise<PlaceOrderOutcome> => {
       const {
-        preview: { minAmountReceived, side, maxAmountSpent, fees },
+        preview: { minAmountReceived, side },
       } = orderParams;
 
-      const totalAmount = maxAmountSpent + (fees?.totalFee ?? 0);
+      const buyTotalAmount =
+        side === Side.BUY ? getPredictBuyAllInCost(orderParams.preview) : 0;
 
       let latestBalance = balance;
 
@@ -196,7 +198,7 @@ export function usePredictPlaceOrder(
       }
 
       // Check if user has sufficient balance for the bet amount
-      if (side === Side.BUY && latestBalance < totalAmount) {
+      if (side === Side.BUY && latestBalance < buyTotalAmount) {
         if (isDepositPending) {
           toastRef?.current?.showToast({
             variant: ToastVariants.Icon,
@@ -221,7 +223,7 @@ export function usePredictPlaceOrder(
           transactionActiveAbTests,
           () =>
             deposit({
-              amountUsd: totalAmount,
+              amountUsd: buyTotalAmount,
               analyticsProperties: {
                 ...orderParams.analyticsProperties,
                 marketId: orderParams.preview.marketId,

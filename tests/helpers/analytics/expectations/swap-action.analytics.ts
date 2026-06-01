@@ -102,7 +102,7 @@ const completedProperties: Record<
  *
  * Note: these expectations are run against events captured during the first swap only.
  * The `validate` callback handles the Input Changed events which require advanced checks
- * (count = 12, specific `input` values like chain_source, token_destination, slippage).
+ * (count = 12 with custom slippage; chain_source, token_destination, slippage).
  */
 export const swapActionExpectations: AnalyticsExpectations = {
   eventNames: expectedEventNames,

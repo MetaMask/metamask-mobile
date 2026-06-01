@@ -18,6 +18,39 @@ const getRandomValuesCompat = (arr) =>
     ? nodeCrypto.webcrypto.getRandomValues(arr)
     : (nodeCrypto.randomFillSync(arr), arr);
 
+// 0. Mock native-bridge modules that cannot load in Jest
+// --------------------------------------------------------
+
+jest.mock('react-native-mmkv', () => {
+  const createInMemoryMMKV = () => {
+    const store = new Map();
+    return {
+      getString: jest.fn((key) => store.get(key)),
+      set: jest.fn((key, value) => store.set(key, value)),
+      getBoolean: jest.fn((key) => store.get(key)),
+      getNumber: jest.fn((key) => store.get(key)),
+      delete: jest.fn((key) => store.delete(key)),
+      remove: jest.fn((key) => store.delete(key)),
+      contains: jest.fn((key) => store.has(key)),
+      clearAll: jest.fn(() => store.clear()),
+      getAllKeys: jest.fn(() => [...store.keys()]),
+      recrypt: jest.fn(),
+      trim: jest.fn(),
+    };
+  };
+
+  class MMKV {
+    constructor() {
+      const api = createInMemoryMMKV();
+      Object.assign(this, api);
+    }
+  }
+
+  return {
+    MMKV,
+  };
+});
+
 // 1. Essential React Native Infrastructure Mocks
 // ------------------------------------------------
 
@@ -50,11 +83,20 @@ jest.mock('react-native', () => {
   };
 
   originalModule.unstable_batchedUpdates = mockBatchedUpdates;
+
   return originalModule;
 });
 
 // --------------------------------------------------------------------------------
 // External Library Mocks & Test Environment Configuration
+// Shim: BackHandler.removeEventListener was removed in RN 0.75+.
+// Libraries like @metamask/design-system-react-native still call it.
+// Must be patched post-require (the jest.mock factory mutation doesn't persist).
+const ReactNativeView = require('react-native');
+if (!ReactNativeView.BackHandler.removeEventListener) {
+  ReactNativeView.BackHandler.removeEventListener = jest.fn();
+}
+
 // --------------------------------------------------------------------------------
 // We group non-React Native mocks here to ensure consistent behavior across tests.
 // These mocks replace native modules and external libraries that either:
@@ -294,6 +336,7 @@ jest.mock('@segment/analytics-react-native', () => {
       IdentifyEvent: 'identify',
     },
     Plugin,
+    EventPlugin: Plugin,
     CountFlushPolicy,
     TimerFlushPolicy,
   };

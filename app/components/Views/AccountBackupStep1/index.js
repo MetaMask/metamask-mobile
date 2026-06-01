@@ -21,6 +21,7 @@ import {
   TextColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/device';
 import Engine from '../../../core/Engine';
@@ -28,6 +29,7 @@ import { connect } from 'react-redux';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useTheme } from '../../../util/theme';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ManualBackUpStepsSelectorsIDs } from '../ManualBackupStep1/ManualBackUpSteps.testIds';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import Routes from '../../../constants/navigation/Routes';
@@ -35,7 +37,7 @@ import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder
 import SRPDesignLight from '../../../images/secure_wallet_light.png';
 import SRPDesignDark from '../../../images/secure_wallet_dark.png';
 import { CommonActions, useNavigation } from '@react-navigation/native';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import {
   AccountType,
   ONBOARDING_SUCCESS_FLOW,
@@ -46,7 +48,7 @@ import { AppThemeKey } from '../../../util/theme/models';
 const AccountBackupStep1 = (props) => {
   const [hasFunds, setHasFunds] = useState(false);
   const { themeAppearance } = useTheme();
-  const { isEnabled: isMetricsEnabled } = useMetrics();
+  const { isEnabled: isAnalyticsEnabled } = useAnalytics();
   const tw = useTailwind();
 
   const track = (event, properties) => {
@@ -61,10 +63,13 @@ const AccountBackupStep1 = (props) => {
     if (Engine.hasFunds()) setHasFunds(true);
 
     const hardwareBackPress = () => true;
-    BackHandler.addEventListener('hardwareBackPress', hardwareBackPress);
+    const backHandlerSubscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      hardwareBackPress,
+    );
 
     return () => {
-      BackHandler.removeEventListener('hardwareBackPress', hardwareBackPress);
+      backHandlerSubscription.remove();
     };
   }, []);
 
@@ -95,7 +100,7 @@ const AccountBackupStep1 = (props) => {
     endTrace({ name: TraceName.OnboardingNewSrpCreateWallet });
     endTrace({ name: TraceName.OnboardingJourneyOverall });
 
-    if (isMetricsEnabled()) {
+    if (isAnalyticsEnabled()) {
       navigation.dispatch(resetAction);
     } else {
       navigation.navigate('OptinMetrics', {

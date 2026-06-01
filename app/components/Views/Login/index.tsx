@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   Platform,
   Image,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
@@ -43,7 +44,9 @@ import { Dispatch } from 'redux';
 import { DeviceAuthenticationButton } from '../../UI/DeviceAuthenticationButton';
 import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createRestoreWalletNavDetailsNested } from '../RestoreWallet/RestoreWallet';
 import { parseVaultValue } from '../../../util/validators';
 import { getVaultFromBackup } from '../../../core/BackupVault';
@@ -100,7 +103,7 @@ interface LoginProps {
  * View where returning users can authenticate
  */
 const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
-  const fieldRef = useRef<React.ElementRef<typeof TextField> | null>(null);
+  const fieldRef = useRef<TextInput | null>(null);
 
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -133,12 +136,15 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       op: TraceOperation.Login,
     });
     trackOnboarding(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, saveOnboardingEvent);
-    BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+    const backHandlerSubscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      handleBackPress,
+    );
 
     setStartFoxAnimation('Start');
 
     return () => {
-      BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
+      backHandlerSubscription.remove();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -421,15 +427,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
             >
               <TextField
                 placeholder={strings('login.password_placeholder')}
-                testID={LoginViewSelectors.PASSWORD_INPUT}
-                accessibilityLabel={LoginViewSelectors.PASSWORD_INPUT}
-                returnKeyType={'done'}
-                autoCapitalize="none"
-                secureTextEntry
-                ref={fieldRef}
+                inputRef={fieldRef}
                 onChangeText={handlePasswordChange}
                 value={password}
-                onSubmitEditing={unlockWithPassword}
                 endAccessory={
                   capabilities ? (
                     <DeviceAuthenticationButton
@@ -440,9 +440,17 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                     />
                   ) : null
                 }
-                keyboardAppearance={themeAppearance}
                 isError={!!error}
                 isDisabled={loading}
+                inputProps={{
+                  testID: LoginViewSelectors.PASSWORD_INPUT,
+                  accessibilityLabel: LoginViewSelectors.PASSWORD_INPUT,
+                  returnKeyType: 'done',
+                  autoCapitalize: 'none',
+                  secureTextEntry: true,
+                  onSubmitEditing: unlockWithPassword,
+                  keyboardAppearance: themeAppearance,
+                }}
               />
             </Box>
 

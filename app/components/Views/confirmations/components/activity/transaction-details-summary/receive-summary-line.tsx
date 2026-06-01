@@ -10,6 +10,7 @@ import { hasTransactionType } from '../../../utils/transaction';
 import { useNetworkName } from '../../../hooks/useNetworkName';
 import { POLYGON_PUSD } from '../../../constants/predict';
 import { TransactionSummaryLine } from './transaction-summary-line';
+import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
 
 const HYPERLIQUID_EXPLORER_URL = 'https://app.hyperliquid.xyz/explorer/tx';
 const HYPERLIQUID_EXPLORER_NAME = 'Hyperliquid';
@@ -19,7 +20,10 @@ export function ReceiveSummaryLine({
 }: {
   transactionMeta: TransactionMeta;
 }) {
-  const { chainId } = transactionMeta;
+  const { chainId: targetChainId, metamaskPay } = transactionMeta;
+  const sourceChainId = metamaskPay?.chainId;
+  const sourceTokenAddress = metamaskPay?.tokenAddress;
+
   const isPerpsDeposit = hasTransactionType(transactionMeta, [
     TransactionType.perpsDeposit,
   ]);
@@ -28,25 +32,39 @@ export function ReceiveSummaryLine({
     TransactionType.predictDeposit,
   ]);
 
-  const networkName = useNetworkName(chainId);
+  const isPredictWithdraw = hasTransactionType(transactionMeta, [
+    TransactionType.predictWithdraw,
+  ]);
+
+  const targetNetworkName = useNetworkName(targetChainId);
+  const sourceNetworkName = useNetworkName(sourceChainId ?? '0x0');
+
+  const sourceToken = useTokenWithBalance(
+    sourceTokenAddress ?? '0x0',
+    sourceChainId ?? '0x0',
+  );
 
   let targetSymbol = 'mUSD';
-  let targetNetworkName: string | undefined = networkName;
-  let receiveChainId: Hex = chainId;
+  let finalTargetNetworkName: string | undefined = targetNetworkName;
+  let receiveChainId: Hex = targetChainId;
 
   if (isPerpsDeposit) {
     targetSymbol = 'USDC';
-    targetNetworkName = 'Hyperliquid';
+    finalTargetNetworkName = 'Hyperliquid';
     receiveChainId = CHAIN_IDS.ARBITRUM;
   } else if (isPredictDeposit) {
     targetSymbol = POLYGON_PUSD.symbol;
+  } else if (isPredictWithdraw) {
+    targetSymbol = sourceToken?.symbol ?? 'Unknown';
+    finalTargetNetworkName = sourceNetworkName;
+    receiveChainId = sourceChainId ?? '0x0';
   }
 
   const title =
-    targetSymbol && targetNetworkName
+    targetSymbol && finalTargetNetworkName
       ? strings('transaction_details.summary_title.bridge_receive', {
           targetSymbol,
-          targetChain: targetNetworkName,
+          targetChain: finalTargetNetworkName,
         })
       : strings('transaction_details.summary_title.bridge_receive_loading');
 

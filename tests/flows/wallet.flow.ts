@@ -25,7 +25,7 @@ import OnboardingSuccessView from '../page-objects/Onboarding/OnboardingSuccessV
 import ImportWalletView from '../page-objects/Onboarding/ImportWalletView';
 import OnboardingView from '../page-objects/Onboarding/OnboardingView';
 import OnboardingSheet from '../page-objects/Onboarding/OnboardingSheet';
-import Accounts from '../../wdio/helpers/Accounts';
+import Accounts from '../utils/Accounts';
 import EnableDeviceNotificationsAlert from '../page-objects/Onboarding/EnableDeviceNotificationsAlert';
 import ProtectYourWalletModal from '../page-objects/Onboarding/ProtectYourWalletModal';
 import SkipAccountSecurityModal from '../page-objects/Onboarding/SkipAccountSecurityModal';
@@ -40,7 +40,8 @@ import PlaywrightUtilities from '../framework/PlaywrightUtilities';
 import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
 import MetaMetricsOptInView from '../page-objects/Onboarding/MetaMetricsOptInView';
 import PredictModalView from '../page-objects/Predict/PredictModalView';
-
+import OnboardingInterestQuestionnaireView from '../page-objects/Onboarding/OnboardingInterestQuestionnaireView';
+import { fetchProductionFeatureFlags } from '../performance/feature-flag-helper';
 const logger = createLogger({
   name: 'WalletFlow',
 });
@@ -49,6 +50,7 @@ const validAccount = Accounts.getValidAccount();
 const SEEDLESS_ONBOARDING_ENABLED =
   process.env.SEEDLESS_ONBOARDING_ENABLED === 'true' ||
   process.env.SEEDLESS_ONBOARDING_ENABLED === undefined;
+const testEnvironment = process.env.E2E_PERFORMANCE_BUILD_VARIANT || 'rc';
 
 /**
  * Gets the localhost URL for Ganache/Anvil network connection.
@@ -231,6 +233,9 @@ export const importWalletWithRecoveryPhrase = async ({
 
     await MetaMetricsOptInView.tapAgreeButton();
   }
+  if (optInToMetrics) {
+    await OnboardingInterestQuestionnaireView.tapContinueButton();
+  }
   //'Should dismiss Enable device Notifications checks alert'
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
     description: 'Onboarding Success View should be visible',
@@ -341,6 +346,10 @@ export const CreateNewWallet = async ({
 
   await MetaMetricsOptInView.tapAgreeButton();
   await device.disableSynchronization(); // Detox is hanging after wallet creation
+
+  if (optInToMetrics) {
+    await OnboardingInterestQuestionnaireView.tapContinueButton();
+  }
 
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
     description: 'Onboarding Success View should be visible',
@@ -485,7 +494,86 @@ export const selectAccountByDevice = async (
     await asPlaywrightElement(AccountListBottomSheet.accountList),
   );
   await AccountListBottomSheet.waitForAccountSyncToComplete();
-  await AccountListBottomSheet.tapAccountByNameV2(accountName);
+  const isAccount3 = accountName === 'Account 3'; // Due to an issue with the account 3 being displayed as Account 3 (2)
+  await AccountListBottomSheet.tapAccountByNameV2(accountName, !isAccount3);
+};
+
+/** Max wait for the optional interest questionnaire to appear after MetaMetrics. */
+const ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_MS = 3_000;
+const ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_INTERVAL_MS = 250;
+
+/**
+ * Advances past the optional onboarding interest questionnaire (Playwright / Appium only).
+ * No-op when the app navigates straight to onboarding success (common on some builds/flags).
+ */
+export const dismissOnboardingInterestQuestionnaire =
+  async (): Promise<void> => {
+    const deadline = Date.now() + ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_MS;
+
+    while (Date.now() < deadline) {
+      try {
+        const successDoneButton = await asPlaywrightElement(
+          OnboardingSuccessView.doneButton,
+        );
+        if (await successDoneButton.unwrap().isExisting()) {
+          logger.debug(
+            'Onboarding success already visible; skipping interest questionnaire',
+          );
+          return;
+        }
+
+        const continueButton = await asPlaywrightElement(
+          OnboardingInterestQuestionnaireView.continueButton,
+        );
+        if (await continueButton.unwrap().isExisting()) {
+          await PlaywrightGestures.waitAndTap(continueButton, {
+            timeout: 10_000,
+            checkForDisplayed: true,
+            checkForEnabled: true,
+          });
+          await continueButton
+            .unwrap()
+            .waitForDisplayed({ reverse: true, timeout: 10_000 });
+          return;
+        }
+      } catch {
+        // Stale element / screen transition while the next route loads.
+      }
+      await sleep(ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_INTERVAL_MS);
+    }
+
+    logger.debug(
+      'Onboarding Interest Questionnaire not shown within poll window; continuing',
+    );
+  };
+
+const PREDICT_GTM_MODAL_FALLBACK_WAIT_MS = 10_000;
+
+/**
+ * Resolves whether the Predict GTM onboarding modal should be handled.
+ * Uses feature flags when available; otherwise polls the modal for up to 10s.
+ */
+export const resolvePredictGtmOnboardingModalEnabled = async (
+  productionFeatureFlags: Record<string, unknown> | null,
+): Promise<boolean> => {
+  if (productionFeatureFlags != null) {
+    return (
+      (
+        productionFeatureFlags.predictGtmOnboardingModalEnabled as {
+          enabled?: boolean;
+        }
+      )?.enabled === true
+    );
+  }
+
+  try {
+    await (await asPlaywrightElement(PredictModalView.notNowButton))
+      .unwrap()
+      .waitForDisplayed({ timeout: PREDICT_GTM_MODAL_FALLBACK_WAIT_MS });
+    return true;
+  } catch {
+    return false;
+  }
 };
 
 /**
@@ -494,14 +582,31 @@ export const selectAccountByDevice = async (
  * @function dismisspredictionsModalPlaywright
  * @returns {Promise<void>} Resolves when the predictions modal is dismissed.
  */
-export const dismisspredictionsModalPlaywright = async (): Promise<void> => {
-  try {
-    await PlaywrightAssertions.expectElementToBeVisible(
-      await asPlaywrightElement(PredictModalView.notNowButton),
-    );
-    await PredictModalView.tapNotNowButton();
-  } catch {
-    logger.error('Predict Modal Not Now Button is not visible');
+export const dismisspredictionsModalPlaywright = async (
+  maxRetries = 3,
+): Promise<void> => {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const btn = await asPlaywrightElement(PredictModalView.notNowButton);
+      await PlaywrightGestures.waitAndTap(btn, {
+        timeout: 10_000,
+        checkForDisplayed: true,
+        checkForEnabled: true,
+      });
+      const dismissedCheck = await asPlaywrightElement(
+        PredictModalView.notNowButton,
+      );
+      await dismissedCheck
+        .unwrap()
+        .waitForDisplayed({ reverse: true, timeout: 10_000 });
+      return;
+    } catch {
+      if (attempt === maxRetries) {
+        logger.error(
+          `Predict modal not dismissed after ${maxRetries} attempts`,
+        );
+      }
+    }
   }
 };
 
@@ -530,9 +635,6 @@ export const onboardingFlowImportSRPPlaywright = async (
   await ImportWalletView.typeSecretRecoveryPhrase(srp, true);
 
   await ImportWalletView.tapContinueButton();
-  await PlaywrightAssertions.expectElementToBeVisible(
-    await asPlaywrightElement(CreatePasswordView.newPasswordInput),
-  );
 
   await CreatePasswordView.enterPassword(
     getPasswordForScenario('onboarding') ?? '',
@@ -542,17 +644,27 @@ export const onboardingFlowImportSRPPlaywright = async (
   );
   await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.tapCreatePasswordButton();
-
   await PlaywrightAssertions.expectElementToBeVisible(
-    await asPlaywrightElement(MetaMetricsOptInView.screenTitle),
+    await asPlaywrightElement(MetaMetricsOptInView.iAgreeButton),
   );
   await MetaMetricsOptInView.tapIAgreeButton();
-
+  await dismissOnboardingInterestQuestionnaire();
   await PlaywrightAssertions.expectElementToBeVisible(
     await asPlaywrightElement(OnboardingSuccessView.doneButton),
+    { timeout: 30_000 },
   );
   await OnboardingSuccessView.tapDone();
-  await dismisspredictionsModalPlaywright();
+  const productionFeatureFlags = await fetchProductionFeatureFlags(
+    'main',
+    testEnvironment,
+  );
+
+  const predictGtmOnboardingModalEnabled =
+    await resolvePredictGtmOnboardingModalEnabled(productionFeatureFlags);
+  if (predictGtmOnboardingModalEnabled) {
+    await dismisspredictionsModalPlaywright();
+  }
+
   await PlaywrightAssertions.expectElementToBeVisible(
     await asPlaywrightElement(WalletView.container),
   );

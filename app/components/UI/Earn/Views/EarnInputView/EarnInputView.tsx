@@ -45,8 +45,7 @@ import Keypad from '../../../../Base/Keypad';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useStyles } from '../../../../hooks/useStyles';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
-import { IconName } from '@metamask/design-system-react-native';
+import { HeaderStandard, IconName } from '@metamask/design-system-react-native';
 import ScreenLayout from '../../../Ramp/Aggregator/components/ScreenLayout';
 import QuickAmounts from '../../../Stake/components/QuickAmounts';
 import { EVENT_PROVIDERS } from '../../../Stake/constants/events';
@@ -474,6 +473,7 @@ const EarnInputView = () => {
         from: (selectedAccount?.address as Hex) || '0x',
         networkClientId,
         origin: ORIGIN_METAMASK,
+        isInternal: true,
         transactions: [approveTx, lendingDepositTx],
         requireApproval: true,
       });
@@ -901,12 +901,6 @@ const EarnInputView = () => {
     navigateToLearnMoreModal,
   ]);
 
-  useEffect(() => {
-    navigation.setOptions({
-      headerShown: false,
-    });
-  }, [navigation]);
-
   const headerTitle = useMemo(() => {
     const isLending =
       earnToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING;
@@ -1005,7 +999,7 @@ const EarnInputView = () => {
 
   return (
     <ScreenLayout style={styles.container}>
-      <HeaderCompactStandard
+      <HeaderStandard
         title={headerTitle}
         onBack={handleBackPress}
         endButtonIconProps={

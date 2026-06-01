@@ -85,6 +85,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       enableDrawingTools = false,
       disabledFeatures = DEFAULT_DISABLED_FEATURES,
       onChartReady,
+      onSkeletonHidden,
       onError,
       onCrosshairMove,
       onChartInteracted,
@@ -93,6 +94,9 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       lineChrome,
       visibleFromMs,
       visibleToMs,
+      lineColorOverride,
+      successColorOverride,
+      errorColorOverride,
     },
     ref,
   ) => {
@@ -116,6 +120,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
 
     const activeIndicatorsRef = useRef<Set<IndicatorType>>(new Set());
     const [webViewLoaded, setWebViewLoaded] = useState(false);
+    const webViewLoadedRef = useRef(false);
     const prevPositionLinesRef = useRef(positionLines);
     const prevChartTypeRef = useRef(chartType);
     const prevOhlcvDataRef = useRef<OHLCVBar[]>([]);
@@ -123,6 +128,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     /** When non-null, `ohlcvData` is still the previous series' array; skip sync until the hook replaces it. */
     const ohlcvSeriesStaleSnapshotRef = useRef<OHLCVBar[] | null>(null);
     const tradingViewOpenInterceptRef = useRef(0);
+    const skeletonHiddenReportedRef = useRef(false);
 
     const htmlContent = useMemo(
       () =>
@@ -130,14 +136,28 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           enableDrawingTools,
           disabledFeatures,
           lineChrome,
+          lineColorOverride,
+          successColorOverride,
+          errorColorOverride,
         }),
-      [theme, enableDrawingTools, disabledFeatures, lineChrome],
+      [
+        theme,
+        enableDrawingTools,
+        disabledFeatures,
+        lineChrome,
+        lineColorOverride,
+        successColorOverride,
+        errorColorOverride,
+      ],
     );
 
     // Reset all chart state when the WebView reloads due to htmlContent changes
     useEffect(() => {
+      skeletonHiddenReportedRef.current = false;
       setChartReadyCount(0);
       setWebViewLoaded(false);
+      webViewLoadedRef.current = false;
+      setWebViewError(null);
       activeIndicatorsRef.current.clear();
       prevPositionLinesRef.current = undefined;
       prevChartTypeRef.current = undefined;
@@ -180,6 +200,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       if (ohlcvSeriesKey === undefined) {
         return;
       }
+      skeletonHiddenReportedRef.current = false;
       setChartReadyCount(0);
       setWebViewLoaded(false);
       setLayoutSettling(false);
@@ -342,7 +363,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           }
 
           case 'ERROR':
-            if (!isChartReady) {
+            if (!isChartReady && webViewLoadedRef.current) {
               setWebViewError(message.payload.message);
             }
             onError?.(message.payload.message);
@@ -382,6 +403,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
 
     const handleLoadEnd = useCallback(() => {
       setWebViewLoaded(true);
+      webViewLoadedRef.current = true;
     }, []);
 
     // ---- Ref API ----
@@ -397,6 +419,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           setLayoutSettling(false);
           setChartReadyCount(0);
           setWebViewLoaded(false);
+          webViewLoadedRef.current = false;
           setWebViewError(null);
           activeIndicatorsRef.current.clear();
           prevPositionLinesRef.current = undefined;
@@ -565,6 +588,31 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       });
     }, [lineChrome, chartReadyCount, postMessage]);
 
+    const showSkeleton = isLoading || !isChartReady || layoutSettling;
+
+    useEffect(() => {
+      if (webViewError) {
+        return;
+      }
+      if (!onSkeletonHidden) {
+        return;
+      }
+      if (isLoading || !isChartReady || layoutSettling) {
+        return;
+      }
+      if (skeletonHiddenReportedRef.current) {
+        return;
+      }
+      skeletonHiddenReportedRef.current = true;
+      onSkeletonHidden();
+    }, [
+      isLoading,
+      isChartReady,
+      layoutSettling,
+      webViewError,
+      onSkeletonHidden,
+    ]);
+
     // ---- Render ----
 
     if (webViewError) {
@@ -601,7 +649,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             androidLayerType="hardware"
             mixedContentMode="always"
           />
-          {(isLoading || !isChartReady || layoutSettling) && (
+          {showSkeleton && (
             <Skeleton
               height={height}
               width="100%"

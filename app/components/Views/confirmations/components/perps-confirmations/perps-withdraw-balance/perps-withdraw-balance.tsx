@@ -19,8 +19,8 @@ export function PerpsWithdrawBalance() {
   // balance matches the Max button value and never overstates what the user
   // can actually withdraw.
   const balanceFormatted = useMemo(
-    () => formatPerpsBalance(account?.availableBalance),
-    [account?.availableBalance],
+    () => formatPerpsBalance(account?.withdrawableBalance),
+    [account?.withdrawableBalance],
   );
 
   return (

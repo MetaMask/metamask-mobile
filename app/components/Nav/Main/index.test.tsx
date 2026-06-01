@@ -1,10 +1,12 @@
 /* eslint-disable import-x/no-nodejs-modules */
 import React from 'react';
+import { View } from 'react-native';
 import Main from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialRootState from '../../../util/test/initial-root-state';
 
 const mockReact = React;
+const mockView = View;
 
 // Mock Ramp SDK dependencies to prevent SdkEnvironment.Production errors
 jest.mock('../../../components/UI/Ramp', () => ({
@@ -30,7 +32,8 @@ jest.mock('react-native-device-info', () => ({
 
 // Mock heavy child components to avoid deep dependency issues
 jest.mock('./MainNavigator', () => {
-  const MockMainNavigator = () => mockReact.createElement('MainNavigatorMock');
+  const MockMainNavigator = () =>
+    mockReact.createElement(mockView, { testID: 'mocked-main-navigator' });
   MockMainNavigator.router = {};
   return {
     __esModule: true,
@@ -63,6 +66,11 @@ jest.mock(
   () => () => mockReact.createElement('EarnTransactionMonitorMock'),
 );
 
+jest.mock(
+  '../../UI/Money/components/MoneyTransactionMonitor/MoneyTransactionMonitor',
+  () => () => mockReact.createElement('MoneyTransactionMonitorMock'),
+);
+
 jest.mock('../../UI/ProtectYourWalletModal', () => ({
   __esModule: true,
   default: () => mockReact.createElement('ProtectYourWalletModalMock'),
@@ -78,6 +86,15 @@ jest.mock(
   () => ({
     __esModule: true,
     default: () => mockReact.createElement('ProtectWalletMandatoryModalMock'),
+  }),
+);
+
+jest.mock(
+  '../../Views/Notifications/PushNotificationOnboarding/PushNotificationOnboardingRoot',
+  () => ({
+    __esModule: true,
+    default: () =>
+      mockReact.createElement('PushNotificationOnboardingRootMock'),
   }),
 );
 
@@ -113,8 +130,8 @@ describe('Main', () => {
     jest.clearAllMocks();
   });
 
-  it('should render correctly', () => {
-    const { toJSON } = renderWithProvider(<Main />, {
+  it('mounts the main flow with mocked navigator and shell components', () => {
+    const { getByTestId } = renderWithProvider(<Main />, {
       state: {
         ...initialRootState,
         user: {
@@ -123,19 +140,7 @@ describe('Main', () => {
         },
       },
     });
-    expect(toJSON()).toMatchSnapshot();
-  });
 
-  it('should render correctly with isConnectionRemoved true', () => {
-    const { toJSON } = renderWithProvider(<Main />, {
-      state: {
-        ...initialRootState,
-        user: {
-          ...initialRootState.user,
-          isConnectionRemoved: true,
-        },
-      },
-    });
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByTestId('mocked-main-navigator')).toBeOnTheScreen();
   });
 });

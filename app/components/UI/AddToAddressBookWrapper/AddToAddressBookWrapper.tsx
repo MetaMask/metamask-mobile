@@ -1,8 +1,7 @@
 import React, { ReactElement, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { View, Platform, TextInput, TouchableOpacity } from 'react-native';
+import { View, TextInput, TouchableOpacity } from 'react-native';
 
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import { AddAddressModalSelectorsIDs } from './AddAddressModal.testIds';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
@@ -91,10 +90,7 @@ export const AddToAddressBookWrapper = ({
               <View style={baseStyles.flexGrow}>
                 <Text
                   style={styles.addTextTitle}
-                  {...generateTestId(
-                    Platform,
-                    AddAddressModalSelectorsIDs.TITLE,
-                  )}
+                  testID={AddAddressModalSelectorsIDs.TITLE}
                 >
                   {strings('address_book.add_to_address_book')}
                 </Text>
@@ -117,10 +113,7 @@ export const AddToAddressBookWrapper = ({
                       numberOfLines={1}
                       value={alias}
                       keyboardAppearance={themeAppearance}
-                      {...generateTestId(
-                        Platform,
-                        AddAddressModalSelectorsIDs.ENTER_ALIAS_INPUT,
-                      )}
+                      testID={AddAddressModalSelectorsIDs.ENTER_ALIAS_INPUT}
                     />
                   </View>
                 </View>

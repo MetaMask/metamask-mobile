@@ -57,6 +57,8 @@ import {
   usePerpsLivePrices,
   usePerpsTopOfBook,
 } from '../../hooks/stream';
+import { usePerpsEstimatedSlippage } from '../../hooks/usePerpsEstimatedSlippage';
+import { usePerpsMaxSlippage } from '../../hooks/usePerpsMaxSlippage';
 import {
   PerpsStreamManager,
   PerpsStreamProvider,
@@ -136,7 +138,8 @@ jest.mock('../../contexts/PerpsOrderContext', () => {
 jest.mock('../../hooks/stream', () => ({
   usePerpsLiveAccount: jest.fn(() => ({
     account: {
-      availableBalance: '1000',
+      spendableBalance: '1000',
+      withdrawableBalance: '1000',
       marginUsed: '0',
       unrealizedPnl: '0',
       returnOnEquity: '0',
@@ -207,6 +210,7 @@ jest.mock('../../hooks', () => ({
   usePerpsLiquidationPrice: jest.fn(),
   usePerpsOrderFees: jest.fn(() => ({
     totalFee: 45,
+    undiscountedTotalFee: 45,
     protocolFee: 45,
     metamaskFee: 0,
     protocolFeeRate: 0.00045,
@@ -570,7 +574,8 @@ jest.mock('../../../../../core/Engine', () => ({
       subscribeToPrices: jest.fn(() => jest.fn()),
       getAccountState: jest.fn().mockResolvedValue({
         totalBalance: '1000',
-        availableBalance: '1000',
+        spendableBalance: '1000',
+        withdrawableBalance: '1000',
         marginUsed: '0',
         unrealizedPnl: '0',
       }),
@@ -700,6 +705,21 @@ jest.mock(
   },
 );
 
+jest.mock('../../hooks/usePerpsEstimatedSlippage', () => ({
+  usePerpsEstimatedSlippage: jest.fn(() => ({
+    estimatedSlippageBps: null,
+    isReady: false,
+  })),
+}));
+
+jest.mock('../../hooks/usePerpsMaxSlippage', () => ({
+  usePerpsMaxSlippage: jest.fn(() => ({
+    maxSlippageBps: 300,
+    maxSlippageSource: 'default',
+    setMaxSlippage: jest.fn(),
+  })),
+}));
+
 // Test setup
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -714,7 +734,8 @@ const defaultMockRoute = {
 const defaultMockHooks = {
   usePerpsLiveAccount: {
     account: {
-      availableBalance: '1000',
+      spendableBalance: '1000',
+      withdrawableBalance: '1000',
       marginUsed: '0',
       unrealizedPnl: '0',
       returnOnEquity: '0',
@@ -1569,7 +1590,8 @@ describe('PerpsOrderView', () => {
   it('handles zero balance warning', async () => {
     (usePerpsLiveAccount as jest.Mock).mockReturnValue({
       balance: '0',
-      availableBalance: '0',
+      spendableBalance: '0',
+      withdrawableBalance: '0',
       accountInfo: {
         marginSummary: {
           accountValue: 0,
@@ -1590,7 +1612,8 @@ describe('PerpsOrderView', () => {
     // Mock insufficient balance
     (usePerpsLiveAccount as jest.Mock).mockReturnValue({
       balance: '10',
-      availableBalance: '10',
+      spendableBalance: '10',
+      withdrawableBalance: '10',
       accountInfo: {
         marginSummary: {
           accountValue: 10,
@@ -3744,7 +3767,8 @@ describe('PerpsOrderView', () => {
       // appear while account data is still loading
       (usePerpsLiveAccount as jest.Mock).mockReturnValue({
         account: {
-          availableBalance: '0', // Zero balance
+          spendableBalance: '0', // Zero balance
+          withdrawableBalance: '0', // Zero balance
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -3773,7 +3797,8 @@ describe('PerpsOrderView', () => {
       // Arrange - Mock sufficient balance and adjust order form amount
       (usePerpsLiveAccount as jest.Mock).mockReturnValue({
         account: {
-          availableBalance: '10000', // High balance
+          spendableBalance: '10000', // High balance
+          withdrawableBalance: '10000', // High balance
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -4222,6 +4247,131 @@ describe('PerpsOrderView', () => {
           }),
         );
       });
+    });
+  });
+
+  describe('slippage block on submit', () => {
+    beforeEach(() => {
+      // Earlier tests in the file mutate shared mocks (order form, validation,
+      // toasts, slippage hooks) without restoring them. Reset every mock the
+      // block path reads so this suite is self-contained regardless of run order.
+      (usePerpsEstimatedSlippage as jest.Mock).mockReturnValue({
+        estimatedSlippageBps: null,
+        isReady: false,
+      });
+      (usePerpsMaxSlippage as jest.Mock).mockReturnValue({
+        maxSlippageBps: 300,
+        maxSlippageSource: 'default',
+        setMaxSlippage: jest.fn(),
+      });
+      (usePerpsOrderContext as jest.Mock).mockReturnValue({
+        orderForm: {
+          asset: 'ETH',
+          amount: '11',
+          leverage: 3,
+          direction: 'long',
+          type: 'market',
+          limitPrice: undefined,
+          takeProfitPrice: undefined,
+          stopLossPrice: undefined,
+          balancePercent: 10,
+        },
+        setAmount: jest.fn(),
+        setLeverage: jest.fn(),
+        setTakeProfitPrice: jest.fn(),
+        setStopLossPrice: jest.fn(),
+        setLimitPrice: jest.fn(),
+        setOrderType: jest.fn(),
+        handlePercentageAmount: jest.fn(),
+        handleMaxAmount: jest.fn(),
+        handleMinAmount: jest.fn(),
+        optimizeOrderAmount: jest.fn(),
+        maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
+        calculations: {
+          marginRequired: '11',
+          positionSize: '0.0037',
+        },
+      });
+      (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+        isValid: true,
+        errors: [],
+        isValidating: false,
+      });
+    });
+
+    it('blocks placeOrder when estimated slippage exceeds the configured cap', async () => {
+      const mockPlaceOrder = jest.fn().mockResolvedValue({ success: true });
+      (usePerpsOrderExecution as jest.Mock).mockImplementation(() => ({
+        placeOrder: mockPlaceOrder,
+        isPlacing: false,
+      }));
+
+      const mockValidationError = jest.fn(() => ({
+        id: 'slippage-block-toast',
+      }));
+      const mockShowToast = jest.fn();
+      (usePerpsToasts as jest.Mock).mockReturnValue({
+        showToast: mockShowToast,
+        PerpsToastOptions: {
+          formValidation: {
+            orderForm: {
+              limitPriceRequired: {},
+              validationError: mockValidationError,
+            },
+          },
+          orderManagement: {
+            market: {
+              submitted: jest.fn(),
+              confirmed: jest.fn(),
+              creationFailed: jest.fn(),
+            },
+            limit: {
+              submitted: jest.fn(),
+              confirmed: jest.fn(),
+              creationFailed: jest.fn(),
+            },
+            shared: { submitting: jest.fn() },
+          },
+          positionManagement: { tpsl: { updateTPSLError: jest.fn() } },
+          dataFetching: {
+            market: { error: { marketDataUnavailable: jest.fn() } },
+          },
+          accountManagement: {
+            deposit: {
+              inProgress: jest.fn(),
+              takingLonger: {},
+              tradeCanceled: {},
+              error: {},
+            },
+          },
+        },
+      });
+
+      (usePerpsEstimatedSlippage as jest.Mock).mockReturnValue({
+        estimatedSlippageBps: 500, // 5%
+        isReady: true,
+      });
+      (usePerpsMaxSlippage as jest.Mock).mockReturnValue({
+        maxSlippageBps: 100, // 1% — estimate exceeds the cap
+        maxSlippageSource: 'user_configured',
+        setMaxSlippage: jest.fn(),
+      });
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(placeOrderButton);
+      });
+
+      // The critical AC invariant: an order whose estimated slippage exceeds
+      // the configured cap must NOT reach the order execution path. (The toast
+      // copy and event payload are verified separately by the slippage agentic
+      // recipe and the `eventNames` constants tests.)
+      expect(mockPlaceOrder).not.toHaveBeenCalled();
     });
   });
 });

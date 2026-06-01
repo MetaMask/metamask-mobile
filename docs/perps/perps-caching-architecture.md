@@ -78,12 +78,12 @@ All 9 channels support `pause()`/`resume()` — pausing blocks emission to React
 
 ### Session Layer: TradingReadinessCache (Global Singleton)
 
-| Cache           | What it stores                         | Key format                   | Cleared on disconnect? |
-| --------------- | -------------------------------------- | ---------------------------- | ---------------------- |
-| Signing state   | DEX abstraction, builder fee, referral | `network:userAddress`        | Never (intentional)    |
-| In-flight locks | Concurrent signing operation guards    | `opType:network:userAddress` | Self-clearing          |
+| Cache           | What it stores                                   | Key format                   | Cleared on disconnect? |
+| --------------- | ------------------------------------------------ | ---------------------------- | ---------------------- |
+| Signing state   | Unified Account migration, builder fee, referral | `network:userAddress`        | Never (intentional)    |
+| In-flight locks | Concurrent signing operation guards              | `opType:network:userAddress` | Self-clearing          |
 
-This is the most important "survives everything" cache. Providers are recreated on account/network changes, which resets all instance-level caches. TradingReadinessCache persists as a global singleton specifically to remember that a hardware wallet user already approved DEX abstraction — without it, every reconnect would trigger another QR code scan.
+This is the most important "survives everything" cache. Providers are recreated on account/network changes, which resets all instance-level caches. TradingReadinessCache persists as a global singleton specifically to remember that a hardware wallet user already approved the Unified Account migration — without it, every reconnect would trigger another QR code scan.
 
 ### Disk Layer: MMKV Cold-Start Cache
 

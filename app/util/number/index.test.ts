@@ -6,7 +6,6 @@ import {
   balanceToFiat,
   balanceToFiatNumber,
   BNToHex,
-  calcTokenValueToSend,
   calculateEthFeeForMultiLayer,
   dotAndCommaDecimalFormatter,
   fastSplit,
@@ -511,16 +510,6 @@ describe('Number utils :: localizeLargeNumber', () => {
       decimals: 0,
     });
     expect(result).toBe('150K');
-  });
-});
-
-describe('Number utils :: calcTokenValueToSend', () => {
-  it('calcTokenValueToSend', () => {
-    expect(calcTokenValueToSend(new BN4(1337), 0)).toEqual('539');
-    expect(calcTokenValueToSend(new BN4(1337), 9)).toEqual('1374b68fa00');
-    expect(calcTokenValueToSend(new BN4(1337), 18)).toEqual(
-      '487a9a304539440000',
-    );
   });
 });
 

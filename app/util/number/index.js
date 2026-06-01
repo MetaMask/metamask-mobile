@@ -419,18 +419,6 @@ export function renderFromWei(value, decimalsToShow = 5) {
 }
 
 /**
- * @deprecated no longer used
- * Converts token BN value to hex string number to be sent
- *
- * @param {Object} value - BN instance to convert
- * @param {number} decimals - Decimals to be considered on the conversion
- * @returns {string} - String of the hex token value
- */
-export function calcTokenValueToSend(value, decimals) {
-  return value ? (value * Math.pow(10, decimals)).toString(16) : 0;
-}
-
-/**
  * @deprecated Use isBigInt instead from utils/number/bigint
  * Checks if a value is a BN instance
  *

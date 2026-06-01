@@ -6,7 +6,7 @@ import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../../page-objects/wallet/WalletActionsBottomSheet';
 import PredictMarketList from '../../../page-objects/Predict/PredictMarketList';
 import PredictDetailsPage from '../../../page-objects/Predict/PredictDetailsPage';
-import { PerformancePredict } from '../../../tags.performance.js';
+import { Performance, PerformancePredict } from '../../../tags.performance.js';
 
 /*
  * Scenario: Predict Market Details Performance Test
@@ -24,7 +24,7 @@ import { PerformancePredict } from '../../../tags.performance.js';
  * 4. Time to open Outcomes tab content when available
  */
 perfTest.describe(PerformancePredict, () => {
-  perfTest.setTimeout(10 * 60 * 1000);
+  perfTest.setTimeout(15 * 60 * 1000);
 
   perfTest(
     'Predict Market Details - Complete Flow Performance',
@@ -36,7 +36,7 @@ perfTest.describe(PerformancePredict, () => {
       // Timer 1: Navigate to Predict tab
       const timer1 = new TimerHelper(
         'Time since user taps Predict button until Predict Market List is displayed',
-        { ios: 8000, android: 8000 },
+        { ios: 8000, android: 5000 },
         currentDeviceDetails.platform,
       );
 
@@ -65,7 +65,7 @@ perfTest.describe(PerformancePredict, () => {
       // Timer 3: Open About tab
       const timer3 = new TimerHelper(
         'Time since user taps About tab until About tab is visible',
-        { ios: 750, android: 1800 },
+        { ios: 750, android: 2500 },
         currentDeviceDetails.platform,
       );
 

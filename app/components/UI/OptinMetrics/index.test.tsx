@@ -24,12 +24,22 @@ jest.mock('../../../util/analytics/analytics', () => ({
     trackEvent: jest.fn(),
     optIn: jest.fn().mockResolvedValue(undefined),
     optOut: jest.fn().mockResolvedValue(undefined),
-    getAnalyticsId: jest.fn().mockResolvedValue('test-analytics-id'),
+    getAnalyticsId: jest
+      .fn()
+      .mockResolvedValue('123e4567-e89b-12d3-a456-426614174000'),
     identify: jest.fn(),
     trackView: jest.fn(),
     isOptedIn: jest.fn().mockResolvedValue(false),
   },
 }));
+
+jest.mock(
+  '../../Views/OnboardingInterestQuestionnaire/useOnboardingInterestQuestionnaireEligibility',
+  () => ({
+    useOnboardingInterestQuestionnaireEligibility: () => (): Promise<boolean> =>
+      Promise.resolve(false),
+  }),
+);
 
 jest.mock('../../hooks/useAnalytics/useAnalytics');
 
@@ -785,10 +795,10 @@ describe('OptinMetrics', () => {
   describe('Component Lifecycle Tests', () => {
     it('should handle component unmount', () => {
       const { BackHandler } = jest.requireMock('react-native');
-      const mockRemoveEventListener = jest.spyOn(
-        BackHandler,
-        'removeEventListener',
-      );
+      const mockRemove = jest.fn();
+      const addSpy = jest
+        .spyOn(BackHandler, 'addEventListener')
+        .mockReturnValue({ remove: mockRemove });
 
       const { unmount } = renderScreen(
         OptinMetrics,
@@ -798,10 +808,13 @@ describe('OptinMetrics', () => {
 
       unmount();
 
-      expect(mockRemoveEventListener).toHaveBeenCalledWith(
+      expect(addSpy).toHaveBeenCalledWith(
         'hardwareBackPress',
         expect.any(Function),
       );
+      expect(mockRemove).toHaveBeenCalled();
+
+      addSpy.mockRestore();
     });
 
     it('should handle scroll end reached', () => {

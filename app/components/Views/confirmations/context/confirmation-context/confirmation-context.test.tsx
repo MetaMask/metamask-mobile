@@ -14,10 +14,16 @@ describe('ConfirmationContext', () => {
     const { result } = renderHook(() => useConfirmationContext(), { wrapper });
 
     expect(result.current).toStrictEqual({
+      headlessBuyError: undefined,
       isFooterVisible: undefined,
+      isConfirmationSubmitting: false,
+      isHeadlessBuyInProgress: false,
       isTransactionDataUpdating: false,
       isTransactionValueUpdating: false,
+      setHeadlessBuyError: expect.any(Function),
       setIsFooterVisible: expect.any(Function),
+      setIsConfirmationSubmitting: expect.any(Function),
+      setIsHeadlessBuyInProgress: expect.any(Function),
       setIsTransactionDataUpdating: expect.any(Function),
       setIsTransactionValueUpdating: expect.any(Function),
     });
@@ -49,6 +55,22 @@ describe('ConfirmationContext', () => {
     expect(result.current.isFooterVisible).toBe(false);
   });
 
+  it('updates isHeadlessBuyInProgress state when calling setIsHeadlessBuyInProgress', () => {
+    const { result } = renderHook(() => useConfirmationContext(), { wrapper });
+
+    act(() => {
+      result.current.setIsHeadlessBuyInProgress(true);
+    });
+
+    expect(result.current.isHeadlessBuyInProgress).toBe(true);
+
+    act(() => {
+      result.current.setIsHeadlessBuyInProgress(false);
+    });
+
+    expect(result.current.isHeadlessBuyInProgress).toBe(false);
+  });
+
   it('updates isTransactionDataUpdating state when calling setIsTransactionDataUpdating', () => {
     const { result } = renderHook(() => useConfirmationContext(), { wrapper });
 
@@ -63,5 +85,21 @@ describe('ConfirmationContext', () => {
     });
 
     expect(result.current.isTransactionDataUpdating).toBe(false);
+  });
+
+  it('updates isConfirmationSubmitting state when calling setIsConfirmationSubmitting', () => {
+    const { result } = renderHook(() => useConfirmationContext(), { wrapper });
+
+    act(() => {
+      result.current.setIsConfirmationSubmitting(true);
+    });
+
+    expect(result.current.isConfirmationSubmitting).toBe(true);
+
+    act(() => {
+      result.current.setIsConfirmationSubmitting(false);
+    });
+
+    expect(result.current.isConfirmationSubmitting).toBe(false);
   });
 });

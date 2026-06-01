@@ -3,11 +3,11 @@ import { waitFor } from '@testing-library/react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useGetOndoCampaignActivity } from './useGetOndoCampaignActivity';
 import Engine from '../../../../core/Engine';
+import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import {
-  selectRewardsSubscriptionId,
   selectCampaignParticipantOptedIn,
-} from '../../../../selectors/rewards';
-import { selectOndoCampaignActivityById } from '../../../../reducers/rewards/selectors';
+  selectOndoCampaignActivityById,
+} from '../../../../reducers/rewards/selectors';
 import { setOndoCampaignActivity } from '../../../../reducers/rewards';
 import type { OndoGmActivityEntryDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 
@@ -22,10 +22,10 @@ jest.mock('../../../../core/Engine', () => ({
 
 jest.mock('../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
-  selectCampaignParticipantOptedIn: jest.fn(),
 }));
 
 jest.mock('../../../../reducers/rewards/selectors', () => ({
+  selectCampaignParticipantOptedIn: jest.fn(),
   selectOndoCampaignActivityById: jest.fn(),
 }));
 

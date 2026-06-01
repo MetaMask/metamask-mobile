@@ -3,12 +3,14 @@ import {
   getAssetsControllerMessenger,
   getAssetsControllerInitMessenger,
   type AssetsControllerInitMessenger,
-  type AssetsControllerMessenger,
 } from '../../messengers/assets-controller';
 import type { MessengerClientInitRequest } from '../../types';
 import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { assetsControllerInit } from './assets-controller-init';
-import { AssetsController } from '@metamask/assets-controller';
+import {
+  AssetsController,
+  AssetsControllerMessenger,
+} from '@metamask/assets-controller';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import {
   ASSETS_UNIFY_STATE_FLAG,
@@ -160,7 +162,6 @@ describe('assetsControllerInit', () => {
     expect(controllerMock).toHaveBeenCalledWith(
       expect.objectContaining({
         messenger: expect.any(Object),
-        state: expect.any(Object),
         isBasicFunctionality: expect.any(Function),
         isEnabled: expect.any(Function),
         isOnboarded: expect.any(Function),
@@ -199,7 +200,7 @@ describe('assetsControllerInit', () => {
     );
   });
 
-  it('uses empty state when persisted state is not available', () => {
+  it('passes undefined state when persisted state is not available', () => {
     const requestMock = getInitRequestMock();
     requestMock.persistedState = {};
 
@@ -208,7 +209,7 @@ describe('assetsControllerInit', () => {
     const controllerMock = jest.mocked(AssetsController);
     expect(controllerMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        state: expect.any(Object),
+        state: undefined,
       }),
     );
   });
@@ -258,7 +259,7 @@ describe('assetsControllerInit', () => {
       expect(isEnabled()).toBe(false);
     });
 
-    it('returns false when feature version does not match', () => {
+    it('returns true when feature version does not match while hardcoded on for development', () => {
       const requestMock = getInitRequestMock({
         remoteFeatureFlagState: {
           remoteFeatureFlags: {
@@ -280,7 +281,7 @@ describe('assetsControllerInit', () => {
       expect(isEnabled()).toBe(false);
     });
 
-    it('returns false when RemoteFeatureFlagController:getState throws', () => {
+    it('returns true when RemoteFeatureFlagController:getState throws while hardcoded on for development', () => {
       const requestMock = getInitRequestMock({
         remoteFeatureFlagGetStateThrows: true,
       });
@@ -294,7 +295,7 @@ describe('assetsControllerInit', () => {
       expect(isEnabled()).toBe(false);
     });
 
-    it('returns false when feature flag is undefined', () => {
+    it('returns true when feature flag is undefined while hardcoded on for development', () => {
       const requestMock = getInitRequestMock({
         remoteFeatureFlagState: { remoteFeatureFlags: {} },
       });

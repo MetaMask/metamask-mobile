@@ -3,15 +3,84 @@ import type {
   CloseSessionOptions,
   HeadlessBuyCallbacks,
   HeadlessBuyCloseInfo,
+  HeadlessBuyError,
+  HeadlessBuyErrorCode,
   HeadlessBuyParams,
   HeadlessSession,
   HeadlessSessionStatus,
 } from './types';
 
+const HEADLESS_BUY_ERROR_CODES: ReadonlySet<HeadlessBuyErrorCode> = new Set([
+  'NO_QUOTES',
+  'LIMIT_EXCEEDED',
+  'KYC_REQUIRED',
+  'AUTH_FAILED',
+  'QUOTE_FAILED',
+  'USER_CANCELLED',
+  'UNKNOWN',
+]);
+
 function isTerminalSessionStatus(status: HeadlessSessionStatus): boolean {
   return (
     status === 'completed' || status === 'cancelled' || status === 'failed'
   );
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function isHeadlessBuyErrorCode(value: unknown): value is HeadlessBuyErrorCode {
+  return (
+    typeof value === 'string' &&
+    HEADLESS_BUY_ERROR_CODES.has(value as HeadlessBuyErrorCode)
+  );
+}
+
+function getErrorMessage(error: unknown): string | undefined {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (isRecord(error) && typeof error.message === 'string') {
+    return error.message;
+  }
+  if (typeof error === 'string') {
+    return error;
+  }
+  return undefined;
+}
+
+export function toHeadlessBuyError(
+  error: unknown,
+  fallbackCode: HeadlessBuyErrorCode = 'UNKNOWN',
+): HeadlessBuyError {
+  if (isRecord(error)) {
+    const explicitCode = isHeadlessBuyErrorCode(error.headlessBuyErrorCode)
+      ? error.headlessBuyErrorCode
+      : isHeadlessBuyErrorCode(error.code)
+        ? error.code
+        : undefined;
+
+    if (explicitCode) {
+      return {
+        code: explicitCode,
+        message: getErrorMessage(error),
+        details: isRecord(error.details) ? error.details : undefined,
+      };
+    }
+  }
+
+  if (error instanceof Error && error.name === 'LimitExceededError') {
+    return {
+      code: 'LIMIT_EXCEEDED',
+      message: error.message,
+    };
+  }
+
+  return {
+    code: fallbackCode,
+    message: getErrorMessage(error),
+  };
 }
 
 /**
@@ -156,6 +225,42 @@ export function closeSession(
       'headless sessionRegistry: onClose callback threw',
     );
   }
+}
+
+/**
+ * Idempotent "fail and notify" for unrecoverable headless errors. It turns
+ * thrown/native errors into the public HeadlessBuyError shape, fires `onError`,
+ * then terminates the session through `closeSession`.
+ */
+export function failSession(
+  id: string | undefined,
+  error: unknown,
+  fallbackCode: HeadlessBuyErrorCode = 'UNKNOWN',
+): HeadlessBuyError | undefined {
+  if (!id) {
+    return undefined;
+  }
+  const session = sessions.get(id);
+  if (!session) {
+    return undefined;
+  }
+  const headlessError = toHeadlessBuyError(error, fallbackCode);
+  try {
+    session.callbacks.onError(headlessError);
+  } catch (e) {
+    Logger.error(
+      e instanceof Error ? e : new Error(String(e)),
+      'headless sessionRegistry: onError callback threw',
+    );
+  }
+  closeSession(
+    id,
+    { reason: 'unknown' },
+    {
+      terminalStatus: 'failed',
+    },
+  );
+  return headlessError;
 }
 
 /**

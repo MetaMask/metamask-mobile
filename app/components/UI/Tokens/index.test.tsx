@@ -486,7 +486,7 @@ describe('Tokens', () => {
               expect.objectContaining({ address: MUSD_TOKEN_ADDRESS }),
             ]),
           }),
-          expect.anything(),
+          undefined,
         );
       });
     });
@@ -527,12 +527,12 @@ describe('Tokens', () => {
               expect.objectContaining({ address: MUSD_TOKEN_ADDRESS }),
             ]),
           }),
-          expect.anything(),
+          undefined,
         );
       });
     });
 
-    it('excludes mUSD from token list when both conversion flow and homepage sections are enabled', async () => {
+    it('excludes mUSD from token list when conversion flow, money hub, and homepage sections are all enabled', async () => {
       const stateWithBothEnabled = clone(initialRootState);
       (
         stateWithBothEnabled as Record<string, unknown> &
@@ -542,6 +542,10 @@ describe('Tokens', () => {
           .RemoteFeatureFlagController,
         remoteFeatureFlags: {
           earnMusdConversionFlowEnabled: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+          },
+          earnMoneyHubEnabled: {
             enabled: true,
             minimumVersion: '1.0.0',
           },
@@ -572,7 +576,7 @@ describe('Tokens', () => {
               expect.objectContaining({ address: MUSD_TOKEN_ADDRESS }),
             ]),
           }),
-          expect.anything(),
+          undefined,
         );
       });
     });

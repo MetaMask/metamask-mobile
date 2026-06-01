@@ -17,6 +17,7 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
     jest.setTimeout(170000);
   });
 
+  // TODO: Update the test so if does a full e2e (define what should do). Keep this test to have something tested on e2e.
   it('should enable notifications and view feature announcements and wallet notifications', async () => {
     // Notification mocks are now enabled by default inside the fixture helper
     // since they're turned on by default
@@ -34,19 +35,24 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
         await TabBarComponent.tapAccountsMenu();
         await AccountMenu.tapNotifications();
 
+        const featureAnnouncementItemId = getMockFeatureAnnouncementItemId();
+
         await Assertions.expectElementToBeVisible(NotificationMenuView.title);
+        await NotificationMenuView.scrollToNotificationItem(
+          featureAnnouncementItemId,
+        );
         await Assertions.expectElementToBeVisible(
           NotificationMenuView.selectNotificationItem(
-            getMockFeatureAnnouncementItemId(),
+            featureAnnouncementItemId,
           ),
           {
             description: 'Feature Announcement Item',
           },
         );
 
-        // Feature Annonucement Details
+        // Feature Announcement Details
         await NotificationMenuView.tapOnNotificationItem(
-          getMockFeatureAnnouncementItemId(),
+          featureAnnouncementItemId,
         );
         await Assertions.expectElementToBeVisible(
           NotificationDetailsView.title,

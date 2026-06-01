@@ -3,7 +3,6 @@ import {
   selectAllAssets as _selectAllAssets,
   selectAssetsBySelectedAccountGroup as _selectAssetsBySelectedAccountGroup,
   getNativeTokenAddress,
-  TokenListState,
   AssetListState,
   AccountGroupAssets,
 } from '@metamask/assets-controllers';
@@ -43,6 +42,20 @@ import { selectAllTokens } from '../tokensController';
 import { selectSelectedInternalAccountAddress } from '../accountsController';
 import { selectSelectedInternalAccountByScope } from '../multichainAccounts/accounts';
 import { getLocaleLanguageCode } from '../../components/hooks/useFormatters';
+import {
+  getMultichainAssetsRatesControllerConversionRates,
+  getTokenRatesControllerMarketData,
+  getCurrencyRateControllerCurrencyRates,
+  getCurrencyRateControllerCurrentCurrency,
+  getTokensControllerAllTokens,
+  getTokensControllerAllIgnoredTokens,
+  getAccountTrackerControllerAccountsByChainId,
+  getTokenBalancesControllerTokenBalances,
+  getMultiChainBalancesControllerBalances,
+  getMultiChainAssetsControllerAccountsAssets,
+  getMultiChainAssetsControllerAllIgnoredAssets,
+  getMultiChainAssetsControllerAssetsMetadata,
+} from './assets-migration';
 
 /**
  * Structured map of Tron special assets for efficient access.
@@ -92,58 +105,35 @@ const EMPTY_TRON_SPECIAL_ASSETS_MAP: TronSpecialAssetsMap = Object.freeze({
 });
 
 const getStateForAssetSelector = (state: RootState) => {
-  const {
-    AccountTreeController,
-    AccountsController,
-    TokensController,
-    TokenBalancesController,
-    TokenRatesController,
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    MultichainAssetsController,
-    MultichainBalancesController,
-    MultichainAssetsRatesController,
-    ///: END:ONLY_INCLUDE_IF
-    CurrencyRateController,
-    NetworkController,
-    AccountTrackerController,
-  } = state.engine.backgroundState;
-
-  let multichainState = {
-    accountsAssets: {},
-    assetsMetadata: {},
-    allIgnoredAssets: {},
-    balances: {},
-    conversionRates: {},
-  };
-
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  multichainState = {
-    ...MultichainAssetsController,
-    ...MultichainBalancesController,
-    ...MultichainAssetsRatesController,
-  };
-  ///: END:ONLY_INCLUDE_IF
+  const { AccountTreeController, AccountsController, NetworkController } =
+    state.engine.backgroundState;
 
   return {
     ...AccountTreeController,
     ...AccountsController,
-    ...TokensController,
-    ...TokenBalancesController,
-    ...TokenRatesController,
-    ...multichainState,
-    ...CurrencyRateController,
+    allTokens: getTokensControllerAllTokens(state),
+    allIgnoredTokens: getTokensControllerAllIgnoredTokens(state),
+    tokenBalances: getTokenBalancesControllerTokenBalances(state),
+    marketData: getTokenRatesControllerMarketData(state),
+    assetsMetadata: getMultiChainAssetsControllerAssetsMetadata(state),
+    accountsAssets: getMultiChainAssetsControllerAccountsAssets(state),
+    allIgnoredAssets: getMultiChainAssetsControllerAllIgnoredAssets(state),
+    balances: getMultiChainBalancesControllerBalances(state),
+    conversionRates: getMultichainAssetsRatesControllerConversionRates(state),
+    currencyRates: getCurrencyRateControllerCurrencyRates(state),
+    currentCurrency: getCurrencyRateControllerCurrentCurrency(state),
     ...NetworkController,
-    ...(AccountTrackerController as {
-      accountsByChainId: Record<
+    accountsByChainId: getAccountTrackerControllerAccountsByChainId(
+      state,
+    ) as Record<
+      Hex,
+      Record<
         Hex,
-        Record<
-          Hex,
-          {
-            balance: Hex | null;
-          }
-        >
-      >;
-    }),
+        {
+          balance: Hex | null;
+        }
+      >
+    >,
   };
 };
 
@@ -167,6 +157,40 @@ function callSelectAssetsBySelectedAccountGroup(
 export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
   getStateForAssetSelector,
   (assetsState) => callSelectAssetsBySelectedAccountGroup(assetsState),
+);
+
+/**
+ * Cheap boolean check: does the selected account group hold any
+ * non-excluded positive-fiat-balance asset
+ */
+export const selectHasEligibleSwapSource = createSelector(
+  [
+    selectAssetsBySelectedAccountGroup,
+    (_state: RootState, excludedChainId: string | undefined) => excludedChainId,
+    (
+      _state: RootState,
+      _excludedChainId: string | undefined,
+      excludedAddress: string | undefined,
+    ) => excludedAddress,
+  ],
+  (assetsByChain, excludedChainId, excludedAddress): boolean => {
+    for (const chainAssets of Object.values(assetsByChain)) {
+      for (const asset of chainAssets) {
+        if ((asset.fiat?.balance ?? 0) <= 0) continue;
+
+        const isExcludedToken =
+          asset.chainId === excludedChainId &&
+          excludedAddress !== undefined &&
+          asset.assetId.toLowerCase() === excludedAddress.toLowerCase();
+
+        if (!isExcludedToken) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  },
 );
 
 const EMPTY_ACCOUNT_GROUP_ASSETS: AccountGroupAssets = {};

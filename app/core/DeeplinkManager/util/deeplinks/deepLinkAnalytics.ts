@@ -372,6 +372,18 @@ const extractTrendingProperties = (
 };
 
 /**
+ * Extract properties for WHATS_HAPPENING route
+ * @param urlParams - URL parameters
+ * @param sensitiveProps - Object to add properties to
+ */
+const extractWhatsHappeningProperties = (
+  _urlParams: UrlParamValues,
+  _sensitiveProps: Record<string, string>,
+): void => {
+  // WHATS_HAPPENING route doesn't have sensitive parameters to extract
+};
+
+/**
  * Extract properties for CARD_ONBOARDING route
  * @param urlParams - URL parameters
  * @param sensitiveProps - Object to add properties to
@@ -463,6 +475,8 @@ const routeExtractors: Record<
   [DeepLinkRoute.PREDICT]: extractPredictProperties,
   [DeepLinkRoute.SHIELD]: extractShieldProperties,
   [DeepLinkRoute.TRENDING]: extractTrendingProperties,
+  [DeepLinkRoute.WHATS_HAPPENING]: extractWhatsHappeningProperties,
+  [DeepLinkRoute.TOP_TRADERS]: extractInvalidProperties,
   [DeepLinkRoute.SOCIAL_TRADER_POSITION]: extractInvalidProperties,
   [DeepLinkRoute.CARD_ONBOARDING]: extractCardOnboardingProperties,
   [DeepLinkRoute.CARD_HOME]: extractCardHomeProperties,
@@ -570,6 +584,7 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.TRANSACTION;
     case ACTIONS.BUY:
     case ACTIONS.BUY_CRYPTO:
+    case ACTIONS.ON_RAMP:
       return DeepLinkRoute.BUY;
     case ACTIONS.SELL:
     case ACTIONS.SELL_CRYPTO:
@@ -594,6 +609,10 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.SHIELD;
     case ACTIONS.TRENDING:
       return DeepLinkRoute.TRENDING;
+    case ACTIONS.WHATS_HAPPENING:
+      return DeepLinkRoute.WHATS_HAPPENING;
+    case ACTIONS.TOP_TRADERS:
+      return DeepLinkRoute.TOP_TRADERS;
     case ACTIONS.SOCIAL_TRADER_POSITION:
       return DeepLinkRoute.SOCIAL_TRADER_POSITION;
     case ACTIONS.CARD_ONBOARDING:
@@ -650,6 +669,10 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
         return DeepLinkRoute.SHIELD;
       case 'trending':
         return DeepLinkRoute.TRENDING;
+      case 'whats-happening':
+        return DeepLinkRoute.WHATS_HAPPENING;
+      case 'top-traders':
+        return DeepLinkRoute.TOP_TRADERS;
       case 'social-trader-position':
         return DeepLinkRoute.SOCIAL_TRADER_POSITION;
       case 'card-onboarding':
@@ -682,8 +705,14 @@ export const createDeepLinkUsedEventBuilder = async (
 ): Promise<ReturnType<typeof AnalyticsEventBuilder.createEventBuilder>> => {
   const { url, route, signatureStatus } = context;
 
+  // Resolve the fire-and-forget Branch fetch lazily here so callers don't
+  // block on it. `branchParams` takes precedence for paths (MWP, push) that
+  // resolve it eagerly.
+  const branchParams: BranchParams | undefined =
+    context.branchParams ?? (await (context.branchParamsPromise ?? undefined));
+
   // Pass branchParams to avoid duplicate fetch
-  const wasAppInstalled = await detectAppInstallation(context.branchParams);
+  const wasAppInstalled = await detectAppInstallation(branchParams);
 
   // Extract sensitive properties
   const sensitiveProperties = extractSensitiveProperties(
@@ -691,8 +720,12 @@ export const createDeepLinkUsedEventBuilder = async (
     context.urlParams,
   );
 
-  // Determine interstitial state
-  const interstitial = determineInterstitialState(context);
+  // Use the resolved branchParams so `determineInterstitialState` sees the
+  // same value it did under the previous eager-fetch implementation.
+  const interstitial = determineInterstitialState({
+    ...context,
+    branchParams,
+  });
 
   // Create the AnalyticsEventBuilder with all deep link properties
   const eventBuilder = AnalyticsEventBuilder.createEventBuilder(

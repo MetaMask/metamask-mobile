@@ -264,4 +264,90 @@ describe('SpendingLimitProgressBar', () => {
     expect(getByText(`50/200 ${USDC}`)).toBeOnTheScreen();
     expect(queryByText('••••••')).not.toBeOnTheScreen();
   });
+
+  describe('compact mode (hasOriginalAllowance=false)', () => {
+    it('renders remaining-only label without progress bar', () => {
+      const { getByText, queryByText } = renderWithProvider(() => (
+        <SpendingLimitProgressBar
+          isLoading={false}
+          decimals={6}
+          totalAllowance="150"
+          remainingAllowance="150"
+          symbol={USDC}
+          hasOriginalAllowance={false}
+        />
+      ));
+
+      expect(getByText('Spending Limit')).toBeOnTheScreen();
+      expect(getByText(`150 ${USDC} available`)).toBeOnTheScreen();
+      expect(queryByText(`0/150 ${USDC}`)).not.toBeOnTheScreen();
+    });
+
+    it('shows the actual remaining amount, ignoring totalAllowance', () => {
+      const { getByText, queryByText } = renderWithProvider(() => (
+        <SpendingLimitProgressBar
+          isLoading={false}
+          decimals={6}
+          totalAllowance="9999"
+          remainingAllowance="42.5"
+          symbol="mUSD"
+          hasOriginalAllowance={false}
+        />
+      ));
+
+      expect(getByText('Spending Limit')).toBeOnTheScreen();
+      expect(getByText('42.5 mUSD available')).toBeOnTheScreen();
+      expect(queryByText('9956.5/9999 mUSD')).not.toBeOnTheScreen();
+    });
+
+    it('hides remaining amount when privacy mode is enabled', () => {
+      const { getByText, queryByText } = renderWithProvider(() => (
+        <SpendingLimitProgressBar
+          isLoading={false}
+          decimals={6}
+          totalAllowance="100"
+          remainingAllowance="100"
+          symbol={USDC}
+          hasOriginalAllowance={false}
+          privacyMode
+        />
+      ));
+
+      expect(getByText('Spending Limit')).toBeOnTheScreen();
+      expect(getByText('••••••')).toBeOnTheScreen();
+      expect(queryByText(`100 ${USDC} available`)).not.toBeOnTheScreen();
+    });
+
+    it('falls back to "0 SYM available" when remainingAllowance is undefined', () => {
+      const { getByText } = renderWithProvider(() => (
+        <SpendingLimitProgressBar
+          isLoading={false}
+          decimals={6}
+          totalAllowance={undefined as unknown as string}
+          remainingAllowance={undefined as unknown as string}
+          symbol={USDC}
+          hasOriginalAllowance={false}
+        />
+      ));
+
+      expect(getByText(`0 ${USDC} available`)).toBeOnTheScreen();
+    });
+
+    it('renders skeleton while loading regardless of hasOriginalAllowance', () => {
+      const { getByTestId } = renderWithProvider(() => (
+        <SpendingLimitProgressBar
+          isLoading
+          decimals={6}
+          totalAllowance="100"
+          remainingAllowance="100"
+          symbol={USDC}
+          hasOriginalAllowance={false}
+        />
+      ));
+
+      expect(
+        getByTestId('spending-limit-progress-bar-skeleton'),
+      ).toBeOnTheScreen();
+    });
+  });
 });

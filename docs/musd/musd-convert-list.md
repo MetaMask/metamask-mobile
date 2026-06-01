@@ -482,7 +482,7 @@ export const selectMusdQuickConvertEnabledFlag = createSelector(
 **Environment Variable:** `MM_MUSD_QUICK_CONVERT_ENABLED`
 
 - Added to `.js.env.example` (default: `"false"`)
-- Added to `bitrise.yml` (default: `false`)
+- Added to `builds.yml` (default: `false`)
 
 ---
 
@@ -892,7 +892,7 @@ All events include the full `TransactionMeta` object, which contains:
 | -------------------------------------------------------------------------------- | ------------------------------------------- |
 | `app/components/UI/Earn/selectors/featureFlags/index.ts`                         | Add `selectMusdQuickConvertEnabledFlag`     |
 | `.js.env.example`                                                                | Add `MM_MUSD_QUICK_CONVERT_ENABLED="false"` |
-| `bitrise.yml`                                                                    | Add `MM_MUSD_QUICK_CONVERT_ENABLED: false`  |
+| `builds.yml`                                                                     | Add `MM_MUSD_QUICK_CONVERT_ENABLED: false`  |
 | `app/constants/navigation/Routes.ts`                                             | Add `MUSD.QUICK_CONVERT` route              |
 | Earn navigator                                                                   | Register new screen                         |
 | `app/components/Views/confirmations/hooks/transactions/useTransactionConfirm.ts` | Update mUSD post-confirm navigation         |

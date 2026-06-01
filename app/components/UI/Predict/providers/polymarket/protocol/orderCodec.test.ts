@@ -1,15 +1,20 @@
+import { SignTypedDataVersion } from '@metamask/keyring-controller';
+import { hexlify, toUtf8Bytes } from 'ethers/lib/utils';
 import { Side, type OrderPreview } from '../../../types';
-import { OrderType } from '../types';
-import { POLYMARKET_V1_PROTOCOL, POLYMARKET_V2_PROTOCOL } from './definitions';
+import type { Signer } from '../../types';
+import { HASH_ZERO_BYTES32, POLYGON_MAINNET_CHAIN_ID } from '../constants';
+import { OrderType, SignatureType } from '../types';
+import { POLYMARKET_V2_PROTOCOL } from './definitions';
 import {
   buildProtocolUnsignedOrder,
-  encodeUnwrap,
   encodeWrap,
   getPreviewFeeRateBpsForProtocol,
   getProtocolOrderTypedData,
   getProtocolVerifyingContract,
   serializeProtocolRelayerOrder,
+  signProtocolOrder,
 } from './orderCodec';
+import { getMinAmountReceivedWithSlippage } from './slippage';
 
 const preview: OrderPreview = {
   marketId: 'market-1',
@@ -27,8 +32,26 @@ const preview: OrderPreview = {
   feeRateBps: '77',
 };
 
+const ORDER_TYPE_STRING =
+  'Order(uint256 salt,address maker,address signer,uint256 tokenId,uint256 makerAmount,uint256 takerAmount,uint8 side,uint8 signatureType,uint256 timestamp,bytes32 metadata,bytes32 builder)';
+const rawSignature = `0x${'11'.repeat(65)}`;
+const ownerAddress = '0x1111111111111111111111111111111111111111';
+const safeAddress = '0x2222222222222222222222222222222222222222';
+const depositWalletAddress = '0x3333333333333333333333333333333333333333';
+
+function createMockSigner(signature = rawSignature) {
+  const signTypedMessage = jest.fn().mockResolvedValue(signature);
+  const signer: Signer = {
+    address: ownerAddress,
+    signTypedMessage,
+    signPersonalMessage: jest.fn(),
+  };
+
+  return { signer, signTypedMessage };
+}
+
 describe('polymarket protocol order codec', () => {
-  const protocolV2 = {
+  const protocol = {
     ...POLYMARKET_V2_PROTOCOL,
     order: {
       ...POLYMARKET_V2_PROTOCOL.order,
@@ -37,28 +60,12 @@ describe('polymarket protocol order codec', () => {
     },
   };
 
-  it('builds a v1 order with v1-only fields', () => {
+  it('builds a v2 order with timestamp, metadata, builder, and Safe signature type', () => {
     const order = buildProtocolUnsignedOrder({
-      protocol: POLYMARKET_V1_PROTOCOL,
+      protocol,
       preview,
-      makerAddress: '0x1111111111111111111111111111111111111111',
-      signerAddress: '0x2222222222222222222222222222222222222222',
-      nowInSeconds: 123,
-    });
-
-    expect(order).toHaveProperty('taker');
-    expect(order).toHaveProperty('nonce', '0');
-    expect(order).toHaveProperty('feeRateBps', '77');
-    expect(order).not.toHaveProperty('metadata');
-    expect(order).not.toHaveProperty('builder');
-  });
-
-  it('builds a v2 order with timestamp, metadata, and builder', () => {
-    const order = buildProtocolUnsignedOrder({
-      protocol: protocolV2,
-      preview,
-      makerAddress: '0x1111111111111111111111111111111111111111',
-      signerAddress: '0x2222222222222222222222222222222222222222',
+      makerAddress: ownerAddress,
+      signerAddress: safeAddress,
       nowInSeconds: 456,
     });
 
@@ -71,6 +78,8 @@ describe('polymarket protocol order codec', () => {
       'builder',
       '0x3333333333333333333333333333333333333333333333333333333333333333',
     );
+    expect(order.signatureType).toBe(SignatureType.POLY_GNOSIS_SAFE);
+    expect(order).toHaveProperty('takerAmount', '18866500');
     expect(order).not.toHaveProperty('taker');
     expect(order).not.toHaveProperty('nonce');
     expect(order).not.toHaveProperty('feeRateBps');
@@ -90,27 +99,43 @@ describe('polymarket protocol order codec', () => {
     ]);
   });
 
+  it('builds a deposit-wallet order with POLY_1271 signature type', () => {
+    const order = buildProtocolUnsignedOrder({
+      protocol,
+      preview,
+      makerAddress: depositWalletAddress,
+      signerAddress: depositWalletAddress,
+      signatureType: SignatureType.POLY_1271,
+      nowInSeconds: 456,
+    });
+
+    expect(SignatureType.POLY_1271).toBe(3);
+    expect(order.maker).toBe(depositWalletAddress);
+    expect(order.signer).toBe(depositWalletAddress);
+    expect(order.signatureType).toBe(SignatureType.POLY_1271);
+  });
+
   it('builds v2 typed data with domain version 2 and bytes32 fields', () => {
     const order = buildProtocolUnsignedOrder({
-      protocol: protocolV2,
+      protocol,
       preview,
-      makerAddress: '0x1111111111111111111111111111111111111111',
-      signerAddress: '0x2222222222222222222222222222222222222222',
+      makerAddress: ownerAddress,
+      signerAddress: safeAddress,
       nowInSeconds: 456,
     });
 
     const typedData = getProtocolOrderTypedData({
-      protocol: protocolV2,
+      protocol,
       order,
       verifyingContract: getProtocolVerifyingContract({
-        protocol: protocolV2,
+        protocol,
         negRisk: true,
       }),
     });
 
     expect(typedData.domain.version).toBe('2');
     expect(typedData.domain.verifyingContract).toBe(
-      protocolV2.contracts.negRiskExchange,
+      protocol.contracts.negRiskExchange,
     );
     expect(typedData.types.Order).toEqual(
       expect.arrayContaining([
@@ -120,12 +145,112 @@ describe('polymarket protocol order codec', () => {
     );
   });
 
+  it('signs Safe orders with the raw CLOB Order typed data', async () => {
+    const { signer, signTypedMessage } = createMockSigner();
+    const order = buildProtocolUnsignedOrder({
+      protocol,
+      preview,
+      makerAddress: safeAddress,
+      signerAddress: ownerAddress,
+      nowInSeconds: 456,
+    });
+    const verifyingContract = getProtocolVerifyingContract({
+      protocol,
+      negRisk: false,
+    });
+
+    await expect(
+      signProtocolOrder({ signer, protocol, order, verifyingContract }),
+    ).resolves.toBe(rawSignature);
+
+    expect(signTypedMessage).toHaveBeenCalledWith(
+      {
+        from: ownerAddress,
+        data: expect.objectContaining({
+          primaryType: 'Order',
+          domain: expect.objectContaining({
+            name: 'Polymarket CTF Exchange',
+            version: '2',
+            verifyingContract,
+          }),
+          message: order,
+        }),
+      },
+      SignTypedDataVersion.V4,
+    );
+  });
+
+  it('signs deposit-wallet orders with an ERC-7739 TypedDataSign wrapper', async () => {
+    const { signer, signTypedMessage } = createMockSigner();
+    const order = buildProtocolUnsignedOrder({
+      protocol,
+      preview,
+      makerAddress: depositWalletAddress,
+      signerAddress: depositWalletAddress,
+      signatureType: SignatureType.POLY_1271,
+      nowInSeconds: 456,
+    });
+    const verifyingContract = getProtocolVerifyingContract({
+      protocol,
+      negRisk: false,
+    });
+
+    const signature = await signProtocolOrder({
+      signer,
+      protocol,
+      order,
+      verifyingContract,
+    });
+
+    const expectedContentsTypeSuffix = `${hexlify(
+      toUtf8Bytes(ORDER_TYPE_STRING),
+    ).slice(2)}${ORDER_TYPE_STRING.length.toString(16).padStart(4, '0')}`;
+
+    expect(signature.startsWith(rawSignature)).toBe(true);
+    expect(signature.endsWith(expectedContentsTypeSuffix)).toBe(true);
+    expect(signature.length).toBe(
+      rawSignature.length + 32 * 2 + 32 * 2 + expectedContentsTypeSuffix.length,
+    );
+    expect(signTypedMessage).toHaveBeenCalledWith(
+      {
+        from: ownerAddress,
+        data: expect.objectContaining({
+          primaryType: 'TypedDataSign',
+          domain: expect.objectContaining({
+            name: 'Polymarket CTF Exchange',
+            version: '2',
+            chainId: POLYGON_MAINNET_CHAIN_ID,
+            verifyingContract,
+          }),
+          types: expect.objectContaining({
+            TypedDataSign: expect.arrayContaining([
+              { name: 'contents', type: 'Order' },
+              { name: 'verifyingContract', type: 'address' },
+            ]),
+            Order: expect.arrayContaining([
+              { name: 'signatureType', type: 'uint8' },
+            ]),
+          }),
+          message: {
+            contents: order,
+            name: 'DepositWallet',
+            version: '1',
+            chainId: POLYGON_MAINNET_CHAIN_ID,
+            verifyingContract: depositWalletAddress,
+            salt: HASH_ZERO_BYTES32,
+          },
+        }),
+      },
+      SignTypedDataVersion.V4,
+    );
+  });
+
   it('serializes signed orders into the relayer body shape', () => {
     const order = buildProtocolUnsignedOrder({
-      protocol: protocolV2,
+      protocol,
       preview,
-      makerAddress: '0x1111111111111111111111111111111111111111',
-      signerAddress: '0x2222222222222222222222222222222222222222',
+      makerAddress: ownerAddress,
+      signerAddress: safeAddress,
       nowInSeconds: 456,
     });
 
@@ -150,39 +275,51 @@ describe('polymarket protocol order codec', () => {
         }),
       }),
     );
+    expect(serialized).not.toHaveProperty('deferExec');
+    expect(serialized).not.toHaveProperty('postOnly');
   });
 
-  it('forces preview fee rate to zero under v2', () => {
-    expect(
-      getPreviewFeeRateBpsForProtocol({
-        protocol: protocolV2,
-        preview,
-      }),
-    ).toBe('0');
-
-    expect(
-      getPreviewFeeRateBpsForProtocol({
-        protocol: POLYMARKET_V1_PROTOCOL,
-        preview,
-      }),
-    ).toBe('77');
+  it('forces preview fee rate to zero', () => {
+    expect(getPreviewFeeRateBpsForProtocol()).toBe('0');
   });
 
-  it('encodes wrap and unwrap calls', () => {
+  it('encodes wrap calls used by the legacy USDC.e sweep', () => {
     expect(
       encodeWrap({
-        asset: protocolV2.collateral.legacyUsdceToken,
-        to: '0x1111111111111111111111111111111111111111',
+        asset: protocol.collateral.legacyUsdceToken,
+        to: ownerAddress,
         amount: 42n,
       }),
     ).toMatch(/^0x[0-9a-f]+$/u);
+  });
 
-    expect(
-      encodeUnwrap({
-        asset: protocolV2.collateral.legacyUsdceToken,
-        to: '0x1111111111111111111111111111111111111111',
-        amount: 42n,
-      }),
-    ).toMatch(/^0x[0-9a-f]+$/u);
+  describe('getMinAmountReceivedWithSlippage', () => {
+    it('uses the slippage-adjusted amount for BUY orders when above the buy floor', () => {
+      expect(getMinAmountReceivedWithSlippage(preview)).toBeCloseTo(18.8665);
+    });
+
+    it('preserves the current BUY floor of maxAmountSpent plus tickSize', () => {
+      const flooredPreview: OrderPreview = {
+        ...preview,
+        maxAmountSpent: 10,
+        minAmountReceived: 9,
+        tickSize: 0.01,
+      };
+
+      expect(getMinAmountReceivedWithSlippage(flooredPreview)).toBe(10.01);
+    });
+
+    it('uses only the slippage-adjusted amount for SELL orders', () => {
+      const sellPreview: OrderPreview = {
+        ...preview,
+        side: Side.SELL,
+        maxAmountSpent: 10,
+        minAmountReceived: 9,
+        slippage: 0.05,
+        tickSize: 0.01,
+      };
+
+      expect(getMinAmountReceivedWithSlippage(sellPreview)).toBeCloseTo(8.55);
+    });
   });
 });

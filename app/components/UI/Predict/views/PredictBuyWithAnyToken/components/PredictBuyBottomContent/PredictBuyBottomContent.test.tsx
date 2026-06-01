@@ -34,25 +34,10 @@ describe('PredictBuyBottomContent', () => {
     jest.clearAllMocks();
   });
 
-  describe('when isInputFocused is true', () => {
-    it('returns null and does not render anything', () => {
-      renderWithProvider(
-        <PredictBuyBottomContent isInputFocused>
-          {mockChildren}
-        </PredictBuyBottomContent>,
-      );
-
-      expect(screen.queryByText(/Disclaimer text/)).not.toBeOnTheScreen();
-      expect(screen.queryByTestId('children-content')).not.toBeOnTheScreen();
-    });
-  });
-
-  describe('when isInputFocused is false', () => {
+  describe('rendering', () => {
     it('renders children content', () => {
       renderWithProvider(
-        <PredictBuyBottomContent isInputFocused={false}>
-          {mockChildren}
-        </PredictBuyBottomContent>,
+        <PredictBuyBottomContent>{mockChildren}</PredictBuyBottomContent>,
       );
 
       expect(screen.getByTestId('children-content')).toBeOnTheScreen();
@@ -60,9 +45,7 @@ describe('PredictBuyBottomContent', () => {
 
     it('renders disclaimer text', () => {
       renderWithProvider(
-        <PredictBuyBottomContent isInputFocused={false}>
-          {mockChildren}
-        </PredictBuyBottomContent>,
+        <PredictBuyBottomContent>{mockChildren}</PredictBuyBottomContent>,
       );
 
       expect(screen.getByText(/Disclaimer text/)).toBeOnTheScreen();
@@ -70,9 +53,7 @@ describe('PredictBuyBottomContent', () => {
 
     it('renders learn more link', () => {
       renderWithProvider(
-        <PredictBuyBottomContent isInputFocused={false}>
-          {mockChildren}
-        </PredictBuyBottomContent>,
+        <PredictBuyBottomContent>{mockChildren}</PredictBuyBottomContent>,
       );
 
       expect(screen.getByText(/Learn more/)).toBeOnTheScreen();
@@ -80,9 +61,7 @@ describe('PredictBuyBottomContent', () => {
 
     it('opens Polymarket TOS URL when learn more is pressed', () => {
       renderWithProvider(
-        <PredictBuyBottomContent isInputFocused={false}>
-          {mockChildren}
-        </PredictBuyBottomContent>,
+        <PredictBuyBottomContent>{mockChildren}</PredictBuyBottomContent>,
       );
 
       const learnMoreLink = screen.getByText(/Learn more/);
@@ -108,9 +87,7 @@ describe('PredictBuyBottomContent', () => {
       );
 
       renderWithProvider(
-        <PredictBuyBottomContent isInputFocused={false}>
-          {multipleChildren}
-        </PredictBuyBottomContent>,
+        <PredictBuyBottomContent>{multipleChildren}</PredictBuyBottomContent>,
       );
 
       expect(screen.getByTestId('child-1')).toBeOnTheScreen();
@@ -121,9 +98,7 @@ describe('PredictBuyBottomContent', () => {
   describe('Linking behavior', () => {
     it('calls Linking.openURL with correct URL', () => {
       renderWithProvider(
-        <PredictBuyBottomContent isInputFocused={false}>
-          {mockChildren}
-        </PredictBuyBottomContent>,
+        <PredictBuyBottomContent>{mockChildren}</PredictBuyBottomContent>,
       );
 
       const learnMoreLink = screen.getByText(/Learn more/);
@@ -137,9 +112,7 @@ describe('PredictBuyBottomContent', () => {
 
     it('opens URL only when learn more is pressed', () => {
       renderWithProvider(
-        <PredictBuyBottomContent isInputFocused={false}>
-          {mockChildren}
-        </PredictBuyBottomContent>,
+        <PredictBuyBottomContent>{mockChildren}</PredictBuyBottomContent>,
       );
 
       expect(Linking.openURL).not.toHaveBeenCalled();

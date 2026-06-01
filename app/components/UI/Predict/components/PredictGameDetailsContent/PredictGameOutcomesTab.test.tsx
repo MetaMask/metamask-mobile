@@ -20,6 +20,12 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'predict.sports_market_types.spreads': 'Spreads',
       'predict.sports_market_types.totals': 'Totals',
       'predict.sports_market_types.points': 'Points',
+      'predict.sports_market_types.tennis_set_totals': 'Total Sets',
+      'predict.sports_market_types.tennis_match_totals': 'Total Games',
+      'predict.sports_market_types.tennis_first_set_totals':
+        '1st Set Total Games',
+      'predict.sports_market_types.tennis_first_set_winner': '1st Set Winner',
+      'predict.sports_market_types.tennis_completed_match': 'Completed Match',
     };
     return translations[key] ?? key;
   }),
@@ -192,6 +198,15 @@ describe('PredictGameOutcomesTab', () => {
   describe('getSportsMarketTypeLabel', () => {
     it('returns translated label for known type', () => {
       expect(getSportsMarketTypeLabel('moneyline')).toBe('Moneyline');
+    });
+
+    it('returns translated label for tennis market types', () => {
+      expect(getSportsMarketTypeLabel('tennis_match_totals')).toBe(
+        'Total Games',
+      );
+      expect(getSportsMarketTypeLabel('tennis_first_set_winner')).toBe(
+        '1st Set Winner',
+      );
     });
 
     it('returns title-cased fallback for unknown type', () => {
@@ -623,6 +638,67 @@ describe('PredictGameOutcomesTab', () => {
       expect(mockCapturedCards[0].buttons[0].variant).toBe('yes');
       expect(mockCapturedCards[0].buttons[0].teamColor).toBe(
         TEST_HEX_COLORS.PURE_RED,
+      );
+    });
+
+    it('assigns tennis first set winner team colors from normalized token labels', () => {
+      const tennisGame: PredictMarketGame = {
+        ...mockGame,
+        league: 'atp',
+        homeTeam: {
+          ...mockGame.homeTeam,
+          name: 'Ilya Ivashka',
+          abbreviation: 'ivashka',
+          alias: 'I. Ivashka',
+          color: TEST_HEX_COLORS.PURE_RED,
+        },
+        awayTeam: {
+          ...mockGame.awayTeam,
+          name: 'Hamish Stewart',
+          abbreviation: 'stewart',
+          alias: 'H. Stewart',
+          color: TEST_HEX_COLORS.PURE_BLUE,
+        },
+      };
+      const outcome = createOutcome({
+        sportsMarketType: 'tennis_first_set_winner',
+        tokens: [
+          createToken({ shortTitle: 'IVASHKA' }),
+          createToken({ shortTitle: 'STEWART' }),
+        ],
+      });
+      const subgroups: PredictOutcomeGroup[] = [
+        createGroup({
+          key: 'tennis_first_set_winner',
+          outcomes: [outcome],
+        }),
+      ];
+      const groups = [
+        createGroup({ key: 'first_set', outcomes: [], subgroups }),
+      ];
+
+      render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={tennisGame}
+          activeChipKey="first_set"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards[0].buttons[0]).toEqual(
+        expect.objectContaining({
+          label: 'IVASHKA',
+          variant: 'yes',
+          teamColor: TEST_HEX_COLORS.PURE_RED,
+        }),
+      );
+      expect(mockCapturedCards[0].buttons[1]).toEqual(
+        expect.objectContaining({
+          label: 'STEWART',
+          variant: 'no',
+          teamColor: TEST_HEX_COLORS.PURE_BLUE,
+        }),
       );
     });
 
