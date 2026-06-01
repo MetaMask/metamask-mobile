@@ -2301,6 +2301,7 @@
     },
     "world_cup": {
       "title": "World Cup",
+      "predictions_title": "World Cup predictions",
       "banner_title": "World Cup 2026",
       "banner_description": "Trade every match, every moment.",
       "tabs": {
@@ -2380,9 +2381,15 @@
       "new_prediction": "New prediction",
       "resolved_markets": "Resolved markets"
     },
+    "positions_empty": {
+      "description": "Your predictions will appear here, showing your stake and market movements",
+      "browse_markets": "Browse markets"
+    },
     "tabs": {
       "about": "About",
+      "active_positions": "Active positions",
       "positions": "Positions",
+      "history": "History",
       "outcomes": "Outcomes"
     },
     "outcome_groups": {
@@ -4068,13 +4075,18 @@
     "risky": "Risky",
     "malicious_token_title": "Malicious token",
     "malicious_token_description": "{{symbol}} is a malicious token. Avoid interacting with it or trading it.",
+    "malicious_token_description_no_symbol": "This is a malicious token. Avoid interacting with it or trading it.",
     "malicious_token_banner_description": "{{symbol}} is flagged as malicious. It's likely to steal funds from anyone who interacts with it.",
+    "malicious_token_banner_description_no_symbol": "This token is flagged as malicious. It's likely to steal funds from anyone who interacts with it.",
     "suspicious_token_description": "{{symbol}} is a suspicious token.",
+    "suspicious_token_description_no_symbol": "This is a suspicious token.",
     "verified_token_title": "Verified token",
     "verified_token_description": "{{symbol}} is actively traded and is widely recognized. Verification is not an endorsement by MetaMask.",
     "risky_token_title": "Suspicious token",
     "risky_token_description": "{{symbol}} is flagged as suspicious. Take a look at the risks before you continue.",
+    "risky_token_description_no_symbol": "This token is flagged as suspicious. Take a look at the risks before you continue.",
     "malicious_token_sheet_description": "Serious risk signals detected on {{symbol}}. We recommend not trading this token.",
+    "malicious_token_sheet_description_no_symbol": "Serious risk signals detected on this token. We recommend not trading this token.",
     "got_it": "Got it",
     "proceed": "Proceed",
     "continue_anyway": "Continue anyway",
@@ -9252,6 +9264,8 @@
     "title": "Explore",
     "crypto_movers": "Crypto movers",
     "perps_movers": "Perps movers",
+    "perps_movers_pill_gainers": "Gainers",
+    "perps_movers_pill_losers": "Losers",
     "trending_tokens": "Trending",
     "crypto": "Crypto",
     "stocks": "Stocks",

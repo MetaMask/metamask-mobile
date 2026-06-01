@@ -282,6 +282,7 @@ const TokenDetails: React.FC<{
         hasSecurityDataError={Boolean(securityDataError)}
         onPriceDirectionChange={handlePriceDirectionChange}
         useAmbientColor={useAmbientColor}
+        isPricePositive={chartPricePositive}
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
         stakedTrxAsset={stakedTrxAsset}
         inLockPeriodBalance={inLockPeriodBalance}
