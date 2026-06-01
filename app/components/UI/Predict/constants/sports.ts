@@ -111,6 +111,17 @@ const DRAW_CAPABLE_LEAGUES: ReadonlySet<PredictSportsLeague> = new Set([
 export const isDrawCapableLeague = (league: PredictSportsLeague): boolean =>
   DRAW_CAPABLE_LEAGUES.has(league);
 
+/**
+ * Whether a league is association football (soccer).
+ *
+ * Soccer leagues use minute-based match clocks (rendered as "75’") and play in
+ * halves rather than quarters. In this codebase the soccer leagues are exactly
+ * the draw-capable leagues, so we reuse that set here. If a non-soccer
+ * draw-capable league is ever added, introduce a dedicated soccer set.
+ */
+export const isSoccerLeague = (league: PredictSportsLeague): boolean =>
+  isDrawCapableLeague(league);
+
 export const MONEYLINE_MARKET_TYPES: ReadonlySet<string> = new Set([
   'moneyline',
   'first_half_moneyline',

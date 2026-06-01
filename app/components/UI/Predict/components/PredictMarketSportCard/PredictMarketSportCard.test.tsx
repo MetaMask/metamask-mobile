@@ -212,7 +212,7 @@ describe('PredictMarketSportCard', () => {
     mockGameUpdate = {
       gameId: 'game-1',
       score: '0-1',
-      elapsed: "75'",
+      elapsed: '75',
       period: '2H',
       status: 'ongoing',
     };
@@ -230,7 +230,7 @@ describe('PredictMarketSportCard', () => {
     );
 
     expect(getByText('Live')).toBeOnTheScreen();
-    expect(getByText("75'")).toBeOnTheScreen();
+    expect(getByText('75’')).toBeOnTheScreen();
     expect(getByText('0')).toBeOnTheScreen();
     expect(getByText('1')).toBeOnTheScreen();
   });
