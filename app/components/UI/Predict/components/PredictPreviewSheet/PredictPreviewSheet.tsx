@@ -74,9 +74,10 @@ const PredictPreviewSheet = forwardRef<
       >
         <BottomSheetHeader
           onClose={closeSheet}
-          twClassName="px-6 py-4"
+          // Override internal styles that set width of start accessory to same size as close button,
+          // to allow for left aligned predict header content
           startAccessoryWrapperProps={{ style: tw.style('w-0') }}
-          childrenWrapperProps={{ style: tw.style('flex-1 items-start') }}
+          style={tw.style('gap-0')}
         >
           {renderHeader ? (
             renderHeader()
