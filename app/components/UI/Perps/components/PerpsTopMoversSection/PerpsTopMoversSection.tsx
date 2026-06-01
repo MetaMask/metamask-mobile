@@ -64,8 +64,9 @@ const TogglePill: React.FC<TogglePillProps> = ({
 };
 
 export interface PerpsTopMoversSectionProps {
-  /** Called when the "Top movers >" header is tapped — should navigate to Market List. */
-  onViewAll: () => void;
+  /** Called when the "Top movers >" header is tapped — should navigate to Market List.
+   * Receives the currently active sort direction so the caller can pre-sort accordingly. */
+  onViewAll: (direction: SortDirection) => void;
 }
 
 /**
@@ -106,7 +107,7 @@ const PerpsTopMoversSection: React.FC<PerpsTopMoversSectionProps> = ({
     >
       <SectionHeader
         title={strings('perps.home.top_movers')}
-        onPress={onViewAll}
+        onPress={() => onViewAll(direction)}
         testID={PerpsHomeViewSelectorsIDs.TOP_MOVERS_HEADER}
         twClassName="mb-3"
       />

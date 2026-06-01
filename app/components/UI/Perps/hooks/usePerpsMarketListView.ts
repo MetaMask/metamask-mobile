@@ -41,6 +41,12 @@ interface UsePerpsMarketListViewParams {
    */
   defaultSortOptionId?: SortOptionId;
   /**
+   * Initial sort direction — overrides the derived direction when provided.
+   * Only meaningful when defaultSortOptionId is also provided.
+   * @default undefined (falls back to derived direction logic)
+   */
+  defaultSortDirection?: SortDirection;
+  /**
    * Show markets with $0.00 volume
    * @default false
    */
@@ -144,6 +150,7 @@ export const usePerpsMarketListView = ({
   showWatchlistOnly = false,
   defaultMarketTypeFilter = 'all',
   defaultSortOptionId,
+  defaultSortDirection,
   showZeroVolume = false,
 }: UsePerpsMarketListViewParams = {}): UsePerpsMarketListViewReturn => {
   // Fetch markets data
@@ -240,9 +247,11 @@ export const usePerpsMarketListView = ({
   const sortingHook = usePerpsSorting({
     initialOptionId: (defaultSortOptionId ??
       savedSortPreference.optionId) as SortOptionId,
-    initialDirection: isOptionOverridden
-      ? MARKET_SORTING_CONFIG.DefaultDirection
-      : savedSortPreference.direction,
+    initialDirection:
+      defaultSortDirection ??
+      (isOptionOverridden
+        ? MARKET_SORTING_CONFIG.DefaultDirection
+        : savedSortPreference.direction),
   });
 
   // Wrap handleOptionChange to save preference to PerpsController
