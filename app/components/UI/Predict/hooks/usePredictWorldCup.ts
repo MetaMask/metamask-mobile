@@ -49,7 +49,7 @@ export interface PredictWorldCupAvailableTab {
 
 type PredictWorldCupDataConfig = Pick<
   PredictWorldCupConfig,
-  'seriesId' | 'tagSlug' | 'gamesTagId' | 'stages'
+  'tagSlug' | 'gamesTagId' | 'stages'
 >;
 
 interface WorldCupMarketDataConfig {

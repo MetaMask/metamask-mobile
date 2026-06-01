@@ -214,7 +214,6 @@ describe('PredictWorldCupSchema', () => {
       showMainFeedBanner: true,
       showMainFeedTab: true,
       showWorldCupScreen: true,
-      seriesId: '11433',
       tagSlug: 'fifa-world-cup',
       gamesTagId: '100639',
       bannerImage: {

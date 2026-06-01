@@ -67,7 +67,7 @@ export const PREDICT_WORLD_CUP_SCREEN_TEST_IDS = {
 
 type WorldCupConfigSubset = Pick<
   PredictWorldCupConfig,
-  'seriesId' | 'tagSlug' | 'gamesTagId' | 'stages'
+  'tagSlug' | 'gamesTagId' | 'stages'
 >;
 
 interface WorldCupTabContentProps {
