@@ -47,6 +47,7 @@ import {
 import {
   selectPerpsFeedbackEnabledFlag,
   selectPerpsServiceInterruptionBannerEnabledFlag,
+  selectPerpsTopMoversEnabledFlag,
 } from '../../selectors/featureFlags';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
@@ -81,6 +82,7 @@ import PerpsNavigationCard, {
 } from '../../components/PerpsNavigationCard/PerpsNavigationCard';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
+import PerpsTopMoversSection from '../../components/PerpsTopMoversSection';
 
 interface PerpsHomeViewProps {
   hideHeader?: boolean;
@@ -119,12 +121,20 @@ const PerpsHomeView = ({
   const isServiceInterruptionBannerEnabled = useSelector(
     selectPerpsServiceInterruptionBannerEnabledFlag,
   );
+  const isTopMoversEnabled = useSelector(selectPerpsTopMoversEnabledFlag);
   const privacyMode = useSelector(selectPrivacyMode);
   const isWhatsHappeningEnabled = useSelector(selectWhatsHappeningEnabled);
 
   // Use centralized navigation hook
   const perpsNavigation = usePerpsNavigation();
   const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
+
+  const handleTopMoversViewAll = useCallback(() => {
+    perpsNavigation.navigateToMarketList({
+      defaultSortOptionId: 'priceChange',
+      source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+    });
+  }, [perpsNavigation]);
 
   // Ensure Arbitrum network exists when user lands on the main perps screen (not on button click)
   useFocusEffect(
@@ -651,6 +661,11 @@ const PerpsHomeView = ({
             isLoading={isLoading.activity}
           />
         </View>
+
+        {/* Top Movers Section */}
+        {isTopMoversEnabled && (
+          <PerpsTopMoversSection onViewAll={handleTopMoversViewAll} />
+        )}
 
         <View style={styles.sectionContent}>
           <PerpsNavigationCard items={navigationItems} />

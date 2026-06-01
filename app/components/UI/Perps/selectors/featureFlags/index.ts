@@ -308,7 +308,8 @@ export const selectPerpsTopMoversEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.perpsTopMoversEnabled as unknown as VersionGatedFeatureFlag;
 
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+    // return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+    return true;
   },
 );
 

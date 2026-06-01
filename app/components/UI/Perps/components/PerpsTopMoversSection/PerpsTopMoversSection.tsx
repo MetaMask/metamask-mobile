@@ -48,12 +48,12 @@ const TogglePill: React.FC<TogglePillProps> = ({
       accessibilityRole="button"
       accessibilityState={{ selected: isSelected }}
       style={tw.style(
-        'rounded-xl px-[12px] py-2',
+        'flex-1 rounded-xl items-center',
         isSelected ? 'bg-icon-default' : 'bg-muted',
       )}
     >
       <Text
-        variant={TextVariant.BodyMd}
+        variant={TextVariant.BodySm}
         fontWeight={FontWeight.Medium}
         color={isSelected ? TextColor.InfoInverse : TextColor.TextDefault}
       >
