@@ -35,6 +35,7 @@ export interface PredictPortfolioModel {
   isClaimPending: boolean;
   isDepositPending: boolean;
   isLoading: boolean;
+  isOpenPositionsLoading: boolean;
   isPositionsLoading: boolean;
   isRefreshing: boolean;
   openPositionCount: number;
@@ -143,8 +144,9 @@ export function usePredictPortfolio(): PredictPortfolioModel {
   const openPositionCount = openPositions.length;
   const claimablePositionCount = actionableClaimablePositions.length;
   const positionsBadgeCount = openPositionCount + claimablePositionCount;
+  const isOpenPositionsLoading = activePositionsQuery.isLoading;
   const isPositionsLoading =
-    activePositionsQuery.isLoading || claimablePositionsQuery.isLoading;
+    isOpenPositionsLoading || claimablePositionsQuery.isLoading;
   const showUnrealizedPnl =
     Math.abs(totalUnrealizedPnlAmount) >= PNL_DISPLAY_THRESHOLD;
 
@@ -184,6 +186,7 @@ export function usePredictPortfolio(): PredictPortfolioModel {
     isClaimPending,
     isDepositPending,
     isLoading: isBalanceLoading || isPositionsLoading,
+    isOpenPositionsLoading,
     isPositionsLoading,
     isRefreshing:
       isBalanceRefetching ||
