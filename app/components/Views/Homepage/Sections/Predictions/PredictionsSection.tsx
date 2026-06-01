@@ -25,6 +25,7 @@ import {
   usePredictMarketsForHomepage,
   usePredictPositionsForHomepage,
   useHomepagePredictTaggedMarkets,
+  useHomepagePredictWorldCupMarkets,
   HOMEPAGE_PREDICT_TAG_QUERIES,
   usePredictHomepageDiscoveryExperiment,
 } from './hooks';
@@ -52,10 +53,7 @@ import type { TransactionActiveAbTestEntry } from '../../../../../util/transacti
 
 /** Loads both feeds the World Cup discovery rail needs (World Cup tag + NBA Champion event). */
 const useWorldCupDiscoveryFeeds = (enabled: boolean) => ({
-  worldCup: useHomepagePredictTaggedMarkets({
-    enabled,
-    customQueryParams: HOMEPAGE_PREDICT_TAG_QUERIES.worldCup,
-  }),
+  worldCup: useHomepagePredictWorldCupMarkets({ enabled }),
   nbaChampion: useHomepagePredictTaggedMarkets({
     enabled,
     customQueryParams: HOMEPAGE_PREDICT_TAG_QUERIES.nbaChampion,

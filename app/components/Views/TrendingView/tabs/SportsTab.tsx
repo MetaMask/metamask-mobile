@@ -31,7 +31,7 @@ import {
 } from '../feeds/predictions/useSportsMarketsFeed';
 import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarouselSection';
 import PredictionsSkeleton from '../feeds/predictions/PredictionsSkeleton';
-import { navigateToPredictionsList } from '../feeds/predictions/predictionsNavigation';
+import { navigateToExplorePredictionsList } from '../feeds/predictions/predictionsNavigation';
 import PillRow from '../components/PillRow';
 import SectionHeader from '../components/SectionHeader';
 import type { TabProps } from '../hooks/useExploreRefresh';
@@ -77,7 +77,7 @@ const SportsListHeader: React.FC<SportsListHeaderProps> = ({
       title={strings('trending.predictions')}
       testIdPrefix="predict-sports-market-row-item"
       idPrefix="sports_predictions"
-      onViewAll={() => navigateToPredictionsList(navigation, 'sports')}
+      onViewAll={() => navigateToExplorePredictionsList(navigation, 'sports')}
       isEnabled={showSportsPredictions}
     />
 

@@ -106,10 +106,25 @@ jest.mock('../../UI/Perps', () => ({
   selectPerpsEnabledFlag: jest.fn(() => true),
 }));
 
-jest.mock('../../UI/Perps/providers/PerpsConnectionProvider', () => ({
-  PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
-    children,
-}));
+jest.mock('../../UI/Perps/providers/PerpsConnectionProvider', () => {
+  const ReactLib = jest.requireActual<typeof import('react')>('react');
+  const PerpsConnectionContext = ReactLib.createContext({
+    isConnected: true,
+    isConnecting: false,
+    isInitialized: true,
+    error: null,
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+    resetError: jest.fn(),
+    reconnectWithNewContext: jest.fn().mockResolvedValue(undefined),
+  });
+
+  return {
+    PerpsConnectionContext,
+    PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
+      children,
+  };
+});
 
 jest.mock('../../UI/Perps/providers/PerpsStreamManager', () => ({
   PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
@@ -184,6 +199,46 @@ jest.mock('../../UI/NftGrid/NftGridItemBottomSheet', () => () => null);
 
 jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
   selectPredictEnabledFlag: jest.fn(() => true),
+  selectPredictWorldCupConfig: jest.fn(() => ({
+    enabled: false,
+    minimumVersion: '',
+    showMainFeedBanner: false,
+    showMainFeedTab: false,
+    showWorldCupScreen: false,
+    seriesId: '10218',
+    tagSlug: 'fifa-world-cup',
+    gamesTagId: '100639',
+    stages: [],
+  })),
+  selectPredictWorldCupScreenEnabledFlag: jest.fn(() => false),
+  selectPredictHomepageDiscoveryNbaChampionEnabledFlag: jest.fn(() => false),
+}));
+
+jest.mock('../../UI/Predict/hooks/usePredictWorldCup', () => ({
+  usePredictWorldCupMarkets: () => ({
+    marketData: [],
+    isFetching: false,
+    isFetchingMore: false,
+    error: null,
+    hasMore: false,
+    refetch: jest.fn().mockResolvedValue(undefined),
+    fetchMore: jest.fn().mockResolvedValue(undefined),
+  }),
+  usePredictWorldCupAvailability: () => ({
+    availability: { live: false, props: false, stages: {} },
+    isFetching: false,
+    isLoading: false,
+    errors: [],
+    refetch: jest.fn(),
+  }),
+  usePredictWorldCupAvailableTabs: () => ({
+    availability: { live: false, props: false, stages: {} },
+    tabs: [],
+    isFetching: false,
+    isLoading: false,
+    errors: [],
+    refetch: jest.fn(),
+  }),
 }));
 
 jest.mock('@tanstack/react-query', () => {
