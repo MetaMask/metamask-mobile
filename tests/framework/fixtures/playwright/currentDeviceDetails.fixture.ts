@@ -11,7 +11,7 @@ import type { CurrentDeviceDetails } from './types.ts';
 
 export const currentDeviceDetailsFixture = {
   currentDeviceDetails: async (
-    _fixtures: Record<string, never>,
+    _fixtures: object,
     use: (deviceDetails: CurrentDeviceDetails) => Promise<void>,
     testInfo: TestInfo,
   ) => {

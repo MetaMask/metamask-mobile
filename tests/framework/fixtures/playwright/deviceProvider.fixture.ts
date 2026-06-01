@@ -3,7 +3,7 @@ import { createServiceProvider, type ServiceProvider } from '../../services';
 
 export const deviceProviderFixture = {
   deviceProvider: async (
-    _fixtures: Record<string, never>,
+    _fixtures: object,
     use: (deviceProvider: ServiceProvider) => Promise<void>,
     testInfo: TestInfo,
   ) => {
