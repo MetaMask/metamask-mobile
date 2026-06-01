@@ -555,12 +555,20 @@ export function useQuickBuyController(
         trackAmountSelected(
           numericUsd,
           SocialLeaderboardEventValues.AMOUNT_SELECTION_METHOD.SLIDER,
-          sourceToken?.symbol,
+          tradeMode === 'buy' ? sourceToken?.symbol : undefined,
           snapped,
+          tradeMode === 'sell' ? destToken?.symbol : undefined,
         );
       }
     },
-    [maxSpendUsd, sourceToken?.symbol, trackAmountSelected, lastInputMethodRef],
+    [
+      maxSpendUsd,
+      sourceToken?.symbol,
+      destToken?.symbol,
+      tradeMode,
+      trackAmountSelected,
+      lastInputMethodRef,
+    ],
   );
 
   const handleAmountAreaPress = useCallback(() => {
@@ -638,13 +646,17 @@ export function useQuickBuyController(
       trackAmountSelected(
         numeric,
         SocialLeaderboardEventValues.AMOUNT_SELECTION_METHOD.CUSTOM_INPUT,
-        sourceToken?.symbol,
+        tradeMode === 'buy' ? sourceToken?.symbol : undefined,
+        undefined,
+        tradeMode === 'sell' ? destToken?.symbol : undefined,
       );
     }, 500);
     return () => clearTimeout(handle);
   }, [
     usdAmount,
     sourceToken?.symbol,
+    destToken?.symbol,
+    tradeMode,
     trackAmountSelected,
     lastInputMethodRef,
     lastTrackedAmountRef,
