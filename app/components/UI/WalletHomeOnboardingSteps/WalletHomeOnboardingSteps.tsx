@@ -915,15 +915,18 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
           View vs Animated.View when `isStepTransitioning` flips on the last step remounted
           Rive and cleared checklistRiveRef before Outro could fire (notification step looked
           like it skipped outro).
+          overflow-hidden clips horizontal slide transitions without clipping the top stepper.
         */}
-        <Animated.View
-          style={[
-            tw.style('w-full flex flex-col gap-4'),
-            { transform: [{ translateX: slideX }, { translateY: slideY }] },
-          ]}
-        >
-          {renderChecklistStepBody()}
-        </Animated.View>
+        <Box twClassName="w-full overflow-hidden rounded-2xl">
+          <Animated.View
+            style={[
+              tw.style('w-full flex flex-col gap-4'),
+              { transform: [{ translateX: slideX }, { translateY: slideY }] },
+            ]}
+          >
+            {renderChecklistStepBody()}
+          </Animated.View>
+        </Box>
       </Box>
     </Animated.View>
   );
