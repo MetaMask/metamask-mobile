@@ -13,7 +13,7 @@ const QuickBuyAmount: React.FC = () => {
     usdAmount,
     target,
     estimatedReceiveAmount,
-    sourceToken,
+    destToken,
     sourceBalanceFiat,
     isQuoteLoading,
     hiddenInputRef,
@@ -22,10 +22,9 @@ const QuickBuyAmount: React.FC = () => {
     handleToggleAmountDisplay,
   } = useQuickBuyContext();
 
-  const cryptoSymbol =
-    tradeMode === 'sell'
-      ? (sourceToken?.symbol ?? target.tokenSymbol)
-      : target.tokenSymbol;
+  // estimatedReceiveAmount is always the dest-token amount from the quote,
+  // so the symbol is always destToken's — position token in Buy, stable in Sell.
+  const cryptoSymbol = destToken?.symbol ?? target.tokenSymbol;
 
   return (
     <QuickBuyAmountSection
