@@ -12,6 +12,7 @@ import {
   getBrazeInitialDeeplink,
   subscribeToBrazePushDeeplinks,
 } from '../Braze/BrazeDeeplinks';
+import { DeeplinkIntent } from './types/DeeplinkIntent';
 
 /**
  * When Branch resolves a short link (e.g. metamask-alternate.app.link/1WkF6GmE40b),
@@ -76,14 +77,34 @@ export class DeeplinkManager {
       origin: string;
       onHandled?: () => void;
     },
-  ) {
-    return await parseDeeplink({
+  ): Promise<boolean> {
+    const result = await parseDeeplink({
       deeplinkManager: this,
       url,
       origin,
       browserCallBack,
       onHandled,
     });
+
+    return typeof result === 'boolean' ? result : Boolean(result);
+  }
+
+  async resolve(
+    url: string,
+    {
+      origin,
+    }: {
+      origin: string;
+    },
+  ): Promise<DeeplinkIntent | null> {
+    const result = await parseDeeplink({
+      deeplinkManager: this,
+      url,
+      origin,
+      mode: 'resolve',
+    });
+
+    return result && typeof result !== 'boolean' ? result : null;
   }
 
   static start() {
@@ -196,6 +217,12 @@ export default {
       onHandled?: () => void;
     },
   ) => DeeplinkManager.getInstance().parse(url, args),
+  resolve: (
+    url: string,
+    args: {
+      origin: string;
+    },
+  ) => DeeplinkManager.getInstance().resolve(url, args),
   setDeeplink: (url: string) => DeeplinkManager.getInstance().setDeeplink(url),
   getPendingDeeplink: () => DeeplinkManager.getInstance().getPendingDeeplink(),
   expireDeeplink: () => DeeplinkManager.getInstance().expireDeeplink(),

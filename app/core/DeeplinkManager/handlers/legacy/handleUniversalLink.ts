@@ -60,6 +60,9 @@ import ReduxService from '../../../redux';
 import { analytics } from '../../../../util/analytics/analytics';
 import branch from 'react-native-branch';
 import Logger from '../../../../util/Logger';
+import type { DeeplinkParseMode } from '../../utils/parseDeeplink';
+import type { DeeplinkIntent } from '../../types/DeeplinkIntent';
+import { createRewardsDeeplinkIntent } from './handleRewardsUrl';
 
 const { MM_IO_UNIVERSAL_LINK_HOST } = AppConstants;
 
@@ -167,6 +170,7 @@ async function handleUniversalLink({
   browserCallBack,
   url,
   source,
+  mode = 'execute',
 }: {
   instance: DeeplinkManager;
   handled: () => void;
@@ -174,7 +178,8 @@ async function handleUniversalLink({
   browserCallBack?: (url: string) => void;
   url: string;
   source: string;
-}) {
+  mode?: DeeplinkParseMode;
+}): Promise<boolean | DeeplinkIntent | null | void> {
   const validatedUrl = new URL(url);
 
   if (
@@ -204,6 +209,19 @@ async function handleUniversalLink({
   let isPrivateLink = false;
   let isInvalidLink = false;
 
+  const isSupportedDomain = isMetaMaskUniversalLink(urlObj.href);
+  const isActionSupported = Object.values(SUPPORTED_ACTIONS).includes(action);
+
+  if (
+    mode === 'resolve' &&
+    (!isSupportedDomain ||
+      !isActionSupported ||
+      action !== SUPPORTED_ACTIONS.REWARDS)
+  ) {
+    handled();
+    return null;
+  }
+
   // Intercept SDK actions and handle them in handleMetaMaskDeeplink
   if (isMetaMaskSDKDeeplinkAction(action)) {
     const mappedUrl = url.replace(
@@ -232,9 +250,6 @@ async function handleUniversalLink({
     return;
   }
 
-  const isSupportedDomain = isMetaMaskUniversalLink(urlObj.href);
-
-  const isActionSupported = Object.values(SUPPORTED_ACTIONS).includes(action);
   if (!isSupportedDomain) {
     isInvalidLink = true;
   }
@@ -587,6 +602,12 @@ async function handleUniversalLink({
       break;
     }
     case SUPPORTED_ACTIONS.REWARDS: {
+      const intent = createRewardsDeeplinkIntent({
+        rewardsPath: actionBasedRampPath,
+      });
+      if (mode === 'resolve') {
+        return intent;
+      }
       handleRewardsUrl({
         rewardsPath: actionBasedRampPath,
       });

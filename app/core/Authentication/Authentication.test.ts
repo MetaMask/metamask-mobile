@@ -218,6 +218,9 @@ const mockNavigation = {
   navigate: mockNavigate,
 };
 
+const mockNavigateToPendingStartupDeeplink = jest.fn();
+const mockRetryPendingDeeplinkAfterDefaultNavigation = jest.fn();
+
 jest.mock('../NavigationService', () => ({
   __esModule: true,
   default: {
@@ -228,6 +231,13 @@ jest.mock('../NavigationService', () => ({
       // Mock setter - does nothing but prevents errors
     },
   },
+}));
+
+jest.mock('../DeeplinkManager/utils/startupDeeplinkNavigation', () => ({
+  navigateToPendingStartupDeeplink: () =>
+    mockNavigateToPendingStartupDeeplink(),
+  retryPendingDeeplinkAfterDefaultNavigation: () =>
+    mockRetryPendingDeeplinkAfterDefaultNavigation(),
 }));
 
 jest.mock('../SecureKeychain', () => ({
@@ -343,6 +353,11 @@ describe('Authentication', () => {
 
   beforeEach(() => {
     mockDispatch = jest.fn();
+    mockNavigate.mockClear();
+    mockReset.mockClear();
+    mockNavigateToPendingStartupDeeplink.mockReset();
+    mockNavigateToPendingStartupDeeplink.mockResolvedValue(false);
+    mockRetryPendingDeeplinkAfterDefaultNavigation.mockClear();
   });
 
   afterEach(() => {
@@ -4812,6 +4827,21 @@ describe('Authentication', () => {
       expect(mockReset).toHaveBeenCalledWith({
         routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
       });
+      expect(mockRetryPendingDeeplinkAfterDefaultNavigation).toHaveBeenCalled();
+    });
+
+    it('does not reset to the home flow when a startup deeplink is handled', async () => {
+      mockNavigateToPendingStartupDeeplink.mockResolvedValueOnce(true);
+
+      await Authentication.unlockWallet({ password: passwordToUse });
+
+      expect(mockNavigateToPendingStartupDeeplink).toHaveBeenCalledTimes(1);
+      expect(mockReset).not.toHaveBeenCalledWith({
+        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+      });
+      expect(
+        mockRetryPendingDeeplinkAfterDefaultNavigation,
+      ).not.toHaveBeenCalled();
     });
 
     it('runs onBeforeNavigate before navigating home', async () => {

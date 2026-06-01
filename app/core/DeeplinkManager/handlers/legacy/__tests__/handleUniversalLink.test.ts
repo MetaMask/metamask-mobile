@@ -23,6 +23,11 @@ import { handleSocialLeaderboardUrl } from '../handleSocialLeaderboardUrl';
 import { handleSocialTraderPositionUrl } from '../handleSocialTraderPositionUrl';
 import { handleWhatsHappeningUrl } from '../handleWhatsHappeningUrl';
 import { handleSwapUrl } from '../handleSwapUrl';
+import {
+  createRewardsDeeplinkIntent,
+  handleRewardsUrl,
+} from '../handleRewardsUrl';
+import type { DeeplinkIntent } from '../../../types/DeeplinkIntent';
 // eslint-disable-next-line import-x/no-namespace
 import * as signatureUtils from '../../../utils/verifySignature';
 
@@ -740,6 +745,72 @@ describe('handleUniversalLink', () => {
         source: 'test-source',
       });
 
+      expect(handled).toHaveBeenCalled();
+    });
+
+    it('returns a startup intent in resolve mode without executing rewards navigation', async () => {
+      const rewardsUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.REWARDS}?referral=code123`;
+      const rewardsUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: rewardsUrl,
+        pathname: `/${ACTIONS.REWARDS}`,
+        search: '?referral=code123',
+      };
+      const intent: DeeplinkIntent = {
+        type: 'navigation',
+        target: {
+          type: 'home-tab',
+          routeName: 'RewardsView',
+        },
+      };
+      (
+        createRewardsDeeplinkIntent as jest.MockedFunction<
+          typeof createRewardsDeeplinkIntent
+        >
+      ).mockReturnValueOnce(intent);
+
+      const result = await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: rewardsUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: rewardsUrl,
+        source: 'test-source',
+        mode: 'resolve',
+      });
+
+      expect(result).toBe(intent);
+      expect(createRewardsDeeplinkIntent).toHaveBeenCalledWith({
+        rewardsPath: '?referral=code123',
+      });
+      expect(handleRewardsUrl).not.toHaveBeenCalled();
+      expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+      expect(handled).toHaveBeenCalled();
+    });
+
+    it('returns null in resolve mode for actions without a startup intent', async () => {
+      const swapUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SWAP}`;
+      const swapUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: swapUrl,
+        pathname: `/${ACTIONS.SWAP}`,
+      };
+
+      const result = await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: swapUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: swapUrl,
+        source: 'test-source',
+        mode: 'resolve',
+      });
+
+      expect(result).toBeNull();
+      expect(handleSwapUrl).not.toHaveBeenCalled();
+      expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
       expect(handled).toHaveBeenCalled();
     });
   });

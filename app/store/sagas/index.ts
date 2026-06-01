@@ -6,8 +6,6 @@ import {
   call,
   all,
   select,
-  race,
-  delay,
   join,
   spawn,
 } from 'redux-saga/effects';
@@ -56,19 +54,7 @@ import {
 } from './marketingAttribution';
 import { getDevAutoUnlockPassword } from '../../util/environment';
 
-/**
- * Safety ceiling: if `MainNavigator` never mounts (e.g. the user stays on
- * the onboarding stack), parse the deeplink anyway. A late deeplink is
- * better than a silently dropped one.
- */
-const MAIN_NAVIGATOR_READY_TIMEOUT_MS = 3000;
-
-let hasMainNavigatorMounted = false;
 let sdkServicesInitializationTask: Task<void> | undefined;
-
-export const __setMainNavigatorReadyForTesting = (isReady: boolean) => {
-  hasMainNavigatorMounted = isReady;
-};
 
 export const __resetSDKServicesInitializationForTesting = () => {
   sdkServicesInitializationTask = undefined;
@@ -91,53 +77,7 @@ export function* waitForSDKServicesInitialization() {
   yield join(task);
 }
 
-/**
- * Runtime-only latch for MainNavigator readiness.
- *
- * This deliberately lives in the saga module instead of Redux: the signal is
- * only valid for the current JS session and should never be persisted or
- * rehydrated. `parseDeeplinkAfterNavReady` still waits on the action itself,
- * while this latch preserves the fast path for hot-start deeplinks after
- * MainNavigator has already mounted once.
- */
-export function* mainNavigatorReadyStateMachine() {
-  while (true) {
-    const action: {
-      type: NavigationActionType.MAIN_NAVIGATOR_READY | UserActionType.LOGOUT;
-    } = yield take([
-      NavigationActionType.MAIN_NAVIGATOR_READY,
-      UserActionType.LOGOUT,
-    ]);
-
-    hasMainNavigatorMounted =
-      action.type === NavigationActionType.MAIN_NAVIGATOR_READY;
-  }
-}
-
-/**
- * Waits until `MainNavigator` has mounted, i.e. post-login screens like
- * Wallet, RampTokenSelection, Swap, etc. are registered with React
- * Navigation, then parses the deeplink. Prevents cold-start deeplinks
- * from being silently dropped with "NAVIGATE was not handled by any
- * navigator" when `handleDeeplinkSaga` runs before the main screen stack
- * has rendered.
- */
-export function* parseDeeplinkAfterNavReady(deeplink: string, origin: string) {
-  if (!hasMainNavigatorMounted) {
-    const { timedOut } = yield race({
-      ready: take(NavigationActionType.MAIN_NAVIGATOR_READY),
-      timedOut: delay(MAIN_NAVIGATOR_READY_TIMEOUT_MS),
-    });
-
-    if (timedOut) {
-      Logger.log(
-        'parseDeeplinkAfterNavReady: MainNavigator did not mount within timeout, parsing anyway',
-      );
-    } else {
-      hasMainNavigatorMounted = true;
-    }
-  }
-
+export function* parseDeeplink(deeplink: string, origin: string) {
   try {
     yield call([SharedDeeplinkManager, SharedDeeplinkManager.parse], deeplink, {
       origin,
@@ -145,7 +85,7 @@ export function* parseDeeplinkAfterNavReady(deeplink: string, origin: string) {
   } catch (error) {
     Logger.error(
       error as Error,
-      'parseDeeplinkAfterNavReady: failed to parse deeplink',
+      'parseDeeplink: failed to parse deeplink',
     );
   }
 }
@@ -338,12 +278,13 @@ export function* initializeSDKServices() {
 
 export function* handleDeeplinkSaga() {
   while (true) {
-    // Handle parsing deeplinks after login or when the lock manager is resolved
+    // Cold-start deeplinks are consumed by Authentication before HomeNav is
+    // displayed. This saga handles deeplinks received while the app is already
+    // unlocked, plus onboarding deeplinks for new users.
     const value = (yield take([
-      UserActionType.LOGIN,
       UserActionType.CHECK_FOR_DEEPLINK,
       SET_COMPLETED_ONBOARDING,
-    ])) as LoginAction | CheckForDeeplinkAction | SetCompletedOnboardingAction;
+    ])) as CheckForDeeplinkAction | SetCompletedOnboardingAction;
 
     let completedOnboarding = false;
 
@@ -363,7 +304,7 @@ export function* handleDeeplinkSaga() {
         AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
       // try handle fast onboarding if mobile existingUser flag is false and 'onboarding' present in deeplink
       if (!existingUser && url.pathname === '/onboarding') {
-        // New-user onboarding lives outside MainNavigator, so do not wait for MAIN_NAVIGATOR_READY
+        // New-user onboarding lives outside the post-login navigation tree.
         setTimeout(() => {
           SharedDeeplinkManager.parse(url.href, {
             origin: storedSource,
@@ -395,9 +336,7 @@ export function* handleDeeplinkSaga() {
         yield call(waitForSDKServicesInitialization);
       }
 
-      // Fork so the saga loop keeps listening for new deeplink events
-      // while parseDeeplinkAfterNavReady waits for navigation to settle.
-      yield fork(parseDeeplinkAfterNavReady, deeplink, deeplinkSource);
+      yield fork(parseDeeplink, deeplink, deeplinkSource);
       AppStateEventProcessor.clearPendingDeeplink();
     }
   }
@@ -473,7 +412,6 @@ export function* rootSaga() {
   yield fork(startAppServices);
   yield fork(authStateMachine);
   yield fork(basicFunctionalityToggle);
-  yield fork(mainNavigatorReadyStateMachine);
   yield fork(handleDeeplinkSaga);
   yield fork(rewardsBulkLinkSaga);
 

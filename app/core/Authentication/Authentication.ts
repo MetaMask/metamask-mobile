@@ -87,6 +87,10 @@ import { getAuthIcon, getAuthLabel, getAuthType } from './utils';
 import { IconName } from '@metamask/design-system-react-native';
 import { containsErrorMessage } from '../../util/errorHandling';
 import { ensureError } from '../../util/errorUtils';
+import {
+  navigateToPendingStartupDeeplink,
+  retryPendingDeeplinkAfterDefaultNavigation,
+} from '../DeeplinkManager/utils/startupDeeplinkNavigation';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -829,9 +833,14 @@ class AuthenticationService {
               ],
             });
           } else {
-            NavigationService.navigation?.reset({
-              routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-            });
+            const handledStartupDeeplink =
+              await navigateToPendingStartupDeeplink();
+            if (!handledStartupDeeplink) {
+              NavigationService.navigation?.reset({
+                routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+              });
+              retryPendingDeeplinkAfterDefaultNavigation();
+            }
           }
         } else {
           // No password provided or derived. Navigate to login.
