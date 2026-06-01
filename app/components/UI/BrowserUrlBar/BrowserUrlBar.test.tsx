@@ -578,6 +578,56 @@ describe('BrowserUrlBar', () => {
     });
   });
 
+  describe('URL fragment display', () => {
+    it('strips fragment from displayed URL when fragment is large', () => {
+      const baseUrl = 'https://example.com/page';
+      const urlWithLargeFragment = `${baseUrl}#${'A'.repeat(200)}other-domain.com`;
+      const props = {
+        ...propsWithoutUrlBarFocused,
+        activeUrl: urlWithLargeFragment,
+      };
+
+      const { queryByText, getByText } = renderWithProvider(
+        <BrowserUrlBar {...props} />,
+        { state: mockInitialState },
+      );
+
+      // Fragment should not appear in the URL bar
+      expect(queryByText(urlWithLargeFragment)).toBeNull();
+      // Origin + path should be displayed instead
+      expect(getByText(baseUrl)).toBeDefined();
+    });
+
+    it('displays URL without fragment when fragment is present', () => {
+      const props = {
+        ...propsWithoutUrlBarFocused,
+        activeUrl: 'https://example.com/page?q=1#section',
+      };
+
+      const { getByText, queryByText } = renderWithProvider(
+        <BrowserUrlBar {...props} />,
+        { state: mockInitialState },
+      );
+
+      expect(getByText('https://example.com/page?q=1')).toBeDefined();
+      expect(queryByText('https://example.com/page?q=1#section')).toBeNull();
+    });
+
+    it('displays URL unchanged when no fragment is present', () => {
+      const props = {
+        ...propsWithoutUrlBarFocused,
+        activeUrl: 'https://example.com/page',
+      };
+
+      const { getByText } = renderWithProvider(
+        <BrowserUrlBar {...props} />,
+        { state: mockInitialState },
+      );
+
+      expect(getByText('https://example.com/page')).toBeDefined();
+    });
+  });
+
   describe('Tabs Button', () => {
     it('renders tabs button when showTabs prop is provided and URL bar is not focused', () => {
       const mockShowTabs = jest.fn();
