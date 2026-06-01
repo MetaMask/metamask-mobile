@@ -41,18 +41,35 @@ const QuickBuyActionFooter: React.FC = () => {
     isPriceImpactError,
     priceImpactViewData,
     formattedPriceImpact,
+    tradeMode,
     sourceToken,
     sourceChainId,
     sourceBalanceFiat,
+    destToken,
+    selectedDestStable,
     features,
     setActiveScreen,
   } = useQuickBuyContext();
 
+  // In Buy mode, the token picker selects the *source* ("Pay with").
+  // In Sell mode, the token picker selects the *dest* ("Receive with").
+  const pickerToken = tradeMode === 'sell' ? selectedDestStable : sourceToken;
+  const pickerChainId =
+    tradeMode === 'sell'
+      ? (selectedDestStable?.chainId as
+          | import('@metamask/utils').Hex
+          | undefined)
+      : sourceChainId;
+  const pickerBalanceFiat =
+    tradeMode === 'sell'
+      ? (selectedDestStable?.balanceFiat ?? undefined)
+      : sourceBalanceFiat;
+
   const isPriceImpactWarning =
     !isPriceImpactError && !!priceImpactViewData.icon;
 
-  const networkImage = sourceChainId
-    ? getNetworkImageSource({ chainId: sourceChainId })
+  const networkImage = pickerChainId
+    ? getNetworkImageSource({ chainId: pickerChainId })
     : undefined;
 
   return (
@@ -66,7 +83,7 @@ const QuickBuyActionFooter: React.FC = () => {
         />
       </Box>
 
-      {/* Pay with row */}
+      {/* Pay with / Receive with row */}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -74,7 +91,9 @@ const QuickBuyActionFooter: React.FC = () => {
         twClassName="pb-3"
       >
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {strings('social_leaderboard.quick_buy.pay_with')}
+          {tradeMode === 'sell'
+            ? strings('social_leaderboard.quick_buy.receive_with')
+            : strings('social_leaderboard.quick_buy.pay_with')}
         </Text>
 
         <TouchableOpacity
@@ -90,7 +109,7 @@ const QuickBuyActionFooter: React.FC = () => {
             gap={2}
             twClassName="rounded-full bg-muted px-3 py-1"
           >
-            {sourceToken ? (
+            {pickerToken ? (
               networkImage ? (
                 <BadgeWrapper
                   position={BadgeWrapperPosition.BottomRight}
@@ -98,23 +117,23 @@ const QuickBuyActionFooter: React.FC = () => {
                 >
                   <AvatarToken
                     size={AvatarTokenSize.Sm}
-                    name={sourceToken.symbol}
-                    src={getBridgeTokenImageSource(sourceToken)}
+                    name={pickerToken.symbol}
+                    src={getBridgeTokenImageSource(pickerToken)}
                   />
                 </BadgeWrapper>
               ) : (
                 <AvatarToken
                   size={AvatarTokenSize.Sm}
-                  name={sourceToken.symbol}
-                  src={getBridgeTokenImageSource(sourceToken)}
+                  name={pickerToken.symbol}
+                  src={getBridgeTokenImageSource(pickerToken)}
                 />
               )
             ) : null}
             <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
-              {sourceToken
-                ? sourceBalanceFiat
-                  ? `${sourceToken.symbol} (${sourceBalanceFiat})`
-                  : sourceToken.symbol
+              {pickerToken
+                ? pickerBalanceFiat
+                  ? `${pickerToken.symbol} (${pickerBalanceFiat})`
+                  : pickerToken.symbol
                 : '—'}
             </Text>
             {features.payWithSheet ? (

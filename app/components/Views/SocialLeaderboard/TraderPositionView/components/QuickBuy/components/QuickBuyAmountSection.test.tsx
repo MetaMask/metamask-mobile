@@ -5,10 +5,11 @@ import QuickBuyAmountSection from './QuickBuyAmountSection';
 
 const defaultProps = {
   amountDisplayMode: 'fiat' as const,
+  tradeMode: 'buy' as const,
   fiatCryptoToggleEnabled: false,
   usdAmount: '',
   destSymbol: 'ETH',
-  estimatedReceiveAmount: undefined,
+  estimatedCryptoAmount: undefined,
   availableBalanceFiat: '$0.00',
   isQuoteLoading: false,
   hiddenInputRef: createRef<TextInput | null>(),
@@ -43,23 +44,35 @@ describe('QuickBuyAmountSection', () => {
       <QuickBuyAmountSection
         {...defaultProps}
         amountDisplayMode="crypto"
-        estimatedReceiveAmount="0.025"
+        estimatedCryptoAmount="0.025"
         destSymbol="ETH"
       />,
     );
     expect(screen.getByText('0.025 ETH')).toBeOnTheScreen();
   });
 
-  it('shows 0 crypto placeholder when estimatedReceiveAmount is undefined', () => {
+  it('shows 0 crypto placeholder when estimatedCryptoAmount is undefined', () => {
     render(
       <QuickBuyAmountSection
         {...defaultProps}
         amountDisplayMode="crypto"
-        estimatedReceiveAmount={undefined}
+        estimatedCryptoAmount={undefined}
         destSymbol="ETH"
       />,
     );
     expect(screen.getByText('0 ETH')).toBeOnTheScreen();
+  });
+
+  it('in sell mode shows the position token symbol as the secondary label', () => {
+    render(
+      <QuickBuyAmountSection
+        {...defaultProps}
+        tradeMode="sell"
+        estimatedCryptoAmount="123.45"
+        destSymbol="ETH"
+      />,
+    );
+    expect(screen.getByText('123.45 ETH')).toBeOnTheScreen();
   });
 
   it('replaces the secondary label with an ActivityIndicator when isQuoteLoading', () => {

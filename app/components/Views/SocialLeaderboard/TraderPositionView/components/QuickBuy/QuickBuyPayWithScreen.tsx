@@ -14,19 +14,71 @@ import QuickBuyPayWithRow from './components/QuickBuyPayWithRow';
 import { useChainDisplayInfos } from './hooks/useChainDisplayInfos';
 import { getTokenKey } from './sourceTokenCandidates';
 import { useQuickBuyContext } from './useQuickBuyContext';
+import { chainNameToId } from '../../../utils/chainMapping';
+import {
+  formatChainIdToHex,
+  isNonEvmChainId,
+} from '@metamask/bridge-controller';
+import type { BridgeToken } from '../../../../../UI/Bridge/types';
 
 const QuickBuyPayWithScreen: React.FC = () => {
   const {
+    tradeMode,
+    target,
     sourceTokenOptions,
     selectedSourceToken,
     handleSelectSourceToken,
+    sellDestTokenOptions,
+    selectedDestStable,
+    handleSelectDestStable,
     setActiveScreen,
   } = useQuickBuyContext();
-  const [selectedChainId, setSelectedChainId] = useState<string | null>(null);
+
+  const isSellMode = tradeMode === 'sell';
+
+  // In sell mode, default the chain filter to the position chain.
+  const positionChainId = useMemo(() => {
+    if (!isSellMode) return null;
+    const caip = chainNameToId(target.chain);
+    if (!caip || isNonEvmChainId(caip)) return null;
+    try {
+      return formatChainIdToHex(caip);
+    } catch {
+      return null;
+    }
+  }, [isSellMode, target.chain]);
+
+  const [selectedChainId, setSelectedChainId] = useState<string | null>(
+    positionChainId,
+  );
+
+  // Choose the token list depending on mode.
+  const tokenList: BridgeToken[] = isSellMode
+    ? sellDestTokenOptions
+    : sourceTokenOptions;
+
+  const selectedToken = isSellMode ? selectedDestStable : selectedSourceToken;
+
+  const handleTokenSelect = useCallback(
+    (token: BridgeToken) => {
+      if (isSellMode) {
+        handleSelectDestStable(token);
+      } else {
+        handleSelectSourceToken(token);
+      }
+      setActiveScreen('amount');
+    },
+    [
+      isSellMode,
+      handleSelectDestStable,
+      handleSelectSourceToken,
+      setActiveScreen,
+    ],
+  );
 
   const uniqueChainIds = useMemo(
-    () => [...new Set(sourceTokenOptions.map((token) => token.chainId))],
-    [sourceTokenOptions],
+    () => [...new Set(tokenList.map((token) => token.chainId))],
+    [tokenList],
   );
 
   const chainDisplayInfos = useChainDisplayInfos(uniqueChainIds);
@@ -46,30 +98,23 @@ const QuickBuyPayWithScreen: React.FC = () => {
   const showChainFilter = uniqueChainIds.length > 1;
 
   const filteredTokens = useMemo(() => {
-    if (selectedChainId === null) {
-      return sourceTokenOptions;
-    }
-
-    return sourceTokenOptions.filter(
-      (token) => token.chainId === selectedChainId,
-    );
-  }, [selectedChainId, sourceTokenOptions]);
+    if (selectedChainId === null) return tokenList;
+    return tokenList.filter((token) => token.chainId === selectedChainId);
+  }, [selectedChainId, tokenList]);
 
   const handleBack = useCallback(() => {
     setActiveScreen('amount');
   }, [setActiveScreen]);
 
-  const handleTokenPress = useCallback(
-    (token: Parameters<typeof handleSelectSourceToken>[0]) => {
-      handleSelectSourceToken(token);
-      setActiveScreen('amount');
-    },
-    [handleSelectSourceToken, setActiveScreen],
-  );
-
-  const selectedTokenKey = selectedSourceToken
-    ? getTokenKey(selectedSourceToken)
+  const selectedTokenKey = selectedToken
+    ? getTokenKey(selectedToken)
     : undefined;
+
+  const title = isSellMode
+    ? strings('social_leaderboard.quick_buy.receive_with')
+    : strings('social_leaderboard.quick_buy.pay_with');
+
+  const emptyLabel = strings('social_leaderboard.quick_buy.pay_with_no_tokens');
 
   return (
     <>
@@ -78,15 +123,13 @@ const QuickBuyPayWithScreen: React.FC = () => {
         backButtonProps={{ testID: 'quick-buy-pay-with-back' }}
         testID="quick-buy-pay-with-header"
       >
-        <Text variant={TextVariant.HeadingSm}>
-          {strings('social_leaderboard.quick_buy.pay_with')}
-        </Text>
+        <Text variant={TextVariant.HeadingSm}>{title}</Text>
       </BottomSheetHeader>
 
-      {sourceTokenOptions.length === 0 ? (
+      {tokenList.length === 0 ? (
         <Box twClassName="px-4 py-8" alignItems={BoxAlignItems.Center}>
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {strings('social_leaderboard.quick_buy.pay_with_no_tokens')}
+            {emptyLabel}
           </Text>
         </Box>
       ) : (
@@ -105,7 +148,7 @@ const QuickBuyPayWithScreen: React.FC = () => {
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
               >
-                {strings('social_leaderboard.quick_buy.pay_with_no_tokens')}
+                {emptyLabel}
               </Text>
             </Box>
           ) : (
@@ -119,7 +162,7 @@ const QuickBuyPayWithScreen: React.FC = () => {
                   key={getTokenKey(token)}
                   token={token}
                   isSelected={getTokenKey(token) === selectedTokenKey}
-                  onPress={handleTokenPress}
+                  onPress={handleTokenSelect}
                 />
               ))}
             </GestureHandlerScrollView>

@@ -15,7 +15,10 @@ import {
   selectMultichainBalances,
   selectMultichainAssetsRates,
 } from '../../../../../../../selectors/multichain/multichain';
-import { getSourceTokenCandidates } from '../sourceTokenCandidates';
+import {
+  getSourceTokenCandidates,
+  getSellDestTokenCandidates,
+} from '../sourceTokenCandidates';
 import { toChecksumAddress } from '../../../../../../../util/address';
 import { EVM_SCOPE } from '../../../../../../UI/Earn/constants/networks';
 
@@ -281,3 +284,17 @@ export const useSourceTokenOptions = (
 
   return { options, isLoading: false };
 };
+
+/**
+ * Returns the list of stable token options for the Sell "Receive with" picker.
+ * Unlike `useSourceTokenOptions`, this does NOT filter by user balance —
+ * the user can receive into any stable, including ones they don't yet hold.
+ * Stables on the `preferredChainId` are sorted to the top.
+ */
+export const useSellDestTokenOptions = (
+  preferredChainId: string | undefined,
+): BridgeToken[] =>
+  useMemo(
+    () => getSellDestTokenCandidates(preferredChainId),
+    [preferredChainId],
+  );

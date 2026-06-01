@@ -12,7 +12,7 @@ jest.mock('./quickBuy', () => ({
 }));
 
 jest.mock('./features', () => ({
-  TOP_TRADERS_QUICK_BUY_FEATURES: { tradeModes: ['buy'] },
+  TOP_TRADERS_QUICK_BUY_FEATURES: { tradeModes: ['buy', 'sell'] },
 }));
 
 jest.mock('./types', () => ({
@@ -142,6 +142,23 @@ describe('TraderPositionQuickBuy', () => {
     );
     expect(mockQuickBuyRoot).toHaveBeenCalledWith(
       expect.objectContaining({ isVisible: false, onClose }),
+    );
+  });
+
+  it('passes features that include both buy and sell tradeModes', () => {
+    render(
+      <TraderPositionQuickBuy
+        isVisible
+        position={mockPosition}
+        onClose={jest.fn()}
+      />,
+    );
+    expect(mockQuickBuyRoot).toHaveBeenCalledWith(
+      expect.objectContaining({
+        features: expect.objectContaining({
+          tradeModes: expect.arrayContaining(['buy', 'sell']),
+        }),
+      }),
     );
   });
 });

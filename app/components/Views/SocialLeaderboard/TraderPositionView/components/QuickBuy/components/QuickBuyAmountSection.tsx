@@ -20,7 +20,7 @@ import {
   IconSize,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../../locales/i18n';
-import type { QuickBuyAmountDisplayMode } from '../types';
+import type { QuickBuyAmountDisplayMode, QuickBuyTradeMode } from '../types';
 
 const styles = StyleSheet.create({
   amountText: { fontSize: 48, lineHeight: 52 },
@@ -29,10 +29,12 @@ const styles = StyleSheet.create({
 
 interface QuickBuyAmountSectionProps {
   amountDisplayMode: QuickBuyAmountDisplayMode;
+  tradeMode: QuickBuyTradeMode;
   fiatCryptoToggleEnabled: boolean;
   usdAmount: string;
   destSymbol: string;
-  estimatedReceiveAmount: string | undefined;
+  /** Estimated amount received in dest token (Buy) or estimated source token amount consumed (Sell). */
+  estimatedCryptoAmount: string | undefined;
   availableBalanceFiat: string;
   isQuoteLoading: boolean;
   hiddenInputRef: React.RefObject<TextInput | null>;
@@ -43,10 +45,11 @@ interface QuickBuyAmountSectionProps {
 
 const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   amountDisplayMode,
+  tradeMode,
   fiatCryptoToggleEnabled,
   usdAmount,
   destSymbol,
-  estimatedReceiveAmount,
+  estimatedCryptoAmount,
   availableBalanceFiat,
   isQuoteLoading,
   hiddenInputRef,
@@ -55,8 +58,12 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   onToggleAmountDisplay,
 }) => {
   const fiatAmountLabel = usdAmount ? `$${usdAmount}` : '$0';
-  const cryptoAmountLabel = estimatedReceiveAmount
-    ? `${estimatedReceiveAmount} ${destSymbol}`
+
+  // In Buy mode: secondary is estimated received tokens.
+  // In Sell mode: secondary is estimated source tokens consumed (same data,
+  //   but the symbol shown is the position token, already encoded in destSymbol).
+  const cryptoAmountLabel = estimatedCryptoAmount
+    ? `${estimatedCryptoAmount} ${destSymbol}`
     : `0 ${destSymbol}`;
 
   const isCryptoPrimary = amountDisplayMode === 'crypto';

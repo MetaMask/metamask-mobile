@@ -10,6 +10,7 @@ import type {
   QuickBuyAmountDisplayMode,
   QuickBuyAnalyticsContext,
   QuickBuyTarget,
+  QuickBuyTradeMode,
 } from '../types';
 import { useQuickBuyAnalytics } from './useQuickBuyAnalytics';
 import { formatExchangeRate } from '../utils/formatExchangeRate';
@@ -19,7 +20,11 @@ import type { Hex } from '@metamask/utils';
 import type { BridgeToken } from '../../../../../../UI/Bridge/types';
 import { selectDefaultSourceToken } from '../../../../utils/tokenSelection';
 import { useQuickBuySetup } from './useQuickBuySetup';
-import { useSourceTokenOptions } from './useSourceTokenOptions';
+import {
+  useSourceTokenOptions,
+  useSellDestTokenOptions,
+} from './useSourceTokenOptions';
+import { usePositionTokenBalance } from './usePositionTokenBalance';
 import {
   useQuickBuyQuotes,
   type EnrichedQuickBuyQuote,
@@ -97,6 +102,9 @@ const BUTTON_ERROR_LABELS: Record<QuickBuyButtonError, string> = {
 export interface UseQuickBuyControllerResult {
   // refs
   hiddenInputRef: React.RefObject<TextInput | null>;
+  // trade mode
+  tradeMode: QuickBuyTradeMode;
+  setTradeMode: React.Dispatch<React.SetStateAction<QuickBuyTradeMode>>;
   // active quote (for QuoteDetails sub-screen)
   activeQuote: EnrichedQuickBuyQuote | undefined;
   // setup
@@ -113,6 +121,10 @@ export interface UseQuickBuyControllerResult {
   setSelectedSourceToken: React.Dispatch<
     React.SetStateAction<BridgeToken | undefined>
   >;
+  // sell dest token (Sell mode "Receive with")
+  sellDestTokenOptions: BridgeToken[];
+  selectedDestStable: BridgeToken | undefined;
+  handleSelectDestStable: (token: BridgeToken) => void;
   currentCurrency: string;
   // amount
   amountDisplayMode: QuickBuyAmountDisplayMode;
@@ -185,11 +197,13 @@ export function useQuickBuyController(
   const {
     refs: { lastInputMethodRef, lastTrackedAmountRef, submitStartedAtRef },
     trackAmountSelected,
+    trackTradeModeToggled,
     trackTradeSubmitted,
     trackTradeCompleted,
     markTradeSubmitted,
   } = useQuickBuyAnalytics(traderAddress, caip19, analyticsContext);
 
+  const [tradeMode, setTradeMode] = useState<QuickBuyTradeMode>('buy');
   const [usdAmount, setUsdAmount] = useState('');
   // Fiat-first: every input path (slider, hidden TextInput, amount-area press)
   // edits the USD amount, so the primary label must default to fiat as well.
@@ -222,11 +236,12 @@ export function useQuickBuyController(
 
   const {
     chainId: destChainId,
-    destToken,
+    destToken: positionTokenFromSetup,
     isLoading: isSetupLoading,
     isUnsupportedChain,
   } = useQuickBuySetup(target);
 
+  // ─── Buy source token options ───────────────────────────────────────────
   const { options: sourceTokenOptions } = useSourceTokenOptions(destChainId);
   const [selectedSourceToken, setSelectedSourceToken] = useState<
     BridgeToken | undefined
@@ -242,7 +257,29 @@ export function useQuickBuyController(
     }
   }, [sourceTokenOptions, selectedSourceToken, destChainId]);
 
-  const sourceToken = selectedSourceToken;
+  // ─── Sell mode: position token (what the user is selling) ──────────────
+  const positionToken = usePositionTokenBalance(target, positionTokenFromSetup);
+
+  // ─── Sell dest stable options (Receive with) ───────────────────────────
+  const sellDestTokenOptions = useSellDestTokenOptions(
+    destChainId as string | undefined,
+  );
+  const [selectedDestStable, setSelectedDestStable] = useState<
+    BridgeToken | undefined
+  >(undefined);
+
+  // Auto-select default dest stable: prefer a token the user already holds on
+  // the position chain; fall back to the first candidate (USDC on position chain).
+  useEffect(() => {
+    if (sellDestTokenOptions.length > 0 && !selectedDestStable) {
+      setSelectedDestStable(sellDestTokenOptions[0]);
+    }
+  }, [sellDestTokenOptions, selectedDestStable]);
+
+  // ─── Source / dest resolution (mode-dependent) ─────────────────────────
+  const sourceToken = tradeMode === 'buy' ? selectedSourceToken : positionToken;
+  const destToken =
+    tradeMode === 'buy' ? positionTokenFromSetup : selectedDestStable;
   const sourceChainId = sourceToken?.chainId as Hex | undefined;
 
   // BridgeController.fetchQuotes does not start gas fee polling, so estimates
@@ -266,11 +303,11 @@ export function useQuickBuyController(
   useInitialSlippage();
 
   useEffect(() => {
-    if (selectedSourceToken && destToken) {
-      dispatch(setSourceToken(selectedSourceToken));
+    if (sourceToken && destToken) {
+      dispatch(setSourceToken(sourceToken));
       dispatch(setDestToken(destToken));
     }
-  }, [selectedSourceToken, destToken, dispatch]);
+  }, [sourceToken, destToken, dispatch]);
 
   const hasInitializedRecipient = useRef(false);
   useRecipientInitialization(hasInitializedRecipient);
@@ -537,17 +574,40 @@ export function useQuickBuyController(
     setAmountDisplayMode((mode) => (mode === 'fiat' ? 'crypto' : 'fiat'));
   }, []);
 
+  const resetAmountState = useCallback(() => {
+    setUsdAmount('');
+    setSliderPercent(0);
+    lastSnappedSliderPercentRef.current = 0;
+    lastTrackedAmountRef.current = '';
+    lastInputMethodRef.current =
+      SocialLeaderboardEventValues.AMOUNT_SELECTION_METHOD.SLIDER;
+  }, [lastInputMethodRef, lastTrackedAmountRef]);
+
+  // Reset amount/slider when tradeMode flips and emit analytics.
+  const prevTradeModeRef = useRef<QuickBuyTradeMode>(tradeMode);
+  useEffect(() => {
+    if (prevTradeModeRef.current !== tradeMode) {
+      prevTradeModeRef.current = tradeMode;
+      resetAmountState();
+      setAmountDisplayMode('fiat');
+      trackTradeModeToggled(tradeMode);
+    }
+  }, [tradeMode, resetAmountState, trackTradeModeToggled]);
+
   const handleSelectSourceToken = useCallback(
     (token: BridgeToken) => {
       setSelectedSourceToken(token);
-      setUsdAmount('');
-      setSliderPercent(0);
-      lastSnappedSliderPercentRef.current = 0;
-      lastTrackedAmountRef.current = '';
-      lastInputMethodRef.current =
-        SocialLeaderboardEventValues.AMOUNT_SELECTION_METHOD.SLIDER;
+      resetAmountState();
     },
-    [lastInputMethodRef, lastTrackedAmountRef],
+    [resetAmountState],
+  );
+
+  const handleSelectDestStable = useCallback(
+    (token: BridgeToken) => {
+      setSelectedDestStable(token);
+      resetAmountState();
+    },
+    [resetAmountState],
   );
 
   const handleAmountChange = useCallback(
@@ -602,7 +662,10 @@ export function useQuickBuyController(
     const submittedTraderAddress = traderAddress;
     const submittedCaip19 = caip19;
     const submittedAssetName = destToken?.symbol ?? target.tokenSymbol;
-    const submittedPayWith = sourceToken?.symbol;
+    const submittedPayWith =
+      tradeMode === 'buy' ? sourceToken?.symbol : undefined;
+    const submittedReceiveToken =
+      tradeMode === 'sell' ? destToken?.symbol : undefined;
 
     // Shared by the SUBMITTED + COMPLETED (success / failure) events. Built
     // once here so the success vs failure delta stays small at the call sites.
@@ -614,7 +677,19 @@ export function useQuickBuyController(
             [SocialLeaderboardEventProperties.CAIP19]: submittedCaip19,
             [SocialLeaderboardEventProperties.ASSET_NAME]: submittedAssetName,
             [SocialLeaderboardEventProperties.AMOUNT_USD]: amountUsd,
-            [SocialLeaderboardEventProperties.PAY_WITH_TOKEN]: submittedPayWith,
+            [SocialLeaderboardEventProperties.TRADE_TYPE]: tradeMode,
+            ...(submittedPayWith
+              ? {
+                  [SocialLeaderboardEventProperties.PAY_WITH_TOKEN]:
+                    submittedPayWith,
+                }
+              : {}),
+            ...(submittedReceiveToken
+              ? {
+                  [SocialLeaderboardEventProperties.RECEIVE_TOKEN]:
+                    submittedReceiveToken,
+                }
+              : {}),
           }
         : null;
 
@@ -695,6 +770,7 @@ export function useQuickBuyController(
     usdAmountNumber,
     traderAddress,
     caip19,
+    tradeMode,
     destToken?.symbol,
     target.tokenSymbol,
     sourceToken?.symbol,
@@ -789,16 +865,17 @@ export function useQuickBuyController(
   }
 
   const getButtonLabel = useCallback(() => {
-    if (!hasValidAmount) {
-      return strings('social_leaderboard.trader_position.buy');
-    }
     if (buttonError) return strings(BUTTON_ERROR_LABELS[buttonError]);
     if (isSubmittingTx) return strings('bridge.submitting_transaction');
-    return strings('social_leaderboard.trader_position.buy');
-  }, [buttonError, hasValidAmount, isSubmittingTx]);
+    return tradeMode === 'sell'
+      ? strings('social_leaderboard.trader_position.sell')
+      : strings('social_leaderboard.trader_position.buy');
+  }, [buttonError, isSubmittingTx, tradeMode]);
 
   return {
     hiddenInputRef,
+    tradeMode,
+    setTradeMode,
     activeQuote,
     destToken,
     isSetupLoading,
@@ -810,6 +887,8 @@ export function useQuickBuyController(
     isSourcePickerOpen,
     setIsSourcePickerOpen,
     setSelectedSourceToken,
+    sellDestTokenOptions,
+    selectedDestStable,
     currentCurrency,
     amountDisplayMode,
     usdAmount,
@@ -852,6 +931,7 @@ export function useQuickBuyController(
     handleAmountChange,
     handleToggleAmountDisplay,
     handleSelectSourceToken,
+    handleSelectDestStable,
     handleConfirm,
   };
 }

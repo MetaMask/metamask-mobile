@@ -31,6 +31,13 @@ export interface QuickBuyFeatures {
   fiatCryptoToggle: boolean;
 }
 
+/** Stable-token destination candidates for the Sell "Receive with" picker. */
+export interface SellDestStableOption {
+  tokenAddress: string;
+  symbol: string;
+  chainId: string;
+}
+
 export interface QuickBuyAnalyticsContext {
   traderAddress?: string;
   marketCap?: number;

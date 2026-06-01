@@ -17,6 +17,10 @@ export interface QuickBuyContextValue extends UseQuickBuyControllerResult {
   onClose: () => void;
   activeScreen: QuickBuyScreen;
   setActiveScreen: React.Dispatch<React.SetStateAction<QuickBuyScreen>>;
+  tradeMode: import('./types').QuickBuyTradeMode;
+  setTradeMode: React.Dispatch<
+    React.SetStateAction<import('./types').QuickBuyTradeMode>
+  >;
 }
 
 export const QuickBuyContext = createContext<QuickBuyContextValue | null>(null);
