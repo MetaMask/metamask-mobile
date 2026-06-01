@@ -11,9 +11,7 @@ import {
   KeyringControllerSignPersonalMessageAction,
   KeyringControllerSignTypedMessageAction,
 } from '@metamask/keyring-controller';
-import {
-  TransactionControllerIsAtomicBatchSupportedAction,
-} from '@metamask/transaction-controller';
+import { TransactionControllerIsAtomicBatchSupportedAction } from '@metamask/transaction-controller';
 import { NetworkControllerGetNetworkConfigurationByChainIdAction } from '@metamask/network-controller';
 
 export function getTransactionPayControllerMessenger(
