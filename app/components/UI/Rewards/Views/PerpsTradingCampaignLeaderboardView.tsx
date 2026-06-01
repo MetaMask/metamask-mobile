@@ -73,7 +73,10 @@ const PerpsTradingCampaignLeaderboardView: React.FC = () => {
         : null,
     [position],
   );
-  const hasPosition = Boolean(leaderboardUserPosition);
+  const hasPosition =
+    position != null &&
+    Number.isFinite(position.notionalVolume) &&
+    position.notionalVolume > 0;
   const isCampaignComplete =
     campaign != null && getCampaignStatus(campaign) === 'complete';
 

@@ -272,4 +272,37 @@ describe('PerpsCampaignStatsSummary', () => {
       queryByTestId('campaign-outcome-banner-pending-PERPS-WINNER-123'),
     ).toBeNull();
   });
+
+  it('renders em dash for rank when rank is not finite', () => {
+    const { getByTestId } = render(
+      <PerpsCampaignStatsSummary
+        leaderboardPosition={
+          {
+            ...basePosition,
+            rank: Number.NaN,
+          } as PerpsTradingCampaignLeaderboardPositionDto
+        }
+        leaderboard={mockLeaderboard}
+      />,
+    );
+
+    expect(getByTestId(TEST_IDS.RANK).props.children).toBe('—');
+  });
+
+  it('renders em dash for pnl when pnl is not finite', () => {
+    const { getByTestId } = render(
+      <PerpsCampaignStatsSummary
+        leaderboardPosition={
+          {
+            ...basePosition,
+            pnl: Number.POSITIVE_INFINITY,
+          } as PerpsTradingCampaignLeaderboardPositionDto
+        }
+        leaderboard={mockLeaderboard}
+      />,
+    );
+
+    expect(getByTestId(TEST_IDS.PNL).props.children).toBe('—');
+    expect(getByTestId(TEST_IDS.PNL).props.color).toBe(TextColor.TextDefault);
+  });
 });
