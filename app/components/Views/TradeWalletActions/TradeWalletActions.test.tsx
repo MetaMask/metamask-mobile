@@ -26,7 +26,7 @@ import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsContro
 import { selectPredictEnabledFlag } from '../../UI/Predict';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { isHardwareAccount } from '../../../util/address';
-import { selectBatchSellEnabled } from '../../../selectors/featureFlagController/batchSellEnabled';
+import { selectBatchSellEnabled } from '../../../selectors/featureFlagController/batchSell';
 import TradeWalletActions from './TradeWalletActions';
 
 jest.mock('react-native-device-info', () => ({
@@ -190,7 +190,7 @@ jest.mock('../../../core/AppConstants', () => {
   };
 });
 
-jest.mock('../../../selectors/featureFlagController/batchSellEnabled', () => ({
+jest.mock('../../../selectors/featureFlagController/batchSell', () => ({
   selectBatchSellEnabled: jest.fn().mockReturnValue(true),
 }));
 
