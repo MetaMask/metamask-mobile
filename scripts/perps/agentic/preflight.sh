@@ -742,6 +742,10 @@ if [ "$PLAT" = "ios" ]; then
             echo -e "  ${GREEN}Cache hit after pod install:${NC} fp=${FP:0:12} — installing from shared cache"
             IOS_ARTIFACT=$(bc_artifact_path ios "$FP")
             if xcrun simctl install "$SIM_TARGET" "$IOS_ARTIFACT"; then
+              # Release the materialized-fingerprint lock before storing the
+              # optional source-fingerprint alias; lock helpers share global
+              # state/fd 9, so nested locks would clobber the outer lock.
+              bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
               if [ -n "$IOS_SOURCE_FP" ] && [ "$IOS_SOURCE_FP" != "$FP" ]; then
                 maybe_store_ios_source_cache_alias "$IOS_SOURCE_FP" "$FP" "$IOS_ARTIFACT"
                 bc_record_install ios "$IOS_SOURCE_FP" "$SIM_TARGET"
@@ -750,7 +754,6 @@ if [ "$PLAT" = "ios" ]; then
               fi
               APP_INSTALLED=1
               ok "Installed from cache: $IOS_ARTIFACT"
-              bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
             else
               APP_INSTALLED=0
               if [ "$MODE" = "fast" ]; then
@@ -919,6 +922,9 @@ if [ "$PLAT" = "ios" ]; then
         if $BC_LOCK_HELD; then
           if bc_store_artifact ios "$FP" "$APP_PATH"; then
             ok "Stored build in shared cache: fp=${FP:0:12}"
+            # Release the build lock before taking the source-alias lock; lock
+            # helpers use shared globals/fd 9 and are intentionally not nested.
+            bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
             maybe_store_ios_source_cache_alias "$IOS_SOURCE_FP" "$FP" "$APP_PATH"
             if [ -n "$IOS_SOURCE_FP" ] && [ "$IOS_SOURCE_FP" != "$FP" ]; then
               bc_record_install ios "$IOS_SOURCE_FP" "$SIM_TARGET"
@@ -928,8 +934,8 @@ if [ "$PLAT" = "ios" ]; then
             bc_prune ios "${BUILD_CACHE_RETAIN:-5}" 2>/dev/null || true
           else
             warn "Failed to store build in cache"
+            bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
           fi
-          bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
         else
           if bc_with_lock ios "$FP" bc_store_artifact ios "$FP" "$APP_PATH"; then
             ok "Stored build in shared cache: fp=${FP:0:12}"

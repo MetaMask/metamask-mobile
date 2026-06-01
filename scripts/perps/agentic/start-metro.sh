@@ -179,6 +179,7 @@ if [ "${MM_CLEAR_METRO_CACHE:-0}" = "1" ] \
    || [ "$(cat "$METRO_CACHE_KEY_FILE" 2>/dev/null || true)" != "$METRO_CACHE_KEY" ]; then
   echo "Metro inline env changed — clearing transform cache..."
   rm -rf "${TMPDIR:-/tmp}/metro-cache" "${TMPDIR:-/tmp}/haste-map-"* 2>/dev/null || true
+  mkdir -p "$(dirname "$METRO_CACHE_KEY_FILE")"
   printf '%s\n' "$METRO_CACHE_KEY" > "$METRO_CACHE_KEY_FILE"
 else
   echo "Reusing Metro transform cache."
