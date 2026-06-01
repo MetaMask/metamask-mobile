@@ -399,6 +399,58 @@ describe('securityUtils', () => {
     });
   });
 
+  describe('getSheetDescription in getResultTypeConfig', () => {
+    it('returns risky description with symbol for Warning type', () => {
+      const config = getResultTypeConfig('Warning');
+      const { getSheetDescription } = config;
+      expect(getSheetDescription?.('ETH')).toBe(
+        strings('security_trust.risky_token_description', { symbol: 'ETH' }),
+      );
+    });
+
+    it('returns risky description without symbol for Warning type', () => {
+      const config = getResultTypeConfig('Warning');
+      const { getSheetDescription } = config;
+      expect(getSheetDescription?.('')).toBe(
+        strings('security_trust.risky_token_description_no_symbol'),
+      );
+    });
+
+    it('returns risky description without symbol when undefined for Warning type', () => {
+      const config = getResultTypeConfig('Warning');
+      const { getSheetDescription } = config;
+      expect(getSheetDescription?.(undefined)).toBe(
+        strings('security_trust.risky_token_description_no_symbol'),
+      );
+    });
+
+    it('returns malicious sheet description with symbol for Malicious type', () => {
+      const config = getResultTypeConfig('Malicious');
+      const { getSheetDescription } = config;
+      expect(getSheetDescription?.('SCAM')).toBe(
+        strings('security_trust.malicious_token_sheet_description', {
+          symbol: 'SCAM',
+        }),
+      );
+    });
+
+    it('returns malicious sheet description without symbol for Malicious type', () => {
+      const config = getResultTypeConfig('Malicious');
+      const { getSheetDescription } = config;
+      expect(getSheetDescription?.('')).toBe(
+        strings('security_trust.malicious_token_sheet_description_no_symbol'),
+      );
+    });
+
+    it('returns malicious sheet description without symbol when undefined for Malicious type', () => {
+      const config = getResultTypeConfig('Malicious');
+      const { getSheetDescription } = config;
+      expect(getSheetDescription?.(undefined)).toBe(
+        strings('security_trust.malicious_token_sheet_description_no_symbol'),
+      );
+    });
+  });
+
   describe('badge property in getResultTypeConfig', () => {
     it('returns badge config for Verified result type', () => {
       const config = getResultTypeConfig('Verified');

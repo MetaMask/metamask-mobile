@@ -39,6 +39,7 @@ import AppConstants from '../../../../../core/AppConstants';
 import NavigationService from '../../../../../core/NavigationService';
 import { selectIsCardholder } from '../../../../../selectors/cardController';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
+import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import Logger from '../../../../../util/Logger';
 import { useTheme } from '../../../../../util/theme';
@@ -88,8 +89,7 @@ const MoneyHomeView = () => {
     }
   }, [refetchBalance]);
 
-  const { isMoneyAccountFeatureEnabled, hasMoneyAccount } =
-    useMoneyAccountInfo();
+  const { hasMoneyAccount } = useMoneyAccountInfo();
   const { fiatBalanceAggregatedFormatted: musdFiatFormatted } =
     useMusdBalance();
 
@@ -113,9 +113,7 @@ const MoneyHomeView = () => {
   const isCardholderWithMilestone = isMilestone && isCardholder;
 
   let displayState: MoneyBalanceDisplayState;
-  if (!isMoneyAccountFeatureEnabled) {
-    displayState = { kind: 'featureDisabled' };
-  } else if (!hasMoneyAccount) {
+  if (!hasMoneyAccount) {
     displayState = { kind: 'noAccount' };
   } else if (isBalanceFetchError && isBalanceFetching) {
     displayState = { kind: 'retrying' };
@@ -181,7 +179,10 @@ const MoneyHomeView = () => {
   }, [navigation]);
 
   const handleCardPress = useCallback(() => {
-    navigation.navigate(Routes.CARD.ROOT);
+    navigation.navigate(Routes.CARD.ROOT, {
+      screen: Routes.CARD.HOME,
+      params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+    });
   }, [navigation]);
 
   const handleLinkCardPress = useCallback(() => {

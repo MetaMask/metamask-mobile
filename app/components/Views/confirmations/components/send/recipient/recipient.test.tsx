@@ -770,6 +770,44 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
     expect(mockHandleSubmitPressLocal).not.toHaveBeenCalled();
   });
 
+  it('does not submit when recipient address is empty', () => {
+    mockUseToAddressValidation.mockReturnValue({
+      loading: false,
+      resolvedAddress: undefined,
+      toAddressError: undefined,
+      toAddressValidated: undefined,
+      toAddressWarning: undefined,
+    });
+
+    mockUseSendAlerts.mockReturnValue({
+      alerts: [],
+      hasUnacknowledgedAlerts: false,
+      acknowledgeAlerts: jest.fn(),
+      isAlertCheckPending: false,
+    });
+
+    mockUseSendContext.mockReturnValue({
+      to: '',
+      updateTo: jest.fn(),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      asset: {} as any,
+      chainId: '0x1',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fromAccount: {} as any,
+      from: '',
+      maxValueMode: false,
+      updateAsset: jest.fn(),
+      updateValue: jest.fn(),
+      value: undefined,
+    });
+
+    const { getByTestId } = renderWithProvider(<Recipient />);
+
+    fireEvent.press(getByTestId('set-pasted'));
+
+    expect(mockHandleSubmitPressLocal).not.toHaveBeenCalled();
+  });
+
   it('handles reviews exits early if toAddressError is defined', () => {
     // Given: valid to address, no errors/warnings/loading, but missing asset
     mockUseToAddressValidation.mockReturnValue({

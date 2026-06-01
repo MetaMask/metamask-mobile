@@ -17,8 +17,6 @@
 #   scripts/perps/agentic/app-state.sh press <testId>           # Press component by testID
 #   scripts/perps/agentic/app-state.sh scroll [--test-id <id>] [--offset <n>]  # Scroll
 #   scripts/perps/agentic/app-state.sh set-input <testId> <value>  # Set text input value
-#   scripts/perps/agentic/app-state.sh eval-ref perps/positions  # Run an eval ref
-#   scripts/perps/agentic/app-state.sh eval-ref --list          # List eval refs
 
 set -euo pipefail
 
@@ -79,9 +77,6 @@ case "$COMMAND" in
   unlock)
     node scripts/perps/agentic/cdp-bridge.js unlock "$@"
     ;;
-  eval-ref)
-    node scripts/perps/agentic/cdp-bridge.js eval-ref "$@"
-    ;;
   *)
     echo "Usage: app-state.sh <command> [args...]"
     echo ""
@@ -103,8 +98,6 @@ case "$COMMAND" in
     echo "  set-input <testId> <value>  Set text input value by testID"
     echo "  sentry-debug [enable|disable]  Patch Sentry to log errors to console"
     echo "  unlock <password>      Unlock wallet via fiber tree"
-    echo "  eval-ref <team/name>   Run an eval ref (e.g. perps/positions)"
-    echo "  eval-ref --list        List all available eval refs"
     exit 1
     ;;
 esac

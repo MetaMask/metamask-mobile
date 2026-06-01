@@ -49,6 +49,7 @@ import {
   selectVipDashboard,
   selectVipDashboardError,
   selectVipDashboardLoading,
+  selectHasAcceptedVipInvite,
   selectCampaigns,
   selectCampaignsLoading,
   selectCampaignsError,
@@ -3214,8 +3215,16 @@ describe('Rewards selectors', () => {
         nextTierSwapsFeeDelta: '↓ 12 bps next tier',
         nextTierPerpsFeeDelta: '↓ 3 bps next tier',
         revenueShareTitle: 'Revenue share',
+        referralPointsTitle: 'Referral points',
         nextTierRevenueShareDelta: '↑ 2% next tier',
+        nextTierReferralPointsDelta: '↑ 20% next tier',
+        topTierDescription: 'Top tier reached',
         statsTitle: 'Volume',
+        pointsTitle: 'Points',
+        swapsVolumeTitle: 'Swaps Volume',
+        pointsFromReferralsTitle: 'Points from Referrals',
+        perpsVolumeTitle: 'Perps Volume',
+        vipReferralsTitle: 'VIP Referrals',
         totalPointsTitle: 'Points',
         equityLockedTitle: 'Earn VIP allocations',
         equityLockedDescription: 'Body copy',
@@ -3263,6 +3272,30 @@ describe('Rewards selectors', () => {
       });
 
       expect(selectVipDashboardError(state)).toBe(true);
+    });
+
+    it('returns false when VIP invite acceptance has no subscription id', () => {
+      const state = createMockRootState({
+        vipSplashAccepted: { 'sub-1': true },
+      });
+
+      expect(selectHasAcceptedVipInvite(null)(state)).toBe(false);
+    });
+
+    it('returns false when VIP invite has not been accepted for subscription', () => {
+      const state = createMockRootState({
+        vipSplashAccepted: { 'sub-2': true },
+      });
+
+      expect(selectHasAcceptedVipInvite('sub-1')(state)).toBe(false);
+    });
+
+    it('returns true when VIP invite has been accepted for subscription', () => {
+      const state = createMockRootState({
+        vipSplashAccepted: { 'sub-1': true },
+      });
+
+      expect(selectHasAcceptedVipInvite('sub-1')(state)).toBe(true);
     });
   });
 
