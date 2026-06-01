@@ -13,7 +13,7 @@ import PerpsToggleBlock from '../feeds/perps/PerpsToggleBlock';
 import { navigateToPerpsMarketList } from '../feeds/perps/perpsNavigation';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
 import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarouselSection';
-import { navigateToPredictionsList } from '../feeds/predictions/predictionsNavigation';
+import { navigateToExplorePredictionsList } from '../feeds/predictions/predictionsNavigation';
 import ExploreScroll from '../components/ExploreScroll';
 import type { PillToggleCardListTab } from '../components/PillToggleCardList';
 import type { TabProps } from '../hooks/useExploreRefresh';
@@ -87,7 +87,9 @@ const MacroTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
         title={strings('trending.predictions')}
         testIdPrefix="predict-rwa-politics-market-row-item"
         idPrefix="politics_predictions"
-        onViewAll={() => navigateToPredictionsList(appNavigation, 'politics')}
+        onViewAll={() =>
+          navigateToExplorePredictionsList(appNavigation, 'politics')
+        }
         isEnabled={isPredictEnabled}
       />
 

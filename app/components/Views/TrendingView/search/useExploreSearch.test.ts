@@ -1,5 +1,5 @@
 /**
- * useExploreSearchV2 — unit tests
+ * useExploreSearch — unit tests
  *
  * Covers:
  * 1. Section order: tokens first, perps (when enabled), then stocks/predictions/sites.
@@ -10,7 +10,7 @@
  */
 
 import { renderHook, act } from '@testing-library/react-hooks';
-import { useExploreSearchV2 } from './useExploreSearchV2';
+import { useExploreSearch } from './useExploreSearch';
 
 // ---------------------------------------------------------------------------
 // Feed hook mocks
@@ -91,13 +91,14 @@ import { useStocksFeed } from '../feeds/stocks/useStocksFeed';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
 import { useSitesFeed } from '../feeds/sites/useSitesFeed';
 
-const renderV2 = (query = '') => renderHook(() => useExploreSearchV2(query));
+const renderExploreSearch = (query = '') =>
+  renderHook(() => useExploreSearch(query, { exposePagination: true }));
 
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('useExploreSearchV2', () => {
+describe('useExploreSearch', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsPerpsEnabled = true;
@@ -112,7 +113,7 @@ describe('useExploreSearchV2', () => {
 
   describe('section order', () => {
     it('includes tokens, perps, stocks, predictions, sites when perps is enabled', () => {
-      const { result } = renderV2();
+      const { result } = renderExploreSearch();
       const feedIds = result.current.sections.map((s) => s.feedId);
       expect(feedIds).toEqual([
         'tokens',
@@ -125,7 +126,7 @@ describe('useExploreSearchV2', () => {
 
     it('omits perps when selectPerpsEnabledFlag is false', () => {
       mockIsPerpsEnabled = false;
-      const { result } = renderV2();
+      const { result } = renderExploreSearch();
       const feedIds = result.current.sections.map((s) => s.feedId);
       expect(feedIds).toEqual(['tokens', 'stocks', 'predictions', 'sites']);
       expect(feedIds).not.toContain('perps');
@@ -134,7 +135,7 @@ describe('useExploreSearchV2', () => {
 
   describe('section items', () => {
     it('maps feed data to section items correctly', () => {
-      const { result } = renderV2();
+      const { result } = renderExploreSearch();
       const tokensSection = result.current.sections.find(
         (s) => s.feedId === 'tokens',
       );
@@ -161,7 +162,8 @@ describe('useExploreSearchV2', () => {
       jest.useFakeTimers();
 
       const { result, rerender } = renderHook(
-        ({ q }: { q: string }) => useExploreSearchV2(q),
+        ({ q }: { q: string }) =>
+          useExploreSearch(q, { exposePagination: true }),
         { initialProps: { q: '' } },
       );
 
@@ -192,7 +194,7 @@ describe('useExploreSearchV2', () => {
         isLoading: true,
       });
 
-      const { result } = renderV2();
+      const { result } = renderExploreSearch();
       const tokensSection = result.current.sections.find(
         (s) => s.feedId === 'tokens',
       );
@@ -202,7 +204,7 @@ describe('useExploreSearchV2', () => {
 
   describe('predictions pagination fields', () => {
     it('exposes fetchMore, isFetchingMore, and hasMore on the predictions section without a query', () => {
-      const { result } = renderV2();
+      const { result } = renderExploreSearch();
       const predictionsSection = result.current.sections.find(
         (s) => s.feedId === 'predictions',
       );
@@ -220,7 +222,7 @@ describe('useExploreSearchV2', () => {
         hasMore: false,
       });
 
-      const { result } = renderV2();
+      const { result } = renderExploreSearch();
       const predictionsSection = result.current.sections.find(
         (s) => s.feedId === 'predictions',
       );
@@ -240,7 +242,9 @@ describe('useExploreSearchV2', () => {
         hasMore: true,
       });
 
-      const { result } = renderHook(() => useExploreSearchV2('bitcoin'));
+      const { result } = renderHook(() =>
+        useExploreSearch('bitcoin', { exposePagination: true }),
+      );
 
       act(() => {
         jest.advanceTimersByTime(250);
@@ -260,7 +264,7 @@ describe('useExploreSearchV2', () => {
 
   describe('tokens pagination fields', () => {
     it('exposes fetchMore, isFetchingMore, and hasMore on the tokens section', () => {
-      const { result } = renderV2();
+      const { result } = renderExploreSearch();
       const tokensSection = result.current.sections.find(
         (s) => s.feedId === 'tokens',
       );
@@ -278,7 +282,7 @@ describe('useExploreSearchV2', () => {
         hasMore: false,
       });
 
-      const { result } = renderV2();
+      const { result } = renderExploreSearch();
       const tokensSection = result.current.sections.find(
         (s) => s.feedId === 'tokens',
       );
@@ -295,7 +299,7 @@ describe('useExploreSearchV2', () => {
         totalCount: 2101,
       });
 
-      const { result } = renderV2();
+      const { result } = renderExploreSearch();
       const tokensSection = result.current.sections.find(
         (s) => s.feedId === 'tokens',
       );
@@ -303,7 +307,7 @@ describe('useExploreSearchV2', () => {
     });
 
     it('passes undefined total when the tokens feed has no totalCount', () => {
-      const { result } = renderV2();
+      const { result } = renderExploreSearch();
       const tokensSection = result.current.sections.find(
         (s) => s.feedId === 'tokens',
       );
@@ -315,7 +319,7 @@ describe('useExploreSearchV2', () => {
     it.each(['perps', 'stocks', 'sites'] as const)(
       '%s section does not carry fetchMore or hasMore',
       (feedId) => {
-        const { result } = renderV2();
+        const { result } = renderExploreSearch();
         const section = result.current.sections.find(
           (s) => s.feedId === feedId,
         );
@@ -328,12 +332,16 @@ describe('useExploreSearchV2', () => {
 
   describe('query is passed to feed hooks after debounce', () => {
     it('passes empty string to feeds on initial render', () => {
-      renderV2('');
+      renderExploreSearch('');
       expect(useTokensFeed).toHaveBeenCalledWith({ query: '' });
       expect(usePerpsFeed).toHaveBeenCalledWith({ query: '' });
       expect(useStocksFeed).toHaveBeenCalledWith({ query: '' });
       expect(usePredictionsFeed).toHaveBeenCalledWith(
-        expect.objectContaining({ variant: 'trending', query: '' }),
+        expect.objectContaining({
+          variant: 'trending',
+          query: '',
+          pageSize: 20,
+        }),
       );
       expect(useSitesFeed).toHaveBeenCalledWith({ query: '' });
     });

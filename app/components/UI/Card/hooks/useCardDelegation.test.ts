@@ -1031,6 +1031,7 @@ describe('useCardDelegation', () => {
         {
           networkClientId: mockNetworkClientId,
           origin: TransactionTypes.MMM_CARD,
+          isInternal: true,
           type: TransactionType.tokenMethodApprove,
           deviceConfirmedOn: WalletDevice.MM_MOBILE,
           requireApproval: true,

@@ -41,6 +41,7 @@ import { useBatchSellHasSufficientGas } from '../../hooks/useBatchSellHasSuffici
 import type { BridgeToken } from '../../types';
 import { BatchSellQuoteDetails } from '../BatchSellQuoteDetailsModal';
 import { BatchSellFinalReviewModalSelectorsIDs } from './BatchSellFinalReviewModal.testIds';
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 const MAX_VISIBLE_SOURCE_TOKEN_AVATARS = 5;
 const SOURCE_TOKEN_AVATAR_OVERLAP = 12;
@@ -289,6 +290,7 @@ export function BatchSellFinalReviewModal() {
     isGasless: batchSellQuoteData.isGasless,
     networkFee: batchSellQuoteData.networkFee,
   });
+  const surfaceClass = useElevatedSurface();
   const [isTokenDetailsExpanded, setIsTokenDetailsExpanded] = useState(true);
   const finalReviewQuoteData = useMemo(
     () =>
@@ -362,6 +364,7 @@ export function BatchSellFinalReviewModal() {
     <BottomSheet
       testID={BatchSellFinalReviewModalSelectorsIDs.SHEET}
       goBack={navigation.goBack}
+      twClassName={surfaceClass}
     >
       <BottomSheetHeader
         onClose={navigation.goBack}
