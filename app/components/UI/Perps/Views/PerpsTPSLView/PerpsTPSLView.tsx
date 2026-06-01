@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import React, { memo, useCallback, useRef, useState } from 'react';
 import {
   Keyboard,
   Platform,
@@ -96,26 +96,6 @@ const PerpsTPSLView: React.FC = () => {
   // the TextInput fires onBlur. This ref prevents that blur from hiding
   // the custom keypad.
   const isProgrammaticDismissRef = useRef(false);
-
-  // showSoftInputOnFocus is Android-only; on iOS the native keyboard
-  // still appears when a TextInput is focused. Dismiss it so that only
-  // the custom keypad is visible and content stays within the viewport.
-  useEffect(() => {
-    if (focusedInput && Platform.OS === 'ios') {
-      isProgrammaticDismissRef.current = true;
-      let resetTimer: ReturnType<typeof setTimeout> | null = null;
-      const rafTimer = requestAnimationFrame(() => {
-        Keyboard.dismiss();
-        resetTimer = setTimeout(() => {
-          isProgrammaticDismissRef.current = false;
-        }, 150);
-      });
-      return () => {
-        cancelAnimationFrame(rafTimer);
-        if (resetTimer !== null) clearTimeout(resetTimer);
-      };
-    }
-  }, [focusedInput]);
 
   // Subscribe to real-time price only when we have an asset
   // Use throttle for TP/SL screen to reduce re-renders
@@ -313,6 +293,23 @@ const PerpsTPSLView: React.FC = () => {
   const handleInputFocus = useCallback(
     (inputType: string) => {
       setFocusedInput(inputType);
+
+      // showSoftInputOnFocus is Android-only; on iOS the native keyboard
+      // still appears when a TextInput is focused. Dismiss it so that only
+      // the custom keypad is visible and content stays within the viewport.
+      //
+      // This runs inside the callback (not a useEffect) so it fires on
+      // every focus event, even when the same input is re-focused and
+      // React deduplicates the setFocusedInput call.
+      if (Platform.OS === 'ios') {
+        isProgrammaticDismissRef.current = true;
+        requestAnimationFrame(() => {
+          Keyboard.dismiss();
+          setTimeout(() => {
+            isProgrammaticDismissRef.current = false;
+          }, 150);
+        });
+      }
 
       // Auto-scroll to keep input visible when keypad is active
       if (scrollViewRef.current) {
