@@ -308,6 +308,24 @@ describe('usePredictPortfolio', () => {
     const { result } = renderHook(() => usePredictPortfolio());
 
     expect(result.current.isLoading).toBe(true);
+    expect(result.current.isOpenPositionsLoading).toBe(true);
+    expect(result.current.isPositionsLoading).toBe(true);
+  });
+
+  it('keeps open-position loading separate from claimable-position loading', () => {
+    mockUsePredictPositions.mockImplementation(
+      ({ claimable }: { claimable?: boolean }) =>
+        createQuery<PredictPosition[]>({
+          data: [],
+          isLoading: Boolean(claimable),
+        }),
+    );
+
+    const { result } = renderHook(() => usePredictPortfolio());
+
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.isOpenPositionsLoading).toBe(false);
+    expect(result.current.isPositionsLoading).toBe(true);
   });
 
   it('aggregates loading, error, and refetch state', async () => {
