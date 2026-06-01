@@ -16,12 +16,23 @@ import { playImpact, ImpactMoment } from '../../../../../../../util/haptics';
 const HANDLE_SIZE = 24;
 const MARKER_SIZE = 4;
 const ACCESSIBILITY_STEP = 1;
-export const SNAP_POINTS = [0, 25, 50, 75, 100];
+// Decorative reference markers rendered on the track. The slider itself does
+// not snap to these positions — they exist purely as visual anchors so users
+// can eyeball quarter-balance amounts.
+const VISUAL_MARKERS = [0, 25, 50, 75, 100];
 const HAPTIC_THRESHOLDS = [25, 50, 75];
 
 interface QuickBuyPercentageSliderProps {
   value: number;
+  /** Called on every 1% change during drag — for display state only. */
   onValueChange: (value: number) => void;
+  /**
+   * Called once when the user lifts their finger (pan end) or taps the track.
+   * Use this to trigger expensive side-effects (quote re-fetches, analytics).
+   * When omitted, the slider falls back to `onValueChange` so commit semantics
+   * still work for consumers that only need a single callback.
+   */
+  onDragEnd?: (value: number) => void;
   disabled?: boolean;
   testID?: string;
 }
@@ -29,6 +40,7 @@ interface QuickBuyPercentageSliderProps {
 export function QuickBuyPercentageSlider({
   value,
   onValueChange,
+  onDragEnd,
   disabled = false,
   testID = 'quick-buy-percentage-slider',
 }: QuickBuyPercentageSliderProps) {
@@ -77,6 +89,24 @@ export function QuickBuyPercentageSlider({
     [disabled, onValueChange, updatePosition, checkThresholdCrossing, value],
   );
 
+  /**
+   * Commit the final value when the user lifts their finger (pan end or tap).
+   * This is separate from updateValueFromPosition so that quote re-fetching
+   * is only triggered once per gesture, not on every 1% tick during drag.
+   */
+  const commitFromPosition = useCallback(
+    (position: number, width: number) => {
+      if (width === 0 || disabled) return;
+      const clampedPosition = Math.max(0, Math.min(position, width));
+      const nextValue = Math.max(
+        0,
+        Math.min(100, Math.round((clampedPosition / width) * 100)),
+      );
+      (onDragEnd ?? onValueChange)(nextValue);
+    },
+    [disabled, onDragEnd, onValueChange],
+  );
+
   const handleLayout = useCallback(
     (event: LayoutChangeEvent) => {
       const { width } = event.nativeEvent.layout;
@@ -108,11 +138,18 @@ export function QuickBuyPercentageSlider({
 
   const gesture = Gesture.Simultaneous(
     Gesture.Tap().onEnd((event) => {
+      // Tap: update display position + immediately commit (no drag phase).
       runOnJS(updateValueFromPosition)(event.x, sliderWidth.value);
+      runOnJS(commitFromPosition)(event.x, sliderWidth.value);
     }),
-    Gesture.Pan().onUpdate((event) => {
-      runOnJS(updateValueFromPosition)(event.x, sliderWidth.value);
-    }),
+    Gesture.Pan()
+      .onUpdate((event) => {
+        runOnJS(updateValueFromPosition)(event.x, sliderWidth.value);
+      })
+      .onEnd((event) => {
+        // Commit the final position when the user lifts their finger.
+        runOnJS(commitFromPosition)(event.x, sliderWidth.value);
+      }),
   );
 
   const handleAccessibilityAction = useCallback(
@@ -124,9 +161,10 @@ export function QuickBuyPercentageSlider({
       if (nextValue !== value) {
         checkThresholdCrossing(nextValue);
         onValueChange(nextValue);
+        (onDragEnd ?? onValueChange)(nextValue);
       }
     },
-    [onValueChange, checkThresholdCrossing, value],
+    [onValueChange, onDragEnd, checkThresholdCrossing, value],
   );
 
   return (
@@ -155,14 +193,14 @@ export function QuickBuyPercentageSlider({
               progressStyle,
             ]}
           />
-          {SNAP_POINTS.map((snapPoint) => (
+          {VISUAL_MARKERS.map((marker) => (
             <Animated.View
-              key={snapPoint}
+              key={marker}
               pointerEvents="none"
               style={[
                 tw.style('absolute h-1 w-1 rounded-full bg-icon-muted'),
                 {
-                  left: `${snapPoint}%`,
+                  left: `${marker}%`,
                   transform: [{ translateX: -MARKER_SIZE / 2 }],
                 },
               ]}

@@ -158,6 +158,7 @@ export interface UseQuickBuyControllerResult {
   // handlers
   handleClose: () => void;
   handleSliderChange: (percent: number) => void;
+  handleSliderDragEnd: (percent: number) => void;
   handleAmountAreaPress: () => void;
   handleAmountChange: (text: string) => void;
   handleToggleAmountDisplay: () => void;
@@ -190,6 +191,10 @@ export function useQuickBuyController(
   } = useQuickBuyAnalytics(traderAddress, caip19, analyticsContext);
 
   const [usdAmount, setUsdAmount] = useState('');
+  // Drives quote re-fetching. Updated only when the user commits a value
+  // (slider drag end, tap, or text input) — NOT on every drag tick. This
+  // prevents spamming quote requests while the thumb is moving.
+  const [quotedUsdAmount, setQuotedUsdAmount] = useState('');
   // Fiat-first: every input path (slider, hidden TextInput, amount-area press)
   // edits the USD amount, so the primary label must default to fiat as well.
   // The user can swap to crypto display via the toggle once a quote is available.
@@ -197,6 +202,9 @@ export function useQuickBuyController(
     useState<QuickBuyAmountDisplayMode>('fiat');
   const [sliderPercent, setSliderPercent] = useState(0);
   const lastSliderPercentRef = useRef(0);
+  // Deduplicates consecutive handleSliderDragEnd calls with the same USD amount
+  // (can happen when Tap + Pan both fire onEnd for a pure tap gesture).
+  const lastCommittedUsdRef = useRef('');
   const [txPhase, setTxPhase] = useState<'idle' | 'success'>('idle');
   const [selectedQuoteRequestId, setSelectedQuoteRequestId] = useState<
     string | undefined
@@ -275,13 +283,13 @@ export function useQuickBuyController(
   useRecipientInitialization(hasInitializedRecipient);
 
   const sourceTokenAmount = useMemo(() => {
-    if (!usdAmount || !sourceToken?.currencyExchangeRate) {
+    if (!quotedUsdAmount || !sourceToken?.currencyExchangeRate) {
       return undefined;
     }
-    const usd = parseFloat(usdAmount);
+    const usd = parseFloat(quotedUsdAmount);
     if (isNaN(usd) || usd <= 0) return undefined;
     return (usd / sourceToken.currencyExchangeRate).toString();
-  }, [usdAmount, sourceToken?.currencyExchangeRate]);
+  }, [quotedUsdAmount, sourceToken?.currencyExchangeRate]);
 
   useEffect(() => {
     if (sourceTokenAmount) {
@@ -494,6 +502,10 @@ export function useQuickBuyController(
     onClose();
   }, [onClose]);
 
+  // Updates the display state (thumb position + fiat label) on every 1% tick
+  // during a drag. Does NOT commit to quotedUsdAmount or fire analytics — that
+  // is deferred to handleSliderDragEnd so we only re-fetch quotes once per
+  // gesture, not on every pixel of movement.
   const handleSliderChange = useCallback(
     (percent: number) => {
       const rounded = Math.round(percent);
@@ -512,6 +524,28 @@ export function useQuickBuyController(
       setUsdAmount(nextUsd);
       lastInputMethodRef.current =
         SocialLeaderboardEventValues.AMOUNT_SELECTION_METHOD.SLIDER;
+    },
+    [maxSpendUsd, lastInputMethodRef],
+  );
+
+  // Called once when the user lifts their finger (pan end) or taps the track.
+  // Commits the final value to quotedUsdAmount (triggering a quote re-fetch)
+  // and fires analytics exactly once per interaction.
+  const handleSliderDragEnd = useCallback(
+    (percent: number) => {
+      const rounded = Math.round(percent);
+      const nextUsd =
+        rounded === 0 || maxSpendUsd <= 0
+          ? ''
+          : ((maxSpendUsd * rounded) / 100).toFixed(2);
+
+      // Deduplicate: Tap + Pan can both fire onEnd for a pure tap gesture.
+      if (nextUsd === lastCommittedUsdRef.current) {
+        return;
+      }
+      lastCommittedUsdRef.current = nextUsd;
+
+      setQuotedUsdAmount(nextUsd);
       const numericUsd = Number(nextUsd);
       if (rounded > 0 && Number.isFinite(numericUsd) && numericUsd > 0) {
         trackAmountSelected(
@@ -522,7 +556,7 @@ export function useQuickBuyController(
         );
       }
     },
-    [maxSpendUsd, sourceToken?.symbol, trackAmountSelected, lastInputMethodRef],
+    [maxSpendUsd, sourceToken?.symbol, trackAmountSelected],
   );
 
   const handleAmountAreaPress = useCallback(() => {
@@ -540,6 +574,8 @@ export function useQuickBuyController(
     (token: BridgeToken) => {
       setSelectedSourceToken(token);
       setUsdAmount('');
+      setQuotedUsdAmount('');
+      lastCommittedUsdRef.current = '';
       setSliderPercent(0);
       lastSliderPercentRef.current = 0;
       lastTrackedAmountRef.current = '';
@@ -559,6 +595,8 @@ export function useQuickBuyController(
       if (parts.length > 2) return;
       if (parts.length === 2 && parts[1].length > 2) return;
       setUsdAmount(normalized);
+      setQuotedUsdAmount(normalized);
+      lastCommittedUsdRef.current = normalized;
       lastSliderPercentRef.current = 0;
       setSliderPercent(0);
     },
@@ -705,6 +743,9 @@ export function useQuickBuyController(
 
   const hasError = Boolean(quoteFetchError || isNoQuotesAvailable);
   const hasValidAmount = Boolean(usdAmount && Number(usdAmount) > 0);
+  // True while the slider is mid-drag: the user has moved the thumb but has not
+  // yet committed (released).
+  const isAmountUncommitted = usdAmount !== quotedUsdAmount;
   const hasQuoteRequestableAmount = useMemo(() => {
     const hasNonZeroInputAmount = Boolean(
       sourceTokenAmount && Number(sourceTokenAmount) !== 0,
@@ -749,6 +790,7 @@ export function useQuickBuyController(
 
   const isConfirmDisabled =
     !hasValidAmount ||
+    isAmountUncommitted ||
     isSetupLoading ||
     !sourceToken ||
     !destToken ||
@@ -846,6 +888,7 @@ export function useQuickBuyController(
     getButtonLabel,
     handleClose,
     handleSliderChange,
+    handleSliderDragEnd,
     handleAmountAreaPress,
     handleAmountChange,
     handleToggleAmountDisplay,
