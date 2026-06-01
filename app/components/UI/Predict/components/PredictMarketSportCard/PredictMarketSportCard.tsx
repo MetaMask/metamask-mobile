@@ -427,13 +427,20 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
               >
                 {isLive ? (
                   <>
+                    {/* The dot is absolutely positioned to the left so it does
+                        not offset the "Live" label, keeping both "Live" and the
+                        elapsed time centered on the same axis (per Figma). */}
                     <Box
                       flexDirection={BoxFlexDirection.Row}
                       alignItems={BoxAlignItems.Center}
                       justifyContent={BoxJustifyContent.Center}
-                      twClassName="gap-0"
                     >
-                      <PulsingLiveDot />
+                      <Box
+                        justifyContent={BoxJustifyContent.Center}
+                        twClassName="absolute right-full top-0 bottom-0"
+                      >
+                        <PulsingLiveDot />
+                      </Box>
                       <Text
                         variant={TextVariant.BodySm}
                         fontWeight={FontWeight.Medium}
@@ -446,6 +453,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
                       variant={TextVariant.BodySm}
                       fontWeight={FontWeight.Medium}
                       color={TextColor.TextAlternative}
+                      twClassName="text-center"
                     >
                       {liveData.elapsed ?? ''}
                     </Text>
