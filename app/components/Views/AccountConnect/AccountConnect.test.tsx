@@ -1327,7 +1327,6 @@ describe('AccountConnect', () => {
         sdk: {
           v2Connections: {
             [channelId]: {
-              isV2: true,
               originatorInfo: { url: dappUrl, anonId: 'anon-1' },
             },
           },
@@ -1355,7 +1354,6 @@ describe('AccountConnect', () => {
         sdk: {
           v2Connections: {
             [channelId]: {
-              isV2: true,
               originatorInfo: { anonId: 'anon-2' },
             },
           },
