@@ -320,12 +320,12 @@ function writeArtifacts(runDir, { unexpected, informational, review }) {
   const all = [...(unexpected || []), ...(informational || [])];
 
   const paths = {
-    allIssues: path.join(outDir, 'recipe-issues.json'),
+    allIssues: path.join(outDir, 'agentic-issues.json'),
     consoleWarnings: path.join(outDir, 'console-warnings.json'),
     consoleErrors: path.join(outDir, 'console-errors.json'),
     runtimeExceptions: path.join(outDir, 'runtime-exceptions.json'),
-    reviewJson: path.join(outDir, 'recipe-issues-review.json'),
-    reviewMd: path.join(outDir, 'recipe-issues-review.md'),
+    reviewJson: path.join(outDir, 'agentic-issues-review.json'),
+    reviewMd: path.join(outDir, 'agentic-issues-review.md'),
   };
 
   writeJsonArtifact(paths.allIssues, all);

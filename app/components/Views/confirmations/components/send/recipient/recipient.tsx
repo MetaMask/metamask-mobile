@@ -86,6 +86,10 @@ export const Recipient = () => {
       if (!asset || !chainId) {
         return;
       }
+      const recipientAddress = resolvedAddress || to;
+      if (!recipientAddress) {
+        return;
+      }
       setIsSubmittingTransaction(true);
       setPastedRecipient(undefined);
       captureRecipientSelected(
