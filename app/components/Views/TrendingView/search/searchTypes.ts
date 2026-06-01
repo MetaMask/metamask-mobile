@@ -4,8 +4,6 @@ export interface ListItemHeader {
   type: 'header';
   feedId: SearchFeedId;
   title: string;
-  /** True when a "View all" button should render (V1 only). */
-  hasMore?: boolean;
 }
 
 export interface ListItemData {

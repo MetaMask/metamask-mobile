@@ -457,7 +457,10 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
         screen: Routes.CARD.HOME,
-        params: { screen: Routes.CARD.ONBOARDING.ROOT },
+        params: {
+          screen: Routes.CARD.ONBOARDING.ROOT,
+          params: { postAuthRedirect: ORIGIN },
+        },
       });
       expect(mockShowToast).not.toHaveBeenCalled();
     });
@@ -500,7 +503,10 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(mockDispatch).not.toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
         screen: Routes.CARD.HOME,
-        params: { screen: Routes.CARD.ONBOARDING.ROOT },
+        params: {
+          screen: Routes.CARD.ONBOARDING.ROOT,
+          params: { postAuthRedirect: ORIGIN },
+        },
       });
       expect(mockShowToast).not.toHaveBeenCalled();
     });

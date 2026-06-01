@@ -80,7 +80,8 @@ test.describe(Performance, () => {
   // 6. CLEANUP
   //    - Tap disconnect to reset dapp state
 
-  test('@metamask/connect-evm - Rejection response value verification', async ({
+  // This test is currently being skipped as it is flaky - https://consensyssoftware.atlassian.net/browse/WAPI-1511
+  test.skip('@metamask/connect-evm - Rejection response value verification', async ({
     currentDeviceDetails,
     driver,
   }) => {

@@ -580,6 +580,7 @@ const CardAuthentication = () => {
       description={description}
       formFields={formFields}
       actions={actions}
+      headerMode="back"
     />
   );
 };

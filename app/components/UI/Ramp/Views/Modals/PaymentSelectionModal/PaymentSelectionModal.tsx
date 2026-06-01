@@ -6,14 +6,14 @@ import { FlatList } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import {
   BottomSheet,
-  type BottomSheetRef,
   Box,
   BoxAlignItems,
   BoxJustifyContent,
   HeaderStandard,
   Text,
-  TextVariant,
   TextColor,
+  TextVariant,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { useStyles } from '../../../../../hooks/useStyles';
@@ -35,6 +35,7 @@ import { getRampCallbackBaseUrl } from '../../../utils/getRampCallbackBaseUrl';
 import { isCustomAction } from '../../../types';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 
 export interface PaymentSelectionModalParams {
   amount?: number;
@@ -110,6 +111,7 @@ function PaymentSelectionModal() {
 
   const { data: quotes, loading: quotesLoading } =
     useRampsQuotes(quoteFetchParams);
+  const surfaceClass = useElevatedSurface();
 
   const handleChangeProviderPress = useCallback(() => {
     trackEvent(
@@ -256,7 +258,11 @@ function PaymentSelectionModal() {
   };
 
   return (
-    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
+    <BottomSheet
+      ref={sheetRef}
+      goBack={navigation.goBack}
+      twClassName={surfaceClass}
+    >
       <View style={styles.containerOuter}>
         <View style={styles.paymentPanelContent}>
           <HeaderStandard

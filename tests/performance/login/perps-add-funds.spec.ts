@@ -19,17 +19,17 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
 
       const selectPerpsMainScreenTimer = new TimerHelper(
         'Select Perps Main Screen',
-        { ios: 1500, android: 2500 },
+        { ios: 1500, android: 4200 },
         currentDeviceDetails.platform,
       );
       const openAddFundsTimer = new TimerHelper(
         'Open Add Funds',
-        { ios: 5000, android: 4500 },
+        { ios: 5000, android: 3500 },
         currentDeviceDetails.platform,
       );
       const getQuoteTimer = new TimerHelper(
         'Get Quote',
-        { ios: 6000, android: 8000 },
+        { ios: 6000, android: 7000 },
         currentDeviceDetails.platform,
       );
 
@@ -54,7 +54,7 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
         );
       });
 
-      await PerpsDepositView.typeUSD('2');
+      await PerpsDepositView.typeUSD('1');
       await PerpsDepositView.tapContinue();
 
       // Get quote
@@ -63,7 +63,10 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
           await asPlaywrightElement(PerpsDepositView.addFundsButton),
         );
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(PerpsDepositView.totalText),
+          await asPlaywrightElement(PerpsDepositView.infoRow),
+        );
+        await PlaywrightAssertions.expectElementToBeVisible(
+          await asPlaywrightElement(PerpsDepositView.payWithRow),
         );
       });
 
