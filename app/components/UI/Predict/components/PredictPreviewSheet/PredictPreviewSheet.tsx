@@ -1,7 +1,6 @@
 import {
   BottomSheet,
   BottomSheetHeader,
-  BottomSheetHeaderVariant,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -72,8 +71,8 @@ const PredictPreviewSheet = forwardRef<
       >
         <BottomSheetHeader
           onClose={closeSheet}
-          variant={BottomSheetHeaderVariant.Display}
           twClassName="px-6 py-4"
+          childrenWrapperProps={{ style: tw.style('flex-1') }}
         >
           {renderHeader ? (
             renderHeader()

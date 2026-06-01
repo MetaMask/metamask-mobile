@@ -28,7 +28,7 @@ const AccessRestrictedModal: React.FC<AccessRestrictedModalProps> = ({
     >
       <BottomSheetHeader
         onClose={onClose}
-        titleTestID={AccessRestrictedModalSelectorsIDs.TITLE}
+        textProps={{ testID: AccessRestrictedModalSelectorsIDs.TITLE }}
       >
         {strings('access_restricted.title')}
       </BottomSheetHeader>
