@@ -23,10 +23,6 @@ import { PERPS_QUALIFICATION_NOTIONAL_USD } from '../../utils/perpsCampaignConst
 import { PendingTag, StatCell } from './OndoCampaignStatsSummary';
 import { CampaignOutcomeBanner } from './CampaignOutcomeBanners';
 
-const PERPS_NOTIONAL_THRESHOLD_LABEL = formatUsd(
-  PERPS_QUALIFICATION_NOTIONAL_USD,
-);
-
 export const PERPS_CAMPAIGN_STATS_SUMMARY_TEST_IDS = {
   CONTAINER: 'perps-campaign-stats-summary-container',
   RANK: 'perps-campaign-stats-summary-rank',
@@ -58,9 +54,9 @@ const PerpsCampaignStatsSummary: React.FC<PerpsCampaignStatsSummaryProps> = ({
   onWinnerPress,
 }) => {
   const isPending =
-    leaderboardPosition != null && !leaderboardPosition.qualified;
+    leaderboardPosition != null && !leaderboardPosition.eligible;
   const isQualified =
-    leaderboardPosition != null && leaderboardPosition.qualified;
+    leaderboardPosition != null && leaderboardPosition.eligible;
   const rank =
     leaderboardPosition != null && Number.isFinite(leaderboardPosition.rank)
       ? leaderboardPosition.rank
@@ -82,14 +78,15 @@ const PerpsCampaignStatsSummary: React.FC<PerpsCampaignStatsSummaryProps> = ({
       : TextColor.TextDefault;
 
   const volumeDisplay = leaderboardPosition
-    ? formatUsd(leaderboardPosition.notionalVolume)
+    ? formatUsd(leaderboardPosition.volume)
     : '—';
 
-  const notionalGap = leaderboardPosition
-    ? Math.max(
-        0,
-        PERPS_QUALIFICATION_NOTIONAL_USD - leaderboardPosition.notionalVolume,
-      )
+  const minVolumeForEligibility =
+    leaderboardPosition?.minVolumeForEligibility ??
+    PERPS_QUALIFICATION_NOTIONAL_USD;
+
+  const volumeGap = leaderboardPosition
+    ? Math.max(0, minVolumeForEligibility - leaderboardPosition.volume)
     : 0;
 
   const showQualifiedCard =
@@ -99,7 +96,7 @@ const PerpsCampaignStatsSummary: React.FC<PerpsCampaignStatsSummaryProps> = ({
     !isCampaignComplete &&
     isPending &&
     leaderboardPosition != null &&
-    notionalGap > 0;
+    volumeGap > 0;
 
   return (
     <Box
@@ -180,7 +177,7 @@ const PerpsCampaignStatsSummary: React.FC<PerpsCampaignStatsSummaryProps> = ({
             {strings(
               'rewards.perps_trading_campaign.stats_qualify_for_rank_description',
               {
-                notionalRemaining: formatUsd(notionalGap),
+                notionalRemaining: formatUsd(volumeGap),
               },
             )}
           </Text>

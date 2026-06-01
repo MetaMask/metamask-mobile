@@ -342,7 +342,7 @@ function toMockLeaderboardPosition(
   position: {
     rank: number;
     neighbors: unknown[];
-    notionalVolume?: number;
+    volume?: number;
   } | null,
 ): PerpsTradingCampaignLeaderboardPositionDto | null {
   if (!position) {
@@ -350,9 +350,11 @@ function toMockLeaderboardPosition(
   }
   return {
     rank: position.rank,
+    totalParticipants: 0,
     pnl: 0,
-    notionalVolume: position.notionalVolume ?? 10_000,
-    qualified: true,
+    volume: position.volume ?? 10_000,
+    eligible: true,
+    minVolumeForEligibility: 25_000,
     neighbors: position.neighbors as PerpsTradingCampaignLeaderboardEntry[],
     computedAt: '2025-08-15T12:00:00.000Z',
   };
@@ -363,6 +365,7 @@ const defaultLeaderboardHook = {
     campaignId: 'perps-campaign-1',
     entries: [],
     totalParticipants: 0,
+    minVolumeForEligibility: 25_000,
     computedAt: '2025-08-15T12:00:00.000Z',
   },
   isLoading: false,
@@ -389,7 +392,7 @@ function setupHooks(
     position?: {
       rank: number;
       neighbors: unknown[];
-      notionalVolume?: number;
+      volume?: number;
     } | null;
     isPositionLoading?: boolean;
     totalParticipants?: number;
@@ -626,7 +629,7 @@ describe('PerpsTradingCampaignDetailsView', () => {
   it('shows stats header when user has positive notional volume', () => {
     setupHooks({
       participant: { optedIn: true },
-      position: { rank: 3, neighbors: [], notionalVolume: 10_000 },
+      position: { rank: 3, neighbors: [], volume: 10_000 },
     });
 
     const { getByTestId } = render(<PerpsTradingCampaignDetailsView />);
@@ -636,7 +639,7 @@ describe('PerpsTradingCampaignDetailsView', () => {
   it('hides stats summary when user has a rank but zero notional volume', () => {
     setupHooks({
       participant: { optedIn: true },
-      position: { rank: 3, neighbors: [], notionalVolume: 0 },
+      position: { rank: 3, neighbors: [], volume: 0 },
     });
 
     const { queryByTestId } = render(<PerpsTradingCampaignDetailsView />);
@@ -649,7 +652,7 @@ describe('PerpsTradingCampaignDetailsView', () => {
       position: {
         rank: 3,
         neighbors: [],
-        notionalVolume: Number.NaN,
+        volume: Number.NaN,
       },
     });
 

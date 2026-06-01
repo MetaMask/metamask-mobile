@@ -192,7 +192,7 @@ const PerpsTradingCampaignLeaderboard: React.FC<
         {visibleEntries.map((entry) => (
           <CampaignLeaderboardEntryRow
             key={`${entry.rank}-${entry.referralCode}`}
-            entry={entry}
+            entry={{ ...entry, qualified: true }}
             isCurrentUser={isCurrentUser(entry)}
             showCrown={!isPreview && entry.rank <= PERPS_TRADING_MAX_WINNERS}
             isCampaignComplete={isCampaignComplete}
@@ -206,7 +206,7 @@ const PerpsTradingCampaignLeaderboard: React.FC<
             {userPosition.neighbors.map((entry) => (
               <CampaignLeaderboardEntryRow
                 key={`neighbor-${entry.rank}-${entry.referralCode}`}
-                entry={entry}
+                entry={{ ...entry, qualified: true }}
                 isCurrentUser={isCurrentUser(entry)}
                 showCrown={
                   !isPreview && entry.rank <= PERPS_TRADING_MAX_WINNERS
