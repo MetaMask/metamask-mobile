@@ -10,7 +10,6 @@ import { renderHookWithProvider } from '../../test/renderWithProvider';
 import * as UseNotificationsModule from './useNotifications';
 import {
   useAccountNotificationsToggle,
-  useFeatureAnnouncementToggle,
   useFetchAccountNotifications,
   useNotificationsToggle,
   useSwitchNotificationLoadingText,
@@ -78,82 +77,6 @@ describe('useSwitchNotifications - useNotificationsToggle', () => {
       expect(mocks.mockDisableNotifications).toHaveBeenCalled(),
     );
     expect(mocks.mockEnableNotifications).not.toHaveBeenCalled();
-  });
-});
-
-describe('useSwitchNotifications - useFeatureAnnouncementToggle()', () => {
-  const arrangeMocks = () => {
-    const mockListNotifications = jest.fn();
-    const mockUseListNotifications = jest
-      .spyOn(UseNotificationsModule, 'useListNotifications')
-      .mockReturnValue({
-        error: null,
-        isLoading: false,
-        notificationsData: [],
-        listNotifications: mockListNotifications,
-      });
-
-    const mockSelectIsEnabled = jest
-      .spyOn(Selectors, 'selectIsMetamaskNotificationsEnabled')
-      .mockReturnValue(true);
-    const mockSelectIsFeatureAnnouncementsEnabled = jest
-      .spyOn(Selectors, 'selectIsFeatureAnnouncementsEnabled')
-      .mockReturnValue(true);
-
-    const mockToggleFeatureAnnouncement = jest
-      .spyOn(Actions, 'toggleFeatureAnnouncements')
-      .mockImplementation(jest.fn());
-
-    return {
-      mockListNotifications,
-      mockUseListNotifications,
-      mockSelectIsEnabled,
-      mockSelectIsFeatureAnnouncementsEnabled,
-      mockToggleFeatureAnnouncement,
-    };
-  };
-
-  type Mocks = ReturnType<typeof arrangeMocks>;
-  const arrangeAct = async (val: boolean, mutateMocks?: (m: Mocks) => void) => {
-    // Arrange
-    const mocks = arrangeMocks();
-    mutateMocks?.(mocks);
-    const hook = renderHookWithProvider(() => useFeatureAnnouncementToggle());
-
-    // Act
-    await act(() => hook.result.current.switchFeatureAnnouncements(val));
-
-    return { mocks, hook };
-  };
-
-  it('performs enable flow', async () => {
-    const { mocks } = await arrangeAct(true);
-    await waitFor(() =>
-      expect(mocks.mockToggleFeatureAnnouncement).toHaveBeenCalledWith(true),
-    );
-    await waitFor(() => expect(mocks.mockListNotifications).toHaveBeenCalled());
-  });
-
-  it('performs disable flow', async () => {
-    const { mocks } = await arrangeAct(false);
-    await waitFor(() =>
-      expect(mocks.mockToggleFeatureAnnouncement).toHaveBeenCalledWith(false),
-    );
-    await waitFor(() => expect(mocks.mockListNotifications).toHaveBeenCalled());
-  });
-
-  it('bails if notifications are not enabled', async () => {
-    const { mocks } = await arrangeAct(true, (m) =>
-      m.mockSelectIsEnabled.mockReturnValue(false),
-    );
-    await waitFor(() =>
-      expect(mocks.mockToggleFeatureAnnouncement).not.toHaveBeenCalledWith(
-        true,
-      ),
-    );
-    await waitFor(() =>
-      expect(mocks.mockListNotifications).not.toHaveBeenCalled(),
-    );
   });
 });
 

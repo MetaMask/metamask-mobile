@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { getPermissions } from '../../../../selectors/snaps/permissionController';
 import { RootState } from '../../../../reducers';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { getRequestedCaip25CaveatValue } from '../../AccountConnect/utils';
 import { useAccountGroupsForPermissions } from '../../../hooks/useAccountGroupsForPermissions/useAccountGroupsForPermissions';
 import {
@@ -21,6 +22,7 @@ import MultichainPermissionsSummary, {
 } from '../MultichainPermissionsSummary/MultichainPermissionsSummary';
 import MultichainAccountConnectMultiSelector from '../MultichainAccountConnect/MultichainAccountConnectMultiSelector/MultichainAccountConnectMultiSelector';
 import { strings } from '../../../../../locales/i18n';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import NetworkConnectMultiSelector from '../../NetworkConnect/NetworkConnectMultiSelector/NetworkConnectMultiSelector';
 import {
   CaipChainId,

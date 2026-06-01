@@ -1,9 +1,14 @@
 import {
   Box,
   Button as DSButton,
+  ButtonSemantic,
+  ButtonSemanticSeverity,
   ButtonVariant,
   ButtonSize as ButtonSizeRNDesignSystem,
   IconName,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import {
   useNavigation,
@@ -34,14 +39,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { setPerpsChartPreferredCandlePeriod } from '../../../../../actions/settings';
-import ButtonSemantic, {
-  ButtonSemanticSeverity,
-} from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
@@ -81,6 +79,7 @@ import PerpsOHLCVBar from '../../components/PerpsOHLCVBar';
 import PerpsOICapWarning from '../../components/PerpsOICapWarning';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
 import PerpsPriceDeviationWarning from '../../components/PerpsPriceDeviationWarning';
+import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import PerpsStopLossPromptBanner from '../../components/PerpsStopLossPromptBanner';
 import TradingViewChart, {
   type OhlcData,
@@ -120,6 +119,7 @@ import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPref
 import {
   selectPerpsButtonColorTestVariant,
   selectPerpsOrderBookEnabledFlag,
+  selectPerpsServiceInterruptionBannerEnabledFlag,
 } from '../../selectors/featureFlags';
 import {
   MarketInsightsEntryCard,
@@ -201,8 +201,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   // Get full market data from stream to ensure all fields (including maxLeverage) are available
   // This handles cases where navigation passes minimal market data (e.g., from Recent Activity)
-  // Skip fetching if routeMarket already has maxLeverage (performance optimization)
-  const needsEnrichment = !routeMarket?.maxLeverage;
+  // Skip fetching if routeMarket already has a formatted maxLeverage.
+  const hasFormattedMaxLeverage =
+    typeof routeMarket?.maxLeverage === 'string' &&
+    routeMarket.maxLeverage.endsWith('x');
+  const needsEnrichment = !hasFormattedMaxLeverage;
   const { markets } = usePerpsMarkets({ skipInitialFetch: !needsEnrichment });
   const market = useMemo(() => {
     // If route market already has all required fields, use it directly
@@ -244,8 +247,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
   const { gate } = useComplianceGate(selectedAddress ?? '');
 
-  // Feature flag for Order Book visibility
+  // Feature flags
   const isOrderBookEnabled = useSelector(selectPerpsOrderBookEnabledFlag);
+  const isServiceInterruptionBannerEnabled = useSelector(
+    selectPerpsServiceInterruptionBannerEnabledFlag,
+  );
 
   // Feature flag for Market Insights in Perps
   const isPerpsInsightsEnabled = useSelector(selectMarketInsightsPerpsEnabled);
@@ -590,6 +596,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       [PERPS_EVENT_PROPERTY.OPEN_ORDER]: openOrders.length,
       market_insights_displayed:
         isPerpsInsightsEnabled && Boolean(perpsInsightsReport),
+      [PERPS_EVENT_PROPERTY.OUTAGE_BANNER_SHOWN]:
+        isServiceInterruptionBannerEnabled,
       // A/B Test context (TAT-1937) - for baseline exposure tracking
       ...(isButtonColorTestEnabled && {
         [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
@@ -742,6 +750,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
           defaultSzDecimals: marketData?.szDecimals,
           defaultMaxLeverage: marketData?.maxLeverage,
+          ...(transactionActiveAbTests?.length
+            ? { transactionActiveAbTests }
+            : {}),
         });
       }),
     [
@@ -751,6 +762,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       navigation,
       track,
       navigateToOrder,
+      transactionActiveAbTests,
       market?.symbol,
       marketData,
       isButtonColorTestEnabled,
@@ -1177,7 +1189,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           style={styles.errorContainer}
           testID={PerpsMarketDetailsViewSelectorsIDs.ERROR}
         >
-          <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+          <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
             {strings('perps.market.details.error_message')}
           </Text>
         </View>
@@ -1343,6 +1355,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             )}
           </View>
 
+          {/* Service Interruption Banner */}
+          <PerpsServiceInterruptionBanner
+            testID={
+              PerpsMarketDetailsViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER
+            }
+          />
+
           {/* OI Cap Warning - Shows when market is at capacity */}
           {market?.symbol && isAtOICap && (
             <PerpsOICapWarning symbol={market.symbol} variant="banner" />
@@ -1392,7 +1411,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           {/* Orders Section - Compact view (includes standalone TP/SL orders) */}
           {displayOrders.length > 0 && (
             <View style={styles.section}>
-              <Text variant={TextVariant.HeadingMD} style={styles.sectionTitle}>
+              <Text variant={TextVariant.HeadingMd} style={styles.sectionTitle}>
                 {strings('perps.market.orders')}
               </Text>
               {displayOrders.map((order, index) => (
@@ -1457,13 +1476,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           <View style={styles.section}>
             <Text
               style={styles.riskDisclaimer}
-              variant={TextVariant.BodyXS}
-              color={TextColor.Alternative}
+              variant={TextVariant.BodyXs}
+              color={TextColor.TextAlternative}
             >
               {strings('perps.risk_disclaimer', riskDisclaimerParams)}{' '}
               <Text
-                variant={TextVariant.BodyXS}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodyXs}
+                color={TextColor.TextAlternative}
                 onPress={handleTradingViewPress}
               >
                 TradingView.

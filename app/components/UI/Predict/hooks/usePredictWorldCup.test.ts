@@ -3,7 +3,7 @@ import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
 import { DEFAULT_PREDICT_WORLD_CUP_FLAG } from '../constants/flags';
-import { Recurrence, type PredictMarket } from '../types';
+import { Recurrence, type PredictMarket, type PredictOutcome } from '../types';
 import { usePredictWorldCupMarkets } from './usePredictWorldCup';
 
 jest.mock('../../../../core/Engine', () => ({
@@ -15,6 +15,28 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 
 const mockGetMarkets = jest.mocked(Engine.context.PredictController.getMarkets);
+
+const createOutcome = (
+  overrides: Partial<PredictOutcome> = {},
+): PredictOutcome => ({
+  id: 'outcome-1',
+  providerId: 'polymarket',
+  marketId: 'market-1',
+  title: 'Outcome 1',
+  description: 'Outcome description',
+  image: 'outcome.png',
+  status: 'open',
+  tokens: [
+    {
+      id: 'token-1',
+      title: 'Yes',
+      price: 0.5,
+    },
+  ],
+  volume: 0,
+  groupItemTitle: 'Outcome 1',
+  ...overrides,
+});
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
@@ -38,7 +60,7 @@ const createMarket = (
   recurrence: Recurrence.NONE,
   category: 'hot',
   tags: [],
-  outcomes: [],
+  outcomes: [createOutcome()],
   liquidity: 0,
   volume: 0,
   ...overrides,
@@ -77,6 +99,46 @@ describe('usePredictWorldCupMarkets', () => {
       afterCursor: null,
     });
     expect(result.current.hasMore).toBe(false);
+  });
+
+  it('filters stale World Cup markets while preserving pagination state', async () => {
+    const { Wrapper } = createWrapper();
+    const liveMarket = createMarket({ id: 'live-market' });
+    const staleMarket = createMarket({
+      id: 'stale-market',
+      outcomes: [
+        createOutcome({
+          id: 'dead-outcome',
+          title: 'Dead outcome',
+          tokens: [
+            {
+              id: 'dead-token',
+              title: 'Yes',
+              price: 0.99,
+            },
+          ],
+        }),
+      ],
+    });
+    mockGetMarkets.mockResolvedValue({
+      markets: [staleMarket, liveMarket],
+      nextCursor: 'cursor-2',
+    });
+
+    const { result } = renderHook(
+      () =>
+        usePredictWorldCupMarkets({
+          tabKey: 'all',
+          config: DEFAULT_PREDICT_WORLD_CUP_FLAG,
+          pageSize: 30,
+        }),
+      { wrapper: Wrapper },
+    );
+
+    await waitFor(() =>
+      expect(result.current.marketData).toEqual([liveMarket]),
+    );
+    expect(result.current.hasMore).toBe(true);
   });
 
   it('requests Props markets with a cached paginated query', async () => {

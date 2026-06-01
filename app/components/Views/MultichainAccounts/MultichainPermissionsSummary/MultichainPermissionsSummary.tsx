@@ -49,6 +49,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import TabBar from '../../../../component-library/components-temp/TabBar';
 import { getNetworkImageSource } from '../../../../util/networks';
 import Engine from '../../../../core/Engine';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { SDKSelectorsIDs } from '../../SDK/SDK.testIds';
 import { useSelector } from 'react-redux';
 import {
@@ -56,8 +57,11 @@ import {
   selectProviderConfig,
 } from '../../../../selectors/networkController';
 import { useNetworkInfo } from '../../../../selectors/selectedNetworkController';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ConnectedAccountsSelectorsIDs } from '../../AccountConnect/ConnectedAccountModal.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { PermissionSummaryBottomSheetSelectorsIDs } from '../../AccountConnect/PermissionSummaryBottomSheet.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import { endTrace, trace, TraceName } from '../../../../util/trace';
@@ -80,6 +84,8 @@ export interface MultichainPermissionsSummaryNetworkAvatar {
 const getAvatarNetworkSource = (
   imageSource: ImageSourcePropType,
 ): AvatarNetworkSource => imageSource as AvatarNetworkSource;
+
+const TAB_BAR_HORIZONTAL_PADDING = 0;
 
 export interface MultichainPermissionsSummaryProps {
   currentPageInformation: {
@@ -528,7 +534,11 @@ const MultichainPermissionsSummary = ({
 
   const renderTabBar = useCallback(
     (props: Record<string, unknown>) => (
-      <TabBar backgroundColor={colors.background.default} {...props} />
+      <TabBar
+        backgroundColor={colors.background.default}
+        tabPadding={TAB_BAR_HORIZONTAL_PADDING}
+        {...props}
+      />
     ),
     [colors],
   );

@@ -18,6 +18,14 @@ export const performSignOut = () => {
   }
 };
 
+export const requestProfilePairing = () => {
+  try {
+    Engine.context.AuthenticationController.requestProfilePairing();
+  } catch (error) {
+    return getErrorMessage(error);
+  }
+};
+
 export const setIsBackupAndSyncFeatureEnabled = async (
   feature: keyof typeof BACKUPANDSYNC_FEATURES,
   enabled: boolean,

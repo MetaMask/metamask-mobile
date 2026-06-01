@@ -1,8 +1,8 @@
 import ReadOnlyNetworkStore from '../util/test/network-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { isE2E } from '../util/test/utils';
-import { createMMKV, type MMKV } from 'react-native-mmkv';
-import EventEmitter2 from 'eventemitter2';
+import { MMKV } from 'react-native-mmkv';
+import { EventEmitter2 } from 'eventemitter2';
 
 /**
  * Wrapper class for MMKV.
@@ -39,7 +39,7 @@ class StorageWrapper extends EventEmitter2 {
      * The underlying storage implementation.
      * Use `ReadOnlyNetworkStore` in test mode otherwise use `AsyncStorage`.
      */
-    this.storage = isE2E ? ReadOnlyNetworkStore : createMMKV();
+    this.storage = isE2E ? ReadOnlyNetworkStore : new MMKV();
   }
 
   /**
@@ -135,7 +135,7 @@ class StorageWrapper extends EventEmitter2 {
    */
   async removeItem(key: string) {
     try {
-      return await (this.storage as MMKV).remove(key);
+      return await this.storage.delete(key);
     } catch (error) {
       if (isE2E) {
         // Fall back to AsyncStorage in test mode if ReadOnlyNetworkStore fails

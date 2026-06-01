@@ -28,11 +28,13 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useElevatedSurface } from '../../../util/theme/themeUtils';
 import {
   useSafeAreaFrame,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletActionsBottomSheetSelectorsIDs } from '../WalletActions/WalletActionsBottomSheet.testIds';
 import { strings } from '../../../../locales/i18n';
 import { AnimationDuration } from '../../../component-library/constants/animation.constants';
@@ -41,9 +43,13 @@ import Routes from '../../../constants/navigation/Routes';
 import AppConstants from '../../../core/AppConstants';
 import { selectIsSwapsEnabled } from '../../../core/redux/slices/bridge';
 import { RootState } from '../../../reducers';
-import { selectCanSignTransactions } from '../../../selectors/accountsController';
+import {
+  selectCanSignTransactions,
+  selectSelectedInternalAccountAddress,
+} from '../../../selectors/accountsController';
 import { earnSelectors } from '../../../selectors/earnController';
 import { selectChainId } from '../../../selectors/networkController';
+import { isHardwareAccount } from '../../../util/address';
 import { getDecimalChainId } from '../../../util/networks';
 import {
   SwapBridgeNavigationLocation,
@@ -96,6 +102,7 @@ function TradeWalletActions() {
   const insetsTop = Platform.OS === 'android' ? insets.top : 0;
 
   const tw = useTailwind();
+  const surfaceClass = useElevatedSurface();
   const chainId = useSelector(selectChainId);
   const isSwapsEnabled = useSelector((state: RootState) =>
     selectIsSwapsEnabled(state),
@@ -108,6 +115,12 @@ function TradeWalletActions() {
   const { isEligible: isEarnEligible } = useStakingEligibility();
 
   const canSignTransactions = useSelector(selectCanSignTransactions);
+  const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
+  const isHardwareWallet = selectedAddress
+    ? Boolean(isHardwareAccount(selectedAddress))
+    : false;
+  const shouldRenderBatchSell =
+    BATCH_SELL_ENABLED && AppConstants.SWAPS.ACTIVE && !isHardwareWallet;
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
 
@@ -264,6 +277,8 @@ function TradeWalletActions() {
       {visible && (
         <Animated.View exiting={exitingWithNavigateBack}>
           <MaskedView
+            // iOS: MaskedView otherwise intercepts touches and ActionListItem onPress never fires (Android is unaffected).
+            pointerEvents="box-none"
             maskElement={
               <View style={tw.style('flex-1 bg-transparent px-4')}>
                 <View style={tw.style('flex-1 bg-black')} />
@@ -291,12 +306,12 @@ function TradeWalletActions() {
             >
               <Box
                 style={tw.style(
-                  'bg-default p-4 rounded-2xl mx-4',
+                  `${surfaceClass} p-4 rounded-2xl mx-4`,
                   `pb-[${bottomMaskHeight - 12}px]`,
                   `px-0`,
                 )}
               >
-                {BATCH_SELL_ENABLED && AppConstants.SWAPS.ACTIVE && (
+                {shouldRenderBatchSell && (
                   <ActionListItem
                     label={
                       <View style={tw.style('flex-row items-center gap-2')}>
@@ -323,6 +338,7 @@ function TradeWalletActions() {
                       WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON
                     }
                     isDisabled={!isSwapsEnabled}
+                    style={tw.style('bg-transparent')}
                   />
                 )}
                 {AppConstants.SWAPS.ACTIVE && (
@@ -333,6 +349,7 @@ function TradeWalletActions() {
                     onPress={goToSwaps}
                     testID={WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON}
                     isDisabled={!isSwapsEnabled}
+                    style={tw.style('bg-transparent')}
                   />
                 )}
                 {isPerpsEnabled && (
@@ -343,6 +360,7 @@ function TradeWalletActions() {
                     onPress={onPerps}
                     testID={WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON}
                     isDisabled={!canSignTransactions}
+                    style={tw.style('bg-transparent')}
                   />
                 )}
                 {isPredictEnabled && (
@@ -353,6 +371,7 @@ function TradeWalletActions() {
                     onPress={onPredict}
                     testID={WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON}
                     isDisabled={!canSignTransactions}
+                    style={tw.style('bg-transparent')}
                   />
                 )}
                 {isEarnWalletActionEnabled && isEarnEligible && (
@@ -363,6 +382,7 @@ function TradeWalletActions() {
                     onPress={onEarn}
                     testID={WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON}
                     isDisabled={!canSignTransactions}
+                    style={tw.style('bg-transparent')}
                   />
                 )}
               </Box>

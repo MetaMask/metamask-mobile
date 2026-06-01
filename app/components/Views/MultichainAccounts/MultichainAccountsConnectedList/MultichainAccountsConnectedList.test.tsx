@@ -5,6 +5,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { toast } from '@metamask/design-system-react-native';
 
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ConnectedAccountsSelectorsIDs } from '../../AccountConnect/ConnectedAccountModal.testIds';
 
 import MultichainAccountsConnectedList from './MultichainAccountsConnectedList';

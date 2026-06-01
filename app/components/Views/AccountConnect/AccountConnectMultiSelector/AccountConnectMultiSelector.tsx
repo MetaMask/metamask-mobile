@@ -22,6 +22,7 @@ import HelpText, {
 
 // Internal dependencies.
 import { ConnectAccountBottomSheetSelectorsIDs } from '../ConnectAccountBottomSheet.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { AccountListBottomSheetSelectorsIDs } from '../../AccountSelector/AccountListBottomSheet.testIds';
 import styleSheet from './AccountConnectMultiSelector.styles';
 import {

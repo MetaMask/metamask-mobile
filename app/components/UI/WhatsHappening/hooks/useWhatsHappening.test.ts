@@ -39,7 +39,7 @@ const mockTrend = {
     {
       title: 'Article',
       url: 'https://example.com',
-      date: '2026-03-15T10:00:00.000Z',
+      date: '2026-03-14T08:00:00.000Z',
     },
   ],
 };
@@ -75,19 +75,7 @@ describe('useWhatsHappening', () => {
     expect(result.current.error).toBeNull();
   });
 
-  it('uses article date as item date when articles are present', async () => {
-    const { result } = renderHook(() => useWhatsHappening());
-
-    await waitFor(() => expect(result.current.isLoading).toBe(false));
-
-    expect(result.current.items[0].date).toBe(mockTrend.articles[0].date);
-  });
-
-  it('falls back to generatedAt when trend has no articles', async () => {
-    mockFetchMarketOverview.mockResolvedValue({
-      ...mockOverview,
-      trends: [{ ...mockTrend, articles: [] }],
-    });
+  it('uses overview generatedAt as item date', async () => {
     const { result } = renderHook(() => useWhatsHappening());
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
@@ -168,5 +156,47 @@ describe('useWhatsHappening', () => {
     await result.current.refresh();
 
     await waitFor(() => expect(result.current.items).toHaveLength(2));
+  });
+
+  it('returns items and no error when an asset is missing sourceAssetId and name', async () => {
+    const assetWithoutOptionalFields = {
+      symbol: 'ETH',
+      caip19: ['eip155:1/slip44:60'],
+      // sourceAssetId intentionally absent
+      // name intentionally absent
+    };
+    mockFetchMarketOverview.mockResolvedValue({
+      ...mockOverview,
+      trends: [
+        {
+          ...mockTrend,
+          relatedAssets: [assetWithoutOptionalFields],
+        },
+      ],
+    });
+
+    const { result } = renderHook(() => useWhatsHappening());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.items).toHaveLength(1);
+    expect(result.current.error).toBeNull();
+    expect(result.current.items[0].relatedAssets[0].symbol).toBe('ETH');
+    expect(
+      result.current.items[0].relatedAssets[0].sourceAssetId,
+    ).toBeUndefined();
+    expect(result.current.items[0].relatedAssets[0].name).toBeUndefined();
+  });
+
+  it('returns empty items and no error when API returns overview with empty trends', async () => {
+    mockFetchMarketOverview.mockResolvedValue({
+      ...mockOverview,
+      trends: [],
+    });
+
+    const { result } = renderHook(() => useWhatsHappening());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.items).toHaveLength(0);
+    expect(result.current.error).toBeNull();
   });
 });

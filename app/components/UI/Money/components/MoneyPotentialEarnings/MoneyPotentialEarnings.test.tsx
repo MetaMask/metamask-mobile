@@ -233,7 +233,7 @@ describe('MoneyPotentialEarnings', () => {
       />,
     );
 
-    fireEvent.press(getByText(strings('money.potential_earnings.convert')));
+    fireEvent.press(getByText(strings('money.potential_earnings.add')));
 
     expect(onTokenPress).toHaveBeenCalledWith(MOCK_USDC);
   });

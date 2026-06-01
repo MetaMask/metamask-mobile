@@ -551,7 +551,6 @@ jest.mock('react-native-mmkv', () => {
 
   return {
     MMKV,
-    createMMKV: () => createInMemoryMMKV(),
   };
 });
 
@@ -758,6 +757,8 @@ jest.mock('redux-persist', () => ({
 
 jest.mock('../../store/storage-wrapper', () => ({
   getItem: jest.fn(),
+  getItemSync: jest.fn(),
+  removeItem: jest.fn(),
   setItem: jest.fn(),
 }));
 
