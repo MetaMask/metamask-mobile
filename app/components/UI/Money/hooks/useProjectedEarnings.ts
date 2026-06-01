@@ -12,14 +12,6 @@ interface ProjectedEarnings {
   projectedAmount: number;
 }
 
-/**
- * Derive the headline figures shared by every Money "potential earnings"
- * surface from a list of conversion-eligible tokens and the live APY.
- *
- * Eligible tokens are those with a positive fiat value — feature-flag
- * thresholds may admit zero-balance entries, so we strip them defensively
- * here so callers don't all have to.
- */
 export function useProjectedEarnings(
   tokens: AssetType[] | undefined,
   apyPercent: number | undefined,
