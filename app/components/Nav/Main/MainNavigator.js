@@ -54,7 +54,6 @@ import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
 import WhatsHappeningDetailView from '../../Views/WhatsHappeningDetailView';
 import ExploreSearchScreen from '../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen';
-import ExploreSectionResultsFullView from '../../Views/TrendingView/Views/ExploreSectionResultsFullView/ExploreSectionResultsFullView';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
@@ -109,7 +108,7 @@ import {
   MoneyTabScreenStack,
 } from '../../UI/Money/routes';
 import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
-import { selectMoneyHomeScreenEnabledFlag } from '../../UI/Money/selectors/featureFlags';
+import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import {
@@ -647,9 +646,7 @@ const HomeTabs = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
-  const isMoneyHomeScreenEnabled = useSelector(
-    selectMoneyHomeScreenEnabledFlag,
-  );
+  const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
 
   const accountsLength = useSelector(selectAccountsLength);
 
@@ -882,7 +879,7 @@ const HomeTabs = () => {
         />
 
         {/* Activity Tab (replaced by Money when feature flag is on) */}
-        {isMoneyHomeScreenEnabled ? (
+        {isMoneyAccountEnabled ? (
           <Tab.Screen
             name={Routes.MONEY.ROOT}
             options={options.money}
@@ -1051,9 +1048,7 @@ const MainNavigator = () => {
   }, [dispatch]);
 
   // Get feature flag state for conditional Money home screen registration
-  const isMoneyHomeScreenEnabled = useSelector(
-    selectMoneyHomeScreenEnabledFlag,
-  );
+  const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
   // Get feature flag state for conditional Perps screen registration
   const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
   const isPerpsEnabled = useMemo(() => perpsEnabledFlag, [perpsEnabledFlag]);
@@ -1256,7 +1251,7 @@ const MainNavigator = () => {
           presentation: 'transparentModal',
         }}
       />
-      {isMoneyHomeScreenEnabled && (
+      {isMoneyAccountEnabled && (
         <>
           <Stack.Screen
             name={Routes.MONEY.ROOT}
@@ -1410,11 +1405,6 @@ const MainNavigator = () => {
         <Stack.Screen
           name={Routes.WHATS_HAPPENING_DETAIL}
           component={WhatsHappeningDetailView}
-          options={{ headerShown: false, ...slideFromRightAnimation }}
-        />
-        <Stack.Screen
-          name={Routes.EXPLORE_SECTION_RESULTS_FULL_VIEW}
-          component={ExploreSectionResultsFullView}
           options={{ headerShown: false, ...slideFromRightAnimation }}
         />
         <Stack.Screen

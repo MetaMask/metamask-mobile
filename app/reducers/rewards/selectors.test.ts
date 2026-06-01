@@ -49,6 +49,7 @@ import {
   selectVipDashboard,
   selectVipDashboardError,
   selectVipDashboardLoading,
+  selectHasAcceptedVipInvite,
   selectCampaigns,
   selectCampaignsLoading,
   selectCampaignsError,
@@ -3271,6 +3272,30 @@ describe('Rewards selectors', () => {
       });
 
       expect(selectVipDashboardError(state)).toBe(true);
+    });
+
+    it('returns false when VIP invite acceptance has no subscription id', () => {
+      const state = createMockRootState({
+        vipSplashAccepted: { 'sub-1': true },
+      });
+
+      expect(selectHasAcceptedVipInvite(null)(state)).toBe(false);
+    });
+
+    it('returns false when VIP invite has not been accepted for subscription', () => {
+      const state = createMockRootState({
+        vipSplashAccepted: { 'sub-2': true },
+      });
+
+      expect(selectHasAcceptedVipInvite('sub-1')(state)).toBe(false);
+    });
+
+    it('returns true when VIP invite has been accepted for subscription', () => {
+      const state = createMockRootState({
+        vipSplashAccepted: { 'sub-1': true },
+      });
+
+      expect(selectHasAcceptedVipInvite('sub-1')(state)).toBe(true);
     });
   });
 
