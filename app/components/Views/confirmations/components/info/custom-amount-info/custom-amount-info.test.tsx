@@ -276,6 +276,7 @@ describe('CustomAmountInfo', () => {
       headlessBuyError: undefined,
       isFooterVisible: true,
       isConfirmationSubmitting: false,
+      isConfirmationSubmittingRef: { current: false },
       setIsConfirmationSubmitting: setIsConfirmationSubmittingMock,
       isHeadlessBuyInProgress: false,
       isTransactionDataUpdating: false,
