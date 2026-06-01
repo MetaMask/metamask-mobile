@@ -28,22 +28,37 @@ const AssetDetailsQuickBuy: React.FC<AssetDetailsQuickBuyProps> = ({
   token,
   onClose,
 }) => {
+  // Read only the primitive fields the target depends on, so unrelated
+  // `TokenDetailsRouteParams` changes (balance, price, etc.) don't produce a
+  // new `target` reference and trigger downstream quote re-fetches.
+  const chainId = token?.chainId;
+  const tokenAddress = token?.address;
+  const tokenSymbol = token?.symbol;
+  const tokenName = token?.name;
+
   const target = useMemo<QuickBuyTarget | null>(() => {
-    if (!token || !token.chainId) return null;
+    if (
+      !chainId ||
+      tokenAddress === undefined ||
+      tokenSymbol === undefined ||
+      tokenName === undefined
+    ) {
+      return null;
+    }
     let chain: CaipChainId | undefined;
     try {
-      chain = formatChainIdToCaip(token.chainId as Hex);
+      chain = formatChainIdToCaip(chainId as Hex);
     } catch {
       chain = undefined;
     }
     if (!chain) return null;
     return {
-      tokenAddress: token.address,
-      tokenSymbol: token.symbol,
-      tokenName: token.name,
+      tokenAddress,
+      tokenSymbol,
+      tokenName,
       chain,
     };
-  }, [token]);
+  }, [chainId, tokenAddress, tokenSymbol, tokenName]);
 
   return (
     <QuickBuy.Root
