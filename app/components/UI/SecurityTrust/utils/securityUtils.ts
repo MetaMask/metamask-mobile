@@ -32,7 +32,7 @@ export interface ResultTypeConfig {
   /** Title for bottom sheet display */
   sheetTitle?: string;
   /** Description for bottom sheet display (may include token symbol placeholder) */
-  getSheetDescription?: (tokenSymbol: string) => string;
+  getSheetDescription?: (tokenSymbol: string | undefined) => string;
 }
 
 export const getResultTypeConfig = (
