@@ -40,9 +40,19 @@ class TrendingView {
     );
   }
 
-  get searchEngineButton(): DetoxElement {
+  get searchAllPill(): DetoxElement {
+    return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_PILL_ALL);
+  }
+
+  get searchCryptosPill(): DetoxElement {
     return Matchers.getElementByID(
-      TrendingViewSelectorsIDs.SEARCH_FOOTER_SEARCH_LINK,
+      TrendingViewSelectorsIDs.SEARCH_PILL_CRYPTOS,
+    );
+  }
+
+  get searchResultsList(): DetoxElement {
+    return Matchers.getElementByID(
+      TrendingViewSelectorsIDs.SEARCH_RESULTS_LIST,
     );
   }
 
@@ -450,24 +460,22 @@ class TrendingView {
     );
   }
 
-  /**
-   * Scroll down in search results to ensure the search engine option is visible
-   */
-  async scrollToSearchEngineOption(): Promise<void> {
-    await Gestures.scrollToElement(
-      this.searchEngineButton,
-      Matchers.getIdentifier(TrendingViewSelectorsIDs.SEARCH_RESULTS_LIST),
-      {
-        direction: 'down',
-        scrollAmount: 300,
-        elemDescription: 'Scroll to search engine option',
-      },
-    );
+  async verifySearchPillsVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.searchAllPill, {
+      description: 'All search pill should be visible',
+      timeout: 10000,
+    });
+
+    await Assertions.expectElementToBeVisible(this.searchCryptosPill, {
+      description: 'Crypto search pill should be visible',
+      timeout: 10000,
+    });
   }
 
-  async verifySearchEngineOptionVisible(): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.searchEngineButton, {
-      description: 'Search engine option should be visible',
+  async verifySearchResultsListVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.searchResultsList, {
+      description: 'Search results list should be visible',
+      timeout: 10000,
     });
   }
 
