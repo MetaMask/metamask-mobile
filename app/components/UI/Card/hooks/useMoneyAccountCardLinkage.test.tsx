@@ -867,6 +867,7 @@ describe('useMoneyAccountCardLinkage', () => {
         entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
         reason: CardLinkingFailureReason.CONTROLLER_FAILED,
         error_name: 'Error',
+        is_revoke: false,
       });
 
       const errorCall = mockShowToast.mock.calls.at(-1)?.[0];
@@ -898,6 +899,7 @@ describe('useMoneyAccountCardLinkage', () => {
         flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
         entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
         reason: CardLinkingFailureReason.USER_CANCELLED,
+        is_revoke: false,
       });
 
       // Only the pending toast should have fired — no error toast.
@@ -927,6 +929,7 @@ describe('useMoneyAccountCardLinkage', () => {
         flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
         entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
         reason: CardLinkingFailureReason.PRECONDITION_FAILED,
+        is_revoke: false,
       });
       expect(mockShowToast).toHaveBeenCalledTimes(1);
       expect(mockShowToast.mock.calls[0][0]).toMatchObject({

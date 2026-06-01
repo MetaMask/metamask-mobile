@@ -116,7 +116,8 @@ const MoneyHomeView = () => {
     useMoneyAccountTransactions();
 
   const isCardholder = useSelector(selectIsCardholder);
-  const { startLinkFlow } = useMoneyAccountCardLinkage();
+  const { startLinkFlow, isCardAuthenticated, isCardLinkedToMoneyAccount } =
+    useMoneyAccountCardLinkage();
   const geolocation = useSelector(getDetectedGeolocation);
   const isUS = geolocation?.toUpperCase().split('-')[0] === 'US';
 
@@ -323,9 +324,11 @@ const MoneyHomeView = () => {
   // formatted zero so the manage row always shows a value rather than a
   // blank slot under "Avail. balance".
   const cardBalance: string = formattedZero;
-  const cardState = isCardholderWithMilestone
-    ? metamaskCardMode
-    : 'non_cardholder';
+  const cardState = isCardLinkedToMoneyAccount
+    ? 'linked_card'
+    : isCardAuthenticated
+      ? 'unlinked_card'
+      : 'no_card';
 
   return (
     <Box

@@ -354,6 +354,7 @@ export const useMoneyAccountCardLinkage =
       }): Promise<boolean> => {
         const entrypoint =
           options?.entrypoint ?? CardEntryPoint.MONEY_LINK_CARD_SHEET;
+        const isRevoke = options?.delegationAmountHuman === '0';
 
         if (!canSubmitDelegation || !primaryMoneyAccount?.address) {
           trackMoneyAccountLinkingEvent(
@@ -361,6 +362,7 @@ export const useMoneyAccountCardLinkage =
             {
               entrypoint,
               reason: CardLinkingFailureReason.PRECONDITION_FAILED,
+              is_revoke: isRevoke,
             },
           );
           showErrorToast();
@@ -376,7 +378,6 @@ export const useMoneyAccountCardLinkage =
         showPendingToast();
 
         try {
-          const isRevoke = options?.delegationAmountHuman === '0';
           trackMoneyAccountLinkingEvent(
             MetaMetricsEvents.CARD_MONEY_ACCOUNT_LINKING_STARTED,
             {
@@ -409,6 +410,7 @@ export const useMoneyAccountCardLinkage =
               {
                 entrypoint,
                 reason: CardLinkingFailureReason.USER_CANCELLED,
+                is_revoke: isRevoke,
               },
             );
             setStatus('cancelled');
@@ -430,6 +432,7 @@ export const useMoneyAccountCardLinkage =
                   ? CardLinkingFailureReason.CONTROLLER_FAILED
                   : CardLinkingFailureReason.UNKNOWN,
               error_name: linkageError.name,
+              is_revoke: isRevoke,
             },
           );
           Logger.error(linkageError, 'useMoneyAccountCardLinkage failed');
