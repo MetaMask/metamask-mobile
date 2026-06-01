@@ -2039,7 +2039,10 @@
       "watchlist": "Watchlist",
       "markets": "Markets",
       "explore_markets": "Explore markets",
-      "see_all_perps": "See all perps"
+      "see_all_perps": "See all perps",
+      "top_movers": "Top movers",
+      "gainers": "Gainers",
+      "losers": "Losers"
     },
     "learn_more": {
       "title": "Learn about Perps",
