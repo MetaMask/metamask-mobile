@@ -67,9 +67,21 @@ class PerpsDepositView {
     return Matchers.getElementByID('confirm-button');
   }
 
+  get infoRow(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText('Info'),
+      appium: () =>
+        PlaywrightMatchers.getElementById('info-row', { exact: true }),
+    });
+  }
+
   // Pay with row (open selector)
-  get payWithRow(): DetoxElement {
-    return Matchers.getElementByText('Pay with');
+  get payWithRow(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText('Pay with'),
+      appium: () =>
+        PlaywrightMatchers.getElementById('pay-with', { exact: true }),
+    });
   }
 
   get usdcOption(): DetoxElement {
