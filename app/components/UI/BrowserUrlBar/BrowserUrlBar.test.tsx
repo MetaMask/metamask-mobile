@@ -619,10 +619,9 @@ describe('BrowserUrlBar', () => {
         activeUrl: 'https://example.com/page',
       };
 
-      const { getByText } = renderWithProvider(
-        <BrowserUrlBar {...props} />,
-        { state: mockInitialState },
-      );
+      const { getByText } = renderWithProvider(<BrowserUrlBar {...props} />, {
+        state: mockInitialState,
+      });
 
       expect(getByText('https://example.com/page')).toBeDefined();
     });
