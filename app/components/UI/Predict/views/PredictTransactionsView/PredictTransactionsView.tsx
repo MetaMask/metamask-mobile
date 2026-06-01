@@ -286,7 +286,7 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
   }, [refetch]);
 
   const renderFooter = useCallback(() => {
-    if (isFetchingNextPage) {
+    if (isFetchingNextPage || (hasFooterError && isRefetching)) {
       return (
         <Box twClassName="items-center justify-center py-4">
           <ActivityIndicator
@@ -313,7 +313,7 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
         </Text>
         <Pressable
           accessibilityRole="button"
-          onPress={handleEndReached}
+          onPress={handleRetry}
           testID={PREDICT_TRANSACTIONS_VIEW_TEST_IDS.FOOTER_RETRY_BUTTON}
         >
           <Text variant={TextVariant.BodyMd} twClassName="text-primary-default">
@@ -322,7 +322,7 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
         </Pressable>
       </Box>
     );
-  }, [handleEndReached, hasFooterError, isFetchingNextPage]);
+  }, [handleRetry, hasFooterError, isFetchingNextPage, isRefetching]);
 
   const shouldShowLoadingState =
     (isLoading || (Boolean(error) && isFetching)) && sections.length === 0;

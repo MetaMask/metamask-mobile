@@ -33,5 +33,5 @@ export const predictActivityOptions = ({
     lastPage: PredictActivity[],
     allPages: PredictActivity[][],
   ): number | undefined =>
-    lastPage.length === limit ? allPages.length * limit : undefined,
+    lastPage.length > 0 ? allPages.length * limit : undefined,
 });

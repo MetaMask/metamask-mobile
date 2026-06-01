@@ -215,9 +215,39 @@ describe('usePredictActivity', () => {
     });
   });
 
-  it('stops pagination when the previous page is shorter than the limit', async () => {
+  it('continues pagination when the previous page is shorter than the limit', async () => {
     const { Wrapper } = createWrapper();
-    mockGetActivity.mockResolvedValueOnce(createActivityPage(1));
+    const firstPage = createActivityPage(1, 'first');
+    const secondPage = createActivityPage(1, 'second');
+    mockGetActivity
+      .mockResolvedValueOnce(firstPage)
+      .mockResolvedValueOnce(secondPage);
+
+    const { result } = renderHook(() => usePredictActivity(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.hasNextPage).toBe(true);
+    });
+
+    await act(async () => {
+      await result.current.fetchNextPage();
+    });
+
+    expect(mockGetActivity).toHaveBeenLastCalledWith({
+      address: MOCK_ADDRESS,
+      limit: PREDICT_ACTIVITY_PAGE_SIZE,
+      offset: PREDICT_ACTIVITY_PAGE_SIZE,
+    });
+    await waitFor(() => {
+      expect(result.current.data).toEqual([...firstPage, ...secondPage]);
+    });
+  });
+
+  it('stops pagination when the previous page is empty', async () => {
+    const { Wrapper } = createWrapper();
+    mockGetActivity.mockResolvedValueOnce([]);
 
     const { result } = renderHook(() => usePredictActivity(), {
       wrapper: Wrapper,
