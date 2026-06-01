@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  HeaderBase,
+  HeaderRoot,
   IconName,
   Text,
   TextVariant,
@@ -16,11 +16,9 @@ interface MoneyHeaderProps {
 }
 
 const MoneyHeader = ({ onMenuPress }: MoneyHeaderProps) => (
-  <HeaderBase
+  <HeaderRoot
     testID={MoneyHeaderTestIds.CONTAINER}
     twClassName="px-4"
-    startAccessoryWrapperProps={{ style: { width: 0 } }}
-    childrenWrapperProps={{ style: { flex: 1, alignItems: 'flex-start' } }}
     endButtonIconProps={[
       {
         iconName: IconName.MoreVertical,
@@ -33,7 +31,7 @@ const MoneyHeader = ({ onMenuPress }: MoneyHeaderProps) => (
     <Text variant={TextVariant.HeadingLg} testID={MoneyHeaderTestIds.TITLE}>
       {strings('money.title')}
     </Text>
-  </HeaderBase>
+  </HeaderRoot>
 );
 
 export default MoneyHeader;
