@@ -1,5 +1,6 @@
 import React from 'react';
-import { act, screen } from '@testing-library/react-native';
+import { act, fireEvent, screen } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 import { TextColor } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import QuickBuyRoot from './QuickBuyRoot';
@@ -256,6 +257,61 @@ describe('QuickBuyRoot', () => {
       screen.getByText('social_leaderboard.quick_buy.unsupported_chain'),
     ).toBeOnTheScreen();
     expect(screen.queryByTestId('mock-amount-section')).not.toBeOnTheScreen();
+  });
+
+  it('locks the content container height after the first layout', () => {
+    renderWithProvider(
+      <QuickBuyRoot
+        isVisible
+        target={positionToQuickBuyTarget(createPosition())}
+        features={TOP_TRADERS_QUICK_BUY_FEATURES}
+        onClose={jest.fn()}
+      />,
+    );
+    act(() => {
+      storedOnOpenCallback?.();
+    });
+
+    const container = screen.getByTestId('quick-buy-content-container');
+    act(() => {
+      fireEvent(container, 'layout', {
+        nativeEvent: { layout: { height: 480 } },
+      });
+    });
+
+    expect(StyleSheet.flatten(container.props.style)).toMatchObject({
+      height: 480,
+    });
+  });
+
+  it('keeps the locked height when a later layout reports a different height', () => {
+    renderWithProvider(
+      <QuickBuyRoot
+        isVisible
+        target={positionToQuickBuyTarget(createPosition())}
+        features={TOP_TRADERS_QUICK_BUY_FEATURES}
+        onClose={jest.fn()}
+      />,
+    );
+    act(() => {
+      storedOnOpenCallback?.();
+    });
+
+    const container = screen.getByTestId('quick-buy-content-container');
+    act(() => {
+      fireEvent(container, 'layout', {
+        nativeEvent: { layout: { height: 480 } },
+      });
+    });
+    act(() => {
+      fireEvent(container, 'layout', {
+        nativeEvent: { layout: { height: 300 } },
+      });
+    });
+
+    expect(StyleSheet.flatten(container.props.style)).toMatchObject({
+      height: 480,
+    });
   });
 });
 
