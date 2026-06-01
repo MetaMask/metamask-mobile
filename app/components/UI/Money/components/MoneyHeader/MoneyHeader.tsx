@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  HeaderRoot,
-  IconName,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { HeaderRoot, IconName } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
 
@@ -27,11 +22,11 @@ const MoneyHeader = ({ onMenuPress }: MoneyHeaderProps) => (
         testID: MoneyHeaderTestIds.MENU_BUTTON,
       },
     ]}
-  >
-    <Text variant={TextVariant.HeadingLg} testID={MoneyHeaderTestIds.TITLE}>
-      {strings('money.title')}
-    </Text>
-  </HeaderRoot>
+    title={strings('money.title')}
+    titleProps={{
+      testID: MoneyHeaderTestIds.TITLE,
+    }}
+  />
 );
 
 export default MoneyHeader;
