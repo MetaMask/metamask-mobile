@@ -128,14 +128,11 @@ exports[`CollapsibleSection can expand 1`] = `
                 fill="currentColor"
                 name="ArrowUp"
                 style={
-                  [
-                    {
-                      "color": "#4459ff",
-                      "height": 16,
-                      "width": 16,
-                    },
-                    undefined,
-                  ]
+                  {
+                    "color": "#4459ff",
+                    "height": 16,
+                    "width": 16,
+                  }
                 }
               />
             </View>
