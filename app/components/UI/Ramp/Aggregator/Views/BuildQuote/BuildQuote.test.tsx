@@ -1,6 +1,7 @@
 import React from 'react';
 import { Limits, Payment } from '@consensys/on-ramp-sdk';
 import { act, fireEvent, screen } from '@testing-library/react-native';
+import { Pressable, Text } from 'react-native';
 import type BN4 from 'bnjs4';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import BuildQuote from './BuildQuote';
@@ -1028,6 +1029,53 @@ describe('BuildQuote View', () => {
       fireEvent.press(getByRoleButton(`0.73 ${symbol}`));
       fireEvent.press(getByRoleButton('50%'));
       expect(getByRoleButton(`0.5 ${symbol}`)).toBeTruthy();
+    });
+
+    it('resets the sell amount when switching assets', () => {
+      const AssetSwitcher = () => {
+        const [, setSelectedAssetVersion] = React.useState(0);
+
+        return (
+          <>
+            <Pressable
+              testID="switch-asset"
+              onPress={() => {
+                mockUseRampSDKValues = {
+                  ...mockUseRampSDKValues,
+                  selectedAsset: mockCryptoCurrenciesData[1],
+                };
+                mockUseBalanceValues = {
+                  ...mockUseBalanceValues,
+                  balanceBN: toTokenMinimalUnit(
+                    '5.36385',
+                    mockCryptoCurrenciesData[1].decimals || 18,
+                  ) as BN4,
+                };
+                setSelectedAssetVersion((version) => version + 1);
+              }}
+            >
+              <Text>Switch asset</Text>
+            </Pressable>
+            <BuildQuote />
+          </>
+        );
+      };
+
+      render(AssetSwitcher);
+      const initialSymbol = mockUseRampSDKValues.selectedAsset?.symbol;
+
+      fireEvent.press(getByRoleButton(`0 ${initialSymbol}`));
+      fireEvent.press(getByRoleButton('50%'));
+
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).not.toHaveTextContent(`0 ${initialSymbol}`);
+
+      fireEvent.press(screen.getByTestId('switch-asset'));
+
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toHaveTextContent(`0 ${mockCryptoCurrenciesData[1].symbol}`);
     });
 
     it('clears the amount when the keyboard is freshly opened', () => {
