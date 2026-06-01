@@ -4,7 +4,7 @@
 
 import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import path from 'node:path';
 import {
   SelectTagsAnalysis,
   PerformanceTestSelection,
@@ -290,7 +290,7 @@ function extractTagsFromSpecFile(
   validTags: Set<string>,
 ): string[] {
   try {
-    const content = readFileSync(join(baseDir, filePath), 'utf-8');
+    const content = readFileSync(path.join(baseDir, filePath), 'utf-8');
     const matches = content.matchAll(
       /import\s*\{([^}]+)\}\s*from\s*['"][^'"]*\/tags(?:\.js)?['"]/g,
     );
@@ -488,6 +488,109 @@ export function checkHardRules(
     }
   }
   return null;
+}
+
+// Regex for performance spec files (e.g. tests/performance/login/eth-swap-flow.spec.ts)
+const PERF_SPEC_REGEX = /^tests\/performance\/.+\.spec\.ts$/;
+// Non-spec files under tests/performance/ or tests/framework/ that performance tests depend on
+const PERF_INFRA_REGEX = /^tests\/(performance|framework)\//;
+
+/**
+ * Parses a spec file's content and returns the @Performance* area tags it imports.
+ * E.g. `import { PerformanceSwaps } from '../../tags.performance.js'` → ['@PerformanceSwaps']
+ */
+function extractTagsFromSpecContent(content: string): string[] {
+  const importPattern =
+    /import\s*\{([^}]+)\}\s*from\s*['"][^'"]*tags\.performance[^'"]*['"]/g;
+  const tags: string[] = [];
+
+  let match;
+  while ((match = importPattern.exec(content)) !== null) {
+    const names = match[1]
+      .split(',')
+      .map((n) => n.trim())
+      // Only keep area tags like PerformanceSwaps, not the base Performance or System tags
+      .filter((n) => /^Performance[A-Z]/.test(n));
+    tags.push(...names.map((n) => `@${n}`));
+  }
+
+  return [...new Set(tags)];
+}
+
+/**
+ * Deterministically detects which performance tests should run based on directly
+ * changed files — bypassing AI for two clear-cut cases:
+ *
+ * 1. A performance **spec file** changed → run that spec's specific tags.
+ * 2. A performance **infrastructure file** changed (page-objects, flows, framework
+ * helpers used by perf tests) → run all performance tags conservatively, because
+ * shared utilities can affect every scenario.
+ *
+ * Returns null when no performance-test-related files are changed.
+ */
+export function detectDirectPerformanceChanges(
+  changedFiles: string[],
+  baseDir: string,
+): PerformanceTestSelection | null {
+  const changedSpecFiles = changedFiles.filter((f) => PERF_SPEC_REGEX.test(f));
+  const changedInfraFiles = changedFiles.filter(
+    (f) => !PERF_SPEC_REGEX.test(f) && PERF_INFRA_REGEX.test(f),
+  );
+
+  if (changedSpecFiles.length === 0 && changedInfraFiles.length === 0) {
+    return null;
+  }
+
+  const allPerfTags = PERFORMANCE_TAGS_CONFIG.map((c) => c.tag);
+  const selectedTags: string[] = [];
+  const reasons: string[] = [];
+
+  // Case 1: spec file changes — extract their specific tags
+  if (changedSpecFiles.length > 0) {
+    for (const specFile of changedSpecFiles) {
+      try {
+        const content = readFileSync(path.join(baseDir, specFile), 'utf-8');
+        const fileTags = extractTagsFromSpecContent(content).filter((t) =>
+          allPerfTags.includes(t),
+        );
+        selectedTags.push(...fileTags);
+      } catch {
+        // File may not be accessible locally (e.g. deleted); skip silently
+      }
+    }
+    if (selectedTags.length > 0) {
+      reasons.push(
+        `Changed spec files: ${changedSpecFiles.map((f) => path.basename(f)).join(', ')}`,
+      );
+    }
+  }
+
+  // Case 2: infrastructure changes — conservative: run all performance tags
+  if (changedInfraFiles.length > 0) {
+    selectedTags.push(...allPerfTags);
+    const shown = changedInfraFiles.slice(0, 3).map((f) => path.basename(f));
+    const extra =
+      changedInfraFiles.length > 3
+        ? ` (+${changedInfraFiles.length - 3} more)`
+        : '';
+    reasons.push(
+      `Changed shared performance infrastructure: ${shown.join(', ')}${extra} — running all tags conservatively`,
+    );
+  }
+
+  const uniqueTags = [...new Set(selectedTags)];
+  if (uniqueTags.length === 0) {
+    return null;
+  }
+
+  console.log(`\n📌 Deterministic performance test detection:`);
+  reasons.forEach((r) => console.log(`   ${r}`));
+  console.log(`   Tags: ${uniqueTags.join(', ')}`);
+
+  return {
+    selectedTags: uniqueTags,
+    reasoning: reasons.join('. '),
+  };
 }
 
 /**

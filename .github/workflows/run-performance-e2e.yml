@@ -80,7 +80,7 @@ on:
         description: 'BrowserStack build profile (e2e = build-e2e, works on feature branches; rc = build-rc, release branches only; exp = experimental)'
         required: false
         type: string
-        default: 'rc'
+        default: 'e2e'
       performance_tags:
         description: 'JSON array of performance tags (e.g. ["@PerformanceLogin","@PerformanceSwaps"]). Omit/blank = run all. "[]" = skip all (PR with no relevant changes).'
         required: false

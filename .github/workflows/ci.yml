@@ -999,6 +999,30 @@ jobs:
           post-comment: ${{ inputs.runner_provider != 'namespace' }}
           base-ref: ${{ github.event.pull_request.base.ref }}
 
+  run-performance-tests-pr:
+    name: 'Run Performance Tests (PR)'
+    # Only run on pull_request events when smart selection has identified performance-relevant changes.
+    # ai_performance_test_tags == '[]' means "no relevant changes"; empty string means "not yet computed / skipped".
+    if: >-
+      ${{
+        github.event_name == 'pull_request' &&
+        !cancelled() &&
+        needs.smart-e2e-selection.result != 'skipped' &&
+        needs.smart-e2e-selection.outputs.ai_performance_test_tags != '' &&
+        needs.smart-e2e-selection.outputs.ai_performance_test_tags != '[]'
+      }}
+    needs: [smart-e2e-selection]
+    permissions:
+      contents: read
+      id-token: write
+      actions: write
+    uses: ./.github/workflows/run-performance-e2e.yml
+    with:
+      performance_tags: ${{ needs.smart-e2e-selection.outputs.ai_performance_test_tags }}
+      build_variant: 'rc'
+      branch_name: ${{ github.head_ref }}
+    secrets: inherit
+
   build-android-apks:
     name: 'Build Android APKs'
     if: >-

@@ -5,7 +5,7 @@
  * Supports multiple LLM providers with automatic fallback.
  */
 
-import { ParsedArgs, AnalysisContext } from './types';
+import { ParsedArgs, AnalysisContext , SelectTagsAnalysis } from './types';
 import { APP_CONFIG, LLM_CONFIG } from './config';
 import {
   getAllChangedFiles,
@@ -34,6 +34,7 @@ import {
   fetchFeatureFlags,
   formatFeatureFlagSummary,
 } from './utils/feature-flags';
+import { detectDirectPerformanceChanges } from './modes/select-tags/handlers';
 
 /**
  * Validates provided files against actual git changes
@@ -769,6 +770,34 @@ async function main() {
         analysisContext,
         availableSkills,
       );
+
+      // For select-tags mode: merge deterministic performance test detection on top
+      // of whatever the AI selected. This ensures changed spec files and shared
+      // performance infrastructure always trigger the appropriate tests, regardless
+      // of AI judgment.
+      if (mode === 'select-tags') {
+        const selectTagsAnalysis = analysis as SelectTagsAnalysis;
+        const directPerf = detectDirectPerformanceChanges(
+          allChangedFiles,
+          baseDir,
+        );
+        if (directPerf && directPerf.selectedTags.length > 0) {
+          const merged = [
+            ...new Set([
+              ...selectTagsAnalysis.performanceTests.selectedTags,
+              ...directPerf.selectedTags,
+            ]),
+          ];
+          const prevReasoning =
+            selectTagsAnalysis.performanceTests.reasoning || '';
+          selectTagsAnalysis.performanceTests = {
+            selectedTags: merged,
+            reasoning: prevReasoning
+              ? `${prevReasoning}. ${directPerf.reasoning}`
+              : directPerf.reasoning,
+          };
+        }
+      }
 
       // Success - output results and exit
       (MODES[mode].outputAnalysis as (a: unknown) => void)(analysis);
