@@ -37,6 +37,7 @@ const mockNavigation = {
   canGoForward: true,
   addListener: jest.fn(() => jest.fn()),
   navigate: jest.fn(),
+  setParams: jest.fn(),
 };
 
 const mockRoute = {
@@ -375,6 +376,70 @@ describe('BrowserTab', () => {
       });
 
       expect(mockInjectJavaScript).not.toHaveBeenCalled();
+    });
+  });
+
+  // A back/forward navigation that is still loading is provisional and may not
+  // reflect the content actually displayed, so it must not update the address
+  // bar until the navigation has committed (`loading === false`).
+  describe('WebView onNavigationStateChange backforward URL resolution', () => {
+    it('does not update the address bar for a still-loading backforward navigation', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      const { onNavigationStateChange } = webView.props;
+
+      mockNavigation.setParams.mockClear();
+
+      // A provisional (still loading) back/forward navigation.
+      onNavigationStateChange({
+        url: 'https://example.com:83/page',
+        title: 'Example',
+        loading: true,
+        canGoBack: true,
+        canGoForward: false,
+        navigationType: 'backforward',
+      });
+
+      // The address bar must not be resolved while the navigation is in progress.
+      expect(mockNavigation.setParams).not.toHaveBeenCalled();
+    });
+
+    it('updates the address bar for a committed backforward navigation', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      const { onNavigationStateChange } = webView.props;
+
+      mockNavigation.setParams.mockClear();
+
+      // A back/forward navigation that has finished loading.
+      onNavigationStateChange({
+        url: 'https://example.com/',
+        title: 'Example',
+        loading: false,
+        canGoBack: true,
+        canGoForward: false,
+        navigationType: 'backforward',
+      });
+
+      expect(mockNavigation.setParams).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: expect.stringContaining('example.com'),
+        }),
+      );
     });
   });
 });

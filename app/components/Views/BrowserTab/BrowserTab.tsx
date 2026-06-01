@@ -1388,6 +1388,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           canGoBack,
           navigationType,
           url,
+          loading,
         } = event;
         Logger.log(
           `WEBVIEW NAVIGATING: OnNavigationStateChange \n Values: ${JSON.stringify(
@@ -1397,6 +1398,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
         // Handles force resolves url when going back since the behavior slightly differs that results in onLoadEnd not being called
         if (navigationType === 'backforward') {
+          // Only resolve the URL bar once the navigation has committed. A
+          // navigation that is still in progress (`loading === true`) is
+          // provisional and may not reflect the content actually displayed, so
+          // we wait for it to finish before updating the address bar.
+          if (loading) {
+            return;
+          }
+
           const payload = {
             nativeEvent: {
               url,
