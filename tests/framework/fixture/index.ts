@@ -19,6 +19,7 @@ import {
   hasQualityGateFailure,
   markQualityGateFailure,
   QualityGatesValidator,
+  QualityGateError,
 } from '../quality-gates';
 import { getTeamInfoFromTags } from '../utils/teams';
 import { publishPerformanceScenarioToSentry } from '../../reporters/providers/sentry/PerformanceSentryPublisher';
@@ -247,21 +248,21 @@ export const test = base.extend<TestLevelFixtures>({
     const isSystemTestMode = process.env.SYSTEM_TEST_MODE === 'true';
     const testId = getTestId(testInfo);
 
-    // Skip retry if previous attempt failed due to quality gates
-    // Quality gate failures should NOT be retried - the measurement was valid, only threshold exceeded
+    // Abort retry if previous attempt failed due to quality gates.
+    // Quality gate failures should NOT be retried - the measurement was valid,
+    // only the threshold was exceeded. We throw (not skip) so Playwright counts
+    // all attempts as failed and reports the test as "failed" rather than "flaky".
     if (
       !isSystemTestMode &&
       testInfo.retry > 0 &&
       hasQualityGateFailure(testId)
     ) {
       console.log(
-        `⏭️ Skipping retry for "${testInfo.title}" - previous attempt failed due to Quality Gates (threshold exceeded, not a test execution error)`,
+        `⏭️ Aborting retry for "${testInfo.title}" - previous attempt failed due to Quality Gates (threshold exceeded, not a test execution error)`,
       );
-      testInfo.skip(
-        true,
-        'Skipped retry: Quality Gates failed in previous attempt. Performance threshold was exceeded but test execution was successful.',
+      throw new QualityGateError(
+        `Quality Gates failed on a previous attempt for "${testInfo.title}". Retries are not allowed for quality gate failures.`,
       );
-      return;
     }
 
     const performanceTracker = new PerformanceTracker();
@@ -290,6 +291,13 @@ export const test = base.extend<TestLevelFixtures>({
 
     if (performanceTracker.timers.length === 0) {
       console.log('⚠️ No timers found in performance tracker');
+    }
+
+    // Propagate BrowserStack session creation time (infra overhead, not counted in total)
+    if (deviceProvider.sessionCreationDurationMs !== undefined) {
+      performanceTracker.setSessionCreationDuration(
+        deviceProvider.sessionCreationDurationMs,
+      );
     }
 
     // Always try to attach performance metrics, even if test failed
