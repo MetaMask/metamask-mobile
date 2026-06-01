@@ -247,7 +247,7 @@ describe('usePayWithMoneyAccountSection', () => {
         const { result } = renderHook(() => usePayWithMoneyAccountSection());
 
         act(() => {
-          result.current?.rows[0].onPress();
+          result.current?.rows[0].onPress?.();
         });
 
         const config = {} as Record<string, unknown>;

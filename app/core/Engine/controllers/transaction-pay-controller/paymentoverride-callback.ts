@@ -92,7 +92,7 @@ export async function getPaymentOverrideData<T extends SignMessenger>(
 
   if (transactionData?.paymentOverride === PaymentOverride.MoneyAccount) {
     if (transactionData?.isPostQuote) {
-      return getMoneyAccountDepositPaymentOverrideData(amount);
+      return { calls: await getMoneyAccountDepositPaymentOverrideData(amount) };
     }
 
     if (!transaction.txParams?.from) return { calls: [] };
