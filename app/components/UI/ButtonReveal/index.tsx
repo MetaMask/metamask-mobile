@@ -1,5 +1,8 @@
 import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text } from 'react-native';
+import Pressable, {
+  PressableVariant,
+} from '../../../component-library/components-temp/Pressable';
 import Icon, {
   IconSize,
   IconName,
@@ -303,10 +306,10 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
   );
 
   return (
-    <TouchableOpacity
+    <Pressable
+      variant={PressableVariant.None}
       onPressIn={triggerPressStart}
       onPressOut={triggerPressEnd}
-      activeOpacity={1}
     >
       <Animated.View style={[styles.container, containerStyle]}>
         <View style={styles.progressContainer}>
@@ -315,7 +318,7 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
         </View>
         <Text style={styles.label}>{label}</Text>
       </Animated.View>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 
