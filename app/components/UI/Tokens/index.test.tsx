@@ -72,6 +72,10 @@ jest.mock('./TokenList/TokenList', () => ({
   TokenList: jest.fn().mockImplementation(() => null),
 }));
 
+jest.mock('./TokenListControlBar/TokenListControlBar', () => ({
+  TokenListControlBar: jest.fn().mockImplementation(() => null),
+}));
+
 /**
  * For these unit tests, we do not need to test all the actual components, and can mock them.
  * If we do need to test the actual components in this test, we can use `mockReset` to get back the original component

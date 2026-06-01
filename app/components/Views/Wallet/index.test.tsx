@@ -131,11 +131,17 @@ jest.mock('../../../hooks', () => ({
 
 // Track HomepageDiscoveryTabs renders
 const mockHomepageDiscoveryTabs = jest.fn();
+const mockHomepageDiscoveryTabsRefresh = jest.fn(async () => undefined);
+const mockHomepageDiscoveryTabsGoToPerpsTab = jest.fn();
 jest.mock('../Homepage/components/HomepageDiscoveryTabs', () => {
   const React = jest.requireActual('react');
   return {
     __esModule: true,
-    default: React.forwardRef((props: unknown, _ref: unknown) => {
+    default: React.forwardRef((props: unknown, ref: unknown) => {
+      React.useImperativeHandle(ref, () => ({
+        refresh: mockHomepageDiscoveryTabsRefresh,
+        goToPerpsTab: mockHomepageDiscoveryTabsGoToPerpsTab,
+      }));
       mockHomepageDiscoveryTabs(props);
       return null;
     }),
@@ -734,6 +740,11 @@ describe('Wallet', () => {
       .mockImplementation((callback: (state: unknown) => unknown) =>
         callback(mockInitialState),
       );
+    jest.mocked(useRoute).mockReturnValue({
+      key: 'route',
+      name: 'route',
+      params: {},
+    });
   });
 
   it('should render correctly', () => {
@@ -1466,6 +1477,8 @@ describe('HomepageDiscoveryTabs AB test', () => {
     jest.clearAllMocks();
     mockDiscoveryTabsVariantName = 'control';
     mockHomepageDiscoveryTabs.mockClear();
+    mockHomepageDiscoveryTabsRefresh.mockClear();
+    mockHomepageDiscoveryTabsGoToPerpsTab.mockClear();
 
     mockNavigation = {
       navigate: mockNavigate,
@@ -1561,6 +1574,114 @@ describe('HomepageDiscoveryTabs AB test', () => {
     >;
     expect(typeof props.walletHeaderOffset).toBe('number');
     expect(typeof props.walletHeaderHeight).toBe('number');
+  });
+
+  it('selects the Perps discovery tab for Perps deeplinks in treatment', () => {
+    jest.useFakeTimers();
+    mockDiscoveryTabsVariantName = 'treatment';
+    jest.mocked(useRoute).mockReturnValue({
+      key: 'route',
+      name: 'route',
+      params: { initialTab: 'perps' },
+    });
+
+    renderWithProvider(
+      <Wallet
+        navigation={mockNavigation}
+        currentRouteName={Routes.WALLET_VIEW}
+      />,
+      { state: mockInitialState },
+    );
+
+    const focusCallbacks = jest.mocked(useFocusEffect).mock.calls;
+    focusCallbacks.forEach(([callback]) => callback?.());
+    jest.advanceTimersByTime(PERFORMANCE_CONFIG.NavigationParamsDelayMs);
+
+    expect(mockHomepageDiscoveryTabsGoToPerpsTab).toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.PERPS_HOME,
+      params: { source: 'deeplink' },
+    });
+
+    jest.useRealTimers();
+  });
+
+  it('navigates to Perps screen for Perps deeplinks in control', () => {
+    jest.useFakeTimers();
+    mockDiscoveryTabsVariantName = 'control';
+    jest.mocked(useRoute).mockReturnValue({
+      key: 'route',
+      name: 'route',
+      params: { initialTab: 'perps' },
+    });
+
+    renderWithProvider(
+      <Wallet
+        navigation={mockNavigation}
+        currentRouteName={Routes.WALLET_VIEW}
+      />,
+      { state: mockInitialState },
+    );
+
+    const focusCallbacks = jest.mocked(useFocusEffect).mock.calls;
+    focusCallbacks.forEach(([callback]) => callback?.());
+    jest.advanceTimersByTime(PERFORMANCE_CONFIG.NavigationParamsDelayMs);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.PERPS_HOME,
+      params: { source: 'deeplink' },
+    });
+
+    jest.useRealTimers();
+  });
+
+  it('navigates to network selector from deeplink params', () => {
+    jest.useFakeTimers();
+    jest.mocked(useRoute).mockReturnValue({
+      key: 'route',
+      name: 'route',
+      params: { openNetworkSelector: true },
+    });
+
+    renderWithProvider(
+      <Wallet
+        navigation={mockNavigation}
+        currentRouteName={Routes.WALLET_VIEW}
+      />,
+      { state: mockInitialState },
+    );
+
+    const focusCallbacks = jest.mocked(useFocusEffect).mock.calls;
+    focusCallbacks.forEach(([callback]) => callback?.());
+    jest.advanceTimersByTime(PERFORMANCE_CONFIG.NavigationParamsDelayMs);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.NETWORK_SELECTOR,
+    });
+
+    jest.useRealTimers();
+  });
+
+  it('refreshes discovery tabs from the wallet refresh control in treatment', async () => {
+    mockDiscoveryTabsVariantName = 'treatment';
+
+    renderWithProvider(
+      <Wallet
+        navigation={mockNavigation}
+        currentRouteName={Routes.WALLET_VIEW}
+      />,
+      { state: mockInitialState },
+    );
+
+    const props = mockHomepageDiscoveryTabs.mock.calls.at(-1)?.[0] as {
+      refreshControl?: React.ReactElement<{ onRefresh: () => Promise<void> }>;
+    };
+
+    await act(async () => {
+      await props.refreshControl?.props.onRefresh();
+    });
+
+    expect(mockHomepageDiscoveryTabsRefresh).toHaveBeenCalled();
   });
 
   it('renders Homepage scroll view (not HomepageDiscoveryTabs) when variant is control', () => {

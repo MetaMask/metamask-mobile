@@ -208,10 +208,16 @@ describe('HomepageDiscoveryTabs', () => {
       expect(typeof ref.current?.refresh).toBe('function');
     });
 
-    it('exposes goToPerpsTab via ref', () => {
+    it('exposes goToPerpsTab via ref', async () => {
       const ref = React.createRef<HomepageDiscoveryTabsHandle>();
       render(<HomepageDiscoveryTabs ref={ref} />);
       expect(typeof ref.current?.goToPerpsTab).toBe('function');
+
+      await act(async () => {
+        ref.current?.goToPerpsTab();
+      });
+
+      expect(screen.getByTestId('perps-home-view')).toBeOnTheScreen();
     });
 
     it('calling refresh does not throw', async () => {

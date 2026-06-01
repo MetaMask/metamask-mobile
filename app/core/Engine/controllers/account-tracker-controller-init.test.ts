@@ -9,6 +9,8 @@ import {
   AccountTrackerControllerMessenger,
 } from '@metamask/assets-controllers';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import { selectAssetsAccountApiBalancesEnabled } from '../../../selectors/featureFlagController/assetsAccountApiBalances';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 
 jest.mock('@metamask/assets-controllers');
 
@@ -82,5 +84,33 @@ describe('accountTrackerControllerInit', () => {
 
       expect(isHomepageSectionsV1Enabled()).toBe(true);
     });
+  });
+
+  it('reads account-api chain IDs from state', () => {
+    accountTrackerControllerInit(getInitRequestMock());
+
+    const controllerMock = jest.mocked(AccountTrackerController);
+    const { accountsApiChainIds } = controllerMock.mock.calls[0][0] as {
+      accountsApiChainIds: () => `0x${string}`[];
+    };
+
+    jest.mocked(selectAssetsAccountApiBalancesEnabled).mockReturnValue(['0x1']);
+
+    expect(accountsApiChainIds()).toEqual(['0x1']);
+    expect(selectAssetsAccountApiBalancesEnabled).toHaveBeenCalled();
+  });
+
+  it('reads external services availability from settings state', () => {
+    accountTrackerControllerInit(getInitRequestMock());
+
+    const controllerMock = jest.mocked(AccountTrackerController);
+    const { allowExternalServices } = controllerMock.mock.calls[0][0] as {
+      allowExternalServices: () => boolean;
+    };
+
+    jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(false);
+
+    expect(allowExternalServices()).toBe(false);
+    expect(selectBasicFunctionalityEnabled).toHaveBeenCalled();
   });
 });
