@@ -97,7 +97,7 @@ const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
   };
 
   const content = isLoading ? (
-    <Box gap={3}>
+    <Box gap={2}>
       <Skeleton height={22} width="100%" />
       <Skeleton height={24} width="50%" />
       <Box flexDirection={BoxFlexDirection.Row} gap={2}>
@@ -106,7 +106,7 @@ const SecurityTrustEntryCard: React.FC<SecurityTrustEntryCardProps> = ({
       </Box>
     </Box>
   ) : (
-    <Box gap={3}>
+    <Box gap={2}>
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}

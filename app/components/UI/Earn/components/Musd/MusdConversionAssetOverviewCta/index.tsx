@@ -105,35 +105,41 @@ const MusdConversionAssetOverviewCta = ({
         <Image source={musdIcon} style={styles.musdIcon} />
       </View>
 
-      {/* Text content in the center */}
-      <View style={styles.textContainer}>
-        <Text variant={TextVariant.BodySMMedium} style={styles.title}>
-          {strings('earn.musd_conversion.bonus_title', {
-            percentage: MUSD_CONVERSION_APY,
-          })}
-        </Text>
-        <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
-          {strings('earn.musd_conversion.bonus_description', {
-            percentage: MUSD_CONVERSION_APY,
-          })}
-        </Text>
-      </View>
+      <View style={styles.contentSection}>
+        <View style={styles.textContainer}>
+          <Text variant={TextVariant.BodySMMedium} style={styles.title}>
+            {strings('earn.musd_conversion.bonus_title', {
+              percentage: MUSD_CONVERSION_APY,
+            })}
+          </Text>
+          <Text
+            variant={TextVariant.BodySMMedium}
+            color={TextColor.Alternative}
+            style={styles.description}
+          >
+            {strings('earn.musd_conversion.bonus_description', {
+              percentage: MUSD_CONVERSION_APY,
+            })}
+          </Text>
+        </View>
 
-      {/* Close button on the right */}
-      {onDismiss && (
-        <Pressable
-          testID={EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA_CLOSE_BUTTON}
-          onPress={onDismiss}
-          hitSlop={16}
-          style={styles.closeButton}
-        >
-          <Icon
-            name={IconName.Close}
-            size={IconSize.Md}
-            color={IconColor.Alternative}
-          />
-        </Pressable>
-      )}
+        {onDismiss && (
+          <Pressable
+            testID={
+              EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA_CLOSE_BUTTON
+            }
+            onPress={onDismiss}
+            hitSlop={16}
+            style={styles.closeButton}
+          >
+            <Icon
+              name={IconName.Close}
+              size={IconSize.Md}
+              color={IconColor.Alternative}
+            />
+          </Pressable>
+        )}
+      </View>
     </Pressable>
   );
 };

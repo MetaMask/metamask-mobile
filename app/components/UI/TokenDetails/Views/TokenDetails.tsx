@@ -32,6 +32,7 @@ import { selectPerpsEnabledFlag } from '../../Perps';
 import { usePerpsMarketForAsset } from '../../Perps/hooks/usePerpsMarketForAsset';
 import { TraceName, endTrace } from '../../../../util/trace';
 import ActivityHeader from '../../../Views/Asset/ActivityHeader';
+import TokenDetailsSectionDivider from '../../AssetOverview/TokenDetails/TokenDetailsSectionDivider';
 import Transactions from '../../Transactions';
 import MultichainTransactionsView from '../../../Views/MultichainTransactionsView/MultichainTransactionsView';
 import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
@@ -59,6 +60,9 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    activitySectionDivider: {
+      paddingHorizontal: 16,
     },
   });
 };
@@ -289,12 +293,17 @@ const TokenDetails: React.FC<{
         ///: END:ONLY_INCLUDE_IF
       />
       {(txLoading || hasTransactions) && (
-        <ActivityHeader
-          asset={{
-            ...token,
-            hasBalanceError: token.hasBalanceError ?? false,
-          }}
-        />
+        <>
+          <View style={styles.activitySectionDivider}>
+            <TokenDetailsSectionDivider />
+          </View>
+          <ActivityHeader
+            asset={{
+              ...token,
+              hasBalanceError: token.hasBalanceError ?? false,
+            }}
+          />
+        </>
       )}
     </>
   );

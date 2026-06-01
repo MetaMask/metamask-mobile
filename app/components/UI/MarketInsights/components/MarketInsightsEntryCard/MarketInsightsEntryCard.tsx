@@ -218,7 +218,7 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
       <TouchableOpacity
         activeOpacity={0.7}
         onPress={onPress}
-        style={tw.style('px-4 mt-2 mb-4')}
+        style={tw.style('px-4 mt-2')}
         testID={testID}
       >
         <View ref={cardRef} collapsable={false} onLayout={onVisibilityLayout}>

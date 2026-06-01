@@ -1,13 +1,12 @@
 import React from 'react';
 import { View, StyleSheet, ViewStyle, TextStyle } from 'react-native';
-import type { Theme } from '@metamask/design-tokens';
 import { strings } from '../../../../locales/i18n';
 import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
 import Text, {
-  getFontFamily,
+  TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { NO_RPC_BLOCK_EXPLORER, RPC } from '../../../constants/network';
@@ -15,8 +14,6 @@ import {
   getBlockExplorerName,
   isMainnetByChainId,
 } from '../../../util/networks';
-import { useTheme } from '../../../util/theme';
-
 interface Styles {
   viewMoreWrapper: ViewStyle;
   viewMoreButton: ViewStyle;
@@ -24,10 +21,7 @@ interface Styles {
   disclaimerText: TextStyle;
 }
 
-const createStyles = (
-  colors: Theme['colors'],
-  typography: Theme['typography'],
-): Styles =>
+const createStyles = (): Styles =>
   StyleSheet.create({
     viewMoreWrapper: {
       padding: 16,
@@ -38,11 +32,7 @@ const createStyles = (
     disclaimerWrapper: {
       padding: 16,
     },
-    disclaimerText: {
-      color: colors.text.default,
-      ...typography.sBodySM,
-      fontFamily: getFontFamily(TextVariant.BodySM),
-    } as TextStyle,
+    disclaimerText: {} as TextStyle,
   });
 
 interface TransactionsFooterProps {
@@ -86,8 +76,7 @@ const TransactionsFooter = ({
   onViewBlockExplorer,
   showDisclaimer = true,
 }: TransactionsFooterProps) => {
-  const { colors, typography } = useTheme();
-  const styles = createStyles(colors, typography);
+  const styles = createStyles();
 
   const getBlockExplorerText = (): string | null => {
     if (isNonEvmChain) {
@@ -140,7 +129,11 @@ const TransactionsFooter = ({
       )}
       {showDisclaimer && (
         <View style={styles.disclaimerWrapper}>
-          <Text style={styles.disclaimerText}>
+          <Text
+            variant={TextVariant.BodyXS}
+            color={TextColor.Alternative}
+            style={styles.disclaimerText}
+          >
             {strings('asset_overview.disclaimer')}
           </Text>
         </View>

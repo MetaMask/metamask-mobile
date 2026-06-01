@@ -84,7 +84,7 @@ const EarningsContent = ({ asset }: EarningsProps) => {
   if (!hasEarnings) return <></>;
 
   return (
-    <View style={styles.earningsContainer}>
+    <View>
       <Text variant={TextVariant.HeadingMD} style={styles.title}>
         {strings('stake.your_earnings')}
       </Text>

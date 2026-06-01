@@ -22,7 +22,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  Text,
 } from '@metamask/design-system-react-native';
 
 interface StakingButtonsProps extends Pick<ViewProps, 'style'> {
@@ -111,9 +110,9 @@ const StakingButtons = ({
           style={styles.balanceActionButton}
           variant={ButtonVariant.Secondary}
           onPress={onUnstakePress}
-          size={ButtonSize.Md}
+          size={ButtonSize.Lg}
         >
-          <Text>{strings('stake.unstake')}</Text>
+          {strings('stake.unstake')}
         </Button>
       )}
       {isPooledStakingEnabled && isEligible && (
@@ -122,13 +121,11 @@ const StakingButtons = ({
           style={styles.balanceActionButton}
           variant={ButtonVariant.Secondary}
           onPress={onStakePress}
-          size={ButtonSize.Md}
+          size={ButtonSize.Lg}
         >
-          <Text>
-            {hasStakedPositions
-              ? strings('stake.stake_more')
-              : strings('stake.stake')}
-          </Text>
+          {hasStakedPositions
+            ? strings('stake.stake_more')
+            : strings('stake.stake')}
         </Button>
       )}
     </View>

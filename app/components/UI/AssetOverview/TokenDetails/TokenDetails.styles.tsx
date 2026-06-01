@@ -2,9 +2,9 @@ import { StyleSheet, TextStyle } from 'react-native';
 
 const styleSheet = () =>
   StyleSheet.create({
-    tokenDetailsContainer: {
-      marginTop: 16,
-      gap: 24,
+    tokenDetailsContainer: {},
+    tokenDetailsContainerWithoutMarketDetails: {
+      paddingBottom: 24,
     },
     title: {
       paddingVertical: 8,

@@ -10,6 +10,7 @@ import { IconName } from '../../../../../component-library/components/Icons/Icon
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
+  TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import styleSheet from '../TokenDetails.styles';
@@ -65,7 +66,10 @@ const TokenDetailsList: React.FC<TokenDetailsListProps> = ({
               style={tw`flex-row items-center gap-1`}
               onPress={copyAccountToClipboard}
             >
-              <Text variant={TextVariant.BodySM}>
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                color={TextColor.Default}
+              >
                 {formatAddress(tokenDetails.contractAddress, 'short')}
               </Text>
               <Icon name={DesignSystemIconName.Copy} size={IconSize.Sm} />
@@ -82,9 +86,12 @@ const TokenDetailsList: React.FC<TokenDetailsListProps> = ({
         {tokenDetails.tokenList && (
           <TokenDetailsListItem
             label={strings('token.token_list')}
-            value={tokenDetails.tokenList}
             style={[styles.listItemStacked, styles.lastChild]}
-          />
+          >
+            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+              {tokenDetails.tokenList}
+            </Text>
+          </TokenDetailsListItem>
         )}
       </View>
     </View>

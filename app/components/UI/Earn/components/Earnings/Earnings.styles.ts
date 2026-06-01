@@ -12,9 +12,6 @@ const styleSheet = (params: { theme: Theme }) => {
       left: 15,
       right: 15,
     },
-    earningsContainer: {
-      paddingTop: 16,
-    },
     title: {
       paddingBottom: 8,
     } as TextStyle,

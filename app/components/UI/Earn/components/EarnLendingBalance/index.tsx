@@ -48,8 +48,8 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  Text as DesignSystemText,
 } from '@metamask/design-system-react-native';
+import TokenDetailsSectionDivider from '../../../AssetOverview/TokenDetails/TokenDetailsSectionDivider';
 
 export const EARN_LENDING_BALANCE_TEST_IDS = {
   RECEIPT_TOKEN_BALANCE_ASSET_LOGO: 'receipt-token-balance-asset-logo',
@@ -298,11 +298,11 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
             <Button
               variant={ButtonVariant.Secondary}
               style={styles.button}
-              size={ButtonSize.Md}
+              size={ButtonSize.Lg}
               onPress={handleNavigateToWithdrawalInputScreen}
               testID={EARN_LENDING_BALANCE_TEST_IDS.WITHDRAW_BUTTON}
             >
-              <DesignSystemText>{strings('earn.withdraw')}</DesignSystemText>
+              {strings('earn.withdraw')}
             </Button>
           )}
           {userHasUnderlyingTokensAvailableToLend &&
@@ -311,21 +311,20 @@ const EarnLendingBalance = ({ asset }: EarnLendingBalanceProps) => {
               <Button
                 variant={ButtonVariant.Secondary}
                 style={styles.button}
-                size={ButtonSize.Md}
+                size={ButtonSize.Lg}
                 onPress={handleNavigateToDepositInputScreen}
                 testID={EARN_LENDING_BALANCE_TEST_IDS.DEPOSIT_BUTTON}
               >
-                <DesignSystemText>
-                  {strings('earn.deposit_more')}
-                </DesignSystemText>
+                {strings('earn.deposit_more')}
               </Button>
             )}
         </View>
       )}
       {isAssetReceiptToken && (
-        <View style={styles.earnings}>
+        <>
+          <TokenDetailsSectionDivider />
           <Earnings asset={asset} />
-        </View>
+        </>
       )}
     </View>
   );

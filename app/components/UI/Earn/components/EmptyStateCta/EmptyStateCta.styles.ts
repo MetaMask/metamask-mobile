@@ -7,13 +7,12 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     container: {
       alignItems: 'center',
-      marginTop: 8,
       padding: 16,
       borderRadius: 12,
       backgroundColor: colors.background.section,
     },
     heading: {
-      paddingBottom: 8,
+      paddingBottom: 4,
     },
     body: {
       textAlign: 'center',

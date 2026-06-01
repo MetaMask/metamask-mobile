@@ -7,6 +7,7 @@ import {
   Text,
   TextVariant,
   TextColor,
+  FontWeight,
   Button,
   ButtonVariant,
 } from '@metamask/design-system-react-native';
@@ -53,19 +54,32 @@ const TronStakingCta = ({ asset, aprText }: TronStakingCtaProps) => {
 
   return (
     <Box
-      padding={4}
+      paddingTop={4}
+      paddingBottom={4}
+      paddingHorizontal={4}
+      marginBottom={1}
       backgroundColor={BoxBackgroundColor.BackgroundSection}
       twClassName="rounded-xl"
       testID={TronStakingCtaTestIds.CONTAINER}
     >
-      <Box alignItems={BoxAlignItems.Center} marginBottom={4} gap={1}>
-        <Text variant={TextVariant.HeadingMd} twClassName="text-center">
+      <Box alignItems={BoxAlignItems.Center} marginBottom={4}>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          twClassName="text-center"
+        >
           {strings('stake.stake_your_trx_cta.title')}
         </Text>
-        <Text twClassName="text-center">
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          twClassName="text-center"
+        >
           {strings('stake.stake_your_trx_cta.description_start')}
           {aprText ? (
-            <Text color={TextColor.SuccessDefault}>{aprText}</Text>
+            <Text variant={TextVariant.BodySm} color={TextColor.SuccessDefault}>
+              {aprText}
+            </Text>
           ) : null}
           {strings('stake.stake_your_trx_cta.description_end')}
         </Text>
