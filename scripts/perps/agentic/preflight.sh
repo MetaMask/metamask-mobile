@@ -179,6 +179,28 @@ pods_clean_stale() {
   return 1
 }
 
+# On main, yarn setup (expo) patches tsconfig.json and pod install bumps
+# Podfile.lock versions — neither change should be committed and both pollute
+# agentic diffs. Restore them to HEAD when running on main. On older branches
+# these diffs may be intentional, so we leave them alone.
+maybe_restore_main_noise() {
+  local branch
+  branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+  [ "$branch" = "main" ] || return 0
+
+  local restored=()
+  for f in tsconfig.json ios/Podfile.lock; do
+    [ -f "$f" ] || continue
+    if ! git diff --quiet HEAD -- "$f" 2>/dev/null; then
+      if git restore --source=HEAD -- "$f" 2>/dev/null || git checkout HEAD -- "$f" 2>/dev/null; then
+        restored+=("$f")
+      fi
+    fi
+  done
+  [ ${#restored[@]} -gt 0 ] && ok "Restored on main (setup noise): ${restored[*]}"
+  return 0
+}
+
 # ── Platform detection ─────────────────────────────────────────────
 detect_platform() {
   if [ -n "$FORCE_PLATFORM" ]; then echo "$FORCE_PLATFORM"; return; fi
@@ -508,6 +530,7 @@ if $DO_CLEAN; then
     pods_save_marker
   fi
   ok "yarn setup complete"
+  maybe_restore_main_noise
 fi
 
 # ══════════════════════════════════════════════════════════════════════
@@ -645,6 +668,7 @@ if [ "$PLAT" = "ios" ]; then
     if run_with_live_log "$POD_INSTALL_LOG" "$POD_CMD"; then
       pods_save_marker
       ok "pod install complete"
+      maybe_restore_main_noise
     else
       # On non-clean modes, the failure may be a missing spec → retry once with --repo-update.
       if ! $DO_CLEAN; then
@@ -654,6 +678,7 @@ if [ "$PLAT" = "ios" ]; then
         if run_with_live_log "$POD_INSTALL_LOG" "cd ios && bundle exec pod install --repo-update --ansi"; then
           pods_save_marker
           ok "pod install complete (after --repo-update retry)"
+          maybe_restore_main_noise
         else
           warn "pod install had issues — see $POD_INSTALL_LOG"
         fi
@@ -1146,6 +1171,11 @@ elif [ -n "$WALLET_PW" ]; then
   step "Unlocking wallet" "Using provided password"
   node "$SCRIPTS/cdp-bridge.js" unlock "$WALLET_PW" 2>/dev/null && ok "Wallet unlocked" || warn "Could not unlock wallet"
 fi
+
+# Final guard for main: if future setup tooling mutates these tracked
+# infrastructure files after the earlier restore points, keep the prepared
+# baseline clean without hiding intentional branch work.
+maybe_restore_main_noise
 
 # ── Done ─────────────────────────────────────────────────────────────
 if [ -n "$CURRENT_STEP_NAME" ]; then
