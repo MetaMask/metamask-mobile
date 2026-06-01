@@ -16,9 +16,15 @@ const styles = StyleSheet.create({
 });
 
 interface StepConnectorLineProps {
+  /** Optional test ID override for the connector container. */
   testID?: string;
 }
 
+/**
+ * Vertical dashed connector rendered between hardware wallet swap progress steps.
+ *
+ * Height expands to match the adjacent step content via `onLayout`.
+ */
 export const StepConnectorLine = memo(({ testID }: StepConnectorLineProps) => {
   const { colors } = useTheme();
   const [height, setHeight] = useState(CONNECTOR_MIN_HEIGHT);

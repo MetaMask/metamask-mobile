@@ -27,15 +27,28 @@ import { StepConnectorLine } from './StepConnectorLine';
 const INLINE_QR_CODE_SIZE = 240;
 
 interface StepRowProps {
+  /** Swap step state to display. */
   step: HardwareWalletsSwapsStep;
+  /** Zero-based position of this step in the progress list. */
   index: number;
+  /** Whether this is the final step; hides the connector line when true. */
   isLast: boolean;
+  /** Token amount shown in the step title. */
   amount?: string;
+  /** Token symbol shown in the step title. */
   tokenSymbol?: string;
+  /** Whether the active wallet signs via QR code scanning. */
   isQrWallet?: boolean;
+  /** Pending QR scan request shown inline while a step is signing. */
   pendingScanRequest?: QrScanRequest;
 }
 
+/**
+ * Renders a single row in the hardware wallet swap progress UI.
+ *
+ * Shows a status indicator, localized title and description, an optional
+ * connector to the next step, and an inline QR code for QR wallet signing.
+ */
 export const StepRow = memo(
   ({
     step,
