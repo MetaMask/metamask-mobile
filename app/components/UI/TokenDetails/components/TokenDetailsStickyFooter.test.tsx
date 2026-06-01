@@ -623,4 +623,134 @@ describe('TokenDetailsStickyFooter', () => {
       expect(mockOnBuy).toHaveBeenCalled();
     });
   });
+
+  describe('onSwapPress and onBuyPress callback timing', () => {
+    it('calls onSwapPress only when navigation occurs (not geo-restricted)', () => {
+      const onSwapPress = jest.fn();
+      mockIsStockToken.mockReturnValue(false);
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          onSwapPress={onSwapPress}
+        />,
+      );
+
+      fireEvent.press(getByText('Swap'));
+
+      expect(onSwapPress).toHaveBeenCalled();
+      expect(mockOnSwap).toHaveBeenCalled();
+    });
+
+    it('does not call onSwapPress when geo-restricted', () => {
+      const onSwapPress = jest.fn();
+      mockIsStockToken.mockReturnValue(true);
+      (useSelector as jest.Mock).mockReturnValue('US');
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          onSwapPress={onSwapPress}
+        />,
+      );
+
+      fireEvent.press(getByText('Swap'));
+
+      expect(onSwapPress).not.toHaveBeenCalled();
+      expect(mockOnSwap).not.toHaveBeenCalled();
+    });
+
+    it('calls onBuyPress only when navigation occurs (not geo-restricted)', () => {
+      const onBuyPress = jest.fn();
+      mockIsStockToken.mockReturnValue(false);
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter {...defaultProps} onBuyPress={onBuyPress} />,
+      );
+
+      fireEvent.press(getByText('Buy'));
+
+      expect(onBuyPress).toHaveBeenCalled();
+      expect(mockOnBuy).toHaveBeenCalled();
+    });
+
+    it('does not call onBuyPress when geo-restricted', () => {
+      const onBuyPress = jest.fn();
+      mockIsStockToken.mockReturnValue(true);
+      (useSelector as jest.Mock).mockReturnValue('GB');
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter {...defaultProps} onBuyPress={onBuyPress} />,
+      );
+
+      fireEvent.press(getByText('Buy'));
+
+      expect(onBuyPress).not.toHaveBeenCalled();
+      expect(mockOnBuy).not.toHaveBeenCalled();
+    });
+
+    it('defers onSwapPress until onProceed for security warning modal', () => {
+      const onSwapPress = jest.fn();
+      mockIsStockToken.mockReturnValue(false);
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          onSwapPress={onSwapPress}
+          securityData={
+            {
+              resultType: 'Warning',
+              features: {},
+            } as TokenSecurityData
+          }
+        />,
+      );
+
+      fireEvent.press(getByText('Swap'));
+
+      // Neither callback fires when the warning modal is shown
+      expect(onSwapPress).not.toHaveBeenCalled();
+      expect(mockOnSwap).not.toHaveBeenCalled();
+
+      // Simulate user tapping "Proceed" inside the modal
+      const navigateCall = mockNavigate.mock.calls[0];
+      const onProceed = navigateCall[1].params.onProceed;
+      onProceed();
+
+      expect(onSwapPress).toHaveBeenCalled();
+      expect(mockOnSwap).toHaveBeenCalled();
+    });
+
+    it('defers onBuyPress until onProceed for security warning modal', () => {
+      const onBuyPress = jest.fn();
+      mockIsStockToken.mockReturnValue(false);
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          onBuyPress={onBuyPress}
+          securityData={
+            {
+              resultType: 'Spam',
+              features: {},
+            } as TokenSecurityData
+          }
+        />,
+      );
+
+      fireEvent.press(getByText('Buy'));
+
+      // Neither callback fires when the warning modal is shown
+      expect(onBuyPress).not.toHaveBeenCalled();
+      expect(mockOnBuy).not.toHaveBeenCalled();
+
+      // Simulate user tapping "Proceed" inside the modal
+      const navigateCall = mockNavigate.mock.calls[0];
+      const onProceed = navigateCall[1].params.onProceed;
+      onProceed();
+
+      expect(onBuyPress).toHaveBeenCalled();
+      expect(mockOnBuy).toHaveBeenCalled();
+    });
+  });
 });
