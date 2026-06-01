@@ -12,6 +12,7 @@ import {
   buildMoneyAccountWithdrawBatch,
   getMoneyAccountDepositAssetAddress,
 } from '../utils/moneyAccountTransactions';
+import { cancelInternalTransactionApprovals } from '../utils/cancelInternalTransactionApprovals';
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
 import Logger from '../../../../util/Logger';
 import Engine from '../../../../core/Engine';
@@ -72,6 +73,8 @@ export function useMoneyAccountDeposit() {
       if (!primaryMoneyAccount?.address) {
         throw new Error(`${LOG_TAG} Missing money account address`);
       }
+
+      cancelInternalTransactionApprovals();
 
       const {
         chainId,

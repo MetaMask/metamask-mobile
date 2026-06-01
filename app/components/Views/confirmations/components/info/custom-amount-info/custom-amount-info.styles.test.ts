@@ -36,4 +36,26 @@ describe('custom-amount-info.styles', () => {
       expect(styles.extraBottomPadding.paddingBottom).toBe(0);
     });
   });
+
+  describe('compactBottomBlock', () => {
+    it('applies 24dp paddingBottom on both platforms', () => {
+      Object.defineProperty(Platform, 'OS', {
+        value: 'android',
+        writable: true,
+      });
+      expect(
+        styleSheet({ theme: mockTheme as Theme }).compactBottomBlock
+          .paddingBottom,
+      ).toBe(24);
+
+      Object.defineProperty(Platform, 'OS', {
+        value: 'ios',
+        writable: true,
+      });
+      expect(
+        styleSheet({ theme: mockTheme as Theme }).compactBottomBlock
+          .paddingBottom,
+      ).toBe(24);
+    });
+  });
 });

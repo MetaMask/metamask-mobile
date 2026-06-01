@@ -147,6 +147,17 @@ jest.mock('../../hooks/useMoneyAccount', () => ({
   })),
 }));
 
+const mockRouteAddMoney = jest.fn();
+jest.mock('../../hooks/useMoneyAccountAddRouting', () => ({
+  useMoneyAccountAddRouting: jest.fn(() => ({
+    hasMusdBalance: false,
+    convertCrypto: jest.fn(),
+    depositFunds: jest.fn(),
+    moveMusd: jest.fn(),
+    routeAddMoney: mockRouteAddMoney,
+  })),
+}));
+
 jest.mock('../../hooks/useOnboardingStep', () => ({
   useOnboardingStep: jest.fn(() => ({
     currentStep: 0,
@@ -822,6 +833,13 @@ describe('MoneyHomeView', () => {
       expect(getByTestId(MoneyActivityListTestIds.CONTAINER)).toBeOnTheScreen();
     });
 
+    it('hides the Activity View all button with 5 or fewer transactions', () => {
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(
+        queryByTestId(MoneyActivityListTestIds.VIEW_ALL_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+
     it('renders condensed info cards', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(
@@ -1024,18 +1042,16 @@ describe('MoneyHomeView', () => {
       expect(getByTestId(MoneyWhatYouGetTestIds.CONTAINER)).toBeOnTheScreen();
     });
 
-    it.each([['mUSD row Add', MoneyMusdTokenRowTestIds.ADD_BUTTON]])(
-      'opens the Add money sheet from the %s button',
-      (_label, testId) => {
-        const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+    it('routes directly via useMoneyAccountAddRouting when the mUSD row Add button is pressed', () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
-        fireEvent.press(getByTestId(testId));
+      fireEvent.press(getByTestId(MoneyMusdTokenRowTestIds.ADD_BUTTON));
 
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-          screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
-        });
-      },
-    );
+      expect(mockRouteAddMoney).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+      });
+    });
 
     it('navigates to Asset details when the mUSD token row is pressed', () => {
       const NavigationService = jest.requireMock(

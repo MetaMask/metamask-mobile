@@ -24,6 +24,10 @@ const styleSheet = (params: { theme: Theme }) => {
         Platform.OS === 'android' ? EXTRA_ANDROID_BOTTOM_PADDING : 0,
     },
 
+    compactBottomBlock: {
+      paddingBottom: 24,
+    },
+
     disabledButton: {
       opacity: 0.5,
     },

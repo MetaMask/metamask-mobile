@@ -16,6 +16,7 @@ import {
   clearMoneyAccountDepositIntent,
   getMoneyAccountDepositIntent,
 } from './useMoneyAccount';
+import { getMemoizedInternalAccountByAddress } from '../../../../selectors/accountsController';
 
 jest.mock('./useMoneyAccount', () => ({
   __esModule: true,
@@ -48,6 +49,12 @@ jest.mock('../../../../selectors/currencyRateController', () => ({
 jest.mock('../../../../selectors/networkController', () => ({
   ...jest.requireActual('../../../../selectors/networkController'),
   selectNetworkConfigurations: jest.fn(() => undefined),
+}));
+jest.mock('../../../../selectors/accountsController', () => ({
+  ...jest.requireActual('../../../../selectors/accountsController'),
+  getMemoizedInternalAccountByAddress: jest.fn(() => ({
+    metadata: { name: 'Account 1' },
+  })),
 }));
 jest.mock('../../../../util/theme', () => ({
   useAppThemeFromContext: jest.fn(() => ({
@@ -113,6 +120,18 @@ const encodeWithdrawData = (amountWei: bigint) =>
     amountWei.toString(),
     '0',
     '0x0000000000000000000000000000000000000000',
+  ]);
+
+const ERC20_TRANSFER_INTERFACE = new ethers.utils.Interface([
+  'function transfer(address to, uint256 amount)',
+]);
+
+const RECIPIENT_ADDRESS = '0x1111111111111111111111111111111111111111';
+
+const encodeTransferData = (recipient: string, amountWei: bigint = BigInt(0)) =>
+  ERC20_TRANSFER_INTERFACE.encodeFunctionData('transfer', [
+    recipient,
+    amountWei.toString(),
   ]);
 
 const buildTxMeta = (overrides: Partial<TransactionMeta>): TransactionMeta =>
@@ -493,7 +512,7 @@ describe('useMoneyTransactionStatus', () => {
       expect(depositInProgressFn).not.toHaveBeenCalled();
     });
 
-    it('confirmed → success toast with destination and decoded amount', () => {
+    it('confirmed → success toast resolves destination from the nested transfer recipient', () => {
       const { confirmedHandler } = renderAndGetHandlers();
 
       confirmedHandler(
@@ -504,13 +523,102 @@ describe('useMoneyTransactionStatus', () => {
             from: '0x0',
             data: encodeWithdrawData(BigInt(50_000_000)),
           },
-        }),
+          nestedTransactions: [
+            {
+              type: TransactionType.tokenMethodTransfer,
+              data: encodeTransferData(RECIPIENT_ADDRESS),
+            },
+          ],
+        } as unknown as Partial<TransactionMeta>),
       );
 
       expect(withdrawSuccessFn).toHaveBeenCalledTimes(1);
       const params = withdrawSuccessFn.mock.calls[0][0];
       expect(params.amountFiat).toContain('50.00');
-      expect(params.destination).toBeDefined();
+      expect(params.destination).toBe('Account 1');
+      expect(getMemoizedInternalAccountByAddress).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.stringMatching(/^0x1111/i),
+      );
+    });
+
+    it('falls back to a shortened address when the recipient is not an internal account', () => {
+      jest
+        .mocked(getMemoizedInternalAccountByAddress)
+        .mockReturnValueOnce(undefined);
+
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          type: TransactionType.moneyAccountWithdraw,
+          status: TransactionStatus.confirmed,
+          txParams: {
+            from: '0x0',
+            data: encodeWithdrawData(BigInt(10_000_000)),
+          },
+          nestedTransactions: [
+            {
+              type: TransactionType.tokenMethodTransfer,
+              data: encodeTransferData(RECIPIENT_ADDRESS),
+            },
+          ],
+        } as unknown as Partial<TransactionMeta>),
+      );
+
+      expect(withdrawSuccessFn).toHaveBeenCalledTimes(1);
+      const destination = withdrawSuccessFn.mock.calls[0][0].destination ?? '';
+      expect(destination).toMatch(/^0x[0-9a-fA-F]+\.{3}[0-9a-fA-F]+$/);
+    });
+
+    it('falls back to "your account" when the recipient is an internal account with a blank name', () => {
+      jest.mocked(getMemoizedInternalAccountByAddress).mockReturnValueOnce({
+        metadata: { name: '   ' },
+      } as unknown as ReturnType<typeof getMemoizedInternalAccountByAddress>);
+
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          type: TransactionType.moneyAccountWithdraw,
+          status: TransactionStatus.confirmed,
+          txParams: {
+            from: '0x0',
+            data: encodeWithdrawData(BigInt(10_000_000)),
+          },
+          nestedTransactions: [
+            {
+              type: TransactionType.tokenMethodTransfer,
+              data: encodeTransferData(RECIPIENT_ADDRESS),
+            },
+          ],
+        } as unknown as Partial<TransactionMeta>),
+      );
+
+      expect(withdrawSuccessFn).toHaveBeenCalledTimes(1);
+      expect(withdrawSuccessFn.mock.calls[0][0].destination).toBe(
+        'your account',
+      );
+    });
+
+    it('falls back to "your account" when the nested transfer tx is absent', () => {
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          type: TransactionType.moneyAccountWithdraw,
+          status: TransactionStatus.confirmed,
+          txParams: {
+            from: '0x0',
+            data: encodeWithdrawData(BigInt(1_000_000)),
+          },
+        }),
+      );
+
+      expect(withdrawSuccessFn).toHaveBeenCalledTimes(1);
+      expect(withdrawSuccessFn.mock.calls[0][0].destination).toBe(
+        'your account',
+      );
     });
 
     it('failed → withdraw failed toast', () => {

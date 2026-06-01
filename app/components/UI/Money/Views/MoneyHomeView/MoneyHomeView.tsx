@@ -29,6 +29,7 @@ import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
+import { useMoneyAccountAddRouting } from '../../hooks/useMoneyAccountAddRouting';
 import { useOnboardingStep, STEPPER_IDS } from '../../hooks/useOnboardingStep';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
@@ -95,6 +96,7 @@ const MoneyHomeView = () => {
 
   const { tokens: conversionTokens } = useMusdConversionTokens();
   const { initiateCustomConversion } = useMusdConversion();
+  const { routeAddMoney } = useMoneyAccountAddRouting();
   const { allTransactions, moneyAddress, mockDataEnabled } =
     useMoneyAccountTransactions();
 
@@ -171,6 +173,10 @@ const MoneyHomeView = () => {
       screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
     });
   }, [navigation]);
+
+  const handleMusdRowAddPress = useCallback(() => {
+    routeAddMoney();
+  }, [routeAddMoney]);
 
   const handleTransferPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
@@ -331,7 +337,7 @@ const MoneyHomeView = () => {
             />
             <MoneyMusdTokenRow
               onPress={handleMusdRowPress}
-              onAddPress={handleAddPress}
+              onAddPress={handleMusdRowAddPress}
               balance={musdFiatFormatted}
             />
             <Divider />
@@ -342,11 +348,7 @@ const MoneyHomeView = () => {
             <MoneyActivityList
               transactions={allTransactions}
               moneyAddress={moneyAddress}
-              onViewAllPress={
-                allTransactions.length < 5
-                  ? undefined
-                  : handleViewAllActivityPress
-              }
+              onViewAllPress={handleViewAllActivityPress}
               onHeaderPress={handleActivityHeaderPress}
               onItemPress={
                 mockDataEnabled ? undefined : handleActivityItemPress

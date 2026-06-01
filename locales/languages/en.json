@@ -6913,6 +6913,7 @@
       "deposit_funds": "Deposit funds",
       "deposit_funds_description": "From debit card or bank",
       "move_musd": "Add your {{amount}} mUSD",
+      "add_musd": "Add mUSD",
       "move_musd_description": "From your balance",
       "receive_external": "Receive from external wallet",
       "coming_soon": "Coming soon"
@@ -6941,8 +6942,11 @@
       "deposit_success_title_add_musd": "Funds added",
       "deposit_success_body": "{{amount}} added to Money account.",
       "deposit_success_body_no_amount": "Added to Money account.",
-      "withdraw_success_body": "{{amount}} moved to {{destination}}.",
-      "withdraw_success_body_no_amount": "Moved to {{destination}}.",
+      "withdraw_in_progress_title": "Transfer in progress",
+      "withdraw_success_title": "Transfer complete",
+      "withdraw_success_body": "{{amount}} added to {{destination}}.",
+      "withdraw_success_body_no_amount": "Added to {{destination}}.",
+      "withdraw_fallback_destination": "your account",
       "deposit_failed_title_convert": "Conversion failed",
       "deposit_failed_title_add_musd": "Failed to add funds",
       "deposit_failed_body_convert": "Unable to convert. Try again.",
@@ -7379,8 +7383,11 @@
       "musd_conversion": {
         "transaction_fee": "mUSD conversion fees include network costs and may include provider fees. No MetaMask fee applies when you convert to mUSD."
       },
+      "money_account_deposit": {
+        "transaction_fee": "Conversion fees include network costs and may include provider fees."
+      },
       "money_account_withdraw": {
-        "transaction_fee": "MetaMask will swap your mUSD for your desired token. Swap providers may charge a fee, but MetaMask won't."
+        "transaction_fee": "Conversion fees include network costs and may include provider fees."
       },
       "title": {
         "transaction_fee": "Fees"
@@ -7468,7 +7475,8 @@
       "buy_button": "Buy crypto",
       "buy_predict": "Add funds to your wallet to use Predictions.",
       "buy_perps": "Add funds to your wallet to use Perps.",
-      "projected_balance": "Projected {{projectedYears}}-year balance:"
+      "projected_balance": "Projected {{projectedYears}}-year balance:",
+      "earn_up_to_apy": "Earn up to {{percentage}}% APY"
     },
     "unlimited": "Unlimited",
     "all": "All",

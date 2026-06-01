@@ -382,6 +382,32 @@ describe('CustomAmountInfo', () => {
     });
   });
 
+  describe('compactSpacing', () => {
+    it('applies 24dp paddingBottom to the bottom block when compactSpacing is true', () => {
+      const { getByTestId } = render({ compactSpacing: true });
+
+      expect(getByTestId(CustomAmountInfoTestIds.BOTTOM_BLOCK)).toHaveStyle({
+        paddingBottom: 24,
+      });
+    });
+
+    it('does not apply compact paddingBottom to the bottom block when compactSpacing is false', () => {
+      const { getByTestId } = render({ compactSpacing: false });
+
+      expect(getByTestId(CustomAmountInfoTestIds.BOTTOM_BLOCK)).not.toHaveStyle(
+        { paddingBottom: 24 },
+      );
+    });
+
+    it('does not apply compact paddingBottom to the bottom block by default', () => {
+      const { getByTestId } = render();
+
+      expect(getByTestId(CustomAmountInfoTestIds.BOTTOM_BLOCK)).not.toHaveStyle(
+        { paddingBottom: 24 },
+      );
+    });
+  });
+
   it('renders footerText when passed in', () => {
     const hint = 'Test footer text';
     const { getByText } = render({ footerText: hint });

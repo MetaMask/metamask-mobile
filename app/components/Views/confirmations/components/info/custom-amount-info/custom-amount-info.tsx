@@ -102,12 +102,19 @@ export interface CustomAmountInfoProps {
    * balance line and otherwise clips behind the system gesture bar.
    */
   hasExtraBottomPadding?: boolean;
+  /**
+   * When true, adds a compact bottom padding to the bottom block so the
+   * Total row clears the footer button without the wide gap that the
+   * default centered layout produces on tall devices.
+   */
+  compactSpacing?: boolean;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
   ({
     autoSelectFiatPayment,
     children,
+    compactSpacing,
     currency,
     disableConfirm,
     disablePay,
@@ -245,7 +252,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         <Box
           gap={16}
           testID={CustomAmountInfoTestIds.BOTTOM_BLOCK}
-          style={hasExtraBottomPadding && styles.extraBottomPadding}
+          style={[
+            hasExtraBottomPadding && styles.extraBottomPadding,
+            compactSpacing && styles.compactBottomBlock,
+          ]}
         >
           <AlertMessage alertMessage={alertMessage ?? headlessBuyError} />
           {!isResultReady && (
