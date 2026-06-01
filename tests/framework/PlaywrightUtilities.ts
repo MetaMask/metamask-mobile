@@ -13,7 +13,7 @@ import Utilities from './Utilities';
 import { ACCOUNT_ACTIVITY_WS } from '../websocket/constants.ts';
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { execSync } from 'child_process';
-import type { CurrentDeviceDetails } from './fixture';
+import type { CurrentDeviceDetails } from './fixtures/playwright';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires, import-x/no-commonjs, @typescript-eslint/no-require-imports
 const deviceMatrix: DeviceMatrix = require('../performance/device-matrix.json');

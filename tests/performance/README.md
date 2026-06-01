@@ -32,8 +32,11 @@ tests/
 ├── tags.performance.js              # Performance test tags for filtering
 ├── teams-config.js                  # Team/Slack mapping for notifications
 ├── framework/
-│   ├── fixture/
-│   │   └── index.ts                 # Custom Playwright fixture with performance tracking
+│   ├── fixtures/
+│   │   ├── FixtureBuilder.ts        # Detox E2E app state (withFixtures)
+│   │   └── playwright/              # Playwright test.extend (performance tests)
+│   │       ├── index.ts             # import `test` from fixtures/playwright
+│   │       └── *.fixture.ts         # currentDeviceDetails, deviceProvider, driver, performanceTracker
 │   ├── quality-gates/
 │   │   ├── types.ts                 # Shared type definitions for quality gates
 │   │   ├── QualityGateError.ts      # Custom error class for threshold failures
@@ -408,7 +411,7 @@ The `PerformanceTracker` is provided as a fixture and handles:
 - BrowserStack video URL resolution
 
 ```typescript
-import { test as perfTest } from '../../framework/fixture';
+import { test as perfTest } from '../../framework/fixtures/playwright';
 
 perfTest(
   'My test',
@@ -721,7 +724,7 @@ The aggregated HTML report (`performance-report.html`) includes:
 1. **Import `test` from the framework fixture**:
 
    ```typescript
-   import { test as perfTest } from '../../framework/fixture';
+   import { test as perfTest } from '../../framework/fixtures/playwright';
    ```
 
 2. **Use `currentDeviceDetails.platform` as the `TimerHelper` third argument**:
@@ -774,7 +777,7 @@ The aggregated HTML report (`performance-report.html`) includes:
 ### Test Structure Example
 
 ```typescript
-import { test as perfTest } from '../../framework/fixture';
+import { test as perfTest } from '../../framework/fixtures/playwright';
 import TimerHelper from '../../framework/TimerHelper';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
 import { asPlaywrightElement, PlaywrightAssertions } from '../../framework';
@@ -878,7 +881,7 @@ perfTest.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => {
 ## Additional Resources
 
 - [MetaMask Mobile E2E Documentation](../../docs/readme/e2e-testing.md)
-- [Performance Test Fixtures](../framework/fixture/)
+- [Performance Test Fixtures](../framework/fixtures/playwright/)
 - [Page Objects](../page-objects/)
 - [Flow Utilities](../flows/wallet.flow.ts)
 

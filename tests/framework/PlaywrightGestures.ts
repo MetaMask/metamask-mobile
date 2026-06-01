@@ -1,5 +1,5 @@
 import { getWindowSize } from './DeviceInfoCache.ts';
-import { CurrentDeviceDetails } from './fixture';
+import { CurrentDeviceDetails } from './fixtures/playwright';
 import { PlatformDetector } from './PlatformLocator';
 import { PlaywrightElement } from './PlaywrightAdapter';
 import { boxedStep, getDriver } from './PlaywrightUtilities';

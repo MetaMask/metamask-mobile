@@ -1,4 +1,4 @@
-import { test as perfTest } from '../../framework/fixture';
+import { test as perfTest } from '../../framework/fixtures/playwright';
 import TimerHelper from '../../framework/TimerHelper';
 import UniswapDapp from '../../page-objects/MMConnect/UniswapDapp';
 import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal';

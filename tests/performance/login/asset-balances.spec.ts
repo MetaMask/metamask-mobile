@@ -1,4 +1,4 @@
-import { test } from '../../framework/fixture/index';
+import { test } from '../../framework/fixtures/playwright';
 
 import TimerHelper from '../../framework/TimerHelper';
 

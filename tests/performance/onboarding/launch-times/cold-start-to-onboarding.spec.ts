@@ -1,4 +1,4 @@
-import { test } from '../../../framework/fixture';
+import { test } from '../../../framework/fixtures/playwright';
 import TimerHelper from '../../../framework/TimerHelper.js';
 import {
   Performance,
