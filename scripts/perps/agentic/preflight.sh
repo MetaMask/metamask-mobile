@@ -218,6 +218,22 @@ maybe_restore_main_noise() {
   return 0
 }
 
+maybe_store_ios_source_cache_alias() {
+  local source_fp="$1" materialized_fp="$2" artifact_path="$3"
+  [ -n "$source_fp" ] || return 0
+  [ -n "$materialized_fp" ] || return 0
+  [ "$source_fp" != "$materialized_fp" ] || return 0
+  [ -e "$artifact_path" ] || return 0
+  if bc_has_artifact ios "$source_fp"; then
+    return 0
+  fi
+  if bc_with_lock ios "$source_fp" bc_store_artifact ios "$source_fp" "$artifact_path"; then
+    ok "Stored build in shared cache: fp=${source_fp:0:12} (source alias for ${materialized_fp:0:12})"
+  else
+    warn "Could not store source-fingerprint cache alias ${source_fp:0:12} for ${materialized_fp:0:12}"
+  fi
+}
+
 # ── Platform detection ─────────────────────────────────────────────
 detect_platform() {
   if [ -n "$FORCE_PLATFORM" ]; then echo "$FORCE_PLATFORM"; return; fi
@@ -588,12 +604,14 @@ if [ "$PLAT" = "ios" ]; then
   step "Checking app" "Looking for $BUNDLE_ID on simulator"
   APP_INSTALLED=$(xcrun simctl listapps "$SIM_TARGET" 2>/dev/null | grep -c "$BUNDLE_ID" || true)
   BC_LOCK_HELD=false  # set to true once we own the per-fingerprint build lock
+  IOS_SOURCE_FP=""
 
   # Cache validation runs in every mode except `clean` / `rebuild-native`,
   # which intentionally bypass the cache. This is a deliberate behaviour
   # change vs origin/main: default mode now opts into fingerprint-gated reuse.
   if $BUILD_CACHE_ENABLED && [ "$MODE" != "clean" ] && [ "$MODE" != "rebuild-native" ]; then
     FP=$(bc_fingerprint 2>/dev/null || true)
+    IOS_SOURCE_FP="$FP"
     if [ -n "$FP" ]; then
       INSTALLED_FP=$(bc_installed_fp ios)
       INSTALLED_TGT=$(bc_installed_target ios)
@@ -724,7 +742,12 @@ if [ "$PLAT" = "ios" ]; then
             echo -e "  ${GREEN}Cache hit after pod install:${NC} fp=${FP:0:12} — installing from shared cache"
             IOS_ARTIFACT=$(bc_artifact_path ios "$FP")
             if xcrun simctl install "$SIM_TARGET" "$IOS_ARTIFACT"; then
-              bc_record_install ios "$FP" "$SIM_TARGET"
+              if [ -n "$IOS_SOURCE_FP" ] && [ "$IOS_SOURCE_FP" != "$FP" ]; then
+                maybe_store_ios_source_cache_alias "$IOS_SOURCE_FP" "$FP" "$IOS_ARTIFACT"
+                bc_record_install ios "$IOS_SOURCE_FP" "$SIM_TARGET"
+              else
+                bc_record_install ios "$FP" "$SIM_TARGET"
+              fi
               APP_INSTALLED=1
               ok "Installed from cache: $IOS_ARTIFACT"
               bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
@@ -896,7 +919,12 @@ if [ "$PLAT" = "ios" ]; then
         if $BC_LOCK_HELD; then
           if bc_store_artifact ios "$FP" "$APP_PATH"; then
             ok "Stored build in shared cache: fp=${FP:0:12}"
-            bc_record_install ios "$FP" "$SIM_TARGET"
+            maybe_store_ios_source_cache_alias "$IOS_SOURCE_FP" "$FP" "$APP_PATH"
+            if [ -n "$IOS_SOURCE_FP" ] && [ "$IOS_SOURCE_FP" != "$FP" ]; then
+              bc_record_install ios "$IOS_SOURCE_FP" "$SIM_TARGET"
+            else
+              bc_record_install ios "$FP" "$SIM_TARGET"
+            fi
             bc_prune ios "${BUILD_CACHE_RETAIN:-5}" 2>/dev/null || true
           else
             warn "Failed to store build in cache"
@@ -905,7 +933,12 @@ if [ "$PLAT" = "ios" ]; then
         else
           if bc_with_lock ios "$FP" bc_store_artifact ios "$FP" "$APP_PATH"; then
             ok "Stored build in shared cache: fp=${FP:0:12}"
-            bc_record_install ios "$FP" "$SIM_TARGET"
+            maybe_store_ios_source_cache_alias "$IOS_SOURCE_FP" "$FP" "$APP_PATH"
+            if [ -n "$IOS_SOURCE_FP" ] && [ "$IOS_SOURCE_FP" != "$FP" ]; then
+              bc_record_install ios "$IOS_SOURCE_FP" "$SIM_TARGET"
+            else
+              bc_record_install ios "$FP" "$SIM_TARGET"
+            fi
             bc_prune ios "${BUILD_CACHE_RETAIN:-5}" 2>/dev/null || true
           else
             warn "Could not store build in cache (lock timeout?)"
