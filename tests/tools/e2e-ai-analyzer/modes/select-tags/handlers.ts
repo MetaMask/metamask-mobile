@@ -547,20 +547,37 @@ export function detectDirectPerformanceChanges(
 
   // Case 1: spec file changes — extract their specific tags
   if (changedSpecFiles.length > 0) {
+    const unreadableFiles: string[] = [];
     for (const specFile of changedSpecFiles) {
       try {
         const content = readFileSync(path.join(baseDir, specFile), 'utf-8');
         const fileTags = extractTagsFromSpecContent(content).filter((t) =>
           allPerfTags.includes(t),
         );
-        selectedTags.push(...fileTags);
+        if (fileTags.length > 0) {
+          selectedTags.push(...fileTags);
+        } else {
+          // File readable but no tags found (e.g. deleted spec, or unusual format);
+          // run all perf tags to be safe
+          unreadableFiles.push(specFile);
+        }
       } catch {
-        // File may not be accessible locally (e.g. deleted); skip silently
+        // File not accessible (e.g. deleted); run all perf tags conservatively
+        unreadableFiles.push(specFile);
       }
     }
-    if (selectedTags.length > 0) {
+    if (unreadableFiles.length > 0) {
+      selectedTags.push(...allPerfTags);
       reasons.push(
-        `Changed spec files: ${changedSpecFiles.map((f) => path.basename(f)).join(', ')}`,
+        `Changed spec files (unreadable/deleted, running all): ${unreadableFiles.map((f) => path.basename(f)).join(', ')}`,
+      );
+    }
+    const readableChanged = changedSpecFiles.filter(
+      (f) => !unreadableFiles.includes(f),
+    );
+    if (readableChanged.length > 0 && selectedTags.length > 0) {
+      reasons.push(
+        `Changed spec files: ${readableChanged.map((f) => path.basename(f)).join(', ')}`,
       );
     }
   }

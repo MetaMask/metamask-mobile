@@ -52,12 +52,8 @@ Performance tests measure app responsiveness and render times. Select performanc
 - Account/network list components (AccountSelector, NetworkSelector, related hooks)
 - Critical user flows (login, balance loading, swap flows, send flows)
 - App startup and initialization (Engine, background services, navigation)
-
-IMPORTANT — deterministic rules applied AFTER AI (do not duplicate):
-- Changed tests/performance/*.spec.ts → the CI pipeline automatically detects and adds those files' tags. You do NOT need to select them.
-- Changed tests/performance/ infrastructure (non-spec) or tests/framework/ utilities → all performance tags are added conservatively. You do NOT need to select them.
-
-Focus your performance tag selection exclusively on APP code changes (outside tests/) that could degrade user-visible performance metrics. If only test/framework code changed and no app code changed, select no performance tags.`;
+Be generous: when app code changes touch components or flows that performance tests exercise, select the relevant tags. Err on the side of running more performance tests rather than fewer — a missed regression is worse than an extra test run.
+Note: changes that ONLY modify tests/performance/ or tests/framework/ files (no app code changed) do NOT require performance tests from you — those are handled separately by the CI pipeline.`;
 
   const prompt = [
     role,
