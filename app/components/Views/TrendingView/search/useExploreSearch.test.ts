@@ -323,7 +323,7 @@ describe('useExploreSearch', () => {
   });
 
   describe('sections without pagination fields', () => {
-    it.each(['perps', 'stocks', 'sites'] as const)(
+    it.each(['perps', 'sites'] as const)(
       '%s section does not carry fetchMore or hasMore',
       (feedId) => {
         const { result } = renderExploreSearch();
@@ -348,7 +348,7 @@ describe('useExploreSearch', () => {
         totalCount: 12,
       });
 
-      const { result } = renderV2('appl');
+      const { result } = renderExploreSearch('appl');
       const stocksSection = result.current.sections.find(
         (s) => s.feedId === 'stocks',
       );
