@@ -13,8 +13,17 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - name: Get access token
-        id: get-token
+      - name: Get planning token
+        id: planning-token
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          target-repository: MetaMask/metamask-planning
+          permissions: |
+            contents: read
+
+      - name: Get label token
+        id: label-token
         uses: MetaMask/github-tools/.github/actions/get-token@v1
         with:
           token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
@@ -25,4 +34,5 @@ jobs:
       - name: Add team label
         uses: MetaMask/github-tools/.github/actions/add-team-label@v1
         with:
-          team-label-token: ${{ steps.get-token.outputs.token }}
+          planning-token: ${{ steps.planning-token.outputs.token }}
+          team-label-token: ${{ steps.label-token.outputs.token }}
