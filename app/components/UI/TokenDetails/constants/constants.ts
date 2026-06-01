@@ -49,6 +49,18 @@ export const isExploreTokenDetailsSource = (
 ): boolean => Boolean(source && EXPLORE_TOKEN_DETAILS_SOURCES.has(source));
 
 /**
+ * Action types for "Token Details Action Tapped" event
+ */
+export enum TokenDetailsAction {
+  Send = 'send',
+  Receive = 'receive',
+  MoreOpened = 'more_opened',
+  RemoveToken = 'remove_token',
+  ViewOnExplorer = 'view_on_explorer',
+  CopyTokenAddress = 'copy_token_address',
+}
+
+/**
  * Extended route params for Token Details page
  * Includes source tracking for analytics
  */
