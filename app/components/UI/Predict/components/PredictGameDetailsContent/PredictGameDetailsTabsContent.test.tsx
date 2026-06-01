@@ -11,24 +11,6 @@ import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsConte
 import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import type { PredictMarketDetailsTabKey } from '../../Predict.testIds';
 
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ navigate: jest.fn() }),
-}));
-
-jest.mock('../../hooks/usePredictActionGuard', () => ({
-  usePredictActionGuard: () => ({
-    executeGuardedAction: (action: () => void) => action(),
-    isEligible: true,
-  }),
-}));
-
-const mockNavigateToBuyPreview = jest.fn();
-jest.mock('../../hooks/usePredictNavigation', () => ({
-  usePredictNavigation: () => ({
-    navigateToBuyPreview: mockNavigateToBuyPreview,
-  }),
-}));
-
 jest.mock('./PredictGameOutcomesTab', () => {
   const { View, Pressable, Text } = jest.requireActual('react-native');
   const { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS: IDS } = jest.requireActual(
@@ -148,6 +130,8 @@ const positionsTabs: { label: string; key: PredictMarketDetailsTabKey }[] = [
 ];
 
 describe('PredictGameDetailsTabs', () => {
+  const mockOnBetPress = jest.fn();
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -167,6 +151,7 @@ describe('PredictGameDetailsTabs', () => {
           claimablePositions={[]}
           groupMap={emptyGroupMap}
           activeChipKey=""
+          onBetPress={mockOnBetPress}
         />,
       );
 
@@ -187,6 +172,7 @@ describe('PredictGameDetailsTabs', () => {
           claimablePositions={[]}
           groupMap={emptyGroupMap}
           activeChipKey=""
+          onBetPress={mockOnBetPress}
         />,
       );
 
@@ -207,6 +193,7 @@ describe('PredictGameDetailsTabs', () => {
           claimablePositions={[]}
           groupMap={emptyGroupMap}
           activeChipKey=""
+          onBetPress={mockOnBetPress}
         />,
       );
 
@@ -232,6 +219,7 @@ describe('PredictGameDetailsTabs', () => {
           claimablePositions={[]}
           groupMap={emptyGroupMap}
           activeChipKey=""
+          onBetPress={mockOnBetPress}
         />,
       );
 
@@ -256,6 +244,7 @@ describe('PredictGameDetailsTabs', () => {
           claimablePositions={[]}
           groupMap={emptyGroupMap}
           activeChipKey=""
+          onBetPress={mockOnBetPress}
         />,
       );
 
@@ -278,6 +267,7 @@ describe('PredictGameDetailsTabs', () => {
           claimablePositions={[]}
           groupMap={emptyGroupMap}
           activeChipKey=""
+          onBetPress={mockOnBetPress}
         />,
       );
 
@@ -300,6 +290,7 @@ describe('PredictGameDetailsTabs', () => {
           claimablePositions={[]}
           groupMap={emptyGroupMap}
           activeChipKey=""
+          onBetPress={mockOnBetPress}
         />,
       );
 
@@ -308,7 +299,7 @@ describe('PredictGameDetailsTabs', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('calls navigateToBuyPreview when buy button is pressed', () => {
+    it('calls onBetPress when buy button is pressed', () => {
       const market = createMockMarket();
 
       const { getByTestId } = render(
@@ -322,18 +313,16 @@ describe('PredictGameDetailsTabs', () => {
           claimablePositions={[]}
           groupMap={emptyGroupMap}
           activeChipKey=""
+          onBetPress={mockOnBetPress}
         />,
       );
 
       fireEvent.press(getByTestId('mock-buy-button'));
 
-      expect(mockNavigateToBuyPreview).toHaveBeenCalledWith(
-        expect.objectContaining({
-          market,
-          outcome: { id: 'outcome-1', title: 'Test' },
-          outcomeToken: { id: 'token-1', title: 'Yes' },
-        }),
-      );
+      expect(mockOnBetPress).toHaveBeenCalledWith({
+        id: 'token-1',
+        title: 'Yes',
+      });
     });
   });
 
@@ -352,6 +341,7 @@ describe('PredictGameDetailsTabs', () => {
           claimablePositions={[]}
           groupMap={emptyGroupMap}
           activeChipKey=""
+          onBetPress={mockOnBetPress}
         />,
       );
 
@@ -381,6 +371,7 @@ describe('PredictGameDetailsTabs', () => {
           claimablePositions={[]}
           groupMap={emptyGroupMap}
           activeChipKey=""
+          onBetPress={mockOnBetPress}
         />,
       );
 
@@ -403,6 +394,7 @@ describe('PredictGameDetailsTabs', () => {
           claimablePositions={[]}
           groupMap={emptyGroupMap}
           activeChipKey=""
+          onBetPress={mockOnBetPress}
         />,
       );
 
@@ -428,6 +420,7 @@ describe('PredictGameDetailsTabs', () => {
           claimablePositions={[]}
           groupMap={emptyGroupMap}
           activeChipKey=""
+          onBetPress={mockOnBetPress}
         />,
       );
 

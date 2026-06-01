@@ -60,6 +60,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   AccountType,
   getSocialAccountType,
+  ONBOARDING_SUCCESS_FLOW,
 } from '../../../constants/onboarding';
 import type {
   IMetaMetricsEvent,
@@ -248,6 +249,10 @@ const ChoosePassword = () => {
     const canSubmit = getOauth2LoginSuccess()
       ? passwordsMatch
       : passwordsMatch && isSelected;
+    const oauthProvider = route.params?.provider;
+    const socialAccountType = oauthProvider
+      ? getSocialAccountType(oauthProvider, false)
+      : undefined;
 
     if (loading) return { valid: false, shouldTrack: false };
 
@@ -261,6 +266,7 @@ const ChoosePassword = () => {
         track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
           wallet_setup_type: 'import',
           error_type: strings('choose_password.password_dont_match'),
+          ...(socialAccountType && { account_type: socialAccountType }),
         });
       }
       return { valid: false, shouldTrack: false };
@@ -270,6 +276,7 @@ const ChoosePassword = () => {
       track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
         wallet_setup_type: 'import',
         error_type: strings('choose_password.password_length_error'),
+        ...(socialAccountType && { account_type: socialAccountType }),
       });
       return { valid: false, shouldTrack: false };
     }
@@ -281,6 +288,7 @@ const ChoosePassword = () => {
     loading,
     isSelected,
     getOauth2LoginSuccess,
+    route.params?.provider,
     track,
   ]);
 
@@ -355,7 +363,9 @@ const ChoosePassword = () => {
           routes: [
             {
               name: Routes.ONBOARDING.SUCCESS,
-              params: { showPasswordHint: true },
+              params: {
+                successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
+              },
             },
           ],
         });
@@ -397,9 +407,15 @@ const ChoosePassword = () => {
       dispatch(setLockTimeAction(-1));
       setLoading(false);
 
+      const oauthProvider = route.params?.provider;
+      const socialAccountType = oauthProvider
+        ? getSocialAccountType(oauthProvider, false)
+        : undefined;
+
       track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
         wallet_setup_type: 'new',
         error_type: caughtError.toString(),
+        ...(socialAccountType && { account_type: socialAccountType }),
       });
 
       const onboardingTraceCtx = route.params?.onboardingTraceCtx;
@@ -430,6 +446,7 @@ const ChoosePassword = () => {
             params: {
               metricsEnabled,
               error: caughtError,
+              ...(socialAccountType && { accountType: socialAccountType }),
             },
           },
         ],

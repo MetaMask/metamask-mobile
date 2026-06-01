@@ -2,7 +2,6 @@
 import * as remoteFeatureFlagModule from '../../../../util/remoteFeatureFlag';
 import {
   selectMoneyActivityMockDataEnabledFlag,
-  selectMoneyHomeScreenEnabledFlag,
   selectMoneyEnableMoneyAccountFlag,
   selectMoneyHubEnabledFlag,
 } from './featureFlags';
@@ -37,65 +36,6 @@ const createState = (remoteFeatureFlags: Record<string, unknown> = {}) => ({
       },
     },
   },
-});
-
-describe('selectMoneyHomeScreenEnabledFlag', () => {
-  const originalEnv = process.env;
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-    process.env = { ...originalEnv };
-  });
-
-  afterEach(() => {
-    process.env = originalEnv;
-  });
-
-  it('returns true when remote flag is enabled and version requirement is met', () => {
-    mockedValidate.mockReturnValue(true);
-
-    const state = createState({
-      moneyHomeScreenEnabled: { enabled: true, minimumVersion: '1.0.0' },
-    });
-
-    const result = selectMoneyHomeScreenEnabledFlag(state as never);
-
-    expect(result).toBe(true);
-  });
-
-  it('returns false when remote flag is disabled', () => {
-    mockedValidate.mockReturnValue(false);
-
-    const state = createState({
-      moneyHomeScreenEnabled: { enabled: false, minimumVersion: '1.0.0' },
-    });
-
-    const result = selectMoneyHomeScreenEnabledFlag(state as never);
-
-    expect(result).toBe(false);
-  });
-
-  it('falls back to local env var when remote flag returns undefined', () => {
-    mockedValidate.mockReturnValue(undefined);
-    process.env.MM_MONEY_HOME_SCREEN_ENABLED = 'true';
-
-    const state = createState({ _unique: 'fallback-true' });
-
-    const result = selectMoneyHomeScreenEnabledFlag(state as never);
-
-    expect(result).toBe(true);
-  });
-
-  it('returns false when both remote and local flags are unavailable', () => {
-    mockedValidate.mockReturnValue(undefined);
-    delete process.env.MM_MONEY_HOME_SCREEN_ENABLED;
-
-    const state = createState({ _unique: 'fallback-false' });
-
-    const result = selectMoneyHomeScreenEnabledFlag(state as never);
-
-    expect(result).toBe(false);
-  });
 });
 
 describe('selectMoneyActivityMockDataEnabledFlag', () => {

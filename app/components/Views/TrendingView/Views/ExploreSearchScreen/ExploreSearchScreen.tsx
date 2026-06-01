@@ -8,27 +8,28 @@ import React, {
 import { ActivityIndicator, Keyboard, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
 import { FlashList, FlashListRef, ListRenderItem } from '@shopify/flash-list';
 import ExploreSearchBar from '../../components/ExploreSearchBar/ExploreSearchBar';
 import PillRow, { type PillOption } from '../../components/PillRow';
 import ExploreSearchResults from '../../search/ExploreSearchResults';
-import ExploreSearchResultsV2 from '../../search/ExploreSearchResultsV2';
 import SearchFeedRow, {
   SearchFeedSkeleton,
   getItemId,
 } from '../../search/SearchFeedRow';
-import { useScrollTracking } from '../../search/analytics';
 import {
-  useExploreSearchV2,
+  trackExploreSearchEvent,
+  useScrollTracking,
+  type SearchFeedPill,
+} from '../../search/analytics';
+import {
   type SearchFeedId,
-} from '../../search/useExploreSearchV2';
+  useExploreSearch,
+} from '../../search/useExploreSearch';
 import PerpsSectionProvider from '../../feeds/perps/PerpsSectionProvider';
 import SitesSearchFooter from '../../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
 import { strings } from '../../../../../../locales/i18n';
-import { selectExploreSearchV2Flag } from '../../../../../selectors/featureFlagController/exploreSearchV2';
 import { MAX_ITEMS_PER_SECTION } from '../../search/viewMoreLabel';
 
 const ALL_PILL_KEY = 'all' as const;
@@ -40,6 +41,7 @@ interface FullFeedListProps {
   data: unknown[];
   isLoading?: boolean;
   title: string;
+  tabName: SearchFeedPill;
   fetchMore?: () => void;
   isFetchingMore?: boolean;
   hasMore?: boolean;
@@ -51,6 +53,7 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
   data,
   isLoading,
   title,
+  tabName,
   fetchMore,
   isFetchingMore,
   hasMore,
@@ -62,8 +65,8 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
     flashListRef.current?.scrollToOffset({ offset: 0, animated: false });
   }, [searchQuery]);
 
-  const { onScrollBeginDrag } = useScrollTracking('tab_scrolled', searchQuery, {
-    section_name: title,
+  const { onScrollBeginDrag } = useScrollTracking('scrolled', searchQuery, {
+    tab_name: tabName,
   });
 
   const renderItem: ListRenderItem<unknown> = useCallback(
@@ -73,11 +76,10 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
         item={item}
         index={index}
         searchQuery={searchQuery}
-        sectionTitle={title}
-        interactionType="view_all_item_clicked"
+        tabName={tabName}
       />
     ),
-    [feedId, searchQuery, title],
+    [feedId, searchQuery, tabName],
   );
 
   const keyExtractor = useCallback(
@@ -135,24 +137,30 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
   );
 };
 
-interface ExploreSearchV2ContentProps {
+interface ExploreSearchContentProps {
   searchQuery: string;
 }
 
 /**
- * Renders the pill filter row and content pane for the V2 search experience.
- * Must be a child of PerpsSectionProvider because useExploreSearchV2
+ * Renders the pill filter row and content pane for the search experience.
+ * Must be a child of PerpsSectionProvider because useExploreSearch
  * internally calls usePerpsFeed, which requires PerpsStreamProvider.
  *
- * A single useExploreSearchV2 instance is shared across the pill row and the
+ * A single useExploreSearch instance is shared across the pill row and the
  * active content pane, so switching pills never triggers new API calls.
  */
-const ExploreSearchV2Content: React.FC<ExploreSearchV2ContentProps> = ({
+const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
   searchQuery,
 }) => {
   const [activePill, setActivePill] = useState<ActivePill>(ALL_PILL_KEY);
+  const activePillRef = useRef(activePill);
+  activePillRef.current = activePill;
+  const searchQueryRef = useRef(searchQuery);
+  searchQueryRef.current = searchQuery;
 
-  const { sections } = useExploreSearchV2(searchQuery);
+  const { sections } = useExploreSearch(searchQuery, {
+    exposePagination: true,
+  });
 
   const pills = useMemo<PillOption[]>(
     () => [
@@ -171,6 +179,18 @@ const ExploreSearchV2Content: React.FC<ExploreSearchV2ContentProps> = ({
   );
 
   const handlePillSelect = useCallback((key: string) => {
+    trackExploreSearchEvent({
+      interaction_type: 'tab_switched',
+      search_query: searchQueryRef.current,
+      tab_name: key as SearchFeedPill,
+      previous_tab: activePillRef.current,
+    });
+    setActivePill(key as ActivePill);
+  }, []);
+
+  // Used by ExploreSearchResults' "View all" button — the analytics event is
+  // already fired inside handleViewMore there, so we only update state here.
+  const handleViewMoreSelect = useCallback((key: string) => {
     setActivePill(key as ActivePill);
   }, []);
 
@@ -195,21 +215,24 @@ const ExploreSearchV2Content: React.FC<ExploreSearchV2ContentProps> = ({
       </Box>
       {showFeedList ? (
         <FullFeedList
+          key={activePill}
           feedId={activePill}
           searchQuery={searchQuery}
           data={activeSection?.items ?? []}
           isLoading={activeSection?.isLoading}
           title={activeSection?.title ?? activePill}
+          tabName={activePill}
           fetchMore={activeSection?.fetchMore}
           isFetchingMore={activeSection?.isFetchingMore}
           hasMore={activeSection?.hasMore}
         />
       ) : (
-        <ExploreSearchResultsV2
+        <ExploreSearchResults
           searchQuery={searchQuery}
           sections={sections}
-          onViewMore={handlePillSelect}
+          onViewMore={handleViewMoreSelect}
           emptyFeedTitle={emptyFeedTitle}
+          activeTab={activePill}
         />
       )}
     </Box>
@@ -220,7 +243,6 @@ const ExploreSearchScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const [searchQuery, setSearchQuery] = useState('');
-  const isExploreSearchV2Enabled = useSelector(selectExploreSearchV2Flag);
 
   const handleSearchCancel = useCallback(() => {
     setSearchQuery('');
@@ -243,11 +265,7 @@ const ExploreSearchScreen: React.FC = () => {
       </Box>
 
       <PerpsSectionProvider>
-        {isExploreSearchV2Enabled ? (
-          <ExploreSearchV2Content searchQuery={searchQuery} />
-        ) : (
-          <ExploreSearchResults searchQuery={searchQuery} />
-        )}
+        <ExploreSearchContent searchQuery={searchQuery} />
       </PerpsSectionProvider>
     </Box>
   );

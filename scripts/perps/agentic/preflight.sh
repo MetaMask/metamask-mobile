@@ -77,10 +77,13 @@ DO_WALLET_SETUP=false
 WALLET_FIXTURE="${WALLET_FIXTURE:-.agent/wallet-fixture.json}"
 WALLET_PW="${MM_WALLET_PASSWORD:-}"
 FORCE_PLATFORM=""
+MODE=""   # auto | fast | rebuild-native | clean — resolved below
+MODE_EXPLICIT=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --platform)       FORCE_PLATFORM="$2"; shift 2 ;;
+    --mode)           MODE="$2"; MODE_EXPLICIT=true; shift 2 ;;
     --rebuild)        DO_REBUILD=true; shift ;;
     --clean)          DO_CLEAN=true; DO_REBUILD=true; shift ;;
     --no-launch)      DO_LAUNCH=false; shift ;;
@@ -91,6 +94,90 @@ while [[ $# -gt 0 ]]; do
     *)                shift ;;
   esac
 done
+
+# ── Resolve --mode → existing flag state ─────────────────────────────
+# If --mode not given, fall back to legacy flag mapping for back-compat.
+if ! $MODE_EXPLICIT; then
+  if $DO_CLEAN; then
+    MODE="clean"
+  elif $DO_REBUILD; then
+    MODE="rebuild-native"
+  else
+    MODE="default"  # legacy: skip build if app installed, otherwise build
+  fi
+fi
+case "$MODE" in
+  auto)
+    DO_CLEAN=false; DO_REBUILD=false
+    ;;
+  fast)
+    DO_CLEAN=false; DO_REBUILD=false
+    ;;
+  rebuild-native)
+    DO_CLEAN=false; DO_REBUILD=true
+    ;;
+  clean)
+    DO_CLEAN=true; DO_REBUILD=true
+    ;;
+  default)
+    : # keep parsed flag state
+    ;;
+  *)
+    echo "ERROR: unknown --mode '$MODE' (expected: auto|fast|rebuild-native|clean)" >&2
+    exit 2
+    ;;
+esac
+
+# Source the build-cache helpers (no-op if file missing — fall back to legacy).
+BUILD_CACHE_LIB="$(dirname "$0")/lib/build-cache.sh"
+if [ -f "$BUILD_CACHE_LIB" ]; then
+  # shellcheck disable=SC1090
+  . "$BUILD_CACHE_LIB"
+  BUILD_CACHE_ENABLED=true
+  # Allocate private mktemp memo dir, exported so $(bc_fingerprint) subshells
+  # inherit it. No EXIT trap here — lock helpers need EXIT; dir is OS-reaped.
+  bc_fingerprint_reset_memo
+else
+  BUILD_CACHE_ENABLED=false
+fi
+
+# ── Pod staleness detection ────────────────────────────────────────
+# Hash yarn.lock + ios/Podfile to detect when Pods/Podfile.lock are stale.
+# Each worktree stores its own marker so independent clones don't collide.
+PODS_MARKER_DIR=".agent/build-cache/ios"
+PODS_MARKER_FILE="$PODS_MARKER_DIR/pods-inputs.sha256"
+
+pods_input_hash() {
+  # yarn.lock drives which podspecs land in node_modules; Podfile controls
+  # which pods are requested. Together they determine the expected pod state.
+  { cat yarn.lock ios/Podfile 2>/dev/null || true; } | shasum -a 256 | cut -d' ' -f1
+}
+
+pods_are_stale() {
+  [ ! -f ios/Podfile.lock ] && return 1  # no lock = nothing to be stale
+  local current saved
+  current=$(pods_input_hash)
+  if [ -f "$PODS_MARKER_FILE" ]; then
+    saved=$(cat "$PODS_MARKER_FILE")
+    [ "$current" != "$saved" ]
+  else
+    return 0  # no marker = never validated, treat as stale
+  fi
+}
+
+pods_save_marker() {
+  mkdir -p "$PODS_MARKER_DIR"
+  pods_input_hash > "$PODS_MARKER_FILE"
+}
+
+pods_clean_stale() {
+  if pods_are_stale; then
+    echo "  Pods inputs changed (yarn.lock / Podfile) — cleaning stale pod state..."
+    rm -rf ios/Pods ios/Podfile.lock
+    return 0
+  fi
+  return 1
+}
 
 # ── Platform detection ─────────────────────────────────────────────
 detect_platform() {
@@ -227,6 +314,19 @@ run_with_live_log() {
   return $rc
 }
 
+js_dependencies_need_install() {
+  # Worktrees often survive branch switches. If package.json / yarn.lock are
+  # newer than Yarn's node_modules state, or if a required workspace binary is
+  # missing, reconcile node_modules before invoking Expo. This preserves the
+  # normal `yarn expo ...` path while fixing stale installs at the source.
+  [ ! -d node_modules ] && return 0
+  [ ! -f node_modules/.yarn-state.yml ] && return 0
+  [ -f package.json ] && [ package.json -nt node_modules/.yarn-state.yml ] && return 0
+  [ -f yarn.lock ] && [ yarn.lock -nt node_modules/.yarn-state.yml ] && return 0
+  yarn bin expo >/dev/null 2>&1 || return 0
+  return 1
+}
+
 # ── Early fixture validation (fail fast before long pipeline) ────────
 if $DO_WALLET_SETUP; then
   if [ ! -f "$WALLET_FIXTURE" ]; then
@@ -263,6 +363,14 @@ fi
 
 mkdir -p "$LOG_DIR"
 
+JS_DEPS_STALE=false
+if ! $DO_CLEAN && js_dependencies_need_install; then
+  if $CHECK_ONLY; then
+    fail "JS dependencies are stale or missing required bins (run without --check-only to reconcile node_modules)"
+  fi
+  JS_DEPS_STALE=true
+fi
+
 # Timing
 PREFLIGHT_START=$(python3 -c "import time; print(int(time.time()))")
 STEP_START=$PREFLIGHT_START
@@ -273,6 +381,7 @@ elapsed_since() { echo $(( $(python3 -c "import time; print(int(time.time()))") 
 # Compute total steps based on flags
 TOTAL_STEPS=4  # device + app + metro + cdp
 $DO_CLEAN && TOTAL_STEPS=$((TOTAL_STEPS + 1))
+$JS_DEPS_STALE && TOTAL_STEPS=$((TOTAL_STEPS + 1))
 ($DO_WALLET_SETUP || [ -n "$WALLET_PW" ]) && TOTAL_STEPS=$((TOTAL_STEPS + 1))
 CURRENT_STEP=0
 CURRENT_STEP_NAME=""
@@ -296,15 +405,15 @@ step() {
 echo ""
 echo -e "${BOLD}=== MetaMask Mobile Preflight ===${NC}"
 echo -e "  Port: $PORT | Platform: $PLAT"
-if $DO_CLEAN; then
-  echo -e "  Mode: ${YELLOW}clean${NC} (yarn setup → build → Metro → CDP → wallet)"
-elif $DO_REBUILD; then
-  echo -e "  Mode: ${YELLOW}rebuild${NC} (build → Metro → CDP)"
-elif $CHECK_ONLY; then
-  echo -e "  Mode: check-only"
-else
-  echo -e "  Mode: default (Metro → CDP)"
-fi
+case "$MODE" in
+  auto)           echo -e "  Mode: ${BLUE}auto${NC} (fingerprint-gated reuse, build only if needed)" ;;
+  fast)           echo -e "  Mode: ${BLUE}fast${NC} (no build — fail loud if app missing)" ;;
+  rebuild-native) echo -e "  Mode: ${YELLOW}rebuild-native${NC} (skip yarn setup, force native rebuild)" ;;
+  clean)          echo -e "  Mode: ${YELLOW}clean${NC} (yarn setup → pod --repo-update → build)" ;;
+  default)        $CHECK_ONLY \
+                    && echo -e "  Mode: check-only" \
+                    || echo -e "  Mode: default (fingerprint-gated reuse; falls back to native build on cache miss, no fail-loud)" ;;
+esac
 
 # ── Zombie sweep (silent when clean) ─────────────────────────────────
 # Detect and clean up orphaned expo/metro processes from previous crashed runs.
@@ -351,12 +460,37 @@ sweep_port "$PORT" "worktree Metro"
 # expo CLI's hardcoded default — any prior run without --port leaks here.
 [ "$PORT" != "8081" ] && sweep_port 8081 "expo default"
 
+# ── Step: reconcile stale node_modules (default/auto/fast modes) ──────
+if $JS_DEPS_STALE; then
+  step "Reconciling JS dependencies" "yarn install --immutable (package/yarn state changed or expo bin missing)"
+  stage_log "$DEPS_LOG"
+  printf '%s\n' '$ yarn install --immutable' > "$DEPS_LOG"
+  if ! run_with_live_log "$DEPS_LOG" "yarn install --immutable"; then
+    echo ""
+    echo -e "  ${RED}Dependency reconciliation failed — see $DEPS_LOG${NC}"
+    tail -20 "$DEPS_LOG" | sed 's/^/    /'
+    fail "yarn install --immutable failed"
+  fi
+  ok "node_modules reconciled"
+fi
+
 # ── Step: yarn setup (clean only) ────────────────────────────────────
+# --check-only is read-only by contract; refuse a destructive yarn setup
+# combo loudly instead of running it briefly and then early-exiting.
+if $DO_CLEAN && $CHECK_ONLY; then
+  fail "--check-only conflicts with --clean / --mode clean (would mutate node_modules + build artifacts)"
+fi
 if $DO_CLEAN; then
   if [ "$PLAT" = "ios" ]; then
     step "Installing dependencies" "rm ios/build → yarn setup (install deps + patches + pods)"
     echo "  Cleaning iOS build artifacts..."
     rm -rf ios/build
+    # Always clean stale pod state in --clean mode to prevent version mismatches
+    # between Podfile.lock and podspecs that changed in node_modules.
+    pods_clean_stale || {
+      echo "  Pods inputs unchanged — cleaning anyway (--clean mode)..."
+      rm -rf ios/Pods ios/Podfile.lock
+    }
   else
     step "Installing dependencies" "clean android build → yarn setup (install deps + patches)"
     echo "  Cleaning Android build artifacts..."
@@ -369,6 +503,9 @@ if $DO_CLEAN; then
     echo -e "  ${RED}Dependencies failed — see $DEPS_LOG${NC}"
     tail -20 "$DEPS_LOG" | sed 's/^/    /'
     fail "yarn setup failed"
+  fi
+  if [ "$PLAT" = "ios" ]; then
+    pods_save_marker
   fi
   ok "yarn setup complete"
 fi
@@ -410,6 +547,76 @@ if [ "$PLAT" = "ios" ]; then
   # ── Step: App build / install ────────────────────────────────────
   step "Checking app" "Looking for $BUNDLE_ID on simulator"
   APP_INSTALLED=$(xcrun simctl listapps "$SIM_TARGET" 2>/dev/null | grep -c "$BUNDLE_ID" || true)
+  BC_LOCK_HELD=false  # set to true once we own the per-fingerprint build lock
+
+  # Cache validation runs in every mode except `clean` / `rebuild-native`,
+  # which intentionally bypass the cache. This is a deliberate behaviour
+  # change vs origin/main: default mode now opts into fingerprint-gated reuse.
+  if $BUILD_CACHE_ENABLED && [ "$MODE" != "clean" ] && [ "$MODE" != "rebuild-native" ]; then
+    FP=$(bc_fingerprint 2>/dev/null || true)
+    if [ -n "$FP" ]; then
+      INSTALLED_FP=$(bc_installed_fp ios)
+      INSTALLED_TGT=$(bc_installed_target ios)
+      if [ "$APP_INSTALLED" -gt 0 ] \
+         && [ "$INSTALLED_FP" = "$FP" ] \
+         && [ "$INSTALLED_TGT" = "$SIM_TARGET" ] \
+         && ! $DO_REBUILD; then
+        ok "Cache: installed app matches fingerprint ${FP:0:12} on $SIM_TARGET — no native action needed"
+        CHECK_ONLY_FP_VERIFIED=true
+        CHECK_ONLY_FP_VALUE="$FP"
+      else
+        if bc_lock_acquire ios "$FP"; then
+          BC_LOCK_HELD=true
+          trap 'bc_lock_release' EXIT
+          if bc_has_artifact ios "$FP"; then
+            if $CHECK_ONLY; then
+              bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
+              fail "App not at fingerprint ${FP:0:12} on $SIM_TARGET — cache hit available, but --check-only forbids install"
+            fi
+            echo -e "  ${GREEN}Cache hit:${NC} fp=${FP:0:12} — installing from shared cache"
+            IOS_ARTIFACT=$(bc_artifact_path ios "$FP")
+            # `simctl install` overwrites the .app bundle in place; it keeps
+            # the existing container data (wallet/app state), so no preemptive
+            # uninstall is needed on the happy path. If install fails we
+            # explicitly reset APP_INSTALLED to force the build branch.
+            if xcrun simctl install "$SIM_TARGET" "$IOS_ARTIFACT"; then
+              bc_record_install ios "$FP" "$SIM_TARGET"
+              APP_INSTALLED=1
+              ok "Installed from cache: $IOS_ARTIFACT"
+            else
+              APP_INSTALLED=0
+              if [ "$MODE" = "fast" ]; then
+                bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
+                fail "Mode 'fast': cached artifact install failed for fp ${FP:0:12}"
+              fi
+              warn "Cache install failed — falling through to native build"
+            fi
+          elif [ "$MODE" = "fast" ]; then
+            bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
+            fail "Mode 'fast' but no cached build for fp ${FP:0:12} and app not installed at this fingerprint on $SIM_TARGET"
+          else
+            # Cache miss in auto/default mode. Whatever is installed (if anything)
+            # is at the wrong fingerprint; force the build gate to fire so we
+            # produce + install a fresh artifact instead of running a stale app.
+            APP_INSTALLED=0
+          fi
+          # Lock stays held through native build; post-build store releases it.
+        else
+          if [ "$MODE" = "fast" ]; then
+            fail "Mode 'fast': could not acquire build-cache lock for fp ${FP:0:12}"
+          fi
+          warn "Could not acquire build-cache lock for fp ${FP:0:12} — proceeding without lock"
+          APP_INSTALLED=0  # unknown cache state — treat installed app as untrusted
+        fi
+      fi
+    else
+      if [ "$MODE" = "fast" ]; then
+        fail "Mode 'fast': could not compute fingerprint — cannot validate cache availability"
+      fi
+      warn "Could not compute fingerprint — falling back to legacy build path"
+    fi
+  fi
+
   if [ "$APP_INSTALLED" -eq 0 ] || $DO_REBUILD; then
     $CHECK_ONLY && fail "App not installed (run with --rebuild)"
     echo ""
@@ -417,13 +624,42 @@ if [ "$PLAT" = "ios" ]; then
     echo -e "  ${DIM}expo run:ios --port \$PORT (bundler killed after build, start-metro.sh takes over)${NC}"
     echo ""
 
+    # Skip --repo-update unless --mode clean: it re-pulls every CocoaPods
+    # spec (~3-5 min) on every dispatch. Plain `pod install` is sufficient
+    # whenever Podfile.lock pods are already present in the local spec repo.
+    #
+    # Auto-clean stale Pods before pod install in any mode. This prevents
+    # version mismatches when yarn.lock changes bring new podspecs but
+    # Podfile.lock still pins old versions (common across independent clones).
+    if ! $DO_CLEAN; then
+      pods_clean_stale && warn "Stale pod state auto-cleaned"
+    fi
+    if $DO_CLEAN; then
+      POD_CMD="cd ios && bundle exec pod install --repo-update --ansi"
+    else
+      POD_CMD="cd ios && bundle exec pod install --ansi"
+    fi
     echo "  Running pod install via bundler..."
     stage_log "$POD_INSTALL_LOG"
-    printf '$ (cd ios && bundle exec pod install --repo-update --ansi)\n' > "$POD_INSTALL_LOG"
-    if run_with_live_log "$POD_INSTALL_LOG" "cd ios && bundle exec pod install --repo-update --ansi"; then
+    printf '$ (%s)\n' "$POD_CMD" > "$POD_INSTALL_LOG"
+    if run_with_live_log "$POD_INSTALL_LOG" "$POD_CMD"; then
+      pods_save_marker
       ok "pod install complete"
     else
-      warn "pod install had issues — see $POD_INSTALL_LOG"
+      # On non-clean modes, the failure may be a missing spec → retry once with --repo-update.
+      if ! $DO_CLEAN; then
+        warn "pod install failed — retrying with --repo-update"
+        # Clean Pods before retry — the lock file may be the cause.
+        rm -rf ios/Pods ios/Podfile.lock
+        if run_with_live_log "$POD_INSTALL_LOG" "cd ios && bundle exec pod install --repo-update --ansi"; then
+          pods_save_marker
+          ok "pod install complete (after --repo-update retry)"
+        else
+          warn "pod install had issues — see $POD_INSTALL_LOG"
+        fi
+      else
+        warn "pod install had issues — see $POD_INSTALL_LOG"
+      fi
     fi
 
     # Must pass --port (never --no-bundler): @expo/cli rejects that combo
@@ -558,7 +794,36 @@ if [ "$PLAT" = "ios" ]; then
       fail "simctl install succeeded but app not found"
     fi
     ok "App built and installed"
+
+    # Publish to shared cache. If we hold the lock from the cache-decision
+    # phase, store + release directly; else (clean/rebuild-native) bc_with_lock.
+    if $BUILD_CACHE_ENABLED && [ -n "${APP_PATH:-}" ]; then
+      FP=$(bc_fingerprint 2>/dev/null || true)
+      if [ -n "$FP" ]; then
+        if $BC_LOCK_HELD; then
+          if bc_store_artifact ios "$FP" "$APP_PATH"; then
+            ok "Stored build in shared cache: fp=${FP:0:12}"
+            bc_record_install ios "$FP" "$SIM_TARGET"
+            bc_prune ios "${BUILD_CACHE_RETAIN:-5}" 2>/dev/null || true
+          else
+            warn "Failed to store build in cache"
+          fi
+          bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
+        else
+          if bc_with_lock ios "$FP" bc_store_artifact ios "$FP" "$APP_PATH"; then
+            ok "Stored build in shared cache: fp=${FP:0:12}"
+            bc_record_install ios "$FP" "$SIM_TARGET"
+            bc_prune ios "${BUILD_CACHE_RETAIN:-5}" 2>/dev/null || true
+          else
+            warn "Could not store build in cache (lock timeout?)"
+          fi
+        fi
+      fi
+    fi
   else
+    if $BC_LOCK_HELD; then
+      bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
+    fi
     ok "App already installed"
   fi
 
@@ -603,18 +868,86 @@ else
     ok "Device connected: $DEVICE_NAME"
   fi
 
-  # Set up adb reverse so device can reach Metro on host
-  $ADB_CMD reverse tcp:$PORT tcp:$PORT 2>/dev/null || warn "adb reverse failed — device may not reach Metro"
-  ok "adb reverse tcp:$PORT → host"
+  # Set up adb reverse so device can reach Metro on host.
+  # Skipped in --check-only to preserve the read-only contract.
+  if ! $CHECK_ONLY; then
+    $ADB_CMD reverse tcp:$PORT tcp:$PORT 2>/dev/null || warn "adb reverse failed — device may not reach Metro"
+    ok "adb reverse tcp:$PORT → host"
+  fi
 
   # ── Step: App build / install ────────────────────────────────────
   step "Checking app" "Looking for $PACKAGE_ID on device"
   APP_INSTALLED=$($ADB_CMD shell pm list packages 2>/dev/null | grep -c "$PACKAGE_ID" || true)
+  BC_LOCK_HELD=false  # see iOS block for semantics
+
+  # ── Build-cache lookup (auto/fast/default modes only) ────────────
+  if $BUILD_CACHE_ENABLED && [ "$MODE" != "clean" ] && [ "$MODE" != "rebuild-native" ]; then
+    FP=$(bc_fingerprint 2>/dev/null || true)
+    if [ -n "$FP" ]; then
+      INSTALLED_FP=$(bc_installed_fp android)
+      INSTALLED_TGT=$(bc_installed_target android)
+      ADB_DEVICE_ID="${ADB_TARGET:-default}"
+      if [ "$APP_INSTALLED" -gt 0 ] \
+         && [ "$INSTALLED_FP" = "$FP" ] \
+         && [ "$INSTALLED_TGT" = "$ADB_DEVICE_ID" ] \
+         && ! $DO_REBUILD; then
+        ok "Cache: installed app matches fingerprint ${FP:0:12} on $ADB_DEVICE_ID — no native action needed"
+        CHECK_ONLY_FP_VERIFIED=true
+        CHECK_ONLY_FP_VALUE="$FP"
+      else
+        if bc_lock_acquire android "$FP"; then
+          BC_LOCK_HELD=true
+          trap 'bc_lock_release' EXIT
+          if bc_has_artifact android "$FP"; then
+            if $CHECK_ONLY; then
+              bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
+              fail "App not at fingerprint ${FP:0:12} on $ADB_DEVICE_ID — cache hit available, but --check-only forbids install"
+            fi
+            echo -e "  ${GREEN}Cache hit:${NC} fp=${FP:0:12} — installing from shared cache"
+            ANDROID_ARTIFACT=$(bc_artifact_path android "$FP")
+            # `adb install -r` reinstalls keeping data; no preemptive uninstall.
+            if $ADB_CMD install -r "$ANDROID_ARTIFACT" 2>/dev/null; then
+              bc_record_install android "$FP" "$ADB_DEVICE_ID"
+              APP_INSTALLED=1
+              ok "Installed from cache: $ANDROID_ARTIFACT"
+            else
+              APP_INSTALLED=0
+              if [ "$MODE" = "fast" ]; then
+                bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
+                fail "Mode 'fast': cached artifact install failed for fp ${FP:0:12}"
+              fi
+              warn "Cache install failed — falling through to native build"
+            fi
+          elif [ "$MODE" = "fast" ]; then
+            bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
+            fail "Mode 'fast' but no cached build for fp ${FP:0:12} and app not installed at this fingerprint on $ADB_DEVICE_ID"
+          else
+            # Cache miss in auto/default mode. Stale app must not pass the build
+            # gate untouched; force a fresh build + install.
+            APP_INSTALLED=0
+          fi
+        else
+          if [ "$MODE" = "fast" ]; then
+            fail "Mode 'fast': could not acquire build-cache lock for fp ${FP:0:12} — refusing to proceed without lock"
+          fi
+          warn "Could not acquire build-cache lock for fp ${FP:0:12} — proceeding without lock"
+          APP_INSTALLED=0
+        fi
+      fi
+    else
+      if [ "$MODE" = "fast" ]; then
+        fail "Mode 'fast': could not compute fingerprint — cannot validate cache availability"
+      fi
+      warn "Could not compute fingerprint — falling back to legacy build path"
+    fi
+  fi
+
   if [ "$APP_INSTALLED" -eq 0 ] || $DO_REBUILD; then
     $CHECK_ONLY && fail "App not installed (run with --rebuild)"
 
-    # Uninstall first for a clean slate (avoids stale data / vault)
-    if ($DO_CLEAN || $DO_WALLET_SETUP) && [ "$APP_INSTALLED" -gt 0 ]; then
+    # Uninstall for a clean slate. Re-query device since cache-miss zeroes
+    # APP_INSTALLED even when the app is still physically present.
+    if ($DO_CLEAN || $DO_WALLET_SETUP) && $ADB_CMD shell pm list packages 2>/dev/null | grep -q "$PACKAGE_ID"; then
       echo "  Uninstalling previous app..."
       $ADB_CMD uninstall "$PACKAGE_ID" 2>/dev/null || true
     fi
@@ -660,7 +993,37 @@ else
       fail "Build completed but app not found on device"
     fi
     ok "App built and installed"
+
+    # Publish .apk to shared cache. If we still hold the per-fingerprint lock
+    # from the cache-decision phase, store directly; otherwise (clean/rebuild-native)
+    # acquire-and-release inline via bc_with_lock.
+    if $BUILD_CACHE_ENABLED && [ -n "${APK_PATH:-}" ]; then
+      FP=$(bc_fingerprint 2>/dev/null || true)
+      if [ -n "$FP" ]; then
+        if $BC_LOCK_HELD; then
+          if bc_store_artifact android "$FP" "$APK_PATH"; then
+            ok "Stored build in shared cache: fp=${FP:0:12}"
+            bc_record_install android "$FP" "${ADB_TARGET:-default}"
+            bc_prune android "${BUILD_CACHE_RETAIN:-5}" 2>/dev/null || true
+          else
+            warn "Failed to store build in cache"
+          fi
+          bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
+        else
+          if bc_with_lock android "$FP" bc_store_artifact android "$FP" "$APK_PATH"; then
+            ok "Stored build in shared cache: fp=${FP:0:12}"
+            bc_record_install android "$FP" "${ADB_TARGET:-default}"
+            bc_prune android "${BUILD_CACHE_RETAIN:-5}" 2>/dev/null || true
+          else
+            warn "Could not store build in cache (lock timeout?)"
+          fi
+        fi
+      fi
+    fi
   else
+    if $BC_LOCK_HELD; then
+      bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
+    fi
     ok "App already installed"
   fi
 fi
@@ -668,6 +1031,20 @@ fi
 # ══════════════════════════════════════════════════════════════════════
 # ── Shared steps (both platforms) ────────────────────────────────────
 # ══════════════════════════════════════════════════════════════════════
+
+# --check-only is read-only: probes above fail loud on mismatch; here we
+# must not run Metro / CDP / wallet (all state-changing).
+if $CHECK_ONLY; then
+  TOTAL_ELAPSED=$(elapsed_since $PREFLIGHT_START)
+  echo ""
+  echo -e "${GREEN}${BOLD}=== Preflight check-only passed ===${NC} ${DIM}(${TOTAL_ELAPSED}s)${NC}"
+  if ${CHECK_ONLY_FP_VERIFIED:-false}; then
+    echo -e "  Platform ${DIM}$PLAT${NC} | App installed and verified at fingerprint ${DIM}${CHECK_ONLY_FP_VALUE:0:12}${NC}"
+  else
+    echo -e "  Platform ${DIM}$PLAT${NC} | App installed (fingerprint not verified — cache disabled or fingerprint compute failed)"
+  fi
+  exit 0
+fi
 
 # ── Step: Metro ─────────────────────────────────────────────────────
 step "Starting Metro" "Bundler on port $PORT → logs at $LOGFILE"

@@ -106,6 +106,7 @@ function getAlertNames(alerts: Alert[]): string[] {
 }
 
 const ALERTS_NAME_METRICS: AlertNameMetrics = {
+  [AlertKeys.AddressPoisoning]: 'address_poisoning',
   [AlertKeys.AddressTrustSignalMalicious]: 'address_trust_signal_malicious',
   [AlertKeys.AddressTrustSignalWarning]: 'address_trust_signal_warning',
   [AlertKeys.BatchedUnusedApprovals]: 'batched_unused_approvals',

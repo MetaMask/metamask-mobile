@@ -16,6 +16,7 @@ import {
   GetPriceParams,
   GetPriceResponse,
   GetSeriesParams,
+  OrderbookCallback,
   OrderPreview,
   OrderResult,
   PlaceOrderParams,
@@ -47,6 +48,7 @@ export type {
   GetMarketsParams,
   GetMarketsResult,
   GetPositionsParams,
+  OrderbookCallback,
   OrderPreview,
   OrderResult,
   PlaceOrderParams,
@@ -156,7 +158,9 @@ export interface PredictProvider {
   readonly chainId: number;
 
   getMarkets(params: GetMarketsParams): Promise<GetMarketsResult>;
-  searchMarkets(params: SearchMarketsParams): Promise<PredictMarket[]>;
+  searchMarkets(
+    params: SearchMarketsParams,
+  ): Promise<{ markets: PredictMarket[]; totalResults: number }>;
   getCarouselMarkets?(): Promise<PredictMarket[]>;
   getMarketsByIds?(marketIds: string[]): Promise<PredictMarket[]>;
   getMarketDetails(params: { marketId: string }): Promise<PredictMarket>;
@@ -212,6 +216,11 @@ export interface PredictProvider {
   subscribeToMarketPrices?(
     tokenIds: string[],
     callback: PriceUpdateCallback,
+  ): () => void;
+
+  subscribeToOrderbook?(
+    tokenId: string,
+    callback: OrderbookCallback,
   ): () => void;
 
   subscribeToCryptoPrices?(

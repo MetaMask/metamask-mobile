@@ -169,24 +169,29 @@ describe('generateUserProfileAnalyticsMetaData', () => {
     );
   });
 
-  it('falls back to SeedlessOnboardingController authConnection when redux accountType is unset', () => {
-    mockGetState.mockReturnValue({
-      ...mockState,
-      engine: {
-        backgroundState: {
-          ...mockState.engine.backgroundState,
-          SeedlessOnboardingController: {
-            authConnection: AuthConnection.Google,
+  it.each([
+    [AuthConnection.Google, AccountType.ImportedGoogle],
+    [AuthConnection.Apple, AccountType.ImportedApple],
+    [AuthConnection.Telegram, AccountType.ImportedTelegram],
+  ])(
+    'falls back to SeedlessOnboardingController %s authConnection when redux accountType is unset',
+    (authConnection, accountType) => {
+      mockGetState.mockReturnValue({
+        ...mockState,
+        engine: {
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            SeedlessOnboardingController: {
+              authConnection,
+            },
           },
         },
-      },
-    });
+      });
 
-    const metadata = generateUserProfileAnalyticsMetaData();
-    expect(metadata[UserProfileProperty.ACCOUNT_TYPE]).toBe(
-      AccountType.ImportedGoogle,
-    );
-  });
+      const metadata = generateUserProfileAnalyticsMetaData();
+      expect(metadata[UserProfileProperty.ACCOUNT_TYPE]).toBe(accountType);
+    },
+  );
 
   it('omits account_type when neither onboarding redux nor SeedlessOnboardingController has a value', () => {
     mockGetState.mockReturnValue(mockState);
