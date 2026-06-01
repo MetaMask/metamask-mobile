@@ -14,12 +14,16 @@ import { selectAccountsByChainId } from '../../../../../../../selectors/accountT
 import { selectSelectedInternalAccountByScope } from '../../../../../../../selectors/multichainAccounts/accounts';
 import { selectTokensBalances } from '../../../../../../../selectors/tokenBalancesController';
 import { selectTokenMarketData } from '../../../../../../../selectors/tokenRatesController';
-import { selectCurrencyRates } from '../../../../../../../selectors/currencyRateController';
+import {
+  selectCurrencyRates,
+  selectCurrentCurrency,
+} from '../../../../../../../selectors/currencyRateController';
 import {
   selectMultichainBalances,
   selectMultichainAssetsRates,
 } from '../../../../../../../selectors/multichain/multichain';
 import { toChecksumAddress } from '../../../../../../../util/address';
+import { addCurrencySymbol } from '../../../../../../../util/number/bigint';
 import { EVM_SCOPE } from '../../../../../../UI/Earn/constants/networks';
 import { chainNameToId } from '../../../../utils/chainMapping';
 import type { QuickBuyTarget } from '../types';
@@ -97,6 +101,7 @@ export const usePositionTokenBalance = (
   const tokenBalances = useSelector(selectTokensBalances);
   const tokenMarketData = useSelector(selectTokenMarketData);
   const currencyRates = useSelector(selectCurrencyRates);
+  const currentCurrency = useSelector(selectCurrentCurrency);
 
   const solanaAccount = useSelector((state: RootState) =>
     selectSelectedInternalAccountByScope(state)(SolScope.Mainnet),
@@ -139,7 +144,10 @@ export const usePositionTokenBalance = (
       return {
         ...destToken,
         balance: amountStr,
-        balanceFiat: `$${fiatValue.toFixed(2)}`,
+        balanceFiat: addCurrencySymbol(
+          fiatValue.toFixed(2),
+          currentCurrency as Parameters<typeof addCurrencySymbol>[1],
+        ),
         tokenFiatAmount: fiatValue,
         currencyExchangeRate: rateNum,
       };
@@ -192,9 +200,11 @@ export const usePositionTokenBalance = (
       fiatValue = balanceNum * exchangeRate;
     } else {
       const tokenPrice =
-        tokenMarketData?.[hexChainId]?.[target.tokenAddress.toLowerCase()]
-          ?.price ??
-        tokenMarketData?.[hexChainId]?.[target.tokenAddress]?.price;
+        tokenMarketData?.[hexChainId]?.[
+          target.tokenAddress.toLowerCase() as `0x${string}`
+        ]?.price ??
+        tokenMarketData?.[hexChainId]?.[target.tokenAddress as `0x${string}`]
+          ?.price;
       if (tokenPrice !== undefined) {
         if (nativeConversionRate <= 0) return undefined;
         exchangeRate = tokenPrice * nativeConversionRate;
@@ -208,7 +218,10 @@ export const usePositionTokenBalance = (
     return {
       ...destToken,
       balance: displayBalance,
-      balanceFiat: `$${fiatValue.toFixed(2)}`,
+      balanceFiat: addCurrencySymbol(
+        fiatValue.toFixed(2),
+        currentCurrency as Parameters<typeof addCurrencySymbol>[1],
+      ),
       tokenFiatAmount: fiatValue,
       currencyExchangeRate: exchangeRate,
     };
@@ -223,6 +236,7 @@ export const usePositionTokenBalance = (
     tokenBalances,
     tokenMarketData,
     currencyRates,
+    currentCurrency,
     allNetworkConfigs,
   ]);
 };
