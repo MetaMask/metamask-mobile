@@ -435,6 +435,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
                       flexDirection={BoxFlexDirection.Row}
                       alignItems={BoxAlignItems.Center}
                       justifyContent={BoxJustifyContent.Center}
+                      twClassName="gap-1"
                     >
                       <PulsingLiveDot />
                       <Text
