@@ -62,6 +62,6 @@ jobs:
       - name: Check template and add labels
         id: check-template-and-add-labels
         env:
-          LABEL_TOKEN: ${{ secrets.LABEL_TOKEN }}
+          LABEL_TOKEN: ${{ steps.get-token.outputs.token }}
         run: npm run check-template-and-add-labels
         working-directory: '.github/scripts'
