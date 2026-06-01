@@ -6,6 +6,7 @@ import {
   type PerpsMarketData,
   type SortOptionId,
 } from '@metamask/perps-controller';
+import { isEquityAsset } from '../../../../UI/Perps/utils/marketHours';
 import { usePerpsMarkets } from '../../../../UI/Perps/hooks';
 import type { PerpsMarketDataWithVolumeNumber } from '../../../../UI/Perps/hooks/usePerpsMarkets';
 import { PerpsConnectionContext } from '../../../../UI/Perps/providers/PerpsConnectionProvider';
@@ -88,20 +89,14 @@ const filterByVariant = (
     case 'rwa':
       return markets.filter(
         (m) =>
-          m.marketType === MarketCategory.Stock ||
-          m.marketType === MarketCategory.PreIpo ||
-          m.marketType === MarketCategory.Index ||
-          m.marketType === MarketCategory.Etf ||
+          isEquityAsset(m.marketType) ||
           m.marketType === MarketCategory.Commodity ||
           m.marketType === MarketCategory.Forex,
       );
     case 'macro':
       return markets.filter(
         (m) =>
-          m.marketType === MarketCategory.Stock ||
-          m.marketType === MarketCategory.PreIpo ||
-          m.marketType === MarketCategory.Index ||
-          m.marketType === MarketCategory.Etf ||
+          isEquityAsset(m.marketType) ||
           m.marketType === MarketCategory.Commodity,
       );
     case 'all':

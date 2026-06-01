@@ -4,11 +4,8 @@ import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import type { ListRenderItem } from '@shopify/flash-list';
 import type { TrendingAsset } from '@metamask/assets-controllers';
-import {
-  MarketCategory,
-  type PerpsMarketData,
-  type SortOptionId,
-} from '@metamask/perps-controller';
+import type { PerpsMarketData, SortOptionId } from '@metamask/perps-controller';
+import { isEquityAsset } from '../../../UI/Perps/utils/marketHours';
 import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
@@ -53,13 +50,7 @@ const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
         .slice(0, 3)
         .map((d) => d.market);
     const stockLikeItems = perps.data
-      .filter(
-        (d) =>
-          d.market.marketType === MarketCategory.Stock ||
-          d.market.marketType === MarketCategory.PreIpo ||
-          d.market.marketType === MarketCategory.Index ||
-          d.market.marketType === MarketCategory.Etf,
-      )
+      .filter((d) => isEquityAsset(d.market.marketType))
       .slice(0, 3)
       .map((d) => d.market);
     return [

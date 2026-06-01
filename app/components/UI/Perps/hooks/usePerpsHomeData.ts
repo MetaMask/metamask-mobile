@@ -16,6 +16,7 @@ import {
   type OrderFill,
   type SortField,
 } from '@metamask/perps-controller';
+import { isEquityAsset } from '../utils/marketHours';
 import type { PerpsTransaction } from '../types/transactionHistory';
 import {
   transformFillsToTransactions,
@@ -183,13 +184,7 @@ export const usePerpsHomeData = ({
   const stocksMarkets = useMemo(
     () =>
       sortMarkets({
-        markets: allMarkets.filter(
-          (m) =>
-            m.marketType === MarketCategory.Stock ||
-            m.marketType === MarketCategory.PreIpo ||
-            m.marketType === MarketCategory.Index ||
-            m.marketType === MarketCategory.Etf,
-        ),
+        markets: allMarkets.filter((m) => isEquityAsset(m.marketType)),
         sortBy,
         direction,
       }).slice(0, trendingLimit),
@@ -215,10 +210,7 @@ export const usePerpsHomeData = ({
       sortMarkets({
         markets: allMarkets.filter(
           (m) =>
-            m.marketType === MarketCategory.Stock ||
-            m.marketType === MarketCategory.PreIpo ||
-            m.marketType === MarketCategory.Index ||
-            m.marketType === MarketCategory.Etf ||
+            isEquityAsset(m.marketType) ||
             m.marketType === MarketCategory.Commodity,
         ),
         sortBy,
@@ -333,13 +325,7 @@ export const usePerpsHomeData = ({
     if (!searchQuery.trim()) {
       return stocksMarkets;
     }
-    return filteredData.markets.filter(
-      (m) =>
-        m.marketType === MarketCategory.Stock ||
-        m.marketType === MarketCategory.PreIpo ||
-        m.marketType === MarketCategory.Index ||
-        m.marketType === MarketCategory.Etf,
-    );
+    return filteredData.markets.filter((m) => isEquityAsset(m.marketType));
   }, [searchQuery, stocksMarkets, filteredData.markets]);
 
   const searchedCommoditiesMarkets = useMemo(() => {
@@ -357,10 +343,7 @@ export const usePerpsHomeData = ({
     }
     return filteredData.markets.filter(
       (m) =>
-        m.marketType === MarketCategory.Stock ||
-        m.marketType === MarketCategory.PreIpo ||
-        m.marketType === MarketCategory.Index ||
-        m.marketType === MarketCategory.Etf ||
+        isEquityAsset(m.marketType) ||
         m.marketType === MarketCategory.Commodity,
     );
   }, [searchQuery, stocksAndCommoditiesMarkets, filteredData.markets]);
