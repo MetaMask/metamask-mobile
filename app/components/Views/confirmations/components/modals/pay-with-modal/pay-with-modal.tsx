@@ -260,6 +260,7 @@ export function PayWithModal() {
       <Asset
         includeNoBalance
         hideNfts
+        hideHeader
         tokenFilter={tokenFilter}
         onTokenSelect={handleTokenSelect}
         hideNetworkFilter={hideNetworkFilter}

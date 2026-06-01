@@ -304,6 +304,7 @@ const TokenDetails: React.FC<{
         onPriceDirectionChange={handlePriceDirectionChange}
         useAmbientColor={useAmbientColor}
         onExitAction={onCtaClicked}
+        isPricePositive={chartPricePositive}
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
         stakedTrxAsset={stakedTrxAsset}
         inLockPeriodBalance={inLockPeriodBalance}
