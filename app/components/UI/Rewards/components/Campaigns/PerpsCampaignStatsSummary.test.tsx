@@ -62,9 +62,11 @@ const mockLeaderboard = {
 
 const basePosition: PerpsTradingCampaignLeaderboardPositionDto = {
   rank: 7,
+  totalParticipants: 100,
   pnl: 1500.25,
-  notionalVolume: 30_000,
-  qualified: true,
+  volume: 30_000,
+  eligible: true,
+  minVolumeForEligibility: 25_000,
   neighbors: [],
   computedAt: '2025-01-01T00:00:00.000Z',
 };
@@ -126,7 +128,7 @@ describe('PerpsCampaignStatsSummary', () => {
     const { getByTestId, queryByTestId } = render(
       <PerpsCampaignStatsSummary
         isCampaignComplete={false}
-        leaderboardPosition={{ ...basePosition, qualified: false }}
+        leaderboardPosition={{ ...basePosition, eligible: false }}
         leaderboard={mockLeaderboard}
       />,
     );
@@ -150,7 +152,7 @@ describe('PerpsCampaignStatsSummary', () => {
     const { queryByTestId } = render(
       <PerpsCampaignStatsSummary
         isCampaignComplete
-        leaderboardPosition={{ ...basePosition, qualified: false }}
+        leaderboardPosition={{ ...basePosition, eligible: false }}
         leaderboard={mockLeaderboard}
       />,
     );
@@ -212,8 +214,8 @@ describe('PerpsCampaignStatsSummary', () => {
         isCampaignComplete={false}
         leaderboardPosition={{
           ...basePosition,
-          qualified: false,
-          notionalVolume: 5_000,
+          eligible: false,
+          volume: 5_000,
         }}
         leaderboard={mockLeaderboard}
       />,
@@ -228,8 +230,8 @@ describe('PerpsCampaignStatsSummary', () => {
         isCampaignComplete={false}
         leaderboardPosition={{
           ...basePosition,
-          qualified: false,
-          notionalVolume: 30_000,
+          eligible: false,
+          volume: 30_000,
         }}
         leaderboard={mockLeaderboard}
       />,

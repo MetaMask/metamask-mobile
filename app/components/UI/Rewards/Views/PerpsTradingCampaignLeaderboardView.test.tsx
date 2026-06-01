@@ -147,9 +147,11 @@ const mockUseGetParticipant =
 
 const basePosition: PerpsTradingCampaignLeaderboardPositionDto = {
   rank: 4,
+  totalParticipants: 50,
   pnl: 1000,
-  notionalVolume: 10_000,
-  qualified: true,
+  volume: 10_000,
+  eligible: true,
+  minVolumeForEligibility: 25_000,
   neighbors: [],
   computedAt: '2025-01-01T00:00:00.000Z',
 };
@@ -158,8 +160,9 @@ const leaderboardHookDefaults = {
   leaderboard: {
     campaignId: CAMPAIGN_ID,
     computedAt: '2025-01-01T00:00:00.000Z',
-    entries: [{ rank: 1, referralCode: 'A', pnl: 1, qualified: true }],
+    entries: [{ rank: 1, referralCode: 'A', pnl: 1, volume: 30_000 }],
     totalParticipants: 50,
+    minVolumeForEligibility: 25_000,
   },
   isLoading: false,
   hasError: false,
@@ -288,7 +291,7 @@ describe('PerpsTradingCampaignLeaderboardView', () => {
         ...basePosition,
         rank: null,
         neighbors: null,
-        notionalVolume: 0,
+        volume: 0,
       } as unknown as PerpsTradingCampaignLeaderboardPositionDto,
       isLoading: false,
       hasError: false,
@@ -316,7 +319,7 @@ describe('PerpsTradingCampaignLeaderboardView', () => {
     mockUseGetPosition.mockReturnValue({
       position: {
         ...basePosition,
-        notionalVolume: 0,
+        volume: 0,
       },
       isLoading: false,
       hasError: false,
