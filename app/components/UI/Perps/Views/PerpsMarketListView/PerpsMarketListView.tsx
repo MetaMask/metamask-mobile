@@ -45,11 +45,14 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsNavigationParamList } from '../../types/navigation';
 
-// Temporary local constants until @metamask/perps-controller exports these
-// in PERPS_EVENT_VALUE.BUTTON_CLICKED. Uses snake_case per analytics convention.
-const BUTTON_CLICKED_PRE_IPO = 'pre_ipo';
-const BUTTON_CLICKED_INDICES = 'indices';
-const BUTTON_CLICKED_ETFS = 'etfs';
+// Temporary local extension mirroring PERPS_EVENT_VALUE.BUTTON_CLICKED shape.
+// Remove once @metamask/perps-controller exports PRE_IPO, INDICES, ETFS and
+// replace usages with PERPS_EVENT_VALUE.BUTTON_CLICKED.<KEY>.
+const LOCAL_BUTTON_CLICKED = {
+  PRE_IPO: 'pre_ipo',
+  INDICES: 'indices',
+  ETFS: 'etfs',
+} as const;
 
 const PerpsMarketListView = ({
   onMarketSelect,
@@ -146,9 +149,9 @@ const PerpsMarketListView = ({
       const categoryMap: Record<string, string | null> = {
         crypto: PERPS_EVENT_VALUE.BUTTON_CLICKED.CRYPTO,
         stocks: PERPS_EVENT_VALUE.BUTTON_CLICKED.STOCKS,
-        'pre-ipo': BUTTON_CLICKED_PRE_IPO,
-        indices: BUTTON_CLICKED_INDICES,
-        etfs: BUTTON_CLICKED_ETFS,
+        'pre-ipo': LOCAL_BUTTON_CLICKED.PRE_IPO,
+        indices: LOCAL_BUTTON_CLICKED.INDICES,
+        etfs: LOCAL_BUTTON_CLICKED.ETFS,
         commodities: PERPS_EVENT_VALUE.BUTTON_CLICKED.COMMODITIES,
         forex: PERPS_EVENT_VALUE.BUTTON_CLICKED.FOREX,
         new: PERPS_EVENT_VALUE.BUTTON_CLICKED.NEW,
