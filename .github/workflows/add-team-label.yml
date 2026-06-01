@@ -11,7 +11,16 @@ jobs:
     if: ${{ !github.event.pull_request.head.repo.fork }}
     runs-on: ubuntu-latest
     steps:
+      - name: Get access token
+        id: get-token
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          permissions: |
+            contents: read
+            pull_requests: write
+
       - name: Add team label
         uses: MetaMask/github-tools/.github/actions/add-team-label@v1
         with:
-          team-label-token: ${{ secrets.TEAM_LABEL_TOKEN }}
+          team-label-token: ${{ steps.get-token.outputs.token }}

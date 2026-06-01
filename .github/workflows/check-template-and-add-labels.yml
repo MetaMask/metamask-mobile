@@ -46,6 +46,16 @@ jobs:
           retry_wait_seconds: 30
           command: cd .github/scripts && yarn --immutable
 
+      - name: Get access token
+        id: get-token
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          permissions: |
+            issues: write
+            members: read
+            pull_requests: write
+
       - name: Check template and add labels
         id: check-template-and-add-labels
         env:
