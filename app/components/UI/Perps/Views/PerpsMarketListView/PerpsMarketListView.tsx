@@ -45,6 +45,12 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsNavigationParamList } from '../../types/navigation';
 
+// Temporary local constants until @metamask/perps-controller exports these
+// in PERPS_EVENT_VALUE.BUTTON_CLICKED. Uses snake_case per analytics convention.
+const BUTTON_CLICKED_PRE_IPO = 'pre_ipo';
+const BUTTON_CLICKED_INDICES = 'indices';
+const BUTTON_CLICKED_ETFS = 'etfs';
+
 const PerpsMarketListView = ({
   onMarketSelect,
   protocolId: _protocolId,
@@ -140,9 +146,9 @@ const PerpsMarketListView = ({
       const categoryMap: Record<string, string | null> = {
         crypto: PERPS_EVENT_VALUE.BUTTON_CLICKED.CRYPTO,
         stocks: PERPS_EVENT_VALUE.BUTTON_CLICKED.STOCKS,
-        'pre-ipo': 'pre-ipo',
-        indices: 'indices',
-        etfs: 'etfs',
+        'pre-ipo': BUTTON_CLICKED_PRE_IPO,
+        indices: BUTTON_CLICKED_INDICES,
+        etfs: BUTTON_CLICKED_ETFS,
         commodities: PERPS_EVENT_VALUE.BUTTON_CLICKED.COMMODITIES,
         forex: PERPS_EVENT_VALUE.BUTTON_CLICKED.FOREX,
         new: PERPS_EVENT_VALUE.BUTTON_CLICKED.NEW,
