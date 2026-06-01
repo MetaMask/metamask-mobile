@@ -14,7 +14,7 @@ import QuickBuyTradeModeToggle from './QuickBuyTradeModeToggle';
 import { useQuickBuyContext } from '../useQuickBuyContext';
 
 const QuickBuyToolbar: React.FC = () => {
-  const { formattedRate, formattedExchangeRate, setActiveScreen, features } =
+  const { formattedRate, formattedExchangeRate, setActiveScreen, features, isPriceImpactError } =
     useQuickBuyContext();
 
   // Prefer the quote-derived rate (available once a quote is fetched),
@@ -45,6 +45,7 @@ const QuickBuyToolbar: React.FC = () => {
       <QuickBuyRateTag
         label={rateLabel}
         onPress={() => setActiveScreen('quoteDetails')}
+        isHighPriceImpact={isPriceImpactError}
       />
     </Box>
   );

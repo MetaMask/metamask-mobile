@@ -92,6 +92,8 @@ const buildContext = (overrides = {}) => ({
   formattedMinimumReceived: '0.99 ETH',
   formattedMinimumReceivedFiat: '$3,200',
   formattedRate: '1 USDC = 0.0003 ETH',
+  formattedPriceImpact: '-',
+  isPriceImpactError: false,
   quotesLastFetchedAt: Date.now(),
   quoteRefreshRateMs: 30000,
   onClose: jest.fn(),
@@ -169,5 +171,29 @@ describe('QuickBuyQuoteDetailsScreen', () => {
     expect(
       screen.queryByTestId('quick-buy-get-new-quote'),
     ).not.toBeOnTheScreen();
+  });
+
+  it('does not render the price impact row when isPriceImpactError is false', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue(
+      buildContext({ isPriceImpactError: false }),
+    );
+    render(<QuickBuyQuoteDetailsScreen />);
+    expect(
+      screen.queryByText('bridge.price_impact_info_title'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders the price impact row with formatted value when isPriceImpactError is true', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue(
+      buildContext({
+        isPriceImpactError: true,
+        formattedPriceImpact: '25.00%',
+      }),
+    );
+    render(<QuickBuyQuoteDetailsScreen />);
+    expect(
+      screen.getByText('bridge.price_impact_info_title'),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('25.00%')).toBeOnTheScreen();
   });
 });

@@ -35,12 +35,9 @@ const QuickBuyActionFooter: React.FC = () => {
     getButtonLabel,
     hasValidAmount,
     isConfirmDisabled,
-    handleConfirm,
+    handleBuy,
     metamaskFeePercent,
     isHardwareSolanaBlocked,
-    isPriceImpactError,
-    priceImpactViewData,
-    formattedPriceImpact,
     tradeMode,
     sourceToken,
     sourceChainId,
@@ -51,8 +48,6 @@ const QuickBuyActionFooter: React.FC = () => {
     setActiveScreen,
   } = useQuickBuyContext();
 
-  // In Buy mode, the token picker selects the *source* ("Pay with").
-  // In Sell mode, the token picker selects the *dest* ("Receive with").
   const pickerToken = tradeMode === 'sell' ? selectedDestStable : sourceToken;
   const pickerChainId =
     tradeMode === 'sell'
@@ -64,9 +59,6 @@ const QuickBuyActionFooter: React.FC = () => {
     tradeMode === 'sell'
       ? (selectedDestStable?.balanceFiat ?? undefined)
       : sourceBalanceFiat;
-
-  const isPriceImpactWarning =
-    !isPriceImpactError && !!priceImpactViewData.icon;
 
   const networkImage = pickerChainId
     ? getNetworkImageSource({ chainId: pickerChainId })
@@ -147,19 +139,14 @@ const QuickBuyActionFooter: React.FC = () => {
         </TouchableOpacity>
       </Box>
 
-      <QuickBuyBanners
-        isHardwareSolanaBlocked={isHardwareSolanaBlocked}
-        isPriceImpactError={isPriceImpactError}
-        isPriceImpactWarning={isPriceImpactWarning}
-        formattedPriceImpact={formattedPriceImpact}
-      />
+      <QuickBuyBanners isHardwareSolanaBlocked={isHardwareSolanaBlocked} />
 
       <QuickBuyConfirmButton
         state={confirmButtonState}
         label={getButtonLabel()}
         hasValidAmount={hasValidAmount}
         isDisabled={isConfirmDisabled}
-        onPress={handleConfirm}
+        onPress={handleBuy}
         testID="quick-buy-confirm-button"
       />
 

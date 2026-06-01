@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import QuickBuyPayWithScreen from './QuickBuyPayWithScreen';
 import { useQuickBuyContext } from './useQuickBuyContext';
@@ -260,5 +261,14 @@ describe('QuickBuyPayWithScreen', () => {
 
     expect(screen.getByTestId(getRowTestId(usdcToken))).toBeOnTheScreen();
     expect(screen.getByTestId(getRowTestId(usdtToken))).toBeOnTheScreen();
+  });
+
+  it('fills the available height so the token list scrolls within a fixed area', () => {
+    render(<QuickBuyPayWithScreen />);
+
+    const scrollView = screen.getByTestId('quick-buy-pay-with-scroll');
+    const flattenedStyle = StyleSheet.flatten(scrollView.props.style);
+
+    expect(flattenedStyle.flexGrow).toBe(1);
   });
 });
