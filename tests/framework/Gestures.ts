@@ -129,7 +129,7 @@ export default class Gestures {
       checkVisibility = true,
       checkEnabled = true,
       elemDescription,
-      delay = BASE_DEFAULTS.actionDelay,
+      delay = 500,
       waitForElementToDisappear = false,
     } = options;
 
