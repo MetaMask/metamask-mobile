@@ -212,6 +212,21 @@ describe('Notification Services Controller', () => {
     );
   });
 
+  it('omits OS metadata when running on a non-mobile platform', () => {
+    // @ts-expect-error — testing unsupported Platform.OS value
+    Platform.OS = 'web';
+
+    const { messenger, assertGetConstructorCall } = arrange();
+    createNotificationServicesPushController({ messenger });
+
+    const constructorParams = assertGetConstructorCall();
+    expect(constructorParams?.config).toEqual(
+      expect.not.objectContaining({
+        os: expect.any(String),
+      }),
+    );
+  });
+
   it('runs push notification side effect to disable the controller if the mobile device has not enabled push notifications', async () => {
     // Arrange
     const {
