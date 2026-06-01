@@ -243,9 +243,8 @@ describe('useMoneyDepositTokens', () => {
 
     it('renders no-fee bucket before fee bucket', () => {
       mockUseAccountTokens.mockReturnValue([USDT, USDC, DAI]);
-      mockIsTokenInWildcardList.mockImplementation(
-        (_symbol: string, list: Record<string, string[]>) =>
-          Boolean(list && Object.keys(list).length > 0 && _symbol === 'USDC'),
+      mockIsTokenInWildcardList.mockImplementation((_symbol, list) =>
+        Boolean(list && Object.keys(list).length > 0 && _symbol === 'USDC'),
       );
 
       const { result } = renderHook(() => useMoneyDepositTokens());
@@ -258,9 +257,8 @@ describe('useMoneyDepositTokens', () => {
     it('sorts each bucket by fiat balance descending', () => {
       mockUseAccountTokens.mockReturnValue([DAI, USDC, LINEA_USDC, USDT]);
       // USDC and LINEA_USDC are no-fee; USDT and DAI are fee tokens
-      mockIsTokenInWildcardList.mockImplementation(
-        (symbol: string, list: Record<string, string[]>) =>
-          Boolean(list && Object.keys(list).length > 0 && symbol === 'USDC'),
+      mockIsTokenInWildcardList.mockImplementation((symbol, list) =>
+        Boolean(list && Object.keys(list).length > 0 && symbol === 'USDC'),
       );
 
       const { result } = renderHook(() => useMoneyDepositTokens());
