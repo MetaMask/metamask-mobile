@@ -103,13 +103,17 @@ const PerpsTPSLView: React.FC = () => {
   useEffect(() => {
     if (focusedInput && Platform.OS === 'ios') {
       isProgrammaticDismissRef.current = true;
-      const timer = requestAnimationFrame(() => {
+      let resetTimer: ReturnType<typeof setTimeout> | null = null;
+      const rafTimer = requestAnimationFrame(() => {
         Keyboard.dismiss();
-        setTimeout(() => {
+        resetTimer = setTimeout(() => {
           isProgrammaticDismissRef.current = false;
         }, 150);
       });
-      return () => cancelAnimationFrame(timer);
+      return () => {
+        cancelAnimationFrame(rafTimer);
+        if (resetTimer !== null) clearTimeout(resetTimer);
+      };
     }
   }, [focusedInput]);
 
@@ -649,7 +653,9 @@ const PerpsTPSLView: React.FC = () => {
                     handleInputFocus('takeProfitPrice');
                   }}
                   onBlur={() => {
-                    handleTakeProfitPriceBlur();
+                    if (!isProgrammaticDismissRef.current) {
+                      handleTakeProfitPriceBlur();
+                    }
                     handleInputBlur();
                   }}
                   selectionColor={colors.primary.default}
@@ -681,7 +687,9 @@ const PerpsTPSLView: React.FC = () => {
                     handleInputFocus('takeProfitPercentage');
                   }}
                   onBlur={() => {
-                    handleTakeProfitPercentageBlur();
+                    if (!isProgrammaticDismissRef.current) {
+                      handleTakeProfitPercentageBlur();
+                    }
                     handleInputBlur();
                   }}
                   selectionColor={colors.primary.default}
@@ -820,7 +828,9 @@ const PerpsTPSLView: React.FC = () => {
                     handleInputFocus('stopLossPrice');
                   }}
                   onBlur={() => {
-                    handleStopLossPriceBlur();
+                    if (!isProgrammaticDismissRef.current) {
+                      handleStopLossPriceBlur();
+                    }
                     handleInputBlur();
                   }}
                   selectionColor={colors.primary.default}
@@ -852,7 +862,9 @@ const PerpsTPSLView: React.FC = () => {
                     handleInputFocus('stopLossPercentage');
                   }}
                   onBlur={() => {
-                    handleStopLossPercentageBlur();
+                    if (!isProgrammaticDismissRef.current) {
+                      handleStopLossPercentageBlur();
+                    }
                     handleInputBlur();
                   }}
                   selectionColor={colors.primary.default}
