@@ -6,8 +6,13 @@ import React, {
   useState,
 } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { ErrorCode, HardwareWalletType } from '@metamask/hw-wallet-sdk';
+import {
+  ConnectionStatus,
+  ErrorCode,
+  HardwareWalletType,
+} from '@metamask/hw-wallet-sdk';
 import { createAdapter } from '../../../../core/HardwareWallet/adapters/factory';
+import { useHardwareWallet } from '../../../../core/HardwareWallet';
 import useBluetoothPermissions from '../../../hooks/useBluetoothPermissions';
 import { BluetoothPermissionErrors } from '../../../../core/Ledger/ledgerErrors';
 import { transition } from './DiscoveryFlow.machine';
@@ -17,6 +22,7 @@ import type {
   DiscoveryStep,
   MachineEvent,
   AccountInfo,
+  DeviceUIConfig,
 } from './DiscoveryFlow.types';
 import type { DiscoveredDevice } from '../../../../core/HardwareWallet/types';
 import SearchingForDevice from '../SearchingForDevice';
@@ -24,18 +30,52 @@ import DiscoveryNotFoundScreen from './screens/DiscoveryNotFound';
 import DiscoveryFoundScreen from './screens/DiscoveryFound';
 import DiscoverySelectDeviceScreen from './screens/DiscoverySelectDevice';
 import DiscoveryAccountSelectionScreen from './screens/DiscoveryAccountSelection';
+import DiscoveryErrorScreenRouter, {
+  isDiscoveryErrorStep,
+  shouldShowGenericProviderError,
+} from './screens/errors/DiscoveryErrorScreenRouter';
 
 interface RouteParams {
   walletType: HardwareWalletType;
   initialStep?: 'searching' | 'accounts';
 }
 
+const QR_WALLET_DEVICE: DiscoveredDevice = {
+  id: 'qr-wallet',
+  name: 'QR Wallet',
+};
+
 const useIsBleWallet = (walletType: HardwareWalletType) =>
   walletType === HardwareWalletType.Ledger;
+
+const resolveProviderErrorStep = (
+  errorCode: ErrorCode,
+  config: Pick<DeviceUIConfig, 'errorToStepMap'>,
+): DiscoveryStep | null => {
+  if (config.errorToStepMap[errorCode]) {
+    return config.errorToStepMap[errorCode] ?? null;
+  }
+
+  switch (errorCode) {
+    case ErrorCode.PermissionBluetoothDenied:
+    case ErrorCode.PermissionLocationDenied:
+    case ErrorCode.PermissionNearbyDevicesDenied:
+    case ErrorCode.PermissionCameraDenied:
+      return 'permission-denied';
+    default:
+      return null;
+  }
+};
 
 const DiscoveryFlow: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const {
+    connectionState,
+    setTargetWalletType,
+    setDiscoveryFlowActive,
+    clearHardwareWalletError,
+  } = useHardwareWallet();
   const { walletType, initialStep } = (route.params as RouteParams) ?? {
     walletType: HardwareWalletType.Ledger,
   };
@@ -53,7 +93,7 @@ const DiscoveryFlow: React.FC = () => {
     DiscoveredDevice[]
   >([]);
   const [selectedDevice, setSelectedDevice] = useState<DiscoveredDevice | null>(
-    initialStep === 'accounts' ? { id: 'qr-wallet', name: 'QR Wallet' } : null,
+    initialStep === 'accounts' ? QR_WALLET_DEVICE : null,
   );
   const [isSelectingDevice, setIsSelectingDevice] = useState(false);
   const [permissionsGranted, setPermissionsGranted] = useState(
@@ -81,6 +121,15 @@ const DiscoveryFlow: React.FC = () => {
   useEffect(() => {
     navigation.setOptions({ headerShown: false });
   }, [navigation]);
+
+  useEffect(() => {
+    setDiscoveryFlowActive(true);
+    return () => setDiscoveryFlowActive(false);
+  }, [setDiscoveryFlowActive]);
+
+  useEffect(() => {
+    setTargetWalletType(walletType);
+  }, [setTargetWalletType, walletType]);
 
   // === Permission handling ===
 
@@ -119,7 +168,7 @@ const DiscoveryFlow: React.FC = () => {
 
   // Non-BLE wallets: use adapter's ensurePermissions
   useEffect(() => {
-    if (isBle || stepRef.current !== 'searching') return;
+    if (isBle || step !== 'searching') return;
 
     const adapter = createAdapter(walletType, {
       onDisconnect: () => undefined,
@@ -139,15 +188,17 @@ const DiscoveryFlow: React.FC = () => {
     });
 
     return () => {
-      adapter.destroy();
+      adapter.disconnect().catch(() => undefined);
       adapterRef.current = null;
     };
-  }, [isBle, send, walletType]);
+  }, [isBle, send, step, walletType]);
 
   // === Adapter creation + transport monitoring (BLE only) ===
 
   useEffect(() => {
-    if (!isBle || !permissionsGranted || stepRef.current !== 'searching') {
+    // Keep the BLE adapter alive after discovery so Connect can reuse the same
+    // transport while accounts are being preloaded.
+    if (!isBle || !permissionsGranted) {
       return;
     }
 
@@ -171,7 +222,8 @@ const DiscoveryFlow: React.FC = () => {
     return () => {
       scanCleanupRef.current?.();
       transportUnsubscribeRef.current?.();
-      adapter.destroy();
+      transportUnsubscribeRef.current = null;
+      adapter.disconnect().catch(() => undefined);
       adapterRef.current = null;
     };
   }, [isBle, permissionsGranted, send, walletType]);
@@ -179,18 +231,19 @@ const DiscoveryFlow: React.FC = () => {
   // === Non-BLE: skip discovery, go to accounts directly ===
 
   useEffect(() => {
-    if (isBle || !permissionsGranted || stepRef.current !== 'searching') return;
+    if (isBle || !permissionsGranted || step !== 'searching') return;
 
     const adapter = adapterRef.current;
     if (!adapter) return;
 
     if (!adapter.requiresDeviceDiscovery) {
+      setSelectedDevice(QR_WALLET_DEVICE);
       send({
         type: 'OPEN_ACCOUNTS',
-        device: { id: 'qr-wallet', name: 'QR Wallet' },
+        device: QR_WALLET_DEVICE,
       });
     }
-  }, [isBle, permissionsGranted, send]);
+  }, [isBle, permissionsGranted, send, step]);
 
   // === Device discovery (BLE) ===
 
@@ -210,7 +263,7 @@ const DiscoveryFlow: React.FC = () => {
 
   useEffect(() => {
     const adapter = adapterRef.current;
-    if (!adapter || !transportReady || stepRef.current !== 'searching') {
+    if (!adapter || !transportReady || step !== 'searching') {
       return;
     }
 
@@ -230,20 +283,20 @@ const DiscoveryFlow: React.FC = () => {
       scanCleanupRef.current?.();
       scanCleanupRef.current = null;
     };
-  }, [transportReady, send, handleDeviceFound, handleScanError]);
+  }, [transportReady, send, handleDeviceFound, handleScanError, step]);
 
   // Transition to found when devices discovered
   useEffect(() => {
-    if (stepRef.current !== 'searching' || discoveredDevices.length <= 0) {
+    if (step !== 'searching' || discoveredDevices.length <= 0) {
       return;
     }
     setSelectedDevice(discoveredDevices[0]);
     send({ type: 'DEVICE_FOUND', device: discoveredDevices[0] });
-  }, [discoveredDevices, send]);
+  }, [discoveredDevices, send, step]);
 
   // Timeout
   useEffect(() => {
-    if (stepRef.current !== 'searching' || config.discoveryTimeoutMs <= 0) {
+    if (step !== 'searching' || config.discoveryTimeoutMs <= 0) {
       return;
     }
 
@@ -252,7 +305,7 @@ const DiscoveryFlow: React.FC = () => {
     }, config.discoveryTimeoutMs);
 
     return () => clearTimeout(timeoutId);
-  }, [config.discoveryTimeoutMs, send]);
+  }, [config.discoveryTimeoutMs, send, step]);
 
   // === BLE connect + pre-load accounts (keeps Found screen visible) ===
 
@@ -271,13 +324,18 @@ const DiscoveryFlow: React.FC = () => {
       }
 
       try {
-        await adapter.connect(targetDevice.id);
         const ready = await adapter.ensureDeviceReady(targetDevice.id);
         if (ready) {
           const accounts = await config.accountManager.getAccounts(
             String(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
           );
           setPreloadedAccounts(accounts);
+          transportUnsubscribeRef.current?.();
+          transportUnsubscribeRef.current = null;
+          await adapter.disconnect().catch(() => undefined);
+          if (adapterRef.current === adapter) {
+            adapterRef.current = null;
+          }
           send({ type: 'OPEN_ACCOUNTS', device: targetDevice });
         }
       } catch (error) {
@@ -292,57 +350,94 @@ const DiscoveryFlow: React.FC = () => {
   );
 
   const resetToSearching = useCallback(() => {
+    clearHardwareWalletError();
     setDiscoveredDevices([]);
     setSelectedDevice(null);
     setTransportReady(false);
-    setPermissionsGranted(false);
+    setPermissionsGranted(
+      isBle ? blePermissions.hasBluetoothPermissions : false,
+    );
     setPreloadedAccounts([]);
     setIsConnecting(false);
     send({ type: 'RETRY' });
-  }, [send]);
+  }, [
+    blePermissions.hasBluetoothPermissions,
+    clearHardwareWalletError,
+    isBle,
+    send,
+  ]);
 
+  const handleGenericErrorContinue = useCallback(() => {
+    clearHardwareWalletError();
+    navigation.goBack();
+  }, [clearHardwareWalletError, navigation]);
+
+  const activeDevice =
+    selectedDevice ??
+    discoveredDevices[0] ??
+    (step === 'accounts' ? QR_WALLET_DEVICE : null);
   const selectedDeviceId = selectedDevice?.id ?? discoveredDevices[0]?.id;
+  const providerErrorStep = useMemo(() => {
+    if (connectionState.status !== ConnectionStatus.ErrorState) {
+      return null;
+    }
+
+    return resolveProviderErrorStep(connectionState.error.code, config);
+  }, [config, connectionState]);
 
   const content = useMemo(() => {
-    if (
-      step === 'device-locked' ||
-      step === 'device-unresponsive' ||
-      step === 'app-not-open' ||
-      step === 'transport-unavailable' ||
-      step === 'transport-connection-failed' ||
-      step === 'permission-denied'
-    ) {
+    const renderedStep = providerErrorStep ?? step;
+    const showGenericProviderError = shouldShowGenericProviderError(
+      connectionState.status,
+      providerErrorStep,
+    );
+
+    if (showGenericProviderError || isDiscoveryErrorStep(renderedStep)) {
+      return (
+        <DiscoveryErrorScreenRouter
+          step={renderedStep}
+          showGenericProviderError={showGenericProviderError}
+          walletType={walletType}
+          onRetry={resetToSearching}
+          onNotNow={resetToSearching}
+          onContinue={handleGenericErrorContinue}
+        />
+      );
+    }
+
+    if (renderedStep === 'permission-denied') {
       return (
         <DiscoveryNotFoundScreen config={config} onRetry={resetToSearching} />
       );
     }
 
-    if (step === 'accounts' && selectedDevice) {
+    if (renderedStep === 'accounts' && activeDevice) {
       return (
         <DiscoveryAccountSelectionScreen
           config={config}
-          selectedDevice={selectedDevice}
+          selectedDevice={activeDevice}
           initialAccounts={preloadedAccounts}
           onBack={() => send({ type: 'BACK' })}
         />
       );
     }
 
-    if (step === 'not-found') {
+    if (renderedStep === 'not-found') {
       return (
         <DiscoveryNotFoundScreen config={config} onRetry={resetToSearching} />
       );
     }
 
-    if (step === 'found' && selectedDevice) {
+    if ((renderedStep === 'found' || isConnecting) && activeDevice) {
       return (
         <>
           <DiscoveryFoundScreen
             config={config}
-            deviceName={selectedDevice.name}
+            deviceName={activeDevice.name}
+            deviceCount={discoveredDevices.length}
             isConnecting={isConnecting}
             onOpenSelectDevice={() => setIsSelectingDevice(true)}
-            onConnect={() => handleConnect(selectedDevice)}
+            onConnect={() => handleConnect(activeDevice)}
           />
           {isSelectingDevice ? (
             <DiscoverySelectDeviceScreen
@@ -352,7 +447,7 @@ const DiscoveryFlow: React.FC = () => {
               onClose={() => setIsSelectingDevice(false)}
               onSave={() => {
                 setIsSelectingDevice(false);
-                handleConnect(selectedDevice);
+                handleConnect(selectedDevice ?? activeDevice);
               }}
               config={config}
             />
@@ -364,16 +459,21 @@ const DiscoveryFlow: React.FC = () => {
     return <SearchingForDevice />;
   }, [
     config,
+    connectionState.status,
+    providerErrorStep,
     discoveredDevices,
     handleConnect,
+    handleGenericErrorContinue,
     isConnecting,
     isSelectingDevice,
     preloadedAccounts,
     resetToSearching,
+    activeDevice,
     selectedDevice,
     selectedDeviceId,
     send,
     step,
+    walletType,
   ]);
 
   return content;

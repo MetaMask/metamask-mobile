@@ -1,22 +1,22 @@
 import { ErrorCode, HardwareWalletType } from '@metamask/hw-wallet-sdk';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import { IconName } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import {
   forgetQrDevice,
   withQrKeyring,
 } from '../../../../../core/QrKeyring/QrKeyring';
 import PAGINATION_OPERATIONS from '../../../../../constants/pagination';
-import type { DeviceUIConfig } from '../DiscoveryFlow.types';
+import hardwareWalletAnimation from '../../../../../animations/hardware_wallet.riv';
+import type { DeviceUIConfig, AccountInfo } from '../DiscoveryFlow.types';
 
 export function createQRConfig(): DeviceUIConfig {
   return {
     walletType: HardwareWalletType.Qr,
     discoveryTimeoutMs: 0,
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    animationSource: require('../../../../../animations/hardware_wallet.riv'),
+    animationSource: hardwareWalletAnimation,
     artboardName: 'Ledger',
     stateMachineName: 'Ledger_states',
-    deviceIcon: 'qr-code',
+    deviceIcon: IconName.QrCode,
     troubleshootingItems: [
       {
         id: 'camera',
@@ -35,9 +35,9 @@ export function createQRConfig(): DeviceUIConfig {
       [ErrorCode.ConnectionTimeout]: 'not-found',
     },
     accountManager: {
-      getAccounts: async (operation: string) => {
+      getAccounts: async (operation: string): Promise<AccountInfo[]> => {
         const op = Number(operation);
-        return withQrKeyring(async ({ keyring }) => {
+        const accounts = await withQrKeyring(async ({ keyring }) => {
           switch (op) {
             case PAGINATION_OPERATIONS.GET_NEXT_PAGE:
               return keyring.getNextPage();
@@ -47,6 +47,12 @@ export function createQRConfig(): DeviceUIConfig {
               return keyring.getFirstPage();
           }
         });
+
+        return accounts.map((account) => ({
+          address: account.address,
+          index: account.index,
+          balance: '0x0',
+        }));
       },
       unlockAccounts: async (indexes: number[]) => {
         await withQrKeyring(async ({ keyring }) => {

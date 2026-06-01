@@ -50,7 +50,9 @@ interface DiscoverySelectDeviceScreenProps {
   config: DeviceUIConfig;
 }
 
-const DiscoverySelectDeviceScreen: React.FC<DiscoverySelectDeviceScreenProps> = ({
+const DiscoverySelectDeviceScreen: React.FC<
+  DiscoverySelectDeviceScreenProps
+> = ({
   devices,
   selectedDeviceId,
   onSelectDevice,
@@ -98,10 +100,7 @@ const DiscoverySelectDeviceScreen: React.FC<DiscoverySelectDeviceScreenProps> = 
             >
               {strings('ledger.select_device')}
             </Text>
-            <TouchableOpacity
-              onPress={onClose}
-              testID="discovery-close-sheet"
-            >
+            <TouchableOpacity onPress={onClose} testID="discovery-close-sheet">
               <Box
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.Center}
@@ -137,10 +136,14 @@ const DiscoverySelectDeviceScreen: React.FC<DiscoverySelectDeviceScreenProps> = 
                       justifyContent={BoxJustifyContent.Center}
                       twClassName="mr-4 h-10 w-10 rounded-xl bg-default"
                     >
-                      <Icon name={IconName.Watch} size={IconSize.Md} />
+                      <Icon
+                        name={config.deviceIcon}
+                        size={IconSize.Md}
+                        color={IconColor.IconDefault}
+                      />
                     </Box>
                     <Text variant={TextVariant.BodyMd} twClassName="flex-1">
-                      {device.name}
+                      {hwDevice.name}
                     </Text>
                     {isSelected && (
                       <Icon

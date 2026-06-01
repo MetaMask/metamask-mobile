@@ -3,9 +3,9 @@ import { createLedgerConfig } from './ledger';
 import type { DeviceUIConfig } from '../DiscoveryFlow.types';
 
 jest.mock('../../../../../core/Ledger/Ledger', () => ({
-  getLedgerAccountsByOperation: jest.fn().mockResolvedValue([
-    { address: '0xabc', index: 0, balance: '0x0' },
-  ]),
+  getLedgerAccountsByOperation: jest
+    .fn()
+    .mockResolvedValue([{ address: '0xabc', index: 0, balance: '0x0' }]),
   unlockLedgerWalletAccount: jest.fn().mockResolvedValue(undefined),
   forgetLedger: jest.fn().mockResolvedValue(undefined),
   getHDPath: jest.fn().mockResolvedValue("m/44'/60'/0'/0/0"),
@@ -61,9 +61,21 @@ describe('Ledger config', () => {
     );
   });
 
-  it('maps permission bluetooth denied to permission-denied', () => {
+  it('maps permission bluetooth denied to bluetooth-access-denied', () => {
     expect(config.errorToStepMap[ErrorCode.PermissionBluetoothDenied]).toBe(
-      'permission-denied',
+      'bluetooth-access-denied',
+    );
+  });
+
+  it('maps permission location denied to location-access-denied', () => {
+    expect(config.errorToStepMap[ErrorCode.PermissionLocationDenied]).toBe(
+      'location-access-denied',
+    );
+  });
+
+  it('maps permission nearby devices denied to nearby-devices-denied', () => {
+    expect(config.errorToStepMap[ErrorCode.PermissionNearbyDevicesDenied]).toBe(
+      'nearby-devices-denied',
     );
   });
 
@@ -85,7 +97,9 @@ describe('Ledger config', () => {
 
     it('delegates getAccounts to getLedgerAccountsByOperation', async () => {
       const accounts = await config.accountManager.getAccounts('0');
-      expect(accounts).toEqual([{ address: '0xabc', index: 0, balance: '0x0' }]);
+      expect(accounts).toEqual([
+        { address: '0xabc', index: 0, balance: '0x0' },
+      ]);
     });
 
     it('delegates unlockAccounts to unlockLedgerWalletAccount', async () => {

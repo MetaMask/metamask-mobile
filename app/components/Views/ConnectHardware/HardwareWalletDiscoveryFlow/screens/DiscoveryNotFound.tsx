@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { TouchableOpacity, View, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -17,12 +17,16 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import { useTheme } from '../../../../../util/theme';
-import type { DeviceUIConfig, TroubleshootingItem } from '../DiscoveryFlow.types';
+import Rive, { Alignment, Fit, type RiveRef } from 'rive-react-native';
+import Logger from '../../../../../util/Logger';
+import type {
+  DeviceUIConfig,
+  TroubleshootingItem,
+} from '../DiscoveryFlow.types';
 
 const styles = StyleSheet.create({
-  container: { width: 240, height: 240 },
+  riveContainer: { width: 240, height: 240 },
+  rive: { width: '100%', height: '100%' },
 });
 
 interface DiscoveryNotFoundScreenProps {
@@ -37,7 +41,19 @@ const DiscoveryNotFoundScreen: React.FC<DiscoveryNotFoundScreenProps> = ({
   onBack,
 }) => {
   const tw = useTailwind();
-  const { colors } = useTheme();
+  const riveRef = useRef<RiveRef>(null);
+
+  useEffect(() => {
+    if (!riveRef.current) {
+      return;
+    }
+
+    try {
+      riveRef.current.setInputState(config.stateMachineName, 'not_found', true);
+    } catch (error) {
+      Logger.error(error as Error, 'Error triggering not_found Rive animation');
+    }
+  }, [config.stateMachineName]);
 
   return (
     <SafeAreaView
@@ -51,17 +67,36 @@ const DiscoveryNotFoundScreen: React.FC<DiscoveryNotFoundScreenProps> = ({
         {onBack ? (
           <TouchableOpacity onPress={onBack} testID="discovery-not-found-back">
             <Box twClassName="h-10 w-10 justify-center">
-              <MaterialIcon
-                name="arrow-back-ios-new"
-                size={20}
-                color={colors.text.default}
+              <Icon
+                name={IconName.ArrowLeft}
+                size={IconSize.Md}
+                color={IconColor.IconDefault}
               />
             </Box>
           </TouchableOpacity>
         ) : null}
 
         <Box twClassName="w-full gap-12 px-4 pt-12">
-          <Text variant={TextVariant.HeadingLg} twClassName="text-center w-full">
+          <Box alignItems={BoxAlignItems.Center}>
+            <View style={styles.riveContainer}>
+              <Rive
+                ref={riveRef}
+                style={styles.rive}
+                source={config.animationSource}
+                autoplay
+                fit={Fit.Contain}
+                alignment={Alignment.Center}
+                artboardName={config.artboardName}
+                stateMachineName={config.stateMachineName}
+                testID="discovery-not-found-animation"
+              />
+            </View>
+          </Box>
+
+          <Text
+            variant={TextVariant.HeadingLg}
+            twClassName="text-center w-full"
+          >
             {config.strings.deviceNotFound}
           </Text>
 

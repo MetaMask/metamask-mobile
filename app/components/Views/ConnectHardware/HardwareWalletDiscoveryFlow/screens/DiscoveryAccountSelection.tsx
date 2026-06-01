@@ -5,13 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  FlatList,
-  Platform,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   StackActions,
@@ -20,11 +14,9 @@ import {
 } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
 import { KeyringController } from '@metamask/keyring-controller';
-import { AccountsController } from '@metamask/accounts-controller';
 import { DeviceEvent, HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 import { UR } from '@ngraveio/bc-ur';
-import CheckBox from '@react-native-community/checkbox';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -32,6 +24,8 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   Button,
+  ButtonIcon,
+  ButtonIconSize,
   ButtonSize,
   ButtonVariant,
   Icon,
@@ -42,21 +36,22 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import Checkbox from '../../../../../component-library/components/Checkbox';
 import Engine from '../../../../../core/Engine';
 import AnimatedQRScannerModal from '../../../../UI/QRHardware/AnimatedQRScanner';
 import BlockingActionModal from '../../../../UI/BlockingActionModal';
 import SelectOptionSheet from '../../../../UI/SelectOptionSheet';
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { useTheme } from '../../../../../util/theme';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { setReloadAccounts } from '../../../../../actions/accounts';
 import { HardwareDeviceTypes } from '../../../../../constants/keyringTypes';
 import PAGINATION_OPERATIONS from '../../../../../constants/pagination';
 import { toFormattedAddress } from '../../../../../util/address';
-import { renderFromWei } from '../../../../../util/number';
+import { renderFromWei } from '../../../../../util/number/bigint';
 import { getConnectedDevicesCount } from '../../../../../core/HardwareWallets/analytics';
 import { createAdapter } from '../../../../../core/HardwareWallet/adapters/factory';
+import { useHardwareWallet } from '../../../../../core/HardwareWallet';
 import { useAccountsBalance } from '../../../../UI/HardwareWallet/AccountSelector/hooks';
 import DiscoveryNotFoundScreen from './DiscoveryNotFound';
 import type {
@@ -73,6 +68,12 @@ const getDisplayErrorMessage = (errorMessage: string): string => {
   return errorMessage;
 };
 
+const formatAccountBalance = (balance: string) =>
+  `${renderFromWei(balance)} ETH`;
+
+const getShortAddress = (address: string) =>
+  `${address.slice(0, 7)}...${address.slice(-4)}`;
+
 interface DiscoveryAccountSelectionScreenProps {
   config: DeviceUIConfig;
   onBack: () => void;
@@ -82,36 +83,10 @@ interface DiscoveryAccountSelectionScreenProps {
 }
 
 const styles = StyleSheet.create({
-  headerButton: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   listContent: {
     paddingHorizontal: 16,
-    gap: 12,
     paddingBottom: 8,
-  },
-  card: {
-    borderRadius: 12,
-    borderWidth: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  divider: {
-    height: StyleSheet.hairlineWidth,
-    marginVertical: 12,
-  },
-  checkbox: {
-    width: Platform.OS === 'ios' ? 20 : 24,
-    height: Platform.OS === 'ios' ? 20 : 24,
-  },
-  pageButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 4,
+    gap: 12,
   },
 });
 
@@ -122,9 +97,9 @@ const DiscoveryAccountSelectionScreen: React.FC<
     useNavigation<NavigationProp<Record<string, object | undefined>>>();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const dispatch = useDispatch();
-  const { colors } = useTheme();
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { showHardwareWalletError, setTargetWalletType } = useHardwareWallet();
 
   const hasPreloadedAccounts = (initialAccounts?.length ?? 0) > 0;
 
@@ -137,13 +112,6 @@ const DiscoveryAccountSelectionScreen: React.FC<
   const keyringController = useMemo(() => {
     const { KeyringController: controller } = Engine.context as {
       KeyringController: KeyringController;
-    };
-    return controller;
-  }, []);
-
-  const accountsController = useMemo(() => {
-    const { AccountsController: controller } = Engine.context as {
-      AccountsController: AccountsController;
     };
     return controller;
   }, []);
@@ -162,6 +130,7 @@ const DiscoveryAccountSelectionScreen: React.FC<
   });
   const [forgetDevice, setForgetDevice] = useState(false);
   const [isQrScanning, setIsQrScanning] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
 
   const isQrWallet = config.walletType === HardwareWalletType.Qr;
 
@@ -176,6 +145,10 @@ const DiscoveryAccountSelectionScreen: React.FC<
     () => new Set(existingAccounts.map(toFormattedAddress)),
     [existingAccounts],
   );
+
+  useEffect(() => {
+    setTargetWalletType(config.walletType);
+  }, [config.walletType, setTargetWalletType]);
 
   useEffect(() => {
     if (hdPathOptions.length > 0 && !selectedPathOption) {
@@ -212,7 +185,6 @@ const DiscoveryAccountSelectionScreen: React.FC<
 
       setIsSendingCommands(true);
       try {
-        await adapter.connect(selectedDevice.id);
         const ready = await adapter.ensureDeviceReady(selectedDevice.id);
         if (ready) {
           await logic();
@@ -226,28 +198,53 @@ const DiscoveryAccountSelectionScreen: React.FC<
     [selectedDevice?.id],
   );
 
+  const getAccountsPage = useCallback(
+    async (operation: number): Promise<AccountInfo[] | undefined> => {
+      const fetchAccounts = () =>
+        config.accountManager.getAccounts(String(operation));
+
+      if (isQrWallet) {
+        return await fetchAccounts();
+      }
+
+      let fetchedAccounts: AccountInfo[] | undefined;
+
+      await runDeviceLogic(async () => {
+        fetchedAccounts = await fetchAccounts();
+      });
+
+      return fetchedAccounts;
+    },
+    [config.accountManager, isQrWallet, runDeviceLogic],
+  );
+
+  const fetchAccountsPage = useCallback(
+    async (operation: number): Promise<AccountInfo[]> =>
+      await config.accountManager.getAccounts(String(operation)),
+    [config.accountManager],
+  );
+
   const onConnectHardware = useCallback(async () => {
     setErrorMsg(null);
 
     if (isQrWallet) {
       setIsQrScanning(true);
-      try {
-        const fetchedAccounts = await config.accountManager.getAccounts(
-          String(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
-        );
+    }
+
+    try {
+      const fetchedAccounts = await getAccountsPage(
+        PAGINATION_OPERATIONS.GET_FIRST_PAGE,
+      );
+      if (fetchedAccounts) {
         setAccounts(fetchedAccounts);
-      } finally {
+        setCurrentPage(0);
+      }
+    } finally {
+      if (isQrWallet) {
         setIsQrScanning(false);
       }
-    } else {
-      await runDeviceLogic(async () => {
-        const fetchedAccounts = await config.accountManager.getAccounts(
-          String(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
-        );
-        setAccounts(fetchedAccounts);
-      });
     }
-  }, [runDeviceLogic, config.accountManager, isQrWallet]);
+  }, [getAccountsPage, isQrWallet]);
 
   const onQrScanSuccess = useCallback(async (ur: UR) => {
     setIsQrScanning(false);
@@ -282,55 +279,60 @@ const DiscoveryAccountSelectionScreen: React.FC<
     if (pathChangeCount === 0) return;
 
     setBlockingModalVisible(true);
-    runDeviceLogic(async () => {
+    setCheckedIndexes(new Set());
+    (async () => {
       try {
-        const refreshed = await config.accountManager.getAccounts(
-          String(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
+        const refreshed = await fetchAccountsPage(
+          PAGINATION_OPERATIONS.GET_FIRST_PAGE,
         );
+        setCurrentPage(0);
         setAccounts(refreshed);
       } catch (error) {
+        showHardwareWalletError(error);
         setErrorMsg(getDisplayErrorMessage((error as Error).message));
+      } finally {
+        setBlockingModalVisible(false);
       }
-    }).finally(() => {
-      setBlockingModalVisible(false);
-    });
-  }, [pathChangeCount, runDeviceLogic, config.accountManager]);
+    })();
+  }, [fetchAccountsPage, pathChangeCount, showHardwareWalletError]);
 
   const nextPage = useCallback(async () => {
     setBlockingModalVisible(true);
+    setCheckedIndexes(new Set());
     try {
-      await runDeviceLogic(async () => {
-        try {
-          const next = await config.accountManager.getAccounts(
-            String(PAGINATION_OPERATIONS.GET_NEXT_PAGE),
-          );
-          setAccounts(next);
-        } catch (error) {
-          setErrorMsg(getDisplayErrorMessage((error as Error).message));
-        }
-      });
+      try {
+        const next = await fetchAccountsPage(
+          PAGINATION_OPERATIONS.GET_NEXT_PAGE,
+        );
+        setAccounts(next);
+        setCurrentPage((page) => page + 1);
+      } catch (error) {
+        showHardwareWalletError(error);
+        setErrorMsg(getDisplayErrorMessage((error as Error).message));
+      }
     } finally {
       setBlockingModalVisible(false);
     }
-  }, [runDeviceLogic, config.accountManager]);
+  }, [fetchAccountsPage, showHardwareWalletError]);
 
   const prevPage = useCallback(async () => {
     setBlockingModalVisible(true);
+    setCheckedIndexes(new Set());
     try {
-      await runDeviceLogic(async () => {
-        try {
-          const prev = await config.accountManager.getAccounts(
-            String(PAGINATION_OPERATIONS.GET_PREVIOUS_PAGE),
-          );
-          setAccounts(prev);
-        } catch (error) {
-          setErrorMsg(getDisplayErrorMessage((error as Error).message));
-        }
-      });
+      try {
+        const prev = await fetchAccountsPage(
+          PAGINATION_OPERATIONS.GET_PREVIOUS_PAGE,
+        );
+        setAccounts(prev);
+        setCurrentPage((page) => Math.max(0, page - 1));
+      } catch (error) {
+        showHardwareWalletError(error);
+        setErrorMsg(getDisplayErrorMessage((error as Error).message));
+      }
     } finally {
       setBlockingModalVisible(false);
     }
-  }, [runDeviceLogic, config.accountManager]);
+  }, [fetchAccountsPage, showHardwareWalletError]);
 
   const closeEntireFlow = useCallback(() => {
     const parent = navigation.getParent();
@@ -377,13 +379,18 @@ const DiscoveryAccountSelectionScreen: React.FC<
 
   const onForget = useCallback(async () => {
     setBlockingModalVisible(true);
-    await config.accountManager.forgetDevice();
-    dispatch(setReloadAccounts(true));
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN).build(),
-    );
-    setBlockingModalVisible(false);
-    closeEntireFlow();
+    try {
+      await config.accountManager.forgetDevice();
+      dispatch(setReloadAccounts(true));
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN).build(),
+      );
+      closeEntireFlow();
+    } catch (error) {
+      setErrorMsg(getDisplayErrorMessage((error as Error).message));
+    } finally {
+      setBlockingModalVisible(false);
+    }
   }, [
     closeEntireFlow,
     config.accountManager,
@@ -438,6 +445,81 @@ const DiscoveryAccountSelectionScreen: React.FC<
     setBlockingModalVisible(true);
   }, []);
 
+  const renderAccountCard = useCallback(
+    ({ item }: { item: AccountInfo }) => {
+      const isAlreadyImported = existingAccountsSet.has(
+        toFormattedAddress(item.address),
+      );
+      const isChecked = checkedIndexes.has(item.index) || isAlreadyImported;
+      const balance =
+        accountsBalance[item.address]?.balance ?? item.balance ?? '0x0';
+      const shortAddress = getShortAddress(item.address);
+
+      return (
+        <Box
+          testID={`discovery-account-card-${item.address}`}
+          twClassName="rounded-xl border border-muted bg-background-muted px-4 py-3"
+        >
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Between}
+          >
+            <Text variant={TextVariant.BodyMd}>
+              {`Account ${item.index + 1}`}
+            </Text>
+            <Checkbox
+              isChecked={isChecked}
+              isDisabled={isAlreadyImported}
+              onPress={() => toggleAccount(item.index)}
+              testID={`discovery-account-checkbox-${item.index}`}
+            />
+          </Box>
+
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            twClassName="mt-1"
+          >
+            {formatAccountBalance(balance)}
+          </Text>
+
+          <Box twClassName="my-3 border-b border-muted" />
+
+          <Box
+            testID={`discovery-account-row-${item.index}`}
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-4"
+          >
+            <Box
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Center}
+              twClassName="h-10 w-10 rounded-xl bg-primary-muted"
+            >
+              <Icon
+                name={IconName.Ethereum}
+                size={IconSize.Md}
+                color={IconColor.PrimaryDefault}
+              />
+            </Box>
+
+            <Box twClassName="flex-1">
+              <Text variant={TextVariant.BodyMd}>Ethereum</Text>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                {shortAddress}
+              </Text>
+            </Box>
+          </Box>
+        </Box>
+      );
+    },
+    [accountsBalance, checkedIndexes, existingAccountsSet, toggleAccount],
+  );
+
   // === Error state (no accounts loaded) ===
   if ((commandError || errorMsg) && accounts.length <= 0) {
     return <DiscoveryNotFoundScreen config={config} onBack={onBack} />;
@@ -449,49 +531,38 @@ const DiscoveryAccountSelectionScreen: React.FC<
         edges={['top', 'bottom']}
         style={tw.style('flex-1 bg-default')}
       >
-        {/* Header */}
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Between}
           twClassName="h-14 px-1"
         >
-          <TouchableOpacity
+          <ButtonIcon
             onPress={onBack}
-            style={styles.headerButton}
+            iconName={IconName.ArrowLeft}
+            iconProps={{ color: IconColor.IconDefault }}
+            size={ButtonIconSize.Md}
             testID="discovery-accounts-back"
-          >
-            <Icon
-              name={IconName.ArrowLeft}
-              size={IconSize.Md}
-              color={IconColor.IconDefault}
-            />
-          </TouchableOpacity>
+          />
           {hdPathOptions.length > 0 ? (
-            <TouchableOpacity
+            <ButtonIcon
               onPress={() => setShowHdPathSheet(true)}
-              style={styles.headerButton}
+              iconName={IconName.Setting}
+              iconProps={{ color: IconColor.IconDefault }}
+              size={ButtonIconSize.Md}
               testID="discovery-accounts-settings"
-            >
-              <Icon
-                name={IconName.Setting}
-                size={IconSize.Md}
-                color={IconColor.IconDefault}
-              />
-            </TouchableOpacity>
+            />
           ) : (
-            <View style={styles.headerButton} />
+            <Box twClassName="h-11 w-11" />
           )}
         </Box>
 
-        {/* Title */}
         <Box twClassName="px-4 pb-4">
           <Text variant={TextVariant.HeadingLg}>
             {config.strings.selectAccounts}
           </Text>
         </Box>
 
-        {/* Error message */}
         {errorMsg ? (
           <Box twClassName="px-4 pb-2">
             <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
@@ -500,147 +571,74 @@ const DiscoveryAccountSelectionScreen: React.FC<
           </Box>
         ) : null}
 
-        {/* Account list */}
         <FlatList
           data={accounts}
-          keyExtractor={(item) => `account-${item.index}`}
+          keyExtractor={(item) => `account-${item.index}-${item.address}`}
           contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => {
-            const isAlreadyImported = existingAccountsSet.has(
-              toFormattedAddress(item.address),
-            );
-            const isChecked =
-              checkedIndexes.has(item.index) || isAlreadyImported;
-            const balance =
-              accountsBalance[item.address]?.balance ?? item.balance ?? '0x0';
-            const shortAddress = `${item.address.slice(0, 7)}...${item.address.slice(-4)}`;
-
-            return (
-              <View
-                style={[
-                  styles.card,
-                  {
-                    borderColor: colors.border.muted,
-                    backgroundColor: colors.background.default,
-                  },
-                ]}
-              >
-                {/* Account name + checkbox */}
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  justifyContent={BoxJustifyContent.Between}
-                >
-                  <Text variant={TextVariant.BodyMd}>
-                    {`Account ${item.index + 1}`}
-                  </Text>
-                  <CheckBox
-                    style={styles.checkbox}
-                    disabled={isAlreadyImported}
-                    value={isChecked}
-                    onValueChange={() => toggleAccount(item.index)}
-                    boxType="square"
-                    tintColors={{
-                      true: colors.primary.default,
-                      false: colors.border.default,
-                    }}
-                    onCheckColor={colors.background.default}
-                    onFillColor={colors.primary.default}
-                    onTintColor={colors.primary.default}
-                  />
-                </Box>
-
-                {/* Total balance */}
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextAlternative}
-                  twClassName="mt-0.5"
-                >
-                  {renderFromWei(balance)} ETH
-                </Text>
-
-                {/* Divider */}
-                <View
-                  style={[
-                    styles.divider,
-                    { backgroundColor: colors.border.muted },
-                  ]}
-                />
-
-                {/* Ethereum network row */}
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                >
-                  <Box
-                    alignItems={BoxAlignItems.Center}
-                    justifyContent={BoxJustifyContent.Center}
-                    twClassName="h-10 w-10 rounded-full bg-muted mr-3"
-                  >
-                    <Icon
-                      name={IconName.Ethereum}
-                      size={IconSize.Md}
-                      color={IconColor.IconDefault}
-                    />
-                  </Box>
-                  <Box twClassName="flex-1">
-                    <Text variant={TextVariant.BodyMd}>Ethereum</Text>
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.TextAlternative}
-                    >
-                      {shortAddress}
-                    </Text>
-                  </Box>
-                  <Text variant={TextVariant.BodyMd}>
-                    {renderFromWei(balance)} ETH
-                  </Text>
-                </Box>
-              </View>
-            );
-          }}
+          renderItem={renderAccountCard}
           ListFooterComponent={
             <Box
               flexDirection={BoxFlexDirection.Row}
               justifyContent={BoxJustifyContent.Between}
-              twClassName="mt-2 mb-2 px-4"
+              twClassName="mt-2 mb-2 px-1"
             >
-              <TouchableOpacity onPress={prevPage} style={styles.pageButton}>
-                <Icon
-                  name={IconName.ArrowLeft}
-                  size={IconSize.Sm}
-                  color={IconColor.IconMuted}
-                />
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextAlternative}
-                  twClassName="ml-1"
+              {currentPage > 0 ? (
+                <TouchableOpacity
+                  onPress={prevPage}
+                  testID="discovery-accounts-prev-page"
                 >
-                  {strings('account_selector.prev')}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={nextPage} style={styles.pageButton}>
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextAlternative}
-                  twClassName="mr-1"
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    twClassName="px-1 py-2"
+                  >
+                    <Icon
+                      name={IconName.ArrowLeft}
+                      size={IconSize.Sm}
+                      color={IconColor.IconMuted}
+                    />
+                    <Text
+                      variant={TextVariant.BodySm}
+                      color={TextColor.TextAlternative}
+                      twClassName="ml-1"
+                    >
+                      {strings('account_selector.prev')}
+                    </Text>
+                  </Box>
+                </TouchableOpacity>
+              ) : (
+                <Box />
+              )}
+              <TouchableOpacity
+                onPress={nextPage}
+                testID="discovery-accounts-next-page"
+              >
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  twClassName="px-1 py-2"
                 >
-                  {strings('account_selector.next')}
-                </Text>
-                <Icon
-                  name={IconName.ArrowRight}
-                  size={IconSize.Sm}
-                  color={IconColor.IconMuted}
-                />
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                    twClassName="mr-1"
+                  >
+                    {strings('account_selector.next')}
+                  </Text>
+                  <Icon
+                    name={IconName.ArrowRight}
+                    size={IconSize.Sm}
+                    color={IconColor.IconMuted}
+                  />
+                </Box>
               </TouchableOpacity>
             </Box>
           }
         />
 
-        {/* Bottom action bar */}
         <Box
           flexDirection={BoxFlexDirection.Row}
-          twClassName="gap-4 px-4 pt-4 pb-2"
+          twClassName="gap-4 border-t border-muted bg-default px-4 pt-4 pb-2"
         >
           <Button
             variant={ButtonVariant.Secondary}

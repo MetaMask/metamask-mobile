@@ -1,13 +1,15 @@
 import type { ErrorCode, HardwareWalletType } from '@metamask/hw-wallet-sdk';
-import type { IconName } from '../../../../component-library/components/Icons/Icon';
 import type { DiscoveredDevice } from '../../../../core/HardwareWallet/types';
-import PAGINATION_OPERATIONS from '../../../../constants/pagination';
+import { IconName } from '@metamask/design-system-react-native';
 
 export type DiscoveryStep =
   | 'searching'
   | 'found'
   | 'not-found'
   | 'accounts'
+  | 'bluetooth-access-denied'
+  | 'location-access-denied'
+  | 'nearby-devices-denied'
   | 'device-locked'
   | 'device-unresponsive'
   | 'app-not-open'
@@ -45,10 +47,10 @@ export interface HardwareAccountManager {
 export interface DeviceUIConfig {
   walletType: HardwareWalletType;
   discoveryTimeoutMs: number;
-  animationSource: number;
+  animationSource: number | { uri: string };
   artboardName: string;
   stateMachineName: string;
-  deviceIcon: string;
+  deviceIcon: IconName;
   troubleshootingItems: TroubleshootingItem[];
   errorToStepMap: Partial<Record<ErrorCode, DiscoveryStep>>;
   accountManager: HardwareAccountManager;

@@ -1,8 +1,12 @@
 import React from 'react';
 import { act, fireEvent, screen } from '@testing-library/react-native';
+import { ConnectionStatus, ErrorCode } from '@metamask/hw-wallet-sdk';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import DiscoveryFlow from './DiscoveryFlow';
 import type { DiscoveredDevice } from '../../../../core/HardwareWallet/types';
+import { AppThemeKey } from '../../../../util/theme/models';
+import { BluetoothPermissionErrors } from '../../../../core/Ledger/ledgerErrors';
+import { strings } from '../../../../../locales/i18n';
 
 const mockGoBack = jest.fn();
 const mockSetOptions = jest.fn();
@@ -19,12 +23,26 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 let mockHasPermissions = true;
+let mockBluetoothPermissionError: BluetoothPermissionErrors | null = null;
+let mockConnectionState: {
+  status: ConnectionStatus;
+  error?: { code: ErrorCode };
+} = { status: ConnectionStatus.Disconnected };
+
+jest.mock('../../../../core/HardwareWallet', () => ({
+  useHardwareWallet: () => ({
+    connectionState: mockConnectionState,
+    setTargetWalletType: jest.fn(),
+    setDiscoveryFlowActive: jest.fn(),
+    clearHardwareWalletError: jest.fn(),
+  }),
+}));
 
 jest.mock('../../../hooks/useBluetoothPermissions', () => ({
   __esModule: true,
   default: () => ({
     hasBluetoothPermissions: mockHasPermissions,
-    bluetoothPermissionError: null,
+    bluetoothPermissionError: mockBluetoothPermissionError,
   }),
 }));
 
@@ -37,6 +55,8 @@ let capturedDeviceFoundCallback: DeviceFoundCallback | null = null;
 let capturedErrorCallback: ErrorCallback | null = null;
 
 const mockDestroy = jest.fn();
+const mockDisconnect = jest.fn().mockResolvedValue(undefined);
+const mockEnsureDeviceReady = jest.fn().mockResolvedValue(true);
 const mockStartDeviceDiscovery = jest.fn(
   (onDeviceFound: DeviceFoundCallback, onError: ErrorCallback) => {
     capturedDeviceFoundCallback = onDeviceFound;
@@ -50,56 +70,87 @@ const mockOnTransportStateChange = jest.fn((callback: TransportCallback) => {
   return jest.fn();
 });
 
-jest.mock(
-  '../../../../core/HardwareWallet/adapters/factory',
-  () => ({
-    createAdapter: jest.fn().mockImplementation(() => ({
-      destroy: mockDestroy,
-      startDeviceDiscovery: mockStartDeviceDiscovery,
-      isTransportAvailable: mockIsTransportAvailable,
-      onTransportStateChange: mockOnTransportStateChange,
-      walletType: 'ledger',
-      requiresDeviceDiscovery: true,
-    })),
-  }),
-);
+jest.mock('../../../../core/HardwareWallet/adapters/factory', () => ({
+  createAdapter: jest.fn().mockImplementation(() => ({
+    disconnect: mockDisconnect,
+    destroy: mockDestroy,
+    ensureDeviceReady: mockEnsureDeviceReady,
+    startDeviceDiscovery: mockStartDeviceDiscovery,
+    isTransportAvailable: mockIsTransportAvailable,
+    onTransportStateChange: mockOnTransportStateChange,
+    walletType: 'ledger',
+    requiresDeviceDiscovery: true,
+  })),
+}));
 
 jest.mock('./configs', () => ({
-  getConfigForWalletType: jest.fn().mockReturnValue({
-    walletType: 'ledger',
-    discoveryTimeoutMs: 15000,
-    animationSource: 0,
-    artboardName: 'Ledger',
-    stateMachineName: 'Ledger_states',
-    deviceIcon: 'smartphone',
-    troubleshootingItems: [
-      { id: 'lock', icon: 'LockSlash', label: 'Unlock device' },
-      { id: 'bt', icon: 'Connect', label: 'Enable Bluetooth' },
-    ],
-    errorToStepMap: {},
-    accountManager: {
-      getAccounts: jest.fn().mockResolvedValue([]),
-      unlockAccounts: jest.fn(),
-      forgetDevice: jest.fn(),
-    },
-    strings: {
-      deviceFound: 'Device found',
-      connectButton: 'Connect',
-      deviceNotFound: 'Device not found',
-      tryAgain: 'Try again',
-      selectAccounts: 'Select accounts',
-    },
+  getConfigForWalletType: jest.fn().mockImplementation(() => {
+    const { ErrorCode: MockErrorCode } = jest.requireActual(
+      '@metamask/hw-wallet-sdk',
+    );
+
+    return {
+      walletType: 'ledger',
+      discoveryTimeoutMs: 15000,
+      animationSource: 0,
+      artboardName: 'Ledger',
+      stateMachineName: 'Ledger_states',
+      deviceIcon: 'smartphone',
+      troubleshootingItems: [
+        { id: 'lock', icon: 'LockSlash', label: 'Unlock device' },
+        { id: 'bt', icon: 'Connect', label: 'Enable Bluetooth' },
+      ],
+      errorToStepMap: {
+        [MockErrorCode.AuthenticationDeviceLocked]: 'device-locked',
+        [MockErrorCode.DeviceUnresponsive]: 'device-unresponsive',
+        [MockErrorCode.DeviceStateEthAppClosed]: 'app-not-open',
+        [MockErrorCode.BluetoothDisabled]: 'transport-unavailable',
+        [MockErrorCode.BluetoothConnectionFailed]:
+          'transport-connection-failed',
+        [MockErrorCode.BluetoothScanFailed]: 'transport-connection-failed',
+        [MockErrorCode.PermissionBluetoothDenied]: 'bluetooth-access-denied',
+        [MockErrorCode.PermissionLocationDenied]: 'location-access-denied',
+        [MockErrorCode.PermissionNearbyDevicesDenied]: 'nearby-devices-denied',
+      },
+      accountManager: {
+        getAccounts: jest.fn().mockResolvedValue([]),
+        unlockAccounts: jest.fn(),
+        forgetDevice: jest.fn(),
+      },
+      strings: {
+        deviceFound: 'Device found',
+        connectButton: 'Connect',
+        deviceNotFound: 'Device not found',
+        tryAgain: 'Try again',
+        selectAccounts: 'Select accounts',
+      },
+    };
   }),
 }));
 
 jest.mock('./screens/DiscoveryFound', () => {
   const ReactActual = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
-  return ({ deviceName }: { deviceName: string }) =>
+  const { Text, Pressable } = jest.requireActual('react-native');
+  return ({
+    deviceName,
+    onConnect,
+  }: {
+    deviceName: string;
+    onConnect: () => void;
+  }) =>
     ReactActual.createElement(
-      Text,
-      { testID: 'discovery-found' },
-      `Found: ${deviceName}`,
+      ReactActual.Fragment,
+      null,
+      ReactActual.createElement(
+        Text,
+        { testID: 'discovery-found' },
+        `Found: ${deviceName}`,
+      ),
+      ReactActual.createElement(
+        Pressable,
+        { testID: 'discovery-connect-button', onPress: onConnect },
+        ReactActual.createElement(Text, null, 'Connect'),
+      ),
     );
 });
 
@@ -109,7 +160,7 @@ jest.mock('./screens/DiscoveryAccountSelection', () => () => null);
 
 const NANO_X: DiscoveredDevice = { id: 'nano-x', name: 'Nano X' };
 
-const initialState = { user: { appTheme: 'dark' } };
+const initialState = { user: { appTheme: AppThemeKey.dark } };
 
 const renderFlow = () =>
   renderWithProvider(<DiscoveryFlow />, { state: initialState });
@@ -133,14 +184,20 @@ describe('DiscoveryFlow orchestrator', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     mockHasPermissions = true;
+    mockBluetoothPermissionError = null;
+    mockConnectionState = { status: ConnectionStatus.Disconnected };
     capturedTransportCallback = null;
     capturedDeviceFoundCallback = null;
     capturedErrorCallback = null;
+    mockDisconnect.mockResolvedValue(undefined);
     mockIsTransportAvailable.mockResolvedValue(true);
+    mockEnsureDeviceReady.mockResolvedValue(true);
   });
 
   afterEach(() => {
-    jest.runOnlyPendingTimers();
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
     jest.useRealTimers();
   });
 
@@ -184,6 +241,61 @@ describe('DiscoveryFlow orchestrator', () => {
 
     expect(
       screen.getByTestId('hardware-wallet-searching-content'),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows bluetooth access denied screen for blocked bluetooth permission', () => {
+    mockBluetoothPermissionError =
+      BluetoothPermissionErrors.BluetoothAccessBlocked;
+
+    renderFlow();
+
+    expect(
+      screen.getByText(strings('ledger.bluetooth_access_denied')),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows bluetooth off screen when transport becomes unavailable', async () => {
+    renderFlow();
+
+    act(() => {
+      capturedTransportCallback?.(false);
+    });
+    await act(async () => undefined);
+
+    expect(
+      screen.getByText(strings('ledger.bluetooth_turned_off')),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows ledger locked screen when connect fails with locked error', async () => {
+    mockEnsureDeviceReady.mockRejectedValueOnce(
+      Object.assign(new Error('Locked device'), {
+        errorCode: ErrorCode.AuthenticationDeviceLocked,
+      }),
+    );
+
+    renderFlow();
+    await simulateBluetoothOn();
+    simulateDeviceFound(NANO_X);
+
+    fireEvent.press(screen.getByTestId('discovery-connect-button'));
+
+    expect(
+      await screen.findByText(strings('ledger.ledger_is_locked')),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows generic provider error screen for unmapped hardware wallet errors', () => {
+    mockConnectionState = {
+      status: ConnectionStatus.ErrorState,
+      error: { code: ErrorCode.Unknown },
+    };
+
+    renderFlow();
+
+    expect(
+      screen.getByText(strings('hardware_wallet.error.title')),
     ).toBeOnTheScreen();
   });
 });

@@ -1,5 +1,4 @@
 import { ErrorCode, HardwareWalletType } from '@metamask/hw-wallet-sdk';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import {
   LEDGER_BIP44_PATH,
@@ -12,17 +11,18 @@ import {
   setHDPath,
   unlockLedgerWalletAccount,
 } from '../../../../../core/Ledger/Ledger';
+import hardwareWalletAnimation from '../../../../../animations/hardware_wallet.riv';
 import type { DeviceUIConfig } from '../DiscoveryFlow.types';
+import { IconName } from '@metamask/design-system-react-native';
 
 export function createLedgerConfig(): DeviceUIConfig {
   return {
     walletType: HardwareWalletType.Ledger,
     discoveryTimeoutMs: 15000,
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    animationSource: require('../../../../../animations/hardware_wallet.riv'),
+    animationSource: hardwareWalletAnimation,
     artboardName: 'Ledger',
     stateMachineName: 'Ledger_states',
-    deviceIcon: 'smartphone',
+    deviceIcon: IconName.Mobile,
     troubleshootingItems: [
       {
         id: 'lock',
@@ -52,9 +52,9 @@ export function createLedgerConfig(): DeviceUIConfig {
       [ErrorCode.BluetoothDisabled]: 'transport-unavailable',
       [ErrorCode.BluetoothConnectionFailed]: 'transport-connection-failed',
       [ErrorCode.BluetoothScanFailed]: 'transport-connection-failed',
-      [ErrorCode.PermissionBluetoothDenied]: 'permission-denied',
-      [ErrorCode.PermissionLocationDenied]: 'permission-denied',
-      [ErrorCode.PermissionNearbyDevicesDenied]: 'permission-denied',
+      [ErrorCode.PermissionBluetoothDenied]: 'bluetooth-access-denied',
+      [ErrorCode.PermissionLocationDenied]: 'location-access-denied',
+      [ErrorCode.PermissionNearbyDevicesDenied]: 'nearby-devices-denied',
     },
     accountManager: {
       getAccounts: (operation: string) =>

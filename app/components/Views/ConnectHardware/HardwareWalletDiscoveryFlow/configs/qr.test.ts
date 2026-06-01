@@ -6,9 +6,9 @@ jest.mock('../../../../../core/QrKeyring/QrKeyring', () => ({
   withQrKeyring: jest.fn().mockImplementation((cb) =>
     cb({
       keyring: {
-        getFirstPage: jest.fn().mockResolvedValue([
-          { address: '0xdef', index: 0, balance: '0x0' },
-        ]),
+        getFirstPage: jest
+          .fn()
+          .mockResolvedValue([{ address: '0xdef', index: 0, balance: '0x0' }]),
         getNextPage: jest.fn().mockResolvedValue([]),
         getPreviousPage: jest.fn().mockResolvedValue([]),
         setAccountToUnlock: jest.fn(),
@@ -61,7 +61,9 @@ describe('QR config', () => {
 
     it('delegates getAccounts to withQrKeyring', async () => {
       const accounts = await config.accountManager.getAccounts('0');
-      expect(accounts).toEqual([{ address: '0xdef', index: 0, balance: '0x0' }]);
+      expect(accounts).toEqual([
+        { address: '0xdef', index: 0, balance: '0x0' },
+      ]);
     });
 
     it('delegates forgetDevice to forgetQrDevice', async () => {

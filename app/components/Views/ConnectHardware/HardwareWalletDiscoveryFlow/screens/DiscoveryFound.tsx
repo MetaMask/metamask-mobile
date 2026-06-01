@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useRef, useEffect } from 'react';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -10,13 +10,16 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
-import Rive, { Alignment, Fit, AutoBind, useRive } from 'rive-react-native';
+import Rive, { Alignment, Fit, RiveRef } from 'rive-react-native';
 import Logger from '../../../../../util/Logger';
-import { useTheme } from '../../../../../util/theme';
 import type { DeviceUIConfig } from '../DiscoveryFlow.types';
 
 const styles = StyleSheet.create({
@@ -27,6 +30,7 @@ const styles = StyleSheet.create({
 interface DiscoveryFoundScreenProps {
   config: DeviceUIConfig;
   deviceName: string;
+  deviceCount?: number;
   isConnecting?: boolean;
   onOpenSelectDevice: () => void;
   onConnect: () => void;
@@ -35,23 +39,25 @@ interface DiscoveryFoundScreenProps {
 const DiscoveryFoundScreen: React.FC<DiscoveryFoundScreenProps> = ({
   config,
   deviceName,
+  deviceCount = 1,
   isConnecting = false,
   onOpenSelectDevice,
   onConnect,
 }) => {
   const tw = useTailwind();
-  const { colors } = useTheme();
-  const [setRiveRef, riveRef] = useRive();
+  const riveRef = useRef<RiveRef>(null);
 
-  React.useEffect(() => {
-    if (riveRef) {
-      try {
-        riveRef.trigger('found');
-      } catch (error) {
-        Logger.error(error as Error, 'Error triggering found Rive animation');
-      }
+  useEffect(() => {
+    if (!riveRef.current) {
+      return;
     }
-  }, [riveRef]);
+
+    try {
+      riveRef.current.setInputState(config.stateMachineName, 'found', true);
+    } catch (error) {
+      Logger.error(error as Error, 'Error triggering found Rive animation');
+    }
+  }, [config.stateMachineName]);
 
   return (
     <SafeAreaView
@@ -70,7 +76,7 @@ const DiscoveryFoundScreen: React.FC<DiscoveryFoundScreenProps> = ({
         >
           <View style={styles.riveContainer}>
             <Rive
-              ref={setRiveRef}
+              ref={riveRef}
               style={styles.rive}
               source={config.animationSource}
               autoplay
@@ -78,23 +84,55 @@ const DiscoveryFoundScreen: React.FC<DiscoveryFoundScreenProps> = ({
               alignment={Alignment.Center}
               artboardName={config.artboardName}
               stateMachineName={config.stateMachineName}
-              dataBinding={AutoBind(true)}
               testID="discovery-found-animation"
             />
           </View>
           <Text variant={TextVariant.HeadingLg} twClassName="text-center pt-6">
             {config.strings.deviceFound}
           </Text>
-          <MaterialIcon.Button
-            name={config.deviceIcon}
-            size={20}
-            color={colors.text.default}
-            backgroundColor="transparent"
-            onPress={isConnecting ? undefined : onOpenSelectDevice}
-            testID="discovery-device-chip"
-          >
-            {deviceName}
-          </MaterialIcon.Button>
+          {deviceCount > 1 ? (
+            <TouchableOpacity
+              onPress={isConnecting ? undefined : onOpenSelectDevice}
+              testID="discovery-device-chip"
+            >
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                twClassName="mt-4 rounded-full bg-muted py-2 px-4"
+              >
+                <Icon
+                  name={config.deviceIcon}
+                  size={IconSize.Sm}
+                  color={IconColor.IconDefault}
+                />
+                <Text variant={TextVariant.BodyMd} twClassName="ml-2">
+                  {deviceName}
+                </Text>
+                <Icon
+                  name={IconName.ArrowDown}
+                  size={IconSize.Sm}
+                  color={IconColor.IconDefault}
+                  twClassName="ml-2"
+                />
+              </Box>
+            </TouchableOpacity>
+          ) : (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="mt-4 rounded-full bg-muted py-2 px-4"
+              testID="discovery-device-chip"
+            >
+              <Icon
+                name={config.deviceIcon}
+                size={IconSize.Sm}
+                color={IconColor.IconDefault}
+              />
+              <Text variant={TextVariant.BodyMd} twClassName="ml-2">
+                {deviceName}
+              </Text>
+            </Box>
+          )}
         </Box>
         <Box alignItems={BoxAlignItems.Center} twClassName="w-full px-4 pb-8">
           <Button

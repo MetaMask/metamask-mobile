@@ -1,4 +1,5 @@
 import { ErrorCode, HardwareWalletType } from '@metamask/hw-wallet-sdk';
+import { IconName } from '@metamask/design-system-react-native';
 import { transition } from './DiscoveryFlow.machine';
 import type {
   DiscoveryStep,
@@ -12,7 +13,7 @@ const mockConfig: DeviceUIConfig = {
   animationSource: 0,
   artboardName: 'Ledger',
   stateMachineName: 'Ledger_states',
-  deviceIcon: 'smartphone',
+  deviceIcon: IconName.Mobile,
   troubleshootingItems: [],
   errorToStepMap: {
     [ErrorCode.AuthenticationDeviceLocked]: 'device-locked',
@@ -21,9 +22,9 @@ const mockConfig: DeviceUIConfig = {
     [ErrorCode.BluetoothDisabled]: 'transport-unavailable',
     [ErrorCode.BluetoothConnectionFailed]: 'transport-connection-failed',
     [ErrorCode.BluetoothScanFailed]: 'transport-connection-failed',
-    [ErrorCode.PermissionBluetoothDenied]: 'permission-denied',
-    [ErrorCode.PermissionLocationDenied]: 'permission-denied',
-    [ErrorCode.PermissionNearbyDevicesDenied]: 'permission-denied',
+    [ErrorCode.PermissionBluetoothDenied]: 'bluetooth-access-denied',
+    [ErrorCode.PermissionLocationDenied]: 'location-access-denied',
+    [ErrorCode.PermissionNearbyDevicesDenied]: 'nearby-devices-denied',
   },
   accountManager: {
     getAccounts: jest.fn(),
@@ -49,7 +50,7 @@ describe('DiscoveryFlow.machine — transition()', () => {
       ).toBe('searching');
     });
 
-    it('moves to permission-denied on PERMISSIONS_DENIED with mapped error', () => {
+    it('moves to bluetooth-access-denied on PERMISSIONS_DENIED with mapped bluetooth error', () => {
       expect(
         transition(
           'searching',
@@ -59,10 +60,10 @@ describe('DiscoveryFlow.machine — transition()', () => {
           },
           mockConfig,
         ),
-      ).toBe('permission-denied');
+      ).toBe('bluetooth-access-denied');
     });
 
-    it('falls back to permission-denied for unmapped permission errors', () => {
+    it('maps location permission denial to location-access-denied', () => {
       expect(
         transition(
           'searching',
@@ -72,7 +73,7 @@ describe('DiscoveryFlow.machine — transition()', () => {
           },
           mockConfig,
         ),
-      ).toBe('permission-denied');
+      ).toBe('location-access-denied');
     });
 
     it('moves to found on DEVICE_FOUND', () => {
@@ -235,6 +236,9 @@ describe('DiscoveryFlow.machine — transition()', () => {
       'app-not-open',
       'transport-unavailable',
       'transport-connection-failed',
+      'bluetooth-access-denied',
+      'location-access-denied',
+      'nearby-devices-denied',
       'permission-denied',
     ];
 
