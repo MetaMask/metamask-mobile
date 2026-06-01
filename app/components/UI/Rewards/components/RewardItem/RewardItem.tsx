@@ -24,6 +24,7 @@ import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { TouchableOpacity } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 import { selectRewardsActiveAccountAddress } from '../../../../../selectors/rewards';
 
@@ -50,6 +51,7 @@ const RewardItem: React.FC<RewardItemProps> = ({
   onPress,
   claimCtaLabel,
 }) => {
+  const tw = useTailwind();
   const hasClaimed = reward?.claimStatus === RewardClaimStatus.CLAIMED;
   const isSeasonRewardClaimExpired = useMemo(() => {
     if (
@@ -371,69 +373,68 @@ const RewardItem: React.FC<RewardItemProps> = ({
     <TouchableOpacity
       disabled={isLocked || hasClaimed || isSeasonRewardClaimExpired}
       onPress={handleRewardItemPress}
-    >
-      <Box
-        twClassName={`flex-row items-center ${compact ? 'py-2' : 'py-3 px-4'} gap-4 ${
+      style={tw.style(
+        `flex-row items-center ${compact ? 'py-2' : 'py-3 px-4'} gap-4 ${
           isLast || compact ? '' : 'border-b border-muted'
-        }`}
+        }`,
+      )}
+    >
+      {/* Reward Icon */}
+      <Box
+        twClassName={`h-10 w-10 rounded-full bg-muted items-center justify-center`}
+        testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_ICON}
       >
-        {/* Reward Icon */}
-        <Box
-          twClassName={`h-10 w-10 rounded-full bg-muted items-center justify-center`}
-          testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_ICON}
-        >
-          <Icon
-            name={getIconName(seasonReward.iconName)}
-            size={IconSize.Lg}
-            twClassName="text-icon-alternative"
-          />
-        </Box>
-
-        {/* Reward Info */}
-        <Box twClassName="flex-1">
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            twClassName="text-text-default"
-            testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_NAME}
-          >
-            {isEndOfSeasonReward && seasonReward.endOfSeasonName
-              ? seasonReward.endOfSeasonName
-              : seasonReward.name}
-          </Text>
-          <Box testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_DESCRIPTION}>
-            {shortDescription}
-          </Box>
-        </Box>
-
-        {/* Claim Button - hidden when locked, already claimed, or end of season reward claim period has expired */}
-        {!isLocked &&
-          !hasClaimed &&
-          !isSeasonRewardClaimExpired &&
-          (isEndOfSeasonReward ? (
-            <Icon
-              name={IconName.ArrowRight}
-              size={IconSize.Sm}
-              twClassName="text-text-alternative mr-1"
-            />
-          ) : (
-            <Button
-              variant={
-                isEndOfSeasonReward
-                  ? ButtonVariant.Primary
-                  : ButtonVariant.Secondary
-              }
-              size={isEndOfSeasonReward ? ButtonSize.Md : ButtonSize.Sm}
-              onPress={(e) => {
-                e.stopPropagation();
-                handleRewardItemPress();
-              }}
-              testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_CLAIM_BUTTON}
-            >
-              {claimCtaLabel || strings('rewards.unlocked_rewards.claim_label')}
-            </Button>
-          ))}
+        <Icon
+          name={getIconName(seasonReward.iconName)}
+          size={IconSize.Lg}
+          twClassName="text-icon-alternative"
+        />
       </Box>
+
+      {/* Reward Info */}
+      <Box twClassName="flex-1">
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          twClassName="text-text-default"
+          testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_NAME}
+        >
+          {isEndOfSeasonReward && seasonReward.endOfSeasonName
+            ? seasonReward.endOfSeasonName
+            : seasonReward.name}
+        </Text>
+        <Box testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_DESCRIPTION}>
+          {shortDescription}
+        </Box>
+      </Box>
+
+      {/* Claim Button - hidden when locked, already claimed, or end of season reward claim period has expired */}
+      {!isLocked &&
+        !hasClaimed &&
+        !isSeasonRewardClaimExpired &&
+        (isEndOfSeasonReward ? (
+          <Icon
+            name={IconName.ArrowRight}
+            size={IconSize.Sm}
+            twClassName="text-text-alternative mr-1"
+          />
+        ) : (
+          <Button
+            variant={
+              isEndOfSeasonReward
+                ? ButtonVariant.Primary
+                : ButtonVariant.Secondary
+            }
+            size={isEndOfSeasonReward ? ButtonSize.Md : ButtonSize.Sm}
+            onPress={(e) => {
+              e.stopPropagation();
+              handleRewardItemPress();
+            }}
+            testID={REWARDS_VIEW_SELECTORS.TIER_REWARD_CLAIM_BUTTON}
+          >
+            {claimCtaLabel || strings('rewards.unlocked_rewards.claim_label')}
+          </Button>
+        ))}
     </TouchableOpacity>
   );
 };
