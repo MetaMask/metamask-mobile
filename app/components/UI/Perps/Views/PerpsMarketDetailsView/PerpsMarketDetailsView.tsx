@@ -749,6 +749,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
           defaultSzDecimals: marketData?.szDecimals,
           defaultMaxLeverage: marketData?.maxLeverage,
+          ...(transactionActiveAbTests?.length
+            ? { transactionActiveAbTests }
+            : {}),
         });
       }),
     [
@@ -758,6 +761,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       navigation,
       track,
       navigateToOrder,
+      transactionActiveAbTests,
       market?.symbol,
       marketData,
       isButtonColorTestEnabled,

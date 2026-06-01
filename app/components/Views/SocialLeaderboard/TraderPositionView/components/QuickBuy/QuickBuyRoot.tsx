@@ -9,6 +9,9 @@ import Animated from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
 import { selectIsSubmittingTx } from '../../../../../../core/redux/slices/bridge';
 import QuickBuyAmountScreen from './QuickBuyAmountScreen';
+import QuickBuyPayWithScreen from './QuickBuyPayWithScreen';
+import QuickBuyQuoteDetailsScreen from './QuickBuyQuoteDetailsScreen';
+import QuickBuySelectQuoteScreen from './QuickBuySelectQuoteScreen';
 import { QuickBuyProvider } from './QuickBuyContext';
 import { TOP_TRADERS_QUICK_BUY_FEATURES } from './features';
 import QuickBuyBottomSheetSkeleton from './QuickBuyBottomSheetSkeleton';
@@ -19,6 +22,7 @@ import type {
   QuickBuyScreen,
   QuickBuyTarget,
 } from './types';
+import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 
 export type { QuickBuyRootProps } from './types';
 
@@ -35,6 +39,12 @@ function renderActiveScreen(
   }
 
   switch (activeScreen) {
+    case 'payWith':
+      return <QuickBuyPayWithScreen />;
+    case 'quoteDetails':
+      return <QuickBuyQuoteDetailsScreen />;
+    case 'selectQuote':
+      return <QuickBuySelectQuoteScreen />;
     case 'amount':
     default:
       return <QuickBuyAmountScreen />;
@@ -61,6 +71,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   const [isContentReady, setIsContentReady] = useState(false);
   const [activeScreen, setActiveScreen] = useState<QuickBuyScreen>('amount');
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
+  const surfaceClass = useElevatedSurface();
 
   useEffect(() => {
     bottomSheetRef.current?.onOpenBottomSheet(() => {
@@ -73,6 +84,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
       ref={bottomSheetRef}
       isInteractable={!isSubmittingTx}
       onClose={onClose}
+      twClassName={surfaceClass}
     >
       {isContentReady ? (
         <QuickBuyProvider

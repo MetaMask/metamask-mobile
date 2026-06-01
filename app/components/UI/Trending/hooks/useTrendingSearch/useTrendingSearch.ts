@@ -7,6 +7,7 @@ import { sortTrendingTokens } from '../../utils/sortTrendingTokens';
 import {
   PriceChangeOption,
   SortDirection,
+  TimeOption,
 } from '../../components/TrendingTokensBottomSheet';
 import { isEqual } from 'lodash';
 
@@ -42,6 +43,7 @@ export const useTrendingSearch = (opts?: {
   sortTrendingTokensOptions?: {
     option: PriceChangeOption;
     direction: SortDirection;
+    timeOption?: TimeOption;
   };
 }) => {
   const {
@@ -99,6 +101,7 @@ export const useTrendingSearch = (opts?: {
         trendingResults,
         sortTrendingTokensOptions.option,
         sortTrendingTokensOptions.direction,
+        sortTrendingTokensOptions.timeOption,
       );
     }
 

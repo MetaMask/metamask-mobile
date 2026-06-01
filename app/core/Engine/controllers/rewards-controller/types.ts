@@ -110,18 +110,26 @@ export type VipLocalizedTextDto = {
   swapsFeeTitle: string;
   perpsFeeTitle: string;
   revenueShareTitle: string;
+  referralPointsTitle: string;
   statsTitle: string;
+  pointsTitle: string;
+  swapsVolumeTitle: string;
+  pointsFromReferralsTitle: string;
+  perpsVolumeTitle: string;
+  vipReferralsTitle: string;
   totalPointsTitle: string;
   equityLockedTitle: string;
   equityLockedDescription: string;
   equityUnlockedTitle: string;
   equityUnlockedDescription: string;
+  topTierDescription: string;
   // The `nextTier…Delta` strings below carry the next tier's absolute value
   // text (e.g. "↓ 12 bps next tier"), not a delta against the current tier.
   // Naming is kept for wire-contract compatibility with the rewards API.
   nextTierSwapsFeeDelta: string;
   nextTierPerpsFeeDelta: string;
   nextTierRevenueShareDelta: string;
+  nextTierReferralPointsDelta: string;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

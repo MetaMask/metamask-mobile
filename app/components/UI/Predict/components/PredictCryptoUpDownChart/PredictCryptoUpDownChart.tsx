@@ -1,8 +1,25 @@
 import React, { useEffect, useState } from 'react';
+import { PixelRatio } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
 import { LivelineChart } from '../../../Charts/LivelineChart';
 import { useCryptoUpDownChartData } from '../../hooks/useCryptoUpDownChartData';
 import type { PredictCryptoUpDownChartProps } from './PredictCryptoUpDownChart.types';
+
+const MIN_BOTTOM_PADDING_PX = 64;
+const BOTTOM_PADDING_HEIGHT_RATIO = 0.15;
+const BOTTOM_PADDING_FONT_SCALE_BOOST_PX = 24;
+
+export const computeBottomPadding = (
+  chartHeight: number,
+  fontScale: number,
+): number =>
+  Math.max(
+    MIN_BOTTOM_PADDING_PX,
+    Math.round(
+      chartHeight * BOTTOM_PADDING_HEIGHT_RATIO +
+        Math.max(0, fontScale - 1) * BOTTOM_PADDING_FONT_SCALE_BOOST_PX,
+    ),
+  );
 
 /**
  * USD whole-dollar formatter body for `LivelineChart` axis/tooltip values,
@@ -47,12 +64,16 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
   } = useCryptoUpDownChartData(market, targetPrice);
 
   const chartHeight = explicitHeight ?? measuredHeight;
+  const bottomPadding = computeBottomPadding(
+    chartHeight,
+    PixelRatio.getFontScale(),
+  );
 
   useEffect(() => {
-    if (!loading && data.length > 0 && Number.isFinite(value)) {
+    if (data.length > 0 && Number.isFinite(value)) {
       onCurrentPriceChange?.(value);
     }
-  }, [data.length, loading, onCurrentPriceChange, value]);
+  }, [data.length, onCurrentPriceChange, value]);
 
   return (
     <Box
@@ -77,7 +98,7 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
           hideControls
           badge={false}
           momentum={false}
-          padding={{ top: 8, right: 64, bottom: 48 }}
+          padding={{ top: 8, right: 64, bottom: bottomPadding }}
           referenceLine={
             targetPrice ? { value: targetPrice, label: 'Target' } : undefined
           }
