@@ -27,7 +27,9 @@ interface PredictSportOutcomeCardProps {
   buttons: PredictSportOutcomeButton[];
   lines?: number[];
   selectedLine?: number;
-  onSelectLine?: (line: number) => void;
+  selectedIndex?: number;
+  onSelectLine?: (line: number, index: number) => void;
+  buttonLayout?: 'inline' | 'stacked';
   disabled?: boolean;
   testID?: string;
 }
@@ -38,7 +40,9 @@ const PredictSportOutcomeCard: React.FC<PredictSportOutcomeCardProps> = ({
   buttons,
   lines,
   selectedLine,
+  selectedIndex,
   onSelectLine,
+  buttonLayout = 'inline',
   disabled = false,
   testID = PREDICT_SPORT_OUTCOME_CARD_TEST_IDS.CONTAINER,
 }) => {
@@ -86,7 +90,7 @@ const PredictSportOutcomeCard: React.FC<PredictSportOutcomeCardProps> = ({
               variant={button.variant}
               teamColor={button.teamColor}
               disabled={disabled}
-              layout="inline"
+              layout={buttonLayout}
               testID={`${testID}-button-${index}`}
             />
           </Box>
@@ -98,6 +102,7 @@ const PredictSportOutcomeCard: React.FC<PredictSportOutcomeCardProps> = ({
           <PredictSportLineSelector
             lines={lines}
             selectedLine={selectedLine}
+            selectedIndex={selectedIndex}
             onSelectLine={onSelectLine}
             testID={PREDICT_SPORT_OUTCOME_CARD_TEST_IDS.LINE_SELECTOR}
           />

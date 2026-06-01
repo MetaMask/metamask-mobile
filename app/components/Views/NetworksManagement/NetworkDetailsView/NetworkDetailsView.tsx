@@ -67,7 +67,11 @@ import BlockExplorerSection, {
 
 import { NetworkDetailsViewSelectorsIDs } from './NetworkDetailsView.testIds';
 import createStyles from './NetworkDetailsView.styles';
-import type { NetworkDetailsViewParams } from './NetworkDetailsView.types';
+import type {
+  NetworkDetailsViewParams,
+  NetworkFormState,
+  UrlSheetPersistOptions,
+} from './NetworkDetailsView.types';
 
 type NetworkDetailsRouteParams = RouteProp<
   { AddNetworkForm: NetworkDetailsViewParams },
@@ -106,12 +110,36 @@ const NetworkDetailsView = () => {
     });
   }, [formHook, validation]);
 
+  // `editable` only locks name/symbol fields — RPC & block explorer lists still change;
+  // Save / sheet persist must run when those lists diverge from the last saved baseline.
   const isActionDisabled =
     !formHook.enableAction ||
-    formHook.form.editable === false ||
     validation.disabledByChainId(formHook.form) ||
     validation.disabledByName(formHook.form) ||
     validation.disabledBySymbol(formHook.form);
+
+  // Latest form + deps for sheet persist. Reassigned every render; async persist reads
+  // `persistSheetCtxRef.current` at invoke time so data is never "initial render" stale.
+  const persistSheetCtxRef = useRef({
+    form: formHook.form,
+    enableAction: formHook.enableAction,
+    validation,
+    operations,
+    isCustomMainnet,
+    shouldNetworkSwitchPopToWallet,
+    trackRpcUpdateFromBanner,
+    commitBaselineFromFormState: formHook.commitBaselineFromFormState,
+  });
+  persistSheetCtxRef.current = {
+    form: formHook.form,
+    enableAction: formHook.enableAction,
+    validation,
+    operations,
+    isCustomMainnet,
+    shouldNetworkSwitchPopToWallet,
+    trackRpcUpdateFromBanner,
+    commitBaselineFromFormState: formHook.commitBaselineFromFormState,
+  };
 
   const handleSave = useCallback(async () => {
     await operations.saveNetwork(formHook.form, {
@@ -133,6 +161,54 @@ const NetworkDetailsView = () => {
     shouldNetworkSwitchPopToWallet,
     trackRpcUpdateFromBanner,
   ]);
+
+  /**
+   * Persist after RPC / block-explorer sheet mutations. Callers pass the committed
+   * `NetworkFormState` snapshot produced by the same pure transforms as the form hook.
+   *
+   * Intentionally `[]` deps: the callback must stay referentially stable for sheet children,
+   * and always reads fresh `form` / `operations` / `validation` via `persistSheetCtxRef.current`
+   * at invoke time (ref is updated synchronously each render above).
+   */
+  const schedulePersistAfterUrlSheetMutation = useCallback(
+    async (
+      committedFormSnapshot: NetworkFormState,
+      persistOptions?: UrlSheetPersistOptions,
+    ): Promise<boolean> => {
+      const ctx = persistSheetCtxRef.current;
+      if (committedFormSnapshot.addMode) {
+        return false;
+      }
+      try {
+        const saved = await ctx.operations.saveNetwork(committedFormSnapshot, {
+          enableAction: ctx.enableAction,
+          disabledByChainId: ctx.validation.disabledByChainId(
+            committedFormSnapshot,
+          ),
+          disabledByName: ctx.validation.disabledByName(committedFormSnapshot),
+          disabledBySymbol: ctx.validation.disabledBySymbol(
+            committedFormSnapshot,
+          ),
+          isCustomMainnet: ctx.isCustomMainnet,
+          shouldNetworkSwitchPopToWallet: ctx.shouldNetworkSwitchPopToWallet,
+          trackRpcUpdateFromBanner: ctx.trackRpcUpdateFromBanner,
+          validateChainIdOnSubmit: ctx.validation.validateChainIdOnSubmit,
+          skipPostSaveNavigation: true,
+          bypassEnableActionGuard: true,
+          bypassFormDisabledGuards: true,
+          skipChainIdSubmitValidation:
+            persistOptions?.skipChainIdSubmitValidation === true,
+        });
+        if (saved === true) {
+          ctx.commitBaselineFromFormState(committedFormSnapshot);
+        }
+        return saved === true;
+      } catch {
+        return false;
+      }
+    },
+    [],
+  );
 
   const handleValidateChainId = useCallback(() => {
     validation.validateChainId(formHook.form);
@@ -317,12 +393,14 @@ const NetworkDetailsView = () => {
             styles={styles}
             themeAppearance={themeAppearance}
             placeholderTextColor={placeholderTextColor}
+            onUrlSheetMutationCommitted={schedulePersistAfterUrlSheetMutation}
           />
           <BlockExplorerModals
             formHook={formHook}
             styles={styles}
             themeAppearance={themeAppearance}
             placeholderTextColor={placeholderTextColor}
+            onUrlSheetMutationCommitted={schedulePersistAfterUrlSheetMutation}
           />
         </>
       )}

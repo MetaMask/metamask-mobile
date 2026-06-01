@@ -30,6 +30,7 @@ import {
 } from '../../../../actions/onboarding';
 import { SagaIterator } from 'redux-saga';
 import { getMnemonicSeed } from '../../../Snaps/permissions/utils';
+import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../../constants/snaps';
 
 /**
  * Initialize the Snap controller.
@@ -48,7 +49,7 @@ export const snapControllerInit: MessengerClientInitFunction<
   SnapControllerInitMessenger
 > = ({ initMessenger, controllerMessenger, persistedState }) => {
   const requireAllowlist = process.env.METAMASK_BUILD_TYPE !== 'flask';
-  const disableSnapInstallation = process.env.METAMASK_BUILD_TYPE !== 'flask';
+  const disableSnapInstallation = !CAN_INSTALL_THIRD_PARTY_SNAPS;
   const allowLocalSnaps = process.env.METAMASK_BUILD_TYPE === 'flask';
   const autoUpdatePreinstalledSnaps = true;
 

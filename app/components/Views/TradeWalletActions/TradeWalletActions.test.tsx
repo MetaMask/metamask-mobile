@@ -5,6 +5,7 @@ import {
   renderScreen,
 } from '../../../util/test/renderWithProvider';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletActionsBottomSheetSelectorsIDs } from '../WalletActions/WalletActionsBottomSheet.testIds';
 import { RootState } from '../../../reducers';
 import { earnSelectors } from '../../../selectors/earnController/earn';
@@ -24,6 +25,7 @@ import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
 import { selectPredictEnabledFlag } from '../../UI/Predict';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { isHardwareAccount } from '../../../util/address';
 import TradeWalletActions from './TradeWalletActions';
 
 jest.mock('react-native-device-info', () => ({
@@ -187,6 +189,16 @@ jest.mock('../../../core/AppConstants', () => {
   };
 });
 
+jest.mock('../../../constants/bridge', () => ({
+  ...jest.requireActual('../../../constants/bridge'),
+  BATCH_SELL_ENABLED: true,
+}));
+
+jest.mock('../../../util/address', () => ({
+  ...jest.requireActual('../../../util/address'),
+  isHardwareAccount: jest.fn(),
+}));
+
 const mockInitialState: DeepPartial<RootState> = {
   swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
   fiatOrders: {
@@ -285,6 +297,7 @@ jest.mock('../../../util/navigation/navUtils', () => ({
 describe('TradeWalletActions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(isHardwareAccount).mockReturnValue(false);
 
     mockUseStakingEligibility.mockReturnValue({
       isEligible: true,
@@ -317,7 +330,7 @@ describe('TradeWalletActions', () => {
         .fn()
         .mockImplementation((callback) => callback(mockInitialState)),
     }));
-    const { getByTestId, queryByTestId } = renderScreen(
+    const { getByTestId, getByText, queryByTestId } = renderScreen(
       TradeWalletActions,
       {
         name: 'TradeWalletActions',
@@ -327,6 +340,10 @@ describe('TradeWalletActions', () => {
       },
     );
 
+    expect(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON),
+    ).toBeDefined();
+    expect(getByText('New')).toBeOnTheScreen();
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
     ).toBeDefined();
@@ -362,6 +379,27 @@ describe('TradeWalletActions', () => {
     );
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
+    ).toBeDefined();
+  });
+
+  it('does not render Batch Sell for hardware wallets', () => {
+    jest.mocked(isHardwareAccount).mockReturnValue(true);
+
+    const { getByTestId, queryByTestId } = renderScreen(
+      TradeWalletActions,
+      {
+        name: 'TradeWalletActions',
+      },
+      {
+        state: mockInitialState,
+      },
+    );
+
+    expect(
+      queryByTestId(WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON),
+    ).toBeNull();
+    expect(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
     ).toBeDefined();
   });
 
@@ -514,7 +552,7 @@ describe('TradeWalletActions', () => {
 
     // Verify button exists and is enabled for returning users
     expect(perpsButton).toBeDefined();
-    expect(perpsButton.props.accessibilityState?.disabled).toBeFalsy();
+    expect(perpsButton).toBeEnabled();
   });
 
   it('should set up perps navigation to tutorial for first-time users', () => {
@@ -643,6 +681,9 @@ describe('TradeWalletActions', () => {
     const swapButton = getByTestId(
       WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON,
     );
+    const batchSellButton = getByTestId(
+      WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON,
+    );
     const earnButton = getByTestId(
       WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON,
     );
@@ -655,6 +696,7 @@ describe('TradeWalletActions', () => {
 
     // Test that disabled buttons don't execute their actions when pressed
     fireEvent.press(swapButton);
+    fireEvent.press(batchSellButton);
     fireEvent.press(earnButton);
     fireEvent.press(perpsButton);
     fireEvent.press(predictButton);

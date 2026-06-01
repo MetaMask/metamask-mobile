@@ -16,31 +16,13 @@ import PredictSportWinner from '../PredictSportWinner/PredictSportWinner';
 import { PredictMarketGame } from '../../types';
 import { useLiveGameUpdates } from '../../hooks/useLiveGameUpdates';
 import { isDrawCapableLeague } from '../../constants/sports';
+import { parseScore } from '../../utils/gameParser';
 import { PREDICT_SPORT_SCOREBOARD_TEST_IDS } from './PredictSportScoreboard.testIds';
 
 export interface PredictSportScoreboardProps {
   game: PredictMarketGame;
   testID?: string;
 }
-
-/**
- * Parses score string "away-home" (e.g., "21-14") into { away, home } numbers.
- */
-const parseScoreString = (
-  scoreString: string | null | undefined,
-): { away: number; home: number } | null => {
-  if (!scoreString) return null;
-
-  const parts = scoreString.split('-');
-  if (parts.length !== 2) return null;
-
-  const away = parseInt(parts[0], 10);
-  const home = parseInt(parts[1], 10);
-
-  if (isNaN(away) || isNaN(home)) return null;
-
-  return { away, home };
-};
 
 /**
  * Formats startTime to { date: "Sat, Jan 17", time: "2:30 PM" }.
@@ -92,7 +74,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
 
   const mergedData = useMemo(() => {
     const liveScore = gameUpdate?.score
-      ? parseScoreString(gameUpdate.score)
+      ? parseScore(gameUpdate.score, game.league)
       : null;
 
     return {

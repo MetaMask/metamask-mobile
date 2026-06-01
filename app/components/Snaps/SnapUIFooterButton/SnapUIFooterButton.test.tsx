@@ -59,15 +59,16 @@ describe('SnapUIFooterButton', () => {
   });
 
   it('shows loading state', () => {
-    render(<SnapUIFooterButton {...defaultProps} loading />);
-    const button = screen.getByRole('button', { name: 'Test Button' });
-    expect(button.findByType(ActivityIndicator)).toBeTruthy();
+    const { UNSAFE_getByType } = render(
+      <SnapUIFooterButton {...defaultProps} loading />,
+    );
+    expect(UNSAFE_getByType(ActivityIndicator)).toBeTruthy();
   });
 
   it('applies correct variant based on disabled state', () => {
     render(<SnapUIFooterButton {...defaultProps} disabled />);
     const button = screen.getByRole('button', { name: 'Test Button' });
-    expect(button.props.accessibilityState.disabled).toBe(true);
+    expect(button).toBeDisabled();
   });
 
   it('fires ButtonClickEvent and FormSubmitEvent when snap action button with Submit type is pressed', () => {

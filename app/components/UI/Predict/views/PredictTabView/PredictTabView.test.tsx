@@ -1,4 +1,4 @@
-import { render, act } from '@testing-library/react-native';
+import { render, act, fireEvent } from '@testing-library/react-native';
 import React, { Ref } from 'react';
 import { PredictTabViewSelectorsIDs } from '../../Predict.testIds';
 import { PredictHomePositionsHandle } from '../../components/PredictHome/PredictHomePositions';
@@ -11,6 +11,8 @@ jest.mock('../../hooks/usePredictMeasurement', () => ({
   usePredictMeasurement: jest.fn(),
 }));
 
+const mockRefreshFn = jest.fn();
+
 jest.mock('../../components/PredictHome', () => {
   const ReactLib = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
@@ -22,7 +24,7 @@ jest.mock('../../components/PredictHome', () => {
         ref: Ref<PredictHomePositionsHandle>,
       ) => {
         ReactLib.useImperativeHandle(ref, () => ({
-          refresh: jest.fn(),
+          refresh: mockRefreshFn,
         }));
         return (
           <View testID="predict-home-positions">
@@ -162,7 +164,7 @@ describe('PredictTabView', () => {
       expect(queryByTestId('predict-add-funds-sheet')).not.toBeOnTheScreen();
     });
 
-    it('displays retry button in error state', async () => {
+    it('displays retry button in error state', () => {
       const PredictHomeMock = jest.requireMock('../../components/PredictHome');
       let capturedOnError: ((error: string | null) => void) | undefined;
       PredictHomeMock.PredictHomePositions = React.forwardRef(

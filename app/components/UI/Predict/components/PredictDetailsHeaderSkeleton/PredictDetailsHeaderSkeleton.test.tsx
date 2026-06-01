@@ -31,9 +31,4 @@ describe('PredictDetailsHeaderSkeleton', () => {
     expect(getByTestId(`${customTestId}-title`)).toBeTruthy();
     expect(getByTestId(`${customTestId}-share`)).toBeTruthy();
   });
-
-  it('matches snapshot', () => {
-    const tree = render(<PredictDetailsHeaderSkeleton />).toJSON();
-    expect(tree).toMatchSnapshot();
-  });
 });

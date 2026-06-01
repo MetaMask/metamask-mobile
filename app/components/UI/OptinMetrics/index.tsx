@@ -60,6 +60,8 @@ import {
   type ParamListBase,
 } from '@react-navigation/native';
 import type { RootState } from '../../../reducers';
+import { useOnboardingInterestQuestionnaireEligibility } from '../../Views/OnboardingInterestQuestionnaire/useOnboardingInterestQuestionnaireEligibility';
+import Logger from '../../../util/Logger';
 
 /**
  * View that is displayed in the flow to agree to metrics
@@ -101,6 +103,9 @@ const OptinMetrics = () => {
     [isMediumDevice],
   );
 
+  const getShouldShowQuestionnaire =
+    useOnboardingInterestQuestionnaireEligibility();
+
   /**
    * Temporary disabling the back button so users can't go back
    */
@@ -114,10 +119,13 @@ const OptinMetrics = () => {
 
   // Component lifecycle effects
   useEffect(() => {
-    BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+    const backHandlerSubscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      handleBackPress,
+    );
 
     return () => {
-      BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
+      backHandlerSubscription.remove();
     };
   }, [handleBackPress]);
 
@@ -227,7 +235,27 @@ const OptinMetrics = () => {
       });
     }
     dispatch(clearOnboardingEvents());
-    continueNavigation();
+
+    let shouldShowInterestQuestionnaire = false;
+    if (isBasicUsageChecked) {
+      try {
+        shouldShowInterestQuestionnaire = await getShouldShowQuestionnaire();
+      } catch (error) {
+        Logger.error(
+          error instanceof Error ? error : new Error(String(error)),
+          'OptinMetrics: interest questionnaire eligibility check failed',
+        );
+      }
+    }
+
+    if (isBasicUsageChecked && shouldShowInterestQuestionnaire) {
+      navigation.navigate(Routes.ONBOARDING.INTEREST_QUESTIONNAIRE, {
+        onComplete: continueNavigation,
+        ...(accountType && { accountType }),
+      });
+    } else {
+      continueNavigation();
+    }
   }, [
     isBasicUsageChecked,
     isMarketingChecked,
@@ -236,6 +264,8 @@ const OptinMetrics = () => {
     dispatch,
     continueNavigation,
     accountType,
+    getShouldShowQuestionnaire,
+    navigation,
   ]);
 
   /**

@@ -4,6 +4,7 @@ import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import styleSheet from '../../../../Settings/DeveloperOptions/DeveloperOptions.styles';
 import { Hex } from '@metamask/utils';
 import {
@@ -142,7 +143,6 @@ function MoneyAccountDeposit() {
     addTransactionBatchAndNavigate({
       loader: ConfirmationLoader.CustomAmount,
       transactionType: TransactionType.moneyAccountDeposit,
-      recipient: PROXY_ADDRESS,
     });
   }, [addTransactionBatchAndNavigate]);
 
@@ -164,7 +164,6 @@ function MoneyAccountWithdraw() {
     addTransactionBatchAndNavigate({
       loader: ConfirmationLoader.CustomAmount,
       transactionType: TransactionType.moneyAccountWithdraw,
-      recipient: PROXY_ADDRESS,
     });
   }, [addTransactionBatchAndNavigate]);
 
@@ -192,7 +191,7 @@ function useAddTransactionBatch() {
 
   const transferData = generateTransferData('transfer', {
     toAddress: PROXY_ADDRESS,
-    amount: '0x0',
+    amount: '0xF4240',
   }) as Hex;
 
   const addTransactionBatchAndNavigate = useCallback(
@@ -200,12 +199,10 @@ function useAddTransactionBatch() {
       headerShown,
       loader,
       transactionType,
-      recipient = POLYGON_USDCE_ADDRESS,
     }: {
       headerShown?: boolean;
       loader?: ConfirmationLoader;
       transactionType: TransactionType;
-      recipient?: Hex;
     }) => {
       navigateToConfirmation({
         headerShown,
@@ -223,12 +220,13 @@ function useAddTransactionBatch() {
           {
             params: {
               to: PROXY_ADDRESS,
+              data: '0x',
               value: '0x1',
             },
           },
           {
             params: {
-              to: recipient,
+              to: POLYGON_USDCE_ADDRESS,
               data: transferData,
             },
             type: transactionType,

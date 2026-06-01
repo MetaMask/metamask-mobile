@@ -6,6 +6,14 @@ import { processAttribution } from './processAttribution';
 import { AnalyticsEventBuilder } from '../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../util/analytics/analytics';
 import ReduxService, { ReduxStore } from './redux';
+import { saveAttribution } from './redux/slices/attribution';
+
+function createMockReduxStore(): ReduxStore {
+  return {
+    dispatch: jest.fn(),
+    getState: jest.fn(() => ({})),
+  } as unknown as ReduxStore;
+}
 
 jest.mock('./DeeplinkManager/utils/extractURLParams', () => jest.fn());
 
@@ -86,9 +94,8 @@ describe('AppStateEventListener', () => {
   });
 
   it('tracks event when app becomes active and attribution data is available', () => {
-    jest
-      .spyOn(ReduxService, 'store', 'get')
-      .mockReturnValue({} as unknown as ReduxStore);
+    const mockStore = createMockReduxStore();
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
     const mockAttribution = {
       attributionId: 'test123',
       utm_source: 'source',
@@ -104,6 +111,14 @@ describe('AppStateEventListener', () => {
     mockAppStateListener('active');
     jest.advanceTimersByTime(2000);
 
+    expect(mockStore.dispatch).toHaveBeenCalledWith(
+      saveAttribution({
+        attribution_id: 'test123',
+        utm_source: 'source',
+        utm_medium: 'medium',
+        utm_campaign: 'campaign',
+      }),
+    );
     expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.APP_OPENED,
     );
@@ -114,12 +129,46 @@ describe('AppStateEventListener', () => {
     expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
       mockEventBuilder.build(),
     );
+    expect(appStateManager.currentDeeplink).toBeNull();
+  });
+
+  it('clears currentDeeplink after processing so a later resume does not re-save attribution', () => {
+    const mockStore = createMockReduxStore();
+    jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
+    (processAttribution as jest.Mock)
+      .mockReturnValueOnce({
+        attributionId: 'x',
+        utm_source: 'y',
+      })
+      .mockReturnValue(undefined);
+
+    appStateManager.setCurrentDeeplink('metamask://x');
+    mockAppStateListener('background');
+    mockAppStateListener('active');
+    jest.advanceTimersByTime(2000);
+
+    expect(appStateManager.currentDeeplink).toBeNull();
+    expect(mockStore.dispatch).toHaveBeenCalledWith(
+      saveAttribution({
+        attribution_id: 'x',
+        utm_source: 'y',
+      }),
+    );
+
+    (mockStore.dispatch as jest.Mock).mockClear();
+    mockAppStateListener('background');
+    mockAppStateListener('active');
+    jest.advanceTimersByTime(2000);
+
+    expect(mockStore.dispatch).not.toHaveBeenCalledWith(
+      expect.objectContaining({ type: saveAttribution.type }),
+    );
   });
 
   it('tracks event when app becomes active without attribution data', () => {
     jest
       .spyOn(ReduxService, 'store', 'get')
-      .mockReturnValue({} as unknown as ReduxStore);
+      .mockReturnValue(createMockReduxStore());
     (processAttribution as jest.Mock).mockReturnValue(undefined);
 
     mockAppStateListener('background');
@@ -164,7 +213,7 @@ describe('AppStateEventListener', () => {
     jest.clearAllMocks();
     jest
       .spyOn(ReduxService, 'store', 'get')
-      .mockReturnValue({} as unknown as ReduxStore);
+      .mockReturnValue(createMockReduxStore());
     const testError = new Error('Test error');
     (processAttribution as jest.Mock).mockImplementation(() => {
       throw testError;
@@ -206,7 +255,7 @@ describe('AppStateEventListener', () => {
     jest.clearAllMocks();
     jest
       .spyOn(ReduxService, 'store', 'get')
-      .mockReturnValue({} as unknown as ReduxStore);
+      .mockReturnValue(createMockReduxStore());
     (processAttribution as jest.Mock).mockReturnValue(undefined);
 
     mockAppStateListener('background');
@@ -225,7 +274,7 @@ describe('AppStateEventListener', () => {
     jest.clearAllMocks();
     jest
       .spyOn(ReduxService, 'store', 'get')
-      .mockReturnValue({} as unknown as ReduxStore);
+      .mockReturnValue(createMockReduxStore());
     (processAttribution as jest.Mock).mockReturnValue(undefined);
 
     // Simulate iOS background → inactive → active sequence
@@ -244,7 +293,7 @@ describe('AppStateEventListener', () => {
     jest.clearAllMocks();
     jest
       .spyOn(ReduxService, 'store', 'get')
-      .mockReturnValue({} as unknown as ReduxStore);
+      .mockReturnValue(createMockReduxStore());
     (processAttribution as jest.Mock).mockReturnValue(undefined);
 
     // Simulate iOS system permission dialog: active → inactive → active

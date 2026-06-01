@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
 import { Dimensions, Pressable } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -9,40 +8,14 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   FontWeight,
+  Icon,
+  IconName,
+  IconSize,
 } from '@metamask/design-system-react-native';
-import { IconSize } from '../../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../../util/theme';
 import { ChartType } from './AdvancedChart.types';
 import { TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT } from '../../AssetOverview/Price/tokenOverviewChart.constants';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-
-const CandlestickIcon = ({
-  color,
-  size,
-}: {
-  color: string;
-  size: IconSize;
-}) => (
-  <Svg width={size} height={size} viewBox="0 0 14 16" fill="none">
-    <Path d="M4 0H2V2H0V14H2V16H4V14H6V2H4V0ZM4 12H2V4H4V12Z" fill={color} />
-    <Path
-      d="M14 4H12V0H10V4H8V11H10V16H12V11H14V4ZM12 9H10V6H12V9Z"
-      fill={color}
-    />
-  </Svg>
-);
-
-const LineChartIcon = ({ color, size }: { color: string; size: IconSize }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M3 16.5L9 10L13 16L21 6.5"
-      stroke={color}
-      strokeWidth={2.04}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
-);
 
 export type TimeRange = '1H' | '1D' | '1W' | '1M' | '1Y';
 
@@ -88,6 +61,8 @@ interface TimeRangeSelectorProps {
   chartType?: ChartType;
   /** Called when the user taps the chart type toggle icon. */
   onChartTypeToggle?: () => void;
+  /** Override background color for the selected pill (A/B test). */
+  selectedColor?: string;
 }
 
 const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
@@ -97,6 +72,7 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
   ranges = TIME_RANGES,
   chartType,
   onChartTypeToggle,
+  selectedColor,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -145,7 +121,10 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
                 style={({ pressed }) =>
                   tw.style(
                     SEGMENT_BUTTON_BASE,
-                    isSelected && 'bg-muted',
+                    isSelected &&
+                      (selectedColor
+                        ? { backgroundColor: selectedColor }
+                        : 'bg-muted'),
                     pressed && 'opacity-70',
                   )
                 }
@@ -155,7 +134,18 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
                   variant={TextVariant.BodySm}
                   fontWeight={FontWeight.Medium}
                   twClassName={
-                    isSelected ? 'text-text-default' : 'text-text-alternative'
+                    isSelected
+                      ? selectedColor
+                        ? 'text-success-inverse'
+                        : 'text-text-default'
+                      : selectedColor
+                        ? undefined
+                        : 'text-text-alternative'
+                  }
+                  style={
+                    !isSelected && selectedColor
+                      ? { color: selectedColor }
+                      : undefined
                   }
                 >
                   {range}
@@ -177,14 +167,24 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
               }
             >
               {chartType === ChartType.Candles ? (
-                <LineChartIcon
-                  color={colors.text.alternative}
-                  size={IconSize.Md}
+                <Icon
+                  name={IconName.Diagram}
+                  size={IconSize.Lg}
+                  twClassName={
+                    selectedColor
+                      ? `text-[${selectedColor}]`
+                      : 'text-icon-alternative'
+                  }
                 />
               ) : (
-                <CandlestickIcon
-                  color={colors.text.alternative}
-                  size={IconSize.Sm}
+                <Icon
+                  name={IconName.Candlestick}
+                  size={IconSize.Lg}
+                  twClassName={
+                    selectedColor
+                      ? `text-[${selectedColor}]`
+                      : 'text-icon-alternative'
+                  }
                 />
               )}
             </Pressable>

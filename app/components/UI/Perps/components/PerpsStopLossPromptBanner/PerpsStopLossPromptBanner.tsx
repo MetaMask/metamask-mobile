@@ -1,20 +1,20 @@
 import React, { memo, useCallback, useEffect, useRef } from 'react';
-import { View, ActivityIndicator, Animated } from 'react-native';
+import { View, Animated } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonVariants,
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import Icon, {
   IconName,
   IconSize,
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
-import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsStopLossPromptSelectorsIDs } from '../../Perps.testIds';
 import {
@@ -72,7 +72,6 @@ const PerpsStopLossPromptBanner: React.FC<PerpsStopLossPromptBannerProps> =
       testID = PerpsStopLossPromptSelectorsIDs.CONTAINER,
     }) => {
       const { styles } = useStyles(styleSheet, {});
-      const { colors } = useTheme();
 
       // Animation value for fade-out effect
       const fadeAnim = useRef(new Animated.Value(1)).current;
@@ -154,23 +153,16 @@ const PerpsStopLossPromptBanner: React.FC<PerpsStopLossPromptBannerProps> =
                 </Text>
               </View>
               <Button
-                variant={ButtonVariants.Primary}
+                variant={ButtonVariant.Primary}
                 size={ButtonSize.Sm}
-                label={
-                  isLoading ? (
-                    <ActivityIndicator
-                      size="small"
-                      color={colors.primary.inverse}
-                    />
-                  ) : (
-                    strings('perps.stop_loss_prompt.add_margin_button')
-                  )
-                }
                 onPress={handleAddMarginPress}
                 isDisabled={isLoading || !onAddMargin}
+                isLoading={isLoading}
                 style={styles.button}
                 testID={PerpsStopLossPromptSelectorsIDs.ADD_MARGIN_BUTTON}
-              />
+              >
+                {strings('perps.stop_loss_prompt.add_margin_button')}
+              </Button>
             </View>
           </Animated.View>
         );
@@ -195,31 +187,25 @@ const PerpsStopLossPromptBanner: React.FC<PerpsStopLossPromptBannerProps> =
               </Text>
             </View>
             <Button
-              variant={ButtonVariants.Primary}
+              variant={ButtonVariant.Primary}
               size={ButtonSize.Sm}
-              label={
-                isLoading ? (
-                  <ActivityIndicator
-                    size="small"
-                    color={colors.primary.inverse}
-                    testID={PerpsStopLossPromptSelectorsIDs.LOADING}
-                  />
-                ) : isSuccess ? (
-                  <Icon
-                    name={IconName.Check}
-                    size={IconSize.Sm}
-                    color={IconColor.Inverse}
-                    testID={PerpsStopLossPromptSelectorsIDs.SUCCESS_ICON}
-                  />
-                ) : (
-                  strings('perps.stop_loss_prompt.set_button')
-                )
-              }
               onPress={handleSetStopLossPress}
               isDisabled={isLoading || isSuccess || !onSetStopLoss}
               style={styles.button}
+              isLoading={isLoading}
               testID={PerpsStopLossPromptSelectorsIDs.SET_STOP_LOSS_BUTTON}
-            />
+            >
+              {isSuccess ? (
+                <Icon
+                  name={IconName.Check}
+                  size={IconSize.Sm}
+                  color={IconColor.Inverse}
+                  testID={PerpsStopLossPromptSelectorsIDs.SUCCESS_ICON}
+                />
+              ) : (
+                strings('perps.stop_loss_prompt.set_button')
+              )}
+            </Button>
           </View>
         </Animated.View>
       );

@@ -196,7 +196,7 @@ export const Asset: React.FC<AssetProps> = (props = {}) => {
   return (
     <Box twClassName="flex-1">
       {highlightedItemsOutsideAssetList.length > 0 && (
-        <Box>
+        <Box marginBottom={2}>
           {highlightedItemsOutsideAssetList.map((item, index) => (
             <HighlightedItem
               key={`highlighted-action-${item.name}-${index}`}

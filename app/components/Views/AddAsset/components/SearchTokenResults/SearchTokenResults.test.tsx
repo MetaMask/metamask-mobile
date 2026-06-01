@@ -35,7 +35,6 @@ const defaultProps = {
   handleSelectAsset: mockHandleSelectAsset,
   selectedAsset: [] as ImportAsset[],
   searchQuery: '',
-  chainId: '0x1',
   networkName: 'Ethereum',
   alreadyAddedTokens: undefined as Set<string> | undefined,
   isLoading: false,
@@ -110,7 +109,7 @@ describe('SearchTokenResults', () => {
       ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT,
     );
 
-    expect(listItem).toHaveProp('disabled', true);
+    expect(listItem).toBeDisabled();
 
     fireEvent.press(listItem);
     expect(mockHandleSelectAsset).not.toHaveBeenCalled();

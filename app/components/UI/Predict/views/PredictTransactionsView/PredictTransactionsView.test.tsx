@@ -1,6 +1,6 @@
 import React from 'react';
 import { SectionList } from 'react-native';
-import { act, render, screen } from '@testing-library/react-native';
+import { act, render, screen, fireEvent } from '@testing-library/react-native';
 import PredictTransactionsView from './PredictTransactionsView';
 import { PredictActivityType } from '../../types';
 
@@ -373,7 +373,7 @@ describe('PredictTransactionsView', () => {
     expect(sectionList.props.refreshing).toBe(true);
 
     await act(async () => {
-      await sectionList.props.onRefresh();
+      await fireEvent(sectionList, 'refresh');
     });
 
     expect(mockRefetch).toHaveBeenCalledTimes(1);

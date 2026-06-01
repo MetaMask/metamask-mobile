@@ -195,7 +195,7 @@ function autoConfigureE2EBridge(): void {
 
     DevLogger.log('E2E Bridge auto-configured successfully');
     DevLogger.log('Mock state:', {
-      accountBalance: mockService.getMockAccountState().availableBalance,
+      accountBalance: mockService.getMockAccountState().spendableBalance,
       positionsCount: mockService.getMockPositions().length,
       marketsCount: mockService.getMockMarkets().length,
     });

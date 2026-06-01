@@ -2,6 +2,7 @@ import { FrameworkDetector, TestFramework } from './FrameworkDetector';
 import { EncapsulatedElement } from './EncapsulatedElement';
 import Matchers from './Matchers';
 import PlaywrightMatchers from './PlaywrightMatchers';
+import { resetDeviceInfo, setDeviceInfo } from './DeviceInfoCache.ts';
 
 function findPageObjectsWithEncapsulated(dir: string): string[] {
   const fs = jest.requireActual<typeof import('fs')>('fs');
@@ -121,14 +122,13 @@ function describeGetters(
         jest.clearAllMocks();
         FrameworkDetector.reset();
         FrameworkDetector.setFramework(TestFramework.APPIUM);
-        (global as Record<string, unknown>).driver = {
-          capabilities: Promise.resolve({ platformName: 'iOS' }),
-        };
+        resetDeviceInfo();
+        setDeviceInfo('ios', { width: 390, height: 844 });
       });
 
       afterEach(() => {
         FrameworkDetector.reset();
-        delete (global as Record<string, unknown>).driver;
+        resetDeviceInfo();
       });
 
       for (const name of getterNames) {
@@ -150,14 +150,13 @@ function describeGetters(
         jest.clearAllMocks();
         FrameworkDetector.reset();
         FrameworkDetector.setFramework(TestFramework.APPIUM);
-        (global as Record<string, unknown>).driver = {
-          capabilities: Promise.resolve({ platformName: 'Android' }),
-        };
+        resetDeviceInfo();
+        setDeviceInfo('android', { width: 400, height: 800 });
       });
 
       afterEach(() => {
         FrameworkDetector.reset();
-        delete (global as Record<string, unknown>).driver;
+        resetDeviceInfo();
       });
 
       for (const name of getterNames) {

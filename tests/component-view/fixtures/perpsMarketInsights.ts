@@ -100,3 +100,6 @@ export function setupPerpsMarketInsightsEngineMock(
     setSelectedToken: jest.fn(),
   };
 }
+
+/** Same engine wiring as Perps insights; use for token Asset Details + MarketInsightsView CV tests. */
+export const setupMarketInsightsEngineMock = setupPerpsMarketInsightsEngineMock;

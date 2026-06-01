@@ -1,10 +1,68 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import MoneyConvertStablecoins from './MoneyConvertStablecoins';
 import { MoneyConvertStablecoinsTestIds } from './MoneyConvertStablecoins.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { AssetType } from '../../../../Views/confirmations/types/token';
-import { ConvertTokenRowTestIds } from '../../../Earn/components/Musd/ConvertTokenRow';
+import { MusdConversionAssetRowTestIds } from '../../../Earn/components/Musd/MusdConversionAssetRow';
+import {
+  selectHasUnapprovedMusdConversion,
+  selectHasInFlightMusdConversion,
+  selectMusdConversionStatuses,
+} from '../../../Earn/selectors/musdConversionStatus';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { MUSD_EVENTS_CONSTANTS } from '../../../Earn/constants/events/musdEvents';
+import { MONEY_EVENTS_CONSTANTS } from '../../constants/moneyEvents';
+
+const { EVENT_LOCATIONS: MUSD_EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
+const { EVENT_LOCATIONS: MONEY_EVENT_LOCATIONS } = MONEY_EVENTS_CONSTANTS;
+
+const TEST_LOCATION = MONEY_EVENT_LOCATIONS.MONEY_HUB;
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
+const mockUseSelector = useSelector as jest.Mock;
+
+const mockUseMusdConversionTokens = jest.fn();
+const mockInitiateMaxConversion = jest.fn();
+const mockInitiateCustomConversion = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn();
+const mockBuild = jest.fn(() => ({ event: 'built' }));
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
+  build: mockBuild,
+}));
+
+mockAddProperties.mockReturnValue({
+  build: mockBuild,
+});
+
+jest.mock('../../../Earn/hooks/useMusdConversionTokens', () => ({
+  useMusdConversionTokens: () => mockUseMusdConversionTokens(),
+}));
+
+jest.mock('../../../Earn/hooks/useMusdConversion', () => ({
+  useMusdConversion: () => ({
+    initiateMaxConversion: mockInitiateMaxConversion,
+    initiateCustomConversion: mockInitiateCustomConversion,
+  }),
+}));
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
+jest.mock('../../../Earn/utils/network', () => ({
+  getNetworkName: jest.fn(() => 'Ethereum Mainnet'),
+}));
 
 jest.mock('../../../../../component-library/base-components/TagBase', () => ({
   __esModule: true,
@@ -25,9 +83,9 @@ jest.mock(
   },
 );
 
-jest.mock('../../../Earn/components/Musd/ConvertTokenRow', () => {
+jest.mock('../../../Earn/components/Musd/MusdConversionAssetRow', () => {
   const { TouchableOpacity, Text } = jest.requireActual('react-native');
-  const MockConvertTokenRow = ({
+  const MockMusdConversionAssetRow = ({
     token,
     onMaxPress,
     onEditPress,
@@ -36,27 +94,27 @@ jest.mock('../../../Earn/components/Musd/ConvertTokenRow', () => {
     onMaxPress: (t: unknown) => void;
     onEditPress: (t: unknown) => void;
   }) => (
-    <TouchableOpacity testID="convert-token-row-container">
-      <Text testID="convert-token-row-token-name">{token.symbol}</Text>
+    <TouchableOpacity testID="musd-conversion-asset-row-container">
+      <Text testID="musd-conversion-asset-row-token-name">{token.symbol}</Text>
       <TouchableOpacity
-        testID="convert-token-row-max-button"
+        testID="musd-conversion-asset-row-max-button"
         onPress={() => onMaxPress(token)}
       />
       <TouchableOpacity
-        testID="convert-token-row-edit-button"
+        testID="musd-conversion-asset-row-edit-button"
         onPress={() => onEditPress(token)}
       />
     </TouchableOpacity>
   );
-  MockConvertTokenRow.displayName = 'ConvertTokenRow';
+  MockMusdConversionAssetRow.displayName = 'MusdConversionAssetRow';
   return {
     __esModule: true,
-    default: MockConvertTokenRow,
-    ConvertTokenRowTestIds: {
-      CONTAINER: 'convert-token-row-container',
-      TOKEN_NAME: 'convert-token-row-token-name',
-      MAX_BUTTON: 'convert-token-row-max-button',
-      EDIT_BUTTON: 'convert-token-row-edit-button',
+    default: MockMusdConversionAssetRow,
+    MusdConversionAssetRowTestIds: {
+      CONTAINER: 'musd-conversion-asset-row-container',
+      TOKEN_NAME: 'musd-conversion-asset-row-token-name',
+      MAX_BUTTON: 'musd-conversion-asset-row-max-button',
+      EDIT_BUTTON: 'musd-conversion-asset-row-edit-button',
     },
   };
 });
@@ -90,22 +148,24 @@ const MOCK_DAI: AssetType = {
 
 const mockTokens: AssetType[] = [MOCK_USDC, MOCK_USDT, MOCK_DAI];
 
-const defaultProps = {
-  tokens: mockTokens,
-  onMaxPress: jest.fn(),
-  onEditPress: jest.fn(),
-  onLearnMorePress: jest.fn(),
-};
-
 describe('MoneyConvertStablecoins', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAddProperties.mockReturnValue({ build: mockBuild });
+    mockBuild.mockReturnValue({ event: 'built' });
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectHasUnapprovedMusdConversion) return false;
+      if (selector === selectHasInFlightMusdConversion) return false;
+      if (selector === selectMusdConversionStatuses) return {};
+      return undefined;
+    });
+    mockUseMusdConversionTokens.mockReturnValue({ tokens: mockTokens });
   });
 
   describe('with eligible tokens', () => {
     it('renders the container', () => {
       const { getByTestId } = render(
-        <MoneyConvertStablecoins {...defaultProps} />,
+        <MoneyConvertStablecoins location={TEST_LOCATION} />,
       );
 
       expect(
@@ -115,7 +175,7 @@ describe('MoneyConvertStablecoins', () => {
 
     it('renders the convert title', () => {
       const { getByText } = render(
-        <MoneyConvertStablecoins {...defaultProps} />,
+        <MoneyConvertStablecoins location={TEST_LOCATION} />,
       );
 
       expect(
@@ -125,7 +185,7 @@ describe('MoneyConvertStablecoins', () => {
 
     it('renders the description with bonus text', () => {
       const { getByTestId } = render(
-        <MoneyConvertStablecoins {...defaultProps} />,
+        <MoneyConvertStablecoins location={TEST_LOCATION} />,
       );
 
       expect(
@@ -135,7 +195,7 @@ describe('MoneyConvertStablecoins', () => {
 
     it('renders feature tags', () => {
       const { getByTestId } = render(
-        <MoneyConvertStablecoins {...defaultProps} />,
+        <MoneyConvertStablecoins location={TEST_LOCATION} />,
       );
 
       expect(
@@ -143,18 +203,18 @@ describe('MoneyConvertStablecoins', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders a ConvertTokenRow for each token', () => {
+    it('renders a MusdConversionAssetRow for each token', () => {
       const { getAllByTestId } = render(
-        <MoneyConvertStablecoins {...defaultProps} />,
+        <MoneyConvertStablecoins location={TEST_LOCATION} />,
       );
 
-      const rows = getAllByTestId(ConvertTokenRowTestIds.CONTAINER);
+      const rows = getAllByTestId(MusdConversionAssetRowTestIds.CONTAINER);
       expect(rows).toHaveLength(3);
     });
 
     it('renders token symbols', () => {
       const { getByText } = render(
-        <MoneyConvertStablecoins {...defaultProps} />,
+        <MoneyConvertStablecoins location={TEST_LOCATION} />,
       );
 
       expect(getByText('USDC')).toBeOnTheScreen();
@@ -162,69 +222,68 @@ describe('MoneyConvertStablecoins', () => {
       expect(getByText('DAI')).toBeOnTheScreen();
     });
 
-    it('renders the Learn more button', () => {
-      const { getByTestId } = render(
-        <MoneyConvertStablecoins {...defaultProps} />,
-      );
-
-      expect(
-        getByTestId(MoneyConvertStablecoinsTestIds.LEARN_MORE_CTA),
-      ).toBeOnTheScreen();
-    });
-
-    it('calls onLearnMorePress when Learn more is pressed', () => {
-      const mockLearnMore = jest.fn();
-      const { getByTestId } = render(
-        <MoneyConvertStablecoins
-          {...defaultProps}
-          onLearnMorePress={mockLearnMore}
-        />,
-      );
-
-      fireEvent.press(
-        getByTestId(MoneyConvertStablecoinsTestIds.LEARN_MORE_CTA),
-      );
-
-      expect(mockLearnMore).toHaveBeenCalledTimes(1);
-    });
-
-    it('calls onMaxPress with token when Max is pressed', () => {
-      const mockMaxPress = jest.fn();
+    it('initiates max conversion and tracks event with location when Max is pressed', () => {
       const { getAllByTestId } = render(
-        <MoneyConvertStablecoins {...defaultProps} onMaxPress={mockMaxPress} />,
+        <MoneyConvertStablecoins location={TEST_LOCATION} />,
       );
 
-      const maxButtons = getAllByTestId(ConvertTokenRowTestIds.MAX_BUTTON);
+      const maxButtons = getAllByTestId(
+        MusdConversionAssetRowTestIds.MAX_BUTTON,
+      );
       fireEvent.press(maxButtons[0]);
 
-      expect(mockMaxPress).toHaveBeenCalledWith(MOCK_USDC);
+      expect(mockInitiateMaxConversion).toHaveBeenCalledWith(MOCK_USDC);
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.MONEY_HUB_TOKEN_ROW_CONVERT_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          location: TEST_LOCATION,
+          button_action: 'max',
+          asset_symbol: 'USDC',
+          redirects_to:
+            MUSD_EVENT_LOCATIONS.QUICK_CONVERT_MAX_BOTTOM_SHEET_CONFIRMATION_SCREEN,
+        }),
+      );
     });
 
-    it('calls onEditPress with token when Edit is pressed', () => {
-      const mockEditPress = jest.fn();
+    it('initiates custom conversion and tracks event with location when Edit is pressed', () => {
       const { getAllByTestId } = render(
-        <MoneyConvertStablecoins
-          {...defaultProps}
-          onEditPress={mockEditPress}
-        />,
+        <MoneyConvertStablecoins location={TEST_LOCATION} />,
       );
 
-      const editButtons = getAllByTestId(ConvertTokenRowTestIds.EDIT_BUTTON);
+      const editButtons = getAllByTestId(
+        MusdConversionAssetRowTestIds.EDIT_BUTTON,
+      );
       fireEvent.press(editButtons[1]);
 
-      expect(mockEditPress).toHaveBeenCalledWith(MOCK_USDT);
+      expect(mockInitiateCustomConversion).toHaveBeenCalledWith(
+        expect.objectContaining({
+          preferredPaymentToken: {
+            address: MOCK_USDT.address,
+            chainId: MOCK_USDT.chainId,
+          },
+        }),
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          location: TEST_LOCATION,
+          button_action: 'custom',
+          asset_symbol: 'USDT',
+          redirects_to: MUSD_EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN,
+        }),
+      );
     });
   });
 
   describe('without eligible tokens', () => {
-    const infoProps = {
-      ...defaultProps,
-      tokens: [],
-    };
+    beforeEach(() => {
+      mockUseMusdConversionTokens.mockReturnValue({ tokens: [] });
+    });
 
     it('renders the container', () => {
       const { getByTestId } = render(
-        <MoneyConvertStablecoins {...infoProps} />,
+        <MoneyConvertStablecoins location={TEST_LOCATION} />,
       );
 
       expect(
@@ -233,7 +292,9 @@ describe('MoneyConvertStablecoins', () => {
     });
 
     it('renders the convert title', () => {
-      const { getByText } = render(<MoneyConvertStablecoins {...infoProps} />);
+      const { getByText } = render(
+        <MoneyConvertStablecoins location={TEST_LOCATION} />,
+      );
 
       expect(
         getByText(strings('money.convert_stablecoins.title')),
@@ -242,7 +303,7 @@ describe('MoneyConvertStablecoins', () => {
 
     it('renders stacked token icons', () => {
       const { getByTestId } = render(
-        <MoneyConvertStablecoins {...infoProps} />,
+        <MoneyConvertStablecoins location={TEST_LOCATION} />,
       );
 
       expect(
@@ -252,7 +313,7 @@ describe('MoneyConvertStablecoins', () => {
 
     it('renders the description', () => {
       const { getByTestId } = render(
-        <MoneyConvertStablecoins {...infoProps} />,
+        <MoneyConvertStablecoins location={TEST_LOCATION} />,
       );
 
       expect(
@@ -262,7 +323,7 @@ describe('MoneyConvertStablecoins', () => {
 
     it('renders feature tags', () => {
       const { getByTestId } = render(
-        <MoneyConvertStablecoins {...infoProps} />,
+        <MoneyConvertStablecoins location={TEST_LOCATION} />,
       );
 
       expect(
@@ -272,20 +333,10 @@ describe('MoneyConvertStablecoins', () => {
 
     it('does not render token rows', () => {
       const { queryByTestId } = render(
-        <MoneyConvertStablecoins {...infoProps} />,
+        <MoneyConvertStablecoins location={TEST_LOCATION} />,
       );
 
-      expect(queryByTestId(ConvertTokenRowTestIds.CONTAINER)).toBeNull();
-    });
-
-    it('renders Learn more button', () => {
-      const { getByTestId } = render(
-        <MoneyConvertStablecoins {...infoProps} />,
-      );
-
-      expect(
-        getByTestId(MoneyConvertStablecoinsTestIds.LEARN_MORE_CTA),
-      ).toBeOnTheScreen();
+      expect(queryByTestId(MusdConversionAssetRowTestIds.CONTAINER)).toBeNull();
     });
   });
 });

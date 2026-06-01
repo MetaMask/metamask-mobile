@@ -3,7 +3,7 @@ import { LocalNode, LocalNodeType } from '../../framework/types';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import Assertions from '../../framework/Assertions';
 import WalletView from '../../page-objects/wallet/WalletView';
-import { SmokeTrade } from '../../tags';
+import { SmokeSwap } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { AnvilManager, DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager';
@@ -21,7 +21,7 @@ import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTest
 import { checkSwapActivity } from '../../helpers/swap/swap-unified-ui';
 import { Gestures } from '../../framework';
 
-describe(SmokeTrade('Gasless Swap - '), (): void => {
+describe(SmokeSwap('Gasless Swap - '), (): void => {
   const chainId = '0x1';
 
   beforeEach(async (): Promise<void> => {
@@ -244,10 +244,16 @@ describe(SmokeTrade('Gasless Swap - '), (): void => {
         await QuoteView.tapDestinationToken();
         await QuoteView.tapToken(chainId, 'MUSD');
 
-        // Sometimes the keyboard is not dismissed after selecting the
-        // destination token so we tap the network fee label to dismiss it
+        // The in-app number keypad keeps focus on the amount input after the
+        // destination token modal closes, occluding the Confirm swap button
+        // at the bottom of the screen. Tapping the Network fee row blurs the
+        // amount input which collapses the keypad. The Network fee row only
+        // renders after the SSE quote arrives, so we use a generous timeout
+        // here — CI runners can take noticeably longer than local for the
+        // first quote chunk.
         await Gestures.waitAndTap(QuoteView.networkFeeLabel, {
-          elemDescription: 'Network fee label',
+          elemDescription: 'Network fee label (dismiss keypad)',
+          timeout: 60000,
         });
 
         await Assertions.expectElementToBeVisible(QuoteView.networkFeeLabel, {

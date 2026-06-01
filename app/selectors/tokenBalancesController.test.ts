@@ -61,7 +61,7 @@ describe('TokenBalancesController Selectors', () => {
       const chainId: Hex = '0x1';
 
       const result = selectContractBalances.resultFunc(
-        mockTokenBalancesControllerState,
+        mockTokenBalancesControllerState.tokenBalances,
         selectedAccount,
         chainId,
       );
@@ -77,7 +77,7 @@ describe('TokenBalancesController Selectors', () => {
       const chainId: Hex = '0x1';
 
       const result = selectContractBalances.resultFunc(
-        mockTokenBalancesControllerState,
+        mockTokenBalancesControllerState.tokenBalances,
         selectedAccount,
         chainId,
       );
@@ -90,7 +90,7 @@ describe('TokenBalancesController Selectors', () => {
       const chainId: Hex = '0xUnknownChain';
 
       const result = selectContractBalances.resultFunc(
-        mockTokenBalancesControllerState,
+        mockTokenBalancesControllerState.tokenBalances,
         selectedAccount,
         chainId,
       );
@@ -103,7 +103,7 @@ describe('TokenBalancesController Selectors', () => {
       const chainId: Hex = '0x1';
 
       const result = selectContractBalances.resultFunc(
-        mockTokenBalancesControllerState,
+        mockTokenBalancesControllerState.tokenBalances,
         selectedAccount as `0x${string}`,
         chainId,
       );
@@ -131,7 +131,7 @@ describe('TokenBalancesController Selectors', () => {
       } as unknown as RootState;
 
       const result = selectAllTokenBalances(stateWithoutTokenBalances);
-      expect(result).toEqual(undefined);
+      expect(result).toEqual({});
     });
   });
 

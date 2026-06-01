@@ -6,11 +6,12 @@
  * Used for swap, bridge, perps, predict, and any other flow that reports the
  * same `active_ab_tests` shape (e.g. homepage trending-sections experiment).
  */
+import {
+  normalizeActiveABTestAssignments,
+  type ActiveABTestAssignment,
+} from '../analytics/activeABTestAssignments';
 
-export interface TransactionActiveAbTestEntry {
-  key: string;
-  value: string;
-}
+export type TransactionActiveAbTestEntry = ActiveABTestAssignment;
 
 /** Oldest entries are dropped when this count would be exceeded (FIFO). */
 const MAX_ATTRIBUTION_BY_TRANSACTION_ID_ENTRIES = 200;
@@ -31,9 +32,10 @@ function popPendingStashLayer(): void {
 function pushPendingStashLayer(
   tests: TransactionActiveAbTestEntry[] | undefined,
 ): void {
+  const normalizedTests = normalizeActiveABTestAssignments(tests);
   pendingStashStack.push(pendingTransactionActiveAbTests);
   pendingTransactionActiveAbTests =
-    tests?.length && tests.length > 0 ? tests : undefined;
+    normalizedTests.length > 0 ? normalizedTests : undefined;
 }
 
 function evictOldestAttributionEntries(countToAdd: number): void {
@@ -88,7 +90,8 @@ export function registerTransactionAbTestAttributionForIds(
   transactionIds: string[],
   tests: TransactionActiveAbTestEntry[] | undefined,
 ): void {
-  if (!tests?.length) {
+  const normalizedTests = normalizeActiveABTestAssignments(tests);
+  if (normalizedTests.length === 0) {
     return;
   }
   const ids = transactionIds.filter(Boolean);
@@ -97,7 +100,7 @@ export function registerTransactionAbTestAttributionForIds(
   }
   evictOldestAttributionEntries(ids.length);
   for (const id of ids) {
-    attributionByTransactionId.set(id, tests);
+    attributionByTransactionId.set(id, normalizedTests);
   }
 }
 

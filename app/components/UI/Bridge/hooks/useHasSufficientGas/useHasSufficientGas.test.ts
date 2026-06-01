@@ -2,6 +2,7 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import { useHasSufficientGas } from './index';
 import { useLatestBalance } from '../useLatestBalance';
 import { useBridgeQuoteData } from '../useBridgeQuoteData';
+import { ChainId } from '@metamask/bridge-controller';
 import { BigNumber } from 'ethers';
 
 // Mock dependencies
@@ -250,6 +251,9 @@ describe('useHasSufficientGas', () => {
             gasFee: {
               effective: { amount: '0.001' }, // 0.001 SOL
             },
+            totalNetworkFee: {
+              amount: '0.02',
+            },
           } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
         // User has 0.01 SOL
@@ -277,6 +281,9 @@ describe('useHasSufficientGas', () => {
             gasFee: {
               effective: { amount: '0.01' }, // 0.01 SOL
             },
+            totalNetworkFee: {
+              amount: '0.01',
+            },
           } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
         // User has 0.001 SOL
@@ -291,6 +298,35 @@ describe('useHasSufficientGas', () => {
         );
 
         expect(result.current).toBe(false);
+      });
+    });
+
+    describe('for Bitcoin', () => {
+      it('uses totalNetworkFee to validate BTC gas balance', () => {
+        const mockQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] =
+          {
+            quote: {
+              srcChainId: ChainId.BTC,
+            },
+            gasFee: {
+              effective: { amount: '0' },
+            },
+            totalNetworkFee: {
+              amount: '0.0001',
+            },
+          } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
+
+        mockUseLatestBalance.mockReturnValue({
+          displayBalance: '0.001',
+          atomicBalance: BigNumber.from('100000'), // 0.001 BTC in sats
+        });
+
+        const { result } = renderHookWithProvider(
+          () => useHasSufficientGas({ quote: mockQuote }),
+          { state: {} },
+        );
+
+        expect(result.current).toBe(true);
       });
     });
   });

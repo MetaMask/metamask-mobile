@@ -81,7 +81,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Resolve PR HEAD commit
         id: resolve-pr
@@ -91,6 +91,71 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           .github/scripts/validate-pr-commit.sh
+
+  verify-release-branch:
+    name: Verify release branch (production only)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enforce release branch for production channel
+        env:
+          PR_NUMBER: ${{ inputs.pr_number }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          TARGET_CHANNEL: ${{ inputs.channel }}
+        run: |
+          set -euo pipefail
+
+          if [ "${TARGET_CHANNEL}" != "production" ]; then
+            echo "ℹ️  Channel is '${TARGET_CHANNEL}' — release branch check skipped."
+            {
+              echo "### ℹ️ Release branch check skipped"
+              echo ""
+              echo "Channel \`${TARGET_CHANNEL}\` does not require a release branch."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          echo "🔒 Production channel selected — verifying PR head branch..."
+
+          OWNER="${GITHUB_REPOSITORY%%/*}"
+          REPO="${GITHUB_REPOSITORY#*/}"
+
+          pr_details=$(curl -sS \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${OWNER}/${REPO}/pulls/${PR_NUMBER}")
+
+          if ! echo "$pr_details" | jq -e '.id' > /dev/null 2>&1; then
+            echo "::error title=PR not found::Could not resolve PR #${PR_NUMBER}"
+            exit 1
+          fi
+
+          head_ref=$(echo "$pr_details" | jq -r '.head.ref')
+
+          if [[ "$head_ref" != release/* ]]; then
+            {
+              echo "### ❌ Production OTA push rejected"
+              echo ""
+              echo "Production channel pushes are only allowed from a release branch PR."
+              echo ""
+              echo "| Field | Value |"
+              echo "| --- | --- |"
+              echo "| PR | #${PR_NUMBER} |"
+              echo "| Head branch | \`${head_ref}\` |"
+              echo "| Required pattern | \`release/*\` |"
+              echo ""
+              echo "Re-run this workflow against a PR whose head branch is a release branch (for example \`release/7.78.0\`)."
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::error title=Invalid branch for production OTA::PR #${PR_NUMBER} head branch is '${head_ref}' but must match 'release/*'"
+            exit 1
+          fi
+
+          {
+            echo "### ✅ Release branch verified"
+            echo ""
+            echo "PR #${PR_NUMBER} head branch \`${head_ref}\` is a release branch."
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "✅ PR #${PR_NUMBER} head branch '${head_ref}' is a release branch"
 
   ota-summary:
     name: OTA Update Summary
@@ -115,10 +180,11 @@ jobs:
     name: Setup Dependencies (PR)
     needs:
       - validate-pr
+      - verify-release-branch
     uses: ./.github/workflows/setup-node-modules.yml
     with:
       ref: ${{ needs.validate-pr.outputs.commit_sha }}
-      fetch-depth: 0
+      fetch-depth: 1
       upload-artifact: true
       artifact-name: node-modules-eas-update-pr
       artifact-retention-days: 1
@@ -127,17 +193,18 @@ jobs:
     name: Setup Dependencies (Base)
     needs:
       - validate-pr
+      - verify-release-branch
     uses: ./.github/workflows/setup-node-modules.yml
     with:
       ref: ${{ inputs.base_branch }}
-      fetch-depth: 0
+      fetch-depth: 1
       upload-artifact: true
       artifact-name: node-modules-eas-update-base
       artifact-retention-days: 1
 
   prepare:
     name: Load OTA build config
-    needs: [validate-pr]
+    needs: [validate-pr, verify-release-branch]
     runs-on: ubuntu-latest
     outputs:
       github_environment: ${{ steps.config.outputs.github_environment }}
@@ -153,6 +220,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
+          cache: 'yarn'
 
       - run: yarn install --immutable
 
@@ -201,14 +269,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ needs.validate-pr.outputs.commit_sha }}
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Checkout base branch snapshot
         uses: actions/checkout@v4
         with:
           ref: ${{ env.BASE_BRANCH_REF }}
           path: main
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -331,10 +399,33 @@ jobs:
           pr-number: ${{ needs.validate-pr.outputs.pr_number }}
           token: ${{ secrets.METAMASK_MOBILE_ORG_READ_TOKEN }}
 
-  push-update:
-    name: Push EAS Update
-    runs-on: ubuntu-latest
-    environment: ${{ needs.prepare.outputs.github_environment }}
+  push-update-ios:
+    name: Push EAS Update (iOS)
+    needs:
+      - fingerprint-comparison
+      - approval
+      - validate-pr
+      - verify-release-branch
+      - setup-dependencies
+      - prepare
+    if: >
+      needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
+      needs.approval.result == 'success' &&
+      (inputs.platform == 'all' || inputs.platform == 'ios')
+    uses: ./.github/workflows/eas-update-platform.yml
+    with:
+      platform: ios
+      commit_sha: ${{ needs.validate-pr.outputs.commit_sha }}
+      artifact_name: ${{ needs.setup-dependencies.outputs.artifact-name }}
+      channel: ${{ inputs.channel }}
+      message: ${{ inputs.message }}
+      build_name: ${{ needs.prepare.outputs.build_name }}
+      github_environment: ${{ needs.prepare.outputs.github_environment }}
+      secrets_json: ${{ needs.prepare.outputs.secrets_json }}
+    secrets: inherit
+
+  push-update-android:
+    name: Push EAS Update (Android)
     needs:
       - fingerprint-comparison
       - approval
@@ -343,179 +434,19 @@ jobs:
       - prepare
     if: >
       needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
-      needs.approval.result == 'success'
-    env:
-      # OTA-specific vars only — build config + secrets come from builds.yml via steps below
-      TARGET_COMMIT_HASH: ${{ needs.validate-pr.outputs.commit_sha }}
-      ARTIFACT_NAME: ${{ needs.setup-dependencies.outputs.artifact-name }}
-      EXPO_CHANNEL: ${{ vars.EXPO_CHANNEL }}
-      UPDATE_MESSAGE: ${{ inputs.message }}
-      TARGET_CHANNEL: ${{ inputs.channel }}
-      OTA_PUSH_PLATFORM: ${{ inputs.platform }}
-      GIT_BRANCH: ${{ github.ref_name }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ env.TARGET_COMMIT_HASH }}
-          fetch-depth: 0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-
-      - name: Validate artifact compatibility
-        uses: ./.github/actions/validate-artifact-compatibility
-        with:
-          artifact-name: ${{ env.ARTIFACT_NAME }}
-          artifact-prefix: node-modules-eas-update-pr
-          validation-context: artifact
-
-      - name: Download node_modules artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ env.ARTIFACT_NAME }}
-
-      - name: Restore executable permissions
-        uses: ./.github/actions/restore-node-modules-permissions
-
-      - name: Verify downloaded artifacts
-        run: |
-          echo "✅ Verifying downloaded artifacts..."
-          if [ ! -d "node_modules" ]; then
-            echo "❌ node_modules directory not found"
-            exit 1
-          fi
-          if [ ! -f "app/core/InpageBridgeWeb3.js" ]; then
-            echo "❌ InpageBridgeWeb3.js not found in artifact"
-            exit 1
-          fi
-          echo "📦 node_modules size: $(du -sh node_modules | cut -f1)"
-          echo "✅ Artifacts verified"
-
-      - name: Apply build config from builds.yml
-        run: |
-          BUILD_NAME="${{ needs.prepare.outputs.build_name }}"
-          echo "📦 Applying build config for: $BUILD_NAME"
-          eval "$(node scripts/apply-build-config.js "$BUILD_NAME" --export)"
-          node scripts/apply-build-config.js "$BUILD_NAME" --export-github-env >> "$GITHUB_ENV"
-
-      - name: Set secrets from builds.yml mapping
-        env:
-          CONFIG_SECRETS: ${{ needs.prepare.outputs.secrets_json }}
-          ALL_SECRETS: ${{ toJSON(secrets) }}
-        run: node scripts/set-secrets-from-config.js
-
-      - name: Determine signing secret name
-        shell: bash
-        env:
-          TARGET: ${{ inputs.channel }}
-        run: |
-          case "$TARGET" in
-            exp)
-              SECRET_NAME="metamask-exp-expo-signer"
-              ;;
-            rc)
-              SECRET_NAME="metamask-rc-expo-signer"
-              ;;
-            production)
-              SECRET_NAME="metamask-prod-expo-signer"
-              ;;
-            *)
-              echo "❌ Unknown target: $TARGET"
-              exit 1
-              ;;
-          esac
-          echo "AWS_SIGNING_CERT_SECRET_NAME=$SECRET_NAME" >> "$GITHUB_ENV"
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-          aws-region: 'us-east-2'
-
-      - name: Fetch secret and export as environment variables
-        shell: bash
-        run: |
-          echo "🔐 Fetching secret from Secrets Manager..."
-          secret_json=$(aws secretsmanager get-secret-value \
-            --region 'us-east-2' \
-            --secret-id "${AWS_SIGNING_CERT_SECRET_NAME}" \
-            --query SecretString \
-            --output text)
-
-          keys=$(echo "$secret_json" | jq -r 'keys[]')
-          for key in $keys; do
-            value=$(echo "$secret_json" | jq -r --arg k "$key" '.[$k]')
-            echo "::add-mask::$value"
-            echo "$key=$(printf '%s' "$value")" >> "$GITHUB_ENV"
-            echo "✅ Set secret for key: $key"
-          done
-
-      - name: Display configuration
-        run: |
-          TARGET_RUNTIME_VERSION=$(node -p "require('./package.json').version")
-          echo "🔧 Configuration:"
-          echo "  Build: ${{ needs.prepare.outputs.build_name }}"
-          echo "  Channel: ${EXPO_CHANNEL:-<not set>}"
-          echo "  Channel (vars.EXPO_CHANNEL): ${{ vars.EXPO_CHANNEL }}"
-          echo "  Message: ${UPDATE_MESSAGE:-<not set>}"
-          echo "  Runtime Version (target): ${TARGET_RUNTIME_VERSION}"
-
-      - name: Build & Push EAS Update via build.sh
-        env:
-          SKIP_TRANSFORM_LINT: 'true'
-          NODE_OPTIONS: '--max_old_space_size=8192'
-        run: |
-          echo "📦 Configuring EXPO key..."
-          if [[ -z "$EXPO_KEY_PRIV_B64" ]]; then
-            echo "⚠️ EXPO_KEY_PRIV_B64 is not set. Skipping keystore decoding."
-            exit 1
-          fi
-
-          # Decode the key
-          EXPO_KEY_PRIV=$(echo "$EXPO_KEY_PRIV_B64" | base64 --decode)
-          export EXPO_KEY_PRIV
-          echo "✅ Expo key decoded and exported"
-
-          echo "🚀 Pushing EAS update for channel: ${TARGET_CHANNEL}"
-          case "${TARGET_CHANNEL}" in
-            exp)
-              yarn run build:expo-update:main:exp
-              ;;
-            rc)
-              yarn run build:expo-update:main:rc
-              ;;
-            production)
-              yarn run build:expo-update:main:prod
-              ;;
-            *)
-              echo "❌ Unsupported TARGET_CHANNEL: ${TARGET_CHANNEL}" >&2
-              exit 1
-              ;;
-          esac
-
-      - name: Update summary
-        if: success()
-        run: |
-          {
-            echo "### ✅ EAS Update Published Successfully"
-            echo
-            echo "**Channel:** \`${EXPO_CHANNEL:-<not set>}\`"
-            echo "**Message:** ${UPDATE_MESSAGE:-<not set>}"
-            echo
-            echo "Users on the \`${EXPO_CHANNEL:-<not set>}\` channel will receive this update on their next app launch."
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Update summary on failure
-        if: failure()
-        run: |
-          {
-            echo "### ❌ EAS Update Failed"
-            echo
-            echo "Check the logs above for error details."
-          } >> "$GITHUB_STEP_SUMMARY"
+      needs.approval.result == 'success' &&
+      (inputs.platform == 'all' || inputs.platform == 'android')
+    uses: ./.github/workflows/eas-update-platform.yml
+    with:
+      platform: android
+      commit_sha: ${{ needs.validate-pr.outputs.commit_sha }}
+      artifact_name: ${{ needs.setup-dependencies.outputs.artifact-name }}
+      channel: ${{ inputs.channel }}
+      message: ${{ inputs.message }}
+      build_name: ${{ needs.prepare.outputs.build_name }}
+      github_environment: ${{ needs.prepare.outputs.github_environment }}
+      secrets_json: ${{ needs.prepare.outputs.secrets_json }}
+    secrets: inherit
 
   fingerprint-mismatch:
     name: Fingerprint Mismatch Guard

@@ -6,7 +6,7 @@ import {
 import { CronjobControllerMessenger } from '@metamask/snaps-controllers';
 import { RootMessenger } from '../../types';
 
-export { type CronjobControllerMessenger };
+export type { CronjobControllerMessenger };
 
 /**
  * Get a messenger for the cronjob controller. This is scoped to the

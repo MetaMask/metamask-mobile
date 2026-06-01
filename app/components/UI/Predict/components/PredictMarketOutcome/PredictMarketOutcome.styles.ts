@@ -15,12 +15,6 @@ const styleSheet = (params: { theme: Theme }) => {
       padding: 16,
       marginBottom: 16,
     },
-    marketHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      width: '100%',
-    },
     marketFooter: {
       flexDirection: 'row',
       justifyContent: 'flex-end',

@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -10,9 +10,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useParams } from '../../../util/navigation/navUtils';
 import { BottomSheetRef } from '../../../component-library/components/BottomSheets/BottomSheet';
 import { Hex } from '@metamask/utils';
-import Engine from '../../../core/Engine';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import NetworkListBottomSheet from './components/NetworkListBottomSheet/NetworkListBottomSheet';
@@ -50,25 +48,6 @@ const AddAsset = () => {
 
   const sheetRef = useRef<BottomSheetRef>(null);
 
-  const renderNetworkSelector = useCallback(
-    () => (
-      <NetworkListBottomSheet
-        selectedNetwork={selectedNetwork}
-        setSelectedNetwork={async (network) => {
-          setSelectedNetwork(network);
-          if (!isNonEvmChainId(network)) {
-            Engine.context.TokenListController.fetchTokenList(network as Hex);
-          }
-        }}
-        setOpenNetworkSelector={setOpenNetworkSelector}
-        sheetRef={sheetRef}
-        displayEvmNetworksOnly={assetType === 'collectible'}
-      />
-    ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [openNetworkSelector, networkConfigurations, selectedNetwork, assetType],
-  );
-
   return (
     <SafeAreaView
       edges={['left', 'right', 'bottom']}
@@ -100,7 +79,15 @@ const AddAsset = () => {
         />
       )}
 
-      {openNetworkSelector ? renderNetworkSelector() : null}
+      {openNetworkSelector ? (
+        <NetworkListBottomSheet
+          selectedNetwork={selectedNetwork}
+          setSelectedNetwork={setSelectedNetwork}
+          setOpenNetworkSelector={setOpenNetworkSelector}
+          sheetRef={sheetRef}
+          displayEvmNetworksOnly={assetType === 'collectible'}
+        />
+      ) : null}
     </SafeAreaView>
   );
 };

@@ -7,6 +7,7 @@ import { useMMPayFiatConfig } from './useMMPayFiatConfig';
 import { useTransactionPayFiatPayment } from './useTransactionPayData';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { HighlightedItem } from '../../types/token';
+import { hasTransactionType } from '../../utils/transaction';
 
 /**
  * Converts available Ramps payment methods into {@link HighlightedItem}s for
@@ -15,22 +16,35 @@ import { HighlightedItem } from '../../types/token';
  * `fiatPayment.selectedPaymentMethodId` on the current transaction.
  */
 export function useFiatPaymentHighlightedActions(): HighlightedItem[] {
-  const { enabled } = useMMPayFiatConfig();
+  const { enabledTransactionTypes, maxDelayMinutesForPaymentMethods } =
+    useMMPayFiatConfig();
   const { paymentMethods } = useRampsPaymentMethods();
   const fiatPayment = useTransactionPayFiatPayment();
   const transactionMeta = useTransactionMetadataRequest();
   const transactionId = transactionMeta?.id ?? '';
   const selectedPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
+  const isFiatEnabled = hasTransactionType(
+    transactionMeta,
+    enabledTransactionTypes,
+  );
 
   return useMemo(() => {
-    if (!enabled || paymentMethods.length === 0) {
+    if (!isFiatEnabled || paymentMethods.length === 0) {
       return [];
     }
 
-    return paymentMethods.map((pm) =>
-      toHighlightedItem(pm, transactionId, selectedPaymentMethodId),
-    );
-  }, [enabled, paymentMethods, transactionId, selectedPaymentMethodId]);
+    return paymentMethods
+      .filter((pm) => isWithinDelayLimit(pm, maxDelayMinutesForPaymentMethods))
+      .map((pm) =>
+        toHighlightedItem(pm, transactionId, selectedPaymentMethodId),
+      );
+  }, [
+    isFiatEnabled,
+    maxDelayMinutesForPaymentMethods,
+    paymentMethods,
+    transactionId,
+    selectedPaymentMethodId,
+  ]);
 }
 
 function toHighlightedItem(
@@ -60,4 +74,11 @@ function toHighlightedItem(
     },
     isSelected,
   };
+}
+
+function isWithinDelayLimit(
+  pm: PaymentMethod,
+  maxDelayMinutesForPaymentMethods: number,
+): boolean {
+  return !pm.delay || pm.delay[1] <= maxDelayMinutesForPaymentMethods;
 }

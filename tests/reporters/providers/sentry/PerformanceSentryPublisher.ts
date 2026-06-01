@@ -373,7 +373,7 @@ export async function publishPerformanceScenarioToSentry(
       },
     },
     tags: {
-      source: 'appwright-e2e-performance',
+      source: 'playwright-e2e-performance',
       project_name: mirroredScenarioAttributes.project_name,
       provider: mirroredScenarioAttributes.provider,
       team_id: mirroredScenarioAttributes.team_id,
@@ -418,7 +418,7 @@ export async function publishPerformanceScenarioToSentry(
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-sentry-envelope',
-        'User-Agent': 'metamask-mobile-appwright-performance',
+        'User-Agent': 'metamask-mobile-playwright-performance',
       },
       body: envelope,
     });

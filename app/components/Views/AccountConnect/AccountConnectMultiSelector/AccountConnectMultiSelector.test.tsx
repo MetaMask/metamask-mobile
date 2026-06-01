@@ -5,6 +5,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { ConnectedAccountsSelectorsIDs } from '../ConnectedAccountModal.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { AccountListBottomSheetSelectorsIDs } from '../../AccountSelector/AccountListBottomSheet.testIds';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../ConnectAccountBottomSheet.testIds';
 import { KeyringTypes } from '@metamask/keyring-controller';
@@ -116,22 +117,16 @@ describe('AccountConnectMultiSelector', () => {
   });
 
   it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(
-      <AccountConnectMultiSelector {...defaultProps} />,
-      { state: { engine: { backgroundState } } },
-    );
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('displays accounts list', () => {
     const { getByTestId } = renderWithProvider(
       <AccountConnectMultiSelector {...defaultProps} />,
       { state: { engine: { backgroundState } } },
     );
-
     expect(
       getByTestId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('disables the select all button when loading', () => {
@@ -151,9 +146,9 @@ describe('AccountConnectMultiSelector', () => {
     const updateButton = getByTestId(
       ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
     );
+    // Update button is disabled when isLoading is true, so onSubmit should not be called
     fireEvent.press(updateButton);
-
-    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['eip155:0:0x1234']);
+    expect(defaultProps.onSubmit).not.toHaveBeenCalled();
   });
 
   it('handles the select all button when not loading', () => {
@@ -217,7 +212,7 @@ describe('AccountConnectMultiSelector', () => {
     const updateButton = getByTestId(
       ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
     );
-    expect(updateButton).toBeTruthy();
+    expect(updateButton).toBeOnTheScreen();
     fireEvent.press(updateButton);
 
     expect(defaultProps.onSubmit).toHaveBeenCalledWith(['eip155:0:0x1234']);
@@ -235,7 +230,7 @@ describe('AccountConnectMultiSelector', () => {
     const disconnectButton = getByTestId(
       ConnectedAccountsSelectorsIDs.DISCONNECT,
     );
-    expect(disconnectButton).toBeTruthy();
+    expect(disconnectButton).toBeOnTheScreen();
     fireEvent.press(disconnectButton);
 
     expect(defaultProps.onSubmit).toHaveBeenCalledWith([]);

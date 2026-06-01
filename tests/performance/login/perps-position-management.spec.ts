@@ -1,7 +1,7 @@
 import { test } from '../../framework/fixture';
 
 import TimerHelper from '../../framework/TimerHelper';
-import { PerformancePreps } from '../../tags.performance.js';
+import { Performance, PerformancePreps } from '../../tags.performance.js';
 import {
   loginToAppPlaywright,
   selectAccountByDevice,
@@ -21,7 +21,7 @@ import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 import { asPlaywrightElement } from '../../framework/EncapsulatedElement';
 
 /* Scenario 5: Perps onboarding + add funds 10 USD ARB.USDC + Open Position + Close Position */
-test.describe(PerformancePreps, () => {
+test.describe(`${Performance} ${PerformancePreps}`, () => {
   test(
     'Perps open position and close it',
     { tag: '@mm-perps-engineering-team' },
@@ -36,28 +36,27 @@ test.describe(PerformancePreps, () => {
 
       const selectMarketTimer = new TimerHelper(
         'Market list screen visible',
-        { ios: 7500, android: 7500 },
+        { ios: 7500, android: 2000 },
         currentDeviceDetails.platform,
       );
       const openOrderScreenTimer = new TimerHelper(
         'Open Order Screen',
-        { ios: 1500, android: 1500 },
+        { ios: 1500, android: 3000 },
         currentDeviceDetails.platform,
       );
       const openPositionTimer = new TimerHelper(
         'Position opened',
-        { ios: 10500, android: 20000 },
+        { ios: 10500, android: 13000 },
         currentDeviceDetails.platform,
       );
 
       const MarketDetailsScreenTimer = new TimerHelper(
         'Market Details Screen',
-        { ios: 10000, android: 10000 },
+        { ios: 10000, android: 2500 },
         currentDeviceDetails.platform,
       );
 
       await loginToAppPlaywright();
-
       // Perps requires independent account for each device to avoid clashes when running tests in parallel
       await selectAccountByDevice(currentDeviceDetails.deviceName);
 
@@ -101,6 +100,7 @@ test.describe(PerformancePreps, () => {
       );
 
       await PerpsOrderView.setLeverageAppium(40);
+      await PerpsOrderView.setAmountUSD('10');
       await PerpsOrderView.tapPlaceOrder();
 
       await openPositionTimer.measure(

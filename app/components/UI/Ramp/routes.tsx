@@ -16,6 +16,7 @@ import V2OrderProcessing from './Views/NativeFlow/OrderProcessing';
 import V2KycProcessing from './Views/NativeFlow/KycProcessing';
 import V2AdditionalVerification from './Views/NativeFlow/AdditionalVerification';
 import V2KycWebview from './Views/NativeFlow/KycWebview';
+import HeadlessHost from './Views/HeadlessHost';
 import UnsupportedTokenModal from './Views/Modals/UnsupportedTokenModal';
 import SettingsModal from './Views/Modals/SettingsModal';
 import PaymentSelectionModal from './Views/Modals/PaymentSelectionModal';
@@ -94,6 +95,11 @@ const MainRoutes = () => (
     <Stack.Screen
       name={Routes.RAMP.RAMPS_ORDER_DETAILS}
       component={RampsOrderDetails}
+    />
+    <Stack.Screen
+      name={Routes.RAMP.HEADLESS_HOST}
+      component={HeadlessHost}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );

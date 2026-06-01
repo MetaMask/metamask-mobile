@@ -72,6 +72,7 @@ interface PerpsProgressBarProps {
 const createStyles = (colors: Colors, height: number) =>
   StyleSheet.create({
     progress: {
+      marginTop: 16,
       backgroundColor: colors.background.muted,
       borderRadius: height / 2,
       position: 'relative',

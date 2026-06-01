@@ -17,7 +17,7 @@ import { selectSelectedInternalAccountByScope } from '../../../../selectors/mult
 import { getFormattedAddressFromInternalAccount } from '../../../../core/Multichain/utils';
 import {
   POLYGON_MAINNET_CAIP_CHAIN_ID,
-  POLYGON_USDC_CAIP_ASSET_ID,
+  POLYGON_PUSD_CAIP_ASSET_ID,
   COLLATERAL_TOKEN_DECIMALS,
 } from '../providers/polymarket/constants';
 import { parseUnits } from 'ethers/lib/utils';
@@ -186,9 +186,9 @@ export const usePredictRewards = (
       }
 
       // Prepare fee asset
-      // Convert USD amount to atomic units (6 decimals for USDC)
+      // Convert USD amount to atomic units (6 decimals for pUSD)
       const feeAsset: EstimateAssetDto = {
-        id: POLYGON_USDC_CAIP_ASSET_ID,
+        id: POLYGON_PUSD_CAIP_ASSET_ID,
         amount: parseUnits(
           totalFeeAmountUsd.toString(),
           COLLATERAL_TOKEN_DECIMALS,

@@ -14,6 +14,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'WebSocketService',
   'BackendWebSocketService',
   'AccountActivityService',
+  'OHLCVService',
   'MultichainAccountService',
   'GeolocationApiService',
   'ProfileMetricsService',
@@ -21,7 +22,9 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'TransakService',
   'ComplianceService',
   'SocialService',
+  'AuthenticatedUserStorageService',
   'MoneyAccountBalanceService',
+  'ChompApiService',
 ] as const;
 
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
@@ -50,14 +53,13 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'SignatureController:stateChange',
   'SmartTransactionsController:stateChange',
   'TokenBalancesController:stateChange',
-  'TokenListController:stateChange',
   'TokenRatesController:stateChange',
   'TokensController:stateChange',
   'TokenSearchDiscoveryDataController:stateChange',
   'TransactionController:stateChange',
   'TransactionPayController:stateChange',
   'MultichainNetworkController:stateChange',
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   'SnapController:stateChange',
   'SnapRegistryController:stateChange',
   'SubjectMetadataController:stateChange',
@@ -79,6 +81,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'BridgeStatusController:stateChange',
   'EarnController:stateChange',
   'MoneyAccountController:stateChange',
+  'MoneyAccountUpgradeController:stateChanged',
   'PerpsController:stateChange',
   'RewardsController:stateChange',
   'DeFiPositionsController:stateChange',

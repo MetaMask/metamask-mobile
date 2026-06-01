@@ -9,7 +9,9 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
+import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
@@ -25,6 +27,15 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions } from '../../util/metrics';
 import { CashbackSelectors } from './Cashback.testIds';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import {
+  selectCardHasApprovedLineaFunding,
+  selectCardHomeDataStatus,
+  selectCardLineaUsdcToken,
+} from '../../../../../selectors/cardController';
+import CardMessageBox from '../../components/CardMessageBox/CardMessageBox';
+import { CardMessageBoxType } from '../../types';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const CURRENCY_DISPLAY_MAP: Record<string, string> = {
   musd: 'mUSD',
@@ -44,11 +55,17 @@ const formatAmount = (value: string | number): string => {
 };
 
 const Cashback: React.FC = () => {
-  const { goBack } = useNavigation();
+  const navigation = useNavigation();
   const tw = useTailwind();
+  const headerHandlers = useCardHeaderHandlers('back');
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const hasApprovedLineaFunding = useSelector(
+    selectCardHasApprovedLineaFunding,
+  );
+  const lineaUsdcToken = useSelector(selectCardLineaUsdcToken);
+  const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
 
   const {
     cashbackWallet,
@@ -74,6 +91,15 @@ const Cashback: React.FC = () => {
   const feeNum = parseFloat(feeRaw);
   const expectedToReceiveNum = Math.max(0, balanceNum - feeNum);
   const hasInsufficientBalance = balanceNum <= 0 || balanceNum <= feeNum;
+  const isFundingStatusLoading =
+    cardHomeDataStatus === 'idle' || cardHomeDataStatus === 'loading';
+  const hasFundingStatusError = cardHomeDataStatus === 'error';
+  const isFundingStatusLoaded = cardHomeDataStatus === 'success';
+  const requiresLineaFunding =
+    isFundingStatusLoaded && !hasApprovedLineaFunding;
+  const isFundingStatusUnavailable =
+    isFundingStatusLoading || hasFundingStatusError;
+  const showLoadingError = !!error || hasFundingStatusError;
 
   useEffect(() => {
     if (cashbackWallet) {
@@ -94,9 +120,9 @@ const Cashback: React.FC = () => {
         iconColor: theme.colors.success.default,
         hasNoTimeout: false,
       });
-      goBack();
+      navigation.goBack();
     }
-  }, [monitoringStatus, toastRef, theme, goBack]);
+  }, [monitoringStatus, toastRef, theme, navigation]);
 
   useEffect(() => {
     if (monitoringStatus === 'failed' || monitoringError) {
@@ -138,6 +164,8 @@ const Cashback: React.FC = () => {
   );
 
   const handleWithdraw = useCallback(() => {
+    if (requiresLineaFunding || isFundingStatusUnavailable) return;
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
         .addProperties({
@@ -147,23 +175,49 @@ const Cashback: React.FC = () => {
         .build(),
     );
     withdraw(balance);
-  }, [balance, withdraw, trackEvent, createEventBuilder]);
+  }, [
+    balance,
+    withdraw,
+    trackEvent,
+    createEventBuilder,
+    requiresLineaFunding,
+    isFundingStatusUnavailable,
+  ]);
+
+  const handleNavigateToSpendingLimit = useCallback(() => {
+    navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
+      flow: 'enable',
+      ...(lineaUsdcToken ? { selectedToken: lineaUsdcToken } : {}),
+    });
+  }, [navigation, lineaUsdcToken]);
 
   const isProcessing = isWithdrawing || monitoringStatus === 'monitoring';
 
   const buttonLabel = useMemo(() => {
-    if (!isWithdrawable || hasInsufficientBalance) {
+    if (
+      !isWithdrawable ||
+      hasInsufficientBalance ||
+      requiresLineaFunding ||
+      isFundingStatusUnavailable
+    ) {
       return strings('card.cashback_screen.withdraw_unavailable');
     }
     return strings('card.cashback_screen.withdraw');
-  }, [isWithdrawable, hasInsufficientBalance]);
+  }, [
+    isWithdrawable,
+    hasInsufficientBalance,
+    requiresLineaFunding,
+    isFundingStatusUnavailable,
+  ]);
 
   const isButtonDisabled =
     isLoading ||
     !isWithdrawable ||
     isProcessing ||
     isEstimating ||
-    hasInsufficientBalance;
+    hasInsufficientBalance ||
+    isFundingStatusUnavailable ||
+    requiresLineaFunding;
 
   return (
     <SafeAreaView
@@ -171,7 +225,21 @@ const Cashback: React.FC = () => {
       edges={['bottom']}
       testID={CashbackSelectors.CONTAINER}
     >
+      <HeaderStandard
+        includesTopInset
+        twClassName="bg-background-default"
+        {...headerHandlers}
+      />
       <Box twClassName="flex-1 px-4">
+        {requiresLineaFunding ? (
+          <Box twClassName="pt-4" testID={CashbackSelectors.FUNDING_WARNING}>
+            <CardMessageBox
+              messageType={CardMessageBoxType.CashbackFundingRequired}
+              onConfirm={handleNavigateToSpendingLimit}
+            />
+          </Box>
+        ) : null}
+
         <Box twClassName="py-4" testID={CashbackSelectors.BALANCE_TITLE}>
           {isLoading ? (
             <Skeleton height={32} width={160} style={tw.style('rounded-lg')} />
@@ -189,7 +257,7 @@ const Cashback: React.FC = () => {
           </Text>
         </Box>
 
-        {error ? (
+        {showLoadingError ? (
           <Box twClassName="rounded-xl bg-background-muted p-4 items-center">
             <Text
               variant={TextVariant.BodyMd}

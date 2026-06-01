@@ -7,7 +7,10 @@ import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { selectSourceWalletAddress } from '../../../selectors/bridge';
-import { selectAbTestContext } from '../../../core/redux/slices/bridge';
+import {
+  selectAbTestContext,
+  selectDestToken,
+} from '../../../core/redux/slices/bridge';
 import { useABTest } from '../../../hooks';
 import {
   NUMPAD_QUICK_ACTIONS_AB_KEY,
@@ -18,6 +21,8 @@ import {
   TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
 } from '../../../components/UI/Bridge/components/TokenSelectorItem.abTestConfig';
 import {
+  AMBIENT_PRICE_COLOR_AB_KEY,
+  AMBIENT_PRICE_COLOR_VARIANTS,
   STICKY_FOOTER_SWAP_LABEL_AB_KEY,
   STICKY_FOOTER_SWAP_LABEL_VARIANTS,
 } from '../../../components/UI/TokenDetails/components/abTestConfig';
@@ -27,6 +32,10 @@ import {
   type TransactionActiveAbTestEntry,
   withPendingTransactionActiveAbTests,
 } from '../../transactions/transaction-active-ab-test-attribution-registry';
+import {
+  createActiveABTestAssignment,
+  normalizeActiveABTestAssignments,
+} from '../../analytics/activeABTestAssignments';
 
 function mergeTransactionActiveAbTests(
   ...groups: (TransactionActiveAbTestEntry[] | undefined)[]
@@ -37,12 +46,14 @@ function mergeTransactionActiveAbTests(
       merged.push(...group);
     }
   }
-  return merged.length > 0 ? merged : undefined;
+  const normalizedTests = normalizeActiveABTestAssignments(merged);
+  return normalizedTests.length > 0 ? normalizedTests : undefined;
 }
 
 export default function useSubmitBridgeTx() {
   const stxEnabled = useSelector(selectShouldUseSmartTransaction);
   const walletAddress = useSelector(selectSourceWalletAddress);
+  const destToken = useSelector(selectDestToken);
   const abTestContext = useSelector(selectAbTestContext);
   const { variantName: numpadVariantName, isActive: isNumpadAbActive } =
     useABTest(NUMPAD_QUICK_ACTIONS_AB_KEY, NUMPAD_QUICK_ACTIONS_VARIANTS);
@@ -60,6 +71,10 @@ export default function useSubmitBridgeTx() {
     STICKY_FOOTER_SWAP_LABEL_AB_KEY,
     STICKY_FOOTER_SWAP_LABEL_VARIANTS,
   );
+  const {
+    variantName: ambientColorVariantName,
+    isActive: isAmbientColorAbActive,
+  } = useABTest(AMBIENT_PRICE_COLOR_AB_KEY, AMBIENT_PRICE_COLOR_VARIANTS);
 
   const abTests = abTestContext?.assetsASSETS2493AbtestTokenDetailsLayout
     ? {
@@ -68,27 +83,42 @@ export default function useSubmitBridgeTx() {
       }
     : undefined;
   const activeAbTests = useMemo(() => {
-    const tests: { key: string; value: string }[] = [];
+    const tests: TransactionActiveAbTestEntry[] = [];
 
     if (isNumpadAbActive) {
-      tests.push({
-        key: NUMPAD_QUICK_ACTIONS_AB_KEY,
-        value: numpadVariantName,
-      });
+      tests.push(
+        createActiveABTestAssignment(
+          NUMPAD_QUICK_ACTIONS_AB_KEY,
+          numpadVariantName,
+        ),
+      );
     }
 
     if (isTokenSelectorAbActive) {
-      tests.push({
-        key: TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
-        value: tokenSelectorVariantName,
-      });
+      tests.push(
+        createActiveABTestAssignment(
+          TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
+          tokenSelectorVariantName,
+        ),
+      );
     }
 
     if (isStickyFooterAbActive) {
-      tests.push({
-        key: STICKY_FOOTER_SWAP_LABEL_AB_KEY,
-        value: stickyFooterVariantName,
-      });
+      tests.push(
+        createActiveABTestAssignment(
+          STICKY_FOOTER_SWAP_LABEL_AB_KEY,
+          stickyFooterVariantName,
+        ),
+      );
+    }
+
+    if (isAmbientColorAbActive) {
+      tests.push(
+        createActiveABTestAssignment(
+          AMBIENT_PRICE_COLOR_AB_KEY,
+          ambientColorVariantName,
+        ),
+      );
     }
 
     return tests.length > 0 ? tests : undefined;
@@ -99,6 +129,8 @@ export default function useSubmitBridgeTx() {
     tokenSelectorVariantName,
     isStickyFooterAbActive,
     stickyFooterVariantName,
+    isAmbientColorAbActive,
+    ambientColorVariantName,
   ]);
 
   const submitBridgeTx = async ({
@@ -120,6 +152,7 @@ export default function useSubmitBridgeTx() {
       activeAbTests,
       transactionActiveAbTestsFromRoute,
     );
+    const tokenSecurityTypeDestination = destToken?.securityData?.type ?? null;
     return await withPendingTransactionActiveAbTests(
       mergedActiveAbTests,
       async () => {
@@ -131,6 +164,7 @@ export default function useSubmitBridgeTx() {
             location,
             abTests,
             activeAbTests: mergedActiveAbTests,
+            tokenSecurityTypeDestination,
           });
         }
         return await Engine.context.BridgeStatusController.submitTx(
@@ -144,6 +178,7 @@ export default function useSubmitBridgeTx() {
           location,
           abTests,
           mergedActiveAbTests,
+          tokenSecurityTypeDestination,
         );
       },
     );

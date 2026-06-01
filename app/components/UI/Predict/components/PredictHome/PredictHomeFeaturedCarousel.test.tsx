@@ -36,6 +36,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     ),
     BoxFlexDirection: { Row: 'row' },
     BoxAlignItems: { Center: 'center' },
+    BoxBorderColor: { BorderDefault: 'border-default' },
     Text: ({
       children,
       testID,
@@ -70,28 +71,77 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-const mockSectionFn = jest.fn();
+const mockUsePredictionsFeed = jest.fn();
 jest.mock(
-  '../../../../Views/TrendingView/components/Sections/Section',
-  () =>
-    function MockSection(props: { sectionId: string }) {
-      mockSectionFn(props);
+  '../../../../Views/TrendingView/feeds/predictions/usePredictionsFeed',
+  () => ({
+    usePredictionsFeed: (...args: unknown[]) => mockUsePredictionsFeed(...args),
+  }),
+);
+jest.mock(
+  '../../../../Views/TrendingView/feeds/predictions/PredictionRowItem',
+  () => ({
+    PredictionCarouselRowItem: ({
+      market,
+    }: {
+      market: { id: string; title: string };
+    }) => {
       const ReactNative = jest.requireActual('react-native');
       return (
-        <ReactNative.View testID="mock-section">
-          <ReactNative.Text>Section: {props.sectionId}</ReactNative.Text>
+        <ReactNative.View testID={`prediction-row-${market.id}`}>
+          <ReactNative.Text>{market.title}</ReactNative.Text>
         </ReactNative.View>
       );
     },
+  }),
+);
+jest.mock(
+  '../../../../Views/TrendingView/feeds/predictions/PredictionsSkeleton',
+  () => ({
+    __esModule: true,
+    default: () => {
+      const ReactNative = jest.requireActual('react-native');
+      return <ReactNative.View testID="predictions-skeleton" />;
+    },
+  }),
 );
 
-jest.mock('../../../../Views/TrendingView/sections.config', () => ({
-  SECTIONS_CONFIG: {
-    predictions: {
-      id: 'predictions',
-    },
+jest.mock(
+  '../../../../Views/TrendingView/components/HorizontalCarousel',
+  () => {
+    const ReactNative = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({
+        data,
+        isLoading,
+        renderItem,
+        Skeleton,
+      }: {
+        data: { id: string }[];
+        isLoading: boolean;
+        renderItem: (info: {
+          item: { id: string };
+          index: number;
+          target: 'Cell';
+        }) => React.ReactNode;
+        Skeleton: React.ComponentType;
+      }) => (
+        <ReactNative.View testID="mock-horizontal-carousel">
+          {isLoading ? (
+            <Skeleton />
+          ) : (
+            data.map((item, index) => (
+              <ReactNative.View key={item.id}>
+                {renderItem({ item, index, target: 'Cell' })}
+              </ReactNative.View>
+            ))
+          )}
+        </ReactNative.View>
+      ),
+    };
   },
-}));
+);
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
@@ -131,6 +181,14 @@ describe('PredictHomeFeaturedCarousel', () => {
     mockUseNavigation.mockReturnValue(
       mockNavigation as unknown as ReturnType<typeof useNavigation>,
     );
+    mockUsePredictionsFeed.mockReturnValue({
+      data: [
+        { id: 'm1', title: 'Market 1' },
+        { id: 'm2', title: 'Market 2' },
+      ],
+      isLoading: false,
+      refetch: jest.fn(),
+    });
   });
 
   afterEach(() => {
@@ -152,11 +210,24 @@ describe('PredictHomeFeaturedCarousel', () => {
       expect(screen.getByText('Trending')).toBeOnTheScreen();
     });
 
-    it('renders Section component with predictions sectionId', () => {
+    it('renders the horizontal carousel with predictions data', () => {
       render(<PredictHomeFeaturedCarousel />);
 
-      expect(screen.getByTestId('mock-section')).toBeOnTheScreen();
-      expect(screen.getByText('Section: predictions')).toBeOnTheScreen();
+      expect(screen.getByTestId('mock-horizontal-carousel')).toBeOnTheScreen();
+      expect(screen.getByTestId('prediction-row-m1')).toBeOnTheScreen();
+      expect(screen.getByTestId('prediction-row-m2')).toBeOnTheScreen();
+    });
+
+    it('shows skeleton while loading', () => {
+      mockUsePredictionsFeed.mockReturnValue({
+        data: [],
+        isLoading: true,
+        refetch: jest.fn(),
+      });
+
+      render(<PredictHomeFeaturedCarousel />);
+
+      expect(screen.getByTestId('predictions-skeleton')).toBeOnTheScreen();
     });
 
     it('renders header with correct testID', () => {
@@ -196,17 +267,12 @@ describe('PredictHomeFeaturedCarousel', () => {
     });
   });
 
-  describe('Section integration', () => {
-    it('passes correct props to Section component', () => {
+  describe('feed integration', () => {
+    it('subscribes to the trending predictions feed', () => {
       render(<PredictHomeFeaturedCarousel />);
 
-      expect(mockSectionFn).toHaveBeenCalledWith(
-        expect.objectContaining({
-          sectionId: 'predictions',
-          refreshConfig: { trigger: 0, silentRefresh: true },
-          toggleSectionEmptyState: expect.any(Function),
-          toggleSectionLoadingState: expect.any(Function),
-        }),
+      expect(mockUsePredictionsFeed).toHaveBeenCalledWith(
+        expect.objectContaining({ variant: 'trending' }),
       );
     });
   });

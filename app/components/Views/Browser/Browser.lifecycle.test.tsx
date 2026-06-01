@@ -17,6 +17,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import BrowserTab from '../BrowserTab/BrowserTab';
 
 const Browser = BrowserComponent as ComponentType<BrowserComponentProps>;
@@ -108,14 +109,6 @@ jest.mock('../../../core/Engine', () => {
     },
   };
 });
-
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  openURL: jest.fn(),
-  canOpenURL: jest.fn(),
-  getInitialURL: jest.fn(),
-}));
 
 jest.mock('../../../util/phishingDetection', () => ({
   isProductSafetyDappScanningEnabled: jest.fn().mockReturnValue(false),

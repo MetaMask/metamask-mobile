@@ -11,5 +11,10 @@ export interface SectionRefreshHandle {
  * - 'default': current behavior — shows positions, falls back to trending/popular when empty
  * - 'positions-only': shows only positions, returns null when empty
  * - 'trending-only': always shows trending/popular content, ignores positions
+ * - 'sports': shows sports prediction markets with sport-type chips (Soccer, Basketball, Tennis, World Cup)
  */
-export type HomeSectionMode = 'default' | 'positions-only' | 'trending-only';
+export type HomeSectionMode =
+  | 'default'
+  | 'positions-only'
+  | 'trending-only'
+  | 'sports';

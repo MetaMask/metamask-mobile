@@ -47,24 +47,27 @@ describe('usePredictBuyAvailableBalance', () => {
       expect(result.current.availableBalance).toBe(250.5);
     });
 
-    it('returns predict balance plus payToken balanceUsd when isPredictBalanceSelected is false', () => {
+    it('returns only the payToken balanceUsd when isPredictBalanceSelected is false', () => {
+      // When an ERC20 is selected, only that token's own balance is shown —
+      // Predict balance is not combined because payment exclusively uses the ERC20.
       mockIsPredictBalanceSelected = false;
       mockBalance = 100;
       mockPayToken = { balanceUsd: 150.75 };
 
       const { result } = renderHook(() => usePredictBuyAvailableBalance());
 
-      expect(result.current.availableBalance).toBe(250.75);
+      expect(result.current.availableBalance).toBe(150.75);
     });
 
-    it('returns predict balance when payToken has no balanceUsd and isPredictBalanceSelected is false', () => {
+    it('returns 0 when payToken has no balanceUsd and isPredictBalanceSelected is false', () => {
+      // If the ERC20 token has no USD balance information, available balance is 0.
       mockIsPredictBalanceSelected = false;
       mockBalance = 100;
       mockPayToken = {};
 
       const { result } = renderHook(() => usePredictBuyAvailableBalance());
 
-      expect(result.current.availableBalance).toBe(100);
+      expect(result.current.availableBalance).toBe(0);
     });
 
     it('falls back to Predict balance when payToken is null', () => {

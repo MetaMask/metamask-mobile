@@ -8,7 +8,6 @@ import {
   ButtonVariant,
   IconName,
   IconSize,
-  IconColor,
   TextColor,
 } from '@metamask/design-system-react-native';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
@@ -19,6 +18,7 @@ import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
 import { useABTest } from '../../../../hooks/useABTest';
 import {
+  AMBIENT_NEGATIVE_COLOR,
   STICKY_FOOTER_SWAP_LABEL_AB_KEY,
   STICKY_FOOTER_SWAP_LABEL_VARIANTS,
 } from './abTestConfig';
@@ -31,7 +31,8 @@ import { ONDO_RESTRICTED_COUNTRIES } from '../../../../util/ondoGeoRestrictions'
 import RwaUnavailableBottomSheet, {
   type RwaUnavailableBottomSheetRef,
 } from './RwaUnavailableBottomSheet/RwaUnavailableBottomSheet';
-import { useTokenActions } from '../hooks/useTokenActions';
+import { useStickyTokenActions } from '../hooks/useStickyTokenActions';
+import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
 
 const styles = StyleSheet.create({
   footer: {
@@ -74,6 +75,10 @@ interface TokenStickyFooterProps {
   onBuyPress?: () => void;
   /** Page name sent with swap/bridge analytics. Defaults to `'MainView'`. */
   sourcePage?: string;
+  /** When true, use success (green) accent; when false, use error (red) accent. Null means not yet resolved. */
+  isPricePositive?: boolean | null;
+  /** Whether the ambient price color A/B test treatment is active. */
+  useAmbientColor?: boolean;
 }
 
 const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
@@ -89,21 +94,29 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   onSwapPress,
   onBuyPress,
   sourcePage,
+  isPricePositive = null,
+  useAmbientColor = false,
 }) => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { colors, themeAppearance } = useTheme();
   const isLightMode = themeAppearance === AppThemeKey.light;
 
-  const successBg = isLightMode
-    ? `bg-[${LIGHT_MODE_SUCCESS_GREEN}]`
-    : 'bg-success-default';
-  const successBorder = isLightMode
-    ? `border-[${LIGHT_MODE_SUCCESS_GREEN}]`
-    : 'border-success-default';
-  const successText = isLightMode
-    ? `text-[${LIGHT_MODE_SUCCESS_GREEN}]`
-    : 'text-success-default';
+  const useErrorAccent = useAmbientColor && isPricePositive === false;
+
+  const getSuccessClass = (prefix: string, defaultClass: string) => {
+    if (useErrorAccent) {
+      return `${prefix}-[${AMBIENT_NEGATIVE_COLOR}]`;
+    }
+    if (isLightMode) {
+      return `${prefix}-[${LIGHT_MODE_SUCCESS_GREEN}]`;
+    }
+    return defaultClass;
+  };
+
+  const successBg = getSuccessClass('bg', 'bg-success-default');
+  const successBorder = getSuccessClass('border', 'border-success-default');
+  const successText = getSuccessClass('text', 'text-success-default');
 
   const secondaryTextProps = useMemo(
     () => ({ twClassName: successText }) as const,
@@ -115,17 +128,12 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     [successText],
   );
 
-  const {
-    onBuy,
-    handleStickySwapPress: onSwap,
-    hasEligibleSwapTokens,
-    networkModal,
-  } = useTokenActions({
-    token,
-    networkName,
-    currentTokenBalance,
-    sourcePage,
-  });
+  const { onBuy, onSwap, hasEligibleSwapTokens, networkModal } =
+    useStickyTokenActions({
+      token,
+      currentTokenBalance,
+      sourcePage,
+    });
 
   const { isBuyable } = useTokenBuyability(token);
   const { isTokenTradingOpen, isStockToken } = useRWAToken();
@@ -183,47 +191,20 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
 
       const resultType = securityData?.resultType;
 
-      const configMap: Record<
-        string,
-        {
-          icon: IconName;
-          iconColor: IconColor;
-          title: string;
-          description: string;
-        }
-      > = {
-        Warning: {
-          icon: IconName.Warning,
-          iconColor: IconColor.WarningDefault,
-          title: strings('security_trust.risky_token_title'),
-          description: strings('security_trust.risky_token_description', {
-            symbol: token.symbol,
-          }),
-        },
-        Spam: {
-          icon: IconName.Warning,
-          iconColor: IconColor.WarningDefault,
-          title: strings('security_trust.risky_token_title'),
-          description: strings('security_trust.risky_token_description', {
-            symbol: token.symbol,
-          }),
-        },
-        Malicious: {
-          icon: IconName.Danger,
-          iconColor: IconColor.ErrorDefault,
-          title: strings('security_trust.malicious_token_title'),
-          description: strings(
-            'security_trust.malicious_token_sheet_description',
-            {
-              symbol: token.symbol,
-            },
-          ),
-        },
-      };
+      // Only show warning sheet for Warning, Spam, or Malicious tokens
+      if (!resultType || resultType === 'Verified' || resultType === 'Benign') {
+        action();
+        return;
+      }
 
-      const config = resultType ? configMap[resultType] : undefined;
+      const config = getResultTypeConfig(resultType);
 
-      if (!config) {
+      if (
+        !config.icon ||
+        !config.iconColor ||
+        !config.sheetTitle ||
+        !config.getSheetDescription
+      ) {
         action();
         return;
       }
@@ -231,21 +212,26 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET,
         params: {
-          ...config,
+          icon: config.icon,
+          iconColor: config.iconColor,
+          title: config.sheetTitle,
+          description: config.getSheetDescription(token.symbol || token.name),
           onProceed: action,
           source,
-          severity: resultType,
+          severity: securityData?.resultType,
           tokenAddress: token.address,
-          tokenSymbol: token.symbol,
+          tokenSymbol: token.symbol || token.name,
           chainId: token.chainId,
+          features: securityData?.features,
         },
       });
     },
     [
       isRwaGeoRestricted,
       navigation,
-      securityData?.resultType,
+      securityData,
       token.symbol,
+      token.name,
       token.address,
       token.chainId,
     ],

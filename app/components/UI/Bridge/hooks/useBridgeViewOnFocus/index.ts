@@ -4,8 +4,8 @@ import { TokenInputAreaRef } from '../../components/TokenInputArea';
 import { SwapsKeypadRef } from '../../components/SwapsKeypad/types';
 
 interface Params {
-  inputRef: RefObject<TokenInputAreaRef>;
-  keypadRef: RefObject<SwapsKeypadRef>;
+  inputRef: RefObject<TokenInputAreaRef | null>;
+  keypadRef: RefObject<SwapsKeypadRef | null>;
 }
 
 export const useBridgeViewOnFocus = ({ inputRef, keypadRef }: Params) => {

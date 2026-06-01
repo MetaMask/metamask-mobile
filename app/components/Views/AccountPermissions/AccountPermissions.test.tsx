@@ -10,6 +10,7 @@ import renderWithProvider, {
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
 import AccountPermissions from './AccountPermissions';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ConnectedAccountsSelectorsIDs } from '../AccountConnect/ConnectedAccountModal.testIds';
 import { AccountPermissionsScreens } from './AccountPermissions.types';
 import {
@@ -17,7 +18,9 @@ import {
   addPermittedAccounts,
   removePermittedAccounts,
 } from '../../../core/Permissions';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../NetworkConnect/NetworkConnectMultiSelector.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ConnectAccountBottomSheetSelectorsIDs } from '../AccountConnect/ConnectAccountBottomSheet.testIds';
 import {
   Caip25CaveatType,
@@ -331,19 +334,22 @@ describe('AccountPermissions', () => {
     mockRemovePermittedAccounts.mockReset();
   });
 
-  it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(
+  it('displays the connected site hostname in the heading', () => {
+    const { getByText, getByTestId } = renderWithProvider(
       <AccountPermissions
         route={{
           params: {
-            hostInfo: { metadata: { origin: 'test' } },
+            hostInfo: { metadata: { origin: 'example.com' } },
           },
         }}
       />,
       { state: mockInitialState() },
     );
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(
+      getByTestId(ConnectedAccountsSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(getByText('example.com')).toBeOnTheScreen();
   });
 
   it('should handle manage permissions button press and navigate to permissions summary', () => {

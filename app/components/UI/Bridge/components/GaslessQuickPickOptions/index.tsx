@@ -7,6 +7,7 @@ import { BridgeToken } from '../../types';
 import { BigNumber } from 'bignumber.js';
 import { useABTest } from '../../../../../hooks';
 import Engine from '../../../../../core/Engine';
+import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 import {
   NUMPAD_QUICK_ACTIONS_NO_MAX_VARIANTS,
   NUMPAD_QUICK_ACTIONS_AB_KEY,
@@ -49,10 +50,10 @@ export const GaslessQuickPickOptions = ({
           // so its A/B context still needs to be attached manually here.
           ...(isActive && {
             active_ab_tests: [
-              {
-                key: NUMPAD_QUICK_ACTIONS_AB_KEY,
-                value: variantName,
-              },
+              createActiveABTestAssignment(
+                NUMPAD_QUICK_ACTIONS_AB_KEY,
+                variantName,
+              ),
             ],
           }),
         },

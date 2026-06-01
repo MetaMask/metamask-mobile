@@ -7,6 +7,7 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -18,7 +19,6 @@ import AppConstants from '../../../../../core/AppConstants';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
 import { VerticalAlignment } from '../../../../../component-library/components/List/ListItem';
 import { cancelBulkLink } from '../../../../../store/sagas/rewardsBulkLinkAccountGroups';
@@ -96,9 +96,12 @@ const RewardsEnvironmentToggle: React.FC = () => {
   return (
     <>
       {/* Divider */}
-      <Box twClassName="mt-1 border-b border-border-muted" />
-      <Box testID="rewards-environment-toggle" twClassName="gap-4 flex-col p-4">
-        <Text variant={TextVariant.HeadingSm}>
+      <Box twClassName="mt-4 border-b border-border-muted" />
+      <Box
+        testID="rewards-environment-toggle"
+        twClassName="gap-4 flex-col px-4"
+      >
+        <Text variant={TextVariant.HeadingMd} twClassName="mt-2">
           {strings('rewards.settings.environment_selector')}
         </Text>
         <Button
@@ -118,7 +121,7 @@ const RewardsEnvironmentToggle: React.FC = () => {
             ref={sheetRef}
             onClose={() => setIsSheetOpen(false)}
           >
-            <HeaderCompactStandard
+            <HeaderStandard
               title={strings('rewards.settings.environment_selector')}
               onClose={() => sheetRef.current?.onCloseBottomSheet()}
               closeButtonProps={{ testID: 'environment-sheet-close-button' }}

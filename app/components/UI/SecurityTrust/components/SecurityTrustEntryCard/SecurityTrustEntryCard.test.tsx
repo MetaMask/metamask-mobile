@@ -251,4 +251,196 @@ describe('SecurityTrustEntryCard', () => {
       getByText('Security analysis could not be loaded for this token.'),
     ).toBeTruthy();
   });
+
+  describe('Feature tag rendering', () => {
+    it('renders feature tags for Warning tokens with features', () => {
+      const warningData: TokenSecurityData = {
+        resultType: 'Warning',
+        maliciousScore: '50',
+        features: [
+          {
+            featureId: 'AIRDROP_PATTERN',
+            type: 'negative',
+            description: 'Suspicious airdrop',
+          },
+        ],
+        fees: {
+          transfer: 0.1,
+          transferFeeMaxAmount: null,
+          buy: 0.05,
+          sell: 0.05,
+        },
+        financialStats: {
+          supply: 1000000,
+          topHolders: [],
+          holdersCount: 100,
+          tradeVolume24h: null,
+          lockedLiquidityPct: null,
+          markets: [],
+        },
+        metadata: {
+          externalLinks: {
+            homepage: null,
+            twitterPage: null,
+            telegramChannelId: null,
+          },
+        },
+        created: '2023-01-01T00:00:00Z',
+      };
+
+      const { getByText } = render(
+        <SecurityTrustEntryCard
+          securityData={warningData}
+          isLoading={false}
+          token={mockToken}
+        />,
+      );
+
+      // Feature tag should be rendered for Warning severity
+      expect(getByText('Suspicious airdrop')).toBeOnTheScreen();
+    });
+
+    it('renders feature tags for Malicious tokens with features', () => {
+      const maliciousData: TokenSecurityData = {
+        resultType: 'Malicious',
+        maliciousScore: '95',
+        features: [
+          {
+            featureId: 'KNOWN_MALICIOUS',
+            type: 'negative',
+            description: 'Known malicious',
+          },
+          {
+            featureId: 'RUGPULL',
+            type: 'negative',
+            description: 'Rugpull risk',
+          },
+        ],
+        fees: {
+          transfer: 0.99,
+          transferFeeMaxAmount: null,
+          buy: 0,
+          sell: 0.99,
+        },
+        financialStats: {
+          supply: 1000000,
+          topHolders: [],
+          holdersCount: 10,
+          tradeVolume24h: null,
+          lockedLiquidityPct: null,
+          markets: [],
+        },
+        metadata: {
+          externalLinks: {
+            homepage: null,
+            twitterPage: null,
+            telegramChannelId: null,
+          },
+        },
+        created: '2023-01-01T00:00:00Z',
+      };
+
+      const { getByText } = render(
+        <SecurityTrustEntryCard
+          securityData={maliciousData}
+          isLoading={false}
+          token={mockToken}
+        />,
+      );
+
+      // Feature tags should be rendered for Malicious severity
+      expect(getByText('Known malicious')).toBeOnTheScreen();
+      expect(getByText('Rugpull risk')).toBeOnTheScreen();
+    });
+
+    it('renders feature tags for Verified tokens with features', () => {
+      const verifiedDataWithFeatures: TokenSecurityData = {
+        ...mockSecurityData,
+        features: [
+          {
+            featureId: 'VERIFIED_CONTRACT',
+            type: 'info',
+            description: 'Contract is verified',
+          },
+        ],
+      };
+
+      const { getByText } = render(
+        <SecurityTrustEntryCard
+          securityData={verifiedDataWithFeatures}
+          isLoading={false}
+          token={mockToken}
+        />,
+      );
+
+      // Feature tag should be rendered for Verified severity
+      expect(getByText('Published contract')).toBeOnTheScreen();
+    });
+
+    it('renders positive feature tags for Benign tokens', () => {
+      const benignData: TokenSecurityData = {
+        resultType: 'Benign',
+        maliciousScore: '0',
+        features: [
+          {
+            featureId: 'HIGH_REPUTATION_TOKEN',
+            type: 'info',
+            description: 'High reputation',
+          },
+        ],
+        fees: {
+          transfer: 0,
+          transferFeeMaxAmount: null,
+          buy: 0,
+          sell: 0,
+        },
+        financialStats: {
+          supply: 1000000,
+          topHolders: [],
+          holdersCount: 5000,
+          tradeVolume24h: null,
+          lockedLiquidityPct: null,
+          markets: [],
+        },
+        metadata: {
+          externalLinks: {
+            homepage: null,
+            twitterPage: null,
+            telegramChannelId: null,
+          },
+        },
+        created: '2023-01-01T00:00:00Z',
+      };
+
+      const { getByText } = render(
+        <SecurityTrustEntryCard
+          securityData={benignData}
+          isLoading={false}
+          token={mockToken}
+        />,
+      );
+
+      // Positive feature tag should be rendered for Benign
+      expect(getByText('Established reputation')).toBeOnTheScreen();
+    });
+
+    it('does not render feature tags when there are no recognized features', () => {
+      const verifiedNoFeatures: TokenSecurityData = {
+        ...mockSecurityData,
+        features: [],
+      };
+
+      const { queryByText } = render(
+        <SecurityTrustEntryCard
+          securityData={verifiedNoFeatures}
+          isLoading={false}
+          token={mockToken}
+        />,
+      );
+
+      // No feature tags should be rendered when features array is empty
+      expect(queryByText('Published contract')).not.toBeOnTheScreen();
+      expect(queryByText('Honeypot risk')).not.toBeOnTheScreen();
+    });
+  });
 });

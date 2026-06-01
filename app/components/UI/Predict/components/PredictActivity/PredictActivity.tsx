@@ -3,9 +3,6 @@ import { TouchableOpacity } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
   Icon,
   IconName,
   Text,
@@ -76,46 +73,40 @@ const PredictActivity: React.FC<PredictActivityProps> = ({ item }) => {
   };
 
   return (
-    <TouchableOpacity onPress={handlePress}>
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Start}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="w-full p-2"
-      >
-        <Box twClassName="pt-1">
-          <Box twClassName="h-10 w-10 items-center justify-center rounded-full bg-muted mr-3 overflow-hidden">
-            {item.icon ? (
-              <Image
-                source={{ uri: item.icon }}
-                style={tw.style('w-full h-full')}
-                accessibilityLabel="activity icon"
-              />
-            ) : (
-              <Icon name={IconName.Activity} />
-            )}
-          </Box>
-        </Box>
+    <TouchableOpacity
+      onPress={handlePress}
+      style={tw.style('flex-row items-start justify-between w-full p-2')}
+    >
+      <Box twClassName="h-10 w-10 items-center justify-center rounded-full bg-muted mr-3 overflow-hidden mt-1">
+        {item.icon ? (
+          <Image
+            source={{ uri: item.icon }}
+            style={tw.style('w-full h-full')}
+            accessibilityLabel="activity icon"
+          />
+        ) : (
+          <Icon name={IconName.Activity} />
+        )}
+      </Box>
 
-        <Box twClassName="flex-1">
-          <Text variant={TextVariant.BodyMd} numberOfLines={1}>
-            {activityTitleByType[item.type]}
-          </Text>
-          <Text variant={TextVariant.BodySm} twClassName="text-alternative">
-            {item.marketTitle}
-          </Text>
-        </Box>
+      <Box twClassName="flex-1">
+        <Text variant={TextVariant.BodyMd} numberOfLines={1}>
+          {activityTitleByType[item.type]}
+        </Text>
+        <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+          {item.marketTitle}
+        </Text>
+      </Box>
 
-        <Box twClassName="items-end ml-3">
-          <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
-            {signedAmount}
+      <Box twClassName="items-end ml-3">
+        <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+          {signedAmount}
+        </Text>
+        {item.percentChange !== undefined ? (
+          <Text variant={TextVariant.BodySm} twClassName={percentColor}>
+            {formatPercentage(item.percentChange)}
           </Text>
-          {item.percentChange !== undefined ? (
-            <Text variant={TextVariant.BodySm} twClassName={percentColor}>
-              {formatPercentage(item.percentChange)}
-            </Text>
-          ) : null}
-        </Box>
+        ) : null}
       </Box>
     </TouchableOpacity>
   );

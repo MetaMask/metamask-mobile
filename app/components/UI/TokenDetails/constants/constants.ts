@@ -14,6 +14,14 @@ export enum TokenDetailsSource {
   HomeSection = 'home_section',
   /** Trending tokens section (e.g. Explore tab) */
   Trending = 'trending',
+  /** Explore Now tab — crypto movers pills */
+  ExploreNowMovers = 'explore_now_movers',
+  /** Explore Now tab — stocks list */
+  ExploreNowStocks = 'explore_now_stocks',
+  /** Explore Crypto tab — trending tokens list */
+  ExploreCryptoTrending = 'explore_crypto_trending',
+  /** Explore RWAs tab — stocks list */
+  ExploreRwasStocks = 'explore_rwas_stocks',
   /** Trending tokens section on the Swaps / Bridge view */
   TrendingSwaps = 'trending-swaps',
   /** Dedicated homepage trending-tokens section (A/B treatment layout) */
@@ -23,6 +31,22 @@ export enum TokenDetailsSource {
   /** Fallback when source cannot be determined */
   Unknown = 'unknown',
 }
+
+const EXPLORE_TOKEN_DETAILS_SOURCES = new Set<TokenDetailsSource>([
+  TokenDetailsSource.ExploreNowMovers,
+  TokenDetailsSource.ExploreNowStocks,
+  TokenDetailsSource.ExploreCryptoTrending,
+  TokenDetailsSource.ExploreRwasStocks,
+  TokenDetailsSource.Trending,
+]);
+
+/**
+ * Whether Token Details was opened from the Explore tab (or Explore search).
+ * Used to attribute swap/bridge sessions as Trending Explore instead of Token View.
+ */
+export const isExploreTokenDetailsSource = (
+  source?: TokenDetailsSource,
+): boolean => Boolean(source && EXPLORE_TOKEN_DETAILS_SOURCES.has(source));
 
 /**
  * Extended route params for Token Details page

@@ -2,6 +2,7 @@ import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import SocialLoginIosUser from '.';
 import Device from '../../../util/device';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { OnboardingSelectorIDs } from '../Onboarding/Onboarding.testIds';
 import { fireEvent } from '@testing-library/react-native';
 import { strings } from '../../../../locales/i18n';
@@ -74,15 +75,23 @@ describe('SocialLoginIosUser', () => {
       (useRoute as jest.Mock).mockReturnValue(mockRoute);
     });
 
-    it('renders match snapshot', () => {
-      const { toJSON } = renderWithProvider(<SocialLoginIosUser type="new" />);
-      expect(toJSON()).toMatchSnapshot();
+    it('renders correctly', () => {
+      const { getByText } = renderWithProvider(
+        <SocialLoginIosUser type="new" />,
+      );
+      expect(
+        getByText(strings('social_login_ios_user.new_user_title')),
+      ).toBeOnTheScreen();
     });
 
-    it('renders match snapshot with medium device', () => {
+    it('renders correctly with medium device', () => {
       (Device.isMediumDevice as jest.Mock).mockReturnValue(true);
-      const { toJSON } = renderWithProvider(<SocialLoginIosUser type="new" />);
-      expect(toJSON()).toMatchSnapshot();
+      const { getByText } = renderWithProvider(
+        <SocialLoginIosUser type="new" />,
+      );
+      expect(
+        getByText(strings('social_login_ios_user.new_user_title')),
+      ).toBeOnTheScreen();
     });
 
     it('renders title and button with correct text', () => {
@@ -152,19 +161,23 @@ describe('SocialLoginIosUser', () => {
       (Device.isMediumDevice as jest.Mock).mockReturnValue(false);
     });
 
-    it('renders match snapshot', () => {
-      const { toJSON } = renderWithProvider(
+    it('renders correctly', () => {
+      const { getByText } = renderWithProvider(
         <SocialLoginIosUser type="existing" />,
       );
-      expect(toJSON()).toMatchSnapshot();
+      expect(
+        getByText(strings('social_login_ios_user.existing_user_title')),
+      ).toBeOnTheScreen();
     });
 
-    it('renders match snapshot with medium device', () => {
+    it('renders correctly with medium device', () => {
       (Device.isMediumDevice as jest.Mock).mockReturnValue(true);
-      const { toJSON } = renderWithProvider(
+      const { getByText } = renderWithProvider(
         <SocialLoginIosUser type="existing" />,
       );
-      expect(toJSON()).toMatchSnapshot();
+      expect(
+        getByText(strings('social_login_ios_user.existing_user_title')),
+      ).toBeOnTheScreen();
     });
 
     it('renders title and button with correct text', () => {

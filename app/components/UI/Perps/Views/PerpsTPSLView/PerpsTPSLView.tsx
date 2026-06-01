@@ -6,14 +6,17 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
@@ -75,6 +78,7 @@ const PerpsTPSLView: React.FC = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const { top: topInset } = useSafeAreaInsets();
 
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -447,11 +451,16 @@ const PerpsTPSLView: React.FC = () => {
   return (
     <SafeAreaView
       style={styles.container}
-      edges={['top', 'bottom']}
+      edges={['bottom']}
       testID={PerpsTPSLViewSelectorsIDs.BOTTOM_SHEET}
     >
       {/* Simple header with back button and title */}
-      <View style={styles.header}>
+      <View
+        style={[
+          styles.header,
+          topInset > 0 ? { paddingTop: 16 + topInset } : undefined,
+        ]}
+      >
         <View style={styles.headerBackButton}>
           <ButtonIcon
             iconName={IconName.ArrowLeft}
@@ -877,12 +886,13 @@ const PerpsTPSLView: React.FC = () => {
           <>
             <Button
               style={styles.doneButton}
-              label={strings('perps.tpsl.done')}
-              variant={ButtonVariants.Primary}
+              variant={ButtonVariant.Primary}
               size={ButtonSize.Lg}
-              width={ButtonWidthTypes.Full}
+              isFullWidth
               onPress={dismissKeypad}
-            />
+            >
+              {strings('perps.tpsl.done')}
+            </Button>
             <View style={styles.keypadContainer}>
               <Keypad
                 value={(() => {
@@ -909,21 +919,23 @@ const PerpsTPSLView: React.FC = () => {
             <View style={styles.footerButtonsRow}>
               <Button
                 style={styles.footerButton}
-                label={strings('perps.tpsl.cancel')}
-                variant={ButtonVariants.Secondary}
+                variant={ButtonVariant.Secondary}
                 size={ButtonSize.Lg}
                 onPress={handleBack}
-              />
+              >
+                {strings('perps.tpsl.cancel')}
+              </Button>
               <Button
                 style={styles.footerButton}
-                label={strings('perps.tpsl.set')}
-                variant={ButtonVariants.Primary}
+                variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}
                 onPress={handleConfirm}
                 isDisabled={confirmDisabled}
-                loading={isUpdating}
+                isLoading={isUpdating}
                 testID={PerpsTPSLViewSelectorsIDs.SET_BUTTON}
-              />
+              >
+                {strings('perps.tpsl.set')}
+              </Button>
             </View>
           </View>
         )}

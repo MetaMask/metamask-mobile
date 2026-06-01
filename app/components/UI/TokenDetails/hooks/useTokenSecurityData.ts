@@ -18,10 +18,20 @@ interface UseTokenSecurityDataResult {
   error: Error | null;
 }
 
+const isValidTokenSecurityData = (data: unknown): data is TokenSecurityData =>
+  data != null &&
+  typeof data === 'object' &&
+  typeof (data as TokenSecurityData).resultType === 'string' &&
+  Array.isArray((data as TokenSecurityData).features);
+
 export const useTokenSecurityData = ({
   assetId,
-  prefetchedData,
+  prefetchedData: rawPrefetchedData,
 }: UseTokenSecurityDataOpts): UseTokenSecurityDataResult => {
+  const prefetchedData = isValidTokenSecurityData(rawPrefetchedData)
+    ? rawPrefetchedData
+    : undefined;
+
   const [securityData, setSecurityData] = useState<TokenSecurityData | null>(
     prefetchedData ?? null,
   );

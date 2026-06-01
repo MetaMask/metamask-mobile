@@ -8,8 +8,10 @@ import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 import { getDriver } from '../../framework/PlaywrightUtilities';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../app/components/Views/AccountConnect/ConnectAccountBottomSheet.testIds';
+import { ConnectedAccountsSelectorsIDs } from '../../../app/components/Views/AccountConnect/ConnectedAccountModal.testIds';
 import { AccountCellIds } from '../../../app/component-library/components-temp/MultichainAccounts/AccountCell/AccountCell.testIds';
 import { CellComponentSelectorsIDs } from '../../../app/component-library/components/Cells/Cell/CellComponent.testIds';
+import { sleep } from '../../framework';
 
 class DappConnectionModal {
   get connectButton(): EncapsulatedElementType {
@@ -32,10 +34,16 @@ class DappConnectionModal {
 
   get editAccountsButton(): EncapsulatedElementType {
     return encapsulated({
-      appium: () =>
-        PlaywrightMatchers.getElementByXPath(
-          '//android.view.ViewGroup[@content-desc="Edit accounts"]',
-        ),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementByXPath(
+            '//android.view.ViewGroup[@content-desc="Edit accounts"]',
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementById(
+            ConnectedAccountsSelectorsIDs.ACCOUNT_LIST_BOTTOM_SHEET,
+          ),
+      },
     });
   }
 
@@ -84,8 +92,17 @@ class DappConnectionModal {
     });
   }
 
-  async tapConnectButton(): Promise<void> {
-    await UnifiedGestures.tap(this.connectButton);
+  async tapConnectButton({
+    shouldCooldown = false,
+    timeToCooldown = 1000,
+  }: {
+    shouldCooldown?: boolean;
+    timeToCooldown?: number;
+  } = {}): Promise<void> {
+    await UnifiedGestures.waitAndTap(this.connectButton);
+    if (shouldCooldown) {
+      await sleep(timeToCooldown);
+    }
   }
 
   async tapEditAccountsButton(): Promise<void> {
@@ -120,10 +137,10 @@ class DappConnectionModal {
           direction: 'down',
           percent: 1.0,
         });
-        const element = await asPlaywrightElement(
+        const networkButton = await asPlaywrightElement(
           this.getNetworkButton(networkName),
         );
-        await element.click();
+        await networkButton.click();
       },
     });
   }

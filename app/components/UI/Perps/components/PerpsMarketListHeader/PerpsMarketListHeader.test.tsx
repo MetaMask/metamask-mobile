@@ -20,8 +20,10 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
   const { View, Text: RNText } = jest.requireActual('react-native');
   return {
+    ...actual,
     Box: View,
     Text: RNText,
     BoxFlexDirection: { Row: 'row' },
@@ -88,55 +90,6 @@ jest.mock('../../../../../component-library/hooks', () => ({
     },
   }),
 }));
-
-jest.mock(
-  '../../../../../component-library/components-temp/HeaderCompactStandard',
-  () => {
-    const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({
-        title,
-        onBack,
-        endButtonIconProps,
-        testID,
-      }: {
-        title: string;
-        onBack: () => void;
-        endButtonIconProps?: {
-          iconName: string;
-          onPress: () => void;
-          testID?: string;
-        }[];
-        testID?: string;
-      }) => (
-        <View testID={testID}>
-          <TouchableOpacity
-            testID={testID ? `${testID}-back-button` : undefined}
-            onPress={onBack}
-          >
-            <Text>Back</Text>
-          </TouchableOpacity>
-          <Text>{title}</Text>
-          {endButtonIconProps?.map(
-            (
-              props: { iconName: string; onPress: () => void; testID?: string },
-              index: number,
-            ) => (
-              <TouchableOpacity
-                key={index}
-                testID={props.testID}
-                onPress={props.onPress}
-              >
-                <Text>{props.iconName}</Text>
-              </TouchableOpacity>
-            ),
-          )}
-        </View>
-      ),
-    };
-  },
-);
 
 describe('PerpsMarketListHeader', () => {
   const mockGoBack = jest.fn();

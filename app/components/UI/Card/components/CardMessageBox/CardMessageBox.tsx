@@ -63,6 +63,16 @@ const CardMessageBox = ({
         variant: CardMessageBoxVariant.Info,
         title: strings('card.card_authentication.auth_prompt_info'),
       },
+      [CardMessageBoxType.CashbackFundingRequired]: {
+        variant: CardMessageBoxVariant.Warning,
+        title: strings('card.cashback_screen.funding_required.title'),
+        description: strings(
+          'card.cashback_screen.funding_required.description',
+        ),
+        confirmButtonLabel: strings(
+          'card.cashback_screen.funding_required.confirm_button_label',
+        ),
+      },
     }),
     [],
   );

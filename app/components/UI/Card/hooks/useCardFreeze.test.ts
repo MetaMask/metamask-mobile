@@ -1,8 +1,16 @@
 import React from 'react';
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { notifyManager } from '@tanstack/query-core';
 import useCardFreeze from './useCardFreeze';
 import Engine from '../../../../core/Engine';
+
+// Override React Query's batch notify function to prevent teardown crashes.
+// The default uses react-native's unstable_batchedUpdates which tries to
+// require() internal modules after the Jest environment is torn down.
+notifyManager.setBatchNotifyFunction((callback: () => void) => {
+  callback();
+});
 
 const mockFreezeCard = jest.fn();
 const mockUnfreezeCard = jest.fn();
@@ -16,10 +24,13 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+let activeQueryClient: QueryClient | null = null;
+
 const createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
+  activeQueryClient = queryClient;
   const Wrapper = ({ children }: { children: React.ReactNode }) =>
     React.createElement(QueryClientProvider, { client: queryClient }, children);
   return { Wrapper, queryClient };
@@ -33,6 +44,15 @@ describe('useCardFreeze', () => {
     (Engine.context.CardController.freezeCard as jest.Mock) = mockFreezeCard;
     (Engine.context.CardController.unfreezeCard as jest.Mock) =
       mockUnfreezeCard;
+  });
+
+  afterEach(() => {
+    if (activeQueryClient) {
+      activeQueryClient.getMutationCache().clear();
+      activeQueryClient.getQueryCache().clear();
+      activeQueryClient.clear();
+      activeQueryClient = null;
+    }
   });
 
   describe('freeze', () => {

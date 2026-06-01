@@ -41,12 +41,13 @@ describe('e2eBridgePerps (no UI)', () => {
 
     const account = await (
       controller.getAccountState as () => Promise<{
-        availableBalance: string;
+        spendableBalance: string;
+        withdrawableBalance: string;
       }>
     )();
 
     expect(account).toBeTruthy();
-    expect(account.availableBalance).toBeDefined();
+    expect(account.spendableBalance).toBeDefined();
   });
 
   it('exposes a mock stream manager in E2E', () => {
@@ -124,7 +125,7 @@ describe('e2eBridgePerps - isE2E switch', () => {
     const mockReset = jest.fn();
     const mockService = {
       reset: mockReset,
-      getMockAccountState: () => ({ availableBalance: '1000' }),
+      getMockAccountState: () => ({ spendableBalance: '1000' }),
       getMockPositions: () => [],
       getMockMarkets: () => [],
     };

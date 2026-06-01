@@ -22,6 +22,18 @@ describe('ListItemMultiSelect', () => {
     expect(getByTestId('test-content')).toBeOnTheScreen();
   });
 
+  it('exposes accessibilityRole="button" on the row', () => {
+    const { getByTestId } = render(
+      <ListItemMultiSelect onPress={() => null} testID="list-item-multi-select">
+        <View />
+      </ListItemMultiSelect>,
+    );
+
+    expect(getByTestId('list-item-multi-select').props.accessibilityRole).toBe(
+      'button',
+    );
+  });
+
   it('renders when disabled', () => {
     const { getByTestId } = render(
       <ListItemMultiSelect
@@ -35,7 +47,7 @@ describe('ListItemMultiSelect', () => {
 
     const component = getByTestId('list-item-multi-select');
     expect(component).toBeOnTheScreen();
-    expect(component.props.disabled).toBe(true);
+    expect(component).toBeDisabled();
   });
 
   it('calls onPress when pressed', () => {
@@ -69,7 +81,7 @@ describe('ListItemMultiSelect', () => {
 
     const component = getByTestId('list-item-multi-select');
     expect(component).toBeOnTheScreen();
-    expect(component.props.disabled).toBe(true);
+    expect(component).toBeDisabled();
   });
 
   it('renders with selected state', () => {
@@ -206,6 +218,6 @@ describe('ListItemMultiSelect', () => {
 
     const component = getByTestId('list-item-multi-select');
     expect(component).toBeOnTheScreen();
-    expect(component.props.disabled).toBe(true);
+    expect(component).toBeDisabled();
   });
 });

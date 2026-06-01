@@ -161,6 +161,7 @@ describe('useTokenAsset', () => {
         name: MUSD_TOKEN.name,
         decimals: MUSD_TOKEN.decimals,
         address: MUSD_TOKEN_ADDRESS,
+        image: MUSD_TOKEN.image,
       });
     });
 

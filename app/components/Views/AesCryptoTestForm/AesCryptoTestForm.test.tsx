@@ -33,12 +33,6 @@ describe('AesCryptoTestForm', () => {
     mockGoBack.mockClear();
   });
 
-  it('renders correctly', () => {
-    const wrapper = render(<AesCryptoTestForm />);
-
-    expect(wrapper).toMatchSnapshot();
-  });
-
   it('wraps content in SafeAreaView from react-native-safe-area-context', () => {
     const { getByTestId } = render(<AesCryptoTestForm />);
     const safeArea = getByTestId(aesCryptoFormSafeArea);

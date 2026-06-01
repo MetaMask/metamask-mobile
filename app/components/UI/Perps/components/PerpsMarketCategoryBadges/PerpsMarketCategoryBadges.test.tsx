@@ -70,8 +70,8 @@ describe('PerpsMarketCategoryBadges', () => {
   });
 
   describe('Selected state (category selected)', () => {
-    it('shows all badges when a category is selected, with dismiss icon on selected one', () => {
-      const { getByText, getByTestId, queryByTestId } = render(
+    it('shows all badges when a category is selected, without dismiss icons', () => {
+      const { getByText, queryByTestId } = render(
         <PerpsMarketCategoryBadges
           {...defaultProps}
           selectedCategory="crypto"
@@ -84,8 +84,7 @@ describe('PerpsMarketCategoryBadges', () => {
       expect(getByText('Commodities')).toBeTruthy();
       expect(getByText('Forex')).toBeTruthy();
 
-      // Selected badge should show dismiss icon, others should not
-      expect(getByTestId('category-badges-crypto-dismiss')).toBeTruthy();
+      expect(queryByTestId('category-badges-crypto-dismiss')).toBeNull();
       expect(queryByTestId('category-badges-stocks-dismiss')).toBeNull();
       expect(queryByTestId('category-badges-commodities-dismiss')).toBeNull();
       expect(queryByTestId('category-badges-forex-dismiss')).toBeNull();
@@ -154,12 +153,12 @@ describe('PerpsMarketCategoryBadges', () => {
       );
 
       // Should show available categories (fallback to "all" view)
-      // No auto-reset - user must explicitly dismiss via badge click
+      // No auto-reset — user must tap a badge to change selection
       expect(getByText('Crypto')).toBeTruthy();
       expect(getByText('Stocks')).toBeTruthy();
       // Forex is not in availableCategories, so it shouldn't show
       expect(queryByText('Forex')).toBeNull();
-      // No auto-reset - filter is only reset when user clicks dismiss on a selected badge
+      // No auto-reset — filter clears when user taps the selected category again
       expect(onCategorySelect).not.toHaveBeenCalled();
     });
 

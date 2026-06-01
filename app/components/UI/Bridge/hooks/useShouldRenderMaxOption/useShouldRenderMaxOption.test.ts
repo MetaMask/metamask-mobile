@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { isNativeAddress } from '@metamask/bridge-controller';
+import { isNativeAddress, isSolanaChainId } from '@metamask/bridge-controller';
 import { useSelector } from 'react-redux';
 import { useShouldRenderMaxOption } from '.';
 import { BridgeToken } from '../../types';
@@ -19,6 +19,7 @@ jest.mock('@metamask/bridge-controller', () => {
   return {
     ...actual,
     isNativeAddress: jest.fn(),
+    isSolanaChainId: jest.fn(),
   };
 });
 
@@ -28,6 +29,9 @@ const mockUseTokenAddress = useTokenAddress as jest.MockedFunction<
 >;
 const mockIsNativeAddress = isNativeAddress as jest.MockedFunction<
   typeof isNativeAddress
+>;
+const mockIsSolanaChainId = isSolanaChainId as jest.MockedFunction<
+  typeof isSolanaChainId
 >;
 
 const mockToken: BridgeToken = {
@@ -61,6 +65,7 @@ describe('useShouldRenderMaxOption', () => {
     setSelectorValues();
     mockUseTokenAddress.mockReturnValue(mockToken.address);
     mockIsNativeAddress.mockReturnValue(false);
+    mockIsSolanaChainId.mockReturnValue(false);
   });
 
   it('returns false when token is undefined', () => {
@@ -173,6 +178,25 @@ describe('useShouldRenderMaxOption', () => {
     });
     mockUseTokenAddress.mockReturnValue(solanaToken.address);
     mockIsNativeAddress.mockReturnValue(true);
+    mockIsSolanaChainId.mockReturnValue(true);
+
+    const { result } = renderHook(() =>
+      useShouldRenderMaxOption(solanaToken, '3'),
+    );
+
+    expect(result.current).toBe(false);
+  });
+
+  it('returns false for Solana native token even when gasIncluded is true', () => {
+    const solanaToken: BridgeToken = {
+      ...nativeToken,
+      chainId:
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as `${string}:${string}`,
+    };
+    setSelectorValues({ gasIncluded: true });
+    mockUseTokenAddress.mockReturnValue(solanaToken.address);
+    mockIsNativeAddress.mockReturnValue(true);
+    mockIsSolanaChainId.mockReturnValue(true);
 
     const { result } = renderHook(() =>
       useShouldRenderMaxOption(solanaToken, '3'),

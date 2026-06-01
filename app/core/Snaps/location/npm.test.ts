@@ -1,36 +1,46 @@
+import { NativeModules } from 'react-native';
 import { NpmLocation } from './npm';
+
+// Mock RNTar native module before anything else
+NativeModules.RNTar = {
+  unTar: jest.fn().mockResolvedValue('/document-dir/archive'),
+};
 
 jest.mock('react-native-blob-util', () => ({
   config: jest.fn(() => ({
-    fetch: jest.fn(() => ({
-      flush: jest.fn(),
-      data: '/document-dir/archive.tgz',
-      respInfo: {
-        status: 200,
-        headers: {
-          'content-length': 2000,
+    fetch: jest.fn(() =>
+      Promise.resolve({
+        flush: jest.fn(),
+        data: '/document-dir/archive.tgz',
+        respInfo: {
+          status: 200,
+          headers: {
+            'content-length': '2000',
+          },
         },
-      },
-    })),
+      }),
+    ),
   })),
   fs: {
     unlink: jest.fn().mockResolvedValue(undefined),
-    isDir: jest.fn((path) => path.endsWith('archive') || path.endsWith('dist')),
+    isDir: jest.fn((path) =>
+      Promise.resolve(path.endsWith('archive') || path.endsWith('dist')),
+    ),
     ls: jest.fn((path) => {
       if (path === '/document-dir/archive') {
-        return ['snap.manifest.json', 'dist'];
+        return Promise.resolve(['snap.manifest.json', 'dist']);
       } else if (path === '/document-dir/archive/dist') {
-        return ['bundle.js'];
+        return Promise.resolve(['bundle.js']);
       }
-      return [];
+      return Promise.resolve([]);
     }),
     readFile: jest.fn((path) => {
       if (path === '/document-dir/archive/dist/bundle.js') {
-        return `module.exports.onRpcRequest = () => null`;
+        return Promise.resolve(`module.exports.onRpcRequest = () => null`);
       } else if (path === '/document-dir/archive/snap.manifest.json') {
-        return `{ "proposedName": "Example Snap" }`;
+        return Promise.resolve(`{ "proposedName": "Example Snap" }`);
       }
-      throw new Error('File not found');
+      return Promise.reject(new Error('File not found'));
     }),
   },
 }));

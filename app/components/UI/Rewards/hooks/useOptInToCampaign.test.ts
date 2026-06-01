@@ -1,10 +1,12 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useOptInToCampaign } from './useOptInToCampaign';
 import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
+import { setCampaignParticipantStatus } from '../../../../reducers/rewards';
 
 jest.mock('react-redux', () => ({
+  useDispatch: jest.fn(),
   useSelector: jest.fn(),
 }));
 
@@ -16,10 +18,22 @@ jest.mock('../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
 }));
 
+jest.mock('../../../../reducers/rewards', () => ({
+  setCampaignParticipantStatus: jest.fn((payload) => ({
+    type: 'rewards/setCampaignParticipantStatus',
+    payload,
+  })),
+}));
+
 const mockCall = Engine.controllerMessenger.call as jest.MockedFunction<
   typeof Engine.controllerMessenger.call
 >;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockUseDispatch = useDispatch as jest.MockedFunction<typeof useDispatch>;
+const mockSetCampaignParticipantStatus =
+  setCampaignParticipantStatus as unknown as jest.MockedFunction<
+    typeof setCampaignParticipantStatus
+  >;
 
 const SUB_ID = 'sub-123';
 const CAMPAIGN_ID = 'camp-456';
@@ -33,8 +47,11 @@ function setupSelectors(subscriptionId: string | null) {
 }
 
 describe('useOptInToCampaign', () => {
+  const mockDispatch = jest.fn();
+
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseDispatch.mockReturnValue(mockDispatch);
   });
 
   it('returns null when subscriptionId is missing', async () => {
@@ -63,6 +80,18 @@ describe('useOptInToCampaign', () => {
       CAMPAIGN_ID,
       SUB_ID,
     );
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setCampaignParticipantStatus({
+        subscriptionId: SUB_ID,
+        campaignId: CAMPAIGN_ID,
+        status: STATUS,
+      }),
+    );
+    expect(mockSetCampaignParticipantStatus).toHaveBeenCalledWith({
+      subscriptionId: SUB_ID,
+      campaignId: CAMPAIGN_ID,
+      status: STATUS,
+    });
     expect(returnValue).toEqual(STATUS);
     expect(result.current.isOptingIn).toBe(false);
     expect(result.current.optInError).toBeUndefined();

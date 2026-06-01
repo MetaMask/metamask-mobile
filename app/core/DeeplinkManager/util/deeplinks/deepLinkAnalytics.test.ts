@@ -13,6 +13,7 @@ import {
   createDeepLinkUsedEventBuilder,
   detectAppInstallation,
 } from './deepLinkAnalytics';
+import { MetaMetricsEvents } from '../../../Analytics/MetaMetrics.events';
 import { DeeplinkUrlParams } from '../../types/deepLink.types';
 import {
   DeepLinkRoute,
@@ -421,6 +422,7 @@ describe('deepLinkAnalytics', () => {
     it.each([
       [ACTIONS.BUY, DeepLinkRoute.BUY],
       [ACTIONS.BUY_CRYPTO, DeepLinkRoute.BUY],
+      [ACTIONS.ON_RAMP, DeepLinkRoute.BUY],
     ] as const)('maps buy action %s to BUY route', (action, expectedRoute) => {
       // Arrange & Act
       const result = mapSupportedActionToRoute(action);
@@ -455,6 +457,9 @@ describe('deepLinkAnalytics', () => {
       [ACTIONS.DAPP, DeepLinkRoute.DAPP],
       [ACTIONS.WC, DeepLinkRoute.WC],
       [ACTIONS.CREATE_ACCOUNT, DeepLinkRoute.CREATE_ACCOUNT],
+      [ACTIONS.WHATS_HAPPENING, DeepLinkRoute.WHATS_HAPPENING],
+      [ACTIONS.TOP_TRADERS, DeepLinkRoute.TOP_TRADERS],
+      [ACTIONS.SOCIAL_TRADER_POSITION, DeepLinkRoute.SOCIAL_TRADER_POSITION],
     ] as const)(
       'maps action %s to its corresponding route',
       (action, expectedRoute) => {
@@ -519,6 +524,27 @@ describe('deepLinkAnalytics', () => {
       expect(result).toBe(DeepLinkRoute.SHIELD);
     });
 
+    it('extract social trader position route', () => {
+      const result = extractRouteFromUrl(
+        'https://link.metamask.io/social-trader-position?positionId=position-1',
+      );
+      expect(result).toBe(DeepLinkRoute.SOCIAL_TRADER_POSITION);
+    });
+
+    it('extract whats happening route', () => {
+      const result = extractRouteFromUrl(
+        'https://link.metamask.io/whats-happening',
+      );
+      expect(result).toBe(DeepLinkRoute.WHATS_HAPPENING);
+    });
+
+    it('extract social leaderboard route', () => {
+      const result = extractRouteFromUrl(
+        'https://link.metamask.io/top-traders?ignored=true',
+      );
+      expect(result).toBe(DeepLinkRoute.TOP_TRADERS);
+    });
+
     it('extract home route for empty path', () => {
       const result = extractRouteFromUrl('https://link.metamask.io/');
       expect(result).toBe(DeepLinkRoute.HOME);
@@ -552,6 +578,24 @@ describe('deepLinkAnalytics', () => {
       jest.clearAllMocks();
       const deepLinkAnalytics = jest.requireMock('./deepLinkAnalytics');
       mockDetectAppInstallation = deepLinkAnalytics.detectAppInstallation;
+    });
+
+    it('uses canonical Deep Link Used event name', async () => {
+      mockDetectAppInstallation.mockResolvedValue(true);
+
+      const context: DeepLinkAnalyticsContext = {
+        url: 'https://link.metamask.io/swap',
+        route: DeepLinkRoute.SWAP,
+        urlParams: {},
+        signatureStatus: SignatureStatus.MISSING,
+        interstitialShown: false,
+        interstitialDisabled: false,
+      };
+
+      const { name } = (await createDeepLinkUsedEventBuilder(context)).build();
+
+      expect(name).toBe(MetaMetricsEvents.DEEP_LINK_USED.category);
+      expect(name).not.toBe('Deep link Used');
     });
 
     it('creates event with correct properties for swap route', async () => {

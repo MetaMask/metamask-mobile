@@ -9,15 +9,15 @@ import Text, {
 
 import { useSelector } from 'react-redux';
 import { PerpsTransactionSelectorsIDs } from '../../Perps.testIds';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+  HeaderStandard,
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import ScreenView from '../../../../Base/ScreenView';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import PerpsTransactionDetailAssetHero from '../../components/PerpsTransactionDetailAssetHero';
 import { usePerpsBlockExplorerUrl, usePerpsOrderFees } from '../../hooks';
 import { PerpsOrderTransactionRouteProp } from '../../types/transactionHistory';
@@ -54,10 +54,7 @@ const PerpsOrderTransactionView: React.FC = () => {
   if (!transaction) {
     return (
       <ScreenView>
-        <HeaderCompactStandard
-          includesTopInset
-          onBack={() => navigation.goBack()}
-        />
+        <HeaderStandard includesTopInset onBack={() => navigation.goBack()} />
         <View style={styles.content}>
           <Text>{strings('perps.transactions.not_found')}</Text>
         </View>
@@ -127,7 +124,7 @@ const PerpsOrderTransactionView: React.FC = () => {
 
   return (
     <ScreenView>
-      <HeaderCompactStandard
+      <HeaderStandard
         includesTopInset
         title={transaction.title}
         onBack={() => navigation.goBack()}
@@ -192,13 +189,14 @@ const PerpsOrderTransactionView: React.FC = () => {
           {/* Block explorer button */}
           <Button
             testID={PerpsTransactionSelectorsIDs.BLOCK_EXPLORER_BUTTON}
-            variant={ButtonVariants.Secondary}
+            variant={ButtonVariant.Secondary}
             size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label={strings('perps.transactions.view_on_explorer')}
+            isFullWidth
             onPress={handleViewOnBlockExplorer}
             style={styles.blockExplorerButton}
-          />
+          >
+            {strings('perps.transactions.view_on_explorer')}
+          </Button>
         </View>
       </ScrollView>
     </ScreenView>

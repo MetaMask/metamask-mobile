@@ -1,7 +1,5 @@
 import {
   selectConversionRate,
-  selectCurrentCurrency,
-  selectCurrencyRates,
   selectConversionRateByChainId,
   selectCurrencyRateForChainId,
   selectUSDConversionRateByChainId,
@@ -20,8 +18,16 @@ jest.mock('../../app/util/networks', () => ({
 describe('CurrencyRateController Selectors', () => {
   const mockCurrencyRateState = {
     currencyRates: {
-      ETH: { conversionRate: 3000, usdConversionRate: 3000 },
-      BTC: { conversionRate: 60000, usdConversionRate: 60000 },
+      ETH: {
+        conversionRate: 3000,
+        usdConversionRate: 3000,
+        conversionDate: Date.now(),
+      },
+      BTC: {
+        conversionRate: 60000,
+        usdConversionRate: 60000,
+        conversionDate: Date.now(),
+      },
     },
     currentCurrency: 'USD',
   };
@@ -38,7 +44,7 @@ describe('CurrencyRateController Selectors', () => {
       (isTestNet as jest.Mock).mockReturnValue(true);
 
       const result = selectConversionRate.resultFunc(
-        mockCurrencyRateState as unknown as CurrencyRateState,
+        mockCurrencyRateState.currencyRates,
         mockChainId as `0x${string}`,
         mockTicker,
         false,
@@ -50,7 +56,7 @@ describe('CurrencyRateController Selectors', () => {
       (isTestNet as jest.Mock).mockReturnValue(false);
 
       const result = selectConversionRate.resultFunc(
-        mockCurrencyRateState as unknown as CurrencyRateState,
+        mockCurrencyRateState.currencyRates,
         mockChainId as `0x${string}`,
         mockTicker,
         true,
@@ -62,7 +68,7 @@ describe('CurrencyRateController Selectors', () => {
       (isTestNet as jest.Mock).mockReturnValue(false);
 
       const result = selectConversionRate.resultFunc(
-        mockCurrencyRateState as unknown as CurrencyRateState,
+        mockCurrencyRateState.currencyRates,
         mockChainId as `0x${string}`,
         '',
         true,
@@ -105,38 +111,6 @@ describe('CurrencyRateController Selectors', () => {
       );
 
       expect(result).toBe(3000);
-    });
-  });
-
-  describe('selectCurrentCurrency', () => {
-    it('returns the current currency from the state', () => {
-      const result = selectCurrentCurrency.resultFunc(
-        mockCurrencyRateState as unknown as CurrencyRateState,
-      );
-      expect(result).toBe('USD');
-    });
-
-    it('returns undefined if current currency is not set', () => {
-      const result = selectCurrentCurrency.resultFunc(
-        {} as unknown as CurrencyRateState,
-      );
-      expect(result).toBeUndefined();
-    });
-  });
-
-  describe('selectCurrencyRates', () => {
-    it('returns all conversion rates from the state', () => {
-      const result = selectCurrencyRates.resultFunc(
-        mockCurrencyRateState as unknown as CurrencyRateState,
-      );
-      expect(result).toStrictEqual(mockCurrencyRateState.currencyRates);
-    });
-
-    it('returns undefined if conversion rates are not set', () => {
-      const result = selectCurrencyRates.resultFunc(
-        {} as unknown as CurrencyRateState,
-      );
-      expect(result).toBeUndefined();
     });
   });
 

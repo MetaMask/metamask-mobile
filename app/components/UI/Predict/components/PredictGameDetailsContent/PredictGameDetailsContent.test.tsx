@@ -1,6 +1,6 @@
 import React from 'react';
 import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, act } from '@testing-library/react-native';
 import PredictGameDetailsContent from './PredictGameDetailsContent';
 import { PredictMarket, PredictMarketStatus } from '../../types';
 import { useGameDetailsTabs } from '../../hooks/useGameDetailsTabs';
@@ -328,7 +328,7 @@ describe('PredictGameDetailsContent', () => {
   });
 
   describe('User Interactions', () => {
-    it('calls onBack when back button is pressed', () => {
+    it('calls onBack when back button is pressed', async () => {
       const market = createMockMarket();
 
       const { getByRole } = render(

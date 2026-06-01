@@ -25,10 +25,10 @@ jest.mock('../../../../../selectors/preferencesController', () => ({
   selectPrivacyMode: () => false,
 }));
 
-const mockSelectMoneyHomeScreenEnabledFlag = jest.fn().mockReturnValue(false);
+const mockSelectMoneyEnableMoneyAccountFlag = jest.fn().mockReturnValue(false);
 jest.mock('../../../../UI/Money/selectors/featureFlags', () => ({
-  selectMoneyHomeScreenEnabledFlag: (state: unknown) =>
-    mockSelectMoneyHomeScreenEnabledFlag(state),
+  selectMoneyEnableMoneyAccountFlag: (state: unknown) =>
+    mockSelectMoneyEnableMoneyAccountFlag(state),
 }));
 
 const mockClaimRewards = jest.fn();
@@ -59,7 +59,7 @@ jest.mock('../../../../../reducers/user/selectors', () => ({
 describe('MusdAggregatedRow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(false);
+    mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
     mockSelectMusdConversionEducationSeen.mockReturnValue(true);
     mockUseMusdBalance.mockReturnValue({
       tokenBalanceAggregated: '1800.5',
@@ -127,7 +127,7 @@ describe('MusdAggregatedRow', () => {
 
   describe('handleTokenRowPress', () => {
     it('navigates to Cash tokens full view when Money Home is disabled', () => {
-      mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(false);
+      mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
 
       renderWithProvider(<MusdAggregatedRow />);
 
@@ -135,21 +135,24 @@ describe('MusdAggregatedRow', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.WALLET.CASH_TOKENS_FULL_VIEW,
+        undefined,
       );
     });
 
     it('navigates to Money Home when Money Home is enabled', () => {
-      mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(true);
+      mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(true);
 
       renderWithProvider(<MusdAggregatedRow />);
 
       fireEvent.press(screen.getByTestId('cash-section-musd-row'));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ROOT);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ROOT, {
+        screen: Routes.MONEY.HOME,
+      });
     });
 
     it('navigates to education screen with returnTo when user has not seen education', () => {
-      mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(false);
+      mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
       mockSelectMusdConversionEducationSeen.mockReturnValue(false);
 
       renderWithProvider(<MusdAggregatedRow />);
@@ -165,7 +168,7 @@ describe('MusdAggregatedRow', () => {
     });
 
     it('navigates directly to CashTokensFullView when education already seen', () => {
-      mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(false);
+      mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
       mockSelectMusdConversionEducationSeen.mockReturnValue(true);
 
       renderWithProvider(<MusdAggregatedRow />);
@@ -174,18 +177,27 @@ describe('MusdAggregatedRow', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.WALLET.CASH_TOKENS_FULL_VIEW,
+        undefined,
       );
     });
 
-    it('navigates to MONEY.ROOT when isMoneyHomeEnabled is true (regardless of education)', () => {
-      mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(true);
+    it('navigates to MONEY.ROOT when Money account flag is enabled (regardless of education)', () => {
+      mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(true);
       mockSelectMusdConversionEducationSeen.mockReturnValue(false);
 
       renderWithProvider(<MusdAggregatedRow />);
 
       fireEvent.press(screen.getByTestId('cash-section-musd-row'));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ROOT);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
+        screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
+        params: {
+          returnTo: {
+            screen: Routes.MONEY.ROOT,
+            params: { screen: Routes.MONEY.HOME },
+          },
+        },
+      });
     });
   });
 });

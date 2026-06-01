@@ -1,420 +1,389 @@
-import React, { useCallback, useMemo, useState } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { RefreshControl } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
   useNavigation,
   useRoute,
-  type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import {
   Box,
-  Text,
-  TextVariant,
-  TextColor,
-  FontWeight,
-  ButtonIcon,
-  ButtonIconSize,
-  IconName,
-  BoxFlexDirection,
-  BoxAlignItems,
-  BoxJustifyContent,
-  Button,
-  ButtonVariant,
-  AvatarBase,
-  AvatarBaseSize,
-  AvatarToken,
-  AvatarTokenSize,
+  ButtonHero,
+  ButtonHeroSize,
 } from '@metamask/design-system-react-native';
-import type { Position } from '@metamask/social-controllers';
 import { strings } from '../../../../../locales/i18n';
+import Routes from '../../../../constants/navigation/Routes';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../component-library/components/Toast';
+import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
+import ClipboardManager from '../../../../core/ClipboardManager';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
-import QuickBuyBottomSheet from './components/QuickBuyBottomSheet';
+import { useTheme } from '../../../../util/theme';
+import TraderPositionQuickBuy from './components/QuickBuy';
+import TraderPositionHeader from './components/TraderPositionHeader';
+import TraderTokenInfoRow from './components/TraderTokenInfoRow';
+import TraderPositionChartSection from './components/TraderPositionChartSection';
+import TraderTimePeriodSelector from './components/TraderTimePeriodSelector';
+import TraderPositionPnLCard from './components/TraderPositionPnLCard';
+import TraderTradesSection from './components/TraderTradesSection';
+import TraderPositionSkeleton from './components/TraderPositionSkeleton';
+import TraderPositionFallback from './components/TraderPositionFallback';
+import { useTraderPositionData } from './useTraderPositionData';
+import { useTraderPosition } from './hooks/useTraderPosition';
+import { useTraderProfile } from '../TraderProfileView/hooks/useTraderProfile';
+import {
+  SocialLeaderboardEventProperties,
+  SocialLeaderboardEventValues,
+  useSocialLeaderboardAnalytics,
+  type FollowTradingTokenSource,
+} from '../analytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { chainNameToId } from '../utils/chainMapping';
-import { getAssetImageUrl } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
-
-// ---------------------------------------------------------------------------
-// Mock data
-// ---------------------------------------------------------------------------
-
-const TIME_PERIODS = ['1H', '1D', '1W', '1M', 'All'] as const;
-type TimePeriod = (typeof TIME_PERIODS)[number];
-
-const MOCK_TOKEN = {
-  symbol: 'PUNCH',
-  priceChange: '+$0.0000981 (7.2%)',
-  priceChangePeriod: '1H',
-  marketCap: '$11.7M',
-};
-
-const MOCK_POSITION = {
-  value: '$14,670',
-  pnlValue: '+$790.65',
-  pnlPercent: '+5.08%',
-  isPositive: true,
-};
-
-interface MockTrade {
-  id: string;
-  direction: 'buy' | 'sell';
-  traderName: string;
-  timestamp: string;
-  usdValue: string;
-  percentage: string;
-  isPositive: boolean;
-}
-
-const MOCK_TRADES: MockTrade[] = [
-  {
-    id: '1',
-    direction: 'buy',
-    traderName: 'dutchiono',
-    timestamp: 'March 4 at 9:15am',
-    usdValue: '$2.2K',
-    percentage: '+5%',
-    isPositive: true,
-  },
-  {
-    id: '2',
-    direction: 'sell',
-    traderName: 'dutchiono',
-    timestamp: 'March 4 at 8:02am',
-    usdValue: '-$1.1K',
-    percentage: '-79%',
-    isPositive: false,
-  },
-];
-
-// ---------------------------------------------------------------------------
-// Sub-components
-// ---------------------------------------------------------------------------
-
-interface TimePeriodButtonProps {
-  label: string;
-  isActive: boolean;
-  onPress: () => void;
-}
-
-const TimePeriodButton: React.FC<TimePeriodButtonProps> = ({
-  label,
-  isActive,
-  onPress,
-}) => (
-  <TouchableOpacity onPress={onPress}>
-    <Box
-      twClassName={`flex-1 items-center justify-center px-2 py-1 rounded ${
-        isActive ? 'bg-muted' : ''
-      }`}
-    >
-      <Text
-        variant={TextVariant.BodySm}
-        fontWeight={FontWeight.Medium}
-        color={isActive ? TextColor.TextDefault : TextColor.TextAlternative}
-      >
-        {label}
-      </Text>
-    </Box>
-  </TouchableOpacity>
-);
-
-interface TradeRowProps {
-  trade: MockTrade;
-}
-
-const TradeRow: React.FC<TradeRowProps> = ({ trade }) => (
-  <Box
-    flexDirection={BoxFlexDirection.Row}
-    alignItems={BoxAlignItems.Center}
-    twClassName="px-4 py-3"
-    testID={`trade-row-${trade.id}`}
-  >
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      gap={4}
-      twClassName="flex-1 min-w-0 mr-3"
-    >
-      <AvatarBase
-        size={AvatarBaseSize.Md}
-        fallbackText={trade.traderName.charAt(0).toUpperCase()}
-      />
-      <Box twClassName="flex-1 min-w-0">
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextDefault}
-          numberOfLines={1}
-        >
-          {trade.direction === 'buy'
-            ? strings('social_leaderboard.trader_position.bought', {
-                name: trade.traderName,
-              })
-            : strings('social_leaderboard.trader_position.sold', {
-                name: trade.traderName,
-              })}
-        </Text>
-        <Text
-          variant={TextVariant.BodySm}
-          color={TextColor.TextAlternative}
-          numberOfLines={1}
-        >
-          {trade.timestamp}
-        </Text>
-      </Box>
-    </Box>
-
-    <Box alignItems={BoxAlignItems.End}>
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
-        twClassName={
-          trade.isPositive ? 'text-success-default' : 'text-error-default'
-        }
-      >
-        {trade.usdValue}
-      </Text>
-      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-        {trade.percentage}
-      </Text>
-    </Box>
-  </Box>
-);
-
-// ---------------------------------------------------------------------------
-// Main screen
-// ---------------------------------------------------------------------------
+import { toAssetId } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
 
 const TraderPositionView = () => {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'TraderPositionView'>>();
   const tw = useTailwind();
+  const { colors } = useTheme();
+  const { toastRef } = useContext(ToastContext);
 
-  const { traderName, tokenSymbol, position: positionParam } = route.params;
+  const {
+    traderId,
+    traderName: traderNameParam,
+    traderImageUrl: traderImageUrlParam,
+    traderAddress: traderAddressParam,
+    tokenSymbol,
+    position: positionParam,
+    positionId,
+    source: sourceParam,
+  } = route.params;
+  const { track } = useSocialLeaderboardAnalytics();
 
-  const [activeTimePeriod, setActiveTimePeriod] = useState<TimePeriod>('1D');
   const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const buyClickedRef = useRef(false);
 
-  const tokenImageUrl = useMemo(() => {
-    if (!positionParam) return undefined;
-    const chainId = chainNameToId(positionParam.chain);
-    if (!chainId) return undefined;
-    return getAssetImageUrl(positionParam.tokenAddress, chainId);
-  }, [positionParam]);
+  // Position resolution: always fetch by id when we have one so pull-to-refresh
+  // can swap in fresh data. The row-tap snapshot (`positionParam`) is used as
+  // the initial value to avoid a loading skeleton; once `fetchedPosition`
+  // resolves it takes precedence. Falls back to `positionParam.positionId`
+  // when the deeplink-style `positionId` route param isn't provided.
+  const effectivePositionId = positionId ?? positionParam?.positionId;
+  const {
+    position: fetchedPosition,
+    isLoading: isPositionLoading,
+    refetch: refetchPosition,
+  } = useTraderPosition(effectivePositionId);
+  const resolvedPosition = fetchedPosition ?? positionParam;
 
-  const handleClose = useCallback(() => {
+  // Nav-param values win on first render to avoid a header flicker; once the
+  // profile resolves it fills in any missing fields and powers pull-to-refresh.
+  const {
+    profile: fetchedProfile,
+    isLoading: isProfileLoading,
+    refresh: refreshProfile,
+  } = useTraderProfile(traderId);
+  const traderName = traderNameParam ?? fetchedProfile?.profile?.name ?? '';
+  const traderImageUrl =
+    traderImageUrlParam ?? fetchedProfile?.profile?.imageUrl ?? undefined;
+  const traderAddress =
+    traderAddressParam ?? fetchedProfile?.profile?.address ?? '';
+
+  const positionData = useTraderPositionData(resolvedPosition, tokenSymbol);
+  const {
+    symbol,
+    marketCap,
+    historicalPrices,
+    priceDiff,
+    isPricesLoading,
+    pricePercentChange,
+    isClosed,
+    positionValue,
+    pnlValue,
+    pnlPercent,
+    isPnlPositive,
+    trades,
+    activeTimePeriod,
+    setActiveTimePeriod,
+    timePeriods,
+  } = positionData;
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    playImpact(ImpactMoment.PullToRefresh);
+    try {
+      // Both hooks rethrow after logging; allSettled keeps one failure from
+      // taking down the other refetch and prevents an unhandled rejection
+      // from surfacing in the UI.
+      await Promise.allSettled([refetchPosition(), refreshProfile()]);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [refetchPosition, refreshProfile]);
+
+  // Plain goBack: returns to whatever the user was on before opening this
+  // screen — Profile (in-app row tap), Wallet Home (cold-start push), or the
+  // Notifications panel (in-app notification tap). The trader's name in the
+  // header is the affordance for navigating onward to Profile.
+  const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
+  const handleTraderPress = useCallback(() => {
+    navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
+      traderId,
+      traderName,
+    });
+  }, [navigation, traderId, traderName]);
+
+  const handleCopyTokenAddress = useCallback(async () => {
+    if (!resolvedPosition?.tokenAddress) {
+      return;
+    }
+
+    await ClipboardManager.setString(resolvedPosition.tokenAddress);
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      iconName: ComponentLibraryIconName.CheckBold,
+      iconColor: colors.accent03.dark,
+      backgroundColor: colors.accent03.normal,
+      labelOptions: [
+        { label: strings('detected_tokens.address_copied_to_clipboard') },
+      ],
+      hasNoTimeout: false,
+    });
+  }, [
+    colors.accent03.dark,
+    colors.accent03.normal,
+    resolvedPosition?.tokenAddress,
+    toastRef,
+  ]);
+
+  // Narrow the open-ended nav source into the QuickBuySheetSource schema enum.
+  // `deep_link` collapses to `profile_position` (its canonical host).
+  const quickBuySource: 'notification' | 'profile_position' | 'leaderboard' =
+    sourceParam === 'notification' || sourceParam === 'leaderboard'
+      ? sourceParam
+      : 'profile_position';
+
+  // Narrow into FollowTradingTokenSource. `profile_position` from a row-tap
+  // maps to `trader_profile` (the upstream surface in the schema).
+  const followTradingTokenSource: FollowTradingTokenSource =
+    sourceParam === 'leaderboard' ||
+    sourceParam === 'notification' ||
+    sourceParam === 'deep_link'
+      ? sourceParam
+      : 'trader_profile';
+
+  // Derive identifiers once so screen-viewed / buy-clicked / dismissed share them.
+  const followTradingTokenContext = useMemo(() => {
+    if (!resolvedPosition || !traderAddress) return null;
+    const caipChainId = chainNameToId(resolvedPosition.chain);
+    const caip19 = caipChainId
+      ? (toAssetId(resolvedPosition.tokenAddress, caipChainId) ?? '')
+      : '';
+    if (!caip19) return null;
+    return {
+      [SocialLeaderboardEventProperties.TRADER_ADDRESS]: traderAddress,
+      [SocialLeaderboardEventProperties.CAIP19]: caip19,
+      [SocialLeaderboardEventProperties.ASSET_NAME]:
+        resolvedPosition.tokenSymbol,
+    };
+  }, [resolvedPosition, traderAddress]);
+
+  // Ref-guarded so the event fires once per mount, not on every context refresh.
+  const hasFiredScreenViewedRef = useRef(false);
+  useEffect(() => {
+    if (hasFiredScreenViewedRef.current) return;
+    if (!followTradingTokenContext) return;
+    hasFiredScreenViewedRef.current = true;
+    track(MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_SCREEN_VIEWED, {
+      ...followTradingTokenContext,
+      [SocialLeaderboardEventProperties.SOURCE]: followTradingTokenSource,
+    });
+  }, [followTradingTokenContext, followTradingTokenSource, track]);
+
+  // Keep a stable ref to the latest context so the dismissed-cleanup effect
+  // can read the current value without listing it as a dependency.
+  // Listing followTradingTokenContext as a dep would cause the cleanup to run
+  // (and fire a false "dismissed" event) every time the position re-fetches.
+  const followTradingTokenContextRef = useRef(followTradingTokenContext);
+  useEffect(() => {
+    followTradingTokenContextRef.current = followTradingTokenContext;
+  }, [followTradingTokenContext]);
+
+  // Dismissed fires only when the user backs out without ever clicking Buy.
+  // Closing the QuickBuy sheet still counts as having visited the token screen.
+  // Empty dep array ensures the cleanup runs ONLY on unmount, never on re-render.
+  useEffect(
+    () => () => {
+      if (buyClickedRef.current) return;
+      const ctx = followTradingTokenContextRef.current;
+      if (!ctx) return;
+      track(MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_DISMISSED, {
+        [SocialLeaderboardEventProperties.TRADER_ADDRESS]:
+          ctx[SocialLeaderboardEventProperties.TRADER_ADDRESS],
+        [SocialLeaderboardEventProperties.CAIP19]:
+          ctx[SocialLeaderboardEventProperties.CAIP19],
+      });
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
   const handleBuyPress = useCallback(() => {
+    if (!resolvedPosition) return;
+    // Primary CTA opening the buy flow — distinct from tab-bar `TabChange`.
+    // Success/error notification haptics fire later in useQuickBuyBottomSheet.
+    playImpact(ImpactMoment.PrimaryCTA);
     setIsQuickBuyVisible(true);
-  }, []);
+    buyClickedRef.current = true;
+
+    if (followTradingTokenContext) {
+      track(
+        MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_TOKEN_BUY_CLICKED,
+        followTradingTokenContext,
+      );
+      track(MetaMetricsEvents.SOCIAL_QUICK_BUY_SHEET_VIEWED, {
+        ...followTradingTokenContext,
+        [SocialLeaderboardEventProperties.MARKET_CAP]:
+          typeof marketCap === 'number' ? marketCap : undefined,
+        [SocialLeaderboardEventProperties.SOURCE]: quickBuySource,
+        [SocialLeaderboardEventProperties.TRADER_TRADE_TYPE]: isClosed
+          ? SocialLeaderboardEventValues.TRADER_TRADE_TYPE.SELL
+          : SocialLeaderboardEventValues.TRADER_TRADE_TYPE.BUY,
+      });
+    }
+  }, [
+    resolvedPosition,
+    followTradingTokenContext,
+    marketCap,
+    quickBuySource,
+    isClosed,
+    track,
+  ]);
 
   const handleQuickBuyClose = useCallback(() => {
     setIsQuickBuyVisible(false);
   }, []);
 
-  const symbol = tokenSymbol || MOCK_TOKEN.symbol;
+  const handleChartIndexChange = useCallback((_index: number) => {
+    // TODO: update displayed price on scrub.
+  }, []);
+
+  const isInitialLoading =
+    !resolvedPosition && (isPositionLoading || isProfileLoading);
+  const hasFailed =
+    !resolvedPosition && !isPositionLoading && !isProfileLoading;
 
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-default')}
       testID={TraderPositionViewSelectorsIDs.CONTAINER}
     >
-      {/* Header */}
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="px-2 py-2"
-      >
-        <Box twClassName="w-10" />
-        <Text
-          variant={TextVariant.HeadingSm}
-          fontWeight={FontWeight.Bold}
-          color={TextColor.TextDefault}
-          numberOfLines={1}
-        >
-          {traderName}
-        </Text>
-        <Box twClassName="w-10 items-end">
-          <ButtonIcon
-            iconName={IconName.Close}
-            size={ButtonIconSize.Md}
-            onPress={handleClose}
-            testID={TraderPositionViewSelectorsIDs.CLOSE_BUTTON}
-          />
-        </Box>
-      </Box>
-
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={tw.style('pb-6')}
-      >
-        {/* Token Info Row */}
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="px-4 py-3"
-        >
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={4}
-            twClassName="flex-1 min-w-0 mr-3"
-          >
-            <AvatarToken
-              name={symbol}
-              src={tokenImageUrl ? { uri: tokenImageUrl } : undefined}
-              size={AvatarTokenSize.Lg}
-            />
-            <Box twClassName="flex-1 min-w-0">
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-                numberOfLines={1}
-              >
-                {symbol}
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                twClassName="text-success-default"
-                numberOfLines={1}
-              >
-                {`${MOCK_TOKEN.priceChange} `}
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.TextAlternative}
-                >
-                  {MOCK_TOKEN.priceChangePeriod}
-                </Text>
-              </Text>
-            </Box>
-          </Box>
-
-          <Box alignItems={BoxAlignItems.End}>
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
-            >
-              {MOCK_TOKEN.marketCap}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {strings('social_leaderboard.trader_position.market_cap')}
-            </Text>
-          </Box>
-        </Box>
-
-        {/* Chart Placeholder */}
-        <View style={tw.style('mx-4 my-3 h-48 bg-muted rounded-xl')} />
-
-        {/* Timeline Selector */}
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="px-4 pb-3"
-          gap={3}
-        >
-          {TIME_PERIODS.map((period) => (
-            <TimePeriodButton
-              key={period}
-              label={period}
-              isActive={activeTimePeriod === period}
-              onPress={() => setActiveTimePeriod(period)}
-            />
-          ))}
-        </Box>
-
-        {/* Position Card */}
-        <Box twClassName="mx-4 p-4 bg-muted rounded-2xl">
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            justifyContent={BoxJustifyContent.Between}
-            alignItems={BoxAlignItems.Start}
-          >
-            <Box>
-              <Text
-                variant={TextVariant.HeadingMd}
-                fontWeight={FontWeight.Bold}
-                color={TextColor.TextDefault}
-              >
-                {MOCK_POSITION.value}
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-              >
-                {strings('social_leaderboard.trader_position.position')}
-              </Text>
-            </Box>
-            <Box alignItems={BoxAlignItems.End}>
-              <Text
-                variant={TextVariant.HeadingMd}
-                fontWeight={FontWeight.Bold}
-                twClassName={
-                  MOCK_POSITION.isPositive
-                    ? 'text-success-default'
-                    : 'text-error-default'
-                }
-              >
-                {MOCK_POSITION.pnlValue}
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-              >
-                {MOCK_POSITION.pnlPercent}
-              </Text>
-            </Box>
-          </Box>
-        </Box>
-
-        {/* Trades Tab Header */}
-        <Box twClassName="px-4 mt-5">
-          <Box twClassName="self-start pb-2 border-b-2 border-white">
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Bold}
-              color={TextColor.TextDefault}
-            >
-              {strings('social_leaderboard.trader_position.trades')}
-            </Text>
-          </Box>
-          <Box twClassName="h-px bg-muted -mt-0.5" />
-        </Box>
-
-        {/* Trade History */}
-        {MOCK_TRADES.map((trade) => (
-          <TradeRow key={trade.id} trade={trade} />
-        ))}
-      </ScrollView>
-
-      {/* Buy Button — pinned at bottom */}
-      <Box twClassName="px-4 py-3">
-        <Button
-          variant={ButtonVariant.Secondary}
-          isFullWidth
-          onPress={handleBuyPress}
-          testID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
-        >
-          {strings('social_leaderboard.trader_position.buy')}
-        </Button>
-      </Box>
-
-      <QuickBuyBottomSheet
-        isVisible={isQuickBuyVisible}
-        position={positionParam ?? null}
-        onClose={handleQuickBuyClose}
+      <TraderPositionHeader
+        traderName={traderName}
+        traderImageUrl={traderImageUrl}
+        onBack={handleBack}
+        onTraderPress={handleTraderPress}
+        backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
+        traderNameTestID={TraderPositionViewSelectorsIDs.TRADER_NAME_LINK}
       />
+
+      {isInitialLoading ? (
+        <TraderPositionSkeleton />
+      ) : hasFailed ? (
+        <TraderPositionFallback traderId={traderId} traderName={traderName} />
+      ) : (
+        <>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={tw.style('pb-6')}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={handleRefresh}
+                testID={TraderPositionViewSelectorsIDs.REFRESH_CONTROL}
+              />
+            }
+          >
+            <TraderTokenInfoRow
+              symbol={symbol}
+              position={resolvedPosition}
+              marketCap={marketCap}
+              pricePercentChange={pricePercentChange}
+              activeTimePeriodLabel={activeTimePeriod}
+              onCopyTokenAddress={handleCopyTokenAddress}
+              copyTokenAddressTestID={
+                TraderPositionViewSelectorsIDs.COPY_TOKEN_ADDRESS_BUTTON
+              }
+            />
+
+            <TraderPositionChartSection
+              historicalPrices={historicalPrices}
+              priceDiff={priceDiff}
+              isPricesLoading={isPricesLoading}
+              onChartIndexChange={handleChartIndexChange}
+              trades={trades}
+            />
+
+            <TraderTimePeriodSelector
+              timePeriods={timePeriods}
+              activeTimePeriod={activeTimePeriod}
+              onSelectPeriod={setActiveTimePeriod}
+            />
+
+            <TraderPositionPnLCard
+              isClosed={isClosed}
+              positionValue={positionValue}
+              pnlValue={pnlValue}
+              pnlPercent={pnlPercent}
+              isPnlPositive={isPnlPositive}
+            />
+
+            <TraderTradesSection
+              trades={trades}
+              traderName={traderName}
+              traderImageUrl={traderImageUrl}
+            />
+          </ScrollView>
+
+          <Box twClassName="px-4 py-3">
+            <ButtonHero
+              size={ButtonHeroSize.Lg}
+              isFullWidth
+              onPress={handleBuyPress}
+              testID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
+            >
+              {strings('social_leaderboard.trader_position.buy')}
+            </ButtonHero>
+          </Box>
+
+          <TraderPositionQuickBuy
+            isVisible={isQuickBuyVisible}
+            position={resolvedPosition ?? null}
+            onClose={handleQuickBuyClose}
+            traderAddress={traderAddress}
+            marketCap={typeof marketCap === 'number' ? marketCap : undefined}
+            source={quickBuySource}
+          />
+        </>
+      )}
     </SafeAreaView>
   );
 };

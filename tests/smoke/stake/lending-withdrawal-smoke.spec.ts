@@ -8,7 +8,7 @@ import FooterActions from '../../page-objects/Browser/Confirmations/FooterAction
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 import StakeView from '../../page-objects/Stake/StakeView';
-import { SmokeTrade } from '../../tags';
+import { SmokeStake } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import { AnvilManager } from '../../seeder/anvil-manager';
 import { Mockttp } from 'mockttp';
@@ -18,7 +18,7 @@ import {
   type LendingFixtureOptions,
 } from './helpers/lending-fixture';
 
-describe(SmokeTrade('Lending Withdrawal from Wallet'), (): void => {
+describe(SmokeStake('Lending Withdrawal from Wallet'), (): void => {
   const WITHDRAW_AMOUNT = '50';
 
   beforeEach(async (): Promise<void> => {

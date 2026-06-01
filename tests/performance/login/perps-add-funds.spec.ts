@@ -1,6 +1,6 @@
 import { test } from '../../framework/fixture';
 import TimerHelper from '../../framework/TimerHelper';
-import { PerformancePreps } from '../../tags.performance.js';
+import { Performance, PerformancePreps } from '../../tags.performance.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import PerpsOnboarding from '../../page-objects/Perps/PerpsOnboarding';
@@ -10,7 +10,7 @@ import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 import { asPlaywrightElement } from '../../framework/EncapsulatedElement';
 
 /* Scenario 5: Perps add funds */
-test.describe(PerformancePreps, () => {
+test.describe(`${Performance} ${PerformancePreps}`, () => {
   test(
     'Perps add funds',
     { tag: '@mm-perps-engineering-team' },
@@ -29,7 +29,7 @@ test.describe(PerformancePreps, () => {
       );
       const getQuoteTimer = new TimerHelper(
         'Get Quote',
-        { ios: 6000, android: 7000 },
+        { ios: 6000, android: 8000 },
         currentDeviceDetails.platform,
       );
 

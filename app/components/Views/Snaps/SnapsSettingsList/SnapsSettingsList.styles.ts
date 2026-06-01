@@ -1,4 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../util/theme/models';
 

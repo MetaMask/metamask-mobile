@@ -1,15 +1,16 @@
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import type { CurrencyRateState } from '@metamask/assets-controllers';
 import type { Hex } from '@metamask/utils';
-import I18n from '../../../../../locales/i18n';
-import { getIntlNumberFormatter } from '../../../../util/intl';
+import BigNumber from 'bignumber.js';
 import { safeToChecksumAddress } from '../../../../util/address';
-import {
-  balanceToFiatNumber,
-  fromTokenMinimalUnit,
-} from '../../../../util/number';
+import { moneyFormatFiat } from './moneyFormatFiat';
+import { balanceToFiatNumber } from '../../../../util/number';
+import { fromTokenMinimalUnit } from '../../../../util/number/bigint';
 import { isMusdToken } from '../../Earn/constants/musd';
-import { getMoneyAmountPrefixForTransactionMeta } from '../constants/activityStyles';
+import {
+  getMoneyAmountPrefixForTransactionMeta,
+  resolveMusdTransferMeta,
+} from '../constants/activityStyles';
 import { ETH_TICKER } from '../constants/moneyTokens';
 
 export type CurrencyRatesMap = NonNullable<CurrencyRateState['currencyRates']>;
@@ -131,26 +132,6 @@ function getEthToFiatConversionRate(
 }
 
 /**
- * Formats a fiat value with exactly two fractional digits for Money activity rows.
- */
-export function formatMoneyActivityFiatDisplay(
-  amountInSelectedCurrency: number,
-  isoCurrencyCode: string,
-): string {
-  try {
-    return getIntlNumberFormatter(I18n.locale, {
-      style: 'currency',
-      currency: isoCurrencyCode.toUpperCase(),
-      currencyDisplay: 'narrowSymbol',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(amountInSelectedCurrency);
-  } catch {
-    return `${amountInSelectedCurrency.toFixed(2)} ${isoCurrencyCode.toUpperCase()}`;
-  }
-}
-
-/**
  * Secondary fiat line for a Money activity row: prefix (+/-) + localized currency (2 decimals).
  * Converts **token → fiat** via {@link balanceToFiatNumber}: human token amount × ETH→fiat
  * × token→ETH `price` from market data, matching {@link balanceToFiat} / TransactionElement
@@ -166,15 +147,17 @@ export function buildMoneyActivityFiatLine(
   currentCurrency: string | undefined,
   tokenMarketData: TokenMarketDataMap | undefined,
 ): string {
-  const ti = tx.transferInformation;
-  if (!ti?.amount || !ti.contractAddress || ti.decimals === undefined) {
+  const meta = resolveMusdTransferMeta(tx);
+  if (!meta) {
     return '';
   }
   if (!currentCurrency) {
     return '';
   }
 
-  const humanReadable = fromTokenMinimalUnit(ti.amount, ti.decimals);
+  // `isRounding = false` keeps the BigInt-decoded amount precise — the default
+  // `Number()` cast would lose precision for amounts above 2^53 minimal units.
+  const humanReadable = fromTokenMinimalUnit(meta.amount, meta.decimals, false);
   const humanAmount = parseFloat(humanReadable);
   if (Number.isNaN(humanAmount)) {
     return '';
@@ -185,23 +168,41 @@ export function buildMoneyActivityFiatLine(
     return '';
   }
 
-  if (!safeToChecksumAddress(ti.contractAddress as Hex)) {
+  if (!safeToChecksumAddress(meta.contractAddress as Hex)) {
     return '';
   }
 
   const prefix = getMoneyAmountPrefixForTransactionMeta(tx);
   const absAmount = Math.abs(humanAmount);
 
+  const isMusdLike = isMusdLikeForFiatFallback(
+    meta.contractAddress,
+    meta.symbol,
+  );
   const tokenToEthRate = getTokenToEthPrice(
     tokenMarketData,
     chainId,
-    ti.contractAddress,
+    meta.contractAddress,
   );
   const ethToFiatRate = getEthToFiatConversionRate(currencyRates);
 
   let fiatNumber: number | undefined;
 
-  if (
+  // mUSD is pegged 1:1 to USD by design — `tokenMarketData` has been observed
+  // to report wildly wrong prices for it on some chains, so we always derive
+  // fiat from the peg and never trust the market-rate path for mUSD.
+  if (isMusdLike) {
+    const rateEntry = resolveCurrencyRateEntry(currencyRates, ETH_TICKER);
+    if (rateEntry !== undefined && rateEntry.usdConversionRate !== 0) {
+      const tokenToEthPricePeg = 1 / rateEntry.usdConversionRate;
+      fiatNumber = balanceToFiatNumber(
+        absAmount,
+        rateEntry.conversionRate,
+        tokenToEthPricePeg,
+        2,
+      );
+    }
+  } else if (
     tokenToEthRate !== undefined &&
     tokenToEthRate !== null &&
     tokenToEthRate !== 0 &&
@@ -213,25 +214,11 @@ export function buildMoneyActivityFiatLine(
       tokenToEthRate,
       2,
     );
-  } else if (isMusdLikeForFiatFallback(ti.contractAddress, ti.symbol)) {
-    const rateEntry = resolveCurrencyRateEntry(currencyRates, ETH_TICKER);
-    if (rateEntry === undefined || rateEntry.usdConversionRate === 0) {
-      fiatNumber = undefined;
-    } else {
-      const tokenToEthPricePeg = 1 / rateEntry.usdConversionRate;
-      fiatNumber = balanceToFiatNumber(
-        absAmount,
-        rateEntry.conversionRate,
-        tokenToEthPricePeg,
-        2,
-      );
-    }
   }
 
   if (fiatNumber === undefined) {
     return '';
   }
 
-  const display = formatMoneyActivityFiatDisplay(fiatNumber, currentCurrency);
-  return `${prefix}${display}`;
+  return `${prefix}${moneyFormatFiat(new BigNumber(fiatNumber), currentCurrency)}`;
 }

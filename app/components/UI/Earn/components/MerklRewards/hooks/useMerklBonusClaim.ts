@@ -16,7 +16,6 @@ import { RootState } from '../../../../../../reducers';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { getUsdAmountRange } from '../../../../../../util/analytics/usdAmountRange';
-
 export interface MerklClaimData {
   /** Claimable reward string when amount >= MIN_CLAIMABLE_BONUS_USD; null otherwise (e.g. "< 0.01" or below threshold). */
   claimableReward: string | null;
@@ -72,6 +71,7 @@ export const useMerklBonusClaim = (
   );
   const { isEligible: isGeoEligible } = useMusdConversionEligibility();
   const { trackEvent, createEventBuilder } = useAnalytics();
+
   const network = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, asset?.chainId as Hex),
   );

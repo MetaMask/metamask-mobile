@@ -38,6 +38,15 @@ export class CardProviderError extends Error {
   }
 }
 
+export class CardLinkageInProgressError extends Error {
+  constructor(
+    message = 'A Money Account to Card linkage is already in progress',
+  ) {
+    super(message);
+    this.name = 'CardLinkageInProgressError';
+  }
+}
+
 // -- Provider Identity --
 
 export type CardProviderId = string;
@@ -224,20 +233,22 @@ export function emptyCardHomeData(): CardHomeData {
 
 // -- Funding --
 
-export interface WalletOperations {
-  signMessage(address: string, message: string): Promise<string>;
-  submitTransaction(
-    params: { to: string; data: string; from: string },
-    chainId: CaipChainId,
-  ): Promise<string>;
-}
-
 export interface FundingApprovalParams {
   address: string;
   amount: string;
   currency: string;
   network: string;
-  faucet?: boolean;
+  txHash: string;
+  sigHash: string;
+  sigMessage: string;
+  token: string;
+}
+
+/** Response from initiating a delegation session (GET `/v1/delegation/token`). */
+export interface DelegationChallengeResponse {
+  delegationToken: string;
+  nonce: string;
+  expiresAt: string;
 }
 
 export interface CardFundingOption {
@@ -359,11 +370,19 @@ export interface ICardProvider {
     tokens: CardAuthTokens,
   ): Promise<void>;
   getFundingConfig?(tokens: CardAuthTokens): Promise<CardFundingConfig>;
-
+  fetchDelegationChallenge?(
+    params: { network: string; address: string; faucet?: boolean },
+    tokens: CardAuthTokens,
+  ): Promise<DelegationChallengeResponse>;
+  generateCardDelegationSignatureMessage?(params: {
+    network: string;
+    address: string;
+    nonce: string;
+    caipChainId?: string;
+  }): string;
   approveFunding?(
     params: FundingApprovalParams,
     tokens: CardAuthTokens,
-    wallet: WalletOperations,
   ): Promise<void>;
 
   getCashbackWallet?(tokens: CardAuthTokens): Promise<CashbackWalletResponse>;

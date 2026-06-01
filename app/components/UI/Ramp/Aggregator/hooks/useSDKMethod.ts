@@ -99,7 +99,7 @@ export default function useSDKMethod<T extends keyof RegionsService>(
   const [error, setError] = useState<string | null>(null);
   const [isFetching, setIsFetching] = useState<boolean>(onMount);
   const stringifiedParams = useMemo(() => JSON.stringify(params), [params]);
-  const abortControllerRef = useRef<AbortController>();
+  const abortControllerRef = useRef<AbortController | undefined>(undefined);
 
   const query = useCallback(
     async (...customParams: PartialParameters<RegionsService[T]> | []) => {
