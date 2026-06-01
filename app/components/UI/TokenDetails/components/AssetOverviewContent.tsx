@@ -202,6 +202,8 @@ export interface AssetOverviewContentProps {
   // Ambient price color A/B test
   onPriceDirectionChange?: (isPositive: boolean) => void;
   useAmbientColor?: boolean;
+  /** Resolved price direction from the chart; true = positive, false = negative, null = not yet resolved. */
+  isPricePositive?: boolean | null;
 }
 
 /**
@@ -243,6 +245,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   hasSecurityDataError = false,
   onPriceDirectionChange,
   useAmbientColor,
+  isPricePositive,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
@@ -527,6 +530,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       pricePercentChange: percentChange,
       token,
       source: 'token_details',
+      isPricePositive: isPricePositive ?? undefined,
+      useAmbientColor,
     });
   }, [
     navigation,
@@ -537,6 +542,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     marketInsightsReport,
     priceDiff,
     comparePrice,
+    useAmbientColor,
+    isPricePositive,
   ]);
 
   const handlePerpsDiscoveryPress = useCallback(() => {
@@ -823,6 +830,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   securityData={securityData ?? null}
                   isLoading={isSecurityDataLoading}
                   token={token as TokenDetailsRouteParams}
+                  isPricePositive={isPricePositive ?? undefined}
+                  useAmbientColor={useAmbientColor}
                 />
               </View>
             )}
