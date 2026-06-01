@@ -2,6 +2,8 @@ name: Add team label
 
 on:
   pull_request:
+    types:
+      - opened
 
 jobs:
   add-team-label:
