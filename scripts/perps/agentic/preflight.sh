@@ -589,7 +589,8 @@ if [ "$PLAT" = "ios" ]; then
       if [ "$APP_INSTALLED" -gt 0 ] \
          && [ "$INSTALLED_FP" = "$FP" ] \
          && [ "$INSTALLED_TGT" = "$SIM_TARGET" ] \
-         && ! $DO_REBUILD; then
+         && ! $DO_REBUILD \
+         && ! $DO_WALLET_SETUP; then
         ok "Cache: installed app matches fingerprint ${FP:0:12} on $SIM_TARGET — no native action needed"
         CHECK_ONLY_FP_VERIFIED=true
         CHECK_ONLY_FP_VALUE="$FP"
@@ -608,6 +609,10 @@ if [ "$PLAT" = "ios" ]; then
             # the existing container data (wallet/app state), so no preemptive
             # uninstall is needed on the happy path. If install fails we
             # explicitly reset APP_INSTALLED to force the build branch.
+            if $DO_WALLET_SETUP; then
+              echo "  Wiping app data for wallet setup (uninstall + reinstall cached app)..."
+              xcrun simctl uninstall "$SIM_TARGET" "$BUNDLE_ID" 2>/dev/null || true
+            fi
             if xcrun simctl install "$SIM_TARGET" "$IOS_ARTIFACT"; then
               bc_record_install ios "$FP" "$SIM_TARGET"
               APP_INSTALLED=1
