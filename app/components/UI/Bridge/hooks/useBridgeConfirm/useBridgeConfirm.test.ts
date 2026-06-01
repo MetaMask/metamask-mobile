@@ -5,6 +5,11 @@ import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import Routes from '../../../../../constants/navigation/Routes';
+import { PostTradeStatus } from '../../components/PostTradeBottomSheet/PostTradeBottomSheet.types';
+import { mockBridgeReducerState } from '../../_mocks_/bridgeReducerState';
+import Engine from '../../../../../core/Engine';
+import type { RootState } from '../../../../../reducers';
+import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 
 const WALLET_ADDRESS = '0x1234567890123456789012345678901234567890';
 
@@ -59,15 +64,20 @@ jest.mock('../../../../../selectors/confirmTransaction');
 
 function renderHook(
   params: Parameters<typeof useBridgeConfirm>[0] = defaultParams,
+  state: DeepPartial<RootState> = {},
 ) {
-  return renderHookWithProvider(() => useBridgeConfirm(params), { state: {} });
+  return renderHookWithProvider(() => useBridgeConfirm(params), { state });
 }
 
 describe('useBridgeConfirm', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(selectSourceWalletAddress).mockReturnValue(WALLET_ADDRESS);
-    mockSubmitBridgeTx.mockResolvedValue({ success: true });
+    mockSubmitBridgeTx.mockResolvedValue({
+      id: 'tx-meta-id',
+      hash: '0xabc',
+      status: 'submitted',
+    });
   });
 
   it('returns a function', () => {
@@ -107,14 +117,24 @@ describe('useBridgeConfirm', () => {
       );
     });
 
-    it('navigates to TRANSACTIONS_VIEW after submission', async () => {
+    it('opens the post-trade bottom sheet after submission', async () => {
       const { result } = renderHook();
 
       await act(async () => {
         await result.current();
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.POST_TRADE_MODAL,
+        params: expect.objectContaining({
+          status: PostTradeStatus.InProgress,
+          transactionMetaId: 'tx-meta-id',
+          transactionHash: '0xabc',
+          initialTransactionStatus: 'submitted',
+          sourceAmount: mockQuoteWithMetadata.sentAmount.amount,
+          destAmount: mockQuoteWithMetadata.toTokenAmount.amount,
+        }),
+      });
     });
 
     it('resets isSubmittingTx to false after submission', async () => {
@@ -131,6 +151,30 @@ describe('useBridgeConfirm', () => {
         ).toBe(false);
       });
     });
+
+    it('clears bridge token inputs before opening the post-trade bottom sheet', async () => {
+      const { result, store } = renderHook(defaultParams, {
+        bridge: mockBridgeReducerState,
+      });
+
+      mockNavigate.mockImplementationOnce(() => {
+        const bridgeState = (store.getState() as RootState).bridge;
+
+        expect(bridgeState.sourceAmount).toBeUndefined();
+        expect(bridgeState.destAmount).toBeUndefined();
+        expect(bridgeState.sourceToken).toEqual(
+          mockBridgeReducerState.sourceToken,
+        );
+        expect(bridgeState.destToken).toEqual(mockBridgeReducerState.destToken);
+      });
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(Engine.context.BridgeController.resetState).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalled();
+    });
   });
 
   describe('when activeQuote is null', () => {
@@ -144,14 +188,14 @@ describe('useBridgeConfirm', () => {
       expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
     });
 
-    it('still navigates to TRANSACTIONS_VIEW', async () => {
+    it('does not open the post-trade bottom sheet', async () => {
       const { result } = renderHook({ ...defaultParams, activeQuote: null });
 
       await act(async () => {
         await result.current();
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 
@@ -170,14 +214,14 @@ describe('useBridgeConfirm', () => {
       expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
     });
 
-    it('still navigates to TRANSACTIONS_VIEW', async () => {
+    it('does not open the post-trade bottom sheet', async () => {
       const { result } = renderHook();
 
       await act(async () => {
         await result.current();
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 
@@ -202,7 +246,7 @@ describe('useBridgeConfirm', () => {
       consoleSpy.mockRestore();
     });
 
-    it('still navigates to TRANSACTIONS_VIEW after the error', async () => {
+    it('opens the post-trade bottom sheet in failed state after the error', async () => {
       jest.spyOn(console, 'error').mockImplementation();
       const { result } = renderHook();
 
@@ -210,7 +254,14 @@ describe('useBridgeConfirm', () => {
         await result.current();
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.POST_TRADE_MODAL,
+        params: expect.objectContaining({
+          status: PostTradeStatus.Failed,
+          sourceAmount: mockQuoteWithMetadata.sentAmount.amount,
+          destAmount: mockQuoteWithMetadata.toTokenAmount.amount,
+        }),
+      });
     });
 
     it('resets isSubmittingTx to false after the error', async () => {
@@ -227,6 +278,24 @@ describe('useBridgeConfirm', () => {
             .isSubmittingTx,
         ).toBe(false);
       });
+    });
+
+    it('does not clear bridge token inputs when submission fails before broadcast', async () => {
+      jest.spyOn(console, 'error').mockImplementation();
+      const { result, store } = renderHook(defaultParams, {
+        bridge: mockBridgeReducerState,
+      });
+
+      await act(async () => {
+        await result.current();
+      });
+
+      const bridgeState = (store.getState() as RootState).bridge;
+      expect(bridgeState.sourceAmount).toBe(
+        mockBridgeReducerState.sourceAmount,
+      );
+      expect(bridgeState.sourceToken).toEqual(mockBridgeReducerState.sourceToken);
+      expect(bridgeState.destToken).toEqual(mockBridgeReducerState.destToken);
     });
   });
 });

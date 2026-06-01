@@ -5,6 +5,8 @@ import reducer, {
   setSourceAmount,
   setDestAmount,
   resetBridgeState,
+  resetBridgeTokenInputs,
+  incrementBridgeBalanceRefreshKey,
   setSlippage,
   setBridgeViewMode,
   selectBridgeViewMode,
@@ -127,6 +129,7 @@ describe('bridge slice', () => {
         tokenSelectorNetworkFilter: undefined,
         visiblePillChainIds: undefined,
         selectedQuoteRequestId: undefined,
+        balanceRefreshKey: 0,
         abTestContext: undefined,
         hardwareWalletsSwaps: initialHardwareWalletsSwapsState,
         batchSellSourceTokens: [],
@@ -513,6 +516,50 @@ describe('bridge slice', () => {
       const newState = reducer(stateWithVisiblePills, resetBridgeState());
 
       expect(newState.visiblePillChainIds).toBeUndefined();
+    });
+  });
+
+  describe('resetBridgeTokenInputs', () => {
+    it('clears amounts and selected quote without resetting tokens or unrelated bridge settings', () => {
+      const state = {
+        ...initialState,
+        sourceAmount: '1.5',
+        destAmount: '100',
+        sourceToken: mockToken,
+        destToken: mockDestToken,
+        selectedDestChainId: mockDestToken.chainId,
+        isMaxSourceAmount: true,
+        isDestTokenManuallySet: true,
+        selectedQuoteRequestId: 'selected-quote-id',
+        slippage: '1.0',
+        bridgeViewMode: BridgeViewMode.Bridge,
+      };
+
+      const newState = reducer(state, resetBridgeTokenInputs());
+
+      expect(newState.sourceAmount).toBeUndefined();
+      expect(newState.destAmount).toBeUndefined();
+      expect(newState.sourceToken).toEqual(mockToken);
+      expect(newState.destToken).toEqual(mockDestToken);
+      expect(newState.selectedDestChainId).toBe(mockDestToken.chainId);
+      expect(newState.isMaxSourceAmount).toBe(false);
+      expect(newState.isDestTokenManuallySet).toBe(true);
+      expect(newState.selectedQuoteRequestId).toBeUndefined();
+      expect(newState.slippage).toBe('1.0');
+      expect(newState.bridgeViewMode).toBe(BridgeViewMode.Bridge);
+    });
+  });
+
+  describe('incrementBridgeBalanceRefreshKey', () => {
+    it('increments the bridge balance refresh key', () => {
+      const state = {
+        ...initialState,
+        balanceRefreshKey: 2,
+      };
+
+      const newState = reducer(state, incrementBridgeBalanceRefreshKey());
+
+      expect(newState.balanceRefreshKey).toBe(3);
     });
   });
 

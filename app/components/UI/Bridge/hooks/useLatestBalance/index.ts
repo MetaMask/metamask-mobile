@@ -82,6 +82,7 @@ export const useLatestBalance = (token: {
   decimals?: number;
   chainId?: Hex | CaipChainId;
   balance?: string;
+  refreshKey?: string | number;
 }) => {
   const [balance, setBalance] = useState<Balance | undefined>(undefined);
   const selectedAddress = useSelector(
@@ -161,6 +162,7 @@ export const useLatestBalance = (token: {
     token.address,
     token.decimals,
     chainId,
+    token.refreshKey,
     selectedAddress,
     setBalanceIfChanged,
   ]);
@@ -197,6 +199,7 @@ export const useLatestBalance = (token: {
     token.address,
     token.decimals,
     chainId,
+    token.refreshKey,
     selectedAddress,
     nonEvmTokens,
     setBalanceIfChanged,
