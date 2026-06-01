@@ -183,13 +183,19 @@ pods_clean_stale() {
 # Podfile.lock versions — neither change should be committed and both pollute
 # agentic diffs. Restore them to HEAD when running on main. On older branches
 # these diffs may be intentional, so we leave them alone.
+#
+# Do not restore ios/Podfile.lock between pod install and xcodebuild: CocoaPods'
+# [CP] Check Pods Manifest.lock phase diffs ios/Podfile.lock against
+# ios/Pods/Manifest.lock and fails when they diverge. Restore Podfile.lock only
+# at the final cleanup point after native build/install work is complete.
 maybe_restore_main_noise() {
   local branch
   branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
   [ "$branch" = "main" ] || return 0
 
   local restored=()
-  for f in tsconfig.json ios/Podfile.lock; do
+  local f
+  for f in "$@"; do
     [ -f "$f" ] || continue
     if ! git diff --quiet HEAD -- "$f" 2>/dev/null; then
       if git restore --source=HEAD -- "$f" 2>/dev/null || git checkout HEAD -- "$f" 2>/dev/null; then
@@ -530,7 +536,7 @@ if $DO_CLEAN; then
     pods_save_marker
   fi
   ok "yarn setup complete"
-  maybe_restore_main_noise
+  maybe_restore_main_noise tsconfig.json
 fi
 
 # ══════════════════════════════════════════════════════════════════════
@@ -668,7 +674,7 @@ if [ "$PLAT" = "ios" ]; then
     if run_with_live_log "$POD_INSTALL_LOG" "$POD_CMD"; then
       pods_save_marker
       ok "pod install complete"
-      maybe_restore_main_noise
+      maybe_restore_main_noise tsconfig.json
     else
       # On non-clean modes, the failure may be a missing spec → retry once with --repo-update.
       if ! $DO_CLEAN; then
@@ -678,7 +684,7 @@ if [ "$PLAT" = "ios" ]; then
         if run_with_live_log "$POD_INSTALL_LOG" "cd ios && bundle exec pod install --repo-update --ansi"; then
           pods_save_marker
           ok "pod install complete (after --repo-update retry)"
-          maybe_restore_main_noise
+          maybe_restore_main_noise tsconfig.json
         else
           warn "pod install had issues — see $POD_INSTALL_LOG"
         fi
@@ -1175,7 +1181,7 @@ fi
 # Final guard for main: if future setup tooling mutates these tracked
 # infrastructure files after the earlier restore points, keep the prepared
 # baseline clean without hiding intentional branch work.
-maybe_restore_main_noise
+maybe_restore_main_noise tsconfig.json ios/Podfile.lock
 
 # ── Done ─────────────────────────────────────────────────────────────
 if [ -n "$CURRENT_STEP_NAME" ]; then
