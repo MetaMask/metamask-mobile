@@ -351,7 +351,7 @@ const ChoosePassword = () => {
               .build(),
           );
 
-          await metrics.addTraitsToUser({
+          await metrics.identify({
             ...generateDeviceAnalyticsMetaData(),
             ...generateUserSettingsAnalyticsMetaData(),
           });

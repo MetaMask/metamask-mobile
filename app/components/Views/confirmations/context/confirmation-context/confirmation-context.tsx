@@ -4,10 +4,12 @@ import React, { useContext, useMemo, useState } from 'react';
 export interface ConfirmationContextParams {
   headlessBuyError: string | undefined;
   isFooterVisible?: boolean;
+  isConfirmationSubmitting: boolean;
   isHeadlessBuyInProgress: boolean;
   isTransactionValueUpdating: boolean;
   isTransactionDataUpdating: boolean;
   setHeadlessBuyError: (error: string | undefined) => void;
+  setIsConfirmationSubmitting: (isConfirmationSubmitting: boolean) => void;
   setIsFooterVisible: (isFooterVisible: boolean) => void;
   setIsHeadlessBuyInProgress: (isHeadlessBuyInProgress: boolean) => void;
   setIsTransactionValueUpdating: (isTransactionValueUpdating: boolean) => void;
@@ -19,10 +21,12 @@ export interface ConfirmationContextParams {
 const ConfirmationContext = React.createContext<ConfirmationContextParams>({
   headlessBuyError: undefined,
   isFooterVisible: true,
+  isConfirmationSubmitting: false,
   isHeadlessBuyInProgress: false,
   isTransactionDataUpdating: false,
   isTransactionValueUpdating: false,
   setHeadlessBuyError: noop,
+  setIsConfirmationSubmitting: noop,
   setIsFooterVisible: noop,
   setIsHeadlessBuyInProgress: noop,
   setIsTransactionDataUpdating: noop,
@@ -50,6 +54,9 @@ export const ConfirmationContextProvider: React.FC<
   const [isTransactionDataUpdating, setIsTransactionDataUpdating] =
     useState<boolean>(false);
 
+  const [isConfirmationSubmitting, setIsConfirmationSubmitting] =
+    useState<boolean>(false);
+
   const contextValue = useMemo(
     () => ({
       headlessBuyError,
@@ -57,11 +64,13 @@ export const ConfirmationContextProvider: React.FC<
       isHeadlessBuyInProgress,
       isTransactionDataUpdating,
       isTransactionValueUpdating,
+      isConfirmationSubmitting,
       setHeadlessBuyError,
       setIsFooterVisible,
       setIsHeadlessBuyInProgress,
       setIsTransactionDataUpdating,
       setIsTransactionValueUpdating,
+      setIsConfirmationSubmitting,
     }),
     [
       headlessBuyError,
@@ -69,11 +78,13 @@ export const ConfirmationContextProvider: React.FC<
       isHeadlessBuyInProgress,
       isTransactionDataUpdating,
       isTransactionValueUpdating,
+      isConfirmationSubmitting,
       setHeadlessBuyError,
       setIsFooterVisible,
       setIsHeadlessBuyInProgress,
       setIsTransactionDataUpdating,
       setIsTransactionValueUpdating,
+      setIsConfirmationSubmitting,
     ],
   );
 

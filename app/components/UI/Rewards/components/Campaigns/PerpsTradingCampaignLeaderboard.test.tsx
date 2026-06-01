@@ -35,6 +35,10 @@ jest.mock('../RewardsErrorBanner', () => {
 });
 
 jest.mock('../../../../../images/rewards/crown.svg', () => 'CrownIcon');
+jest.mock(
+  '../../../../../images/rewards/hypertracker.svg',
+  () => 'HyperTrackerLogo',
+);
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -51,7 +55,6 @@ jest.mock('../../../../../constants/navigation/Routes', () => ({
 }));
 
 const TEST_IDS = PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS;
-const CrownIcon = 'CrownIcon' as unknown as React.ComponentType;
 
 const createPerpsEntry = (
   overrides: Partial<PerpsTradingCampaignLeaderboardEntry> = {},
@@ -88,14 +91,10 @@ describe('PerpsTradingCampaignLeaderboard', () => {
   });
 
   it('navigates to in-app browser with HyperTracker attribution URL when brand is pressed', () => {
-    const { getByText } = render(
+    const { getByTestId } = render(
       <PerpsTradingCampaignLeaderboard {...defaultProps} />,
     );
-    fireEvent.press(
-      getByText(
-        'rewards.perps_trading_campaign.leaderboard_hypertracker_brand',
-      ),
-    );
+    fireEvent.press(getByTestId(TEST_IDS.HYPERTRACKER_LOGO));
 
     expect(mockNavigate).toHaveBeenCalledWith(
       'BrowserHome',
@@ -120,11 +119,11 @@ describe('PerpsTradingCampaignLeaderboard', () => {
         referralCode: 'NEXT',
       }),
     ];
-    const { UNSAFE_queryAllByType } = render(
+    const { UNSAFE_queryAllByProps } = render(
       <PerpsTradingCampaignLeaderboard {...defaultProps} entries={entries} />,
     );
 
-    expect(UNSAFE_queryAllByType(CrownIcon)).toHaveLength(1);
+    expect(UNSAFE_queryAllByProps({ name: 'crown' })).toHaveLength(1);
   });
 
   it('hides crown in preview mode for perps winner ranks', () => {
@@ -132,7 +131,7 @@ describe('PerpsTradingCampaignLeaderboard', () => {
       createPerpsEntry({ rank: 1, referralCode: 'AAA111' }),
       createPerpsEntry({ rank: 2, referralCode: 'BBB222' }),
     ];
-    const { UNSAFE_queryAllByType } = render(
+    const { UNSAFE_queryAllByProps } = render(
       <PerpsTradingCampaignLeaderboard
         {...defaultProps}
         entries={entries}
@@ -140,7 +139,7 @@ describe('PerpsTradingCampaignLeaderboard', () => {
       />,
     );
 
-    expect(UNSAFE_queryAllByType(CrownIcon)).toHaveLength(0);
+    expect(UNSAFE_queryAllByProps({ name: 'crown' })).toHaveLength(0);
   });
 
   describe('split view top count (preview vs full, ranks 21–22 vs other)', () => {

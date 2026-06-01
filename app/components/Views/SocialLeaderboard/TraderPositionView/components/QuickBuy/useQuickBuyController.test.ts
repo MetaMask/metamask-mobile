@@ -909,12 +909,12 @@ describe('useQuickBuyController', () => {
       isHardwareAccount.mockReturnValue(false);
     });
 
-    it('is disabled when the price impact exceeds the error threshold', () => {
-      (useQuickBuyQuotes as jest.Mock).mockImplementation(() => ({
-        activeQuote: {
-          quote: { priceData: { priceImpact: '0.30' } },
-        },
-        destTokenAmount: '1',
+    it('sets isPriceImpactError when price impact exceeds error threshold, but does NOT disable the button (intercept handled by context)', () => {
+      // Use the same settle cycle as the hardware-Solana test so that
+      // settledSourceTokenAmountRef is properly updated and isPendingQuoteRefresh = false.
+      const quoteState: UseQuickBuyQuotesResult = {
+        activeQuote: undefined,
+        destTokenAmount: undefined,
         isQuoteLoading: false,
         isNoQuotesAvailable: false,
         quoteFetchError: null,
@@ -926,13 +926,14 @@ describe('useQuickBuyController', () => {
         quoteRefreshRateMs: 30000,
         maxRefreshCount: 5,
         refetchQuotes: jest.fn(),
-      }));
+      };
+      (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
 
       const props = {
         target: positionToQuickBuyTarget(createPosition()),
         onClose: jest.fn(),
       };
-      const { result } = renderHook(
+      const { result, rerender } = renderHook(
         ({ target, onClose }) => useQuickBuyController(target, onClose),
         { initialProps: props },
       );
@@ -941,8 +942,22 @@ describe('useQuickBuyController', () => {
         result.current.handleAmountChange('20');
       });
 
+      // Simulate quote loading cycle so settledSourceTokenAmountRef is settled.
+      quoteState.isQuoteLoading = true;
+      rerender(props);
+      quoteState.isQuoteLoading = false;
+      // Inject a high-price-impact active quote.
+      quoteState.activeQuote = {
+        ...createActiveQuote(),
+        quote: { priceData: { priceImpact: '0.30' } },
+      } as never;
+      rerender(props);
+      rerender(props);
+
       expect(result.current.isPriceImpactError).toBe(true);
-      expect(result.current.isConfirmDisabled).toBe(true);
+      // The Buy button is ENABLED at error tier — the intercept lives in
+      // QuickBuyContext.handleBuy which routes to priceImpactConfirm instead.
+      expect(result.current.isConfirmDisabled).toBe(false);
     });
   });
 

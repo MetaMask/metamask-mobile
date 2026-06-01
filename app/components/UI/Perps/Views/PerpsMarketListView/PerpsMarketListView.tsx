@@ -68,6 +68,7 @@ const PerpsMarketListView = ({
   const defaultMarketTypeFilter =
     route.params?.defaultMarketTypeFilter ?? 'all';
   const defaultSortOptionId = route.params?.defaultSortOptionId;
+  const defaultSortDirection = route.params?.defaultSortDirection;
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
 
   const fadeAnimation = useRef(new Animated.Value(0)).current;
@@ -87,6 +88,7 @@ const PerpsMarketListView = ({
     showWatchlistOnly,
     defaultMarketTypeFilter,
     defaultSortOptionId,
+    defaultSortDirection,
     showZeroVolume: __DEV__,
   });
 
