@@ -548,6 +548,7 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
 
   const handleCtaClicked = useCallback(() => {
     closeSourceRef.current = 'cta_clicked';
+    fireClosedRef.current();
   }, []);
 
   return (

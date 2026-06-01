@@ -634,7 +634,7 @@ describe('TokenDetailsStickyFooter', () => {
       expect(mockOnBuy).not.toHaveBeenCalled();
     });
 
-    it('calls onSwapPress before navigating to security warning modal', () => {
+    it('defers onSwapPress until onProceed for security warning modal', () => {
       const onSwapPress = jest.fn();
       mockIsStockToken.mockReturnValue(false);
       mockGetResultTypeConfig.mockReturnValue({
@@ -659,13 +659,20 @@ describe('TokenDetailsStickyFooter', () => {
 
       fireEvent.press(getByText('Swap'));
 
-      // onSwapPress marks exit_action before the modal blurs the screen
-      expect(onSwapPress).toHaveBeenCalled();
-      // action is deferred to onProceed inside the modal
+      // Neither callback fires when the warning modal is shown
+      expect(onSwapPress).not.toHaveBeenCalled();
       expect(mockOnSwap).not.toHaveBeenCalled();
+
+      // Simulate user tapping "Proceed" inside the modal
+      const navigateCall = mockNavigate.mock.calls[0];
+      const onProceed = navigateCall[1].params.onProceed;
+      onProceed();
+
+      expect(onSwapPress).toHaveBeenCalled();
+      expect(mockOnSwap).toHaveBeenCalled();
     });
 
-    it('calls onBuyPress before navigating to security warning modal', () => {
+    it('defers onBuyPress until onProceed for security warning modal', () => {
       const onBuyPress = jest.fn();
       mockIsStockToken.mockReturnValue(false);
       mockGetResultTypeConfig.mockReturnValue({
@@ -690,10 +697,17 @@ describe('TokenDetailsStickyFooter', () => {
 
       fireEvent.press(getByText('Buy'));
 
-      // onBuyPress marks exit_action before the modal blurs the screen
-      expect(onBuyPress).toHaveBeenCalled();
-      // action is deferred to onProceed inside the modal
+      // Neither callback fires when the warning modal is shown
+      expect(onBuyPress).not.toHaveBeenCalled();
       expect(mockOnBuy).not.toHaveBeenCalled();
+
+      // Simulate user tapping "Proceed" inside the modal
+      const navigateCall = mockNavigate.mock.calls[0];
+      const onProceed = navigateCall[1].params.onProceed;
+      onProceed();
+
+      expect(onBuyPress).toHaveBeenCalled();
+      expect(mockOnBuy).toHaveBeenCalled();
     });
   });
 });
