@@ -14,7 +14,12 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
+import {
+  useCardHeaderHandlers,
+  type CardHeaderMode,
+} from '../../hooks/useCardHeaderHandlers';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../../util/theme';
@@ -61,6 +66,12 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
 
   const flow = route?.params?.flow || 'manage';
   const isOnboardingFlow = flow === 'onboarding';
+  // Onboarding flow: linear sign-up, exit resets the stack to Card Home.
+  // Other flows: standard back navigation.
+  const headerMode: CardHeaderMode = isOnboardingFlow
+    ? 'close-reset-home'
+    : 'back';
+  const headerHandlers = useCardHeaderHandlers(headerMode);
   const selectedTokenFromRoute = route?.params?.selectedToken;
   const {
     primaryToken,
@@ -177,6 +188,11 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
         style={tw.style('flex-1 bg-background-default')}
         edges={['bottom']}
       >
+        <HeaderStandard
+          includesTopInset
+          twClassName="bg-background-default"
+          {...headerHandlers}
+        />
         <Box twClassName="flex-1 justify-center items-center px-6">
           <ActivityIndicator
             testID={SpendingLimitSelectors.LOADING_INDICATOR}
@@ -201,6 +217,11 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
         style={tw.style('flex-1 bg-background-default')}
         edges={['bottom']}
       >
+        <HeaderStandard
+          includesTopInset
+          twClassName="bg-background-default"
+          {...headerHandlers}
+        />
         <Box twClassName="flex-1 justify-center items-center px-6">
           <Icon
             name={IconName.Danger}
@@ -241,6 +262,11 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
       style={tw.style('flex-1 bg-background-default')}
       edges={['bottom']}
     >
+      <HeaderStandard
+        includesTopInset
+        twClassName="bg-background-default"
+        {...headerHandlers}
+      />
       <KeyboardAwareScrollView
         style={tw.style('flex-1 px-4')}
         showsVerticalScrollIndicator={false}
@@ -320,7 +346,6 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
         {canShowMoneyAccountCta && (
           <SpendAndEarnPromoCard
             apyPercent={moneyAccountApyPercent}
-            cashbackPercent={hasMetalCard ? 3 : 1}
             onPress={selectMoneyAccountAsSource}
           />
         )}

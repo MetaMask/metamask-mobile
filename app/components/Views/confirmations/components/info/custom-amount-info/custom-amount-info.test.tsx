@@ -90,8 +90,8 @@ jest.mock('../../PayAccountSelector', () => {
     default: () => <View testID="pay-account-selector" />,
   };
 });
-jest.mock('../../projected-five-year-balance', () => ({
-  ProjectedFiveYearBalance: () => null,
+jest.mock('../../balance-projection', () => ({
+  BalanceProjection: () => null,
 }));
 jest.mock('../../../hooks/metrics/useConfirmationAlertMetrics', () => ({
   useConfirmationAlertMetrics: () => ({
