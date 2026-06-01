@@ -2,9 +2,9 @@ import React, { useCallback, useEffect, useState } from 'react';
 import {
   BackHandler,
   Platform,
-  Pressable,
   ScrollView,
   StatusBar,
+  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, type RouteProp } from '@react-navigation/native';
@@ -145,18 +145,16 @@ const OnboardingCryptoExperienceQuestionnaire = () => {
             const isSelected = selectedLevel === option.id;
 
             return (
-              <Pressable
+              <TouchableOpacity
                 key={option.id}
                 onPress={() => setSelectedLevel(option.id)}
-                style={({ pressed }) =>
-                  tw.style(
-                    'flex-row items-center rounded-xl border px-3 py-4',
-                    isSelected
-                      ? 'border-border-default bg-background-muted-hover'
-                      : 'border-muted bg-background-muted',
-                    pressed && 'opacity-70',
-                  )
-                }
+                activeOpacity={0.7}
+                style={tw.style(
+                  'flex-row items-center rounded-xl border px-3 py-4',
+                  isSelected
+                    ? 'border-border-default bg-background-muted-hover'
+                    : 'border-muted bg-background-muted',
+                )}
                 testID={`${OnboardingCryptoExperienceQuestionnaireTestIds.OPTION_PREFIX}${option.id}`}
                 accessibilityRole="radio"
                 accessibilityState={{ selected: isSelected }}
@@ -177,7 +175,7 @@ const OnboardingCryptoExperienceQuestionnaire = () => {
                     color={IconColor.IconDefault}
                   />
                 ) : null}
-              </Pressable>
+              </TouchableOpacity>
             );
           })}
         </Box>
