@@ -1,5 +1,6 @@
 import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   FontWeight,
   Text,
@@ -30,7 +31,7 @@ const PermissionItem: React.FC<PermissionListItemProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const faviconUrl = useFavicon(item.dappHostName);
   return (
-    <TouchableOpacity style={styles.container} onPress={onPress}>
+    <Pressable style={styles.container} onPress={onPress}>
       <View style={styles.iconContainer}>
         <WebsiteIcon style={styles.icon} icon={faviconUrl} />
       </View>
@@ -62,7 +63,7 @@ const PermissionItem: React.FC<PermissionListItemProps> = ({
       <View style={styles.chevronContainer}>
         <Icon size={IconSize.Md} name={IconName.ArrowRight} />
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

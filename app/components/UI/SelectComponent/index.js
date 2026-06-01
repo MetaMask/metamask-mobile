@@ -1,13 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import {
-  Keyboard,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-} from 'react-native';
+import Pressable from '../../../component-library/components-temp/Pressable';
+import { Keyboard, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { baseStyles, fontStyles } from '../../../styles/common';
 import Modal from 'react-native-modal';
 import IconCheck from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -190,7 +184,7 @@ export default class SelectComponent extends PureComponent {
             <ScrollView style={styles.list} ref={this.scrollView}>
               <View style={styles.listWrapper}>
                 {this.props.options.map((option) => (
-                  <TouchableOpacity
+                  <Pressable
                     // eslint-disable-next-line react/jsx-no-bind
                     onPress={() => this.onValueChange(option.value)}
                     style={styles.optionButton}
@@ -207,7 +201,7 @@ export default class SelectComponent extends PureComponent {
                         color={colors.primary.default}
                       />
                     ) : null}
-                  </TouchableOpacity>
+                  </Pressable>
                 ))}
               </View>
             </ScrollView>

@@ -1,10 +1,11 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import PaymentMethodSelector from './PaymentMethodSelector';
-import { Image, TouchableOpacity } from 'react-native';
+import { Image } from 'react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 const defaultState = {
   engine: {
     backgroundState,
@@ -74,9 +75,7 @@ describe('PaymentMethodSelector', () => {
       },
     );
 
-    const pressableElements = screen.root.findAllByType(
-      TouchableOpacity as never,
-    );
+    const pressableElements = screen.root.findAllByType(Pressable as never);
     if (pressableElements.length > 0) {
       fireEvent.press(pressableElements[0]);
     }

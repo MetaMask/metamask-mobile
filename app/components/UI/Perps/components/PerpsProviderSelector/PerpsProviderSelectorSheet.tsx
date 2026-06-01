@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useCallback, useMemo } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Text, {
   TextVariant,
   TextColor,
@@ -88,10 +89,9 @@ const PerpsProviderSelectorSheet: React.FC<PerpsProviderSelectorSheetProps> = ({
           const isSelected = selectedOptionId === option.id;
 
           return (
-            <TouchableOpacity
+            <Pressable
               key={option.id}
               style={[styles.optionRow, isSelected && styles.optionRowSelected]}
-              activeOpacity={0.7}
               onPress={() => handleOptionPress(option)}
               testID={testID ? `${testID}-option-${option.id}` : undefined}
               accessibilityRole="radio"
@@ -140,7 +140,7 @@ const PerpsProviderSelectorSheet: React.FC<PerpsProviderSelectorSheetProps> = ({
                   testID={testID ? `${testID}-check-${option.id}` : undefined}
                 />
               )}
-            </TouchableOpacity>
+            </Pressable>
           );
         })}
       </View>

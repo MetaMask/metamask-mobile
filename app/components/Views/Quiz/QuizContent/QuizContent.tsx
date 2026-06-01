@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Image } from 'react-native';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+
 import { IQuizInformationProps } from '../types';
+import { PressableGH } from '../../../../component-library/components-temp/Pressable';
 import Icon, {
   IconSize,
   IconName,
@@ -35,14 +36,14 @@ const QuizContent = ({
           <Text variant={TextVariant.HeadingSM} style={styles.headerText}>
             {header}
           </Text>
-          <TouchableOpacity onPress={dismiss}>
+          <PressableGH onPress={dismiss}>
             <Icon
               size={IconSize.Xs}
               name={IconName.Close}
               color={colors.icon.default}
               style={styles.icon}
             />
-          </TouchableOpacity>
+          </PressableGH>
         </View>
         {icon ? icon() : null}
         {image ? <Image source={image} style={styles.image} /> : null}

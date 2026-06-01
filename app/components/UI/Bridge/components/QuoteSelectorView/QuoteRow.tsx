@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   Box,
   BoxAlignItems,
@@ -65,7 +66,7 @@ export const QuoteRow = ({
   );
 
   return (
-    <TouchableOpacity onPress={() => onPress(quoteRequestId)}>
+    <Pressable onPress={() => onPress(quoteRequestId)}>
       <Box
         paddingVertical={3}
         paddingHorizontal={4}
@@ -140,6 +141,6 @@ export const QuoteRow = ({
           </Skeleton>
         </Box>
       </Box>
-    </TouchableOpacity>
+    </Pressable>
   );
 };

@@ -1,4 +1,5 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   act,
   fireEvent,
@@ -7,7 +8,7 @@ import {
   waitFor,
 } from '@testing-library/react-native';
 import React, { useCallback } from 'react';
-import { TouchableOpacity } from 'react-native';
+
 import { Text } from '@metamask/design-system-react-native';
 import { SafeAreaProvider, Metrics } from 'react-native-safe-area-context';
 
@@ -3705,12 +3706,9 @@ describe('PerpsOrderView', () => {
         }, []);
 
         return (
-          <TouchableOpacity
-            testID="close-tooltip-button"
-            onPress={handleTooltipClose}
-          >
+          <Pressable testID="close-tooltip-button" onPress={handleTooltipClose}>
             <Text>Close Tooltip</Text>
-          </TouchableOpacity>
+          </Pressable>
         );
       };
 

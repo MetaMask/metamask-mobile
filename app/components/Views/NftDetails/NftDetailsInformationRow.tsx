@@ -2,8 +2,8 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import Text from '../../../component-library/components/Texts/Text';
 import { NftDetailsInformationRowProps } from './NftDetails.types';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 
+import { PressableGH } from '../../../component-library/components-temp/Pressable';
 const createStyles = () =>
   StyleSheet.create({
     inputWrapper: {
@@ -39,9 +39,9 @@ const NftDetailsInformationRow = ({
       {icon ? (
         <View style={styles.valueWithIcon}>
           {onValuePress ? (
-            <TouchableOpacity onPress={onValuePress}>
+            <PressableGH onPress={onValuePress}>
               <Text style={valueStyle}>{value}</Text>
-            </TouchableOpacity>
+            </PressableGH>
           ) : (
             <Text style={valueStyle}>{value}</Text>
           )}

@@ -5,13 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  TouchableOpacity,
-  View,
-  Modal,
-  StyleSheet,
-  ViewStyle,
-} from 'react-native';
+import { View, Modal, StyleSheet, ViewStyle } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { Theme } from '@metamask/design-tokens';
@@ -21,6 +15,7 @@ import AppConstants from '../../../../core/AppConstants';
 import Routes from '../../../../constants/navigation/Routes';
 import { createWebviewNavDetails } from '../../../Views/SimpleWebview';
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
+import Pressable from '../../../../component-library/components-temp/Pressable';
 import {
   TimePeriod,
   TokenPrice,
@@ -553,7 +548,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 
   const renderWarning = () => (
     <View style={styles.warningWrapper}>
-      <TouchableOpacity
+      <Pressable
         onPress={() => goToBrowserUrl(AppConstants.URLS.TOKEN_BALANCE)}
       >
         <View style={styles.warning}>
@@ -566,7 +561,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             {strings('asset_overview.for_help')}
           </Text>
         </View>
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 
@@ -666,7 +661,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                 {securityData?.resultType === 'Verified' &&
                   securityConfig.badge && (
                     <Box twClassName="shrink-0 pb-[2px]">
-                      <TouchableOpacity
+                      <Pressable
                         onPress={handleSecurityBadgePress}
                         testID="security-badge-verified"
                       >
@@ -675,7 +670,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                           size={IconSize.Md}
                           color={securityConfig.badge.iconColor}
                         />
-                      </TouchableOpacity>
+                      </Pressable>
                     </Box>
                   )}
                 {!token.name && isStockToken(token as BridgeToken) && (

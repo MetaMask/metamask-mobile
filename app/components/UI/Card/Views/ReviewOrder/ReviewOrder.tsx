@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { TouchableOpacity } from 'react-native';
+
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   Box,
   Text,
@@ -202,13 +203,13 @@ const ReviewOrder = () => {
 
     if (item.onPress) {
       return (
-        <TouchableOpacity
+        <Pressable
           key={`order-item-${index}`}
           onPress={item.onPress}
           testID={`${ReviewOrderSelectors.ORDER_ITEM_PRESSABLE}-${index}`}
         >
           {content}
-        </TouchableOpacity>
+        </Pressable>
       );
     }
 

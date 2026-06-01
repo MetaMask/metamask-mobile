@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
@@ -19,7 +20,7 @@ const Title = ({ title, setIsModalVisible, styles }: TitleProps) => {
   return (
     <View style={styles.title}>
       {setIsModalVisible ? (
-        <TouchableOpacity onPress={() => setIsModalVisible(true)}>
+        <Pressable onPress={() => setIsModalVisible(true)}>
           {isStringTitle ? (
             <Text style={styles.titleText} variant={TextVariant.HeadingLG}>
               {title}
@@ -27,7 +28,7 @@ const Title = ({ title, setIsModalVisible, styles }: TitleProps) => {
           ) : (
             title
           )}
-        </TouchableOpacity>
+        </Pressable>
       ) : isStringTitle ? (
         <Text style={styles.titleText} variant={TextVariant.HeadingLG}>
           {title}

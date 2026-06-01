@@ -1,10 +1,6 @@
 import React, { useCallback } from 'react';
-import {
-  View,
-  TouchableOpacity,
-  ActivityIndicator,
-  type ViewStyle,
-} from 'react-native';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
+import { View, ActivityIndicator, type ViewStyle } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Text, {
   TextColor,
@@ -196,7 +192,7 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
       <View style={styles.summaryRow}>
         <View style={styles.summaryLabel}>
           {enableTooltips ? (
-            <TouchableOpacity
+            <Pressable
               onPress={() =>
                 handleTooltipPress('closing_fees', {
                   metamaskFeeRate,
@@ -216,7 +212,7 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
                 size={IconSize.Sm}
                 color={IconColor.Muted}
               />
-            </TouchableOpacity>
+            </Pressable>
           ) : (
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('perps.close_position.fees')}
@@ -249,7 +245,7 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
       <View style={[styles.summaryRow, styles.summaryTotalRow]}>
         <View style={styles.summaryLabel}>
           {enableTooltips ? (
-            <TouchableOpacity
+            <Pressable
               onPress={() => handleTooltipPress('close_position_you_receive')}
               style={styles.labelWithTooltip}
               testID={testIDs?.receiveTooltip}
@@ -262,7 +258,7 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
                 size={IconSize.Sm}
                 color={IconColor.Muted}
               />
-            </TouchableOpacity>
+            </Pressable>
           ) : (
             <Text variant={TextVariant.BodyMD}>
               {strings('perps.close_position.you_receive')}
@@ -289,7 +285,7 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
           <View style={styles.summaryRow}>
             <View style={styles.summaryLabel}>
               {enableTooltips ? (
-                <TouchableOpacity
+                <Pressable
                   onPress={() => handleTooltipPress('points')}
                   style={styles.labelWithTooltip}
                   testID={testIDs?.pointsTooltip}
@@ -302,7 +298,7 @@ const PerpsCloseSummary: React.FC<PerpsCloseSummaryProps> = ({
                     size={IconSize.Sm}
                     color={IconColor.Muted}
                   />
-                </TouchableOpacity>
+                </Pressable>
               ) : (
                 <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                   {strings('perps.estimated_points')}

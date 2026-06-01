@@ -1,8 +1,8 @@
 import React from 'react';
+import Pressable from '../../component-library/components-temp/Pressable';
 import {
   View,
   StyleSheet,
-  TouchableOpacity,
   TouchableOpacityProps,
   GestureResponderEvent,
 } from 'react-native';
@@ -46,7 +46,7 @@ const SelectorButton: React.FC<SelectorButtonProps & TouchableOpacityProps> = ({
   const styles = createStyles(colors);
 
   return (
-    <TouchableOpacity onPress={onPress} disabled={disabled} {...props}>
+    <Pressable onPress={onPress} disabled={disabled} {...props}>
       <View style={styles.container}>
         <>{children}</>
         <Icon
@@ -56,7 +56,7 @@ const SelectorButton: React.FC<SelectorButtonProps & TouchableOpacityProps> = ({
           style={styles.caretDown}
         />
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

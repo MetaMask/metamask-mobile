@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { act } from '@testing-library/react-hooks';
 import AddressQRCode from './index';
@@ -8,6 +8,7 @@ import { ToastContext } from '../../../component-library/components/Toast';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { backgroundState } from '../../../util/test/initial-root-state';
 
+import Pressable from '../../../component-library/components-temp/Pressable';
 jest.mock('../../../core/ClipboardManager', () => ({
   setString: jest.fn().mockResolvedValue(undefined),
 }));
@@ -106,7 +107,7 @@ describe('AddressQRCode', () => {
 
   it('calls closeQrModal callback when close button is pressed', async () => {
     const { UNSAFE_getAllByType } = renderComponent();
-    const touchables = UNSAFE_getAllByType(TouchableOpacity);
+    const touchables = UNSAFE_getAllByType(Pressable);
     const closeButton = touchables[0];
 
     await act(async () => {
@@ -126,7 +127,7 @@ describe('AddressQRCode', () => {
     const { UNSAFE_getAllByType } = renderComponent(
       stateWithUnbackedSeedphrase,
     );
-    const touchables = UNSAFE_getAllByType(TouchableOpacity);
+    const touchables = UNSAFE_getAllByType(Pressable);
     const closeButton = touchables[0];
 
     await act(async () => {
@@ -144,7 +145,7 @@ describe('AddressQRCode', () => {
 
   it('does not dispatch protectWalletModalVisible when seedphrase is backed up', async () => {
     const { UNSAFE_getAllByType } = renderComponent();
-    const touchables = UNSAFE_getAllByType(TouchableOpacity);
+    const touchables = UNSAFE_getAllByType(Pressable);
     const closeButton = touchables[0];
 
     await act(async () => {

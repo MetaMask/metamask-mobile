@@ -1,7 +1,8 @@
 import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import type { PaymentMethod } from '@metamask/ramps-controller';
 import type { PaymentType } from '@consensys/on-ramp-sdk';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   Icon,
   IconName,
@@ -61,12 +62,7 @@ const PaymentMethodPill: React.FC<PaymentMethodPillProps> = ({
   }
 
   return (
-    <TouchableOpacity
-      style={styles.container}
-      onPress={onPress}
-      testID={testID}
-      activeOpacity={0.7}
-    >
+    <Pressable style={styles.container} onPress={onPress} testID={testID}>
       <View style={styles.iconWrapper}>
         {hasPaymentType ? (
           <PaymentMethodIcon
@@ -96,7 +92,7 @@ const PaymentMethodPill: React.FC<PaymentMethodPillProps> = ({
           color={IconColor.IconDefault}
         />
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

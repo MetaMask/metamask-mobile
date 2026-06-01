@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, TouchableOpacity, InteractionManager } from 'react-native';
+import { View, InteractionManager } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
@@ -8,6 +8,7 @@ import styleSheet from './BuildQuote.styles';
 
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
 import Keypad from '../../../../../Base/Keypad';
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -517,7 +518,7 @@ const BuildQuote = () => {
         <ScreenLayout.Content style={styles.content}>
           <View style={styles.selectionRow}>
             <AccountSelector isEvmOnly={false} />
-            <TouchableOpacity
+            <Pressable
               style={styles.fiatSelector}
               onPress={handleRegionPress}
               disabled={!!regionsError || !regions || regions.length === 0}
@@ -544,7 +545,7 @@ const BuildQuote = () => {
                   color={theme.colors.icon.alternative}
                 />
               </View>
-            </TouchableOpacity>
+            </Pressable>
           </View>
 
           <View style={styles.centerGroup}>
@@ -588,7 +589,7 @@ const BuildQuote = () => {
               )}
             </View>
 
-            <TouchableOpacity
+            <Pressable
               onPress={handleCryptoPress}
               disabled={
                 !!cryptosError ||
@@ -641,7 +642,7 @@ const BuildQuote = () => {
                   color={theme.colors.icon.alternative}
                 />
               </View>
-            </TouchableOpacity>
+            </Pressable>
             <SdkErrorAlert
               error={regionsError}
               onRetry={retryFetchRegions}
@@ -673,7 +674,7 @@ const BuildQuote = () => {
             )}
           </View>
 
-          <TouchableOpacity
+          <Pressable
             style={styles.paymentMethodBox}
             onPress={handlePaymentMethodPress}
             disabled={
@@ -717,7 +718,7 @@ const BuildQuote = () => {
                 />
               </ListItemColumn>
             </ListItem>
-          </TouchableOpacity>
+          </Pressable>
 
           <Keypad value={amount} onChange={handleKeypadChange} />
         </ScreenLayout.Content>

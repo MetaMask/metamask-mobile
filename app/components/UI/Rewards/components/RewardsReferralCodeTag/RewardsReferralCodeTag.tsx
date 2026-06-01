@@ -1,4 +1,5 @@
 import React, { useContext } from 'react';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
@@ -12,7 +13,7 @@ import {
 } from '../../../../../component-library/components/Toast';
 import { strings } from '../../../../../../locales/i18n';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
-import { TouchableOpacity } from 'react-native';
+
 interface RewardsReferralCodeTagProps {
   referralCode: string;
   backgroundColor?: string;
@@ -48,12 +49,12 @@ const RewardsReferralCodeTag: React.FC<RewardsReferralCodeTagProps> = ({
   };
 
   return (
-    <TouchableOpacity style={styles.container} onPress={handleCopyToClipboard}>
+    <Pressable style={styles.container} onPress={handleCopyToClipboard}>
       <VipIcon name="VipIcon" width={12} height={12} />
       <Text style={styles.referralCode} variant={TextVariant.BodySMMedium}>
         {referralCode}
       </Text>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

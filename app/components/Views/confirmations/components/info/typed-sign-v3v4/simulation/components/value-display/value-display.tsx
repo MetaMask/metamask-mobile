@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { NetworkClientId } from '@metamask/network-controller';
 import { Hex } from '@metamask/utils';
@@ -7,6 +7,7 @@ import { BigNumber } from 'bignumber.js';
 
 import ButtonPill from '../../../../../../../../../component-library/components-temp/Buttons/ButtonPill/ButtonPill';
 import ButtonIcon from '../../../../../../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon';
+import Pressable from '../../../../../../../../../component-library/components-temp/Pressable';
 import {
   IconName,
   IconColor,
@@ -240,10 +241,7 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
          * {@see {@link https://github.com/MetaMask/metamask-mobile/issues/12656}}
          */
         <BottomModal onClose={() => setHasValueModalOpen(false)}>
-          <TouchableOpacity
-            activeOpacity={1}
-            onPress={() => setHasValueModalOpen(false)}
-          >
+          <Pressable onPress={() => setHasValueModalOpen(false)}>
             <View style={styles.valueModal}>
               <View style={styles.valueModalHeader}>
                 <ButtonIcon
@@ -260,7 +258,7 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
                 {tokenValueMaxPrecision}
               </Text>
             </View>
-          </TouchableOpacity>
+          </Pressable>
         </BottomModal>
       )}
     </View>

@@ -2,7 +2,8 @@ import React, { useCallback, useState } from 'react';
 import { useStyles } from '../../../../../component-library/hooks';
 import { createStyles } from './styles';
 import { Box } from '../../../Box/Box';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Icon, {
   IconName,
 } from '../../../../../component-library/components/Icons/Icon';
@@ -36,14 +37,13 @@ export const FLipQuoteButton = ({ onPress, disabled }: Props) => {
     <Box style={styles.arrowContainer}>
       <View style={styles.separator} />
       <Box style={styles.arrowCircle}>
-        <TouchableOpacity
+        <Pressable
           style={styles.button}
           onPress={!disabled ? onPress : undefined}
           onPressIn={!disabled ? triggerOnPressedIn : undefined}
           onPressOut={!disabled ? triggerOnPressedOut : undefined}
           disabled={disabled}
           accessible
-          activeOpacity={1}
           testID="arrow-button"
         >
           <Icon
@@ -51,7 +51,7 @@ export const FLipQuoteButton = ({ onPress, disabled }: Props) => {
             size={ICONSIZE_BY_BUTTONICONSIZE[ButtonIconSizes.Lg]}
             color={DEFAULT_BUTTONICON_ICONCOLOR}
           />
-        </TouchableOpacity>
+        </Pressable>
       </Box>
     </Box>
   );

@@ -1,13 +1,14 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { TouchableOpacity, View, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import Networks, { getDecimalChainId } from '../../../util/networks';
 import { strings } from '../../../../locales/i18n';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useNavigation } from '@react-navigation/native';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import {
   selectChainId,
   selectProviderConfig,
@@ -139,11 +140,7 @@ class NavbarTitle extends PureComponent {
 
     const realTitle = translate ? strings(title) : title;
     return (
-      <TouchableOpacity
-        onPress={this.openNetworkList}
-        style={styles.wrapper}
-        activeOpacity={this.props.disableNetwork ? 1 : 0.2}
-      >
+      <Pressable onPress={this.openNetworkList} style={styles.wrapper}>
         {title ? (
           <Text numberOfLines={1} variant={TextVariant.HeadingSM}>
             {realTitle}
@@ -165,7 +162,7 @@ class NavbarTitle extends PureComponent {
             </Text>
           </View>
         ) : null}
-      </TouchableOpacity>
+      </Pressable>
     );
   };
 }

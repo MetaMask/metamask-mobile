@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Icon, {
   IconName,
   IconColor,
@@ -34,7 +35,7 @@ export const FilterButton: React.FC<FilterButtonProps> = ({
   const tw = useTailwind();
 
   return (
-    <TouchableOpacity
+    <Pressable
       testID={testID}
       onPress={onPress}
       style={tw.style(
@@ -43,7 +44,6 @@ export const FilterButton: React.FC<FilterButtonProps> = ({
         disabled && 'opacity-50',
         twClassName,
       )}
-      activeOpacity={0.2}
       disabled={disabled}
     >
       {iconName && (
@@ -61,7 +61,7 @@ export const FilterButton: React.FC<FilterButtonProps> = ({
         color={IconColor.Alternative}
         size={IconSize.Xs}
       />
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

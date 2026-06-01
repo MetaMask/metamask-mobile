@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
@@ -10,6 +10,7 @@ import { useTheme } from '../../../../../../../../../util/theme';
 
 import ButtonPill from '../../../../../../../../../component-library/components-temp/Buttons/ButtonPill/ButtonPill';
 import ButtonIcon from '../../../../../../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon';
+import Pressable from '../../../../../../../../../component-library/components-temp/Pressable';
 import {
   IconName,
   IconColor,
@@ -132,10 +133,7 @@ const NativeValueDisplay: React.FC<PermitSimulationValueDisplayParams> = ({
          * {@see {@link https://github.com/MetaMask/metamask-mobile/issues/12656}}
          */
         <BottomModal onClose={() => setHasValueModalOpen(false)}>
-          <TouchableOpacity
-            activeOpacity={1}
-            onPress={() => setHasValueModalOpen(false)}
-          >
+          <Pressable onPress={() => setHasValueModalOpen(false)}>
             <View style={styles.valueModal}>
               <View style={styles.valueModalHeader}>
                 <ButtonIcon
@@ -152,7 +150,7 @@ const NativeValueDisplay: React.FC<PermitSimulationValueDisplayParams> = ({
                 {tokenValueMaxPrecision}
               </Text>
             </View>
-          </TouchableOpacity>
+          </Pressable>
         </BottomModal>
       )}
     </View>

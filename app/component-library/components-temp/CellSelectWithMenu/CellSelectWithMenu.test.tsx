@@ -1,12 +1,12 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { TouchableOpacity } from 'react-native';
 
 import CellSelectWithMenu from './CellSelectWithMenu';
 import { CellComponentSelectorsIDs } from '../../components/Cells/Cell/CellComponent.testIds';
 
 import { SAMPLE_CELLSELECT_WITH_BUTTON_PROPS } from './CellSelectWithMenu.constants';
 
+import Pressable from '../Pressable';
 describe('CellSelectWithMenu', () => {
   it('renders with default props', () => {
     const { getByTestId } = render(
@@ -43,6 +43,6 @@ describe('CellSelectWithMenu', () => {
     );
 
     expect(() => fireEvent.press(secondaryTextElement)).not.toThrow();
-    expect(secondaryTextElement.parent?.type).not.toBe(TouchableOpacity);
+    expect(secondaryTextElement.parent?.type).not.toBe(Pressable);
   });
 });

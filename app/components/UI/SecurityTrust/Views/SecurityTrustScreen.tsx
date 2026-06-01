@@ -1,11 +1,6 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import {
-  ScrollView,
-  View,
-  Linking,
-  TouchableOpacity,
-  useColorScheme,
-} from 'react-native';
+import Pressable from '../../../../component-library/components-temp/Pressable';
+import { ScrollView, View, Linking, useColorScheme } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -205,7 +200,7 @@ const SecurityTrustScreen: React.FC = () => {
         twClassName="px-4 pb-3"
         style={{ paddingTop: insets.top + 8 }}
       >
-        <TouchableOpacity
+        <Pressable
           onPress={() => {
             const timeSpentMs = Date.now() - timeSpentStart.current;
             trackEvent(
@@ -228,7 +223,7 @@ const SecurityTrustScreen: React.FC = () => {
             size={IconSize.Md}
             color={IconColor.IconDefault}
           />
-        </TouchableOpacity>
+        </Pressable>
 
         <Text
           variant={TextVariant.HeadingSm}

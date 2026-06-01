@@ -5,11 +5,12 @@ import React, {
   useRef,
   useEffect,
 } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../../core/Engine';
 import createStyles from './AccountGroupBalance.styles';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   selectBalanceBySelectedAccountGroup,
   selectBalanceChangeBySelectedAccountGroup,
@@ -232,7 +233,7 @@ const AccountGroupBalance = ({
         testID={WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER}
       />
     ) : (
-      <TouchableOpacity
+      <Pressable
         onPress={() => togglePrivacy(!privacyMode)}
         testID="balance-container"
         style={styles.balanceContainer}
@@ -259,7 +260,7 @@ const AccountGroupBalance = ({
             />
           </Skeleton>
         )}
-      </TouchableOpacity>
+      </Pressable>
     );
 
   return (

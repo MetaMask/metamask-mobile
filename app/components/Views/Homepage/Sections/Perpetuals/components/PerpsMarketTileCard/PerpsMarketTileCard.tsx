@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef } from 'react';
-import { Animated, TouchableOpacity, View } from 'react-native';
+import { Animated, View } from 'react-native';
+import Pressable from '../../../../../../../component-library/components-temp/Pressable';
 import {
   Box,
   BoxFlexDirection,
@@ -97,12 +98,7 @@ const PerpsMarketTileCard: React.FC<PerpsMarketTileCardProps> = ({
   };
 
   return (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={handlePress}
-      activeOpacity={0.7}
-      testID={testID}
-    >
+    <Pressable style={styles.card} onPress={handlePress} testID={testID}>
       <View style={styles.content}>
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -189,7 +185,7 @@ const PerpsMarketTileCard: React.FC<PerpsMarketTileCardProps> = ({
           testID="shimmer-overlay"
         />
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

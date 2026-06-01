@@ -1,7 +1,8 @@
 import React, { useCallback } from 'react';
-import { ScrollView, TouchableOpacity } from 'react-native';
+import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import {
   AvatarAccount,
   AvatarAccountSize,
@@ -130,7 +131,7 @@ export const BaseAccountDetails = ({
             />
           </Box>
           <Box style={styles.section}>
-            <TouchableOpacity
+            <Pressable
               style={styles.baseRow}
               testID={AccountDetailsIds.ACCOUNT_NAME_LINK}
               onPress={handleEditAccountName}
@@ -156,8 +157,8 @@ export const BaseAccountDetails = ({
                   color={IconColor.IconAlternative}
                 />
               </Box>
-            </TouchableOpacity>
-            <TouchableOpacity
+            </Pressable>
+            <Pressable
               style={styles.baseRow}
               testID={AccountDetailsIds.ACCOUNT_ADDRESS_LINK}
               onPress={handleShareAddress}
@@ -183,8 +184,8 @@ export const BaseAccountDetails = ({
                   color={IconColor.IconAlternative}
                 />
               </Box>
-            </TouchableOpacity>
-            <TouchableOpacity
+            </Pressable>
+            <Pressable
               style={styles.baseRow}
               testID={AccountDetailsIds.WALLET_NAME_LINK}
               onPress={handleWalletClick}
@@ -210,7 +211,7 @@ export const BaseAccountDetails = ({
                   color={IconColor.IconAlternative}
                 />
               </Box>
-            </TouchableOpacity>
+            </Pressable>
           </Box>
           <Box style={styles.section}>{children}</Box>
         </Box>

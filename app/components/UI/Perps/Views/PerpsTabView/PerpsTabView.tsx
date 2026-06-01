@@ -1,8 +1,9 @@
 import { useNavigation } from '@react-navigation/native';
 import BigNumber from 'bignumber.js';
 import React, { useCallback, useState } from 'react';
-import { Modal, TouchableOpacity, View } from 'react-native';
+import { Modal, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   PerpsPositionsViewSelectorsIDs,
   PerpsTabViewSelectorsIDs,
@@ -172,7 +173,7 @@ const PerpsTabView = () => {
   }, [navigation]);
 
   const renderStartTradeCTA = () => (
-    <TouchableOpacity
+    <Pressable
       style={styles.startTradeCTA}
       onPress={handleNewTrade}
       testID={PerpsTabViewSelectorsIDs.START_NEW_TRADE_CTA}
@@ -189,7 +190,7 @@ const PerpsTabView = () => {
           {strings('perps.position.list.start_new_trade')}
         </Text>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 
   const renderOrdersSection = () => {
@@ -204,11 +205,11 @@ const PerpsTabView = () => {
           <Text variant={TextVariant.BodyMDMedium} style={styles.sectionTitle}>
             {strings('perps.order.open_orders')}
           </Text>
-          <TouchableOpacity onPress={handleCancelAllPress}>
+          <Pressable onPress={handleCancelAllPress}>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('perps.home.cancel_all')}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
         <View>
           {orders.map((order) => (
@@ -246,11 +247,11 @@ const PerpsTabView = () => {
           >
             {strings('perps.position.title')}
           </Text>
-          <TouchableOpacity onPress={handleCloseAllPress}>
+          <Pressable onPress={handleCloseAllPress}>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('perps.home.close_all')}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
         <View>
           {positions.map((position, index) => {
@@ -370,14 +371,11 @@ const PerpsTabView = () => {
             onPress={() => handleExploreMarketPress(market)}
           />
         ))}
-        <TouchableOpacity
-          style={styles.seeAllButton}
-          onPress={handleSeeAllPerps}
-        >
+        <Pressable style={styles.seeAllButton} onPress={handleSeeAllPerps}>
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
             {strings('perps.home.see_all_perps')}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
     );
   }, [

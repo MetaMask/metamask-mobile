@@ -1,6 +1,7 @@
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Platform, TouchableOpacity, TextInputProps } from 'react-native';
+import { Platform, TextInputProps } from 'react-native';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   Box,
   FontWeight,
@@ -378,7 +379,7 @@ const CardAuthentication = () => {
             <CardMessageBox messageType={CardMessageBoxType.AuthPrompt} />
           )}
           <Box twClassName="flex-row justify-between gap-2">
-            <TouchableOpacity
+            <Pressable
               onPress={() => setSelectedLocation('international')}
               style={tw.style(
                 `flex flex-col items-center justify-center flex-1 bg-background-muted rounded-lg ${selectedLocation === 'international' ? 'border border-text-default' : ''}`,
@@ -396,8 +397,8 @@ const CardAuthentication = () => {
                   {strings('card.card_authentication.location_button_text')}
                 </Text>
               </Box>
-            </TouchableOpacity>
-            <TouchableOpacity
+            </Pressable>
+            <Pressable
               onPress={() => setSelectedLocation('us')}
               style={tw.style(
                 `flex flex-col items-center justify-center flex-1 bg-background-muted rounded-lg ${selectedLocation === 'us' ? 'border border-text-default' : ''}`,
@@ -415,7 +416,7 @@ const CardAuthentication = () => {
                   {strings('card.card_authentication.location_button_text_us')}
                 </Text>
               </Box>
-            </TouchableOpacity>
+            </Pressable>
           </Box>
 
           <Box>
@@ -443,7 +444,7 @@ const CardAuthentication = () => {
               onChangeText={handlePasswordChange}
               value={password}
               endAccessory={
-                <TouchableOpacity
+                <Pressable
                   onPress={() => setIsPasswordVisible(!isPasswordVisible)}
                   testID={
                     CardAuthenticationSelectors.PASSWORD_VISIBILITY_TOGGLE
@@ -453,7 +454,7 @@ const CardAuthentication = () => {
                     name={isPasswordVisible ? IconName.EyeSlash : IconName.Eye}
                     size={IconSize.Md}
                   />
-                </TouchableOpacity>
+                </Pressable>
               }
               inputProps={{
                 autoCapitalize: 'none',
@@ -510,7 +511,7 @@ const CardAuthentication = () => {
           >
             {strings('card.card_otp_authentication.confirm_button')}
           </Button>
-          <TouchableOpacity
+          <Pressable
             onPress={handleBackToLogin}
             testID={CardAuthenticationSelectors.OTP_BACK_TO_LOGIN_BUTTON}
           >
@@ -521,7 +522,7 @@ const CardAuthentication = () => {
             >
               {strings('card.card_otp_authentication.back_to_login_button')}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         </>
       ) : (
         <Box twClassName="flex flex-col justify-center gap-2">
@@ -546,7 +547,7 @@ const CardAuthentication = () => {
             >
               {strings('card.card_authentication.login_button')}
             </Button>
-            <TouchableOpacity
+            <Pressable
               onPress={() => navigation.navigate(Routes.CARD.ONBOARDING.ROOT)}
             >
               <Text
@@ -557,7 +558,7 @@ const CardAuthentication = () => {
               >
                 {strings('card.card_authentication.signup_button')}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           </Box>
         </Box>
       ),

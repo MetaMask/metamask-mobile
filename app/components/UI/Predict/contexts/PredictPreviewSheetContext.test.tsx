@@ -1,7 +1,8 @@
 import React from 'react';
 import { act, render, screen, fireEvent } from '@testing-library/react-native';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { TEST_HEX_COLORS as mockTestHexColors } from '../testUtils/mockColors';
+import Pressable from '../../../../component-library/components-temp/Pressable';
 import {
   shouldSuppressLegacyOrderFailureToast,
   PredictPreviewSheetProvider,
@@ -201,18 +202,12 @@ const TestConsumer: React.FC = () => {
   return (
     <View>
       <Text testID="buy-sheet-open">{String(isBuySheetOpen)}</Text>
-      <TouchableOpacity
-        testID="open-buy"
-        onPress={() => openBuySheet(buyParams)}
-      >
+      <Pressable testID="open-buy" onPress={() => openBuySheet(buyParams)}>
         <Text>Open Buy</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        testID="open-sell"
-        onPress={() => openSellSheet(sellParams)}
-      >
+      </Pressable>
+      <Pressable testID="open-sell" onPress={() => openSellSheet(sellParams)}>
         <Text>Open Sell</Text>
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 };

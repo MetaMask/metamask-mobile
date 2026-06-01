@@ -1,9 +1,10 @@
 import React, { useCallback, useRef } from 'react';
-import { StyleSheet, TouchableOpacity, TextStyle } from 'react-native';
+import { StyleSheet, TextStyle } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { Transaction } from '@metamask/keyring-api';
 import { capitalize } from 'lodash';
 
+import Pressable from '../../../component-library/components-temp/Pressable';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
@@ -133,7 +134,7 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
         alignItems={BoxAlignItems.Center}
       >
         {isLink ? (
-          <TouchableOpacity
+          <Pressable
             onPress={() => viewOnBlockExplorer(label)}
             style={styles.blockExplorerLink}
           >
@@ -145,7 +146,7 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
               size={IconSize.Sm}
               color={IconColor.Primary}
             />
-          </TouchableOpacity>
+          </Pressable>
         ) : label === TransactionDetailRow.Status ? (
           <StatusText
             testID={`transaction-status-${transaction.id}`}

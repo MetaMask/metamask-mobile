@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { PerpsPositionCardSelectorsIDs } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
@@ -285,12 +286,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     }
 
     return (
-      <TouchableOpacity
-        style={styles.compactCard}
-        activeOpacity={0.7}
-        onPress={onPress}
-        testID={testID}
-      >
+      <Pressable style={styles.compactCard} onPress={onPress} testID={testID}>
         <View style={styles.compactContent}>
           <View style={styles.compactLeft}>
             <View style={styles.compactIcon}>
@@ -323,7 +319,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             {secondaryValue}
           </View>
         </View>
-      </TouchableOpacity>
+      </Pressable>
     );
   }
 
@@ -398,7 +394,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
       {/* Size/Margin Row */}
       <View style={styles.sizeMarginRow}>
-        <TouchableOpacity
+        <Pressable
           style={styles.sizeContainer}
           onPress={handleSizeToggle}
           testID={PerpsPositionCardSelectorsIDs.SIZE_CONTAINER}
@@ -431,9 +427,9 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               testID={PerpsPositionCardSelectorsIDs.FLIP_ICON}
             />
           </View>
-        </TouchableOpacity>
+        </Pressable>
 
-        <TouchableOpacity
+        <Pressable
           style={styles.marginContainer}
           onPress={onMarginPress}
           disabled={!onMarginPress}
@@ -467,14 +463,13 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               />
             </View>
           )}
-        </TouchableOpacity>
+        </Pressable>
       </View>
 
       {/* Auto Close Section */}
-      <TouchableOpacity
+      <Pressable
         style={styles.autoCloseSection}
         onPress={handleAutoCloseButtonPress}
-        activeOpacity={0.7}
         disabled={!onAutoClosePress}
         testID={PerpsPositionCardSelectorsIDs.AUTO_CLOSE_TOGGLE}
       >
@@ -563,7 +558,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             </Button>
           )}
         </View>
-      </TouchableOpacity>
+      </Pressable>
 
       {/* Details Section - Always expanded */}
       <View

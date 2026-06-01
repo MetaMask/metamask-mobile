@@ -1,9 +1,9 @@
 import React, { useCallback, useState } from 'react';
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import {
   LayoutAnimation,
   Platform,
   StyleProp,
-  TouchableOpacity,
   UIManager,
   View,
   ViewStyle,
@@ -107,10 +107,9 @@ const InfoRowAccordion: React.FC<InfoRowAccordionProps> = ({
 
   return (
     <View style={[styles.container, style]} testID={testID}>
-      <TouchableOpacity
+      <Pressable
         style={[styles.header, headerStyle]}
         onPress={toggleAccordion}
-        activeOpacity={0.7}
         testID={`${testID}-header`}
       >
         {typeof header === 'string' ? (
@@ -128,7 +127,7 @@ const InfoRowAccordion: React.FC<InfoRowAccordionProps> = ({
             testID={`${testID}-arrow`}
           />
         </Animated.View>
-      </TouchableOpacity>
+      </Pressable>
       {isExpanded && (
         <View style={[styles.content, contentStyle]}>{children}</View>
       )}

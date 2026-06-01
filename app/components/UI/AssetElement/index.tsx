@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
-import { TouchableOpacity, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import {
   TextVariant,
   TextColor,
@@ -107,7 +108,7 @@ const AssetElement: React.FC<AssetElementProps> = ({
   // TODO: Use the SensitiveText component when it's available
   // when privacyMode is true, we should hide the balance and the fiat
   return (
-    <TouchableOpacity
+    <Pressable
       disabled={disabled}
       onPress={handleOnPress}
       onLongPress={handleOnLongPress}
@@ -138,7 +139,7 @@ const AssetElement: React.FC<AssetElementProps> = ({
         )}
         {secondaryBalanceElement ??
           (secondaryBalance ? (
-            <TouchableOpacity
+            <Pressable
               onPress={handleOnSecondaryBalancePress}
               disabled={isSecondaryDisabled}
               testID={SECONDARY_BALANCE_BUTTON_TEST_ID}
@@ -162,10 +163,10 @@ const AssetElement: React.FC<AssetElementProps> = ({
                   secondaryBalance
                 )}
               </SensitiveText>
-            </TouchableOpacity>
+            </Pressable>
           ) : null)}
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 export default AssetElement;

@@ -1,7 +1,8 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+
 import { strings } from '../../../../../../locales/i18n';
 import Text from '../../../../../component-library/components/Texts/Text/Text';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
@@ -38,7 +39,7 @@ const NetworkSelector = ({
 
   return (
     <Box twClassName="px-4 pt-4" testID="add-asset-network-selector">
-      <TouchableOpacity
+      <Pressable
         style={tw.style(
           'border border-default rounded-lg flex-row items-center p-4 mb-4 mt-1',
         )}
@@ -76,7 +77,7 @@ const NetworkSelector = ({
             accessibilityRole="button"
           />
         </Box>
-      </TouchableOpacity>
+      </Pressable>
     </Box>
   );
 };

@@ -1,5 +1,6 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+
+import Pressable from '../../../../component-library/components-temp/Pressable';
 import {
   Box,
   BoxFlexDirection,
@@ -92,9 +93,9 @@ export const SecurityBanner: React.FC<SecurityBannerProps> = ({
   // If onPress is provided, wrap in TouchableOpacity for interactivity
   if (onPress) {
     return (
-      <TouchableOpacity onPress={onPress} testID={testID}>
+      <Pressable onPress={onPress} testID={testID}>
         {content}
-      </TouchableOpacity>
+      </Pressable>
     );
   }
 

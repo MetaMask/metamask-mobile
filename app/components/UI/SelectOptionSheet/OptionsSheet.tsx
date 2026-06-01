@@ -2,8 +2,9 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import React, { useRef, useMemo } from 'react';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import {
   createNavigationDetails,
   useParams,
@@ -61,7 +62,7 @@ const OptionsSheet = () => {
           {sortedOptions.map((option) => {
             const isSelected = option.value === params.selectedValue;
             return (
-              <TouchableOpacity
+              <Pressable
                 onPress={() =>
                   option.value && onSelectedValueChange(option.value)
                 }
@@ -75,7 +76,7 @@ const OptionsSheet = () => {
                 <Text style={styles.optionLabel} numberOfLines={1}>
                   {option.label}
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             );
           })}
         </View>

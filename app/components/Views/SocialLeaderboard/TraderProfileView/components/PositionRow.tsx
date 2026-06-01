@@ -1,5 +1,6 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   Box,
   Text,
@@ -105,9 +106,9 @@ const PositionRow: React.FC<PositionRowProps> = ({ position, onPress }) => {
 
   if (onPress) {
     return (
-      <TouchableOpacity onPress={() => onPress(position)} testID={testID}>
+      <Pressable onPress={() => onPress(position)} testID={testID}>
         {content}
-      </TouchableOpacity>
+      </Pressable>
     );
   }
 

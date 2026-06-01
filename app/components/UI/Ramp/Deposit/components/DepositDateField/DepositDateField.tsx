@@ -13,7 +13,6 @@ import {
   Button,
   TextInput,
   TextInputProps,
-  TouchableOpacity,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import DepositTextField from '../DepositTextField';
@@ -21,6 +20,7 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import I18n from '../../../../../../../locales/i18n';
 import { getIntlDateTimeFormatter } from '../../../../../../util/intl';
 import styleSheet from './DespostDateField.styles';
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import Icon, {
   IconSize,
   IconName,
@@ -115,11 +115,7 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
           ref={ref || fieldRef}
           readOnly
           inputElement={
-            <TouchableOpacity
-              style={styles.inputStyle}
-              onPress={handleOpenPicker}
-              activeOpacity={0.7}
-            >
+            <Pressable style={styles.inputStyle} onPress={handleOpenPicker}>
               <TextInput
                 style={styles.textInputStyle}
                 value={valueAsDate ? formatDateForDisplay(valueAsDate) : ''}
@@ -129,7 +125,7 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
                 pointerEvents="none"
                 {...textFieldProps}
               />
-            </TouchableOpacity>
+            </Pressable>
           }
         />
 

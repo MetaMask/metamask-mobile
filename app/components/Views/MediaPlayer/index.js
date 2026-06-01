@@ -1,12 +1,13 @@
 import React, { useRef, useState } from 'react';
 import PropTypes from 'prop-types';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import AndroidMediaPlayer from './AndroidMediaPlayer';
 import Video from 'react-native-video';
 import Device from '../../../util/device';
 import Loader from './Loader';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { TapGestureHandler } from 'react-native-gesture-handler';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -149,8 +150,7 @@ function MediaPlayer({ uri, style, onClose, textTracks, selectedTextTrack }) {
             </Animated.View>
           </TapGestureHandler>
           {isPlaying ? (
-            <TouchableOpacity
-              activeOpacity={1}
+            <Pressable
               style={styles.volumeButtonCircle}
               onPress={onPressVolumeControls}
             >
@@ -159,7 +159,7 @@ function MediaPlayer({ uri, style, onClose, textTracks, selectedTextTrack }) {
                 size={isMuted ? 22 : 28}
                 color={colors.overlay.inverse}
               />
-            </TouchableOpacity>
+            </Pressable>
           ) : null}
         </>
       )}

@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import { TouchableOpacity } from 'react-native';
 
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Icon, {
   IconName,
   IconSize,
@@ -33,7 +33,7 @@ export const EditSpendingCapButton = ({
   );
 
   return (
-    <TouchableOpacity
+    <Pressable
       style={styles.container}
       onPress={openModal}
       testID="edit-spending-cap-button"
@@ -51,6 +51,6 @@ export const EditSpendingCapButton = ({
         color={theme.colors.info.default}
       />
       {children}
-    </TouchableOpacity>
+    </Pressable>
   );
 };

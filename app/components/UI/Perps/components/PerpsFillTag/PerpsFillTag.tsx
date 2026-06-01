@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
-import { View, TouchableOpacity, Linking } from 'react-native';
+import { View, Linking } from 'react-native';
 import { useSelector } from 'react-redux';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Text, {
   TextColor,
   TextVariant,
@@ -134,9 +135,7 @@ const PerpsFillTag: React.FC<PerpsFillTagProps> = ({
         });
       };
 
-      return (
-        <TouchableOpacity onPress={onTagPress}>{tagContent}</TouchableOpacity>
-      );
+      return <Pressable onPress={onTagPress}>{tagContent}</Pressable>;
     }
 
     return tagContent;

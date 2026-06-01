@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Linking, StyleSheet, View } from 'react-native';
 import Modal from 'react-native-modal';
 import Text from '../../../../Base/Text';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
@@ -8,6 +8,7 @@ import { useTheme } from '../../../../../util/theme';
 import { Colors } from '../../../../../util/theme/models';
 import { UNSUPPORTED_BUY_REGION_SUPPORT_URL } from '../../../../../constants/urls';
 
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
     box: {
@@ -73,9 +74,9 @@ const RegionAlert: React.FC<Props> = ({
       style={styles.modal}
     >
       <Box style={styles.box}>
-        <TouchableOpacity onPress={dismiss} style={styles.cancel}>
+        <Pressable onPress={dismiss} style={styles.cancel}>
           <EvilIcons name="close" size={17} color={colors.icon.default} />
-        </TouchableOpacity>
+        </Pressable>
         <View style={styles.row}>
           <Text bold primary bigger>
             {title}
@@ -84,11 +85,11 @@ const RegionAlert: React.FC<Props> = ({
           <View style={styles.row}>
             <Text small>{body}</Text>
           </View>
-          <TouchableOpacity onPress={handleSupportLinkPress}>
+          <Pressable onPress={handleSupportLinkPress}>
             <Text blue underline small style={styles.link}>
               {link}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </Box>
     </Modal>

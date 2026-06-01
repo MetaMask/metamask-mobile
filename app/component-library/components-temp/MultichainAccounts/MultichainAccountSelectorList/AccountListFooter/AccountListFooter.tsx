@@ -1,7 +1,8 @@
 import React, { memo, useCallback, useState, useEffect, useMemo } from 'react';
-import { View, TouchableOpacity, InteractionManager } from 'react-native';
+import { View, InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
 
+import Pressable from '../../../Pressable';
 import {
   Icon,
   IconName,
@@ -130,14 +131,13 @@ const AccountListFooter = memo(
 
     return (
       <View style={styles.container}>
-        <TouchableOpacity
+        <Pressable
           style={[
             styles.button,
             (isLoadingState || !walletInfo?.keyringId) && styles.buttonDisabled,
           ]}
           onPress={handlePress}
           disabled={isLoadingState || !walletInfo?.keyringId}
-          activeOpacity={0.7}
         >
           <View style={styles.iconContainer}>
             {isLoadingState ? (
@@ -157,7 +157,7 @@ const AccountListFooter = memo(
           >
             {actionLabel}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
     );
   },

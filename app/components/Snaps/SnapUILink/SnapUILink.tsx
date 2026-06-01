@@ -1,12 +1,7 @@
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React from 'react';
-import {
-  Text,
-  StyleSheet,
-  Linking,
-  View,
-  TouchableOpacity,
-} from 'react-native';
+import Pressable from '../../../component-library/components-temp/Pressable';
+import { Text, StyleSheet, Linking, View } from 'react-native';
 import Icon, {
   IconColor,
   IconName,
@@ -48,7 +43,7 @@ export const SnapUILink: React.FC<SnapUILinkProps> = ({
   children,
   isInline,
 }) => {
-  const Component = isInline ? Text : TouchableOpacity;
+  const Component = isInline ? Text : Pressable;
 
   return (
     <Component

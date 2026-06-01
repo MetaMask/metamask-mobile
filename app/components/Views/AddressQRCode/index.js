@@ -1,12 +1,7 @@
 import React, { useCallback, useContext, useMemo } from 'react';
 import PropTypes from 'prop-types';
-import {
-  TouchableOpacity,
-  Dimensions,
-  StyleSheet,
-  View,
-  Text,
-} from 'react-native';
+import Pressable from '../../../component-library/components-temp/Pressable';
+import { Dimensions, StyleSheet, View, Text } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import { useSelector, useDispatch } from 'react-redux';
 import QRCode from 'react-native-qrcode-svg';
@@ -141,9 +136,9 @@ const AddressQRCode = ({ closeQrModal }) => {
   return (
     <View style={styles.root}>
       <View style={styles.wrapper}>
-        <TouchableOpacity style={styles.closeIcon} onPress={handleCloseQrModal}>
+        <Pressable style={styles.closeIcon} onPress={handleCloseQrModal}>
           <IonicIcon name={'close'} size={38} color={colors.primary.inverse} />
-        </TouchableOpacity>
+        </Pressable>
         <View style={styles.qrCodeContainer}>
           <View style={styles.qrCode}>
             <QRCode
@@ -156,9 +151,9 @@ const AddressQRCode = ({ closeQrModal }) => {
           <Text style={styles.addressTitle}>
             {strings('receive_request.public_address_qr_code')}
           </Text>
-          <TouchableOpacity onPress={copyAccountToClipboard}>
+          <Pressable onPress={copyAccountToClipboard}>
             <Text style={styles.address}>{processAddress()}</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </View>
     </View>

@@ -1,5 +1,6 @@
 import NavigationService from '../../../../../core/NavigationService';
 import Routes from '../../../../../constants/navigation/Routes.ts';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   Box,
   BoxAlignItems,
@@ -12,7 +13,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { Image, TouchableOpacity } from 'react-native';
+import { Image } from 'react-native';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants.ts';
 import React from 'react';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -33,14 +34,13 @@ const BenefitCard = ({ benefit }: Props) => {
       : formatDateRemaining(benefit.actionDate, Date.now());
 
   return (
-    <TouchableOpacity
+    <Pressable
       style={tw.style('bg-section rounded-lg p-4 h-[154px]')}
       onPress={() =>
         NavigationService.navigation.navigate(Routes.REWARD_BENEFIT_FULL_VIEW, {
           benefit,
         })
       }
-      activeOpacity={0.7}
     >
       <Box gap={4} twClassName="flex-row items-start">
         <Box twClassName="w-[78px] h-[78px] rounded-lg bg-muted overflow-hidden items-center justify-center">
@@ -88,7 +88,7 @@ const BenefitCard = ({ benefit }: Props) => {
           )}
         </Box>
       </Box>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

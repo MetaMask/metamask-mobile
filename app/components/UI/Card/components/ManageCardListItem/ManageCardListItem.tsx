@@ -1,6 +1,7 @@
 import React from 'react';
-import { TouchableOpacity, ActivityIndicator } from 'react-native';
+import { ActivityIndicator } from 'react-native';
 import { useTheme } from '../../../../../util/theme';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Icon, {
   IconName,
   IconSize,
@@ -42,7 +43,7 @@ const ManageCardListItem: React.FC<ManageCardListItemProps> = ({
   const styles = createStyles(colors, descriptionOrientation);
 
   return (
-    <TouchableOpacity onPress={onPress} testID={testID}>
+    <Pressable onPress={onPress} testID={testID}>
       <ListItem style={styles.root}>
         <ListItemColumn widthType={WidthType.Fill} style={styles.description}>
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
@@ -76,7 +77,7 @@ const ManageCardListItem: React.FC<ManageCardListItemProps> = ({
           </ListItemColumn>
         )}
       </ListItem>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

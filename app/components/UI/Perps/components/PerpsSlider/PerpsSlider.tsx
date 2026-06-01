@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   Gesture,
   GestureDetector,
@@ -312,14 +313,14 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
               }
 
               return (
-                <TouchableOpacity
+                <Pressable
                   key={`label-${percent}`}
                   style={[styles.percentageWrapper, wrapperStyle]}
                   onPress={() => handlePressPercentage(percent)}
                   disabled={disabled}
                 >
                   <Text style={styles.percentageText}>{percent}%</Text>
-                </TouchableOpacity>
+                </Pressable>
               );
             })}
         </View>
@@ -328,7 +329,7 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
       {quickValues && (
         <View style={styles.quickValuesRow}>
           {quickValues.map((val) => (
-            <TouchableOpacity
+            <Pressable
               key={val}
               onPress={() => {
                 onValueChange(val);
@@ -336,7 +337,7 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
               }}
             >
               <Text>{val}x</Text>
-            </TouchableOpacity>
+            </Pressable>
           ))}
         </View>
       )}

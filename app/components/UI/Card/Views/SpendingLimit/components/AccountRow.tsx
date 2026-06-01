@@ -1,5 +1,6 @@
 import React from 'react';
-import { Image, TouchableOpacity } from 'react-native';
+import { Image } from 'react-native';
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import {
   Box,
   Text,
@@ -118,11 +119,7 @@ const AccountRow: React.FC<AccountRowProps> = ({
     );
   }
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      activeOpacity={0.7}
-      testID={SpendingLimitSelectors.ACCOUNT_ROW}
-    >
+    <Pressable onPress={onPress} testID={SpendingLimitSelectors.ACCOUNT_ROW}>
       <Box twClassName="flex-row items-center p-4">
         <RowLabel />
         {isMoneyAccountSource ? (
@@ -135,7 +132,7 @@ const AccountRow: React.FC<AccountRowProps> = ({
           />
         )}
       </Box>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

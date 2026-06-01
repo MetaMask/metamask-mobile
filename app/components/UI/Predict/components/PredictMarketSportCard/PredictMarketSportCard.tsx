@@ -17,11 +17,12 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
-import { TouchableOpacity } from 'react-native';
+
 import I18n from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { getIntlDateTimeFormatter } from '../../../../../util/intl';
 import { useTheme } from '../../../../../util/theme';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   getPrimaryMoneylineOutcomes,
   isDrawCapableLeague,
@@ -360,11 +361,10 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
   }
 
   return (
-    <TouchableOpacity
+    <Pressable
       style={tw.style(isCarousel ? '' : 'my-[8px]')}
       testID={testID}
       onPress={handleCardPress}
-      activeOpacity={0.9}
     >
       <Box
         twClassName={`bg-muted rounded-[12px] overflow-hidden ${isCompact ? 'h-full' : ''}`}
@@ -556,7 +556,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
           )}
         </Box>
       </Box>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

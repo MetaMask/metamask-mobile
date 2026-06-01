@@ -1,6 +1,6 @@
 import React, { memo, useCallback } from 'react';
 import NetworkModals from '../../../../../UI/NetworkModal';
-import { View, TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import WarningIcon from 'react-native-vector-icons/FontAwesome';
 import { toHex } from '@metamask/controller-utils';
@@ -8,6 +8,7 @@ import CustomText from '../../../../../Base/Text';
 import EmptyPopularList from '../emptyList';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import {
   getFilteredPopularNetworks,
   PopularList,
@@ -164,7 +165,7 @@ const CustomNetwork = ({
         />
       )}
       {filteredPopularList.map((networkConfiguration, index) => (
-        <TouchableOpacity
+        <Pressable
           key={index}
           style={networkSettingsStyles.popularNetwork}
           onPress={() => handleNetworkPress(networkConfiguration)}
@@ -248,7 +249,7 @@ const CustomNetwork = ({
               />
             </View>
           )}
-        </TouchableOpacity>
+        </Pressable>
       ))}
     </>
   );

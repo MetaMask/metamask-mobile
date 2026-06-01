@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
-import { TouchableOpacity, Image } from 'react-native';
+import { Image } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import {
   Box,
   Text,
@@ -128,7 +129,7 @@ const PredictMarketCard: React.FC<PredictMarketCardProps> = ({
   }, [market.outcomes]);
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={handlePress}
       testID={`predict-market-card-${market.id}`}
       style={tw.style(
@@ -151,7 +152,7 @@ const PredictMarketCard: React.FC<PredictMarketCardProps> = ({
           <OutcomeRow key={outcome.id} outcome={outcome} />
         ))}
       </Box>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

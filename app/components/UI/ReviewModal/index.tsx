@@ -1,11 +1,6 @@
 import React, { useCallback, useRef, useState } from 'react';
-import {
-  View,
-  Image,
-  Text,
-  TouchableOpacity,
-  LayoutAnimation,
-} from 'react-native';
+import Pressable from '../../../component-library/components-temp/Pressable';
+import { View, Image, Text, LayoutAnimation } from 'react-native';
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import Icon from 'react-native-vector-icons/Feather';
 import { useNavigation } from '@react-navigation/native';
@@ -76,28 +71,22 @@ const ReviewModal = () => {
         {strings('review_prompt.mobile_sentiment')}
       </Text>
       <View style={styles.optionsContainer}>
-        <TouchableOpacity
-          style={styles.option}
-          onPress={triggerShowReviewPrompt}
-        >
+        <Pressable style={styles.option} onPress={triggerShowReviewPrompt}>
           <Text style={styles.optionIcon}>
             {strings('review_prompt.sentiment_good_face')}
           </Text>
           <Text style={styles.optionLabel}>
             {strings('review_prompt.sentiment_good')}
           </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.option}
-          onPress={triggerShowHelpOptions}
-        >
+        </Pressable>
+        <Pressable style={styles.option} onPress={triggerShowHelpOptions}>
           <Text style={styles.optionIcon}>
             {strings('review_prompt.sentiment_bad_face')}
           </Text>
           <Text style={[styles.optionLabel, styles.optionLabelRed]}>
             {strings('review_prompt.sentiment_bad')}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
     </View>
   );
@@ -123,11 +112,11 @@ const ReviewModal = () => {
           const key = `help-${index}`;
           const onPress = () => openUrl(link);
           return (
-            <TouchableOpacity key={key} onPress={onPress}>
+            <Pressable key={key} onPress={onPress}>
               <Text style={[styles.optionLabel, styles.helpOption]}>
                 {label}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           );
         })}
       </View>
@@ -146,13 +135,13 @@ const ReviewModal = () => {
     <ReusableModal ref={modalRef} style={styles.screen}>
       <View style={styles.modal}>
         {renderContent()}
-        <TouchableOpacity
+        <Pressable
           style={styles.closeButton}
           hitSlop={{ top: 12, right: 12, bottom: 12, left: 12 }}
           onPress={triggerClose}
         >
           <Icon color={colors.text.default} size={20} name={'x'} />
-        </TouchableOpacity>
+        </Pressable>
       </View>
     </ReusableModal>
   );

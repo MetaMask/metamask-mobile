@@ -1,7 +1,8 @@
 import React, { useCallback, useRef } from 'react';
-import { View, TouchableOpacity, Linking } from 'react-native';
+import { View, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import Text, {
   TextVariant,
   TextColor,
@@ -90,11 +91,11 @@ function UnsupportedRegionModal() {
             {region?.name}
           </Text>
         </View>
-        <TouchableOpacity onPress={handleSupportLinkPress}>
+        <Pressable onPress={handleSupportLinkPress}>
           <Text variant={TextVariant.BodySM} style={styles.supportLink}>
             {strings('fiat_on_ramp_aggregator.region.unsupported_link')}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
 
       <View style={styles.footer}>

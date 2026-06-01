@@ -1,11 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import {
-  Modal,
-  StyleProp,
-  TouchableOpacity,
-  View,
-  ViewStyle,
-} from 'react-native';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
+import { Modal, StyleProp, View, ViewStyle } from 'react-native';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { AccountId } from '@metamask/accounts-controller';
 import { EthScope } from '@metamask/keyring-api';
@@ -155,7 +150,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
 
   return (
     <View style={[styles.container, style]}>
-      <TouchableOpacity
+      <Pressable
         onPress={openModal}
         style={styles.row}
         testID={ACCOUNT_SELECTOR_TEST_IDS.PILL}
@@ -195,7 +190,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
             color={IconColor.Alternative}
           />
         </View>
-      </TouchableOpacity>
+      </Pressable>
       <Modal
         visible={isModalVisible}
         animationType="none"

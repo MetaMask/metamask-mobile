@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { TouchableOpacity } from 'react-native';
+
+import Pressable from '../../../../../../../component-library/components-temp/Pressable';
 import {
   AvatarToken,
   AvatarTokenSize,
@@ -59,9 +60,8 @@ const QuickBuyPayWithRow: React.FC<QuickBuyPayWithRowProps> = ({
   );
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={() => onPress(token)}
-      activeOpacity={0.7}
       accessibilityRole="button"
       testID={`quick-buy-pay-with-row-${tokenKey}`}
     >
@@ -126,7 +126,7 @@ const QuickBuyPayWithRow: React.FC<QuickBuyPayWithRowProps> = ({
           </Text>
         </Box>
       </Box>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

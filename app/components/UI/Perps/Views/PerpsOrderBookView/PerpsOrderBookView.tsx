@@ -4,6 +4,7 @@ import {
   ButtonSize as ButtonSizeRNDesignSystem,
 } from '@metamask/design-system-react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import DSPressable from '../../../../../component-library/components-temp/Pressable';
 import React, {
   useCallback,
   useEffect,
@@ -11,13 +12,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  Modal,
-  Pressable,
-  ScrollView,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Modal, Pressable, ScrollView, View } from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -562,7 +557,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
       <View style={styles.controlsRow}>
         {/* Unit Toggle (BTC/USD) */}
         <View style={styles.headerUnitToggle}>
-          <TouchableOpacity
+          <DSPressable
             style={[
               styles.headerUnitButton,
               unitDisplay === 'base' && styles.headerUnitButtonActive,
@@ -578,8 +573,8 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
             >
               {displaySymbol}
             </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
+          </DSPressable>
+          <DSPressable
             style={[
               styles.headerUnitButton,
               unitDisplay === 'usd' && styles.headerUnitButtonActive,
@@ -595,7 +590,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
             >
               USD
             </Text>
-          </TouchableOpacity>
+          </DSPressable>
         </View>
 
         {/* Price Grouping Dropdown */}
@@ -662,7 +657,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
               ({spreadMetrics.spreadPercentage}%)
             </Text>
-            <TouchableOpacity
+            <DSPressable
               onPress={() => handleTooltipPress('spread')}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               testID={PerpsOrderBookViewSelectorsIDs.SPREAD_INFO_BUTTON}
@@ -672,7 +667,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
                 size={IconSize.Sm}
                 color={IconColor.Muted}
               />
-            </TouchableOpacity>
+            </DSPressable>
           </View>
         )}
 
@@ -772,7 +767,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
           </BottomSheetHeader>
           <View style={styles.depthBandSheetContent}>
             {groupingOptions.map((value) => (
-              <TouchableOpacity
+              <DSPressable
                 key={value}
                 style={[
                   styles.depthBandOption,
@@ -791,7 +786,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
                 >
                   {formatGroupingLabel(value)}
                 </Text>
-              </TouchableOpacity>
+              </DSPressable>
             ))}
           </View>
         </BottomSheet>

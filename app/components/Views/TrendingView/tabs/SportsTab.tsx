@@ -1,9 +1,6 @@
 import React, { useCallback, useRef } from 'react';
-import {
-  ActivityIndicator,
-  TouchableOpacity,
-  RefreshControl,
-} from 'react-native';
+import Pressable from '../../../../component-library/components-temp/Pressable';
+import { ActivityIndicator, RefreshControl } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -191,7 +188,7 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
         justifyContent={BoxJustifyContent.Center}
         twClassName="mt-3 mb-9"
       >
-        <TouchableOpacity
+        <Pressable
           onPress={active.fetchMore}
           disabled={active.isFetchingMore}
           testID="all-sports-load-more"
@@ -207,7 +204,7 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
               {strings('trending.load_more')}
             </Text>
           )}
-        </TouchableOpacity>
+        </Pressable>
       </Box>
     ) : (
       <Box twClassName="mb-9" />

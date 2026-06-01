@@ -2,6 +2,7 @@ import React, { FunctionComponent, useEffect, useRef, useState } from 'react';
 import { useSnapInterfaceContext } from '../SnapInterfaceContext';
 import { DateTime } from 'luxon';
 import { Box, Label, FontWeight } from '@metamask/design-system-react-native';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
@@ -9,7 +10,7 @@ import DateTimePicker, {
   DateTimePickerEvent,
 } from '@react-native-community/datetimepicker';
 import TextField from '../../../component-library/components/Form/TextField';
-import { Platform, TextInput, TouchableOpacity, View } from 'react-native';
+import { Platform, TextInput, View } from 'react-native';
 import stylesheet from './SnapUIDateTimePicker.styles';
 import ApprovalModal from '../../Approvals/ApprovalModal';
 import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter';
@@ -304,11 +305,10 @@ export const SnapUIDateTimePicker: FunctionComponent<
         pointerEvents="none"
         value={formatDateForDisplay(value, type)}
         inputElement={
-          <TouchableOpacity
+          <Pressable
             disabled={disabled}
             testID={`snap-ui-renderer__date-time-picker--${type}-touchable`}
             onPress={handleOpenPicker}
-            activeOpacity={0.7}
           >
             <Input
               testID={`snap-ui-renderer__date-time-picker--${type}-input`}
@@ -318,7 +318,7 @@ export const SnapUIDateTimePicker: FunctionComponent<
               value={formatDateForDisplay(value, type)}
               placeholder={placeholder}
             />
-          </TouchableOpacity>
+          </Pressable>
         }
         // We set a max height of 58px and let the input grow to fill the rest of the height next to a taller sibling element.
         // eslint-disable-next-line react-native/no-inline-styles

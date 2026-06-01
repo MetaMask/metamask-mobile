@@ -1,9 +1,10 @@
 import React, { FunctionComponent } from 'react';
 import { ButtonType, UserInputEventType } from '@metamask/snaps-sdk';
-import { TouchableOpacity, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useSnapInterfaceContext } from '../SnapInterfaceContext';
 import AnimatedLottieView from 'lottie-react-native';
 
+import Pressable from '../../../component-library/components-temp/Pressable';
 export interface SnapUIButtonProps {
   name?: string;
   disabled?: boolean;
@@ -46,7 +47,7 @@ export const SnapUIButton: FunctionComponent<SnapUIButtonProps> = ({
   };
 
   return (
-    <TouchableOpacity
+    <Pressable
       id={name}
       onPress={handlePress}
       disabled={disabled}
@@ -66,6 +67,6 @@ export const SnapUIButton: FunctionComponent<SnapUIButtonProps> = ({
       ) : (
         children
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 };

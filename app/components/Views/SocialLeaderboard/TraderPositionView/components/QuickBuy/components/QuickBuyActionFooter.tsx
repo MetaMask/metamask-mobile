@@ -1,4 +1,5 @@
 import React from 'react';
+import Pressable from '../../../../../../../component-library/components-temp/Pressable';
 import {
   Box,
   BoxAlignItems,
@@ -17,7 +18,7 @@ import {
   BadgeWrapperPosition,
   BadgeNetwork,
 } from '@metamask/design-system-react-native';
-import { TouchableOpacity } from 'react-native';
+
 import { strings } from '../../../../../../../../locales/i18n';
 import QuickBuyConfirmButton from '../QuickBuyConfirmButton';
 import QuickBuyBanners from '../QuickBuyBanners';
@@ -77,9 +78,8 @@ const QuickBuyActionFooter: React.FC = () => {
           {strings('social_leaderboard.quick_buy.pay_with')}
         </Text>
 
-        <TouchableOpacity
+        <Pressable
           disabled={!features.payWithSheet}
-          activeOpacity={0.7}
           accessibilityRole="button"
           testID="quick-buy-pay-with-button"
           onPress={() => setActiveScreen('payWith')}
@@ -125,7 +125,7 @@ const QuickBuyActionFooter: React.FC = () => {
               />
             ) : null}
           </Box>
-        </TouchableOpacity>
+        </Pressable>
       </Box>
 
       <QuickBuyBanners

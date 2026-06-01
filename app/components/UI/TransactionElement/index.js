@@ -1,7 +1,7 @@
 import React, { PureComponent, useCallback } from 'react';
 import PropTypes from 'prop-types';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import {
-  TouchableOpacity,
   TouchableHighlight,
   StyleSheet,
   Image,
@@ -394,7 +394,7 @@ class TransactionElement extends PureComponent {
     if (tx.insertImportTime && accountImportTime) {
       return (
         <View style={styles.row}>
-          <TouchableOpacity
+          <Pressable
             onPress={this.onPressImportWalletTip}
             style={styles.importRowBody}
           >
@@ -403,7 +403,7 @@ class TransactionElement extends PureComponent {
               <FAIcon name="info-circle" style={styles.infoIcon} />
             </Text>
             <ListItem.Date>{toDateFormat(accountImportTime)}</ListItem.Date>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       );
     }
@@ -773,7 +773,6 @@ class TransactionElement extends PureComponent {
           }
           onPress={isReady ? this.onPressItem : undefined}
           underlayColor={colors.background.alternative}
-          activeOpacity={1}
         >
           {isReady
             ? this.renderTxElement(transactionElement)

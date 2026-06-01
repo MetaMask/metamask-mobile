@@ -1,7 +1,8 @@
 // Third party dependencies.
 import React, { useCallback, useContext, useMemo } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
 
+import Pressable from '../../../../component-library/components-temp/Pressable';
 // external dependencies
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
@@ -131,7 +132,7 @@ const MultichainAccountsConnectedList = ({
           keyExtractor={(item, index) => `${item.id || index}`}
           removeClippedSubviews={false}
           ListFooterComponent={
-            <TouchableOpacity
+            <Pressable
               style={styles.editAccountsContainer}
               onPress={handleEditAccountsButtonPress}
               testID={ConnectedAccountsSelectorsIDs.ACCOUNT_LIST_BOTTOM_SHEET}
@@ -147,7 +148,7 @@ const MultichainAccountsConnectedList = ({
               >
                 {strings('accounts.edit_accounts_title')}
               </TextComponent>
-            </TouchableOpacity>
+            </Pressable>
           }
         />
       </View>

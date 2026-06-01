@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import {
-  TouchableOpacity,
   ScrollView,
   Text,
   View,
@@ -125,13 +125,13 @@ class ImportPrivateKeySuccess extends PureComponent {
             style={styles.content}
             testID={SuccessImportAccountIDs.CONTAINER}
           >
-            <TouchableOpacity
+            <Pressable
               onPress={this.dismiss}
               style={styles.navbarRightButton}
               testID={SuccessImportAccountIDs.CLOSE_BUTTON}
             >
               <MaterialIcon name="close" size={15} style={styles.closeIcon} />
-            </TouchableOpacity>
+            </Pressable>
             <View style={styles.top}>
               <Icon
                 name="checkmark-circle-outline"

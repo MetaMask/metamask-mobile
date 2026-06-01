@@ -1,6 +1,7 @@
 import React from 'react';
-import { Image, TouchableOpacity, View } from 'react-native';
+import { Image, View } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
@@ -47,7 +48,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
   } = position;
 
   return (
-    <TouchableOpacity
+    <Pressable
       testID={PredictPositionSelectorsIDs.CURRENT_POSITION_CARD}
       style={styles.positionContainer}
       onPress={() => onPress?.(position)}
@@ -110,7 +111,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
           </>
         )}
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

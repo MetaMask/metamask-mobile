@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { ImageSourcePropType, TouchableOpacity, View } from 'react-native';
+import { ImageSourcePropType, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { useNavigation } from '@react-navigation/native';
@@ -8,6 +8,7 @@ import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
 import { CommonSelectorsIDs } from '../../../util/Common.testIds';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
@@ -169,7 +170,7 @@ const PermissionsSummary = ({
 
     return isAlreadyConnected && !showPermissionsOnly ? (
       <View style={[styles.domainLogoContainer, styles.assetLogoContainer]}>
-        <TouchableOpacity
+        <Pressable
           onPress={switchNetwork}
           testID={ConnectedAccountsSelectorsIDs.NETWORK_PICKER}
         >
@@ -197,7 +198,7 @@ const PermissionsSummary = ({
               />
             )}
           </BadgeWrapper>
-        </TouchableOpacity>
+        </Pressable>
       </View>
     ) : (
       <WebsiteIcon
@@ -357,7 +358,7 @@ const PermissionsSummary = ({
 
   function renderAccountPermissionsRequestInfoCard() {
     return (
-      <TouchableOpacity
+      <Pressable
         onPress={handleEditAccountsButtonPress}
         testID={
           ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_ACCOUNTS_PERMISSIONS_BUTTON
@@ -409,13 +410,13 @@ const PermissionsSummary = ({
           </View>
           {renderEndAccessory()}
         </View>
-      </TouchableOpacity>
+      </Pressable>
     );
   }
 
   function renderNetworkPermissionsRequestInfoCard() {
     return (
-      <TouchableOpacity
+      <Pressable
         onPress={handleEditNetworksButtonPress}
         testID={
           ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON
@@ -490,7 +491,7 @@ const PermissionsSummary = ({
           </View>
           {!isNetworkSwitch && !isNonDappNetworkSwitch && renderEndAccessory()}
         </View>
-      </TouchableOpacity>
+      </Pressable>
     );
   }
 

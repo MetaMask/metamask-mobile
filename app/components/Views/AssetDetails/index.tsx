@@ -1,10 +1,10 @@
 import React, { useCallback, useContext, useMemo } from 'react';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import {
   View,
   StyleSheet,
   ScrollView,
   Text as RNText,
-  TouchableOpacity,
   InteractionManager,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -377,7 +377,7 @@ const AssetDetails = (props: InnerProps) => {
   };
 
   const renderHideButton = () => (
-    <TouchableOpacity
+    <Pressable
       onPress={triggerHideToken}
       hitSlop={{ top: 24, bottom: 24, left: 24, right: 24 }}
       style={styles.hideButton}
@@ -385,11 +385,11 @@ const AssetDetails = (props: InnerProps) => {
       <RNText style={styles.hideButtonLabel}>
         {strings('asset_details.hide_cta')}
       </RNText>
-    </TouchableOpacity>
+    </Pressable>
   );
 
   const renderTokenAddressLink = () => (
-    <TouchableOpacity
+    <Pressable
       hitSlop={{ top: 24, bottom: 24, left: 24, right: 24 }}
       onPress={copyAddressToClipboard}
       style={styles.descriptionContainer}
@@ -400,7 +400,7 @@ const AssetDetails = (props: InnerProps) => {
         type={'short'}
       />
       <Icon style={styles.copyIcon} name={'copy'} size={16} />
-    </TouchableOpacity>
+    </Pressable>
   );
 
   return (

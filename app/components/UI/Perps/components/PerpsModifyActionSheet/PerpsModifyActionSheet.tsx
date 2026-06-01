@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useCallback } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Text, {
   TextVariant,
   TextColor,
@@ -114,7 +115,7 @@ const PerpsModifyActionSheet: React.FC<PerpsModifyActionSheetProps> = ({
       </BottomSheetHeader>
       <Box style={styles.contentContainer}>
         {actionOptions.map((option, index) => (
-          <TouchableOpacity
+          <Pressable
             key={option.action}
             style={[
               styles.actionItem,
@@ -136,7 +137,7 @@ const PerpsModifyActionSheet: React.FC<PerpsModifyActionSheetProps> = ({
                 {option.description}
               </Text>
             </View>
-          </TouchableOpacity>
+          </Pressable>
         ))}
       </Box>
     </BottomSheet>

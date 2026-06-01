@@ -1,6 +1,7 @@
 import React, { useCallback, useState, useEffect, useRef, FC } from 'react';
-import { TextInput, View, TouchableOpacity, Linking } from 'react-native';
+import { TextInput, View, Linking } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import Text, {
   TextVariant,
   TextColor,
@@ -63,9 +64,9 @@ const ResendButton: FC<{
   return (
     <>
       <Text style={styles.resendButtonText}>{strings(text)}</Text>
-      <TouchableOpacity onPress={onPress}>
+      <Pressable onPress={onPress}>
         <Text style={styles.inlineLink}>{strings(button)}</Text>
-      </TouchableOpacity>
+      </Pressable>
     </>
   );
 };

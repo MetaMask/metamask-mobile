@@ -1,6 +1,7 @@
 import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { PerpsMarketHeaderSelectorsIDs } from '../../Perps.testIds';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
@@ -106,7 +107,7 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
 
       {/* Right Action Button */}
       {onFavoritePress ? (
-        <TouchableOpacity
+        <Pressable
           testID={PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON}
           onPress={onFavoritePress}
           style={styles.moreButton}
@@ -116,10 +117,10 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
             size={IconSize.Lg}
             color={IconColor.Default}
           />
-        </TouchableOpacity>
+        </Pressable>
       ) : (
         onMorePress && (
-          <TouchableOpacity
+          <Pressable
             testID={PerpsMarketHeaderSelectorsIDs.MORE_BUTTON}
             onPress={onMorePress}
             style={styles.moreButton}
@@ -129,7 +130,7 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
               size={IconSize.Lg}
               color={IconColor.Default}
             />
-          </TouchableOpacity>
+          </Pressable>
         )
       )}
     </View>

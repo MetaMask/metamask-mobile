@@ -1,7 +1,8 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { View, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, RefreshControl } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import TrendingTokensList, {
   TrendingFilterContext,
 } from '../../components/TrendingTokensList/TrendingTokensList';
@@ -225,14 +226,13 @@ const TrendingTokensFullView = () => {
   }, [refetchTokensSection, setRefreshing]);
 
   const timeFilterButton = (
-    <TouchableOpacity
+    <Pressable
       testID="24h-button"
       onPress={handle24hPress}
       style={tw.style(
         'shrink-0 items-center rounded-xl bg-muted py-2 px-3',
         filters.searchQuery?.trim() && 'opacity-50',
       )}
-      activeOpacity={0.2}
       disabled={!!filters.searchQuery?.trim()}
     >
       <View style={tw`flex-row items-center justify-center gap-1`}>
@@ -249,7 +249,7 @@ const TrendingTokensFullView = () => {
           size={IconSize.Xs}
         />
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 
   return (

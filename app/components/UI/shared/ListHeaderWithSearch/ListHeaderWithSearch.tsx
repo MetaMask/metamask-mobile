@@ -1,12 +1,6 @@
 import React, { useCallback } from 'react';
-import {
-  View,
-  TouchableOpacity,
-  Pressable,
-  Keyboard,
-  TextInput,
-  Platform,
-} from 'react-native';
+import DSPressable from '../../../../component-library/components-temp/Pressable';
+import { View, Pressable, Keyboard, TextInput, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../../component-library/hooks';
 import {
@@ -125,7 +119,7 @@ const ListHeaderWithSearch: React.FC<ListHeaderWithSearchProps> = ({
               testID={testID ? `${testID}-search-bar` : undefined}
             />
           </Box>
-          <TouchableOpacity
+          <DSPressable
             style={styles.searchButton}
             onPress={onSearchToggle}
             testID={testID ? `${testID}-search-close` : undefined}
@@ -133,7 +127,7 @@ const ListHeaderWithSearch: React.FC<ListHeaderWithSearchProps> = ({
             <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
               {cancelText}
             </Text>
-          </TouchableOpacity>
+          </DSPressable>
         </View>
       </Pressable>
     );

@@ -1,6 +1,7 @@
 import React from 'react';
-import { TouchableOpacity, ViewStyle } from 'react-native';
+import { ViewStyle } from 'react-native';
 import useStyles from '../List/useStyles';
+import Pressable from '../../../../component-library/components-temp/Pressable';
 interface NotificationRootProps {
   children: React.ReactNode;
   handleOnPress: () => void;
@@ -19,7 +20,7 @@ function NotificationRoot({
   const { styles } = useStyles();
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={handleOnPress}
       style={[
         !isRead ? styles.unreadItemContainer : styles.readItemContainer,
@@ -28,7 +29,7 @@ function NotificationRoot({
       testID={testID}
     >
       {children}
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 

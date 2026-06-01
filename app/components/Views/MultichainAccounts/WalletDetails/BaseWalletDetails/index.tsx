@@ -1,9 +1,10 @@
 import React, { useCallback, useState, useMemo, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   FontWeight,
   HeaderBase,
@@ -227,7 +228,7 @@ export const BaseWalletDetails = ({
           </Box>
         </View>
         {keyringId && (
-          <TouchableOpacity
+          <Pressable
             testID={WalletDetailsIds.REVEAL_SRP_BUTTON}
             onPress={handleRevealSRP}
             style={styles.srpSection}
@@ -246,7 +247,7 @@ export const BaseWalletDetails = ({
                 gap={8}
               >
                 {isSRPBackedUp === false && (
-                  <TouchableOpacity onPress={handleBackupPressed}>
+                  <Pressable onPress={handleBackupPressed}>
                     <Text
                       variant={TextVariant.BodyMd}
                       fontWeight={FontWeight.Medium}
@@ -254,7 +255,7 @@ export const BaseWalletDetails = ({
                     >
                       {strings('multichain_accounts.wallet_details.back_up')}
                     </Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 )}
                 <Icon
                   name={IconName.ArrowRight}
@@ -263,7 +264,7 @@ export const BaseWalletDetails = ({
                 />
               </Box>
             </Box>
-          </TouchableOpacity>
+          </Pressable>
         )}
         <View
           style={styles.accountsList}

@@ -1,8 +1,9 @@
 import React, { useCallback } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../component-library/hooks';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Text, {
   TextVariant,
   TextColor,
@@ -52,7 +53,7 @@ const PerpsProviderSelectorBadge: React.FC<PerpsProviderSelectorBadgeProps> = ({
     : PROVIDER_DISPLAY_INFO.hyperliquid;
 
   return (
-    <TouchableOpacity
+    <Pressable
       style={styles.badgeContainer}
       onPress={handlePress}
       testID={testID}
@@ -72,7 +73,7 @@ const PerpsProviderSelectorBadge: React.FC<PerpsProviderSelectorBadgeProps> = ({
         size={IconSize.Xs}
         color={isTestnet ? IconColor.Warning : IconColor.Alternative}
       />
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

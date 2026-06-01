@@ -1,7 +1,8 @@
 // Third party dependencies.
 import React from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
+import Pressable from '../Pressable';
 // External dependencies.
 import {
   Text,
@@ -89,7 +90,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
 
   if (onPress) {
     return (
-      <TouchableOpacity
+      <Pressable
         testID={testID}
         onPress={onPress}
         style={containerStyle}
@@ -97,7 +98,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
         accessibilityLabel={typeof title === 'string' ? title : undefined}
       >
         {innerContent}
-      </TouchableOpacity>
+      </Pressable>
     );
   }
 

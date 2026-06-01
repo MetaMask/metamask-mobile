@@ -13,8 +13,9 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
-import { TouchableOpacity } from 'react-native';
+
 import Routes from '../../../../../constants/navigation/Routes';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   BoxFlexDirection,
   ButtonVariant,
@@ -445,7 +446,7 @@ const EndOfSeasonClaimBottomSheet = ({
         >
           {strings('rewards.end_of_season_rewards.select_account_description')}
         </Text>
-        <TouchableOpacity
+        <Pressable
           onPress={handleOpenAccountSelector}
           style={tw.style(
             'flex-row items-center rounded-lg bg-background-muted p-4',
@@ -475,7 +476,7 @@ const EndOfSeasonClaimBottomSheet = ({
             size={IconSize.Lg}
             color={IconColor.IconAlternative}
           />
-        </TouchableOpacity>
+        </Pressable>
       </Box>
     );
   };

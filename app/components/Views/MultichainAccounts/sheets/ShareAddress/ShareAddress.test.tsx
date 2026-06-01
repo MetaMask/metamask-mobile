@@ -1,7 +1,8 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import { TouchableOpacity } from 'react-native';
+
 import ShareAddress from '.';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   createMockSnapInternalAccount,
   internalAccount1,
@@ -226,7 +227,7 @@ describe('ShareAddress', () => {
     // Arrange
     const rendered = render();
     const { root } = rendered;
-    const touchableOpacities = root.findAllByType(TouchableOpacity as never);
+    const touchableOpacities = root.findAllByType(Pressable as never);
     const backButton = touchableOpacities.find(
       (touchable) =>
         touchable.props.accessible === true && touchable.props.onPress,

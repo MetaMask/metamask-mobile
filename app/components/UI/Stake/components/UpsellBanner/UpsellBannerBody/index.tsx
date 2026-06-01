@@ -1,8 +1,9 @@
 import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import styleSheet from './UpsellBannerBody.styles';
 import { UpsellBannerBodyProps } from '../UpsellBanner.types';
 import { useStyles } from '../../../../../hooks/useStyles';
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import Text, {
   TextVariant,
   TextColor,
@@ -33,13 +34,13 @@ const UpsellBannerBody = ({
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {tertiaryText}
           </Text>
-          <TouchableOpacity onPress={onTooltipPress}>
+          <Pressable onPress={onTooltipPress}>
             <Icon
               name={IconName.Info}
               size={IconSize.Sm}
               color={IconColor.Alternative}
             />
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </View>
       <View style={styles.right}>

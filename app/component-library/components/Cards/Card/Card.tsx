@@ -2,8 +2,8 @@
 
 // Third party dependencies.
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
 
+import Pressable from '../../../components-temp/Pressable';
 // External dependencies.
 import { useStyles } from '../../../hooks';
 
@@ -21,9 +21,9 @@ const Card: React.FC<CardProps> = ({ style, children, ...props }) => {
   const { styles } = useStyles(styleSheet, { style });
 
   return (
-    <TouchableOpacity style={styles.base} {...props}>
+    <Pressable style={styles.base} {...props}>
       {children}
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

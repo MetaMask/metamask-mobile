@@ -1,8 +1,8 @@
 import React, { memo, useEffect, useRef, useMemo, useState } from 'react';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   Animated,
   PanResponder,
-  TouchableOpacity,
   View,
   StyleSheet,
   Dimensions,
@@ -275,7 +275,7 @@ const PerpsWebSocketHealthToast: React.FC = memo(() => {
             {/* Retry Button - only shown when disconnected */}
             {connectionState === WebSocketConnectionState.Disconnected &&
               onRetry && (
-                <TouchableOpacity
+                <Pressable
                   style={styles.retryButton}
                   onPress={onRetry}
                   testID={PerpsWebSocketHealthToastSelectorsIDs.RETRY_BUTTON}
@@ -283,7 +283,7 @@ const PerpsWebSocketHealthToast: React.FC = memo(() => {
                   <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                     {strings('perps.connection.websocket_retry')}
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               )}
           </View>
         </View>

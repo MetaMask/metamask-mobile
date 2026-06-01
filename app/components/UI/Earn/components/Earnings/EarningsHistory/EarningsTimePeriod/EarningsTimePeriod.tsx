@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import Pressable from '../../../../../../../component-library/components-temp/Pressable';
 import Text, {
   TextVariant,
 } from '../../../../../../../component-library/components/Texts/Text';
@@ -50,7 +51,7 @@ const TimePeriodButtonGroup: React.FC<TimePeriodButtonGroupProps> = ({
     const buttonStyle = { ...styles.button, width, ...buttonSelectedStyle };
 
     return (
-      <TouchableOpacity
+      <Pressable
         onPress={handlePress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
@@ -59,7 +60,7 @@ const TimePeriodButtonGroup: React.FC<TimePeriodButtonGroupProps> = ({
         <Text variant={TextVariant.BodyMD} style={styles.buttonLabel}>
           {labelElement}
         </Text>
-      </TouchableOpacity>
+      </Pressable>
     );
   };
 

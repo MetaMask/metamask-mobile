@@ -1,11 +1,6 @@
 import React, { PureComponent } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Linking,
-  TouchableOpacity,
-} from 'react-native';
+import Pressable from '../../../component-library/components-temp/Pressable';
+import { View, Text, StyleSheet, Linking } from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { fontStyles } from '../../../styles/common';
@@ -158,7 +153,7 @@ export default class PhishingModal extends PureComponent {
           </Text>
           , {strings('phishing.but_please_do_so_at_your_own_risk')}
         </Text>
-        <TouchableOpacity
+        <Pressable
           style={styles.buttonContainer}
           onPress={this.props.goToFilePhishingIssue}
         >
@@ -166,16 +161,13 @@ export default class PhishingModal extends PureComponent {
           <Text style={styles.buttonText}>
             {strings('phishing.report_detection_problem')}
           </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.buttonContainer}
-          onPress={this.shareToTwitter}
-        >
+        </Pressable>
+        <Pressable style={styles.buttonContainer} onPress={this.shareToTwitter}>
           <Icon name="twitter" size={16} style={styles.buttonIcon} />
           <Text style={styles.buttonText}>
             {strings('phishing.share_on_twitter')}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
         <Button
           variant={ButtonVariants.Primary}
           label={strings('phishing.back_to_safety')}

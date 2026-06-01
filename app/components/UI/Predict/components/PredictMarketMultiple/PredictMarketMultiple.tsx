@@ -10,10 +10,11 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { Image, TouchableOpacity, View } from 'react-native';
+import { Image, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -159,7 +160,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
     label.length > 3 ? `${label.substring(0, 3)}` : label;
 
   return (
-    <TouchableOpacity
+    <Pressable
       testID={testID}
       onPress={() => {
         onCardPress?.();
@@ -358,7 +359,7 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
           </Box>
         </Box>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

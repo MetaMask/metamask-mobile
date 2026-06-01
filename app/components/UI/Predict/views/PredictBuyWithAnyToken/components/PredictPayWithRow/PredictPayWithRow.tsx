@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
-import { TouchableOpacity } from 'react-native';
+
 import { useNavigation } from '@react-navigation/native';
+import Pressable from '../../../../../../../component-library/components-temp/Pressable';
 import {
   Box,
   BoxAlignItems,
@@ -85,7 +86,7 @@ export function PredictPayWithRow({
 
   if (variant === 'row') {
     return (
-      <TouchableOpacity onPress={handlePress} disabled={!canEdit}>
+      <Pressable onPress={handlePress} disabled={!canEdit}>
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -131,7 +132,7 @@ export function PredictPayWithRow({
             )}
           </Box>
         </Box>
-      </TouchableOpacity>
+      </Pressable>
     );
   }
 
@@ -141,7 +142,7 @@ export function PredictPayWithRow({
       alignItems={BoxAlignItems.Center}
       gap={3}
     >
-      <TouchableOpacity onPress={handlePress} disabled={!canEdit}>
+      <Pressable onPress={handlePress} disabled={!canEdit}>
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -163,7 +164,7 @@ export function PredictPayWithRow({
             />
           )}
         </Box>
-      </TouchableOpacity>
+      </Pressable>
     </Box>
   );
 }

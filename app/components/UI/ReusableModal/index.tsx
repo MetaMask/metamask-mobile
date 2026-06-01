@@ -2,6 +2,7 @@
 
 // Third party dependencies.
 import { useNavigation } from '@react-navigation/native';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import React, {
   forwardRef,
   useCallback,
@@ -10,7 +11,7 @@ import React, {
   useMemo,
   useRef,
 } from 'react';
-import { TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { useWindowDimensions, View } from 'react-native';
 import {
   PanGestureHandler,
   PanGestureHandlerGestureEvent,
@@ -212,14 +213,13 @@ const ReusableModal = forwardRef<ReusableModalRef, ReusableModalProps>(
 
     return (
       <View style={styles.absoluteFill} {...props}>
-        <TouchableOpacity
+        <Pressable
           style={styles.absoluteFill}
-          activeOpacity={1}
           disabled={!isInteractable}
           onPress={debouncedHide}
         >
           <Animated.View style={combinedOverlayStyle} />
-        </TouchableOpacity>
+        </Pressable>
         <PanGestureHandler
           enabled={isInteractable}
           onGestureEvent={gestureHandler}

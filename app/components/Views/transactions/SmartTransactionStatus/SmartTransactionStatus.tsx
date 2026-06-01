@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { Hex } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
+import Pressable from '../../../../component-library/components-temp/Pressable';
 import Icon, {
   IconColor,
   IconName,
@@ -367,18 +368,18 @@ const SmartTransactionStatus = ({
     ) : null;
 
   const renderViewTransactionLink = () => (
-    <TouchableOpacity onPress={onViewTransaction}>
+    <Pressable onPress={onViewTransaction}>
       <Text style={styles.link}>
         {strings('smart_transactions.view_transaction')}
       </Text>
-    </TouchableOpacity>
+    </Pressable>
   );
 
   return (
     <View style={styles.wrapper}>
-      <TouchableOpacity onPress={onConfirm} style={styles.close}>
+      <Pressable onPress={onConfirm} style={styles.close}>
         <Icon name={IconName.Close} />
-      </TouchableOpacity>
+      </Pressable>
 
       <LoopingScrollAnimation width={817}>
         <TransactionBackgroundTop name="TransactionBackgroundTop" />

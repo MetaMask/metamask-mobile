@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { TouchableOpacity } from 'react-native';
+
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import Icon, {
   IconName,
   IconSize,
@@ -88,7 +89,7 @@ export function SelectedGasFeeToken() {
       {isModalOpen && (
         <GasFeeTokenModal onClose={() => setIsModalOpen(false)} />
       )}
-      <TouchableOpacity
+      <Pressable
         onPress={handlePress}
         style={styles.gasFeeTokenButton}
         testID="selected-gas-fee-token"
@@ -106,7 +107,7 @@ export function SelectedGasFeeToken() {
             size={IconSize.Xs}
           />
         )}
-      </TouchableOpacity>
+      </Pressable>
     </>
   );
 }

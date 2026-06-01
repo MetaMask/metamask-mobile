@@ -1,10 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import {
-  NativeSyntheticEvent,
-  TextLayoutEventData,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import Pressable from '../../../component-library/components-temp/Pressable';
+import { NativeSyntheticEvent, TextLayoutEventData, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getNftDetailsNavbarOptions } from '../../UI/Navbar';
 import Text from '../../../component-library/components/Texts/Text/Text';
@@ -303,7 +299,7 @@ const NftDetails = () => {
     <SafeAreaView style={styles.wrapper}>
       <ScrollView>
         <View style={styles.infoContainer}>
-          <TouchableOpacity
+          <Pressable
             style={[styles.collectibleMediaWrapper]}
             onPress={onMediaPress}
           >
@@ -315,7 +311,7 @@ const NftDetails = () => {
               isTokenImage
               isFullRatio
             />
-          </TouchableOpacity>
+          </Pressable>
           <View>
             <View style={styles.nameWrapper}>
               <Text style={styles.heading}>{collectible.name}</Text>
@@ -354,15 +350,13 @@ const NftDetails = () => {
                   }
                   icon={
                     hasLastSalePrice && collectible?.lastSale?.orderSource ? (
-                      <TouchableOpacity
-                        onPress={() => viewLastSalePriceSource()}
-                      >
+                      <Pressable onPress={() => viewLastSalePriceSource()}>
                         <Icon
                           name={IconName.Export}
                           size={IconSize.Xs}
                           style={styles.iconExport}
                         />
-                      </TouchableOpacity>
+                      </Pressable>
                     ) : null
                   }
                 />
@@ -388,15 +382,13 @@ const NftDetails = () => {
                   }
                   icon={
                     hasFloorAskPrice ? (
-                      <TouchableOpacity
-                        onPress={() => viewHighestFloorPriceSource()}
-                      >
+                      <Pressable onPress={() => viewHighestFloorPriceSource()}>
                         <Icon
                           name={IconName.Export}
                           size={IconSize.Xs}
                           style={styles.iconExport}
                         />
-                      </TouchableOpacity>
+                      </Pressable>
                     ) : null
                   }
                 />
@@ -422,7 +414,7 @@ const NftDetails = () => {
                 value={renderShortAddress(collectible.address)}
                 valueTextStyle={styles.generalInfoValueTextAddressStyle}
                 icon={
-                  <TouchableOpacity
+                  <Pressable
                     onPress={() => copyAddressToClipboard(collectible.address)}
                   >
                     <Icon
@@ -430,7 +422,7 @@ const NftDetails = () => {
                       size={IconSize.Xs}
                       color={colors.primary.default}
                     />
-                  </TouchableOpacity>
+                  </Pressable>
                 }
                 onValuePress={() => {
                   navigation.navigate('Webview', {
@@ -450,7 +442,7 @@ const NftDetails = () => {
               titleStyle={styles.informationRowTitleStyle}
               valueStyle={styles.informationRowValueAddressStyle}
               icon={
-                <TouchableOpacity
+                <Pressable
                   onPress={() => copyAddressToClipboard(collectible.address)}
                   style={styles.iconPadding}
                 >
@@ -459,7 +451,7 @@ const NftDetails = () => {
                     size={IconSize.Xs}
                     color={colors.primary.default}
                   />
-                </TouchableOpacity>
+                </Pressable>
               }
               onValuePress={() => {
                 if (collectible.collection?.creator) {
@@ -485,7 +477,7 @@ const NftDetails = () => {
             valueStyle={styles.informationRowValueStyle}
             icon={
               shouldShowTokenIdBottomSheet(collectible.tokenId) ? (
-                <TouchableOpacity
+                <Pressable
                   onPress={() => goToTokenIdSheet(collectible.tokenId)}
                   style={styles.iconPadding}
                 >
@@ -494,7 +486,7 @@ const NftDetails = () => {
                     size={IconSize.Xs}
                     color={colors.text.default}
                   />
-                </TouchableOpacity>
+                </Pressable>
               ) : null
             }
           />
@@ -562,7 +554,7 @@ const NftDetails = () => {
                 : styles.informationRowValueStyle
             }
             icon={
-              <TouchableOpacity
+              <Pressable
                 onPress={() =>
                   copyAddressToClipboard(collectible?.collection?.creator)
                 }
@@ -573,7 +565,7 @@ const NftDetails = () => {
                   size={IconSize.Xs}
                   color={colors.primary.default}
                 />
-              </TouchableOpacity>
+              </Pressable>
             }
             onValuePress={() => {
               if (collectible.collection?.creator) {
@@ -606,7 +598,7 @@ const NftDetails = () => {
             valueStyle={styles.informationRowValueStyle}
             icon={
               getTopBidSourceDomain() ? (
-                <TouchableOpacity
+                <Pressable
                   onPress={() => {
                     navigation.navigate('Webview', {
                       screen: 'SimpleWebview',
@@ -619,7 +611,7 @@ const NftDetails = () => {
                     size={IconSize.Xs}
                     style={styles.iconExport}
                   />
-                </TouchableOpacity>
+                </Pressable>
               ) : null
             }
           />

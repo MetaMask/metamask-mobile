@@ -1,17 +1,12 @@
 // Third party dependencies.
-import {
-  KeyboardAvoidingView,
-  Linking,
-  Switch,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { KeyboardAvoidingView, Linking, Switch, View } from 'react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import images from 'images/image-icons';
 import { useNavigation, type RouteProp } from '@react-navigation/native';
 import type { RootStackParamList } from '../../../core/NavigationService/types';
 
+import Pressable from '../../../component-library/components-temp/Pressable';
 // External dependencies.
 import Cell, {
   CellVariant,
@@ -840,7 +835,7 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
       <Text variant={TextVariant.BodyLGMedium} color={TextColor.Alternative}>
         {strings('networks.additional_networks')}
       </Text>
-      <TouchableOpacity
+      <Pressable
         testID={NetworkListModalSelectorsIDs.TOOLTIP}
         style={styles.gasInfoContainer}
         onPress={toggleWarningModal}
@@ -851,7 +846,7 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
           size={14}
           style={styles.gasInfoIcon}
         />
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 

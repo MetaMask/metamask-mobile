@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import Networks from '../../../util/networks';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -10,6 +10,7 @@ import { mockTheme, ThemeContext } from '../../../util/theme';
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { CommonSelectorsIDs } from '../../../util/Common.testIds';
 
+import Pressable from '../../../component-library/components-temp/Pressable';
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
@@ -124,7 +125,7 @@ class NavbarBrowserTitle extends PureComponent {
     const name = this.getNetworkName(providerConfig);
 
     return (
-      <TouchableOpacity onPress={this.onTitlePress} style={styles.wrapper}>
+      <Pressable onPress={this.onTitlePress} style={styles.wrapper}>
         <View style={styles.currentUrlWrapper}>
           {Boolean(icon) && (
             <Image style={styles.siteIcon} source={{ uri: icon }} />
@@ -158,7 +159,7 @@ class NavbarBrowserTitle extends PureComponent {
             {name}
           </Text>
         </View>
-      </TouchableOpacity>
+      </Pressable>
     );
   };
 }

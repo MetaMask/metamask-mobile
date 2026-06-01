@@ -11,11 +11,11 @@ import {
   NativeScrollEvent,
   NativeSyntheticEvent,
   ScrollView,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { WebView } from '@metamask/react-native-webview';
 
+import Pressable from '../../../components-temp/Pressable';
 // External dependencies.
 import ButtonPrimary from '../../Buttons/Button/variants/ButtonPrimary';
 import Text, { TextVariant, TextColor } from '../../Texts/Text';
@@ -326,17 +326,16 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
         >
           {body.source === 'WebView' ? renderWebView(body) : renderBody()}
         </View>
-        <TouchableOpacity
+        <Pressable
           style={styles.checkboxContainer}
           onPress={handleSelect}
-          activeOpacity={1}
           testID={TermsOfUseModalSelectorsIDs.CHECKBOX}
         >
           <Checkbox onPress={handleSelect} isChecked={isCheckboxSelected} />
           <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
             {checkboxText}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
         <ButtonPrimary
           label={buttonText}
           isDisabled={

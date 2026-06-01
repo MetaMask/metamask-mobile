@@ -1,8 +1,9 @@
 /* eslint-disable react/prop-types */
 import React, { useCallback, useEffect, useMemo } from 'react';
-import { View, Linking, TouchableOpacity } from 'react-native';
+import { View, Linking } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { CommonSelectorsIDs } from '../../../util/Common.testIds';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import Text, {
   TextVariant,
   TextColor,
@@ -166,7 +167,7 @@ const NetworkVerificationInfo = ({
         {strings('networks.network_rpc_url_label')}
       </Text>
       {hasRpcMismatch && (
-        <TouchableOpacity
+        <Pressable
           onPress={() => {
             showReviewDefaultRpcUrlChangesModal();
           }}
@@ -188,7 +189,7 @@ const NetworkVerificationInfo = ({
               />
             </View>
           </TagColored>
-        </TouchableOpacity>
+        </Pressable>
       )}
     </View>
   );

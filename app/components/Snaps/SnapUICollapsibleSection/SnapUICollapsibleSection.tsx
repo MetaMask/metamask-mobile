@@ -1,8 +1,9 @@
 import React, { FunctionComponent, ReactNode, useState } from 'react';
-import { ActivityIndicator, TouchableOpacity } from 'react-native';
+import { ActivityIndicator } from 'react-native';
 import { Box } from '../../UI/Box/Box';
 import Text from '../../../component-library/components/Texts/Text';
 import { useStyles } from '../../hooks/useStyles';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import {
   Icon,
   IconColor,
@@ -47,7 +48,7 @@ export const SnapUICollapsibleSection: FunctionComponent<
       backgroundColor={backgroundColor}
       style={styles.container}
     >
-      <TouchableOpacity
+      <Pressable
         disabled={isLoading}
         onPress={handleToggle}
         style={styles.header}
@@ -66,7 +67,7 @@ export const SnapUICollapsibleSection: FunctionComponent<
             name={iconName}
           />
         )}
-      </TouchableOpacity>
+      </Pressable>
       {isExpanded && !isLoading && <Box {...props}>{children}</Box>}
     </Box>
   );

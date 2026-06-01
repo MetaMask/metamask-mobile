@@ -1,11 +1,6 @@
 import React from 'react';
-import {
-  Modal,
-  TouchableOpacity,
-  Image,
-  Dimensions,
-  ImageSourcePropType,
-} from 'react-native';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
+import { Modal, Image, Dimensions, ImageSourcePropType } from 'react-native';
 import {
   Box,
   ButtonIcon,
@@ -63,10 +58,9 @@ const RewardsImageModal: React.FC<RewardsImageModalProps> = ({
         </Box>
 
         {/* Expanded image */}
-        <TouchableOpacity
+        <Pressable
           style={tw.style('flex-1 w-full justify-center items-center')}
           onPress={onClose}
-          activeOpacity={1}
         >
           <Box twClassName="w-full px-4">
             {themeImage ? (
@@ -89,7 +83,7 @@ const RewardsImageModal: React.FC<RewardsImageModalProps> = ({
               />
             ) : null}
           </Box>
-        </TouchableOpacity>
+        </Pressable>
       </Box>
     </Modal>
   );

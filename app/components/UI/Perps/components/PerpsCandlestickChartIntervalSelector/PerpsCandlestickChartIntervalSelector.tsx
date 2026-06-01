@@ -1,6 +1,7 @@
 import React from 'react';
-import { TouchableOpacity, ScrollView } from 'react-native';
+import { ScrollView } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Text, {
   TextColor,
   TextVariant,
@@ -30,7 +31,7 @@ const PerpsCandlestickChartIntervalSelector: React.FC<
       testID={testID}
     >
       {CANDLE_PERIODS.map((interval) => (
-        <TouchableOpacity
+        <Pressable
           key={interval.value}
           style={[
             styles.intervalTab,
@@ -39,7 +40,6 @@ const PerpsCandlestickChartIntervalSelector: React.FC<
               : styles.intervalTabInactive,
           ]}
           onPress={() => onIntervalChange?.(interval.value)}
-          activeOpacity={PERPS_CHART_CONFIG.INTERVAL_SELECTOR_OPACITY}
           testID={`${testID}-${interval.value}`}
         >
           <Text
@@ -58,7 +58,7 @@ const PerpsCandlestickChartIntervalSelector: React.FC<
           >
             {interval.label}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
       ))}
     </ScrollView>
   );

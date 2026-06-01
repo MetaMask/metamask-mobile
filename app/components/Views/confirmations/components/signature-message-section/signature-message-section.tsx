@@ -1,8 +1,9 @@
 import React, { ReactNode } from 'react';
-import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 
 import { ConfirmationRowComponentIDs } from '../../ConfirmationView.testIds';
 import { strings } from '../../../../../../locales/i18n';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Icon, {
   IconColor,
   IconName,
@@ -71,7 +72,7 @@ const SignatureMessageSection = ({
         <View style={styles.messageContainer}>
           <ScrollView>
             <View style={styles.scrollableSection}>
-              <TouchableOpacity>{messageExpanded}</TouchableOpacity>
+              <Pressable>{messageExpanded}</Pressable>
             </View>
           </ScrollView>
         </View>

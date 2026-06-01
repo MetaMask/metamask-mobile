@@ -1,7 +1,8 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../../component-library/components/Texts/SensitiveText';
@@ -66,7 +67,7 @@ const CardBalanceDisplay = ({
               (balanceAmount ?? '0')
             )}
           </SensitiveText>
-          <TouchableOpacity
+          <Pressable
             onPress={() => onTogglePrivacy(!privacyMode)}
             testID={CardHomeSelectors.PRIVACY_TOGGLE_BUTTON}
             style={tw.style(isLoading ? 'hidden' : '')}
@@ -76,7 +77,7 @@ const CardBalanceDisplay = ({
               size={IconSize.Md}
               color={IconColor.Default}
             />
-          </TouchableOpacity>
+          </Pressable>
         </Box>
         <Text
           variant={TextVariant.BodySm}

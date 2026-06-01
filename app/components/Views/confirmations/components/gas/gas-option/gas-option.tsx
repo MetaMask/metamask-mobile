@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
 
 import { useStyles } from '../../../../../../component-library/hooks';
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
@@ -19,7 +20,7 @@ export const GasOption = ({ option }: { option: GasOptionType }) => {
       {isSelected && (
         <View style={styles.selectionIndicator} testID="selection-indicator" />
       )}
-      <TouchableOpacity
+      <Pressable
         testID={`gas-option-${key}`}
         style={[styles.optionContainer, isSelected && styles.selectedOption]}
         onPress={() => onSelect()}
@@ -49,7 +50,7 @@ export const GasOption = ({ option }: { option: GasOptionType }) => {
             </Text>
           )}
         </View>
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 };

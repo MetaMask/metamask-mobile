@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
-  TouchableOpacity,
   StyleSheet,
   Image,
   View,
@@ -68,7 +68,7 @@ const SiteRowItem = ({ site, onPress, onRemoveFavorite }: SiteRowItemProps) => {
   const showRemoteLogoImage = Boolean(site.logoUrl) && !remoteLogoLoadError;
 
   return (
-    <TouchableOpacity
+    <Pressable
       testID={`site-row-item-${site.name}`}
       onPress={onPress}
       style={tw.style('flex-row items-center py-2')}
@@ -121,16 +121,16 @@ const SiteRowItem = ({ site, onPress, onRemoveFavorite }: SiteRowItemProps) => {
       {/* Action Icons */}
       <Box twClassName="ml-3 flex-row items-center gap-3">
         {onRemoveFavorite && (
-          <TouchableOpacity onPress={onRemoveFavorite} hitSlop={8}>
+          <Pressable onPress={onRemoveFavorite} hitSlop={8}>
             <Icon
               name={IconName.StarFilled}
               size={IconSize.Md}
               color={IconColor.IconDefault}
             />
-          </TouchableOpacity>
+          </Pressable>
         )}
       </Box>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

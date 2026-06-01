@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { Image, TouchableOpacity } from 'react-native';
+import { Image } from 'react-native';
+import Pressable from '../Pressable';
 import {
   Box,
   BoxAlignItems,
@@ -96,7 +97,7 @@ const StepperCard = ({
           >
             {step.description}
             {step.onDescriptionTooltipPress && (
-              <TouchableOpacity
+              <Pressable
                 onPress={step.onDescriptionTooltipPress}
                 accessibilityLabel={
                   step.descriptionTooltipAccessibilityLabel ??
@@ -111,7 +112,7 @@ const StepperCard = ({
                   size={IconSize.Sm}
                   style={tw.style('top-0.8 left-1')}
                 />
-              </TouchableOpacity>
+              </Pressable>
             )}
           </Text>
         </Box>

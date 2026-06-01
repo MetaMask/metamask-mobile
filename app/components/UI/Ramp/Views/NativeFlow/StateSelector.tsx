@@ -1,7 +1,8 @@
 import React, { useCallback } from 'react';
-import { View, TouchableOpacity, StyleProp, ViewStyle } from 'react-native';
+import { View, StyleProp, ViewStyle } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../../hooks/useStyles';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   Label,
   Text,
@@ -54,10 +55,9 @@ const StateSelector: React.FC<StateSelectorProps> = ({
     <View style={[styles.field, containerStyle]}>
       <Label style={styles.label}>{label}</Label>
       <View style={styles.selectorContainer}>
-        <TouchableOpacity
+        <Pressable
           style={styles.selectorTouchable}
           onPress={handlePress}
-          activeOpacity={0.7}
           testID={testID}
         >
           <Text
@@ -78,7 +78,7 @@ const StateSelector: React.FC<StateSelectorProps> = ({
             color={IconColor.IconAlternative}
             style={styles.icon}
           />
-        </TouchableOpacity>
+        </Pressable>
       </View>
       {error ? <Text style={styles.error}>{error}</Text> : null}
     </View>

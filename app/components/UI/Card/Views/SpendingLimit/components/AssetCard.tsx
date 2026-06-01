@@ -1,5 +1,6 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import {
   Box,
   Text,
@@ -74,12 +75,7 @@ const AssetCard: React.FC<AssetCardProps> = ({
       : null;
 
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      activeOpacity={0.7}
-      testID={testID}
-      style={tw.style('flex-1')}
-    >
+    <Pressable onPress={onPress} testID={testID} style={tw.style('flex-1')}>
       <Box
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
@@ -156,7 +152,7 @@ const AssetCard: React.FC<AssetCardProps> = ({
           {symbol}
         </Text>
       </Box>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

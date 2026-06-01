@@ -6,8 +6,8 @@ import React, {
   useState,
 } from 'react';
 import { useSelector } from 'react-redux';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import {
-  TouchableOpacity,
   StyleSheet,
   TextInput,
   Keyboard,
@@ -179,7 +179,7 @@ const AccountRightButton = ({
   );
 
   return (
-    <TouchableOpacity
+    <Pressable
       style={styles.leftButton}
       onPress={handleButtonPress}
       testID={AccountOverviewSelectorsIDs.ACCOUNT_BUTTON}
@@ -202,7 +202,7 @@ const AccountRightButton = ({
           }
         />
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

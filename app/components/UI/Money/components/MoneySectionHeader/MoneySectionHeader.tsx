@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
-import { TouchableOpacity } from 'react-native';
+
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   Box,
   BoxAlignItems,
@@ -85,7 +86,7 @@ const MoneySectionHeader = ({
   );
 
   if (onPress) {
-    return <TouchableOpacity onPress={handlePress}>{content}</TouchableOpacity>;
+    return <Pressable onPress={handlePress}>{content}</Pressable>;
   }
 
   return content;

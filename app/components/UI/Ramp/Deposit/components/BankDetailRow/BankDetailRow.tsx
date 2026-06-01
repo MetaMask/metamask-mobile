@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import Text, {
   TextVariant,
   TextColor,
@@ -39,7 +40,7 @@ const BankDetailRow: React.FC<BankDetailRowProps> = ({ label, value }) => {
         >
           {value}
         </Text>
-        <TouchableOpacity
+        <Pressable
           onPress={handleCopyToClipboard(value)}
           testID={BANK_DETAIL_ROW_TEST_IDS.COPY_BUTTON}
         >
@@ -48,7 +49,7 @@ const BankDetailRow: React.FC<BankDetailRowProps> = ({ label, value }) => {
             size={IconSize.Sm}
             color={theme.colors.icon.alternative}
           />
-        </TouchableOpacity>
+        </Pressable>
       </View>
     </View>
   );

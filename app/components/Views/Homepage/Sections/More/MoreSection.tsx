@@ -1,7 +1,8 @@
 import React, { useCallback } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   FontWeight,
   Icon,
@@ -40,7 +41,7 @@ const MoreActionRow = ({
   onPress,
   testID,
 }: MoreActionRowProps) => (
-  <TouchableOpacity
+  <Pressable
     accessibilityRole="button"
     onPress={onPress}
     style={styles.row}
@@ -67,7 +68,7 @@ const MoreActionRow = ({
         color={IconColor.IconAlternative}
       />
     ) : null}
-  </TouchableOpacity>
+  </Pressable>
 );
 
 const MoreSection = () => {

@@ -1,6 +1,7 @@
 import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
+import Pressable from '../../../Pressable';
 import {
   AvatarAccount,
   AvatarAccountSize,
@@ -55,7 +56,7 @@ const ExternalAccountCell: React.FC<ExternalAccountCellProps> = ({
     <View style={styles.accountItem}>
       {isSelected && <View style={styles.selectedIndicator} />}
       <View style={styles.accountCellWrapper}>
-        <TouchableOpacity
+        <Pressable
           onPress={onPress}
           disabled={isDisabled}
           style={[
@@ -97,7 +98,7 @@ const ExternalAccountCell: React.FC<ExternalAccountCellProps> = ({
               />
             </View>
           )}
-        </TouchableOpacity>
+        </Pressable>
       </View>
     </View>
   );

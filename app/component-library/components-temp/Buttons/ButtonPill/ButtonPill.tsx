@@ -1,10 +1,7 @@
 // Third party dependencies.
 import React, { useCallback, useState } from 'react';
-import {
-  GestureResponderEvent,
-  TouchableOpacity,
-  TouchableOpacityProps,
-} from 'react-native';
+import Pressable from '../../Pressable';
+import { GestureResponderEvent, TouchableOpacityProps } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
@@ -55,18 +52,17 @@ const ButtonPill = ({
   );
 
   return (
-    <TouchableOpacity
+    <Pressable
       style={styles.base}
       onPress={!isDisabled ? onPress : undefined}
       onPressIn={!isDisabled ? triggerOnPressedIn : undefined}
       onPressOut={!isDisabled ? triggerOnPressedOut : undefined}
       accessible
-      activeOpacity={1}
       disabled={isDisabled}
       {...props}
     >
       {children}
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

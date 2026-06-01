@@ -12,6 +12,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   RouteProp,
   StackActions,
@@ -25,13 +26,7 @@ import React, {
   useMemo,
   useCallback,
 } from 'react';
-import {
-  ActivityIndicator,
-  Image,
-  Linking,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
+import { ActivityIndicator, Image, Linking, ScrollView } from 'react-native';
 import { ScrollView as GHScrollView } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import Button, {
@@ -372,7 +367,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
       alignItems={BoxAlignItems.Center}
       twClassName="w-full gap-4 p-4"
     >
-      <TouchableOpacity
+      <Pressable
         testID="back-button"
         onPress={() => {
           predictBuyPreviewDismissedViaBackRef.current = true;
@@ -411,7 +406,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
         }}
       >
         <Icon name={IconName.ArrowLeft} size={IconSize.Md} />
-      </TouchableOpacity>
+      </Pressable>
       <Image
         source={{ uri: outcome?.image }}
         style={tw.style('w-10 h-10 rounded')}

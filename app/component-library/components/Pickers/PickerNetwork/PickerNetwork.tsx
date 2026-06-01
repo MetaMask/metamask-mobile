@@ -2,8 +2,9 @@
 
 // Third party dependencies.
 import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 
+import Pressable from '../../../components-temp/Pressable';
 // External dependencies.
 import Avatar, { AvatarSize, AvatarVariant } from '../../Avatars/Avatar';
 import Icon, { IconName, IconSize } from '../../Icons/Icon';
@@ -28,7 +29,7 @@ const PickerNetwork = ({
   const { styles } = useStyles(stylesheet, { style });
 
   return (
-    <TouchableOpacity
+    <Pressable
       style={styles.base}
       onPress={onPress}
       disabled={isDisabled}
@@ -61,7 +62,7 @@ const PickerNetwork = ({
           testID={PICKERNETWORK_ARROW_TESTID}
         />
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

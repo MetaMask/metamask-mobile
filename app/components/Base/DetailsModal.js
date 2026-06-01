@@ -1,12 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { fontStyles } from '../../styles/common';
 import Text from './Text';
 import { useTheme } from '../../util/theme';
 import { TransactionDetailsModalSelectorsIDs } from '../Views/confirmations/components/activity/TransactionDetailsModal.testIds';
 
+import Pressable from '../../component-library/components-temp/Pressable';
 const createStyles = (colors) =>
   StyleSheet.create({
     modalContainer: {
@@ -93,13 +94,13 @@ const DetailsModalCloseIcon = ({ style, ...props }) => {
   const styles = createStyles(colors);
 
   return (
-    <TouchableOpacity
+    <Pressable
       style={[styles.closeIcon, style]}
       {...props}
       testID={TransactionDetailsModalSelectorsIDs.CLOSE_ICON}
     >
       <Ionicons color={colors.text.default} name={'close'} size={38} />
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 const DetailsModalBody = ({ style, ...props }) => {

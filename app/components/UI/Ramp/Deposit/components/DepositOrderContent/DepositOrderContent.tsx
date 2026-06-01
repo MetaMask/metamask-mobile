@@ -1,8 +1,9 @@
 import React, { useCallback } from 'react';
-import { View, TouchableOpacity, Image } from 'react-native';
+import { View, Image } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../../component-library/hooks';
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import Text, {
   TextVariant,
   TextColor,
@@ -200,7 +201,7 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {strings('deposit.order_processing.order_id')}
           </Text>
-          <TouchableOpacity
+          <Pressable
             style={styles.orderIdContainer}
             onPress={handleCopyOrderId}
           >
@@ -210,7 +211,7 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
               size={IconSize.Lg}
               color={theme.colors.icon.default}
             />
-          </TouchableOpacity>
+          </Pressable>
         </View>
 
         <View style={styles.separator} />

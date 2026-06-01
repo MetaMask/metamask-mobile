@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Modal from 'react-native-modal';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
@@ -8,6 +8,7 @@ import Title from './Title';
 import { useTheme } from '../../util/theme';
 import { Theme } from '@metamask/design-tokens';
 
+import Pressable from '../../component-library/components-temp/Pressable';
 const createStyles = (colors: Theme['colors'], shadows: Theme['shadows']) =>
   StyleSheet.create({
     modalView: {
@@ -72,12 +73,12 @@ interface CloseButtonProps {
 }
 
 const CloseButton: React.FC<CloseButtonProps> = ({ onPress, style }) => (
-  <TouchableOpacity
+  <Pressable
     onPress={onPress}
     hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}
   >
     <IonicIcon name="close" style={style.closeIcon} size={30} />
-  </TouchableOpacity>
+  </Pressable>
 );
 
 interface InfoViewProps {

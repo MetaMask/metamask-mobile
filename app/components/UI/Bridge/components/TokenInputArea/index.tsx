@@ -1,4 +1,5 @@
 import React, { forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   StyleSheet,
   ImageSourcePropType,
@@ -8,7 +9,6 @@ import {
   Platform,
   TextInputSelectionChangeEventData,
   NativeSyntheticEvent,
-  TouchableOpacity,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -417,7 +417,7 @@ export const TokenInputArea = forwardRef<
                       </Text>
                     ) : null}
                     {onAmountTypeTogglePress ? (
-                      <TouchableOpacity
+                      <Pressable
                         style={styles.amountTypeToggle}
                         onPress={onAmountTypeTogglePress}
                         testID={amountTypeToggleTestID}
@@ -427,7 +427,7 @@ export const TokenInputArea = forwardRef<
                           size={IconSize.Sm}
                           color={IconColor.Alternative}
                         />
-                      </TouchableOpacity>
+                      </Pressable>
                     ) : null}
                   </Box>
                 </Box>

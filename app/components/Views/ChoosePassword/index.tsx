@@ -5,11 +5,12 @@ import React, {
   useCallback,
   useContext,
 } from 'react';
-import { TouchableOpacity, Platform, Keyboard, TextInput } from 'react-native';
+import { Platform, Keyboard, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { captureException } from '@sentry/react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import {
   Box,
   Text,
@@ -582,14 +583,14 @@ const ChoosePassword = () => {
   const HeaderLeft = useCallback(() => {
     const marginLeft = 16;
     return (
-      <TouchableOpacity onPress={() => navigation.goBack()} disabled={loading}>
+      <Pressable onPress={() => navigation.goBack()} disabled={loading}>
         <Icon
           name={IconName.ArrowLeft}
           size={IconSize.Lg}
           color={IconColor.IconDefault}
           style={{ marginLeft }}
         />
-      </TouchableOpacity>
+      </Pressable>
     );
   }, [navigation, loading]);
 
@@ -761,7 +762,7 @@ const ChoosePassword = () => {
                     onBlur={() => setIsPasswordFieldFocused(false)}
                     isError={isPasswordTooShort}
                     endAccessory={
-                      <TouchableOpacity
+                      <Pressable
                         testID={
                           ChoosePasswordSelectorsIDs.NEW_PASSWORD_SHOW_ICON_ID
                         }
@@ -776,7 +777,7 @@ const ChoosePassword = () => {
                           size={IconSize.Lg}
                           color={IconColor.IconAlternative}
                         />
-                      </TouchableOpacity>
+                      </Pressable>
                     }
                     inputProps={{
                       secureTextEntry: showPasswordIndex.includes(0),
@@ -821,7 +822,7 @@ const ChoosePassword = () => {
                     value={confirmPassword}
                     onChangeText={setConfirmPasswordValue}
                     endAccessory={
-                      <TouchableOpacity
+                      <Pressable
                         testID={
                           ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_SHOW_ICON_ID
                         }
@@ -837,7 +838,7 @@ const ChoosePassword = () => {
                           size={IconSize.Lg}
                           color={IconColor.IconAlternative}
                         />
-                      </TouchableOpacity>
+                      </Pressable>
                     }
                     isDisabled={password === ''}
                     isError={checkError()}
@@ -879,7 +880,7 @@ const ChoosePassword = () => {
                       ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID
                     }
                   />
-                  <TouchableOpacity
+                  <Pressable
                     onPress={setSelection}
                     testID={ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID}
                     style={tw.style(
@@ -914,7 +915,7 @@ const ChoosePassword = () => {
                         </Text>
                       )}
                     </Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 </Box>
 
                 <Box

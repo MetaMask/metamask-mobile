@@ -1,8 +1,9 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import { Text, View, TouchableOpacity } from 'react-native';
+import { Text, View } from 'react-native';
 import OnboardingStep from './OnboardingStep';
 
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 // Mock dependencies
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const tw = (..._args: unknown[]) => ({});
@@ -496,9 +497,9 @@ describe('OnboardingStep Component', () => {
         <View testID="complex-form">
           <Text>Input Field 1</Text>
           <Text>Input Field 2</Text>
-          <TouchableOpacity testID="form-button">
+          <Pressable testID="form-button">
             <Text>Form Button</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       );
 
@@ -520,12 +521,12 @@ describe('OnboardingStep Component', () => {
     it('integrates properly with complex actions', () => {
       const complexActions = (
         <View testID="complex-actions">
-          <TouchableOpacity testID="primary-action">
+          <Pressable testID="primary-action">
             <Text>Primary Action</Text>
-          </TouchableOpacity>
-          <TouchableOpacity testID="secondary-action">
+          </Pressable>
+          <Pressable testID="secondary-action">
             <Text>Secondary Action</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       );
 

@@ -1,7 +1,8 @@
 import React, { useCallback, useMemo } from 'react';
 import { getTrendingTokenRowItemTestId } from './TrendingTokenRowItem.testIds';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Text, {
   TextColor,
   TextVariant,
@@ -188,7 +189,7 @@ const TrendingTokenRowItem = ({
     : getTrendingTokenRowItemTestId(token.assetId);
 
   return (
-    <TouchableOpacity
+    <Pressable
       style={styles.container}
       onPress={handlePress}
       testID={rowTestId}
@@ -260,7 +261,7 @@ const TrendingTokenRowItem = ({
           )
         )}
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

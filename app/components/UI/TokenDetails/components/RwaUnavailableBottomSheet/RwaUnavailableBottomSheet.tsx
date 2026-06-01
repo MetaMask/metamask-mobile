@@ -6,7 +6,8 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { InteractionManager, TouchableOpacity } from 'react-native';
+import { InteractionManager } from 'react-native';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   BottomSheet,
   BottomSheetFooter,
@@ -111,10 +112,9 @@ const RwaUnavailableBottomSheet = forwardRef<
         {strings('rwa.unavailable.title')}
       </BottomSheetHeader>
 
-      <TouchableOpacity
+      <Pressable
         testID="rwa-unavailable-ondo-eligibility-link"
         onPress={handleOndoEligibilityPress}
-        activeOpacity={0.8}
       >
         <Box
           alignItems={BoxAlignItems.Start}
@@ -132,7 +132,7 @@ const RwaUnavailableBottomSheet = forwardRef<
             .
           </Text>
         </Box>
-      </TouchableOpacity>
+      </Pressable>
 
       <BottomSheetFooter
         primaryButtonProps={{

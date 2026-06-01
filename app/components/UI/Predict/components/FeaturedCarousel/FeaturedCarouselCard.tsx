@@ -1,7 +1,8 @@
 import React, { useCallback } from 'react';
-import { Image, TouchableOpacity } from 'react-native';
+import { Image } from 'react-native';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   Box,
   BoxAlignItems,
@@ -134,10 +135,9 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
     : null;
 
   return (
-    <TouchableOpacity
+    <Pressable
       testID={FEATURED_CAROUSEL_TEST_IDS.CARD(index)}
       onPress={handleCardPress}
-      activeOpacity={0.9}
     >
       <Box twClassName="bg-section rounded-xl p-4 h-full justify-between">
         <Box twClassName="flex-1">
@@ -226,7 +226,7 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
           totalVolume={totalVolume}
         />
       </Box>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

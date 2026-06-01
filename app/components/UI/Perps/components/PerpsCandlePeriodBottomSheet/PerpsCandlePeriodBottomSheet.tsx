@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
-import { TouchableOpacity } from 'react-native';
+
 import { useStyles } from '../../../../../component-library/hooks';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Text, {
   TextVariant,
   TextColor,
@@ -147,7 +148,7 @@ const PerpsCandlePeriodBottomSheet: React.FC<
               </Text>
               <Box style={styles.periodOptionsGrid}>
                 {section.periods.map((period) => (
-                  <TouchableOpacity
+                  <Pressable
                     key={period.value}
                     style={[
                       styles.periodOption,
@@ -178,7 +179,7 @@ const PerpsCandlePeriodBottomSheet: React.FC<
                     >
                       {period.label}
                     </Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 ))}
               </Box>
             </Box>
@@ -186,7 +187,7 @@ const PerpsCandlePeriodBottomSheet: React.FC<
         ) : (
           <Box style={styles.periodOptionsGrid}>
             {availablePeriods.map((period) => (
-              <TouchableOpacity
+              <Pressable
                 key={period.value}
                 style={[
                   styles.periodOption,
@@ -216,7 +217,7 @@ const PerpsCandlePeriodBottomSheet: React.FC<
                 >
                   {period.label}
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             ))}
           </Box>
         )}

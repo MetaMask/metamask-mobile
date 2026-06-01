@@ -1,8 +1,9 @@
 // Third party dependencies.
 import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { lightTheme } from '@metamask/design-tokens';
 
+import Pressable from '../../../component-library/components-temp/Pressable';
 // External dependencies.
 import Text, {
   TextVariant,
@@ -88,7 +89,7 @@ const WalletAction = ({
   ];
 
   return (
-    <TouchableOpacity
+    <Pressable
       style={touchableStyles}
       onPress={onPress}
       testID={actionID}
@@ -109,7 +110,7 @@ const WalletAction = ({
           {actionDescription}
         </Text>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

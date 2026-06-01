@@ -1,9 +1,10 @@
 import React, { useCallback, useMemo } from 'react';
-import { TouchableOpacity, View, Image } from 'react-native';
+import { View, Image } from 'react-native';
 import { PredictMarket as PredictMarketType } from '../../types';
 import { PredictEntryPoint } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   Box,
   Icon,
@@ -95,7 +96,7 @@ const PredictMarketRowItem = ({
   }
 
   return (
-    <TouchableOpacity
+    <Pressable
       style={tw.style('flex-row items-center self-stretch py-2')}
       onPress={handlePress}
       testID={testID || `predict-market-row-item-${market.id}`}
@@ -139,7 +140,7 @@ const PredictMarketRowItem = ({
           />
         </Box>
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

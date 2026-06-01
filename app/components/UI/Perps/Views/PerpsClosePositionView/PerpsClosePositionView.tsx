@@ -10,10 +10,11 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PerpsClosePositionViewSelectorsIDs } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   Button,
   ButtonVariant,
@@ -634,7 +635,7 @@ const PerpsClosePositionView: React.FC = () => {
         {orderType === 'limit' && !isInputFocused && (
           <View style={styles.detailsWrapper}>
             <View style={[styles.detailItem, styles.detailListItem]}>
-              <TouchableOpacity onPress={() => setIsLimitPriceVisible(true)}>
+              <Pressable onPress={() => setIsLimitPriceVisible(true)}>
                 <ListItem>
                   <ListItemColumn widthType={WidthType.Fill}>
                     <View style={styles.detailLeft}>
@@ -659,7 +660,7 @@ const PerpsClosePositionView: React.FC = () => {
                     </Text>
                   </ListItemColumn>
                 </ListItem>
-              </TouchableOpacity>
+              </Pressable>
             </View>
           </View>
         )}

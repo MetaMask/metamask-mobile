@@ -9,9 +9,10 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { Image, TouchableOpacity, View } from 'react-native';
+import { Image, View } from 'react-native';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { strings } from '../../../../../../locales/i18n';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -205,7 +206,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   };
 
   return (
-    <TouchableOpacity
+    <Pressable
       testID={testID}
       onPress={() => {
         onCardPress?.();
@@ -294,7 +295,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
           </Text>
         </View>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

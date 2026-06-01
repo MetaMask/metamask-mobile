@@ -2,7 +2,8 @@
 
 // Third party dependencies.
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+
+import Pressable from '../../components-temp/Pressable';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -40,7 +41,7 @@ const Overlay: React.FC<OverlayProps> = ({
 
   return (
     <Animated.View style={[styles.base, animatedStyles]}>
-      {onPress && <TouchableOpacity onPress={onPress} style={styles.fill} />}
+      {onPress && <Pressable onPress={onPress} style={styles.fill} />}
     </Animated.View>
   );
 };

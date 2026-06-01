@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useStyles } from '../../../../../component-library/hooks';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Text, {
   TextColor,
   TextVariant,
@@ -156,7 +157,7 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
     <View style={styles.wrapper}>
       {/* Available Balance Pill */}
       {shouldShowBalance && (
-        <TouchableOpacity
+        <Pressable
           style={balancePillContainerStyle}
           onPress={handlePress}
           testID={PerpsTabViewSelectorsIDs.BALANCE_BUTTON}
@@ -194,7 +195,7 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
               />
             </Animated.View>
           </View>
-        </TouchableOpacity>
+        </Pressable>
       )}
       {/* Unrealized P&L Pill */}
       {shouldShowPnl && (

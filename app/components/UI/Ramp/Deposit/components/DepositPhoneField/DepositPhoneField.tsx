@@ -1,5 +1,5 @@
 import React, { useCallback, forwardRef, useState } from 'react';
-import { TouchableOpacity, StyleSheet, TextInput } from 'react-native';
+import { StyleSheet, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 import Text from '../../../../../../component-library/components/Texts/Text';
@@ -13,6 +13,7 @@ import DepositTextField from '../DepositTextField/DepositTextField';
 import { strings } from '../../../../../../../locales/i18n';
 import { DEPOSIT_PHONE_FIELD_TEST_IDS } from './DepositPhoneField.testIds';
 
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 interface PhoneFieldProps {
   label: string;
   value?: string;
@@ -92,7 +93,7 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
     }, [navigation, regions, setPhoneRegion, phoneRegion]);
 
     const countryPrefixAccessory = (
-      <TouchableOpacity
+      <Pressable
         onPress={handleFlagPress}
         accessibilityRole="button"
         accessible
@@ -103,7 +104,7 @@ const DepositPhoneField = forwardRef<TextInput, PhoneFieldProps>(
           {phoneRegion?.phone?.prefix ??
             strings('deposit.basic_info.select_region')}
         </Text>
-      </TouchableOpacity>
+      </Pressable>
     );
 
     return (

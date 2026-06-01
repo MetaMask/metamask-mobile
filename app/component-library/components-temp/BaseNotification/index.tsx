@@ -1,5 +1,6 @@
 import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
+import Pressable from '../Pressable';
 import {
   Text,
   TextVariant,
@@ -131,11 +132,7 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
   return (
     <View style={baseStyles.flexGrow}>
       <View style={styles.floatingBackground}>
-        <TouchableOpacity
-          style={styles.defaultFlashFloating}
-          onPress={onPress}
-          activeOpacity={0.8}
-        >
+        <Pressable style={styles.defaultFlashFloating} onPress={onPress}>
           <View style={styles.flashIcon}>{getIcon(status)}</View>
           <View style={styles.flashLabel}>
             <Text
@@ -163,7 +160,7 @@ const BaseNotification: React.FC<BaseNotificationProps> = ({
               testID="base-notification-close"
             />
           )}
-        </TouchableOpacity>
+        </Pressable>
       </View>
     </View>
   );

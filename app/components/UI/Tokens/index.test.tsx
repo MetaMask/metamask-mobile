@@ -1,11 +1,6 @@
 import React from 'react';
-import {
-  Button,
-  InteractionManager,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import Pressable from '../../../component-library/components-temp/Pressable';
+import { Button, InteractionManager, Text, View } from 'react-native';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import { clone } from 'lodash';
@@ -115,7 +110,7 @@ const arrangeMockComponents = () => {
           onPress={onRefresh}
         />
         {tokenKeys.map((token) => (
-          <TouchableOpacity
+          <Pressable
             key={token.address}
             testID={`asset-${token.address}`}
             onLongPress={() =>
@@ -127,7 +122,7 @@ const arrangeMockComponents = () => {
             }
           >
             <Text>{token.address}</Text>
-          </TouchableOpacity>
+          </Pressable>
         ))}
       </ScrollView>
     ));

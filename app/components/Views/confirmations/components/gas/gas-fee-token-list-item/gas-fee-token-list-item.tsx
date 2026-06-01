@@ -8,7 +8,8 @@ import { useGasFeeToken } from '../../../hooks/gas/useGasFeeToken';
 import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import { strings } from '../../../../../../../locales/i18n';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import Text, {
   TextColor,
   TextVariant,
@@ -86,7 +87,7 @@ function ListItem({
   const { styles } = useStyles(styleSheet, { isSelected });
 
   return (
-    <TouchableOpacity
+    <Pressable
       testID={`gas-fee-token-list-item-${leftPrimary}`}
       onPress={() => onClick?.()}
       style={styles.gasFeeTokenListItem}
@@ -129,7 +130,7 @@ function ListItem({
           {rightSecondary}
         </Text>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 

@@ -6,6 +6,7 @@ import React, {
   useState,
 } from 'react';
 import useClaimReward from '../../../hooks/useClaimReward';
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import {
   ClaimRewardDto,
   SeasonRewardType,
@@ -32,7 +33,7 @@ import BottomSheet, {
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
-import { Linking, TouchableOpacity } from 'react-native';
+import { Linking } from 'react-native';
 import { formatUrl } from '../../../utils/formatUtils';
 import TextField from '../../../../../../component-library/components/Form/TextField';
 import useRewardsToast from '../../../hooks/useRewardsToast';
@@ -258,7 +259,7 @@ const RewardsClaimBottomSheetModal = ({
         {description}
       </Text>
       {claimUrl && (
-        <TouchableOpacity
+        <Pressable
           onPress={() => Linking.openURL(claimUrl)}
           style={tw.style('mt-2 flex-row items-center')}
         >
@@ -274,7 +275,7 @@ const RewardsClaimBottomSheetModal = ({
             size={IconSize.Sm}
             twClassName="text-primary-default"
           />
-        </TouchableOpacity>
+        </Pressable>
       )}
     </Box>
   );

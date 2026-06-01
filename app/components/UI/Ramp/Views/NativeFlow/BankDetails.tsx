@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   HeaderStandard,
   Text,
@@ -12,7 +13,7 @@ import {
   ButtonVariant,
   ButtonSize,
 } from '@metamask/design-system-react-native';
-import { View, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, RefreshControl } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import styleSheet from '../../Deposit/Views/BankDetails/BankDetails.styles';
 import { useNavigation } from '@react-navigation/native';
@@ -426,7 +427,7 @@ const V2BankDetails = () => {
                   </>
                 ) : null}
 
-                <TouchableOpacity
+                <Pressable
                   style={styles.showBankInfoButton}
                   onPress={toggleBankInfo}
                 >
@@ -443,7 +444,7 @@ const V2BankDetails = () => {
                     size={IconSize.Sm}
                     color={IconColor.PrimaryDefault}
                   />
-                </TouchableOpacity>
+                </Pressable>
               </View>
             ) : (
               <Loader size="large" color={theme.colors.primary.default} />

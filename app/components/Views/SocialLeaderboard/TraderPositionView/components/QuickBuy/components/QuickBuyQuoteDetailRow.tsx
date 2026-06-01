@@ -1,5 +1,6 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+
+import Pressable from '../../../../../../../component-library/components-temp/Pressable';
 import {
   Box,
   BoxAlignItems,
@@ -77,7 +78,7 @@ interface QuickBuyQuoteDetailPressableValueProps {
 export const QuickBuyQuoteDetailPressableValue: React.FC<
   QuickBuyQuoteDetailPressableValueProps
 > = ({ onPress, testID, text, iconName }) => (
-  <TouchableOpacity onPress={onPress} testID={testID} activeOpacity={0.6}>
+  <Pressable onPress={onPress} testID={testID}>
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
@@ -88,5 +89,5 @@ export const QuickBuyQuoteDetailPressableValue: React.FC<
       </Text>
       <Icon name={iconName} size={IconSize.Sm} color={IconColor.IconDefault} />
     </Box>
-  </TouchableOpacity>
+  </Pressable>
 );

@@ -1,8 +1,9 @@
 import React, { useState, useCallback, useMemo, useRef } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useStyles } from '../../../../../component-library/hooks';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Text, {
   TextVariant,
   TextColor,
@@ -329,7 +330,7 @@ const PerpsAdjustMarginView: React.FC = () => {
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('perps.adjust_margin.liquidation_price')}
               </Text>
-              <TouchableOpacity
+              <Pressable
                 onPress={() => handleTooltipPress('liquidation_price')}
                 style={styles.infoIcon}
               >
@@ -338,7 +339,7 @@ const PerpsAdjustMarginView: React.FC = () => {
                   size={IconSize.Sm}
                   color={IconColor.Alternative}
                 />
-              </TouchableOpacity>
+              </Pressable>
             </View>
             {showTransition ? (
               <View style={styles.changeContainer}>
@@ -386,7 +387,7 @@ const PerpsAdjustMarginView: React.FC = () => {
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('perps.adjust_margin.liquidation_distance')}
               </Text>
-              <TouchableOpacity
+              <Pressable
                 onPress={() => handleTooltipPress('liquidation_distance')}
                 style={styles.infoIcon}
               >
@@ -395,7 +396,7 @@ const PerpsAdjustMarginView: React.FC = () => {
                   size={IconSize.Sm}
                   color={IconColor.Alternative}
                 />
-              </TouchableOpacity>
+              </Pressable>
             </View>
             {showTransition ? (
               <View style={styles.changeContainer}>

@@ -1,10 +1,11 @@
 import React from 'react';
-import { StyleSheet, View, TextInput, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, TextInput } from 'react-native';
 import { fontStyles, baseStyles } from '../../../styles/common';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import PropTypes from 'prop-types';
 import Identicon from '../Identicon';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import {
   renderShortAddress,
   renderSlightlyLongAddress,
@@ -342,7 +343,7 @@ export const AddressTo = (props) => {
             />
           </View>
           {!isInputFilled ? (
-            <TouchableOpacity onPress={onScan} style={styles.iconWrapper}>
+            <Pressable onPress={onScan} style={styles.iconWrapper}>
               <AntIcon
                 name="scan1"
                 size={20}
@@ -351,15 +352,15 @@ export const AddressTo = (props) => {
                   highlighted ? styles.iconHighlighted : styles.inputIconOpaque,
                 ]}
               />
-            </TouchableOpacity>
+            </Pressable>
           ) : (
-            <TouchableOpacity onPress={onClear} style={styles.iconWrapper}>
+            <Pressable onPress={onClear} style={styles.iconWrapper}>
               <AntIcon
                 name="close"
                 size={20}
                 style={[styles.inputIcon, styles.inputIconOpaque]}
               />
-            </TouchableOpacity>
+            </Pressable>
           )}
         </View>
       ) : (
@@ -462,13 +463,13 @@ export const AddressTo = (props) => {
           </View>
           {!!onClear && (
             <View style={styles.checkCleanWrapper}>
-              <TouchableOpacity onPress={onClear} style={styles.iconWrapper}>
+              <Pressable onPress={onClear} style={styles.iconWrapper}>
                 <AntIcon
                   name="close"
                   size={20}
                   style={[styles.inputIcon, styles.inputIconOpaque]}
                 />
-              </TouchableOpacity>
+              </Pressable>
             </View>
           )}
         </View>
@@ -582,7 +583,7 @@ export const AddressFrom = (props) => {
         </View>
 
         {!!onPressIcon && (
-          <TouchableOpacity onPress={onPressIcon} style={styles.iconWrapper}>
+          <Pressable onPress={onPressIcon} style={styles.iconWrapper}>
             <View style={styles.dropdownIconWrapper}>
               <FontAwesome
                 name={'caret-down'}
@@ -593,7 +594,7 @@ export const AddressFrom = (props) => {
                 ]}
               />
             </View>
-          </TouchableOpacity>
+          </Pressable>
         )}
       </View>
     </View>

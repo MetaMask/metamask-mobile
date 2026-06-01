@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 
 import { strings } from '../../../../../../locales/i18n';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -153,7 +154,7 @@ function NetworkFeeField(props: NetworkFeeFieldProps) {
 
   return (
     <>
-      <TouchableOpacity testID={NETWORK_FEE_FIELD_TESTID} onPress={onPress}>
+      <Pressable testID={NETWORK_FEE_FIELD_TESTID} onPress={onPress}>
         <View style={styles.row}>
           <Avatar
             variant={AvatarVariant.Icon}
@@ -165,7 +166,7 @@ function NetworkFeeField(props: NetworkFeeFieldProps) {
           />
           {renderNetworkFeeDetails()}
         </View>
-      </TouchableOpacity>
+      </Pressable>
 
       {!isCollapsed && networkFee && (
         <BottomSheet

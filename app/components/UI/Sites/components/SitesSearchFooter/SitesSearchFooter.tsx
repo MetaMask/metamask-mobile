@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
-import { TouchableOpacity } from 'react-native';
+
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   Box,
   Text,
@@ -97,7 +98,7 @@ const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
   return (
     <Box style={containerStyle}>
       {isUrl && (
-        <TouchableOpacity
+        <Pressable
           style={tw.style('flex-row items-center py-4')}
           onPress={() => handlePress(searchQuery)}
           testID="trending-search-footer-url-link"
@@ -118,10 +119,10 @@ const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
               twClassName="text-primary"
             />
           </Box>
-        </TouchableOpacity>
+        </Pressable>
       )}
 
-      <TouchableOpacity
+      <Pressable
         style={tw.style('flex-row items-center py-4')}
         onPress={() => handlePress(searchUrl)}
         testID="trending-search-footer-search-link"
@@ -154,7 +155,7 @@ const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
             twClassName="text-primary"
           />
         </Box>
-      </TouchableOpacity>
+      </Pressable>
     </Box>
   );
 };

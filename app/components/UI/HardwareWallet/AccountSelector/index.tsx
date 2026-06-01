@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useMemo } from 'react';
-import { View, Text, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import CheckBox from '@react-native-community/checkbox';
 import { useSelector } from 'react-redux';
@@ -16,6 +16,7 @@ import { selectProviderConfig } from '../../../../selectors/networkController';
 import { AccountSelectorSelectorsIDs } from './AccountSelector.testIds';
 import { toFormattedAddress } from '../../../../util/address';
 
+import Pressable from '../../../../component-library/components-temp/Pressable';
 interface ISelectQRAccountsProps {
   accounts: IAccount[];
   selectedAccounts: string[];
@@ -114,7 +115,7 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
         )}
       />
       <View style={styles.pagination}>
-        <TouchableOpacity
+        <Pressable
           style={styles.paginationItem}
           onPress={prevPage}
           testID={AccountSelectorSelectorsIDs.PREVIOUS_BUTTON}
@@ -123,8 +124,8 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
           <Text style={styles.paginationText}>
             {strings('account_selector.prev')}
           </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+        </Pressable>
+        <Pressable
           style={styles.paginationItem}
           onPress={nextPage}
           testID={AccountSelectorSelectorsIDs.NEXT_BUTTON}
@@ -133,7 +134,7 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
             {strings('account_selector.next')}
           </Text>
           {<Icon name={'chevron-right'} color={colors.primary.default} />}
-        </TouchableOpacity>
+        </Pressable>
       </View>
       <View style={styles.bottom}>
         <StyledButton

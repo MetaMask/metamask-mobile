@@ -1,11 +1,6 @@
 import React, { useMemo } from 'react';
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  ActivityIndicator,
-  FlatList,
-} from 'react-native';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
+import { View, StyleSheet, ActivityIndicator, FlatList } from 'react-native';
 
 import Text, {
   TextVariant,
@@ -142,7 +137,7 @@ export const DeviceSelectionContent: React.FC<DeviceSelectionContentProps> = ({
     const isSelected = selectedDevice?.id === item.id;
 
     return (
-      <TouchableOpacity
+      <Pressable
         style={[styles.deviceItem, isSelected && styles.deviceItemSelected]}
         onPress={() => onSelectDevice(item)}
         testID={`${DEVICE_SELECTION_ITEM_TEST_ID}-${item.id}`}
@@ -183,7 +178,7 @@ export const DeviceSelectionContent: React.FC<DeviceSelectionContentProps> = ({
             />
           </View>
         )}
-      </TouchableOpacity>
+      </Pressable>
     );
   };
 

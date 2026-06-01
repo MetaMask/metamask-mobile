@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
@@ -54,7 +55,7 @@ export function SamplePetNamesList({
   return (
     <View>
       {petNames.map(({ address, name }) => (
-        <TouchableOpacity
+        <Pressable
           key={address}
           onPress={() =>
             onAccountPress({
@@ -76,7 +77,7 @@ export function SamplePetNamesList({
               </Text>
             </View>
           </ListItem>
-        </TouchableOpacity>
+        </Pressable>
       ))}
     </View>
   );

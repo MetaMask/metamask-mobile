@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
-import { TouchableOpacity, Image, View } from 'react-native';
+import { Image, View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import {
   Box,
   Text,
@@ -51,7 +52,7 @@ export const PredictPositionRow = ({
     position;
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={handlePress}
       accessibilityRole="button"
       accessibilityLabel={`${title} - ${outcome}`}
@@ -109,7 +110,7 @@ export const PredictPositionRow = ({
           {formatPercentage(percentPnl)}
         </SensitiveText>
       </Box>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

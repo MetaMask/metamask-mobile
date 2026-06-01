@@ -5,8 +5,9 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useEffect, useRef } from 'react';
-import { Animated, TouchableOpacity } from 'react-native';
+import { Animated } from 'react-native';
 import { PerpsAmountDisplaySelectorsIDs } from '../../../Perps/Perps.testIds';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Text, {
   TextColor,
   TextVariant,
@@ -115,11 +116,7 @@ const PredictAmountDisplay: React.FC<PredictAmountDisplayProps> = ({
   );
 
   if (onPress) {
-    return (
-      <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
-        {content}
-      </TouchableOpacity>
-    );
+    return <Pressable onPress={onPress}>{content}</Pressable>;
   }
 
   return content;

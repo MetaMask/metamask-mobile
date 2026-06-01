@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
-import { View, TouchableOpacity, FlatList } from 'react-native';
+import { View, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Text, {
   TextVariant,
   TextColor,
@@ -99,10 +100,9 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
       const { item } = props;
 
       return (
-        <TouchableOpacity
+        <Pressable
           style={styles.activityItem}
           onPress={() => handleTransactionPress(item)}
-          activeOpacity={0.7}
         >
           <View style={styles.leftSection}>
             <View style={styles.iconContainer}>
@@ -137,7 +137,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
             </View>
           </View>
           <View style={styles.rightSection}>{renderRightContent(item)}</View>
-        </TouchableOpacity>
+        </Pressable>
       );
     },
     [styles, handleTransactionPress, iconSize, renderRightContent],
@@ -162,7 +162,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.header} onPress={handleSeeAll}>
+      <Pressable style={styles.header} onPress={handleSeeAll}>
         <View style={styles.titleRow}>
           <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
             {strings('perps.home.recent_activity')}
@@ -173,7 +173,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
             color={IconColor.Alternative}
           />
         </View>
-      </TouchableOpacity>
+      </Pressable>
 
       <View>
         <FlatList

@@ -1,5 +1,6 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+
+import Pressable from '../../../../../../../component-library/components-temp/Pressable';
 import {
   Box,
   BoxAlignItems,
@@ -47,14 +48,13 @@ const QuickBuyRateTag: React.FC<QuickBuyRateTagProps> = ({
       testID="quick-buy-rate-tag"
     >
       {onPress ? (
-        <TouchableOpacity
+        <Pressable
           onPress={onPress}
-          activeOpacity={0.7}
           accessibilityRole="button"
           testID="quick-buy-rate-tag-pressable"
         >
           {content}
-        </TouchableOpacity>
+        </Pressable>
       ) : (
         content
       )}

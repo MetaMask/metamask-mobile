@@ -1,6 +1,7 @@
 import React, { useCallback, useRef } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -117,7 +118,7 @@ const MoneyTransferSheet = () => {
       </BottomSheetHeader>
       <View style={styles.list}>
         {activeOptions.map((item) => (
-          <TouchableOpacity
+          <Pressable
             key={item.testID}
             onPress={item.onPress}
             style={styles.row}
@@ -131,7 +132,7 @@ const MoneyTransferSheet = () => {
             <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
               {item.label}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         ))}
         {disabledOptions.map((item) => (
           <View key={item.testID} style={styles.row} testID={item.testID}>

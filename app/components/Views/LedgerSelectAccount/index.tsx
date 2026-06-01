@@ -5,13 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  Image,
-  Text,
-  TouchableOpacity,
-  View,
-  ActivityIndicator,
-} from 'react-native';
+import { Image, Text, View, ActivityIndicator } from 'react-native';
 import Engine from '../../../core/Engine';
 import AccountSelector from '../../UI/HardwareWallet/AccountSelector';
 import BlockingActionModal from '../../UI/BlockingActionModal';
@@ -21,6 +15,7 @@ import { useAssetFromTheme, useTheme } from '../../../util/theme';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import ledgerDeviceLightImage from '../../../images/ledger-device-light.png';
 import ledgerDeviceDarkImage from '../../../images/ledger-device-dark.png';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import {
   forgetLedger,
   getHDPath,
@@ -426,12 +421,12 @@ const LedgerSelectAccount = () => {
             style={styles.ledgerIcon}
           />
 
-          <TouchableOpacity
+          <Pressable
             onPress={navigation.goBack}
             style={styles.navbarRightButton}
           >
             <MaterialIcon name="close" size={15} style={styles.closeIcon} />
-          </TouchableOpacity>
+          </Pressable>
         </View>
         <View>
           {errorMsg && <Text style={styles.error}>{errorMsg}</Text>}

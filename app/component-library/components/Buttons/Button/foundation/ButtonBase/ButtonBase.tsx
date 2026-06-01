@@ -2,8 +2,8 @@
 
 // Third party dependencies.
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
 
+import Pressable from '../../../../../components-temp/Pressable';
 // External dependencies.
 import Text from '../../../../Texts/Text';
 import Icon from '../../../../Icons/Icon';
@@ -47,9 +47,8 @@ const ButtonBase = ({
   });
 
   return (
-    <TouchableOpacity
+    <Pressable
       disabled={isDisabled}
-      activeOpacity={1}
       onPress={onPress}
       style={styles.base}
       accessibilityRole="button"
@@ -83,7 +82,7 @@ const ButtonBase = ({
           style={styles.endIcon}
         />
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

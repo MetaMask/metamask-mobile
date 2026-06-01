@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { connect } from 'react-redux';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import TransactionTypes from '../../../core/TransactionTypes';
 import { strings } from '../../../../locales/i18n';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import {
   selectEvmChainId,
   selectEvmTicker,
@@ -176,9 +177,9 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
         />
       )}
       {existingToAddress === undefined && confusableCollection.length ? (
-        <TouchableOpacity onPress={() => setShowWarningModal(true)}>
+        <Pressable onPress={() => setShowWarningModal(true)}>
           {addressTo}
-        </TouchableOpacity>
+        </Pressable>
       ) : (
         addressTo
       )}

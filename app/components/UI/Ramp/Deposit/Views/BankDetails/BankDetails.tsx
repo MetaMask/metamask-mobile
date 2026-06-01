@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, RefreshControl } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useDispatch, useSelector } from 'react-redux';
 import styleSheet from './BankDetails.styles';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import type { AxiosError } from 'axios';
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import {
   createNavigationDetails,
   useParams,
@@ -450,7 +451,7 @@ const BankDetails = () => {
                   </>
                 ) : null}
 
-                <TouchableOpacity
+                <Pressable
                   style={styles.showBankInfoButton}
                   onPress={toggleBankInfo}
                 >
@@ -464,7 +465,7 @@ const BankDetails = () => {
                     size={IconSize.Sm}
                     color={theme.colors.primary.default}
                   />
-                </TouchableOpacity>
+                </Pressable>
               </View>
             ) : (
               <Loader size="large" color={theme.colors.primary.default} />

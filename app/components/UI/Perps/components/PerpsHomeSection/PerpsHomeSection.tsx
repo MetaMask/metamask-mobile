@@ -1,6 +1,7 @@
 import React, { ReactNode } from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   Box,
   Text,
@@ -140,7 +141,7 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
           justifyContent={showAction ? BoxJustifyContent.Between : undefined}
           endAccessory={
             showAction ? (
-              <TouchableOpacity
+              <Pressable
                 testID={PerpsHomeSectionTestIds.ACTION_BUTTON}
                 onPress={onActionPress}
               >
@@ -149,7 +150,7 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
                   size={IconSize.Md}
                   color={IconColor.IconDefault}
                 />
-              </TouchableOpacity>
+              </Pressable>
             ) : undefined
           }
           twClassName="px-0 mb-0"

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TouchableOpacity, ViewStyle, TextStyle } from 'react-native';
+import { View, ViewStyle, TextStyle } from 'react-native';
 import Text from '../../../../../component-library/components/Texts/Text';
 import { PerpsTransactionSelectorsIDs } from '../../Perps.testIds';
 import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '@metamask/perps-controller';
@@ -7,6 +7,7 @@ import { PerpsTransaction } from '../../types/transactionHistory';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import PerpsFillTag from '../PerpsFillTag';
 
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 // Re-export FillType from the types file for backwards compatibility
 export { FillType } from '../../types/transactionHistory';
 
@@ -34,13 +35,10 @@ const PerpsTransactionItem: React.FC<PerpsTransactionItemProps> = ({
   onPress,
   renderRightContent,
 }) => (
-  <TouchableOpacity
+  <Pressable
     testID={PerpsTransactionSelectorsIDs.TRANSACTION_ITEM}
     style={styles.transactionItem}
     onPress={() => onPress(item)}
-    activeOpacity={
-      PERPS_TRANSACTIONS_HISTORY_CONSTANTS.LIST_ITEM_SELECTOR_OPACITY
-    }
   >
     <View
       testID={PerpsTransactionSelectorsIDs.TRANSACTION_ITEM_AVATAR}
@@ -78,7 +76,7 @@ const PerpsTransactionItem: React.FC<PerpsTransactionItemProps> = ({
       )}
     </View>
     <View style={styles.rightContent}>{renderRightContent(item)}</View>
-  </TouchableOpacity>
+  </Pressable>
 );
 
 export default PerpsTransactionItem;

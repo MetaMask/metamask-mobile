@@ -1,10 +1,6 @@
 import React from 'react';
-import {
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  ActivityIndicator,
-} from 'react-native';
+import Pressable from '../../../../../../../component-library/components-temp/Pressable';
+import { StyleSheet, TextInput, ActivityIndicator } from 'react-native';
 import {
   Box,
   Text,
@@ -64,11 +60,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   const secondaryLabel = isCryptoPrimary ? fiatAmountLabel : cryptoAmountLabel;
 
   return (
-    <TouchableOpacity
-      onPress={onAmountAreaPress}
-      activeOpacity={1}
-      testID="quick-buy-amount-area"
-    >
+    <Pressable onPress={onAmountAreaPress} testID="quick-buy-amount-area">
       <Box
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
@@ -99,7 +91,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
               {secondaryLabel}
             </Text>
             {fiatCryptoToggleEnabled ? (
-              <TouchableOpacity
+              <Pressable
                 onPress={onToggleAmountDisplay}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 accessibilityRole="button"
@@ -113,7 +105,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
                   size={IconSize.Sm}
                   color={IconColor.IconAlternative}
                 />
-              </TouchableOpacity>
+              </Pressable>
             ) : null}
           </Box>
         )}
@@ -134,7 +126,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
           testID="quick-buy-amount-input"
         />
       </Box>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

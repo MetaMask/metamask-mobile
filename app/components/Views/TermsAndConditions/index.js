@@ -1,5 +1,5 @@
 import React, { PureComponent } from 'react';
-import { Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Text, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -7,6 +7,7 @@ import AppConstants from '../../../core/AppConstants';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { TermsAndConditionsSelectorsIDs } from './TermsAndConditions.testIds';
 
+import Pressable from '../../../component-library/components-temp/Pressable';
 const createStyles = (colors) =>
   StyleSheet.create({
     text: {
@@ -47,7 +48,7 @@ export default class TermsAndConditions extends PureComponent {
     const styles = createStyles(colors);
 
     return (
-      <TouchableOpacity
+      <Pressable
         testID={TermsAndConditionsSelectorsIDs.ACCEPT_BUTTON}
         onPress={this.press}
       >
@@ -58,7 +59,7 @@ export default class TermsAndConditions extends PureComponent {
           </Text>
           .
         </Text>
-      </TouchableOpacity>
+      </Pressable>
     );
   }
 }

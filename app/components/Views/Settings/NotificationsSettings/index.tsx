@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, TouchableOpacity } from 'react-native';
+import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 
@@ -19,6 +19,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { useSwitchNotificationLoadingText } from '../../../../util/notifications/hooks/useSwitchNotifications';
 import { MainNotificationToggle } from './MainNotificationToggle';
 import styleSheet from './NotificationsSettings.styles';
+import Pressable from '../../../../component-library/components-temp/Pressable';
 import {
   useNotificationStoragePreferences,
   type NotificationStoragePreferences,
@@ -54,7 +55,7 @@ const NotificationRow = ({
   const { styles } = useStyles(styleSheet, { theme });
 
   return (
-    <TouchableOpacity style={styles.switchElement} onPress={onPress}>
+    <Pressable style={styles.switchElement} onPress={onPress}>
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -70,7 +71,7 @@ const NotificationRow = ({
         </Box>
       </Box>
       <Icon name={IconName.ArrowRight} color={IconColor.IconAlternative} />
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React, { useState, useEffect } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
 import ElevatedView from 'react-native-elevated-view';
 import { strings } from '../../../../locales/i18n';
 import { baseStyles } from '../../../styles/common';
@@ -13,6 +13,7 @@ import styleSheet from './BackupAlert.styles';
 import { useStyles } from '../../../component-library/hooks';
 import { BackupAlertI } from './BackupAlert.types';
 import { PROTECT_WALLET_BUTTON } from './BackupAlert.constants';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import Icon, {
   IconColor,
   IconName,
@@ -141,7 +142,7 @@ const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
               {strings('backup_alert.title')}
             </Text>
             <View style={styles.buttonsWrapper}>
-              <TouchableOpacity
+              <Pressable
                 onPress={goToBackupFlow}
                 testID={PROTECT_WALLET_BUTTON}
               >
@@ -151,11 +152,8 @@ const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
                 >
                   {strings('backup_alert.right_button')}
                 </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={onDismissAlert}
-                style={styles.dismissButton}
-              >
+              </Pressable>
+              <Pressable onPress={onDismissAlert} style={styles.dismissButton}>
                 <Text
                   variant={TextVariant.BodyMD}
                   style={styles.backupAlertMessage}
@@ -163,7 +161,7 @@ const BackupAlert = ({ navigation, onDismiss }: BackupAlertI) => {
                 >
                   {strings('backup_alert.left_button')}
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
           </View>
         </View>

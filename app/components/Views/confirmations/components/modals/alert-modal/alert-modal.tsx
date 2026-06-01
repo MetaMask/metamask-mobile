@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect } from 'react';
-import { TouchableOpacity, View, ViewStyle } from 'react-native';
+import { View, ViewStyle } from 'react-native';
 import BottomModal from '../../../components/UI/bottom-modal';
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -117,10 +118,9 @@ const AlertCheckbox: React.FC<CheckboxProps> = ({
   }
 
   return (
-    <TouchableOpacity
+    <Pressable
       style={styles.checkboxContainer}
       onPress={() => onCheckboxClick(isConfirmed)}
-      activeOpacity={1}
     >
       <Checkbox
         onPress={() => onCheckboxClick(isConfirmed)}
@@ -130,7 +130,7 @@ const AlertCheckbox: React.FC<CheckboxProps> = ({
       <Text style={styles.checkboxText}>
         {strings('alert_system.confirm_modal.checkbox_label')}
       </Text>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

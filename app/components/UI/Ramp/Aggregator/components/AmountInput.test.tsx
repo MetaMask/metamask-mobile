@@ -1,11 +1,12 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import AmountInput from './AmountInput';
-import { TouchableOpacity } from 'react-native';
+
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { BuildQuoteSelectors } from '../Views/BuildQuote/BuildQuote.testIds';
 
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 const defaultState = {
   engine: {
     backgroundState,
@@ -110,9 +111,7 @@ describe('AmountInput', () => {
       },
     );
 
-    const pressableElements = screen.root.findAllByType(
-      TouchableOpacity as never,
-    );
+    const pressableElements = screen.root.findAllByType(Pressable as never);
     if (pressableElements.length > 0) {
       fireEvent.press(pressableElements[0]);
     }
@@ -133,9 +132,7 @@ describe('AmountInput', () => {
       },
     );
 
-    const pressableElements = screen.root.findAllByType(
-      TouchableOpacity as never,
-    );
+    const pressableElements = screen.root.findAllByType(Pressable as never);
     pressableElements.forEach((pressableElement) => {
       fireEvent.press(pressableElement);
     });

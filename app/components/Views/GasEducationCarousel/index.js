@@ -1,13 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import {
-  View,
-  ScrollView,
-  StyleSheet,
-  Image,
-  Dimensions,
-  TouchableOpacity,
-} from 'react-native';
+import Pressable from '../../../component-library/components-temp/Pressable';
+import { View, ScrollView, StyleSheet, Image, Dimensions } from 'react-native';
 import StyledButton from '../../UI/StyledButton';
 import { baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -286,11 +280,11 @@ const GasEducationCarousel = ({
           <Text grey noMargin bold style={styles.subtitle}>
             {strings('fiat_on_ramp.gas_education_carousel.step_2.subtitle_2')}
           </Text>
-          <TouchableOpacity onPress={openLink}>
+          <Pressable onPress={openLink}>
             <Text link noMargin bold style={styles.link}>
               {strings('fiat_on_ramp.gas_education_carousel.step_2.learn_more')}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       );
     }

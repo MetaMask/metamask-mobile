@@ -1,7 +1,8 @@
 import React, { useContext, useMemo } from 'react';
-import { Image, TouchableOpacity, View } from 'react-native';
+import { Image, View } from 'react-native';
 import ElevatedView from 'react-native-elevated-view';
 import { strings } from '../../../../../locales/i18n';
+import Pressable from '../../../../component-library/components-temp/Pressable';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
@@ -66,7 +67,7 @@ const TabThumbnail = ({
 
   return (
     <Container style={styles.checkWrapper} elevation={8}>
-      <TouchableOpacity
+      <Pressable
         accessible
         accessibilityLabel={strings('browser.switch_tab')}
         onPress={() => onSwitch(tab)}
@@ -85,7 +86,7 @@ const TabThumbnail = ({
               {tabTitle}
             </Text>
           </View>
-          <TouchableOpacity
+          <Pressable
             accessible
             accessibilityLabel={strings('browser.close_tab')}
             onPress={() => onClose(tab)}
@@ -97,7 +98,7 @@ const TabThumbnail = ({
               size={IconSize.Md}
               color={IconColor.Default}
             />
-          </TouchableOpacity>
+          </Pressable>
         </View>
         <View style={styles.tab}>
           <Image source={{ uri: tab.image }} style={styles.tabImage} />
@@ -136,7 +137,7 @@ const TabThumbnail = ({
             </Text>
           </View>
         )}
-      </TouchableOpacity>
+      </Pressable>
     </Container>
   );
 };

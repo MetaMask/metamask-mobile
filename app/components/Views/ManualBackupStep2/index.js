@@ -1,11 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import {
-  Alert,
-  TouchableOpacity,
-  FlatList,
-  Platform,
-  useWindowDimensions,
-} from 'react-native';
+import Pressable from '../../../component-library/components-temp/Pressable';
+import { Alert, FlatList, Platform, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -68,7 +63,7 @@ const ManualBackupStep2 = ({
 
   const headerLeft = useCallback(
     () => (
-      <TouchableOpacity
+      <Pressable
         testID={ManualBackUpStepsSelectorsIDs.BACK_BUTTON}
         onPress={() => navigation.goBack()}
       >
@@ -78,7 +73,7 @@ const ManualBackupStep2 = ({
           color={IconColor.IconDefault}
           style={tw.style('ml-4')}
         />
-      </TouchableOpacity>
+      </Pressable>
     ),
     [navigation, tw],
   );
@@ -329,7 +324,7 @@ const ManualBackupStep2 = ({
       const isSelected = selectedSlot === index;
 
       return (
-        <TouchableOpacity
+        <Pressable
           key={index}
           testID={
             isEmpty
@@ -346,7 +341,7 @@ const ManualBackupStep2 = ({
           onPress={() => handleSlotPress(index)}
         >
           {renderGridItemText(item, index, isEmpty)}
-        </TouchableOpacity>
+        </Pressable>
       );
     },
     [
@@ -383,7 +378,7 @@ const ManualBackupStep2 = ({
         {missingWords.map((word, i) => {
           const isUsed = usedWordIndices.has(i);
           return (
-            <TouchableOpacity
+            <Pressable
               key={`${word}-${i}`}
               testID={`${ManualBackUpStepsSelectorsIDs.MISSING_WORDS}-${i}`}
               style={tw.style(
@@ -404,7 +399,7 @@ const ManualBackupStep2 = ({
               >
                 {word}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           );
         })}
       </Box>

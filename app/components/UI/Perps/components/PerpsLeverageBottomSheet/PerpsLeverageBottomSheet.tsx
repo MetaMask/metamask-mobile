@@ -13,7 +13,8 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   Gesture,
   GestureDetector,
@@ -840,7 +841,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
         {/* Quick select buttons */}
         <View style={styles.quickSelectButtons}>
           {quickSelectValues.map((value) => (
-            <TouchableOpacity
+            <Pressable
               key={value}
               style={[
                 styles.quickSelectButton,
@@ -868,7 +869,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
               >
                 {value}x
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           ))}
         </View>
       </View>

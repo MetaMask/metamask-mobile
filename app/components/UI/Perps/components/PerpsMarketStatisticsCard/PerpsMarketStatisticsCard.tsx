@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Icon, {
   IconColor,
   IconName,
@@ -127,7 +128,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
       <View style={styles.statsRowsContainer}>
         {/* Order Book - Clickable row */}
         {onOrderBookPress && (
-          <TouchableOpacity
+          <Pressable
             style={[styles.orderBookRow, styles.statsRowFirst]}
             onPress={onOrderBookPress}
             testID={PerpsOrderBookViewSelectorsIDs.CONTAINER}
@@ -142,7 +143,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
               size={IconSize.Sm}
               color={IconColor.Alternative}
             />
-          </TouchableOpacity>
+          </Pressable>
         )}
 
         {/* 24h volume */}
@@ -175,7 +176,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
                 >
                   {strings('perps.market.open_interest')}
                 </Text>
-                <TouchableOpacity
+                <Pressable
                   onPress={() => onTooltipPress('open_interest')}
                   testID="perps-market-details-open-interest-info-icon"
                 >
@@ -184,7 +185,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
                     size={IconSize.Sm}
                     color={IconColor.Alternative}
                   />
-                </TouchableOpacity>
+                </Pressable>
               </View>
             ),
           }}
@@ -209,7 +210,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
                 >
                   {strings('perps.market.funding_rate')}
                 </Text>
-                <TouchableOpacity
+                <Pressable
                   onPress={() => onTooltipPress('funding_rate')}
                   testID="perps-market-details-funding-rate-info-icon"
                 >
@@ -218,7 +219,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
                     size={IconSize.Sm}
                     color={IconColor.Alternative}
                   />
-                </TouchableOpacity>
+                </Pressable>
               </View>
             ),
           }}
@@ -239,7 +240,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
                 >
                   {strings('perps.market.oracle_price')}
                 </Text>
-                <TouchableOpacity
+                <Pressable
                   onPress={() => onTooltipPress('oracle_price')}
                   testID="perps-market-details-oracle-price-info-icon"
                 >
@@ -248,7 +249,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
                     size={IconSize.Sm}
                     color={IconColor.Alternative}
                   />
-                </TouchableOpacity>
+                </Pressable>
               </View>
             ),
           }}

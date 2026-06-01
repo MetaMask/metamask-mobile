@@ -1,9 +1,10 @@
 import React from 'react';
-import { Animated, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Animated, StyleSheet, View } from 'react-native';
 import Box from './Box';
 import SkeletonText from './SkeletonText';
 import DownChevronText from './DownChevronText';
 import ListItem from '../../../../../component-library/components/List/ListItem';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import ListItemColumn, {
   WidthType,
 } from '../../../../../component-library/components/List/ListItemColumn';
@@ -155,7 +156,7 @@ const AmountInput: React.FC<Props> = ({
     <Box label={label} highlighted={highlighted} compact>
       <ListItem>
         <ListItemColumn widthType={WidthType.Fill}>
-          <TouchableOpacity
+          <Pressable
             accessible
             accessibilityRole="button"
             accessibilityLabel={`${currencySymbol || ''}${amount}`}
@@ -164,7 +165,7 @@ const AmountInput: React.FC<Props> = ({
             testID={BuildQuoteSelectors.AMOUNT_INPUT}
           >
             {renderAmountContent()}
-          </TouchableOpacity>
+          </Pressable>
         </ListItemColumn>
 
         {onCurrencyPress ? (
@@ -172,7 +173,7 @@ const AmountInput: React.FC<Props> = ({
             {loading ? (
               <SkeletonText small />
             ) : (
-              <TouchableOpacity
+              <Pressable
                 accessible
                 accessibilityRole="button"
                 disabled={!onCurrencyPress}
@@ -181,7 +182,7 @@ const AmountInput: React.FC<Props> = ({
                 testID={BuildQuoteSelectors.SELECT_CURRENCY}
               >
                 <DownChevronText text={currencyCode} />
-              </TouchableOpacity>
+              </Pressable>
             )}
           </ListItemColumn>
         ) : null}

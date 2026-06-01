@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import { InteractionManager, TouchableOpacity, View } from 'react-native';
+import { InteractionManager, View } from 'react-native';
 import { connect } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import Text from '../../../component-library/components/Texts/Text';
@@ -24,6 +24,7 @@ import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBui
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import {
   selectEvmChainId,
   selectProviderType,
@@ -338,7 +339,7 @@ class AccountApproval extends PureComponent {
         {this.state.otp && (
           <View style={styles.otpContainer}>
             {this.state.otps.map((otpValue, index) => (
-              <TouchableOpacity
+              <Pressable
                 key={`otp${index}`}
                 testID={AccountApprovalSelectorsIDs.getOtpOption(otpValue)}
                 style={[
@@ -355,7 +356,7 @@ class AccountApproval extends PureComponent {
                   }
                 />
                 <Text style={styles.optionText}>{otpValue}</Text>
-              </TouchableOpacity>
+              </Pressable>
             ))}
           </View>
         )}

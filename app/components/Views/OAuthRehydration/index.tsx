@@ -6,18 +6,13 @@ import React, {
   useContext,
   useRef,
 } from 'react';
-import {
-  Image,
-  BackHandler,
-  TouchableOpacity,
-  Platform,
-  Alert,
-} from 'react-native';
+import { Image, BackHandler, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import {
   OnboardingActionTypes,
   saveOnboardingEvent as saveEvent,
@@ -845,18 +840,17 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
                 resizeMethod={'auto'}
               />
 
-              <TouchableOpacity
+              <Pressable
                 style={tw.style('self-center mt-12')}
                 delayLongPress={10 * 1000}
                 onLongPress={handleDownloadStateLogs}
-                activeOpacity={1}
               >
                 <Image
                   source={FOX_LOGO}
                   style={foxImageStyle}
                   resizeMethod={'auto'}
                 />
-              </TouchableOpacity>
+              </Pressable>
 
               <Text
                 variant={TextVariant.DisplayMd}

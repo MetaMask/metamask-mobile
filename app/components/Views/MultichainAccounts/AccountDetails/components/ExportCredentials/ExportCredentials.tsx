@@ -2,6 +2,7 @@ import React, { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { Box } from '../../../../../UI/Box/Box';
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import {
   isHDOrFirstPartySnapAccount,
   isPrivateKeyAccount,
@@ -18,7 +19,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import { TouchableOpacity } from 'react-native';
+
 import { useHdKeyringsWithSnapAccounts } from '../../../../../hooks/useHdKeyringsWithSnapAccounts';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -99,7 +100,7 @@ export const ExportCredentials = ({ account }: ExportCredentialsProps) => {
   return (
     <Box data-testid={ExportCredentialsIds.CONTAINER} gap={2}>
       {canExportMnemonic && srpName && (
-        <TouchableOpacity
+        <Pressable
           onPress={onExportMnemonic}
           testID={ExportCredentialsIds.EXPORT_SRP_BUTTON}
         >
@@ -134,10 +135,10 @@ export const ExportCredentials = ({ account }: ExportCredentialsProps) => {
               <Icon name={IconName.ArrowRight} size={IconSize.Sm} />
             </Box>
           </Box>
-        </TouchableOpacity>
+        </Pressable>
       )}
       {canExportPrivateKey && (
-        <TouchableOpacity
+        <Pressable
           onPress={onExportPrivateKey}
           testID={ExportCredentialsIds.EXPORT_PRIVATE_KEY_BUTTON}
         >
@@ -156,7 +157,7 @@ export const ExportCredentials = ({ account }: ExportCredentialsProps) => {
             </Text>
             <Icon name={IconName.ArrowRight} size={IconSize.Sm} />
           </Box>
-        </TouchableOpacity>
+        </Pressable>
       )}
     </Box>
   );

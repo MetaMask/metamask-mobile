@@ -1,7 +1,8 @@
 import React, { useCallback } from 'react';
-import { TouchableOpacity } from 'react-native';
+
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   Box,
   BoxAlignItems,
@@ -58,7 +59,7 @@ const PredictHomeFeaturedCarousel: React.FC<
 
   return (
     <Box testID={testID}>
-      <TouchableOpacity
+      <Pressable
         testID={PREDICT_HOME_FEATURED_CAROUSEL_TEST_IDS.HEADER}
         style={tw.style('flex-row items-center mb-2')}
         onPress={handleHeaderPress}
@@ -77,7 +78,7 @@ const PredictHomeFeaturedCarousel: React.FC<
             color={IconColor.IconAlternative}
           />
         </Box>
-      </TouchableOpacity>
+      </Pressable>
       <PredictEntryPointProvider
         entryPoint={PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_CAROUSEL}
       >

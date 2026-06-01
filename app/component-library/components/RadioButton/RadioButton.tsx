@@ -2,8 +2,9 @@
 
 // Third party dependencies.
 import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 
+import Pressable from '../../components-temp/Pressable';
 // External dependencies.
 import { useStyles } from '../../hooks';
 import Text from '../Texts/Text/Text';
@@ -41,7 +42,7 @@ const RadioButton = ({
   });
 
   return (
-    <TouchableOpacity
+    <Pressable
       style={styles.base}
       {...props}
       disabled={isDisabled || isReadOnly}
@@ -65,7 +66,7 @@ const RadioButton = ({
           )}
         </View>
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

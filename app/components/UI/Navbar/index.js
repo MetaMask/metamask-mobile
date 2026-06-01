@@ -2,14 +2,8 @@
 import React from 'react';
 import NavbarTitle from '../NavbarTitle';
 import ModalNavbarTitle from '../ModalNavbarTitle';
-import {
-  Alert,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import Pressable from '../../../component-library/components-temp/Pressable';
+import { Alert, Image, StyleSheet, Text, View } from 'react-native';
 import { colors as importedColors, fontStyles } from '../../../styles/common';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
 import { strings } from '../../../../locales/i18n';
@@ -245,7 +239,7 @@ export function getEditableOptions(title, navigation, route, themeColors) {
     title,
     headerTitleStyle: innerStyles.headerTitleStyle,
     headerLeft: () => (
-      <TouchableOpacity
+      <Pressable
         onPress={navigationPop}
         style={styles.backButton}
         testID={CommonSelectorsIDs.EDIT_CONTACT_BACK_BUTTON}
@@ -255,11 +249,11 @@ export function getEditableOptions(title, navigation, route, themeColors) {
           size={Device.isAndroid() ? 24 : 28}
           style={innerStyles.headerIcon}
         />
-      </TouchableOpacity>
+      </Pressable>
     ),
     headerRight: () =>
       !addMode ? (
-        <TouchableOpacity
+        <Pressable
           onPress={rightAction}
           style={styles.backButton}
           testID={AddContactViewSelectorsIDs.EDIT_BUTTON}
@@ -269,7 +263,7 @@ export function getEditableOptions(title, navigation, route, themeColors) {
               ? strings('address_book.edit')
               : strings('address_book.cancel')}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
       ) : (
         <View />
       ),
@@ -320,7 +314,7 @@ export function getTransactionOptionsTitle(
     headerTitle: () => <NavbarTitle title={title} disableNetwork />,
     headerLeft: () =>
       transactionMode !== 'edit' ? (
-        <TouchableOpacity
+        <Pressable
           disabled={disableModeChange}
           // eslint-disable-next-line react/jsx-no-bind
           onPress={leftAction}
@@ -336,20 +330,20 @@ export function getTransactionOptionsTitle(
           >
             {leftText}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
       ) : (
         <View />
       ),
     headerRight: () =>
       name === 'Send' ? (
         // eslint-disable-next-line react/jsx-no-bind
-        <TouchableOpacity
+        <Pressable
           onPress={rightAction}
           style={styles.closeButton}
           testID={CommonSelectorsIDs.SEND_BACK_BUTTON}
         >
           <Text style={innerStyles.headerButtonText}>{rightText}</Text>
-        </TouchableOpacity>
+        </Pressable>
       ) : (
         <View />
       ),
@@ -588,15 +582,15 @@ export function getClosableNavigationOptions(
     headerTitleStyle: innerStyles.headerTitleStyle,
     headerLeft: () =>
       Device.isIos() ? (
-        <TouchableOpacity
+        <Pressable
           onPress={navigationPop}
           style={styles.closeButton}
           testID={CommonSelectorsIDs.NAV_IOS_BACK}
         >
           <Text style={innerStyles.headerButtonText}>{backButtonText}</Text>
-        </TouchableOpacity>
+        </Pressable>
       ) : (
-        <TouchableOpacity
+        <Pressable
           onPress={navigationPop}
           style={styles.backButton}
           testID={NavbarSelectorsIDs.ANDROID_BACK_BUTTON}
@@ -606,7 +600,7 @@ export function getClosableNavigationOptions(
             size={24}
             style={innerStyles.headerIcon}
           />
-        </TouchableOpacity>
+        </Pressable>
       ),
     headerStyle: innerStyles.headerStyle,
     headerTintColor: themeColors.primary.default,
@@ -673,7 +667,7 @@ export function getNftDetailsNavbarOptions(
   });
   return {
     headerLeft: () => (
-      <TouchableOpacity
+      <Pressable
         onPress={() => navigation.pop()}
         style={styles.backButton}
         testID={CommonSelectorsIDs.BACK_ARROW_BUTTON}
@@ -683,17 +677,17 @@ export function getNftDetailsNavbarOptions(
           size={IconSize.Lg}
           style={innerStyles.headerBackIcon}
         />
-      </TouchableOpacity>
+      </Pressable>
     ),
     headerRight: onRightPress
       ? () => (
-          <TouchableOpacity style={styles.backButton} onPress={onRightPress}>
+          <Pressable style={styles.backButton} onPress={onRightPress}>
             <Icon
               name={IconName.MoreVertical}
               size={IconSize.Lg}
               style={innerStyles.headerBackIcon}
             />
-          </TouchableOpacity>
+          </Pressable>
         )
       : () => <View />,
     headerStyle: [
@@ -730,16 +724,13 @@ export function getNftFullImageNavbarOptions(
   });
   return {
     headerRight: () => (
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => navigation.pop()}
-      >
+      <Pressable style={styles.backButton} onPress={() => navigation.pop()}>
         <Icon
           name={IconName.Close}
           size={IconSize.Lg}
           style={innerStyles.headerBackIcon}
         />
-      </TouchableOpacity>
+      </Pressable>
     ),
     headerLeft: () => <View />,
     headerStyle: [
@@ -838,7 +829,7 @@ export function getPaymentSelectorMethodNavbar(navigation, onPop, themeColors) {
     headerLeft: () => <View />,
     headerRight: () => (
       // eslint-disable-next-line react/jsx-no-bind
-      <TouchableOpacity
+      <Pressable
         onPress={() => {
           navigation.getParent()?.pop();
           onPop?.();
@@ -848,7 +839,7 @@ export function getPaymentSelectorMethodNavbar(navigation, onPop, themeColors) {
         <Text style={innerStyles.headerButtonText}>
           {strings('navigation.cancel')}
         </Text>
-      </TouchableOpacity>
+      </Pressable>
     ),
     headerStyle: innerStyles.headerStyle,
   };
@@ -883,7 +874,7 @@ export function getPaymentMethodApplePayNavbar(
     headerTitleStyle: innerStyles.headerTitleStyle,
     headerRight: () => (
       // eslint-disable-next-line react/jsx-no-bind
-      <TouchableOpacity
+      <Pressable
         onPress={() => {
           navigation.getParent()?.pop();
           onExit?.();
@@ -893,12 +884,12 @@ export function getPaymentMethodApplePayNavbar(
         <Text style={innerStyles.headerButtonText}>
           {strings('navigation.cancel')}
         </Text>
-      </TouchableOpacity>
+      </Pressable>
     ),
     headerLeft: () =>
       Device.isAndroid() ? (
         // eslint-disable-next-line react/jsx-no-bind
-        <TouchableOpacity
+        <Pressable
           onPress={() => {
             navigation.pop();
             onPop?.();
@@ -910,10 +901,10 @@ export function getPaymentMethodApplePayNavbar(
             size={24}
             style={innerStyles.headerIcon}
           />
-        </TouchableOpacity>
+        </Pressable>
       ) : (
         // eslint-disable-next-line react/jsx-no-bind
-        <TouchableOpacity
+        <Pressable
           onPress={() => {
             navigation.pop();
             onPop?.();
@@ -923,7 +914,7 @@ export function getPaymentMethodApplePayNavbar(
           <Text style={innerStyles.headerButtonText}>
             {strings('navigation.back')}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
       ),
     headerStyle: innerStyles.headerStyle,
   };
@@ -953,7 +944,7 @@ export function getTransakWebviewNavbar(navigation, route, onPop, themeColors) {
     headerLeft: () =>
       Device.isAndroid() ? (
         // eslint-disable-next-line react/jsx-no-bind
-        <TouchableOpacity
+        <Pressable
           onPress={() => {
             navigation.pop();
             onPop?.();
@@ -965,10 +956,10 @@ export function getTransakWebviewNavbar(navigation, route, onPop, themeColors) {
             size={24}
             style={innerStyles.headerIcon}
           />
-        </TouchableOpacity>
+        </Pressable>
       ) : (
         // eslint-disable-next-line react/jsx-no-bind
-        <TouchableOpacity
+        <Pressable
           onPress={() => {
             navigation.pop();
             onPop?.();
@@ -980,7 +971,7 @@ export function getTransakWebviewNavbar(navigation, route, onPop, themeColors) {
             size={38}
             style={[innerStyles.headerIcon, styles.backIconIOS]}
           />
-        </TouchableOpacity>
+        </Pressable>
       ),
     headerStyle: innerStyles.headerStyle,
     headerTintColor: themeColors.primary.default,
@@ -1013,14 +1004,14 @@ export function getSwapsAmountNavbar(navigation, route, themeColors) {
     headerLeft: () => <View />,
     headerRight: () => (
       // eslint-disable-next-line react/jsx-no-bind
-      <TouchableOpacity
+      <Pressable
         onPress={() => navigation.getParent()?.pop()}
         style={styles.closeButton}
       >
         <Text style={innerStyles.headerButtonText}>
           {strings('navigation.cancel')}
         </Text>
-      </TouchableOpacity>
+      </Pressable>
     ),
     headerStyle: innerStyles.headerStyle,
   };
@@ -1089,26 +1080,26 @@ export function getSwapsQuotesNavbar(navigation, route, themeColors) {
     headerLeft: () =>
       Device.isAndroid() ? (
         // eslint-disable-next-line react/jsx-no-bind
-        <TouchableOpacity onPress={leftAction} style={styles.backButton}>
+        <Pressable onPress={leftAction} style={styles.backButton}>
           <IonicIcon
             name={'arrow-back'}
             size={24}
             style={innerStyles.headerIcon}
           />
-        </TouchableOpacity>
+        </Pressable>
       ) : (
         // eslint-disable-next-line react/jsx-no-bind
-        <TouchableOpacity onPress={leftAction} style={styles.closeButton}>
+        <Pressable onPress={leftAction} style={styles.closeButton}>
           <Text style={innerStyles.headerButtonText}>{leftActionText}</Text>
-        </TouchableOpacity>
+        </Pressable>
       ),
     headerRight: () => (
       // eslint-disable-next-line react/jsx-no-bind
-      <TouchableOpacity onPress={rightAction} style={styles.closeButton}>
+      <Pressable onPress={rightAction} style={styles.closeButton}>
         <Text style={innerStyles.headerButtonText}>
           {strings('navigation.cancel')}
         </Text>
-      </TouchableOpacity>
+      </Pressable>
     ),
     headerStyle: innerStyles.headerStyle,
   };
@@ -1145,9 +1136,9 @@ export function getBridgeTransactionDetailsNavbar(navigation) {
       />
     ),
     headerLeft: () => (
-      <TouchableOpacity onPress={leftAction} style={styles.backButton}>
+      <Pressable onPress={leftAction} style={styles.backButton}>
         <Icon name={IconName.ArrowLeft} />
-      </TouchableOpacity>
+      </Pressable>
     ),
   };
 }
@@ -1413,22 +1404,19 @@ export function getStakingNavbar(
       ),
     headerRight: () =>
       hasCancelButton ? (
-        <TouchableOpacity
-          onPress={handleCancelPress}
-          style={styles.closeButton}
-        >
+        <Pressable onPress={handleCancelPress} style={styles.closeButton}>
           <Text style={innerStyles.headerButtonText}>
             {strings('navigation.cancel')}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
       ) : hasIconButton ? (
-        <TouchableOpacity
+        <Pressable
           hitSlop={styles.hitSlop}
           onPress={handleIconPressWrapper}
           style={styles.iconButton}
         >
           <Icon name={IconName.Question} size={IconSize.Lg} />
-        </TouchableOpacity>
+        </Pressable>
       ) : (
         <></>
       ),

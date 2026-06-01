@@ -1,11 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import {
-  ScrollView,
-  TouchableOpacity,
-  Image,
-  useWindowDimensions,
-} from 'react-native';
+import Pressable from '../../../component-library/components-temp/Pressable';
+import { ScrollView, Image, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect, useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -176,7 +172,7 @@ const AccountBackupStep1B = (props) => {
                 </Text>
               </Text>
             </Box>
-            <TouchableOpacity
+            <Pressable
               onPress={showWhySecureWallet}
               style={tw.style('flex-row justify-center items-center')}
             >
@@ -192,7 +188,7 @@ const AccountBackupStep1B = (props) => {
               >
                 {strings('account_backup_step_1B.why_important')}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           </Box>
           <Box
             backgroundColor={BoxBackgroundColor.BackgroundDefault}
@@ -306,7 +302,7 @@ const AccountBackupStep1B = (props) => {
                 {strings('account_backup_step_1B.why_secure_2')}
               </Text>
             </Text>
-            <TouchableOpacity
+            <Pressable
               onPress={learnMore}
               hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
             >
@@ -317,7 +313,7 @@ const AccountBackupStep1B = (props) => {
               >
                 {strings('account_backup_step_1B.learn_more')}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           </Box>
         </Box>
       </ActionModal>

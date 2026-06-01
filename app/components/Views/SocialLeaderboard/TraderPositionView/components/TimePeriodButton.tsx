@@ -1,5 +1,6 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   Box,
   Text,
@@ -19,7 +20,7 @@ const TimePeriodButton: React.FC<TimePeriodButtonProps> = ({
   isActive,
   onPress,
 }) => (
-  <TouchableOpacity onPress={onPress}>
+  <Pressable onPress={onPress}>
     <Box
       twClassName={`flex-1 items-center justify-center px-2 py-1 rounded ${
         isActive ? 'bg-muted' : ''
@@ -33,7 +34,7 @@ const TimePeriodButton: React.FC<TimePeriodButtonProps> = ({
         {label}
       </Text>
     </Box>
-  </TouchableOpacity>
+  </Pressable>
 );
 
 export default TimePeriodButton;

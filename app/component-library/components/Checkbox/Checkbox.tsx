@@ -2,8 +2,9 @@
 
 // Third party dependencies.
 import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 
+import Pressable from '../../components-temp/Pressable';
 // External dependencies.
 import Icon from '../Icons/Icon';
 import { useStyles } from '../../hooks';
@@ -57,7 +58,7 @@ const Checkbox = ({
   }
 
   return (
-    <TouchableOpacity
+    <Pressable
       style={styles.base}
       {...props}
       disabled={isDisabled || isReadOnly}
@@ -87,7 +88,7 @@ const Checkbox = ({
           )}
         </View>
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

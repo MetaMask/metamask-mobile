@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Text, {
   TextColor,
   TextVariant,
@@ -21,7 +22,7 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import TransactionAsset from './TransactionAsset';
 import { calcTokenAmount } from '../../../../../util/transactions';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { calcHexGasTotal } from '../../utils/transactionGas';
 import { strings } from '../../../../../../locales/i18n';
 import BridgeStepList from './BridgeStepList';
@@ -363,7 +364,7 @@ export const BridgeTransactionDetails = (
                 alignItems={AlignItems.center}
               >
                 <Text>{estimatedCompletionString}</Text>
-                <TouchableOpacity
+                <Pressable
                   onPress={() => setIsStepListExpanded(!isStepListExpanded)}
                 >
                   <Icon
@@ -373,7 +374,7 @@ export const BridgeTransactionDetails = (
                     color={IconColor.Muted}
                     size={IconSize.Sm}
                   />
-                </TouchableOpacity>
+                </Pressable>
               </Box>
             </Box>
           )}

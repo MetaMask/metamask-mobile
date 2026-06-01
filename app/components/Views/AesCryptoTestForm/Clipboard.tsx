@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
-import { TouchableOpacity } from 'react-native';
 
 import ClipboardManager from '../../../core/ClipboardManager';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
@@ -22,13 +22,9 @@ const ClipboardText = ({
   }, [text]);
 
   return (
-    <TouchableOpacity
-      onPress={copy}
-      style={styles.clipboardText}
-      testID={testID}
-    >
+    <Pressable onPress={copy} style={styles.clipboardText} testID={testID}>
       <Text variant={TextVariant.BodyMD}>{text}</Text>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

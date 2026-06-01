@@ -1,10 +1,6 @@
 import React, { useEffect } from 'react';
-import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-} from 'react-native';
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
+import { ActivityIndicator, StyleSheet, Text } from 'react-native';
 import Animated, {
   useSharedValue,
   withTiming,
@@ -78,7 +74,7 @@ const QuickBuyConfirmButton: React.FC<QuickBuyConfirmButtonProps> = ({
   const showInactiveStyle = isDisabled && state === 'idle';
 
   return (
-    <TouchableOpacity
+    <Pressable
       style={[
         styles.container,
         hasValidAmount
@@ -89,7 +85,6 @@ const QuickBuyConfirmButton: React.FC<QuickBuyConfirmButtonProps> = ({
       onPress={onPress}
       disabled={state !== 'idle' || isDisabled}
       testID={testID}
-      activeOpacity={0.8}
     >
       {state === 'loading' && (
         <ActivityIndicator size="small" color={labelColor} />
@@ -106,7 +101,7 @@ const QuickBuyConfirmButton: React.FC<QuickBuyConfirmButtonProps> = ({
       {state === 'idle' && (
         <Text style={[styles.label, { color: labelColor }]}>{label}</Text>
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

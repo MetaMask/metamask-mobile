@@ -1,10 +1,6 @@
 import React from 'react';
-import {
-  TouchableOpacity,
-  StyleSheet,
-  Image,
-  type TextStyle,
-} from 'react-native';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
+import { StyleSheet, Image, type TextStyle } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
   Box,
@@ -83,11 +79,10 @@ const SiteTileRowItem: React.FC<SiteTileRowItemProps> = ({
   };
 
   return (
-    <TouchableOpacity
+    <Pressable
       testID={`site-recents-tile-${site.name}`}
       style={tw.style(styles.card, 'shrink-0 flex-col justify-start')}
       onPress={onPress}
-      activeOpacity={0.7}
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
@@ -127,7 +122,7 @@ const SiteTileRowItem: React.FC<SiteTileRowItemProps> = ({
       >
         {site.displayUrl}
       </Text>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

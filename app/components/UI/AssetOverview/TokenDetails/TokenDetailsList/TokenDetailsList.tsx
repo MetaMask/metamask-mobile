@@ -1,6 +1,7 @@
 import React, { useContext } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   Icon,
   IconName as DesignSystemIconName,
@@ -61,7 +62,7 @@ const TokenDetailsList: React.FC<TokenDetailsListProps> = ({
             label={strings('token.contract_address')}
             style={[styles.listItem, styles.firstChild]}
           >
-            <TouchableOpacity
+            <Pressable
               style={tw`flex-row items-center gap-1`}
               onPress={copyAccountToClipboard}
             >
@@ -69,7 +70,7 @@ const TokenDetailsList: React.FC<TokenDetailsListProps> = ({
                 {formatAddress(tokenDetails.contractAddress, 'short')}
               </Text>
               <Icon name={DesignSystemIconName.Copy} size={IconSize.Sm} />
-            </TouchableOpacity>
+            </Pressable>
           </TokenDetailsListItem>
         )}
         {Boolean(tokenDetails.tokenDecimal) && (

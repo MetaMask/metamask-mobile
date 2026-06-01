@@ -1,8 +1,9 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PerpsOrderHeaderSelectorsIDs } from '../../Perps.testIds';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
@@ -143,7 +144,7 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
         </View>
       </View>
       {Boolean(orderType) && (
-        <TouchableOpacity
+        <Pressable
           onPress={handleOrderTypePress}
           testID={PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON}
           disabled={isLoading}
@@ -161,7 +162,7 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
               style={styles.marketButtonIcon}
             />
           </View>
-        </TouchableOpacity>
+        </Pressable>
       )}
     </View>
   );

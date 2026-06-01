@@ -1,9 +1,9 @@
 import React from 'react';
+import Pressable from '../../../../component-library/components-temp/Pressable';
 import {
   StyleSheet,
   ImageSourcePropType,
   View,
-  TouchableOpacity,
   StyleProp,
   TextStyle,
 } from 'react-native';
@@ -348,7 +348,7 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
     >
       {shouldShowSelectedStyle && <View style={styles.selectedIndicator} />}
 
-      <TouchableOpacity
+      <Pressable
         key={token.address}
         onPress={() => onPress(token)}
         style={styles.itemWrapper}
@@ -524,7 +524,7 @@ const TokenSelectorItemInner: React.FC<TokenSelectorItemProps> = ({
             {isStockToken(token as BridgeToken) && <StockBadge token={token} />}
           </Box>
         </Box>
-      </TouchableOpacity>
+      </Pressable>
 
       <View style={styles.childrenWrapper}>{children}</View>
     </Box>

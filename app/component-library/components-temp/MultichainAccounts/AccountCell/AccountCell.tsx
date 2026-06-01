@@ -1,8 +1,9 @@
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import React, { useCallback, useMemo } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import Pressable from '../../Pressable';
 import {
   AvatarAccount,
   AvatarAccountSize,
@@ -96,7 +97,7 @@ const BalanceEndContainer = ({
 
   return (
     <>
-      <TouchableOpacity onPress={onSelectAccount}>
+      <Pressable onPress={onSelectAccount}>
         <View style={styles.balanceContainer}>
           <SensitiveText
             variant={TextVariant.BodyMd}
@@ -118,9 +119,9 @@ const BalanceEndContainer = ({
             />
           )}
         </View>
-      </TouchableOpacity>
+      </Pressable>
       {!hideMenu && (
-        <TouchableOpacity
+        <Pressable
           testID={AccountCellIds.MENU}
           style={styles.menuButton}
           onPress={handleMenuPress}
@@ -130,7 +131,7 @@ const BalanceEndContainer = ({
             size={IconSize.Md}
             color={IconColor.IconAlternative}
           />
-        </TouchableOpacity>
+        </Pressable>
       )}
     </>
   );
@@ -178,7 +179,7 @@ const AccountCell = ({
       alignItems={AlignItems.center}
       testID={AccountCellIds.CONTAINER}
     >
-      <TouchableOpacity onPress={onSelectAccount} style={styles.mainTouchable}>
+      <Pressable onPress={onSelectAccount} style={styles.mainTouchable}>
         {startAccessory}
         <AvatarAccount
           address={evmAddress ?? ''}
@@ -212,7 +213,7 @@ const AccountCell = ({
             </View>
           )}
         </View>
-      </TouchableOpacity>
+      </Pressable>
       <View style={styles.endContainer}>
         {endContainer || (
           <BalanceEndContainer

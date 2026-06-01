@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Text, {
   TextVariant,
   TextColor,
@@ -133,10 +134,9 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
         {MARKET_SORTING_CONFIG.SortOptions.map((option) => {
           const isSelected = selectedOption === option.id;
           return (
-            <TouchableOpacity
+            <Pressable
               key={option.id}
               style={[styles.optionRow, isSelected && styles.optionRowSelected]}
-              activeOpacity={1}
               onPress={() => handleOptionPress(option.id)}
               testID={testID ? `${testID}-option-${option.id}` : undefined}
             >
@@ -168,7 +168,7 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
                   />
                 </View>
               )}
-            </TouchableOpacity>
+            </Pressable>
           );
         })}
       </View>

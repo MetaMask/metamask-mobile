@@ -1,6 +1,7 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
+import Pressable from '../../../../component-library/components-temp/Pressable';
 import Icon, {
   IconColor,
   IconName,
@@ -61,16 +62,13 @@ const EstimatedAnnualRewardsCard = ({
           <Text variant={TextVariant.BodyMDMedium}>
             {strings('stake.metamask_pool')}
           </Text>
-          <TouchableOpacity
-            onPress={onIconPress}
-            accessibilityLabel="Learn More"
-          >
+          <Pressable onPress={onIconPress} accessibilityLabel="Learn More">
             <Icon
               name={IconName.Question}
               color={IconColor.Muted}
               size={IconSize.Sm}
             />
-          </TouchableOpacity>
+          </Pressable>
         </View>
         <View style={styles.rewardRateContainer}>
           {isLoading ? (

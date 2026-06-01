@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Linking, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Linking, StyleSheet, View } from 'react-native';
 import Modal from 'react-native-modal';
 import { QuoteResponse } from '@consensys/on-ramp-sdk';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
@@ -13,6 +13,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { Colors } from '../../../../../util/theme/models';
 import useAnalytics from '../../hooks/useAnalytics';
 
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 type Logos = QuoteResponse['provider']['logos'];
 
 const LOGO_SIZE = 1;
@@ -134,13 +135,13 @@ const InfoAlert: React.FC<Props> = ({
       backdropOpacity={1}
     >
       <Box style={styles.box}>
-        <TouchableOpacity
+        <Pressable
           onPress={dismiss}
           style={styles.cancel}
           hitSlop={{ top: 10, left: 20, right: 10, bottom: 10 }}
         >
           <IonicIcon name="close" size={30} color={colors.icon.default} />
-        </TouchableOpacity>
+        </Pressable>
         <View style={styles.title}>
           {logos?.[themeAppearance] ? (
             <RemoteImage
@@ -162,7 +163,7 @@ const InfoAlert: React.FC<Props> = ({
           )}
           <View style={styles.row}>{Boolean(body) && <Text>{body}</Text>}</View>
           {Boolean(providerWebsite) && (
-            <TouchableOpacity
+            <Pressable
               onPress={() =>
                 handleProviderHomepageLinkPress(providerWebsite as string)
               }
@@ -170,10 +171,10 @@ const InfoAlert: React.FC<Props> = ({
               <Text small link underline centered>
                 {providerWebsite}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           )}
           {Boolean(providerPrivacyPolicy) && (
-            <TouchableOpacity
+            <Pressable
               onPress={() =>
                 handleProviderPrivacyPolicyLinkPress(
                   providerPrivacyPolicy as string,
@@ -183,10 +184,10 @@ const InfoAlert: React.FC<Props> = ({
               <Text small link underline centered>
                 {strings('app_information.privacy_policy')}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           )}
           {Boolean(providerTermsOfService) && (
-            <TouchableOpacity
+            <Pressable
               onPress={() =>
                 handleTermsOfServiceLinkPress(providerTermsOfService as string)
               }
@@ -194,10 +195,10 @@ const InfoAlert: React.FC<Props> = ({
               <Text small link underline centered>
                 {strings('fiat_on_ramp_aggregator.terms_of_service')}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           )}
           {Boolean(providerSupport) && (
-            <TouchableOpacity
+            <Pressable
               onPress={() =>
                 handleProviderSupportLinkPress(providerSupport as string)
               }
@@ -207,7 +208,7 @@ const InfoAlert: React.FC<Props> = ({
                   ' ' +
                   strings('fiat_on_ramp_aggregator.order_details.support')}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           )}
         </View>
       </Box>

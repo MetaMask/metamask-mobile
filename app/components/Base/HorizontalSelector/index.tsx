@@ -1,9 +1,10 @@
 import React, { Fragment, ReactNode, useCallback, useMemo } from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import Text from '../Text';
 import { useTheme } from '../../../util/theme';
 import { Theme } from '@metamask/design-tokens';
 
+import Pressable from '../../../component-library/components-temp/Pressable';
 const INNER_CIRCLE_SCALE = 0.445;
 const OPTION_WIDTH = 110;
 
@@ -137,9 +138,7 @@ function Option({ onPress, name, ...props }: OptionProps) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const handlePress = useCallback(() => onPress(name), [name, onPress]);
-  return (
-    <TouchableOpacity onPress={handlePress} style={styles.option} {...props} />
-  );
+  return <Pressable onPress={handlePress} style={styles.option} {...props} />;
 }
 
 function HorizontalSelector({

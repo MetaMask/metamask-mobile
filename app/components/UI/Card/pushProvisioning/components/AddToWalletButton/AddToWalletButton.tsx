@@ -1,9 +1,6 @@
 import React, { useMemo } from 'react';
-import {
-  Platform,
-  TouchableOpacity,
-  type GestureResponderEvent,
-} from 'react-native';
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
+import { Platform, type GestureResponderEvent } from 'react-native';
 import type { SvgProps } from 'react-native-svg';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -234,9 +231,8 @@ const AddToWalletButton: React.FC<AddToWalletButtonProps> = ({
   }
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={onPress}
-      activeOpacity={0.8}
       testID={testID}
       accessibilityRole="button"
       accessibilityLabel="Add to Google Wallet"
@@ -246,7 +242,7 @@ const AddToWalletButton: React.FC<AddToWalletButtonProps> = ({
         width={ANDROID_BUTTON_WIDTH}
         height={ANDROID_BUTTON_HEIGHT}
       />
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

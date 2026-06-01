@@ -1,8 +1,9 @@
 import React, { useCallback, useMemo } from 'react';
-import { TouchableOpacity } from 'react-native';
+
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import {
   Box,
   Button,
@@ -186,9 +187,8 @@ const PopularTokenRow: React.FC<PopularTokenRowProps> = ({ token }) => {
   );
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={handleRowPress}
-      activeOpacity={0.7}
       testID={`popular-token-row-${token.symbol}`}
       style={tw.style('flex-row items-center py-2')}
     >
@@ -248,7 +248,7 @@ const PopularTokenRow: React.FC<PopularTokenRowProps> = ({ token }) => {
           {strings('asset_overview.buy_button')}
         </Button>
       </Box>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

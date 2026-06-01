@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
@@ -67,7 +68,7 @@ const HeroTokenHorizontal = ({ amountWei }: { amountWei?: string }) => {
           <View style={styles.amountIconRow}>
             <View style={styles.amountFiatColumn}>
               {isRoundedAmount ? (
-                <TouchableOpacity onPress={() => setIsModalVisible(true)}>
+                <Pressable onPress={() => setIsModalVisible(true)}>
                   <AssetAmount
                     amount={amount}
                     styles={{
@@ -75,7 +76,7 @@ const HeroTokenHorizontal = ({ amountWei }: { amountWei?: string }) => {
                       assetAmountText: styles.amountTextLeft,
                     }}
                   />
-                </TouchableOpacity>
+                </Pressable>
               ) : (
                 <AssetAmount
                   amount={amount}

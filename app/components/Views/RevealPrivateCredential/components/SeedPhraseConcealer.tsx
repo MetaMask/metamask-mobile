@@ -1,5 +1,6 @@
 import React from 'react';
-import { ImageBackground, TouchableOpacity } from 'react-native';
+import { ImageBackground } from 'react-native';
+import Pressable from '../../../../component-library/components-temp/Pressable';
 import {
   Icon,
   IconColor,
@@ -32,7 +33,7 @@ const SeedPhraseConcealer = ({
 
   return (
     <Box twClassName="flex-1 rounded-lg">
-      <TouchableOpacity
+      <Pressable
         onPress={onReveal}
         style={tw.style(FILL_STYLE)}
         testID={testID}
@@ -61,7 +62,7 @@ const SeedPhraseConcealer = ({
             {strings('manual_backup_step_1.watching')}
           </Text>
         </Box>
-      </TouchableOpacity>
+      </Pressable>
     </Box>
   );
 };

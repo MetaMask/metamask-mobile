@@ -13,11 +13,12 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
-import { Image, TouchableOpacity } from 'react-native';
+import { Image } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import type { TopTrader } from '../types';
 import { formatPnl } from '../utils/formatPnl';
 
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 export interface TopTraderCardProps {
   trader: TopTrader;
   onFollowPress: (traderId: string) => void;
@@ -61,8 +62,7 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
       twClassName={`w-[${TOP_TRADER_CARD_WIDTH}px] h-auto rounded-2xl bg-muted p-4 overflow-hidden gap-1`}
       testID={testID ?? `top-trader-card-${trader.id}`}
     >
-      <TouchableOpacity
-        activeOpacity={onTraderPress ? 0.7 : 1}
+      <Pressable
         onPress={
           onTraderPress
             ? () =>
@@ -126,7 +126,7 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
             </Text>
           </Box>
         </Box>
-      </TouchableOpacity>
+      </Pressable>
 
       <Button
         variant={

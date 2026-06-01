@@ -1,11 +1,12 @@
 import React from 'react';
-import { Linking, TouchableOpacity } from 'react-native';
+import { Linking } from 'react-native';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import { CardHomeSelectors } from '../CardHome.testIds';
 import { CARD_SUPPORT_EMAIL } from '../../../constants';
 
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 interface CardHomeFooterProps {
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -33,7 +34,7 @@ const CardHomeFooter = ({
         twClassName={`h-px mx-4 bg-border-muted ${hasAlerts || hasSetupActions ? 'hidden' : ''}`}
       />
       <Box twClassName="gap-6 mt-4">
-        <TouchableOpacity
+        <Pressable
           onPress={onNavigateToCardTos}
           testID={CardHomeSelectors.CARD_TOS_ITEM}
           style={tw.style('px-4')}
@@ -44,8 +45,8 @@ const CardHomeFooter = ({
           >
             {strings('card.card_home.manage_card_options.card_tos_title')}
           </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+        </Pressable>
+        <Pressable
           onPress={() => Linking.openURL(`mailto:${CARD_SUPPORT_EMAIL}`)}
           testID={CardHomeSelectors.CONTACT_SUPPORT_ITEM}
           style={tw.style('px-4')}
@@ -56,9 +57,9 @@ const CardHomeFooter = ({
           >
             {strings('card.card_home.contact_support')}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
         {isAuthenticated && (
-          <TouchableOpacity
+          <Pressable
             onPress={onLogout}
             testID={CardHomeSelectors.LOGOUT_ITEM}
             style={tw.style('px-4 mb-6')}
@@ -69,7 +70,7 @@ const CardHomeFooter = ({
             >
               {strings('card.card_home.logout')}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         )}
       </Box>
     </>

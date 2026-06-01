@@ -1,6 +1,7 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import {
   Box,
   Text,
@@ -76,7 +77,7 @@ const ThresholdRow: React.FC<ThresholdRowProps> = ({
     : colors.border.default;
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={onPress}
       disabled={isDisabled}
       testID={testID}
@@ -111,7 +112,7 @@ const ThresholdRow: React.FC<ThresholdRowProps> = ({
           />
         )}
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

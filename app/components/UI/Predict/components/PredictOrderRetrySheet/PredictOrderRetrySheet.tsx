@@ -1,4 +1,5 @@
 import React, { forwardRef, useImperativeHandle } from 'react';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   Box,
   BoxAlignItems,
@@ -22,7 +23,6 @@ import {
   usePredictBottomSheet,
   type PredictBottomSheetRef,
 } from '../../hooks/usePredictBottomSheet';
-import { TouchableOpacity } from 'react-native';
 
 export type PredictOrderRetrySheetRef = PredictBottomSheetRef;
 
@@ -95,7 +95,7 @@ const PredictOrderRetrySheet = forwardRef<
         isInteractable
         onClose={handleSheetClosed}
       >
-        <TouchableOpacity
+        <Pressable
           testID={PredictOrderRetrySheetSelectorsIDs.CLOSE_BUTTON}
           onPress={closeSheet}
           style={tw.style('absolute top-8 right-4 z-10')}
@@ -105,7 +105,7 @@ const PredictOrderRetrySheet = forwardRef<
             size={IconSize.Xl}
             color={IconColor.IconDefault}
           />
-        </TouchableOpacity>
+        </Pressable>
         <Box
           testID={PredictOrderRetrySheetSelectorsIDs.CONTAINER}
           alignItems={BoxAlignItems.Center}

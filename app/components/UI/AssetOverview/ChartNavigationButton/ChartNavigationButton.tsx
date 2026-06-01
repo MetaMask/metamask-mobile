@@ -1,6 +1,7 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+
 import { useStyles } from '../../../../component-library/hooks';
+import Pressable from '../../../../component-library/components-temp/Pressable';
 import Text, {
   TextColor,
   TextVariant,
@@ -34,7 +35,7 @@ const ChartNavigationButton = ({
   };
 
   return (
-    <TouchableOpacity style={styles.button} onPress={onPress}>
+    <Pressable style={styles.button} onPress={onPress}>
       <Text
         variant={TextVariant.BodySM}
         style={styles.label}
@@ -42,7 +43,7 @@ const ChartNavigationButton = ({
       >
         {label}
       </Text>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 export default ChartNavigationButton;

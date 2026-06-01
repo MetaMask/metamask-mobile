@@ -1,7 +1,8 @@
 import React from 'react';
-import { TouchableOpacity, ViewStyle } from 'react-native';
+import { ViewStyle } from 'react-native';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from '../styles';
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import {
   AlignItems,
   FlexDirection,
@@ -48,7 +49,7 @@ export const AddAccountItem: React.FC<AddAccountItemProps> = ({
   }
 
   return (
-    <TouchableOpacity
+    <Pressable
       testID={WalletDetailsIds.ADD_ACCOUNT_BUTTON}
       onPress={onPress}
       disabled={isLoading}
@@ -57,7 +58,6 @@ export const AddAccountItem: React.FC<AddAccountItemProps> = ({
         styles.addAccountButton,
         isLoading && styles.addAccountItemDisabled,
       ]}
-      activeOpacity={0.7}
     >
       <Box
         flexDirection={FlexDirection.Row}
@@ -81,6 +81,6 @@ export const AddAccountItem: React.FC<AddAccountItemProps> = ({
             : strings('multichain_accounts.wallet_details.create_account')}
         </Text>
       </Box>
-    </TouchableOpacity>
+    </Pressable>
   );
 };

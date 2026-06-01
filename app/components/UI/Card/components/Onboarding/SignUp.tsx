@@ -6,6 +6,7 @@ import React, {
   useState,
 } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   Box,
   FontWeight,
@@ -34,7 +35,7 @@ import { validatePassword } from '../../util/validatePassword';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens } from '../../util/metrics';
-import { ActivityIndicator, TouchableOpacity } from 'react-native';
+import { ActivityIndicator } from 'react-native';
 import {
   clearOnValueChange,
   createRegionSelectorModalNavigationDetails,
@@ -359,7 +360,7 @@ const SignUp = () => {
             isError={debouncedPassword.length > 0 && isPasswordError}
             testID="signup-password-input"
             endAccessory={
-              <TouchableOpacity
+              <Pressable
                 onPress={() => setIsPasswordVisible(!isPasswordVisible)}
                 testID="signup-password-visibility-toggle"
               >
@@ -367,7 +368,7 @@ const SignUp = () => {
                   name={isPasswordVisible ? IconName.EyeSlash : IconName.Eye}
                   size={IconSize.Md}
                 />
-              </TouchableOpacity>
+              </Pressable>
             }
           />
           {debouncedPassword.length > 0 && isPasswordError ? (
@@ -406,7 +407,7 @@ const SignUp = () => {
           ? strings('card.card_onboarding.sign_up.join_waitlist')
           : strings('card.card_onboarding.continue_button')}
       </Button>
-      <TouchableOpacity onPress={handleAlreadyHaveAccountPress}>
+      <Pressable onPress={handleAlreadyHaveAccountPress}>
         <Text
           testID="signup-i-already-have-an-account-text"
           variant={TextVariant.BodyMd}
@@ -415,7 +416,7 @@ const SignUp = () => {
         >
           {strings('card.card_onboarding.sign_up.i_already_have_an_account')}
         </Text>
-      </TouchableOpacity>
+      </Pressable>
     </>
   );
 

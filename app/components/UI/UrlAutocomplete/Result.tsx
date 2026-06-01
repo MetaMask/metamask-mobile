@@ -1,10 +1,11 @@
 import React, { memo, useCallback } from 'react';
-import { TouchableOpacity, View, Text, Image } from 'react-native';
+import { View, Text, Image } from 'react-native';
 import { useTheme } from '../../../util/theme';
 import { getHost } from '../../../util/browser';
 import WebsiteIcon from '../WebsiteIcon';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import { deleteFavoriteTestId } from './UrlAutocomplete.testIds';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import {
   Box,
   Icon,
@@ -183,7 +184,7 @@ export const Result: React.FC<ResultProps> = memo(
     };
 
     return (
-      <TouchableOpacity style={styles.item} onPress={onPress}>
+      <Pressable style={styles.item} onPress={onPress}>
         <View style={styles.itemWrapper}>
           {renderIcon()}
           <View style={styles.textContent}>
@@ -216,7 +217,7 @@ export const Result: React.FC<ResultProps> = memo(
             />
           )}
         </View>
-      </TouchableOpacity>
+      </Pressable>
     );
   },
 );

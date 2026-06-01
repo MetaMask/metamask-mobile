@@ -1,12 +1,6 @@
 import React, { PureComponent } from 'react';
-import {
-  Alert,
-  ScrollView,
-  StyleSheet,
-  View,
-  Text,
-  TouchableOpacity,
-} from 'react-native';
+import Pressable from '../../../component-library/components-temp/Pressable';
+import { Alert, ScrollView, StyleSheet, View, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -156,7 +150,7 @@ export default class WalletConnectSessions extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
     return (
-      <TouchableOpacity
+      <Pressable
         // eslint-disable-next-line react/jsx-no-bind
         onLongPress={() => this.onLongPress(session)}
         key={`session_${session.id}_${index}`}
@@ -172,7 +166,7 @@ export default class WalletConnectSessions extends PureComponent {
           <Text style={styles.url}>{session.peer.metadata.url}</Text>
           {this.renderDesc(session.peer.metadata)}
         </View>
-      </TouchableOpacity>
+      </Pressable>
     );
   };
 

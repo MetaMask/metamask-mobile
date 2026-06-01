@@ -5,7 +5,7 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
 import { CommonActions } from '@react-navigation/native';
 import Engine from '../../../core/Engine';
@@ -25,6 +25,7 @@ import { fontStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import ExtendedKeyringTypes, {
   HardwareDeviceTypes,
 } from '../../../constants/keyringTypes';
@@ -334,12 +335,12 @@ const ConnectQRHardware = ({ navigation, route }: IConnectQRHardwareProps) => {
             style={styles.qrcode}
             color={colors.text.default}
           />
-          <TouchableOpacity
+          <Pressable
             onPress={navigation.goBack}
             style={styles.navbarRightButton}
           >
             <MaterialIcon name="close" size={15} style={styles.closeIcon} />
-          </TouchableOpacity>
+          </Pressable>
         </View>
         {accounts.length <= 0 ? (
           <ConnectQRInstruction

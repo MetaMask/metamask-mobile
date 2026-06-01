@@ -1,6 +1,7 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+
 import Icon from '../../../../../../../component-library/components/Icons/Icon';
+import Pressable from '../../../../../../../component-library/components-temp/Pressable';
 import {
   IconColor,
   IconName,
@@ -21,9 +22,9 @@ const CopyIcon = ({ textToCopy, color }: CopyIconProps) => {
   };
 
   return (
-    <TouchableOpacity onPress={copyToClipboard}>
+    <Pressable onPress={copyToClipboard}>
       <Icon name={IconName.Copy} size={IconSize.Sm} color={color} />
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

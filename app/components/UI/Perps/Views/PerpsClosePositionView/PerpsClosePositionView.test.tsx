@@ -1,6 +1,7 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import React from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Text, View } from 'react-native';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   PerpsAmountDisplaySelectorsIDs,
   PerpsClosePositionViewSelectorsIDs,
@@ -115,7 +116,7 @@ const defaultPerpsToastsMock = {
 jest.mocked(jest.requireMock('../../components/PerpsAmountDisplay')).default =
   ({ onPress, label }: { onPress?: () => void; label?: string }) =>
     React.createElement(
-      TouchableOpacity,
+      Pressable,
       {
         onPress,
         testID: 'perps-amount-display',
@@ -1384,12 +1385,12 @@ describe('PerpsClosePositionView', () => {
 
           return (
             <View>
-              <TouchableOpacity
+              <Pressable
                 testID="change-price"
                 onPress={() => setLimitPrice('120')}
               >
                 <Text>Change Price</Text>
-              </TouchableOpacity>
+              </Pressable>
               <Text testID="effective-pnl">{effectivePnL}</Text>
             </View>
           );
@@ -1424,9 +1425,9 @@ describe('PerpsClosePositionView', () => {
 
         return (
           <View>
-            <TouchableOpacity testID="confirm-button" onPress={handleConfirm}>
+            <Pressable testID="confirm-button" onPress={handleConfirm}>
               <Text>Confirm</Text>
-            </TouchableOpacity>
+            </Pressable>
             <Text testID="order-type">{orderType}</Text>
             <Text testID="limit-price">{limitPrice}</Text>
           </View>
@@ -1458,30 +1459,27 @@ describe('PerpsClosePositionView', () => {
 
         return (
           <View>
-            <TouchableOpacity
+            <Pressable
               testID="set-invalid"
               onPress={() => setLimitPrice('invalid')}
             >
               <Text>Set Invalid</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+            </Pressable>
+            <Pressable
               testID="set-negative"
               onPress={() => setLimitPrice('-100')}
             >
               <Text>Set Negative</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              testID="set-zero"
-              onPress={() => setLimitPrice('0')}
-            >
+            </Pressable>
+            <Pressable testID="set-zero" onPress={() => setLimitPrice('0')}>
               <Text>Set Zero</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+            </Pressable>
+            <Pressable
               testID="set-valid"
               onPress={() => setLimitPrice('51000')}
             >
               <Text>Set Valid</Text>
-            </TouchableOpacity>
+            </Pressable>
             <Text testID="effective-price">{effectivePrice()}</Text>
           </View>
         );
@@ -1956,9 +1954,9 @@ describe('PerpsClosePositionView', () => {
 
         return (
           <View>
-            <TouchableOpacity onPress={() => setIsInputFocused(true)}>
+            <Pressable onPress={() => setIsInputFocused(true)}>
               <Text>Focus Input</Text>
-            </TouchableOpacity>
+            </Pressable>
             {isInputFocused && <Text testID="keypad">Keypad Visible</Text>}
             {!isInputFocused && errors.length > 0 && (
               <Text testID="validation">Validation Visible</Text>
@@ -2005,15 +2003,15 @@ describe('PerpsClosePositionView', () => {
 
         return (
           <View>
-            <TouchableOpacity
+            <Pressable
               onPress={() => handlePercentagePress(0.5)}
               testID="50-percent"
             >
               <Text>50%</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={handleMaxPress} testID="max-button">
+            </Pressable>
+            <Pressable onPress={handleMaxPress} testID="max-button">
               <Text>Max</Text>
-            </TouchableOpacity>
+            </Pressable>
             <Text testID="percentage">{closePercentage}</Text>
             <Text testID="amount">{closeAmount}</Text>
           </View>
@@ -2123,7 +2121,7 @@ describe('PerpsClosePositionView', () => {
         const [limitPrice] = React.useState(''); // No price set
 
         return (
-          <TouchableOpacity
+          <Pressable
             testID="test-confirm-no-price"
             onPress={async () => {
               // This simulates the handleConfirm logic that returns early
@@ -2134,7 +2132,7 @@ describe('PerpsClosePositionView', () => {
             }}
           >
             <Text>Confirm</Text>
-          </TouchableOpacity>
+          </Pressable>
         );
       };
 
@@ -2164,7 +2162,7 @@ describe('PerpsClosePositionView', () => {
 
         return (
           <View>
-            <TouchableOpacity
+            <Pressable
               testID="test-confirm"
               onPress={async () => {
                 // Simulate the handleConfirm logic for limit orders
@@ -2197,7 +2195,7 @@ describe('PerpsClosePositionView', () => {
               }}
             >
               <Text>Confirm</Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         );
       };

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Text, View } from 'react-native';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import {
   Icon,
   IconName,
@@ -47,7 +48,7 @@ const SelectOptionSheet = ({
   };
 
   return (
-    <TouchableOpacity onPress={showPicker} testID={SELECT_DROP_DOWN}>
+    <Pressable onPress={showPicker} testID={SELECT_DROP_DOWN}>
       <View style={styles.dropdown}>
         <Text style={styles.selectedOption} numberOfLines={1}>
           {renderDisplayValue()}
@@ -59,7 +60,7 @@ const SelectOptionSheet = ({
           twClassName="mr-2"
         />
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

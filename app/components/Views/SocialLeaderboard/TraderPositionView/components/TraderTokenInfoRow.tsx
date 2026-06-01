@@ -1,6 +1,7 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   Box,
   Text,
@@ -118,7 +119,7 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
   }
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={onCopyTokenAddress}
       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       testID={copyTokenAddressTestID}
@@ -127,7 +128,7 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
       style={tw.style('flex-1 min-w-0 mr-3')}
     >
       {content}
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

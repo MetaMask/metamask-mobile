@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Keyboard, TextInput, TouchableOpacity, View } from 'react-native';
+import { Keyboard, TextInput, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
@@ -449,7 +450,7 @@ const BasicInfo = (): JSX.Element => {
                     <Text variant={TextVariant.BodyMD}>
                       {strings('deposit.basic_info.social_security_number')}
                     </Text>
-                    <TouchableOpacity
+                    <Pressable
                       onPress={handleSsnInfoPress}
                       testID={BASIC_INFO_TEST_IDS.SSN_INFO_BUTTON}
                     >
@@ -458,7 +459,7 @@ const BasicInfo = (): JSX.Element => {
                         size={IconSize.Sm}
                         color={IconColor.Alternative}
                       />
-                    </TouchableOpacity>
+                    </Pressable>
                   </View>
                 }
                 placeholder="XXX-XX-XXXX"

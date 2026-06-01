@@ -1,10 +1,11 @@
 import React from 'react';
-import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useTheme } from '../../../util/theme';
 import Text from '../../../component-library/components/Texts/Text';
 import { ThemeColors } from '@metamask/design-tokens';
 import { NftDetailsBoxProps } from './NftDetails.types';
 
+import Pressable from '../../../component-library/components-temp/Pressable';
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     inputWrapper: {
@@ -51,9 +52,9 @@ const NftDetailsBox = (props: NftDetailsBoxProps) => {
       {icon ? (
         <View style={styles.valueWithIcon}>
           {onValuePress ? (
-            <TouchableOpacity onPress={onValuePress}>
+            <Pressable onPress={onValuePress}>
               <Text style={valueTextStyle}>{value}</Text>
-            </TouchableOpacity>
+            </Pressable>
           ) : (
             <Text style={valueTextStyle}>{value}</Text>
           )}

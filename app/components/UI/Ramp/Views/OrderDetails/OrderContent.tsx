@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet } from 'react-native';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { useNavigation } from '@react-navigation/native';
@@ -7,6 +7,7 @@ import { type RampsOrder, RampsOrderStatus } from '@metamask/ramps-controller';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { createProcessingInfoModalNavigationDetails } from '../Modals/ProcessingInfoModal/ProcessingInfoModal';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   Box,
   Text,
@@ -394,7 +395,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
                 {getStatusText()}
               </Text>
               {providerOrderLink && (
-                <TouchableOpacity
+                <Pressable
                   onPress={handleProviderLinkPress}
                   style={localStyles.providerLink}
                 >
@@ -411,7 +412,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
                     size={IconSize.Sm}
                     twClassName="text-primary-default"
                   />
-                </TouchableOpacity>
+                </Pressable>
               )}
             </>
           )}
@@ -433,10 +434,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
         {isLoading ? (
           <Box twClassName="bg-muted rounded h-[18px] w-32" />
         ) : (
-          <TouchableOpacity
-            onPress={handleCopyOrderId}
-            style={localStyles.orderIdRow}
-          >
+          <Pressable onPress={handleCopyOrderId} style={localStyles.orderIdRow}>
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
@@ -449,7 +447,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
               size={IconSize.Md}
               twClassName="text-default"
             />
-          </TouchableOpacity>
+          </Pressable>
         )}
       </Box>
 
@@ -620,7 +618,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
       >
         {order.statusDescription && isTerminal && (
           <Box twClassName={showCloseButton ? 'mb-4' : ''}>
-            <TouchableOpacity onPress={handleInfoPress}>
+            <Pressable onPress={handleInfoPress}>
               <Text
                 variant={TextVariant.BodySm}
                 twClassName="text-alternative text-center"
@@ -633,7 +631,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
                   style={localStyles.inlineIcon}
                 />
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           </Box>
         )}
         {showCloseButton && (

@@ -5,8 +5,9 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
+import Pressable from '../../../../component-library/components-temp/Pressable';
 import {
   StackActions,
   useNavigation,
@@ -164,7 +165,7 @@ const CampaignTourStepView: React.FC = () => {
             twClassName="self-center px-4"
             style={tw.style(!showSkip && 'opacity-0')}
           >
-            <TouchableOpacity
+            <Pressable
               onPress={navigateToDetails}
               disabled={!showSkip}
               testID={CAMPAIGN_TOUR_STEP_TEST_IDS.SKIP_BUTTON}
@@ -176,7 +177,7 @@ const CampaignTourStepView: React.FC = () => {
               >
                 {strings('rewards.onboarding.step_skip')}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           </Box>
         </Box>
       </Box>

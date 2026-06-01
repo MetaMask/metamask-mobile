@@ -5,8 +5,9 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { RefreshControl, TouchableOpacity } from 'react-native';
+import { RefreshControl } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
+import Pressable from '../../../../component-library/components-temp/Pressable';
 import {
   Box,
   BoxAlignItems,
@@ -100,7 +101,7 @@ const TabButton: React.FC<TabButtonProps> = ({
   onPress,
   testID,
 }) => (
-  <TouchableOpacity onPress={onPress} testID={testID}>
+  <Pressable onPress={onPress} testID={testID}>
     <Box twClassName={`pb-2 ${isActive ? 'border-b-2 border-default' : ''}`}>
       <Text
         variant={TextVariant.BodyMd}
@@ -110,7 +111,7 @@ const TabButton: React.FC<TabButtonProps> = ({
         {label}
       </Text>
     </Box>
-  </TouchableOpacity>
+  </Pressable>
 );
 
 // ---------------------------------------------------------------------------

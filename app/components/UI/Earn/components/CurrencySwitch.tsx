@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+
+import { PressableGH } from '../../../../component-library/components-temp/Pressable';
 import Icon, {
   IconName,
   IconSize,
@@ -61,11 +62,7 @@ const CurrencyToggle = ({ onPress, value }: CurrencyToggleProps) => {
         testID="currency-toggle"
         style={styles.currencyToggleButtonContainer}
       >
-        <TouchableOpacity
-          activeOpacity={0.5}
-          onPress={onPress}
-          style={styles.currencyToggleText}
-        >
+        <PressableGH onPress={onPress} style={styles.currencyToggleText}>
           <View style={styles.currencyToggleText}>
             <Text color={TextColor.Default} variant={TextVariant.BodyMDMedium}>
               {value}
@@ -78,7 +75,7 @@ const CurrencyToggle = ({ onPress, value }: CurrencyToggleProps) => {
               color={colors.text.default}
             />
           </View>
-        </TouchableOpacity>
+        </PressableGH>
       </View>
     );
   }

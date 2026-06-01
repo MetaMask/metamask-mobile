@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Linking, TouchableOpacity } from 'react-native';
+import { View, Linking } from 'react-native';
 import { UR } from '@ngraveio/bc-ur';
 import { stringify as uuidStringify } from 'uuid';
 import { ETHSignature } from '@keystonehq/bc-ur-registry-eth';
@@ -20,6 +20,7 @@ import { ConfirmationInfoComponentIDs } from '../../constants/info-ids';
 import styleSheet from './qr-info.styles';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 const QRInfo = () => {
   const {
     pendingScanRequest,
@@ -104,7 +105,7 @@ const QRInfo = () => {
       {pendingScanRequest?.type === QrScanRequestType.SIGN &&
         pendingScanRequest?.request && (
           <View style={styles.container}>
-            <TouchableOpacity>
+            <Pressable>
               {/* todo: to be replaced by alert system */}
               {errorMessage && (
                 <Alert
@@ -134,7 +135,7 @@ const QRInfo = () => {
                 type={pendingScanRequest.request.payload.type}
                 shouldPause={scannerVisible || shouldPause}
               />
-            </TouchableOpacity>
+            </Pressable>
           </View>
         )}
       <AnimatedQRScannerModal

@@ -1,9 +1,10 @@
 import React, { useCallback } from 'react';
-import { TouchableOpacity } from 'react-native';
+
 import { useNavigation } from '@react-navigation/native';
 import { AccountWalletObject } from '@metamask/account-tree-controller';
 import { Box } from '../../../../UI/Box/Box';
 import { AlignItems, FlexDirection } from '../../../../UI/Box/box.types';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
@@ -33,7 +34,7 @@ export const Wallet = ({ wallet }: WalletProps) => {
   }, [navigation, wallet?.id]);
 
   return (
-    <TouchableOpacity
+    <Pressable
       style={styles.wallet}
       testID={AccountDetailsIds.WALLET_NAME_LINK}
       onPress={handleWalletClick}
@@ -55,6 +56,6 @@ export const Wallet = ({ wallet }: WalletProps) => {
           color={colors.text.alternative}
         />
       </Box>
-    </TouchableOpacity>
+    </Pressable>
   );
 };

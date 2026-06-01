@@ -1,11 +1,6 @@
 import React, { useCallback } from 'react';
-import {
-  Image,
-  Linking,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
+import { Image, Linking, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Order, OrderStatusEnum } from '@consensys/on-ramp-sdk';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
@@ -323,7 +318,7 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
 
         {Boolean(orderLink) && (
           <Row>
-            <TouchableOpacity
+            <Pressable
               onPress={() => handleProviderLinkPress(orderLink as string)}
             >
               <Text
@@ -336,7 +331,7 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
                   { provider: providerName },
                 )}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           </Row>
         )}
       </Group>
@@ -573,7 +568,7 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
           </Row>
           {Boolean(order.state === OrderStatusEnum.Completed && txHash) && (
             <Group>
-              <TouchableOpacity
+              <Pressable
                 onPress={() => handleExplorerLinkPress(explorer.tx(txHash))}
               >
                 <Text
@@ -588,7 +583,7 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
                         'fiat_on_ramp_aggregator.order_details.a_block_explorer',
                       )}
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             </Group>
           )}
         </Box>

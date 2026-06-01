@@ -6,6 +6,7 @@ import React, {
   useState,
 } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   useWindowDimensions,
   NativeSyntheticEvent,
@@ -13,7 +14,6 @@ import {
   FlatList,
   ListRenderItem,
   View,
-  TouchableOpacity,
   Animated,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -513,7 +513,7 @@ const ChooseYourCard = () => {
               : strings('card.choose_your_card.continue_button')}
           </Button>
           {activeIndex === 0 && !isUpgradeFlow && (
-            <TouchableOpacity
+            <Pressable
               onPress={handleScrollToMetal}
               testID={ChooseYourCardSelectors.UPGRADE_TO_METAL_BUTTON}
               style={tw.style('px-4 py-2 w-full items-center justify-center')}
@@ -525,7 +525,7 @@ const ChooseYourCard = () => {
               >
                 {strings('card.choose_your_card.upgrade_to_metal_label')}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           )}
         </Box>
       </Box>

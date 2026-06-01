@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  TouchableOpacity,
-  ActivityIndicator,
-  ScrollView,
-} from 'react-native';
+import Pressable from '../../../../component-library/components-temp/Pressable';
+import { View, ActivityIndicator, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Text, {
   TextVariant,
@@ -519,7 +515,7 @@ const HIP3DebugView: React.FC = () => {
                 Selected: {selectedDex || 'None'}
               </Text>
               {availableDexs.slice(0, 10).map((dex) => (
-                <TouchableOpacity
+                <Pressable
                   key={dex}
                   style={[
                     styles.button,
@@ -539,7 +535,7 @@ const HIP3DebugView: React.FC = () => {
                   >
                     {dex}
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               ))}
             </View>
           )}
@@ -567,7 +563,7 @@ const HIP3DebugView: React.FC = () => {
                   Selected: {selectedMarket || 'None'}
                 </Text>
                 {markets.slice(0, 5).map((market) => (
-                  <TouchableOpacity
+                  <Pressable
                     key={market.name}
                     style={[
                       styles.button,
@@ -587,7 +583,7 @@ const HIP3DebugView: React.FC = () => {
                     >
                       {market.name}
                     </Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 ))}
               </View>
             )}
@@ -604,11 +600,11 @@ const HIP3DebugView: React.FC = () => {
             console.
           </Text>
 
-          <TouchableOpacity style={styles.button} onPress={checkBalance}>
+          <Pressable style={styles.button} onPress={checkBalance}>
             <Text variant={TextVariant.BodyMD} style={styles.buttonText}>
               Check Balance
             </Text>
-          </TouchableOpacity>
+          </Pressable>
 
           {/* Display balance info if available */}
           {balanceInfo && (
@@ -679,7 +675,7 @@ const HIP3DebugView: React.FC = () => {
             Manual Transfer Testing
           </Text>
 
-          <TouchableOpacity
+          <Pressable
             style={styles.button}
             onPress={testTransferToSelectedDex}
             disabled={!selectedDex}
@@ -687,9 +683,9 @@ const HIP3DebugView: React.FC = () => {
             <Text variant={TextVariant.BodyMD} style={styles.buttonText}>
               Transfer $10 → {selectedDex || '(select DEX)'} DEX
             </Text>
-          </TouchableOpacity>
+          </Pressable>
 
-          <TouchableOpacity
+          <Pressable
             style={[styles.button, styles.buttonSecondary]}
             onPress={testTransferFromSelectedDex}
             disabled={!selectedDex}
@@ -700,7 +696,7 @@ const HIP3DebugView: React.FC = () => {
             >
               Reset: Transfer ALL ← {selectedDex || '(select DEX)'} DEX
             </Text>
-          </TouchableOpacity>
+          </Pressable>
 
           {transferResult.status === 'loading' && (
             <ActivityIndicator style={styles.loader} />
@@ -729,14 +725,11 @@ const HIP3DebugView: React.FC = () => {
             Auto-Transfer Testing
           </Text>
 
-          <TouchableOpacity
-            style={styles.button}
-            onPress={testOrderWithAutoTransfer}
-          >
+          <Pressable style={styles.button} onPress={testOrderWithAutoTransfer}>
             <Text variant={TextVariant.BodyMD} style={styles.buttonText}>
               Place Order (Test Auto-Transfer)
             </Text>
-          </TouchableOpacity>
+          </Pressable>
 
           {orderResult.status === 'loading' && (
             <ActivityIndicator style={styles.loader} />
@@ -758,7 +751,7 @@ const HIP3DebugView: React.FC = () => {
             </View>
           )}
 
-          <TouchableOpacity
+          <Pressable
             style={[styles.button, styles.buttonSecondary]}
             onPress={testCloseWithAutoTransferBack}
           >
@@ -768,7 +761,7 @@ const HIP3DebugView: React.FC = () => {
             >
               Close Position (Test Transfer Back)
             </Text>
-          </TouchableOpacity>
+          </Pressable>
 
           {closeResult.status === 'loading' && (
             <ActivityIndicator style={styles.loader} />

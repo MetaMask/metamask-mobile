@@ -1,12 +1,7 @@
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
-import {
-  StyleSheet,
-  ScrollView,
-  Switch,
-  View,
-  TouchableOpacity,
-} from 'react-native';
+import Pressable from '../../../../component-library/components-temp/Pressable';
+import { StyleSheet, ScrollView, Switch, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect } from 'react-redux';
 
@@ -518,7 +513,7 @@ class Settings extends PureComponent {
               </Text>
               <View style={styles.accessory}>
                 <View style={styles.identicon_container}>
-                  <TouchableOpacity
+                  <Pressable
                     onPress={() =>
                       setAvatarAccountType(AvatarAccountType.Maskicon)
                     }
@@ -544,8 +539,8 @@ class Settings extends PureComponent {
                     >
                       Polycons
                     </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
+                  </Pressable>
+                  <Pressable
                     onPress={() =>
                       setAvatarAccountType(AvatarAccountType.JazzIcon)
                     }
@@ -571,8 +566,8 @@ class Settings extends PureComponent {
                     >
                       {strings('app_settings.jazzicons')}
                     </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
+                  </Pressable>
+                  <Pressable
                     onPress={() =>
                       setAvatarAccountType(AvatarAccountType.Blockies)
                     }
@@ -598,7 +593,7 @@ class Settings extends PureComponent {
                     >
                       {strings('app_settings.blockies')}
                     </Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 </View>
               </View>
             </View>

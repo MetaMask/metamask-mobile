@@ -1,6 +1,7 @@
 import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import ListItem from '../../../../../component-library/components/List/ListItem';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import ListItemColumn, {
   WidthType,
 } from '../../../../../component-library/components/List/ListItemColumn';
@@ -78,7 +79,7 @@ const PerpsNavigationCard: React.FC<PerpsNavigationCardProps> = ({ items }) => {
 
         return (
           <View key={`${item.label}-${index}`} style={itemStyle}>
-            <TouchableOpacity onPress={item.onPress} testID={item.testID}>
+            <Pressable onPress={item.onPress} testID={item.testID}>
               <ListItem style={styles.listItem}>
                 {item.iconName && (
                   <Icon
@@ -102,7 +103,7 @@ const PerpsNavigationCard: React.FC<PerpsNavigationCardProps> = ({ items }) => {
                   </ListItemColumn>
                 )}
               </ListItem>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         );
       })}

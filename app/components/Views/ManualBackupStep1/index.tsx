@@ -9,7 +9,6 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   FlatList,
-  TouchableOpacity,
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -17,6 +16,7 @@ import { useDispatch } from 'react-redux';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import {
   Box,
   Label,
@@ -101,14 +101,14 @@ const ManualBackupStep1 = () => {
 
   const headerLeft = useCallback(
     () => (
-      <TouchableOpacity onPress={() => navigation.goBack()}>
+      <Pressable onPress={() => navigation.goBack()}>
         <Icon
           name={IconName.ArrowLeft}
           size={IconSize.Lg}
           color={IconColor.IconDefault}
           style={tw.style('ml-4')}
         />
-      </TouchableOpacity>
+      </Pressable>
     ),
     [navigation, tw],
   );

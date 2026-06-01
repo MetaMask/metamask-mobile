@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, TouchableOpacity, LayoutChangeEvent } from 'react-native';
+import { View, LayoutChangeEvent } from 'react-native';
 import Feather from 'react-native-vector-icons/Feather';
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -126,7 +127,6 @@ const Quote: React.FC<Props> = ({
       <Box
         onPress={highlighted || isLoading ? undefined : onPress}
         highlighted={highlighted}
-        activeOpacity={0.8}
         accessible={!highlighted}
         accessibilityLabel={quote.provider?.name}
         compact
@@ -156,7 +156,7 @@ const Quote: React.FC<Props> = ({
                   ) : null}
                 </View>
               )}
-              <TouchableOpacity
+              <Pressable
                 onPress={highlighted && !isLoading ? showInfo : undefined}
                 disabled={!highlighted || isLoading}
                 accessibilityLabel={`${quote.provider?.name} logo`}
@@ -179,7 +179,7 @@ const Quote: React.FC<Props> = ({
                     <Feather name="info" size={12} style={styles.infoIcon} />
                   )}
                 </View>
-              </TouchableOpacity>
+              </Pressable>
             </>
           }
           bottomAccessory={

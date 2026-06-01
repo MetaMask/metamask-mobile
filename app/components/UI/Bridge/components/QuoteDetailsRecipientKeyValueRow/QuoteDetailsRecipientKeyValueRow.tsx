@@ -1,6 +1,7 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+
 import { strings } from '../../../../../../locales/i18n';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Text, {
   TextColor,
   TextVariant,
@@ -58,9 +59,8 @@ const QuoteDetailsRecipientKeyValueRow = () => {
         alignItems={BoxAlignItems.End}
         justifyContent={BoxJustifyContent.End}
       >
-        <TouchableOpacity
+        <Pressable
           onPress={handleRecipientPress}
-          activeOpacity={0.6}
           testID="recipient-selector-button"
           style={styles.recipientButton}
         >
@@ -99,7 +99,7 @@ const QuoteDetailsRecipientKeyValueRow = () => {
             size={IconSize.Sm}
             color={IconColor.Alternative}
           />
-        </TouchableOpacity>
+        </Pressable>
       </Box>
     </KeyValueRowStubs.Root>
   );

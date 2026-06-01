@@ -15,12 +15,13 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
-import { Image, TouchableOpacity } from 'react-native';
+import { Image } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { TopRankAvatar, TopRankIndicator } from '../topRank';
 import type { TopTrader } from '../types';
 import { formatPnl } from '../utils/formatPnl';
 
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 const AVATAR_SIZE = 40;
 // Fixed row height so the skeleton placeholder can match it exactly without
 // drifting due to font-scale or button-size differences.
@@ -67,8 +68,7 @@ const TraderRow: React.FC<TraderRowProps> = ({
       style={{ height: TRADER_ROW_HEIGHT }}
       testID={testID ?? `trader-row-${trader.id}`}
     >
-      <TouchableOpacity
-        activeOpacity={onTraderPress ? 0.7 : 1}
+      <Pressable
         onPress={
           onTraderPress
             ? () =>
@@ -154,7 +154,7 @@ const TraderRow: React.FC<TraderRowProps> = ({
             </Text>
           </Box>
         </Box>
-      </TouchableOpacity>
+      </Pressable>
 
       {/* Follow / Following button */}
       <Button

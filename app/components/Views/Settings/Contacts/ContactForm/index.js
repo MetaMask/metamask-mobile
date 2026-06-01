@@ -1,12 +1,6 @@
 import React, { PureComponent } from 'react';
-import {
-  Platform,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
+import { Platform, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { fontStyles } from '../../../../../styles/common';
 import PropTypes from 'prop-types';
@@ -521,17 +515,14 @@ class ContactForm extends PureComponent {
               </View>
 
               {isAddMode && (
-                <TouchableOpacity
-                  onPress={this.onScan}
-                  style={styles.iconWrapper}
-                >
+                <Pressable onPress={this.onScan} style={styles.iconWrapper}>
                   <AntIcon
                     name="scan1"
                     size={20}
                     color={colors.primary.default}
                     style={styles.scanIcon}
                   />
-                </TouchableOpacity>
+                </Pressable>
               )}
             </View>
 
@@ -566,7 +557,7 @@ class ContactForm extends PureComponent {
               <Text style={styles.label}>
                 {strings('address_book.network')}
               </Text>
-              <TouchableOpacity
+              <Pressable
                 disabled={!editable}
                 style={[styles.networkSelector]}
                 onPress={() => {
@@ -607,7 +598,7 @@ class ContactForm extends PureComponent {
                     style={styles.buttonIcon}
                   />
                 )}
-              </TouchableOpacity>
+              </Pressable>
             </>
           </View>
 

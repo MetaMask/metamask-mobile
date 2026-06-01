@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import Text, {
   TextColor,
   TextVariant,
@@ -111,7 +112,7 @@ const DeFiPositionsListItem: React.FC<DeFiPositionsListItemProps> = ({
   }, [protocolAggregate]);
 
   return (
-    <TouchableOpacity
+    <Pressable
       testID={WalletViewSelectorsIDs.DEFI_POSITION_LIST_ITEM(
         protocolAggregate.protocolDetails.name,
       )}
@@ -162,7 +163,7 @@ const DeFiPositionsListItem: React.FC<DeFiPositionsListItemProps> = ({
         </SensitiveText>
         <AvatarGroup avatarPropsList={tokenAvatars} size={AvatarSize.Xs} />
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 export default DeFiPositionsListItem;

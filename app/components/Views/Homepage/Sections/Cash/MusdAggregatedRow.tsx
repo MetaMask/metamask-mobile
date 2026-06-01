@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
-import { Pressable, TouchableOpacity } from 'react-native';
+import { Pressable } from 'react-native';
+import DSPressable from '../../../../../component-library/components-temp/Pressable';
 import {
   Spinner,
   Box,
@@ -128,7 +129,7 @@ const MusdAggregatedRow = () => {
             {isClaiming ? (
               <Spinner color={IconColor.PrimaryDefault} />
             ) : (
-              <TouchableOpacity
+              <DSPressable
                 disabled={!hasClaimableBonus}
                 onPress={handleClaimBonus}
               >
@@ -149,7 +150,7 @@ const MusdAggregatedRow = () => {
                         percentage: MUSD_CONVERSION_APY,
                       })}
                 </Text>
-              </TouchableOpacity>
+              </DSPressable>
             )}
           </Box>
         </Box>

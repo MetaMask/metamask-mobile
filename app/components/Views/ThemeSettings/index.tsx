@@ -1,11 +1,6 @@
 import React, { useCallback, useRef } from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  TouchableOpacity,
-  Appearance,
-} from 'react-native';
+import Pressable from '../../../component-library/components-temp/Pressable';
+import { StyleSheet, View, Text, Appearance } from 'react-native';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { useTheme } from '../../../util/theme';
 import { useDispatch, useSelector } from 'react-redux';
@@ -89,7 +84,7 @@ const ThemeSettings = () => {
 
           return (
             <View key={key} style={styles.option}>
-              <TouchableOpacity
+              <Pressable
                 onPress={() => {
                   triggerSetAppTheme(selectedThemeKey);
                   // Identify user with updated theme trait
@@ -108,7 +103,7 @@ const ThemeSettings = () => {
                   {strings(`app_settings.theme_${selectedThemeKey}`)}
                 </Text>
                 {selectedIcon}
-              </TouchableOpacity>
+              </Pressable>
             </View>
           );
         })}

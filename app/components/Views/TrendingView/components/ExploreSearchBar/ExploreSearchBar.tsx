@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   Box,
   BoxFlexDirection,
@@ -84,14 +85,13 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
       twClassName="gap-2"
     >
       {isButtonMode ? (
-        <TouchableOpacity
+        <Pressable
           onPress={props.onPress}
           testID="explore-view-search-button"
-          activeOpacity={0.7}
           style={tw.style('flex-1')}
         >
           {searchBarStatic}
-        </TouchableOpacity>
+        </Pressable>
       ) : (
         <>
           <Box
@@ -130,7 +130,7 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
               </View>
             )}
           </Box>
-          <TouchableOpacity
+          <Pressable
             onPress={() => {
               props.onSearchChange('');
               props.onCancel();
@@ -143,7 +143,7 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
             >
               {strings('transaction.cancel')}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         </>
       )}
     </Box>

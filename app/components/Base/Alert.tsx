@@ -1,8 +1,8 @@
 import React, { ReactNode } from 'react';
+import Pressable from '../../component-library/components-temp/Pressable';
 import {
   View,
   StyleSheet,
-  TouchableOpacity,
   ViewStyle,
   StyleProp,
   TouchableOpacityProps,
@@ -124,7 +124,7 @@ const Alert = ({
 }: Props) => {
   const Wrapper:
     | React.ComponentType<TouchableOpacityProps>
-    | React.ComponentType<ViewProps> = onPress ? TouchableOpacity : View;
+    | React.ComponentType<ViewProps> = onPress ? Pressable : View;
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -149,7 +149,7 @@ const Alert = ({
       )}
       {onDismiss && (
         <View style={styles.iconWrapper}>
-          <TouchableOpacity
+          <Pressable
             onPress={onDismiss}
             hitSlop={{ top: 20, left: 20, right: 20, bottom: 20 }}
           >
@@ -157,7 +157,7 @@ const Alert = ({
               // All this component is deprecated so it should be replaced and removed
               <IonicIcon name="close" style={styles.closeIcon} size={30} />
             }
-          </TouchableOpacity>
+          </Pressable>
         </View>
       )}
     </Wrapper>

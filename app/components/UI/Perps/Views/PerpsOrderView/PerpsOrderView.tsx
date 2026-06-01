@@ -11,7 +11,8 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -1480,7 +1481,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   : styles.detailItemOnly,
               ]}
             >
-              <TouchableOpacity
+              <Pressable
                 testID={PerpsOrderViewSelectorsIDs.LEVERAGE_ROW}
                 onPress={() => setIsLeverageVisible(true)}
               >
@@ -1493,7 +1494,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                       >
                         {strings('perps.order.leverage')}
                       </Text>
-                      <TouchableOpacity
+                      <Pressable
                         onPress={() => handleTooltipPress('leverage')}
                         style={styles.infoIcon}
                       >
@@ -1503,7 +1504,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                           color={IconColor.Alternative}
                           testID={PerpsOrderViewSelectorsIDs.LEVERAGE_INFO_ICON}
                         />
-                      </TouchableOpacity>
+                      </Pressable>
                     </View>
                   </ListItemColumn>
                   <ListItemColumn widthType={WidthType.Auto}>
@@ -1515,7 +1516,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                     </Text>
                   </ListItemColumn>
                 </ListItem>
-              </TouchableOpacity>
+              </Pressable>
             </View>
 
             {/* Limit price - only show for limit orders */}
@@ -1527,7 +1528,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   hideTPSL && !isPayRowVisible && styles.detailItemLast,
                 ]}
               >
-                <TouchableOpacity
+                <Pressable
                   testID={PerpsOrderViewSelectorsIDs.LIMIT_PRICE_ROW}
                   onPress={() => setIsLimitPriceVisible(true)}
                 >
@@ -1554,7 +1555,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                       </Text>
                     </ListItemColumn>
                   </ListItem>
-                </TouchableOpacity>
+                </Pressable>
               </View>
             )}
 
@@ -1566,7 +1567,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   !isPayRowVisible && styles.detailItemLast,
                 ]}
               >
-                <TouchableOpacity
+                <Pressable
                   onPress={handleTPSLPress}
                   testID={PerpsOrderViewSelectorsIDs.STOP_LOSS_BUTTON}
                 >
@@ -1579,7 +1580,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                         >
                           {strings('perps.order.tp_sl')}
                         </Text>
-                        <TouchableOpacity
+                        <Pressable
                           onPress={() => handleTooltipPress('tp_sl')}
                           style={styles.infoIcon}
                         >
@@ -1589,7 +1590,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                             color={IconColor.Alternative}
                             testID={PerpsOrderViewSelectorsIDs.TP_SL_INFO_ICON}
                           />
-                        </TouchableOpacity>
+                        </Pressable>
                       </View>
                     </ListItemColumn>
                     <ListItemColumn widthType={WidthType.Auto}>
@@ -1601,7 +1602,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                       </Text>
                     </ListItemColumn>
                   </ListItem>
-                </TouchableOpacity>
+                </Pressable>
               </View>
             )}
             {/* Pay with row - directly below TP/SL, same stacked box styling */}
@@ -1681,7 +1682,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
                 {strings('perps.order.margin')}
               </Text>
-              <TouchableOpacity
+              <Pressable
                 onPress={() => handleTooltipPress('margin')}
                 style={styles.infoIcon}
               >
@@ -1691,7 +1692,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   color={IconColor.Alternative}
                   testID={PerpsOrderViewSelectorsIDs.MARGIN_INFO_ICON}
                 />
-              </TouchableOpacity>
+              </Pressable>
             </View>
             <Text
               variant={TextVariant.BodySM}
@@ -1711,7 +1712,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
                 {strings('perps.order.liquidation_price')}
               </Text>
-              <TouchableOpacity
+              <Pressable
                 onPress={() => handleTooltipPress('liquidation_price')}
                 style={styles.infoIcon}
               >
@@ -1723,7 +1724,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                     PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_INFO_ICON
                   }
                 />
-              </TouchableOpacity>
+              </Pressable>
             </View>
             <Text
               variant={TextVariant.BodySM}
@@ -1738,7 +1739,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             </Text>
           </View>
           {isMarketOrder && (
-            <TouchableOpacity
+            <Pressable
               testID={PerpsOrderViewSelectorsIDs.SLIPPAGE_ROW}
               onPress={() => {
                 setIsSlippageVisible(true);
@@ -1783,14 +1784,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   />
                 </View>
               </View>
-            </TouchableOpacity>
+            </Pressable>
           )}
           <View style={styles.infoRow}>
             <View style={styles.detailLeft}>
               <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
                 {strings('perps.order.fees')}
               </Text>
-              <TouchableOpacity
+              <Pressable
                 onPress={() => handleTooltipPress('fees')}
                 style={styles.infoIcon}
               >
@@ -1800,7 +1801,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   color={IconColor.Alternative}
                   testID={PerpsOrderViewSelectorsIDs.FEES_INFO_ICON}
                 />
-              </TouchableOpacity>
+              </Pressable>
             </View>
             {isFeesLoading ? (
               <Skeleton height={16} width={60} />
@@ -1832,7 +1833,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   >
                     {strings('perps.estimated_points')}
                   </Text>
-                  <TouchableOpacity
+                  <Pressable
                     onPress={() => handleTooltipPress('points')}
                     style={styles.infoIcon}
                   >
@@ -1841,7 +1842,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                       size={IconSize.Sm}
                       color={IconColor.Alternative}
                     />
-                  </TouchableOpacity>
+                  </Pressable>
                 </View>
                 <View style={styles.pointsRightContainer}>
                   {rewardsState.accountOptedIn ? (

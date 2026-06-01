@@ -5,13 +5,14 @@ import {
   StackActions,
 } from '@react-navigation/native';
 import React, { useEffect } from 'react';
-import { ScrollView, Switch, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Switch, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './NotificationsSettings.styles';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
+import Pressable from '../../../../component-library/components-temp/Pressable';
 import {
   Text,
   TextColor,
@@ -59,7 +60,7 @@ const WalletActivitySectionContent = ({ styles }: SectionContentProps) => {
             {strings('app_settings.notifications_opts.select_accounts_title')}
           </Text>
           {hasNotificationAccounts ? (
-            <TouchableOpacity
+            <Pressable
               onPress={toggleAllAccounts}
               disabled={isUpdatingAllAccounts}
               accessibilityRole="button"
@@ -83,7 +84,7 @@ const WalletActivitySectionContent = ({ styles }: SectionContentProps) => {
                     : 'app_settings.notifications_opts.select_all',
                 )}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           ) : null}
         </View>
         <Text color={TextColor.TextAlternative} variant={TextVariant.BodyMd}>

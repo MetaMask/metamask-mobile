@@ -1,10 +1,6 @@
 import React from 'react';
-import {
-  View,
-  StyleSheet,
-  ActivityIndicator,
-  TouchableOpacity,
-} from 'react-native';
+import Pressable from '../../../component-library/components-temp/Pressable';
+import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import Text from '../../Base/Text';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import AntIcon from 'react-native-vector-icons/AntDesign';
@@ -62,9 +58,9 @@ function Loader({
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+      <Pressable onPress={onClose} style={styles.closeButton}>
         <AntIcon color={colors.text.default} size={16} name={'close'} />
-      </TouchableOpacity>
+      </Pressable>
       <View style={styles.content}>
         <View style={styles.item}>
           {error ? (

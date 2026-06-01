@@ -1,9 +1,10 @@
 import React, { useCallback } from 'react';
 import { Hex } from '@metamask/utils';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
@@ -62,14 +63,14 @@ const SwitchAccountTypeModal = () => {
   if (!address) {
     return (
       <BottomSheet>
-        <TouchableOpacity onPress={goBack} testID="switch-account-goback">
+        <Pressable onPress={goBack} testID="switch-account-goback">
           <Icon
             name={IconName.ArrowLeft}
             size={IconSize.Sm}
             color={IconColor.Default}
             style={styles.backIcon}
           />
-        </TouchableOpacity>
+        </Pressable>
         <View style={styles.wrapper}>
           <View style={styles.spinner} testID="no-address-fallback">
             <Text variant={TextVariant.BodyMD}>No account selected</Text>
@@ -81,14 +82,14 @@ const SwitchAccountTypeModal = () => {
 
   return (
     <BottomSheet>
-      <TouchableOpacity onPress={goBack} testID="switch-account-goback">
+      <Pressable onPress={goBack} testID="switch-account-goback">
         <Icon
           name={IconName.ArrowLeft}
           size={IconSize.Sm}
           color={IconColor.Default}
           style={styles.backIcon}
         />
-      </TouchableOpacity>
+      </Pressable>
       <View style={styles.wrapper}>
         {pending ? (
           <View style={styles.spinner} testID="network-data-loader">

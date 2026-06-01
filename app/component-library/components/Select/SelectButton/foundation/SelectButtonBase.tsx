@@ -2,8 +2,9 @@
 
 // Third party dependencies.
 import React from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
 
+import Pressable from '../../../../components-temp/Pressable';
 // External dependencies.
 import { useStyles } from '../../../../hooks';
 import SelectValue from '../../SelectValue/SelectValue';
@@ -29,9 +30,8 @@ const SelectButtonBase: React.FC<SelectButtonBaseProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, { style });
   return (
-    <TouchableOpacity
+    <Pressable
       style={styles.base}
-      activeOpacity={1}
       {...touchableOpacityProps}
       disabled={isDisabled}
       accessibilityRole="button"
@@ -50,7 +50,7 @@ const SelectButtonBase: React.FC<SelectButtonBaseProps> = ({
         {children}
       </SelectValue>
       <View>{caretIconEl}</View>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

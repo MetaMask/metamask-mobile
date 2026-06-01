@@ -1,5 +1,5 @@
 // third party dependencies
-import { ImageSourcePropType, TouchableOpacity, View } from 'react-native';
+import { ImageSourcePropType, View } from 'react-native';
 import React, { useCallback, useMemo } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
@@ -10,6 +10,7 @@ import { toHex } from '@metamask/controller-utils';
 import { useSelector } from 'react-redux';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 
+import Pressable from '../../../component-library/components-temp/Pressable';
 // external dependencies
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
@@ -184,7 +185,7 @@ const CustomNetworkSelector = ({
 
   const renderFooter = useCallback(
     () => (
-      <TouchableOpacity
+      <Pressable
         style={styles.addNetworkButtonContainer}
         onPress={goToNetworkSettings}
       >
@@ -199,7 +200,7 @@ const CustomNetworkSelector = ({
         <Text variant={TextVariant.BodyMDMedium} color={colors.primary.default}>
           {strings('app_settings.network_add_custom_network')}
         </Text>
-      </TouchableOpacity>
+      </Pressable>
     ),
     [goToNetworkSettings, colors, styles],
   );

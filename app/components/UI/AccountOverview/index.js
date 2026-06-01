@@ -1,11 +1,11 @@
 import PropTypes from 'prop-types';
 import React, { PureComponent } from 'react';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import {
   InteractionManager,
   ScrollView,
   StyleSheet,
   TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { connect } from 'react-redux';
@@ -363,13 +363,13 @@ class AccountOverview extends PureComponent {
           contentContainerStyle={styles.wrapper}
         >
           <View style={styles.info} ref={this.mainView}>
-            <TouchableOpacity
+            <Pressable
               style={styles.identiconBorder}
               onPress={this.openAccountSelector}
               testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
             >
               <Identicon address={address} diameter={38} />
-            </TouchableOpacity>
+            </Pressable>
             <View
               ref={this.editableLabelRef}
               style={styles.data}
@@ -400,7 +400,7 @@ class AccountOverview extends PureComponent {
                 />
               ) : (
                 <View style={styles.labelWrapper}>
-                  <TouchableOpacity onLongPress={this.setAccountLabelEditable}>
+                  <Pressable onLongPress={this.setAccountLabelEditable}>
                     <Text
                       style={[
                         styles.label,
@@ -414,7 +414,7 @@ class AccountOverview extends PureComponent {
                     >
                       {isDefaultAccountName(name) && ens ? ens : name}
                     </Text>
-                  </TouchableOpacity>
+                  </Pressable>
                   {accountLabelTag && (
                     <View style={styles.tag}>
                       <Text
@@ -429,7 +429,7 @@ class AccountOverview extends PureComponent {
               )}
             </View>
 
-            <TouchableOpacity
+            <Pressable
               style={styles.addressWrapper}
               testID={AccountOverviewSelectorsIDs.ADDRESS_COPY_BUTTON}
               onPress={this.copyAccountToClipboard}
@@ -439,7 +439,7 @@ class AccountOverview extends PureComponent {
                 style={styles.address}
                 type={'short'}
               />
-            </TouchableOpacity>
+            </Pressable>
           </View>
         </ScrollView>
       </View>

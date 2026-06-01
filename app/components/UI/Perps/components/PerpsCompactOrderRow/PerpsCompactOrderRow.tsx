@@ -1,5 +1,6 @@
 import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Text, {
   TextVariant,
   TextColor,
@@ -72,12 +73,11 @@ const PerpsCompactOrderRow: React.FC<PerpsCompactOrderRowProps> = ({
   };
 
   return (
-    <TouchableOpacity
+    <Pressable
       style={styles.container}
       onPress={onPress}
       disabled={!onPress}
       testID={testID}
-      activeOpacity={0.7}
     >
       <View style={styles.leftSection}>
         {/* Token icon */}
@@ -110,7 +110,7 @@ const PerpsCompactOrderRow: React.FC<PerpsCompactOrderRowProps> = ({
           {orderInfo.orderTypeLabel}
         </Text>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

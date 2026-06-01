@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Pressable from '../../../../component-library/components-temp/Pressable';
 import {
   INotification,
   isNotificationsFeatureEnabled,
@@ -68,7 +69,7 @@ const NotificationsDetails = ({
 
   const HeaderLeft = useCallback(
     () => (
-      <TouchableOpacity
+      <Pressable
         onPress={() => navigation.goBack()}
         testID={NotificationDetailsViewSelectorsIDs.BACK_BUTTON}
       >
@@ -77,7 +78,7 @@ const NotificationsDetails = ({
           size={IconSize.Md}
           style={styles.backIcon}
         />
-      </TouchableOpacity>
+      </Pressable>
     ),
     [navigation, styles.backIcon],
   );

@@ -1,11 +1,12 @@
 import React, { useMemo } from 'react';
-import { TouchableOpacity, Platform, UIManager } from 'react-native';
+import { Platform, UIManager } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import createStyles from './QuoteDetailsCard.styles';
 import { IconName as IconNameLegacy } from '../../../../../component-library/components/Icons/Icon';
 import { TooltipSizes } from '../../../../../component-library/components-temp/KeyValueRow/KeyValueRow.types';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   Box,
   BoxFlexDirection,
@@ -193,11 +194,10 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
               iconName: IconNameLegacy.Info,
             }}
           />
-          <TouchableOpacity
+          <Pressable
             style={tw`flex-1 items-end`}
             onPress={handleRatePress}
             testID="rate-arrow-button"
-            activeOpacity={0.6}
           >
             <Box
               flexDirection={BoxFlexDirection.Row}
@@ -219,7 +219,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                 color={IconColor.IconAlternative}
               />
             </Box>
-          </TouchableOpacity>
+          </Pressable>
         </Box>
         {shouldShowGasSponsored ? (
           <KeyValueRow
@@ -329,9 +329,8 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
           }}
           value={{
             label: (
-              <TouchableOpacity
+              <Pressable
                 onPress={handleSlippagePress}
-                activeOpacity={0.6}
                 testID="edit-slippage-button"
                 style={styles.slippageButton}
               >
@@ -346,7 +345,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                   size={IconSize.Sm}
                   color={IconColor.IconAlternative}
                 />
-              </TouchableOpacity>
+              </Pressable>
             ),
           }}
         />
@@ -393,10 +392,9 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
             }}
             value={{
               label: (
-                <TouchableOpacity
+                <Pressable
                   testID="price-impact-info-button"
                   onPress={handlePriceImpactPress}
-                  activeOpacity={priceImpactIsSafe ? 1 : 0.6}
                 >
                   <Box
                     flexDirection={BoxFlexDirection.Row}
@@ -418,7 +416,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                       {formatPriceImpact(formattedQuoteData.priceImpact)}
                     </Text>
                   </Box>
-                </TouchableOpacity>
+                </Pressable>
               ),
             }}
           />

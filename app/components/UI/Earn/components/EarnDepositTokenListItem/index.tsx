@@ -1,6 +1,7 @@
 import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
@@ -30,7 +31,7 @@ const EarnDepositTokenListItem = ({
   const networkName = useSelector(selectNetworkName);
 
   return (
-    <TouchableOpacity
+    <Pressable
       style={styles.container}
       onPress={() => onPress(token)}
       testID="earn-token-list-item"
@@ -77,7 +78,7 @@ const EarnDepositTokenListItem = ({
           </Text>
         )}
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

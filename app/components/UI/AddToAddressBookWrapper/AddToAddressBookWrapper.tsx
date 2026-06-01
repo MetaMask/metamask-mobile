@@ -1,6 +1,6 @@
 import React, { ReactElement, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { View, TextInput, TouchableOpacity } from 'react-native';
+import { View, TextInput } from 'react-native';
 
 import { AddAddressModalSelectorsIDs } from './AddAddressModal.testIds';
 import { strings } from '../../../../locales/i18n';
@@ -15,6 +15,7 @@ import { LOWER_CASED_BURN_ADDRESSES } from '../../../constants/address';
 
 import createStyles from './styles';
 
+import Pressable from '../../../component-library/components-temp/Pressable';
 interface AddToAddressBookWrapperProps {
   address: string;
   children: ReactElement;
@@ -61,13 +62,12 @@ export const AddToAddressBookWrapper = ({
 
   return (
     <>
-      <TouchableOpacity
-        activeOpacity={0.5}
+      <Pressable
         onPress={() => setShowAddToAddressBook(true)}
         testID={AddAddressModalSelectorsIDs.ADD_ADDRESS_BUTTON}
       >
         {children}
-      </TouchableOpacity>
+      </Pressable>
       {showAddToAddressBook ? (
         <ActionModal
           modalVisible={showAddToAddressBook}

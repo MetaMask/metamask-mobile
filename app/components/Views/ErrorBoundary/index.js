@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import {
-  TouchableOpacity,
   View,
   StyleSheet,
   Linking,
@@ -260,10 +260,7 @@ export const Fallback = (props) => {
           <Text variant={TextVariant.BodyMDMedium} color={colors.text.default}>
             {errorMessage}
           </Text>
-          <TouchableOpacity
-            style={styles.row}
-            onPress={props.copyErrorToClipboard}
-          >
+          <Pressable style={styles.row} onPress={props.copyErrorToClipboard}>
             <Icon
               name={IconName.Copy}
               size={IconSize.Sm}
@@ -275,7 +272,7 @@ export const Fallback = (props) => {
             >
               {strings('error_screen.copy')}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
         <View style={styles.errorMessageContainer}>
           <ScrollView>
@@ -333,7 +330,7 @@ export const Fallback = (props) => {
                 <Text onPress={toggleModal} variant={TextVariant.HeadingMD}>
                   {strings('error_screen.modal_title')}
                 </Text>
-                <TouchableOpacity
+                <Pressable
                   onPress={toggleModal}
                   style={styles.closeIconWrapper}
                   hitSlop={styles.hitSlop}
@@ -344,7 +341,7 @@ export const Fallback = (props) => {
                     color={IconColor.Default}
                     onPress={toggleModal}
                   />
-                </TouchableOpacity>
+                </Pressable>
               </View>
               <TextInput
                 autoFocus

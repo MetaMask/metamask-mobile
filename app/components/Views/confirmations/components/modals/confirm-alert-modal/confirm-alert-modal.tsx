@@ -1,7 +1,8 @@
 import React, { useCallback, useState } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useTheme } from '../../../../../../util/theme';
 import BottomModal from '../../../components/UI/bottom-modal';
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import {
   Button,
   ButtonSize,
@@ -107,10 +108,9 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({
             labelTextVariant={TextVariant.BodyMD}
           />
         )}
-        <TouchableOpacity
+        <Pressable
           style={styles.checkboxContainer}
           onPress={handleConfirmCheckbox}
-          activeOpacity={1}
         >
           <Checkbox
             onPress={handleConfirmCheckbox}
@@ -120,7 +120,7 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({
           <Text style={styles.checkboxText}>
             {strings('alert_system.confirm_modal.checkbox_label')}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
         <View style={styles.buttonsContainer}>
           <Button
             onPress={handleReject}

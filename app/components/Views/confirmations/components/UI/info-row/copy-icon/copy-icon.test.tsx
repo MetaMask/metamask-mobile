@@ -1,7 +1,8 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+
 import { fireEvent, render } from '@testing-library/react-native';
 import CopyIcon from './copy-icon';
+import Pressable from '../../../../../../../component-library/components-temp/Pressable';
 import {
   IconColor,
   IconName,
@@ -29,7 +30,7 @@ describe('CopyIcon', () => {
 
   it('copies text to clipboard when pressed', async () => {
     const { UNSAFE_getAllByType } = render(<CopyIcon {...mockProps} />);
-    const touchable = UNSAFE_getAllByType(TouchableOpacity)[0];
+    const touchable = UNSAFE_getAllByType(Pressable)[0];
 
     fireEvent.press(touchable);
 
@@ -46,7 +47,7 @@ describe('CopyIcon', () => {
     };
 
     const { UNSAFE_getAllByType } = render(<CopyIcon {...emptyTextProps} />);
-    const touchable = UNSAFE_getAllByType(TouchableOpacity)[0];
+    const touchable = UNSAFE_getAllByType(Pressable)[0];
 
     fireEvent.press(touchable);
 

@@ -1,11 +1,12 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { TouchableOpacity, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { query } from '@metamask/controller-utils';
 import { connect } from 'react-redux';
 
 import { fontStyles } from '../../../../styles/common';
 import { strings } from '../../../../../locales/i18n';
+import Pressable from '../../../../component-library/components-temp/Pressable';
 import {
   getBlockExplorerName,
   findBlockExplorerUrlForChain,
@@ -492,7 +493,7 @@ class TransactionDetails extends PureComponent {
           status !== 'cancelled' &&
           rpcBlockExplorer &&
           rpcBlockExplorer !== NO_RPC_BLOCK_EXPLORER && (
-            <TouchableOpacity
+            <Pressable
               onPress={this.viewOnEtherscan}
               style={styles.touchableViewOnEtherscan}
             >
@@ -501,7 +502,7 @@ class TransactionDetails extends PureComponent {
                   rpcBlockExplorer,
                 )}`}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           )}
       </DetailsModal.Body>
     ) : null;

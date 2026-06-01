@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
-import { View, TouchableOpacity, FlatList } from 'react-native';
+import { View, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   FontWeight,
   Icon,
@@ -118,14 +119,13 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
       const isLastItem = index === trades.length - 1;
 
       return (
-        <TouchableOpacity
+        <Pressable
           style={[
             styles.tradeItem,
             isFirstItem && styles.tradeItemFirst,
             isLastItem && styles.tradeItemLast,
           ]}
           onPress={() => handleTradePress(item)}
-          activeOpacity={0.7}
         >
           <View style={styles.leftSection}>
             <View style={styles.iconContainer}>
@@ -163,7 +163,7 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
             </View>
           </View>
           <View style={styles.rightSection}>{renderRightContent(item)}</View>
-        </TouchableOpacity>
+        </Pressable>
       );
     },
     [styles, handleTradePress, iconSize, renderRightContent, trades.length],
@@ -176,7 +176,7 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
         {strings('perps.market.recent_trades')}
       </Text>
       {!isLoading && (
-        <TouchableOpacity
+        <Pressable
           testID="see-all-button"
           onPress={handleSeeAll}
           accessibilityRole="button"
@@ -187,7 +187,7 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
             size={IconSize.Md}
             color={IconColor.IconAlternative}
           />
-        </TouchableOpacity>
+        </Pressable>
       )}
     </View>
   );

@@ -1,5 +1,5 @@
 import React, { ReactNode, useState } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 
 import { useStyles } from '../../../../../../component-library/hooks';
 import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
@@ -7,6 +7,7 @@ import BottomModal from '../bottom-modal';
 import CopyButton from '../copy-button';
 import styleSheet from './expandable.styles';
 
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 interface ExpandableProps {
   collapsedContent: ReactNode;
   expandedContent: ReactNode;
@@ -35,16 +36,15 @@ const Expandable = ({
 
   return (
     <>
-      <TouchableOpacity
+      <Pressable
         onPress={() => setExpanded(true)}
         onPressIn={() => setExpanded(true)}
         onPressOut={() => setExpanded(true)}
         accessible
-        activeOpacity={1}
         testID={testID ?? 'expandableSection'}
       >
         {collapsedContent}
-      </TouchableOpacity>
+      </Pressable>
       {expanded && (
         <BottomModal onClose={() => setExpanded(false)}>
           <View style={styles.modalContent}>

@@ -2,8 +2,9 @@
 
 // Third-Party dependencies
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
 
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 // External dependencies
 import {
   renderShortAddress,
@@ -97,7 +98,7 @@ const AddressElement: React.FC<AddressElementProps> = ({
   const accountTypeLabel = getLabelTextByAddress(address);
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={() => onAccountPress(address)}
       onLongPress={() => onAccountLongPress(address)}
       key={address}
@@ -134,18 +135,15 @@ const AddressElement: React.FC<AddressElementProps> = ({
         )}
       </View>
       {isAmbiguousAddress && (
-        <TouchableOpacity
-          style={styles.warningIconWrapper}
-          onPress={onIconPress}
-        >
+        <Pressable style={styles.warningIconWrapper} onPress={onIconPress}>
           <Icon
             name={IconName.Danger}
             size={IconSize.Lg}
             color={styles.warningIcon.color}
           />
-        </TouchableOpacity>
+        </Pressable>
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

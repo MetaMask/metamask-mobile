@@ -1,11 +1,11 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import {
   Platform,
   KeyboardAvoidingView,
   ActivityIndicator,
   Alert,
   InteractionManager,
-  TouchableOpacity,
   TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -654,7 +654,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                     )}
                     isError={isPasswordTooShort()}
                     endAccessory={
-                      <TouchableOpacity onPress={() => toggleShowPassword(0)}>
+                      <Pressable onPress={() => toggleShowPassword(0)}>
                         <Icon
                           name={
                             showPasswordIndex.includes(0)
@@ -667,7 +667,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                             ChoosePasswordSelectorsIDs.NEW_PASSWORD_SHOW_ICON_ID
                           }
                         />
-                      </TouchableOpacity>
+                      </Pressable>
                     }
                     inputProps={{
                       secureTextEntry: showPasswordIndex.includes(0),
@@ -699,7 +699,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                       'reset_password.confirm_password_placeholder',
                     )}
                     endAccessory={
-                      <TouchableOpacity onPress={() => toggleShowPassword(1)}>
+                      <Pressable onPress={() => toggleShowPassword(1)}>
                         <Icon
                           name={
                             showPasswordIndex.includes(1)
@@ -712,7 +712,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                             ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_SHOW_ICON_ID
                           }
                         />
-                      </TouchableOpacity>
+                      </Pressable>
                     }
                     inputProps={{
                       secureTextEntry: showPasswordIndex.includes(1),

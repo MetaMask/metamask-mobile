@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useRef } from 'react';
-import { ActivityIndicator, TouchableOpacity } from 'react-native';
+import { ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   Box,
   Text,
@@ -312,9 +313,8 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
           />
 
           {/* Spending limit row */}
-          <TouchableOpacity
+          <Pressable
             onPress={handleLimitSelect}
-            activeOpacity={0.7}
             testID={SpendingLimitSelectors.SPENDING_LIMIT_ROW}
           >
             <Box twClassName="flex-row items-center p-4">
@@ -340,7 +340,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
                 />
               </Box>
             </Box>
-          </TouchableOpacity>
+          </Pressable>
         </Box>
 
         {canShowMoneyAccountCta && (

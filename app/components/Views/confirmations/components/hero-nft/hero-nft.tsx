@@ -1,8 +1,9 @@
 import { Nft } from '@metamask/assets-controllers';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
@@ -50,7 +51,7 @@ const NftImageAndNetworkBadge = ({
 
   if (showPlaceholder) {
     return (
-      <TouchableOpacity
+      <Pressable
         onPress={onPress}
         style={styles.touchableOpacity}
         testID="hero-nft-placeholder"
@@ -58,12 +59,12 @@ const NftImageAndNetworkBadge = ({
         <View style={styles.noImagePlaceholder}>
           {tokenId && <Text>{`#${tokenId}`}</Text>}
         </View>
-      </TouchableOpacity>
+      </Pressable>
     );
   }
 
   return (
-    <TouchableOpacity onPress={onPress} style={styles.touchableOpacity}>
+    <Pressable onPress={onPress} style={styles.touchableOpacity}>
       <BadgeWrapper
         badgePosition={BadgePosition.BottomRight}
         badgeElement={
@@ -80,7 +81,7 @@ const NftImageAndNetworkBadge = ({
           style={styles.noImagePlaceholder}
         />
       </BadgeWrapper>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

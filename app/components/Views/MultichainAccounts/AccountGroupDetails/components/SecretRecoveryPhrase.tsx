@@ -1,10 +1,11 @@
 import React, { useCallback, useMemo } from 'react';
-import { TouchableOpacity } from 'react-native';
+
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { Box } from '../../../../UI/Box/Box';
 import { AlignItems, FlexDirection } from '../../../../UI/Box/box.types';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Text, {
   TextColor,
   TextVariant,
@@ -66,7 +67,7 @@ export const SecretRecoveryPhrase = ({
   }, [navigation]);
 
   return (
-    <TouchableOpacity
+    <Pressable
       style={styles.secretRecoveryPhrase}
       testID={AccountDetailsIds.SECRET_RECOVERY_PHRASE_LINK}
       onPress={onExportMnemonic}
@@ -80,14 +81,14 @@ export const SecretRecoveryPhrase = ({
         gap={8}
       >
         {showSeedphraseBackReminder && (
-          <TouchableOpacity onPress={handleBackupPressed}>
+          <Pressable onPress={handleBackupPressed}>
             <Text
               variant={TextVariant.BodyMDMedium}
               color={TextColor.Alternative}
             >
               {strings('multichain_accounts.export_credentials.backup')}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         )}
         <Icon
           name={IconName.ArrowRight}
@@ -95,6 +96,6 @@ export const SecretRecoveryPhrase = ({
           color={colors.text.alternative}
         />
       </Box>
-    </TouchableOpacity>
+    </Pressable>
   );
 };

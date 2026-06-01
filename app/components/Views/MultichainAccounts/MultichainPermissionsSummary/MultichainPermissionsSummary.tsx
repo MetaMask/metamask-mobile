@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { ImageSourcePropType, TouchableOpacity, View } from 'react-native';
+import { ImageSourcePropType, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { useNavigation } from '@react-navigation/native';
@@ -7,6 +7,7 @@ import StyledButton from '../../../UI/StyledButton';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
+import Pressable from '../../../../component-library/components-temp/Pressable';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
@@ -188,7 +189,7 @@ const MultichainPermissionsSummary = ({
 
     return isAlreadyConnected && !showPermissionsOnly ? (
       <View style={[styles.domainLogoContainer, styles.assetLogoContainer]}>
-        <TouchableOpacity
+        <Pressable
           onPress={switchNetwork}
           testID={ConnectedAccountsSelectorsIDs.NETWORK_PICKER}
         >
@@ -216,7 +217,7 @@ const MultichainPermissionsSummary = ({
               />
             )}
           </BadgeWrapper>
-        </TouchableOpacity>
+        </Pressable>
       </View>
     ) : (
       <WebsiteIcon
@@ -362,7 +363,7 @@ const MultichainPermissionsSummary = ({
 
   function renderAccountPermissionsRequestInfoCard() {
     return (
-      <TouchableOpacity
+      <Pressable
         onPress={handleEditAccountsButtonPress}
         style={styles.accountPermissionRequestInfoCard}
         testID={PermissionSummaryBottomSheetSelectorsIDs.CONTAINER}
@@ -403,13 +404,13 @@ const MultichainPermissionsSummary = ({
           </View>
         </View>
         {renderEndAccessory()}
-      </TouchableOpacity>
+      </Pressable>
     );
   }
 
   function renderNetworkPermissionsRequestInfoCard() {
     return (
-      <TouchableOpacity
+      <Pressable
         onPress={handleEditNetworksButtonPress}
         testID={
           ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON
@@ -484,7 +485,7 @@ const MultichainPermissionsSummary = ({
           </View>
           {!isNetworkSwitch && !isNonDappNetworkSwitch && renderEndAccessory()}
         </View>
-      </TouchableOpacity>
+      </Pressable>
     );
   }
 

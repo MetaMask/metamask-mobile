@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import Ionicon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -8,6 +8,7 @@ import Text from '../../../Base/Text';
 import styleSheet from './AssetActionButton.styles';
 import { useStyles } from '../../../../component-library/hooks';
 
+import Pressable from '../../../../component-library/components-temp/Pressable';
 interface AssetActionButtonProps {
   onPress?: () => void;
   icon?: string;
@@ -82,7 +83,7 @@ const AssetActionButton = ({
   };
 
   return (
-    <TouchableOpacity
+    <Pressable
       testID={testID}
       onPress={onPress}
       style={[styles.button, disabled && styles.disabledButton]}
@@ -98,7 +99,7 @@ const AssetActionButton = ({
             : label}
         </Text>
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, memo } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Pressable from '../../../../component-library/components-temp/Pressable';
 import {
   Box,
   Text,
@@ -63,9 +64,8 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
 
   return (
     <View ref={cardRef} collapsable={false} onLayout={onVisibilityLayout}>
-      <TouchableOpacity
+      <Pressable
         onPress={handlePress}
-        activeOpacity={0.7}
         style={tw.style(
           'w-[280px] rounded-2xl bg-background-muted overflow-hidden p-4',
         )}
@@ -130,7 +130,7 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
             source={source}
           />
         ) : null}
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 };

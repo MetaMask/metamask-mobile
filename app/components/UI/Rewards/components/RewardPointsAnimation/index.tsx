@@ -1,10 +1,11 @@
 import React, { useMemo } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
 import Rive, { Alignment, Fit } from 'rive-react-native';
 import Animated from 'react-native-reanimated';
 import { Text, TextVariant } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useTheme } from '../../../../../util/theme';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Icon, {
   IconName,
   IconSize,
@@ -129,14 +130,14 @@ const RewardPointsAnimation: React.FC<RewardPointsAnimationProps> = ({
               {displayText || (hideValue ? '' : formatter.format(displayValue))}
             </Text>
             {isErrorState && infoOnPress && (
-              <TouchableOpacity onPress={infoOnPress}>
+              <Pressable onPress={infoOnPress}>
                 <Icon
                   testID="info-icon"
                   style={styles.infoIcon}
                   name={IconName.Info}
                   size={IconSize.Sm}
                 />
-              </TouchableOpacity>
+              </Pressable>
             )}
           </View>
         </Animated.View>

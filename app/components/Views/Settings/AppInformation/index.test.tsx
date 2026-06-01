@@ -1,6 +1,7 @@
 import React from 'react';
 import { waitFor, fireEvent } from '@testing-library/react-native';
-import { Image, TouchableOpacity } from 'react-native';
+import { Image } from 'react-native';
+import Pressable from '../../../../component-library/components-temp/Pressable';
 import renderWithProvider, {
   DeepPartial,
   renderScreen,
@@ -267,7 +268,7 @@ describe('AppInformation', () => {
       );
 
       // When the user long-presses the fox icon
-      const touchableOpacities = UNSAFE_getAllByType(TouchableOpacity);
+      const touchableOpacities = UNSAFE_getAllByType(Pressable);
       const foxTouchable = touchableOpacities.find(
         (item) => item.props.onLongPress !== undefined,
       );
@@ -309,7 +310,7 @@ describe('AppInformation', () => {
       ).not.toBeOnTheScreen();
 
       // When the user long-presses the fox icon
-      const touchableOpacities = UNSAFE_getAllByType(TouchableOpacity);
+      const touchableOpacities = UNSAFE_getAllByType(Pressable);
       const foxTouchable = touchableOpacities.find(
         (item) => item.props.onLongPress !== undefined,
       );
@@ -373,7 +374,7 @@ describe('AppInformation', () => {
       process.env.METAMASK_ENVIRONMENT = originalEnv;
     });
 
-    it('fox icon has a TouchableOpacity wrapper with long press handler', () => {
+    it('fox icon has a Pressable wrapper with long press handler', () => {
       const { UNSAFE_getAllByType } = renderScreen(
         AppInformation,
         { name: 'AppInformation' },
@@ -381,8 +382,8 @@ describe('AppInformation', () => {
       );
 
       // Given the component is rendered
-      // When we look for TouchableOpacity components with onLongPress
-      const touchableOpacities = UNSAFE_getAllByType(TouchableOpacity);
+      // When we look for Pressable components with onLongPress
+      const touchableOpacities = UNSAFE_getAllByType(Pressable);
       const foxTouchable = touchableOpacities.find(
         (item) => item.props.onLongPress !== undefined,
       );
@@ -408,7 +409,7 @@ describe('AppInformation', () => {
       expect(queryByText(/Environment:/)).not.toBeOnTheScreen();
 
       // When the fox icon is long-pressed
-      const touchableOpacities = UNSAFE_getAllByType(TouchableOpacity);
+      const touchableOpacities = UNSAFE_getAllByType(Pressable);
       const foxTouchable = touchableOpacities.find(
         (item) => item.props.onLongPress !== undefined,
       );
@@ -442,7 +443,7 @@ describe('AppInformation', () => {
       expect(queryByText(/Environment:/)).not.toBeOnTheScreen();
 
       // When the fox icon is long-pressed
-      const touchableOpacities = UNSAFE_getAllByType(TouchableOpacity);
+      const touchableOpacities = UNSAFE_getAllByType(Pressable);
       const foxTouchable = touchableOpacities.find(
         (item) => item.props.onLongPress !== undefined,
       );
@@ -481,7 +482,7 @@ describe('AppInformation', () => {
       );
 
       // When the fox icon is long-pressed
-      const touchableOpacities = UNSAFE_getAllByType(TouchableOpacity);
+      const touchableOpacities = UNSAFE_getAllByType(Pressable);
       const foxTouchable = touchableOpacities.find(
         (item) => item.props.onLongPress !== undefined,
       );
@@ -522,7 +523,7 @@ describe('AppInformation', () => {
         { state: MOCK_STATE },
       );
 
-      const touchableOpacities = UNSAFE_getAllByType(TouchableOpacity);
+      const touchableOpacities = UNSAFE_getAllByType(Pressable);
       const foxTouchable = touchableOpacities.find(
         (item) => item.props.onLongPress !== undefined,
       );

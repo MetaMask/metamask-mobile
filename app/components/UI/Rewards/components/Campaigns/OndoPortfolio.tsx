@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
-import { TouchableOpacity, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   BadgeWrapper,
   BadgeWrapperPosition,
@@ -420,12 +421,11 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
           const rowPnlPercent = formatPnlPercent(row.unrealizedPnlPercent);
           const rowChainHex = getChainHex(row.tokenAsset);
           return (
-            <TouchableOpacity
+            <Pressable
               key={row.tokenAsset}
               onPress={
                 isCampaignComplete ? undefined : () => handleRowPress(row)
               }
-              activeOpacity={isCampaignComplete ? 1 : 0.7}
             >
               <Box
                 flexDirection={BoxFlexDirection.Row}
@@ -494,7 +494,7 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
                   </Box>
                 </Box>
               </Box>
-            </TouchableOpacity>
+            </Pressable>
           );
         })}
       </Box>

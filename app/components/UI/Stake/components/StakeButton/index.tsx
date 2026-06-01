@@ -1,9 +1,10 @@
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+
 import { useSelector } from 'react-redux';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 import { strings } from '../../../../../../locales/i18n';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Text, {
   TextColor,
   TextVariant,
@@ -175,7 +176,7 @@ const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
   };
 
   return (
-    <TouchableOpacity
+    <Pressable
       accessible={false}
       onPress={onEarnButtonPress}
       testID={WalletViewSelectorsIDs.STAKE_BUTTON}
@@ -184,7 +185,7 @@ const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
       <Text color={TextColor.Alternative} variant={TextVariant.BodyXSMedium}>
         {renderEarnButtonText()}
       </Text>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

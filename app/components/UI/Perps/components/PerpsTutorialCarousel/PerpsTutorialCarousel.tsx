@@ -5,13 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  Image,
-  TouchableOpacity,
-  View,
-  useColorScheme,
-  ScrollView,
-} from 'react-native';
+import { Image, View, useColorScheme, ScrollView } from 'react-native';
 import {
   useRoute,
   StackActions,
@@ -20,6 +14,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { strings } from '../../../../../../locales/i18n';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   Button,
   ButtonVariant,
@@ -518,7 +513,7 @@ const PerpsTutorialCarousel: React.FC = () => {
           )}
           {!isLastScreen && (
             <View style={styles.skipButton}>
-              <TouchableOpacity
+              <Pressable
                 onPress={handleSkip}
                 disabled={isLastScreen && !isEligible}
                 testID={PerpsTutorialSelectorsIDs.SKIP_BUTTON}
@@ -529,7 +524,7 @@ const PerpsTutorialCarousel: React.FC = () => {
                 >
                   {strings('perps.tutorial.skip')}
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
           )}
         </View>

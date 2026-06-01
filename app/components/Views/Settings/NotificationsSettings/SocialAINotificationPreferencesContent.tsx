@@ -1,8 +1,9 @@
 import React, { useCallback } from 'react';
-import { Image, Switch, TouchableOpacity, View } from 'react-native';
+import { Image, Switch, View } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Pressable from '../../../../component-library/components-temp/Pressable';
 import {
   AvatarBase,
   AvatarBaseSize,
@@ -82,7 +83,7 @@ const TraderNotificationRow: React.FC<TraderNotificationRowProps> = ({
       }`}
       testID={NotificationPreferencesSelectorsIDs.TRADER_ROW(traderId)}
     >
-      <TouchableOpacity
+      <Pressable
         onPress={() => onPress(traderId, username)}
         accessibilityRole="button"
         style={tw.style('flex-row items-center gap-3 flex-1 min-w-0 mr-3')}
@@ -112,7 +113,7 @@ const TraderNotificationRow: React.FC<TraderNotificationRowProps> = ({
         >
           {username}
         </Text>
-      </TouchableOpacity>
+      </Pressable>
 
       <Switch
         value={isEnabled}

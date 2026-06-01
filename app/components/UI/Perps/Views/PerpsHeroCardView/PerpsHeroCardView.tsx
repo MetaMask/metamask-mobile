@@ -1,10 +1,6 @@
 import React, { useRef, useMemo, useState, useCallback } from 'react';
-import {
-  View,
-  Image,
-  TouchableOpacity,
-  ImageSourcePropType,
-} from 'react-native';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
+import { View, Image, ImageSourcePropType } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { captureRef } from 'react-native-view-shot';
@@ -461,7 +457,7 @@ const PerpsHeroCardView: React.FC = () => {
         >
           {strings('perps.pnl_hero_card.header_title')}
         </Text>
-        <TouchableOpacity
+        <Pressable
           onPress={handleClose}
           style={styles.closeButton}
           testID={PerpsHeroCardViewSelectorsIDs.CLOSE_BUTTON}
@@ -472,7 +468,7 @@ const PerpsHeroCardView: React.FC = () => {
             iconColor={IconColor.Default}
             onPress={handleClose}
           />
-        </TouchableOpacity>
+        </Pressable>
       </View>
 
       <View

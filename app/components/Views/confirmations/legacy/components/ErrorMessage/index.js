@@ -1,11 +1,12 @@
 import React from 'react';
-import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { strings } from '../../../../../../../locales/i18n';
 import Alert, { AlertType } from '../../../../../Base/Alert';
 import Text from '../../../../../Base/Text';
 import { CommonSelectorsIDs } from '../../../../../../util/Common.testIds';
 
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 const styles = StyleSheet.create({
   button: {
     marginTop: 27,
@@ -30,11 +31,11 @@ export default function ErrorMessage(props) {
             {errorMessage}
           </Text>
           {errorContinue && (
-            <TouchableOpacity onPress={onContinue} style={styles.button}>
+            <Pressable onPress={onContinue} style={styles.button}>
               <Text small link centered>
                 {strings('transaction.continueError')}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           )}
         </View>
       )}

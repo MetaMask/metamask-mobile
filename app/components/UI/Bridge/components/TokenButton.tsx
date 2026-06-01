@@ -1,9 +1,6 @@
 import React from 'react';
-import {
-  StyleSheet,
-  ImageSourcePropType,
-  TouchableOpacity,
-} from 'react-native';
+import Pressable from '../../../../component-library/components-temp/Pressable';
+import { StyleSheet, ImageSourcePropType } from 'react-native';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
@@ -69,11 +66,7 @@ export const TokenButton: React.FC<TokenProps> = ({
 }) => {
   const { styles } = useStyles(createStyles, {});
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      testID={testID}
-      style={styles.pillContainer}
-    >
+    <Pressable onPress={onPress} testID={testID} style={styles.pillContainer}>
       <BadgeWrapper
         badgePosition={BadgePosition.BottomRight}
         badgeElement={
@@ -90,6 +83,6 @@ export const TokenButton: React.FC<TokenProps> = ({
       <Text style={styles.tokenSymbol} variant={TextVariant.HeadingLG}>
         {symbol}
       </Text>
-    </TouchableOpacity>
+    </Pressable>
   );
 };

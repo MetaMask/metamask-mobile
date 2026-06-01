@@ -9,11 +9,11 @@ import {
   NativeSyntheticEvent,
   TextInput,
   TextInputSubmitEditingEventData,
-  TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import { useStyles } from '../../../component-library/hooks';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import Icon, {
   IconName,
   IconSize,
@@ -155,7 +155,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
 
       // Always show "Cancel" text when focused
       return (
-        <TouchableOpacity
+        <Pressable
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           style={styles.cancelButton}
           testID={BrowserURLBarSelectorsIDs.CANCEL_BUTTON_ON_BROWSER_ID}
@@ -164,7 +164,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
           <Text style={styles.cancelButtonText}>
             {strings('browser.cancel')}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
       );
     }, [
       isUrlBarFocused,
@@ -308,7 +308,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
           ) : null}
         </View>
         {!isUrlBarFocused && showTabs && (
-          <TouchableOpacity
+          <Pressable
             onPress={showTabs}
             testID="browser-tabs-button"
             style={[
@@ -319,7 +319,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
             ]}
           >
             <TabCountIcon style={styles.tabIcon} />
-          </TouchableOpacity>
+          </Pressable>
         )}
         <View style={styles.rightButton}>{renderRightButton()}</View>
       </View>

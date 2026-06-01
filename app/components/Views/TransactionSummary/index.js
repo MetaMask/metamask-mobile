@@ -1,11 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import {
-  StyleSheet,
-  View,
-  ActivityIndicator,
-  TouchableOpacity,
-} from 'react-native';
+import Pressable from '../../../component-library/components-temp/Pressable';
+import { StyleSheet, View, ActivityIndicator } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { TRANSACTION_TYPES } from '../../../util/transactions';
 import Summary from '../../Base/Summary';
@@ -119,7 +115,7 @@ export default class TransactionSummary extends PureComponent {
                 : strings('transaction.transaction_fee_estimated')}
             </Text>
             {!fee || !onEditPress ? null : (
-              <TouchableOpacity
+              <Pressable
                 disabled={!gasEstimationReady}
                 onPress={onEditPress}
                 key="transactionFeeEdit"
@@ -129,7 +125,7 @@ export default class TransactionSummary extends PureComponent {
                   {'  '}
                   {strings('transaction.edit')}
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             )}
           </Summary.Col>
           {isGasFeeSponsored ? (

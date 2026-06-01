@@ -1,5 +1,6 @@
 /* eslint-disable dot-notation */
 import React, { PureComponent } from 'react';
+import Pressable from '../../../../component-library/components-temp/Pressable';
 import {
   StyleSheet,
   Image,
@@ -7,7 +8,6 @@ import {
   InteractionManager,
   View,
   ScrollView,
-  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -216,17 +216,16 @@ class AppInformation extends PureComponent {
         />
         <ScrollView contentContainerStyle={styles.wrapperContent}>
           <View style={styles.logoWrapper}>
-            <TouchableOpacity
+            <Pressable
               delayLongPress={10 * 1000} // 10 seconds
               onLongPress={this.handleLongPressFox}
-              activeOpacity={1}
             >
               <Image
                 source={foxImage}
                 style={styles.image}
                 resizeMethod={'auto'}
               />
-            </TouchableOpacity>
+            </Pressable>
             <Text style={styles.versionInfo}>{this.getVersionDisplay()}</Text>
             {!isProduction() ? (
               <Text style={styles.branchInfo}>
@@ -287,39 +286,39 @@ class AppInformation extends PureComponent {
           </View>
           <Text style={styles.title}>{strings('app_information.links')}</Text>
           <View style={styles.links}>
-            <TouchableOpacity onPress={this.onPrivacyPolicy}>
+            <Pressable onPress={this.onPrivacyPolicy}>
               <Text style={styles.link}>
                 {strings('app_information.privacy_policy')}
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={this.onTermsOfUse}>
+            </Pressable>
+            <Pressable onPress={this.onTermsOfUse}>
               <Text style={styles.link}>
                 {strings('app_information.terms_of_use')}
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={this.onAttributions}>
+            </Pressable>
+            <Pressable onPress={this.onAttributions}>
               <Text style={styles.link}>
                 {strings('app_information.attributions')}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
           <View style={styles.division} />
           <View style={styles.links}>
-            <TouchableOpacity onPress={this.onSupportCenter}>
+            <Pressable onPress={this.onSupportCenter}>
               <Text style={styles.link}>
                 {strings('app_information.support_center')}
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={this.onWebSite}>
+            </Pressable>
+            <Pressable onPress={this.onWebSite}>
               <Text style={styles.link}>
                 {strings('app_information.web_site')}
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={this.onContactUs}>
+            </Pressable>
+            <Pressable onPress={this.onContactUs}>
               <Text style={styles.link}>
                 {strings('app_information.contact_us')}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         </ScrollView>
       </SafeAreaView>

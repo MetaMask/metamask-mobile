@@ -2,8 +2,9 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { CaipAssetType, Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
@@ -556,13 +557,13 @@ export const TokenListItem = React.memo(
     );
     if (!hideFiatForScamWarning) {
       secondaryBalanceElement = secondaryBalanceDisplay.onPress ? (
-        <TouchableOpacity
+        <Pressable
           accessible={false}
           onPress={secondaryBalanceDisplay.onPress}
           testID={SECONDARY_BALANCE_BUTTON_TEST_ID}
         >
           {secondaryBalance}
-        </TouchableOpacity>
+        </Pressable>
       ) : (
         secondaryBalance
       );
@@ -572,7 +573,7 @@ export const TokenListItem = React.memo(
     // native on the right, no price/24h-change row.
     if (hideSecondaryPriceRow && isMusdAsset) {
       return (
-        <TouchableOpacity
+        <Pressable
           onPress={() => onItemPress?.(asset)}
           style={styles.itemWrapper}
           testID={getAssetTestId(asset.symbol)}
@@ -628,12 +629,12 @@ export const TokenListItem = React.memo(
               </SensitiveText>
             </Box>
           </Box>
-        </TouchableOpacity>
+        </Pressable>
       );
     }
 
     return (
-      <TouchableOpacity
+      <Pressable
         onPress={() => {
           onItemPress?.(asset);
         }}
@@ -642,7 +643,6 @@ export const TokenListItem = React.memo(
             asset.isNative || isMusdAsset ? null : showRemoveMenu;
           onLongPress?.(asset);
         }}
-        activeOpacity={0.7}
         style={styles.itemWrapper}
         testID={getAssetTestId(asset.symbol)}
       >
@@ -780,7 +780,7 @@ export const TokenListItem = React.memo(
             </Box>
           </Box>
         </Box>
-      </TouchableOpacity>
+      </Pressable>
     );
   },
 );

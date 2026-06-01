@@ -15,7 +15,6 @@ import {
   Image,
   Linking,
   Text,
-  TouchableOpacity,
   View,
   StyleSheet,
 } from 'react-native';
@@ -36,6 +35,7 @@ import { SUPPORTED_UR_TYPE } from '../../../constants/qr';
 import { useTheme } from '../../../util/theme';
 import { Theme } from '../../../util/theme/models';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import Icon, {
   IconName,
   IconSize,
@@ -596,7 +596,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
                     </Text>
                   ) : null}
                   <View style={styles.errorFooter}>
-                    <TouchableOpacity
+                    <Pressable
                       style={[styles.errorButton, styles.errorButtonSecondary]}
                       onPress={handleLearnMore}
                       testID="qr-scanner-error-learn-more-button"
@@ -604,8 +604,8 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
                       <Text style={styles.errorButtonSecondaryText}>
                         {strings('hardware_wallet.common.learn_more')}
                       </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
+                    </Pressable>
+                    <Pressable
                       style={[styles.errorButton, styles.errorButtonPrimary]}
                       onPress={handleTryAgain}
                       testID="qr-scanner-error-try-again-button"
@@ -613,26 +613,26 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
                       <Text style={styles.errorButtonPrimaryText}>
                         {strings('hardware_wallet.common.try_again')}
                       </Text>
-                    </TouchableOpacity>
+                    </Pressable>
                   </View>
                 </View>
               </View>
             )}
             {/* Close button */}
-            <TouchableOpacity style={styles.closeIcon} onPress={hideModal}>
+            <Pressable style={styles.closeIcon} onPress={hideModal}>
               <Icon name={IconName.Close} size={IconSize.Xl} />
-            </TouchableOpacity>
+            </Pressable>
           </>
         ) : (
           <View style={styles.innerView}>
-            <TouchableOpacity style={styles.closeIcon} onPress={hideModal}>
+            <Pressable style={styles.closeIcon} onPress={hideModal}>
               <Icon name={IconName.Close} size={IconSize.Xl} />
-            </TouchableOpacity>
+            </Pressable>
             <View style={styles.noCameraContainer}>
               <Text style={styles.scanningText}>
                 {strings('transaction.no_camera_permission')}
               </Text>
-              <TouchableOpacity
+              <Pressable
                 style={styles.openSettingsButton}
                 onPress={() => Linking.openSettings()}
                 testID="open-settings-button"
@@ -640,7 +640,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
                 <Text style={styles.openSettingsText}>
                   {strings('qr_scanner.open_settings')}
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
           </View>
         )}

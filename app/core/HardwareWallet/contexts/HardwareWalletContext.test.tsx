@@ -1,6 +1,7 @@
 import React from 'react';
-import { Text, View, TouchableOpacity } from 'react-native';
+import { Text, View } from 'react-native';
 import { render, screen, fireEvent } from '@testing-library/react-native';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import HardwareWalletContext, {
   useHardwareWallet,
   type HardwareWalletContextValue,
@@ -98,7 +99,7 @@ describe('HardwareWalletContext', () => {
       const TestConsumer: React.FC = () => {
         const { ensureDeviceReady } = useHardwareWallet();
         return (
-          <TouchableOpacity
+          <Pressable
             testID="ensureReady"
             onPress={() => ensureDeviceReady('device-123')}
           />

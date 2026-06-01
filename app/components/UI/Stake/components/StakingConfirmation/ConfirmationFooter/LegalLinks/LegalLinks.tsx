@@ -1,7 +1,8 @@
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { View, TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
+import Pressable from '../../../../../../../component-library/components-temp/Pressable';
 import Text, {
   TextVariant,
   TextColor,
@@ -23,8 +24,7 @@ const FooterLegalLinks = () => {
 
   return (
     <View style={styles.termsOfServiceButtonGroup}>
-      <TouchableOpacity
-        activeOpacity={0.5}
+      <Pressable
         onPress={() =>
           handleNavigateToWebView(AppConstants.URLS.TERMS_AND_CONDITIONS)
         }
@@ -33,9 +33,8 @@ const FooterLegalLinks = () => {
         <Text variant={TextVariant.BodyMDMedium} color={TextColor.Primary}>
           {strings('stake.terms_of_service')}
         </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        activeOpacity={0.5}
+      </Pressable>
+      <Pressable
         onPress={() =>
           handleNavigateToWebView(AppConstants.URLS.STAKING_RISK_DISCLOSURE)
         }
@@ -44,7 +43,7 @@ const FooterLegalLinks = () => {
         <Text variant={TextVariant.BodyMDMedium} color={TextColor.Primary}>
           {strings('stake.risk_disclosure')}
         </Text>
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 };

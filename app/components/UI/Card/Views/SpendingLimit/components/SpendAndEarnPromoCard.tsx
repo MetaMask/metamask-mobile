@@ -1,5 +1,6 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import {
   Box,
   Button,
@@ -53,12 +54,11 @@ const SpendAndEarnPromoCard: React.FC<SpendAndEarnPromoCardProps> = ({
     strings('card.card_spending_limit.use_money_account_cta');
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={resolvedAccessibilityLabel}
       testID={testID}
-      activeOpacity={0.85}
       style={tw.style('mb-6')}
     >
       <Box twClassName="p-4 rounded-2xl bg-background-muted gap-3">
@@ -118,7 +118,7 @@ const SpendAndEarnPromoCard: React.FC<SpendAndEarnPromoCardProps> = ({
           </ShimmerOverlay>
         </Box>
       </Box>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

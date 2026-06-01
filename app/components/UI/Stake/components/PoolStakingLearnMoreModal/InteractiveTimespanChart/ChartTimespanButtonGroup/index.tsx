@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
+import Pressable from '../../../../../../../component-library/components-temp/Pressable';
 import Text, {
   TextVariant,
   TextColor,
@@ -22,11 +23,11 @@ const ChartTimespanButton = ({
   const { styles } = useStyles(styleSheet, { isSelected });
 
   return (
-    <TouchableOpacity style={styles.chartTimespanButton} onPress={onPress}>
+    <Pressable style={styles.chartTimespanButton} onPress={onPress}>
       <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative}>
         {label}
       </Text>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

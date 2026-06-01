@@ -1,6 +1,7 @@
 import React, { useMemo, useCallback, useRef, useEffect } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -93,11 +94,10 @@ const PerpsAdjustMarginActionSheet: React.FC<
       <View style={styles.container}>
         {actionOptions.map((option, index) => (
           <React.Fragment key={option.action}>
-            <TouchableOpacity
+            <Pressable
               style={styles.actionItem}
               testID={option.testID}
               onPress={() => handleActionPress(option.action)}
-              activeOpacity={0.7}
             >
               <Icon
                 name={option.iconName}
@@ -113,7 +113,7 @@ const PerpsAdjustMarginActionSheet: React.FC<
                   {option.description}
                 </Text>
               </View>
-            </TouchableOpacity>
+            </Pressable>
             {index < actionOptions.length - 1 && (
               <View
                 style={[

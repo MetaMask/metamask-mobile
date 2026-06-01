@@ -1,7 +1,8 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { HeaderStandard } from '@metamask/design-system-react-native';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { useTheme } from '../../../../../util/theme';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -145,7 +146,7 @@ const TrendingTokenTimeBottomSheet: React.FC<
         closeButtonProps={{ testID: 'close-button' }}
       />
       <View style={optionStyles.optionsList}>
-        <TouchableOpacity
+        <Pressable
           style={[
             optionStyles.optionRow,
             selectedTime === TimeOption.TwentyFourHours &&
@@ -160,8 +161,8 @@ const TrendingTokenTimeBottomSheet: React.FC<
           {selectedTime === TimeOption.TwentyFourHours && (
             <Icon name={IconName.Check} size={IconSize.Md} />
           )}
-        </TouchableOpacity>
-        <TouchableOpacity
+        </Pressable>
+        <Pressable
           style={[
             optionStyles.optionRow,
             selectedTime === TimeOption.SixHours &&
@@ -176,8 +177,8 @@ const TrendingTokenTimeBottomSheet: React.FC<
           {selectedTime === TimeOption.SixHours && (
             <Icon name={IconName.Check} size={IconSize.Md} />
           )}
-        </TouchableOpacity>
-        <TouchableOpacity
+        </Pressable>
+        <Pressable
           style={[
             optionStyles.optionRow,
             selectedTime === TimeOption.OneHour &&
@@ -190,8 +191,8 @@ const TrendingTokenTimeBottomSheet: React.FC<
           {selectedTime === TimeOption.OneHour && (
             <Icon name={IconName.Check} size={IconSize.Md} />
           )}
-        </TouchableOpacity>
-        <TouchableOpacity
+        </Pressable>
+        <Pressable
           style={[
             optionStyles.optionRow,
             selectedTime === TimeOption.FiveMinutes &&
@@ -206,7 +207,7 @@ const TrendingTokenTimeBottomSheet: React.FC<
           {selectedTime === TimeOption.FiveMinutes && (
             <Icon name={IconName.Check} size={IconSize.Md} />
           )}
-        </TouchableOpacity>
+        </Pressable>
       </View>
     </BottomSheet>
   );

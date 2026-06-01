@@ -2,7 +2,8 @@ import React from 'react';
 import styleSheet from './EarnWithdrawalTokenListItem.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import { EarnNetworkAvatar } from '../EarnNetworkAvatar';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
@@ -34,10 +35,7 @@ const EarnWithdrawalTokenListItem = ({
 
   return (
     earnToken && (
-      <TouchableOpacity
-        style={styles.container}
-        onPress={() => onPress(earnToken)}
-      >
+      <Pressable style={styles.container} onPress={() => onPress(earnToken)}>
         <View style={styles.left}>
           <BadgeWrapper
             badgePosition={BadgePosition.BottomRight}
@@ -89,7 +87,7 @@ const EarnWithdrawalTokenListItem = ({
             </Text>
           )}
         </View>
-      </TouchableOpacity>
+      </Pressable>
     )
   );
 };

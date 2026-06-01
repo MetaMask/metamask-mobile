@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Nft } from '@metamask/assets-controllers';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 
 import { strings } from '../../../../../../../locales/i18n';
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import Icon, {
   IconColor,
   IconName,
@@ -183,7 +184,7 @@ export const Amount = () => {
           </View>
         </View>
         {conversionSupportedForAsset && (
-          <TouchableOpacity onPress={toggleFiatMode} testID="fiat_toggle">
+          <Pressable onPress={toggleFiatMode} testID="fiat_toggle">
             <TagBase shape={TagShape.Pill} style={styles.currencyTag}>
               <Text color={TextColor.Alternative}>{alternateDisplayValue}</Text>
               <Icon
@@ -191,7 +192,7 @@ export const Amount = () => {
                 name={IconName.SwapVertical}
               />
             </TagBase>
-          </TouchableOpacity>
+          </Pressable>
         )}
         {isNftLoading ? (
           <Skeleton twClassName="h-4 w-40 rounded self-center mt-4" />

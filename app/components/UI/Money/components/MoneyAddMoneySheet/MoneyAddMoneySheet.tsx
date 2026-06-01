@@ -1,7 +1,8 @@
 import React, { useCallback, useRef } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import BigNumber from 'bignumber.js';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -168,7 +169,7 @@ const MoneyAddMoneySheet: React.FC = () => {
       </BottomSheetHeader>
       <View style={styles.list}>
         {options.map((item) => (
-          <TouchableOpacity
+          <Pressable
             key={item.testID}
             onPress={item.onPress}
             style={styles.row}
@@ -193,7 +194,7 @@ const MoneyAddMoneySheet: React.FC = () => {
                 </Text>
               ) : null}
             </View>
-          </TouchableOpacity>
+          </Pressable>
         ))}
         <View
           style={styles.row}

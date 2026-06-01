@@ -5,17 +5,11 @@ import React, {
   useCallback,
   useContext,
 } from 'react';
-import {
-  Alert,
-  BackHandler,
-  TouchableOpacity,
-  Platform,
-  Image,
-  TextInput,
-} from 'react-native';
+import { Alert, BackHandler, Platform, Image, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import {
   Box,
   BoxFlexDirection,
@@ -505,14 +499,13 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         </KeyboardAwareScrollView>
         <FadeOutOverlay />
         {!isE2E && (
-          <TouchableOpacity
+          <Pressable
             style={tw.style('absolute bottom-0 left-0 right-0 h-[200px]')}
             delayLongPress={10 * 1000} // 10 seconds
             onLongPress={handleDownloadStateLogs}
-            activeOpacity={1}
           >
             <FoxAnimation hasFooter={false} trigger={startFoxAnimation} />
-          </TouchableOpacity>
+          </Pressable>
         )}
         <ScreenshotDeterrent enabled isSRP={false} />
       </SafeAreaView>

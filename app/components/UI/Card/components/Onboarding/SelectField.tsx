@@ -1,5 +1,6 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   Box,
   Text,
@@ -56,9 +57,9 @@ const SelectField: React.FC<SelectFieldProps> = ({
   }
 
   return (
-    <TouchableOpacity onPress={onPress} disabled={isDisabled} testID={testID}>
+    <Pressable onPress={onPress} disabled={isDisabled} testID={testID}>
       {content}
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

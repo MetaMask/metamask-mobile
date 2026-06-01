@@ -1,10 +1,11 @@
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, { useRef } from 'react';
-import { Alert, TouchableOpacity, View } from 'react-native';
+import { Alert, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { useStyles } from '../../../component-library/hooks';
 import { strings } from '../../../../locales/i18n';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import Icon, {
   IconName,
 } from '../../../component-library/components/Icons/Icon';
@@ -114,24 +115,21 @@ const NftOptions = () => {
         <View style={styles.notch} />
         <View>
           {getOpenSeaLink() !== null ? (
-            <TouchableOpacity
-              style={styles.optionButton}
-              onPress={gotToOpensea}
-            >
+            <Pressable style={styles.optionButton} onPress={gotToOpensea}>
               <Icon name={IconName.Export} style={styles.iconOs} />
               <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                 {strings('nft_details.options.view_on_os')}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           ) : null}
         </View>
         <View>
-          <TouchableOpacity style={styles.optionButton} onPress={removeNft}>
+          <Pressable style={styles.optionButton} onPress={removeNft}>
             <Icon name={IconName.Trash} style={styles.iconTrash} />
             <Text variant={TextVariant.BodyMD} color={TextColor.Error}>
               {strings('nft_details.options.remove_nft')}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </View>
     </ReusableModal>

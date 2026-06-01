@@ -1,8 +1,9 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
@@ -154,10 +155,9 @@ export const PerpsPayRow = ({
   );
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={handleClick}
       disabled={!canEdit}
-      activeOpacity={0.7}
       style={[styles.payRowSection, embeddedInStack && styles.payRowEmbedded]}
       testID={ConfirmationRowComponentIDs.PAY_WITH}
     >
@@ -169,7 +169,7 @@ export const PerpsPayRow = ({
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
           {strings('confirm.label.pay_with')}
         </Text>
-        <TouchableOpacity
+        <Pressable
           onPress={() => onPayWithInfoPress?.()}
           style={styles.infoIcon}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -180,7 +180,7 @@ export const PerpsPayRow = ({
             size={IconSize.Sm}
             color={IconColor.Alternative}
           />
-        </TouchableOpacity>
+        </Pressable>
       </Box>
       <Box
         flexDirection={FlexDirection.Row}
@@ -233,6 +233,6 @@ export const PerpsPayRow = ({
           </>
         )}
       </Box>
-    </TouchableOpacity>
+    </Pressable>
   );
 };

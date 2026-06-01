@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, memo } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -100,7 +101,7 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
 
       <View style={styles.container}>
         {orderTypes.map(({ type, title, description, testID }) => (
-          <TouchableOpacity
+          <Pressable
             key={type}
             testID={testID}
             style={[
@@ -126,7 +127,7 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
                 </Text>
               </View>
             </View>
-          </TouchableOpacity>
+          </Pressable>
         ))}
       </View>
     </BottomSheet>

@@ -1,11 +1,6 @@
 import React from 'react';
-import {
-  StyleProp,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-  ViewStyle,
-} from 'react-native';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
+import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { useTheme } from '../../../../../util/theme';
 import { Colors } from '../../../../../util/theme/models';
 import { Label } from '@metamask/design-system-react-native';
@@ -64,10 +59,9 @@ const Box: React.FC<Props> = ({
   return (
     <>
       {Boolean(label) && <Label style={styles.label}>{label}</Label>}
-      <TouchableOpacity
+      <Pressable
         disabled={!onPress}
         onPress={onPress}
-        activeOpacity={activeOpacity}
         accessible={accessible ?? Boolean(onPress)}
         accessibilityLabel={accessibilityLabel}
         accessibilityRole={onPress ? 'button' : undefined}
@@ -84,7 +78,7 @@ const Box: React.FC<Props> = ({
         >
           {children}
         </View>
-      </TouchableOpacity>
+      </Pressable>
     </>
   );
 };

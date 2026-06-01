@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Platform, TouchableOpacity, View } from 'react-native';
+import { Animated, Platform, View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { PerpsAmountDisplaySelectorsIDs } from '../../Perps.testIds';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Text, {
   TextColor,
   TextVariant,
@@ -157,13 +158,12 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
 
   if (onPress) {
     return (
-      <TouchableOpacity
+      <Pressable
         testID={PerpsAmountDisplaySelectorsIDs.TOUCHABLE}
         onPress={onPress}
-        activeOpacity={0.7}
       >
         {content}
-      </TouchableOpacity>
+      </Pressable>
     );
   }
 

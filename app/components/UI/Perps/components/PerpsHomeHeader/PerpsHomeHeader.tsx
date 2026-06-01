@@ -1,7 +1,8 @@
 import React, { useCallback } from 'react';
-import { View, TouchableOpacity, TextInput, Pressable } from 'react-native';
+import { View, TextInput, Pressable } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import DSPressable from '../../../../../component-library/components-temp/Pressable';
 import {
   Box,
   BoxFlexDirection,
@@ -156,7 +157,7 @@ const PerpsHomeHeader: React.FC<PerpsHomeHeaderProps> = ({
               </Pressable>
             )}
           </Box>
-          <TouchableOpacity
+          <DSPressable
             style={styles.searchButton}
             onPress={onSearchToggle}
             testID={testID ? `${testID}-search-close` : undefined}
@@ -164,7 +165,7 @@ const PerpsHomeHeader: React.FC<PerpsHomeHeaderProps> = ({
             <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
               {strings('perps.cancel')}
             </Text>
-          </TouchableOpacity>
+          </DSPressable>
         </View>
       </View>
     );

@@ -7,6 +7,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   NavigationProp,
   useNavigation,
@@ -21,7 +22,7 @@ import React, {
 } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { predictQueries } from '../../queries';
-import { TouchableOpacity } from 'react-native';
+
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { PredictPositionsHeaderSelectorsIDs } from '../../Predict.testIds';
@@ -228,10 +229,7 @@ const PredictPositionsHeader = forwardRef<
           testID={PREDICT_POSITIONS_HEADER_TEST_IDS.MARKETS_WON_CARD}
         >
           {(hasAvailableBalance || isBalanceLoading) && (
-            <TouchableOpacity
-              onPress={handleBalanceTouch}
-              disabled={isBalanceLoading}
-            >
+            <Pressable onPress={handleBalanceTouch} disabled={isBalanceLoading}>
               <Box
                 style={tw.style(
                   'px-4',
@@ -286,7 +284,7 @@ const PredictPositionsHeader = forwardRef<
                   )}
                 </Box>
               </Box>
-            </TouchableOpacity>
+            </Pressable>
           )}
           {(hasUnrealizedPnL || isUnrealizedPnLLoading) && (
             <>

@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useCallback, useRef } from 'react';
-import { Modal, TouchableOpacity, View } from 'react-native';
+import { Modal, View } from 'react-native';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   Button,
   ButtonVariant,
@@ -180,7 +181,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
   }
 
   return (
-    <TouchableOpacity
+    <Pressable
       style={expanded ? styles.expandedContainer : styles.collapsedContainer}
       testID={PerpsOpenOrderCardSelectorsIDs.CARD}
       disabled={isLocallyCancellingRef.current || disabled}
@@ -378,7 +379,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
           </Modal>
         </View>
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

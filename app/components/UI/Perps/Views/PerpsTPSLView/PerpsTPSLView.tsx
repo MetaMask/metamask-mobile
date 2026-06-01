@@ -1,11 +1,6 @@
 import React, { memo, useCallback, useRef, useState } from 'react';
-import {
-  Keyboard,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
+import { Keyboard, ScrollView, TextInput, View } from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -555,21 +550,21 @@ const PerpsTPSLView: React.FC = () => {
                   : strings('perps.tpsl.take_profit_long')}
               </Text>
               {Boolean(takeProfitPrice) && (
-                <TouchableOpacity
+                <Pressable
                   onPress={handleTakeProfitClear}
                   disabled={inputsDisabled}
                 >
                   <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
                     {strings('perps.tpsl.clear')}
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               )}
             </View>
 
             {/* Percentage buttons */}
             <View style={styles.percentageButtonsContainer}>
               {TP_SL_VIEW_CONFIG.TakeProfitRoePresets.map((percentage) => (
-                <TouchableOpacity
+                <Pressable
                   key={percentage}
                   style={styles.percentageButton}
                   onPress={() => handleTakeProfitPercentageButton(percentage)}
@@ -586,7 +581,7 @@ const PerpsTPSLView: React.FC = () => {
                   >
                     +{percentage}%
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               ))}
             </View>
 
@@ -726,21 +721,21 @@ const PerpsTPSLView: React.FC = () => {
                   : strings('perps.tpsl.stop_loss_long')}
               </Text>
               {Boolean(stopLossPrice) && (
-                <TouchableOpacity
+                <Pressable
                   onPress={handleStopLossClear}
                   disabled={inputsDisabled}
                 >
                   <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
                     {strings('perps.tpsl.clear')}
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               )}
             </View>
 
             {/* Percentage buttons */}
             <View style={styles.percentageButtonsContainer}>
               {TP_SL_VIEW_CONFIG.StopLossRoePresets.map((percentage) => (
-                <TouchableOpacity
+                <Pressable
                   key={percentage}
                   style={styles.percentageButton}
                   onPress={() => handleStopLossPercentageButton(percentage)}
@@ -757,7 +752,7 @@ const PerpsTPSLView: React.FC = () => {
                   >
                     {percentage}%
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               ))}
             </View>
 

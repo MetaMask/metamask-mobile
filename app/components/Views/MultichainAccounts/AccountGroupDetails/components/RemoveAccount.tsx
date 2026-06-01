@@ -1,9 +1,10 @@
 import React, { useCallback } from 'react';
-import { TouchableOpacity } from 'react-native';
+
 import { useNavigation } from '@react-navigation/native';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { Box } from '../../../../UI/Box/Box';
 import { AlignItems, FlexDirection } from '../../../../UI/Box/box.types';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
@@ -34,7 +35,7 @@ export const RemoveAccount = ({ account }: RemoveAccountProps) => {
   }, [account, navigation]);
 
   return (
-    <TouchableOpacity
+    <Pressable
       style={styles.removeAccount}
       testID={AccountDetailsIds.REMOVE_ACCOUNT_BUTTON}
       onPress={handleRemoveAccountClick}
@@ -53,6 +54,6 @@ export const RemoveAccount = ({ account }: RemoveAccountProps) => {
           color={colors.text.alternative}
         />
       </Box>
-    </TouchableOpacity>
+    </Pressable>
   );
 };

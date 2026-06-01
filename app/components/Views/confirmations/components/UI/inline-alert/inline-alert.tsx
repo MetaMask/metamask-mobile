@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
-import { TouchableOpacity, ViewStyle } from 'react-native';
+import { ViewStyle } from 'react-native';
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import Icon, {
   IconName,
   IconSize,
@@ -57,7 +58,7 @@ export default function InlineAlert({
   const severity = alertObj.severity ?? Severity.Info;
 
   return (
-    <TouchableOpacity
+    <Pressable
       testID={AlertTypeIDs.INLINE_ALERT}
       onPress={handleInlineAlertClick}
       style={[styles.iconContainer, style]}
@@ -70,6 +71,6 @@ export default function InlineAlert({
         color={getTextColor(severity)}
         testID="inline-alert-icon"
       />
-    </TouchableOpacity>
+    </Pressable>
   );
 }

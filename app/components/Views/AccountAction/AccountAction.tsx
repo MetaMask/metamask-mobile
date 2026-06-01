@@ -1,6 +1,7 @@
 // Third party dependencies.
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+
+import Pressable from '../../../component-library/components-temp/Pressable';
 // External dependencies.
 import Text, {
   TextVariant,
@@ -23,13 +24,13 @@ const AccountAction = ({
 }: WalletActionProps) => {
   const { styles } = useStyles(styleSheet, { style, disabled });
   return (
-    <TouchableOpacity style={styles.base} disabled={disabled} {...props}>
+    <Pressable style={styles.base} disabled={disabled} {...props}>
       <Icon style={styles.icon} size={iconSize} name={iconName} />
 
       <Text variant={TextVariant.BodyLGMedium} style={styles.descriptionLabel}>
         {actionTitle}
       </Text>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

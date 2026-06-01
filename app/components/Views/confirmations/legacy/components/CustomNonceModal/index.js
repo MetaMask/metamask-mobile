@@ -1,7 +1,7 @@
 import React from 'react';
 import { fontStyles } from '../../../../../../styles/common';
 import { strings } from '../../../../../../../locales/i18n';
-import { StyleSheet, View, TextInput, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import ModalDragger from '../../../../../Base/ModalDragger';
@@ -14,6 +14,7 @@ import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import { useTheme } from '../../../../../../util/theme';
 import { isNumber } from '../../../../../../util/number';
 
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 const createStyles = (colors) =>
   StyleSheet.create({
     bottomModal: {
@@ -188,7 +189,7 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
               <Text bold>{proposedNonce}</Text>
             </Text>
             <View style={styles.incrementDecrementNonceContainer}>
-              <TouchableOpacity
+              <Pressable
                 style={styles.incrementHit}
                 onPress={() => incrementDecrementNonce(true)}
                 testID={'decrement-nonce'}
@@ -198,8 +199,8 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
                   size={64}
                   style={styles.incrementDecrementIcon}
                 />
-              </TouchableOpacity>
-              <TouchableOpacity
+              </Pressable>
+              <Pressable
                 style={styles.incrementHit}
                 onPress={() => incrementDecrementNonce(false)}
                 testID={'increment-nonce'}
@@ -209,7 +210,7 @@ const CustomModalNonce = ({ proposedNonce, nonceValue, close, save }) => {
                   size={64}
                   style={styles.incrementDecrementIcon}
                 />
-              </TouchableOpacity>
+              </Pressable>
             </View>
             <View style={styles.descWarningContainer}>
               {displayWarning ? (

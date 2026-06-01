@@ -15,10 +15,11 @@ import {
   HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { InteractionManager, TouchableOpacity } from 'react-native';
+import { InteractionManager } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 // Internal dependencies.
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet.types';
@@ -122,10 +123,9 @@ const PredictUnavailable = forwardRef<
         onClose={handleClose}
       />
 
-      <TouchableOpacity
+      <Pressable
         onPress={handlePolymarketTermsPress}
         testID={PREDICT_UNAVAILABLE_TEST_IDS.POLYMARKET_TERMS_LINK}
-        activeOpacity={0.8}
       >
         <Box
           alignItems={BoxAlignItems.Start}
@@ -143,7 +143,7 @@ const PredictUnavailable = forwardRef<
             .
           </Text>
         </Box>
-      </TouchableOpacity>
+      </Pressable>
 
       <BottomSheetFooter
         buttonPropsArray={[

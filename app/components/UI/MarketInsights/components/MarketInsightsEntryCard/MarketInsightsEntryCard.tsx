@@ -14,11 +14,12 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import MaskedView from '@react-native-masked-view/masked-view';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { StyleSheet, TouchableOpacity, View, Pressable } from 'react-native';
+import { StyleSheet, View, Pressable } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { strings } from '../../../../../../locales/i18n';
 import AiSVG from '../../../../../component-library/components/Icons/Icon/assets/ai.svg';
 import ArrowRightSVG from '../../../../../component-library/components/Icons/Icon/assets/arrow-right.svg';
+import DSPressable from '../../../../../component-library/components-temp/Pressable';
 import {
   EVENT_NAME,
   generateOpt,
@@ -215,8 +216,7 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
 
   return (
     <>
-      <TouchableOpacity
-        activeOpacity={0.7}
+      <DSPressable
         onPress={onPress}
         style={tw.style('px-4 mt-2 mb-4')}
         testID={testID}
@@ -290,7 +290,7 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
             </Box>
           </Box>
         </View>
-      </TouchableOpacity>
+      </DSPressable>
     </>
   );
 };

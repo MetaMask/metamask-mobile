@@ -1,6 +1,7 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   Box,
   Icon,
@@ -73,7 +74,7 @@ const PredictActivity: React.FC<PredictActivityProps> = ({ item }) => {
   };
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={handlePress}
       style={tw.style('flex-row items-start justify-between w-full p-2')}
     >
@@ -108,7 +109,7 @@ const PredictActivity: React.FC<PredictActivityProps> = ({ item }) => {
           </Text>
         ) : null}
       </Box>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

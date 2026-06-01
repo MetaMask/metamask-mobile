@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Text, View } from 'react-native';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import Icon, {
   IconName,
 } from '../../../component-library/components/Icons/Icon';
@@ -53,20 +54,20 @@ export const SnapUICopyable: React.FC<SnapUICopyableProps> = ({
 
   return (
     <View style={styles.containerWrapper}>
-      <TouchableOpacity
+      <Pressable
         onPress={
           sensitive && !isVisible ? handleVisibilityClick : handleCopyPress
         }
         style={styles.container}
       >
         {sensitive && (
-          <TouchableOpacity onPress={handleVisibilityClick}>
+          <Pressable onPress={handleVisibilityClick}>
             <Icon
               name={isVisible ? IconName.EyeSlash : IconName.Eye}
               color={styles.icon.color}
               testID="reveal-icon"
             />
-          </TouchableOpacity>
+          </Pressable>
         )}
         {sensitive && !isVisible && (
           <Text style={styles.revealText}>
@@ -88,20 +89,19 @@ export const SnapUICopyable: React.FC<SnapUICopyableProps> = ({
           />
         )}
         {isVisible && isTextTooLong && (
-          <TouchableOpacity
+          <Pressable
             onPress={toggleExpand}
             style={styles.moreButton}
             testID="more-button"
-            activeOpacity={0.7}
           >
             <Text style={styles.moreButtonText}>
               {isExpanded
                 ? strings('snap_ui.show_less')
                 : strings('snap_ui.show_more')}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         )}
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 };

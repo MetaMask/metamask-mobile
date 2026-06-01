@@ -1,8 +1,9 @@
 import React from 'react';
-import { Image, TouchableOpacity, View } from 'react-native';
+import { Image, View } from 'react-native';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { useStyles } from '../../../../../component-library/hooks';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
@@ -64,7 +65,7 @@ const PredictPositionResolved: React.FC<PredictPositionResolvedProps> = ({
   const tw = useTailwind();
 
   return (
-    <TouchableOpacity
+    <Pressable
       testID={PredictPositionSelectorsIDs.RESOLVED_POSITION_CARD}
       style={styles.positionContainer}
       onPress={() => onPress?.(position)}
@@ -124,7 +125,7 @@ const PredictPositionResolved: React.FC<PredictPositionResolvedProps> = ({
           </SensitiveText>
         )}
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

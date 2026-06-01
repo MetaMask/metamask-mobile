@@ -1,6 +1,7 @@
 import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import styleSheet from './MusdConversionAssetListCta.styles';
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import Text, {
   TextVariant,
   TextColor,
@@ -183,7 +184,7 @@ const MusdConversionAssetListCta = () => {
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
             MetaMask USD
           </Text>
-          <TouchableOpacity
+          <Pressable
             onPress={() => handlePress(CTA_CLICK_TARGET.CTA_TEXT_LINK)}
           >
             <Text variant={TextVariant.BodySMMedium} color={TextColor.Primary}>
@@ -191,7 +192,7 @@ const MusdConversionAssetListCta = () => {
                 percentage: MUSD_CONVERSION_APY,
               })}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </View>
 

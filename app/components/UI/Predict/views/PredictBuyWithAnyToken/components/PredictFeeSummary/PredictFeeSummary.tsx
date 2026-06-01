@@ -14,12 +14,13 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+
 import { strings } from '../../../../../../../../locales/i18n';
 import KeyValueRow from '../../../../../../../component-library/components-temp/KeyValueRow';
 import { TooltipSizes } from '../../../../../../../component-library/components-temp/KeyValueRow/KeyValueRow.types';
 import { IconName as IconNameLegacy } from '../../../../../../../component-library/components/Icons/Icon';
 import Skeleton from '../../../../../../../component-library/components/Skeleton/Skeleton';
+import Pressable from '../../../../../../../component-library/components-temp/Pressable';
 import {
   TextColor as LegacyTextColor,
   TextVariant as LegacyTextVariant,
@@ -96,7 +97,7 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
   return (
     <>
       <Box twClassName="pt-4 px-4 pb-6 flex-col gap-4">
-        <TouchableOpacity
+        <Pressable
           onPress={handleFeesInfoPress}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           style={tw.style('py-1')}
@@ -124,7 +125,7 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
               {formatPrice(total, { maximumDecimals: 2 })}
             </Text>
           </Box>
-        </TouchableOpacity>
+        </Pressable>
 
         {/* Estimated Points Row */}
         {shouldRenderRewardsRow && (

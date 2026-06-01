@@ -12,8 +12,9 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { Image, TouchableOpacity } from 'react-native';
+import { Image } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
+import Pressable from '../../../../../../../component-library/components-temp/Pressable';
 import {
   OrderPreview,
   PredictMarket,
@@ -128,9 +129,9 @@ export function PredictBuyPreviewHeaderBack({
   const { goBack } = useNavigation();
 
   return (
-    <TouchableOpacity testID="back-button" onPress={onBack ?? goBack}>
+    <Pressable testID="back-button" onPress={onBack ?? goBack}>
       <Icon name={IconName.ArrowLeft} size={IconSize.Md} />
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 

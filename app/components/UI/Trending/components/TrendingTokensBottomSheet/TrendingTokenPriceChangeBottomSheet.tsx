@@ -1,8 +1,9 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { TrendingTokensBottomSheetTestIds } from './TrendingTokensBottomSheet.testIds';
 import { HeaderStandard } from '@metamask/design-system-react-native';
-import { View, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import { useTheme } from '../../../../../util/theme';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -156,14 +157,13 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
         closeButtonProps={{ testID: 'close-button' }}
       />
       <View style={optionStyles.optionsList}>
-        <TouchableOpacity
+        <Pressable
           testID="price-change-select-price-change"
           style={[
             optionStyles.optionRow,
             selectedOption === PriceChangeOption.PriceChange &&
               optionStyles.optionRowSelected,
           ]}
-          activeOpacity={1}
           onPress={() => onOptionPress(PriceChangeOption.PriceChange)}
         >
           <Text variant={TextVariant.BodyMD}>
@@ -190,15 +190,14 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
               />
             </View>
           )}
-        </TouchableOpacity>
-        <TouchableOpacity
+        </Pressable>
+        <Pressable
           testID="price-change-select-volume"
           style={[
             optionStyles.optionRow,
             selectedOption === PriceChangeOption.Volume &&
               optionStyles.optionRowSelected,
-          ]}
-          activeOpacity={1} // this disables the default opacity change when pressing the option
+          ]} // this disables the default opacity change when pressing the option
           onPress={() => onOptionPress(PriceChangeOption.Volume)}
         >
           <Text variant={TextVariant.BodyMD}>{strings('trending.volume')}</Text>
@@ -223,15 +222,14 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
               />
             </View>
           )}
-        </TouchableOpacity>
-        <TouchableOpacity
+        </Pressable>
+        <Pressable
           testID="price-change-select-market-cap"
           style={[
             optionStyles.optionRow,
             selectedOption === PriceChangeOption.MarketCap &&
               optionStyles.optionRowSelected,
           ]}
-          activeOpacity={1}
           onPress={() => onOptionPress(PriceChangeOption.MarketCap)}
         >
           <Text variant={TextVariant.BodyMD}>
@@ -258,7 +256,7 @@ const TrendingTokenPriceChangeBottomSheet: React.FC<
               />
             </View>
           )}
-        </TouchableOpacity>
+        </Pressable>
       </View>
       <View style={optionStyles.buttonContainer}>
         <Button

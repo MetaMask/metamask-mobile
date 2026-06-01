@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
-import { BackHandler, ScrollView, TouchableOpacity } from 'react-native';
+import { BackHandler, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import styleSheet from './AccountGroupDetails.styles';
+import Pressable from '../../../../component-library/components-temp/Pressable';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
@@ -197,7 +198,7 @@ export const AccountGroupDetails = () => {
             testID={AccountDetailsIds.ACCOUNT_GROUP_DETAILS_AVATAR}
           />
         </Box>
-        <TouchableOpacity
+        <Pressable
           style={styles.accountName}
           testID={AccountDetailsIds.ACCOUNT_NAME_LINK}
           onPress={handleEditAccountName}
@@ -224,8 +225,8 @@ export const AccountGroupDetails = () => {
               color={colors.text.alternative}
             />
           </Box>
-        </TouchableOpacity>
-        <TouchableOpacity
+        </Pressable>
+        <Pressable
           style={styles.networks}
           testID={AccountDetailsIds.NETWORKS_LINK}
           onPress={navigateToAddressList}
@@ -249,9 +250,9 @@ export const AccountGroupDetails = () => {
               color={colors.text.alternative}
             />
           </Box>
-        </TouchableOpacity>
+        </Pressable>
         {!isHardwareWallet && (
-          <TouchableOpacity
+          <Pressable
             style={styles.privateKeys}
             testID={AccountDetailsIds.PRIVATE_KEYS_LINK}
             onPress={() => {
@@ -284,9 +285,9 @@ export const AccountGroupDetails = () => {
                 color={colors.text.alternative}
               />
             </Box>
-          </TouchableOpacity>
+          </Pressable>
         )}
-        <TouchableOpacity
+        <Pressable
           style={styles.smartAccount}
           testID={AccountDetailsIds.SMART_ACCOUNT_LINK}
           onPress={navigateToSmartAccount}
@@ -308,7 +309,7 @@ export const AccountGroupDetails = () => {
               color={colors.text.alternative}
             />
           </Box>
-        </TouchableOpacity>
+        </Pressable>
         <Wallet wallet={wallet} />
         {canExportMnemonic && <SecretRecoveryPhrase account={account} />}
         {type === AccountGroupType.SingleAccount &&

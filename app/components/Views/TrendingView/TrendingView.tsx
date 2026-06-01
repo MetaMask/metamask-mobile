@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { TouchableOpacity } from 'react-native';
+
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import {
   RouteProp,
   useFocusEffect,
@@ -176,7 +177,7 @@ export const ExploreFeed: React.FC = () => {
             <ExploreSearchBar type="button" onPress={handleSearchPress} />
           </Box>
 
-          <TouchableOpacity
+          <Pressable
             onPress={handleBrowserPress}
             testID="trending-view-browser-button"
           >
@@ -187,7 +188,7 @@ export const ExploreFeed: React.FC = () => {
             ) : (
               <Icon name={IconName.Explore} size={IconSize.Xl} />
             )}
-          </TouchableOpacity>
+          </Pressable>
         </Box>
 
         {!isBasicFunctionalityEnabled ? (

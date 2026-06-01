@@ -10,8 +10,9 @@ import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToke
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
-import { TouchableOpacity } from 'react-native';
+
 import { Box } from '../../../../../UI/Box/Box';
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import {
   AlignItems,
   FlexDirection,
@@ -141,7 +142,7 @@ function PayWithRowInteractive() {
   }
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={handleClick}
       disabled={isDisabled}
       testID={ConfirmationRowComponentIDs.PAY_WITH}
@@ -191,7 +192,7 @@ function PayWithRowInteractive() {
           )}
         </Box>
       </Box>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
@@ -212,7 +213,7 @@ function PayWithFiatPaymentMethodRow({
   const { colors } = useTheme();
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={onPress}
       disabled={disabled}
       testID={ConfirmationRowComponentIDs.PAY_WITH}
@@ -256,7 +257,7 @@ function PayWithFiatPaymentMethodRow({
           )}
         </Box>
       </Box>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
@@ -282,7 +283,7 @@ function PayWithRowMoneyAccount() {
   }
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={handleClick}
       testID={ConfirmationRowComponentIDs.PAY_WITH}
     >
@@ -329,7 +330,7 @@ function PayWithRowMoneyAccount() {
           />
         </Box>
       </Box>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 

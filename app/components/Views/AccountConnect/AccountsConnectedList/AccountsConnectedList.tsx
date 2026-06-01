@@ -1,8 +1,9 @@
 // Third party dependencies.
 import React, { useCallback } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useSelector, shallowEqual } from 'react-redux';
+import Pressable from '../../../../component-library/components-temp/Pressable';
 import {
   parseCaipChainId,
   CaipAccountId,
@@ -181,7 +182,7 @@ const AccountsConnectedList = ({
           scrollEnabled={selectedAddresses.length > 1}
         />
       </View>
-      <TouchableOpacity
+      <Pressable
         style={styles.editAccountsContainer}
         onPress={handleEditAccountsButtonPress}
         testID={ConnectedAccountsSelectorsIDs.ACCOUNT_LIST_BOTTOM_SHEET}
@@ -193,7 +194,7 @@ const AccountsConnectedList = ({
         >
           {strings('accounts.edit_accounts_title')}
         </TextComponent>
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 };

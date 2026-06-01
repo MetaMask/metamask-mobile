@@ -3,10 +3,11 @@ import {
   TransactionMeta,
 } from '@metamask/transaction-controller';
 import React, { useState } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { ConfirmationRowComponentIDs } from '../../../../ConfirmationView.testIds';
 import { strings } from '../../../../../../../../locales/i18n';
+import Pressable from '../../../../../../../component-library/components-temp/Pressable';
 import Icon, {
   IconName,
   IconSize,
@@ -204,7 +205,7 @@ const ClickableEstimationInfo = ({
   );
 
   return (
-    <TouchableOpacity onPress={onPress} style={styles.editButton}>
+    <Pressable onPress={onPress} style={styles.editButton}>
       <Icon
         name={IconName.Edit}
         size={IconSize.Md}
@@ -216,7 +217,7 @@ const ClickableEstimationInfo = ({
         feeCalculations={feeCalculations}
         fiatOnly={fiatOnly}
       />
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   PointsBoostRewardData,
   RewardClaimStatus,
@@ -23,7 +24,7 @@ import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { TouchableOpacity } from 'react-native';
+
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 import { selectRewardsActiveAccountAddress } from '../../../../../selectors/rewards';
 
@@ -368,7 +369,7 @@ const RewardItem: React.FC<RewardItemProps> = ({
   ]);
 
   return (
-    <TouchableOpacity
+    <Pressable
       disabled={isLocked || hasClaimed || isSeasonRewardClaimExpired}
       onPress={handleRewardItemPress}
     >
@@ -434,7 +435,7 @@ const RewardItem: React.FC<RewardItemProps> = ({
             </Button>
           ))}
       </Box>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

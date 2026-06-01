@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { StyleProp, TextStyle, TouchableOpacity, View } from 'react-native';
+import { StyleProp, TextStyle, View } from 'react-native';
 
 import ButtonIcon from '../../../../../../component-library/components/Buttons/ButtonIcon';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { ButtonIconSizes } from '../../../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon.types';
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import {
   IconColor,
   IconName,
@@ -36,7 +37,7 @@ const TextWithTooltip = ({
 
   return (
     <View>
-      <TouchableOpacity onPress={() => setTooltipVisible(true)}>
+      <Pressable onPress={() => setTooltipVisible(true)}>
         <Text
           ellipsizeMode={ellipsizeMode}
           style={textStyle}
@@ -44,7 +45,7 @@ const TextWithTooltip = ({
         >
           {text}
         </Text>
-      </TouchableOpacity>
+      </Pressable>
       {isTooltipVisible && (
         <BottomModal onClose={() => setTooltipVisible(false)}>
           <View style={styles.container}>

@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState, memo } from 'react';
-import { TouchableOpacity, View, Animated } from 'react-native';
+import { View, Animated } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -375,7 +376,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
         {/* Quick preset buttons - Mid/Bid/Ask + percentage presets */}
         <View style={styles.percentageButtonsRow}>
           {/* Mid price button - uses currentPrice which is the mid price from allMids stream */}
-          <TouchableOpacity
+          <Pressable
             testID={PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_MID}
             style={styles.percentageButton}
             onPress={() => {
@@ -393,13 +394,13 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
             <Text variant={TextVariant.BodyMD}>
               {strings('perps.order.limit_price_modal.mid_price')}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
 
           {direction === 'long' ? (
             // For long orders: Mid, Bid, -1%, -2%
             <>
               {/* Bid price button */}
-              <TouchableOpacity
+              <Pressable
                 testID={PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_BID}
                 style={styles.percentageButton}
                 onPress={() => {
@@ -418,11 +419,11 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
                 <Text variant={TextVariant.BodyMD}>
                   {strings('perps.order.limit_price_modal.bid_price')}
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
 
               {/* Percentage presets */}
               {LIMIT_PRICE_CONFIG.LongPresets.map((percentage) => (
-                <TouchableOpacity
+                <Pressable
                   key={percentage}
                   testID={`${PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_PERCENT}${percentage}`}
                   style={styles.percentageButton}
@@ -446,14 +447,14 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
                     {percentage > 0 ? '+' : ''}
                     {percentage}%
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               ))}
             </>
           ) : (
             // For short orders: Mid, Ask, +1%, +2%
             <>
               {/* Ask price button */}
-              <TouchableOpacity
+              <Pressable
                 testID={PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_ASK}
                 style={styles.percentageButton}
                 onPress={() => {
@@ -472,11 +473,11 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
                 <Text variant={TextVariant.BodyMD}>
                   {strings('perps.order.limit_price_modal.ask_price')}
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
 
               {/* Percentage presets */}
               {LIMIT_PRICE_CONFIG.ShortPresets.map((percentage) => (
-                <TouchableOpacity
+                <Pressable
                   key={percentage}
                   testID={`${PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_PERCENT}${percentage}`}
                   style={styles.percentageButton}
@@ -500,7 +501,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
                     {percentage > 0 ? '+' : ''}
                     {percentage}%
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               ))}
             </>
           )}

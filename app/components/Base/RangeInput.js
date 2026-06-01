@@ -1,11 +1,12 @@
 import React, { useCallback, useRef, useEffect, useState } from 'react';
-import { View, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, TextInput, StyleSheet } from 'react-native';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 import Text from './Text';
 import PropTypes from 'prop-types';
 import BigNumber from 'bignumber.js';
 import { useTheme } from '../../util/theme';
 
+import Pressable from '../../component-library/components-temp/Pressable';
 const createStyles = (colors) =>
   StyleSheet.create({
     labelContainer: {
@@ -176,13 +177,13 @@ const RangeInput = ({
 
       <View style={styles.rangeInputContainer(Boolean(error))}>
         <View style={styles.buttonContainerLeft}>
-          <TouchableOpacity
+          <Pressable
             style={styles.button}
             hitSlop={styles.hitSlop}
             onPress={decreaseNumber}
           >
             <FontAwesomeIcon name="minus" size={10} style={styles.buttonText} />
-          </TouchableOpacity>
+          </Pressable>
         </View>
         <View style={styles.inputContainer}>
           <TextInput
@@ -208,13 +209,13 @@ const RangeInput = ({
           >
             {inputInsideLabel}
           </Text>
-          <TouchableOpacity
+          <Pressable
             style={styles.button}
             hitSlop={styles.hitSlop}
             onPress={increaseNumber}
           >
             <FontAwesomeIcon name="plus" size={10} style={styles.buttonText} />
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </View>
       {hasError && (

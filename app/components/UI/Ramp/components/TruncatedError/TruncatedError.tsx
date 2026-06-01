@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
-  TouchableOpacity,
   View,
   StyleSheet,
   type NativeSyntheticEvent,
@@ -108,7 +108,7 @@ const TruncatedError: React.FC<TruncatedErrorProps> = ({
           ? strings('fiat_on_ramp.encountered_error')
           : error}
       </Text>
-      <TouchableOpacity
+      <Pressable
         onPress={handleInfoPress}
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         accessibilityRole="button"
@@ -119,7 +119,7 @@ const TruncatedError: React.FC<TruncatedErrorProps> = ({
           size={IconSize.Sm}
           color={IconColor.ErrorDefault}
         />
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 };

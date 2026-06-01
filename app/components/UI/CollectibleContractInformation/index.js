@@ -1,8 +1,8 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import {
   ScrollView,
-  TouchableOpacity,
   StyleSheet,
   Text,
   View,
@@ -196,10 +196,7 @@ class CollectibleContractInformation extends PureComponent {
           </View>
           {is_main_net && (
             <View style={styles.creditsView}>
-              <TouchableOpacity
-                style={styles.credits}
-                onPress={this.goToOpenSea}
-              >
+              <Pressable style={styles.credits} onPress={this.goToOpenSea}>
                 <View style={styles.creditsElements}>
                   <Text
                     style={styles.opensea}
@@ -209,18 +206,15 @@ class CollectibleContractInformation extends PureComponent {
                   </Text>
                   <Image source={openSeaLogo} style={styles.openSeaLogo} />
                 </View>
-              </TouchableOpacity>
+              </Pressable>
             </View>
           )}
         </ScrollView>
 
         <View style={styles.footer}>
-          <TouchableOpacity
-            style={styles.footerButton}
-            onPress={this.closeModal}
-          >
+          <Pressable style={styles.footerButton} onPress={this.closeModal}>
             <Text style={styles.closeButton}>{strings('networks.close')}</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </SafeAreaView>
     );

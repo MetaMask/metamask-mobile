@@ -1,5 +1,6 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+
+import Pressable from '../../../../../component-library/components-temp/Pressable';
 import {
   Text,
   Icon,
@@ -35,9 +36,8 @@ const ViewMoreCard: React.FC<ViewMoreCardProps> = ({
 }) => {
   const tw = useTailwind();
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={onPress}
-      activeOpacity={activeOpacity}
       testID={testID}
       style={tw.style(
         `rounded-xl bg-background-muted items-center justify-center gap-2 ${twClassName}`,
@@ -55,7 +55,7 @@ const ViewMoreCard: React.FC<ViewMoreCardProps> = ({
       >
         {strings('homepage.sections.view_more')}
       </Text>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

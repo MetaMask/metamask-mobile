@@ -1,7 +1,8 @@
 import React, { useCallback } from 'react';
-import { TouchableOpacity } from 'react-native';
+
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
@@ -50,7 +51,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
   );
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={openAccountSelector}
       style={styles.selector}
       testID={BuildQuoteSelectors.ACCOUNT_PICKER}
@@ -80,7 +81,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
       ) : (
         <Text variant={TextVariant.BodyMD}>Account is loading...</Text>
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

@@ -2,7 +2,8 @@
 
 // Third party dependencies.
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+
+import Pressable from '../../../../../components-temp/Pressable';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -56,8 +57,7 @@ const AccordionHeader = ({
   };
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.5}
+    <Pressable
       onPress={onHeaderPressed}
       style={styles.base}
       testID={TESTID_ACCORDIONHEADER}
@@ -80,7 +80,7 @@ const AccordionHeader = ({
           testID={TESTID_ACCORDIONHEADER_ARROWICON}
         />
       </Animated.View>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

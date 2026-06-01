@@ -1,7 +1,8 @@
 import React, { forwardRef, useCallback } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Pressable from '../../../../../../component-library/components-temp/Pressable';
 import {
   Box,
   Text,
@@ -140,7 +141,7 @@ const TraderNotificationsBottomSheet = forwardRef<
       <View style={tw.style('h-px bg-muted mx-4')} />
 
       {/* Manage traders row */}
-      <TouchableOpacity
+      <Pressable
         onPress={handleManageTradersPress}
         testID={TraderNotificationsBottomSheetSelectorsIDs.MANAGE_TRADERS_ROW}
         accessibilityRole="button"
@@ -173,7 +174,7 @@ const TraderNotificationsBottomSheet = forwardRef<
             color={IconColor.IconAlternative}
           />
         </Box>
-      </TouchableOpacity>
+      </Pressable>
     </BottomSheet>
   );
 });
