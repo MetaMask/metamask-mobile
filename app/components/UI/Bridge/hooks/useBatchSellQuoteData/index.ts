@@ -301,7 +301,6 @@ export function useBatchSellQuoteData({
   const totalNetworkFee = batchSellTrades.totalNetworkFee;
   // TODO: remove this once the Bridge Controller types expose isLoading
   // on selectBatchSellTrades.
-  // @ts-expect-error: controller types are not up to date yet
   const isBatchSellTradesLoading = Boolean(batchSellTrades.isLoading);
   // Quote-level gasless params are not reliable for Batch Sell because gasless
   // behavior is only simulated when the controller calls obtainGaslessBatch.
