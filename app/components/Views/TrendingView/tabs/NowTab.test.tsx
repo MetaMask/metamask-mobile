@@ -409,6 +409,55 @@ describe('NowTab — Perps Movers "View All" navigation', () => {
     expect(screen.queryByTestId('perps-pill-ETH')).toBeNull();
   });
 
+  it('renders pill skeletons while Perps Movers are loading', () => {
+    mockUsePerpsFeed.mockReturnValue({
+      data: [],
+      isLoading: true,
+      refetch: jest.fn(),
+      defaultSortOptionId: 'priceChange' as const,
+    });
+
+    renderNowTab();
+
+    expect(
+      screen.getAllByTestId('section-pills-skeleton').length,
+    ).toBeGreaterThan(0);
+  });
+
+  it('keeps pill skeletons visible until price change data is available', () => {
+    mockUsePerpsFeed.mockReturnValue({
+      data: [
+        { market: { symbol: 'BTC', change24hPercent: '' } },
+        { market: { symbol: 'ETH', change24hPercent: '0%' } },
+      ] as never,
+      isLoading: false,
+      refetch: jest.fn(),
+      defaultSortOptionId: 'priceChange' as const,
+    });
+
+    renderNowTab();
+
+    expect(
+      screen.getAllByTestId('section-pills-skeleton').length,
+    ).toBeGreaterThan(0);
+  });
+
+  it('does not render pill skeletons when price change data is valid but filtered out', () => {
+    mockUsePerpsFeed.mockReturnValue({
+      data: [
+        { market: { symbol: 'BTC', change24hPercent: '0%' } },
+        { market: { symbol: 'ETH', change24hPercent: '0.00%' } },
+      ] as never,
+      isLoading: false,
+      refetch: jest.fn(),
+      defaultSortOptionId: 'priceChange' as const,
+    });
+
+    renderNowTab();
+
+    expect(screen.queryByTestId('section-pills-skeleton')).toBeNull();
+  });
+
   it('renders Losers sorted by biggest negative move and passes ascending sort direction to the market list', () => {
     mockUsePerpsFeed.mockReturnValue({
       data: [

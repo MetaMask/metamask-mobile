@@ -101,7 +101,17 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
       .filter((item): item is PerpsFeedItem => item !== undefined);
   }, [activeMoverDirection, perps.data]);
 
-  if (!perps.isLoading && perps.data.length === 0) return null;
+  const hasUnavailablePriceChange = useMemo(
+    () =>
+      perps.data.some(({ market }) =>
+        Number.isNaN(parseFloat(market.change24hPercent)),
+      ),
+    [perps.data],
+  );
+  const isPillListLoading =
+    perps.isLoading || (data.length === 0 && hasUnavailablePriceChange);
+
+  if (!isPillListLoading && perps.data.length === 0) return null;
 
   return (
     <Box>
@@ -130,7 +140,7 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
       />
       <PillScrollList<PerpsFeedItem>
         data={data}
-        isLoading={perps.isLoading}
+        isLoading={isPillListLoading}
         renderItem={(item, index) => (
           <PerpsPillItem
             item={item}
