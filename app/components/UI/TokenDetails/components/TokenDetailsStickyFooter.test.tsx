@@ -98,11 +98,6 @@ jest.mock('../hooks/useStickyFooterTracking', () => ({
   useStickyFooterTracking: () => mockTrackStickyFooterTapped,
 }));
 
-const mockGetResultTypeConfig = jest.fn();
-jest.mock('../../SecurityTrust/utils/securityUtils', () => ({
-  getResultTypeConfig: (...args: unknown[]) => mockGetResultTypeConfig(...args),
-}));
-
 const mockToken: TokenDetailsRouteParams = {
   address: '0x123',
   symbol: 'ETH',
@@ -132,7 +127,6 @@ describe('TokenDetailsStickyFooter', () => {
       variantName: StickyFooterSwapLabelVariant.Control,
       isActive: false,
     });
-    mockGetResultTypeConfig.mockReturnValue({});
   });
 
   describe('button visibility', () => {
@@ -698,12 +692,6 @@ describe('TokenDetailsStickyFooter', () => {
     it('defers onSwapPress until onProceed for security warning modal', () => {
       const onSwapPress = jest.fn();
       mockIsStockToken.mockReturnValue(false);
-      mockGetResultTypeConfig.mockReturnValue({
-        icon: 'warning',
-        iconColor: 'warning',
-        sheetTitle: 'Warning',
-        getSheetDescription: () => 'This token may be risky',
-      });
 
       const { getByText } = render(
         <TokenDetailsStickyFooter
@@ -736,12 +724,6 @@ describe('TokenDetailsStickyFooter', () => {
     it('defers onBuyPress until onProceed for security warning modal', () => {
       const onBuyPress = jest.fn();
       mockIsStockToken.mockReturnValue(false);
-      mockGetResultTypeConfig.mockReturnValue({
-        icon: 'warning',
-        iconColor: 'warning',
-        sheetTitle: 'Warning',
-        getSheetDescription: () => 'This token may be risky',
-      });
 
       const { getByText } = render(
         <TokenDetailsStickyFooter
