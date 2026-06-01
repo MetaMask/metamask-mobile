@@ -9263,6 +9263,8 @@
     "title": "Explore",
     "crypto_movers": "Crypto movers",
     "perps_movers": "Perps movers",
+    "perps_movers_pill_gainers": "Gainers",
+    "perps_movers_pill_losers": "Losers",
     "trending_tokens": "Trending",
     "crypto": "Crypto",
     "stocks": "Stocks",
