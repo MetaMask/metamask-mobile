@@ -1,6 +1,7 @@
-import React, { memo, useCallback, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import {
   Keyboard,
+  Platform,
   ScrollView,
   TextInput,
   TouchableOpacity,
@@ -90,6 +91,27 @@ const PerpsTPSLView: React.FC = () => {
   const takeProfitPercentageRef = useRef<TextInput>(null);
   const stopLossPriceRef = useRef<TextInput>(null);
   const stopLossPercentageRef = useRef<TextInput>(null);
+
+  // Guard: when we programmatically dismiss the native keyboard on iOS,
+  // the TextInput fires onBlur. This ref prevents that blur from hiding
+  // the custom keypad.
+  const isProgrammaticDismissRef = useRef(false);
+
+  // showSoftInputOnFocus is Android-only; on iOS the native keyboard
+  // still appears when a TextInput is focused. Dismiss it so that only
+  // the custom keypad is visible and content stays within the viewport.
+  useEffect(() => {
+    if (focusedInput && Platform.OS === 'ios') {
+      isProgrammaticDismissRef.current = true;
+      const timer = requestAnimationFrame(() => {
+        Keyboard.dismiss();
+        setTimeout(() => {
+          isProgrammaticDismissRef.current = false;
+        }, 150);
+      });
+      return () => cancelAnimationFrame(timer);
+    }
+  }, [focusedInput]);
 
   // Subscribe to real-time price only when we have an asset
   // Use throttle for TP/SL screen to reduce re-renders
@@ -335,7 +357,11 @@ const PerpsTPSLView: React.FC = () => {
   );
 
   const handleInputBlur = useCallback(() => {
-    // Call the appropriate original blur handler based on which input was focused
+    // When we programmatically dismiss the native keyboard on iOS the
+    // TextInput fires onBlur. Ignore that blur so the custom keypad
+    // stays visible.
+    if (isProgrammaticDismissRef.current) return;
+
     if (focusedInput === 'takeProfitPrice') {
       handleTakeProfitPriceBlur();
     } else if (focusedInput === 'takeProfitPercentage') {
