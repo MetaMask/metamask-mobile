@@ -1,7 +1,7 @@
 import Engine from '../../../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { selectTokensByChainIdAndAddress } from '../../../../../selectors/tokensController';
-import { selectSelectedInternalAccountId } from '../../../../../selectors/accountsController';
+import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { selectIsAssetsUnifyStateEnabled } from '../../../../../selectors/featureFlagController/assetsUnifyState';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
@@ -37,7 +37,8 @@ export function useAddToken({
   const isAssetsUnifyStateEnabled = useSelector(
     selectIsAssetsUnifyStateEnabled,
   );
-  const accountId = useSelector(selectSelectedInternalAccountId);
+  const evmAccount = useSelector(selectSelectedAccountGroupEvmInternalAccount);
+  const accountId = evmAccount?.id;
 
   const { error } = useAsyncResult(async () => {
     if (hasToken) {

@@ -9,6 +9,7 @@ import {
 } from '../../__mocks__/controllers/other-controllers-mock';
 import { Token } from '@metamask/assets-controllers';
 import { selectIsAssetsUnifyStateEnabled } from '../../../../../selectors/featureFlagController/assetsUnifyState';
+import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -28,6 +29,16 @@ jest.mock(
   '../../../../../selectors/featureFlagController/assetsUnifyState',
   () => ({
     selectIsAssetsUnifyStateEnabled: jest.fn(() => false),
+  }),
+);
+
+jest.mock(
+  '../../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    ...jest.requireActual(
+      '../../../../../selectors/multichainAccounts/accountTreeController',
+    ),
+    selectSelectedAccountGroupEvmInternalAccount: jest.fn(() => null),
   }),
 );
 
@@ -55,21 +66,6 @@ async function runHook({
       state: merge({}, otherControllersMock, {
         engine: {
           backgroundState: {
-            AccountsController: {
-              internalAccounts: {
-                accounts: {
-                  [ACCOUNT_ID_MOCK]: {
-                    id: ACCOUNT_ID_MOCK,
-                    address: accountMock,
-                    metadata: {
-                      name: 'Account 1',
-                      keyring: { type: 'HD Key Tree' },
-                    },
-                  },
-                },
-                selectedAccount: ACCOUNT_ID_MOCK,
-              },
-            },
             TokensController: {
               allTokens: {
                 [CHAIN_ID_MOCK]: {
@@ -109,6 +105,13 @@ describe('useAddToken', () => {
     (selectIsAssetsUnifyStateEnabled as unknown as jest.Mock).mockReturnValue(
       false,
     );
+    (
+      selectSelectedAccountGroupEvmInternalAccount as unknown as jest.Mock
+    ).mockReturnValue({
+      id: ACCOUNT_ID_MOCK,
+      address: accountMock,
+      type: 'eip155:eoa',
+    });
   });
 
   it('adds token if not present', async () => {
