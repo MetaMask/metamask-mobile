@@ -7,6 +7,12 @@ import { CardAuthenticationSelectors } from './CardAuthentication.testIds';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { useCardAuth } from '../../hooks/useCardAuth';
 import useCardOAuth2Authentication from '../../hooks/useCardOAuth2Authentication';
+import { MONEY_HOME_CARD_ORIGIN } from '../../hooks/useCardPostAuthRedirect';
+
+jest.mock('../../hooks/useCardPostAuthRedirect', () => ({
+  ...jest.requireActual('../../hooks/useCardPostAuthRedirect'),
+  useCardPostAuthRedirect: jest.fn(() => undefined),
+}));
 
 jest.mock('../../../../../util/analytics/whenEngineReady', () => ({
   __esModule: true,
@@ -70,6 +76,9 @@ const mockUseCardOAuth2Authentication =
   useCardOAuth2Authentication as jest.MockedFunction<
     typeof useCardOAuth2Authentication
   >;
+const mockUseCardPostAuthRedirect = jest.requireMock(
+  '../../hooks/useCardPostAuthRedirect',
+).useCardPostAuthRedirect as jest.Mock;
 
 const mockOAuthLogin = jest.fn();
 const mockOAuthClearError = jest.fn();
@@ -172,6 +181,7 @@ describe('CardAuthentication Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteParams = {};
+    mockUseCardPostAuthRedirect.mockReturnValue(undefined);
 
     mockInitiateMutateAsync.mockResolvedValue(undefined);
     mockSubmitMutateAsync.mockResolvedValue({ done: true });
@@ -284,6 +294,80 @@ describe('CardAuthentication Component', () => {
       render();
 
       expect(screen.queryByTestId('card-message-box')).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('Post-auth navigation', () => {
+    it('resets to CardHome after OAuth login when no postAuthRedirect is set', async () => {
+      render();
+
+      fireEvent.press(
+        screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(mockReset).toHaveBeenCalledWith({
+          index: 0,
+          routes: [{ name: Routes.CARD.HOME }],
+        });
+      });
+      expect(mockNavigationServiceGoBack).not.toHaveBeenCalled();
+    });
+
+    it('goes back via NavigationService when postAuthRedirect is in route params', async () => {
+      mockRouteParams = { postAuthRedirect: MONEY_HOME_CARD_ORIGIN };
+
+      render();
+
+      fireEvent.press(
+        screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(mockNavigationServiceGoBack).toHaveBeenCalled();
+      });
+      expect(mockReset).not.toHaveBeenCalled();
+    });
+
+    it('goes back via NavigationService when postAuthRedirect comes from parent navigator', async () => {
+      mockUseCardPostAuthRedirect.mockReturnValue(MONEY_HOME_CARD_ORIGIN);
+
+      render();
+
+      fireEvent.press(
+        screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(mockNavigationServiceGoBack).toHaveBeenCalled();
+      });
+      expect(mockReset).not.toHaveBeenCalled();
+    });
+
+    it('resets to onboarding when OAuth login requires onboarding even with postAuthRedirect', async () => {
+      mockRouteParams = { postAuthRedirect: MONEY_HOME_CARD_ORIGIN };
+      mockOAuthLogin.mockResolvedValue({
+        onboardingRequired: { sessionId: 'session-1', phase: 'kyc' },
+      });
+
+      render();
+
+      fireEvent.press(
+        screen.getByTestId(CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(mockReset).toHaveBeenCalledWith({
+          index: 0,
+          routes: [
+            {
+              name: Routes.CARD.ONBOARDING.ROOT,
+              params: { cardUserPhase: 'kyc' },
+            },
+          ],
+        });
+      });
+      expect(mockNavigationServiceGoBack).not.toHaveBeenCalled();
     });
   });
 });

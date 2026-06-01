@@ -26,6 +26,8 @@ import { setOnboardingId } from '../../../../../core/redux/slices/card';
 import { CardMessageBoxType } from '../../types';
 import { CardActions, CardScreens } from '../../util/metrics';
 import OnboardingStep from '../../components/Onboarding/OnboardingStep';
+import NavigationService from '../../../../../core/NavigationService';
+import { useCardPostAuthRedirect } from '../../hooks/useCardPostAuthRedirect';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type CardAuthenticationParams = {
@@ -43,6 +45,9 @@ const CardAuthentication = () => {
   const route =
     useRoute<RouteProp<CardAuthenticationParams, 'CardAuthentication'>>();
   const showAuthPrompt = route.params?.showAuthPrompt ?? false;
+  const parentPostAuthRedirect = useCardPostAuthRedirect();
+  const postAuthRedirect =
+    route.params?.postAuthRedirect ?? parentPostAuthRedirect;
   const dispatch = useDispatch();
   const theme = useTheme();
 
@@ -109,6 +114,11 @@ const CardAuthentication = () => {
         return;
       }
 
+      if (postAuthRedirect) {
+        NavigationService.navigation?.goBack();
+        return;
+      }
+
       navigation.reset({
         index: 0,
         routes: [{ name: Routes.CARD.HOME }],
@@ -124,6 +134,7 @@ const CardAuthentication = () => {
     trackEvent,
     createEventBuilder,
     submit,
+    postAuthRedirect,
   ]);
 
   const isLoginDisabled = useMemo(() => !oauth.isReady, [oauth.isReady]);
