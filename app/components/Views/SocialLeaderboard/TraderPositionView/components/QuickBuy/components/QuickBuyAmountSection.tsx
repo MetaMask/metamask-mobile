@@ -20,7 +20,7 @@ import {
   IconSize,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../../locales/i18n';
-import type { QuickBuyAmountDisplayMode, QuickBuyTradeMode } from '../types';
+import type { QuickBuyAmountDisplayMode } from '../types';
 
 const styles = StyleSheet.create({
   amountText: { fontSize: 48, lineHeight: 52 },
@@ -29,7 +29,6 @@ const styles = StyleSheet.create({
 
 interface QuickBuyAmountSectionProps {
   amountDisplayMode: QuickBuyAmountDisplayMode;
-  tradeMode: QuickBuyTradeMode;
   fiatCryptoToggleEnabled: boolean;
   usdAmount: string;
   destSymbol: string;
@@ -45,7 +44,6 @@ interface QuickBuyAmountSectionProps {
 
 const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   amountDisplayMode,
-  tradeMode,
   fiatCryptoToggleEnabled,
   usdAmount,
   destSymbol,

@@ -117,7 +117,9 @@ const QuickBuyPayWithScreen: React.FC = () => {
     ? strings('social_leaderboard.quick_buy.receive_with')
     : strings('social_leaderboard.quick_buy.pay_with');
 
-  const emptyLabel = strings('social_leaderboard.quick_buy.pay_with_no_tokens');
+  const emptyLabel = isSellMode
+    ? strings('social_leaderboard.quick_buy.receive_with_no_tokens')
+    : strings('social_leaderboard.quick_buy.pay_with_no_tokens');
 
   return (
     <>
