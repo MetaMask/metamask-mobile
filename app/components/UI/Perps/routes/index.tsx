@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
   },
 });
 
-function getRedesignedConfirmationsHeaderOptions({
+export function getRedesignedConfirmationsHeaderOptions({
   showPerpsHeader = CONFIRMATION_HEADER_CONFIG.DefaultShowPerpsHeader,
 }: PerpsNavigationParamList['RedesignedConfirmations'] = {}): NativeStackNavigationOptions {
   if (showPerpsHeader) {
@@ -76,8 +76,6 @@ function getRedesignedConfirmationsHeaderOptions({
     headerShown: false,
     title: '',
     headerBackVisible: false,
-    contentStyle: { backgroundColor: 'transparent' },
-    ...transparentModalScreenOptions,
   };
 }
 
@@ -421,6 +419,7 @@ const PerpsScreenStack = () => {
               component={PayWithModal}
               options={{
                 headerShown: false,
+                ...clearNativeStackNavigatorOptions,
                 ...transparentModalScreenOptions,
               }}
             />

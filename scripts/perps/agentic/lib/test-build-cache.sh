@@ -184,6 +184,74 @@ echo "$out" | grep -qE "Mode:.*clean.*yarn setup" && pass "clean mode header ren
 out=$(_capture_for 10 bash scripts/perps/agentic/preflight.sh --clean --check-only 2>&1 | head -20 || true)
 echo "$out" | grep -qE "Mode:.*clean.*yarn setup" && pass "legacy --clean still maps to clean" || fail "legacy --clean broken"
 
+# ─── 10b. Agentic fp respects the safe/unsafe ignorePath boundary ──
+# compute-cache-fp.js ignores per-worktree build outputs but MUST keep
+# binary-affecting inputs (xcconfig, google-services.json, the bundled
+# InpageBridgeWeb3 source) hashed. Verify both halves of that contract.
+hdr "agentic fp respects ignorePath boundary"
+
+_capture_fp() {
+  bc_memo_cleanup 2>/dev/null || true
+  bc_memo_init
+  bc_fingerprint 2>/dev/null
+}
+
+FP_BASELINE=$(_capture_fp)
+[ -n "$FP_BASELINE" ] && pass "baseline fp computed: ${FP_BASELINE:0:12}" \
+  || fail "baseline fp empty"
+
+# (a) Poisoning an IGNORED path must NOT change fp.
+mkdir -p ios/build
+POISON_IGNORED="ios/build/__bc_test_poison_$$.bin"
+echo "poison-$RANDOM" > "$POISON_IGNORED"
+FP_IGNORED=$(_capture_fp)
+rm -f "$POISON_IGNORED"
+if [ "$FP_BASELINE" = "$FP_IGNORED" ]; then
+  pass "ignored ios/build/ poison did NOT shift fp"
+else
+  fail "ignored ios/build/ poison SHIFTED fp (drift): $FP_BASELINE -> $FP_IGNORED"
+fi
+
+# Restore-trapped poison helper: backs up the file, layers a temporary
+# EXIT trap that restores the file AND re-invokes the suite-level cleanup,
+# then restores the original suite-level trap before returning. Ensures
+# .agent/build-cache cleanup still runs on early abort inside the helper.
+_poison_must_shift_fp() {
+  local label="$1" path="$2"
+  if [ ! -f "$path" ]; then
+    fail "missing $path — cannot run boundary test"
+    return
+  fi
+  local bak="/tmp/__bc_test_$(basename "$path")_$$.bak"
+  cp "$path" "$bak"
+  # Capture the suite-level EXIT trap so we can re-install it after.
+  local prev_trap
+  prev_trap=$(trap -p EXIT)
+  trap "cp '$bak' '$path' 2>/dev/null; rm -f '$bak' 2>/dev/null; cleanup" EXIT
+  echo "// __bc_test_poison_$$ $RANDOM" >> "$path"
+  local fp_after
+  fp_after=$(_capture_fp)
+  cp "$bak" "$path"
+  rm -f "$bak"
+  # Restore the suite-level cleanup trap.
+  eval "${prev_trap:-trap - EXIT}"
+  if [ "$fp_after" != "$FP_BASELINE" ]; then
+    pass "$label DID shift fp (${fp_after:0:12})"
+  else
+    fail "$label was silently ignored — cache could serve stale binary"
+  fi
+}
+
+# (b) Poisoning a HASHED, binary-affecting path MUST change fp.
+_poison_must_shift_fp "InpageBridgeWeb3.js (bridge source)" "app/core/InpageBridgeWeb3.js"
+
+# (c) Poisoning an inherited project extraSource MUST change fp — proves
+# the script repeats fingerprint.config.js extraSources correctly.
+_poison_must_shift_fp "scripts/setup.mjs (project extraSource)" "scripts/setup.mjs"
+
+# Restore baseline state for the rest of the suite.
+_capture_fp >/dev/null
+
 # ─── 11. Memo cleanup refuses inherited / unowned BC_MEMO_DIR ──────
 # Across R6/R7/R8/R9 codex flagged five attack shapes against the memo
 # directory cleanup. Each scenario sets up a "victim" dir, hands its path
@@ -215,7 +283,7 @@ _memo_attack "R9B: EXIT cleanup on inherited memo"        ""                    
 # Codex R2 B3: --mode fast must hard-fail if the fingerprint command can't
 # run, instead of silently falling through to the legacy build path.
 hdr "preflight --mode fast / fingerprint failure"
-FP_SCRIPT="scripts/generate-fingerprint.js"
+FP_SCRIPT="scripts/perps/agentic/lib/compute-cache-fp.js"
 FP_BACKUP="${FP_SCRIPT}.test-bak-$$"
 mv "$FP_SCRIPT" "$FP_BACKUP"
 restore_fp() { [ -f "$FP_BACKUP" ] && mv "$FP_BACKUP" "$FP_SCRIPT" 2>/dev/null || true; }

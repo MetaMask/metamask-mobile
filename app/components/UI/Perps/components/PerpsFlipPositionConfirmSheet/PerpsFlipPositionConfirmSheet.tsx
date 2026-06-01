@@ -38,6 +38,7 @@ import PerpsFeesDisplay from '../PerpsFeesDisplay';
 import RewardsAnimations, {
   RewardAnimationState,
 } from '../../../Rewards/components/RewardPointsAnimation';
+import { useVipTier } from '../../../Rewards/hooks/useVipTier';
 
 const PerpsFlipPositionConfirmSheet: React.FC<
   PerpsFlipPositionConfirmSheetProps
@@ -127,9 +128,24 @@ const PerpsFlipPositionConfirmSheet: React.FC<
     },
   });
 
+  const vipTier = useVipTier();
+
   const handleReverse = useCallback(async () => {
-    await handleFlipPosition(position);
-  }, [position, handleFlipPosition]);
+    await handleFlipPosition(position, {
+      totalFee: feeResults.totalFee,
+      marketPrice: markPrice || price,
+      vipTier: vipTier ?? undefined,
+      vipDiscount: feeResults.feeDiscountPercentage,
+    });
+  }, [
+    position,
+    handleFlipPosition,
+    feeResults.totalFee,
+    feeResults.feeDiscountPercentage,
+    markPrice,
+    price,
+    vipTier,
+  ]);
 
   const footerButtons = useMemo(
     () => [

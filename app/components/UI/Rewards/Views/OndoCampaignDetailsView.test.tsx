@@ -460,7 +460,7 @@ jest.mock('../../../../../locales/i18n', () => ({
       'rewards.campaigns_view.error_description': 'Please try again.',
       'rewards.campaigns_view.retry_button': 'Retry',
       'rewards.campaign_details.join_campaign': 'Join Campaign',
-      'rewards.campaign_details.open_position': 'Open Position',
+      'rewards.campaign_details.open_position': 'Trade now',
       'rewards.campaign_details.swap_ondo_assets': 'Swap Ondo Assets',
       'rewards.campaign_details.ondo.entries_closed_title': 'Entries closed',
       'rewards.campaign_details.ondo.entries_closed_description':
@@ -803,7 +803,7 @@ describe('OndoCampaignDetailsView', () => {
       expect(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeDefined();
     });
 
-    it('renders "Open Position" CTA when participant is opted in with no positions', () => {
+    it('renders "Trade now" CTA when participant is opted in with no positions', () => {
       mockUseRewardCampaigns.mockReturnValue({
         ...hookDefaults,
         campaigns: [createTestCampaign()],
@@ -816,7 +816,7 @@ describe('OndoCampaignDetailsView', () => {
       });
       const { getByTestId, getByText } = render(<OndoCampaignDetailsView />);
       expect(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeDefined();
-      expect(getByText('Open Position')).toBeDefined();
+      expect(getByText('Trade now')).toBeDefined();
     });
 
     it('renders "Swap Ondo Assets" CTA when participant is opted in with positions', () => {

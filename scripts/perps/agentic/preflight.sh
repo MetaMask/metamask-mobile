@@ -141,6 +141,44 @@ else
   BUILD_CACHE_ENABLED=false
 fi
 
+# ── Pod staleness detection ────────────────────────────────────────
+# Hash yarn.lock + ios/Podfile to detect when Pods/Podfile.lock are stale.
+# Each worktree stores its own marker so independent clones don't collide.
+PODS_MARKER_DIR=".agent/build-cache/ios"
+PODS_MARKER_FILE="$PODS_MARKER_DIR/pods-inputs.sha256"
+
+pods_input_hash() {
+  # yarn.lock drives which podspecs land in node_modules; Podfile controls
+  # which pods are requested. Together they determine the expected pod state.
+  { cat yarn.lock ios/Podfile 2>/dev/null || true; } | shasum -a 256 | cut -d' ' -f1
+}
+
+pods_are_stale() {
+  [ ! -f ios/Podfile.lock ] && return 1  # no lock = nothing to be stale
+  local current saved
+  current=$(pods_input_hash)
+  if [ -f "$PODS_MARKER_FILE" ]; then
+    saved=$(cat "$PODS_MARKER_FILE")
+    [ "$current" != "$saved" ]
+  else
+    return 0  # no marker = never validated, treat as stale
+  fi
+}
+
+pods_save_marker() {
+  mkdir -p "$PODS_MARKER_DIR"
+  pods_input_hash > "$PODS_MARKER_FILE"
+}
+
+pods_clean_stale() {
+  if pods_are_stale; then
+    echo "  Pods inputs changed (yarn.lock / Podfile) — cleaning stale pod state..."
+    rm -rf ios/Pods ios/Podfile.lock
+    return 0
+  fi
+  return 1
+}
+
 # ── Platform detection ─────────────────────────────────────────────
 detect_platform() {
   if [ -n "$FORCE_PLATFORM" ]; then echo "$FORCE_PLATFORM"; return; fi
@@ -276,6 +314,19 @@ run_with_live_log() {
   return $rc
 }
 
+js_dependencies_need_install() {
+  # Worktrees often survive branch switches. If package.json / yarn.lock are
+  # newer than Yarn's node_modules state, or if a required workspace binary is
+  # missing, reconcile node_modules before invoking Expo. This preserves the
+  # normal `yarn expo ...` path while fixing stale installs at the source.
+  [ ! -d node_modules ] && return 0
+  [ ! -f node_modules/.yarn-state.yml ] && return 0
+  [ -f package.json ] && [ package.json -nt node_modules/.yarn-state.yml ] && return 0
+  [ -f yarn.lock ] && [ yarn.lock -nt node_modules/.yarn-state.yml ] && return 0
+  yarn bin expo >/dev/null 2>&1 || return 0
+  return 1
+}
+
 # ── Early fixture validation (fail fast before long pipeline) ────────
 if $DO_WALLET_SETUP; then
   if [ ! -f "$WALLET_FIXTURE" ]; then
@@ -312,6 +363,14 @@ fi
 
 mkdir -p "$LOG_DIR"
 
+JS_DEPS_STALE=false
+if ! $DO_CLEAN && js_dependencies_need_install; then
+  if $CHECK_ONLY; then
+    fail "JS dependencies are stale or missing required bins (run without --check-only to reconcile node_modules)"
+  fi
+  JS_DEPS_STALE=true
+fi
+
 # Timing
 PREFLIGHT_START=$(python3 -c "import time; print(int(time.time()))")
 STEP_START=$PREFLIGHT_START
@@ -322,6 +381,7 @@ elapsed_since() { echo $(( $(python3 -c "import time; print(int(time.time()))") 
 # Compute total steps based on flags
 TOTAL_STEPS=4  # device + app + metro + cdp
 $DO_CLEAN && TOTAL_STEPS=$((TOTAL_STEPS + 1))
+$JS_DEPS_STALE && TOTAL_STEPS=$((TOTAL_STEPS + 1))
 ($DO_WALLET_SETUP || [ -n "$WALLET_PW" ]) && TOTAL_STEPS=$((TOTAL_STEPS + 1))
 CURRENT_STEP=0
 CURRENT_STEP_NAME=""
@@ -400,6 +460,20 @@ sweep_port "$PORT" "worktree Metro"
 # expo CLI's hardcoded default — any prior run without --port leaks here.
 [ "$PORT" != "8081" ] && sweep_port 8081 "expo default"
 
+# ── Step: reconcile stale node_modules (default/auto/fast modes) ──────
+if $JS_DEPS_STALE; then
+  step "Reconciling JS dependencies" "yarn install --immutable (package/yarn state changed or expo bin missing)"
+  stage_log "$DEPS_LOG"
+  printf '%s\n' '$ yarn install --immutable' > "$DEPS_LOG"
+  if ! run_with_live_log "$DEPS_LOG" "yarn install --immutable"; then
+    echo ""
+    echo -e "  ${RED}Dependency reconciliation failed — see $DEPS_LOG${NC}"
+    tail -20 "$DEPS_LOG" | sed 's/^/    /'
+    fail "yarn install --immutable failed"
+  fi
+  ok "node_modules reconciled"
+fi
+
 # ── Step: yarn setup (clean only) ────────────────────────────────────
 # --check-only is read-only by contract; refuse a destructive yarn setup
 # combo loudly instead of running it briefly and then early-exiting.
@@ -411,6 +485,12 @@ if $DO_CLEAN; then
     step "Installing dependencies" "rm ios/build → yarn setup (install deps + patches + pods)"
     echo "  Cleaning iOS build artifacts..."
     rm -rf ios/build
+    # Always clean stale pod state in --clean mode to prevent version mismatches
+    # between Podfile.lock and podspecs that changed in node_modules.
+    pods_clean_stale || {
+      echo "  Pods inputs unchanged — cleaning anyway (--clean mode)..."
+      rm -rf ios/Pods ios/Podfile.lock
+    }
   else
     step "Installing dependencies" "clean android build → yarn setup (install deps + patches)"
     echo "  Cleaning Android build artifacts..."
@@ -423,6 +503,9 @@ if $DO_CLEAN; then
     echo -e "  ${RED}Dependencies failed — see $DEPS_LOG${NC}"
     tail -20 "$DEPS_LOG" | sed 's/^/    /'
     fail "yarn setup failed"
+  fi
+  if [ "$PLAT" = "ios" ]; then
+    pods_save_marker
   fi
   ok "yarn setup complete"
 fi
@@ -544,6 +627,13 @@ if [ "$PLAT" = "ios" ]; then
     # Skip --repo-update unless --mode clean: it re-pulls every CocoaPods
     # spec (~3-5 min) on every dispatch. Plain `pod install` is sufficient
     # whenever Podfile.lock pods are already present in the local spec repo.
+    #
+    # Auto-clean stale Pods before pod install in any mode. This prevents
+    # version mismatches when yarn.lock changes bring new podspecs but
+    # Podfile.lock still pins old versions (common across independent clones).
+    if ! $DO_CLEAN; then
+      pods_clean_stale && warn "Stale pod state auto-cleaned"
+    fi
     if $DO_CLEAN; then
       POD_CMD="cd ios && bundle exec pod install --repo-update --ansi"
     else
@@ -553,12 +643,16 @@ if [ "$PLAT" = "ios" ]; then
     stage_log "$POD_INSTALL_LOG"
     printf '$ (%s)\n' "$POD_CMD" > "$POD_INSTALL_LOG"
     if run_with_live_log "$POD_INSTALL_LOG" "$POD_CMD"; then
+      pods_save_marker
       ok "pod install complete"
     else
       # On non-clean modes, the failure may be a missing spec → retry once with --repo-update.
       if ! $DO_CLEAN; then
         warn "pod install failed — retrying with --repo-update"
+        # Clean Pods before retry — the lock file may be the cause.
+        rm -rf ios/Pods ios/Podfile.lock
         if run_with_live_log "$POD_INSTALL_LOG" "cd ios && bundle exec pod install --repo-update --ansi"; then
+          pods_save_marker
           ok "pod install complete (after --repo-update retry)"
         else
           warn "pod install had issues — see $POD_INSTALL_LOG"

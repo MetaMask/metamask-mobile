@@ -30,7 +30,7 @@ async function cdpEval(client, expression) {
  * Hermes CDP doesn't support awaitPromise, so we store the result on
  * globalThis.__cdp_async__ and poll for it.
  */
-async function cdpEvalAsync(client, expression, timeoutMs = 30000) {
+async function cdpEvalAsync(client, expression, timeoutMs = cdpMessageTimeout()) {
   // Unique key per call to avoid collisions
   const key = `__cdp_async_${Date.now()}_${Math.random().toString(36).slice(2)}__`;
 
@@ -100,6 +100,11 @@ async function cdpEvalAsync(client, expression, timeoutMs = 30000) {
   } finally {
     await cleanup();
   }
+}
+
+function cdpMessageTimeout() {
+  const timeoutMs = Number.parseInt(process.env.CDP_TIMEOUT || '30000', 10);
+  return Number.isFinite(timeoutMs) && timeoutMs > 0 ? timeoutMs : 30000;
 }
 
 module.exports = { cdpEval, cdpEvalAsync };

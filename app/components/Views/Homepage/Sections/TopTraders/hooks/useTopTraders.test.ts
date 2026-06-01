@@ -194,16 +194,23 @@ describe('useTopTraders', () => {
       expect(result.current.error).toBe('Network error');
     });
 
-    it('logs the full error object via Logger.error with enriched extras', () => {
+    it('logs the full error object via Logger.error with feature:social tags', () => {
       const err = new Error('Network error');
       mockUseQuery.mockReturnValue(makeQueryResult({ error: err }));
       renderHook(() => useTopTraders());
       expect(Logger.error).toHaveBeenCalledWith(
         err,
         expect.objectContaining({
-          message: 'useTopTraders: leaderboard fetch failed',
-          endpoint: 'leaderboard',
-          errorCategory: expect.any(String),
+          tags: expect.objectContaining({
+            feature: 'social',
+            surface: 'top_traders',
+            operation: 'fetch_leaderboard',
+            endpoint: 'leaderboard',
+          }),
+          extras: expect.objectContaining({
+            message: 'Top traders leaderboard fetch failed at useTopTraders',
+            endpoint: 'leaderboard',
+          }),
         }),
       );
     });
@@ -366,9 +373,15 @@ describe('useTopTraders', () => {
       expect(Logger.error).toHaveBeenCalledWith(
         err,
         expect.objectContaining({
-          message: 'useTopTraders: refresh failed',
-          endpoint: 'leaderboard',
-          errorCategory: expect.any(String),
+          tags: expect.objectContaining({
+            feature: 'social',
+            surface: 'top_traders',
+            operation: 'refresh',
+          }),
+          extras: expect.objectContaining({
+            message: 'Top traders leaderboard refresh failed at useTopTraders',
+            endpoint: 'leaderboard',
+          }),
         }),
       );
     });

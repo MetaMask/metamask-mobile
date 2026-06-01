@@ -66,6 +66,11 @@ jest.mock(
   () => () => mockReact.createElement('EarnTransactionMonitorMock'),
 );
 
+jest.mock(
+  '../../UI/Money/components/MoneyTransactionMonitor/MoneyTransactionMonitor',
+  () => () => mockReact.createElement('MoneyTransactionMonitorMock'),
+);
+
 jest.mock('../../UI/ProtectYourWalletModal', () => ({
   __esModule: true,
   default: () => mockReact.createElement('ProtectYourWalletModalMock'),
@@ -81,6 +86,15 @@ jest.mock(
   () => ({
     __esModule: true,
     default: () => mockReact.createElement('ProtectWalletMandatoryModalMock'),
+  }),
+);
+
+jest.mock(
+  '../../Views/Notifications/PushNotificationOnboarding/PushNotificationOnboardingRoot',
+  () => ({
+    __esModule: true,
+    default: () =>
+      mockReact.createElement('PushNotificationOnboardingRootMock'),
   }),
 );
 
