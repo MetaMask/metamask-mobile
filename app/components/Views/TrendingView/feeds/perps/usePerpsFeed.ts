@@ -2,6 +2,7 @@ import { useContext, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
   filterMarketsByQuery,
+  MarketCategory,
   type PerpsMarketData,
   type SortOptionId,
 } from '@metamask/perps-controller';
@@ -87,21 +88,21 @@ const filterByVariant = (
     case 'rwa':
       return markets.filter(
         (m) =>
-          m.marketType === 'stock' ||
-          m.marketType === 'pre-ipo' ||
-          m.marketType === 'index' ||
-          m.marketType === 'etf' ||
-          m.marketType === 'commodity' ||
-          m.marketType === 'forex',
+          m.marketType === MarketCategory.Stock ||
+          m.marketType === MarketCategory.PreIpo ||
+          m.marketType === MarketCategory.Index ||
+          m.marketType === MarketCategory.Etf ||
+          m.marketType === MarketCategory.Commodity ||
+          m.marketType === MarketCategory.Forex,
       );
     case 'macro':
       return markets.filter(
         (m) =>
-          m.marketType === 'stock' ||
-          m.marketType === 'pre-ipo' ||
-          m.marketType === 'index' ||
-          m.marketType === 'etf' ||
-          m.marketType === 'commodity',
+          m.marketType === MarketCategory.Stock ||
+          m.marketType === MarketCategory.PreIpo ||
+          m.marketType === MarketCategory.Index ||
+          m.marketType === MarketCategory.Etf ||
+          m.marketType === MarketCategory.Commodity,
       );
     case 'all':
     default:

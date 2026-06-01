@@ -5,6 +5,7 @@ import { usePerpsSearch } from './usePerpsSearch';
 import { usePerpsSorting } from './usePerpsSorting';
 import {
   MARKET_SORTING_CONFIG,
+  MarketCategory,
   sortMarkets,
   type PerpsMarketData,
   type MarketTypeFilter,
@@ -191,27 +192,37 @@ export const usePerpsMarketListView = ({
 
     // HIP-3 categories - only show explicitly mapped markets
     if (marketTypeFilter === 'stocks') {
-      return searchedMarkets.filter((m) => m.marketType === 'stock');
+      return searchedMarkets.filter(
+        (m) => m.marketType === MarketCategory.Stock,
+      );
     }
 
     if (marketTypeFilter === 'pre-ipo') {
-      return searchedMarkets.filter((m) => m.marketType === 'pre-ipo');
+      return searchedMarkets.filter(
+        (m) => m.marketType === MarketCategory.PreIpo,
+      );
     }
 
     if (marketTypeFilter === 'indices') {
-      return searchedMarkets.filter((m) => m.marketType === 'index');
+      return searchedMarkets.filter(
+        (m) => m.marketType === MarketCategory.Index,
+      );
     }
 
     if (marketTypeFilter === 'etfs') {
-      return searchedMarkets.filter((m) => m.marketType === 'etf');
+      return searchedMarkets.filter((m) => m.marketType === MarketCategory.Etf);
     }
 
     if (marketTypeFilter === 'commodities') {
-      return searchedMarkets.filter((m) => m.marketType === 'commodity');
+      return searchedMarkets.filter(
+        (m) => m.marketType === MarketCategory.Commodity,
+      );
     }
 
     if (marketTypeFilter === 'forex') {
-      return searchedMarkets.filter((m) => m.marketType === 'forex');
+      return searchedMarkets.filter(
+        (m) => m.marketType === MarketCategory.Forex,
+      );
     }
 
     // Fallback: return all markets for unknown filter values
@@ -288,17 +299,17 @@ export const usePerpsMarketListView = ({
       }
       if (!market.isHip3) {
         counts.crypto++;
-      } else if (market.marketType === 'stock') {
+      } else if (market.marketType === MarketCategory.Stock) {
         counts.stocks++;
-      } else if (market.marketType === 'pre-ipo') {
+      } else if (market.marketType === MarketCategory.PreIpo) {
         counts.preIpo++;
-      } else if (market.marketType === 'index') {
+      } else if (market.marketType === MarketCategory.Index) {
         counts.indices++;
-      } else if (market.marketType === 'etf') {
+      } else if (market.marketType === MarketCategory.Etf) {
         counts.etfs++;
-      } else if (market.marketType === 'commodity') {
+      } else if (market.marketType === MarketCategory.Commodity) {
         counts.commodity++;
-      } else if (market.marketType === 'forex') {
+      } else if (market.marketType === MarketCategory.Forex) {
         counts.forex++;
       }
     });

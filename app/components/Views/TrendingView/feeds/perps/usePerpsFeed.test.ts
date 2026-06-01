@@ -62,6 +62,7 @@ jest.mock('../search-utils', () => ({
 }));
 
 jest.mock('@metamask/perps-controller', () => ({
+  ...jest.requireActual('@metamask/perps-controller'),
   filterMarketsByQuery: jest.fn((items: unknown[]) => items),
 }));
 

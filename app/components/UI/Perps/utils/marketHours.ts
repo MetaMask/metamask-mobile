@@ -3,6 +3,8 @@
  * Market hours: 9:30 AM - 4:00 PM EST, Monday-Friday
  */
 
+import { MarketCategory } from '@metamask/perps-controller';
+
 export interface MarketHoursStatus {
   isOpen: boolean;
   nextTransition: Date;
@@ -286,10 +288,10 @@ export const getMarketHoursStatus = (
  * These assets follow traditional market hours.
  */
 const STOCK_LIKE_MARKET_TYPES: ReadonlySet<string> = new Set([
-  'stock',
-  'pre-ipo',
-  'index',
-  'etf',
+  MarketCategory.Stock,
+  MarketCategory.PreIpo,
+  MarketCategory.Index,
+  MarketCategory.Etf,
 ]);
 
 /**
