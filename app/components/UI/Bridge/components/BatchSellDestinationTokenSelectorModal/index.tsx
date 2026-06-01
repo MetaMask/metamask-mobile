@@ -36,6 +36,7 @@ import { RootState } from '../../../../../reducers';
 import { BridgeToken } from '../../types';
 import { formatTokenBalance } from '../../utils';
 import { BatchSellDestinationTokenSelectorModalSelectorsIDs } from './BatchSellDestinationTokenSelectorModal.testIds';
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 const getTokenKey = (token: BridgeToken) => `${token.chainId}:${token.address}`;
 
@@ -86,6 +87,7 @@ export function BatchSellDestinationTokenSelectorModal() {
     chainIds:
       destinationChainIds ?? (sourceChainId ? [sourceChainId] : undefined),
   });
+  const surfaceClass = useElevatedSurface();
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -104,6 +106,7 @@ export function BatchSellDestinationTokenSelectorModal() {
       ref={sheetRef}
       goBack={navigation.goBack}
       testID={BatchSellDestinationTokenSelectorModalSelectorsIDs.SHEET}
+      twClassName={surfaceClass}
     >
       <BottomSheetHeader
         onClose={handleClose}

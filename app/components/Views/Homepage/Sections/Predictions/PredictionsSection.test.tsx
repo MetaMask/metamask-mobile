@@ -153,6 +153,21 @@ jest.mock('../../../../UI/Predict/hooks/useLiveCryptoPrices', () => ({
   })),
 }));
 
+jest.mock(
+  '../../../../UI/Predict/hooks/useCurrentCryptoUpDownMarketData',
+  () => ({
+    useCurrentCryptoUpDownMarketData: jest.fn(() => ({
+      marketId: undefined,
+      market: undefined,
+      currentPrice: undefined,
+      priceToBeat: undefined,
+      countdown: '--:--',
+      isLoading: false,
+      isFetching: false,
+    })),
+  }),
+);
+
 jest.mock('../../../../UI/Predict/hooks/usePredictClaim', () => ({
   usePredictClaim: () => ({ claim: mockClaim }),
 }));
