@@ -7,7 +7,6 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../locales/i18n';
 import { formatNumber, formatUsd } from '../../utils/formatUtils';
 import type { VipVolumeDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 
@@ -22,16 +21,26 @@ export const VIP_VOLUME_SECTION_TEST_IDS = {
   PERPS: 'vip-volume-section-perps',
 } as const;
 
+interface VipVolumeSectionLabels {
+  points: string;
+  swapsVolume: string;
+  pointsFromReferrals: string;
+  perpsVolume: string;
+  vipReferrals: string;
+}
+
 interface VipVolumeSectionProps {
   volume: VipVolumeDto;
   title: string;
   period: string;
+  labels: VipVolumeSectionLabels;
 }
 
 const VipVolumeSection: React.FC<VipVolumeSectionProps> = ({
   volume,
   title,
   period,
+  labels,
 }) => (
   <Box twClassName="gap-3 px-4" testID={VIP_VOLUME_SECTION_TEST_IDS.CONTAINER}>
     <Box twClassName="gap-1">
@@ -50,7 +59,7 @@ const VipVolumeSection: React.FC<VipVolumeSectionProps> = ({
     <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-6 mt-1">
       <Box twClassName="flex-1" testID={VIP_VOLUME_SECTION_TEST_IDS.POINTS}>
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {strings('rewards.vip.points_label')}
+          {labels.points}
         </Text>
         <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
           {formatNumber(volume.points)}
@@ -58,7 +67,7 @@ const VipVolumeSection: React.FC<VipVolumeSectionProps> = ({
       </Box>
       <Box twClassName="flex-1" testID={VIP_VOLUME_SECTION_TEST_IDS.SWAPS}>
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {strings('rewards.vip.swaps_label')}
+          {labels.swapsVolume}
         </Text>
         <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
           {formatUsd(volume.swapsUsd)}
@@ -72,7 +81,7 @@ const VipVolumeSection: React.FC<VipVolumeSectionProps> = ({
         testID={VIP_VOLUME_SECTION_TEST_IDS.POINTS_FROM_REFERRALS}
       >
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {strings('rewards.vip.points_from_referrals_label')}
+          {labels.pointsFromReferrals}
         </Text>
         <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
           {formatNumber(volume.pointsFromReferrals)}
@@ -81,7 +90,7 @@ const VipVolumeSection: React.FC<VipVolumeSectionProps> = ({
 
       <Box twClassName="flex-1" testID={VIP_VOLUME_SECTION_TEST_IDS.PERPS}>
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {strings('rewards.vip.perps_label')}
+          {labels.perpsVolume}
         </Text>
         <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
           {formatUsd(volume.perpsUsd)}
@@ -91,7 +100,7 @@ const VipVolumeSection: React.FC<VipVolumeSectionProps> = ({
     <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-6 mt-1">
       <Box twClassName="flex-1" testID={VIP_VOLUME_SECTION_TEST_IDS.REFERRALS}>
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {strings('rewards.vip.referrals_label')}
+          {labels.vipReferrals}
         </Text>
         <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
           {volume.referrals}/{volume.referralsCap}

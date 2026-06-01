@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   Box,
+  TabEmptyState,
   Text,
   TextVariant,
   TextColor,
@@ -19,18 +19,39 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { FlashList, FlashListRef, ListRenderItem } from '@shopify/flash-list';
 import type { TrendingAsset } from '@metamask/assets-controllers';
-import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import SitesSearchFooter from '../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
 import { useSearchTracking } from '../../../UI/Trending/hooks/useSearchTracking/useSearchTracking';
 import { TimeOption } from '../../../UI/Trending/components/TrendingTokensBottomSheet/TrendingTokenTimeBottomSheet';
-import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
-import { trackExploreSearchEvent, useScrollTracking } from './analytics';
-import { useExploreSearch, type SearchFeedSection } from './useExploreSearch';
+import {
+  trackExploreSearchEvent,
+  useScrollTracking,
+  type SearchFeedPill,
+} from './analytics';
+import { type SearchFeedId, type SearchFeedSection } from './useExploreSearch';
 import SearchFeedRow, { SearchFeedSkeleton, getItemId } from './SearchFeedRow';
-import { MAX_ITEMS_PER_SECTION } from './viewMoreLabel';
+import { MAX_ITEMS_PER_SECTION, getViewMoreLabel } from './viewMoreLabel';
 import type { FlatListItem, ListItemHeader } from './searchTypes';
+import CryptoMoversPillItem from '../feeds/tokens/CryptoMoversPillItem';
+
+const POPULAR_ASSETS: TrendingAsset[] = [
+  {
+    assetId: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
+    symbol: 'BTC',
+    name: 'Bitcoin',
+  },
+  {
+    assetId: 'eip155:1/slip44:60',
+    symbol: 'ETH',
+    name: 'Ethereum',
+  },
+  {
+    assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+    symbol: 'SOL',
+    name: 'Solana',
+  },
+] as TrendingAsset[];
 
 const pressedStyle = StyleSheet.create({
   pressable: {
@@ -42,17 +63,27 @@ const pressedStyle = StyleSheet.create({
 
 interface ExploreSearchResultsProps {
   searchQuery: string;
+  sections: SearchFeedSection[];
+  onViewMore: (feedId: SearchFeedId) => void;
+  /** When set, renders a "No {title} found" header above the all-results list. */
+  emptyFeedTitle?: string;
+  /**
+   * The pill that was active when this component was rendered.
+   * Defaults to 'all'. When an empty-feed fallback is shown (emptyFeedTitle is
+   * set), this will be the specific feed pill the user tapped — analytics must
+   * reflect that, not 'all'.
+   */
+  activeTab?: SearchFeedPill;
 }
 
 const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   searchQuery,
+  sections,
+  onViewMore,
+  emptyFeedTitle,
+  activeTab = 'all',
 }) => {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const tw = useTailwind();
-  const { sections } = useExploreSearch(searchQuery, {
-    truncateWithoutQuery: true,
-    titleVariant: 'v1',
-  });
   const flashListRef = useRef<FlashListRef<FlatListItem>>(null);
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
@@ -61,12 +92,12 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   const { onScrollBeginDrag, resetScrollTracking } = useScrollTracking(
     'scrolled',
     searchQuery,
-    { tab_name: 'all' },
+    { tab_name: activeTab },
   );
 
   useEffect(() => {
     resetScrollTracking();
-  }, [searchQuery, resetScrollTracking]);
+  }, [searchQuery, activeTab, resetScrollTracking]);
 
   const handleViewMore = useCallback(
     (section: SearchFeedSection) => {
@@ -74,61 +105,66 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         interaction_type: 'tab_switched',
         search_query: searchQuery,
         tab_name: section.feedId,
-        previous_tab: 'all',
+        previous_tab: activeTab,
         comes_from_view_all_tap: true,
       });
-      navigation.navigate(Routes.EXPLORE_SECTION_RESULTS_FULL_VIEW, {
-        feedId: section.feedId,
-        title: section.title,
-        searchQuery,
-        data: section.items,
-      });
+      onViewMore(section.feedId);
     },
-    [navigation, searchQuery],
+    [onViewMore, searchQuery, activeTab],
   );
 
   const renderSectionHeader = useCallback(
-    (item: ListItemHeader, section: SearchFeedSection) => (
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="py-2 bg-default"
-      >
-        <Text
-          variant={TextVariant.HeadingSm}
-          fontWeight={FontWeight.Medium}
-          twClassName="text-alternative"
+    (item: ListItemHeader, section: SearchFeedSection) => {
+      const viewMoreLabel = section.isLoading
+        ? null
+        : getViewMoreLabel(
+            section.feedId,
+            section.items.length,
+            searchQuery,
+            section.total,
+          );
+      return (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="py-2 bg-default"
         >
-          {item.title}
-        </Text>
-        {item.hasMore && (
-          <Pressable
-            onPress={() => handleViewMore(section)}
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel={`${strings('trending.view_all')} ${item.title}`}
-            style={({ pressed }) => [
-              pressedStyle.pressable,
-              pressed && { opacity: 0.5 },
-            ]}
+          <Text
+            variant={TextVariant.HeadingSm}
+            fontWeight={FontWeight.Medium}
+            twClassName="text-alternative"
           >
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
+            {item.title}
+          </Text>
+          {viewMoreLabel !== null && (
+            <Pressable
+              onPress={() => handleViewMore(section)}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel={`${viewMoreLabel} ${item.title}`}
+              style={({ pressed }) => [
+                pressedStyle.pressable,
+                pressed && { opacity: 0.5 },
+              ]}
             >
-              {strings('trending.view_all')}
-            </Text>
-            <Icon
-              name={IconName.ArrowRight}
-              size={IconSize.Sm}
-              color={IconColor.IconAlternative}
-            />
-          </Pressable>
-        )}
-      </Box>
-    ),
-    [handleViewMore],
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                {viewMoreLabel}
+              </Text>
+              <Icon
+                name={IconName.ArrowRight}
+                size={IconSize.Sm}
+                color={IconColor.IconAlternative}
+              />
+            </Pressable>
+          )}
+        </Box>
+      );
+    },
+    [handleViewMore, searchQuery],
   );
 
   const flatData = useMemo<FlatListItem[]>(() => {
@@ -139,15 +175,15 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
       const { feedId, title, items, isLoading } = section;
       if (!isLoading && items.length === 0) return;
 
-      const hasMore = !isLoading && items.length > MAX_ITEMS_PER_SECTION;
-      result.push({ type: 'header', feedId, title, hasMore });
+      result.push({ type: 'header', feedId, title });
 
       if (isLoading) {
         for (let i = 0; i < MAX_ITEMS_PER_SECTION; i++) {
           result.push({ type: 'skeleton', feedId, index: i });
         }
       } else {
-        items.slice(0, MAX_ITEMS_PER_SECTION).forEach((data, sectionIndex) => {
+        const visibleItems = items.slice(0, MAX_ITEMS_PER_SECTION);
+        visibleItems.forEach((data, sectionIndex) => {
           result.push({ type: 'item', feedId, title, data, sectionIndex });
         });
       }
@@ -157,10 +193,8 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   }, [isBasicFunctionalityEnabled, sections]);
 
   useEffect(() => {
-    if (flatData.length > 0) {
-      flashListRef.current?.scrollToIndex({ index: 0, animated: false });
-    }
-  }, [searchQuery, flatData.length]);
+    flashListRef.current?.scrollToOffset({ offset: 0, animated: false });
+  }, [searchQuery, flatData.length, emptyFeedTitle]);
 
   const tokensSection = sections.find((s) => s.feedId === 'tokens');
   useSearchTracking({
@@ -194,11 +228,11 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
           item={item.data}
           index={item.sectionIndex}
           searchQuery={searchQuery}
-          tabName="all"
+          tabName={activeTab}
         />
       );
     },
-    [renderSectionHeader, sections, searchQuery],
+    [renderSectionHeader, sections, searchQuery, activeTab],
   );
 
   const keyExtractor = useCallback((item: FlatListItem) => {
@@ -207,6 +241,73 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
       return `skeleton-${item.feedId}-${item.index}`;
     return `${item.feedId}-${getItemId(item.feedId, item.data)}`;
   }, []);
+
+  const listHeader = useMemo(() => {
+    const isLoading = sections.some((s) => s.isLoading);
+    const allSectionsEmpty =
+      searchQuery.trim().length > 0 && !isLoading && flatData.length === 0;
+
+    if (!emptyFeedTitle && !allSectionsEmpty) return null;
+    const showOtherResults = flatData.length > 0 && !isLoading;
+    const otherResultsCount = sections.reduce(
+      (sum, s) => sum + (s.total ?? s.items.length),
+      0,
+    );
+    return (
+      <Box twClassName={showOtherResults ? 'mb-4' : ''}>
+        <Box twClassName="rounded-xl bg-secondary py-6 px-4 items-center mb-4">
+          <TabEmptyState
+            description={
+              emptyFeedTitle
+                ? strings('trending.no_results_for_feed', {
+                    feedName: emptyFeedTitle,
+                    query: searchQuery,
+                  })
+                : strings('trending.no_results_for_query', {
+                    query: searchQuery,
+                  })
+            }
+            descriptionProps={{
+              variant: TextVariant.HeadingSm,
+              fontWeight: FontWeight.Bold,
+              color: TextColor.TextDefault,
+            }}
+          />
+          {!isLoading && !showOtherResults && (
+            <>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                {strings('trending.no_results_check_popular')}
+              </Text>
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                twClassName="gap-2 mt-2"
+              >
+                {POPULAR_ASSETS.map((token, index) => (
+                  <CryptoMoversPillItem
+                    key={token.assetId}
+                    token={token}
+                    index={index}
+                  />
+                ))}
+              </Box>
+            </>
+          )}
+        </Box>
+        {showOtherResults && (
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {strings('trending.showing_all_results_for', {
+              count: otherResultsCount,
+              query: searchQuery,
+            })}
+          </Text>
+        )}
+      </Box>
+    );
+  }, [emptyFeedTitle, searchQuery, flatData.length, sections]);
 
   return (
     <Box twClassName="flex-1 bg-default">
@@ -220,6 +321,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         keyboardDismissMode="on-drag"
         keyboardShouldPersistTaps="handled"
         testID="trending-search-results-list"
+        ListHeaderComponent={listHeader}
         ListFooterComponent={renderFooter}
         onScrollBeginDrag={onScrollBeginDrag}
       />

@@ -126,6 +126,24 @@ describe('PerpsTradingCampaignStatsHeader', () => {
     expect(pnl.props.color).toBe(TextColor.TextDefault);
   });
 
+  it('shows fallbacks when position numeric fields are invalid', () => {
+    const malformedPosition = {
+      ...basePosition,
+      rank: null,
+      pnl: null,
+    } as unknown as PerpsTradingCampaignLeaderboardPositionDto;
+
+    const { getByTestId } = render(
+      <PerpsTradingCampaignStatsHeader position={malformedPosition} />,
+    );
+
+    const rank = getByTestId(TEST_IDS.RANK_VALUE);
+    const pnl = getByTestId(TEST_IDS.PNL_VALUE);
+    expect(rank.props.children).toBe('—');
+    expect(pnl.props.children).toBe('—');
+    expect(pnl.props.color).toBe(TextColor.TextDefault);
+  });
+
   it('hides PnL and computed-at subtext when showPnl and showComputedAt are false', () => {
     const { queryByTestId } = render(
       <PerpsTradingCampaignStatsHeader

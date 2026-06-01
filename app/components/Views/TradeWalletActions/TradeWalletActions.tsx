@@ -43,9 +43,13 @@ import Routes from '../../../constants/navigation/Routes';
 import AppConstants from '../../../core/AppConstants';
 import { selectIsSwapsEnabled } from '../../../core/redux/slices/bridge';
 import { RootState } from '../../../reducers';
-import { selectCanSignTransactions } from '../../../selectors/accountsController';
+import {
+  selectCanSignTransactions,
+  selectSelectedInternalAccountAddress,
+} from '../../../selectors/accountsController';
 import { earnSelectors } from '../../../selectors/earnController';
 import { selectChainId } from '../../../selectors/networkController';
+import { isHardwareAccount } from '../../../util/address';
 import { getDecimalChainId } from '../../../util/networks';
 import {
   SwapBridgeNavigationLocation,
@@ -111,6 +115,12 @@ function TradeWalletActions() {
   const { isEligible: isEarnEligible } = useStakingEligibility();
 
   const canSignTransactions = useSelector(selectCanSignTransactions);
+  const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
+  const isHardwareWallet = selectedAddress
+    ? Boolean(isHardwareAccount(selectedAddress))
+    : false;
+  const shouldRenderBatchSell =
+    BATCH_SELL_ENABLED && AppConstants.SWAPS.ACTIVE && !isHardwareWallet;
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
 
@@ -301,7 +311,7 @@ function TradeWalletActions() {
                   `px-0`,
                 )}
               >
-                {BATCH_SELL_ENABLED && AppConstants.SWAPS.ACTIVE && (
+                {shouldRenderBatchSell && (
                   <ActionListItem
                     label={
                       <View style={tw.style('flex-row items-center gap-2')}>

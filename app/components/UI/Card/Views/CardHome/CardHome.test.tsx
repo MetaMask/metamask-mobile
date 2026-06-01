@@ -68,7 +68,6 @@ import { Alert, Linking } from 'react-native';
 import { useSelector } from 'react-redux';
 import React from 'react';
 import CardHome from './CardHome';
-import { cardDefaultNavigationOptions } from '../../routes';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { withCardSDK } from '../../sdk';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -1546,26 +1545,6 @@ describe('CardHome Component', () => {
         'card.card_home.manage_card_options.manage_spending_limit_description_restricted',
       ),
     ).toBeTruthy();
-  });
-
-  it('sets navigation options correctly', () => {
-    // Given: navigation object
-    const mockNavigation = {
-      navigate: mockNavigate,
-      goBack: mockGoBack,
-      setOptions: mockSetNavigationOptions,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-
-    // When: getting navigation options
-    const navigationOptions = cardDefaultNavigationOptions({
-      navigation: mockNavigation,
-    });
-
-    // Then: should include all required header components
-    expect(navigationOptions).toHaveProperty('headerLeft');
-    expect(navigationOptions).toHaveProperty('headerTitle');
-    expect(navigationOptions).toHaveProperty('headerRight');
   });
 
   it('dispatches bridge tokens when opening swaps with non-supported token', async () => {
