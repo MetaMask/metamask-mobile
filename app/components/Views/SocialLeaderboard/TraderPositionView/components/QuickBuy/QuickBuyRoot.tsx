@@ -1,15 +1,18 @@
 import {
   BottomSheet,
   type BottomSheetRef,
+  Box,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import type { LayoutChangeEvent } from 'react-native';
 import { ScrollView as GestureHandlerScrollView } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
 import { selectIsSubmittingTx } from '../../../../../../core/redux/slices/bridge';
 import QuickBuyAmountScreen from './QuickBuyAmountScreen';
 import QuickBuyPayWithScreen from './QuickBuyPayWithScreen';
+import QuickBuyPriceImpactConfirmScreen from './QuickBuyPriceImpactConfirmScreen';
 import QuickBuyQuoteDetailsScreen from './QuickBuyQuoteDetailsScreen';
 import QuickBuySelectQuoteScreen from './QuickBuySelectQuoteScreen';
 import { QuickBuyProvider } from './QuickBuyContext';
@@ -45,6 +48,8 @@ function renderActiveScreen(
       return <QuickBuyQuoteDetailsScreen />;
     case 'selectQuote':
       return <QuickBuySelectQuoteScreen />;
+    case 'priceImpactConfirm':
+      return <QuickBuyPriceImpactConfirmScreen />;
     case 'amount':
     default:
       return <QuickBuyAmountScreen />;
@@ -70,6 +75,7 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [isContentReady, setIsContentReady] = useState(false);
   const [activeScreen, setActiveScreen] = useState<QuickBuyScreen>('amount');
+  const [lockedHeight, setLockedHeight] = useState<number | null>(null);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
   const surfaceClass = useElevatedSurface();
 
@@ -78,6 +84,19 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
       setIsContentReady(true);
     });
   }, []);
+
+  const handleContentLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      if (lockedHeight !== null) {
+        return;
+      }
+      const { height } = event.nativeEvent.layout;
+      if (height > 0) {
+        setLockedHeight(height);
+      }
+    },
+    [lockedHeight],
+  );
 
   return (
     <BottomSheet
@@ -95,7 +114,13 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
           activeScreen={activeScreen}
           setActiveScreen={setActiveScreen}
         >
-          {renderActiveScreen(activeScreen, children)}
+          <Box
+            testID="quick-buy-content-container"
+            onLayout={handleContentLayout}
+            style={lockedHeight !== null ? { height: lockedHeight } : undefined}
+          >
+            {renderActiveScreen(activeScreen, children)}
+          </Box>
         </QuickBuyProvider>
       ) : (
         <AnimatedScrollView
