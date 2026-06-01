@@ -253,6 +253,7 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
             claimablePositions={claimablePositions}
             groupMap={groupMap}
             activeChipKey={activeChipKey}
+            onBetPress={onBetPress}
           />
         </Box>
       </ScrollView>

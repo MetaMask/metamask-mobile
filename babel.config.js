@@ -80,14 +80,6 @@ module.exports = {
     ],
     'transform-inline-environment-variables',
     dynamicImportToRequire,
-    [
-      'module-resolver',
-      {
-        alias: {
-          '@metamask/perps-controller': './app/controllers/perps',
-        },
-      },
-    ],
     // NOTE: react-native-reanimated/plugin must be listed LAST.
     // Required by reanimated v3 to compile `'worklet'` directives; without it,
     // gesture-handler worklets silently no-op on iOS Fabric and GestureDetector

@@ -14,6 +14,7 @@ export enum UserProfileProperty {
   PRIMARY_CURRENCY = 'primary_currency',
   CURRENT_CURRENCY = 'current_currency',
   HAS_MARKETING_CONSENT = 'has_marketing_consent',
+  PUSH_NOTIFICATIONS_ENABLED = 'push_notifications_enabled',
   NUMBER_OF_HD_ENTROPIES = 'number_of_hd_entropies',
   NUMBER_OF_ACCOUNT_GROUPS = 'number_of_account_groups',
   NUMBER_OF_IMPORTED_ACCOUNTS = 'number_of_imported_accounts',
@@ -40,6 +41,7 @@ export interface UserProfileMetaData {
   [UserProfileProperty.PRIMARY_CURRENCY]?: string;
   [UserProfileProperty.CURRENT_CURRENCY]?: string;
   [UserProfileProperty.HAS_MARKETING_CONSENT]: boolean;
+  [UserProfileProperty.PUSH_NOTIFICATIONS_ENABLED]?: boolean;
   [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: number;
   [UserProfileProperty.NUMBER_OF_ACCOUNT_GROUPS]: number;
   [UserProfileProperty.NUMBER_OF_IMPORTED_ACCOUNTS]: number;

@@ -64,10 +64,10 @@ jest.mock('../../../selectors/featureFlagController/marketInsights', () => ({
 
 jest.mock('../../hooks/useAnalytics/useAnalytics');
 
-const mockSelectMoneyHomeScreenEnabledFlag = jest.fn().mockReturnValue(false);
+const mockSelectMoneyEnableMoneyAccountFlag = jest.fn().mockReturnValue(false);
 jest.mock('../../UI/Money/selectors/featureFlags', () => ({
-  selectMoneyHomeScreenEnabledFlag: (state: unknown) =>
-    mockSelectMoneyHomeScreenEnabledFlag(state),
+  selectMoneyEnableMoneyAccountFlag: (state: unknown) =>
+    mockSelectMoneyEnableMoneyAccountFlag(state),
 }));
 
 describe('MainNavigator', () => {
@@ -1051,19 +1051,6 @@ describe('MainNavigator', () => {
       expect(screen).toBeDefined();
     });
 
-    it('includes NotificationsOptInStack screen', () => {
-      const container = renderWithProvider(<MainNavigator />, {
-        state: initialRootState,
-      });
-
-      const screenProps = getScreenProps(container);
-      const screen = screenProps?.find(
-        (s) => s?.name === Routes.NOTIFICATIONS.OPT_IN_STACK,
-      );
-
-      expect(screen).toBeDefined();
-    });
-
     it('includes DeFiProtocolPositionDetails screen', () => {
       const container = renderWithProvider(<MainNavigator />, {
         state: initialRootState,
@@ -1369,17 +1356,6 @@ describe('MainNavigator', () => {
         const Component = getScreenComponent(root, 'Asset');
         expect(renderInner(Component).toJSON()).toBeTruthy();
       });
-
-      it('renders NotificationsOptInStack navigator', () => {
-        const { root } = renderWithProvider(<MainNavigator />, {
-          state: initialRootState,
-        });
-        const Component = getScreenComponent(
-          root,
-          Routes.NOTIFICATIONS.OPT_IN_STACK,
-        );
-        expect(renderInner(Component).toJSON()).toBeTruthy();
-      });
     });
 
     describe('HomeTabs child tab screens', () => {
@@ -1498,7 +1474,7 @@ describe('MainNavigator', () => {
       });
     });
 
-    describe('Money home screen conditional rendering', () => {
+    describe('Money account conditional rendering', () => {
       const getHomeTabsScreenNames = (): string[] => {
         const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
@@ -1529,16 +1505,16 @@ describe('MainNavigator', () => {
       };
 
       it('includes Money route when feature flag is enabled', () => {
-        mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(true);
+        mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(true);
 
         const tabScreenNames = getHomeTabsScreenNames();
 
         expect(tabScreenNames).toContain(Routes.MONEY.ROOT);
-        mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(false);
+        mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
       });
 
       it('excludes Money route when feature flag is disabled', () => {
-        mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(false);
+        mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
 
         const tabScreenNames = getHomeTabsScreenNames();
 

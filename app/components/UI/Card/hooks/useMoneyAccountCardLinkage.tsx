@@ -9,8 +9,9 @@ import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   Box,
-  IconColor as ReactNativeDsIconColor,
-  IconSize as ReactNativeDsIconSize,
+  Icon,
+  IconColor,
+  IconSize,
   Spinner,
 } from '@metamask/design-system-react-native';
 import type { MoneyAccount } from '@metamask/money-account-controller';
@@ -26,6 +27,7 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../../util/theme';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
+import { getGasFeesSponsoredNetworkEnabled } from '../../../../selectors/featureFlagController/gasFeesSponsored';
 import {
   selectCardDelegationSettings,
   selectCardHomeDataStatus,
@@ -46,6 +48,7 @@ import { CardLinkageInProgressError } from '../../../../core/Engine/controllers/
 import { BAANX_MAX_LIMIT } from '../constants';
 import { CardFundingToken } from '../types';
 import { UserCancelledError } from './useCardDelegation';
+import { useIsMoneyAccount7702Ready } from './useIsMoneyAccount7702Ready';
 
 export type LinkageStatus =
   | 'idle'
@@ -62,6 +65,7 @@ export interface LinkFlowOrigin {
 export interface UseMoneyAccountCardLinkageReturn {
   hasMoneyAccountRequirements: boolean;
   isCardAuthenticated: boolean;
+  isCardLinkedToMoneyAccount: boolean;
   primaryMoneyAccount: MoneyAccount | undefined;
   moneyAccountCardToken: CardFundingToken | null;
   canLink: boolean;
@@ -108,6 +112,10 @@ export const useMoneyAccountCardLinkage =
     const pendingMoneyAccountCardLink = useSelector(
       selectPendingMoneyAccountCardLink,
     );
+    const isMonadSponsorshipEnabled = useSelector(
+      getGasFeesSponsoredNetworkEnabled,
+    )(vaultConfig?.chainId ?? '');
+    const is7702Ready = useIsMoneyAccount7702Ready();
 
     const [status, setStatus] = useState<LinkageStatus>('idle');
     const [error, setError] = useState<Error | null>(null);
@@ -123,12 +131,14 @@ export const useMoneyAccountCardLinkage =
       moneyAccountAddress: primaryMoneyAccount?.address,
     });
 
-    const canLink = Boolean(
+    const canSubmitDelegation = Boolean(
       hasRequirements &&
         isCardAuthenticated &&
         moneyAccountCardToken &&
-        !isAlreadyDelegated,
+        isMonadSponsorshipEnabled &&
+        is7702Ready === true,
     );
+    const canLink = Boolean(canSubmitDelegation && !isAlreadyDelegated);
 
     const showPendingToast = useCallback(() => {
       toastRef?.current?.showToast({
@@ -136,7 +146,6 @@ export const useMoneyAccountCardLinkage =
         labelOptions: [
           {
             label: strings('money.metamask_card.link_pending_title'),
-            isBold: true,
           },
         ],
         iconName: IconName.Loading,
@@ -144,8 +153,8 @@ export const useMoneyAccountCardLinkage =
         startAccessory: (
           <Box twClassName="pr-3">
             <Spinner
-              color={ReactNativeDsIconColor.IconDefault}
-              spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }}
+              color={IconColor.IconDefault}
+              spinnerIconProps={{ size: IconSize.Lg }}
             />
           </Box>
         ),
@@ -158,27 +167,41 @@ export const useMoneyAccountCardLinkage =
         labelOptions: [
           {
             label: strings('money.metamask_card.link_success_title'),
-            isBold: true,
           },
         ],
         iconName: IconName.Confirmation,
         iconColor: theme.colors.success.default,
         hasNoTimeout: false,
+        startAccessory: (
+          <Box twClassName="pr-3">
+            <Icon
+              name={IconName.Confirmation}
+              color={IconColor.SuccessDefault}
+              size={IconSize.Lg}
+            />
+          </Box>
+        ),
       });
     }, [theme.colors.success.default, toastRef]);
 
     const showErrorToast = useCallback(() => {
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
-        labelOptions: [
-          { label: strings('money.metamask_card.link_error'), isBold: true },
-        ],
+        labelOptions: [{ label: strings('money.metamask_card.link_error') }],
         iconName: IconName.Error,
         iconColor: theme.colors.error.default,
-        backgroundColor: theme.colors.error.muted,
         hasNoTimeout: false,
+        startAccessory: (
+          <Box twClassName="pr-3">
+            <Icon
+              name={IconName.Error}
+              color={IconColor.ErrorDefault}
+              size={IconSize.Lg}
+            />
+          </Box>
+        ),
       });
-    }, [theme.colors.error.default, theme.colors.error.muted, toastRef]);
+    }, [theme.colors.error.default, toastRef]);
 
     const openLinkCardSheet = useCallback((): void => {
       if (!canLink || !primaryMoneyAccount?.address) {
@@ -225,7 +248,10 @@ export const useMoneyAccountCardLinkage =
 
         navigation.navigate(Routes.CARD.ROOT, {
           screen: Routes.CARD.HOME,
-          params: { screen: Routes.CARD.ONBOARDING.ROOT },
+          params: {
+            screen: Routes.CARD.ONBOARDING.ROOT,
+            params: { postAuthRedirect: origin },
+          },
         });
       },
       [
@@ -284,7 +310,7 @@ export const useMoneyAccountCardLinkage =
       async (options?: {
         delegationAmountHuman?: string;
       }): Promise<boolean> => {
-        if (!canLink || !primaryMoneyAccount?.address) {
+        if (!canSubmitDelegation || !primaryMoneyAccount?.address) {
           showErrorToast();
           return false;
         }
@@ -329,7 +355,7 @@ export const useMoneyAccountCardLinkage =
         }
       },
       [
-        canLink,
+        canSubmitDelegation,
         primaryMoneyAccount?.address,
         showErrorToast,
         showPendingToast,
@@ -345,6 +371,7 @@ export const useMoneyAccountCardLinkage =
     return {
       hasMoneyAccountRequirements: hasRequirements,
       isCardAuthenticated,
+      isCardLinkedToMoneyAccount: isAlreadyDelegated,
       primaryMoneyAccount,
       moneyAccountCardToken,
       canLink,
