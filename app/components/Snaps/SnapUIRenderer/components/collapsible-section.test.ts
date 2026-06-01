@@ -1,5 +1,10 @@
 import { CollapsibleSection, Row, Text } from '@metamask/snaps-sdk/jsx';
 import { fireEvent } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
+import type {
+  ReactTestRendererJSON,
+  ReactTestRendererNode,
+} from 'react-test-renderer';
 import { renderInterface } from '../testUtils';
 
 jest.mock('../../../../core/Engine/Engine', () => ({
@@ -12,6 +17,39 @@ jest.mock('../../../../core/Engine/Engine', () => ({
     },
   },
 }));
+
+type SnapshotNode = ReactTestRendererJSON | ReactTestRendererJSON[] | null;
+
+const normalizeSvgMockStyles = (
+  node: ReactTestRendererJSON,
+): ReactTestRendererJSON => {
+  node.children =
+    node.children?.map((child): ReactTestRendererNode => {
+      if (typeof child === 'string') {
+        return child;
+      }
+
+      return normalizeSvgMockStyles(child);
+    }) ?? null;
+
+  if (node.type === 'SvgMock') {
+    node.props.style = StyleSheet.flatten(node.props.style);
+  }
+
+  return node;
+};
+
+const normalizeSnapshot = (node: SnapshotNode): SnapshotNode => {
+  if (node === null) {
+    return null;
+  }
+
+  if (Array.isArray(node)) {
+    return node.map(normalizeSvgMockStyles);
+  }
+
+  return normalizeSvgMockStyles(node);
+};
 
 describe('CollapsibleSection', () => {
   it('renders', () => {
@@ -57,6 +95,6 @@ describe('CollapsibleSection', () => {
 
     expect(getByText('Row 1')).toBeDefined();
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(normalizeSnapshot(toJSON())).toMatchSnapshot();
   });
 });
