@@ -1,7 +1,7 @@
 import Routes from '../../../constants/navigation/Routes';
 import NavigationService from '../../NavigationService';
 import {
-  DeeplinkIntent,
+  type DeeplinkIntent,
   isHomeTabDeeplinkNavigationIntent,
 } from '../types/DeeplinkIntent';
 
@@ -20,9 +20,7 @@ const createRoute = (name: string, params?: object): NavigationRoute =>
 export const executeDeeplinkIntent = async (
   intent: DeeplinkIntent,
 ): Promise<void> => {
-  if (intent.prepare) {
-    await intent.prepare();
-  }
+  await intent.prepare?.();
 
   if (isHomeTabDeeplinkNavigationIntent(intent)) {
     const { routeName, params } = intent.target;

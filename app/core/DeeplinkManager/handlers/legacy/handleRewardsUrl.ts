@@ -7,7 +7,7 @@ import {
   setOnboardingReferralCode,
   setPendingDeeplink,
 } from '../../../../reducers/rewards';
-import { DeeplinkIntent } from '../../types/DeeplinkIntent';
+import type { DeeplinkIntent } from '../../types/DeeplinkIntent';
 import { executeDeeplinkIntent } from '../../utils/executeDeeplinkIntent';
 
 interface HandleRewardsUrlParams {

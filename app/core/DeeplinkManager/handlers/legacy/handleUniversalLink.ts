@@ -24,7 +24,10 @@ import { handleSwapUrl } from './handleSwapUrl';
 import handleBrowserUrl from './handleBrowserUrl';
 import { handleCreateAccountUrl } from './handleCreateAccountUrl';
 import { handlePerpsUrl } from './handlePerpsUrl';
-import { handleRewardsUrl } from './handleRewardsUrl';
+import {
+  createRewardsDeeplinkIntent,
+  handleRewardsUrl,
+} from './handleRewardsUrl';
 import { handlePredictUrl } from './handlePredictUrl';
 import handleFastOnboarding from './handleFastOnboarding';
 import { handleCardOnboarding } from './handleCardOnboarding';
@@ -62,7 +65,6 @@ import branch from 'react-native-branch';
 import Logger from '../../../../util/Logger';
 import type { DeeplinkParseMode } from '../../utils/parseDeeplink';
 import type { DeeplinkIntent } from '../../types/DeeplinkIntent';
-import { createRewardsDeeplinkIntent } from './handleRewardsUrl';
 
 const { MM_IO_UNIVERSAL_LINK_HOST } = AppConstants;
 
@@ -163,6 +165,35 @@ const trackDeepLinkAnalytics = (
     });
 };
 
+interface UniversalLinkActionHandlerContext {
+  actionBasedRampPath: string;
+  baseUrlAction: string;
+  browserCallBack?: (url: string) => void;
+  urlObj: ReturnType<typeof extractURLParams>['urlObj'];
+}
+
+interface UniversalLinkActionHandler {
+  execute: (context: UniversalLinkActionHandlerContext) => void | Promise<void>;
+  resolve?: (
+    context: UniversalLinkActionHandlerContext,
+  ) => DeeplinkIntent | null;
+}
+
+const UNIVERSAL_LINK_ACTION_HANDLERS: Partial<
+  Record<SUPPORTED_ACTIONS, UniversalLinkActionHandler>
+> = {
+  [SUPPORTED_ACTIONS.REWARDS]: {
+    execute: ({ actionBasedRampPath }) =>
+      handleRewardsUrl({
+        rewardsPath: actionBasedRampPath,
+      }),
+    resolve: ({ actionBasedRampPath }) =>
+      createRewardsDeeplinkIntent({
+        rewardsPath: actionBasedRampPath,
+      }),
+  },
+};
+
 async function handleUniversalLink({
   instance,
   handled,
@@ -211,12 +242,15 @@ async function handleUniversalLink({
 
   const isSupportedDomain = isMetaMaskUniversalLink(urlObj.href);
   const isActionSupported = Object.values(SUPPORTED_ACTIONS).includes(action);
+  const universalLinkActionHandler = isActionSupported
+    ? UNIVERSAL_LINK_ACTION_HANDLERS[action]
+    : undefined;
 
   if (
     mode === 'resolve' &&
     (!isSupportedDomain ||
       !isActionSupported ||
-      action !== SUPPORTED_ACTIONS.REWARDS)
+      !universalLinkActionHandler?.resolve)
   ) {
     handled();
     return null;
@@ -514,6 +548,25 @@ async function handleUniversalLink({
 
   const BASE_URL_ACTION = `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${action}`;
   const actionBasedRampPath = urlObj.href.replace(BASE_URL_ACTION, '');
+  const universalLinkActionHandlerContext: UniversalLinkActionHandlerContext = {
+    actionBasedRampPath,
+    baseUrlAction: BASE_URL_ACTION,
+    browserCallBack,
+    urlObj,
+  };
+
+  if (mode === 'resolve') {
+    return (
+      universalLinkActionHandler?.resolve?.(
+        universalLinkActionHandlerContext,
+      ) ?? null
+    );
+  }
+
+  if (universalLinkActionHandler) {
+    await universalLinkActionHandler.execute(universalLinkActionHandlerContext);
+    return;
+  }
 
   switch (action) {
     case SUPPORTED_ACTIONS.BUY_CRYPTO:
@@ -600,18 +653,6 @@ async function handleUniversalLink({
         perpsPath: `perps?screen=asset${actionBasedRampPath.replace('?', '&')}`,
       });
       break;
-    }
-    case SUPPORTED_ACTIONS.REWARDS: {
-      const intent = createRewardsDeeplinkIntent({
-        rewardsPath: actionBasedRampPath,
-      });
-      if (mode === 'resolve') {
-        return intent;
-      }
-      handleRewardsUrl({
-        rewardsPath: actionBasedRampPath,
-      });
-      return;
     }
     case SUPPORTED_ACTIONS.PREDICT: {
       handlePredictUrl({

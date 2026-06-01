@@ -80,4 +80,57 @@ describe('executeDeeplinkIntent', () => {
       ],
     });
   });
+
+  it('preserves nested params when resetting to a startup target tab', async () => {
+    const browserParams = {
+      screen: Routes.BROWSER.VIEW,
+      params: {
+        newTabUrl: 'https://example.com',
+        linkType: 'external',
+        timestamp: 123,
+      },
+    };
+    const intent: DeeplinkIntent = {
+      type: 'navigation',
+      target: {
+        type: 'home-tab',
+        routeName: Routes.BROWSER.HOME,
+        params: browserParams,
+      },
+    };
+
+    await expect(executeStartupDeeplinkIntent(intent)).resolves.toBe(true);
+
+    expect(mockReset).toHaveBeenCalledWith({
+      routes: [
+        {
+          name: Routes.ONBOARDING.HOME_NAV,
+          state: {
+            routes: [
+              {
+                name: Routes.MAIN_FLOW,
+                state: {
+                  routes: [
+                    {
+                      name: Routes.HOME_TABS,
+                      state: {
+                        index: 1,
+                        routes: [
+                          { name: Routes.WALLET.HOME },
+                          {
+                            name: Routes.BROWSER.HOME,
+                            params: browserParams,
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+          },
+        },
+      ],
+    });
+  });
 });

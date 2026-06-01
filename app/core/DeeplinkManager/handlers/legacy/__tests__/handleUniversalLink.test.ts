@@ -200,6 +200,28 @@ describe('handleUniversalLink', () => {
       },
     );
 
+    it.each(testCases)(
+      'returns null in resolve mode without executing SDK action $action',
+      async ({ action }) => {
+        const testUrl = `https://link.metamask.io/${action}`;
+        const { urlObj: testUrlObj } = extractURLParams(testUrl);
+
+        const result = await handleUniversalLink({
+          instance,
+          handled,
+          urlObj: testUrlObj,
+          browserCallBack: mockBrowserCallBack,
+          url: testUrl,
+          source: 'origin',
+          mode: 'resolve',
+        });
+
+        expect(result).toBeNull();
+        expect(handled).toHaveBeenCalled();
+        expect(mockHandleMetaMaskDeeplink).not.toHaveBeenCalled();
+      },
+    );
+
     // `handleMetaMaskDeeplink` is async and deliberately not awaited here.
     // Make sure rejections are observed (logged) rather than surfacing as
     // unhandled promise rejections. This covers the synchronous security
