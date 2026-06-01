@@ -252,6 +252,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const navigation = useNavigation();
   const resetNavigationLockRef = useRef<(() => void) | null>(null);
   const { isTokenTradingOpen, isStockToken } = useRWAToken();
+
   const { trackEvent, createEventBuilder } = useAnalytics();
   const tronNativeToken = isTronNativeToken(token) ? token : null;
 
@@ -403,11 +404,13 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
         icon: displayIcon,
         iconColor: displayIconColor,
         title: securityConfig.sheetTitle,
-        description: securityConfig.getSheetDescription(token.symbol),
+        description: securityConfig.getSheetDescription(
+          token.symbol || token.name,
+        ),
         source: 'badge',
         severity: securityData.resultType,
         tokenAddress: token.address,
-        tokenSymbol: token.symbol,
+        tokenSymbol: token.symbol || token.name,
         chainId: token.chainId,
         features: securityData.features,
       },
@@ -416,6 +419,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     securityData,
     securityConfig,
     token.symbol,
+    token.name,
     token.address,
     token.chainId,
     navigation,
@@ -587,6 +591,22 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     Boolean(marketInsightsCaip19Id) &&
     (Boolean(marketInsightsReport) || isMarketInsightsLoading);
 
+  const tokenDisplaySymbol = token.symbol || token.name;
+  const securityBadgeDescription = (() => {
+    if (securityData?.resultType === 'Malicious') {
+      return tokenDisplaySymbol
+        ? strings('security_trust.malicious_token_description', {
+            symbol: tokenDisplaySymbol,
+          })
+        : strings('security_trust.malicious_token_description_no_symbol');
+    }
+    return tokenDisplaySymbol
+      ? strings('security_trust.suspicious_token_description', {
+          symbol: tokenDisplaySymbol,
+        })
+      : strings('security_trust.suspicious_token_description_no_symbol');
+  })();
+
   return (
     <Box twClassName="pt-[2px]" testID={TokenOverviewSelectorsIDs.CONTAINER}>
       {token.hasBalanceError ? (
@@ -619,15 +639,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                     ? strings('security_trust.malicious_token_title')
                     : undefined
                 }
-                description={
-                  securityData.resultType === 'Malicious'
-                    ? strings('security_trust.malicious_token_description', {
-                        symbol: token.symbol,
-                      })
-                    : strings('security_trust.suspicious_token_description', {
-                        symbol: token.symbol,
-                      })
-                }
+                description={securityBadgeDescription}
                 className="mx-4 mb-3 gap-4"
                 onPress={handleSecurityBadgePress}
               />

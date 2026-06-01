@@ -217,7 +217,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
           icon: config.icon,
           iconColor: config.iconColor,
           title: config.sheetTitle,
-          description: config.getSheetDescription(token.symbol),
+          description: config.getSheetDescription(token.symbol || token.name),
           onProceed: () => {
             onNavigate?.();
             action();
@@ -225,7 +225,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
           source,
           severity: securityData?.resultType,
           tokenAddress: token.address,
-          tokenSymbol: token.symbol,
+          tokenSymbol: token.symbol || token.name,
           chainId: token.chainId,
           features: securityData?.features,
         },
@@ -236,6 +236,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       navigation,
       securityData,
       token.symbol,
+      token.name,
       token.address,
       token.chainId,
     ],
