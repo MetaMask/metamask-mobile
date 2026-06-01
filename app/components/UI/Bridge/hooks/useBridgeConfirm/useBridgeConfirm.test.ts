@@ -2,10 +2,15 @@ import { act, waitFor } from '@testing-library/react-native';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useBridgeConfirm } from './index';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
+import { useABTest } from '../../../../../hooks';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PostTradeStatus } from '../../components/PostTradeBottomSheet/PostTradeBottomSheet.types';
+import {
+  POST_TRADE_MODAL_VARIANTS,
+  PostTradeModalVariant,
+} from '../../components/PostTradeBottomSheet/abTestConfig';
 import { mockBridgeReducerState } from '../../_mocks_/bridgeReducerState';
 import type { RootState } from '../../../../../reducers';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
@@ -36,6 +41,11 @@ jest.mock('../../../../../util/bridge/hooks/useSubmitBridgeTx', () => ({
   __esModule: true,
   default: () => ({ submitBridgeTx: mockSubmitBridgeTx }),
 }));
+
+jest.mock('../../../../../hooks', () => ({
+  useABTest: jest.fn(),
+}));
+const mockUseABTest = jest.mocked(useABTest);
 
 // Engine (required by store / other transitive deps)
 jest.mock('../../../../../core/Engine', () => ({
@@ -76,6 +86,11 @@ describe('useBridgeConfirm', () => {
       id: 'tx-meta-id',
       hash: '0xabc',
       status: 'submitted',
+    });
+    mockUseABTest.mockReturnValue({
+      variant: POST_TRADE_MODAL_VARIANTS[PostTradeModalVariant.Treatment],
+      variantName: PostTradeModalVariant.Treatment,
+      isActive: true,
     });
   });
 

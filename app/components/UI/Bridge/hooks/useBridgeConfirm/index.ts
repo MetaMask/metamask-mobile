@@ -18,6 +18,11 @@ import {
   type PostTradeBottomSheetParams,
   PostTradeStatus,
 } from '../../components/PostTradeBottomSheet/PostTradeBottomSheet.types';
+import { useABTest } from '../../../../../hooks';
+import {
+  POST_TRADE_MODAL_AB_KEY,
+  POST_TRADE_MODAL_VARIANTS,
+} from '../../components/PostTradeBottomSheet/abTestConfig';
 
 interface Params {
   activeQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] | null;
@@ -37,6 +42,11 @@ export const useBridgeConfirm = ({
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
+  const { variant: postTradeModalVariant } = useABTest(
+    POST_TRADE_MODAL_AB_KEY,
+    POST_TRADE_MODAL_VARIANTS,
+  );
+  const isPostTradeModalEnabled = postTradeModalVariant.showPostTradeModal;
 
   const handleConfirm = async () => {
     if (!activeQuote || !walletAddress) {
@@ -76,8 +86,10 @@ export const useBridgeConfirm = ({
         transactionHash,
       };
 
-      dispatch(resetBridgeTokenInputs());
-      dispatch(incrementBridgeBalanceRefreshKey());
+      if (isPostTradeModalEnabled) {
+        dispatch(resetBridgeTokenInputs());
+        dispatch(incrementBridgeBalanceRefreshKey());
+      }
     } catch (error) {
       console.error('Error submitting bridge tx', error);
       modalParams = {
@@ -86,10 +98,14 @@ export const useBridgeConfirm = ({
       };
     } finally {
       dispatch(setIsSubmittingTx(false));
-      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-        screen: Routes.BRIDGE.MODALS.POST_TRADE_MODAL,
-        params: modalParams,
-      });
+      if (isPostTradeModalEnabled) {
+        navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+          screen: Routes.BRIDGE.MODALS.POST_TRADE_MODAL,
+          params: modalParams,
+        });
+      } else {
+        navigation.navigate(Routes.TRANSACTIONS_VIEW);
+      }
     }
   };
 
