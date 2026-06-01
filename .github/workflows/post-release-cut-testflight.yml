@@ -3,8 +3,18 @@
 # Post-Release-Cut TestFlight Build
 #
 # Fires when a version-bump/X.Y.Z PR merges into main (the Thursday release cut).
-# Builds the newly bumped main branch and distributes to both internal and external
-# TestFlight groups.
+#
+# Strategy: instead of building from main (version x+1) and immediately submitting for
+# external review — which blocks any future x+1 uploads while Apple reviews — we create a
+# short-lived ephemeral branch at version x+2, build from it, and submit THAT for external
+# review. This gives Apple a full week to review while main (x+1) can receive any number of
+# internal builds without interference. The ephemeral branch is deleted after upload.
+#
+# Timeline:
+#   Thursday:  release/x cut, main bumps to x+1
+#              → ephemeral/testflight-x+2 created, built, submitted for external review
+#   +1 week:   Apple approves x+2 → external testers receive it
+#              Next release cut fires (x+1 → release/x+1, main bumps to x+2)
 #
 # Follows up the version bump made by merge-version-bump-pr.yml.
 #
@@ -17,17 +27,20 @@ on:
     branches: [main]
 
 permissions:
-  contents: read
+  contents: write
   id-token: write
 
 jobs:
-  check:
+  create-ephemeral-branch:
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged == true
     outputs:
       is-version-bump: ${{ steps.match.outputs.result }}
+      branch: ${{ steps.create.outputs.branch }}
+      next-version: ${{ steps.version.outputs.next }}
     steps:
-      - id: match
+      - name: Validate version-bump branch pattern
+        id: match
         run: |
           if [[ "${{ github.event.pull_request.head.ref }}" =~ ^version-bump/[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "result=true" >> "$GITHUB_OUTPUT"
@@ -35,13 +48,59 @@ jobs:
             echo "result=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Checkout main
+        if: steps.match.outputs.result == 'true'
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.PR_TOKEN }}
+          fetch-depth: 1
+
+      - name: Compute x+2 version
+        if: steps.match.outputs.result == 'true'
+        id: version
+        run: |
+          CURRENT=$(node -p "require('./package.json').version")
+          MAJOR=$(echo "$CURRENT" | cut -d. -f1)
+          MINOR=$(echo "$CURRENT" | cut -d. -f2)
+          NEXT="${MAJOR}.$((MINOR + 1)).0"
+          echo "next=$NEXT" >> "$GITHUB_OUTPUT"
+          echo "Current version: $CURRENT → Ephemeral version: $NEXT"
+
+      - name: Create ephemeral branch and bump version
+        if: steps.match.outputs.result == 'true'
+        id: create
+        run: |
+          BRANCH="ephemeral/testflight-${{ steps.version.outputs.next }}"
+          git checkout -b "$BRANCH"
+          bash scripts/set-semvar-version.sh "${{ steps.version.outputs.next }}"
+          git config user.name metamaskbot
+          git config user.email metamaskbot@users.noreply.github.com
+          git add package.json android/app/build.gradle ios/MetaMask.xcodeproj/project.pbxproj
+          git commit -m "[skip ci] Ephemeral: bump to ${{ steps.version.outputs.next }} for TestFlight pre-review"
+          git push origin HEAD
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+
   build-and-upload:
-    needs: [check]
-    if: needs.check.outputs.is-version-bump == 'true'
+    needs: [create-ephemeral-branch]
+    if: needs.create-ephemeral-branch.outputs.is-version-bump == 'true'
     uses: ./.github/workflows/build-and-upload-to-testflight.yml
     with:
-      source_branch: main
-      environment: exp
+      source_branch: ${{ needs.create-ephemeral-branch.outputs.branch }}
+      environment: beta
       testflight_group: 'MetaMask BETA & Release Candidates'
       distribute_external: true
     secrets: inherit
+
+  cleanup:
+    name: Delete ephemeral branch
+    needs: [create-ephemeral-branch, build-and-upload]
+    if: always() && needs.create-ephemeral-branch.outputs.is-version-bump == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete ephemeral branch
+        env:
+          GH_TOKEN: ${{ secrets.PR_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }}/git/refs/heads/${{ needs.create-ephemeral-branch.outputs.branch }} -X DELETE
+          echo "🧹 Deleted ${{ needs.create-ephemeral-branch.outputs.branch }}"
