@@ -339,7 +339,7 @@ describe('usePayWithMoneyAccountSection', () => {
       const { result } = renderHook(() => usePayWithMoneyAccountSection());
 
       act(() => {
-        result.current?.rows[0]?.onPress?.();
+        result.current?.rows[0].onPress?.();
       });
 
       expect(setConfigMock).toHaveBeenCalledWith('tx-1', expect.any(Function));
@@ -360,7 +360,7 @@ describe('usePayWithMoneyAccountSection', () => {
       const { result } = renderHook(() => usePayWithMoneyAccountSection());
 
       act(() => {
-        result.current?.rows[0]?.onPress?.();
+        result.current?.rows[0].onPress?.();
       });
 
       expect(goBackMock).toHaveBeenCalled();
