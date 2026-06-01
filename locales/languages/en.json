@@ -2301,6 +2301,7 @@
     },
     "world_cup": {
       "title": "World Cup",
+      "predictions_title": "World Cup predictions",
       "banner_title": "World Cup 2026",
       "banner_description": "Trade every match, every moment.",
       "tabs": {
@@ -2380,9 +2381,15 @@
       "new_prediction": "New prediction",
       "resolved_markets": "Resolved markets"
     },
+    "positions_empty": {
+      "description": "Your predictions will appear here, showing your stake and market movements",
+      "browse_markets": "Browse markets"
+    },
     "tabs": {
       "about": "About",
+      "active_positions": "Active positions",
       "positions": "Positions",
+      "history": "History",
       "outcomes": "Outcomes"
     },
     "outcome_groups": {
@@ -7529,6 +7536,7 @@
     "batch_sell_high_price_impact": "High price impact",
     "batch_sell_high_price_impact_description": "This trade has an estimated {{priceImpact}} price impact, which reflects how much your trade changes the market price. The quote already reflects this.",
     "batch_sell_review": "Review",
+    "batch_sell_searching_best_quotes": "Searching for best quotes",
     "batch_sell_you_sell": "You sell",
     "batch_sell_token_count": "{{tokenCount}} tokens",
     "batch_sell_toggle_you_sell": "Toggle token details",
@@ -9267,6 +9275,8 @@
     "title": "Explore",
     "crypto_movers": "Crypto movers",
     "perps_movers": "Perps movers",
+    "perps_movers_pill_gainers": "Gainers",
+    "perps_movers_pill_losers": "Losers",
     "trending_tokens": "Trending",
     "crypto": "Crypto",
     "stocks": "Stocks",

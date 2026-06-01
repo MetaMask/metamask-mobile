@@ -30,6 +30,7 @@ import { useBalance } from '../../../hooks/send/useBalance';
 import { useCurrencyConversions } from '../../../hooks/send/useCurrencyConversions';
 import { useRouteParams } from '../../../hooks/send/useRouteParams';
 import { useSendContext } from '../../../context/send-context';
+import { useSendNavbar } from '../../../hooks/send/useSendNavbar';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { AmountKeyboard } from './amount-keyboard';
 import { AnimatedCursor } from './animated-cursor';
@@ -38,6 +39,7 @@ import { InitSendLocation } from '../../../constants/send';
 
 export const Amount = () => {
   const navigation = useNavigation();
+  const { header: renderAmountHeader } = useSendNavbar().Amount;
   const { location } = useParams<{ location?: string }>();
   const primaryCurrency = useSelector(selectPrimaryCurrency);
   const { asset, value } = useSendContext();
@@ -135,6 +137,7 @@ export const Amount = () => {
       edges={isIos ? ['left', 'right'] : ['left', 'right', 'bottom']}
       style={styles.container}
     >
+      {renderAmountHeader()}
       <View style={styles.topSection}>
         {isNFT && (
           <View style={styles.nftImageWrapper}>
