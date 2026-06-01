@@ -20,6 +20,7 @@ import { createRampUnsupportedModalNavigationDetails } from '../components/RampU
 import { createEligibilityFailedModalNavigationDetails } from '../components/EligibilityFailedModal/EligibilityFailedModal';
 import { useRampsTokens } from './useRampsTokens';
 import { resolveRampControllerAssetId } from '../utils/resolveRampControllerAssetId';
+import Engine from '../../../../core/Engine';
 
 enum RampMode {
   AGGREGATOR = 'AGGREGATOR',
@@ -43,7 +44,7 @@ export const useRampNavigation = () => {
   const { setSelectedToken, tokens: rampsTokens } = useRampsTokens();
 
   const goToBuy = useCallback(
-    (
+    async (
       intent?: RampIntent,
       options?: {
         mode?: RampMode;
@@ -61,9 +62,21 @@ export const useRampNavigation = () => {
       // Check error states first (applies to both V1 and V2)
       if (isUnifiedRoutingEnabled) {
         if (rampRoutingDecision === UnifiedRampRoutingType.ERROR) {
-          navigation.navigate(
-            ...createEligibilityFailedModalNavigationDetails(),
-          );
+          // ERROR usually means geolocation was UNKNOWN at decision time (it's
+          // only fetched once at startup). Retry on tap: if geo now resolves to
+          // a real region, enter the flow — smart routing refines the decision
+          // in the background. Otherwise fall back to the modal.
+          const location = await Promise.resolve(
+            Engine.context.GeolocationController?.refreshGeolocation?.(),
+          ).catch(() => undefined);
+
+          if (location && location !== 'UNKNOWN') {
+            navigation.navigate(...createTokenSelectionNavDetails());
+          } else {
+            navigation.navigate(
+              ...createEligibilityFailedModalNavigationDetails(),
+            );
+          }
           return;
         }
 
