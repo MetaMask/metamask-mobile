@@ -32,33 +32,18 @@ export interface UsePredictionsFeedResult {
   total?: number;
 }
 
-export const PREDICTIONS_PREVIEW_VISIBLE_COUNT = 6;
-export const PREDICTIONS_PREVIEW_FETCH_COUNT = 20;
-
-export const getPredictionsPreviewFetchPageSize = (
-  visibleCount: number,
-): number => Math.max(visibleCount, PREDICTIONS_PREVIEW_FETCH_COUNT);
-
-export const limitPredictionsPreviewItems = <T>(
-  items: T[],
-  visibleCount: number,
-): T[] => items.slice(0, visibleCount);
-
 /** Predict markets feed; one shape covers home tabs and search via the variant + query knobs. */
 export const usePredictionsFeed = ({
   variant = 'trending',
   query,
   refresh,
   enabled = true,
-  pageSize = PREDICTIONS_PREVIEW_VISIBLE_COUNT,
+  pageSize = 6,
 }: UsePredictionsFeedOptions = {}): UsePredictionsFeedResult => {
   const hasQuery = Boolean(query?.trim());
-  const feedPageSize = hasQuery
-    ? pageSize
-    : getPredictionsPreviewFetchPageSize(pageSize);
   const feed = usePredictMarketData({
     category: variant,
-    pageSize: feedPageSize,
+    pageSize,
     enabled: enabled && !hasQuery,
   });
   const search = usePredictSearchMarketData({
@@ -76,19 +61,12 @@ export const usePredictionsFeed = ({
   // Memoize to stabilize the array reference: fuseSearch creates a new array
   // on every call, and predictions.data is a dep of useExploreSearch's useMemo,
   // so an unstable reference would invalidate sections on every render.
-  const rankedData = useMemo(() => {
-    if (hasQuery) {
-      return activeResult.marketData;
-    }
-
-    return fuseSearch(activeResult.marketData, query, PREDICTIONS_FUSE_OPTIONS);
-  }, [hasQuery, activeResult.marketData, query]);
   const data = useMemo(
     () =>
       hasQuery
-        ? rankedData
-        : limitPredictionsPreviewItems(rankedData, pageSize),
-    [hasQuery, pageSize, rankedData],
+        ? activeResult.marketData
+        : fuseSearch(activeResult.marketData, query, PREDICTIONS_FUSE_OPTIONS),
+    [hasQuery, activeResult.marketData, query],
   );
 
   return {
