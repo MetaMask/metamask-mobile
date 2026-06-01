@@ -239,45 +239,47 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     }
 
     return (
-      <View ref={sectionViewRef} onLayout={onLayout} style={styles.sectionGap}>
-        <SectionHeader
-          title={title}
-          onPress={handleViewAllTokens}
-          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens')}
-        />
-        {showTokensError ? (
-          <ErrorState
-            title={strings('homepage.error.unable_to_load', {
-              section: title.toLowerCase(),
-            })}
-            onRetry={handleTokensRetry}
+      <View ref={sectionViewRef} onLayout={onLayout}>
+        <View style={styles.sectionGap}>
+          <SectionHeader
+            title={title}
+            onPress={handleViewAllTokens}
+            testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens')}
           />
-        ) : isZeroBalanceAccount ? (
-          <SectionRow>
-            <PopularTokensList
-              ref={popularTokensListRef}
-              onError={setHasTokensError}
+          {showTokensError ? (
+            <ErrorState
+              title={strings('homepage.error.unable_to_load', {
+                section: title.toLowerCase(),
+              })}
+              onRetry={handleTokensRetry}
             />
-          </SectionRow>
-        ) : (
-          <SectionRow>
-            {displayTokenKeys.length === 0 && sortedTokenKeys.length === 0 ? (
-              <TokenListSkeleton count={MAX_TOKENS_DISPLAYED} />
-            ) : (
-              displayTokenKeys.map((tokenKey, index) => (
-                <TokenListItem
-                  key={`${tokenKey.chainId}-${tokenKey.address}-${tokenKey.isStaked ? 'staked' : 'unstaked'}-${index}`}
-                  assetKey={tokenKey}
-                  showRemoveMenu={showRemoveMenu}
-                  setShowScamWarningModal={setShowScamWarningModal}
-                  privacyMode={privacyMode}
-                  showPercentageChange
-                  shouldShowTokenListItemCta={shouldShowTokenListItemCta}
-                />
-              ))
-            )}
-          </SectionRow>
-        )}
+          ) : isZeroBalanceAccount ? (
+            <SectionRow>
+              <PopularTokensList
+                ref={popularTokensListRef}
+                onError={setHasTokensError}
+              />
+            </SectionRow>
+          ) : (
+            <SectionRow>
+              {displayTokenKeys.length === 0 && sortedTokenKeys.length === 0 ? (
+                <TokenListSkeleton count={MAX_TOKENS_DISPLAYED} />
+              ) : (
+                displayTokenKeys.map((tokenKey, index) => (
+                  <TokenListItem
+                    key={`${tokenKey.chainId}-${tokenKey.address}-${tokenKey.isStaked ? 'staked' : 'unstaked'}-${index}`}
+                    assetKey={tokenKey}
+                    showRemoveMenu={showRemoveMenu}
+                    setShowScamWarningModal={setShowScamWarningModal}
+                    privacyMode={privacyMode}
+                    showPercentageChange
+                    shouldShowTokenListItemCta={shouldShowTokenListItemCta}
+                  />
+                ))
+              )}
+            </SectionRow>
+          )}
+        </View>
         <ScamWarningModal
           showScamWarningModal={showScamWarningModal}
           setShowScamWarningModal={setShowScamWarningModal}
