@@ -585,6 +585,22 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     Boolean(marketInsightsCaip19Id) &&
     (Boolean(marketInsightsReport) || isMarketInsightsLoading);
 
+  const tokenDisplaySymbol = token.symbol || token.name;
+  const securityBadgeDescription = (() => {
+    if (securityData?.resultType === 'Malicious') {
+      return tokenDisplaySymbol
+        ? strings('security_trust.malicious_token_description', {
+            symbol: tokenDisplaySymbol,
+          })
+        : strings('security_trust.malicious_token_description_no_symbol');
+    }
+    return tokenDisplaySymbol
+      ? strings('security_trust.suspicious_token_description', {
+          symbol: tokenDisplaySymbol,
+        })
+      : strings('security_trust.suspicious_token_description_no_symbol');
+  })();
+
   return (
     <Box twClassName="pt-[2px]" testID={TokenOverviewSelectorsIDs.CONTAINER}>
       {token.hasBalanceError ? (
@@ -617,23 +633,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                     ? strings('security_trust.malicious_token_title')
                     : undefined
                 }
-                description={
-                  securityData.resultType === 'Malicious'
-                    ? token.symbol || token.name
-                      ? strings('security_trust.malicious_token_description', {
-                          symbol: token.symbol || token.name,
-                        })
-                      : strings(
-                          'security_trust.malicious_token_description_no_symbol',
-                        )
-                    : token.symbol || token.name
-                      ? strings('security_trust.suspicious_token_description', {
-                          symbol: token.symbol || token.name,
-                        })
-                      : strings(
-                          'security_trust.suspicious_token_description_no_symbol',
-                        )
-                }
+                description={securityBadgeDescription}
                 className="mx-4 mb-3 gap-4"
                 onPress={handleSecurityBadgePress}
               />
