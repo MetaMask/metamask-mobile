@@ -445,7 +445,7 @@ describe('useQuickBuyController', () => {
       expect(Number(result.current.usdAmount)).toBeGreaterThan(0);
     });
 
-    it('tracks amount selected once when the snapped percent is unchanged', () => {
+    it('tracks amount selected for each distinct integer percent', () => {
       (useLatestBalance as jest.Mock).mockReturnValue({
         displayBalance: '100',
         atomicBalance: '100000000',
@@ -466,6 +466,33 @@ describe('useQuickBuyController', () => {
         result.current.handleSliderChange(48);
         result.current.handleSliderChange(49);
         result.current.handleSliderChange(51);
+      });
+
+      expect(result.current.sliderPercent).toBe(51);
+      expect(mockTrackAmountSelected).toHaveBeenCalledTimes(3);
+    });
+
+    it('deduplicates identical slider values and does not re-track', () => {
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: '100',
+        atomicBalance: '100000000',
+      });
+      const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
+      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+        options: [sourceWithRate],
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(
+          positionToQuickBuyTarget(createPosition()),
+          jest.fn(),
+        ),
+      );
+
+      act(() => {
+        result.current.handleSliderChange(50);
+        result.current.handleSliderChange(50);
+        result.current.handleSliderChange(50);
       });
 
       expect(result.current.sliderPercent).toBe(50);

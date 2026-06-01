@@ -14,7 +14,6 @@ import type {
 import { useQuickBuyAnalytics } from './useQuickBuyAnalytics';
 import { formatExchangeRate } from '../utils/formatExchangeRate';
 import { getMetamaskFeePercent } from '../utils/getMetamaskFeePercent';
-import { snapToPercentageStep } from '../components/QuickBuyPercentageSlider';
 import type { Hex } from '@metamask/utils';
 import type { BridgeToken } from '../../../../../../UI/Bridge/types';
 import { selectDefaultSourceToken } from '../../../../utils/tokenSelection';
@@ -197,7 +196,7 @@ export function useQuickBuyController(
   const [amountDisplayMode, setAmountDisplayMode] =
     useState<QuickBuyAmountDisplayMode>('fiat');
   const [sliderPercent, setSliderPercent] = useState(0);
-  const lastSnappedSliderPercentRef = useRef(0);
+  const lastSliderPercentRef = useRef(0);
   const [txPhase, setTxPhase] = useState<'idle' | 'success'>('idle');
   const [selectedQuoteRequestId, setSelectedQuoteRequestId] = useState<
     string | undefined
@@ -497,29 +496,29 @@ export function useQuickBuyController(
 
   const handleSliderChange = useCallback(
     (percent: number) => {
-      const snapped = snapToPercentageStep(percent);
-      if (snapped === lastSnappedSliderPercentRef.current) {
+      const rounded = Math.round(percent);
+      if (rounded === lastSliderPercentRef.current) {
         return;
       }
 
-      lastSnappedSliderPercentRef.current = snapped;
-      setSliderPercent(snapped);
+      lastSliderPercentRef.current = rounded;
+      setSliderPercent(rounded);
       if (maxSpendUsd <= 0) {
         setUsdAmount('');
         return;
       }
       const nextUsd =
-        snapped === 0 ? '' : ((maxSpendUsd * snapped) / 100).toFixed(2);
+        rounded === 0 ? '' : ((maxSpendUsd * rounded) / 100).toFixed(2);
       setUsdAmount(nextUsd);
       lastInputMethodRef.current =
         SocialLeaderboardEventValues.AMOUNT_SELECTION_METHOD.SLIDER;
       const numericUsd = Number(nextUsd);
-      if (snapped > 0 && Number.isFinite(numericUsd) && numericUsd > 0) {
+      if (rounded > 0 && Number.isFinite(numericUsd) && numericUsd > 0) {
         trackAmountSelected(
           numericUsd,
           SocialLeaderboardEventValues.AMOUNT_SELECTION_METHOD.SLIDER,
           sourceToken?.symbol,
-          snapped,
+          rounded,
         );
       }
     },
@@ -542,7 +541,7 @@ export function useQuickBuyController(
       setSelectedSourceToken(token);
       setUsdAmount('');
       setSliderPercent(0);
-      lastSnappedSliderPercentRef.current = 0;
+      lastSliderPercentRef.current = 0;
       lastTrackedAmountRef.current = '';
       lastInputMethodRef.current =
         SocialLeaderboardEventValues.AMOUNT_SELECTION_METHOD.SLIDER;
@@ -560,7 +559,7 @@ export function useQuickBuyController(
       if (parts.length > 2) return;
       if (parts.length === 2 && parts[1].length > 2) return;
       setUsdAmount(normalized);
-      lastSnappedSliderPercentRef.current = 0;
+      lastSliderPercentRef.current = 0;
       setSliderPercent(0);
     },
     [lastInputMethodRef],

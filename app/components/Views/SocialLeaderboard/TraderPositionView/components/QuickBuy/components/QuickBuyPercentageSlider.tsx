@@ -11,16 +11,13 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { playImpact, ImpactMoment } from '../../../../../../../util/haptics';
 
 const HANDLE_SIZE = 24;
 const MARKER_SIZE = 4;
-const PERCENTAGE_STEP = 25;
+const ACCESSIBILITY_STEP = 1;
 export const SNAP_POINTS = [0, 25, 50, 75, 100];
-
-export function snapToPercentageStep(value: number): number {
-  const snappedValue = Math.round(value / PERCENTAGE_STEP) * PERCENTAGE_STEP;
-  return Math.max(0, Math.min(100, snappedValue));
-}
+const HAPTIC_THRESHOLDS = [25, 50, 75];
 
 interface QuickBuyPercentageSliderProps {
   value: number;
@@ -39,26 +36,45 @@ export function QuickBuyPercentageSlider({
   const sliderWidth = useSharedValue(0);
   const translateX = useSharedValue(0);
   const widthRef = useRef(0);
+  const previousValueRef = useRef(value);
 
   const updatePosition = useCallback(
     (nextValue: number, width = widthRef.current) => {
-      const snappedValue = snapToPercentageStep(nextValue);
-      translateX.value = (snappedValue / 100) * width;
+      const clampedValue = Math.max(0, Math.min(100, Math.round(nextValue)));
+      translateX.value = (clampedValue / 100) * width;
     },
     [translateX],
   );
+
+  const checkThresholdCrossing = useCallback((nextValue: number) => {
+    const prevValue = previousValueRef.current;
+    for (const threshold of HAPTIC_THRESHOLDS) {
+      if (
+        (prevValue < threshold && nextValue >= threshold) ||
+        (prevValue > threshold && nextValue <= threshold)
+      ) {
+        playImpact(ImpactMoment.SliderTick);
+        break;
+      }
+    }
+    previousValueRef.current = nextValue;
+  }, []);
 
   const updateValueFromPosition = useCallback(
     (position: number, width: number) => {
       if (width === 0 || disabled) return;
       const clampedPosition = Math.max(0, Math.min(position, width));
-      const nextValue = snapToPercentageStep((clampedPosition / width) * 100);
+      const nextValue = Math.max(
+        0,
+        Math.min(100, Math.round((clampedPosition / width) * 100)),
+      );
       updatePosition(nextValue, width);
+      checkThresholdCrossing(nextValue);
       if (nextValue !== value) {
         onValueChange(nextValue);
       }
     },
-    [disabled, onValueChange, updatePosition, value],
+    [disabled, onValueChange, updatePosition, checkThresholdCrossing, value],
   );
 
   const handleLayout = useCallback(
@@ -103,13 +119,14 @@ export function QuickBuyPercentageSlider({
     (event: AccessibilityActionEvent) => {
       const nextValue =
         event.nativeEvent.actionName === 'increment'
-          ? snapToPercentageStep(value + PERCENTAGE_STEP)
-          : snapToPercentageStep(value - PERCENTAGE_STEP);
+          ? Math.min(100, value + ACCESSIBILITY_STEP)
+          : Math.max(0, value - ACCESSIBILITY_STEP);
       if (nextValue !== value) {
+        checkThresholdCrossing(nextValue);
         onValueChange(nextValue);
       }
     },
-    [onValueChange, value],
+    [onValueChange, checkThresholdCrossing, value],
   );
 
   return (
