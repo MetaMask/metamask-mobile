@@ -322,10 +322,7 @@ class Browser {
     });
   }
 
-  async navigateToURL(
-    url: string,
-    options: { skipUrlEditorDismissal?: boolean } = {},
-  ): Promise<void> {
+  async navigateToURL(url: string): Promise<void> {
     await Gestures.replaceText(this.urlInputBoxID, url, {
       elemDescription: 'URL input box',
     });
