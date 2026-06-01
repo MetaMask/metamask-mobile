@@ -20,9 +20,18 @@ import type { BridgeToken } from '../../../../../../UI/Bridge/types';
 import { selectDefaultSourceToken } from '../../../../utils/tokenSelection';
 import { useQuickBuySetup } from './useQuickBuySetup';
 import { useSourceTokenOptions } from './useSourceTokenOptions';
-import { useQuickBuyQuotes } from './useQuickBuyQuotes';
+import {
+  useQuickBuyQuotes,
+  type EnrichedQuickBuyQuote,
+} from './useQuickBuyQuotes';
+import { getIntlNumberFormatter } from '../../../../../../../util/intl';
+import { useDisplayCurrencyValue } from '../../../../../../UI/Bridge/hooks/useDisplayCurrencyValue';
+import {
+  formatMinimumReceived,
+  formatCurrency,
+} from '../../../../../../UI/Bridge/utils/currencyUtils';
+import { useFormattedNetworkFee } from '../../../../../../UI/Bridge/hooks/useFormattedNetworkFee';
 import { isGaslessQuote } from '../../../../../../UI/Bridge/utils/isGaslessQuote';
-import { formatCurrency } from '../../../../../../UI/Bridge/utils/currencyUtils';
 import { selectCurrentCurrency } from '../../../../../../../selectors/currencyRateController';
 import {
   isNumberValue,
@@ -63,7 +72,7 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../../../..
 import { isHardwareAccount } from '../../../../../../../util/address';
 import Engine from '../../../../../../../core/Engine';
 import Routes from '../../../../../../../constants/navigation/Routes';
-import { strings } from '../../../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../../../locales/i18n';
 import { calcTokenValue } from '../../../../../../../util/transactions';
 import Logger from '../../../../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../../../../util/social/socialServiceTelemetry';
@@ -88,6 +97,8 @@ const BUTTON_ERROR_LABELS: Record<QuickBuyButtonError, string> = {
 export interface UseQuickBuyControllerResult {
   // refs
   hiddenInputRef: React.RefObject<TextInput | null>;
+  // active quote (for QuoteDetails sub-screen)
+  activeQuote: EnrichedQuickBuyQuote | undefined;
   // setup
   destToken: BridgeToken | undefined;
   isSetupLoading: boolean;
@@ -102,6 +113,7 @@ export interface UseQuickBuyControllerResult {
   setSelectedSourceToken: React.Dispatch<
     React.SetStateAction<BridgeToken | undefined>
   >;
+  currentCurrency: string;
   // amount
   amountDisplayMode: QuickBuyAmountDisplayMode;
   usdAmount: string;
@@ -115,12 +127,25 @@ export interface UseQuickBuyControllerResult {
   formattedNetworkFee: string;
   formattedSlippage: string;
   formattedMinimumReceived: string;
+  formattedMinimumReceivedFiat: string | undefined;
   formattedPriceImpact: string;
+  formattedRate: string | undefined;
   totalAmountUsd: string;
   // quote state
   isQuoteLoading: boolean;
   isSubmittingTx: boolean;
   isTotalLoading: boolean;
+  // all quotes for the select-quote screen
+  sortedQuotes: EnrichedQuickBuyQuote[];
+  selectedQuoteRequestId: string | undefined;
+  setSelectedQuoteRequestId: React.Dispatch<
+    React.SetStateAction<string | undefined>
+  >;
+  quotesLastFetchedAt: number | null;
+  refreshCount: number;
+  quoteRefreshRateMs: number;
+  maxRefreshCount: number;
+  refetchQuotes: () => void;
   // warnings (banner-level; can stack)
   isHardwareSolanaBlocked: boolean;
   priceImpactViewData: ReturnType<typeof usePriceImpactViewData>;
@@ -174,6 +199,9 @@ export function useQuickBuyController(
   const [sliderPercent, setSliderPercent] = useState(0);
   const lastSnappedSliderPercentRef = useRef(0);
   const [txPhase, setTxPhase] = useState<'idle' | 'success'>('idle');
+  const [selectedQuoteRequestId, setSelectedQuoteRequestId] = useState<
+    string | undefined
+  >(undefined);
 
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
   const walletAddress = useSelector(selectSourceWalletAddress);
@@ -282,17 +310,44 @@ export function useQuickBuyController(
 
   const {
     activeQuote,
+    sortedQuotes,
     destTokenAmount: estimatedReceiveAmount,
     isQuoteLoading,
     isNoQuotesAvailable,
     quoteFetchError,
     isActiveQuoteForCurrentTokenPair,
+    quotesLastFetchedAt,
+    refreshCount,
+    quoteRefreshRateMs,
+    maxRefreshCount,
+    refetchQuotes,
   } = useQuickBuyQuotes({
     sourceToken,
     destToken,
     sourceTokenAmount,
     analyticsContext: quotesAnalyticsContext,
+    selectedQuoteRequestId,
   });
+
+  // Reset manual quote selection whenever the user changes amount, token, or slippage.
+  useEffect(() => {
+    setSelectedQuoteRequestId(undefined);
+  }, [sourceToken, destToken, sourceTokenAmount, slippage]);
+
+  // Each fetch (including auto-refresh) returns quotes with new requestIds.
+  useEffect(() => {
+    if (!selectedQuoteRequestId) {
+      return;
+    }
+    const hasMatchingQuote = sortedQuotes.some(
+      (quote) => quote.quote.requestId === selectedQuoteRequestId,
+    );
+    if (!hasMatchingQuote) {
+      setSelectedQuoteRequestId(undefined);
+    }
+  }, [selectedQuoteRequestId, sortedQuotes]);
+
+  const formattedNetworkFee = useFormattedNetworkFee(activeQuote ?? null);
 
   const networkFeeRawUsd = useMemo(() => {
     if (!activeQuote) return null;
@@ -308,11 +363,6 @@ export function useQuickBuyController(
     return null;
   }, [activeQuote]);
 
-  const formattedNetworkFee = useMemo(() => {
-    if (networkFeeRawUsd === null) return '-';
-    return `$${networkFeeRawUsd.toFixed(2)}`;
-  }, [networkFeeRawUsd]);
-
   const formattedSlippage = useMemo(() => {
     if (slippage == null) return '-';
     return `${slippage}%`;
@@ -322,15 +372,37 @@ export function useQuickBuyController(
     const amount = activeQuote?.minToTokenAmount?.amount;
     const symbol = destToken?.symbol;
     if (!amount || !symbol) return '-';
-    const num = parseFloat(amount);
-    if (isNaN(num)) return '-';
-    const floored = Math.floor(num * 1e8) / 1e8;
-    const formatted = new Intl.NumberFormat('en-US', {
-      maximumFractionDigits: 8,
-      useGrouping: false,
-    }).format(floored);
+    const formatted = formatMinimumReceived(amount);
     return `${formatted} ${symbol}`;
   }, [activeQuote, destToken]);
+
+  const minReceivedTokenAmount = activeQuote?.minToTokenAmount?.amount;
+  const formattedMinimumReceivedFiat = useDisplayCurrencyValue(
+    minReceivedTokenAmount,
+    destToken,
+  );
+
+  const formattedRate = useMemo(() => {
+    if (
+      !sourceToken ||
+      !destToken ||
+      !sourceTokenAmount ||
+      !estimatedReceiveAmount
+    ) {
+      return undefined;
+    }
+    const sourceAmt = parseFloat(sourceTokenAmount);
+    const destAmt = parseFloat(estimatedReceiveAmount);
+    if (!sourceAmt || !destAmt || isNaN(sourceAmt) || isNaN(destAmt))
+      return undefined;
+    const rate = destAmt / sourceAmt;
+    const formatter = getIntlNumberFormatter(I18n.locale, {
+      ...(rate > 1
+        ? { minimumFractionDigits: 1, maximumFractionDigits: 2 }
+        : { minimumSignificantDigits: 2, maximumSignificantDigits: 3 }),
+    });
+    return `1 ${sourceToken.symbol} = ${formatter.format(rate)} ${destToken.symbol}`;
+  }, [sourceToken, destToken, sourceTokenAmount, estimatedReceiveAmount]);
 
   const formattedPriceImpact = useMemo(() => {
     const priceImpact = activeQuote?.quote?.priceData?.priceImpact;
@@ -727,6 +799,7 @@ export function useQuickBuyController(
 
   return {
     hiddenInputRef,
+    activeQuote,
     destToken,
     isSetupLoading,
     isUnsupportedChain,
@@ -737,6 +810,7 @@ export function useQuickBuyController(
     isSourcePickerOpen,
     setIsSourcePickerOpen,
     setSelectedSourceToken,
+    currentCurrency,
     amountDisplayMode,
     usdAmount,
     sliderPercent,
@@ -749,11 +823,21 @@ export function useQuickBuyController(
     formattedNetworkFee,
     formattedSlippage,
     formattedMinimumReceived,
+    formattedMinimumReceivedFiat,
     formattedPriceImpact,
+    formattedRate,
     totalAmountUsd,
     isQuoteLoading,
     isSubmittingTx,
     isTotalLoading,
+    sortedQuotes,
+    selectedQuoteRequestId,
+    setSelectedQuoteRequestId,
+    quotesLastFetchedAt,
+    refreshCount,
+    quoteRefreshRateMs,
+    maxRefreshCount,
+    refetchQuotes,
     isHardwareSolanaBlocked,
     priceImpactViewData,
     isPriceImpactError,

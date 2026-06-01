@@ -111,6 +111,7 @@ const createPortfolio = (
   isClaimPending: false,
   isDepositPending: false,
   isLoading: false,
+  isOpenPositionsLoading: false,
   isPositionsLoading: false,
   isRefreshing: false,
   openPositionCount: 0,
@@ -228,7 +229,7 @@ describe('PredictPositionsList', () => {
   it('renders a loading state while positions are loading without cached positions', () => {
     renderList({
       portfolio: createPortfolio({
-        isPositionsLoading: true,
+        isOpenPositionsLoading: true,
       }),
     });
 
@@ -241,6 +242,22 @@ describe('PredictPositionsList', () => {
     expect(
       screen.queryByTestId(PredictPositionsEmptySelectorsIDs.CONTAINER),
     ).toBeNull();
+  });
+
+  it('renders the empty state when only claimable positions are loading', () => {
+    renderList({
+      portfolio: createPortfolio({
+        isPositionsLoading: true,
+        isOpenPositionsLoading: false,
+      }),
+    });
+
+    expect(
+      screen.queryByTestId(PredictPositionsListSelectorsIDs.LOADING_STATE),
+    ).toBeNull();
+    expect(
+      screen.getByTestId(PredictPositionsEmptySelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
   });
 
   it('passes privacy mode to rendered position rows', () => {

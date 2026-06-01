@@ -89,6 +89,7 @@ const createPortfolio = (
   isClaimPending: false,
   isDepositPending: false,
   isLoading: false,
+  isOpenPositionsLoading: false,
   isPositionsLoading: false,
   isRefreshing: false,
   openPositionCount: 0,
@@ -115,6 +116,12 @@ const renderScreen = (initialTab?: 'positions' | 'history') => {
 
   return render(<PredictPositionsView />);
 };
+
+const getMountedByTestId = (testID: string) =>
+  screen.UNSAFE_getByProps({ testID });
+
+const getMountedHistoryVisibilityText = (isVisible: boolean) =>
+  screen.UNSAFE_getByProps({ children: `history-visible:${isVisible}` });
 
 describe('PredictPositionsView', () => {
   beforeEach(() => {
@@ -157,10 +164,9 @@ describe('PredictPositionsView', () => {
       screen.getByTestId(PredictPositionsEmptySelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
     expect(
-      screen.queryByTestId(
-        PredictPositionsViewSelectorsIDs.HISTORY_TAB_CONTENT,
-      ),
-    ).toBeNull();
+      getMountedByTestId(PredictPositionsViewSelectorsIDs.HISTORY_TAB_CONTENT),
+    ).toBeTruthy();
+    expect(getMountedHistoryVisibilityText(false)).toBeTruthy();
   });
 
   it('uses the initial history tab from route params', () => {
@@ -174,10 +180,10 @@ describe('PredictPositionsView', () => {
     ).toBeOnTheScreen();
     expect(screen.getByText('history-visible:true')).toBeOnTheScreen();
     expect(
-      screen.queryByTestId(
+      getMountedByTestId(
         PredictPositionsViewSelectorsIDs.POSITIONS_TAB_CONTENT,
       ),
-    ).toBeNull();
+    ).toBeTruthy();
   });
 
   it('switches between Positions and History tabs', () => {
@@ -193,6 +199,7 @@ describe('PredictPositionsView', () => {
     expect(
       screen.getByTestId(PredictPositionsHistoryListSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
+    expect(screen.getByText('history-visible:true')).toBeOnTheScreen();
 
     fireEvent.press(
       screen.getByTestId(PredictPositionsViewSelectorsIDs.POSITIONS_TAB),
@@ -203,6 +210,7 @@ describe('PredictPositionsView', () => {
         PredictPositionsViewSelectorsIDs.POSITIONS_TAB_CONTENT,
       ),
     ).toBeOnTheScreen();
+    expect(getMountedHistoryVisibilityText(false)).toBeTruthy();
   });
 
   it('navigates back when the back button is pressed and the stack can go back', () => {
