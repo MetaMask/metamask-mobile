@@ -6,6 +6,11 @@ import PredictBalance from './PredictBalance';
 import { strings } from '../../../../../../locales/i18n';
 import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button';
 import { PREDICT_BALANCE_TEST_IDS } from './PredictBalance.testIds';
+import Routes from '../../../../../constants/navigation/Routes';
+
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('1.0.0'),
+}));
 
 // Mock React Query
 jest.mock('@tanstack/react-query', () => ({
@@ -14,11 +19,13 @@ jest.mock('@tanstack/react-query', () => ({
   }),
 }));
 
+const mockNavigate = jest.fn();
+
 // Mock React Navigation
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
-    navigate: jest.fn(),
+    navigate: mockNavigate,
     goBack: jest.fn(),
     setOptions: jest.fn(),
   }),
@@ -87,6 +94,26 @@ function stateWithDepositWalletWithdrawEnabled(enabled: boolean) {
             ...backgroundState.RemoteFeatureFlagController?.remoteFeatureFlags,
             confirmations_pay_extended: {
               enableDepositWalletWithdraw: enabled,
+            },
+          },
+        },
+      },
+    },
+  };
+}
+
+function stateWithPredictPortfolioEnabled(enabled: boolean) {
+  return {
+    engine: {
+      backgroundState: {
+        ...initialState.engine.backgroundState,
+        RemoteFeatureFlagController: {
+          ...backgroundState.RemoteFeatureFlagController,
+          remoteFeatureFlags: {
+            ...backgroundState.RemoteFeatureFlagController?.remoteFeatureFlags,
+            predictPortfolio: {
+              enabled,
+              minimumVersion: '1.0.0',
             },
           },
         },
@@ -329,6 +356,67 @@ describe('PredictBalance', () => {
 
       // Assert
       expect(queryByText(/Withdraw/i)).not.toBeOnTheScreen();
+    });
+
+    it('displays Positions button when portfolio feature flag is enabled', () => {
+      // Arrange
+      mockUsePredictBalance.mockReturnValue({
+        data: 100,
+        isLoading: false,
+      });
+
+      // Act
+      const { getByTestId, getByText } = renderWithProvider(
+        <PredictBalance />,
+        {
+          state: stateWithPredictPortfolioEnabled(true),
+        },
+      );
+
+      // Assert
+      expect(
+        getByTestId(PREDICT_BALANCE_TEST_IDS.POSITIONS_BUTTON),
+      ).toBeOnTheScreen();
+      expect(getByText(strings('predict.tabs.positions'))).toBeOnTheScreen();
+    });
+
+    it('does not display Positions button when portfolio feature flag is disabled', () => {
+      // Arrange
+      mockUsePredictBalance.mockReturnValue({
+        data: 100,
+        isLoading: false,
+      });
+
+      // Act
+      const { queryByTestId, queryByText } = renderWithProvider(
+        <PredictBalance />,
+        {
+          state: stateWithPredictPortfolioEnabled(false),
+        },
+      );
+
+      // Assert
+      expect(
+        queryByTestId(PREDICT_BALANCE_TEST_IDS.POSITIONS_BUTTON),
+      ).toBeNull();
+      expect(queryByText(strings('predict.tabs.positions'))).toBeNull();
+    });
+
+    it('navigates to Positions when Positions button is pressed', () => {
+      // Arrange
+      mockUsePredictBalance.mockReturnValue({
+        data: 100,
+        isLoading: false,
+      });
+
+      // Act
+      const { getByTestId } = renderWithProvider(<PredictBalance />, {
+        state: stateWithPredictPortfolioEnabled(true),
+      });
+      fireEvent.press(getByTestId(PREDICT_BALANCE_TEST_IDS.POSITIONS_BUTTON));
+
+      // Assert
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.POSITIONS);
     });
 
     it('calls deposit function with analytics properties when Add Funds button is pressed', () => {
