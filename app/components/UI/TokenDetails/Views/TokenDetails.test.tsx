@@ -1,7 +1,8 @@
 import React from 'react';
-import { ActivityIndicator } from 'react-native';
+import { ActivityIndicator, AppState, type AppStateStatus } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { TokenDetails } from './TokenDetails';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
 import { selectPerpsEnabledFlag } from '../../Perps';
 import { selectMerklCampaignClaimingEnabledFlag } from '../../Earn/selectors/featureFlags';
@@ -53,8 +54,12 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
+    addListener: jest.fn(() => jest.fn()),
   }),
   useRoute: () => ({ params: mockRouteParams() }),
+  useFocusEffect: jest.fn((cb: () => () => void) => {
+    cb();
+  }),
 }));
 
 const defaultUseTokenPriceReturn = {
@@ -618,6 +623,76 @@ describe('TokenDetails', () => {
       const { queryByTestId } = render(<TokenDetails />);
 
       expect(queryByTestId('bottomsheetfooter')).toBeNull();
+    });
+  });
+
+  describe('TOKEN_DETAILS_CLOSED app state tracking', () => {
+    let handleAppStateChange: (nextState: AppStateStatus) => void;
+
+    const getTokenDetailsClosedCallCount = () =>
+      mockCreateEventBuilder.mock.calls.filter(
+        ([event]) => event === MetaMetricsEvents.TOKEN_DETAILS_CLOSED,
+      ).length;
+
+    beforeEach(() => {
+      jest
+        .spyOn(AppState, 'addEventListener')
+        .mockImplementation((_, listener) => {
+          handleAppStateChange = listener;
+          return { remove: jest.fn() };
+        });
+      Object.defineProperty(AppState, 'currentState', {
+        configurable: true,
+        value: 'active',
+      });
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('does not fire TOKEN_DETAILS_CLOSED on transient inactive (e.g. Control Center)', () => {
+      render(<TokenDetails />);
+
+      act(() => {
+        handleAppStateChange('inactive');
+        handleAppStateChange('active');
+      });
+
+      expect(getTokenDetailsClosedCallCount()).toBe(0);
+    });
+
+    it('fires TOKEN_DETAILS_CLOSED with app_backgrounded only when app is backgrounded', () => {
+      render(<TokenDetails />);
+
+      act(() => {
+        handleAppStateChange('background');
+      });
+
+      expect(getTokenDetailsClosedCallCount()).toBe(1);
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ exit_action: 'app_backgrounded' }),
+      );
+    });
+
+    it('resets session after iOS background → inactive → active sequence', () => {
+      render(<TokenDetails />);
+
+      act(() => {
+        handleAppStateChange('background');
+      });
+      expect(getTokenDetailsClosedCallCount()).toBe(1);
+
+      act(() => {
+        handleAppStateChange('inactive');
+        handleAppStateChange('active');
+      });
+
+      act(() => {
+        handleAppStateChange('background');
+      });
+
+      expect(getTokenDetailsClosedCallCount()).toBe(2);
     });
   });
 });
