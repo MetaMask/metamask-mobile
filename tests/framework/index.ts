@@ -51,6 +51,19 @@ export { PlatformDetector } from './PlatformLocator.ts';
 export { default as UnifiedGestures } from './UnifiedGestures.ts';
 export { encapsulatedAction } from './encapsulatedAction.ts';
 export {
+  DeviceCommandHandler,
+  AndroidDeviceCommandHandler,
+  IOSDeviceCommandHandler,
+  type ClearAppDataOptions,
+  type DeviceCommandHandlerOptions,
+  type DeviceCommandLogger,
+  type InstallAppOptions,
+  type IsAppInstalledOptions,
+  type PlatformDeviceCommandHandler,
+  type ReinstallAppOptions,
+  type UninstallAppOptions,
+} from './services/device-commands';
+export {
   DetoxGestureStrategy,
   AppiumGestureStrategy,
   type GestureStrategy,

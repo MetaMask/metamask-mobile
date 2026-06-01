@@ -26,6 +26,7 @@ import { SectionRefreshHandle } from '../../types';
 import { TopTraderCard, TopTraderCardSkeleton } from './components';
 import { TOP_TRADER_CARD_WIDTH } from './components/TopTraderCard';
 import { useTopTraders } from './hooks';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 
 const HOME_TRADER_LIMIT = 10;
@@ -184,7 +185,7 @@ const TopTradersSection = forwardRef<
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={tw.style('px-4 gap-3 pb-2')}
+          contentContainerStyle={tw.style('px-4 gap-3 py-3')}
           testID="homepage-top-traders-carousel"
         >
           {showSkeletons

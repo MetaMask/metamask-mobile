@@ -68,7 +68,7 @@ interface PredictMarketDetailsProps {}
 const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const { openBuySheet } = usePredictPreviewSheet();
+  const { openBuySheet, isBuySheetOpen } = usePredictPreviewSheet();
   const { colors } = useTheme();
   const { claim, isClaimPending } = usePredictClaim();
   const route =
@@ -226,9 +226,12 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     timeframes,
   } = useChartData({ market, hasAnyOutcomeToken });
 
+  const shouldRefreshOpenOutcomePrices =
+    market?.status === PredictMarketStatus.OPEN && !isBuySheetOpen;
+
   const { closedOutcomes, openOutcomes, yesPercentage } = useOpenOutcomes({
     market,
-    isMarketFetching: isResolvedMarketFetching,
+    enabled: shouldRefreshOpenOutcomePrices,
   });
 
   const handleBackPress = () => {
@@ -342,9 +345,10 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         gameStatus: market.game?.status,
         gamePeriod: market.game?.period,
         gameClock: market.game?.elapsed,
+        activeAbTests: transactionActiveAbTests,
       });
     },
-    [market, entryPoint],
+    [market, entryPoint, transactionActiveAbTests],
   );
   const tabs = useMemo(() => {
     const result: { label: string; key: TabKey }[] = [];
@@ -575,11 +579,10 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       )}
       {isFeeExemption && (
         <Box
-          style={tw`absolute inset-x-0 bottom-4 pb-3`}
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="gap-1"
+          twClassName="gap-1 absolute inset-x-0 bottom-4 pb-3"
         >
           <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
             {strings('predict.market_details.fee_exemption')}

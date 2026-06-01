@@ -19,6 +19,10 @@ export const PredictEventProperties = {
   LIQUIDITY: 'liquidity',
   VOLUME: 'volume',
   FAILURE_REASON: 'failure_reason',
+  SURFACE: 'surface',
+  VARIANT: 'variant',
+  CTA_NAME: 'cta_name',
+  CATEGORY_NAME: 'category_name',
 
   // Trade specific
   MARKET_TYPE: 'market_type',
@@ -106,6 +110,7 @@ export const PredictEventValues = {
     TRENDING: 'trending',
     BUY_PREVIEW: 'buy_preview',
     HOME_SECTION: 'home_section',
+    EXPLORE: 'explore',
   },
   TRANSACTION_TYPE: {
     MM_PREDICT_BUY: 'mm_predict_buy',

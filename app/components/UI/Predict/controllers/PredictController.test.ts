@@ -688,13 +688,17 @@ describe('PredictController', () => {
       ];
 
       await withController(async ({ controller }) => {
-        mockPolymarketProvider.searchMarkets.mockResolvedValue(
-          mockMarkets as any,
-        );
+        mockPolymarketProvider.searchMarkets.mockResolvedValue({
+          markets: mockMarkets,
+          totalResults: mockMarkets.length,
+        } as any);
 
         const result = await controller.searchMarkets({ q: ' rain ' });
 
-        expect(result).toEqual(mockMarkets as any);
+        expect(result).toEqual({
+          markets: mockMarkets,
+          totalResults: mockMarkets.length,
+        });
         expect(mockPolymarketProvider.searchMarkets).toHaveBeenCalledWith({
           q: 'rain',
         });
@@ -703,9 +707,10 @@ describe('PredictController', () => {
 
     it('returns empty search results for an empty search query', async () => {
       await withController(async ({ controller }) => {
-        await expect(controller.searchMarkets({ q: '   ' })).resolves.toEqual(
-          [],
-        );
+        await expect(controller.searchMarkets({ q: '   ' })).resolves.toEqual({
+          markets: [],
+          totalResults: 0,
+        });
         expect(mockPolymarketProvider.searchMarkets).not.toHaveBeenCalled();
       });
     });
@@ -1132,7 +1137,32 @@ describe('PredictController', () => {
       });
     });
 
-    it('falls back to groupItemThreshold when provider returns null', async () => {
+    it('falls back to event price to beat when provider returns null', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getCryptoTargetPrice = jest
+          .fn()
+          .mockResolvedValue(null);
+        mockPolymarketProvider.getMarketDetails = jest.fn().mockResolvedValue({
+          priceToBeat: 75749.02,
+          outcomes: [{ groupItemThreshold: 41500 }],
+        });
+
+        const result = await controller.getCryptoTargetPrice({
+          eventId: 'event-123',
+          symbol: 'BTC',
+          eventStartTime: '2025-01-01T00:00:00Z',
+          variant: 'up',
+          endDate: '2025-01-02',
+        });
+
+        expect(result).toBe(75749.02);
+        expect(mockPolymarketProvider.getMarketDetails).toHaveBeenCalledWith({
+          marketId: 'event-123',
+        });
+      });
+    });
+
+    it('falls back to groupItemThreshold when provider and event price to beat are unavailable', async () => {
       await withController(async ({ controller }) => {
         mockPolymarketProvider.getCryptoTargetPrice = jest
           .fn()
@@ -3977,6 +4007,7 @@ describe('PredictController', () => {
         expect(addTransactionBatch).toHaveBeenCalledWith({
           from: '0x1234567890123456789012345678901234567890',
           origin: 'metamask',
+          isInternal: true,
           networkClientId: 'polygon-mainnet',
           disableHook: true,
           disableSequential: true,

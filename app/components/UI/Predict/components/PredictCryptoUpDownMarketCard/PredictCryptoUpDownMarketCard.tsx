@@ -42,6 +42,7 @@ import { useCryptoUpDownChartData } from '../../hooks/useCryptoUpDownChartData';
 import { useCryptoTargetPrice } from '../../hooks/useCryptoTargetPrice';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 import { usePredictNavigation } from '../../hooks/usePredictNavigation';
+import { usePredictPrices } from '../../hooks/usePredictPrices';
 import { usePredictSeries } from '../../hooks/usePredictSeries';
 import {
   OPEN_PREDICT_OUTCOME_STATUS,
@@ -49,6 +50,7 @@ import {
   type PredictMarket,
   type PredictOutcome,
   type PredictOutcomeToken,
+  type PriceQuery,
 } from '../../types';
 import type {
   PredictEntryPoint,
@@ -58,6 +60,7 @@ import {
   getEventStartTime,
   getCryptoSymbol,
   getVariant,
+  resolveCryptoTargetPrice,
 } from '../../utils/cryptoUpDown';
 import { formatPrice } from '../../utils/format';
 import {
@@ -70,11 +73,13 @@ import {
   resolvePredictSeriesMarket,
   type PredictMarketWithSeries,
 } from '../../utils/series';
-import { usePredictEntryPoint, usePredictPreviewSheet } from '../../contexts';
-import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
+import { getPredictBuyPrice } from '../../utils/prices';
+import { usePredictPreviewSheet } from '../../contexts';
+import { useResolvedPredictEntryPoint } from '../../hooks/useResolvedPredictEntryPoint';
 import { PredictCryptoUpDownMarketCardSelectorsIDs } from '../../Predict.testIds';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import type { LivelinePoint } from '../../../Charts/LivelineChart/LivelineChart.types';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 const SPARKLINE_POINT_LIMIT = 80;
 const SPARKLINE_WINDOW_SECS = 30;
@@ -92,6 +97,7 @@ const SPARKLINE_CONTENT_INSET = { top: 6, bottom: 0, left: 0, right: 0 };
 const TARGET_LABEL_OFFSET = 12;
 const TARGET_LABEL_MIN_TOP = 12;
 const TARGET_LABEL_MAX_TOP = 68;
+const REST_POLLING_INTERVAL_MS = 2000;
 const CHART_HISTORY_WINDOW_MIN_BUCKET_MS = 60 * 1000;
 const CHART_HISTORY_WINDOW_BUCKET_DIVISOR = 12;
 const CHART_DISPLAY_DURATION_BY_RECURRENCE_MS: Record<string, number> = {
@@ -169,6 +175,7 @@ interface PredictCryptoUpDownMarketCardProps {
   onCardPress?: () => void;
   /** Called when the user taps a buy button (before betslip opens). */
   onBuyButtonPress?: (marketId: string) => void;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 const getOpenOutcome = (market: PredictMarket): PredictOutcome | undefined =>
@@ -184,16 +191,6 @@ const getTokenByTitle = (
   outcome?.tokens.find(
     (token) => token.title.toLowerCase() === title.toLowerCase(),
   ) ?? outcome?.tokens[fallbackIndex];
-
-const getLivePrice = (
-  token: PredictOutcomeToken | undefined,
-  getPrice: ReturnType<typeof useLiveMarketPrices>['getPrice'],
-) => {
-  if (!token) {
-    return undefined;
-  }
-  return getPrice(token.id)?.bestAsk ?? token.price;
-};
 
 const formatCents = (price?: number) => {
   if (typeof price !== 'number' || !Number.isFinite(price)) {
@@ -931,11 +928,15 @@ const OutcomeButtons = React.memo(
   ({
     upToken,
     downToken,
+    marketId,
+    outcomeId,
     marketStatus,
     onBuyPress,
   }: {
     upToken?: PredictOutcomeToken;
     downToken?: PredictOutcomeToken;
+    marketId?: string;
+    outcomeId?: string;
     marketStatus: PredictMarketStatus;
     onBuyPress: (token?: PredictOutcomeToken) => void;
   }) => {
@@ -944,12 +945,35 @@ const OutcomeButtons = React.memo(
         [upToken?.id, downToken?.id].filter((id): id is string => Boolean(id)),
       [downToken?.id, upToken?.id],
     );
+    const priceQueries = useMemo<PriceQuery[]>(() => {
+      if (!marketId || !outcomeId) {
+        return [];
+      }
+      return tokenIds.map((outcomeTokenId) => ({
+        marketId,
+        outcomeId,
+        outcomeTokenId,
+      }));
+    }, [marketId, outcomeId, tokenIds]);
     const isMarketOpen = marketStatus === PredictMarketStatus.OPEN;
     const { getPrice } = useLiveMarketPrices(tokenIds, {
       enabled: isMarketOpen,
     });
-    const upPrice = getLivePrice(upToken, getPrice);
-    const downPrice = getLivePrice(downToken, getPrice);
+    const { prices: restPrices } = usePredictPrices({
+      queries: priceQueries,
+      enabled: isMarketOpen && priceQueries.length > 0,
+      pollingInterval: REST_POLLING_INTERVAL_MS,
+    });
+    const upPrice = getPredictBuyPrice(
+      upToken,
+      upToken ? getPrice(upToken.id) : undefined,
+      restPrices,
+    );
+    const downPrice = getPredictBuyPrice(
+      downToken,
+      downToken ? getPrice(downToken.id) : undefined,
+      restPrices,
+    );
 
     return (
       <Box
@@ -1023,6 +1047,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
   entryPoint: propEntryPoint,
   onCardPress,
   onBuyButtonPress,
+  transactionActiveAbTests,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -1030,15 +1055,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { navigateToMarketDetails } = usePredictNavigation();
   const { openBuySheet } = usePredictPreviewSheet();
-  const contextEntryPoint = usePredictEntryPoint();
-  const baseEntryPoint =
-    contextEntryPoint ??
-    propEntryPoint ??
-    PredictEventValues.ENTRY_POINT.PREDICT_FEED;
-  const resolvedEntryPoint = TrendingFeedSessionManager.getInstance()
-    .isFromTrending
-    ? PredictEventValues.ENTRY_POINT.TRENDING
-    : baseEntryPoint;
+  const resolvedEntryPoint = useResolvedPredictEntryPoint(propEntryPoint);
   const { executeGuardedAction } = usePredictActionGuard({ navigation });
   const durationMs = getSeriesDurationMs(market.series.recurrence);
   const windowMs = useSharedSeriesWindowMs(durationMs);
@@ -1106,10 +1123,10 @@ const PredictCryptoUpDownMarketCard: React.FC<
       Boolean(targetPriceEventStartTime) &&
       Boolean(selectedMarket.endDate),
   });
-  const validatedTargetPrice =
-    typeof targetPrice === 'number' && targetPrice > 0
-      ? targetPrice
-      : undefined;
+  const validatedTargetPrice = resolveCryptoTargetPrice(
+    selectedMarket,
+    targetPrice,
+  );
   const chartData = useCryptoUpDownChartData(
     selectedMarket,
     validatedTargetPrice,
@@ -1159,6 +1176,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
         entryPoint: resolvedEntryPoint,
         title: cardTitle,
         image: imageUrl,
+        ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
       },
       { throughRoot: true },
     );
@@ -1170,6 +1188,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
     resolvedEntryPoint,
     selectedMarket.id,
     selectedMarket.series,
+    transactionActiveAbTests,
   ]);
 
   const handleBuyPress = useCallback(
@@ -1190,6 +1209,9 @@ const PredictCryptoUpDownMarketCard: React.FC<
             outcome: selectedOutcome,
             outcomeToken: token,
             entryPoint: resolvedEntryPoint,
+            ...(transactionActiveAbTests?.length && {
+              transactionActiveAbTests,
+            }),
           });
         },
         {
@@ -1204,6 +1226,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
       resolvedEntryPoint,
       selectedMarket,
       selectedOutcome,
+      transactionActiveAbTests,
     ],
   );
 
@@ -1299,6 +1322,8 @@ const PredictCryptoUpDownMarketCard: React.FC<
       <OutcomeButtons
         upToken={upToken}
         downToken={downToken}
+        marketId={selectedMarket.id}
+        outcomeId={selectedOutcome?.id}
         marketStatus={selectedMarket.status as PredictMarketStatus}
         onBuyPress={handleBuyPress}
       />

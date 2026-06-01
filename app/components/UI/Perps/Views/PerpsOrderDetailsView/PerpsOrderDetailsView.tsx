@@ -33,6 +33,7 @@ import {
   formatPerpsFiat,
   formatPositionSize,
   formatOrderCardDate,
+  PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import {
   formatOrderLabel,
@@ -131,11 +132,15 @@ const PerpsOrderDetailsView: React.FC = () => {
     const priceText =
       isMarketExecution || validOrderPrice === null
         ? strings('perps.order_details.market')
-        : formatPerpsFiat(validOrderPrice);
+        : formatPerpsFiat(validOrderPrice, {
+            ranges: PRICE_RANGES_UNIVERSAL,
+          });
 
     let triggerCondition: string | undefined;
     if (order.isTrigger && validTriggerPrice !== null) {
-      const formattedTriggerPrice = formatPerpsFiat(validTriggerPrice);
+      const formattedTriggerPrice = formatPerpsFiat(validTriggerPrice, {
+        ranges: PRICE_RANGES_UNIVERSAL,
+      });
       const conditionKey = inferTriggerConditionKey({
         detailedOrderType: order.detailedOrderType,
         side: order.side,
@@ -175,10 +180,14 @@ const PerpsOrderDetailsView: React.FC = () => {
         ? strings('perps.order_details.yes')
         : strings('perps.order_details.no'),
       takeProfitPriceText: hasTakeProfitPrice
-        ? formatPerpsFiat(parsedTakeProfitPrice)
+        ? formatPerpsFiat(parsedTakeProfitPrice, {
+            ranges: PRICE_RANGES_UNIVERSAL,
+          })
         : undefined,
       stopLossPriceText: hasStopLossPrice
-        ? formatPerpsFiat(parsedStopLossPrice)
+        ? formatPerpsFiat(parsedStopLossPrice, {
+            ranges: PRICE_RANGES_UNIVERSAL,
+          })
         : undefined,
     };
   }, [order, priceMetrics]);

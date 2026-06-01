@@ -122,6 +122,7 @@ export type PredictMarket = {
   parentMarketId?: string | number | null;
   childMarketIds?: string[];
   isHighlighted?: boolean;
+  priceToBeat?: number;
 };
 
 export type PredictSeries = {
@@ -152,6 +153,9 @@ export type PredictCategory =
 export type PredictSportsLeague =
   | 'nfl'
   | 'nba'
+  | 'wnba'
+  | 'mlb'
+  | 'nhl'
   | 'ucl'
   | 'fif'
   | 'lal'
@@ -190,7 +194,10 @@ export type PredictSportsLeague =
   | 'itc'
   | 'dfb'
   | 'cde'
-  | 'fifwc';
+  | 'fifwc'
+  | 'atp'
+  | 'wta'
+  | 'itf';
 
 // Game status
 export type PredictGameStatus = 'scheduled' | 'ongoing' | 'ended';

@@ -19,6 +19,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import type { TraderProfile } from '@metamask/social-controllers';
 import { TraderProfileViewSelectorsIDs } from '../TraderProfileView.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { TopRankAvatar } from '../../../Homepage/Sections/TopTraders/topRank';
 
 const AVATAR_SIZE = 40;
