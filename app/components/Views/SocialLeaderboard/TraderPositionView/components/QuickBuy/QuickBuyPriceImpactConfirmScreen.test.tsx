@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -147,5 +148,54 @@ describe('QuickBuyPriceImpactConfirmScreen', () => {
     render(<QuickBuyPriceImpactConfirmScreen />);
     fireEvent.press(screen.getByTestId('footer-proceed'));
     await waitFor(() => expect(handleConfirm).toHaveBeenCalledTimes(1));
+  });
+
+  it('passes loading=true to the footer while handleConfirm is in-flight', async () => {
+    let resolveConfirm!: () => void;
+    const handleConfirm = jest.fn(
+      () =>
+        new Promise<void>((res) => {
+          resolveConfirm = res;
+        }),
+    );
+    (useQuickBuyContext as jest.Mock).mockReturnValue(
+      buildContext({ handleConfirm }),
+    );
+
+    const { PriceImpactFooter } = jest.requireMock(
+      '../../../../../UI/Bridge/components/PriceImpactModal/PriceImpactFooter',
+    ) as { PriceImpactFooter: jest.Mock };
+
+    render(<QuickBuyPriceImpactConfirmScreen />);
+    fireEvent.press(screen.getByTestId('footer-proceed'));
+
+    await waitFor(() => {
+      const lastCall = PriceImpactFooter.mock.calls.at(-1)?.[0];
+      expect(lastCall?.loading).toBe(true);
+    });
+
+    await act(async () => {
+      resolveConfirm();
+    });
+
+    await waitFor(() => {
+      const lastCall = PriceImpactFooter.mock.calls.at(-1)?.[0];
+      expect(lastCall?.loading).toBe(false);
+    });
+  });
+
+  it('passes loading=true to the footer when isSubmittingTx is true', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue(
+      buildContext({ isSubmittingTx: true }),
+    );
+
+    const { PriceImpactFooter } = jest.requireMock(
+      '../../../../../UI/Bridge/components/PriceImpactModal/PriceImpactFooter',
+    ) as { PriceImpactFooter: jest.Mock };
+
+    render(<QuickBuyPriceImpactConfirmScreen />);
+
+    const lastCall = PriceImpactFooter.mock.calls.at(-1)?.[0];
+    expect(lastCall?.loading).toBe(true);
   });
 });

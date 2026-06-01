@@ -301,6 +301,30 @@ describe('QuickBuyRoot', () => {
     ).toBeOnTheScreen();
     expect(screen.queryByTestId('mock-amount-section')).not.toBeOnTheScreen();
   });
+
+  it('renders nothing when isVisible is false', () => {
+    const { toJSON } = renderWithProvider(
+      <QuickBuyRoot
+        isVisible={false}
+        target={positionToQuickBuyTarget(createPosition())}
+        features={TOP_TRADERS_QUICK_BUY_FEATURES}
+        onClose={jest.fn()}
+      />,
+    );
+    expect(toJSON()).toBeNull();
+  });
+
+  it('renders nothing when target is null', () => {
+    const { toJSON } = renderWithProvider(
+      <QuickBuyRoot
+        isVisible
+        target={null}
+        features={TOP_TRADERS_QUICK_BUY_FEATURES}
+        onClose={jest.fn()}
+      />,
+    );
+    expect(toJSON()).toBeNull();
+  });
 });
 
 describe('useQuickBuyContext guard', () => {
