@@ -39,7 +39,7 @@ import { InitSendLocation } from '../../../constants/send';
 
 export const Amount = () => {
   const navigation = useNavigation();
-  const { header: AmountHeader } = useSendNavbar().Amount;
+  const { header: renderAmountHeader } = useSendNavbar().Amount;
   const { location } = useParams<{ location?: string }>();
   const primaryCurrency = useSelector(selectPrimaryCurrency);
   const { asset, value } = useSendContext();
@@ -137,7 +137,7 @@ export const Amount = () => {
       edges={isIos ? ['left', 'right'] : ['left', 'right', 'bottom']}
       style={styles.container}
     >
-      <AmountHeader />
+      {renderAmountHeader()}
       <View style={styles.topSection}>
         {isNFT && (
           <View style={styles.nftImageWrapper}>

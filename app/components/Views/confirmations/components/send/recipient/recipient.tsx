@@ -38,7 +38,7 @@ export const Recipient = () => {
   const [pastedRecipient, setPastedRecipient] = useState<string>();
   const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
   const { to, updateTo, asset, chainId } = useSendContext();
-  const { header: RecipientHeader } = useSendNavbar().Recipient;
+  const { header: renderRecipientHeader } = useSendNavbar().Recipient;
   const { handleSubmitPress } = useSendActions();
   const accounts = useAccounts();
   const contacts = useContacts();
@@ -207,7 +207,7 @@ export const Recipient = () => {
 
   return (
     <SafeAreaView edges={['left', 'right', 'bottom']} style={styles.container}>
-      <RecipientHeader />
+      {renderRecipientHeader()}
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}

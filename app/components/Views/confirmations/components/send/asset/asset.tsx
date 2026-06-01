@@ -46,8 +46,8 @@ export interface AssetProps {
 // Rendered only inside the send flow so that consumers reusing this picker
 // (e.g. pay-with-modal) don't pull in useSendNavbar's dependency chain.
 const AssetSendHeader = () => {
-  const { header: Header } = useSendNavbar().Asset;
-  return <Header />;
+  const { header: renderHeader } = useSendNavbar().Asset;
+  return renderHeader();
 };
 
 export const Asset: React.FC<AssetProps> = (props = {}) => {
