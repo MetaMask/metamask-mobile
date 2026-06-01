@@ -13,6 +13,7 @@ import { transactionApprovalControllerMock } from '../../__mocks__/controllers/a
 import {
   MetaMaskPayTokensFlags,
   selectMetaMaskPayTokensFlags,
+  selectMetaMaskPayFiatFlags,
 } from '../../../../../selectors/featureFlagController/confirmations';
 import {
   isHardwareAccount,
@@ -24,10 +25,14 @@ import {
   TransactionPayRequiredToken,
 } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
-import { useTransactionPayRequiredTokens } from './useTransactionPayData';
+import {
+  useTransactionPayFiatPayment,
+  useTransactionPayRequiredTokens,
+} from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { AssetType } from '../../types/token';
 import { useWithdrawTokenFilter } from './useWithdrawTokenFilter';
+import { useRampsPaymentMethods } from '../../../../UI/Ramp/hooks/useRampsPaymentMethods';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { MUSD_TOKEN_ADDRESS } from '../../../../UI/Earn/constants/musd';
@@ -42,6 +47,7 @@ jest.mock('../../../../../selectors/transactionPayController');
 jest.mock('./useTransactionPayData');
 jest.mock('./useTransactionPayAvailableTokens');
 jest.mock('./useWithdrawTokenFilter');
+jest.mock('../../../../UI/Ramp/hooks/useRampsPaymentMethods');
 jest.mock('../../../../../selectors/transactionController', () => ({
   ...jest.requireActual('../../../../../selectors/transactionController'),
   selectLastWithdrawTokenByType: jest.fn(),
@@ -53,6 +59,7 @@ jest.mock(
       '../../../../../selectors/featureFlagController/confirmations',
     ),
     selectMetaMaskPayTokensFlags: jest.fn(),
+    selectMetaMaskPayFiatFlags: jest.fn(),
   }),
 );
 
@@ -101,6 +108,9 @@ function runHook({
 
 describe('useAutomaticTransactionPayToken', () => {
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
+  const useTransactionPayFiatPaymentMock = jest.mocked(
+    useTransactionPayFiatPayment,
+  );
   const useTransactionPayAvailableTokensMock = jest.mocked(
     useTransactionPayAvailableTokens,
   );
@@ -111,6 +121,9 @@ describe('useAutomaticTransactionPayToken', () => {
   );
   const selectMetaMaskPayTokensFlagsMock = jest.mocked(
     selectMetaMaskPayTokensFlags,
+  );
+  const selectMetaMaskPayFiatFlagsMock = jest.mocked(
+    selectMetaMaskPayFiatFlags,
   );
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
@@ -160,6 +173,24 @@ describe('useAutomaticTransactionPayToken', () => {
     } as never);
 
     useTransactionAccountOverrideMock.mockReturnValue(undefined);
+
+    useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
+
+    jest.mocked(useRampsPaymentMethods).mockReturnValue({
+      paymentMethods: [],
+      selectedPaymentMethod: null,
+      setSelectedPaymentMethod: jest.fn(),
+      isLoading: false,
+      isFetching: false,
+      status: 'success',
+      isSuccess: true,
+      error: null,
+    });
+
+    selectMetaMaskPayFiatFlagsMock.mockReturnValue({
+      enabledTransactionTypes: [],
+      maxDelayMinutesForPaymentMethods: 10,
+    });
   });
 
   it('selects first token', () => {
