@@ -2301,6 +2301,7 @@
     },
     "world_cup": {
       "title": "World Cup",
+      "predictions_title": "World Cup predictions",
       "banner_title": "World Cup 2026",
       "banner_description": "Trade every match, every moment.",
       "tabs": {

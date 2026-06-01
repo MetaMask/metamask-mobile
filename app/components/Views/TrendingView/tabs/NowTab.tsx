@@ -36,7 +36,11 @@ import PerpsPillItem from '../feeds/perps/PerpsPillItem';
 import { navigateToPerpsMarketList } from '../feeds/perps/perpsNavigation';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
 import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarouselSection';
-import { navigateToExplorePredictionsList } from '../feeds/predictions/predictionsNavigation';
+import {
+  navigateToExplorePredictionsList,
+  navigateToExploreWorldCupPredictions,
+} from '../feeds/predictions/predictionsNavigation';
+import { useWorldCupPredictionsFeed } from '../feeds/predictions/useWorldCupPredictionsFeed';
 import { useStocksFeed } from '../feeds/stocks/useStocksFeed';
 import { getCaipChainIdFromAssetId } from '../../../UI/Trending/components/TrendingTokenRowItem/utils';
 import CardList from '../components/CardList';
@@ -185,7 +189,17 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
     whatsHappeningRef.current?.refresh();
   }, [refresh.trigger]);
 
-  const predictions = usePredictionsFeed({ refresh });
+  const worldCupPredictions = useWorldCupPredictionsFeed({
+    enabled: isPredictEnabled,
+    refresh,
+  });
+  const predictions = usePredictionsFeed({
+    refresh,
+    enabled: !worldCupPredictions.isEnabled,
+  });
+  const displayedPredictions = worldCupPredictions.isEnabled
+    ? worldCupPredictions
+    : predictions;
   const cryptoMovers = useTokensFeed({
     refresh,
     hideRiskyTokens: true,
@@ -232,13 +246,21 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const predictionsSection = (
     <PredictionsCarouselSection
       key="predictions"
-      feed={predictions}
+      feed={displayedPredictions}
       tabName="Now"
       sectionName="predictions_trending"
-      title={strings('wallet.predict')}
+      title={
+        worldCupPredictions.isEnabled
+          ? strings('predict.world_cup.predictions_title')
+          : strings('wallet.predict')
+      }
       testIdPrefix="predict-market-row-item"
       idPrefix="predictions"
-      onViewAll={() => navigateToExplorePredictionsList(navigation, 'trending')}
+      onViewAll={() =>
+        worldCupPredictions.isEnabled
+          ? navigateToExploreWorldCupPredictions(navigation)
+          : navigateToExplorePredictionsList(navigation, 'trending')
+      }
       isEnabled={isPredictEnabled}
     />
   );
