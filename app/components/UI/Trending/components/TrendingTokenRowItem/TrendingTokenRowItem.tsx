@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
+import { getTrendingTokenRowItemTestId } from './TrendingTokenRowItem.testIds';
 import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import Text, {
@@ -183,8 +184,8 @@ const TrendingTokenRowItem = ({
   }, [onPress, onCardPress, token, defaultOnPress]);
 
   const rowTestId = testIdInstanceKey
-    ? `trending-token-row-item-${testIdInstanceKey}-${token.assetId}`
-    : `trending-token-row-item-${token.assetId}`;
+    ? getTrendingTokenRowItemTestId(`${testIdInstanceKey}-${token.assetId}`)
+    : getTrendingTokenRowItemTestId(token.assetId);
 
   return (
     <TouchableOpacity

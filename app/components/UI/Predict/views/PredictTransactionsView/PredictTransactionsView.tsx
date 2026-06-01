@@ -1,5 +1,10 @@
 import React, { useMemo, useEffect, useCallback } from 'react';
-import { ActivityIndicator, SectionList } from 'react-native';
+import {
+  ActivityIndicator,
+  SectionList,
+  ViewStyle,
+  StyleProp,
+} from 'react-native';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import PredictActivity from '../../components/PredictActivity/PredictActivity';
@@ -14,9 +19,12 @@ import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
 import { PREDICT_TRANSACTIONS_VIEW_TEST_IDS } from './PredictTransactionsView.testIds';
 interface PredictTransactionsViewProps {
+  emptyState?: React.ReactNode;
   transactions?: unknown[];
   tabLabel?: string;
   isVisible?: boolean;
+  containerStyle?: string;
+  activityContainerStyle?: string;
 }
 
 interface ActivitySection {
@@ -60,7 +68,10 @@ const getDateGroupLabel = (
 };
 
 const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
+  emptyState,
   isVisible,
+  containerStyle,
+  activityContainerStyle,
 }) => {
   const tw = useTailwind();
   const {
@@ -245,10 +256,10 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
   const renderItem = useCallback(
     ({ item }: { item: PredictActivityItem }) => (
       <Box twClassName="py-1">
-        <PredictActivity item={item} />
+        <PredictActivity item={item} containerStyle={activityContainerStyle} />
       </Box>
     ),
-    [],
+    [activityContainerStyle],
   );
 
   const keyExtractor = useCallback((item: PredictActivityItem) => item.id, []);
@@ -263,18 +274,20 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
       />
     </Box>
   ) : sections.length === 0 ? (
-    <Box twClassName="items-center justify-center py-10">
-      <TabEmptyState
-        description={strings('predict.transactions.no_transactions')}
-      />
-    </Box>
+    (emptyState ?? (
+      <Box twClassName="items-center justify-center py-10">
+        <TabEmptyState
+          description={strings('predict.transactions.no_transactions')}
+        />
+      </Box>
+    ))
   ) : (
     <SectionList<PredictActivityItem, ActivitySection>
       sections={sections}
       keyExtractor={keyExtractor}
       renderItem={renderItem}
       renderSectionHeader={renderSectionHeader}
-      contentContainerStyle={tw.style('p-2')}
+      contentContainerStyle={tw.style('p-2', containerStyle)}
       showsVerticalScrollIndicator={false}
       style={tw.style('flex-1')}
       stickySectionHeadersEnabled

@@ -15,6 +15,7 @@ import { initialStateTrending } from '../presets/trending';
 interface RenderTrendingViewOptions {
   overrides?: DeepPartial<RootState>;
   deterministicFiat?: boolean;
+  initialParams?: Record<string, unknown>;
 }
 
 function withQueryClient(
@@ -40,7 +41,7 @@ function withQueryClient(
 export function renderTrendingViewWithRoutes(
   options: RenderTrendingViewOptions = {},
 ): ReturnType<typeof renderScreenWithRoutes> {
-  const { overrides, deterministicFiat } = options;
+  const { overrides, deterministicFiat, initialParams } = options;
 
   const builder = initialStateTrending({ deterministicFiat });
   if (overrides) {
@@ -74,6 +75,7 @@ export function renderTrendingViewWithRoutes(
       },
     ],
     { state },
+    initialParams,
   );
 }
 

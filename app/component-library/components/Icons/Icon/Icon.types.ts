@@ -321,6 +321,7 @@ export enum IconName {
   TableRow = 'TableRow',
   Tablet = 'Tablet',
   Tag = 'Tag',
+  Telegram = 'Telegram',
   ThumbDownFilled = 'ThumbDownFilled',
   ThumbDown = 'ThumbDown',
   ThumbUpFilled = 'ThumbUpFilled',

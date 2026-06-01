@@ -148,6 +148,23 @@ describe('WhatsHappeningAssetSlider', () => {
     expect(screen.getByText('+1.23%')).toBeOnTheScreen();
   });
 
+  it('renders pills for perps assets that have no sourceAssetId', () => {
+    const assetWithoutSourceId = {
+      symbol: 'SOL',
+      name: 'Solana',
+      caip19: [],
+      hlPerpsMarket: ['SOL'],
+      // sourceAssetId intentionally absent
+    };
+    renderWithProvider(
+      <WhatsHappeningAssetSlider
+        {...sharedProps}
+        assets={[assetWithoutSourceId]}
+      />,
+    );
+    expect(screen.getByText('SOL')).toBeOnTheScreen();
+  });
+
   it('shows negative change in red and hides change text when undefined', () => {
     mockUseWhatsHappeningAssetPrices.mockReturnValue({
       perpsPriceBySymbol: {

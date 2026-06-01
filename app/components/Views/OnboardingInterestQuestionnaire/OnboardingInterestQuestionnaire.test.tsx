@@ -97,7 +97,24 @@ describe('OnboardingInterestQuestionnaire', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders all six option rows', () => {
+    it('renders updated option labels from i18n', () => {
+      renderComponent();
+
+      expect(
+        screen.getByText(
+          strings(
+            'onboarding_interest_questionnaire.option_buy_and_sell_crypto',
+          ),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          strings('onboarding_interest_questionnaire.option_advanced_trades'),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders all six option cards in the grid', () => {
       renderComponent();
 
       const optionIds = [
@@ -340,6 +357,20 @@ describe('OnboardingInterestQuestionnaire', () => {
       await waitFor(() => {
         expect(mockOnComplete).toHaveBeenCalledTimes(1);
       });
+    });
+
+    it('does not navigate to another screen on Continue', async () => {
+      renderComponent();
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(
+            OnboardingInterestQuestionnaireTestIds.CONTINUE_BUTTON,
+          ),
+        );
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 });

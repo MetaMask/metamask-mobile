@@ -5,6 +5,7 @@ import {
   type OrderType,
   type PerpsMarketData,
   type TPSLTrackingData,
+  type SortDirection,
   type SortOptionId,
 } from '@metamask/perps-controller';
 import { PerpsTransaction } from './transactionHistory';
@@ -33,6 +34,7 @@ export interface PerpsNavigationParamList extends ParamListBase {
     showPerpsHeader?: boolean;
     /** Analytics: how the user got to the order screen (e.g. trade_action, order_book_long_button, asset_detail_screen) */
     source?: string;
+    transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   };
 
   PerpsOrderSuccess: {
@@ -92,9 +94,11 @@ export interface PerpsNavigationParamList extends ParamListBase {
       | 'forex'
       | 'new';
     defaultSortOptionId?: SortOptionId;
+    defaultSortDirection?: SortDirection;
     fromHome?: boolean;
     button_clicked?: string;
     button_location?: string;
+    transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   };
 
   PerpsMarketDetails: {
