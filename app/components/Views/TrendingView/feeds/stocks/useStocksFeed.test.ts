@@ -97,7 +97,7 @@ describe('useStocksFeed', () => {
     });
 
     it('passes the query through to useRwaTokens as searchQuery', () => {
-      renderHook(() => useStocksFeed({ query: 'OUSG' }));
+      renderHook(() => useStocksFeed({ query: ' OUSG ' }));
       expect(mockUseRwaTokens).toHaveBeenCalledWith(
         expect.objectContaining({ searchQuery: 'OUSG' }),
       );
@@ -117,7 +117,10 @@ describe('useStocksFeed', () => {
       expect(symbols).toEqual(['OUSG', 'BUIDL']);
       expect(symbols).not.toContain('bOUSG');
       expect(mockUseRwaTokens).toHaveBeenCalledWith(
-        expect.objectContaining({ chainIds: ['eip155:1'] }),
+        expect.objectContaining({
+          searchQuery: undefined,
+          chainIds: ['eip155:1'],
+        }),
       );
     });
   });

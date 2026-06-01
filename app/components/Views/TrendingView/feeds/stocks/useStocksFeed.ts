@@ -43,7 +43,8 @@ export const useStocksFeed = ({
   pageSize,
   refresh,
 }: UseStocksFeedOptions = {}): UseStocksFeedResult => {
-  const hasQuery = Boolean(query?.trim());
+  const trimmedQuery = query?.trim();
+  const hasQuery = Boolean(trimmedQuery);
   const {
     data,
     isLoading,
@@ -53,7 +54,7 @@ export const useStocksFeed = ({
     refetch,
     loadMore,
   } = useRwaTokens({
-    searchQuery: query,
+    searchQuery: hasQuery ? trimmedQuery : undefined,
     chainIds: hasQuery ? undefined : ETHEREUM_RWA_CHAIN_IDS,
     pageSize,
   });
