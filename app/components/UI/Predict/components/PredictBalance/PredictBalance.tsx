@@ -29,6 +29,7 @@ import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
 import Button, {
+  ButtonSize,
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
@@ -81,6 +82,9 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
   });
   const walletType = accountState?.walletType;
   const isWithdrawDisabled = hasBalance && !walletType;
+  const actionButtonStyle = tw.style(
+    'flex-1 h-12 items-center justify-center px-2',
+  );
 
   useEffect(() => {
     if (!isDepositPending) {
@@ -228,7 +232,9 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
           {predictPortfolioEnabled && (
             <Button
               variant={ButtonVariants.Secondary}
-              style={tw.style('flex-1')}
+              size={ButtonSize.Lg}
+              style={actionButtonStyle}
+              labelTextVariant={ComponentTextVariant.BodySMMedium}
               label={strings('predict.tabs.positions')}
               onPress={handlePositionsPress}
               testID={PREDICT_BALANCE_TEST_IDS.POSITIONS_BUTTON}
@@ -238,14 +244,18 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
             variant={
               hasBalance ? ButtonVariants.Secondary : ButtonVariants.Primary
             }
-            style={tw.style('flex-1')}
+            size={ButtonSize.Lg}
+            style={actionButtonStyle}
+            labelTextVariant={ComponentTextVariant.BodySMMedium}
             label={strings('predict.deposit.add_funds')}
             onPress={handleAddFunds}
           />
           {hasBalance && (
             <Button
               variant={ButtonVariants.Secondary}
-              style={tw.style('flex-1')}
+              size={ButtonSize.Lg}
+              style={actionButtonStyle}
+              labelTextVariant={ComponentTextVariant.BodySMMedium}
               label={strings('predict.deposit.withdraw')}
               onPress={handleWithdraw}
               isDisabled={isWithdrawDisabled}
