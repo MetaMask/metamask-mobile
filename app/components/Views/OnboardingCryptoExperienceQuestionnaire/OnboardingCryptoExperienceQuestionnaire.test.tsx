@@ -133,7 +133,13 @@ describe('OnboardingCryptoExperienceQuestionnaire', () => {
       renderComponent();
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        MetaMetricsEvents.ONBOARDING_CRYPTO_EXPERIENCE_QUESTION_VIEWED,
+        MetaMetricsEvents.ONBOARDING_QUESTION_VIEWED,
+      );
+      const viewedBuilder = mockCreateEventBuilder.mock.results[0]?.value;
+      expect(viewedBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          question_type: 'crypto_experience',
+        }),
       );
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     });
@@ -147,6 +153,7 @@ describe('OnboardingCryptoExperienceQuestionnaire', () => {
 
       expect(viewedBuilder.addProperties).toHaveBeenCalledWith(
         expect.objectContaining({
+          question_type: 'crypto_experience',
           account_type: 'imported',
         }),
       );
@@ -189,10 +196,11 @@ describe('OnboardingCryptoExperienceQuestionnaire', () => {
 
       expect(mockCreateEventBuilder).toHaveBeenNthCalledWith(
         2,
-        MetaMetricsEvents.ONBOARDING_CRYPTO_EXPERIENCE_QUESTION_SUBMITTED,
+        MetaMetricsEvents.ONBOARDING_QUESTION_SUBMITTED,
       );
       expect(builderInstance.addProperties).toHaveBeenCalledWith(
         expect.objectContaining({
+          question_type: 'crypto_experience',
           name: null,
           skipped: true,
         }),
@@ -221,6 +229,7 @@ describe('OnboardingCryptoExperienceQuestionnaire', () => {
 
       expect(builderInstance.addProperties).toHaveBeenCalledWith(
         expect.objectContaining({
+          question_type: 'crypto_experience',
           name: 'intermediate',
           skipped: false,
         }),
@@ -244,6 +253,7 @@ describe('OnboardingCryptoExperienceQuestionnaire', () => {
 
       expect(builderInstance.addProperties).toHaveBeenCalledWith(
         expect.objectContaining({
+          question_type: 'crypto_experience',
           skipped: true,
           account_type: 'hardware_wallet',
         }),

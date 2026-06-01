@@ -77,10 +77,9 @@ const OnboardingCryptoExperienceQuestionnaire = () => {
     if (hasTrackedView.current) return;
     hasTrackedView.current = true;
     trackEvent(
-      createEventBuilder(
-        MetaMetricsEvents.ONBOARDING_CRYPTO_EXPERIENCE_QUESTION_VIEWED,
-      )
+      createEventBuilder(MetaMetricsEvents.ONBOARDING_QUESTION_VIEWED)
         .addProperties({
+          question_type: 'crypto_experience',
           ...(accountType && { account_type: accountType }),
         })
         .build(),
@@ -104,10 +103,9 @@ const OnboardingCryptoExperienceQuestionnaire = () => {
     const skipped = selectedLevel === null;
 
     trackEvent(
-      createEventBuilder(
-        MetaMetricsEvents.ONBOARDING_CRYPTO_EXPERIENCE_QUESTION_SUBMITTED,
-      )
+      createEventBuilder(MetaMetricsEvents.ONBOARDING_QUESTION_SUBMITTED)
         .addProperties({
+          question_type: 'crypto_experience',
           name: selectedLevel,
           skipped,
           ...(accountType && { account_type: accountType }),
