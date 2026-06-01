@@ -104,7 +104,6 @@ describe('usePostTradeTxStatus', () => {
         {
           initialStatus: PostTradeStatus.InProgress,
           transactionMetaId: 'bridge-tx-id',
-          initialTransactionStatus: TransactionStatus.submitted,
         },
         buildBridgeHistoryState(bridgeStatus),
       ),

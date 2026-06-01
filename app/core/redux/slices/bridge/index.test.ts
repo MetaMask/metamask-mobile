@@ -6,7 +6,6 @@ import reducer, {
   setDestAmount,
   resetBridgeState,
   resetBridgeTokenInputs,
-  incrementBridgeBalanceRefreshKey,
   setSlippage,
   setBridgeViewMode,
   selectBridgeViewMode,
@@ -541,19 +540,6 @@ describe('bridge slice', () => {
       expect(newState.isMaxSourceAmount).toBe(false);
       expect(newState.isDestTokenManuallySet).toBe(true);
       expect(newState.selectedQuoteRequestId).toBeUndefined();
-    });
-  });
-
-  describe('incrementBridgeBalanceRefreshKey', () => {
-    it('increments the bridge balance refresh key', () => {
-      const state = {
-        ...initialState,
-        balanceRefreshKey: 2,
-      };
-
-      const newState = reducer(state, incrementBridgeBalanceRefreshKey());
-
-      expect(newState.balanceRefreshKey).toBe(3);
     });
   });
 

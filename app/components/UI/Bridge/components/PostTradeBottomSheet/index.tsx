@@ -136,7 +136,6 @@ export const PostTradeBottomSheet = () => {
     initialStatus: params.status,
     transactionMetaId: params.transactionMetaId,
     transactionHash: params.transactionHash,
-    initialTransactionStatus: params.initialTransactionStatus,
   });
 
   useEffect(() => {

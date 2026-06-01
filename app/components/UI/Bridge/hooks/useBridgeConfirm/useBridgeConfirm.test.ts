@@ -112,7 +112,6 @@ describe('useBridgeConfirm', () => {
           status: PostTradeStatus.InProgress,
           transactionMetaId: 'tx-meta-id',
           transactionHash: '0xabc',
-          initialTransactionStatus: 'submitted',
           sourceAmount: mockQuoteWithMetadata.sentAmount.amount,
           destAmount: mockQuoteWithMetadata.toTokenAmount.amount,
         }),

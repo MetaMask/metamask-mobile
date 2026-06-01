@@ -74,7 +74,6 @@ export const useBridgeConfirm = ({
         status: PostTradeStatus.InProgress,
         transactionMetaId: submittedTransaction?.id,
         transactionHash,
-        initialTransactionStatus: submittedTransaction?.status,
       };
 
       dispatch(resetBridgeTokenInputs());

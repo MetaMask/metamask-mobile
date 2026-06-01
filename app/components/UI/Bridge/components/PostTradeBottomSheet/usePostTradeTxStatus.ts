@@ -15,7 +15,6 @@ interface UsePostTradeTxStatusParams {
   initialStatus: PostTradeStatus;
   transactionMetaId?: string;
   transactionHash?: string;
-  initialTransactionStatus?: TransactionStatus;
 }
 
 const FAILED_TRANSACTION_STATUSES = new Set<TransactionStatus>([
@@ -56,7 +55,6 @@ export const usePostTradeTxStatus = ({
   initialStatus,
   transactionMetaId,
   transactionHash,
-  initialTransactionStatus,
 }: UsePostTradeTxStatusParams): PostTradeStatus => {
   const transactionMeta = useSelector((state: RootState) =>
     transactionMetaId
@@ -75,7 +73,7 @@ export const usePostTradeTxStatus = ({
     return PostTradeStatus.Failed;
   }
 
-  const transactionStatus = transactionMeta?.status ?? initialTransactionStatus;
+  const transactionStatus = transactionMeta?.status;
   if (
     transactionStatus &&
     FAILED_TRANSACTION_STATUSES.has(transactionStatus)
