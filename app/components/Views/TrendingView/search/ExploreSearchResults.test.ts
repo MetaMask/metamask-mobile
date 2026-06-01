@@ -1,5 +1,5 @@
 /**
- * ExploreSearchResultsV2 — unit tests for getViewMoreLabel and LOCAL_SEARCH_FEEDS
+ * ExploreSearchResults — unit tests for getViewMoreLabel and LOCAL_SEARCH_FEEDS
  *
  * Tests the pure label-derivation logic that determines what text the
  * "View X more" button shows for each feed section, or null when the button

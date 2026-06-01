@@ -4007,6 +4007,7 @@ describe('PredictController', () => {
         expect(addTransactionBatch).toHaveBeenCalledWith({
           from: '0x1234567890123456789012345678901234567890',
           origin: 'metamask',
+          isInternal: true,
           networkClientId: 'polygon-mainnet',
           disableHook: true,
           disableSequential: true,
