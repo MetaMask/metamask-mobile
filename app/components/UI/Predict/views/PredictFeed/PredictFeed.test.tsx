@@ -132,13 +132,21 @@ jest.mock('../../components/PredictMarket', () => {
   const { View, Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: jest.fn(({ testID }) => (
+    default: jest.fn(({ testID, entryPoint }) => (
       <View testID={testID}>
         <Text>Market Card</Text>
       </View>
     )),
   };
 });
+
+import PredictMarket from '../../components/PredictMarket';
+import { PredictEventValues } from '../../constants/eventNames';
+
+const mockPredictMarket = PredictMarket as jest.Mock;
+
+const getPredictMarketEntryPoints = () =>
+  mockPredictMarket.mock.calls.map(([props]) => props.entryPoint);
 
 jest.mock('../../components/PredictMarketSkeleton', () => {
   const { View } = jest.requireActual('react-native');
@@ -795,7 +803,7 @@ describe('PredictFeed', () => {
       );
     });
 
-    it('starts session with undefined entry point when not provided', () => {
+    it('preserves an unattributed session when entry point is not provided', () => {
       mockUseRoute.mockReturnValue({
         params: {},
       });
@@ -806,6 +814,72 @@ describe('PredictFeed', () => {
         undefined,
         'trending',
       );
+    });
+
+    it('defaults market list items to predict_feed when entry point is not provided', () => {
+      mockUseRoute.mockReturnValue({
+        params: {},
+      });
+
+      render(<PredictFeed />);
+
+      const entryPoints = getPredictMarketEntryPoints();
+      expect(entryPoints.length).toBeGreaterThan(0);
+      expect(
+        entryPoints.every(
+          (entryPoint) =>
+            entryPoint === PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+        ),
+      ).toBe(true);
+    });
+
+    it('passes explore entryPoint to market list items from route params', () => {
+      mockUseRoute.mockReturnValue({
+        params: {
+          entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
+        },
+      });
+
+      render(<PredictFeed />);
+
+      expect(mockSessionManager.startSession).toHaveBeenCalledWith(
+        PredictEventValues.ENTRY_POINT.EXPLORE,
+        'trending',
+      );
+      const entryPoints = getPredictMarketEntryPoints();
+      expect(entryPoints.length).toBeGreaterThan(0);
+      expect(
+        entryPoints.every(
+          (entryPoint) => entryPoint === PredictEventValues.ENTRY_POINT.EXPLORE,
+        ),
+      ).toBe(true);
+    });
+
+    it('uses prop entryPoint for embedded feed list items and session attribution', () => {
+      mockUseRoute.mockReturnValue({
+        params: {
+          entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
+        },
+      });
+
+      render(
+        <PredictFeed
+          entryPoint={PredictEventValues.ENTRY_POINT.HOME_SECTION}
+        />,
+      );
+
+      expect(mockSessionManager.startSession).toHaveBeenCalledWith(
+        PredictEventValues.ENTRY_POINT.HOME_SECTION,
+        'trending',
+      );
+      const entryPoints = getPredictMarketEntryPoints();
+      expect(entryPoints.length).toBeGreaterThan(0);
+      expect(
+        entryPoints.every(
+          (entryPoint) =>
+            entryPoint === PredictEventValues.ENTRY_POINT.HOME_SECTION,
+        ),
+      ).toBe(true);
     });
   });
 

@@ -63,7 +63,7 @@ describe('getViewMoreLabel', () => {
   });
 
   describe('loading state — component skips getViewMoreLabel entirely (section.isLoading guard)', () => {
-    // ExploreSearchResultsV2 now returns null directly when section.isLoading is true
+    // ExploreSearchResults now returns null directly when section.isLoading is true
     // without calling getViewMoreLabel. These tests verify that if it were called with
     // 0 items and no serverTotal, it would correctly return null (nothing to show).
     it.each(['perps', 'stocks', 'sites', 'tokens', 'predictions'] as const)(
