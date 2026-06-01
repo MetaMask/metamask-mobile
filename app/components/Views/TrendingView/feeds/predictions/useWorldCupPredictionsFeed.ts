@@ -7,7 +7,12 @@ import { PREDICT_WORLD_CUP_TAB_KEYS } from '../../../../UI/Predict/constants/wor
 import { usePredictWorldCupMarkets } from '../../../../UI/Predict/hooks/usePredictWorldCup';
 import { useFeedRefresh } from '../../hooks/useFeedRefresh';
 import type { RefreshConfig } from '../../hooks/useExploreRefresh';
-import type { UsePredictionsFeedResult } from './usePredictionsFeed';
+import {
+  getPredictionsPreviewFetchPageSize,
+  limitPredictionsPreviewItems,
+  PREDICTIONS_PREVIEW_VISIBLE_COUNT,
+  type UsePredictionsFeedResult,
+} from './usePredictionsFeed';
 
 interface UseWorldCupPredictionsFeedOptions {
   enabled?: boolean;
@@ -23,7 +28,7 @@ export interface UseWorldCupPredictionsFeedResult
 export const useWorldCupPredictionsFeed = ({
   enabled = true,
   refresh,
-  pageSize = 6,
+  pageSize = PREDICTIONS_PREVIEW_VISIBLE_COUNT,
 }: UseWorldCupPredictionsFeedOptions = {}): UseWorldCupPredictionsFeedResult => {
   const config = useSelector(selectPredictWorldCupConfig);
   const isScreenEnabled = useSelector(selectPredictWorldCupScreenEnabledFlag);
@@ -33,13 +38,13 @@ export const useWorldCupPredictionsFeed = ({
     tabKey: PREDICT_WORLD_CUP_TAB_KEYS.ALL,
     config,
     enabled: isEnabled,
-    pageSize,
+    pageSize: getPredictionsPreviewFetchPageSize(pageSize),
   });
 
   useFeedRefresh(isEnabled ? refresh : undefined, worldCupMarkets.refetch);
 
   return {
-    data: worldCupMarkets.marketData,
+    data: limitPredictionsPreviewItems(worldCupMarkets.marketData, pageSize),
     isLoading: worldCupMarkets.isFetching,
     refetch: worldCupMarkets.refetch,
     fetchMore: worldCupMarkets.fetchMore,
