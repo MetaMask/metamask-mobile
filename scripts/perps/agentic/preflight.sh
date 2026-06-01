@@ -65,7 +65,18 @@ DEPS_LOG="${LOG_DIR}/deps.log"
 POD_INSTALL_LOG="${LOG_DIR}/pod-install.log"
 CDP_LOG="${LOG_DIR}/cdp.log"
 WALLET_LOG="${LOG_DIR}/wallet-setup.log"
-CDP_WAIT_TIMEOUT=90
+CDP_WAIT_TIMEOUT="${CDP_WAIT_TIMEOUT:-300}"
+case "$CDP_WAIT_TIMEOUT" in
+  ''|*[!0-9]*) CDP_WAIT_TIMEOUT=300 ;;
+esac
+CDP_STATUS_TIMEOUT_MS="${CDP_STATUS_TIMEOUT_MS:-5000}"
+case "$CDP_STATUS_TIMEOUT_MS" in
+  ''|*[!0-9]*) CDP_STATUS_TIMEOUT_MS=5000 ;;
+esac
+CDP_DISCOVERY_RETRIES="${CDP_DISCOVERY_RETRIES:-1}"
+case "$CDP_DISCOVERY_RETRIES" in
+  ''|*[!0-9]*) CDP_DISCOVERY_RETRIES=1 ;;
+esac
 CDP_RETRY=0
 
 # Flags
@@ -627,6 +638,7 @@ if [ "$PLAT" = "ios" ]; then
             # Cache miss in auto/default mode. Whatever is installed (if anything)
             # is at the wrong fingerprint; force the build gate to fire so we
             # produce + install a fresh artifact instead of running a stale app.
+            echo -e "  ${YELLOW}Cache miss:${NC} fp=${FP:0:12} — native build required once"
             APP_INSTALLED=0
           fi
           # Lock stays held through native build; post-build store releases it.
@@ -693,6 +705,53 @@ if [ "$PLAT" = "ios" ]; then
       fi
     fi
 
+    # pod install can materialize native generated files that participate in
+    # Expo's fingerprint. Recompute after pods settle and re-check the shared
+    # cache before spending ~20+ minutes in xcodebuild. This preserves the
+    # expected idempotency when a slot starts from a pre-pod-install worktree
+    # but the post-pod native fingerprint already has a cached .app.
+    if $BUILD_CACHE_ENABLED && [ "$MODE" != "clean" ] && [ "$MODE" != "rebuild-native" ] && [ "$APP_INSTALLED" -eq 0 ]; then
+      if $BC_LOCK_HELD; then
+        bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
+      fi
+      bc_fingerprint_reset_memo
+      FP=$(bc_fingerprint 2>/dev/null || true)
+      if [ -n "$FP" ]; then
+        if bc_lock_acquire ios "$FP"; then
+          BC_LOCK_HELD=true
+          trap 'bc_lock_release' EXIT
+          if bc_has_artifact ios "$FP"; then
+            echo -e "  ${GREEN}Cache hit after pod install:${NC} fp=${FP:0:12} — installing from shared cache"
+            IOS_ARTIFACT=$(bc_artifact_path ios "$FP")
+            if xcrun simctl install "$SIM_TARGET" "$IOS_ARTIFACT"; then
+              bc_record_install ios "$FP" "$SIM_TARGET"
+              APP_INSTALLED=1
+              ok "Installed from cache: $IOS_ARTIFACT"
+              bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
+            else
+              APP_INSTALLED=0
+              if [ "$MODE" = "fast" ]; then
+                bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
+                fail "Mode 'fast': cached artifact install failed for fp ${FP:0:12}"
+              fi
+              warn "Post-pod cache install failed — falling through to native build"
+            fi
+          else
+            echo -e "  ${YELLOW}Cache miss after pod install:${NC} fp=${FP:0:12} — native build required once"
+          fi
+        else
+          if [ "$MODE" = "fast" ]; then
+            fail "Mode 'fast': could not acquire build-cache lock for fp ${FP:0:12}"
+          fi
+          warn "Could not acquire post-pod build-cache lock for fp ${FP:0:12} — proceeding without lock"
+        fi
+      else
+        warn "Could not compute post-pod fingerprint — proceeding with native build"
+      fi
+    fi
+
+    if [ "$APP_INSTALLED" -eq 0 ]; then
+
     # Must pass --port (never --no-bundler): @expo/cli rejects that combo
     # (resolveBundlerProps.js), and without --port expo's headless bundler silently
     # binds the hardcoded default 8081, which collides with other worktrees and
@@ -724,7 +783,10 @@ if [ "$PLAT" = "ios" ]; then
     WATCH_PID=$!
 
     APP_PATH=""
-    BUILD_TIMEOUT=900
+    BUILD_TIMEOUT="${IOS_BUILD_TIMEOUT:-1800}"
+    case "$BUILD_TIMEOUT" in
+      ''|*[!0-9]*) BUILD_TIMEOUT=1800 ;;
+    esac
     while :; do
       NOW=$(date +%s)
       ELAPSED=$((NOW - BUILD_START))
@@ -851,6 +913,7 @@ if [ "$PLAT" = "ios" ]; then
         fi
       fi
     fi
+    fi
   else
     if $BC_LOCK_HELD; then
       bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
@@ -955,6 +1018,7 @@ else
           else
             # Cache miss in auto/default mode. Stale app must not pass the build
             # gate untouched; force a fresh build + install.
+            echo -e "  ${YELLOW}Cache miss:${NC} fp=${FP:0:12} — native build required once"
             APP_INSTALLED=0
           fi
         else
@@ -1093,8 +1157,9 @@ ok "Metro running on port $PORT"
 step "Connecting CDP" "Waiting for app to expose debug target"
 stage_log "$CDP_LOG"
 printf '$ node %s/cdp-bridge.js status\n' "$SCRIPTS" > "$CDP_LOG"
-while [ $CDP_RETRY -lt $CDP_WAIT_TIMEOUT ]; do
-  CDP_STATUS_OUTPUT=$(node "$SCRIPTS/cdp-bridge.js" status 2>&1 || true)
+CDP_START=$(date +%s)
+while [ $(( $(date +%s) - CDP_START )) -lt "$CDP_WAIT_TIMEOUT" ]; do
+  CDP_STATUS_OUTPUT=$(CDP_TIMEOUT="$CDP_STATUS_TIMEOUT_MS" CDP_DISCOVERY_RETRIES="$CDP_DISCOVERY_RETRIES" node "$SCRIPTS/cdp-bridge.js" status 2>&1 || true)
   printf '[attempt %s]\n%s\n' "$((CDP_RETRY + 1))" "$CDP_STATUS_OUTPUT" >>"$CDP_LOG"
   if echo "$CDP_STATUS_OUTPUT" | grep -q '"route"' 2>/dev/null; then
     ok "CDP connected"
@@ -1105,15 +1170,15 @@ while [ $CDP_RETRY -lt $CDP_WAIT_TIMEOUT ]; do
   [ $CDP_RETRY -eq 5 ] && echo -e "  ${DIM}Still waiting... app may still be loading JS bundle${NC}"
   [ $CDP_RETRY -eq 15 ] && echo -e "  ${DIM}Taking longer than usual — check device${NC}"
 done
-if [ $CDP_RETRY -ge $CDP_WAIT_TIMEOUT ]; then
+if [ $(( $(date +%s) - CDP_START )) -ge "$CDP_WAIT_TIMEOUT" ]; then
   # Diagnostic: probe candidate ports before failing. The symptom we hit most
   # often is the app registering its Hermes inspector on 8081 instead of our
   # $PORT when a stale expo dev server lingers — surface that explicitly so we
   # don't spend 15 tool calls diagnosing the same thing twice.
   probe_cdp_port() {
-    curl -s --max-time 2 "http://localhost:$1/json/list" 2>/dev/null \
-      | python3 -c 'import sys,json; d=json.loads(sys.stdin.read() or "[]"); print(len(d))' 2>/dev/null \
-      || echo 0
+    local body
+    body=$(curl -s --max-time 2 "http://localhost:$1/json/list" 2>/dev/null || true)
+    python3 -c 'import sys,json; d=json.loads(sys.stdin.read() or "[]"); print(len(d))' 2>/dev/null <<< "$body" || echo 0
   }
   echo ""
   echo -e "  ${RED}CDP timeout — diagnostic probe:${NC}"

@@ -159,11 +159,30 @@ fi
 # --- No Metro detected — start fresh ---
 > "$LOGFILE"
 
-# Clear Metro + Babel transpilation caches to ensure env vars are freshly inlined.
-# babel-plugin-transform-inline-environment-variables caches compiled values in
-# $TMPDIR/metro-cache. Without clearing, switching METAMASK_ENVIRONMENT between
-# 'e2e' and 'dev' may serve bundles with stale inlined values.
-rm -rf "${TMPDIR:-/tmp}/metro-cache" "${TMPDIR:-/tmp}/haste-map-"* 2>/dev/null || true
+# Clear Metro + Babel transpilation caches only when the inline environment
+# changes. Deleting them on every prepare defeats Metro's transform cache, makes
+# idempotent prepares rebundle the whole app, and can make CDP readiness time out
+# while the app is still compiling JS. Keep an explicit escape hatch for manual
+# debugging or env churn.
+METRO_CACHE_KEY_FILE=".agent/metro-cache-key"
+METRO_CACHE_KEY="$(
+  {
+    printf 'platform=%s\nport=%s\n' "$PLAT" "$PORT"
+    env | grep -E '^(METAMASK_|MM_|NODE_ENV=|EXPO_PUBLIC_|FEATURE_|SEGMENT_|SENTRY_)' | sort || true
+    [ -f .js.env ] && shasum .js.env
+    [ -f babel.config.js ] && shasum babel.config.js
+    [ -f metro.config.js ] && shasum metro.config.js
+  } | shasum | awk '{print $1}'
+)"
+if [ "${MM_CLEAR_METRO_CACHE:-0}" = "1" ] \
+   || [ ! -f "$METRO_CACHE_KEY_FILE" ] \
+   || [ "$(cat "$METRO_CACHE_KEY_FILE" 2>/dev/null || true)" != "$METRO_CACHE_KEY" ]; then
+  echo "Metro inline env changed — clearing transform cache..."
+  rm -rf "${TMPDIR:-/tmp}/metro-cache" "${TMPDIR:-/tmp}/haste-map-"* 2>/dev/null || true
+  printf '%s\n' "$METRO_CACHE_KEY" > "$METRO_CACHE_KEY_FILE"
+else
+  echo "Reusing Metro transform cache."
+fi
 
 echo "Starting Metro on port $PORT..."
 EXPO_NO_TYPESCRIPT_SETUP=1 yarn expo start --port "$PORT" >> "$LOGFILE" 2>&1 &
