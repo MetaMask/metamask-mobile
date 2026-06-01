@@ -4,16 +4,18 @@ import { useNavigation } from '@react-navigation/native';
 import {
   BottomSheet,
   BottomSheetHeader,
-  type BottomSheetRef,
   FontWeight,
   Text,
   TextVariant,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import styleSheet from './MoneyEarnCryptoInfoSheet.styles';
 import { MoneyEarnCryptoInfoSheetTestIds } from './MoneyEarnCryptoInfoSheet.testIds';
+
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 const FALLBACK_APY = 4;
 
@@ -22,6 +24,7 @@ const MoneyEarnCryptoInfoSheet = () => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
   const { apyPercent } = useMoneyAccountBalance();
+  const surfaceClass = useElevatedSurface();
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();
@@ -37,6 +40,7 @@ const MoneyEarnCryptoInfoSheet = () => {
       goBack={handleGoBack}
       testID={MoneyEarnCryptoInfoSheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
+      twClassName={surfaceClass}
     >
       <BottomSheetHeader onClose={handleClose}>
         <Text

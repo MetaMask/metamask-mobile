@@ -29,7 +29,7 @@ const actButtonPress = async (elem: ReactTestInstance) => {
   }
 };
 
-describeForPlatforms('ExploreSearchScreen V2 - Component Tests', () => {
+describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
   beforeEach(() => {
     setupTrendingApiFetchMock(mockTrendingTokensData);
   });
@@ -204,7 +204,7 @@ describeForPlatforms('ExploreSearchScreen V2 - Component Tests', () => {
   it('"All" pill is selected by default and pill row is present on mount', async () => {
     const { getByTestId } = renderExploreSearchScreenWithRoutes();
 
-    // The pill row is mounted immediately when V2 is enabled — it does not require
+    // The pill row is mounted immediately — it does not require
     // a search query. The "All" pill must be selected (active) by default.
     await waitFor(() => {
       const allPill = getByTestId(ExploreSearchScreenSelectorsIDs.PILL_ALL);
