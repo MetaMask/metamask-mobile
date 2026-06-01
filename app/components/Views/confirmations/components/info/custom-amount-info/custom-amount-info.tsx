@@ -1,4 +1,4 @@
-import React, { ReactNode, memo, useCallback, useState } from 'react';
+import React, { ReactNode, memo, useCallback, useRef, useState } from 'react';
 import { toCaipAssetType } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
@@ -72,10 +72,12 @@ import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 
 export interface CustomAmountInfoProps {
+  autoSelectFiatPayment?: boolean;
   children?: ReactNode;
   currency?: string;
   disablePay?: boolean;
   hasMax?: boolean;
+  hideAccountSelector?: boolean;
   preferredToken?: SetPayTokenRequest;
   footerText?: string;
   /**
@@ -110,6 +112,7 @@ export interface CustomAmountInfoProps {
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
   ({
+    autoSelectFiatPayment,
     children,
     compactSpacing,
     currency,
@@ -117,6 +120,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     disablePay,
     hasMax,
     hasExtraBottomPadding,
+    hideAccountSelector,
     onAmountSubmit,
     hidePayTokenAmount,
     preferredToken,
@@ -128,6 +132,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const { canSelectWithdrawToken } = useTransactionPayWithdraw();
 
     useAutomaticTransactionPayToken({
+      autoSelectFiatPayment,
       disable: disablePay,
       preferredToken,
     });
@@ -140,6 +145,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const { hasTokens } = useTransactionPayAvailableTokens();
     const fiatPayment = useTransactionPayFiatPayment();
     const selectedFiatPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
+    const fiatEverSelectedRef = useRef(false);
+    if (selectedFiatPaymentMethodId) {
+      fiatEverSelectedRef.current = true;
+    }
+    const shouldHideAccountSelector =
+      hideAccountSelector && !fiatEverSelectedRef.current;
     const transactionMeta = useTransactionMetadataRequest();
     const transactionId = transactionMeta?.id;
     const accountOverride = useTransactionAccountOverride();
@@ -249,17 +260,19 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           <AlertMessage alertMessage={alertMessage ?? headlessBuyError} />
           {!isResultReady && (
             <>
-              {supportAccountSelection && !selectedFiatPaymentMethodId && (
-                <PayAccountSelector style={styles.separator} />
-              )}
+              {supportAccountSelection &&
+                !selectedFiatPaymentMethodId &&
+                !shouldHideAccountSelector && (
+                  <PayAccountSelector style={styles.separator} />
+                )}
               {disablePay !== true && hasTokens && <PayWithRow />}
             </>
           )}
           {isResultReady && (
             <Box>
-              {supportAccountSelection && !selectedFiatPaymentMethodId && (
-                <PayAccountSelector />
-              )}
+              {supportAccountSelection &&
+                !selectedFiatPaymentMethodId &&
+                !shouldHideAccountSelector && <PayAccountSelector />}
               {disablePay !== true && hasTokens && <PayWithRow />}
               {showPaymentDetails && (
                 <>
@@ -286,7 +299,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           )}
           {isKeyboardVisible && hasTokens && (
             <DepositKeyboard
-              hidePercentageButtons={Boolean(selectedFiatPaymentMethodId)}
+              hidePercentageButtons={
+                Boolean(selectedFiatPaymentMethodId) ||
+                shouldHideAccountSelector
+              }
               alertMessage={alertTitle}
               value={amountFiat}
               onChange={updatePendingAmount}

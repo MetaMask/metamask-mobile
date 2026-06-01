@@ -209,6 +209,7 @@ describe('useMoneyAccountDeposit', () => {
       loader: ConfirmationLoader.CustomAmount,
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
       preferredPaymentToken: undefined,
+      autoSelectFiatPayment: undefined,
     });
 
     expect(mockAddTransactionBatch).toHaveBeenCalledWith(
@@ -220,6 +221,21 @@ describe('useMoneyAccountDeposit', () => {
         disableSequential: true,
       }),
     );
+  });
+
+  it('passes autoSelectFiatPayment to navigateToConfirmation', async () => {
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit({ autoSelectFiatPayment: true });
+    });
+
+    expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
+      loader: ConfirmationLoader.CustomAmount,
+      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
+      preferredPaymentToken: undefined,
+      autoSelectFiatPayment: true,
+    });
   });
 
   it('pre-generates a batchId, registers intent before the await, and forwards preferredPaymentToken', async () => {
@@ -249,6 +265,7 @@ describe('useMoneyAccountDeposit', () => {
       loader: ConfirmationLoader.CustomAmount,
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
       preferredPaymentToken,
+      autoSelectFiatPayment: undefined,
     });
     expect(observedBatchId).toMatch(/^0x[0-9a-f]+$/);
     expect(intentAtCallTime).toBe('addMusd');

@@ -1,7 +1,8 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import BigNumber from 'bignumber.js';
+import { TransactionType } from '@metamask/transaction-controller';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -19,7 +20,13 @@ import Tag from '../../../../../component-library/components/Tags/Tag';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
-import { useMoneyAccountAddRouting } from '../../hooks/useMoneyAccountAddRouting';
+import {
+  MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+  MUSD_TOKEN_ADDRESS_BY_CHAIN,
+} from '../../../Earn/constants/musd';
+import { Hex } from '@metamask/utils';
+import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
+import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import styleSheet from './MoneyAddMoneySheet.styles';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
@@ -42,10 +49,16 @@ const MoneyAddMoneySheet: React.FC = () => {
   const {
     fiatBalanceAggregated,
     fiatBalanceAggregatedFormatted,
+    hasMusdBalanceOnAnyChain,
     tokenBalanceAggregated,
+    tokenBalanceByChain,
   } = useMusdBalance();
-  const { hasMusdBalance, convertCrypto, depositFunds, moveMusd } =
-    useMoneyAccountAddRouting();
+  const { initiateDeposit } = useMoneyAccountDeposit();
+  const { enabledTransactionTypes } = useMMPayFiatConfig();
+  const isFiatDepositEnabled = useMemo(
+    () => enabledTransactionTypes.includes(TransactionType.moneyAccountDeposit),
+    [enabledTransactionTypes],
+  );
 
   const closeAndNavigate = useCallback((navigateFn: () => void) => {
     sheetRef.current?.onCloseBottomSheet(navigateFn);
@@ -57,25 +70,44 @@ const MoneyAddMoneySheet: React.FC = () => {
 
   const handleConvertCrypto = useCallback(() => {
     closeAndNavigate(() => {
-      convertCrypto();
+      initiateDeposit().catch(() => undefined);
     });
-  }, [closeAndNavigate, convertCrypto]);
+  }, [closeAndNavigate, initiateDeposit]);
 
   const handleDepositFunds = useCallback(() => {
     closeAndNavigate(() => {
-      depositFunds();
+      initiateDeposit({ autoSelectFiatPayment: true }).catch(() => undefined);
     });
-  }, [closeAndNavigate, depositFunds]);
+  }, [closeAndNavigate, initiateDeposit]);
 
   const handleMoveMusd = useCallback(() => {
+    let sourceChainId: Hex = MUSD_CONVERSION_DEFAULT_CHAIN_ID;
+    let bestBalance = new BigNumber(0);
+    for (const [chainId, balance] of Object.entries(
+      tokenBalanceByChain ?? {},
+    )) {
+      const candidate = new BigNumber(balance ?? 0);
+      if (candidate.isGreaterThan(bestBalance)) {
+        sourceChainId = chainId as Hex;
+        bestBalance = candidate;
+      }
+    }
+
     closeAndNavigate(() => {
-      moveMusd();
+      initiateDeposit({
+        intent: 'addMusd',
+        preferredPaymentToken: {
+          address: MUSD_TOKEN_ADDRESS_BY_CHAIN[sourceChainId],
+          chainId: sourceChainId,
+        },
+      }).catch(() => undefined);
     });
-  }, [closeAndNavigate, moveMusd]);
+  }, [closeAndNavigate, initiateDeposit, tokenBalanceByChain]);
 
   const parsedMusdFiat = Number(fiatBalanceAggregated);
   const hasParsedFiatBalance =
     Number.isFinite(parsedMusdFiat) && parsedMusdFiat > 0;
+  const hasMusdBalance = hasMusdBalanceOnAnyChain || hasParsedFiatBalance;
 
   const moveMusdAmount = hasParsedFiatBalance
     ? fiatBalanceAggregatedFormatted
@@ -93,14 +125,21 @@ const MoneyAddMoneySheet: React.FC = () => {
       onPress: handleConvertCrypto,
       testID: MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
     },
-    {
-      label: strings('money.add_money_sheet.deposit_funds'),
-      description: strings('money.add_money_sheet.deposit_funds_description'),
-      descriptionTestID: MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_DESCRIPTION,
-      icon: IconName.AttachMoney,
-      onPress: handleDepositFunds,
-      testID: MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
-    },
+    ...(isFiatDepositEnabled
+      ? [
+          {
+            label: strings('money.add_money_sheet.deposit_funds'),
+            description: strings(
+              'money.add_money_sheet.deposit_funds_description',
+            ),
+            descriptionTestID:
+              MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_DESCRIPTION,
+            icon: IconName.AttachMoney,
+            onPress: handleDepositFunds,
+            testID: MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
+          },
+        ]
+      : []),
   ];
 
   const options: Option[] = hasMusdBalance

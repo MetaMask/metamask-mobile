@@ -26,6 +26,7 @@ import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { selectIsCardholder } from '../../../../../selectors/cardController';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
+import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
@@ -266,7 +267,6 @@ describe('MoneyHomeView', () => {
     } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>);
 
     mockUseMoneyAccountInfo.mockReturnValue({
-      isMoneyAccountFeatureEnabled: true,
       hasMoneyAccount: true,
       primaryMoneyAccount: {
         address: '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B',
@@ -446,32 +446,11 @@ describe('MoneyHomeView', () => {
   });
 
   describe('displayState precedence matrix', () => {
-    it('featureDisabled — renders feature-disabled message, hides MoneyEarnings', () => {
-      mockUseMoneyAccountInfo.mockReturnValue({
-        isMoneyAccountFeatureEnabled: false,
-        hasMoneyAccount: true,
-        primaryMoneyAccount: {
-          address: '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B',
-        },
-      } as ReturnType<typeof useMoneyAccountInfo>);
-
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <MoneyHomeView />,
-      );
-
-      expect(
-        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_FEATURE_DISABLED),
-      ).toBeOnTheScreen();
-      expect(
-        queryByTestId(MoneyEarningsTestIds.CONTAINER),
-      ).not.toBeOnTheScreen();
-    });
-
     it('noAccount — renders no-account message, hides MoneyEarnings', () => {
       mockUseMoneyAccountInfo.mockReturnValue({
-        isMoneyAccountFeatureEnabled: true,
         hasMoneyAccount: false,
         primaryMoneyAccount: undefined,
+        isMoneyAccountFeatureEnabled: true,
       });
 
       const { getByTestId, queryByTestId } = renderWithProvider(
@@ -483,25 +462,6 @@ describe('MoneyHomeView', () => {
       ).toBeOnTheScreen();
       expect(
         queryByTestId(MoneyEarningsTestIds.CONTAINER),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('featureDisabled takes precedence over noAccount', () => {
-      mockUseMoneyAccountInfo.mockReturnValue({
-        isMoneyAccountFeatureEnabled: false,
-        hasMoneyAccount: false,
-        primaryMoneyAccount: undefined,
-      });
-
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <MoneyHomeView />,
-      );
-
-      expect(
-        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_FEATURE_DISABLED),
-      ).toBeOnTheScreen();
-      expect(
-        queryByTestId(MoneyBalanceSummaryTestIds.BALANCE_NO_ACCOUNT),
       ).not.toBeOnTheScreen();
     });
 
@@ -581,11 +541,11 @@ describe('MoneyHomeView', () => {
       });
     });
 
-    it('MoneyHowItWorks stays mounted in featureDisabled state (empty tx count)', () => {
+    it('MoneyHowItWorks stays mounted in noAccount state (empty tx count)', () => {
       mockUseMoneyAccountInfo.mockReturnValue({
-        isMoneyAccountFeatureEnabled: false,
         hasMoneyAccount: false,
         primaryMoneyAccount: undefined,
+        isMoneyAccountFeatureEnabled: true,
       });
       mockUseMoneyAccountTransactions.mockReturnValue({
         allTransactions: [],
@@ -682,7 +642,10 @@ describe('MoneyHomeView', () => {
 
     fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.CARD_BUTTON));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+      screen: Routes.CARD.HOME,
+      params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+    });
   });
 
   it('opens the APY info sheet when the APY info button is pressed', () => {
@@ -721,7 +684,10 @@ describe('MoneyHomeView', () => {
 
     fireEvent.press(getByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+      screen: Routes.CARD.HOME,
+      params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+    });
   });
 
   it('navigates to potential earnings screen when View potential earnings is pressed', () => {
@@ -1191,7 +1157,10 @@ describe('MoneyHomeView', () => {
 
       fireEvent.press(getByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+      });
     });
   });
 
@@ -1306,7 +1275,10 @@ describe('MoneyHomeView', () => {
 
       fireEvent.press(getByTestId(MoneyMetaMaskCardTestIds.MANAGE_BUTTON));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+      });
     });
   });
 
@@ -1318,7 +1290,10 @@ describe('MoneyHomeView', () => {
 
       fireEvent.press(getByText(strings('money.metamask_card.get_now')));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+      });
     });
 
     it('navigates to the card sign-up flow when the metal card Get now button is pressed', () => {
@@ -1329,7 +1304,10 @@ describe('MoneyHomeView', () => {
 
       fireEvent.press(buttons[1]);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
+        screen: Routes.CARD.HOME,
+        params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+      });
     });
   });
 });
