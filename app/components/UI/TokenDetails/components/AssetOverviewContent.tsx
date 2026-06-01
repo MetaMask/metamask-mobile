@@ -206,6 +206,9 @@ export interface AssetOverviewContentProps {
   // Ambient price color A/B test
   onPriceDirectionChange?: (isPositive: boolean) => void;
   useAmbientColor?: boolean;
+
+  // Exit action tracking
+  onExitAction?: () => void;
   /** Resolved price direction from the chart; true = positive, false = negative, null = not yet resolved. */
   isPricePositive?: boolean | null;
 }
@@ -249,6 +252,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   hasSecurityDataError = false,
   onPriceDirectionChange,
   useAmbientColor,
+  onExitAction,
   isPricePositive,
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -303,6 +307,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           setIsEligibilityModalVisible(true);
           return;
         }
+        onExitAction?.();
         handlePerpsAction?.('long');
       }).finally(() => {
         // Release the TokenDetailsActions nav lock whenever gate() settles
@@ -311,7 +316,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
         // listeners also clear the lock.
         resetNavigationLockRef.current?.();
       }),
-    [gate, isEligible, track, handlePerpsAction],
+    [gate, isEligible, track, handlePerpsAction, onExitAction],
   );
 
   const handleShortPress = useCallback(
@@ -327,11 +332,12 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           setIsEligibilityModalVisible(true);
           return;
         }
+        onExitAction?.();
         handlePerpsAction?.('short');
       }).finally(() => {
         resetNavigationLockRef.current?.();
       }),
-    [gate, isEligible, track, handlePerpsAction],
+    [gate, isEligible, track, handlePerpsAction, onExitAction],
   );
 
   const { isBuyable, isLoading: isBuyableLoading } = useTokenBuyability(token);
