@@ -5,7 +5,7 @@ import { useTransactionPayBlockedTokens } from '../../../Views/confirmations/hoo
 import { isTokenBlocked } from '../../../Views/confirmations/utils/transaction-pay';
 import { isTokenInWildcardList } from '../../Earn/utils/wildcardTokenList';
 import {
-  selectMoneyTokensBlocklist,
+  selectMoneyDepositTokensBlocklist,
   selectMoneyNoFeeTokens,
   selectMoneyTokensSortMode,
   selectMoneyDepositMinBalance,
@@ -22,11 +22,11 @@ import { safeFormatChainIdToHex } from '../../Card/util/safeFormatChainIdToHex';
  * 1. useAccountTokens({ includeNoBalance: false }) — zero-balance tokens excluded
  * 2. MM Pay default blocklist — inherit MM Pay team's remote-config default blocklist
  * 3. Money-scoped blocklist — Money team's per-token/chain blocklist
- * 4. Minimum fiat balance — dust tokens below `moneyDepositMinBalance` excluded
+ * 4. Minimum fiat balance — dust tokens below `earnMoneyDepositMinAssetBalance` excluded
  *
- * Sorting is controlled remotely via `moneyTokensSortMode`:
+ * Sorting is controlled remotely via `earnMoneyTokensSortMode`:
  * - `fiatBalanceDesc` (default): all tokens sorted by fiat balance descending
- * - `noFeePriority`: no-fee tokens (from `moneyNoFeeTokens` remote flag) rendered first,
+ * - `noFeePriority`: no-fee tokens (from `earnMoneyDepositNoFeeTokens` remote flag) rendered first,
  * each bucket sorted by fiat balance descending
  *
  * An explicit `sortModeOverride` param takes precedence over the remote flag value.
@@ -37,7 +37,7 @@ export const useMoneyDepositTokens = ({
   sortModeOverride?: MoneyTokensSortMode;
 } = {}) => {
   const mmPayBlockedTokens = useTransactionPayBlockedTokens();
-  const moneyBlocklist = useSelector(selectMoneyTokensBlocklist);
+  const moneyBlocklist = useSelector(selectMoneyDepositTokensBlocklist);
   const noFeeTokens = useSelector(selectMoneyNoFeeTokens);
   const remoteSortMode = useSelector(selectMoneyTokensSortMode);
   const minBalance = useSelector(selectMoneyDepositMinBalance);
@@ -52,8 +52,15 @@ export const useMoneyDepositTokens = ({
   );
 
   const isMoneyBlocklisted = useCallback(
-    (token: AssetType) =>
-      isTokenInWildcardList(token.symbol, moneyBlocklist, token.chainId),
+    (token: AssetType) => {
+      if (!token.chainId) return true;
+
+      return isTokenInWildcardList(
+        token.symbol,
+        moneyBlocklist,
+        safeFormatChainIdToHex(token.chainId),
+      );
+    },
     [moneyBlocklist],
   );
 
@@ -90,8 +97,15 @@ export const useMoneyDepositTokens = ({
   );
 
   const isNoFeeToken = useCallback(
-    (token: AssetType) =>
-      isTokenInWildcardList(token.symbol, noFeeTokens, token.chainId),
+    (token: AssetType) => {
+      if (!token.chainId) return false;
+
+      return isTokenInWildcardList(
+        token.symbol,
+        noFeeTokens,
+        safeFormatChainIdToHex(token.chainId),
+      );
+    },
     [noFeeTokens],
   );
 

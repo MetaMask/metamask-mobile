@@ -38,7 +38,7 @@ interface MoneyPotentialEarningsProps {
   /**
    * Returns true when the given token qualifies for a subsidised (no-fee)
    * deposit. Used to render the "No fee" badge on each token row.
-   * Sourced from the `moneyNoFeeTokens` remote feature flag via
+   * Sourced from the `earnMoneyDepositNoFeeTokens` remote feature flag via
    * useMoneyDepositTokens.
    */
   isNoFeeToken?: (token: AssetType) => boolean;

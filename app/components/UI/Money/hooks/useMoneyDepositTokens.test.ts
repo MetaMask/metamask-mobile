@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { useMoneyDepositTokens } from './useMoneyDepositTokens';
 import {
-  selectMoneyTokensBlocklist,
+  selectMoneyDepositTokensBlocklist,
   selectMoneyNoFeeTokens,
   selectMoneyTokensSortMode,
   selectMoneyDepositMinBalance,
@@ -81,7 +81,7 @@ describe('useMoneyDepositTokens', () => {
     jest.clearAllMocks();
 
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectMoneyTokensBlocklist) return {};
+      if (selector === selectMoneyDepositTokensBlocklist) return {};
       if (selector === selectMoneyNoFeeTokens) return {};
       if (selector === selectMoneyTokensSortMode) return 'fiatBalanceDesc';
       if (selector === selectMoneyDepositMinBalance) return 0.01;
@@ -233,7 +233,7 @@ describe('useMoneyDepositTokens', () => {
   describe('tokens — noFeePriority sort', () => {
     beforeEach(() => {
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectMoneyTokensBlocklist) return {};
+        if (selector === selectMoneyDepositTokensBlocklist) return {};
         if (selector === selectMoneyNoFeeTokens) return { '*': ['USDC'] };
         if (selector === selectMoneyTokensSortMode) return 'noFeePriority';
         if (selector === selectMoneyDepositMinBalance) return 0.01;
@@ -411,7 +411,8 @@ describe('useMoneyDepositTokens', () => {
       const stableBlocklist = {};
       const stableNoFeeList = {};
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectMoneyTokensBlocklist) return stableBlocklist;
+        if (selector === selectMoneyDepositTokensBlocklist)
+          return stableBlocklist;
         if (selector === selectMoneyNoFeeTokens) return stableNoFeeList;
         if (selector === selectMoneyTokensSortMode) return 'fiatBalanceDesc';
         if (selector === selectMoneyDepositMinBalance) return 0.01;

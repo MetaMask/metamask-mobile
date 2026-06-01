@@ -54,7 +54,7 @@ export const selectMoneyHubEnabledFlag = createSelector(
  * Remote flag takes precedence over local env var.
  * If both are unavailable, returns {} (no blocking).
  */
-export const selectMoneyTokensBlocklist = createSelector(
+export const selectMoneyDepositTokensBlocklist = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): WildcardTokenList =>
     getWildcardTokenListFromConfig(

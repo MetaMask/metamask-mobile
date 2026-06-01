@@ -4,7 +4,7 @@ import {
   selectMoneyActivityMockDataEnabledFlag,
   selectMoneyEnableMoneyAccountFlag,
   selectMoneyHubEnabledFlag,
-  selectMoneyTokensBlocklist,
+  selectMoneyDepositTokensBlocklist,
   selectMoneyNoFeeTokens,
   selectMoneyDepositMinBalance,
   selectMoneyTokensSortMode,
@@ -170,7 +170,7 @@ describe('selectMoneyHubEnabledFlag', () => {
   });
 });
 
-describe('selectMoneyTokensBlocklist', () => {
+describe('selectMoneyDepositTokensBlocklist', () => {
   const originalEnv = process.env;
   let consoleWarnSpy: jest.SpyInstance;
 
@@ -192,7 +192,7 @@ describe('selectMoneyTokensBlocklist', () => {
       earnMoneyPaymentTokensBlocklist: { '*': ['SCAM'], '0x1': ['USDT'] },
     });
 
-    const result = selectMoneyTokensBlocklist(state as never);
+    const result = selectMoneyDepositTokensBlocklist(state as never);
 
     expect(result).toEqual({ '*': ['SCAM'], '0x1': ['USDT'] });
   });
@@ -202,7 +202,7 @@ describe('selectMoneyTokensBlocklist', () => {
       earnMoneyPaymentTokensBlocklist: '{"*":["SCAM"],"0x1":["*"]}',
     });
 
-    const result = selectMoneyTokensBlocklist(state as never);
+    const result = selectMoneyDepositTokensBlocklist(state as never);
 
     expect(result).toEqual({ '*': ['SCAM'], '0x1': ['*'] });
   });
@@ -215,7 +215,7 @@ describe('selectMoneyTokensBlocklist', () => {
       earnMoneyPaymentTokensBlocklist: { '0x1': 'not-an-array' },
     });
 
-    const result = selectMoneyTokensBlocklist(state as never);
+    const result = selectMoneyDepositTokensBlocklist(state as never);
 
     expect(consoleWarnSpy).toHaveBeenCalledWith(
       expect.stringContaining('produced invalid structure'),
@@ -229,7 +229,7 @@ describe('selectMoneyTokensBlocklist', () => {
     });
     const state = createState({});
 
-    const result = selectMoneyTokensBlocklist(state as never);
+    const result = selectMoneyDepositTokensBlocklist(state as never);
 
     expect(result).toEqual({ '0xa4b1': ['USDT', 'DAI'] });
   });
@@ -238,7 +238,7 @@ describe('selectMoneyTokensBlocklist', () => {
     delete process.env.MM_MONEY_PAYMENT_TOKENS_BLOCKLIST;
     const state = createState({});
 
-    const result = selectMoneyTokensBlocklist(state as never);
+    const result = selectMoneyDepositTokensBlocklist(state as never);
 
     expect(result).toEqual({});
   });

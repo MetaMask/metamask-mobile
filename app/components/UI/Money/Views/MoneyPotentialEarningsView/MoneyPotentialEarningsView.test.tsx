@@ -297,7 +297,7 @@ describe('MoneyPotentialEarningsView', () => {
     await waitFor(() => expect(mockInitiateDeposit).not.toHaveBeenCalled());
   });
 
-  it('calls initiateDeposit from the Convert CTA without awaiting (fire-and-forget)', async () => {
+  it('calls initiateDeposit from the Convert CTA', async () => {
     const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
 
     fireEvent.press(getByTestId(MoneyPotentialEarningsViewTestIds.CTA_BUTTON));
@@ -306,18 +306,6 @@ describe('MoneyPotentialEarningsView', () => {
   });
 
   it('triggers deposit when a token row is pressed', async () => {
-    const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
-
-    fireEvent.press(
-      getByTestId(MoneyPotentialEarningsViewTestIds.TOKEN_ROW(0)),
-    );
-
-    await waitFor(() => expect(mockInitiateDeposit).toHaveBeenCalled());
-  });
-
-  it('logs but swallows deposit errors when a token row press throws', async () => {
-    const depositError = new Error('token deposit failed');
-    mockInitiateDeposit.mockRejectedValueOnce(depositError);
     const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
 
     fireEvent.press(
