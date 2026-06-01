@@ -3,6 +3,7 @@ import { InteractionManager, Text } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import type { SectionRefreshHandle } from '../../types';
 import HomepageDiscoveryTabs from './HomepageDiscoveryTabs';
+import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
 import { HomeTabNames } from '../../hooks/useTabViewedEvent';
 
 const mockTrackTabViewed = jest.fn();
@@ -209,6 +210,18 @@ describe('HomepageDiscoveryTabs', () => {
       render(<HomepageDiscoveryTabs ref={ref} />);
       await act(async () => {
         await ref.current?.refresh();
+      });
+    });
+  });
+
+  describe('Predictions tab', () => {
+    it('passes Predict feed entry point explicitly to embedded PredictFeed', async () => {
+      renderComponent();
+
+      await pressTab('Predictions');
+
+      expect(mockPredictFeedProps.current).toMatchObject({
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
       });
     });
   });
