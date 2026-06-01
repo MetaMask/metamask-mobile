@@ -61,20 +61,25 @@ const PerpsCampaignStatsSummary: React.FC<PerpsCampaignStatsSummaryProps> = ({
     leaderboardPosition != null && !leaderboardPosition.qualified;
   const isQualified =
     leaderboardPosition != null && leaderboardPosition.qualified;
+  const rank =
+    leaderboardPosition != null && Number.isFinite(leaderboardPosition.rank)
+      ? leaderboardPosition.rank
+      : null;
+  const pnl =
+    leaderboardPosition != null && Number.isFinite(leaderboardPosition.pnl)
+      ? leaderboardPosition.pnl
+      : null;
 
-  const rankDisplay = leaderboardPosition
-    ? String(leaderboardPosition.rank).padStart(2, '0')
-    : '—';
+  const rankDisplay = rank != null ? String(rank).padStart(2, '0') : '—';
 
-  const pnlDisplay = leaderboardPosition
-    ? formatSignedUsd(leaderboardPosition.pnl)
-    : '—';
+  const pnlDisplay = pnl != null ? formatSignedUsd(pnl) : '—';
 
-  const pnlColor = leaderboardPosition
-    ? leaderboardPosition.pnl >= 0
-      ? TextColor.SuccessDefault
-      : TextColor.ErrorDefault
-    : TextColor.TextDefault;
+  const pnlColor =
+    pnl != null
+      ? pnl >= 0
+        ? TextColor.SuccessDefault
+        : TextColor.ErrorDefault
+      : TextColor.TextDefault;
 
   const volumeDisplay = leaderboardPosition
     ? formatUsd(leaderboardPosition.notionalVolume)

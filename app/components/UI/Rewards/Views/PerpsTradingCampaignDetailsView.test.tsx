@@ -339,7 +339,11 @@ function buildPerpsCampaign(overrides: Partial<CampaignDto> = {}): CampaignDto {
 }
 
 function toMockLeaderboardPosition(
-  position: { rank: number; neighbors: unknown[] } | null,
+  position: {
+    rank: number;
+    neighbors: unknown[];
+    notionalVolume?: number;
+  } | null,
 ): PerpsTradingCampaignLeaderboardPositionDto | null {
   if (!position) {
     return null;
@@ -347,7 +351,7 @@ function toMockLeaderboardPosition(
   return {
     rank: position.rank,
     pnl: 0,
-    notionalVolume: 0,
+    notionalVolume: position.notionalVolume ?? 10_000,
     qualified: true,
     neighbors: position.neighbors as PerpsTradingCampaignLeaderboardEntry[],
     computedAt: '2025-08-15T12:00:00.000Z',
@@ -382,7 +386,11 @@ function setupHooks(
     isCampaignsLoading?: boolean;
     hasCampaignsError?: boolean;
     participant?: { optedIn: boolean };
-    position?: { rank: number; neighbors: unknown[] } | null;
+    position?: {
+      rank: number;
+      neighbors: unknown[];
+      notionalVolume?: number;
+    } | null;
     isPositionLoading?: boolean;
     totalParticipants?: number;
     outcome?: PerpsTradingCampaignParticipantOutcomeDto | null;
@@ -615,14 +623,38 @@ describe('PerpsTradingCampaignDetailsView', () => {
     expect(getByTestId('campaign-how-it-works')).toBeDefined();
   });
 
-  it('shows stats header when user has a leaderboard position', () => {
+  it('shows stats header when user has positive notional volume', () => {
     setupHooks({
       participant: { optedIn: true },
-      position: { rank: 3, neighbors: [] },
+      position: { rank: 3, neighbors: [], notionalVolume: 10_000 },
     });
 
     const { getByTestId } = render(<PerpsTradingCampaignDetailsView />);
     expect(getByTestId('perps-campaign-stats-summary-container')).toBeDefined();
+  });
+
+  it('hides stats summary when user has a rank but zero notional volume', () => {
+    setupHooks({
+      participant: { optedIn: true },
+      position: { rank: 3, neighbors: [], notionalVolume: 0 },
+    });
+
+    const { queryByTestId } = render(<PerpsTradingCampaignDetailsView />);
+    expect(queryByTestId('perps-campaign-stats-summary-container')).toBeNull();
+  });
+
+  it('hides stats summary when notional volume is not finite', () => {
+    setupHooks({
+      participant: { optedIn: true },
+      position: {
+        rank: 3,
+        neighbors: [],
+        notionalVolume: Number.NaN,
+      },
+    });
+
+    const { queryByTestId } = render(<PerpsTradingCampaignDetailsView />);
+    expect(queryByTestId('perps-campaign-stats-summary-container')).toBeNull();
   });
 
   it('navigates to stats when stats header row is pressed and user has a position', () => {
