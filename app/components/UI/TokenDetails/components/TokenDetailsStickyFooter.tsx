@@ -7,6 +7,7 @@ import {
   Button,
   ButtonAnimated,
   ButtonVariant,
+  Icon,
   IconName,
   IconSize,
   TextColor,
@@ -34,7 +35,6 @@ import RwaUnavailableBottomSheet, {
 } from './RwaUnavailableBottomSheet/RwaUnavailableBottomSheet';
 import { useStickyTokenActions } from '../hooks/useStickyTokenActions';
 import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
-import FlashFilledIcon from './assets/flash-filled.svg';
 
 const styles = StyleSheet.create({
   footer: {
@@ -364,11 +364,10 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
               );
             }}
           >
-            <FlashFilledIcon
-              name="FlashFilled"
-              width={20}
-              height={20}
-              fill={successColorHex}
+            <Icon
+              name={IconName.FlashFilled}
+              size={IconSize.Md}
+              twClassName={successText}
             />
           </ButtonAnimated>
         )}
