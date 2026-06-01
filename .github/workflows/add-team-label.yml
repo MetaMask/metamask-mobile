@@ -10,6 +10,8 @@ jobs:
     name: Add team label
     if: ${{ !github.event.pull_request.head.repo.fork }}
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     steps:
       - name: Get access token
         id: get-token
