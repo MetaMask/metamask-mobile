@@ -822,6 +822,13 @@ describe('MoneyHomeView', () => {
       expect(getByTestId(MoneyActivityListTestIds.CONTAINER)).toBeOnTheScreen();
     });
 
+    it('hides the Activity View all button with 5 or fewer transactions', () => {
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(
+        queryByTestId(MoneyActivityListTestIds.VIEW_ALL_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+
     it('renders condensed info cards', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(
