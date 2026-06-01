@@ -516,5 +516,53 @@ describe('useRwaTokens', () => {
 
       expect(result.current.data.map((token) => token.symbol)).toEqual(['C']);
     });
+
+    it('does not load more while a refetch is starting', async () => {
+      const page1Token = createRwaToken({ symbol: 'A' });
+      let resolveRefetch: (
+        response: ReturnType<typeof createRwasResponse>,
+      ) => void = jest.fn();
+
+      mockFetchRwas
+        .mockResolvedValueOnce(
+          createRwasResponse([page1Token], {
+            nextCursor: 'cursor-1',
+            hasNextPage: true,
+          }),
+        )
+        .mockImplementationOnce(
+          () =>
+            new Promise<ReturnType<typeof createRwasResponse>>((resolve) => {
+              resolveRefetch = resolve;
+            }),
+        );
+
+      const { result } = renderHookWithProvider(() => useRwaTokens());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      let refetchPromise: Promise<void> = Promise.resolve();
+      await act(async () => {
+        refetchPromise = result.current.refetch();
+        await result.current.loadMore();
+      });
+
+      expect(mockFetchRwas).toHaveBeenCalledTimes(2);
+      expect(mockFetchRwas).not.toHaveBeenCalledWith(
+        expect.objectContaining({ after: 'cursor-1' }),
+      );
+
+      await act(async () => {
+        resolveRefetch(
+          createRwasResponse([], {
+            nextCursor: null,
+            hasNextPage: false,
+          }),
+        );
+        await refetchPromise;
+      });
+    });
   });
 });

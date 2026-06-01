@@ -88,6 +88,7 @@ export const useRwaTokens = (opts?: {
   const [totalCount, setTotalCount] = useState(0);
 
   const requestIdRef = useRef(0);
+  const isLoadingRef = useRef(true);
   // Ref-based guard prevents duplicate loadMore calls when FlashList fires
   // onEndReached multiple times before the state update lands.
   const isLoadingMoreRef = useRef(false);
@@ -108,6 +109,7 @@ export const useRwaTokens = (opts?: {
 
   const fetchTokens = useCallback(async () => {
     const requestId = ++requestIdRef.current;
+    isLoadingRef.current = true;
     setIsLoading(true);
     try {
       const response = await fetchPage();
@@ -126,13 +128,19 @@ export const useRwaTokens = (opts?: {
       }
     } finally {
       if (requestId === requestIdRef.current) {
+        isLoadingRef.current = false;
         setIsLoading(false);
       }
     }
   }, [fetchPage]);
 
   const loadMore = useCallback(async () => {
-    if (!hasNextPage || !nextCursor || isLoadingMoreRef.current || isLoading) {
+    if (
+      !hasNextPage ||
+      !nextCursor ||
+      isLoadingMoreRef.current ||
+      isLoadingRef.current
+    ) {
       return;
     }
 
@@ -153,7 +161,7 @@ export const useRwaTokens = (opts?: {
       isLoadingMoreRef.current = false;
       setIsLoadingMore(false);
     }
-  }, [hasNextPage, nextCursor, isLoading, fetchPage]);
+  }, [hasNextPage, nextCursor, fetchPage]);
 
   useEffect(() => {
     fetchTokens();
