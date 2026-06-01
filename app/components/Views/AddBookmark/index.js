@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
 import { fontStyles } from '../../../styles/common';
 import ActionView from '../../UI/ActionView';
-import { getNavigationOptionsTitle } from '../../UI/Navbar';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
 import { AddBookmarkViewSelectorsIDs } from './AddBookmarkView.testIds';
@@ -57,28 +57,9 @@ export default class AddBookmark extends PureComponent {
     route: PropTypes.object,
   };
 
-  updateNavBar = () => {
-    const { navigation } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
-
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        strings('add_favorite.title'),
-        navigation,
-        false,
-        colors,
-      ),
-    );
-  };
-
   componentDidMount() {
-    this.updateNavBar();
     this.loadInitialValues();
   }
-
-  componentDidUpdate = () => {
-    this.updateNavBar();
-  };
 
   loadInitialValues() {
     const { route } = this.props;
@@ -122,8 +103,14 @@ export default class AddBookmark extends PureComponent {
     return (
       <SafeAreaView
         style={styles.wrapper}
+        edges={['left', 'right', 'bottom']}
         testID={AddBookmarkViewSelectorsIDs.CONTAINER}
       >
+        <HeaderStandard
+          includesTopInset
+          title={strings('add_favorite.title')}
+          onBack={() => this.props.navigation.pop()}
+        />
         <ActionView
           cancelTestID={AddBookmarkViewSelectorsIDs.CANCEL_BUTTON}
           confirmTestID={AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON}
