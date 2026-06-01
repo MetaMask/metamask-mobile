@@ -200,11 +200,9 @@ describe('OnboardingInterestQuestionnaire', () => {
 
       const viewedBuilder = mockCreateEventBuilder.mock.results[0]?.value;
 
-      expect(viewedBuilder.addProperties).toHaveBeenCalledWith(
-        expect.objectContaining({
-          question_type: 'interest',
-        }),
-      );
+      expect(viewedBuilder.addProperties).toHaveBeenCalledWith({
+        question_type: 'interest',
+      });
     });
 
     it('includes account_type in Viewed event when route supplies accountType', () => {
