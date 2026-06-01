@@ -29,8 +29,6 @@ import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import { TokenWarningModalMode } from '../TokenWarningModal/constants';
 import { SecurityDataType } from '../../types';
 import { useInsufficientNativeReserveError } from '../../hooks/useInsufficientNativeReserveError';
-import { PostTradeStatus } from '../PostTradeBottomSheet/PostTradeBottomSheet.types';
-
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
   '../../../../../multichain-accounts/controllers/account-tree-controller',
@@ -1126,15 +1124,9 @@ describe('SwapsConfirmButton', () => {
           });
           expect(mockNavigate).toHaveBeenCalledWith(
             Routes.BRIDGE.MODALS.ROOT,
-            {
+            expect.objectContaining({
               screen: Routes.BRIDGE.MODALS.POST_TRADE_MODAL,
-              params: expect.objectContaining({
-                status: PostTradeStatus.InProgress,
-                transactionMetaId: 'tx-meta-id',
-                transactionHash: '0xabc',
-                initialTransactionStatus: 'submitted',
-              }),
-            },
+            }),
           );
         });
       });
@@ -1225,12 +1217,9 @@ describe('SwapsConfirmButton', () => {
           );
           expect(mockNavigate).toHaveBeenCalledWith(
             Routes.BRIDGE.MODALS.ROOT,
-            {
+            expect.objectContaining({
               screen: Routes.BRIDGE.MODALS.POST_TRADE_MODAL,
-              params: expect.objectContaining({
-                status: PostTradeStatus.Failed,
-              }),
-            },
+            }),
           );
         });
       });

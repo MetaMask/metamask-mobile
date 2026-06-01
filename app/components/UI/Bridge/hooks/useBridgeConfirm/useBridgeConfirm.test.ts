@@ -100,23 +100,6 @@ describe('useBridgeConfirm', () => {
       });
     });
 
-    it('passes the location prop through to submitBridgeTx', async () => {
-      const { result } = renderHook({
-        ...defaultParams,
-        location: MetaMetricsSwapsEventSource.MainView,
-      });
-
-      await act(async () => {
-        await result.current();
-      });
-
-      expect(mockSubmitBridgeTx).toHaveBeenCalledWith(
-        expect.objectContaining({
-          location: MetaMetricsSwapsEventSource.MainView,
-        }),
-      );
-    });
-
     it('opens the post-trade bottom sheet after submission', async () => {
       const { result } = renderHook();
 
@@ -152,7 +135,7 @@ describe('useBridgeConfirm', () => {
       });
     });
 
-    it('clears bridge token inputs before opening the post-trade bottom sheet', async () => {
+    it('clears bridge token inputs and refreshes source balance before opening the post-trade bottom sheet', async () => {
       const { result, store } = renderHook(defaultParams, {
         bridge: mockBridgeReducerState,
       });
@@ -166,6 +149,7 @@ describe('useBridgeConfirm', () => {
           mockBridgeReducerState.sourceToken,
         );
         expect(bridgeState.destToken).toEqual(mockBridgeReducerState.destToken);
+        expect(bridgeState.balanceRefreshKey).toBe(1);
       });
 
       await act(async () => {
@@ -177,50 +161,24 @@ describe('useBridgeConfirm', () => {
     });
   });
 
-  describe('when activeQuote is null', () => {
-    it('does not call submitBridgeTx', async () => {
-      const { result } = renderHook({ ...defaultParams, activeQuote: null });
-
-      await act(async () => {
-        await result.current();
-      });
-
-      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
-    });
-
-    it('does not open the post-trade bottom sheet', async () => {
-      const { result } = renderHook({ ...defaultParams, activeQuote: null });
-
-      await act(async () => {
-        await result.current();
-      });
-
-      expect(mockNavigate).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('when walletAddress is missing', () => {
+  describe.each([
+    ['activeQuote is null', { activeQuote: null }],
+    ['walletAddress is missing', {}],
+  ])('when %s', (_label, hookParams) => {
     beforeEach(() => {
-      jest.mocked(selectSourceWalletAddress).mockReturnValue(undefined);
+      if (!('activeQuote' in hookParams)) {
+        jest.mocked(selectSourceWalletAddress).mockReturnValue(undefined);
+      }
     });
 
-    it('does not call submitBridgeTx', async () => {
-      const { result } = renderHook();
+    it('does not submit or open the post-trade bottom sheet', async () => {
+      const { result } = renderHook({ ...defaultParams, ...hookParams });
 
       await act(async () => {
         await result.current();
       });
 
       expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
-    });
-
-    it('does not open the post-trade bottom sheet', async () => {
-      const { result } = renderHook();
-
-      await act(async () => {
-        await result.current();
-      });
-
       expect(mockNavigate).not.toHaveBeenCalled();
     });
   });

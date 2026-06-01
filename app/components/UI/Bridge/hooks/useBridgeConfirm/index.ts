@@ -5,6 +5,7 @@ import {
   selectDestToken,
   selectSourceAmount,
   selectSourceToken,
+  incrementBridgeBalanceRefreshKey,
   resetBridgeTokenInputs,
   setIsSubmittingTx,
 } from '../../../../../core/redux/slices/bridge';
@@ -78,6 +79,7 @@ export const useBridgeConfirm = ({
       };
 
       dispatch(resetBridgeTokenInputs());
+      dispatch(incrementBridgeBalanceRefreshKey());
       Engine.context.BridgeController?.resetState?.();
     } catch (error) {
       console.error('Error submitting bridge tx', error);

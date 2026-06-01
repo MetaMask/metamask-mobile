@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View } from 'react-native';
 import type { StyleProp, ViewStyle } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import {
   AvatarIcon,
@@ -262,5 +262,3 @@ export const PostTradeBottomSheet = () => {
     </BottomSheet>
   );
 };
-
-export default PostTradeBottomSheet;
