@@ -70,12 +70,7 @@ const resolveProviderErrorStep = (
 const DiscoveryFlow: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const {
-    connectionState,
-    setTargetWalletType,
-    setDiscoveryFlowActive,
-    clearHardwareWalletError,
-  } = useHardwareWallet();
+  const { connectionState, setTargetWalletType } = useHardwareWallet();
   const { walletType, initialStep } = (route.params as RouteParams) ?? {
     walletType: HardwareWalletType.Ledger,
   };
@@ -117,15 +112,11 @@ const DiscoveryFlow: React.FC = () => {
   const [transportReady, setTransportReady] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [preloadedAccounts, setPreloadedAccounts] = useState<AccountInfo[]>([]);
+  const transportWasAvailableRef = useRef(false);
 
   useEffect(() => {
     navigation.setOptions({ headerShown: false });
   }, [navigation]);
-
-  useEffect(() => {
-    setDiscoveryFlowActive(true);
-    return () => setDiscoveryFlowActive(false);
-  }, [setDiscoveryFlowActive]);
 
   useEffect(() => {
     setTargetWalletType(walletType);
@@ -212,7 +203,16 @@ const DiscoveryFlow: React.FC = () => {
       transportUnsubscribeRef.current = adapter.onTransportStateChange(
         (isAvailable) => {
           setTransportReady(isAvailable);
-          if (!isAvailable) {
+          if (isAvailable) {
+            transportWasAvailableRef.current = true;
+            if (stepRef.current === 'transport-unavailable') {
+              setDiscoveredDevices([]);
+              setSelectedDevice(null);
+              setPreloadedAccounts([]);
+              setIsConnecting(false);
+              send({ type: 'RETRY' });
+            }
+          } else if (transportWasAvailableRef.current) {
             send({ type: 'TRANSPORT_UNAVAILABLE' });
           }
         },
@@ -350,27 +350,21 @@ const DiscoveryFlow: React.FC = () => {
   );
 
   const resetToSearching = useCallback(() => {
-    clearHardwareWalletError();
     setDiscoveredDevices([]);
     setSelectedDevice(null);
     setTransportReady(false);
+    transportWasAvailableRef.current = false;
     setPermissionsGranted(
       isBle ? blePermissions.hasBluetoothPermissions : false,
     );
     setPreloadedAccounts([]);
     setIsConnecting(false);
     send({ type: 'RETRY' });
-  }, [
-    blePermissions.hasBluetoothPermissions,
-    clearHardwareWalletError,
-    isBle,
-    send,
-  ]);
+  }, [blePermissions.hasBluetoothPermissions, isBle, send]);
 
   const handleGenericErrorContinue = useCallback(() => {
-    clearHardwareWalletError();
     navigation.goBack();
-  }, [clearHardwareWalletError, navigation]);
+  }, [navigation]);
 
   const activeDevice =
     selectedDevice ??

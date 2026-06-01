@@ -255,8 +255,9 @@ describe('DiscoveryFlow orchestrator', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows bluetooth off screen when transport becomes unavailable', async () => {
+  it('shows bluetooth off screen when transport becomes unavailable after being available', async () => {
     renderFlow();
+    await simulateBluetoothOn();
 
     act(() => {
       capturedTransportCallback?.(false);
@@ -266,6 +267,37 @@ describe('DiscoveryFlow orchestrator', () => {
     expect(
       screen.getByText(strings('ledger.bluetooth_turned_off')),
     ).toBeOnTheScreen();
+  });
+
+  it('ignores initial transport unavailable when transport was never available', async () => {
+    renderFlow();
+
+    act(() => {
+      capturedTransportCallback?.(false);
+    });
+    await act(async () => undefined);
+
+    expect(
+      screen.getByTestId('hardware-wallet-searching-content'),
+    ).toBeOnTheScreen();
+  });
+
+  it('auto-recovers from transport-unavailable when transport becomes available', async () => {
+    renderFlow();
+
+    act(() => {
+      capturedTransportCallback?.(false);
+    });
+    await act(async () => undefined);
+
+    expect(
+      screen.getByTestId('hardware-wallet-searching-content'),
+    ).toBeOnTheScreen();
+
+    await simulateBluetoothOn();
+    simulateDeviceFound(NANO_X);
+
+    expect(screen.getByText('Found: Nano X')).toBeOnTheScreen();
   });
 
   it('shows ledger locked screen when connect fails with locked error', async () => {
