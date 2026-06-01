@@ -1841,10 +1841,13 @@
       "pay_attention_to_volatility": "Pay attention to volatility and slippage",
       "badge": {
         "experimental": "EXPERIMENTAL",
-        "equity": "STOCK",
         "commodity": "COMMODITY",
         "crypto": "CRYPTO",
-        "forex": "FOREX"
+        "forex": "FOREX",
+        "stock": "STOCK",
+        "pre-ipo": "PRE-IPO",
+        "index": "INDEX",
+        "etf": "ETF"
       }
     },
     "buttons": {
@@ -2026,7 +2029,10 @@
         "stocks": "Stocks",
         "commodities": "Commodities",
         "forex": "Forex",
-        "new": "New"
+        "new": "New",
+        "pre_ipo": "Pre-IPO",
+        "indices": "Indices",
+        "etfs": "ETFs"
       },
       "filter_by": "Filter by",
       "forex": "Forex",

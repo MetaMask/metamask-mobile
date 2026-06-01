@@ -27,7 +27,15 @@ import PerpsBadge from '../components/PerpsBadge/PerpsBadge';
 import PerpsFillTag from '../components/PerpsFillTag/PerpsFillTag';
 import { FillType, type PerpsTransaction } from '../types/transactionHistory';
 
-type BadgeType = 'experimental' | 'equity' | 'commodity' | 'crypto' | 'forex';
+type BadgeType =
+  | 'experimental'
+  | 'stock'
+  | 'pre-ipo'
+  | 'index'
+  | 'etf'
+  | 'commodity'
+  | 'crypto'
+  | 'forex';
 
 const mockOnRetry = jest.fn();
 
@@ -262,7 +270,10 @@ describe('Errors, Recovery & Information Flow', () => {
     // ── PHASE 5: Market badges across asset classes ──────────────────────
     const badgeTypes: BadgeType[] = [
       'experimental',
-      'equity',
+      'stock',
+      'pre-ipo',
+      'index',
+      'etf',
       'commodity',
       'crypto',
       'forex',

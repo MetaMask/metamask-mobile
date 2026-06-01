@@ -178,11 +178,17 @@ export const usePerpsHomeData = ({
     [allMarkets, sortBy, direction, trendingLimit],
   );
 
-  // Stocks (equity) - top N by user preference
+  // Stocks (stock, pre-ipo, index, etf) - top N by user preference
   const stocksMarkets = useMemo(
     () =>
       sortMarkets({
-        markets: allMarkets.filter((m) => m.marketType === 'equity'),
+        markets: allMarkets.filter(
+          (m) =>
+            m.marketType === 'stock' ||
+            m.marketType === 'pre-ipo' ||
+            m.marketType === 'index' ||
+            m.marketType === 'etf',
+        ),
         sortBy,
         direction,
       }).slice(0, trendingLimit),
@@ -205,7 +211,12 @@ export const usePerpsHomeData = ({
     () =>
       sortMarkets({
         markets: allMarkets.filter(
-          (m) => m.marketType === 'equity' || m.marketType === 'commodity',
+          (m) =>
+            m.marketType === 'stock' ||
+            m.marketType === 'pre-ipo' ||
+            m.marketType === 'index' ||
+            m.marketType === 'etf' ||
+            m.marketType === 'commodity',
         ),
         sortBy,
         direction,
@@ -317,7 +328,13 @@ export const usePerpsHomeData = ({
     if (!searchQuery.trim()) {
       return stocksMarkets;
     }
-    return filteredData.markets.filter((m) => m.marketType === 'equity');
+    return filteredData.markets.filter(
+      (m) =>
+        m.marketType === 'stock' ||
+        m.marketType === 'pre-ipo' ||
+        m.marketType === 'index' ||
+        m.marketType === 'etf',
+    );
   }, [searchQuery, stocksMarkets, filteredData.markets]);
 
   const searchedCommoditiesMarkets = useMemo(() => {
@@ -332,7 +349,12 @@ export const usePerpsHomeData = ({
       return stocksAndCommoditiesMarkets;
     }
     return filteredData.markets.filter(
-      (m) => m.marketType === 'equity' || m.marketType === 'commodity',
+      (m) =>
+        m.marketType === 'stock' ||
+        m.marketType === 'pre-ipo' ||
+        m.marketType === 'index' ||
+        m.marketType === 'etf' ||
+        m.marketType === 'commodity',
     );
   }, [searchQuery, stocksAndCommoditiesMarkets, filteredData.markets]);
 

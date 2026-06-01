@@ -87,13 +87,21 @@ const filterByVariant = (
     case 'rwa':
       return markets.filter(
         (m) =>
-          m.marketType === 'equity' ||
+          m.marketType === 'stock' ||
+          m.marketType === 'pre-ipo' ||
+          m.marketType === 'index' ||
+          m.marketType === 'etf' ||
           m.marketType === 'commodity' ||
           m.marketType === 'forex',
       );
     case 'macro':
       return markets.filter(
-        (m) => m.marketType === 'equity' || m.marketType === 'commodity',
+        (m) =>
+          m.marketType === 'stock' ||
+          m.marketType === 'pre-ipo' ||
+          m.marketType === 'index' ||
+          m.marketType === 'etf' ||
+          m.marketType === 'commodity',
       );
     case 'all':
     default:

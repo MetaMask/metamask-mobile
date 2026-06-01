@@ -17,7 +17,10 @@ jest.mock('../../../../../../locales/i18n', () => ({
     const labels: Record<string, string> = {
       'perps.market.badge.experimental': 'Experimental',
       'perps.market.badge.crypto': 'Crypto',
-      'perps.market.badge.equity': 'Equity',
+      'perps.market.badge.stock': 'Stock',
+      'perps.market.badge.pre-ipo': 'Pre-IPO',
+      'perps.market.badge.index': 'Index',
+      'perps.market.badge.etf': 'ETF',
       'perps.market.badge.commodity': 'Commodity',
       'perps.market.badge.forex': 'Forex',
     };
@@ -30,14 +33,20 @@ describe('PerpsBadge', () => {
     const badgeTypes: BadgeType[] = [
       'experimental',
       'crypto',
-      'equity',
+      'stock',
+      'pre-ipo',
+      'index',
+      'etf',
       'commodity',
       'forex',
     ];
     const expectedLabels = [
       'Experimental',
       'Crypto',
-      'Equity',
+      'Stock',
+      'Pre-IPO',
+      'Index',
+      'ETF',
       'Commodity',
       'Forex',
     ];

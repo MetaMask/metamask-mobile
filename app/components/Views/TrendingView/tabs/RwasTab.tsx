@@ -48,6 +48,16 @@ const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
         .filter((d) => d.market.marketType === type)
         .slice(0, 3)
         .map((d) => d.market);
+    const stockLikeItems = perps.data
+      .filter(
+        (d) =>
+          d.market.marketType === 'stock' ||
+          d.market.marketType === 'pre-ipo' ||
+          d.market.marketType === 'index' ||
+          d.market.marketType === 'etf',
+      )
+      .slice(0, 3)
+      .map((d) => d.market);
     return [
       {
         key: 'commodities',
@@ -57,7 +67,7 @@ const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
       {
         key: 'stocks',
         name: strings('trending.rwa_pill_stocks'),
-        items: byType('equity'),
+        items: stockLikeItems,
       },
       {
         key: 'forex',

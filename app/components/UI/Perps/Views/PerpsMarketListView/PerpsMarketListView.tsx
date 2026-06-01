@@ -121,7 +121,10 @@ const PerpsMarketListView = ({
   const availableCategories = useMemo(() => {
     const categories: Exclude<MarketTypeFilter, 'all'>[] = [];
     if (marketCounts.crypto > 0) categories.push('crypto');
-    if (marketCounts.equity > 0) categories.push('stocks');
+    if (marketCounts.stocks > 0) categories.push('stocks');
+    if (marketCounts.preIpo > 0) categories.push('pre-ipo');
+    if (marketCounts.indices > 0) categories.push('indices');
+    if (marketCounts.etfs > 0) categories.push('etfs');
     if (marketCounts.commodity > 0) categories.push('commodities');
     if (marketCounts.forex > 0) categories.push('forex');
     if (marketCounts.new > 0) categories.push('new');

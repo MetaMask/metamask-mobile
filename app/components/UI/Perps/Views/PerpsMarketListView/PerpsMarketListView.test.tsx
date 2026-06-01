@@ -161,9 +161,13 @@ jest.mock('../../hooks', () => ({
       },
       marketCounts: {
         crypto: 3, // Set to non-zero so tabs render
-        equity: 0,
+        stocks: 0,
+        preIpo: 0,
+        indices: 0,
+        etfs: 0,
         commodity: 0,
         forex: 0,
+        new: 0,
       },
       isLoading: false,
       error: null,
@@ -222,7 +226,7 @@ jest.mock('./components/PerpsMarketFiltersBar', () => {
     marketTypeFilter?: string;
     onMarketTypePress?: () => void;
     showStocksCommoditiesDropdown?: boolean;
-    stocksCommoditiesFilter?: 'all' | 'equity' | 'commodity';
+    stocksCommoditiesFilter?: 'all' | 'stock' | 'commodity';
     onStocksCommoditiesPress?: () => void;
     testID?: string;
   }) {
@@ -877,9 +881,13 @@ describe('PerpsMarketListView', () => {
         },
         marketCounts: {
           crypto: 3,
-          equity: 0,
+          stocks: 0,
+          preIpo: 0,
+          indices: 0,
+          etfs: 0,
           commodity: 0,
           forex: 0,
+          new: 0,
         },
         isLoading: false,
         error: null,

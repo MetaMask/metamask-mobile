@@ -92,7 +92,14 @@ export type PerpsSearchResult = {
   change24hPercent: string;
   volume: string;
   openInterest?: string;
-  marketType?: 'crypto' | 'equity' | 'commodity' | 'forex';
+  marketType?:
+    | 'crypto'
+    | 'stock'
+    | 'pre-ipo'
+    | 'index'
+    | 'etf'
+    | 'commodity'
+    | 'forex';
   marketSource?: string | null;
 };
 

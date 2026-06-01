@@ -28,7 +28,19 @@ export const styleSheet = (params: {
       text: theme.colors.text.alternative,
       border: theme.colors.border.default,
     },
-    equity: {
+    stock: {
+      background: theme.colors.info.muted,
+      text: theme.colors.info.default,
+    },
+    'pre-ipo': {
+      background: theme.colors.info.muted,
+      text: theme.colors.info.default,
+    },
+    index: {
+      background: theme.colors.info.muted,
+      text: theme.colors.info.default,
+    },
+    etf: {
       background: theme.colors.info.muted,
       text: theme.colors.info.default,
     },
