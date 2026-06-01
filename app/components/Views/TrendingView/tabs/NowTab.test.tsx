@@ -77,6 +77,18 @@ jest.mock('../feeds/predictions/usePredictionsFeed', () => ({
   usePredictionsFeed: () => mockUsePredictionsFeed(),
 }));
 
+const mockUseWorldCupPredictionsFeed = jest.fn<
+  { data: MockPredictionMarket[]; isLoading: boolean; isEnabled: boolean },
+  []
+>(() => ({
+  data: [],
+  isLoading: false,
+  isEnabled: false,
+}));
+jest.mock('../feeds/predictions/useWorldCupPredictionsFeed', () => ({
+  useWorldCupPredictionsFeed: () => mockUseWorldCupPredictionsFeed(),
+}));
+
 jest.mock('../feeds/predictions/PredictionRowItem', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { createElement } = require('react');
@@ -139,6 +151,7 @@ import NowTab from './NowTab';
 import type { RefreshConfig } from '../hooks/useExploreRefresh';
 import { useTokensFeed } from '../feeds/tokens/useTokensFeed';
 import Routes from '../../../../constants/navigation/Routes';
+import { PredictEventValues } from '../../../UI/Predict/constants/eventNames';
 
 const defaultRefresh: RefreshConfig = { trigger: 0, silentRefresh: true };
 const defaultTabProps = {
@@ -216,6 +229,11 @@ beforeEach(() => {
     defaultSortOptionId: 'priceChange' as const,
   });
   mockUsePredictionsFeed.mockReturnValue({ data: [], isLoading: false });
+  mockUseWorldCupPredictionsFeed.mockReturnValue({
+    data: [],
+    isLoading: false,
+    isEnabled: false,
+  });
   mockWhatsHappeningImpl.mockReturnValue(null);
 });
 
@@ -382,6 +400,63 @@ describe('NowTab — Perps Movers "View All" navigation', () => {
     renderNowTab();
 
     expect(screen.queryByTestId('section-header-view-all-perps')).toBeNull();
+  });
+});
+
+describe('NowTab — Predictions navigation', () => {
+  const mockUseSelector = useSelector as jest.MockedFunction<
+    typeof useSelector
+  >;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectPerpsEnabledFlag) return false;
+      if (selector === selectPredictEnabledFlag) return true;
+      if (selector === selectWhatsHappeningEnabled) return false;
+      return undefined;
+    });
+    mockControlAbTest();
+    mockUsePredictionsFeed.mockReturnValue({
+      data: [{ id: 'market-1' }],
+      isLoading: false,
+    });
+  });
+
+  it('opens the Predict trending tab from the Predictions section title', () => {
+    renderNowTab();
+
+    fireEvent.press(screen.getByTestId(predictSectionTestId));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MARKET_LIST,
+      params: {
+        entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
+        tab: 'trending',
+      },
+    });
+  });
+
+  it('opens the World Cup screen from the Predictions section title when World Cup predictions are enabled', () => {
+    mockUseWorldCupPredictionsFeed.mockReturnValue({
+      data: [{ id: 'world-cup-market-1' }],
+      isLoading: false,
+      isEnabled: true,
+    });
+
+    renderNowTab();
+
+    expect(screen.getByText('World cup predictions')).toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId(predictSectionTestId));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.WORLD_CUP,
+      params: {
+        entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
+        initialTab: 'all',
+      },
+    });
   });
 });
 
