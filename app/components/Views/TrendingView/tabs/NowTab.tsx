@@ -24,7 +24,7 @@ import PerpsPillItem from '../feeds/perps/PerpsPillItem';
 import { navigateToPerpsMarketList } from '../feeds/perps/perpsNavigation';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
 import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarouselSection';
-import { navigateToPredictionsList } from '../feeds/predictions/predictionsNavigation';
+import { navigateToExplorePredictionsList } from '../feeds/predictions/predictionsNavigation';
 import { useStocksFeed } from '../feeds/stocks/useStocksFeed';
 import { getCaipChainIdFromAssetId } from '../../../UI/Trending/components/TrendingTokenRowItem/utils';
 import CardList from '../components/CardList';
@@ -175,7 +175,7 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       title={strings('wallet.predict')}
       testIdPrefix="predict-market-row-item"
       idPrefix="predictions"
-      onViewAll={() => navigateToPredictionsList(navigation, 'trending')}
+      onViewAll={() => navigateToExplorePredictionsList(navigation, 'trending')}
       isEnabled={isPredictEnabled}
     />
   );

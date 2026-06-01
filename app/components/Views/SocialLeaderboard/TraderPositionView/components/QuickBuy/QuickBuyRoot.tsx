@@ -10,6 +10,7 @@ import { useSelector } from 'react-redux';
 import { selectIsSubmittingTx } from '../../../../../../core/redux/slices/bridge';
 import QuickBuyAmountScreen from './QuickBuyAmountScreen';
 import QuickBuyPayWithScreen from './QuickBuyPayWithScreen';
+import QuickBuyPriceImpactConfirmScreen from './QuickBuyPriceImpactConfirmScreen';
 import QuickBuyQuoteDetailsScreen from './QuickBuyQuoteDetailsScreen';
 import QuickBuySelectQuoteScreen from './QuickBuySelectQuoteScreen';
 import { QuickBuyProvider } from './QuickBuyContext';
@@ -45,6 +46,8 @@ function renderActiveScreen(
       return <QuickBuyQuoteDetailsScreen />;
     case 'selectQuote':
       return <QuickBuySelectQuoteScreen />;
+    case 'priceImpactConfirm':
+      return <QuickBuyPriceImpactConfirmScreen />;
     case 'amount':
     default:
       return <QuickBuyAmountScreen />;
