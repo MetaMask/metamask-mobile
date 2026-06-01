@@ -5,7 +5,11 @@ import PropTypes from 'prop-types';
 import { strings } from '../../../../locales/i18n';
 import { fontStyles } from '../../../styles/common';
 import ActionView from '../../UI/ActionView';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+import {
+  HeaderStandard,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
 import { AddBookmarkViewSelectorsIDs } from './AddBookmarkView.testIds';
@@ -109,6 +113,9 @@ export default class AddBookmark extends PureComponent {
         <HeaderStandard
           includesTopInset
           title={strings('add_favorite.title')}
+          titleProps={{
+            color: TextColor.PrimaryDefault,
+          }}
           onBack={() => this.props.navigation.pop()}
         />
         <ActionView

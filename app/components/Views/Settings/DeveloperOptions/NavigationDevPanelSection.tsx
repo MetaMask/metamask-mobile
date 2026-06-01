@@ -20,7 +20,6 @@ export default function NavigationDevPanelSection() {
   const navigation = useNavigation();
 
   const handleOpen = useCallback(() => {
-    // @ts-expect-error dev-only navigation to top-level route
     navigation.navigate(Routes.NAVIGATION_DEV_PANEL);
   }, [navigation]);
 
