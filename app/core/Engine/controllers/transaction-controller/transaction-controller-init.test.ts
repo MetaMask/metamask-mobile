@@ -479,6 +479,7 @@ describe('Transaction Controller Init', () => {
         stxDisabled: false,
         enableDepositWalletWithdraw: false,
         enablePerpsMoneyAccountTransactions: false,
+        enablePredictMoneyAccountTransactions: false,
       });
 
       const hooks = testConstructorOption('hooks');
