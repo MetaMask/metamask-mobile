@@ -10,6 +10,20 @@ import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountC
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import {
+  CardActions,
+  CardEntryPoint,
+  CardScreens,
+} from '../../../Card/util/metrics';
+
+const mockTrackEvent = jest.fn();
+const mockBuild = jest.fn(() => ({ name: 'built-event' }));
+const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
+const mockCreateEventBuilder = jest.fn((_eventName?: unknown) => ({
+  addProperties: mockAddProperties,
+  build: mockBuild,
+}));
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const tw = (..._args: unknown[]) => ({});
@@ -34,6 +48,13 @@ jest.mock('../../hooks/useMoneyAccountBalance', () => ({
 jest.mock('../../../Card/hooks/useMoneyAccountCardLinkage', () => ({
   __esModule: true,
   useMoneyAccountCardLinkage: jest.fn(),
+}));
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
 }));
 
 const mockUseOnboardingStep = useOnboardingStep as jest.MockedFunction<
@@ -219,12 +240,23 @@ describe('MoneyOnboardingCard', () => {
       setupDefaultMocks({ currentStep: 1, isCardAuthenticated: false });
 
       const { getByTestId } = render(<MoneyOnboardingCard />);
+      jest.clearAllMocks();
       fireEvent.press(getByTestId('money-onboarding-card-cta-button'));
 
       expect(mockStartLinkFlow).toHaveBeenCalledTimes(1);
       expect(mockStartLinkFlow).toHaveBeenCalledWith({
         screen: Routes.MONEY.ROOT,
         params: { screen: Routes.MONEY.HOME },
+        entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+      });
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_BUTTON_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        screen: CardScreens.MONEY_HOME,
+        entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+        action: CardActions.MONEY_ACCOUNT_ONBOARDING_CARD_PRIMARY_BUTTON,
+        card_state: 'no_card',
       });
     });
 
@@ -232,6 +264,7 @@ describe('MoneyOnboardingCard', () => {
       setupDefaultMocks({ currentStep: 1, isCardAuthenticated: false });
 
       const { getByText } = render(<MoneyOnboardingCard />);
+      jest.clearAllMocks();
       fireEvent.press(
         getByText(
           strings('money.onboarding.step_2.no_card_account.cta_secondary'),
@@ -239,6 +272,30 @@ describe('MoneyOnboardingCard', () => {
       );
 
       expect(mockIncrementStep).toHaveBeenCalledTimes(1);
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_BUTTON_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        screen: CardScreens.MONEY_HOME,
+        entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+        action: CardActions.MONEY_ACCOUNT_ONBOARDING_CARD_SKIP_BUTTON,
+        card_state: 'no_card',
+      });
+    });
+
+    it('tracks Card view when the Card step is rendered', () => {
+      setupDefaultMocks({ currentStep: 1, isCardAuthenticated: false });
+
+      render(<MoneyOnboardingCard />);
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_VIEWED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        screen: CardScreens.MONEY_HOME,
+        entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+        card_state: 'no_card',
+      });
     });
   });
 
@@ -299,12 +356,20 @@ describe('MoneyOnboardingCard', () => {
       });
 
       const { getByTestId } = render(<MoneyOnboardingCard />);
+      jest.clearAllMocks();
       fireEvent.press(getByTestId('money-onboarding-card-cta-button'));
 
       expect(mockStartLinkFlow).toHaveBeenCalledTimes(1);
       expect(mockStartLinkFlow).toHaveBeenCalledWith({
         screen: Routes.MONEY.ROOT,
         params: { screen: Routes.MONEY.HOME },
+        entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+      });
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        screen: CardScreens.MONEY_HOME,
+        entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+        action: CardActions.MONEY_ACCOUNT_ONBOARDING_CARD_PRIMARY_BUTTON,
+        card_state: 'unlinked_card',
       });
     });
 
@@ -316,6 +381,7 @@ describe('MoneyOnboardingCard', () => {
       });
 
       const { getByText } = render(<MoneyOnboardingCard />);
+      jest.clearAllMocks();
       fireEvent.press(
         getByText(
           strings(
@@ -325,6 +391,12 @@ describe('MoneyOnboardingCard', () => {
       );
 
       expect(mockIncrementStep).toHaveBeenCalledTimes(1);
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        screen: CardScreens.MONEY_HOME,
+        entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+        action: CardActions.MONEY_ACCOUNT_ONBOARDING_CARD_SKIP_BUTTON,
+        card_state: 'unlinked_card',
+      });
     });
   });
 

@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Linking, RefreshControl, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -47,6 +53,15 @@ import { MoneyBalanceDisplayState } from '../../types';
 import { Hex } from '@metamask/utils';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { MONEY_ONBOARDING_TOTAL_STEPS } from '../../components/MoneyOnboardingCard/MoneyOnboardingCard';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import {
+  CardActions,
+  CardEntryPoint,
+  CardFlow,
+  CardScreens,
+} from '../../../Card/util/metrics';
+
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 
 type MoneyHomeState = 'empty' | 'milestone' | 'filled';
@@ -63,6 +78,8 @@ const MoneyHomeView = () => {
   const { styles } = useStyles(styleSheet, {});
   const currentCurrency = useSelector(selectCurrentCurrency);
   const { colors } = useTheme();
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const hasTrackedCardActionRowViewRef = useRef(false);
 
   const {
     totalFiatFormatted,
@@ -178,19 +195,48 @@ const MoneyHomeView = () => {
     });
   }, [navigation]);
 
-  const handleCardPress = useCallback(() => {
+  const navigateToCardHome = useCallback(() => {
     navigation.navigate(Routes.CARD.ROOT, {
       screen: Routes.CARD.HOME,
       params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
     });
   }, [navigation]);
 
+  const handleCardPress = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          screen: CardScreens.MONEY_HOME,
+          entrypoint: CardEntryPoint.MONEY_HOME_ACTION_ROW,
+          action: CardActions.MONEY_ACCOUNT_CARD_ACTION_ROW_BUTTON,
+        })
+        .build(),
+    );
+
+    navigateToCardHome();
+  }, [trackEvent, createEventBuilder, navigateToCardHome]);
+
   const handleLinkCardPress = useCallback(() => {
     startLinkFlow({
       screen: Routes.MONEY.ROOT,
       params: { screen: Routes.MONEY.HOME },
+      entrypoint: CardEntryPoint.MONEY_HOME_METAMASK_CARD,
     });
   }, [startLinkFlow]);
+
+  useEffect(() => {
+    if (hasTrackedCardActionRowViewRef.current) return;
+    hasTrackedCardActionRowViewRef.current = true;
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+        .addProperties({
+          screen: CardScreens.MONEY_HOME,
+          entrypoint: CardEntryPoint.MONEY_HOME_ACTION_ROW,
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
 
   const handleApyInfoPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
@@ -277,6 +323,9 @@ const MoneyHomeView = () => {
   // formatted zero so the manage row always shows a value rather than a
   // blank slot under "Avail. balance".
   const cardBalance: string = formattedZero;
+  const cardState = isCardholderWithMilestone
+    ? metamaskCardMode
+    : 'non_cardholder';
 
   return (
     <Box
@@ -370,13 +419,17 @@ const MoneyHomeView = () => {
         )}
         <MoneyMetaMaskCard
           mode={metamaskCardMode}
-          onGetNowPress={handleCardPress}
-          onHeaderPress={handleCardPress}
+          onGetNowPress={navigateToCardHome}
+          onHeaderPress={navigateToCardHome}
           onLinkPress={handleLinkCardPress}
-          onManagePress={handleCardPress}
+          onManagePress={navigateToCardHome}
           showMetalCard={isUS}
           cardBalance={cardBalance}
           apy={apyPercent}
+          analyticsScreen={CardScreens.MONEY_HOME}
+          analyticsEntryPoint={CardEntryPoint.MONEY_HOME_METAMASK_CARD}
+          analyticsFlow={CardFlow.MONEY_ACCOUNT_LINKAGE}
+          analyticsCardState={cardState}
         />
         <Divider />
         {isMilestone && (

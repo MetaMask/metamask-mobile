@@ -1,6 +1,6 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Image } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   BottomSheet,
@@ -27,6 +27,17 @@ import mmCardMetal from '../../../../../images/mm_card_metal.png';
 import styleSheet from './MoneyLinkCardSheet.styles';
 import { MoneyLinkCardSheetTestIds } from './MoneyLinkCardSheet.testIds';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import {
+  CardActions,
+  CardEntryPoint,
+  CardScreens,
+} from '../../../Card/util/metrics';
+
+interface MoneyLinkCardSheetRouteParams {
+  entrypoint?: CardEntryPoint | string;
+}
 
 /**
  * "Spend and earn" confirmation bottom sheet shown before the Money Account ↔
@@ -39,27 +50,82 @@ import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
  */
 const MoneyLinkCardSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
+  const hasTrackedViewRef = useRef(false);
   const navigation = useNavigation();
+  const route = useRoute();
   const { styles } = useStyles(styleSheet, {});
   const { confirmLinkInBackground } = useMoneyAccountCardLinkage();
   const { apyPercent } = useMoneyAccountBalance();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const cardHomeData = useSelector(selectCardHomeData);
   const surfaceClass = useElevatedSurface();
   const isMetalCard = cardHomeData?.card?.type === CardType.METAL;
+  const routeParams = route.params as MoneyLinkCardSheetRouteParams | undefined;
+  const originEntryPoint =
+    routeParams?.entrypoint ?? CardEntryPoint.MONEY_LINK_CARD_SHEET;
+  const cardType = isMetalCard ? 'metal' : 'virtual';
+
+  useEffect(() => {
+    if (hasTrackedViewRef.current) return;
+    hasTrackedViewRef.current = true;
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+        .addProperties({
+          screen: CardScreens.MONEY_LINK_CARD_SHEET,
+          entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
+          origin_entrypoint: originEntryPoint,
+          card_type: cardType,
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder, originEntryPoint, cardType]);
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
   const handleClose = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          screen: CardScreens.MONEY_LINK_CARD_SHEET,
+          entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
+          origin_entrypoint: originEntryPoint,
+          action: CardActions.MONEY_LINK_CARD_SHEET_CLOSE_BUTTON,
+          card_type: cardType,
+        })
+        .build(),
+    );
+
     sheetRef.current?.onCloseBottomSheet();
-  }, []);
+  }, [trackEvent, createEventBuilder, originEntryPoint, cardType]);
 
   const handleConfirm = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          screen: CardScreens.MONEY_LINK_CARD_SHEET,
+          entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
+          origin_entrypoint: originEntryPoint,
+          action: CardActions.MONEY_LINK_CARD_SHEET_CONFIRM_BUTTON,
+          card_type: cardType,
+        })
+        .build(),
+    );
+
     sheetRef.current?.onCloseBottomSheet(() => {
-      confirmLinkInBackground().catch(() => undefined);
+      confirmLinkInBackground({ entrypoint: originEntryPoint }).catch(
+        () => undefined,
+      );
     });
-  }, [confirmLinkInBackground]);
+  }, [
+    trackEvent,
+    createEventBuilder,
+    originEntryPoint,
+    cardType,
+    confirmLinkInBackground,
+  ]);
 
   const description: React.ReactNode =
     apyPercent === undefined ? (

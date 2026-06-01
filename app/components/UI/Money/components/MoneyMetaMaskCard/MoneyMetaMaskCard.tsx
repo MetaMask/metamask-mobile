@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Image, ImageSourcePropType } from 'react-native';
 import {
   Box,
@@ -23,6 +23,13 @@ import { strings } from '../../../../../../locales/i18n';
 import MoneySectionHeader from '../MoneySectionHeader';
 import { MoneyMetaMaskCardTestIds } from './MoneyMetaMaskCard.testIds';
 import styles from './MoneyMetaMaskCard.styles';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import {
+  CardActions,
+  CardEntryPoint,
+  CardScreens,
+} from '../../../Card/util/metrics';
 
 import mmCardRegular from '../../../../../images/mm_card_regular.png';
 import mmCardMetal from '../../../../../images/mm_card_metal.png';
@@ -54,6 +61,10 @@ interface MoneyMetaMaskCardProps {
    * (drops the APY clause from the subtitle and omits the APY bullet).
    */
   apy?: number;
+  analyticsScreen?: CardScreens | string;
+  analyticsEntryPoint?: CardEntryPoint;
+  analyticsFlow?: string;
+  analyticsCardState?: string;
   /**
    * Link mode only: when true, the card image is omitted and the bullets are
    * stacked vertically. Used by Card Home where the card image is already
@@ -321,12 +332,103 @@ const MoneyMetaMaskCard = ({
   cardBalance,
   apy,
   hideCardImage = false,
+  analyticsScreen,
+  analyticsEntryPoint,
+  analyticsFlow,
+  analyticsCardState,
 }: MoneyMetaMaskCardProps) => {
-  const handleLinkPress = useCallback(() => onLinkPress?.(), [onLinkPress]);
-  const handleManagePress = useCallback(
-    () => onManagePress?.(),
-    [onManagePress],
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const hasTrackedViewRef = useRef(false);
+  const cardType = showMetalCard ? 'metal' : 'virtual';
+
+  const buildAnalyticsProperties = useCallback(
+    (action?: CardActions) => ({
+      screen: analyticsScreen,
+      entrypoint: analyticsEntryPoint,
+      mode,
+      card_type: cardType,
+      flow: analyticsFlow,
+      card_state: analyticsCardState,
+      action,
+    }),
+    [
+      analyticsScreen,
+      analyticsEntryPoint,
+      mode,
+      cardType,
+      analyticsFlow,
+      analyticsCardState,
+    ],
   );
+
+  const trackCardButtonClick = useCallback(
+    (action: CardActions) => {
+      if (!analyticsScreen || !analyticsEntryPoint) return;
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+          .addProperties(buildAnalyticsProperties(action))
+          .build(),
+      );
+    },
+    [
+      analyticsScreen,
+      analyticsEntryPoint,
+      trackEvent,
+      createEventBuilder,
+      buildAnalyticsProperties,
+    ],
+  );
+
+  useEffect(() => {
+    if (hasTrackedViewRef.current || !analyticsScreen || !analyticsEntryPoint) {
+      return;
+    }
+
+    hasTrackedViewRef.current = true;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+        .addProperties(buildAnalyticsProperties())
+        .build(),
+    );
+  }, [
+    analyticsScreen,
+    analyticsEntryPoint,
+    trackEvent,
+    createEventBuilder,
+    buildAnalyticsProperties,
+  ]);
+
+  const handleLinkPress = useCallback(() => {
+    trackCardButtonClick(CardActions.MONEY_ACCOUNT_METAMASK_CARD_LINK_BUTTON);
+    onLinkPress?.();
+  }, [trackCardButtonClick, onLinkPress]);
+
+  const handleGetNowPress = useCallback(() => {
+    trackCardButtonClick(
+      CardActions.MONEY_ACCOUNT_METAMASK_CARD_GET_NOW_BUTTON,
+    );
+    onGetNowPress();
+  }, [trackCardButtonClick, onGetNowPress]);
+
+  const handleManagePress = useCallback(() => {
+    trackCardButtonClick(CardActions.MONEY_ACCOUNT_METAMASK_CARD_MANAGE_BUTTON);
+    onManagePress?.();
+  }, [trackCardButtonClick, onManagePress]);
+
+  const handleManageMetalPress = useCallback(() => {
+    trackCardButtonClick(
+      CardActions.MONEY_ACCOUNT_METAMASK_CARD_MANAGE_METAL_BUTTON,
+    );
+    onGetNowPress();
+  }, [trackCardButtonClick, onGetNowPress]);
+
+  const handleHeaderPress = useCallback(() => {
+    trackCardButtonClick(CardActions.MONEY_ACCOUNT_METAMASK_CARD_HEADER);
+    onHeaderPress?.();
+  }, [trackCardButtonClick, onHeaderPress]);
+
+  const resolvedHeaderPress = onHeaderPress ? handleHeaderPress : undefined;
 
   let content: React.ReactNode = null;
   if (mode === 'link') {
@@ -343,7 +445,7 @@ const MoneyMetaMaskCard = ({
       <ManageContent
         cardBalance={cardBalance ?? ''}
         onManagePress={handleManagePress}
-        onGetNowPress={onGetNowPress}
+        onGetNowPress={handleManageMetalPress}
       />
     );
   } else {
@@ -360,7 +462,7 @@ const MoneyMetaMaskCard = ({
           imageSource={mmCardRegular}
           cardName={strings('money.metamask_card.virtual_card')}
           cashbackPercentage="1"
-          onPress={onGetNowPress}
+          onPress={handleGetNowPress}
           testID={MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW}
         />
         {showMetalCard && (
@@ -368,7 +470,7 @@ const MoneyMetaMaskCard = ({
             imageSource={mmCardMetal}
             cardName={strings('money.metamask_card.metal_card')}
             cashbackPercentage="3"
-            onPress={onGetNowPress}
+            onPress={handleGetNowPress}
             testID={MoneyMetaMaskCardTestIds.METAL_CARD_ROW}
           />
         )}
@@ -390,7 +492,7 @@ const MoneyMetaMaskCard = ({
     >
       <MoneySectionHeader
         title={strings(headerTitleKey)}
-        onPress={onHeaderPress}
+        onPress={resolvedHeaderPress}
       />
       {content}
     </Box>
