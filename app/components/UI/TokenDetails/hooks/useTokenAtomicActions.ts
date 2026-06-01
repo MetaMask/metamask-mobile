@@ -23,20 +23,11 @@ import { areAddressesEqual } from '../../../../util/address';
 import { useRampNavigation } from '../../Ramp/hooks/useRampNavigation';
 import { TokenI } from '../../Tokens/types';
 import {
-  isAssetFromTrending,
   useSwapBridgeNavigation,
   SwapBridgeNavigationLocation,
 } from '../../Bridge/hooks/useSwapBridgeNavigation';
-import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../constants/bridge';
-import {
-  getNativeSourceToken,
-  getDefaultDestToken,
-} from '../../Bridge/utils/tokenUtils';
 import { useSendNonEvmAsset } from '../../../hooks/useSendNonEvmAsset';
-import {
-  formatChainIdToCaip,
-  isNativeAddress,
-} from '@metamask/bridge-controller';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { InitSendLocation } from '../../../Views/confirmations/constants/send';
 import { useSendNavigation } from '../../../Views/confirmations/hooks/useSendNavigation';
 import parseRampIntent from '../../Ramp/utils/parseRampIntent';
@@ -55,7 +46,10 @@ import useRampsUnifiedV1Enabled from '../../Ramp/hooks/useRampsUnifiedV1Enabled'
 import { BridgeToken } from '../../Bridge/types';
 import { adaptTokenSecurityData } from '../../Bridge/utils/tokenSecurityUtils';
 import { selectAssetsBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
-import { TokenDetailsSource } from '../constants/constants';
+import {
+  isExploreTokenDetailsSource,
+  TokenDetailsSource,
+} from '../constants/constants';
 import type { RootState } from '../../../../reducers';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
@@ -187,48 +181,6 @@ const hasPositiveBalance = (balance: string | number | undefined): boolean => {
   }
 
   return false;
-};
-
-/**
- * Determines the source and destination tokens for swap/bridge navigation.
- */
-export const getSwapTokens = (
-  token: TokenI,
-): {
-  sourceToken: BridgeToken | undefined;
-  destToken: BridgeToken | undefined;
-} => {
-  const wantsToBuyToken = isAssetFromTrending(token);
-  const isNative = isNativeAddress(token.address);
-
-  const bridgeToken: BridgeToken = {
-    ...token,
-    address: token.address ?? NATIVE_SWAPS_TOKEN_ADDRESS,
-    chainId: token.chainId as Hex | CaipChainId,
-    decimals: token.decimals,
-    symbol: token.symbol,
-    name: token.name,
-    image: token.image,
-    securityData: adaptTokenSecurityData(token.securityData),
-  };
-
-  if (wantsToBuyToken) {
-    if (isNative) {
-      return {
-        sourceToken: getDefaultDestToken(bridgeToken.chainId),
-        destToken: bridgeToken,
-      };
-    }
-    return {
-      sourceToken: getNativeSourceToken(bridgeToken.chainId),
-      destToken: bridgeToken,
-    };
-  }
-
-  return {
-    sourceToken: bridgeToken,
-    destToken: undefined,
-  };
 };
 
 /**
@@ -364,8 +316,12 @@ export const useHandleOnSwap = ({
   // location from the session that opened the bridge (e.g. "Main View").
   const isFromBridgeAssetPicker = token.source === TokenDetailsSource.Swap;
 
+  const swapLocation = isExploreTokenDetailsSource(token.source)
+    ? SwapBridgeNavigationLocation.TrendingExplore
+    : SwapBridgeNavigationLocation.TokenView;
+
   const { goToSwaps } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.TokenView,
+    location: swapLocation,
     sourcePage,
     transactionActiveAbTests: token.transactionActiveAbTests,
     skipLocationUpdate: isFromBridgeAssetPicker,

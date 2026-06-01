@@ -9,6 +9,7 @@ import styleSheet from './MultiRpcModal.styles';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
 import Text from '../../../component-library/components/Texts/Text';
 import { View, Image } from 'react-native';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { NftDetectionModalSelectorsIDs } from '../NFTAutoDetectionModal/NftDetectionModal.testIds';
 
 import Button, {

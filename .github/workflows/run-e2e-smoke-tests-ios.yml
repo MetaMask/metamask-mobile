@@ -368,29 +368,25 @@ jobs:
           path: all-test-artifacts/
           retention-days: 7
 
+      - name: Install CI script dependencies
+        continue-on-error: true
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: cd .github/scripts && yarn --immutable
+
       - name: Create mobile JSON test report
         id: create-json-report
         continue-on-error: true
         run: |
-          # Create a temporary directory for xml2js to avoid conflicts
-          mkdir -p temp-deps && cd temp-deps
-          npm init -y
-          npm install xml2js@0.5.0 --no-audit --no-fund
-
-          # Copy node_modules to workspace
-          cp -r node_modules ${{ github.workspace }}/
-
-          # Run the mobile test report generator
-          cd ${{ github.workspace }}
           TEST_RESULTS_PATH=all-test-artifacts \
           TEST_RUNS_PATH=test/test-results/test-runs-ios.json \
           RUN_ID=${{ github.run_id }} \
           PR_NUMBER=${{ github.event.pull_request.number || '0' }} \
           GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
           node .github/scripts/e2e-create-json-test-report.mjs
-
-          # Clean up temporary node_modules
-          rm -rf node_modules
 
       - name: Upload JSON test report (Namespace)
         if: ${{ steps.create-json-report.outcome == 'success' && inputs.runner_provider == 'namespace' }}

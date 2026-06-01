@@ -5,10 +5,7 @@ import {
   selectTokensByAddress,
   selectTokensLength,
   selectIgnoreTokens,
-  selectDetectedTokens,
   selectAllTokensFlat,
-  selectAllDetectedTokensForSelectedAddress,
-  selectAllDetectedTokensFlat,
   selectTokensByChainIdAndAddress,
   selectTokensByChainIdAndWalletAddress,
   getChainIdsToPoll,
@@ -24,14 +21,6 @@ describe('TokensController Selectors', () => {
     allTokens: {
       '0x1': {
         '0xAddress1': [mockToken],
-        '0xAddress2': [mockToken2],
-      },
-    },
-    allDetectedTokens: {
-      '0x1': {
-        '0xAddress1': [mockToken],
-      },
-      '0x2': {
         '0xAddress2': [mockToken2],
       },
     },
@@ -209,38 +198,6 @@ describe('TokensController Selectors', () => {
     });
   });
 
-  describe('selectDetectedTokens', () => {
-    it('returns detected tokens', () => {
-      expect(selectDetectedTokens(mockRootState)).toStrictEqual([mockToken]);
-    });
-
-    it('returns undefined if no detected tokens are present', () => {
-      const stateWithoutDetectedTokens = {
-        ...mockRootState,
-        engine: {
-          backgroundState: {
-            TokensController: {
-              ...mockTokensControllerState,
-              allDetectedTokens: undefined,
-            },
-            AccountsController: {
-              internalAccounts: {
-                selectedAccount: '0xAddress1',
-                accounts: {
-                  '0xAddress1': {
-                    address: '0xAddress1',
-                  },
-                },
-              },
-            },
-          },
-        },
-      } as unknown as RootState;
-
-      expect(selectDetectedTokens(stateWithoutDetectedTokens)).toBeUndefined();
-    });
-  });
-
   describe('selectAllTokensFlat', () => {
     it('returns all tokens as a flat array', () => {
       expect(selectAllTokensFlat(mockRootState)).toStrictEqual([
@@ -263,62 +220,6 @@ describe('TokensController Selectors', () => {
       } as unknown as RootState;
 
       expect(selectAllTokensFlat(stateWithoutAllTokens)).toStrictEqual([]);
-    });
-  });
-
-  describe('selectAllDetectedTokensForSelectedAddress', () => {
-    it('returns detected tokens for the selected address', () => {
-      const detectedTokens =
-        selectAllDetectedTokensForSelectedAddress.resultFunc(
-          mockTokensControllerState as unknown as TokensControllerState,
-          '0xAddress1',
-        );
-      expect(detectedTokens).toStrictEqual({
-        '0x1': [{ ...mockToken, chainId: '0x1' }],
-      });
-    });
-
-    it('returns an empty object if no selected address is provided', () => {
-      const detectedTokens =
-        selectAllDetectedTokensForSelectedAddress.resultFunc(
-          mockTokensControllerState as unknown as TokensControllerState,
-          undefined,
-        );
-      expect(detectedTokens).toStrictEqual({});
-    });
-  });
-
-  describe('selectAllDetectedTokensFlat', () => {
-    it('returns all detected tokens as a flat array', () => {
-      const detectedTokens = selectAllDetectedTokensFlat.resultFunc({
-        '0x1': [mockToken as Token],
-        '0x2': [mockToken2 as Token],
-      });
-      expect(detectedTokens).toStrictEqual([
-        { ...mockToken, chainId: '0x1' },
-        { ...mockToken2, chainId: '0x2' },
-      ]);
-    });
-
-    it('returns an empty array if no detected tokens are present', () => {
-      const detectedTokens = selectAllDetectedTokensFlat.resultFunc({});
-      expect(detectedTokens).toStrictEqual([]);
-    });
-
-    it('preserves chain ID in detected tokens', () => {
-      const detectedTokens = selectAllDetectedTokensFlat.resultFunc({
-        '0x1': [mockToken as Token],
-        '0x2': [mockToken2 as Token],
-      });
-      expect(detectedTokens).toStrictEqual([
-        { ...mockToken, chainId: '0x1' },
-        { ...mockToken2, chainId: '0x2' },
-      ]);
-    });
-
-    it('handles empty detected tokens gracefully', () => {
-      const detectedTokens = selectAllDetectedTokensFlat.resultFunc({});
-      expect(detectedTokens).toStrictEqual([]);
     });
   });
 

@@ -3,9 +3,11 @@ import { fireEvent, render } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import TokenDetailsStickyFooter from './TokenDetailsStickyFooter';
 import {
+  AMBIENT_NEGATIVE_COLOR,
   STICKY_FOOTER_SWAP_LABEL_VARIANTS,
   StickyFooterSwapLabelVariant,
 } from './abTestConfig';
+import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 
@@ -52,8 +54,26 @@ jest.mock('./RwaUnavailableBottomSheet/RwaUnavailableBottomSheet', () => ({
 }));
 
 jest.mock('../../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../../util/theme');
-  return { useTheme: jest.fn(() => mockTheme) };
+  const actual = jest.requireActual('../../../../util/theme');
+  return { ...actual, useTheme: jest.fn(() => actual.mockTheme) };
+});
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const { View, Text } = jest.requireActual('react-native');
+  return {
+    ...actual,
+    Button: ({
+      testID,
+      children,
+      twClassName,
+      ...rest
+    }: Record<string, unknown>) => (
+      <View testID={testID} twClassName={twClassName} {...rest}>
+        <Text>{children}</Text>
+      </View>
+    ),
+  };
 });
 
 const mockOnBuy = jest.fn();
@@ -403,6 +423,150 @@ describe('TokenDetailsStickyFooter', () => {
         tokenAddress: '0x123',
         chainId: '0x1',
       });
+    });
+  });
+
+  describe('ambient price color A/B test', () => {
+    const ambientProps = {
+      ...defaultProps,
+      swapTestID: 'swap-btn',
+      buyTestID: 'buy-btn',
+    };
+
+    const defaultSuccessBg = `bg-[${LIGHT_MODE_SUCCESS_GREEN}]`;
+    const defaultSuccessBorder = `border-[${LIGHT_MODE_SUCCESS_GREEN}]`;
+
+    it('uses default success styles when useAmbientColor is false', () => {
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...ambientProps}
+          useAmbientColor={false}
+          isPricePositive={false}
+          balanceFiatUsd={50}
+        />,
+      );
+
+      const buyBtn = getByTestId('buy-btn');
+      expect(buyBtn.props.twClassName).toBe(defaultSuccessBg);
+    });
+
+    it('uses error accent on success button when useAmbientColor + negative price', () => {
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...ambientProps}
+          useAmbientColor
+          isPricePositive={false}
+          balanceFiatUsd={50}
+        />,
+      );
+
+      const buyBtn = getByTestId('buy-btn');
+      expect(buyBtn.props.twClassName).toBe(`bg-[${AMBIENT_NEGATIVE_COLOR}]`);
+    });
+
+    it('uses error accent on secondary button border when useAmbientColor + negative price', () => {
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...ambientProps}
+          useAmbientColor
+          isPricePositive={false}
+          balanceFiatUsd={50}
+        />,
+      );
+
+      const swapBtn = getByTestId('swap-btn');
+      expect(swapBtn.props.twClassName).toBe(
+        `bg-transparent border-[${AMBIENT_NEGATIVE_COLOR}]`,
+      );
+    });
+
+    it('uses default success styles when useAmbientColor + positive price', () => {
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...ambientProps}
+          useAmbientColor
+          isPricePositive
+          balanceFiatUsd={50}
+        />,
+      );
+
+      const buyBtn = getByTestId('buy-btn');
+      expect(buyBtn.props.twClassName).toBe(defaultSuccessBg);
+    });
+
+    it('uses default success styles when isPricePositive is null (not yet resolved)', () => {
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...ambientProps}
+          useAmbientColor
+          isPricePositive={null}
+          balanceFiatUsd={50}
+        />,
+      );
+
+      const buyBtn = getByTestId('buy-btn');
+      expect(buyBtn.props.twClassName).toBe(defaultSuccessBg);
+    });
+  });
+
+  describe('security interception - token.symbol fallback to token.name', () => {
+    it('passes token.name as tokenSymbol when symbol is missing', () => {
+      const tokenWithoutSymbol = {
+        ...mockToken,
+        symbol: '',
+        name: 'FakeToken',
+      } as unknown as TokenDetailsRouteParams;
+
+      const maliciousSecurityData = {
+        resultType: 'Malicious',
+        features: [],
+      } as unknown as TokenSecurityData;
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          token={tokenWithoutSymbol}
+          securityData={maliciousSecurityData}
+        />,
+      );
+
+      fireEvent.press(getByText('Buy'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          params: expect.objectContaining({
+            tokenSymbol: 'FakeToken',
+            description: expect.any(String),
+          }),
+        }),
+      );
+    });
+
+    it('passes token.symbol as tokenSymbol when symbol is present', () => {
+      const warningSecurityData = {
+        resultType: 'Warning',
+        features: [],
+      } as unknown as TokenSecurityData;
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          securityData={warningSecurityData}
+        />,
+      );
+
+      fireEvent.press(getByText('Buy'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          params: expect.objectContaining({
+            tokenSymbol: 'ETH',
+            description: expect.any(String),
+          }),
+        }),
+      );
     });
   });
 

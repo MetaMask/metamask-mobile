@@ -8,7 +8,10 @@ import React, {
 import { PredictGameStatus, PredictPriceHistoryInterval } from '../../types';
 import { usePredictPriceHistory } from '../../hooks/usePredictPriceHistory';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
-import { isDrawCapableLeague } from '../../constants/sports';
+import {
+  getPrimaryMoneylineOutcomes,
+  isDrawCapableLeague,
+} from '../../constants/sports';
 import { useTheme } from '../../../../../util/theme';
 import PredictGameChartContent from './PredictGameChartContent';
 import {
@@ -72,27 +75,31 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
   const gameStatus = game?.status;
   const isGameEnded = gameStatus === 'ended';
   const isGameOngoing = gameStatus === 'ongoing';
+  const moneylineOutcomes = useMemo(
+    () => getPrimaryMoneylineOutcomes(market.outcomes),
+    [market.outcomes],
+  );
 
   const tokenIds = useMemo(() => {
     if (
       game?.league &&
       isDrawCapableLeague(game.league) &&
-      market.outcomes.length >= 3
+      moneylineOutcomes.length >= 3
     ) {
-      return [...market.outcomes]
+      return [...moneylineOutcomes]
         .sort(
           (a, b) => (a.groupItemThreshold ?? 0) - (b.groupItemThreshold ?? 0),
         )
         .map((o) => o.tokens[0]?.id)
         .filter((id): id is string => Boolean(id));
     }
-    const tokens = market.outcomes[0]?.tokens ?? [];
+    const tokens = moneylineOutcomes[0]?.tokens ?? [];
     return tokens.map((t) => t.id);
-  }, [market.outcomes, game?.league]);
+  }, [moneylineOutcomes, game?.league]);
 
   const seriesConfig: GameChartSeriesConfig[] | null = useMemo(() => {
     if (!game) return null;
-    if (isDrawCapableLeague(game.league) && market.outcomes.length >= 3) {
+    if (isDrawCapableLeague(game.league) && moneylineOutcomes.length >= 3) {
       return [
         { label: game.homeTeam.abbreviation, color: game.homeTeam.color },
         { label: 'DRAW', color: colors.icon.muted },
@@ -103,7 +110,7 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
       { label: game.awayTeam.abbreviation, color: game.awayTeam.color },
       { label: game.homeTeam.abbreviation, color: game.homeTeam.color },
     ];
-  }, [game, market.outcomes.length, colors.icon.muted]);
+  }, [game, moneylineOutcomes.length, colors.icon.muted]);
 
   const [timeframe, setTimeframe] = useState<ChartTimeframe>(() =>
     getDefaultTimeframe(gameStatus),

@@ -1,9 +1,7 @@
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import React from 'react';
 import { Linking } from 'react-native';
-import AppConstants from '../../../../core/AppConstants';
 import {
-  MAIN_NOTIFICATION_TOGGLE_LEARN_MORE_TEST_ID,
   MAIN_NOTIFICATION_TOGGLE_TEST_ID,
   MainNotificationToggle,
 } from './MainNotificationToggle';
@@ -55,22 +53,6 @@ describe('MainNotificationToggle', () => {
 
     await waitFor(() => {
       expect(mocks.mockOnToggle).toHaveBeenCalled();
-    });
-  });
-
-  it('opens learn more link', async () => {
-    const mocks = arrangeMocks();
-    const { getByTestId } = render(<MainNotificationToggle />);
-    const learnMoreText = getByTestId(
-      MAIN_NOTIFICATION_TOGGLE_LEARN_MORE_TEST_ID,
-    );
-
-    fireEvent.press(learnMoreText);
-
-    await waitFor(() => {
-      expect(mocks.mockOpenURL).toHaveBeenCalledWith(
-        AppConstants.URLS.PROFILE_SYNC,
-      );
     });
   });
 });

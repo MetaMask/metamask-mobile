@@ -20,6 +20,7 @@ import ErrorState from '../../Views/Homepage/components/ErrorState';
 import ViewMoreCard from '../../Views/Homepage/components/ViewMoreCard';
 import { SectionRefreshHandle } from '../../Views/Homepage/types';
 import { selectWhatsHappeningEnabled } from '../../../selectors/featureFlagController/whatsHappening';
+import { PerpsStreamProvider } from '../Perps/providers/PerpsStreamManager';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -153,36 +154,38 @@ const WhatsHappeningSection = forwardRef<
         onPress={handleViewAll}
         testID={WhatsHappeningSelectorsIDs.SECTION_TITLE}
       />
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={tw.style('px-4 gap-3')}
-        snapToOffsets={SNAP_OFFSETS}
-        decelerationRate="fast"
-        onMomentumScrollEnd={handleMomentumScrollEnd}
-        testID={WhatsHappeningSelectorsIDs.CAROUSEL}
-      >
-        {isLoading ? (
-          SKELETON_KEYS.map((key) => <WhatsHappeningCardSkeleton key={key} />)
-        ) : (
-          <>
-            {items.map((item: WhatsHappeningItem, index: number) => (
-              <WhatsHappeningCard
-                key={item.id}
-                item={item}
-                cardIndex={index}
-                source={source}
-                onPress={() => handleCardPress(index)}
+      <PerpsStreamProvider>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={tw.style('px-4 gap-3')}
+          snapToOffsets={SNAP_OFFSETS}
+          decelerationRate="fast"
+          onMomentumScrollEnd={handleMomentumScrollEnd}
+          testID={WhatsHappeningSelectorsIDs.CAROUSEL}
+        >
+          {isLoading ? (
+            SKELETON_KEYS.map((key) => <WhatsHappeningCardSkeleton key={key} />)
+          ) : (
+            <>
+              {items.map((item: WhatsHappeningItem, index: number) => (
+                <WhatsHappeningCard
+                  key={item.id}
+                  item={item}
+                  cardIndex={index}
+                  source={source}
+                  onPress={() => handleCardPress(index)}
+                />
+              ))}
+              <ViewMoreCard
+                onPress={handleViewAll}
+                twClassName={`w-[180px] ${VIEW_MORE_MIN_HEIGHT_CLASS}`}
+                textVariant={TextVariant.BodyLg}
               />
-            ))}
-            <ViewMoreCard
-              onPress={handleViewAll}
-              twClassName={`w-[180px] ${VIEW_MORE_MIN_HEIGHT_CLASS}`}
-              textVariant={TextVariant.BodyLg}
-            />
-          </>
-        )}
-      </ScrollView>
+            </>
+          )}
+        </ScrollView>
+      </PerpsStreamProvider>
     </View>
   );
 });

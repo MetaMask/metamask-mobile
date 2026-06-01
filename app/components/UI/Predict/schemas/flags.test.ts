@@ -217,7 +217,11 @@ describe('PredictWorldCupSchema', () => {
       seriesId: '11433',
       tagSlug: 'fifa-world-cup',
       gamesTagId: '100639',
-      bannerImageUrl: 'https://example.com/banner.png',
+      bannerImage: {
+        url: 'https://example.com/banner.png',
+        width: 400,
+        height: 200,
+      },
       stages: [
         {
           key: 'group_stage',

@@ -10,13 +10,15 @@ import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import { CashSection } from './Sections/Cash';
 import TokensSection from './Sections/Tokens';
-import PerpsSectionWithProvider from './Sections/Perpetuals';
 import { PerpsSection as PerpsSectionBase } from './Sections/Perpetuals/PerpsSection';
+import HomepagePerpsHomeSlot from './Sections/Perpetuals/HomepagePerpsHomeSlot';
 import PredictionsSection from './Sections/Predictions';
 import TopTradersSection from './Sections/TopTraders';
 import DeFiSection from './Sections/DeFi';
 import NFTsSection from './Sections/NFTs';
+import MoreSection from './Sections/More';
 import { SectionRefreshHandle } from './types';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
@@ -33,6 +35,7 @@ import {
   HOMEPAGE_TRENDING_SECTIONS_VARIANTS,
 } from './abTestConfig';
 import { useOwnedNfts } from './Sections/NFTs/hooks';
+import { useNftDetection } from '../../hooks/useNftDetection';
 import { strings } from '../../../../locales/i18n';
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
@@ -94,6 +97,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     const hasNfts = ownedNfts.length > 0;
 
     const { enableAllPopularNetworks } = useNetworkEnablement();
+    const { detectNfts, abortDetection } = useNftDetection();
 
     // useFocusEffect (not useEffect) so we run every time the user focuses this screen
     // (e.g. switches to Wallet tab or returns from a section). With useEffect we would
@@ -105,9 +109,21 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       }, [enableAllPopularNetworks]),
     );
 
+    useFocusEffect(
+      useCallback(() => {
+        detectNfts().catch(() => {
+          // AbortError is expected when detection is cancelled on blur
+        });
+
+        return () => {
+          abortDetection();
+        };
+      }, [detectNfts, abortDetection]),
+    );
+
     /**
      * Compute the ordered list of enabled sections. Cash is first when enabled;
-     * Tokens and NFTs are always present; Perps, Predictions, and DeFi are feature-flagged.
+     * Tokens are always present; NFTs, Perps, Predictions, and DeFi are conditional.
      * When separateTrending is active, trending sections are appended.
      */
     const enabledSections = useMemo(() => {
@@ -125,7 +141,6 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
           { name: HomeSectionNames.DEFI, enabled: isDeFiEnabled },
         ];
 
-        // NFTs above trending when user has NFTs
         if (hasNfts) {
           sections.push({ name: HomeSectionNames.NFTS, enabled: true });
         }
@@ -139,11 +154,6 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
             enabled: isPredictEnabled,
           },
         );
-
-        // NFTs below trending when user has no NFTs
-        if (!hasNfts) {
-          sections.push({ name: HomeSectionNames.NFTS, enabled: true });
-        }
 
         return sections.filter((s) => s.enabled);
       }
@@ -159,7 +169,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
           enabled: isTopTradersEnabled,
         },
         { name: HomeSectionNames.DEFI, enabled: isDeFiEnabled },
-        { name: HomeSectionNames.NFTS, enabled: true },
+        { name: HomeSectionNames.NFTS, enabled: hasNfts },
       ].filter((s) => s.enabled);
     }, [
       separateTrending,
@@ -254,14 +264,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
             titleOverride={strings('homepage.sections.trending_predictions')}
           />
 
-          {/* NFTs below trending when user has no NFTs */}
-          {!hasNfts && (
-            <NFTsSection
-              ref={nftsSectionRef}
-              sectionIndex={getSectionIndex(HomeSectionNames.NFTS)}
-              totalSectionsLoaded={totalSectionsLoaded}
-            />
-          )}
+          <MoreSection />
         </>
       );
 
@@ -305,7 +308,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
               (() => {
                 const perpsContent = (
                   <>
-                    <PerpsSectionBase
+                    <HomepagePerpsHomeSlot
                       ref={perpsSectionRef}
                       sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
                       totalSectionsLoaded={totalSectionsLoaded}
@@ -354,19 +357,23 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
           />
           {isPerpsEnabled &&
             (perpsProvidersHoisted ? (
-              <PerpsSectionBase
+              <HomepagePerpsHomeSlot
                 ref={perpsSectionRef}
                 sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
                 totalSectionsLoaded={totalSectionsLoaded}
                 mode={sectionMode}
               />
             ) : (
-              <PerpsSectionWithProvider
-                ref={perpsSectionRef}
-                sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
-                totalSectionsLoaded={totalSectionsLoaded}
-                mode={sectionMode}
-              />
+              <PerpsConnectionProvider suppressErrorView>
+                <PerpsStreamProvider>
+                  <HomepagePerpsHomeSlot
+                    ref={perpsSectionRef}
+                    sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
+                    totalSectionsLoaded={totalSectionsLoaded}
+                    mode={sectionMode}
+                  />
+                </PerpsStreamProvider>
+              </PerpsConnectionProvider>
             ))}
           <PredictionsSection
             ref={predictionsSectionRef}
@@ -386,11 +393,14 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
             sectionIndex={getSectionIndex(HomeSectionNames.DEFI)}
             totalSectionsLoaded={totalSectionsLoaded}
           />
-          <NFTsSection
-            ref={nftsSectionRef}
-            sectionIndex={getSectionIndex(HomeSectionNames.NFTS)}
-            totalSectionsLoaded={totalSectionsLoaded}
-          />
+          {hasNfts && (
+            <NFTsSection
+              ref={nftsSectionRef}
+              sectionIndex={getSectionIndex(HomeSectionNames.NFTS)}
+              totalSectionsLoaded={totalSectionsLoaded}
+            />
+          )}
+          <MoreSection />
         </Box>
       </HomepageTrendingAbTestContext.Provider>
     );

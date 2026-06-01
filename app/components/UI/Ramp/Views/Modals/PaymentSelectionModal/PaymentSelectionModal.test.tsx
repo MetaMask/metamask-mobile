@@ -360,7 +360,7 @@ describe('PaymentSelectionModal', () => {
     });
   });
 
-  it('keeps payment method visible when only custom-action quote matches', () => {
+  it('keeps payment method visible when only custom-action quote matches and greys out the rest', () => {
     const customActionQuote = {
       provider: '/providers/transak',
       quote: {
@@ -382,10 +382,103 @@ describe('PaymentSelectionModal', () => {
     const { queryAllByText, queryByText } = renderWithProvider(
       PaymentSelectionModal,
     );
-    // debit-credit-card-1 matches the custom-action quote → visible.
-    // debit-credit-card-2 has no matching quote → filtered out.
-    expect(queryAllByText('Debit or Credit').length).toBe(1);
+    // Both methods render. debit-credit-card-1 matches the custom-action quote,
+    // debit-credit-card-2 has no matching quote → disabled with fallback subtitle.
+    expect(queryAllByText('Debit or Credit').length).toBe(2);
     expect(queryByText('fiat_on_ramp.no_payment_methods_available')).toBeNull();
+    expect(queryAllByText('fiat_on_ramp.quote_unavailable').length).toBe(1);
+  });
+
+  it('disables payment methods without a success quote and shows the provider error message', () => {
+    mockUseRampsQuotes.mockImplementation(() => ({
+      ...defaultQuotesReturn,
+      data: {
+        success: [],
+        error: [
+          {
+            provider: '/providers/transak',
+            error: 'Amount below minimum 25 USD',
+          },
+        ],
+        sorted: [],
+        customActions: [],
+      },
+      loading: false,
+    }));
+
+    const { queryAllByText, queryByText } = renderWithProvider(
+      PaymentSelectionModal,
+    );
+
+    expect(queryAllByText('Debit or Credit').length).toBe(2);
+    expect(queryAllByText('Amount below minimum 25 USD').length).toBe(2);
+    expect(queryByText('fiat_on_ramp.no_payment_methods_available')).toBeNull();
+  });
+
+  it('ignores errors from other providers when sourcing the disabled subtitle', () => {
+    mockUseRampsQuotes.mockImplementation(() => ({
+      ...defaultQuotesReturn,
+      data: {
+        success: [],
+        error: [
+          {
+            provider: '/providers/moonpay',
+            error: 'Should not be shown',
+          },
+        ],
+        sorted: [],
+        customActions: [],
+      },
+      loading: false,
+    }));
+
+    const { queryByText, queryAllByText } = renderWithProvider(
+      PaymentSelectionModal,
+    );
+
+    expect(queryByText('Should not be shown')).toBeNull();
+    expect(queryAllByText('fiat_on_ramp.quote_unavailable').length).toBe(2);
+  });
+
+  it('does not disable payment methods while quotes are loading', () => {
+    mockUseRampsQuotes.mockImplementation(() => ({
+      ...defaultQuotesReturn,
+      data: null,
+      loading: true,
+    }));
+
+    const { queryAllByText, queryByText } = renderWithProvider(
+      PaymentSelectionModal,
+    );
+
+    expect(queryAllByText('Debit or Credit').length).toBe(2);
+    expect(queryByText('fiat_on_ramp.quote_unavailable')).toBeNull();
+  });
+
+  it('does not invoke onPaymentMethodSelect when a disabled row is pressed', async () => {
+    const onPaymentMethodSelect = jest.fn();
+    mockUseParams.mockReturnValue({ onPaymentMethodSelect });
+    mockUseRampsQuotes.mockImplementation(() => ({
+      ...defaultQuotesReturn,
+      data: {
+        success: [],
+        error: [
+          { provider: '/providers/transak', error: 'Amount below minimum' },
+        ],
+        sorted: [],
+        customActions: [],
+      },
+      loading: false,
+    }));
+
+    const { getAllByText } = renderWithProvider(PaymentSelectionModal);
+
+    fireEvent.press(getAllByText('Debit or Credit')[0]);
+
+    await waitFor(() => {
+      expect(onPaymentMethodSelect).not.toHaveBeenCalled();
+      expect(mockSetSelectedPaymentMethod).not.toHaveBeenCalled();
+    });
   });
 
   it('does not use custom-action quote amount for price preview', () => {

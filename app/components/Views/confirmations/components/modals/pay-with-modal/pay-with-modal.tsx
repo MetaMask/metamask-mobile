@@ -1,6 +1,8 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { Hex } from '@metamask/utils';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import Engine from '../../../../../../core/Engine';
+import { useParams } from '../../../../../../util/navigation/navUtils';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useWithdrawTokenFilter } from '../../../hooks/pay/useWithdrawTokenFilter';
@@ -20,11 +22,7 @@ import {
   useTransactionPayFiatPayment,
   useTransactionPayRequiredTokens,
 } from '../../../hooks/pay/useTransactionPayData';
-import { useFiatPaymentHighlightedActions } from '../../../hooks/pay/useFiatPaymentHighlightedActions';
-import {
-  getAvailableTokens,
-  isPayWithBottomSheetEnabled,
-} from '../../../utils/transaction-pay';
+import { getAvailableTokens } from '../../../utils/transaction-pay';
 import { useTransactionPayBlockedTokens } from '../../../hooks/pay/useTransactionPayBlockedTokens';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { TransactionType } from '@metamask/transaction-controller';
@@ -40,7 +38,22 @@ import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaym
 import { usePredictBalanceTokenFilter } from '../../../../../UI/Predict/hooks/usePredictBalanceTokenFilter';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
 
+interface PayWithModalParams {
+  /**
+   * When > 1, PayWithModal owns navigation on close by dispatching
+   * `StackActions.pop(N)` atomically instead of relying on the legacy
+   * `BottomSheet`'s built-in `navigation.goBack()`. Set to 2 by the new Pay
+   * With bottom sheet's "Other assets" launcher so picking a token pops both
+   * this modal AND the bottom sheet underneath in a single navigator
+   * dispatch — avoids the Android view-hierarchy race that crashes with
+   * `IllegalStateException` on two adjacent pops.
+   */
+  dismissOnSelectCount?: number;
+}
+
 export function PayWithModal() {
+  const navigation = useNavigation();
+  const { dismissOnSelectCount = 1 } = useParams<PayWithModalParams>({});
   const transactionMeta = useTransactionMetadataRequest();
   const hideNetworkFilter = hasTransactionType(
     transactionMeta,
@@ -50,18 +63,6 @@ export function PayWithModal() {
   const { isWithdraw } = useTransactionPayWithdraw();
   const requiredTokens = useTransactionPayRequiredTokens();
   const fiatPayment = useTransactionPayFiatPayment();
-  const fiatHighlightedActions = useFiatPaymentHighlightedActions();
-  /**
-   * Suppress fiat highlighted items in the modal when the new Pay With
-   * bottom sheet is enabled. In that mode the Bank/Card section is the single
-   * source of truth for fiat payment methods, while this modal continues to
-   * serve as the crypto/tokens picker via the "Other assets" entry point.
-   * Remove this gate at CONF-1313 GA along with the env util.
-   */
-  const effectiveFiatHighlightedActions = useMemo(
-    () => (isPayWithBottomSheetEnabled() ? [] : fiatHighlightedActions),
-    [fiatHighlightedActions],
-  );
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const { filterAllowedTokens: musdTokenFilter } = useMusdConversionTokens();
   const { onPaymentTokenChange: onMusdPaymentTokenChange } =
@@ -89,6 +90,14 @@ export function PayWithModal() {
     bottomSheetRef.current?.onCloseBottomSheet(onClosed);
   }, []);
 
+  const handleClose = useCallback(() => {
+    if (dismissOnSelectCount > 1) {
+      close(() => navigation.goBack());
+    } else {
+      close();
+    }
+  }, [close, dismissOnSelectCount, navigation]);
+
   const wrapHighlightedItemCallbacks = useCallback(
     (items: TokenListItem[]): TokenListItem[] =>
       items.map((item) => {
@@ -114,6 +123,10 @@ export function PayWithModal() {
   const handleTokenSelect = useCallback(
     (token: AssetType) => {
       const onClosed = async () => {
+        if (dismissOnSelectCount > 1) {
+          navigation.dispatch(StackActions.pop(dismissOnSelectCount));
+        }
+
         if (
           hasTransactionType(transactionMeta, [TransactionType.musdConversion])
         ) {
@@ -171,8 +184,10 @@ export function PayWithModal() {
     },
     [
       close,
+      dismissOnSelectCount,
       isPredictContext,
       isWithdraw,
+      navigation,
       onMusdPaymentTokenChange,
       onPerpsPaymentTokenChange,
       onPredictPaymentTokenChange,
@@ -212,16 +227,10 @@ export function PayWithModal() {
         filteredTokens = predictBalanceTokenFilter(availableTokens);
       }
 
-      const wrappedTokens = wrapHighlightedItemCallbacks(filteredTokens);
-      const wrappedFiatActions = wrapHighlightedItemCallbacks(
-        effectiveFiatHighlightedActions,
-      );
-
-      return [...wrappedFiatActions, ...wrappedTokens];
+      return wrapHighlightedItemCallbacks(filteredTokens);
     },
     [
       blockedTokens,
-      effectiveFiatHighlightedActions,
       fiatPayment,
       withdrawTokenFilter,
       musdTokenFilter,
@@ -245,16 +254,13 @@ export function PayWithModal() {
       isFullscreen
       ref={bottomSheetRef}
       keyboardAvoidingViewEnabled={false}
+      shouldNavigateBack={dismissOnSelectCount <= 1}
     >
-      <HeaderCompactStandard
-        title={modalTitle}
-        // HeaderCompactStandard close handler receives a press event; we must ignore it so it
-        // isn't forwarded to `onCloseBottomSheet` as the post-close callback.
-        onClose={() => close()}
-      />
+      <HeaderCompactStandard title={modalTitle} onClose={handleClose} />
       <Asset
         includeNoBalance
         hideNfts
+        hideHeader
         tokenFilter={tokenFilter}
         onTokenSelect={handleTokenSelect}
         hideNetworkFilter={hideNetworkFilter}

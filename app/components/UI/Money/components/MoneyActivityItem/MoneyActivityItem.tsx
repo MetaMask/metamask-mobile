@@ -12,7 +12,11 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import type { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  type TransactionMeta,
+  TransactionStatus,
+} from '@metamask/transaction-controller';
+import { strings } from '../../../../../../locales/i18n';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import BadgeWrapper from '../../../../../component-library/components/Badges/BadgeWrapper';
@@ -29,8 +33,8 @@ import { MoneyActivityItemTestIds } from './MoneyActivityItem.testIds';
 export interface MoneyActivityItemProps {
   tx: TransactionMeta;
   moneyAddress: string | undefined;
-  onPress?: () => void;
-  /** When true, shows the chain network badge on the token avatar. Defaults to false. */
+  onPress?: (transactionId: string) => void;
+  /** When true, shows the chain network badge on the icon avatar. Defaults to false. */
   showNetworkBadge?: boolean;
 }
 
@@ -52,14 +56,18 @@ const MoneyActivityItem = ({
     [tx.chainId, showNetworkBadge],
   );
 
-  const amountColor = display.isIncoming
-    ? TextColor.SuccessDefault
-    : TextColor.TextDefault;
+  const isFailed = tx.status === TransactionStatus.failed;
+
+  const amountColor = isFailed
+    ? TextColor.TextAlternative
+    : display.isIncoming
+      ? TextColor.SuccessDefault
+      : TextColor.TextDefault;
 
   return (
     <Pressable
       accessibilityRole="button"
-      onPress={onPress}
+      onPress={onPress ? () => onPress(tx.id) : undefined}
       testID={`${MoneyActivityItemTestIds.ROW}-${tx.id}`}
       style={({ pressed }) =>
         tw.style(
@@ -107,7 +115,16 @@ const MoneyActivityItem = ({
         >
           {display.label}
         </Text>
-        {display.description ? (
+        {isFailed ? (
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.ErrorDefault}
+            numberOfLines={1}
+          >
+            {strings('money.transaction.failed')}
+          </Text>
+        ) : display.description ? (
           <Text
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}

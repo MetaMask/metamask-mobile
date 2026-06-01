@@ -3,6 +3,7 @@ import { ReactElement, ReactNode } from 'react';
 export type PayWithSectionId =
   | 'perps'
   | 'predict'
+  | 'money-account'
   | 'bank-card'
   | 'crypto'
   | (string & {});

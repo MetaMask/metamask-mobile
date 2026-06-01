@@ -58,15 +58,63 @@ describe('navigateToPerpsMarketList', () => {
     );
   });
 
-  it('does not include defaultSortOptionId when not provided', () => {
+  it('passes a custom navigation source for analytics', () => {
     const navigate = jest.fn();
     const navigation = {
       navigate,
     } as unknown as NavigationProp<PerpsNavigationParamList>;
 
-    navigateToPerpsMarketList(navigation, 'crypto');
+    navigateToPerpsMarketList(navigation, 'all', 'priceChange', {
+      source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
+    });
 
-    const callParams = navigate.mock.calls[0][1].params;
-    expect(callParams).not.toHaveProperty('defaultSortOptionId');
+    expect(navigate).toHaveBeenCalledWith(
+      Routes.PERPS.ROOT,
+      expect.objectContaining({
+        params: expect.objectContaining({
+          source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
+          defaultSortOptionId: 'priceChange',
+        }),
+      }),
+    );
+  });
+
+  it('omits defaultSortOptionId when no sort option is provided', () => {
+    const navigate = jest.fn();
+    const navigation = {
+      navigate,
+    } as unknown as NavigationProp<PerpsNavigationParamList>;
+
+    navigateToPerpsMarketList(navigation, 'all', undefined, {
+      source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
+    });
+
+    expect(navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.MARKET_LIST,
+      params: {
+        defaultMarketTypeFilter: 'all',
+        source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
+      },
+    });
+  });
+
+  it('passes a custom sort direction', () => {
+    const navigate = jest.fn();
+    const navigation = {
+      navigate,
+    } as unknown as NavigationProp<PerpsNavigationParamList>;
+
+    navigateToPerpsMarketList(navigation, 'all', 'priceChange', {
+      sortDirection: 'asc',
+    });
+
+    expect(navigate).toHaveBeenCalledWith(
+      Routes.PERPS.ROOT,
+      expect.objectContaining({
+        params: expect.objectContaining({
+          defaultSortDirection: 'asc',
+        }),
+      }),
+    );
   });
 });

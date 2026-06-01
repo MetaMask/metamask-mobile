@@ -188,6 +188,7 @@ describe('useRampsQuotes', () => {
       expect(result.current.loading).toBe(false);
       expect(result.current.data).toEqual(mockQuotesResponse);
       expect(result.current.isSuccess).toBe(true);
+      expect(result.current.error).toBeNull();
       expect(Engine.context.RampsController.getQuotes).toHaveBeenCalledWith(
         expect.objectContaining({
           amount: 100,
@@ -202,8 +203,9 @@ describe('useRampsQuotes', () => {
     it('returns error when the request rejects', async () => {
       const store = createMockStore();
       const { Wrapper } = createWrapper(store);
+      const networkError = new Error('Network error');
       (Engine.context.RampsController.getQuotes as jest.Mock).mockRejectedValue(
-        new Error('Network error'),
+        networkError,
       );
 
       const { result } = renderHook(() => useRampsQuotes(options), {
@@ -215,7 +217,31 @@ describe('useRampsQuotes', () => {
       });
 
       expect(result.current.loading).toBe(false);
-      expect(result.current.error).toBe('Network error');
+      expect(result.current.error).toBe(networkError);
+      expect(result.current.data).toBeNull();
+    });
+
+    it('preserves enriched error metadata when the request rejects', async () => {
+      const store = createMockStore();
+      const { Wrapper } = createWrapper(store);
+      const circuitBreakerError = Object.assign(
+        new Error('Execution prevented because the circuit breaker is open'),
+        { errorKey: 'CIRCUIT_BREAKER_OPEN' },
+      );
+      (Engine.context.RampsController.getQuotes as jest.Mock).mockRejectedValue(
+        circuitBreakerError,
+      );
+
+      const { result } = renderHook(() => useRampsQuotes(options), {
+        wrapper: Wrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.status).toBe('error');
+      });
+
+      expect(result.current.loading).toBe(false);
+      expect(result.current.error).toBe(circuitBreakerError);
       expect(result.current.data).toBeNull();
     });
 

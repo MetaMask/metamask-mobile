@@ -10,6 +10,7 @@ import {
   PredictOutcome,
   PredictOutcomeToken,
   PredictPosition,
+  PredictSeries,
 } from '.';
 import { PredictEventValues } from '../constants/eventNames';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
@@ -29,18 +30,23 @@ export type PredictEntryPoint =
   | typeof PredictEventValues.ENTRY_POINT.BACKGROUND
   | typeof PredictEventValues.ENTRY_POINT.TRENDING_SEARCH
   | typeof PredictEventValues.ENTRY_POINT.TRENDING
-  | typeof PredictEventValues.ENTRY_POINT.HOME_SECTION;
+  | typeof PredictEventValues.ENTRY_POINT.HOME_SECTION
+  | typeof PredictEventValues.ENTRY_POINT.EXPLORE;
 
 /** Predict market list parameters */
 export interface PredictMarketListParams {
   entryPoint?: PredictEntryPoint;
   tab?: PredictCategory;
   query?: string;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 /** Predict market details parameters */
 export interface PredictMarketDetailsParams {
   marketId?: string;
+  series?: PredictSeries;
+  seriesId?: string;
+  seriesRecurrence?: string;
   entryPoint?: PredictEntryPoint;
   title?: string;
   image?: string;
@@ -52,11 +58,19 @@ export interface PredictMarketDetailsParams {
 export interface PredictWorldCupParams {
   entryPoint?: string;
   initialTab?: PredictWorldCupTabKey;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 /** Predict activity detail parameters */
 export interface PredictActivityDetailParams {
   activity: PredictActivityItem;
+}
+
+export type PredictPositionsTabKey = 'positions' | 'history';
+
+/** Predict Positions screen parameters */
+export interface PredictPositionsParams {
+  initialTab?: PredictPositionsTabKey;
 }
 
 /** Predict add funds modal parameters */
@@ -72,6 +86,14 @@ export interface PredictBuyPreviewParams {
   outcomeToken: PredictOutcomeToken;
   entryPoint?: PredictEntryPoint;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+  /**
+   * When true, the beforeRemove listener in PredictBuyPreview will fire
+   * trackBetslipDismissed for swipe/hardware-back dismissals. Only set by
+   * PredictPreviewSheetProvider when disableBottomSheet is active — keeps the
+   * analytics change scoped to the new HomepageDiscoveryTabs flow and avoids
+   * changing event volume for the pre-existing flagless screen-mode path.
+   */
+  trackSwipeDismiss?: boolean;
 }
 
 /** Predict sell preview parameters */
@@ -107,6 +129,7 @@ export interface PredictNavigationParamList extends ParamListBase {
   Predict: undefined;
   PredictMarketList: PredictMarketListParams;
   PredictMarketDetails: PredictMarketDetailsParams;
+  PredictPositions: PredictPositionsParams | undefined;
   PredictWorldCup: PredictWorldCupParams | undefined;
   PredictSellPreview: PredictSellPreviewParams;
   PredictBuyPreview: PredictBuyPreviewParams;

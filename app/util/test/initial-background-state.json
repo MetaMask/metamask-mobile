@@ -313,6 +313,7 @@
         "0x38": true,
         "0x531": true,
         "0x89": true,
+        "0x8f": true,
         "0xa": true,
         "0xa4b1": true,
         "0xe708": true
@@ -577,7 +578,8 @@
     "unapprovedTypedMessagesCount": 0
   },
   "AuthenticationController": {
-    "isSignedIn": false
+    "isSignedIn": false,
+    "needsProfilePairing": true
   },
   "NotificationServicesController": {
     "isCheckingAccountsPresence": false,
@@ -696,6 +698,8 @@
   },
   "BridgeController": {
     "assetExchangeRates": {},
+    "batchSellTrades": null,
+    "batchSellTradesLoadingStatus": null,
     "minimumBalanceForRentExemptionInLamports": "0",
     "quoteFetchError": null,
     "quoteRequest": [
