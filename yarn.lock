@@ -7826,15 +7826,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ai-controllers@npm:0.6.3":
-  version: 0.6.3
-  resolution: "@metamask/ai-controllers@npm:0.6.3"
+"@metamask/ai-controllers@npm:^0.7.0":
+  version: 0.7.0
+  resolution: "@metamask/ai-controllers@npm:0.7.0"
   dependencies:
-    "@metamask/base-controller": "npm:^9.0.1"
-    "@metamask/messenger": "npm:^1.0.0"
+    "@metamask/base-controller": "npm:^9.1.0"
+    "@metamask/messenger": "npm:^1.2.0"
     "@metamask/superstruct": "npm:^3.1.0"
     "@metamask/utils": "npm:^11.9.0"
-  checksum: 10/678f024889a2fe691633df7b3cce529c8a87c0533096df9b238308736ce232f4a71f1a2f9a74cff16ef6cd635b551141517e8c53dedfc0a38a45d2771850b6b6
+  checksum: 10/129d02a26595f16362c6bb1905ef3885b369529eb0a174da46ed7add5fd1d6ffa4d00ba29e09f7583ef70a299dc99f33c82efc45eeea08ab7e5e712c4a3dc11d
   languageName: node
   linkType: hard
 
@@ -7916,22 +7916,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controller@npm:^8.0.0, @metamask/assets-controller@npm:^8.0.1":
-  version: 8.0.1
-  resolution: "@metamask/assets-controller@npm:8.0.1"
+"@metamask/assets-controller@npm:^8.0.0, @metamask/assets-controller@npm:^8.0.1, @metamask/assets-controller@npm:^8.1.0":
+  version: 8.1.0
+  resolution: "@metamask/assets-controller@npm:8.1.0"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/providers": "npm:^5.7.0"
-    "@metamask/account-tree-controller": "npm:^7.4.0"
-    "@metamask/accounts-controller": "npm:^38.1.1"
-    "@metamask/assets-controllers": "npm:^108.1.0"
+    "@metamask/account-tree-controller": "npm:^7.5.0"
+    "@metamask/accounts-controller": "npm:^38.1.2"
+    "@metamask/assets-controllers": "npm:^108.2.0"
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/client-controller": "npm:^1.0.1"
     "@metamask/controller-utils": "npm:^12.1.0"
-    "@metamask/core-backend": "npm:^6.3.0"
+    "@metamask/core-backend": "npm:^6.3.1"
     "@metamask/keyring-api": "npm:^23.1.0"
-    "@metamask/keyring-controller": "npm:^25.5.0"
+    "@metamask/keyring-controller": "npm:^26.0.0"
     "@metamask/keyring-internal-api": "npm:^11.0.1"
     "@metamask/keyring-snap-client": "npm:^9.0.2"
     "@metamask/messenger": "npm:^1.2.0"
@@ -7949,11 +7949,11 @@ __metadata:
     bignumber.js: "npm:^9.1.2"
     lodash: "npm:^4.17.21"
     p-limit: "npm:^3.1.0"
-  checksum: 10/056627318de4985ea2780f3009f8f803cba7eb4ba45f605b29dc4783146db9a8743e83e9d91ea949ad401c2018105531eef66793f09bf7822d955807446016f1
+  checksum: 10/d24f095789bcd2f08d78aca09b54c065edae8590855954a2d305cffde431c444442124c8f26605b0ee31ce44f317a2ff84ca87c20c5c0564b874f601038f88f7
   languageName: node
   linkType: hard
 
-"@metamask/assets-controllers@npm:^108.0.0, @metamask/assets-controllers@npm:^108.1.0, @metamask/assets-controllers@npm:^108.3.0":
+"@metamask/assets-controllers@npm:^108.0.0, @metamask/assets-controllers@npm:^108.1.0, @metamask/assets-controllers@npm:^108.2.0, @metamask/assets-controllers@npm:^108.3.0":
   version: 108.3.0
   resolution: "@metamask/assets-controllers@npm:108.3.0"
   dependencies:
@@ -35438,11 +35438,11 @@ __metadata:
     "@metamask/account-tree-controller": "npm:^7.2.0"
     "@metamask/accounts-controller": "npm:^38.0.0"
     "@metamask/address-book-controller": "npm:^7.1.2"
-    "@metamask/ai-controllers": "npm:0.6.3"
+    "@metamask/ai-controllers": "npm:^0.7.0"
     "@metamask/analytics-controller": "npm:^1.0.0"
     "@metamask/app-metadata-controller": "npm:^2.0.0"
     "@metamask/approval-controller": "npm:^9.0.0"
-    "@metamask/assets-controller": "npm:^8.0.1"
+    "@metamask/assets-controller": "npm:^8.1.0"
     "@metamask/assets-controllers": "npm:^108.3.0"
     "@metamask/authenticated-user-storage": "npm:^2.0.0"
     "@metamask/auto-changelog": "npm:^5.3.0"
