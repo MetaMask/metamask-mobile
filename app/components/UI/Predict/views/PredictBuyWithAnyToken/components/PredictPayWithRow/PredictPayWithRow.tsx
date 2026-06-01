@@ -39,6 +39,7 @@ interface PredictPayWithRowProps {
   chevronRight?: boolean;
   variant?: PredictPayWithRowVariant;
   availableBalance?: string;
+  onPaymentSelectorOpen?: () => void;
 }
 
 export function PredictPayWithRow({
@@ -46,6 +47,7 @@ export function PredictPayWithRow({
   chevronRight = false,
   variant = 'pill',
   availableBalance,
+  onPaymentSelectorOpen,
 }: PredictPayWithRowProps) {
   usePredictDefaultPaymentToken();
   const navigation = useNavigation();
@@ -66,8 +68,9 @@ export function PredictPayWithRow({
 
   const handlePress = useCallback(() => {
     if (!canEdit) return;
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
-  }, [canEdit, navigation]);
+    onPaymentSelectorOpen?.();
+    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET);
+  }, [canEdit, navigation, onPaymentSelectorOpen]);
 
   const label = strings('confirm.label.pay_with');
   const displaySymbol = showPredictBalance

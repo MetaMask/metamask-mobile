@@ -42,9 +42,6 @@ const MarketTabsPosition: React.FC = () => (
 const MarketTabsOrders: React.FC = () => (
   <PerpsMarketTabs symbol="ETH" initialTab="orders" />
 );
-const MarketTabsStatistics: React.FC = () => (
-  <PerpsMarketTabs symbol="ETH" initialTab="statistics" />
-);
 
 const FlipSheetWrapper: React.FC = () => (
   <PerpsFlipPositionConfirmSheet
@@ -257,12 +254,15 @@ describe('Active Trader Flow', () => {
 
     // Trader taps into statistics tab
     cleanup();
-    renderPerpsView(MarketTabsStatistics, 'MarketTabsTest', {
+    renderPerpsView(MarketTabsDefault, 'MarketTabsTest', {
       streamOverrides: {
         positions: [defaultPositionForViews],
         orders: [defaultOrderForViews],
       },
     });
+    fireEvent.press(
+      await screen.findByTestId(PerpsMarketTabsSelectorsIDs.STATISTICS_TAB),
+    );
     expect(
       await screen.findByTestId(PerpsMarketTabsSelectorsIDs.STATISTICS_CONTENT),
     ).toBeOnTheScreen();
@@ -277,7 +277,7 @@ describe('Active Trader Flow', () => {
     ).toBeOnTheScreen();
     expect(screen.queryAllByText(MARKET_ORDERS)).toHaveLength(0);
     expect(
-      await screen.findByTestId(PerpsMarketTabsSelectorsIDs.STATISTICS_CONTENT),
+      await screen.findByTestId(PerpsMarketTabsSelectorsIDs.POSITION_CONTENT),
     ).toBeOnTheScreen();
 
     // ── PHASE 2: Review individual order rows ────────────────────────────

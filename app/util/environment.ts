@@ -18,3 +18,14 @@ export const getE2EMockOAuthEmailForQaMock = (): string | undefined => {
   const email = process.env.E2E_MOCK_OAUTH_EMAIL;
   return typeof email === 'string' && email.length > 0 ? email : undefined;
 };
+
+export const getDevAutoUnlockPassword = (): string | undefined => {
+  const password = process.env.DEV_AUTO_UNLOCK_PASSWORD;
+  if (process.env.METAMASK_ENVIRONMENT !== 'dev') {
+    return undefined;
+  }
+
+  return typeof password === 'string' && password.length > 0
+    ? password
+    : undefined;
+};

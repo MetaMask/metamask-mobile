@@ -24,7 +24,7 @@ describe('Predict World Cup helpers', () => {
   describe('query helpers', () => {
     it('builds All query with World Cup tag slug', () => {
       expect(buildPredictWorldCupAllQuery(DEFAULT_PREDICT_WORLD_CUP_FLAG)).toBe(
-        'active=true&archived=false&closed=false&tag_slug=fifa-world-cup&order=volume24hr',
+        'active=true&archived=false&closed=false&tag_slug=fifa-world-cup&order=volume24hr&ascending=false',
       );
     });
 
@@ -32,7 +32,7 @@ describe('Predict World Cup helpers', () => {
       expect(
         buildPredictWorldCupPropsQuery(DEFAULT_PREDICT_WORLD_CUP_FLAG),
       ).toBe(
-        'active=true&archived=false&closed=false&tag_slug=fifa-world-cup&exclude_tag_id=100639&order=volume24hr',
+        'active=true&archived=false&closed=false&tag_slug=fifa-world-cup&exclude_tag_id=100639&order=volume&ascending=false',
       );
     });
 
@@ -57,7 +57,7 @@ describe('Predict World Cup helpers', () => {
           DEFAULT_PREDICT_WORLD_CUP_FLAG,
         ),
       ).toBe(
-        'active=true&archived=false&closed=false&tag_slug=fifa-world-cup&exclude_tag_id=100639&order=volume24hr',
+        'active=true&archived=false&closed=false&tag_slug=fifa-world-cup&exclude_tag_id=100639&order=volume&ascending=false',
       );
     });
   });

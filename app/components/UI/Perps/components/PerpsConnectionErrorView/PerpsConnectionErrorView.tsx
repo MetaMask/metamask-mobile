@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -48,22 +48,6 @@ const PerpsConnectionErrorView: React.FC<PerpsConnectionErrorViewProps> = ({
   const errorMessage =
     (typeof error === 'string' ? error : error?.message) ||
     PERPS_EVENT_VALUE.ERROR_MESSAGE_KEY.UNKNOWN;
-
-  // Track error screen view on mount and after each retry.
-  // Uses imperative track() in a useEffect keyed on retryAttempts so the event
-  // fires reliably every time, unlike the declarative resetConditions API which
-  // can skip renders when the reset condition stays true across retries.
-  useEffect(() => {
-    track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]: PERPS_EVENT_VALUE.SCREEN_TYPE.ERROR,
-      [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
-        PERPS_EVENT_VALUE.SCREEN_NAME.CONNECTION_ERROR,
-      [PERPS_EVENT_PROPERTY.ERROR_TYPE]: PERPS_EVENT_VALUE.ERROR_TYPE.NETWORK,
-      [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorMessage,
-      [PERPS_EVENT_PROPERTY.RETRY_ATTEMPTS]: retryAttempts,
-      [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
-    });
-  }, [retryAttempts, errorMessage, track]);
 
   // Filter debug messages in production - show generic error message
   const shouldShowDebugDetails =

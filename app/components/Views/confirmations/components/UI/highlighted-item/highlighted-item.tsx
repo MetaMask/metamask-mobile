@@ -18,7 +18,7 @@ import {
   Spinner,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-
+import { useTheme } from '../../../../../../util/theme';
 import PaymentMethodIcon from '../../../../../UI/Ramp/Aggregator/components/PaymentMethodIcon';
 import {
   HighlightedActionButton,
@@ -72,18 +72,29 @@ export function HighlightedItem({ item }: HighlightedItemProps) {
 
 function HighlightedItemIcon({ item }: { item: HighlightedItemType }) {
   const tw = useTailwind();
+  const { colors } = useTheme();
 
   if (item.paymentType) {
     return (
       <Box
         style={tw.style(
           'w-10 h-10 rounded-full bg-background-section items-center justify-center',
+          {
+            backgroundColor: item.isSelected
+              ? colors.primary.muted
+              : colors.background.muted,
+          },
         )}
         testID="icon"
       >
         <PaymentMethodIcon
           paymentMethodType={item.paymentType as PaymentType}
           size={20}
+          style={{
+            color: item.isSelected
+              ? colors.primary.default
+              : colors.icon.default,
+          }}
         />
       </Box>
     );

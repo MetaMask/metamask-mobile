@@ -768,6 +768,69 @@ describe('transactionTransforms', () => {
       expect(result).toHaveLength(0);
     });
 
+    it('silently skips Spot Dust Conversion fills without console.error', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const errorSpy = jest.spyOn(console, 'error').mockImplementation();
+
+      const dustFill = {
+        ...mockFill,
+        direction: 'Spot Dust Conversion',
+      };
+
+      const result = transformFillsToTransactions([dustFill]);
+
+      expect(result).toHaveLength(0);
+      expect(errorSpy).not.toHaveBeenCalled();
+      expect(warnSpy).not.toHaveBeenCalled();
+
+      warnSpy.mockRestore();
+      errorSpy.mockRestore();
+    });
+
+    it('emits console.warn for unknown fill directions instead of console.error', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const errorSpy = jest.spyOn(console, 'error').mockImplementation();
+
+      const unknownDirFill = {
+        ...mockFill,
+        direction: 'TBD-NEW-HL-DIRECTION',
+      };
+
+      const result = transformFillsToTransactions([unknownDirFill]);
+
+      expect(result).toHaveLength(0);
+      expect(warnSpy).toHaveBeenCalledWith(
+        'Unhandled fill direction',
+        'TBD-NEW-HL-DIRECTION',
+      );
+      expect(errorSpy).not.toHaveBeenCalled();
+
+      warnSpy.mockRestore();
+      errorSpy.mockRestore();
+    });
+
+    it('emits console.warn for empty direction instead of console.error', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const errorSpy = jest.spyOn(console, 'error').mockImplementation();
+
+      const noDirectionFill = {
+        ...mockFill,
+        direction: '',
+      };
+
+      const result = transformFillsToTransactions([noDirectionFill]);
+
+      expect(result).toHaveLength(0);
+      expect(warnSpy).toHaveBeenCalledWith(
+        'Unknown fill direction',
+        expect.objectContaining({ direction: '' }),
+      );
+      expect(errorSpy).not.toHaveBeenCalled();
+
+      warnSpy.mockRestore();
+      errorSpy.mockRestore();
+    });
+
     // Integration test for split stop loss bug fix
     it('aggregates split stop loss fills and shows combined PnL in transaction', () => {
       // Bug scenario: Stop loss split into two fills with different order IDs

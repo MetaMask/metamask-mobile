@@ -56,14 +56,21 @@ module.exports = function (baseConfig) {
   const {
     resolver: { assetExts, sourceExts },
   } = defaultConfig;
+  // IS_PERFORMANCE_TEST opts out of E2E startup overhead (ReadOnlyNetworkStore,
+  // command polling, Sentry mock) while keeping METAMASK_ENVIRONMENT='e2e' so
+  // the build still works on feature branches with e2e signing/secrets.
+  const isPerformanceTest = process.env.IS_PERFORMANCE_TEST === 'true';
   const isE2E =
-    process.env.IS_TEST === 'true' ||
-    process.env.METAMASK_ENVIRONMENT === 'e2e';
+    !isPerformanceTest &&
+    (process.env.IS_TEST === 'true' ||
+      process.env.METAMASK_ENVIRONMENT === 'e2e');
 
   /**
    * E2E Metro redirects under tests/module-mocking.
    * Enables both: seedless-onboarding-controller + OAuthLoginHandlers mocks.
    * True when IS_TEST / METAMASK_ENVIRONMENT=e2e OR E2E_MOCK_OAUTH.
+   * Performance builds set E2E_MOCK_OAUTH=true to keep this mock active
+   * even though isE2E is false (preventing real OAuth calls to production).
    */
   const isE2EMockOAuth = process.env.E2E_MOCK_OAUTH === 'true';
 
@@ -89,10 +96,7 @@ module.exports = function (baseConfig) {
   return wrapWithReanimatedMetroConfig(
     mergeConfig(defaultConfig, {
       resolver: {
-        // Disable package exports field resolution - it changes module ID assignment
-        // which breaks LavaMoat's lockdownSerializer (hardenIntrinsics fires before require is set up)
-        // See: https://github.com/expo/expo/discussions/36551
-        //unstable_enablePackageExports: true,
+        unstable_enablePackageExports: true,
         assetExts: [...assetExts.filter((ext) => ext !== 'svg'), 'riv'],
         sourceExts: [...sourceExts, 'svg', 'cjs', 'mjs'],
         resolverMainFields: ['sbmodern', 'react-native', 'browser', 'main'],
@@ -114,10 +118,6 @@ module.exports = function (baseConfig) {
           net: require.resolve('react-native-tcp-socket'),
           fs: require.resolve('react-native-level-fs'),
           images: path.resolve(__dirname, 'app/images'),
-          '@metamask/perps-controller': path.resolve(
-            __dirname,
-            'app/controllers/perps',
-          ),
           'base64-js': 'react-native-quick-base64',
           base64: 'react-native-quick-base64',
           'js-base64': 'react-native-quick-base64',
@@ -125,6 +125,16 @@ module.exports = function (baseConfig) {
           'node:buffer': '@craftzdog/react-native-buffer',
         },
         resolveRequest: (context, moduleName, platform) => {
+          // MYXProvider is intentionally excluded from @metamask/perps-controller's
+          // published dist (extension-only). The dynamic import() uses webpackIgnore
+          // but babel's dynamicImportToRequire rewrites it to require(), causing Metro
+          // to resolve it statically. Return an empty module stub.
+          if (
+            moduleName === './providers/MYXProvider' &&
+            context.originModulePath?.includes('@metamask/perps-controller')
+          ) {
+            return { type: 'empty' };
+          }
           // @ledgerhq packages use exports field subpath mapping (e.g. ./signers/index -> ./lib/signers/index.js)
           // which doesn't work with unstable_enablePackageExports: false — manually replicate the lib/ mapping
           // Affected: domain-service, evm-tools, devices, cryptoassets-evm-signatures

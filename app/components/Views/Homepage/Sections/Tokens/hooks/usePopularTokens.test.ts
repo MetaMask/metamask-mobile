@@ -42,6 +42,10 @@ jest.mock('../../../../../UI/Earn/selectors/featureFlags', () => ({
   selectIsMusdConversionFlowEnabledFlag: jest.fn(),
 }));
 
+jest.mock('../../../../../UI/Money/selectors/featureFlags', () => ({
+  selectMoneyHubEnabledFlag: jest.fn(),
+}));
+
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockHandleFetch = handleFetch as jest.MockedFunction<typeof handleFetch>;
 
@@ -208,10 +212,11 @@ describe('usePopularTokens', () => {
   it('excludes mUSD from tokens when Cash section is enabled', async () => {
     mockHandleFetch.mockResolvedValue({});
     mockUseMusdConversionEligibility.mockReturnValue({ isEligible: true });
-    // First call: selectCurrentCurrency → 'usd'; second: selectIsMusdConversionFlowEnabledFlag → true.
-    // Later calls (re-renders) keep Cash enabled so mUSD stays filtered.
+    // Selector call order: selectCurrentCurrency → 'usd', selectIsMusdConversionFlowEnabledFlag → true,
+    // selectMoneyHubEnabledFlag → true. Later calls (re-renders) keep Cash enabled so mUSD stays filtered.
     mockUseSelector
       .mockReturnValueOnce('usd')
+      .mockReturnValueOnce(true)
       .mockReturnValueOnce(true)
       .mockReturnValue(true);
 

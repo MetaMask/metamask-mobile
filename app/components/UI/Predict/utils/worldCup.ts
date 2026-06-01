@@ -33,6 +33,7 @@ export const buildPredictWorldCupAllQuery = ({
   appendBaseWorldCupParams(params);
   params.set('tag_slug', tagSlug);
   params.set('order', 'volume24hr');
+  params.set('ascending', 'false');
   return buildQueryString(params);
 };
 
@@ -44,7 +45,8 @@ export const buildPredictWorldCupPropsQuery = ({
   appendBaseWorldCupParams(params);
   params.set('tag_slug', tagSlug);
   params.set('exclude_tag_id', gamesTagId);
-  params.set('order', 'volume24hr');
+  params.set('order', 'volume');
+  params.set('ascending', 'false');
   return buildQueryString(params);
 };
 

@@ -78,6 +78,7 @@ import { MIGRATION_ERROR_HAPPENED } from '../../../constants/storage';
 import { AccountType } from '../../../constants/onboarding';
 import { FeatureFlagNames } from '../../../constants/featureFlags';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { ATTRIBUTION_DEFAULT_TTL_MS } from '../../../core/redux/slices/attribution';
 import { endTrace, TraceName } from '../../../util/trace';
 
 // Mock netinfo - using existing mock
@@ -1001,7 +1002,12 @@ describe('Onboarding', () => {
         await googleOAuthFunction(true);
       });
 
-      expect(mockCreateLoginHandler).toHaveBeenCalledWith('ios', 'google');
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'ios',
+        'google',
+        false,
+        undefined,
+      );
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
         'mockGoogleHandler',
         false,
@@ -1052,7 +1058,12 @@ describe('Onboarding', () => {
         await googleOAuthFunction(true);
       });
 
-      expect(mockCreateLoginHandler).toHaveBeenCalledWith('android', 'google');
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'android',
+        'google',
+        false,
+        undefined,
+      );
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
         'mockGoogleHandler',
         false,
@@ -1106,7 +1117,12 @@ describe('Onboarding', () => {
         await appleOAuthFunction(true);
       });
 
-      expect(mockCreateLoginHandler).toHaveBeenCalledWith('ios', 'apple');
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'ios',
+        'apple',
+        false,
+        undefined,
+      );
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
         'mockAppleHandler',
         false,
@@ -1120,6 +1136,277 @@ describe('Onboarding', () => {
           onboardingTraceCtx: expect.any(Object),
         }),
       );
+    });
+
+    it('attaches persisted attribution to Social Login Completed for Google create wallet when marketing consent is granted', async () => {
+      (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
+      const capturedAt = Date.now() - 60_000;
+      const stateWithAttribution = {
+        ...mockInitialState,
+        security: {
+          allowLoginWithRememberMe: false,
+          dataCollectionForMarketing: true,
+          isNFTAutoDetectionModalViewed: false,
+          osAuthEnabled: true,
+        },
+        attribution: {
+          attribution: {
+            utm_source: 'google-ads',
+            utm_campaign: 'spring',
+            attribution_id: 'slc-google-1',
+            capturedAt,
+          },
+        },
+      };
+
+      mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
+      mockOAuthService.handleOAuthLogin.mockResolvedValue({
+        type: 'success',
+        existingUser: false,
+        accountName: 'test@example.com',
+      });
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        { state: stateWithAttribution },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
+
+      await act(async () => {
+        await googleOAuthFunction(true);
+        await flushPromises();
+        await flushPromises();
+      });
+
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Social Login Completed',
+          properties: expect.objectContaining({
+            account_type: AccountType.MetamaskGoogle,
+            utm_source: 'google-ads',
+            utm_campaign: 'spring',
+            attribution_id: 'slc-google-1',
+          }),
+        }),
+      );
+    });
+
+    it('attaches persisted attribution to Social Login Completed for Apple create wallet when marketing consent is granted', async () => {
+      (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
+      const capturedAt = Date.now() - 60_000;
+      const stateWithAttribution = {
+        ...mockInitialState,
+        security: {
+          allowLoginWithRememberMe: false,
+          dataCollectionForMarketing: true,
+          isNFTAutoDetectionModalViewed: false,
+          osAuthEnabled: true,
+        },
+        attribution: {
+          attribution: {
+            utm_source: 'newsletter',
+            utm_medium: 'email',
+            attribution_id: 'slc-apple-1',
+            capturedAt,
+          },
+        },
+      };
+
+      mockCreateLoginHandler.mockReturnValue('mockAppleHandler');
+      mockOAuthService.handleOAuthLogin.mockResolvedValue({
+        type: 'success',
+        existingUser: false,
+        accountName: 'test@icloud.com',
+      });
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        { state: stateWithAttribution },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      const appleOAuthFunction = navCall[1].params.onPressContinueWithApple;
+
+      await act(async () => {
+        await appleOAuthFunction(true);
+        await flushPromises();
+        await flushPromises();
+      });
+
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Social Login Completed',
+          properties: expect.objectContaining({
+            account_type: AccountType.MetamaskApple,
+            utm_source: 'newsletter',
+            utm_medium: 'email',
+            attribution_id: 'slc-apple-1',
+          }),
+        }),
+      );
+    });
+
+    it('does not attach UTM to Social Login Completed when marketing consent is false', async () => {
+      (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
+      const capturedAt = Date.now() - 60_000;
+      const stateNoMarketingConsent = {
+        ...mockInitialState,
+        security: {
+          allowLoginWithRememberMe: false,
+          dataCollectionForMarketing: false,
+          isNFTAutoDetectionModalViewed: false,
+          osAuthEnabled: true,
+        },
+        attribution: {
+          attribution: {
+            utm_source: 'should-not-appear',
+            capturedAt,
+          },
+        },
+      };
+
+      mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
+      mockOAuthService.handleOAuthLogin.mockResolvedValue({
+        type: 'success',
+        existingUser: false,
+        accountName: 'test@example.com',
+      });
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        { state: stateNoMarketingConsent },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      await act(async () => {
+        await navCall[1].params.onPressContinueWithGoogle(true);
+        await flushPromises();
+        await flushPromises();
+      });
+
+      const socialLoginCall = (
+        mockAnalytics.trackEvent as jest.Mock
+      ).mock.calls.find(
+        (args) =>
+          args[0] &&
+          typeof args[0] === 'object' &&
+          'name' in args[0] &&
+          (args[0] as { name: string }).name === 'Social Login Completed',
+      );
+
+      expect(socialLoginCall).toBeDefined();
+      const socialEventPayload = socialLoginCall?.[0] as {
+        properties: Record<string, unknown>;
+      };
+      expect(socialEventPayload.properties).not.toHaveProperty('utm_source');
+    });
+
+    it('does not attach UTM to Social Login Completed when persisted attribution is expired', async () => {
+      (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
+      const stateExpiredAttribution = {
+        ...mockInitialState,
+        security: {
+          allowLoginWithRememberMe: false,
+          dataCollectionForMarketing: true,
+          isNFTAutoDetectionModalViewed: false,
+          osAuthEnabled: true,
+        },
+        attribution: {
+          attribution: {
+            utm_source: 'expired-src',
+            capturedAt: Date.now() - ATTRIBUTION_DEFAULT_TTL_MS - 1,
+          },
+        },
+      };
+
+      mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
+      mockOAuthService.handleOAuthLogin.mockResolvedValue({
+        type: 'success',
+        existingUser: false,
+        accountName: 'test@example.com',
+      });
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        { state: stateExpiredAttribution },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      await act(async () => {
+        await navCall[1].params.onPressContinueWithGoogle(true);
+        await flushPromises();
+        await flushPromises();
+      });
+
+      const socialLoginCall = (
+        mockAnalytics.trackEvent as jest.Mock
+      ).mock.calls.find(
+        (args) =>
+          args[0] &&
+          typeof args[0] === 'object' &&
+          'name' in args[0] &&
+          (args[0] as { name: string }).name === 'Social Login Completed',
+      );
+
+      expect(socialLoginCall).toBeDefined();
+      const socialEventPayload = socialLoginCall?.[0] as {
+        properties: Record<string, unknown>;
+      };
+      expect(socialEventPayload.properties).not.toHaveProperty('utm_source');
     });
 
     it('calls Apple OAuth login for import wallet flow', async () => {
@@ -1157,7 +1444,12 @@ describe('Onboarding', () => {
         await appleOAuthFunction(false);
       });
 
-      expect(mockCreateLoginHandler).toHaveBeenCalledWith('ios', 'apple');
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'ios',
+        'apple',
+        false,
+        undefined,
+      );
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
         'mockAppleHandler',
         true,
@@ -1345,7 +1637,12 @@ describe('Onboarding', () => {
           }),
         }),
       );
-      expect(mockCreateLoginHandler).toHaveBeenCalledWith('ios', 'google');
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'ios',
+        'google',
+        false,
+        undefined,
+      );
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
         'mockGoogleHandler',
         false,
@@ -1427,7 +1724,12 @@ describe('Onboarding', () => {
           }),
         }),
       );
-      expect(mockCreateLoginHandler).toHaveBeenCalledWith('ios', 'google');
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'ios',
+        'google',
+        false,
+        undefined,
+      );
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
         'mockGoogleHandler',
         true,
@@ -1524,6 +1826,70 @@ describe('Onboarding', () => {
           name: MetaMetricsEvents.WALLET_GOOGLE_IOS_ERROR_VIEWED.category,
           properties: expect.objectContaining({
             account_type: AccountType.MetamaskGoogle,
+          }),
+        }),
+      );
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.SOCIAL_LOGIN_FAILED.category,
+          properties: expect.objectContaining({
+            account_type: AccountType.MetamaskGoogle,
+            is_rehydration: 'false',
+            failure_type: 'error',
+            error_category: 'provider_login',
+          }),
+        }),
+      );
+    });
+
+    it('tracks Social Login Failed when createLoginHandler rejects an invalid provider before OAuthService', async () => {
+      Platform.OS = 'ios';
+      (Device.isIos as jest.Mock).mockReturnValue(true);
+      (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
+      mockCreateLoginHandler.mockImplementation(() => {
+        throw new OAuthError(
+          'Invalid provider',
+          OAuthErrorType.InvalidProvider,
+        );
+      });
+      mockAnalytics.trackEvent.mockClear();
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      await act(async () => {
+        await navCall[1].params.onPressContinueWithGoogle(true);
+        await flushPromises();
+        await flushPromises();
+      });
+
+      expect(mockOAuthService.handleOAuthLogin).not.toHaveBeenCalled();
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.SOCIAL_LOGIN_FAILED.category,
+          properties: expect.objectContaining({
+            account_type: AccountType.MetamaskGoogle,
+            is_rehydration: 'false',
+            failure_type: 'error',
+            error_category: 'provider_login',
           }),
         }),
       );
@@ -1809,11 +2175,17 @@ describe('Onboarding', () => {
       });
 
       // Verify fallback was attempted
-      expect(mockCreateLoginHandler).toHaveBeenCalledWith('android', 'google');
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'android',
+        'google',
+        false,
+        undefined,
+      );
       expect(mockCreateLoginHandler).toHaveBeenCalledWith(
         'android',
         'google',
         true,
+        undefined,
       );
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
 
@@ -1873,11 +2245,17 @@ describe('Onboarding', () => {
       });
 
       // Verify fallback was attempted
-      expect(mockCreateLoginHandler).toHaveBeenCalledWith('android', 'google');
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'android',
+        'google',
+        false,
+        undefined,
+      );
       expect(mockCreateLoginHandler).toHaveBeenCalledWith(
         'android',
         'google',
         true,
+        undefined,
       );
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
 
@@ -1939,11 +2317,17 @@ describe('Onboarding', () => {
         await googleOAuthFunction(true);
       });
 
-      expect(mockCreateLoginHandler).toHaveBeenCalledWith('android', 'google');
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'android',
+        'google',
+        false,
+        undefined,
+      );
       expect(mockCreateLoginHandler).toHaveBeenCalledWith(
         'android',
         'google',
         true,
+        undefined,
       );
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
 
@@ -2006,11 +2390,17 @@ describe('Onboarding', () => {
       });
 
       // Verify fallback was attempted
-      expect(mockCreateLoginHandler).toHaveBeenCalledWith('android', 'google');
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'android',
+        'google',
+        false,
+        undefined,
+      );
       expect(mockCreateLoginHandler).toHaveBeenCalledWith(
         'android',
         'google',
         true,
+        undefined,
       );
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
 
@@ -2062,11 +2452,17 @@ describe('Onboarding', () => {
       });
 
       // Verify fallback was attempted
-      expect(mockCreateLoginHandler).toHaveBeenCalledWith('android', 'google');
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'android',
+        'google',
+        false,
+        undefined,
+      );
       expect(mockCreateLoginHandler).toHaveBeenCalledWith(
         'android',
         'google',
         true,
+        undefined,
       );
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
 
@@ -2118,11 +2514,17 @@ describe('Onboarding', () => {
       });
 
       // Verify fallback was attempted
-      expect(mockCreateLoginHandler).toHaveBeenCalledWith('android', 'google');
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'android',
+        'google',
+        false,
+        undefined,
+      );
       expect(mockCreateLoginHandler).toHaveBeenCalledWith(
         'android',
         'google',
         true,
+        undefined,
       );
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
 
@@ -2174,11 +2576,17 @@ describe('Onboarding', () => {
       });
 
       // Verify fallback was attempted
-      expect(mockCreateLoginHandler).toHaveBeenCalledWith('android', 'google');
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+        'android',
+        'google',
+        false,
+        undefined,
+      );
       expect(mockCreateLoginHandler).toHaveBeenCalledWith(
         'android',
         'google',
         true,
+        undefined,
       );
       expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledTimes(2);
 

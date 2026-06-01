@@ -71,6 +71,28 @@ export const TX_SENTINEL_NETWORKS_MAP = {
     hidden: false,
     sendBundle: false,
   },
+  /**
+   * Local Anvil / fixture chain (0x539). Required for EIP-7702 relay + gasless
+   * confirmation E2E (`gas-fee-tokens-eip-7702-sponsored.spec.ts`): `isRelaySupported`
+   * reads Sentinel `/networks` via `getSentinelNetworkFlags`.
+   */
+  '1337': {
+    name: 'Localhost',
+    group: 'ethereum',
+    chainID: 1337,
+    nativeCurrency: {
+      name: 'ETH',
+      symbol: 'ETH',
+      decimals: 18,
+    },
+    network: 'localhost',
+    explorer: 'http://localhost:8545/explorer',
+    confirmations: true,
+    smartTransactions: true,
+    relayTransactions: true,
+    hidden: false,
+    sendBundle: false,
+  },
   '137': {
     name: 'Polygon Mainnet',
     group: 'polygon',

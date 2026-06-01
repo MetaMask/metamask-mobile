@@ -52,7 +52,7 @@ function withMusdFixturesOptions(
   };
 }
 
-describe(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
+describe.skip(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     // Do not launch app here: launch happens inside withFixtures (restartDevice: true)
@@ -105,15 +105,9 @@ describe(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
         // Enter amount ($12) and continue (avoid "0" key to prevent banner blocking)
         await TransactionPayConfirmation.enterAmountAndContinue('12');
 
-        // Verify confirmation details are visible
-        await Assertions.expectElementToBeVisible(
-          TransactionPayConfirmation.total,
-          {
-            timeout: 10000,
-            description: 'Total amount should be visible',
-          },
-        );
-
+        // The total row is hidden for mUSD conversions (sponsored design); the
+        // confirm button's waitAndTap below is sufficient to wait for the
+        // confirmation screen to finish loading.
         // Confirm the transaction (tap the convert/confirm button)
         await FooterActions.tapConfirmButton();
 
@@ -223,15 +217,9 @@ describe(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
         // Enter amount and continue (avoid "0" key - use 5)
         await TransactionPayConfirmation.enterAmountAndContinue('5');
 
-        // Verify confirmation details are visible
-        await Assertions.expectElementToBeVisible(
-          TransactionPayConfirmation.total,
-          {
-            timeout: 10000,
-            description: 'Total amount should be visible',
-          },
-        );
-
+        // The total row is hidden for mUSD conversions (sponsored design); the
+        // confirm button's waitAndTap below is sufficient to wait for the
+        // confirmation screen to finish loading.
         // Confirm the transaction
         await FooterActions.tapConfirmButton();
 

@@ -90,7 +90,6 @@ export interface RewardsState {
 
   // Season Balance state
   balanceTotal: number | null;
-  balanceRefereePortion: number | null;
   balanceUpdatedAt: Date | null;
 
   // Onboarding state
@@ -135,6 +134,7 @@ export interface RewardsState {
   vipDashboard: Record<string, VipDashboardState>;
   vipDashboardLoading: boolean;
   vipDashboardError: boolean;
+  vipSplashAccepted: Record<string, boolean>;
 
   // Campaigns state
   campaigns: CampaignDto[];
@@ -231,7 +231,6 @@ export const initialState: RewardsState = {
   nextTierPointsNeeded: null,
 
   balanceTotal: 0,
-  balanceRefereePortion: 0,
   balanceUpdatedAt: null,
 
   onboardingActiveStep: OnboardingStep.INTRO,
@@ -273,6 +272,7 @@ export const initialState: RewardsState = {
   vipDashboard: {},
   vipDashboardLoading: false,
   vipDashboardError: false,
+  vipSplashAccepted: {},
 
   // Campaigns initial state
   campaigns: [],
@@ -324,7 +324,7 @@ export const initialState: RewardsState = {
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
   payload?: {
-    rewards?: RewardsState;
+    rewards?: Partial<RewardsState>;
   };
 }
 
@@ -382,7 +382,6 @@ const rewardsSlice = createSlice({
         referralCode?: string;
         refereeCount?: number;
         referredByCode?: string;
-        referralPoints?: number;
       }>,
     ) => {
       if (action.payload.referralCode !== undefined) {
@@ -393,9 +392,6 @@ const rewardsSlice = createSlice({
       }
       if (action.payload.referredByCode !== undefined) {
         state.referredByCode = action.payload.referredByCode;
-      }
-      if (action.payload.referralPoints !== undefined) {
-        state.balanceRefereePortion = action.payload.referralPoints;
       }
       state.referralDetailsLoading = false;
     },
@@ -436,6 +432,7 @@ const rewardsSlice = createSlice({
       state.vipDashboard = {};
       state.vipDashboardLoading = false;
       state.vipDashboardError = false;
+      state.vipSplashAccepted = {};
     },
 
     setOnboardingActiveStep: (state, action: PayloadAction<OnboardingStep>) => {
@@ -486,6 +483,7 @@ const rewardsSlice = createSlice({
           hideUnlinkedAccountsBanner: state.hideUnlinkedAccountsBanner,
           bulkLink: state.bulkLink,
           dismissedCampaignOutcomeToasts: state.dismissedCampaignOutcomeToasts,
+          vipSplashAccepted: state.vipSplashAccepted,
           versionGuardMinimumMobileVersion:
             state.versionGuardMinimumMobileVersion,
           versionGuardLoading: state.versionGuardLoading,
@@ -738,6 +736,13 @@ const rewardsSlice = createSlice({
       state.vipDashboardError = action.payload;
     },
 
+    acceptVipInvite: (
+      state,
+      action: PayloadAction<{ subscriptionId: string }>,
+    ) => {
+      state.vipSplashAccepted[action.payload.subscriptionId] = true;
+    },
+
     setOndoCampaignActivity: (
       state,
       action: PayloadAction<{
@@ -947,14 +952,13 @@ const rewardsSlice = createSlice({
               nextTier: action.payload.rewards.nextTier,
               nextTierPointsNeeded: action.payload.rewards.nextTierPointsNeeded,
               balanceTotal: action.payload.rewards.balanceTotal,
-              balanceRefereePortion:
-                action.payload.rewards.balanceRefereePortion,
               balanceUpdatedAt: action.payload.rewards.balanceUpdatedAt,
               activeBoosts: action.payload.rewards.activeBoosts,
               pointsEvents: action.payload.rewards.pointsEvents,
               unlockedRewards: action.payload.rewards.unlockedRewards,
               campaigns: action.payload.rewards.campaigns ?? [],
               vipDashboard: action.payload.rewards.vipDashboard ?? {},
+              vipSplashAccepted: action.payload.rewards.vipSplashAccepted ?? {},
               campaignParticipantStatuses:
                 action.payload.rewards.campaignParticipantStatuses ?? {},
               ondoCampaignLeaderboardPositions:
@@ -1027,6 +1031,7 @@ export const {
   setVipDashboard,
   setVipDashboardError,
   setVipDashboardLoading,
+  acceptVipInvite,
   // Campaigns actions
   setCampaigns,
   setCampaignsLoading,

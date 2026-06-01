@@ -74,6 +74,7 @@ import {
   walletHomeOnboardingSubtitleForStep,
   walletHomeOnboardingTitleForStep,
 } from './walletHomeOnboardingStepsStrings';
+import { useWalletHomeOnboardingChecklistHomeViewed } from './useWalletHomeOnboardingChecklistHomeViewed';
 
 const SLIDE_DISTANCE = Dimensions.get('window').width;
 
@@ -133,6 +134,12 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     selectWalletHomeOnboardingSteps,
   );
   const stepIndex = walletHomeOnboardingStepsState.stepIndex ?? 0;
+
+  useWalletHomeOnboardingChecklistHomeViewed({
+    isAwaitingBalance,
+    stepIndex,
+    isFocused,
+  });
   const displayStepIndex = isAwaitingBalance ? 0 : stepIndex;
   /** Capped index for progress + hero; matches visible steps bounds before Redux clamps persisted step. */
   const visualStepIndexForProgress =

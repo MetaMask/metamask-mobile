@@ -81,11 +81,17 @@ describe('actionButtonTracking', () => {
       expect(ActionLocation.HOME).toBe('home');
       expect(ActionLocation.ASSET_DETAILS).toBe('asset details');
       expect(ActionLocation.NAVBAR).toBe('navbar');
+      expect(ActionLocation.ONBOARDING_CHECKLIST).toBe('onboarding_checklist');
     });
 
     it('covers all location types', () => {
       // Given: all expected location types
-      const expectedLocations = ['home', 'asset details', 'navbar'];
+      const expectedLocations = [
+        'home',
+        'asset details',
+        'navbar',
+        'onboarding_checklist',
+      ];
 
       // When: checking enum values
       const actualLocations = Object.values(ActionLocation);
@@ -94,7 +100,7 @@ describe('actionButtonTracking', () => {
       expect(actualLocations).toEqual(
         expect.arrayContaining(expectedLocations),
       );
-      expect(actualLocations).toHaveLength(3);
+      expect(actualLocations).toHaveLength(4);
     });
   });
 

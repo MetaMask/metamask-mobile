@@ -44,7 +44,10 @@ import {
   SUPPORT_CONFIG,
   FEEDBACK_CONFIG,
 } from '../../constants/perpsConfig';
-import { selectPerpsFeedbackEnabledFlag } from '../../selectors/featureFlags';
+import {
+  selectPerpsFeedbackEnabledFlag,
+  selectPerpsServiceInterruptionBannerEnabledFlag,
+} from '../../selectors/featureFlags';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsCard from '../../components/PerpsCard';
@@ -54,6 +57,9 @@ import PerpsRecentActivityList from '../../components/PerpsRecentActivityList/Pe
 import PerpsHomeSection from '../../components/PerpsHomeSection';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
 import PerpsHomeHeader from '../../components/PerpsHomeHeader';
+import WhatsHappeningSection from '../../../../UI/WhatsHappening';
+import { WhatsHappeningSource } from '../../../../UI/WhatsHappening/constants';
+import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFlagController/whatsHappening';
 import type { PerpsNavigationParamList } from '../../types/navigation';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -73,6 +79,8 @@ import { BottomSheetRef } from '../../../../../component-library/components/Bott
 import PerpsNavigationCard, {
   NavigationItem,
 } from '../../components/PerpsNavigationCard/PerpsNavigationCard';
+import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
+import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
 
 interface PerpsHomeViewProps {
   hideHeader?: boolean;
@@ -103,11 +111,16 @@ const PerpsHomeView = ({
   const navigation = useNavigation();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
+  const transactionActiveAbTests = route.params?.transactionActiveAbTests;
   const { trackEvent, createEventBuilder } = useAnalytics();
 
-  // Feature flag for feedback button
+  // Feature flags
   const isFeedbackEnabled = useSelector(selectPerpsFeedbackEnabledFlag);
+  const isServiceInterruptionBannerEnabled = useSelector(
+    selectPerpsServiceInterruptionBannerEnabledFlag,
+  );
   const privacyMode = useSelector(selectPrivacyMode);
+  const isWhatsHappeningEnabled = useSelector(selectWhatsHappeningEnabled);
 
   // Use centralized navigation hook
   const perpsNavigation = usePerpsNavigation();
@@ -278,6 +291,8 @@ const PerpsHomeView = ({
       [PERPS_EVENT_PROPERTY.HAS_PERP_BALANCE]: hasPerpBalance,
       [PERPS_EVENT_PROPERTY.OPEN_POSITION]: livePositions.positions.length,
       [PERPS_EVENT_PROPERTY.OPEN_ORDER]: orders?.length || 0,
+      [PERPS_EVENT_PROPERTY.OUTAGE_BANNER_SHOWN]:
+        isServiceInterruptionBannerEnabled,
       ...(buttonClicked && {
         [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: buttonClicked,
       }),
@@ -307,8 +322,14 @@ const PerpsHomeView = ({
       fromHome: true,
       button_clicked: PERPS_EVENT_VALUE.BUTTON_CLICKED.MAGNIFYING_GLASS,
       button_location: PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
+      ...(transactionActiveAbTests?.length ? { transactionActiveAbTests } : {}),
     });
-  }, [perpsNavigation, trackEvent, createEventBuilder]);
+  }, [
+    perpsNavigation,
+    trackEvent,
+    createEventBuilder,
+    transactionActiveAbTests,
+  ]);
 
   const navigtateToTutorial = useCallback(() => {
     // Track tutorial button click
@@ -474,10 +495,7 @@ const PerpsHomeView = ({
   const handleBackPress = perpsNavigation.navigateToWallet;
 
   return (
-    <SafeAreaView
-      style={styles.container}
-      edges={hideHeader ? { bottom: 'additive' } : undefined}
-    >
+    <SafeAreaView style={styles.container} edges={hideHeader ? [] : undefined}>
       {/* Header */}
       {!hideHeader && (
         <PerpsHomeHeader
@@ -503,9 +521,19 @@ const PerpsHomeView = ({
           testID={PerpsHomeViewSelectorsIDs.HOME_HEADING}
         />
 
+        {/* Service Interruption Banner */}
+        <PerpsServiceInterruptionBanner
+          testID={PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
+        />
+
         {/* Balance Actions Component */}
         <PerpsMarketBalanceActions
           showActionButtons={HOME_SCREEN_CONFIG.ShowHeaderActionButtons}
+        />
+
+        {/* Competition Banner */}
+        <PerpsCompetitionBanner
+          testID={PerpsHomeViewSelectorsIDs.COMPETITION_BANNER}
         />
 
         {/* Positions Section */}
@@ -559,6 +587,7 @@ const PerpsHomeView = ({
           positions={positions}
           orders={orders}
           source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+          transactionActiveAbTests={transactionActiveAbTests}
         />
 
         {/* Crypto Markets List */}
@@ -570,6 +599,7 @@ const PerpsHomeView = ({
             sortBy={sortBy}
             isLoading={isLoading.markets}
             source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+            transactionActiveAbTests={transactionActiveAbTests}
           />
         </View>
 
@@ -581,7 +611,15 @@ const PerpsHomeView = ({
           sortBy={sortBy}
           isLoading={isLoading.markets}
           source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+          transactionActiveAbTests={transactionActiveAbTests}
         />
+
+        {/* What's Happening Section */}
+        {isWhatsHappeningEnabled && (
+          <View style={styles.whatsHappeningSection}>
+            <WhatsHappeningSection source={WhatsHappeningSource.Perps} />
+          </View>
+        )}
 
         {/* Stocks Markets List */}
         <View onLayout={handleSectionLayout('explore_stocks')}>
@@ -592,6 +630,7 @@ const PerpsHomeView = ({
             sortBy={sortBy}
             isLoading={isLoading.markets}
             source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+            transactionActiveAbTests={transactionActiveAbTests}
           />
         </View>
 
@@ -602,6 +641,7 @@ const PerpsHomeView = ({
           marketType="forex"
           isLoading={isLoading.markets}
           source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+          transactionActiveAbTests={transactionActiveAbTests}
         />
 
         {/* Recent Activity List */}

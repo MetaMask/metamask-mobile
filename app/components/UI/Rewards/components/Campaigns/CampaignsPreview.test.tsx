@@ -129,6 +129,20 @@ describe('CampaignsPreview', () => {
     expect(queryByTestId('campaign-tile-campaign-1')).toBeNull();
   });
 
+  it('treats undefined campaigns as an empty list for featured selection', () => {
+    mockUseRewardCampaigns.mockReturnValue({
+      ...mockHookDefaults,
+      campaigns: undefined as unknown as CampaignDto[],
+    });
+
+    const { getByTestId, queryByTestId } = render(<CampaignsPreview />);
+
+    expect(
+      getByTestId(REWARDS_VIEW_SELECTORS.CAMPAIGNS_PREVIEW),
+    ).toBeOnTheScreen();
+    expect(queryByTestId('campaign-tile-campaign-1')).toBeNull();
+  });
+
   it('renders loading skeleton when campaigns have never been loaded', () => {
     mockUseRewardCampaigns.mockReturnValue({
       ...mockHookDefaults,

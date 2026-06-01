@@ -1,11 +1,12 @@
 import React, {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
-import { View } from 'react-native';
+import { View, Platform } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { strings } from '../../../../../locales/i18n';
@@ -24,6 +25,7 @@ import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import { Hex } from '@metamask/utils';
 import { normalizeTokenAddress } from '../../Bridge/utils/tokenUtils';
 import AdvancedChart from '../../Charts/AdvancedChart/AdvancedChart';
+import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
 import { advancedChartLineChromePresets } from '../../Charts/AdvancedChart/advancedChartLineChrome.presets';
 import {
   ChartType,
@@ -36,6 +38,7 @@ import TimeRangeSelector, {
   type TimeRange,
 } from '../../Charts/AdvancedChart/TimeRangeSelector';
 import { useOHLCVChart } from '../../Charts/AdvancedChart/useOHLCVChart';
+import { useOHLCVRealtime } from '../../Charts/AdvancedChart/useOHLCVRealtime';
 import { OHLCVBar } from '../../Charts/AdvancedChart/OHLCVBar/OHLCVBar';
 import {
   Box,
@@ -45,12 +48,12 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
+import { AMBIENT_NEGATIVE_COLOR } from '../../TokenDetails/components/abTestConfig';
 import { AppThemeKey } from '../../../../util/theme/models';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { selectTokenOverviewChartType } from '../../../../reducers/user/selectors';
 import { setTokenOverviewChartType } from '../../../../actions/user';
-import { usePriceChart } from '../PriceChart/PriceChart.context';
 import type {
   TimePeriod,
   TokenPrice,
@@ -62,8 +65,22 @@ import {
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
+import { selectTokenDetailsOhlcvWsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsOhlcvWsIntegration';
 
 const EMPTY_INDICATORS: IndicatorType[] = [];
+
+/**
+ * Maps UI time-range selections to the WebSocket candle interval used by
+ * OHLCVService. These match the default intervals the REST OHLCV API returns
+ * for each timePeriod.
+ */
+const WS_INTERVAL_BY_TIME_RANGE: Record<TimeRange, string> = {
+  '1H': '1m',
+  '1D': '15m',
+  '1W': '1h',
+  '1M': '1d',
+  '1Y': '1d',
+};
 
 const TIME_RANGE_LABELS: Record<TimeRange, string> = {
   '1H': 'asset_overview.chart_time_period.1h',
@@ -116,6 +133,8 @@ export interface PriceAdvancedProps {
   timePeriod?: TimePeriod;
   chartNavigationButtons?: TimePeriod[];
   setTimePeriod?: (period: TimePeriod) => void;
+  onPriceDirectionChange?: (isPositive: boolean) => void;
+  useAmbientColor?: boolean;
 }
 
 const PriceAdvanced = ({
@@ -129,28 +148,21 @@ const PriceAdvanced = ({
   timePeriod = '1d',
   chartNavigationButtons = [],
   setTimePeriod,
+  onPriceDirectionChange,
+  useAmbientColor = false,
 }: PriceAdvancedProps) => {
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [timeRange, setTimeRange] = useState<TimeRange>('1D');
   const chartType = useSelector(selectTokenOverviewChartType);
+  const isOhlcvWsEnabled = useSelector(selectTokenDetailsOhlcvWsEnabled);
   const [crosshairData, setCrosshairData] = useState<CrosshairData | null>(
     null,
   );
-  const { setIsChartBeingTouched } = usePriceChart();
-
   const handleCrosshairMove = useCallback(
     (data: CrosshairData | null) => setCrosshairData(data),
     [],
   );
-
-  const handleTouchStart = useCallback(() => {
-    setIsChartBeingTouched(true);
-  }, [setIsChartBeingTouched]);
-
-  const handleTouchEnd = useCallback(() => {
-    setIsChartBeingTouched(false);
-  }, [setIsChartBeingTouched]);
 
   const handleChartInteracted = useCallback(
     (payload: ChartInteractedPayload) => {
@@ -158,11 +170,13 @@ const PriceAdvanced = ({
         createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
           .addProperties({
             interaction_type: payload.interaction_type,
+            chart_type:
+              chartType === ChartType.Candles ? 'candlestick' : 'line',
           })
           .build(),
       );
     },
-    [createEventBuilder, trackEvent],
+    [createEventBuilder, trackEvent, chartType],
   );
 
   const handleChartTradingViewClicked = useCallback(() => {
@@ -170,10 +184,11 @@ const PriceAdvanced = ({
       createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
         .addProperties({
           interaction_type: 'tradingview_clicked',
+          chart_type: chartType === ChartType.Candles ? 'candlestick' : 'line',
         })
         .build(),
     );
-  }, [createEventBuilder, trackEvent]);
+  }, [createEventBuilder, trackEvent, chartType]);
 
   const toggleChartType = useCallback(() => {
     const next =
@@ -204,12 +219,14 @@ const PriceAdvanced = ({
           .addProperties({
             interaction_type: 'timeframe_changed',
             chart_timeframe: range,
+            chart_type:
+              chartType === ChartType.Candles ? 'candlestick' : 'line',
           })
           .build(),
       );
       setTimeRange(range);
     },
-    [createEventBuilder, timeRange, trackEvent],
+    [createEventBuilder, timeRange, trackEvent, chartType],
   );
 
   const assetId = useMemo(() => {
@@ -293,6 +310,37 @@ const PriceAdvanced = ({
     vsCurrency: currentCurrency,
   });
 
+  const wsInterval = WS_INTERVAL_BY_TIME_RANGE[timeRange];
+  const wsEnabled =
+    isOhlcvWsEnabled &&
+    !chartLoading &&
+    ohlcvData.length >= CHART_DATA_THRESHOLD &&
+    !hasEmptyData &&
+    !chartError;
+
+  const { latestBar } = useOHLCVRealtime({
+    assetId,
+    interval: wsInterval,
+    currency: currentCurrency,
+    timePeriod: timeRange.toLowerCase(),
+    enabled: wsEnabled,
+  });
+
+  // TradingView Advanced Charts Bar.time expects milliseconds
+  // https://www.tradingview.com/charting-library-docs/latest/api/interfaces/Datafeed.Bar/
+  // OHLCVService delivers bars with `timestamp` in Unix seconds — multiply by 1000
+  const realtimeBar = useMemo(() => {
+    if (!wsEnabled || !latestBar) return undefined;
+    return {
+      time: latestBar.timestamp * 1000,
+      open: latestBar.open,
+      high: latestBar.high,
+      low: latestBar.low,
+      close: latestBar.close,
+      volume: latestBar.volume,
+    };
+  }, [wsEnabled, latestBar]);
+
   const ohlcvPagination = useMemo(
     () => ({
       nextCursor,
@@ -346,26 +394,68 @@ const PriceAdvanced = ({
 
   // Use last bar's close price for consistent percentage calculation with chart data
   const lastBarClose = ohlcvData[ohlcvData.length - 1]?.close;
-  const displayPrice = crosshairData?.close ?? lastBarClose ?? currentPrice;
+  const realtimeClose = wsEnabled ? latestBar?.close : undefined;
+  const displayPrice =
+    crosshairData?.close ?? realtimeClose ?? lastBarClose ?? currentPrice;
   const displayDiff = useMemo(() => {
     if (dynamicComparePrice === null) return null;
     return (
-      (crosshairData?.close ?? lastBarClose ?? currentPrice) -
+      (crosshairData?.close ?? realtimeClose ?? lastBarClose ?? currentPrice) -
       dynamicComparePrice
     );
-  }, [crosshairData, lastBarClose, currentPrice, dynamicComparePrice]);
-
-  const displayDate = crosshairData
-    ? toDateFormat(crosshairData.time)
-    : dateLabel;
+  }, [
+    crosshairData,
+    realtimeClose,
+    lastBarClose,
+    currentPrice,
+    dynamicComparePrice,
+  ]);
 
   const { styles, theme } = useStyles(styleSheet);
   const { themeAppearance } = useTheme();
   const isLightMode = themeAppearance === AppThemeKey.light;
 
+  const ambientSuccessGreen = isLightMode
+    ? LIGHT_MODE_SUCCESS_GREEN
+    : theme.colors.success.default;
+
+  // Initial ambient color for chart/buttons - based on non-crosshair price diff
+  // This stays constant even when user hovers crosshair
+  const initialPriceDiff = useMemo(() => {
+    const rtClose = realtimeBar?.close;
+    const lbClose = ohlcvData[ohlcvData.length - 1]?.close;
+    const currentDisplayPrice = rtClose ?? lbClose ?? currentPrice;
+
+    if (dynamicComparePrice === null) return null;
+    return currentDisplayPrice - dynamicComparePrice;
+  }, [realtimeBar, ohlcvData, currentPrice, dynamicComparePrice]);
+
+  const initialAmbientColor = useMemo(() => {
+    if (!useAmbientColor) return undefined;
+    if (initialPriceDiff === null) return undefined;
+    return initialPriceDiff >= 0 ? ambientSuccessGreen : AMBIENT_NEGATIVE_COLOR;
+  }, [useAmbientColor, initialPriceDiff, ambientSuccessGreen]);
+
+  // Dynamic ambient color for price diff text only - changes during crosshair hover
+  const ambientColor = useMemo(() => {
+    if (!useAmbientColor) return undefined;
+    if (displayDiff === null) return ambientSuccessGreen;
+    return displayDiff >= 0 ? ambientSuccessGreen : AMBIENT_NEGATIVE_COLOR;
+  }, [useAmbientColor, displayDiff, ambientSuccessGreen]);
+
   const shouldFallbackToLegacy =
     !chartLoading &&
     (ohlcvData.length < CHART_DATA_THRESHOLD || hasEmptyData || chartError);
+
+  useLayoutEffect(() => {
+    if (initialPriceDiff !== null && !shouldFallbackToLegacy) {
+      onPriceDirectionChange?.(initialPriceDiff >= 0);
+    }
+  }, [initialPriceDiff, onPriceDirectionChange, shouldFallbackToLegacy]);
+
+  const displayDate = crosshairData
+    ? toDateFormat(crosshairData.time)
+    : dateLabel;
 
   const shouldFallbackToLegacyRef = useRef(shouldFallbackToLegacy);
   shouldFallbackToLegacyRef.current = shouldFallbackToLegacy;
@@ -458,6 +548,8 @@ const PriceAdvanced = ({
         currentCurrency={currentCurrency}
         comparePrice={comparePrice}
         isLoading={isLoading}
+        onPriceDirectionChange={onPriceDirectionChange}
+        useAmbientColor={useAmbientColor}
       />
     );
   }
@@ -504,6 +596,7 @@ const PriceAdvanced = ({
             </View>
           ) : displayDiff !== null && dynamicComparePrice !== null ? (
             <Text
+              testID={TokenOverviewSelectorsIDs.TODAYS_CHANGE}
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
               color={
@@ -514,9 +607,11 @@ const PriceAdvanced = ({
                     : TextColor.TextAlternative
               }
               style={
-                isLightMode && displayDiff > 0
-                  ? { color: LIGHT_MODE_SUCCESS_GREEN }
-                  : undefined
+                ambientColor
+                  ? { color: ambientColor }
+                  : isLightMode && displayDiff > 0
+                    ? { color: LIGHT_MODE_SUCCESS_GREEN }
+                    : undefined
               }
               allowFontScaling={false}
             >
@@ -547,29 +642,41 @@ const PriceAdvanced = ({
         <View
           testID="advanced-chart-touch-container"
           style={[styles.chartContainer, { height: CHART_HEIGHT }]}
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-          onTouchCancel={handleTouchEnd}
         >
-          <AdvancedChart
-            ohlcvData={ohlcvData}
-            ohlcvSeriesKey={ohlcvSeriesKey}
-            height={CHART_HEIGHT}
-            showVolume={chartType === ChartType.Candles}
-            volumeOverlay
-            chartType={chartType}
-            indicators={EMPTY_INDICATORS}
-            lineChrome={advancedChartLineChromePresets.tokenOverview}
-            isLoading={chartLoading}
-            ohlcvPagination={ohlcvPagination}
-            visibleFromMs={visibleFromMs}
-            visibleToMs={visibleToMs}
-            onCrosshairMove={handleCrosshairMove}
-            onChartInteracted={handleChartInteracted}
-            onChartTradingViewClicked={handleChartTradingViewClicked}
-            onSkeletonHidden={handleAdvancedChartSkeletonHidden}
-            onError={handleAdvancedChartError}
-          />
+          {Platform.OS === 'ios' && (
+            <View style={styles.edgeOverlay} pointerEvents="box-only" />
+          )}
+          {useAmbientColor && initialAmbientColor === undefined ? (
+            <Skeleton height={CHART_HEIGHT} width="100%" />
+          ) : (
+            <AdvancedChart
+              ohlcvData={ohlcvData}
+              ohlcvSeriesKey={ohlcvSeriesKey}
+              realtimeBar={realtimeBar}
+              height={CHART_HEIGHT}
+              showVolume={chartType === ChartType.Candles}
+              volumeOverlay
+              chartType={chartType}
+              indicators={EMPTY_INDICATORS}
+              lineChrome={advancedChartLineChromePresets.tokenOverview}
+              isLoading={chartLoading}
+              ohlcvPagination={ohlcvPagination}
+              visibleFromMs={visibleFromMs}
+              visibleToMs={visibleToMs}
+              onCrosshairMove={handleCrosshairMove}
+              onChartInteracted={handleChartInteracted}
+              onChartTradingViewClicked={handleChartTradingViewClicked}
+              onSkeletonHidden={handleAdvancedChartSkeletonHidden}
+              onError={handleAdvancedChartError}
+              lineColorOverride={initialAmbientColor}
+              successColorOverride={
+                initialAmbientColor ? ambientSuccessGreen : undefined
+              }
+              errorColorOverride={
+                initialAmbientColor ? AMBIENT_NEGATIVE_COLOR : undefined
+              }
+            />
+          )}
         </View>
       </Box>
 
@@ -581,6 +688,7 @@ const PriceAdvanced = ({
             onSelect={handleTimeRangeSelect}
             chartType={chartType}
             onChartTypeToggle={toggleChartType}
+            selectedColor={initialAmbientColor}
           />
         </View>
       </View>

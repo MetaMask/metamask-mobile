@@ -30,6 +30,7 @@ import rewardsReducer, {
   setVipDashboard,
   setVipDashboardError,
   setVipDashboardLoading,
+  acceptVipInvite,
   setCampaigns,
   setCampaignsLoading,
   setCampaignsError,
@@ -227,7 +228,6 @@ describe('rewardsReducer', () => {
           },
         ],
         balanceTotal: 1000,
-        balanceRefereePortion: 200,
         currentTier: {
           id: 'tier-gold',
           name: 'Gold',
@@ -1387,7 +1387,6 @@ describe('rewardsReducer', () => {
           },
           nextTierPointsNeeded: 1000,
           balanceTotal: 1500,
-          balanceRefereePortion: 300,
           balanceUpdatedAt: new Date('2024-06-01'),
           onboardingActiveStep: OnboardingStep.STEP_2,
           onboardingReferralCode: 'ONBOARDING_REF',
@@ -1453,9 +1452,6 @@ describe('rewardsReducer', () => {
           initialState.nextTierPointsNeeded,
         );
         expect(state.balanceTotal).toBe(initialState.balanceTotal);
-        expect(state.balanceRefereePortion).toBe(
-          initialState.balanceRefereePortion,
-        );
         expect(state.balanceUpdatedAt).toBe(initialState.balanceUpdatedAt);
         expect(state.activeBoosts).toBe(initialState.activeBoosts);
         expect(state.pointsEvents).toBe(initialState.pointsEvents);
@@ -2008,7 +2004,6 @@ describe('rewardsReducer', () => {
         },
         nextTierPointsNeeded: 1000,
         balanceTotal: 5000,
-        balanceRefereePortion: 1000,
         balanceUpdatedAt: new Date('2024-01-01'),
         seasonName: 'Test Season',
         seasonStartDate: new Date('2024-01-01'),
@@ -2076,6 +2071,9 @@ describe('rewardsReducer', () => {
         vipDashboard: {},
         vipDashboardLoading: false,
         vipDashboardError: false,
+        vipSplashAccepted: {
+          'sub-1': true,
+        },
         campaigns: [],
         campaignsLoading: false,
         campaignsError: false,
@@ -2139,7 +2137,6 @@ describe('rewardsReducer', () => {
         nextTier: null,
         nextTierPointsNeeded: null,
         balanceTotal: 2000,
-        balanceRefereePortion: 400,
         balanceUpdatedAt: new Date('2024-05-01'),
         seasonName: 'Persisted Season',
         seasonStartDate: new Date('2024-01-01'),
@@ -2208,6 +2205,7 @@ describe('rewardsReducer', () => {
         vipDashboard: {},
         vipDashboardLoading: false,
         vipDashboardError: false,
+        vipSplashAccepted: {},
         campaigns: [],
         campaignsLoading: false,
         campaignsError: false,
@@ -2271,7 +2269,6 @@ describe('rewardsReducer', () => {
           persistedRewardsState.hideCurrentAccountNotOptedInBanner,
         // These fields are restored from persisted state
         nextTierPointsNeeded: persistedRewardsState.nextTierPointsNeeded,
-        balanceRefereePortion: persistedRewardsState.balanceRefereePortion,
       };
       expect(state).toEqual(expectedState);
     });
@@ -2302,6 +2299,29 @@ describe('rewardsReducer', () => {
       expect(state.seasonActivityTypes).toEqual(
         persistedRewardsState.seasonActivityTypes,
       );
+    });
+
+    it('should default version guard state when rehydrating older persisted rewards state', () => {
+      const persistedRewardsState = {
+        ...initialState,
+      } as Partial<RewardsState>;
+      delete persistedRewardsState.versionGuardMinimumMobileVersion;
+      delete persistedRewardsState.versionGuardLoading;
+      delete persistedRewardsState.versionGuardError;
+      const rehydrateAction = {
+        type: 'persist/REHYDRATE',
+        payload: {
+          rewards: persistedRewardsState,
+        },
+      };
+
+      const state = rewardsReducer(initialState, rehydrateAction);
+
+      expect(state.versionGuardMinimumMobileVersion).toBe(
+        initialState.versionGuardMinimumMobileVersion,
+      );
+      expect(state.versionGuardLoading).toBe(initialState.versionGuardLoading);
+      expect(state.versionGuardError).toBe(initialState.versionGuardError);
     });
 
     it('should restore seasonWaysToEarn from persisted state', () => {
@@ -2478,9 +2498,6 @@ describe('rewardsReducer', () => {
       expect(state.nextTierPointsNeeded).toBe(
         initialState.nextTierPointsNeeded,
       );
-      expect(state.balanceRefereePortion).toBe(
-        initialState.balanceRefereePortion,
-      );
     });
 
     it('should preserve current non-persistent state while restoring persisted UI state', () => {
@@ -2488,7 +2505,6 @@ describe('rewardsReducer', () => {
       const currentState = {
         ...initialState,
         nextTierPointsNeeded: 500, // This should be preserved
-        balanceRefereePortion: 100, // This should be preserved
         activeTab: 'activity' as const, // This should be reset to initial
         seasonStatusLoading: true, // This should be reset to initial
         onboardingActiveStep: OnboardingStep.STEP_3, // This should be reset to initial
@@ -2517,7 +2533,6 @@ describe('rewardsReducer', () => {
 
       // Assert - Non-persistent state should be preserved from current state
       expect(state.nextTierPointsNeeded).toBe(null); // Restored from persisted state (initialState)
-      expect(state.balanceRefereePortion).toBe(0); // Restored from persisted state (initialState)
 
       // Persisted UI state should be restored
       expect(state.seasonId).toBe('persisted-season');
@@ -4782,24 +4797,28 @@ describe('setVipDashboard', () => {
     nextTier: { id: 'gold-fox-vip-4', name: 'Gold Fox VIP 4', tier: 4 },
     progress: {
       percent: 72,
-      remainingSwapsUsd: 800000,
-      remainingPerpsUsd: 3600000,
-      estimatedDaysToNextTier: 4,
+      remainingPointsToNextTier: 800000,
       status: 'on_track',
     },
     fees: {
+      revenueShareBps: 150,
       swapsBps: 15,
       perpsBps: 4,
+      nextTierRevenueShareBps: 200,
       nextTierSwapsBps: 12,
       nextTierPerpsBps: 3,
     },
     volume: {
       swapsUsd: 4100000,
       perpsUsd: 2300000,
+      points: 24400000,
+      pointsFromReferrals: 500000,
+      referrals: 2,
+      referralsCap: 10,
     },
     pointsAllocation: {
       earned: 24400000,
-      max: 100000000,
+      threshold: 100000000,
       percent: 24.4,
     },
     tiers: [
@@ -4807,25 +4826,37 @@ describe('setVipDashboard', () => {
         id: 'gold-fox-vip-3',
         name: 'Gold Fox 3',
         tier: 3,
-        swapsRequirementUsd: 7000000,
-        perpsRequirementUsd: 35000000,
+        pointsRequirement: 750000,
+        revenueShareBps: 150,
         swapsBps: 15,
         perpsBps: 4,
+        referralCarryoverBps: 2000,
         status: 'current',
       },
     ],
     localizedText: {
-      period: 'Mar 31 - Apr 30',
-      progressToNextTier: 'Subline',
+      periodTitle: 'Mar 31 - Apr 30',
+      memberIdTitle: 'Member ID',
       swapsFeeTitle: 'Swaps fee',
       perpsFeeTitle: 'Perps fee',
       nextTierSwapsFeeDelta: '↓ 12 bps next tier',
       nextTierPerpsFeeDelta: '↓ 3 bps next tier',
-      volumeTitle: 'Volume',
-      statusMessage: 'On track',
+      revenueShareTitle: 'Revenue share',
+      referralPointsTitle: 'Referral points',
+      nextTierRevenueShareDelta: '↑ 2% next tier',
+      nextTierReferralPointsDelta: '↑ 20% next tier',
+      topTierDescription: 'Top tier reached',
+      statsTitle: 'Volume',
       pointsTitle: 'Points',
-      pointsAllocationTitle: 'Earn VIP allocations',
-      pointsAllocationDescription: 'Body copy',
+      swapsVolumeTitle: 'Swaps Volume',
+      pointsFromReferralsTitle: 'Points from Referrals',
+      perpsVolumeTitle: 'Perps Volume',
+      vipReferralsTitle: 'VIP Referrals',
+      totalPointsTitle: 'Points',
+      equityLockedTitle: 'Earn VIP allocations',
+      equityLockedDescription: 'Body copy',
+      equityUnlockedTitle: 'VIP allocation unlocked',
+      equityUnlockedDescription: 'Unlocked body copy',
     },
     lastFetched: 1767225600000,
   };
@@ -4883,6 +4914,36 @@ describe('setVipDashboardError', () => {
     const state = rewardsReducer(initialState, action);
 
     expect(state.vipDashboardError).toBe(true);
+  });
+});
+
+describe('acceptVipInvite', () => {
+  it('marks the VIP invite as accepted for a subscription', () => {
+    const state = rewardsReducer(
+      initialState,
+      acceptVipInvite({ subscriptionId: 'sub-1' }),
+    );
+
+    expect(state.vipSplashAccepted['sub-1']).toBe(true);
+  });
+
+  it('preserves existing accepted VIP invites for other subscriptions', () => {
+    const stateWithAcceptedInvite: RewardsState = {
+      ...initialState,
+      vipSplashAccepted: {
+        'sub-1': true,
+      },
+    };
+
+    const state = rewardsReducer(
+      stateWithAcceptedInvite,
+      acceptVipInvite({ subscriptionId: 'sub-2' }),
+    );
+
+    expect(state.vipSplashAccepted).toEqual({
+      'sub-1': true,
+      'sub-2': true,
+    });
   });
 });
 
@@ -6119,6 +6180,36 @@ describe('ondoCampaignDeposits', () => {
     });
   });
 
+  describe('persist/REHYDRATE — vipSplashAccepted', () => {
+    it('restores accepted VIP invite state from persisted rewards state', () => {
+      const persisted: RewardsState = {
+        ...initialState,
+        vipSplashAccepted: {
+          'sub-1': true,
+        },
+      };
+
+      const state = rewardsReducer(initialState, {
+        type: 'persist/REHYDRATE',
+        payload: { rewards: persisted },
+      });
+
+      expect(state.vipSplashAccepted).toEqual({ 'sub-1': true });
+    });
+
+    it('defaults to empty object when vipSplashAccepted is absent from persisted state', () => {
+      const persisted = { ...initialState } as Partial<RewardsState>;
+      delete persisted.vipSplashAccepted;
+
+      const state = rewardsReducer(initialState, {
+        type: 'persist/REHYDRATE',
+        payload: { rewards: persisted },
+      });
+
+      expect(state.vipSplashAccepted).toEqual({});
+    });
+  });
+
   describe('setCandidateSubscriptionId — preserves dismissedCampaignOutcomeToasts', () => {
     it('preserves dismissedCampaignOutcomeToasts when subscription ID changes', () => {
       const stateWithDismissals: RewardsState = {
@@ -6136,6 +6227,27 @@ describe('ondoCampaignDeposits', () => {
 
       expect(state.dismissedCampaignOutcomeToasts).toEqual({
         'campaign-1:old-sub:winner': true,
+      });
+    });
+  });
+
+  describe('setCandidateSubscriptionId — preserves vipSplashAccepted', () => {
+    it('preserves accepted VIP invites when subscription ID changes', () => {
+      const stateWithAcceptedInvite: RewardsState = {
+        ...initialState,
+        candidateSubscriptionId: 'old-sub',
+        vipSplashAccepted: {
+          'old-sub': true,
+        },
+      };
+
+      const state = rewardsReducer(
+        stateWithAcceptedInvite,
+        setCandidateSubscriptionId('new-sub'),
+      );
+
+      expect(state.vipSplashAccepted).toEqual({
+        'old-sub': true,
       });
     });
   });

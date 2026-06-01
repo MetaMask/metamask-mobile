@@ -27,7 +27,12 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
+import {
+  useCardHeaderHandlers,
+  type CardHeaderMode,
+} from '../../hooks/useCardHeaderHandlers';
 import { strings } from '../../../../../../locales/i18n';
 import Icon, {
   IconName,
@@ -75,6 +80,10 @@ const ChooseYourCard = () => {
   const { flow = 'onboarding', shippingAddress } =
     useParams<ChooseYourCardParams>();
   const isUpgradeFlow = flow === 'upgrade';
+  // 'onboarding' is the linear sign-up flow; no header chrome there.
+  // 'upgrade' / 'home' are user-initiated entries, so show a back button.
+  const headerMode: CardHeaderMode = flow === 'onboarding' ? 'none' : 'back';
+  const headerHandlers = useCardHeaderHandlers(headerMode);
 
   // Arrow bounce animation for swipe indicator
   useEffect(() => {
@@ -366,9 +375,16 @@ const ChooseYourCard = () => {
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-background-default')}
-      edges={['bottom']}
+      edges={headerMode === 'none' ? ['top', 'bottom'] : ['bottom']}
       testID={ChooseYourCardSelectors.CONTAINER}
     >
+      {headerMode !== 'none' && (
+        <HeaderStandard
+          includesTopInset
+          twClassName="bg-background-default"
+          {...headerHandlers}
+        />
+      )}
       <Box twClassName="flex-1">
         <Box twClassName="px-4 py-4">
           <Text

@@ -1,12 +1,17 @@
 import { BigNumber } from 'bignumber.js';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   useIsTransactionPayLoading,
   useIsTransactionPayQuoteLoading,
   useTransactionPayQuotes,
 } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayData';
 import { useTransactionPayAvailableTokens } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayAvailableTokens';
-import { MINIMUM_BET } from '../../../constants/transactions';
+import {
+  MINIMUM_BET,
+  PAYMENT_SELECTOR_NAVIGATION_SAFETY_UNLOCK_MS,
+  PAYMENT_SELECTOR_NAVIGATION_UNLOCK_DELAY_MS,
+} from '../../../constants/transactions';
 import { usePredictBalance } from '../../../hooks/usePredictBalance';
 import { usePredictDeposit } from '../../../hooks/usePredictDeposit';
 import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
@@ -20,7 +25,6 @@ interface UsePredictBuyConditionsParams {
   isUserInputChange: boolean;
   isConfirming: boolean;
   totalPayForPredictBalance: number;
-  isInputFocused: boolean;
   hasBlockingPayAlerts: boolean;
 }
 
@@ -31,20 +35,17 @@ export const usePredictBuyConditions = ({
   isUserInputChange,
   isConfirming,
   totalPayForPredictBalance,
-  isInputFocused,
   hasBlockingPayAlerts,
 }: UsePredictBuyConditionsParams) => {
+  const navigation = useNavigation();
   const { isBalanceLoading, availableBalance } =
     usePredictBuyAvailableBalance();
   const isPayTotalsLoading = useIsTransactionPayLoading();
   const isPayQuoteLoading = useIsTransactionPayQuoteLoading();
   const quotes = useTransactionPayQuotes();
   const { isDepositPending } = usePredictDeposit();
-  const {
-    isPredictBalanceSelected,
-    selectedPaymentToken,
-    resetSelectedPaymentToken,
-  } = usePredictPaymentToken();
+  const { isPredictBalanceSelected, selectedPaymentToken } =
+    usePredictPaymentToken();
   const { data: predictBalance = 0 } = usePredictBalance();
   const { availableTokens } = useTransactionPayAvailableTokens();
 
@@ -57,22 +58,121 @@ export const usePredictBuyConditions = ({
   // falsely mark a loading cycle as "seen" — which would cause a premature
   // settling exit (Bug 3).
   const hasSeenLoadingRef = useRef(false);
+  const [
+    isPaymentSelectorNavigationLocked,
+    setIsPaymentSelectorNavigationLocked,
+  ] = useState(false);
+  const isPaymentSelectorNavigationLockedRef = useRef(false);
+  const didBlurAfterPaymentSelectorOpenRef = useRef(false);
+  const paymentSelectorUnlockTimerRef = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
 
-  // Tracks the address of the last ERC20 token for which a full quote-loading
-  // cycle has completed. Compared synchronously each render to derive
-  // `isPaySystemSettling` — true from the very first render after the token
-  // identity changes, with no one-frame gap (Bug 1).
-  const [lastSettledTokenAddress, setLastSettledTokenAddress] = useState<
+  const clearPaymentSelectorUnlockTimer = useCallback(() => {
+    if (paymentSelectorUnlockTimerRef.current) {
+      clearTimeout(paymentSelectorUnlockTimerRef.current);
+      paymentSelectorUnlockTimerRef.current = null;
+    }
+  }, []);
+
+  const updatePaymentSelectorNavigationLock = useCallback(
+    (isLocked: boolean) => {
+      isPaymentSelectorNavigationLockedRef.current = isLocked;
+      setIsPaymentSelectorNavigationLocked(isLocked);
+    },
+    [],
+  );
+
+  const unlockPaymentSelectorNavigation = useCallback(() => {
+    clearPaymentSelectorUnlockTimer();
+    didBlurAfterPaymentSelectorOpenRef.current = false;
+    updatePaymentSelectorNavigationLock(false);
+  }, [clearPaymentSelectorUnlockTimer, updatePaymentSelectorNavigationLock]);
+
+  const lockPaymentSelectorNavigation = useCallback(() => {
+    clearPaymentSelectorUnlockTimer();
+    didBlurAfterPaymentSelectorOpenRef.current = false;
+    updatePaymentSelectorNavigationLock(true);
+    paymentSelectorUnlockTimerRef.current = setTimeout(
+      unlockPaymentSelectorNavigation,
+      PAYMENT_SELECTOR_NAVIGATION_SAFETY_UNLOCK_MS,
+    );
+  }, [
+    clearPaymentSelectorUnlockTimer,
+    unlockPaymentSelectorNavigation,
+    updatePaymentSelectorNavigationLock,
+  ]);
+
+  useEffect(() => {
+    const scheduleUnlock = () => {
+      clearPaymentSelectorUnlockTimer();
+      paymentSelectorUnlockTimerRef.current = setTimeout(() => {
+        unlockPaymentSelectorNavigation();
+      }, PAYMENT_SELECTOR_NAVIGATION_UNLOCK_DELAY_MS);
+    };
+
+    const unsubscribeBlur = navigation.addListener('blur', () => {
+      if (isPaymentSelectorNavigationLockedRef.current) {
+        didBlurAfterPaymentSelectorOpenRef.current = true;
+      }
+    });
+
+    const unsubscribeFocus = navigation.addListener('focus', () => {
+      if (
+        isPaymentSelectorNavigationLockedRef.current &&
+        didBlurAfterPaymentSelectorOpenRef.current
+      ) {
+        scheduleUnlock();
+      }
+    });
+
+    return () => {
+      unsubscribeBlur();
+      unsubscribeFocus();
+      clearPaymentSelectorUnlockTimer();
+    };
+  }, [
+    clearPaymentSelectorUnlockTimer,
+    navigation,
+    unlockPaymentSelectorNavigation,
+  ]);
+
+  const selectedPaymentTokenKey = useMemo(() => {
+    if (!selectedPaymentToken?.address || !selectedPaymentToken?.chainId) {
+      return null;
+    }
+
+    return `${selectedPaymentToken.chainId.toLowerCase()}:${selectedPaymentToken.address.toLowerCase()}`;
+  }, [selectedPaymentToken?.address, selectedPaymentToken?.chainId]);
+
+  const selectedPaymentSettlingKey = useMemo(() => {
+    if (!selectedPaymentTokenKey) {
+      return null;
+    }
+
+    const amountValue = totalPayForPredictBalance || currentValue;
+    const roundedQuoteAmount = new BigNumber(amountValue)
+      .decimalPlaces(2, BigNumber.ROUND_UP)
+      .toString(10);
+
+    return `${selectedPaymentTokenKey}:${roundedQuoteAmount}`;
+  }, [currentValue, selectedPaymentTokenKey, totalPayForPredictBalance]);
+
+  // Tracks the token/amount pair for which a full quote-loading cycle has
+  // completed. Keeping the amount in the key makes same-token amount changes
+  // settle again, while preserving same-token same-amount quotes across a brief
+  // Predict-balance selection.
+  const [lastSettledPaymentKey, setLastSettledPaymentKey] = useState<
     string | null
   >(null);
 
   // Synchronous derivation: true from the very first render after the selected
-  // token changes. No effects needed to flip a boolean flag, so there is no
-  // one-frame window where the CTA flashes incorrectly (Bug 1 fixed).
+  // token or amount changes. No effects needed to flip a boolean flag, so there
+  // is no one-frame window where the CTA flashes incorrectly (Bug 1 fixed).
   const isPaySystemSettling =
     !isPredictBalanceSelected &&
-    selectedPaymentToken !== null &&
-    selectedPaymentToken?.address !== lastSettledTokenAddress;
+    selectedPaymentSettlingKey !== null &&
+    selectedPaymentSettlingKey !== lastSettledPaymentKey;
 
   const isBalancePulsing = useMemo(
     () => isDepositPending && isPredictBalanceSelected,
@@ -84,21 +184,18 @@ export const usePredictBuyConditions = ({
     [currentValue],
   );
 
-  const maxBetAmount = useMemo(() => {
-    const feeRate = (preview?.fees?.totalFeePercentage ?? 0) / 100;
-    return Math.max(
-      0,
-      Math.floor((availableBalance / (1 + feeRate)) * 100) / 100,
-    );
-  }, [availableBalance, preview?.fees?.totalFeePercentage]);
-
   const isInsufficientBalance = useMemo(
     () =>
       isPredictBalanceSelected &&
       !isConfirming &&
-      currentValue > 0 &&
-      currentValue > maxBetAmount,
-    [isConfirming, isPredictBalanceSelected, currentValue, maxBetAmount],
+      totalPayForPredictBalance > 0 &&
+      availableBalance < totalPayForPredictBalance,
+    [
+      availableBalance,
+      isConfirming,
+      isPredictBalanceSelected,
+      totalPayForPredictBalance,
+    ],
   );
 
   const isRateLimited = useMemo(() => preview?.rateLimited ?? false, [preview]);
@@ -149,23 +246,22 @@ export const usePredictBuyConditions = ({
     const quotesPresent = (quotes?.length ?? 0) > 0;
     if (quotesPresent || !isPayFeesLoading) {
       hasSeenLoadingRef.current = false;
-      setLastSettledTokenAddress(selectedPaymentToken?.address ?? null);
+      setLastSettledPaymentKey(selectedPaymentSettlingKey);
     }
   }, [
     isPaySystemSettling,
     isPayQuoteLoading,
     isPayFeesLoading,
     quotes,
-    selectedPaymentToken,
+    selectedPaymentSettlingKey,
   ]);
 
-  // Effect 3 — reset when switching back to Predict balance so that returning
-  // to any ERC20 always requires a fresh settling cycle (quotes may need
-  // re-fetching).
+  // Effect 3 — stop any in-flight settling observation when switching back to
+  // Predict balance. Keep the settled payment key so selecting the same token
+  // for the same amount can reuse the existing quote state immediately.
   useEffect(() => {
     if (isPredictBalanceSelected) {
       hasSeenLoadingRef.current = false;
-      setLastSettledTokenAddress(null);
     }
   }, [isPredictBalanceSelected]);
 
@@ -190,34 +286,25 @@ export const usePredictBuyConditions = ({
   );
 
   const hasAlternativeBalance = useMemo(() => {
-    if (currentValue <= 0) return false;
+    if (totalPayForPredictBalance <= 0) return false;
 
     const hasAlternativeERC20 = availableTokens.some(
       (token) =>
         !token.isSelected &&
         !token.disabled &&
-        new BigNumber(token.fiat?.balance ?? 0).gte(currentValue),
+        new BigNumber(token.fiat?.balance ?? 0).gte(totalPayForPredictBalance),
     );
 
     if (isPredictBalanceSelected) {
       return hasAlternativeERC20;
     }
 
-    // Apply the same fee adjustment to predictBalance that maxBetAmount uses for
-    // the selected ERC20, so we only suggest Predict balance as an alternative
-    // when it can actually cover the bet after fees.
-    const feeRate = (preview?.fees?.totalFeePercentage ?? 0) / 100;
-    const predictMaxBetAmount = Math.max(
-      0,
-      Math.floor((predictBalance / (1 + feeRate)) * 100) / 100,
-    );
-    return predictMaxBetAmount >= currentValue || hasAlternativeERC20;
+    return predictBalance >= totalPayForPredictBalance || hasAlternativeERC20;
   }, [
     availableTokens,
-    currentValue,
     isPredictBalanceSelected,
     predictBalance,
-    preview?.fees?.totalFeePercentage,
+    totalPayForPredictBalance,
   ]);
 
   const canPlaceBet = useMemo(
@@ -230,7 +317,8 @@ export const usePredictBuyConditions = ({
       !isRateLimited &&
       !isBalanceLoading &&
       !isPayFeesLoading &&
-      !hasBlockingPayAlerts,
+      !hasBlockingPayAlerts &&
+      !isPaymentSelectorNavigationLocked,
     [
       isPaySystemSettling,
       isConfirming,
@@ -241,6 +329,7 @@ export const usePredictBuyConditions = ({
       isBalanceLoading,
       isPayFeesLoading,
       hasBlockingPayAlerts,
+      isPaymentSelectorNavigationLocked,
     ],
   );
 
@@ -249,34 +338,18 @@ export const usePredictBuyConditions = ({
     [isPreviewCalculating, isUserInputChange],
   );
 
-  useEffect(() => {
-    if (
-      !isPredictBalanceSelected &&
-      !isInputFocused &&
-      totalPayForPredictBalance > 0 &&
-      predictBalance >= totalPayForPredictBalance
-    ) {
-      resetSelectedPaymentToken();
-    }
-  }, [
-    isInputFocused,
-    isPredictBalanceSelected,
-    predictBalance,
-    resetSelectedPaymentToken,
-    totalPayForPredictBalance,
-  ]);
-
   return {
     isBelowMinimum,
     isInsufficientBalance,
     isCurrentTokenInsufficient,
     hasAlternativeBalance,
-    maxBetAmount,
     isRateLimited,
     canPlaceBet,
     isUserChangeTriggeringCalculation,
     isPayFeesLoading,
     isBalancePulsing,
     isPaySystemSettling,
+    isPaymentSelectorNavigationLocked,
+    lockPaymentSelectorNavigation,
   };
 };

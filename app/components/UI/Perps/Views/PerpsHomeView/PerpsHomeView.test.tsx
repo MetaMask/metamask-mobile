@@ -3,8 +3,10 @@ import { render, fireEvent } from '@testing-library/react-native';
 import PerpsHomeView from './PerpsHomeView';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import { selectPerpsFeedbackEnabledFlag } from '../../selectors/featureFlags';
+import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFlagController/whatsHappening';
 import { mockTheme } from '../../../../../util/theme';
 import { useDiscoveryScrollManager } from '../../../Predict/hooks/useDiscoveryScrollManager';
+import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 
 // Mock useDiscoveryScrollManager
 const mockPerpsOnTabEnter = jest.fn();
@@ -28,6 +30,9 @@ jest.mock('react-native-reanimated', () => {
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn(() => true);
+let mockRouteParams: Record<string, unknown> = {
+  source: 'main_action_button',
+};
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -36,9 +41,7 @@ jest.mock('@react-navigation/native', () => ({
     canGoBack: mockCanGoBack,
   }),
   useRoute: () => ({
-    params: {
-      source: 'main_action_button', // PERPS_EVENT_VALUE.SOURCE.MAIN_ACTION_BUTTON
-    },
+    params: mockRouteParams,
   }),
   useFocusEffect: (callback: () => void) => {
     // Call the callback immediately in tests
@@ -50,6 +53,7 @@ jest.mock('@react-navigation/native', () => ({
 const mockUseSelector = jest.fn<boolean, [unknown]>(() => false);
 jest.mock('react-redux', () => ({
   useSelector: (selector: unknown) => mockUseSelector(selector),
+  useDispatch: () => jest.fn(),
 }));
 
 // Mock components to prevent complex module initialization chains
@@ -478,6 +482,18 @@ jest.mock(
   '../../components/PerpsRecentActivityList/PerpsRecentActivityList',
   () => 'PerpsRecentActivityList',
 );
+jest.mock('../../../../UI/WhatsHappening', () => {
+  const { View } = jest.requireActual('react-native');
+  return function MockWhatsHappeningSection() {
+    return <View testID="whats-happening-section" />;
+  };
+});
+jest.mock(
+  '../../../../../selectors/featureFlagController/whatsHappening',
+  () => ({
+    selectWhatsHappeningEnabled: jest.fn(),
+  }),
+);
 jest.mock('../../../../../component-library/components/Texts/Text', () => ({
   __esModule: true,
   default: 'Text',
@@ -557,6 +573,7 @@ describe('PerpsHomeView', () => {
     mockNavigateBack.mockClear();
     mockNavigateToWallet.mockClear();
     mockNavigateToMarketList.mockClear();
+    mockRouteParams = { source: 'main_action_button' };
     mockUsePerpsHomeData.mockReturnValue(mockDefaultData);
   });
 
@@ -605,6 +622,32 @@ describe('PerpsHomeView', () => {
     });
     // Search bar should still not be visible in HomeView (navigation happens, component doesn't toggle search)
     expect(queryByTestId('perps-home-search-bar')).toBeNull();
+  });
+
+  it('carries route transactionActiveAbTests when search opens market list', () => {
+    const transactionActiveAbTests = [
+      createActiveABTestAssignment(
+        'homeTMCU725AbtestHomepagePerpsPillsEmptyState',
+        'treatment',
+      ),
+    ];
+    mockRouteParams = {
+      source: 'home_section',
+      transactionActiveAbTests,
+    };
+
+    const { getByTestId } = render(<PerpsHomeView />);
+
+    fireEvent.press(getByTestId('perps-home-search-toggle'));
+
+    expect(mockNavigateToMarketList).toHaveBeenCalledWith({
+      defaultMarketTypeFilter: 'all',
+      source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+      fromHome: true,
+      button_clicked: 'magnifying_glass',
+      button_location: 'perps_home',
+      transactionActiveAbTests,
+    });
   });
 
   it('shows positions section when positions exist', () => {
@@ -967,6 +1010,23 @@ describe('PerpsHomeView', () => {
       expect(useDiscoveryScrollManager).toHaveBeenCalledWith(
         expect.objectContaining({ walletHeaderHeight: 0 }),
       );
+    });
+  });
+
+  describe('WhatsHappening section', () => {
+    it('renders WhatsHappeningSection when aiSocialWhatsHappeningEnabled flag is true', () => {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectWhatsHappeningEnabled) return true;
+        return false;
+      });
+      const { getByTestId } = render(<PerpsHomeView />);
+      expect(getByTestId('whats-happening-section')).toBeOnTheScreen();
+    });
+
+    it('does not render WhatsHappeningSection when aiSocialWhatsHappeningEnabled flag is false', () => {
+      mockUseSelector.mockReturnValue(false);
+      const { queryByTestId } = render(<PerpsHomeView />);
+      expect(queryByTestId('whats-happening-section')).not.toBeOnTheScreen();
     });
   });
 });

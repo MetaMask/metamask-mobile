@@ -15,6 +15,7 @@ describe(SmokeSnaps('BIP-44 Snap Tests'), () => {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await loginToApp();
@@ -31,6 +32,7 @@ describe(SmokeSnaps('BIP-44 Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.tapButton('getPublicKeyBip44Button');
@@ -47,6 +49,7 @@ describe(SmokeSnaps('BIP-44 Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.fillMessage('messageBip44Input', '1234');
@@ -65,6 +68,7 @@ describe(SmokeSnaps('BIP-44 Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.selectInDropdown('bip44EntropyDropDown', 'SRP 1');
@@ -84,6 +88,7 @@ describe(SmokeSnaps('BIP-44 Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.selectInDropdown('bip44EntropyDropDown', 'SRP 2');
@@ -103,6 +108,7 @@ describe(SmokeSnaps('BIP-44 Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.selectInDropdown('bip44EntropyDropDown', 'Invalid');

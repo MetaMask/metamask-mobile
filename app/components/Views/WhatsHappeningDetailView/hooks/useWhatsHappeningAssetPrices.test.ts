@@ -1,6 +1,5 @@
 import { renderHook } from '@testing-library/react-native';
 import { useWhatsHappeningAssetPrices } from './useWhatsHappeningAssetPrices';
-import type { WhatsHappeningItem } from '../../Homepage/Sections/WhatsHappening/types';
 import type { RelatedAsset } from '@metamask/ai-controllers';
 
 // ── Mocks ──────────────────────────────────────────────────────────────────────
@@ -38,16 +37,6 @@ const assetNoPerps: RelatedAsset = {
   caip19: ['eip155:1/erc20:0xfoo'],
 };
 
-const makeItem = (relatedAssets: RelatedAsset[]): WhatsHappeningItem => ({
-  id: 'trend-0',
-  title: 'Test',
-  description: 'Test description',
-  date: '2026-01-01T00:00:00.000Z',
-  impact: 'positive',
-  relatedAssets,
-  articles: [],
-});
-
 // ── Tests ──────────────────────────────────────────────────────────────────────
 
 describe('useWhatsHappeningAssetPrices', () => {
@@ -58,17 +47,19 @@ describe('useWhatsHappeningAssetPrices', () => {
 
   describe('perps live price subscription', () => {
     it('returns empty perpsPriceBySymbol when there are no hlPerpsMarket entries', () => {
-      const item = makeItem([assetNoPerps]);
-      const { result } = renderHook(() => useWhatsHappeningAssetPrices(item));
+      const { result } = renderHook(() =>
+        useWhatsHappeningAssetPrices([assetNoPerps]),
+      );
       expect(result.current.perpsPriceBySymbol).toEqual({});
     });
 
     it('passes symbols to usePerpsLivePrices without duplicates', () => {
-      const item = makeItem([
-        tslaAsset,
-        { ...tslaAsset, sourceAssetId: 'tsla2' },
-      ]);
-      renderHook(() => useWhatsHappeningAssetPrices(item));
+      renderHook(() =>
+        useWhatsHappeningAssetPrices([
+          tslaAsset,
+          { ...tslaAsset, sourceAssetId: 'tsla2' },
+        ]),
+      );
       expect(mockUsePerpsLivePrices).toHaveBeenCalledWith({
         symbols: ['xyz:TSLA'],
         throttleMs: 3000,
@@ -79,8 +70,9 @@ describe('useWhatsHappeningAssetPrices', () => {
       mockUsePerpsLivePrices.mockReturnValue({
         'xyz:TSLA': { price: '172.50', percentChange24h: '3.45' },
       });
-      const item = makeItem([tslaAsset]);
-      const { result } = renderHook(() => useWhatsHappeningAssetPrices(item));
+      const { result } = renderHook(() =>
+        useWhatsHappeningAssetPrices([tslaAsset]),
+      );
       expect(result.current.perpsPriceBySymbol['xyz:TSLA']).toEqual({
         price: 172.5,
         percentChange24h: 3.45,
@@ -91,8 +83,9 @@ describe('useWhatsHappeningAssetPrices', () => {
       mockUsePerpsLivePrices.mockReturnValue({
         'xyz:TSLA': { price: '172.50' },
       });
-      const item = makeItem([tslaAsset]);
-      const { result } = renderHook(() => useWhatsHappeningAssetPrices(item));
+      const { result } = renderHook(() =>
+        useWhatsHappeningAssetPrices([tslaAsset]),
+      );
       expect(result.current.perpsPriceBySymbol['xyz:TSLA']).toMatchObject({
         price: 172.5,
         percentChange24h: undefined,
@@ -103,8 +96,9 @@ describe('useWhatsHappeningAssetPrices', () => {
       mockUsePerpsLivePrices.mockReturnValue({
         BTC: { price: '95000', percentChange24h: '2.5' },
       });
-      const item = makeItem([btcPerpsAsset]);
-      const { result } = renderHook(() => useWhatsHappeningAssetPrices(item));
+      const { result } = renderHook(() =>
+        useWhatsHappeningAssetPrices([btcPerpsAsset]),
+      );
       expect(mockUsePerpsLivePrices).toHaveBeenCalledWith({
         symbols: ['BTC'],
         throttleMs: 3000,
@@ -119,8 +113,7 @@ describe('useWhatsHappeningAssetPrices', () => {
         name: 'Ethereum',
         hlPerpsMarket: ['ETH'],
       };
-      const item = makeItem([tslaAsset, ethAsset]);
-      renderHook(() => useWhatsHappeningAssetPrices(item));
+      renderHook(() => useWhatsHappeningAssetPrices([tslaAsset, ethAsset]));
       expect(mockUsePerpsLivePrices).toHaveBeenCalledWith(
         expect.objectContaining({
           symbols: expect.arrayContaining(['xyz:TSLA', 'ETH']),
@@ -130,8 +123,7 @@ describe('useWhatsHappeningAssetPrices', () => {
   });
 
   it('does not include token-only assets (no hlPerpsMarket) in the symbols list', () => {
-    const item = makeItem([assetNoPerps]);
-    renderHook(() => useWhatsHappeningAssetPrices(item));
+    renderHook(() => useWhatsHappeningAssetPrices([assetNoPerps]));
     expect(mockUsePerpsLivePrices).toHaveBeenCalledWith({
       symbols: [],
       throttleMs: 3000,

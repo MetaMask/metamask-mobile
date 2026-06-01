@@ -3,6 +3,7 @@ import { InteractionManager, Text } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import type { SectionRefreshHandle } from '../../types';
 import HomepageDiscoveryTabs from './HomepageDiscoveryTabs';
+import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
 import { HomeTabNames } from '../../hooks/useTabViewedEvent';
 
 const mockTrackTabViewed = jest.fn();
@@ -86,9 +87,16 @@ jest.mock('../../../../UI/Perps/providers/PerpsConnectionProvider', () => ({
     children,
 }));
 
+const mockPauseAllChannels = jest.fn();
+const mockResumeAllChannels = jest.fn();
+
 jest.mock('../../../../UI/Perps/providers/PerpsStreamManager', () => ({
   PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
     children,
+  getStreamManagerInstance: () => ({
+    pauseAllChannels: mockPauseAllChannels,
+    resumeAllChannels: mockResumeAllChannels,
+  }),
 }));
 
 jest.mock('../../../../UI/Predict/contexts', () => ({
@@ -206,6 +214,18 @@ describe('HomepageDiscoveryTabs', () => {
     });
   });
 
+  describe('Predictions tab', () => {
+    it('passes Predict feed entry point explicitly to embedded PredictFeed', async () => {
+      renderComponent();
+
+      await pressTab('Predictions');
+
+      expect(mockPredictFeedProps.current).toMatchObject({
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+      });
+    });
+  });
+
   describe('walletHeaderOffset prop', () => {
     it('renders without throwing when walletHeaderOffset is provided', () => {
       expect(() => renderComponent({ walletHeaderOffset: 100 })).not.toThrow();
@@ -295,6 +315,79 @@ describe('HomepageDiscoveryTabs', () => {
       await pressTab('Predictions');
       await pressTab('Portfolio');
       expect(mockTrackTabViewed).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  describe('Perps WS pause/resume on tab switch', () => {
+    it('pauses all channels when switching from Portfolio to Predictions', async () => {
+      renderComponent();
+      await pressTab('Predictions');
+      expect(mockPauseAllChannels).toHaveBeenCalledTimes(1);
+      expect(mockResumeAllChannels).not.toHaveBeenCalled();
+    });
+
+    it('pauses all channels when switching from Perpetuals to Predictions', async () => {
+      renderComponent();
+      await pressTab('Perpetuals');
+      mockPauseAllChannels.mockClear();
+      await pressTab('Predictions');
+      expect(mockPauseAllChannels).toHaveBeenCalledTimes(1);
+    });
+
+    it('resumes all channels when switching from Predictions back to Portfolio', async () => {
+      renderComponent();
+      await pressTab('Predictions');
+      mockPauseAllChannels.mockClear();
+      mockResumeAllChannels.mockClear();
+      await pressTab('Portfolio');
+      expect(mockResumeAllChannels).toHaveBeenCalledTimes(1);
+      expect(mockPauseAllChannels).not.toHaveBeenCalled();
+    });
+
+    it('resumes all channels when switching from Predictions to Perpetuals', async () => {
+      renderComponent();
+      await pressTab('Predictions');
+      mockResumeAllChannels.mockClear();
+      await pressTab('Perpetuals');
+      expect(mockResumeAllChannels).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not pause when switching between two Perps-consuming tabs', async () => {
+      renderComponent();
+      await pressTab('Perpetuals');
+      expect(mockPauseAllChannels).not.toHaveBeenCalled();
+      await pressTab('Portfolio');
+      expect(mockPauseAllChannels).not.toHaveBeenCalled();
+    });
+
+    it('does not call resumeAllChannels on unmount when tab layer never paused', async () => {
+      const { unmount } = renderComponent();
+      // Stay on Portfolio — never switched to Predictions
+      act(() => {
+        unmount();
+      });
+      expect(mockResumeAllChannels).not.toHaveBeenCalled();
+    });
+
+    it('calls resumeAllChannels on unmount when tab layer holds a pause', async () => {
+      const { unmount } = renderComponent();
+      await pressTab('Predictions');
+      mockResumeAllChannels.mockClear();
+      act(() => {
+        unmount();
+      });
+      expect(mockResumeAllChannels).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call resumeAllChannels on unmount after returning from Predictions', async () => {
+      const { unmount } = renderComponent();
+      await pressTab('Predictions');
+      await pressTab('Portfolio');
+      mockResumeAllChannels.mockClear();
+      act(() => {
+        unmount();
+      });
+      expect(mockResumeAllChannels).not.toHaveBeenCalled();
     });
   });
 });

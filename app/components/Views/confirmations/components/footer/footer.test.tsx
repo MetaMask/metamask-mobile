@@ -106,11 +106,15 @@ describe('Footer', () => {
     jest.clearAllMocks();
 
     mockUseConfirmationContext.mockReturnValue({
+      headlessBuyError: undefined,
       isFooterVisible: true,
+      isConfirmationSubmitting: false,
       isHeadlessBuyInProgress: false,
       isTransactionDataUpdating: false,
       isTransactionValueUpdating: false,
+      setHeadlessBuyError: jest.fn(),
       setIsFooterVisible: jest.fn(),
+      setIsConfirmationSubmitting: jest.fn(),
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
@@ -158,14 +162,14 @@ describe('Footer', () => {
     });
   });
 
-  it('renders confirm button text "Get signature" if QR signing is in progress', () => {
+  it('renders confirm button text "Confirm" even if QR signing is in progress', () => {
     jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
       isSigningQRObject: true,
     } as QRHardwareHook.QRHardwareContextType);
     const { getByText } = renderWithProvider(<Footer />, {
       state: personalSignatureConfirmationState,
     });
-    expect(getByText('Get signature')).toBeTruthy();
+    expect(getByText('Confirm')).toBeTruthy();
   });
 
   it('confirm button is disabled if `needsCameraPermission` is true', () => {
@@ -218,11 +222,15 @@ describe('Footer', () => {
 
   it('disables confirm button if isTransactionValueUpdating', () => {
     mockUseConfirmationContext.mockReturnValue({
+      headlessBuyError: undefined,
       isFooterVisible: true,
+      isConfirmationSubmitting: false,
       isHeadlessBuyInProgress: false,
       isTransactionDataUpdating: true,
       isTransactionValueUpdating: true,
+      setHeadlessBuyError: jest.fn(),
       setIsFooterVisible: jest.fn(),
+      setIsConfirmationSubmitting: jest.fn(),
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
@@ -279,11 +287,15 @@ describe('Footer', () => {
 
   it('hides footer by default for moneyAccountDeposit transaction type', () => {
     mockUseConfirmationContext.mockReturnValue({
+      headlessBuyError: undefined,
       isFooterVisible: undefined,
+      isConfirmationSubmitting: false,
       isHeadlessBuyInProgress: false,
       isTransactionDataUpdating: false,
       isTransactionValueUpdating: false,
+      setHeadlessBuyError: jest.fn(),
       setIsFooterVisible: jest.fn(),
+      setIsConfirmationSubmitting: jest.fn(),
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
@@ -313,11 +325,15 @@ describe('Footer', () => {
 
   it('hides footer by default for moneyAccountWithdraw transaction type', () => {
     mockUseConfirmationContext.mockReturnValue({
+      headlessBuyError: undefined,
       isFooterVisible: undefined,
+      isConfirmationSubmitting: false,
       isHeadlessBuyInProgress: false,
       isTransactionDataUpdating: false,
       isTransactionValueUpdating: false,
+      setHeadlessBuyError: jest.fn(),
       setIsFooterVisible: jest.fn(),
+      setIsConfirmationSubmitting: jest.fn(),
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
@@ -347,11 +363,15 @@ describe('Footer', () => {
 
   it('hides footer when isFooterVisible is false', () => {
     mockUseConfirmationContext.mockReturnValue({
+      headlessBuyError: undefined,
       isFooterVisible: false,
+      isConfirmationSubmitting: false,
       isHeadlessBuyInProgress: false,
       isTransactionDataUpdating: false,
       isTransactionValueUpdating: false,
+      setHeadlessBuyError: jest.fn(),
       setIsFooterVisible: jest.fn(),
+      setIsConfirmationSubmitting: jest.fn(),
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),

@@ -26,6 +26,7 @@ import {
   setHideZeroBalanceTokens,
   setHapticsEnabled,
 } from '../../../../actions/settings';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import PickComponent from '../../PickComponent';
 import AvatarAccount, {
   AvatarAccountType,
@@ -35,10 +36,12 @@ import { selectCurrentCurrency } from '../../../../selectors/currencyRateControl
 import { analytics } from '../../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
-import Text, {
-  TextVariant,
+import {
+  FontWeight,
+  Text,
   TextColor,
-} from '../../../../component-library/components/Texts/Text';
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { colors as staticColors } from '../../../../styles/common';
@@ -108,13 +111,8 @@ const createStyles = (colors) =>
     accessory: {
       marginTop: 16,
     },
-    picker: {
-      borderColor: colors.border.default,
-      borderRadius: 5,
-      borderWidth: 2,
-    },
     setting: {
-      marginTop: 30,
+      marginTop: 24,
     },
     switch: {
       alignSelf: 'flex-start',
@@ -308,7 +306,7 @@ class Settings extends PureComponent {
   //   return (
   //     <View style={styles.setting}>
   //       <View>
-  //         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+  //         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
   //           {strings('app_settings.theme_title', {
   //             theme: strings(`app_settings.theme_${AppThemeKey[appTheme]}`),
   //           })}
@@ -347,34 +345,34 @@ class Settings extends PureComponent {
         <ScrollView style={styles.content}>
           <View style={styles.inner}>
             <View style={[styles.setting, styles.firstSetting]}>
-              <Text variant={TextVariant.BodyLGMedium}>
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
                 {strings('app_settings.conversion_title')}
               </Text>
               <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
                 style={styles.desc}
               >
                 {strings('app_settings.conversion_desc')}
               </Text>
               <View style={styles.accessory}>
-                <View style={styles.picker}>
-                  <SelectComponent
-                    selectedValue={currentCurrency}
-                    onValueChange={this.selectCurrency}
-                    label={strings('app_settings.current_conversion')}
-                    options={infuraCurrencyOptions}
-                  />
-                </View>
+                <SelectComponent
+                  selectedValue={currentCurrency}
+                  onValueChange={this.selectCurrency}
+                  label={strings('app_settings.current_conversion')}
+                  options={infuraCurrencyOptions}
+                />
               </View>
             </View>
             <View style={styles.setting}>
-              <Text variant={TextVariant.BodyLGMedium}>
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
                 {strings('app_settings.primary_currency_title')}
               </Text>
               <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
                 style={styles.desc}
               >
                 {strings('app_settings.primary_currency_desc')}
@@ -397,56 +395,58 @@ class Settings extends PureComponent {
               )}
             </View>
             <View style={styles.setting}>
-              <Text variant={TextVariant.BodyLGMedium}>
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
                 {strings('app_settings.current_language')}
               </Text>
               <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
                 style={styles.desc}
               >
                 {strings('app_settings.language_desc')}
               </Text>
               {this.languageOptions && (
                 <View style={styles.accessory}>
-                  <View style={styles.picker}>
-                    <SelectComponent
-                      selectedValue={this.state.currentLanguage}
-                      onValueChange={this.selectLanguage}
-                      label={strings('app_settings.current_language')}
-                      options={this.languageOptions}
-                    />
-                  </View>
+                  <SelectComponent
+                    selectedValue={this.state.currentLanguage}
+                    onValueChange={this.selectLanguage}
+                    label={strings('app_settings.current_language')}
+                    options={this.languageOptions}
+                  />
                 </View>
               )}
             </View>
             <View style={styles.setting}>
-              <Text variant={TextVariant.BodyLGMedium}>
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
                 {strings('app_settings.search_engine')}
               </Text>
               <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
                 style={styles.desc}
               >
                 {strings('app_settings.engine_desc')}
               </Text>
               {this.searchEngineOptions && (
                 <View style={styles.accessory}>
-                  <View style={styles.picker}>
-                    <SelectComponent
-                      selectedValue={this.props.searchEngine}
-                      onValueChange={this.selectSearchEngine}
-                      label={strings('app_settings.search_engine')}
-                      options={this.searchEngineOptions}
-                    />
-                  </View>
+                  <SelectComponent
+                    selectedValue={this.props.searchEngine}
+                    onValueChange={this.selectSearchEngine}
+                    label={strings('app_settings.search_engine')}
+                    options={this.searchEngineOptions}
+                  />
                 </View>
               )}
             </View>
             <View style={styles.setting}>
               <View style={styles.titleContainer}>
-                <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  style={styles.title}
+                >
                   {strings('app_settings.hide_zero_balance_tokens_title')}
                 </Text>
                 <View style={styles.toggle}>
@@ -464,8 +464,9 @@ class Settings extends PureComponent {
                 </View>
               </View>
               <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
                 style={styles.desc}
               >
                 {strings('app_settings.hide_zero_balance_tokens_desc')}
@@ -473,7 +474,11 @@ class Settings extends PureComponent {
             </View>
             <View style={styles.setting}>
               <View style={styles.titleContainer}>
-                <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  style={styles.title}
+                >
                   {strings('app_settings.haptic_feedback_title')}
                 </Text>
                 <View style={styles.toggle}>
@@ -491,20 +496,22 @@ class Settings extends PureComponent {
                 </View>
               </View>
               <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
                 style={styles.desc}
               >
                 {strings('app_settings.haptic_feedback_desc')}
               </Text>
             </View>
             <View style={styles.setting}>
-              <Text variant={TextVariant.BodyLGMedium}>
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
                 {strings('app_settings.accounts_identicon_title')}
               </Text>
               <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
                 style={styles.desc}
               >
                 {strings('app_settings.accounts_identicon_desc')}
@@ -531,7 +538,12 @@ class Settings extends PureComponent {
                         size={diameter}
                       />
                     </View>
-                    <Text style={styles.identiconText}>Polycons</Text>
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      style={styles.identiconText}
+                    >
+                      Polycons
+                    </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={() =>
@@ -553,7 +565,10 @@ class Settings extends PureComponent {
                         size={diameter}
                       />
                     </View>
-                    <Text style={styles.identiconText}>
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      style={styles.identiconText}
+                    >
                       {strings('app_settings.jazzicons')}
                     </Text>
                   </TouchableOpacity>
@@ -577,7 +592,10 @@ class Settings extends PureComponent {
                         size={diameter}
                       />
                     </View>
-                    <Text style={styles.identiconText}>
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      style={styles.identiconText}
+                    >
                       {strings('app_settings.blockies')}
                     </Text>
                   </TouchableOpacity>

@@ -48,7 +48,6 @@ jest.mock('react-native-mmkv', () => {
 
   return {
     MMKV,
-    createMMKV: () => createInMemoryMMKV(),
   };
 });
 
@@ -337,6 +336,7 @@ jest.mock('@segment/analytics-react-native', () => {
       IdentifyEvent: 'identify',
     },
     Plugin,
+    EventPlugin: Plugin,
     CountFlushPolicy,
     TimerFlushPolicy,
   };

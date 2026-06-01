@@ -1,7 +1,6 @@
 import { SnapId } from '@metamask/snaps-sdk';
-import { Json, JsonRpcRequest, PendingJsonRpcResponse } from '@metamask/utils';
+import { Json } from '@metamask/utils';
 import ObjectMultiplex from '@metamask/object-multiplex';
-import { JsonRpcEngineNextCallback } from '@metamask/json-rpc-engine';
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { Duplex } from 'stream';
 import SnapBridge from './SnapBridge';
@@ -30,6 +29,16 @@ jest.mock('../Engine/Engine', () => ({
           },
         ];
       }
+    }),
+    delegate: jest.fn().mockImplementation((options) => {
+      options.messenger.call = jest.fn().mockImplementation((action) => {
+        if (action === 'KeyringController:getState') {
+          return {
+            isUnlocked: true,
+            keyrings: [],
+          };
+        }
+      });
     }),
   },
   context: {
@@ -60,9 +69,6 @@ jest.mock('../Engine/Engine', () => ({
           },
         },
       ]),
-    },
-    ApprovalController: {
-      addAndShowApprovalRequest: jest.fn(),
     },
     SelectedNetworkController: {
       getProviderAndBlockTracker: jest.fn().mockReturnValue({

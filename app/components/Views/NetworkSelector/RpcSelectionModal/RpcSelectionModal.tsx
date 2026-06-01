@@ -100,9 +100,7 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
       // Redirect to wallet page
       navigate(Routes.WALLET.HOME, {
         screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
+        params: { screen: Routes.WALLET_VIEW },
       });
     },
     [networkConfigurations, navigate],
