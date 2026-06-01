@@ -4,6 +4,7 @@ import {
   PredictPositionsEmptySelectorsIDs,
   PredictPositionsHistoryListSelectorsIDs,
 } from '../../Predict.testIds';
+import { PredictPositionStatus, type PredictPosition } from '../../types';
 import PredictPositionsHistoryList from './PredictPositionsHistoryList';
 
 jest.mock('../../views/PredictTransactionsView', () => {
@@ -11,10 +12,14 @@ jest.mock('../../views/PredictTransactionsView', () => {
   const { Text, View } = jest.requireActual('react-native');
 
   return function MockPredictTransactionsView({
+    claimPendingPositions,
     emptyState,
+    isPrivacyMode,
     isVisible,
   }: {
+    claimPendingPositions?: PredictPosition[];
     emptyState: React.ReactNode;
+    isPrivacyMode?: boolean;
     isVisible: boolean;
   }) {
     return ReactLib.createElement(
@@ -23,6 +28,17 @@ jest.mock('../../views/PredictTransactionsView', () => {
         testID: 'mock-predict-transactions-view',
       },
       ReactLib.createElement(Text, null, `visible:${isVisible}`),
+      ReactLib.createElement(
+        Text,
+        null,
+        `claim-pending-present:${claimPendingPositions !== undefined}`,
+      ),
+      ReactLib.createElement(
+        Text,
+        null,
+        `claim-pending-count:${claimPendingPositions?.length ?? 0}`,
+      ),
+      ReactLib.createElement(Text, null, `privacy:${Boolean(isPrivacyMode)}`),
       emptyState,
     );
   };
@@ -38,6 +54,32 @@ jest.mock('../PredictPositionsEmpty', () => {
   return function MockPredictPositionsEmpty() {
     return ReactLib.createElement(View, { testID: testIds.CONTAINER });
   };
+});
+
+const createClaimablePosition = (
+  overrides: Partial<PredictPosition> = {},
+): PredictPosition => ({
+  amount: 1,
+  avgPrice: 0.5,
+  cashPnl: 1,
+  claimable: true,
+  currentValue: 4.5,
+  endDate: '2026-05-25T00:00:00.000Z',
+  icon: 'https://example.com/icon.png',
+  id: 'claimable-position',
+  initialValue: 1,
+  marketId: 'market-1',
+  outcome: 'Yes',
+  outcomeId: 'outcome-1',
+  outcomeIndex: 0,
+  outcomeTokenId: 'token-1',
+  percentPnl: 350,
+  price: 0.5,
+  providerId: 'provider-1',
+  size: 1,
+  status: PredictPositionStatus.WON,
+  title: 'Prediction market',
+  ...overrides,
 });
 
 describe('PredictPositionsHistoryList', () => {
@@ -59,5 +101,19 @@ describe('PredictPositionsHistoryList', () => {
     render(<PredictPositionsHistoryList isVisible={false} />);
 
     expect(screen.getByText('visible:false')).toBeOnTheScreen();
+  });
+
+  it('passes claim pending options to transaction history', () => {
+    render(
+      <PredictPositionsHistoryList
+        claimPendingPositions={[createClaimablePosition()]}
+        isPrivacyMode
+        isVisible
+      />,
+    );
+
+    expect(screen.getByText('claim-pending-present:true')).toBeOnTheScreen();
+    expect(screen.getByText('claim-pending-count:1')).toBeOnTheScreen();
+    expect(screen.getByText('privacy:true')).toBeOnTheScreen();
   });
 });

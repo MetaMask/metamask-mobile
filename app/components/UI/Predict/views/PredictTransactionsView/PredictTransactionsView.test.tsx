@@ -2,7 +2,14 @@ import React from 'react';
 import { SectionList, Text } from 'react-native';
 import { act, render, screen, fireEvent } from '@testing-library/react-native';
 import PredictTransactionsView from './PredictTransactionsView';
-import { PredictActivityType } from '../../types';
+import {
+  PredictActivityType,
+  PredictPositionStatus,
+  type PredictPosition,
+} from '../../types';
+import { PredictPositionsHistoryListSelectorsIDs } from '../../Predict.testIds';
+import Routes from '../../../../../constants/navigation/Routes';
+import { PredictEventValues } from '../../constants/eventNames';
 
 /**
  * Mock Strategy:
@@ -25,6 +32,15 @@ interface MockActivityItem {
 // Mock performance measurement hook
 jest.mock('../../hooks/usePredictMeasurement', () => ({
   usePredictMeasurement: jest.fn(),
+}));
+
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
 }));
 
 // Mock Engine for analytics tracking
@@ -100,6 +116,32 @@ describe('PredictTransactionsView', () => {
     ...overrides,
   });
 
+  const createClaimPendingPosition = (
+    overrides: Partial<PredictPosition> = {},
+  ): PredictPosition => ({
+    amount: 1,
+    avgPrice: 0.5,
+    cashPnl: 1,
+    claimable: true,
+    currentValue: 4.5,
+    endDate: '2026-05-25T00:00:00.000Z',
+    icon: 'https://example.com/icon.png',
+    id: 'claimable-position',
+    initialValue: 1,
+    marketId: 'market-1',
+    outcome: 'Yes',
+    outcomeId: 'outcome-1',
+    outcomeIndex: 0,
+    outcomeTokenId: 'token-1',
+    percentPnl: 350,
+    price: 0.5,
+    providerId: 'provider-1',
+    size: 1,
+    status: PredictPositionStatus.WON,
+    title: 'Prediction market',
+    ...overrides,
+  });
+
   it('displays loading indicator when activity data loads', () => {
     (usePredictActivity as jest.Mock).mockReturnValueOnce(
       createUsePredictActivityValue({
@@ -142,6 +184,126 @@ describe('PredictTransactionsView', () => {
 
     expect(screen.getByTestId('custom-empty-state')).toBeOnTheScreen();
     expect(screen.queryByText('No recent activity')).toBeNull();
+  });
+
+  it('does not show claim pending positions when the prop is omitted', () => {
+    (usePredictActivity as jest.Mock).mockReturnValueOnce(
+      createUsePredictActivityValue({
+        data: [],
+        isLoading: false,
+      }),
+    );
+
+    render(<PredictTransactionsView />);
+
+    expect(screen.queryByText('Claim pending')).toBeNull();
+    expect(screen.getByText('No recent activity')).toBeOnTheScreen();
+  });
+
+  it('prepends claim pending positions before date-grouped history', () => {
+    const mockTimestamp = Math.floor(Date.now() / 1000);
+    (usePredictActivity as jest.Mock).mockReturnValueOnce(
+      createUsePredictActivityValue({
+        isLoading: false,
+        data: [
+          {
+            id: 'a1',
+            title: 'Market A',
+            outcome: 'Yes',
+            icon: 'https://example.com/a.png',
+            entry: {
+              type: 'buy',
+              amount: 50,
+              price: 0.34,
+              timestamp: mockTimestamp,
+            },
+          },
+        ],
+      }),
+    );
+
+    render(
+      <PredictTransactionsView
+        claimPendingPositions={[createClaimPendingPosition()]}
+      />,
+    );
+
+    const sectionList = screen.UNSAFE_getByType(SectionList);
+    expect(sectionList.props.sections[0].title).toBe('Claim pending');
+    expect(sectionList.props.sections[0].data[0].kind).toBe('claimPending');
+    expect(
+      screen.getByTestId(
+        PredictPositionsHistoryListSelectorsIDs.CLAIM_PENDING_SECTION,
+      ),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('Prediction won')).toBeOnTheScreen();
+    expect(screen.getByText('Prediction market')).toBeOnTheScreen();
+    expect(screen.getByText('+$4.50')).toBeOnTheScreen();
+    expect(screen.getByTestId('predict-activity-a1')).toBeOnTheScreen();
+  });
+
+  it('shows the claim pending section when transaction history is empty', () => {
+    (usePredictActivity as jest.Mock).mockReturnValueOnce(
+      createUsePredictActivityValue({
+        data: [],
+        isLoading: false,
+      }),
+    );
+
+    render(
+      <PredictTransactionsView
+        claimPendingPositions={[createClaimPendingPosition()]}
+      />,
+    );
+
+    expect(screen.UNSAFE_getByType(SectionList)).toBeTruthy();
+    expect(screen.getByText('Claim pending')).toBeOnTheScreen();
+    expect(screen.queryByText('No recent activity')).toBeNull();
+  });
+
+  it('hides claim pending amounts in privacy mode', () => {
+    (usePredictActivity as jest.Mock).mockReturnValueOnce(
+      createUsePredictActivityValue({
+        data: [],
+        isLoading: false,
+      }),
+    );
+
+    render(
+      <PredictTransactionsView
+        claimPendingPositions={[createClaimPendingPosition()]}
+        isPrivacyMode
+      />,
+    );
+
+    expect(screen.getByText('Prediction won')).toBeOnTheScreen();
+    expect(screen.queryByText('+$4.50')).toBeNull();
+  });
+
+  it('navigates to market details when a claim pending position is pressed', () => {
+    (usePredictActivity as jest.Mock).mockReturnValueOnce(
+      createUsePredictActivityValue({
+        data: [],
+        isLoading: false,
+      }),
+    );
+
+    render(
+      <PredictTransactionsView
+        claimPendingPositions={[createClaimPendingPosition()]}
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(
+        PredictPositionsHistoryListSelectorsIDs.CLAIM_PENDING_ROW,
+      ),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MARKET_DETAILS, {
+      marketId: 'market-1',
+      entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+    });
   });
 
   it('displays all activity items from the activity list', () => {

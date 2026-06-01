@@ -2544,6 +2544,8 @@
       "buy_title": "Predicted",
       "sell_title": "Cashed out",
       "claim_title": "Claimed winnings",
+      "claim_pending": "Claim pending",
+      "prediction_won_title": "Prediction won",
       "buy_detail": "Bought {{amountUsd}} on {{outcome}} · {{priceCents}} per share",
       "sell_detail": "Sold at {{priceCents}} per share",
       "claim_detail": "Claimed winnings",

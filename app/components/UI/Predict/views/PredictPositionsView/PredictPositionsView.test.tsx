@@ -8,6 +8,7 @@ import {
   PredictPositionsHistoryListSelectorsIDs,
   PredictPositionsViewSelectorsIDs,
 } from '../../Predict.testIds';
+import { PredictPositionStatus, type PredictPosition } from '../../types';
 import PredictPositionsView from './PredictPositionsView';
 
 jest.mock('react-native-reanimated', () => {
@@ -42,14 +43,33 @@ jest.mock('../../components/PredictPositionsHistoryList', () => {
     jest.requireActual('../../Predict.testIds');
 
   return function MockPredictPositionsHistoryList({
+    claimPendingPositions,
+    isPrivacyMode,
     isVisible,
   }: {
+    claimPendingPositions?: PredictPosition[];
+    isPrivacyMode?: boolean;
     isVisible: boolean;
   }) {
     return ReactLib.createElement(
       View,
       { testID: testIds.CONTAINER },
       ReactLib.createElement(Text, null, `history-visible:${isVisible}`),
+      ReactLib.createElement(
+        Text,
+        null,
+        `history-claim-pending-present:${claimPendingPositions !== undefined}`,
+      ),
+      ReactLib.createElement(
+        Text,
+        null,
+        `history-claim-pending-count:${claimPendingPositions?.length ?? 0}`,
+      ),
+      ReactLib.createElement(
+        Text,
+        null,
+        `history-privacy:${Boolean(isPrivacyMode)}`,
+      ),
     );
   };
 });
@@ -68,6 +88,32 @@ const mockNavigation = {
 const mockUseNavigation = useNavigation as jest.Mock;
 const mockUseRoute = useRoute as jest.Mock;
 const mockClaim = jest.fn();
+
+const createClaimablePosition = (
+  overrides: Partial<PredictPosition> = {},
+): PredictPosition => ({
+  amount: 1,
+  avgPrice: 0.5,
+  cashPnl: 1,
+  claimable: true,
+  currentValue: 4.5,
+  endDate: '2026-05-25T00:00:00.000Z',
+  icon: 'https://example.com/icon.png',
+  id: 'claimable-position',
+  initialValue: 1,
+  marketId: 'market-1',
+  outcome: 'Yes',
+  outcomeId: 'outcome-1',
+  outcomeIndex: 0,
+  outcomeTokenId: 'token-1',
+  percentPnl: 350,
+  price: 0.5,
+  providerId: 'provider-1',
+  size: 1,
+  status: PredictPositionStatus.WON,
+  title: 'Prediction market',
+  ...overrides,
+});
 
 const createPortfolio = (
   overrides: Partial<PredictPortfolioModel> = {},
@@ -211,6 +257,23 @@ describe('PredictPositionsView', () => {
       ),
     ).toBeOnTheScreen();
     expect(getMountedHistoryVisibilityText(false)).toBeTruthy();
+  });
+
+  it('passes claim pending positions and privacy mode to History', () => {
+    mockPrivacyMode = true;
+    mockUsePredictPortfolio.mockReturnValue(
+      createPortfolio({
+        actionableClaimablePositions: [createClaimablePosition()],
+      }),
+    );
+
+    renderScreen('history');
+
+    expect(
+      screen.getByText('history-claim-pending-present:true'),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('history-claim-pending-count:1')).toBeOnTheScreen();
+    expect(screen.getByText('history-privacy:true')).toBeOnTheScreen();
   });
 
   it('navigates back when the back button is pressed and the stack can go back', () => {

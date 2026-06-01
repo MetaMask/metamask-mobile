@@ -95,6 +95,8 @@ export const PredictPositionsListSelectorsIDs = {
 } as const;
 
 export const PredictPositionsHistoryListSelectorsIDs = {
+  CLAIM_PENDING_SECTION: 'predict-positions-history-claim-pending-section',
+  CLAIM_PENDING_ROW: 'predict-positions-history-claim-pending-row',
   CONTAINER: 'predict-positions-history-list',
 } as const;
 

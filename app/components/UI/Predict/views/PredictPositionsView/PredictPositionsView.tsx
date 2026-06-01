@@ -185,7 +185,11 @@ const PredictPositionsView = () => {
             style={tw.style('flex-1', !isHistoryTabActive && 'hidden')}
             testID={PredictPositionsViewSelectorsIDs.HISTORY_TAB_CONTENT}
           >
-            <PredictPositionsHistoryList isVisible={isHistoryTabActive} />
+            <PredictPositionsHistoryList
+              claimPendingPositions={portfolio.actionableClaimablePositions}
+              isPrivacyMode={Boolean(privacyMode)}
+              isVisible={isHistoryTabActive}
+            />
           </Box>
         </Box>
       </Box>
