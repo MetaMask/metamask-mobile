@@ -267,8 +267,6 @@ const TraderPositionView = () => {
         [SocialLeaderboardEventProperties.TRADER_TRADE_TYPE]: isClosed
           ? SocialLeaderboardEventValues.TRADER_TRADE_TYPE.SELL
           : SocialLeaderboardEventValues.TRADER_TRADE_TYPE.BUY,
-        [SocialLeaderboardEventProperties.TRADE_TYPE]:
-          SocialLeaderboardEventValues.TRADER_TRADE_TYPE.BUY,
       });
     }
   }, [

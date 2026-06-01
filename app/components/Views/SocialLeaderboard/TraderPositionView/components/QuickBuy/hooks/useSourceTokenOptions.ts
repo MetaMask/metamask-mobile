@@ -10,7 +10,11 @@ import { selectAccountsByChainId } from '../../../../../../../selectors/accountT
 import { selectSelectedInternalAccountByScope } from '../../../../../../../selectors/multichainAccounts/accounts';
 import { selectTokensBalances } from '../../../../../../../selectors/tokenBalancesController';
 import { selectTokenMarketData } from '../../../../../../../selectors/tokenRatesController';
-import { selectCurrencyRates } from '../../../../../../../selectors/currencyRateController';
+import {
+  selectCurrencyRates,
+  selectCurrentCurrency,
+} from '../../../../../../../selectors/currencyRateController';
+import { addCurrencySymbol } from '../../../../../../../util/number/bigint';
 import {
   selectMultichainBalances,
   selectMultichainAssetsRates,
@@ -127,6 +131,7 @@ export const useSourceTokenOptions = (
   const tokenBalances = useSelector(selectTokensBalances);
   const tokenMarketData = useSelector(selectTokenMarketData);
   const currencyRates = useSelector(selectCurrencyRates);
+  const currentCurrency = useSelector(selectCurrentCurrency);
 
   // Solana support — keep the whole InternalAccount; multichain balances are
   // keyed by account.id, not address.
@@ -174,7 +179,10 @@ export const useSourceTokenOptions = (
         result.push({
           ...candidate,
           balance: amountStr,
-          balanceFiat: `$${fiatValue.toFixed(2)}`,
+          balanceFiat: addCurrencySymbol(
+            fiatValue.toFixed(2),
+            currentCurrency as Parameters<typeof addCurrencySymbol>[1],
+          ),
           tokenFiatAmount: fiatValue,
           currencyExchangeRate: rateNum,
         });
@@ -261,7 +269,10 @@ export const useSourceTokenOptions = (
       result.push({
         ...candidate,
         balance: displayBalance,
-        balanceFiat: `$${fiatValue.toFixed(2)}`,
+        balanceFiat: addCurrencySymbol(
+          fiatValue.toFixed(2),
+          currentCurrency as Parameters<typeof addCurrencySymbol>[1],
+        ),
         tokenFiatAmount: fiatValue,
         currencyExchangeRate: exchangeRate ?? undefined,
       });
@@ -279,6 +290,7 @@ export const useSourceTokenOptions = (
     tokenBalances,
     tokenMarketData,
     currencyRates,
+    currentCurrency,
     allNetworkConfigs,
   ]);
 
@@ -287,14 +299,143 @@ export const useSourceTokenOptions = (
 
 /**
  * Returns the list of stable token options for the Sell "Receive with" picker.
- * Unlike `useSourceTokenOptions`, this does NOT filter by user balance —
- * the user can receive into any stable, including ones they don't yet hold.
+ * All stable candidates are returned regardless of user balance (the user can
+ * receive into any stable, including ones they don't yet hold).
+ * Tokens the user holds are enriched with balance + fiat data so the row can
+ * display them; tokens they don't hold show "—" in the row.
  * Stables on the `preferredChainId` are sorted to the top.
  */
 export const useSellDestTokenOptions = (
   preferredChainId: string | undefined,
-): BridgeToken[] =>
-  useMemo(
+): BridgeToken[] => {
+  const candidates = useMemo(
     () => getSellDestTokenCandidates(preferredChainId),
     [preferredChainId],
   );
+
+  const accountAddress = useSelector(
+    (state: RootState) =>
+      selectSelectedInternalAccountByScope(state)(EVM_SCOPE)?.address,
+  );
+  const accountsByChainId = useSelector(selectAccountsByChainId);
+  const tokenBalances = useSelector(selectTokensBalances);
+  const tokenMarketData = useSelector(selectTokenMarketData);
+  const currencyRates = useSelector(selectCurrencyRates);
+  const currentCurrency = useSelector(selectCurrentCurrency);
+  const allNetworkConfigs = useSelector(
+    (state: RootState) =>
+      state.engine.backgroundState.NetworkController
+        .networkConfigurationsByChainId,
+  );
+
+  return useMemo(() => candidates.map((candidate) => {
+      // Stables are EVM-only in STABLECOIN_CANDIDATES, so skip Solana branch.
+      if (!accountAddress) {
+        return {
+          ...candidate,
+          balance: '0',
+          balanceFiat: addCurrencySymbol(
+            '0.00',
+            currentCurrency as Parameters<typeof addCurrencySymbol>[1],
+          ),
+          tokenFiatAmount: 0,
+          currencyExchangeRate: 1.0,
+        };
+      }
+
+      const chainId = candidate.chainId as Hex;
+      const rawBalance = getCachedErc20Balance(
+        tokenBalances,
+        accountAddress,
+        chainId,
+        candidate.address,
+      );
+
+      if (!hasNonZeroHexBalance(rawBalance)) {
+        // Show $0.00 for stables the user doesn't hold — we know their price.
+        return {
+          ...candidate,
+          balance: '0',
+          balanceFiat: addCurrencySymbol(
+            '0.00',
+            currentCurrency as Parameters<typeof addCurrencySymbol>[1],
+          ),
+          tokenFiatAmount: 0,
+          currencyExchangeRate: 1.0,
+        };
+      }
+
+      let displayBalance: string;
+      try {
+        displayBalance = formatUnits(rawBalance, candidate.decimals);
+      } catch {
+        return {
+          ...candidate,
+          balance: '0',
+          balanceFiat: addCurrencySymbol(
+            '0.00',
+            currentCurrency as Parameters<typeof addCurrencySymbol>[1],
+          ),
+          tokenFiatAmount: 0,
+          currencyExchangeRate: 1.0,
+        };
+      }
+
+      const balanceNum = parseFloat(displayBalance);
+      if (isNaN(balanceNum) || balanceNum <= 0) {
+        return {
+          ...candidate,
+          balance: '0',
+          balanceFiat: addCurrencySymbol(
+            '0.00',
+            currentCurrency as Parameters<typeof addCurrencySymbol>[1],
+          ),
+          tokenFiatAmount: 0,
+          currencyExchangeRate: 1.0,
+        };
+      }
+
+      const networkConfig = allNetworkConfigs?.[chainId];
+      const nativeTicker = networkConfig?.nativeCurrency;
+      const nativeConversionRate = nativeTicker
+        ? (currencyRates?.[nativeTicker]?.usdConversionRate ?? 0)
+        : 0;
+
+      const tokenPrice =
+        tokenMarketData?.[chainId as `0x${string}`]?.[
+          candidate.address.toLowerCase() as `0x${string}`
+        ]?.price ??
+        tokenMarketData?.[chainId as `0x${string}`]?.[
+          candidate.address as `0x${string}`
+        ]?.price;
+
+      let exchangeRate: number;
+      if (tokenPrice !== undefined && nativeConversionRate > 0) {
+        exchangeRate = tokenPrice * nativeConversionRate;
+      } else {
+        // Stablecoins: fall back to $1.00 when price data is unavailable.
+        exchangeRate = 1.0;
+      }
+
+      const fiatValue = balanceNum * exchangeRate;
+
+      return {
+        ...candidate,
+        balance: displayBalance,
+        balanceFiat: addCurrencySymbol(
+          fiatValue.toFixed(2),
+          currentCurrency as Parameters<typeof addCurrencySymbol>[1],
+        ),
+        tokenFiatAmount: fiatValue,
+        currencyExchangeRate: exchangeRate,
+      };
+    }), [
+    candidates,
+    accountAddress,
+    tokenBalances,
+    tokenMarketData,
+    currencyRates,
+    currentCurrency,
+    allNetworkConfigs,
+  ]);
+};
