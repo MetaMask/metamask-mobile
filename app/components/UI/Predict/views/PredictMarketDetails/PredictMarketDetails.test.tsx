@@ -798,6 +798,31 @@ describe('PredictMarketDetails', () => {
       expect(screen.getByText(mockMarket.title)).toBeOnTheScreen();
     });
 
+    it('tracks market details opened with explore entry point from route params', async () => {
+      setupPredictMarketDetailsTest(
+        {},
+        {
+          params: {
+            marketId: 'market-1',
+            entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
+          },
+        },
+      );
+
+      const trackMarketDetailsOpened =
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        require('../../../../../core/Engine').context.PredictController
+          .trackMarketDetailsOpened;
+
+      await waitFor(() => {
+        expect(trackMarketDetailsOpened).toHaveBeenCalledWith(
+          expect.objectContaining({
+            entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
+          }),
+        );
+      });
+    });
+
     it('displays loading state when market is fetching', () => {
       setupPredictMarketDetailsTest(
         {},

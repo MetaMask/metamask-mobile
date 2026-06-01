@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
+import { TimeOption } from '../../../../UI/Trending/components/TrendingTokensBottomSheet';
 import CryptoMoversPillItem from './CryptoMoversPillItem';
 
 const mockOnPress = jest.fn();
@@ -32,7 +33,7 @@ describe('CryptoMoversPillItem', () => {
     expect(mockOnPress).toHaveBeenCalledTimes(1);
   });
 
-  it('omits change label when 24h change is missing or not a number', () => {
+  it('omits change label when selected interval change is missing or not a number', () => {
     const { queryByText, rerender } = render(
       <CryptoMoversPillItem token={baseToken} index={0} />,
     );
@@ -52,11 +53,12 @@ describe('CryptoMoversPillItem', () => {
     expect(queryByText(/%/)).toBeNull();
   });
 
-  it('renders zero and signed positive and negative 24h changes', () => {
+  it('renders zero and signed positive and negative changes for the selected interval', () => {
     const { getByText, rerender } = render(
       <CryptoMoversPillItem
-        token={{ ...baseToken, priceChangePct: { h24: '0' } } as TrendingAsset}
+        token={{ ...baseToken, priceChangePct: { h1: '0' } } as TrendingAsset}
         index={0}
+        timeOption={TimeOption.OneHour}
       />,
     );
     expect(getByText('0.00%')).toBeTruthy();
@@ -64,9 +66,10 @@ describe('CryptoMoversPillItem', () => {
     rerender(
       <CryptoMoversPillItem
         token={
-          { ...baseToken, priceChangePct: { h24: '2.51' } } as TrendingAsset
+          { ...baseToken, priceChangePct: { h1: '2.51' } } as TrendingAsset
         }
         index={0}
+        timeOption={TimeOption.OneHour}
       />,
     );
     expect(getByText('+2.51%')).toBeTruthy();
@@ -74,9 +77,10 @@ describe('CryptoMoversPillItem', () => {
     rerender(
       <CryptoMoversPillItem
         token={
-          { ...baseToken, priceChangePct: { h24: '-1.2' } } as TrendingAsset
+          { ...baseToken, priceChangePct: { h1: '-1.2' } } as TrendingAsset
         }
         index={0}
+        timeOption={TimeOption.OneHour}
       />,
     );
     expect(getByText('-1.20%')).toBeTruthy();
