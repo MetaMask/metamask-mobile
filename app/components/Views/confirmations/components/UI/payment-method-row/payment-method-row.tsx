@@ -76,7 +76,9 @@ const PaymentMethodRow = ({
       <Box
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
-        twClassName="w-10 h-10 rounded-full bg-section"
+        twClassName={`w-10 h-10 rounded-full ${
+          isSelected ? 'bg-muted' : 'bg-section'
+        }`}
         testID={iconSlotTestID}
       >
         {icon}

@@ -118,10 +118,6 @@ module.exports = function (baseConfig) {
           net: require.resolve('react-native-tcp-socket'),
           fs: require.resolve('react-native-level-fs'),
           images: path.resolve(__dirname, 'app/images'),
-          '@metamask/perps-controller': path.resolve(
-            __dirname,
-            'app/controllers/perps',
-          ),
           'base64-js': 'react-native-quick-base64',
           base64: 'react-native-quick-base64',
           'js-base64': 'react-native-quick-base64',
@@ -129,6 +125,16 @@ module.exports = function (baseConfig) {
           'node:buffer': '@craftzdog/react-native-buffer',
         },
         resolveRequest: (context, moduleName, platform) => {
+          // MYXProvider is intentionally excluded from @metamask/perps-controller's
+          // published dist (extension-only). The dynamic import() uses webpackIgnore
+          // but babel's dynamicImportToRequire rewrites it to require(), causing Metro
+          // to resolve it statically. Return an empty module stub.
+          if (
+            moduleName === './providers/MYXProvider' &&
+            context.originModulePath?.includes('@metamask/perps-controller')
+          ) {
+            return { type: 'empty' };
+          }
           // @ledgerhq packages use exports field subpath mapping (e.g. ./signers/index -> ./lib/signers/index.js)
           // which doesn't work with unstable_enablePackageExports: false — manually replicate the lib/ mapping
           // Affected: domain-service, evm-tools, devices, cryptoassets-evm-signatures

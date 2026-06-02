@@ -25,10 +25,12 @@ import { useTheme } from '../../../../../util/theme';
 
 interface TokenDetailsListProps {
   tokenDetails: TokenDetails;
+  onCopyAddress?: () => void;
 }
 
 const TokenDetailsList: React.FC<TokenDetailsListProps> = ({
   tokenDetails,
+  onCopyAddress,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const { toastRef } = useContext(ToastContext);
@@ -37,6 +39,7 @@ const TokenDetailsList: React.FC<TokenDetailsListProps> = ({
 
   const copyAccountToClipboard = async () => {
     await ClipboardManager.setString(tokenDetails.contractAddress);
+    onCopyAddress?.();
 
     toastRef?.current?.showToast({
       variant: ToastVariants.Icon,

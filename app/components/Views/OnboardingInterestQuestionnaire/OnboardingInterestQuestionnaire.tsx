@@ -4,9 +4,9 @@ import {
   Image,
   type ImageSourcePropType,
   Platform,
-  Pressable,
   ScrollView,
   StatusBar,
+  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, type RouteProp } from '@react-navigation/native';
@@ -21,8 +21,9 @@ import {
   TextColor,
   FontWeight,
   BoxFlexDirection,
-  BoxAlignItems,
+  BoxFlexWrap,
 } from '@metamask/design-system-react-native';
+import { InterestSelectionIndicator } from './InterestSelectionIndicator';
 import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -85,6 +86,9 @@ const INTEREST_OPTION_IMAGES: Record<InterestOptionId, ImageSourcePropType> = {
   crypto_as_money: cryptoAsMoneyImage,
   connect_apps_sites: connectAppsSitesImage,
 };
+
+/** 8px gutters between 2-column grid cells (4px padding per column side). */
+const GRID_GUTTER_PX = 4;
 
 const OnboardingInterestQuestionnaire = () => {
   const tw = useTailwind();
@@ -195,49 +199,57 @@ const OnboardingInterestQuestionnaire = () => {
         contentContainerStyle={tw.style('px-4 pb-4')}
         showsVerticalScrollIndicator={false}
       >
-        {INTEREST_OPTIONS.map((option) => {
-          const isSelected = selectedIds.has(option.id);
-          return (
-            <Pressable
-              key={option.id}
-              onPress={() => toggleOption(option.id)}
-              style={({ pressed }) =>
-                tw.style(
-                  'rounded-xl px-3 py-3 mt-2 bg-background-muted',
-                  isSelected
-                    ? 'border border-border-default'
-                    : 'border border-transparent',
-                  pressed && 'opacity-70',
-                )
-              }
-              testID={`${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}${option.id}`}
-              accessibilityRole="checkbox"
-              accessibilityState={{ checked: isSelected }}
-            >
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          flexWrap={BoxFlexWrap.Wrap}
+          style={tw.style('py-2', { marginHorizontal: -GRID_GUTTER_PX })}
+        >
+          {INTEREST_OPTIONS.map((option) => {
+            const isSelected = selectedIds.has(option.id);
+            return (
               <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                gap={3}
+                key={option.id}
+                style={tw.style({
+                  width: '50%',
+                  paddingHorizontal: GRID_GUTTER_PX,
+                  marginBottom: GRID_GUTTER_PX * 2,
+                })}
               >
-                <Image
-                  source={INTEREST_OPTION_IMAGES[option.id]}
-                  style={tw.style('h-10 w-10')}
-                  resizeMode="contain"
-                  accessibilityElementsHidden
-                  importantForAccessibility="no-hide-descendants"
-                />
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextDefault}
-                  twClassName="shrink flex-1"
+                <TouchableOpacity
+                  onPress={() => toggleOption(option.id)}
+                  style={tw.style(
+                    'relative h-[120px] w-full rounded-xl bg-background-muted',
+                    isSelected
+                      ? 'border border-border-default bg-background-muted-hover'
+                      : 'border border-muted',
+                  )}
+                  testID={`${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}${option.id}`}
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: isSelected }}
                 >
-                  {strings(option.labelKey)}
-                </Text>
+                  <Box style={tw.style('absolute top-3 right-3')}>
+                    <InterestSelectionIndicator isSelected={isSelected} />
+                  </Box>
+                  <Image
+                    source={INTEREST_OPTION_IMAGES[option.id]}
+                    style={tw.style('absolute top-3 left-3 h-10 w-10')}
+                    resizeMode="contain"
+                    accessibilityElementsHidden
+                    importantForAccessibility="no-hide-descendants"
+                  />
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
+                    color={TextColor.TextDefault}
+                    style={tw.style('absolute bottom-3 left-3 right-3')}
+                  >
+                    {strings(option.labelKey)}
+                  </Text>
+                </TouchableOpacity>
               </Box>
-            </Pressable>
-          );
-        })}
+            );
+          })}
+        </Box>
       </ScrollView>
 
       <Box twClassName="px-4 py-2">

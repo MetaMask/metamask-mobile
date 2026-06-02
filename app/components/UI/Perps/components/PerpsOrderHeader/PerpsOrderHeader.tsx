@@ -145,22 +145,21 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
       {Boolean(orderType) && (
         <TouchableOpacity
           onPress={handleOrderTypePress}
+          style={styles.marketButton}
           testID={PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON}
           disabled={isLoading}
         >
-          <View style={styles.marketButton}>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-              {orderType === 'market'
-                ? strings('perps.order.market')
-                : strings('perps.order.limit')}
-            </Text>
-            <Icon
-              name={IconName.ArrowDown}
-              size={IconSize.Xs}
-              color={IconColor.Default}
-              style={styles.marketButtonIcon}
-            />
-          </View>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+            {orderType === 'market'
+              ? strings('perps.order.market')
+              : strings('perps.order.limit')}
+          </Text>
+          <Icon
+            name={IconName.ArrowDown}
+            size={IconSize.Xs}
+            color={IconColor.Default}
+            style={styles.marketButtonIcon}
+          />
         </TouchableOpacity>
       )}
     </View>

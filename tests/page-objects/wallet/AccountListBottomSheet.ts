@@ -278,7 +278,10 @@ class AccountListBottomSheet {
     });
   }
 
-  async tapAccountByNameV2(accountName: string): Promise<void> {
+  async tapAccountByNameV2(
+    accountName: string,
+    exactMatch: boolean = false,
+  ): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
         const accountEl = this.getAccountElementByAccountNameV2(accountName);
@@ -287,8 +290,10 @@ class AccountListBottomSheet {
         });
       },
       appium: async () => {
-        const accountEl =
-          await PlaywrightMatchers.getElementByText(accountName);
+        const accountEl = await PlaywrightMatchers.getElementByText(
+          accountName,
+          exactMatch,
+        );
         await PlaywrightGestures.scrollIntoView(accountEl);
         await PlaywrightGestures.waitAndTap(accountEl);
       },
@@ -360,7 +365,7 @@ class AccountListBottomSheet {
    * @param timeout - The timeout in milliseconds.
    * @returns {Promise<void>} Resolves when the account sync is complete.
    */
-  async waitForAccountSyncToComplete(timeout = 60000): Promise<void> {
+  async waitForAccountSyncToComplete(timeout = 90000): Promise<void> {
     logger.debug('⏳ waitForSyncingToComplete: Starting...');
     const startTime = Date.now();
     const pollInterval = 500;

@@ -8348,8 +8348,6 @@
     "report_submitted": "Hata raporu gönderildi."
   },
   "pay_with_modal": {
-    "title": "Ödeme yöntemi seç",
-    "title_receive": "Token al seçeneğini seç",
     "no_gas": "Gaz için yerel bakiye yok",
     "not_supported": "Desteklenmiyor",
     "crypto": "Kripto"
@@ -8457,13 +8455,14 @@
     "main_title": "Ödüller",
     "vip": {
       "bps_unit": "bps",
+      "badge_label": "VIP Fox {{tier}}",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
       "error_title": "We couldn’t load your VIP dashboard",
       "error_description": "Check your connection and try again.",
       "retry_button": "Retry",
       "tiers_title": "Tiers",
-      "tier_thresholds": "{{points}} total",
+      "tier_thresholds": "{{points}} points",
       "bps_value": "{{bps}} bps",
       "equity_rebate_label": "Equity rebate",
       "equity_rebate_header": "Equity rebate: {{value}}%",
@@ -8900,7 +8899,7 @@
       "stats_notional_volume_threshold": "{{amount}}$ gereklidir",
       "stats_qualified_title": "Uygunsunuz",
       "stats_qualified_description": "Yarışma sona ermeden Kazanç/Zarar durumunuzu iyileştirmek ve liderlik tablosunda yükselmek için işlem yapmaya devam edin.",
-      "stats_qualify_for_rank_title": "Bu sıralama için uygunluk kazanın",
+      "stats_qualify_for_rank_title": "Liderlik tablosu için uygunluk kazanın",
       "stats_qualify_for_rank_description": "Uygunluk kazanmak için {{notionalRemaining}} daha nominal hacimli işlem yapın.",
       "stats_error_title": "İstatistikler yüklenemiyor",
       "stats_error_description": "İstatistikleriniz yüklenirken bir problem yaşadık. Lütfen tekrar deneyin.",

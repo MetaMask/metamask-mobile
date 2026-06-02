@@ -187,7 +187,7 @@ const getPredictMarketStalenessPenalty = (
   market: PredictMarket,
   options?: PredictMarketStalenessOptions,
 ): number => {
-  if (market.isHighlighted) {
+  if (market.isHighlighted || isGameMarket(market)) {
     return 1;
   }
 
@@ -211,6 +211,10 @@ export const getVisiblePredictMarket = (
 
   if (isPredictMarketExpiredByTime(market, options)) {
     return null;
+  }
+
+  if (isGameMarket(market)) {
+    return market;
   }
 
   return filterVisibleMarketOutcomes(market);

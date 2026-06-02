@@ -30,7 +30,8 @@ import { PredictEventValues } from '../../constants/eventNames';
 import { getLeagueConfig } from '../../constants/sportLeagueConfigs';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { useLiveGameUpdates } from '../../hooks/useLiveGameUpdates';
-import { usePredictEntryPoint, usePredictPreviewSheet } from '../../contexts';
+import { usePredictPreviewSheet } from '../../contexts';
+import { useResolvedPredictEntryPoint } from '../../hooks/useResolvedPredictEntryPoint';
 import {
   PredictMarket as PredictMarketType,
   PredictMarketGame,
@@ -45,7 +46,6 @@ import {
 } from '../../types/navigation';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { parseScore } from '../../utils/gameParser';
-import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import PredictSportTeamLogo from '../PredictSportTeamLogo/PredictSportTeamLogo';
 import PulsingLiveDot from '../PulsingLiveDot/PulsingLiveDot';
 
@@ -230,21 +230,11 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
-  const contextEntryPoint = usePredictEntryPoint();
+  const resolvedEntryPoint = useResolvedPredictEntryPoint(propEntryPoint);
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { openBuySheet } = usePredictPreviewSheet();
   const { executeGuardedAction } = usePredictActionGuard({ navigation });
-
-  const baseEntryPoint =
-    contextEntryPoint ??
-    propEntryPoint ??
-    PredictEventValues.ENTRY_POINT.PREDICT_FEED;
-
-  const resolvedEntryPoint = TrendingFeedSessionManager.getInstance()
-    .isFromTrending
-    ? PredictEventValues.ENTRY_POINT.TRENDING
-    : baseEntryPoint;
 
   const game = market.game as PredictMarketGame | undefined;
   const config = game ? getLeagueConfig(game.league) : undefined;
