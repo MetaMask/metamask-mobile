@@ -72,13 +72,6 @@ type CapturedOnCodeScanned = NonNullable<
 >;
 type QRScannerCodes = Parameters<CapturedOnCodeScanned>[0];
 
-const expectCapturedCallback = <TCallback>(
-  callback: TCallback | null,
-): NonNullable<TCallback> => {
-  expect(callback).toEqual(expect.any(Function));
-  return callback as NonNullable<TCallback>;
-};
-
 function setupSuccessfulDecoder(urType = SUPPORTED_UR_TYPE.CRYPTO_HDKEY) {
   const instance = {
     receivePart: jest.fn(),
