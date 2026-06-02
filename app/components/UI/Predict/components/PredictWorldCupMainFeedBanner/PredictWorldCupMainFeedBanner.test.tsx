@@ -63,6 +63,18 @@ describe('PredictWorldCupMainFeedBanner', () => {
     ).toBeOnTheScreen();
   });
 
+  it('uses the compact image dimensions when compact', () => {
+    const { getByTestId } = render(
+      <PredictWorldCupMainFeedBanner variant="compact" />,
+    );
+    const image = getByTestId(PredictWorldCupMainFeedBannerSelectorsIDs.IMAGE);
+
+    expect(StyleSheet.flatten(image.props.style)).toMatchObject({
+      height: 80,
+      width: 80,
+    });
+  });
+
   it('uses the remote banner image URL and configured dimensions when configured', () => {
     const bannerImageUrl = 'https://example.com/world-cup-banner.png';
     mockUseSelector.mockReturnValue({
