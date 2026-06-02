@@ -18,18 +18,13 @@ export const MAX_MESSAGE_LENGTH = 16 * 1024;
  * future hosts. Anything outside the list is opened in the OS browser.
  */
 const ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
-  /^http:\/\/10\.0\.2\.2(?::\d+)?$/,
-  /^http:\/\/localhost(?::\d+)?$/,
   /^https:\/\/link\.metamask\.io$/,
   /^https:\/\/developer\.metamask\.io$/,
   /^https:\/\/test-dashboard\.web3auth\.io$/,
   /^https:\/\/auth\.web3auth\.io$/,
   /^https:\/\/js\.stripe\.com$/,
   /^https:\/\/[a-z0-9.-]+\.stripe\.network$/,
-  /^https:\/\/metamask-developer-dashboard-web-staging\.vercel\.app$/,
-  /^https:\/\/dauh7948dneg6\.cloudfront\.net$/,
   /^https:\/\/[a-z0-9-]+\.cx\.metamask\.io$/,
-  /^https:\/\/[a-z0-9-]+\.ngrok-free\.app$/,
 ];
 
 const isOriginAllowed = (origin: string): boolean =>
