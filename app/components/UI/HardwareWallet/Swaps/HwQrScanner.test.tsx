@@ -279,8 +279,8 @@ describe('HwQrScanner', () => {
         getByText('Try scanning a Keystone signature QR.'),
       ).toBeOnTheScreen();
 
-      fireEvent.press(getByTestId('hw-qr-scanner-learn-more-button'));
-      fireEvent.press(getByTestId('hw-qr-scanner-try-again-button'));
+      fireEvent.press(getByTestId(HwQrScannerSelectorsIDs.LEARN_MORE_BUTTON));
+      fireEvent.press(getByTestId(HwQrScannerSelectorsIDs.TRY_AGAIN_BUTTON));
 
       expect(Linking.openURL).toHaveBeenCalledWith(
         'https://support.metamask.io/more-web3/wallets/hardware-wallet-hub/#qr-codean-gapped-wallets',
@@ -297,7 +297,9 @@ describe('HwQrScanner', () => {
 
       const { getByTestId, queryByText } = render(<HwQrScanner />);
 
-      expect(getByTestId('hw-qr-scanner-try-again-button')).toBeOnTheScreen();
+      expect(
+        getByTestId(HwQrScannerSelectorsIDs.TRY_AGAIN_BUTTON),
+      ).toBeOnTheScreen();
       expect(queryByText('Wrong QR code')).toBeNull();
     });
 
@@ -313,7 +315,9 @@ describe('HwQrScanner', () => {
 
       expect(getByText('transaction.no_camera_permission')).toBeOnTheScreen();
 
-      fireEvent.press(getByTestId('hw-qr-scanner-open-settings-button'));
+      fireEvent.press(
+        getByTestId(HwQrScannerSelectorsIDs.OPEN_SETTINGS_BUTTON),
+      );
 
       expect(Linking.openSettings).toHaveBeenCalledTimes(1);
     });

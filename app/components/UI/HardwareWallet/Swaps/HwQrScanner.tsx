@@ -190,7 +190,7 @@ export function HwQrScanner() {
               variant={ButtonVariant.Secondary}
               size={ButtonBaseSize.Lg}
               isFullWidth
-              testID="hw-qr-scanner-learn-more-button"
+              testID={HwQrScannerSelectorsIDs.LEARN_MORE_BUTTON}
               onPress={handleLearnMore}
             >
               {strings('hardware_wallet.common.learn_more')}
@@ -199,7 +199,7 @@ export function HwQrScanner() {
               variant={ButtonVariant.Primary}
               size={ButtonBaseSize.Lg}
               isFullWidth
-              testID="hw-qr-scanner-try-again-button"
+              testID={HwQrScannerSelectorsIDs.TRY_AGAIN_BUTTON}
               onPress={reset}
             >
               {strings('hardware_wallet.common.try_again')}
@@ -229,7 +229,7 @@ export function HwQrScanner() {
               variant={ButtonVariant.Secondary}
               size={ButtonBaseSize.Lg}
               isFullWidth
-              testID="hw-qr-scanner-open-settings-button"
+              testID={HwQrScannerSelectorsIDs.OPEN_SETTINGS_BUTTON}
               onPress={handleOpenSettings}
             >
               {strings('qr_scanner.open_settings')}
