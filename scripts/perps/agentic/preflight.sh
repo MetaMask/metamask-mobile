@@ -1197,10 +1197,12 @@ step "Connecting CDP" "Waiting for app to expose debug target"
 stage_log "$CDP_LOG"
 printf '$ node %s/cdp-bridge.js status\n' "$SCRIPTS" > "$CDP_LOG"
 CDP_START=$(date +%s)
+CDP_CONNECTED=false
 while [ $(( $(date +%s) - CDP_START )) -lt "$CDP_WAIT_TIMEOUT" ]; do
   CDP_STATUS_OUTPUT=$(CDP_TIMEOUT="$CDP_STATUS_TIMEOUT_MS" CDP_DISCOVERY_RETRIES="$CDP_DISCOVERY_RETRIES" node "$SCRIPTS/cdp-bridge.js" status 2>&1 || true)
   printf '[attempt %s]\n%s\n' "$((CDP_RETRY + 1))" "$CDP_STATUS_OUTPUT" >>"$CDP_LOG"
   if echo "$CDP_STATUS_OUTPUT" | grep -q '"route"' 2>/dev/null; then
+    CDP_CONNECTED=true
     ok "CDP connected"
     break
   fi
@@ -1209,7 +1211,7 @@ while [ $(( $(date +%s) - CDP_START )) -lt "$CDP_WAIT_TIMEOUT" ]; do
   [ $CDP_RETRY -eq 5 ] && echo -e "  ${DIM}Still waiting... app may still be loading JS bundle${NC}"
   [ $CDP_RETRY -eq 15 ] && echo -e "  ${DIM}Taking longer than usual — check device${NC}"
 done
-if [ $(( $(date +%s) - CDP_START )) -ge "$CDP_WAIT_TIMEOUT" ]; then
+if ! $CDP_CONNECTED; then
   # Diagnostic: probe candidate ports before failing. The symptom we hit most
   # often is the app registering its Hermes inspector on 8081 instead of our
   # $PORT when a stale expo dev server lingers — surface that explicitly so we
