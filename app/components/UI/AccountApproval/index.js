@@ -155,9 +155,10 @@ class AccountApproval extends PureComponent {
 
     const { currentPageInformation } = this.props;
 
+    // Pass the full URL (including path) to the dapp-scanning check so the
+    // scanner can evaluate it, rather than reducing it to the hostname.
     const prefixedUrl = prefixUrlWithProtocol(currentPageInformation?.url);
-    const { hostname } = new URL(prefixedUrl);
-    this.checkUrlFlaggedAsPhishing(hostname);
+    this.checkUrlFlaggedAsPhishing(prefixedUrl);
 
     analytics.trackEvent(
       AnalyticsEventBuilder.createEventBuilder(
@@ -287,8 +288,8 @@ class AccountApproval extends PureComponent {
     });
   };
 
-  checkUrlFlaggedAsPhishing = async (hostname) => {
-    const scanResult = await getPhishingTestResultAsync(hostname);
+  checkUrlFlaggedAsPhishing = async (url) => {
+    const scanResult = await getPhishingTestResultAsync(url);
     if (this._isMounted) {
       this.setState({
         isUrlFlaggedAsPhishing: scanResult.result,
