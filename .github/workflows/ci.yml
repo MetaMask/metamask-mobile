@@ -23,11 +23,11 @@ on:
         required: false
         default: current
       pr_number:
-        description: "PR number (shadow correlation, optional)"
+        description: 'PR number (shadow correlation, optional)'
         type: string
         required: false
       head_sha:
-        description: "PR head SHA (shadow correlation, optional)"
+        description: 'PR head SHA (shadow correlation, optional)'
         type: string
         required: false
   workflow_dispatch:
@@ -41,11 +41,11 @@ on:
           - namespace
         default: current
       pr_number:
-        description: "PR number (shadow correlation, optional)"
+        description: 'PR number (shadow correlation, optional)'
         required: false
         type: string
       head_sha:
-        description: "PR head SHA (shadow correlation, optional)"
+        description: 'PR head SHA (shadow correlation, optional)'
         required: false
         type: string
 
@@ -1013,7 +1013,7 @@ jobs:
       }}
     needs: [smart-e2e-selection]
     permissions:
-      contents: read
+      contents: write
       id-token: write
       actions: write
     uses: ./.github/workflows/run-performance-e2e.yml
