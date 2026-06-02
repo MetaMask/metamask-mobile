@@ -7,10 +7,22 @@ import {
 } from './HardwareWalletsSwaps.state';
 
 interface StepTitleOptions {
+  /** Token amount displayed in the step title. */
   amount?: string;
+  /** Token symbol displayed in the step title. */
   tokenSymbol?: string;
 }
 
+/**
+ * Returns the localized title for a hardware wallet swap progress step.
+ *
+ * Title text varies by step kind (approval vs transaction) and status
+ * (waiting, signing, signed, or rejected).
+ *
+ * @param step - The swap step to render.
+ * @param options - Optional amount and token symbol for transaction titles.
+ * @returns Localized step title string.
+ */
 export function getStepTitle(
   step: HardwareWalletsSwapsStep,
   options?: StepTitleOptions,
@@ -52,6 +64,15 @@ export function getStepTitle(
   });
 }
 
+/**
+ * Returns the localized secondary description for a swap progress step.
+ *
+ * Rejected steps show a generic rejection message. Approval steps show the
+ * spender address when available; transaction steps show the recipient address.
+ *
+ * @param step - The swap step to render.
+ * @returns Localized description, or `undefined` when no description applies.
+ */
 export function getStepDescription(step: HardwareWalletsSwapsStep) {
   if (step.status === HardwareWalletsSwapsStepStatus.Rejected) {
     return strings('bridge.hardware_wallet_progress.rejected');
@@ -74,16 +95,25 @@ export function getStepDescription(step: HardwareWalletsSwapsStep) {
   return undefined;
 }
 
+/** Visual state for the circular step indicator in {@link StepRow}. */
 export interface StepIconResult {
-  name: typeof IconName.Check | typeof IconName.Close | undefined;
-  color:
-    | typeof IconColor.SuccessDefault
-    | typeof IconColor.ErrorDefault
-    | undefined;
-  label: string | undefined;
+  /** Icon to render for completed or rejected steps. */
+  name?: typeof IconName.Check | typeof IconName.Close;
+  /** Icon color for completed or rejected steps. */
+  color?: typeof IconColor.SuccessDefault | typeof IconColor.ErrorDefault;
+  /** 1-based step number shown while the step is waiting. */
+  label?: string;
+  /** Whether to render a signing spinner instead of an icon or label. */
   isSigning: boolean;
 }
 
+/**
+ * Maps a swap step status to the icon, label, or spinner shown in the step row.
+ *
+ * @param step - The swap step to render.
+ * @param index - Zero-based position of the step in the progress list.
+ * @returns Visual configuration for the step indicator.
+ */
 export function getStepIcon(
   step: HardwareWalletsSwapsStep,
   index: number,
@@ -92,7 +122,6 @@ export function getStepIcon(
     return {
       name: IconName.Check,
       color: IconColor.SuccessDefault,
-      label: undefined,
       isSigning: false,
     };
   }
@@ -101,23 +130,17 @@ export function getStepIcon(
     return {
       name: IconName.Close,
       color: IconColor.ErrorDefault,
-      label: undefined,
       isSigning: false,
     };
   }
 
   if (step.status === HardwareWalletsSwapsStepStatus.Signing) {
     return {
-      name: undefined,
-      color: undefined,
-      label: undefined,
       isSigning: true,
     };
   }
 
   return {
-    name: undefined,
-    color: undefined,
     label: `${index + 1}`,
     isSigning: false,
   };

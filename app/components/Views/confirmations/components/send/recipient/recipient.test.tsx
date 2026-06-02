@@ -18,6 +18,14 @@ import { Recipient } from './recipient';
 
 jest.mock('../../../../../../component-library/components-temp/Skeleton');
 
+jest.mock('../../../hooks/send/useSendNavbar', () => ({
+  useSendNavbar: () => ({
+    Amount: { header: () => null },
+    Asset: { header: () => null },
+    Recipient: { header: () => null },
+  }),
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   const ReactActual = jest.requireActual('react');
@@ -767,6 +775,44 @@ describe('Recipient pastedRecipient effect gating (lines 96-101)', () => {
     fireEvent.press(getByTestId(RedesignedSendViewSelectorsIDs.REVIEW_BUTTON));
 
     // Then: submit is not called
+    expect(mockHandleSubmitPressLocal).not.toHaveBeenCalled();
+  });
+
+  it('does not submit when recipient address is empty', () => {
+    mockUseToAddressValidation.mockReturnValue({
+      loading: false,
+      resolvedAddress: undefined,
+      toAddressError: undefined,
+      toAddressValidated: undefined,
+      toAddressWarning: undefined,
+    });
+
+    mockUseSendAlerts.mockReturnValue({
+      alerts: [],
+      hasUnacknowledgedAlerts: false,
+      acknowledgeAlerts: jest.fn(),
+      isAlertCheckPending: false,
+    });
+
+    mockUseSendContext.mockReturnValue({
+      to: '',
+      updateTo: jest.fn(),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      asset: {} as any,
+      chainId: '0x1',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fromAccount: {} as any,
+      from: '',
+      maxValueMode: false,
+      updateAsset: jest.fn(),
+      updateValue: jest.fn(),
+      value: undefined,
+    });
+
+    const { getByTestId } = renderWithProvider(<Recipient />);
+
+    fireEvent.press(getByTestId('set-pasted'));
+
     expect(mockHandleSubmitPressLocal).not.toHaveBeenCalled();
   });
 

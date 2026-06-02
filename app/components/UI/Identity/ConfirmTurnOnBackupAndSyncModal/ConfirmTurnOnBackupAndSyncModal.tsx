@@ -2,10 +2,10 @@ import React, { useRef } from 'react';
 
 import {
   BottomSheet,
-  type BottomSheetRef,
   IconColor,
   IconName,
   IconSize,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import ModalContent from '../../Notification/Modal';
@@ -15,12 +15,15 @@ import { ConfirmTurnOnBackupAndSyncModalNavigateParams } from '../BackupAndSyncT
 import { InteractionManager } from 'react-native';
 import useThunkDispatch from '../../../hooks/useThunkDispatch';
 
+import { useElevatedSurface } from '../../../../util/theme/themeUtils';
+
 const ConfirmTurnOnBackupAndSyncModal = () => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const { enableBackupAndSync, trackEnableBackupAndSyncEvent } =
     useParams<ConfirmTurnOnBackupAndSyncModalNavigateParams>();
 
   const dispatch = useThunkDispatch();
+  const surfaceClass = useElevatedSurface();
 
   const enableBasicFunctionality = async () => {
     await dispatch(toggleBasicFunctionality(true));
@@ -51,7 +54,7 @@ const ConfirmTurnOnBackupAndSyncModal = () => {
   };
 
   return (
-    <BottomSheet ref={bottomSheetRef}>
+    <BottomSheet ref={bottomSheetRef} twClassName={surfaceClass}>
       <ModalContent
         title={turnContent.bottomSheetTitle}
         message={turnContent.bottomSheetMessage}

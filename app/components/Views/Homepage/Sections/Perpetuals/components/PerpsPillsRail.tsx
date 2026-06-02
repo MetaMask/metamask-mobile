@@ -18,7 +18,7 @@ const PerpsPillsRail = ({
   <PillScrollList<PerpsFeedItem>
     data={data}
     isLoading={isLoading}
-    wrapperTwClassName="bg-transparent"
+    wrapperTwClassName="bg-transparent py-3"
     renderItem={(item) => (
       <PerpsPillItem item={item} onNavigateToMarketDetails={onPressMarket} />
     )}

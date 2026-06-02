@@ -18,11 +18,11 @@ const DEFAULT_QR_CODE_SIZE = 250;
 const DEFAULT_WRAPPER_SIZE = 300;
 const QR_CODE_PADDING = DEFAULT_WRAPPER_SIZE - DEFAULT_QR_CODE_SIZE;
 
-const createStyles = (theme: Theme, size: number) =>
+const createStyles = (theme: Theme, wrapperSize: number) =>
   StyleSheet.create({
     wrapper: {
-      width: size,
-      height: size,
+      width: wrapperSize,
+      height: wrapperSize,
       backgroundColor: theme.brandColors.white,
       alignItems: 'center',
       justifyContent: 'center',
@@ -36,7 +36,6 @@ const AnimatedQRCode = ({
   size = DEFAULT_QR_CODE_SIZE,
 }: IAnimatedQRCodeProps) => {
   const theme = useTheme();
-  const qrCodeSize = size;
   const wrapperSize = size + QR_CODE_PADDING;
   const styles = createStyles(theme, wrapperSize);
   const urEncoder = useMemo(
@@ -63,7 +62,7 @@ const AnimatedQRCode = ({
 
   return (
     <View style={styles.wrapper}>
-      <QRCode value={currentQRCode.toUpperCase()} size={qrCodeSize} />
+      <QRCode value={currentQRCode.toUpperCase()} size={size} />
     </View>
   );
 };
