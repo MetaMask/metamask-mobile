@@ -416,7 +416,7 @@ describe('useQuickBuyController', () => {
   });
 
   describe('handleSliderChange', () => {
-    it('sets usdAmount from slider percent of available balance', () => {
+    it('updates display state (sliderPercent, usdAmount) on every 1% tick', () => {
       (useLatestBalance as jest.Mock).mockReturnValue({
         displayBalance: '100',
         atomicBalance: '100000000',
@@ -438,7 +438,7 @@ describe('useQuickBuyController', () => {
       expect(Number(result.current.usdAmount)).toBeGreaterThan(0);
     });
 
-    it('tracks amount selected once when the snapped percent is unchanged', () => {
+    it('does not fire analytics during drag — only updates display', () => {
       (useLatestBalance as jest.Mock).mockReturnValue({
         displayBalance: '100',
         atomicBalance: '100000000',
@@ -458,7 +458,58 @@ describe('useQuickBuyController', () => {
         result.current.handleSliderChange(51);
       });
 
-      expect(result.current.sliderPercent).toBe(50);
+      expect(result.current.sliderPercent).toBe(51);
+      expect(mockTrackAmountSelected).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('handleSliderDragEnd', () => {
+    it('commits the amount and fires analytics once when the user lifts their finger', () => {
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: '100',
+        atomicBalance: '100000000',
+      });
+      const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
+      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+        options: [sourceWithRate],
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      act(() => {
+        result.current.handleSliderChange(48);
+        result.current.handleSliderChange(49);
+        result.current.handleSliderChange(51);
+      });
+      act(() => {
+        result.current.handleSliderDragEnd(51);
+      });
+
+      expect(result.current.sliderPercent).toBe(51);
+      expect(mockTrackAmountSelected).toHaveBeenCalledTimes(1);
+    });
+
+    it('deduplicates identical commit values (Tap + Pan double-fire guard)', () => {
+      (useLatestBalance as jest.Mock).mockReturnValue({
+        displayBalance: '100',
+        atomicBalance: '100000000',
+      });
+      const sourceWithRate = createSourceToken({ currencyExchangeRate: 1 });
+      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+        options: [sourceWithRate],
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      act(() => {
+        result.current.handleSliderDragEnd(50);
+        result.current.handleSliderDragEnd(50);
+      });
+
       expect(mockTrackAmountSelected).toHaveBeenCalledTimes(1);
     });
   });
