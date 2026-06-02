@@ -129,25 +129,26 @@ export function MoneySentDetails() {
       <Box style={styles.container} gap={12}>
         {primaryAmount && tokenMeta ? (
           <Box testID="money-sent-hero" gap={8} style={styles.hero}>
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {strings('transaction_details.label.you_sent')}
-            </Text>
-            <Box
-              flexDirection={FlexDirection.Row}
-              alignItems={AlignItems.center}
-              gap={8}
-            >
-              <TokenIcon
-                chainId={chainId}
-                address={tokenMeta.contractAddress as Hex}
-                symbol={tokenMeta.symbol}
-                variant={TokenIconVariant.Hero}
-                showNetwork={false}
-              />
-              <Text variant={TextVariant.DisplayMd}>{primaryAmount}</Text>
+            <Box gap={8}>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                {strings('transaction_details.label.you_sent')}
+              </Text>
+              <Box
+                flexDirection={FlexDirection.Row}
+                alignItems={AlignItems.center}
+                gap={12}
+              >
+                <TokenIcon
+                  chainId={chainId}
+                  address={tokenMeta.contractAddress as Hex}
+                  symbol={tokenMeta.symbol}
+                  showNetwork={false}
+                />
+                <Text variant={TextVariant.HeadingLg}>{primaryAmount}</Text>
+              </Box>
             </Box>
           </Box>
         ) : null}
