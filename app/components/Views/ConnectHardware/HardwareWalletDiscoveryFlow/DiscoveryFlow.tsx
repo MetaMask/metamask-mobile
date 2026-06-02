@@ -115,6 +115,7 @@ const DiscoveryFlow: React.FC = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [preloadedAccounts, setPreloadedAccounts] = useState<AccountInfo[]>([]);
   const transportWasAvailableRef = useRef(false);
+  const [adapterGeneration, setAdapterGeneration] = useState(0);
 
   useEffect(() => {
     navigation.setOptions({ headerShown: false });
@@ -230,7 +231,7 @@ const DiscoveryFlow: React.FC = () => {
       adapter.disconnect().catch(() => undefined);
       adapterRef.current = null;
     };
-  }, [isBle, permissionsGranted, send, walletType]);
+  }, [adapterGeneration, isBle, permissionsGranted, send, walletType]);
 
   // === Non-BLE: skip discovery, go to accounts directly ===
 
@@ -354,12 +355,10 @@ const DiscoveryFlow: React.FC = () => {
             errorCode: result.errorCode,
           });
         }
-      } catch (error) {
-        const errorCode =
-          (error as { errorCode?: ErrorCode }).errorCode ?? ErrorCode.Unknown;
+      } catch {
         send({
           type: HardwareWalletDiscoveryEventType.ConnectError,
-          errorCode,
+          errorCode: ErrorCode.Unknown,
         });
       } finally {
         setIsConnecting(false);
@@ -373,11 +372,20 @@ const DiscoveryFlow: React.FC = () => {
     setSelectedDevice(null);
     setTransportReady(false);
     transportWasAvailableRef.current = false;
+    setPreloadedAccounts([]);
+    setIsConnecting(false);
+
+    scanCleanupRef.current?.();
+    scanCleanupRef.current = null;
+    transportUnsubscribeRef.current?.();
+    transportUnsubscribeRef.current = null;
+    adapterRef.current?.disconnect().catch(() => undefined);
+    adapterRef.current = null;
+
     setPermissionsGranted(
       isBle ? blePermissions.hasBluetoothPermissions : false,
     );
-    setPreloadedAccounts([]);
-    setIsConnecting(false);
+    setAdapterGeneration((g) => g + 1);
     send({ type: HardwareWalletDiscoveryEventType.Retry });
   }, [blePermissions.hasBluetoothPermissions, isBle, send]);
 

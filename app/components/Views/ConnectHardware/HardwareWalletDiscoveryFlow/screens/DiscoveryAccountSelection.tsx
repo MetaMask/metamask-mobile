@@ -185,7 +185,7 @@ const DiscoveryAccountSelectionScreen: React.FC<
 
       setIsSendingCommands(true);
       try {
-        const ready = await adapter.ensureDeviceReady(selectedDevice.id);
+        const { ready } = await adapter.ensureDeviceReady(selectedDevice.id);
         if (ready) {
           await logic();
         }

@@ -286,6 +286,45 @@ describe('DiscoveryFlow.machine — transition()', () => {
       ).toBe(DiscoveryStep.Searching);
     });
 
+    it('maps PERMISSIONS_DENIED with location error to location-access-denied', () => {
+      expect(
+        transition(
+          DiscoveryStep.NotFound,
+          {
+            type: HardwareWalletDiscoveryEventType.PermissionsDenied,
+            errorCode: ErrorCode.PermissionLocationDenied,
+          },
+          mockConfig,
+        ),
+      ).toBe(DiscoveryStep.LocationAccessDenied);
+    });
+
+    it('maps PERMISSIONS_DENIED with bluetooth error to bluetooth-access-denied', () => {
+      expect(
+        transition(
+          DiscoveryStep.NotFound,
+          {
+            type: HardwareWalletDiscoveryEventType.PermissionsDenied,
+            errorCode: ErrorCode.PermissionBluetoothDenied,
+          },
+          mockConfig,
+        ),
+      ).toBe(DiscoveryStep.BluetoothAccessDenied);
+    });
+
+    it('maps PERMISSIONS_DENIED with nearby-devices error to nearby-devices-denied', () => {
+      expect(
+        transition(
+          DiscoveryStep.NotFound,
+          {
+            type: HardwareWalletDiscoveryEventType.PermissionsDenied,
+            errorCode: ErrorCode.PermissionNearbyDevicesDenied,
+          },
+          mockConfig,
+        ),
+      ).toBe(DiscoveryStep.NearbyDevicesDenied);
+    });
+
     it('stays not-found on other events', () => {
       expect(
         transition(
@@ -294,6 +333,16 @@ describe('DiscoveryFlow.machine — transition()', () => {
           mockConfig,
         ),
       ).toBe(DiscoveryStep.NotFound);
+    });
+
+    it('moves to transport-unavailable on TRANSPORT_UNAVAILABLE', () => {
+      expect(
+        transition(
+          DiscoveryStep.NotFound,
+          { type: HardwareWalletDiscoveryEventType.TransportUnavailable },
+          mockConfig,
+        ),
+      ).toBe(DiscoveryStep.TransportUnavailable);
     });
   });
 

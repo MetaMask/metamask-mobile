@@ -528,6 +528,25 @@ describe('LedgerBluetoothAdapter', () => {
       },
     );
 
+    it('returns BluetoothConnectionFailed when transient BLE retries are exhausted', async () => {
+      jest.useFakeTimers();
+      const bleError = new Error('BLE failure');
+      bleError.name = 'BleError';
+      jest.mocked(connectLedgerHardware).mockRejectedValue(bleError);
+
+      const resultPromise = adapter.ensureDeviceReady('device-123');
+      await jest.advanceTimersByTimeAsync(5000);
+      const result = await resultPromise;
+
+      expect(result).toEqual({
+        ready: false,
+        errorCode: ErrorCode.BluetoothConnectionFailed,
+      });
+      expect(connectLedgerHardware).toHaveBeenCalledTimes(3);
+
+      jest.useRealTimers();
+    });
+
     it('throws when non-disconnect error during check', async () => {
       jest
         .mocked(connectLedgerHardware)
@@ -583,19 +602,40 @@ describe('LedgerBluetoothAdapter', () => {
       jest.useRealTimers();
     });
 
-    it('emits DeviceLocked and throws when connectLedgerHardware throws device locked', async () => {
+    it('emits DeviceLocked and returns not-ready when connectLedgerHardware throws device locked', async () => {
       const lockedError = new Error('Locked');
       (lockedError as { statusCode?: number }).statusCode = 0x6b0c;
       (lockedError as { name?: string }).name = 'TransportStatusError';
       jest.mocked(connectLedgerHardware).mockRejectedValueOnce(lockedError);
 
-      await expect(adapter.ensureDeviceReady('device-123')).rejects.toThrow(
-        lockedError,
-      );
+      const result = await adapter.ensureDeviceReady('device-123');
 
+      expect(result).toEqual({
+        ready: false,
+        errorCode: ErrorCode.AuthenticationDeviceLocked,
+      });
       expect(onDeviceEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           event: DeviceEvent.DeviceLocked,
+        }),
+      );
+    });
+
+    it('emits AppNotOpen and returns not-ready when connectLedgerHardware throws TransportStatusError with app-not-open status code', async () => {
+      const appNotOpenError = new Error('App not open');
+      (appNotOpenError as { statusCode?: number }).statusCode = 0x6d00;
+      (appNotOpenError as { name?: string }).name = 'TransportStatusError';
+      jest.mocked(connectLedgerHardware).mockRejectedValueOnce(appNotOpenError);
+
+      const result = await adapter.ensureDeviceReady('device-123');
+
+      expect(result).toEqual({
+        ready: false,
+        errorCode: ErrorCode.DeviceStateEthAppClosed,
+      });
+      expect(onDeviceEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          event: DeviceEvent.AppNotOpen,
         }),
       );
     });
@@ -666,24 +706,21 @@ describe('LedgerBluetoothAdapter', () => {
       );
     });
 
-    it('throws LedgerTimeoutError when device unresponsive during app check', async () => {
+    it('returns not-ready with DeviceUnresponsive when device unresponsive during app check', async () => {
       jest.useFakeTimers();
       jest.mocked(connectLedgerHardware).mockImplementation(
         // eslint-disable-next-line no-empty-function
         () => new Promise(() => {}),
       );
 
-      const resultPromise = adapter.ensureDeviceReady('device-123').then(
-        () => undefined,
-        (err: Error) => err,
-      );
+      const resultPromise = adapter.ensureDeviceReady('device-123');
 
       await jest.advanceTimersByTimeAsync(11000);
       const result = await resultPromise;
 
-      expect(result).toMatchObject({
-        name: 'LedgerTimeoutError',
-        message: 'Device unresponsive',
+      expect(result).toEqual({
+        ready: false,
+        errorCode: ErrorCode.DeviceUnresponsive,
       });
       expect(mockedTransportBLE.disconnectDevice).toHaveBeenCalledWith(
         'device-123',

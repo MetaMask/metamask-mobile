@@ -5,7 +5,7 @@ import {
   ConnectionStatus,
 } from '@metamask/hw-wallet-sdk';
 
-import { HardwareWalletAdapter } from '../types';
+import { HardwareWalletAdapter, DeviceReadinessResult } from '../types';
 import {
   HardwareWalletRefs,
   HardwareWalletStateSetters,
@@ -121,18 +121,14 @@ export const useDeviceConnectionFlow = ({
     async (
       adapter: {
         walletType?: HardwareWalletType | null;
-        ensureDeviceReady: (id: string) => Promise<boolean>;
+        ensureDeviceReady: (id: string) => Promise<DeviceReadinessResult>;
         markFlowComplete: () => void;
       },
       targetDeviceId: string,
     ): Promise<boolean> => {
-      const isReady = await adapter.ensureDeviceReady(targetDeviceId);
-      if (isReady) {
+      const { ready } = await adapter.ensureDeviceReady(targetDeviceId);
+      if (ready) {
         adapter.markFlowComplete();
-        // QR submit flow should not show the intermediate "connected/success"
-        // modal before awaiting-confirmation. For QR, readiness still happens
-        // first, but the caller (executeHardwareWalletOperation) immediately
-        // transitions to AwaitingConfirmation after this promise resolves.
         if (adapter.walletType === HardwareWalletType.Qr) {
           const resolvePending = pendingReadyResolveRef.current;
           if (resolvePending) {
@@ -151,7 +147,7 @@ export const useDeviceConnectionFlow = ({
           '[HardwareWallet] Device not ready — adapter event already handled state transition',
         );
       }
-      return isReady;
+      return ready;
     },
     [updateConnectionState],
   );

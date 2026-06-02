@@ -30,7 +30,7 @@ export function transition(
     case DiscoveryStep.Accounts:
       return transitionFromAccounts(event);
     case DiscoveryStep.NotFound:
-      return transitionFromNotFound(event);
+      return transitionFromNotFound(event, config);
     default:
       return transitionFromErrorState(currentStep, event);
   }
@@ -88,10 +88,19 @@ function transitionFromAccounts(event: MachineEvent): DiscoveryStep {
   }
 }
 
-function transitionFromNotFound(event: MachineEvent): DiscoveryStep {
+function transitionFromNotFound(
+  event: MachineEvent,
+  config: DeviceUIConfig,
+): DiscoveryStep {
   switch (event.type) {
     case HardwareWalletDiscoveryEventType.Retry:
       return DiscoveryStep.Searching;
+    case HardwareWalletDiscoveryEventType.PermissionsDenied:
+      return (
+        config.errorToStepMap[event.errorCode] ?? DiscoveryStep.PermissionDenied
+      );
+    case HardwareWalletDiscoveryEventType.TransportUnavailable:
+      return DiscoveryStep.TransportUnavailable;
     default:
       return DiscoveryStep.NotFound;
   }

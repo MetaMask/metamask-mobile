@@ -265,6 +265,28 @@ describe('DiscoveryFlow orchestrator', () => {
     ).toBeOnTheScreen();
   });
 
+  it('shows location access denied screen for blocked location permission', () => {
+    mockBluetoothPermissionError =
+      BluetoothPermissionErrors.LocationAccessBlocked;
+
+    renderFlow();
+
+    expect(
+      screen.getByText(strings('ledger.location_access_denied')),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows nearby devices denied screen for blocked nearby devices permission', () => {
+    mockBluetoothPermissionError =
+      BluetoothPermissionErrors.NearbyDevicesAccessBlocked;
+
+    renderFlow();
+
+    expect(
+      screen.getByText(strings('ledger.nearby_devices_denied')),
+    ).toBeOnTheScreen();
+  });
+
   it('shows bluetooth off screen when transport becomes unavailable after being available', async () => {
     renderFlow();
     await simulateBluetoothOn();
@@ -279,8 +301,28 @@ describe('DiscoveryFlow orchestrator', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows bluetooth off screen when transport is unavailable on initial load', async () => {
+  it('shows bluetooth off screen when transport becomes unavailable on initial load', async () => {
     renderFlow();
+
+    act(() => {
+      capturedTransportCallback?.(false);
+    });
+    await act(async () => undefined);
+
+    expect(
+      screen.getByText(strings('ledger.bluetooth_turned_off')),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows bluetooth off screen when bluetooth is disabled while on device-not-found screen', async () => {
+    renderFlow();
+    await simulateBluetoothOn();
+
+    act(() => {
+      jest.advanceTimersByTime(15000);
+    });
+
+    expect(screen.getByText('Device not found')).toBeOnTheScreen();
 
     act(() => {
       capturedTransportCallback?.(false);
@@ -311,11 +353,10 @@ describe('DiscoveryFlow orchestrator', () => {
   });
 
   it('shows ledger locked screen when connect fails with locked error', async () => {
-    mockEnsureDeviceReady.mockRejectedValueOnce(
-      Object.assign(new Error('Locked device'), {
-        errorCode: ErrorCode.AuthenticationDeviceLocked,
-      }),
-    );
+    mockEnsureDeviceReady.mockResolvedValueOnce({
+      ready: false,
+      errorCode: ErrorCode.AuthenticationDeviceLocked,
+    });
 
     renderFlow();
     await simulateBluetoothOn();
