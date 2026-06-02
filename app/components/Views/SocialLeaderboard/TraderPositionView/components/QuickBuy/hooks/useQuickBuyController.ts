@@ -85,7 +85,6 @@ import {
   SocialLeaderboardEventProperties,
   SocialLeaderboardEventValues,
 } from '../../../../analytics';
-import { chainNameToId } from '../../../../utils/chainMapping';
 import { toAssetId } from '../../../../../../UI/Bridge/hooks/useAssetMetadata/utils';
 
 export type QuickBuyButtonError =
@@ -188,11 +187,10 @@ export function useQuickBuyController(
   const navigation = useNavigation();
 
   const traderAddress = analyticsContext?.traderAddress ?? '';
-  const caip19 = useMemo(() => {
-    const caipChainId = chainNameToId(target.chain);
-    if (!caipChainId) return '';
-    return toAssetId(target.tokenAddress, caipChainId) ?? '';
-  }, [target.chain, target.tokenAddress]);
+  const caip19 = useMemo(
+    () => toAssetId(target.tokenAddress, target.chain) ?? '',
+    [target.chain, target.tokenAddress],
+  );
 
   const {
     refs: { lastInputMethodRef, lastTrackedAmountRef, submitStartedAtRef },
@@ -681,29 +679,32 @@ export function useQuickBuyController(
 
     // Shared by the SUBMITTED + COMPLETED (success / failure) events. Built
     // once here so the success vs failure delta stays small at the call sites.
-    const tradeBaseProps =
-      submittedTraderAddress && submittedCaip19
-        ? {
-            [SocialLeaderboardEventProperties.TRADER_ADDRESS]:
-              submittedTraderAddress,
-            [SocialLeaderboardEventProperties.CAIP19]: submittedCaip19,
-            [SocialLeaderboardEventProperties.ASSET_NAME]: submittedAssetName,
-            [SocialLeaderboardEventProperties.AMOUNT_USD]: amountUsd,
-            [SocialLeaderboardEventProperties.TRADE_TYPE]: tradeMode,
-            ...(submittedPayWith
-              ? {
-                  [SocialLeaderboardEventProperties.PAY_WITH_TOKEN]:
-                    submittedPayWith,
-                }
-              : {}),
-            ...(submittedReceiveToken
-              ? {
-                  [SocialLeaderboardEventProperties.RECEIVE_TOKEN]:
-                    submittedReceiveToken,
-                }
-              : {}),
-          }
-        : null;
+    const tradeBaseProps = submittedCaip19
+      ? {
+          ...(submittedTraderAddress
+            ? {
+                [SocialLeaderboardEventProperties.TRADER_ADDRESS]:
+                  submittedTraderAddress,
+              }
+            : {}),
+          [SocialLeaderboardEventProperties.CAIP19]: submittedCaip19,
+          [SocialLeaderboardEventProperties.ASSET_NAME]: submittedAssetName,
+          [SocialLeaderboardEventProperties.AMOUNT_USD]: amountUsd,
+          [SocialLeaderboardEventProperties.TRADE_TYPE]: tradeMode,
+          ...(submittedPayWith
+            ? {
+                [SocialLeaderboardEventProperties.PAY_WITH_TOKEN]:
+                  submittedPayWith,
+              }
+            : {}),
+          ...(submittedReceiveToken
+            ? {
+                [SocialLeaderboardEventProperties.RECEIVE_TOKEN]:
+                  submittedReceiveToken,
+              }
+            : {}),
+        }
+      : null;
 
     if (tradeBaseProps) {
       trackTradeSubmitted(tradeBaseProps);

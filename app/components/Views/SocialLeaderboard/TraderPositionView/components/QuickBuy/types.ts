@@ -1,13 +1,15 @@
-import type { ReactNode } from 'react';
 import type { Position } from '@metamask/social-controllers';
+import type { CaipChainId } from '@metamask/utils';
+import type { ReactNode } from 'react';
 import type { QuickBuySheetSource } from '../../../analytics';
+import { chainNameToId } from '../../../utils/chainMapping';
 
 /** Host-agnostic trade target — maps from social `Position` via adapter. */
 export interface QuickBuyTarget {
   tokenAddress: string;
   tokenSymbol: string;
   tokenName: string;
-  chain: string;
+  chain: CaipChainId;
 }
 
 export type QuickBuyTradeMode = 'buy' | 'sell';
@@ -51,12 +53,21 @@ export interface QuickBuySheetProps {
 /** Same contract as `QuickBuySheetProps` — props for `QuickBuy.Root`. */
 export type QuickBuyRootProps = QuickBuySheetProps;
 
-/** Maps a social leaderboard position into a portable QuickBuy target. */
-export function positionToQuickBuyTarget(position: Position): QuickBuyTarget {
+/**
+ * Maps a social leaderboard position into a portable QuickBuy target.
+ *
+ * Returns `null` when the position's chain name isn't mapped to a CAIP id —
+ * `QuickBuy.Root` treats a `null` target as inert.
+ */
+export function positionToQuickBuyTarget(
+  position: Position,
+): QuickBuyTarget | null {
+  const chain = chainNameToId(position.chain);
+  if (!chain) return null;
   return {
     tokenAddress: position.tokenAddress,
     tokenSymbol: position.tokenSymbol,
     tokenName: position.tokenName,
-    chain: position.chain,
+    chain,
   };
 }
