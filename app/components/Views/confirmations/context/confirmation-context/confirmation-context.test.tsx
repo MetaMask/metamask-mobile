@@ -17,6 +17,7 @@ describe('ConfirmationContext', () => {
       headlessBuyError: undefined,
       isFooterVisible: undefined,
       isConfirmationSubmitting: false,
+      isConfirmationSubmittingRef: { current: false },
       isHeadlessBuyInProgress: false,
       isTransactionDataUpdating: false,
       isTransactionValueUpdating: false,
@@ -92,14 +93,18 @@ describe('ConfirmationContext', () => {
 
     act(() => {
       result.current.setIsConfirmationSubmitting(true);
+      expect(result.current.isConfirmationSubmittingRef.current).toBe(true);
     });
 
     expect(result.current.isConfirmationSubmitting).toBe(true);
+    expect(result.current.isConfirmationSubmittingRef.current).toBe(true);
 
     act(() => {
       result.current.setIsConfirmationSubmitting(false);
+      expect(result.current.isConfirmationSubmittingRef.current).toBe(false);
     });
 
     expect(result.current.isConfirmationSubmitting).toBe(false);
+    expect(result.current.isConfirmationSubmittingRef.current).toBe(false);
   });
 });
