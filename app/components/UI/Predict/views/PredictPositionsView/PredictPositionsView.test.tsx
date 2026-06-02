@@ -187,10 +187,10 @@ const expectedPositionsAnalyticsContext = (
   overrides: Record<string, unknown> = {},
 ) => ({
   entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
-  positionsCount: 0,
+  openPositionsCount: 0,
   claimablePositionsCount: 0,
   hasClaimableWinnings: false,
-  source: PredictEventValues.SOURCE.PREDICT_POSITIONS_SCREEN,
+  location: PredictEventValues.LOCATION.PREDICT_POSITIONS_SCREEN,
   ...overrides,
 });
 
@@ -267,7 +267,7 @@ describe('PredictPositionsView', () => {
     expect(getMountedHistoryVisibilityText(false)).toBeTruthy();
   });
 
-  it('tracks Positions screen and default Positions tab viewed', () => {
+  it('tracks Positions screen viewed without duplicating the default tab', () => {
     mockUsePredictPortfolio.mockReturnValue(
       createPortfolio({
         claimableAmount: 46.35,
@@ -283,24 +283,34 @@ describe('PredictPositionsView', () => {
 
     expect(mockTrackPositionsScreenViewed).toHaveBeenCalledWith(
       expectedPositionsAnalyticsContext({
-        positionsCount: 2,
+        openPositionsCount: 2,
         claimablePositionsCount: 1,
         hasClaimableWinnings: true,
       }),
     );
-    expect(mockTrackPositionsTabViewed).toHaveBeenCalledWith(
-      expectedPositionsAnalyticsContext({
-        positionsCount: 2,
-        claimablePositionsCount: 1,
-        hasClaimableWinnings: true,
-        tab: PredictEventValues.TAB.POSITIONS,
-      }),
-    );
+    expect(mockTrackPositionsTabViewed).not.toHaveBeenCalled();
 
     const payload = mockTrackPositionsScreenViewed.mock.calls[0][0];
     expect(payload).not.toHaveProperty('claimableAmount');
     expect(payload).not.toHaveProperty('portfolioValue');
     expect(payload).not.toHaveProperty('totalUnrealizedPnlAmount');
+  });
+
+  it('tracks Active positions tab when the selected tab is pressed again', () => {
+    renderScreen();
+
+    expect(mockTrackPositionsTabViewed).not.toHaveBeenCalled();
+
+    fireEvent.press(
+      screen.getByTestId(PredictPositionsViewSelectorsIDs.POSITIONS_TAB),
+    );
+
+    expect(mockTrackPositionsTabViewed).toHaveBeenCalledTimes(1);
+    expect(mockTrackPositionsTabViewed).toHaveBeenCalledWith(
+      expectedPositionsAnalyticsContext({
+        tab: PredictEventValues.TAB.POSITIONS,
+      }),
+    );
   });
 
   it('uses the initial history tab from route params', () => {
@@ -321,11 +331,7 @@ describe('PredictPositionsView', () => {
     expect(mockTrackPositionsScreenViewed).toHaveBeenCalledWith(
       expectedPositionsAnalyticsContext(),
     );
-    expect(mockTrackPositionsTabViewed).toHaveBeenCalledWith(
-      expectedPositionsAnalyticsContext({
-        tab: PredictEventValues.TAB.HISTORY,
-      }),
-    );
+    expect(mockTrackPositionsTabViewed).not.toHaveBeenCalled();
   });
 
   it('switches between Positions and History tabs', () => {
@@ -357,22 +363,16 @@ describe('PredictPositionsView', () => {
     expect(mockTrackPositionsTabViewed).toHaveBeenNthCalledWith(
       1,
       expectedPositionsAnalyticsContext({
-        tab: PredictEventValues.TAB.POSITIONS,
+        tab: PredictEventValues.TAB.HISTORY,
       }),
     );
     expect(mockTrackPositionsTabViewed).toHaveBeenNthCalledWith(
       2,
       expectedPositionsAnalyticsContext({
-        tab: PredictEventValues.TAB.HISTORY,
-      }),
-    );
-    expect(mockTrackPositionsTabViewed).toHaveBeenNthCalledWith(
-      3,
-      expectedPositionsAnalyticsContext({
         tab: PredictEventValues.TAB.POSITIONS,
       }),
     );
-    expect(mockTrackPositionsTabViewed).toHaveBeenCalledTimes(3);
+    expect(mockTrackPositionsTabViewed).toHaveBeenCalledTimes(2);
   });
 
   it('passes won and lost claimable positions and privacy mode to History', () => {
@@ -390,7 +390,7 @@ describe('PredictPositionsView', () => {
       }),
     );
 
-    renderScreen('history');
+    renderScreen({ initialTab: 'history' });
 
     expect(
       screen.getByText('history-claim-pending-present:true'),
@@ -407,7 +407,7 @@ describe('PredictPositionsView', () => {
       }),
     );
 
-    renderScreen('history');
+    renderScreen({ initialTab: 'history' });
 
     expect(
       screen.getByText('history-claim-pending-present:false'),

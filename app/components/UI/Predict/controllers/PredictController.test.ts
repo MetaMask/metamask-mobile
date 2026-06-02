@@ -8701,7 +8701,7 @@ describe('PredictController', () => {
       withController(({ controller }) => {
         controller.trackPortfolioModuleViewed({
           entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
-          positionsCount: 2,
+          openPositionsCount: 2,
           claimablePositionsCount: 1,
           hasClaimableWinnings: true,
         });
@@ -8709,11 +8709,21 @@ describe('PredictController', () => {
       });
     });
 
-    it('calls analytics.trackEvent for trackPortfolioAction', () => {
+    it('calls analytics.trackEvent for trackPortfolioPositionsButtonTapped', () => {
       withController(({ controller }) => {
-        controller.trackPortfolioAction({
-          ctaName: PredictEventValues.CTA_NAME.ADD_FUNDS,
-          entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+        controller.trackPortfolioPositionsButtonTapped({
+          entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+        });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('calls analytics.trackEvent for trackPortfolioTransactionInitiated', () => {
+      withController(({ controller }) => {
+        controller.trackPortfolioTransactionInitiated({
+          entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
+          transactionType:
+            PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT,
         });
         expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
       });
@@ -8723,7 +8733,7 @@ describe('PredictController', () => {
       withController(({ controller }) => {
         controller.trackPositionsScreenViewed({
           entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
-          positionsCount: 2,
+          openPositionsCount: 2,
           claimablePositionsCount: 1,
           hasClaimableWinnings: true,
         });
@@ -8735,7 +8745,7 @@ describe('PredictController', () => {
       withController(({ controller }) => {
         controller.trackPositionsTabViewed({
           tab: PredictEventValues.TAB.HISTORY,
-          positionsCount: 2,
+          openPositionsCount: 2,
           claimablePositionsCount: 1,
           hasClaimableWinnings: true,
         });

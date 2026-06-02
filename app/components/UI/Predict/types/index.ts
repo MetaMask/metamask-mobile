@@ -648,11 +648,18 @@ export interface PlaceOrderParams {
     marketTitle?: string;
     marketCategory?: string;
     marketTags?: string[];
+    actionType?: string;
     entryPoint?: string;
+    location?: string;
     transactionType?: string;
     sharePrice?: number;
     liquidity?: number;
     volume?: number;
+    openPositionsCount?: number;
+    claimablePositionsCount?: number;
+    hasClaimableWinnings?: boolean;
+    portfolioModuleEnabled?: boolean;
+    tab?: string;
     marketType?: string;
     outcome?: string;
     marketSlug?: string;

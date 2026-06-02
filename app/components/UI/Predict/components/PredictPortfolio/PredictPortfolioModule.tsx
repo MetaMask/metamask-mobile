@@ -51,10 +51,10 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
 
   const portfolioAnalyticsProperties = useMemo(
     () => ({
-      positionsCount: openPositionCount,
+      openPositionsCount: openPositionCount,
       claimablePositionsCount: claimablePositionCount,
       hasClaimableWinnings,
-      source: PredictEventValues.SOURCE.PREDICT_PORTFOLIO_MODULE,
+      location: PredictEventValues.LOCATION.PREDICT_PORTFOLIO_MODULE,
     }),
     [claimablePositionCount, hasClaimableWinnings, openPositionCount],
   );
@@ -71,22 +71,22 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
     hasTrackedModuleViewedRef.current = true;
   }, [isLoading, portfolioAnalyticsProperties]);
 
-  const trackPortfolioAction = useCallback(
-    (ctaName: string, entryPoint: string) => {
-      Engine.context.PredictController.trackPortfolioAction({
+  const trackPortfolioTransactionInitiated = useCallback(
+    (transactionType: string, entryPoint: string) => {
+      Engine.context.PredictController.trackPortfolioTransactionInitiated({
         ...portfolioAnalyticsProperties,
-        ctaName,
         entryPoint,
+        transactionType,
       });
     },
     [portfolioAnalyticsProperties],
   );
 
   const handlePositionsPress = useCallback(() => {
-    trackPortfolioAction(
-      PredictEventValues.CTA_NAME.POSITIONS,
-      PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
-    );
+    Engine.context.PredictController.trackPortfolioPositionsButtonTapped({
+      ...portfolioAnalyticsProperties,
+      entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+    });
 
     if (onPositionsPress) {
       onPositionsPress();
@@ -97,11 +97,11 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
     navigation.navigate(Routes.PREDICT.MARKET_LIST, {
       entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
     });
-  }, [navigation, onPositionsPress, trackPortfolioAction]);
+  }, [navigation, onPositionsPress, portfolioAnalyticsProperties]);
 
   const handleAddFundsPress = useCallback(() => {
-    trackPortfolioAction(
-      PredictEventValues.CTA_NAME.ADD_FUNDS,
+    trackPortfolioTransactionInitiated(
+      PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT,
       PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
     );
 
@@ -110,15 +110,16 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
         deposit({
           analyticsProperties: {
             entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
+            location: PredictEventValues.LOCATION.PREDICT_PORTFOLIO_MODULE,
           },
         }),
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.DEPOSIT },
     );
-  }, [deposit, executeGuardedAction, trackPortfolioAction]);
+  }, [deposit, executeGuardedAction, trackPortfolioTransactionInitiated]);
 
   const handleWithdrawPress = useCallback(() => {
-    trackPortfolioAction(
-      PredictEventValues.CTA_NAME.WITHDRAW,
+    trackPortfolioTransactionInitiated(
+      PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_WITHDRAW,
       PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
     );
 
@@ -141,21 +142,21 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
     enableDepositWalletWithdraw,
     executeGuardedAction,
     onDepositWalletWithdrawPress,
-    trackPortfolioAction,
+    trackPortfolioTransactionInitiated,
     walletType,
     withdraw,
   ]);
 
   const handleClaimPress = useCallback(() => {
-    trackPortfolioAction(
-      PredictEventValues.CTA_NAME.CLAIM_ALL,
+    trackPortfolioTransactionInitiated(
+      PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_CLAIM,
       PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
     );
 
     executeGuardedAction(() => claim(), {
       attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM,
     });
-  }, [claim, executeGuardedAction, trackPortfolioAction]);
+  }, [claim, executeGuardedAction, trackPortfolioTransactionInitiated]);
 
   const isWithdrawDisabled = availableBalance > 0 && !walletType;
 

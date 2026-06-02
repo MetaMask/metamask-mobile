@@ -30,7 +30,7 @@ const mockNavigation = {
 
 const mockUseNavigation = useNavigation as jest.Mock;
 const mockClaim = jest.fn();
-const mockTrackPortfolioAction = jest.fn();
+const mockTrackPortfolioTransactionInitiated = jest.fn();
 
 const createPortfolio = (
   overrides: Partial<PredictPortfolioModel> = {},
@@ -99,7 +99,8 @@ describe('PredictPositionsViewHeader', () => {
       },
     );
     const predictController = {
-      trackPortfolioAction: mockTrackPortfolioAction,
+      trackPortfolioTransactionInitiated:
+        mockTrackPortfolioTransactionInitiated,
     };
     (
       Engine.context as unknown as {
@@ -176,15 +177,15 @@ describe('PredictPositionsViewHeader', () => {
         { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
       );
     });
-    expect(mockTrackPortfolioAction).toHaveBeenCalledWith({
-      ctaName: PredictEventValues.CTA_NAME.CLAIM_ALL,
+    expect(mockTrackPortfolioTransactionInitiated).toHaveBeenCalledWith({
       entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
-      positionsCount: 2,
+      openPositionsCount: 2,
       claimablePositionsCount: 1,
       hasClaimableWinnings: true,
-      source: PredictEventValues.SOURCE.PREDICT_POSITIONS_SCREEN,
+      location: PredictEventValues.LOCATION.PREDICT_POSITIONS_SCREEN,
+      transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_CLAIM,
     });
-    const payload = mockTrackPortfolioAction.mock.calls[0][0];
+    const payload = mockTrackPortfolioTransactionInitiated.mock.calls[0][0];
     expect(payload).not.toHaveProperty('claimableAmount');
     expect(payload).not.toHaveProperty('portfolioValue');
     expect(payload).not.toHaveProperty('totalUnrealizedPnlAmount');

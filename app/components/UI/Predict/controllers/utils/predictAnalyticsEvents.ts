@@ -15,24 +15,25 @@ export type PredictAnalyticsEventKey =
   | 'positionViewed'
   | 'feedViewed'
   | 'portfolioModuleViewed'
-  | 'portfolioAction'
   | 'shareAction'
   | 'geoBlockTriggered'
   | 'marketDetailsOpened'
   | 'bannerAction';
 
 const mapPortfolioProperties = ({
+  actionType,
   entryPoint,
-  positionsCount,
+  openPositionsCount,
   claimablePositionsCount,
   hasClaimableWinnings,
   portfolioModuleEnabled,
-  source,
+  location,
   tab,
 }: Record<string, unknown>) => ({
+  ...(actionType ? { [PredictEventProperties.ACTION_TYPE]: actionType } : {}),
   ...(entryPoint ? { [PredictEventProperties.ENTRY_POINT]: entryPoint } : {}),
-  ...(positionsCount !== undefined
-    ? { [PredictEventProperties.POSITIONS_COUNT]: positionsCount }
+  ...(openPositionsCount !== undefined
+    ? { [PredictEventProperties.OPEN_POSITIONS_COUNT]: openPositionsCount }
     : {}),
   ...(claimablePositionsCount !== undefined
     ? {
@@ -51,7 +52,7 @@ const mapPortfolioProperties = ({
           portfolioModuleEnabled,
       }
     : {}),
-  ...(source ? { [PredictEventProperties.SOURCE]: source } : {}),
+  ...(location ? { [PredictEventProperties.LOCATION]: location } : {}),
   ...(tab ? { [PredictEventProperties.TAB]: tab } : {}),
 });
 
@@ -107,17 +108,19 @@ export const PREDICT_ANALYTICS_EVENTS: Record<
   portfolioModuleViewed: {
     event: MetaMetricsEvents.PREDICT_FEED_VIEWED,
     logLabel: '📊 [Analytics] PREDICT_FEED_VIEWED',
-    mapProperties: ({ actionType, ...args }) => ({
-      [PredictEventProperties.ACTION_TYPE]: actionType,
-      ...mapPortfolioProperties(args),
-    }),
-  },
-  portfolioAction: {
-    event: MetaMetricsEvents.PREDICT_PORTFOLIO_ACTION,
-    logLabel: '📊 [Analytics] PREDICT_PORTFOLIO_ACTION',
-    mapProperties: ({ actionType, ctaName, ...args }) => ({
-      [PredictEventProperties.ACTION_TYPE]: actionType,
-      [PredictEventProperties.CTA_NAME]: ctaName,
+    mapProperties: ({
+      sessionId,
+      feedTab,
+      numPagesViewed,
+      sessionTime,
+      isSessionEnd,
+      ...args
+    }) => ({
+      [PredictEventProperties.SESSION_ID]: sessionId,
+      [PredictEventProperties.PREDICT_FEED_TAB]: feedTab,
+      [PredictEventProperties.NUM_FEED_PAGES_VIEWED_IN_SESSION]: numPagesViewed,
+      [PredictEventProperties.SESSION_TIME_IN_FEED]: sessionTime,
+      [PredictEventProperties.IS_SESSION_END]: isSessionEnd,
       ...mapPortfolioProperties(args),
     }),
   },

@@ -397,8 +397,9 @@ const MESSENGER_EXPOSED_METHODS = [
   'trackGeoBlockTriggered',
   'trackMarketDetailsOpened',
   'trackPositionViewed',
-  'trackPortfolioAction',
   'trackPortfolioModuleViewed',
+  'trackPortfolioPositionsButtonTapped',
+  'trackPortfolioTransactionInitiated',
   'trackPositionsScreenViewed',
   'trackPositionsTabViewed',
   'trackPredictOrderEvent',
@@ -1066,10 +1067,18 @@ export class PredictController extends BaseController<
     this.analytics.trackPortfolioModuleViewed(args);
   }
 
-  public trackPortfolioAction(
-    args: Parameters<PredictAnalytics['trackPortfolioAction']>[0],
+  public trackPortfolioPositionsButtonTapped(
+    args: Parameters<
+      PredictAnalytics['trackPortfolioPositionsButtonTapped']
+    >[0],
   ): void {
-    this.analytics.trackPortfolioAction(args);
+    this.analytics.trackPortfolioPositionsButtonTapped(args);
+  }
+
+  public trackPortfolioTransactionInitiated(
+    args: Parameters<PredictAnalytics['trackPortfolioTransactionInitiated']>[0],
+  ): void {
+    this.analytics.trackPortfolioTransactionInitiated(args);
   }
 
   public trackPositionsScreenViewed(

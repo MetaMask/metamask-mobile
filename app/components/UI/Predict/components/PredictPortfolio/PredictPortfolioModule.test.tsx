@@ -13,7 +13,8 @@ const mockExecuteGuardedAction = jest.fn((action: () => void | Promise<void>) =>
   action(),
 );
 const mockTrackPortfolioModuleViewed = jest.fn();
-const mockTrackPortfolioAction = jest.fn();
+const mockTrackPortfolioPositionsButtonTapped = jest.fn();
+const mockTrackPortfolioTransactionInitiated = jest.fn();
 let mockPrivacyMode = false;
 let mockEnableDepositWalletWithdraw = false;
 
@@ -105,23 +106,23 @@ const createPortfolio = (overrides = {}) => ({
 });
 
 const expectedPortfolioContext = (overrides: Record<string, unknown> = {}) => ({
-  positionsCount: 0,
+  openPositionsCount: 0,
   claimablePositionsCount: 0,
   hasClaimableWinnings: false,
-  source: PredictEventValues.SOURCE.PREDICT_PORTFOLIO_MODULE,
+  location: PredictEventValues.LOCATION.PREDICT_PORTFOLIO_MODULE,
   ...overrides,
 });
 
-const expectPortfolioActionTracked = (
-  ctaName: string,
+const expectPortfolioTransactionInitiated = (
+  transactionType: string,
   entryPoint: string,
   overrides: Record<string, unknown> = {},
 ) => {
-  expect(mockTrackPortfolioAction).toHaveBeenCalledWith(
+  expect(mockTrackPortfolioTransactionInitiated).toHaveBeenCalledWith(
     expectedPortfolioContext({
       ...overrides,
-      ctaName,
       entryPoint,
+      transactionType,
     }),
   );
 };
@@ -134,7 +135,10 @@ describe('PredictPortfolioModule', () => {
     mockUsePredictPortfolio.mockReturnValue(createPortfolio());
     const predictController = {
       trackPortfolioModuleViewed: mockTrackPortfolioModuleViewed,
-      trackPortfolioAction: mockTrackPortfolioAction,
+      trackPortfolioPositionsButtonTapped:
+        mockTrackPortfolioPositionsButtonTapped,
+      trackPortfolioTransactionInitiated:
+        mockTrackPortfolioTransactionInitiated,
     };
     (
       Engine.context as unknown as {
@@ -244,7 +248,7 @@ describe('PredictPortfolioModule', () => {
     expect(mockTrackPortfolioModuleViewed).toHaveBeenCalledWith(
       expectedPortfolioContext({
         entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
-        positionsCount: 2,
+        openPositionsCount: 2,
         claimablePositionsCount: 1,
         hasClaimableWinnings: true,
       }),
@@ -278,10 +282,11 @@ describe('PredictPortfolioModule', () => {
     expect(mockDeposit).toHaveBeenCalledWith({
       analyticsProperties: {
         entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
+        location: PredictEventValues.LOCATION.PREDICT_PORTFOLIO_MODULE,
       },
     });
-    expectPortfolioActionTracked(
-      PredictEventValues.CTA_NAME.ADD_FUNDS,
+    expectPortfolioTransactionInitiated(
+      PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT,
       PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
     );
   });
@@ -304,8 +309,8 @@ describe('PredictPortfolioModule', () => {
       screen.getByTestId(PREDICT_PORTFOLIO_TEST_IDS.ACTION_WITHDRAW),
     );
     expect(onDepositWalletWithdrawPress).toHaveBeenCalled();
-    expectPortfolioActionTracked(
-      PredictEventValues.CTA_NAME.WITHDRAW,
+    expectPortfolioTransactionInitiated(
+      PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_WITHDRAW,
       PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
     );
   });
@@ -336,7 +341,7 @@ describe('PredictPortfolioModule', () => {
 
     expect(onDepositWalletWithdrawPress).not.toHaveBeenCalled();
     expect(mockWithdraw).not.toHaveBeenCalled();
-    expect(mockTrackPortfolioAction).not.toHaveBeenCalled();
+    expect(mockTrackPortfolioTransactionInitiated).not.toHaveBeenCalled();
   });
 
   it('uses the real withdraw path when the wallet type supports it', () => {
@@ -353,8 +358,8 @@ describe('PredictPortfolioModule', () => {
     );
 
     expect(mockWithdraw).toHaveBeenCalled();
-    expectPortfolioActionTracked(
-      PredictEventValues.CTA_NAME.WITHDRAW,
+    expectPortfolioTransactionInitiated(
+      PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_WITHDRAW,
       PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
     );
   });
@@ -374,8 +379,8 @@ describe('PredictPortfolioModule', () => {
     );
 
     expect(mockClaim).toHaveBeenCalled();
-    expectPortfolioActionTracked(
-      PredictEventValues.CTA_NAME.CLAIM_ALL,
+    expectPortfolioTransactionInitiated(
+      PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_CLAIM,
       PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
       { hasClaimableWinnings: true },
     );
@@ -391,9 +396,10 @@ describe('PredictPortfolioModule', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MARKET_LIST, {
       entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
     });
-    expectPortfolioActionTracked(
-      PredictEventValues.CTA_NAME.POSITIONS,
-      PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+    expect(mockTrackPortfolioPositionsButtonTapped).toHaveBeenCalledWith(
+      expectedPortfolioContext({
+        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+      }),
     );
   });
 });

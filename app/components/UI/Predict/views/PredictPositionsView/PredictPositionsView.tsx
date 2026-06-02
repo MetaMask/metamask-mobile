@@ -104,7 +104,6 @@ const PredictPositionsView = () => {
     selectPredictPortfolioEnabledFlag,
   );
   const hasTrackedScreenViewedRef = useRef(false);
-  const lastTrackedTabRef = useRef<PredictPositionsTabKey | null>(null);
   const [activeTab, setActiveTab] = useState<PredictPositionsTabKey>(
     route.params?.initialTab ?? 'positions',
   );
@@ -115,10 +114,10 @@ const PredictPositionsView = () => {
   const analyticsProperties = useMemo(
     () => ({
       entryPoint,
-      positionsCount: portfolio.openPositionCount,
+      openPositionsCount: portfolio.openPositionCount,
       claimablePositionsCount: portfolio.claimablePositionCount,
       hasClaimableWinnings: portfolio.hasClaimableWinnings,
-      source: PredictEventValues.SOURCE.PREDICT_POSITIONS_SCREEN,
+      location: PredictEventValues.LOCATION.PREDICT_POSITIONS_SCREEN,
     }),
     [
       entryPoint,
@@ -159,17 +158,15 @@ const PredictPositionsView = () => {
     hasTrackedScreenViewedRef.current = true;
   }, [analyticsProperties]);
 
-  useEffect(() => {
-    if (lastTrackedTabRef.current === activeTab) {
-      return;
-    }
-
-    Engine.context.PredictController.trackPositionsTabViewed({
-      ...analyticsProperties,
-      tab: activeTab,
-    });
-    lastTrackedTabRef.current = activeTab;
-  }, [activeTab, analyticsProperties]);
+  const trackTabViewed = useCallback(
+    (tab: PredictPositionsTabKey) => {
+      Engine.context.PredictController.trackPositionsTabViewed({
+        ...analyticsProperties,
+        tab,
+      });
+    },
+    [analyticsProperties],
+  );
 
   const handleBackPress = useCallback(() => {
     if (navigation.canGoBack()) {
@@ -182,13 +179,15 @@ const PredictPositionsView = () => {
 
   const handleTabPress = useCallback(
     (tab: PredictPositionsTabKey) => {
+      trackTabViewed(tab);
+
       if (tab === activeTab) {
         return;
       }
 
       setActiveTab(tab);
     },
-    [activeTab],
+    [activeTab, trackTabViewed],
   );
 
   const isPositionsTabActive = activeTab === 'positions';

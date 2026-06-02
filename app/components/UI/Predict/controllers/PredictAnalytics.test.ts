@@ -484,7 +484,7 @@ describe('PredictAnalytics', () => {
     it('tracks portfolio module viewed with feed viewed event and non-sensitive context', () => {
       predictAnalytics.trackPortfolioModuleViewed({
         entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
-        positionsCount: 2,
+        openPositionsCount: 2,
         claimablePositionsCount: 1,
         hasClaimableWinnings: true,
       });
@@ -493,24 +493,28 @@ describe('PredictAnalytics', () => {
 
       expect(event.name).toBe(MetaMetricsEvents.PREDICT_FEED_VIEWED.category);
       expect(event.properties).toMatchObject({
+        session_id: expect.any(String),
+        predict_feed_tab: PredictEventValues.LOCATION.PREDICT_PORTFOLIO_MODULE,
+        num_feed_pages_viewed_in_session: 0,
+        session_time_in_feed: 0,
+        is_session_end: false,
         action_type: PredictEventValues.ACTION_TYPE.VIEWED,
         entry_point: PredictEventValues.ENTRY_POINT.HOME_SECTION,
-        positions_count: 2,
+        open_positions_count: 2,
         claimable_positions_count: 1,
         has_claimable_winnings: true,
         portfolio_module_enabled: true,
-        source: PredictEventValues.SOURCE.PREDICT_PORTFOLIO_MODULE,
+        location: PredictEventValues.LOCATION.PREDICT_PORTFOLIO_MODULE,
       });
       expect(event.properties).not.toHaveProperty('amount_usd');
       expect(event.properties).not.toHaveProperty('pnl');
       expect(event.sensitiveProperties).toEqual({});
     });
 
-    it('tracks portfolio action with clicked CTA context', () => {
-      predictAnalytics.trackPortfolioAction({
-        ctaName: PredictEventValues.CTA_NAME.ADD_FUNDS,
-        entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
-        positionsCount: 2,
+    it('tracks portfolio positions button tap with position viewed event', () => {
+      predictAnalytics.trackPortfolioPositionsButtonTapped({
+        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+        openPositionsCount: 2,
         claimablePositionsCount: 1,
         hasClaimableWinnings: true,
       });
@@ -518,16 +522,44 @@ describe('PredictAnalytics', () => {
       const event = getTrackedEvent();
 
       expect(event.name).toBe(
-        MetaMetricsEvents.PREDICT_PORTFOLIO_ACTION.category,
+        MetaMetricsEvents.PREDICT_POSITION_VIEWED.category,
       );
       expect(event.properties).toMatchObject({
         action_type: PredictEventValues.ACTION_TYPE.CLICKED,
-        cta_name: PredictEventValues.CTA_NAME.ADD_FUNDS,
-        entry_point: PredictEventValues.ENTRY_POINT.HOME_SECTION,
-        positions_count: 2,
+        entry_point: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+        open_positions_count: 2,
         claimable_positions_count: 1,
         has_claimable_winnings: true,
-        source: PredictEventValues.SOURCE.PREDICT_PORTFOLIO_MODULE,
+        location: PredictEventValues.LOCATION.PREDICT_PORTFOLIO_MODULE,
+      });
+      expect(event.properties).not.toHaveProperty('amount_usd');
+      expect(event.properties).not.toHaveProperty('pnl');
+      expect(event.sensitiveProperties).toEqual({});
+    });
+
+    it('tracks portfolio transaction initiation with trade transaction event', () => {
+      predictAnalytics.trackPortfolioTransactionInitiated({
+        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
+        transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT,
+        openPositionsCount: 2,
+        claimablePositionsCount: 1,
+        hasClaimableWinnings: true,
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(
+        MetaMetricsEvents.PREDICT_TRADE_TRANSACTION.category,
+      );
+      expect(event.properties).toMatchObject({
+        status: PredictTradeStatus.INITIATED,
+        transaction_type:
+          PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT,
+        entry_point: PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
+        open_positions_count: 2,
+        claimable_positions_count: 1,
+        has_claimable_winnings: true,
+        location: PredictEventValues.LOCATION.PREDICT_PORTFOLIO_MODULE,
       });
       expect(event.properties).not.toHaveProperty('amount_usd');
       expect(event.properties).not.toHaveProperty('pnl');
@@ -537,7 +569,7 @@ describe('PredictAnalytics', () => {
     it('tracks positions screen viewed with position viewed event', () => {
       predictAnalytics.trackPositionsScreenViewed({
         entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
-        positionsCount: 3,
+        openPositionsCount: 3,
         claimablePositionsCount: 1,
         hasClaimableWinnings: true,
       });
@@ -548,18 +580,19 @@ describe('PredictAnalytics', () => {
         MetaMetricsEvents.PREDICT_POSITION_VIEWED.category,
       );
       expect(event.properties).toMatchObject({
+        action_type: PredictEventValues.ACTION_TYPE.VIEWED,
         entry_point: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
-        positions_count: 3,
+        open_positions_count: 3,
         claimable_positions_count: 1,
         has_claimable_winnings: true,
-        source: PredictEventValues.SOURCE.PREDICT_POSITIONS_SCREEN,
+        location: PredictEventValues.LOCATION.PREDICT_POSITIONS_SCREEN,
       });
     });
 
     it('tracks positions tab viewed with position viewed event', () => {
       predictAnalytics.trackPositionsTabViewed({
         tab: PredictEventValues.TAB.POSITIONS,
-        positionsCount: 3,
+        openPositionsCount: 3,
         claimablePositionsCount: 1,
         hasClaimableWinnings: true,
       });
@@ -570,10 +603,11 @@ describe('PredictAnalytics', () => {
         MetaMetricsEvents.PREDICT_POSITION_VIEWED.category,
       );
       expect(event.properties).toMatchObject({
-        positions_count: 3,
+        action_type: PredictEventValues.ACTION_TYPE.VIEWED,
+        open_positions_count: 3,
         claimable_positions_count: 1,
         has_claimable_winnings: true,
-        source: PredictEventValues.SOURCE.PREDICT_POSITIONS_SCREEN,
+        location: PredictEventValues.LOCATION.PREDICT_POSITIONS_SCREEN,
         tab: PredictEventValues.TAB.POSITIONS,
       });
     });
@@ -581,7 +615,7 @@ describe('PredictAnalytics', () => {
     it('tracks history tab viewed with activity viewed event', () => {
       predictAnalytics.trackPositionsTabViewed({
         tab: PredictEventValues.TAB.HISTORY,
-        positionsCount: 3,
+        openPositionsCount: 3,
         claimablePositionsCount: 1,
         hasClaimableWinnings: true,
       });
@@ -592,11 +626,12 @@ describe('PredictAnalytics', () => {
         MetaMetricsEvents.PREDICT_ACTIVITY_VIEWED.category,
       );
       expect(event.properties).toMatchObject({
+        action_type: PredictEventValues.ACTION_TYPE.VIEWED,
         activity_type: PredictEventValues.ACTIVITY_TYPE.ACTIVITY_LIST,
-        positions_count: 3,
+        open_positions_count: 3,
         claimable_positions_count: 1,
         has_claimable_winnings: true,
-        source: PredictEventValues.SOURCE.PREDICT_POSITIONS_SCREEN,
+        location: PredictEventValues.LOCATION.PREDICT_POSITIONS_SCREEN,
         tab: PredictEventValues.TAB.HISTORY,
       });
     });

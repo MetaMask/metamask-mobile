@@ -21,9 +21,8 @@ export const PredictEventProperties = {
   FAILURE_REASON: 'failure_reason',
   SURFACE: 'surface',
   VARIANT: 'variant',
-  CTA_NAME: 'cta_name',
   CATEGORY_NAME: 'category_name',
-  SOURCE: 'source',
+  LOCATION: 'location',
   TAB: 'tab',
 
   // Trade specific
@@ -49,7 +48,6 @@ export const PredictEventProperties = {
 
   // Position specific
   OPEN_POSITIONS_COUNT: 'open_positions_count',
-  POSITIONS_COUNT: 'positions_count',
   CLAIMABLE_POSITIONS_COUNT: 'claimable_positions_count',
   HAS_CLAIMABLE_WINNINGS: 'has_claimable_winnings',
   PORTFOLIO_MODULE_ENABLED: 'portfolio_module_enabled',
@@ -154,13 +152,7 @@ export const PredictEventValues = {
     VIEWED: 'viewed',
     CLICKED: 'clicked',
   },
-  CTA_NAME: {
-    POSITIONS: 'positions',
-    ADD_FUNDS: 'add_funds',
-    WITHDRAW: 'withdraw',
-    CLAIM_ALL: 'claim_all',
-  },
-  SOURCE: {
+  LOCATION: {
     PREDICT_PORTFOLIO_MODULE: 'predict_portfolio_module',
     PREDICT_POSITIONS_SCREEN: 'predict_positions_screen',
   },

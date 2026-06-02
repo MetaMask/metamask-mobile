@@ -14,6 +14,7 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../constants/eventNames';
 import { PREDICT_TRANSACTIONS_VIEW_TEST_IDS } from './PredictTransactionsView.testIds';
+import Engine from '../../../../../core/Engine';
 
 /**
  * Mock Strategy:
@@ -167,6 +168,26 @@ describe('PredictTransactionsView', () => {
     status: PredictPositionStatus.WON,
     title: 'Prediction market',
     ...overrides,
+  });
+
+  it('tracks activity viewed when the list becomes visible by default', () => {
+    render(<PredictTransactionsView isVisible />);
+
+    expect(
+      Engine.context.PredictController.trackActivityViewed,
+    ).toHaveBeenCalledWith({
+      activityType: PredictEventValues.ACTIVITY_TYPE.ACTIVITY_LIST,
+    });
+  });
+
+  it('can defer visible-list analytics to the parent surface', () => {
+    render(
+      <PredictTransactionsView isVisible shouldTrackActivityViewed={false} />,
+    );
+
+    expect(
+      Engine.context.PredictController.trackActivityViewed,
+    ).not.toHaveBeenCalled();
   });
 
   it('displays loading indicator when activity data loads', () => {

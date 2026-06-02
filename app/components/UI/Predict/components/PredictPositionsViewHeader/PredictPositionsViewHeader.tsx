@@ -77,13 +77,13 @@ const PredictPositionsViewHeader = ({
   );
 
   const handleClaimPress = useCallback(async () => {
-    Engine.context.PredictController.trackPortfolioAction({
-      ctaName: PredictEventValues.CTA_NAME.CLAIM_ALL,
+    Engine.context.PredictController.trackPortfolioTransactionInitiated({
       entryPoint,
-      positionsCount: portfolio.openPositionCount,
+      openPositionsCount: portfolio.openPositionCount,
       claimablePositionsCount: portfolio.claimablePositionCount,
       hasClaimableWinnings: portfolio.hasClaimableWinnings,
-      source: PredictEventValues.SOURCE.PREDICT_POSITIONS_SCREEN,
+      location: PredictEventValues.LOCATION.PREDICT_POSITIONS_SCREEN,
+      transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_CLAIM,
     });
 
     await executeGuardedAction(
