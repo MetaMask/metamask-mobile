@@ -95,6 +95,7 @@ const buildController = (
   getButtonLabel: () => 'Buy',
   handleClose: jest.fn(),
   handleSliderChange: jest.fn(),
+  handleSliderDragEnd: jest.fn(),
   handleAmountAreaPress: jest.fn(),
   handleAmountChange: jest.fn(),
   handleToggleAmountDisplay: jest.fn(),
