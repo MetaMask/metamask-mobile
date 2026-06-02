@@ -62,8 +62,8 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-jest.mock('../../hooks/useCardOnboardingNavigationHandlers', () => ({
-  useCardOnboardingNavigationHandlers: jest.fn(() => ({})),
+jest.mock('../../hooks/useCardHeaderHandlers', () => ({
+  useCardHeaderHandlers: jest.fn(() => ({})),
 }));
 
 describe('OnboardingStep Component', () => {

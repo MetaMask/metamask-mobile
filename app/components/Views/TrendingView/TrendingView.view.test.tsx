@@ -90,7 +90,7 @@ const navigateToExploreTab = async (
 };
 
 /**
- * Navigates to the Crypto tab in the V2 tabbed Explore layout.
+ * Navigates to the Crypto tab in the tabbed Explore layout.
  * Trending tokens (and their "View All" button) live in the Crypto tab.
  */
 const navigateToCryptoTab = async (getByTestId: RenderAPI['getByTestId']) =>
@@ -127,6 +127,12 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
 
     // Trending tokens and their View All button are in the Crypto tab
     await navigateToCryptoTab(getByTestId);
+
+    await waitFor(() => {
+      expect(
+        getByTestId(TrendingViewSelectorsIDs.SECTION_HEADER_VIEW_ALL_TOKENS),
+      ).toBeOnTheScreen();
+    });
 
     const viewAllButton = getByTestId(
       TrendingViewSelectorsIDs.SECTION_HEADER_VIEW_ALL_TOKENS,
@@ -220,7 +226,7 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
     });
   });
 
-  it('user switches between Explore V2 tabs and sees tab-specific sections', async () => {
+  it('user switches between Explore tabs and sees tab-specific sections', async () => {
     const { getByTestId, getByText, queryAllByTestId } =
       renderTrendingViewWithRoutes();
 
@@ -246,9 +252,7 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
         getByTestId(TrendingViewSelectorsIDs.EXPLORE_RWAS_SCROLL_VIEW),
       ).toBeOnTheScreen();
       expect(getByText(strings('trending.stocks'))).toBeOnTheScreen();
-      expect(
-        getByText('Ondo US Dollar Yield (Ondo Tokenized)'),
-      ).toBeOnTheScreen();
+      expect(getByText('Ondo US Dollar Yield')).toBeOnTheScreen();
     });
 
     await navigateToExploreTab(EXPLORE_TAB_TEST_IDS.DAPPS, getByTestId);
@@ -262,7 +266,7 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
     });
   });
 
-  it('opens the requested Explore V2 tab from route params', async () => {
+  it('opens the requested Explore tab from route params', async () => {
     const { getByText, queryAllByTestId } = renderTrendingViewWithRoutes({
       initialParams: { initialTab: EXPLORE_TAB_INDEX.SITES },
     });

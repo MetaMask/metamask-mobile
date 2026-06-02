@@ -57,7 +57,7 @@ import HeaderRoot from '../../../component-library/components-temp/HeaderRoot';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
 import AddressCopy from '../../UI/AddressCopy';
 import CardButton from '../../UI/Card/components/CardButton';
-import { selectMoneyHomeScreenEnabledFlag } from '../../UI/Money/selectors/featureFlags';
+import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
 import MoneyBalanceCard from '../../UI/Money/components/MoneyBalanceCard';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createAccountSelectorNavDetails } from '../AccountSelector';
@@ -719,9 +719,7 @@ const Wallet = ({
    */
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
-  const isMoneyHomeScreenEnabled = useSelector(
-    selectMoneyHomeScreenEnabledFlag,
-  );
+  const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
 
   /**
    * Provider configuration for the current selected network
@@ -1385,7 +1383,7 @@ const Wallet = ({
       <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
       {walletHomeMainAssetDetailsActions}
       {homeGrowthBannerContent}
-      {isMoneyHomeScreenEnabled && <MoneyBalanceCard />}
+      {isMoneyAccountEnabled && <MoneyBalanceCard />}
     </>
   );
 
@@ -1397,7 +1395,7 @@ const Wallet = ({
       </View>
       {walletHomeMainAssetDetailsActions}
       {homeGrowthBannerContent}
-      {isMoneyHomeScreenEnabled && <MoneyBalanceCard />}
+      {isMoneyAccountEnabled && <MoneyBalanceCard />}
     </>
   );
 
@@ -1510,7 +1508,7 @@ const Wallet = ({
                       style={styles.headerActionButtonsContainer}
                       accessible={false}
                     >
-                      {isMoneyHomeScreenEnabled && (
+                      {isMoneyAccountEnabled && (
                         <ButtonIcon
                           iconProps={{
                             color: MMDSIconColor.IconDefault,
