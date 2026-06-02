@@ -1,7 +1,32 @@
 import { useCallback, useRef } from 'react';
+import {
+  mergeAssetViewedProperties,
+  MetaMetricsEvents,
+} from '../../../../core/Analytics';
 import { analytics } from '../../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
-import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
+import type { SearchFeedId } from './useExploreSearch';
+
+export type SearchInteractionType =
+  | 'result_clicked'
+  | 'scrolled'
+  | 'tab_switched';
+
+/** 'all' = aggregated view; other values are a specific feed pill. */
+export type SearchFeedPill = SearchFeedId | 'all';
+
+export interface ExploreSearchInteractedProperties {
+  interaction_type: SearchInteractionType;
+  search_query: string;
+  /** Only set on result_clicked when tab_name is 'all'. */
+  section_name?: SearchFeedId;
+  tab_name?: SearchFeedPill;
+  previous_tab?: SearchFeedPill;
+  /** True when tab_switched came from a section header button, not the pill row. */
+  comes_from_view_all_tap?: boolean;
+  item_clicked?: string;
+  position?: number;
+}
 
 export type ExploreTabName =
   | 'Now'
@@ -60,26 +85,67 @@ export const trackExploreInteracted = (
   );
 };
 
-/** Single-line wrapper around the analytics builder boilerplate. */
-export const trackExploreEvent = (
-  event: Parameters<typeof AnalyticsEventBuilder.createEventBuilder>[0],
-  properties: Record<string, string>,
+const PREDICTIONS_TRENDING_SECTION: ExploreSectionName = 'predictions_trending';
+
+/**
+ * Trade funnel: `Asset Viewed` when the user taps View all / the Predict section
+ * header on Explore (`predictions_trending`).
+ */
+export const trackExplorePredictTrendingAssetViewed = (
+  tabName: ExploreTabName,
 ): void => {
   analytics.trackEvent(
-    AnalyticsEventBuilder.createEventBuilder(event)
-      .addProperties(properties)
+    AnalyticsEventBuilder.createEventBuilder(MetaMetricsEvents.ASSET_VIEWED)
+      .addProperties(
+        mergeAssetViewedProperties('Predict', {
+          section_name: PREDICTIONS_TRENDING_SECTION,
+          asset_type: 'prediction',
+          tab_name: tabName,
+          interaction_type: 'section_see_all_tapped',
+        }),
+      )
+      .build(),
+  );
+};
+
+export const trackExploreSectionSeeAll = ({
+  tabName,
+  sectionName,
+}: {
+  tabName: ExploreTabName;
+  sectionName: ExploreSectionName;
+}): void => {
+  trackExploreInteracted({
+    interaction_type: 'section_see_all_tapped',
+    tab_name: tabName,
+    section_name: sectionName,
+  });
+
+  if (sectionName === PREDICTIONS_TRENDING_SECTION) {
+    trackExplorePredictTrendingAssetViewed(tabName);
+  }
+};
+
+export const trackExploreSearchEvent = (
+  properties: ExploreSearchInteractedProperties,
+): void => {
+  analytics.trackEvent(
+    AnalyticsEventBuilder.createEventBuilder(
+      MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED,
+    )
+      .addProperties(properties as unknown as Record<string, unknown>)
       .build(),
   );
 };
 
 /**
- * Returns a stable `onScrollBeginDrag` handler that fires a one-shot analytics
- * event the first time the user begins scrolling.
+ * One-shot scroll analytics: fires on the first onScrollBeginDrag, then resets
+ * when searchQuery or activeTab changes.
  */
 export const useScrollTracking = (
-  interactionType: string,
+  interactionType: SearchInteractionType,
   searchQuery: string,
-  extraProperties?: Record<string, string>,
+  extraProperties?: Partial<ExploreSearchInteractedProperties>,
 ) => {
   const hasTracked = useRef(false);
   const searchQueryRef = useRef(searchQuery);
@@ -91,7 +157,7 @@ export const useScrollTracking = (
   const onScrollBeginDrag = useCallback(() => {
     if (hasTracked.current) return;
     hasTracked.current = true;
-    trackExploreEvent(MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED, {
+    trackExploreSearchEvent({
       interaction_type: interactionType,
       search_query: searchQueryRef.current,
       ...extraPropsRef.current,

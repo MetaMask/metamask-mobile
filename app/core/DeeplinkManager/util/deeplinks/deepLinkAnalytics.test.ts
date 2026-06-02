@@ -458,7 +458,7 @@ describe('deepLinkAnalytics', () => {
       [ACTIONS.WC, DeepLinkRoute.WC],
       [ACTIONS.CREATE_ACCOUNT, DeepLinkRoute.CREATE_ACCOUNT],
       [ACTIONS.WHATS_HAPPENING, DeepLinkRoute.WHATS_HAPPENING],
-      [ACTIONS.SOCIAL_LEADERBOARD, DeepLinkRoute.SOCIAL_LEADERBOARD],
+      [ACTIONS.TOP_TRADERS, DeepLinkRoute.TOP_TRADERS],
       [ACTIONS.SOCIAL_TRADER_POSITION, DeepLinkRoute.SOCIAL_TRADER_POSITION],
     ] as const)(
       'maps action %s to its corresponding route',
@@ -540,9 +540,9 @@ describe('deepLinkAnalytics', () => {
 
     it('extract social leaderboard route', () => {
       const result = extractRouteFromUrl(
-        'https://link.metamask.io/social-leaderboard?ignored=true',
+        'https://link.metamask.io/top-traders?ignored=true',
       );
-      expect(result).toBe(DeepLinkRoute.SOCIAL_LEADERBOARD);
+      expect(result).toBe(DeepLinkRoute.TOP_TRADERS);
     });
 
     it('extract home route for empty path', () => {

@@ -162,6 +162,10 @@ interface MarketInsightsRouteParams {
   hasPerpsPosition?: boolean;
   /** Surface from which Market Insights was accessed */
   source?: 'token_details' | 'perps' | 'unknown';
+  /** Whether the price trend is positive on the parent Token Details screen. */
+  isPricePositive?: boolean;
+  /** Whether the ambient price color A/B test treatment is active. */
+  useAmbientColor?: boolean;
 }
 
 /**
@@ -190,6 +194,8 @@ const MarketInsightsView: React.FC = () => {
     isPerps = false,
     hasPerpsPosition = false,
     source: routeSource = 'unknown',
+    isPricePositive,
+    useAmbientColor,
   } = route.params;
 
   const isMarketInsightsEnabled = isPerps
@@ -294,12 +300,6 @@ const MarketInsightsView: React.FC = () => {
     assetSymbolProperty,
     routeSource,
   ]);
-
-  const handleTweetPress = useCallback((url: string) => {
-    if (isSafeUrl(url)) {
-      Linking.openURL(url);
-    }
-  }, []);
 
   const closeEligibilityModal = useCallback(() => {
     setIsEligibilityModalVisible(false);
@@ -463,6 +463,17 @@ const MarketInsightsView: React.FC = () => {
       assetSymbolProperty,
       routeSource,
     ],
+  );
+
+  const handleTweetPress = useCallback(
+    (url: string) => {
+      if (!isSafeUrl(url)) {
+        return;
+      }
+      trackMarketInsightsInteraction('source_click', { source_url: url });
+      Linking.openURL(url);
+    },
+    [trackMarketInsightsInteraction],
   );
 
   const showFeedbackSubmittedToast = useCallback(() => {
@@ -818,6 +829,8 @@ const MarketInsightsView: React.FC = () => {
               onSwapPress={handleStickySwapPress}
               onBuyPress={handleStickyBuyPress}
               sourcePage="MarketInsightsView"
+              isPricePositive={isPricePositive}
+              useAmbientColor={useAmbientColor}
             />
             <Box alignItems={BoxAlignItems.Center}>
               <Text

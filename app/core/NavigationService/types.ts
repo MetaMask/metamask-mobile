@@ -19,9 +19,13 @@ import type { BrowserParams } from '../../components/Views/Browser/Browser.types
 // Bridge params
 import type { BridgeRouteParams } from '../../components/UI/Bridge/hooks/useSwapBridgeNavigation';
 import type { BridgeTokenSelectorRouteParams } from '../../components/UI/Bridge/components/BridgeTokenSelector/BridgeTokenSelector';
-import type { DefaultSlippageModalParams } from '../../components/UI/Bridge/components/SlippageModal/types';
+import type { BatchSellNetworkFeeInfoModalParams } from '../../components/UI/Bridge/components/BatchSellNetworkFeeInfoModal/BatchSellNetworkFeeInfoModal.types';
+import type { BatchSellMinimumReceivedInfoModalParams } from '../../components/UI/Bridge/components/BatchSellMinimumReceivedInfoModal/BatchSellMinimumReceivedInfoModal.types';
 import type {
-  CustomSlippageModalParams,
+  BatchSellSlippageModalParams,
+  SwapSlippageModalParams,
+} from '../../components/UI/Bridge/components/SlippageModal/types';
+import type {
   TransactionDetailsBlockExplorerParams,
   BlockaidModalParams,
   BridgeTransactionDetailsParams,
@@ -51,6 +55,7 @@ import type { OnboardingInterestQuestionnaireRouteParams } from '../../component
 
 // Perps navigation params
 import type { PerpsNavigationParamList } from '../../components/UI/Perps/types/navigation';
+import type { TrendingTokensFullViewParams } from '../../components/UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
 
 // QR Scanner params
 import type { QRScannerParams } from '../../components/Views/QRScanner/QRScanner.types';
@@ -223,8 +228,6 @@ export interface NestedNavigationParams {
   [key: string]: unknown;
 }
 
-import type { SearchFeedId } from '../../components/Views/TrendingView/search/useExploreSearch';
-
 type TraderPositionViewParams =
   | {
       traderId: string;
@@ -236,6 +239,11 @@ type TraderPositionViewParams =
       traderName?: string;
       /** Optional — fetched via useTraderProfile when absent. */
       traderImageUrl?: string;
+      /** Wallet address; forwarded for QuickBuy analytics. */
+      traderAddress?: string;
+      /** Analytics entry-point that opened the position view. Narrowed at the
+       * receiver into the QuickBuy / FollowTradingToken source enums. */
+      source?: string;
     }
   | {
       /** Deep-link path: triggers useTraderPosition to fetch by UUID. */
@@ -245,6 +253,11 @@ type TraderPositionViewParams =
       traderName?: never;
       traderImageUrl?: never;
       position?: never;
+      /** Wallet address; forwarded for QuickBuy analytics. */
+      traderAddress?: string;
+      /** Analytics entry-point that opened the position view. Narrowed at the
+       * receiver into the QuickBuy / FollowTradingToken source enums. */
+      source?: string;
     };
 
 /**
@@ -352,18 +365,8 @@ export interface RootStackParamList extends ParamListBase {
     | undefined;
   SitesFullView: { mode?: 'favorites' } | undefined;
   ExploreSearch: undefined;
-  ExploreSectionResultsFullView: {
-    feedId: SearchFeedId;
-    title: string;
-    searchQuery: string;
-    data: unknown[];
-  };
   RewardsOnboardingFlow: undefined;
   RewardsOnboardingIntro: undefined;
-  RewardsOnboarding1: undefined;
-  RewardsOnboarding2: undefined;
-  RewardsOnboarding3: undefined;
-  RewardsOnboarding4: undefined;
   BenefitFullView: BenefitFullViewRouteParams;
   BenefitsFullView: undefined;
 
@@ -375,7 +378,6 @@ export interface RootStackParamList extends ParamListBase {
   WhatsNewModal: undefined;
   TurnOffRememberMeModal: undefined;
   UpdateNeededModal: undefined;
-  DetectedTokens: undefined;
   SRPRevealQuiz: SRPRevealQuizParams | undefined;
   WalletActions: undefined;
   TradeWalletActions: undefined;
@@ -510,7 +512,7 @@ export interface RootStackParamList extends ParamListBase {
   TokensFullView: undefined;
   CashTokensFullView: undefined;
   MoneyScreens: undefined;
-  TrendingTokensFullView: undefined;
+  TrendingTokensFullView: TrendingTokensFullViewParams | undefined;
   RWATokensFullView: undefined;
 
   // Vault recovery routes
@@ -529,14 +531,22 @@ export interface RootStackParamList extends ParamListBase {
   BatchSellTokenSelect: undefined;
   BatchSellReview: undefined;
   BridgeModals: undefined;
-  DefaultSlippageModal: DefaultSlippageModalParams | undefined;
-  CustomSlippageModal: CustomSlippageModalParams | undefined;
+  SwapDefaultSlippageModal: SwapSlippageModalParams | undefined;
+  SwapCustomSlippageModal: SwapSlippageModalParams | undefined;
+  BatchSellDefaultSlippageModal: BatchSellSlippageModalParams | undefined;
+  BatchSellCustomSlippageModal: BatchSellSlippageModalParams | undefined;
   TransactionDetailsBlockExplorer:
     | TransactionDetailsBlockExplorerParams
     | undefined;
   BlockaidModal: BlockaidModalParams;
   RecipientSelectorModal: undefined;
   BatchSellDestinationTokenSelectorModal: undefined;
+  BatchSellQuoteDetailsModal: undefined;
+  BatchSellFinalReviewModal: undefined;
+  BatchSellNetworkFeeInfoModal: BatchSellNetworkFeeInfoModalParams | undefined;
+  BatchSellMinimumReceivedInfoModal:
+    | BatchSellMinimumReceivedInfoModalParams
+    | undefined;
   BridgeTransactionDetails: BridgeTransactionDetailsParams | undefined;
 
   // Perps routes - use PerpsNavigationParamList for type-safe perps navigation
@@ -584,8 +594,22 @@ export interface RootStackParamList extends ParamListBase {
   PredictGTMModal: undefined;
 
   // Social Leaderboard routes
-  TopTradersView: undefined;
-  TraderProfileView: { traderId: string; traderName: string; rank?: number };
+  TopTradersView: {
+    /** Analytics entry-point that opened the leaderboard. Narrowed at the
+     * receiver to LeaderboardScreenViewedSource. */
+    source?: string;
+  };
+  TraderProfileView: {
+    traderId: string;
+    traderName: string;
+    /** Wallet address (LeaderboardEntry.addresses[0]); used as analytics key. */
+    traderAddress?: string;
+    /** Analytics entry-point that opened the profile. Narrowed at the
+     * receiver to TraderProfileScreenViewedSource. */
+    source?: string;
+    /** Leaderboard rank when arriving from leaderboard / home carousel. */
+    traderRank?: number;
+  };
   TraderPositionView: TraderPositionViewParams;
 
   // Misc routes
@@ -598,8 +622,6 @@ export interface RootStackParamList extends ParamListBase {
 
   // Notification routes
   NotificationsView: undefined;
-  OptIn: undefined;
-  OptInStack: undefined;
   NotificationsDetails: NotificationDetailsParams | undefined;
 
   // Staking routes

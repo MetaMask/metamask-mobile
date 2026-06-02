@@ -117,17 +117,6 @@ export const PopularList = [
     },
   },
   {
-    chainId: toHex('11297108109'),
-    nickname: 'Palm',
-    rpcUrl: `https://palm-mainnet.infura.io/v3/${infuraProjectId}`,
-    ticker: 'PALM',
-    rpcPrefs: {
-      blockExplorerUrl: 'https://palm.chainlens.com',
-      imageUrl: 'PALM',
-      imageSource: require('../../images/palm.png'),
-    },
-  },
-  {
     chainId: toHex('137'),
     nickname: 'Polygon',
     rpcUrl: `https://polygon-mainnet.infura.io/v3/${infuraProjectId}`,
@@ -354,6 +343,18 @@ export const UnpopularNetworkList = [
       blockExplorerUrl: 'https://explorer.harmony.one',
       imageUrl: 'ONE',
       imageSource: require('../../images/harmony.png'),
+    },
+  },
+  {
+    chainId: toHex('11297108109'),
+    nickname: 'Palm',
+    rpcUrl: `https://palm-mainnet.infura.io/v3/${infuraProjectId}`,
+    ticker: 'PALM',
+    warning: true,
+    rpcPrefs: {
+      blockExplorerUrl: 'https://palm.chainlens.com',
+      imageUrl: 'PALM',
+      imageSource: require('../../images/palm.png'),
     },
   },
 ];

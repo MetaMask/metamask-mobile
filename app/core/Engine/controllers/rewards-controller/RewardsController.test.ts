@@ -14,7 +14,7 @@ import {
   type SeasonStatusState,
   type SeasonTierDto,
   type SeasonDtoState,
-  type SubscriptionSeasonReferralDetailState,
+  type SubscriptionReferralDetailState,
   type SeasonStateDto,
   SeasonRewardType,
   type LineaTokenRewardDto,
@@ -694,6 +694,12 @@ describe('RewardsController', () => {
   });
 
   describe('estimatePoints', () => {
+    // hasActiveSeason is hardcoded to false; force-enable it for these tests so the
+    // estimate path is exercised. Individual tests can override.
+    beforeEach(() => {
+      jest.spyOn(controller, 'hasActiveSeason').mockResolvedValue(true);
+    });
+
     it('returns default response when disabled via isDisabled callback', async () => {
       const isDisabled = () => true;
       const disabledController = new RewardsController({
@@ -903,24 +909,13 @@ describe('RewardsController', () => {
     });
 
     it('returns default response when there is no active season', async () => {
+      jest.spyOn(controller, 'hasActiveSeason').mockResolvedValue(false);
+
       const mockRequest = {
         activityType: 'SWAP' as const,
         account: CAIP_ACCOUNT_1,
         activityContext: {},
       };
-
-      // Mock getSeasonMetadata to return null (no active season)
-      // This simulates getSeasonMetadata('current') returning null
-      mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'RewardsDataService:getDiscoverSeasons') {
-          return Promise.resolve({
-            current: null,
-            next: null,
-            previous: null,
-          });
-        }
-        return Promise.resolve(null);
-      });
 
       const result = await controller.estimatePoints(mockRequest);
 
@@ -1919,250 +1914,11 @@ describe('RewardsController', () => {
   });
 
   describe('hasActiveSeason', () => {
-    it('returns false when rewards feature is disabled', async () => {
-      const isDisabled = () => true;
-      const disabledController = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isDisabled,
-      });
-
-      const result = await disabledController.hasActiveSeason();
+    it('always returns false (temporarily hardcoded while no season is configured)', async () => {
+      const result = await controller.hasActiveSeason();
 
       expect(result).toBe(false);
       expect(mockMessenger.call).not.toHaveBeenCalled();
-    });
-
-    it('returns false when getSeasonMetadata returns null', async () => {
-      // Mock getSeasonMetadata to return null by having getDiscoverSeasons return null for current
-      mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'RewardsDataService:getDiscoverSeasons') {
-          return Promise.resolve({
-            current: null,
-            next: null,
-            previous: null,
-          });
-        }
-        return Promise.resolve(null);
-      });
-
-      const result = await controller.hasActiveSeason();
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when getSeasonMetadata throws an error', async () => {
-      mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'RewardsDataService:getDiscoverSeasons') {
-          return Promise.reject(new Error('API error'));
-        }
-        return Promise.resolve(null);
-      });
-
-      const result = await controller.hasActiveSeason();
-
-      expect(result).toBe(false);
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Failed to check active season:',
-        'API error',
-      );
-    });
-
-    it('returns true when getSeasonMetadata returns an active season (current date between start and end)', async () => {
-      // Use a realistic timestamp (2023-11-15)
-      const now = 1700000000000;
-      const mockSeasonId = 'season123';
-      const mockSeasonMetadata = {
-        id: mockSeasonId,
-        name: 'Test Season',
-        startDate: new Date(now - 86400000), // 1 day ago
-        endDate: new Date(now + 86400000), // 1 day from now
-        tiers: createTestTiers(),
-        activityTypes: [],
-        waysToEarn: [],
-      };
-
-      // Use fake timers to control Date constructor
-      jest.useFakeTimers();
-      jest.setSystemTime(now);
-
-      mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'RewardsDataService:getDiscoverSeasons') {
-          return Promise.resolve({
-            current: {
-              id: mockSeasonId,
-              startDate: new Date(now - 86400000),
-              endDate: new Date(now + 86400000),
-            },
-            next: null,
-            previous: null,
-          });
-        }
-        if (method === 'RewardsDataService:getSeasonMetadata') {
-          return Promise.resolve(mockSeasonMetadata);
-        }
-        return Promise.resolve(null);
-      });
-
-      const result = await controller.hasActiveSeason();
-
-      expect(result).toBe(true);
-
-      jest.useRealTimers();
-    });
-
-    it('returns false when season has not started yet (startDate in future)', async () => {
-      const now = Date.now();
-      const mockSeasonId = 'season123';
-      const mockSeasonMetadata = {
-        id: mockSeasonId,
-        name: 'Future Season',
-        startDate: new Date(now + 86400000), // 1 day from now
-        endDate: new Date(now + 172800000), // 2 days from now
-        tiers: createTestTiers(),
-      };
-
-      mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'RewardsDataService:getDiscoverSeasons') {
-          return Promise.resolve({
-            current: {
-              id: mockSeasonId,
-              startDate: new Date(now + 86400000),
-              endDate: new Date(now + 172800000),
-            },
-            next: null,
-            previous: null,
-          });
-        }
-        if (method === 'RewardsDataService:getSeasonMetadata') {
-          return Promise.resolve(mockSeasonMetadata);
-        }
-        return Promise.resolve(null);
-      });
-
-      const result = await controller.hasActiveSeason();
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when season has ended (endDate in past)', async () => {
-      const now = Date.now();
-      const mockSeasonId = 'season123';
-      const mockSeasonMetadata = {
-        id: mockSeasonId,
-        name: 'Past Season',
-        startDate: new Date(now - 172800000), // 2 days ago
-        endDate: new Date(now - 86400000), // 1 day ago
-        tiers: createTestTiers(),
-      };
-
-      mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'RewardsDataService:getDiscoverSeasons') {
-          return Promise.resolve({
-            current: {
-              id: mockSeasonId,
-              startDate: new Date(now - 172800000),
-              endDate: new Date(now - 86400000),
-            },
-            next: null,
-            previous: null,
-          });
-        }
-        if (method === 'RewardsDataService:getSeasonMetadata') {
-          return Promise.resolve(mockSeasonMetadata);
-        }
-        return Promise.resolve(null);
-      });
-
-      const result = await controller.hasActiveSeason();
-
-      expect(result).toBe(false);
-    });
-
-    it('returns true when season starts exactly today (startDate equals current date)', async () => {
-      // Use a realistic timestamp (2023-11-15)
-      const now = 1700000000000;
-      const mockSeasonId = 'season123';
-      const mockSeasonMetadata = {
-        id: mockSeasonId,
-        name: 'Season Starting Today',
-        startDate: new Date(now), // Today
-        endDate: new Date(now + 86400000), // 1 day from now
-        tiers: createTestTiers(),
-        activityTypes: [],
-        waysToEarn: [],
-      };
-
-      // Use fake timers to control Date constructor
-      jest.useFakeTimers();
-      jest.setSystemTime(now);
-
-      mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'RewardsDataService:getDiscoverSeasons') {
-          return Promise.resolve({
-            current: {
-              id: mockSeasonId,
-              startDate: new Date(now),
-              endDate: new Date(now + 86400000),
-            },
-            next: null,
-            previous: null,
-          });
-        }
-        if (method === 'RewardsDataService:getSeasonMetadata') {
-          return Promise.resolve(mockSeasonMetadata);
-        }
-        return Promise.resolve(null);
-      });
-
-      const result = await controller.hasActiveSeason();
-
-      expect(result).toBe(true);
-
-      jest.useRealTimers();
-    });
-
-    it('returns true when season ends exactly today (endDate equals current date)', async () => {
-      // Use a realistic timestamp (2023-11-15)
-      const now = 1700000000000;
-      const mockSeasonId = 'season123';
-      const mockSeasonMetadata = {
-        id: mockSeasonId,
-        name: 'Season Ending Today',
-        startDate: new Date(now - 86400000), // 1 day ago
-        endDate: new Date(now), // Today
-        tiers: createTestTiers(),
-        activityTypes: [],
-        waysToEarn: [],
-      };
-
-      // Use fake timers to control Date constructor
-      jest.useFakeTimers();
-      jest.setSystemTime(now);
-
-      mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'RewardsDataService:getDiscoverSeasons') {
-          return Promise.resolve({
-            current: {
-              id: mockSeasonId,
-              startDate: new Date(now - 86400000),
-              endDate: new Date(now),
-            },
-            next: null,
-            previous: null,
-          });
-        }
-        if (method === 'RewardsDataService:getSeasonMetadata') {
-          return Promise.resolve(mockSeasonMetadata);
-        }
-        return Promise.resolve(null);
-      });
-
-      const result = await controller.hasActiveSeason();
-
-      expect(result).toBe(true);
-
-      jest.useRealTimers();
     });
   });
 
@@ -4096,6 +3852,52 @@ describe('RewardsController', () => {
           ),
         ).toHaveLength(1);
       });
+    });
+  });
+
+  describe('getVipTierForAccount', () => {
+    it('returns null when disabled via isDisabled callback', async () => {
+      const isDisabled = () => true;
+      const disabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled,
+      });
+
+      const result =
+        await disabledController.getVipTierForAccount(CAIP_ACCOUNT_1);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null for accounts the controller has never seen (unhydrated)', async () => {
+      const result = await controller.getVipTierForAccount(CAIP_ACCOUNT_2);
+      expect(result).toBeNull();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('returns null when the account has no linked subscription (unhydrated)', async () => {
+      const accountState = {
+        account: CAIP_ACCOUNT_1,
+        hasOptedIn: true,
+        subscriptionId: null,
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+      };
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          activeAccount: null,
+          accounts: { [CAIP_ACCOUNT_1]: accountState as RewardsAccountState },
+          subscriptions: {},
+        },
+        isDisabled: () => false,
+      });
+
+      const result = await controller.getVipTierForAccount(CAIP_ACCOUNT_1);
+
+      expect(result).toBeNull();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
     });
   });
 
@@ -6690,7 +6492,6 @@ describe('RewardsController', () => {
 
   describe('getReferralDetails', () => {
     const mockSubscriptionId = 'sub123';
-    const mockSeasonId = 'season456';
 
     it('returns null when feature flag is disabled', async () => {
       const disabledController = new RewardsController({
@@ -6709,21 +6510,17 @@ describe('RewardsController', () => {
         isDisabled: () => true,
       });
 
-      const result = await disabledController.getReferralDetails(
-        mockSubscriptionId,
-        mockSeasonId,
-      );
+      const result =
+        await disabledController.getReferralDetails(mockSubscriptionId);
       expect(result).toBeNull();
     });
 
     it('returns cached referral details when cache is fresh', async () => {
       const recentTime = Date.now() - 10000; // 10 seconds ago (within 1 minute threshold)
-      const compositeKey = `${mockSeasonId}:${mockSubscriptionId}`;
-      const mockReferralDetailsState: SubscriptionSeasonReferralDetailState = {
+      const mockReferralDetailsState: SubscriptionReferralDetailState = {
         referralCode: 'REF456',
         totalReferees: 10,
         referredByCode: 'REFERRER200',
-        referralPoints: 500,
         lastFetched: recentTime,
       };
 
@@ -6742,7 +6539,7 @@ describe('RewardsController', () => {
           },
           seasons: {},
           subscriptionReferralDetails: {
-            [compositeKey]: mockReferralDetailsState,
+            [mockSubscriptionId]: mockReferralDetailsState,
           },
           seasonStatuses: {},
           activeBoosts: {},
@@ -6752,10 +6549,7 @@ describe('RewardsController', () => {
         isDisabled: () => false,
       });
 
-      const result = await controller.getReferralDetails(
-        mockSubscriptionId,
-        mockSeasonId,
-      );
+      const result = await controller.getReferralDetails(mockSubscriptionId);
 
       expect(result).toEqual(mockReferralDetailsState);
       expect(result?.referralCode).toBe('REF456');
@@ -6765,7 +6559,6 @@ describe('RewardsController', () => {
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
         'RewardsDataService:getReferralDetails',
         expect.anything(),
-        expect.anything(),
       );
     });
 
@@ -6774,7 +6567,6 @@ describe('RewardsController', () => {
         referralCode: 'NEWFRESH123',
         totalReferees: 25,
         referredByCode: 'REFERRER500',
-        referralPoints: 1000,
       };
 
       controller = new RewardsController({
@@ -6802,14 +6594,10 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockResolvedValue(mockApiResponse);
 
-      const result = await controller.getReferralDetails(
-        mockSubscriptionId,
-        mockSeasonId,
-      );
+      const result = await controller.getReferralDetails(mockSubscriptionId);
 
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:getReferralDetails',
-        mockSeasonId,
         mockSubscriptionId,
       );
 
@@ -6822,12 +6610,10 @@ describe('RewardsController', () => {
     });
 
     it('updates state when fetching fresh referral details', async () => {
-      const compositeKey = `${mockSeasonId}:${mockSubscriptionId}`;
       const mockApiResponse = {
         referralCode: 'UPDATED789',
         totalReferees: 15,
         referredByCode: 'REFERRER300',
-        referralPoints: 750,
       };
 
       controller = new RewardsController({
@@ -6855,10 +6641,7 @@ describe('RewardsController', () => {
 
       mockMessenger.call.mockResolvedValue(mockApiResponse);
 
-      const result = await controller.getReferralDetails(
-        mockSubscriptionId,
-        mockSeasonId,
-      );
+      const result = await controller.getReferralDetails(mockSubscriptionId);
 
       // Check that the result is the converted state object
       expect(result).toBeDefined();
@@ -6868,7 +6651,7 @@ describe('RewardsController', () => {
       expect(result?.lastFetched).toBeGreaterThan(Date.now() - 1000);
 
       const updatedReferralDetails =
-        controller.state.subscriptionReferralDetails[compositeKey];
+        controller.state.subscriptionReferralDetails[mockSubscriptionId];
       expect(updatedReferralDetails).toBeDefined();
       expect(updatedReferralDetails).toEqual(result); // Should be the same object
       expect(updatedReferralDetails.referralCode).toBe(
@@ -6913,7 +6696,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockRejectedValue(apiError);
 
       await expect(
-        controller.getReferralDetails(mockSubscriptionId, mockSeasonId),
+        controller.getReferralDetails(mockSubscriptionId),
       ).rejects.toThrow('API connection failed');
     });
 
@@ -6945,7 +6728,7 @@ describe('RewardsController', () => {
       mockMessenger.call.mockRejectedValue(numberError);
 
       await expect(
-        controller.getReferralDetails(mockSubscriptionId, mockSeasonId),
+        controller.getReferralDetails(mockSubscriptionId),
       ).rejects.toEqual(404);
     });
   });
@@ -7124,24 +6907,28 @@ describe('RewardsController', () => {
       nextTier: { id: 'gold-fox-vip-4', name: 'Gold Fox VIP 4', tier: 4 },
       progress: {
         percent: 72,
-        remainingSwapsUsd: 800000,
-        remainingPerpsUsd: 3600000,
-        estimatedDaysToNextTier: 4,
+        remainingPointsToNextTier: 800000,
         status: 'on_track',
       },
       fees: {
+        revenueShareBps: 150,
         swapsBps: 15,
         perpsBps: 4,
+        nextTierRevenueShareBps: 200,
         nextTierSwapsBps: 12,
         nextTierPerpsBps: 3,
       },
       volume: {
         swapsUsd: 4100000,
         perpsUsd: 2300000,
+        points: 24400000,
+        pointsFromReferrals: 500000,
+        referrals: 2,
+        referralsCap: 10,
       },
       pointsAllocation: {
         earned: 24400000,
-        max: 100000000,
+        threshold: 100000000,
         percent: 24.4,
       },
       tiers: [
@@ -7149,25 +6936,37 @@ describe('RewardsController', () => {
           id: 'gold-fox-vip-3',
           name: 'Gold Fox 3',
           tier: 3,
-          swapsRequirementUsd: 7000000,
-          perpsRequirementUsd: 35000000,
+          pointsRequirement: 750000,
+          revenueShareBps: 150,
           swapsBps: 15,
           perpsBps: 4,
+          referralCarryoverBps: 2000,
           status: 'current',
         },
       ],
       localizedText: {
-        period: 'Mar 31 - Apr 30',
-        progressToNextTier: 'Subline',
+        periodTitle: 'Mar 31 - Apr 30',
+        memberIdTitle: 'Member ID',
         swapsFeeTitle: 'Swaps fee',
         perpsFeeTitle: 'Perps fee',
         nextTierSwapsFeeDelta: '↓ 12 bps next tier',
         nextTierPerpsFeeDelta: '↓ 3 bps next tier',
-        volumeTitle: 'Volume',
-        statusMessage: 'On track',
+        revenueShareTitle: 'Revenue share',
+        referralPointsTitle: 'Referral points',
+        nextTierRevenueShareDelta: '↑ 2% next tier',
+        nextTierReferralPointsDelta: '↑ 20% next tier',
+        topTierDescription: 'Top tier reached',
+        statsTitle: 'Volume',
         pointsTitle: 'Points',
-        pointsAllocationTitle: 'Earn VIP allocations',
-        pointsAllocationDescription: 'Body copy',
+        swapsVolumeTitle: 'Swaps Volume',
+        pointsFromReferralsTitle: 'Points from Referrals',
+        perpsVolumeTitle: 'Perps Volume',
+        vipReferralsTitle: 'VIP Referrals',
+        totalPointsTitle: 'Points',
+        equityLockedTitle: 'Earn VIP allocations',
+        equityLockedDescription: 'Body copy',
+        equityUnlockedTitle: 'VIP allocation unlocked',
+        equityUnlockedDescription: 'Unlocked body copy',
       },
       ...overrides,
     });
@@ -8664,29 +8463,54 @@ describe('RewardsController', () => {
       );
     });
 
-    it('returns false for empty or whitespace-only codes', async () => {
+    it('returns false for empty or whitespace-only codes and does not call data service', async () => {
       // Act & Assert
       expect(await controller.validateReferralCode('')).toBe(false);
       expect(await controller.validateReferralCode('   ')).toBe(false);
       expect(await controller.validateReferralCode('\t\n')).toBe(false);
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:validateReferralCode',
+        expect.anything(),
+      );
     });
 
-    it('returns false for codes with incorrect length', async () => {
+    it('forwards non-empty vanity codes to the data service', async () => {
+      // Arrange
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'RewardsDataService:validateReferralCode') {
+          return Promise.resolve({ valid: true });
+        }
+        return Promise.resolve();
+      });
+
+      // Act
+      const result = await controller.validateReferralCode('BANKLESS');
+
+      // Assert: vanity code is forwarded regardless of length or charset
+      expect(result).toBe(true);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:validateReferralCode',
+        'BANKLESS',
+      );
+    });
+
+    it('forwards codes with characters outside Base32 alphabet to the data service', async () => {
+      // Arrange — backend decides validity, not the client
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'RewardsDataService:validateReferralCode') {
+          return Promise.resolve({ valid: false });
+        }
+        return Promise.resolve();
+      });
+
       // Act & Assert
-      expect(await controller.validateReferralCode('ABC12')).toBe(false); // Too short
-      expect(await controller.validateReferralCode('ABC1234')).toBe(false); // Too long
-    });
-
-    it('returns false for codes with characters outside Base32 alphabet', async () => {
-      // I, L, O, U are excluded from the Base32 alphabet
       expect(await controller.validateReferralCode('ABCIOU')).toBe(false);
-      expect(await controller.validateReferralCode('LIONER')).toBe(false);
-    });
-
-    it('returns false for codes with special characters', async () => {
-      // Act & Assert
-      expect(await controller.validateReferralCode('AB-C!D')).toBe(false);
-      expect(await controller.validateReferralCode('CO@E12')).toBe(false);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:validateReferralCode',
+        'ABCIOU',
+      );
     });
 
     it('returns true for valid referral codes from service', async () => {
@@ -9705,32 +9529,50 @@ describe('RewardsController', () => {
               nextTier: { id: 't4', name: 'Gold Fox VIP 4', tier: 4 },
               progress: {
                 percent: 72,
-                remainingSwapsUsd: 800000,
-                remainingPerpsUsd: 3600000,
-                estimatedDaysToNextTier: 4,
+                remainingPointsToNextTier: 800000,
                 status: 'on_track',
               },
               fees: {
+                revenueShareBps: 150,
                 swapsBps: 15,
                 perpsBps: 4,
+                nextTierRevenueShareBps: 200,
                 nextTierSwapsBps: 12,
                 nextTierPerpsBps: 3,
               },
-              volume: { swapsUsd: 4100000, perpsUsd: 2300000 },
-              pointsAllocation: { earned: 0, max: 1, percent: 0 },
+              volume: {
+                swapsUsd: 4100000,
+                perpsUsd: 2300000,
+                points: 24400000,
+                pointsFromReferrals: 500000,
+                referrals: 2,
+                referralsCap: 10,
+              },
+              pointsAllocation: { earned: 0, threshold: 1, percent: 0 },
               tiers: [],
               localizedText: {
-                period: 'Mar 31 - Apr 30',
-                progressToNextTier: 'Subline',
+                periodTitle: 'Mar 31 - Apr 30',
+                memberIdTitle: 'Member ID',
                 swapsFeeTitle: 'Swaps fee',
                 perpsFeeTitle: 'Perps fee',
                 nextTierSwapsFeeDelta: '↓ 12 bps next tier',
                 nextTierPerpsFeeDelta: '↓ 3 bps next tier',
-                volumeTitle: 'Volume',
-                statusMessage: 'On track',
+                revenueShareTitle: 'Revenue share',
+                referralPointsTitle: 'Referral points',
+                nextTierRevenueShareDelta: '↑ 2% next tier',
+                nextTierReferralPointsDelta: '↑ 20% next tier',
+                topTierDescription: 'Top tier reached',
+                statsTitle: 'Volume',
                 pointsTitle: 'Points',
-                pointsAllocationTitle: 'Earn VIP allocations',
-                pointsAllocationDescription: 'Body copy',
+                swapsVolumeTitle: 'Swaps Volume',
+                pointsFromReferralsTitle: 'Points from Referrals',
+                perpsVolumeTitle: 'Perps Volume',
+                vipReferralsTitle: 'VIP Referrals',
+                totalPointsTitle: 'Points',
+                equityLockedTitle: 'Earn VIP allocations',
+                equityLockedDescription: 'Body copy',
+                equityUnlockedTitle: 'VIP allocation unlocked',
+                equityUnlockedDescription: 'Unlocked body copy',
               },
               lastFetched: 123,
             },
@@ -10177,11 +10019,10 @@ describe('RewardsController', () => {
             },
           },
           subscriptionReferralDetails: {
-            [`season1:${subscriptionId}`]: {
+            [subscriptionId]: {
               referralCode: 'REF123',
               totalReferees: 5,
               referredByCode: 'REFERRER100',
-              referralPoints: 250,
               lastFetched: Date.now(),
             },
           },
@@ -17193,11 +17034,10 @@ describe('RewardsController', () => {
         boosts: [],
         lastFetched: Date.now(),
       };
-      initialState.subscriptionReferralDetails[compositeKey] = {
+      initialState.subscriptionReferralDetails[subscriptionId] = {
         referralCode: 'REF123',
         totalReferees: 5,
         referredByCode: 'REFERRER123',
-        referralPoints: 100,
         lastFetched: Date.now(),
       };
       initialState.pointsEvents[compositeKey] = {
@@ -17244,9 +17084,10 @@ describe('RewardsController', () => {
         testController.state.unlockedRewards[compositeKey],
       ).toBeUndefined();
       expect(testController.state.activeBoosts[compositeKey]).toBeUndefined();
+      // Referral details are not season-scoped, so they survive a season-scoped invalidation
       expect(
-        testController.state.subscriptionReferralDetails[compositeKey],
-      ).toBeUndefined();
+        testController.state.subscriptionReferralDetails[subscriptionId],
+      ).toBeDefined();
       expect(testController.state.pointsEvents[compositeKey]).toBeUndefined();
       expect(
         testController.state.pointsEvents[typedPointsEventsKey],
@@ -17292,18 +17133,10 @@ describe('RewardsController', () => {
         boosts: [],
         lastFetched: Date.now(),
       };
-      initialState.subscriptionReferralDetails[compositeKey1] = {
+      initialState.subscriptionReferralDetails[subscriptionId] = {
         referralCode: 'REF1',
         totalReferees: 3,
         referredByCode: 'REFERRER1',
-        referralPoints: 50,
-        lastFetched: Date.now(),
-      };
-      initialState.subscriptionReferralDetails[compositeKey2] = {
-        referralCode: 'REF2',
-        totalReferees: 4,
-        referredByCode: 'REFERRER2',
-        referralPoints: 75,
         lastFetched: Date.now(),
       };
       initialState.pointsEvents[compositeKey1] = {
@@ -17350,10 +17183,7 @@ describe('RewardsController', () => {
       expect(testController.state.activeBoosts[compositeKey1]).toBeUndefined();
       expect(testController.state.activeBoosts[compositeKey2]).toBeUndefined();
       expect(
-        testController.state.subscriptionReferralDetails[compositeKey1],
-      ).toBeUndefined();
-      expect(
-        testController.state.subscriptionReferralDetails[compositeKey2],
+        testController.state.subscriptionReferralDetails[subscriptionId],
       ).toBeUndefined();
       expect(testController.state.pointsEvents[compositeKey1]).toBeUndefined();
       expect(testController.state.pointsEvents[compositeKey2]).toBeUndefined();
@@ -17524,18 +17354,16 @@ describe('RewardsController', () => {
         boosts: [],
         lastFetched: Date.now(),
       };
-      initialState.subscriptionReferralDetails[compositeKey1] = {
+      initialState.subscriptionReferralDetails[subscriptionId1] = {
         referralCode: 'REF1',
         totalReferees: 2,
         referredByCode: 'REFERRER1',
-        referralPoints: 30,
         lastFetched: Date.now(),
       };
-      initialState.subscriptionReferralDetails[compositeKey2] = {
+      initialState.subscriptionReferralDetails[subscriptionId2] = {
         referralCode: 'REF2',
         totalReferees: 3,
         referredByCode: 'REFERRER2',
-        referralPoints: 45,
         lastFetched: Date.now(),
       };
       initialState.pointsEvents[compositeKey1] = {
@@ -17570,7 +17398,7 @@ describe('RewardsController', () => {
       ).toBeUndefined();
       expect(testController.state.activeBoosts[compositeKey1]).toBeUndefined();
       expect(
-        testController.state.subscriptionReferralDetails[compositeKey1],
+        testController.state.subscriptionReferralDetails[subscriptionId1],
       ).toBeUndefined();
       expect(testController.state.pointsEvents[compositeKey1]).toBeUndefined();
 
@@ -17579,7 +17407,7 @@ describe('RewardsController', () => {
       expect(testController.state.unlockedRewards[compositeKey2]).toBeDefined();
       expect(testController.state.activeBoosts[compositeKey2]).toBeDefined();
       expect(
-        testController.state.subscriptionReferralDetails[compositeKey2],
+        testController.state.subscriptionReferralDetails[subscriptionId2],
       ).toBeDefined();
       expect(testController.state.pointsEvents[compositeKey2]).toBeDefined();
     });
@@ -17613,11 +17441,10 @@ describe('RewardsController', () => {
         boosts: [],
         lastFetched: Date.now(),
       };
-      initialState.subscriptionReferralDetails[compositeKey1] = {
+      initialState.subscriptionReferralDetails[subscriptionId] = {
         referralCode: 'REF1',
         totalReferees: 2,
         referredByCode: 'REFERRER1',
-        referralPoints: 30,
         lastFetched: Date.now(),
       };
       initialState.pointsEvents[compositeKey2] = {
@@ -17654,7 +17481,7 @@ describe('RewardsController', () => {
       ).toBeUndefined();
       expect(testController.state.activeBoosts[compositeKey3]).toBeUndefined();
       expect(
-        testController.state.subscriptionReferralDetails[compositeKey1],
+        testController.state.subscriptionReferralDetails[subscriptionId],
       ).toBeUndefined();
       expect(testController.state.pointsEvents[compositeKey2]).toBeUndefined();
     });
@@ -17698,7 +17525,7 @@ describe('RewardsController', () => {
       // activeBoosts, subscriptionReferralDetails, and pointsEvents should remain empty (no error)
       expect(testController.state.activeBoosts[compositeKey]).toBeUndefined();
       expect(
-        testController.state.subscriptionReferralDetails[compositeKey],
+        testController.state.subscriptionReferralDetails[subscriptionId],
       ).toBeUndefined();
       expect(testController.state.pointsEvents[compositeKey]).toBeUndefined();
     });
@@ -17722,11 +17549,10 @@ describe('RewardsController', () => {
         boosts: [],
         lastFetched: Date.now(),
       };
-      initialState.subscriptionReferralDetails[compositeKey] = {
+      initialState.subscriptionReferralDetails[subscriptionId] = {
         referralCode: 'REF_123',
         totalReferees: 1,
         referredByCode: 'REFERRER_123',
-        referralPoints: 10,
         lastFetched: Date.now(),
       };
       initialState.pointsEvents[compositeKey] = {
@@ -17756,9 +17582,10 @@ describe('RewardsController', () => {
         testController.state.unlockedRewards[compositeKey],
       ).toBeUndefined();
       expect(testController.state.activeBoosts[compositeKey]).toBeUndefined();
+      // Referral details are not season-scoped, so they survive a season-scoped invalidation
       expect(
-        testController.state.subscriptionReferralDetails[compositeKey],
-      ).toBeUndefined();
+        testController.state.subscriptionReferralDetails[subscriptionId],
+      ).toBeDefined();
       expect(testController.state.pointsEvents[compositeKey]).toBeUndefined();
     });
 
@@ -17922,18 +17749,22 @@ describe('RewardsController', () => {
       } as OndoGmActivityState;
       initialState.perpsTradingCampaignLeaderboardPositions[campaignKey1] = {
         rank: 4,
+        totalParticipants: 0,
         pnl: 0,
-        notionalVolume: 0,
-        qualified: true,
+        volume: 0,
+        eligible: true,
+        minVolumeForEligibility: 25000,
         neighbors: [],
         computedAt: '',
         lastFetched: Date.now(),
       } as PerpsTradingCampaignLeaderboardPositionState;
       initialState.perpsTradingCampaignLeaderboardPositions[campaignKey2] = {
         rank: 6,
+        totalParticipants: 0,
         pnl: 0,
-        notionalVolume: 0,
-        qualified: true,
+        volume: 0,
+        eligible: true,
+        minVolumeForEligibility: 25000,
         neighbors: [],
         computedAt: '',
         lastFetched: Date.now(),
@@ -18118,9 +17949,11 @@ describe('RewardsController', () => {
       } as OndoGmActivityState;
       initialState.perpsTradingCampaignLeaderboardPositions[campaignKey1] = {
         rank: 4,
+        totalParticipants: 0,
         pnl: 0,
-        notionalVolume: 0,
-        qualified: true,
+        volume: 0,
+        eligible: true,
+        minVolumeForEligibility: 25000,
         neighbors: [],
         computedAt: '',
         lastFetched: Date.now(),
@@ -18128,9 +17961,11 @@ describe('RewardsController', () => {
       initialState.perpsTradingCampaignLeaderboardPositions[otherCampaignKey] =
         {
           rank: 1,
+          totalParticipants: 0,
           pnl: 0,
-          notionalVolume: 0,
-          qualified: true,
+          volume: 0,
+          eligible: true,
+          minVolumeForEligibility: 25000,
           neighbors: [],
           computedAt: '',
           lastFetched: Date.now(),
@@ -18286,14 +18121,11 @@ describe('RewardsController', () => {
       );
     });
 
-    it('returns true for Bitcoin accounts when feature flag is enabled', () => {
+    it('returns true for Bitcoin accounts', () => {
       // Arrange
-      // Note: Hardware wallets are not supported for Bitcoin (or any non-EVM chains).
-      // Only non-hardware Bitcoin accounts can opt-in to rewards when the feature flag is enabled.
       const bitcoinController = new RewardsController({
         messenger: mockMessenger,
         isDisabled: () => false,
-        isBitcoinOptinEnabled: () => true,
       });
 
       const bitcoinAccount = {
@@ -18329,42 +18161,6 @@ describe('RewardsController', () => {
       expect(mockIsSolanaAddress).toHaveBeenCalledWith(
         'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4',
       );
-      expect(mockIsBtcAccount).toHaveBeenCalledWith(bitcoinAccount);
-    });
-
-    it('returns false for Bitcoin accounts when feature flag is disabled', () => {
-      // Arrange
-      // Bitcoin opt-in is gated behind a feature flag - when disabled, opt-in is not supported.
-      const bitcoinController = new RewardsController({
-        messenger: mockMessenger,
-        isDisabled: () => false,
-        isBitcoinOptinEnabled: () => false,
-      });
-
-      const bitcoinAccount = {
-        address: 'bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4',
-        type: 'bip122:p2wpkh' as const,
-        id: 'bitcoin-account',
-        options: {},
-        metadata: {
-          name: 'Bitcoin Account',
-          importTime: Date.now(),
-          keyring: { type: 'Bitcoin Snap Keyring' },
-        },
-        scopes: ['bip122:000000000019d6689c085ae165831e93' as const],
-        methods: [],
-      };
-
-      mockIsHardwareAccount.mockReturnValue(false);
-      mockIsNonEvmAddress.mockReturnValue(true); // Is non-EVM
-      mockIsSolanaAddress.mockReturnValue(false); // Not Solana
-      mockIsBtcAccount.mockReturnValue(true); // Is Bitcoin
-
-      // Act
-      const result = bitcoinController.isOptInSupported(bitcoinAccount);
-
-      // Assert
-      expect(result).toBe(false);
       expect(mockIsBtcAccount).toHaveBeenCalledWith(bitcoinAccount);
     });
 
@@ -18406,14 +18202,11 @@ describe('RewardsController', () => {
       expect(mockIsBtcAccount).toHaveBeenCalledWith(nonBitcoinAccount);
     });
 
-    it('returns true for Tron accounts when feature flag is enabled', () => {
+    it('returns true for Tron accounts', () => {
       // Arrange
-      // Note: Hardware wallets are not supported for Tron (or any non-EVM chains).
-      // Only non-hardware Tron accounts can opt-in to rewards when the feature flag is enabled.
       const tronController = new RewardsController({
         messenger: mockMessenger,
         isDisabled: () => false,
-        isTronOptinEnabled: () => true,
       });
 
       const tronAccount = {
@@ -18451,43 +18244,6 @@ describe('RewardsController', () => {
         'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
       );
       expect(mockIsBtcAccount).toHaveBeenCalledWith(tronAccount);
-      expect(mockIsTronAccount).toHaveBeenCalledWith(tronAccount);
-    });
-
-    it('returns false for Tron accounts when feature flag is disabled', () => {
-      // Arrange
-      // Tron opt-in is gated behind a feature flag - when disabled, opt-in is not supported.
-      const tronController = new RewardsController({
-        messenger: mockMessenger,
-        isDisabled: () => false,
-        isTronOptinEnabled: () => false,
-      });
-
-      const tronAccount = {
-        address: 'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',
-        type: 'tron:eoa' as const,
-        id: 'tron-account',
-        options: {},
-        metadata: {
-          name: 'Tron Account',
-          importTime: Date.now(),
-          keyring: { type: 'Tron Snap Keyring' },
-        },
-        scopes: ['tron:728126428' as const],
-        methods: [],
-      };
-
-      mockIsHardwareAccount.mockReturnValue(false);
-      mockIsNonEvmAddress.mockReturnValue(true); // Is non-EVM
-      mockIsSolanaAddress.mockReturnValue(false); // Not Solana
-      mockIsBtcAccount.mockReturnValue(false); // Not Bitcoin
-      mockIsTronAccount.mockReturnValue(true); // Is Tron
-
-      // Act
-      const result = tronController.isOptInSupported(tronAccount);
-
-      // Assert
-      expect(result).toBe(false);
       expect(mockIsTronAccount).toHaveBeenCalledWith(tronAccount);
     });
 

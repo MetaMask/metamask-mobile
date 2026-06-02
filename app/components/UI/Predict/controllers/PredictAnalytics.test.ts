@@ -383,12 +383,16 @@ describe('PredictAnalytics', () => {
         gameClock: '14:10',
       });
 
-      const event = getTrackedEvent();
+      expect(getTrackEventMock()).toHaveBeenCalledTimes(2);
 
-      expect(event.name).toBe(
+      const detailsEvent = getTrackEventMock().mock.calls[0][0] as TrackedEvent;
+      const assetViewedEvent = getTrackEventMock().mock
+        .calls[1][0] as TrackedEvent;
+
+      expect(detailsEvent.name).toBe(
         MetaMetricsEvents.PREDICT_MARKET_DETAILS_OPENED.category,
       );
-      expect(event.properties).toMatchObject({
+      expect(detailsEvent.properties).toMatchObject({
         market_id: 'm1',
         market_title: 'Market title',
         market_category: 'sports',
@@ -403,7 +407,53 @@ describe('PredictAnalytics', () => {
         game_period: '2H',
         game_clock: '14:10',
       });
+
+      expect(assetViewedEvent.name).toBe(
+        MetaMetricsEvents.ASSET_VIEWED.category,
+      );
+      expect(assetViewedEvent.properties).toMatchObject({
+        market_id: 'm1',
+        market_title: 'Market title',
+        market_category: 'sports',
+        market_tags: ['soccer'],
+        entry_point: 'predict_feed',
+        market_details_viewed: 'about',
+        market_slug: 'market-slug',
+        game_id: 'g1',
+        game_start_time: '2026-04-01T12:00:00.000Z',
+        game_league: 'EPL',
+        game_status: 'live',
+        game_period: '2H',
+        game_clock: '14:10',
+        trade_type: 'Predict',
+        implementation_type: 'native',
+      });
       expect(getDevLoggerMock()).toHaveBeenCalledTimes(1);
+    });
+
+    it('includes active_ab_tests in market details opened when provided', () => {
+      const abTests = [
+        {
+          key: 'coreMCU747AbtestPredictPositionsEmptyState',
+          value: 'treatment',
+          key_value_pair:
+            'coreMCU747AbtestPredictPositionsEmptyState=treatment',
+        },
+      ];
+
+      predictAnalytics.trackMarketDetailsOpened({
+        marketId: 'm1',
+        marketTitle: 'Market title',
+        entryPoint: 'home_section',
+        marketDetailsViewed: 'about',
+        activeAbTests: abTests,
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.properties).toMatchObject({
+        active_ab_tests: abTests,
+      });
     });
 
     it('tracks position viewed', () => {
@@ -451,21 +501,73 @@ describe('PredictAnalytics', () => {
       predictAnalytics.trackFeedViewed({
         sessionId: 's1',
         feedTab: 'trending',
+        predictScreen: 'world_cup',
         numPagesViewed: 3,
         sessionTime: 98,
         entryPoint: 'carousel',
       });
 
-      const event = getTrackedEvent();
+      expect(getTrackEventMock()).toHaveBeenCalledTimes(2);
 
-      expect(event.name).toBe(MetaMetricsEvents.PREDICT_FEED_VIEWED.category);
-      expect(event.properties).toMatchObject({
+      const feedEvent = getTrackEventMock().mock.calls[0][0] as TrackedEvent;
+      const assetViewedEvent = getTrackEventMock().mock
+        .calls[1][0] as TrackedEvent;
+
+      expect(feedEvent.name).toBe(
+        MetaMetricsEvents.PREDICT_FEED_VIEWED.category,
+      );
+      expect(feedEvent.properties).toMatchObject({
+        session_id: 's1',
+        predict_feed_tab: 'trending',
+        predict_screen: 'world_cup',
+        num_feed_pages_viewed_in_session: 3,
+        session_time_in_feed: 98,
+        is_session_end: false,
+        entry_point: 'carousel',
+      });
+
+      expect(assetViewedEvent.name).toBe(
+        MetaMetricsEvents.ASSET_VIEWED.category,
+      );
+      expect(assetViewedEvent.properties).toMatchObject({
         session_id: 's1',
         predict_feed_tab: 'trending',
         num_feed_pages_viewed_in_session: 3,
         session_time_in_feed: 98,
         is_session_end: false,
         entry_point: 'carousel',
+        trade_type: 'Predict',
+        implementation_type: 'native',
+      });
+    });
+
+    it('tracks banner viewed action with action type and banner type', () => {
+      predictAnalytics.trackBannerAction({
+        actionType: 'viewed',
+        bannerType: 'world_cup',
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(MetaMetricsEvents.PREDICT_BANNER_ACTION.category);
+      expect(event.properties).toMatchObject({
+        action_type: 'viewed',
+        banner_type: 'world_cup',
+      });
+    });
+
+    it('tracks banner clicked action with action type and banner type', () => {
+      predictAnalytics.trackBannerAction({
+        actionType: 'clicked',
+        bannerType: 'world_cup',
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(MetaMetricsEvents.PREDICT_BANNER_ACTION.category);
+      expect(event.properties).toMatchObject({
+        action_type: 'clicked',
+        banner_type: 'world_cup',
       });
     });
 

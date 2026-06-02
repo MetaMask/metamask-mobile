@@ -60,8 +60,9 @@ import {
 import { RootState } from '../../../../../reducers';
 import { ImportAsset } from '../../utils/utils';
 import { selectIsAssetsUnifyStateEnabled } from '../../../../../selectors/featureFlagController/assetsUnifyState';
-import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { toAssetId } from '../../../../UI/Bridge/hooks/useAssetMetadata/utils';
+import useAssetVisibility from '../../../../UI/TokenDetails/components/useAssetVisibility';
+import type { TokenI } from '../../../../UI/Tokens/types';
 
 // --- Types ---
 
@@ -215,9 +216,15 @@ const AddCustomToken = ({
   const isAssetsUnifyStateEnabled = useSelector(
     selectIsAssetsUnifyStateEnabled,
   );
-  const selectInternalAccountByScope = useSelector(
-    selectSelectedInternalAccountByScope,
+
+  // Provide address + chainId so the hook can determine whether the token is
+  // already hidden in AssetsController (isHidden) vs brand-new (not tracked).
+  const tokenForVisibility = useMemo(
+    () => (address && chainId ? ({ address, chainId } as TokenI) : undefined),
+    [address, chainId],
   );
+  const { handleAddCustomAsset, handleHideToken, isHidden } =
+    useAssetVisibility(tokenForVisibility);
 
   // Token metadata (async validation + RPC fetch)
   const {
@@ -295,27 +302,17 @@ const AddCustomToken = ({
 
     if (isAssetsUnifyStateEnabled) {
       const caipChainId = formatChainIdToCaip(chainId as SupportedCaipChainId);
-      const selectedEvmAccount = selectInternalAccountByScope(
-        caipChainId as SupportedCaipChainId,
-      );
-
-      if (!selectedEvmAccount) {
-        Logger.log('AddCustomToken: No EVM account ID found');
-      } else {
-        const caipAssetType = toAssetId(address.trim(), caipChainId);
-        if (caipAssetType) {
-          const { AssetsController } = Engine.context;
-          try {
-            await AssetsController.addCustomAsset(
-              selectedEvmAccount.id,
-              caipAssetType as CaipAssetType,
-            );
-          } catch (error) {
-            Logger.error(
-              error as Error,
-              'AddCustomToken: addCustomAsset failed',
-            );
+      const caipAssetType = toAssetId(address.trim(), caipChainId);
+      if (caipAssetType) {
+        try {
+          if (isHidden) {
+            // Token exists but was hidden — unhide it instead of re-adding
+            handleHideToken();
+          } else {
+            await handleAddCustomAsset(caipAssetType);
           }
+        } catch (error) {
+          Logger.error(error as Error, 'AddCustomToken: addCustomAsset failed');
         }
       }
     }
@@ -358,7 +355,9 @@ const AddCustomToken = ({
     trackEvent,
     createEventBuilder,
     isAssetsUnifyStateEnabled,
-    selectInternalAccountByScope,
+    handleAddCustomAsset,
+    handleHideToken,
+    isHidden,
   ]);
 
   const handleNext = useCallback(() => {

@@ -24,6 +24,7 @@ import {
   shortenAddress,
   formatUsd,
   formatSignedUsd,
+  formatCompactValue,
   formatCompactUsd,
   formatOrdinalRank,
 } from './formatUtils';
@@ -1580,6 +1581,13 @@ describe('formatUtils', () => {
     it('formats an integer string', () => {
       expect(formatUsd('100')).toBe('$100.00');
     });
+
+    it('returns em dash for invalid values', () => {
+      expect(formatUsd(null)).toBe('—');
+      expect(formatUsd(undefined)).toBe('—');
+      expect(formatUsd(Number.NaN)).toBe('—');
+      expect(formatUsd('not-a-number')).toBe('—');
+    });
   });
 
   describe('formatSignedUsd', () => {
@@ -1657,6 +1665,41 @@ describe('formatUtils', () => {
       expect(formatCompactUsd(123_456, { maximumFractionDigits: 0 })).toBe(
         '$123K',
       );
+    });
+
+    it('reuses compact value formatting with custom precision', () => {
+      expect(formatCompactUsd(5_750_000, { maximumFractionDigits: 2 })).toBe(
+        '$5.75M',
+      );
+    });
+  });
+
+  describe('formatCompactValue', () => {
+    it('formats thousands with a lowercase k suffix by default', () => {
+      expect(formatCompactValue(750_000)).toBe('750k');
+      expect(formatCompactValue(2_500)).toBe('2.5k');
+    });
+
+    it('formats millions with an uppercase M suffix by default', () => {
+      expect(formatCompactValue(5_750_000)).toBe('5.75M');
+      expect(formatCompactValue(6_000_000)).toBe('6M');
+    });
+
+    it('formats small values without suffix', () => {
+      expect(formatCompactValue(500)).toBe('500');
+      expect(formatCompactValue(0)).toBe('0');
+    });
+
+    it('respects custom maximum fraction digits and suffixes', () => {
+      expect(formatCompactValue(123_456, { maximumFractionDigits: 0 })).toBe(
+        '123k',
+      );
+      expect(
+        formatCompactValue(123_456, {
+          maximumFractionDigits: 0,
+          thousandSuffix: 'K',
+        }),
+      ).toBe('123K');
     });
   });
 });

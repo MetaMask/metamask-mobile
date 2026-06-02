@@ -74,9 +74,15 @@ jest.mock('../../hooks/usePredictMarketData', () => ({
   usePredictMarketData: jest.fn(),
 }));
 
+jest.mock('../../hooks/usePredictSearchMarketData', () => ({
+  usePredictSearchMarketData: jest.fn(),
+}));
+
 import { usePredictMarketData } from '../../hooks/usePredictMarketData';
+import { usePredictSearchMarketData } from '../../hooks/usePredictSearchMarketData';
 
 const mockUsePredictMarketData = usePredictMarketData as jest.Mock;
+const mockUsePredictSearchMarketData = usePredictSearchMarketData as jest.Mock;
 
 const mockUseSelector = jest.fn();
 const mockHotTabFlag: { enabled: boolean; queryParams?: string } = {
@@ -126,13 +132,21 @@ jest.mock('../../components/PredictMarket', () => {
   const { View, Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: jest.fn(({ testID }) => (
+    default: jest.fn(({ testID, entryPoint }) => (
       <View testID={testID}>
         <Text>Market Card</Text>
       </View>
     )),
   };
 });
+
+import PredictMarket from '../../components/PredictMarket';
+import { PredictEventValues } from '../../constants/eventNames';
+
+const mockPredictMarket = PredictMarket as jest.Mock;
+
+const getPredictMarketEntryPoints = () =>
+  mockPredictMarket.mock.calls.map(([props]) => props.entryPoint);
 
 jest.mock('../../components/PredictMarketSkeleton', () => {
   const { View } = jest.requireActual('react-native');
@@ -335,6 +349,15 @@ describe('PredictFeed', () => {
       hasMore: false,
       refetch: jest.fn(),
       fetchMore: jest.fn(),
+    });
+    mockUsePredictSearchMarketData.mockReturnValue({
+      marketData: [
+        { id: '1', title: 'Test Market 1' },
+        { id: '2', title: 'Test Market 2' },
+      ],
+      isFetching: false,
+      error: null,
+      refetch: jest.fn(),
     });
     mockUseDebouncedValue.mockImplementation((value: string) => value);
   });
@@ -559,14 +582,11 @@ describe('PredictFeed', () => {
     });
 
     it('displays skeleton loaders while search is fetching', () => {
-      mockUsePredictMarketData.mockReturnValue({
+      mockUsePredictSearchMarketData.mockReturnValue({
         marketData: [],
         isFetching: true,
-        isFetchingMore: false,
         error: null,
-        hasMore: false,
         refetch: jest.fn(),
-        fetchMore: jest.fn(),
       });
 
       const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
@@ -668,14 +688,11 @@ describe('PredictFeed', () => {
 
   describe('search empty states', () => {
     it('displays no results message when search returns empty', () => {
-      mockUsePredictMarketData.mockReturnValue({
+      mockUsePredictSearchMarketData.mockReturnValue({
         marketData: [],
         isFetching: false,
-        isFetchingMore: false,
         error: null,
-        hasMore: false,
         refetch: jest.fn(),
-        fetchMore: jest.fn(),
       });
 
       const { getByTestId, getByPlaceholderText, getByText } = render(
@@ -689,15 +706,44 @@ describe('PredictFeed', () => {
       expect(getByText(/No results found/i)).toBeOnTheScreen();
     });
 
-    it('displays error state in search when fetch fails', () => {
-      mockUsePredictMarketData.mockReturnValue({
+    it('does not display no results message before the user enters a query', () => {
+      mockUsePredictSearchMarketData.mockReturnValue({
         marketData: [],
         isFetching: false,
-        isFetchingMore: false,
-        error: new Error('Search error'),
-        hasMore: false,
+        error: null,
         refetch: jest.fn(),
-        fetchMore: jest.fn(),
+      });
+
+      const { getByTestId, queryByText } = render(<PredictFeed />);
+
+      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+
+      expect(queryByText(/No results found/i)).toBeNull();
+    });
+
+    it('does not display search error state before the user enters a query', () => {
+      mockUsePredictSearchMarketData.mockReturnValue({
+        marketData: [],
+        isFetching: false,
+        error: 'Search error',
+        refetch: jest.fn(),
+      });
+
+      const { getByTestId, queryByTestId } = render(<PredictFeed />);
+
+      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+
+      expect(
+        queryByTestId(PredictFeedMockSelectorsIDs.OFFLINE_MOCK),
+      ).toBeNull();
+    });
+
+    it('displays error state in search when fetch fails', () => {
+      mockUsePredictSearchMarketData.mockReturnValue({
+        marketData: [],
+        isFetching: false,
+        error: 'Search error',
+        refetch: jest.fn(),
       });
 
       const { getByTestId, getByPlaceholderText, getAllByTestId } = render(
@@ -757,7 +803,7 @@ describe('PredictFeed', () => {
       );
     });
 
-    it('starts session with undefined entry point when not provided', () => {
+    it('preserves an unattributed session when entry point is not provided', () => {
       mockUseRoute.mockReturnValue({
         params: {},
       });
@@ -769,10 +815,76 @@ describe('PredictFeed', () => {
         'trending',
       );
     });
+
+    it('defaults market list items to predict_feed when entry point is not provided', () => {
+      mockUseRoute.mockReturnValue({
+        params: {},
+      });
+
+      render(<PredictFeed />);
+
+      const entryPoints = getPredictMarketEntryPoints();
+      expect(entryPoints.length).toBeGreaterThan(0);
+      expect(
+        entryPoints.every(
+          (entryPoint) =>
+            entryPoint === PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+        ),
+      ).toBe(true);
+    });
+
+    it('passes explore entryPoint to market list items from route params', () => {
+      mockUseRoute.mockReturnValue({
+        params: {
+          entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
+        },
+      });
+
+      render(<PredictFeed />);
+
+      expect(mockSessionManager.startSession).toHaveBeenCalledWith(
+        PredictEventValues.ENTRY_POINT.EXPLORE,
+        'trending',
+      );
+      const entryPoints = getPredictMarketEntryPoints();
+      expect(entryPoints.length).toBeGreaterThan(0);
+      expect(
+        entryPoints.every(
+          (entryPoint) => entryPoint === PredictEventValues.ENTRY_POINT.EXPLORE,
+        ),
+      ).toBe(true);
+    });
+
+    it('uses prop entryPoint for embedded feed list items and session attribution', () => {
+      mockUseRoute.mockReturnValue({
+        params: {
+          entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
+        },
+      });
+
+      render(
+        <PredictFeed
+          entryPoint={PredictEventValues.ENTRY_POINT.HOME_SECTION}
+        />,
+      );
+
+      expect(mockSessionManager.startSession).toHaveBeenCalledWith(
+        PredictEventValues.ENTRY_POINT.HOME_SECTION,
+        'trending',
+      );
+      const entryPoints = getPredictMarketEntryPoints();
+      expect(entryPoints.length).toBeGreaterThan(0);
+      expect(
+        entryPoints.every(
+          (entryPoint) =>
+            entryPoint === PredictEventValues.ENTRY_POINT.HOME_SECTION,
+        ),
+      ).toBe(true);
+    });
   });
 
   describe('search debounce behavior', () => {
-    it('passes debounced search query to usePredictMarketData', () => {
+    it('passes debounced search query to usePredictSearchMarketData', () => {
       mockUseDebouncedValue.mockReturnValue('debounced-query');
       const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
 
@@ -780,22 +892,18 @@ describe('PredictFeed', () => {
       const searchInput = getByPlaceholderText('Search prediction markets');
       fireEvent.changeText(searchInput, 'bitcoin');
 
-      const searchCalls = mockUsePredictMarketData.mock.calls.filter(
-        (call: [{ q?: string }]) => call[0].q !== undefined,
+      expect(mockUsePredictSearchMarketData).toHaveBeenLastCalledWith(
+        expect.objectContaining({ q: 'debounced-query' }),
       );
-      expect(searchCalls[searchCalls.length - 1][0].q).toBe('debounced-query');
     });
 
     it('displays skeleton loaders when debouncing search input', () => {
       mockUseDebouncedValue.mockReturnValue('');
-      mockUsePredictMarketData.mockReturnValue({
+      mockUsePredictSearchMarketData.mockReturnValue({
         marketData: [],
         isFetching: false,
-        isFetchingMore: false,
         error: null,
-        hasMore: false,
         refetch: jest.fn(),
-        fetchMore: jest.fn(),
       });
       const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
 
@@ -810,17 +918,14 @@ describe('PredictFeed', () => {
 
     it('displays search results after debounce completes', () => {
       mockUseDebouncedValue.mockReturnValue('bitcoin');
-      mockUsePredictMarketData.mockReturnValue({
+      mockUsePredictSearchMarketData.mockReturnValue({
         marketData: [
           { id: '1', title: 'Bitcoin Market 1' },
           { id: '2', title: 'Bitcoin Market 2' },
         ],
         isFetching: false,
-        isFetchingMore: false,
         error: null,
-        hasMore: false,
         refetch: jest.fn(),
-        fetchMore: jest.fn(),
       });
       const { getByTestId, getByPlaceholderText } = render(<PredictFeed />);
 

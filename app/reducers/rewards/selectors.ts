@@ -27,9 +27,6 @@ export const selectNextTier = (state: RootState) => state.rewards.nextTier;
 export const selectNextTierPointsNeeded = (state: RootState) =>
   state.rewards.nextTierPointsNeeded;
 
-export const selectBalanceRefereePortion = (state: RootState) =>
-  state.rewards.balanceRefereePortion;
-
 export const selectBalanceUpdatedAt = (state: RootState) =>
   state.rewards.balanceUpdatedAt;
 
@@ -180,6 +177,13 @@ export const selectVipDashboardLoading = (state: RootState): boolean =>
 
 export const selectVipDashboardError = (state: RootState): boolean =>
   state.rewards.vipDashboardError;
+
+export const selectHasAcceptedVipInvite =
+  (subscriptionId: string | null | undefined) =>
+  (state: RootState): boolean =>
+    subscriptionId
+      ? state.rewards.vipSplashAccepted?.[subscriptionId] === true
+      : false;
 
 // Campaigns selectors
 export const selectCampaigns = (

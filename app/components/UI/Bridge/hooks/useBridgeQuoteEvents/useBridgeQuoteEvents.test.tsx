@@ -42,6 +42,7 @@ describe('useBridgeQuoteEvents', () => {
             hasNoQuotesAvailable: false,
             hasInsufficientBalance: false,
             hasInsufficientGas: false,
+            isNetworkFeeUnavailable: false,
             hasTxAlert: false,
             isSubmitDisabled: false,
             isPriceImpactWarningVisible: false,
@@ -58,6 +59,11 @@ describe('useBridgeQuoteEvents', () => {
   it.each([
     [{ hasNoQuotesAvailable: true }, ['no_quotes']],
     [{ hasInsufficientGas: true }, ['insufficient_gas_for_selected_quote']],
+    [{ isNetworkFeeUnavailable: true }, ['network_fee_unavailable']],
+    [
+      { hasInsufficientGas: true, isNetworkFeeUnavailable: true },
+      ['network_fee_unavailable'],
+    ],
     [{ hasInsufficientBalance: true }, ['insufficient_balance']],
     [{ hasTxAlert: true }, ['tx_alert']],
     [{ isPriceImpactWarningVisible: true }, ['price_impact']],
@@ -84,6 +90,7 @@ describe('useBridgeQuoteEvents', () => {
             hasNoQuotesAvailable: false,
             hasInsufficientBalance: false,
             hasInsufficientGas: false,
+            isNetworkFeeUnavailable: false,
             hasTxAlert: false,
             isSubmitDisabled: false,
             isPriceImpactWarningVisible: false,
