@@ -3,6 +3,13 @@ import { execSync, spawn, type ChildProcess } from 'child_process';
 import { resolve, join, dirname, basename } from 'path';
 import { withFixtures } from './FixtureHelper';
 import type { WithFixturesOptions, LocalNode } from '../types';
+import TestHelpers from '../../helpers';
+import { loginToApp } from '../../flows/wallet.flow';
+import { waitForAppReady } from '../../flows/general.flow';
+import WalletView from '../../page-objects/wallet/WalletView';
+import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
+import LedgerConnectView from '../../page-objects/Ledger/LedgerConnectView';
+import Assertions from '../Assertions';
 import { createLogger } from '../logger';
 import type ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import type { Mockttp } from 'mockttp';
@@ -444,18 +451,7 @@ export async function withSpeculosFixtures(
   }
 }
 
-/* eslint-disable @typescript-eslint/no-require-imports, no-restricted-syntax */
 export async function importLedgerAccount(): Promise<void> {
-  const TestHelpers = require('../../helpers').default;
-  const { loginToApp } = require('../../flows/wallet.flow');
-  const { waitForAppReady } = require('../../flows/general.flow');
-  const WalletView = require('../../page-objects/wallet/WalletView').default;
-  const AccountListBottomSheet =
-    require('../../page-objects/wallet/AccountListBottomSheet').default;
-  const LedgerConnectView =
-    require('../../page-objects/Ledger/LedgerConnectView').default;
-  const Assertions = require('../Assertions').default;
-
   await TestHelpers.delay(5000);
   await waitForAppReady(300000);
   await loginToApp();
