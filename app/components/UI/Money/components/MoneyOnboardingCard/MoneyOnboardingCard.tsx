@@ -31,8 +31,8 @@ const MoneyOnboardingCard = () => {
   const { startLinkFlow, isCardAuthenticated, isCardLinkedToMoneyAccount } =
     useMoneyAccountCardLinkage();
 
-  const handleRedirectToCryptoDeposit = useCallback(() => {
-    initiateDeposit().catch(() => undefined);
+  const handleRedirectToCryptoDeposit = useCallback(async () => {
+    await initiateDeposit().catch(() => undefined);
   }, [initiateDeposit]);
 
   const handleCardCtaPress = useCallback(() => {

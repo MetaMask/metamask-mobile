@@ -4,9 +4,9 @@ import {
   Image,
   type ImageSourcePropType,
   Platform,
-  Pressable,
   ScrollView,
   StatusBar,
+  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, type RouteProp } from '@react-navigation/native';
@@ -215,17 +215,14 @@ const OnboardingInterestQuestionnaire = () => {
                   marginBottom: GRID_GUTTER_PX * 2,
                 })}
               >
-                <Pressable
+                <TouchableOpacity
                   onPress={() => toggleOption(option.id)}
-                  style={({ pressed }) =>
-                    tw.style(
-                      'relative h-[120px] w-full rounded-xl bg-background-muted',
-                      isSelected
-                        ? 'border border-border-default bg-background-muted-hover'
-                        : 'border border-muted',
-                      pressed && 'opacity-70',
-                    )
-                  }
+                  style={tw.style(
+                    'relative h-[120px] w-full rounded-xl bg-background-muted',
+                    isSelected
+                      ? 'border border-border-default bg-background-muted-hover'
+                      : 'border border-muted',
+                  )}
                   testID={`${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}${option.id}`}
                   accessibilityRole="checkbox"
                   accessibilityState={{ checked: isSelected }}
@@ -248,7 +245,7 @@ const OnboardingInterestQuestionnaire = () => {
                   >
                     {strings(option.labelKey)}
                   </Text>
-                </Pressable>
+                </TouchableOpacity>
               </Box>
             );
           })}

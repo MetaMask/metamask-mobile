@@ -9,6 +9,7 @@ import { getPasswordForScenario } from '../../framework/utils/TestConstants.js';
 import {
   dismissOnboardingInterestQuestionnaire,
   dismisspredictionsModalPlaywright,
+  dismissPushNotificationExistingUserSheet,
 } from '../../flows/wallet.flow';
 import {
   Performance,
@@ -57,12 +58,12 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       );
       const timer3 = new TimerHelper(
         'Apple: Post-OAuth action → Password fields visible',
-        { ios: 5000, android: 2000 },
+        { ios: 5000, android: 4000 },
         currentDeviceDetails.platform,
       );
       const timer4 = new TimerHelper(
         'Apple: Tap "Create Password" → Onboarding Success visible',
-        { ios: 5000, android: 5000 },
+        { ios: 5000, android: 6000 },
         currentDeviceDetails.platform,
       );
       const timer5 = new TimerHelper(
@@ -140,6 +141,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         });
         await dismissOnboardingInterestQuestionnaire();
         await OnboardingSuccessView.tapDone();
+        await dismissPushNotificationExistingUserSheet();
         await timer5.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
             asPlaywrightElement(PredictModalView.notNowButton),

@@ -543,6 +543,7 @@ const Routes = {
   },
   FEATURE_FLAG_OVERRIDE: 'FeatureFlagOverride',
   SECURITY_TRUST: 'SecurityTrust',
+  NAVIGATION_DEV_PANEL: 'NavigationDevPanel',
 };
 
 export default Routes;
