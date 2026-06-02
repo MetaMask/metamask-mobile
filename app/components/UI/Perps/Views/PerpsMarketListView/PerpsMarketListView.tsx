@@ -128,14 +128,13 @@ const PerpsMarketListView = ({
     [onMarketSelect, perpsNavigation, transactionActiveAbTests],
   );
 
-  // Compute available categories based on market counts (hide empty categories)
+  // Compute available categories based on market counts (hide empty categories).
+  // pre-ipo, indices, and etfs are intentionally excluded until their dedicated
+  // UI treatment lands in a follow-up PR.
   const availableCategories = useMemo(() => {
     const categories: Exclude<MarketTypeFilter, 'all'>[] = [];
     if (marketCounts.crypto > 0) categories.push('crypto');
     if (marketCounts.stocks > 0) categories.push('stocks');
-    if (marketCounts.preIpo > 0) categories.push('pre-ipo');
-    if (marketCounts.indices > 0) categories.push('indices');
-    if (marketCounts.etfs > 0) categories.push('etfs');
     if (marketCounts.commodity > 0) categories.push('commodities');
     if (marketCounts.forex > 0) categories.push('forex');
     if (marketCounts.new > 0) categories.push('new');
