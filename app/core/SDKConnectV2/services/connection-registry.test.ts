@@ -564,32 +564,6 @@ describe('ConnectionRegistry', () => {
       );
     });
 
-    it('rejects connectionType payloads on the generic connect path', async () => {
-      registry = new ConnectionRegistry(
-        RELAY_URL,
-        mockKeyManager,
-        mockHostApp,
-        mockStore,
-      );
-
-      const specializedDeeplink = `metamask://connect/mwp?p=${encodeURIComponent(
-        JSON.stringify({
-          ...mockConnectionRequest,
-          connectionType: {
-            name: 'agentic-cli',
-            dashboardUrl: 'https://dashboard.w3a.io',
-          },
-        }),
-      )}`;
-
-      await registry.handleConnectDeeplink(specializedDeeplink);
-
-      expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
-      expect(Connection.create).not.toHaveBeenCalled();
-      expect(mockStore.save).not.toHaveBeenCalled();
-      expect(mockHandleAgenticCliConnectDeeplink).not.toHaveBeenCalled();
-    });
-
     it('should handle invalid URL gracefully', async () => {
       // Given: a registry ready to handle connections
       registry = new ConnectionRegistry(

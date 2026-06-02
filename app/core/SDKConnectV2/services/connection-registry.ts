@@ -476,15 +476,6 @@ export class ConnectionRegistry {
   private parseConnectionRequest(url: string): ConnectionRequest {
     const connReq: unknown = parseMwpConnectPayload(url);
 
-    if (
-      connReq &&
-      typeof connReq === 'object' &&
-      'connectionType' in connReq &&
-      (connReq as Record<string, unknown>).connectionType !== undefined
-    ) {
-      throw new Error('Invalid connection request structure.');
-    }
-
     if (!isConnectionRequest(connReq)) {
       throw new Error('Invalid connection request structure.');
     }
