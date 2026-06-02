@@ -328,13 +328,11 @@ export const useSellDestTokenOptions = (
           ? (currencyRates?.[nativeTicker]?.usdConversionRate ?? 0)
           : 0;
 
-        const tokenPrice =
-          tokenMarketData?.[chainId as `0x${string}`]?.[
-            candidate.address.toLowerCase() as `0x${string}`
-          ]?.price ??
-          tokenMarketData?.[chainId as `0x${string}`]?.[
-            candidate.address as `0x${string}`
-          ]?.price;
+        const tokenPrice = getTokenPrice(
+          tokenMarketData,
+          chainId,
+          candidate.address,
+        );
 
         let exchangeRate: number;
         if (tokenPrice !== undefined && nativeConversionRate > 0) {
