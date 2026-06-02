@@ -46,6 +46,7 @@ import PredictModalView from '../page-objects/Predict/PredictModalView';
 import OnboardingInterestQuestionnaireView from '../page-objects/Onboarding/OnboardingInterestQuestionnaireView';
 import ExperienceEnhancerBottomSheet from '../page-objects/Onboarding/ExperienceEnhancerBottomSheet';
 import { fetchProductionFeatureFlags } from '../performance/feature-flag-helper';
+import { ExistingUserSheetSelectorsIDs } from '../../app/components/Views/Notifications/PushNotificationOnboarding/ExistingUserSheet';
 const logger = createLogger({
   name: 'WalletFlow',
 });
@@ -460,11 +461,11 @@ export const dismissPushNotificationExistingUserSheet =
         encapsulated({
           detox: () =>
             Matchers.getElementByID(
-              'push-notification-existing-user-sheet-button-confirm',
+              ExistingUserSheetSelectorsIDs.BUTTON_CONFIRM,
             ),
           appium: () =>
             PlaywrightMatchers.getElementById(
-              'push-notification-existing-user-sheet-button-confirm',
+              ExistingUserSheetSelectorsIDs.BUTTON_CONFIRM,
               { exact: true },
             ),
         }),
