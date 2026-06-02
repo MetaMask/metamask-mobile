@@ -6,6 +6,12 @@
  * Docs - https://docs.expo.dev/versions/latest/sdk/fingerprint/#fingerprintconfigjs
  */
 
+// This config runs in a Node build environment (not in the React Native
+// bundle), so importing a Node.js builtin is safe here. `child_process` is
+// required to invoke the `expo-modules-autolinking` CLI synchronously — the
+// config is loaded via CommonJS `require` with no top-level `await`, so the
+// CLI's async programmatic API can't be used in its place.
+// eslint-disable-next-line import-x/no-nodejs-modules
 const { execSync } = require('child_process');
 
 /**
