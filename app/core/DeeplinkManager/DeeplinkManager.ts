@@ -12,7 +12,9 @@ import {
   getBrazeInitialDeeplink,
   subscribeToBrazePushDeeplinks,
 } from '../Braze/BrazeDeeplinks';
-import { DeeplinkIntent } from './types/DeeplinkIntent';
+import type { DeeplinkIntent } from './types/DeeplinkIntent';
+
+export type DeeplinkResolveResult = DeeplinkIntent | false | null;
 
 /**
  * When Branch resolves a short link (e.g. metamask-alternate.app.link/1WkF6GmE40b),
@@ -96,13 +98,17 @@ export class DeeplinkManager {
     }: {
       origin: string;
     },
-  ): Promise<DeeplinkIntent | null> {
+  ): Promise<DeeplinkResolveResult> {
     const result = await parseDeeplink({
       deeplinkManager: this,
       url,
       origin,
       mode: 'resolve',
     });
+
+    if (result === false) {
+      return false;
+    }
 
     return result && typeof result !== 'boolean' ? result : null;
   }

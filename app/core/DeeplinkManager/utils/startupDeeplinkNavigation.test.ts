@@ -132,6 +132,16 @@ describe('startupDeeplinkNavigation', () => {
     expect(mockClearPendingDeeplink).not.toHaveBeenCalled();
   });
 
+  it('clears the pending deeplink when startup resolution is rejected by the user', async () => {
+    AppStateEventProcessor.pendingDeeplink = 'https://link.metamask.io/rewards';
+    mockResolve.mockResolvedValueOnce(false);
+
+    await expect(navigateToPendingStartupDeeplink()).resolves.toBe(false);
+
+    expect(mockExecuteStartupDeeplinkIntent).not.toHaveBeenCalled();
+    expect(mockClearPendingDeeplink).toHaveBeenCalledTimes(1);
+  });
+
   it('re-dispatches deeplink handling after default navigation when pending remains', () => {
     AppStateEventProcessor.pendingDeeplink = 'https://link.metamask.io/swap';
 

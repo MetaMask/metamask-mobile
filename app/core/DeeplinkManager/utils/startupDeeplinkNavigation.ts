@@ -27,6 +27,11 @@ export const navigateToPendingStartupDeeplink = async (): Promise<boolean> => {
 
   try {
     const intent = await SharedDeeplinkManager.resolve(deeplink, { origin });
+    if (intent === false) {
+      AppStateEventProcessor.clearPendingDeeplink();
+      return false;
+    }
+
     if (!intent) {
       return false;
     }
