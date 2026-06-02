@@ -3000,6 +3000,27 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  earnMoneyDepositMinAssetBalance: {
+    name: 'earnMoneyDepositMinAssetBalance',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: 0.01,
+    status: FeatureFlagStatus.Active,
+  },
+
+  earnMoneyDepositNoFeeTokens: {
+    name: 'earnMoneyDepositNoFeeTokens',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      '0x2105': ['USDC'],
+      '0x38': ['USDC', 'USDT'],
+      '0xa4b1': ['USDC'],
+      '0x1': ['USDC', 'USDT', 'DAI', 'aUSDC', 'aUSDT', 'aDAI'],
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   earnMoneyHubEnabled: {
     name: 'earnMoneyHubEnabled',
     type: FeatureFlagType.Remote,
@@ -3008,6 +3029,22 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       enabled: true,
       minimumVersion: '7.74.0',
     },
+    status: FeatureFlagStatus.Active,
+  },
+
+  earnMoneyPaymentTokensBlocklist: {
+    name: 'earnMoneyPaymentTokensBlocklist',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {},
+    status: FeatureFlagStatus.Active,
+  },
+
+  earnMoneyTokensSortMode: {
+    name: 'earnMoneyTokensSortMode',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: 'fiatBalanceDesc',
     status: FeatureFlagStatus.Active,
   },
 
@@ -4030,6 +4067,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         gaslessBridgeWith7702Enabled: false,
       },
     },
+    status: FeatureFlagStatus.Active,
+  },
+
+  socialAiAssetDetailsQuickBuy: {
+    name: 'socialAiAssetDetailsQuickBuy',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
 

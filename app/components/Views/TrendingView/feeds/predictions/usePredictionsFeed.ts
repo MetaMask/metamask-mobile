@@ -13,6 +13,7 @@ interface UsePredictionsFeedOptions {
   variant?: PredictionsVariant;
   query?: string;
   refresh?: RefreshConfig;
+  enabled?: boolean;
   /**
    * Number of markets to fetch per page. Applies to both the no-query trending
    * fetch and the search fetch. Defaults to 6 for home-tab previews.
@@ -36,23 +37,24 @@ export const usePredictionsFeed = ({
   variant = 'trending',
   query,
   refresh,
+  enabled = true,
   pageSize = 6,
 }: UsePredictionsFeedOptions = {}): UsePredictionsFeedResult => {
   const hasQuery = Boolean(query?.trim());
   const feed = usePredictMarketData({
     category: variant,
     pageSize,
-    enabled: !hasQuery,
+    enabled: enabled && !hasQuery,
   });
   const search = usePredictSearchMarketData({
     q: query ?? '',
     pageSize,
-    enabled: hasQuery,
+    enabled: enabled && hasQuery,
   });
 
   const activeResult = hasQuery ? search : feed;
 
-  useFeedRefresh(refresh, activeResult.refetch);
+  useFeedRefresh(enabled ? refresh : undefined, activeResult.refetch);
 
   // When a search query is active, results are already server-ranked by
   // relevance — skip Fuse re-ranking to preserve server order across pages.

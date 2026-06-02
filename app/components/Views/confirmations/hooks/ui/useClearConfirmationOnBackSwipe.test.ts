@@ -54,7 +54,7 @@ describe('useClearConfirmationOnBackSwipe', () => {
     });
 
     (useConfirmationContext as jest.Mock).mockReturnValue({
-      isConfirmationSubmitting: false,
+      isConfirmationSubmittingRef: { current: false },
     });
 
     jest.spyOn(BackHandler, 'addEventListener').mockReturnValue({
@@ -151,7 +151,7 @@ describe('useClearConfirmationOnBackSwipe', () => {
 
     it('does not reject on beforeRemove when confirmation is submitting', () => {
       (useConfirmationContext as jest.Mock).mockReturnValue({
-        isConfirmationSubmitting: true,
+        isConfirmationSubmittingRef: { current: true },
       });
       renderHook(() =>
         useClearConfirmationOnBackSwipe({
@@ -171,7 +171,7 @@ describe('useClearConfirmationOnBackSwipe', () => {
     it('does not reject on gestureEnd when confirmation is submitting', () => {
       const mockOnBeforeReject = jest.fn();
       (useConfirmationContext as jest.Mock).mockReturnValue({
-        isConfirmationSubmitting: true,
+        isConfirmationSubmittingRef: { current: true },
       });
       renderHook(() =>
         useClearConfirmationOnBackSwipe({
@@ -186,6 +186,27 @@ describe('useClearConfirmationOnBackSwipe', () => {
       gestureEndCallback();
 
       expect(mockOnBeforeReject).not.toHaveBeenCalled();
+      expect(mockOnReject).not.toHaveBeenCalled();
+    });
+
+    it('reads the submitting ref at beforeRemove event time', () => {
+      const isConfirmationSubmittingRef = { current: false };
+      (useConfirmationContext as jest.Mock).mockReturnValue({
+        isConfirmationSubmittingRef,
+      });
+      renderHook(() =>
+        useClearConfirmationOnBackSwipe({
+          rejectOnBeforeRemove: true,
+          rejectOnBeforeRemoveWithoutGesture: true,
+        }),
+      );
+      const beforeRemoveCallback = mockAddListener.mock.calls.find(
+        ([eventName]) => eventName === 'beforeRemove',
+      )?.[1];
+
+      isConfirmationSubmittingRef.current = true;
+      beforeRemoveCallback();
+
       expect(mockOnReject).not.toHaveBeenCalled();
     });
 

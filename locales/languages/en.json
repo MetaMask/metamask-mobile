@@ -2301,6 +2301,7 @@
     },
     "world_cup": {
       "title": "World Cup",
+      "predictions_title": "World Cup predictions",
       "banner_title": "World Cup 2026",
       "banner_description": "Trade every match, every moment.",
       "tabs": {
@@ -7287,7 +7288,7 @@
     "confirm": "Confirm",
     "pay_with_bottom_sheet": {
       "title": "Pay with",
-      "withdraw_title": "Withdraw as",
+      "receive_title": "Receive",
       "last_used": "Last used",
       "bank_and_card": "Bank and card",
       "crypto": "Crypto",
@@ -7299,7 +7300,7 @@
       "available_balance": "{{balance}} available",
       "other_assets": "Other assets",
       "other_assets_description": "Select from your tokens",
-      "other_assets_withdraw_description": "Select the token you want to withdraw",
+      "other_assets_receive_description": "Select the token you want to receive",
       "money_account": "Money account"
     },
     "staking_footer": {
@@ -7535,6 +7536,7 @@
     "batch_sell_high_price_impact": "High price impact",
     "batch_sell_high_price_impact_description": "This trade has an estimated {{priceImpact}} price impact, which reflects how much your trade changes the market price. The quote already reflects this.",
     "batch_sell_review": "Review",
+    "batch_sell_searching_best_quotes": "Searching for best quotes",
     "batch_sell_you_sell": "You sell",
     "batch_sell_token_count": "{{tokenCount}} tokens",
     "batch_sell_toggle_you_sell": "Toggle token details",
@@ -7610,6 +7612,16 @@
     "no_mm_fee_disclaimer": "No MetaMask fee swapping into {{destTokenSymbol}}.",
     "hardware_wallet_not_supported": "Hardware wallets aren't supported yet. Use a hot wallet to continue.",
     "hardware_wallet_not_supported_solana": "Hardware wallets aren't supported for Solana yet. Use a hot wallet to continue.",
+    "hardware_wallet_progress": {
+      "approved_token": "Approved {{amount}} {{symbol}}",
+      "approving_token": "Approving {{amount}} {{symbol}}",
+      "send_token": "Send {{amount}} {{symbol}}",
+      "sending_token": "Sending {{amount}} {{symbol}}",
+      "sent_token": "Sent {{amount}} {{symbol}}",
+      "spender_address": "Spender {{address}}",
+      "recipient_address": "Recipient {{address}}",
+      "rejected": "Rejected"
+    },
     "price_impact_info_title": "Price impact",
     "price_impact_info_description": "This is how your trade changes the market price of a token. It depends on the trade size, available liquidity, and provider fees. MetaMask doesn't control price impact.",
     "price_impact_info_gasless_description": "Price impact reflects how your swap order affects the market price of the asset. If you don't hold enough funds for gas, part of your source token is automatically allocated to cover fees, which increases price impact. MetaMask does not influence or control price impact.",
@@ -8525,8 +8537,7 @@
     "report_submitted": "Error report has been submitted."
   },
   "pay_with_modal": {
-    "title": "Select payment method",
-    "title_receive": "Select receive token",
+    "modal_title": "Select a token",
     "no_gas": "No native balance for gas",
     "not_supported": "Not supported",
     "crypto": "Crypto"
@@ -9092,7 +9103,7 @@
       "stats_notional_volume_threshold": "${{amount}} required",
       "stats_qualified_title": "You're qualified",
       "stats_qualified_description": "Keep trading to improve your PnL and climb the leaderboard before the competition ends.",
-      "stats_qualify_for_rank_title": "Qualify for this rank",
+      "stats_qualify_for_rank_title": "Qualify for the leaderboard",
       "stats_qualify_for_rank_description": "Trade {{notionalRemaining}} more in notional volume to become eligible.",
       "stats_error_title": "Unable to load stats",
       "stats_error_description": "We had a problem loading your stats. Please try again.",
