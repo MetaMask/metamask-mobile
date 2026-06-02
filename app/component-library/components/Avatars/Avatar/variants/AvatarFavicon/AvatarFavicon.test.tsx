@@ -10,12 +10,16 @@ import {
 // Internal dependencies.
 import AvatarFavicon from './AvatarFavicon';
 import {
+  AVATARFAVICON_FALLBACK_ICON_TESTID,
   AVATARFAVICON_IMAGE_TESTID,
   AVATARFAVICON_IMAGE_SVG_TESTID,
+  DEFAULT_AVATARFAVICON_ERROR_ICON,
   SAMPLE_AVATARFAVICON_PROPS,
   SAMPLE_AVATARFAVICON_IMAGESOURCE_LOCAL,
   SAMPLE_AVATARFAVICON_SVGIMAGESOURCE_REMOTE,
 } from './AvatarFavicon.constants';
+import { AvatarSize } from '../../Avatar.types';
+import { IconSize } from '../../../../Icons/Icon/Icon.types';
 
 describe('AvatarFavicon', () => {
   beforeEach(() => {
@@ -51,7 +55,7 @@ describe('AvatarFavicon', () => {
       text: () => '<svg />',
     });
 
-    const { getByTestId, toJSON } = render(
+    const { getByTestId } = render(
       <AvatarFavicon
         {...SAMPLE_AVATARFAVICON_PROPS}
         imageSource={SAMPLE_AVATARFAVICON_SVGIMAGESOURCE_REMOTE}
@@ -71,6 +75,15 @@ describe('AvatarFavicon', () => {
       nativeEvent: { error: 'ERROR!' },
     });
     expect(screen.queryByTestId(AVATARFAVICON_IMAGE_TESTID)).toBeNull();
+  });
+
+  it('renders full-size fallback when favicon source is missing', () => {
+    render(<AvatarFavicon size={AvatarSize.Md} />);
+
+    const fallbackIcon = screen.getByTestId(AVATARFAVICON_FALLBACK_ICON_TESTID);
+    expect(fallbackIcon.props.name).toBe(DEFAULT_AVATARFAVICON_ERROR_ICON);
+    expect(fallbackIcon.props.width).toBe(Number(IconSize.Md));
+    expect(fallbackIcon.props.height).toBe(Number(IconSize.Md));
   });
 
   it('should render fallback when svg has error', () => {

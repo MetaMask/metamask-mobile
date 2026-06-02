@@ -693,7 +693,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     const permissionsSummaryProps: PermissionsSummaryProps = {
       currentPageInformation: {
         currentEnsName: '',
-        icon: faviconSource as string,
+        icon: faviconSource,
         url: urlWithProtocol,
       },
       onEdit: () => {
@@ -828,7 +828,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     const permissionsSummaryProps: PermissionsSummaryProps = {
       currentPageInformation: {
         currentEnsName: '',
-        icon: faviconSource as string,
+        icon: faviconSource,
         url: urlWithProtocol,
       },
       onEdit: () => {

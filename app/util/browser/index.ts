@@ -1,4 +1,5 @@
 import { Linking } from 'react-native';
+import type { ImageOrSvgSrc } from '@metamask/design-system-react-native/dist/components/temp-components/ImageOrSvg/ImageOrSvg.types.d.cts';
 import isUrl from 'is-url';
 import Url from 'url-parse';
 import { regex, hasProtocol } from '../../util/regex';
@@ -85,6 +86,21 @@ export function processUrlForBrowser(
  */
 export function getUrlObj(url: string) {
   return new Url(url);
+}
+
+export type PageFaviconIcon = string | { uri?: string };
+
+/**
+ * Normalizes dApp page favicon props into an `ImageSourcePropType` for `AvatarFavicon`.
+ */
+export function resolvePageFaviconImageSource(
+  icon?: PageFaviconIcon,
+): ImageOrSvgSrc | undefined {
+  if (typeof icon === 'string') {
+    return icon ? { uri: icon } : undefined;
+  }
+
+  return icon?.uri ? icon : undefined;
 }
 
 /**

@@ -10,6 +10,7 @@ import {
   AvatarSize,
   AvatarVariant,
 } from '../../../component-library/components/Avatars/Avatar/Avatar.types';
+import { IconName } from '@metamask/design-system-react-native';
 
 const mockedNavigate = jest.fn();
 
@@ -147,6 +148,19 @@ describe('PermissionsSummary', () => {
       showPermissionsOnly: false,
     });
     expect(toJSON()).not.toBeNull();
+  });
+
+  it('renders globe favicon fallback on initial connection when favicon is missing', () => {
+    const { toJSON } = renderPermissionsSummary({
+      currentPageInformation: {
+        currentEnsName: '',
+        icon: {},
+        url: 'https://opensea.io/',
+      },
+      isAlreadyConnected: false,
+    });
+
+    expect(JSON.stringify(toJSON())).toContain(IconName.Global);
   });
 
   it('should render with the correct initial tab based on tabIndex prop', () => {

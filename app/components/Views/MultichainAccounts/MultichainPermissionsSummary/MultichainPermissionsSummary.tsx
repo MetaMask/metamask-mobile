@@ -26,14 +26,13 @@ import {
   ButtonBaseSize,
   IconName as DesignSystemIconName,
 } from '@metamask/design-system-react-native';
-import { getHost } from '../../../../util/browser';
-import WebsiteIcon from '../../../UI/WebsiteIcon';
 import styleSheet from './MultichainPermissionsSummary.styles';
 import { useStyles } from '../../../../component-library/hooks';
 import {
   MaliciousDappUrlIcon,
   getConnectButtonContent,
 } from '../../../UI/PermissionsSummary/MaliciousDappIndicators';
+import PermissionsSummaryTopIcon from '../../../UI/PermissionsSummary/PermissionsSummaryTopIcon';
 import Routes from '../../../../constants/navigation/Routes';
 import ButtonIcon, {
   ButtonIconSizes,
@@ -56,12 +55,6 @@ import { PermissionSummaryBottomSheetSelectorsIDs } from '../../AccountConnect/P
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
-import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../../component-library/components/Badges/Badge';
-import AvatarFavicon from '../../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon';
-import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { endTrace, trace, TraceName } from '../../../../util/trace';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { NetworkAvatarProps } from '../../AccountConnect/AccountConnect.types';
@@ -77,7 +70,7 @@ const TAB_BAR_HORIZONTAL_PADDING = 0;
 export interface MultichainPermissionsSummaryProps {
   currentPageInformation: {
     currentEnsName: string;
-    icon: string | { uri: string };
+    icon?: string | { uri?: string };
     url: string;
   };
   onEdit?: () => void;
@@ -181,54 +174,6 @@ const MultichainPermissionsSummary = ({
     });
   }, [navigate]);
 
-  const renderTopIcon = () => {
-    const { currentEnsName, icon } = currentPageInformation;
-    const url = currentPageInformation.url;
-    const iconTitle = getHost(currentEnsName || url);
-
-    return isAlreadyConnected && !showPermissionsOnly ? (
-      <View style={[styles.domainLogoContainer, styles.assetLogoContainer]}>
-        <TouchableOpacity
-          onPress={switchNetwork}
-          testID={ConnectedAccountsSelectorsIDs.NETWORK_PICKER}
-        >
-          <BadgeWrapper
-            badgeElement={
-              <Badge
-                variant={BadgeVariant.Network}
-                name={networkName}
-                imageSource={networkImageSource}
-              />
-            }
-          >
-            {icon ? (
-              <AvatarFavicon
-                imageSource={{
-                  uri: typeof icon === 'string' ? icon : icon?.uri,
-                }}
-                size={AvatarSize.Md}
-              />
-            ) : (
-              <AvatarToken
-                name={iconTitle}
-                isHaloEnabled
-                size={AvatarSize.Md}
-              />
-            )}
-          </BadgeWrapper>
-        </TouchableOpacity>
-      </View>
-    ) : (
-      <WebsiteIcon
-        style={styles.domainLogoContainer}
-        viewStyle={styles.assetLogoContainer}
-        title={iconTitle}
-        url={currentEnsName || url}
-        icon={typeof icon === 'string' ? icon : icon?.uri}
-      />
-    );
-  };
-
   function renderHeader() {
     return (
       <View style={styles.header}>
@@ -249,7 +194,18 @@ const MultichainPermissionsSummary = ({
             isNonDappNetworkSwitch && styles.logoContainerNonDapp,
           ]}
         >
-          {renderTopIcon()}
+          <PermissionsSummaryTopIcon
+            currentPageInformation={currentPageInformation}
+            isAlreadyConnected={isAlreadyConnected}
+            showPermissionsOnly={showPermissionsOnly}
+            networkName={networkName}
+            networkImageSource={networkImageSource}
+            onSwitchNetwork={switchNetwork}
+            containerStyle={[
+              styles.domainLogoContainer,
+              styles.assetLogoContainer,
+            ]}
+          />
         </View>
         <View style={styles.endAccessory}>
           <ButtonIcon

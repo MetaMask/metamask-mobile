@@ -7,6 +7,7 @@ import {
   prefixUrlWithProtocol,
   getUrlObj,
   getHost,
+  resolvePageFaviconImageSource,
   appendURLParams,
   processUrlForBrowser,
   buildPortfolioUrl,
@@ -60,6 +61,29 @@ describe('Browser utils :: safeDecodeUrl', () => {
     expect(url).toBe(
       'https://www.google.com/search?q=' + encodeURIComponent(input),
     );
+  });
+});
+
+describe('Browser utils :: resolvePageFaviconImageSource', () => {
+  it('returns uri source for non-empty string icon', () => {
+    expect(
+      resolvePageFaviconImageSource('https://example.com/favicon.ico'),
+    ).toEqual({
+      uri: 'https://example.com/favicon.ico',
+    });
+  });
+
+  it('returns undefined for empty string icon', () => {
+    expect(resolvePageFaviconImageSource('')).toBeUndefined();
+  });
+
+  it('returns object icon when uri is present', () => {
+    const icon = { uri: 'https://example.com/favicon.ico' };
+    expect(resolvePageFaviconImageSource(icon)).toBe(icon);
+  });
+
+  it('returns undefined for object icon without uri', () => {
+    expect(resolvePageFaviconImageSource({})).toBeUndefined();
   });
 });
 

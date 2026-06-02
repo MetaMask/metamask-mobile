@@ -541,6 +541,11 @@ const AccountConnect = (props: AccountConnectProps) => {
         labelOptions = [{ label: `${strings('toast.permissions_updated')}` }];
       }
 
+      // Toast must stay on the Network variant: it renders a plain <Image>,
+      // which fails-fast for SVG favicons (e.g. the test-dapp's metamask-fox.svg).
+      // The App variant routes through legacy AvatarFavicon → SvgUri, and on
+      // Android that keeps Choreographer non-idle through the bottom-sheet
+      // dismissal animation, which breaks Detox idle-sync and times out E2E.
       toastRef?.current?.showToast({
         variant: ToastVariants.Network,
         labelOptions,
@@ -760,7 +765,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     const permissionsSummaryProps: PermissionsSummaryProps = {
       currentPageInformation: {
         currentEnsName: '',
-        icon: faviconSource as string,
+        icon: faviconSource,
         url: urlWithProtocol,
       },
       onEdit: () => {

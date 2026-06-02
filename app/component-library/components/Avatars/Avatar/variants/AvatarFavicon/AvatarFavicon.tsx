@@ -14,6 +14,7 @@ import AvatarBase from '../../foundation/AvatarBase';
 // Internal dependencies.
 import { isFaviconSVG } from '../../../../../../util/favicon';
 import {
+  AVATARFAVICON_FALLBACK_ICON_TESTID,
   AVATARFAVICON_IMAGE_TESTID,
   AVATARFAVICON_IMAGE_SVG_TESTID,
   DEFAULT_AVATARFAVICON_ERROR_ICON,
@@ -37,7 +38,8 @@ const AvatarFavicon = ({
   const isRemoteSource = !!(
     imageSource &&
     typeof imageSource === 'object' &&
-    'uri' in imageSource
+    'uri' in imageSource &&
+    imageSource.uri
   );
   const isValidSource = isRequireSource || isRemoteSource;
   const [imageError, setImageError] = useState<Error | undefined>(undefined);
@@ -57,6 +59,7 @@ const AvatarFavicon = ({
   //  requires that the domain is passed in as a prop from the parent
   const renderFallbackFavicon = () => (
     <Icon
+      testID={AVATARFAVICON_FALLBACK_ICON_TESTID}
       size={ICONSIZE_BY_AVATARSIZE[size]}
       name={DEFAULT_AVATARFAVICON_ERROR_ICON}
     />
