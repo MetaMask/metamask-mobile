@@ -13,10 +13,12 @@ import PredictSportOutcomeCard, {
 import { formatVolume } from '../../utils/format';
 import { isMoneylineLikeMarketType } from '../../constants/sports';
 import { strings } from '../../../../../../locales/i18n';
+import Logger from '../../../../../util/Logger';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
 
 const I18N_PREFIX = 'predict.sports_market_types';
 const MISSING_TRANSLATION_PREFIX = '[missing';
+const loggedMissingTranslationKeys = new Set<string>();
 
 const toTitleCase = (str: string): string =>
   str
@@ -27,12 +29,27 @@ const toTitleCase = (str: string): string =>
 const isMissingTranslation = (value: string, key: string): boolean =>
   value === key || value.startsWith(MISSING_TRANSLATION_PREFIX);
 
+const logMissingSportsMarketTypeTranslation = (
+  key: string,
+  type: string,
+): void => {
+  if (loggedMissingTranslationKeys.has(key)) return;
+
+  loggedMissingTranslationKeys.add(key);
+  const message = `Missing Predict sports market type translation: ${key}`;
+  Logger.error(new Error(message), {
+    message,
+    context: { key, type },
+  });
+};
+
 const getTranslatedSportsMarketTypeLabel = (
   type: string,
 ): string | undefined => {
   const key = `${I18N_PREFIX}.${type}`;
   const label = strings(key);
   if (typeof label !== 'string' || isMissingTranslation(label, key)) {
+    logMissingSportsMarketTypeTranslation(key, type);
     return undefined;
   }
   return label;

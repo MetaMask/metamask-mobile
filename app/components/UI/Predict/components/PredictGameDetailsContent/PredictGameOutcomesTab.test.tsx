@@ -12,6 +12,7 @@ import type {
 import type { PredictSportOutcomeButton } from '../PredictSportOutcomeCard';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
 import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
+import Logger from '../../../../../util/Logger';
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -37,6 +38,11 @@ jest.mock('../../../../../../locales/i18n', () => ({
     }
     return translations[key] ?? key;
   }),
+}));
+
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { error: jest.fn() },
 }));
 
 const mockOnBuyPress = jest.fn();
@@ -237,6 +243,34 @@ describe('PredictGameOutcomesTab', () => {
       expect(
         getSportsMarketTypeLabel('basketball_unknown_market', 'Fallback Title'),
       ).toBe('Fallback Title');
+    });
+
+    it('logs missing translations only once per key', () => {
+      const mockLoggerError = jest.mocked(Logger.error);
+      const type = 'basketball_logged_once_market';
+      const key = `predict.sports_market_types.${type}`;
+      const message = `Missing Predict sports market type translation: ${key}`;
+
+      expect(getSportsMarketTypeLabel(type, 'Fallback Title')).toBe(
+        'Fallback Title',
+      );
+      expect(getSportsMarketTypeLabel(type, 'Fallback Title')).toBe(
+        'Fallback Title',
+      );
+
+      expect(mockLoggerError).toHaveBeenCalledTimes(1);
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message,
+        }),
+        {
+          message,
+          context: {
+            key,
+            type,
+          },
+        },
+      );
     });
   });
 
