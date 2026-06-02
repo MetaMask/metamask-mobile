@@ -19,11 +19,11 @@ export const createStyles = (colors: Theme['colors']) =>
       paddingBottom: 24,
       marginHorizontal: 12,
     },
-    // leverageText: {
-    //   fontSize: 48,
-    //   fontWeight: '600',
-    //   lineHeight: 56,
-    // },
+    leverageText: {
+      fontSize: 48,
+      fontWeight: '600',
+      lineHeight: 56,
+    },
     leverageTextSafe: {
       color: LEVERAGE_COLORS.SAFE, // Green - safe leverage
     },
