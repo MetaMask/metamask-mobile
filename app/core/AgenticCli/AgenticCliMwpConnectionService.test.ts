@@ -3,7 +3,10 @@ import { KeyManager } from '../SDKConnectV2/services/key-manager';
 import { Connection } from '../SDKConnectV2/services/connection';
 import { ConnectionInfo } from '../SDKConnectV2/types/connection-info';
 import type { AgenticCliConnectionRequest } from './agenticCliConnectionRequest';
-import { AgenticCliQrLoginService } from './AgenticCliQrLoginService';
+import {
+  handleAgenticCliQrLogin,
+  waitForKeyringUnlock,
+} from './AgenticCliQrLoginService';
 import {
   handleAgenticCliConnectDeeplink,
   isAgenticCliDeeplink,
@@ -22,15 +25,13 @@ jest.mock('./agenticCliLoading', () => ({
   hideAgenticCliConnectionLoading: jest.fn(),
 }));
 jest.mock('./AgenticCliQrLoginService', () => ({
-  AgenticCliQrLoginService: {
-    waitForKeyringUnlock: jest.fn().mockResolvedValue(undefined),
-    handleConnection: jest.fn().mockImplementation(async ({ conn }) => {
-      await conn.client.sendResponse({
-        type: 'auth-token',
-        token: 'cli-token',
-      });
-    }),
-  },
+  waitForKeyringUnlock: jest.fn().mockResolvedValue(undefined),
+  handleAgenticCliQrLogin: jest.fn().mockImplementation(async ({ conn }) => {
+    await conn.client.sendResponse({
+      type: 'auth-token',
+      token: 'cli-token',
+    });
+  }),
 }));
 jest.mock('../../store', () => ({
   store: {
@@ -57,10 +58,10 @@ jest.mock('../../util/analytics/analytics', () => ({
   },
 }));
 
+const mockWaitForKeyringUnlock = jest.mocked(waitForKeyringUnlock);
+const mockHandleAgenticCliQrLogin = jest.mocked(handleAgenticCliQrLogin);
+
 describe('AgenticCliMwpConnectionService', () => {
-  const agenticCliQrLoginServiceMock = AgenticCliQrLoginService as jest.Mocked<
-    typeof AgenticCliQrLoginService
-  >;
   let mockHostApp: jest.Mocked<HostApplicationAdapter>;
   let mockKeyManager: jest.Mocked<KeyManager>;
   let mockConnection: jest.Mocked<Connection>;
@@ -125,17 +126,13 @@ describe('AgenticCliMwpConnectionService', () => {
     } as unknown as jest.Mocked<Connection>;
 
     (Connection.create as jest.Mock).mockResolvedValue(mockConnection);
-    agenticCliQrLoginServiceMock.waitForKeyringUnlock.mockResolvedValue(
-      undefined,
-    );
-    agenticCliQrLoginServiceMock.handleConnection.mockImplementation(
-      async ({ conn }) => {
-        await conn.client.sendResponse({
-          type: 'auth-token',
-          token: 'cli-token',
-        });
-      },
-    );
+    mockWaitForKeyringUnlock.mockResolvedValue(undefined);
+    mockHandleAgenticCliQrLogin.mockImplementation(async ({ conn }) => {
+      await conn.client.sendResponse({
+        type: 'auth-token',
+        token: 'cli-token',
+      });
+    });
   });
 
   it('detects agentic CLI deeplinks', () => {
@@ -147,7 +144,7 @@ describe('AgenticCliMwpConnectionService', () => {
 
   it('waits for keyring unlock before creating a connection', async () => {
     let resolveUnlock: () => void = jest.fn();
-    agenticCliQrLoginServiceMock.waitForKeyringUnlock.mockReturnValue(
+    mockWaitForKeyringUnlock.mockReturnValue(
       new Promise<void>((resolve) => {
         resolveUnlock = resolve;
       }),
@@ -173,7 +170,7 @@ describe('AgenticCliMwpConnectionService', () => {
       ...mockConnectionRequest.sessionRequest,
       mode: 'untrusted',
     });
-    expect(AgenticCliQrLoginService.handleConnection).toHaveBeenCalledWith(
+    expect(mockHandleAgenticCliQrLogin).toHaveBeenCalledWith(
       expect.objectContaining({
         connReq: mockConnectionRequest,
         conn: mockConnection,
@@ -208,6 +205,6 @@ describe('AgenticCliMwpConnectionService', () => {
 
     expect(showAgenticCliConnectionLoading).toHaveBeenCalledTimes(1);
     expect(hideAgenticCliConnectionLoading).toHaveBeenCalledTimes(1);
-    expect(AgenticCliQrLoginService.handleConnection).toHaveBeenCalledTimes(1);
+    expect(mockHandleAgenticCliQrLogin).toHaveBeenCalledTimes(1);
   });
 });

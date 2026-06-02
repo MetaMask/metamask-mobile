@@ -116,21 +116,19 @@ const mockConnectionRequest = (
   connectionType,
 });
 
-const loadAgenticCliQrLoginService = (
+const loadAgenticCliQrLogin = (
   buildType: string,
-): typeof import('./AgenticCliQrLoginService').AgenticCliQrLoginService => {
+): typeof import('./AgenticCliQrLoginService') => {
   mockGetBuildType.mockReturnValue(buildType);
-  let service:
-    | typeof import('./AgenticCliQrLoginService').AgenticCliQrLoginService
-    | undefined;
+  let qrLoginModule: typeof import('./AgenticCliQrLoginService') | undefined;
   jest.isolateModules(() => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    service = require('./AgenticCliQrLoginService').AgenticCliQrLoginService;
+    qrLoginModule = require('./AgenticCliQrLoginService');
   });
-  if (!service) {
-    throw new Error('AgenticCliQrLoginService not found');
+  if (!qrLoginModule) {
+    throw new Error('AgenticCliQrLoginService module not found');
   }
-  return service;
+  return qrLoginModule;
 };
 
 describe('AgenticCliQrLoginService', () => {
@@ -169,10 +167,10 @@ describe('AgenticCliQrLoginService', () => {
   });
 
   it('ignores QR-provided dashboard and auth URLs', async () => {
-    const AgenticCliQrLoginService = loadAgenticCliQrLoginService('main_prod');
+    const { handleAgenticCliQrLogin } = loadAgenticCliQrLogin('main_prod');
     const conn = createMockConnection();
 
-    await AgenticCliQrLoginService.handleConnection({
+    await handleAgenticCliQrLogin({
       connReq: mockConnectionRequest({
         name: 'agentic-cli',
         dashboardUrl: 'https://evil.example/agentic/login',
@@ -195,12 +193,12 @@ describe('AgenticCliQrLoginService', () => {
   });
 
   it('exchanges the Hydra token, opens prod dashboard, sends CLI token, and cleans up', async () => {
-    const AgenticCliQrLoginService = loadAgenticCliQrLoginService('main_prod');
+    const { handleAgenticCliQrLogin } = loadAgenticCliQrLogin('main_prod');
     const conn = createMockConnection();
     const cleanupConnection = jest.fn().mockResolvedValue(undefined);
     const setStage = jest.fn();
 
-    await AgenticCliQrLoginService.handleConnection({
+    await handleAgenticCliQrLogin({
       connReq: mockConnectionRequest({ name: 'agentic-cli' }),
       conn,
       setStage,
@@ -239,10 +237,10 @@ describe('AgenticCliQrLoginService', () => {
   });
 
   it('uses dev auth API and test dashboard for main_dev builds', async () => {
-    const AgenticCliQrLoginService = loadAgenticCliQrLoginService('main_dev');
+    const { handleAgenticCliQrLogin } = loadAgenticCliQrLogin('main_dev');
     const conn = createMockConnection();
 
-    await AgenticCliQrLoginService.handleConnection({
+    await handleAgenticCliQrLogin({
       connReq: mockConnectionRequest({ name: 'agentic-cli' }),
       conn,
       setStage: jest.fn(),
@@ -261,10 +259,10 @@ describe('AgenticCliQrLoginService', () => {
   });
 
   it('uses UAT auth API and UAT dashboard for main_uat builds', async () => {
-    const AgenticCliQrLoginService = loadAgenticCliQrLoginService('main_uat');
+    const { handleAgenticCliQrLogin } = loadAgenticCliQrLogin('main_uat');
     const conn = createMockConnection();
 
-    await AgenticCliQrLoginService.handleConnection({
+    await handleAgenticCliQrLogin({
       connReq: mockConnectionRequest({ name: 'agentic-cli' }),
       conn,
       setStage: jest.fn(),
@@ -283,10 +281,10 @@ describe('AgenticCliQrLoginService', () => {
   });
 
   it('waits for keyring unlock when locked', async () => {
-    const AgenticCliQrLoginService = loadAgenticCliQrLoginService('main_prod');
+    const { waitForKeyringUnlock } = loadAgenticCliQrLogin('main_prod');
     mockIsUnlocked.mockReturnValueOnce(false);
 
-    const waitPromise = AgenticCliQrLoginService.waitForKeyringUnlock();
+    const waitPromise = waitForKeyringUnlock();
     const unlockHandler = mockSubscribe.mock.calls[0][1];
     unlockHandler();
 

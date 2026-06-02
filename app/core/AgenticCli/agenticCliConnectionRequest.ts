@@ -29,25 +29,6 @@ const isOptionalHttpUrl = (url: unknown): boolean => {
   }
 };
 
-const isValidConnectionType = (
-  connectionType: unknown,
-): connectionType is AgenticCliConnectionType => {
-  if (
-    !connectionType ||
-    typeof connectionType !== 'object' ||
-    Array.isArray(connectionType)
-  ) {
-    return false;
-  }
-
-  const typed = connectionType as AgenticCliConnectionType;
-  return (
-    typed.name === 'agentic-cli' &&
-    isOptionalHttpUrl(typed.dashboardUrl) &&
-    isOptionalHttpUrl(typed.dashboardAuthUrl)
-  );
-};
-
 export const isAgenticCliConnectionRequest = (
   data: unknown,
 ): data is AgenticCliConnectionRequest => {
@@ -56,7 +37,24 @@ export const isAgenticCliConnectionRequest = (
   }
 
   const obj = data as AgenticCliConnectionRequest;
-  if (!isValidConnectionType(obj.connectionType)) {
+  const connectionType = obj.connectionType;
+
+  if (
+    !connectionType ||
+    typeof connectionType !== 'object' ||
+    Array.isArray(connectionType)
+  ) {
+    return false;
+  }
+
+  if (connectionType.name !== 'agentic-cli') {
+    return false;
+  }
+
+  if (
+    !isOptionalHttpUrl(connectionType.dashboardUrl) ||
+    !isOptionalHttpUrl(connectionType.dashboardAuthUrl)
+  ) {
     return false;
   }
 

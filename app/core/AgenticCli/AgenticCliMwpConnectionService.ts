@@ -1,7 +1,6 @@
 import {
   DEFAULT_SESSION_TTL,
   type IKeyManager,
-  type SessionRequest,
 } from '@metamask/mobile-wallet-protocol-core';
 import { rpcErrors } from '@metamask/rpc-errors';
 import { INTERNAL_ORIGINS } from '../../constants/transaction';
@@ -26,7 +25,10 @@ import {
   type AgenticCliConnectionRequest,
   isAgenticCliConnectionRequest,
 } from './agenticCliConnectionRequest';
-import { AgenticCliQrLoginService } from './AgenticCliQrLoginService';
+import {
+  handleAgenticCliQrLogin,
+  waitForKeyringUnlock,
+} from './AgenticCliQrLoginService';
 
 export interface AgenticCliMwpConnectionDeps {
   relayURL: string;
@@ -36,32 +38,42 @@ export interface AgenticCliMwpConnectionDeps {
   cleanupConnection: (conn: Connection) => Promise<void>;
 }
 
+const mwpAnalyticsFromRequest = (connReq: AgenticCliConnectionRequest) => ({
+  remote_session_id:
+    connReq.metadata.analytics?.remote_session_id ?? connReq.sessionRequest.id,
+  transport_type: TransportType.MWP,
+  sdk_version: connReq.metadata.sdk.version,
+  sdk_platform: connReq.metadata.sdk.platform,
+  dapp_name: connReq.metadata.dapp.name,
+  dapp_url: connReq.metadata.dapp.url,
+});
+
+export function tryParseAgenticCliConnectionRequest(
+  url: unknown,
+): AgenticCliConnectionRequest | null {
+  if (typeof url !== 'string') {
+    return null;
+  }
+
+  try {
+    const raw = parseMwpConnectPayload(url);
+    return isAgenticCliConnectionRequest(raw) ? raw : null;
+  } catch {
+    return null;
+  }
+}
+
 const parseAgenticCliConnectionRequest = (
   url: string,
 ): AgenticCliConnectionRequest => {
-  const raw = parseMwpConnectPayload(url);
+  const parsed = tryParseAgenticCliConnectionRequest(url);
 
-  if (!isAgenticCliConnectionRequest(raw)) {
+  if (!parsed) {
     throw new Error('Invalid agentic CLI connection request structure.');
   }
 
-  return raw;
+  return parsed;
 };
-
-const toConnectionInfo = (
-  connReq: AgenticCliConnectionRequest,
-): ConnectionInfo => ({
-  id: connReq.sessionRequest.id,
-  metadata: connReq.metadata,
-  expiresAt: Date.now() + DEFAULT_SESSION_TTL,
-});
-
-const toUntrustedSessionRequest = (
-  connReq: AgenticCliConnectionRequest,
-): SessionRequest => ({
-  ...connReq.sessionRequest,
-  mode: 'untrusted',
-});
 
 const wireAgenticCliClientEvents = (conn: Connection): void => {
   conn.client.on('display_otp', (otp, deadline) => {
@@ -74,21 +86,13 @@ const wireAgenticCliClientEvents = (conn: Connection): void => {
 };
 
 export function isAgenticCliDeeplink(url: unknown): url is string {
-  if (typeof url !== 'string') {
-    return false;
-  }
-
-  try {
-    const raw = parseMwpConnectPayload(url);
-    return isAgenticCliConnectionRequest(raw);
-  } catch {
-    return false;
-  }
+  return tryParseAgenticCliConnectionRequest(url) !== null;
 }
 
 export async function handleAgenticCliConnectDeeplink(
   url: string,
   deps: AgenticCliMwpConnectionDeps,
+  preParsedConnReq?: AgenticCliConnectionRequest,
 ): Promise<void> {
   logger.debug('Handling agentic CLI connect deeplink:', redactUrl(url));
 
@@ -96,20 +100,16 @@ export async function handleAgenticCliConnectDeeplink(
   let connInfo: ConnectionInfo | undefined;
   let connReq: AgenticCliConnectionRequest | undefined;
   let agenticCliStage: string | undefined;
-  try {
-    agenticCliStage = 'parse-connection-request';
-    connReq = parseAgenticCliConnectionRequest(url);
 
-    trackMwpEvent(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED, {
-      remote_session_id:
-        connReq.metadata.analytics?.remote_session_id ??
-        connReq.sessionRequest.id,
-      transport_type: TransportType.MWP,
-      sdk_version: connReq.metadata.sdk.version,
-      sdk_platform: connReq.metadata.sdk.platform,
-      dapp_name: connReq.metadata.dapp.name,
-      dapp_url: connReq.metadata.dapp.url,
-    });
+  try {
+    // --- Parse and validate request ---
+    agenticCliStage = 'parse-connection-request';
+    connReq = preParsedConnReq ?? parseAgenticCliConnectionRequest(url);
+
+    trackMwpEvent(
+      MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED,
+      mwpAnalyticsFromRequest(connReq),
+    );
 
     if (
       INTERNAL_ORIGINS.includes(connReq.metadata.dapp.url) ||
@@ -120,10 +120,16 @@ export async function handleAgenticCliConnectDeeplink(
       });
     }
 
+    // --- Wait for keyring unlock ---
     agenticCliStage = 'wait-for-keyring-unlock';
-    await AgenticCliQrLoginService.waitForKeyringUnlock();
+    await waitForKeyringUnlock();
 
-    connInfo = toConnectionInfo(connReq);
+    connInfo = {
+      id: connReq.sessionRequest.id,
+      metadata: connReq.metadata,
+      expiresAt: Date.now() + DEFAULT_SESSION_TTL,
+    };
+
     if (deps.hasConnection(connInfo.id)) {
       logger.debug(
         'Already have a connection with this id, skipping',
@@ -132,6 +138,7 @@ export async function handleAgenticCliConnectDeeplink(
       return;
     }
 
+    // --- Create MWP connection and connect (untrusted) ---
     showAgenticCliConnectionLoading(connInfo);
     agenticCliStage = 'create-mwp-connection';
     conn = await Connection.create(
@@ -143,10 +150,14 @@ export async function handleAgenticCliConnectDeeplink(
     wireAgenticCliClientEvents(conn);
 
     agenticCliStage = 'mwp-connect';
-    await conn.connect(toUntrustedSessionRequest(connReq));
+    await conn.connect({
+      ...connReq.sessionRequest,
+      mode: 'untrusted',
+    });
 
+    // --- QR login: Hydra → dashboard → WebView → auth token ---
     try {
-      await AgenticCliQrLoginService.handleConnection({
+      await handleAgenticCliQrLogin({
         connReq,
         conn,
         setStage: (stage) => {
@@ -184,6 +195,7 @@ export async function handleAgenticCliConnectDeeplink(
     deps.hostapp.showConnectionError();
 
     trackMwpEvent(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_FAILED, {
+      ...(connReq ? mwpAnalyticsFromRequest(connReq) : {}),
       remote_session_id:
         connReq?.metadata.analytics?.remote_session_id ??
         connReq?.sessionRequest?.id ??

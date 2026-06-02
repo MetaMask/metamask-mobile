@@ -1,9 +1,14 @@
 export {
   isAgenticCliDeeplink,
+  tryParseAgenticCliConnectionRequest,
   handleAgenticCliConnectDeeplink,
 } from './AgenticCliMwpConnectionService';
 export type { AgenticCliMwpConnectionDeps } from './AgenticCliMwpConnectionService';
-export { AgenticCliQrLoginService } from './AgenticCliQrLoginService';
+export {
+  waitForKeyringUnlock,
+  handleAgenticCliQrLogin,
+} from './AgenticCliQrLoginService';
+export type { HandleAgenticCliQrLoginParams } from './AgenticCliQrLoginService';
 export {
   type AgenticCliConnectionRequest,
   type AgenticCliConnectionType,
