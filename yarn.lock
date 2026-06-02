@@ -35771,7 +35771,6 @@ __metadata:
     query-string: "npm:^6.12.1"
     randomfill: "npm:^1.0.4"
     react: "npm:19.1.0"
-    react-compiler-runtime: "npm:^1.0.0"
     react-dom: "npm:18.2.0"
     react-native: "patch:react-native@npm%3A0.81.5#~/.yarn/patches/react-native-npm-0.81.5-d8232ef145.patch"
     react-native-aes-crypto: "npm:3.0.3"
@@ -40009,15 +40008,6 @@ __metadata:
     react: ">=16.8.0"
     react-dom: ">=16.8.0"
   checksum: 10/3e02ba013454818d0c323949bd961fb2c19ac18130dfc67a4032aa5b03787c5ffe7ff159c4b97dc3475072d576828ca0c4b8e8ce85b55eaf484180596cdf0403
-  languageName: node
-  linkType: hard
-
-"react-compiler-runtime@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "react-compiler-runtime@npm:1.0.0"
-  peerDependencies:
-    react: ^17.0.0 || ^18.0.0 || ^19.0.0 || ^0.0.0-experimental
-  checksum: 10/7d85297de255c39f1aca3dd4942fbf59253e127db8abef1ad7fe3eb329e39aab4c30656ff77751165e2b21263d96836f44699777ca40c9a717ffe42c6c355543
   languageName: node
   linkType: hard
 

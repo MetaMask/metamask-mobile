@@ -170,16 +170,13 @@ In 2024, the React team announced a build time tool called [React Compiler](http
 
 ### React Compiler
 
-React Compiler is enabled via Expo SDK 54 (`experiments.reactCompiler` in [app.config.js](../../app.config.js)) and configured in [babel.config.js](../../babel.config.js) through `babel-preset-expo`:
+React Compiler is enabled via Expo SDK 54 in [app.config.js](../../app.config.js). Babel is handled automatically by `babel-preset-expo` when Metro bundles the app ([Expo docs](https://docs.expo.dev/guides/react-compiler/)):
 
 ```javascript
 // app.config.js
 experiments: {
   reactCompiler: { enabled: true },
 },
-
-// babel.config.js
-presets: [['babel-preset-expo', { 'react-compiler': { target: '18' } }]],
 ```
 
 New React components and hooks are compiled automatically. Follow the [Rules of React](https://react.dev/reference/rules); the ESLint plugin (`react-compiler/react-compiler`) will flag violations during lint.

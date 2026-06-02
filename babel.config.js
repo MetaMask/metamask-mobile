@@ -1,9 +1,3 @@
-// Passed to babel-preset-expo when experiments.reactCompiler is enabled in app.config.js.
-// https://docs.expo.dev/guides/react-compiler/
-const ReactCompilerConfig = {
-  target: '18',
-};
-
 // Hermes (RN's bytecode compiler) does not accept dynamic `import()` syntax —
 // even inside dead code branches — and aborts with "Invalid expression
 // encountered", producing a `.app` with no JS bundle.
@@ -63,7 +57,7 @@ module.exports = {
         // Babel must not transform it or it injects require("@babel/runtime/helpers/...")
         /\/expo\/virtual\/streams\.js$/.test(filename)),
   ],
-  presets: [['babel-preset-expo', { 'react-compiler': ReactCompilerConfig }]],
+  presets: ['babel-preset-expo'],
   plugins: [
     'transform-inline-environment-variables',
     dynamicImportToRequire,
