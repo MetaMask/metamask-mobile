@@ -196,6 +196,9 @@ function render(cardControllerOverrides = {}) {
             PreferencesController: {
               isIpfsGatewayEnabled: true,
             },
+            MoneyAccountController: {
+              moneyAccounts: {},
+            },
             CardController: {
               selectedCountry: null,
               activeProviderId: 'baanx',

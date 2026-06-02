@@ -355,6 +355,7 @@ describe('useMusdConversion', () => {
         {
           networkClientId: 'mainnet',
           origin: ORIGIN_METAMASK,
+          isInternal: true,
           skipInitialGasEstimate: true,
           type: TransactionType.musdConversion,
         },

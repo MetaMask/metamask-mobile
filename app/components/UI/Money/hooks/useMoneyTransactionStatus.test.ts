@@ -12,6 +12,16 @@ import {
   IN_PROGRESS_DELAY_MS,
 } from './useMoneyTransactionStatus';
 import useMoneyToasts, { MoneyToastOptionsConfig } from './useMoneyToasts';
+import {
+  clearMoneyAccountDepositIntent,
+  getMoneyAccountDepositIntent,
+} from './useMoneyAccount';
+
+jest.mock('./useMoneyAccount', () => ({
+  __esModule: true,
+  getMoneyAccountDepositIntent: jest.fn(),
+  clearMoneyAccountDepositIntent: jest.fn(),
+}));
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { NotificationMoment } from '../../../../util/haptics';
@@ -261,6 +271,124 @@ describe('useMoneyTransactionStatus', () => {
       expect(mockShowToast).toHaveBeenCalledWith(baseInProgressToast);
     });
 
+    it('approved → in-progress toast forwards the batch intent', () => {
+      (
+        getMoneyAccountDepositIntent as jest.MockedFunction<
+          typeof getMoneyAccountDepositIntent
+        >
+      ).mockReturnValueOnce('addMusd');
+
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({
+        transactionMeta: buildTxMeta({
+          id: 'tx-id-intent',
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.approved,
+          batchId: '0xINTENTBATCH',
+        }),
+      });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(getMoneyAccountDepositIntent).toHaveBeenCalledWith(
+        '0xINTENTBATCH',
+      );
+      expect(depositInProgressFn).toHaveBeenCalledWith({ intent: 'addMusd' });
+    });
+
+    it('clears the batch intent on terminal states', () => {
+      const { statusUpdatedHandler, confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.confirmed,
+          batchId: '0xBATCH_CONFIRMED',
+          txParams: {
+            from: '0x0',
+            data: encodeDepositData(BigInt(1)),
+          },
+        }),
+      );
+
+      expect(clearMoneyAccountDepositIntent).toHaveBeenCalledWith(
+        '0xBATCH_CONFIRMED',
+      );
+
+      statusUpdatedHandler({
+        transactionMeta: buildTxMeta({
+          id: 'tx-id-failed',
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.failed,
+          batchId: '0xBATCH_FAILED',
+        }),
+      });
+
+      expect(clearMoneyAccountDepositIntent).toHaveBeenCalledWith(
+        '0xBATCH_FAILED',
+      );
+
+      statusUpdatedHandler({
+        transactionMeta: buildTxMeta({
+          id: 'tx-id-rejected',
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.rejected,
+          batchId: '0xBATCH_REJECTED',
+        }),
+      });
+
+      expect(clearMoneyAccountDepositIntent).toHaveBeenCalledWith(
+        '0xBATCH_REJECTED',
+      );
+    });
+
+    it('forwards intent to deposit.success on confirmed', () => {
+      (
+        getMoneyAccountDepositIntent as jest.MockedFunction<
+          typeof getMoneyAccountDepositIntent
+        >
+      ).mockReturnValueOnce('addMusd');
+
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.confirmed,
+          batchId: '0xBATCH_SUCCESS',
+          txParams: {
+            from: '0x0',
+            data: encodeDepositData(BigInt(12_340_000)),
+          },
+        }),
+      );
+
+      expect(depositSuccessFn).toHaveBeenCalledWith(
+        expect.objectContaining({ intent: 'addMusd' }),
+      );
+    });
+
+    it('forwards intent to deposit.failed on failed', () => {
+      (
+        getMoneyAccountDepositIntent as jest.MockedFunction<
+          typeof getMoneyAccountDepositIntent
+        >
+      ).mockReturnValueOnce('addMusd');
+
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({
+        transactionMeta: buildTxMeta({
+          id: 'tx-id-failed-intent',
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.failed,
+          batchId: '0xBATCH_FAILED_INTENT',
+        }),
+      });
+
+      expect(depositFailedFn).toHaveBeenCalledWith({ intent: 'addMusd' });
+    });
+
     it('confirmed → success toast with decoded fiat amount', () => {
       const { confirmedHandler } = renderAndGetHandlers();
 
@@ -297,7 +425,6 @@ describe('useMoneyTransactionStatus', () => {
 
     it.each([
       ['dropped', TransactionStatus.dropped],
-      ['rejected', TransactionStatus.rejected],
       ['cancelled', TransactionStatus.cancelled],
     ])('statusUpdated with %s → deposit failed toast', (_label, status) => {
       const { statusUpdatedHandler } = renderAndGetHandlers();
@@ -310,6 +437,42 @@ describe('useMoneyTransactionStatus', () => {
       });
 
       expect(depositFailedFn).toHaveBeenCalledTimes(1);
+    });
+
+    it('rejected → no toast (user backed out of confirmation)', () => {
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({
+        transactionMeta: buildTxMeta({
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.rejected,
+        }),
+      });
+
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(depositFailedFn).not.toHaveBeenCalled();
+      expect(depositInProgressFn).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('approved → rejected before delay → no toast and pending in-progress cleared', () => {
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      const tx = buildTxMeta({
+        type: TransactionType.moneyAccountDeposit,
+        status: TransactionStatus.approved,
+      });
+      statusUpdatedHandler({ transactionMeta: tx });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS - 1);
+      statusUpdatedHandler({
+        transactionMeta: { ...tx, status: TransactionStatus.rejected },
+      });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(depositInProgressFn).not.toHaveBeenCalled();
+      expect(depositFailedFn).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
     });
   });
 

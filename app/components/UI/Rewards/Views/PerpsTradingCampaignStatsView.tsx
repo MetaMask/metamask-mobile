@@ -87,23 +87,32 @@ const PerpsTradingCampaignStatsView: React.FC = () => {
       isOptedIn ? campaignId : undefined,
     );
 
-  const pnlValue = position ? formatSignedUsd(position.pnl) : '—';
-  const pnlColor = position
-    ? position.pnl >= 0
-      ? TextColor.SuccessDefault
-      : TextColor.ErrorDefault
-    : TextColor.TextDefault;
+  const pnl =
+    position != null && Number.isFinite(position.pnl) ? position.pnl : null;
+  const notionalVolume =
+    position != null && Number.isFinite(position.notionalVolume)
+      ? position.notionalVolume
+      : null;
 
-  const volumeValue = position ? formatUsd(position.notionalVolume) : '—';
+  const pnlValue = pnl != null ? formatSignedUsd(pnl) : '—';
+  const pnlColor =
+    pnl != null
+      ? pnl >= 0
+        ? TextColor.SuccessDefault
+        : TextColor.ErrorDefault
+      : TextColor.TextDefault;
+
+  const volumeValue = notionalVolume != null ? formatUsd(notionalVolume) : '—';
   const isQualified = position != null && position.qualified;
   const isPending = position != null && !position.qualified;
 
   const isCampaignComplete =
     campaign != null && getCampaignStatus(campaign) === 'complete';
 
-  const notionalGap = position
-    ? Math.max(0, PERPS_QUALIFICATION_NOTIONAL_USD - position.notionalVolume)
-    : 0;
+  const notionalGap =
+    notionalVolume != null
+      ? Math.max(0, PERPS_QUALIFICATION_NOTIONAL_USD - notionalVolume)
+      : 0;
 
   const showQualifiedCard =
     !isCampaignComplete && isQualified && position != null;

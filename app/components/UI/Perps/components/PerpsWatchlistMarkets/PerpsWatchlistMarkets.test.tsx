@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsWatchlistMarkets from './PerpsWatchlistMarkets';
 import { type PerpsMarketData } from '@metamask/perps-controller';
 import Routes from '../../../../../constants/navigation/Routes';
+import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -183,6 +184,34 @@ describe('PerpsWatchlistMarkets', () => {
           market: mockMarkets[1],
           initialTab: undefined,
           source: 'perps_home',
+        },
+      });
+    });
+
+    it('carries transactionActiveAbTests when a watchlist market opens market details', () => {
+      const transactionActiveAbTests = [
+        createActiveABTestAssignment(
+          'homeTMCU725AbtestHomepagePerpsPillsEmptyState',
+          'treatment',
+        ),
+      ];
+      render(
+        <PerpsWatchlistMarkets
+          markets={mockMarkets}
+          source="perps_home"
+          transactionActiveAbTests={transactionActiveAbTests}
+        />,
+      );
+
+      fireEvent.press(screen.getByTestId('perps-market-row-BTC'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: {
+          market: mockMarkets[0],
+          initialTab: undefined,
+          source: 'perps_home',
+          transactionActiveAbTests,
         },
       });
     });

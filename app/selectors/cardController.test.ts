@@ -17,7 +17,10 @@ import {
   selectCardLineaUsdcToken,
   selectIsMoneyAccountDelegatedForCard,
 } from './cardController';
-import { selectPrimaryMoneyAccount } from './moneyAccountController';
+import {
+  selectMoneyAccounts,
+  selectPrimaryMoneyAccount,
+} from './moneyAccountController';
 import type { CardControllerState } from '../core/Engine/controllers/card-controller/types';
 import {
   FundingAssetStatus,
@@ -33,6 +36,7 @@ jest.mock('./multichainAccounts/accounts');
 jest.mock('../core/Multichain/utils');
 jest.mock('./moneyAccountController', () => ({
   selectPrimaryMoneyAccount: jest.fn(),
+  selectMoneyAccounts: jest.fn(() => ({})),
 }));
 
 const mockSelectSelectedInternalAccountByScope =
@@ -45,6 +49,10 @@ const mockIsEthAccount = isEthAccount as jest.MockedFunction<
 const mockSelectPrimaryMoneyAccount =
   selectPrimaryMoneyAccount as unknown as jest.MockedFunction<
     () => { address: string } | undefined
+  >;
+const mockSelectMoneyAccounts =
+  selectMoneyAccounts as unknown as jest.MockedFunction<
+    () => Record<string, { address: string }>
   >;
 
 const createMockRootState = (
@@ -378,6 +386,10 @@ const mockCardHomeData: CardHomeData = {
 };
 
 describe('selectCardPrimaryToken', () => {
+  beforeEach(() => {
+    mockSelectMoneyAccounts.mockReturnValue({});
+  });
+
   it('returns null when cardHomeData is null', () => {
     const state = createMockRootState({ cardHomeData: null });
     expect(selectCardPrimaryToken(state)).toBeNull();
@@ -399,6 +411,37 @@ describe('selectCardPrimaryToken', () => {
         walletAddress: mockPrimaryAsset.walletAddress,
       }),
     );
+  });
+
+  it('sets isMoneyAccountEntry to false when no money accounts exist', () => {
+    mockSelectMoneyAccounts.mockReturnValue({});
+    const state = createMockRootState({
+      cardHomeData:
+        mockCardHomeData as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectCardPrimaryToken(state)?.isMoneyAccountEntry).toBe(false);
+  });
+
+  it('sets isMoneyAccountEntry to false when no money account matches the walletAddress', () => {
+    mockSelectMoneyAccounts.mockReturnValue({
+      'ma-1': { address: '0xnotthewallet000000000000000000000000000001' },
+    });
+    const state = createMockRootState({
+      cardHomeData:
+        mockCardHomeData as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectCardPrimaryToken(state)?.isMoneyAccountEntry).toBe(false);
+  });
+
+  it('sets isMoneyAccountEntry to true when the primary funding asset walletAddress matches a money account', () => {
+    mockSelectMoneyAccounts.mockReturnValue({
+      'ma-1': { address: mockPrimaryAsset.walletAddress },
+    });
+    const state = createMockRootState({
+      cardHomeData:
+        mockCardHomeData as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectCardPrimaryToken(state)?.isMoneyAccountEntry).toBe(true);
   });
 });
 
@@ -715,9 +758,86 @@ describe('selectCardAvailableTokens', () => {
       expect(placeholder?.walletAddress).toBe(WALLET_A);
     });
   });
+
+  describe('isMoneyAccountEntry flag', () => {
+    beforeEach(() => {
+      mockSelectMoneyAccounts.mockReturnValue({});
+    });
+
+    it('flags real entries whose walletAddress matches a money account', () => {
+      mockSelectMoneyAccounts.mockReturnValue({
+        'ma-1': { address: WALLET_A },
+      });
+      const assets = [
+        makeAsset({
+          walletAddress: WALLET_A,
+          status: FundingAssetStatus.Active,
+        }),
+        makeAsset({
+          walletAddress: WALLET_B,
+          status: FundingAssetStatus.Active,
+        }),
+      ];
+      const state = stateWithAssets(assets);
+      const tokens = selectCardAvailableTokens(state);
+      const aTokens = tokens.filter(
+        (t) => t.walletAddress?.toLowerCase() === WALLET_A.toLowerCase(),
+      );
+      const bTokens = tokens.filter(
+        (t) => t.walletAddress?.toLowerCase() === WALLET_B.toLowerCase(),
+      );
+      expect(aTokens.every((t) => t.isMoneyAccountEntry === true)).toBe(true);
+      expect(bTokens.every((t) => t.isMoneyAccountEntry === false)).toBe(true);
+    });
+
+    it('flags synthesized placeholders when the current EVM wallet is a money account', () => {
+      mockSelectMoneyAccounts.mockReturnValue({
+        'ma-1': { address: WALLET_A },
+      });
+      const cardHomeDataWithDelegationToken = {
+        ...mockCardHomeData,
+        fundingAssets: [],
+        delegationSettings: {
+          ...mockCardHomeData.delegationSettings,
+          networks: [
+            {
+              network: 'linea',
+              environment: 'production',
+              chainId: '59144',
+              delegationContract: '0xdeleg000000000000000000000000000000000004',
+              tokens: {
+                USDC: {
+                  symbol: 'USDC',
+                  decimals: 6,
+                  address: '0xusdc000000000000000000000000000000000010',
+                },
+              },
+            },
+          ],
+        },
+      } as unknown as CardHomeData;
+      mockSelectSelectedInternalAccountByScope.mockReturnValue(
+        jest.fn().mockReturnValue({ address: WALLET_A } as InternalAccount),
+      );
+      const state = createMockRootState({
+        cardHomeData:
+          cardHomeDataWithDelegationToken as unknown as CardControllerState['cardHomeData'],
+      });
+      const tokens = selectCardAvailableTokens(state);
+      const placeholder = tokens.find(
+        (t) => t.fundingStatus === FundingStatus.NotEnabled,
+      );
+      expect(placeholder?.walletAddress).toBe(WALLET_A);
+      expect(placeholder?.isMoneyAccountEntry).toBe(true);
+    });
+  });
 });
 
 describe('selectCardFundingTokens', () => {
+  beforeEach(() => {
+    mockSelectMoneyAccounts.mockReturnValue({});
+  });
+
   it('returns empty array when cardHomeData is null', () => {
     const state = createMockRootState({ cardHomeData: null });
     expect(selectCardFundingTokens(state)).toStrictEqual([]);
@@ -732,6 +852,32 @@ describe('selectCardFundingTokens', () => {
     expect(tokens).toHaveLength(2);
     expect(tokens[0]?.symbol).toBe('USDC');
     expect(tokens[1]?.symbol).toBe('USDT');
+  });
+
+  it('flags tokens whose walletAddress matches a money account and leaves others false', () => {
+    mockSelectMoneyAccounts.mockReturnValue({
+      'ma-1': { address: mockPrimaryAsset.walletAddress },
+    });
+    const cardHomeData: CardHomeData = {
+      ...mockCardHomeData,
+      fundingAssets: [
+        mockPrimaryAsset,
+        {
+          ...mockPrimaryAsset,
+          symbol: 'USDT',
+          walletAddress: '0xotherwallet0000000000000000000000000000099',
+          address: '0xusdt000000000000000000000000000000000003',
+        },
+      ],
+    };
+    const state = createMockRootState({
+      cardHomeData:
+        cardHomeData as unknown as CardControllerState['cardHomeData'],
+    });
+    const tokens = selectCardFundingTokens(state);
+    expect(tokens).toHaveLength(2);
+    expect(tokens[0]?.isMoneyAccountEntry).toBe(true);
+    expect(tokens[1]?.isMoneyAccountEntry).toBe(false);
   });
 });
 
