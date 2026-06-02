@@ -724,15 +724,32 @@ export function useQuickBuyController(
 
   // If the source token's price becomes available (or disappears) while the
   // sheet is open — e.g. a new market-data fetch lands — re-align the display
-  // mode so the headline reflects what we can honestly show.
+  // mode so the headline reflects what we can honestly show. If price arrives
+  // after the user already entered a token amount, convert it to USD so the
+  // amount is not lost.
   const prevHasSourcePriceRef = useRef(hasSourcePrice);
   useEffect(() => {
     if (prevHasSourcePriceRef.current === hasSourcePrice) return;
+    const prev = prevHasSourcePriceRef.current;
     prevHasSourcePriceRef.current = hasSourcePrice;
     if (!hasSourcePrice) {
       setAmountDisplayMode('crypto');
+    } else if (!prev) {
+      // Price just became available — migrate any entered token amount to USD.
+      setAmountDisplayMode('fiat');
+      const tokens = parseFloat(sourceAmountTokens);
+      if (
+        Number.isFinite(tokens) &&
+        tokens > 0 &&
+        sourceToken?.currencyExchangeRate
+      ) {
+        const usd = (tokens * sourceToken.currencyExchangeRate).toFixed(2);
+        setUsdAmount(usd);
+        setQuotedUsdAmount(usd);
+        lastCommittedUsdRef.current = usd;
+      }
     }
-  }, [hasSourcePrice]);
+  }, [hasSourcePrice, sourceAmountTokens, sourceToken?.currencyExchangeRate]);
 
   const handleSelectSourceToken = useCallback(
     (token: BridgeToken) => {

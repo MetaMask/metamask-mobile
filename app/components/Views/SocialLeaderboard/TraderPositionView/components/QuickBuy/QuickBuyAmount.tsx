@@ -29,6 +29,13 @@ const QuickBuyAmount: React.FC = () => {
 
   const isUnpricedSource = tradeMode === 'sell' && !hasSourcePrice;
 
+  // For unpriced tokens we have no fiat rate, so the "X available" line should
+  // show the raw token balance rather than "$0.00".
+  const availableBalance =
+    isUnpricedSource && sourceToken?.balance
+      ? `${sourceToken.balance} ${sourceToken.symbol ?? ''}`
+      : sourceBalanceFiat;
+
   return (
     <QuickBuyAmountSection
       amountDisplayMode={amountDisplayMode}
@@ -36,7 +43,7 @@ const QuickBuyAmount: React.FC = () => {
       usdAmount={usdAmount}
       destSymbol={cryptoSymbol}
       estimatedReceiveAmount={estimatedReceiveAmount}
-      availableBalanceFiat={sourceBalanceFiat}
+      availableBalanceFiat={availableBalance}
       isQuoteLoading={isQuoteLoading}
       isUnpricedSource={isUnpricedSource}
       sourceCryptoAmount={sourceAmountTokens}
