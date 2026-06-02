@@ -41,6 +41,11 @@ interface UsePerpsMarketListViewParams {
    */
   defaultSortOptionId?: SortOptionId;
   /**
+   * Initial sort direction — overrides the persisted user preference when provided.
+   * @default undefined (falls back to saved user preference/default override behavior)
+   */
+  defaultSortDirection?: SortDirection;
+  /**
    * Show markets with $0.00 volume
    * @default false
    */
@@ -144,6 +149,7 @@ export const usePerpsMarketListView = ({
   showWatchlistOnly = false,
   defaultMarketTypeFilter = 'all',
   defaultSortOptionId,
+  defaultSortDirection,
   showZeroVolume = false,
 }: UsePerpsMarketListViewParams = {}): UsePerpsMarketListViewReturn => {
   // Fetch markets data
@@ -231,18 +237,21 @@ export const usePerpsMarketListView = ({
 
   // Use sorting hook for sort state and sorting logic.
   // defaultSortOptionId (from navigation params) takes precedence over the saved user
-  // preference. When it overrides a *different* option, reset direction to the default
-  // so the market list opens sorted the same way the explore feed displayed it (always desc).
-  // When there is no override, or the override matches the saved option, carry the saved direction.
+  // preference. A route-provided direction also takes precedence so Explore can
+  // open the market list with the same ordering as the source section.
+  // Without an explicit direction, reset changed sort options to the default
+  // direction; otherwise carry the saved direction.
   const isOptionOverridden =
     defaultSortOptionId !== undefined &&
     defaultSortOptionId !== savedSortPreference.optionId;
   const sortingHook = usePerpsSorting({
     initialOptionId: (defaultSortOptionId ??
       savedSortPreference.optionId) as SortOptionId,
-    initialDirection: isOptionOverridden
-      ? MARKET_SORTING_CONFIG.DefaultDirection
-      : savedSortPreference.direction,
+    initialDirection:
+      defaultSortDirection ??
+      (isOptionOverridden
+        ? MARKET_SORTING_CONFIG.DefaultDirection
+        : savedSortPreference.direction),
   });
 
   // Wrap handleOptionChange to save preference to PerpsController

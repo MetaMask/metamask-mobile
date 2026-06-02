@@ -411,21 +411,33 @@ describe('PerpsTPSLView', () => {
     ])(
       'handles focus and blur events for %s input',
       (_description, getInput, focusHandler, blurHandler) => {
-        const mockFocusHandler = jest.fn();
-        const mockBlurHandler = jest.fn();
-        renderView({
-          handlers: {
-            ...defaultMockReturn.handlers,
-            [focusHandler]: mockFocusHandler,
-            [blurHandler]: mockBlurHandler,
-          },
-        });
+        jest.useFakeTimers();
+        try {
+          const mockFocusHandler = jest.fn();
+          const mockBlurHandler = jest.fn();
+          renderView({
+            handlers: {
+              ...defaultMockReturn.handlers,
+              [focusHandler]: mockFocusHandler,
+              [blurHandler]: mockBlurHandler,
+            },
+          });
 
-        fireEvent(getInput(), 'focus');
-        fireEvent(getInput(), 'blur');
+          fireEvent(getInput(), 'focus');
 
-        expect(mockFocusHandler).toHaveBeenCalled();
-        expect(mockBlurHandler).toHaveBeenCalled();
+          // Flush the iOS programmatic-dismiss guard (rAF + 150ms setTimeout)
+          // so isProgrammaticDismissRef resets to false before the blur fires.
+          act(() => {
+            jest.advanceTimersByTime(200);
+          });
+
+          fireEvent(getInput(), 'blur');
+
+          expect(mockFocusHandler).toHaveBeenCalled();
+          expect(mockBlurHandler).toHaveBeenCalled();
+        } finally {
+          jest.useRealTimers();
+        }
       },
     );
   });

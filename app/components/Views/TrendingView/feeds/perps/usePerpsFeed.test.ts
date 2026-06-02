@@ -10,7 +10,11 @@
 
 import { renderHook } from '@testing-library/react-hooks';
 import type { PerpsMarketData } from '@metamask/perps-controller';
-import { usePerpsFeed, PERPS_VARIANT_SORT_OPTION } from './usePerpsFeed';
+import {
+  filterAndSortByPriceChangeDirection,
+  usePerpsFeed,
+  PERPS_VARIANT_SORT_OPTION,
+} from './usePerpsFeed';
 
 // ---------------------------------------------------------------------------
 // Core dependency mocks
@@ -138,6 +142,36 @@ describe('usePerpsFeed', () => {
       const { result } = renderFeed({ variant: 'macro' });
       const symbols = result.current.data.map((d) => d.market.symbol);
       expect(symbols).toEqual(['HIGH_VOL', 'MID_VOL', 'LOW_VOL']);
+    });
+  });
+
+  describe('price-change mover filtering', () => {
+    it('filters gainers to positive price changes sorted descending', () => {
+      const markets = [
+        makeMarket('LOSER', '-3', 100),
+        makeMarket('HIGH_GAINER', '5', 50),
+        makeMarket('LOW_GAINER', '1', 75),
+      ];
+
+      expect(
+        filterAndSortByPriceChangeDirection(markets, 'gainers').map(
+          (market) => market.symbol,
+        ),
+      ).toEqual(['HIGH_GAINER', 'LOW_GAINER']);
+    });
+
+    it('filters losers to negative price changes sorted ascending', () => {
+      const markets = [
+        makeMarket('GAINER', '3', 100),
+        makeMarket('SMALL_LOSER', '-1', 50),
+        makeMarket('BIG_LOSER', '-7', 75),
+      ];
+
+      expect(
+        filterAndSortByPriceChangeDirection(markets, 'losers').map(
+          (market) => market.symbol,
+        ),
+      ).toEqual(['BIG_LOSER', 'SMALL_LOSER']);
     });
   });
 
