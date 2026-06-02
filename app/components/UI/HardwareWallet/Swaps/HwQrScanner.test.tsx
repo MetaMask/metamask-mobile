@@ -68,6 +68,7 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
   })),
   useRoute: () => mockUseRoute(),
+  useIsFocused: jest.fn(() => true),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -115,6 +116,7 @@ jest.mock('uuid', () => ({
 import { HwQrScanner } from './HwQrScanner';
 import { HwQrScannerSelectorsIDs } from './HwQrScanner.testIds';
 import { useHardwareWallet } from '../../../../core/HardwareWallet';
+import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 
 const mockUseHardwareWallet = useHardwareWallet as jest.Mock;
 
@@ -237,6 +239,30 @@ describe('HwQrScanner', () => {
 
       expect(getByTestId('camera-mock')).toBeOnTheScreen();
       expect(getByText('qr_scanner.scanning 42%')).toBeOnTheScreen();
+    });
+
+    it('passes scanner hook result to Camera via useAnimatedQrScanner with isFocused isActive', () => {
+      render(<HwQrScanner />);
+
+      expect(mockUseAnimatedQrScanner).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isActive: true,
+          purpose: QrScanRequestType.SIGN,
+        }),
+      );
+    });
+
+    it('deactivates scanner when screen loses focus', () => {
+      const { useIsFocused } = jest.requireMock('@react-navigation/native');
+      (useIsFocused as jest.Mock).mockReturnValue(false);
+
+      render(<HwQrScanner />);
+
+      expect(mockUseAnimatedQrScanner).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isActive: false,
+        }),
+      );
     });
 
     it('renders scanner error title, message, and actions', () => {

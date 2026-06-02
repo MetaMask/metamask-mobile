@@ -1,6 +1,10 @@
 import React, { useCallback, useMemo } from 'react';
 import { Image, Linking, StyleSheet, View } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import {
+  useIsFocused,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import { Camera } from 'react-native-vision-camera';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -84,6 +88,7 @@ export function HwQrScanner() {
   const tw = useTailwind();
   const navigation = useNavigation();
   const route = useRoute();
+  const isFocused = useIsFocused();
   const { qr } = useHardwareWallet();
   const pendingScanRequest = qr.pendingScanRequest;
 
@@ -125,7 +130,7 @@ export function HwQrScanner() {
     reset,
     onError,
   } = useAnimatedQrScanner({
-    isActive: true,
+    isActive: isFocused,
     purpose: QrScanRequestType.SIGN,
     onScanSuccess,
   });
@@ -231,7 +236,7 @@ export function HwQrScanner() {
         <Camera
           style={StyleSheet.absoluteFillObject}
           device={cameraDevice}
-          isActive
+          isActive={isFocused && hasPermission}
           codeScanner={codeScanner}
           torch="off"
           onError={onError}

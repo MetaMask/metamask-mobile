@@ -52,8 +52,7 @@ export function useHwQrState({
   const { walletType, qr } = useHardwareWallet();
 
   const isQrHardwareWallet = walletType === HardwareWalletType.Qr;
-  const pendingScanRequest = qr.pendingScanRequest;
-  const isSigningQRObject = qr.isSigningQRObject;
+  const { pendingScanRequest, cancelQRScanRequestIfPresent } = qr;
 
   const [isReadingQrSignature, setIsReadingQrSignature] = useState(false);
 
@@ -93,9 +92,14 @@ export function useHwQrState({
       isQrHardwareWallet
     ) {
       hasCancelledForTerminalRef.current = true;
-      qr.cancelQRScanRequestIfPresent();
+      cancelQRScanRequestIfPresent();
     }
-  }, [currentStatus, isEnabled, isQrHardwareWallet, qr]);
+  }, [
+    currentStatus,
+    isEnabled,
+    isQrHardwareWallet,
+    cancelQRScanRequestIfPresent,
+  ]);
 
   const showInlineQrSigning = useMemo(
     () =>
@@ -107,13 +111,13 @@ export function useHwQrState({
   );
 
   const handleQrSignatureCancel = useCallback(() => {
-    qr.cancelQRScanRequestIfPresent();
+    cancelQRScanRequestIfPresent();
     dispatch(
       updateHardwareWalletsSwaps({
         type: HardwareWalletsSwapsEventType.Rejected,
       }),
     );
-  }, [qr, dispatch]);
+  }, [cancelQRScanRequestIfPresent, dispatch]);
 
   return {
     isReadingQrSignature,
