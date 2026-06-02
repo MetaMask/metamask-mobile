@@ -45,15 +45,6 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsNavigationParamList } from '../../types/navigation';
 
-// Temporary local extension mirroring PERPS_EVENT_VALUE.BUTTON_CLICKED shape.
-// Remove once @metamask/perps-controller exports PRE_IPO, INDICES, ETFS and
-// replace usages with PERPS_EVENT_VALUE.BUTTON_CLICKED.<KEY>.
-const LOCAL_BUTTON_CLICKED = {
-  PRE_IPO: 'pre_ipo',
-  INDICES: 'indices',
-  ETFS: 'etfs',
-} as const;
-
 const PerpsMarketListView = ({
   onMarketSelect,
   protocolId: _protocolId,
@@ -129,8 +120,6 @@ const PerpsMarketListView = ({
   );
 
   // Compute available categories based on market counts (hide empty categories).
-  // pre-ipo, indices, and etfs are intentionally excluded until their dedicated
-  // UI treatment lands in a follow-up PR.
   const availableCategories = useMemo(() => {
     const categories: Exclude<MarketTypeFilter, 'all'>[] = [];
     if (marketCounts.crypto > 0) categories.push('crypto');
@@ -150,9 +139,6 @@ const PerpsMarketListView = ({
       const categoryMap: Record<string, string | null> = {
         crypto: PERPS_EVENT_VALUE.BUTTON_CLICKED.CRYPTO,
         stocks: PERPS_EVENT_VALUE.BUTTON_CLICKED.STOCKS,
-        'pre-ipo': LOCAL_BUTTON_CLICKED.PRE_IPO,
-        indices: LOCAL_BUTTON_CLICKED.INDICES,
-        etfs: LOCAL_BUTTON_CLICKED.ETFS,
         commodities: PERPS_EVENT_VALUE.BUTTON_CLICKED.COMMODITIES,
         forex: PERPS_EVENT_VALUE.BUTTON_CLICKED.FOREX,
         new: PERPS_EVENT_VALUE.BUTTON_CLICKED.NEW,

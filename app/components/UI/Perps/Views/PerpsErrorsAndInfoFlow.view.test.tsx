@@ -262,9 +262,6 @@ describe('Errors, Recovery & Information Flow', () => {
     const badgeTypes: BadgeType[] = [
       'experimental',
       'stock',
-      'pre-ipo',
-      'index',
-      'etf',
       'commodity',
       'crypto',
       'forex',

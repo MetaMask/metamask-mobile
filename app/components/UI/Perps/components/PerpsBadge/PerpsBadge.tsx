@@ -14,9 +14,6 @@ import type { PerpsBadgeProps } from './PerpsBadge.types';
  * Displays different badge types:
  * - experimental: HIP-3 markets (blue)
  * - stock: Stock markets (info blue)
- * - pre-ipo: Pre-IPO markets (info blue)
- * - index: Index markets (info blue)
- * - etf: ETF markets (info blue)
  * - commodity: Commodity markets (green)
  * - crypto: Cryptocurrency markets (primary blue)
  * - forex: Foreign exchange markets (red)

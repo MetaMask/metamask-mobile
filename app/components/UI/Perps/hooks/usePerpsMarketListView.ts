@@ -99,9 +99,6 @@ interface UsePerpsMarketListViewReturn {
   marketCounts: {
     crypto: number;
     stocks: number;
-    preIpo: number;
-    indices: number;
-    etfs: number;
     commodity: number;
     forex: number;
     new: number;
@@ -202,22 +199,6 @@ export const usePerpsMarketListView = ({
       return searchedMarkets.filter((m) => isEquityAsset(m.marketType));
     }
 
-    if (marketTypeFilter === 'pre-ipo') {
-      return searchedMarkets.filter(
-        (m) => m.marketType === MarketCategory.PreIpo,
-      );
-    }
-
-    if (marketTypeFilter === 'indices') {
-      return searchedMarkets.filter(
-        (m) => m.marketType === MarketCategory.Index,
-      );
-    }
-
-    if (marketTypeFilter === 'etfs') {
-      return searchedMarkets.filter((m) => m.marketType === MarketCategory.Etf);
-    }
-
     if (marketTypeFilter === 'commodities') {
       return searchedMarkets.filter(
         (m) => m.marketType === MarketCategory.Commodity,
@@ -294,9 +275,6 @@ export const usePerpsMarketListView = ({
     const counts = {
       crypto: 0,
       stocks: 0,
-      preIpo: 0,
-      indices: 0,
-      etfs: 0,
       commodity: 0,
       forex: 0,
       new: 0,
@@ -307,14 +285,8 @@ export const usePerpsMarketListView = ({
       }
       if (!market.isHip3) {
         counts.crypto++;
-      } else if (market.marketType === MarketCategory.Stock) {
+      } else if (isEquityAsset(market.marketType)) {
         counts.stocks++;
-      } else if (market.marketType === MarketCategory.PreIpo) {
-        counts.preIpo++;
-      } else if (market.marketType === MarketCategory.Index) {
-        counts.indices++;
-      } else if (market.marketType === MarketCategory.Etf) {
-        counts.etfs++;
       } else if (market.marketType === MarketCategory.Commodity) {
         counts.commodity++;
       } else if (market.marketType === MarketCategory.Forex) {
