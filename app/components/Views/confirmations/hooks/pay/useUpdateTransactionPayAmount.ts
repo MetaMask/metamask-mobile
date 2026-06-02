@@ -5,9 +5,7 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
-import { useSelector } from 'react-redux';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useUpdateTokenAmount } from '../transactions/useUpdateTokenAmount';
 import {
@@ -22,8 +20,6 @@ import { UpdateTransactionPayAmountCall } from '../../types/transactions';
 import { hasTransactionType } from '../../utils/transaction';
 import Logger from '../../../../../util/Logger';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
-import { RootState } from '../../../../../reducers';
-import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 
 type MoneyAccountAmountUpdater = (
   transactionMeta: TransactionMeta,
@@ -73,14 +69,6 @@ export function useUpdateTransactionPayAmount() {
     [transactionMeta],
   );
 
-  const transactionId = transactionMeta?.id ?? '';
-  const paymentOverride = useSelector((state: RootState) =>
-    selectPaymentOverrideByTransactionId(state, transactionId),
-  );
-  const isPerpsWithdrawToMoneyAccount =
-    hasTransactionType(transactionMeta, [TransactionType.perpsWithdraw]) &&
-    paymentOverride === PaymentOverride.MoneyAccount;
-
   const updateTransactionPayAmount = useCallback(
     async (amountHuman: string) => {
       if (!transactionMeta) {
@@ -90,8 +78,7 @@ export function useUpdateTransactionPayAmount() {
       if (
         hasTransactionType(transactionMeta, [
           TransactionType.moneyAccountDeposit,
-        ]) ||
-        isPerpsWithdrawToMoneyAccount
+        ])
       ) {
         syncMoneyAccountDepositRequiredAssets(
           transactionMeta,
@@ -123,7 +110,6 @@ export function useUpdateTransactionPayAmount() {
     },
     [
       transactionMeta,
-      isPerpsWithdrawToMoneyAccount,
       applyMoneyAccountAmountUpdates,
       updateTokenAmount,
       requiredTokens,

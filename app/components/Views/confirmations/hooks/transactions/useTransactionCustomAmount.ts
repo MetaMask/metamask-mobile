@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
 import { BigNumber } from 'bignumber.js';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
@@ -85,12 +85,6 @@ export function useTransactionCustomAmount({
   const balanceUsd = useTokenBalance(tokenFiatRate);
 
   const { updateTransactionPayAmount } = useUpdateTransactionPayAmount();
-
-  const paymentOverride = useSelector((state: RootState) =>
-    selectPaymentOverrideByTransactionId(state, transactionId),
-  );
-  const isPerpsWithdrawToMoneyAccount =
-    isPerpsWithdraw && paymentOverride === PaymentOverride.MoneyAccount;
 
   const amountFiat = useMemo(() => {
     const targetAmountUsd = totals?.targetAmount.usd;
@@ -219,17 +213,6 @@ export function useTransactionCustomAmount({
     await updateTransactionPayAmount(amountHuman);
     setIsTokenAmountUpdated(true);
   }, [amountHuman, updateTransactionPayAmount]);
-
-  const prevIsPerpsWithdrawToMoneyAccountRef = useRef(false);
-  useEffect(() => {
-    const prev = prevIsPerpsWithdrawToMoneyAccountRef.current;
-    prevIsPerpsWithdrawToMoneyAccountRef.current =
-      isPerpsWithdrawToMoneyAccount;
-
-    if (isPerpsWithdrawToMoneyAccount && !prev && amountHuman !== '0') {
-      updateTransactionPayAmount(amountHuman);
-    }
-  }, [isPerpsWithdrawToMoneyAccount, amountHuman, updateTransactionPayAmount]);
 
   useEffect(() => {
     if (isTokenAmountUpdated && (hasSourceAmount || isPostQuote)) {
