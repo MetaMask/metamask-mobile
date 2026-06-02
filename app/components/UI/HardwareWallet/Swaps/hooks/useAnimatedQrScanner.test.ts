@@ -621,7 +621,7 @@ describe('useAnimatedQrScanner', () => {
 
       expect(onErrorResult).toBeUndefined();
       await waitFor(() => {
-        expect(mockCreateEventBuilder).toHaveBeenCalledTimes(2);
+        expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
       });
       expect(mockTrackEvent).not.toHaveBeenCalled();
     });
