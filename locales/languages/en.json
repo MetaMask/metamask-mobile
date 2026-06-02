@@ -6924,6 +6924,7 @@
       "deposit_funds": "Deposit funds",
       "deposit_funds_description": "From debit card or bank",
       "move_musd": "Add your {{amount}} mUSD",
+      "add_musd": "Add mUSD",
       "move_musd_description": "From your balance",
       "receive_external": "Receive from external wallet",
       "coming_soon": "Coming soon"
