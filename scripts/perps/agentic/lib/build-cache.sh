@@ -224,6 +224,33 @@ bc_prune() {
   done <<< "$entries"
 }
 
+# Return true when a mkdir lock is clearly stale. New lock dirs record the
+# owning shell PID; if that process is gone, a crashed/timeout-killed preflight
+# must not block every retry until BUILD_CACHE_LOCK_TIMEOUT elapses.
+bc__mkdir_lock_stale() {
+  local lockdir="$1"
+  local stale_after="${BUILD_CACHE_STALE_LOCK_SECONDS:-1800}"
+  local owner_file="$lockdir/owner.pid"
+  if [ -f "$owner_file" ]; then
+    local owner_pid
+    owner_pid=$(cat "$owner_file" 2>/dev/null || true)
+    case "$owner_pid" in
+      ''|*[!0-9]*) ;;
+      *)
+        if kill -0 "$owner_pid" 2>/dev/null; then
+          return 1
+        fi
+        return 0
+        ;;
+    esac
+  fi
+
+  local now mtime
+  now=$(date +%s)
+  mtime=$(stat -f %m "$lockdir" 2>/dev/null || stat -c %Y "$lockdir" 2>/dev/null || echo "$now")
+  [ $((now - mtime)) -gt "$stale_after" ]
+}
+
 # Persistent-fd lock helpers. Use these when the locked region is too large to
 # wrap in a single function call. Acquire returns 0 on success, 1 on timeout.
 # Release tears down whichever lock mechanism was used.
@@ -257,6 +284,17 @@ bc_lock_acquire() {
   local lockdir="${lock}.d"
   local waited=0
   while ! mkdir "$lockdir" 2>/dev/null; do
+    if bc__mkdir_lock_stale "$lockdir"; then
+      echo "build-cache: removing stale lock $lockdir" >&2
+      rm -rf "$lockdir"
+      sleep 1
+      waited=$((waited + 1))
+      if [ "$waited" -ge "$timeout" ]; then
+        echo "build-cache: timed out waiting for $lockdir" >&2
+        return 1
+      fi
+      continue
+    fi
     if [ "$waited" -ge "$timeout" ]; then
       echo "build-cache: timed out waiting for $lockdir" >&2
       return 1
@@ -264,6 +302,7 @@ bc_lock_acquire() {
     sleep 1
     waited=$((waited + 1))
   done
+  printf '%s\n' "$$" > "$lockdir/owner.pid" 2>/dev/null || true
   BUILD_CACHE_LOCK_KIND="mkdir"
   BUILD_CACHE_LOCK_PATH="$lockdir"
   return 0
@@ -275,7 +314,7 @@ bc_lock_release() {
       exec 9>&- 2>/dev/null || true
       ;;
     mkdir)
-      [ -n "${BUILD_CACHE_LOCK_PATH:-}" ] && rmdir "$BUILD_CACHE_LOCK_PATH" 2>/dev/null || true
+      [ -n "${BUILD_CACHE_LOCK_PATH:-}" ] && rm -rf "$BUILD_CACHE_LOCK_PATH" 2>/dev/null || true
       ;;
   esac
   unset BUILD_CACHE_LOCK_KIND BUILD_CACHE_LOCK_PATH
