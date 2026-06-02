@@ -49,7 +49,7 @@ describe('filterLowQualityTokens', () => {
     expect(filterLowQualityTokens(tokens)).toHaveLength(1);
   });
 
-  it('removes Warning tokens', () => {
+  it('keeps Warning tokens', () => {
     const tokens = [
       buildToken({
         symbol: 'WRN',
@@ -59,10 +59,10 @@ describe('filterLowQualityTokens', () => {
       }),
     ];
 
-    expect(filterLowQualityTokens(tokens)).toHaveLength(0);
+    expect(filterLowQualityTokens(tokens)).toHaveLength(1);
   });
 
-  it('removes Spam tokens', () => {
+  it('keeps Spam tokens', () => {
     const tokens = [
       buildToken({
         symbol: 'SPM',
@@ -70,10 +70,10 @@ describe('filterLowQualityTokens', () => {
       }),
     ];
 
-    expect(filterLowQualityTokens(tokens)).toHaveLength(0);
+    expect(filterLowQualityTokens(tokens)).toHaveLength(1);
   });
 
-  it('removes Malicious tokens', () => {
+  it('keeps Malicious tokens', () => {
     const tokens = [
       buildToken({
         symbol: 'MAL',
@@ -83,7 +83,7 @@ describe('filterLowQualityTokens', () => {
       }),
     ];
 
-    expect(filterLowQualityTokens(tokens)).toHaveLength(0);
+    expect(filterLowQualityTokens(tokens)).toHaveLength(1);
   });
 
   it('removes tokens with empty symbol', () => {
@@ -110,7 +110,7 @@ describe('filterLowQualityTokens', () => {
     expect(filterLowQualityTokens(tokens)).toHaveLength(0);
   });
 
-  it('applies both filters together', () => {
+  it('only filters out tokens missing symbol/name, keeps risky tokens', () => {
     const tokens = [
       buildToken({ symbol: 'GOOD', name: 'Good Token' }),
       buildToken({ symbol: '', name: 'No Ticker' }),
@@ -130,20 +130,13 @@ describe('filterLowQualityTokens', () => {
 
     expect(filterLowQualityTokens(tokens).map((t) => t.symbol)).toEqual([
       'GOOD',
+      'RISKY',
       'SAFE',
     ]);
   });
 
-  it('returns empty array when all tokens are filtered out', () => {
-    const tokens = [
-      buildToken({ symbol: '' }),
-      buildToken({
-        symbol: 'MAL',
-        securityData: {
-          resultType: 'Malicious',
-        } as TrendingAsset['securityData'],
-      }),
-    ];
+  it('returns empty array when all tokens lack symbol/name', () => {
+    const tokens = [buildToken({ symbol: '' }), buildToken({ name: '' })];
 
     expect(filterLowQualityTokens(tokens)).toHaveLength(0);
   });

@@ -1,4 +1,4 @@
-import { test } from '../../framework/fixture';
+import { test } from '../../framework/fixtures/playwright';
 import TimerHelper from '../../framework/TimerHelper';
 import { getPasswordForScenario } from '../../framework/utils/TestConstants.js';
 import { Performance, PerformanceOnboarding } from '../../tags.performance.js';
@@ -19,6 +19,7 @@ import WalletView from '../../page-objects/wallet/WalletView';
 import {
   dismissOnboardingInterestQuestionnaire,
   dismisspredictionsModalPlaywright,
+  dismissPushNotificationExistingUserSheet,
   resolvePredictGtmOnboardingModalEnabled,
 } from '../../flows/wallet.flow';
 import { fetchProductionFeatureFlags } from '../feature-flag-helper';
@@ -124,6 +125,7 @@ test.describe(PerformanceOnboarding, () => {
 
       await MetaMetricsOptInView.tapIAgreeButton();
       await dismissOnboardingInterestQuestionnaire();
+
       await timer5.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           await asPlaywrightElement(OnboardingSuccessView.doneButton),
@@ -131,7 +133,7 @@ test.describe(PerformanceOnboarding, () => {
         );
       });
       await OnboardingSuccessView.tapDone();
-
+      await dismissPushNotificationExistingUserSheet();
       const predictGtmOnboardingModalEnabled =
         await resolvePredictGtmOnboardingModalEnabled(productionFeatureFlags);
 
