@@ -182,14 +182,6 @@ export function useHwBatchSignTracker({
 
     const allTxIds = [...new Set([...txIds, ...allNonTerminalTxIds])];
 
-    Logger.log(
-      '[HW-BatchSign] cancelCurrentBatch — aborting tracked txs:',
-      txIds,
-      'non-terminal txs:',
-      allNonTerminalTxIds,
-      'all:',
-      allTxIds,
-    );
     trackedTxIdsRef.current = new Set();
     signedBatchIdsRef.current = new Set();
     acceptedApprovalIdsRef.current = new Set();
@@ -219,10 +211,6 @@ export function useHwBatchSignTracker({
         request.type === 'transaction_batch' ||
         request.type === 'transaction'
       ) {
-        Logger.log(
-          '[HW-BatchSign] cancelCurrentBatch — rejecting pending approval',
-          { requestId, type: request.type },
-        );
         Engine.rejectPendingApproval(requestId, new Error('Batch cancelled'), {
           ignoreMissing: true,
           logErrors: false,
@@ -265,23 +253,14 @@ export function useHwBatchSignTracker({
           tx.status === TransactionStatus.submitted ||
           tx.status === TransactionStatus.approved)
       ) {
-        Logger.log(
-          '[HW-BatchSign] cancelCurrentBatch — explicitly failing tx:',
-          txId,
-          tx.status,
-        );
         try {
           Engine.controllerMessenger.call(
             'TransactionController:updateTransaction',
             { ...tx, status: TransactionStatus.dropped },
             'HW batch cancelled — dropping signed tx',
           );
-        } catch (e) {
-          Logger.log(
-            '[HW-BatchSign] cancelCurrentBatch — failed to fail tx:',
-            txId,
-            e,
-          );
+        } catch {
+          // intentionally ignored
         }
       }
     }
@@ -306,22 +285,17 @@ export function useHwBatchSignTracker({
         )
       : [];
 
-    Logger.log(
-      '[HW-BatchSign] cancelCurrentBatch — wiping failed/rejected txs:',
-      allFailedBridgeTxs.map((tx) => ({ id: tx.id, status: tx.status })),
-    );
-
     for (const tx of allFailedBridgeTxs) {
       try {
         Engine.controllerMessenger.call(
-          'TransactionController:wipeTransaction',
+          'TransactionController:clearTransaction',
           tx.id,
         );
-      } catch (e) {
+      } catch (error) {
         Logger.log(
           '[HW-BatchSign] cancelCurrentBatch — failed to wipe tx:',
           tx.id,
-          e,
+          error,
         );
       }
     }
@@ -420,17 +394,10 @@ export function useHwBatchSignTracker({
             if (hasHandledRejection) return;
             hasHandledRejection = true;
             if (batchGenerationRef.current !== myGeneration) {
-              Logger.log('[HW-BatchSign] Stale batch rejection — ignoring', {
-                requestId,
-              });
               return;
             }
 
             if (!deviceConfirmedReady) {
-              Logger.log(
-                '[HW-BatchSign] Device not ready — re-queueing for automatic retry',
-                { requestId },
-              );
               approvalQueueRef.current.unshift(requestId);
               return;
             }
@@ -439,15 +406,8 @@ export function useHwBatchSignTracker({
               currentBatchIdRef.current != null &&
               signedBatchIdsRef.current.has(currentBatchIdRef.current);
             if (isLateSignedBatchRejection) {
-              Logger.log(
-                '[HW-BatchSign] Skipping rejection — late signed batch rejection',
-                { requestId },
-              );
               return;
             }
-            Logger.log('[HW-BatchSign] Rejecting approval and cleaning up', {
-              requestId,
-            });
             acceptedApprovalIdsRef.current.delete(requestId);
             Engine.rejectPendingApproval(
               requestId,
@@ -482,18 +442,10 @@ export function useHwBatchSignTracker({
               showConfirmation: !isQr,
               execute: async () => {
                 deviceConfirmedReady = true;
-                Logger.log(
-                  '[HW-BatchSign] Executing ApprovalController.acceptRequest',
-                  { requestId },
-                );
                 await Engine.context.ApprovalController.acceptRequest(
                   requestId,
                   undefined,
                   { waitForResult: true },
-                );
-                Logger.log(
-                  '[HW-BatchSign] ApprovalController.acceptRequest completed',
-                  { requestId },
                 );
               },
               onError: (error) => {
@@ -555,10 +507,6 @@ export function useHwBatchSignTracker({
     const enqueuePendingApprovals = () => {
       const { ApprovalController } = Engine.context;
       const pendingApprovals = ApprovalController.state.pendingApprovals ?? {};
-      Logger.log(
-        '[HW-BatchSign] enqueuePendingApprovals — count:',
-        Object.keys(pendingApprovals).length,
-      );
 
       for (const [requestId, request] of Object.entries(pendingApprovals)) {
         if (acceptedApprovalIdsRef.current.has(requestId)) {
@@ -571,18 +519,10 @@ export function useHwBatchSignTracker({
               (tx: TransactionMeta) => tx.id === requestId,
             );
           if (txMeta && matchesTx(txMeta, targetFrom)) {
-            Logger.log(
-              '[HW-BatchSign] Enqueuing pending transaction approval',
-              { requestId, txType: txMeta.type },
-            );
             acceptedApprovalIdsRef.current.add(requestId);
             approvalQueueRef.current.push(requestId);
           }
         } else if (request.type === 'transaction_batch') {
-          Logger.log(
-            '[HW-BatchSign] Enqueuing pending transaction_batch approval',
-            { requestId },
-          );
           acceptedApprovalIdsRef.current.add(requestId);
           approvalQueueRef.current.push(requestId);
         }
@@ -602,19 +542,8 @@ export function useHwBatchSignTracker({
 
       const { status, type } = transactionMeta;
       const stepKind = getStepKind(type as TransactionType);
-      Logger.log('[HW-BatchSign] transactionStatusUpdated', {
-        txId: transactionMeta.id,
-        status,
-        type,
-        stepKind,
-        batchId: transactionMeta.batchId,
-      });
 
       if (status === TransactionStatus.approved) {
-        Logger.log(
-          '[HW-BatchSign] Transaction approved — dispatching SIGNING',
-          { txId: transactionMeta.id, stepKind },
-        );
         if (transactionMeta.batchId) {
           seenBatchIdsRef.current.add(transactionMeta.batchId);
           if (
@@ -622,10 +551,6 @@ export function useHwBatchSignTracker({
             !staleBatchIdsRef.current.has(transactionMeta.batchId)
           ) {
             currentBatchIdRef.current = transactionMeta.batchId;
-            Logger.log(
-              '[HW-BatchSign] Set currentBatchId',
-              transactionMeta.batchId,
-            );
           }
         }
         trackedTxIdsRef.current.add(transactionMeta.id);
@@ -638,16 +563,8 @@ export function useHwBatchSignTracker({
         );
       } else if (status === TransactionStatus.signed) {
         if (!isFromCurrentBatch(transactionMeta)) {
-          Logger.log(
-            '[HW-BatchSign] Signed tx not from current batch — ignoring',
-            { txId: transactionMeta.id, batchId: transactionMeta.batchId },
-          );
           return;
         }
-        Logger.log('[HW-BatchSign] Transaction signed — dispatching SIGNED', {
-          txId: transactionMeta.id,
-          stepKind,
-        });
         if (transactionMeta.batchId) {
           signedBatchIdsRef.current.add(transactionMeta.batchId);
         }
@@ -660,9 +577,6 @@ export function useHwBatchSignTracker({
         handledTxIds.add(transactionMeta.id);
         trackedTxIdsRef.current.delete(transactionMeta.id);
         if (trackedTxIdsRef.current.size === 0) {
-          Logger.log(
-            '[HW-BatchSign] All tracked txs resolved — clearing confirmationTxId',
-          );
           setConfirmationTxId(undefined);
         }
       }
@@ -683,18 +597,10 @@ export function useHwBatchSignTracker({
       }
       if (pendingAbortTxIdsRef.current.has(transactionMeta.id)) {
         pendingAbortTxIdsRef.current.delete(transactionMeta.id);
-        Logger.log(
-          '[HW-BatchSign] transactionRejected for aborted tx — ignoring',
-          { txId: transactionMeta.id },
-        );
         return;
       }
 
       const stepKind = getStepKind(transactionMeta.type as TransactionType);
-      Logger.log('[HW-BatchSign] transactionRejected — dispatching REJECTED', {
-        txId: transactionMeta.id,
-        stepKind,
-      });
       trackTransactionCancelledEvent();
       dispatchRef.current(
         updateHardwareWalletsSwaps({
@@ -724,17 +630,9 @@ export function useHwBatchSignTracker({
       }
       if (pendingAbortTxIdsRef.current.has(transactionMeta.id)) {
         pendingAbortTxIdsRef.current.delete(transactionMeta.id);
-        Logger.log(
-          '[HW-BatchSign] transactionFailed for aborted tx — ignoring',
-          { txId: transactionMeta.id },
-        );
         return;
       }
 
-      Logger.log(
-        '[HW-BatchSign] transactionFailed — dispatching TRANSACTION_FAILED',
-        { txId: transactionMeta.id },
-      );
       dispatchRef.current(
         updateHardwareWalletsSwaps({
           type: HardwareWalletsSwapsEventType.TransactionFailed,

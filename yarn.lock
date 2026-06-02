@@ -40106,16 +40106,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-ble-plx@patch:react-native-ble-plx@npm%3A3.4.0#~/.yarn/patches/react-native-ble-plx-npm-3.4.0-401e8b3343.patch":
-  version: 3.4.0
-  resolution: "react-native-ble-plx@patch:react-native-ble-plx@npm%3A3.4.0#~/.yarn/patches/react-native-ble-plx-npm-3.4.0-401e8b3343.patch::version=3.4.0&hash=9771b9"
-  peerDependencies:
-    react: "*"
-    react-native: "*"
-  checksum: 10/36cbf29185b6b397b1f07192f2c818264e0249c94e7f37dc2b46565aadc4b43b81c2bbc5c60fa3cece014846f297b2cb9baae04002de35f1ed0a1075b4d2cb07
-  languageName: node
-  linkType: hard
-
 "react-native-blob-util@npm:^0.19.9":
   version: 0.19.9
   resolution: "react-native-blob-util@npm:0.19.9"
