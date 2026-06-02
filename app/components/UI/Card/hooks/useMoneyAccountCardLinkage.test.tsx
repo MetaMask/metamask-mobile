@@ -56,11 +56,6 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-const mockUseIsMoneyAccount7702Ready = jest.fn<boolean | undefined, []>();
-jest.mock('./useIsMoneyAccount7702Ready', () => ({
-  useIsMoneyAccount7702Ready: () => mockUseIsMoneyAccount7702Ready(),
-}));
-
 jest.mock('./useCardDelegation', () => {
   class MockUserCancelledError extends Error {
     constructor(message = 'User cancelled') {
@@ -207,8 +202,6 @@ describe('useMoneyAccountCardLinkage', () => {
     // Default: no in-flight linkage. Singleflight-specific tests override
     // this within their own `it` blocks.
     mockIsLinkageInProgress.mockReturnValue(false);
-    // Default: 7702 upgrade resolved. Link visibility no longer depends on it.
-    mockUseIsMoneyAccount7702Ready.mockReturnValue(true);
   });
 
   describe('derived state', () => {
@@ -272,18 +265,6 @@ describe('useMoneyAccountCardLinkage', () => {
       applySelectorMocks(buildSelectors({ isMonadSponsorshipEnabled: false }));
       const { result } = renderLinkageHook();
       expect(result.current.canLink).toBe(false);
-    });
-
-    it('reports canLink=true when the money account is not 7702-upgraded on Monad', () => {
-      mockUseIsMoneyAccount7702Ready.mockReturnValue(false);
-      const { result } = renderLinkageHook();
-      expect(result.current.canLink).toBe(true);
-    });
-
-    it('reports canLink=true while the 7702 readiness check is still pending', () => {
-      mockUseIsMoneyAccount7702Ready.mockReturnValue(undefined);
-      const { result } = renderLinkageHook();
-      expect(result.current.canLink).toBe(true);
     });
   });
 
