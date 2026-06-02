@@ -107,14 +107,14 @@ export async function sendQrHardwareErrorAnalytics(
     );
   };
 
+  let deviceName = 'Unknown';
   try {
-    const deviceName = await withQrKeyring(async ({ keyring }) =>
-      keyring.getName(),
-    );
-    trackHardwareWalletError(deviceName);
+    deviceName = await withQrKeyring(async ({ keyring }) => keyring.getName());
   } catch {
-    trackHardwareWalletError('Unknown');
+    // Keyring unavailable — keep fallback device name.
   }
+
+  trackHardwareWalletError(deviceName);
 }
 
 /**

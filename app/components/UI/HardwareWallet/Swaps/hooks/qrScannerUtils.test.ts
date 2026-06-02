@@ -231,6 +231,27 @@ describe('sendQrHardwareErrorAnalytics', () => {
       device_type: HardwareDeviceTypes.QR,
     });
   });
+
+  it('does not retry analytics when trackEvent fails after keyring lookup succeeds', async () => {
+    mockTrackEvent.mockImplementationOnce(() => {
+      throw new Error('Analytics failed');
+    });
+
+    await expect(
+      sendQrHardwareErrorAnalytics(
+        { error: 'Camera failed', is_ur_format: false },
+        analyticsDependencies,
+      ),
+    ).rejects.toThrow('Analytics failed');
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledTimes(1);
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      error: 'Camera failed',
+      is_ur_format: false,
+      device_model: 'MockDevice',
+      device_type: HardwareDeviceTypes.QR,
+    });
+  });
 });
 
 describe('useCameraPermissionRefresh', () => {
