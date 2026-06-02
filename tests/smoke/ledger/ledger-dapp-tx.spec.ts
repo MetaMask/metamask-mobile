@@ -28,6 +28,7 @@ describe(SmokeLedger, () => {
       async ({ speculos }: SpeculosTestSuiteParams) => {
         await importLedgerAccount();
 
+        await TestHelpers.delay(5000);
         await navigateToBrowserView();
         await Browser.navigateToTestDApp();
         await waitForTestDappToLoad();
