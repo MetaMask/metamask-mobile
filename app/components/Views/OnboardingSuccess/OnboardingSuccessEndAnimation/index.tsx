@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Rive, { Fit, Alignment, RiveRef } from 'rive-react-native';
 import { useTheme } from '../../../../util/theme';
 import { getScreenDimensions } from '../../../../util/onboarding';
@@ -16,6 +16,10 @@ interface OnboardingSuccessEndAnimationProps {
   onAnimationComplete: () => void;
 }
 
+/** Debug: increase/decrease to test crash timing (start at 5000, then reduce). */
+const ANIMATION_START_DELAY_MS = 5000;
+const ONLY_END_TRANSITION_DELAY_MS = 100;
+
 const OnboardingSuccessEndAnimation: React.FC<
   OnboardingSuccessEndAnimationProps
 > = ({ onAnimationComplete: _onAnimationComplete }) => {
@@ -23,8 +27,19 @@ const OnboardingSuccessEndAnimation: React.FC<
   const { themeAppearance } = useTheme();
   const isDarkMode = themeAppearance === 'dark';
   const tw = useTailwind();
+  const [shouldStartAnimation, setShouldStartAnimation] = useState(isE2E);
 
   const { screenWidth, screenHeight, animationHeight } = getScreenDimensions();
+
+  useEffect(() => {
+    if (isE2E) return;
+
+    const startTimeoutId = setTimeout(() => {
+      setShouldStartAnimation(true);
+    }, ANIMATION_START_DELAY_MS);
+
+    return () => clearTimeout(startTimeoutId);
+  }, []);
 
   useEffect(
     () => () => {
@@ -38,7 +53,8 @@ const OnboardingSuccessEndAnimation: React.FC<
   );
 
   useEffect(() => {
-    if (isE2E) return;
+    if (isE2E || !shouldStartAnimation) return;
+
     const timeoutId = setTimeout(() => {
       if (riveRef.current) {
         try {
@@ -52,10 +68,10 @@ const OnboardingSuccessEndAnimation: React.FC<
           // Rive may not be ready yet; animation still plays via autoplay
         }
       }
-    }, 100);
+    }, ONLY_END_TRANSITION_DELAY_MS);
 
     return () => clearTimeout(timeoutId);
-  }, [isDarkMode]);
+  }, [isDarkMode, shouldStartAnimation]);
 
   return (
     <Box
@@ -69,7 +85,7 @@ const OnboardingSuccessEndAnimation: React.FC<
         justifyContent={BoxJustifyContent.Center}
         twClassName="flex-1"
       >
-        {!isE2E && (
+        {!isE2E && shouldStartAnimation && (
           <Rive
             ref={riveRef}
             source={onboardingLoaderEndAnimation}
