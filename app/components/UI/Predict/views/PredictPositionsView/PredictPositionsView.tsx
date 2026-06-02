@@ -214,6 +214,7 @@ const PredictPositionsView = () => {
 
         <Box twClassName="px-4">
           <PredictPositionsViewHeader
+            entryPoint={entryPoint}
             isPrivacyMode={Boolean(privacyMode)}
             portfolio={portfolio}
           />

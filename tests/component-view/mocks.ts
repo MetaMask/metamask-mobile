@@ -357,6 +357,7 @@ jest.mock('../../app/core/Engine', () => {
         trackMarketDetailsOpened: jest.fn(),
         trackGeoBlockTriggered: jest.fn(),
         trackActivityViewed: jest.fn(),
+        trackPortfolioAction: jest.fn(),
         trackPositionsScreenViewed: jest.fn(),
         trackPositionsTabViewed: jest.fn(),
         refreshEligibility: jest.fn().mockResolvedValue(undefined),
