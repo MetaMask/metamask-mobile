@@ -4,10 +4,10 @@ import { AgenticCliDashboardWebviewService } from '../../components/Views/Agenti
 import { Connection } from '../SDKConnectV2/services/connection';
 import type { AgenticCliConnectionRequest } from './agenticCliConnectionRequest';
 
-const mockBuildTypeMapping = jest.fn(() => 'main_prod');
+const mockGetBuildType = jest.fn(() => 'main_prod');
 
 jest.mock('../OAuthService/OAuthLoginHandlers/constants', () => ({
-  buildTypeMapping: (...args: unknown[]) => mockBuildTypeMapping(...args),
+  getBuildType: (...args: unknown[]) => mockGetBuildType(...args),
 }));
 
 jest.mock('../AppConstants', () => ({
@@ -119,7 +119,7 @@ const mockConnectionRequest = (
 const loadAgenticCliQrLoginService = (
   buildType: string,
 ): typeof import('./AgenticCliQrLoginService').AgenticCliQrLoginService => {
-  mockBuildTypeMapping.mockReturnValue(buildType);
+  mockGetBuildType.mockReturnValue(buildType);
   let service:
     | typeof import('./AgenticCliQrLoginService').AgenticCliQrLoginService
     | undefined;
@@ -134,9 +134,8 @@ const loadAgenticCliQrLoginService = (
 };
 
 describe('AgenticCliQrLoginService', () => {
-  const devGlobal = global as typeof globalThis & { __DEV__?: boolean };
-  const originalDev = devGlobal.__DEV__;
   const originalFetch = global.fetch;
+  const originalMmDevApiEnv = process.env.MM_DEV_API_ENV;
 
   const createMockConnection = (): jest.Mocked<Connection> =>
     ({
@@ -148,12 +147,12 @@ describe('AgenticCliQrLoginService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    process.env.MM_DEV_API_ENV = 'dev';
     mockGetBearerToken.mockResolvedValue('hydra-token');
     mockIsUnlocked.mockReturnValue(true);
     (AgenticCliDashboardWebviewService.open as jest.Mock).mockResolvedValue(
       'cli-token',
     );
-    devGlobal.__DEV__ = false;
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       json: jest.fn().mockResolvedValue({ access_token: 'dashboard-token' }),
@@ -161,8 +160,38 @@ describe('AgenticCliQrLoginService', () => {
   });
 
   afterEach(() => {
-    devGlobal.__DEV__ = originalDev;
     global.fetch = originalFetch;
+    if (originalMmDevApiEnv === undefined) {
+      delete process.env.MM_DEV_API_ENV;
+    } else {
+      process.env.MM_DEV_API_ENV = originalMmDevApiEnv;
+    }
+  });
+
+  it('ignores QR-provided dashboard and auth URLs', async () => {
+    const AgenticCliQrLoginService = loadAgenticCliQrLoginService('main_prod');
+    const conn = createMockConnection();
+
+    await AgenticCliQrLoginService.handleConnection({
+      connReq: mockConnectionRequest({
+        name: 'agentic-cli',
+        dashboardUrl: 'https://evil.example/agentic/login',
+        dashboardAuthUrl: 'http://localhost:3000/api/v2/mm-qr-login/token',
+      }),
+      conn,
+      setStage: jest.fn(),
+      cleanupConnection: jest.fn().mockResolvedValue(undefined),
+    });
+
+    expect(mockGetEnvUrls).toHaveBeenCalledWith('dev');
+    expect(global.fetch).toHaveBeenCalledWith(
+      'https://authentication.dev-api.cx.metamask.io/api/v2/mm-qr-login/token',
+      expect.any(Object),
+    );
+    expect(AgenticCliDashboardWebviewService.open).toHaveBeenCalledWith({
+      dashboardUrl: 'https://dashboard.w3a.io/agentic/login',
+      dashboardToken: 'dashboard-token',
+    });
   });
 
   it('exchanges the Hydra token, opens prod dashboard, sends CLI token, and cleans up', async () => {
@@ -172,11 +201,7 @@ describe('AgenticCliQrLoginService', () => {
     const setStage = jest.fn();
 
     await AgenticCliQrLoginService.handleConnection({
-      connReq: mockConnectionRequest({
-        name: 'agentic-cli',
-        dashboardUrl: 'https://evil.example/agentic/login',
-        dashboardAuthUrl: 'https://evil.example/token',
-      }),
+      connReq: mockConnectionRequest({ name: 'agentic-cli' }),
       conn,
       setStage,
       cleanupConnection,
@@ -255,28 +280,6 @@ describe('AgenticCliQrLoginService', () => {
       dashboardUrl: 'https://dev-dashboard.web3auth.io/agentic/login',
       dashboardToken: 'dashboard-token',
     });
-  });
-
-  it('allows QR-provided local dashboard auth URLs in development builds', async () => {
-    const AgenticCliQrLoginService = loadAgenticCliQrLoginService('main_prod');
-    devGlobal.__DEV__ = true;
-    const conn = createMockConnection();
-
-    await AgenticCliQrLoginService.handleConnection({
-      connReq: mockConnectionRequest({
-        name: 'agentic-cli',
-        dashboardAuthUrl: 'http://localhost:3000/api/v2/mm-qr-login/token',
-      }),
-      conn,
-      setStage: jest.fn(),
-      cleanupConnection: jest.fn().mockResolvedValue(undefined),
-    });
-
-    expect(global.fetch).toHaveBeenCalledWith(
-      'http://localhost:3000/api/v2/mm-qr-login/token',
-      expect.any(Object),
-    );
-    expect(mockGetEnvUrls).not.toHaveBeenCalled();
   });
 
   it('waits for keyring unlock when locked', async () => {

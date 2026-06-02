@@ -41,7 +41,7 @@ const getDashboardWebviewUrl = (): string =>
   DASHBOARD_WEBVIEW_URL_BY_ENV[buildType] ??
   DASHBOARD_WEBVIEW_URL_BY_ENV.main_prod;
 
-const getCliDashboardTokenUrl = (dashboardAuthUrl?: string): string => {
+const getCliDashboardTokenUrl = (): string => {
   const url = new URL(SDK.getEnvUrls(authEnv()).authApiUrl);
   url.pathname = CLI_DASHBOARD_TOKEN_PATH;
   return url.toString();
@@ -57,9 +57,8 @@ const getPrimaryEntropySourceId = (): string | undefined => {
 
 const getCliDashboardAccessToken = async (
   hydraToken: string,
-  dashboardAuthUrl?: string,
 ): Promise<string> => {
-  const tokenUrl = getCliDashboardTokenUrl(dashboardAuthUrl);
+  const tokenUrl = getCliDashboardTokenUrl();
   const response = await fetch(tokenUrl, {
     method: 'POST',
     headers: {
@@ -160,10 +159,14 @@ export const AgenticCliQrLoginService = {
         );
 
       setStage('get-dashboard-token');
-      const dashboardAccessToken = await getCliDashboardAccessToken(
-        hydraToken,
-        connReq.connectionType?.dashboardAuthUrl,
-      );
+      const qrDashboardAuthUrl = connReq.connectionType?.dashboardAuthUrl;
+      if (qrDashboardAuthUrl) {
+        logger.warn('Ignoring QR-provided Agentic CLI dashboard auth URL', {
+          dashboardAuthUrl: redactUrl(qrDashboardAuthUrl),
+          configuredAuthUrl: redactUrl(getCliDashboardTokenUrl()),
+        });
+      }
+      const dashboardAccessToken = await getCliDashboardAccessToken(hydraToken);
 
       setStage('dashboard-webview');
       const authToken = await requestCliAuthToken(
