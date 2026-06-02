@@ -246,40 +246,38 @@ const BuildQuote = () => {
     resetAmountInput();
   }, [resetAmountInput, selectedRegion]);
 
-  const previousSelectedAssetKey = useRef<string | undefined>(
-    selectedAsset
-      ? `${selectedAsset.id ?? ''}:${selectedAsset.network?.chainId ?? ''}:${
-          selectedAsset.address ?? ''
-        }`
-      : undefined,
-  );
+  const selectedAssetKey = useMemo(() => {
+    const id = selectedAsset?.id;
+    const chainId = selectedAsset?.network?.chainId;
+    const address = selectedAsset?.address;
+
+    if (!id && !chainId && !address) {
+      return undefined;
+    }
+
+    return `${id ?? ''}:${chainId ?? ''}:${address ?? ''}`;
+  }, [
+    selectedAsset?.id,
+    selectedAsset?.network?.chainId,
+    selectedAsset?.address,
+  ]);
+
+  const previousSelectedAssetKey = useRef<string | undefined>(selectedAssetKey);
 
   useEffect(() => {
-    const currentSelectedAssetKey = selectedAsset
-      ? `${selectedAsset.id ?? ''}:${selectedAsset.network?.chainId ?? ''}:${
-          selectedAsset.address ?? ''
-        }`
-      : undefined;
-
     if (
       isSell &&
-      currentSelectedAssetKey &&
+      selectedAssetKey &&
       previousSelectedAssetKey.current &&
-      previousSelectedAssetKey.current !== currentSelectedAssetKey
+      previousSelectedAssetKey.current !== selectedAssetKey
     ) {
       resetAmountInput();
     }
 
-    if (currentSelectedAssetKey) {
-      previousSelectedAssetKey.current = currentSelectedAssetKey;
+    if (selectedAssetKey) {
+      previousSelectedAssetKey.current = selectedAssetKey;
     }
-  }, [
-    isSell,
-    resetAmountInput,
-    selectedAsset?.address,
-    selectedAsset?.id,
-    selectedAsset?.network?.chainId,
-  ]);
+  }, [isSell, resetAmountInput, selectedAssetKey]);
 
   const shouldShowUnsupportedModal = useMemo(
     () =>
