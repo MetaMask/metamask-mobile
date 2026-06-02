@@ -116,7 +116,7 @@ describe('MoneyAddMoneySheet', () => {
     );
 
     expect(getByText('Convert crypto')).toBeOnTheScreen();
-    expect(getByText('Deposit funds')).toBeOnTheScreen();
+    expect(getByText('Add funds')).toBeOnTheScreen();
     expect(getByText('Add your $1,203.89 mUSD')).toBeOnTheScreen();
     expect(getByText('Receive from external wallet')).toBeOnTheScreen();
     expect(getByText('Coming soon')).toBeOnTheScreen();
@@ -142,7 +142,7 @@ describe('MoneyAddMoneySheet', () => {
     expect(getByText('From any account')).toBeOnTheScreen();
   });
 
-  it('renders a description under the Deposit funds row', () => {
+  it('renders a description under the Add funds row', () => {
     const { getByTestId, getByText } = renderWithProvider(
       <MoneyAddMoneySheet />,
     );
@@ -252,7 +252,7 @@ describe('MoneyAddMoneySheet', () => {
     expect(getByText('Add your 42.50 mUSD')).toBeOnTheScreen();
   });
 
-  it('initiates a deposit with autoSelectFiatPayment when Deposit funds is pressed', () => {
+  it('initiates a deposit with autoSelectFiatPayment when Add funds is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
 
     fireEvent.press(
@@ -276,7 +276,7 @@ describe('MoneyAddMoneySheet', () => {
     expect(mockInitiateDeposit).toHaveBeenCalledWith();
   });
 
-  it('hides the Deposit funds option when moneyAccountDeposit is not in enabledTransactionTypes', () => {
+  it('hides the Add funds option when moneyAccountDeposit is not in enabledTransactionTypes', () => {
     (useMMPayFiatConfig as jest.Mock).mockReturnValue({
       enabledTransactionTypes: [],
       maxDelayMinutesForPaymentMethods: 10,
@@ -323,7 +323,7 @@ describe('MoneyAddMoneySheet', () => {
     expect(mockInitiateDeposit).toHaveBeenCalledWith();
   });
 
-  it('hides the Deposit funds option when the ramp routing decision is UNSUPPORTED', () => {
+  it('hides the Add funds option when the ramp routing decision is UNSUPPORTED', () => {
     (getRampRoutingDecision as jest.Mock).mockReturnValue(
       UnifiedRampRoutingType.UNSUPPORTED,
     );
@@ -335,7 +335,7 @@ describe('MoneyAddMoneySheet', () => {
     ).toBeNull();
   });
 
-  it('shows the Deposit funds option when the ramp routing decision is DEPOSIT', () => {
+  it('shows the Add funds option when the ramp routing decision is DEPOSIT', () => {
     (getRampRoutingDecision as jest.Mock).mockReturnValue(
       UnifiedRampRoutingType.DEPOSIT,
     );
@@ -347,7 +347,7 @@ describe('MoneyAddMoneySheet', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows the Deposit funds option when the ramp routing decision is AGGREGATOR', () => {
+  it('shows the Add funds option when the ramp routing decision is AGGREGATOR', () => {
     (getRampRoutingDecision as jest.Mock).mockReturnValue(
       UnifiedRampRoutingType.AGGREGATOR,
     );
@@ -359,7 +359,7 @@ describe('MoneyAddMoneySheet', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows the Deposit funds option when the ramp routing decision is null (fail-open)', () => {
+  it('shows the Add funds option when the ramp routing decision is null (fail-open)', () => {
     (getRampRoutingDecision as jest.Mock).mockReturnValue(null);
 
     const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
@@ -369,7 +369,7 @@ describe('MoneyAddMoneySheet', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows the Deposit funds option when the ramp routing decision is ERROR (fail-open)', () => {
+  it('shows the Add funds option when the ramp routing decision is ERROR (fail-open)', () => {
     (getRampRoutingDecision as jest.Mock).mockReturnValue(
       UnifiedRampRoutingType.ERROR,
     );
