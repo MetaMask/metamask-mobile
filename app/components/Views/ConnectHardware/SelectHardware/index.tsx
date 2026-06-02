@@ -4,10 +4,8 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  Button,
-  ButtonSize,
-  ButtonVariant,
   FontWeight,
+  HeaderStandard,
   Icon,
   IconName,
   IconSize,
@@ -17,10 +15,9 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { ReactNode, useEffect } from 'react';
-import { Image, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import TitleStandard from '../../../../component-library/components-temp/TitleStandard';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -28,7 +25,6 @@ import { mockTheme, useAppThemeFromContext } from '../../../../util/theme';
 import { AppThemeKey } from '../../../../util/theme/models';
 import { useAnalytics } from '../../../../components/hooks/useAnalytics/useAnalytics';
 import { HardwareDeviceTypes } from '../../../../constants/keyringTypes';
-import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { getConnectedDevicesCount } from '../../../../core/HardwareWallets/analytics';
 import SelectHardwareTestIds from './SelectHardware.testIds';
 import LedgerDarkLogo from '../../../../images/hardware-ledger-dark.svg';
@@ -38,22 +34,6 @@ import KeystoneLightLogo from '../../../../images/hardware-keystone-light.svg';
 import OneKeyDarkLogo from '../../../../images/hardware-onekey-dark.svg';
 import OneKeyLightLogo from '../../../../images/hardware-onekey-light.svg';
 
-const styles = StyleSheet.create({
-  contentContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-    gap: 16,
-  },
-  buttonsContainer: {
-    width: '100%',
-    flexDirection: 'row',
-    gap: 12,
-  },
-  previewButton: {
-    width: '100%',
-  },
-});
 interface HardwareOption {
   title: string;
   onPress: () => Promise<void>;
@@ -98,7 +78,7 @@ const SelectHardwareWallet = () => {
   }, [navigation]);
 
   const navigateToConnectQRWallet = async (
-    _params?: ConnectQrNavigationParams,
+    params?: ConnectQrNavigationParams,
   ) => {
     try {
       const connectedDeviceCount = await getConnectedDevicesCount();
@@ -114,11 +94,12 @@ const SelectHardwareWallet = () => {
       // [SelectHardware] Analytics error should not block navigation
       console.error('[SelectHardware] Failed to track analytics:', error);
     }
+    if (params) {
+      navigation.navigate(Routes.HW.CONNECT_QR_DEVICE, params);
+      return;
+    }
 
-    navigation.navigate(Routes.HW.HARDWARE_WALLET_DISCOVERY, {
-      walletType: HardwareWalletType.Qr,
-      initialStep: 'accounts',
-    });
+    navigation.navigate(Routes.HW.CONNECT_QR_DEVICE);
   };
 
   const navigateToConnectLedger = async () => {
@@ -137,19 +118,7 @@ const SelectHardwareWallet = () => {
       console.error('[SelectHardware] Failed to track analytics:', error);
     }
 
-    navigation.navigate(Routes.HW.HARDWARE_WALLET_DISCOVERY, {
-      walletType: HardwareWalletType.Ledger,
-    });
-  };
-
-  const navigateToSearchingPreview = () => {
-    navigation.navigate(Routes.HW.SEARCHING_FOR_DEVICE_PREVIEW);
-  };
-
-  const navigateToDiscoveryPreview = () => {
-    navigation.navigate(Routes.HW.HARDWARE_WALLET_DISCOVERY, {
-      walletType: HardwareWalletType.Ledger,
-    });
+    navigation.navigate(Routes.HW.CONNECT_LEDGER);
   };
 
   const renderIconTile = (icon: ReactNode) => (
@@ -182,7 +151,7 @@ const SelectHardwareWallet = () => {
       leadingIcon: <OneKeyLogo name="onekey-logo" width={40} height={40} />,
     },
     {
-      title: strings('connect_hardware.other_qr_wallet'),
+      title: 'Other QR wallet',
       onPress: () => navigateToConnectQRWallet({ hideMarketingContent: true }),
       testID: SelectHardwareTestIds.OTHER_QR_BUTTON,
       leadingIcon: renderIconTile(
@@ -236,38 +205,14 @@ const SelectHardwareWallet = () => {
         backgroundColor: colors.background.default,
       })}
     >
-      <HeaderCompactStandard includesTopInset onBack={navigation.goBack} />
+      <HeaderStandard includesTopInset onBack={navigation.goBack} />
       <TitleStandard
         title={strings('connect_hardware.title_select_hardware')}
         twClassName="px-4 pb-6"
       />
-      <View style={styles.contentContainer}>
-        <View style={styles.buttonsContainer}>
-          {hardwareOptions.map(renderHardwareButton)}
-        </View>
-        <View style={styles.previewButton}>
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            onPress={navigateToSearchingPreview}
-            testID="hw-device-preview-button"
-          >
-            {strings('connect_hardware.preview_loading_screen')}
-          </Button>
-        </View>
-        <View style={styles.previewButton}>
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            onPress={navigateToDiscoveryPreview}
-            testID="hw-ledger-discovery-preview-button"
-          >
-            {strings('connect_hardware.preview_ledger_discovery')}
-          </Button>
-        </View>
-      </View>
+      <Box twClassName="gap-3 px-4">
+        {hardwareOptions.map(renderHardwareButton)}
+      </Box>
     </SafeAreaView>
   );
 };

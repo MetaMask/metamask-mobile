@@ -7,7 +7,6 @@ import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { HardwareDeviceTypes } from '../../../../constants/keyringTypes';
-import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { getConnectedDevicesCount } from '../../../../core/HardwareWallets/analytics';
 import { mockTheme } from '../../../../util/theme';
 import { AppThemeKey } from '../../../../util/theme/models';
@@ -99,7 +98,7 @@ describe('SelectHardwareWallet', () => {
     ).toBeTruthy();
     expect(screen.getByText('Keystone')).toBeTruthy();
     expect(screen.getByText('OneKey')).toBeTruthy();
-    expect(screen.getByText('connect_hardware.other_qr_wallet')).toBeTruthy();
+    expect(screen.getByText('Other QR wallet')).toBeTruthy();
   });
 
   it('sets navigation options on mount', () => {
@@ -170,10 +169,7 @@ describe('SelectHardwareWallet', () => {
         MetaMetricsEvents.CONNECT_HARDWARE_WALLET,
       );
       expect(mockTrackEvent).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.HW.HARDWARE_WALLET_DISCOVERY,
-        { walletType: HardwareWalletType.Ledger },
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HW.CONNECT_LEDGER);
     });
 
     it('includes connected devices count in metrics event', async () => {
@@ -246,10 +242,9 @@ describe('SelectHardwareWallet', () => {
         MetaMetricsEvents.CONNECT_HARDWARE_WALLET,
       );
       expect(mockTrackEvent).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.HW.HARDWARE_WALLET_DISCOVERY,
-        { walletType: HardwareWalletType.Qr, initialStep: 'accounts' },
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HW.CONNECT_QR_DEVICE, {
+        hideMarketingContent: true,
+      });
     });
 
     it('includes connected devices count in metrics event', async () => {
@@ -287,10 +282,7 @@ describe('SelectHardwareWallet', () => {
         fireEvent.press(keystoneButton);
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.HW.HARDWARE_WALLET_DISCOVERY,
-        { walletType: HardwareWalletType.Qr, initialStep: 'accounts' },
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HW.CONNECT_QR_DEVICE);
     });
 
     it('navigates to QR device connection when OneKey is pressed', async () => {
@@ -303,10 +295,9 @@ describe('SelectHardwareWallet', () => {
         fireEvent.press(oneKeyButton);
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.HW.HARDWARE_WALLET_DISCOVERY,
-        { walletType: HardwareWalletType.Qr, initialStep: 'accounts' },
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HW.CONNECT_QR_DEVICE, {
+        hideMarketingContent: true,
+      });
     });
   });
 
@@ -334,21 +325,6 @@ describe('SelectHardwareWallet', () => {
     });
   });
 
-  describe('preview navigation', () => {
-    it('navigates to the hardware wallet searching preview', () => {
-      const { getByTestId } = renderWithProvider(<SelectHardwareWallet />, {
-        state: initialState,
-      });
-
-      const previewButton = getByTestId('hw-device-preview-button');
-      fireEvent.press(previewButton);
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.HW.SEARCHING_FOR_DEVICE_PREVIEW,
-      );
-    });
-  });
-
   describe('error handling', () => {
     it('continues navigation to Ledger when getConnectedDevicesCount fails', async () => {
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
@@ -365,6 +341,8 @@ describe('SelectHardwareWallet', () => {
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.HW.CONNECT_LEDGER);
+
+      consoleSpy.mockRestore();
     });
 
     it('continues navigation to QR when getConnectedDevicesCount fails', async () => {
@@ -384,6 +362,8 @@ describe('SelectHardwareWallet', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.HW.CONNECT_QR_DEVICE, {
         hideMarketingContent: true,
       });
+
+      consoleSpy.mockRestore();
     });
 
     it('logs error when analytics tracking fails for Ledger', async () => {

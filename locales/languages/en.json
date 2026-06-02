@@ -497,9 +497,7 @@
   "connect_hardware": {
     "title_select_hardware": "Connect a hardware wallet",
     "select_hardware": "Select a hardware wallet you'd like to use",
-    "other_qr_wallet": "Other QR wallet",
-    "preview_loading_screen": "Preview loading screen",
-    "preview_ledger_discovery": "Preview Ledger discovery flow"
+    "other_qr_wallet": "Other QR wallet"
   },
   "enter_password": {
     "title": "Enter your password",

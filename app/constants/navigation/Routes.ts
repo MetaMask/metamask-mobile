@@ -91,7 +91,6 @@ const Routes = {
   HW: {
     CONNECT: 'ConnectHardwareWalletFlow',
     SELECT_DEVICE: 'SelectHardwareWallet',
-    SEARCHING_FOR_DEVICE_PREVIEW: 'HardwareWalletSearchingForDevicePreview',
     CONNECT_QR_DEVICE: 'ConnectQRHardwareFlow',
     CONNECT_LEDGER: 'ConnectLedgerFlow',
     LEDGER_CONNECT: 'LedgerConnect',

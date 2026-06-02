@@ -341,7 +341,6 @@ export interface RootStackParamList extends ParamListBase {
   // Hardware wallet routes
   ConnectHardwareWalletFlow: undefined;
   SelectHardwareWallet: undefined;
-  HardwareWalletSearchingForDevicePreview: undefined;
   ConnectQRHardwareFlow: undefined;
   ConnectLedgerFlow: undefined;
   LedgerConnect: undefined;
