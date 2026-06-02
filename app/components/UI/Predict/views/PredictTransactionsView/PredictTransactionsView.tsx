@@ -470,7 +470,8 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
     void fetchNextPage();
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
-  const hasFooterError = Boolean(error) && sections.length > 0 && hasNextPage;
+  const hasActivityItems = activity.length > 0;
+  const hasFooterError = Boolean(error) && hasActivityItems && hasNextPage;
 
   const handleRetry = useCallback(() => {
     void refetch();
@@ -516,8 +517,8 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
   }, [handleRetry, hasFooterError, isFetchingNextPage, isRefetching]);
 
   const shouldShowLoadingState =
-    (isLoading || (Boolean(error) && isFetching)) && sections.length === 0;
-  const shouldShowErrorState = Boolean(error) && sections.length === 0;
+    (isLoading || (Boolean(error) && isFetching)) && !hasActivityItems;
+  const shouldShowErrorState = Boolean(error) && !hasActivityItems;
 
   const renderContent = shouldShowLoadingState ? (
     <Box twClassName="items-center justify-center h-full">

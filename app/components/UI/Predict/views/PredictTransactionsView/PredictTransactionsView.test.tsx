@@ -182,6 +182,24 @@ describe('PredictTransactionsView', () => {
     expect(screen.getByTestId('activity-indicator')).toBeOnTheScreen();
   });
 
+  it('displays loading indicator when activity data loads with claim pending positions', () => {
+    (usePredictActivity as jest.Mock).mockReturnValueOnce(
+      createUsePredictActivityValue({
+        data: [],
+        isLoading: true,
+      }),
+    );
+
+    render(
+      <PredictTransactionsView
+        claimPendingPositions={[createClaimPendingPosition()]}
+      />,
+    );
+
+    expect(screen.getByTestId('activity-indicator')).toBeOnTheScreen();
+    expect(screen.queryByText('Prediction won')).toBeNull();
+  });
+
   it('displays empty state message when activity list is empty', () => {
     (usePredictActivity as jest.Mock).mockReturnValueOnce(
       createUsePredictActivityValue({
@@ -211,6 +229,34 @@ describe('PredictTransactionsView', () => {
       screen.getByTestId(PREDICT_TRANSACTIONS_VIEW_TEST_IDS.ERROR_STATE),
     ).toBeOnTheScreen();
     expect(screen.queryByText('No recent activity')).toBeNull();
+
+    await act(async () => {
+      fireEvent.press(screen.getByText('Retry'));
+    });
+
+    expect(mockRefetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('displays retryable error state when initial activity request fails with claim pending positions', async () => {
+    const mockRefetch = jest.fn();
+    (usePredictActivity as jest.Mock).mockReturnValueOnce(
+      createUsePredictActivityValue({
+        data: [],
+        error: new Error('Network error'),
+        refetch: mockRefetch,
+      }),
+    );
+
+    render(
+      <PredictTransactionsView
+        claimPendingPositions={[createClaimPendingPosition()]}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(PREDICT_TRANSACTIONS_VIEW_TEST_IDS.ERROR_STATE),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText('Prediction won')).toBeNull();
 
     await act(async () => {
       fireEvent.press(screen.getByText('Retry'));
