@@ -1428,6 +1428,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         orderType={orderForm.type}
         direction={orderForm.direction}
         onOrderTypePress={() => setIsOrderTypeVisible(true)}
+        onBack={() => navigation.goBack()}
       />
       <ScrollView
         style={styles.scrollView}

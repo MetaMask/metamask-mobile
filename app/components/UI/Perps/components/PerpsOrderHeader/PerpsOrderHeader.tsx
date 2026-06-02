@@ -99,7 +99,10 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   }, [priceChange, price]);
 
   const headerStyle = useMemo(
-    () => [styles.header, topInset > 0 ? { top: topInset } : undefined],
+    () => [
+      styles.header,
+      topInset > 0 ? { paddingTop: topInset + 16 } : undefined,
+    ],
     [styles.header, topInset],
   );
 
