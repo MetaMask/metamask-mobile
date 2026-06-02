@@ -10,14 +10,19 @@ import {
   type GetPaymentOverrideDataResponse,
 } from '@metamask/transaction-pay-controller';
 import type { Hex } from '@metamask/utils';
+import BigNumber from 'bignumber.js';
 import {
-  getMoneyAccountDepositTransactionsData,
-  getMoneyAccountWithdrawTransactionsData,
+  buildMoneyAccountDepositBatch,
+  buildMoneyAccountWithdrawBatch,
 } from '../../../../components/UI/Money/utils/moneyAccountTransactions';
+import { MUSD_DECIMALS } from '../../../../components/UI/Earn/constants/musd';
 import Engine from '../../../../core/Engine';
 import ReduxService from '../../../../core/redux/ReduxService';
 import { RootState } from '../../../../reducers';
+import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import { getProviderByChainId } from '../../../../util/notifications/methods/common';
+import { calcTokenValue } from '../../../../util/transactions';
 import {
   getDelegationTransaction,
   type SignMessenger,
@@ -32,18 +37,30 @@ async function getMoneyAccountWithdrawPaymentOverrideData<
 ): Promise<BatchTransactionParams[]> {
   const state = ReduxService.store.getState() as RootState;
   const primaryMoneyAccount = selectPrimaryMoneyAccount(state);
-  if (!primaryMoneyAccount?.address) return [];
+  const vaultConfig = selectMoneyAccountVaultConfig(state);
+  if (!primaryMoneyAccount?.address || !vaultConfig) return [];
 
   const moneyAccountAddress = primaryMoneyAccount.address as Hex;
   const chainId = CHAIN_IDS.MONAD as Hex;
 
-  const params = await getMoneyAccountWithdrawTransactionsData(
-    chainId,
-    amountHuman,
-    recipient,
+  const provider = getProviderByChainId(chainId);
+  if (!provider) return [];
+
+  const amount = BigInt(
+    calcTokenValue(amountHuman, MUSD_DECIMALS)
+      .decimalPlaces(0, BigNumber.ROUND_UP)
+      .toFixed(0),
   );
 
-  if (!params.length) return [];
+  const { withdrawTx, transferTx } = await buildMoneyAccountWithdrawBatch({
+    amount,
+    chainId,
+    tellerAddress: vaultConfig.tellerAddress as Hex,
+    accountantAddress: vaultConfig.accountantAddress as Hex,
+    moneyAccountAddress,
+    recipient,
+    provider,
+  });
 
   const { NetworkController } = Engine.context;
   const networkClientId =
@@ -58,11 +75,18 @@ async function getMoneyAccountWithdrawPaymentOverrideData<
     txParams: {
       from: moneyAccountAddress,
     },
-    nestedTransactions: params.map((p) => ({
-      to: p.to,
-      data: p.data,
-      value: p.value,
-    })),
+    nestedTransactions: [
+      {
+        to: withdrawTx.params.to,
+        data: withdrawTx.params.data,
+        value: withdrawTx.params.value,
+      },
+      {
+        to: transferTx.params.to,
+        data: transferTx.params.data,
+        value: transferTx.params.value,
+      },
+    ],
   } as TransactionMeta;
 
   const delegation = await getDelegationTransaction(messenger, transactionMeta);
@@ -84,16 +108,30 @@ async function getMoneyAccountDepositPaymentOverrideData<
 ): Promise<{ calls: BatchTransactionParams[]; recipient?: Hex }> {
   const state = ReduxService.store.getState() as RootState;
   const primaryMoneyAccount = selectPrimaryMoneyAccount(state);
-  if (!primaryMoneyAccount?.address) return { calls: [] };
+  const vaultConfig = selectMoneyAccountVaultConfig(state);
+  if (!primaryMoneyAccount?.address || !vaultConfig) return { calls: [] };
 
   const moneyAccountAddress = primaryMoneyAccount.address as Hex;
   const chainId = CHAIN_IDS.MONAD as Hex;
 
-  const txs = await getMoneyAccountDepositTransactionsData(
-    chainId,
-    amountHuman,
+  const provider = getProviderByChainId(chainId);
+  if (!provider) return { calls: [] };
+
+  const amount = BigInt(
+    calcTokenValue(amountHuman, MUSD_DECIMALS)
+      .decimalPlaces(0, BigNumber.ROUND_UP)
+      .toFixed(0),
   );
-  if (!txs.length) return { calls: [] };
+
+  const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
+    amount,
+    chainId,
+    boringVault: vaultConfig.boringVault,
+    tellerAddress: vaultConfig.tellerAddress,
+    accountantAddress: vaultConfig.accountantAddress,
+    lensAddress: vaultConfig.lensAddress,
+    provider,
+  });
 
   const { NetworkController } = Engine.context;
   const networkClientId =
@@ -108,11 +146,18 @@ async function getMoneyAccountDepositPaymentOverrideData<
     txParams: {
       from: moneyAccountAddress,
     },
-    nestedTransactions: txs.map((tx) => ({
-      to: tx.params.to,
-      data: tx.params.data,
-      value: tx.params.value,
-    })),
+    nestedTransactions: [
+      {
+        to: approveTx.params.to,
+        data: approveTx.params.data,
+        value: approveTx.params.value,
+      },
+      {
+        to: depositTx.params.to,
+        data: depositTx.params.data,
+        value: depositTx.params.value,
+      },
+    ],
   } as TransactionMeta;
 
   const delegation = await getDelegationTransaction(messenger, transactionMeta);

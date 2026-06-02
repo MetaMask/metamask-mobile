@@ -301,12 +301,12 @@ export async function updateMoneyAccountWithdrawTokenAmount(
  *
  * @param chainId - Chain ID in hex
  * @param amountHuman - Human-readable deposit amount (e.g. "10.5")
- * @returns `[approveTx, depositTx]`, or `[]` if vault config or provider is unavailable
+ * @returns `[approveTx.params, depositTx.params]`, or `[]` if vault config or provider is unavailable
  */
 export async function getMoneyAccountDepositTransactionsData(
   chainId: Hex,
   amountHuman: string,
-): Promise<MoneyAccountTxParams[]> {
+): Promise<MoneyAccountTxParams['params'][]> {
   const vaultConfig = selectMoneyAccountVaultConfig(
     ReduxService.store.getState() as RootState,
   );
@@ -331,7 +331,7 @@ export async function getMoneyAccountDepositTransactionsData(
     provider,
   });
 
-  return [approveTx, depositTx];
+  return [approveTx.params, depositTx.params];
 }
 
 /**
