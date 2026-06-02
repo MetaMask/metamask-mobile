@@ -3,12 +3,69 @@ import {
   asPlaywrightElement,
   Assertions,
   encapsulatedAction,
+  PlaywrightGestures,
 } from '../framework';
 import PerpsMarketDetailsView from '../page-objects/Perps/PerpsMarketDetailsView';
 import PerpsHomeView from '../page-objects/Perps/PerpsHomeView';
 import PerpsMarketListView from '../page-objects/Perps/PerpsMarketListView';
+import PerpsOnboarding from '../page-objects/Perps/PerpsOnboarding';
 import PerpsOrderView from '../page-objects/Perps/PerpsOrderView';
 import WalletView from '../page-objects/wallet/WalletView';
+
+const PERPS_GTM_MODAL_FALLBACK_WAIT_MS = 10_000;
+
+/**
+ * Resolves whether the Perps GTM onboarding tutorial should be handled.
+ * Uses feature flags when available; otherwise polls the tutorial for up to 10s.
+ */
+export const resolvePerpsGtmOnboardingModalEnabled = async (
+  productionFeatureFlags: Record<string, unknown> | null,
+): Promise<boolean> => {
+  const flagsSayEnabled =
+    productionFeatureFlags != null &&
+    (
+      productionFeatureFlags.perpsPerpGtmOnboardingModalEnabled as {
+        enabled?: boolean;
+      }
+    )?.enabled === true;
+
+  if (flagsSayEnabled) {
+    return true;
+  }
+
+  // Flags missing or disabled — tutorial may still appear; detect in UI.
+  try {
+    await (await asPlaywrightElement(PerpsOnboarding.tutorialTitle))
+      .unwrap()
+      .waitForDisplayed({ timeout: PERPS_GTM_MODAL_FALLBACK_WAIT_MS });
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Skips the Perps onboarding tutorial when it is on screen. No-op if not shown.
+ */
+export const dismissPerpsOnboardingTutorialIfPresent =
+  async (): Promise<void> => {
+    try {
+      const skipButton = await asPlaywrightElement(PerpsOnboarding.skipButton);
+      await skipButton
+        .unwrap()
+        .waitForDisplayed({ timeout: PERPS_GTM_MODAL_FALLBACK_WAIT_MS });
+      await PlaywrightGestures.waitAndTap(skipButton, {
+        checkForDisplayed: true,
+        checkForEnabled: true,
+        timeout: 10_000,
+      });
+      await skipButton
+        .unwrap()
+        .waitForDisplayed({ reverse: true, timeout: 10_000 });
+    } catch {
+      // Tutorial not shown or already dismissed.
+    }
+  };
 
 /**
  * Checks if the position is open by checking if the close button is visible.
