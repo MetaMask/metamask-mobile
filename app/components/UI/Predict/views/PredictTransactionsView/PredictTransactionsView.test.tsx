@@ -334,13 +334,18 @@ describe('PredictTransactionsView', () => {
       />,
     );
 
-    fireEvent.press(
-      screen.getByTestId(
-        getPredictPositionsHistoryListSelector.claimPendingRow(
-          'claimable-position',
-        ),
+    const row = screen.getByTestId(
+      getPredictPositionsHistoryListSelector.claimPendingRow(
+        'claimable-position',
       ),
     );
+    expect(row).toHaveProp('accessibilityRole', 'button');
+    expect(row).toHaveProp(
+      'accessibilityLabel',
+      'Prediction won, Prediction market, opens market details',
+    );
+
+    fireEvent.press(row);
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MARKET_DETAILS, {
       marketId: 'market-1',

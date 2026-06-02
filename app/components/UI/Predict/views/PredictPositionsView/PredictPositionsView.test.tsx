@@ -75,8 +75,17 @@ jest.mock('../../components/PredictPositionsHistoryList', () => {
 });
 
 let mockPrivacyMode = false;
+let mockPredictPortfolioEnabled = true;
+let mockUseSelectorCallIndex = 0;
 jest.mock('react-redux', () => ({
-  useSelector: jest.fn(() => mockPrivacyMode),
+  useSelector: jest.fn(() => {
+    const value =
+      mockUseSelectorCallIndex % 2 === 0
+        ? mockPrivacyMode
+        : mockPredictPortfolioEnabled;
+    mockUseSelectorCallIndex += 1;
+    return value;
+  }),
 }));
 
 const mockNavigation = {
@@ -172,7 +181,9 @@ const getMountedHistoryVisibilityText = (isVisible: boolean) =>
 describe('PredictPositionsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSelectorCallIndex = 0;
     mockPrivacyMode = false;
+    mockPredictPortfolioEnabled = true;
     mockNavigation.canGoBack.mockReturnValue(true);
     mockUseNavigation.mockReturnValue(mockNavigation);
     mockUsePredictPortfolio.mockReturnValue(createPortfolio());
@@ -274,6 +285,22 @@ describe('PredictPositionsView', () => {
     ).toBeOnTheScreen();
     expect(screen.getByText('history-claim-pending-count:1')).toBeOnTheScreen();
     expect(screen.getByText('history-privacy:true')).toBeOnTheScreen();
+  });
+
+  it('does not pass claim pending positions to History when portfolio flag is disabled', () => {
+    mockPredictPortfolioEnabled = false;
+    mockUsePredictPortfolio.mockReturnValue(
+      createPortfolio({
+        actionableClaimablePositions: [createClaimablePosition()],
+      }),
+    );
+
+    renderScreen('history');
+
+    expect(
+      screen.getByText('history-claim-pending-present:false'),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('history-claim-pending-count:0')).toBeOnTheScreen();
   });
 
   it('navigates back when the back button is pressed and the stack can go back', () => {

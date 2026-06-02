@@ -89,9 +89,17 @@ const ClaimPendingPositionRow = ({
       entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
     });
   }, [navigation, position.marketId]);
+  const accessibilityLabel = strings(
+    'predict.transactions.claim_pending_accessibility_label',
+    {
+      marketTitle: position.title,
+    },
+  );
 
   return (
     <TouchableOpacity
+      accessibilityLabel={accessibilityLabel}
+      accessibilityRole="button"
       onPress={handlePress}
       style={tw.style(
         'flex-row items-start justify-between w-full p-2',

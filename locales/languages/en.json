@@ -2545,6 +2545,7 @@
       "sell_title": "Cashed out",
       "claim_title": "Claimed winnings",
       "claim_pending": "Claim pending",
+      "claim_pending_accessibility_label": "Prediction won, {{marketTitle}}, opens market details",
       "prediction_won_title": "Prediction won",
       "buy_detail": "Bought {{amountUsd}} on {{outcome}} · {{priceCents}} per share",
       "sell_detail": "Sold at {{priceCents}} per share",
