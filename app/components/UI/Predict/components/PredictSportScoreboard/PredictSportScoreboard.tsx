@@ -102,7 +102,11 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
     };
   }, [game, gameUpdate]);
 
-  const isEnded = isGameEnded(liveData.status, liveData.period);
+  const isEnded = isGameEnded({
+    status: liveData.status,
+    period: liveData.period,
+    endTime: game.endTime,
+  });
   const isScheduled = !isEnded && liveData.status === 'scheduled';
   const isLive = !isEnded && !isScheduled;
 
@@ -116,6 +120,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
     status: liveData.status,
     period: liveData.period,
     elapsed: liveData.elapsed,
+    endTime: game.endTime,
   });
 
   const teamLogoSize = compact ? COMPACT_TEAM_LOGO_SIZE : TEAM_LOGO_SIZE;

@@ -209,12 +209,14 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
 
   const game = market.game as PredictMarketGame | undefined;
   const { gameUpdate } = useLiveGameUpdates(game?.id ?? null);
-  // Mirror the scoreboard's notion of "game over" (terminal status OR a full-time
-  // period) so buy buttons disappear exactly when the scoreboard reads "Final".
-  const gameEnded = isGameEnded(
-    gameUpdate?.status ?? game?.status,
-    gameUpdate?.period ?? game?.period,
-  );
+  // Mirror the canonical "game over" definition (terminal status, a full-time
+  // period, or a stamped endTime) so buy buttons disappear exactly when the
+  // scoreboard reads "Final" and the market becomes eligible for hiding.
+  const gameEnded = isGameEnded({
+    status: gameUpdate?.status ?? game?.status,
+    period: gameUpdate?.period ?? game?.period,
+    endTime: game?.endTime,
+  });
 
   const buttonItems = useMemo(
     () =>

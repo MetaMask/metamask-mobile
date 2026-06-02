@@ -47,22 +47,32 @@ describe('scoreboard utils', () => {
 
   describe('isGameEnded', () => {
     it('is true when status is ended', () => {
-      expect(isGameEnded('ended', null)).toBe(true);
-      expect(isGameEnded('ended', 'Q2')).toBe(true);
+      expect(isGameEnded({ status: 'ended' })).toBe(true);
+      expect(isGameEnded({ status: 'ended', period: 'Q2' })).toBe(true);
     });
 
     it('is true at a full-time period even when status is not ended', () => {
-      expect(isGameEnded('ongoing', 'FT')).toBe(true);
-      expect(isGameEnded('ongoing', 'VFT')).toBe(true);
-      expect(isGameEnded('scheduled', 'FT')).toBe(true);
+      expect(isGameEnded({ status: 'ongoing', period: 'FT' })).toBe(true);
+      expect(isGameEnded({ status: 'ongoing', period: 'VFT' })).toBe(true);
+      expect(isGameEnded({ status: 'scheduled', period: 'FT' })).toBe(true);
+    });
+
+    it('is true when an endTime is stamped even while status is ongoing', () => {
+      expect(
+        isGameEnded({
+          status: 'ongoing',
+          period: 'Q3',
+          endTime: '2026-06-08T22:00:00Z',
+        }),
+      ).toBe(true);
     });
 
     it('is false for in-progress, scheduled, and breaking-but-not-final states', () => {
-      expect(isGameEnded('ongoing', 'Q3')).toBe(false);
-      expect(isGameEnded('ongoing', 'HT')).toBe(false);
-      expect(isGameEnded('scheduled', null)).toBe(false);
-      expect(isGameEnded(null, null)).toBe(false);
-      expect(isGameEnded(undefined, undefined)).toBe(false);
+      expect(isGameEnded({ status: 'ongoing', period: 'Q3' })).toBe(false);
+      expect(isGameEnded({ status: 'ongoing', period: 'HT' })).toBe(false);
+      expect(isGameEnded({ status: 'scheduled', period: null })).toBe(false);
+      expect(isGameEnded({ status: 'ongoing', endTime: null })).toBe(false);
+      expect(isGameEnded({})).toBe(false);
     });
   });
 

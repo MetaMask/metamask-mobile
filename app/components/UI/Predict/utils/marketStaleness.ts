@@ -5,6 +5,7 @@ import {
   type PredictOutcome,
   type PredictOutcomeGroup,
 } from '../types';
+import { isGameEnded } from './scoreboard';
 
 export const PREDICT_DEAD_OUTCOME_HIGH_THRESHOLD = 0.95;
 export const PREDICT_DEAD_OUTCOME_LOW_THRESHOLD = 0.05;
@@ -105,13 +106,18 @@ const isGameMarket = (market: PredictMarket): boolean => Boolean(market.game);
 
 /**
  * Whether the underlying game has finished. For game markets this is the
- * authoritative completion signal: a match is over once the provider reports a
- * terminal status or stamps an end time. We intentionally avoid the
- * market-level `endDate` here because live matches routinely run past their
- * scheduled end (stoppage time, halftime, extra time, penalties).
+ * authoritative completion signal, sharing the canonical `isGameEnded`
+ * definition with the scoreboard and sport-card UI so visibility and UI never
+ * disagree on whether a game is over. We intentionally avoid the market-level
+ * `endDate` here because live matches routinely run past their scheduled end
+ * (stoppage time, halftime, extra time, penalties).
  */
 const isGameOver = (market: PredictMarket): boolean =>
-  market.game?.status === 'ended' || Boolean(market.game?.endTime);
+  isGameEnded({
+    status: market.game?.status,
+    period: market.game?.period,
+    endTime: market.game?.endTime,
+  });
 
 const getHoursUntilEndDate = (
   market: PredictMarket,

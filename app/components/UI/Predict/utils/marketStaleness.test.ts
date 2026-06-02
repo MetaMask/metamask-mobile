@@ -322,6 +322,16 @@ describe('marketStaleness', () => {
 
       expect(isPredictMarketExpiredByTime(market, { now: NOW })).toBe(true);
     });
+
+    it('expires a game at a full-time period even if status is not ended', () => {
+      const market = createMarket({
+        id: 'game-at-full-time',
+        recurrence: Recurrence.DAILY,
+        game: { ...createGame('ongoing'), period: 'FT' },
+      });
+
+      expect(isPredictMarketExpiredByTime(market, { now: NOW })).toBe(true);
+    });
   });
 
   describe('penalties and ranking', () => {

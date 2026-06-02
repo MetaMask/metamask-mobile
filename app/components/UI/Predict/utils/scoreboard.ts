@@ -50,23 +50,41 @@ export const getSportPeriodLabel = (
   }
 };
 
+export interface GameOverInput {
+  status?: PredictGameStatus | null;
+  period?: PredictGamePeriod | null;
+  /** ISO timestamp stamped by the provider once the game has ended. */
+  endTime?: string | null;
+}
+
 /**
- * Whether a game has reached a terminal state for display purposes — either the
- * provider reported `status: 'ended'`, or the period indicates full time
- * ('FT'/'VFT'). Centralizing this keeps the scoreboard's "Final" rendering and
- * the card's buy-button gating in agreement on when a game is over (a provider
- * can report a terminal period before flipping `status` to `'ended'`).
+ * Single source of truth for whether a game has reached a terminal state. A game
+ * is over once the provider reports any of:
+ * - a terminal `status: 'ended'`,
+ * - a full-time period ('FT'/'VFT'), or
+ * - a stamped `endTime`.
+ *
+ * Centralizing this keeps every "game over" consumer in agreement: market
+ * visibility (staleness filtering), the scoreboard's "Final" rendering, the live
+ * UI, and the card's buy-button gating. Providers don't flip all of these
+ * signals atomically (e.g. an `endTime` can be stamped while `status` is still
+ * `'ongoing'`), so checking any of them prevents the UI and visibility from
+ * disagreeing.
  */
-export const isGameEnded = (
-  status: PredictGameStatus | null | undefined,
-  period: PredictGamePeriod | null | undefined,
-): boolean => status === 'ended' || period === 'FT' || period === 'VFT';
+export const isGameEnded = ({
+  status,
+  period,
+  endTime,
+}: GameOverInput): boolean =>
+  status === 'ended' || period === 'FT' || period === 'VFT' || Boolean(endTime);
 
 export interface SportLiveStatusInput {
   league: PredictSportsLeague;
   status: PredictGameStatus;
   period: PredictGamePeriod | null;
   elapsed: string | null;
+  /** ISO timestamp stamped once the game has ended; forces a "Final" label. */
+  endTime?: string | null;
 }
 
 /**
@@ -83,9 +101,10 @@ export const getSportLiveStatusText = ({
   status,
   period,
   elapsed,
+  endTime,
 }: SportLiveStatusInput): string => {
   // Terminal state always reads as "Final".
-  if (isGameEnded(status, period)) {
+  if (isGameEnded({ status, period, endTime })) {
     return strings('predict.sports.final');
   }
 
