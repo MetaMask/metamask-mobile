@@ -55,6 +55,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
 jest.mock('../../hooks', () => ({
   usePerpsOrderFees: jest.fn(() => ({
     totalFee: 0.5,
+    undiscountedTotalFee: 0.5,
     makerFee: 0.2,
     takerFee: 0.3,
     isLoadingMetamaskFee: false,
@@ -103,13 +104,21 @@ jest.mock('../PerpsFeesDisplay', () => {
   const ReactModule = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');
   return function MockPerpsFeesDisplay({
-    formatFeeText,
+    fee,
+    placeholder,
   }: {
-    formatFeeText: string;
+    fee?: number;
+    placeholder?: string;
   }) {
-    return ReactModule.createElement(Text, null, formatFeeText);
+    const text =
+      fee !== undefined ? `$${fee.toFixed(2)}` : (placeholder ?? '--');
+    return ReactModule.createElement(Text, null, text);
   };
 });
+
+jest.mock('../../../Rewards/hooks/useVipTier', () => ({
+  useVipTier: () => null,
+}));
 
 jest.mock('../../../Rewards/components/RewardPointsAnimation', () => ({
   __esModule: true,
@@ -336,7 +345,13 @@ describe('PerpsFlipPositionConfirmSheet', () => {
     fireEvent.press(screen.getByText('Flip'));
 
     await waitFor(() => {
-      expect(mockHandleFlipPosition).toHaveBeenCalledWith(mockLongPosition);
+      expect(mockHandleFlipPosition).toHaveBeenCalledWith(
+        mockLongPosition,
+        expect.objectContaining({
+          totalFee: expect.any(Number),
+          marketPrice: expect.any(Number),
+        }),
+      );
     });
   });
 

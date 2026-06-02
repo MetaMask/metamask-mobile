@@ -37,13 +37,19 @@ class WalletView {
     return encapsulated({
       detox: () =>
         Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_CONTAINER),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          WalletViewSelectorsIDs.WALLET_CONTAINER,
-          {
-            exact: true,
-          },
-        ),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            WalletViewSelectorsIDs.WALLET_CONTAINER,
+            {
+              exact: true,
+            },
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId(
+            WalletViewSelectorsIDs.EYE_SLASH_ICON,
+          ),
+      },
     });
   }
 
@@ -232,6 +238,17 @@ class WalletView {
     );
   }
 
+  async checkActiveAccount(
+    expectedName: string,
+    timeout = 10_000,
+  ): Promise<void> {
+    await PlaywrightAssertions.expectElementText(
+      asPlaywrightElement(this.accountNameLabelText),
+      expectedName,
+      { timeout },
+    );
+  }
+
   get accountNameLabelInput(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>
@@ -303,8 +320,16 @@ class WalletView {
     );
   }
   // Wallet-specific action buttons (from AssetDetailsActions in Wallet view)
-  get walletBuyButton(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_BUY_BUTTON);
+  get walletBuyButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_BUY_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.WALLET_BUY_BUTTON,
+          { exact: true },
+        ),
+    });
   }
 
   get walletSwapButton(): EncapsulatedElementType {
@@ -329,8 +354,22 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_BRIDGE_BUTTON);
   }
 
-  get walletSendButton(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SEND_BUTTON);
+  get walletSendButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SEND_BUTTON),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            WalletViewSelectorsIDs.WALLET_SEND_BUTTON,
+            { exact: true },
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId(
+            WalletViewSelectorsIDs.WALLET_SEND_BUTTON,
+          ),
+      },
+    });
   }
 
   // mUSD conversion (Earn) - asset list CTA, education screen, token list CTA, asset overview CTA
@@ -441,10 +480,17 @@ class WalletView {
   tokenRow(token: string, index = 0): EncapsulatedElementType {
     return encapsulated({
       detox: () => Matchers.getElementByText(token, index),
-      appium: () =>
-        PlaywrightMatchers.getElementById(getAssetTestId(token), {
-          exact: true,
-        }),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(getAssetTestId(token), {
+            exact: true,
+          }),
+        // iOS: TokenListItem sets accessibilityLabel to "Name, $fiat, balance"
+        // so the iOS predicate `name` (= accessibilityLabel) differs from testID.
+        // Use `~testID` which maps to accessibilityIdentifier (= testID).
+        ios: () =>
+          PlaywrightMatchers.getElementByNameiOS(getAssetTestId(token)),
+      },
     });
   }
 
@@ -459,7 +505,7 @@ class WalletView {
         // Wait for the token list to finish loading/reordering before tapping.
         // New tokens appearing asynchronously can shift positions mid-tap.
         await Utilities.waitForElementToStopMoving(elem, {
-          timeout: 10000,
+          timeout: 20000,
           interval: 500,
           stableCount: 6,
         });
@@ -784,11 +830,19 @@ class WalletView {
   get tokensSection(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>
-        Matchers.getElementByText(WalletViewSelectorsText.TOKENS_SECTION),
-      appium: () =>
-        PlaywrightMatchers.getElementByText(
-          WalletViewSelectorsText.TOKENS_SECTION,
+        Matchers.getElementByID(
+          WalletViewSelectorsIDs.TOKENS_SECTION_CONTAINER,
         ),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens'),
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId(
+            `${WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens')}`,
+          ),
+      },
     });
   }
 
@@ -905,17 +959,30 @@ class WalletView {
       overshootSwipe?: { direction: 'up' | 'down'; percentage?: number };
     } = {},
   ): Promise<void> {
-    await this.scrollAndTapSection(
-      this.predictionsSectionHeader,
-      'Predictions section',
-      direction,
-      {
-        overshootSwipe: options.overshootSwipe ?? {
-          direction: 'up',
-          percentage: 0.15,
-        },
+    const getScrollOptions = (scrollDirection: 'up' | 'down') => ({
+      overshootSwipe: options.overshootSwipe ?? {
+        direction:
+          scrollDirection === 'down' ? ('up' as const) : ('down' as const),
+        percentage: 0.15,
       },
-    );
+    });
+
+    try {
+      await this.scrollAndTapSection(
+        this.predictionsSectionHeader,
+        'Predictions section',
+        direction,
+        getScrollOptions(direction),
+      );
+    } catch {
+      const fallbackDirection = direction === 'down' ? 'up' : 'down';
+      await this.scrollAndTapSection(
+        this.predictionsSectionHeader,
+        'Predictions section',
+        fallbackDirection,
+        getScrollOptions(fallbackDirection),
+      );
+    }
   }
 
   async scrollAndTapPredictionsPosition(positionName: string): Promise<void> {
@@ -1156,8 +1223,8 @@ class WalletView {
   }
 
   async tapWalletSendButton(): Promise<void> {
-    await Gestures.waitAndTap(this.walletSendButton, {
-      elemDescription: 'Wallet Send Button',
+    await UnifiedGestures.waitAndTap(this.walletSendButton, {
+      description: 'Wallet Send Button',
     });
   }
 

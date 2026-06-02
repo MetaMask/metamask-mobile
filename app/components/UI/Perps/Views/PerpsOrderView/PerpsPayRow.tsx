@@ -122,7 +122,7 @@ export const PerpsPayRow = ({
       [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
         PERPS_EVENT_VALUE.INTERACTION_TYPE.PAYMENT_TOKEN_SELECTOR,
     });
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
+    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET);
   }, [canEdit, navigation, setConfirmationMetric, track]);
 
   // Display data: use local state (defaults to Perps balance) so UI always shows "Perps balance" by default

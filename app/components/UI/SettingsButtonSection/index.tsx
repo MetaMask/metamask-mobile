@@ -2,14 +2,14 @@ import React, { ReactNode, useState } from 'react';
 import { View } from 'react-native';
 import ActionModal from '../ActionModal';
 import createStyles from './styles';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../component-library/components/Texts/Text';
 import {
   Button,
   ButtonSize,
   ButtonVariant,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 
 interface ISettingsButtonSectionProps {
@@ -54,10 +54,13 @@ const SettingsButtonSection = ({
   return (
     <>
       <View style={styles.setting}>
-        <Text variant={TextVariant.BodyLGMedium}>{sectionTitle}</Text>
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+          {sectionTitle}
+        </Text>
         <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
           style={styles.desc}
         >
           {descriptionText}
@@ -85,10 +88,16 @@ const SettingsButtonSection = ({
           onConfirmPress={onModalConfirmPress}
         >
           <View style={styles.modalView}>
-            <Text variant={TextVariant.HeadingMD} style={styles.modalTitle}>
+            <Text variant={TextVariant.HeadingMd} style={styles.modalTitle}>
               {modalTitleText}
             </Text>
-            <Text style={styles.modalText}>{modalDescriptionText}</Text>
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              style={styles.modalText}
+            >
+              {modalDescriptionText}
+            </Text>
           </View>
         </ActionModal>
       ) : null}

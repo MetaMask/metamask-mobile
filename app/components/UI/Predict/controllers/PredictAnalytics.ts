@@ -1,4 +1,7 @@
-import { MetaMetricsEvents } from '../../../../core/Analytics';
+import {
+  MetaMetricsEvents,
+  mergeAssetViewedProperties,
+} from '../../../../core/Analytics';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../../../util/analytics/analytics';
@@ -53,15 +56,22 @@ export interface MarketDetailsOpenedArgs {
   gameStatus?: string;
   gamePeriod?: string | null;
   gameClock?: string | null;
+  activeAbTests?: TransactionActiveAbTestEntry[];
 }
 
 export interface FeedViewedArgs {
   sessionId: string;
   feedTab: string;
+  predictScreen?: string;
   numPagesViewed: number;
   sessionTime: number;
   entryPoint?: string;
   isSessionEnd?: boolean;
+}
+
+export interface BannerArgs {
+  actionType: string;
+  bannerType: string;
 }
 
 export interface ShareActionArgs {
@@ -252,6 +262,7 @@ export class PredictAnalytics {
   public trackFeedViewed({
     sessionId,
     feedTab,
+    predictScreen,
     numPagesViewed,
     sessionTime,
     entryPoint,
@@ -260,11 +271,16 @@ export class PredictAnalytics {
     this.trackConfiguredEvent('feedViewed', {
       sessionId,
       feedTab,
+      predictScreen,
       numPagesViewed,
       sessionTime,
       entryPoint,
       isSessionEnd,
     });
+  }
+
+  public trackBannerAction(params: BannerArgs): void {
+    this.trackConfiguredEvent('bannerAction', params);
   }
 
   public trackShareAction(params: ShareActionArgs): void {
@@ -292,5 +308,18 @@ export class PredictAnalytics {
     }
 
     analytics.trackEvent(eventBuilder.build());
+
+    if (configKey === 'feedViewed' || configKey === 'marketDetailsOpened') {
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(MetaMetricsEvents.ASSET_VIEWED)
+          .addProperties(
+            mergeAssetViewedProperties(
+              'Predict',
+              analyticsProperties as Record<string, unknown>,
+            ),
+          )
+          .build(),
+      );
+    }
   }
 }

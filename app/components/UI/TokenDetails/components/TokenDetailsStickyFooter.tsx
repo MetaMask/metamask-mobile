@@ -18,6 +18,7 @@ import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
 import { useABTest } from '../../../../hooks/useABTest';
 import {
+  AMBIENT_NEGATIVE_COLOR,
   STICKY_FOOTER_SWAP_LABEL_AB_KEY,
   STICKY_FOOTER_SWAP_LABEL_VARIANTS,
 } from './abTestConfig';
@@ -74,6 +75,10 @@ interface TokenStickyFooterProps {
   onBuyPress?: () => void;
   /** Page name sent with swap/bridge analytics. Defaults to `'MainView'`. */
   sourcePage?: string;
+  /** When true, use success (green) accent; when false, use error (red) accent. Null means not yet resolved. */
+  isPricePositive?: boolean | null;
+  /** Whether the ambient price color A/B test treatment is active. */
+  useAmbientColor?: boolean;
 }
 
 const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
@@ -89,21 +94,29 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   onSwapPress,
   onBuyPress,
   sourcePage,
+  isPricePositive = null,
+  useAmbientColor = false,
 }) => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { colors, themeAppearance } = useTheme();
   const isLightMode = themeAppearance === AppThemeKey.light;
 
-  const successBg = isLightMode
-    ? `bg-[${LIGHT_MODE_SUCCESS_GREEN}]`
-    : 'bg-success-default';
-  const successBorder = isLightMode
-    ? `border-[${LIGHT_MODE_SUCCESS_GREEN}]`
-    : 'border-success-default';
-  const successText = isLightMode
-    ? `text-[${LIGHT_MODE_SUCCESS_GREEN}]`
-    : 'text-success-default';
+  const useErrorAccent = useAmbientColor && isPricePositive === false;
+
+  const getSuccessClass = (prefix: string, defaultClass: string) => {
+    if (useErrorAccent) {
+      return `${prefix}-[${AMBIENT_NEGATIVE_COLOR}]`;
+    }
+    if (isLightMode) {
+      return `${prefix}-[${LIGHT_MODE_SUCCESS_GREEN}]`;
+    }
+    return defaultClass;
+  };
+
+  const successBg = getSuccessClass('bg', 'bg-success-default');
+  const successBorder = getSuccessClass('border', 'border-success-default');
+  const successText = getSuccessClass('text', 'text-success-default');
 
   const secondaryTextProps = useMemo(
     () => ({ twClassName: successText }) as const,
@@ -170,7 +183,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   const buyIsSuccess = showBothButtons ? !swapIsSuccess : showBuyButton;
 
   const handleFooterAction = useCallback(
-    (action: () => void, source: string) => {
+    (action: () => void, source: string, onNavigate?: () => void) => {
       if (isRwaGeoRestricted) {
         rwaUnavailableSheetRef.current?.onOpenBottomSheet();
         return;
@@ -180,6 +193,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
 
       // Only show warning sheet for Warning, Spam, or Malicious tokens
       if (!resultType || resultType === 'Verified' || resultType === 'Benign') {
+        onNavigate?.();
         action();
         return;
       }
@@ -192,6 +206,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
         !config.sheetTitle ||
         !config.getSheetDescription
       ) {
+        onNavigate?.();
         action();
         return;
       }
@@ -202,12 +217,15 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
           icon: config.icon,
           iconColor: config.iconColor,
           title: config.sheetTitle,
-          description: config.getSheetDescription(token.symbol),
-          onProceed: action,
+          description: config.getSheetDescription(token.symbol || token.name),
+          onProceed: () => {
+            onNavigate?.();
+            action();
+          },
           source,
           severity: securityData?.resultType,
           tokenAddress: token.address,
-          tokenSymbol: token.symbol,
+          tokenSymbol: token.symbol || token.name,
           chainId: token.chainId,
           features: securityData?.features,
         },
@@ -218,6 +236,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       navigation,
       securityData,
       token.symbol,
+      token.name,
       token.address,
       token.chainId,
     ],
@@ -254,14 +273,17 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
               swapIsSuccess ? PRIMARY_ICON_PROPS : secondaryIconProps
             }
             onPress={() => {
-              onSwapPress?.();
               trackStickyFooterTapped({
                 ctaType: 'swap',
                 balanceFiatUsd,
                 tokenAddress: token.address ?? '',
                 chainId: token.chainId ?? '',
               });
-              handleFooterAction(onSwap, strings(buttonLabels.swapLabelKey));
+              handleFooterAction(
+                onSwap,
+                strings(buttonLabels.swapLabelKey),
+                onSwapPress,
+              );
             }}
           >
             {strings(buttonLabels.swapLabelKey)}
@@ -283,14 +305,17 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
               buyIsSuccess ? PRIMARY_ICON_PROPS : secondaryIconProps
             }
             onPress={() => {
-              onBuyPress?.();
               trackStickyFooterTapped({
                 ctaType: 'buy',
                 balanceFiatUsd,
                 tokenAddress: token.address ?? '',
                 chainId: token.chainId ?? '',
               });
-              handleFooterAction(onBuy, strings('asset_overview.buy_button'));
+              handleFooterAction(
+                onBuy,
+                strings('asset_overview.buy_button'),
+                onBuyPress,
+              );
             }}
           >
             {strings('asset_overview.buy_button')}

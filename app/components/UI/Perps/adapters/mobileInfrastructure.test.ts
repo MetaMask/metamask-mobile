@@ -89,6 +89,18 @@ jest.mock('../../../../util/remoteFeatureFlag', () => ({
   validatedVersionGatedFeatureFlag: jest.fn(),
 }));
 
+const mockSelectVipProgramEnabled = jest.fn().mockReturnValue(true);
+jest.mock('../../../../selectors/featureFlagController/vipProgram', () => ({
+  selectVipProgramEnabled: (...args: unknown[]) =>
+    mockSelectVipProgramEnabled(...args),
+}));
+
+jest.mock('../../../../store', () => ({
+  store: {
+    getState: jest.fn().mockReturnValue({}),
+  },
+}));
+
 jest.mock('../utils/formatUtils', () => ({
   formatVolume: jest.fn(),
   formatPerpsFiat: jest.fn(),
@@ -210,7 +222,8 @@ describe('createMobileInfrastructure', () => {
   });
 
   describe('rewards', () => {
-    it('delegates getPerpsDiscountForAccount to RewardsController', async () => {
+    it('delegates getPerpsDiscountForAccount to RewardsController when vipProgramEnabled', async () => {
+      mockSelectVipProgramEnabled.mockReturnValue(true);
       const infra = createMobileInfrastructure();
       const caipAccountId =
         'eip155:42161:0x1234' as `${string}:${string}:${string}`;
@@ -224,6 +237,23 @@ describe('createMobileInfrastructure', () => {
         Engine.context.RewardsController.getPerpsDiscountForAccount,
       ).toHaveBeenCalledWith(caipAccountId, 10);
       expect(result).toBe(5);
+    });
+
+    it('returns 0 discount when vipProgramEnabled is false', async () => {
+      mockSelectVipProgramEnabled.mockReturnValue(false);
+      const infra = createMobileInfrastructure();
+      const caipAccountId =
+        'eip155:42161:0x1234' as `${string}:${string}:${string}`;
+
+      const result = await infra.rewards.getPerpsDiscountForAccount(
+        caipAccountId,
+        10,
+      );
+
+      expect(
+        Engine.context.RewardsController.getPerpsDiscountForAccount,
+      ).not.toHaveBeenCalled();
+      expect(result).toBe(0);
     });
   });
 

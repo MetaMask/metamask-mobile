@@ -4,6 +4,7 @@ import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import styleSheet from '../../../../Settings/DeveloperOptions/DeveloperOptions.styles';
 import { Hex } from '@metamask/utils';
 import {

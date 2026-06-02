@@ -32,7 +32,7 @@ const NFTAutoDetectionModal = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const displayNftMedia = useSelector(selectDisplayNftMedia);
-  const { addTraitsToUser } = useAnalytics();
+  const { identify } = useAnalytics();
 
   const enableNftDetectionAndDismissModal = (value: boolean) => {
     if (value) {
@@ -48,7 +48,7 @@ const NFTAutoDetectionModal = () => {
           [UserProfileProperty.ENABLE_OPENSEA_API]: UserProfileProperty.ON,
         }),
       };
-      addTraitsToUser(traits);
+      identify(traits);
     }
 
     if (sheetRef?.current) {

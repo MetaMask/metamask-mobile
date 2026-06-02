@@ -1,10 +1,7 @@
 import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react-native';
-import {
-  type NativeSyntheticEvent,
-  type TextInputSelectionChangeEventData,
-} from 'react-native';
-import { CustomSlippageModal } from './CustomSlippageModal';
+import { type TextInputSelectionChangeEvent } from 'react-native';
+import { SwapCustomSlippageModal as CustomSlippageModal } from './SwapCustomSlippageModal';
 
 // Mock BottomSheet
 jest.mock(
@@ -34,9 +31,7 @@ jest.mock('../InputStepper', () => ({
       onDecrease: () => void;
       description: unknown;
       selection?: { start: number; end: number };
-      onSelectionChange?: (
-        event: NativeSyntheticEvent<TextInputSelectionChangeEventData>,
-      ) => void;
+      onSelectionChange?: (event: TextInputSelectionChangeEvent) => void;
     }) => {
       const ReactNative = jest.requireActual('react-native');
       const { View, Text, TouchableOpacity } = ReactNative;
@@ -144,19 +139,6 @@ jest.mock('react-redux', () => ({
     mockSelector(selector),
 }));
 
-// Mock i18n
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => {
-    const translations: Record<string, string> = {
-      'bridge.slippage': 'Slippage',
-      'bridge.cancel': 'Cancel',
-      'bridge.confirm': 'Confirm',
-      'bridge.close': 'Close',
-    };
-    return translations[key] || key;
-  }),
-}));
-
 import { useSlippageConfig } from '../../hooks/useSlippageConfig';
 import { useShouldDisableCustomSlippageConfirm } from '../../hooks/useShouldDisableCustomSlippageConfirm';
 import { useSlippageStepperDescription } from '../../hooks/useSlippageStepperDescription';
@@ -183,9 +165,7 @@ const mockInputStepper = InputStepper as jest.MockedFunction<
 >;
 const mockKeypad = Keypad as jest.MockedFunction<typeof Keypad>;
 
-const createSelectionEvent = (
-  start: number,
-): NativeSyntheticEvent<TextInputSelectionChangeEventData> =>
+const createSelectionEvent = (start: number): TextInputSelectionChangeEvent =>
   ({
     nativeEvent: {
       selection: {
@@ -193,7 +173,7 @@ const createSelectionEvent = (
         end: start,
       },
     },
-  }) as NativeSyntheticEvent<TextInputSelectionChangeEventData>;
+  }) as TextInputSelectionChangeEvent;
 
 describe('CustomSlippageModal', () => {
   const mockSlippageConfig = {

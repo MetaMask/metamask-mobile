@@ -14,6 +14,7 @@ import type {
 import Engine from '../../../../core/Engine';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectChainId } from '../../../../selectors/networkController';
+import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 
 /**
@@ -99,6 +100,7 @@ export function usePerpsCloseAllCalculations({
   const evmAccount = useSelector(selectSelectedAccountGroupEvmInternalAccount);
   const selectedAddress = evmAccount?.address;
   const currentChainId = useSelector(selectChainId);
+  const isVipProgramEnabled = useSelector(selectVipProgramEnabled);
 
   // Use ref to access latest priceData without triggering re-renders
   const priceDataRef = useRef(priceData);
@@ -164,6 +166,18 @@ export function usePerpsCloseAllCalculations({
     }
 
     async function fetchFeeDiscount() {
+      // Skip if VIP program is disabled
+      if (!isVipProgramEnabled) {
+        if (
+          discountFetchCounterRef.current === currentFetchId &&
+          isComponentMountedRef.current
+        ) {
+          setFeeDiscountBips(0);
+          hasValidDiscountRef.current = false;
+        }
+        return;
+      }
+
       // Skip if already have valid discount for this account (freeze guard)
       if (hasValidDiscountRef.current) {
         return;
@@ -240,7 +254,7 @@ export function usePerpsCloseAllCalculations({
     fetchFeeDiscount().catch((error) => {
       console.error('Unhandled error in fetchFeeDiscount:', error);
     });
-  }, [selectedAddress, currentChainId, positions]);
+  }, [selectedAddress, currentChainId, positions, isVipProgramEnabled]);
 
   // Per-position fee and rewards calculation
   // This ensures accurate coin-specific rewards calculation

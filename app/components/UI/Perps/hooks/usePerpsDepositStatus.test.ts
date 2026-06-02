@@ -198,6 +198,16 @@ describe('usePerpsDepositStatus', () => {
             ],
             hapticsType: NotificationMoment.Error,
           })),
+          withdrawalStartFailed: jest.fn(() => ({
+            variant: ToastVariants.Icon,
+            iconName: IconName.Warning,
+            hasNoTimeout: false,
+            labelOptions: [
+              { label: 'Something went wrong', isBold: true },
+              { label: 'Your withdrawal was not started' },
+            ],
+            hapticsType: NotificationMoment.Error,
+          })),
         },
       },
       // Add minimal stubs for other required properties

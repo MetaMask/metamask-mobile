@@ -233,7 +233,7 @@ describe('MoneyPotentialEarnings', () => {
       />,
     );
 
-    fireEvent.press(getByText(strings('money.potential_earnings.convert')));
+    fireEvent.press(getByText(strings('money.potential_earnings.add')));
 
     expect(onTokenPress).toHaveBeenCalledWith(MOCK_USDC);
   });
@@ -325,5 +325,60 @@ describe('MoneyPotentialEarnings', () => {
     // With apy=0 the projected multiplier is 0 so projectedFiatNumber is 0,
     // which fails isPositiveNumber and hides the "+$..." text in each token row.
     expect(queryByText(/^\+\$/)).not.toBeOnTheScreen();
+  });
+
+  describe('isNoFeeToken prop — "No fee" badge', () => {
+    it('renders the No fee badge on a token row when isNoFeeToken returns true', () => {
+      const { getByText } = render(
+        <MoneyPotentialEarnings
+          apy={4}
+          tokens={[MOCK_USDC]}
+          isNoFeeToken={() => true}
+        />,
+      );
+
+      expect(
+        getByText(strings('money.potential_earnings.no_fee')),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not render the No fee badge when isNoFeeToken returns false', () => {
+      const { queryByText } = render(
+        <MoneyPotentialEarnings
+          apy={4}
+          tokens={[MOCK_USDC]}
+          isNoFeeToken={() => false}
+        />,
+      );
+
+      expect(
+        queryByText(strings('money.potential_earnings.no_fee')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not render any No fee badge when isNoFeeToken is omitted', () => {
+      const { queryByText } = render(
+        <MoneyPotentialEarnings apy={4} tokens={[MOCK_USDC]} />,
+      );
+
+      expect(
+        queryByText(strings('money.potential_earnings.no_fee')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders No fee badge only on eligible token rows', () => {
+      const { getAllByText, queryByText } = render(
+        <MoneyPotentialEarnings
+          apy={4}
+          tokens={[MOCK_USDC, MOCK_USDT]}
+          isNoFeeToken={(token) => token.symbol === 'USDC'}
+        />,
+      );
+
+      expect(
+        getAllByText(strings('money.potential_earnings.no_fee')),
+      ).toHaveLength(1);
+      expect(queryByText('USDT')).toBeOnTheScreen();
+    });
   });
 });

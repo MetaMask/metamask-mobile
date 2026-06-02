@@ -3,9 +3,11 @@ import { fireEvent, render } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import TokenDetailsStickyFooter from './TokenDetailsStickyFooter';
 import {
+  AMBIENT_NEGATIVE_COLOR,
   STICKY_FOOTER_SWAP_LABEL_VARIANTS,
   StickyFooterSwapLabelVariant,
 } from './abTestConfig';
+import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 
@@ -52,8 +54,26 @@ jest.mock('./RwaUnavailableBottomSheet/RwaUnavailableBottomSheet', () => ({
 }));
 
 jest.mock('../../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../../util/theme');
-  return { useTheme: jest.fn(() => mockTheme) };
+  const actual = jest.requireActual('../../../../util/theme');
+  return { ...actual, useTheme: jest.fn(() => actual.mockTheme) };
+});
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const { View, Text } = jest.requireActual('react-native');
+  return {
+    ...actual,
+    Button: ({
+      testID,
+      children,
+      twClassName,
+      ...rest
+    }: Record<string, unknown>) => (
+      <View testID={testID} twClassName={twClassName} {...rest}>
+        <Text>{children}</Text>
+      </View>
+    ),
+  };
 });
 
 const mockOnBuy = jest.fn();
@@ -406,6 +426,150 @@ describe('TokenDetailsStickyFooter', () => {
     });
   });
 
+  describe('ambient price color A/B test', () => {
+    const ambientProps = {
+      ...defaultProps,
+      swapTestID: 'swap-btn',
+      buyTestID: 'buy-btn',
+    };
+
+    const defaultSuccessBg = `bg-[${LIGHT_MODE_SUCCESS_GREEN}]`;
+    const defaultSuccessBorder = `border-[${LIGHT_MODE_SUCCESS_GREEN}]`;
+
+    it('uses default success styles when useAmbientColor is false', () => {
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...ambientProps}
+          useAmbientColor={false}
+          isPricePositive={false}
+          balanceFiatUsd={50}
+        />,
+      );
+
+      const buyBtn = getByTestId('buy-btn');
+      expect(buyBtn.props.twClassName).toBe(defaultSuccessBg);
+    });
+
+    it('uses error accent on success button when useAmbientColor + negative price', () => {
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...ambientProps}
+          useAmbientColor
+          isPricePositive={false}
+          balanceFiatUsd={50}
+        />,
+      );
+
+      const buyBtn = getByTestId('buy-btn');
+      expect(buyBtn.props.twClassName).toBe(`bg-[${AMBIENT_NEGATIVE_COLOR}]`);
+    });
+
+    it('uses error accent on secondary button border when useAmbientColor + negative price', () => {
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...ambientProps}
+          useAmbientColor
+          isPricePositive={false}
+          balanceFiatUsd={50}
+        />,
+      );
+
+      const swapBtn = getByTestId('swap-btn');
+      expect(swapBtn.props.twClassName).toBe(
+        `bg-transparent border-[${AMBIENT_NEGATIVE_COLOR}]`,
+      );
+    });
+
+    it('uses default success styles when useAmbientColor + positive price', () => {
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...ambientProps}
+          useAmbientColor
+          isPricePositive
+          balanceFiatUsd={50}
+        />,
+      );
+
+      const buyBtn = getByTestId('buy-btn');
+      expect(buyBtn.props.twClassName).toBe(defaultSuccessBg);
+    });
+
+    it('uses default success styles when isPricePositive is null (not yet resolved)', () => {
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...ambientProps}
+          useAmbientColor
+          isPricePositive={null}
+          balanceFiatUsd={50}
+        />,
+      );
+
+      const buyBtn = getByTestId('buy-btn');
+      expect(buyBtn.props.twClassName).toBe(defaultSuccessBg);
+    });
+  });
+
+  describe('security interception - token.symbol fallback to token.name', () => {
+    it('passes token.name as tokenSymbol when symbol is missing', () => {
+      const tokenWithoutSymbol = {
+        ...mockToken,
+        symbol: '',
+        name: 'FakeToken',
+      } as unknown as TokenDetailsRouteParams;
+
+      const maliciousSecurityData = {
+        resultType: 'Malicious',
+        features: [],
+      } as unknown as TokenSecurityData;
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          token={tokenWithoutSymbol}
+          securityData={maliciousSecurityData}
+        />,
+      );
+
+      fireEvent.press(getByText('Buy'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          params: expect.objectContaining({
+            tokenSymbol: 'FakeToken',
+            description: expect.any(String),
+          }),
+        }),
+      );
+    });
+
+    it('passes token.symbol as tokenSymbol when symbol is present', () => {
+      const warningSecurityData = {
+        resultType: 'Warning',
+        features: [],
+      } as unknown as TokenSecurityData;
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          securityData={warningSecurityData}
+        />,
+      );
+
+      fireEvent.press(getByText('Buy'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          params: expect.objectContaining({
+            tokenSymbol: 'ETH',
+            description: expect.any(String),
+          }),
+        }),
+      );
+    });
+  });
+
   describe('RWA geo-restriction', () => {
     it('blocks the buy action when token is a geo-restricted stock', () => {
       mockIsStockToken.mockReturnValue(true);
@@ -456,6 +620,136 @@ describe('TokenDetailsStickyFooter', () => {
 
       fireEvent.press(getByText('Buy'));
 
+      expect(mockOnBuy).toHaveBeenCalled();
+    });
+  });
+
+  describe('onSwapPress and onBuyPress callback timing', () => {
+    it('calls onSwapPress only when navigation occurs (not geo-restricted)', () => {
+      const onSwapPress = jest.fn();
+      mockIsStockToken.mockReturnValue(false);
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          onSwapPress={onSwapPress}
+        />,
+      );
+
+      fireEvent.press(getByText('Swap'));
+
+      expect(onSwapPress).toHaveBeenCalled();
+      expect(mockOnSwap).toHaveBeenCalled();
+    });
+
+    it('does not call onSwapPress when geo-restricted', () => {
+      const onSwapPress = jest.fn();
+      mockIsStockToken.mockReturnValue(true);
+      (useSelector as jest.Mock).mockReturnValue('US');
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          onSwapPress={onSwapPress}
+        />,
+      );
+
+      fireEvent.press(getByText('Swap'));
+
+      expect(onSwapPress).not.toHaveBeenCalled();
+      expect(mockOnSwap).not.toHaveBeenCalled();
+    });
+
+    it('calls onBuyPress only when navigation occurs (not geo-restricted)', () => {
+      const onBuyPress = jest.fn();
+      mockIsStockToken.mockReturnValue(false);
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter {...defaultProps} onBuyPress={onBuyPress} />,
+      );
+
+      fireEvent.press(getByText('Buy'));
+
+      expect(onBuyPress).toHaveBeenCalled();
+      expect(mockOnBuy).toHaveBeenCalled();
+    });
+
+    it('does not call onBuyPress when geo-restricted', () => {
+      const onBuyPress = jest.fn();
+      mockIsStockToken.mockReturnValue(true);
+      (useSelector as jest.Mock).mockReturnValue('GB');
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter {...defaultProps} onBuyPress={onBuyPress} />,
+      );
+
+      fireEvent.press(getByText('Buy'));
+
+      expect(onBuyPress).not.toHaveBeenCalled();
+      expect(mockOnBuy).not.toHaveBeenCalled();
+    });
+
+    it('defers onSwapPress until onProceed for security warning modal', () => {
+      const onSwapPress = jest.fn();
+      mockIsStockToken.mockReturnValue(false);
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          onSwapPress={onSwapPress}
+          securityData={
+            {
+              resultType: 'Warning',
+              features: {},
+            } as TokenSecurityData
+          }
+        />,
+      );
+
+      fireEvent.press(getByText('Swap'));
+
+      // Neither callback fires when the warning modal is shown
+      expect(onSwapPress).not.toHaveBeenCalled();
+      expect(mockOnSwap).not.toHaveBeenCalled();
+
+      // Simulate user tapping "Proceed" inside the modal
+      const navigateCall = mockNavigate.mock.calls[0];
+      const onProceed = navigateCall[1].params.onProceed;
+      onProceed();
+
+      expect(onSwapPress).toHaveBeenCalled();
+      expect(mockOnSwap).toHaveBeenCalled();
+    });
+
+    it('defers onBuyPress until onProceed for security warning modal', () => {
+      const onBuyPress = jest.fn();
+      mockIsStockToken.mockReturnValue(false);
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          onBuyPress={onBuyPress}
+          securityData={
+            {
+              resultType: 'Spam',
+              features: {},
+            } as TokenSecurityData
+          }
+        />,
+      );
+
+      fireEvent.press(getByText('Buy'));
+
+      // Neither callback fires when the warning modal is shown
+      expect(onBuyPress).not.toHaveBeenCalled();
+      expect(mockOnBuy).not.toHaveBeenCalled();
+
+      // Simulate user tapping "Proceed" inside the modal
+      const navigateCall = mockNavigate.mock.calls[0];
+      const onProceed = navigateCall[1].params.onProceed;
+      onProceed();
+
+      expect(onBuyPress).toHaveBeenCalled();
       expect(mockOnBuy).toHaveBeenCalled();
     });
   });

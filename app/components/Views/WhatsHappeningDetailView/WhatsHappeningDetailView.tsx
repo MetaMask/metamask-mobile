@@ -33,9 +33,11 @@ import {
   type WhatsHappeningSourceValue,
 } from '../../UI/WhatsHappening/constants';
 import { getWhatsHappeningEventProps } from '../../UI/WhatsHappening/eventProperties';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorState from '../Homepage/components/ErrorState/ErrorState';
 import WhatsHappeningExpandedCard from './components/WhatsHappeningExpandedCard';
 import WhatsHappeningSourcesBottomSheet from './components/WhatsHappeningSourcesBottomSheet';
+import MarketInsightsDisclaimerBottomSheet from '../../UI/MarketInsights/components/MarketInsightsEntryCard/MarketInsightsDisclaimerBottomSheet';
 import PageIndicator from './components/PageIndicator';
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -80,6 +82,7 @@ const WhatsHappeningDetailView = () => {
     item: WhatsHappeningItem;
     cardIndex: number;
   } | null>(null);
+  const [isAIDisclaimerVisible, setIsAIDisclaimerVisible] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const hasScrolledToInitial = useRef(false);
 
@@ -101,6 +104,15 @@ const WhatsHappeningDetailView = () => {
   const handleSourcesClose = useCallback(() => {
     setSourcesContext(null);
   }, []);
+
+  const handleAIDisclaimerPress = useCallback(() => {
+    setIsAIDisclaimerVisible(true);
+  }, []);
+
+  const handleAIDisclaimerClose = useCallback(() => {
+    setIsAIDisclaimerVisible(false);
+  }, []);
+
   const hasTrackedOpenedRef = useRef(false);
   const hasTrackedViewRef = useRef(false);
   const previousIndexRef = useRef(initialIndex);
@@ -307,6 +319,7 @@ const WhatsHappeningDetailView = () => {
                       onSourcesPress={(articles) =>
                         handleSourcesPress(articles, item, index)
                       }
+                      onAIDisclaimerPress={handleAIDisclaimerPress}
                     />
                   ))}
               </ScrollView>
@@ -323,6 +336,11 @@ const WhatsHappeningDetailView = () => {
           item={sourcesContext.item}
           cardIndex={sourcesContext.cardIndex}
           source={source}
+        />
+      )}
+      {isAIDisclaimerVisible && (
+        <MarketInsightsDisclaimerBottomSheet
+          onClose={handleAIDisclaimerClose}
         />
       )}
     </SafeAreaView>
