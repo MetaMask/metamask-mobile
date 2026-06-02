@@ -6,7 +6,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { HardwareDeviceTypes } from '../../../../../constants/keyringTypes';
 import type { UseAnalyticsHook } from '../../../../../components/hooks/useAnalytics/useAnalytics.types';
 import {
-  getExpectedURTypes,
+  getExpectedUrTypes,
   sendQrHardwareErrorAnalytics,
   useCameraPermissionRefresh,
 } from './qrScannerUtils';
@@ -22,14 +22,14 @@ jest.mock('../../../../../core/QrKeyring/QrKeyring', () => ({
 
 describe('getExpectedURTypes', () => {
   it('returns pairing UR types for pair requests', () => {
-    expect(getExpectedURTypes(QrScanRequestType.PAIR)).toEqual([
+    expect(getExpectedUrTypes(QrScanRequestType.PAIR)).toEqual([
       SUPPORTED_UR_TYPE.CRYPTO_HDKEY,
       SUPPORTED_UR_TYPE.CRYPTO_ACCOUNT,
     ]);
   });
 
   it('returns signature UR type for sign requests', () => {
-    expect(getExpectedURTypes(QrScanRequestType.SIGN)).toEqual([
+    expect(getExpectedUrTypes(QrScanRequestType.SIGN)).toEqual([
       SUPPORTED_UR_TYPE.ETH_SIGNATURE,
     ]);
   });

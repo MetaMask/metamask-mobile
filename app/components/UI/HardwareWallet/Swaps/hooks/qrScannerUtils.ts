@@ -37,7 +37,7 @@ interface CameraPermissionRefreshOptions {
  * @param purpose - The QR scan request type.
  * @returns An array of expected UR type strings.
  */
-export function getExpectedURTypes(purpose: QrScanRequestType): string[] {
+export function getExpectedUrTypes(purpose: QrScanRequestType): string[] {
   if (purpose === QrScanRequestType.PAIR) {
     return [SUPPORTED_UR_TYPE.CRYPTO_HDKEY, SUPPORTED_UR_TYPE.CRYPTO_ACCOUNT];
   }

@@ -20,7 +20,7 @@ import {
   isSameScanError,
 } from '../../../QRHardware/AnimatedQRScanner.utils';
 import {
-  getExpectedURTypes,
+  getExpectedUrTypes,
   sendQrHardwareErrorAnalytics,
   useCameraPermissionRefresh,
 } from './qrScannerUtils';
@@ -83,7 +83,7 @@ export function useAnimatedQrScanner({
   const cameraDevice = useCameraDevice('back');
   const { hasPermission, requestPermission } = useCameraPermission();
 
-  const expectedURTypes = useMemo(() => getExpectedURTypes(purpose), [purpose]);
+  const expectedURTypes = useMemo(() => getExpectedUrTypes(purpose), [purpose]);
 
   useCameraPermissionRefresh({ isActive, hasPermission, requestPermission });
 
