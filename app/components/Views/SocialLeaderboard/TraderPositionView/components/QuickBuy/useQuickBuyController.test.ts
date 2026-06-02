@@ -475,10 +475,7 @@ describe('useQuickBuyController', () => {
       });
 
       const { result } = renderHook(() =>
-        useQuickBuyController(
-          positionToQuickBuyTarget(createPosition()),
-          jest.fn(),
-        ),
+        useQuickBuyController(createTarget(), jest.fn()),
       );
 
       act(() => {
@@ -505,10 +502,7 @@ describe('useQuickBuyController', () => {
       });
 
       const { result } = renderHook(() =>
-        useQuickBuyController(
-          positionToQuickBuyTarget(createPosition()),
-          jest.fn(),
-        ),
+        useQuickBuyController(createTarget(), jest.fn()),
       );
 
       act(() => {
