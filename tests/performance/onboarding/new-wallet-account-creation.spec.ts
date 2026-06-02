@@ -21,6 +21,7 @@ import OnboardingSuccessView from '../../page-objects/Onboarding/OnboardingSucce
 import {
   dismissOnboardingInterestQuestionnaire,
   dismisspredictionsModalPlaywright,
+  dismissPushNotificationExistingUserSheet,
 } from '../../flows/wallet.flow.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet.js';
@@ -61,11 +62,12 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
       );
       await MetaMetricsOptInView.tapAgreeButton();
       await dismissOnboardingInterestQuestionnaire();
+
       await PlaywrightAssertions.expectElementToBeVisible(
         await asPlaywrightElement(OnboardingSuccessView.doneButton),
       );
       await OnboardingSuccessView.tapDone();
-
+      await dismissPushNotificationExistingUserSheet();
       const productionFeatureFlags = await fetchProductionFeatureFlags(
         'main',
         testEnvironment,

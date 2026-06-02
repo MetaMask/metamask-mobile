@@ -53,8 +53,8 @@ const PerpsTradingCampaignStatsHeader: React.FC<
 }) => {
   const tw = useTailwind();
 
-  const isPending = position != null && !position.qualified;
-  const isQualified = position != null && position.qualified;
+  const isPending = position != null && !position.eligible;
+  const isQualified = position != null && position.eligible;
   const rank =
     position != null && Number.isFinite(position.rank) ? position.rank : null;
   const pnl =

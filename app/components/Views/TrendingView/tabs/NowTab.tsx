@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
@@ -18,18 +24,32 @@ import CryptoMoversPillItem from '../feeds/tokens/CryptoMoversPillItem';
 import CryptoMoversSkeleton from '../feeds/tokens/CryptoMoversSkeleton';
 import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import { TimeOption } from '../../../UI/Trending/components/TrendingTokensBottomSheet';
-import { usePerpsFeed, type PerpsFeedItem } from '../feeds/perps/usePerpsFeed';
+import {
+  filterAndSortByPriceChangeDirection,
+  PERPS_PRICE_CHANGE_SORT_DIRECTION,
+  usePerpsFeed,
+  type PerpsFeedItem,
+  type PerpsPriceChangeDirection,
+} from '../feeds/perps/usePerpsFeed';
 import PerpsSectionProvider from '../feeds/perps/PerpsSectionProvider';
 import PerpsPillItem from '../feeds/perps/PerpsPillItem';
 import { navigateToPerpsMarketList } from '../feeds/perps/perpsNavigation';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
 import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarouselSection';
-import { navigateToExplorePredictionsList } from '../feeds/predictions/predictionsNavigation';
-import { useStocksFeed } from '../feeds/stocks/useStocksFeed';
+import {
+  navigateToExplorePredictionsList,
+  navigateToExploreWorldCupPredictions,
+} from '../feeds/predictions/predictionsNavigation';
+import { useWorldCupPredictionsFeed } from '../feeds/predictions/useWorldCupPredictionsFeed';
+import {
+  STOCKS_FEED_PREVIEW_PAGE_SIZE,
+  useStocksFeed,
+} from '../feeds/stocks/useStocksFeed';
 import { getCaipChainIdFromAssetId } from '../../../UI/Trending/components/TrendingTokenRowItem/utils';
 import CardList from '../components/CardList';
 import ExploreScroll from '../components/ExploreScroll';
 import PillScrollList from '../components/PillScrollList';
+import PillRow, { type PillOption } from '../components/PillRow';
 import SectionHeader from '../components/SectionHeader';
 import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
@@ -50,11 +70,51 @@ interface PerpsBlockProps {
 }
 
 const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
+  const [activeMoverDirection, setActiveMoverDirection] =
+    useState<PerpsPriceChangeDirection>('gainers');
   const perps = usePerpsFeed({
     variant: 'all',
     refresh,
     withTileExtras: false,
   });
+
+  const moverPills: PillOption[] = [
+    {
+      key: 'gainers',
+      name: strings('trending.perps_movers_pill_gainers'),
+    },
+    {
+      key: 'losers',
+      name: strings('trending.perps_movers_pill_losers'),
+    },
+  ];
+
+  const handleMoverPillSelect = (key: string) => {
+    if (key === 'gainers' || key === 'losers') {
+      setActiveMoverDirection(key);
+    }
+  };
+
+  const data = useMemo<PerpsFeedItem[]>(() => {
+    const feedItemsBySymbol = new Map(
+      perps.data.map((item) => [item.market.symbol, item]),
+    );
+    const markets = filterAndSortByPriceChangeDirection(
+      perps.data.map((item) => item.market),
+      activeMoverDirection,
+    );
+    return markets
+      .map((market) => feedItemsBySymbol.get(market.symbol))
+      .filter((item): item is PerpsFeedItem => item !== undefined);
+  }, [activeMoverDirection, perps.data]);
+  const pillData =
+    data.length === 0 &&
+    perps.data.length > 0 &&
+    perps.data.every(({ market }) =>
+      Number.isNaN(parseFloat(market.change24hPercent)),
+    )
+      ? perps.data
+      : data;
 
   if (!perps.isLoading && perps.data.length === 0) return null;
 
@@ -67,14 +127,24 @@ const PerpsBlock: React.FC<PerpsBlockProps> = ({ refresh, navigation }) => {
             navigation,
             'all',
             perps.defaultSortOptionId,
+            {
+              sortDirection:
+                PERPS_PRICE_CHANGE_SORT_DIRECTION[activeMoverDirection],
+            },
           )
         }
         testID="section-header-view-all-perps"
         tabName="Now"
         sectionName="perps_movers"
       />
+      <PillRow
+        pills={moverPills}
+        activeKey={activeMoverDirection}
+        onSelect={handleMoverPillSelect}
+        testIdPrefix="perps-movers"
+      />
       <PillScrollList<PerpsFeedItem>
-        data={perps.data}
+        data={pillData}
         isLoading={perps.isLoading}
         renderItem={(item, index) => (
           <PerpsPillItem
@@ -122,13 +192,26 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
     whatsHappeningRef.current?.refresh();
   }, [refresh.trigger]);
 
-  const predictions = usePredictionsFeed({ refresh });
+  const worldCupPredictions = useWorldCupPredictionsFeed({
+    enabled: isPredictEnabled,
+    refresh,
+  });
+  const predictions = usePredictionsFeed({
+    refresh,
+    enabled: !worldCupPredictions.isEnabled,
+  });
+  const displayedPredictions = worldCupPredictions.isEnabled
+    ? worldCupPredictions
+    : predictions;
   const cryptoMovers = useTokensFeed({
     refresh,
     hideRiskyTokens: true,
     timeOption: CRYPTO_MOVERS_TIME_OPTION,
   });
-  const stocks = useStocksFeed({ refresh });
+  const stocks = useStocksFeed({
+    refresh,
+    pageSize: STOCKS_FEED_PREVIEW_PAGE_SIZE,
+  });
 
   const renderTokenItem: ListRenderItem<TrendingAsset> = useCallback(
     ({ item, index }) => (
@@ -169,13 +252,21 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const predictionsSection = (
     <PredictionsCarouselSection
       key="predictions"
-      feed={predictions}
+      feed={displayedPredictions}
       tabName="Now"
       sectionName="predictions_trending"
-      title={strings('wallet.predict')}
+      title={
+        worldCupPredictions.isEnabled
+          ? strings('predict.world_cup.predictions_title')
+          : strings('wallet.predict')
+      }
       testIdPrefix="predict-market-row-item"
       idPrefix="predictions"
-      onViewAll={() => navigateToExplorePredictionsList(navigation, 'trending')}
+      onViewAll={() =>
+        worldCupPredictions.isEnabled
+          ? navigateToExploreWorldCupPredictions(navigation)
+          : navigateToExplorePredictionsList(navigation, 'trending')
+      }
       isEnabled={isPredictEnabled}
     />
   );

@@ -24,6 +24,7 @@ jobs:
       source_branch: main
       environment: exp
       testflight_group: 'MetaMask BETA & Release Candidates'
+      distribute_external: true
     secrets: inherit
 
   ios-rc:
@@ -34,6 +35,7 @@ jobs:
       source_branch: main
       environment: rc
       testflight_group: 'MetaMask BETA & Release Candidates'
+      distribute_external: true
     secrets: inherit
 
   android-exp-generate:

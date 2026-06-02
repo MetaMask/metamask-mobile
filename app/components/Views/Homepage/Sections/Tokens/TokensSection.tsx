@@ -49,6 +49,7 @@ import TrendingTokensSkeleton from '../../../../UI/Trending/components/TrendingT
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
 import { useHomepageTrendingTransactionActiveAbTests } from '../../hooks/useHomepageTrendingTransactionActiveAbTests';
+import { selectMoneyHubEnabledFlag } from '../../../../UI/Money/selectors/featureFlags';
 
 interface TokensSectionProps {
   sectionIndex: number;
@@ -145,8 +146,10 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     const isMusdConversionFlowEnabled = useSelector(
       selectIsMusdConversionFlowEnabledFlag,
     );
+    const isMoneyHubEnabled = useSelector(selectMoneyHubEnabledFlag);
     const { isEligible: isGeoEligible } = useMusdConversionEligibility();
-    const isCashSectionEnabled = isMusdConversionFlowEnabled && isGeoEligible;
+    const isCashSectionEnabled =
+      isMoneyHubEnabled && isMusdConversionFlowEnabled && isGeoEligible;
 
     const title = titleOverride ?? strings('homepage.sections.tokens');
     const analyticsName = sectionNameOverride ?? HomeSectionNames.TOKENS;
