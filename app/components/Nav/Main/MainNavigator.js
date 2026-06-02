@@ -594,7 +594,7 @@ const SettingsFlow = () => {
       <Stack.Screen
         name="ManualBackupStep3"
         component={ManualBackupStep3}
-        options={ManualBackupStep3.navigationOptions}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="EnterPasswordSimple"
