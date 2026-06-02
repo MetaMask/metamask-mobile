@@ -16,11 +16,7 @@ export interface QuickBuyContextValue extends UseQuickBuyControllerResult {
   analyticsContext?: QuickBuyAnalyticsContext;
   onClose: () => void;
   activeScreen: QuickBuyScreen;
-  setActiveScreen: React.Dispatch<React.SetStateAction<QuickBuyScreen>>;
-  tradeMode: import('./types').QuickBuyTradeMode;
-  setTradeMode: React.Dispatch<
-    React.SetStateAction<import('./types').QuickBuyTradeMode>
-  >;
+  setActiveScreen: (screen: QuickBuyScreen) => void;
   /**
    * Called by the Buy button. When the high-price-impact modal feature is
    * enabled and the active quote exceeds the error threshold, this navigates
@@ -38,7 +34,7 @@ interface QuickBuyProviderProps {
   features: QuickBuyFeatures;
   analyticsContext?: QuickBuyAnalyticsContext;
   activeScreen: QuickBuyScreen;
-  setActiveScreen: React.Dispatch<React.SetStateAction<QuickBuyScreen>>;
+  setActiveScreen: (screen: QuickBuyScreen) => void;
   children: React.ReactNode;
 }
 

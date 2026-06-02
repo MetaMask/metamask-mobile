@@ -4,10 +4,16 @@ import {
   Box,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import type { LayoutChangeEvent } from 'react-native';
 import { ScrollView as GestureHandlerScrollView } from 'react-native-gesture-handler';
-import Animated from 'react-native-reanimated';
+import Animated, { useSharedValue } from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
 import { selectIsSubmittingTx } from '../../../../../../core/redux/slices/bridge';
 import QuickBuyAmountScreen from './QuickBuyAmountScreen';
@@ -26,6 +32,11 @@ import type {
   QuickBuyTarget,
 } from './types';
 import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
+import {
+  makeScreenTransitions,
+  SCREEN_DEPTH,
+  type ScreenDirection,
+} from './transitions';
 
 export type { QuickBuyRootProps } from './types';
 
@@ -79,6 +90,27 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
   const surfaceClass = useElevatedSurface();
 
+  const directionSV = useSharedValue<ScreenDirection>(1);
+  // Suppresses the enter animation on the initial screen when the sheet opens;
+  // transitions only kick in once the user navigates between screens.
+  const [hasNavigated, setHasNavigated] = useState(false);
+  const { entering, exiting } = useMemo(
+    () => makeScreenTransitions(directionSV),
+    [directionSV],
+  );
+
+  const navigateToScreen = useCallback(
+    (next: QuickBuyScreen) => {
+      setHasNavigated(true);
+      setActiveScreen((current) => {
+        directionSV.value =
+          SCREEN_DEPTH[next] >= SCREEN_DEPTH[current] ? 1 : -1;
+        return next;
+      });
+    },
+    [directionSV],
+  );
+
   useEffect(() => {
     bottomSheetRef.current?.onOpenBottomSheet(() => {
       setIsContentReady(true);
@@ -112,14 +144,21 @@ const QuickBuyRootInner: React.FC<QuickBuyRootInnerProps> = ({
           features={features}
           analyticsContext={analyticsContext}
           activeScreen={activeScreen}
-          setActiveScreen={setActiveScreen}
+          setActiveScreen={navigateToScreen}
         >
           <Box
             testID="quick-buy-content-container"
             onLayout={handleContentLayout}
             style={lockedHeight !== null ? { height: lockedHeight } : undefined}
           >
-            {renderActiveScreen(activeScreen, children)}
+            <Animated.View
+              key={activeScreen}
+              entering={hasNavigated ? entering : undefined}
+              exiting={exiting}
+              style={lockedHeight !== null ? tw.style('flex-1') : undefined}
+            >
+              {renderActiveScreen(activeScreen, children)}
+            </Animated.View>
           </Box>
         </QuickBuyProvider>
       ) : (
