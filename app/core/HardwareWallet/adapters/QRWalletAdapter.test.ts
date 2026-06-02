@@ -1,5 +1,9 @@
 import { QRWalletAdapter } from './QRWalletAdapter';
-import { HardwareWalletType, DeviceEvent } from '@metamask/hw-wallet-sdk';
+import {
+  HardwareWalletType,
+  DeviceEvent,
+  ErrorCode,
+} from '@metamask/hw-wallet-sdk';
 import { HardwareWalletAdapterOptions } from '../types';
 import { CAMERA_PERMISSION_STATUS } from '../../../constants/permissions';
 
@@ -136,7 +140,7 @@ describe('QRWalletAdapter', () => {
     it('returns true when camera permission is granted (QR wallets are always ready)', async () => {
       const result = await adapter.ensureDeviceReady('qr-account-address');
 
-      expect(result).toBe(true);
+      expect(result).toEqual({ ready: true });
       expect(onDeviceEvent).not.toHaveBeenCalled();
     });
 
@@ -157,7 +161,10 @@ describe('QRWalletAdapter', () => {
 
       const result = await adapter.ensureDeviceReady('qr-account-address');
 
-      expect(result).toBe(false);
+      expect(result).toEqual({
+        ready: false,
+        errorCode: ErrorCode.PermissionCameraDenied,
+      });
       expect(mockRequestCameraPermission).toHaveBeenCalledTimes(1);
       expect(adapter.getConnectedDeviceId()).toBeNull();
       expect(adapter.isConnected()).toBe(false);
@@ -180,7 +187,10 @@ describe('QRWalletAdapter', () => {
 
       const result = await adapter.ensureDeviceReady('qr-account-address');
 
-      expect(result).toBe(false);
+      expect(result).toEqual({
+        ready: false,
+        errorCode: ErrorCode.PermissionCameraDenied,
+      });
       expect(mockRequestCameraPermission).toHaveBeenCalledTimes(1);
       expect(adapter.getConnectedDeviceId()).toBeNull();
       expect(adapter.isConnected()).toBe(false);

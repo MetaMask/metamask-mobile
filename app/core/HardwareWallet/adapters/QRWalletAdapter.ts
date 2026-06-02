@@ -9,6 +9,7 @@ import {
   DiscoveredDevice,
   HardwareWalletAdapter,
   HardwareWalletAdapterOptions,
+  DeviceReadinessResult,
 } from '../types';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 import { CAMERA_PERMISSION_STATUS } from '../../../constants/permissions';
@@ -96,7 +97,7 @@ export class QRWalletAdapter implements HardwareWalletAdapter {
    * For QR wallets, device readiness requires camera permission.
    * This requests permission for non-granted statuses and emits an error if still denied.
    */
-  async ensureDeviceReady(deviceId: string): Promise<boolean> {
+  async ensureDeviceReady(deviceId: string): Promise<DeviceReadinessResult> {
     if (this.#isDestroyed) {
       throw new Error('Adapter has been destroyed');
     }
@@ -106,7 +107,7 @@ export class QRWalletAdapter implements HardwareWalletAdapter {
     // Check camera permission first
     const hasPermission = await this.#checkCameraPermission();
     if (!hasPermission) {
-      return false;
+      return { ready: false, errorCode: ErrorCode.PermissionCameraDenied };
     }
 
     // Store the device ID
@@ -115,7 +116,7 @@ export class QRWalletAdapter implements HardwareWalletAdapter {
 
     DevLogger.log('[QRWalletAdapter] Device is ready');
 
-    return true;
+    return { ready: true };
   }
 
   // ============ Flow State Management ============

@@ -4,6 +4,10 @@ import {
   ErrorCode,
 } from '@metamask/hw-wallet-sdk';
 
+export type DeviceReadinessResult =
+  | { ready: true }
+  | { ready: false; errorCode: ErrorCode };
+
 /**
  * Options for creating a hardware wallet adapter
  */
@@ -52,7 +56,7 @@ export interface HardwareWalletAdapter {
    * @param deviceId - The device identifier
    * @returns true if device is ready, false otherwise
    */
-  ensureDeviceReady(deviceId: string): Promise<boolean>;
+  ensureDeviceReady(deviceId: string): Promise<DeviceReadinessResult>;
 
   /**
    * Check if a device is currently connected

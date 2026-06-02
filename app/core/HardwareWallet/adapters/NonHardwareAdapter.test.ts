@@ -27,7 +27,7 @@ describe('NonHardwareAdapter', () => {
   describe('ensureDeviceReady', () => {
     it('returns true immediately', async () => {
       const result = await adapter.ensureDeviceReady('any-device-id');
-      expect(result).toBe(true);
+      expect(result).toEqual({ ready: true });
     });
 
     it('does not call any callbacks', async () => {

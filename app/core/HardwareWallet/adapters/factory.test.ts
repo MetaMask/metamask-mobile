@@ -69,7 +69,7 @@ describe('createAdapter', () => {
   it('NonHardwareAdapter ensureDeviceReady returns true', async () => {
     const adapter = createAdapter(null, mockOptions);
     const result = await adapter.ensureDeviceReady('any-device-id');
-    expect(result).toBe(true);
+    expect(result).toEqual({ ready: true });
   });
 });
 

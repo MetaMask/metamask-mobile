@@ -5,6 +5,7 @@ import {
   DiscoveredDevice,
   HardwareWalletAdapter,
   HardwareWalletAdapterOptions,
+  DeviceReadinessResult,
 } from '../types';
 
 /**
@@ -33,8 +34,8 @@ export class NonHardwareAdapter implements HardwareWalletAdapter {
     return null;
   }
 
-  async ensureDeviceReady(_deviceId: string): Promise<boolean> {
-    return true;
+  async ensureDeviceReady(_deviceId: string): Promise<DeviceReadinessResult> {
+    return { ready: true };
   }
 
   isConnected(): boolean {

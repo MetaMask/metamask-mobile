@@ -20,6 +20,7 @@ import {
   DiscoveredDevice,
   HardwareWalletAdapter,
   HardwareWalletAdapterOptions,
+  DeviceReadinessResult,
 } from '../types';
 import {
   connectLedgerHardware,
@@ -375,7 +376,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
    * @param deviceId - The device ID to connect to
    * @returns true if device is ready, false otherwise
    */
-  async ensureDeviceReady(deviceId: string): Promise<boolean> {
+  async ensureDeviceReady(deviceId: string): Promise<DeviceReadinessResult> {
     if (this.#isDestroyed) {
       throw new Error('Adapter has been destroyed');
     }
@@ -407,11 +408,11 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
       }
     }
 
-    return false;
+    return { ready: false, errorCode: ErrorCode.DeviceUnresponsive };
   }
 
   /** Internal readiness check, called by ensureDeviceReady's retry loop. */
-  async #doEnsureDeviceReady(deviceId: string): Promise<boolean> {
+  async #doEnsureDeviceReady(deviceId: string): Promise<DeviceReadinessResult> {
     if (!this.isConnected() || this.#deviceId !== deviceId) {
       DevLogger.log('[LedgerBluetoothAdapter] Connecting first...');
       await this.connect(deviceId);
@@ -419,7 +420,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
 
     if (!this.#transport) {
       DevLogger.log('[LedgerBluetoothAdapter] No transport after connect');
-      return false;
+      return { ready: false, errorCode: ErrorCode.DeviceUnresponsive };
     }
 
     try {
@@ -445,7 +446,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
       }
 
       await this.#handleWrongApp(currentAppName);
-      return false;
+      return { ready: false, errorCode: ErrorCode.DeviceStateEthAppClosed };
     } catch (error) {
       DevLogger.log(
         '[LedgerBluetoothAdapter] doEnsureDeviceReady error:',
@@ -467,7 +468,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
    * Verify the Ethereum app is unlocked by requesting an address.
    * Rethrows transient BLE errors to allow retry in ensureDeviceReady.
    */
-  async #verifyEthereumAppUnlocked(): Promise<boolean> {
+  async #verifyEthereumAppUnlocked(): Promise<DeviceReadinessResult> {
     DevLogger.log(
       '[LedgerBluetoothAdapter] Ethereum app detected, verifying unlocked...',
     );
@@ -489,7 +490,7 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
         event: DeviceEvent.AppOpened,
         currentAppName: 'Ethereum',
       });
-      return true;
+      return { ready: true };
     } catch (verifyError) {
       DevLogger.log(
         '[LedgerBluetoothAdapter] Verification failed:',
@@ -506,8 +507,12 @@ export class LedgerBluetoothAdapter implements HardwareWalletAdapter {
           event: DeviceEvent.DeviceLocked,
           error: this.#toError(verifyError),
         });
+        return {
+          ready: false,
+          errorCode: ErrorCode.AuthenticationDeviceLocked,
+        };
       }
-      return false;
+      return { ready: false, errorCode: ErrorCode.DeviceUnresponsive };
     }
   }
 
