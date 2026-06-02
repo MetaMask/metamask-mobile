@@ -88,7 +88,7 @@ export function isBailedOrderStatus(
  * - 'homeTokenList': Home → (token list with Buy buttons) → Buy
  * - undefined: Home → Buy → Token Selection → BuildQuote (standard flow)
  */
-export type BuyFlowOrigin = 'tokenInfo' | 'homeTokenList';
+export type BuyFlowOrigin = 'tokenInfo' | 'homeTokenList' | 'cardHome';
 
 export interface BuildQuoteParams {
   assetId?: string;
