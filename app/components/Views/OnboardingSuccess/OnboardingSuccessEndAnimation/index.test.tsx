@@ -120,6 +120,7 @@ describe('OnboardingSuccessEndAnimation', () => {
     mockRiveRef = {
       setInputState: mockSetInputState,
       fireState: jest.fn(),
+      stop: jest.fn(),
     } as unknown;
 
     const { unmount } = render(
@@ -131,5 +132,23 @@ describe('OnboardingSuccessEndAnimation', () => {
     jest.advanceTimersByTime(100);
 
     expect(mockSetInputState).not.toHaveBeenCalled();
+  });
+
+  it('stops Rive animation on unmount', () => {
+    const mockStop = jest.fn();
+
+    mockRiveRef = {
+      setInputState: jest.fn(),
+      fireState: jest.fn(),
+      stop: mockStop,
+    } as unknown;
+
+    const { unmount } = render(
+      <OnboardingSuccessEndAnimation onAnimationComplete={jest.fn()} />,
+    );
+
+    unmount();
+
+    expect(mockStop).toHaveBeenCalledTimes(1);
   });
 });

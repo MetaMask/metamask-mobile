@@ -26,6 +26,17 @@ const OnboardingSuccessEndAnimation: React.FC<
 
   const { screenWidth, screenHeight, animationHeight } = getScreenDimensions();
 
+  useEffect(
+    () => () => {
+      try {
+        riveRef.current?.stop();
+      } catch {
+        // Native view may already be torn down on unmount
+      }
+    },
+    [],
+  );
+
   useEffect(() => {
     if (isE2E) return;
     const timeoutId = setTimeout(() => {
