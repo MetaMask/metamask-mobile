@@ -1,7 +1,5 @@
 import React, { useRef, useCallback } from 'react';
 import { Image } from 'react-native';
-import MaskedView from '@react-native-masked-view/masked-view';
-import LinearGradient from 'react-native-linear-gradient';
 import {
   Theme,
   useTailwind,
@@ -10,6 +8,7 @@ import {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import {
   Box,
   Button,
@@ -36,22 +35,15 @@ interface NotifCardProps {
   timestamp: string;
   title: string;
   message: string;
-  faded?: boolean;
 }
 
-function NotifCard({
-  eyebrow,
-  timestamp,
-  title,
-  message,
-  faded,
-}: NotifCardProps) {
+function NotifCard({ eyebrow, timestamp, title, message }: NotifCardProps) {
   const tw = useTailwind();
   const theme = useTheme();
   const cardBackgroundClass =
     theme === Theme.Light ? 'bg-section' : 'bg-subsection';
 
-  const card = (
+  return (
     <Box
       twClassName={`flex-row items-start gap-3 rounded-[14px] border border-muted ${cardBackgroundClass} px-[14px] py-3`}
     >
@@ -80,24 +72,6 @@ function NotifCard({
       </Box>
     </Box>
   );
-
-  if (!faded) {
-    return card;
-  }
-
-  return (
-    <MaskedView
-      maskElement={
-        <LinearGradient
-          colors={['black', 'black', 'transparent']}
-          locations={[0, 0.33, 1]}
-          style={tw.style('flex-1')}
-        />
-      }
-    >
-      {card}
-    </MaskedView>
-  );
 }
 
 const NewUserSheet: React.FC<NewUserSheetProps> = ({
@@ -118,6 +92,10 @@ const NewUserSheet: React.FC<NewUserSheetProps> = ({
     bottomSheetRef.current.onCloseBottomSheet(callback);
   }, []);
 
+  const handleClose = useCallback(() => {
+    bottomSheetRef.current?.onCloseBottomSheet();
+  }, []);
+
   const handleYes = useCallback(() => {
     closeWithAction(onYes);
   }, [closeWithAction, onYes]);
@@ -135,8 +113,14 @@ const NewUserSheet: React.FC<NewUserSheetProps> = ({
       onClose={onClose}
       testID={testID ?? NewUserSheetSelectorsIDs.CONTAINER}
     >
-      <Box twClassName="px-6 pb-8 pt-6">
-        <Box twClassName="mb-6 gap-2">
+      <BottomSheetHeader
+        onClose={handleClose}
+        closeButtonProps={{
+          testID: NewUserSheetSelectorsIDs.CLOSE_BUTTON,
+        }}
+      />
+      <Box twClassName="px-6 pb-8">
+        <Box twClassName="mb-6 items-center">
           <NotifCard
             eyebrow={strings(
               'notifications.push_onboarding.new_user.preview_card_1.eyebrow',
@@ -150,21 +134,6 @@ const NewUserSheet: React.FC<NewUserSheetProps> = ({
             message={strings(
               'notifications.push_onboarding.new_user.preview_card_1.message',
             )}
-          />
-          <NotifCard
-            eyebrow={strings(
-              'notifications.push_onboarding.new_user.preview_card_2.eyebrow',
-            )}
-            timestamp={strings(
-              'notifications.push_onboarding.new_user.preview_card_2.time',
-            )}
-            title={strings(
-              'notifications.push_onboarding.new_user.preview_card_2.title',
-            )}
-            message={strings(
-              'notifications.push_onboarding.new_user.preview_card_2.message',
-            )}
-            faded
           />
         </Box>
 
@@ -184,7 +153,7 @@ const NewUserSheet: React.FC<NewUserSheetProps> = ({
           {strings('notifications.push_onboarding.new_user.body')}
         </Text>
 
-        <Box twClassName="gap-3">
+        <Box twClassName="gap-2">
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
@@ -196,11 +165,10 @@ const NewUserSheet: React.FC<NewUserSheetProps> = ({
             {strings('notifications.push_onboarding.new_user.button_yes')}
           </Button>
           <Button
-            variant={ButtonVariant.Secondary}
+            variant={ButtonVariant.Tertiary}
             size={ButtonSize.Lg}
             isFullWidth
             onPress={handleNotNow}
-            twClassName="rounded-xl"
             testID={NewUserSheetSelectorsIDs.BUTTON_NOT_NOW}
           >
             {strings('notifications.push_onboarding.new_user.button_not_now')}

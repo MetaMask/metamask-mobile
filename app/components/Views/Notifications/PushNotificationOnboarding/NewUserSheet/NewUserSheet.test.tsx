@@ -25,20 +25,6 @@ jest.mock(
   },
 );
 
-jest.mock('@react-native-masked-view/masked-view', () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const MockMaskedView = ({ children }: any) => children;
-  MockMaskedView.displayName = 'MaskedView';
-  return { __esModule: true, default: MockMaskedView };
-});
-
-jest.mock('react-native-linear-gradient', () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const MockLinearGradient = ({ children }: any) => children;
-  MockLinearGradient.displayName = 'LinearGradient';
-  return { __esModule: true, default: MockLinearGradient };
-});
-
 describe('NewUserSheet', () => {
   const mockOnClose = jest.fn();
   const defaultProps = { isVisible: true, onClose: mockOnClose };
@@ -68,8 +54,8 @@ describe('NewUserSheet', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders both preview notification cards', () => {
-    const { getByText } = renderWithProvider(
+  it('renders a single preview notification card', () => {
+    const { getByText, queryByText } = renderWithProvider(
       <NewUserSheet {...defaultProps} />,
     );
     expect(
@@ -77,14 +63,18 @@ describe('NewUserSheet', () => {
         strings('notifications.push_onboarding.new_user.preview_card_1.title'),
       ),
     ).toBeOnTheScreen();
-    expect(
-      getByText(
-        strings('notifications.push_onboarding.new_user.preview_card_2.title'),
-      ),
-    ).toBeOnTheScreen();
+    expect(queryByText('Received 0.25 ETH')).toBeNull();
   });
 
-  it('closes the sheet before calling onYes when Yes is pressed', () => {
+  it('closes the sheet when the close button is pressed', () => {
+    const { getByTestId } = renderWithProvider(
+      <NewUserSheet {...defaultProps} />,
+    );
+    fireEvent.press(getByTestId(NewUserSheetSelectorsIDs.CLOSE_BUTTON));
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+  });
+
+  it('closes the sheet before calling onYes when Enable notifications is pressed', () => {
     const mockOnYes = jest.fn();
     const { getByTestId } = renderWithProvider(
       <NewUserSheet {...defaultProps} onYes={mockOnYes} />,
