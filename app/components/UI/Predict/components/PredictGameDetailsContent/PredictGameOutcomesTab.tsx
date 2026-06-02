@@ -358,7 +358,8 @@ const SubgroupCards = memo(
     const firstOutcomeTitle = subgroup.outcomes[0]
       ? formatOutcomeCardTitle(subgroup.outcomes[0])
       : undefined;
-    const title = getSportsMarketTypeLabel(subgroup.key, firstOutcomeTitle);
+    const title =
+      translatedTitle ?? firstOutcomeTitle ?? toTitleCase(subgroup.key);
     const testID = `${groupKey}-${subgroup.key}-${index}`;
 
     if (
