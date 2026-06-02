@@ -143,7 +143,7 @@ describe('AgenticCliDashboardWebview', () => {
     const { getByTestId, unmount } = render(<AgenticCliDashboardWebview />);
 
     await waitFor(() =>
-      expect(getByTestId('agentic-dashboard-webview')).toBeTruthy(),
+      expect(getByTestId('agentic-dashboard-webview')).toBeOnTheScreen(),
     );
 
     expect(mockSetOptions).toHaveBeenCalledWith(

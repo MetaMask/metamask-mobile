@@ -140,8 +140,10 @@ describe('SDKConnectV2OtpModal', () => {
   it('renders a formatted OTP and caps the visible countdown at one minute', () => {
     const { getByTestId, getByText } = render(<SDKConnectV2OtpModal />);
 
-    expect(getByTestId(SDKConnectV2OtpModalSelectors.CONTAINER)).toBeTruthy();
-    expect(getByText('Link MetaMask Agent CLI')).toBeTruthy();
+    expect(
+      getByTestId(SDKConnectV2OtpModalSelectors.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(getByText('Link MetaMask Agent CLI')).toBeOnTheScreen();
     expect(
       getByTestId(SDKConnectV2OtpModalSelectors.OTP_CODE),
     ).toHaveTextContent('4892–AKJ7');
