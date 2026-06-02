@@ -49,9 +49,9 @@ async function handleEthereumUrl({
       return;
     }
 
-    // eth-url-parser returns large uint256 values in scientific notation
-    // (e.g. "1e+21"), which downstream BigNumber parsing rejects. Convert
-    // it to a full decimal string before forwarding. See issue #23672.
+    // eth-url-parser serialises large uint256 values in scientific notation
+    // (e.g. "1e+21"). Convert to a plain decimal string via bignumber.js so
+    // that downstream toHex calls don't throw. See issue #23672.
     if (ethUrl.parameters?.uint256) {
       ethUrl.parameters.uint256 = formattedDeeplinkParsedValue(
         ethUrl.parameters.uint256,

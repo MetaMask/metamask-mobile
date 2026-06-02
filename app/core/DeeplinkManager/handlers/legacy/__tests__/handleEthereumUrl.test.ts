@@ -389,59 +389,23 @@ describe('handleEthereumUrl', () => {
     expect(mockSetActiveNetwork).toHaveBeenCalledWith(MAINNET);
   });
 
-  // Regression tests for https://github.com/MetaMask/metamask-mobile/issues/23672
-  // Large uint256 values from EIP-681 deeplinks (e.g. 1000 tokens with 18
-  // decimals = 10^21) are returned by eth-url-parser in scientific notation
-  // ("1e+21"). When forwarded unchanged, downstream BigNumber parsing throws
-  // "invalid BigNumber string", which is swallowed and surfaced to the user as a
-  // generic "Network not found" error.
-  describe('large uint256 values in scientific notation (issue #23672)', () => {
-    // The exact EIP-681 deeplink from the bug report: transfer of 1000 tokens
-    // with 18 decimals (10^21) on Polygon (chain 137).
-    const EIP681_URL =
-      'ethereum:0xE7C3D8C9a439feDe00D2600032D5dB0Be71C3c29@137/transfer?address=0xacdba8db799eff1e83b6aa95b493790f7a3df86b&uint256=1000000000000000000000';
-    const SCIENTIFIC_NOTATION_REGEX = /e\+?\d+/i;
-
-    it('documents the root cause: the real eth-url-parser emits scientific notation', () => {
-      // Use the actual implementation rather than the module-level mock so we
-      // capture eth-url-parser's real output for the bug-report URL.
-      const { parse: realParse } = jest.requireActual('eth-url-parser');
-
-      const parsed = realParse(EIP681_URL);
-
-      // eth-url-parser collapses 10^21 to "1e+21" via bignumber.js toString().
-      expect(parsed.parameters.uint256).toBe('1e+21');
+  // Regression test for https://github.com/MetaMask/metamask-mobile/issues/23672
+  it('sanitizes scientific notation uint256 before forwarding to addTransactionForDeeplink', () => {
+    mockIsDeeplinkRedesignedConfirmationCompatible.mockReturnValue(true);
+    mockParse.mockReturnValue({
+      function_name: ETH_ACTIONS.TRANSFER,
+      target_address: '0xE7C3D8C9a439feDe00D2600032D5dB0Be71C3c29',
+      chain_id: '137',
+      parameters: {
+        address: '0xacdba8db799eff1e83b6aa95b493790f7a3df86b',
+        uint256: '1e+21',
+      },
     });
 
-    it('forwards a decimal (non scientific-notation) uint256 to addTransactionForDeeplink', () => {
-      const url = EIP681_URL;
-      const origin = 'test_origin';
+    handleEthereumUrl({ url: 'ethereum:transfer', origin: 'test_origin' });
 
-      // TRANSFER is always routed through addTransactionForDeeplink in practice.
-      mockIsDeeplinkRedesignedConfirmationCompatible.mockReturnValue(true);
-
-      // Mimic eth-url-parser returning the large value in scientific notation.
-      mockParse.mockReturnValue({
-        function_name: ETH_ACTIONS.TRANSFER,
-        target_address: '0xE7C3D8C9a439feDe00D2600032D5dB0Be71C3c29',
-        chain_id: '137',
-        parameters: {
-          address: '0xacdba8db799eff1e83b6aa95b493790f7a3df86b',
-          uint256: '1e+21',
-        },
-      });
-
-      handleEthereumUrl({ url, origin });
-
-      expect(mockAddTransactionForDeeplink).toHaveBeenCalledTimes(1);
-
-      const calledWith = mockAddTransactionForDeeplink.mock.calls[0][0];
-
-      // The value forwarded downstream must be a plain decimal string so that
-      // ethers/BigNumber can parse it. If it is still "1e+21", the bug persists
-      // and this assertion fails.
-      expect(calledWith.parameters.uint256).not.toMatch(SCIENTIFIC_NOTATION_REGEX);
-      expect(calledWith.parameters.uint256).toBe('1000000000000000000000');
-    });
+    const forwardedUint256 =
+      mockAddTransactionForDeeplink.mock.calls[0][0].parameters?.uint256;
+    expect(forwardedUint256).toBe('1000000000000000000000');
   });
 });
