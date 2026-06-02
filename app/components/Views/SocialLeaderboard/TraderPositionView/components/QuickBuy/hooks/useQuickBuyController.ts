@@ -306,13 +306,24 @@ export function useQuickBuyController(
     balance: sourceToken?.balance,
   });
 
+  // Used for analytics passed to useQuickBuyQuotes. Must derive from
+  // quotedUsdAmount (not usdAmount) so that mid-drag display updates don't
+  // recreate quotesAnalyticsContext and trigger spurious quote re-fetches.
+  const quotedUsdAmountNumber = useMemo(() => {
+    const v = Number(quotedUsdAmount);
+    return Number.isFinite(v) ? v : 0;
+  }, [quotedUsdAmount]);
+  // Derives from usdAmount for handleConfirm (the confirm button is disabled
+  // when usdAmount !== quotedUsdAmount, so by the time confirm is pressed they
+  // are always equal — keeping separate avoids recreating handleConfirm on
+  // every drag tick).
   const usdAmountNumber = useMemo(() => {
     const v = Number(usdAmount);
     return Number.isFinite(v) ? v : 0;
   }, [usdAmount]);
   const quotesAnalyticsContext = useMemo(
-    () => ({ traderAddress, caip19, amountUsd: usdAmountNumber }),
-    [traderAddress, caip19, usdAmountNumber],
+    () => ({ traderAddress, caip19, amountUsd: quotedUsdAmountNumber }),
+    [traderAddress, caip19, quotedUsdAmountNumber],
   );
 
   const {

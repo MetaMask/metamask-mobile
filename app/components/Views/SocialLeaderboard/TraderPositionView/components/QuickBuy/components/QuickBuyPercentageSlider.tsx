@@ -91,20 +91,22 @@ export function QuickBuyPercentageSlider({
 
   /**
    * Commit the final value when the user lifts their finger (pan end or tap).
-   * This is separate from updateValueFromPosition so that quote re-fetching
-   * is only triggered once per gesture, not on every 1% tick during drag.
+   * Only calls onDragEnd — no onValueChange fallback needed here because:
+   * - For Pan: onValueChange was already called on the last onUpdate tick.
+   * - For Tap: updateValueFromPosition already called onValueChange.
+   * Consumers that omit onDragEnd rely solely on onValueChange (already fired).
    */
   const commitFromPosition = useCallback(
     (position: number, width: number) => {
-      if (width === 0 || disabled) return;
+      if (width === 0 || disabled || !onDragEnd) return;
       const clampedPosition = Math.max(0, Math.min(position, width));
       const nextValue = Math.max(
         0,
         Math.min(100, Math.round((clampedPosition / width) * 100)),
       );
-      (onDragEnd ?? onValueChange)(nextValue);
+      onDragEnd(nextValue);
     },
-    [disabled, onDragEnd, onValueChange],
+    [disabled, onDragEnd],
   );
 
   const handleLayout = useCallback(
@@ -161,7 +163,7 @@ export function QuickBuyPercentageSlider({
       if (nextValue !== value) {
         checkThresholdCrossing(nextValue);
         onValueChange(nextValue);
-        (onDragEnd ?? onValueChange)(nextValue);
+        onDragEnd?.(nextValue);
       }
     },
     [onValueChange, onDragEnd, checkThresholdCrossing, value],
