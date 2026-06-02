@@ -104,6 +104,8 @@ export interface UseQuickBuyControllerResult {
   // trade mode
   tradeMode: QuickBuyTradeMode;
   setTradeMode: React.Dispatch<React.SetStateAction<QuickBuyTradeMode>>;
+  /** True when the user holds a non-zero balance of the position token (sell is viable). */
+  hasSellableBalance: boolean;
   // active quote (for QuoteDetails sub-screen)
   activeQuote: EnrichedQuickBuyQuote | undefined;
   // setup
@@ -517,8 +519,11 @@ export function useQuickBuyController(
   const maxSpendUsd = sourceBalanceFiatUsd;
 
   const formattedExchangeRate = useMemo(
-    () => formatExchangeRate(destToken, sourceToken),
-    [destToken, sourceToken],
+    () =>
+      tradeMode === 'sell'
+        ? formatExchangeRate(sourceToken, destToken)
+        : formatExchangeRate(destToken, sourceToken),
+    [destToken, sourceToken, tradeMode],
   );
 
   const metamaskFeePercent = useMemo(
@@ -888,6 +893,7 @@ export function useQuickBuyController(
     hiddenInputRef,
     tradeMode,
     setTradeMode,
+    hasSellableBalance: positionToken !== undefined,
     activeQuote,
     destToken,
     isSetupLoading,

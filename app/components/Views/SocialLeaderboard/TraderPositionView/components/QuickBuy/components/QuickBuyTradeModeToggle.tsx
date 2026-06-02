@@ -19,7 +19,7 @@ interface QuickBuyTradeModeToggleProps {
 const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
   testID = 'quick-buy-trade-mode-toggle',
 }) => {
-  const { tradeMode, setTradeMode } = useQuickBuyContext();
+  const { tradeMode, setTradeMode, hasSellableBalance } = useQuickBuyContext();
 
   const handlePress = (mode: QuickBuyTradeMode) => {
     if (tradeMode !== mode) {
@@ -56,12 +56,16 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
 
       <TouchableOpacity
         onPress={() => handlePress('sell')}
+        disabled={!hasSellableBalance}
         accessibilityRole="button"
-        accessibilityState={{ selected: tradeMode === 'sell' }}
+        accessibilityState={{
+          selected: tradeMode === 'sell',
+          disabled: !hasSellableBalance,
+        }}
         testID="quick-buy-trade-mode-sell"
       >
         <Box
-          twClassName={`rounded-[10px] px-3 py-1 ${tradeMode === 'sell' ? 'bg-muted' : ''}`}
+          twClassName={`rounded-[10px] px-3 py-1 ${tradeMode === 'sell' ? 'bg-muted' : ''} ${!hasSellableBalance ? 'opacity-40' : ''}`}
         >
           <Text
             variant={TextVariant.BodySm}

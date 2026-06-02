@@ -84,7 +84,7 @@ const QuickBuyActionFooter: React.FC = () => {
       >
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {tradeMode === 'sell'
-            ? strings('social_leaderboard.quick_buy.receive_with')
+            ? strings('social_leaderboard.quick_buy.receive')
             : strings('social_leaderboard.quick_buy.pay_with')}
         </Text>
 

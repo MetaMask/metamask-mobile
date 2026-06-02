@@ -196,6 +196,7 @@ const buildHookResult = (
   handleSelectSourceToken: jest.fn(),
   tradeMode: 'buy' as const,
   setTradeMode: jest.fn(),
+  hasSellableBalance: false,
   sellDestTokenOptions: [],
   selectedDestStable: undefined,
   handleSelectDestStable: jest.fn(),

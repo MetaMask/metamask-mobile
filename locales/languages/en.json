@@ -1130,7 +1130,7 @@
       "pay_with_filter_all": "All",
       "buy_label": "Buy",
       "sell_label": "Sell",
-      "receive_with": "Receive with"
+      "receive": "Receive"
     }
   },
   "perps": {
