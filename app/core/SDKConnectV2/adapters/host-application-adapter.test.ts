@@ -10,9 +10,6 @@ import {
 } from '../../../actions/notification';
 import Engine from '../../Engine';
 import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
-import NavigationService from '../../NavigationService';
-import Routes from '../../../constants/navigation/Routes';
-
 jest.mock('../../../store', () => ({
   store: {
     dispatch: jest.fn(),
@@ -39,18 +36,6 @@ jest.mock('../../../actions/notification', () => ({
 
 jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn().mockImplementation((key) => key),
-}));
-
-jest.mock('../../NavigationService', () => ({
-  __esModule: true,
-  default: {
-    navigation: {
-      navigate: jest.fn(),
-      goBack: jest.fn(),
-      canGoBack: jest.fn(() => true),
-      getCurrentRoute: jest.fn(() => ({ name: 'SDKConnectV2Otp' })),
-    },
-  },
 }));
 
 const createMockConnectionInfo = (
@@ -95,7 +80,7 @@ describe('HostApplicationAdapter', () => {
       expect(showSimpleNotification).toHaveBeenCalledTimes(1);
       expect(showSimpleNotification).toHaveBeenCalledWith({
         id: 'session-123',
-        autodismiss: 15000,
+        autodismiss: 10000,
         title: 'sdk_connect_v2.show_loading.title',
         description: 'sdk_connect_v2.show_loading.description',
         status: 'pending',
@@ -267,81 +252,6 @@ describe('HostApplicationAdapter', () => {
         status: 'success',
       });
       expect(store.dispatch).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('showOtpCode', () => {
-    it('navigates to the OTP bottom sheet with otp, dappName and deadline params', () => {
-      const navigateSpy = NavigationService.navigation.navigate as jest.Mock;
-      navigateSpy.mockClear();
-
-      const connInfo = createMockConnectionInfo('session-123', 'Agentic CLI');
-      const deadline = Date.now() + 60_000;
-
-      adapter.showOtpCode(connInfo, '4892AKJ7', deadline);
-
-      expect(navigateSpy).toHaveBeenCalledTimes(1);
-      expect(navigateSpy).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.SDK_CONNECT_V2_OTP,
-        params: {
-          otp: '4892AKJ7',
-          dappName: connInfo.metadata.dapp.name,
-          deadline,
-        },
-      });
-    });
-  });
-
-  describe('hideOtpCode', () => {
-    let goBackSpy: jest.Mock;
-    let getCurrentRouteSpy: jest.Mock;
-    let canGoBackSpy: jest.Mock;
-
-    beforeEach(() => {
-      goBackSpy = NavigationService.navigation.goBack as jest.Mock;
-      getCurrentRouteSpy = NavigationService.navigation
-        .getCurrentRoute as jest.Mock;
-      canGoBackSpy = NavigationService.navigation.canGoBack as jest.Mock;
-      goBackSpy.mockClear();
-      getCurrentRouteSpy.mockClear();
-      canGoBackSpy.mockClear();
-    });
-
-    it('pops the OTP route when it is the current screen', () => {
-      getCurrentRouteSpy.mockReturnValue({
-        name: Routes.SHEET.SDK_CONNECT_V2_OTP,
-      });
-      canGoBackSpy.mockReturnValue(true);
-
-      adapter.hideOtpCode(
-        createMockConnectionInfo('session-123', 'Agentic CLI'),
-      );
-
-      expect(goBackSpy).toHaveBeenCalledTimes(1);
-    });
-
-    it('does nothing when the current route is not the OTP modal', () => {
-      getCurrentRouteSpy.mockReturnValue({ name: 'SomeOtherScreen' });
-      canGoBackSpy.mockReturnValue(true);
-
-      adapter.hideOtpCode(
-        createMockConnectionInfo('session-123', 'Agentic CLI'),
-      );
-
-      expect(goBackSpy).not.toHaveBeenCalled();
-    });
-
-    it('does nothing when there is nothing to go back to', () => {
-      getCurrentRouteSpy.mockReturnValue({
-        name: Routes.SHEET.SDK_CONNECT_V2_OTP,
-      });
-      canGoBackSpy.mockReturnValue(false);
-
-      adapter.hideOtpCode(
-        createMockConnectionInfo('session-123', 'Agentic CLI'),
-      );
-
-      expect(goBackSpy).not.toHaveBeenCalled();
     });
   });
 

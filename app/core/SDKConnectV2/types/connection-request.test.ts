@@ -394,24 +394,11 @@ describe('isConnectionRequest', () => {
     expect(req.metadata.analytics).toBeUndefined();
   });
 
-  it('accepts the agentic-cli connection type with dashboard URLs', () => {
+  it('rejects payloads that include connectionType (handled by AgenticCli)', () => {
     const req = validRequest({
       connectionType: {
         name: 'agentic-cli',
         dashboardUrl: 'https://dashboard.w3a.io',
-        dashboardAuthUrl:
-          'https://authentication.dev-api.cx.metamask.io/api/v2/mm-qr-login/token',
-      },
-    });
-
-    expect(isConnectionRequest(req)).toBe(true);
-  });
-
-  it('rejects the agentic-cli connection type when dashboard URLs are invalid', () => {
-    const req = validRequest({
-      connectionType: {
-        name: 'agentic-cli',
-        dashboardUrl: 'metamask://dashboard',
       },
     });
 

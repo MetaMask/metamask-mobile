@@ -2,7 +2,6 @@ import { AppState, AppStateStatus } from 'react-native';
 import {
   IKeyManager,
   DEFAULT_SESSION_TTL,
-  type SessionRequest,
 } from '@metamask/mobile-wallet-protocol-core';
 import {
   ConnectionRequest,
@@ -14,7 +13,8 @@ import { Connection } from './connection';
 import { ConnectionInfo } from '../types/connection-info';
 import logger, { redactUrl } from './logger';
 import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
-import { decompressPayloadB64 } from '../utils/compression-utils';
+import { parseMwpConnectPayload } from '../../mwp/parseMwpConnectDeeplink';
+import { AgenticCliMwpConnectionService } from '../../AgenticCli/AgenticCliMwpConnectionService';
 import { whenStoreReady } from '../utils/when-store-ready';
 import Engine from '../../Engine';
 import { rpcErrors } from '@metamask/rpc-errors';
@@ -24,7 +24,6 @@ import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBui
 import type { IMetaMetricsEvent } from '../../Analytics/MetaMetrics.types';
 import { MetaMetricsEvents } from '../../Analytics/MetaMetrics.events';
 import { TransportType } from '../../../components/hooks/useAnalytics/useAnalytics.types';
-import { AgenticCliQrLoginService } from '../../AgenticCli/AgenticCliQrLoginService';
 import Logger from '../../../util/Logger';
 
 /**
@@ -267,16 +266,29 @@ export class ConnectionRegistry {
     if (this.deeplinks.has(url)) return;
     this.deeplinks.add(url);
 
+    if (AgenticCliMwpConnectionService.isAgenticCliDeeplink(url)) {
+      try {
+        await AgenticCliMwpConnectionService.handleConnectDeeplink(url, {
+          relayURL: this.RELAY_URL,
+          keymanager: this.keymanager,
+          hostapp: this.hostapp,
+          hasConnection: (id) => this.connections.has(id),
+          cleanupConnection: (connection) => this.cleanupConnection(connection),
+        });
+        return;
+      } finally {
+        this.deeplinks.delete(url);
+      }
+    }
+
     logger.debug('Handling connect deeplink:', redactUrl(url));
 
     let conn: Connection | undefined;
     let connInfo: ConnectionInfo | undefined;
     let connReq: ConnectionRequest | undefined;
-    let agenticCliStage: string | undefined;
     let didConnectionFail = false;
 
     try {
-      agenticCliStage = 'parse-connection-request';
       connReq = this.parseConnectionRequest(url);
 
       trackMwpEvent(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED, {
@@ -306,13 +318,6 @@ export class ConnectionRegistry {
         });
       }
 
-      const isAgenticCli = this.isAgenticCli(connReq);
-
-      if (isAgenticCli) {
-        agenticCliStage = 'wait-for-keyring-unlock';
-        await AgenticCliQrLoginService.waitForKeyringUnlock();
-      }
-
       connInfo = this.toConnectionInfo(connReq);
       if (this.connections.has(connInfo.id)) {
         logger.debug(
@@ -322,41 +327,16 @@ export class ConnectionRegistry {
         return;
       }
 
-      if (!isAgenticCli) {
-        await this.evictIfAtCapacity();
-      }
+      await this.evictIfAtCapacity();
 
       this.hostapp.showConnectionLoading(connInfo);
-      if (isAgenticCli) {
-        agenticCliStage = 'create-mwp-connection';
-      }
       conn = await Connection.create(
         connInfo,
         this.keymanager,
         this.RELAY_URL,
         this.hostapp,
       );
-      if (isAgenticCli) {
-        agenticCliStage = 'mwp-connect';
-      }
-      await conn.connect(this.toSessionRequest(connReq));
-
-      if (isAgenticCli) {
-        try {
-          await AgenticCliQrLoginService.handleConnection({
-            connReq,
-            conn,
-            setStage: (stage) => {
-              agenticCliStage = stage;
-            },
-            cleanupConnection: (connection) =>
-              this.cleanupConnection(connection),
-          });
-        } finally {
-          conn = undefined;
-        }
-        return;
-      }
+      await conn.connect(connReq.sessionRequest);
 
       this.connections.set(conn.id, conn);
       await this.store.save(connInfo);
@@ -381,7 +361,6 @@ export class ConnectionRegistry {
           name: 'mwp_deeplink',
           data: {
             url: redactUrl(url),
-            agentic_cli_stage: agenticCliStage,
             dapp_url: connReq?.metadata?.dapp?.url,
             dapp_name: connReq?.metadata?.dapp?.name,
             sdk_version: connReq?.metadata?.sdk?.version,
@@ -389,10 +368,7 @@ export class ConnectionRegistry {
           },
         },
       });
-      logger.error('Failed to handle connect deeplink:', error, {
-        agenticCliStage,
-        url: redactUrl(url),
-      });
+      logger.error('Failed to handle connect deeplink:', error, redactUrl(url));
       this.hostapp.showConnectionError();
       didConnectionFail = true;
 
@@ -437,12 +413,8 @@ export class ConnectionRegistry {
       //   wallet_createSession separately after the handshake. There may be
       //   a noticeable delay before the approval appears, so we keep the
       //   loading toast visible and let it autodismiss naturally.
-      // - Agentic CLI QR login owns the next step in-app via OTP/WebView, so
-      //   hide the generic connection toast once its handshake succeeds.
       const isQrFlow = connReq?.sessionRequest.initialMessage === undefined;
-      const isAgenticCliFlow = connReq ? this.isAgenticCli(connReq) : false;
-      const shouldHideLoadingToast =
-        didConnectionFail || isAgenticCliFlow || !isQrFlow;
+      const shouldHideLoadingToast = didConnectionFail || !isQrFlow;
       if (connInfo && shouldHideLoadingToast) {
         this.hostapp.hideConnectionLoading(connInfo);
       }
@@ -506,26 +478,7 @@ export class ConnectionRegistry {
    * Format: metamask://connect/mwp?p=<encoded_connection_request>&c=1
    */
   private parseConnectionRequest(url: string): ConnectionRequest {
-    const parsed = new URL(url);
-
-    const payload = parsed.searchParams.get('p');
-    if (!payload) {
-      throw new Error('No payload found in URL.');
-    }
-
-    if (payload.length > 1024 * 1024) {
-      throw new Error('Payload too large (max 1MB).');
-    }
-
-    const compressionFlag = parsed.searchParams.get('c');
-    const jsonString =
-      compressionFlag === '1' ? decompressPayloadB64(payload) : payload;
-
-    if (jsonString.length > 1024 * 1024) {
-      throw new Error('Decompressed payload too large (max 1MB).');
-    }
-
-    const connReq: unknown = JSON.parse(jsonString);
+    const connReq: unknown = parseMwpConnectPayload(url);
 
     if (!isConnectionRequest(connReq)) {
       throw new Error('Invalid connection request structure.');
@@ -539,21 +492,6 @@ export class ConnectionRegistry {
       id: connReq.sessionRequest.id,
       metadata: connReq.metadata,
       expiresAt: Date.now() + DEFAULT_SESSION_TTL,
-    };
-  }
-
-  private isAgenticCli(connReq: ConnectionRequest): boolean {
-    return connReq.connectionType?.name === 'agentic-cli';
-  }
-
-  private toSessionRequest(connReq: ConnectionRequest): SessionRequest {
-    if (!this.isAgenticCli(connReq)) {
-      return connReq.sessionRequest;
-    }
-
-    return {
-      ...connReq.sessionRequest,
-      mode: 'untrusted',
     };
   }
 

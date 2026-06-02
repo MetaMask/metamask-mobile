@@ -1,9 +1,8 @@
 import { showSimpleNotification } from '../../actions/notification';
 import { store } from '../../store';
-import Engine from '../Engine';
 import { AgenticCliDashboardWebviewService } from '../../components/Views/AgenticCliDashboardWebview/AgenticCliDashboardWebviewService';
-import { ConnectionRequest } from '../SDKConnectV2/types/connection-request';
 import { Connection } from '../SDKConnectV2/services/connection';
+import type { AgenticCliConnectionRequest } from './agenticCliConnectionRequest';
 
 const mockBuildTypeMapping = jest.fn(() => 'main_prod');
 
@@ -52,26 +51,34 @@ jest.mock('../../../locales/i18n', () => ({
   strings: jest.fn().mockImplementation((key) => key),
 }));
 
+const mockGetBearerToken = jest.fn().mockResolvedValue('hydra-token');
+const mockIsUnlocked = jest.fn(() => true);
+const mockSubscribe = jest.fn();
+const mockUnsubscribe = jest.fn();
+
 jest.mock('../Engine', () => ({
-  context: {
-    KeyringController: {
-      isUnlocked: jest.fn(() => true),
-      state: {
-        keyrings: [
-          {
-            type: 'HD Key Tree',
-            metadata: { id: 'entropy-source-id' },
-          },
-        ],
+  __esModule: true,
+  default: {
+    context: {
+      KeyringController: {
+        isUnlocked: mockIsUnlocked,
+        state: {
+          keyrings: [
+            {
+              type: 'HD Key Tree',
+              metadata: { id: 'entropy-source-id' },
+            },
+          ],
+        },
+      },
+      AuthenticationController: {
+        getBearerToken: mockGetBearerToken,
       },
     },
-    AuthenticationController: {
-      getBearerToken: jest.fn().mockResolvedValue('hydra-token'),
+    controllerMessenger: {
+      subscribe: mockSubscribe,
+      unsubscribe: mockUnsubscribe,
     },
-  },
-  controllerMessenger: {
-    subscribe: jest.fn(),
-    unsubscribe: jest.fn(),
   },
 }));
 
@@ -85,10 +92,10 @@ jest.mock(
 );
 
 const mockConnectionRequest = (
-  connectionType: ConnectionRequest['connectionType'] = {
+  connectionType: AgenticCliConnectionRequest['connectionType'] = {
     name: 'agentic-cli',
   },
-): ConnectionRequest => ({
+): AgenticCliConnectionRequest => ({
   sessionRequest: {
     id: '11111111-2222-3333-4444-555555555555',
     publicKeyB64: 'AoBDLWxRbJNe8yUv5bmmoVnNo8DCilzbFz/nWD+RKC2V',
@@ -109,11 +116,21 @@ const mockConnectionRequest = (
   connectionType,
 });
 
-const loadAgenticCliQrLoginService = () => {
-  jest.resetModules();
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  return require('./AgenticCliQrLoginService')
-    .AgenticCliQrLoginService as typeof import('./AgenticCliQrLoginService').AgenticCliQrLoginService;
+const loadAgenticCliQrLoginService = (
+  buildType: string,
+): typeof import('./AgenticCliQrLoginService').AgenticCliQrLoginService => {
+  mockBuildTypeMapping.mockReturnValue(buildType);
+  let service:
+    | typeof import('./AgenticCliQrLoginService').AgenticCliQrLoginService
+    | undefined;
+  jest.isolateModules(() => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    service = require('./AgenticCliQrLoginService').AgenticCliQrLoginService;
+  });
+  if (!service) {
+    throw new Error('AgenticCliQrLoginService not found');
+  }
+  return service;
 };
 
 describe('AgenticCliQrLoginService', () => {
@@ -124,12 +141,18 @@ describe('AgenticCliQrLoginService', () => {
   const createMockConnection = (): jest.Mocked<Connection> =>
     ({
       id: '11111111-2222-3333-4444-555555555555',
-      sendAuthToken: jest.fn().mockResolvedValue(undefined),
+      client: {
+        sendResponse: jest.fn().mockResolvedValue(undefined),
+      },
     }) as unknown as jest.Mocked<Connection>;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockBuildTypeMapping.mockReturnValue('main_prod');
+    mockGetBearerToken.mockResolvedValue('hydra-token');
+    mockIsUnlocked.mockReturnValue(true);
+    (AgenticCliDashboardWebviewService.open as jest.Mock).mockResolvedValue(
+      'cli-token',
+    );
     devGlobal.__DEV__ = false;
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
@@ -140,12 +163,10 @@ describe('AgenticCliQrLoginService', () => {
   afterEach(() => {
     devGlobal.__DEV__ = originalDev;
     global.fetch = originalFetch;
-    jest.resetModules();
   });
 
   it('exchanges the Hydra token, opens prod dashboard, sends CLI token, and cleans up', async () => {
-    mockBuildTypeMapping.mockReturnValue('main_prod');
-    const AgenticCliQrLoginService = loadAgenticCliQrLoginService();
+    const AgenticCliQrLoginService = loadAgenticCliQrLoginService('main_prod');
     const conn = createMockConnection();
     const cleanupConnection = jest.fn().mockResolvedValue(undefined);
     const setStage = jest.fn();
@@ -161,12 +182,10 @@ describe('AgenticCliQrLoginService', () => {
       cleanupConnection,
     });
 
-    expect(
-      Engine.context.AuthenticationController.getBearerToken,
-    ).toHaveBeenCalledWith('entropy-source-id');
-    expect(mockGetEnvUrls).toHaveBeenCalledWith('prd');
+    expect(mockGetBearerToken).toHaveBeenCalledWith('entropy-source-id');
+    expect(mockGetEnvUrls).toHaveBeenCalledWith('dev');
     expect(global.fetch).toHaveBeenCalledWith(
-      'https://authentication.api.cx.metamask.io/api/v2/mm-qr-login/token',
+      'https://authentication.dev-api.cx.metamask.io/api/v2/mm-qr-login/token',
       expect.objectContaining({
         method: 'POST',
         headers: {
@@ -178,7 +197,10 @@ describe('AgenticCliQrLoginService', () => {
       dashboardUrl: 'https://dashboard.w3a.io/agentic/login',
       dashboardToken: 'dashboard-token',
     });
-    expect(conn.sendAuthToken).toHaveBeenCalledWith('cli-token');
+    expect(conn.client.sendResponse).toHaveBeenCalledWith({
+      type: 'auth-token',
+      token: 'cli-token',
+    });
     expect(showSimpleNotification).toHaveBeenCalledWith({
       id: '11111111-2222-3333-4444-555555555555-cli-link-success',
       autodismiss: 3000,
@@ -192,8 +214,7 @@ describe('AgenticCliQrLoginService', () => {
   });
 
   it('uses dev auth API and test dashboard for main_dev builds', async () => {
-    mockBuildTypeMapping.mockReturnValue('main_dev');
-    const AgenticCliQrLoginService = loadAgenticCliQrLoginService();
+    const AgenticCliQrLoginService = loadAgenticCliQrLoginService('main_dev');
     const conn = createMockConnection();
 
     await AgenticCliQrLoginService.handleConnection({
@@ -215,8 +236,7 @@ describe('AgenticCliQrLoginService', () => {
   });
 
   it('uses UAT auth API and UAT dashboard for main_uat builds', async () => {
-    mockBuildTypeMapping.mockReturnValue('main_uat');
-    const AgenticCliQrLoginService = loadAgenticCliQrLoginService();
+    const AgenticCliQrLoginService = loadAgenticCliQrLoginService('main_uat');
     const conn = createMockConnection();
 
     await AgenticCliQrLoginService.handleConnection({
@@ -226,20 +246,19 @@ describe('AgenticCliQrLoginService', () => {
       cleanupConnection: jest.fn().mockResolvedValue(undefined),
     });
 
-    expect(mockGetEnvUrls).toHaveBeenCalledWith('uat');
+    expect(mockGetEnvUrls).toHaveBeenCalledWith('dev');
     expect(global.fetch).toHaveBeenCalledWith(
-      'https://authentication.uat-api.cx.metamask.io/api/v2/mm-qr-login/token',
+      'https://authentication.dev-api.cx.metamask.io/api/v2/mm-qr-login/token',
       expect.any(Object),
     );
     expect(AgenticCliDashboardWebviewService.open).toHaveBeenCalledWith({
-      dashboardUrl: 'https://uat-dashboard.web3auth.io/agentic/login',
+      dashboardUrl: 'https://dev-dashboard.web3auth.io/agentic/login',
       dashboardToken: 'dashboard-token',
     });
   });
 
   it('allows QR-provided local dashboard auth URLs in development builds', async () => {
-    mockBuildTypeMapping.mockReturnValue('main_prod');
-    const AgenticCliQrLoginService = loadAgenticCliQrLoginService();
+    const AgenticCliQrLoginService = loadAgenticCliQrLoginService('main_prod');
     devGlobal.__DEV__ = true;
     const conn = createMockConnection();
 
@@ -261,20 +280,16 @@ describe('AgenticCliQrLoginService', () => {
   });
 
   it('waits for keyring unlock when locked', async () => {
-    mockBuildTypeMapping.mockReturnValue('main_prod');
-    const AgenticCliQrLoginService = loadAgenticCliQrLoginService();
-    (
-      Engine.context.KeyringController.isUnlocked as jest.Mock
-    ).mockReturnValueOnce(false);
+    const AgenticCliQrLoginService = loadAgenticCliQrLoginService('main_prod');
+    mockIsUnlocked.mockReturnValueOnce(false);
 
     const waitPromise = AgenticCliQrLoginService.waitForKeyringUnlock();
-    const unlockHandler = (Engine.controllerMessenger.subscribe as jest.Mock)
-      .mock.calls[0][1];
+    const unlockHandler = mockSubscribe.mock.calls[0][1];
     unlockHandler();
 
     await waitPromise;
 
-    expect(Engine.controllerMessenger.unsubscribe).toHaveBeenCalledWith(
+    expect(mockUnsubscribe).toHaveBeenCalledWith(
       'KeyringController:unlock',
       unlockHandler,
     );

@@ -5,24 +5,6 @@ import { isUUID } from '../../SDKConnect/utils/isUUID';
 const HANDSHAKE_CHANNEL_REGEX =
   /^handshake:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export interface ConnectionType {
-  name: 'agentic-cli';
-  dashboardUrl?: string;
-  dashboardAuthUrl?: string;
-}
-
-const isOptionalHttpUrl = (url: unknown): boolean => {
-  if (url === undefined) return true;
-  if (typeof url !== 'string' || url.length > 1024) return false;
-
-  try {
-    const parsed = new URL(url);
-    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
-  } catch {
-    return false;
-  }
-};
-
 /**
  * Represents an incoming connection request parsed from a QR code or deep link.
  * This is the shared data contract between the dApp SDK and the mobile wallet,
@@ -40,12 +22,6 @@ export interface ConnectionRequest {
    * Metadata about the dApp and SDK that is requesting the connection.
    */
   metadata: Metadata;
-
-  /**
-   * Optional connection profile for clients that need behavior beyond the
-   * default dapp flow. Normal dapp connections omit this field.
-   */
-  connectionType?: ConnectionType;
 }
 
 /**
@@ -185,19 +161,13 @@ export function isConnectionRequest(data: unknown): data is ConnectionRequest {
     }
   }
 
-  // Normal dapp requests omit connectionType. Agentic CLI requests use the
-  // built-in MWP untrusted handshake and may pass dashboard endpoints.
-  if (obj.connectionType !== undefined) {
-    if (
-      !obj.connectionType ||
-      typeof obj.connectionType !== 'object' ||
-      Array.isArray(obj.connectionType) ||
-      obj.connectionType.name !== 'agentic-cli' ||
-      !isOptionalHttpUrl(obj.connectionType.dashboardUrl) ||
-      !isOptionalHttpUrl(obj.connectionType.dashboardAuthUrl)
-    ) {
-      return false;
-    }
+  // Agentic CLI and other specialized flows carry connectionType and must be
+  // handled outside the generic SDKConnectV2 connect path.
+  if (
+    'connectionType' in obj &&
+    (obj as Record<string, unknown>).connectionType !== undefined
+  ) {
+    return false;
   }
 
   return true;

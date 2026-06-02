@@ -10,7 +10,7 @@ import Engine from '../../Engine';
 import { analytics } from '../../../util/analytics/analytics';
 import { MetaMetricsEvents } from '../../Analytics';
 import { TransportType } from '../../../components/hooks/useAnalytics/useAnalytics.types';
-import { AgenticCliQrLoginService } from '../../AgenticCli/AgenticCliQrLoginService';
+import { AgenticCliMwpConnectionService } from '../../AgenticCli/AgenticCliMwpConnectionService';
 import Logger from '../../../util/Logger';
 
 jest.mock('../adapters/host-application-adapter');
@@ -20,12 +20,10 @@ jest.mock('./connection');
 jest.mock('react-native');
 jest.mock('@sentry/react-native');
 jest.mock('../../Permissions');
-jest.mock('../../AgenticCli/AgenticCliQrLoginService', () => ({
-  AgenticCliQrLoginService: {
-    waitForKeyringUnlock: jest.fn().mockResolvedValue(undefined),
-    handleConnection: jest.fn().mockImplementation(async ({ conn }) => {
-      await conn.sendAuthToken('cli-token');
-    }),
+jest.mock('../../AgenticCli/AgenticCliMwpConnectionService', () => ({
+  AgenticCliMwpConnectionService: {
+    isAgenticCliDeeplink: jest.fn().mockReturnValue(false),
+    handleConnectDeeplink: jest.fn().mockResolvedValue(undefined),
   },
 }));
 jest.mock('../../../util/analytics/analytics', () => ({
@@ -82,9 +80,10 @@ const createPersistedConnection = (id: string, overrides: any = {}) => ({
 });
 
 describe('ConnectionRegistry', () => {
-  const agenticCliQrLoginServiceMock = AgenticCliQrLoginService as jest.Mocked<
-    typeof AgenticCliQrLoginService
-  >;
+  const agenticCliMwpConnectionServiceMock =
+    AgenticCliMwpConnectionService as jest.Mocked<
+      typeof AgenticCliMwpConnectionService
+    >;
   let registry: ConnectionRegistry;
   let mockHostApp: jest.Mocked<HostApplicationAdapter>;
   let mockStore: jest.Mocked<ConnectionStore>;
@@ -175,19 +174,16 @@ describe('ConnectionRegistry', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       client: {} as any,
       connect: jest.fn().mockResolvedValue(undefined),
-      sendAuthToken: jest.fn().mockResolvedValue(undefined),
       disconnect: jest.fn().mockResolvedValue(undefined),
       resume: jest.fn().mockResolvedValue(undefined),
     } as unknown as jest.Mocked<Connection>;
 
     (Connection.create as jest.Mock).mockResolvedValue(mockConnection);
-    agenticCliQrLoginServiceMock.waitForKeyringUnlock.mockResolvedValue(
-      undefined,
+    agenticCliMwpConnectionServiceMock.isAgenticCliDeeplink.mockReturnValue(
+      false,
     );
-    agenticCliQrLoginServiceMock.handleConnection.mockImplementation(
-      async ({ conn }) => {
-        await conn.sendAuthToken('cli-token');
-      },
+    agenticCliMwpConnectionServiceMock.handleConnectDeeplink.mockResolvedValue(
+      undefined,
     );
 
     // Wait for initialization to complete
@@ -526,7 +522,7 @@ describe('ConnectionRegistry', () => {
       );
     });
 
-    it('waits for the agentic CLI unlock hook before creating a connection', async () => {
+    it('delegates agentic CLI deeplinks to AgenticCliMwpConnectionService', async () => {
       registry = new ConnectionRegistry(
         RELAY_URL,
         mockKeyManager,
@@ -534,58 +530,33 @@ describe('ConnectionRegistry', () => {
         mockStore,
       );
 
-      const agenticCliRequest: ConnectionRequest = {
-        ...mockConnectionRequest,
-        connectionType: {
-          name: 'agentic-cli',
-        },
-      };
       const agenticCliDeeplink = `metamask://connect/mwp?p=${encodeURIComponent(
-        JSON.stringify(agenticCliRequest),
+        JSON.stringify({
+          ...mockConnectionRequest,
+          connectionType: { name: 'agentic-cli' },
+        }),
       )}`;
 
-      let resolveUnlock: () => void = jest.fn();
-      agenticCliQrLoginServiceMock.waitForKeyringUnlock.mockReturnValue(
-        new Promise<void>((resolve) => {
-          resolveUnlock = resolve;
-        }),
+      agenticCliMwpConnectionServiceMock.isAgenticCliDeeplink.mockReturnValue(
+        true,
       );
 
-      const promise = registry.handleConnectDeeplink(agenticCliDeeplink);
-      await Promise.resolve();
+      await registry.handleConnectDeeplink(agenticCliDeeplink);
 
-      expect(Connection.create).not.toHaveBeenCalled();
-      expect(mockConnection.connect).not.toHaveBeenCalled();
-      expect(mockHostApp.showConnectionLoading).not.toHaveBeenCalled();
-
-      resolveUnlock();
-
-      await promise;
-
-      expect(Connection.create).toHaveBeenCalledTimes(1);
-      expect(mockConnection.connect).toHaveBeenCalledWith({
-        ...agenticCliRequest.sessionRequest,
-        mode: 'untrusted',
-      });
-      expect(AgenticCliQrLoginService.handleConnection).toHaveBeenCalledWith(
+      expect(
+        agenticCliMwpConnectionServiceMock.handleConnectDeeplink,
+      ).toHaveBeenCalledWith(
+        agenticCliDeeplink,
         expect.objectContaining({
-          connReq: agenticCliRequest,
-          conn: mockConnection,
-          setStage: expect.any(Function),
+          relayURL: RELAY_URL,
+          keymanager: mockKeyManager,
+          hostapp: mockHostApp,
+          hasConnection: expect.any(Function),
           cleanupConnection: expect.any(Function),
         }),
       );
-      expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id: mockConnectionInfo.id,
-          metadata: mockConnectionInfo.metadata,
-          expiresAt: expect.any(Number),
-        }),
-      );
+      expect(Connection.create).not.toHaveBeenCalled();
       expect(mockStore.save).not.toHaveBeenCalled();
-      expect(mockHostApp.syncConnectionList).not.toHaveBeenCalledWith([
-        mockConnection,
-      ]);
     });
 
     it('should handle invalid URL gracefully', async () => {
@@ -1130,35 +1101,6 @@ describe('ConnectionRegistry', () => {
       expect(mockHostApp.syncConnectionList).toHaveBeenCalledWith([
         mockConnection,
       ]);
-    });
-
-    it('dismisses the loading toast on success for agentic CLI QR flows', async () => {
-      registry = new ConnectionRegistry(
-        RELAY_URL,
-        mockKeyManager,
-        mockHostApp,
-        mockStore,
-      );
-
-      const agenticQrRequest: ConnectionRequest = {
-        ...mockConnectionRequest,
-        connectionType: {
-          name: 'agentic-cli',
-        },
-        sessionRequest: {
-          ...mockConnectionRequest.sessionRequest,
-          initialMessage: undefined,
-        },
-      };
-      const agenticQrDeeplink = buildDeeplink(agenticQrRequest);
-
-      await registry.handleConnectDeeplink(agenticQrDeeplink);
-
-      expect(mockHostApp.showConnectionLoading).toHaveBeenCalledTimes(1);
-      expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledTimes(1);
-      expect(AgenticCliQrLoginService.handleConnection).toHaveBeenCalledTimes(
-        1,
-      );
     });
 
     it('dismisses the loading toast for QR flows when connect() fails so it does not overlap the error toast', async () => {
