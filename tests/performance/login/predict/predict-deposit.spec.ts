@@ -29,8 +29,8 @@ perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
     'Predict Deposit - Complete Flow Performance',
     { tag: '@team-predict' },
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
-      // Login to the app
       await loginToAppPlaywright();
+
       // Timer 1: Navigate to Predict tab
       const timer1 = new TimerHelper(
         'Time since user taps Predict button until Predict Market List is displayed',

@@ -63,7 +63,7 @@ const createPerpsEntry = (
   rank: 1,
   referralCode: 'REF001',
   pnl: 100,
-  qualified: true,
+  volume: 30_000,
   ...overrides,
 });
 

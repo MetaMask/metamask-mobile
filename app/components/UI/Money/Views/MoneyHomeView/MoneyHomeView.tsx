@@ -341,11 +341,7 @@ const MoneyHomeView = () => {
             <MoneyActivityList
               transactions={allTransactions}
               moneyAddress={moneyAddress}
-              onViewAllPress={
-                allTransactions.length < 5
-                  ? undefined
-                  : handleViewAllActivityPress
-              }
+              onViewAllPress={handleViewAllActivityPress}
               onHeaderPress={handleActivityHeaderPress}
               onItemPress={
                 mockDataEnabled ? undefined : handleActivityItemPress

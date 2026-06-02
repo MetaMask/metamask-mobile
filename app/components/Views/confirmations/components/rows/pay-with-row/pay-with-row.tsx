@@ -177,7 +177,10 @@ function PayWithRowInteractive() {
           >
             {displayToken.symbol}
             {!isWithdraw && (
-              <Text testID={TransactionPayComponentIDs.PAY_WITH_BALANCE}>
+              <Text
+                color={TextColor.TextAlternative}
+                testID={TransactionPayComponentIDs.PAY_WITH_BALANCE}
+              >
                 {` (${balanceUsdFormatted})`}
               </Text>
             )}
