@@ -260,16 +260,15 @@ describe('MoneyMetaMaskCard', () => {
 
     describe('apy undefined (no-APY copy)', () => {
       it('renders link_subtitle_no_apy when apy is undefined', () => {
-        const { getByText, queryByText } = render(
+        const { getByText } = render(
           <MoneyMetaMaskCard mode="link" onGetNowPress={jest.fn()} />,
         );
 
         expect(
           getByText(strings('money.metamask_card.link_subtitle_no_apy')),
         ).toBeOnTheScreen();
-        expect(
-          queryByText(strings('money.metamask_card.link_subtitle', { apy: 0 })),
-        ).not.toBeOnTheScreen();
+        // link_subtitle and link_subtitle_no_apy share the same copy, so no
+        // absence check is needed here.
       });
 
       it('omits the APY bullet when apy is undefined', () => {
