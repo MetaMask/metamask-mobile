@@ -117,7 +117,7 @@ const QuickBuyPayWithScreen: React.FC = () => {
     : undefined;
 
   const title = isSellMode
-    ? strings('social_leaderboard.quick_buy.receive_with')
+    ? strings('social_leaderboard.quick_buy.receive')
     : strings('social_leaderboard.quick_buy.pay_with');
 
   const emptyLabel = isSellMode
