@@ -62,6 +62,8 @@ interface PredictMarketSportCardProps {
   onCardPress?: () => void;
   /** Called when the user taps a buy button (before betslip opens). */
   onBuyButtonPress?: (marketId: string) => void;
+  predictFeedTab?: string;
+  predictScreen?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
@@ -226,6 +228,8 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
   isCarousel,
   onCardPress,
   onBuyButtonPress,
+  predictFeedTab,
+  predictScreen,
   transactionActiveAbTests,
 }) => {
   const tw = useTailwind();
@@ -272,6 +276,8 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
       params: {
         marketId: market.id,
         entryPoint: resolvedEntryPoint,
+        ...(predictFeedTab && { predictFeedTab }),
+        ...(predictScreen && { predictScreen }),
         title: market.title,
         image: market.image,
         ...(transactionActiveAbTests?.length && {
@@ -283,6 +289,8 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
     market,
     navigation,
     onCardPress,
+    predictFeedTab,
+    predictScreen,
     resolvedEntryPoint,
     transactionActiveAbTests,
   ]);
@@ -297,6 +305,8 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
             outcome: item.outcome,
             outcomeToken: item.token,
             entryPoint: resolvedEntryPoint,
+            ...(predictFeedTab && { predictFeedTab }),
+            ...(predictScreen && { predictScreen }),
             ...(transactionActiveAbTests?.length && {
               transactionActiveAbTests,
             }),
@@ -310,6 +320,8 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
       market,
       onBuyButtonPress,
       openBuySheet,
+      predictFeedTab,
+      predictScreen,
       resolvedEntryPoint,
       transactionActiveAbTests,
     ],

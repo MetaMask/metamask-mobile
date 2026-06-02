@@ -649,6 +649,8 @@ export interface PlaceOrderParams {
     marketCategory?: string;
     marketTags?: string[];
     entryPoint?: string;
+    predictFeedTab?: string;
+    predictScreen?: string;
     transactionType?: string;
     sharePrice?: number;
     liquidity?: number;
