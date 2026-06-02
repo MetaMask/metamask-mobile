@@ -8,6 +8,8 @@ describe('formattedDeeplinkParsedValue', () => {
     ['1.6e+21', '1600000000000000000000'],
     ['4.2e+17', '420000000000000000'],
     ['1000000', '1000000'],
+    // Verifies no float precision loss — Number() would corrupt this to 10000000000000000000000
+    ['9999999999999999999999', '9999999999999999999999'],
   ])('converts %s to %s', (input, expected) => {
     expect(formattedDeeplinkParsedValue(input)).toEqual(expected);
   });

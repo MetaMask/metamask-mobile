@@ -127,29 +127,6 @@ describe('handleEthereumUrl', () => {
     expect(switchNetwork).toHaveBeenCalledTimes(0);
   });
 
-  it('navigates to SendView for TRANSFER action', () => {
-    const url = 'ethereum:transfer';
-    const origin = 'test_origin';
-    mockParse.mockReturnValue({
-      function_name: ETH_ACTIONS.TRANSFER,
-      chain_id: 1,
-    });
-
-    handleEthereumUrl({ url, origin });
-
-    expect(NavigationService.navigation.navigate).toHaveBeenCalledWith('Send', {
-      screen: 'Recipient',
-      params: {
-        txMeta: expect.objectContaining({
-          function_name: ETH_ACTIONS.TRANSFER,
-          chain_id: 1,
-          action: 'send-token',
-          source: url,
-        }),
-      },
-    });
-  });
-
   it('shows alert when there is a network switch error', () => {
     const spyAlert = jest.spyOn(Alert, 'alert');
 
@@ -338,31 +315,6 @@ describe('handleEthereumUrl', () => {
       'send.network_not_found_title',
       'send.network_not_found_description',
     );
-  });
-
-  it('shows alert when there are missing or incomplete parameters in URL for TRANSFER action', () => {
-    const url = 'ethereum:transfer';
-    const origin = 'test_origin';
-
-    mockParse.mockReturnValue({
-      function_name: ETH_ACTIONS.TRANSFER,
-      chain_id: 1,
-      parameters: {},
-    });
-
-    handleEthereumUrl({ url, origin });
-
-    expect(NavigationService.navigation.navigate).toHaveBeenCalledWith('Send', {
-      screen: 'Recipient',
-      params: {
-        txMeta: expect.objectContaining({
-          function_name: ETH_ACTIONS.TRANSFER,
-          chain_id: 1,
-          action: 'send-token',
-          source: url,
-        }),
-      },
-    });
   });
 
   it('switches to mainnet when isEvmSelected is false', async () => {

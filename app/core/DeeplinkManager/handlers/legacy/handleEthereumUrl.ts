@@ -50,8 +50,8 @@ async function handleEthereumUrl({
     }
 
     // eth-url-parser serialises large uint256 values in scientific notation
-    // (e.g. "1e+21"). Convert to a plain decimal string via bignumber.js so
-    // that downstream toHex calls don't throw. See issue #23672.
+    // (e.g. "1e+21"). Convert to a plain decimal string so that downstream
+    // toHex calls don't throw. See issue #23672.
     if (ethUrl.parameters?.uint256) {
       ethUrl.parameters.uint256 = formattedDeeplinkParsedValue(
         ethUrl.parameters.uint256,
@@ -103,7 +103,6 @@ async function handleEthereumUrl({
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (e: any) {
-    console.error('[handleEthereumUrl] caught error:', e?.message, e?.stack);
     let alertMessage;
     switch (e.message) {
       case NetworkSwitchErrorType.missingNetworkId:
