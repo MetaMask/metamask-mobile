@@ -361,6 +361,40 @@ describe('PredictSportScoreboard', () => {
       expect(queryByText('Q1 • 15:00')).toBeNull();
     });
 
+    it('uses a parent-provided gameUpdate without opening its own subscription', () => {
+      // If the scoreboard subscribed, the hook would return this Q1 update.
+      mockUseLiveGameUpdates.mockReturnValue(
+        createLiveUpdate({
+          gameUpdate: {
+            gameId: 'game-123',
+            score: '0-0',
+            elapsed: '00:00',
+            period: 'Q1',
+            status: 'ongoing' as PredictGameStatus,
+          },
+        }),
+      );
+
+      const { getByText } = render(
+        <PredictSportScoreboard
+          game={createGame({ status: 'scheduled' })}
+          gameUpdate={{
+            gameId: 'game-123',
+            score: '21-14',
+            elapsed: '07:30',
+            period: 'Q3',
+            status: 'ongoing' as PredictGameStatus,
+          }}
+        />,
+      );
+
+      // The prop wins over what the hook would have returned.
+      expect(getByText('Q3 • 07:30')).toBeOnTheScreen();
+      // The hook is disabled (called with null), not subscribed to the game id.
+      expect(mockUseLiveGameUpdates).toHaveBeenCalledWith(null);
+      expect(mockUseLiveGameUpdates).not.toHaveBeenCalledWith('game-123');
+    });
+
     it('falls back to static game data when no live update', () => {
       mockUseLiveGameUpdates.mockReturnValue(createLiveUpdate());
 

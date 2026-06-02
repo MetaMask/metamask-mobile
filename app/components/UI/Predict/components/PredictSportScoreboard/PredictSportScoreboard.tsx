@@ -14,7 +14,7 @@ import { getIntlDateTimeFormatter } from '../../../../../util/intl';
 import { getLeagueConfig } from '../../constants/sportLeagueConfigs';
 import { isSoccerLeague } from '../../constants/sports';
 import { useLiveGameUpdates } from '../../hooks/useLiveGameUpdates';
-import { PredictMarketGame, PredictSportTeam } from '../../types';
+import { GameUpdate, PredictMarketGame, PredictSportTeam } from '../../types';
 import { parseScore } from '../../utils/gameParser';
 import { getSportLiveStatusText } from '../../utils/scoreboard';
 import PredictSportTeamLogo from '../PredictSportTeamLogo/PredictSportTeamLogo';
@@ -29,6 +29,14 @@ export interface PredictSportScoreboardProps {
   /** Renders a denser layout for use inside carousel cards. */
   compact?: boolean;
   testID?: string;
+  /**
+   * Live game update supplied by a parent that already subscribes (e.g. the
+   * market card). When provided (including `null`), the scoreboard uses it
+   * instead of opening its own subscription, avoiding a duplicate WebSocket
+   * connection. When omitted, the scoreboard subscribes itself (e.g. when used
+   * standalone on the game details screen).
+   */
+  gameUpdate?: GameUpdate | null;
 }
 
 /**
@@ -68,9 +76,17 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
   game,
   compact = false,
   testID,
+  gameUpdate: externalGameUpdate,
 }) => {
   const config = getLeagueConfig(game.league);
-  const { gameUpdate } = useLiveGameUpdates(game.id);
+  // Reuse a parent-provided update when available; otherwise subscribe here.
+  // Passing a null gameId disables the hook so we don't duplicate the parent's
+  // WebSocket subscription and connection-polling interval.
+  const hasExternalUpdate = externalGameUpdate !== undefined;
+  const { gameUpdate: subscribedUpdate } = useLiveGameUpdates(
+    hasExternalUpdate ? null : game.id,
+  );
+  const gameUpdate = hasExternalUpdate ? externalGameUpdate : subscribedUpdate;
 
   const liveData = useMemo(() => {
     const liveScore = gameUpdate?.score

@@ -332,6 +332,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
           <PredictSportScoreboard
             game={game}
             compact={isCompact}
+            gameUpdate={gameUpdate}
             testID={testID ? `${testID}-scoreboard` : undefined}
           />
 
