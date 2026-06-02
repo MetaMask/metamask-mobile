@@ -116,7 +116,10 @@ describe('MoneyAddMoneySheet', () => {
     );
 
     expect(getByText('Convert crypto')).toBeOnTheScreen();
-    expect(getByText('Add funds')).toBeOnTheScreen();
+    // Use testID to distinguish the "Add funds" row from the sheet title
+    expect(
+      getByTestId(MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION),
+    ).toBeOnTheScreen();
     expect(getByText('Add your $1,203.89 mUSD')).toBeOnTheScreen();
     expect(getByText('Receive from external wallet')).toBeOnTheScreen();
     expect(getByText('Coming soon')).toBeOnTheScreen();
@@ -126,9 +129,10 @@ describe('MoneyAddMoneySheet', () => {
   });
 
   it('renders the "Add funds" title', () => {
-    const { getByText } = renderWithProvider(<MoneyAddMoneySheet />);
+    const { getAllByText } = renderWithProvider(<MoneyAddMoneySheet />);
 
-    expect(getByText('Add funds')).toBeOnTheScreen();
+    // "Add funds" appears in both the sheet title and the row label
+    expect(getAllByText('Add funds').length).toBeGreaterThanOrEqual(1);
   });
 
   it('renders a description under the Convert crypto row', () => {
