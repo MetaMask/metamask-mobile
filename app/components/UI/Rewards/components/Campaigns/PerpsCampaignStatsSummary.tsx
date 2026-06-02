@@ -23,10 +23,6 @@ import { PERPS_QUALIFICATION_NOTIONAL_USD } from '../../utils/perpsCampaignConst
 import { PendingTag, StatCell } from './OndoCampaignStatsSummary';
 import { CampaignOutcomeBanner } from './CampaignOutcomeBanners';
 
-const PERPS_NOTIONAL_THRESHOLD_LABEL = formatUsd(
-  PERPS_QUALIFICATION_NOTIONAL_USD,
-);
-
 export const PERPS_CAMPAIGN_STATS_SUMMARY_TEST_IDS = {
   CONTAINER: 'perps-campaign-stats-summary-container',
   RANK: 'perps-campaign-stats-summary-rank',
@@ -58,34 +54,41 @@ const PerpsCampaignStatsSummary: React.FC<PerpsCampaignStatsSummaryProps> = ({
   onWinnerPress,
 }) => {
   const isPending =
-    leaderboardPosition != null && !leaderboardPosition.qualified;
+    leaderboardPosition != null && !leaderboardPosition.eligible;
   const isQualified =
-    leaderboardPosition != null && leaderboardPosition.qualified;
+    leaderboardPosition != null && leaderboardPosition.eligible;
+  const rank =
+    leaderboardPosition != null && Number.isFinite(leaderboardPosition.rank)
+      ? leaderboardPosition.rank
+      : null;
+  const pnl =
+    leaderboardPosition != null && Number.isFinite(leaderboardPosition.pnl)
+      ? leaderboardPosition.pnl
+      : null;
+  const volume =
+    leaderboardPosition != null && Number.isFinite(leaderboardPosition.volume)
+      ? leaderboardPosition.volume
+      : null;
 
-  const rankDisplay = leaderboardPosition
-    ? String(leaderboardPosition.rank).padStart(2, '0')
-    : '—';
+  const rankDisplay = rank != null ? String(rank).padStart(2, '0') : '—';
 
-  const pnlDisplay = leaderboardPosition
-    ? formatSignedUsd(leaderboardPosition.pnl)
-    : '—';
+  const pnlDisplay = pnl != null ? formatSignedUsd(pnl) : '—';
 
-  const pnlColor = leaderboardPosition
-    ? leaderboardPosition.pnl >= 0
-      ? TextColor.SuccessDefault
-      : TextColor.ErrorDefault
-    : TextColor.TextDefault;
+  const pnlColor =
+    pnl != null
+      ? pnl >= 0
+        ? TextColor.SuccessDefault
+        : TextColor.ErrorDefault
+      : TextColor.TextDefault;
 
-  const volumeDisplay = leaderboardPosition
-    ? formatUsd(leaderboardPosition.notionalVolume)
-    : '—';
+  const volumeDisplay = volume != null ? formatUsd(volume) : '—';
 
-  const notionalGap = leaderboardPosition
-    ? Math.max(
-        0,
-        PERPS_QUALIFICATION_NOTIONAL_USD - leaderboardPosition.notionalVolume,
-      )
-    : 0;
+  const minVolumeForEligibility =
+    leaderboardPosition?.minVolumeForEligibility ??
+    PERPS_QUALIFICATION_NOTIONAL_USD;
+
+  const volumeGap =
+    volume != null ? Math.max(0, minVolumeForEligibility - volume) : 0;
 
   const showQualifiedCard =
     !isCampaignComplete && isQualified && leaderboardPosition != null;
@@ -94,7 +97,7 @@ const PerpsCampaignStatsSummary: React.FC<PerpsCampaignStatsSummaryProps> = ({
     !isCampaignComplete &&
     isPending &&
     leaderboardPosition != null &&
-    notionalGap > 0;
+    volumeGap > 0;
 
   return (
     <Box
@@ -175,7 +178,7 @@ const PerpsCampaignStatsSummary: React.FC<PerpsCampaignStatsSummaryProps> = ({
             {strings(
               'rewards.perps_trading_campaign.stats_qualify_for_rank_description',
               {
-                notionalRemaining: formatUsd(notionalGap),
+                notionalRemaining: formatUsd(volumeGap),
               },
             )}
           </Text>
