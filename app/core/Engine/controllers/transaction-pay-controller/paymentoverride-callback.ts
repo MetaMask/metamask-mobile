@@ -78,10 +78,13 @@ async function getMoneyAccountWithdrawPaymentOverrideData<
 
 async function getMoneyAccountDepositPaymentOverrideData<
   T extends SignMessenger,
->(messenger: T, amountHuman: string): Promise<BatchTransactionParams[]> {
+>(
+  messenger: T,
+  amountHuman: string,
+): Promise<{ calls: BatchTransactionParams[]; recipient?: Hex }> {
   const state = ReduxService.store.getState() as RootState;
   const primaryMoneyAccount = selectPrimaryMoneyAccount(state);
-  if (!primaryMoneyAccount?.address) return [];
+  if (!primaryMoneyAccount?.address) return { calls: [] };
 
   const moneyAccountAddress = primaryMoneyAccount.address as Hex;
   const chainId = CHAIN_IDS.MONAD as Hex;
@@ -90,7 +93,7 @@ async function getMoneyAccountDepositPaymentOverrideData<
     chainId,
     amountHuman,
   );
-  if (!txs.length) return [];
+  if (!txs.length) return { calls: [] };
 
   const { NetworkController } = Engine.context;
   const networkClientId =
@@ -114,29 +117,27 @@ async function getMoneyAccountDepositPaymentOverrideData<
 
   const delegation = await getDelegationTransaction(messenger, transactionMeta);
 
-  return [
-    {
-      to: delegation.to,
-      data: delegation.data,
-      value: delegation.value,
-    },
-  ];
+  return {
+    recipient: moneyAccountAddress,
+    calls: [
+      {
+        to: delegation.to,
+        data: delegation.data,
+        value: delegation.value,
+      },
+    ],
+  };
 }
 
 export async function getPaymentOverrideData<T extends SignMessenger>(
   request: GetPaymentOverrideDataRequest,
   messenger: T,
-): Promise<GetPaymentOverrideDataResponse> {
+): Promise<GetPaymentOverrideDataResponse & { recipient?: Hex }> {
   const { amount, transaction, transactionData } = request;
 
   if (transactionData?.paymentOverride === PaymentOverride.MoneyAccount) {
     if (transactionData?.isPostQuote) {
-      return {
-        calls: await getMoneyAccountDepositPaymentOverrideData(
-          messenger,
-          amount,
-        ),
-      };
+      return await getMoneyAccountDepositPaymentOverrideData(messenger, amount);
     }
 
     if (!transaction.txParams?.from) return { calls: [] };
