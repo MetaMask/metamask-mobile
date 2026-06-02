@@ -5,8 +5,6 @@ import {
   importLedgerAccount,
   type SpeculosTestSuiteParams,
 } from '../../framework/fixtures/SpeculosFixtureHelper';
-import WalletView from '../../page-objects/wallet/WalletView';
-import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
 import Browser from '../../page-objects/Browser/BrowserView';
 import TestDApp from '../../page-objects/Browser/TestDApp';
 import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions';
@@ -31,11 +29,6 @@ describe(SmokeLedger, () => {
       },
       async ({ speculos }: SpeculosTestSuiteParams) => {
         await importLedgerAccount();
-
-        await WalletView.tapIdenticon();
-        await TestHelpers.delay(3000);
-        await AccountListBottomSheet.tapAccountByName('Ledger 1');
-        await TestHelpers.delay(3000);
 
         await navigateToBrowserView();
         await Browser.navigateToTestDApp();
@@ -75,11 +68,6 @@ describe(SmokeLedger, () => {
       },
       async ({ speculos }: SpeculosTestSuiteParams) => {
         await importLedgerAccount();
-
-        await WalletView.tapIdenticon();
-        await TestHelpers.delay(3000);
-        await AccountListBottomSheet.tapAccountByName('Ledger 1');
-        await TestHelpers.delay(3000);
 
         await navigateToBrowserView();
         await Browser.navigateToTestDApp();
