@@ -16,8 +16,9 @@ import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
 import { parseMwpConnectPayload } from '../utils/parseMwpConnectDeeplink';
 import {
   handleAgenticCliConnectDeeplink,
-  isAgenticCliDeeplink,
+  tryParseAgenticCliConnectionRequest,
 } from '../../AgenticCli/AgenticCliMwpConnectionService';
+import type { AgenticCliConnectionRequest } from '../../AgenticCli/agenticCliConnectionRequest';
 import { whenStoreReady } from '../utils/when-store-ready';
 import Engine from '../../Engine';
 import { rpcErrors } from '@metamask/rpc-errors';
@@ -148,10 +149,13 @@ export class ConnectionRegistry {
 
       if (id) {
         await this.handleSimpleDeeplink(id);
-      } else if (isAgenticCliDeeplink(url)) {
-        await this.handleAgenticCliDeeplink(url);
       } else {
-        await this.handleConnectDeeplink(url);
+        const agenticCliReq = tryParseAgenticCliConnectionRequest(url);
+        if (agenticCliReq) {
+          await this.handleAgenticCliDeeplink(url, agenticCliReq);
+        } else {
+          await this.handleConnectDeeplink(url);
+        }
       }
     } catch (error) {
       // Report to Sentry so we have visibility into deeplink dispatch failures.
@@ -419,18 +423,25 @@ export class ConnectionRegistry {
     logger.debug('Connection disconnected:', id);
   }
 
-  private async handleAgenticCliDeeplink(url: string): Promise<void> {
+  private async handleAgenticCliDeeplink(
+    url: string,
+    connReq: AgenticCliConnectionRequest,
+  ): Promise<void> {
     if (this.deeplinks.has(url)) return;
     this.deeplinks.add(url);
 
     try {
-      await handleAgenticCliConnectDeeplink(url, {
-        relayURL: this.RELAY_URL,
-        keymanager: this.keymanager,
-        hostapp: this.hostapp,
-        hasConnection: (id) => this.connections.has(id),
-        cleanupConnection: (connection) => this.cleanupConnection(connection),
-      });
+      await handleAgenticCliConnectDeeplink(
+        url,
+        {
+          relayURL: this.RELAY_URL,
+          keymanager: this.keymanager,
+          hostapp: this.hostapp,
+          hasConnection: (id) => this.connections.has(id),
+          cleanupConnection: (connection) => this.cleanupConnection(connection),
+        },
+        connReq,
+      );
     } finally {
       this.deeplinks.delete(url);
     }

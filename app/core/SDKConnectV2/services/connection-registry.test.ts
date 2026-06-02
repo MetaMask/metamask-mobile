@@ -1,8 +1,5 @@
 import { AppState, AppStateStatus } from 'react-native';
-import {
-  handleAgenticCliConnectDeeplink,
-  isAgenticCliDeeplink,
-} from '../../AgenticCli/AgenticCliMwpConnectionService';
+import { handleAgenticCliConnectDeeplink } from '../../AgenticCli/AgenticCliMwpConnectionService';
 import { ConnectionRegistry, MAX_CONNECTIONS } from './connection-registry';
 import { HostApplicationAdapter } from '../adapters/host-application-adapter';
 import { ConnectionStore } from '../store/connection-store';
@@ -16,10 +13,15 @@ import { MetaMetricsEvents } from '../../Analytics';
 import { TransportType } from '../../../components/hooks/useAnalytics/useAnalytics.types';
 import Logger from '../../../util/Logger';
 
-jest.mock('../../AgenticCli/AgenticCliMwpConnectionService', () => ({
-  isAgenticCliDeeplink: jest.fn(),
-  handleAgenticCliConnectDeeplink: jest.fn(),
-}));
+jest.mock('../../AgenticCli/AgenticCliMwpConnectionService', () => {
+  const actual = jest.requireActual<
+    typeof import('../../AgenticCli/AgenticCliMwpConnectionService')
+  >('../../AgenticCli/AgenticCliMwpConnectionService');
+  return {
+    ...actual,
+    handleAgenticCliConnectDeeplink: jest.fn(),
+  };
+});
 
 jest.mock('../adapters/host-application-adapter');
 jest.mock('../store/connection-store');
@@ -51,9 +53,6 @@ jest.mock('../../../util/Logger', () => ({
 
 const mockTrackEvent = analytics.trackEvent as jest.Mock;
 const mockLoggerError = Logger.error as jest.Mock;
-const mockIsAgenticCliDeeplink = isAgenticCliDeeplink as jest.MockedFunction<
-  typeof isAgenticCliDeeplink
->;
 const mockHandleAgenticCliConnectDeeplink =
   handleAgenticCliConnectDeeplink as jest.MockedFunction<
     typeof handleAgenticCliConnectDeeplink
@@ -185,7 +184,6 @@ describe('ConnectionRegistry', () => {
 
     (Connection.create as jest.Mock).mockResolvedValue(mockConnection);
 
-    mockIsAgenticCliDeeplink.mockReturnValue(false);
     mockHandleAgenticCliConnectDeeplink.mockResolvedValue(undefined);
 
     // Wait for initialization to complete
@@ -342,6 +340,13 @@ describe('ConnectionRegistry', () => {
     });
 
     it('delegates agentic CLI deeplinks to handleAgenticCliConnectDeeplink', async () => {
+      const parseMwpConnectDeeplinkModule = jest.requireActual<
+        typeof import('../utils/parseMwpConnectDeeplink')
+      >('../utils/parseMwpConnectDeeplink');
+      const parseSpy = jest.spyOn(
+        parseMwpConnectDeeplinkModule,
+        'parseMwpConnectPayload',
+      );
       registry = new ConnectionRegistry(
         RELAY_URL,
         mockKeyManager,
@@ -349,14 +354,13 @@ describe('ConnectionRegistry', () => {
         mockStore,
       );
 
+      const agenticCliRequest = {
+        ...mockConnectionRequest,
+        connectionType: { name: 'agentic-cli' },
+      };
       const agenticCliDeeplink = `metamask://connect/mwp?p=${encodeURIComponent(
-        JSON.stringify({
-          ...mockConnectionRequest,
-          connectionType: { name: 'agentic-cli' },
-        }),
+        JSON.stringify(agenticCliRequest),
       )}`;
-
-      mockIsAgenticCliDeeplink.mockReturnValue(true);
 
       const spyHandleConnectDeeplink = jest
         .spyOn(registry, 'handleConnectDeeplink')
@@ -364,6 +368,8 @@ describe('ConnectionRegistry', () => {
 
       await registry.handleMwpDeeplink(agenticCliDeeplink);
 
+      expect(parseSpy).toHaveBeenCalledTimes(1);
+      expect(parseSpy).toHaveBeenCalledWith(agenticCliDeeplink);
       expect(mockHandleAgenticCliConnectDeeplink).toHaveBeenCalledWith(
         agenticCliDeeplink,
         expect.objectContaining({
@@ -373,11 +379,13 @@ describe('ConnectionRegistry', () => {
           hasConnection: expect.any(Function),
           cleanupConnection: expect.any(Function),
         }),
+        agenticCliRequest,
       );
       expect(spyHandleConnectDeeplink).not.toHaveBeenCalled();
       expect(Connection.create).not.toHaveBeenCalled();
       expect(mockStore.save).not.toHaveBeenCalled();
 
+      parseSpy.mockRestore();
       spyHandleConnectDeeplink.mockRestore();
     });
   });

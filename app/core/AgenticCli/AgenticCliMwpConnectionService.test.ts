@@ -142,6 +142,31 @@ describe('AgenticCliMwpConnectionService', () => {
     );
   });
 
+  it('does not re-parse when a pre-parsed connection request is provided', async () => {
+    const parseMwpConnectDeeplinkModule = jest.requireActual<
+      typeof import('../SDKConnectV2/utils/parseMwpConnectDeeplink')
+    >('../SDKConnectV2/utils/parseMwpConnectDeeplink');
+    const parseSpy = jest.spyOn(
+      parseMwpConnectDeeplinkModule,
+      'parseMwpConnectPayload',
+    );
+
+    await handleAgenticCliConnectDeeplink(
+      agenticCliDeeplink,
+      {
+        relayURL: RELAY_URL,
+        keymanager: mockKeyManager,
+        hostapp: mockHostApp,
+        hasConnection: () => false,
+        cleanupConnection: jest.fn().mockResolvedValue(undefined),
+      },
+      mockConnectionRequest,
+    );
+
+    expect(parseSpy).not.toHaveBeenCalled();
+    parseSpy.mockRestore();
+  });
+
   it('waits for keyring unlock before creating a connection', async () => {
     let resolveUnlock: () => void = jest.fn();
     mockWaitForKeyringUnlock.mockReturnValue(
