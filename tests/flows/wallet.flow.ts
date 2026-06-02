@@ -44,6 +44,7 @@ import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomShee
 import MetaMetricsOptInView from '../page-objects/Onboarding/MetaMetricsOptInView';
 import PredictModalView from '../page-objects/Predict/PredictModalView';
 import OnboardingInterestQuestionnaireView from '../page-objects/Onboarding/OnboardingInterestQuestionnaireView';
+import ExperienceEnhancerBottomSheet from '../page-objects/Onboarding/ExperienceEnhancerBottomSheet';
 import { fetchProductionFeatureFlags } from '../performance/feature-flag-helper';
 const logger = createLogger({
   name: 'WalletFlow',
@@ -479,6 +480,14 @@ export const dismissPushNotificationExistingUserSheet =
   };
 
 /**
+ * Dismisses the marketing consent (Experience Enhancer) modal if it appears
+ * after login. Safe to call when the modal is not shown.
+ */
+export const dismissExperienceEnhancerModal = async (): Promise<void> => {
+  await ExperienceEnhancerBottomSheet.dismissIfPresent();
+};
+
+/**
  * Logs into the application using the provided password or a default password.
  *
  * @async
@@ -496,6 +505,7 @@ export const loginToAppPlaywright = async (
 
   await PlaywrightUtilities.wait(5000);
   await dismissPushNotificationExistingUserSheet();
+  await dismissExperienceEnhancerModal();
 };
 
 /**
