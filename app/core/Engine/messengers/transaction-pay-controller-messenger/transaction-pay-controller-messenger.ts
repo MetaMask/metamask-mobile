@@ -12,6 +12,7 @@ import {
   KeyringControllerSignTypedMessageAction,
 } from '@metamask/keyring-controller';
 import { TransactionControllerIsAtomicBatchSupportedAction } from '@metamask/transaction-controller';
+import { NetworkControllerGetNetworkConfigurationByChainIdAction } from '@metamask/network-controller';
 
 export function getTransactionPayControllerMessenger(
   rootMessenger: RootMessenger,
@@ -36,6 +37,7 @@ export function getTransactionPayControllerMessenger(
       'GasFeeController:getState',
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getNetworkClientById',
+      'NetworkController:getNetworkConfigurationByChainId',
       'RampsController:getOrder',
       'RampsController:getQuotes',
       'RampsController:getState',
@@ -67,6 +69,7 @@ type InitMessengerActions =
   | KeyringControllerSignEip7702AuthorizationAction
   | KeyringControllerSignPersonalMessageAction
   | KeyringControllerSignTypedMessageAction
+  | NetworkControllerGetNetworkConfigurationByChainIdAction
   | TransactionControllerIsAtomicBatchSupportedAction;
 type InitMessengerEvents = never;
 
@@ -93,6 +96,7 @@ export function getTransactionPayControllerInitMessenger(
       'KeyringController:signEip7702Authorization',
       'KeyringController:signPersonalMessage',
       'KeyringController:signTypedMessage',
+      'NetworkController:getNetworkConfigurationByChainId',
       'TransactionController:isAtomicBatchSupported',
     ],
     events: [],
