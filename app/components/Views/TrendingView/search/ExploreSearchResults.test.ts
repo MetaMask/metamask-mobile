@@ -18,14 +18,14 @@ jest.mock('../../../../../locales/i18n', () => ({
 }));
 
 describe('LOCAL_SEARCH_FEEDS', () => {
-  it('includes perps, stocks, and sites', () => {
+  it('includes perps and sites', () => {
     expect(LOCAL_SEARCH_FEEDS.has('perps')).toBe(true);
-    expect(LOCAL_SEARCH_FEEDS.has('stocks')).toBe(true);
     expect(LOCAL_SEARCH_FEEDS.has('sites')).toBe(true);
   });
 
-  it('does not include tokens or predictions (they use server total)', () => {
+  it('does not include tokens, stocks, or predictions (they use server total)', () => {
     expect(LOCAL_SEARCH_FEEDS.has('tokens')).toBe(false);
+    expect(LOCAL_SEARCH_FEEDS.has('stocks')).toBe(false);
     expect(LOCAL_SEARCH_FEEDS.has('predictions')).toBe(false);
   });
 });
@@ -66,7 +66,6 @@ describe('getViewMoreLabel', () => {
   describe('active query — local feeds return "View X more" when items exceed cap', () => {
     it.each([
       ['perps', 5, 'eth', 'View 2 more'],
-      ['stocks', 7, 'bit', 'View 4 more'],
       ['sites', 4, 'meta', 'View 1 more'],
     ] as [SearchFeedId, number, string, string][])(
       '%s: %d items → "%s"',
@@ -93,6 +92,7 @@ describe('getViewMoreLabel', () => {
         'View 47 more',
       );
       expect(getViewMoreLabel('tokens', 3, 'eth', 2101)).toBe('View 2098 more');
+      expect(getViewMoreLabel('stocks', 3, 'appl', 12)).toBe('View 9 more');
     });
 
     it('returns "View X more" when server total only slightly exceeds cap', () => {
