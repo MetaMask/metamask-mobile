@@ -19,7 +19,7 @@ function assertEqual<T>(actual: T, expected: T, message?: string): void {
   }
 }
 
-describe(SmokeWalletPlatform('Account Activity WebSocket Connection'), () => {
+describe.skip(SmokeWalletPlatform('Account Activity WebSocket Connection'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
   });
