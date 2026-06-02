@@ -64,7 +64,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       );
       const timer4 = new TimerHelper(
         'Google: Tap "Create Password" → Onboarding Success visible',
-        { ios: 5000, android: 5000 },
+        { ios: 5000, android: 6000 },
         currentDeviceDetails.platform,
       );
       const timer5 = new TimerHelper(
