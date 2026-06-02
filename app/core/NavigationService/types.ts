@@ -56,6 +56,7 @@ import type { OnboardingCryptoExperienceQuestionnaireRouteParams } from '../../c
 
 // Perps navigation params
 import type { PerpsNavigationParamList } from '../../components/UI/Perps/types/navigation';
+import type { TrendingTokensFullViewParams } from '../../components/UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
 
 // QR Scanner params
 import type { QRScannerParams } from '../../components/Views/QRScanner/QRScanner.types';
@@ -228,8 +229,6 @@ export interface NestedNavigationParams {
   [key: string]: unknown;
 }
 
-import type { SearchFeedId } from '../../components/Views/TrendingView/search/useExploreSearch';
-
 type TraderPositionViewParams =
   | {
       traderId: string;
@@ -367,12 +366,6 @@ export interface RootStackParamList extends ParamListBase {
     | undefined;
   SitesFullView: { mode?: 'favorites' } | undefined;
   ExploreSearch: undefined;
-  ExploreSectionResultsFullView: {
-    feedId: SearchFeedId;
-    title: string;
-    searchQuery: string;
-    data: unknown[];
-  };
   RewardsOnboardingFlow: undefined;
   RewardsOnboardingIntro: undefined;
   BenefitFullView: BenefitFullViewRouteParams;
@@ -521,7 +514,7 @@ export interface RootStackParamList extends ParamListBase {
   TokensFullView: undefined;
   CashTokensFullView: undefined;
   MoneyScreens: undefined;
-  TrendingTokensFullView: undefined;
+  TrendingTokensFullView: TrendingTokensFullViewParams | undefined;
   RWATokensFullView: undefined;
 
   // Vault recovery routes
