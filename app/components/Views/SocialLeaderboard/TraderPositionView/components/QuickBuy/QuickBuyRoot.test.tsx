@@ -1,6 +1,6 @@
 import React from 'react';
 import { act, fireEvent, screen } from '@testing-library/react-native';
-import { StyleSheet } from 'react-native';
+import { Pressable, StyleSheet, Text } from 'react-native';
 import { TextColor } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import QuickBuyRoot from './QuickBuyRoot';
@@ -379,6 +379,89 @@ describe('QuickBuyRoot', () => {
 
     expect(StyleSheet.flatten(container.props.style)).toMatchObject({
       height: 480,
+    });
+  });
+
+  describe('screen navigation', () => {
+    const NavigationProbe = () => {
+      const { activeScreen, setActiveScreen } = useQuickBuyContext();
+      return (
+        <>
+          <Text testID="active-screen">{activeScreen}</Text>
+          <Pressable
+            testID="nav-payWith"
+            onPress={() => setActiveScreen('payWith')}
+          />
+          <Pressable
+            testID="nav-quoteDetails"
+            onPress={() => setActiveScreen('quoteDetails')}
+          />
+          <Pressable
+            testID="nav-amount"
+            onPress={() => setActiveScreen('amount')}
+          />
+        </>
+      );
+    };
+
+    const renderWithNavigation = () => {
+      renderWithProvider(
+        <QuickBuyRoot
+          isVisible
+          target={positionToQuickBuyTarget(createPosition())}
+          features={TOP_TRADERS_QUICK_BUY_FEATURES}
+          onClose={jest.fn()}
+        >
+          <NavigationProbe />
+        </QuickBuyRoot>,
+      );
+      act(() => {
+        storedOnOpenCallback?.();
+      });
+    };
+
+    it('starts on the amount screen', () => {
+      renderWithNavigation();
+
+      expect(screen.getByTestId('active-screen')).toHaveTextContent('amount');
+    });
+
+    it('navigates forward to a deeper screen', () => {
+      renderWithNavigation();
+
+      act(() => {
+        fireEvent.press(screen.getByTestId('nav-payWith'));
+      });
+
+      expect(screen.getByTestId('active-screen')).toHaveTextContent('payWith');
+    });
+
+    it('navigates back to a shallower screen', () => {
+      renderWithNavigation();
+
+      act(() => {
+        fireEvent.press(screen.getByTestId('nav-payWith'));
+      });
+      act(() => {
+        fireEvent.press(screen.getByTestId('nav-amount'));
+      });
+
+      expect(screen.getByTestId('active-screen')).toHaveTextContent('amount');
+    });
+
+    it('navigates between equal-depth screens', () => {
+      renderWithNavigation();
+
+      act(() => {
+        fireEvent.press(screen.getByTestId('nav-payWith'));
+      });
+      act(() => {
+        fireEvent.press(screen.getByTestId('nav-quoteDetails'));
+      });
+
+      expect(screen.getByTestId('active-screen')).toHaveTextContent(
+        'quoteDetails',
+      );
     });
   });
 });
