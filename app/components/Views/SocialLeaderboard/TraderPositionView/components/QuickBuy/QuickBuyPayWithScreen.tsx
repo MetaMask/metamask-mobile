@@ -16,11 +16,11 @@ import QuickBuyPayWithRow from './components/QuickBuyPayWithRow';
 import { useChainDisplayInfos } from './hooks/useChainDisplayInfos';
 import { getTokenKey } from './sourceTokenCandidates';
 import { useQuickBuyContext } from './useQuickBuyContext';
-import { chainNameToId } from '../../../utils/chainMapping';
 import {
   formatChainIdToHex,
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
+import type { CaipChainId } from '@metamask/utils';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
 
 const QuickBuyPayWithScreen: React.FC = () => {
@@ -48,8 +48,10 @@ const QuickBuyPayWithScreen: React.FC = () => {
   // stablecoin candidate exists on it — avoids an immediately-empty list.
   const defaultChainId = useMemo(() => {
     if (!isSellMode) return null;
-    const caip = chainNameToId(target.chain);
-    if (!caip || isNonEvmChainId(caip)) return null;
+    // `target.chain` is already a CAIP id — `positionToQuickBuyTarget` does
+    // the chain-name → CAIP conversion when the target is built.
+    const caip = target.chain as CaipChainId;
+    if (isNonEvmChainId(caip)) return null;
     let hexChainId: string;
     try {
       hexChainId = formatChainIdToHex(caip);

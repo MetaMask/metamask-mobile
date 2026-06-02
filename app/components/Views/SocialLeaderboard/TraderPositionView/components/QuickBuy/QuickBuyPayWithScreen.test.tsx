@@ -39,7 +39,7 @@ const buildContext = (
 ) => ({
   tradeMode,
   target: {
-    chain: 'ethereum',
+    chain: 'eip155:1',
     tokenAddress: '0x0000000000000000000000000000000000000000',
     tokenSymbol: 'ETH',
     tokenName: 'Ether',
@@ -114,7 +114,7 @@ describe('QuickBuyPayWithScreen', () => {
     );
     render(<QuickBuyPayWithScreen />);
     expect(
-      screen.getByText('social_leaderboard.quick_buy.receive_with'),
+      screen.getByText('social_leaderboard.quick_buy.receive'),
     ).toBeOnTheScreen();
   });
 
