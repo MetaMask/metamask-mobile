@@ -87,7 +87,7 @@ jobs:
     uses: ./.github/workflows/build-and-upload-to-testflight.yml
     with:
       source_branch: ${{ needs.create-ephemeral-branch.outputs.branch }}
-      environment: beta
+      environment: exp
       testflight_group: 'MetaMask BETA & Release Candidates'
       distribute_external: true
     secrets: inherit
