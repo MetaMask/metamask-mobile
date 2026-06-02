@@ -22,6 +22,10 @@ import {
   ButtonVariant,
   ButtonSize,
   TextColor,
+  Box,
+  HeaderStandardAnimated,
+  IconName,
+  useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
@@ -56,7 +60,7 @@ import PerpsMarketTypeSection from '../../components/PerpsMarketTypeSection';
 import PerpsRecentActivityList from '../../components/PerpsRecentActivityList/PerpsRecentActivityList';
 import PerpsHomeSection from '../../components/PerpsHomeSection';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
-import PerpsHomeHeader from '../../components/PerpsHomeHeader';
+import PerpsHomeTitleHub from '../../components/PerpsHomeTitleHub';
 import WhatsHappeningSection from '../../../../UI/WhatsHappening';
 import { WhatsHappeningSource } from '../../../../UI/WhatsHappening/constants';
 import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFlagController/whatsHappening';
@@ -175,10 +179,19 @@ const PerpsHomeView = ({
     [handleScroll],
   );
 
+  const {
+    scrollY: headerScrollY,
+    setTitleSectionHeight,
+    titleSectionHeightSv,
+  } = useHeaderStandardAnimated();
+
+  const perpsScreenTitle = strings('perps.title');
+
   const { scrollHandler: perpsScrollHandler, onTabEnter: perpsOnTabEnter } =
     useDiscoveryScrollManager({
       walletHeaderHeight,
       walletHeaderTranslateY,
+      scrollY: hideHeader ? undefined : headerScrollY,
       onScrollEvent: handleScrollEvent,
       onHeaderHiddenChange,
     });
@@ -498,9 +511,23 @@ const PerpsHomeView = ({
     <SafeAreaView style={styles.container} edges={hideHeader ? [] : undefined}>
       {/* Header */}
       {!hideHeader && (
-        <PerpsHomeHeader
+        <HeaderStandardAnimated
+          scrollY={headerScrollY}
+          titleSectionHeight={titleSectionHeightSv}
+          title={perpsScreenTitle}
           onBack={handleBackPress}
-          onSearchToggle={handleSearchToggle}
+          backButtonProps={{
+            accessibilityLabel: 'Back',
+            testID: PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
+          }}
+          endButtonIconProps={[
+            {
+              iconName: IconName.Search,
+              onPress: handleSearchToggle,
+              accessibilityLabel: 'Search',
+              testID: PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE,
+            },
+          ]}
           testID="perps-home"
         />
       )}
@@ -516,10 +543,13 @@ const PerpsHomeView = ({
         onScroll={perpsScrollHandler}
         scrollEventThrottle={16}
       >
-        <PerpsHomeHeader
-          segment="title"
-          testID={PerpsHomeViewSelectorsIDs.HOME_HEADING}
-        />
+        <Box
+          onLayout={(event) =>
+            setTitleSectionHeight(event.nativeEvent.layout.height)
+          }
+        >
+          <PerpsHomeTitleHub testID={PerpsHomeViewSelectorsIDs.HOME_HEADING} />
+        </Box>
 
         {/* Service Interruption Banner */}
         <PerpsServiceInterruptionBanner
@@ -529,6 +559,7 @@ const PerpsHomeView = ({
         {/* Balance Actions Component */}
         <PerpsMarketBalanceActions
           showActionButtons={HOME_SCREEN_CONFIG.ShowHeaderActionButtons}
+          hideBalanceSection
         />
 
         {/* Competition Banner */}

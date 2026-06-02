@@ -7,6 +7,7 @@ import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFla
 import { mockTheme } from '../../../../../util/theme';
 import { useDiscoveryScrollManager } from '../../../Predict/hooks/useDiscoveryScrollManager';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
+import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
 
 // Mock useDiscoveryScrollManager
 const mockPerpsOnTabEnter = jest.fn();
@@ -148,6 +149,12 @@ jest.mock('../../hooks/stream', () => ({
   })),
 }));
 
+jest.mock('../../hooks/usePerpsProvider', () => ({
+  usePerpsProvider: jest.fn(() => ({
+    isMultiProviderEnabled: false,
+  })),
+}));
+
 // Use real BigNumber library - mocking it causes issues with module initialization
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
@@ -284,83 +291,6 @@ jest.mock('@metamask/perps-controller', () => ({
   },
 }));
 
-// Mock child components
-jest.mock('../../components/PerpsHomeHeader', () => {
-  const { View, TouchableOpacity, Text, TextInput } =
-    jest.requireActual('react-native');
-
-  interface MockPerpsHomeHeaderProps {
-    segment?: 'nav' | 'title';
-    screenTitle?: string;
-    onSearchToggle?: () => void;
-    onBack?: () => void;
-    isSearchVisible?: boolean;
-    searchQuery?: string;
-    onSearchQueryChange?: (text: string) => void;
-    onSearchClear?: () => void;
-    testID?: string;
-  }
-
-  function MockPerpsHomeHeader({
-    segment = 'nav',
-    screenTitle = 'Perps',
-    onSearchToggle,
-    onBack,
-    isSearchVisible = false,
-    searchQuery = '',
-    onSearchQueryChange,
-    testID,
-  }: MockPerpsHomeHeaderProps) {
-    if (segment === 'title') {
-      return (
-        <View testID={testID}>
-          <Text testID={testID ? `${testID}-title` : undefined}>
-            {screenTitle}
-          </Text>
-        </View>
-      );
-    }
-
-    if (isSearchVisible) {
-      return (
-        <View>
-          <TextInput
-            value={searchQuery}
-            onChangeText={onSearchQueryChange}
-            testID={`${testID}-search-bar`}
-          />
-          <TouchableOpacity
-            testID={`${testID}-search-close`}
-            onPress={onSearchToggle}
-          >
-            <Text>Cancel</Text>
-          </TouchableOpacity>
-        </View>
-      );
-    }
-
-    return (
-      <View>
-        <TouchableOpacity testID={`${testID}-back-button`} onPress={onBack}>
-          {/* Also provide back-button for backward compatibility with tests */}
-          <View testID="back-button" />
-          <Text>Back</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          testID={`${testID}-search-toggle`}
-          onPress={onSearchToggle}
-        >
-          <Text>Search</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
-  return {
-    __esModule: true,
-    default: MockPerpsHomeHeader,
-  };
-});
 jest.mock('../../components/PerpsHomeSection', () => {
   const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
 
@@ -582,8 +512,10 @@ describe('PerpsHomeView', () => {
     const { getByTestId } = render(<PerpsHomeView />);
 
     // Assert - Component renders with essential elements
-    expect(getByTestId('back-button')).toBeTruthy();
-    expect(getByTestId('perps-home-search-toggle')).toBeTruthy();
+    expect(
+      getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
+    ).toBeTruthy();
+    expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
   });
 
   it('shows header with navigation controls', () => {
@@ -591,8 +523,10 @@ describe('PerpsHomeView', () => {
     const { getByTestId } = render(<PerpsHomeView />);
 
     // Assert
-    expect(getByTestId('back-button')).toBeTruthy();
-    expect(getByTestId('perps-home-search-toggle')).toBeTruthy();
+    expect(
+      getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
+    ).toBeTruthy();
+    expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
   });
 
   it('shows search toggle button', () => {
@@ -600,7 +534,7 @@ describe('PerpsHomeView', () => {
     const { getByTestId } = render(<PerpsHomeView />);
 
     // Assert
-    expect(getByTestId('perps-home-search-toggle')).toBeTruthy();
+    expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
   });
 
   it('navigates to market list view with search enabled when search button is pressed', () => {
@@ -611,7 +545,7 @@ describe('PerpsHomeView', () => {
     expect(queryByTestId('perps-home-search-bar')).toBeNull();
 
     // Act - Press search toggle
-    fireEvent.press(getByTestId('perps-home-search-toggle'));
+    fireEvent.press(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE));
 
     expect(mockNavigateToMarketList).toHaveBeenCalledWith({
       defaultMarketTypeFilter: 'all',
@@ -638,7 +572,7 @@ describe('PerpsHomeView', () => {
 
     const { getByTestId } = render(<PerpsHomeView />);
 
-    fireEvent.press(getByTestId('perps-home-search-toggle'));
+    fireEvent.press(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE));
 
     expect(mockNavigateToMarketList).toHaveBeenCalledWith({
       defaultMarketTypeFilter: 'all',
@@ -750,7 +684,7 @@ describe('PerpsHomeView', () => {
     const { getByTestId } = render(<PerpsHomeView />);
 
     // Act
-    fireEvent.press(getByTestId('back-button'));
+    fireEvent.press(getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON));
 
     // Assert - Always navigates to wallet home to avoid loops (e.g., from tutorial)
     expect(mockNavigateToWallet).toHaveBeenCalled();
@@ -836,7 +770,9 @@ describe('PerpsHomeView', () => {
     // Assert - Verify navigation card is rendered (if it has a testID)
     // Or just verify component renders without error
     // The navigation card is tested separately
-    expect(getByTestId('back-button')).toBeTruthy();
+    expect(
+      getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
+    ).toBeTruthy();
   });
 
   it('renders main sections', () => {
@@ -943,14 +879,18 @@ describe('PerpsHomeView', () => {
   describe('hideHeader prop', () => {
     it('renders the header by default', () => {
       const { getByTestId } = render(<PerpsHomeView />);
-      expect(getByTestId('back-button')).toBeTruthy();
-      expect(getByTestId('perps-home-search-toggle')).toBeTruthy();
+      expect(
+        getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
+      ).toBeTruthy();
+      expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
     });
 
     it('hides the header when hideHeader is true', () => {
       const { queryByTestId } = render(<PerpsHomeView hideHeader />);
-      expect(queryByTestId('back-button')).toBeNull();
-      expect(queryByTestId('perps-home-search-toggle')).toBeNull();
+      expect(
+        queryByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
+      ).toBeNull();
+      expect(queryByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeNull();
     });
 
     it('still renders content when hideHeader is true', () => {

@@ -39,6 +39,7 @@ import { PerpsProgressBar } from '../PerpsProgressBar';
 import { selectWithdrawalRequestsBySelectedAccount } from '../../../../../selectors/perps';
 interface PerpsMarketBalanceActionsProps {
   showActionButtons?: boolean;
+  hideBalanceSection?: boolean;
 }
 
 const PerpsMarketBalanceActionsSkeleton: React.FC = () => {
@@ -63,6 +64,7 @@ const PerpsMarketBalanceActionsSkeleton: React.FC = () => {
 
 const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
   showActionButtons = true,
+  hideBalanceSection = false,
 }) => {
   const tw = useTailwind();
   const { isDepositInProgress } = usePerpsDepositProgress();
@@ -191,6 +193,10 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
 
   // Show skeleton while loading initial account data
   if (isInitialLoading) {
+    if (hideBalanceSection) {
+      return null;
+    }
+
     return <PerpsMarketBalanceActionsSkeleton />;
   }
 
@@ -244,6 +250,38 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
         {/* Balance Section */}
         {isBalanceEmpty ? (
           <PerpsEmptyBalance onAddFunds={handleAddFunds} />
+        ) : hideBalanceSection ? (
+          showActionButtons && (
+            <Box
+              twClassName="gap-3 px-4 pt-1 pb-3"
+              flexDirection={BoxFlexDirection.Row}
+            >
+              <Box twClassName="flex-1">
+                <Button
+                  variant={ButtonVariant.Secondary}
+                  size={ButtonSize.Lg}
+                  onPress={handleWithdraw}
+                  isFullWidth
+                  testID={PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON}
+                >
+                  {strings('perps.withdraw')}
+                </Button>
+              </Box>
+              <Box twClassName="flex-1">
+                <Button
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSize.Lg}
+                  onPress={handleAddFunds}
+                  isFullWidth
+                  testID={
+                    PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON
+                  }
+                >
+                  {strings('perps.add_funds')}
+                </Button>
+              </Box>
+            </Box>
+          )
         ) : (
           <Box twClassName="px-4 pt-2 pb-4">
             <Animated.View style={[getBalanceAnimatedStyle]}>
