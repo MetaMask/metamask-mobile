@@ -1,10 +1,10 @@
 import NavigationService from '../../../core/NavigationService';
 import Routes from '../../../constants/navigation/Routes';
 import { AgenticCliDashboardWebviewService } from './AgenticCliDashboardWebviewService';
-import { devApiEnv } from '../../../core/devApiEnv';
+import { getBuildType } from '../../../core/OAuthService/OAuthLoginHandlers/constants';
 
-jest.mock('../../../core/devApiEnv', () => ({
-  devApiEnv: jest.fn(() => 'dev'),
+jest.mock('../../../core/OAuthService/OAuthLoginHandlers/constants', () => ({
+  getBuildType: jest.fn(() => 'main_dev'),
 }));
 
 jest.mock('../../../core/NavigationService', () => ({
@@ -13,11 +13,11 @@ jest.mock('../../../core/NavigationService', () => ({
   },
 }));
 
-const mockDevApiEnv = devApiEnv as jest.MockedFunction<typeof devApiEnv>;
+const mockGetBuildType = getBuildType as jest.MockedFunction<
+  typeof getBuildType
+>;
 
 describe('AgenticCliDashboardWebviewService', () => {
-  const devGlobal = global as typeof globalThis & { __DEV__?: boolean };
-  const originalDev = devGlobal.__DEV__;
   const dashboardParams = {
     dashboardUrl: 'https://test-dashboard.web3auth.io/agentic/login',
     dashboardToken: 'dashboard-token',
@@ -27,14 +27,12 @@ describe('AgenticCliDashboardWebviewService', () => {
 
   beforeEach(() => {
     jest.useRealTimers();
-    devGlobal.__DEV__ = originalDev;
-    mockDevApiEnv.mockReturnValue('dev');
+    mockGetBuildType.mockReturnValue('main_dev');
     navigateMock.mockReset();
   });
 
   afterEach(() => {
     jest.useRealTimers();
-    devGlobal.__DEV__ = originalDev;
   });
 
   describe('buildWebViewUrl', () => {
@@ -69,25 +67,8 @@ describe('AgenticCliDashboardWebviewService', () => {
       ).toThrow('Dashboard origin is not allowed');
     });
 
-    it('only allows localhost origins in development builds', () => {
-      devGlobal.__DEV__ = true;
-      expect(
-        AgenticCliDashboardWebviewService.shouldLoadInWebView(
-          'http://localhost:5173/agentic/login#auth_token=token',
-        ),
-      ).toBe(true);
-
-      devGlobal.__DEV__ = false;
-      expect(
-        AgenticCliDashboardWebviewService.shouldLoadInWebView(
-          'http://localhost:5173/agentic/login#auth_token=token',
-        ),
-      ).toBe(false);
-    });
-
-    it('only allows dev dashboard hosts when MM_DEV_API_ENV=dev', () => {
-      mockDevApiEnv.mockReturnValue('dev');
-      devGlobal.__DEV__ = false;
+    it('only allows test-dashboard host for dev build types', () => {
+      mockGetBuildType.mockReturnValue('main_dev');
 
       expect(
         AgenticCliDashboardWebviewService.shouldLoadInWebView(
@@ -95,7 +76,7 @@ describe('AgenticCliDashboardWebviewService', () => {
         ),
       ).toBe(true);
 
-      mockDevApiEnv.mockReturnValue('prod');
+      mockGetBuildType.mockReturnValue('main_prod');
 
       expect(
         AgenticCliDashboardWebviewService.shouldLoadInWebView(
@@ -234,8 +215,8 @@ describe('AgenticCliDashboardWebviewService', () => {
   });
 
   describe('navigation helpers', () => {
-    it('allows configured dashboard origins and blocks invalid URLs', () => {
-      mockDevApiEnv.mockReturnValue('dev');
+    it('allows base and dev dashboard origins for dev build types', () => {
+      mockGetBuildType.mockReturnValue('main_dev');
 
       expect(
         AgenticCliDashboardWebviewService.isOriginAllowed(
@@ -251,15 +232,14 @@ describe('AgenticCliDashboardWebviewService', () => {
         AgenticCliDashboardWebviewService.shouldLoadInWebView(
           'https://dev-dashboard.web3auth.io/agentic/login#auth_token=token',
         ),
-      ).toBe(true);
+      ).toBe(false);
       expect(
         AgenticCliDashboardWebviewService.shouldLoadInWebView('not-a-url'),
       ).toBe(false);
     });
 
-    it('blocks dev dashboard hosts in production API env', () => {
-      mockDevApiEnv.mockReturnValue('prod');
-      devGlobal.__DEV__ = false;
+    it('blocks test-dashboard host for prod build types', () => {
+      mockGetBuildType.mockReturnValue('main_prod');
 
       expect(
         AgenticCliDashboardWebviewService.shouldLoadInWebView(
@@ -268,20 +248,39 @@ describe('AgenticCliDashboardWebviewService', () => {
       ).toBe(false);
     });
 
-    it('allows UAT dashboard origin in production API env', () => {
-      mockDevApiEnv.mockReturnValue('prod');
-      devGlobal.__DEV__ = false;
+    it('allows prod dashboard host for prod build types', () => {
+      mockGetBuildType.mockReturnValue('main_prod');
 
       expect(
         AgenticCliDashboardWebviewService.isOriginAllowed(
-          'https://uat-dashboard.web3auth.io',
+          'https://dashboard.web3auth.io',
         ),
       ).toBe(true);
       expect(
         AgenticCliDashboardWebviewService.shouldLoadInWebView(
-          'https://uat-dashboard.web3auth.io/agentic/login#auth_token=token',
+          'https://dashboard.web3auth.io/agentic/login#auth_token=token',
         ),
       ).toBe(true);
+    });
+
+    it('allows dev-dashboard host for UAT build types', () => {
+      mockGetBuildType.mockReturnValue('main_uat');
+
+      expect(
+        AgenticCliDashboardWebviewService.isOriginAllowed(
+          'https://dev-dashboard.web3auth.io',
+        ),
+      ).toBe(true);
+      expect(
+        AgenticCliDashboardWebviewService.shouldLoadInWebView(
+          'https://dev-dashboard.web3auth.io/agentic/login#auth_token=token',
+        ),
+      ).toBe(true);
+      expect(
+        AgenticCliDashboardWebviewService.shouldLoadInWebView(
+          'https://test-dashboard.web3auth.io/agentic/login#auth_token=token',
+        ),
+      ).toBe(false);
     });
 
     it('resolves an open request when the WebView posts a CLI token', async () => {
