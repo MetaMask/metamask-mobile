@@ -1,4 +1,5 @@
 import { createSelector } from 'reselect';
+import { Json, hasProperty, isObject } from '@metamask/utils';
 import { BATCH_SELL_ENABLED } from '../../../constants/bridge';
 import { isRemoteFeatureFlagOverrideActivated } from '../../../core/Engine/controllers/remote-feature-flag-controller';
 import { selectRemoteFeatureFlags } from '..';
@@ -8,16 +9,12 @@ import {
 } from './constants';
 import type { BatchSellEnabledFlagValue } from './types';
 
-function isBatchSellEnabledFlagValue(
-  value: unknown,
-): value is BatchSellEnabledFlagValue {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    'enabled' in value &&
-    typeof (value as { enabled: unknown }).enabled === 'boolean'
-  );
-}
+const isBatchSellEnabledFlagValue = (
+  value: Json,
+): value is BatchSellEnabledFlagValue =>
+  isObject(value) &&
+  hasProperty(value, 'enabled') &&
+  typeof value.enabled === 'boolean';
 
 export const selectBatchSellEnabled = createSelector(
   selectRemoteFeatureFlags,
