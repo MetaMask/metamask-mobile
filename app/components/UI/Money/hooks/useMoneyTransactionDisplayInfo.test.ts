@@ -384,20 +384,43 @@ describe('useMoneyTransactionDisplayInfo — getIconForTransactionType', () => {
 // Primary amount — ERC-20 (USDC)
 // ---------------------------------------------------------------------------
 
-describe('useMoneyTransactionDisplayInfo — ERC-20 primary amount', () => {
-  it('formats USDC requiredAssets amount as +X.XX USDC', () => {
-    // 1_000_000 minimal units = 1.00 USDC (6 decimals)
-    const tx = makeTx(TransactionType.moneyAccountDeposit, {
-      metamaskPay: { tokenAddress: USDC_ADDRESS, chainId: CHAIN_ID },
-      requiredAssets: [{ address: USDC_ADDRESS, amount: '1000000' }],
-    });
-
-    // Provide the token in state so it looks like an ERC-20 (not native).
-    const stateWithUsdc = {
+describe('useMoneyTransactionDisplayInfo — ERC-20 (stablecoin) primary amount', () => {
+  /**
+   * Builds state where USDC is a known ERC-20 with optional market data.
+   * Like every other ERC-20, USDC is priced via the Price API
+   * (token→ETH `price` × ETH→USD rate) — there is no $1 peg shortcut. The
+   * `USDC` symbol only affects *formatting* (2 fixed decimals).
+   */
+  function makeUsdcState(opts: {
+    tokenToEthPrice?: number;
+    ethUsdRate?: number;
+  }): ProviderValues['state'] {
+    const marketData =
+      opts.tokenToEthPrice === undefined
+        ? {}
+        : {
+            [CHAIN_ID]: {
+              [safeToChecksumAddress(USDC_ADDRESS) as string]: {
+                price: opts.tokenToEthPrice,
+              },
+            },
+          };
+    return {
       engine: {
         backgroundState: {
-          CurrencyRateController: { currentCurrency: 'usd', currencyRates: {} },
-          TokenRatesController: { marketData: {} },
+          CurrencyRateController: {
+            currentCurrency: 'usd',
+            currencyRates:
+              opts.ethUsdRate === undefined
+                ? {}
+                : {
+                    ETH: {
+                      conversionRate: opts.ethUsdRate,
+                      usdConversionRate: opts.ethUsdRate,
+                    },
+                  },
+          },
+          TokenRatesController: { marketData },
           TokensController: {
             allTokens: {
               [CHAIN_ID]: {
@@ -420,12 +443,47 @@ describe('useMoneyTransactionDisplayInfo — ERC-20 primary amount', () => {
         },
       },
     } as unknown as ProviderValues['state'];
+  }
 
+  function makeUsdcDepositTx(): TransactionMeta {
+    // 1_000_000 → $1.00 (6-decimal USD value).
+    return makeTx(TransactionType.moneyAccountDeposit, {
+      metamaskPay: { tokenAddress: USDC_ADDRESS, chainId: CHAIN_ID },
+      requiredAssets: [{ address: USDC_ADDRESS, amount: '1000000' }],
+    });
+  }
+
+  it('prices USDC at its market value (~$1) and formats with 2 decimals', () => {
+    // USDC→ETH 0.0004 × ETH→USD 2500 = $1.00 per USDC.
+    // $1.00 / $1.00 = 1.00 USDC.
     const { result } = renderHookWithProvider(
-      () => useMoneyTransactionDisplayInfo(tx, undefined),
-      { state: stateWithUsdc },
+      () => useMoneyTransactionDisplayInfo(makeUsdcDepositTx(), undefined),
+      { state: makeUsdcState({ tokenToEthPrice: 0.0004, ethUsdRate: 2500 }) },
     );
+
     expect(result.current.primaryAmount).toBe('+1.00 USDC');
+  });
+
+  it('reflects a de-pegged market price rather than assuming $1', () => {
+    // USDC trading at $0.80: USDC→ETH 0.00032 × ETH→USD 2500 = $0.80 per USDC.
+    // $1.00 / $0.80 = 1.25 USDC — the Price API value, not the flat $1 peg.
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(makeUsdcDepositTx(), undefined),
+      { state: makeUsdcState({ tokenToEthPrice: 0.00032, ethUsdRate: 2500 }) },
+    );
+
+    expect(result.current.primaryAmount).toBe('+1.25 USDC');
+  });
+
+  it('leaves primaryAmount empty when stablecoin market data is unavailable', () => {
+    // No peg fallback: without market data we cannot price USDC, so we show
+    // nothing rather than a misleading "+1.00 USDC". The fiat line still renders.
+    const { result } = renderHookWithProvider(
+      () => useMoneyTransactionDisplayInfo(makeUsdcDepositTx(), undefined),
+      { state: makeUsdcState({}) },
+    );
+
+    expect(result.current.primaryAmount).toBe('');
   });
 });
 

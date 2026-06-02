@@ -186,12 +186,11 @@ function getRequiredAsset(tx: TransactionMeta): RequiredAsset | undefined {
 }
 
 /**
- * Symbols of major USD-pegged stablecoins. For these we price the deposit at a
- * flat $1 rather than round-tripping through token→ETH→USD market data, which
- * (as already observed for mUSD in the fiat path) can report wildly wrong
- * prices for pegged assets. Unknown stables not in this set simply fall through
- * to the market-data path, and show nothing if that data is missing — which is
- * safe (the fiat line still renders).
+ * Symbols of major USD-pegged stablecoins. This set is used purely for *display
+ * formatting* — stables render with 2 fixed decimals ("+1.00 USDC") while other
+ * tokens use trimmed 6-decimal precision ("+0.02 LINK"). Pricing itself always
+ * comes from the Price API (token→ETH market price × ETH→USD), the same path
+ * every other token uses.
  */
 const USD_PEGGED_STABLE_SYMBOLS = new Set([
   'USDC',
@@ -220,14 +219,12 @@ function isUsdPeggedStable(
  * be determined (in which case the primary amount is left blank rather than
  * shown as a misleading "0.00").
  *
- * - USD-pegged stablecoins → flat $1.
  * - Native token (e.g. ETH) → its `usdConversionRate`.
- * - Other ERC-20s → token→ETH market price × ETH→USD rate.
+ * - Other ERC-20s (including USD-pegged stablecoins) → the Price API value, i.e. token→ETH market price × ETH→USD rate.
  */
 function getPayTokenUsdPrice(args: {
   isNative: boolean;
   nativeTicker: string | undefined;
-  symbol: string | undefined;
   chainId: Hex | undefined;
   tokenAddress: Hex | undefined;
   currencyRates: CurrencyRatesMap | undefined;
@@ -236,16 +233,11 @@ function getPayTokenUsdPrice(args: {
   const {
     isNative,
     nativeTicker,
-    symbol,
     chainId,
     tokenAddress,
     currencyRates,
     tokenMarketData,
   } = args;
-
-  if (isUsdPeggedStable(tokenAddress, symbol)) {
-    return new BigNumber(1);
-  }
 
   const ethToUsdRate = currencyRates?.[ETH_TICKER]?.usdConversionRate;
 
@@ -387,7 +379,6 @@ export function useMoneyTransactionDisplayInfo(
         const usdPrice = getPayTokenUsdPrice({
           isNative,
           nativeTicker,
-          symbol: sourceTokenSymbol,
           chainId: payTokenChainId,
           tokenAddress: payTokenAddress,
           currencyRates,
