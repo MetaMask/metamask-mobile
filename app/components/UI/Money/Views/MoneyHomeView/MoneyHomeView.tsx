@@ -386,13 +386,10 @@ const MoneyHomeView = () => {
           </>
         )}
         {!isMilestone && (
-          <>
-            <MoneyWhatYouGet
-              apy={apyPercent}
-              onLearnMorePress={handleLearnMorePress}
-            />
-            <Divider />
-          </>
+          <MoneyWhatYouGet
+            apy={apyPercent}
+            onLearnMorePress={handleLearnMorePress}
+          />
         )}
         <MoneyFooter onAddMoneyPress={handleAddPress} />
       </ScrollView>
