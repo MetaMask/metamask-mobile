@@ -16,8 +16,9 @@ describe('MoneyHowItWorks', () => {
 
     const description = getByTestId(MoneyHowItWorksTestIds.DESCRIPTION);
     expect(description).toHaveTextContent(
-      /Deposit mUSD into your Money account and earn up to/,
+      /Add mUSD to your Money account and earn up to/,
     );
+    expect(description).toHaveTextContent(/\(variable\)\./);
     expect(description).toHaveTextContent(
       /Your balance is dollar-backed and ready to spend, trade, or send anytime\./,
     );
@@ -45,9 +46,16 @@ describe('MoneyHowItWorks', () => {
   });
 
   it('hides the highlighted APY text when isLoading is true', () => {
-    const { queryByTestId } = render(<MoneyHowItWorks apy={4} isLoading />);
+    const { queryByTestId, getByTestId } = render(
+      <MoneyHowItWorks apy={4} isLoading />,
+    );
 
     expect(queryByTestId(MoneyHowItWorksTestIds.APY)).not.toBeOnTheScreen();
+    const description = getByTestId(MoneyHowItWorksTestIds.DESCRIPTION);
+    expect(description).toHaveTextContent(
+      strings('money.how_it_works.description_no_apy'),
+    );
+    expect(description).not.toHaveTextContent(/\(variable\)/);
   });
 
   it('shows the highlighted APY text when isLoading is false', () => {
@@ -56,21 +64,34 @@ describe('MoneyHowItWorks', () => {
     expect(getByTestId(MoneyHowItWorksTestIds.APY)).toBeOnTheScreen();
   });
 
-  it('hides the highlighted APY text when apy is undefined', () => {
-    const { queryByTestId } = render(<MoneyHowItWorks apy={undefined} />);
+  it('renders only the no-apy sentence when apy is undefined', () => {
+    const { queryByTestId, getByTestId } = render(
+      <MoneyHowItWorks apy={undefined} />,
+    );
 
     expect(queryByTestId(MoneyHowItWorksTestIds.APY)).not.toBeOnTheScreen();
+    const description = getByTestId(MoneyHowItWorksTestIds.DESCRIPTION);
+    expect(description).toHaveTextContent(
+      strings('money.how_it_works.description_no_apy'),
+    );
+    expect(description).not.toHaveTextContent(/\(variable\)/);
   });
 
-  it('shows the highlighted APY text when apy is zero', () => {
-    const { getByTestId } = render(<MoneyHowItWorks apy={0} />);
+  it('hides the highlighted APY text when apy is zero', () => {
+    const { queryByTestId, getByTestId } = render(<MoneyHowItWorks apy={0} />);
 
-    expect(getByTestId(MoneyHowItWorksTestIds.APY)).toBeOnTheScreen();
+    expect(queryByTestId(MoneyHowItWorksTestIds.APY)).not.toBeOnTheScreen();
+    expect(
+      getByTestId(MoneyHowItWorksTestIds.DESCRIPTION),
+    ).not.toHaveTextContent(/\(variable\)/);
   });
 
   it('hides the highlighted APY text when apy is negative', () => {
-    const { queryByTestId } = render(<MoneyHowItWorks apy={-1} />);
+    const { queryByTestId, getByTestId } = render(<MoneyHowItWorks apy={-1} />);
 
     expect(queryByTestId(MoneyHowItWorksTestIds.APY)).not.toBeOnTheScreen();
+    expect(
+      getByTestId(MoneyHowItWorksTestIds.DESCRIPTION),
+    ).not.toHaveTextContent(/\(variable\)/);
   });
 });

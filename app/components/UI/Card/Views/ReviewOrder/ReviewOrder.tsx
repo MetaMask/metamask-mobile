@@ -11,7 +11,9 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
+import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -43,6 +45,7 @@ const ReviewOrder = () => {
   const { navigate } = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const tw = useTailwind();
+  const headerHandlers = useCardHeaderHandlers('back');
   const { shippingAddress: routeShippingAddress, fromUpgrade } =
     useParams<ReviewOrderParams>();
 
@@ -218,6 +221,11 @@ const ReviewOrder = () => {
       edges={['bottom']}
       testID={ReviewOrderSelectors.CONTAINER}
     >
+      <HeaderStandard
+        includesTopInset
+        twClassName="bg-background-default"
+        {...headerHandlers}
+      />
       <Box twClassName="flex-1 px-4">
         <Box twClassName="py-4">
           <Text

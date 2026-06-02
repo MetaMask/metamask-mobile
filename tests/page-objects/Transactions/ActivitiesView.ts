@@ -11,6 +11,9 @@ import {
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
+import { encapsulatedAction } from '../../framework/encapsulatedAction';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 
 class ActivitiesView {
   get title(): DetoxElement {
@@ -245,6 +248,49 @@ class ActivitiesView {
       ActivitiesViewSelectorsText.CONFIRM_TEXT,
       rowIndex,
     );
+  }
+
+  /**
+   * Wait for a transaction to show "Confirmed" status in the activity list.
+   * Works in both Detox and Playwright/Appium contexts.
+   * For real on-chain transactions, polls with a longer timeout.
+   * @param timeoutMs - Maximum time to wait for confirmation (default: 120s)
+   */
+  async waitForTransactionConfirmed(
+    rowIndex = 0,
+    timeoutMs = 120_000,
+  ): Promise<void> {
+    await encapsulatedAction({
+      detox: async () => {
+        await Assertions.expectElementToBeVisible(
+          this.transactionStatus(rowIndex),
+          {
+            description: `Transaction row ${rowIndex} should be confirmed`,
+          },
+        );
+      },
+      appium: async () => {
+        await PlaywrightAssertions.expectConditionWithRetry(
+          async () => {
+            const statusEl = await PlaywrightMatchers.getElementById(
+              `transaction-status-${rowIndex}`,
+              { exact: true },
+            );
+            const label = await statusEl.textContent();
+            if (label !== ActivitiesViewSelectorsText.CONFIRM_TEXT) {
+              throw new Error(
+                `Row ${rowIndex} status: "${label}" (waiting for "${ActivitiesViewSelectorsText.CONFIRM_TEXT}")`,
+              );
+            }
+          },
+          {
+            maxRetries: Math.ceil(timeoutMs / 3_000),
+            interval: 3_000,
+            description: `Transaction row ${rowIndex} should be confirmed`,
+          },
+        );
+      },
+    });
   }
 }
 

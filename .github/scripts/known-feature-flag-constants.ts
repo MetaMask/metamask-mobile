@@ -23,6 +23,7 @@ const FILE_SOURCES: Array<{ key: string; file: string; exportName: string }> = [
   { key: 'ASSETS_UNIFY_STATE_FLAG', file: sel('assetsUnifyState'), exportName: 'ASSETS_UNIFY_STATE_FLAG' },
   { key: 'BRAZE_BANNER_HOME_FLAG_KEY', file: sel('brazeBannerHome'), exportName: 'BRAZE_BANNER_HOME_FLAG_KEY' },
   { key: 'TOKEN_DETAILS_OHLCV_WS_INTEGRATION_FLAG_KEY', file: sel('tokenDetailsOhlcvWsIntegration'), exportName: 'TOKEN_DETAILS_OHLCV_WS_INTEGRATION_FLAG_KEY' },
+  { key: 'SOCIAL_AI_ASSET_DETAILS_QUICK_BUY_FLAG_KEY', file: sel('socialAiAssetDetailsQuickBuy'), exportName: 'SOCIAL_AI_ASSET_DETAILS_QUICK_BUY_FLAG_KEY' },
 ];
 
 function resolveConstantFromFile(filePath: string, constantName: string): string | undefined {

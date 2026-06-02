@@ -97,7 +97,6 @@ const createInfoMock = (
   overrides: Partial<ReturnType<typeof useMoneyAccountInfo>> = {},
 ): ReturnType<typeof useMoneyAccountInfo> =>
   ({
-    isMoneyAccountFeatureEnabled: true,
     hasMoneyAccount: true,
     primaryMoneyAccount: {
       address: '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B',
@@ -541,6 +540,104 @@ describe('MoneyBalanceCard', () => {
     });
   });
 
+  describe('CTA variant follows the presence of another primary CTA on Home', () => {
+    const getVariant = (
+      UNSAFE_getByProps: ReturnType<
+        typeof renderWithProvider
+      >['UNSAFE_getByProps'],
+      testID: string,
+    ) => UNSAFE_getByProps({ testID }).props.variant;
+
+    describe('empty balance, onboarding seen', () => {
+      beforeEach(() => {
+        mockUseMoneyAccountBalance.mockReturnValue(
+          createBalanceMock({
+            totalFiatRaw: '0',
+            totalFiatFormatted: '$0.00',
+          }),
+        );
+        mockSelectMoneyOnboardingSeen.mockReturnValue(true);
+      });
+
+      it('renders Earn as Secondary when the onboarding stepper is visible', () => {
+        mockSelectWalletHomeOnboardingFlowVisible.mockReturnValue(true);
+
+        const { UNSAFE_getByProps } = renderWithProvider(<MoneyBalanceCard />);
+
+        expect(
+          getVariant(UNSAFE_getByProps, MoneyBalanceCardTestIds.EARN_BUTTON),
+        ).toBe(ButtonVariant.Secondary);
+      });
+
+      it('renders Earn as Primary when no other primary CTA is on Home', () => {
+        mockSelectWalletHomeOnboardingFlowVisible.mockReturnValue(false);
+
+        const { UNSAFE_getByProps } = renderWithProvider(<MoneyBalanceCard />);
+
+        expect(
+          getVariant(UNSAFE_getByProps, MoneyBalanceCardTestIds.EARN_BUTTON),
+        ).toBe(ButtonVariant.Primary);
+      });
+    });
+
+    describe('funded balance', () => {
+      it('renders Add as Primary when no other primary CTA is on Home', () => {
+        mockSelectWalletHomeOnboardingFlowVisible.mockReturnValue(false);
+
+        const { UNSAFE_getByProps } = renderWithProvider(<MoneyBalanceCard />);
+
+        expect(
+          getVariant(UNSAFE_getByProps, MoneyBalanceCardTestIds.ADD_BUTTON),
+        ).toBe(ButtonVariant.Primary);
+      });
+
+      it('renders Add as Secondary when the onboarding stepper is visible', () => {
+        mockSelectWalletHomeOnboardingFlowVisible.mockReturnValue(true);
+
+        const { UNSAFE_getByProps } = renderWithProvider(<MoneyBalanceCard />);
+
+        expect(
+          getVariant(UNSAFE_getByProps, MoneyBalanceCardTestIds.ADD_BUTTON),
+        ).toBe(ButtonVariant.Secondary);
+      });
+    });
+
+    describe('new user (onboarding not seen)', () => {
+      beforeEach(() => {
+        mockUseMoneyAccountBalance.mockReturnValue(
+          createBalanceMock({
+            totalFiatRaw: '0',
+            totalFiatFormatted: '$0.00',
+          }),
+        );
+        mockSelectMoneyOnboardingSeen.mockReturnValue(false);
+      });
+
+      it('renders Earn as Primary when no other primary CTA is on Home', () => {
+        mockSelectWalletHomeOnboardingFlowVisible.mockReturnValue(false);
+
+        const { UNSAFE_getByProps } = renderWithProvider(<MoneyBalanceCard />);
+
+        expect(
+          getVariant(UNSAFE_getByProps, MoneyBalanceCardTestIds.EARN_BUTTON),
+        ).toBe(ButtonVariant.Primary);
+      });
+
+      it('renders Get started as Secondary when the onboarding stepper is visible', () => {
+        mockSelectWalletHomeOnboardingFlowVisible.mockReturnValue(true);
+
+        const { UNSAFE_getByProps } = renderWithProvider(<MoneyBalanceCard />);
+
+        expect(
+          getVariant(
+            UNSAFE_getByProps,
+            MoneyBalanceCardTestIds.GET_STARTED_BUTTON,
+          ),
+        ).toBe(ButtonVariant.Secondary);
+      });
+    });
+  });
+
   describe('error state', () => {
     beforeEach(() => {
       mockUseMoneyAccountBalance.mockReturnValue(
@@ -635,43 +732,10 @@ describe('MoneyBalanceCard', () => {
     });
   });
 
-  describe('featureDisabled state', () => {
-    beforeEach(() => {
-      mockUseMoneyAccountInfo.mockReturnValue(
-        createInfoMock({ isMoneyAccountFeatureEnabled: false }),
-      );
-    });
-
-    it('renders the feature-disabled message in the balance slot', () => {
-      const { getByTestId } = renderWithProvider(<MoneyBalanceCard />);
-
-      expect(
-        getByTestId(MoneyBalanceCardTestIds.BALANCE_FEATURE_DISABLED),
-      ).toHaveTextContent(strings('money.balance_feature_disabled'));
-    });
-
-    it('does not render the balance text', () => {
-      const { queryByTestId } = renderWithProvider(<MoneyBalanceCard />);
-
-      expect(
-        queryByTestId(MoneyBalanceCardTestIds.BALANCE),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('does not render the balance error message', () => {
-      const { queryByTestId } = renderWithProvider(<MoneyBalanceCard />);
-
-      expect(
-        queryByTestId(MoneyBalanceCardTestIds.BALANCE_ERROR),
-      ).not.toBeOnTheScreen();
-    });
-  });
-
   describe('noAccount state', () => {
     beforeEach(() => {
       mockUseMoneyAccountInfo.mockReturnValue(
         createInfoMock({
-          isMoneyAccountFeatureEnabled: true,
           hasMoneyAccount: false,
           primaryMoneyAccount: undefined,
         }),

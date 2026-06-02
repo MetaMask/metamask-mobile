@@ -1,7 +1,9 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import OndoCampaignRwaSelectorView from './OndoCampaignRwaSelectorView';
+import OndoCampaignRwaSelectorView, {
+  getOndoOpenPositionSourceToken,
+} from './OndoCampaignRwaSelectorView';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import {
@@ -674,6 +676,20 @@ describe('OndoCampaignRwaSelectorView', () => {
       expect(queryByTestId('after-hours-sheet')).toBeNull();
     });
 
+    it('uses USDT as the source token for BNB Chain assets when after hours confirm is pressed', () => {
+      const token = buildToken('AAPL', 'eip155:56/erc20:0xaapl');
+      mockUseRwaTokens.mockReturnValue({ data: [token], isLoading: false });
+      const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
+      fireEvent.press(getByTestId('token-row-AAPL'));
+      fireEvent.press(getByTestId('after-hours-confirm'));
+
+      expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
+      const [srcArg, destArg] = mockGoToSwaps.mock.calls[0];
+      expect(srcArg?.symbol).toBe('USDT');
+      expect(srcArg?.chainId).toBe('0x38');
+      expect(destArg?.chainId).toBe('eip155:56');
+    });
+
     it('tracks button_clicked event when after hours confirm is pressed', () => {
       const token = buildToken('AAPL');
       mockUseRwaTokens.mockReturnValue({ data: [token], isLoading: false });
@@ -709,5 +725,26 @@ describe('OndoCampaignRwaSelectorView', () => {
       fireEvent.press(getByTestId('ondo-rwa-selector-header-search-close'));
       expect(getByTestId('filter-bar')).toBeDefined();
     });
+  });
+});
+
+describe('getOndoOpenPositionSourceToken', () => {
+  it('returns USDT for BNB Chain when the chain ID is hex', () => {
+    expect(getOndoOpenPositionSourceToken('0x38')).toEqual(
+      expect.objectContaining({
+        symbol: 'USDT',
+        chainId: '0x38',
+      }),
+    );
+  });
+
+  it('returns undefined when no chain ID is provided', () => {
+    expect(getOndoOpenPositionSourceToken(undefined)).toBeUndefined();
+  });
+
+  it('returns undefined for unsupported non-EVM chain IDs', () => {
+    expect(
+      getOndoOpenPositionSourceToken('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'),
+    ).toBeUndefined();
   });
 });

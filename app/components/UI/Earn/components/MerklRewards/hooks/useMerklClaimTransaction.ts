@@ -131,6 +131,7 @@ export const useMerklClaimTransaction = (asset: TokenI | undefined) => {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
         networkClientId,
         origin: MERKL_CLAIM_ORIGIN,
+        isInternal: true,
         type: TransactionType.musdClaim,
       });
 

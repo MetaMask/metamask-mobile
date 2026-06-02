@@ -89,6 +89,15 @@ jest.mock(
   }),
 );
 
+jest.mock(
+  '../../Views/Notifications/PushNotificationOnboarding/PushNotificationOnboardingRoot',
+  () => ({
+    __esModule: true,
+    default: () =>
+      mockReact.createElement('PushNotificationOnboardingRootMock'),
+  }),
+);
+
 jest.mock('../../UI/ReviewModal', () => ({
   __esModule: true,
   default: () => mockReact.createElement('ReviewModalMock'),

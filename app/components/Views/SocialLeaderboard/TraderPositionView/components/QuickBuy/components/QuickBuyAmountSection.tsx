@@ -21,6 +21,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import type { QuickBuyAmountDisplayMode } from '../types';
+import { formatTokenAmount } from '../../../../utils/formatters';
 
 const styles = StyleSheet.create({
   amountText: { fontSize: 48, lineHeight: 52 },
@@ -39,7 +40,6 @@ interface QuickBuyAmountSectionProps {
   onAmountAreaPress: () => void;
   onAmountChange: (text: string) => void;
   onToggleAmountDisplay: () => void;
-  rateTag?: React.ReactNode;
 }
 
 const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
@@ -54,11 +54,10 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   onAmountAreaPress,
   onAmountChange,
   onToggleAmountDisplay,
-  rateTag,
 }) => {
   const fiatAmountLabel = usdAmount ? `$${usdAmount}` : '$0';
   const cryptoAmountLabel = estimatedReceiveAmount
-    ? `${estimatedReceiveAmount} ${destSymbol}`
+    ? `${formatTokenAmount(parseFloat(estimatedReceiveAmount))} ${destSymbol}`
     : `0 ${destSymbol}`;
 
   const isCryptoPrimary = amountDisplayMode === 'crypto';
@@ -84,8 +83,6 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
         >
           {primaryLabel}
         </Text>
-
-        {rateTag}
 
         {isQuoteLoading ? (
           <ActivityIndicator size="small" />
