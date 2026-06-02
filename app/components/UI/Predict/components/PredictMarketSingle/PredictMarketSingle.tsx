@@ -133,6 +133,8 @@ interface PredictMarketSingleProps {
   onCardPress?: () => void;
   /** Called when the user taps a buy button (before betslip opens). */
   onBuyButtonPress?: (marketId: string) => void;
+  predictFeedTab?: string;
+  predictScreen?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
@@ -143,6 +145,8 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   isCarousel = false,
   onCardPress,
   onBuyButtonPress,
+  predictFeedTab,
+  predictScreen,
   transactionActiveAbTests,
 }) => {
   const resolvedEntryPoint = useResolvedPredictEntryPoint(propEntryPoint);
@@ -193,6 +197,8 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
           outcome,
           outcomeToken: token,
           entryPoint: resolvedEntryPoint,
+          ...(predictFeedTab && { predictFeedTab }),
+          ...(predictScreen && { predictScreen }),
           ...(transactionActiveAbTests?.length && {
             transactionActiveAbTests,
           }),
@@ -214,6 +220,8 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
           params: {
             marketId: market.id,
             entryPoint: resolvedEntryPoint,
+            ...(predictFeedTab && { predictFeedTab }),
+            ...(predictScreen && { predictScreen }),
             title: market.title,
             image: getImageUrl(),
             ...(transactionActiveAbTests?.length && {

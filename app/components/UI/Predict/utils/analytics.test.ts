@@ -196,6 +196,53 @@ describe('parseAnalyticsProperties', () => {
     });
   });
 
+  describe('with feed tab and screen context', () => {
+    it('includes predictFeedTab and predictScreen when provided', () => {
+      const market = createMockMarket();
+      const outcomeToken = createMockOutcomeToken();
+
+      const result = parseAnalyticsProperties(
+        market,
+        outcomeToken,
+        'predict_feed',
+        'world-cup',
+        'world_cup',
+      );
+
+      expect(result.predictFeedTab).toBe('world-cup');
+      expect(result.predictScreen).toBe('world_cup');
+    });
+
+    it('includes only predictFeedTab when screen is omitted', () => {
+      const market = createMockMarket();
+      const outcomeToken = createMockOutcomeToken();
+
+      const result = parseAnalyticsProperties(
+        market,
+        outcomeToken,
+        'predict_feed',
+        'trending',
+      );
+
+      expect(result.predictFeedTab).toBe('trending');
+      expect(result).not.toHaveProperty('predictScreen');
+    });
+
+    it('omits both properties when not provided', () => {
+      const market = createMockMarket();
+      const outcomeToken = createMockOutcomeToken();
+
+      const result = parseAnalyticsProperties(
+        market,
+        outcomeToken,
+        'predict_feed',
+      );
+
+      expect(result).not.toHaveProperty('predictFeedTab');
+      expect(result).not.toHaveProperty('predictScreen');
+    });
+  });
+
   describe('market type detection', () => {
     it('returns BINARY type when market has single outcome', () => {
       const market = createMockMarket({

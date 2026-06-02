@@ -2268,8 +2268,7 @@
         "group_i": "Группа I",
         "group_j": "Группа J",
         "group_k": "Группа K",
-        "group_l": "Группа L",
-        "third_place_match": "Матч за третье место"
+        "group_l": "Группа L"
       }
     },
     "prediction_markets": "Рынки прогнозов",
@@ -8348,8 +8347,6 @@
     "report_submitted": "Отчет об ошибке отправлен."
   },
   "pay_with_modal": {
-    "title": "Выбрать способ оплаты",
-    "title_receive": "Выберите токен для получения",
     "no_gas": "Нет нативного баланса для оплаты газа",
     "not_supported": "Не поддерживается",
     "crypto": "Крипто"
@@ -8901,7 +8898,7 @@
       "stats_notional_volume_threshold": "Требуется {{amount}} $",
       "stats_qualified_title": "Вы соответствуете требованиям",
       "stats_qualified_description": "Продолжайте торговать, чтобы улучшить свой показатель прибыли и убытков (П/У) и подняться в таблице лидеров до окончания соревнования.",
-      "stats_qualify_for_rank_title": "Квалифицироваться на этот ранг",
+      "stats_qualify_for_rank_title": "Квалифицироваться для таблицы лидеров",
       "stats_qualify_for_rank_description": "Наторгуйте еще {{notionalRemaining}} номинального объема, чтобы получить право на участие.",
       "stats_error_title": "Не удалось загрузить статистику",
       "stats_error_description": "У нас возникла проблема с загрузкой вашей статистики. Пожалуйста, попробуйте еще раз.",

@@ -277,7 +277,7 @@ describe('sendActiveAccount function', () => {
   });
 
   describe('security considerations', () => {
-    it('sends accounts only for the specific hostname requested', async () => {
+    it('sends accounts scoped to the requested origin, not the previously resolved one', async () => {
       const dapp1Url = 'https://dapp1.com';
       const dapp2Url = 'https://dapp2.com';
       const dapp1Accounts = [
@@ -319,21 +319,21 @@ describe('sendActiveAccount function', () => {
       });
     });
 
-    it('prevents cross-origin account leakage during navigation', async () => {
-      const authorizedUrl = 'https://authorized.com';
-      const unauthorizedUrl = 'https://unauthorized.com';
-      const authorizedAccounts = [
+    it('sends accounts for the requested origin, not the previously resolved one', async () => {
+      const permittedUrl = 'https://permitted-dapp.com';
+      const otherUrl = 'https://other-dapp.com';
+      const permittedAccounts = [
         '0x1234567890123456789012345678901234567890',
       ] as EthereumAddress[];
 
-      resolvedUrlRef.current = authorizedUrl; // Previous site
+      resolvedUrlRef.current = permittedUrl; // Previously resolved url
 
       mockGetPermittedEvmAddressesByHostname.mockImplementation(
         (_, hostname) =>
-          hostname === 'authorized.com' ? authorizedAccounts : [],
+          hostname === 'permitted-dapp.com' ? permittedAccounts : [],
       );
 
-      await sendActiveAccount(unauthorizedUrl);
+      await sendActiveAccount(otherUrl);
 
       expect(mockNotifyAllConnections).toHaveBeenCalledWith({
         method: NOTIFICATION_NAMES.accountsChanged,
@@ -341,30 +341,31 @@ describe('sendActiveAccount function', () => {
       });
     });
 
-    it('correctly handles targetUrl override during navigation vulnerability scenario', async () => {
-      const previousSiteUrl = 'https://victim-dapp.com';
-      const newSiteUrl = 'https://attacker-site.com';
-      const victimAccounts = [
+    it('uses the provided targetUrl rather than the previously resolved url', async () => {
+      const previousUrl = 'https://permitted-dapp.com';
+      const newUrl = 'https://other-dapp.com';
+      const permittedAccounts = [
         '0x1111111111111111111111111111111111111111',
         '0x2222222222222222222222222222222222222222',
       ] as EthereumAddress[];
 
-      // resolvedUrlRef still points to previous site (before onLoadEnd updates it)
-      resolvedUrlRef.current = previousSiteUrl;
+      // resolvedUrlRef still points to the previously resolved url
+      resolvedUrlRef.current = previousUrl;
 
       mockGetPermittedEvmAddressesByHostname.mockImplementation(
-        (_, hostname) => (hostname === 'victim-dapp.com' ? victimAccounts : []),
+        (_, hostname) =>
+          hostname === 'permitted-dapp.com' ? permittedAccounts : [],
       );
 
-      await sendActiveAccount(newSiteUrl);
+      await sendActiveAccount(newUrl);
 
       expect(mockGetPermittedEvmAddressesByHostname).toHaveBeenCalledWith(
         Engine.context.PermissionController.state,
-        'attacker-site.com', // Should use new site's hostname
+        'other-dapp.com', // Should use the provided targetUrl's hostname
       );
       expect(mockNotifyAllConnections).toHaveBeenCalledWith({
         method: NOTIFICATION_NAMES.accountsChanged,
-        params: [], // Empty because attacker site has no permissions
+        params: [], // Empty because the other origin has no permissions
       });
     });
   });

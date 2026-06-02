@@ -55,6 +55,7 @@ export const useTokensFeed = ({
     searchQuery: query,
     enableDebounce: false,
     sortBy,
+    filterLowQuality: true,
     sortTrendingTokensOptions: timeOption
       ? {
           option: PriceChangeOption.PriceChange,
