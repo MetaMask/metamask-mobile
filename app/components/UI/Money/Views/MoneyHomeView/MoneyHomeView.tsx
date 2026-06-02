@@ -313,16 +313,18 @@ const MoneyHomeView = () => {
         {displayState.kind === 'balance' &&
           totalFiatRaw &&
           !new BigNumber(totalFiatRaw).isZero() && (
-          <>
-            <MoneyEarnings
-              monthlyEarnings={monthlyEarnings}
-              yearlyEarnings={yearlyEarnings}
-              isLoading={vaultApyQuery.isLoading || isAggregatedBalanceLoading}
-              onInfoPress={handleEarningsInfoPress}
-            />
-            <Divider />
-          </>
-        )}
+            <>
+              <MoneyEarnings
+                monthlyEarnings={monthlyEarnings}
+                yearlyEarnings={yearlyEarnings}
+                isLoading={
+                  vaultApyQuery.isLoading || isAggregatedBalanceLoading
+                }
+                onInfoPress={handleEarningsInfoPress}
+              />
+              <Divider />
+            </>
+          )}
         {!isMilestone && (
           <>
             <MoneyHowItWorks
