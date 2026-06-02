@@ -14,7 +14,6 @@ import type {
 import { useQuickBuyAnalytics } from './useQuickBuyAnalytics';
 import { formatExchangeRate } from '../utils/formatExchangeRate';
 import { getMetamaskFeePercent } from '../utils/getMetamaskFeePercent';
-import { snapToPercentageStep } from '../components/QuickBuyPercentageSlider';
 import type { Hex } from '@metamask/utils';
 import type { BridgeToken } from '../../../../../../UI/Bridge/types';
 import { selectDefaultSourceToken } from '../../../../utils/tokenSelection';
@@ -495,7 +494,7 @@ export function useQuickBuyController(
 
   const handleSliderChange = useCallback(
     (percent: number) => {
-      const snapped = snapToPercentageStep(percent);
+      const snapped = Math.max(0, Math.min(100, Math.round(percent / 25) * 25));
       if (snapped === lastSnappedSliderPercentRef.current) {
         return;
       }

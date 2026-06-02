@@ -237,7 +237,7 @@ Order placement interface. User specifies trade parameters: direction (long/shor
 | ---------------------------- | ---------------------------------- |
 | `PerpsOrderHeader`           | Market info (asset, price, change) |
 | `PerpsAmountDisplay`         | USD amount display/input           |
-| `PerpsSlider`                | Leverage/amount slider             |
+| `Slider` (shared)            | Leverage/amount slider             |
 | `PerpsFeesDisplay`           | Estimated fees breakdown           |
 | `PerpsLimitPriceBottomSheet` | Limit price input modal            |
 
@@ -351,7 +351,7 @@ Interface to close existing position (fully or partially). User specifies close 
 | ---------------------------- | -------------------------------- |
 | `PerpsOrderHeader`           | Position info                    |
 | `PerpsAmountDisplay`         | Close amount display             |
-| `PerpsSlider`                | Close percentage slider          |
+| `Slider` (shared)            | Close percentage slider          |
 | `PerpsCloseSummary`          | Fee and receive amount breakdown |
 | `PerpsLimitPriceBottomSheet` | Limit price for limit orders     |
 

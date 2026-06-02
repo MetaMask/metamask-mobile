@@ -77,7 +77,7 @@ import { TraceName } from '../../../../../util/trace';
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
-import PerpsSlider from '../../components/PerpsSlider/PerpsSlider';
+import Slider from '../../../Slider';
 import PerpsCloseSummary from '../../components/PerpsCloseSummary';
 import { useVipTier } from '../../../Rewards/hooks/useVipTier';
 
@@ -618,7 +618,7 @@ const PerpsClosePositionView: React.FC = () => {
         {/* Slider - Hidden when keypad/input is focused */}
         {!isInputFocused && (
           <View style={styles.sliderSection}>
-            <PerpsSlider
+            <Slider
               value={closePercentage}
               onValueChange={handleSliderChange}
               minimumValue={0}

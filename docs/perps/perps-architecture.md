@@ -112,7 +112,7 @@ app/components/UI/Perps/
 Reusable UI components organized by feature:
 
 - **Display Components**: LivePriceDisplay, PerpsAmountDisplay, PerpsBadge, PerpsProgressBar, PerpsLoader
-- **Form Components**: PerpsSlider, PerpsOrderTypeBottomSheet, PerpsLeverageBottomSheet, PerpsLimitPriceBottomSheet
+- **Form Components**: Slider (shared), PerpsOrderTypeBottomSheet, PerpsLeverageBottomSheet, PerpsLimitPriceBottomSheet
 - **Card Components**: PerpsCard, PerpsPositionCard, PerpsOpenOrderCard, PerpsMarketStatisticsCard
 - **List Components**: PerpsMarketList, PerpsRecentActivityList, PerpsWatchlistMarkets
 - **Modal Components**: PerpsCancelAllOrdersModal, PerpsCloseAllPositionsModal, PerpsGTMModal

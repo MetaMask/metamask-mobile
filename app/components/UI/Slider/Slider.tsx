@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { AccessibilityActionEvent, TouchableOpacity, View } from 'react-native';
 import {
   Gesture,
   GestureDetector,
@@ -16,11 +16,11 @@ import {
   playImpact,
   ImpactMoment,
   type HapticImpactMoment,
-} from '../../../../../util/haptics';
+} from '../../../util/haptics';
 import LinearGradient from 'react-native-linear-gradient';
-import Text from '../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../../component-library/hooks';
-import styleSheet from './PerpsSlider.styles';
+import Text from '../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../component-library/hooks';
+import styleSheet from './Slider.styles';
 
 // Only configure reanimated logger in non-test environments
 if (
@@ -33,7 +33,7 @@ if (
   });
 }
 
-interface PerpsSliderProps {
+interface SliderProps {
   value: number;
   onValueChange: (value: number) => void;
   minimumValue?: number;
@@ -43,9 +43,11 @@ interface PerpsSliderProps {
   disabled?: boolean;
   progressColor?: 'default' | 'gradient';
   quickValues?: number[];
+  testID?: string;
+  formatAccessibilityValueText?: (value: number) => string;
 }
 
-const PerpsSlider: React.FC<PerpsSliderProps> = ({
+const Slider: React.FC<SliderProps> = ({
   value,
   onValueChange,
   minimumValue = 0,
@@ -55,6 +57,8 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
   disabled = false,
   progressColor = 'default',
   quickValues,
+  testID,
+  formatAccessibilityValueText,
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -226,10 +230,53 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
     ],
   );
 
+  const handleAccessibilityAction = useCallback(
+    (event: AccessibilityActionEvent) => {
+      if (disabled) return;
+
+      const delta = event.nativeEvent.actionName === 'increment' ? step : -step;
+      const nextValue = Math.max(
+        minimumValue,
+        Math.min(maximumValue, value + delta),
+      );
+
+      if (nextValue !== value) {
+        onValueChange(nextValue);
+        checkThresholdCrossing(nextValue);
+      }
+    },
+    [
+      disabled,
+      step,
+      minimumValue,
+      maximumValue,
+      value,
+      onValueChange,
+      checkThresholdCrossing,
+    ],
+  );
+
+  const accessibilityValueText = formatAccessibilityValueText
+    ? formatAccessibilityValueText(value)
+    : String(value);
+
   const percentageSteps = [0, 25, 50, 75, 100];
 
   return (
-    <GestureHandlerRootView style={styles.container}>
+    <GestureHandlerRootView
+      testID={testID}
+      accessibilityRole="adjustable"
+      accessibilityState={{ disabled }}
+      accessibilityValue={{
+        min: minimumValue,
+        max: maximumValue,
+        now: value,
+        text: accessibilityValueText,
+      }}
+      accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
+      onAccessibilityAction={handleAccessibilityAction}
+      style={styles.container}
+    >
       <View style={styles.sliderContainer}>
         <View style={styles.trackContainer} onLayout={handleLayout}>
           <GestureDetector gesture={composed}>
@@ -344,4 +391,4 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
   );
 };
 
-export default PerpsSlider;
+export default Slider;

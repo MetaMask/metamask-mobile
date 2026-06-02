@@ -604,8 +604,8 @@ jest.mock('../../../../hooks/useTooltipModal', () => ({
   })),
 }));
 
-// Mock PerpsSlider since it uses reanimated which needs special handling in tests
-jest.mock('../../components/PerpsSlider', () => ({
+// Mock Slider since it uses reanimated which needs special handling in tests
+jest.mock('../../../Slider', () => ({
   __esModule: true,
   default: ({
     value,
