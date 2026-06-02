@@ -100,6 +100,14 @@ jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
 
 jest.mock('../../hooks/useOriginSource');
 
+// Mock trackDappViewedEvent because it reads from the global mocked store
+// (`{}` in testSetup.js) and would throw on `state.browser.visitedDappsByHostname`,
+// short-circuiting handleConnect before the CONNECT_REQUEST_COMPLETED trackEvent fires.
+jest.mock('../../../util/metrics', () => ({
+  ...jest.requireActual('../../../util/metrics'),
+  trackDappViewedEvent: jest.fn(),
+}));
+
 jest.mock('../../../core/Engine', () => {
   const {
     createMockAccountsControllerState,
