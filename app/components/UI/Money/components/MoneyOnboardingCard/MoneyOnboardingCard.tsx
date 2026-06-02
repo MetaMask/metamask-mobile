@@ -17,7 +17,10 @@ import {
   CardActions,
   CardEntryPoint,
   CardScreens,
+  deriveCardState,
 } from '../../../Card/util/metrics';
+import { useSelector } from 'react-redux';
+import { selectIsCardholder } from '../../../../../selectors/cardController';
 
 // REMINDER: Must be updated when the number of steps is changed.
 export const MONEY_ONBOARDING_TOTAL_STEPS = 2;
@@ -40,16 +43,17 @@ const MoneyOnboardingCard = () => {
 
   const { startLinkFlow, isCardAuthenticated, isCardLinkedToMoneyAccount } =
     useMoneyAccountCardLinkage();
+  const isCardholder = useSelector(selectIsCardholder);
 
   const isMoneyAccountFunded = Boolean(
     !isAggregatedBalanceLoading && tokenTotal?.isGreaterThan(0),
   );
 
-  const cardState = isCardLinkedToMoneyAccount
-    ? 'linked_card'
-    : isCardAuthenticated
-      ? 'unlinked_card'
-      : 'no_card';
+  const cardState = deriveCardState({
+    isCardholder,
+    isCardAuthenticated,
+    isCardLinkedToMoneyAccount,
+  });
 
   const handleRedirectToCryptoDeposit = useCallback(async () => {
     await initiateDeposit().catch(() => undefined);

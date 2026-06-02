@@ -98,6 +98,23 @@ enum CardLinkingFailureReason {
   UNKNOWN = 'UNKNOWN',
 }
 
+type CardState = 'non_cardholder' | 'no_card' | 'unlinked_card' | 'linked_card';
+
+const deriveCardState = ({
+  isCardholder,
+  isCardAuthenticated,
+  isCardLinkedToMoneyAccount,
+}: {
+  isCardholder: boolean;
+  isCardAuthenticated: boolean;
+  isCardLinkedToMoneyAccount: boolean;
+}): CardState => {
+  if (!isCardholder) return 'non_cardholder';
+  if (isCardLinkedToMoneyAccount) return 'linked_card';
+  if (isCardAuthenticated) return 'unlinked_card';
+  return 'no_card';
+};
+
 export {
   CardScreens,
   CardActions,
@@ -105,4 +122,6 @@ export {
   CardEntryPoint,
   CardFlow,
   CardLinkingFailureReason,
+  deriveCardState,
 };
+export type { CardState };

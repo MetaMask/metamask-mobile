@@ -57,6 +57,14 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
+const mockIsCardholder = jest.fn(() => true);
+jest.mock('react-redux', () => ({
+  useSelector: () => mockIsCardholder(),
+}));
+jest.mock('../../../../../selectors/cardController', () => ({
+  selectIsCardholder: jest.fn(),
+}));
+
 const mockUseOnboardingStep = useOnboardingStep as jest.MockedFunction<
   typeof useOnboardingStep
 >;
@@ -296,6 +304,21 @@ describe('MoneyOnboardingCard', () => {
         entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
         card_state: 'no_card',
       });
+    });
+
+    it('emits card_state="non_cardholder" when account is not a cardholder', () => {
+      mockIsCardholder.mockReturnValue(false);
+      setupDefaultMocks({ currentStep: 1, isCardAuthenticated: false });
+
+      render(<MoneyOnboardingCard />);
+
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        screen: CardScreens.MONEY_HOME,
+        entrypoint: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+        card_state: 'non_cardholder',
+      });
+
+      mockIsCardholder.mockReturnValue(true);
     });
   });
 

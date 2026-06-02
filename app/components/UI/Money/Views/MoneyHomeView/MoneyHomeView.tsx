@@ -58,6 +58,7 @@ import {
   CardEntryPoint,
   CardFlow,
   CardScreens,
+  deriveCardState,
 } from '../../../Card/util/metrics';
 
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
@@ -323,11 +324,11 @@ const MoneyHomeView = () => {
   // formatted zero so the manage row always shows a value rather than a
   // blank slot under "Avail. balance".
   const cardBalance: string = formattedZero;
-  const cardState = isCardLinkedToMoneyAccount
-    ? 'linked_card'
-    : isCardAuthenticated
-      ? 'unlinked_card'
-      : 'no_card';
+  const cardState = deriveCardState({
+    isCardholder,
+    isCardAuthenticated,
+    isCardLinkedToMoneyAccount,
+  });
 
   return (
     <Box
