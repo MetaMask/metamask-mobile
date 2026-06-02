@@ -57,7 +57,7 @@ import HeaderRoot from '../../../component-library/components-temp/HeaderRoot';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
 import AddressCopy from '../../UI/AddressCopy';
 import CardButton from '../../UI/Card/components/CardButton';
-import { selectMoneyHomeScreenEnabledFlag } from '../../UI/Money/selectors/featureFlags';
+import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
 import MoneyBalanceCard from '../../UI/Money/components/MoneyBalanceCard';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createAccountSelectorNavDetails } from '../AccountSelector';
@@ -176,6 +176,7 @@ import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
 import { suppressWalletHomeOnboardingSteps } from '../../../actions/onboarding';
 import { WALLET_HOME_POST_ONBOARDING_REVEAL_MS } from '../../UI/WalletHomeOnboardingSteps';
+import { useWalletHomeOnboardingChecklistTradePress } from '../../UI/WalletHomeOnboardingSteps/useWalletHomeOnboardingChecklistTradePress';
 import {
   IconColor,
   IconName,
@@ -718,9 +719,7 @@ const Wallet = ({
    */
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
-  const isMoneyHomeScreenEnabled = useSelector(
-    selectMoneyHomeScreenEnabledFlag,
-  );
+  const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
 
   /**
    * Provider configuration for the current selected network
@@ -747,16 +746,8 @@ const Wallet = ({
     sourcePage: 'MainView',
   });
 
-  /** Trade checklist primary — Segment location per TMCU-680. */
-  const goToSwapsFromOnboardingChecklist = useCallback(() => {
-    goToSwaps(
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      ActionLocation.ONBOARDING_CHECKLIST,
-    );
-  }, [goToSwaps]);
+  const onTradePrimaryPress =
+    useWalletHomeOnboardingChecklistTradePress(goToSwaps);
   const handleWalletHomeOnboardingNotificationsPrimary = useCallback(() => {
     navigation.navigate(Routes.SETTINGS_VIEW, {
       screen: Routes.SETTINGS.NOTIFICATIONS,
@@ -1367,7 +1358,7 @@ const Wallet = ({
   const walletHomeAccountGroupBalanceProps = {
     onCoordinatedFlowExit: runWalletHomePostOnboardingComplete,
     suspendRiveForCurtain: postOnboardingExitAnimating,
-    onTradePrimaryPress: goToSwapsFromOnboardingChecklist,
+    onTradePrimaryPress,
     onNotificationsPrimaryPress: handleWalletHomeOnboardingNotificationsPrimary,
   };
 
@@ -1392,7 +1383,7 @@ const Wallet = ({
       <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
       {walletHomeMainAssetDetailsActions}
       {homeGrowthBannerContent}
-      {isMoneyHomeScreenEnabled && <MoneyBalanceCard />}
+      {isMoneyAccountEnabled && <MoneyBalanceCard />}
     </>
   );
 
@@ -1404,7 +1395,7 @@ const Wallet = ({
       </View>
       {walletHomeMainAssetDetailsActions}
       {homeGrowthBannerContent}
-      {isMoneyHomeScreenEnabled && <MoneyBalanceCard />}
+      {isMoneyAccountEnabled && <MoneyBalanceCard />}
     </>
   );
 
@@ -1517,7 +1508,7 @@ const Wallet = ({
                       style={styles.headerActionButtonsContainer}
                       accessible={false}
                     >
-                      {isMoneyHomeScreenEnabled && (
+                      {isMoneyAccountEnabled && (
                         <ButtonIcon
                           iconProps={{
                             color: MMDSIconColor.IconDefault,

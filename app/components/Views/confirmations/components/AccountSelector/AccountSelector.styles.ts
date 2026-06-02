@@ -24,7 +24,7 @@ const stylesheet = (params: { theme: Theme }) => {
     modalRoot: {
       flex: 1,
     },
-    /** Lets the account list consume remaining height under HeaderCompactStandard inside BottomSheet. */
+    /** Lets the account list consume remaining height under HeaderStandard inside BottomSheet. */
     modalSheetBody: {
       flex: 1,
       minHeight: 0,

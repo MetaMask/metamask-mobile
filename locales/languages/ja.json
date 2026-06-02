@@ -8457,6 +8457,7 @@
     "main_title": "報酬",
     "vip": {
       "bps_unit": "bps",
+      "badge_label": "VIP Fox {{tier}}",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
       "error_title": "We couldn’t load your VIP dashboard",
@@ -8900,7 +8901,7 @@
       "stats_notional_volume_threshold": "${{amount}}が必要です",
       "stats_qualified_title": "対象となります",
       "stats_qualified_description": "取引を続けて損益を改善し、コンテンストが終了するまでリーダーボードの順位を上げていきましょう。",
-      "stats_qualify_for_rank_title": "このランクの資格を満たすには",
+      "stats_qualify_for_rank_title": "リーダーボードの資格を満たすには",
       "stats_qualify_for_rank_description": "名目取引量があと{{notionalRemaining}}で条件が満たされます。",
       "stats_error_title": "統計を読み込めません",
       "stats_error_description": "統計の読み込み中に問題が発生しました。もう一度お試しください。",
