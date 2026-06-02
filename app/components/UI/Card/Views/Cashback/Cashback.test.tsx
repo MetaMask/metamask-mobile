@@ -504,7 +504,7 @@ describe('Cashback Component', () => {
   });
 
   describe('withdraw action', () => {
-    it('calls withdraw with balance on button press', () => {
+    it('calls withdraw with net amount on button press', () => {
       mockHookReturn.cashbackWallet = {
         id: 'w1',
         balance: '10.00',
@@ -522,7 +522,7 @@ describe('Cashback Component', () => {
 
       fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
 
-      expect(mockWithdraw).toHaveBeenCalledWith('10.00');
+      expect(mockWithdraw).toHaveBeenCalledWith('9.5');
     });
 
     it('tracks analytics event on withdraw', () => {
