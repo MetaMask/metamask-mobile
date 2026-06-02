@@ -19,11 +19,11 @@ export const createStyles = (colors: Theme['colors']) =>
       paddingBottom: 24,
       marginHorizontal: 12,
     },
-    leverageText: {
-      fontSize: 48,
-      fontWeight: '600',
-      lineHeight: 56,
-    },
+    // leverageText: {
+    //   fontSize: 48,
+    //   fontWeight: '600',
+    //   lineHeight: 56,
+    // },
     leverageTextSafe: {
       color: LEVERAGE_COLORS.SAFE, // Green - safe leverage
     },
@@ -71,6 +71,8 @@ export const createStyles = (colors: Theme['colors']) =>
     warningTextContainer: {
       flex: 1,
       minWidth: 0,
+      flexDirection: 'row',
+      alignItems: 'center',
     },
     warningText: {
       flex: 1,
@@ -97,6 +99,10 @@ export const createStyles = (colors: Theme['colors']) =>
       borderRadius: 8,
       marginBottom: 32,
       marginHorizontal: 12,
+      // Reserve vertical space whether price data is available or not,
+      // preventing a layout jump when switching between the two states.
+      minHeight: 100,
+      justifyContent: 'center',
     },
     priceRow: {
       flexDirection: 'row',
@@ -191,5 +197,8 @@ export const createStyles = (colors: Theme['colors']) =>
       backgroundColor: colors.border.muted,
       borderRadius: 2,
       top: 2,
+    },
+    footerButtonContainer: {
+      marginBottom: 16,
     },
   });
