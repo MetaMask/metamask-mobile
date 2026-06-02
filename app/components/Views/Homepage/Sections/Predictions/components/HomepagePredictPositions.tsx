@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box } from '@metamask/design-system-react-native';
+import { Box, SectionDivider } from '@metamask/design-system-react-native';
 import SectionHeader from '../../../../../../component-library/components-temp/SectionHeader';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../../Wallet/WalletView.testIds';
@@ -41,49 +41,56 @@ const HomepagePredictPositions = ({
   onPositionPress,
   showHeader = true,
 }: HomepagePredictPositionsProps) => (
-  <Box gap={3}>
-    {showHeader && (
-      <Box gap={1}>
-        <SectionHeader
-          title={title}
-          onPress={onViewAll}
-          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('predictions')}
-        />
-        {predictHomepageUnrealizedPnl.show && (
-          <HomepageSectionUnrealizedPnlRow
-            isLoading={predictHomepageUnrealizedPnl.isLoading}
-            valueText={predictHomepageUnrealizedPnl.valueText}
-            tone={predictHomepageUnrealizedPnl.tone}
-            label={strings('predict.unrealized_pnl_label')}
-            testID="homepage-predict-unrealized-pnl"
+  <>
+    {showHeader && <SectionDivider />}
+    <Box gap={3}>
+      {showHeader && (
+        <Box gap={1}>
+          <SectionHeader
+            title={title}
+            onPress={onViewAll}
+            testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
+              'predictions',
+            )}
           />
+          {predictHomepageUnrealizedPnl.show && (
+            <HomepageSectionUnrealizedPnlRow
+              isLoading={predictHomepageUnrealizedPnl.isLoading}
+              valueText={predictHomepageUnrealizedPnl.valueText}
+              tone={predictHomepageUnrealizedPnl.tone}
+              label={strings('predict.unrealized_pnl_label')}
+              testID="homepage-predict-unrealized-pnl"
+            />
+          )}
+        </Box>
+      )}
+      {isLoadingPositions ? (
+        <>
+          <PredictPositionRowSkeleton />
+          <PredictPositionRowSkeleton />
+        </>
+      ) : (
+        positions.map((position) => (
+          <PredictPositionRow
+            key={`${position.outcomeId}:${position.outcomeIndex}`}
+            position={position}
+            onPress={onPositionPress}
+            privacyMode={Boolean(privacyMode)}
+          />
+        ))
+      )}
+      {!isLoadingPositions &&
+        !isLoadingClaimable &&
+        totalClaimableValue > 0 && (
+          <Box paddingHorizontal={4} paddingTop={1} paddingBottom={3}>
+            <PredictClaimButton
+              amount={privacyMode ? undefined : totalClaimableValue}
+              onPress={onClaim}
+            />
+          </Box>
         )}
-      </Box>
-    )}
-    {isLoadingPositions ? (
-      <>
-        <PredictPositionRowSkeleton />
-        <PredictPositionRowSkeleton />
-      </>
-    ) : (
-      positions.map((position) => (
-        <PredictPositionRow
-          key={`${position.outcomeId}:${position.outcomeIndex}`}
-          position={position}
-          onPress={onPositionPress}
-          privacyMode={Boolean(privacyMode)}
-        />
-      ))
-    )}
-    {!isLoadingPositions && !isLoadingClaimable && totalClaimableValue > 0 && (
-      <Box paddingHorizontal={4} paddingTop={1} paddingBottom={3}>
-        <PredictClaimButton
-          amount={privacyMode ? undefined : totalClaimableValue}
-          onPress={onClaim}
-        />
-      </Box>
-    )}
-  </Box>
+    </Box>
+  </>
 );
 
 export default HomepagePredictPositions;

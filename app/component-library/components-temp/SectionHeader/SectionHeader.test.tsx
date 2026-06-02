@@ -186,9 +186,9 @@ describe('SectionHeader', () => {
   });
 
   describe('full component', () => {
-    it('renders title, endAccessory, and trailing icon together', () => {
+    it('renders title and trailing icon when onPress and endAccessory are both provided', () => {
       const onPress = jest.fn();
-      const { getByText, getByTestId } = render(
+      const { getByText, getByTestId, queryByText } = render(
         <SectionHeader
           title="Tokens"
           onPress={onPress}
@@ -198,7 +198,7 @@ describe('SectionHeader', () => {
       );
 
       expect(getByText('Tokens')).toBeOnTheScreen();
-      expect(getByText('Badge')).toBeOnTheScreen();
+      expect(queryByText('Badge')).not.toBeOnTheScreen();
       expect(getByTestId(ARROW_ICON_TEST_ID)).toBeOnTheScreen();
       expect(getByTestId(CONTAINER_TEST_ID)).toBeOnTheScreen();
     });

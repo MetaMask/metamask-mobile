@@ -1,6 +1,6 @@
 import React, { forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
 import { View } from 'react-native';
-import { Box } from '@metamask/design-system-react-native';
+import { Box, SectionDivider } from '@metamask/design-system-react-native';
 import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 import SectionRow from '../../components/SectionRow';
 import PerpsPositionSkeleton from './components/PerpsPositionSkeleton';
@@ -75,6 +75,7 @@ const PerpsSectionTrendingOnly = forwardRef<
 
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
+        <SectionDivider />
         <Box gap={3}>
           <SectionHeader
             title={title}

@@ -4,13 +4,14 @@ import React, {
   useImperativeHandle,
   useRef,
 } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
 import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
+import { SectionDivider, Box } from '@metamask/design-system-react-native';
 import SectionRow from '../../components/SectionRow';
 import ErrorState from '../../components/ErrorState';
 import { SectionRefreshHandle } from '../../types';
@@ -29,10 +30,6 @@ import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 
 const MAX_POSITIONS_DISPLAYED = 5;
-
-const styles = StyleSheet.create({
-  sectionGap: { gap: 12 },
-});
 
 interface DeFiSectionProps {
   sectionIndex: number;
@@ -151,48 +148,50 @@ const DeFiSection = forwardRef<SectionRefreshHandle, DeFiSectionProps>(
     // Show retry UI on error
     if (!isLoading && hasError) {
       return (
-        <View
-          ref={sectionViewRef}
-          onLayout={onLayout}
-          style={styles.sectionGap}
-        >
-          <SectionHeader
-            title={title}
-            onPress={handleViewAllDeFi}
-            testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('defi')}
-          />
-          <ErrorState
-            title={strings('homepage.error.unable_to_load', {
-              section: title.toLowerCase(),
-            })}
-            onRetry={refresh}
-          />
+        <View ref={sectionViewRef} onLayout={onLayout}>
+          <SectionDivider />
+          <Box gap={3}>
+            <SectionHeader
+              title={title}
+              onPress={handleViewAllDeFi}
+              testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('defi')}
+            />
+            <ErrorState
+              title={strings('homepage.error.unable_to_load', {
+                section: title.toLowerCase(),
+              })}
+              onRetry={refresh}
+            />
+          </Box>
         </View>
       );
     }
 
     return (
-      <View ref={sectionViewRef} onLayout={onLayout} style={styles.sectionGap}>
-        <SectionHeader
-          title={title}
-          onPress={handleViewAllDeFi}
-          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('defi')}
-        />
-        <SectionRow>
-          {isLoading ? (
-            <DeFiPositionsSkeleton />
-          ) : (
-            positions.map((position: DeFiPositionEntry) => (
-              <DeFiPositionsListItem
-                key={`${position.chainId}-${position.protocolAggregate.protocolDetails.name}`}
-                chainId={position.chainId}
-                protocolId={position.protocolId}
-                protocolAggregate={position.protocolAggregate}
-                privacyMode={privacyMode}
-              />
-            ))
-          )}
-        </SectionRow>
+      <View ref={sectionViewRef} onLayout={onLayout}>
+        <SectionDivider />
+        <Box gap={3}>
+          <SectionHeader
+            title={title}
+            onPress={handleViewAllDeFi}
+            testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('defi')}
+          />
+          <SectionRow>
+            {isLoading ? (
+              <DeFiPositionsSkeleton />
+            ) : (
+              positions.map((position: DeFiPositionEntry) => (
+                <DeFiPositionsListItem
+                  key={`${position.chainId}-${position.protocolAggregate.protocolDetails.name}`}
+                  chainId={position.chainId}
+                  protocolId={position.protocolId}
+                  protocolAggregate={position.protocolAggregate}
+                  privacyMode={privacyMode}
+                />
+              ))
+            )}
+          </SectionRow>
+        </Box>
       </View>
     );
   },

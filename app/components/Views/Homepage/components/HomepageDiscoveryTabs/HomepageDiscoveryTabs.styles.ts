@@ -18,6 +18,9 @@ const styleSheet = (_params: { theme: Theme }) =>
     },
     portfolioScrollContent: {
       paddingTop: 14,
+    },
+    portfolioHeaderCluster: {
+      flexDirection: 'column',
       gap: 16,
     },
   });

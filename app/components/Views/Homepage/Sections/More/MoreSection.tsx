@@ -8,6 +8,8 @@ import {
   IconColor,
   IconName,
   IconSize,
+  SectionDivider,
+  Box,
   Text,
   TextColor,
   TextVariant,
@@ -121,32 +123,34 @@ const MoreSection = () => {
   }, [createEventBuilder, navigation, trackEvent]);
 
   return (
-    <View
-      style={styles.sectionGap}
-      testID={HomepageMoreSelectorsIDs.HOMEPAGE_MORE_SECTION}
-    >
-      <SectionHeader title={strings('homepage.sections.more.title')} />
-      <SectionRow>
-        <MoreActionRow
-          label={strings('homepage.sections.more.import_token')}
-          startIconName={IconName.Add}
-          onPress={handleImportToken}
-          testID={HomepageMoreSelectorsIDs.IMPORT_TOKEN_BUTTON}
-        />
-        <MoreActionRow
-          label={strings('homepage.sections.more.import_nft')}
-          startIconName={IconName.Add}
-          onPress={handleImportNft}
-          testID={HomepageMoreSelectorsIDs.IMPORT_NFT_BUTTON}
-        />
-        <MoreActionRow
-          label={strings('homepage.sections.more.contact_support')}
-          startIconName={IconName.MessageQuestion}
-          endIconName={IconName.Export}
-          onPress={handleContactSupport}
-          testID={HomepageMoreSelectorsIDs.HOMEPAGE_MORE_CONTACT_SUPPORT_BUTTON}
-        />
-      </SectionRow>
+    <View testID={HomepageMoreSelectorsIDs.HOMEPAGE_MORE_SECTION}>
+      <SectionDivider />
+      <Box gap={3}>
+        <SectionHeader title={strings('homepage.sections.more.title')} />
+        <SectionRow>
+          <MoreActionRow
+            label={strings('homepage.sections.more.import_token')}
+            startIconName={IconName.Add}
+            onPress={handleImportToken}
+            testID={HomepageMoreSelectorsIDs.IMPORT_TOKEN_BUTTON}
+          />
+          <MoreActionRow
+            label={strings('homepage.sections.more.import_nft')}
+            startIconName={IconName.Add}
+            onPress={handleImportNft}
+            testID={HomepageMoreSelectorsIDs.IMPORT_NFT_BUTTON}
+          />
+          <MoreActionRow
+            label={strings('homepage.sections.more.contact_support')}
+            startIconName={IconName.MessageQuestion}
+            endIconName={IconName.Export}
+            onPress={handleContactSupport}
+            testID={
+              HomepageMoreSelectorsIDs.HOMEPAGE_MORE_CONTACT_SUPPORT_BUTTON
+            }
+          />
+        </SectionRow>
+      </Box>
     </View>
   );
 };

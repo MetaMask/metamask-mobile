@@ -7,7 +7,7 @@ import React, {
 } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { Box } from '@metamask/design-system-react-native';
+import { Box, SectionDivider } from '@metamask/design-system-react-native';
 import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 import SectionRow from '../../components/SectionRow';
 import { strings } from '../../../../../../locales/i18n';
@@ -94,6 +94,7 @@ const CashSection = forwardRef<SectionRefreshHandle, CashSectionProps>(
 
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
+        <SectionDivider />
         <Box gap={3}>
           <SectionHeader
             title={title}

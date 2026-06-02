@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { Box } from '@metamask/design-system-react-native';
+import { Box, SectionDivider } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import SectionHeader from '../../../../../../../component-library/components-temp/SectionHeader';
@@ -236,38 +236,43 @@ const HomepagePredictWorldCupDiscovery: React.FC<
   }, [championshipCtaCategoryName, onTreatmentCtaClick]);
 
   return (
-    <Box>
-      <SectionHeader
-        title={title}
-        onPress={handleViewAll}
-        testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(headerTestIdKey)}
-      />
-      <PredictEntryPointProvider
-        entryPoint={PredictEventValues.ENTRY_POINT.HOME_SECTION}
-      >
-        <Box twClassName="px-4 mt-3">
-          <BtcLiveRow
-            onPress={handleBtcRow}
-            btcSpotUsd={btcSpotUsd}
-            priceToBeat={priceToBeat}
-            countdown={btcCountdown}
-          />
-          <ChampionshipRow
-            state={championshipRow}
-            onPress={handleChampionshipRowPress}
-            transactionActiveAbTests={transactionActiveAbTests}
-          />
-          <MensWorldCupRow
-            onPress={handleMensRow}
-            eventCountLabel={eventCountLabel}
-          />
-        </Box>
-        <BracketPills
-          onPropsPress={handlePropsPill}
-          onStagePress={goToWorldCup}
+    <>
+      <SectionDivider />
+      <Box gap={3}>
+        <SectionHeader
+          title={title}
+          onPress={handleViewAll}
+          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
+            headerTestIdKey,
+          )}
         />
-      </PredictEntryPointProvider>
-    </Box>
+        <PredictEntryPointProvider
+          entryPoint={PredictEventValues.ENTRY_POINT.HOME_SECTION}
+        >
+          <Box twClassName="px-4">
+            <BtcLiveRow
+              onPress={handleBtcRow}
+              btcSpotUsd={btcSpotUsd}
+              priceToBeat={priceToBeat}
+              countdown={btcCountdown}
+            />
+            <ChampionshipRow
+              state={championshipRow}
+              onPress={handleChampionshipRowPress}
+              transactionActiveAbTests={transactionActiveAbTests}
+            />
+            <MensWorldCupRow
+              onPress={handleMensRow}
+              eventCountLabel={eventCountLabel}
+            />
+          </Box>
+          <BracketPills
+            onPropsPress={handlePropsPill}
+            onStagePress={goToWorldCup}
+          />
+        </PredictEntryPointProvider>
+      </Box>
+    </>
   );
 };
 

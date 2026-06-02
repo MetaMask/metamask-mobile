@@ -223,8 +223,11 @@ const createStyles = ({ colors }: Theme) =>
     wrapper: {
       flex: 1,
       backgroundColor: colors.background.default,
-      gap: 16,
       flexDirection: 'column',
+    },
+    portfolioHeaderCluster: {
+      flexDirection: 'column',
+      gap: 16,
     },
     tabContainer: {
       flex: 1,
@@ -1378,17 +1381,17 @@ const Wallet = ({
   ) : null;
 
   const portfolioHeaderBase = (
-    <>
+    <View style={styles.portfolioHeaderCluster}>
       {bannerContent}
       <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
       {walletHomeMainAssetDetailsActions}
       {homeGrowthBannerContent}
       {isMoneyAccountEnabled && <MoneyBalanceCard />}
-    </>
+    </View>
   );
 
   const portfolioHeader = (
-    <>
+    <View style={styles.portfolioHeaderCluster}>
       {bannerContent}
       <View style={styles.accountGroupBalanceContainer}>
         <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
@@ -1396,7 +1399,7 @@ const Wallet = ({
       {walletHomeMainAssetDetailsActions}
       {homeGrowthBannerContent}
       {isMoneyAccountEnabled && <MoneyBalanceCard />}
-    </>
+    </View>
   );
 
   // Legacy scroll view content — used only when the sections redesign is off.

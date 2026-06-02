@@ -12,7 +12,8 @@ import {
 /**
  * SectionHeader component props.
  *
- * @version 1 - UX Team (interim, pending Design System v2)
+ * Wraps {@link MMDSSectionHeader} from `@metamask/design-system-react-native`
+ * and adds optional press-to-navigate via `onPress`.
  */
 export interface SectionHeaderProps {
   /**

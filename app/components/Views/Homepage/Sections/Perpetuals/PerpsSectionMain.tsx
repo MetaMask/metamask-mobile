@@ -8,7 +8,7 @@ import React, {
   useState,
 } from 'react';
 import { View } from 'react-native';
-import { Box } from '@metamask/design-system-react-native';
+import { Box, SectionDivider } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import {
@@ -336,6 +336,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     if (connectionError) {
       return (
         <View ref={sectionViewRef} onLayout={onLayout}>
+          <SectionDivider />
           <Box gap={3}>
             <SectionHeader
               title={title}
@@ -359,23 +360,22 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
+        <SectionDivider />
         <Box gap={3}>
-          <Box gap={1}>
-            <SectionHeader
-              title={title}
-              onPress={handleViewAllPerps}
-              testID={homepageSectionTitleTestId(analyticsName)}
+          <SectionHeader
+            title={title}
+            onPress={handleViewAllPerps}
+            testID={homepageSectionTitleTestId(analyticsName)}
+          />
+          {showHomepageUnrealizedPnl && (
+            <HomepageSectionUnrealizedPnlRow
+              isLoading={perpsAccountLoading}
+              valueText={homepageUnrealizedPnl?.valueText}
+              tone={homepageUnrealizedPnl?.tone ?? 'neutral'}
+              label={strings('perps.unrealized_pnl')}
+              testID="homepage-perps-unrealized-pnl"
             />
-            {showHomepageUnrealizedPnl && (
-              <HomepageSectionUnrealizedPnlRow
-                isLoading={perpsAccountLoading}
-                valueText={homepageUnrealizedPnl?.valueText}
-                tone={homepageUnrealizedPnl?.tone ?? 'neutral'}
-                label={strings('perps.unrealized_pnl')}
-                testID="homepage-perps-unrealized-pnl"
-              />
-            )}
-          </Box>
+          )}
           {showSkeleton || pendingTrending || hasItems ? (
             <SectionRow>
               {showSkeleton || pendingTrending ? (

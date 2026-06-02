@@ -13,6 +13,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
+import { SectionDivider } from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { RootStackParamList } from '../../../../../core/NavigationService/types';
 import { selectSocialLeaderboardEnabled } from '../../../../../selectors/featureFlagController/socialLeaderboard';
@@ -150,6 +151,7 @@ const TopTradersSection = forwardRef<
         onLayout={onLayout}
         testID="homepage-top-traders-section-root"
       >
+        <SectionDivider />
         <Box gap={3}>
           <SectionHeader
             title={title}
@@ -175,6 +177,7 @@ const TopTradersSection = forwardRef<
       onLayout={onLayout}
       testID="homepage-top-traders-section-root"
     >
+      <SectionDivider />
       <Box gap={3}>
         <SectionHeader
           title={title}
@@ -185,7 +188,7 @@ const TopTradersSection = forwardRef<
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={tw.style('px-4 gap-3 py-3')}
+          contentContainerStyle={tw.style('px-4 gap-3')}
           testID="homepage-top-traders-carousel"
         >
           {showSkeletons
