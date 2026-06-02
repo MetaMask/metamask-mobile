@@ -16,6 +16,13 @@ export {
 
 export type { IMetaMetricsEvent };
 
+export {
+  mergeAssetViewedProperties,
+  ASSET_VIEWED_PROPERTY,
+  ASSET_VIEWED_IMPLEMENTATION_TYPE_NATIVE,
+} from './trade-transaction-funnel/assetViewedAnalytics';
+export type { AssetViewedTradeType } from './trade-transaction-funnel/assetViewedAnalytics';
+
 /**
  * ⚠️️ WARNING ⚠️ WARNING ⚠️ WARNING ⚠️ WARNING ⚠️ WARNING ⚠️
  * this is a temporary export to allow the app/components/UI/Ramp/Views/OrdersList/OrdersList.test.tsx

@@ -764,7 +764,6 @@ export function useQuickBuyController(
     isSubmittingTx ||
     hasError ||
     isHardwareSolanaBlocked ||
-    isPriceImpactError ||
     !walletAddress;
 
   const isTotalLoading =
