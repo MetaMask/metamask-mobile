@@ -675,33 +675,7 @@ async function handleUniversalLink({
       break;
     }
     case SUPPORTED_ACTIONS.AGENTIC_CLI: {
-      const { params: cliParams } = extractURLParams(urlObj.href);
-      const agenticCliApprovalParams = cliParams as typeof cliParams & {
-        approvalPageLink?: string;
-        projectId?: string;
-        notificationId?: string;
-        requestId?: string;
-        approvalId?: string;
-        mimir_signature?: string;
-        operationType?: string;
-        subjectId?: string;
-      };
-
-      handleAgenticCliApproval({
-        intent:
-          agenticCliApprovalParams.operationType === 'transaction_request' ||
-          agenticCliApprovalParams.operationType === 'tx_approve'
-            ? 'tx_approve'
-            : 'login',
-        approvalPageLink: agenticCliApprovalParams.approvalPageLink,
-        projectId: agenticCliApprovalParams.projectId,
-        notificationId: agenticCliApprovalParams.notificationId,
-        requestId: agenticCliApprovalParams.requestId,
-        approvalId: agenticCliApprovalParams.approvalId,
-        mimir_signature: agenticCliApprovalParams.mimir_signature,
-        operationType: agenticCliApprovalParams.operationType,
-        subjectId: agenticCliApprovalParams.subjectId,
-      });
+      handleAgenticCliApproval({ actionPath: actionBasedRampPath });
       break;
     }
   }

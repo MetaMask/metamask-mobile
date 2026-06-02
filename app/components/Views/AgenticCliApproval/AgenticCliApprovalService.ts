@@ -45,8 +45,6 @@ export const AgenticCliApprovalService = {
     const {
       approvalPageLink,
       projectId,
-      notificationId,
-      requestId,
       approvalId,
       mimirSignature,
       operationType,
@@ -63,12 +61,7 @@ export const AgenticCliApprovalService = {
       throw new Error('Approval page origin is not allowed');
     }
 
-    const canonicalRequestId = notificationId ?? requestId;
-
     if (projectId) url.searchParams.set('projectId', projectId);
-    if (canonicalRequestId) {
-      url.searchParams.set('notificationId', canonicalRequestId);
-    }
     if (approvalId) url.searchParams.set('approvalId', approvalId);
     if (mimirSignature) {
       url.searchParams.set('mimir_signature', mimirSignature);

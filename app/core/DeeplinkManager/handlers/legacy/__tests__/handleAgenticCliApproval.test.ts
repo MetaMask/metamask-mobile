@@ -4,6 +4,7 @@ import NavigationService from '../../../../NavigationService';
 import {
   DEFAULT_APPROVAL_PAGE_LINK,
   handleAgenticCliApproval,
+  parseAgenticCliApprovalParams,
 } from '../handleAgenticCliApproval';
 
 jest.mock('../../../../NavigationService', () => ({
@@ -140,5 +141,97 @@ describe('handleAgenticCliApproval', () => {
         subjectId: undefined,
       },
     );
+  });
+});
+
+describe('parseAgenticCliApprovalParams', () => {
+  it('extracts login intent and fields from wallet_mode_change deeplinks', () => {
+    expect(
+      parseAgenticCliApprovalParams(
+        '?projectId=project-1&approvalId=approval-1&operationType=wallet_mode_change&subjectId=0xabc',
+      ),
+    ).toEqual({
+      intent: 'login',
+      approvalPageLink: undefined,
+      projectId: 'project-1',
+      notificationId: undefined,
+      requestId: undefined,
+      approvalId: 'approval-1',
+      mimir_signature: undefined,
+      operationType: 'wallet_mode_change',
+      subjectId: '0xabc',
+    });
+  });
+
+  it('maps transaction_request to tx_approve intent', () => {
+    expect(
+      parseAgenticCliApprovalParams(
+        '?projectId=project-1&notificationId=request-1&operationType=transaction_request',
+      ),
+    ).toEqual({
+      intent: 'tx_approve',
+      approvalPageLink: undefined,
+      projectId: 'project-1',
+      notificationId: 'request-1',
+      requestId: undefined,
+      approvalId: undefined,
+      mimir_signature: undefined,
+      operationType: 'transaction_request',
+      subjectId: undefined,
+    });
+  });
+
+  it('maps tx_approve operationType to tx_approve intent', () => {
+    expect(
+      parseAgenticCliApprovalParams(
+        '?projectId=project-1&approvalId=approval-1&operationType=tx_approve',
+      ),
+    ).toEqual({
+      intent: 'tx_approve',
+      approvalPageLink: undefined,
+      projectId: 'project-1',
+      notificationId: undefined,
+      requestId: undefined,
+      approvalId: 'approval-1',
+      mimir_signature: undefined,
+      operationType: 'tx_approve',
+      subjectId: undefined,
+    });
+  });
+
+  it('defaults to login intent when operationType is missing', () => {
+    expect(
+      parseAgenticCliApprovalParams(
+        '?projectId=project-1&approvalId=approval-1',
+      ),
+    ).toEqual({
+      intent: 'login',
+      approvalPageLink: undefined,
+      projectId: 'project-1',
+      notificationId: undefined,
+      requestId: undefined,
+      approvalId: 'approval-1',
+      mimir_signature: undefined,
+      operationType: undefined,
+      subjectId: undefined,
+    });
+  });
+
+  it('forwards all supported query param aliases', () => {
+    expect(
+      parseAgenticCliApprovalParams(
+        '?approvalPageLink=https%3A%2F%2Fdeveloper.metamask.io%2Fagentic%2Flogin&projectId=project-1&notificationId=notification-1&requestId=request-1&approvalId=approval-1&mimir_signature=signature-1&operationType=wallet_mode_change&subjectId=0xabc',
+      ),
+    ).toEqual({
+      intent: 'login',
+      approvalPageLink: 'https://developer.metamask.io/agentic/login',
+      projectId: 'project-1',
+      notificationId: 'notification-1',
+      requestId: 'request-1',
+      approvalId: 'approval-1',
+      mimir_signature: 'signature-1',
+      operationType: 'wallet_mode_change',
+      subjectId: '0xabc',
+    });
   });
 });

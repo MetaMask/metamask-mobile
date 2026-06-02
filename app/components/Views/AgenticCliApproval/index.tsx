@@ -93,8 +93,6 @@ const AgenticCliApproval: React.FC = () => {
   const {
     approvalPageLink,
     projectId,
-    notificationId,
-    requestId,
     approvalId,
     mimirSignature,
     operationType,
@@ -123,8 +121,6 @@ const AgenticCliApproval: React.FC = () => {
           {
             approvalPageLink,
             projectId,
-            notificationId,
-            requestId,
             approvalId,
             mimirSignature,
             operationType,
@@ -148,10 +144,8 @@ const AgenticCliApproval: React.FC = () => {
     approvalId,
     approvalPageLink,
     mimirSignature,
-    notificationId,
-    operationType,
     projectId,
-    requestId,
+    operationType,
     retryKey,
     subjectId,
   ]);

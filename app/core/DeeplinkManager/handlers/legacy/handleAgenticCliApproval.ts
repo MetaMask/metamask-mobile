@@ -20,14 +20,11 @@ import type {
  * vault-unlocked + onboarding-complete, so by the time we run we know the
  * AuthenticationController can issue a bearer.
  */
-interface HandleAgenticCliApprovalParams {
+export interface AgenticCliApprovalDeeplinkParams {
   intent: Intent;
   approvalPageLink?: string;
   projectId?: string;
-  notificationId?: string;
-  requestId?: string;
   approvalId?: string;
-  mimir_signature?: string;
   mimirSignature?: string;
   operationType?: Intent | string;
   subjectId?: string;
@@ -35,6 +32,48 @@ interface HandleAgenticCliApprovalParams {
 
 export const DEFAULT_APPROVAL_PAGE_LINK =
   'https://test-dashboard.web3auth.io/agentic/login';
+
+const TX_APPROVE_OPERATION_TYPES = new Set([
+  'transaction_request',
+  'tx_approve',
+]);
+
+const getQueryParam = (
+  searchParams: URLSearchParams,
+  key: string,
+): string | undefined => {
+  const value = searchParams.get(key);
+  return value && value.trim() !== '' ? value : undefined;
+};
+
+const resolveIntent = (operationType?: string): Intent =>
+  operationType && TX_APPROVE_OPERATION_TYPES.has(operationType)
+    ? 'tx_approve'
+    : 'login';
+
+/**
+ * Parse agentic-cli deeplink query parameters into typed handler params.
+ *
+ * @param agenticCliPath Query string portion of the deeplink (e.g. `?projectId=...`)
+ */
+export const parseAgenticCliApprovalParams = (
+  agenticCliPath: string,
+): AgenticCliApprovalDeeplinkParams => {
+  const searchParams = new URLSearchParams(
+    agenticCliPath.includes('?') ? agenticCliPath.split('?')[1] : '',
+  );
+  const operationType = getQueryParam(searchParams, 'operationType');
+
+  return {
+    intent: resolveIntent(operationType),
+    approvalPageLink: getQueryParam(searchParams, 'approvalPageLink'),
+    projectId: getQueryParam(searchParams, 'projectId'),
+    approvalId: getQueryParam(searchParams, 'approvalId'),
+    subjectId: getQueryParam(searchParams, 'subjectId'),
+    mimirSignature: getQueryParam(searchParams, 'mimir_signature'),
+    operationType,
+  };
+};
 
 const decodeParam = (value?: string): string | undefined => {
   if (!value) return undefined;
@@ -50,34 +89,30 @@ const decodeParam = (value?: string): string | undefined => {
   }
 };
 
-export const handleAgenticCliApproval = (
-  params: HandleAgenticCliApprovalParams,
-): void => {
+export const handleAgenticCliApproval = (params: {
+  actionPath: string;
+}): void => {
+  const { actionPath } = params;
   const {
-    intent,
     approvalPageLink,
     projectId,
-    notificationId,
-    requestId,
     approvalId,
-    mimir_signature,
     mimirSignature,
     operationType,
     subjectId,
-  } = params;
+  } = parseAgenticCliApprovalParams(actionPath);
+
   const decodedApprovalPageLink = decodeParam(approvalPageLink);
-  const decodedMimirSignature = decodeParam(mimirSignature ?? mimir_signature);
-  const requestIdentifier = notificationId ?? requestId ?? approvalId;
+  const decodedMimirSignature = decodeParam(mimirSignature);
   const hostedApprovalPageLink =
     decodedApprovalPageLink ??
-    (projectId && requestIdentifier ? DEFAULT_APPROVAL_PAGE_LINK : undefined);
+    (projectId && approvalId ? DEFAULT_APPROVAL_PAGE_LINK : undefined);
 
-  if (hostedApprovalPageLink && (!projectId || !requestIdentifier)) {
+  if (hostedApprovalPageLink && (!projectId || !approvalId)) {
     Logger.error(
       new Error(
         'handleAgenticCliApproval: missing projectId or notification/request id param',
       ),
-      `intent=${intent}`,
     );
     return;
   }
@@ -85,7 +120,6 @@ export const handleAgenticCliApproval = (
   if (!hostedApprovalPageLink) {
     Logger.error(
       new Error('handleAgenticCliApproval: missing approval page link'),
-      `intent=${intent}`,
     );
     return;
   }
@@ -93,11 +127,9 @@ export const handleAgenticCliApproval = (
   const navigationParams: AgenticCliApprovalParams = {
     approvalPageLink: hostedApprovalPageLink,
     projectId,
-    notificationId,
-    requestId,
     approvalId,
     mimirSignature: decodedMimirSignature,
-    operationType: operationType ?? intent,
+    operationType,
     subjectId,
   };
   // The 200ms gap mirrors `handleDeeplinkSaga`'s setTimeout — gives any

@@ -16,13 +16,8 @@ export type WebviewToNative =
 
 /** Navigation params for the AgenticCliApproval screen. */
 export interface AgenticCliApprovalParams {
-  /** Hosted approval page URL, e.g. `https://developer.metamask.io/agentic/approval`. */
   approvalPageLink?: string;
   projectId?: string;
-  /** Preferred Mimir signing request id. */
-  notificationId?: string;
-  /** Compatibility alias for `notificationId`. */
-  requestId?: string;
   /** Compatibility alias accepted by the hosted page. */
   approvalId?: string;
   /** Mimir signing signature forwarded from the backend CTA/deeplink. */
