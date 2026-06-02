@@ -9,4 +9,9 @@ export const HardwareWalletBottomSheetSelectorsIDs = {
   DEVICE_SELECTION_CONTENT: 'device-selection-content',
   DEVICE_SELECTION_ITEM_PREFIX: 'device-selection-item-',
   SCANNING: 'device-selection-scanning',
+  CONNECTING_CONTENT: 'connecting-content',
+  AWAITING_APP_CONTENT: 'awaiting-app-content',
+  AWAITING_CONFIRMATION_CONTENT: 'awaiting-confirmation-content',
+  SUCCESS_CONTENT: 'success-content',
+  ERROR_CONTENT: 'error-content',
 };
