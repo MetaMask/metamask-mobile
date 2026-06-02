@@ -162,7 +162,7 @@ const MoneyOnboardingCard = () => {
   }
 
   return (
-    <Box twClassName="pb-4 mx-4 mt-3">
+    <Box twClassName="pb-4 mx-4">
       <StepperCard
         steps={steps}
         currentStep={effectiveCurrentStep}
