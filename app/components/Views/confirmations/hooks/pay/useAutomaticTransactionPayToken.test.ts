@@ -13,7 +13,6 @@ import { transactionApprovalControllerMock } from '../../__mocks__/controllers/a
 import {
   MetaMaskPayTokensFlags,
   selectMetaMaskPayTokensFlags,
-  selectMetaMaskPayFiatFlags,
 } from '../../../../../selectors/featureFlagController/confirmations';
 import {
   isHardwareAccount,
@@ -38,6 +37,8 @@ import { useTransactionAccountOverride } from '../transactions/useTransactionAcc
 import { MUSD_TOKEN_ADDRESS } from '../../../../UI/Earn/constants/musd';
 import { selectLastWithdrawTokenByType } from '../../../../../selectors/transactionController';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
+import { useIsFiatPaymentAvailable } from './useIsFiatPaymentAvailable';
+import { useMMPayFiatConfig } from './useMMPayFiatConfig';
 
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../transactions/useTransactionAccountOverride');
@@ -48,6 +49,8 @@ jest.mock('./useTransactionPayData');
 jest.mock('./useTransactionPayAvailableTokens');
 jest.mock('./useWithdrawTokenFilter');
 jest.mock('../../../../UI/Ramp/hooks/useRampsPaymentMethods');
+jest.mock('./useIsFiatPaymentAvailable');
+jest.mock('./useMMPayFiatConfig');
 jest.mock('../../../../../selectors/transactionController', () => ({
   ...jest.requireActual('../../../../../selectors/transactionController'),
   selectLastWithdrawTokenByType: jest.fn(),
@@ -59,7 +62,6 @@ jest.mock(
       '../../../../../selectors/featureFlagController/confirmations',
     ),
     selectMetaMaskPayTokensFlags: jest.fn(),
-    selectMetaMaskPayFiatFlags: jest.fn(),
   }),
 );
 
@@ -121,9 +123,6 @@ describe('useAutomaticTransactionPayToken', () => {
   );
   const selectMetaMaskPayTokensFlagsMock = jest.mocked(
     selectMetaMaskPayTokensFlags,
-  );
-  const selectMetaMaskPayFiatFlagsMock = jest.mocked(
-    selectMetaMaskPayFiatFlags,
   );
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
@@ -187,7 +186,8 @@ describe('useAutomaticTransactionPayToken', () => {
       error: null,
     });
 
-    selectMetaMaskPayFiatFlagsMock.mockReturnValue({
+    jest.mocked(useIsFiatPaymentAvailable).mockReturnValue(false);
+    jest.mocked(useMMPayFiatConfig).mockReturnValue({
       enabledTransactionTypes: [],
       maxDelayMinutesForPaymentMethods: 10,
     });
@@ -220,7 +220,7 @@ describe('useAutomaticTransactionPayToken', () => {
     });
   });
 
-  it('selects target token if no tokens with balance', () => {
+  it('does not select token when no tokens with balance and fiat unavailable', () => {
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: [] as AssetType[],
       hasTokens: false,
@@ -228,10 +228,7 @@ describe('useAutomaticTransactionPayToken', () => {
 
     runHook();
 
-    expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_1_MOCK,
-      chainId: CHAIN_ID_1_MOCK,
-    });
+    expect(setPayTokenMock).not.toHaveBeenCalled();
   });
 
   it('does nothing if no required tokens', () => {
@@ -418,7 +415,7 @@ describe('useAutomaticTransactionPayToken', () => {
     });
   });
 
-  it('selects target token when preferred payment token provided but no tokens available', () => {
+  it('does not select token when preferred payment token provided but no tokens available and fiat unavailable', () => {
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: [] as AssetType[],
       hasTokens: false,
@@ -431,10 +428,7 @@ describe('useAutomaticTransactionPayToken', () => {
       },
     });
 
-    expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_1_MOCK,
-      chainId: CHAIN_ID_1_MOCK,
-    });
+    expect(setPayTokenMock).not.toHaveBeenCalled();
   });
 
   it('selects first available token when preferred token not in available tokens', () => {
