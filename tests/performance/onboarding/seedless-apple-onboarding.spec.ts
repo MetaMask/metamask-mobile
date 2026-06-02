@@ -9,6 +9,7 @@ import { getPasswordForScenario } from '../../framework/utils/TestConstants.js';
 import {
   dismissOnboardingInterestQuestionnaire,
   dismisspredictionsModalPlaywright,
+  dismissPushNotificationExistingUserSheet,
 } from '../../flows/wallet.flow';
 import {
   Performance,
@@ -140,6 +141,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         });
         await dismissOnboardingInterestQuestionnaire();
         await OnboardingSuccessView.tapDone();
+        await dismissPushNotificationExistingUserSheet();
         await timer5.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
             asPlaywrightElement(PredictModalView.notNowButton),

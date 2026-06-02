@@ -2,8 +2,11 @@ import WalletView from '../page-objects/wallet/WalletView';
 import NetworkView from '../page-objects/Settings/NetworksView';
 import {
   createLogger,
+  encapsulated,
+  Matchers,
   PlaywrightAssertions,
   PlaywrightGestures,
+  PlaywrightMatchers,
   PortManager,
   ResourceType,
   sleep,
@@ -445,6 +448,37 @@ export const loginToApp = async (password?: string): Promise<void> => {
 // Playwright (appium specific functions)
 // -----------------------------------------
 /**
+ * Dismisses the push notification opt-in sheet for existing users, if it appears.
+ * This sheet may appear after login and block navigation. It is safe to call
+ * even when the sheet is not present — the function will silently no-op.
+ */
+export const dismissPushNotificationExistingUserSheet =
+  async (): Promise<void> => {
+    try {
+      const btn = await asPlaywrightElement(
+        encapsulated({
+          detox: () =>
+            Matchers.getElementByID(
+              'push-notification-existing-user-sheet-button-confirm',
+            ),
+          appium: () =>
+            PlaywrightMatchers.getElementById(
+              'push-notification-existing-user-sheet-button-confirm',
+              { exact: true },
+            ),
+        }),
+      );
+      const isDisplayed = await btn.unwrap().isDisplayed();
+      if (isDisplayed) {
+        await PlaywrightGestures.waitAndTap(btn, { timeout: 5_000 });
+        logger.debug('Dismissed push notification existing user sheet');
+      }
+    } catch {
+      // Sheet not present — no-op
+    }
+  };
+
+/**
  * Logs into the application using the provided password or a default password.
  *
  * @async
@@ -461,6 +495,7 @@ export const loginToAppPlaywright = async (
   await LoginView.tapLoginButton();
 
   await PlaywrightUtilities.wait(5000);
+  await dismissPushNotificationExistingUserSheet();
 };
 
 /**
@@ -658,6 +693,8 @@ export const onboardingFlowImportSRPPlaywright = async (
     'main',
     testEnvironment,
   );
+
+  await dismissPushNotificationExistingUserSheet();
 
   const predictGtmOnboardingModalEnabled =
     await resolvePredictGtmOnboardingModalEnabled(productionFeatureFlags);

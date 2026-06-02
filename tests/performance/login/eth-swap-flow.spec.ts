@@ -32,7 +32,6 @@ test.describe(`${Performance} ${System} ${PerformanceLogin} ${PerformanceSwaps}`
       );
 
       await WalletView.tapWalletSwapButton();
-
       await swapLoadTimer.measure(() => QuoteView.isVisible());
 
       const swapTimer = new TimerHelper(
