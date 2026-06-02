@@ -235,6 +235,35 @@ describe('PredictMarketSportCard', () => {
     expect(getByText('1')).toBeOnTheScreen();
   });
 
+  it('hides buy buttons at full time even before status flips to ended', () => {
+    // Providers can report a terminal period ('FT') before flipping status to
+    // 'ended'; the card must stop showing buy buttons in lockstep with the
+    // scoreboard rendering "Final".
+    mockGameUpdate = {
+      gameId: 'game-1',
+      score: '1-1',
+      elapsed: '90',
+      period: 'FT',
+      status: 'ongoing',
+    };
+
+    const { getByText, queryByText } = renderWithProvider(
+      <PredictMarketSportCard
+        market={{
+          ...mockMarket,
+          game: mockMarket.game
+            ? { ...mockMarket.game, status: 'ongoing' }
+            : undefined,
+        }}
+      />,
+      { state: initialState },
+    );
+
+    expect(getByText('Final')).toBeOnTheScreen();
+    expect(queryByText('SPA 60¢')).toBeNull();
+    expect(queryByText('ENG 62¢')).toBeNull();
+  });
+
   it('navigates to market details when pressed', () => {
     const { getByTestId } = renderWithProvider(
       <PredictMarketSportCard market={mockMarket} testID="sport-market-card" />,

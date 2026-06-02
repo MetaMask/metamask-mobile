@@ -2,6 +2,7 @@ import {
   getSportLiveStatusText,
   getSportPeriodLabel,
   isBreakingPeriod,
+  isGameEnded,
   SPORT_ELAPSED_SUFFIX,
 } from './scoreboard';
 import type { PredictSportsLeague } from '../types';
@@ -41,6 +42,27 @@ describe('scoreboard utils', () => {
     it('falls back to the raw period code', () => {
       expect(getSportPeriodLabel('End Q1')).toBe('End Q1');
       expect(getSportPeriodLabel(null)).toBe('');
+    });
+  });
+
+  describe('isGameEnded', () => {
+    it('is true when status is ended', () => {
+      expect(isGameEnded('ended', null)).toBe(true);
+      expect(isGameEnded('ended', 'Q2')).toBe(true);
+    });
+
+    it('is true at a full-time period even when status is not ended', () => {
+      expect(isGameEnded('ongoing', 'FT')).toBe(true);
+      expect(isGameEnded('ongoing', 'VFT')).toBe(true);
+      expect(isGameEnded('scheduled', 'FT')).toBe(true);
+    });
+
+    it('is false for in-progress, scheduled, and breaking-but-not-final states', () => {
+      expect(isGameEnded('ongoing', 'Q3')).toBe(false);
+      expect(isGameEnded('ongoing', 'HT')).toBe(false);
+      expect(isGameEnded('scheduled', null)).toBe(false);
+      expect(isGameEnded(null, null)).toBe(false);
+      expect(isGameEnded(undefined, undefined)).toBe(false);
     });
   });
 

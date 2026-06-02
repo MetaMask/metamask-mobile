@@ -41,6 +41,7 @@ import {
 } from '../../types/navigation';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import PredictSportScoreboard from '../PredictSportScoreboard';
+import { isGameEnded } from '../../utils/scoreboard';
 
 interface PredictMarketSportCardProps {
   market: PredictMarketType;
@@ -208,7 +209,12 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
 
   const game = market.game as PredictMarketGame | undefined;
   const { gameUpdate } = useLiveGameUpdates(game?.id ?? null);
-  const liveStatus = gameUpdate?.status ?? game?.status;
+  // Mirror the scoreboard's notion of "game over" (terminal status OR a full-time
+  // period) so buy buttons disappear exactly when the scoreboard reads "Final".
+  const gameEnded = isGameEnded(
+    gameUpdate?.status ?? game?.status,
+    gameUpdate?.period ?? game?.period,
+  );
 
   const buttonItems = useMemo(
     () =>
@@ -272,7 +278,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
 
   const showBuyButtons =
     market.status === PredictMarketStatus.OPEN &&
-    liveStatus !== 'ended' &&
+    !gameEnded &&
     buttonItems.length > 0;
 
   const getButtonTextColorClass = (item: SportOutcomeButtonItem): string => {

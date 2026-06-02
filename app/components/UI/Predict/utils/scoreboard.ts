@@ -50,6 +50,18 @@ export const getSportPeriodLabel = (
   }
 };
 
+/**
+ * Whether a game has reached a terminal state for display purposes — either the
+ * provider reported `status: 'ended'`, or the period indicates full time
+ * ('FT'/'VFT'). Centralizing this keeps the scoreboard's "Final" rendering and
+ * the card's buy-button gating in agreement on when a game is over (a provider
+ * can report a terminal period before flipping `status` to `'ended'`).
+ */
+export const isGameEnded = (
+  status: PredictGameStatus | null | undefined,
+  period: PredictGamePeriod | null | undefined,
+): boolean => status === 'ended' || period === 'FT' || period === 'VFT';
+
 export interface SportLiveStatusInput {
   league: PredictSportsLeague;
   status: PredictGameStatus;
@@ -73,7 +85,7 @@ export const getSportLiveStatusText = ({
   elapsed,
 }: SportLiveStatusInput): string => {
   // Terminal state always reads as "Final".
-  if (status === 'ended' || period === 'FT' || period === 'VFT') {
+  if (isGameEnded(status, period)) {
     return strings('predict.sports.final');
   }
 

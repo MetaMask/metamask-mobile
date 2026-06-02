@@ -16,7 +16,7 @@ import { isSoccerLeague } from '../../constants/sports';
 import { useLiveGameUpdates } from '../../hooks/useLiveGameUpdates';
 import { GameUpdate, PredictMarketGame, PredictSportTeam } from '../../types';
 import { parseScore } from '../../utils/gameParser';
-import { getSportLiveStatusText } from '../../utils/scoreboard';
+import { getSportLiveStatusText, isGameEnded } from '../../utils/scoreboard';
 import PredictSportTeamLogo from '../PredictSportTeamLogo/PredictSportTeamLogo';
 import PulsingLiveDot from '../PulsingLiveDot/PulsingLiveDot';
 import { PREDICT_SPORT_SCOREBOARD_TEST_IDS } from './PredictSportScoreboard.testIds';
@@ -102,10 +102,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
     };
   }, [game, gameUpdate]);
 
-  const isEnded =
-    liveData.status === 'ended' ||
-    liveData.period === 'FT' ||
-    liveData.period === 'VFT';
+  const isEnded = isGameEnded(liveData.status, liveData.period);
   const isScheduled = !isEnded && liveData.status === 'scheduled';
   const isLive = !isEnded && !isScheduled;
 
