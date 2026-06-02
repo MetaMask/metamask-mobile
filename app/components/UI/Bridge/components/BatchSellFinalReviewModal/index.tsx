@@ -2,7 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import React, { useCallback, useMemo, useState } from 'react';
 import { Pressable } from 'react-native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import {
@@ -31,13 +31,18 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
-import { selectBatchSellSourceTokens } from '../../../../../core/redux/slices/bridge';
+import {
+  selectBatchSellSourceTokens,
+  selectIsSubmittingTx,
+  setIsSubmittingTx,
+} from '../../../../../core/redux/slices/bridge';
 import {
   type BatchSellQuoteTokenData,
   useBatchSellQuoteData,
 } from '../../hooks/useBatchSellQuoteData';
 import { useBatchSellQuoteRequest } from '../../hooks/useBatchSellQuoteRequest';
 import { useBatchSellHasSufficientGas } from '../../hooks/useBatchSellHasSufficientGas';
+import { useSubmitBatchSellTx } from '../../hooks/useSubmitBatchSellTx';
 import type { BridgeToken } from '../../types';
 import { BatchSellQuoteDetails } from '../BatchSellQuoteDetailsModal';
 import { BatchSellFinalReviewModalSelectorsIDs } from './BatchSellFinalReviewModal.testIds';
@@ -279,13 +284,16 @@ function NetworkFeeRow({
 }
 
 export function BatchSellFinalReviewModal() {
+  const dispatch = useDispatch();
   const navigation =
     useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
   const selectedTokens = useSelector(selectBatchSellSourceTokens);
+  const isSubmittingTx = useSelector(selectIsSubmittingTx);
   const batchSellQuoteData = useBatchSellQuoteData({
     shouldUpdateBatchSellTrades: false,
   });
   const { getNewQuote } = useBatchSellQuoteRequest();
+  const { submitBatchSellTx } = useSubmitBatchSellTx();
   const hasSufficientGas = useBatchSellHasSufficientGas({
     isGasless: batchSellQuoteData.isGasless,
     networkFee: batchSellQuoteData.networkFee,
@@ -305,12 +313,20 @@ export function BatchSellFinalReviewModal() {
       selectedTokens,
     ],
   );
-  const hasInsufficientGas = hasSufficientGas === false;
+  const isBatchSellTradesLoading = batchSellQuoteData.isBatchSellTradesLoading;
+  const hasInsufficientGaslessDestinationToken =
+    batchSellQuoteData.isGasless &&
+    !isBatchSellTradesLoading &&
+    !batchSellQuoteData.isBatchSellTradeAvailable;
+  const hasInsufficientGas =
+    hasSufficientGas === false || hasInsufficientGaslessDestinationToken;
   const isSellAllDisabled =
     batchSellQuoteData.isLoading ||
-    batchSellQuoteData.networkFeeIsLoading ||
+    isBatchSellTradesLoading ||
+    !batchSellQuoteData.isBatchSellTradeAvailable ||
     !batchSellQuoteData.hasAnyQuote ||
     batchSellQuoteData.hasPendingQuoteRows ||
+    isSubmittingTx ||
     hasInsufficientGas;
   const isButtonDisabled = batchSellQuoteData.needsNewQuote
     ? false
@@ -319,7 +335,8 @@ export function BatchSellFinalReviewModal() {
     !batchSellQuoteData.needsNewQuote &&
     isSellAllDisabled &&
     (batchSellQuoteData.isLoading ||
-      batchSellQuoteData.networkFeeIsLoading ||
+      isBatchSellTradesLoading ||
+      isSubmittingTx ||
       batchSellQuoteData.hasPendingQuoteRows);
   const actionButtonLabel = (() => {
     if (batchSellQuoteData.needsNewQuote) {
@@ -328,6 +345,10 @@ export function BatchSellFinalReviewModal() {
 
     if (hasInsufficientGas) {
       return strings('bridge.insufficient_funds');
+    }
+
+    if (isSubmittingTx) {
+      return strings('bridge.submitting_transaction');
     }
 
     return strings('bridge.batch_sell_sell_all');
@@ -356,9 +377,25 @@ export function BatchSellFinalReviewModal() {
     });
   };
 
-  const handleSellAll = useCallback(() => {
-    // TODO: submit the executable Batch Sell trades.
-  }, []);
+  const handleSellAll = useCallback(async () => {
+    try {
+      dispatch(setIsSubmittingTx(true));
+
+      await submitBatchSellTx({
+        quoteResponses: batchSellQuoteData.recommendedQuotes,
+      });
+    } catch (error) {
+      console.error('Error submitting Batch Sell tx', error);
+    } finally {
+      dispatch(setIsSubmittingTx(false));
+      navigation.navigate(Routes.TRANSACTIONS_VIEW);
+    }
+  }, [
+    batchSellQuoteData.recommendedQuotes,
+    dispatch,
+    navigation,
+    submitBatchSellTx,
+  ]);
 
   return (
     <BottomSheet
@@ -391,7 +428,7 @@ export function BatchSellFinalReviewModal() {
       <NetworkFeeRow
         networkFee={batchSellQuoteData.networkFee}
         hasInsufficientGas={hasInsufficientGas}
-        isLoading={batchSellQuoteData.networkFeeIsLoading}
+        isLoading={isBatchSellTradesLoading}
         onInfoPress={handleOpenNetworkFeeInfo}
       />
       <Box paddingHorizontal={4} paddingTop={4} paddingBottom={4} gap={2}>
