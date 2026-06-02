@@ -74,6 +74,7 @@ const MoneyPotentialEarnings = ({
     () => eligibleTokens.slice(0, VISIBLE_TOKENS_COUNT),
     [eligibleTokens],
   );
+  const hasMoreTokens = eligibleTokens.length > VISIBLE_TOKENS_COUNT;
 
   const handleTokenPress = useCallback(
     (token: AssetType) => () => onTokenPress?.(token),
@@ -89,7 +90,7 @@ const MoneyPotentialEarnings = ({
       <Box twClassName="px-4 py-3 gap-3">
         <MoneySectionHeader
           title={strings('money.potential_earnings.title')}
-          onPress={onHeaderPress}
+          onPress={hasMoreTokens ? onHeaderPress : undefined}
         />
 
         {isPositiveNumber(projectedAmount) &&
@@ -168,7 +169,7 @@ const MoneyPotentialEarnings = ({
           />
         ))}
 
-        {eligibleTokens.length > VISIBLE_TOKENS_COUNT && (
+        {hasMoreTokens && (
           <Box twClassName="px-4 py-3">
             <Button
               variant={ButtonVariant.Secondary}

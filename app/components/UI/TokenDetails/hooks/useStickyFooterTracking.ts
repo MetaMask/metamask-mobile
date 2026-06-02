@@ -3,7 +3,7 @@ import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { getUsdAmountRange } from '../../../../util/analytics/usdAmountRange';
 
-export type StickyFooterButtonAction = 'swap' | 'buy';
+export type StickyFooterButtonAction = 'swap' | 'buy' | 'quick_buy';
 
 interface TrackStickyBottomCtaClickedParams {
   ctaType: StickyFooterButtonAction;
