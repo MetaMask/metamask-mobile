@@ -155,6 +155,7 @@ import { useConfirmActions } from '../../../../Views/confirmations/hooks/useConf
 import { useInsufficientPayTokenBalanceAlert } from '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert';
 import { useNoPayTokenQuotesAlert } from '../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert';
 import { useInitPerpsPaymentToken } from './useInitPerpsPaymentToken';
+import { useVipTier } from '../../../Rewards/hooks/useVipTier';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -578,6 +579,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     isFeesLoading: feeResults.isLoadingMetamaskFee,
     orderAmount: orderForm.amount,
   });
+
+  const vipTier = useVipTier();
 
   // Track order type viewed event using unified declarative API (main's event structure)
   usePerpsEventTracking({
@@ -1186,18 +1189,17 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             estimatedPoints: feeResults.estimatedPoints,
             inputMethod: inputMethodRef.current,
             source,
-            // Trade action: 'create_position' for first trade, 'increase_exposure' for adding to existing
-            // Note: flip_position is tracked separately via TradingService.flipPosition
             tradeAction: currentMarketPosition
               ? 'increase_exposure'
               : 'create_position',
-            // Pay with any token: track when user paid with a custom token (not Perps balance)
             tradeWithToken: hasCustomTokenSelected,
             ...(hasCustomTokenSelected &&
               payToken && {
                 mmPayTokenSelected: payToken.symbol ?? '',
                 mmPayNetworkSelected: String(payToken.chainId ?? ''),
               }),
+            vipTier: vipTier ?? undefined,
+            vipDiscount: feeResults.feeDiscountPercentage,
           },
         };
 
@@ -1298,6 +1300,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       maxSlippageSource,
       estimatedSlippageBps,
       exceedsMaxSlippage,
+      vipTier,
     ],
   );
 
@@ -1428,7 +1431,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       />
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollViewContent}
+        contentContainerStyle={
+          isInputFocused
+            ? styles.scrollViewContentKeypad
+            : styles.scrollViewContent
+        }
         showsVerticalScrollIndicator={false}
       >
         {/* Amount Display */}
@@ -1467,7 +1474,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         {!isInputFocused && (
           <View style={styles.detailsWrapper}>
             {/* Leverage */}
-            <View
+            <TouchableOpacity
+              testID={PerpsOrderViewSelectorsIDs.LEVERAGE_ROW}
+              onPress={() => setIsLeverageVisible(true)}
               style={[
                 styles.detailItem,
                 // If there are items below (limit price, TP/SL, or Pay with), only round top corners
@@ -1477,9 +1486,82 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   : styles.detailItemOnly,
               ]}
             >
+              <ListItem style={styles.detailItemWrapper}>
+                <ListItemColumn widthType={WidthType.Fill}>
+                  <View style={styles.detailLeft}>
+                    <Text
+                      variant={TextVariant.BodyMD}
+                      color={TextColor.Alternative}
+                    >
+                      {strings('perps.order.leverage')}
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => handleTooltipPress('leverage')}
+                      style={styles.infoIcon}
+                    >
+                      <Icon
+                        name={IconName.Info}
+                        size={IconSize.Sm}
+                        color={IconColor.Alternative}
+                        testID={PerpsOrderViewSelectorsIDs.LEVERAGE_INFO_ICON}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </ListItemColumn>
+                <ListItemColumn widthType={WidthType.Auto}>
+                  <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                    {isLoadingMarketData ? '...' : `${orderForm.leverage}x`}
+                  </Text>
+                </ListItemColumn>
+              </ListItem>
+            </TouchableOpacity>
+
+            {/* Limit price - only show for limit orders */}
+            {orderForm.type === 'limit' && (
               <TouchableOpacity
-                testID={PerpsOrderViewSelectorsIDs.LEVERAGE_ROW}
-                onPress={() => setIsLeverageVisible(true)}
+                testID={PerpsOrderViewSelectorsIDs.LIMIT_PRICE_ROW}
+                onPress={() => setIsLimitPriceVisible(true)}
+                style={[
+                  styles.detailItem,
+                  // Only round bottom corners when this is the last item (no TP/SL and no Pay row below)
+                  hideTPSL && !isPayRowVisible && styles.detailItemLast,
+                ]}
+              >
+                <ListItem style={styles.detailItemWrapper}>
+                  <ListItemColumn widthType={WidthType.Fill}>
+                    <Text
+                      variant={TextVariant.BodyMD}
+                      color={TextColor.Alternative}
+                    >
+                      {strings('perps.order.limit_price')}
+                    </Text>
+                  </ListItemColumn>
+                  <ListItemColumn widthType={WidthType.Auto}>
+                    <Text
+                      variant={TextVariant.BodyMD}
+                      color={TextColor.Default}
+                    >
+                      {orderForm.limitPrice !== undefined &&
+                      orderForm.limitPrice !== null
+                        ? formatPerpsFiat(orderForm.limitPrice, {
+                            ranges: PRICE_RANGES_UNIVERSAL,
+                          })
+                        : 'Set price'}
+                    </Text>
+                  </ListItemColumn>
+                </ListItem>
+              </TouchableOpacity>
+            )}
+
+            {/* Combined TP/SL row - Hidden when modifying existing position */}
+            {!hideTPSL && (
+              <TouchableOpacity
+                onPress={handleTPSLPress}
+                testID={PerpsOrderViewSelectorsIDs.STOP_LOSS_BUTTON}
+                style={[
+                  styles.detailItem,
+                  !isPayRowVisible && styles.detailItemLast,
+                ]}
               >
                 <ListItem style={styles.detailItemWrapper}>
                   <ListItemColumn widthType={WidthType.Fill}>
@@ -1488,17 +1570,17 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                         variant={TextVariant.BodyMD}
                         color={TextColor.Alternative}
                       >
-                        {strings('perps.order.leverage')}
+                        {strings('perps.order.tp_sl')}
                       </Text>
                       <TouchableOpacity
-                        onPress={() => handleTooltipPress('leverage')}
+                        onPress={() => handleTooltipPress('tp_sl')}
                         style={styles.infoIcon}
                       >
                         <Icon
                           name={IconName.Info}
                           size={IconSize.Sm}
                           color={IconColor.Alternative}
-                          testID={PerpsOrderViewSelectorsIDs.LEVERAGE_INFO_ICON}
+                          testID={PerpsOrderViewSelectorsIDs.TP_SL_INFO_ICON}
                         />
                       </TouchableOpacity>
                     </View>
@@ -1508,98 +1590,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                       variant={TextVariant.BodyMD}
                       color={TextColor.Default}
                     >
-                      {isLoadingMarketData ? '...' : `${orderForm.leverage}x`}
+                      {tpSlDisplayText}
                     </Text>
                   </ListItemColumn>
                 </ListItem>
               </TouchableOpacity>
-            </View>
-
-            {/* Limit price - only show for limit orders */}
-            {orderForm.type === 'limit' && (
-              <View
-                style={[
-                  styles.detailItem,
-                  // Only round bottom corners when this is the last item (no TP/SL and no Pay row below)
-                  hideTPSL && !isPayRowVisible && styles.detailItemLast,
-                ]}
-              >
-                <TouchableOpacity
-                  testID={PerpsOrderViewSelectorsIDs.LIMIT_PRICE_ROW}
-                  onPress={() => setIsLimitPriceVisible(true)}
-                >
-                  <ListItem style={styles.detailItemWrapper}>
-                    <ListItemColumn widthType={WidthType.Fill}>
-                      <Text
-                        variant={TextVariant.BodyMD}
-                        color={TextColor.Alternative}
-                      >
-                        {strings('perps.order.limit_price')}
-                      </Text>
-                    </ListItemColumn>
-                    <ListItemColumn widthType={WidthType.Auto}>
-                      <Text
-                        variant={TextVariant.BodyMD}
-                        color={TextColor.Default}
-                      >
-                        {orderForm.limitPrice !== undefined &&
-                        orderForm.limitPrice !== null
-                          ? formatPerpsFiat(orderForm.limitPrice, {
-                              ranges: PRICE_RANGES_UNIVERSAL,
-                            })
-                          : 'Set price'}
-                      </Text>
-                    </ListItemColumn>
-                  </ListItem>
-                </TouchableOpacity>
-              </View>
-            )}
-
-            {/* Combined TP/SL row - Hidden when modifying existing position */}
-            {!hideTPSL && (
-              <View
-                style={[
-                  styles.detailItem,
-                  !isPayRowVisible && styles.detailItemLast,
-                ]}
-              >
-                <TouchableOpacity
-                  onPress={handleTPSLPress}
-                  testID={PerpsOrderViewSelectorsIDs.STOP_LOSS_BUTTON}
-                >
-                  <ListItem style={styles.detailItemWrapper}>
-                    <ListItemColumn widthType={WidthType.Fill}>
-                      <View style={styles.detailLeft}>
-                        <Text
-                          variant={TextVariant.BodyMD}
-                          color={TextColor.Alternative}
-                        >
-                          {strings('perps.order.tp_sl')}
-                        </Text>
-                        <TouchableOpacity
-                          onPress={() => handleTooltipPress('tp_sl')}
-                          style={styles.infoIcon}
-                        >
-                          <Icon
-                            name={IconName.Info}
-                            size={IconSize.Sm}
-                            color={IconColor.Alternative}
-                            testID={PerpsOrderViewSelectorsIDs.TP_SL_INFO_ICON}
-                          />
-                        </TouchableOpacity>
-                      </View>
-                    </ListItemColumn>
-                    <ListItemColumn widthType={WidthType.Auto}>
-                      <Text
-                        variant={TextVariant.BodyMD}
-                        color={TextColor.Default}
-                      >
-                        {tpSlDisplayText}
-                      </Text>
-                    </ListItemColumn>
-                  </ListItem>
-                </TouchableOpacity>
-              </View>
             )}
             {/* Pay with row - directly below TP/SL, same stacked box styling */}
             {isPayRowVisible && (

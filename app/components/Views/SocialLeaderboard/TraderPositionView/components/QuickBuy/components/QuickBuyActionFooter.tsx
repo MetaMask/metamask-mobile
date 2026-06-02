@@ -35,20 +35,15 @@ const QuickBuyActionFooter: React.FC = () => {
     getButtonLabel,
     hasValidAmount,
     isConfirmDisabled,
-    handleConfirm,
+    handleBuy,
     metamaskFeePercent,
     isHardwareSolanaBlocked,
-    isPriceImpactError,
-    priceImpactViewData,
-    formattedPriceImpact,
     sourceToken,
     sourceChainId,
     sourceBalanceFiat,
     features,
+    setActiveScreen,
   } = useQuickBuyContext();
-
-  const isPriceImpactWarning =
-    !isPriceImpactError && !!priceImpactViewData.icon;
 
   const networkImage = sourceChainId
     ? getNetworkImageSource({ chainId: sourceChainId })
@@ -81,6 +76,7 @@ const QuickBuyActionFooter: React.FC = () => {
           activeOpacity={0.7}
           accessibilityRole="button"
           testID="quick-buy-pay-with-button"
+          onPress={() => setActiveScreen('payWith')}
         >
           <Box
             flexDirection={BoxFlexDirection.Row}
@@ -126,19 +122,14 @@ const QuickBuyActionFooter: React.FC = () => {
         </TouchableOpacity>
       </Box>
 
-      <QuickBuyBanners
-        isHardwareSolanaBlocked={isHardwareSolanaBlocked}
-        isPriceImpactError={isPriceImpactError}
-        isPriceImpactWarning={isPriceImpactWarning}
-        formattedPriceImpact={formattedPriceImpact}
-      />
+      <QuickBuyBanners isHardwareSolanaBlocked={isHardwareSolanaBlocked} />
 
       <QuickBuyConfirmButton
         state={confirmButtonState}
         label={getButtonLabel()}
         hasValidAmount={hasValidAmount}
         isDisabled={isConfirmDisabled}
-        onPress={handleConfirm}
+        onPress={handleBuy}
         testID="quick-buy-confirm-button"
       />
 

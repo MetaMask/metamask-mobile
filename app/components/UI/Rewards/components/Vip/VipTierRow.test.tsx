@@ -1,7 +1,10 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import VipTierRow, { VIP_TIER_ROW_TEST_IDS } from './VipTierRow';
-import { VIP_GOLD_BACKGROUND_MUTED } from './Vip.constants';
+import {
+  VIP_GOLD_BACKGROUND_MUTED,
+  VIP_GOLD_TIER_GRADIENT_COLORS,
+} from './Vip.constants';
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -12,6 +15,8 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({ style: (...args: unknown[]) => args }),
 }));
 
+jest.mock('react-native-linear-gradient', () => 'LinearGradient');
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string, params?: Record<string, unknown>) => {
     if (key === 'rewards.vip.tier_thresholds' && params) {
@@ -20,13 +25,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
     if (key === 'rewards.vip.bps_value' && params) {
       return `${params.bps} bps`;
     }
-    const t: Record<string, string> = {
-      'rewards.vip.revenue_share_label': 'Revenue share',
-      'rewards.vip.swap_fees_label': 'Swap fees',
-      'rewards.vip.perps_fees_label': 'Perps fees',
-      'rewards.vip.referral_points_label': 'Referral points',
-    };
-    return t[key] ?? key;
+    return key;
   },
 }));
 
@@ -38,14 +37,22 @@ const baseTier = {
   revenueShareBps: 150,
   swapsBps: 15,
   perpsBps: 4,
-  equityRebateBps: 0,
   referralCarryoverBps: 2000,
   status: 'current' as const,
 };
 
+const localizedText = {
+  revenueShareTitle: 'Revenue share',
+  swapsFeeTitle: 'Swap fees',
+  perpsFeeTitle: 'Perps fees',
+  referralPointsTitle: 'Referral points',
+};
+
 describe('VipTierRow', () => {
   it('opens current tier details by default', () => {
-    const { getByTestId } = render(<VipTierRow tier={baseTier} />);
+    const { getByTestId } = render(
+      <VipTierRow tier={baseTier} localizedText={localizedText} />,
+    );
 
     expect(
       getByTestId(`${VIP_TIER_ROW_TEST_IDS.DETAILS}-${baseTier.id}`),
@@ -53,12 +60,23 @@ describe('VipTierRow', () => {
   });
 
   it('renders name, points threshold, and fees for a non-base tier', () => {
-    const { getByText, getByTestId } = render(<VipTierRow tier={baseTier} />);
+    const { getByText, getByTestId } = render(
+      <VipTierRow tier={baseTier} localizedText={localizedText} />,
+    );
 
     expect(getByText('Gold Fox 3')).toBeOnTheScreen();
     expect(
       getByTestId(`${VIP_TIER_ROW_TEST_IDS.CONTAINER}-${baseTier.id}`),
     ).toHaveStyle({ backgroundColor: VIP_GOLD_BACKGROUND_MUTED });
+    expect(
+      getByTestId(VIP_TIER_ROW_TEST_IDS.CURRENT_TIER_GRADIENT).props.colors,
+    ).toEqual(VIP_GOLD_TIER_GRADIENT_COLORS);
+    expect(
+      getByTestId(VIP_TIER_ROW_TEST_IDS.CURRENT_TIER_GRADIENT).props.start,
+    ).toEqual({ x: 0, y: 0 });
+    expect(
+      getByTestId(VIP_TIER_ROW_TEST_IDS.CURRENT_TIER_GRADIENT).props.end,
+    ).toEqual({ x: 0, y: 1 });
     expect(getByTestId(VIP_TIER_ROW_TEST_IDS.THRESHOLDS)).toHaveTextContent(
       /750k points/,
     );
@@ -80,9 +98,28 @@ describe('VipTierRow', () => {
     ).toHaveTextContent(/20%/);
   });
 
+  it('keeps the gradient mounted when collapse starts so opacity can animate', () => {
+    const { getByTestId } = render(
+      <VipTierRow tier={baseTier} localizedText={localizedText} />,
+    );
+
+    fireEvent.press(
+      getByTestId(`${VIP_TIER_ROW_TEST_IDS.HEADER}-${baseTier.id}`),
+    );
+
+    expect(
+      getByTestId(VIP_TIER_ROW_TEST_IDS.CURRENT_TIER_GRADIENT),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(`${VIP_TIER_ROW_TEST_IDS.CONTAINER}-${baseTier.id}`),
+    ).toHaveStyle({ backgroundColor: VIP_GOLD_BACKGROUND_MUTED });
+  });
+
   it('toggles tier details from the title row', () => {
     const tier = { ...baseTier, status: 'upcoming' as const };
-    const { getByTestId, queryByTestId } = render(<VipTierRow tier={tier} />);
+    const { getByTestId, queryByTestId } = render(
+      <VipTierRow tier={tier} localizedText={localizedText} />,
+    );
 
     expect(
       queryByTestId(`${VIP_TIER_ROW_TEST_IDS.DETAILS}-${tier.id}`),
@@ -107,6 +144,7 @@ describe('VipTierRow', () => {
           revenueShareBps: 0,
           status: 'completed',
         }}
+        localizedText={localizedText}
       />,
     );
     expect(queryByTestId(VIP_TIER_ROW_TEST_IDS.THRESHOLDS)).toBeNull();
@@ -121,6 +159,7 @@ describe('VipTierRow', () => {
           pointsRequirement: 100_000,
           status: 'completed',
         }}
+        localizedText={localizedText}
       />,
     );
     expect(queryByTestId(VIP_TIER_ROW_TEST_IDS.THRESHOLDS)).toBeNull();

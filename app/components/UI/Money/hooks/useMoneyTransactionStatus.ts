@@ -26,7 +26,16 @@ import {
 } from '../../Earn/constants/musd';
 import { moneyFormatFiat } from '../utils/moneyFormatFiat';
 import { TELLER_ABI } from '../utils/moneyAccountTransactions';
+import {
+  isMoneyAccountTx,
+  isMoneyDepositTx,
+  nestedTxWithType,
+} from '../utils/moneyTransactionGuards';
 import useMoneyToasts from './useMoneyToasts';
+import {
+  clearMoneyAccountDepositIntent,
+  getMoneyAccountDepositIntent,
+} from './useMoneyAccount';
 
 const TELLER_INTERFACE = new ethers.utils.Interface(TELLER_ABI);
 
@@ -126,29 +135,6 @@ export const useMoneyTransactionStatus = () => {
       pendingCleanups.add(timeoutId);
     };
 
-    const nestedTxWithType = (
-      transactionMeta: TransactionMeta,
-      targetType: TransactionType,
-    ) =>
-      transactionMeta.nestedTransactions?.find(
-        (nested) => nested.type === targetType,
-      );
-
-    const isMoneyDepositTx = (transactionMeta: TransactionMeta) =>
-      transactionMeta.type === TransactionType.moneyAccountDeposit ||
-      Boolean(
-        nestedTxWithType(transactionMeta, TransactionType.moneyAccountDeposit),
-      );
-
-    const isMoneyWithdrawTx = (transactionMeta: TransactionMeta) =>
-      transactionMeta.type === TransactionType.moneyAccountWithdraw ||
-      Boolean(
-        nestedTxWithType(transactionMeta, TransactionType.moneyAccountWithdraw),
-      );
-
-    const isMoneyAccountTx = (transactionMeta: TransactionMeta) =>
-      isMoneyDepositTx(transactionMeta) || isMoneyWithdrawTx(transactionMeta);
-
     const reserveToastKey = (transactionId: string, key: string) => {
       const toastKey = `${transactionId}-${key}`;
       if (shownToastsRef.current.has(toastKey)) return undefined;
@@ -163,7 +149,8 @@ export const useMoneyTransactionStatus = () => {
       const timeoutId = setTimeout(() => {
         pendingInProgress.delete(transactionMeta.id);
         if (isMoneyDepositTx(transactionMeta)) {
-          showToast(MoneyToastOptions.deposit.inProgress());
+          const intent = getMoneyAccountDepositIntent(transactionMeta.batchId);
+          showToast(MoneyToastOptions.deposit.inProgress({ intent }));
         } else {
           showToast(MoneyToastOptions.withdraw.inProgress());
         }
@@ -176,7 +163,9 @@ export const useMoneyTransactionStatus = () => {
       cancelPendingInProgress(transactionMeta.id);
       if (!reserveToastKey(transactionMeta.id, FAILED_KEY)) return;
       if (isMoneyDepositTx(transactionMeta)) {
-        showToast(MoneyToastOptions.deposit.failed());
+        const intent = getMoneyAccountDepositIntent(transactionMeta.batchId);
+        showToast(MoneyToastOptions.deposit.failed({ intent }));
+        clearMoneyAccountDepositIntent(transactionMeta.batchId);
       } else {
         showToast(MoneyToastOptions.withdraw.failed());
       }
@@ -210,7 +199,9 @@ export const useMoneyTransactionStatus = () => {
           : undefined;
 
       if (isMoneyDepositTx(transactionMeta)) {
-        showToast(MoneyToastOptions.deposit.success({ amountFiat }));
+        const intent = getMoneyAccountDepositIntent(transactionMeta.batchId);
+        showToast(MoneyToastOptions.deposit.success({ amountFiat, intent }));
+        clearMoneyAccountDepositIntent(transactionMeta.batchId);
       } else {
         // TODO: derive destination from tx metadata once Perps/Predict transfers ship.
         showToast(
@@ -239,6 +230,9 @@ export const useMoneyTransactionStatus = () => {
           break;
         case TransactionStatus.rejected:
           cancelPendingInProgress(transactionMeta.id);
+          if (isMoneyDepositTx(transactionMeta)) {
+            clearMoneyAccountDepositIntent(transactionMeta.batchId);
+          }
           break;
         default:
           break;

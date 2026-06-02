@@ -1137,7 +1137,32 @@ describe('PredictController', () => {
       });
     });
 
-    it('falls back to groupItemThreshold when provider returns null', async () => {
+    it('falls back to event price to beat when provider returns null', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getCryptoTargetPrice = jest
+          .fn()
+          .mockResolvedValue(null);
+        mockPolymarketProvider.getMarketDetails = jest.fn().mockResolvedValue({
+          priceToBeat: 75749.02,
+          outcomes: [{ groupItemThreshold: 41500 }],
+        });
+
+        const result = await controller.getCryptoTargetPrice({
+          eventId: 'event-123',
+          symbol: 'BTC',
+          eventStartTime: '2025-01-01T00:00:00Z',
+          variant: 'up',
+          endDate: '2025-01-02',
+        });
+
+        expect(result).toBe(75749.02);
+        expect(mockPolymarketProvider.getMarketDetails).toHaveBeenCalledWith({
+          marketId: 'event-123',
+        });
+      });
+    });
+
+    it('falls back to groupItemThreshold when provider and event price to beat are unavailable', async () => {
       await withController(async ({ controller }) => {
         mockPolymarketProvider.getCryptoTargetPrice = jest
           .fn()
@@ -3982,6 +4007,7 @@ describe('PredictController', () => {
         expect(addTransactionBatch).toHaveBeenCalledWith({
           from: '0x1234567890123456789012345678901234567890',
           origin: 'metamask',
+          isInternal: true,
           networkClientId: 'polygon-mainnet',
           disableHook: true,
           disableSequential: true,
@@ -4462,6 +4488,39 @@ describe('PredictController', () => {
         // Verify deposit transaction remains undefined
         const address = '0x1234567890123456789012345678901234567890';
         expect(controller.state.pendingDeposits[address]).toBe(undefined);
+      });
+    });
+  });
+
+  describe('clearPendingClaim', () => {
+    it('clears pending claim from state', () => {
+      withController(({ controller }) => {
+        const address = '0x1234567890123456789012345678901234567890';
+
+        controller.updateStateForTesting((state) => {
+          state.pendingClaims = {
+            [address]: 'batch-id-123',
+          };
+        });
+
+        expect(controller.state.pendingClaims[address]).toBe('batch-id-123');
+
+        controller.clearPendingClaim();
+
+        expect(controller.state.pendingClaims[address]).toBe(undefined);
+      });
+    });
+
+    it('handles clearing empty pending claim state', () => {
+      withController(({ controller }) => {
+        controller.updateStateForTesting((state) => {
+          state.pendingClaims = {};
+        });
+
+        expect(() => controller.clearPendingClaim()).not.toThrow();
+
+        const address = '0x1234567890123456789012345678901234567890';
+        expect(controller.state.pendingClaims[address]).toBe(undefined);
       });
     });
   });
@@ -8619,7 +8678,7 @@ describe('PredictController', () => {
           entryPoint: 'test',
           marketDetailsViewed: 'test',
         });
-        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(2);
       });
     });
 
@@ -8655,7 +8714,7 @@ describe('PredictController', () => {
           numPagesViewed: 1,
           sessionTime: 1000,
         });
-        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(2);
       });
     });
 

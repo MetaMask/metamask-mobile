@@ -8457,6 +8457,7 @@
     "main_title": "Belohnungen",
     "vip": {
       "bps_unit": "Basispunkte",
+      "badge_label": "VIP Fox {{tier}}",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
       "error_title": "We couldn’t load your VIP dashboard",
@@ -8900,7 +8901,7 @@
       "stats_notional_volume_threshold": "{{amount}} $ erforderlich",
       "stats_qualified_title": "Sie sind qualifiziert",
       "stats_qualified_description": "Handeln Sie weiter, um Ihren GuV zu verbessern und in der Bestenliste aufzusteigen, bevor der Wettbewerb endet.",
-      "stats_qualify_for_rank_title": "Für diesen Rang qualifizieren",
+      "stats_qualify_for_rank_title": "Für die Rangliste qualifizieren",
       "stats_qualify_for_rank_description": "Handeln Sie {{notionalRemaining}} mehr an Nominalvolumen, um berechtigt zu sein.",
       "stats_error_title": "Statistiken konnten nicht geladen werden",
       "stats_error_description": "Wir hatten ein Problem beim Laden Ihrer Statistik. Bitte versuchen Sie es erneut.",

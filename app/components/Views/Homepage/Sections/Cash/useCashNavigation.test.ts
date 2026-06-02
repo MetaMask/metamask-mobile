@@ -13,7 +13,7 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../../../../UI/Money/selectors/featureFlags', () => ({
-  selectMoneyHomeScreenEnabledFlag: jest.fn(),
+  selectMoneyEnableMoneyAccountFlag: jest.fn(),
 }));
 
 jest.mock('../../../../../reducers/user/selectors', () => ({
@@ -21,21 +21,21 @@ jest.mock('../../../../../reducers/user/selectors', () => ({
 }));
 
 import { useSelector } from 'react-redux';
-import { selectMoneyHomeScreenEnabledFlag } from '../../../../UI/Money/selectors/featureFlags';
+import { selectMoneyEnableMoneyAccountFlag } from '../../../../UI/Money/selectors/featureFlags';
 import { selectMusdConversionEducationSeen } from '../../../../../reducers/user/selectors';
 
 const mockUseSelector = useSelector as jest.Mock;
 
 const setupSelectors = ({
-  isMoneyHomeEnabled = false,
+  isMoneyAccountEnabled = false,
   hasSeenEducation = false,
 }: {
-  isMoneyHomeEnabled?: boolean;
+  isMoneyAccountEnabled?: boolean;
   hasSeenEducation?: boolean;
 } = {}) => {
   mockUseSelector.mockImplementation((selector) => {
-    if (selector === selectMoneyHomeScreenEnabledFlag)
-      return isMoneyHomeEnabled;
+    if (selector === selectMoneyEnableMoneyAccountFlag)
+      return isMoneyAccountEnabled;
     if (selector === selectMusdConversionEducationSeen) return hasSeenEducation;
     return undefined;
   });
@@ -49,7 +49,7 @@ describe('useCashNavigation', () => {
   describe('navigateToCash', () => {
     it('navigates to education screen with Cash full view returnTo when education not seen', () => {
       setupSelectors({
-        isMoneyHomeEnabled: false,
+        isMoneyAccountEnabled: false,
         hasSeenEducation: false,
       });
 
@@ -67,7 +67,7 @@ describe('useCashNavigation', () => {
 
     it('navigates to Cash full view when education already seen', () => {
       setupSelectors({
-        isMoneyHomeEnabled: false,
+        isMoneyAccountEnabled: false,
         hasSeenEducation: true,
       });
 
@@ -81,9 +81,9 @@ describe('useCashNavigation', () => {
       );
     });
 
-    it('navigates to Money Home when isMoneyHomeEnabled and education already seen', () => {
+    it('navigates to Money Home when isMoneyAccountEnabled and education already seen', () => {
       setupSelectors({
-        isMoneyHomeEnabled: true,
+        isMoneyAccountEnabled: true,
         hasSeenEducation: true,
       });
 
@@ -96,9 +96,9 @@ describe('useCashNavigation', () => {
       });
     });
 
-    it('navigates to education screen with Money Home returnTo when isMoneyHomeEnabled and education not seen', () => {
+    it('navigates to education screen with Money Home returnTo when isMoneyAccountEnabled and education not seen', () => {
       setupSelectors({
-        isMoneyHomeEnabled: true,
+        isMoneyAccountEnabled: true,
         hasSeenEducation: false,
       });
 
@@ -119,12 +119,12 @@ describe('useCashNavigation', () => {
   });
 
   describe('returned state', () => {
-    it('exposes isMoneyHomeEnabled derived from the feature flag selector', () => {
-      setupSelectors({ isMoneyHomeEnabled: true });
+    it('exposes isMoneyAccountEnabled derived from the feature flag selector', () => {
+      setupSelectors({ isMoneyAccountEnabled: true });
 
       const { result } = renderHook(() => useCashNavigation());
 
-      expect(result.current.isMoneyHomeEnabled).toBe(true);
+      expect(result.current.isMoneyAccountEnabled).toBe(true);
     });
 
     it('exposes hasSeenEducation derived from the user reducer selector', () => {

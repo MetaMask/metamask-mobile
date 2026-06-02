@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useSelector, useDispatch } from 'react-redux';
 import { mainNavigatorReady } from '../../../actions/navigation';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -54,7 +55,6 @@ import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
 import WhatsHappeningDetailView from '../../Views/WhatsHappeningDetailView';
 import ExploreSearchScreen from '../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen';
-import ExploreSectionResultsFullView from '../../Views/TrendingView/Views/ExploreSectionResultsFullView/ExploreSectionResultsFullView';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
@@ -109,7 +109,7 @@ import {
   MoneyTabScreenStack,
 } from '../../UI/Money/routes';
 import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
-import { selectMoneyHomeScreenEnabledFlag } from '../../UI/Money/selectors/featureFlags';
+import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import {
@@ -158,8 +158,10 @@ import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
 import BenefitFullView from '../../UI/Rewards/Views/BenefitFullView';
 import BenefitsFullView from '../../UI/Rewards/Views/BenefitsFullView';
 import { getDeFiProtocolPositionDetailsNavbarOptions } from '../../UI/Navbar';
+import NavigationDevPanel from '../../Views/NavigationDevPanel/NavigationDevPanel';
 
 const Stack = createStackNavigator();
+const NativeStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 const styles = StyleSheet.create({
@@ -647,9 +649,7 @@ const HomeTabs = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
-  const isMoneyHomeScreenEnabled = useSelector(
-    selectMoneyHomeScreenEnabledFlag,
-  );
+  const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
 
   const accountsLength = useSelector(selectAccountsLength);
 
@@ -882,7 +882,7 @@ const HomeTabs = () => {
         />
 
         {/* Activity Tab (replaced by Money when feature flag is on) */}
-        {isMoneyHomeScreenEnabled ? (
+        {isMoneyAccountEnabled ? (
           <Tab.Screen
             name={Routes.MONEY.ROOT}
             options={options.money}
@@ -910,55 +910,51 @@ const HomeTabs = () => {
 };
 
 const Webview = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="SimpleWebview" component={SimpleWebview} />
-  </Stack.Navigator>
+  <NativeStack.Navigator screenOptions={{ headerShown: false }}>
+    <NativeStack.Screen name="SimpleWebview" component={SimpleWebview} />
+  </NativeStack.Navigator>
 );
 
 /* eslint-disable react/prop-types */
 const NftDetailsModeView = (props) => (
-  <Stack.Navigator>
-    <Stack.Screen
+  <NativeStack.Navigator screenOptions={{ headerShown: false }}>
+    <NativeStack.Screen
       name=" " // No name here because this title will be displayed in the header of the page
       component={NftDetails}
       initialParams={{
         collectible: props.route.params?.collectible,
       }}
     />
-  </Stack.Navigator>
+  </NativeStack.Navigator>
 );
 
 /* eslint-disable react/prop-types */
 const NftDetailsFullImageModeView = (props) => (
-  <Stack.Navigator>
-    <Stack.Screen
+  <NativeStack.Navigator screenOptions={{ headerShown: false }}>
+    <NativeStack.Screen
       name=" " // No name here because this title will be displayed in the header of the page
       component={NftDetailsFullImage}
       initialParams={{
         collectible: props.route.params?.collectible,
       }}
     />
-  </Stack.Navigator>
+  </NativeStack.Navigator>
 );
 
 const AddBookmarkView = () => (
-  <Stack.Navigator>
-    <Stack.Screen
-      name="AddBookmark"
-      component={AddBookmark}
-      options={AddBookmark.navigationOptions}
-    />
-  </Stack.Navigator>
+  <NativeStack.Navigator screenOptions={{ headerShown: false }}>
+    <NativeStack.Screen name="AddBookmark" component={AddBookmark} />
+  </NativeStack.Navigator>
 );
 
 const OfflineModeView = () => (
-  <Stack.Navigator>
-    <Stack.Screen
+  <NativeStack.Navigator>
+    <NativeStack.Screen
       name="OfflineMode"
       component={OfflineMode}
       options={OfflineMode.navigationOptions}
     />
-  </Stack.Navigator>
+  </NativeStack.Navigator>
 );
 
 /* eslint-disable react/prop-types */
@@ -1034,9 +1030,12 @@ const SetPasswordFlow = () => (
 
 ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 const SampleFeatureFlow = () => (
-  <Stack.Navigator>
-    <Stack.Screen name={Routes.SAMPLE_FEATURE} component={SampleFeature} />
-  </Stack.Navigator>
+  <NativeStack.Navigator>
+    <NativeStack.Screen
+      name={Routes.SAMPLE_FEATURE}
+      component={SampleFeature}
+    />
+  </NativeStack.Navigator>
 );
 ///: END:ONLY_INCLUDE_IF
 
@@ -1051,9 +1050,7 @@ const MainNavigator = () => {
   }, [dispatch]);
 
   // Get feature flag state for conditional Money home screen registration
-  const isMoneyHomeScreenEnabled = useSelector(
-    selectMoneyHomeScreenEnabledFlag,
-  );
+  const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
   // Get feature flag state for conditional Perps screen registration
   const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
   const isPerpsEnabled = useMemo(() => perpsEnabledFlag, [perpsEnabledFlag]);
@@ -1256,7 +1253,7 @@ const MainNavigator = () => {
           presentation: 'transparentModal',
         }}
       />
-      {isMoneyHomeScreenEnabled && (
+      {isMoneyAccountEnabled && (
         <>
           <Stack.Screen
             name={Routes.MONEY.ROOT}
@@ -1413,11 +1410,6 @@ const MainNavigator = () => {
           options={{ headerShown: false, ...slideFromRightAnimation }}
         />
         <Stack.Screen
-          name={Routes.EXPLORE_SECTION_RESULTS_FULL_VIEW}
-          component={ExploreSectionResultsFullView}
-          options={{ headerShown: false, ...slideFromRightAnimation }}
-        />
-        <Stack.Screen
           name={Routes.BROWSER.HOME}
           component={BrowserFlow}
           options={{ headerShown: false, ...slideFromRightAnimation }}
@@ -1447,6 +1439,13 @@ const MainNavigator = () => {
           name={Routes.FEATURE_FLAG_OVERRIDE}
           component={FeatureFlagOverride}
           options={{ headerShown: false }}
+        />
+      )}
+      {process.env.METAMASK_ENVIRONMENT !== 'production' && (
+        <Stack.Screen
+          name={Routes.NAVIGATION_DEV_PANEL}
+          component={NavigationDevPanel}
+          options={{ headerShown: true, ...slideFromRightAnimation }}
         />
       )}
       <Stack.Screen
