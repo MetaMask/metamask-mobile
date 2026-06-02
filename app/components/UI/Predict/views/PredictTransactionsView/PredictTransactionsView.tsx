@@ -1,6 +1,7 @@
 import React, { useMemo, useEffect, useCallback } from 'react';
 import {
   ActivityIndicator,
+  Pressable,
   SectionList,
   ViewStyle,
   StyleProp,
@@ -32,6 +33,7 @@ import { PredictEventValues } from '../../constants/eventNames';
 import { TraceName } from '../../../../../util/trace';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
+import PredictOffline from '../../components/PredictOffline';
 import { PREDICT_TRANSACTIONS_VIEW_TEST_IDS } from './PredictTransactionsView.testIds';
 import {
   getPredictPositionsHistoryListSelector,
@@ -209,9 +211,14 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
 }) => {
   const tw = useTailwind();
   const {
-    data: activity = [],
+    activity,
+    error,
     isLoading,
+    isFetching,
     isRefetching,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
     refetch,
   } = usePredictActivity();
 
@@ -455,7 +462,62 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
     return item.activity.id;
   }, []);
 
-  const shouldShowLoadingState = isLoading && sections.length === 0;
+  const handleEndReached = useCallback(() => {
+    if (!hasNextPage || isFetchingNextPage) {
+      return;
+    }
+
+    void fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  const hasFooterError = Boolean(error) && sections.length > 0 && hasNextPage;
+
+  const handleRetry = useCallback(() => {
+    void refetch();
+  }, [refetch]);
+
+  const renderFooter = useCallback(() => {
+    if (isFetchingNextPage || (hasFooterError && isRefetching)) {
+      return (
+        <Box twClassName="items-center justify-center py-4">
+          <ActivityIndicator
+            size="small"
+            testID={
+              PREDICT_TRANSACTIONS_VIEW_TEST_IDS.FOOTER_ACTIVITY_INDICATOR
+            }
+          />
+        </Box>
+      );
+    }
+
+    if (!hasFooterError) {
+      return null;
+    }
+
+    return (
+      <Box
+        twClassName="items-center justify-center gap-2 py-4"
+        testID={PREDICT_TRANSACTIONS_VIEW_TEST_IDS.FOOTER_ERROR_STATE}
+      >
+        <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+          {strings('predict.error.description')}
+        </Text>
+        <Pressable
+          accessibilityRole="button"
+          onPress={handleRetry}
+          testID={PREDICT_TRANSACTIONS_VIEW_TEST_IDS.FOOTER_RETRY_BUTTON}
+        >
+          <Text variant={TextVariant.BodyMd} twClassName="text-primary-default">
+            {strings('predict.error.retry')}
+          </Text>
+        </Pressable>
+      </Box>
+    );
+  }, [handleRetry, hasFooterError, isFetchingNextPage, isRefetching]);
+
+  const shouldShowLoadingState =
+    (isLoading || (Boolean(error) && isFetching)) && sections.length === 0;
+  const shouldShowErrorState = Boolean(error) && sections.length === 0;
 
   const renderContent = shouldShowLoadingState ? (
     <Box twClassName="items-center justify-center h-full">
@@ -464,6 +526,11 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
         testID={PREDICT_TRANSACTIONS_VIEW_TEST_IDS.ACTIVITY_INDICATOR}
       />
     </Box>
+  ) : shouldShowErrorState ? (
+    <PredictOffline
+      onRetry={handleRetry}
+      testID={PREDICT_TRANSACTIONS_VIEW_TEST_IDS.ERROR_STATE}
+    />
   ) : sections.length === 0 ? (
     (emptyState ?? (
       <Box twClassName="items-center justify-center py-10">
@@ -486,6 +553,9 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
       onRefresh={() => {
         void refetch();
       }}
+      onEndReached={handleEndReached}
+      onEndReachedThreshold={0.5}
+      ListFooterComponent={renderFooter}
       maxToRenderPerBatch={20}
       initialNumToRender={20}
       windowSize={12}

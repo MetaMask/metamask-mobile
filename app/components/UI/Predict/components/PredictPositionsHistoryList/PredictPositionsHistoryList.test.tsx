@@ -13,11 +13,15 @@ jest.mock('../../views/PredictTransactionsView', () => {
 
   return function MockPredictTransactionsView({
     claimPendingPositions,
+    activityContainerStyle,
+    containerStyle,
     emptyState,
     isPrivacyMode,
     isVisible,
   }: {
     claimPendingPositions?: PredictPosition[];
+    activityContainerStyle?: string;
+    containerStyle?: string;
     emptyState: React.ReactNode;
     isPrivacyMode?: boolean;
     isVisible: boolean;
@@ -39,6 +43,8 @@ jest.mock('../../views/PredictTransactionsView', () => {
         `claim-pending-count:${claimPendingPositions?.length ?? 0}`,
       ),
       ReactLib.createElement(Text, null, `privacy:${Boolean(isPrivacyMode)}`),
+      ReactLib.createElement(Text, null, `container:${containerStyle}`),
+      ReactLib.createElement(Text, null, `activity:${activityContainerStyle}`),
       emptyState,
     );
   };
@@ -115,5 +121,12 @@ describe('PredictPositionsHistoryList', () => {
     expect(screen.getByText('claim-pending-present:true')).toBeOnTheScreen();
     expect(screen.getByText('claim-pending-count:1')).toBeOnTheScreen();
     expect(screen.getByText('privacy:true')).toBeOnTheScreen();
+  });
+
+  it('passes compact spacing to transaction history', () => {
+    render(<PredictPositionsHistoryList isVisible />);
+
+    expect(screen.getByText('container:p-0')).toBeOnTheScreen();
+    expect(screen.getByText('activity:px-0')).toBeOnTheScreen();
   });
 });
