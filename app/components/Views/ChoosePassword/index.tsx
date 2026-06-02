@@ -29,6 +29,7 @@ import {
   IconSize,
   IconColor,
   Checkbox,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { useDispatch, useSelector } from 'react-redux';
@@ -43,7 +44,6 @@ import Engine from '../../../core/Engine';
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { passcodeType } from '../../../util/authentication';
 import { strings } from '../../../../locales/i18n';
-import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
@@ -120,7 +120,7 @@ interface ExtendedKeyringController {
 }
 
 const ChoosePassword = () => {
-  const { colors, themeAppearance } = useContext(ThemeContext);
+  const { themeAppearance } = useContext(ThemeContext);
   const tw = useTailwind();
 
   const navigation = useNavigation();
@@ -579,36 +579,6 @@ const ChoosePassword = () => {
     [password, confirmPassword],
   );
 
-  const HeaderLeft = useCallback(() => {
-    const marginLeft = 16;
-    return (
-      <TouchableOpacity onPress={() => navigation.goBack()} disabled={loading}>
-        <Icon
-          name={IconName.ArrowLeft}
-          size={IconSize.Lg}
-          color={IconColor.IconDefault}
-          style={{ marginLeft }}
-        />
-      </TouchableOpacity>
-    );
-  }, [navigation, loading]);
-
-  const EmptyHeaderLeft = useCallback(() => <Box />, []);
-
-  const updateNavBar = useCallback(() => {
-    navigation.setOptions(
-      getOnboardingNavbarOptions(
-        route,
-        {
-          headerLeft: loading ? EmptyHeaderLeft : HeaderLeft,
-          headerRight: () => null,
-        },
-        colors,
-        false,
-      ),
-    );
-  }, [navigation, loading, colors, route, HeaderLeft, EmptyHeaderLeft]);
-
   useEffect(() => {
     const initBiometrics = async () => {
       const onboardingTraceCtx = route.params?.onboardingTraceCtx;
@@ -646,19 +616,6 @@ const ChoosePassword = () => {
     [],
   );
 
-  useEffect(() => {
-    updateNavBar();
-  }, [updateNavBar]);
-
-  useEffect(() => {
-    if (loading) {
-      // update navigationOptions
-      navigation.setParams({
-        headerLeft: EmptyHeaderLeft,
-      });
-    }
-  }, [loading, navigation, EmptyHeaderLeft]);
-
   const renderContent = () => {
     const passwordsMatch = password !== '' && password === confirmPassword;
     const isPasswordTooShort =
@@ -678,6 +635,13 @@ const ChoosePassword = () => {
         edges={{ bottom: 'additive' }}
         style={tw.style('flex-1 bg-background-default')}
       >
+        <HeaderStandard
+          includesTopInset
+          onBack={loading ? undefined : () => navigation.goBack()}
+          backButtonProps={{
+            testID: ChoosePasswordSelectorsIDs.BACK_BUTTON_ID,
+          }}
+        />
         {loading ? (
           <Box
             alignItems={BoxAlignItems.Center}
