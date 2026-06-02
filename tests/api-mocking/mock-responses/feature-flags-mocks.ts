@@ -134,17 +134,6 @@ export const remoteFeatureFlagPredictEnabled = (enabled = true) => ({
   },
 });
 
-export const remoteFeatureFlagPredictLegacyBuyFlow = () => ({
-  predictBottomSheet: {
-    enabled: false,
-    minimumVersion: '0.0.0',
-  },
-  predictWithAnyToken: {
-    enabled: false,
-    minimumVersion: '0.0.0',
-  },
-});
-
 export const remoteFeatureFlagHomepageSectionsV1Enabled = (enabled = true) => ({
   homepageSectionsV1: {
     enabled,
