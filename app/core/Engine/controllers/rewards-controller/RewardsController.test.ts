@@ -17749,18 +17749,22 @@ describe('RewardsController', () => {
       } as OndoGmActivityState;
       initialState.perpsTradingCampaignLeaderboardPositions[campaignKey1] = {
         rank: 4,
+        totalParticipants: 0,
         pnl: 0,
-        notionalVolume: 0,
-        qualified: true,
+        volume: 0,
+        eligible: true,
+        minVolumeForEligibility: 25000,
         neighbors: [],
         computedAt: '',
         lastFetched: Date.now(),
       } as PerpsTradingCampaignLeaderboardPositionState;
       initialState.perpsTradingCampaignLeaderboardPositions[campaignKey2] = {
         rank: 6,
+        totalParticipants: 0,
         pnl: 0,
-        notionalVolume: 0,
-        qualified: true,
+        volume: 0,
+        eligible: true,
+        minVolumeForEligibility: 25000,
         neighbors: [],
         computedAt: '',
         lastFetched: Date.now(),
@@ -17945,9 +17949,11 @@ describe('RewardsController', () => {
       } as OndoGmActivityState;
       initialState.perpsTradingCampaignLeaderboardPositions[campaignKey1] = {
         rank: 4,
+        totalParticipants: 0,
         pnl: 0,
-        notionalVolume: 0,
-        qualified: true,
+        volume: 0,
+        eligible: true,
+        minVolumeForEligibility: 25000,
         neighbors: [],
         computedAt: '',
         lastFetched: Date.now(),
@@ -17955,9 +17961,11 @@ describe('RewardsController', () => {
       initialState.perpsTradingCampaignLeaderboardPositions[otherCampaignKey] =
         {
           rank: 1,
+          totalParticipants: 0,
           pnl: 0,
-          notionalVolume: 0,
-          qualified: true,
+          volume: 0,
+          eligible: true,
+          minVolumeForEligibility: 25000,
           neighbors: [],
           computedAt: '',
           lastFetched: Date.now(),
