@@ -2,6 +2,7 @@ import React from 'react';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import DiscoveryErrorScreen from './DiscoveryErrorScreen';
 import { type DiscoveryErrorScreenVariant } from './discoveryErrorScreenConfigs';
+import { DiscoveryStep } from '../../DiscoveryFlow.machine.types';
 
 const noop = () => undefined;
 
@@ -21,14 +22,22 @@ const storyForVariant = (variant: DiscoveryErrorScreenVariant) => ({
   ),
 });
 
-export const DeviceUnresponsive = storyForVariant('device-unresponsive');
-export const DeviceLocked = storyForVariant('device-locked');
-export const AppNotOpen = storyForVariant('app-not-open');
-export const BluetoothOff = storyForVariant('transport-unavailable');
-export const BluetoothConnectionFailed = storyForVariant(
-  'transport-connection-failed',
+export const DeviceUnresponsive = storyForVariant(
+  DiscoveryStep.DeviceUnresponsive,
 );
-export const BluetoothAccessDenied = storyForVariant('bluetooth-access-denied');
-export const LocationAccessDenied = storyForVariant('location-access-denied');
-export const NearbyDevicesDenied = storyForVariant('nearby-devices-denied');
+export const DeviceLocked = storyForVariant(DiscoveryStep.DeviceLocked);
+export const AppNotOpen = storyForVariant(DiscoveryStep.AppNotOpen);
+export const BluetoothOff = storyForVariant(DiscoveryStep.TransportUnavailable);
+export const BluetoothConnectionFailed = storyForVariant(
+  DiscoveryStep.TransportConnectionFailed,
+);
+export const BluetoothAccessDenied = storyForVariant(
+  DiscoveryStep.BluetoothAccessDenied,
+);
+export const LocationAccessDenied = storyForVariant(
+  DiscoveryStep.LocationAccessDenied,
+);
+export const NearbyDevicesDenied = storyForVariant(
+  DiscoveryStep.NearbyDevicesDenied,
+);
 export const SomethingWentWrong = storyForVariant('something-went-wrong');

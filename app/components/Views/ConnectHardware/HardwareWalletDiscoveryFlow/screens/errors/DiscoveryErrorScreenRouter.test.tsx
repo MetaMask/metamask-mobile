@@ -5,6 +5,7 @@ import DiscoveryErrorScreenRouter, {
   isDiscoveryErrorStep,
   shouldShowGenericProviderError,
 } from './DiscoveryErrorScreenRouter';
+import { DiscoveryStep } from '../../DiscoveryFlow.machine.types';
 import { strings } from '../../../../../../../locales/i18n';
 
 jest.mock('./DiscoveryErrorScreenLayout', () => {
@@ -21,7 +22,10 @@ jest.mock('./DiscoveryErrorScreenLayout', () => {
 describe('DiscoveryErrorScreenRouter', () => {
   it('renders device locked screen', () => {
     render(
-      <DiscoveryErrorScreenRouter step="device-locked" onRetry={jest.fn()} />,
+      <DiscoveryErrorScreenRouter
+        step={DiscoveryStep.DeviceLocked}
+        onRetry={jest.fn()}
+      />,
     );
 
     expect(
@@ -32,7 +36,7 @@ describe('DiscoveryErrorScreenRouter', () => {
   it('renders generic provider error screen', () => {
     render(
       <DiscoveryErrorScreenRouter
-        step="searching"
+        step={DiscoveryStep.Searching}
         showGenericProviderError
         onRetry={jest.fn()}
         onContinue={jest.fn()}
@@ -46,7 +50,10 @@ describe('DiscoveryErrorScreenRouter', () => {
 
   it('returns null for non-error steps', () => {
     const { toJSON } = render(
-      <DiscoveryErrorScreenRouter step="searching" onRetry={jest.fn()} />,
+      <DiscoveryErrorScreenRouter
+        step={DiscoveryStep.Searching}
+        onRetry={jest.fn()}
+      />,
     );
 
     expect(toJSON()).toBeNull();
@@ -55,10 +62,10 @@ describe('DiscoveryErrorScreenRouter', () => {
 
 describe('isDiscoveryErrorStep', () => {
   it('identifies mapped discovery error steps', () => {
-    expect(isDiscoveryErrorStep('device-locked')).toBe(true);
-    expect(isDiscoveryErrorStep('transport-unavailable')).toBe(true);
-    expect(isDiscoveryErrorStep('searching')).toBe(false);
-    expect(isDiscoveryErrorStep('permission-denied')).toBe(false);
+    expect(isDiscoveryErrorStep(DiscoveryStep.DeviceLocked)).toBe(true);
+    expect(isDiscoveryErrorStep(DiscoveryStep.TransportUnavailable)).toBe(true);
+    expect(isDiscoveryErrorStep(DiscoveryStep.Searching)).toBe(false);
+    expect(isDiscoveryErrorStep(DiscoveryStep.PermissionDenied)).toBe(false);
   });
 });
 
@@ -73,7 +80,7 @@ describe('shouldShowGenericProviderError', () => {
     expect(
       shouldShowGenericProviderError(
         ConnectionStatus.ErrorState,
-        'device-locked',
+        DiscoveryStep.DeviceLocked,
       ),
     ).toBe(false);
   });

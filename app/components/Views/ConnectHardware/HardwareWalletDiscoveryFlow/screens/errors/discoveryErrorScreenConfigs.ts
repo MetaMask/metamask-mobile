@@ -6,17 +6,17 @@ import BluetoothOffImage from '../../../../../../images/bluetooth-turned-off.png
 import EthereumAppClosedImage from '../../../../../../images/ethereum-app-closed.png';
 import LocationAccessDeniedImage from '../../../../../../images/location-access-denied.png';
 import NearbyDevicesDeniedImage from '../../../../../../images/nearby-devices-denied.png';
-import type { DiscoveryStep } from '../../DiscoveryFlow.types';
+import { DiscoveryStep } from '../../DiscoveryFlow.machine.types';
 
 export const DISCOVERY_ERROR_STEPS = [
-  'device-unresponsive',
-  'device-locked',
-  'app-not-open',
-  'bluetooth-access-denied',
-  'location-access-denied',
-  'nearby-devices-denied',
-  'transport-unavailable',
-  'transport-connection-failed',
+  DiscoveryStep.DeviceUnresponsive,
+  DiscoveryStep.DeviceLocked,
+  DiscoveryStep.AppNotOpen,
+  DiscoveryStep.BluetoothAccessDenied,
+  DiscoveryStep.LocationAccessDenied,
+  DiscoveryStep.NearbyDevicesDenied,
+  DiscoveryStep.TransportUnavailable,
+  DiscoveryStep.TransportConnectionFailed,
 ] as const satisfies readonly DiscoveryStep[];
 
 export type DiscoveryFlowErrorStep = (typeof DISCOVERY_ERROR_STEPS)[number];
@@ -174,6 +174,14 @@ export const DISCOVERY_ERROR_SCREEN_CONFIGS: Record<
   },
 };
 
+/**
+ * Looks up the configuration for a discovery-flow error screen by its
+ * variant (e.g. "device-locked", "transport-unavailable",
+ * "something-went-wrong"). Returns undefined if the variant has no entry.
+ *
+ * @param variant - The error screen variant to look up.
+ * @returns The screen configuration, or undefined when no entry exists.
+ */
 export const getDiscoveryErrorScreenConfig = (
   variant: DiscoveryErrorScreenVariant,
 ): DiscoveryErrorScreenConfig => DISCOVERY_ERROR_SCREEN_CONFIGS[variant];

@@ -18,12 +18,12 @@ import { BluetoothPermissionErrors } from '../../../../core/Ledger/ledgerErrors'
 import { transition } from './DiscoveryFlow.machine';
 import { getConfigForWalletType } from './configs';
 import PAGINATION_OPERATIONS from '../../../../constants/pagination';
-import type {
+import {
   DiscoveryStep,
-  MachineEvent,
-  AccountInfo,
-  DeviceUIConfig,
-} from './DiscoveryFlow.types';
+  HardwareWalletDiscoveryEventType,
+  type MachineEvent,
+} from './DiscoveryFlow.machine.types';
+import type { AccountInfo, DeviceUIConfig } from './DiscoveryFlow.types';
 import type { DiscoveredDevice } from '../../../../core/HardwareWallet/types';
 import SearchingForDevice from '../SearchingForDevice';
 import DiscoveryNotFoundScreen from './screens/DiscoveryNotFound';
@@ -37,7 +37,7 @@ import DiscoveryErrorScreenRouter, {
 
 interface RouteParams {
   walletType: HardwareWalletType;
-  initialStep?: 'searching' | 'accounts';
+  initialStep?: DiscoveryStep.Searching | DiscoveryStep.Accounts;
 }
 
 const QR_WALLET_DEVICE: DiscoveredDevice = {
@@ -61,7 +61,7 @@ const resolveProviderErrorStep = (
     case ErrorCode.PermissionLocationDenied:
     case ErrorCode.PermissionNearbyDevicesDenied:
     case ErrorCode.PermissionCameraDenied:
-      return 'permission-denied';
+      return DiscoveryStep.PermissionDenied;
     default:
       return null;
   }
@@ -83,16 +83,18 @@ const DiscoveryFlow: React.FC = () => {
     [walletType],
   );
 
-  const [step, setStep] = useState<DiscoveryStep>(initialStep ?? 'searching');
+  const [step, setStep] = useState<DiscoveryStep>(
+    initialStep ?? DiscoveryStep.Searching,
+  );
   const [discoveredDevices, setDiscoveredDevices] = useState<
     DiscoveredDevice[]
   >([]);
   const [selectedDevice, setSelectedDevice] = useState<DiscoveredDevice | null>(
-    initialStep === 'accounts' ? QR_WALLET_DEVICE : null,
+    initialStep === DiscoveryStep.Accounts ? QR_WALLET_DEVICE : null,
   );
   const [isSelectingDevice, setIsSelectingDevice] = useState(false);
   const [permissionsGranted, setPermissionsGranted] = useState(
-    initialStep === 'accounts',
+    initialStep === DiscoveryStep.Accounts,
   );
 
   const stepRef = useRef<DiscoveryStep>(step);
@@ -131,19 +133,19 @@ const DiscoveryFlow: React.FC = () => {
     switch (blePermissions.bluetoothPermissionError) {
       case BluetoothPermissionErrors.BluetoothAccessBlocked:
         send({
-          type: 'PERMISSIONS_DENIED',
+          type: HardwareWalletDiscoveryEventType.PermissionsDenied,
           errorCode: ErrorCode.PermissionBluetoothDenied,
         });
         break;
       case BluetoothPermissionErrors.LocationAccessBlocked:
         send({
-          type: 'PERMISSIONS_DENIED',
+          type: HardwareWalletDiscoveryEventType.PermissionsDenied,
           errorCode: ErrorCode.PermissionLocationDenied,
         });
         break;
       case BluetoothPermissionErrors.NearbyDevicesAccessBlocked:
         send({
-          type: 'PERMISSIONS_DENIED',
+          type: HardwareWalletDiscoveryEventType.PermissionsDenied,
           errorCode: ErrorCode.PermissionNearbyDevicesDenied,
         });
         break;
@@ -172,7 +174,7 @@ const DiscoveryFlow: React.FC = () => {
         setPermissionsGranted(true);
       } else {
         send({
-          type: 'PERMISSIONS_DENIED',
+          type: HardwareWalletDiscoveryEventType.PermissionsDenied,
           errorCode: ErrorCode.PermissionCameraDenied,
         });
       }
@@ -205,15 +207,17 @@ const DiscoveryFlow: React.FC = () => {
           setTransportReady(isAvailable);
           if (isAvailable) {
             transportWasAvailableRef.current = true;
-            if (stepRef.current === 'transport-unavailable') {
+            if (stepRef.current === DiscoveryStep.TransportUnavailable) {
               setDiscoveredDevices([]);
               setSelectedDevice(null);
               setPreloadedAccounts([]);
               setIsConnecting(false);
-              send({ type: 'RETRY' });
+              send({ type: HardwareWalletDiscoveryEventType.Retry });
             }
-          } else if (transportWasAvailableRef.current) {
-            send({ type: 'TRANSPORT_UNAVAILABLE' });
+          } else {
+            send({
+              type: HardwareWalletDiscoveryEventType.TransportUnavailable,
+            });
           }
         },
       );
@@ -231,7 +235,8 @@ const DiscoveryFlow: React.FC = () => {
   // === Non-BLE: skip discovery, go to accounts directly ===
 
   useEffect(() => {
-    if (isBle || !permissionsGranted || step !== 'searching') return;
+    if (isBle || !permissionsGranted || step !== DiscoveryStep.Searching)
+      return;
 
     const adapter = adapterRef.current;
     if (!adapter) return;
@@ -239,7 +244,7 @@ const DiscoveryFlow: React.FC = () => {
     if (!adapter.requiresDeviceDiscovery) {
       setSelectedDevice(QR_WALLET_DEVICE);
       send({
-        type: 'OPEN_ACCOUNTS',
+        type: HardwareWalletDiscoveryEventType.OpenAccounts,
         device: QR_WALLET_DEVICE,
       });
     }
@@ -256,20 +261,20 @@ const DiscoveryFlow: React.FC = () => {
 
   const handleScanError = useCallback(
     (error: Error) => {
-      send({ type: 'SCAN_ERROR', error });
+      send({ type: HardwareWalletDiscoveryEventType.ScanError, error });
     },
     [send],
   );
 
   useEffect(() => {
     const adapter = adapterRef.current;
-    if (!adapter || !transportReady || step !== 'searching') {
+    if (!adapter || !transportReady || step !== DiscoveryStep.Searching) {
       return;
     }
 
     adapter.isTransportAvailable().then((available) => {
       if (!available) {
-        send({ type: 'TRANSPORT_UNAVAILABLE' });
+        send({ type: HardwareWalletDiscoveryEventType.TransportUnavailable });
         return;
       }
 
@@ -287,21 +292,24 @@ const DiscoveryFlow: React.FC = () => {
 
   // Transition to found when devices discovered
   useEffect(() => {
-    if (step !== 'searching' || discoveredDevices.length <= 0) {
+    if (step !== DiscoveryStep.Searching || discoveredDevices.length <= 0) {
       return;
     }
     setSelectedDevice(discoveredDevices[0]);
-    send({ type: 'DEVICE_FOUND', device: discoveredDevices[0] });
+    send({
+      type: HardwareWalletDiscoveryEventType.DeviceFound,
+      device: discoveredDevices[0],
+    });
   }, [discoveredDevices, send, step]);
 
   // Timeout
   useEffect(() => {
-    if (step !== 'searching' || config.discoveryTimeoutMs <= 0) {
+    if (step !== DiscoveryStep.Searching || config.discoveryTimeoutMs <= 0) {
       return;
     }
 
     const timeoutId = setTimeout(() => {
-      send({ type: 'TIMEOUT' });
+      send({ type: HardwareWalletDiscoveryEventType.Timeout });
     }, config.discoveryTimeoutMs);
 
     return () => clearTimeout(timeoutId);
@@ -324,8 +332,8 @@ const DiscoveryFlow: React.FC = () => {
       }
 
       try {
-        const ready = await adapter.ensureDeviceReady(targetDevice.id);
-        if (ready) {
+        const result = await adapter.ensureDeviceReady(targetDevice.id);
+        if (result.ready) {
           const accounts = await config.accountManager.getAccounts(
             String(PAGINATION_OPERATIONS.GET_FIRST_PAGE),
           );
@@ -336,12 +344,23 @@ const DiscoveryFlow: React.FC = () => {
           if (adapterRef.current === adapter) {
             adapterRef.current = null;
           }
-          send({ type: 'OPEN_ACCOUNTS', device: targetDevice });
+          send({
+            type: HardwareWalletDiscoveryEventType.OpenAccounts,
+            device: targetDevice,
+          });
+        } else {
+          send({
+            type: HardwareWalletDiscoveryEventType.ConnectError,
+            errorCode: result.errorCode,
+          });
         }
       } catch (error) {
         const errorCode =
           (error as { errorCode?: ErrorCode }).errorCode ?? ErrorCode.Unknown;
-        send({ type: 'CONNECT_ERROR', errorCode });
+        send({
+          type: HardwareWalletDiscoveryEventType.ConnectError,
+          errorCode,
+        });
       } finally {
         setIsConnecting(false);
       }
@@ -359,7 +378,7 @@ const DiscoveryFlow: React.FC = () => {
     );
     setPreloadedAccounts([]);
     setIsConnecting(false);
-    send({ type: 'RETRY' });
+    send({ type: HardwareWalletDiscoveryEventType.Retry });
   }, [blePermissions.hasBluetoothPermissions, isBle, send]);
 
   const handleGenericErrorContinue = useCallback(() => {
@@ -369,7 +388,7 @@ const DiscoveryFlow: React.FC = () => {
   const activeDevice =
     selectedDevice ??
     discoveredDevices[0] ??
-    (step === 'accounts' ? QR_WALLET_DEVICE : null);
+    (step === DiscoveryStep.Accounts ? QR_WALLET_DEVICE : null);
   const selectedDeviceId = selectedDevice?.id ?? discoveredDevices[0]?.id;
   const providerErrorStep = useMemo(() => {
     if (connectionState.status !== ConnectionStatus.ErrorState) {
@@ -399,30 +418,33 @@ const DiscoveryFlow: React.FC = () => {
       );
     }
 
-    if (renderedStep === 'permission-denied') {
+    if (renderedStep === DiscoveryStep.PermissionDenied) {
       return (
         <DiscoveryNotFoundScreen config={config} onRetry={resetToSearching} />
       );
     }
 
-    if (renderedStep === 'accounts' && activeDevice) {
+    if (renderedStep === DiscoveryStep.Accounts && activeDevice) {
       return (
         <DiscoveryAccountSelectionScreen
           config={config}
           selectedDevice={activeDevice}
           initialAccounts={preloadedAccounts}
-          onBack={() => send({ type: 'BACK' })}
+          onBack={() => send({ type: HardwareWalletDiscoveryEventType.Back })}
         />
       );
     }
 
-    if (renderedStep === 'not-found') {
+    if (renderedStep === DiscoveryStep.NotFound) {
       return (
         <DiscoveryNotFoundScreen config={config} onRetry={resetToSearching} />
       );
     }
 
-    if ((renderedStep === 'found' || isConnecting) && activeDevice) {
+    if (
+      (renderedStep === DiscoveryStep.Found || isConnecting) &&
+      activeDevice
+    ) {
       return (
         <>
           <DiscoveryFoundScreen

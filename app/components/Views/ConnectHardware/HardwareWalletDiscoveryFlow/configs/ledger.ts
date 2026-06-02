@@ -12,9 +12,17 @@ import {
   unlockLedgerWalletAccount,
 } from '../../../../../core/Ledger/Ledger';
 import hardwareWalletAnimation from '../../../../../animations/hardware_wallet.riv';
+import { DiscoveryStep } from '../DiscoveryFlow.machine.types';
 import type { DeviceUIConfig } from '../DiscoveryFlow.types';
 import { IconName } from '@metamask/design-system-react-native';
 
+/**
+ * Builds the device UI configuration for Ledger hardware wallets, including
+ * the discovery timeout, animation source, troubleshooting copy, and the
+ * account manager that delegates to the Ledger keyring integration.
+ *
+ * @returns The configuration consumed by the discovery flow orchestrator.
+ */
 export function createLedgerConfig(): DeviceUIConfig {
   return {
     walletType: HardwareWalletType.Ledger,
@@ -46,15 +54,18 @@ export function createLedgerConfig(): DeviceUIConfig {
       },
     ],
     errorToStepMap: {
-      [ErrorCode.AuthenticationDeviceLocked]: 'device-locked',
-      [ErrorCode.DeviceUnresponsive]: 'device-unresponsive',
-      [ErrorCode.DeviceStateEthAppClosed]: 'app-not-open',
-      [ErrorCode.BluetoothDisabled]: 'transport-unavailable',
-      [ErrorCode.BluetoothConnectionFailed]: 'transport-connection-failed',
-      [ErrorCode.BluetoothScanFailed]: 'transport-connection-failed',
-      [ErrorCode.PermissionBluetoothDenied]: 'bluetooth-access-denied',
-      [ErrorCode.PermissionLocationDenied]: 'location-access-denied',
-      [ErrorCode.PermissionNearbyDevicesDenied]: 'nearby-devices-denied',
+      [ErrorCode.AuthenticationDeviceLocked]: DiscoveryStep.DeviceLocked,
+      [ErrorCode.DeviceUnresponsive]: DiscoveryStep.DeviceUnresponsive,
+      [ErrorCode.DeviceStateEthAppClosed]: DiscoveryStep.AppNotOpen,
+      [ErrorCode.BluetoothDisabled]: DiscoveryStep.TransportUnavailable,
+      [ErrorCode.BluetoothConnectionFailed]:
+        DiscoveryStep.TransportConnectionFailed,
+      [ErrorCode.BluetoothScanFailed]: DiscoveryStep.TransportConnectionFailed,
+      [ErrorCode.PermissionBluetoothDenied]:
+        DiscoveryStep.BluetoothAccessDenied,
+      [ErrorCode.PermissionLocationDenied]: DiscoveryStep.LocationAccessDenied,
+      [ErrorCode.PermissionNearbyDevicesDenied]:
+        DiscoveryStep.NearbyDevicesDenied,
     },
     accountManager: {
       getAccounts: (operation: string) =>

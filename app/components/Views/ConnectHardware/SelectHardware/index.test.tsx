@@ -1,6 +1,7 @@
 import React from 'react';
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import TestRenderer from 'react-test-renderer';
+import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import SelectHardwareWallet, { getHardwareThemeAssets } from './index';
 import { strings } from '../../../../../locales/i18n';
@@ -169,7 +170,10 @@ describe('SelectHardwareWallet', () => {
         MetaMetricsEvents.CONNECT_HARDWARE_WALLET,
       );
       expect(mockTrackEvent).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.HW.CONNECT_LEDGER);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HW.HARDWARE_WALLET_DISCOVERY,
+        { walletType: HardwareWalletType.Ledger },
+      );
     });
 
     it('includes connected devices count in metrics event', async () => {
@@ -242,9 +246,10 @@ describe('SelectHardwareWallet', () => {
         MetaMetricsEvents.CONNECT_HARDWARE_WALLET,
       );
       expect(mockTrackEvent).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.HW.CONNECT_QR_DEVICE, {
-        hideMarketingContent: true,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HW.HARDWARE_WALLET_DISCOVERY,
+        { walletType: HardwareWalletType.Qr, initialStep: 'accounts' },
+      );
     });
 
     it('includes connected devices count in metrics event', async () => {
@@ -282,7 +287,10 @@ describe('SelectHardwareWallet', () => {
         fireEvent.press(keystoneButton);
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.HW.CONNECT_QR_DEVICE);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HW.HARDWARE_WALLET_DISCOVERY,
+        { walletType: HardwareWalletType.Qr, initialStep: 'accounts' },
+      );
     });
 
     it('navigates to QR device connection when OneKey is pressed', async () => {
@@ -295,9 +303,10 @@ describe('SelectHardwareWallet', () => {
         fireEvent.press(oneKeyButton);
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.HW.CONNECT_QR_DEVICE, {
-        hideMarketingContent: true,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HW.HARDWARE_WALLET_DISCOVERY,
+        { walletType: HardwareWalletType.Qr, initialStep: 'accounts' },
+      );
     });
   });
 
@@ -340,7 +349,10 @@ describe('SelectHardwareWallet', () => {
         fireEvent.press(ledgerButton);
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.HW.CONNECT_LEDGER);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HW.HARDWARE_WALLET_DISCOVERY,
+        { walletType: HardwareWalletType.Ledger },
+      );
 
       consoleSpy.mockRestore();
     });
@@ -359,9 +371,10 @@ describe('SelectHardwareWallet', () => {
         fireEvent.press(qrButton);
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.HW.CONNECT_QR_DEVICE, {
-        hideMarketingContent: true,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HW.HARDWARE_WALLET_DISCOVERY,
+        { walletType: HardwareWalletType.Qr, initialStep: 'accounts' },
+      );
 
       consoleSpy.mockRestore();
     });

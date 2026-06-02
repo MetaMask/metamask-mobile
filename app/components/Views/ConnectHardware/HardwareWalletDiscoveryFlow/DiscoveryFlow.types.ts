@@ -1,21 +1,7 @@
 import type { ErrorCode, HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import type { DiscoveredDevice } from '../../../../core/HardwareWallet/types';
 import { IconName } from '@metamask/design-system-react-native';
-
-export type DiscoveryStep =
-  | 'searching'
-  | 'found'
-  | 'not-found'
-  | 'accounts'
-  | 'bluetooth-access-denied'
-  | 'location-access-denied'
-  | 'nearby-devices-denied'
-  | 'device-locked'
-  | 'device-unresponsive'
-  | 'app-not-open'
-  | 'transport-unavailable'
-  | 'transport-connection-failed'
-  | 'permission-denied';
+import type { DiscoveryStep } from './DiscoveryFlow.machine.types';
 
 export interface TroubleshootingItem {
   id: string;
@@ -62,17 +48,3 @@ export interface DeviceUIConfig {
     selectAccounts: string;
   };
 }
-
-export type MachineEvent =
-  | { type: 'PERMISSIONS_GRANTED' }
-  | { type: 'PERMISSIONS_DENIED'; errorCode: ErrorCode }
-  | { type: 'DEVICE_FOUND'; device: DiscoveredDevice }
-  | { type: 'TIMEOUT' }
-  | { type: 'SCAN_ERROR'; error: Error }
-  | { type: 'TRANSPORT_UNAVAILABLE' }
-  | { type: 'TRANSPORT_AVAILABLE' }
-  | { type: 'CONNECT_ERROR'; errorCode: ErrorCode }
-  | { type: 'DEVICE_SELECTED'; device: DiscoveredDevice }
-  | { type: 'RETRY' }
-  | { type: 'BACK' }
-  | { type: 'OPEN_ACCOUNTS'; device: DiscoveredDevice };

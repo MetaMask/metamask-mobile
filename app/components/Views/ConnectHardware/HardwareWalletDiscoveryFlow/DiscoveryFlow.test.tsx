@@ -88,6 +88,9 @@ jest.mock('./configs', () => ({
     const { ErrorCode: MockErrorCode } = jest.requireActual(
       '@metamask/hw-wallet-sdk',
     );
+    const { DiscoveryStep: MockDiscoveryStep } = jest.requireActual(
+      './DiscoveryFlow.machine.types',
+    );
 
     return {
       walletType: 'ledger',
@@ -101,16 +104,23 @@ jest.mock('./configs', () => ({
         { id: 'bt', icon: 'Connect', label: 'Enable Bluetooth' },
       ],
       errorToStepMap: {
-        [MockErrorCode.AuthenticationDeviceLocked]: 'device-locked',
-        [MockErrorCode.DeviceUnresponsive]: 'device-unresponsive',
-        [MockErrorCode.DeviceStateEthAppClosed]: 'app-not-open',
-        [MockErrorCode.BluetoothDisabled]: 'transport-unavailable',
+        [MockErrorCode.AuthenticationDeviceLocked]:
+          MockDiscoveryStep.DeviceLocked,
+        [MockErrorCode.DeviceUnresponsive]:
+          MockDiscoveryStep.DeviceUnresponsive,
+        [MockErrorCode.DeviceStateEthAppClosed]: MockDiscoveryStep.AppNotOpen,
+        [MockErrorCode.BluetoothDisabled]:
+          MockDiscoveryStep.TransportUnavailable,
         [MockErrorCode.BluetoothConnectionFailed]:
-          'transport-connection-failed',
-        [MockErrorCode.BluetoothScanFailed]: 'transport-connection-failed',
-        [MockErrorCode.PermissionBluetoothDenied]: 'bluetooth-access-denied',
-        [MockErrorCode.PermissionLocationDenied]: 'location-access-denied',
-        [MockErrorCode.PermissionNearbyDevicesDenied]: 'nearby-devices-denied',
+          MockDiscoveryStep.TransportConnectionFailed,
+        [MockErrorCode.BluetoothScanFailed]:
+          MockDiscoveryStep.TransportConnectionFailed,
+        [MockErrorCode.PermissionBluetoothDenied]:
+          MockDiscoveryStep.BluetoothAccessDenied,
+        [MockErrorCode.PermissionLocationDenied]:
+          MockDiscoveryStep.LocationAccessDenied,
+        [MockErrorCode.PermissionNearbyDevicesDenied]:
+          MockDiscoveryStep.NearbyDevicesDenied,
       },
       accountManager: {
         getAccounts: jest.fn().mockResolvedValue([]),
@@ -269,7 +279,7 @@ describe('DiscoveryFlow orchestrator', () => {
     ).toBeOnTheScreen();
   });
 
-  it('ignores initial transport unavailable when transport was never available', async () => {
+  it('shows bluetooth off screen when transport is unavailable on initial load', async () => {
     renderFlow();
 
     act(() => {
@@ -278,7 +288,7 @@ describe('DiscoveryFlow orchestrator', () => {
     await act(async () => undefined);
 
     expect(
-      screen.getByTestId('hardware-wallet-searching-content'),
+      screen.getByText(strings('ledger.bluetooth_turned_off')),
     ).toBeOnTheScreen();
   });
 
@@ -291,7 +301,7 @@ describe('DiscoveryFlow orchestrator', () => {
     await act(async () => undefined);
 
     expect(
-      screen.getByTestId('hardware-wallet-searching-content'),
+      screen.getByText(strings('ledger.bluetooth_turned_off')),
     ).toBeOnTheScreen();
 
     await simulateBluetoothOn();
@@ -315,6 +325,23 @@ describe('DiscoveryFlow orchestrator', () => {
 
     expect(
       await screen.findByText(strings('ledger.ledger_is_locked')),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows eth app closed screen when ensureDeviceReady returns not ready with DeviceStateEthAppClosed', async () => {
+    mockEnsureDeviceReady.mockResolvedValueOnce({
+      ready: false,
+      errorCode: ErrorCode.DeviceStateEthAppClosed,
+    });
+
+    renderFlow();
+    await simulateBluetoothOn();
+    simulateDeviceFound(NANO_X);
+
+    fireEvent.press(screen.getByTestId('discovery-connect-button'));
+
+    expect(
+      await screen.findByText(strings('ledger.ethereum_app_closed')),
     ).toBeOnTheScreen();
   });
 

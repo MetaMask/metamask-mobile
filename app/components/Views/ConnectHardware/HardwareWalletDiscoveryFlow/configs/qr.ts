@@ -7,8 +7,17 @@ import {
 } from '../../../../../core/QrKeyring/QrKeyring';
 import PAGINATION_OPERATIONS from '../../../../../constants/pagination';
 import hardwareWalletAnimation from '../../../../../animations/hardware_wallet.riv';
+import { DiscoveryStep } from '../DiscoveryFlow.machine.types';
 import type { DeviceUIConfig, AccountInfo } from '../DiscoveryFlow.types';
 
+/**
+ * Builds the device UI configuration for QR-based hardware wallets
+ * (Keystone, OneKey, etc.). QR wallets have no BLE discovery, so the
+ * discovery timeout is zero and the flow jumps straight to the
+ * account selection step.
+ *
+ * @returns The configuration consumed by the discovery flow orchestrator.
+ */
 export function createQRConfig(): DeviceUIConfig {
   return {
     walletType: HardwareWalletType.Qr,
@@ -30,9 +39,9 @@ export function createQRConfig(): DeviceUIConfig {
       },
     ],
     errorToStepMap: {
-      [ErrorCode.PermissionCameraDenied]: 'permission-denied',
-      [ErrorCode.DeviceNotFound]: 'not-found',
-      [ErrorCode.ConnectionTimeout]: 'not-found',
+      [ErrorCode.PermissionCameraDenied]: DiscoveryStep.PermissionDenied,
+      [ErrorCode.DeviceNotFound]: DiscoveryStep.NotFound,
+      [ErrorCode.ConnectionTimeout]: DiscoveryStep.NotFound,
     },
     accountManager: {
       getAccounts: async (operation: string): Promise<AccountInfo[]> => {

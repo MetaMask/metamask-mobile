@@ -14,6 +14,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import React, { ReactNode, useEffect } from 'react';
 import { Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -39,10 +40,6 @@ interface HardwareOption {
   onPress: () => Promise<void>;
   leadingIcon: ReactNode;
   testID: string;
-}
-
-interface ConnectQrNavigationParams {
-  hideMarketingContent?: boolean;
 }
 
 export const getHardwareThemeAssets = (themeAppearance: AppThemeKey) => {
@@ -77,9 +74,7 @@ const SelectHardwareWallet = () => {
     });
   }, [navigation]);
 
-  const navigateToConnectQRWallet = async (
-    params?: ConnectQrNavigationParams,
-  ) => {
+  const navigateToConnectQRWallet = async () => {
     try {
       const connectedDeviceCount = await getConnectedDevicesCount();
       trackEvent(
@@ -94,12 +89,11 @@ const SelectHardwareWallet = () => {
       // [SelectHardware] Analytics error should not block navigation
       console.error('[SelectHardware] Failed to track analytics:', error);
     }
-    if (params) {
-      navigation.navigate(Routes.HW.CONNECT_QR_DEVICE, params);
-      return;
-    }
 
-    navigation.navigate(Routes.HW.CONNECT_QR_DEVICE);
+    navigation.navigate(Routes.HW.HARDWARE_WALLET_DISCOVERY, {
+      walletType: HardwareWalletType.Qr,
+      initialStep: 'accounts',
+    });
   };
 
   const navigateToConnectLedger = async () => {
@@ -118,7 +112,9 @@ const SelectHardwareWallet = () => {
       console.error('[SelectHardware] Failed to track analytics:', error);
     }
 
-    navigation.navigate(Routes.HW.CONNECT_LEDGER);
+    navigation.navigate(Routes.HW.HARDWARE_WALLET_DISCOVERY, {
+      walletType: HardwareWalletType.Ledger,
+    });
   };
 
   const renderIconTile = (icon: ReactNode) => (
@@ -146,13 +142,13 @@ const SelectHardwareWallet = () => {
     },
     {
       title: 'OneKey',
-      onPress: () => navigateToConnectQRWallet({ hideMarketingContent: true }),
+      onPress: () => navigateToConnectQRWallet(),
       testID: SelectHardwareTestIds.ONEKEY_BUTTON,
       leadingIcon: <OneKeyLogo name="onekey-logo" width={40} height={40} />,
     },
     {
       title: 'Other QR wallet',
-      onPress: () => navigateToConnectQRWallet({ hideMarketingContent: true }),
+      onPress: () => navigateToConnectQRWallet(),
       testID: SelectHardwareTestIds.OTHER_QR_BUTTON,
       leadingIcon: renderIconTile(
         <Icon

@@ -1,23 +1,35 @@
 import { ErrorCode } from '@metamask/hw-wallet-sdk';
-import type {
+import {
   DiscoveryStep,
-  MachineEvent,
-  DeviceUIConfig,
-} from './DiscoveryFlow.types';
+  HardwareWalletDiscoveryEventType,
+  type MachineEvent,
+} from './DiscoveryFlow.machine.types';
+import type { DeviceUIConfig } from './DiscoveryFlow.types';
 
+/**
+ * Pure state-machine reducer for the hardware wallet discovery flow.
+ * Computes the next {@link DiscoveryStep} given the current step, an incoming
+ * event, and the active device UI configuration. The function never mutates
+ * external state; side effects are the caller's responsibility.
+ *
+ * @param currentStep - The step the flow is currently in.
+ * @param event - The event to apply to the current step.
+ * @param config - The UI configuration (used to map errors to steps).
+ * @returns The step the flow should transition to.
+ */
 export function transition(
   currentStep: DiscoveryStep,
   event: MachineEvent,
   config: DeviceUIConfig,
 ): DiscoveryStep {
   switch (currentStep) {
-    case 'searching':
+    case DiscoveryStep.Searching:
       return transitionFromSearching(event, config);
-    case 'found':
+    case DiscoveryStep.Found:
       return transitionFromFound(event, config);
-    case 'accounts':
+    case DiscoveryStep.Accounts:
       return transitionFromAccounts(event);
-    case 'not-found':
+    case DiscoveryStep.NotFound:
       return transitionFromNotFound(event);
     default:
       return transitionFromErrorState(currentStep, event);
@@ -29,23 +41,25 @@ function transitionFromSearching(
   config: DeviceUIConfig,
 ): DiscoveryStep {
   switch (event.type) {
-    case 'PERMISSIONS_GRANTED':
-    case 'TRANSPORT_AVAILABLE':
-      return 'searching';
-    case 'PERMISSIONS_DENIED':
-      return config.errorToStepMap[event.errorCode] ?? 'permission-denied';
-    case 'DEVICE_FOUND':
-      return 'found';
-    case 'TIMEOUT':
-      return 'not-found';
-    case 'SCAN_ERROR':
+    case HardwareWalletDiscoveryEventType.PermissionsGranted:
+    case HardwareWalletDiscoveryEventType.TransportAvailable:
+      return DiscoveryStep.Searching;
+    case HardwareWalletDiscoveryEventType.PermissionsDenied:
+      return (
+        config.errorToStepMap[event.errorCode] ?? DiscoveryStep.PermissionDenied
+      );
+    case HardwareWalletDiscoveryEventType.DeviceFound:
+      return DiscoveryStep.Found;
+    case HardwareWalletDiscoveryEventType.Timeout:
+      return DiscoveryStep.NotFound;
+    case HardwareWalletDiscoveryEventType.ScanError:
       return resolveScanErrorStep(event.error, config);
-    case 'TRANSPORT_UNAVAILABLE':
-      return 'transport-unavailable';
-    case 'CONNECT_ERROR':
-      return config.errorToStepMap[event.errorCode] ?? 'not-found';
+    case HardwareWalletDiscoveryEventType.TransportUnavailable:
+      return DiscoveryStep.TransportUnavailable;
+    case HardwareWalletDiscoveryEventType.ConnectError:
+      return config.errorToStepMap[event.errorCode] ?? DiscoveryStep.NotFound;
     default:
-      return 'searching';
+      return DiscoveryStep.Searching;
   }
 }
 
@@ -54,32 +68,32 @@ function transitionFromFound(
   config: DeviceUIConfig,
 ): DiscoveryStep {
   switch (event.type) {
-    case 'OPEN_ACCOUNTS':
-      return 'accounts';
-    case 'CONNECT_ERROR':
-      return config.errorToStepMap[event.errorCode] ?? 'not-found';
+    case HardwareWalletDiscoveryEventType.OpenAccounts:
+      return DiscoveryStep.Accounts;
+    case HardwareWalletDiscoveryEventType.ConnectError:
+      return config.errorToStepMap[event.errorCode] ?? DiscoveryStep.NotFound;
     default:
-      return 'found';
+      return DiscoveryStep.Found;
   }
 }
 
 function transitionFromAccounts(event: MachineEvent): DiscoveryStep {
   switch (event.type) {
-    case 'BACK':
-      return 'found';
-    case 'RETRY':
-      return 'searching';
+    case HardwareWalletDiscoveryEventType.Back:
+      return DiscoveryStep.Found;
+    case HardwareWalletDiscoveryEventType.Retry:
+      return DiscoveryStep.Searching;
     default:
-      return 'accounts';
+      return DiscoveryStep.Accounts;
   }
 }
 
 function transitionFromNotFound(event: MachineEvent): DiscoveryStep {
   switch (event.type) {
-    case 'RETRY':
-      return 'searching';
+    case HardwareWalletDiscoveryEventType.Retry:
+      return DiscoveryStep.Searching;
     default:
-      return 'not-found';
+      return DiscoveryStep.NotFound;
   }
 }
 
@@ -88,8 +102,8 @@ function transitionFromErrorState(
   event: MachineEvent,
 ): DiscoveryStep {
   switch (event.type) {
-    case 'RETRY':
-      return 'searching';
+    case HardwareWalletDiscoveryEventType.Retry:
+      return DiscoveryStep.Searching;
     default:
       return step;
   }
@@ -109,9 +123,9 @@ function resolveScanErrorStep(
   ) {
     return (
       config.errorToStepMap[ErrorCode.BluetoothConnectionFailed] ??
-      'transport-connection-failed'
+      DiscoveryStep.TransportConnectionFailed
     );
   }
 
-  return 'not-found';
+  return DiscoveryStep.NotFound;
 }

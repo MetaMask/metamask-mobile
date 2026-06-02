@@ -1,11 +1,11 @@
 import { ErrorCode, HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { IconName } from '@metamask/design-system-react-native';
 import { transition } from './DiscoveryFlow.machine';
-import type {
+import {
   DiscoveryStep,
-  MachineEvent,
-  DeviceUIConfig,
-} from './DiscoveryFlow.types';
+  HardwareWalletDiscoveryEventType,
+} from './DiscoveryFlow.machine.types';
+import type { DeviceUIConfig } from './DiscoveryFlow.types';
 
 const mockConfig: DeviceUIConfig = {
   walletType: HardwareWalletType.Ledger,
@@ -16,15 +16,17 @@ const mockConfig: DeviceUIConfig = {
   deviceIcon: IconName.Mobile,
   troubleshootingItems: [],
   errorToStepMap: {
-    [ErrorCode.AuthenticationDeviceLocked]: 'device-locked',
-    [ErrorCode.DeviceUnresponsive]: 'device-unresponsive',
-    [ErrorCode.DeviceStateEthAppClosed]: 'app-not-open',
-    [ErrorCode.BluetoothDisabled]: 'transport-unavailable',
-    [ErrorCode.BluetoothConnectionFailed]: 'transport-connection-failed',
-    [ErrorCode.BluetoothScanFailed]: 'transport-connection-failed',
-    [ErrorCode.PermissionBluetoothDenied]: 'bluetooth-access-denied',
-    [ErrorCode.PermissionLocationDenied]: 'location-access-denied',
-    [ErrorCode.PermissionNearbyDevicesDenied]: 'nearby-devices-denied',
+    [ErrorCode.AuthenticationDeviceLocked]: DiscoveryStep.DeviceLocked,
+    [ErrorCode.DeviceUnresponsive]: DiscoveryStep.DeviceUnresponsive,
+    [ErrorCode.DeviceStateEthAppClosed]: DiscoveryStep.AppNotOpen,
+    [ErrorCode.BluetoothDisabled]: DiscoveryStep.TransportUnavailable,
+    [ErrorCode.BluetoothConnectionFailed]:
+      DiscoveryStep.TransportConnectionFailed,
+    [ErrorCode.BluetoothScanFailed]: DiscoveryStep.TransportConnectionFailed,
+    [ErrorCode.PermissionBluetoothDenied]: DiscoveryStep.BluetoothAccessDenied,
+    [ErrorCode.PermissionLocationDenied]: DiscoveryStep.LocationAccessDenied,
+    [ErrorCode.PermissionNearbyDevicesDenied]:
+      DiscoveryStep.NearbyDevicesDenied,
   },
   accountManager: {
     getAccounts: jest.fn(),
@@ -46,94 +48,124 @@ describe('DiscoveryFlow.machine — transition()', () => {
   describe('searching state', () => {
     it('stays searching on PERMISSIONS_GRANTED', () => {
       expect(
-        transition('searching', { type: 'PERMISSIONS_GRANTED' }, mockConfig),
-      ).toBe('searching');
+        transition(
+          DiscoveryStep.Searching,
+          { type: HardwareWalletDiscoveryEventType.PermissionsGranted },
+          mockConfig,
+        ),
+      ).toBe(DiscoveryStep.Searching);
     });
 
     it('moves to bluetooth-access-denied on PERMISSIONS_DENIED with mapped bluetooth error', () => {
       expect(
         transition(
-          'searching',
+          DiscoveryStep.Searching,
           {
-            type: 'PERMISSIONS_DENIED',
+            type: HardwareWalletDiscoveryEventType.PermissionsDenied,
             errorCode: ErrorCode.PermissionBluetoothDenied,
           },
           mockConfig,
         ),
-      ).toBe('bluetooth-access-denied');
+      ).toBe(DiscoveryStep.BluetoothAccessDenied);
     });
 
     it('maps location permission denial to location-access-denied', () => {
       expect(
         transition(
-          'searching',
+          DiscoveryStep.Searching,
           {
-            type: 'PERMISSIONS_DENIED',
+            type: HardwareWalletDiscoveryEventType.PermissionsDenied,
             errorCode: ErrorCode.PermissionLocationDenied,
           },
           mockConfig,
         ),
-      ).toBe('location-access-denied');
+      ).toBe(DiscoveryStep.LocationAccessDenied);
     });
 
     it('moves to found on DEVICE_FOUND', () => {
       expect(
         transition(
-          'searching',
-          { type: 'DEVICE_FOUND', device: DEVICE },
+          DiscoveryStep.Searching,
+          {
+            type: HardwareWalletDiscoveryEventType.DeviceFound,
+            device: DEVICE,
+          },
           mockConfig,
         ),
-      ).toBe('found');
+      ).toBe(DiscoveryStep.Found);
     });
 
     it('moves to not-found on TIMEOUT', () => {
-      expect(transition('searching', { type: 'TIMEOUT' }, mockConfig)).toBe(
-        'not-found',
-      );
+      expect(
+        transition(
+          DiscoveryStep.Searching,
+          { type: HardwareWalletDiscoveryEventType.Timeout },
+          mockConfig,
+        ),
+      ).toBe(DiscoveryStep.NotFound);
     });
 
     it('moves to transport-connection-failed on SCAN_ERROR with mapped bluetooth error', () => {
       expect(
         transition(
-          'searching',
+          DiscoveryStep.Searching,
           {
-            type: 'SCAN_ERROR',
+            type: HardwareWalletDiscoveryEventType.ScanError,
             error: Object.assign(new Error('BLE failed'), { name: 'BleError' }),
           },
           mockConfig,
         ),
-      ).toBe('transport-connection-failed');
+      ).toBe(DiscoveryStep.TransportConnectionFailed);
     });
 
     it('falls back to not-found on SCAN_ERROR with unmapped error', () => {
       expect(
         transition(
-          'searching',
-          { type: 'SCAN_ERROR', error: new Error('unknown') },
+          DiscoveryStep.Searching,
+          {
+            type: HardwareWalletDiscoveryEventType.ScanError,
+            error: new Error('unknown'),
+          },
           mockConfig,
         ),
-      ).toBe('not-found');
+      ).toBe(DiscoveryStep.NotFound);
     });
 
     it('moves to transport-unavailable on TRANSPORT_UNAVAILABLE', () => {
       expect(
-        transition('searching', { type: 'TRANSPORT_UNAVAILABLE' }, mockConfig),
-      ).toBe('transport-unavailable');
+        transition(
+          DiscoveryStep.Searching,
+          { type: HardwareWalletDiscoveryEventType.TransportUnavailable },
+          mockConfig,
+        ),
+      ).toBe(DiscoveryStep.TransportUnavailable);
     });
 
     it('stays searching on TRANSPORT_AVAILABLE', () => {
       expect(
-        transition('searching', { type: 'TRANSPORT_AVAILABLE' }, mockConfig),
-      ).toBe('searching');
+        transition(
+          DiscoveryStep.Searching,
+          { type: HardwareWalletDiscoveryEventType.TransportAvailable },
+          mockConfig,
+        ),
+      ).toBe(DiscoveryStep.Searching);
     });
 
     it('returns current step for irrelevant events', () => {
-      expect(transition('searching', { type: 'RETRY' }, mockConfig)).toBe(
-        'searching',
-      );
-      expect(transition('searching', { type: 'BACK' }, mockConfig)).toBe(
-        'searching',
-      );
+      expect(
+        transition(
+          DiscoveryStep.Searching,
+          { type: HardwareWalletDiscoveryEventType.Retry },
+          mockConfig,
+        ),
+      ).toBe(DiscoveryStep.Searching);
+      expect(
+        transition(
+          DiscoveryStep.Searching,
+          { type: HardwareWalletDiscoveryEventType.Back },
+          mockConfig,
+        ),
+      ).toBe(DiscoveryStep.Searching);
     });
   });
 
@@ -141,116 +173,171 @@ describe('DiscoveryFlow.machine — transition()', () => {
     it('moves to accounts on OPEN_ACCOUNTS', () => {
       expect(
         transition(
-          'found',
-          { type: 'OPEN_ACCOUNTS', device: DEVICE },
+          DiscoveryStep.Found,
+          {
+            type: HardwareWalletDiscoveryEventType.OpenAccounts,
+            device: DEVICE,
+          },
           mockConfig,
         ),
-      ).toBe('accounts');
+      ).toBe(DiscoveryStep.Accounts);
     });
 
     it('stays found on DEVICE_FOUND (additional device)', () => {
       expect(
         transition(
-          'found',
-          { type: 'DEVICE_FOUND', device: DEVICE },
+          DiscoveryStep.Found,
+          {
+            type: HardwareWalletDiscoveryEventType.DeviceFound,
+            device: DEVICE,
+          },
           mockConfig,
         ),
-      ).toBe('found');
+      ).toBe(DiscoveryStep.Found);
     });
 
     it('maps to configured error step on CONNECT_ERROR', () => {
       expect(
         transition(
-          'found',
+          DiscoveryStep.Found,
           {
-            type: 'CONNECT_ERROR',
+            type: HardwareWalletDiscoveryEventType.ConnectError,
             errorCode: ErrorCode.AuthenticationDeviceLocked,
           },
           mockConfig,
         ),
-      ).toBe('device-locked');
+      ).toBe(DiscoveryStep.DeviceLocked);
     });
 
     it('falls back to not-found on unmapped CONNECT_ERROR', () => {
       expect(
         transition(
-          'found',
-          { type: 'CONNECT_ERROR', errorCode: ErrorCode.Unknown },
+          DiscoveryStep.Found,
+          {
+            type: HardwareWalletDiscoveryEventType.ConnectError,
+            errorCode: ErrorCode.Unknown,
+          },
           mockConfig,
         ),
-      ).toBe('not-found');
+      ).toBe(DiscoveryStep.NotFound);
     });
 
     it('returns current step for irrelevant events', () => {
-      expect(transition('found', { type: 'TIMEOUT' }, mockConfig)).toBe(
-        'found',
-      );
+      expect(
+        transition(
+          DiscoveryStep.Found,
+          { type: HardwareWalletDiscoveryEventType.Timeout },
+          mockConfig,
+        ),
+      ).toBe(DiscoveryStep.Found);
     });
   });
 
   describe('accounts state', () => {
     it('stays accounts on most events', () => {
-      expect(transition('accounts', { type: 'TIMEOUT' }, mockConfig)).toBe(
-        'accounts',
-      );
       expect(
         transition(
-          'accounts',
-          { type: 'DEVICE_FOUND', device: DEVICE },
+          DiscoveryStep.Accounts,
+          { type: HardwareWalletDiscoveryEventType.Timeout },
           mockConfig,
         ),
-      ).toBe('accounts');
+      ).toBe(DiscoveryStep.Accounts);
+      expect(
+        transition(
+          DiscoveryStep.Accounts,
+          {
+            type: HardwareWalletDiscoveryEventType.DeviceFound,
+            device: DEVICE,
+          },
+          mockConfig,
+        ),
+      ).toBe(DiscoveryStep.Accounts);
     });
 
     it('moves to found on BACK', () => {
-      expect(transition('accounts', { type: 'BACK' }, mockConfig)).toBe(
-        'found',
-      );
+      expect(
+        transition(
+          DiscoveryStep.Accounts,
+          { type: HardwareWalletDiscoveryEventType.Back },
+          mockConfig,
+        ),
+      ).toBe(DiscoveryStep.Found);
     });
 
     it('moves to searching on RETRY', () => {
-      expect(transition('accounts', { type: 'RETRY' }, mockConfig)).toBe(
-        'searching',
-      );
+      expect(
+        transition(
+          DiscoveryStep.Accounts,
+          { type: HardwareWalletDiscoveryEventType.Retry },
+          mockConfig,
+        ),
+      ).toBe(DiscoveryStep.Searching);
     });
   });
 
   describe('not-found state', () => {
     it('moves to searching on RETRY', () => {
-      expect(transition('not-found', { type: 'RETRY' }, mockConfig)).toBe(
-        'searching',
-      );
+      expect(
+        transition(
+          DiscoveryStep.NotFound,
+          { type: HardwareWalletDiscoveryEventType.Retry },
+          mockConfig,
+        ),
+      ).toBe(DiscoveryStep.Searching);
     });
 
     it('stays not-found on other events', () => {
-      expect(transition('not-found', { type: 'TIMEOUT' }, mockConfig)).toBe(
-        'not-found',
-      );
+      expect(
+        transition(
+          DiscoveryStep.NotFound,
+          { type: HardwareWalletDiscoveryEventType.Timeout },
+          mockConfig,
+        ),
+      ).toBe(DiscoveryStep.NotFound);
     });
   });
 
   describe('error states', () => {
     const errorSteps: DiscoveryStep[] = [
-      'device-locked',
-      'device-unresponsive',
-      'app-not-open',
-      'transport-unavailable',
-      'transport-connection-failed',
-      'bluetooth-access-denied',
-      'location-access-denied',
-      'nearby-devices-denied',
-      'permission-denied',
+      DiscoveryStep.DeviceLocked,
+      DiscoveryStep.DeviceUnresponsive,
+      DiscoveryStep.AppNotOpen,
+      DiscoveryStep.TransportUnavailable,
+      DiscoveryStep.TransportConnectionFailed,
+      DiscoveryStep.BluetoothAccessDenied,
+      DiscoveryStep.LocationAccessDenied,
+      DiscoveryStep.NearbyDevicesDenied,
+      DiscoveryStep.PermissionDenied,
     ];
 
     it.each(errorSteps)('moves %s to searching on RETRY', (step) => {
-      expect(transition(step, { type: 'RETRY' }, mockConfig)).toBe('searching');
+      expect(
+        transition(
+          step,
+          { type: HardwareWalletDiscoveryEventType.Retry },
+          mockConfig,
+        ),
+      ).toBe(DiscoveryStep.Searching);
     });
 
     it.each(errorSteps)('stays %s on irrelevant events', (step) => {
       expect(
-        transition(step, { type: 'DEVICE_FOUND', device: DEVICE }, mockConfig),
+        transition(
+          step,
+          {
+            type: HardwareWalletDiscoveryEventType.DeviceFound,
+            device: DEVICE,
+          },
+          mockConfig,
+        ),
       ).toBe(step);
-      expect(transition(step, { type: 'TIMEOUT' }, mockConfig)).toBe(step);
+      expect(
+        transition(
+          step,
+          { type: HardwareWalletDiscoveryEventType.Timeout },
+          mockConfig,
+        ),
+      ).toBe(step);
     });
   });
 
@@ -258,34 +345,37 @@ describe('DiscoveryFlow.machine — transition()', () => {
     it('maps to the configured step for known error codes', () => {
       expect(
         transition(
-          'searching',
+          DiscoveryStep.Searching,
           {
-            type: 'CONNECT_ERROR',
+            type: HardwareWalletDiscoveryEventType.ConnectError,
             errorCode: ErrorCode.AuthenticationDeviceLocked,
           },
           mockConfig,
         ),
-      ).toBe('device-locked');
+      ).toBe(DiscoveryStep.DeviceLocked);
       expect(
         transition(
-          'searching',
+          DiscoveryStep.Searching,
           {
-            type: 'CONNECT_ERROR',
+            type: HardwareWalletDiscoveryEventType.ConnectError,
             errorCode: ErrorCode.DeviceStateEthAppClosed,
           },
           mockConfig,
         ),
-      ).toBe('app-not-open');
+      ).toBe(DiscoveryStep.AppNotOpen);
     });
 
     it('falls back to not-found for unmapped error codes', () => {
       expect(
         transition(
-          'searching',
-          { type: 'CONNECT_ERROR', errorCode: ErrorCode.Unknown },
+          DiscoveryStep.Searching,
+          {
+            type: HardwareWalletDiscoveryEventType.ConnectError,
+            errorCode: ErrorCode.Unknown,
+          },
           mockConfig,
         ),
-      ).toBe('not-found');
+      ).toBe(DiscoveryStep.NotFound);
     });
   });
 
@@ -298,37 +388,40 @@ describe('DiscoveryFlow.machine — transition()', () => {
     it('falls back to permission-denied for any PERMISSIONS_DENIED', () => {
       expect(
         transition(
-          'searching',
+          DiscoveryStep.Searching,
           {
-            type: 'PERMISSIONS_DENIED',
+            type: HardwareWalletDiscoveryEventType.PermissionsDenied,
             errorCode: ErrorCode.PermissionBluetoothDenied,
           },
           minimalConfig,
         ),
-      ).toBe('permission-denied');
+      ).toBe(DiscoveryStep.PermissionDenied);
     });
 
     it('falls back to not-found for any SCAN_ERROR', () => {
       expect(
         transition(
-          'searching',
-          { type: 'SCAN_ERROR', error: new Error('fail') },
+          DiscoveryStep.Searching,
+          {
+            type: HardwareWalletDiscoveryEventType.ScanError,
+            error: new Error('fail'),
+          },
           minimalConfig,
         ),
-      ).toBe('not-found');
+      ).toBe(DiscoveryStep.NotFound);
     });
 
     it('falls back to not-found for any CONNECT_ERROR', () => {
       expect(
         transition(
-          'searching',
+          DiscoveryStep.Searching,
           {
-            type: 'CONNECT_ERROR',
+            type: HardwareWalletDiscoveryEventType.ConnectError,
             errorCode: ErrorCode.AuthenticationDeviceLocked,
           },
           minimalConfig,
         ),
-      ).toBe('not-found');
+      ).toBe(DiscoveryStep.NotFound);
     });
   });
 });
