@@ -8348,8 +8348,6 @@
     "report_submitted": "Naipadala na ang ulat sa error."
   },
   "pay_with_modal": {
-    "title": "Pumili ng paraan ng pagbabayad",
-    "title_receive": "Piliin ang tatanggaping token",
     "no_gas": "Walang native na balanse para sa gas",
     "not_supported": "Hindi suportado",
     "crypto": "Crypto"
