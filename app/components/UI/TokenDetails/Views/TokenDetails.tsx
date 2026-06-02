@@ -1,3 +1,12 @@
+import { formatAddressToAssetId } from '@metamask/bridge-controller';
+import { Theme } from '@metamask/design-tokens';
+import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
+import { isCaipAssetType, type CaipAssetType } from '@metamask/utils';
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import React, {
   useCallback,
   useEffect,
@@ -5,51 +14,46 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View, StyleSheet, ActivityIndicator, AppState } from 'react-native';
+import { ActivityIndicator, AppState, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-import {
-  TokenDetailsSource,
-  type TokenDetailsRouteParams,
-  type TokenDetailsExitAction,
-} from '../constants/constants';
-import { Theme } from '@metamask/design-tokens';
-import { useStyles } from '../../../hooks/useStyles';
+import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
+import { useABTest } from '../../../../hooks/useABTest';
 import { RootState } from '../../../../reducers';
+import { selectSocialAiAssetDetailsQuickBuyEnabled } from '../../../../selectors/featureFlagController/socialAiAssetDetailsQuickBuy';
 import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
-import {
-  useFocusEffect,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
-import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
-import { isCaipAssetType, type CaipAssetType } from '@metamask/utils';
-import { formatAddressToAssetId } from '@metamask/bridge-controller';
-import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
-import AssetOverviewContent from '../components/AssetOverviewContent';
-import { useTokenPrice } from '../hooks/useTokenPrice';
-import { useTokenBalance } from '../hooks/useTokenBalance';
-import { useTokenActions } from '../hooks/useTokenActions';
-import { useTokenTransactions } from '../hooks/useTokenTransactions';
+import { ImpactMoment, playImpact } from '../../../../util/haptics';
+import { LIGHT_MODE_SUCCESS_GREEN, useTheme } from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
+import { TraceName, endTrace } from '../../../../util/trace';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { useStyles } from '../../../hooks/useStyles';
+import ActivityHeader from '../../../Views/Asset/ActivityHeader';
+import MultichainTransactionsView from '../../../Views/MultichainTransactionsView/MultichainTransactionsView';
+import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
+import { MarketInsightsDisclaimerBottomSheet } from '../../MarketInsights';
 import { selectPerpsEnabledFlag } from '../../Perps';
 import { usePerpsMarketForAsset } from '../../Perps/hooks/usePerpsMarketForAsset';
-import { TraceName, endTrace } from '../../../../util/trace';
-import ActivityHeader from '../../../Views/Asset/ActivityHeader';
 import Transactions from '../../Transactions';
-import MultichainTransactionsView from '../../../Views/MultichainTransactionsView/MultichainTransactionsView';
-import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
-import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
-import { MarketInsightsDisclaimerBottomSheet } from '../../MarketInsights';
-import { useABTest } from '../../../../hooks/useABTest';
 import {
   AMBIENT_NEGATIVE_COLOR,
   AMBIENT_PRICE_COLOR_AB_KEY,
   AMBIENT_PRICE_COLOR_VARIANTS,
 } from '../components/abTestConfig';
-import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
-import { AppThemeKey } from '../../../../util/theme/models';
+import AssetDetailsQuickBuy from '../components/AssetDetailsQuickBuy';
+import AssetOverviewContent from '../components/AssetOverviewContent';
+import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
+import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
+import {
+  TokenDetailsSource,
+  type TokenDetailsRouteParams,
+  type TokenDetailsExitAction,
+} from '../constants/constants';
+import { useTokenActions } from '../hooks/useTokenActions';
+import { useTokenBalance } from '../hooks/useTokenBalance';
+import { useTokenPrice } from '../hooks/useTokenPrice';
+import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
+import { useTokenTransactions } from '../hooks/useTokenTransactions';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -157,6 +161,16 @@ const TokenDetails: React.FC<{
   const navigation = useNavigation();
   const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
     useState(false);
+  const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
+
+  const handleQuickBuyPress = useCallback(() => {
+    playImpact(ImpactMoment.PrimaryCTA);
+    setIsQuickBuyVisible(true);
+  }, []);
+
+  const handleQuickBuyClose = useCallback(() => {
+    setIsQuickBuyVisible(false);
+  }, []);
   const { variant: ambientColorVariant } = useABTest(
     AMBIENT_PRICE_COLOR_AB_KEY,
     AMBIENT_PRICE_COLOR_VARIANTS,
@@ -195,6 +209,9 @@ const TokenDetails: React.FC<{
   const networkName = networkConfigurationByChainId?.name;
 
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const isQuickBuyEnabled = useSelector(
+    selectSocialAiAssetDetailsQuickBuyEnabled,
+  );
 
   const {
     currentPrice,
@@ -381,11 +398,20 @@ const TokenDetails: React.FC<{
           useAmbientColor={useAmbientColor}
           onSwapPress={onCtaClicked}
           onBuyPress={onCtaClicked}
+          onQuickBuyPress={isQuickBuyEnabled ? handleQuickBuyPress : undefined}
+          quickBuyTestID={TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON}
         />
       )}
       {isInsightsDisclaimerVisible && (
         <MarketInsightsDisclaimerBottomSheet
           onClose={() => setIsInsightsDisclaimerVisible(false)}
+        />
+      )}
+      {isQuickBuyEnabled && (
+        <AssetDetailsQuickBuy
+          isVisible={isQuickBuyVisible}
+          token={token}
+          onClose={handleQuickBuyClose}
         />
       )}
     </View>
