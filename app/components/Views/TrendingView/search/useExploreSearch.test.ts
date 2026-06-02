@@ -5,8 +5,7 @@
  * 1. Section order: tokens first, perps (when enabled), then stocks/predictions/sites.
  * 2. Perps omitted when selectPerpsEnabledFlag is false.
  * 3. Debounce: isLoading is true for all sections while query !== debouncedQuery.
- * 4. Predictions section exposes fetchMore, isFetchingMore, hasMore.
- * 5. Non-predictions sections do NOT carry pagination fields.
+ * 4. Tokens, stocks, and predictions expose pagination fields when supported.
  */
 
 import { renderHook, act } from '@testing-library/react-hooks';
@@ -23,6 +22,7 @@ const mockPredictionsData = [{ id: 'pred-1' }];
 const mockSitesData = [{ url: 'https://example.com' }];
 const mockFetchMore = jest.fn();
 const mockTokensLoadMore = jest.fn();
+const mockStocksLoadMore = jest.fn();
 
 jest.mock('../feeds/tokens/useTokensFeed', () => ({
   useTokensFeed: jest.fn(() => ({
@@ -39,7 +39,14 @@ jest.mock('../feeds/perps/usePerpsFeed', () => ({
 }));
 
 jest.mock('../feeds/stocks/useStocksFeed', () => ({
-  useStocksFeed: jest.fn(() => ({ data: mockStocksData, isLoading: false })),
+  useStocksFeed: jest.fn(() => ({
+    data: mockStocksData,
+    isLoading: false,
+    loadMore: undefined,
+    isLoadingMore: undefined,
+    hasMore: undefined,
+    totalCount: undefined,
+  })),
 }));
 
 jest.mock('../feeds/predictions/usePredictionsFeed', () => ({
@@ -316,7 +323,7 @@ describe('useExploreSearch', () => {
   });
 
   describe('sections without pagination fields', () => {
-    it.each(['perps', 'stocks', 'sites'] as const)(
+    it.each(['perps', 'sites'] as const)(
       '%s section does not carry fetchMore or hasMore',
       (feedId) => {
         const { result } = renderExploreSearch();
@@ -328,6 +335,29 @@ describe('useExploreSearch', () => {
         expect(section?.isFetchingMore).toBeUndefined();
       },
     );
+  });
+
+  describe('stocks pagination fields', () => {
+    it('forwards pagination metadata from the stocks feed when searching', () => {
+      (useStocksFeed as jest.Mock).mockReturnValue({
+        data: mockStocksData,
+        isLoading: false,
+        loadMore: mockStocksLoadMore,
+        isLoadingMore: true,
+        hasMore: true,
+        totalCount: 12,
+      });
+
+      const { result } = renderExploreSearch('appl');
+      const stocksSection = result.current.sections.find(
+        (s) => s.feedId === 'stocks',
+      );
+
+      expect(stocksSection?.fetchMore).toBe(mockStocksLoadMore);
+      expect(stocksSection?.isFetchingMore).toBe(true);
+      expect(stocksSection?.hasMore).toBe(true);
+      expect(stocksSection?.total).toBe(12);
+    });
   });
 
   describe('query is passed to feed hooks after debounce', () => {
