@@ -4,17 +4,15 @@ import {
   type SessionRequest,
 } from '@metamask/mobile-wallet-protocol-core';
 import { rpcErrors } from '@metamask/rpc-errors';
-import { analytics } from '../../util/analytics/analytics';
-import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
 import { INTERNAL_ORIGINS } from '../../constants/transaction';
 import { TransportType } from '../../components/hooks/useAnalytics/useAnalytics.types';
 import Logger from '../../util/Logger';
 import { parseMwpConnectPayload } from '../SDKConnectV2/utils/parseMwpConnectDeeplink';
+import { trackMwpEvent } from '../SDKConnectV2/utils/trackMwpEvent';
 import { Connection } from '../SDKConnectV2/services/connection';
 import logger, { redactUrl } from '../SDKConnectV2/services/logger';
 import { ConnectionInfo } from '../SDKConnectV2/types/connection-info';
 import { IHostApplicationAdapter } from '../SDKConnectV2/types/host-application-adapter';
-import type { IMetaMetricsEvent } from '../Analytics/MetaMetrics.types';
 import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
 import {
   hideAgenticCliConnectionLoading,
@@ -29,21 +27,6 @@ import {
   isAgenticCliConnectionRequest,
 } from './agenticCliConnectionRequest';
 import { AgenticCliQrLoginService } from './AgenticCliQrLoginService';
-
-function trackMwpEvent(
-  event: IMetaMetricsEvent,
-  properties: Record<string, unknown>,
-): void {
-  try {
-    analytics.trackEvent(
-      AnalyticsEventBuilder.createEventBuilder(event)
-        .addProperties(properties)
-        .build(),
-    );
-  } catch {
-    // Intentionally swallowed: analytics must not block MWP flows.
-  }
-}
 
 export interface AgenticCliMwpConnectionDeps {
   relayURL: string;

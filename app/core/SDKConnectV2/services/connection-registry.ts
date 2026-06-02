@@ -22,31 +22,10 @@ import { whenStoreReady } from '../utils/when-store-ready';
 import Engine from '../../Engine';
 import { rpcErrors } from '@metamask/rpc-errors';
 import { INTERNAL_ORIGINS } from '../../../constants/transaction';
-import { analytics } from '../../../util/analytics/analytics';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
-import type { IMetaMetricsEvent } from '../../Analytics/MetaMetrics.types';
 import { MetaMetricsEvents } from '../../Analytics/MetaMetrics.events';
+import { trackMwpEvent } from '../utils/trackMwpEvent';
 import { TransportType } from '../../../components/hooks/useAnalytics/useAnalytics.types';
 import Logger from '../../../util/Logger';
-
-/**
- * Fire-and-forget analytics helper. Never throws — a broken analytics
- * call must never abort connection establishment or error handling.
- */
-function trackMwpEvent(
-  event: IMetaMetricsEvent,
-  properties: Record<string, unknown>,
-): void {
-  try {
-    analytics.trackEvent(
-      AnalyticsEventBuilder.createEventBuilder(event)
-        .addProperties(properties)
-        .build(),
-    );
-  } catch {
-    // Intentionally swallowed: analytics must not block MWP flows.
-  }
-}
 
 /**
  * Hard cap on the number of simultaneous active connections.
