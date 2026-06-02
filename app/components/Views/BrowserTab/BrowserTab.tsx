@@ -29,6 +29,8 @@ import {
   SPA_urlChangeListener,
   JS_DESELECT_TEXT,
   SCROLL_TRACKER_SCRIPT,
+  DOCUMENT_URL_FOR_URL_BAR,
+  buildDocumentUrlForUrlBarScript,
 } from '../../../util/browserScripts';
 import resolveEnsToIpfsContentId from '../../../lib/ens-ipfs/resolver';
 import { strings } from '../../../../locales/i18n';
@@ -86,6 +88,7 @@ import {
   type SessionENSNames,
   type BrowserTabProps,
   type IpfsContentResult,
+  type PendingBackForwardNav,
   WebViewNavigationEventName,
 } from './types';
 import {
@@ -100,7 +103,13 @@ import BrowserUrlBar, {
   ConnectionType,
   BrowserUrlBarRef,
 } from '../../UI/BrowserUrlBar';
-import { getMaskedUrl, isENSUrl } from './utils';
+import {
+  createRequestId,
+  getMaskedUrl,
+  isDisallowedExplicitPort,
+  isDocumentUrlForUrlBarPayload,
+  isENSUrl,
+} from './utils';
 import { getURLProtocol } from '../../../util/general';
 import { PROTOCOLS } from '../../../constants/deeplinks';
 import IpfsBanner from './components/IpfsBanner';
@@ -192,6 +201,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const iconRef = useRef<ImageSourcePropType | undefined>(undefined);
     const sessionENSNamesRef = useRef<SessionENSNames>({});
     const ensIgnoreListRef = useRef<string[]>([]);
+    const pendingBackForwardNavRef = useRef<PendingBackForwardNav | null>(null);
     const backgroundBridgeRef = useRef<
       | {
           url: string;
@@ -761,12 +771,48 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     );
 
     /**
+     * Resolves the URL bar from a document URL reported by the WebView after a
+     * back/forward navigation. Only the message matching the pending request is
+     * applied; messages without a matching request are ignored.
+     */
+    const handleDocumentUrlForUrlBar = useCallback(
+      (payload: unknown) => {
+        const pendingNav = pendingBackForwardNavRef.current;
+        if (
+          !pendingNav ||
+          !isDocumentUrlForUrlBarPayload(payload) ||
+          payload.requestId !== pendingNav.requestId
+        ) {
+          return;
+        }
+
+        pendingBackForwardNavRef.current = null;
+
+        handleSuccessfulPageResolution({
+          title: payload.title ?? titleRef.current,
+          url: payload.url,
+          icon: favicon,
+          canGoBack: pendingNav.canGoBack,
+          canGoForward: pendingNav.canGoForward,
+        });
+      },
+      [handleSuccessfulPageResolution, favicon],
+    );
+
+    /**
      * Function that allows custom handling of any web view requests.
      * Return `true` to continue loading the request and `false` to stop loading.
      */
     const onShouldStartLoadWithRequest = useCallback(
       ({ url: urlToLoad }: { url: string }) => {
         if (!isTabActive) return false;
+
+        if (isDisallowedExplicitPort(urlToLoad)) {
+          Logger.log(
+            `Skipping navigation with explicit non-default port: ${urlToLoad}`,
+          );
+          return false;
+        }
 
         webStates.current[urlToLoad] = {
           ...webStates.current[urlToLoad],
@@ -979,6 +1025,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             }
             return;
           }
+          if (dataParsed.type === DOCUMENT_URL_FOR_URL_BAR) {
+            handleDocumentUrlForUrlBar(dataParsed.payload);
+            return;
+          }
           if (dataParsed.name) {
             backgroundBridgeRef.current?.onMessage(dataParsed);
             return;
@@ -991,7 +1041,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           );
         }
       },
-      [checkIFrameUrls, scrollY],
+      [checkIFrameUrls, scrollY, handleDocumentUrlForUrlBar],
     );
 
     /**
@@ -1389,14 +1439,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
     const handleOnNavigationStateChange = useCallback(
       (event: WebViewNavigation) => {
-        const {
-          title: titleFromNativeEvent,
-          canGoForward,
-          canGoBack,
-          navigationType,
-          url,
-          loading,
-        } = event;
+        const { canGoForward, canGoBack, navigationType, loading } = event;
         Logger.log(
           `WEBVIEW NAVIGATING: OnNavigationStateChange \n Values: ${JSON.stringify(
             event,
@@ -1405,29 +1448,24 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
         // Handles force resolves url when going back since the behavior slightly differs that results in onLoadEnd not being called
         if (navigationType === 'backforward') {
-          // Only resolve the URL bar once the navigation has committed. A
-          // navigation that is still in progress (`loading === true`) is
-          // provisional and may not reflect the content actually displayed, so
-          // we wait for it to finish before updating the address bar.
           if (loading) {
             return;
           }
 
-          const payload = {
-            nativeEvent: {
-              url,
-              title: titleFromNativeEvent,
-              canGoBack,
-              canGoForward,
-            },
+          // Sync the URL bar from the document; navigation events are not always
+          // aligned with window.location after back/forward transitions.
+          const requestId = createRequestId();
+          pendingBackForwardNavRef.current = {
+            requestId,
+            canGoBack,
+            canGoForward,
           };
-          onLoadEnd({
-            event: payload as WebViewNavigationEvent | WebViewErrorEvent,
-            forceResolve: true,
-          });
+          webviewRef.current?.injectJavaScript(
+            buildDocumentUrlForUrlBarScript(requestId),
+          );
         }
       },
-      [onLoadEnd],
+      [],
     );
 
     /*
