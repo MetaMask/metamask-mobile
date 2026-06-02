@@ -156,6 +156,15 @@ export const selectTransactions = createDeepEqualSelector(
   },
 );
 
+export const selectTransactionsByHash = createSelector(
+  selectTransactions,
+  (txs) =>
+    txs.reduce((map, tx) => {
+      const hash = tx.hash?.toLowerCase();
+      return hash && !map.has(hash) ? map.set(hash, tx) : map;
+    }, new Map<string, TransactionMeta>()),
+);
+
 export const selectNonReplacedTransactions = createDeepEqualSelector(
   selectTransactionsStrict,
   (transactions) =>

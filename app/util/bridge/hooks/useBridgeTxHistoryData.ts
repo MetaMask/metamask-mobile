@@ -4,11 +4,10 @@ import {
   TransactionStatus,
 } from '@metamask/transaction-controller';
 import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
-import { selectTransactions } from '../../../selectors/transactionController';
+import { selectTransactionsByHash } from '../../../selectors/transactionController';
 import { Transaction } from '@metamask/keyring-api';
 import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { equalsIgnoreCase } from '../../string';
-import type { RootState } from '../../../reducers';
 
 export const FINAL_NON_CONFIRMED_STATUSES = [
   TransactionStatus.failed,
@@ -35,13 +34,10 @@ export function useBridgeTxHistoryData({
   multiChainTx,
 }: UseBridgeTxHistoryDataProps) {
   const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
-  const matchingLocalTransaction = useSelector((state: RootState) =>
-    evmTxMeta?.hash
-      ? selectTransactions(state).find((transaction) =>
-          equalsIgnoreCase(transaction.hash, evmTxMeta.hash),
-        )
-      : undefined,
-  );
+  const transactionsByHash = useSelector(selectTransactionsByHash);
+  const matchingLocalTransaction = evmTxMeta?.hash
+    ? transactionsByHash.get(evmTxMeta.hash.toLowerCase())
+    : undefined;
 
   let bridgeHistoryItem: BridgeHistoryItem | undefined;
   if (evmTxMeta) {
