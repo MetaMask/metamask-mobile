@@ -50,12 +50,6 @@ import {
 import styleSheet from './PostTradeBottomSheet.styles';
 import { usePostTradeTxStatus } from './usePostTradeTxStatus';
 
-const TITLE_KEYS: Record<PostTradeStatus, string> = {
-  [PostTradeStatus.InProgress]: 'bridge.post_trade_modal.swap_in_progress',
-  [PostTradeStatus.Success]: 'bridge.post_trade_modal.swap_complete',
-  [PostTradeStatus.Failed]: 'bridge.post_trade_modal.swap_failed',
-};
-
 export const getTradeSubtitle = ({
   sourceAmount,
   destAmount,
@@ -163,6 +157,12 @@ export const PostTradeBottomSheet = () => {
     sourceToken: params.sourceToken,
     destToken: params.destToken,
   });
+  const titleType =
+    params.sourceToken?.chainId &&
+    params.destToken?.chainId &&
+    params.sourceToken.chainId !== params.destToken.chainId
+      ? 'bridge'
+      : 'swap';
 
   const handleClose = () => {
     sheetRef.current?.onCloseBottomSheet();
@@ -234,7 +234,7 @@ export const PostTradeBottomSheet = () => {
           style={styles.title}
           testID={PostTradeBottomSheetTestIds.TITLE}
         >
-          {strings(TITLE_KEYS[status])}
+          {strings(`bridge.post_trade_modal.${titleType}_${status}`)}
         </Text>
         {subtitle ? (
           <Text
