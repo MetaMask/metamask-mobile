@@ -118,6 +118,7 @@ jobs:
     with:
       platform: ios
       source_branch: ${{ needs.update_rc_build_version.outputs.commit-hash }}
+      distribute_external: true
     secrets: inherit
 
   trigger-android-rc-build:
