@@ -12,7 +12,7 @@ import {
   DEFAULT_PREDICT_WORLD_CUP_FLAG,
 } from '../../constants/flags';
 import type { OrderPreview } from '../types';
-import { Side, type PredictPosition } from '../../types';
+import { Side, type PredictActivity, type PredictPosition } from '../../types';
 import type { PredictFeatureFlags } from '../../types/flags';
 import { PolymarketProvider } from './PolymarketProvider';
 import { OrderType, SignatureType } from './types';
@@ -48,6 +48,7 @@ import {
   getL2Headers,
   getOrderBook,
   getRawBalance,
+  parsePolymarketActivity,
   parsePolymarketEvents,
   parsePolymarketPositions,
   previewOrder,
@@ -219,6 +220,7 @@ const mockGetRawBalance = jest.mocked(getRawBalance);
 const mockGetSafeTransferAmount = jest.mocked(getSafeTransferAmount);
 const mockGetSafeTransferAmountRaw = jest.mocked(getSafeTransferAmountRaw);
 const mockIsSmartContractAddress = jest.mocked(isSmartContractAddress);
+const mockParsePolymarketActivity = jest.mocked(parsePolymarketActivity);
 const mockParsePolymarketEvents = jest.mocked(parsePolymarketEvents);
 const mockParsePolymarketPositions = jest.mocked(parsePolymarketPositions);
 const mockPreviewOrder = jest.mocked(previewOrder);
@@ -644,6 +646,113 @@ describe('PolymarketProvider', () => {
     await expect(
       createProvider().getAccountState({ ownerAddress: signer.address }),
     ).rejects.toThrow('Failed to fetch Polymarket activity');
+  });
+
+  describe('getActivity', () => {
+    const rawActivity = [
+      {
+        id: 'raw-activity-1',
+        type: 'TRADE',
+      },
+    ];
+    const parsedActivity: PredictActivity[] = [
+      {
+        id: 'activity-1',
+        providerId: POLYMARKET_PROVIDER_ID,
+        entry: { type: 'claimWinnings', timestamp: 1, amount: 10 },
+        title: 'Activity',
+      },
+    ];
+
+    const mockLegacySafeAccountStateFetch = () => ({
+      ok: true,
+      json: jest.fn().mockResolvedValue([{}]),
+    });
+
+    const mockActivityFetch = (body: unknown, ok = true) => ({
+      ok,
+      json: jest.fn().mockResolvedValue(body),
+    });
+
+    beforeEach(() => {
+      mockParsePolymarketActivity.mockReturnValue(parsedActivity);
+    });
+
+    it('requests paginated activity with supplied limit and offset', async () => {
+      global.fetch = jest
+        .fn()
+        .mockResolvedValueOnce(mockLegacySafeAccountStateFetch())
+        .mockResolvedValueOnce(mockActivityFetch(rawActivity));
+
+      await expect(
+        createProvider().getActivity({
+          address: signer.address,
+          limit: 10,
+          offset: 20,
+        }),
+      ).resolves.toEqual(parsedActivity);
+
+      expect(global.fetch).toHaveBeenLastCalledWith(
+        `https://data-api.polymarket.com/activity?user=${legacySafeAddress}&excludeLostRedeems=true&limit=10&offset=20`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+      expect(mockParsePolymarketActivity).toHaveBeenCalledWith(rawActivity);
+    });
+
+    it('defaults activity pagination to the first 20 items', async () => {
+      global.fetch = jest
+        .fn()
+        .mockResolvedValueOnce(mockLegacySafeAccountStateFetch())
+        .mockResolvedValueOnce(mockActivityFetch(rawActivity));
+
+      await expect(
+        createProvider().getActivity({ address: signer.address }),
+      ).resolves.toEqual(parsedActivity);
+
+      expect(global.fetch).toHaveBeenLastCalledWith(
+        `https://data-api.polymarket.com/activity?user=${legacySafeAddress}&excludeLostRedeems=true&limit=20&offset=0`,
+        expect.any(Object),
+      );
+    });
+
+    it('throws when the activity request is not ok', async () => {
+      global.fetch = jest
+        .fn()
+        .mockResolvedValueOnce(mockLegacySafeAccountStateFetch())
+        .mockResolvedValueOnce(mockActivityFetch([], false));
+
+      await expect(
+        createProvider().getActivity({ address: signer.address }),
+      ).rejects.toThrow('Failed to get activity');
+    });
+
+    it('throws when the activity response is invalid', async () => {
+      global.fetch = jest
+        .fn()
+        .mockResolvedValueOnce(mockLegacySafeAccountStateFetch())
+        .mockResolvedValueOnce(mockActivityFetch({ data: rawActivity }));
+
+      await expect(
+        createProvider().getActivity({ address: signer.address }),
+      ).rejects.toThrow('Invalid activity response');
+      expect(mockParsePolymarketActivity).not.toHaveBeenCalled();
+    });
+
+    it('throws when the activity request fails', async () => {
+      global.fetch = jest
+        .fn()
+        .mockResolvedValueOnce(mockLegacySafeAccountStateFetch())
+        .mockRejectedValueOnce(new Error('Network failed'));
+
+      await expect(
+        createProvider().getActivity({ address: signer.address }),
+      ).rejects.toThrow('Network failed');
+    });
   });
 
   it('previews orders through canonical CLOB v2 with zero fee-rate bps', async () => {

@@ -36,6 +36,12 @@ export interface GetPositionsParams {
   offset?: number;
 }
 
+export interface GetActivityParams {
+  address?: string;
+  limit?: number;
+  offset?: number;
+}
+
 export enum PredictMarketStatus {
   OPEN = 'open',
   CLOSED = 'closed',

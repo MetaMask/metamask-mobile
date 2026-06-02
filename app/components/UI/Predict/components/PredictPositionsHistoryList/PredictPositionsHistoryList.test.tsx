@@ -11,9 +11,13 @@ jest.mock('../../views/PredictTransactionsView', () => {
   const { Text, View } = jest.requireActual('react-native');
 
   return function MockPredictTransactionsView({
+    activityContainerStyle,
+    containerStyle,
     emptyState,
     isVisible,
   }: {
+    activityContainerStyle?: string;
+    containerStyle?: string;
     emptyState: React.ReactNode;
     isVisible: boolean;
   }) {
@@ -23,6 +27,8 @@ jest.mock('../../views/PredictTransactionsView', () => {
         testID: 'mock-predict-transactions-view',
       },
       ReactLib.createElement(Text, null, `visible:${isVisible}`),
+      ReactLib.createElement(Text, null, `container:${containerStyle}`),
+      ReactLib.createElement(Text, null, `activity:${activityContainerStyle}`),
       emptyState,
     );
   };
@@ -59,5 +65,12 @@ describe('PredictPositionsHistoryList', () => {
     render(<PredictPositionsHistoryList isVisible={false} />);
 
     expect(screen.getByText('visible:false')).toBeOnTheScreen();
+  });
+
+  it('passes compact spacing to transaction history', () => {
+    render(<PredictPositionsHistoryList isVisible />);
+
+    expect(screen.getByText('container:p-0')).toBeOnTheScreen();
+    expect(screen.getByText('activity:px-0')).toBeOnTheScreen();
   });
 });
