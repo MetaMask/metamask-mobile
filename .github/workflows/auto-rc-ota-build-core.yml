@@ -42,7 +42,7 @@ on:
         description: 'Whether to distribute the iOS build to external TestFlight testers'
         required: false
         type: boolean
-        default: false
+        default: true
     outputs:
       semantic_version:
         description: 'package.json version at the built commit (empty when OTA bump skips the build)'
