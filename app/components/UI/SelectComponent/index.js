@@ -13,9 +13,9 @@ import Modal from 'react-native-modal';
 import IconCheck from 'react-native-vector-icons/MaterialCommunityIcons';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import PickerBase from '../../../component-library/components/Pickers/PickerBase';
 import {
+  HeaderStandard,
   FontWeight,
   Text as DesignSystemText,
   TextColor,
@@ -183,7 +183,7 @@ export default class SelectComponent extends PureComponent {
           backdropOpacity={1}
         >
           <View style={styles.modalView}>
-            <HeaderCompactStandard
+            <HeaderStandard
               title={this.props.label}
               onClose={this.hidePicker}
             />

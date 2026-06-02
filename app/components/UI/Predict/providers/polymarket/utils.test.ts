@@ -1225,6 +1225,51 @@ describe('polymarket utils', () => {
     ]);
   });
 
+  it('falls back to question when a spread market is missing group item title', () => {
+    const marketWithoutGroupItemTitle = {
+      conditionId: 'spread-condition',
+      question: 'Knicks -3.5',
+      description: 'Spread market',
+      icon: 'icon.png',
+      image: 'image.png',
+      sportsMarketType: 'spreads',
+      status: 'open',
+      volumeNum: 100,
+      liquidity: 100,
+      negRisk: false,
+      clobTokenIds: '["token-knicks","token-spurs"]',
+      outcomes: '["NYK","SAS"]',
+      outcomePrices: '["0.5","0.5"]',
+      closed: false,
+      active: true,
+      acceptingOrders: true,
+      resolvedBy: '',
+      orderPriceMinTickSize: 0.01,
+      umaResolutionStatus: '',
+      line: -3.5,
+    } as unknown as PolymarketApiEvent['markets'][number];
+    const event: PolymarketApiEvent = {
+      id: 'spread-event',
+      slug: 'knicks-vs-spurs',
+      title: 'Knicks vs. Spurs',
+      description: 'Game description',
+      icon: 'icon.png',
+      closed: false,
+      active: true,
+      series: [],
+      markets: [marketWithoutGroupItemTitle],
+      tags: [],
+      liquidity: 100,
+      volume: 100,
+    };
+
+    expect(() => parsePolymarketEvents([event], 'sports')).not.toThrow();
+
+    const [parsedMarket] = parsePolymarketEvents([event], 'sports');
+
+    expect(parsedMarket.outcomes[0].groupItemTitle).toBe('Knicks 3.5');
+  });
+
   it('parses crypto up/down price to beat from event metadata', () => {
     const event: PolymarketApiEvent = {
       id: 'crypto-event',
