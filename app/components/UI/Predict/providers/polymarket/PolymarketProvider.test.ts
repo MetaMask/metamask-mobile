@@ -44,6 +44,7 @@ import {
   createApiKey,
   encodeErc20Transfer,
   fetchEventsFromPolymarketApi,
+  fetchMarketsFromPolymarketApi,
   getBalance,
   getL2Headers,
   getOrderBook,
@@ -104,6 +105,7 @@ jest.mock('./utils', () => {
     encodeErc20Transfer: jest.fn(),
     fetchCarouselFromPolymarketApi: jest.fn(),
     fetchEventsFromPolymarketApi: jest.fn(),
+    fetchMarketsFromPolymarketApi: jest.fn(),
     searchEventsFromPolymarketApi: jest.fn(),
     getBalance: jest.fn(),
     getL2Headers: jest.fn(),
@@ -205,6 +207,9 @@ const mockEncodeErc20Transfer = jest.mocked(encodeErc20Transfer);
 const mockGenerateTransferData = jest.mocked(generateTransferData);
 const mockFetchEventsFromPolymarketApi = jest.mocked(
   fetchEventsFromPolymarketApi,
+);
+const mockFetchMarketsFromPolymarketApi = jest.mocked(
+  fetchMarketsFromPolymarketApi,
 );
 const mockSearchEventsFromPolymarketApi = jest.mocked(
   searchEventsFromPolymarketApi,
@@ -386,6 +391,38 @@ describe('PolymarketProvider', () => {
         category: 'trending',
       });
       expect(mockSearchEventsFromPolymarketApi).not.toHaveBeenCalled();
+    });
+
+    it('lists markets from keyset events with normalized shape', async () => {
+      const provider = createProvider();
+      const events = [{ id: 'event-1' }];
+      const markets = [{ id: 'market-1', outcomes: [{ id: 'outcome-1' }] }];
+
+      mockFetchMarketsFromPolymarketApi.mockResolvedValue({
+        events: events as never,
+        nextCursor: 'next-cursor',
+      });
+      mockParsePolymarketEvents.mockReturnValue(markets as never);
+
+      await expect(
+        provider.listMarkets({ order: 'liquidity' }),
+      ).resolves.toEqual({
+        markets,
+        nextCursor: 'next-cursor',
+      });
+      expect(mockFetchMarketsFromPolymarketApi).toHaveBeenCalledWith({
+        order: 'liquidity',
+      });
+    });
+
+    it('returns an empty list page when listing markets throws', async () => {
+      const provider = createProvider();
+      mockFetchMarketsFromPolymarketApi.mockRejectedValue(new Error('Failed'));
+
+      await expect(provider.listMarkets({})).resolves.toEqual({
+        markets: [],
+        nextCursor: null,
+      });
     });
 
     it('searches markets through public-search events and filters empty outcomes', async () => {

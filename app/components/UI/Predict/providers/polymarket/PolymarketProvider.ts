@@ -58,6 +58,8 @@ import {
   OrderPreview,
   OrderResult,
   PlaceOrderParams,
+  PredictMarketListParams,
+  PredictMarketListResponse,
   PredictProvider,
   PrepareDepositParams,
   PrepareDepositResponse,
@@ -100,6 +102,7 @@ import {
   createApiKey,
   encodeErc20Transfer,
   fetchEventsFromPolymarketApi,
+  fetchMarketsFromPolymarketApi,
   fetchCarouselFromPolymarketApi,
   getBalance,
   getL2Headers,
@@ -951,6 +954,33 @@ export class PolymarketProvider implements PredictProvider {
         error instanceof Error ? error : new Error(String(error)),
         this.getErrorContext('getMarkets', {
           category: params?.category,
+          hasAfterCursor: Boolean(params?.afterCursor),
+        }),
+      );
+
+      return { markets: [], nextCursor: null };
+    }
+  }
+
+  public async listMarkets(
+    params: PredictMarketListParams,
+  ): Promise<PredictMarketListResponse> {
+    try {
+      const { events, nextCursor } =
+        await fetchMarketsFromPolymarketApi(params);
+
+      const markets = await this.#parseEventsToMarkets({
+        events,
+        category: PolymarketProvider.FALLBACK_CATEGORY,
+      });
+
+      return { markets, nextCursor };
+    } catch (error) {
+      DevLogger.log('Error listing markets via Polymarket API:', error);
+
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('listMarkets', {
           hasAfterCursor: Boolean(params?.afterCursor),
         }),
       );

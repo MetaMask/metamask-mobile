@@ -89,6 +89,8 @@ import {
   PredictClaim,
   PredictClaimStatus,
   PredictMarket,
+  PredictMarketListParams,
+  PredictMarketListResponse,
   PredictPosition,
   PredictPositionStatus,
   PredictPriceHistoryPoint,
@@ -376,6 +378,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getPrices',
   'getUnrealizedPnL',
   'initPayWithAnyToken',
+  'listMarkets',
   'onPlaceOrderSuccess',
   'placeOrder',
   'prepareWithdraw',
@@ -645,6 +648,44 @@ export class PredictController extends BaseController<
         }
 
         return { markets, nextCursor };
+      },
+    );
+  }
+
+  async listMarkets(
+    params: PredictMarketListParams,
+  ): Promise<PredictMarketListResponse> {
+    return withTrace(
+      this.traceable,
+      {
+        method: 'listMarkets',
+        trace: {
+          name: TraceName.PredictGetMarkets,
+          op: TraceOperation.PredictDataFetch,
+          tags: {
+            feature: PREDICT_CONSTANTS.FEATURE_NAME,
+            providerId: POLYMARKET_PROVIDER_ID,
+          },
+        },
+        errorContext: {
+          providerId: POLYMARKET_PROVIDER_ID,
+          hasAfterCursor: Boolean(params.afterCursor),
+        },
+        fallbackErrorCode: PREDICT_ERROR_CODES.MARKETS_FAILED,
+        traceData: (result) => ({
+          marketCount: result.markets.length,
+          hasNextCursor: Boolean(result.nextCursor),
+        }),
+      },
+      async () => {
+        const { markets, nextCursor } = await this.provider.listMarkets(params);
+
+        return {
+          markets: markets.filter(
+            (market): market is PredictMarket => market !== undefined,
+          ),
+          nextCursor,
+        };
       },
     );
   }

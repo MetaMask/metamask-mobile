@@ -23,6 +23,8 @@ import {
   PredictActivity,
   PredictFees,
   PredictMarket,
+  PredictMarketListParams,
+  PredictMarketListResponse,
   PredictPosition,
   PredictPriceHistoryPoint,
   PreviewOrderParams,
@@ -53,6 +55,8 @@ export type {
   OrderResult,
   PlaceOrderParams,
   PredictFees,
+  PredictMarketListParams,
+  PredictMarketListResponse,
   PreviewOrderParams,
   PriceUpdateCallback,
   SearchMarketsParams,
@@ -158,6 +162,9 @@ export interface PredictProvider {
   readonly chainId: number;
 
   getMarkets(params: GetMarketsParams): Promise<GetMarketsResult>;
+  listMarkets(
+    params: PredictMarketListParams,
+  ): Promise<PredictMarketListResponse>;
   searchMarkets(
     params: SearchMarketsParams,
   ): Promise<{ markets: PredictMarket[]; totalResults: number }>;

@@ -309,6 +309,7 @@ describe('PredictController', () => {
     // Create mock PolymarketProvider with required methods
     mockPolymarketProvider = {
       getMarkets: jest.fn(),
+      listMarkets: jest.fn(),
       searchMarkets: jest.fn(),
       getCarouselMarkets: jest.fn(),
       getMarketsByIds: jest.fn(),
@@ -674,6 +675,45 @@ describe('PredictController', () => {
         );
 
         await expect(controller.getMarkets({})).rejects.toThrow(errorMessage);
+        expect(controller.state.lastError).toBe(errorMessage);
+      });
+    });
+
+    it('lists markets by delegating to the provider', async () => {
+      const mockMarkets = [
+        {
+          id: 'm1',
+          question: 'Will it rain tomorrow?',
+          outcomes: ['YES', 'NO'],
+        },
+      ];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.listMarkets.mockResolvedValue({
+          markets: mockMarkets as any,
+          nextCursor: 'cursor-2',
+        });
+
+        const result = await controller.listMarkets({ order: 'liquidity' });
+
+        expect(result).toEqual({
+          markets: mockMarkets as any,
+          nextCursor: 'cursor-2',
+        });
+        expect(mockPolymarketProvider.listMarkets).toHaveBeenCalledWith({
+          order: 'liquidity',
+        });
+      });
+    });
+
+    it('handles errors when listing markets', async () => {
+      await withController(async ({ controller }) => {
+        const errorMessage = 'Network error';
+        mockPolymarketProvider.listMarkets.mockRejectedValue(
+          new Error(errorMessage),
+        );
+
+        await expect(controller.listMarkets({})).rejects.toThrow(errorMessage);
         expect(controller.state.lastError).toBe(errorMessage);
       });
     });
