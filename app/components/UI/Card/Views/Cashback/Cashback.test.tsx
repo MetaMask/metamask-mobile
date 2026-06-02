@@ -400,6 +400,25 @@ describe('Cashback Component', () => {
 
       expect(screen.getByText('Withdrawal unavailable')).toBeOnTheScreen();
     });
+
+    it('shows unavailable label when net amount floors to zero', () => {
+      mockHookReturn.cashbackWallet = {
+        id: 'w1',
+        balance: '0.50005',
+        currency: 'musd',
+        isWithdrawable: true,
+        type: 'reward',
+      };
+      mockHookReturn.estimation = {
+        wei: '100000',
+        eth: '0.0001',
+        price: '0.50',
+      };
+
+      render();
+
+      expect(screen.getByText('Withdrawal unavailable')).toBeOnTheScreen();
+    });
   });
 
   describe('Linea funding requirement', () => {

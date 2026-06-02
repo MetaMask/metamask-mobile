@@ -102,5 +102,25 @@ describe('Cashback.utils', () => {
         formatAmount(result.netAmount),
       );
     });
+
+    it('marks insufficient when net floors to zero despite positive remainder', () => {
+      const result = getCashbackWithdrawalAmounts('0.50005', '0.5');
+
+      expect(result.netAmountNumber).toBe(0);
+      expect(result.netAmount).toBe('0');
+      expect(result.hasInsufficientBalance).toBe(true);
+    });
+
+    it('marks insufficient when fee exceeds balance', () => {
+      const result = getCashbackWithdrawalAmounts('0.50', '1.00');
+
+      expect(result.hasInsufficientBalance).toBe(true);
+    });
+
+    it('marks sufficient when net is above display precision', () => {
+      const result = getCashbackWithdrawalAmounts('10.00', '0.50');
+
+      expect(result.hasInsufficientBalance).toBe(false);
+    });
   });
 });

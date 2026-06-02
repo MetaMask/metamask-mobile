@@ -72,13 +72,11 @@ const Cashback: React.FC = () => {
 
   const balance = cashbackWallet?.balance ?? '0';
   const currency = formatCurrency(cashbackWallet?.currency ?? 'musd');
-  const balanceNum = parseFloat(balance);
   const isWithdrawable = cashbackWallet?.isWithdrawable ?? false;
 
   const feePrice = estimation?.price ?? '0';
-  const { roundedFeeNum, netAmount, netAmountNumber } =
+  const { roundedFeeNum, netAmount, netAmountNumber, hasInsufficientBalance } =
     getCashbackWithdrawalAmounts(balance, feePrice);
-  const hasInsufficientBalance = balanceNum <= 0 || balanceNum <= roundedFeeNum;
   const isFundingStatusLoading =
     cardHomeDataStatus === 'idle' || cardHomeDataStatus === 'loading';
   const hasFundingStatusError = cardHomeDataStatus === 'error';

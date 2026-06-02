@@ -45,6 +45,7 @@ export interface CashbackWithdrawalAmounts {
   roundedFeeNum: number;
   netAmount: string;
   netAmountNumber: number;
+  hasInsufficientBalance: boolean;
 }
 
 export const getCashbackWithdrawalAmounts = (
@@ -58,11 +59,14 @@ export const getCashbackWithdrawalAmounts = (
   const netAmountNumber = floorToDisplayPrecision(
     Math.max(0, safeBalance - roundedFeeNum),
   );
+  const hasInsufficientBalance =
+    safeBalance <= 0 || safeBalance <= roundedFeeNum || netAmountNumber <= 0;
 
   return {
     roundedFee: toCanonicalAmountString(roundedFeeNum),
     roundedFeeNum,
     netAmount: toCanonicalAmountString(netAmountNumber),
     netAmountNumber,
+    hasInsufficientBalance,
   };
 };
