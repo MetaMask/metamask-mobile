@@ -8348,8 +8348,6 @@
     "report_submitted": "错误报告已提交。"
   },
   "pay_with_modal": {
-    "title": "选择付款方式",
-    "title_receive": "选择收款代币",
     "no_gas": "无支付燃料所需的原生代币余额",
     "not_supported": "不支持",
     "crypto": "加密货币"

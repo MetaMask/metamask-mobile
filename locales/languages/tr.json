@@ -8348,8 +8348,6 @@
     "report_submitted": "Hata raporu gönderildi."
   },
   "pay_with_modal": {
-    "title": "Ödeme yöntemi seç",
-    "title_receive": "Token al seçeneğini seç",
     "no_gas": "Gaz için yerel bakiye yok",
     "not_supported": "Desteklenmiyor",
     "crypto": "Kripto"
