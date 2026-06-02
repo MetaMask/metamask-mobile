@@ -25,11 +25,7 @@ function readSkillsLocal(content: string): typeof import('fs').readFileSync {
 }
 
 function testEnv(values: Partial<NodeJS.ProcessEnv> = {}): NodeJS.ProcessEnv {
-  const env = { ...process.env, ...values };
-  if (!Object.prototype.hasOwnProperty.call(values, 'SKILLS_AUTO_UPDATE')) {
-    delete env.SKILLS_AUTO_UPDATE;
-  }
-  return env as NodeJS.ProcessEnv;
+  return { NODE_ENV: 'test', ...values } as NodeJS.ProcessEnv;
 }
 
 function spawnWithStatuses(
