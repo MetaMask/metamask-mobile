@@ -255,21 +255,21 @@ describe('OnboardingSuccessComponent', () => {
     expect(getByTestId('onboarding-success-end-animation')).toBeOnTheScreen();
   });
 
-  it('hides OnboardingSuccessEndAnimation on Android for seedless onboarding flow', () => {
+  it('renders OnboardingSuccessEndAnimation on Android for seedless onboarding flow', () => {
     const originalPlatform = Platform.OS;
     Object.defineProperty(Platform, 'OS', {
       writable: true,
       value: 'android',
     });
 
-    const { queryByTestId } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <OnboardingSuccessComponent
         onDone={jest.fn()}
         successFlow={ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING}
       />,
     );
 
-    expect(queryByTestId('onboarding-success-end-animation')).toBeNull();
+    expect(getByTestId('onboarding-success-end-animation')).toBeOnTheScreen();
 
     Object.defineProperty(Platform, 'OS', {
       writable: true,

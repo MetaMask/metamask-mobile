@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { act, render } from '@testing-library/react-native';
 import OnboardingSuccessEndAnimation from './index';
 
 // Mock Rive
@@ -48,6 +48,26 @@ jest.mock(
 );
 
 describe('OnboardingSuccessEndAnimation', () => {
+  const ANIMATION_START_DELAY_MS = 1000;
+  const ONLY_END_TRANSITION_DELAY_MS = 100;
+
+  const advancePastAnimationStart = () => {
+    act(() => {
+      jest.advanceTimersByTime(ANIMATION_START_DELAY_MS);
+    });
+  };
+
+  const advancePastOnlyEndTransition = () => {
+    act(() => {
+      jest.advanceTimersByTime(ONLY_END_TRANSITION_DELAY_MS);
+    });
+  };
+
+  const advanceThroughAnimationSetup = () => {
+    advancePastAnimationStart();
+    advancePastOnlyEndTransition();
+  };
+
   beforeEach(() => {
     jest.useFakeTimers();
     mockIsE2EValue = false;
@@ -131,8 +151,8 @@ describe('OnboardingSuccessEndAnimation', () => {
       />,
     );
 
-    // Advance timers to trigger setTimeout
-    jest.advanceTimersByTime(100);
+    // Advance timers: mount delay, then Only_End transition (each needs act for setState)
+    advanceThroughAnimationSetup();
 
     // Assert
     expect(mockOnAnimationComplete).toBeDefined();
@@ -158,18 +178,20 @@ describe('OnboardingSuccessEndAnimation', () => {
       />,
     );
 
-    // Verify initial timeout is set (advance partially)
-    jest.advanceTimersByTime(50);
+    advancePastAnimationStart();
 
-    // Re-render
+    // Re-render while Only_End timer is pending
+    act(() => {
+      jest.advanceTimersByTime(ONLY_END_TRANSITION_DELAY_MS / 2);
+    });
+
     rerender(
       <OnboardingSuccessEndAnimation
         onAnimationComplete={mockOnAnimationComplete}
       />,
     );
 
-    // Advance remaining time
-    jest.advanceTimersByTime(100);
+    advancePastOnlyEndTransition();
 
     // Assert
     expect(mockSetInputState).toHaveBeenCalledTimes(1);
@@ -193,7 +215,7 @@ describe('OnboardingSuccessEndAnimation', () => {
       />,
     );
 
-    jest.advanceTimersByTime(1000);
+    advancePastAnimationStart();
 
     unmount();
 
@@ -232,7 +254,7 @@ describe('OnboardingSuccessEndAnimation', () => {
       />,
     );
 
-    jest.advanceTimersByTime(100);
+    advanceThroughAnimationSetup();
 
     // Assert
     expect(consoleSpy).toHaveBeenCalledWith(
@@ -263,7 +285,7 @@ describe('OnboardingSuccessEndAnimation', () => {
       />,
     );
 
-    jest.advanceTimersByTime(100);
+    advanceThroughAnimationSetup();
 
     // Verify light theme was used
     expect(mockSetInputState).toHaveBeenCalledWith(

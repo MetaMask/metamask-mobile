@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Rive, { Fit, Alignment, RiveRef } from 'rive-react-native';
 import { useTheme } from '../../../../util/theme';
 import { getScreenDimensions } from '../../../../util/onboarding';
@@ -16,6 +16,9 @@ interface OnboardingSuccessEndAnimationProps {
   onAnimationComplete: () => void;
 }
 
+const ANIMATION_START_DELAY_MS = 1000;
+const ONLY_END_TRANSITION_DELAY_MS = 100;
+
 const OnboardingSuccessEndAnimation: React.FC<
   OnboardingSuccessEndAnimationProps
 > = ({ onAnimationComplete: _onAnimationComplete }) => {
@@ -23,11 +26,23 @@ const OnboardingSuccessEndAnimation: React.FC<
   const { themeAppearance } = useTheme();
   const isDarkMode = themeAppearance === 'dark';
   const tw = useTailwind();
+  const [shouldStartAnimation, setShouldStartAnimation] = useState(isE2E);
 
   const { screenWidth, screenHeight, animationHeight } = getScreenDimensions();
 
   useEffect(() => {
     if (isE2E) return;
+
+    const startTimeoutId = setTimeout(() => {
+      setShouldStartAnimation(true);
+    }, ANIMATION_START_DELAY_MS);
+
+    return () => clearTimeout(startTimeoutId);
+  }, []);
+
+  useEffect(() => {
+    if (isE2E || !shouldStartAnimation) return;
+
     const timeoutId = setTimeout(() => {
       if (riveRef.current) {
         try {
@@ -41,10 +56,10 @@ const OnboardingSuccessEndAnimation: React.FC<
           console.error('Error with Rive animation:', error);
         }
       }
-    }, 100);
+    }, ONLY_END_TRANSITION_DELAY_MS);
 
     return () => clearTimeout(timeoutId);
-  }, [isDarkMode]);
+  }, [isDarkMode, shouldStartAnimation]);
 
   return (
     <Box
@@ -58,7 +73,7 @@ const OnboardingSuccessEndAnimation: React.FC<
         justifyContent={BoxJustifyContent.Center}
         twClassName="flex-1"
       >
-        {!isE2E && (
+        {!isE2E && shouldStartAnimation && (
           <Rive
             ref={riveRef}
             source={onboardingLoaderEndAnimation}
