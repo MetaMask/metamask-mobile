@@ -10,6 +10,8 @@ import {
   createMockEventBuilder,
   createMockUseAnalyticsHook,
 } from '../../../../util/test/analyticsMock';
+import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
+import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -112,11 +114,26 @@ jest.mock('../../../../util/Logger', () => ({
   },
 }));
 
+const MOCK_WALLET_ADDRESS = '0x1111111111111111111111111111111111111111';
+
 describe('BenefitFullView', () => {
+  let mockSubscriptionId: string | null;
+  let mockSelectedAccount: { address: string } | undefined;
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteBenefit = mockBenefit;
-    mockUseSelector.mockReturnValue('subscription-123');
+    mockSubscriptionId = 'subscription-123';
+    mockSelectedAccount = { address: MOCK_WALLET_ADDRESS };
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectRewardsSubscriptionId) {
+        return mockSubscriptionId;
+      }
+      if (selector === selectSelectedInternalAccount) {
+        return mockSelectedAccount;
+      }
+      return undefined;
+    });
     mockFormatDateRemaining.mockReturnValue('1mo 3d');
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
@@ -155,7 +172,7 @@ describe('BenefitFullView', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('posts benefit impression on mount when subscription exists', async () => {
+  it('posts benefit impression on mount with the selected wallet address when subscription exists', async () => {
     render(<BenefitFullView />);
 
     await waitFor(() => {
@@ -164,12 +181,29 @@ describe('BenefitFullView', () => {
         'subscription-123',
         mockBenefit.id,
         mockBenefit.type.id,
+        MOCK_WALLET_ADDRESS,
+      );
+    });
+  });
+
+  it('posts benefit impression with an undefined wallet address when no account is selected', async () => {
+    mockSelectedAccount = undefined;
+
+    render(<BenefitFullView />);
+
+    await waitFor(() => {
+      expect(mockPostBenefitImpression).toHaveBeenCalledWith(
+        'RewardsController:postBenefitImpression',
+        'subscription-123',
+        mockBenefit.id,
+        mockBenefit.type.id,
+        undefined,
       );
     });
   });
 
   it('does not post benefit impression when subscription is missing', async () => {
-    mockUseSelector.mockReturnValue(null);
+    mockSubscriptionId = null;
 
     render(<BenefitFullView />);
 
