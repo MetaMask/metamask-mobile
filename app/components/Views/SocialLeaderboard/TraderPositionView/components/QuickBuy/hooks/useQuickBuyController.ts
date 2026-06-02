@@ -673,7 +673,7 @@ export function useQuickBuyController(
         : undefined;
     const submittedTraderAddress = traderAddress;
     const submittedCaip19 = caip19;
-    const submittedAssetName = destToken?.symbol ?? target.tokenSymbol;
+    const submittedAssetName = target.tokenSymbol;
     const submittedPayWith =
       tradeMode === 'buy' ? sourceToken?.symbol : undefined;
     const submittedReceiveToken =
