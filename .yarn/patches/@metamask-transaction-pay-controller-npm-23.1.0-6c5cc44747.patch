@@ -1,0 +1,30 @@
+diff --git a/dist/strategy/fiat/fiat-submit.cjs b/dist/strategy/fiat/fiat-submit.cjs
+index 8f46b26983404ee0625ebce81a87d1646d0f1c93..02d6efa8405b24bdcfd2244aad28c7f82e48cd2d 100644
+--- a/dist/strategy/fiat/fiat-submit.cjs
++++ b/dist/strategy/fiat/fiat-submit.cjs
+@@ -215,8 +215,8 @@ async function submitRelayAfterFiatCompletion({ order, request, }) {
+     const baseRequest = quotes[0].request;
+     const relayRequest = {
+         ...baseRequest,
+-        isMaxAmount: true,
+-        isPostQuote: false,
++        isMaxAmount: false,
++        isPostQuote: true,
+         sourceBalanceRaw: sourceAmountRaw,
+         sourceTokenAmount: sourceAmountRaw,
+     };
+diff --git a/dist/strategy/fiat/fiat-submit.mjs b/dist/strategy/fiat/fiat-submit.mjs
+index fe769cb8643ee0819df37aec0f9ec64fb89d4431..35da67a79934358624736b8ded4003b090f366eb 100644
+--- a/dist/strategy/fiat/fiat-submit.mjs
++++ b/dist/strategy/fiat/fiat-submit.mjs
+@@ -211,8 +211,8 @@ async function submitRelayAfterFiatCompletion({ order, request, }) {
+     const baseRequest = quotes[0].request;
+     const relayRequest = {
+         ...baseRequest,
+-        isMaxAmount: true,
+-        isPostQuote: false,
++        isMaxAmount: false,
++        isPostQuote: true,
+         sourceBalanceRaw: sourceAmountRaw,
+         sourceTokenAmount: sourceAmountRaw,
+     };
