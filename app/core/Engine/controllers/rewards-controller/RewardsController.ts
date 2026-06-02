@@ -4770,7 +4770,13 @@ export class RewardsController extends BaseController<
     campaignId: string,
   ): Promise<PerpsTradingCampaignLeaderboardDto> {
     if (!this.isRewardsFeatureEnabled()) {
-      return { campaignId, computedAt: '', entries: [], totalParticipants: 0 };
+      return {
+        campaignId,
+        computedAt: '',
+        entries: [],
+        totalParticipants: 0,
+        minVolumeForEligibility: 0,
+      };
     }
 
     const result = await wrapWithCache<PerpsTradingCampaignLeaderboardDto>({
@@ -4785,6 +4791,7 @@ export class RewardsController extends BaseController<
             computedAt: cached.computedAt,
             entries: cached.entries,
             totalParticipants: cached.totalParticipants,
+            minVolumeForEligibility: cached.minVolumeForEligibility,
           },
           lastFetched: cached.lastFetched,
         };
@@ -4805,6 +4812,7 @@ export class RewardsController extends BaseController<
             computedAt: payload.computedAt,
             entries: payload.entries,
             totalParticipants: payload.totalParticipants,
+            minVolumeForEligibility: payload.minVolumeForEligibility,
             lastFetched: Date.now(),
           };
         });
@@ -4849,9 +4857,11 @@ export class RewardsController extends BaseController<
           return {
             payload: {
               rank: cached.rank,
+              totalParticipants: cached.totalParticipants,
               pnl: cached.pnl,
-              notionalVolume: cached.notionalVolume,
-              qualified: cached.qualified,
+              volume: cached.volume,
+              eligible: cached.eligible,
+              minVolumeForEligibility: cached.minVolumeForEligibility,
               neighbors: cached.neighbors,
               computedAt: cached.computedAt,
             },
@@ -4881,9 +4891,11 @@ export class RewardsController extends BaseController<
             this.update((state) => {
               state.perpsTradingCampaignLeaderboardPositions[k] = {
                 rank: payload.rank,
+                totalParticipants: payload.totalParticipants,
                 pnl: payload.pnl,
-                notionalVolume: payload.notionalVolume,
-                qualified: payload.qualified,
+                volume: payload.volume,
+                eligible: payload.eligible,
+                minVolumeForEligibility: payload.minVolumeForEligibility,
                 neighbors: payload.neighbors,
                 computedAt: payload.computedAt,
                 lastFetched: Date.now(),
