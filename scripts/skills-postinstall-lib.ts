@@ -63,9 +63,14 @@ export function isGitDir(dir: string, stat?: StatSync): boolean {
   }
 }
 
+export function isTruthy(value: string | undefined): boolean {
+  return /^(1|true|yes)$/iu.test(value ?? '');
+}
+
 export function shouldSkipPostinstall(env: NodeJS.ProcessEnv): boolean {
-  return Boolean(
-    env.SKILLS_SKIP_POSTINSTALL || (env.CI && !env.SKILLS_FORCE_POSTINSTALL),
+  return (
+    isTruthy(env.SKILLS_SKIP_POSTINSTALL) ||
+    (isTruthy(env.CI) && !isTruthy(env.SKILLS_FORCE_POSTINSTALL))
   );
 }
 
@@ -125,9 +130,7 @@ export function shouldAutoUpdateSkills(
   env: NodeJS.ProcessEnv,
   readFile?: ReadFileSync,
 ): boolean {
-  return /^(1|true|yes)$/iu.test(
-    getConfigValue(env, 'SKILLS_AUTO_UPDATE', readFile) ?? '',
-  );
+  return isTruthy(getConfigValue(env, 'SKILLS_AUTO_UPDATE', readFile));
 }
 
 export function ensurePublicSkillsCache(deps?: PostinstallDeps): boolean {
@@ -196,26 +199,32 @@ export function postinstall(deps?: PostinstallDeps): number {
     return 0;
   }
 
-  const cacheReady = ensurePublicSkillsCache(deps);
-  if (shouldAutoUpdateSkills(env, deps?.readFile)) {
-    if (
-      cacheReady ||
-      getConfigValue(env, 'METAMASK_SKILLS_DIR', deps?.readFile) ||
-      getConfigValue(env, 'CONSENSYS_SKILLS_DIR', deps?.readFile)
-    ) {
-      autoUpdateSkills(deps);
-    } else {
-      warn(
-        'auto-update skipped because skills cache is unavailable',
-        deps?.stderr,
-      );
+  try {
+    const cacheReady = ensurePublicSkillsCache(deps);
+    if (shouldAutoUpdateSkills(env, deps?.readFile)) {
+      if (
+        cacheReady ||
+        getConfigValue(env, 'METAMASK_SKILLS_DIR', deps?.readFile) ||
+        getConfigValue(env, 'CONSENSYS_SKILLS_DIR', deps?.readFile)
+      ) {
+        autoUpdateSkills(deps);
+      } else {
+        warn(
+          'auto-update skipped because skills cache is unavailable',
+          deps?.stderr,
+        );
+      }
     }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    warn(`unexpected error: ${message}`, deps?.stderr);
   }
 
   return 0;
 }
 
 export default {
+  isTruthy,
   autoUpdateSkills,
   ensurePublicSkillsCache,
   getConfigValue,

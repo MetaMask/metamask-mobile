@@ -55,6 +55,7 @@ describe('skills-postinstall', () => {
 
   it('skips when explicitly disabled or running in CI without force', () => {
     expect(shouldSkipPostinstall(testEnv({ SKILLS_SKIP_POSTINSTALL: '1' }))).toBe(true);
+    expect(shouldSkipPostinstall(testEnv({ SKILLS_SKIP_POSTINSTALL: '0' }))).toBe(false);
     expect(shouldSkipPostinstall(testEnv({ CI: 'true' }))).toBe(true);
     expect(
       shouldSkipPostinstall(testEnv({ CI: 'true', SKILLS_FORCE_POSTINSTALL: '1' })),
@@ -167,6 +168,26 @@ describe('skills-postinstall', () => {
     expect(spawn).toHaveBeenNthCalledWith(2, 'yarn', ['skills'], {
       stdio: 'inherit',
     });
+  });
+
+
+  it('warns without failing when auto-update throws unexpectedly', () => {
+    const stderr = { write: jest.fn() };
+
+    expect(
+      postinstall({
+        env: testEnv({ SKILLS_AUTO_UPDATE: '1' }),
+        readFile: readSkillsLocal(''),
+        spawn: (() => {
+          throw new Error('spawn unavailable');
+        }) as unknown as typeof import('child_process').spawnSync,
+        stat: statGitDir(true),
+        stderr,
+      }),
+    ).toBe(0);
+    expect(stderr.write).toHaveBeenCalledWith(
+      expect.stringContaining('unexpected error: spawn unavailable'),
+    );
   });
 
   it('warns but does not fail when auto-update sync fails', () => {
