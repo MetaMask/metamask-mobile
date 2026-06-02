@@ -323,9 +323,6 @@ export function* handleDeeplinkSaga() {
       continue;
     }
 
-    // Start SDK services in the background
-    yield call(startSDKServicesInitialization);
-
     const deeplink = AppStateEventProcessor.pendingDeeplink;
     const deeplinkSource =
       AppStateEventProcessor.pendingDeeplinkSource ??
@@ -339,6 +336,36 @@ export function* handleDeeplinkSaga() {
       yield fork(parseDeeplink, deeplink, deeplinkSource);
       AppStateEventProcessor.clearPendingDeeplink();
     }
+  }
+}
+
+// Keep SDK warm-up independent from deeplink parsing. Normal app launches have
+// no pending deeplink, but WalletConnect/SDKConnect still need to initialize
+// after unlock; parsing pending links on LOGIN would race startup intents.
+export function* initializeSDKServicesSaga() {
+  while (true) {
+    const value = (yield take([
+      UserActionType.LOGIN,
+      SET_COMPLETED_ONBOARDING,
+    ])) as LoginAction | SetCompletedOnboardingAction;
+
+    let completedOnboarding = false;
+    if (value.type === SET_COMPLETED_ONBOARDING) {
+      completedOnboarding = value.completedOnboarding;
+    } else {
+      completedOnboarding = yield select(selectCompletedOnboarding);
+    }
+
+    if (!completedOnboarding) {
+      continue;
+    }
+
+    const { KeyringController } = Engine.context;
+    if (!KeyringController.isUnlocked()) {
+      continue;
+    }
+
+    yield call(startSDKServicesInitialization);
   }
 }
 
@@ -413,6 +440,7 @@ export function* rootSaga() {
   yield fork(authStateMachine);
   yield fork(basicFunctionalityToggle);
   yield fork(handleDeeplinkSaga);
+  yield fork(initializeSDKServicesSaga);
   yield fork(rewardsBulkLinkSaga);
 
   // Send one-time analytics backfill for migrated social login users after
