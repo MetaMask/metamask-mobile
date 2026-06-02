@@ -182,6 +182,8 @@ interface UniversalLinkActionHandler {
 const UNIVERSAL_LINK_ACTION_HANDLERS: Partial<
   Record<SUPPORTED_ACTIONS, UniversalLinkActionHandler>
 > = {
+  // Actions listed here can opt into startup intent resolution while still
+  // sharing the signature, interstitial, and analytics flow above.
   [SUPPORTED_ACTIONS.REWARDS]: {
     execute: ({ actionBasedRampPath }) =>
       handleRewardsUrl({

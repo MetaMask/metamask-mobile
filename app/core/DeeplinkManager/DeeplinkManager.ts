@@ -14,6 +14,8 @@ import {
 } from '../Braze/BrazeDeeplinks';
 import type { DeeplinkIntent } from './types/DeeplinkIntent';
 
+// `false` means the deeplink was handled but intentionally rejected, for
+// example when the user dismisses the interstitial during startup resolution.
 export type DeeplinkResolveResult = DeeplinkIntent | false | null;
 
 /**

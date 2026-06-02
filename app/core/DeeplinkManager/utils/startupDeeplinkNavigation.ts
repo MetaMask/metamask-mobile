@@ -28,6 +28,9 @@ export const navigateToPendingStartupDeeplink = async (): Promise<boolean> => {
   try {
     const intent = await SharedDeeplinkManager.resolve(deeplink, { origin });
     if (intent === false) {
+      // The startup resolve pass already showed the interstitial and the user
+      // rejected it. Clear the pending link so the Home fallback does not
+      // redispatch the same deeplink and show the interstitial again.
       AppStateEventProcessor.clearPendingDeeplink();
       return false;
     }
