@@ -633,7 +633,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
     }
     if (key === 'money.metamask_card.link_bullet_apy') {
       const apy = (params as { apy?: number | string } | undefined)?.apy;
-      return `Earn up to ${apy}% APY`;
+      return `Earn up to ~${apy}% APY`;
     }
     return key;
   },
@@ -6464,7 +6464,7 @@ describe('CardHome Component', () => {
           strings('money.metamask_card.link_subtitle', { apy: 4 }),
         ),
       ).toBeOnTheScreen();
-      expect(screen.getByText('Earn up to 4% APY')).toBeOnTheScreen();
+      expect(screen.getByText('Earn up to ~4% APY')).toBeOnTheScreen();
     });
   });
 });
