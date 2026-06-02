@@ -105,6 +105,48 @@ describe('AssetDetailsQuickBuy', () => {
     );
   });
 
+  it('passes null target when token address is an empty string', () => {
+    const tokenEmptyAddress = {
+      address: '',
+      symbol: 'TKN',
+      name: 'Token',
+      chainId: '0x1',
+    } as unknown as TokenDetailsRouteParams;
+
+    render(
+      <AssetDetailsQuickBuy
+        isVisible
+        token={tokenEmptyAddress}
+        onClose={jest.fn()}
+      />,
+    );
+
+    expect(mockQuickBuyRoot).toHaveBeenCalledWith(
+      expect.objectContaining({ target: null }),
+    );
+  });
+
+  it('passes null target when token address is null', () => {
+    const tokenNullAddress = {
+      address: null,
+      symbol: 'TKN',
+      name: 'Token',
+      chainId: '0x1',
+    } as unknown as TokenDetailsRouteParams;
+
+    render(
+      <AssetDetailsQuickBuy
+        isVisible
+        token={tokenNullAddress}
+        onClose={jest.fn()}
+      />,
+    );
+
+    expect(mockQuickBuyRoot).toHaveBeenCalledWith(
+      expect.objectContaining({ target: null }),
+    );
+  });
+
   it('passes null target when token is null', () => {
     render(<AssetDetailsQuickBuy isVisible token={null} onClose={jest.fn()} />);
 

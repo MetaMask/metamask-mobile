@@ -37,7 +37,7 @@ const AssetDetailsQuickBuy: React.FC<AssetDetailsQuickBuyProps> = ({
   const tokenName = token?.name;
 
   const target = useMemo<QuickBuyTarget | null>(() => {
-    if (!chainId || tokenAddress === undefined) {
+    if (!chainId || !tokenAddress) {
       return null;
     }
     let chain: CaipChainId | undefined;
