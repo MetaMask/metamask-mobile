@@ -141,6 +141,7 @@ const TrendingTokensFullView = () => {
     searchQuery: filters.searchQuery || undefined,
     sortBy,
     chainIds: filters.selectedNetwork,
+    filterLowQuality: true,
   });
 
   const trendingTokens = useMemo(() => {
