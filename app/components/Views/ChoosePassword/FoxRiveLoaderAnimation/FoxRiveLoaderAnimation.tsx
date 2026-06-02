@@ -39,17 +39,6 @@ const FoxRiveLoaderAnimation: React.FC<FoxRiveLoaderAnimationProps> = () => {
     [screenWidth],
   );
 
-  useEffect(
-    () => () => {
-      try {
-        riveRef.current?.stop();
-      } catch {
-        // Native view may already be torn down on unmount
-      }
-    },
-    [],
-  );
-
   useEffect(() => {
     if (isE2E) return;
     const timeoutId = setTimeout(() => {

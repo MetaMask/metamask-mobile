@@ -17,7 +17,7 @@ interface OnboardingSuccessEndAnimationProps {
 }
 
 /** Debug: increase/decrease to test crash timing (start at 5000, then reduce). */
-const ANIMATION_START_DELAY_MS = 5000;
+const ANIMATION_START_DELAY_MS = 1000;
 const ONLY_END_TRANSITION_DELAY_MS = 100;
 
 const OnboardingSuccessEndAnimation: React.FC<
@@ -40,17 +40,6 @@ const OnboardingSuccessEndAnimation: React.FC<
 
     return () => clearTimeout(startTimeoutId);
   }, []);
-
-  useEffect(
-    () => () => {
-      try {
-        riveRef.current?.stop();
-      } catch {
-        // Native view may already be torn down on unmount
-      }
-    },
-    [],
-  );
 
   useEffect(() => {
     if (isE2E || !shouldStartAnimation) return;
