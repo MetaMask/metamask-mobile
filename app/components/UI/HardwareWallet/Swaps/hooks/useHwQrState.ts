@@ -8,6 +8,12 @@ import {
   HardwareWalletsSwapsEventType,
 } from '../HardwareWalletsSwaps.state';
 
+/**
+ * Options for {@link useHwQrState}.
+ *
+ * @property isEnabled - Whether hardware wallet swaps are enabled for the current flow.
+ * @property currentStatus - The current status of the hardware wallet swap flow.
+ */
 interface UseHwQrStateOptions {
   isEnabled: boolean;
   currentStatus: HardwareWalletsSwapsStatus;
@@ -25,6 +31,19 @@ const TERMINAL_STATUSES: Set<HardwareWalletsSwapsStatus> = new Set([
   HardwareWalletsSwapsStatus.Disconnected,
 ]);
 
+/**
+ * Hook that manages QR hardware wallet state during a swap flow.
+ *
+ * Responsibilities:
+ * - Detects whether the connected wallet is a QR-based hardware wallet.
+ * - Determines when to show the inline QR signing UI.
+ * - Auto-cancels pending QR scan requests when the swap transitions to a
+ * terminal state `Failed`, `Rejected`, `Cancelled`, `Disconnected`.
+ * - Provides a cancel handler that rejects the scan and updates the swap state.
+ *
+ * @param options - See {@link UseHwQrStateOptions}.
+ * @returns QR-related state and callbacks for the swap UI.
+ */
 export function useHwQrState({
   isEnabled,
   currentStatus,
@@ -49,10 +68,12 @@ export function useHwQrState({
     setIsReadingQrSignature(false);
   }, [pendingScanRequest]);
 
-  // Auto-cancel pending QR scan when transitioning from an active state
-  // to a terminal state (Failed, Rejected, Cancelled, Disconnected).
-  // This handles the case where the swap fails instantly (e.g., STX not
-  // supported) but a QR scan request was already created by the keyring.
+  /**
+   * Auto-cancel pending QR scan when transitioning from an active state
+   * to a terminal state (Failed, Rejected, Cancelled, Disconnected).
+   * This handles the case where the swap fails instantly (e.g., STX not
+   * supported) but a QR scan request was already created by the keyring.
+   */
   useEffect(() => {
     const isActive =
       currentStatus === HardwareWalletsSwapsStatus.Waiting ||

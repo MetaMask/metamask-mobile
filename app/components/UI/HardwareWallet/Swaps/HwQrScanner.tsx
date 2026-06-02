@@ -58,11 +58,28 @@ const styles = StyleSheet.create({
   },
 });
 
+/**
+ * Route parameters passed to the {@link HwQrScanner} screen.
+ *
+ * @property currentStep - The current step number in the multi-step signing flow (1-based).
+ * @property totalSteps - The total number of steps in the signing flow.
+ */
 interface HwQrScannerRouteParams {
   currentStep: number;
   totalSteps: number;
 }
 
+/**
+ * Screen component that uses the device camera to scan animated QR codes
+ * from a QR-based hardware wallet (e.g. Keystone) during a multi-step
+ * transaction signing flow.
+ *
+ * The scanner decodes UR-encoded QR parts, validates the request ID against
+ * the pending scan request, and resolves or rejects the scan via
+ * `Engine.getQrKeyringScanner()`.
+ *
+ * Supported route params: {@link HwQrScannerRouteParams}.
+ */
 export function HwQrScanner() {
   const tw = useTailwind();
   const navigation = useNavigation();

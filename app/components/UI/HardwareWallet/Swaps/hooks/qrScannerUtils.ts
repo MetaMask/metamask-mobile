@@ -11,17 +11,37 @@ import type { UseAnalyticsHook } from '../../../../../components/hooks/useAnalyt
 import { withQrKeyring } from '../../../../../core/QrKeyring/QrKeyring';
 import { HardwareDeviceTypes } from '../../../../../constants/keyringTypes';
 
+/**
+ * Subset of {@link UseAnalyticsHook} required for error analytics tracking.
+ */
 type ErrorAnalyticsDependencies = Pick<
   UseAnalyticsHook,
   'trackEvent' | 'createEventBuilder'
 >;
 
+/**
+ * Options for {@link useCameraPermissionRefresh}.
+ *
+ * @property isActive - Whether the scanner is currently active.
+ * @property hasPermission - Whether camera permission has already been granted.
+ * @property requestPermission - Async function that prompts the user for camera permission.
+ */
 interface CameraPermissionRefreshOptions {
   isActive: boolean;
   hasPermission: boolean;
   requestPermission: () => Promise<unknown>;
 }
 
+/**
+ * Builds a flat analytics payload for a QR hardware wallet scan error.
+ *
+ * @param options - Error details.
+ * @param options.error - Human-readable error message.
+ * @param options.error_category - Optional categorisation of the error type.
+ * @param options.is_ur_format - Whether the scanned QR code used the UR format.
+ * @param options.received_ur_type - The UR type string received (included when `error_category` is `WrongURType`).
+ * @returns A key-value record suitable for analytics event properties.
+ */
 export function buildQrHardwareWalletErrorAnalyticsProperties(options: {
   error: string;
   error_category?: QRHardwareScanErrorType;
@@ -45,6 +65,15 @@ export function buildQrHardwareWalletErrorAnalyticsProperties(options: {
   return payload;
 }
 
+/**
+ * Returns the list of expected UR types for the given scan purpose.
+ *
+ * - `PAIR` → `crypto-hdkey` and `crypto-account`.
+ * - `SIGN` (default) → `eth-signature`.
+ *
+ * @param purpose - The QR scan request type.
+ * @returns An array of expected UR type strings.
+ */
 export function getExpectedURTypes(purpose: QrScanRequestType): string[] {
   if (purpose === QrScanRequestType.PAIR) {
     return [SUPPORTED_UR_TYPE.CRYPTO_HDKEY, SUPPORTED_UR_TYPE.CRYPTO_ACCOUNT];
@@ -53,6 +82,15 @@ export function getExpectedURTypes(purpose: QrScanRequestType): string[] {
   return [SUPPORTED_UR_TYPE.ETH_SIGNATURE];
 }
 
+/**
+ * Sends a hardware wallet error analytics event enriched with device info.
+ *
+ * Resolves the QR keyring device name on best-effort basis; falls back to
+ * `"Unknown"` if the keyring is unavailable.
+ *
+ * @param properties - Analytics payload (typically from {@link buildQrHardwareWalletErrorAnalyticsProperties}).
+ * @param deps - Analytics helpers for tracking events.
+ */
 export async function sendQrHardwareErrorAnalytics(
   properties: Record<string, unknown>,
   { trackEvent, createEventBuilder }: ErrorAnalyticsDependencies,
@@ -79,6 +117,15 @@ export async function sendQrHardwareErrorAnalytics(
   }
 }
 
+/**
+ * Hook that ensures camera permission is requested when the scanner is active.
+ *
+ * Requests permission immediately on mount and again every time the app
+ * returns to the foreground, as long as the scanner is active and permission
+ * has not yet been granted.
+ *
+ * @param options - See {@link CameraPermissionRefreshOptions}.
+ */
 export function useCameraPermissionRefresh({
   isActive,
   hasPermission,
@@ -124,6 +171,13 @@ export function useCameraPermissionRefresh({
   }, [refreshCameraPermission, isActive]);
 }
 
+/**
+ * Compares two scan errors for equality based on message and metadata fields.
+ *
+ * @param previousError - The previous error (or `null` if none).
+ * @param currentError - The current error.
+ * @returns `true` when both errors carry the same message, type, UR format flag, and received UR type.
+ */
 export function isSameScanError(
   previousError: QRHardwareScanError | null,
   currentError: QRHardwareScanError,

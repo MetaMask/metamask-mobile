@@ -23,12 +23,27 @@ import {
   useCameraPermissionRefresh,
 } from './qrScannerUtils';
 
+/**
+ * Options for {@link useAnimatedQrScanner}.
+ *
+ * @property isActive - Whether the scanner should actively process QR codes.
+ * @property purpose - The type of QR scan being performed (e.g. `SIGN` or `PAIR`).
+ * @property onScanSuccess - Callback invoked with the decoded {@link UR} once a complete, valid QR is read.
+ */
 interface UseAnimatedQrScannerOptions {
   isActive: boolean;
   purpose: QrScanRequestType;
   onScanSuccess: (ur: UR) => void;
 }
 
+/**
+ * Options for the internal `showScanError` helper.
+ *
+ * @property errorType - Categorisation of the scan error.
+ * @property technicalMessage - Optional low-level error detail for debugging.
+ * @property receivedUrType - The UR type that was actually received (when applicable).
+ * @property isUrFormat - Whether the scanned content used the UR encoding format.
+ */
 interface ShowScanErrorOptions {
   errorType: QRHardwareScanErrorType;
   technicalMessage?: string;
@@ -36,6 +51,19 @@ interface ShowScanErrorOptions {
   isUrFormat: boolean;
 }
 
+/**
+ * Hook that manages an animated QR code scanner for hardware wallet interactions.
+ *
+ * Handles the full lifecycle of scanning multi-part animated QR codes:
+ * - Camera device selection and permission management.
+ * - UR decoding progress tracking.
+ * - Error detection, deduplication, and analytics reporting.
+ * - Validation of decoded UR types against the expected types for the scan purpose.
+ *
+ * @param options - See {@link UseAnimatedQrScannerOptions}.
+ * @returns Scanner state and controls including the camera device, code scanner
+ * configuration, progress percentage, current error (if any), and a reset function.
+ */
 export function useAnimatedQrScanner({
   isActive,
   purpose,
