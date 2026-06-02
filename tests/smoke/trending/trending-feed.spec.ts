@@ -15,6 +15,7 @@ import { getDecodedProxiedURL } from '../notifications/utils/helpers';
 import {
   remoteFeatureFlagTrendingTokensEnabled,
   remoteFeatureFlagPredictEnabled,
+  remoteFeatureFlagPredictLegacyBuyFlow,
 } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 const USDC_ASSET_ID =
@@ -37,6 +38,7 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
     await setupRemoteFeatureFlagsMock(mockServer, {
       ...remoteFeatureFlagTrendingTokensEnabled(),
       ...remoteFeatureFlagPredictEnabled(),
+      ...remoteFeatureFlagPredictLegacyBuyFlow(),
     });
 
     // Setup API mocks using centralized definition
