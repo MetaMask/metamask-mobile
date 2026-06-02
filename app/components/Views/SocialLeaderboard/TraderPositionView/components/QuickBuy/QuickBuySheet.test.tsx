@@ -227,6 +227,7 @@ const buildHookResult = (
   getButtonLabel: () => 'social_leaderboard.trader_position.buy',
   handleClose: jest.fn(),
   handleSliderChange: jest.fn(),
+  handleSliderDragEnd: jest.fn(),
   handleAmountAreaPress: jest.fn(),
   handleAmountChange: jest.fn(),
   handleToggleAmountDisplay: jest.fn(),

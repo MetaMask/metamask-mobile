@@ -40,6 +40,7 @@ export const useTrendingSearch = (opts?: {
   enableDebounce?: boolean;
   includeMarketData?: boolean;
   includeStocks?: boolean;
+  filterLowQuality?: boolean;
   sortTrendingTokensOptions?: {
     option: PriceChangeOption;
     direction: SortDirection;
@@ -53,6 +54,7 @@ export const useTrendingSearch = (opts?: {
     enableDebounce = true,
     includeMarketData = true,
     includeStocks = false,
+    filterLowQuality = false,
     sortTrendingTokensOptions = {
       option: PriceChangeOption.PriceChange,
       direction: SortDirection.Descending,
@@ -93,6 +95,7 @@ export const useTrendingSearch = (opts?: {
   } = useTrendingRequest({
     sort: sortBy,
     chainIds: chainIds ?? undefined,
+    filterLowQuality,
   });
 
   const data = useMemo(() => {
