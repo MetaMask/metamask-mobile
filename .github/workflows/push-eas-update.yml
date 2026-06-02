@@ -311,6 +311,25 @@ jobs:
           fi
           echo "✅ Artifacts verified"
 
+      - name: Normalize package.json to base branch for fingerprint comparison
+        run: |
+          # Replace the target branch package.json with the base branch version before
+          # computing the fingerprint. This prevents JS-only dependency updates (which
+          # do not change native builds) from causing a false fingerprint mismatch.
+          #
+          # Native changes are still detected correctly via:
+          #   - ios/ and android/ directory hashes
+          #   - Autolinking output (computed from the installed node_modules)
+          #   - yarn patches (.yarn/patches)
+          #   - react-native.config.js and build scripts
+          #
+          # Without this step, adding or bumping a JS package on the release branch
+          # would change the `packageJson:scripts` or `dependencies` sections captured
+          # by @expo/fingerprint, causing an OTA block even though no native code changed.
+          echo "📦 Replacing package.json with base branch (${BASE_BRANCH_REF}) version..."
+          cp main/package.json package.json
+          echo "✅ package.json normalized — fingerprint will reflect native changes only"
+
       - name: Generate fingerprint (target commit)
         id: branch_fingerprint
         run: |
