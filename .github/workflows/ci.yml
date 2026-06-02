@@ -1018,7 +1018,7 @@ jobs:
     uses: ./.github/workflows/run-performance-e2e.yml
     with:
       performance_tags: ${{ needs.smart-e2e-selection.outputs.ai_performance_test_tags }}
-      build_variant: 'rc'
+      build_variant: 'e2e'
       branch_name: ${{ github.head_ref }}
     secrets: inherit
 
