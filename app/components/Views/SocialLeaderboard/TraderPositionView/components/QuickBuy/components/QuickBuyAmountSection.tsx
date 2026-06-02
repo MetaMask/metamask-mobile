@@ -13,13 +13,7 @@ import {
   FontWeight,
   BoxAlignItems,
   BoxJustifyContent,
-  BoxFlexDirection,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
 } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../../../locales/i18n';
 import type { QuickBuyAmountDisplayMode } from '../types';
 import { formatTokenAmount } from '../../../../utils/formatters';
 
@@ -30,30 +24,24 @@ const styles = StyleSheet.create({
 
 interface QuickBuyAmountSectionProps {
   amountDisplayMode: QuickBuyAmountDisplayMode;
-  fiatCryptoToggleEnabled: boolean;
   usdAmount: string;
   destSymbol: string;
   estimatedReceiveAmount: string | undefined;
-  availableBalanceFiat: string;
   isQuoteLoading: boolean;
   hiddenInputRef: React.RefObject<TextInput | null>;
   onAmountAreaPress: () => void;
   onAmountChange: (text: string) => void;
-  onToggleAmountDisplay: () => void;
 }
 
 const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   amountDisplayMode,
-  fiatCryptoToggleEnabled,
   usdAmount,
   destSymbol,
   estimatedReceiveAmount,
-  availableBalanceFiat,
   isQuoteLoading,
   hiddenInputRef,
   onAmountAreaPress,
   onAmountChange,
-  onToggleAmountDisplay,
 }) => {
   const fiatAmountLabel = usdAmount ? `$${usdAmount}` : '$0';
   const cryptoAmountLabel = estimatedReceiveAmount
@@ -87,43 +75,14 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
         {isQuoteLoading ? (
           <ActivityIndicator size="small" />
         ) : (
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={2}
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
           >
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-            >
-              {secondaryLabel}
-            </Text>
-            {fiatCryptoToggleEnabled ? (
-              <TouchableOpacity
-                onPress={onToggleAmountDisplay}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                accessibilityRole="button"
-                accessibilityLabel={strings(
-                  'social_leaderboard.quick_buy.toggle_amount_display',
-                )}
-                testID="quick-buy-toggle-amount-display"
-              >
-                <Icon
-                  name={IconName.SwapVertical}
-                  size={IconSize.Sm}
-                  color={IconColor.IconAlternative}
-                />
-              </TouchableOpacity>
-            ) : null}
-          </Box>
+            {secondaryLabel}
+          </Text>
         )}
-
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {strings('social_leaderboard.quick_buy.available_balance', {
-            amount: availableBalanceFiat,
-          })}
-        </Text>
 
         <TextInput
           ref={hiddenInputRef}
