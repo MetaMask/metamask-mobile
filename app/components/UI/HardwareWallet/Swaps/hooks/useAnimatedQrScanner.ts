@@ -17,8 +17,10 @@ import {
 } from '../../../../../core/HardwareWallet/errors';
 import {
   buildQrHardwareWalletErrorAnalyticsProperties,
-  getExpectedURTypes,
   isSameScanError,
+} from '../../../QRHardware/AnimatedQRScanner.utils';
+import {
+  getExpectedURTypes,
   sendQrHardwareErrorAnalytics,
   useCameraPermissionRefresh,
 } from './qrScannerUtils';
