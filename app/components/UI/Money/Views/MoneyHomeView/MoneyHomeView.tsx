@@ -309,8 +309,10 @@ const MoneyHomeView = () => {
         />
         <MoneyOnboardingCard />
         {isOnboardingCardVisible && <Divider />}
-        {/* Only show earnings if balance is available */}
-        {displayState.kind === 'balance' && (
+        {/* Only show earnings if balance is available and non-zero */}
+        {displayState.kind === 'balance' &&
+          totalFiatRaw &&
+          !new BigNumber(totalFiatRaw).isZero() && (
           <>
             <MoneyEarnings
               monthlyEarnings={monthlyEarnings}
