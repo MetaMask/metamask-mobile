@@ -18,6 +18,7 @@ import {
   selectPerpsMarketFilterPreferences,
 } from '../selectors/perpsController';
 import Engine from '../../../../core/Engine';
+import { isEquityAsset } from '../utils/marketHours';
 
 interface UsePerpsMarketListViewParams {
   /**
@@ -198,9 +199,7 @@ export const usePerpsMarketListView = ({
 
     // HIP-3 categories - only show explicitly mapped markets
     if (marketTypeFilter === 'stocks') {
-      return searchedMarkets.filter(
-        (m) => m.marketType === MarketCategory.Stock,
-      );
+      return searchedMarkets.filter((m) => isEquityAsset(m.marketType));
     }
 
     if (marketTypeFilter === 'pre-ipo') {
