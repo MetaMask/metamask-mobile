@@ -1,16 +1,16 @@
 import NavigationService from '../../../core/NavigationService';
 import Routes from '../../../constants/navigation/Routes';
-import { devApiEnv } from '../../../core/devApiEnv';
 import {
   AGENTIC_CLI_DASHBOARD_MESSAGE_SOURCE,
   type AgenticCliDashboardWebviewParams,
   type DashboardWebviewResult,
 } from './types';
+import { getBuildType } from '../../../core/OAuthService/OAuthLoginHandlers/constants';
 
 const MAX_MESSAGE_LENGTH = 16 * 1024;
 const WEBVIEW_TIMEOUT_MS = 5 * 60 * 1000;
 
-const PRODUCTION_ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
+const ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
   /^https:\/\/dashboard\.w3a\.io$/,
   /^https:\/\/auth\.web3auth\.io$/,
   /^https:\/\/[a-z0-9-]+\.cx\.metamask\.io$/,
@@ -19,22 +19,26 @@ const PRODUCTION_ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
 /** Non-prod dashboard hosts used when `MM_DEV_API_ENV=dev`. */
 const DEV_API_ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
   /^https:\/\/test-dashboard\.web3auth\.io$/,
+];
+
+const UAT_ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
   /^https:\/\/dev-dashboard\.web3auth\.io$/,
 ];
 
-const DEVELOPMENT_ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
-  /^https:\/\/[a-z0-9-]+\.ngrok-free\.app$/,
-  /^http:\/\/10\.0\.2\.2(?::\d+)?$/,
-  /^http:\/\/localhost(?::\d+)?$/,
+const PROD_ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
+  /^https:\/\/dashboard\.web3auth\.io$/,
 ];
 
 const getAllowedOriginPatterns = (): RegExp[] => {
-  const patterns = [...PRODUCTION_ALLOWED_ORIGIN_PATTERNS];
+  const patterns = [...ALLOWED_ORIGIN_PATTERNS];
 
-  patterns.push(...DEV_API_ALLOWED_ORIGIN_PATTERNS);
-
-  if (__DEV__) {
-    patterns.push(...DEVELOPMENT_ALLOWED_ORIGIN_PATTERNS);
+  const buildType = getBuildType();
+  if (buildType.includes('dev')) {
+    patterns.push(...DEV_API_ALLOWED_ORIGIN_PATTERNS);
+  } else if (buildType.includes('uat')) {
+    patterns.push(...UAT_ALLOWED_ORIGIN_PATTERNS);
+  } else if (buildType.includes('prod')) {
+    patterns.push(...PROD_ALLOWED_ORIGIN_PATTERNS);
   }
 
   return patterns;
