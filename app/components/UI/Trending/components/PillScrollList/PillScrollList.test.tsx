@@ -60,6 +60,26 @@ describe('PillScrollList', () => {
     expect(renderItem).toHaveBeenCalledTimes(3);
   });
 
+  it('supports a custom row count', () => {
+    const { getByTestId } = render(
+      <PillScrollList
+        data={[{ id: 'a' }, { id: 'b' }, { id: 'c' }]}
+        isLoading={false}
+        rowCount={3}
+        renderItem={(item: { id: string }, index: number) => (
+          <Text testID={`pill-${item.id}`}>{String(index)}</Text>
+        )}
+        keyExtractor={(item: { id: string }) => item.id}
+        Skeleton={Skeleton}
+        listTestId="pills-list"
+      />,
+    );
+
+    expect(getByTestId('pills-list-row-0')).toBeTruthy();
+    expect(getByTestId('pills-list-row-1')).toBeTruthy();
+    expect(getByTestId('pills-list-row-2')).toBeTruthy();
+  });
+
   it('respects maxPills when slicing data before splitting', () => {
     const { getByTestId, queryByTestId } = render(
       <PillScrollList

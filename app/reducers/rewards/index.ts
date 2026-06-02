@@ -134,6 +134,7 @@ export interface RewardsState {
   vipDashboard: Record<string, VipDashboardState>;
   vipDashboardLoading: boolean;
   vipDashboardError: boolean;
+  vipSplashAccepted: Record<string, boolean>;
 
   // Campaigns state
   campaigns: CampaignDto[];
@@ -271,6 +272,7 @@ export const initialState: RewardsState = {
   vipDashboard: {},
   vipDashboardLoading: false,
   vipDashboardError: false,
+  vipSplashAccepted: {},
 
   // Campaigns initial state
   campaigns: [],
@@ -430,6 +432,7 @@ const rewardsSlice = createSlice({
       state.vipDashboard = {};
       state.vipDashboardLoading = false;
       state.vipDashboardError = false;
+      state.vipSplashAccepted = {};
     },
 
     setOnboardingActiveStep: (state, action: PayloadAction<OnboardingStep>) => {
@@ -480,6 +483,7 @@ const rewardsSlice = createSlice({
           hideUnlinkedAccountsBanner: state.hideUnlinkedAccountsBanner,
           bulkLink: state.bulkLink,
           dismissedCampaignOutcomeToasts: state.dismissedCampaignOutcomeToasts,
+          vipSplashAccepted: state.vipSplashAccepted,
           versionGuardMinimumMobileVersion:
             state.versionGuardMinimumMobileVersion,
           versionGuardLoading: state.versionGuardLoading,
@@ -732,6 +736,13 @@ const rewardsSlice = createSlice({
       state.vipDashboardError = action.payload;
     },
 
+    acceptVipInvite: (
+      state,
+      action: PayloadAction<{ subscriptionId: string }>,
+    ) => {
+      state.vipSplashAccepted[action.payload.subscriptionId] = true;
+    },
+
     setOndoCampaignActivity: (
       state,
       action: PayloadAction<{
@@ -947,6 +958,7 @@ const rewardsSlice = createSlice({
               unlockedRewards: action.payload.rewards.unlockedRewards,
               campaigns: action.payload.rewards.campaigns ?? [],
               vipDashboard: action.payload.rewards.vipDashboard ?? {},
+              vipSplashAccepted: action.payload.rewards.vipSplashAccepted ?? {},
               campaignParticipantStatuses:
                 action.payload.rewards.campaignParticipantStatuses ?? {},
               ondoCampaignLeaderboardPositions:
@@ -1019,6 +1031,7 @@ export const {
   setVipDashboard,
   setVipDashboardError,
   setVipDashboardLoading,
+  acceptVipInvite,
   // Campaigns actions
   setCampaigns,
   setCampaignsLoading,
