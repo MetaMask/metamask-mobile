@@ -2,7 +2,8 @@
 #
 # Runway OTA Production
 #
-# Triggered from Runway to push an OTA update to the production channel (iOS + Android).
+# Triggered from Runway to push an OTA update to the production channel (iOS + Android) and
+# create the corresponding `v<OTA_VERSION>` release tag.
 #
 # This workflow does not build binaries and does not bump the build version — the release PR is
 # expected to bump OTA_VERSION (app/constants/ota.ts) before dispatch.
@@ -15,13 +16,13 @@ on:
     inputs:
       source_branch:
         description: >-
-          Optional branch, tag, or SHA for OTA publish.
+          Optional branch, tag, or SHA for OTA publish + tag creation.
           Empty uses the branch selected in the "Use workflow from" UI.
         required: false
         type: string
 
 permissions:
-  contents: read
+  contents: write # required to push the v<OTA_VERSION> tag
   pull-requests: read
   id-token: write # required by push-eas-update.yml
 
@@ -57,4 +58,13 @@ jobs:
       message: ${{ needs.resolve-context.outputs.ota_version }}
       channel: production
       platform: all
+    secrets: inherit
+
+  create-ota-production-tag:
+    name: Create OTA production release tag
+    needs: [resolve-context, push-ota]
+    uses: ./.github/workflows/runway-create-ota-production-tag.yml
+    with:
+      tag_name: ${{ needs.resolve-context.outputs.ota_version }}
+      checkout_ref: ${{ inputs.source_branch || github.ref_name }}
     secrets: inherit

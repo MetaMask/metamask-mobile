@@ -94,11 +94,7 @@ const WhatsHappeningAssetPill: React.FC<WhatsHappeningAssetPillProps> = ({
       paddingVertical={1}
       twClassName="rounded-full"
     >
-      <RelatedAssetAvatar
-        name={asset.name || asset.symbol}
-        image={image}
-        size={AVATAR_SIZE}
-      />
+      <RelatedAssetAvatar name={asset.name} image={image} size={AVATAR_SIZE} />
       <Text
         variant={TextVariant.BodyXs}
         fontWeight={FontWeight.Medium}

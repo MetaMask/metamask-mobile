@@ -74,7 +74,6 @@ jest.mock('../../../component-library/hooks', () => ({
 
 jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
-  log: jest.fn(),
 }));
 
 describe('FoxLoader', () => {
@@ -301,7 +300,7 @@ describe('FoxLoader', () => {
     expect(onAnimationComplete).not.toHaveBeenCalled();
 
     act(() => {
-      jest.advanceTimersByTime(3_000);
+      jest.advanceTimersByTime(5_000);
     });
 
     expect(onAnimationComplete).toHaveBeenCalledTimes(1);
@@ -457,7 +456,7 @@ describe('FoxLoader', () => {
     );
 
     await act(async () => {
-      jest.advanceTimersByTime(3_000);
+      jest.advanceTimersByTime(5_000);
     });
 
     expect(Logger.error).toHaveBeenCalledWith(

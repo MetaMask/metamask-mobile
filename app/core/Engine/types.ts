@@ -394,6 +394,8 @@ import {
 // (or we move to Node16/NodeNext module resolution), drop both the alias and
 // this dedicated import.
 import type { DelegationControllerState } from '@metamask/delegation-controller/types';
+import { SnapKeyringBuilder } from '../SnapKeyring/SnapKeyring';
+import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 import {
   ControllerGetStateAction,
   ControllerStateChangeEvent,
@@ -471,16 +473,16 @@ import {
   MoneyAccountUpgradeControllerState,
 } from '@metamask/money-account-upgrade-controller';
 import { captureException } from '@sentry/react-native';
-import { Wallet } from '@metamask/wallet';
 
 /**
- * Controllers that are always instantiated
+ * Controllers that area always instantiated
  */
 type RequiredControllers = Omit<
   MessengerClients,
   | 'GeolocationApiService'
   | 'MultichainRoutingService'
   | 'RewardsDataService'
+  | 'SnapKeyringBuilder'
   | 'StorageService'
   | 'ComplianceService'
   | 'ChompApiService'
@@ -494,6 +496,7 @@ type OptionalControllers = Pick<
   | 'GeolocationApiService'
   | 'MultichainRoutingService'
   | 'RewardsDataService'
+  | 'SnapKeyringBuilder'
   | 'StorageService'
   | 'ComplianceService'
   | 'ChompApiService'
@@ -792,6 +795,7 @@ export type MessengerClients = {
   MultichainRoutingService: MultichainRoutingService;
   MultichainTransactionsController: MultichainTransactionsController;
   MultichainAccountService: MultichainAccountService;
+  SnapKeyringBuilder: SnapKeyringBuilder;
   ///: END:ONLY_INCLUDE_IF
   TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataController;
   MultichainNetworkController: MultichainNetworkController;
@@ -967,6 +971,7 @@ export type MessengerClientsToInitialize =
   | 'MultichainRoutingService'
   | 'MultichainTransactionsController'
   | 'MultichainAccountService'
+  | 'SnapKeyringBuilder'
   ///: END:ONLY_INCLUDE_IF
   | 'EarnController'
   | 'MoneyAccountController'
@@ -982,6 +987,7 @@ export type MessengerClientsToInitialize =
   | 'GasFeeController'
   | 'GeolocationController'
   | 'GeolocationApiService'
+  | 'KeyringController'
   | 'MultichainNetworkController'
   | 'NftController'
   | 'NftDetectionController'
@@ -1122,6 +1128,11 @@ export type MessengerClientInitRequest<
   initialKeyringState?: KeyringControllerState | null;
 
   /**
+   * QR keyring scanner bridge.
+   */
+  qrKeyringScanner: QrKeyringDeferredPromiseBridge;
+
+  /**
    * Required initialization messenger instance.
    * Generated using the callback specified in `getInitMessenger`.
    */
@@ -1163,12 +1174,13 @@ export type MessengerClientInitFunctionsByMessengerClientName = {
 };
 
 export interface InitMessengerClientsFunctionRequest {
-  wallet: Wallet;
   baseControllerMessenger: RootExtendedMessenger;
   initFunctions: MessengerClientInitFunctionsByMessengerClientName;
   getGlobalChainId: () => Hex;
   getState: () => RootState;
   analyticsId: string;
+  initialKeyringState?: KeyringControllerState | null;
+  qrKeyringScanner: QrKeyringDeferredPromiseBridge;
   codefiTokenApiV2: CodefiTokenPricesServiceV2;
   tokenListService: TokenListService;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)

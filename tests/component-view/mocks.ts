@@ -33,13 +33,6 @@ jest.mock('../../app/core/Engine', () => {
       AccountTreeController: {
         setAccountGroupName: jest.fn(),
         setSelectedAccountGroup: jest.fn(),
-        getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([
-          {
-            id: 'acc-1',
-            address: '0x0000000000000000000000000000000000000001',
-            type: 'eip155:eoa',
-          },
-        ]),
       },
       MultichainAccountService: {
         alignWallets: jest.fn().mockResolvedValue(undefined),
@@ -273,8 +266,7 @@ jest.mock('../../app/core/Engine', () => {
           .mockResolvedValue({ nextNonce: 0, releaseLock: jest.fn() }),
       },
       NetworkController: {
-        state: { networksMetadata: {}, networkConfigurationsByChainId: {} },
-        addNetwork: jest.fn().mockResolvedValue(undefined),
+        state: { networksMetadata: {} },
         getProviderAndBlockTracker() {
           return {
             provider: {
@@ -338,11 +330,6 @@ jest.mock('../../app/core/Engine', () => {
           .mockResolvedValue({ markets: [], totalResults: 0 }),
         getMarket: jest.fn().mockResolvedValue(null),
         getBalance: jest.fn().mockResolvedValue(0),
-        getAccountState: jest.fn().mockResolvedValue({
-          address: '0x0000000000000000000000000000000000000001',
-          walletType: 'metamask',
-        }),
-        getActivity: jest.fn().mockResolvedValue([]),
         getPositions: jest.fn().mockResolvedValue([]),
         getPrices: jest.fn().mockResolvedValue({ providerId: '', results: [] }),
         getMarketSeries: jest.fn().mockResolvedValue([]),
@@ -356,11 +343,7 @@ jest.mock('../../app/core/Engine', () => {
         trackBannerAction: jest.fn(),
         trackMarketDetailsOpened: jest.fn(),
         trackGeoBlockTriggered: jest.fn(),
-        trackActivityViewed: jest.fn(),
         refreshEligibility: jest.fn().mockResolvedValue(undefined),
-        claimWithConfirmation: jest.fn().mockResolvedValue(undefined),
-        depositWithConfirmation: jest.fn().mockResolvedValue(undefined),
-        prepareWithdraw: jest.fn().mockResolvedValue(undefined),
       },
       // Perps: stub so hooks (usePerpsClosePosition, usePerpsMarkets, etc.) do not throw
       // getMarkets returns one market so PerpsTabView explore section renders "See all perps"

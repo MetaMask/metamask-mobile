@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import {
   PredictClaimAmount,
   PredictClaimAmountSkeleton,
@@ -10,28 +10,19 @@ import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../../component-library/components/Buttons/ButtonIcon';
 import { IconName } from '../../../../../../component-library/components/Icons/Icon';
+import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './predict-claim-info.styles';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
-import Engine from '../../../../../../core/Engine';
 
 export function PredictClaimInfo() {
   useModalNavbar();
   usePredictClaimConfirmationMetrics();
-  const clearPendingClaim = useCallback(() => {
-    Engine.context.PredictController.clearPendingClaim();
-  }, []);
-
-  const rejectConfirmation = useClearConfirmationOnBackSwipe({
-    rejectOnBeforeRemove: true,
-    rejectOnBeforeRemoveWithoutGesture: true,
-    skipNavigationOnGestureEnd: false,
-    onBeforeReject: clearPendingClaim,
-  });
+  useClearConfirmationOnBackSwipe();
 
   return (
     <>
-      <BackButton onReject={rejectConfirmation} />
+      <BackButton />
       <PredictClaimBackground />
       <PredictClaimAmount />
     </>
@@ -50,18 +41,15 @@ export function PredictClaimInfoSkeleton() {
 /**
  * Intentionally not using navigation header as `headerTransparent` not rendering buttons on Android.
  */
-function BackButton({ onReject }: { onReject: () => void }) {
+function BackButton() {
   const { styles } = useStyles(styleSheet, {});
-
-  const handleReject = useCallback(() => {
-    onReject();
-  }, [onReject]);
+  const { onReject } = useConfirmActions();
 
   return (
     <ButtonIcon
       size={ButtonIconSizes.Lg}
       iconName={IconName.Close}
-      onPress={handleReject}
+      onPress={() => onReject()}
       style={styles.backButton}
     />
   );

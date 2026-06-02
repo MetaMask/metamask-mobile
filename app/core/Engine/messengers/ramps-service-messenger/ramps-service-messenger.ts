@@ -19,7 +19,7 @@ type AllowedEvents = MessengerEvents<RampsServiceMessenger>;
 export function getRampsServiceMessenger(
   rootMessenger: RootMessenger,
 ): RampsServiceMessenger {
-  const messenger = new Messenger<
+  return new Messenger<
     'RampsService',
     AllowedActions,
     AllowedEvents,
@@ -28,10 +28,4 @@ export function getRampsServiceMessenger(
     namespace: 'RampsService',
     parent: rootMessenger,
   });
-  rootMessenger.delegate({
-    actions: ['AuthenticationController:getBearerToken'],
-    events: [],
-    messenger,
-  });
-  return messenger;
 }

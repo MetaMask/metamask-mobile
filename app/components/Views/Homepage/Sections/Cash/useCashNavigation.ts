@@ -3,7 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectMusdConversionEducationSeen } from '../../../../../reducers/user/selectors';
-import { selectMoneyEnableMoneyAccountFlag } from '../../../../UI/Money/selectors/featureFlags';
+import { selectMoneyHomeScreenEnabledFlag } from '../../../../UI/Money/selectors/featureFlags';
 import { MusdNavigationTarget } from '../../../../UI/Earn/types/musd.types';
 
 /**
@@ -11,11 +11,11 @@ import { MusdNavigationTarget } from '../../../../UI/Earn/types/musd.types';
  */
 export const useCashNavigation = () => {
   const navigation = useNavigation();
-  const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
+  const isMoneyHomeEnabled = useSelector(selectMoneyHomeScreenEnabledFlag);
   const hasSeenEducation = useSelector(selectMusdConversionEducationSeen);
 
   const navigateToCash = useCallback(() => {
-    const destination: MusdNavigationTarget = isMoneyAccountEnabled
+    const destination: MusdNavigationTarget = isMoneyHomeEnabled
       ? { screen: Routes.MONEY.ROOT, params: { screen: Routes.MONEY.HOME } }
       : { screen: Routes.WALLET.CASH_TOKENS_FULL_VIEW };
 
@@ -28,7 +28,7 @@ export const useCashNavigation = () => {
     }
 
     navigation.navigate(destination.screen, destination.params);
-  }, [isMoneyAccountEnabled, hasSeenEducation, navigation]);
+  }, [isMoneyHomeEnabled, hasSeenEducation, navigation]);
 
-  return { navigateToCash, isMoneyAccountEnabled, hasSeenEducation };
+  return { navigateToCash, isMoneyHomeEnabled, hasSeenEducation };
 };

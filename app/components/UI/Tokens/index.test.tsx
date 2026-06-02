@@ -532,7 +532,7 @@ describe('Tokens', () => {
       });
     });
 
-    it('excludes mUSD from token list when conversion flow, money hub, and homepage sections are all enabled', async () => {
+    it('excludes mUSD from token list when both conversion flow and homepage sections are enabled', async () => {
       const stateWithBothEnabled = clone(initialRootState);
       (
         stateWithBothEnabled as Record<string, unknown> &
@@ -542,10 +542,6 @@ describe('Tokens', () => {
           .RemoteFeatureFlagController,
         remoteFeatureFlags: {
           earnMusdConversionFlowEnabled: {
-            enabled: true,
-            minimumVersion: '1.0.0',
-          },
-          earnMoneyHubEnabled: {
             enabled: true,
             minimumVersion: '1.0.0',
           },

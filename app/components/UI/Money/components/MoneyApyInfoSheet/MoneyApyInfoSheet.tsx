@@ -4,17 +4,16 @@ import { useNavigation } from '@react-navigation/native';
 import {
   BottomSheet,
   BottomSheetHeader,
+  type BottomSheetRef,
   Text,
   TextColor,
   TextVariant,
-  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import styleSheet from './MoneyApyInfoSheet.styles';
 import { MoneyApyInfoSheetTestIds } from './MoneyApyInfoSheet.testIds';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 interface MoneyApyInfoSheetParams {
   apy: number;
@@ -25,7 +24,6 @@ const MoneyApyInfoSheet = () => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
   const { apy } = useParams<MoneyApyInfoSheetParams>();
-  const surfaceClass = useElevatedSurface();
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();
@@ -41,7 +39,6 @@ const MoneyApyInfoSheet = () => {
       goBack={handleGoBack}
       testID={MoneyApyInfoSheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
-      twClassName={surfaceClass}
     >
       <BottomSheetHeader onClose={handleClose}>
         <Text variant={TextVariant.HeadingSm}>

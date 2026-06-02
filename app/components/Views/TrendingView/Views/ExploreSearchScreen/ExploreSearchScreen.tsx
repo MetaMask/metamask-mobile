@@ -8,12 +8,14 @@ import React, {
 import { ActivityIndicator, Keyboard, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
 import { FlashList, FlashListRef, ListRenderItem } from '@shopify/flash-list';
 import ExploreSearchBar from '../../components/ExploreSearchBar/ExploreSearchBar';
 import PillRow, { type PillOption } from '../../components/PillRow';
 import ExploreSearchResults from '../../search/ExploreSearchResults';
+import ExploreSearchResultsV2 from '../../search/ExploreSearchResultsV2';
 import SearchFeedRow, {
   SearchFeedSkeleton,
   getItemId,
@@ -24,12 +26,13 @@ import {
   type SearchFeedPill,
 } from '../../search/analytics';
 import {
+  useExploreSearchV2,
   type SearchFeedId,
-  useExploreSearch,
-} from '../../search/useExploreSearch';
+} from '../../search/useExploreSearchV2';
 import PerpsSectionProvider from '../../feeds/perps/PerpsSectionProvider';
 import SitesSearchFooter from '../../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
 import { strings } from '../../../../../../locales/i18n';
+import { selectExploreSearchV2Flag } from '../../../../../selectors/featureFlagController/exploreSearchV2';
 import { MAX_ITEMS_PER_SECTION } from '../../search/viewMoreLabel';
 
 const ALL_PILL_KEY = 'all' as const;
@@ -137,19 +140,19 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
   );
 };
 
-interface ExploreSearchContentProps {
+interface ExploreSearchV2ContentProps {
   searchQuery: string;
 }
 
 /**
- * Renders the pill filter row and content pane for the search experience.
- * Must be a child of PerpsSectionProvider because useExploreSearch
+ * Renders the pill filter row and content pane for the V2 search experience.
+ * Must be a child of PerpsSectionProvider because useExploreSearchV2
  * internally calls usePerpsFeed, which requires PerpsStreamProvider.
  *
- * A single useExploreSearch instance is shared across the pill row and the
+ * A single useExploreSearchV2 instance is shared across the pill row and the
  * active content pane, so switching pills never triggers new API calls.
  */
-const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
+const ExploreSearchV2Content: React.FC<ExploreSearchV2ContentProps> = ({
   searchQuery,
 }) => {
   const [activePill, setActivePill] = useState<ActivePill>(ALL_PILL_KEY);
@@ -158,9 +161,7 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
   const searchQueryRef = useRef(searchQuery);
   searchQueryRef.current = searchQuery;
 
-  const { sections } = useExploreSearch(searchQuery, {
-    exposePagination: true,
-  });
+  const { sections } = useExploreSearchV2(searchQuery);
 
   const pills = useMemo<PillOption[]>(
     () => [
@@ -188,7 +189,7 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
     setActivePill(key as ActivePill);
   }, []);
 
-  // Used by ExploreSearchResults' "View all" button — the analytics event is
+  // Used by ExploreSearchResultsV2's "View all" button — the analytics event is
   // already fired inside handleViewMore there, so we only update state here.
   const handleViewMoreSelect = useCallback((key: string) => {
     setActivePill(key as ActivePill);
@@ -227,7 +228,7 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
           hasMore={activeSection?.hasMore}
         />
       ) : (
-        <ExploreSearchResults
+        <ExploreSearchResultsV2
           searchQuery={searchQuery}
           sections={sections}
           onViewMore={handleViewMoreSelect}
@@ -243,6 +244,7 @@ const ExploreSearchScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const [searchQuery, setSearchQuery] = useState('');
+  const isExploreSearchV2Enabled = useSelector(selectExploreSearchV2Flag);
 
   const handleSearchCancel = useCallback(() => {
     setSearchQuery('');
@@ -265,7 +267,11 @@ const ExploreSearchScreen: React.FC = () => {
       </Box>
 
       <PerpsSectionProvider>
-        <ExploreSearchContent searchQuery={searchQuery} />
+        {isExploreSearchV2Enabled ? (
+          <ExploreSearchV2Content searchQuery={searchQuery} />
+        ) : (
+          <ExploreSearchResults searchQuery={searchQuery} />
+        )}
       </PerpsSectionProvider>
     </Box>
   );

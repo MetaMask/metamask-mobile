@@ -4,15 +4,12 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import {
   asDetoxElement,
-  asPlaywrightElement,
   encapsulated,
   EncapsulatedElementType,
 } from '../../framework/EncapsulatedElement';
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import { PlatformDetector } from '../../framework/PlatformLocator';
 import UnifiedGestures from '../../framework/UnifiedGestures';
-import { PlaywrightGestures } from '../../framework';
 
 class MetaMetricsOptIn {
   get container(): DetoxElement {
@@ -91,17 +88,9 @@ class MetaMetricsOptIn {
         });
       },
       appium: async () => {
-        if (await PlatformDetector.isAndroid()) {
-          await PlaywrightGestures.hideKeyboard();
-        }
-        await PlaywrightGestures.waitAndTap(
-          await asPlaywrightElement(this.iAgreeButton),
-          {
-            checkForDisplayed: true,
-            checkForEnabled: true,
-            timeout: 15_000,
-          },
-        );
+        await UnifiedGestures.tap(this.iAgreeButton, {
+          description: 'Opt-in Metrics Continue Button',
+        });
       },
     });
   }

@@ -34,17 +34,10 @@ export const handleBridgeFetch = async (
   url: RequestInfo | URL,
   options: RequestInit = {},
 ) => {
-  const urlString = url.toString();
-
-  if (urlString.includes('Stream')) {
+  if (url.toString().includes('Stream')) {
     // @ts-expect-error - expoFetch has a different RequestInit type
-    return expoFetch(urlString, options);
+    return expoFetch(url.toString(), options);
   }
-
-  if (urlString.includes('/obtainGaslessBatch')) {
-    return fetch(urlString, options);
-  }
-
   return handleFetch(url, options);
 };
 

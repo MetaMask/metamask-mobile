@@ -7,10 +7,10 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import CardRoutes from './index';
 
-jest.mock('@react-navigation/native-stack', () => {
+jest.mock('@react-navigation/stack', () => {
   const { View, Text } = require('react-native');
   return {
-    createNativeStackNavigator: () => ({
+    createStackNavigator: () => ({
       Navigator: ({
         children,
         screenOptions,

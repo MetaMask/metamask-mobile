@@ -62,11 +62,9 @@ const CAMPAIGN_ID = 'campaign-123';
 const SUBSCRIPTION_ID = 'sub-456';
 const MOCK_POSITION: PerpsTradingCampaignLeaderboardPositionDto = {
   rank: 5,
-  totalParticipants: 50,
   pnl: 1500,
-  volume: 30000,
-  eligible: true,
-  minVolumeForEligibility: 25000,
+  notionalVolume: 30000,
+  qualified: true,
   neighbors: [],
   computedAt: '2024-03-20T12:00:00.000Z',
 };

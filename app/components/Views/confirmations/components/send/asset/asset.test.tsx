@@ -81,14 +81,6 @@ const mockHighlightedAsset: HighlightedItem = {
   action: jest.fn(),
 };
 
-jest.mock('../../../hooks/send/useSendNavbar', () => ({
-  useSendNavbar: () => ({
-    Amount: { header: () => null },
-    Asset: { header: () => null },
-    Recipient: { header: () => null },
-  }),
-}));
-
 jest.mock('../../../hooks/send/useSendTokens', () => ({
   useSendTokens: jest.fn(),
 }));

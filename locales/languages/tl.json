@@ -8348,6 +8348,8 @@
     "report_submitted": "Naipadala na ang ulat sa error."
   },
   "pay_with_modal": {
+    "title": "Pumili ng paraan ng pagbabayad",
+    "title_receive": "Piliin ang tatanggaping token",
     "no_gas": "Walang native na balanse para sa gas",
     "not_supported": "Hindi suportado",
     "crypto": "Crypto"
@@ -8899,7 +8901,7 @@
       "stats_notional_volume_threshold": "${{amount}} ang kinakailangan",
       "stats_qualified_title": "Kwalipikado ka",
       "stats_qualified_description": "Patuloy na mag-trade para mas mapaganda ang PnL mo at makaakyat ka sa leaderboard bago matapos ang kumpetisyon.",
-      "stats_qualify_for_rank_title": "Maging kwalipikado para sa leaderboard",
+      "stats_qualify_for_rank_title": "Maging kwalipikado para sa rank na ito",
       "stats_qualify_for_rank_description": "Mag-trade ng {{notionalRemaining}} pang notional na dami para maging kwalipikado.",
       "stats_error_title": "Hindi nai-load ang mga stat",
       "stats_error_description": "Nagkaproblema kami sa pag-load ng mga stat mo. Subukan ulit.",

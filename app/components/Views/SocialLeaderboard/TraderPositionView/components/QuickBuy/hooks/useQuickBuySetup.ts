@@ -8,6 +8,7 @@ import {
 } from '@metamask/bridge-controller';
 import type { QuickBuyTarget } from '../types';
 import { useAssetMetadata } from '../../../../../../UI/Bridge/hooks/useAssetMetadata';
+import { chainNameToId } from '../../../../utils/chainMapping';
 import type { BridgeToken } from '../../../../../../UI/Bridge/types';
 import { selectIsBridgeEnabledSourceFactory } from '../../../../../../../core/redux/slices/bridge';
 
@@ -34,10 +35,11 @@ export const useQuickBuySetup = (
   const position = target;
   const isBridgeEnabledSource = useSelector(selectIsBridgeEnabledSourceFactory);
 
-  // Destination chain from the target — hex for EVM, CAIP for non-EVM.
+  // Destination chain from the position — hex for EVM, CAIP for non-EVM
   const destChainId = useMemo(() => {
     if (!position) return undefined;
-    const caipId = position.chain;
+    const caipId = chainNameToId(position.chain);
+    if (!caipId) return undefined;
     if (isNonEvmChainId(caipId)) return caipId;
     if (!isBridgeEnabledSource(caipId)) return undefined;
     return formatChainIdToHex(caipId);

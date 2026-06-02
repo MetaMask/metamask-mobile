@@ -61,12 +61,12 @@ jest.mock('../../utils/formatUtils', () => ({
 const makeEntry = (
   rank: number,
   pnl: number,
-  volume = 30_000,
+  qualified = true,
 ): PerpsTradingCampaignLeaderboardEntry => ({
   rank,
   referralCode: `T-${rank}`,
   pnl,
-  volume,
+  qualified,
 });
 
 const makeLeaderboard = (
@@ -81,7 +81,6 @@ const makeLeaderboard = (
     campaignId: 'perps-1',
     computedAt: '2026-01-01T00:00:00Z',
     totalParticipants: totalParticipants ?? entriesCount,
-    minVolumeForEligibility: 25_000,
     entries,
   };
 };
@@ -177,7 +176,6 @@ describe('PerpsTradingCampaignEndedStats', () => {
       campaignId: 'perps-1',
       computedAt: '2026-01-01T00:00:00Z',
       totalParticipants: 0,
-      minVolumeForEligibility: 25_000,
       entries: [],
     };
 
@@ -261,7 +259,6 @@ describe('PerpsTradingCampaignEndedStats', () => {
       campaignId: 'perps-1',
       computedAt: '2026-01-01T00:00:00Z',
       totalParticipants: 1,
-      minVolumeForEligibility: 25_000,
       entries: [makeEntry(1, -5_000)],
     };
 

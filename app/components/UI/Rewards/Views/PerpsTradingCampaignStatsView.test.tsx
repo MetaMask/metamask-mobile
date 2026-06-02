@@ -171,11 +171,9 @@ const mockUsePerpsTradingCampaignParticipantOutcome =
 
 const basePosition: PerpsTradingCampaignLeaderboardPositionDto = {
   rank: 4,
-  totalParticipants: 100,
   pnl: 1500.25,
-  volume: 30_000,
-  eligible: true,
-  minVolumeForEligibility: 25_000,
+  notionalVolume: 30_000,
+  qualified: true,
   neighbors: [],
   computedAt: '2025-01-01T00:00:00.000Z',
 };
@@ -296,8 +294,8 @@ describe('PerpsTradingCampaignStatsView', () => {
       position: {
         ...basePosition,
         pnl: null,
-        volume: null,
-        eligible: false,
+        notionalVolume: null,
+        qualified: false,
       } as unknown as PerpsTradingCampaignLeaderboardPositionDto,
       isLoading: false,
       hasError: false,
@@ -408,8 +406,8 @@ describe('PerpsTradingCampaignStatsView', () => {
     mockUseGetPosition.mockReturnValue({
       position: {
         ...basePosition,
-        eligible: false,
-        volume: 5_000,
+        qualified: false,
+        notionalVolume: 5_000,
       },
       isLoading: false,
       hasError: false,

@@ -1,7 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import React, { useMemo } from 'react';
-import { useSelector } from 'react-redux';
+import React from 'react';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -9,38 +8,25 @@ import {
 } from '@metamask/design-system-react-native';
 
 import Routes from '../../../../../constants/navigation/Routes';
-import { selectBatchSellSourceTokens } from '../../../../../core/redux/slices/bridge';
-import {
-  getBatchSellOrderedQuoteTokenData,
-  useBatchSellQuoteData,
-} from '../../hooks/useBatchSellQuoteData';
+import { useParams } from '../../../../../util/navigation/navUtils';
 import { BatchSellQuoteDetails } from './BatchSellQuoteDetails';
 import { BatchSellQuoteDetailsModalSelectorsIDs } from './BatchSellQuoteDetailsModal.testIds';
+import { BatchSellQuoteDetailsModalParams } from './BatchSellQuoteDetailsModal.types';
 import { strings } from '../../../../../../locales/i18n';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 export function BatchSellQuoteDetailsModal() {
   const navigation =
     useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
-  const sourceTokens = useSelector(selectBatchSellSourceTokens);
-  const surfaceClass = useElevatedSurface();
-  const batchSellQuoteData = useBatchSellQuoteData({
-    shouldUpdateBatchSellTrades: false,
-  });
-  const tokenData = useMemo(
-    () =>
-      getBatchSellOrderedQuoteTokenData(
-        sourceTokens,
-        batchSellQuoteData.tokenData,
-      ),
-    [batchSellQuoteData.tokenData, sourceTokens],
-  );
+  const quoteDetailsParams = useParams<BatchSellQuoteDetailsModalParams>();
+  const { tokenData, totalReceived, minimumReceived, isLoading } =
+    quoteDetailsParams;
   const handleOpenMinimumReceivedInfo = () => {
     navigation.replace(
       Routes.BRIDGE.MODALS.BATCH_SELL_MINIMUM_RECEIVED_INFO_MODAL,
       {
         sourceModal: {
           screen: Routes.BRIDGE.MODALS.BATCH_SELL_QUOTE_DETAILS_MODAL,
+          params: quoteDetailsParams,
         },
       },
     );
@@ -50,7 +36,6 @@ export function BatchSellQuoteDetailsModal() {
     <BottomSheet
       testID={BatchSellQuoteDetailsModalSelectorsIDs.SHEET}
       goBack={navigation.goBack}
-      twClassName={surfaceClass}
     >
       <BottomSheetHeader
         onClose={navigation.goBack}
@@ -63,9 +48,9 @@ export function BatchSellQuoteDetailsModal() {
       </BottomSheetHeader>
       <BatchSellQuoteDetails
         tokenData={tokenData}
-        totalReceived={batchSellQuoteData.totalReceived}
-        minimumReceived={batchSellQuoteData.minimumReceived}
-        isLoading={batchSellQuoteData.isSummaryLoading}
+        totalReceived={totalReceived}
+        minimumReceived={minimumReceived}
+        isLoading={isLoading}
         onMinimumReceivedInfoPress={handleOpenMinimumReceivedInfo}
       />
     </BottomSheet>

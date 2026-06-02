@@ -66,7 +66,7 @@ const PerpsNavigationCard: React.FC<PerpsNavigationCardProps> = ({ items }) => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View style={styles.container} accessible={false}>
+    <View style={styles.container}>
       {items.map((item, index) => {
         const isFirst = index === 0;
         const isLast = index === items.length - 1;
@@ -77,36 +77,33 @@ const PerpsNavigationCard: React.FC<PerpsNavigationCardProps> = ({ items }) => {
         ];
 
         return (
-          <TouchableOpacity
-            key={`${item.label}-${index}`}
-            onPress={item.onPress}
-            style={itemStyle}
-            testID={item.testID}
-          >
-            <ListItem style={styles.listItem}>
-              {item.iconName && (
-                <Icon
-                  name={item.iconName}
-                  size={IconSize.Md}
-                  color={IconColor.Default}
-                />
-              )}
-              <ListItemColumn widthType={WidthType.Fill}>
-                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                  {item.label}
-                </Text>
-              </ListItemColumn>
-              {(item.showArrow ?? true) && (
-                <ListItemColumn widthType={WidthType.Auto}>
+          <View key={`${item.label}-${index}`} style={itemStyle}>
+            <TouchableOpacity onPress={item.onPress} testID={item.testID}>
+              <ListItem style={styles.listItem}>
+                {item.iconName && (
                   <Icon
-                    name={IconName.ArrowRight}
+                    name={item.iconName}
                     size={IconSize.Md}
-                    color={item.arrowColor ?? IconColor.Alternative}
+                    color={IconColor.Default}
                   />
+                )}
+                <ListItemColumn widthType={WidthType.Fill}>
+                  <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                    {item.label}
+                  </Text>
                 </ListItemColumn>
-              )}
-            </ListItem>
-          </TouchableOpacity>
+                {(item.showArrow ?? true) && (
+                  <ListItemColumn widthType={WidthType.Auto}>
+                    <Icon
+                      name={IconName.ArrowRight}
+                      size={IconSize.Md}
+                      color={item.arrowColor ?? IconColor.Alternative}
+                    />
+                  </ListItemColumn>
+                )}
+              </ListItem>
+            </TouchableOpacity>
+          </View>
         );
       })}
     </View>

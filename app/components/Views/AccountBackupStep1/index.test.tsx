@@ -15,8 +15,6 @@ import { InteractionManager, Platform } from 'react-native';
 import { AccountType } from '../../../constants/onboarding';
 import SRPDesignDark from '../../../images/secure_wallet_dark.png';
 import SRPDesignLight from '../../../images/secure_wallet_light.png';
-import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
-import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 
 // Use fake timers to resolve reanimated issues.
 jest.useFakeTimers();
@@ -34,9 +32,18 @@ jest.mock('../../../store/storage-wrapper', () => ({
   getItem: jest.fn(),
 }));
 
-const mockIsAnalyticsEnabled = jest.fn().mockReturnValue(true);
+const mockIsEnabled = jest.fn().mockReturnValue(true);
 
-jest.mock('../../hooks/useAnalytics/useAnalytics');
+jest.mock('../../hooks/useMetrics', () => {
+  const actualUseMetrics = jest.requireActual('../../hooks/useMetrics');
+  return {
+    ...actualUseMetrics,
+    useMetrics: jest.fn().mockReturnValue({
+      ...actualUseMetrics.useMetrics,
+      isEnabled: () => mockIsEnabled(),
+    }),
+  };
+});
 
 // Mock useTheme hook - default to dark theme
 const mockUseTheme = jest.fn().mockReturnValue({
@@ -99,15 +106,6 @@ jest.doMock('react-native', () => {
 });
 
 describe('AccountBackupStep1', () => {
-  beforeEach(() => {
-    mockIsAnalyticsEnabled.mockReturnValue(true);
-    jest
-      .mocked(useAnalytics)
-      .mockReturnValue(
-        createMockUseAnalyticsHook({ isEnabled: mockIsAnalyticsEnabled }),
-      );
-  });
-
   afterEach(() => {
     jest.useFakeTimers({ legacyFakeTimers: true });
     jest.clearAllMocks();
@@ -341,7 +339,7 @@ describe('AccountBackupStep1', () => {
     });
 
     it('handle skip when metrics is disabled', async () => {
-      mockIsAnalyticsEnabled.mockReturnValue(false);
+      mockIsEnabled.mockReturnValue(false);
       (Engine.hasFunds as jest.Mock).mockReturnValue(false);
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
 
@@ -379,7 +377,7 @@ describe('AccountBackupStep1', () => {
     });
 
     it('handle secure now button to goNext step when metrics is disabled', async () => {
-      mockIsAnalyticsEnabled.mockReturnValue(false);
+      mockIsEnabled.mockReturnValue(false);
       (Engine.hasFunds as jest.Mock).mockReturnValue(false);
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
 

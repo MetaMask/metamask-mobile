@@ -1,16 +1,11 @@
 import { ManualBackUpStepsSelectorsIDs } from '../../../app/components/Views/ManualBackupStep1/ManualBackUpSteps.testIds';
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
 import {
-  asDetoxElement,
-  asPlaywrightElement,
   encapsulated,
   EncapsulatedElementType,
 } from '../../framework/EncapsulatedElement';
-import { encapsulatedAction } from '../../framework/encapsulatedAction';
-import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import { PlatformDetector } from '../../framework/PlatformLocator';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class ProtectYourWalletView {
   get container(): DetoxElement {
@@ -25,33 +20,22 @@ class ProtectYourWalletView {
         Matchers.getElementByID(
           ManualBackUpStepsSelectorsIDs.REMIND_ME_LATER_BUTTON,
         ),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          ManualBackUpStepsSelectorsIDs.REMIND_ME_LATER_BUTTON,
-          { exact: true },
-        ),
+      appium: {
+        android: () => PlaywrightMatchers.getElementByText('Remind me later'),
+        ios: () =>
+          PlaywrightMatchers.getElementByXPath(
+            '(//XCUIElementTypeStaticText[@name="Remind me later"])[2]',
+            {
+              exact: true,
+            },
+          ),
+      },
     });
   }
 
   async tapOnRemindMeLaterButton(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.waitAndTap(asDetoxElement(this.remindMeLaterButton), {
-          elemDescription: 'Protect Your Wallet Remind Me Later Button',
-        });
-      },
-      appium: async () => {
-        if (await PlatformDetector.isIOS()) {
-          await PlaywrightGestures.hideKeyboard();
-        }
-        const button = await asPlaywrightElement(this.remindMeLaterButton);
-        await PlaywrightGestures.scrollIntoView(button);
-        await PlaywrightGestures.waitAndTap(button, {
-          checkForDisplayed: true,
-          checkForEnabled: true,
-          timeout: 15_000,
-        });
-      },
+    await UnifiedGestures.waitAndTap(this.remindMeLaterButton, {
+      description: 'Protect Your Wallet Remind Me Later Button',
     });
   }
 

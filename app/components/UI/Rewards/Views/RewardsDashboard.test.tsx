@@ -37,7 +37,6 @@ jest.mock('@react-navigation/native', () => {
 // Mock selectors
 jest.mock('../../../../reducers/rewards/selectors', () => ({
   selectActiveTab: jest.fn(),
-  selectHasAcceptedVipInvite: jest.fn(),
   selectHideCurrentAccountNotOptedInBannerArray: jest.fn(),
   selectHideUnlinkedAccountsBanner: jest.fn(),
 }));
@@ -56,7 +55,6 @@ jest.mock(
 
 import {
   selectActiveTab,
-  selectHasAcceptedVipInvite,
   selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
 } from '../../../../reducers/rewards/selectors';
@@ -69,11 +67,6 @@ import { selectSelectedAccountGroup } from '../../../../selectors/multichainAcco
 const mockSelectActiveTab = selectActiveTab as jest.MockedFunction<
   typeof selectActiveTab
 >;
-const mockSelectHasAcceptedVipInvite =
-  selectHasAcceptedVipInvite as jest.MockedFunction<
-    typeof selectHasAcceptedVipInvite
-  >;
-const mockHasAcceptedVipInviteSelector = jest.fn();
 const mockSelectRewardsSubscriptionId =
   selectRewardsSubscriptionId as jest.MockedFunction<
     typeof selectRewardsSubscriptionId
@@ -334,10 +327,6 @@ describe('RewardsDashboard', () => {
     mockSelectSelectedAccountGroup.mockReturnValue(
       defaultSelectorValues.selectedAccountGroup,
     );
-    mockSelectHasAcceptedVipInvite.mockReturnValue(
-      mockHasAcceptedVipInviteSelector,
-    );
-    mockHasAcceptedVipInviteSelector.mockReturnValue(false);
 
     // Setup hook mocks
     mockUseRewardOptinSummary.mockReturnValue(
@@ -363,7 +352,6 @@ describe('RewardsDashboard', () => {
         return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
       if (selector === selectSelectedAccountGroup)
         return defaultSelectorValues.selectedAccountGroup;
-      if (selector === mockHasAcceptedVipInviteSelector) return false;
       return undefined;
     });
   });
@@ -479,7 +467,6 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === mockHasAcceptedVipInviteSelector) return false;
         return undefined;
       });
 
@@ -488,7 +475,7 @@ describe('RewardsDashboard', () => {
       expect(getByTestId(REWARDS_VIEW_SELECTORS.VIP_BUTTON)).toBeOnTheScreen();
     });
 
-    it('navigates to VIP splash when the invite has not been accepted', () => {
+    it('navigates to VIP view when the VIP button is pressed', () => {
       mockSelectIsCurrentSubscriptionVipEnabled.mockReturnValue(true);
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectActiveTab)
@@ -502,32 +489,6 @@ describe('RewardsDashboard', () => {
           return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
         if (selector === selectSelectedAccountGroup)
           return defaultSelectorValues.selectedAccountGroup;
-        if (selector === mockHasAcceptedVipInviteSelector) return false;
-        return undefined;
-      });
-
-      const { getByTestId } = render(<RewardsDashboard />);
-      fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.VIP_BUTTON));
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIP_SPLASH_VIEW);
-    });
-
-    it('navigates to VIP view without splash when the invite was accepted', () => {
-      mockSelectIsCurrentSubscriptionVipEnabled.mockReturnValue(true);
-      mockHasAcceptedVipInviteSelector.mockReturnValue(true);
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectActiveTab)
-          return defaultSelectorValues.activeTab;
-        if (selector === selectRewardsSubscriptionId)
-          return defaultSelectorValues.subscriptionId;
-        if (selector === selectIsCurrentSubscriptionVipEnabled) return true;
-        if (selector === selectHideUnlinkedAccountsBanner)
-          return defaultSelectorValues.hideUnlinkedAccountsBanner;
-        if (selector === selectHideCurrentAccountNotOptedInBannerArray)
-          return defaultSelectorValues.hideCurrentAccountNotOptedInBannerArray;
-        if (selector === selectSelectedAccountGroup)
-          return defaultSelectorValues.selectedAccountGroup;
-        if (selector === mockHasAcceptedVipInviteSelector) return true;
         return undefined;
       });
 

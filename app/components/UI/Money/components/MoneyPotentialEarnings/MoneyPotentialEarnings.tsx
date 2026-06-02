@@ -20,12 +20,26 @@ import MoneySectionHeader from '../MoneySectionHeader';
 import { MoneyPotentialEarningsTestIds } from './MoneyPotentialEarnings.testIds';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
+import {
+  STABLECOIN_SYMBOLS,
+  tokenFiatValue,
+} from '../../../Earn/hooks/useMusdConversionTokens';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { isPositiveNumber } from '../../utils/number';
 import PotentialEarningsTokenRow from './PotentialEarningsTokenRow';
 import { useProjectedEarnings } from '../../hooks/useProjectedEarnings';
 
-const VISIBLE_TOKENS_COUNT = 5;
+/** Number of years the projected earnings are simulated over. */
+const MAX_TOKENS = 5;
+
+/**
+ * True when the token list contains at least one token with a positive fiat
+ * balance — the same criterion MoneyPotentialEarnings uses before rendering.
+ * Exported so parents can gate surrounding chrome (e.g. Dividers) without
+ * drifting from the component's internal filter.
+ */
+export const hasConvertibleTokensWithBalance = (tokens: AssetType[]) =>
+  tokens.some((token) => tokenFiatValue(token) > 0);
 
 interface MoneyPotentialEarningsProps {
   tokens: AssetType[];
@@ -35,13 +49,6 @@ interface MoneyPotentialEarningsProps {
    * alongside each token and in the description.
    */
   apy: number | undefined;
-  /**
-   * Returns true when the given token qualifies for a subsidised (no-fee)
-   * deposit. Used to render the "No fee" badge on each token row.
-   * Sourced from the `earnMoneyDepositNoFeeTokens` remote feature flag via
-   * useMoneyDepositTokens.
-   */
-  isNoFeeToken?: (token: AssetType) => boolean;
   onTokenPress?: (token: AssetType) => void;
   onViewAllPress?: () => void;
   onHeaderPress?: () => void;
@@ -55,7 +62,6 @@ interface MoneyPotentialEarningsProps {
 const MoneyPotentialEarnings = ({
   tokens,
   apy,
-  isNoFeeToken = () => false,
   onTokenPress,
   onViewAllPress,
   onHeaderPress,
@@ -64,6 +70,11 @@ const MoneyPotentialEarnings = ({
   const currentCurrency = useSelector(selectCurrentCurrency);
   const apyPercent = apy ?? 0;
 
+  // Tokens arrive pre-sorted (stablecoins first, then fiat desc) from
+  // useMusdConversionTokens; the hook strips zero-balance entries
+  // defensively, since the feature flag threshold may be set to 0 in some
+  // environments.
+  //
   // Sum across every eligible token (not just the five we render). The "View
   // all" affordance tells users there are more rows than shown, so the
   // headline is intentionally the full projection — clipping the headline to
@@ -71,7 +82,7 @@ const MoneyPotentialEarnings = ({
   const { eligibleTokens, totalAssetsFiat, projectedAmount } =
     useProjectedEarnings(tokens, apyPercent);
   const visibleTokens = useMemo(
-    () => eligibleTokens.slice(0, VISIBLE_TOKENS_COUNT),
+    () => eligibleTokens.slice(0, MAX_TOKENS),
     [eligibleTokens],
   );
 
@@ -162,13 +173,13 @@ const MoneyPotentialEarnings = ({
           <PotentialEarningsTokenRow
             key={`${token.address}-${token.chainId}`}
             token={token}
-            hasSubsidizedFee={isNoFeeToken(token)}
+            hasSubsidizedFee={STABLECOIN_SYMBOLS.has(token.symbol)}
             apyPercent={apyPercent}
             onPress={handleTokenPress(token)}
           />
         ))}
 
-        {eligibleTokens.length > VISIBLE_TOKENS_COUNT && (
+        {eligibleTokens.length > MAX_TOKENS && (
           <Box twClassName="px-4 py-3">
             <Button
               variant={ButtonVariant.Secondary}

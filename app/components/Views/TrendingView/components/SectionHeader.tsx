@@ -6,7 +6,7 @@ import {
 } from '@metamask/design-system-react-native';
 import BaseSectionHeader from '../../../../component-library/components-temp/SectionHeader';
 import {
-  trackExploreSectionSeeAll,
+  trackExploreInteracted,
   type ExploreTabName,
   type ExploreSectionName,
 } from '../search/analytics';
@@ -33,7 +33,11 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
 }) => {
   const handleViewAll = useCallback(() => {
     if (tabName && sectionName) {
-      trackExploreSectionSeeAll({ tabName, sectionName });
+      trackExploreInteracted({
+        interaction_type: 'section_see_all_tapped',
+        tab_name: tabName,
+        section_name: sectionName,
+      });
     }
     onViewAll?.();
   }, [onViewAll, tabName, sectionName]);

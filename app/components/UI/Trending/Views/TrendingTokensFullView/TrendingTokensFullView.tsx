@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { View, TouchableOpacity, RefreshControl } from 'react-native';
-import { useRoute, type RouteProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import TrendingTokensList, {
@@ -22,7 +21,6 @@ import {
 } from '@metamask/design-system-react-native';
 import {
   TrendingTokenTimeBottomSheet,
-  mapTimeOptionToSortBy,
   PriceChangeOption,
   TimeOption,
 } from '../../components/TrendingTokensBottomSheet';
@@ -36,10 +34,6 @@ import { useSearchTracking } from '../../hooks/useSearchTracking/useSearchTracki
 import TokenListPageLayout from '../../components/TokenListPageLayout/TokenListPageLayout';
 import { TRENDING_NETWORKS_LIST } from '../../utils/trendingNetworksList';
 import type { Theme } from '../../../../../util/theme/models';
-
-export interface TrendingTokensFullViewParams {
-  initialTimeOption?: TimeOption;
-}
 
 export interface TrendingTokensDataProps {
   isLoading: boolean;
@@ -119,16 +113,9 @@ export const TrendingTokensData = (props: TrendingTokensDataProps) => {
 const TrendingTokensFullView = () => {
   const tw = useTailwind();
   const sessionManager = TrendingFeedSessionManager.getInstance();
-  const { params } =
-    useRoute<
-      RouteProp<{ TrendingTokensFullView: TrendingTokensFullViewParams }>
-    >();
-  const initialTimeOption = params?.initialTimeOption;
-  const filters = useTokenListFilters({ timeOption: initialTimeOption });
+  const filters = useTokenListFilters();
 
-  const [sortBy, setSortBy] = useState<SortTrendingBy | undefined>(
-    initialTimeOption ? mapTimeOptionToSortBy(initialTimeOption) : undefined,
-  );
+  const [sortBy, setSortBy] = useState<SortTrendingBy | undefined>(undefined);
   const [showTimeBottomSheet, setShowTimeBottomSheet] = useState(false);
 
   const {

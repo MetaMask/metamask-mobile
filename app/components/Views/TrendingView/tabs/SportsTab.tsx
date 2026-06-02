@@ -25,17 +25,13 @@ import PredictMarket from '../../../UI/Predict/components/PredictMarket';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { strings } from '../../../../../locales/i18n';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
-import { useWorldCupPredictionsFeed } from '../feeds/predictions/useWorldCupPredictionsFeed';
 import {
   useSportsMarketsFeed,
   type UseSportsMarketsFeedResult,
 } from '../feeds/predictions/useSportsMarketsFeed';
 import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarouselSection';
 import PredictionsSkeleton from '../feeds/predictions/PredictionsSkeleton';
-import {
-  navigateToExplorePredictionsList,
-  navigateToExploreWorldCupPredictions,
-} from '../feeds/predictions/predictionsNavigation';
+import { navigateToExplorePredictionsList } from '../feeds/predictions/predictionsNavigation';
 import PillRow from '../components/PillRow';
 import SectionHeader from '../components/SectionHeader';
 import type { TabProps } from '../hooks/useExploreRefresh';
@@ -55,7 +51,6 @@ interface SportsListHeaderProps {
   showSportsPredictions: boolean;
   sportsPredictionsData: PredictMarketType[];
   sportsPredictionsLoading: boolean;
-  showWorldCupPredictions: boolean;
   sportsMarkets: UseSportsMarketsFeedResult;
   showAllSportsSkeleton: boolean;
   showAllSportsEmpty: boolean;
@@ -66,7 +61,6 @@ const SportsListHeader: React.FC<SportsListHeaderProps> = ({
   showSportsPredictions,
   sportsPredictionsData,
   sportsPredictionsLoading,
-  showWorldCupPredictions,
   sportsMarkets,
   showAllSportsSkeleton,
   showAllSportsEmpty,
@@ -80,18 +74,10 @@ const SportsListHeader: React.FC<SportsListHeaderProps> = ({
       }}
       tabName="Sports"
       sectionName="predictions_sports"
-      title={
-        showWorldCupPredictions
-          ? strings('predict.world_cup.predictions_title')
-          : strings('trending.predictions')
-      }
+      title={strings('trending.predictions')}
       testIdPrefix="predict-sports-market-row-item"
       idPrefix="sports_predictions"
-      onViewAll={() =>
-        showWorldCupPredictions
-          ? navigateToExploreWorldCupPredictions(navigation)
-          : navigateToExplorePredictionsList(navigation, 'sports')
-      }
+      onViewAll={() => navigateToExplorePredictionsList(navigation, 'sports')}
       isEnabled={showSportsPredictions}
     />
 
@@ -139,18 +125,7 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const { colors } = useTheme();
 
-  const worldCupPredictions = useWorldCupPredictionsFeed({
-    enabled: isPredictEnabled,
-    refresh,
-  });
-  const sportsPredictions = usePredictionsFeed({
-    variant: 'sports',
-    refresh,
-    enabled: !worldCupPredictions.isEnabled,
-  });
-  const displayedSportsPredictions = worldCupPredictions.isEnabled
-    ? worldCupPredictions
-    : sportsPredictions;
+  const sportsPredictions = usePredictionsFeed({ variant: 'sports', refresh });
   const sportsMarkets = useSportsMarketsFeed({ refresh });
 
   const { active, activeKey } = sportsMarkets;
@@ -191,8 +166,7 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
 
   const showSportsPredictions =
     isPredictEnabled &&
-    (displayedSportsPredictions.isLoading ||
-      displayedSportsPredictions.data.length > 0);
+    (sportsPredictions.isLoading || sportsPredictions.data.length > 0);
   const showAllSportsSkeleton =
     active.isFetching && active.marketData.length === 0;
   const showAllSportsEmpty =
@@ -201,9 +175,8 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const listHeader = (
     <SportsListHeader
       showSportsPredictions={showSportsPredictions}
-      sportsPredictionsData={displayedSportsPredictions.data}
-      sportsPredictionsLoading={displayedSportsPredictions.isLoading}
-      showWorldCupPredictions={worldCupPredictions.isEnabled}
+      sportsPredictionsData={sportsPredictions.data}
+      sportsPredictionsLoading={sportsPredictions.isLoading}
       sportsMarkets={sportsMarkets}
       showAllSportsSkeleton={showAllSportsSkeleton}
       showAllSportsEmpty={showAllSportsEmpty}

@@ -175,12 +175,14 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
         </View>
       </TouchableOpacity>
 
-      <FlatList
-        data={transactions}
-        renderItem={renderItem}
-        keyExtractor={(item, index) => `${item.id || index}`}
-        scrollEnabled={false}
-      />
+      <View>
+        <FlatList
+          data={transactions}
+          renderItem={renderItem}
+          keyExtractor={(item, index) => `${item.id || index}`}
+          scrollEnabled={false}
+        />
+      </View>
     </View>
   );
 };

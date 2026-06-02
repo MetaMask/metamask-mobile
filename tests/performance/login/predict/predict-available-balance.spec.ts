@@ -28,20 +28,22 @@ perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
       // Login to the app
       await loginToAppPlaywright();
-      perfTest.setTimeout(15 * 60 * 1000);
+
       // Timer 1: Navigate to Predict tab and verify available balance
       const timer1 = new TimerHelper(
         'Time since user taps Predict button until Available Balance is displayed',
-        { ios: 4500, android: 5000 },
+        { ios: 4500, android: 8000 },
         currentDeviceDetails.platform,
       );
-      await TabBarComponent.tapActions();
 
+      await TabBarComponent.tapActions();
       await WalletActionsBottomSheet.tapPredictButton();
       await timer1.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(PredictMarketList.container),
-          { timeout: 60000 },
+          asPlaywrightElement(PredictMarketList.balanceCard),
+        );
+        await PlaywrightAssertions.expectElementToBeVisible(
+          asPlaywrightElement(PredictMarketList.availableBalanceLabel),
         );
       });
 

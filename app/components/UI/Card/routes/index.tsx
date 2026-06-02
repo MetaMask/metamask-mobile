@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
 import {
-  createNativeStackNavigator,
-  NativeStackNavigationOptions,
-} from '@react-navigation/native-stack';
+  createStackNavigator,
+  StackNavigationOptions,
+} from '@react-navigation/stack';
 import Routes from '../../../../constants/navigation/Routes';
 import CardHome from '../Views/CardHome/CardHome';
 import CardWelcome from '../Views/CardWelcome/CardWelcome';
@@ -29,17 +29,14 @@ import SpendingLimitOptionsSheet from '../Views/SpendingLimit/components/Spendin
 import WaitlistFormModal from '../components/WaitlistFormModal/WaitlistFormModal';
 import OrderCompleted from '../Views/OrderCompleted/OrderCompleted';
 import Cashback from '../Views/Cashback/Cashback';
-import {
-  clearNativeStackNavigatorOptions,
-  transparentModalScreenOptions,
-} from '../../../../constants/navigation/clearStackNavigatorOptions';
+import { clearStackNavigatorOptions } from '../../../../constants/navigation/clearStackNavigatorOptions';
 
-const Stack = createNativeStackNavigator();
-const ModalsStack = createNativeStackNavigator();
+const Stack = createStackNavigator();
+const ModalsStack = createStackNavigator();
 
 // All Card main screens render their own header via HeaderStandard, so hide
 // the navigator chrome by default.
-const mainScreenOptions: NativeStackNavigationOptions = { headerShown: false };
+const mainScreenOptions: StackNavigationOptions = { headerShown: false };
 
 // SpendingLimit's onboarding flow renders a close (X) header and must not be
 // swipe-dismissable; all other flows keep the default gesture behavior.
@@ -47,7 +44,7 @@ const spendingLimitScreenOptions = ({
   route,
 }: {
   route: { params?: { flow?: 'manage' | 'enable' | 'onboarding' } };
-}): NativeStackNavigationOptions => ({
+}): StackNavigationOptions => ({
   headerShown: false,
   gestureEnabled: route.params?.flow !== 'onboarding',
 });
@@ -98,10 +95,7 @@ const MainRoutes = () => {
 
 const CardModalsRoutes = () => (
   <ModalsStack.Navigator
-    screenOptions={{
-      ...clearNativeStackNavigatorOptions,
-      ...transparentModalScreenOptions,
-    }}
+    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
   >
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.ADD_FUNDS}
@@ -156,8 +150,8 @@ const CardRoutes = () => (
       name={Routes.CARD.MODALS.ID}
       component={CardModalsRoutes}
       options={{
-        ...clearNativeStackNavigatorOptions,
-        ...transparentModalScreenOptions,
+        ...clearStackNavigatorOptions,
+        detachPreviousScreen: false,
       }}
     />
   </Stack.Navigator>

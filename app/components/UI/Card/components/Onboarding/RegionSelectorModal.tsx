@@ -11,6 +11,7 @@ import Fuse from 'fuse.js';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
 import ListItemColumn, {
   WidthType,
@@ -26,7 +27,6 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  HeaderStandard,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -209,7 +209,7 @@ function RegionSelectorModal() {
       keyboardAvoidingViewEnabled={false}
       testID="region-selector-modal"
     >
-      <HeaderStandard
+      <HeaderCompactStandard
         title={strings('card.card_onboarding.region_selector.title')}
         onClose={handleClose}
         closeButtonProps={{ testID: 'region-selector-close-button' }}

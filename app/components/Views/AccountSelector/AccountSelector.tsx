@@ -27,7 +27,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   FontWeight,
   Text,
   TextVariant,
@@ -36,6 +35,7 @@ import {
 // External dependencies.
 import MultichainAccountSelectorList from '../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList';
 import { MultichainAddWalletActions } from '../../../component-library/components-temp/MultichainAccounts';
+import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import Engine from '../../../core/Engine';
 import { store } from '../../../store';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -307,7 +307,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
             paddingBottom: insets.bottom,
           }}
         >
-          <HeaderStandard
+          <HeaderCompactStandard
             title={strings('accounts.accounts_title')}
             onBack={handleClose}
             backButtonProps={{
@@ -331,7 +331,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
               paddingBottom: insets.bottom,
             }}
           >
-            <HeaderStandard
+            <HeaderCompactStandard
               title={
                 screen === AccountSelectorScreens.AddAccountActions
                   ? strings('account_actions.add_account')

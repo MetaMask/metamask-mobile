@@ -25,19 +25,27 @@ perfTest.describe(
 
         const assetViewScreen = new TimerHelper(
           'Time since the user clicks on the asset view button until the user sees the token overview screen',
-          { ios: 6000, android: 2500 },
+          { ios: 600, android: 4500 },
           currentDeviceDetails.platform,
         );
 
         await WalletView.tapOnTokensSection();
-        await WalletView.tapOnToken('ETH');
+        await WalletView.tapOnToken('USDC');
 
         await assetViewScreen.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(TokenOverview.priceChartContainer),
+            asPlaywrightElement(TokenOverview.container),
           );
           await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(TokenOverview.container),
+            asPlaywrightElement(TokenOverview.sendButton),
+          );
+          // Replicating the logic of the old spec to wait for the todays change to be visible isTodaysChangeVisible method in the TokenOverview wdio screen object
+          await PlaywrightAssertions.expectElementToBeVisibleWithSettle(
+            asPlaywrightElement(TokenOverview.todaysChange),
+            {
+              timeout: 10000,
+              settleMs: 500,
+            },
           );
         });
 

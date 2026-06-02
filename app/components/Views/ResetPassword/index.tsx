@@ -17,7 +17,6 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  HeaderStandard,
   Icon,
   IconName,
   IconSize,
@@ -38,6 +37,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { passwordSet } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import { strings } from '../../../../locales/i18n';
+import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import AppConstants from '../../../core/AppConstants';
 import { PREVIOUS_SCREEN } from '../../../constants/navigation';
 import {
@@ -803,8 +803,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
       edges={{ bottom: 'additive' }}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderStandard
-        testID="header"
+      <HeaderCompactStandard
         title={strings('password_reset.change_password')}
         onBack={() => navigation.goBack()}
         backButtonProps={{ isDisabled: loading }}

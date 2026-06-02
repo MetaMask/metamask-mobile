@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+import { getNftFullImageNavbarOptions } from '../../UI/Navbar';
 import { useNavigation } from '@react-navigation/native';
 import { useParams } from '../../../util/navigation/navUtils';
 import { useStyles } from '../../../component-library/hooks';
@@ -13,18 +13,23 @@ const NftDetailsFullImage = () => {
   const navigation = useNavigation();
   const { collectible } = useParams<NftDetailsParams>();
 
-  const { styles } = useStyles(styleSheet, {});
+  const {
+    styles,
+    theme: { colors },
+  } = useStyles(styleSheet, {});
+
+  const updateNavBar = useCallback(() => {
+    navigation.setOptions(getNftFullImageNavbarOptions(navigation, colors));
+  }, [colors, navigation]);
+
+  useEffect(() => {
+    updateNavBar();
+  }, [updateNavBar]);
 
   return (
-    <SafeAreaView
-      style={styles.fullImageScreen}
-      edges={['left', 'right', 'bottom']}
-    >
-      <HeaderStandard includesTopInset onClose={() => navigation.goBack()} />
-      <View style={[styles.fullImageContainer]}>
-        <View style={[styles.fullImageItem]}>
-          <CollectibleMedia cover renderAnimation collectible={collectible} />
-        </View>
+    <SafeAreaView style={[styles.fullImageContainer]}>
+      <View style={[styles.fullImageItem]}>
+        <CollectibleMedia cover renderAnimation collectible={collectible} />
       </View>
     </SafeAreaView>
   );

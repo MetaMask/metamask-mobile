@@ -27,6 +27,7 @@ const styleSheet = (params: {
       {
         padding: 16,
         borderRadius: 4,
+        backgroundColor: colors.background.default,
         opacity: isDisabled ? 0.5 : 1,
       } as ViewStyle,
       style,

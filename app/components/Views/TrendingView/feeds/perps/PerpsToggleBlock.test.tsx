@@ -18,7 +18,6 @@ jest.mock('@shopify/flash-list', () => {
 
 jest.mock('../../search/analytics', () => ({
   trackExploreInteracted: jest.fn(),
-  trackExploreSectionSeeAll: jest.fn(),
 }));
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {

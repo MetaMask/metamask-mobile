@@ -2,13 +2,10 @@
 
 // Third party dependencies.
 import React from 'react';
-import { View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
-import Pressable, {
-  PressableVariant,
-} from '../../../components-temp/Pressable';
 import ListItem from '../../List/ListItem/ListItem';
 
 // Internal dependencies.
@@ -31,8 +28,7 @@ const ListItemSelect: React.FC<ListItemSelectProps> = ({
   const { styles } = useStyles(styleSheet, { style, isDisabled });
 
   return (
-    <Pressable
-      variant={PressableVariant.Highlight}
+    <TouchableOpacity
       style={styles.base}
       disabled={isDisabled}
       onPress={onPress}
@@ -45,7 +41,7 @@ const ListItemSelect: React.FC<ListItemSelectProps> = ({
       {isSelected && (
         <View style={styles.underlay} accessibilityRole="checkbox" accessible />
       )}
-    </Pressable>
+    </TouchableOpacity>
   );
 };
 

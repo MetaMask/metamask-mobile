@@ -40,7 +40,6 @@ describe.skip(
           fixture: new FixtureBuilder()
             .withPerpsProfile('no-positions')
             .withPerpsFirstTimeUser(false)
-            .withAccountTreeController()
             .withKeyringControllerOfMultipleAccounts()
             .withNetworkController({
               type: 'rpc',

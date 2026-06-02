@@ -1,11 +1,11 @@
 import {
-  formatAddressToAssetId,
   formatChainIdToCaip,
   formatChainIdToHex,
 } from '@metamask/bridge-controller';
 import { CaipAssetType, CaipChainId } from '@metamask/utils';
 import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../../constants/bridge';
 import { BridgeToken } from '../../types';
+import { getBridgeTokenAssetId } from '../../utils/tokenUtils';
 
 export const MAX_BATCH_SELL_SOURCE_TOKENS = 5;
 // TODO: The fetching of 7702 chains needs to be dynamic so there's no need for
@@ -55,9 +55,7 @@ export function removeStablecoinsFromSourceTokens({
       chainId as CaipChainId,
       new Set(
         (stablecoins ?? [])
-          .map((stablecoin) =>
-            formatAddressToAssetId(stablecoin.address, stablecoin.chainId),
-          )
+          .map((stablecoin) => getBridgeTokenAssetId(stablecoin))
           .filter((assetId): assetId is CaipAssetType => Boolean(assetId)),
       ),
     ]),
@@ -71,7 +69,7 @@ export function removeStablecoinsFromSourceTokens({
       return true;
     }
 
-    const assetId = formatAddressToAssetId(token.address, token.chainId);
+    const assetId = getBridgeTokenAssetId(token);
 
     if (!assetId) {
       return true;

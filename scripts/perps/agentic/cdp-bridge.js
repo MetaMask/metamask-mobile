@@ -18,11 +18,23 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const PRE_CONDITIONS = require('./lib/registry');
 const { loadPort } = require('./lib/config');
 const { discoverTarget } = require('./lib/target-discovery');
 const { createWSClient } = require('./lib/ws-client');
 const { cdpEval, cdpEvalAsync } = require('./lib/cdp-eval');
-const { buildArmSnippet, buildCollectSnippet } = require('./lib/issue-capture');
+const { checkAssert } = require('./lib/assert');
+const { buildArmSnippet, buildCollectSnippet } = require('./lib/recipe-issues');
+
+async function evalSpec(client, entry, params) {
+  const expr = typeof entry.expression === 'function' ? entry.expression(params) : entry.expression;
+  let raw = entry.async
+    ? await cdpEvalAsync(client, expr)
+    : await cdpEval(client, expr);
+  if (raw === undefined || raw === null) raw = 'null';
+  if (typeof raw !== 'string') raw = JSON.stringify(raw);
+  return raw;
+}
 
 // ---------------------------------------------------------------------------
 // Commands
@@ -492,6 +504,48 @@ const COMMANDS = {
     };
   },
 
+  async 'check-pre-conditions'(client, args) {
+    const specsJson = args[0];
+    if (!specsJson) throw new Error('Usage: check-pre-conditions <specs-json>');
+
+    let specs;
+    try {
+      specs = JSON.parse(specsJson);
+    } catch (e) {
+      throw new Error(`Invalid specs JSON: ${e.message}`);
+    }
+    if (!Array.isArray(specs) || specs.length === 0) return { ok: true, checked: 0 };
+
+    const failures = [];
+
+    for (const spec of specs) {
+      const name = typeof spec === 'string' ? spec : spec.name;
+      const params = typeof spec === 'object' ? spec : {};
+      const entry = PRE_CONDITIONS[name];
+
+      if (!entry) {
+        failures.push({ name, error: `Unknown pre-condition "${name}". Check pre-conditions.js for valid names.` });
+        continue;
+      }
+
+      let raw;
+      try {
+        raw = await evalSpec(client, entry, params);
+      } catch (e) {
+        failures.push({ name, description: entry.description, error: `Eval failed: ${e.message}`, hint: entry.hint });
+        continue;
+      }
+
+      const passed = checkAssert(raw, entry.assert);
+      if (!passed) {
+        failures.push({ name, description: entry.description, got: raw, hint: entry.hint });
+      }
+    }
+
+    const ok = failures.length === 0;
+    return { ok, checked: specs.length, failures: ok ? [] : failures };
+  },
+
   async 'show-step'(client, args) {
     const stepId = args[0] || '';
     const description = args.slice(1).join(' ');
@@ -531,7 +585,7 @@ const COMMANDS = {
     }
     const serialized = JSON.stringify(profile);
     if (!outPath) {
-      const tracesDir = path.resolve(process.env.APP_ROOT || process.cwd(), 'temp/agentic/traces');
+      const tracesDir = path.resolve(process.env.APP_ROOT || process.cwd(), 'temp/agentic/recipes/test-artifacts/traces');
       fs.mkdirSync(tracesDir, { recursive: true });
       outPath = path.join(tracesDir, `trace-${label}.cpuprofile`);
     } else {
@@ -567,7 +621,92 @@ const COMMANDS = {
     return result || { count: 0, entries: [] };
   },
 
+  async 'eval-ref'(client, args) {
+    const arg = args[0];
+    if (!arg || arg === '--help') {
+      console.error('Usage: eval-ref <team/name> | eval-ref --list');
+      process.exit(1);
+    }
+
+    const teamsDir = path.resolve(__dirname, 'teams');
+
+    if (arg === '--list') {
+      return listEvalRefs(teamsDir);
+    }
+
+    // Parse "team/name" (2-part) or "team/subfile/name" (3-part)
+    const parts = arg.split('/');
+    if (parts.length < 2 || parts.length > 3) {
+      throw new Error('Eval ref must be "team/name" or "team/subfile/name" (e.g. perps/positions or perps/core/pump-market)');
+    }
+    let evalFile, evalName;
+    if (parts.length === 3) {
+      const [team, subfile, name] = parts;
+      evalFile = path.join(teamsDir, team, 'evals', `${subfile}.json`);
+      evalName = name;
+    } else {
+      const [team, name] = parts;
+      evalFile = path.join(teamsDir, team, 'evals.json');
+      evalName = name;
+    }
+    if (!fs.existsSync(evalFile)) {
+      throw new Error(`No eval file found: ${path.relative(path.dirname(teamsDir), evalFile)}`);
+    }
+    const evals = JSON.parse(fs.readFileSync(evalFile, 'utf8'));
+    const entry = evals[evalName];
+    if (!entry) {
+      const available = Object.keys(evals).join(', ');
+      throw new Error(`Eval ref "${evalName}" not found. Available: ${available}`);
+    }
+
+    const raw = entry.async
+      ? await cdpEvalAsync(client, entry.expression)
+      : await cdpEval(client, entry.expression);
+    // Eval expressions typically JSON.stringify their result.
+    // Parse it so main()'s JSON.stringify produces clean output
+    // instead of double-encoded strings.
+    if (typeof raw === 'string') {
+      try { return JSON.parse(raw); } catch { /* not JSON — return as-is */ }
+    }
+    return raw;
+  },
 };
+
+// ---------------------------------------------------------------------------
+// Eval-ref helpers
+// ---------------------------------------------------------------------------
+
+/** List all eval refs from teams/<team>/evals.json and teams/<team>/evals/*.json */
+function listEvalRefs(teamsDir) {
+  const all = {};
+  const teamDirs = fs.readdirSync(teamsDir, { withFileTypes: true })
+    .filter((d) => d.isDirectory())
+    .map((d) => d.name);
+  // Top-level evals: teams/<team>/evals.json → keyed as <team>
+  for (const team of teamDirs) {
+    const f = path.join(teamsDir, team, 'evals.json');
+    if (fs.existsSync(f)) {
+      const data = JSON.parse(fs.readFileSync(f, 'utf8'));
+      all[team] = Object.fromEntries(
+        Object.entries(data).map(([name, r]) => [name, r.description || ''])
+      );
+    }
+  }
+  // Sub-collections: teams/<team>/evals/<file>.json → keyed as <team>/<file>
+  for (const team of teamDirs) {
+    const evalsDir = path.join(teamsDir, team, 'evals');
+    if (!fs.existsSync(evalsDir)) continue;
+    const subFiles = fs.readdirSync(evalsDir).filter((f) => f.endsWith('.json'));
+    for (const file of subFiles) {
+      const key = `${team}/${path.basename(file, '.json')}`;
+      const data = JSON.parse(fs.readFileSync(path.join(evalsDir, file), 'utf8'));
+      all[key] = Object.fromEntries(
+        Object.entries(data).map(([name, r]) => [name, r.description || ''])
+      );
+    }
+  }
+  return all;
+}
 
 // ---------------------------------------------------------------------------
 // Main
@@ -601,11 +740,13 @@ Commands:
   set-input <testId> <value>           Set text input value by testID (calls onChangeText)
   sentry-debug [enable|disable]          Patch Sentry to log errors to console with [SENTRY-DEBUG] prefix
   unlock <password>                      Unlock wallet (inject password + press login button via fiber tree)
+  eval-ref <team/name>                 Run an eval ref (e.g. perps/positions)
+  eval-ref --list                      List all available eval refs
   profiler-start                       Start Hermes sampling profiler
   profiler-stop [--out <path>] [--label <name>]
                                        Stop profiler, dump Chrome-compatible
                                        .cpuprofile to <path> (default:
-                                       temp/agentic/traces/trace-<label>.cpuprofile)
+                                       temp/agentic/recipes/test-artifacts/traces/trace-<label>.cpuprofile)
   issues-arm                           Install console/exception hooks that
                                        populate globalThis.__AGENTIC_ISSUES__
   issues-collect                       Snapshot + clear the in-app issue buffer
@@ -625,6 +766,12 @@ Environment:
     process.exit(1);
   }
 
+  // `eval-ref --list` only reads local JSON files — skip CDP connection entirely.
+  if (command === 'eval-ref' && args[1] === '--list') {
+    const result = await handler(null, args.slice(1), {});
+    console.log(JSON.stringify(result, null, 2));
+    return;
+  }
 
   const port = loadPort();
   const timeout = Number.parseInt(process.env.CDP_TIMEOUT || '5000', 10);

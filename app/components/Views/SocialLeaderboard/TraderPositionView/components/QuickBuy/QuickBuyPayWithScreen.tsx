@@ -4,12 +4,10 @@ import {
   BottomSheetHeader,
   Box,
   BoxAlignItems,
-  BoxJustifyContent,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import QuickBuyPayWithChainFilter from './components/QuickBuyPayWithChainFilter';
 import QuickBuyPayWithRow from './components/QuickBuyPayWithRow';
@@ -18,7 +16,6 @@ import { getTokenKey } from './sourceTokenCandidates';
 import { useQuickBuyContext } from './useQuickBuyContext';
 
 const QuickBuyPayWithScreen: React.FC = () => {
-  const tw = useTailwind();
   const {
     sourceTokenOptions,
     selectedSourceToken,
@@ -87,11 +84,7 @@ const QuickBuyPayWithScreen: React.FC = () => {
       </BottomSheetHeader>
 
       {sourceTokenOptions.length === 0 ? (
-        <Box
-          twClassName="flex-1 px-4 py-8"
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-        >
+        <Box twClassName="px-4 py-8" alignItems={BoxAlignItems.Center}>
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings('social_leaderboard.quick_buy.pay_with_no_tokens')}
           </Text>
@@ -107,11 +100,7 @@ const QuickBuyPayWithScreen: React.FC = () => {
           ) : null}
 
           {filteredTokens.length === 0 ? (
-            <Box
-              twClassName="flex-1 px-4 py-8"
-              alignItems={BoxAlignItems.Center}
-              justifyContent={BoxJustifyContent.Center}
-            >
+            <Box twClassName="px-4 py-8" alignItems={BoxAlignItems.Center}>
               <Text
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
@@ -121,7 +110,6 @@ const QuickBuyPayWithScreen: React.FC = () => {
             </Box>
           ) : (
             <GestureHandlerScrollView
-              style={tw.style('flex-1')}
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
               testID="quick-buy-pay-with-scroll"

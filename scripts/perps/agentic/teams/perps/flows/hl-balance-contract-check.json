@@ -1,0 +1,57 @@
+{
+  "title": "HL — assert AccountState three-field contract (TAT-3047)",
+  "description": "Switches to {{address}}, waits for PerpsController.accountState to populate, then asserts the new three-field balance contract: spendableBalance + withdrawableBalance + totalBalance present, and no legacy availableBalance / availableToTradeBalance keys. Provider-agnostic shape check — passes on any HL or MYX account.",
+  "inputs": {
+    "address": {
+      "type": "string",
+      "description": "EVM address to select before asserting"
+    },
+    "phaseLabel": {
+      "type": "string",
+      "default": "contract-check",
+      "description": "Short label surfaced in assertions and screenshots"
+    }
+  },
+  "validate": {
+    "workflow": {
+      "pre_conditions": ["wallet.unlocked"],
+      "entry": "select",
+      "nodes": {
+        "select": {
+          "action": "select_account",
+          "address": "{{address}}",
+          "next": "wait-account"
+        },
+        "wait-account": {
+          "action": "wait_for",
+          "expression": "Engine.context.PerpsController.getAccountState().then(function(r){return JSON.stringify({ready:!!r,hasSpendable:typeof r.spendableBalance==='string',hasWithdrawable:typeof r.withdrawableBalance==='string',phase:'{{phaseLabel}}'})}).catch(function(e){return JSON.stringify({ready:false,error:String(e),phase:'{{phaseLabel}}'})})",
+          "assert": {
+            "all": [
+              { "operator": "eq", "field": "ready", "value": true },
+              { "operator": "eq", "field": "hasSpendable", "value": true },
+              { "operator": "eq", "field": "hasWithdrawable", "value": true }
+            ]
+          },
+          "timeout_ms": 30000,
+          "next": "assert-shape"
+        },
+        "assert-shape": {
+          "description": "Contract: spendable + withdrawable + total present, no legacy fields",
+          "action": "eval_sync",
+          "expression": "(function(){var s=Engine.context.PerpsController.state.accountState||{};return JSON.stringify({hasSpendable:typeof s.spendableBalance==='string',hasWithdrawable:typeof s.withdrawableBalance==='string',hasTotal:typeof s.totalBalance==='string',hasLegacyAvailable:'availableBalance' in s,hasLegacyTradeable:'availableToTradeBalance' in s,spendableBalance:s.spendableBalance,withdrawableBalance:s.withdrawableBalance,totalBalance:s.totalBalance,phase:'{{phaseLabel}}'})})()",
+          "assert": {
+            "all": [
+              { "operator": "eq", "field": "hasSpendable", "value": true },
+              { "operator": "eq", "field": "hasWithdrawable", "value": true },
+              { "operator": "eq", "field": "hasTotal", "value": true },
+              { "operator": "eq", "field": "hasLegacyAvailable", "value": false },
+              { "operator": "eq", "field": "hasLegacyTradeable", "value": false }
+            ]
+          },
+          "next": "done"
+        },
+        "done": { "action": "end", "status": "pass" }
+      }
+    }
+  }
+}

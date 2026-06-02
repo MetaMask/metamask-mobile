@@ -1,10 +1,5 @@
 import tr from './languages/tr.json';
 
-const INVALID_PERCENT_BEFORE_DOUBLE_BRACE_PLACEHOLDER =
-  /(?<!\}\})%\{\{/u;
-const INVALID_LITERAL_PERCENT_BEFORE_SINGLE_BRACE_PLACEHOLDER =
-  /%%\{/u;
-
 /**
  * Recursively collects leaf string values from nested locale objects.
  *
@@ -40,9 +35,9 @@ describe('Turkish locale (tr.json)', () => {
     return strings;
   }
 
-  it('does not use % before a double-brace placeholder', () => {
+  it('contains no %{{ substrings in any translation value', () => {
     const offenders = getAllLeafStrings().filter(({ value }) =>
-      INVALID_PERCENT_BEFORE_DOUBLE_BRACE_PLACEHOLDER.test(value),
+      value.includes('%{{'),
     );
 
     expect(offenders).toEqual([]);
@@ -50,7 +45,7 @@ describe('Turkish locale (tr.json)', () => {
 
   it('does not use %%{…} (literal % before placeholder); use {{…}}% like other locales', () => {
     const offenders = getAllLeafStrings().filter(({ value }) =>
-      INVALID_LITERAL_PERCENT_BEFORE_SINGLE_BRACE_PLACEHOLDER.test(value),
+      value.includes('%%{'),
     );
 
     expect(offenders).toEqual([]);

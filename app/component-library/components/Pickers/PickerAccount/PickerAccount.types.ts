@@ -14,4 +14,6 @@ export interface PickerAccountProps extends Omit<PickerBaseProps, 'children'> {
 /**
  * Style sheet input parameters.
  */
-export type PickerAccountStyleSheetVars = Pick<PickerAccountProps, 'style'>;
+export type PickerAccountStyleSheetVars = Pick<PickerAccountProps, 'style'> & {
+  pressed: boolean;
+};

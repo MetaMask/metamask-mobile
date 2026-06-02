@@ -9,35 +9,26 @@ interface IAnimatedQRCodeProps {
   cbor: string;
   type: string;
   shouldPause: boolean;
-  size?: number;
 }
 
 // For NGRAVE ZERO support please keep to a maximum fragment size of 200
 const MAX_FRAGMENT_LENGTH = 200;
-const DEFAULT_QR_CODE_SIZE = 250;
-const DEFAULT_WRAPPER_SIZE = 300;
-const QR_CODE_PADDING = DEFAULT_WRAPPER_SIZE - DEFAULT_QR_CODE_SIZE;
+const QR_CODE_SIZE = 250;
 
-const createStyles = (theme: Theme, wrapperSize: number) =>
+const createStyles = (theme: Theme) =>
   StyleSheet.create({
     wrapper: {
-      width: wrapperSize,
-      height: wrapperSize,
+      width: 300,
+      height: 300,
       backgroundColor: theme.brandColors.white,
       alignItems: 'center',
       justifyContent: 'center',
     },
   });
 
-const AnimatedQRCode = ({
-  cbor,
-  type,
-  shouldPause,
-  size = DEFAULT_QR_CODE_SIZE,
-}: IAnimatedQRCodeProps) => {
+const AnimatedQRCode = ({ cbor, type, shouldPause }: IAnimatedQRCodeProps) => {
   const theme = useTheme();
-  const wrapperSize = size + QR_CODE_PADDING;
-  const styles = createStyles(theme, wrapperSize);
+  const styles = createStyles(theme);
   const urEncoder = useMemo(
     () =>
       new UREncoder(
@@ -62,7 +53,7 @@ const AnimatedQRCode = ({
 
   return (
     <View style={styles.wrapper}>
-      <QRCode value={currentQRCode.toUpperCase()} size={size} />
+      <QRCode value={currentQRCode.toUpperCase()} size={QR_CODE_SIZE} />
     </View>
   );
 };

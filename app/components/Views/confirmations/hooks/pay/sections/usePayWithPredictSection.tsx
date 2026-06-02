@@ -1,21 +1,23 @@
 import React, { useCallback, useMemo } from 'react';
+import { Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { TransactionType } from '@metamask/transaction-controller';
 import { BigNumber } from 'bignumber.js';
 import {
   Button,
   ButtonSize,
   ButtonVariant,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
 } from '@metamask/design-system-react-native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
+import { POLYGON_PUSD } from '../../../constants/predict';
+import { PREDICT_BALANCE_CHAIN_ID } from '../../../../../UI/Predict/constants/transactions';
 import { usePredictBalance } from '../../../../../UI/Predict/hooks/usePredictBalance';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
+import { selectSingleTokenByAddressAndChainId } from '../../../../../../selectors/tokensController';
+import { RootState } from '../../../../../../reducers';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 import {
   PayWithRowConfig,
@@ -37,6 +39,13 @@ export function usePayWithPredictSection(): PayWithSectionConfig | null {
   const { data: predictBalance = 0 } = usePredictBalance();
   const { resetSelectedPaymentToken, isPredictBalanceSelected } =
     usePredictPaymentToken();
+  const pusdToken = useSelector((state: RootState) =>
+    selectSingleTokenByAddressAndChainId(
+      state,
+      POLYGON_PUSD.address,
+      PREDICT_BALANCE_CHAIN_ID,
+    ),
+  );
 
   const isPredictDepositAndOrder = hasTransactionType(transactionMeta, [
     TransactionType.predictDepositAndOrder,
@@ -68,10 +77,9 @@ export function usePayWithPredictSection(): PayWithSectionConfig | null {
 
     const row: PayWithRowConfig = {
       id: 'predict-balance',
-      icon: React.createElement(Icon, {
-        name: IconName.Predictions,
-        size: IconSize.Md,
-        color: IconColor.IconAlternative,
+      icon: React.createElement(Image, {
+        source: { uri: pusdToken?.image ?? '' },
+        style: { width: 24, height: 24 },
       }),
       title: strings('confirm.pay_with_bottom_sheet.predict_account'),
       subtitle: strings('confirm.pay_with_bottom_sheet.available_balance', {
@@ -103,5 +111,6 @@ export function usePayWithPredictSection(): PayWithSectionConfig | null {
     handleSelect,
     isPredictBalanceSelected,
     isPredictDepositAndOrder,
+    pusdToken,
   ]);
 }

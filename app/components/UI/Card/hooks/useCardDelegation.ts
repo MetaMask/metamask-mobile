@@ -155,7 +155,6 @@ export const useCardDelegation = (token?: CardFundingToken | null) => {
               {
                 networkClientId,
                 origin: TransactionTypes.MMM_CARD,
-                isInternal: true,
                 type: TransactionType.tokenMethodApprove,
                 deviceConfirmedOn: WalletDevice.MM_MOBILE,
                 requireApproval: true,

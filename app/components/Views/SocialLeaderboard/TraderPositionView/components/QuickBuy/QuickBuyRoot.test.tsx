@@ -1,6 +1,5 @@
 import React from 'react';
-import { act, fireEvent, screen } from '@testing-library/react-native';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { act, screen } from '@testing-library/react-native';
 import { TextColor } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import QuickBuyRoot from './QuickBuyRoot';
@@ -91,20 +90,6 @@ jest.mock('./components/QuickBuyActionFooter', () => {
   };
 });
 
-jest.mock('./QuickBuyPriceImpactConfirmScreen', () => {
-  const ReactMock = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: () =>
-      ReactMock.createElement(
-        Text,
-        { testID: 'mock-price-impact-confirm' },
-        'price-impact-confirm',
-      ),
-  };
-});
-
 jest.mock('./QuickBuyBottomSheetSkeleton', () => {
   const ReactMock = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');
@@ -136,7 +121,6 @@ const buildHookResult = (
   overrides: Partial<UseQuickBuyControllerResult> = {},
 ): UseQuickBuyControllerResult => ({
   hiddenInputRef: mockCreateRef() as never,
-  activeQuote: undefined,
   destToken: undefined,
   isSetupLoading: false,
   isUnsupportedChain: false,
@@ -147,7 +131,6 @@ const buildHookResult = (
   isSourcePickerOpen: false,
   setIsSourcePickerOpen: jest.fn(),
   setSelectedSourceToken: jest.fn(),
-  currentCurrency: 'USD',
   amountDisplayMode: 'fiat',
   usdAmount: '',
   sliderPercent: 0,
@@ -160,21 +143,11 @@ const buildHookResult = (
   formattedNetworkFee: '-',
   formattedSlippage: '-',
   formattedMinimumReceived: '-',
-  formattedMinimumReceivedFiat: undefined,
   formattedPriceImpact: '-',
-  formattedRate: undefined,
   totalAmountUsd: '$0',
   isQuoteLoading: false,
   isSubmittingTx: false,
   isTotalLoading: false,
-  sortedQuotes: [],
-  selectedQuoteRequestId: undefined,
-  setSelectedQuoteRequestId: jest.fn(),
-  quotesLastFetchedAt: null,
-  refreshCount: 0,
-  quoteRefreshRateMs: 30000,
-  maxRefreshCount: 5,
-  refetchQuotes: jest.fn(),
   isHardwareSolanaBlocked: false,
   priceImpactViewData: {
     textColor: TextColor.TextAlternative,
@@ -249,36 +222,6 @@ describe('QuickBuyRoot', () => {
     expect(screen.getByTestId('mock-action-footer')).toBeOnTheScreen();
   });
 
-  it('renders the price impact confirm screen via the children override', () => {
-    const MockPriceImpactConfirmScreen = () => {
-      const React2 = jest.requireActual('react');
-      const { Text: RNText } = jest.requireActual('react-native');
-      return React2.createElement(
-        RNText,
-        { testID: 'mock-price-impact-confirm' },
-        'price-impact-confirm',
-      );
-    };
-
-    renderWithProvider(
-      <QuickBuyRoot
-        isVisible
-        target={positionToQuickBuyTarget(createPosition())}
-        features={TOP_TRADERS_QUICK_BUY_FEATURES}
-        onClose={jest.fn()}
-      >
-        <MockPriceImpactConfirmScreen />
-      </QuickBuyRoot>,
-    );
-
-    act(() => {
-      storedOnOpenCallback?.();
-    });
-
-    // children override is rendered regardless of activeScreen value
-    expect(screen.getByTestId('mock-price-impact-confirm')).toBeOnTheScreen();
-  });
-
   it('shows unsupported chain message without amount flow', () => {
     (useQuickBuyController as jest.Mock).mockReturnValue(
       buildHookResult({ isUnsupportedChain: true }),
@@ -301,168 +244,6 @@ describe('QuickBuyRoot', () => {
       screen.getByText('social_leaderboard.quick_buy.unsupported_chain'),
     ).toBeOnTheScreen();
     expect(screen.queryByTestId('mock-amount-section')).not.toBeOnTheScreen();
-  });
-
-  it('renders nothing when isVisible is false', () => {
-    const { toJSON } = renderWithProvider(
-      <QuickBuyRoot
-        isVisible={false}
-        target={positionToQuickBuyTarget(createPosition())}
-        features={TOP_TRADERS_QUICK_BUY_FEATURES}
-        onClose={jest.fn()}
-      />,
-    );
-    expect(toJSON()).toBeNull();
-  });
-
-  it('renders nothing when target is null', () => {
-    const { toJSON } = renderWithProvider(
-      <QuickBuyRoot
-        isVisible
-        target={null}
-        features={TOP_TRADERS_QUICK_BUY_FEATURES}
-        onClose={jest.fn()}
-      />,
-    );
-    expect(toJSON()).toBeNull();
-  });
-
-  it('locks the content container height after the first layout', () => {
-    renderWithProvider(
-      <QuickBuyRoot
-        isVisible
-        target={positionToQuickBuyTarget(createPosition())}
-        features={TOP_TRADERS_QUICK_BUY_FEATURES}
-        onClose={jest.fn()}
-      />,
-    );
-    act(() => {
-      storedOnOpenCallback?.();
-    });
-
-    const container = screen.getByTestId('quick-buy-content-container');
-    act(() => {
-      fireEvent(container, 'layout', {
-        nativeEvent: { layout: { height: 480 } },
-      });
-    });
-
-    expect(StyleSheet.flatten(container.props.style)).toMatchObject({
-      height: 480,
-    });
-  });
-
-  it('keeps the locked height when a later layout reports a different height', () => {
-    renderWithProvider(
-      <QuickBuyRoot
-        isVisible
-        target={positionToQuickBuyTarget(createPosition())}
-        features={TOP_TRADERS_QUICK_BUY_FEATURES}
-        onClose={jest.fn()}
-      />,
-    );
-    act(() => {
-      storedOnOpenCallback?.();
-    });
-
-    const container = screen.getByTestId('quick-buy-content-container');
-    act(() => {
-      fireEvent(container, 'layout', {
-        nativeEvent: { layout: { height: 480 } },
-      });
-    });
-    act(() => {
-      fireEvent(container, 'layout', {
-        nativeEvent: { layout: { height: 300 } },
-      });
-    });
-
-    expect(StyleSheet.flatten(container.props.style)).toMatchObject({
-      height: 480,
-    });
-  });
-
-  describe('screen navigation', () => {
-    const NavigationProbe = () => {
-      const { activeScreen, setActiveScreen } = useQuickBuyContext();
-      return (
-        <>
-          <Text testID="active-screen">{activeScreen}</Text>
-          <Pressable
-            testID="nav-payWith"
-            onPress={() => setActiveScreen('payWith')}
-          />
-          <Pressable
-            testID="nav-quoteDetails"
-            onPress={() => setActiveScreen('quoteDetails')}
-          />
-          <Pressable
-            testID="nav-amount"
-            onPress={() => setActiveScreen('amount')}
-          />
-        </>
-      );
-    };
-
-    const renderWithNavigation = () => {
-      renderWithProvider(
-        <QuickBuyRoot
-          isVisible
-          target={positionToQuickBuyTarget(createPosition())}
-          features={TOP_TRADERS_QUICK_BUY_FEATURES}
-          onClose={jest.fn()}
-        >
-          <NavigationProbe />
-        </QuickBuyRoot>,
-      );
-      act(() => {
-        storedOnOpenCallback?.();
-      });
-    };
-
-    it('starts on the amount screen', () => {
-      renderWithNavigation();
-
-      expect(screen.getByTestId('active-screen')).toHaveTextContent('amount');
-    });
-
-    it('navigates forward to a deeper screen', () => {
-      renderWithNavigation();
-
-      act(() => {
-        fireEvent.press(screen.getByTestId('nav-payWith'));
-      });
-
-      expect(screen.getByTestId('active-screen')).toHaveTextContent('payWith');
-    });
-
-    it('navigates back to a shallower screen', () => {
-      renderWithNavigation();
-
-      act(() => {
-        fireEvent.press(screen.getByTestId('nav-payWith'));
-      });
-      act(() => {
-        fireEvent.press(screen.getByTestId('nav-amount'));
-      });
-
-      expect(screen.getByTestId('active-screen')).toHaveTextContent('amount');
-    });
-
-    it('navigates between equal-depth screens', () => {
-      renderWithNavigation();
-
-      act(() => {
-        fireEvent.press(screen.getByTestId('nav-payWith'));
-      });
-      act(() => {
-        fireEvent.press(screen.getByTestId('nav-quoteDetails'));
-      });
-
-      expect(screen.getByTestId('active-screen')).toHaveTextContent(
-        'quoteDetails',
-      );
-    });
   });
 });
 

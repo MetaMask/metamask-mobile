@@ -69,10 +69,8 @@ describe('PerpsTradingCampaignWinningView', () => {
       position: {
         rank: 3,
         pnl: 1500.25,
-        volume: 30000,
-        eligible: true,
-        minVolumeForEligibility: 25000,
-        totalParticipants: 50,
+        notionalVolume: 30000,
+        qualified: true,
         neighbors: [],
         computedAt: '2025-08-15T12:00:00.000Z',
       },

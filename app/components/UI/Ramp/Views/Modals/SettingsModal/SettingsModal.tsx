@@ -8,9 +8,9 @@ import React, {
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import {
   BottomSheet,
-  HeaderStandard,
-  IconName,
   type BottomSheetRef,
+  IconName,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import {
   IconName as ComponentLibraryIconName,
@@ -34,7 +34,6 @@ import {
   resetProviderToken,
 } from '../../../Deposit/utils/ProviderTokenVault';
 import { PROVIDER_LINKS } from '../../../Aggregator/types';
-import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 
 /**
  * Transak native provider path prefix - matches both production
@@ -56,7 +55,7 @@ function SettingsModal() {
   const navigation = useNavigation();
   const { toastRef } = useContext(ToastContext);
   const { selectedProvider, setSelectedProvider } = useRampsProviders();
-  const surfaceClass = useElevatedSurface();
+
   const [isAuthenticatedWithProvider, setIsAuthenticatedWithProvider] =
     useState<boolean>(false);
 
@@ -197,11 +196,7 @@ function SettingsModal() {
   }, []);
 
   return (
-    <BottomSheet
-      ref={sheetRef}
-      goBack={navigation.goBack}
-      twClassName={surfaceClass}
-    >
+    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
       <HeaderStandard
         title={strings('fiat_on_ramp.build_quote_settings_modal.title')}
         onClose={handleClosePress}

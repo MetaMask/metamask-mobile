@@ -4,6 +4,7 @@ import {
 } from '@metamask/accounts-controller';
 import { ApprovalController } from '@metamask/approval-controller';
 import { CodefiTokenPricesServiceV2 } from '@metamask/assets-controllers';
+import { NetworkController } from '@metamask/network-controller';
 import { merge } from 'lodash';
 
 import { ExtendedMessenger } from '../../ExtendedMessenger';
@@ -20,7 +21,6 @@ import {
 import { InitMessengerClientsFunctionRequest } from '../types';
 import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
-import { Wallet } from '@metamask/wallet';
 
 jest.mock('../controllers/accounts-controller');
 jest.mock('../controllers/approval-controller');
@@ -37,7 +37,6 @@ describe('initMessengerClients', () => {
   ): InitMessengerClientsFunctionRequest {
     const partialRequest = merge(
       {
-        wallet: { getInstance: jest.fn() } as unknown as Wallet,
         initFunctions: {
           AccountsController: mockAccountsControllerInit,
           ApprovalController: mockApprovalControllerInit,
@@ -121,20 +120,16 @@ describe('getMessengerClientOrThrow', () => {
   it('throws when controller is not found', () => {
     expect(() =>
       getMessengerClientOrThrow({
-        wallet: { getInstance: jest.fn() } as unknown as Wallet,
-        messengerClientsByName: {},
+        controller: undefined,
         name: 'AccountsController',
       }),
     ).toThrow();
   });
 
-  it('does not throw when controller is found', () => {
+  it('not throws when controller is found', () => {
     expect(() =>
       getMessengerClientOrThrow({
-        wallet: { getInstance: jest.fn() } as unknown as Wallet,
-        messengerClientsByName: {
-          AccountsController: jest.fn() as unknown as AccountsController,
-        },
+        controller: jest.fn() as unknown as AccountsController,
         name: 'AccountsController',
       }),
     ).not.toThrow();

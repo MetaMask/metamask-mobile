@@ -43,11 +43,6 @@ export class CsvReportGenerator {
           }
         });
       }
-      if (test.sessionCreationDurationMs !== undefined) {
-        csvRows.push(
-          `BrowserStack Session Creation (ms),${test.sessionCreationDurationMs},,,,`,
-        );
-      }
       csvRows.push(''); // Blank line for readability
 
       // Add column headers

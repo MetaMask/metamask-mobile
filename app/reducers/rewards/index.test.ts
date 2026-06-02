@@ -30,7 +30,6 @@ import rewardsReducer, {
   setVipDashboard,
   setVipDashboardError,
   setVipDashboardLoading,
-  acceptVipInvite,
   setCampaigns,
   setCampaignsLoading,
   setCampaignsError,
@@ -2071,9 +2070,6 @@ describe('rewardsReducer', () => {
         vipDashboard: {},
         vipDashboardLoading: false,
         vipDashboardError: false,
-        vipSplashAccepted: {
-          'sub-1': true,
-        },
         campaigns: [],
         campaignsLoading: false,
         campaignsError: false,
@@ -2205,7 +2201,6 @@ describe('rewardsReducer', () => {
         vipDashboard: {},
         vipDashboardLoading: false,
         vipDashboardError: false,
-        vipSplashAccepted: {},
         campaigns: [],
         campaignsLoading: false,
         campaignsError: false,
@@ -4917,36 +4912,6 @@ describe('setVipDashboardError', () => {
   });
 });
 
-describe('acceptVipInvite', () => {
-  it('marks the VIP invite as accepted for a subscription', () => {
-    const state = rewardsReducer(
-      initialState,
-      acceptVipInvite({ subscriptionId: 'sub-1' }),
-    );
-
-    expect(state.vipSplashAccepted['sub-1']).toBe(true);
-  });
-
-  it('preserves existing accepted VIP invites for other subscriptions', () => {
-    const stateWithAcceptedInvite: RewardsState = {
-      ...initialState,
-      vipSplashAccepted: {
-        'sub-1': true,
-      },
-    };
-
-    const state = rewardsReducer(
-      stateWithAcceptedInvite,
-      acceptVipInvite({ subscriptionId: 'sub-2' }),
-    );
-
-    expect(state.vipSplashAccepted).toEqual({
-      'sub-1': true,
-      'sub-2': true,
-    });
-  });
-});
-
 const mockCampaign: CampaignDto = {
   id: 'campaign-1',
   type: 'ONDO_HOLDING' as CampaignType,
@@ -5837,16 +5802,13 @@ const mockPerpsLeaderboard: PerpsTradingCampaignLeaderboardDto = {
   computedAt: '2025-08-15T12:00:00.000Z',
   entries: [],
   totalParticipants: 42,
-  minVolumeForEligibility: 25_000,
 };
 
 const mockPerpsPosition: PerpsTradingCampaignLeaderboardPositionDto = {
   rank: 2,
-  totalParticipants: 42,
   pnl: 100,
-  volume: 5000,
-  eligible: true,
-  minVolumeForEligibility: 25000,
+  notionalVolume: 5000,
+  qualified: true,
   neighbors: [],
   computedAt: '2025-08-15T12:00:00.000Z',
 };
@@ -6183,36 +6145,6 @@ describe('ondoCampaignDeposits', () => {
     });
   });
 
-  describe('persist/REHYDRATE — vipSplashAccepted', () => {
-    it('restores accepted VIP invite state from persisted rewards state', () => {
-      const persisted: RewardsState = {
-        ...initialState,
-        vipSplashAccepted: {
-          'sub-1': true,
-        },
-      };
-
-      const state = rewardsReducer(initialState, {
-        type: 'persist/REHYDRATE',
-        payload: { rewards: persisted },
-      });
-
-      expect(state.vipSplashAccepted).toEqual({ 'sub-1': true });
-    });
-
-    it('defaults to empty object when vipSplashAccepted is absent from persisted state', () => {
-      const persisted = { ...initialState } as Partial<RewardsState>;
-      delete persisted.vipSplashAccepted;
-
-      const state = rewardsReducer(initialState, {
-        type: 'persist/REHYDRATE',
-        payload: { rewards: persisted },
-      });
-
-      expect(state.vipSplashAccepted).toEqual({});
-    });
-  });
-
   describe('setCandidateSubscriptionId — preserves dismissedCampaignOutcomeToasts', () => {
     it('preserves dismissedCampaignOutcomeToasts when subscription ID changes', () => {
       const stateWithDismissals: RewardsState = {
@@ -6230,27 +6162,6 @@ describe('ondoCampaignDeposits', () => {
 
       expect(state.dismissedCampaignOutcomeToasts).toEqual({
         'campaign-1:old-sub:winner': true,
-      });
-    });
-  });
-
-  describe('setCandidateSubscriptionId — preserves vipSplashAccepted', () => {
-    it('preserves accepted VIP invites when subscription ID changes', () => {
-      const stateWithAcceptedInvite: RewardsState = {
-        ...initialState,
-        candidateSubscriptionId: 'old-sub',
-        vipSplashAccepted: {
-          'old-sub': true,
-        },
-      };
-
-      const state = rewardsReducer(
-        stateWithAcceptedInvite,
-        setCandidateSubscriptionId('new-sub'),
-      );
-
-      expect(state.vipSplashAccepted).toEqual({
-        'old-sub': true,
       });
     });
   });

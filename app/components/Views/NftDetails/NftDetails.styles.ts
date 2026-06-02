@@ -132,10 +132,6 @@ const styleSheet = (params: { theme: Theme }) => {
     buttonSend: {
       flexGrow: 1,
     },
-    fullImageScreen: {
-      flex: 1,
-      backgroundColor: colors.background.default,
-    },
     fullImageContainer: {
       position: 'relative',
       flex: 1,

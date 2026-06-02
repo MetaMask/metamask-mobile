@@ -23,7 +23,6 @@ export function useClearPaymentOverride() {
         transactionId,
         (config) => {
           (config as Record<string, unknown>).paymentOverride = undefined;
-          config.refundTo = undefined;
         },
       );
     }

@@ -1,5 +1,4 @@
 import React, { useCallback, useRef } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
 import { Hex } from '@metamask/utils';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import Engine from '../../../../../../core/Engine';
@@ -12,6 +11,7 @@ import { Asset } from '../../send/asset';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
+import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import {
   AssetType,
   isHighlightedItemInAssetList,
@@ -244,7 +244,10 @@ export function PayWithModal() {
     ],
   );
 
-  const modalTitle = strings('pay_with_modal.modal_title');
+  // Dynamic title based on transaction type
+  const modalTitle = isWithdraw
+    ? strings('pay_with_modal.title_receive')
+    : strings('pay_with_modal.title');
 
   return (
     <BottomSheet
@@ -253,11 +256,10 @@ export function PayWithModal() {
       keyboardAvoidingViewEnabled={false}
       shouldNavigateBack={dismissOnSelectCount <= 1}
     >
-      <HeaderStandard title={modalTitle} onClose={handleClose} />
+      <HeaderCompactStandard title={modalTitle} onClose={handleClose} />
       <Asset
         includeNoBalance
         hideNfts
-        hideHeader
         tokenFilter={tokenFilter}
         onTokenSelect={handleTokenSelect}
         hideNetworkFilter={hideNetworkFilter}

@@ -50,12 +50,3 @@ export const clearNativeStackNavigatorOptions: NativeStackNavigationOptions = {
 export const transparentModalScreenOptions: NativeStackNavigationOptions = {
   presentation: 'transparentModal',
 };
-
-export const slideFromRightNativeOptions: NativeStackNavigationOptions = {
-  animation: 'slide_from_right',
-};
-
-export const fadeNativeOptions: NativeStackNavigationOptions = {
-  animation: 'fade',
-  gestureEnabled: false,
-};

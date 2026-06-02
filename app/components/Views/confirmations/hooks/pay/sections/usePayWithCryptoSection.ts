@@ -111,18 +111,13 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
 
   const clearPaymentOverride = useClearPaymentOverride();
 
-  const isDeposit = hasTransactionType(transactionMeta, [
-    TransactionType.perpsDeposit,
-    TransactionType.predictDeposit,
-  ]);
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);
 
   const handleOtherAssetsPress = useCallback(() => {
-    clearPaymentOverride();
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL, {
       dismissOnSelectCount: 2,
     });
-  }, [clearPaymentOverride, navigation]);
+  }, [navigation]);
 
   const handlePreferredTokenPress = useCallback(() => {
     if (!preferredToken) {
@@ -200,11 +195,9 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
           variant: TokenIconVariant.Row,
         }),
         title: preferredToken.symbol,
-        subtitle: isDeposit
-          ? strings('confirm.pay_with_bottom_sheet.available_balance', {
-              balance: preferredTokenBalance,
-            })
-          : preferredTokenBalance,
+        subtitle: strings('confirm.pay_with_bottom_sheet.available_balance', {
+          balance: preferredTokenBalance,
+        }),
         isSelected: isPreferredTokenSelected,
         isLastUsed: isLastUsed(preferredToken.address, preferredToken.chainId),
         trailingElement: isPreferredTokenSelected ? 'checkmark' : 'none',
@@ -226,11 +219,9 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
           variant: TokenIconVariant.Row,
         }),
         title: selectedTokenDisplay.symbol,
-        subtitle: isDeposit
-          ? strings('confirm.pay_with_bottom_sheet.available_balance', {
-              balance: selectedTokenBalance,
-            })
-          : selectedTokenBalance,
+        subtitle: strings('confirm.pay_with_bottom_sheet.available_balance', {
+          balance: selectedTokenBalance,
+        }),
         isSelected: true,
         isLastUsed: isLastUsed(
           selectedTokenDisplay.address,
@@ -251,7 +242,7 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
       title: strings('confirm.pay_with_bottom_sheet.other_assets'),
       subtitle: strings(
         isWithdraw
-          ? 'confirm.pay_with_bottom_sheet.other_assets_receive_description'
+          ? 'confirm.pay_with_bottom_sheet.other_assets_withdraw_description'
           : 'confirm.pay_with_bottom_sheet.other_assets_description',
       ),
       trailingElement: 'chevron',
@@ -270,7 +261,6 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     handlePreferredTokenPress,
     hasTokens,
     isDedicatedSectionOwningSelection,
-    isDeposit,
     isLastUsed,
     isMoneyAccountSelected,
     isSelectedDistinctFromAutomatic,

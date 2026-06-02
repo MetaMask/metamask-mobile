@@ -4,10 +4,10 @@ import Engine from '../../../../../core/Engine';
 import { useRampsPaymentMethods } from '../../../../UI/Ramp/hooks/useRampsPaymentMethods';
 import { formatDelayFromArray } from '../../../../UI/Ramp/Aggregator/utils';
 import { useMMPayFiatConfig } from './useMMPayFiatConfig';
-import { useIsFiatPaymentAvailable } from './useIsFiatPaymentAvailable';
 import { useTransactionPayFiatPayment } from './useTransactionPayData';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { HighlightedItem } from '../../types/token';
+import { hasTransactionType } from '../../utils/transaction';
 
 /**
  * Converts available Ramps payment methods into {@link HighlightedItem}s for
@@ -16,16 +16,20 @@ import { HighlightedItem } from '../../types/token';
  * `fiatPayment.selectedPaymentMethodId` on the current transaction.
  */
 export function useFiatPaymentHighlightedActions(): HighlightedItem[] {
-  const { maxDelayMinutesForPaymentMethods } = useMMPayFiatConfig();
+  const { enabledTransactionTypes, maxDelayMinutesForPaymentMethods } =
+    useMMPayFiatConfig();
   const { paymentMethods } = useRampsPaymentMethods();
   const fiatPayment = useTransactionPayFiatPayment();
   const transactionMeta = useTransactionMetadataRequest();
   const transactionId = transactionMeta?.id ?? '';
   const selectedPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
-  const isFiatAvailable = useIsFiatPaymentAvailable();
+  const isFiatEnabled = hasTransactionType(
+    transactionMeta,
+    enabledTransactionTypes,
+  );
 
   return useMemo(() => {
-    if (!isFiatAvailable) {
+    if (!isFiatEnabled || paymentMethods.length === 0) {
       return [];
     }
 
@@ -35,7 +39,7 @@ export function useFiatPaymentHighlightedActions(): HighlightedItem[] {
         toHighlightedItem(pm, transactionId, selectedPaymentMethodId),
       );
   }, [
-    isFiatAvailable,
+    isFiatEnabled,
     maxDelayMinutesForPaymentMethods,
     paymentMethods,
     transactionId,

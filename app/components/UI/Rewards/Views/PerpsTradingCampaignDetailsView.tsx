@@ -139,8 +139,8 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
         : null,
     [position],
   );
-  const hasPosition =
-    position != null && Number.isFinite(position.volume) && position.volume > 0;
+
+  const hasPosition = Boolean(leaderboardUserPosition);
   const totalParticipants = leaderboard?.totalParticipants ?? 0;
 
   const {

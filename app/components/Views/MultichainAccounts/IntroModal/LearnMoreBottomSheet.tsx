@@ -1,16 +1,16 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { View } from 'react-native';
 import {
-  BottomSheet,
-  Button,
-  ButtonBaseSize,
-  ButtonIcon,
-  ButtonVariant,
-  Checkbox,
-  IconName,
   Text,
-  TextColor,
+  ButtonIcon,
+  Checkbox,
   TextVariant,
+  IconName,
+  TextColor,
+  Button,
+  ButtonVariant,
+  ButtonBaseSize,
+  BottomSheet,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { useNavigation, useTheme } from '@react-navigation/native';
@@ -22,7 +22,6 @@ import { RootState } from '../../../../reducers';
 import { useDispatch, useSelector } from 'react-redux';
 import { setMultichainAccountsIntroModalSeen } from '../../../../actions/user';
 import { LEARN_MORE_BOTTOM_SHEET_TEST_IDS } from './LearnMoreBottomSheet.testIds';
-import { useElevatedSurface } from '../../../../util/theme/themeUtils';
 
 interface LearnMoreBottomSheetProps {
   onClose?: () => void;
@@ -40,7 +39,6 @@ const LearnMoreBottomSheet: React.FC<LearnMoreBottomSheetProps> = ({
   const isBasicFunctionalityEnabled = useSelector(
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );
-  const surfaceClass = useElevatedSurface();
 
   const handleBack = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -68,7 +66,6 @@ const LearnMoreBottomSheet: React.FC<LearnMoreBottomSheetProps> = ({
       ref={sheetRef}
       onClose={onClose}
       testID={LEARN_MORE_BOTTOM_SHEET_TEST_IDS.BOTTOM_SHEET}
-      twClassName={surfaceClass}
     >
       <View style={styles.container}>
         <View style={styles.header}>

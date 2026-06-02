@@ -1,22 +1,13 @@
 import { noop } from 'lodash';
-import React, {
-  useCallback,
-  useContext,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useContext, useMemo, useState } from 'react';
 
 export interface ConfirmationContextParams {
   headlessBuyError: string | undefined;
   isFooterVisible?: boolean;
-  isConfirmationSubmitting: boolean;
-  isConfirmationSubmittingRef: React.RefObject<boolean>;
   isHeadlessBuyInProgress: boolean;
   isTransactionValueUpdating: boolean;
   isTransactionDataUpdating: boolean;
   setHeadlessBuyError: (error: string | undefined) => void;
-  setIsConfirmationSubmitting: (isConfirmationSubmitting: boolean) => void;
   setIsFooterVisible: (isFooterVisible: boolean) => void;
   setIsHeadlessBuyInProgress: (isHeadlessBuyInProgress: boolean) => void;
   setIsTransactionValueUpdating: (isTransactionValueUpdating: boolean) => void;
@@ -28,13 +19,10 @@ export interface ConfirmationContextParams {
 const ConfirmationContext = React.createContext<ConfirmationContextParams>({
   headlessBuyError: undefined,
   isFooterVisible: true,
-  isConfirmationSubmitting: false,
-  isConfirmationSubmittingRef: { current: false },
   isHeadlessBuyInProgress: false,
   isTransactionDataUpdating: false,
   isTransactionValueUpdating: false,
   setHeadlessBuyError: noop,
-  setIsConfirmationSubmitting: noop,
   setIsFooterVisible: noop,
   setIsHeadlessBuyInProgress: noop,
   setIsTransactionDataUpdating: noop,
@@ -62,17 +50,6 @@ export const ConfirmationContextProvider: React.FC<
   const [isTransactionDataUpdating, setIsTransactionDataUpdating] =
     useState<boolean>(false);
 
-  const isConfirmationSubmittingRef = useRef(false);
-  const [isConfirmationSubmitting, setIsConfirmationSubmittingState] =
-    useState<boolean>(false);
-  const setIsConfirmationSubmitting = useCallback(
-    (nextIsConfirmationSubmitting: boolean) => {
-      isConfirmationSubmittingRef.current = nextIsConfirmationSubmitting;
-      setIsConfirmationSubmittingState(nextIsConfirmationSubmitting);
-    },
-    [],
-  );
-
   const contextValue = useMemo(
     () => ({
       headlessBuyError,
@@ -80,14 +57,11 @@ export const ConfirmationContextProvider: React.FC<
       isHeadlessBuyInProgress,
       isTransactionDataUpdating,
       isTransactionValueUpdating,
-      isConfirmationSubmitting,
-      isConfirmationSubmittingRef,
       setHeadlessBuyError,
       setIsFooterVisible,
       setIsHeadlessBuyInProgress,
       setIsTransactionDataUpdating,
       setIsTransactionValueUpdating,
-      setIsConfirmationSubmitting,
     }),
     [
       headlessBuyError,
@@ -95,14 +69,11 @@ export const ConfirmationContextProvider: React.FC<
       isHeadlessBuyInProgress,
       isTransactionDataUpdating,
       isTransactionValueUpdating,
-      isConfirmationSubmitting,
-      isConfirmationSubmittingRef,
       setHeadlessBuyError,
       setIsFooterVisible,
       setIsHeadlessBuyInProgress,
       setIsTransactionDataUpdating,
       setIsTransactionValueUpdating,
-      setIsConfirmationSubmitting,
     ],
   );
 

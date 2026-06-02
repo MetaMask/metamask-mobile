@@ -2,11 +2,6 @@
 import path from 'path';
 import type { BrowserStackConfig } from '../../../types';
 import type { ProjectConfig } from '../../common/types';
-import {
-  DEFAULT_BROWSERSTACK_CONNECTION_RETRY_TIMEOUT_MS,
-  DEFAULT_BROWSERSTACK_IDLE_TIMEOUT_SECONDS,
-  DEFAULT_BROWSERSTACK_NEW_COMMAND_TIMEOUT_SECONDS,
-} from '../../../Constants';
 import { createLogger, LogLevel } from '../../../logger';
 
 const logger = createLogger({
@@ -68,21 +63,6 @@ export class BrowserStackConfigBuilder {
       `Building BrowserStack config with device build identifier: ${process.env.GITHUB_ACTIONS === 'true' ? `CI ${process.env.GITHUB_RUN_ID}` : process.env.USER}`,
     );
 
-    const connectionRetryTimeoutMs = Number.parseInt(
-      process.env.BROWSERSTACK_CONNECTION_RETRY_TIMEOUT_MS ?? '',
-      10,
-    );
-    const connectionRetryTimeout = Number.isFinite(connectionRetryTimeoutMs)
-      ? connectionRetryTimeoutMs
-      : DEFAULT_BROWSERSTACK_CONNECTION_RETRY_TIMEOUT_MS;
-
-    logger.info(
-      `BrowserStack WebDriver connectionRetryTimeout: ${connectionRetryTimeout}ms`,
-    );
-    logger.info(
-      `BrowserStack idleTimeout: ${DEFAULT_BROWSERSTACK_IDLE_TIMEOUT_SECONDS}s, newCommandTimeout: ${DEFAULT_BROWSERSTACK_NEW_COMMAND_TIMEOUT_SECONDS}s`,
-    );
-
     return {
       port: 443,
       path: '/wd/hub',
@@ -91,9 +71,6 @@ export class BrowserStackConfigBuilder {
       user: username,
       key: accessKey,
       hostname: 'hub.browserstack.com',
-      // Default webdriver is 120s; BS session POST often exceeds that on busy grids.
-      connectionRetryTimeout,
-      connectionRetryCount: 3,
       capabilities: {
         'bstack:options': {
           debug: true,
@@ -104,13 +81,13 @@ export class BrowserStackConfigBuilder {
           },
           networkLogs: true,
           appiumVersion: '3.1.0',
-          idleTimeout: DEFAULT_BROWSERSTACK_IDLE_TIMEOUT_SECONDS,
+          idleTimeout: 180,
           deviceName: device.name,
           osVersion: device.osVersion,
           platformName,
           deviceOrientation: device.orientation,
           projectName:
-            process.env.BROWSERSTACK_PROJECT_NAME ||
+            process.env.BROWSERSTACK_BUILD_NAME ||
             `${projectName} ${platformName}`,
           buildName:
             process.env.BROWSERSTACK_BUILD_NAME ||
@@ -136,16 +113,11 @@ export class BrowserStackConfigBuilder {
           ? {
               'appium:appPackage': this.project.use.app?.packageName,
               'appium:appActivity': this.project.use.app?.launchableActivity,
-              'appium:disableIdLocatorAutocompletion': true,
             }
           : {
               'appium:bundleId': this.project.use.app?.appId,
-              'appium:shouldUseCompactResponses': true,
-              'appium:elementResponseAttributes':
-                'name,label,value,type,enabled,visible,rect',
             }),
-        'appium:newCommandTimeout':
-          DEFAULT_BROWSERSTACK_NEW_COMMAND_TIMEOUT_SECONDS,
+        'appium:newCommandTimeout': 300,
         'appium:automationName':
           platformName === 'android' ? 'UiAutomator2' : 'XCUITest',
         'appium:autoGrantPermissions': true,
@@ -161,7 +133,7 @@ export class BrowserStackConfigBuilder {
         'appium:waitForQuiescence': false, // Don't wait for app idle
         'appium:animationCoolOffTimeout': 0, // Skip animation wait
         'appium:reduceMotion': true, // Reduce iOS animations
-        'appium:customSnapshotTimeout': 15,
+        'appium:customSnapshotTimeout': 15, // Snapshot timeout in seconds"
         'appium:waitForIdleTimeout': 0, // Don't wait for idle
         'appium:disableWindowAnimation': true, // Disable animations
         'appium:skipDeviceInitialization': true, // Skip init (faster startup)
@@ -169,7 +141,7 @@ export class BrowserStackConfigBuilder {
           enable: true,
           samplesX: 3,
           samplesY: 3,
-          maxDepth: 100,
+          maxDepth: 15,
         },
       },
     };

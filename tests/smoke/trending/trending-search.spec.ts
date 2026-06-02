@@ -60,10 +60,11 @@ describe(SmokeWalletPlatform('Trending Search Smoke Test'), () => {
         // 6. Type a query
         await TrendingView.typeSearchQuery('test');
 
-        // 7. Verify pill row and aggregated results are visible
-        await TrendingView.verifySearchPillsVisible();
+        // 6.5. Scroll down to ensure Search Engine Option is visible
+        await TrendingView.scrollToSearchEngineOption();
 
-        await TrendingView.verifySearchResultsListVisible();
+        // 7. Verify Search Engine Option is visible
+        await TrendingView.verifySearchEngineOptionVisible();
 
         // 8. Verify Cancel button is visible
         await Assertions.expectElementToBeVisible(

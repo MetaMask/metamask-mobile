@@ -24,7 +24,7 @@ const SPLASH_STATE_MACHINE = 'Splash_animation';
 const SPLASH_IDLE_STATE = 'Blink and look around (Shorter)';
 // Maximum time to wait for the animation to complete before forcing the app to show.
 // Guards against silent failures: corrupted .riv file, stuck state machine, unsupported renderer.
-const ANIMATION_TIMEOUT_MS = 3_000;
+const ANIMATION_TIMEOUT_MS = 5_000;
 
 // Persist across remounts so animation state is consistent for the app session
 let animationStarted = false;
@@ -141,11 +141,14 @@ const FoxLoaderAnimation = ({
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (!isCompleteRef.current) {
-        // Expected on devices where Rive can't play (e.g. unsupported renderer on
-        // low-end Android); the static fox fallback handles it. Log without
-        // raising a Sentry error.
+        // Only log an error if the animation genuinely got stuck globally.
+        // If animationComplete is true, the primary instance finished successfully —
+        // this is a secondary instance (LockScreen, AppFlow) that mounted mid-animation.
         if (!animationComplete) {
-          Logger.log('FoxLoader: forcing app reveal after timeout');
+          Logger.error(
+            new Error('Splash animation timed out'),
+            'FoxLoader: forcing app reveal after timeout',
+          );
         }
         // Ensure the native splash is hidden even if onLoad never fired on the static fox image.
         hideAsync().catch((error: unknown) =>

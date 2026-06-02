@@ -25,6 +25,10 @@ export function MoneyAccountWithdrawInfo() {
       currency={MONEY_ACCOUNT_CURRENCY}
       disablePay={!canSelectWithdrawToken}
       hasMax
+      preferredToken={{
+        address: MUSD_TOKEN_ADDRESS,
+        chainId: CHAIN_IDS.MAINNET,
+      }}
       supportAccountSelection
     >
       <MoneyAccountWithdrawBalance />

@@ -60,6 +60,17 @@ export function normalizeEvmAssetId(assetId: CaipAssetType): CaipAssetType {
   }
 }
 
+export function getBridgeTokenAssetId(
+  token: BridgeToken,
+): CaipAssetType | undefined {
+  try {
+    const assetId = formatAddressToAssetId(token.address, token.chainId);
+    return assetId ? normalizeEvmAssetId(assetId) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 /**
  * Creates a formatted native token object for the given chain ID
  */

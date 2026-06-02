@@ -2,7 +2,6 @@ import {
   ConfirmationRowComponentIDs,
   TransactionPayComponentIDs,
 } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
-import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
 import { getNetworkFilterTestId } from '../../../app/components/Views/confirmations/components/network-filter/network-filter.testIds';
 import { TEXTFIELDSEARCH_TEST_ID } from '../../../app/component-library/components/Form/TextFieldSearch/TextFieldSearch.constants';
 import enContent from '../../../locales/languages/en.json';
@@ -199,14 +198,6 @@ class TransactionPayConfirmation {
     });
   }
 
-  getTokenBySymbol(symbol: string): EncapsulatedElementType {
-    const testId = getAssetTestId(symbol);
-    return encapsulated({
-      detox: () => Matchers.getElementByID(testId),
-      appium: () => PlaywrightMatchers.getElementById(testId, { exact: true }),
-    });
-  }
-
   getTokenOptionAt(
     tokenSymbol: string,
     index: number,
@@ -259,16 +250,10 @@ class TransactionPayConfirmation {
   getKeypadButton(key: string): EncapsulatedElementType {
     return encapsulated({
       detox: () => Matchers.getElementByText(key),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(getKeypadKeyTestId(key), {
-            exact: true,
-          }),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            getKeypadKeyTestId(key),
-          ),
-      },
+      appium: () =>
+        PlaywrightMatchers.getElementById(getKeypadKeyTestId(key), {
+          exact: true,
+        }),
     });
   }
 
@@ -343,24 +328,19 @@ class TransactionPayConfirmation {
 
         if (await PlatformDetector.isIOS()) {
           await PlaywrightGestures.dblTap(resolvedFilter);
-        } else {
-          await PlaywrightGestures.waitAndTap(resolvedFilter, {
-            checkForDisplayed: true,
-            checkForEnabled: true,
-          });
+          return;
         }
 
-        await PlaywrightGestures.waitForElementStable(resolvedFilter, {
-          timeout: 3000,
-          interval: 200,
-          stableCount: 4,
+        await PlaywrightGestures.waitAndTap(resolvedFilter, {
+          checkForDisplayed: true,
+          checkForEnabled: true,
         });
       },
     });
   }
 
   async tapFirstUsdc(tokenName: string): Promise<void> {
-    const tokenElement = this.getTokenBySymbol(tokenName);
+    const tokenElement = this.getFirstTokenOption(tokenName);
 
     await encapsulatedAction({
       detox: async () => {

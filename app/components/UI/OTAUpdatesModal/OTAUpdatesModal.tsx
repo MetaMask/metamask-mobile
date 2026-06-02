@@ -4,9 +4,8 @@ import { reloadAsync } from 'expo-updates';
 import {
   Box,
   Button,
-  ButtonSize,
   ButtonVariant,
-  HeaderStandard,
+  ButtonSize,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -22,6 +21,8 @@ import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
+import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+
 /* eslint-disable import-x/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const foxLogo = require('../../../images/branding/fox.png');
 const metamaskNameLightMode = require('../../../images/branding/metamask-name.png');
@@ -95,17 +96,16 @@ const OTAUpdatesModal = () => {
       shouldNavigateBack
       style={tw.style('bg-default')}
     >
-      <HeaderStandard
+      <HeaderCompactStandard
         twClassName="px-4"
         onClose={() => dismissBottomSheet()}
-        closeButtonProps={{ testID: 'close-button' }}
       >
         <Image
           style={tw.style('h-8')}
           source={metamaskName}
           resizeMode="contain"
         />
-      </HeaderStandard>
+      </HeaderCompactStandard>
       <Box twClassName="px-6 pt-2 items-center">
         <Box twClassName="items-center py-6">
           <Box twClassName="items-center mb-6">

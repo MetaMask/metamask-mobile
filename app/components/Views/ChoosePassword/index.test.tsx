@@ -54,10 +54,7 @@ jest.mock('@metamask/key-tree', () => ({
 
 import ChoosePassword from './index.tsx';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import {
-  AccountType,
-  ONBOARDING_SUCCESS_FLOW,
-} from '../../../constants/onboarding';
+import { AccountType } from '../../../constants/onboarding';
 import {
   TraceName,
   TraceOperation,
@@ -232,6 +229,7 @@ const mockMetrics = {
   trackEvent: mockTrackEvent,
   enable: mockEnable,
   identify: jest.fn().mockResolvedValue(undefined),
+  addTraitsToUser: jest.fn().mockResolvedValue(undefined),
   createEventBuilder: jest.fn(() => ({
     addProperties: jest.fn().mockReturnThis(),
     build: jest.fn(() => ({ name: 'Analytics Preference Selected' })),
@@ -702,14 +700,12 @@ describe('ChoosePassword', () => {
           routes: [
             {
               name: 'OnboardingSuccess',
-              params: {
-                successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
-              },
+              params: { showPasswordHint: true },
             },
           ],
         });
         expect(mockTrackEvent).toHaveBeenCalled();
-        expect(mockMetrics.identify).toHaveBeenCalled();
+        expect(mockMetrics.addTraitsToUser).toHaveBeenCalled();
       });
 
       mockNewWalletAndKeychain.mockRestore();
@@ -1028,7 +1024,7 @@ describe('ChoosePassword', () => {
         expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
         expect(spyUpdateMarketingOptInStatus).toHaveBeenCalledWith(true);
         expect(mockTrackEvent).toHaveBeenCalled();
-        expect(mockMetrics.identify).toHaveBeenCalled();
+        expect(mockMetrics.addTraitsToUser).toHaveBeenCalled();
       });
 
       mockNewWalletAndKeychain.mockRestore();
@@ -1065,7 +1061,7 @@ describe('ChoosePassword', () => {
         expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
         expect(spyUpdateMarketingOptInStatus).toHaveBeenCalledWith(false);
         expect(mockTrackEvent).toHaveBeenCalled();
-        expect(mockMetrics.identify).toHaveBeenCalled();
+        expect(mockMetrics.addTraitsToUser).toHaveBeenCalled();
       });
 
       mockNewWalletAndKeychain.mockRestore();

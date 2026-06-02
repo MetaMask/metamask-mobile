@@ -12,10 +12,7 @@ class QualityGatesReportFormatter {
   /**
    * Format validation result as a console report
    */
-  formatConsoleReport(
-    result: QualityGatesResult,
-    sessionCreationDurationMs?: number,
-  ): string {
+  formatConsoleReport(result: QualityGatesResult): string {
     if (!result.hasThresholds) {
       return `⚠️ No quality gates defined for: ${result.summary.testName}`;
     }
@@ -31,11 +28,6 @@ class QualityGatesReportFormatter {
     );
     lines.push(`Test: ${result.summary.testName}`);
     lines.push(`Status: ${result.passed ? '✅ PASSED' : '❌ FAILED'}`);
-    if (sessionCreationDurationMs !== undefined) {
-      lines.push(
-        `BrowserStack Session Creation: ${sessionCreationDurationMs}ms (${(sessionCreationDurationMs / 1000).toFixed(2)}s) — infra overhead`,
-      );
-    }
     lines.push(
       '───────────────────────────────────────────────────────────────',
     );

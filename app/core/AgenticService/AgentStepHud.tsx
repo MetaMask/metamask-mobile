@@ -6,65 +6,6 @@ import { registerStepHudCallback } from './AgenticService';
 interface Step {
   id: string;
   description: string;
-  status?: string;
-}
-
-function statusForStep(step: Step) {
-  return String(step.status ?? step.id.split(/\s+/)[0] ?? '').toLowerCase();
-}
-
-function progressForStep(step: Step) {
-  const progressPattern = /\b\d+\s*\/\s*\d+\b/;
-  const match = progressPattern.exec(step.id);
-  return match ? match[0].replace(/\s+/g, '') : null;
-}
-
-function badgeTextForStep(step: Step) {
-  const status = statusForStep(step);
-  const progress = progressForStep(step);
-  return [status || 'run', progress].filter(Boolean).join(' ').toUpperCase();
-}
-
-function statusToneForStep(step: Step) {
-  const status = statusForStep(step);
-  if (status === 'fail' || status === 'failed' || status === 'error') {
-    return 'fail';
-  }
-  if (status === 'pass' || status === 'passed' || status === 'success') {
-    return 'pass';
-  }
-  return 'running';
-}
-
-function secondaryDisplayText(part: string) {
-  const errorPrefix = 'error:';
-  const subflowPrefix = 'subflow:';
-  const detailPrefix = 'detail:';
-  const normalized = part.toLowerCase();
-
-  if (normalized.startsWith(errorPrefix)) {
-    return part;
-  }
-  if (normalized.startsWith(subflowPrefix)) {
-    return part.slice(subflowPrefix.length).trim();
-  }
-  if (normalized.startsWith(detailPrefix)) {
-    return part.slice(detailPrefix.length).trim();
-  }
-  return null;
-}
-
-function parseDescription(description: string) {
-  const parts = description
-    .split('\n')
-    .map((part) => part.trim())
-    .filter(Boolean);
-  const deduped = parts.filter((part, index) => parts.indexOf(part) === index);
-  const [intent = '', ...secondaryCandidates] = deduped;
-  const secondary = secondaryCandidates
-    .map(secondaryDisplayText)
-    .filter((part): part is string => Boolean(part));
-  return { intent, secondary };
 }
 
 // Debug-only overlay — intentionally uses hardcoded colors for guaranteed
@@ -73,37 +14,23 @@ function parseDescription(description: string) {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
+    bottom: 0,
     left: 0,
     right: 0,
     zIndex: 9999,
-    backgroundColor: 'rgba(0, 0, 0, 0.58)',
-    paddingVertical: 3,
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    paddingVertical: 6,
   },
-  line: {
-    color: '#FFFFFF',
-    fontSize: 11,
-    fontWeight: '700',
-    lineHeight: 14,
-  },
-  badgeText: {
+  stepId: {
+    color: '#00FF88',
     fontFamily: 'Courier',
-    fontSize: 9,
-    fontWeight: '800',
+    fontSize: 12,
+    fontWeight: '700',
   },
-  badgeTextRunning: {
-    color: '#00FF88',
-  },
-  badgeTextPass: {
-    color: '#00FF88',
-  },
-  badgeTextFail: {
-    color: '#FF4D4F',
-  },
-  secondary: {
-    color: '#E6E6E6',
-    fontSize: 10,
-    fontWeight: '400',
-    lineHeight: 12,
+  description: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '500',
   },
 });
 /* eslint-enable react-native/no-color-literals, @metamask/design-tokens/color-no-hex */
@@ -117,9 +44,9 @@ const AgentStepHudInner = () => {
     () => [
       styles.container,
       {
-        bottom: Math.max(insets.bottom, 0),
         paddingLeft: Math.max(insets.left, 10),
         paddingRight: Math.max(insets.right, 10),
+        paddingBottom: insets.bottom > 0 ? insets.bottom : 6,
       },
     ],
     [insets.left, insets.right, insets.bottom],
@@ -134,27 +61,12 @@ const AgentStepHudInner = () => {
 
   if (!step) return null;
 
-  const { intent, secondary } = parseDescription(step.description);
-  const badge = badgeTextForStep(step);
-  const tone = statusToneForStep(step);
-  const badgeTextStyle =
-    tone === 'fail'
-      ? styles.badgeTextFail
-      : tone === 'pass'
-        ? styles.badgeTextPass
-        : styles.badgeTextRunning;
-
   return (
     <View style={containerStyle} pointerEvents="none">
-      <Text style={styles.line}>
-        <Text style={[styles.badgeText, badgeTextStyle]}>{badge}</Text>
-        {intent ? `  ${intent}` : ''}
+      <Text numberOfLines={3}>
+        <Text style={styles.stepId}>{step.id}</Text>
+        <Text style={styles.description}>{`  ${step.description}`}</Text>
       </Text>
-      {secondary.map((detail) => (
-        <Text key={detail} style={styles.secondary}>
-          {detail}
-        </Text>
-      ))}
     </View>
   );
 };

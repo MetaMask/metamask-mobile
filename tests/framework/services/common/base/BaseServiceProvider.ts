@@ -9,7 +9,6 @@ import { createLogger, type Logger } from '../../../logger';
  */
 export abstract class BaseServiceProvider implements ServiceProvider {
   sessionId?: string;
-  sessionCreationDurationMs?: number;
   protected readonly project: ProjectConfig;
   protected readonly logger: Logger;
 

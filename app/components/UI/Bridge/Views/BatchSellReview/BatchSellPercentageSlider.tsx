@@ -14,13 +14,12 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 const HANDLE_SIZE = 24;
 const MARKER_SIZE = 4;
-const ACCESSIBILITY_STEP = 1;
-export const MARKER_POINTS = [25, 50, 75, 100];
-const MIN_PERCENTAGE = 0;
-const MAX_PERCENTAGE = 100;
+const PERCENTAGE_STEP = 25;
+export const SNAP_POINTS = [0, 25, 50, 75, 100];
 
-export function clampToPercentage(value: number): number {
-  return Math.max(MIN_PERCENTAGE, Math.min(MAX_PERCENTAGE, Math.round(value)));
+export function snapToPercentageStep(value: number): number {
+  const snappedValue = Math.round(value / PERCENTAGE_STEP) * PERCENTAGE_STEP;
+  return Math.max(0, Math.min(100, snappedValue));
 }
 
 interface BatchSellPercentageSliderProps {
@@ -35,29 +34,26 @@ export function BatchSellPercentageSlider({
   testID,
 }: BatchSellPercentageSliderProps) {
   const tw = useTailwind();
-  const clampedValue = clampToPercentage(value);
   const sliderWidth = useSharedValue(0);
   const translateX = useSharedValue(0);
   const widthRef = useRef(0);
 
   const updatePosition = useCallback(
     (nextValue: number, width = widthRef.current) => {
-      const nextClampedValue = clampToPercentage(nextValue);
-      translateX.value = (nextClampedValue / MAX_PERCENTAGE) * width;
+      const snappedValue = snapToPercentageStep(nextValue);
+      translateX.value = (snappedValue / 100) * width;
     },
     [translateX],
   );
 
-  const commitValueFromPosition = useCallback(
+  const updateValueFromPosition = useCallback(
     (position: number, width: number) => {
       if (width === 0) {
         return;
       }
 
       const clampedPosition = Math.max(0, Math.min(position, width));
-      const nextValue = clampToPercentage(
-        (clampedPosition / width) * MAX_PERCENTAGE,
-      );
+      const nextValue = snapToPercentageStep((clampedPosition / width) * 100);
 
       updatePosition(nextValue, width);
       onValueChange(nextValue);
@@ -70,14 +66,14 @@ export function BatchSellPercentageSlider({
       const { width } = event.nativeEvent.layout;
       widthRef.current = width;
       sliderWidth.value = width;
-      updatePosition(clampedValue, width);
+      updatePosition(value, width);
     },
-    [sliderWidth, clampedValue, updatePosition],
+    [sliderWidth, updatePosition, value],
   );
 
   useEffect(() => {
-    updatePosition(clampedValue);
-  }, [clampedValue, updatePosition]);
+    updatePosition(value);
+  }, [updatePosition, value]);
 
   const progressStyle = useAnimatedStyle(() => ({
     width: translateX.value,
@@ -99,45 +95,30 @@ export function BatchSellPercentageSlider({
 
   const gesture = Gesture.Simultaneous(
     Gesture.Tap().onEnd((event) => {
-      runOnJS(commitValueFromPosition)(event.x, sliderWidth.value);
+      runOnJS(updateValueFromPosition)(event.x, sliderWidth.value);
     }),
-    Gesture.Pan()
-      .onUpdate((event) => {
-        const width = sliderWidth.value;
-
-        if (width === 0) {
-          return;
-        }
-
-        translateX.value = Math.max(0, Math.min(event.x, width));
-      })
-      .onEnd((event) => {
-        runOnJS(commitValueFromPosition)(event.x, sliderWidth.value);
-      }),
+    Gesture.Pan().onUpdate((event) => {
+      runOnJS(updateValueFromPosition)(event.x, sliderWidth.value);
+    }),
   );
 
   const handleAccessibilityAction = useCallback(
     (event: AccessibilityActionEvent) => {
       const nextValue =
         event.nativeEvent.actionName === 'increment'
-          ? clampToPercentage(clampedValue + ACCESSIBILITY_STEP)
-          : clampToPercentage(clampedValue - ACCESSIBILITY_STEP);
+          ? snapToPercentageStep(value + PERCENTAGE_STEP)
+          : snapToPercentageStep(value - PERCENTAGE_STEP);
 
       onValueChange(nextValue);
     },
-    [onValueChange, clampedValue],
+    [onValueChange, value],
   );
 
   return (
     <GestureHandlerRootView
       testID={testID}
       accessibilityRole="adjustable"
-      accessibilityValue={{
-        min: MIN_PERCENTAGE,
-        max: MAX_PERCENTAGE,
-        now: clampedValue,
-        text: `${clampedValue}%`,
-      }}
+      accessibilityValue={{ min: 0, max: 100, now: value, text: `${value}%` }}
       accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
       onAccessibilityAction={handleAccessibilityAction}
       style={tw.style('h-6 w-full')}
@@ -158,17 +139,15 @@ export function BatchSellPercentageSlider({
               progressStyle,
             ]}
           />
-          {MARKER_POINTS.map((markerPoint) => (
+          {SNAP_POINTS.map((snapPoint) => (
             <Animated.View
-              key={markerPoint}
+              key={snapPoint}
               pointerEvents="none"
-              testID={
-                testID ? `${testID}-marker-point-${markerPoint}` : undefined
-              }
+              testID={testID ? `${testID}-snap-point-${snapPoint}` : undefined}
               style={[
                 tw.style('absolute h-1 w-1 rounded-full bg-icon-muted'),
                 {
-                  left: `${markerPoint}%`,
+                  left: `${snapPoint}%`,
                   transform: [{ translateX: -MARKER_SIZE / 2 }],
                 },
               ]}

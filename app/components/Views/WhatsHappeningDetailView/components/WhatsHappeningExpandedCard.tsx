@@ -262,9 +262,9 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
                   {strings('homepage.sections.related_assets')}
                 </Text>
 
-                {item.relatedAssets.map((asset, index) => (
+                {item.relatedAssets.map((asset) => (
                   <PerpsRow
-                    key={`${asset.symbol}-${index}`}
+                    key={asset.sourceAssetId}
                     asset={asset}
                     item={item}
                     cardIndex={cardIndex}

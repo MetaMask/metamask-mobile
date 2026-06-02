@@ -549,18 +549,20 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             );
           })()}
         </View>
-        {onAutoClosePress && (
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Sm}
-            onPress={handleAutoCloseButtonPress}
-            style={styles.autoCloseButton}
-          >
-            {hasTPSLConfigured
-              ? strings('perps.auto_close.edit_button')
-              : strings('perps.auto_close.set_button')}
-          </Button>
-        )}
+        <View>
+          {onAutoClosePress && (
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Sm}
+              onPress={handleAutoCloseButtonPress}
+              style={styles.autoCloseButton}
+            >
+              {hasTPSLConfigured
+                ? strings('perps.auto_close.edit_button')
+                : strings('perps.auto_close.set_button')}
+            </Button>
+          )}
+        </View>
       </TouchableOpacity>
 
       {/* Details Section - Always expanded */}

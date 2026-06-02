@@ -15,6 +15,7 @@ import MoneyOnboardingCard from '../../components/MoneyOnboardingCard';
 import MoneyCondensedInfoCards from '../../components/MoneyCondensedInfoCards';
 import MoneyHowItWorks from '../../components/MoneyHowItWorks';
 import MoneyPotentialEarnings from '../../components/MoneyPotentialEarnings';
+import { hasConvertibleTokensWithBalance } from '../../components/MoneyPotentialEarnings/MoneyPotentialEarnings';
 import MoneyMetaMaskCard from '../../components/MoneyMetaMaskCard';
 import MoneyWhatYouGet from '../../components/MoneyWhatYouGet';
 import MoneyActivityList from '../../components/MoneyActivityList';
@@ -22,7 +23,8 @@ import MoneyFooter from '../../components/MoneyFooter';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import styleSheet from './MoneyHomeView.styles';
-import { useMoneyDepositTokens } from '../../hooks/useMoneyDepositTokens';
+import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
+import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
@@ -37,7 +39,6 @@ import AppConstants from '../../../../../core/AppConstants';
 import NavigationService from '../../../../../core/NavigationService';
 import { selectIsCardholder } from '../../../../../selectors/cardController';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
-import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import Logger from '../../../../../util/Logger';
 import { useTheme } from '../../../../../util/theme';
@@ -45,7 +46,6 @@ import { MoneyBalanceDisplayState } from '../../types';
 import { Hex } from '@metamask/utils';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { MONEY_ONBOARDING_TOTAL_STEPS } from '../../components/MoneyOnboardingCard/MoneyOnboardingCard';
-import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 
 type MoneyHomeState = 'empty' | 'milestone' | 'filled';
@@ -88,12 +88,13 @@ const MoneyHomeView = () => {
     }
   }, [refetchBalance]);
 
-  const { hasMoneyAccount } = useMoneyAccountInfo();
+  const { isMoneyAccountFeatureEnabled, hasMoneyAccount } =
+    useMoneyAccountInfo();
   const { fiatBalanceAggregatedFormatted: musdFiatFormatted } =
     useMusdBalance();
 
-  const { tokens: depositTokens, isNoFeeToken } = useMoneyDepositTokens();
-  const { initiateDeposit } = useMoneyAccountDeposit();
+  const { tokens: conversionTokens } = useMusdConversionTokens();
+  const { initiateCustomConversion } = useMusdConversion();
   const { allTransactions, moneyAddress, mockDataEnabled } =
     useMoneyAccountTransactions();
 
@@ -112,7 +113,9 @@ const MoneyHomeView = () => {
   const isCardholderWithMilestone = isMilestone && isCardholder;
 
   let displayState: MoneyBalanceDisplayState;
-  if (!hasMoneyAccount) {
+  if (!isMoneyAccountFeatureEnabled) {
+    displayState = { kind: 'featureDisabled' };
+  } else if (!hasMoneyAccount) {
     displayState = { kind: 'noAccount' };
   } else if (isBalanceFetchError && isBalanceFetching) {
     displayState = { kind: 'retrying' };
@@ -178,10 +181,7 @@ const MoneyHomeView = () => {
   }, [navigation]);
 
   const handleCardPress = useCallback(() => {
-    navigation.navigate(Routes.CARD.ROOT, {
-      screen: Routes.CARD.HOME,
-      params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
-    });
+    navigation.navigate(Routes.CARD.ROOT);
   }, [navigation]);
 
   const handleLinkCardPress = useCallback(() => {
@@ -217,10 +217,10 @@ const MoneyHomeView = () => {
     });
   }, []);
 
-  const handleTokenDepositPress = useCallback(
+  const handleTokenConvertPress = useCallback(
     async (token: AssetType) => {
       try {
-        await initiateDeposit({
+        await initiateCustomConversion({
           preferredPaymentToken: {
             address: token.address as Hex,
             chainId: token.chainId as Hex,
@@ -233,7 +233,7 @@ const MoneyHomeView = () => {
         });
       }
     },
-    [initiateDeposit],
+    [initiateCustomConversion],
   );
 
   const handleEarnCryptoPress = useCallback(() => {
@@ -354,13 +354,12 @@ const MoneyHomeView = () => {
             <Divider />
           </>
         )}
-        {depositTokens.length > 0 && (
+        {hasConvertibleTokensWithBalance(conversionTokens) && (
           <>
             <MoneyPotentialEarnings
-              tokens={depositTokens}
+              tokens={conversionTokens}
               apy={apyPercent}
-              isNoFeeToken={isNoFeeToken}
-              onTokenPress={handleTokenDepositPress}
+              onTokenPress={handleTokenConvertPress}
               onViewAllPress={handleEarnCryptoPress}
               onHeaderPress={handleEarnCryptoPress}
               onInfoPress={handleEarnCryptoInfoPress}

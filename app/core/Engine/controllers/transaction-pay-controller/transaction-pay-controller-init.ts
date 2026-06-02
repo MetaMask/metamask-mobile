@@ -6,7 +6,6 @@ import {
 } from '@metamask/transaction-pay-controller';
 import { TransactionPayControllerInitMessenger } from '../../messengers/transaction-pay-controller-messenger';
 import { getDelegationTransaction } from '../../../../util/transactions/delegation';
-import { getPaymentOverrideData } from './paymentoverride-callback';
 import { createPolymarketCallbacks } from './polymarket-callbacks';
 
 export const TransactionPayControllerInit: MessengerClientInitFunction<
@@ -20,8 +19,6 @@ export const TransactionPayControllerInit: MessengerClientInitFunction<
     const transactionPayController = new TransactionPayController({
       getDelegationTransaction: ({ transaction }) =>
         getDelegationTransaction(initMessenger, transaction),
-      getPaymentOverrideData: (request) =>
-        getPaymentOverrideData(request, initMessenger),
       messenger: controllerMessenger,
       polymarket: createPolymarketCallbacks(initMessenger),
       state: persistedState.TransactionPayController,

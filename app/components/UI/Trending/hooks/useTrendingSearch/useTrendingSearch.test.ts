@@ -9,7 +9,6 @@ import { sortTrendingTokens } from '../../utils/sortTrendingTokens';
 import {
   PriceChangeOption,
   SortDirection,
-  TimeOption,
 } from '../../components/TrendingTokensBottomSheet';
 
 // Mock dependencies
@@ -109,7 +108,6 @@ describe('useTrendingSearch', () => {
       mockTrendingResults,
       PriceChangeOption.PriceChange,
       SortDirection.Descending,
-      undefined,
     );
     expect(result.current.isLoading).toBe(false);
   });
@@ -135,33 +133,6 @@ describe('useTrendingSearch', () => {
       mockTrendingResults,
       PriceChangeOption.MarketCap,
       SortDirection.Ascending,
-      undefined,
-    );
-  });
-
-  it('passes custom time option to sortTrendingTokens', async () => {
-    const sortedResults = [mockTrendingResults[1], mockTrendingResults[0]];
-    mockSortTrendingTokens.mockReturnValue(sortedResults);
-
-    const { result } = renderHookWithProvider(() =>
-      useTrendingSearch({
-        sortTrendingTokensOptions: {
-          option: PriceChangeOption.PriceChange,
-          direction: SortDirection.Descending,
-          timeOption: TimeOption.OneHour,
-        },
-      }),
-    );
-
-    await waitFor(() => {
-      expect(result.current.data).toEqual(sortedResults);
-    });
-
-    expect(mockSortTrendingTokens).toHaveBeenCalledWith(
-      mockTrendingResults,
-      PriceChangeOption.PriceChange,
-      SortDirection.Descending,
-      TimeOption.OneHour,
     );
   });
 

@@ -3,16 +3,17 @@ import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 import {
-  BottomSheet,
-  BottomSheetHeader,
-  BottomSheetRef,
-  Button,
-  ButtonBaseSize,
-  ButtonVariant,
   Text,
-  TextColor,
   TextVariant,
+  TextColor,
+  Button,
+  ButtonVariant,
+  ButtonBaseSize,
+  BottomSheet,
+  BottomSheetRef,
+  BottomSheetHeader,
 } from '@metamask/design-system-react-native';
+
 import styleSheet from './UnsupportedStateModal.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
 import {
@@ -21,9 +22,9 @@ import {
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
+
 import { createStateSelectorModalNavigationDetails } from '../StateSelectorModal';
 import { useRampsUserRegion } from '../../../hooks/useRampsUserRegion';
-import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 
 export interface UnsupportedStateModalParams {
   stateCode?: string;
@@ -45,7 +46,6 @@ function UnsupportedStateModal() {
     useParams<UnsupportedStateModalParams>();
 
   const { styles } = useStyles(styleSheet, {});
-  const surfaceClass = useElevatedSurface();
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -81,7 +81,6 @@ function UnsupportedStateModal() {
       ref={sheetRef}
       goBack={navigation.goBack}
       isInteractable={false}
-      twClassName={surfaceClass}
     >
       <BottomSheetHeader onClose={handleClose}>
         <Text variant={TextVariant.HeadingMd}>

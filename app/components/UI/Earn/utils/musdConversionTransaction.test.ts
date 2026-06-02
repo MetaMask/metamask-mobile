@@ -301,7 +301,6 @@ describe('musdConversionTransaction', () => {
           networkClientId,
           origin: ORIGIN_METAMASK,
           type: TransactionType.musdConversion,
-          isInternal: true,
         },
       );
     });
@@ -527,7 +526,6 @@ describe('musdConversionTransaction', () => {
           networkClientId: 'networkClientId',
           origin: ORIGIN_METAMASK,
           type: TransactionType.musdConversion,
-          isInternal: true,
         },
       );
 

@@ -37,7 +37,7 @@ import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder
 import SRPDesignLight from '../../../images/secure_wallet_light.png';
 import SRPDesignDark from '../../../images/secure_wallet_dark.png';
 import { CommonActions, useNavigation } from '@react-navigation/native';
-import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { useMetrics } from '../../hooks/useMetrics';
 import {
   AccountType,
   ONBOARDING_SUCCESS_FLOW,
@@ -48,7 +48,7 @@ import { AppThemeKey } from '../../../util/theme/models';
 const AccountBackupStep1 = (props) => {
   const [hasFunds, setHasFunds] = useState(false);
   const { themeAppearance } = useTheme();
-  const { isEnabled: isAnalyticsEnabled } = useAnalytics();
+  const { isEnabled: isMetricsEnabled } = useMetrics();
   const tw = useTailwind();
 
   const track = (event, properties) => {
@@ -100,7 +100,7 @@ const AccountBackupStep1 = (props) => {
     endTrace({ name: TraceName.OnboardingNewSrpCreateWallet });
     endTrace({ name: TraceName.OnboardingJourneyOverall });
 
-    if (isAnalyticsEnabled()) {
+    if (isMetricsEnabled()) {
       navigation.dispatch(resetAction);
     } else {
       navigation.navigate('OptinMetrics', {

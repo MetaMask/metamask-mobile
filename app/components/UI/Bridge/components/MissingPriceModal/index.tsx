@@ -11,9 +11,9 @@ import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 import { selectSourceToken } from '../../../../../core/redux/slices/bridge';
 import {
   BottomSheet,
+  BottomSheetRef,
   BottomSheetFooter,
   BottomSheetHeader,
-  BottomSheetRef,
   Box,
   BoxAlignItems,
   ButtonIconSize,
@@ -25,7 +25,6 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 export interface MissingPriceModalParams {
   location: MetaMetricsSwapsEventSource;
@@ -37,7 +36,7 @@ export const MissingPriceModal = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const [loading, setLoading] = useState(false);
   const { location } = useParams<MissingPriceModalParams>();
-  const surfaceClass = useElevatedSurface();
+
   const sourceToken = useSelector(selectSourceToken);
   const tokenBalance = useLatestBalance({
     address: sourceToken?.address,
@@ -63,11 +62,7 @@ export const MissingPriceModal = () => {
   }, [confirmBridge]);
 
   return (
-    <BottomSheet
-      ref={sheetRef}
-      goBack={navigation.goBack}
-      twClassName={surfaceClass}
-    >
+    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
       <BottomSheetHeader
         onClose={handleClose}
         closeButtonProps={{

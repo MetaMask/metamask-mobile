@@ -29,8 +29,8 @@ import { protectWalletModalVisible } from '../../../../../actions/user';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
 import {
   BottomSheet,
-  HeaderStandard,
   type BottomSheetRef,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import useRampsUnifiedV2Enabled from '../../hooks/useRampsUnifiedV2Enabled';
 import { showV2OrderToast } from '../../utils/v2OrderToast';
@@ -54,7 +54,6 @@ import {
   extractHostname,
   type CloseSource,
 } from '../../utils/webviewFunnelAnalytics';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 interface CheckoutParams {
   url: string;
@@ -521,7 +520,6 @@ const Checkout = () => {
     /* no-op until initialized */
   });
   const closeHeadlessOnUnmountRef = useRef<() => void>(() => undefined);
-  const surfaceClass = useElevatedSurface();
   closeHeadlessOnUnmountRef.current = () => {
     if (!headlessSessionId || hasTerminatedHeadlessSessionRef.current) {
       return;
@@ -586,7 +584,6 @@ const Checkout = () => {
         goBack={navigation.goBack}
         isFullscreen
         keyboardAvoidingViewEnabled={false}
-        twClassName={surfaceClass}
       >
         {sharedHeader}
         <ScreenLayout>
@@ -621,7 +618,6 @@ const Checkout = () => {
         isFullscreen
         isInteractable={!Device.isAndroid()}
         keyboardAvoidingViewEnabled={false}
-        twClassName={surfaceClass}
       >
         {sharedHeader}
         <WebView
@@ -694,7 +690,6 @@ const Checkout = () => {
       goBack={navigation.goBack}
       isFullscreen
       keyboardAvoidingViewEnabled={false}
-      twClassName={surfaceClass}
     >
       {sharedHeader}
       <ScreenLayout>

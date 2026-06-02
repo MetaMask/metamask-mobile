@@ -40,9 +40,9 @@ const WhatsHappeningAssetSlider: React.FC<WhatsHappeningAssetSliderProps> = ({
       contentContainerStyle={tw.style('flex-row gap-2 mt-2')}
       nestedScrollEnabled
     >
-      {perpsAssets.map((asset, index) => (
+      {perpsAssets.map((asset) => (
         <WhatsHappeningAssetPill
-          key={`${asset.symbol}-${index}`}
+          key={asset.sourceAssetId}
           asset={asset}
           perpsPriceEntry={perpsPriceBySymbol[asset.hlPerpsMarket?.[0] ?? '']}
           item={item}

@@ -15,16 +15,20 @@ jest.mock('./features', () => ({
   TOP_TRADERS_QUICK_BUY_FEATURES: { tradeModes: ['buy'] },
 }));
 
-jest.mock('./types', () => {
-  const actual = jest.requireActual('./types');
-  return { positionToQuickBuyTarget: actual.positionToQuickBuyTarget };
-});
+jest.mock('./types', () => ({
+  positionToQuickBuyTarget: (p: Position) => ({
+    tokenAddress: p.tokenAddress,
+    tokenSymbol: p.tokenSymbol,
+    tokenName: p.tokenName,
+    chain: p.chain,
+  }),
+}));
 
 const mockPosition: Position = {
   tokenAddress: '0xtoken',
   tokenSymbol: 'TKN',
   tokenName: 'Token',
-  chain: 'ethereum',
+  chain: '0x1',
 } as unknown as Position;
 
 describe('TraderPositionQuickBuy', () => {
@@ -52,7 +56,7 @@ describe('TraderPositionQuickBuy', () => {
     );
   });
 
-  it('maps position to a QuickBuyTarget with a CAIP chain id', () => {
+  it('maps position to QuickBuyTarget', () => {
     render(
       <TraderPositionQuickBuy
         isVisible
@@ -66,30 +70,9 @@ describe('TraderPositionQuickBuy', () => {
           tokenAddress: '0xtoken',
           tokenSymbol: 'TKN',
           tokenName: 'Token',
-          chain: 'eip155:1',
+          chain: '0x1',
         },
       }),
-    );
-  });
-
-  it('passes null target when the position chain name has no CAIP mapping', () => {
-    const unsupportedPosition: Position = {
-      tokenAddress: '0xtoken',
-      tokenSymbol: 'TKN',
-      tokenName: 'Token',
-      chain: 'narnia',
-    } as unknown as Position;
-
-    render(
-      <TraderPositionQuickBuy
-        isVisible
-        position={unsupportedPosition}
-        onClose={jest.fn()}
-      />,
-    );
-
-    expect(mockQuickBuyRoot).toHaveBeenCalledWith(
-      expect.objectContaining({ target: null }),
     );
   });
 

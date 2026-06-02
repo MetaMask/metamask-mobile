@@ -18,11 +18,6 @@ test.describe(`${Performance} ${System} ${PerformanceLogin} ${PerformanceSwaps}`
     'Swap flow - ETH to LINK, SRP 1 + SRP 2 + SRP 3',
     { tag: '@swap-bridge-dev-team' },
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
-      test.skip(
-        currentDeviceDetails.platform === 'ios',
-        'Skipped on iOS — swap flow under investigation',
-      );
-
       await loginToAppPlaywright();
 
       const swapLoadTimer = new TimerHelper(
@@ -32,7 +27,6 @@ test.describe(`${Performance} ${System} ${PerformanceLogin} ${PerformanceSwaps}`
       );
 
       await WalletView.tapWalletSwapButton();
-
       await swapLoadTimer.measure(() => QuoteView.isVisible());
 
       const swapTimer = new TimerHelper(

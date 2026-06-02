@@ -6,28 +6,16 @@ import { View } from 'react-native';
 // Internal dependencies.
 import ListItemMultiSelectWithMenuButton from './ListItemMultiSelectWithMenuButton';
 import { IconName } from '../../../component-library/components/Icons/Icon';
-import {
-  BUTTON_TEST_ID,
-  ROW_TEST_ID,
-} from './ListItemMultiSelectWithMenuButton.constants';
+import { BUTTON_TEST_ID } from './ListItemMultiSelectWithMenuButton.constants';
 
 describe('ListItemMultiSelectWithMenuButton', () => {
   it('should render correctly with default props', () => {
-    const { getByTestId } = render(
+    const { getByRole } = render(
       <ListItemMultiSelectWithMenuButton>
         <View />
       </ListItemMultiSelectWithMenuButton>,
     );
-    expect(getByTestId(ROW_TEST_ID)).toBeOnTheScreen();
-  });
-
-  it('exposes accessibilityRole="button" on the row', () => {
-    const { getByTestId } = render(
-      <ListItemMultiSelectWithMenuButton>
-        <View />
-      </ListItemMultiSelectWithMenuButton>,
-    );
-    expect(getByTestId(ROW_TEST_ID).props.accessibilityRole).toBe('button');
+    expect(getByRole('button')).toBeOnTheScreen();
   });
 
   it('should not render checkbox icon when isSelected is false', () => {
@@ -42,7 +30,7 @@ describe('ListItemMultiSelectWithMenuButton', () => {
 
   it('should call onPress when the button is pressed', () => {
     const mockOnPress = jest.fn();
-    const { getByTestId } = render(
+    const { getByRole } = render(
       <ListItemMultiSelectWithMenuButton
         onPress={mockOnPress}
         buttonProps={{
@@ -52,7 +40,7 @@ describe('ListItemMultiSelectWithMenuButton', () => {
         <View />
       </ListItemMultiSelectWithMenuButton>,
     );
-    fireEvent.press(getByTestId(ROW_TEST_ID));
+    fireEvent.press(getByRole('button'));
     expect(mockOnPress).toHaveBeenCalled();
   });
 
@@ -93,14 +81,14 @@ describe('ListItemMultiSelectWithMenuButton', () => {
 
   it('should be disabled when isDisabled is true', () => {
     const mockOnPress = jest.fn();
-    const { getByTestId } = render(
+    const { getByRole } = render(
       <ListItemMultiSelectWithMenuButton isDisabled onPress={mockOnPress}>
         <View />
       </ListItemMultiSelectWithMenuButton>,
     );
 
     // The component should render without error when disabled
-    expect(getByTestId(ROW_TEST_ID)).toBeTruthy();
+    expect(getByRole('button')).toBeTruthy();
   });
 
   it('should not render button icon when showButtonIcon is false', () => {
@@ -114,23 +102,23 @@ describe('ListItemMultiSelectWithMenuButton', () => {
 
   it('should call onPress on long press', () => {
     const mockOnPress = jest.fn();
-    const { getByTestId } = render(
+    const { getByRole } = render(
       <ListItemMultiSelectWithMenuButton onPress={mockOnPress}>
         <View />
       </ListItemMultiSelectWithMenuButton>,
     );
 
     // Test that the component renders with onLongPress prop set to onPress
-    expect(getByTestId(ROW_TEST_ID)).toBeTruthy();
+    expect(getByRole('button')).toBeTruthy();
   });
 
   it('should render with custom gap', () => {
-    const { getByTestId } = render(
+    const { getByRole } = render(
       <ListItemMultiSelectWithMenuButton gap={24}>
         <View />
       </ListItemMultiSelectWithMenuButton>,
     );
-    expect(getByTestId(ROW_TEST_ID)).toBeTruthy();
+    expect(getByRole('button')).toBeTruthy();
   });
 
   it('should use custom button test ID when provided', () => {
@@ -157,7 +145,7 @@ describe('ListItemMultiSelectWithMenuButton', () => {
   });
 
   it('should handle button props with text button', () => {
-    const { getByTestId } = render(
+    const { getByRole } = render(
       <ListItemMultiSelectWithMenuButton
         buttonProps={{
           textButton: 'Click Me',
@@ -167,7 +155,7 @@ describe('ListItemMultiSelectWithMenuButton', () => {
         <View />
       </ListItemMultiSelectWithMenuButton>,
     );
-    expect(getByTestId(ROW_TEST_ID)).toBeTruthy();
+    expect(getByRole('button')).toBeTruthy();
   });
 
   it('should handle button props with showButtonIcon false', () => {

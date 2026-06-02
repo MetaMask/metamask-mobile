@@ -14,10 +14,7 @@ import { strings } from '../../../../../locales/i18n';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
 import { TokenRowItem } from '../feeds/tokens/TokenRowItem';
 import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
-import {
-  STOCKS_FEED_PREVIEW_PAGE_SIZE,
-  useStocksFeed,
-} from '../feeds/stocks/useStocksFeed';
+import { useStocksFeed } from '../feeds/stocks/useStocksFeed';
 import { getCaipChainIdFromAssetId } from '../../../UI/Trending/components/TrendingTokenRowItem/utils';
 import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
 import PerpsSectionProvider from '../feeds/perps/PerpsSectionProvider';
@@ -98,10 +95,7 @@ const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
 
   const politics = usePredictionsFeed({ variant: 'politics', refresh });
-  const stocks = useStocksFeed({
-    refresh,
-    pageSize: STOCKS_FEED_PREVIEW_PAGE_SIZE,
-  });
+  const stocks = useStocksFeed({ refresh });
 
   const renderStockItem: ListRenderItem<TrendingAsset> = useCallback(
     ({ item, index }) => (

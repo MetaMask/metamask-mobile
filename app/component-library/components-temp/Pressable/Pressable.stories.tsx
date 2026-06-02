@@ -18,7 +18,6 @@ import { ThemeContext, useTheme } from '../../../util/theme';
 import { AppThemeKey } from '../../../util/theme/models';
 
 import Pressable from './Pressable';
-import { PressableVariant } from './Pressable.types';
 
 const layout = StyleSheet.create({
   page: { flex: 1, padding: 16, gap: 20 },
@@ -91,17 +90,10 @@ const PressMe = () => (
   </Text>
 );
 
-const PressableCard = ({
-  surfaceColor,
-  variant,
-}: {
-  surfaceColor: string;
-  variant: PressableVariant;
-}) => {
+const PressableCard = ({ surfaceColor }: { surfaceColor: string }) => {
   const { colors } = useTheme();
   return (
     <Pressable
-      variant={variant}
       onPress={() => undefined}
       style={[
         layout.card,
@@ -116,7 +108,7 @@ const PressableCard = ({
   );
 };
 
-const SurfaceCatalog = ({ variant }: { variant: PressableVariant }) => {
+const SurfaceCatalog = () => {
   const { colors } = useTheme();
   const surfaces = [
     { key: 'default', color: colors.background.default },
@@ -129,7 +121,7 @@ const SurfaceCatalog = ({ variant }: { variant: PressableVariant }) => {
       {surfaces.map((s) => (
         <Box key={s.key} twClassName="gap-1">
           <SurfaceLabel>background.{s.key}</SurfaceLabel>
-          <PressableCard surfaceColor={s.color} variant={variant} />
+          <PressableCard surfaceColor={s.color} />
         </Box>
       ))}
     </Box>
@@ -139,15 +131,7 @@ const SurfaceCatalog = ({ variant }: { variant: PressableVariant }) => {
 export const Default = {
   render: () => (
     <OSThemePane>
-      <SurfaceCatalog variant={PressableVariant.Default} />
-    </OSThemePane>
-  ),
-};
-
-export const Highlight = {
-  render: () => (
-    <OSThemePane>
-      <SurfaceCatalog variant={PressableVariant.Highlight} />
+      <SurfaceCatalog />
     </OSThemePane>
   ),
 };

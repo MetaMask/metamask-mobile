@@ -24,13 +24,11 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens } from '../../util/metrics';
 import { selectHasCardholderAccounts } from '../../../../../selectors/cardController';
 import { useSelector } from 'react-redux';
-import { useCardPostAuthRedirect } from '../../hooks/useCardPostAuthRedirect';
 
 const CardWelcome = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { goBack, navigate } = useNavigation();
   const hasCardholderAccounts = useSelector(selectHasCardholderAccounts);
-  const postAuthRedirect = useCardPostAuthRedirect();
   const theme = useTheme();
   const dimensions = useWindowDimensions();
   const styles = createStyles(theme, dimensions);
@@ -59,23 +57,11 @@ const CardWelcome = () => {
     );
 
     if (hasCardholderAccounts) {
-      navigate(
-        Routes.CARD.AUTHENTICATION,
-        postAuthRedirect ? { postAuthRedirect } : undefined,
-      );
+      navigate(Routes.CARD.AUTHENTICATION);
     } else {
-      navigate(
-        Routes.CARD.ONBOARDING.ROOT,
-        postAuthRedirect ? { postAuthRedirect } : undefined,
-      );
+      navigate(Routes.CARD.ONBOARDING.ROOT);
     }
-  }, [
-    hasCardholderAccounts,
-    navigate,
-    postAuthRedirect,
-    trackEvent,
-    createEventBuilder,
-  ]);
+  }, [hasCardholderAccounts, navigate, trackEvent, createEventBuilder]);
 
   return (
     <LinearGradient

@@ -25,7 +25,6 @@ import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
 import { selectPredictEnabledFlag } from '../../UI/Predict';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import { isHardwareAccount } from '../../../util/address';
 import TradeWalletActions from './TradeWalletActions';
 
 jest.mock('react-native-device-info', () => ({
@@ -194,11 +193,6 @@ jest.mock('../../../constants/bridge', () => ({
   BATCH_SELL_ENABLED: true,
 }));
 
-jest.mock('../../../util/address', () => ({
-  ...jest.requireActual('../../../util/address'),
-  isHardwareAccount: jest.fn(),
-}));
-
 const mockInitialState: DeepPartial<RootState> = {
   swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
   fiatOrders: {
@@ -297,7 +291,6 @@ jest.mock('../../../util/navigation/navUtils', () => ({
 describe('TradeWalletActions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.mocked(isHardwareAccount).mockReturnValue(false);
 
     mockUseStakingEligibility.mockReturnValue({
       isEligible: true,
@@ -379,27 +372,6 @@ describe('TradeWalletActions', () => {
     );
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
-    ).toBeDefined();
-  });
-
-  it('does not render Batch Sell for hardware wallets', () => {
-    jest.mocked(isHardwareAccount).mockReturnValue(true);
-
-    const { getByTestId, queryByTestId } = renderScreen(
-      TradeWalletActions,
-      {
-        name: 'TradeWalletActions',
-      },
-      {
-        state: mockInitialState,
-      },
-    );
-
-    expect(
-      queryByTestId(WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON),
-    ).toBeNull();
-    expect(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
     ).toBeDefined();
   });
 

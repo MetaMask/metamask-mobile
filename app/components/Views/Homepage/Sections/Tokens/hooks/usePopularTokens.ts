@@ -10,7 +10,6 @@ import {
 } from '../../../../../UI/Earn/constants/musd';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../../../../UI/Earn/selectors/featureFlags';
 import { useMusdConversionEligibility } from '../../../../../UI/Earn/hooks/useMusdConversionEligibility';
-import { selectMoneyHubEnabledFlag } from '../../../../../UI/Money/selectors/featureFlags';
 
 /**
  * Popular token metadata with CAIP-19 asset IDs
@@ -122,10 +121,8 @@ export const usePopularTokens = () => {
   const isMusdConversionFlowEnabled = useSelector(
     selectIsMusdConversionFlowEnabledFlag,
   );
-  const isMoneyHubEnabled = useSelector(selectMoneyHubEnabledFlag);
   const { isEligible: isGeoEligible } = useMusdConversionEligibility();
-  const isCashSectionEnabled =
-    isMoneyHubEnabled && isMusdConversionFlowEnabled && isGeoEligible;
+  const isCashSectionEnabled = isMusdConversionFlowEnabled && isGeoEligible;
   const [rawTokens, setRawTokens] = useState<
     {
       assetId: string;

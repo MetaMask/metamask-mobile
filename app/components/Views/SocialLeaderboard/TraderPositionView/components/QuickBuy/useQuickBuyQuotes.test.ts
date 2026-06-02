@@ -53,11 +53,6 @@ jest.mock('../../../../../../selectors/featureFlagController', () => ({
 jest.mock('../../../../../../core/redux/slices/bridge', () => ({
   selectDestAddress: jest.fn(),
   selectSlippage: jest.fn(),
-  selectBridgeFeatureFlags: jest.fn(() => ({
-    maxRefreshCount: 5,
-    refreshRate: 30000,
-    chains: {},
-  })),
 }));
 
 jest.mock('../../../../../../selectors/bridge', () => ({
@@ -447,48 +442,6 @@ describe('useQuickBuyQuotes', () => {
         expect.objectContaining({ amount_usd: 0 }),
       ),
     );
-  });
-
-  it('waits the full refresh interval after a failed auto-refresh, not immediate retry', async () => {
-    const fetched = createFetchedQuote();
-    fetchQuotesMock
-      .mockResolvedValueOnce([fetched])
-      .mockRejectedValue(new Error('network error'));
-
-    const { result } = renderHook(() =>
-      useQuickBuyQuotes({
-        sourceToken: createSourceToken(),
-        destToken: createDestToken(),
-        sourceTokenAmount: '0.001',
-      }),
-    );
-
-    await act(async () => {
-      jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
-    });
-    await waitFor(() => {
-      expect(fetchQuotesMock).toHaveBeenCalledTimes(1);
-      expect(result.current.refreshCount).toBe(1);
-    });
-
-    const refreshMs = result.current.quoteRefreshRateMs;
-    const callsAfterInitialFetch = fetchQuotesMock.mock.calls.length;
-
-    await act(async () => {
-      jest.advanceTimersByTime(refreshMs);
-      await Promise.resolve();
-    });
-    expect(result.current.quoteFetchError).toBe('network error');
-
-    const callsAfterFailedAutoRefresh = fetchQuotesMock.mock.calls.length;
-    expect(callsAfterFailedAutoRefresh).toBeGreaterThan(callsAfterInitialFetch);
-
-    // Failed fetch must not trigger an immediate retry (delay = 0 loop).
-    await act(async () => {
-      jest.advanceTimersByTime(1);
-      await Promise.resolve();
-    });
-    expect(fetchQuotesMock.mock.calls.length).toBe(callsAfterFailedAutoRefresh);
   });
 
   it('enriches raw quotes via selectBridgeQuotes and returns the recommended quote', async () => {

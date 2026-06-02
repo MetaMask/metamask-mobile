@@ -18,7 +18,7 @@ import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../../../UI/Earn/selectors/featureFlags';
-import { selectMoneyEnableMoneyAccountFlag } from '../../../../UI/Money/selectors/featureFlags';
+import { selectMoneyHomeScreenEnabledFlag } from '../../../../UI/Money/selectors/featureFlags';
 import { useMusdConversionEligibility } from '../../../../UI/Earn/hooks/useMusdConversionEligibility';
 import { useMusdBalance } from '../../../../UI/Earn/hooks/useMusdBalance';
 import MusdAggregatedRow from './MusdAggregatedRow';
@@ -45,15 +45,13 @@ const CashSection = forwardRef<SectionRefreshHandle, CashSectionProps>(
     const isMusdConversionEnabled = useSelector(
       selectIsMusdConversionFlowEnabledFlag,
     );
-    const isMoneyAccountEnabled = useSelector(
-      selectMoneyEnableMoneyAccountFlag,
-    );
+    const isMoneyHomeEnabled = useSelector(selectMoneyHomeScreenEnabledFlag);
     const { isEligible: isGeoEligible } = useMusdConversionEligibility();
     const { hasMusdBalanceOnAnyChain } = useMusdBalance();
     const { navigateToCash } = useCashNavigation();
 
     const isCashSectionEnabled =
-      isMusdConversionEnabled && isGeoEligible && !isMoneyAccountEnabled;
+      isMusdConversionEnabled && isGeoEligible && !isMoneyHomeEnabled;
 
     const { onLayout } = useHomeViewedEvent({
       sectionRef: sectionViewRef,
@@ -85,7 +83,7 @@ const CashSection = forwardRef<SectionRefreshHandle, CashSectionProps>(
         reason = !isGeoEligible ? 'geo_ineligible' : 'money_home_on';
       }
       Logger.log(
-        `[CashSection] not rendered flag=${isMusdConversionEnabled} geo=${isGeoEligible} moneyHome=${isMoneyAccountEnabled} reason=${reason}`,
+        `[CashSection] not rendered flag=${isMusdConversionEnabled} geo=${isGeoEligible} moneyHome=${isMoneyHomeEnabled} reason=${reason}`,
       );
       return null;
     }

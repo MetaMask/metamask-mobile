@@ -24,7 +24,6 @@ import { POLYGON_MAINNET_CHAIN_ID } from '../../providers/polymarket/constants';
 
 interface PredictActivityProps {
   item: PredictActivityItem;
-  containerStyle?: string;
 }
 
 const activityTitleByType: Record<PredictActivityType, string> = {
@@ -33,10 +32,7 @@ const activityTitleByType: Record<PredictActivityType, string> = {
   [PredictActivityType.CLAIM]: strings('predict.transactions.claim_title'),
 };
 
-const PredictActivity: React.FC<PredictActivityProps> = ({
-  item,
-  containerStyle,
-}) => {
+const PredictActivity: React.FC<PredictActivityProps> = ({ item }) => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -79,10 +75,7 @@ const PredictActivity: React.FC<PredictActivityProps> = ({
   return (
     <TouchableOpacity
       onPress={handlePress}
-      style={tw.style(
-        'flex-row items-start justify-between w-full p-2',
-        containerStyle,
-      )}
+      style={tw.style('flex-row items-start justify-between w-full p-2')}
     >
       <Box twClassName="h-10 w-10 items-center justify-center rounded-full bg-muted mr-3 overflow-hidden mt-1">
         {item.icon ? (

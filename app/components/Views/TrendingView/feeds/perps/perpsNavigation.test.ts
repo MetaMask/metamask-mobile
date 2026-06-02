@@ -64,9 +64,12 @@ describe('navigateToPerpsMarketList', () => {
       navigate,
     } as unknown as NavigationProp<PerpsNavigationParamList>;
 
-    navigateToPerpsMarketList(navigation, 'all', 'priceChange', {
-      source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
-    });
+    navigateToPerpsMarketList(
+      navigation,
+      'all',
+      'priceChange',
+      PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
+    );
 
     expect(navigate).toHaveBeenCalledWith(
       Routes.PERPS.ROOT,
@@ -85,9 +88,12 @@ describe('navigateToPerpsMarketList', () => {
       navigate,
     } as unknown as NavigationProp<PerpsNavigationParamList>;
 
-    navigateToPerpsMarketList(navigation, 'all', undefined, {
-      source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
-    });
+    navigateToPerpsMarketList(
+      navigation,
+      'all',
+      undefined,
+      PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
+    );
 
     expect(navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MARKET_LIST,
@@ -96,25 +102,5 @@ describe('navigateToPerpsMarketList', () => {
         source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
       },
     });
-  });
-
-  it('passes a custom sort direction', () => {
-    const navigate = jest.fn();
-    const navigation = {
-      navigate,
-    } as unknown as NavigationProp<PerpsNavigationParamList>;
-
-    navigateToPerpsMarketList(navigation, 'all', 'priceChange', {
-      sortDirection: 'asc',
-    });
-
-    expect(navigate).toHaveBeenCalledWith(
-      Routes.PERPS.ROOT,
-      expect.objectContaining({
-        params: expect.objectContaining({
-          defaultSortDirection: 'asc',
-        }),
-      }),
-    );
   });
 });

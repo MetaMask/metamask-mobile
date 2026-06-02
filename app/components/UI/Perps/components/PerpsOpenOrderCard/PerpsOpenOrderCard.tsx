@@ -40,10 +40,7 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
-import {
-  MetaMetricsEvents,
-  mergeAssetViewedProperties,
-} from '../../../../../core/Analytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 
 /**
@@ -147,21 +144,14 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
 
     if (!isEligible) {
       // Track geo-block screen viewed
-      const geoBlockProperties = {
-        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-        [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.CANCEL_ORDER,
-      };
       trackEvent(
         createEventBuilder(MetaMetricsEvents.PERPS_SCREEN_VIEWED)
-          .addProperties(geoBlockProperties)
-          .build(),
-      );
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.ASSET_VIEWED)
-          .addProperties(
-            mergeAssetViewedProperties('Perps', geoBlockProperties),
-          )
+          .addProperties({
+            [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+              PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+            [PERPS_EVENT_PROPERTY.SOURCE]:
+              PERPS_EVENT_VALUE.SOURCE.CANCEL_ORDER,
+          })
           .build(),
       );
       setIsEligibilityModalVisible(true);

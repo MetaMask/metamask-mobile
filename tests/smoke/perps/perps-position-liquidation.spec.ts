@@ -63,7 +63,6 @@ const buildPerpsFixture = () =>
   new FixtureBuilder()
     .withPerpsProfile('no-positions')
     .withPerpsFirstTimeUser(false)
-    .withAccountTreeController()
     .withNetworkController({
       type: 'rpc',
       chainId: '0xa4b1',

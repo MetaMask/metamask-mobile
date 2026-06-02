@@ -1,5 +1,4 @@
 import React, { ReactNode, useState } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
 import { View, ViewStyle } from 'react-native';
 import ButtonIcon, {
   ButtonIconSizes,
@@ -10,6 +9,7 @@ import {
 } from '../../../../../../component-library/components/Icons/Icon';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
+import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import BottomModal from '../bottom-modal';
 import styleSheet from './Tooltip.styles';
 
@@ -45,7 +45,7 @@ export const TooltipModal = ({
   return (
     <BottomModal visible={open} onClose={() => setOpen(false)} isTooltip>
       <View style={styles.modalView}>
-        <HeaderStandard
+        <HeaderCompactStandard
           title={title}
           onClose={() => setOpen(false)}
           closeButtonProps={{

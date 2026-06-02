@@ -3,7 +3,6 @@ import { useSelector } from 'react-redux';
 import {
   filterMarketsByQuery,
   type PerpsMarketData,
-  type SortDirection,
   type SortOptionId,
 } from '@metamask/perps-controller';
 import { usePerpsMarkets } from '../../../../UI/Perps/hooks';
@@ -23,7 +22,6 @@ export type { PerpsFeedItem } from '../../../../UI/Perps/types/perpsFeedTypes';
 const EMPTY_WATCHLIST_SYMBOLS: string[] = [];
 
 export type PerpsVariant = 'all' | 'crypto' | 'rwa' | 'macro';
-export type PerpsPriceChangeDirection = 'gainers' | 'losers';
 
 interface UsePerpsFeedOptions {
   /** @default 'all' */
@@ -59,14 +57,6 @@ export const PERPS_VARIANT_SORT_OPTION: Record<PerpsVariant, SortOptionId> = {
   macro: 'volume',
 };
 
-export const PERPS_PRICE_CHANGE_SORT_DIRECTION: Record<
-  PerpsPriceChangeDirection,
-  SortDirection
-> = {
-  gainers: 'desc',
-  losers: 'asc',
-};
-
 const sortByVolumeDesc = (a: PerpsMarketData, b: PerpsMarketData) => {
   const av = (a as PerpsMarketDataWithVolumeNumber).volumeNumber ?? 0;
   const bv = (b as PerpsMarketDataWithVolumeNumber).volumeNumber ?? 0;
@@ -75,9 +65,6 @@ const sortByVolumeDesc = (a: PerpsMarketData, b: PerpsMarketData) => {
 
 const sortByChange24hDesc = (a: PerpsMarketData, b: PerpsMarketData) =>
   (parseFloat(b.change24hPercent) || 0) - (parseFloat(a.change24hPercent) || 0);
-
-const sortByChange24hAsc = (a: PerpsMarketData, b: PerpsMarketData) =>
-  (parseFloat(a.change24hPercent) || 0) - (parseFloat(b.change24hPercent) || 0);
 
 /** Maps each SortOptionId to the comparator used inside the feed. */
 const SORT_FNS: Record<
@@ -111,22 +98,6 @@ const filterByVariant = (
     case 'all':
     default:
       return markets;
-  }
-};
-
-export const filterAndSortByPriceChangeDirection = (
-  markets: PerpsMarketData[],
-  priceChangeDirection: PerpsPriceChangeDirection,
-) => {
-  switch (priceChangeDirection) {
-    case 'gainers':
-      return markets
-        .filter((market) => parseFloat(market.change24hPercent) > 0)
-        .sort(sortByChange24hDesc);
-    case 'losers':
-      return markets
-        .filter((market) => parseFloat(market.change24hPercent) < 0)
-        .sort(sortByChange24hAsc);
   }
 };
 

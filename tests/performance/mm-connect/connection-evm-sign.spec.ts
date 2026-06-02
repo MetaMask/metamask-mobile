@@ -85,8 +85,8 @@ test.describe(Performance, () => {
   //
   // 7. CLEANUP
   //    - Tap disconnect to reset dapp state
-  // This test is currently being skipped as it is flaky - https://consensyssoftware.atlassian.net/browse/WAPI-1511
-  test.skip('@metamask/connect-evm - Sign and transaction cancel flows', async ({
+
+  test('@metamask/connect-evm - Sign and transaction cancel flows', async ({
     currentDeviceDetails,
     driver,
   }) => {

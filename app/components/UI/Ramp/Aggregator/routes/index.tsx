@@ -1,5 +1,5 @@
 import React from 'react';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createStackNavigator } from '@react-navigation/stack';
 import Quotes from '../Views/Quotes';
 import CheckoutWebView from '../Views/Checkout';
 import BuildQuote from '../Views/BuildQuote';
@@ -10,23 +10,15 @@ import FiatSelectorModal from '../components/FiatSelectorModal';
 import { RampType } from '../types';
 import { RampSDKProvider } from '../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
+import { colors } from '../../../../../styles/common';
 import IncompatibleAccountTokenModal from '../components/IncompatibleAccountTokenModal';
 import RegionSelectorModal from '../components/RegionSelectorModal';
 import UnsupportedRegionModal from '../components/UnsupportedRegionModal';
 import SettingsModal from '../Views/Modals/Settings';
-import {
-  clearNativeStackNavigatorOptions,
-  transparentModalScreenOptions,
-} from '../../../../../constants/navigation/clearStackNavigatorOptions';
+import { clearStackNavigatorOptions } from '../../../../../constants/navigation/clearStackNavigatorOptions';
 
-const Stack = createNativeStackNavigator();
-const ModalsStack = createNativeStackNavigator();
-
-const overlayScreenOptions = {
-  ...clearNativeStackNavigatorOptions,
-  ...transparentModalScreenOptions,
-  gestureEnabled: false,
-};
+const Stack = createStackNavigator();
+const ModalsStack = createStackNavigator();
 
 const MainRoutes = () => (
   <Stack.Navigator initialRouteName={Routes.RAMP.BUILD_QUOTE}>
@@ -34,27 +26,36 @@ const MainRoutes = () => (
     <Stack.Screen
       name={Routes.RAMP.BUILD_QUOTE_HAS_STARTED}
       component={BuildQuote}
-      options={{ animation: 'none' }}
+      options={{ animationEnabled: false }}
     />
     <Stack.Screen
       name={Routes.RAMP.QUOTES}
       component={Quotes}
-      options={overlayScreenOptions}
+      options={{
+        headerShown: false,
+        cardStyle: { backgroundColor: colors.transparent },
+        animationEnabled: false,
+        gestureEnabled: false,
+        detachPreviousScreen: false,
+      }}
     />
     <Stack.Screen
       name={Routes.RAMP.CHECKOUT}
       component={CheckoutWebView}
-      options={overlayScreenOptions}
+      options={{
+        headerShown: false,
+        cardStyle: { backgroundColor: colors.transparent },
+        animationEnabled: false,
+        gestureEnabled: false,
+        detachPreviousScreen: false,
+      }}
     />
   </Stack.Navigator>
 );
 
 const RampModalsRoutes = () => (
   <ModalsStack.Navigator
-    screenOptions={{
-      ...clearNativeStackNavigatorOptions,
-      presentation: 'modal',
-    }}
+    screenOptions={{ ...clearStackNavigatorOptions, presentation: 'modal' }}
   >
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.TOKEN_SELECTOR}
@@ -99,8 +100,8 @@ const RampRoutes = ({ rampType }: { rampType: RampType }) => (
         name={Routes.RAMP.MODALS.ID}
         component={RampModalsRoutes}
         options={{
-          ...clearNativeStackNavigatorOptions,
-          ...transparentModalScreenOptions,
+          ...clearStackNavigatorOptions,
+          detachPreviousScreen: false,
         }}
       />
     </Stack.Navigator>

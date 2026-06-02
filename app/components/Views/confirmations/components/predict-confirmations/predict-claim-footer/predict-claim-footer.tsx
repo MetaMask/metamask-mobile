@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
 import Avatar, {
@@ -22,10 +22,9 @@ import { BigNumber } from 'bignumber.js';
 import ButtonHero from '../../../../../../component-library/components-temp/Buttons/ButtonHero';
 import { ButtonBaseSize } from '@metamask/design-system-react-native';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { useConfirmationContext } from '../../../context/confirmation-context';
 
 export interface PredictClaimFooterProps {
-  onPress: () => void | Promise<void>;
+  onPress: () => void;
   onError: (error?: Error) => void;
 }
 
@@ -35,7 +34,6 @@ export function PredictClaimFooter({
 }: PredictClaimFooterProps) {
   const transactionMetadata = useTransactionMetadataRequest();
   const { styles } = useStyles(styleSheet, {});
-  const { setIsConfirmationSubmitting } = useConfirmationContext();
 
   const address = transactionMetadata?.txParams.from;
 
@@ -53,17 +51,6 @@ export function PredictClaimFooter({
     }
   }, [hasNoPositions, onError]);
 
-  const handlePress = useCallback(async () => {
-    setIsConfirmationSubmitting(true);
-
-    try {
-      await onPress();
-    } catch (error) {
-      setIsConfirmationSubmitting(false);
-      throw error;
-    }
-  }, [onPress, setIsConfirmationSubmitting]);
-
   if (hasNoPositions) {
     return null;
   }
@@ -77,7 +64,7 @@ export function PredictClaimFooter({
       )}
       <ButtonHero
         testID={PredictClaimConfirmationSelectorsIDs.CLAIM_CONFIRM_BUTTON}
-        onPress={handlePress}
+        onPress={onPress}
         size={ButtonBaseSize.Lg}
         isFullWidth
       >

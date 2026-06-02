@@ -43,7 +43,13 @@ import {
   AccountTrackerControllerGetStateAction,
   CurrencyRateControllerActions,
 } from '@metamask/assets-controllers';
-import { TransactionPayControllerActions } from '@metamask/transaction-pay-controller';
+import {
+  TransactionPayControllerGetDelegationTransactionAction,
+  TransactionPayControllerGetStateAction,
+  TransactionPayControllerGetStrategyAction,
+  TransactionPayControllerPolymarketGetDepositWalletAddressAction,
+  TransactionPayControllerPolymarketSubmitDepositWalletBatchAction,
+} from '@metamask/transaction-pay-controller';
 import { RootMessenger } from '../../types';
 import { AnalyticsControllerActions } from '@metamask/analytics-controller';
 import {
@@ -111,7 +117,11 @@ type InitMessengerActions =
   | TransactionControllerAddTransactionBatchAction
   | TransactionControllerGetStateAction
   | TransactionControllerUpdateTransactionAction
-  | TransactionPayControllerActions
+  | TransactionPayControllerGetDelegationTransactionAction
+  | TransactionPayControllerGetStateAction
+  | TransactionPayControllerGetStrategyAction
+  | TransactionPayControllerPolymarketGetDepositWalletAddressAction
+  | TransactionPayControllerPolymarketSubmitDepositWalletBatchAction
   | AnalyticsControllerActions
   | PredictControllerBeforePublishAction
   | PredictControllerPublishAction;
@@ -170,7 +180,6 @@ export function getTransactionControllerInitMessenger(
       'TransactionController:getState',
       'TransactionController:updateTransaction',
       'TransactionPayController:getDelegationTransaction',
-      'TransactionPayController:getPaymentOverrideData',
       'TransactionPayController:getState',
       'TransactionPayController:getStrategy',
       'TransactionPayController:polymarketGetDepositWalletAddress',

@@ -43,13 +43,9 @@ import Routes from '../../../constants/navigation/Routes';
 import AppConstants from '../../../core/AppConstants';
 import { selectIsSwapsEnabled } from '../../../core/redux/slices/bridge';
 import { RootState } from '../../../reducers';
-import {
-  selectCanSignTransactions,
-  selectSelectedInternalAccountAddress,
-} from '../../../selectors/accountsController';
+import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { earnSelectors } from '../../../selectors/earnController';
 import { selectChainId } from '../../../selectors/networkController';
-import { isHardwareAccount } from '../../../util/address';
 import { getDecimalChainId } from '../../../util/networks';
 import {
   SwapBridgeNavigationLocation,
@@ -115,12 +111,6 @@ function TradeWalletActions() {
   const { isEligible: isEarnEligible } = useStakingEligibility();
 
   const canSignTransactions = useSelector(selectCanSignTransactions);
-  const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
-  const isHardwareWallet = selectedAddress
-    ? Boolean(isHardwareAccount(selectedAddress))
-    : false;
-  const shouldRenderBatchSell =
-    BATCH_SELL_ENABLED && AppConstants.SWAPS.ACTIVE && !isHardwareWallet;
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
 
@@ -277,8 +267,6 @@ function TradeWalletActions() {
       {visible && (
         <Animated.View exiting={exitingWithNavigateBack}>
           <MaskedView
-            // iOS: MaskedView otherwise intercepts touches and ActionListItem onPress never fires (Android is unaffected).
-            pointerEvents="box-none"
             maskElement={
               <View style={tw.style('flex-1 bg-transparent px-4')}>
                 <View style={tw.style('flex-1 bg-black')} />
@@ -311,7 +299,7 @@ function TradeWalletActions() {
                   `px-0`,
                 )}
               >
-                {shouldRenderBatchSell && (
+                {BATCH_SELL_ENABLED && AppConstants.SWAPS.ACTIVE && (
                   <ActionListItem
                     label={
                       <View style={tw.style('flex-row items-center gap-2')}>

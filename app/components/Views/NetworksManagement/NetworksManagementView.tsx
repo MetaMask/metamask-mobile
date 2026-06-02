@@ -1,16 +1,15 @@
 import React, { useCallback, useState, useMemo } from 'react';
+import { ScrollView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  HeaderStandard,
   Box,
   Text,
   TextVariant,
   TextColor,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import { ScrollView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
@@ -18,6 +17,7 @@ import { formatRpcUrlForDisplay } from './NetworksManagementView.utils';
 import { useAddPopularNetwork } from '../../hooks/useAddPopularNetwork';
 import { PopularList } from '../../../util/networks/customNetworks';
 
+import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -121,7 +121,7 @@ const NetworksManagementView = () => {
       style={tw.style('flex-1 bg-background-default')}
       testID={NetworksManagementViewSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard
+      <HeaderCompactStandard
         title={strings('app_settings.networks_title')}
         onBack={handleBack}
         includesTopInset

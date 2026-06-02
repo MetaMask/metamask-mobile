@@ -886,8 +886,8 @@ export interface PerpsTradingCampaignLeaderboardEntry {
   referralCode: string;
   /** Signed USD PnL for the campaign window */
   pnl: number;
-  /** Cumulative volume traded during the competition window (USD) */
-  volume: number;
+  /** true when notional volume ≥ $25k */
+  qualified: boolean;
 }
 
 /**
@@ -898,30 +898,21 @@ export interface PerpsTradingCampaignLeaderboardDto {
   /** ISO timestamp — display as "last updated" (refreshes ~every 15 min) */
   computedAt: string;
   entries: PerpsTradingCampaignLeaderboardEntry[];
-  /** Number of eligible participants in this campaign */
   totalParticipants: number;
-  /** Minimum cumulative volume (USD) required to appear on the leaderboard */
-  minVolumeForEligibility: number;
 }
 
 /**
  * Response DTO for GET /perps-trading/:campaignId/leaderboard/me (authenticated).
  */
 export interface PerpsTradingCampaignLeaderboardPositionDto {
-  /** Null when the participant has not yet met the volume threshold. */
-  rank: number | null;
-  /** Number of eligible participants in this campaign */
-  totalParticipants: number;
+  rank: number;
   /** Signed USD PnL */
   pnl: number;
-  /** Cumulative volume traded during the competition window (USD) */
-  volume: number;
-  computedAt: string;
+  /** Cumulative notional volume traded during the competition window (USD) */
+  notionalVolume: number;
+  qualified: boolean;
   neighbors: PerpsTradingCampaignLeaderboardEntry[];
-  /** Whether this participant has met the minimum volume threshold */
-  eligible: boolean;
-  /** Minimum cumulative volume (USD) required to become eligible */
-  minVolumeForEligibility: number;
+  computedAt: string;
 }
 
 /**
@@ -940,26 +931,23 @@ export type PerpsTradingCampaignLeaderboardState = {
     rank: number;
     referralCode: string;
     pnl: number;
-    volume: number;
+    qualified: boolean;
   }[];
   totalParticipants: number;
-  minVolumeForEligibility: number;
   lastFetched: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PerpsTradingCampaignLeaderboardPositionFoundState = {
-  rank: number | null;
-  totalParticipants: number;
+  rank: number;
   pnl: number;
-  volume: number;
-  eligible: boolean;
-  minVolumeForEligibility: number;
+  notionalVolume: number;
+  qualified: boolean;
   neighbors: {
     rank: number;
     referralCode: string;
     pnl: number;
-    volume: number;
+    qualified: boolean;
   }[];
   computedAt: string;
   lastFetched: number;

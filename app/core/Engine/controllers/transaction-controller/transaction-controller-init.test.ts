@@ -237,7 +237,6 @@ describe('Transaction Controller Init', () => {
       stxDisabled: false,
       enableDepositWalletWithdraw: false,
       enablePerpsMoneyAccountTransactions: false,
-      enablePredictMoneyAccountTransactions: false,
     });
 
     payHookClassMock.mockReturnValue({
@@ -459,7 +458,6 @@ describe('Transaction Controller Init', () => {
         stxDisabled: true,
         enableDepositWalletWithdraw: false,
         enablePerpsMoneyAccountTransactions: false,
-        enablePredictMoneyAccountTransactions: false,
       });
 
       const hooks = testConstructorOption('hooks');
@@ -479,7 +477,6 @@ describe('Transaction Controller Init', () => {
         stxDisabled: false,
         enableDepositWalletWithdraw: false,
         enablePerpsMoneyAccountTransactions: false,
-        enablePredictMoneyAccountTransactions: false,
       });
 
       const hooks = testConstructorOption('hooks');

@@ -11,7 +11,6 @@ import { useSelector } from 'react-redux';
 import { selectCanSignTransactions } from '../../../../selectors/accountsController';
 import Routes from '../../../../constants/navigation/Routes';
 import { TokenI } from '../../Tokens/types';
-import { TokenDetailsAction } from '../constants/constants';
 
 // Height of MainActionButton: paddingVertical (16 * 2) + Icon (24px) + label marginTop (2) + label lineHeight (~16)
 const SKELETON_BUTTON_HEIGHT = 74;
@@ -48,7 +47,6 @@ export interface TokenDetailsActionsProps {
   isLoading?: boolean;
   /** Optional ref to receive a callback that resets the navigation lock. Used when Long/Short show a modal instead of navigating (e.g. geo block). */
   resetNavigationLockRef?: React.MutableRefObject<(() => void) | null>;
-  onActionTapped?: (action: TokenDetailsAction) => void;
 }
 
 /**
@@ -85,7 +83,6 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
   onReceive,
   isLoading = false,
   resetNavigationLockRef,
-  onActionTapped,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const canSignTransactions = useSelector(selectCanSignTransactions);
@@ -148,13 +145,11 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
 
   const handleSendPress = useCallback(() => {
     withNavigationLock(onSend);
-    onActionTapped?.(TokenDetailsAction.Send);
-  }, [withNavigationLock, onSend, onActionTapped]);
+  }, [withNavigationLock, onSend]);
 
   const handleReceivePress = useCallback(() => {
     withNavigationLock(onReceive);
-    onActionTapped?.(TokenDetailsAction.Receive);
-  }, [withNavigationLock, onReceive, onActionTapped]);
+  }, [withNavigationLock, onReceive]);
 
   const handleMorePress = useCallback(() => {
     withNavigationLock(() => {
@@ -168,11 +163,9 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
           asset: token,
           onBuy,
           onReceive,
-          onActionTapped,
         },
       });
     });
-    onActionTapped?.(TokenDetailsAction.MoreOpened);
   }, [
     withNavigationLock,
     navigate,
@@ -183,7 +176,6 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
     token,
     onBuy,
     onReceive,
-    onActionTapped,
   ]);
 
   // Determine which buttons to display based on perps market and balance

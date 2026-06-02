@@ -1,5 +1,4 @@
 import React, { useCallback } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
 import { StyleSheet, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -20,6 +19,8 @@ import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytic
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { isTest } from '../../../util/test/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
+import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
     wrapper: {
@@ -115,7 +116,7 @@ const Settings = () => {
   const oauthFlow = useSelector(selectSeedlessOnboardingLoginFlow);
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
-      <HeaderStandard
+      <HeaderCompactStandard
         title={strings('app_settings.title')}
         onBack={handleBack}
         backButtonProps={{ testID: SettingsViewSelectorsIDs.BACK_BUTTON }}

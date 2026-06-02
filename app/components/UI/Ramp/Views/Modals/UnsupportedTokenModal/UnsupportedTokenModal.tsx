@@ -4,17 +4,16 @@ import { useNavigation } from '@react-navigation/native';
 
 import {
   BottomSheet,
+  type BottomSheetRef,
   HeaderStandard,
   Text,
   TextVariant,
-  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import styleSheet from './UnsupportedTokenModal.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 
 export const createUnsupportedTokenModalNavigationDetails =
   createNavigationDetails(
@@ -26,14 +25,9 @@ function UnsupportedTokenModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
-  const surfaceClass = useElevatedSurface();
 
   return (
-    <BottomSheet
-      ref={sheetRef}
-      goBack={navigation.goBack}
-      twClassName={surfaceClass}
-    >
+    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
       <HeaderStandard
         title={strings('deposit.token_modal.unsupported_token_title')}
         onClose={() => sheetRef.current?.onCloseBottomSheet()}

@@ -336,7 +336,7 @@ describe('FeatureFlagOverride', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders HeaderStandard with title', () => {
+    it('renders HeaderCompactStandard with title', () => {
       renderWithProviders();
 
       expect(

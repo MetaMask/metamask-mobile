@@ -12,7 +12,6 @@ export {
   setGeoRewardsMetadataLoading,
   setActiveBoosts,
   setActiveBoostsLoading,
-  acceptVipInvite,
 } from '../../reducers/rewards';
 
 export type { RewardsState } from '../../reducers/rewards';

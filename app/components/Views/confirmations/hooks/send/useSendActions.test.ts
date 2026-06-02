@@ -29,16 +29,12 @@ const mockUseSendContext = useSendContext as jest.MockedFunction<
 >;
 
 const mockGoBack = jest.fn();
-const mockParentGoBack = jest.fn();
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     goBack: mockGoBack,
     navigate: mockNavigate,
-    getParent: () => ({
-      goBack: mockParentGoBack,
-    }),
   }),
   useRoute: jest.fn().mockReturnValue({
     params: {
@@ -131,14 +127,13 @@ describe('useSendActions', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('calls parent navigation.goBack when handleCancelPress is invoked', () => {
+  it('calls navigation.goBack when handleCancelPress is invoked', () => {
     const { result } = renderHookWithProvider(
       () => useSendActions(),
       mockState,
     );
     result.current.handleCancelPress();
-    expect(mockParentGoBack).toHaveBeenCalled();
-    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockGoBack).toHaveBeenCalled();
   });
 
   it('capture metrics when handleCancelPress is invoked', () => {

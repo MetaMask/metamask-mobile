@@ -17,13 +17,6 @@ jest.mock('@react-navigation/stack', () => ({
   }),
 }));
 
-jest.mock('@react-navigation/native-stack', () => ({
-  createNativeStackNavigator: jest.fn().mockReturnValue({
-    Navigator: 'Navigator',
-    Screen: 'Screen',
-  }),
-}));
-
 jest.mock('@react-navigation/bottom-tabs', () => ({
   createBottomTabNavigator: jest.fn().mockReturnValue({
     Navigator: 'TabNavigator',
@@ -71,10 +64,10 @@ jest.mock('../../../selectors/featureFlagController/marketInsights', () => ({
 
 jest.mock('../../hooks/useAnalytics/useAnalytics');
 
-const mockSelectMoneyEnableMoneyAccountFlag = jest.fn().mockReturnValue(false);
+const mockSelectMoneyHomeScreenEnabledFlag = jest.fn().mockReturnValue(false);
 jest.mock('../../UI/Money/selectors/featureFlags', () => ({
-  selectMoneyEnableMoneyAccountFlag: (state: unknown) =>
-    mockSelectMoneyEnableMoneyAccountFlag(state),
+  selectMoneyHomeScreenEnabledFlag: (state: unknown) =>
+    mockSelectMoneyHomeScreenEnabledFlag(state),
 }));
 
 describe('MainNavigator', () => {
@@ -1481,7 +1474,7 @@ describe('MainNavigator', () => {
       });
     });
 
-    describe('Money account conditional rendering', () => {
+    describe('Money home screen conditional rendering', () => {
       const getHomeTabsScreenNames = (): string[] => {
         const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
@@ -1512,16 +1505,16 @@ describe('MainNavigator', () => {
       };
 
       it('includes Money route when feature flag is enabled', () => {
-        mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(true);
+        mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(true);
 
         const tabScreenNames = getHomeTabsScreenNames();
 
         expect(tabScreenNames).toContain(Routes.MONEY.ROOT);
-        mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
+        mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(false);
       });
 
       it('excludes Money route when feature flag is disabled', () => {
-        mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
+        mockSelectMoneyHomeScreenEnabledFlag.mockReturnValue(false);
 
         const tabScreenNames = getHomeTabsScreenNames();
 

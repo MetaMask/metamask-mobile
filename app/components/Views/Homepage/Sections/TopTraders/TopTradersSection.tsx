@@ -185,7 +185,7 @@ const TopTradersSection = forwardRef<
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={tw.style('px-4 gap-3 py-3')}
+          contentContainerStyle={tw.style('px-4 gap-3 pb-2')}
           testID="homepage-top-traders-carousel"
         >
           {showSkeletons

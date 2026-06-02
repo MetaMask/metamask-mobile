@@ -4,7 +4,6 @@ import MoreTokenActionsMenu, {
   MoreTokenActionsMenuParams,
 } from './MoreTokenActionsMenu';
 import { TokenI } from '../../Tokens/types';
-import { TokenDetailsAction } from '../constants/constants';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../Views/WalletActions/WalletActionsBottomSheet.testIds';
@@ -583,46 +582,6 @@ describe('MoreTokenActionsMenu', () => {
         }),
       );
       expect(mockTrackEvent).toHaveBeenCalled();
-    });
-
-    it('fires onActionTapped with view_on_explorer when View on block explorer is pressed', async () => {
-      const mockOnActionTapped = jest.fn();
-      updateRouteParams({
-        hasPerpsMarket: false,
-        hasBalance: true,
-        isBuyable: false,
-        isNativeCurrency: false,
-        onActionTapped: mockOnActionTapped,
-      });
-
-      const { getByTestId } = renderWithProvider(<MoreTokenActionsMenu />, {
-        state: mockInitialState,
-      });
-
-      await userEvent.press(getByTestId('more-actions-view-explorer'));
-      expect(mockOnActionTapped).toHaveBeenCalledWith(
-        TokenDetailsAction.ViewOnExplorer,
-      );
-    });
-
-    it('fires onActionTapped with remove_token when Remove token is pressed', async () => {
-      const mockOnActionTapped = jest.fn();
-      updateRouteParams({
-        hasPerpsMarket: false,
-        hasBalance: true,
-        isBuyable: false,
-        isNativeCurrency: false,
-        onActionTapped: mockOnActionTapped,
-      });
-
-      const { getByTestId } = renderWithProvider(<MoreTokenActionsMenu />, {
-        state: mockInitialState,
-      });
-
-      await userEvent.press(getByTestId('more-actions-remove-token'));
-      expect(mockOnActionTapped).toHaveBeenCalledWith(
-        TokenDetailsAction.RemoveToken,
-      );
     });
 
     it('logs error when hide token fails', async () => {

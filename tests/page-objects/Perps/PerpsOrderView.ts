@@ -81,7 +81,7 @@ class PerpsOrderView {
     return Matchers.getElementByText('Set Leverage');
   }
 
-  async tapPlaceOrderButton(): Promise<void> {
+  async tapPlaceOrderButton() {
     await encapsulatedAction({
       detox: async () => {
         const el = asDetoxElement(this.placeOrderButton);
@@ -103,10 +103,8 @@ class PerpsOrderView {
       appium: async () => {
         const el = await asPlaywrightElement(this.placeOrderButton);
         await PlaywrightGestures.waitAndTap(el, {
-          checkForDisplayed: true,
           checkForEnabled: true,
           checkForStable: true,
-          delay: 1000,
         });
       },
     });
@@ -187,7 +185,6 @@ class PerpsOrderView {
       appium: () =>
         PlaywrightMatchers.getElementById(
           PerpsAmountDisplaySelectorsIDs.CONTAINER,
-          { exact: true },
         ),
     });
   }
@@ -199,52 +196,33 @@ class PerpsOrderView {
       appium: () =>
         PlaywrightMatchers.getElementById(
           PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL,
-          { exact: true },
         ),
     });
   }
 
-  getKeypadKey(key: string): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByText(key),
-      appium: () => PlaywrightMatchers.getElementByText(key),
-    });
-  }
-
-  getDoneButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByText('Done'),
-      appium: () => PlaywrightMatchers.getElementByText('Done'),
-    });
-  }
-
-  // Required for next test
-  async setAmountUSD(amount: string): Promise<void> {
+  async setAmountUSD(amount: string) {
     await encapsulatedAction({
       detox: async () => {
-        // Open keypad by tapping the value by ID (more reliable than tapping the container)
+        const el = asDetoxElement(this.amountValue);
         await device.disableSynchronization();
-        await Assertions.expectElementToBeVisible(
-          asDetoxElement(this.amountValue),
-          {
-            description: 'Amount value is visible',
-          },
-        );
-        await Gestures.waitAndTap(asDetoxElement(this.amountValue), {
+        await Assertions.expectElementToBeVisible(el, {
+          description: 'Amount value is visible',
+        });
+        await Gestures.waitAndTap(el, {
           elemDescription: 'Open amount keypad by tapping amount label',
           checkEnabled: false,
           checkVisibility: false,
         });
-        // Type each character using the native keypad (buttons 0-9 and '.')
         for (const ch of amount) {
-          await Gestures.waitAndTap(asDetoxElement(this.getKeypadKey(ch)), {
+          const key = Matchers.getElementByText(ch) as DetoxElement;
+          await Gestures.waitAndTap(key, {
             elemDescription: `Keypad: ${ch}`,
             checkEnabled: false,
             checkVisibility: false,
           });
         }
-        // Close the keypad using the Done button
-        await Gestures.waitAndTap(asDetoxElement(this.getDoneButton()), {
+        const doneByText = Matchers.getElementByText('Done') as DetoxElement;
+        await Gestures.waitAndTap(doneByText, {
           elemDescription: 'Tap Done (by text) to close keypad',
           checkEnabled: false,
           checkVisibility: false,
@@ -252,27 +230,22 @@ class PerpsOrderView {
         await device.enableSynchronization();
       },
       appium: async () => {
-        const amountEl = await asPlaywrightElement(this.amountValue);
-        await PlaywrightGestures.waitAndTap(amountEl, {
-          checkForDisplayed: true,
-          checkForEnabled: true,
-        });
-        // Type each character using the native keypad (buttons 0-9 and '.')
-        await UnifiedGestures.waitAndTap(this.keypadDeleteButton, {
-          checkForDisplayed: true,
-          checkForEnabled: true,
-        });
+        const el = await asPlaywrightElement(this.amountValue);
+        await el.unwrap().waitForDisplayed({ timeout: 8000 });
+        await PlaywrightGestures.waitAndTap(el);
+        const deleteButton = await asPlaywrightElement(this.keypadDeleteButton);
+        await PlaywrightGestures.waitAndTap(deleteButton);
         for (const ch of amount) {
-          const keyEl = await asPlaywrightElement(this.getKeypadKey(ch));
-          await PlaywrightGestures.waitAndTap(keyEl, {
-            checkForDisplayed: true,
-            delay: 300,
+          const key = await PlaywrightMatchers.getElementByText(ch);
+          await PlaywrightGestures.waitAndTap(key, {
+            checkForDisplayed: false,
+            checkForEnabled: false,
           });
         }
-        // Close the keypad using the Done button
-        const doneEl = await asPlaywrightElement(this.getDoneButton());
-        await PlaywrightGestures.waitAndTap(doneEl, {
-          checkForDisplayed: true,
+        const doneBtn = await PlaywrightMatchers.getElementByText('Done');
+        await PlaywrightGestures.waitAndTap(doneBtn, {
+          checkForDisplayed: false,
+          checkForEnabled: false,
         });
       },
     });
@@ -415,18 +388,16 @@ class PerpsOrderView {
           await asPlaywrightElement(this.leverageRowLabel),
         );
 
-        // Tap the leverage quick-select button (e.g. "40x")
-        const leverageSelector = `${leverageX}x`;
+        // Tap the leverage option (e.g. "40x")
         let optionEl: PlaywrightElement;
-        if (PlatformDetector.isAndroid()) {
-          optionEl = await PlaywrightMatchers.getElementByXPath(
-            `//android.view.ViewGroup[@content-desc="${leverageSelector}"]`,
-          );
+        if (await PlatformDetector.isIOS()) {
+          optionEl = await PlaywrightMatchers.getElementByText(`${leverageX}x`);
         } else {
-          optionEl = await PlaywrightMatchers.getElementByAccessibilityId(
-            `quick-select-button-${leverageSelector}`,
+          optionEl = await PlaywrightMatchers.getElementByXPath(
+            `//*[@content-desc="${leverageX}x"]`,
           );
         }
+
         await PlaywrightGestures.waitAndTap(optionEl);
 
         // Tap confirm button (e.g. "Set 40x")

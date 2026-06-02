@@ -45,7 +45,6 @@ export interface InitiateDepositOptions {
     chainId: Hex;
   };
   intent?: MoneyAccountDepositIntent;
-  autoSelectFiatPayment?: boolean;
 }
 
 function resolveNetworkClientId(chainId: Hex): string {
@@ -109,7 +108,6 @@ export function useMoneyAccountDeposit() {
         loader: ConfirmationLoader.CustomAmount,
         stack: Routes.MONEY.CONFIRMATIONS_ROOT,
         preferredPaymentToken,
-        autoSelectFiatPayment: options?.autoSelectFiatPayment,
       });
 
       try {
@@ -121,7 +119,6 @@ export function useMoneyAccountDeposit() {
           from: primaryMoneyAccount.address as Hex,
           networkClientId,
           origin: ORIGIN_METAMASK,
-          isInternal: true,
           disableHook: true,
           disableSequential: true,
           transactions: [approveTx, depositTx],
@@ -196,7 +193,6 @@ export function useMoneyAccountWithdrawal() {
         from: primaryMoneyAccount.address as Hex,
         networkClientId,
         origin: ORIGIN_METAMASK,
-        isInternal: true,
         disableHook: true,
         disableSequential: true,
         transactions: [withdrawTx, transferTx],

@@ -65,18 +65,7 @@ DEPS_LOG="${LOG_DIR}/deps.log"
 POD_INSTALL_LOG="${LOG_DIR}/pod-install.log"
 CDP_LOG="${LOG_DIR}/cdp.log"
 WALLET_LOG="${LOG_DIR}/wallet-setup.log"
-CDP_WAIT_TIMEOUT="${CDP_WAIT_TIMEOUT:-300}"
-case "$CDP_WAIT_TIMEOUT" in
-  ''|*[!0-9]*) CDP_WAIT_TIMEOUT=300 ;;
-esac
-CDP_STATUS_TIMEOUT_MS="${CDP_STATUS_TIMEOUT_MS:-5000}"
-case "$CDP_STATUS_TIMEOUT_MS" in
-  ''|*[!0-9]*) CDP_STATUS_TIMEOUT_MS=5000 ;;
-esac
-CDP_DISCOVERY_RETRIES="${CDP_DISCOVERY_RETRIES:-1}"
-case "$CDP_DISCOVERY_RETRIES" in
-  ''|*[!0-9]*) CDP_DISCOVERY_RETRIES=1 ;;
-esac
+CDP_WAIT_TIMEOUT=90
 CDP_RETRY=0
 
 # Flags
@@ -188,50 +177,6 @@ pods_clean_stale() {
     return 0
   fi
   return 1
-}
-
-# On main, yarn setup (expo) patches tsconfig.json and pod install bumps
-# Podfile.lock versions — neither change should be committed and both pollute
-# agentic diffs. Restore them to HEAD when running on main. On older branches
-# these diffs may be intentional, so we leave them alone.
-#
-# Do not restore ios/Podfile.lock between pod install and xcodebuild: CocoaPods'
-# [CP] Check Pods Manifest.lock phase diffs ios/Podfile.lock against
-# ios/Pods/Manifest.lock and fails when they diverge. Restore Podfile.lock only
-# at the final cleanup point after native build/install work is complete.
-maybe_restore_main_noise() {
-  local branch
-  branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
-  [ "$branch" = "main" ] || return 0
-
-  local restored=()
-  local f
-  for f in "$@"; do
-    [ -f "$f" ] || continue
-    if ! git diff --quiet HEAD -- "$f" 2>/dev/null; then
-      if git restore --source=HEAD -- "$f" 2>/dev/null || git checkout HEAD -- "$f" 2>/dev/null; then
-        restored+=("$f")
-      fi
-    fi
-  done
-  [ ${#restored[@]} -gt 0 ] && ok "Restored on main (setup noise): ${restored[*]}"
-  return 0
-}
-
-maybe_store_ios_source_cache_alias() {
-  local source_fp="$1" materialized_fp="$2" artifact_path="$3"
-  [ -n "$source_fp" ] || return 0
-  [ -n "$materialized_fp" ] || return 0
-  [ "$source_fp" != "$materialized_fp" ] || return 0
-  [ -e "$artifact_path" ] || return 0
-  if bc_has_artifact ios "$source_fp"; then
-    return 0
-  fi
-  if bc_with_lock ios "$source_fp" bc_store_artifact ios "$source_fp" "$artifact_path"; then
-    ok "Stored build in shared cache: fp=${source_fp:0:12} (source alias for ${materialized_fp:0:12})"
-  else
-    warn "Could not store source-fingerprint cache alias ${source_fp:0:12} for ${materialized_fp:0:12}"
-  fi
 }
 
 # ── Platform detection ─────────────────────────────────────────────
@@ -563,7 +508,6 @@ if $DO_CLEAN; then
     pods_save_marker
   fi
   ok "yarn setup complete"
-  maybe_restore_main_noise tsconfig.json
 fi
 
 # ══════════════════════════════════════════════════════════════════════
@@ -604,14 +548,12 @@ if [ "$PLAT" = "ios" ]; then
   step "Checking app" "Looking for $BUNDLE_ID on simulator"
   APP_INSTALLED=$(xcrun simctl listapps "$SIM_TARGET" 2>/dev/null | grep -c "$BUNDLE_ID" || true)
   BC_LOCK_HELD=false  # set to true once we own the per-fingerprint build lock
-  IOS_SOURCE_FP=""
 
   # Cache validation runs in every mode except `clean` / `rebuild-native`,
   # which intentionally bypass the cache. This is a deliberate behaviour
   # change vs origin/main: default mode now opts into fingerprint-gated reuse.
   if $BUILD_CACHE_ENABLED && [ "$MODE" != "clean" ] && [ "$MODE" != "rebuild-native" ]; then
     FP=$(bc_fingerprint 2>/dev/null || true)
-    IOS_SOURCE_FP="$FP"
     if [ -n "$FP" ]; then
       INSTALLED_FP=$(bc_installed_fp ios)
       INSTALLED_TGT=$(bc_installed_target ios)
@@ -656,7 +598,6 @@ if [ "$PLAT" = "ios" ]; then
             # Cache miss in auto/default mode. Whatever is installed (if anything)
             # is at the wrong fingerprint; force the build gate to fire so we
             # produce + install a fresh artifact instead of running a stale app.
-            echo -e "  ${YELLOW}Cache miss:${NC} fp=${FP:0:12} — native build required once"
             APP_INSTALLED=0
           fi
           # Lock stays held through native build; post-build store releases it.
@@ -704,7 +645,6 @@ if [ "$PLAT" = "ios" ]; then
     if run_with_live_log "$POD_INSTALL_LOG" "$POD_CMD"; then
       pods_save_marker
       ok "pod install complete"
-      maybe_restore_main_noise tsconfig.json
     else
       # On non-clean modes, the failure may be a missing spec → retry once with --repo-update.
       if ! $DO_CLEAN; then
@@ -714,7 +654,6 @@ if [ "$PLAT" = "ios" ]; then
         if run_with_live_log "$POD_INSTALL_LOG" "cd ios && bundle exec pod install --repo-update --ansi"; then
           pods_save_marker
           ok "pod install complete (after --repo-update retry)"
-          maybe_restore_main_noise tsconfig.json
         else
           warn "pod install had issues — see $POD_INSTALL_LOG"
         fi
@@ -722,61 +661,6 @@ if [ "$PLAT" = "ios" ]; then
         warn "pod install had issues — see $POD_INSTALL_LOG"
       fi
     fi
-
-    # pod install can materialize native generated files that participate in
-    # Expo's fingerprint. Recompute after pods settle and re-check the shared
-    # cache before spending ~20+ minutes in xcodebuild. This preserves the
-    # expected idempotency when a slot starts from a pre-pod-install worktree
-    # but the post-pod native fingerprint already has a cached .app.
-    if $BUILD_CACHE_ENABLED && [ "$MODE" != "clean" ] && [ "$MODE" != "rebuild-native" ] && [ "$APP_INSTALLED" -eq 0 ]; then
-      if $BC_LOCK_HELD; then
-        bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
-      fi
-      bc_fingerprint_reset_memo
-      FP=$(bc_fingerprint 2>/dev/null || true)
-      if [ -n "$FP" ]; then
-        if bc_lock_acquire ios "$FP"; then
-          BC_LOCK_HELD=true
-          trap 'bc_lock_release' EXIT
-          if bc_has_artifact ios "$FP"; then
-            echo -e "  ${GREEN}Cache hit after pod install:${NC} fp=${FP:0:12} — installing from shared cache"
-            IOS_ARTIFACT=$(bc_artifact_path ios "$FP")
-            if xcrun simctl install "$SIM_TARGET" "$IOS_ARTIFACT"; then
-              # Release the materialized-fingerprint lock before storing the
-              # optional source-fingerprint alias; lock helpers share global
-              # state/fd 9, so nested locks would clobber the outer lock.
-              bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
-              if [ -n "$IOS_SOURCE_FP" ] && [ "$IOS_SOURCE_FP" != "$FP" ]; then
-                maybe_store_ios_source_cache_alias "$IOS_SOURCE_FP" "$FP" "$IOS_ARTIFACT"
-                bc_record_install ios "$IOS_SOURCE_FP" "$SIM_TARGET"
-              else
-                bc_record_install ios "$FP" "$SIM_TARGET"
-              fi
-              APP_INSTALLED=1
-              ok "Installed from cache: $IOS_ARTIFACT"
-            else
-              APP_INSTALLED=0
-              if [ "$MODE" = "fast" ]; then
-                bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
-                fail "Mode 'fast': cached artifact install failed for fp ${FP:0:12}"
-              fi
-              warn "Post-pod cache install failed — falling through to native build"
-            fi
-          else
-            echo -e "  ${YELLOW}Cache miss after pod install:${NC} fp=${FP:0:12} — native build required once"
-          fi
-        else
-          if [ "$MODE" = "fast" ]; then
-            fail "Mode 'fast': could not acquire build-cache lock for fp ${FP:0:12}"
-          fi
-          warn "Could not acquire post-pod build-cache lock for fp ${FP:0:12} — proceeding without lock"
-        fi
-      else
-        warn "Could not compute post-pod fingerprint — proceeding with native build"
-      fi
-    fi
-
-    if [ "$APP_INSTALLED" -eq 0 ] || $DO_REBUILD; then
 
     # Must pass --port (never --no-bundler): @expo/cli rejects that combo
     # (resolveBundlerProps.js), and without --port expo's headless bundler silently
@@ -809,10 +693,7 @@ if [ "$PLAT" = "ios" ]; then
     WATCH_PID=$!
 
     APP_PATH=""
-    BUILD_TIMEOUT="${IOS_BUILD_TIMEOUT:-1800}"
-    case "$BUILD_TIMEOUT" in
-      ''|*[!0-9]*) BUILD_TIMEOUT=1800 ;;
-    esac
+    BUILD_TIMEOUT=900
     while :; do
       NOW=$(date +%s)
       ELAPSED=$((NOW - BUILD_START))
@@ -922,36 +803,22 @@ if [ "$PLAT" = "ios" ]; then
         if $BC_LOCK_HELD; then
           if bc_store_artifact ios "$FP" "$APP_PATH"; then
             ok "Stored build in shared cache: fp=${FP:0:12}"
-            # Release the build lock before taking the source-alias lock; lock
-            # helpers use shared globals/fd 9 and are intentionally not nested.
-            bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
-            maybe_store_ios_source_cache_alias "$IOS_SOURCE_FP" "$FP" "$APP_PATH"
-            if [ -n "$IOS_SOURCE_FP" ] && [ "$IOS_SOURCE_FP" != "$FP" ]; then
-              bc_record_install ios "$IOS_SOURCE_FP" "$SIM_TARGET"
-            else
-              bc_record_install ios "$FP" "$SIM_TARGET"
-            fi
+            bc_record_install ios "$FP" "$SIM_TARGET"
             bc_prune ios "${BUILD_CACHE_RETAIN:-5}" 2>/dev/null || true
           else
             warn "Failed to store build in cache"
-            bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
           fi
+          bc_lock_release; BC_LOCK_HELD=false; trap - EXIT
         else
           if bc_with_lock ios "$FP" bc_store_artifact ios "$FP" "$APP_PATH"; then
             ok "Stored build in shared cache: fp=${FP:0:12}"
-            maybe_store_ios_source_cache_alias "$IOS_SOURCE_FP" "$FP" "$APP_PATH"
-            if [ -n "$IOS_SOURCE_FP" ] && [ "$IOS_SOURCE_FP" != "$FP" ]; then
-              bc_record_install ios "$IOS_SOURCE_FP" "$SIM_TARGET"
-            else
-              bc_record_install ios "$FP" "$SIM_TARGET"
-            fi
+            bc_record_install ios "$FP" "$SIM_TARGET"
             bc_prune ios "${BUILD_CACHE_RETAIN:-5}" 2>/dev/null || true
           else
             warn "Could not store build in cache (lock timeout?)"
           fi
         fi
       fi
-    fi
     fi
   else
     if $BC_LOCK_HELD; then
@@ -1057,7 +924,6 @@ else
           else
             # Cache miss in auto/default mode. Stale app must not pass the build
             # gate untouched; force a fresh build + install.
-            echo -e "  ${YELLOW}Cache miss:${NC} fp=${FP:0:12} — native build required once"
             APP_INSTALLED=0
           fi
         else
@@ -1196,13 +1062,10 @@ ok "Metro running on port $PORT"
 step "Connecting CDP" "Waiting for app to expose debug target"
 stage_log "$CDP_LOG"
 printf '$ node %s/cdp-bridge.js status\n' "$SCRIPTS" > "$CDP_LOG"
-CDP_START=$(date +%s)
-CDP_CONNECTED=false
-while [ $(( $(date +%s) - CDP_START )) -lt "$CDP_WAIT_TIMEOUT" ]; do
-  CDP_STATUS_OUTPUT=$(CDP_TIMEOUT="$CDP_STATUS_TIMEOUT_MS" CDP_DISCOVERY_RETRIES="$CDP_DISCOVERY_RETRIES" node "$SCRIPTS/cdp-bridge.js" status 2>&1 || true)
+while [ $CDP_RETRY -lt $CDP_WAIT_TIMEOUT ]; do
+  CDP_STATUS_OUTPUT=$(node "$SCRIPTS/cdp-bridge.js" status 2>&1 || true)
   printf '[attempt %s]\n%s\n' "$((CDP_RETRY + 1))" "$CDP_STATUS_OUTPUT" >>"$CDP_LOG"
   if echo "$CDP_STATUS_OUTPUT" | grep -q '"route"' 2>/dev/null; then
-    CDP_CONNECTED=true
     ok "CDP connected"
     break
   fi
@@ -1211,15 +1074,15 @@ while [ $(( $(date +%s) - CDP_START )) -lt "$CDP_WAIT_TIMEOUT" ]; do
   [ $CDP_RETRY -eq 5 ] && echo -e "  ${DIM}Still waiting... app may still be loading JS bundle${NC}"
   [ $CDP_RETRY -eq 15 ] && echo -e "  ${DIM}Taking longer than usual — check device${NC}"
 done
-if ! $CDP_CONNECTED; then
+if [ $CDP_RETRY -ge $CDP_WAIT_TIMEOUT ]; then
   # Diagnostic: probe candidate ports before failing. The symptom we hit most
   # often is the app registering its Hermes inspector on 8081 instead of our
   # $PORT when a stale expo dev server lingers — surface that explicitly so we
   # don't spend 15 tool calls diagnosing the same thing twice.
   probe_cdp_port() {
-    local body
-    body=$(curl -s --max-time 2 "http://localhost:$1/json/list" 2>/dev/null || true)
-    python3 -c 'import sys,json; d=json.loads(sys.stdin.read() or "[]"); print(len(d))' 2>/dev/null <<< "$body" || echo 0
+    curl -s --max-time 2 "http://localhost:$1/json/list" 2>/dev/null \
+      | python3 -c 'import sys,json; d=json.loads(sys.stdin.read() or "[]"); print(len(d))' 2>/dev/null \
+      || echo 0
   }
   echo ""
   echo -e "  ${RED}CDP timeout — diagnostic probe:${NC}"
@@ -1283,11 +1146,6 @@ elif [ -n "$WALLET_PW" ]; then
   step "Unlocking wallet" "Using provided password"
   node "$SCRIPTS/cdp-bridge.js" unlock "$WALLET_PW" 2>/dev/null && ok "Wallet unlocked" || warn "Could not unlock wallet"
 fi
-
-# Final guard for main: if future setup tooling mutates these tracked
-# infrastructure files after the earlier restore points, keep the prepared
-# baseline clean without hiding intentional branch work.
-maybe_restore_main_noise tsconfig.json ios/Podfile.lock
 
 # ── Done ─────────────────────────────────────────────────────────────
 if [ -n "$CURRENT_STEP_NAME" ]; then

@@ -2,7 +2,6 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import { PredictClaimInfo } from './predict-claim-info';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
-import Engine from '../../../../../../core/Engine';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
 
@@ -18,14 +17,6 @@ jest.mock('../../../hooks/useConfirmActions', () => ({
   useConfirmActions: () => ({
     onReject: jest.fn(),
   }),
-}));
-
-jest.mock('../../../../../../core/Engine', () => ({
-  context: {
-    PredictController: {
-      clearPendingClaim: jest.fn(),
-    },
-  },
 }));
 
 jest.mock('../../predict-confirmations/predict-claim-amount', () => ({
@@ -59,26 +50,11 @@ jest.mock('../../../../../../component-library/hooks', () => ({
 describe('PredictClaimInfo', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (useClearConfirmationOnBackSwipe as jest.Mock).mockReturnValue(jest.fn());
   });
 
   it('clears the confirmation when dismissed with a back gesture', () => {
     render(<PredictClaimInfo />);
 
     expect(useClearConfirmationOnBackSwipe).toHaveBeenCalledTimes(1);
-    expect(useClearConfirmationOnBackSwipe).toHaveBeenCalledWith({
-      rejectOnBeforeRemove: true,
-      skipNavigationOnGestureEnd: false,
-      rejectOnBeforeRemoveWithoutGesture: true,
-      onBeforeReject: expect.any(Function),
-    });
-    const options = (useClearConfirmationOnBackSwipe as jest.Mock).mock
-      .calls[0][0];
-
-    options.onBeforeReject();
-
-    expect(
-      Engine.context.PredictController.clearPendingClaim,
-    ).toHaveBeenCalledTimes(1);
   });
 });

@@ -1,0 +1,88 @@
+{
+  "title": "Trade — close position for {{symbol}}",
+  "inputs": {
+    "symbol": {
+      "type": "string",
+      "description": "Market symbol of position to close"
+    },
+    "closePercent": {
+      "type": "string",
+      "default": "100",
+      "description": "Percentage of position to close (reserved for future partial close)"
+    }
+  },
+  "validate": {
+    "workflow": {
+      "pre_conditions": [
+        "wallet.unlocked",
+        {
+          "name": "perps.open_position",
+          "symbol": "{{symbol}}"
+        }
+      ],
+      "entry": "assert-position-exists",
+      "nodes": {
+        "assert-position-exists": {
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({found:!!p})})",
+          "assert": {
+            "operator": "eq",
+            "field": "found",
+            "value": true
+          },
+          "next": "nav-market-detail"
+        },
+        "nav-market-detail": {
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": {
+              "symbol": "{{symbol}}",
+              "name": "{{symbol}}",
+              "price": "0",
+              "change24h": "0",
+              "change24hPercent": "0",
+              "volume": "0",
+              "maxLeverage": "100"
+            }
+          },
+          "next": "wait-render"
+        },
+        "wait-render": {
+          "action": "wait_for",
+          "test_id": "perps-market-details-close-button",
+          "next": "press-close"
+        },
+        "press-close": {
+          "action": "press",
+          "test_id": "perps-market-details-close-button",
+          "next": "wait-close-screen"
+        },
+        "wait-close-screen": {
+          "action": "wait_for",
+          "route": "PerpsClosePosition",
+          "next": "press-confirm-close"
+        },
+        "press-confirm-close": {
+          "action": "press",
+          "test_id": "close-position-confirm-button",
+          "next": "wait-position-closed"
+        },
+        "wait-position-closed": {
+          "action": "wait_for",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({found:!!p})})",
+          "assert": {
+            "operator": "eq",
+            "field": "found",
+            "value": false
+          },
+          "next": "done"
+        },
+        "done": {
+          "action": "end",
+          "status": "pass"
+        }
+      }
+    }
+  }
+}

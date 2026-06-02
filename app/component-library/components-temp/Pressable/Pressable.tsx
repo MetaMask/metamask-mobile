@@ -1,85 +1,48 @@
-import React, { forwardRef, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import {
   Pressable as RNPressable,
   type PressableStateCallbackType,
   type StyleProp,
-  type View,
   type ViewStyle,
 } from 'react-native';
 
 import { useTheme } from '../../../util/theme';
 
-import { PressableVariant, type PressableProps } from './Pressable.types';
-
-export const PRESSED_OPACITY = 0.7;
-
-/**
- * Returns the pressed-state style overlay for the given variant. Exported
- * for direct testing of the per-variant feedback model.
- */
-export const pressedStyleFor = (
-  variant: PressableVariant,
-  pressedBackgroundColor: string,
-): ViewStyle => {
-  switch (variant) {
-    case PressableVariant.Highlight:
-      return { backgroundColor: pressedBackgroundColor };
-    case PressableVariant.None:
-      return {};
-    case PressableVariant.Default:
-    default:
-      return { opacity: PRESSED_OPACITY };
-  }
-};
+import type { PressableProps } from './Pressable.types';
 
 /**
  * Design-system Pressable.
  *
- * Replaces `TouchableOpacity` across the app. The component supports two
- * visual feedback modes via the `variant` prop:
- *
- * `default` (the default) dims the caller's subtree by lowering opacity to
- * `PRESSED_OPACITY`. Mirrors the familiar `TouchableOpacity` model while
- * keeping content visible under pure-black mode.
- *
- * `highlight` composites `background.pressed` over the caller's resting
- * surface. Use for list rows, settings rows, and similar surfaces where a
- * backdrop highlight is the established design pattern.
+ * Replaces `TouchableOpacity` across the app. Instead of dimming the
+ * entire subtree on press, this layers the semi-transparent
+ * `background.pressed` token on top of whatever resting surface the
+ * parent owns. The component itself never sets a resting background.
  */
-const Pressable = forwardRef<View, PressableProps>(
-  (
-    {
-      style,
-      accessibilityRole = 'button',
-      children,
-      variant = PressableVariant.Default,
-      ...props
-    },
-    ref,
-  ) => {
-    const { colors } = useTheme();
+const Pressable = ({
+  style,
+  accessibilityRole = 'button',
+  children,
+  ...props
+}: PressableProps) => {
+  const { colors } = useTheme();
 
-    const composedStyle = useCallback(
-      (state: PressableStateCallbackType): StyleProp<ViewStyle> => [
-        typeof style === 'function' ? style(state) : style,
-        state.pressed && pressedStyleFor(variant, colors.background.pressed),
-      ],
-      [style, colors.background.pressed, variant],
-    );
+  const composedStyle = useCallback(
+    (state: PressableStateCallbackType): StyleProp<ViewStyle> => [
+      typeof style === 'function' ? style(state) : style,
+      state.pressed && { backgroundColor: colors.background.pressed },
+    ],
+    [style, colors.background.pressed],
+  );
 
-    return (
-      <RNPressable
-        ref={ref}
-        accessibilityRole={accessibilityRole}
-        {...props}
-        style={composedStyle}
-      >
-        {children}
-      </RNPressable>
-    );
-  },
-);
-
-Pressable.displayName = 'Pressable';
+  return (
+    <RNPressable
+      accessibilityRole={accessibilityRole}
+      {...props}
+      style={composedStyle}
+    >
+      {children}
+    </RNPressable>
+  );
+};
 
 export default Pressable;

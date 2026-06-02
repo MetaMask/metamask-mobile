@@ -30,7 +30,6 @@ class OnboardingSuccessView {
   async tapDone(): Promise<void> {
     await UnifiedGestures.waitAndTap(this.doneButton, {
       description: 'Onboarding Success Done Button',
-      timeout: 15_000,
     });
   }
 }

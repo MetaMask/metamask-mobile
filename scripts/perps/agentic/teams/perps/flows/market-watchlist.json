@@ -1,0 +1,92 @@
+{
+  "title": "Market Watchlist — toggle {{symbol}} on/off watchlist",
+  "inputs": {
+    "symbol": {
+      "type": "string",
+      "default": "BTC",
+      "description": "Market symbol to toggle on/off watchlist"
+    }
+  },
+  "validate": {
+    "workflow": {
+      "pre_conditions": [
+        "wallet.unlocked",
+        "perps.feature_enabled",
+        {
+          "name": "perps.not_in_watchlist",
+          "symbol": "{{symbol}}"
+        }
+      ],
+      "entry": "ensure-not-in-watchlist",
+      "nodes": {
+        "ensure-not-in-watchlist": {
+          "action": "eval_sync",
+          "expression": "JSON.stringify({inWatchlist:(Engine.context.PerpsController.state.watchlistMarkets.mainnet||[]).indexOf('{{symbol}}')>=0||(Engine.context.PerpsController.state.watchlistMarkets.testnet||[]).indexOf('{{symbol}}')>=0})",
+          "assert": {
+            "operator": "eq",
+            "field": "inWatchlist",
+            "value": false
+          },
+          "next": "nav-market-detail"
+        },
+        "nav-market-detail": {
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": {
+              "symbol": "{{symbol}}",
+              "name": "{{symbol}}",
+              "price": "0",
+              "change24h": "0",
+              "change24hPercent": "0",
+              "volume": "0",
+              "maxLeverage": "100"
+            }
+          },
+          "next": "wait-render"
+        },
+        "wait-render": {
+          "action": "wait_for",
+          "test_id": "perps-market-header-favorite-button",
+          "next": "press-favorite-add"
+        },
+        "press-favorite-add": {
+          "description": "Press star button to add to watchlist",
+          "action": "press",
+          "test_id": "perps-market-header-favorite-button",
+          "next": "wait-state-update"
+        },
+        "wait-state-update": {
+          "action": "wait_for",
+          "expression": "JSON.stringify({inWatchlist:(Engine.context.PerpsController.state.watchlistMarkets.mainnet||[]).indexOf('{{symbol}}')>=0||(Engine.context.PerpsController.state.watchlistMarkets.testnet||[]).indexOf('{{symbol}}')>=0})",
+          "assert": {
+            "operator": "eq",
+            "field": "inWatchlist",
+            "value": true
+          },
+          "next": "press-favorite-remove"
+        },
+        "press-favorite-remove": {
+          "description": "Press star button again to remove from watchlist",
+          "action": "press",
+          "test_id": "perps-market-header-favorite-button",
+          "next": "wait-state-update-2"
+        },
+        "wait-state-update-2": {
+          "action": "wait_for",
+          "expression": "JSON.stringify({inWatchlist:(Engine.context.PerpsController.state.watchlistMarkets.mainnet||[]).indexOf('{{symbol}}')>=0||(Engine.context.PerpsController.state.watchlistMarkets.testnet||[]).indexOf('{{symbol}}')>=0})",
+          "assert": {
+            "operator": "eq",
+            "field": "inWatchlist",
+            "value": false
+          },
+          "next": "done"
+        },
+        "done": {
+          "action": "end",
+          "status": "pass"
+        }
+      }
+    }
+  }
+}

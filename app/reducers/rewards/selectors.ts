@@ -178,13 +178,6 @@ export const selectVipDashboardLoading = (state: RootState): boolean =>
 export const selectVipDashboardError = (state: RootState): boolean =>
   state.rewards.vipDashboardError;
 
-export const selectHasAcceptedVipInvite =
-  (subscriptionId: string | null | undefined) =>
-  (state: RootState): boolean =>
-    subscriptionId
-      ? state.rewards.vipSplashAccepted?.[subscriptionId] === true
-      : false;
-
 // Campaigns selectors
 export const selectCampaigns = (
   state: RootState,

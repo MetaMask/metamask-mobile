@@ -473,7 +473,6 @@ const EarnInputView = () => {
         from: (selectedAccount?.address as Hex) || '0x',
         networkClientId,
         origin: ORIGIN_METAMASK,
-        isInternal: true,
         transactions: [approveTx, lendingDepositTx],
         requireApproval: true,
       });

@@ -133,6 +133,17 @@ const MoneyBalanceSummary = ({
             {displayState.value}
           </Text>
         );
+      case 'featureDisabled':
+        return (
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            testID={MoneyBalanceSummaryTestIds.BALANCE_FEATURE_DISABLED}
+            twClassName="mb-2"
+          >
+            {strings('money.balance_feature_disabled')}
+          </Text>
+        );
       case 'noAccount':
         return (
           <Text

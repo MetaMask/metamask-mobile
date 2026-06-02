@@ -2,7 +2,8 @@
 import React, { useCallback } from 'react';
 import { View } from 'react-native';
 import { WebView } from '@metamask/react-native-webview';
-import { HeaderStandard, IconName } from '@metamask/design-system-react-native';
+import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+import { IconName } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Share from 'react-native-share'; // eslint-disable-line  import-x/default
 import Logger from '../../../util/Logger';
@@ -36,18 +37,11 @@ const SimpleWebView = () => {
 
   return (
     <View style={tw.style('flex-1 bg-default')}>
-      <HeaderStandard
+      <HeaderCompactStandard
         title={title}
         onBack={() => navigation.goBack()}
         includesTopInset
-        backButtonProps={{ testID: 'simple-webview-back-button' }}
-        endButtonIconProps={[
-          {
-            iconName: IconName.Share,
-            onPress: share,
-            testID: 'simple-webview-share-button',
-          },
-        ]}
+        endButtonIconProps={[{ iconName: IconName.Share, onPress: share }]}
       />
       <WebView containerStyle={baseStyles.flexGrow} source={{ uri: url }} />
     </View>

@@ -45,7 +45,6 @@ import { mapCountryToLocation } from '../../util/mapCountryToLocation';
 import type { Region } from '../../types';
 import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
 import { HUBSPOT_WAITLIST_URL } from '../../constants';
-import { useCardPostAuthRedirect } from '../../hooks/useCardPostAuthRedirect';
 
 const buildWaitlistUrl = (countryName: string, email?: string): string => {
   // country must come first per HubSpot field ordering
@@ -73,15 +72,6 @@ const SignUp = () => {
     isLoading: isLoadingRegistrationSettings,
   } = useRegions();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const postAuthRedirect = useCardPostAuthRedirect();
-
-  const handleAlreadyHaveAccountPress = useCallback(() => {
-    if (postAuthRedirect) {
-      navigation.navigate(Routes.CARD.AUTHENTICATION, { postAuthRedirect });
-      return;
-    }
-    navigation.navigate(Routes.CARD.AUTHENTICATION);
-  }, [navigation, postAuthRedirect]);
 
   useEffect(() => {
     trackEvent(
@@ -406,7 +396,9 @@ const SignUp = () => {
           ? strings('card.card_onboarding.sign_up.join_waitlist')
           : strings('card.card_onboarding.continue_button')}
       </Button>
-      <TouchableOpacity onPress={handleAlreadyHaveAccountPress}>
+      <TouchableOpacity
+        onPress={() => navigation.navigate(Routes.CARD.AUTHENTICATION)}
+      >
         <Text
           testID="signup-i-already-have-an-account-text"
           variant={TextVariant.BodyMd}

@@ -1,7 +1,6 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { CaipAssetType, Hex } from '@metamask/utils';
-import { formatAddressToAssetId } from '@metamask/bridge-controller';
 
 import { BridgeTokenMetadata } from '../../constants/tokens';
 import { BridgeToken } from '../../types';
@@ -15,10 +14,6 @@ const usdcAssetId =
   'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
 const usdtAssetId =
   'eip155:1/erc20:0xdac17f958d2ee523a2206206994597c13d831ec7' as CaipAssetType;
-const usdcBalanceAssetId = formatAddressToAssetId(
-  BridgeTokenMetadata[usdcAssetId].address,
-  BridgeTokenMetadata[usdcAssetId].chainId,
-) as CaipAssetType;
 const mockSourceToken: BridgeToken = {
   address: '0x1111111111111111111111111111111111111111',
   chainId: '0x1' as Hex,
@@ -29,7 +24,7 @@ let mockSelectedDestinationToken: BridgeToken | undefined;
 let mockDestinationStablecoins: BridgeToken[];
 let mockBalancesByAssetId: Record<
   string,
-  { balance: string; balanceFiat?: string; tokenFiatAmount?: number }
+  { balance: string; balanceFiat?: string }
 >;
 
 jest.mock('@react-navigation/native', () => ({
@@ -173,10 +168,9 @@ describe('BatchSellDestinationTokenSelectorModal', () => {
 
   it('renders the stablecoin fiat value from wallet balances', () => {
     mockBalancesByAssetId = {
-      [usdcBalanceAssetId]: {
+      [usdcAssetId]: {
         balance: '123',
         balanceFiat: '$123.00',
-        tokenFiatAmount: 123,
       },
     };
 
@@ -189,36 +183,9 @@ describe('BatchSellDestinationTokenSelectorModal', () => {
     expect(queryByText('123 USDC')).not.toBeOnTheScreen();
   });
 
-  it('falls back to the stablecoin balance when fiat value is missing', () => {
-    mockBalancesByAssetId = {
-      [usdcBalanceAssetId]: {
-        balance: '123',
-      },
-    };
+  it('does not render a balance fallback when fiat value is missing', () => {
+    const { queryByText } = render(<BatchSellDestinationTokenSelectorModal />);
 
-    const { getByText, queryByText } = render(
-      <BatchSellDestinationTokenSelectorModal />,
-    );
-
-    expect(getByText('123 USDC')).toBeOnTheScreen();
-    expect(queryByText('0')).not.toBeOnTheScreen();
-  });
-
-  it('falls back to the stablecoin balance when fiat value is zero for a nonzero balance', () => {
-    mockBalancesByAssetId = {
-      [usdcBalanceAssetId]: {
-        balance: '123',
-        balanceFiat: '$0.00',
-        tokenFiatAmount: 0,
-      },
-    };
-
-    const { getByText, queryByText } = render(
-      <BatchSellDestinationTokenSelectorModal />,
-    );
-
-    expect(getByText('123 USDC')).toBeOnTheScreen();
-    expect(queryByText('$0.00')).not.toBeOnTheScreen();
     expect(queryByText('0')).not.toBeOnTheScreen();
   });
 

@@ -2,11 +2,10 @@
 
 // Third party dependencies.
 import React from 'react';
-import { View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../hooks';
-import Pressable, { PressableVariant } from '../Pressable';
 import ListItem from '../../../component-library/components/List/ListItem/ListItem';
 
 // Internal dependencies.
@@ -15,7 +14,6 @@ import { ListItemMultiSelectButtonProps } from './ListItemMultiSelectButton.type
 import {
   BUTTON_TEST_ID,
   DEFAULT_LISTITEMMULTISELECT_GAP,
-  ROW_TEST_ID,
 } from './ListItemMultiSelectButton.constants';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import {
@@ -48,20 +46,18 @@ const ListItemMultiSelectButton: React.FC<ListItemMultiSelectButtonProps> = ({
   });
 
   return (
-    <Pressable
-      variant={PressableVariant.Highlight}
-      testID={ROW_TEST_ID}
-      style={styles.container}
-      disabled={isDisabled}
-      onPress={props.onPress}
-      onLongPress={props.onPress}
-      {...props}
-    >
-      <View style={styles.base}>
+    <View style={styles.container}>
+      <TouchableOpacity
+        style={styles.base}
+        disabled={isDisabled}
+        onPress={props.onPress}
+        onLongPress={props.onPress}
+        {...props}
+      >
         <ListItem gap={gap} style={styles.containerColumn}>
           {children}
         </ListItem>
-      </View>
+      </TouchableOpacity>
       {showButtonIcon ? (
         <View style={styles.buttonIcon}>
           <ButtonIcon
@@ -85,7 +81,7 @@ const ListItemMultiSelectButton: React.FC<ListItemMultiSelectButtonProps> = ({
           />
         </View>
       ) : null}
-    </Pressable>
+    </View>
   );
 };
 

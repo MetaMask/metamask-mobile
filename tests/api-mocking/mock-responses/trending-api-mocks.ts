@@ -27,30 +27,21 @@ const TRENDING_TOKENS_RESPONSE = [
 export const RWA_STOCK_ASSET_ID =
   'eip155:1/erc20:0x96f6ef951840721adbf46ac996b59e0235cb985c';
 
-const RWA_ENDPOINT_RESPONSE = {
+const RWA_TOKENS_SEARCH_RESPONSE = {
+  count: 1,
   data: [
     {
-      id: '1',
       assetId: RWA_STOCK_ASSET_ID,
       symbol: 'USDY',
-      name: 'Ondo US Dollar Yield',
+      name: 'Ondo US Dollar Yield (Ondo Tokenized)',
       decimals: 18,
-      rwaData: {
-        price: '1.05',
-        priceChange: '0.12',
-        aggregatedUsdVolume: 500000,
-        marketCap: 200000000,
-        active: true,
-        ticker: 'USDY',
-        instrumentType: 'fund',
-        custodians: ['ondo'],
-        industry: ['finance'],
-      },
+      price: '1.05',
+      aggregatedUsdVolume: 500000,
+      marketCap: 200000000,
+      pricePercentChange1d: '0.12',
+      rwaData: { type: 'rwa' },
     },
   ],
-  count: 1,
-  totalCount: 1,
-  pageInfo: { nextCursor: null, hasNextPage: false },
 };
 
 /**
@@ -290,9 +281,9 @@ export const TRENDING_API_MOCKS: MockEventsObject = {
       priority: 1000,
     },
     {
-      urlEndpoint: /\/v1\/rwas.*/,
+      urlEndpoint: /\/tokens\/search.*Ondo/,
       responseCode: 200,
-      response: RWA_ENDPOINT_RESPONSE,
+      response: RWA_TOKENS_SEARCH_RESPONSE,
       priority: 1001,
     },
     {

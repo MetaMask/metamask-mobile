@@ -89,7 +89,6 @@ export function usePerpsWithdrawConfirmation() {
         await addTransactionBatch({
           from: selectedAccount as Hex,
           origin: ORIGIN_METAMASK,
-          isInternal: true,
           networkClientId,
           disableHook: true,
           disableSequential: true,

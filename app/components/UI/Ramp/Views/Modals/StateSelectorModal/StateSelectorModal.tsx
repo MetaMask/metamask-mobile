@@ -4,14 +4,15 @@ import { FlatList } from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
 import { useNavigation } from '@react-navigation/native';
 import {
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
   BottomSheet,
   BottomSheetRef,
-  FontWeight,
   HeaderStandard,
-  Text,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
+
 import ListItemSelect from '../../../../../../component-library/components/List/ListItemSelect';
 import ListItemColumn, {
   WidthType,
@@ -28,7 +29,6 @@ import { US_STATES } from '../../../Deposit/constants';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import { createUnsupportedStateModalNavigationDetails } from '../UnsupportedStateModal/UnsupportedStateModal';
-import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 
 const MAX_STATE_RESULTS = 20;
 
@@ -54,7 +54,6 @@ function StateSelectorModal() {
   const { styles } = useStyles(styleSheet, {
     screenHeight,
   });
-  const surfaceClass = useElevatedSurface();
 
   const fuseData = useMemo(
     () =>
@@ -161,11 +160,7 @@ function StateSelectorModal() {
   }, [scrollToTop]);
 
   return (
-    <BottomSheet
-      ref={sheetRef}
-      goBack={navigation.goBack}
-      twClassName={surfaceClass}
-    >
+    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
       <HeaderStandard
         title={strings('deposit.state_modal.select_a_state')}
         onClose={() => sheetRef.current?.onCloseBottomSheet()}

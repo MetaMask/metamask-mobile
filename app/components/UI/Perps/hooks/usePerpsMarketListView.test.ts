@@ -327,29 +327,6 @@ describe('usePerpsMarketListView', () => {
       });
     });
 
-    it('defaultSortDirection overrides saved direction when provided', () => {
-      let selectorCallCount = 0;
-      mockUseSelector.mockImplementation(() => {
-        selectorCallCount++;
-        if (selectorCallCount % 2 === 1) {
-          return ['BTC'];
-        }
-        return { optionId: 'priceChange', direction: 'desc' };
-      });
-
-      renderHook(() =>
-        usePerpsMarketListView({
-          defaultSortOptionId: 'priceChange',
-          defaultSortDirection: 'asc',
-        }),
-      );
-
-      expect(mockUsePerpsSorting).toHaveBeenCalledWith({
-        initialOptionId: 'priceChange',
-        initialDirection: 'asc',
-      });
-    });
-
     it('preserves saved direction when defaultSortOptionId matches the saved option', () => {
       let selectorCallCount = 0;
       mockUseSelector.mockImplementation(() => {

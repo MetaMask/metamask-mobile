@@ -27,11 +27,11 @@ const useTradeNavigation = (asset: RelatedAsset): UseTradeNavigationResult => {
     navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MARKET_DETAILS,
       params: {
-        market: { symbol: hlPerpsMarket, name: asset.name || asset.symbol },
+        market: { symbol: hlPerpsMarket, name: asset.name },
         source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
       },
     });
-  }, [navigation, hlPerpsMarket, asset.name, asset.symbol]);
+  }, [navigation, hlPerpsMarket, asset.name]);
 
   return { handleTrade, canTrade: Boolean(hlPerpsMarket) };
 };

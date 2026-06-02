@@ -1,4 +1,4 @@
-import React, { ReactNode, memo, useCallback, useRef, useState } from 'react';
+import React, { ReactNode, memo, useCallback, useState } from 'react';
 import { toCaipAssetType } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
@@ -23,7 +23,6 @@ import {
   SetPayTokenRequest,
   useAutomaticTransactionPayToken,
 } from '../../../hooks/pay/useAutomaticTransactionPayToken';
-import { useIsFiatPaymentAvailable } from '../../../hooks/pay/useIsFiatPaymentAvailable';
 import { useTransactionPayPostQuote } from '../../../hooks/pay/useTransactionPayPostQuote';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { AlertMessage } from '../../alerts/alert-message';
@@ -73,12 +72,10 @@ import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 
 export interface CustomAmountInfoProps {
-  autoSelectFiatPayment?: boolean;
   children?: ReactNode;
   currency?: string;
   disablePay?: boolean;
   hasMax?: boolean;
-  hideAccountSelector?: boolean;
   preferredToken?: SetPayTokenRequest;
   footerText?: string;
   /**
@@ -107,40 +104,23 @@ export interface CustomAmountInfoProps {
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
   ({
-    autoSelectFiatPayment,
     children,
     currency,
     disableConfirm,
     disablePay,
     hasMax,
     hasExtraBottomPadding,
-    hideAccountSelector,
     onAmountSubmit,
     hidePayTokenAmount,
     preferredToken,
     footerText,
     supportAccountSelection,
   }) => {
-    const transactionMeta = useTransactionMetadataRequest();
-    const isPredictDeposit = hasTransactionType(transactionMeta, [
-      TransactionType.predictDeposit,
-    ]);
-
-    const clearPendingPredictDeposit = useCallback(() => {
-      Engine.context.PredictController.clearPendingDeposit();
-    }, []);
-
-    useClearConfirmationOnBackSwipe({
-      rejectOnBeforeRemove: isPredictDeposit,
-      rejectOnBeforeRemoveWithoutGesture: isPredictDeposit,
-      skipNavigationOnGestureEnd: isPredictDeposit,
-      onBeforeReject: isPredictDeposit ? clearPendingPredictDeposit : undefined,
-    });
+    useClearConfirmationOnBackSwipe();
 
     const { canSelectWithdrawToken } = useTransactionPayWithdraw();
 
     useAutomaticTransactionPayToken({
-      autoSelectFiatPayment,
       disable: disablePay,
       preferredToken,
     });
@@ -150,18 +130,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const { isNative: isNativePayToken } = useTransactionPayToken();
     const { styles } = useStyles(styleSheet, {});
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(true);
-    const { hasTokens: hasAvailableTokens } =
-      useTransactionPayAvailableTokens();
+    const { hasTokens } = useTransactionPayAvailableTokens();
     const fiatPayment = useTransactionPayFiatPayment();
     const selectedFiatPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
-    const isFiatAvailable = useIsFiatPaymentAvailable();
-    const hasPaymentOption = hasAvailableTokens || isFiatAvailable;
-    const fiatEverSelectedRef = useRef(false);
-    if (selectedFiatPaymentMethodId) {
-      fiatEverSelectedRef.current = true;
-    }
-    const shouldHideAccountSelector =
-      hideAccountSelector && !fiatEverSelectedRef.current;
+    const transactionMeta = useTransactionMetadataRequest();
     const transactionId = transactionMeta?.id;
     const accountOverride = useTransactionAccountOverride();
     const isWithdraw = isTransactionPayWithdraw(transactionMeta);
@@ -245,7 +217,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             currency={currency}
             hasAlert={Boolean(alertMessage)}
             onPress={handleAmountPress}
-            disabled={!hasPaymentOption}
+            disabled={!hasTokens}
           />
           {!hidePayTokenAmount &&
             disablePay !== true &&
@@ -254,7 +226,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             ) : (
               <PayTokenAmount
                 amountHuman={amountHuman}
-                disabled={!hasPaymentOption || isAccountSelectionNeeded}
+                disabled={!hasTokens || isAccountSelectionNeeded}
               />
             ))}
           {!hidePayTokenAmount && children}
@@ -267,20 +239,18 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           <AlertMessage alertMessage={alertMessage ?? headlessBuyError} />
           {!isResultReady && (
             <>
-              {supportAccountSelection &&
-                !selectedFiatPaymentMethodId &&
-                !shouldHideAccountSelector && (
-                  <PayAccountSelector style={styles.separator} />
-                )}
-              {disablePay !== true && hasPaymentOption && <PayWithRow />}
+              {supportAccountSelection && !selectedFiatPaymentMethodId && (
+                <PayAccountSelector style={styles.separator} />
+              )}
+              {disablePay !== true && hasTokens && <PayWithRow />}
             </>
           )}
           {isResultReady && (
             <Box>
-              {supportAccountSelection &&
-                !selectedFiatPaymentMethodId &&
-                !shouldHideAccountSelector && <PayAccountSelector />}
-              {disablePay !== true && hasPaymentOption && <PayWithRow />}
+              {supportAccountSelection && !selectedFiatPaymentMethodId && (
+                <PayAccountSelector />
+              )}
+              {disablePay !== true && hasTokens && <PayWithRow />}
               {showPaymentDetails && (
                 <>
                   <BridgeFeeRow />
@@ -304,12 +274,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {footerText}
             </Text>
           )}
-          {isKeyboardVisible && hasPaymentOption && (
+          {isKeyboardVisible && hasTokens && (
             <DepositKeyboard
-              hidePercentageButtons={
-                Boolean(selectedFiatPaymentMethodId) ||
-                shouldHideAccountSelector
-              }
+              hidePercentageButtons={Boolean(selectedFiatPaymentMethodId)}
               alertMessage={alertTitle}
               value={amountFiat}
               onChange={updatePendingAmount}
@@ -319,7 +286,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               hasMax={hasMax && (isWithdraw || !isNativePayToken)}
             />
           )}
-          {!hasPaymentOption && <BuySection />}
+          {!hasTokens && <BuySection />}
           {!isKeyboardVisible && (
             <ConfirmButton
               alertTitle={alertTitle}
@@ -413,8 +380,7 @@ function ConfirmButton({
 }: Readonly<{ alertTitle: string | undefined; disableConfirm?: boolean }>) {
   const { styles } = useStyles(styleSheet, {});
   const { hasBlockingAlerts } = useAlerts();
-  const { isHeadlessBuyInProgress, setIsConfirmationSubmitting } =
-    useConfirmationContext();
+  const { isHeadlessBuyInProgress } = useConfirmationContext();
   const isLoading = useIsTransactionPayLoading();
   const { onConfirm } = useConfirmActions();
   const disabled =
@@ -423,16 +389,6 @@ function ConfirmButton({
     Boolean(disableConfirm) ||
     isHeadlessBuyInProgress;
   const buttonLabel = useButtonLabel();
-
-  const handleConfirm = useCallback(async () => {
-    setIsConfirmationSubmitting(true);
-    try {
-      await onConfirm();
-    } catch (error) {
-      setIsConfirmationSubmitting(false);
-      throw error;
-    }
-  }, [onConfirm, setIsConfirmationSubmitting]);
 
   return (
     <Button
@@ -443,7 +399,7 @@ function ConfirmButton({
       isDisabled={disabled}
       isLoading={isHeadlessBuyInProgress}
       loadingText={strings('confirm.preparing_order')}
-      onPress={handleConfirm}
+      onPress={() => onConfirm()}
       testID={ConfirmationFooterSelectorIDs.CONFIRM_BUTTON}
     >
       {alertTitle ?? buttonLabel}

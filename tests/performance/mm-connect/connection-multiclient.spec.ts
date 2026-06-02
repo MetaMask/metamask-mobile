@@ -91,8 +91,7 @@ test.describe(Performance, () => {
   //    - Wagmi personal sign -> confirm -> assert signature starts with 0x
   //    - Assert: Solana scope still visible, Solana still connected
   //    - Solana sign message -> confirm -> assert correct signed result
-  // This test is currently being skipped as it is flaky - https://consensyssoftware.atlassian.net/browse/WAPI-1511
-  test.skip('@metamask/connect-multichain (multiple clients) - Connect multiple clients via Multichain API to Local Browser Playground', async ({
+  test('@metamask/connect-multichain (multiple clients) - Connect multiple clients via Multichain API to Local Browser Playground', async ({
     currentDeviceDetails,
   }) => {
     // Get platform-specific URL

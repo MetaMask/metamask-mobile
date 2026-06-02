@@ -16,7 +16,6 @@ import { useSelector } from 'react-redux';
 import {
   BannerBase,
   Box,
-  HeaderStandard,
   Icon,
   IconColor,
   IconName,
@@ -56,6 +55,8 @@ import {
   RevealPrivateCredentialRouteProp,
   RevealSrpStage,
 } from './types';
+import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+
 const RevealPrivateCredential = ({
   cancel,
   showCancelButton,
@@ -389,7 +390,7 @@ const RevealPrivateCredential = ({
       twClassName="flex-1 pb-4 h-full bg-default"
       testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID}
     >
-      <HeaderStandard
+      <HeaderCompactStandard
         title={strings('reveal_credential.seed_phrase_title')}
         onBack={headerNavigationBack}
         backButtonProps={{

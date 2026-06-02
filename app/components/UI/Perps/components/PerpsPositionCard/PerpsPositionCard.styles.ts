@@ -128,7 +128,6 @@ const styleSheet = (params: StyleSheetParams) => {
       gap: 4,
     },
     autoCloseButton: {
-      alignSelf: 'center',
       borderRadius: 8,
     },
     iconButton: {
