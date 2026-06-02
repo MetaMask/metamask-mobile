@@ -2,7 +2,7 @@ import { SDK } from '@metamask/profile-sync-controller';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import Engine from '../../../core/Engine';
 import { authEnv } from '../../../core/devApiEnv';
-import { MfaWebviewAuthService } from './MfaWebviewAuthService';
+import { AgenticCliApprovalAuthService } from './AgenticCliApprovalAuthService';
 
 jest.mock('@metamask/profile-sync-controller', () => ({
   SDK: {
@@ -36,7 +36,7 @@ const mockGetBearerToken = Engine.context.AuthenticationController
   typeof Engine.context.AuthenticationController.getBearerToken
 >;
 
-describe('MfaWebviewAuthService', () => {
+describe('AgenticCliApprovalAuthService', () => {
   const originalFetch = global.fetch;
 
   beforeEach(() => {
@@ -60,7 +60,7 @@ describe('MfaWebviewAuthService', () => {
   });
 
   it('builds the MM Auth QR login token endpoint from the current auth env', () => {
-    expect(MfaWebviewAuthService.getCliDashboardTokenUrl()).toBe(
+    expect(AgenticCliApprovalAuthService.getCliDashboardTokenUrl()).toBe(
       'https://authentication.dev-api.cx.metamask.io/api/v2/mm-qr-login/token',
     );
   });
@@ -72,7 +72,7 @@ describe('MfaWebviewAuthService', () => {
       json: jest.fn().mockResolvedValue({ access_token: 'dashboard-token' }),
     });
 
-    await expect(MfaWebviewAuthService.getAuthToken()).resolves.toBe(
+    await expect(AgenticCliApprovalAuthService.getAuthToken()).resolves.toBe(
       'dashboard-token',
     );
 
@@ -101,7 +101,7 @@ describe('MfaWebviewAuthService', () => {
       json: jest.fn().mockResolvedValue({ access_token: 'dashboard-token' }),
     });
 
-    await MfaWebviewAuthService.getAuthToken();
+    await AgenticCliApprovalAuthService.getAuthToken();
 
     expect(mockGetBearerToken).toHaveBeenCalledWith('fallback-keyring');
   });
@@ -115,7 +115,7 @@ describe('MfaWebviewAuthService', () => {
       text: jest.fn().mockResolvedValue('invalid token'),
     });
 
-    await expect(MfaWebviewAuthService.getAuthToken()).rejects.toThrow(
+    await expect(AgenticCliApprovalAuthService.getAuthToken()).rejects.toThrow(
       'Failed to get CLI dashboard token: 401 invalid token',
     );
   });
@@ -127,7 +127,7 @@ describe('MfaWebviewAuthService', () => {
       json: jest.fn().mockResolvedValue({}),
     });
 
-    await expect(MfaWebviewAuthService.getAuthToken()).rejects.toThrow(
+    await expect(AgenticCliApprovalAuthService.getAuthToken()).rejects.toThrow(
       'Failed to get CLI dashboard token: missing access_token',
     );
   });

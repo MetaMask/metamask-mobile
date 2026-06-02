@@ -1,7 +1,10 @@
 import Routes from '../../../../../constants/navigation/Routes';
 import Logger from '../../../../../util/Logger';
 import NavigationService from '../../../../NavigationService';
-import { DEFAULT_APPROVAL_PAGE_LINK, handleCliMfa } from '../handleCliMfa';
+import {
+  DEFAULT_APPROVAL_PAGE_LINK,
+  handleAgenticCliApproval,
+} from '../handleAgenticCliApproval';
 
 jest.mock('../../../../NavigationService', () => ({
   navigation: {
@@ -13,7 +16,7 @@ jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-describe('handleCliMfa', () => {
+describe('handleAgenticCliApproval', () => {
   const mockNavigate = NavigationService.navigation.navigate as jest.Mock;
 
   beforeEach(() => {
@@ -26,7 +29,7 @@ describe('handleCliMfa', () => {
   });
 
   it('uses the hosted dashboard login page when agentic-cli deeplink omits approvalPageLink', () => {
-    handleCliMfa({
+    handleAgenticCliApproval({
       intent: 'login',
       approvalId: 'approval-1',
       projectId: 'project-1',
@@ -37,20 +40,23 @@ describe('handleCliMfa', () => {
 
     jest.advanceTimersByTime(200);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MFA_WEBVIEW.CONFIRM, {
-      approvalPageLink: DEFAULT_APPROVAL_PAGE_LINK,
-      projectId: 'project-1',
-      notificationId: undefined,
-      requestId: undefined,
-      approvalId: 'approval-1',
-      mimirSignature: 'signature-1',
-      operationType: 'wallet_mode_change',
-      subjectId: '0xabc',
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.AGENTIC_CLI_APPROVAL.CONFIRM,
+      {
+        approvalPageLink: DEFAULT_APPROVAL_PAGE_LINK,
+        projectId: 'project-1',
+        notificationId: undefined,
+        requestId: undefined,
+        approvalId: 'approval-1',
+        mimirSignature: 'signature-1',
+        operationType: 'wallet_mode_change',
+        subjectId: '0xabc',
+      },
+    );
   });
 
   it('keeps explicit approvalPageLink support for local or alternate hosted approval pages', () => {
-    handleCliMfa({
+    handleAgenticCliApproval({
       intent: 'tx_approve',
       approvalPageLink: encodeURIComponent(
         'https://agentic-mimir-service.dev-api.cx.metamask.io/approval',
@@ -61,21 +67,24 @@ describe('handleCliMfa', () => {
 
     jest.advanceTimersByTime(200);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MFA_WEBVIEW.CONFIRM, {
-      approvalPageLink:
-        'https://agentic-mimir-service.dev-api.cx.metamask.io/approval',
-      projectId: 'project-1',
-      notificationId: 'notification-1',
-      requestId: undefined,
-      approvalId: undefined,
-      mimirSignature: undefined,
-      operationType: 'tx_approve',
-      subjectId: undefined,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.AGENTIC_CLI_APPROVAL.CONFIRM,
+      {
+        approvalPageLink:
+          'https://agentic-mimir-service.dev-api.cx.metamask.io/approval',
+        projectId: 'project-1',
+        notificationId: 'notification-1',
+        requestId: undefined,
+        approvalId: undefined,
+        mimirSignature: undefined,
+        operationType: 'tx_approve',
+        subjectId: undefined,
+      },
+    );
   });
 
   it('logs and skips navigation when required hosted params are missing', () => {
-    handleCliMfa({
+    handleAgenticCliApproval({
       intent: 'login',
       approvalPageLink: encodeURIComponent(
         'https://agentic-mimir-service.dev-api.cx.metamask.io/approval',
@@ -93,7 +102,7 @@ describe('handleCliMfa', () => {
   });
 
   it('logs and skips navigation when there is no hosted approval page', () => {
-    handleCliMfa({ intent: 'login' });
+    handleAgenticCliApproval({ intent: 'login' });
 
     jest.advanceTimersByTime(200);
 
@@ -105,7 +114,7 @@ describe('handleCliMfa', () => {
   });
 
   it('falls back to the default hosted page when URL decoding fails', () => {
-    handleCliMfa({
+    handleAgenticCliApproval({
       intent: 'login',
       approvalPageLink: '%',
       approvalId: 'approval-1',
@@ -116,17 +125,20 @@ describe('handleCliMfa', () => {
 
     expect(Logger.error).toHaveBeenCalledWith(
       expect.any(Error),
-      'handleCliMfa: failed to decode param',
+      'handleAgenticCliApproval: failed to decode param',
     );
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MFA_WEBVIEW.CONFIRM, {
-      approvalPageLink: DEFAULT_APPROVAL_PAGE_LINK,
-      projectId: 'project-1',
-      notificationId: undefined,
-      requestId: undefined,
-      approvalId: 'approval-1',
-      mimirSignature: undefined,
-      operationType: 'login',
-      subjectId: undefined,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.AGENTIC_CLI_APPROVAL.CONFIRM,
+      {
+        approvalPageLink: DEFAULT_APPROVAL_PAGE_LINK,
+        projectId: 'project-1',
+        notificationId: undefined,
+        requestId: undefined,
+        approvalId: 'approval-1',
+        mimirSignature: undefined,
+        operationType: 'login',
+        subjectId: undefined,
+      },
+    );
   });
 });

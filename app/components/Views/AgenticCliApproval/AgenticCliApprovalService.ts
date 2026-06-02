@@ -1,11 +1,11 @@
 import {
   MESSAGE_SOURCE,
-  type MfaWebviewParams,
+  type AgenticCliApprovalParams,
   type WebviewToNative,
 } from './types';
 
 /**
- * Pure logic for the MfaWebview screen — URL building + message validation.
+ * Pure logic for the AgenticCliApproval screen — URL building + message validation.
  * Mirrors the structure of `app/components/UI/Card/services/DaimoPayService`.
  */
 
@@ -35,7 +35,7 @@ const ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
 const isOriginAllowed = (origin: string): boolean =>
   ALLOWED_ORIGIN_PATTERNS.some((re) => re.test(origin));
 
-export const MfaWebviewService = {
+export const AgenticCliApprovalService = {
   /**
    * Dashboard-hosted flow:
    * `${approvalPageLink}?projectId=...&approvalId=...&mimir_signature=...#auth_token=${bearer}`
@@ -43,7 +43,10 @@ export const MfaWebviewService = {
    * The bearer goes in the URL fragment so it is readable by the dashboard
    * login JS but is not sent as part of the HTTP request.
    */
-  buildWebViewUrl(params: MfaWebviewParams, bearerToken: string): string {
+  buildWebViewUrl(
+    params: AgenticCliApprovalParams,
+    bearerToken: string,
+  ): string {
     const {
       approvalPageLink,
       projectId,
@@ -93,7 +96,9 @@ export const MfaWebviewService = {
   shouldLoadInWebView(url: string): boolean {
     try {
       const u = new URL(url);
-      return MfaWebviewService.isOriginAllowed(`${u.protocol}//${u.host}`);
+      return AgenticCliApprovalService.isOriginAllowed(
+        `${u.protocol}//${u.host}`,
+      );
     } catch {
       return false;
     }

@@ -47,7 +47,7 @@ const getCliDashboardAccessToken = async (
   return data.access_token;
 };
 
-export const MfaWebviewAuthService = {
+export const AgenticCliApprovalAuthService = {
   getCliDashboardTokenUrl,
 
   async getAuthToken(): Promise<string> {

@@ -16,13 +16,13 @@ import {
 import { useParams } from '../../../util/navigation/navUtils';
 import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
-import { MfaWebviewService } from './MfaWebviewService';
-import type { MfaWebviewParams } from './types';
+import { AgenticCliApprovalService } from './AgenticCliApprovalService';
+import type { AgenticCliApprovalParams } from './types';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
-import { MfaWebviewAuthService } from './MfaWebviewAuthService';
+import { AgenticCliApprovalAuthService } from './AgenticCliApprovalAuthService';
 import FOX from '../../../images/branding/fox.png';
 
-interface MfaWebviewErrorState {
+interface AgenticCliApprovalErrorState {
   title: string;
   description: string;
   details?: string;
@@ -40,16 +40,18 @@ interface WebViewLoadErrorEvent {
 const getErrorDetails = (err: unknown): string | undefined =>
   err instanceof Error ? err.message : undefined;
 
-const getLoadErrorState = (details?: string): MfaWebviewErrorState => ({
-  title: strings('mfa_webview.error.title'),
-  description: strings('mfa_webview.error.load_description'),
+const getLoadErrorState = (details?: string): AgenticCliApprovalErrorState => ({
+  title: strings('agentic_cli_approval.error.title'),
+  description: strings('agentic_cli_approval.error.load_description'),
   details,
   canRetry: true,
 });
 
-const getSubmitErrorState = (details?: string): MfaWebviewErrorState => ({
-  title: strings('mfa_webview.error.title'),
-  description: strings('mfa_webview.error.submit_description'),
+const getSubmitErrorState = (
+  details?: string,
+): AgenticCliApprovalErrorState => ({
+  title: strings('agentic_cli_approval.error.title'),
+  description: strings('agentic_cli_approval.error.submit_description'),
   details,
   canRetry: false,
 });
@@ -68,7 +70,7 @@ const getLoadErrorDetails = ({
 };
 
 /**
- * MFA confirmation webview for the agentic-CLI flow (MMAI-138 / 175 / 176 / 177).
+ * Agentic CLI approval webview (MMAI-138 / 175 / 176 / 177).
  *
  * Forked from `app/components/UI/Card/components/DaimoPayModal/DaimoPayModal.tsx`,
  * trimmed of dApp-specific machinery (BackgroundBridge, EIP-1193 injection,
@@ -84,7 +86,7 @@ const getLoadErrorDetails = ({
  * navigates back. On `error`, shows a generic error UI with secondary details.
  */
 
-const MfaWebview: React.FC = () => {
+const AgenticCliApproval: React.FC = () => {
   const webViewRef = useRef<WebView>(null);
   const navigation = useNavigation();
   const tw = useTailwind();
@@ -97,8 +99,8 @@ const MfaWebview: React.FC = () => {
     mimirSignature,
     operationType,
     subjectId,
-  } = useParams<MfaWebviewParams>();
-  const [error, setError] = useState<MfaWebviewErrorState | null>(null);
+  } = useParams<AgenticCliApprovalParams>();
+  const [error, setError] = useState<AgenticCliApprovalErrorState | null>(null);
   const [webViewUrl, setWebViewUrl] = useState<string | null>(null);
   const [retryKey, setRetryKey] = useState(0);
 
@@ -115,9 +117,9 @@ const MfaWebview: React.FC = () => {
     let cancelled = false;
     (async () => {
       try {
-        const token = await MfaWebviewAuthService.getAuthToken();
+        const token = await AgenticCliApprovalAuthService.getAuthToken();
         if (cancelled) return;
-        const nextWebViewUrl = MfaWebviewService.buildWebViewUrl(
+        const nextWebViewUrl = AgenticCliApprovalService.buildWebViewUrl(
           {
             approvalPageLink,
             projectId,
@@ -132,7 +134,10 @@ const MfaWebview: React.FC = () => {
         );
         setWebViewUrl(nextWebViewUrl);
       } catch (err) {
-        Logger.error(err as Error, 'MfaWebview: failed to obtain auth token');
+        Logger.error(
+          err as Error,
+          'AgenticCliApproval: failed to obtain auth token',
+        );
         if (!cancelled) setError(getLoadErrorState(getErrorDetails(err)));
       }
     })();
@@ -157,7 +162,9 @@ const MfaWebview: React.FC = () => {
 
   const handleMessage = useCallback(
     (messageEvent: WebViewMessageEvent) => {
-      const event = MfaWebviewService.parseEvent(messageEvent.nativeEvent.data);
+      const event = AgenticCliApprovalService.parseEvent(
+        messageEvent.nativeEvent.data,
+      );
       if (!event) return;
       if (approvalId && event.approvalId !== approvalId) return;
       switch (event.type) {
@@ -169,7 +176,7 @@ const MfaWebview: React.FC = () => {
         case 'error':
           Logger.error(
             new Error(event.message),
-            'MfaWebview: hosted approval page reported an error',
+            'AgenticCliApproval: hosted approval page reported an error',
           );
           setError(getSubmitErrorState(event.message));
           break;
@@ -181,9 +188,13 @@ const MfaWebview: React.FC = () => {
   const handleShouldStartLoadWithRequest = useCallback(
     (request: ShouldStartLoadRequest) => {
       if (request.isTopFrame === false) return true;
-      if (MfaWebviewService.shouldLoadInWebView(request.url)) return true;
+      if (AgenticCliApprovalService.shouldLoadInWebView(request.url))
+        return true;
       Linking.openURL(request.url).catch((err) =>
-        Logger.error(err as Error, 'MfaWebview: failed to open external URL'),
+        Logger.error(
+          err as Error,
+          'AgenticCliApproval: failed to open external URL',
+        ),
       );
       return false;
     },
@@ -194,7 +205,7 @@ const MfaWebview: React.FC = () => {
     (event?: WebViewLoadErrorEvent) => {
       const { description, statusCode, url } = event?.nativeEvent ?? {};
       Logger.error(new Error(description ?? 'WebView failed to load'), {
-        message: 'MfaWebview: WebView load failed',
+        message: 'AgenticCliApproval: WebView load failed',
         statusCode,
         url,
       });
@@ -226,7 +237,7 @@ const MfaWebview: React.FC = () => {
           style={tw.style(
             'flex-1 bg-default justify-center items-center px-6 gap-4',
           )}
-          testID="mfa-webview-error-container"
+          testID="agentic-cli-approval-error-container"
         >
           <Image
             source={FOX}
@@ -237,7 +248,7 @@ const MfaWebview: React.FC = () => {
             variant={TextVariant.HeadingMd}
             fontWeight={FontWeight.Bold}
             twClassName="text-default text-center"
-            testID="mfa-webview-error-title"
+            testID="agentic-cli-approval-error-title"
           >
             {error.title}
           </Text>
@@ -245,7 +256,7 @@ const MfaWebview: React.FC = () => {
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Regular}
             twClassName="text-alternative text-center"
-            testID="mfa-webview-error-description"
+            testID="agentic-cli-approval-error-description"
           >
             {error.description}
           </Text>
@@ -254,7 +265,7 @@ const MfaWebview: React.FC = () => {
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Regular}
               twClassName="text-muted text-center"
-              testID="mfa-webview-error-details"
+              testID="agentic-cli-approval-error-details"
             >
               {error.details}
             </Text>
@@ -266,7 +277,7 @@ const MfaWebview: React.FC = () => {
               }
               size={ButtonSize.Md}
               onPress={handleClose}
-              testID="mfa-webview-close-button"
+              testID="agentic-cli-approval-close-button"
             >
               {strings('navigation.close')}
             </Button>
@@ -275,9 +286,9 @@ const MfaWebview: React.FC = () => {
                 variant={ButtonVariant.Primary}
                 size={ButtonSize.Md}
                 onPress={handleRetry}
-                testID="mfa-webview-retry-button"
+                testID="agentic-cli-approval-retry-button"
               >
-                {strings('mfa_webview.error.try_again')}
+                {strings('agentic_cli_approval.error.try_again')}
               </Button>
             ) : null}
           </View>
@@ -313,10 +324,10 @@ const MfaWebview: React.FC = () => {
         domStorageEnabled
         style={tw.style('flex-1 bg-default')}
         androidLayerType="hardware"
-        testID="mfa-webview"
+        testID="agentic-cli-approval"
       />
     </>
   );
 };
 
-export default MfaWebview;
+export default AgenticCliApproval;

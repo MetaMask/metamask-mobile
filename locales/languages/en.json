@@ -5427,7 +5427,7 @@
     "message": "We couldn't load that page",
     "return_home": "Return to home page"
   },
-  "mfa_webview": {
+  "agentic_cli_approval": {
     "error": {
       "title": "Something went wrong",
       "load_description": "We couldn't load this approval request. Check your connection and try again.",

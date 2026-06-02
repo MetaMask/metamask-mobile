@@ -1,9 +1,12 @@
-import { MfaWebviewService, MAX_MESSAGE_LENGTH } from './MfaWebviewService';
+import {
+  AgenticCliApprovalService,
+  MAX_MESSAGE_LENGTH,
+} from './AgenticCliApprovalService';
 
-describe('MfaWebviewService', () => {
+describe('AgenticCliApprovalService', () => {
   describe('buildWebViewUrl', () => {
     it('builds the hosted dashboard login URL with the dashboard auth token fragment', () => {
-      const url = MfaWebviewService.buildWebViewUrl(
+      const url = AgenticCliApprovalService.buildWebViewUrl(
         {
           approvalPageLink: 'https://developer.metamask.io/agentic/login',
           projectId: 'project-1',
@@ -22,7 +25,7 @@ describe('MfaWebviewService', () => {
     });
 
     it('uses requestId as the canonical notificationId compatibility alias', () => {
-      const url = MfaWebviewService.buildWebViewUrl(
+      const url = AgenticCliApprovalService.buildWebViewUrl(
         {
           approvalPageLink: 'https://developer.metamask.io/agentic/approval',
           projectId: 'project-1',
@@ -35,7 +38,7 @@ describe('MfaWebviewService', () => {
     });
 
     it('keeps approvalId-only links compatible with the hosted approval page', () => {
-      const url = MfaWebviewService.buildWebViewUrl(
+      const url = AgenticCliApprovalService.buildWebViewUrl(
         {
           approvalPageLink: 'https://developer.metamask.io/agentic/approval',
           approvalId: 'approval-1',
@@ -56,7 +59,7 @@ describe('MfaWebviewService', () => {
     });
 
     it('forwards the Mimir signature using the dashboard query param name', () => {
-      const url = MfaWebviewService.buildWebViewUrl(
+      const url = AgenticCliApprovalService.buildWebViewUrl(
         {
           approvalPageLink: 'https://test-dashboard.web3auth.io/agentic/login',
           approvalId: 'approval-1',
@@ -73,7 +76,7 @@ describe('MfaWebviewService', () => {
 
     it('rejects missing hosted approval page URLs', () => {
       expect(() =>
-        MfaWebviewService.buildWebViewUrl(
+        AgenticCliApprovalService.buildWebViewUrl(
           {
             projectId: 'project-1',
             notificationId: 'request-1',
@@ -85,7 +88,7 @@ describe('MfaWebviewService', () => {
 
     it('rejects hosted approval page URLs from unknown origins', () => {
       expect(() =>
-        MfaWebviewService.buildWebViewUrl(
+        AgenticCliApprovalService.buildWebViewUrl(
           {
             approvalPageLink: 'https://example.com/approval',
             projectId: 'project-1',
@@ -100,7 +103,7 @@ describe('MfaWebviewService', () => {
   describe('shouldLoadInWebView', () => {
     it('allows the hosted approval page origin', () => {
       expect(
-        MfaWebviewService.shouldLoadInWebView(
+        AgenticCliApprovalService.shouldLoadInWebView(
           'https://dauh7948dneg6.cloudfront.net/approval',
         ),
       ).toBe(true);
@@ -108,7 +111,7 @@ describe('MfaWebviewService', () => {
 
     it('allows the developer-dashboard approval page origin', () => {
       expect(
-        MfaWebviewService.shouldLoadInWebView(
+        AgenticCliApprovalService.shouldLoadInWebView(
           'https://developer.metamask.io/agentic/approval',
         ),
       ).toBe(true);
@@ -116,7 +119,7 @@ describe('MfaWebviewService', () => {
 
     it('allows the Web3Auth test dashboard approval page origin', () => {
       expect(
-        MfaWebviewService.shouldLoadInWebView(
+        AgenticCliApprovalService.shouldLoadInWebView(
           'https://test-dashboard.web3auth.io/agentic/approval',
         ),
       ).toBe(true);
@@ -124,7 +127,7 @@ describe('MfaWebviewService', () => {
 
     it('allows the Web3Auth auth origin used by the dashboard login flow', () => {
       expect(
-        MfaWebviewService.shouldLoadInWebView(
+        AgenticCliApprovalService.shouldLoadInWebView(
           'https://auth.web3auth.io/auth?state=agentic',
         ),
       ).toBe(true);
@@ -132,7 +135,7 @@ describe('MfaWebviewService', () => {
 
     it('allows Stripe controller frames used by the test dashboard', () => {
       expect(
-        MfaWebviewService.shouldLoadInWebView(
+        AgenticCliApprovalService.shouldLoadInWebView(
           'https://js.stripe.com/v3/controller-with-preconnect.html',
         ),
       ).toBe(true);
@@ -140,7 +143,7 @@ describe('MfaWebviewService', () => {
 
     it('allows Stripe network telemetry used by the test dashboard', () => {
       expect(
-        MfaWebviewService.shouldLoadInWebView(
+        AgenticCliApprovalService.shouldLoadInWebView(
           'https://m.stripe.network/inner.html',
         ),
       ).toBe(true);
@@ -148,7 +151,9 @@ describe('MfaWebviewService', () => {
 
     it('blocks unknown origins', () => {
       expect(
-        MfaWebviewService.shouldLoadInWebView('https://example.com/approval'),
+        AgenticCliApprovalService.shouldLoadInWebView(
+          'https://example.com/approval',
+        ),
       ).toBe(false);
     });
   });
@@ -156,7 +161,7 @@ describe('MfaWebviewService', () => {
   describe('parseEvent', () => {
     it('parses hosted approval events keyed by approvalId', () => {
       expect(
-        MfaWebviewService.parseEvent(
+        AgenticCliApprovalService.parseEvent(
           JSON.stringify({
             source: 'mm-cli-mfa',
             type: 'approved',
@@ -172,7 +177,7 @@ describe('MfaWebviewService', () => {
 
     it('parses hosted approval error events', () => {
       expect(
-        MfaWebviewService.parseEvent(
+        AgenticCliApprovalService.parseEvent(
           JSON.stringify({
             source: 'mm-cli-mfa',
             type: 'error',
@@ -189,9 +194,9 @@ describe('MfaWebviewService', () => {
     });
 
     it('ignores malformed or untrusted events', () => {
-      expect(MfaWebviewService.parseEvent('not-json')).toBeNull();
+      expect(AgenticCliApprovalService.parseEvent('not-json')).toBeNull();
       expect(
-        MfaWebviewService.parseEvent(
+        AgenticCliApprovalService.parseEvent(
           JSON.stringify({
             source: 'other',
             type: 'approved',
@@ -200,7 +205,9 @@ describe('MfaWebviewService', () => {
         ),
       ).toBeNull();
       expect(
-        MfaWebviewService.parseEvent('x'.repeat(MAX_MESSAGE_LENGTH + 1)),
+        AgenticCliApprovalService.parseEvent(
+          'x'.repeat(MAX_MESSAGE_LENGTH + 1),
+        ),
       ).toBeNull();
     });
   });

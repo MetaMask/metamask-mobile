@@ -2,8 +2,8 @@ import React from 'react';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import Logger from '../../../util/Logger';
-import { MfaWebviewAuthService } from './MfaWebviewAuthService';
-import MfaWebview from './index';
+import { AgenticCliApprovalAuthService } from './AgenticCliApprovalAuthService';
+import AgenticCliApproval from './index';
 
 const mockGoBack = jest.fn();
 
@@ -31,8 +31,8 @@ jest.mock('../../../util/Logger', () => ({
   },
 }));
 
-jest.mock('./MfaWebviewAuthService', () => ({
-  MfaWebviewAuthService: {
+jest.mock('./AgenticCliApprovalAuthService', () => ({
+  AgenticCliApprovalAuthService: {
     getAuthToken: jest.fn(),
   },
 }));
@@ -40,12 +40,12 @@ jest.mock('./MfaWebviewAuthService', () => ({
 jest.mock('../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const map: Record<string, string> = {
-      'mfa_webview.error.title': 'Something went wrong',
-      'mfa_webview.error.load_description':
+      'agentic_cli_approval.error.title': 'Something went wrong',
+      'agentic_cli_approval.error.load_description':
         "We couldn't load this approval request. Check your connection and try again.",
-      'mfa_webview.error.submit_description':
+      'agentic_cli_approval.error.submit_description':
         "We couldn't complete this approval. Close this screen and start the CLI request again.",
-      'mfa_webview.error.try_again': 'Try again',
+      'agentic_cli_approval.error.try_again': 'Try again',
       'navigation.close': 'Close',
     };
     return map[key] || key;
@@ -109,7 +109,7 @@ jest.mock('@metamask/react-native-webview', () => {
     WebView: (props: MockWebViewProps) => {
       mockWebViewProps = props;
       return ActualReact.createElement(View, {
-        testID: props.testID || 'mfa-webview',
+        testID: props.testID || 'agentic-cli-approval',
       });
     },
   };
@@ -126,7 +126,7 @@ jest.mock(
       default: jest.fn(({ title }: { title: string }) =>
         ActualReact.createElement(
           RNText,
-          { testID: 'mfa-webview-header' },
+          { testID: 'agentic-cli-approval-header' },
           title,
         ),
       ),
@@ -134,9 +134,10 @@ jest.mock(
   },
 );
 
-const mockGetAuthToken = MfaWebviewAuthService.getAuthToken as jest.Mock;
+const mockGetAuthToken =
+  AgenticCliApprovalAuthService.getAuthToken as jest.Mock;
 
-describe('MfaWebview', () => {
+describe('AgenticCliApproval', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockWebViewProps = {};
@@ -146,9 +147,11 @@ describe('MfaWebview', () => {
   it('shows submit failures as secondary error details', async () => {
     const rawError =
       'Failed to submit approval: HTTP 401 - {"statusCode":401,"error":"Unauthorized","message":"CLI auth token expired or unavailable"}';
-    const { getByTestId, queryByText } = render(<MfaWebview />);
+    const { getByTestId, queryByText } = render(<AgenticCliApproval />);
 
-    await waitFor(() => expect(getByTestId('mfa-webview')).toBeTruthy());
+    await waitFor(() =>
+      expect(getByTestId('agentic-cli-approval')).toBeTruthy(),
+    );
 
     act(() => {
       mockWebViewProps.onMessage?.({
@@ -167,26 +170,30 @@ describe('MfaWebview', () => {
       expect.objectContaining({ includesTopInset: true }),
       undefined,
     );
-    expect(getByTestId('mfa-webview-error-title').props.children).toBe(
+    expect(getByTestId('agentic-cli-approval-error-title').props.children).toBe(
       'Something went wrong',
     );
-    expect(getByTestId('mfa-webview-error-description').props.children).toBe(
+    expect(
+      getByTestId('agentic-cli-approval-error-description').props.children,
+    ).toBe(
       "We couldn't complete this approval. Close this screen and start the CLI request again.",
     );
-    expect(getByTestId('mfa-webview-error-details').props.children).toBe(
-      rawError,
-    );
+    expect(
+      getByTestId('agentic-cli-approval-error-details').props.children,
+    ).toBe(rawError);
     expect(queryByText(rawError)).not.toBeNull();
     expect(Logger.error).toHaveBeenCalledWith(
       expect.any(Error),
-      'MfaWebview: hosted approval page reported an error',
+      'AgenticCliApproval: hosted approval page reported an error',
     );
   });
 
   it('lets the user retry WebView load errors', async () => {
-    const { getByTestId, queryByTestId } = render(<MfaWebview />);
+    const { getByTestId, queryByTestId } = render(<AgenticCliApproval />);
 
-    await waitFor(() => expect(getByTestId('mfa-webview')).toBeTruthy());
+    await waitFor(() =>
+      expect(getByTestId('agentic-cli-approval')).toBeTruthy(),
+    );
 
     act(() => {
       mockWebViewProps.onError?.({
@@ -198,19 +205,21 @@ describe('MfaWebview', () => {
       });
     });
 
-    expect(getByTestId('mfa-webview-error-description').props.children).toBe(
+    expect(
+      getByTestId('agentic-cli-approval-error-description').props.children,
+    ).toBe(
       "We couldn't load this approval request. Check your connection and try again.",
     );
-    expect(getByTestId('mfa-webview-error-details').props.children).toBe(
-      'The request timed out',
-    );
-    expect(queryByTestId('mfa-webview')).toBeNull();
+    expect(
+      getByTestId('agentic-cli-approval-error-details').props.children,
+    ).toBe('The request timed out');
+    expect(queryByTestId('agentic-cli-approval')).toBeNull();
 
-    fireEvent.press(getByTestId('mfa-webview-retry-button'));
+    fireEvent.press(getByTestId('agentic-cli-approval-retry-button'));
 
     await waitFor(() => {
       expect(mockGetAuthToken).toHaveBeenCalledTimes(2);
-      expect(getByTestId('mfa-webview')).toBeTruthy();
+      expect(getByTestId('agentic-cli-approval')).toBeTruthy();
     });
   });
 });

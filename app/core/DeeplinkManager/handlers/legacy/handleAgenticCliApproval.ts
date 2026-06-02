@@ -3,8 +3,8 @@ import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import type {
   Intent,
-  MfaWebviewParams,
-} from '../../../../components/Views/MfaWebview/types';
+  AgenticCliApprovalParams,
+} from '../../../../components/Views/AgenticCliApproval/types';
 
 /**
  * Handles `https://link.metamask.io/agentic-cli` deeplinks.
@@ -20,7 +20,7 @@ import type {
  * vault-unlocked + onboarding-complete, so by the time we run we know the
  * AuthenticationController can issue a bearer.
  */
-interface HandleCliMfaParams {
+interface HandleAgenticCliApprovalParams {
   intent: Intent;
   approvalPageLink?: string;
   projectId?: string;
@@ -42,12 +42,17 @@ const decodeParam = (value?: string): string | undefined => {
   try {
     return decodeURIComponent(value);
   } catch (err) {
-    Logger.error(err as Error, 'handleCliMfa: failed to decode param');
+    Logger.error(
+      err as Error,
+      'handleAgenticCliApproval: failed to decode param',
+    );
     return undefined;
   }
 };
 
-export const handleCliMfa = (params: HandleCliMfaParams): void => {
+export const handleAgenticCliApproval = (
+  params: HandleAgenticCliApprovalParams,
+): void => {
   const {
     intent,
     approvalPageLink,
@@ -70,7 +75,7 @@ export const handleCliMfa = (params: HandleCliMfaParams): void => {
   if (hostedApprovalPageLink && (!projectId || !requestIdentifier)) {
     Logger.error(
       new Error(
-        'handleCliMfa: missing projectId or notification/request id param',
+        'handleAgenticCliApproval: missing projectId or notification/request id param',
       ),
       `intent=${intent}`,
     );
@@ -79,13 +84,13 @@ export const handleCliMfa = (params: HandleCliMfaParams): void => {
 
   if (!hostedApprovalPageLink) {
     Logger.error(
-      new Error('handleCliMfa: missing approval page link'),
+      new Error('handleAgenticCliApproval: missing approval page link'),
       `intent=${intent}`,
     );
     return;
   }
 
-  const navigationParams: MfaWebviewParams = {
+  const navigationParams: AgenticCliApprovalParams = {
     approvalPageLink: hostedApprovalPageLink,
     projectId,
     notificationId,
@@ -99,7 +104,7 @@ export const handleCliMfa = (params: HandleCliMfaParams): void => {
   // ongoing navigation transition time to settle before we push our screen.
   setTimeout(() => {
     NavigationService.navigation?.navigate(
-      Routes.MFA_WEBVIEW.CONFIRM,
+      Routes.AGENTIC_CLI_APPROVAL.CONFIRM,
       navigationParams,
     );
   }, 200);

@@ -14,8 +14,8 @@ export type WebviewToNative =
   | { source: 'mm-cli-mfa'; type: 'error'; approvalId: string; message: string }
   | { source: 'mm-cli-mfa'; type: 'close'; approvalId: string };
 
-/** Navigation params for the MfaWebview screen. */
-export interface MfaWebviewParams {
+/** Navigation params for the AgenticCliApproval screen. */
+export interface AgenticCliApprovalParams {
   /** Hosted approval page URL, e.g. `https://developer.metamask.io/agentic/approval`. */
   approvalPageLink?: string;
   projectId?: string;

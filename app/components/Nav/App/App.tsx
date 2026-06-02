@@ -160,7 +160,7 @@ import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails
 import TradeWalletActions from '../../Views/TradeWalletActions';
 import { MultichainAccountPermissions } from '../../Views/MultichainAccounts/MultichainAccountPermissions/MultichainAccountPermissions';
 import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
-import MfaWebview from '../../Views/MfaWebview';
+import AgenticCliApproval from '../../Views/AgenticCliApproval';
 import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 import MultichainTransactionDetailsSheet from '../../UI/MultichainTransactionDetailsModal/MultichainTransactionDetailsSheet';
 import TransactionDetailsSheet from '../../UI/TransactionElement/TransactionDetailsSheet';
@@ -1205,10 +1205,10 @@ const AppFlow = () => {
         component={PayWithModal}
       />
       <Stack.Screen
-        name={Routes.MFA_WEBVIEW.CONFIRM}
-        component={MfaWebview}
+        name={Routes.AGENTIC_CLI_APPROVAL.CONFIRM}
+        component={AgenticCliApproval}
         options={{
-          // Header is wired from inside MfaWebview via navigation.setOptions
+          // Header is wired from inside AgenticCliApproval via navigation.setOptions
           // (mirrors SimpleWebview's pattern for title + back button).
           // Overrides clearStackNavigatorOptions defaults from the parent stack.
           headerShown: false,

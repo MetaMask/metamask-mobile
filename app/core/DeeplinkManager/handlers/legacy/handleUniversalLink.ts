@@ -37,7 +37,7 @@ import { handleSocialTraderPositionUrl } from './handleSocialTraderPositionUrl';
 import { handleEarnMusd } from './handleEarnMusd';
 import { handleAssetUrl } from './handleAssetUrl';
 import { handleNftUrl } from './handleNftUrl';
-import { handleCliMfa } from './handleCliMfa';
+import { handleAgenticCliApproval } from './handleAgenticCliApproval';
 import { RampType } from '../../../../reducers/fiatOrders/types';
 import { SHIELD_WEBSITE_URL } from '../../../../constants/shield';
 import {
@@ -676,7 +676,7 @@ async function handleUniversalLink({
     }
     case SUPPORTED_ACTIONS.AGENTIC_CLI: {
       const { params: cliParams } = extractURLParams(urlObj.href);
-      const cliMfaParams = cliParams as typeof cliParams & {
+      const agenticCliApprovalParams = cliParams as typeof cliParams & {
         approvalPageLink?: string;
         projectId?: string;
         notificationId?: string;
@@ -687,20 +687,20 @@ async function handleUniversalLink({
         subjectId?: string;
       };
 
-      handleCliMfa({
+      handleAgenticCliApproval({
         intent:
-          cliMfaParams.operationType === 'transaction_request' ||
-          cliMfaParams.operationType === 'tx_approve'
+          agenticCliApprovalParams.operationType === 'transaction_request' ||
+          agenticCliApprovalParams.operationType === 'tx_approve'
             ? 'tx_approve'
             : 'login',
-        approvalPageLink: cliMfaParams.approvalPageLink,
-        projectId: cliMfaParams.projectId,
-        notificationId: cliMfaParams.notificationId,
-        requestId: cliMfaParams.requestId,
-        approvalId: cliMfaParams.approvalId,
-        mimir_signature: cliMfaParams.mimir_signature,
-        operationType: cliMfaParams.operationType,
-        subjectId: cliMfaParams.subjectId,
+        approvalPageLink: agenticCliApprovalParams.approvalPageLink,
+        projectId: agenticCliApprovalParams.projectId,
+        notificationId: agenticCliApprovalParams.notificationId,
+        requestId: agenticCliApprovalParams.requestId,
+        approvalId: agenticCliApprovalParams.approvalId,
+        mimir_signature: agenticCliApprovalParams.mimir_signature,
+        operationType: agenticCliApprovalParams.operationType,
+        subjectId: agenticCliApprovalParams.subjectId,
       });
       break;
     }
