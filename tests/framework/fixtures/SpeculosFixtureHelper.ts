@@ -447,14 +447,14 @@ export async function withSpeculosFixtures(
 /* eslint-disable @typescript-eslint/no-require-imports, no-restricted-syntax */
 export async function importLedgerAccount(): Promise<void> {
   const TestHelpers = require('../../helpers').default;
-  const { loginToApp } = require('../flows/wallet.flow');
-  const { waitForAppReady } = require('../flows/general.flow');
-  const WalletView = require('../page-objects/wallet/WalletView').default;
+  const { loginToApp } = require('../../flows/wallet.flow');
+  const { waitForAppReady } = require('../../flows/general.flow');
+  const WalletView = require('../../page-objects/wallet/WalletView').default;
   const AccountListBottomSheet =
-    require('../page-objects/wallet/AccountListBottomSheet').default;
+    require('../../page-objects/wallet/AccountListBottomSheet').default;
   const LedgerConnectView =
-    require('../page-objects/Ledger/LedgerConnectView').default;
-  const Assertions = require('../framework/Assertions').default;
+    require('../../page-objects/Ledger/LedgerConnectView').default;
+  const Assertions = require('../Assertions').default;
 
   await TestHelpers.delay(5000);
   await waitForAppReady(300000);
