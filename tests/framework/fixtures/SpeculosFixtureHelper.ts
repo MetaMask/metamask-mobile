@@ -230,6 +230,36 @@ export class SpeculosHelper {
     await this.pressButton('both', 1);
   }
 
+  async enableBlindSigning(): Promise<void> {
+    const url = `http://${this.host}:${this.controlApiPort}/blind-signing/enable`;
+    const response = await fetch(url, { method: 'POST' });
+    if (!response.ok) {
+      throw new Error(`Failed to enable blind signing: ${response.status}`);
+    }
+  }
+
+  async autoApproveSigning(
+    presses?: { button: string; count: number }[],
+  ): Promise<void> {
+    const url = `http://${this.host}:${this.controlApiPort}/signing/auto-approve`;
+    const body = presses
+      ? { presses }
+      : {
+          presses: [
+            { button: 'right', count: 4 },
+            { button: 'both', count: 1 },
+          ],
+        };
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to auto-approve signing: ${response.status}`);
+    }
+  }
+
   async reset(): Promise<void> {
     try {
       await this.disconnectBle();
