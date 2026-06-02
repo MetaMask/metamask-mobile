@@ -4,6 +4,9 @@ import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   FontWeight,
   Icon,
   IconColor,
@@ -13,8 +16,6 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { Box } from '../../../../UI/Box/Box';
-import { AlignItems, FlexDirection } from '../../../../UI/Box/box.types';
 import { strings } from '../../../../../../locales/i18n';
 import { useHdKeyringsWithSnapAccounts } from '../../../../hooks/useHdKeyringsWithSnapAccounts';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -76,8 +77,8 @@ export const SecretRecoveryPhrase = ({
         {strings('multichain_accounts.account_details.secret_recovery_phrase')}
       </Text>
       <Box
-        flexDirection={FlexDirection.Row}
-        alignItems={AlignItems.center}
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
         gap={8}
       >
         {showSeedphraseBackReminder && (

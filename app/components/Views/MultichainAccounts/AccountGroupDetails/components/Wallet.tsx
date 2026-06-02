@@ -3,6 +3,9 @@ import { TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { AccountWalletObject } from '@metamask/account-tree-controller';
 import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   FontWeight,
   Icon,
   IconColor,
@@ -11,8 +14,6 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { Box } from '../../../../UI/Box/Box';
-import { AlignItems, FlexDirection } from '../../../../UI/Box/box.types';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { AccountDetailsIds } from '../../AccountDetails.testIds';
@@ -43,8 +44,8 @@ export const Wallet = ({ wallet }: WalletProps) => {
         {strings('multichain_accounts.account_details.wallet')}
       </Text>
       <Box
-        flexDirection={FlexDirection.Row}
-        alignItems={AlignItems.center}
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
         gap={8}
       >
         <Text

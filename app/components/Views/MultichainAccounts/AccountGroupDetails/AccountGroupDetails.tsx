@@ -9,6 +9,10 @@ import {
   AvatarAccount,
   AvatarAccountSize,
   AvatarAccountVariant,
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
   ButtonIconSize,
   FontWeight,
   HeaderBase,
@@ -19,12 +23,6 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import {
-  AlignItems,
-  FlexDirection,
-  JustifyContent,
-} from '../../../UI/Box/box.types';
-import { Box } from '../../../UI/Box/Box';
 import { useStyles } from '../../../hooks/useStyles';
 import { AccountDetailsIds } from '../AccountDetails.testIds';
 import { useSelector } from 'react-redux';
@@ -202,9 +200,9 @@ export const AccountGroupDetails = () => {
         testID={AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER}
       >
         <Box
-          flexDirection={FlexDirection.Row}
-          justifyContent={JustifyContent.center}
-          style={styles.avatar}
+          flexDirection={BoxFlexDirection.Row}
+          justifyContent={BoxJustifyContent.Center}
+          marginBottom={8}
         >
           <AvatarAccount
             variant={accountAvatarVariant}
@@ -222,8 +220,8 @@ export const AccountGroupDetails = () => {
             {strings('multichain_accounts.account_details.account_name')}
           </Text>
           <Box
-            flexDirection={FlexDirection.Row}
-            alignItems={AlignItems.center}
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
             gap={8}
           >
             <Text
@@ -251,8 +249,8 @@ export const AccountGroupDetails = () => {
             {strings('multichain_accounts.account_details.networks')}
           </Text>
           <Box
-            flexDirection={FlexDirection.Row}
-            alignItems={AlignItems.center}
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
             gap={8}
           >
             <Text
@@ -290,8 +288,8 @@ export const AccountGroupDetails = () => {
               {strings('multichain_accounts.account_details.private_keys')}
             </Text>
             <Box
-              flexDirection={FlexDirection.Row}
-              alignItems={AlignItems.center}
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
               gap={8}
             >
               <Text
@@ -320,8 +318,8 @@ export const AccountGroupDetails = () => {
             {strings('multichain_accounts.account_details.smart_account')}
           </Text>
           <Box
-            flexDirection={FlexDirection.Row}
-            alignItems={AlignItems.center}
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
             gap={8}
           >
             <Text
