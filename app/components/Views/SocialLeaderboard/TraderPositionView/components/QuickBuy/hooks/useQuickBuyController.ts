@@ -130,8 +130,14 @@ export interface UseQuickBuyControllerResult {
   // amount
   amountDisplayMode: QuickBuyAmountDisplayMode;
   usdAmount: string;
+  /** Token-units amount entered in the unpriced sell path (otherwise ''). */
+  sourceAmountTokens: string;
+  /** True when the source token has a usable fiat exchange rate. */
+  hasSourcePrice: boolean;
   sliderPercent: number;
   maxSpendUsd: number;
+  /** True when neither USD nor token-balance gates allow slider interaction. */
+  isSliderDisabled: boolean;
   formattedExchangeRate: string | undefined;
   metamaskFeePercent: number;
   estimatedReceiveAmount: string | undefined;
@@ -205,6 +211,9 @@ export function useQuickBuyController(
 
   const [tradeMode, setTradeMode] = useState<QuickBuyTradeMode>('buy');
   const [usdAmount, setUsdAmount] = useState('');
+  // Used in sell mode when the source (position) token has no fiat rate: the
+  // user enters / slides a token amount directly instead of a USD value.
+  const [sourceAmountTokens, setSourceAmountTokens] = useState('');
   // Fiat-first: every input path (slider, hidden TextInput, amount-area press)
   // edits the USD amount, so the primary label must default to fiat as well.
   // The user can swap to crypto display via the toggle once a quote is available.
@@ -312,14 +321,30 @@ export function useQuickBuyController(
   const hasInitializedRecipient = useRef(false);
   useRecipientInitialization(hasInitializedRecipient);
 
+  const hasSourcePrice = Boolean(
+    sourceToken?.currencyExchangeRate && sourceToken.currencyExchangeRate > 0,
+  );
+
   const sourceTokenAmount = useMemo(() => {
-    if (!usdAmount || !sourceToken?.currencyExchangeRate) {
-      return undefined;
+    if (hasSourcePrice) {
+      if (!usdAmount || !sourceToken?.currencyExchangeRate) {
+        return undefined;
+      }
+      const usd = parseFloat(usdAmount);
+      if (isNaN(usd) || usd <= 0) return undefined;
+      return (usd / sourceToken.currencyExchangeRate).toString();
     }
-    const usd = parseFloat(usdAmount);
-    if (isNaN(usd) || usd <= 0) return undefined;
-    return (usd / sourceToken.currencyExchangeRate).toString();
-  }, [usdAmount, sourceToken?.currencyExchangeRate]);
+    // Unpriced path: source amount is entered directly in token units.
+    if (!sourceAmountTokens) return undefined;
+    const tokens = parseFloat(sourceAmountTokens);
+    if (!Number.isFinite(tokens) || tokens <= 0) return undefined;
+    return sourceAmountTokens;
+  }, [
+    hasSourcePrice,
+    usdAmount,
+    sourceAmountTokens,
+    sourceToken?.currencyExchangeRate,
+  ]);
 
   useEffect(() => {
     if (sourceTokenAmount) {
@@ -518,6 +543,20 @@ export function useQuickBuyController(
 
   const maxSpendUsd = sourceBalanceFiatUsd;
 
+  // Token-amount-based gate: used for sources we can't price. Mirrors how the
+  // Bridge / asset list keep unpriceable tokens usable as long as the user
+  // actually holds a positive balance.
+  const maxSpendTokens = useMemo(() => {
+    const raw = latestSourceBalance?.displayBalance;
+    if (!raw) return 0;
+    const parsed = parseFloat(raw);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+  }, [latestSourceBalance?.displayBalance]);
+
+  const isSliderDisabled = hasSourcePrice
+    ? maxSpendUsd <= 0
+    : maxSpendTokens <= 0;
+
   const formattedExchangeRate = useMemo(
     () =>
       tradeMode === 'sell'
@@ -544,6 +583,24 @@ export function useQuickBuyController(
 
       lastSnappedSliderPercentRef.current = snapped;
       setSliderPercent(snapped);
+
+      // ── Unpriced path: drive token-amount state directly. ───────────────
+      if (!hasSourcePrice) {
+        if (maxSpendTokens <= 0) {
+          setSourceAmountTokens('');
+          return;
+        }
+        const nextTokens =
+          snapped === 0 ? '' : ((maxSpendTokens * snapped) / 100).toString();
+        setSourceAmountTokens(nextTokens);
+        lastInputMethodRef.current =
+          SocialLeaderboardEventValues.AMOUNT_SELECTION_METHOD.SLIDER;
+        // No USD value to report when the token is unpriced, so we skip the
+        // analytics call entirely (the schema requires a numeric amount_usd).
+        return;
+      }
+
+      // ── Priced path: drive USD state (existing behaviour). ──────────────
       if (maxSpendUsd <= 0) {
         setUsdAmount('');
         return;
@@ -565,6 +622,8 @@ export function useQuickBuyController(
       }
     },
     [
+      hasSourcePrice,
+      maxSpendTokens,
       maxSpendUsd,
       sourceToken?.symbol,
       destToken?.symbol,
@@ -575,11 +634,16 @@ export function useQuickBuyController(
   );
 
   const handleAmountAreaPress = useCallback(() => {
-    // Ensure the user always types in fiat so the keyboard digits match what
-    // they see. Crypto display mode is view-only; switch back on input focus.
-    setAmountDisplayMode('fiat');
+    // Priced flows are fiat-first, so typing in fiat keeps the keyboard digits
+    // aligned with the headline. Unpriced flows are crypto-first by necessity
+    // (we have no rate to convert), so we leave the display mode as 'crypto'.
+    if (hasSourcePrice) {
+      setAmountDisplayMode('fiat');
+    } else {
+      setAmountDisplayMode('crypto');
+    }
     hiddenInputRef.current?.focus();
-  }, []);
+  }, [hasSourcePrice]);
 
   const handleToggleAmountDisplay = useCallback(() => {
     setAmountDisplayMode((mode) => (mode === 'fiat' ? 'crypto' : 'fiat'));
@@ -587,6 +651,7 @@ export function useQuickBuyController(
 
   const resetAmountState = useCallback(() => {
     setUsdAmount('');
+    setSourceAmountTokens('');
     setSliderPercent(0);
     lastSnappedSliderPercentRef.current = 0;
     lastTrackedAmountRef.current = '';
@@ -600,10 +665,24 @@ export function useQuickBuyController(
     if (prevTradeModeRef.current !== tradeMode) {
       prevTradeModeRef.current = tradeMode;
       resetAmountState();
-      setAmountDisplayMode('fiat');
+      // Default display mode follows pricing availability. Unpriced sources
+      // can only meaningfully show a crypto-first headline.
+      setAmountDisplayMode(hasSourcePrice ? 'fiat' : 'crypto');
       trackTradeModeToggled(tradeMode);
     }
-  }, [tradeMode, resetAmountState, trackTradeModeToggled]);
+  }, [tradeMode, hasSourcePrice, resetAmountState, trackTradeModeToggled]);
+
+  // If the source token's price becomes available (or disappears) while the
+  // sheet is open — e.g. a new market-data fetch lands — re-align the display
+  // mode so the headline reflects what we can honestly show.
+  const prevHasSourcePriceRef = useRef(hasSourcePrice);
+  useEffect(() => {
+    if (prevHasSourcePriceRef.current === hasSourcePrice) return;
+    prevHasSourcePriceRef.current = hasSourcePrice;
+    if (!hasSourcePrice) {
+      setAmountDisplayMode('crypto');
+    }
+  }, [hasSourcePrice]);
 
   const handleSelectSourceToken = useCallback(
     (token: BridgeToken) => {
@@ -629,12 +708,21 @@ export function useQuickBuyController(
       const normalized = cleaned.startsWith('.') ? `0${cleaned}` : cleaned;
       const parts = normalized.split('.');
       if (parts.length > 2) return;
-      if (parts.length === 2 && parts[1].length > 2) return;
-      setUsdAmount(normalized);
+      // Priced (fiat) input: cap to 2 decimals. Unpriced (token) input: allow
+      // up to the token's decimals so the user can spend small balances.
+      const maxFractionDigits = hasSourcePrice
+        ? 2
+        : (sourceToken?.decimals ?? 18);
+      if (parts.length === 2 && parts[1].length > maxFractionDigits) return;
+      if (hasSourcePrice) {
+        setUsdAmount(normalized);
+      } else {
+        setSourceAmountTokens(normalized);
+      }
       lastSnappedSliderPercentRef.current = 0;
       setSliderPercent(0);
     },
-    [lastInputMethodRef],
+    [hasSourcePrice, sourceToken?.decimals, lastInputMethodRef],
   );
 
   // Debounced track for custom amount entries — fires once after the user
@@ -799,7 +887,9 @@ export function useQuickBuyController(
   ]);
 
   const hasError = Boolean(quoteFetchError || isNoQuotesAvailable);
-  const hasValidAmount = Boolean(usdAmount && Number(usdAmount) > 0);
+  const hasValidAmount = hasSourcePrice
+    ? Boolean(usdAmount && Number(usdAmount) > 0)
+    : Boolean(sourceAmountTokens && Number(sourceAmountTokens) > 0);
   const hasQuoteRequestableAmount = useMemo(() => {
     const hasNonZeroInputAmount = Boolean(
       sourceTokenAmount && Number(sourceTokenAmount) !== 0,
@@ -910,8 +1000,11 @@ export function useQuickBuyController(
     currentCurrency,
     amountDisplayMode,
     usdAmount,
+    sourceAmountTokens,
+    hasSourcePrice,
     sliderPercent,
     maxSpendUsd,
+    isSliderDisabled,
     formattedExchangeRate,
     metamaskFeePercent,
     estimatedReceiveAmount,

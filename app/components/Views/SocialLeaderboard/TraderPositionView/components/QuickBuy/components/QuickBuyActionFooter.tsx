@@ -29,7 +29,7 @@ import { getBridgeTokenImageSource } from '../getBridgeTokenImageSource';
 const QuickBuyActionFooter: React.FC = () => {
   const {
     sliderPercent,
-    maxSpendUsd,
+    isSliderDisabled,
     handleSliderChange,
     confirmButtonState,
     getButtonLabel,
@@ -71,7 +71,7 @@ const QuickBuyActionFooter: React.FC = () => {
         <QuickBuyPercentageSlider
           value={sliderPercent}
           onValueChange={handleSliderChange}
-          disabled={maxSpendUsd <= 0}
+          disabled={isSliderDisabled}
         />
       </Box>
 

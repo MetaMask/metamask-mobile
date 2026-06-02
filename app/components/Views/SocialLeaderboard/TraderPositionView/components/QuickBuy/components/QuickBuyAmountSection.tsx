@@ -32,10 +32,21 @@ interface QuickBuyAmountSectionProps {
   fiatCryptoToggleEnabled: boolean;
   usdAmount: string;
   destSymbol: string;
-  /** Estimated amount received in dest token (Buy) or estimated source token amount consumed (Sell). */
+  /** Estimated amount received in the dest token from the quote. */
   estimatedCryptoAmount: string | undefined;
   availableBalanceFiat: string;
   isQuoteLoading: boolean;
+  /**
+   * When true, the user is acting on an unpriced source token (sell mode only).
+   * The headline switches to the entered source-token amount, the secondary
+   * line shows the estimated destination amount, and the fiat/crypto toggle is
+   * hidden because there's no fiat value to flip to.
+   */
+  isUnpricedSource?: boolean;
+  /** Source-token amount the user has entered (unpriced path). */
+  sourceCryptoAmount?: string;
+  /** Source token symbol (unpriced path), e.g. "CAKE". */
+  sourceSymbol?: string;
   hiddenInputRef: React.RefObject<TextInput | null>;
   onAmountAreaPress: () => void;
   onAmountChange: (text: string) => void;
@@ -50,6 +61,9 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   estimatedCryptoAmount,
   availableBalanceFiat,
   isQuoteLoading,
+  isUnpricedSource = false,
+  sourceCryptoAmount,
+  sourceSymbol,
   hiddenInputRef,
   onAmountAreaPress,
   onAmountChange,
@@ -57,16 +71,29 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
 }) => {
   const fiatAmountLabel = usdAmount ? `$${usdAmount}` : '$0';
 
-  // In Buy mode: secondary is estimated received tokens.
-  // In Sell mode: secondary is estimated source tokens consumed (same data,
-  //   but the symbol shown is the position token, already encoded in destSymbol).
   const cryptoAmountLabel = estimatedCryptoAmount
     ? `${estimatedCryptoAmount} ${destSymbol}`
     : `0 ${destSymbol}`;
 
-  const isCryptoPrimary = amountDisplayMode === 'crypto';
-  const primaryLabel = isCryptoPrimary ? cryptoAmountLabel : fiatAmountLabel;
-  const secondaryLabel = isCryptoPrimary ? fiatAmountLabel : cryptoAmountLabel;
+  let primaryLabel: string;
+  let secondaryLabel: string;
+  let showToggle: boolean;
+
+  if (isUnpricedSource) {
+    // Source has no fiat rate: the headline must be the source token amount
+    // the user entered (slider or keyboard). The secondary line previews the
+    // estimated destination amount, which only appears once a quote lands.
+    const sourceLabel =
+      `${sourceCryptoAmount || '0'} ${sourceSymbol ?? ''}`.trim();
+    primaryLabel = sourceLabel;
+    secondaryLabel = `≈ ${cryptoAmountLabel}`;
+    showToggle = false;
+  } else {
+    const isCryptoPrimary = amountDisplayMode === 'crypto';
+    primaryLabel = isCryptoPrimary ? cryptoAmountLabel : fiatAmountLabel;
+    secondaryLabel = isCryptoPrimary ? fiatAmountLabel : cryptoAmountLabel;
+    showToggle = fiatCryptoToggleEnabled;
+  }
 
   return (
     <TouchableOpacity
@@ -103,7 +130,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
             >
               {secondaryLabel}
             </Text>
-            {fiatCryptoToggleEnabled ? (
+            {showToggle ? (
               <TouchableOpacity
                 onPress={onToggleAmountDisplay}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -131,7 +158,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
 
         <TextInput
           ref={hiddenInputRef}
-          value={usdAmount}
+          value={isUnpricedSource ? (sourceCryptoAmount ?? '') : usdAmount}
           onChangeText={onAmountChange}
           keyboardType="decimal-pad"
           returnKeyType="done"

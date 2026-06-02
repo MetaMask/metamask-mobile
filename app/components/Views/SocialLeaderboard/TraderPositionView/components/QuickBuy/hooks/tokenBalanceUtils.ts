@@ -4,11 +4,6 @@ import { selectAccountsByChainId } from '../../../../../../../selectors/accountT
 import { selectTokensBalances } from '../../../../../../../selectors/tokenBalancesController';
 import { selectTokenMarketData } from '../../../../../../../selectors/tokenRatesController';
 
-export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
-
-export const isNativeToken = (address: string): boolean =>
-  address.toLowerCase() === ZERO_ADDRESS;
-
 export const isZeroHexBalance = (balance?: string): boolean =>
   !balance || balance === '0x0' || balance === '0x00';
 

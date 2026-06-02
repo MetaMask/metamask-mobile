@@ -14,10 +14,14 @@ jest.mock('../../../../../../../../locales/i18n', () => ({
 describe('QuickBuyTradeModeToggle', () => {
   const setTradeMode = jest.fn();
 
-  const renderToggle = (tradeMode: 'buy' | 'sell' = 'buy') => {
+  const renderToggle = (
+    tradeMode: 'buy' | 'sell' = 'buy',
+    hasSellableBalance = true,
+  ) => {
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       tradeMode,
       setTradeMode,
+      hasSellableBalance,
     });
     return render(<QuickBuyTradeModeToggle />);
   };
@@ -57,6 +61,12 @@ describe('QuickBuyTradeModeToggle', () => {
   it('does NOT call setTradeMode when pressing the already-active mode', () => {
     renderToggle('buy');
     fireEvent.press(screen.getByTestId('quick-buy-trade-mode-buy'));
+    expect(setTradeMode).not.toHaveBeenCalled();
+  });
+
+  it('does NOT call setTradeMode when Sell is pressed without a sellable balance', () => {
+    renderToggle('buy', false);
+    fireEvent.press(screen.getByTestId('quick-buy-trade-mode-sell'));
     expect(setTradeMode).not.toHaveBeenCalled();
   });
 

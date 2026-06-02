@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { formatUnits } from 'ethers/lib/utils';
-import { isSolanaChainId } from '@metamask/bridge-controller';
+import { isSolanaChainId, isNativeAddress } from '@metamask/bridge-controller';
 import { SolScope } from '@metamask/keyring-api';
 import type { BridgeToken } from '../../../../../../UI/Bridge/types';
 import type { RootState } from '../../../../../../../reducers';
@@ -25,7 +25,6 @@ import {
 } from '../sourceTokenCandidates';
 import { EVM_SCOPE } from '../../../../../../UI/Earn/constants/networks';
 import {
-  isNativeToken,
   hasNonZeroHexBalance,
   getCachedNativeBalance,
   getCachedErc20Balance,
@@ -121,7 +120,7 @@ export const useSourceTokenOptions = (
       let rawBalance: string | undefined;
       let displayBalance: string | undefined;
 
-      if (isNativeToken(candidate.address)) {
+      if (isNativeAddress(candidate.address)) {
         rawBalance = getCachedNativeBalance(
           accountsByChainId,
           chainId,
@@ -159,7 +158,7 @@ export const useSourceTokenOptions = (
       let exchangeRate: number;
       let fiatValue: number;
 
-      if (isNativeToken(candidate.address)) {
+      if (isNativeAddress(candidate.address)) {
         exchangeRate = nativeConversionRate;
         if (exchangeRate <= 0) {
           continue;
