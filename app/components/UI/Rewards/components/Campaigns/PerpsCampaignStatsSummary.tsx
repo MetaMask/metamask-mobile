@@ -65,6 +65,10 @@ const PerpsCampaignStatsSummary: React.FC<PerpsCampaignStatsSummaryProps> = ({
     leaderboardPosition != null && Number.isFinite(leaderboardPosition.pnl)
       ? leaderboardPosition.pnl
       : null;
+  const volume =
+    leaderboardPosition != null && Number.isFinite(leaderboardPosition.volume)
+      ? leaderboardPosition.volume
+      : null;
 
   const rankDisplay = rank != null ? String(rank).padStart(2, '0') : '—';
 
@@ -77,17 +81,14 @@ const PerpsCampaignStatsSummary: React.FC<PerpsCampaignStatsSummaryProps> = ({
         : TextColor.ErrorDefault
       : TextColor.TextDefault;
 
-  const volumeDisplay = leaderboardPosition
-    ? formatUsd(leaderboardPosition.volume)
-    : '—';
+  const volumeDisplay = volume != null ? formatUsd(volume) : '—';
 
   const minVolumeForEligibility =
     leaderboardPosition?.minVolumeForEligibility ??
     PERPS_QUALIFICATION_NOTIONAL_USD;
 
-  const volumeGap = leaderboardPosition
-    ? Math.max(0, minVolumeForEligibility - leaderboardPosition.volume)
-    : 0;
+  const volumeGap =
+    volume != null ? Math.max(0, minVolumeForEligibility - volume) : 0;
 
   const showQualifiedCard =
     !isCampaignComplete && isQualified && leaderboardPosition != null;
