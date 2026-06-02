@@ -12,8 +12,13 @@ import {
 } from '../../quality-gates';
 import { getTeamInfoFromTags } from '../../utils/teams';
 import { publishPerformanceScenarioToSentry } from '../../../reporters/providers/sentry/PerformanceSentryPublisher';
-import { getSessionIdFromAnnotations } from './utils/sessionAnnotations.ts';
 import type { TestLevelFixtures } from './types.ts';
+
+function getSessionIdFromAnnotations(
+  annotations?: { type: string; description?: string }[],
+): string | null {
+  return annotations?.find((a) => a.type === 'sessionId')?.description ?? null;
+}
 
 export const performanceTrackerFixture = {
   performanceTracker: async (

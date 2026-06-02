@@ -33,7 +33,7 @@ tests/
 ├── teams-config.js                  # Team/Slack mapping for notifications
 ├── framework/
 │   ├── fixtures/
-│   │   ├── FixtureBuilder.ts        # Detox E2E app state (withFixtures)
+│   │   ├── FixtureBuilder.ts
 │   │   └── playwright/              # Playwright test.extend (performance tests)
 │   │       ├── index.ts             # import `test` from fixtures/playwright
 │   │       └── *.fixture.ts         # currentDeviceDetails, deviceProvider, driver, performanceTracker

@@ -1,6 +1,6 @@
 # Playwright performance fixtures
 
-Custom Playwright `test.extend` fixtures for performance tests (Appium / BrowserStack / local emulator). Detox E2E state lives in the parent `fixtures/` folder (`FixtureBuilder`, `FixtureHelper`).
+Custom Playwright `test.extend` fixtures for performance tests (Appium / BrowserStack / local emulator). App state fixtures (`FixtureBuilder`, `FixtureHelper`) live in the parent `fixtures/` folder.
 
 ## File structure
 
@@ -8,8 +8,6 @@ Custom Playwright `test.extend` fixtures for performance tests (Appium / Browser
 tests/framework/fixtures/playwright/
 ├── index.ts                         # Composes fixtures; export `test` from here
 ├── types.ts                         # CurrentDeviceDetails, TestLevelFixtures
-├── utils/
-│   └── sessionAnnotations.ts
 ├── currentDeviceDetails.fixture.ts
 ├── deviceProvider.fixture.ts
 ├── driver.fixture.ts
