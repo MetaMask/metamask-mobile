@@ -370,6 +370,52 @@ describe('PredictSportScoreboard', () => {
     });
   });
 
+  describe('team display order', () => {
+    it('renders the home team on the left for soccer leagues', () => {
+      const { getAllByTestId } = render(
+        <PredictSportScoreboard
+          game={createGame({ league: 'fifwc' })}
+          testID="scoreboard"
+        />,
+      );
+
+      const order = getAllByTestId(/-(home|away)-team-logo$/).map(
+        (node) => node.props.testID,
+      );
+      expect(order).toEqual([
+        'scoreboard-home-team-logo',
+        'scoreboard-away-team-logo',
+      ]);
+    });
+
+    it('renders the away team on the left for US sports (NFL)', () => {
+      const { getAllByTestId } = render(
+        <PredictSportScoreboard
+          game={createGame({ league: 'nfl' })}
+          testID="scoreboard"
+        />,
+      );
+
+      const order = getAllByTestId(/-(home|away)-team-logo$/).map(
+        (node) => node.props.testID,
+      );
+      expect(order).toEqual([
+        'scoreboard-away-team-logo',
+        'scoreboard-home-team-logo',
+      ]);
+    });
+
+    it('keeps team names aligned with their logo order (NFL away-first)', () => {
+      const { getByText } = render(
+        <PredictSportScoreboard game={createGame({ league: 'nfl' })} />,
+      );
+
+      // Both names render; away (Seattle) sits on the left for US sports.
+      expect(getByText('Seattle Seahawks')).toBeOnTheScreen();
+      expect(getByText('Denver Broncos')).toBeOnTheScreen();
+    });
+  });
+
   describe('league-specific rendering', () => {
     it('renders custom team icons for configured leagues (NFL)', () => {
       const { getByTestId } = render(

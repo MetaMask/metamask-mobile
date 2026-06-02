@@ -12,6 +12,7 @@ import React, { useMemo } from 'react';
 import I18n from '../../../../../../locales/i18n';
 import { getIntlDateTimeFormatter } from '../../../../../util/intl';
 import { getLeagueConfig } from '../../constants/sportLeagueConfigs';
+import { isSoccerLeague } from '../../constants/sports';
 import { useLiveGameUpdates } from '../../hooks/useLiveGameUpdates';
 import { PredictMarketGame, PredictSportTeam } from '../../types';
 import { parseScore } from '../../utils/gameParser';
@@ -112,6 +113,30 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
       ? 'w-12'
       : 'w-16';
 
+  // Team display order is sport-dependent: soccer (and other draw-capable
+  // leagues) show the home team on the left, while US sports (e.g. American
+  // football) follow the away-then-home convention. testIDs stay tied to the
+  // team identity (home/away), not the slot.
+  const isHomeFirst = isSoccerLeague(game.league);
+  const leftTeam = isHomeFirst ? game.homeTeam : game.awayTeam;
+  const rightTeam = isHomeFirst ? game.awayTeam : game.homeTeam;
+  const leftScore = isHomeFirst ? liveData.homeScore : liveData.awayScore;
+  const rightScore = isHomeFirst ? liveData.awayScore : liveData.homeScore;
+  const leftLogoTestID = testID
+    ? `${testID}${
+        isHomeFirst
+          ? PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_TEAM_LOGO
+          : PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_TEAM_LOGO
+      }`
+    : undefined;
+  const rightLogoTestID = testID
+    ? `${testID}${
+        isHomeFirst
+          ? PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_TEAM_LOGO
+          : PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_TEAM_LOGO
+      }`
+    : undefined;
+
   const renderTeamLogo = (team: PredictSportTeam, logoTestID?: string) =>
     config?.TeamIcon ? (
       <config.TeamIcon
@@ -134,12 +159,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
         alignItems={BoxAlignItems.Center}
         twClassName={compact ? 'w-full gap-2' : 'w-full gap-3'}
       >
-        {renderTeamLogo(
-          game.homeTeam,
-          testID
-            ? `${testID}${PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_TEAM_LOGO}`
-            : undefined,
-        )}
+        {renderTeamLogo(leftTeam, leftLogoTestID)}
 
         {showScores && (
           <Text
@@ -149,7 +169,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
             twClassName={scoreWidthClass}
             numberOfLines={1}
           >
-            {liveData.homeScore}
+            {leftScore}
           </Text>
         )}
 
@@ -227,16 +247,11 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
             twClassName={`${scoreWidthClass} text-right`}
             numberOfLines={1}
           >
-            {liveData.awayScore}
+            {rightScore}
           </Text>
         )}
 
-        {renderTeamLogo(
-          game.awayTeam,
-          testID
-            ? `${testID}${PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_TEAM_LOGO}`
-            : undefined,
-        )}
+        {renderTeamLogo(rightTeam, rightLogoTestID)}
       </Box>
 
       <Box
@@ -251,7 +266,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
           numberOfLines={1}
           twClassName="flex-1"
         >
-          {game.homeTeam.name}
+          {leftTeam.name}
         </Text>
         <Text
           variant={TextVariant.BodySm}
@@ -260,7 +275,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
           numberOfLines={1}
           twClassName="flex-1 text-right"
         >
-          {game.awayTeam.name}
+          {rightTeam.name}
         </Text>
       </Box>
     </Box>
