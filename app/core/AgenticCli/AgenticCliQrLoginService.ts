@@ -15,8 +15,6 @@ import { authEnv } from '../devApiEnv';
 const CLI_DASHBOARD_TOKEN_PATH = '/api/v2/mm-qr-login/token';
 const ENGINE_READY_POLL_MS = 250;
 
-const buildType = getBuildType();
-
 const DASHBOARD_WEBVIEW_URL_BY_ENV: Record<string, string> = {
   main_dev: 'https://test-dashboard.web3auth.io/agentic/login',
   main_uat: 'https://dev-dashboard.web3auth.io/agentic/login',
@@ -37,9 +35,13 @@ interface HandleAgenticCliConnectionParams {
   cleanupConnection: (conn: Connection) => Promise<void>;
 }
 
-const getDashboardWebviewUrl = (): string =>
-  DASHBOARD_WEBVIEW_URL_BY_ENV[buildType] ??
-  DASHBOARD_WEBVIEW_URL_BY_ENV.main_prod;
+const getDashboardWebviewUrl = (): string => {
+  const buildType = getBuildType();
+  return (
+    DASHBOARD_WEBVIEW_URL_BY_ENV[buildType] ??
+    DASHBOARD_WEBVIEW_URL_BY_ENV.main_prod
+  );
+};
 
 const getCliDashboardTokenUrl = (): string => {
   const url = new URL(SDK.getEnvUrls(authEnv()).authApiUrl);
