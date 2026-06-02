@@ -27,7 +27,7 @@ export function PayWithBottomSheet() {
   useDismissOnPaymentChange({ dismissOnPayTokenChange: false });
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);
   const title = isWithdraw
-    ? strings('confirm.pay_with_bottom_sheet.withdraw_title')
+    ? strings('confirm.pay_with_bottom_sheet.receive_title')
     : strings('confirm.pay_with_bottom_sheet.title');
 
   const handleGoBack = useCallback(() => {

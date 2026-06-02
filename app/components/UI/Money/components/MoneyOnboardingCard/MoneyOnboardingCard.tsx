@@ -51,8 +51,8 @@ const MoneyOnboardingCard = () => {
       ? 'unlinked_card'
       : 'no_card';
 
-  const handleRedirectToCryptoDeposit = useCallback(() => {
-    initiateDeposit().catch(() => undefined);
+  const handleRedirectToCryptoDeposit = useCallback(async () => {
+    await initiateDeposit().catch(() => undefined);
   }, [initiateDeposit]);
 
   const handleCardCtaPress = useCallback(() => {
