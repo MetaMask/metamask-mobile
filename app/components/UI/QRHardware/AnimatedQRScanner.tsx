@@ -247,14 +247,14 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
   const { hasPermission, requestPermission } = useCameraPermission();
   const appState = useRef(AppState.currentState);
 
-  let expectedURTypes: string[];
+  let expectedUrTypes: string[];
   if (purpose === QrScanRequestType.PAIR) {
-    expectedURTypes = [
+    expectedUrTypes = [
       SUPPORTED_UR_TYPE.CRYPTO_HDKEY,
       SUPPORTED_UR_TYPE.CRYPTO_ACCOUNT,
     ];
   } else {
-    expectedURTypes = [SUPPORTED_UR_TYPE.ETH_SIGNATURE];
+    expectedUrTypes = [SUPPORTED_UR_TYPE.ETH_SIGNATURE];
   }
 
   const refreshCameraPermission = useCallback(() => {
@@ -445,7 +445,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
           );
         } else if (urDecoder.isSuccess()) {
           const ur = urDecoder.resultUR();
-          if (expectedURTypes.includes(ur.type)) {
+          if (expectedUrTypes.includes(ur.type)) {
             scanErrorActiveRef.current = false;
             lastForwardedScanErrorRef.current = null;
             onScanSuccess(ur);
@@ -476,7 +476,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
     [
       visible,
       urDecoder,
-      expectedURTypes,
+      expectedUrTypes,
       purpose,
       onScanSuccess,
       showScannerError,

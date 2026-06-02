@@ -83,7 +83,7 @@ export function useAnimatedQrScanner({
   const cameraDevice = useCameraDevice('back');
   const { hasPermission, requestPermission } = useCameraPermission();
 
-  const expectedURTypes = useMemo(() => getExpectedUrTypes(purpose), [purpose]);
+  const expectedUrTypes = useMemo(() => getExpectedUrTypes(purpose), [purpose]);
 
   useCameraPermissionRefresh({ isActive, hasPermission, requestPermission });
 
@@ -199,7 +199,7 @@ export function useAnimatedQrScanner({
           });
         } else if (decoder.isSuccess()) {
           const ur = decoder.resultUR();
-          if (expectedURTypes.includes(ur.type)) {
+          if (expectedUrTypes.includes(ur.type)) {
             handleScanSuccess(ur);
           } else {
             await showScanError({
@@ -217,7 +217,7 @@ export function useAnimatedQrScanner({
         });
       }
     },
-    [isActive, expectedURTypes, handleScanSuccess, showScanError],
+    [isActive, expectedUrTypes, handleScanSuccess, showScanError],
   );
 
   const codeScanner = useCodeScanner({
