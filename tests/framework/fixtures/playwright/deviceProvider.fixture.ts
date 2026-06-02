@@ -3,7 +3,7 @@ import { createServiceProvider, type ServiceProvider } from '../../services';
 
 export const deviceProviderFixture = {
   deviceProvider: async (
-    _fixtures: object,
+    {}, // eslint-disable-line no-empty-pattern
     use: (deviceProvider: ServiceProvider) => Promise<void>,
     testInfo: TestInfo,
   ) => {

@@ -11,7 +11,7 @@ import type { CurrentDeviceDetails } from './types.ts';
 
 export const currentDeviceDetailsFixture = {
   currentDeviceDetails: async (
-    _fixtures: object,
+    {}, // eslint-disable-line no-empty-pattern
     use: (deviceDetails: CurrentDeviceDetails) => Promise<void>,
     testInfo: TestInfo,
   ) => {
