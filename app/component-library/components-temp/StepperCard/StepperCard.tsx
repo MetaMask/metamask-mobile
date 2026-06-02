@@ -18,7 +18,6 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../locales/i18n';
 import { StepperCardProps } from './StepperCard.types';
-import SegmentedProgressBar from '../SegmentedProgressBar';
 
 const StepperCard = ({
   steps,
@@ -57,15 +56,6 @@ const StepperCard = ({
       twClassName="rounded-2xl bg-muted overflow-hidden"
       testID={getTestId('container')}
     >
-      {/* Progress Bar */}
-      <Box twClassName="p-4 gap-2">
-        <SegmentedProgressBar
-          current={currentStep + 1}
-          total={totalSteps}
-          testID={getTestId('progress-bar')}
-        />
-      </Box>
-
       {/* Image */}
       <Box
         alignItems={BoxAlignItems.Center}
