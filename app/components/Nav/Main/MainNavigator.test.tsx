@@ -17,6 +17,13 @@ jest.mock('@react-navigation/stack', () => ({
   }),
 }));
 
+jest.mock('@react-navigation/native-stack', () => ({
+  createNativeStackNavigator: jest.fn().mockReturnValue({
+    Navigator: 'Navigator',
+    Screen: 'Screen',
+  }),
+}));
+
 jest.mock('@react-navigation/bottom-tabs', () => ({
   createBottomTabNavigator: jest.fn().mockReturnValue({
     Navigator: 'TabNavigator',
