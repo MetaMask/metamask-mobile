@@ -1,4 +1,4 @@
-import { test as perfTest } from '../../../framework/fixture';
+import { test as perfTest } from '../../../framework/fixtures/playwright';
 import TimerHelper from '../../../framework/TimerHelper';
 import { loginToAppPlaywright } from '../../../flows/wallet.flow';
 import { asPlaywrightElement, PlaywrightAssertions } from '../../../framework';
@@ -7,6 +7,7 @@ import WalletActionsBottomSheet from '../../../page-objects/wallet/WalletActions
 import PredictMarketList from '../../../page-objects/Predict/PredictMarketList';
 import PredictDetailsPage from '../../../page-objects/Predict/PredictDetailsPage';
 import { Performance, PerformancePredict } from '../../../tags.performance.js';
+import ToastModal from '../../../page-objects/wallet/ToastModal.js';
 
 /*
  * Scenario: Predict Market Details Performance Test
@@ -39,7 +40,7 @@ perfTest.describe(PerformancePredict, () => {
         { ios: 8000, android: 5000 },
         currentDeviceDetails.platform,
       );
-
+      await ToastModal.waitForToastToDismiss();
       await TabBarComponent.tapActions();
       await WalletActionsBottomSheet.tapPredictButton();
       await timer1.measure(async () => {

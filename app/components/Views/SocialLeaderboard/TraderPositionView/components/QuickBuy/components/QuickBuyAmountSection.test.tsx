@@ -8,7 +8,7 @@ const defaultProps = {
   fiatCryptoToggleEnabled: false,
   usdAmount: '',
   destSymbol: 'ETH',
-  estimatedCryptoAmount: undefined,
+  estimatedReceiveAmount: undefined,
   availableBalanceFiat: '$0.00',
   isQuoteLoading: false,
   hiddenInputRef: createRef<TextInput | null>(),
@@ -43,7 +43,7 @@ describe('QuickBuyAmountSection', () => {
       <QuickBuyAmountSection
         {...defaultProps}
         amountDisplayMode="crypto"
-        estimatedCryptoAmount="0.025"
+        estimatedReceiveAmount="0.025"
         destSymbol="ETH"
       />,
     );
@@ -55,7 +55,7 @@ describe('QuickBuyAmountSection', () => {
       <QuickBuyAmountSection
         {...defaultProps}
         amountDisplayMode="crypto"
-        estimatedCryptoAmount={undefined}
+        estimatedReceiveAmount={undefined}
         destSymbol="ETH"
       />,
     );
@@ -66,7 +66,7 @@ describe('QuickBuyAmountSection', () => {
     render(
       <QuickBuyAmountSection
         {...defaultProps}
-        estimatedCryptoAmount="123.45"
+        estimatedReceiveAmount="123.45"
         destSymbol="ETH"
       />,
     );

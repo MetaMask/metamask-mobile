@@ -35,7 +35,7 @@ const QuickBuyAmount: React.FC = () => {
       fiatCryptoToggleEnabled={features.fiatCryptoToggle}
       usdAmount={usdAmount}
       destSymbol={cryptoSymbol}
-      estimatedCryptoAmount={estimatedReceiveAmount}
+      estimatedReceiveAmount={estimatedReceiveAmount}
       availableBalanceFiat={sourceBalanceFiat}
       isQuoteLoading={isQuoteLoading}
       isUnpricedSource={isUnpricedSource}

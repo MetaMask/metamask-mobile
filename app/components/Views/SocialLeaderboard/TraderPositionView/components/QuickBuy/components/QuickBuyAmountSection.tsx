@@ -21,6 +21,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import type { QuickBuyAmountDisplayMode } from '../types';
+import { formatTokenAmount } from '../../../../utils/formatters';
 
 const styles = StyleSheet.create({
   amountText: { fontSize: 48, lineHeight: 52 },
@@ -33,7 +34,7 @@ interface QuickBuyAmountSectionProps {
   usdAmount: string;
   destSymbol: string;
   /** Estimated amount received in the dest token from the quote. */
-  estimatedCryptoAmount: string | undefined;
+  estimatedReceiveAmount: string | undefined;
   availableBalanceFiat: string;
   isQuoteLoading: boolean;
   /**
@@ -58,7 +59,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   fiatCryptoToggleEnabled,
   usdAmount,
   destSymbol,
-  estimatedCryptoAmount,
+  estimatedReceiveAmount,
   availableBalanceFiat,
   isQuoteLoading,
   isUnpricedSource = false,
@@ -70,9 +71,8 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   onToggleAmountDisplay,
 }) => {
   const fiatAmountLabel = usdAmount ? `$${usdAmount}` : '$0';
-
-  const cryptoAmountLabel = estimatedCryptoAmount
-    ? `${estimatedCryptoAmount} ${destSymbol}`
+  const cryptoAmountLabel = estimatedReceiveAmount
+    ? `${formatTokenAmount(parseFloat(estimatedReceiveAmount))} ${destSymbol}`
     : `0 ${destSymbol}`;
 
   let primaryLabel: string;
