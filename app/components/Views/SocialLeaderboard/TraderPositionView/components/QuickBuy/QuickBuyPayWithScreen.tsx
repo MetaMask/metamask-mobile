@@ -39,26 +39,29 @@ const QuickBuyPayWithScreen: React.FC = () => {
 
   const isSellMode = tradeMode === 'sell';
 
-  // In sell mode, default the chain filter to the position chain.
-  const positionChainId = useMemo(() => {
-    if (!isSellMode) return null;
-    const caip = chainNameToId(target.chain);
-    if (!caip || isNonEvmChainId(caip)) return null;
-    try {
-      return formatChainIdToHex(caip);
-    } catch {
-      return null;
-    }
-  }, [isSellMode, target.chain]);
-
-  const [selectedChainId, setSelectedChainId] = useState<string | null>(
-    positionChainId,
-  );
-
   // Choose the token list depending on mode.
   const tokenList: BridgeToken[] = isSellMode
     ? sellDestTokenOptions
     : sourceTokenOptions;
+
+  // In sell mode, default to the position chain only when at least one
+  // stablecoin candidate exists on it — avoids an immediately-empty list.
+  const defaultChainId = useMemo(() => {
+    if (!isSellMode) return null;
+    const caip = chainNameToId(target.chain);
+    if (!caip || isNonEvmChainId(caip)) return null;
+    let hexChainId: string;
+    try {
+      hexChainId = formatChainIdToHex(caip);
+    } catch {
+      return null;
+    }
+    return tokenList.some((t) => t.chainId === hexChainId) ? hexChainId : null;
+  }, [isSellMode, target.chain, tokenList]);
+
+  const [selectedChainId, setSelectedChainId] = useState<string | null>(
+    defaultChainId,
+  );
 
   const selectedToken = isSellMode ? selectedDestStable : selectedSourceToken;
 
