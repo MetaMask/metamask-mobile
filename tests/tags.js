@@ -6,6 +6,11 @@
  * Selection logic is defined in: tests/tools/e2e-ai-analyzer/modes/select-tags/prompt.ts
  */
 const smokeTags = {
+  smokeLedger: {
+    tag: 'SmokeLedger:',
+    description:
+      'Tests Ledger hardware wallet integration using Speculos BLE emulation via Bumble/android-netsim. Covers the full Ledger account import flow: navigating to hardware wallet selection, BLE device discovery and connection, APDU exchange with the emulated Ledger device, account discovery, and import verification. Requires Speculos Docker and speculos-ble stack running. Gated on LEDGER_E2E=1 environment variable. Related to SmokeAccounts for account management.',
+  },
   smokeAccounts: {
     tag: 'SmokeAccounts:',
     description:
@@ -102,6 +107,7 @@ const otherTags = {
 };
 
 // Smoke test tag functions
+const SmokeLedger = (testName) => `${smokeTags.smokeLedger.tag} ${testName}`;
 const SmokeAccounts = (testName) =>
   `${smokeTags.smokeAccounts.tag} ${testName}`;
 const SmokeConfirmations = (testName) =>
@@ -154,6 +160,7 @@ const FixtureValidation = (testName) =>
 export {
   smokeTags,
   flaskTags,
+  SmokeLedger,
   SmokeAccounts,
   SmokeConfirmations,
   SmokeIdentity,

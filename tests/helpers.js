@@ -399,7 +399,8 @@ export default class TestHelpers {
     // CI configs (*.ci) use release apps and the normal recovery-based launch.
     if (
       config.configurationName.endsWith('debug') ||
-      !config.configurationName.endsWith('.ci')
+      (!config.configurationName.endsWith('.ci') &&
+        !config.configurationName.includes('speculos'))
     ) {
       return this.launchAppForDebugBuild(platform, launchOptions);
     }

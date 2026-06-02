@@ -18,7 +18,7 @@ from typing import Any
 import aiohttp
 
 from bumble import data_types
-from bumble.core import AdvertisingData
+from bumble.core import AdvertisingData, UUID
 from bumble.device import Device, Connection
 from bumble.hci import Address
 from bumble.pairing import PairingConfig, PairingDelegate
@@ -100,8 +100,8 @@ class VirtualLedgerDevice(Device.Listener, Connection.Listener):
 
         self._device.advertising_data = bytes(
             AdvertisingData([
-                data_types.CompleteLocalName(self._config.device_name),
-                data_types.CompleteListOf128BitServiceUUIDs([LEDGER_SERVICE_UUID]),
+                data_types.CompleteListOf128BitServiceUUIDs([UUID(LEDGER_SERVICE_UUID)]),
+                data_types.ShortenedLocalName(self._config.device_name[:8]),
             ])
         )
         self._device.scan_response_data = bytes(
@@ -169,7 +169,9 @@ class VirtualLedgerDevice(Device.Listener, Connection.Listener):
         logger.info("MTU probe handled, negotiated MTU: %d", negotiated_mtu)
 
         mtu_value = max(negotiated_mtu, 23)
-        probe_response = bytes([0x08, 0x00, 0x00, 0x00, 0x00, mtu_value, 0x00])
+        probe_response = bytes(
+            [0x08, 0x00, 0x00, 0x00, 0x00, mtu_value & 0xFF, (mtu_value >> 8) & 0xFF]
+        )
         await self.gatt_server.send_raw_notification(connection, probe_response)
 
     def _get_http_session(self) -> aiohttp.ClientSession:
@@ -224,6 +226,5 @@ class VirtualLedgerDevice(Device.Listener, Connection.Listener):
         if self._state != ConnectionState.DISCONNECTING:
             self._set_state(ConnectionState.IDLE)
 
-    def on_connection_att_mtu_update(self, mtu: int) -> None:
-        logger.info("ATT MTU updated: %d", mtu)
-        self.gatt_server.set_mtu(mtu)
+    def on_connection_att_mtu_update(self) -> None:
+        pass

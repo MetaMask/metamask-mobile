@@ -2,9 +2,9 @@
 
 Protocol:
   Request:  [4-byte BE length] [raw APDU]
-  Response: [4-byte BE (length-2)] [response data including 2-byte SW]
+  Response: [4-byte BE length] [response data] [2-byte SW]
 
-Port 9999 by default (not 9998).
+The 4-byte length prefix covers the data only; the 2-byte SW follows.
 """
 
 from __future__ import annotations
@@ -88,8 +88,12 @@ class SpeculosTcpClient:
         response = await asyncio.wait_for(
             self._reader.readexactly(raw_length), timeout=self._timeout,
         )
-        logger.debug("Recv APDU (%d bytes): %s", len(response), response.hex())
-        return response
+        sw = await asyncio.wait_for(
+            self._reader.readexactly(2), timeout=self._timeout,
+        )
+        full_response = response + sw
+        logger.debug("Recv APDU (%d bytes): %s", len(full_response), full_response.hex())
+        return full_response
 
     @property
     def is_connected(self) -> bool:

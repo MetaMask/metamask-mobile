@@ -9,4 +9,8 @@ export const ALLOWLISTED_HOSTS = [
   'metamask.github.io', // Test-snaps and test-dapp pages loaded in browser
 ];
 
-export const ALLOWLISTED_URLS: string[] = [];
+export const ALLOWLISTED_URLS: string[] = [
+  // Ledger account discovery triggers real Infura RPC calls for balance checks
+  'https://mainnet.infura.io/v3/NON_EMPTY',
+  'https://linea-mainnet.infura.io/v3/NON_EMPTY',
+];

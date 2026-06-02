@@ -126,35 +126,38 @@ class LedgerGattServer:
     async def _on_write(self, connection: "Connection", value: bytes) -> None:
         self._connection = connection
 
-        if len(value) >= 1 and value[0] == MTU_PROBE_BYTE:
-            logger.debug("MTU probe received: %s", value.hex())
-            self._log_apdu("in", value, "mtu_probe")
-            if self._on_mtu_probe:
-                await self._on_mtu_probe(connection, value)
-            return
-
-        self._log_apdu("in", value, "chunk")
-
-        complete_apdu = self._reassembler.feed(value)
-        if complete_apdu is None:
-            return
-
-        self._log_apdu("in", complete_apdu, "apdu_complete")
-        logger.info("Complete APDU received (%d bytes)", len(complete_apdu))
-
-        async with self._exchange_lock:
-            try:
-                response = await self._on_apdu(complete_apdu)
-            except Exception:
-                logger.exception("APDU exchange failed")
-                self._reassembler.reset()
-                error_apdu = bytes([0x6D, 0x00])
-                await self._send_response(connection, error_apdu)
+        try:
+            if len(value) >= 1 and value[0] == MTU_PROBE_BYTE:
+                logger.debug("MTU probe received: %s", value.hex())
+                self._log_apdu("in", value, "mtu_probe")
+                if self._on_mtu_probe:
+                    await self._on_mtu_probe(connection, value)
                 return
 
-        if response:
-            self._log_apdu("out", response, "apdu_response")
-            await self._send_response(connection, response)
+            self._log_apdu("in", value, "chunk")
+
+            complete_apdu = self._reassembler.feed(value)
+            if complete_apdu is None:
+                return
+
+            self._log_apdu("in", complete_apdu, "apdu_complete")
+            logger.info("Complete APDU received (%d bytes)", len(complete_apdu))
+
+            async with self._exchange_lock:
+                try:
+                    response = await self._on_apdu(complete_apdu)
+                except Exception:
+                    logger.exception("APDU exchange failed")
+                    self._reassembler.reset()
+                    error_apdu = bytes([0x6D, 0x00])
+                    await self._send_response(connection, error_apdu)
+                    return
+
+            if response:
+                self._log_apdu("out", response, "apdu_response")
+                await self._send_response(connection, response)
+        except Exception:
+            logger.exception("GATT write handler error")
 
     async def _send_response(
         self, connection: "Connection", response: bytes,

@@ -69,6 +69,14 @@ module.exports = {
       device: 'android.github_ci.emulator',
       app: 'android.flask.release',
     },
+    'android.emu.main.speculos': {
+      device: 'android.emulator',
+      app: 'android.release.speculos',
+    },
+    'android.emu.main.speculos.ci': {
+      device: 'android.github_ci.emulator',
+      app: 'android.release.speculos',
+    },
     'ios.sim.main.ci': {
       device: 'ios.simulator',
       app: 'ios.main.release',
@@ -90,6 +98,7 @@ module.exports = {
       device: {
         avdName: 'Pixel_5_Pro_API_34',
       },
+      bootArgs: '-grpc 8554 -no-audio -no-boot-anim -no-snapshot',
     },
     'android.github_ci.emulator': {
       type: 'android.emulator',
@@ -149,6 +158,18 @@ module.exports = {
       binaryPath: process.env.PREBUILT_ANDROID_APK_PATH || 'android/app/build/outputs/apk/flask/release/app-flask-release.apk',
       testBinaryPath: process.env.PREBUILT_ANDROID_TEST_APK_PATH || 'android/app/build/outputs/apk/androidTest/flask/release/app-flask-release-androidTest.apk',
       build: `export CONFIGURATION="Release" && yarn build:android:flask:e2e`,
+    },
+    'android.debug.speculos': {
+      type: 'android.apk',
+      binaryPath: process.env.PREBUILT_ANDROID_APK_PATH || 'android/app/build/outputs/apk/prod/debug/app-prod-debug.apk',
+      testBinaryPath: process.env.PREBUILT_ANDROID_TEST_APK_PATH || 'android/app/build/outputs/apk/androidTest/prod/debug/app-prod-debug-androidTest.apk',
+      build: 'CONFIGURATION="Debug" yarn build:android:main:e2e',
+    },
+    'android.release.speculos': {
+      type: 'android.apk',
+      binaryPath: process.env.PREBUILT_ANDROID_APK_PATH || 'android/app/build/outputs/apk/prod/release/app-prod-release.apk',
+      testBinaryPath: process.env.PREBUILT_ANDROID_TEST_APK_PATH || 'android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk',
+      build: 'CONFIGURATION="Release" yarn build:android:main:e2e',
     },
   },
 };

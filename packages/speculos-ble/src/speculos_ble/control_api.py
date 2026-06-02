@@ -72,7 +72,12 @@ class ControlApiServer:
         body = await request.json()
         button = body.get("button", "right")
         count = body.get("count", 1)
-        await self._device.press_button(button, count)
+        try:
+            await self._device.press_button(button, count)
+        except Exception as e:
+            return web.json_response(
+                {"ok": False, "error": str(e)}, status=502
+            )
         return web.json_response({"ok": True})
 
     async def _screenshot(self, request: web.Request) -> web.Response:
