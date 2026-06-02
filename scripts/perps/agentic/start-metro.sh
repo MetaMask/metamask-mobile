@@ -168,7 +168,7 @@ METRO_CACHE_KEY_FILE=".agent/metro-cache-key"
 METRO_CACHE_KEY="$(
   {
     printf 'platform=%s\nport=%s\n' "$PLAT" "$PORT"
-    env | grep -E '^(METAMASK_|MM_|NODE_ENV=|EXPO_PUBLIC_|FEATURE_|SEGMENT_|SENTRY_)' | sort || true
+    env | grep -E '^(METAMASK_|MM_|NODE_ENV=|EXPO_PUBLIC_|FEATURE_|SEGMENT_|SENTRY_)' | grep -v '^MM_CLEAR_METRO_CACHE=' | sort || true
     [ -f .js.env ] && shasum .js.env
     [ -f babel.config.js ] && shasum babel.config.js
     [ -f metro.config.js ] && shasum metro.config.js

@@ -287,6 +287,12 @@ bc_lock_acquire() {
     if bc__mkdir_lock_stale "$lockdir"; then
       echo "build-cache: removing stale lock $lockdir" >&2
       rm -rf "$lockdir"
+      sleep 1
+      waited=$((waited + 1))
+      if [ "$waited" -ge "$timeout" ]; then
+        echo "build-cache: timed out waiting for $lockdir" >&2
+        return 1
+      fi
       continue
     fi
     if [ "$waited" -ge "$timeout" ]; then
