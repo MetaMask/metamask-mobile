@@ -78,12 +78,12 @@ Exception: if the ONLY changes are to tests/framework/ helper files (non-spec ut
  *
  * @param allFiles - All changed files
  * @param criticalFiles - Critical files that need attention
- * @param _context - Analysis context (unused in select-tags mode)
+ * @param context - Analysis context for PR-aware performance guidance
  */
 export function buildTaskPrompt(
   allFiles: string[],
   criticalFiles: string[],
-  _context: AnalysisContext,
+  context: AnalysisContext,
 ): string {
   // Build E2E tag coverage list
   const tagCoverageList = SELECT_TAGS_CONFIG.map(
@@ -118,12 +118,18 @@ export function buildTaskPrompt(
   const filesSection = `CHANGED FILES (${
     allFiles.length
   } total):\n${fileList.join('\n')}`;
+  const performanceScopeSection = `PERFORMANCE ANALYSIS SCOPE:
+For performance_tests only, base your decision on the complete PR file set above${
+    context.prNumber ? ` (PR #${context.prNumber})` : ''
+  }, not only the most recent commit or synchronize event. This matters after rebases: if an older commit in the PR changes a performance-sensitive flow, select the relevant performance tags even when the latest commit only changes unrelated files.
+Use get_git_diff when a file's actual PR diff is needed, but do not narrow performance_tests to the last commit.`;
   const closing = `Investigate efficiently (consider using several tool calls in the same iteration), then call finalize_tag_selection when ready. Before finalizing: verify you have included all dependent tags as specified in each tag's description above. Include performance_tests in your final selection with selected_tags (empty array if no performance tests needed) and reasoning.`;
   const prompt = [
     instruction,
     tagsSection,
     performanceTagsSection,
     filesSection,
+    performanceScopeSection,
     closing,
   ].join('\n\n');
 
