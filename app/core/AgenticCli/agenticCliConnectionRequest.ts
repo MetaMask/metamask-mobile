@@ -63,8 +63,3 @@ export const isAgenticCliConnectionRequest = (
   const { connectionType: _connectionType, ...base } = obj;
   return isConnectionRequest(base);
 };
-
-export const isAgenticCliConnectionRequestType = (
-  connReq: ConnectionRequest,
-): connReq is AgenticCliConnectionRequest =>
-  isAgenticCliConnectionRequest(connReq);

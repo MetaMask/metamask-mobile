@@ -393,15 +393,4 @@ describe('isConnectionRequest', () => {
     expect(isConnectionRequest(req)).toBe(true);
     expect(req.metadata.analytics).toBeUndefined();
   });
-
-  it('rejects payloads that include connectionType (handled by AgenticCli)', () => {
-    const req = validRequest({
-      connectionType: {
-        name: 'agentic-cli',
-        dashboardUrl: 'https://dashboard.w3a.io',
-      },
-    });
-
-    expect(isConnectionRequest(req)).toBe(false);
-  });
 });

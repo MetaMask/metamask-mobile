@@ -161,14 +161,5 @@ export function isConnectionRequest(data: unknown): data is ConnectionRequest {
     }
   }
 
-  // Agentic CLI and other specialized flows carry connectionType and must be
-  // handled outside the generic SDKConnectV2 connect path.
-  if (
-    'connectionType' in obj &&
-    (obj as Record<string, unknown>).connectionType !== undefined
-  ) {
-    return false;
-  }
-
   return true;
 }

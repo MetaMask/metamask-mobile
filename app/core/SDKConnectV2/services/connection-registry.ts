@@ -14,7 +14,10 @@ import { ConnectionInfo } from '../types/connection-info';
 import logger, { redactUrl } from './logger';
 import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
 import { parseMwpConnectPayload } from '../../mwp/parseMwpConnectDeeplink';
-import { AgenticCliMwpConnectionService } from '../../AgenticCli/AgenticCliMwpConnectionService';
+import {
+  handleAgenticCliConnectDeeplink,
+  isAgenticCliDeeplink,
+} from '../../AgenticCli/AgenticCliMwpConnectionService';
 import { whenStoreReady } from '../utils/when-store-ready';
 import Engine from '../../Engine';
 import { rpcErrors } from '@metamask/rpc-errors';
@@ -166,6 +169,8 @@ export class ConnectionRegistry {
 
       if (id) {
         await this.handleSimpleDeeplink(id);
+      } else if (isAgenticCliDeeplink(url)) {
+        await this.handleAgenticCliDeeplink(url);
       } else {
         await this.handleConnectDeeplink(url);
       }
@@ -266,21 +271,6 @@ export class ConnectionRegistry {
     if (this.deeplinks.has(url)) return;
     this.deeplinks.add(url);
 
-    if (AgenticCliMwpConnectionService.isAgenticCliDeeplink(url)) {
-      try {
-        await AgenticCliMwpConnectionService.handleConnectDeeplink(url, {
-          relayURL: this.RELAY_URL,
-          keymanager: this.keymanager,
-          hostapp: this.hostapp,
-          hasConnection: (id) => this.connections.has(id),
-          cleanupConnection: (connection) => this.cleanupConnection(connection),
-        });
-        return;
-      } finally {
-        this.deeplinks.delete(url);
-      }
-    }
-
     logger.debug('Handling connect deeplink:', redactUrl(url));
 
     let conn: Connection | undefined;
@@ -337,7 +327,6 @@ export class ConnectionRegistry {
         this.hostapp,
       );
       await conn.connect(connReq.sessionRequest);
-
       this.connections.set(conn.id, conn);
       await this.store.save(connInfo);
       this.hostapp.syncConnectionList(Array.from(this.connections.values()));
@@ -387,17 +376,7 @@ export class ConnectionRegistry {
         failure_reason: error instanceof Error ? error.message : String(error),
       });
 
-      if (conn) {
-        try {
-          await this.cleanupConnection(conn);
-        } catch (cleanupError) {
-          logger.error(
-            'Failed to clean up failed connection:',
-            conn.id,
-            cleanupError,
-          );
-        }
-      }
+      if (conn) await this.cleanupConnection(conn);
     } finally {
       this.deeplinks.delete(url);
       // Loading-toast dismissal rules:
@@ -461,6 +440,23 @@ export class ConnectionRegistry {
     logger.debug('Connection disconnected:', id);
   }
 
+  private async handleAgenticCliDeeplink(url: string): Promise<void> {
+    if (this.deeplinks.has(url)) return;
+    this.deeplinks.add(url);
+
+    try {
+      await handleAgenticCliConnectDeeplink(url, {
+        relayURL: this.RELAY_URL,
+        keymanager: this.keymanager,
+        hostapp: this.hostapp,
+        hasConnection: (id) => this.connections.has(id),
+        cleanupConnection: (connection) => this.cleanupConnection(connection),
+      });
+    } finally {
+      this.deeplinks.delete(url);
+    }
+  }
+
   private async cleanupConnection(conn: Connection): Promise<void> {
     if (this.connections.has(conn.id)) {
       await this.disconnect(conn.id);
@@ -479,6 +475,15 @@ export class ConnectionRegistry {
    */
   private parseConnectionRequest(url: string): ConnectionRequest {
     const connReq: unknown = parseMwpConnectPayload(url);
+
+    if (
+      connReq &&
+      typeof connReq === 'object' &&
+      'connectionType' in connReq &&
+      (connReq as Record<string, unknown>).connectionType !== undefined
+    ) {
+      throw new Error('Invalid connection request structure.');
+    }
 
     if (!isConnectionRequest(connReq)) {
       throw new Error('Invalid connection request structure.');

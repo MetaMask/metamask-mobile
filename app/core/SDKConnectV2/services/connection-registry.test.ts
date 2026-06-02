@@ -1,4 +1,8 @@
 import { AppState, AppStateStatus } from 'react-native';
+import {
+  handleAgenticCliConnectDeeplink,
+  isAgenticCliDeeplink,
+} from '../../AgenticCli/AgenticCliMwpConnectionService';
 import { ConnectionRegistry, MAX_CONNECTIONS } from './connection-registry';
 import { HostApplicationAdapter } from '../adapters/host-application-adapter';
 import { ConnectionStore } from '../store/connection-store';
@@ -10,8 +14,12 @@ import Engine from '../../Engine';
 import { analytics } from '../../../util/analytics/analytics';
 import { MetaMetricsEvents } from '../../Analytics';
 import { TransportType } from '../../../components/hooks/useAnalytics/useAnalytics.types';
-import { AgenticCliMwpConnectionService } from '../../AgenticCli/AgenticCliMwpConnectionService';
 import Logger from '../../../util/Logger';
+
+jest.mock('../../AgenticCli/AgenticCliMwpConnectionService', () => ({
+  isAgenticCliDeeplink: jest.fn(),
+  handleAgenticCliConnectDeeplink: jest.fn(),
+}));
 
 jest.mock('../adapters/host-application-adapter');
 jest.mock('../store/connection-store');
@@ -20,12 +28,6 @@ jest.mock('./connection');
 jest.mock('react-native');
 jest.mock('@sentry/react-native');
 jest.mock('../../Permissions');
-jest.mock('../../AgenticCli/AgenticCliMwpConnectionService', () => ({
-  AgenticCliMwpConnectionService: {
-    isAgenticCliDeeplink: jest.fn().mockReturnValue(false),
-    handleConnectDeeplink: jest.fn().mockResolvedValue(undefined),
-  },
-}));
 jest.mock('../../../util/analytics/analytics', () => ({
   analytics: {
     trackEvent: jest.fn(),
@@ -49,6 +51,13 @@ jest.mock('../../../util/Logger', () => ({
 
 const mockTrackEvent = analytics.trackEvent as jest.Mock;
 const mockLoggerError = Logger.error as jest.Mock;
+const mockIsAgenticCliDeeplink = isAgenticCliDeeplink as jest.MockedFunction<
+  typeof isAgenticCliDeeplink
+>;
+const mockHandleAgenticCliConnectDeeplink =
+  handleAgenticCliConnectDeeplink as jest.MockedFunction<
+    typeof handleAgenticCliConnectDeeplink
+  >;
 
 // Factory functions for creating mock objects
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -80,10 +89,6 @@ const createPersistedConnection = (id: string, overrides: any = {}) => ({
 });
 
 describe('ConnectionRegistry', () => {
-  const agenticCliMwpConnectionServiceMock =
-    AgenticCliMwpConnectionService as jest.Mocked<
-      typeof AgenticCliMwpConnectionService
-    >;
   let registry: ConnectionRegistry;
   let mockHostApp: jest.Mocked<HostApplicationAdapter>;
   let mockStore: jest.Mocked<ConnectionStore>;
@@ -179,12 +184,9 @@ describe('ConnectionRegistry', () => {
     } as unknown as jest.Mocked<Connection>;
 
     (Connection.create as jest.Mock).mockResolvedValue(mockConnection);
-    agenticCliMwpConnectionServiceMock.isAgenticCliDeeplink.mockReturnValue(
-      false,
-    );
-    agenticCliMwpConnectionServiceMock.handleConnectDeeplink.mockResolvedValue(
-      undefined,
-    );
+
+    mockIsAgenticCliDeeplink.mockReturnValue(false);
+    mockHandleAgenticCliConnectDeeplink.mockResolvedValue(undefined);
 
     // Wait for initialization to complete
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -335,6 +337,46 @@ describe('ConnectionRegistry', () => {
           }),
         }),
       );
+
+      spyHandleConnectDeeplink.mockRestore();
+    });
+
+    it('delegates agentic CLI deeplinks to handleAgenticCliConnectDeeplink', async () => {
+      registry = new ConnectionRegistry(
+        RELAY_URL,
+        mockKeyManager,
+        mockHostApp,
+        mockStore,
+      );
+
+      const agenticCliDeeplink = `metamask://connect/mwp?p=${encodeURIComponent(
+        JSON.stringify({
+          ...mockConnectionRequest,
+          connectionType: { name: 'agentic-cli' },
+        }),
+      )}`;
+
+      mockIsAgenticCliDeeplink.mockReturnValue(true);
+
+      const spyHandleConnectDeeplink = jest
+        .spyOn(registry, 'handleConnectDeeplink')
+        .mockResolvedValue(undefined);
+
+      await registry.handleMwpDeeplink(agenticCliDeeplink);
+
+      expect(mockHandleAgenticCliConnectDeeplink).toHaveBeenCalledWith(
+        agenticCliDeeplink,
+        expect.objectContaining({
+          relayURL: RELAY_URL,
+          keymanager: mockKeyManager,
+          hostapp: mockHostApp,
+          hasConnection: expect.any(Function),
+          cleanupConnection: expect.any(Function),
+        }),
+      );
+      expect(spyHandleConnectDeeplink).not.toHaveBeenCalled();
+      expect(Connection.create).not.toHaveBeenCalled();
+      expect(mockStore.save).not.toHaveBeenCalled();
 
       spyHandleConnectDeeplink.mockRestore();
     });
@@ -522,7 +564,7 @@ describe('ConnectionRegistry', () => {
       );
     });
 
-    it('delegates agentic CLI deeplinks to AgenticCliMwpConnectionService', async () => {
+    it('rejects connectionType payloads on the generic connect path', async () => {
       registry = new ConnectionRegistry(
         RELAY_URL,
         mockKeyManager,
@@ -530,33 +572,22 @@ describe('ConnectionRegistry', () => {
         mockStore,
       );
 
-      const agenticCliDeeplink = `metamask://connect/mwp?p=${encodeURIComponent(
+      const specializedDeeplink = `metamask://connect/mwp?p=${encodeURIComponent(
         JSON.stringify({
           ...mockConnectionRequest,
-          connectionType: { name: 'agentic-cli' },
+          connectionType: {
+            name: 'agentic-cli',
+            dashboardUrl: 'https://dashboard.w3a.io',
+          },
         }),
       )}`;
 
-      agenticCliMwpConnectionServiceMock.isAgenticCliDeeplink.mockReturnValue(
-        true,
-      );
+      await registry.handleConnectDeeplink(specializedDeeplink);
 
-      await registry.handleConnectDeeplink(agenticCliDeeplink);
-
-      expect(
-        agenticCliMwpConnectionServiceMock.handleConnectDeeplink,
-      ).toHaveBeenCalledWith(
-        agenticCliDeeplink,
-        expect.objectContaining({
-          relayURL: RELAY_URL,
-          keymanager: mockKeyManager,
-          hostapp: mockHostApp,
-          hasConnection: expect.any(Function),
-          cleanupConnection: expect.any(Function),
-        }),
-      );
+      expect(mockHostApp.showConnectionError).toHaveBeenCalledTimes(1);
       expect(Connection.create).not.toHaveBeenCalled();
       expect(mockStore.save).not.toHaveBeenCalled();
+      expect(mockHandleAgenticCliConnectDeeplink).not.toHaveBeenCalled();
     });
 
     it('should handle invalid URL gracefully', async () => {

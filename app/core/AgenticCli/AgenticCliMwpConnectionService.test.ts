@@ -4,7 +4,10 @@ import { Connection } from '../SDKConnectV2/services/connection';
 import { ConnectionInfo } from '../SDKConnectV2/types/connection-info';
 import type { AgenticCliConnectionRequest } from './agenticCliConnectionRequest';
 import { AgenticCliQrLoginService } from './AgenticCliQrLoginService';
-import { AgenticCliMwpConnectionService } from './AgenticCliMwpConnectionService';
+import {
+  handleAgenticCliConnectDeeplink,
+  isAgenticCliDeeplink,
+} from './AgenticCliMwpConnectionService';
 import {
   hideAgenticCliConnectionLoading,
   showAgenticCliConnectionLoading,
@@ -136,14 +139,10 @@ describe('AgenticCliMwpConnectionService', () => {
   });
 
   it('detects agentic CLI deeplinks', () => {
-    expect(
-      AgenticCliMwpConnectionService.isAgenticCliDeeplink(agenticCliDeeplink),
-    ).toBe(true);
-    expect(
-      AgenticCliMwpConnectionService.isAgenticCliDeeplink(
-        'metamask://connect/mwp?p=not-json',
-      ),
-    ).toBe(false);
+    expect(isAgenticCliDeeplink(agenticCliDeeplink)).toBe(true);
+    expect(isAgenticCliDeeplink('metamask://connect/mwp?p=not-json')).toBe(
+      false,
+    );
   });
 
   it('waits for keyring unlock before creating a connection', async () => {
@@ -154,16 +153,13 @@ describe('AgenticCliMwpConnectionService', () => {
       }),
     );
 
-    const promise = AgenticCliMwpConnectionService.handleConnectDeeplink(
-      agenticCliDeeplink,
-      {
-        relayURL: RELAY_URL,
-        keymanager: mockKeyManager,
-        hostapp: mockHostApp,
-        hasConnection: () => false,
-        cleanupConnection: jest.fn().mockResolvedValue(undefined),
-      },
-    );
+    const promise = handleAgenticCliConnectDeeplink(agenticCliDeeplink, {
+      relayURL: RELAY_URL,
+      keymanager: mockKeyManager,
+      hostapp: mockHostApp,
+      hasConnection: () => false,
+      cleanupConnection: jest.fn().mockResolvedValue(undefined),
+    });
     await Promise.resolve();
 
     expect(Connection.create).not.toHaveBeenCalled();
@@ -202,16 +198,13 @@ describe('AgenticCliMwpConnectionService', () => {
       JSON.stringify(agenticQrRequest),
     )}`;
 
-    await AgenticCliMwpConnectionService.handleConnectDeeplink(
-      agenticQrDeeplink,
-      {
-        relayURL: RELAY_URL,
-        keymanager: mockKeyManager,
-        hostapp: mockHostApp,
-        hasConnection: () => false,
-        cleanupConnection: jest.fn().mockResolvedValue(undefined),
-      },
-    );
+    await handleAgenticCliConnectDeeplink(agenticQrDeeplink, {
+      relayURL: RELAY_URL,
+      keymanager: mockKeyManager,
+      hostapp: mockHostApp,
+      hasConnection: () => false,
+      cleanupConnection: jest.fn().mockResolvedValue(undefined),
+    });
 
     expect(showAgenticCliConnectionLoading).toHaveBeenCalledTimes(1);
     expect(hideAgenticCliConnectionLoading).toHaveBeenCalledTimes(1);

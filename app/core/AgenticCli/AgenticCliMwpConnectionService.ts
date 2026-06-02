@@ -90,145 +90,143 @@ const wireAgenticCliClientEvents = (conn: Connection): void => {
   });
 };
 
-export const AgenticCliMwpConnectionService = {
-  isAgenticCliDeeplink(url: unknown): url is string {
-    if (typeof url !== 'string') {
-      return false;
-    }
+export function isAgenticCliDeeplink(url: unknown): url is string {
+  if (typeof url !== 'string') {
+    return false;
+  }
 
-    try {
-      const raw = parseMwpConnectPayload(url);
-      return isAgenticCliConnectionRequest(raw);
-    } catch {
-      return false;
-    }
-  },
+  try {
+    const raw = parseMwpConnectPayload(url);
+    return isAgenticCliConnectionRequest(raw);
+  } catch {
+    return false;
+  }
+}
 
-  async handleConnectDeeplink(
-    url: string,
-    deps: AgenticCliMwpConnectionDeps,
-  ): Promise<void> {
-    logger.debug('Handling agentic CLI connect deeplink:', redactUrl(url));
+export async function handleAgenticCliConnectDeeplink(
+  url: string,
+  deps: AgenticCliMwpConnectionDeps,
+): Promise<void> {
+  logger.debug('Handling agentic CLI connect deeplink:', redactUrl(url));
 
-    let conn: Connection | undefined;
-    let connInfo: ConnectionInfo | undefined;
-    let connReq: AgenticCliConnectionRequest | undefined;
-    let agenticCliStage: string | undefined;
-    try {
-      agenticCliStage = 'parse-connection-request';
-      connReq = parseAgenticCliConnectionRequest(url);
+  let conn: Connection | undefined;
+  let connInfo: ConnectionInfo | undefined;
+  let connReq: AgenticCliConnectionRequest | undefined;
+  let agenticCliStage: string | undefined;
+  try {
+    agenticCliStage = 'parse-connection-request';
+    connReq = parseAgenticCliConnectionRequest(url);
 
-      trackMwpEvent(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED, {
-        remote_session_id:
-          connReq.metadata.analytics?.remote_session_id ??
-          connReq.sessionRequest.id,
-        transport_type: TransportType.MWP,
-        sdk_version: connReq.metadata.sdk.version,
-        sdk_platform: connReq.metadata.sdk.platform,
-        dapp_name: connReq.metadata.dapp.name,
-        dapp_url: connReq.metadata.dapp.url,
+    trackMwpEvent(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED, {
+      remote_session_id:
+        connReq.metadata.analytics?.remote_session_id ??
+        connReq.sessionRequest.id,
+      transport_type: TransportType.MWP,
+      sdk_version: connReq.metadata.sdk.version,
+      sdk_platform: connReq.metadata.sdk.platform,
+      dapp_name: connReq.metadata.dapp.name,
+      dapp_url: connReq.metadata.dapp.url,
+    });
+
+    if (
+      INTERNAL_ORIGINS.includes(connReq.metadata.dapp.url) ||
+      INTERNAL_ORIGINS.includes(connReq.metadata.dapp.name)
+    ) {
+      throw rpcErrors.invalidParams({
+        message: 'External transactions cannot use internal origins',
       });
+    }
 
-      if (
-        INTERNAL_ORIGINS.includes(connReq.metadata.dapp.url) ||
-        INTERNAL_ORIGINS.includes(connReq.metadata.dapp.name)
-      ) {
-        throw rpcErrors.invalidParams({
-          message: 'External transactions cannot use internal origins',
-        });
-      }
+    agenticCliStage = 'wait-for-keyring-unlock';
+    await AgenticCliQrLoginService.waitForKeyringUnlock();
 
-      agenticCliStage = 'wait-for-keyring-unlock';
-      await AgenticCliQrLoginService.waitForKeyringUnlock();
-
-      connInfo = toConnectionInfo(connReq);
-      if (deps.hasConnection(connInfo.id)) {
-        logger.debug(
-          'Already have a connection with this id, skipping',
-          redactUrl(url),
-        );
-        return;
-      }
-
-      showAgenticCliConnectionLoading(connInfo);
-      agenticCliStage = 'create-mwp-connection';
-      conn = await Connection.create(
-        connInfo,
-        deps.keymanager,
-        deps.relayURL,
-        deps.hostapp,
+    connInfo = toConnectionInfo(connReq);
+    if (deps.hasConnection(connInfo.id)) {
+      logger.debug(
+        'Already have a connection with this id, skipping',
+        redactUrl(url),
       );
-      wireAgenticCliClientEvents(conn);
+      return;
+    }
 
-      agenticCliStage = 'mwp-connect';
-      await conn.connect(toUntrustedSessionRequest(connReq));
+    showAgenticCliConnectionLoading(connInfo);
+    agenticCliStage = 'create-mwp-connection';
+    conn = await Connection.create(
+      connInfo,
+      deps.keymanager,
+      deps.relayURL,
+      deps.hostapp,
+    );
+    wireAgenticCliClientEvents(conn);
 
-      try {
-        await AgenticCliQrLoginService.handleConnection({
-          connReq,
-          conn,
-          setStage: (stage) => {
-            agenticCliStage = stage;
-          },
-          cleanupConnection: deps.cleanupConnection,
-        });
-      } finally {
-        conn = undefined;
-      }
+    agenticCliStage = 'mwp-connect';
+    await conn.connect(toUntrustedSessionRequest(connReq));
 
-      logger.debug('Handled agentic CLI connect deeplink.', connInfo.id);
-    } catch (error) {
-      Logger.error(error as Error, {
-        tags: {
-          feature: 'mm-connect',
-          operation: 'handle_connect_deeplink',
+    try {
+      await AgenticCliQrLoginService.handleConnection({
+        connReq,
+        conn,
+        setStage: (stage) => {
+          agenticCliStage = stage;
         },
-        context: {
-          name: 'mwp_deeplink',
-          data: {
-            url: redactUrl(url),
-            agentic_cli_stage: agenticCliStage,
-            dapp_url: connReq?.metadata?.dapp?.url,
-            dapp_name: connReq?.metadata?.dapp?.name,
-            sdk_version: connReq?.metadata?.sdk?.version,
-            sdk_platform: connReq?.metadata?.sdk?.platform,
-          },
-        },
+        cleanupConnection: deps.cleanupConnection,
       });
-      logger.error('Failed to handle agentic CLI connect deeplink:', error, {
-        agenticCliStage,
-        url: redactUrl(url),
-      });
-      deps.hostapp.showConnectionError();
-
-      trackMwpEvent(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_FAILED, {
-        remote_session_id:
-          connReq?.metadata.analytics?.remote_session_id ??
-          connReq?.sessionRequest?.id ??
-          'unknown',
-        transport_type: TransportType.MWP,
-        sdk_version: connReq?.metadata?.sdk?.version,
-        sdk_platform: connReq?.metadata?.sdk?.platform,
-        dapp_name: connReq?.metadata?.dapp?.name,
-        dapp_url: connReq?.metadata?.dapp?.url,
-        failure_reason: error instanceof Error ? error.message : String(error),
-      });
-
-      if (conn) {
-        try {
-          await deps.cleanupConnection(conn);
-        } catch (cleanupError) {
-          logger.error(
-            'Failed to clean up failed agentic CLI connection:',
-            conn.id,
-            cleanupError,
-          );
-        }
-      }
     } finally {
-      if (connInfo) {
-        hideAgenticCliConnectionLoading(connInfo);
+      conn = undefined;
+    }
+
+    logger.debug('Handled agentic CLI connect deeplink.', connInfo.id);
+  } catch (error) {
+    Logger.error(error as Error, {
+      tags: {
+        feature: 'mm-connect',
+        operation: 'handle_connect_deeplink',
+      },
+      context: {
+        name: 'mwp_deeplink',
+        data: {
+          url: redactUrl(url),
+          agentic_cli_stage: agenticCliStage,
+          dapp_url: connReq?.metadata?.dapp?.url,
+          dapp_name: connReq?.metadata?.dapp?.name,
+          sdk_version: connReq?.metadata?.sdk?.version,
+          sdk_platform: connReq?.metadata?.sdk?.platform,
+        },
+      },
+    });
+    logger.error('Failed to handle agentic CLI connect deeplink:', error, {
+      agenticCliStage,
+      url: redactUrl(url),
+    });
+    deps.hostapp.showConnectionError();
+
+    trackMwpEvent(MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_FAILED, {
+      remote_session_id:
+        connReq?.metadata.analytics?.remote_session_id ??
+        connReq?.sessionRequest?.id ??
+        'unknown',
+      transport_type: TransportType.MWP,
+      sdk_version: connReq?.metadata?.sdk?.version,
+      sdk_platform: connReq?.metadata?.sdk?.platform,
+      dapp_name: connReq?.metadata?.dapp?.name,
+      dapp_url: connReq?.metadata?.dapp?.url,
+      failure_reason: error instanceof Error ? error.message : String(error),
+    });
+
+    if (conn) {
+      try {
+        await deps.cleanupConnection(conn);
+      } catch (cleanupError) {
+        logger.error(
+          'Failed to clean up failed agentic CLI connection:',
+          conn.id,
+          cleanupError,
+        );
       }
     }
-  },
-};
+  } finally {
+    if (connInfo) {
+      hideAgenticCliConnectionLoading(connInfo);
+    }
+  }
+}
