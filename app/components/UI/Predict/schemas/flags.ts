@@ -6,6 +6,7 @@ import {
   object,
   optional,
   string,
+  type,
 } from '@metamask/superstruct';
 import { HexSchema } from './common';
 import {
@@ -48,8 +49,13 @@ export const PredictWorldCupStageSchema = object({
   eventIds: defaulted(array(string()), () => []),
 });
 
+// Uses `type()` (not strict `object()`) so unknown keys in the remote
+// feature-flag payload are tolerated rather than throwing. Remote config is
+// managed independently of client releases, so a legacy/extra key (e.g. the
+// previously-supported `seriesId`) must not cause `parse()` to fall back to the
+// disabled default and silently turn World Cup off for everyone.
 export const PredictWorldCupSchema = defaulted(
-  object({
+  type({
     enabled: defaulted(boolean(), () => DEFAULT_PREDICT_WORLD_CUP_FLAG.enabled),
     minimumVersion: defaulted(
       string(),
