@@ -1,16 +1,8 @@
 diff --git a/dist/strategy/fiat/fiat-submit.cjs b/dist/strategy/fiat/fiat-submit.cjs
-index 8f46b26983404ee0625ebce81a87d1646d0f1c93..b69dd2d0434a0142ea555550f5870d264dba649b 100644
+index 8f46b26983404ee0625ebce81a87d1646d0f1c93..1aa641ac84c58e11f7caace6bcf6f26be95c2645 100644
 --- a/dist/strategy/fiat/fiat-submit.cjs
 +++ b/dist/strategy/fiat/fiat-submit.cjs
-@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
- exports.submitFiatQuotes = void 0;
- const ramps_controller_1 = require("@metamask/ramps-controller");
- const utils_1 = require("@metamask/utils");
--const bignumber_js_1 = require("bignumber.js");
- const logger_1 = require("../../logger.cjs");
- const token_1 = require("../../utils/token.cjs");
- const transaction_1 = require("../../utils/transaction.cjs");
-@@ -13,7 +12,6 @@ const utils_2 = require("./utils.cjs");
+@@ -13,7 +13,6 @@ const utils_2 = require("./utils.cjs");
  const log = (0, utils_1.createModuleLogger)(logger_1.projectLogger, 'fiat-submit');
  const ORDER_POLL_INTERVAL_MS = 1000;
  const ORDER_POLL_TIMEOUT_MS = 10 * 60 * 1000;
@@ -18,7 +10,7 @@ index 8f46b26983404ee0625ebce81a87d1646d0f1c93..b69dd2d0434a0142ea555550f5870d26
  const TERMINAL_FAILURE_STATUSES = [
      ramps_controller_1.RampsOrderStatus.Cancelled,
      ramps_controller_1.RampsOrderStatus.Failed,
-@@ -110,36 +108,6 @@ function validateOrderAsset({ expectedAsset, orderCrypto, transactionId, }) {
+@@ -110,36 +109,6 @@ function validateOrderAsset({ expectedAsset, orderCrypto, transactionId, }) {
              `expected ${expectedChainId}, got ${orderChainId}`);
      }
  }
@@ -55,18 +47,30 @@ index 8f46b26983404ee0625ebce81a87d1646d0f1c93..b69dd2d0434a0142ea555550f5870d26
  /**
   * Polls the on-ramp order until it reaches a terminal status.
   *
-@@ -215,8 +183,8 @@ async function submitRelayAfterFiatCompletion({ order, request, }) {
+@@ -213,17 +182,21 @@ async function submitRelayAfterFiatCompletion({ order, request, }) {
+         walletAddress,
+     });
      const baseRequest = quotes[0].request;
++    const originalRelayQuote = quotes[0].original.relayQuote;
++    const targetAmountMinimum = scaleTargetAmount(originalRelayQuote, sourceAmountRaw);
      const relayRequest = {
          ...baseRequest,
 -        isMaxAmount: true,
--        isPostQuote: false,
 +        isMaxAmount: false,
-+        isPostQuote: true,
+         isPostQuote: false,
          sourceBalanceRaw: sourceAmountRaw,
          sourceTokenAmount: sourceAmountRaw,
++        targetAmountMinimum,
      };
-@@ -235,12 +203,6 @@ async function submitRelayAfterFiatCompletion({ order, request, }) {
+     log('Re-quoting relay from completed fiat order', {
+         completedOrderAmount: order.cryptoAmount,
+         relayRequest,
+         sourceAmountRaw,
++        targetAmountMinimum,
+         transactionId,
+     });
+     const relayQuotes = await (0, relay_quotes_1.getRelayQuotes)({
+@@ -235,12 +208,6 @@ async function submitRelayAfterFiatCompletion({ order, request, }) {
      if (!relayQuotes.length) {
          throw new Error('No relay quotes returned for completed fiat order');
      }
@@ -79,18 +83,29 @@ index 8f46b26983404ee0625ebce81a87d1646d0f1c93..b69dd2d0434a0142ea555550f5870d26
      log('Received relay quotes for completed fiat order', {
          relayQuoteCount: relayQuotes.length,
          transactionId,
+@@ -259,4 +226,16 @@ async function submitRelayAfterFiatCompletion({ order, request, }) {
+     });
+     return relayResult;
+ }
++function scaleTargetAmount(originalRelayQuote, settledSourceAmountRaw) {
++    const originalSource = new bignumber_js_1.BigNumber(originalRelayQuote.details.currencyIn.amount);
++    const originalTarget = new bignumber_js_1.BigNumber(originalRelayQuote.details.currencyOut.amount);
++    if (!originalSource.gt(0) || !originalTarget.gt(0)) {
++        return '0';
++    }
++    return originalTarget
++        .multipliedBy(settledSourceAmountRaw)
++        .dividedBy(originalSource)
++        .integerValue(bignumber_js_1.BigNumber.ROUND_DOWN)
++        .toFixed(0);
++}
+ //# sourceMappingURL=fiat-submit.cjs.map
+\ No newline at end of file
 diff --git a/dist/strategy/fiat/fiat-submit.mjs b/dist/strategy/fiat/fiat-submit.mjs
-index fe769cb8643ee0819df37aec0f9ec64fb89d4431..a1365e14939ec48ac237e53ea04c008a458375be 100644
+index fe769cb8643ee0819df37aec0f9ec64fb89d4431..3d0c9b3a00dbb13a9cc4a14fb53d093f5ccc3f3a 100644
 --- a/dist/strategy/fiat/fiat-submit.mjs
 +++ b/dist/strategy/fiat/fiat-submit.mjs
-@@ -1,6 +1,5 @@
- import { RampsOrderStatus } from "@metamask/ramps-controller";
- import { createModuleLogger } from "@metamask/utils";
--import { BigNumber } from "bignumber.js";
- import { projectLogger } from "../../logger.mjs";
- import { buildCaipAssetType } from "../../utils/token.mjs";
- import { updateTransaction } from "../../utils/transaction.mjs";
-@@ -10,7 +9,6 @@ import { deriveFiatAssetForFiatPayment, resolveSourceAmountRaw } from "./utils.m
+@@ -10,7 +10,6 @@ import { deriveFiatAssetForFiatPayment, resolveSourceAmountRaw } from "./utils.m
  const log = createModuleLogger(projectLogger, 'fiat-submit');
  const ORDER_POLL_INTERVAL_MS = 1000;
  const ORDER_POLL_TIMEOUT_MS = 10 * 60 * 1000;
@@ -98,7 +113,7 @@ index fe769cb8643ee0819df37aec0f9ec64fb89d4431..a1365e14939ec48ac237e53ea04c008a
  const TERMINAL_FAILURE_STATUSES = [
      RampsOrderStatus.Cancelled,
      RampsOrderStatus.Failed,
-@@ -106,36 +104,6 @@ function validateOrderAsset({ expectedAsset, orderCrypto, transactionId, }) {
+@@ -106,36 +105,6 @@ function validateOrderAsset({ expectedAsset, orderCrypto, transactionId, }) {
              `expected ${expectedChainId}, got ${orderChainId}`);
      }
  }
@@ -135,18 +150,30 @@ index fe769cb8643ee0819df37aec0f9ec64fb89d4431..a1365e14939ec48ac237e53ea04c008a
  /**
   * Polls the on-ramp order until it reaches a terminal status.
   *
-@@ -211,8 +179,8 @@ async function submitRelayAfterFiatCompletion({ order, request, }) {
+@@ -209,17 +178,21 @@ async function submitRelayAfterFiatCompletion({ order, request, }) {
+         walletAddress,
+     });
      const baseRequest = quotes[0].request;
++    const originalRelayQuote = quotes[0].original.relayQuote;
++    const targetAmountMinimum = scaleTargetAmount(originalRelayQuote, sourceAmountRaw);
      const relayRequest = {
          ...baseRequest,
 -        isMaxAmount: true,
--        isPostQuote: false,
 +        isMaxAmount: false,
-+        isPostQuote: true,
+         isPostQuote: false,
          sourceBalanceRaw: sourceAmountRaw,
          sourceTokenAmount: sourceAmountRaw,
++        targetAmountMinimum,
      };
-@@ -231,12 +199,6 @@ async function submitRelayAfterFiatCompletion({ order, request, }) {
+     log('Re-quoting relay from completed fiat order', {
+         completedOrderAmount: order.cryptoAmount,
+         relayRequest,
+         sourceAmountRaw,
++        targetAmountMinimum,
+         transactionId,
+     });
+     const relayQuotes = await getRelayQuotes({
+@@ -231,12 +204,6 @@ async function submitRelayAfterFiatCompletion({ order, request, }) {
      if (!relayQuotes.length) {
          throw new Error('No relay quotes returned for completed fiat order');
      }
@@ -159,3 +186,21 @@ index fe769cb8643ee0819df37aec0f9ec64fb89d4431..a1365e14939ec48ac237e53ea04c008a
      log('Received relay quotes for completed fiat order', {
          relayQuoteCount: relayQuotes.length,
          transactionId,
+@@ -255,4 +222,16 @@ async function submitRelayAfterFiatCompletion({ order, request, }) {
+     });
+     return relayResult;
+ }
++function scaleTargetAmount(originalRelayQuote, settledSourceAmountRaw) {
++    const originalSource = new BigNumber(originalRelayQuote.details.currencyIn.amount);
++    const originalTarget = new BigNumber(originalRelayQuote.details.currencyOut.amount);
++    if (!originalSource.gt(0) || !originalTarget.gt(0)) {
++        return '0';
++    }
++    return originalTarget
++        .multipliedBy(settledSourceAmountRaw)
++        .dividedBy(originalSource)
++        .integerValue(BigNumber.ROUND_DOWN)
++        .toFixed(0);
++}
+ //# sourceMappingURL=fiat-submit.mjs.map
+\ No newline at end of file
