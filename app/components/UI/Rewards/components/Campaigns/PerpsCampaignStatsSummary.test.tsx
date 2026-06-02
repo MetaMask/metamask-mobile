@@ -4,7 +4,10 @@ import { TextColor } from '@metamask/design-system-react-native';
 import PerpsCampaignStatsSummary, {
   PERPS_CAMPAIGN_STATS_SUMMARY_TEST_IDS,
 } from './PerpsCampaignStatsSummary';
-import type { PerpsTradingCampaignLeaderboardPositionDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
+import type {
+  PerpsTradingCampaignLeaderboardDto,
+  PerpsTradingCampaignLeaderboardPositionDto,
+} from '../../../../../core/Engine/controllers/rewards-controller/types';
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -53,11 +56,12 @@ jest.mock('./CampaignOutcomeBanners', () => {
 
 const TEST_IDS = PERPS_CAMPAIGN_STATS_SUMMARY_TEST_IDS;
 
-const mockLeaderboard = {
+const mockLeaderboard: PerpsTradingCampaignLeaderboardDto = {
   campaignId: 'c1',
   computedAt: '2025-01-01T00:00:00.000Z',
   entries: [],
   totalParticipants: 0,
+  minVolumeForEligibility: 25_000,
 };
 
 const basePosition: PerpsTradingCampaignLeaderboardPositionDto = {
