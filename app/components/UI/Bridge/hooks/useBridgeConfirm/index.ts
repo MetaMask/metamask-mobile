@@ -23,6 +23,7 @@ import {
   POST_TRADE_MODAL_AB_KEY,
   POST_TRADE_MODAL_VARIANTS,
 } from '../../components/PostTradeBottomSheet/abTestConfig';
+import Engine from '../../../../../core/Engine';
 
 interface Params {
   activeQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] | null;
@@ -88,6 +89,7 @@ export const useBridgeConfirm = ({
 
       if (isPostTradeModalEnabled) {
         dispatch(resetBridgeTokenInputs());
+        Engine.context.BridgeController?.resetState?.();
         dispatch(incrementBridgeBalanceRefreshKey());
       }
     } catch (error) {
