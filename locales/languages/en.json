@@ -2313,8 +2313,8 @@
         "group_stage": "Group Stage",
         "round_of_32": "Round of 32",
         "round_of_16": "Round of 16",
-        "quarterfinals": "Quarterfinals",
-        "semifinals": "Semifinals",
+        "quarterfinals": "Quarter-finals",
+        "semifinals": "Semi-finals",
         "third_place": "Third Place",
         "final": "Final",
         "group_a": "Group A",
@@ -2328,8 +2328,7 @@
         "group_i": "Group I",
         "group_j": "Group J",
         "group_k": "Group K",
-        "group_l": "Group L",
-        "third_place_match": "Third Place Match"
+        "group_l": "Group L"
       }
     },
     "prediction_markets": "Prediction markets",
