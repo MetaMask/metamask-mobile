@@ -76,17 +76,32 @@ jest.mock('../../components/PredictPositionsHistoryList', () => {
 
 let mockPrivacyMode = false;
 let mockPredictPortfolioEnabled = true;
-let mockUseSelectorCallIndex = 0;
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(() => {
-    const value =
-      mockUseSelectorCallIndex % 2 === 0
-        ? mockPrivacyMode
-        : mockPredictPortfolioEnabled;
-    mockUseSelectorCallIndex += 1;
-    return value;
-  }),
-}));
+jest.mock('react-redux', () => {
+  const { selectPrivacyMode } = jest.requireActual(
+    '../../../../../selectors/preferencesController',
+  );
+  const { selectPredictPortfolioEnabledFlag } = jest.requireActual(
+    '../../selectors/featureFlags',
+  );
+
+  return {
+    useSelector: jest.fn((selector: unknown) => {
+      if (selector === selectPrivacyMode) {
+        return mockPrivacyMode;
+      }
+
+      if (selector === selectPredictPortfolioEnabledFlag) {
+        return mockPredictPortfolioEnabled;
+      }
+
+      const selectorName =
+        typeof selector === 'function' ? selector.name : String(selector);
+      throw new Error(
+        `Unexpected selector in PredictPositionsView test: ${selectorName}`,
+      );
+    }),
+  };
+});
 
 const mockNavigation = {
   canGoBack: jest.fn(),
@@ -181,7 +196,6 @@ const getMountedHistoryVisibilityText = (isVisible: boolean) =>
 describe('PredictPositionsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSelectorCallIndex = 0;
     mockPrivacyMode = false;
     mockPredictPortfolioEnabled = true;
     mockNavigation.canGoBack.mockReturnValue(true);
@@ -270,11 +284,18 @@ describe('PredictPositionsView', () => {
     expect(getMountedHistoryVisibilityText(false)).toBeTruthy();
   });
 
-  it('passes claim pending positions and privacy mode to History', () => {
+  it('passes won and lost claimable positions and privacy mode to History', () => {
     mockPrivacyMode = true;
     mockUsePredictPortfolio.mockReturnValue(
       createPortfolio({
-        actionableClaimablePositions: [createClaimablePosition()],
+        claimablePositions: [
+          createClaimablePosition({ id: 'won-position' }),
+          createClaimablePosition({
+            currentValue: 0,
+            id: 'lost-position',
+            status: PredictPositionStatus.LOST,
+          }),
+        ],
       }),
     );
 
@@ -283,7 +304,7 @@ describe('PredictPositionsView', () => {
     expect(
       screen.getByText('history-claim-pending-present:true'),
     ).toBeOnTheScreen();
-    expect(screen.getByText('history-claim-pending-count:1')).toBeOnTheScreen();
+    expect(screen.getByText('history-claim-pending-count:2')).toBeOnTheScreen();
     expect(screen.getByText('history-privacy:true')).toBeOnTheScreen();
   });
 
@@ -291,7 +312,7 @@ describe('PredictPositionsView', () => {
     mockPredictPortfolioEnabled = false;
     mockUsePredictPortfolio.mockReturnValue(
       createPortfolio({
-        actionableClaimablePositions: [createClaimablePosition()],
+        claimablePositions: [createClaimablePosition()],
       }),
     );
 

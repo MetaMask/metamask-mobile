@@ -192,7 +192,7 @@ const PredictPositionsView = () => {
             <PredictPositionsHistoryList
               claimPendingPositions={
                 predictPortfolioEnabled
-                  ? portfolio.actionableClaimablePositions
+                  ? portfolio.claimablePositions
                   : undefined
               }
               isPrivacyMode={Boolean(privacyMode)}

@@ -320,6 +320,40 @@ describe('PredictTransactionsView', () => {
     expect(screen.queryByText('+$4.50')).toBeNull();
   });
 
+  it('labels lost claim pending positions from position status', () => {
+    (usePredictActivity as jest.Mock).mockReturnValueOnce(
+      createUsePredictActivityValue({
+        data: [],
+        isLoading: false,
+      }),
+    );
+
+    render(
+      <PredictTransactionsView
+        claimPendingPositions={[
+          createClaimPendingPosition({
+            currentValue: 0,
+            id: 'lost-position',
+            status: PredictPositionStatus.LOST,
+            title: 'Lost prediction market',
+          }),
+        ]}
+      />,
+    );
+
+    const row = screen.getByTestId(
+      getPredictPositionsHistoryListSelector.claimPendingRow('lost-position'),
+    );
+
+    expect(screen.getByText('Prediction lost')).toBeOnTheScreen();
+    expect(screen.getByText('Lost prediction market')).toBeOnTheScreen();
+    expect(screen.getByText('$0.00')).toBeOnTheScreen();
+    expect(row).toHaveProp(
+      'accessibilityLabel',
+      'Prediction lost, Lost prediction market, opens market details',
+    );
+  });
+
   it('navigates to market details when a claim pending position is pressed', () => {
     (usePredictActivity as jest.Mock).mockReturnValueOnce(
       createUsePredictActivityValue({

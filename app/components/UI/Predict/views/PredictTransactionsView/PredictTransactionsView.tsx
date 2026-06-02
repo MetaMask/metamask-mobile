@@ -20,6 +20,7 @@ import { NavigationProp, useNavigation } from '@react-navigation/native';
 import PredictActivity from '../../components/PredictActivity/PredictActivity';
 import {
   PredictActivityType,
+  PredictPositionStatus,
   type PredictActivityItem,
   type PredictPosition,
 } from '../../types';
@@ -74,6 +75,19 @@ interface ClaimPendingPositionRowProps {
   position: PredictPosition;
 }
 
+const getClaimPendingPositionTitle = (
+  status: PredictPositionStatus,
+): string => {
+  switch (status) {
+    case PredictPositionStatus.LOST:
+      return strings('predict.transactions.prediction_lost_title');
+    case PredictPositionStatus.WON:
+      return strings('predict.transactions.prediction_won_title');
+    default:
+      return strings('predict.transactions.prediction_resolved_title');
+  }
+};
+
 const ClaimPendingPositionRow = ({
   containerStyle,
   isPrivacyMode,
@@ -89,10 +103,18 @@ const ClaimPendingPositionRow = ({
       entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
     });
   }, [navigation, position.marketId]);
+  const positionTitle = getClaimPendingPositionTitle(position.status);
+  const formattedValue = formatPrice(position.currentValue, {
+    minimumDecimals: 2,
+    maximumDecimals: 2,
+  });
+  const valueLabel =
+    position.currentValue > 0 ? `+${formattedValue}` : formattedValue;
   const accessibilityLabel = strings(
     'predict.transactions.claim_pending_accessibility_label',
     {
       marketTitle: position.title,
+      predictionStatus: positionTitle,
     },
   );
 
@@ -121,7 +143,7 @@ const ClaimPendingPositionRow = ({
 
       <Box twClassName="flex-1">
         <Text variant={TextVariant.BodyMd} numberOfLines={1}>
-          {strings('predict.transactions.prediction_won_title')}
+          {positionTitle}
         </Text>
         <Text variant={TextVariant.BodySm} twClassName="text-alternative">
           {position.title}
@@ -135,10 +157,7 @@ const ClaimPendingPositionRow = ({
           isHidden={isPrivacyMode}
           length={SensitiveTextLength.Medium}
         >
-          {`+${formatPrice(position.currentValue, {
-            minimumDecimals: 2,
-            maximumDecimals: 2,
-          })}`}
+          {valueLabel}
         </SensitiveText>
       </Box>
     </TouchableOpacity>
