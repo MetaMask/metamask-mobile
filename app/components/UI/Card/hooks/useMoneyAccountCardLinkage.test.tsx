@@ -1033,6 +1033,17 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(result.current.status).toBe('idle');
       expect(result.current.isLinking).toBe(false);
       expect(result.current.error).toBeNull();
+      // Must emit a FAILED event to balance the STARTED already emitted,
+      // otherwise MetaMetrics is left with an orphan started event.
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_MONEY_ACCOUNT_LINKING_FAILED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          reason: CardLinkingFailureReason.CONTROLLER_FAILED,
+          error_name: 'CardLinkageInProgressError',
+        }),
+      );
     });
   });
 });

@@ -418,6 +418,15 @@ export const useMoneyAccountCardLinkage =
           }
 
           if (linkageError instanceof CardLinkageInProgressError) {
+            trackMoneyAccountLinkingEvent(
+              MetaMetricsEvents.CARD_MONEY_ACCOUNT_LINKING_FAILED,
+              {
+                entrypoint,
+                reason: CardLinkingFailureReason.CONTROLLER_FAILED,
+                error_name: linkageError.name,
+                is_revoke: isRevoke,
+              },
+            );
             setStatus('idle');
             setError(null);
             return false;
