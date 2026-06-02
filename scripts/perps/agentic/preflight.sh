@@ -776,7 +776,7 @@ if [ "$PLAT" = "ios" ]; then
       fi
     fi
 
-    if [ "$APP_INSTALLED" -eq 0 ]; then
+    if [ "$APP_INSTALLED" -eq 0 ] || $DO_REBUILD; then
 
     # Must pass --port (never --no-bundler): @expo/cli rejects that combo
     # (resolveBundlerProps.js), and without --port expo's headless bundler silently

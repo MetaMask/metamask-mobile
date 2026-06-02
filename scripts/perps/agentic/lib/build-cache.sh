@@ -236,7 +236,12 @@ bc__mkdir_lock_stale() {
     owner_pid=$(cat "$owner_file" 2>/dev/null || true)
     case "$owner_pid" in
       ''|*[!0-9]*) ;;
-      *) kill -0 "$owner_pid" 2>/dev/null || return 0 ;;
+      *)
+        if kill -0 "$owner_pid" 2>/dev/null; then
+          return 1
+        fi
+        return 0
+        ;;
     esac
   fi
 
