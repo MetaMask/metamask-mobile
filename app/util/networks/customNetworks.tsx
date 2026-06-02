@@ -367,6 +367,9 @@ export const NETWORK_CHAIN_ID: {
   readonly GRAVITY_ALPHA_MAINNET: '0x659';
   readonly KAIA_MAINNET: '0x2019';
   readonly KAIA_KAIROS_TESTNET: '0x3e9';
+  readonly FLUENT: '0x6313';
+  readonly FLUENT_TESTNET: '0x5202';
+  readonly FLUENT_DEVNET: '0x5201';
   readonly SONEIUM_MAINNET: '0x74c';
   readonly SONEIUM_MINATO_TESTNET: '0x79a';
   readonly XRPLEVM_TESTNET: '0x161c28';
@@ -451,6 +454,9 @@ export const NETWORK_CHAIN_ID: {
   TEMPO_MAINNET: '0x1079',
   CHILIZ: '0x15b38',
   STABLE_MAINNET: '0x3dc',
+  FLUENT: '0x6313',
+  FLUENT_TESTNET: '0x5202',
+  FLUENT_DEVNET: '0x5201',
   ...CHAIN_IDS,
 };
 
@@ -503,4 +509,7 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.CHILIZ]: require('../../images/chiliz.png'),
   [NETWORK_CHAIN_ID.STABLE_MAINNET]: require('../../images/stable.png'),
   [NETWORK_CHAIN_ID.MANTLE]: require('../../images/mantle.png'),
+  [NETWORK_CHAIN_ID.FLUENT]: require('../../images/fluent.png'),
+  [NETWORK_CHAIN_ID.FLUENT_TESTNET]: require('../../images/fluent.png'),
+  [NETWORK_CHAIN_ID.FLUENT_DEVNET]: require('../../images/fluent.png'),
 };
