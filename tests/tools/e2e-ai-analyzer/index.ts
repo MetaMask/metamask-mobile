@@ -5,7 +5,7 @@
  * Supports multiple LLM providers with automatic fallback.
  */
 
-import { ParsedArgs, AnalysisContext , SelectTagsAnalysis } from './types';
+import { ParsedArgs, AnalysisContext, SelectTagsAnalysis } from './types';
 import { APP_CONFIG, LLM_CONFIG } from './config';
 import {
   getAllChangedFiles,
