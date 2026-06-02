@@ -400,16 +400,20 @@ export function useQuickBuyController(
     destToken,
   );
 
+  // Derive both sides of the ratio from the same activeQuote so the rate is
+  // always internally consistent. Previously we mixed the live
+  // sourceTokenAmount (which jumps the moment the user commits a new slider
+  // value) with the stale estimatedReceiveAmount (still the previous quote's
+  // dest amount), producing nonsensical rates during the in-flight window
+  // between drag-end and the new quote arriving.
   const formattedRate = useMemo(() => {
-    if (
-      !sourceToken ||
-      !destToken ||
-      !sourceTokenAmount ||
-      !estimatedReceiveAmount
-    ) {
+    if (!sourceToken || !destToken || !activeQuote || !estimatedReceiveAmount) {
       return undefined;
     }
-    const sourceAmt = parseFloat(sourceTokenAmount);
+    const quoteSrcMinimal = activeQuote.quote.srcTokenAmount;
+    if (sourceToken.decimals == null || !quoteSrcMinimal) return undefined;
+    const sourceAmt =
+      parseFloat(quoteSrcMinimal) / Math.pow(10, sourceToken.decimals);
     const destAmt = parseFloat(estimatedReceiveAmount);
     if (!sourceAmt || !destAmt || isNaN(sourceAmt) || isNaN(destAmt))
       return undefined;
@@ -420,7 +424,7 @@ export function useQuickBuyController(
         : { minimumSignificantDigits: 2, maximumSignificantDigits: 3 }),
     });
     return `1 ${sourceToken.symbol} = ${formatter.format(rate)} ${destToken.symbol}`;
-  }, [sourceToken, destToken, sourceTokenAmount, estimatedReceiveAmount]);
+  }, [sourceToken, destToken, activeQuote, estimatedReceiveAmount]);
 
   const formattedPriceImpact = useMemo(() => {
     const priceImpact = activeQuote?.quote?.priceData?.priceImpact;
