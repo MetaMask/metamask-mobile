@@ -6559,6 +6559,7 @@
     "claimable_bonus_tooltip": "The annualized bonus you’ve earned for holding mUSD. Your bonus is claimable daily on Linea.",
     "earn_a_percentage_bonus": "Earn a {{percentage}}% bonus",
     "percentage_bonus": "{{percentage}}% bonus",
+    "get_percentage_bonus": "Get {{percentage}}% bonus",
     "claimable_bonus": "Claimable bonus",
     "claim_bonus": "Claim bonus",
     "claim_bonus_with_fiat": "Claim {{amount}}",

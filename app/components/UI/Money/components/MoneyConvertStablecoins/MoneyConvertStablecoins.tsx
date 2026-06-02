@@ -53,6 +53,7 @@ const { EVENT_LOCATIONS: MUSD_EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
 interface MoneyConvertStablecoinsProps {
   location: string;
+  preferredToken?: { address: string; chainId: string };
 }
 
 const FEATURE_TAGS = [
@@ -146,8 +147,9 @@ const Description = () => (
 
 const MoneyConvertStablecoins = ({
   location,
+  preferredToken,
 }: MoneyConvertStablecoinsProps) => {
-  const { tokens } = useMusdConversionTokens();
+  const { tokens } = useMusdConversionTokens(preferredToken);
   const { initiateMaxConversion, initiateCustomConversion } =
     useMusdConversion();
   const { trackEvent, createEventBuilder } = useAnalytics();

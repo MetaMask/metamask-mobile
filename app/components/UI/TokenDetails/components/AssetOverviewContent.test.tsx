@@ -186,6 +186,13 @@ jest.mock('../../../Views/Homepage/Sections/Cash/useCashNavigation', () => ({
   }),
 }));
 
+const mockInitiateCustomConversion = jest.fn();
+jest.mock('../../Earn/hooks/useMusdConversion', () => ({
+  useMusdConversion: () => ({
+    initiateCustomConversion: mockInitiateCustomConversion,
+  }),
+}));
+
 function createState(isEligible: boolean) {
   return {
     engine: {
@@ -1082,22 +1089,72 @@ describe('AssetOverviewContent', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders the hero "3% bonus" tag on the mUSD page and routes via useCashNavigation when pressed', () => {
+    it('renders the hero "3% bonus" tag on the mUSD page and routes via useCashNavigation when pressed and no aToken is held', () => {
       mockUseMusdConversionTokens.mockReturnValue({ tokens: [] });
 
-      const { getByTestId } = renderWithProvider(
+      const { getByTestId, getByText } = renderWithProvider(
         <AssetOverviewContent {...defaultProps} token={musdToken} />,
         { state: createState(true) },
       );
 
       const tag = getByTestId(TokenOverviewSelectorsIDs.MUSD_HERO_BONUS_TAG);
       expect(tag).toBeOnTheScreen();
+      expect(
+        getByText(strings('earn.percentage_bonus', { percentage: 3 })),
+      ).toBeOnTheScreen();
 
       fireEvent.press(tag);
       expect(mockNavigateToCash).toHaveBeenCalledTimes(1);
+      expect(mockInitiateCustomConversion).not.toHaveBeenCalled();
     });
 
-    it('does NOT render the hero "3% bonus" tag on a non-mUSD asset page', () => {
+    it('renders the hero "Get 3% bonus" tag on a stablecoin (USDC) asset page', () => {
+      const usdcToken: TokenI = {
+        ...defaultToken,
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        chainId: '0x1',
+        symbol: 'USDC',
+        name: 'USD Coin',
+      };
+      mockUseMusdConversionTokens.mockReturnValue({ tokens: [] });
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <AssetOverviewContent {...defaultProps} token={usdcToken} />,
+        { state: createState(true) },
+      );
+
+      expect(
+        getByTestId(TokenOverviewSelectorsIDs.MUSD_HERO_BONUS_TAG),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('earn.get_percentage_bonus', { percentage: 3 })),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders the hero "Get 3% bonus" tag on an aToken (aUSDC) asset page', () => {
+      const aUSDCToken: TokenI = {
+        ...defaultToken,
+        address: '0xbcca60bb61934080951369a648fb03df4f96263c',
+        chainId: '0x1',
+        symbol: 'aUSDC',
+        name: 'Aave USDC',
+      };
+      mockUseMusdConversionTokens.mockReturnValue({ tokens: [] });
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <AssetOverviewContent {...defaultProps} token={aUSDCToken} />,
+        { state: createState(true) },
+      );
+
+      expect(
+        getByTestId(TokenOverviewSelectorsIDs.MUSD_HERO_BONUS_TAG),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('earn.get_percentage_bonus', { percentage: 3 })),
+      ).toBeOnTheScreen();
+    });
+
+    it('does NOT render the hero bonus tag on a non-eligible asset page', () => {
       mockUseMusdConversionTokens.mockReturnValue({ tokens: [] });
 
       const { queryByTestId } = renderWithProvider(
@@ -1108,6 +1165,49 @@ describe('AssetOverviewContent', () => {
       expect(
         queryByTestId(TokenOverviewSelectorsIDs.MUSD_HERO_BONUS_TAG),
       ).toBeNull();
+    });
+
+    it('seeds the convert flow with the highest-balance aToken when the tag is pressed and an aToken is held', () => {
+      const aUSDC = createMockAtoken('aUSDC');
+      mockUseMusdConversionTokens.mockReturnValue({
+        tokens: [aUSDC],
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewContent {...defaultProps} token={musdToken} />,
+        { state: createState(true) },
+      );
+
+      fireEvent.press(
+        getByTestId(TokenOverviewSelectorsIDs.MUSD_HERO_BONUS_TAG),
+      );
+
+      expect(mockInitiateCustomConversion).toHaveBeenCalledWith({
+        preferredPaymentToken: {
+          address: aUSDC.address,
+          chainId: aUSDC.chainId,
+        },
+      });
+      expect(mockNavigateToCash).not.toHaveBeenCalled();
+    });
+
+    it('passes the viewed token as preferredToken to MoneyConvertStablecoins', () => {
+      mockUseMusdConversionTokens.mockReturnValue({ tokens: [] });
+
+      renderWithProvider(
+        <AssetOverviewContent {...defaultProps} token={musdToken} />,
+        { state: createState(true) },
+      );
+
+      expect(mockMoneyConvertStablecoins).toHaveBeenCalledWith(
+        expect.objectContaining({
+          preferredToken: {
+            address: musdToken.address,
+            chainId: musdToken.chainId,
+          },
+        }),
+        undefined,
+      );
     });
   });
 });

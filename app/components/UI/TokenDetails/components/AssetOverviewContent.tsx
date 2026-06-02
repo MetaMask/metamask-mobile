@@ -52,9 +52,11 @@ import { MONEY_EVENTS_CONSTANTS } from '../../Money/constants/moneyEvents';
 import { isTokenEligibleForMerklRewards } from '../../Earn/components/MerklRewards/hooks/useMerklRewards';
 import {
   isMusdToken,
+  isMusdConvertEligibleToken,
   MUSD_CONVERSION_APY,
   MUSD_CONVERSION_ATOKEN_SYMBOLS,
 } from '../../Earn/constants/musd';
+import { useMusdConversion } from '../../Earn/hooks/useMusdConversion';
 import {
   Tag,
   TagSeverity,
@@ -85,6 +87,7 @@ import {
   selectMarketInsightsEnabled,
 } from '../../MarketInsights';
 import { isCaipAssetType, type Hex } from '@metamask/utils';
+import { toHex } from '@metamask/controller-utils';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import SecurityTrustEntryCard from '../../SecurityTrust/components/SecurityTrustEntryCard/SecurityTrustEntryCard';
@@ -371,10 +374,25 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     selectIsMusdConversionFlowEnabledFlag,
   );
   const { isEligible: isMusdGeoEligible } = useMusdConversionEligibility();
+  const isMusd = isMusdToken(token.address);
   const showMusdConvertSection =
-    isMusdToken(token.address) &&
+    isMusdConvertEligibleToken({
+      symbol: token.symbol,
+      address: token.address,
+    }) &&
     isMusdConversionFlowEnabled &&
     isMusdGeoEligible;
+
+  let bonusTagLabel: string;
+  if (isMusd) {
+    bonusTagLabel = strings('earn.percentage_bonus', {
+      percentage: String(MUSD_CONVERSION_APY),
+    });
+  } else {
+    bonusTagLabel = strings('earn.get_percentage_bonus', {
+      percentage: String(MUSD_CONVERSION_APY),
+    });
+  }
 
   const { tokens: musdConvertibleTokens } = useMusdConversionTokens();
   const preferredAtoken = useMemo(
@@ -385,6 +403,28 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     [musdConvertibleTokens],
   );
   const { navigateToCash } = useCashNavigation();
+  const { initiateCustomConversion } = useMusdConversion();
+
+  const musdConvertPreferredToken = useMemo(
+    () =>
+      token.address && token.chainId
+        ? { address: token.address, chainId: token.chainId }
+        : undefined,
+    [token.address, token.chainId],
+  );
+
+  const handleBonusTagPress = useCallback(() => {
+    if (preferredAtoken?.address && preferredAtoken.chainId) {
+      initiateCustomConversion({
+        preferredPaymentToken: {
+          address: toHex(preferredAtoken.address),
+          chainId: toHex(preferredAtoken.chainId),
+        },
+      });
+      return;
+    }
+    navigateToCash();
+  }, [preferredAtoken, initiateCustomConversion, navigateToCash]);
 
   const securityConfig = useMemo(
     () => getResultTypeConfig(securityData?.resultType),
@@ -726,16 +766,12 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   )}
                   {showMusdConvertSection && (
                     <Pressable
-                      onPress={navigateToCash}
+                      onPress={handleBonusTagPress}
                       hitSlop={8}
                       testID={TokenOverviewSelectorsIDs.MUSD_HERO_BONUS_TAG}
                       style={styles.musdHeroBonusTagWrapper}
                     >
-                      <Tag severity={TagSeverity.Success}>
-                        {strings('earn.percentage_bonus', {
-                          percentage: String(MUSD_CONVERSION_APY),
-                        })}
-                      </Tag>
+                      <Tag severity={TagSeverity.Success}>{bonusTagLabel}</Tag>
                     </Pressable>
                   )}
                 </Box>
@@ -818,6 +854,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           {showMusdConvertSection && (
             <MoneyConvertStablecoins
               location={MONEY_EVENTS_CONSTANTS.EVENT_LOCATIONS.ASSET_DETAIL}
+              preferredToken={musdConvertPreferredToken}
             />
           )}
           {
