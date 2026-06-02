@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View } from 'react-native';
-import type { StyleProp, ViewStyle } from 'react-native';
+import { type StyleProp, View, type ViewStyle } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import {

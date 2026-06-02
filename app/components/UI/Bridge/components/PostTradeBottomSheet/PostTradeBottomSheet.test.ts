@@ -1,13 +1,8 @@
 import { getTradeSubtitle } from './index';
 import type { BridgeToken } from '../../types';
 
-const sourceToken = {
-  symbol: 'ETH',
-} as BridgeToken;
-
-const destToken = {
-  symbol: 'USDC',
-} as BridgeToken;
+const sourceToken = { symbol: 'ETH' } as BridgeToken;
+const destToken = { symbol: 'USDC' } as BridgeToken;
 
 describe('getTradeSubtitle', () => {
   it('formats token amounts like secondary token values in token inputs', () => {

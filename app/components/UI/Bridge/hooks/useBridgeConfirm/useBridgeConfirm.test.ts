@@ -13,7 +13,6 @@ import {
 } from '../../components/PostTradeBottomSheet/abTestConfig';
 import { mockBridgeReducerState } from '../../_mocks_/bridgeReducerState';
 import type { RootState } from '../../../../../reducers';
-import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 
 const WALLET_ADDRESS = '0x1234567890123456789012345678901234567890';
 
@@ -73,7 +72,7 @@ jest.mock('../../../../../selectors/confirmTransaction');
 
 function renderHook(
   params: Parameters<typeof useBridgeConfirm>[0] = defaultParams,
-  state: DeepPartial<RootState> = {},
+  state = {},
 ) {
   return renderHookWithProvider(() => useBridgeConfirm(params), { state });
 }
