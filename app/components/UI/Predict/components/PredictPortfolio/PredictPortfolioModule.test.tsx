@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictPortfolio } from '../../hooks/usePredictPortfolio';
@@ -11,6 +12,8 @@ const mockNavigate = jest.fn();
 const mockExecuteGuardedAction = jest.fn((action: () => void | Promise<void>) =>
   action(),
 );
+const mockTrackPortfolioModuleViewed = jest.fn();
+const mockTrackPortfolioAction = jest.fn();
 let mockPrivacyMode = false;
 let mockEnableDepositWalletWithdraw = false;
 
@@ -84,10 +87,12 @@ const createPortfolio = (overrides = {}) => ({
   availableBalance: 0,
   claim: mockClaim,
   claimableAmount: 0,
+  claimablePositionCount: 0,
   deposit: mockDeposit,
   hasClaimableWinnings: false,
   isClaimPending: false,
   isLoading: false,
+  openPositionCount: 0,
   portfolioValue: 0,
   positionsBadgeCount: 0,
   showPnlLine: false,
@@ -99,12 +104,43 @@ const createPortfolio = (overrides = {}) => ({
   ...overrides,
 });
 
+const expectedPortfolioContext = (overrides: Record<string, unknown> = {}) => ({
+  positionsCount: 0,
+  claimablePositionsCount: 0,
+  hasClaimableWinnings: false,
+  source: PredictEventValues.SOURCE.PREDICT_PORTFOLIO_MODULE,
+  ...overrides,
+});
+
+const expectPortfolioActionTracked = (
+  ctaName: string,
+  entryPoint: string,
+  overrides: Record<string, unknown> = {},
+) => {
+  expect(mockTrackPortfolioAction).toHaveBeenCalledWith(
+    expectedPortfolioContext({
+      ...overrides,
+      ctaName,
+      entryPoint,
+    }),
+  );
+};
+
 describe('PredictPortfolioModule', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockPrivacyMode = false;
     mockEnableDepositWalletWithdraw = false;
     mockUsePredictPortfolio.mockReturnValue(createPortfolio());
+    const predictController = {
+      trackPortfolioModuleViewed: mockTrackPortfolioModuleViewed,
+      trackPortfolioAction: mockTrackPortfolioAction,
+    };
+    (
+      Engine.context as unknown as {
+        PredictController: typeof predictController;
+      }
+    ).PredictController = predictController;
   });
 
   it('renders the first-time state with visible actions', () => {
@@ -190,6 +226,49 @@ describe('PredictPortfolioModule', () => {
     expect(screen.getByText('Positions')).toBeOnTheScreen();
   });
 
+  it('tracks portfolio module viewed with count context after loading completes', () => {
+    mockUsePredictPortfolio.mockReturnValue(
+      createPortfolio({
+        availableBalance: 250,
+        claimableAmount: 46.35,
+        claimablePositionCount: 1,
+        hasClaimableWinnings: true,
+        openPositionCount: 2,
+        portfolioValue: 4000,
+        totalUnrealizedPnlAmount: -18.47,
+      }),
+    );
+
+    renderWithProvider(<PredictPortfolioModule />);
+
+    expect(mockTrackPortfolioModuleViewed).toHaveBeenCalledWith(
+      expectedPortfolioContext({
+        entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+        positionsCount: 2,
+        claimablePositionsCount: 1,
+        hasClaimableWinnings: true,
+      }),
+    );
+
+    const payload = mockTrackPortfolioModuleViewed.mock.calls[0][0];
+    expect(payload).not.toHaveProperty('availableBalance');
+    expect(payload).not.toHaveProperty('claimableAmount');
+    expect(payload).not.toHaveProperty('portfolioValue');
+    expect(payload).not.toHaveProperty('totalUnrealizedPnlAmount');
+  });
+
+  it('does not track portfolio module viewed while portfolio data is loading', () => {
+    mockUsePredictPortfolio.mockReturnValue(
+      createPortfolio({
+        isLoading: true,
+      }),
+    );
+
+    renderWithProvider(<PredictPortfolioModule />);
+
+    expect(mockTrackPortfolioModuleViewed).not.toHaveBeenCalled();
+  });
+
   it('routes add funds press through the existing guarded flow', () => {
     renderWithProvider(<PredictPortfolioModule />);
 
@@ -201,6 +280,10 @@ describe('PredictPortfolioModule', () => {
         entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
       },
     });
+    expectPortfolioActionTracked(
+      PredictEventValues.CTA_NAME.ADD_FUNDS,
+      PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
+    );
   });
 
   it('opens the withdraw fallback for deposit wallets without withdraw support', () => {
@@ -221,6 +304,10 @@ describe('PredictPortfolioModule', () => {
       screen.getByTestId(PREDICT_PORTFOLIO_TEST_IDS.ACTION_WITHDRAW),
     );
     expect(onDepositWalletWithdrawPress).toHaveBeenCalled();
+    expectPortfolioActionTracked(
+      PredictEventValues.CTA_NAME.WITHDRAW,
+      PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
+    );
   });
 
   it('does not open withdraw fallback while wallet type is loading', () => {
@@ -249,6 +336,7 @@ describe('PredictPortfolioModule', () => {
 
     expect(onDepositWalletWithdrawPress).not.toHaveBeenCalled();
     expect(mockWithdraw).not.toHaveBeenCalled();
+    expect(mockTrackPortfolioAction).not.toHaveBeenCalled();
   });
 
   it('uses the real withdraw path when the wallet type supports it', () => {
@@ -265,6 +353,10 @@ describe('PredictPortfolioModule', () => {
     );
 
     expect(mockWithdraw).toHaveBeenCalled();
+    expectPortfolioActionTracked(
+      PredictEventValues.CTA_NAME.WITHDRAW,
+      PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
+    );
   });
 
   it('uses the claim flow from the shared portfolio model', () => {
@@ -282,6 +374,11 @@ describe('PredictPortfolioModule', () => {
     );
 
     expect(mockClaim).toHaveBeenCalled();
+    expectPortfolioActionTracked(
+      PredictEventValues.CTA_NAME.CLAIM_ALL,
+      PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+      { hasClaimableWinnings: true },
+    );
   });
 
   it('uses the temporary Positions fallback until the route lands', () => {
@@ -294,5 +391,9 @@ describe('PredictPortfolioModule', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.MARKET_LIST, {
       entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
     });
+    expectPortfolioActionTracked(
+      PredictEventValues.CTA_NAME.POSITIONS,
+      PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+    );
   });
 });
