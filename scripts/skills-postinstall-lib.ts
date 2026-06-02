@@ -214,3 +214,17 @@ export function postinstall(deps?: PostinstallDeps): number {
 
   return 0;
 }
+
+export default {
+  autoUpdateSkills,
+  ensurePublicSkillsCache,
+  getConfigValue,
+  isGitDir,
+  parseSkillsLocal,
+  postinstall,
+  readSkillsLocal,
+  run,
+  shouldAutoUpdateSkills,
+  shouldSkipPostinstall,
+  warn,
+};

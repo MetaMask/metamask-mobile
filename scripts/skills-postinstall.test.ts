@@ -20,6 +20,18 @@ function statGitDir(existing: boolean): typeof import('fs').statSync {
   }) as unknown as typeof import('fs').statSync;
 }
 
+function readSkillsLocal(content: string): typeof import('fs').readFileSync {
+  return (() => content) as unknown as typeof import('fs').readFileSync;
+}
+
+function testEnv(values: Partial<NodeJS.ProcessEnv> = {}): NodeJS.ProcessEnv {
+  const env = { ...process.env, ...values };
+  if (!Object.prototype.hasOwnProperty.call(values, 'SKILLS_AUTO_UPDATE')) {
+    delete env.SKILLS_AUTO_UPDATE;
+  }
+  return env as NodeJS.ProcessEnv;
+}
+
 function spawnWithStatuses(
   statuses: number[],
 ): typeof import('child_process').spawnSync {
@@ -42,10 +54,10 @@ describe('skills-postinstall', () => {
   const cacheDir = '.skills-cache/metamask-skills';
 
   it('skips when explicitly disabled or running in CI without force', () => {
-    expect(shouldSkipPostinstall({ SKILLS_SKIP_POSTINSTALL: '1' })).toBe(true);
-    expect(shouldSkipPostinstall({ CI: 'true' })).toBe(true);
+    expect(shouldSkipPostinstall(testEnv({ SKILLS_SKIP_POSTINSTALL: '1' }))).toBe(true);
+    expect(shouldSkipPostinstall(testEnv({ CI: 'true' }))).toBe(true);
     expect(
-      shouldSkipPostinstall({ CI: 'true', SKILLS_FORCE_POSTINSTALL: '1' }),
+      shouldSkipPostinstall(testEnv({ CI: 'true', SKILLS_FORCE_POSTINSTALL: '1' })),
     ).toBe(false);
   });
 
@@ -61,17 +73,21 @@ describe('skills-postinstall', () => {
   });
 
   it('only auto-updates generated skills when explicitly opted in', () => {
-    expect(shouldAutoUpdateSkills({})).toBe(false);
-    expect(shouldAutoUpdateSkills({ SKILLS_AUTO_UPDATE: '0' })).toBe(false);
-    expect(shouldAutoUpdateSkills({ SKILLS_AUTO_UPDATE: '1' })).toBe(true);
-    expect(shouldAutoUpdateSkills({ SKILLS_AUTO_UPDATE: 'true' })).toBe(true);
-    expect(shouldAutoUpdateSkills({ SKILLS_AUTO_UPDATE: 'YES' })).toBe(true);
-    expect(shouldAutoUpdateSkills({}, () => 'SKILLS_AUTO_UPDATE=1\n')).toBe(
-      true,
-    );
+    expect(shouldAutoUpdateSkills(testEnv())).toBe(false);
+    expect(shouldAutoUpdateSkills(testEnv({ SKILLS_AUTO_UPDATE: '0' }))).toBe(false);
+    expect(shouldAutoUpdateSkills(testEnv({ SKILLS_AUTO_UPDATE: '1' }))).toBe(true);
+    expect(shouldAutoUpdateSkills(testEnv({ SKILLS_AUTO_UPDATE: 'true' }))).toBe(true);
+    expect(shouldAutoUpdateSkills(testEnv({ SKILLS_AUTO_UPDATE: 'YES' }))).toBe(true);
     expect(
-      shouldAutoUpdateSkills({ SKILLS_AUTO_UPDATE: '0' }, () =>
-        'SKILLS_AUTO_UPDATE=1\n',
+      shouldAutoUpdateSkills(
+        testEnv(),
+        readSkillsLocal('SKILLS_AUTO_UPDATE=1\n'),
+      ),
+    ).toBe(true);
+    expect(
+      shouldAutoUpdateSkills(
+        testEnv({ SKILLS_AUTO_UPDATE: '0' }),
+        readSkillsLocal('SKILLS_AUTO_UPDATE=1\n'),
       ),
     ).toBe(false);
   });
@@ -87,7 +103,7 @@ describe('skills-postinstall', () => {
 
     expect(
       ensurePublicSkillsCache({
-        env: {},
+        env: testEnv(),
         mkdir,
         spawn,
         stat: statGitDir(false),
@@ -113,7 +129,7 @@ describe('skills-postinstall', () => {
   it('does not run yarn skills by default', () => {
     const spawn = spawnWithStatuses([0, 0]);
 
-    expect(postinstall({ env: {}, spawn, stat: statGitDir(true) })).toBe(0);
+    expect(postinstall({ env: testEnv(), spawn, stat: statGitDir(true) })).toBe(0);
 
     expect(spawn).toHaveBeenCalledTimes(2);
   });
@@ -123,7 +139,7 @@ describe('skills-postinstall', () => {
 
     expect(
       postinstall({
-        env: { SKILLS_AUTO_UPDATE: '1' },
+        env: testEnv({ SKILLS_AUTO_UPDATE: '1' }),
         spawn,
         stat: statGitDir(true),
       }),
@@ -139,9 +155,10 @@ describe('skills-postinstall', () => {
 
     expect(
       postinstall({
-        env: {},
-        readFile: () =>
+        env: testEnv(),
+        readFile: readSkillsLocal(
           'SKILLS_AUTO_UPDATE=1\nMETAMASK_SKILLS_DIR=/tmp/metamask-skills\n',
+        ),
         spawn,
         stat: statGitDir(false),
       }),
@@ -166,7 +183,7 @@ describe('skills-postinstall', () => {
   it('returns without side effects when postinstall is skipped', () => {
     const spawn = spawnWithStatuses([]);
 
-    expect(postinstall({ env: { SKILLS_SKIP_POSTINSTALL: '1' }, spawn })).toBe(
+    expect(postinstall({ env: testEnv({ SKILLS_SKIP_POSTINSTALL: '1' }), spawn })).toBe(
       0,
     );
     expect(spawn).not.toHaveBeenCalled();
