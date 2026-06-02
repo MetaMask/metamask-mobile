@@ -20,13 +20,21 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'predict.sports_market_types.spreads': 'Spreads',
       'predict.sports_market_types.totals': 'Totals',
       'predict.sports_market_types.points': 'Points',
+      'predict.sports_market_types.basketball_total_points': 'Totals',
+      'predict.sports_market_types.basketball_odd_even': 'Odd/Even Score',
+      'predict.sports_market_types.basketball_team_to_score_first':
+        'Team to Score First',
       'predict.sports_market_types.tennis_set_totals': 'Total Sets',
+      'predict.sports_market_types.tennis_set_handicap': 'Set Handicap',
       'predict.sports_market_types.tennis_match_totals': 'Total Games',
       'predict.sports_market_types.tennis_first_set_totals':
         '1st Set Total Games',
       'predict.sports_market_types.tennis_first_set_winner': '1st Set Winner',
       'predict.sports_market_types.tennis_completed_match': 'Completed Match',
     };
+    if (key.startsWith('predict.sports_market_types.basketball_')) {
+      return translations[key] ?? `[missing "${key}" translation]`;
+    }
     return translations[key] ?? key;
   }),
 }));
@@ -200,9 +208,21 @@ describe('PredictGameOutcomesTab', () => {
       expect(getSportsMarketTypeLabel('moneyline')).toBe('Moneyline');
     });
 
+    it('returns translated label for basketball market types', () => {
+      expect(getSportsMarketTypeLabel('basketball_odd_even')).toBe(
+        'Odd/Even Score',
+      );
+      expect(getSportsMarketTypeLabel('basketball_team_to_score_first')).toBe(
+        'Team to Score First',
+      );
+    });
+
     it('returns translated label for tennis market types', () => {
       expect(getSportsMarketTypeLabel('tennis_match_totals')).toBe(
         'Total Games',
+      );
+      expect(getSportsMarketTypeLabel('tennis_set_handicap')).toBe(
+        'Set Handicap',
       );
       expect(getSportsMarketTypeLabel('tennis_first_set_winner')).toBe(
         '1st Set Winner',
@@ -211,6 +231,12 @@ describe('PredictGameOutcomesTab', () => {
 
     it('returns title-cased fallback for unknown type', () => {
       expect(getSportsMarketTypeLabel('unknown_type')).toBe('Unknown Type');
+    });
+
+    it('returns provided fallback when translation is missing', () => {
+      expect(
+        getSportsMarketTypeLabel('basketball_unknown_market', 'Fallback Title'),
+      ).toBe('Fallback Title');
     });
   });
 
@@ -448,6 +474,79 @@ describe('PredictGameOutcomesTab', () => {
       expect(mockCapturedCards).toHaveLength(1);
       expect(mockCapturedCards[0].lines).toEqual([3.5, 7.5]);
       expect(mockCapturedCards[0].selectedLine).toBe(3.5);
+    });
+
+    it('uses outcome title when subgroup market type translation is missing', () => {
+      const subgroups: PredictOutcomeGroup[] = [
+        createGroup({
+          key: 'basketball_unknown_market',
+          outcomes: [
+            createOutcome({
+              id: 'odd-even',
+              groupItemTitle: 'Odd/Even',
+              title: 'Odd/Even',
+            }),
+          ],
+        }),
+      ];
+      const groups = [
+        createGroup({ key: 'game_lines', outcomes: [], subgroups }),
+      ];
+
+      render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards[0].title).toBe('Odd/Even');
+    });
+
+    it('uses selected line title when line market type translation is missing', () => {
+      const subgroups: PredictOutcomeGroup[] = [
+        createGroup({
+          key: 'basketball_unknown_line_market',
+          outcomes: [
+            createOutcome({
+              id: 'total-198',
+              line: 198.5,
+              groupItemTitle: 'Total Points 198.5',
+              title: 'Total Points 198.5',
+            }),
+            createOutcome({
+              id: 'total-199',
+              line: 199.5,
+              groupItemTitle: 'Total Points 199.5',
+              title: 'Total Points 199.5',
+            }),
+          ],
+        }),
+      ];
+      const groups = [
+        createGroup({ key: 'game_lines', outcomes: [], subgroups }),
+      ];
+
+      const { getByTestId } = render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards[0].title).toBe('Total Points 198.5');
+
+      mockCapturedCards = [];
+      fireEvent(
+        getByTestId('game_lines-basketball_unknown_line_market-0-line-1-199.5'),
+        'touchEnd',
+      );
+
+      expect(mockCapturedCards[0].title).toBe('Total Points 199.5');
     });
   });
 
