@@ -109,8 +109,7 @@ export function useAutomaticTransactionPayToken({
     selectPaymentOverrideByTransactionId(state, transactionId ?? ''),
   );
   const isMoneyPaymentOverride =
-    paymentOverride === PaymentOverride.MoneyAccount &&
-    !postQuoteTransactionType;
+    paymentOverride === PaymentOverride.MoneyAccount;
   const accountOverride = useTransactionAccountOverride();
   const lastWithdrawToken = useSelector((state: RootState) =>
     selectLastWithdrawTokenByType(state, postQuoteTransactionType),
@@ -277,8 +276,7 @@ export function useAutomaticTransactionPayToken({
       hasFiatPaymentSelected ||
       !from ||
       isMoneyPaymentOverride !== true ||
-      isMoneyPaymentOverride === prev ||
-      postQuoteTransactionType
+      isMoneyPaymentOverride === prev
     ) {
       return;
     }

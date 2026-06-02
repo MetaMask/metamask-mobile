@@ -76,12 +76,51 @@ async function getMoneyAccountWithdrawPaymentOverrideData<
   ];
 }
 
-async function getMoneyAccountDepositPaymentOverrideData(
-  amountHuman: string,
-): Promise<BatchTransactionParams[]> {
+async function getMoneyAccountDepositPaymentOverrideData<
+  T extends SignMessenger,
+>(messenger: T, amountHuman: string): Promise<BatchTransactionParams[]> {
+  const state = ReduxService.store.getState() as RootState;
+  const primaryMoneyAccount = selectPrimaryMoneyAccount(state);
+  if (!primaryMoneyAccount?.address) return [];
+
+  const moneyAccountAddress = primaryMoneyAccount.address as Hex;
   const chainId = CHAIN_IDS.MONAD as Hex;
 
-  return await getMoneyAccountDepositTransactionsData(chainId, amountHuman);
+  const txs = await getMoneyAccountDepositTransactionsData(
+    chainId,
+    amountHuman,
+  );
+  if (!txs.length) return [];
+
+  const { NetworkController } = Engine.context;
+  const networkClientId =
+    NetworkController.findNetworkClientIdByChainId(chainId);
+
+  const transactionMeta = {
+    id: `money-account-deposit-${Date.now()}`,
+    chainId,
+    networkClientId,
+    status: TransactionStatus.unapproved,
+    time: Date.now(),
+    txParams: {
+      from: moneyAccountAddress,
+    },
+    nestedTransactions: txs.map((tx) => ({
+      to: tx.params.to,
+      data: tx.params.data,
+      value: tx.params.value,
+    })),
+  } as TransactionMeta;
+
+  const delegation = await getDelegationTransaction(messenger, transactionMeta);
+
+  return [
+    {
+      to: delegation.to,
+      data: delegation.data,
+      value: delegation.value,
+    },
+  ];
 }
 
 export async function getPaymentOverrideData<T extends SignMessenger>(
