@@ -1471,7 +1471,11 @@ const MainNavigator = () => {
       {
         ///: END:ONLY_INCLUDE_IF
       }
-      <Stack.Screen name={Routes.CARD.ROOT} component={CardRoutes} />
+      <Stack.Screen
+        name={Routes.CARD.ROOT}
+        component={CardRoutes}
+        options={{ presentation: 'modal' }}
+      />
       <Stack.Screen
         name={Routes.RAMP.MODALS.PROCESSING_INFO}
         component={ProcessingInfoModal}
