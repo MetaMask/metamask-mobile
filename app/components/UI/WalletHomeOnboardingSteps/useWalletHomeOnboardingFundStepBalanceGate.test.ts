@@ -98,6 +98,41 @@ describe('useWalletHomeOnboardingFundStepBalanceGate', () => {
     expect(result.current).toBe(true);
   });
 
+  it('does not advance when balance becomes positive after the zero-balance grace period', () => {
+    const { result, rerender } = renderHook(
+      (
+        props: Parameters<typeof useWalletHomeOnboardingFundStepBalanceGate>[0],
+      ) => useWalletHomeOnboardingFundStepBalanceGate(props),
+      {
+        initialProps: {
+          enabled: true,
+          accountGroupBalance: { totalBalanceInUserCurrency: 0 },
+          groupId: 'wallet-1/group-1',
+        },
+      },
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(
+        WALLET_HOME_ONBOARDING_FUND_STEP_ZERO_BALANCE_GRACE_MS,
+      );
+    });
+
+    rerender({
+      enabled: true,
+      accountGroupBalance: { totalBalanceInUserCurrency: 250 },
+      groupId: 'wallet-1/group-1',
+    });
+
+    act(() => {
+      jest.advanceTimersByTime(
+        WALLET_HOME_ONBOARDING_FUND_STEP_POSITIVE_BALANCE_DEBOUNCE_MS,
+      );
+    });
+
+    expect(result.current).toBe(false);
+  });
+
   it('does not advance when a positive reading corrects to zero before debounce', () => {
     const { result, rerender } = renderHook(
       (

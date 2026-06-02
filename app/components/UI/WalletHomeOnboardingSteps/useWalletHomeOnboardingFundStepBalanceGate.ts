@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type MutableRefObject } from 'react';
+import { useEffect, useRef, useState, type RefObject } from 'react';
 
 /** Debounce before auto-advancing fund step on a positive aggregate balance. */
 export const WALLET_HOME_ONBOARDING_FUND_STEP_POSITIVE_BALANCE_DEBOUNCE_MS = 300;
@@ -22,7 +22,7 @@ export interface UseWalletHomeOnboardingFundStepBalanceGateParams {
 }
 
 function clearTimeoutRef(
-  timeoutRef: MutableRefObject<ReturnType<typeof setTimeout> | null>,
+  timeoutRef: RefObject<ReturnType<typeof setTimeout> | null>,
 ): void {
   if (timeoutRef.current !== null) {
     clearTimeout(timeoutRef.current);
@@ -48,6 +48,7 @@ export function useWalletHomeOnboardingFundStepBalanceGate({
     null,
   );
   const zeroGraceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasZeroGraceExpiredRef = useRef(false);
   const trackedGroupIdRef = useRef<string | null>(null);
   const accountGroupBalanceRef = useRef(accountGroupBalance);
   accountGroupBalanceRef.current = accountGroupBalance;
@@ -64,6 +65,7 @@ export function useWalletHomeOnboardingFundStepBalanceGate({
     if (!enabled) {
       clearTimeoutRef(positiveDebounceRef);
       clearTimeoutRef(zeroGraceRef);
+      hasZeroGraceExpiredRef.current = false;
       trackedGroupIdRef.current = null;
       setCanAdvanceFundStepAfterBalance(false);
       return;
@@ -72,6 +74,7 @@ export function useWalletHomeOnboardingFundStepBalanceGate({
     if (trackedGroupIdRef.current !== groupId) {
       clearTimeoutRef(positiveDebounceRef);
       clearTimeoutRef(zeroGraceRef);
+      hasZeroGraceExpiredRef.current = false;
       trackedGroupIdRef.current = groupId;
       setCanAdvanceFundStepAfterBalance(false);
     }
@@ -80,6 +83,10 @@ export function useWalletHomeOnboardingFundStepBalanceGate({
     const isPositive = balance !== null && balance > 0;
 
     if (isPositive) {
+      if (hasZeroGraceExpiredRef.current) {
+        return;
+      }
+
       clearTimeoutRef(zeroGraceRef);
 
       if (positiveDebounceRef.current !== null) {
@@ -90,7 +97,11 @@ export function useWalletHomeOnboardingFundStepBalanceGate({
         positiveDebounceRef.current = null;
         const latestBalance =
           accountGroupBalanceRef.current?.totalBalanceInUserCurrency ?? null;
-        if (latestBalance !== null && latestBalance > 0) {
+        if (
+          !hasZeroGraceExpiredRef.current &&
+          latestBalance !== null &&
+          latestBalance > 0
+        ) {
           setCanAdvanceFundStepAfterBalance(true);
         }
       }, WALLET_HOME_ONBOARDING_FUND_STEP_POSITIVE_BALANCE_DEBOUNCE_MS);
@@ -103,9 +114,10 @@ export function useWalletHomeOnboardingFundStepBalanceGate({
     clearTimeoutRef(positiveDebounceRef);
     setCanAdvanceFundStepAfterBalance(false);
 
-    if (zeroGraceRef.current === null) {
+    if (zeroGraceRef.current === null && !hasZeroGraceExpiredRef.current) {
       zeroGraceRef.current = setTimeout(() => {
         zeroGraceRef.current = null;
+        hasZeroGraceExpiredRef.current = true;
       }, WALLET_HOME_ONBOARDING_FUND_STEP_ZERO_BALANCE_GRACE_MS);
     }
 
