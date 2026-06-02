@@ -35,10 +35,9 @@ export const TokenListControlBar = ({
   const additionalButtons = showAddToken ? (
     <ButtonIcon
       testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
-      size={ButtonIconSize.Lg}
+      size={ButtonIconSize.Md}
       onPress={goToAddToken}
       iconName={IconName.Add}
-      style={styles.controlIconButton}
     />
   ) : undefined;
 

@@ -26,6 +26,7 @@ import { TokenList } from './TokenList/TokenList';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { refreshTokens, goToAddEvmToken } from './util';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Box } from '@metamask/design-system-react-native';
 import { TokenListControlBar } from './TokenListControlBar/TokenListControlBar';
 import { selectSelectedInternalAccountId } from '../../../selectors/accountsController';
@@ -98,6 +99,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     ref,
   ) => {
     const navigation = useNavigation();
+    const { bottom: bottomInset } = useSafeAreaInsets();
     const { trackEvent, createEventBuilder } = useAnalytics();
     const tw = useTailwind();
 
@@ -313,6 +315,9 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
         return (
           <ScrollView
             style={tw`flex-1`}
+            contentContainerStyle={
+              isFullView ? { paddingBottom: bottomInset } : undefined
+            }
             showsVerticalScrollIndicator={false}
             refreshControl={refreshControl}
           >
@@ -343,6 +348,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       listFooterComponent,
       refreshControl,
       hideSecondaryPriceRow,
+      bottomInset,
     ]);
 
     return (
@@ -355,7 +361,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
             goToAddToken={goToAddToken}
             showAddToken={!showOnlyMusd}
             hideSort={showOnlyMusd}
-            style={isFullView ? tw`px-4 pb-4` : undefined}
+            style={isFullView ? tw`px-4 pb-3` : undefined}
           />
         )}
         {tokenContent}
