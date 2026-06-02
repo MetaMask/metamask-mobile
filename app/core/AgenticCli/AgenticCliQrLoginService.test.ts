@@ -7,7 +7,7 @@ import type { AgenticCliConnectionRequest } from './agenticCliConnectionRequest'
 const mockGetBuildType = jest.fn(() => 'main_prod');
 
 jest.mock('../OAuthService/OAuthLoginHandlers/constants', () => ({
-  getBuildType: (...args: unknown[]) => mockGetBuildType(...args),
+  getBuildType: jest.fn(() => mockGetBuildType()),
 }));
 
 jest.mock('../AppConstants', () => ({

@@ -1,4 +1,4 @@
-import { decompressPayloadB64 } from '../SDKConnectV2/utils/compression-utils';
+import { decompressPayloadB64 } from './compression-utils';
 
 /**
  * Parses the raw JSON payload from an MWP connect deeplink.

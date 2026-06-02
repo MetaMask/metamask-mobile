@@ -13,7 +13,7 @@ import { Connection } from './connection';
 import { ConnectionInfo } from '../types/connection-info';
 import logger, { redactUrl } from './logger';
 import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
-import { parseMwpConnectPayload } from '../../mwp/parseMwpConnectDeeplink';
+import { parseMwpConnectPayload } from '../utils/parseMwpConnectDeeplink';
 import {
   handleAgenticCliConnectDeeplink,
   isAgenticCliDeeplink,

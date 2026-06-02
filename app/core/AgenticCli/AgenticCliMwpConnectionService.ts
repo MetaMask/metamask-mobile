@@ -9,7 +9,7 @@ import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilde
 import { INTERNAL_ORIGINS } from '../../constants/transaction';
 import { TransportType } from '../../components/hooks/useAnalytics/useAnalytics.types';
 import Logger from '../../util/Logger';
-import { parseMwpConnectPayload } from '../mwp/parseMwpConnectDeeplink';
+import { parseMwpConnectPayload } from '../SDKConnectV2/utils/parseMwpConnectDeeplink';
 import { Connection } from '../SDKConnectV2/services/connection';
 import logger, { redactUrl } from '../SDKConnectV2/services/logger';
 import { ConnectionInfo } from '../SDKConnectV2/types/connection-info';
