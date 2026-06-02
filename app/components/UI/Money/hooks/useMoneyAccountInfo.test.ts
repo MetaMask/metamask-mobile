@@ -15,7 +15,6 @@ jest.mock('../../../../selectors/moneyAccountController', () => ({
 
 jest.mock('../selectors/featureFlags', () => ({
   selectMoneyEnableMoneyAccountFlag: jest.fn(),
-  selectMoneyHomeScreenEnabledFlag: jest.fn(),
   selectMoneyActivityMockDataEnabledFlag: jest.fn(),
   selectMoneyHubEnabledFlag: jest.fn(),
 }));

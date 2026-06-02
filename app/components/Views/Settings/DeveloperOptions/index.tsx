@@ -22,9 +22,10 @@ import { ConfirmationsDeveloperOptions } from '../../confirmations/components/de
 import { selectIsMusdConversionFlowEnabledFlag } from '../../../UI/Earn/selectors/featureFlags';
 import { MusdDeveloperOptionsSection } from '../../../UI/Earn/components/MusdDeveloperOptionsSection';
 import { CardDeveloperOptionsSection } from '../../../UI/Card/components/CardDeveloperOptionsSection';
-import { selectMoneyHomeScreenEnabledFlag } from '../../../UI/Money/selectors/featureFlags';
+import { selectMoneyEnableMoneyAccountFlag } from '../../../UI/Money/selectors/featureFlags';
 import { MoneyUiDeveloperOptionsSection } from '../../../UI/Money/components/MoneyUiDeveloperOptionsSection';
 import NotificationsDeveloperOptionsSection from '../../../UI/Notification/DeveloperOptionsSection/NotificationsDeveloperOptionsSection';
+import NavigationDevPanelSection from './NavigationDevPanelSection';
 
 const DeveloperOptions = () => {
   const navigation = useNavigation();
@@ -39,7 +40,7 @@ const DeveloperOptions = () => {
   const isMusdConversionEnabled = useSelector(
     selectIsMusdConversionFlowEnabledFlag,
   );
-  const isMoneyHomeEnabled = useSelector(selectMoneyHomeScreenEnabledFlag);
+  const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
 
   useEffect(() => {
     navigation.setOptions(
@@ -58,6 +59,7 @@ const DeveloperOptions = () => {
       style={styles.wrapper}
       contentContainerStyle={styles.contentContainer}
     >
+      <NavigationDevPanelSection />
       <SentryTest />
       {
         ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -69,7 +71,7 @@ const DeveloperOptions = () => {
       {isPerpsEnabled && <PerpsDeveloperOptionsSection />}
       <ConfirmationsDeveloperOptions />
       {isMusdConversionEnabled && <MusdDeveloperOptionsSection />}
-      {isMoneyHomeEnabled && <MoneyUiDeveloperOptionsSection />}
+      {isMoneyAccountEnabled && <MoneyUiDeveloperOptionsSection />}
       <CardDeveloperOptionsSection />
       <IdentityDeveloperOptionsSection />
       <NotificationsDeveloperOptionsSection />

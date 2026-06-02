@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
+import { Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
   Box,
@@ -21,6 +22,8 @@ import {
   HYPERTRACKER_ATTRIBUTION_URL,
   PERPS_TRADING_MAX_WINNERS,
 } from '../../utils/perpsCampaignConstants';
+import HyperTrackerLogo from '../../../../../images/rewards/hypertracker.svg';
+import { useTheme } from '../../../../../util/theme';
 
 export const PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS = {
   CONTAINER: 'perps-campaign-leaderboard-container',
@@ -34,6 +37,7 @@ export const PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS = {
   NOT_YET_COMPUTED: 'perps-campaign-leaderboard-not-yet-computed',
   TOTAL_PARTICIPANTS: 'perps-campaign-leaderboard-total-participants',
   POWERED_BY: 'perps-campaign-leaderboard-powered-by',
+  HYPERTRACKER_LOGO: 'perps-campaign-leaderboard-hypertracker-logo',
 } as const;
 
 const MAX_ENTRIES_LIMIT = 20;
@@ -73,6 +77,7 @@ const PerpsTradingCampaignLeaderboard: React.FC<
   isCampaignComplete = false,
 }) => {
   const navigation = useNavigation();
+  const { colors } = useTheme();
 
   const handleHyperTrackerPress = useCallback(() => {
     navigation.navigate(Routes.BROWSER.HOME, {
@@ -192,7 +197,7 @@ const PerpsTradingCampaignLeaderboard: React.FC<
         {visibleEntries.map((entry) => (
           <CampaignLeaderboardEntryRow
             key={`${entry.rank}-${entry.referralCode}`}
-            entry={entry}
+            entry={{ ...entry, qualified: true }}
             isCurrentUser={isCurrentUser(entry)}
             showCrown={!isPreview && entry.rank <= PERPS_TRADING_MAX_WINNERS}
             isCampaignComplete={isCampaignComplete}
@@ -206,7 +211,7 @@ const PerpsTradingCampaignLeaderboard: React.FC<
             {userPosition.neighbors.map((entry) => (
               <CampaignLeaderboardEntryRow
                 key={`neighbor-${entry.rank}-${entry.referralCode}`}
-                entry={entry}
+                entry={{ ...entry, qualified: true }}
                 isCurrentUser={isCurrentUser(entry)}
                 showCrown={
                   !isPreview && entry.rank <= PERPS_TRADING_MAX_WINNERS
@@ -219,25 +224,31 @@ const PerpsTradingCampaignLeaderboard: React.FC<
           </>
         )}
       </Box>
-      <Text
-        variant={TextVariant.BodySm}
-        color={TextColor.TextDefault}
-        twClassName="mt-4 px-4 w-full"
+      <Box
+        twClassName="mt-4 px-4 w-full flex-row items-center"
         testID={PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS.POWERED_BY}
       >
-        {strings(
-          'rewards.perps_trading_campaign.leaderboard_powered_by_prefix',
-        )}
-        <Text
-          variant={TextVariant.BodySm}
-          twClassName="text-primary-default"
-          onPress={handleHyperTrackerPress}
-        >
+        <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
           {strings(
-            'rewards.perps_trading_campaign.leaderboard_hypertracker_brand',
+            'rewards.perps_trading_campaign.leaderboard_powered_by_prefix',
           )}
         </Text>
-      </Text>
+        <Pressable
+          accessibilityLabel={strings(
+            'rewards.perps_trading_campaign.leaderboard_hypertracker_brand',
+          )}
+          accessibilityRole="button"
+          onPress={handleHyperTrackerPress}
+          testID={PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS.HYPERTRACKER_LOGO}
+        >
+          <HyperTrackerLogo
+            width={117}
+            height={24}
+            name="HyperTrackerLogo"
+            color={colors.text.default}
+          />
+        </Pressable>
+      </Box>
     </Box>
   );
 };

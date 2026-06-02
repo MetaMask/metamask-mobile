@@ -110,18 +110,26 @@ export type VipLocalizedTextDto = {
   swapsFeeTitle: string;
   perpsFeeTitle: string;
   revenueShareTitle: string;
+  referralPointsTitle: string;
   statsTitle: string;
+  pointsTitle: string;
+  swapsVolumeTitle: string;
+  pointsFromReferralsTitle: string;
+  perpsVolumeTitle: string;
+  vipReferralsTitle: string;
   totalPointsTitle: string;
   equityLockedTitle: string;
   equityLockedDescription: string;
   equityUnlockedTitle: string;
   equityUnlockedDescription: string;
+  topTierDescription: string;
   // The `nextTier…Delta` strings below carry the next tier's absolute value
   // text (e.g. "↓ 12 bps next tier"), not a delta against the current tier.
   // Naming is kept for wire-contract compatibility with the rewards API.
   nextTierSwapsFeeDelta: string;
   nextTierPerpsFeeDelta: string;
   nextTierRevenueShareDelta: string;
+  nextTierReferralPointsDelta: string;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -878,8 +886,8 @@ export interface PerpsTradingCampaignLeaderboardEntry {
   referralCode: string;
   /** Signed USD PnL for the campaign window */
   pnl: number;
-  /** true when notional volume ≥ $25k */
-  qualified: boolean;
+  /** Cumulative volume traded during the competition window (USD) */
+  volume: number;
 }
 
 /**
@@ -890,21 +898,30 @@ export interface PerpsTradingCampaignLeaderboardDto {
   /** ISO timestamp — display as "last updated" (refreshes ~every 15 min) */
   computedAt: string;
   entries: PerpsTradingCampaignLeaderboardEntry[];
+  /** Number of eligible participants in this campaign */
   totalParticipants: number;
+  /** Minimum cumulative volume (USD) required to appear on the leaderboard */
+  minVolumeForEligibility: number;
 }
 
 /**
  * Response DTO for GET /perps-trading/:campaignId/leaderboard/me (authenticated).
  */
 export interface PerpsTradingCampaignLeaderboardPositionDto {
-  rank: number;
+  /** Null when the participant has not yet met the volume threshold. */
+  rank: number | null;
+  /** Number of eligible participants in this campaign */
+  totalParticipants: number;
   /** Signed USD PnL */
   pnl: number;
-  /** Cumulative notional volume traded during the competition window (USD) */
-  notionalVolume: number;
-  qualified: boolean;
-  neighbors: PerpsTradingCampaignLeaderboardEntry[];
+  /** Cumulative volume traded during the competition window (USD) */
+  volume: number;
   computedAt: string;
+  neighbors: PerpsTradingCampaignLeaderboardEntry[];
+  /** Whether this participant has met the minimum volume threshold */
+  eligible: boolean;
+  /** Minimum cumulative volume (USD) required to become eligible */
+  minVolumeForEligibility: number;
 }
 
 /**
@@ -923,23 +940,26 @@ export type PerpsTradingCampaignLeaderboardState = {
     rank: number;
     referralCode: string;
     pnl: number;
-    qualified: boolean;
+    volume: number;
   }[];
   totalParticipants: number;
+  minVolumeForEligibility: number;
   lastFetched: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PerpsTradingCampaignLeaderboardPositionFoundState = {
-  rank: number;
+  rank: number | null;
+  totalParticipants: number;
   pnl: number;
-  notionalVolume: number;
-  qualified: boolean;
+  volume: number;
+  eligible: boolean;
+  minVolumeForEligibility: number;
   neighbors: {
     rank: number;
     referralCode: string;
     pnl: number;
-    qualified: boolean;
+    volume: number;
   }[];
   computedAt: string;
   lastFetched: number;
