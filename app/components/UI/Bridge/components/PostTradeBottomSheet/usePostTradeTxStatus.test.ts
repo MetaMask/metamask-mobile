@@ -1,112 +1,42 @@
+import { renderHook } from '@testing-library/react-native';
 import { StatusTypes } from '@metamask/bridge-controller';
-import {
-  TransactionStatus,
-  type TransactionMeta,
-} from '@metamask/transaction-controller';
-import type { RootState } from '../../../../../reducers';
-import {
-  renderHookWithProvider,
-  type DeepPartial,
-} from '../../../../../util/test/renderWithProvider';
-import { initialState, evmAccountAddress } from '../../_mocks_/initialState';
+import { TransactionStatus, type TransactionMeta } from '@metamask/transaction-controller';
 import { PostTradeStatus } from './PostTradeBottomSheet.types';
 import { usePostTradeTxStatus } from './usePostTradeTxStatus';
 
-const buildTransactionState = (
-  status: TransactionStatus,
-): DeepPartial<RootState> => ({
-  ...initialState,
-  engine: {
-    ...initialState.engine,
-    backgroundState: {
-      ...initialState.engine.backgroundState,
-      TransactionController: {
-        transactions: [
-          {
-            id: 'tx-id',
-            hash: '0xabc',
-            status,
-            chainId: '0x1',
-            networkClientId: 'mainnet',
-            time: Date.now(),
-            txParams: { from: evmAccountAddress },
-          } as TransactionMeta,
-        ],
-        transactionBatches: [],
-      },
-    },
-  },
-});
+let mockTransactionMeta: TransactionMeta | undefined;
+let mockBridgeHistory = {};
 
-const buildBridgeHistoryState = (
-  status: StatusTypes,
-): DeepPartial<RootState> => ({
-  ...initialState,
-  engine: {
-    ...initialState.engine,
-    backgroundState: {
-      ...initialState.engine.backgroundState,
-      BridgeStatusController: {
-        txHistory: {
-          'bridge-tx-id': {
-            ...initialState.engine.backgroundState.BridgeStatusController
-              .txHistory['test-tx-id'],
-            txMetaId: 'bridge-tx-id',
-            status: {
-              srcChain: { txHash: '0xbridge' },
-              status,
-            },
-          },
-        },
-      },
-    },
-  },
-});
+jest.mock('react-redux', () => ({
+  useSelector: (selector: (state: unknown) => unknown) => selector({}),
+}));
+jest.mock('../../../../../selectors/transactionController', () => ({
+  selectTransactionMetadataById: () => mockTransactionMeta,
+}));
+jest.mock('../../../../../selectors/bridgeStatusController', () => ({
+  selectBridgeHistoryForAccount: () => mockBridgeHistory,
+}));
 
-const renderStatus = (
-  params: Parameters<typeof usePostTradeTxStatus>[0],
-  state: DeepPartial<RootState> = initialState,
-) =>
-  renderHookWithProvider(() => usePostTradeTxStatus(params), { state }).result
-    .current;
+type StatusOptions = { txStatus?: TransactionStatus; bridgeStatus?: StatusTypes; initialStatus?: PostTradeStatus };
+
+const renderStatus = ({ txStatus, bridgeStatus, initialStatus = PostTradeStatus.InProgress }: StatusOptions) => {
+  mockTransactionMeta = txStatus ? ({ status: txStatus } as TransactionMeta) : undefined;
+  mockBridgeHistory = bridgeStatus ? { 'tx-id': { status: { status: bridgeStatus } } } : {};
+
+  return renderHook(() => usePostTradeTxStatus({ initialStatus, transactionMetaId: 'tx-id' })).result.current;
+};
 
 describe('usePostTradeTxStatus', () => {
-  it('keeps controller errors in failed state', () => {
-    expect(
-      renderStatus({
-        initialStatus: PostTradeStatus.Failed,
-      }),
-    ).toBe(PostTradeStatus.Failed);
-  });
+  const postTradeStatus = PostTradeStatus;
 
   it.each([
-    [TransactionStatus.submitted, PostTradeStatus.InProgress],
-    [TransactionStatus.confirmed, PostTradeStatus.Success],
-    [TransactionStatus.failed, PostTradeStatus.Failed],
-  ])('maps transaction status %s', (transactionStatus, postTradeStatus) => {
-    expect(
-      renderStatus(
-        {
-          initialStatus: PostTradeStatus.InProgress,
-          transactionMetaId: 'tx-id',
-        },
-        buildTransactionState(transactionStatus),
-      ),
-    ).toBe(postTradeStatus);
-  });
-
-  it.each([
-    [StatusTypes.COMPLETE, PostTradeStatus.Success],
-    [StatusTypes.FAILED, PostTradeStatus.Failed],
-  ])('maps bridge history status %s', (bridgeStatus, postTradeStatus) => {
-    expect(
-      renderStatus(
-        {
-          initialStatus: PostTradeStatus.InProgress,
-          transactionMetaId: 'bridge-tx-id',
-        },
-        buildBridgeHistoryState(bridgeStatus),
-      ),
-    ).toBe(postTradeStatus);
+    ['controller error', { initialStatus: postTradeStatus.Failed }, postTradeStatus.Failed],
+    ['submitted transaction', { txStatus: TransactionStatus.submitted }, postTradeStatus.InProgress],
+    ['confirmed transaction', { txStatus: TransactionStatus.confirmed }, postTradeStatus.Success],
+    ['failed transaction', { txStatus: TransactionStatus.failed }, postTradeStatus.Failed],
+    ['complete bridge history', { bridgeStatus: StatusTypes.COMPLETE }, postTradeStatus.Success],
+    ['failed bridge history', { bridgeStatus: StatusTypes.FAILED }, postTradeStatus.Failed],
+  ])('returns mapped status for %s', (_label, options, expectedStatus) => {
+    expect(renderStatus(options)).toBe(expectedStatus);
   });
 });
