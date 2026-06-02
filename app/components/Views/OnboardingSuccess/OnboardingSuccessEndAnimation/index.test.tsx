@@ -93,7 +93,7 @@ describe('OnboardingSuccessEndAnimation', () => {
     expect(mockFireState).not.toHaveBeenCalled();
   });
 
-  it('sets dark mode input without firing Only_End transition', () => {
+  it('sets dark mode input and fires Only_End transition', () => {
     const mockSetInputState = jest.fn();
     const mockFireState = jest.fn();
 
@@ -111,7 +111,7 @@ describe('OnboardingSuccessEndAnimation', () => {
       'Dark mode',
       false,
     );
-    expect(mockFireState).not.toHaveBeenCalled();
+    expect(mockFireState).toHaveBeenCalledWith('OnboardingLoader', 'Only_End');
   });
 
   it('clears timeout on unmount', () => {

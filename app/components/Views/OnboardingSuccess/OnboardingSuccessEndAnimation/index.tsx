@@ -36,6 +36,7 @@ const OnboardingSuccessEndAnimation: React.FC<
             'Dark mode',
             isDarkMode,
           );
+          riveRef.current.fireState('OnboardingLoader', 'Only_End');
         } catch {
           // Rive may not be ready yet; animation still plays via autoplay
         }
