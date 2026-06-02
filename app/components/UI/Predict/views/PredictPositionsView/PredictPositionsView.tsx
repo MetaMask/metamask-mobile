@@ -4,7 +4,13 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Pressable } from 'react-native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -18,7 +24,9 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { PredictEventValues } from '../../constants/eventNames';
 import PredictPositionsHistoryList from '../../components/PredictPositionsHistoryList';
 import PredictPositionsList from '../../components/PredictPositionsList';
 import PredictPositionsViewHeader from '../../components/PredictPositionsViewHeader';
@@ -95,8 +103,29 @@ const PredictPositionsView = () => {
   const predictPortfolioEnabled = useSelector(
     selectPredictPortfolioEnabledFlag,
   );
+  const hasTrackedScreenViewedRef = useRef(false);
+  const lastTrackedTabRef = useRef<PredictPositionsTabKey | null>(null);
   const [activeTab, setActiveTab] = useState<PredictPositionsTabKey>(
     route.params?.initialTab ?? 'positions',
+  );
+  const entryPoint =
+    route.params?.entryPoint ??
+    PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS;
+
+  const analyticsProperties = useMemo(
+    () => ({
+      entryPoint,
+      positionsCount: portfolio.openPositionCount,
+      claimablePositionsCount: portfolio.claimablePositionCount,
+      hasClaimableWinnings: portfolio.hasClaimableWinnings,
+      source: PredictEventValues.SOURCE.PREDICT_POSITIONS_SCREEN,
+    }),
+    [
+      entryPoint,
+      portfolio.claimablePositionCount,
+      portfolio.hasClaimableWinnings,
+      portfolio.openPositionCount,
+    ],
   );
 
   const tabs = useMemo<PredictPositionsTabItem[]>(
@@ -119,6 +148,29 @@ const PredictPositionsView = () => {
     setActiveTab(route.params?.initialTab ?? 'positions');
   }, [route.params?.initialTab]);
 
+  useEffect(() => {
+    if (hasTrackedScreenViewedRef.current) {
+      return;
+    }
+
+    Engine.context.PredictController.trackPositionsScreenViewed(
+      analyticsProperties,
+    );
+    hasTrackedScreenViewedRef.current = true;
+  }, [analyticsProperties]);
+
+  useEffect(() => {
+    if (lastTrackedTabRef.current === activeTab) {
+      return;
+    }
+
+    Engine.context.PredictController.trackPositionsTabViewed({
+      ...analyticsProperties,
+      tab: activeTab,
+    });
+    lastTrackedTabRef.current = activeTab;
+  }, [activeTab, analyticsProperties]);
+
   const handleBackPress = useCallback(() => {
     if (navigation.canGoBack()) {
       navigation.goBack();
@@ -128,9 +180,16 @@ const PredictPositionsView = () => {
     navigation.navigate(Routes.PREDICT.MARKET_LIST);
   }, [navigation]);
 
-  const handleTabPress = useCallback((tab: PredictPositionsTabKey) => {
-    setActiveTab(tab);
-  }, []);
+  const handleTabPress = useCallback(
+    (tab: PredictPositionsTabKey) => {
+      if (tab === activeTab) {
+        return;
+      }
+
+      setActiveTab(tab);
+    },
+    [activeTab],
+  );
 
   const isPositionsTabActive = activeTab === 'positions';
   const isHistoryTabActive = activeTab === 'history';

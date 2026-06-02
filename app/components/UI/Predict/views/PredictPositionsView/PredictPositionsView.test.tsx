@@ -2,6 +2,8 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
+import { PredictEventValues } from '../../constants/eventNames';
 import type { PredictPortfolioModel } from '../../hooks/usePredictPortfolio';
 import {
   PredictPositionsEmptySelectorsIDs,
@@ -112,6 +114,8 @@ const mockNavigation = {
 const mockUseNavigation = useNavigation as jest.Mock;
 const mockUseRoute = useRoute as jest.Mock;
 const mockClaim = jest.fn();
+const mockTrackPositionsScreenViewed = jest.fn();
+const mockTrackPositionsTabViewed = jest.fn();
 
 const createClaimablePosition = (
   overrides: Partial<PredictPosition> = {},
@@ -179,9 +183,23 @@ const createPortfolio = (
   ...overrides,
 });
 
-const renderScreen = (initialTab?: 'positions' | 'history') => {
+const expectedPositionsAnalyticsContext = (
+  overrides: Record<string, unknown> = {},
+) => ({
+  entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+  positionsCount: 0,
+  claimablePositionsCount: 0,
+  hasClaimableWinnings: false,
+  source: PredictEventValues.SOURCE.PREDICT_POSITIONS_SCREEN,
+  ...overrides,
+});
+
+const renderScreen = (params?: {
+  entryPoint?: string;
+  initialTab?: 'positions' | 'history';
+}) => {
   mockUseRoute.mockReturnValue({
-    params: initialTab ? { initialTab } : undefined,
+    params,
   });
 
   return render(<PredictPositionsView />);
@@ -201,6 +219,15 @@ describe('PredictPositionsView', () => {
     mockNavigation.canGoBack.mockReturnValue(true);
     mockUseNavigation.mockReturnValue(mockNavigation);
     mockUsePredictPortfolio.mockReturnValue(createPortfolio());
+    const predictController = {
+      trackPositionsScreenViewed: mockTrackPositionsScreenViewed,
+      trackPositionsTabViewed: mockTrackPositionsTabViewed,
+    };
+    (
+      Engine.context as unknown as {
+        PredictController: typeof predictController;
+      }
+    ).PredictController = predictController;
   });
 
   it('renders the fixed header, summary placeholder, tabs, and positions tab by default', () => {
@@ -240,8 +267,44 @@ describe('PredictPositionsView', () => {
     expect(getMountedHistoryVisibilityText(false)).toBeTruthy();
   });
 
+  it('tracks Positions screen and default Positions tab viewed', () => {
+    mockUsePredictPortfolio.mockReturnValue(
+      createPortfolio({
+        claimableAmount: 46.35,
+        claimablePositionCount: 1,
+        hasClaimableWinnings: true,
+        openPositionCount: 2,
+        portfolioValue: 4000,
+        totalUnrealizedPnlAmount: -18.47,
+      }),
+    );
+
+    renderScreen();
+
+    expect(mockTrackPositionsScreenViewed).toHaveBeenCalledWith(
+      expectedPositionsAnalyticsContext({
+        positionsCount: 2,
+        claimablePositionsCount: 1,
+        hasClaimableWinnings: true,
+      }),
+    );
+    expect(mockTrackPositionsTabViewed).toHaveBeenCalledWith(
+      expectedPositionsAnalyticsContext({
+        positionsCount: 2,
+        claimablePositionsCount: 1,
+        hasClaimableWinnings: true,
+        tab: PredictEventValues.TAB.POSITIONS,
+      }),
+    );
+
+    const payload = mockTrackPositionsScreenViewed.mock.calls[0][0];
+    expect(payload).not.toHaveProperty('claimableAmount');
+    expect(payload).not.toHaveProperty('portfolioValue');
+    expect(payload).not.toHaveProperty('totalUnrealizedPnlAmount');
+  });
+
   it('uses the initial history tab from route params', () => {
-    renderScreen('history');
+    renderScreen({ initialTab: 'history' });
 
     expect(
       screen.getByTestId(PredictPositionsViewSelectorsIDs.HISTORY_TAB_CONTENT),
@@ -255,6 +318,14 @@ describe('PredictPositionsView', () => {
         PredictPositionsViewSelectorsIDs.POSITIONS_TAB_CONTENT,
       ),
     ).toBeTruthy();
+    expect(mockTrackPositionsScreenViewed).toHaveBeenCalledWith(
+      expectedPositionsAnalyticsContext(),
+    );
+    expect(mockTrackPositionsTabViewed).toHaveBeenCalledWith(
+      expectedPositionsAnalyticsContext({
+        tab: PredictEventValues.TAB.HISTORY,
+      }),
+    );
   });
 
   it('switches between Positions and History tabs', () => {
@@ -282,6 +353,26 @@ describe('PredictPositionsView', () => {
       ),
     ).toBeOnTheScreen();
     expect(getMountedHistoryVisibilityText(false)).toBeTruthy();
+    expect(mockTrackPositionsScreenViewed).toHaveBeenCalledTimes(1);
+    expect(mockTrackPositionsTabViewed).toHaveBeenNthCalledWith(
+      1,
+      expectedPositionsAnalyticsContext({
+        tab: PredictEventValues.TAB.POSITIONS,
+      }),
+    );
+    expect(mockTrackPositionsTabViewed).toHaveBeenNthCalledWith(
+      2,
+      expectedPositionsAnalyticsContext({
+        tab: PredictEventValues.TAB.HISTORY,
+      }),
+    );
+    expect(mockTrackPositionsTabViewed).toHaveBeenNthCalledWith(
+      3,
+      expectedPositionsAnalyticsContext({
+        tab: PredictEventValues.TAB.POSITIONS,
+      }),
+    );
+    expect(mockTrackPositionsTabViewed).toHaveBeenCalledTimes(3);
   });
 
   it('passes won and lost claimable positions and privacy mode to History', () => {
