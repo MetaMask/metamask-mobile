@@ -26,7 +26,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import { ETHSignature } from '@keystonehq/bc-ur-registry-eth';
-import UR from '@ngraveio/bc-ur';
+import { UR } from '@ngraveio/bc-ur';
 import { stringify as uuidStringify } from 'uuid';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 import { useAnimatedQrScanner } from './hooks/useAnimatedQrScanner';
