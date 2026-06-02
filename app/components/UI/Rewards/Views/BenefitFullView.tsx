@@ -29,6 +29,7 @@ import ErrorBoundary from '../../../Views/ErrorBoundary';
 import Routes from '../../../../constants/navigation/Routes.ts';
 import { useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
+import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import Engine from '../../../../core/Engine';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -41,6 +42,7 @@ const BenefitFullView = () => {
   const route = useRoute<BenefitFullViewRouteProp>();
   const { benefit } = route.params;
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const selectedAccount = useSelector(selectSelectedInternalAccount);
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   useEffect(() => {
@@ -63,9 +65,10 @@ const BenefitFullView = () => {
         subscriptionId,
         benefit.id,
         benefit.type.id,
+        selectedAccount?.address,
       )
       .catch();
-  }, [benefit, subscriptionId]);
+  }, [benefit, subscriptionId, selectedAccount?.address]);
 
   const handleClaim = () => {
     trackEvent(
