@@ -74,10 +74,7 @@ export const usePostTradeTxStatus = ({
   }
 
   const transactionStatus = transactionMeta?.status;
-  if (
-    transactionStatus &&
-    FAILED_TRANSACTION_STATUSES.has(transactionStatus)
-  ) {
+  if (transactionStatus && FAILED_TRANSACTION_STATUSES.has(transactionStatus)) {
     return PostTradeStatus.Failed;
   }
 

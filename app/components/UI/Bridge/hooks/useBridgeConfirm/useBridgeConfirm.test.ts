@@ -264,7 +264,9 @@ describe('useBridgeConfirm', () => {
       expect(bridgeState.sourceAmount).toBe(
         mockBridgeReducerState.sourceAmount,
       );
-      expect(bridgeState.sourceToken).toEqual(mockBridgeReducerState.sourceToken);
+      expect(bridgeState.sourceToken).toEqual(
+        mockBridgeReducerState.sourceToken,
+      );
       expect(bridgeState.destToken).toEqual(mockBridgeReducerState.destToken);
     });
   });

@@ -521,8 +521,7 @@ class TransactionElement extends PureComponent {
     } = this.props;
     const isBridgeTransaction =
       type === TransactionType.bridge ||
-      (bridgeTxHistoryItem &&
-        isBridgeTxHistoryItemBridge(bridgeTxHistoryItem));
+      (bridgeTxHistoryItem && isBridgeTxHistoryItemBridge(bridgeTxHistoryItem));
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
     const { value, fiatValue = false, actionKey } = transactionElement;

@@ -76,7 +76,8 @@ export const getTradeSubtitle = ({
 
   const sourceAmountDisplay =
     formatSecondaryTokenAmount(sourceAmount) ?? sourceAmount;
-  const destAmountDisplay = formatSecondaryTokenAmount(destAmount) ?? destAmount;
+  const destAmountDisplay =
+    formatSecondaryTokenAmount(destAmount) ?? destAmount;
 
   return strings('bridge.post_trade_modal.trade_subtitle', {
     sourceAmount: formatAmountWithLocaleSeparators(sourceAmountDisplay),
@@ -154,12 +155,7 @@ export const PostTradeBottomSheet = () => {
 
     hasRefreshedBalancesRef.current = true;
     dispatch(incrementBridgeBalanceRefreshKey());
-  }, [
-    dispatch,
-    params.transactionHash,
-    params.transactionMetaId,
-    status,
-  ]);
+  }, [dispatch, params.transactionHash, params.transactionMetaId, status]);
 
   const subtitle = getTradeSubtitle({
     sourceAmount: params.sourceAmount,

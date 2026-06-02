@@ -7,4 +7,3 @@ export const PostTradeBottomSheetTestIds = {
   VIEW_ACTIVITY_BUTTON: 'post-trade-bottom-sheet-view-activity-button',
   TRY_AGAIN_BUTTON: 'post-trade-bottom-sheet-try-again-button',
 } as const;
-

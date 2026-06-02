@@ -31,7 +31,8 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 export const isBridgeTxHistoryItemBridge = (
   bridgeTxHistoryItem: BridgeHistoryItem,
 ) =>
-  bridgeTxHistoryItem.quote.srcChainId !== bridgeTxHistoryItem.quote.destChainId;
+  bridgeTxHistoryItem.quote.srcChainId !==
+  bridgeTxHistoryItem.quote.destChainId;
 
 export const getSwapBridgeTxActivityTitle = (
   bridgeTxHistoryItem: BridgeHistoryItem,

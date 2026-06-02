@@ -1,8 +1,7 @@
 import { EVENT_NAME } from '../../../../../core/Analytics/MetaMetrics.events';
 import type { ABTestAnalyticsMapping } from '../../../../../util/analytics/abTestAnalytics.types';
 
-export const POST_TRADE_MODAL_AB_KEY =
-  'swapsSWAPS4543AbtestPostTradeModal';
+export const POST_TRADE_MODAL_AB_KEY = 'swapsSWAPS4543AbtestPostTradeModal';
 
 export enum PostTradeModalVariant {
   Control = 'control',
