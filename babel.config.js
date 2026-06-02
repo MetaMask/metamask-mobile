@@ -64,20 +64,7 @@ module.exports = {
   presets: ['babel-preset-expo'],
   // Babel can find the plugin without the `babel-plugin-` prefix. Ex. `babel-plugin-react-compiler` -> `react-compiler`
   plugins: [
-    [
-      'react-compiler',
-      {
-        target: '18',
-        sources: (filename) => {
-          // Match file paths or directories to include in the React Compiler.
-          const pathsToInclude = [
-            'app/components/Nav',
-            'app/components/UI/DeepLinkModal',
-          ];
-          return pathsToInclude.some((path) => filename.includes(path));
-        },
-      },
-    ],
+    ['react-compiler', ReactCompilerConfig],
     'transform-inline-environment-variables',
     dynamicImportToRequire,
     // NOTE: react-native-reanimated/plugin must be listed LAST.

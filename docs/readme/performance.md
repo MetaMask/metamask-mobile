@@ -168,36 +168,30 @@ To illustrate how the tool can be used, we'll be referencing [Callstack](https:/
 
 In 2024, the React team announced a build time tool called [React Compiler](https://react.dev/learn/react-compiler) that we can leverage to automatically optimize React code. Under the hood, the compiler references the [Rules of React](https://react.dev/reference/rules) to memoize code whenever possible. More specifically, the tool uses React APIs such as `useMemo`, `useCallback`, and `React.memo` for memoization. React Compiler has already been integrated into MetaMask's build process, so you can start using it today. We've also added an ESLint plugin for React Compiler that will catch issues during linting based on the rules of React.
 
-### Optimizing new code
+### React Compiler
 
-Since the plan is to incrementally adopt React Compiler, only code files and paths that are specified by the team will be automatically optimized. To ensure that new code is automatically optimized by React Compiler, add the file path or directory to the `pathsToInclude` in `babel.config.js`. Once added, the new code will be automatically optimized during build time.
+React Compiler is enabled **project-wide** in [babel.config.js](../../babel.config.js). Every file Metro/Babel transforms is automatically optimized at build time.
 
 ```javascript
 // babel.config.js
 
+const ReactCompilerConfig = {
+  target: '18',
+};
+
 module.exports = {
   /* ... */
   plugins: [
-    [
-      'react-compiler',
-      {
-        /* .. */
-        sources: (filename) => {
-          // Match file paths or directories to include in the React Compiler.
-          const pathsToInclude = [
-            // Example file path
-            'app/components/ExampleDir/index',
-            // Example directory
-            'app/components/ExampleDir2',
-          ];
-          return pathsToInclude.some((path) => filename.includes(path));
-        },
-      },
-    ],
-  ];
+    ['react-compiler', ReactCompilerConfig],
+    /* ... */
+  ],
 };
 ```
 
+New React components and hooks are compiled automatically. Follow the [Rules of React](https://react.dev/reference/rules); the ESLint plugin (`react-compiler/react-compiler`) will flag violations during lint.
+
+To opt a component out of compilation, use the [`'use no memo'`](https://react.dev/learn/react-compiler#opting-out) directive.
+
 ### Troubleshooting React Compiler
 
-By default, Metro may cache parts of the compiled code especially when using the `yarn watch` command. To perform a clean build, run `yarn watch:clean` instead. You can also verify that the file is picked up by React Compiler by adding a log in the `sources` function to confirm the match.
+By default, Metro may cache parts of the compiled code especially when using the `yarn watch` command. To perform a clean build, run `yarn watch:clean` instead.

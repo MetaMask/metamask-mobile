@@ -1,3 +1,5 @@
+'use no memo'; // Ref callback mutation pattern — re-enable after QA
+
 import React, { useRef, useCallback, useEffect, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';

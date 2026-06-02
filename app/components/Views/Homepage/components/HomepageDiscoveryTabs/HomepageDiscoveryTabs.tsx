@@ -1,3 +1,5 @@
+'use no memo'; // Reanimated SharedValue + scroll header — re-enable after QA
+
 import React, {
   forwardRef,
   useCallback,

@@ -1,3 +1,5 @@
+'use no memo'; // Reanimated / imperative animation patterns — re-enable after QA
+
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Animated, Platform, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
