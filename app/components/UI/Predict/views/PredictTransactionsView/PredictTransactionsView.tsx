@@ -470,15 +470,25 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
     void fetchNextPage();
   }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
+  const hasContentSections = sections.length > 0;
   const hasActivityItems = activity.length > 0;
-  const hasFooterError = Boolean(error) && hasActivityItems && hasNextPage;
+  const shouldShowPartialActivityLoading =
+    hasContentSections &&
+    !hasActivityItems &&
+    (isLoading || (Boolean(error) && isFetching));
+  const hasFooterError =
+    Boolean(error) && hasContentSections && (!hasActivityItems || hasNextPage);
 
   const handleRetry = useCallback(() => {
     void refetch();
   }, [refetch]);
 
   const renderFooter = useCallback(() => {
-    if (isFetchingNextPage || (hasFooterError && isRefetching)) {
+    if (
+      isFetchingNextPage ||
+      shouldShowPartialActivityLoading ||
+      (hasFooterError && isRefetching)
+    ) {
       return (
         <Box twClassName="items-center justify-center py-4">
           <ActivityIndicator
@@ -514,11 +524,17 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
         </Pressable>
       </Box>
     );
-  }, [handleRetry, hasFooterError, isFetchingNextPage, isRefetching]);
+  }, [
+    handleRetry,
+    hasFooterError,
+    isFetchingNextPage,
+    isRefetching,
+    shouldShowPartialActivityLoading,
+  ]);
 
   const shouldShowLoadingState =
-    (isLoading || (Boolean(error) && isFetching)) && !hasActivityItems;
-  const shouldShowErrorState = Boolean(error) && !hasActivityItems;
+    (isLoading || (Boolean(error) && isFetching)) && !hasContentSections;
+  const shouldShowErrorState = Boolean(error) && !hasContentSections;
 
   const renderContent = shouldShowLoadingState ? (
     <Box twClassName="items-center justify-center h-full">

@@ -182,7 +182,7 @@ describe('PredictTransactionsView', () => {
     expect(screen.getByTestId('activity-indicator')).toBeOnTheScreen();
   });
 
-  it('displays loading indicator when activity data loads with claim pending positions', () => {
+  it('keeps claim pending positions visible while activity data loads', () => {
     (usePredictActivity as jest.Mock).mockReturnValueOnce(
       createUsePredictActivityValue({
         data: [],
@@ -196,8 +196,13 @@ describe('PredictTransactionsView', () => {
       />,
     );
 
-    expect(screen.getByTestId('activity-indicator')).toBeOnTheScreen();
-    expect(screen.queryByText('Prediction won')).toBeNull();
+    expect(screen.getByText('Prediction won')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        PREDICT_TRANSACTIONS_VIEW_TEST_IDS.FOOTER_ACTIVITY_INDICATOR,
+      ),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('activity-indicator')).toBeNull();
   });
 
   it('displays empty state message when activity list is empty', () => {
@@ -237,7 +242,7 @@ describe('PredictTransactionsView', () => {
     expect(mockRefetch).toHaveBeenCalledTimes(1);
   });
 
-  it('displays retryable error state when initial activity request fails with claim pending positions', async () => {
+  it('keeps claim pending positions visible with a retry path when initial activity request fails', async () => {
     const mockRefetch = jest.fn();
     (usePredictActivity as jest.Mock).mockReturnValueOnce(
       createUsePredictActivityValue({
@@ -253,13 +258,20 @@ describe('PredictTransactionsView', () => {
       />,
     );
 
+    expect(screen.getByText('Prediction won')).toBeOnTheScreen();
     expect(
-      screen.getByTestId(PREDICT_TRANSACTIONS_VIEW_TEST_IDS.ERROR_STATE),
+      screen.getByTestId(PREDICT_TRANSACTIONS_VIEW_TEST_IDS.FOOTER_ERROR_STATE),
     ).toBeOnTheScreen();
-    expect(screen.queryByText('Prediction won')).toBeNull();
+    expect(
+      screen.queryByTestId(PREDICT_TRANSACTIONS_VIEW_TEST_IDS.ERROR_STATE),
+    ).toBeNull();
 
     await act(async () => {
-      fireEvent.press(screen.getByText('Retry'));
+      fireEvent.press(
+        screen.getByTestId(
+          PREDICT_TRANSACTIONS_VIEW_TEST_IDS.FOOTER_RETRY_BUTTON,
+        ),
+      );
     });
 
     expect(mockRefetch).toHaveBeenCalledTimes(1);
