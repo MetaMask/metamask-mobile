@@ -311,4 +311,38 @@ describe('PerpsCampaignStatsSummary', () => {
     expect(getByTestId(TEST_IDS.PNL).props.children).toBe('—');
     expect(getByTestId(TEST_IDS.PNL).props.color).toBe(TextColor.TextDefault);
   });
+
+  it('renders em dash for volume when volume is not finite', () => {
+    const { getByTestId } = render(
+      <PerpsCampaignStatsSummary
+        leaderboardPosition={
+          {
+            ...basePosition,
+            volume: Number.NaN,
+          } as PerpsTradingCampaignLeaderboardPositionDto
+        }
+        leaderboard={mockLeaderboard}
+      />,
+    );
+
+    expect(getByTestId(TEST_IDS.NOTIONAL_VOLUME).props.children).toBe('—');
+  });
+
+  it('hides Qualify for rank card when volume is not finite', () => {
+    const { queryByTestId } = render(
+      <PerpsCampaignStatsSummary
+        isCampaignComplete={false}
+        leaderboardPosition={
+          {
+            ...basePosition,
+            eligible: false,
+            volume: Number.NaN,
+          } as PerpsTradingCampaignLeaderboardPositionDto
+        }
+        leaderboard={mockLeaderboard}
+      />,
+    );
+
+    expect(queryByTestId(TEST_IDS.QUALIFY_FOR_RANK_CARD)).toBeNull();
+  });
 });
