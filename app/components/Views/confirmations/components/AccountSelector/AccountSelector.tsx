@@ -22,6 +22,7 @@ import Icon, {
 import {
   BottomSheet,
   BottomSheetRef,
+  HeaderStandard,
   Skeleton,
   Text,
   TextColor,
@@ -29,7 +30,6 @@ import {
 } from '@metamask/design-system-react-native';
 import MultichainAccountSelectorList from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList';
 import { AccountSection } from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList.types';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
 import { strings } from '../../../../../../locales/i18n';
 import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
@@ -213,7 +213,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
             onClose={handleSheetClosed}
             twClassName={surfaceClass}
           >
-            <HeaderCompactStandard
+            <HeaderStandard
               title={selectorTitle}
               onClose={() => closeAccountSheet()}
             />

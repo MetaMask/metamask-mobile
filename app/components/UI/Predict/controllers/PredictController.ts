@@ -2209,6 +2209,11 @@ export class PredictController extends BaseController<
     this.clearPendingDepositForAddress({ address: selectedAddress });
   }
 
+  public clearPendingClaim(): void {
+    const selectedAddress = this.getSigner().address;
+    this.clearPendingClaimForAddress({ address: selectedAddress });
+  }
+
   private clearPendingDepositForAddress({
     address,
   }: {

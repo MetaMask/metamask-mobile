@@ -385,6 +385,7 @@ const Routes = {
     ROOT: 'Predict',
     MARKET_LIST: 'PredictMarketList',
     MARKET_DETAILS: 'PredictMarketDetails',
+    POSITIONS: 'PredictPositions',
     ACTIVITY_DETAIL: 'PredictActivityDetail',
     WORLD_CUP: 'PredictWorldCup',
     MODALS: {
@@ -542,6 +543,7 @@ const Routes = {
   },
   FEATURE_FLAG_OVERRIDE: 'FeatureFlagOverride',
   SECURITY_TRUST: 'SecurityTrust',
+  NAVIGATION_DEV_PANEL: 'NavigationDevPanel',
 };
 
 export default Routes;

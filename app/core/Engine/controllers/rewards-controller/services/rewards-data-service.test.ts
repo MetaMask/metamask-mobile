@@ -5264,6 +5264,7 @@ describe('RewardsDataService', () => {
       computedAt: '2025-08-15T12:00:00.000Z',
       entries: [],
       totalParticipants: 0,
+      minVolumeForEligibility: 25_000,
     };
 
     beforeEach(() => {
@@ -5299,9 +5300,11 @@ describe('RewardsDataService', () => {
     const mockToken = 'test-bearer-token';
     const mockPosition = {
       rank: 4,
+      totalParticipants: 50,
       pnl: 12.5,
-      notionalVolume: 8000,
-      qualified: true,
+      volume: 8000,
+      eligible: true,
+      minVolumeForEligibility: 25000,
       neighbors: [],
       computedAt: '2025-08-15T12:00:00.000Z',
     };
