@@ -21,6 +21,8 @@ import { createEligibilityFailedModalNavigationDetails } from '../components/Eli
 import { useRampsTokens } from './useRampsTokens';
 import { resolveRampControllerAssetId } from '../utils/resolveRampControllerAssetId';
 import Engine from '../../../../core/Engine';
+import { selectGeolocationLocation } from '../../../../selectors/geolocationController';
+import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 
 enum RampMode {
   AGGREGATOR = 'AGGREGATOR',
@@ -41,6 +43,7 @@ export const useRampNavigation = () => {
   const isRampsUnifiedV1Enabled = useRampsUnifiedV1Enabled();
   const isRampsUnifiedV2Enabled = useRampsUnifiedV2Enabled();
   const rampRoutingDecision = useSelector(getRampRoutingDecision);
+  const geolocationLocation = useSelector(selectGeolocationLocation);
   const { setSelectedToken, tokens: rampsTokens } = useRampsTokens();
 
   const goToBuy = useCallback(
@@ -62,15 +65,18 @@ export const useRampNavigation = () => {
       // Check error states first (applies to both V1 and V2)
       if (isUnifiedRoutingEnabled) {
         if (rampRoutingDecision === UnifiedRampRoutingType.ERROR) {
-          // ERROR usually means geolocation was UNKNOWN at decision time (it's
-          // only fetched once at startup). Retry on tap: if geo now resolves to
-          // a real region, enter the flow — smart routing refines the decision
-          // in the background. Otherwise fall back to the modal.
-          const location = await Promise.resolve(
-            Engine.context.GeolocationController?.refreshGeolocation?.(),
-          ).catch(() => undefined);
+          // ERROR usually means geo was UNKNOWN at decision time. Prefer the
+          // location already in state, only refreshing if it's still unknown.
+          // A real region enters the flow; otherwise fall back to the modal.
+          let location: string | undefined = geolocationLocation;
 
-          if (location && location !== 'UNKNOWN') {
+          if (!location || location === UNKNOWN_LOCATION) {
+            location = await Promise.resolve(
+              Engine.context.GeolocationController?.refreshGeolocation?.(),
+            ).catch(() => undefined);
+          }
+
+          if (location && location !== UNKNOWN_LOCATION) {
             navigation.navigate(...createTokenSelectionNavDetails());
           } else {
             navigation.navigate(
@@ -163,6 +169,7 @@ export const useRampNavigation = () => {
       isRampsUnifiedV1Enabled,
       isRampsUnifiedV2Enabled,
       rampRoutingDecision,
+      geolocationLocation,
       rampsTokens?.allTokens,
     ],
   );
