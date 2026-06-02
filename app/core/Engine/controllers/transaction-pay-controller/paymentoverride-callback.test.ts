@@ -177,7 +177,7 @@ describe('getPaymentOverrideData', () => {
     );
 
     expect(result).toStrictEqual({ calls: [] });
-    expect(getMoneyAccountWithdrawMock).not.toHaveBeenCalled();
+    expect(buildMoneyAccountWithdrawBatchMock).not.toHaveBeenCalled();
   });
 
   it('returns empty array when transaction data is undefined', async () => {
