@@ -17,14 +17,14 @@ const HANDLE_SIZE = 24;
 const MARKER_SIZE = 4;
 const ACCESSIBILITY_STEP = 1;
 // Decorative reference markers rendered on the track. The slider itself does
-// not snap to these positions — they exist purely as visual anchors so users
+// not snap to these positions, they exist purely as visual anchors so users
 // can eyeball quarter-balance amounts.
 const VISUAL_MARKERS = [0, 25, 50, 75, 100];
 const HAPTIC_THRESHOLDS = [25, 50, 75];
 
 interface QuickBuyPercentageSliderProps {
   value: number;
-  /** Called on every 1% change during drag — for display state only. */
+  /** Called on every 1% change during drag, for display state only. */
   onValueChange: (value: number) => void;
   /**
    * Called once when the user lifts their finger (pan end) or taps the track.
