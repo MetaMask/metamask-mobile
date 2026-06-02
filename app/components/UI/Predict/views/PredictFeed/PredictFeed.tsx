@@ -211,7 +211,7 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
             <FeaturedCarousel />
           </Box>
         )}
-        <PredictWorldCupMainFeedBanner />
+        <PredictWorldCupMainFeedBanner variant="compact" />
       </Animated.View>
       <View
         ref={tabBarRef}
