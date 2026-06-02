@@ -31,6 +31,7 @@ const QuickBuyActionFooter: React.FC = () => {
     sliderPercent,
     maxSpendUsd,
     handleSliderChange,
+    handleSliderDragEnd,
     confirmButtonState,
     getButtonLabel,
     hasValidAmount,
@@ -56,6 +57,7 @@ const QuickBuyActionFooter: React.FC = () => {
         <QuickBuyPercentageSlider
           value={sliderPercent}
           onValueChange={handleSliderChange}
+          onDragEnd={handleSliderDragEnd}
           disabled={maxSpendUsd <= 0}
         />
       </Box>
