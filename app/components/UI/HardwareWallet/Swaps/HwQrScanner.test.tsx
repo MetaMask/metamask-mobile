@@ -1,6 +1,10 @@
 import React from 'react';
 import { Linking } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
+import { HwQrScanner } from './HwQrScanner';
+import { HwQrScannerSelectorsIDs } from './HwQrScanner.testIds';
+import { useHardwareWallet } from '../../../../core/HardwareWallet';
+import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 
 jest.mock('../../../../components/hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(() => ({
@@ -112,11 +116,6 @@ jest.mock('@keystonehq/bc-ur-registry-eth', () => ({
 jest.mock('uuid', () => ({
   stringify: jest.fn(() => 'test-request-id'),
 }));
-
-import { HwQrScanner } from './HwQrScanner';
-import { HwQrScannerSelectorsIDs } from './HwQrScanner.testIds';
-import { useHardwareWallet } from '../../../../core/HardwareWallet';
-import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 
 const mockUseHardwareWallet = useHardwareWallet as jest.Mock;
 

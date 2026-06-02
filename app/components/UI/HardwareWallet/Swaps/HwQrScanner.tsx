@@ -26,6 +26,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import { ETHSignature } from '@keystonehq/bc-ur-registry-eth';
+import UR from '@ngraveio/bc-ur';
 import { stringify as uuidStringify } from 'uuid';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 import { useAnimatedQrScanner } from './hooks/useAnimatedQrScanner';
@@ -98,7 +99,7 @@ export function HwQrScanner() {
   const isLastStep = currentStep >= totalSteps;
 
   const onScanSuccess = useCallback(
-    (ur: { type: string; cbor: Buffer }) => {
+    (ur: UR) => {
       const signature = ETHSignature.fromCBOR(ur.cbor);
       const buffer = signature.getRequestId();
       if (buffer) {
@@ -139,6 +140,13 @@ export function HwQrScanner() {
     Engine.getQrKeyringScanner().rejectPendingScan(new Error('Scan cancelled'));
     navigation.goBack();
   }, [navigation]);
+
+  const handleLearnMore = useCallback(
+    () => Linking.openURL(QR_HARDWARE_LEARN_MORE_URL),
+    [],
+  );
+
+  const handleOpenSettings = useCallback(() => Linking.openSettings(), []);
 
   const stepText = useMemo(() => {
     if (isLastStep) {
@@ -183,7 +191,7 @@ export function HwQrScanner() {
               size={ButtonBaseSize.Lg}
               isFullWidth
               testID="hw-qr-scanner-learn-more-button"
-              onPress={() => Linking.openURL(QR_HARDWARE_LEARN_MORE_URL)}
+              onPress={handleLearnMore}
             >
               {strings('hardware_wallet.common.learn_more')}
             </Button>
@@ -222,7 +230,7 @@ export function HwQrScanner() {
               size={ButtonBaseSize.Lg}
               isFullWidth
               testID="hw-qr-scanner-open-settings-button"
-              onPress={() => Linking.openSettings()}
+              onPress={handleOpenSettings}
             >
               {strings('qr_scanner.open_settings')}
             </Button>

@@ -154,7 +154,8 @@ export function useCameraPermissionRefresh({
       'change',
       (nextAppState: AppStateStatus) => {
         const hasReturnedToForeground =
-          /inactive|background/.test(appState.current) &&
+          (appState.current === 'inactive' ||
+            appState.current === 'background') &&
           nextAppState === 'active';
 
         appState.current = nextAppState;

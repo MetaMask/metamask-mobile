@@ -69,7 +69,7 @@ export function useAnimatedQrScanner({
   purpose,
   onScanSuccess,
 }: UseAnimatedQrScannerOptions) {
-  const [urDecoder, setURDecoder] = useState(() => new URRegistryDecoder());
+  const urDecoderRef = useRef(new URRegistryDecoder());
   const [progress, setProgress] = useState(0);
   const [scanError, setScanError] = useState<QRHardwareScanError | null>(null);
 
@@ -86,7 +86,7 @@ export function useAnimatedQrScanner({
   useCameraPermissionRefresh({ isActive, hasPermission, requestPermission });
 
   const resetDecoder = useCallback(() => {
-    setURDecoder(new URRegistryDecoder());
+    urDecoderRef.current = new URRegistryDecoder();
     setProgress(0);
   }, []);
 
@@ -169,12 +169,13 @@ export function useAnimatedQrScanner({
       ) {
         return;
       }
-      const response = { data: codes[0].value };
-      if (!response.data) {
+      const value = codes[0].value;
+      if (!value) {
         return;
       }
-      const content = response.data.trim();
+      const content = value.trim();
       const isUrFormat = content.toLowerCase().startsWith('ur:');
+      const decoder = urDecoderRef.current;
 
       try {
         if (!isUrFormat) {
@@ -185,17 +186,17 @@ export function useAnimatedQrScanner({
           return;
         }
 
-        urDecoder.receivePart(content);
-        setProgress(Math.ceil(urDecoder.getProgress() * 100));
+        decoder.receivePart(content);
+        setProgress(Math.ceil(decoder.getProgress() * 100));
 
-        if (urDecoder.isError()) {
+        if (decoder.isError()) {
           await showScanError({
             errorType: QRHardwareScanErrorType.URDecodeError,
-            technicalMessage: urDecoder.resultError(),
+            technicalMessage: decoder.resultError(),
             isUrFormat: true,
           });
-        } else if (urDecoder.isSuccess()) {
-          const ur = urDecoder.resultUR();
+        } else if (decoder.isSuccess()) {
+          const ur = decoder.resultUR();
           if (expectedURTypes.includes(ur.type)) {
             handleScanSuccess(ur);
           } else {
@@ -214,7 +215,7 @@ export function useAnimatedQrScanner({
         });
       }
     },
-    [isActive, urDecoder, expectedURTypes, handleScanSuccess, showScanError],
+    [isActive, expectedURTypes, handleScanSuccess, showScanError],
   );
 
   const codeScanner = useCodeScanner({
