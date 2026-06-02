@@ -560,6 +560,15 @@ export function useQuickBuyController(
       }
       lastCommittedUsdRef.current = nextUsd;
 
+      // Guarantee display state matches the committed value. The last onUpdate
+      // tick during a Pan may have landed on a different % than where the
+      // finger actually lifted — if so, usdAmount would be stale relative to
+      // quotedUsdAmount, keeping isAmountUncommitted true and the Buy button
+      // permanently disabled. Syncing both states here is the authoritative fix.
+      setSliderPercent(rounded);
+      lastSliderPercentRef.current = rounded;
+      setUsdAmount(nextUsd);
+
       setQuotedUsdAmount(nextUsd);
       const numericUsd = Number(nextUsd);
       if (rounded > 0 && Number.isFinite(numericUsd) && numericUsd > 0) {
