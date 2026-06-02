@@ -18,6 +18,7 @@ import {
 } from '../../../../selectors/currencyRateController';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import { getMemoizedInternalAccountByAddress } from '../../../../selectors/accountsController';
+import { selectAccountToGroupMap } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
 import {
   renderShortAddress,
@@ -71,13 +72,17 @@ function resolveWithdrawDestination(
   );
   const recipient = decodeErc20TransferRecipient(transferNested?.data);
   if (!recipient) return undefined;
-  const account = getMemoizedInternalAccountByAddress(
-    store.getState(),
-    recipient,
-  );
+  const state = store.getState();
+  const account = getMemoizedInternalAccountByAddress(state, recipient);
   if (!account) return renderShortAddress(recipient);
+  const groupName =
+    selectAccountToGroupMap(state)[account.id]?.metadata?.name?.trim();
   const accountName = account.metadata?.name?.trim();
-  return accountName || strings('money.toasts.withdraw_fallback_destination');
+  return (
+    groupName ||
+    accountName ||
+    strings('money.toasts.withdraw_fallback_destination')
+  );
 }
 
 function decodeTellerAmount(

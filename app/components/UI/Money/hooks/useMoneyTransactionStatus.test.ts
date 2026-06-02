@@ -17,6 +17,14 @@ import {
   getMoneyAccountDepositIntent,
 } from './useMoneyAccount';
 import { getMemoizedInternalAccountByAddress } from '../../../../selectors/accountsController';
+import { selectAccountToGroupMap } from '../../../../selectors/multichainAccounts/accountTreeController';
+
+jest.mock(
+  '../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    selectAccountToGroupMap: jest.fn(() => ({})),
+  }),
+);
 
 jest.mock('./useMoneyAccount', () => ({
   __esModule: true,
@@ -575,6 +583,106 @@ describe('useMoneyTransactionStatus', () => {
       jest.mocked(getMemoizedInternalAccountByAddress).mockReturnValueOnce({
         metadata: { name: '   ' },
       } as unknown as ReturnType<typeof getMemoizedInternalAccountByAddress>);
+
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          type: TransactionType.moneyAccountWithdraw,
+          status: TransactionStatus.confirmed,
+          txParams: {
+            from: '0x0',
+            data: encodeWithdrawData(BigInt(10_000_000)),
+          },
+          nestedTransactions: [
+            {
+              type: TransactionType.tokenMethodTransfer,
+              data: encodeTransferData(RECIPIENT_ADDRESS),
+            },
+          ],
+        } as unknown as Partial<TransactionMeta>),
+      );
+
+      expect(withdrawSuccessFn).toHaveBeenCalledTimes(1);
+      expect(withdrawSuccessFn.mock.calls[0][0].destination).toBe(
+        'your account',
+      );
+    });
+
+    it('prefers the account group name over the internal account name', () => {
+      jest.mocked(getMemoizedInternalAccountByAddress).mockReturnValueOnce({
+        id: 'acc-1',
+        metadata: { name: 'Account 1' },
+      } as unknown as ReturnType<typeof getMemoizedInternalAccountByAddress>);
+      jest.mocked(selectAccountToGroupMap).mockReturnValueOnce({
+        'acc-1': { metadata: { name: 'My savings' } },
+      } as unknown as ReturnType<typeof selectAccountToGroupMap>);
+
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          type: TransactionType.moneyAccountWithdraw,
+          status: TransactionStatus.confirmed,
+          txParams: {
+            from: '0x0',
+            data: encodeWithdrawData(BigInt(10_000_000)),
+          },
+          nestedTransactions: [
+            {
+              type: TransactionType.tokenMethodTransfer,
+              data: encodeTransferData(RECIPIENT_ADDRESS),
+            },
+          ],
+        } as unknown as Partial<TransactionMeta>),
+      );
+
+      expect(withdrawSuccessFn).toHaveBeenCalledTimes(1);
+      expect(withdrawSuccessFn.mock.calls[0][0].destination).toBe('My savings');
+    });
+
+    it('falls back to the internal account name when no account group is found', () => {
+      jest.mocked(getMemoizedInternalAccountByAddress).mockReturnValueOnce({
+        id: 'acc-1',
+        metadata: { name: 'Account 1' },
+      } as unknown as ReturnType<typeof getMemoizedInternalAccountByAddress>);
+      jest
+        .mocked(selectAccountToGroupMap)
+        .mockReturnValueOnce(
+          {} as unknown as ReturnType<typeof selectAccountToGroupMap>,
+        );
+
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          type: TransactionType.moneyAccountWithdraw,
+          status: TransactionStatus.confirmed,
+          txParams: {
+            from: '0x0',
+            data: encodeWithdrawData(BigInt(10_000_000)),
+          },
+          nestedTransactions: [
+            {
+              type: TransactionType.tokenMethodTransfer,
+              data: encodeTransferData(RECIPIENT_ADDRESS),
+            },
+          ],
+        } as unknown as Partial<TransactionMeta>),
+      );
+
+      expect(withdrawSuccessFn).toHaveBeenCalledTimes(1);
+      expect(withdrawSuccessFn.mock.calls[0][0].destination).toBe('Account 1');
+    });
+
+    it('falls back to "your account" when both group and internal names are blank', () => {
+      jest.mocked(getMemoizedInternalAccountByAddress).mockReturnValueOnce({
+        id: 'acc-1',
+        metadata: { name: '' },
+      } as unknown as ReturnType<typeof getMemoizedInternalAccountByAddress>);
+      jest.mocked(selectAccountToGroupMap).mockReturnValueOnce({
+        'acc-1': { metadata: { name: '  ' } },
+      } as unknown as ReturnType<typeof selectAccountToGroupMap>);
 
       const { confirmedHandler } = renderAndGetHandlers();
 
