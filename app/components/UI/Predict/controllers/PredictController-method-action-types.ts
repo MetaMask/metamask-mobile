@@ -89,6 +89,26 @@ export type PredictControllerTrackActivityViewedAction = {
   handler: PredictController['trackActivityViewed'];
 };
 
+export type PredictControllerTrackPortfolioModuleViewedAction = {
+  type: `PredictController:trackPortfolioModuleViewed`;
+  handler: PredictController['trackPortfolioModuleViewed'];
+};
+
+export type PredictControllerTrackPortfolioActionAction = {
+  type: `PredictController:trackPortfolioAction`;
+  handler: PredictController['trackPortfolioAction'];
+};
+
+export type PredictControllerTrackPositionsScreenViewedAction = {
+  type: `PredictController:trackPositionsScreenViewed`;
+  handler: PredictController['trackPositionsScreenViewed'];
+};
+
+export type PredictControllerTrackPositionsTabViewedAction = {
+  type: `PredictController:trackPositionsTabViewed`;
+  handler: PredictController['trackPositionsTabViewed'];
+};
+
 export type PredictControllerTrackGeoBlockTriggeredAction = {
   type: `PredictController:trackGeoBlockTriggered`;
   handler: PredictController['trackGeoBlockTriggered'];
@@ -316,6 +336,10 @@ export type PredictControllerMethodActions =
   | PredictControllerTrackMarketDetailsOpenedAction
   | PredictControllerTrackPositionViewedAction
   | PredictControllerTrackActivityViewedAction
+  | PredictControllerTrackPortfolioModuleViewedAction
+  | PredictControllerTrackPortfolioActionAction
+  | PredictControllerTrackPositionsScreenViewedAction
+  | PredictControllerTrackPositionsTabViewedAction
   | PredictControllerTrackGeoBlockTriggeredAction
   | PredictControllerTrackFeedViewedAction
   | PredictControllerTrackBannerActionAction

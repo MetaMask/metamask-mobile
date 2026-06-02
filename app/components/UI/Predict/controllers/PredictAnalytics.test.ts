@@ -2,6 +2,7 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { analytics } from '../../../../util/analytics/analytics';
 import {
+  PredictEventValues,
   PredictShareStatus,
   PredictTradeStatus,
 } from '../constants/eventNames';
@@ -477,6 +478,126 @@ describe('PredictAnalytics', () => {
       );
       expect(event.properties).toMatchObject({
         activity_type: 'activity_list',
+      });
+    });
+
+    it('tracks portfolio module viewed with feed viewed event and non-sensitive context', () => {
+      predictAnalytics.trackPortfolioModuleViewed({
+        entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+        positionsCount: 2,
+        claimablePositionsCount: 1,
+        hasClaimableWinnings: true,
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(MetaMetricsEvents.PREDICT_FEED_VIEWED.category);
+      expect(event.properties).toMatchObject({
+        action_type: PredictEventValues.ACTION_TYPE.VIEWED,
+        entry_point: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+        positions_count: 2,
+        claimable_positions_count: 1,
+        has_claimable_winnings: true,
+        portfolio_module_enabled: true,
+        source: PredictEventValues.SOURCE.PREDICT_PORTFOLIO_MODULE,
+      });
+      expect(event.properties).not.toHaveProperty('amount_usd');
+      expect(event.properties).not.toHaveProperty('pnl');
+      expect(event.sensitiveProperties).toEqual({});
+    });
+
+    it('tracks portfolio action with clicked CTA context', () => {
+      predictAnalytics.trackPortfolioAction({
+        ctaName: PredictEventValues.CTA_NAME.ADD_FUNDS,
+        entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+        positionsCount: 2,
+        claimablePositionsCount: 1,
+        hasClaimableWinnings: true,
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(
+        MetaMetricsEvents.PREDICT_PORTFOLIO_ACTION.category,
+      );
+      expect(event.properties).toMatchObject({
+        action_type: PredictEventValues.ACTION_TYPE.CLICKED,
+        cta_name: PredictEventValues.CTA_NAME.ADD_FUNDS,
+        entry_point: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+        positions_count: 2,
+        claimable_positions_count: 1,
+        has_claimable_winnings: true,
+        source: PredictEventValues.SOURCE.PREDICT_PORTFOLIO_MODULE,
+      });
+      expect(event.properties).not.toHaveProperty('amount_usd');
+      expect(event.properties).not.toHaveProperty('pnl');
+      expect(event.sensitiveProperties).toEqual({});
+    });
+
+    it('tracks positions screen viewed with position viewed event', () => {
+      predictAnalytics.trackPositionsScreenViewed({
+        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+        positionsCount: 3,
+        claimablePositionsCount: 1,
+        hasClaimableWinnings: true,
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(
+        MetaMetricsEvents.PREDICT_POSITION_VIEWED.category,
+      );
+      expect(event.properties).toMatchObject({
+        entry_point: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+        positions_count: 3,
+        claimable_positions_count: 1,
+        has_claimable_winnings: true,
+        source: PredictEventValues.SOURCE.PREDICT_POSITIONS_SCREEN,
+      });
+    });
+
+    it('tracks positions tab viewed with position viewed event', () => {
+      predictAnalytics.trackPositionsTabViewed({
+        tab: PredictEventValues.TAB.POSITIONS,
+        positionsCount: 3,
+        claimablePositionsCount: 1,
+        hasClaimableWinnings: true,
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(
+        MetaMetricsEvents.PREDICT_POSITION_VIEWED.category,
+      );
+      expect(event.properties).toMatchObject({
+        positions_count: 3,
+        claimable_positions_count: 1,
+        has_claimable_winnings: true,
+        source: PredictEventValues.SOURCE.PREDICT_POSITIONS_SCREEN,
+        tab: PredictEventValues.TAB.POSITIONS,
+      });
+    });
+
+    it('tracks history tab viewed with activity viewed event', () => {
+      predictAnalytics.trackPositionsTabViewed({
+        tab: PredictEventValues.TAB.HISTORY,
+        positionsCount: 3,
+        claimablePositionsCount: 1,
+        hasClaimableWinnings: true,
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(
+        MetaMetricsEvents.PREDICT_ACTIVITY_VIEWED.category,
+      );
+      expect(event.properties).toMatchObject({
+        activity_type: PredictEventValues.ACTIVITY_TYPE.ACTIVITY_LIST,
+        positions_count: 3,
+        claimable_positions_count: 1,
+        has_claimable_winnings: true,
+        source: PredictEventValues.SOURCE.PREDICT_POSITIONS_SCREEN,
+        tab: PredictEventValues.TAB.HISTORY,
       });
     });
 

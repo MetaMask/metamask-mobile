@@ -9,6 +9,7 @@ import type { TransactionActiveAbTestEntry } from '../../../../util/transactions
 import {
   PredictDismissalMethodValue,
   PredictEventProperties,
+  PredictEventValues,
   PredictShareStatusValue,
   PredictTradeStatusValue,
 } from '../constants/eventNames';
@@ -67,11 +68,60 @@ export interface FeedViewedArgs {
   sessionTime: number;
   entryPoint?: string;
   isSessionEnd?: boolean;
+  positionsCount?: number;
+  claimablePositionsCount?: number;
+  hasClaimableWinnings?: boolean;
+  portfolioModuleEnabled?: boolean;
+  source?: string;
+  tab?: string;
 }
 
 export interface BannerArgs {
   actionType: string;
   bannerType: string;
+}
+
+export interface PredictPortfolioAnalyticsContextArgs {
+  entryPoint?: string;
+  positionsCount?: number;
+  claimablePositionsCount?: number;
+  hasClaimableWinnings?: boolean;
+  source?: string;
+  tab?: string;
+}
+
+export interface PositionViewedArgs
+  extends PredictPortfolioAnalyticsContextArgs {
+  openPositionsCount?: number;
+}
+
+export interface ActivityViewedArgs
+  extends PredictPortfolioAnalyticsContextArgs {
+  activityType: string;
+}
+
+export interface PortfolioModuleViewedArgs
+  extends Omit<PredictPortfolioAnalyticsContextArgs, 'source' | 'tab'> {
+  portfolioModuleEnabled?: boolean;
+  source?: string;
+}
+
+export interface PortfolioActionArgs
+  extends Omit<PredictPortfolioAnalyticsContextArgs, 'source' | 'tab'> {
+  actionType?: string;
+  ctaName: string;
+  source?: string;
+}
+
+export interface PositionsScreenViewedArgs
+  extends Omit<PredictPortfolioAnalyticsContextArgs, 'source' | 'tab'> {
+  source?: string;
+}
+
+export interface PositionsTabViewedArgs
+  extends Omit<PredictPortfolioAnalyticsContextArgs, 'source' | 'tab'> {
+  source?: string;
+  tab: string;
 }
 
 export interface ShareActionArgs {
@@ -234,16 +284,69 @@ export class PredictAnalytics {
     this.trackConfiguredEvent('marketDetailsOpened', params);
   }
 
-  public trackPositionViewed({
-    openPositionsCount,
-  }: {
-    openPositionsCount: number;
-  }): void {
-    this.trackConfiguredEvent('positionViewed', { openPositionsCount });
+  public trackPositionViewed(args: PositionViewedArgs): void {
+    this.trackConfiguredEvent('positionViewed', args);
   }
 
-  public trackActivityViewed({ activityType }: { activityType: string }): void {
-    this.trackConfiguredEvent('activityViewed', { activityType });
+  public trackActivityViewed(args: ActivityViewedArgs): void {
+    this.trackConfiguredEvent('activityViewed', args);
+  }
+
+  public trackPortfolioModuleViewed({
+    portfolioModuleEnabled = true,
+    source = PredictEventValues.SOURCE.PREDICT_PORTFOLIO_MODULE,
+    ...args
+  }: PortfolioModuleViewedArgs): void {
+    this.trackConfiguredEvent('portfolioModuleViewed', {
+      ...args,
+      actionType: PredictEventValues.ACTION_TYPE.VIEWED,
+      portfolioModuleEnabled,
+      source,
+    });
+  }
+
+  public trackPortfolioAction({
+    actionType = PredictEventValues.ACTION_TYPE.CLICKED,
+    source = PredictEventValues.SOURCE.PREDICT_PORTFOLIO_MODULE,
+    ...args
+  }: PortfolioActionArgs): void {
+    this.trackConfiguredEvent('portfolioAction', {
+      ...args,
+      actionType,
+      source,
+    });
+  }
+
+  public trackPositionsScreenViewed({
+    source = PredictEventValues.SOURCE.PREDICT_POSITIONS_SCREEN,
+    ...args
+  }: PositionsScreenViewedArgs): void {
+    this.trackPositionViewed({
+      ...args,
+      source,
+    });
+  }
+
+  public trackPositionsTabViewed({
+    source = PredictEventValues.SOURCE.PREDICT_POSITIONS_SCREEN,
+    tab,
+    ...args
+  }: PositionsTabViewedArgs): void {
+    if (tab === PredictEventValues.TAB.HISTORY) {
+      this.trackActivityViewed({
+        ...args,
+        activityType: PredictEventValues.ACTIVITY_TYPE.ACTIVITY_LIST,
+        source,
+        tab,
+      });
+      return;
+    }
+
+    this.trackPositionViewed({
+      ...args,
+      source,
+      tab,
+    });
   }
 
   public trackGeoBlockTriggered({
@@ -267,6 +370,12 @@ export class PredictAnalytics {
     sessionTime,
     entryPoint,
     isSessionEnd = false,
+    positionsCount,
+    claimablePositionsCount,
+    hasClaimableWinnings,
+    portfolioModuleEnabled,
+    source,
+    tab,
   }: FeedViewedArgs): void {
     this.trackConfiguredEvent('feedViewed', {
       sessionId,
@@ -276,6 +385,12 @@ export class PredictAnalytics {
       sessionTime,
       entryPoint,
       isSessionEnd,
+      positionsCount,
+      claimablePositionsCount,
+      hasClaimableWinnings,
+      portfolioModuleEnabled,
+      source,
+      tab,
     });
   }
 

@@ -14,10 +14,46 @@ export type PredictAnalyticsEventKey =
   | 'activityViewed'
   | 'positionViewed'
   | 'feedViewed'
+  | 'portfolioModuleViewed'
+  | 'portfolioAction'
   | 'shareAction'
   | 'geoBlockTriggered'
   | 'marketDetailsOpened'
   | 'bannerAction';
+
+const mapPortfolioProperties = ({
+  entryPoint,
+  positionsCount,
+  claimablePositionsCount,
+  hasClaimableWinnings,
+  portfolioModuleEnabled,
+  source,
+  tab,
+}: Record<string, unknown>) => ({
+  ...(entryPoint ? { [PredictEventProperties.ENTRY_POINT]: entryPoint } : {}),
+  ...(positionsCount !== undefined
+    ? { [PredictEventProperties.POSITIONS_COUNT]: positionsCount }
+    : {}),
+  ...(claimablePositionsCount !== undefined
+    ? {
+        [PredictEventProperties.CLAIMABLE_POSITIONS_COUNT]:
+          claimablePositionsCount,
+      }
+    : {}),
+  ...(hasClaimableWinnings !== undefined
+    ? {
+        [PredictEventProperties.HAS_CLAIMABLE_WINNINGS]: hasClaimableWinnings,
+      }
+    : {}),
+  ...(portfolioModuleEnabled !== undefined
+    ? {
+        [PredictEventProperties.PORTFOLIO_MODULE_ENABLED]:
+          portfolioModuleEnabled,
+      }
+    : {}),
+  ...(source ? { [PredictEventProperties.SOURCE]: source } : {}),
+  ...(tab ? { [PredictEventProperties.TAB]: tab } : {}),
+});
 
 export const PREDICT_ANALYTICS_EVENTS: Record<
   PredictAnalyticsEventKey,
@@ -26,15 +62,19 @@ export const PREDICT_ANALYTICS_EVENTS: Record<
   activityViewed: {
     event: MetaMetricsEvents.PREDICT_ACTIVITY_VIEWED,
     logLabel: '📊 [Analytics] PREDICT_ACTIVITY_VIEWED',
-    mapProperties: ({ activityType }) => ({
+    mapProperties: ({ activityType, ...args }) => ({
       [PredictEventProperties.ACTIVITY_TYPE]: activityType,
+      ...mapPortfolioProperties(args),
     }),
   },
   positionViewed: {
     event: MetaMetricsEvents.PREDICT_POSITION_VIEWED,
     logLabel: '📊 [Analytics] PREDICT_POSITION_VIEWED',
-    mapProperties: ({ openPositionsCount }) => ({
-      [PredictEventProperties.OPEN_POSITIONS_COUNT]: openPositionsCount,
+    mapProperties: ({ openPositionsCount, ...args }) => ({
+      ...(openPositionsCount !== undefined
+        ? { [PredictEventProperties.OPEN_POSITIONS_COUNT]: openPositionsCount }
+        : {}),
+      ...mapPortfolioProperties(args),
     }),
   },
   feedViewed: {
@@ -48,6 +88,7 @@ export const PREDICT_ANALYTICS_EVENTS: Record<
       isSessionEnd,
       entryPoint,
       predictScreen,
+      ...args
     }) => ({
       [PredictEventProperties.SESSION_ID]: sessionId,
       [PredictEventProperties.PREDICT_FEED_TAB]: feedTab,
@@ -60,6 +101,24 @@ export const PREDICT_ANALYTICS_EVENTS: Record<
       ...(entryPoint
         ? { [PredictEventProperties.ENTRY_POINT]: entryPoint }
         : {}),
+      ...mapPortfolioProperties(args),
+    }),
+  },
+  portfolioModuleViewed: {
+    event: MetaMetricsEvents.PREDICT_FEED_VIEWED,
+    logLabel: '📊 [Analytics] PREDICT_FEED_VIEWED',
+    mapProperties: ({ actionType, ...args }) => ({
+      [PredictEventProperties.ACTION_TYPE]: actionType,
+      ...mapPortfolioProperties(args),
+    }),
+  },
+  portfolioAction: {
+    event: MetaMetricsEvents.PREDICT_PORTFOLIO_ACTION,
+    logLabel: '📊 [Analytics] PREDICT_PORTFOLIO_ACTION',
+    mapProperties: ({ actionType, ctaName, ...args }) => ({
+      [PredictEventProperties.ACTION_TYPE]: actionType,
+      [PredictEventProperties.CTA_NAME]: ctaName,
+      ...mapPortfolioProperties(args),
     }),
   },
   bannerAction: {
