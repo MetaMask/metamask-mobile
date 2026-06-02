@@ -121,6 +121,10 @@ export function QuickBuyPercentageSlider({
 
   useEffect(() => {
     updatePosition(value);
+    // Keep haptic ref in sync so an external value reset (e.g. token switch)
+    // doesn't make the next drag look like a threshold crossing from the
+    // previous position.
+    previousValueRef.current = value;
   }, [updatePosition, value]);
 
   const progressStyle = useAnimatedStyle(() => ({

@@ -206,7 +206,7 @@ describe('QuickBuyPercentageSlider', () => {
   });
 
   describe('onDragEnd fallback', () => {
-    it('falls back to onValueChange when onDragEnd is not provided', () => {
+    it('when onDragEnd is omitted, onValueChange is the only callback and is not called again on pan release', () => {
       const onValueChange = jest.fn();
 
       render(
@@ -214,10 +214,12 @@ describe('QuickBuyPercentageSlider', () => {
       );
       act(() => triggerLayout());
 
+      // Drag to 50% then release.  onValueChange fires once per update tick
+      // but commitFromPosition skips when onDragEnd is absent — no double-call.
+      act(() => panOnUpdate?.({ x: 100 })); // 50%
       act(() => panOnEnd?.({ x: 100 }));
 
-      // onValueChange is called twice: nothing during this single end event
-      // for display (no onUpdate fired), then once for commit fallback.
+      expect(onValueChange).toHaveBeenCalledTimes(1);
       expect(onValueChange).toHaveBeenCalledWith(50);
     });
   });
