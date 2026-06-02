@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   Box,
-  BoxFlexDirection,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -27,19 +26,16 @@ const PerpsEmptyBalance: React.FC<PerpsEmptyBalanceProps> = ({
     >
       $0.00
     </Text>
-    <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3 mt-4">
-      <Box twClassName="flex-1">
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          onPress={onAddFunds}
-          isFullWidth
-          testID={PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON}
-        >
-          {strings('perps.add_funds')}
-        </Button>
-      </Box>
-    </Box>
+    <Button
+      variant={ButtonVariant.Primary}
+      size={ButtonSize.Lg}
+      onPress={onAddFunds}
+      isFullWidth
+      twClassName="mt-4"
+      testID={PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON}
+    >
+      {strings('perps.add_funds')}
+    </Button>
   </Box>
 );
 

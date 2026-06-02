@@ -3,8 +3,8 @@ import { fireEvent, render } from '@testing-library/react-native';
 
 import {
   BatchSellPercentageSlider,
-  SNAP_POINTS,
-  snapToPercentageStep,
+  clampToPercentage,
+  MARKER_POINTS,
 } from './BatchSellPercentageSlider';
 
 const SLIDER_TEST_ID = 'batch-sell-percentage-slider';
@@ -37,22 +37,22 @@ describe('BatchSellPercentageSlider', () => {
   it.each([
     [-10, 0],
     [0, 0],
-    [12, 0],
-    [13, 25],
-    [37, 25],
-    [38, 50],
-    [62, 50],
-    [63, 75],
-    [87, 75],
-    [88, 100],
+    [0.4, 0],
+    [0.5, 1],
+    [12.4, 12],
+    [12.5, 13],
+    [24.4, 24],
+    [24.5, 25],
+    [99.4, 99],
+    [99.5, 100],
     [120, 100],
-  ])('snaps %s to %s', (value, expectedValue) => {
-    const result = snapToPercentageStep(value);
+  ])('clamps %s to %s', (value, expectedValue) => {
+    const result = clampToPercentage(value);
 
     expect(result).toBe(expectedValue);
   });
 
-  it('increments accessibility value by one snap point', () => {
+  it('increments accessibility value by one percentage point', () => {
     const onValueChange = jest.fn();
     const { getByTestId } = render(
       <BatchSellPercentageSlider
@@ -66,10 +66,10 @@ describe('BatchSellPercentageSlider', () => {
       nativeEvent: { actionName: 'increment' },
     });
 
-    expect(onValueChange).toHaveBeenCalledWith(75);
+    expect(onValueChange).toHaveBeenCalledWith(51);
   });
 
-  it('decrements accessibility value by one snap point', () => {
+  it('decrements accessibility value by one percentage point', () => {
     const onValueChange = jest.fn();
     const { getByTestId } = render(
       <BatchSellPercentageSlider
@@ -83,10 +83,27 @@ describe('BatchSellPercentageSlider', () => {
       nativeEvent: { actionName: 'decrement' },
     });
 
-    expect(onValueChange).toHaveBeenCalledWith(25);
+    expect(onValueChange).toHaveBeenCalledWith(49);
   });
 
-  it('renders muted marker dots for each snap point', () => {
+  it('does not decrement below 0%', () => {
+    const onValueChange = jest.fn();
+    const { getByTestId } = render(
+      <BatchSellPercentageSlider
+        value={0}
+        onValueChange={onValueChange}
+        testID={SLIDER_TEST_ID}
+      />,
+    );
+
+    fireEvent(getByTestId(SLIDER_TEST_ID), 'accessibilityAction', {
+      nativeEvent: { actionName: 'decrement' },
+    });
+
+    expect(onValueChange).toHaveBeenCalledWith(0);
+  });
+
+  it('renders muted marker dots for each marker point', () => {
     const { getByTestId } = render(
       <BatchSellPercentageSlider
         value={50}
@@ -95,9 +112,9 @@ describe('BatchSellPercentageSlider', () => {
       />,
     );
 
-    SNAP_POINTS.forEach((snapPoint) => {
+    MARKER_POINTS.forEach((markerPoint) => {
       expect(
-        getByTestId(`${SLIDER_TEST_ID}-snap-point-${snapPoint}`),
+        getByTestId(`${SLIDER_TEST_ID}-marker-point-${markerPoint}`),
       ).toBeOnTheScreen();
     });
   });

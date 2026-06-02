@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { TransactionType } from '@metamask/transaction-controller';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
+import type { Hex } from '@metamask/utils';
 import { strings } from '../../../../../../../locales/i18n';
 import Engine from '../../../../../../core/Engine';
 import { RootState } from '../../../../../../reducers';
@@ -52,6 +53,11 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
     SUPPORTED_TRANSACTION_TYPES as unknown as TransactionType[],
   );
 
+  const isDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.perpsDeposit,
+    TransactionType.predictDeposit,
+  ]);
+
   const handlePress = useCallback(() => {
     if (transactionId) {
       Engine.context.TransactionPayController.setTransactionConfig(
@@ -59,11 +65,14 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
         (config) => {
           (config as Record<string, unknown>).paymentOverride =
             PaymentOverride.MoneyAccount;
+          if (moneyAccount?.address) {
+            config.refundTo = moneyAccount.address as Hex;
+          }
         },
       );
     }
     navigation.goBack();
-  }, [navigation, transactionId]);
+  }, [moneyAccount?.address, navigation, transactionId]);
 
   return useMemo(() => {
     if (!enablePerpsMoneyAccountTransactions || !isSupported || !moneyAccount) {
@@ -71,9 +80,11 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
     }
 
     const subtitle = totalFiatFormatted
-      ? strings('confirm.pay_with_bottom_sheet.available_balance', {
-          balance: totalFiatFormatted,
-        })
+      ? isDeposit
+        ? strings('confirm.pay_with_bottom_sheet.available_balance', {
+            balance: totalFiatFormatted,
+          })
+        : totalFiatFormatted
       : undefined;
 
     const row: PayWithRowConfig = {
@@ -100,6 +111,7 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
   }, [
     enablePerpsMoneyAccountTransactions,
     handlePress,
+    isDeposit,
     isMoneyAccountSelected,
     isSupported,
     moneyAccount,

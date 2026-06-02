@@ -4,19 +4,21 @@ import { useNavigation } from '@react-navigation/native';
 import {
   BottomSheet,
   BottomSheetHeader,
-  type BottomSheetRef,
   Text,
   TextVariant,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './MoneyBalanceInfoSheet.styles';
 import { MoneyBalanceInfoSheetTestIds } from './MoneyBalanceInfoSheet.testIds';
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 const MoneyBalanceInfoSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
+  const surfaceClass = useElevatedSurface();
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();
@@ -32,6 +34,7 @@ const MoneyBalanceInfoSheet = () => {
       goBack={handleGoBack}
       testID={MoneyBalanceInfoSheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
+      twClassName={surfaceClass}
     >
       <BottomSheetHeader onClose={handleClose}>
         <Text
