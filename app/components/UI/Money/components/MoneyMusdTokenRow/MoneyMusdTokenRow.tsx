@@ -57,7 +57,7 @@ const MoneyMusdTokenRow = ({
         <AvatarToken
           name={MUSD_TOKEN.symbol}
           src={MUSD_TOKEN.imageSource as ImageOrSvgSrc}
-          size={AvatarTokenSize.Md}
+          size={AvatarTokenSize.Sm}
         />
         <Box twClassName="flex-1">
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
