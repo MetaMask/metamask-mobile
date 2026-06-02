@@ -289,7 +289,6 @@ export function useAutomaticTransactionPayToken({
     disable,
     from,
     hasFiatPaymentSelected,
-    postQuoteTransactionType,
     setPayToken,
     isMoneyPaymentOverride,
   ]);
