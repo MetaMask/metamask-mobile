@@ -146,7 +146,6 @@ ignores:
   # the `babel-plugin-` prefix). Babel resolves them correctly at build time
   # but depcheck doesn't recognize the indirect reference. See babel.config.js
   # line 65 comment for details.
-  - 'babel-plugin-react-compiler' # used as 'react-compiler' (line 68)
   - 'babel-plugin-transform-inline-environment-variables' # used as 'transform-inline-environment-variables' (line 81)
   - 'babel-plugin-transform-remove-console' # used as 'transform-remove-console' (line 166, production env)
 

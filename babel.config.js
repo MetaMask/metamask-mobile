@@ -1,3 +1,5 @@
+// Passed to babel-preset-expo when experiments.reactCompiler is enabled in app.config.js.
+// https://docs.expo.dev/guides/react-compiler/
 const ReactCompilerConfig = {
   target: '18',
 };
@@ -61,10 +63,8 @@ module.exports = {
         // Babel must not transform it or it injects require("@babel/runtime/helpers/...")
         /\/expo\/virtual\/streams\.js$/.test(filename)),
   ],
-  presets: ['babel-preset-expo'],
-  // Babel can find the plugin without the `babel-plugin-` prefix. Ex. `babel-plugin-react-compiler` -> `react-compiler`
+  presets: [['babel-preset-expo', { 'react-compiler': ReactCompilerConfig }]],
   plugins: [
-    ['react-compiler', ReactCompilerConfig],
     'transform-inline-environment-variables',
     dynamicImportToRequire,
     // NOTE: react-native-reanimated/plugin must be listed LAST.
