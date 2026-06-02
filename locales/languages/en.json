@@ -6917,7 +6917,7 @@
       "title": "Add funds",
       "convert_crypto": "Convert crypto",
       "convert_crypto_description": "From any account",
-      "deposit_funds": "Deposit funds",
+      "deposit_funds": "Add funds",
       "deposit_funds_description": "From debit card or bank",
       "move_musd": "Add your {{amount}} mUSD",
       "add_musd": "Add mUSD",
