@@ -51,14 +51,16 @@ class OnboardingInterestQuestionnaireView {
   }
 
   async tapContinueButton(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.continueButton, {
+    await UnifiedGestures.tap(this.continueButton, {
       description: 'Onboarding Interest Questionnaire Continue Button',
+      timeout: 2000,
     });
   }
 
   async tapOption(id: InterestOptionId): Promise<void> {
     await UnifiedGestures.waitAndTap(this.getOptionById(id), {
       description: `Onboarding Interest Questionnaire Option: ${id}`,
+      timeout: 2000,
     });
   }
 }
