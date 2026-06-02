@@ -8348,8 +8348,6 @@
     "report_submitted": "Se ha enviado un informe de error."
   },
   "pay_with_modal": {
-    "title": "Seleccionar método de pago",
-    "title_receive": "Seleccionar el token a recibir",
     "no_gas": "No hay saldo nativo para gas",
     "not_supported": "No compatible",
     "crypto": "Cripto"
