@@ -23,89 +23,14 @@ import {
   getSourceTokenCandidates,
   getSellDestTokenCandidates,
 } from '../sourceTokenCandidates';
-import { toChecksumAddress } from '../../../../../../../util/address';
 import { EVM_SCOPE } from '../../../../../../UI/Earn/constants/networks';
-
-const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
-
-const isNativeToken = (address: string): boolean =>
-  address.toLowerCase() === ZERO_ADDRESS;
-const isZeroHexBalance = (balance?: string): boolean =>
-  !balance || balance === '0x0' || balance === '0x00';
-const hasNonZeroHexBalance = (balance?: string): balance is string =>
-  !isZeroHexBalance(balance);
-
-type TokenBalances = ReturnType<typeof selectTokensBalances>;
-type AccountsByChainId = ReturnType<typeof selectAccountsByChainId>;
-
-const getAddressLookupKeys = (address?: string): Hex[] => {
-  if (!address) {
-    return [];
-  }
-
-  const keys = new Set<Hex>([address as Hex, address.toLowerCase() as Hex]);
-
-  try {
-    keys.add(toChecksumAddress(address) as Hex);
-  } catch {
-    // Ignore invalid addresses in tests or malformed candidate data.
-  }
-
-  return [...keys];
-};
-
-const getCachedNativeBalance = (
-  accountsByChainId: AccountsByChainId,
-  chainId: Hex,
-  accountAddress?: string,
-): string | undefined => {
-  for (const accountKey of getAddressLookupKeys(accountAddress)) {
-    const balance = accountsByChainId?.[chainId]?.[accountKey]?.balance;
-    if (balance) {
-      return balance;
-    }
-  }
-
-  return undefined;
-};
-
-const getCachedErc20Balance = (
-  tokenBalances: TokenBalances,
-  accountAddress: string | undefined,
-  chainId: Hex,
-  tokenAddress: string,
-): string | undefined => {
-  for (const accountKey of getAddressLookupKeys(accountAddress)) {
-    const chainBalances = tokenBalances?.[accountKey]?.[chainId];
-    if (!chainBalances) {
-      continue;
-    }
-
-    for (const tokenKey of getAddressLookupKeys(tokenAddress)) {
-      const balance = chainBalances[tokenKey];
-      if (balance) {
-        return balance;
-      }
-    }
-  }
-
-  return undefined;
-};
-
-const getTokenPrice = (
-  tokenMarketData: ReturnType<typeof selectTokenMarketData>,
-  chainId: Hex,
-  tokenAddress: string,
-): number | undefined => {
-  for (const addressKey of getAddressLookupKeys(tokenAddress)) {
-    const price = tokenMarketData?.[chainId]?.[addressKey]?.price;
-    if (price !== undefined) {
-      return price;
-    }
-  }
-
-  return undefined;
-};
+import {
+  isNativeToken,
+  hasNonZeroHexBalance,
+  getCachedNativeBalance,
+  getCachedErc20Balance,
+  getTokenPrice,
+} from './tokenBalanceUtils';
 
 /**
  * Returns the list of source token options for QuickBuy,

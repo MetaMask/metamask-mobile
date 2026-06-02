@@ -45,7 +45,7 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
           <Text
             variant={TextVariant.BodySm}
             fontWeight={
-              tradeMode === 'buy' ? FontWeight.Medium : FontWeight.Normal
+              tradeMode === 'buy' ? FontWeight.Medium : FontWeight.Regular
             }
             color={TextColor.TextDefault}
           >
@@ -66,7 +66,7 @@ const QuickBuyTradeModeToggle: React.FC<QuickBuyTradeModeToggleProps> = ({
           <Text
             variant={TextVariant.BodySm}
             fontWeight={
-              tradeMode === 'sell' ? FontWeight.Medium : FontWeight.Normal
+              tradeMode === 'sell' ? FontWeight.Medium : FontWeight.Regular
             }
             color={TextColor.TextDefault}
           >

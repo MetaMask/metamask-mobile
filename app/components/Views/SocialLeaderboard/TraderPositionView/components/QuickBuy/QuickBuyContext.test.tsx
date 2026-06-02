@@ -99,6 +99,11 @@ const buildController = (
   handleAmountChange: jest.fn(),
   handleToggleAmountDisplay: jest.fn(),
   handleSelectSourceToken: jest.fn(),
+  tradeMode: 'buy' as const,
+  setTradeMode: jest.fn(),
+  sellDestTokenOptions: [],
+  selectedDestStable: undefined,
+  handleSelectDestStable: jest.fn(),
   handleConfirm: jest.fn().mockResolvedValue(undefined),
   ...overrides,
 });

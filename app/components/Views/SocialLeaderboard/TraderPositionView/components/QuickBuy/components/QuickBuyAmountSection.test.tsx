@@ -5,7 +5,6 @@ import QuickBuyAmountSection from './QuickBuyAmountSection';
 
 const defaultProps = {
   amountDisplayMode: 'fiat' as const,
-  tradeMode: 'buy' as const,
   fiatCryptoToggleEnabled: false,
   usdAmount: '',
   destSymbol: 'ETH',
@@ -63,11 +62,10 @@ describe('QuickBuyAmountSection', () => {
     expect(screen.getByText('0 ETH')).toBeOnTheScreen();
   });
 
-  it('in sell mode shows the position token symbol as the secondary label', () => {
+  it('shows the estimated crypto amount with destSymbol as the secondary label', () => {
     render(
       <QuickBuyAmountSection
         {...defaultProps}
-        tradeMode="sell"
         estimatedCryptoAmount="123.45"
         destSymbol="ETH"
       />,
