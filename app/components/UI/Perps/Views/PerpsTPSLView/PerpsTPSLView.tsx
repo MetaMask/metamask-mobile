@@ -645,7 +645,7 @@ const PerpsTPSLView: React.FC = () => {
                   variant={TextVariant.BodyMd}
                   color={TextColor.TextAlternative}
                 >
-                  {strings('perps.tpsl.usd_perps_label')}
+                  {strings('perps.tpsl.usd_label')}
                 </Text>
                 <TextInput
                   ref={takeProfitPriceRef}
