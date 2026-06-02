@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -47,13 +47,9 @@ const DiscoveryFoundScreen: React.FC<DiscoveryFoundScreenProps> = ({
   const tw = useTailwind();
   const riveRef = useRef<RiveRef>(null);
 
-  useEffect(() => {
-    if (!riveRef.current) {
-      return;
-    }
-
+  const handleRivePlay = useCallback(() => {
     try {
-      riveRef.current.setInputState(config.stateMachineName, 'found', true);
+      riveRef.current?.setInputState(config.stateMachineName, 'found', true);
     } catch (error) {
       Logger.error(error as Error, 'Error triggering found Rive animation');
     }
@@ -84,6 +80,7 @@ const DiscoveryFoundScreen: React.FC<DiscoveryFoundScreenProps> = ({
               alignment={Alignment.Center}
               artboardName={config.artboardName}
               stateMachineName={config.stateMachineName}
+              onPlay={handleRivePlay}
               testID="discovery-found-animation"
             />
           </View>

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -14,6 +14,7 @@ import {
 } from '@metamask/design-system-react-native';
 import Rive, { Alignment, Fit, type RiveRef } from 'rive-react-native';
 import HardwareWalletRive from '../../../../../../animations/hardware_wallet.riv';
+import Logger from '../../../../../../util/Logger';
 import type { DiscoveryErrorScreenLayoutProps } from './DiscoveryErrorScreen.types';
 
 const styles = StyleSheet.create({
@@ -36,17 +37,17 @@ const DiscoveryErrorScreenLayout = ({
   const riveRef = useRef<RiveRef>(null);
   const useStaticImage = Boolean(imageSource);
 
-  useEffect(() => {
-    if (useStaticImage || !stateTrigger || !stateMachineName) {
+  const handleRivePlay = useCallback(() => {
+    if (!stateTrigger || !stateMachineName) {
       return;
     }
 
-    const timeoutId = setTimeout(() => {
+    try {
       riveRef.current?.fireState(stateMachineName, stateTrigger);
-    }, 500);
-
-    return () => clearTimeout(timeoutId);
-  }, [stateMachineName, stateTrigger, useStaticImage]);
+    } catch (error) {
+      Logger.error(error as Error, 'Error triggering error Rive animation');
+    }
+  }, [stateMachineName, stateTrigger]);
 
   return (
     <SafeAreaView
@@ -76,6 +77,7 @@ const DiscoveryErrorScreenLayout = ({
                 alignment={Alignment.Center}
                 artboardName={artboardName}
                 stateMachineName={stateMachineName}
+                onPlay={handleRivePlay}
                 testID={testID ?? 'discovery-error-animation'}
               />
             )}

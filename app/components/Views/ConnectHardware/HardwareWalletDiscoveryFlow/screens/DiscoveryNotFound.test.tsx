@@ -1,11 +1,11 @@
 import React from 'react';
-import { act, render, screen } from '@testing-library/react-native';
+import { render, screen } from '@testing-library/react-native';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import DiscoveryNotFoundScreen from './DiscoveryNotFound';
 import type { DeviceUIConfig } from '../DiscoveryFlow.types';
 import { IconName } from '@metamask/design-system-react-native';
 
-const mockFireState = jest.fn();
+const mockSetInputState = jest.fn();
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => {
@@ -28,12 +28,16 @@ jest.mock('rive-react-native', () => {
 
   const MockRive = MockReact.forwardRef(
     (
-      props: { testID?: string; style?: unknown },
-      ref: React.Ref<{ fireState: typeof mockFireState }>,
+      props: { testID?: string; style?: unknown; onPlay?: () => void },
+      ref: React.Ref<{ setInputState: typeof mockSetInputState }>,
     ) => {
       MockReact.useImperativeHandle(ref, () => ({
-        fireState: mockFireState,
+        setInputState: mockSetInputState,
       }));
+
+      MockReact.useEffect(() => {
+        props.onPlay?.();
+      }, [props.onPlay]);
 
       return MockReact.createElement(MockView, {
         testID: props.testID ?? 'mock-rive',
@@ -79,12 +83,6 @@ const TEST_CONFIG: DeviceUIConfig = {
 describe('DiscoveryNotFoundScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.useFakeTimers();
-  });
-
-  afterEach(() => {
-    jest.runOnlyPendingTimers();
-    jest.useRealTimers();
   });
 
   it('renders the not-found animation', () => {
@@ -95,13 +93,13 @@ describe('DiscoveryNotFoundScreen', () => {
     ).toBeOnTheScreen();
   });
 
-  it('fires the not_found animation state after mount', () => {
+  it('sets the not_found input state on play', () => {
     render(<DiscoveryNotFoundScreen config={TEST_CONFIG} />);
 
-    act(() => {
-      jest.advanceTimersByTime(500);
-    });
-
-    expect(mockFireState).toHaveBeenCalledWith('Ledger_states', 'not_found');
+    expect(mockSetInputState).toHaveBeenCalledWith(
+      'Ledger_states',
+      'not_found',
+      true,
+    );
   });
 });
