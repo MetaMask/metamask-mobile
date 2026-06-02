@@ -40,7 +40,7 @@ test.describe(`${Performance} ${System} ${PerformanceLogin} ${PerformanceSwaps}`
         currentDeviceDetails.platform,
       );
       await QuoteView.selectNetworkAndTokenTo('Ethereum', 'USDC');
-      await QuoteView.enterSourceTokenAmount('0.0001');
+      await QuoteView.enterSourceTokenAmount('0.01');
 
       await QuoteView.dismissKeypad();
       await swapTimer.measure(() => QuoteView.isQuoteDisplayed());

@@ -628,12 +628,7 @@ export const dismisspredictionsModalPlaywright = async (
         checkForDisplayed: true,
         checkForEnabled: true,
       });
-      const dismissedCheck = await asPlaywrightElement(
-        PredictModalView.notNowButton,
-      );
-      await dismissedCheck
-        .unwrap()
-        .waitForDisplayed({ reverse: true, timeout: 10_000 });
+      await btn.unwrap().waitForDisplayed({ reverse: true, timeout: 10_000 });
       return;
     } catch {
       if (attempt === maxRetries) {
