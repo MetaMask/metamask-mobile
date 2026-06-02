@@ -24,9 +24,8 @@ import {
 
 const DEVELOPMENT = 'development';
 
-// Server APIs: GH Actions use builds.yml (apply-build-config.js sets PORTFOLIO_API_URL, etc.). Local can use .js.env or same keys.
-const PORTFOLIO_URL =
-  process.env.MM_PORTFOLIO_URL || 'https://portfolio.metamask.io';
+// Keep portfolio navigation pinned to the website host (not API hosts).
+const PORTFOLIO_URL = 'https://portfolio.metamask.io';
 
 const SECURITY_ALERTS_API_URL =
   process.env.SECURITY_ALERTS_API_URL ??

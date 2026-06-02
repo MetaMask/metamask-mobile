@@ -1,7 +1,10 @@
 import { useCallback, useRef } from 'react';
+import {
+  mergeAssetViewedProperties,
+  MetaMetricsEvents,
+} from '../../../../core/Analytics';
 import { analytics } from '../../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
-import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 import type { SearchFeedId } from './useExploreSearch';
 
 export type SearchInteractionType =
@@ -82,15 +85,45 @@ export const trackExploreInteracted = (
   );
 };
 
-export const trackExploreEvent = (
-  event: Parameters<typeof AnalyticsEventBuilder.createEventBuilder>[0],
-  properties: Record<string, string>,
+const PREDICTIONS_TRENDING_SECTION: ExploreSectionName = 'predictions_trending';
+
+/**
+ * Trade funnel: `Asset Viewed` when the user taps View all / the Predict section
+ * header on Explore (`predictions_trending`).
+ */
+export const trackExplorePredictTrendingAssetViewed = (
+  tabName: ExploreTabName,
 ): void => {
   analytics.trackEvent(
-    AnalyticsEventBuilder.createEventBuilder(event)
-      .addProperties(properties)
+    AnalyticsEventBuilder.createEventBuilder(MetaMetricsEvents.ASSET_VIEWED)
+      .addProperties(
+        mergeAssetViewedProperties('Predict', {
+          section_name: PREDICTIONS_TRENDING_SECTION,
+          asset_type: 'prediction',
+          tab_name: tabName,
+          interaction_type: 'section_see_all_tapped',
+        }),
+      )
       .build(),
   );
+};
+
+export const trackExploreSectionSeeAll = ({
+  tabName,
+  sectionName,
+}: {
+  tabName: ExploreTabName;
+  sectionName: ExploreSectionName;
+}): void => {
+  trackExploreInteracted({
+    interaction_type: 'section_see_all_tapped',
+    tab_name: tabName,
+    section_name: sectionName,
+  });
+
+  if (sectionName === PREDICTIONS_TRENDING_SECTION) {
+    trackExplorePredictTrendingAssetViewed(tabName);
+  }
 };
 
 export const trackExploreSearchEvent = (

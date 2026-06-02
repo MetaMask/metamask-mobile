@@ -1,10 +1,15 @@
 import React, { useEffect, useRef } from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
+import {
+  createStackNavigator,
+  TransitionPresets,
+} from '@react-navigation/stack';
+import { darkTheme } from '@metamask/design-tokens';
 import Routes from '../../../constants/navigation/Routes';
 import OnboardingNavigator from './OnboardingNavigator';
 import RewardsDashboard from './Views/RewardsDashboard';
 import ReferralRewardsView from './Views/RewardsReferralView';
 import RewardsSettingsView from './Views/RewardsSettingsView';
+import RewardsVipSplashView from './Views/RewardsVipSplashView';
 import RewardsVipView from './Views/RewardsVipView';
 import RewardsVipTiersView from './Views/RewardsVipTiersView';
 import CampaignsView from './Views/CampaignsView';
@@ -222,14 +227,37 @@ const RewardsNavigator: React.FC = () => {
             options={{ headerShown: false }}
           />
           <Stack.Screen
+            name={Routes.REWARDS_VIP_SPLASH_VIEW}
+            component={RewardsVipSplashView}
+            options={{
+              headerShown: false,
+              ...TransitionPresets.SlideFromRightIOS,
+              cardStyle: {
+                backgroundColor: darkTheme.colors.background.default,
+              },
+            }}
+          />
+          <Stack.Screen
             name={Routes.REWARDS_VIP_VIEW}
             component={RewardsVipView}
-            options={{ headerShown: false }}
+            options={{
+              headerShown: false,
+              ...TransitionPresets.SlideFromRightIOS,
+              cardStyle: {
+                backgroundColor: darkTheme.colors.background.default,
+              },
+            }}
           />
           <Stack.Screen
             name={Routes.REWARDS_VIP_TIERS_VIEW}
             component={RewardsVipTiersView}
-            options={{ headerShown: false }}
+            options={{
+              headerShown: false,
+              ...TransitionPresets.SlideFromRightIOS,
+              cardStyle: {
+                backgroundColor: darkTheme.colors.background.default,
+              },
+            }}
           />
           <Stack.Screen
             name={Routes.REWARDS_CAMPAIGNS_VIEW}

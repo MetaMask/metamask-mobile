@@ -8348,8 +8348,6 @@
     "report_submitted": "Laporan kesalahan telah dikirimkan."
   },
   "pay_with_modal": {
-    "title": "Pilih metode pembayaran",
-    "title_receive": "Pilih terima token",
     "no_gas": "Tidak ada saldo asli untuk gas",
     "not_supported": "Tidak didukung",
     "crypto": "Kripto"
@@ -8457,6 +8455,7 @@
     "main_title": "Reward",
     "vip": {
       "bps_unit": "bps",
+      "badge_label": "VIP Fox {{tier}}",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
       "error_title": "We couldn’t load your VIP dashboard",
@@ -8900,7 +8899,7 @@
       "stats_notional_volume_threshold": "${{amount}} diperlukan",
       "stats_qualified_title": "Anda memenuhi syarat",
       "stats_qualified_description": "Terus lakukan perdagangan untuk meningkatkan PnL dan naiki papan peringkat sebelum kompetisi berakhir.",
-      "stats_qualify_for_rank_title": "Memenuhi syarat untuk peringkat ini",
+      "stats_qualify_for_rank_title": "Memenuhi syarat untuk papan peringkat",
       "stats_qualify_for_rank_description": "Lakukan perdagangan {{notionalRemaining}} lagi dalam volume notional untuk memenuhi syarat.",
       "stats_error_title": "Tidak dapat memuat statistik",
       "stats_error_description": "Terjadi masalah saat memuat statistik. Coba lagi.",

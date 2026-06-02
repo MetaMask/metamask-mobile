@@ -621,6 +621,79 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       ],
     );
 
+    const initializeBackgroundBridge = useCallback(
+      (urlBridge: string, isMainFrame: boolean) => {
+        // First disconnect and reset bridge
+        backgroundBridgeRef.current?.onDisconnect();
+        backgroundBridgeRef.current = undefined;
+
+        //@ts-expect-error - We should type bacgkround bridge js file
+        const newBridge = new BackgroundBridge({
+          webview: webviewRef,
+          url: urlBridge,
+          getRpcMethodMiddleware: ({
+            getProviderState,
+          }: {
+            getProviderState: () => void;
+          }) =>
+            getRpcMethodMiddleware({
+              hostname: new URL(urlBridge).origin,
+              getProviderState,
+              navigation,
+              // Website info
+              url: resolvedUrlRef,
+              title: titleRef,
+              icon: iconRef,
+              tabId,
+              // TODO: This properties were missing, and were not optional
+              isWalletConnect: false,
+              isMMSDK: false,
+              analytics: {},
+            }),
+          isMainFrame,
+        });
+        backgroundBridgeRef.current = newBridge;
+      },
+      [navigation, tabId],
+    );
+
+    const sendActiveAccount = useCallback(
+      async (targetUrl?: string) => {
+        // Use targetUrl if explicitly provided (even if empty), otherwise fall back to resolvedUrlRef.current
+        const urlToCheck =
+          targetUrl !== undefined ? targetUrl : resolvedUrlRef.current;
+
+        if (!urlToCheck) {
+          // If no URL to check, send empty accounts
+          notifyAllConnections({
+            method: NOTIFICATION_NAMES.accountsChanged,
+            params: [],
+          });
+          return;
+        }
+
+        // Get permitted accounts for the target URL
+        const permissionsControllerState =
+          Engine.context.PermissionController.state;
+        let origin = ''; // notifyAllConnections will return empty array if ''
+        try {
+          origin = new URLParse(urlToCheck).origin;
+        } catch (err) {
+          Logger.log('Error parsing WebView URL', err);
+        }
+        const permittedAcc = getPermittedEvmAddressesByHostname(
+          permissionsControllerState,
+          origin,
+        );
+
+        notifyAllConnections({
+          method: NOTIFICATION_NAMES.accountsChanged,
+          params: permittedAcc,
+        });
+      },
+      [notifyAllConnections],
+    );
+
     /**
      * Handles state changes for when the url changes
      */
@@ -637,6 +710,16 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         if (siteInfo.icon) iconRef.current = siteInfo.icon;
 
         const hostName = new URLParse(siteInfo.url).origin;
+
+        // Initialize the background bridge only once the navigation has
+        // committed, so the bridge origin always matches the page actually
+        // rendered in the WebView.
+        initializeBackgroundBridge(hostName, true);
+        // Send the active account after the bridge has been initialized for the
+        // committed origin, so account data is delivered through a bridge whose
+        // origin matches the rendered page.
+        sendActiveAccount(siteInfo.url);
+
         // Prevent url from being set when the url bar is focused
         !isUrlBarFocused &&
           urlBarRef.current?.setNativeProps({ text: hostName });
@@ -672,6 +755,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         updateTabInfo,
         addToBrowserHistory,
         navigation,
+        initializeBackgroundBridge,
+        sendActiveAccount,
       ],
     );
 
@@ -909,79 +994,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       [checkIFrameUrls, scrollY],
     );
 
-    const initializeBackgroundBridge = useCallback(
-      (urlBridge: string, isMainFrame: boolean) => {
-        // First disconnect and reset bridge
-        backgroundBridgeRef.current?.onDisconnect();
-        backgroundBridgeRef.current = undefined;
-
-        //@ts-expect-error - We should type bacgkround bridge js file
-        const newBridge = new BackgroundBridge({
-          webview: webviewRef,
-          url: urlBridge,
-          getRpcMethodMiddleware: ({
-            getProviderState,
-          }: {
-            getProviderState: () => void;
-          }) =>
-            getRpcMethodMiddleware({
-              hostname: new URL(urlBridge).origin,
-              getProviderState,
-              navigation,
-              // Website info
-              url: resolvedUrlRef,
-              title: titleRef,
-              icon: iconRef,
-              tabId,
-              // TODO: This properties were missing, and were not optional
-              isWalletConnect: false,
-              isMMSDK: false,
-              analytics: {},
-            }),
-          isMainFrame,
-        });
-        backgroundBridgeRef.current = newBridge;
-      },
-      [navigation, tabId],
-    );
-
-    const sendActiveAccount = useCallback(
-      async (targetUrl?: string) => {
-        // Use targetUrl if explicitly provided (even if empty), otherwise fall back to resolvedUrlRef.current
-        const urlToCheck =
-          targetUrl !== undefined ? targetUrl : resolvedUrlRef.current;
-
-        if (!urlToCheck) {
-          // If no URL to check, send empty accounts
-          notifyAllConnections({
-            method: NOTIFICATION_NAMES.accountsChanged,
-            params: [],
-          });
-          return;
-        }
-
-        // Get permitted accounts for the target URL
-        const permissionsControllerState =
-          Engine.context.PermissionController.state;
-        let origin = ''; // notifyAllConnections will return empty array if ''
-        try {
-          origin = new URLParse(urlToCheck).origin;
-        } catch (err) {
-          Logger.log('Error parsing WebView URL', err);
-        }
-        const permittedAcc = getPermittedEvmAddressesByHostname(
-          permissionsControllerState,
-          origin,
-        );
-
-        notifyAllConnections({
-          method: NOTIFICATION_NAMES.accountsChanged,
-          params: permittedAcc,
-        });
-      },
-      [notifyAllConnections],
-    );
-
     /**
      * Website started to load
      */
@@ -1020,18 +1032,13 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           return false;
         }
 
-        sendActiveAccount(nativeEvent.url);
-
+        // The background bridge is intentionally not initialized here.
+        // `onLoadStart` fires before the navigation has committed, so the bridge
+        // is initialized and the active account sent only once the navigation
+        // has committed, in `handleSuccessfulPageResolution`.
         iconRef.current = undefined;
-
-        initializeBackgroundBridge(urlOrigin, true);
       },
-      [
-        isAllowedOrigin,
-        handleNotAllowedUrl,
-        sendActiveAccount,
-        initializeBackgroundBridge,
-      ],
+      [isAllowedOrigin, handleNotAllowedUrl],
     );
 
     /**

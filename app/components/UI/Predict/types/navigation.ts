@@ -30,7 +30,8 @@ export type PredictEntryPoint =
   | typeof PredictEventValues.ENTRY_POINT.BACKGROUND
   | typeof PredictEventValues.ENTRY_POINT.TRENDING_SEARCH
   | typeof PredictEventValues.ENTRY_POINT.TRENDING
-  | typeof PredictEventValues.ENTRY_POINT.HOME_SECTION;
+  | typeof PredictEventValues.ENTRY_POINT.HOME_SECTION
+  | typeof PredictEventValues.ENTRY_POINT.EXPLORE;
 
 /** Predict market list parameters */
 export interface PredictMarketListParams {
@@ -63,6 +64,13 @@ export interface PredictWorldCupParams {
 /** Predict activity detail parameters */
 export interface PredictActivityDetailParams {
   activity: PredictActivityItem;
+}
+
+export type PredictPositionsTabKey = 'positions' | 'history';
+
+/** Predict Positions screen parameters */
+export interface PredictPositionsParams {
+  initialTab?: PredictPositionsTabKey;
 }
 
 /** Predict add funds modal parameters */
@@ -121,6 +129,7 @@ export interface PredictNavigationParamList extends ParamListBase {
   Predict: undefined;
   PredictMarketList: PredictMarketListParams;
   PredictMarketDetails: PredictMarketDetailsParams;
+  PredictPositions: PredictPositionsParams | undefined;
   PredictWorldCup: PredictWorldCupParams | undefined;
   PredictSellPreview: PredictSellPreviewParams;
   PredictBuyPreview: PredictBuyPreviewParams;

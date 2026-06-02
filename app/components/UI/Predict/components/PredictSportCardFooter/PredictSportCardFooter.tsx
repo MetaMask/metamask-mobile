@@ -12,8 +12,8 @@ import {
   PredictEntryPoint,
 } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
-import { usePredictEntryPoint, usePredictPreviewSheet } from '../../contexts';
-import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
+import { usePredictPreviewSheet } from '../../contexts';
+import { useResolvedPredictEntryPoint } from '../../hooks/useResolvedPredictEntryPoint';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { PredictActionButtons } from '../PredictActionButtons';
 import { PredictPicksForCard } from '../PredictPicks';
@@ -42,16 +42,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
 
-  const contextEntryPoint = usePredictEntryPoint();
-  const baseEntryPoint =
-    contextEntryPoint ??
-    propEntryPoint ??
-    PredictEventValues.ENTRY_POINT.PREDICT_FEED;
-
-  const resolvedEntryPoint = TrendingFeedSessionManager.getInstance()
-    .isFromTrending
-    ? PredictEventValues.ENTRY_POINT.TRENDING
-    : baseEntryPoint;
+  const resolvedEntryPoint = useResolvedPredictEntryPoint(propEntryPoint);
 
   const { data: positions = [], isLoading } = usePredictPositions({
     marketId: market.id,

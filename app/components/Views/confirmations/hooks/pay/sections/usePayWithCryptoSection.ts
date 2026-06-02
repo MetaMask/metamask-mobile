@@ -1,7 +1,9 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
-import { TransactionType } from '@metamask/transaction-controller';
+import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import {
   Icon,
   IconColor,
@@ -9,6 +11,8 @@ import {
   IconSize,
 } from '@metamask/design-system-react-native';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { RootState } from '../../../../../../reducers';
+import { selectPaymentOverrideByTransactionId } from '../../../../../../selectors/transactionPayController';
 import { strings } from '../../../../../../../locales/i18n';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
@@ -28,6 +32,7 @@ import {
   isMatchingPayToken,
   resolvePreferredPayToken,
 } from '../../../utils/transaction-pay';
+import { MUSD_TOKEN_ADDRESS } from '../../../../../UI/Earn/constants/musd';
 import { SetPayTokenRequest } from '../useAutomaticTransactionPayToken';
 import { useLastUsedPaymentMethod } from '../useLastUsedPaymentMethod';
 import { usePayWithPreferredToken } from '../usePayWithPreferredToken';
@@ -35,6 +40,7 @@ import { usePayWithSelectedToken } from '../usePayWithSelectedToken';
 import { useTransactionPayFiatPayment } from '../useTransactionPayData';
 import { useTransactionPayToken } from '../useTransactionPayToken';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
+import { useClearPaymentOverride } from './useClearPaymentOverride';
 
 interface PayWithCryptoSectionParams {
   preferredPaymentToken?: SetPayTokenRequest;
@@ -87,6 +93,12 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
   ]);
   const isPerpsBalanceImplicitlySelected =
     isPerpsDepositAndOrder && isPerpsBalanceSelected;
+  const transactionId = transactionMeta?.id ?? '';
+  const paymentOverride = useSelector((state: RootState) =>
+    selectPaymentOverrideByTransactionId(state, transactionId),
+  );
+  const isMoneyAccountSelected =
+    paymentOverride === PaymentOverride.MoneyAccount;
   const isPredictBalanceImplicitlySelected =
     isPredictDepositAndOrder && isPredictBalanceSelected;
   const fiatPayment = useTransactionPayFiatPayment();
@@ -94,14 +106,23 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
   const isDedicatedSectionOwningSelection =
     isPerpsBalanceImplicitlySelected ||
     isPredictBalanceImplicitlySelected ||
-    hasFiatPaymentSelected;
+    hasFiatPaymentSelected ||
+    isMoneyAccountSelected;
+
+  const clearPaymentOverride = useClearPaymentOverride();
+
+  const isDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.perpsDeposit,
+    TransactionType.predictDeposit,
+  ]);
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);
 
   const handleOtherAssetsPress = useCallback(() => {
+    clearPaymentOverride();
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL, {
       dismissOnSelectCount: 2,
     });
-  }, [navigation]);
+  }, [clearPaymentOverride, navigation]);
 
   const handlePreferredTokenPress = useCallback(() => {
     if (!preferredToken) {
@@ -119,8 +140,10 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     } else {
       setPayToken(target);
     }
+    clearPaymentOverride();
     navigation.goBack();
   }, [
+    clearPaymentOverride,
     isPerpsDepositAndOrder,
     isPredictDepositAndOrder,
     navigation,
@@ -147,7 +170,14 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
 
     const rows: PayWithRowConfig[] = [];
 
-    if (preferredToken) {
+    const isPreferredTokenMoneyAccountToken =
+      isMoneyAccountSelected &&
+      isMatchingPayToken(preferredToken, {
+        address: MUSD_TOKEN_ADDRESS,
+        chainId: CHAIN_IDS.MONAD,
+      });
+
+    if (preferredToken && !isPreferredTokenMoneyAccountToken) {
       // When a dedicated section "owns" the selection — Perps balance is the
       // implicit default in a perpsDepositAndOrder flow, Predict balance is
       // the implicit default in a predictDepositAndOrder flow, OR a fiat
@@ -170,9 +200,11 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
           variant: TokenIconVariant.Row,
         }),
         title: preferredToken.symbol,
-        subtitle: strings('confirm.pay_with_bottom_sheet.available_balance', {
-          balance: preferredTokenBalance,
-        }),
+        subtitle: isDeposit
+          ? strings('confirm.pay_with_bottom_sheet.available_balance', {
+              balance: preferredTokenBalance,
+            })
+          : preferredTokenBalance,
         isSelected: isPreferredTokenSelected,
         isLastUsed: isLastUsed(preferredToken.address, preferredToken.chainId),
         trailingElement: isPreferredTokenSelected ? 'checkmark' : 'none',
@@ -194,9 +226,11 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
           variant: TokenIconVariant.Row,
         }),
         title: selectedTokenDisplay.symbol,
-        subtitle: strings('confirm.pay_with_bottom_sheet.available_balance', {
-          balance: selectedTokenBalance,
-        }),
+        subtitle: isDeposit
+          ? strings('confirm.pay_with_bottom_sheet.available_balance', {
+              balance: selectedTokenBalance,
+            })
+          : selectedTokenBalance,
         isSelected: true,
         isLastUsed: isLastUsed(
           selectedTokenDisplay.address,
@@ -217,7 +251,7 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
       title: strings('confirm.pay_with_bottom_sheet.other_assets'),
       subtitle: strings(
         isWithdraw
-          ? 'confirm.pay_with_bottom_sheet.other_assets_withdraw_description'
+          ? 'confirm.pay_with_bottom_sheet.other_assets_receive_description'
           : 'confirm.pay_with_bottom_sheet.other_assets_description',
       ),
       trailingElement: 'chevron',
@@ -236,7 +270,9 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     handlePreferredTokenPress,
     hasTokens,
     isDedicatedSectionOwningSelection,
+    isDeposit,
     isLastUsed,
+    isMoneyAccountSelected,
     isSelectedDistinctFromAutomatic,
     isWithdraw,
     preferredToken,

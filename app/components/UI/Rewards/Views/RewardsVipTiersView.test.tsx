@@ -98,9 +98,15 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: (...args: unknown[]) => args }),
-}));
+jest.mock('@metamask/design-system-twrnc-preset', () => {
+  const ReactActual = jest.requireActual('react');
+  return {
+    useTailwind: () => ({ style: (...args: unknown[]) => args }),
+    ThemeProvider: ({ children }: { children: React.ReactNode }) =>
+      ReactActual.createElement(ReactActual.Fragment, null, children),
+    Theme: { Light: 'light', Dark: 'dark' },
+  };
+});
 
 jest.mock('../components/RewardsErrorBanner', () => {
   const ReactActual = jest.requireActual('react');
@@ -207,7 +213,11 @@ const dashboardWithTiers: VipDashboardState = {
     referrals: 2,
     referralsCap: 10,
   },
-  pointsAllocation: { earned: 24_400_000, max: 100_000_000, percent: 24.4 },
+  pointsAllocation: {
+    earned: 24_400_000,
+    threshold: 100_000_000,
+    percent: 24.4,
+  },
   tiers: [
     {
       id: 'default',
@@ -217,7 +227,6 @@ const dashboardWithTiers: VipDashboardState = {
       revenueShareBps: 0,
       swapsBps: 87.5,
       perpsBps: 10,
-      equityRebateBps: 0,
       referralCarryoverBps: 0,
       status: 'completed',
     },
@@ -229,26 +238,33 @@ const dashboardWithTiers: VipDashboardState = {
       revenueShareBps: 150,
       swapsBps: 15,
       perpsBps: 4,
-      equityRebateBps: 0,
       referralCarryoverBps: 2000,
       status: 'current',
     },
   ],
   localizedText: {
-    period: 'Mar 31 - Apr 30',
-    progressToNextTier: 'Subline',
+    periodTitle: 'Mar 31 - Apr 30',
     memberIdTitle: 'Member ID',
     swapsFeeTitle: 'Swaps fee',
     perpsFeeTitle: 'Perps fee',
     nextTierSwapsFeeDelta: '↓ 12 bps next tier',
     nextTierPerpsFeeDelta: '↓ 3 bps next tier',
     revenueShareTitle: 'Revenue share',
+    referralPointsTitle: 'Referral points',
     nextTierRevenueShareDelta: '↑ 2% next tier',
+    nextTierReferralPointsDelta: '↑ 20% next tier',
+    topTierDescription: 'Top tier reached',
     statsTitle: 'Volume',
-    statusMessage: 'On track',
     pointsTitle: 'Points',
-    pointsAllocationTitle: 'Earn VIP allocations',
-    pointsAllocationDescription: 'Body copy',
+    swapsVolumeTitle: 'Swaps Volume',
+    pointsFromReferralsTitle: 'Points from Referrals',
+    perpsVolumeTitle: 'Perps Volume',
+    vipReferralsTitle: 'VIP Referrals',
+    totalPointsTitle: 'Points',
+    equityLockedTitle: 'Earn VIP allocations',
+    equityLockedDescription: 'Body copy',
+    equityUnlockedTitle: 'VIP allocation unlocked',
+    equityUnlockedDescription: 'Unlocked body copy',
   },
   lastFetched: 0,
 };
