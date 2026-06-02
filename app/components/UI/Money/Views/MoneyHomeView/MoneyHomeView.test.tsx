@@ -29,12 +29,11 @@ import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountC
 import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
-import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
-const mockInitiateCustomConversion = jest.fn();
+const mockInitiateDeposit = jest.fn();
 const mockRefetchBalance = jest.fn();
 const mockMoneyFormatFiat = moneyFormatFiat as jest.MockedFunction<
   typeof moneyFormatFiat
@@ -51,7 +50,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-const mockConversionTokens = [
+const mockDepositTokens = [
   {
     name: 'USD Coin',
     symbol: 'USDC',
@@ -63,15 +62,15 @@ const mockConversionTokens = [
   },
 ];
 
-const mockUseMusdConversionTokens = jest.fn(() => ({
-  tokens: mockConversionTokens as ReturnType<typeof Array.from>,
+const mockUseMoneyDepositTokens = jest.fn(() => ({
+  tokens: mockDepositTokens as ReturnType<typeof Array.from>,
+  isNoFeeToken: jest.fn(() => false),
+  isEligibleToken: jest.fn(() => false),
+  filterAllowedTokens: jest.fn((t) => t),
 }));
 
-jest.mock('../../../Earn/hooks/useMusdConversionTokens', () => ({
-  useMusdConversionTokens: () => mockUseMusdConversionTokens(),
-  STABLECOIN_SYMBOLS: new Set(['USDC', 'USDT', 'DAI']),
-  tokenFiatValue: (token: { fiat?: { balance?: number } }) =>
-    token?.fiat?.balance ?? 0,
+jest.mock('../../hooks/useMoneyDepositTokens', () => ({
+  useMoneyDepositTokens: () => mockUseMoneyDepositTokens(),
 }));
 
 jest.mock('../../hooks/useMoneyAccountTransactions', () => ({
@@ -86,14 +85,6 @@ jest.mock('../../hooks/useMoneyAccountBalance', () => ({
 jest.mock('../../hooks/useMoneyAccountInfo', () => ({
   __esModule: true,
   default: jest.fn(),
-}));
-
-jest.mock('../../../Earn/hooks/useMusdConversion', () => ({
-  useMusdConversion: jest.fn(),
-}));
-
-jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
-  useMusdBalance: jest.fn(),
 }));
 
 jest.mock('../../../../../core/NavigationService', () => ({
@@ -140,7 +131,7 @@ jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
 
 jest.mock('../../hooks/useMoneyAccount', () => ({
   useMoneyAccountDeposit: jest.fn(() => ({
-    initiateDeposit: jest.fn(() => Promise.resolve()),
+    initiateDeposit: mockInitiateDeposit,
   })),
   useMoneyAccountWithdrawal: jest.fn(() => ({
     initiateWithdrawal: jest.fn(() => Promise.resolve()),
@@ -171,12 +162,10 @@ const mockUseMoneyAccountTransactions = jest.mocked(
   useMoneyAccountTransactions,
 );
 
-const mockUseMusdConversion = jest.mocked(useMusdConversion);
+const mockUseMusdBalance = jest.mocked(useMusdBalance);
 
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
 const mockUseMoneyAccountInfo = jest.mocked(useMoneyAccountInfo);
-
-const mockUseMusdBalance = jest.mocked(useMusdBalance);
 
 jest.mock(
   '../../../../UI/Assets/components/AssetLogo/AssetLogo',
@@ -231,10 +220,7 @@ describe('MoneyHomeView', () => {
     jest.clearAllMocks();
     global.alert = jest.fn();
 
-    mockInitiateCustomConversion.mockResolvedValue(undefined);
-    mockUseMusdConversion.mockReturnValue({
-      initiateCustomConversion: mockInitiateCustomConversion,
-    } as unknown as ReturnType<typeof useMusdConversion>);
+    mockInitiateDeposit.mockResolvedValue(undefined);
 
     mockSelectIsCardholder.mockReturnValue(false);
     mockGetDetectedGeolocation.mockReturnValue('US');
@@ -680,13 +666,16 @@ describe('MoneyHomeView', () => {
   });
 
   it('navigates to potential earnings screen when View potential earnings is pressed', () => {
-    mockUseMusdConversionTokens.mockReturnValueOnce({
+    mockUseMoneyDepositTokens.mockReturnValueOnce({
       tokens: Array.from({ length: 6 }, (_, i) => ({
-        ...mockConversionTokens[0],
+        ...mockDepositTokens[0],
         address:
           `0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB${i.toString(16).padStart(2, '0')}` as `0x${string}`,
         fiat: { balance: 5000 },
       })),
+      isNoFeeToken: jest.fn(() => false),
+      isEligibleToken: jest.fn(() => false),
+      filterAllowedTokens: jest.fn((t) => t),
     });
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
@@ -820,6 +809,13 @@ describe('MoneyHomeView', () => {
     it('renders the activity list', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       expect(getByTestId(MoneyActivityListTestIds.CONTAINER)).toBeOnTheScreen();
+    });
+
+    it('hides the Activity View all button with 5 or fewer transactions', () => {
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+      expect(
+        queryByTestId(MoneyActivityListTestIds.VIEW_ALL_BUTTON),
+      ).not.toBeOnTheScreen();
     });
 
     it('renders condensed info cards', () => {
@@ -1074,13 +1070,16 @@ describe('MoneyHomeView', () => {
 
   describe('filled state navigation handlers', () => {
     it('navigates to Potential Earnings when View all is pressed on potential earnings section', () => {
-      mockUseMusdConversionTokens.mockReturnValueOnce({
+      mockUseMoneyDepositTokens.mockReturnValueOnce({
         tokens: Array.from({ length: 6 }, (_, i) => ({
-          ...mockConversionTokens[0],
+          ...mockDepositTokens[0],
           address:
             `0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB${i.toString(16).padStart(2, '0')}` as `0x${string}`,
           fiat: { balance: 5000 },
         })),
+        isNoFeeToken: jest.fn(() => false),
+        isEligibleToken: jest.fn(() => false),
+        filterAllowedTokens: jest.fn((t) => t),
       });
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
@@ -1093,7 +1092,7 @@ describe('MoneyHomeView', () => {
       );
     });
 
-    it('initiates a custom conversion when a token Convert button is pressed', async () => {
+    it('initiates a deposit when a token Convert button is pressed', async () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       const potentialEarnings = getByTestId(
@@ -1105,19 +1104,17 @@ describe('MoneyHomeView', () => {
         ),
       );
 
-      expect(mockInitiateCustomConversion).toHaveBeenCalledWith(
+      expect(mockInitiateDeposit).toHaveBeenCalledWith(
         expect.objectContaining({
           preferredPaymentToken: expect.objectContaining({
-            address: mockConversionTokens[0].address,
+            address: mockDepositTokens[0].address,
           }),
         }),
       );
     });
 
-    it('logs an error when initiateCustomConversion rejects', async () => {
-      mockInitiateCustomConversion.mockRejectedValueOnce(
-        new Error('network failure'),
-      );
+    it('logs an error when initiateDeposit rejects', async () => {
+      mockInitiateDeposit.mockRejectedValueOnce(new Error('network failure'));
       const Logger = jest.requireMock('../../../../../util/Logger');
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);

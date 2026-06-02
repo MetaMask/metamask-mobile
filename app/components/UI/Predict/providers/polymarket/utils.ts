@@ -751,16 +751,18 @@ const sortByLiquidityAndVolume = (
   });
 
 const formatMarketGroupItemTitle = (market: PolymarketApiMarket): string => {
+  const groupItemTitle = market.groupItemTitle ?? market.question ?? '';
+
   if (isSpreadMarket(market)) {
     // Remove the dash before the spread number (e.g., "FC-Dallas -3.5" → "FC-Dallas 3.5")
     // Uses negative lookahead to target dash followed by digit, not dashes in team names
-    return market.groupItemTitle.replace(/-(?=\d)/, '');
+    return groupItemTitle.replace(/-(?=\d)/, '');
   }
 
   if (isMoneylineLikeMarket(market)) {
-    return market.groupItemTitle || market.question;
+    return groupItemTitle || market.question;
   }
-  return market.groupItemTitle;
+  return groupItemTitle;
 };
 
 const YES_NO_TO_OVER_UNDER: Record<string, string> = {
@@ -1223,6 +1225,22 @@ export const parsePolymarketEvents = (
  * Keeps essential metadata used by UI (title/outcome/icon)
  * Note: Lost redeems (activities with no payout) are excluded by the API via excludeLostRedeems parameter
  */
+const getPolymarketActivityId = (activity: PolymarketApiActivity): string =>
+  [
+    activity.transactionHash || 'no-transaction',
+    activity.type || 'unknown-type',
+    activity.side || 'unknown-side',
+    activity.conditionId || 'unknown-condition',
+    activity.outcomeIndex ?? 'unknown-outcome-index',
+    activity.timestamp ?? 'unknown-timestamp',
+    activity.usdcSize ?? 'unknown-size',
+    activity.price ?? 'unknown-price',
+    activity.title || 'unknown-title',
+    activity.outcome || 'unknown-outcome',
+  ]
+    .map(String)
+    .join(':');
+
 export const parsePolymarketActivity = (
   activities: PolymarketApiActivity[],
 ): PredictActivity[] => {
@@ -1241,8 +1259,7 @@ export const parsePolymarketActivity = (
             : 'claimWinnings'
         : 'claimWinnings';
 
-    const id =
-      activity.transactionHash ?? String(activity.timestamp ?? Math.random());
+    const id = getPolymarketActivityId(activity);
     const timestamp = Number(activity.timestamp ?? Date.now());
 
     const price = Number(activity.price ?? 0);

@@ -8347,8 +8347,6 @@
     "report_submitted": "Le rapport d’erreur a été envoyé."
   },
   "pay_with_modal": {
-    "title": "Sélectionnez le mode de paiement",
-    "title_receive": "Sélectionner le jeton à recevoir",
     "no_gas": "Pas de solde natif pour le gaz",
     "not_supported": "Non pris en charge",
     "crypto": "Crypto"
@@ -8900,7 +8898,7 @@
       "stats_notional_volume_threshold": "{{amount}} $ requis",
       "stats_qualified_title": "Vous êtes qualifié",
       "stats_qualified_description": "Continuez à trader pour améliorer votre résultat net et grimper dans le classement avant la fin de la compétition.",
-      "stats_qualify_for_rank_title": "Se qualifier pour ce classement",
+      "stats_qualify_for_rank_title": "Se qualifier pour le classement",
       "stats_qualify_for_rank_description": "Tradez {{notionalRemaining}} de plus en volume notionnel pour devenir admissible.",
       "stats_error_title": "Impossible de charger les statistiques",
       "stats_error_description": "Nous avons rencontré un problème lors du chargement de vos statistiques. Veuillez réessayer.",

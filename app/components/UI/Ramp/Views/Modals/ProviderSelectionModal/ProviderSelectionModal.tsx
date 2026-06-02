@@ -187,6 +187,7 @@ function ProviderSelectionModal() {
       <View style={styles.container}>
         <ProviderSelection
           providers={displayProviders}
+          amount={amount}
           quotes={quotes}
           quotesLoading={quotesLoading}
           quotesError={

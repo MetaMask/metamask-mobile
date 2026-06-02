@@ -15,7 +15,6 @@ import MoneyOnboardingCard from '../../components/MoneyOnboardingCard';
 import MoneyCondensedInfoCards from '../../components/MoneyCondensedInfoCards';
 import MoneyHowItWorks from '../../components/MoneyHowItWorks';
 import MoneyPotentialEarnings from '../../components/MoneyPotentialEarnings';
-import { hasConvertibleTokensWithBalance } from '../../components/MoneyPotentialEarnings/MoneyPotentialEarnings';
 import MoneyMetaMaskCard from '../../components/MoneyMetaMaskCard';
 import MoneyWhatYouGet from '../../components/MoneyWhatYouGet';
 import MoneyActivityList from '../../components/MoneyActivityList';
@@ -23,8 +22,7 @@ import MoneyFooter from '../../components/MoneyFooter';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import styleSheet from './MoneyHomeView.styles';
-import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
-import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
+import { useMoneyDepositTokens } from '../../hooks/useMoneyDepositTokens';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
@@ -47,6 +45,7 @@ import { MoneyBalanceDisplayState } from '../../types';
 import { Hex } from '@metamask/utils';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { MONEY_ONBOARDING_TOTAL_STEPS } from '../../components/MoneyOnboardingCard/MoneyOnboardingCard';
+import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 
 type MoneyHomeState = 'empty' | 'milestone' | 'filled';
@@ -93,8 +92,8 @@ const MoneyHomeView = () => {
   const { fiatBalanceAggregatedFormatted: musdFiatFormatted } =
     useMusdBalance();
 
-  const { tokens: conversionTokens } = useMusdConversionTokens();
-  const { initiateCustomConversion } = useMusdConversion();
+  const { tokens: depositTokens, isNoFeeToken } = useMoneyDepositTokens();
+  const { initiateDeposit } = useMoneyAccountDeposit();
   const { allTransactions, moneyAddress, mockDataEnabled } =
     useMoneyAccountTransactions();
 
@@ -218,10 +217,10 @@ const MoneyHomeView = () => {
     });
   }, []);
 
-  const handleTokenConvertPress = useCallback(
+  const handleTokenDepositPress = useCallback(
     async (token: AssetType) => {
       try {
-        await initiateCustomConversion({
+        await initiateDeposit({
           preferredPaymentToken: {
             address: token.address as Hex,
             chainId: token.chainId as Hex,
@@ -234,7 +233,7 @@ const MoneyHomeView = () => {
         });
       }
     },
-    [initiateCustomConversion],
+    [initiateDeposit],
   );
 
   const handleEarnCryptoPress = useCallback(() => {
@@ -342,11 +341,7 @@ const MoneyHomeView = () => {
             <MoneyActivityList
               transactions={allTransactions}
               moneyAddress={moneyAddress}
-              onViewAllPress={
-                allTransactions.length < 5
-                  ? undefined
-                  : handleViewAllActivityPress
-              }
+              onViewAllPress={handleViewAllActivityPress}
               onHeaderPress={handleActivityHeaderPress}
               onItemPress={
                 mockDataEnabled ? undefined : handleActivityItemPress
@@ -355,12 +350,13 @@ const MoneyHomeView = () => {
             <Divider />
           </>
         )}
-        {hasConvertibleTokensWithBalance(conversionTokens) && (
+        {depositTokens.length > 0 && (
           <>
             <MoneyPotentialEarnings
-              tokens={conversionTokens}
+              tokens={depositTokens}
               apy={apyPercent}
-              onTokenPress={handleTokenConvertPress}
+              isNoFeeToken={isNoFeeToken}
+              onTokenPress={handleTokenDepositPress}
               onViewAllPress={handleEarnCryptoPress}
               onHeaderPress={handleEarnCryptoPress}
               onInfoPress={handleEarnCryptoInfoPress}
