@@ -443,3 +443,42 @@ export async function withSpeculosFixtures(
     }
   }
 }
+
+/* eslint-disable @typescript-eslint/no-require-imports, no-restricted-syntax */
+export async function importLedgerAccount(): Promise<void> {
+  const TestHelpers = require('../../helpers').default;
+  const { loginToApp } = require('../flows/wallet.flow');
+  const { waitForAppReady } = require('../flows/general.flow');
+  const WalletView = require('../page-objects/wallet/WalletView').default;
+  const AccountListBottomSheet =
+    require('../page-objects/wallet/AccountListBottomSheet').default;
+  const LedgerConnectView =
+    require('../page-objects/Ledger/LedgerConnectView').default;
+  const Assertions = require('../framework/Assertions').default;
+
+  await TestHelpers.delay(5000);
+  await waitForAppReady(300000);
+  await loginToApp();
+  await TestHelpers.delay(5000);
+  await WalletView.tapIdenticon();
+  await TestHelpers.delay(8000);
+  await AccountListBottomSheet.tapAddAccountButton();
+  await TestHelpers.delay(5000);
+  await LedgerConnectView.tapAddHardwareWallet();
+  await TestHelpers.delay(3000);
+  await LedgerConnectView.tapLedgerButton();
+  await TestHelpers.delay(5000);
+  await LedgerConnectView.waitForDeviceToAppear(60000);
+  await LedgerConnectView.assertVirtualDeviceVisible();
+  await LedgerConnectView.selectVirtualDevice();
+  await TestHelpers.delay(2000);
+  await LedgerConnectView.tapConnect();
+  await TestHelpers.delay(10000);
+  await Assertions.expectElementToBeVisible(
+    LedgerConnectView.nextAccountsButton,
+    { timeout: 60000 },
+  );
+  await LedgerConnectView.tapNextAccountsButton();
+  await TestHelpers.delay(5000);
+  await Assertions.expectElementToBeVisible(WalletView.container);
+}
