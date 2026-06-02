@@ -87,10 +87,7 @@ import { getAuthIcon, getAuthLabel, getAuthType } from './utils';
 import { IconName } from '@metamask/design-system-react-native';
 import { containsErrorMessage } from '../../util/errorHandling';
 import { ensureError } from '../../util/errorUtils';
-import {
-  navigateToPendingStartupDeeplink,
-  retryPendingDeeplinkAfterDefaultNavigation,
-} from '../DeeplinkManager/utils/startupDeeplinkNavigation';
+import { navigateToPostUnlockHome } from '../DeeplinkManager/utils/startupDeeplinkNavigation';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -833,20 +830,7 @@ class AuthenticationService {
               ],
             });
           } else {
-            // Try to consume startup-capable deeplinks before the default Home
-            // reset. This prevents Wallet from briefly rendering behind the
-            // eventual deeplink destination on cold start after unlock.
-            const handledStartupDeeplink =
-              await navigateToPendingStartupDeeplink();
-            if (!handledStartupDeeplink) {
-              NavigationService.navigation?.reset({
-                routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-              });
-              // Deeplinks that cannot be represented as startup intents still
-              // need HomeNav mounted before the existing saga/parser flow can
-              // navigate them safely.
-              retryPendingDeeplinkAfterDefaultNavigation();
-            }
+            await navigateToPostUnlockHome();
           }
         } else {
           // No password provided or derived. Navigate to login.

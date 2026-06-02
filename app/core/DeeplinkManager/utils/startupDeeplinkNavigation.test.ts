@@ -1,13 +1,16 @@
 import { checkForDeeplink } from '../../../actions/user';
+import Routes from '../../../constants/navigation/Routes';
 import AppConstants from '../../AppConstants';
 import { AppStateEventProcessor } from '../../AppStateEventListener';
 import {
+  navigateToPostUnlockHome,
   navigateToPendingStartupDeeplink,
   retryPendingDeeplinkAfterDefaultNavigation,
 } from './startupDeeplinkNavigation';
 import type { DeeplinkIntent } from '../types/DeeplinkIntent';
 
 const mockDispatch = jest.fn();
+const mockReset = jest.fn();
 const mockResolve = jest.fn();
 const mockExecuteStartupDeeplinkIntent = jest.fn();
 const mockClearPendingDeeplink = jest.fn();
@@ -38,6 +41,15 @@ jest.mock('../../redux', () => ({
   },
 }));
 
+jest.mock('../../NavigationService', () => ({
+  __esModule: true,
+  default: {
+    navigation: {
+      reset: (...args: unknown[]) => mockReset(...args),
+    },
+  },
+}));
+
 jest.mock('../DeeplinkManager', () => ({
   __esModule: true,
   default: {
@@ -50,13 +62,19 @@ jest.mock('./executeDeeplinkIntent', () => ({
     mockExecuteStartupDeeplinkIntent(intent),
 }));
 
-jest.mock('../../AppStateEventListener', () => ({
-  AppStateEventProcessor: {
-    pendingDeeplink: null,
-    pendingDeeplinkSource: null,
-    clearPendingDeeplink: () => mockClearPendingDeeplink(),
-  },
-}));
+jest.mock('../../AppStateEventListener', () => {
+  const appStateEventProcessorMock = {
+    pendingDeeplink: null as string | null,
+    pendingDeeplinkSource: null as string | null,
+    clearPendingDeeplink: jest.fn(() => {
+      appStateEventProcessorMock.pendingDeeplink = null;
+      appStateEventProcessorMock.pendingDeeplinkSource = null;
+      mockClearPendingDeeplink();
+    }),
+  };
+
+  return { AppStateEventProcessor: appStateEventProcessorMock };
+});
 
 jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
@@ -149,5 +167,40 @@ describe('startupDeeplinkNavigation', () => {
 
     expect(mockRequestAnimationFrame).toHaveBeenCalled();
     expect(mockDispatch).toHaveBeenCalledWith(checkForDeeplink());
+  });
+
+  it('navigates directly to a handled startup deeplink after unlock', async () => {
+    AppStateEventProcessor.pendingDeeplink = 'https://link.metamask.io/rewards';
+
+    await navigateToPostUnlockHome();
+
+    expect(mockExecuteStartupDeeplinkIntent).toHaveBeenCalledWith(intent);
+    expect(mockReset).not.toHaveBeenCalled();
+    expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
+  it('navigates home and retries pending deeplinks that need the legacy flow', async () => {
+    AppStateEventProcessor.pendingDeeplink = 'https://link.metamask.io/swap';
+    mockResolve.mockResolvedValueOnce(null);
+
+    await navigateToPostUnlockHome();
+
+    expect(mockReset).toHaveBeenCalledWith({
+      routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+    });
+    expect(mockDispatch).toHaveBeenCalledWith(checkForDeeplink());
+  });
+
+  it('navigates home without retrying when startup resolution was rejected', async () => {
+    AppStateEventProcessor.pendingDeeplink = 'https://link.metamask.io/rewards';
+    mockResolve.mockResolvedValueOnce(false);
+
+    await navigateToPostUnlockHome();
+
+    expect(mockClearPendingDeeplink).toHaveBeenCalledTimes(1);
+    expect(mockReset).toHaveBeenCalledWith({
+      routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+    });
+    expect(mockDispatch).not.toHaveBeenCalled();
   });
 });

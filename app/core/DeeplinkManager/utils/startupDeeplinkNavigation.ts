@@ -1,7 +1,9 @@
 import { checkForDeeplink } from '../../../actions/user';
+import Routes from '../../../constants/navigation/Routes';
 import AppConstants from '../../AppConstants';
 import { AppStateEventProcessor } from '../../AppStateEventListener';
 import Logger from '../../../util/Logger';
+import NavigationService from '../../NavigationService';
 import ReduxService from '../../redux';
 import SharedDeeplinkManager from '../DeeplinkManager';
 import { executeStartupDeeplinkIntent } from './executeDeeplinkIntent';
@@ -62,4 +64,17 @@ export const retryPendingDeeplinkAfterDefaultNavigation = () => {
   scheduleAfterNavigation(() => {
     ReduxService.store.dispatch(checkForDeeplink());
   });
+};
+
+export const navigateToPostUnlockHome = async (): Promise<void> => {
+  const handledStartupDeeplink = await navigateToPendingStartupDeeplink();
+  if (handledStartupDeeplink) {
+    return;
+  }
+
+  NavigationService.navigation?.reset({
+    routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+  });
+
+  retryPendingDeeplinkAfterDefaultNavigation();
 };

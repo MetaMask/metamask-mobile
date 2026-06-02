@@ -218,8 +218,7 @@ const mockNavigation = {
   navigate: mockNavigate,
 };
 
-const mockNavigateToPendingStartupDeeplink = jest.fn();
-const mockRetryPendingDeeplinkAfterDefaultNavigation = jest.fn();
+const mockNavigateToPostUnlockHome = jest.fn();
 
 jest.mock('../NavigationService', () => ({
   __esModule: true,
@@ -234,10 +233,7 @@ jest.mock('../NavigationService', () => ({
 }));
 
 jest.mock('../DeeplinkManager/utils/startupDeeplinkNavigation', () => ({
-  navigateToPendingStartupDeeplink: () =>
-    mockNavigateToPendingStartupDeeplink(),
-  retryPendingDeeplinkAfterDefaultNavigation: () =>
-    mockRetryPendingDeeplinkAfterDefaultNavigation(),
+  navigateToPostUnlockHome: () => mockNavigateToPostUnlockHome(),
 }));
 
 jest.mock('../SecureKeychain', () => ({
@@ -355,9 +351,8 @@ describe('Authentication', () => {
     mockDispatch = jest.fn();
     mockNavigate.mockClear();
     mockReset.mockClear();
-    mockNavigateToPendingStartupDeeplink.mockReset();
-    mockNavigateToPendingStartupDeeplink.mockResolvedValue(false);
-    mockRetryPendingDeeplinkAfterDefaultNavigation.mockClear();
+    mockNavigateToPostUnlockHome.mockReset();
+    mockNavigateToPostUnlockHome.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -4819,29 +4814,20 @@ describe('Authentication', () => {
       });
     });
 
-    it('navigates to the home flow when a password is provided', async () => {
+    it('navigates to the post-unlock home destination when a password is provided', async () => {
       // Call unlockWallet with a password.
       await Authentication.unlockWallet({ password: passwordToUse });
 
-      // Verify that it navigates to the home flow.
-      expect(mockReset).toHaveBeenCalledWith({
-        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-      });
-      expect(mockRetryPendingDeeplinkAfterDefaultNavigation).toHaveBeenCalled();
+      expect(mockNavigateToPostUnlockHome).toHaveBeenCalledTimes(1);
     });
 
-    it('does not reset to the home flow when a startup deeplink is handled', async () => {
-      mockNavigateToPendingStartupDeeplink.mockResolvedValueOnce(true);
-
+    it('does not navigate home directly after login', async () => {
       await Authentication.unlockWallet({ password: passwordToUse });
 
-      expect(mockNavigateToPendingStartupDeeplink).toHaveBeenCalledTimes(1);
+      expect(mockNavigateToPostUnlockHome).toHaveBeenCalledTimes(1);
       expect(mockReset).not.toHaveBeenCalledWith({
         routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
       });
-      expect(
-        mockRetryPendingDeeplinkAfterDefaultNavigation,
-      ).not.toHaveBeenCalled();
     });
 
     it('runs onBeforeNavigate before navigating home', async () => {
@@ -4857,21 +4843,16 @@ describe('Authentication', () => {
 
       expect(onBeforeNavigate).toHaveBeenCalledTimes(1);
       expect(onBeforeNavigate.mock.invocationCallOrder[0]).toBeLessThan(
-        mockReset.mock.invocationCallOrder[0],
+        mockNavigateToPostUnlockHome.mock.invocationCallOrder[0],
       );
-      expect(mockReset).toHaveBeenCalledWith({
-        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-      });
+      expect(mockNavigateToPostUnlockHome).toHaveBeenCalledTimes(1);
     });
 
-    it('navigates to the home flow when biometric credentials are provided', async () => {
+    it('navigates to the post-unlock home destination when biometric credentials are provided', async () => {
       // Call unlockWallet without a password.
       await Authentication.unlockWallet();
 
-      // Verify that it navigates to the home flow.
-      expect(mockReset).toHaveBeenCalledWith({
-        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-      });
+      expect(mockNavigateToPostUnlockHome).toHaveBeenCalledTimes(1);
     });
 
     it('navigates to the optin metrics flow when metrics are not enabled and UI has not been seen', async () => {
