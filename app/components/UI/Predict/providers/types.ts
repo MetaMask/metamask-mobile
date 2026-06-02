@@ -6,6 +6,7 @@ import {
   CryptoPriceUpdateCallback,
   GameUpdateCallback,
   GeoBlockResponse,
+  GetActivityParams,
   GetBalanceParams,
   GetCryptoPriceHistoryParams,
   GetCryptoTargetPriceParams,
@@ -44,6 +45,7 @@ export type {
   CryptoPriceUpdateCallback,
   GameUpdateCallback,
   GeoBlockResponse,
+  GetActivityParams,
   GetBalanceParams,
   GetMarketsParams,
   GetMarketsResult,
@@ -178,7 +180,9 @@ export interface PredictProvider {
   getPositions(
     params: GetPositionsParams & { address: string },
   ): Promise<PredictPosition[]>;
-  getActivity(params: { address: string }): Promise<PredictActivity[]>;
+  getActivity(
+    params: GetActivityParams & { address: string },
+  ): Promise<PredictActivity[]>;
   getUnrealizedPnL(params: { address: string }): Promise<UnrealizedPnL>;
 
   previewOrder(
