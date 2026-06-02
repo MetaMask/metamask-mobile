@@ -9,12 +9,8 @@ const styleSheet = ({ theme }: { theme: Theme }) =>
     content: {
       alignItems: 'center',
       paddingHorizontal: 24,
+      paddingTop: 16,
       paddingBottom: 16,
-    },
-    statusIcon: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginBottom: 16,
     },
     loadingIconContainer: {
       alignItems: 'center',

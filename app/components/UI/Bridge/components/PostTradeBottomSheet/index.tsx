@@ -221,14 +221,13 @@ export const PostTradeBottomSheet = () => {
       <BottomSheetHeader
         onClose={handleClose}
         closeButtonProps={{ testID: PostTradeBottomSheetTestIds.CLOSE_BUTTON }}
-      />
+      >
+        <StatusIcon
+          status={status}
+          loadingIconContainerStyle={styles.loadingIconContainer}
+        />
+      </BottomSheetHeader>
       <View style={styles.content}>
-        <View style={styles.statusIcon}>
-          <StatusIcon
-            status={status}
-            loadingIconContainerStyle={styles.loadingIconContainer}
-          />
-        </View>
         <Text
           variant={TextVariant.HeadingLG}
           style={styles.title}
