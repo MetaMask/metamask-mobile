@@ -337,6 +337,7 @@ describe('TrendingTokensFullView', () => {
       sortBy: undefined,
       chainIds: null,
       searchQuery: undefined,
+      filterLowQuality: true,
     });
   });
 
@@ -352,6 +353,7 @@ describe('TrendingTokensFullView', () => {
       sortBy: 'h1_trending',
       chainIds: null,
       searchQuery: undefined,
+      filterLowQuality: true,
     });
   });
 
@@ -390,6 +392,7 @@ describe('TrendingTokensFullView', () => {
           sortBy: 'h6_trending',
           chainIds: null,
           searchQuery: undefined,
+          filterLowQuality: true,
         });
       },
     },
@@ -408,6 +411,7 @@ describe('TrendingTokensFullView', () => {
           sortBy: undefined,
           chainIds: ['eip155:1'],
           searchQuery: undefined,
+          filterLowQuality: true,
         });
       },
     },
