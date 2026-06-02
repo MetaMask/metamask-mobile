@@ -137,11 +137,16 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
       }`
     : undefined;
 
-  const renderTeamLogo = (team: PredictSportTeam, logoTestID?: string) =>
+  const renderTeamLogo = (
+    team: PredictSportTeam,
+    logoTestID?: string,
+    flipped?: boolean,
+  ) =>
     config?.TeamIcon ? (
       <config.TeamIcon
         color={team.color}
         size={teamLogoSize}
+        flipped={flipped}
         testID={logoTestID}
       />
     ) : (
@@ -251,7 +256,9 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
           </Text>
         )}
 
-        {renderTeamLogo(rightTeam, rightLogoTestID)}
+        {/* The right-side team icon is mirrored so directional icons (e.g. NFL
+            helmets) face the left-side team. */}
+        {renderTeamLogo(rightTeam, rightLogoTestID, true)}
       </Box>
 
       <Box

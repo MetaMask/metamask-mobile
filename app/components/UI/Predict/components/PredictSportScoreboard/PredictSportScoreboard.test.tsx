@@ -11,9 +11,20 @@ const mockUseLiveGameUpdates = useLiveGameUpdates as jest.MockedFunction<
 >;
 
 jest.mock('../../constants/sportLeagueConfigs', () => {
-  const MockTeamIcon = ({ testID }: { testID?: string }) => {
+  const MockTeamIcon = ({
+    testID,
+    flipped,
+  }: {
+    testID?: string;
+    flipped?: boolean;
+  }) => {
     const { View: MockView } = jest.requireActual('react-native');
-    return <MockView testID={testID} />;
+    return (
+      <MockView
+        testID={testID}
+        accessibilityLabel={flipped ? 'flipped' : 'not-flipped'}
+      />
+    );
   };
 
   return {
@@ -403,6 +414,24 @@ describe('PredictSportScoreboard', () => {
         'scoreboard-away-team-logo',
         'scoreboard-home-team-logo',
       ]);
+    });
+
+    it('mirrors the right-side team icon so directional icons face each other (NFL)', () => {
+      const { getByTestId } = render(
+        <PredictSportScoreboard
+          game={createGame({ league: 'nfl' })}
+          testID="scoreboard"
+        />,
+      );
+
+      // NFL renders away-on-left (not flipped) and home-on-right (flipped),
+      // so the two helmets face each other.
+      expect(
+        getByTestId('scoreboard-away-team-logo').props.accessibilityLabel,
+      ).toBe('not-flipped');
+      expect(
+        getByTestId('scoreboard-home-team-logo').props.accessibilityLabel,
+      ).toBe('flipped');
     });
 
     it('keeps team names aligned with their logo order (NFL away-first)', () => {
