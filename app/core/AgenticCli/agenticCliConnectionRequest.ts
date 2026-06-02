@@ -1,6 +1,6 @@
-import type {
-  ConnectionRequest,
+import {
   isConnectionRequest,
+  type ConnectionRequest,
 } from '../SDKConnectV2/types/connection-request';
 
 export interface AgenticCliConnectionType {
