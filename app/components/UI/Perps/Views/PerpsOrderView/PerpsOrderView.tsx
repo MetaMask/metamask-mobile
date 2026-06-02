@@ -1431,7 +1431,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       />
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollViewContent}
+        contentContainerStyle={
+          isInputFocused
+            ? styles.scrollViewContentKeypad
+            : styles.scrollViewContent
+        }
         showsVerticalScrollIndicator={false}
       >
         {/* Amount Display */}
