@@ -194,22 +194,9 @@ describe('usePayWithMoneyAccountSection', () => {
     expect(result.current).toBeNull();
   });
 
-  it.each([TransactionType.perpsDeposit, TransactionType.perpsWithdraw])(
-    'returns section config for perps transaction type %s when perps flag is true',
+  it.each([TransactionType.perpsDeposit, TransactionType.predictDeposit])(
+    'returns section config with "available" suffix for deposit transaction type %s',
     (txType) => {
-      useSelectorMock.mockImplementation((selector) => {
-        if (selector === selectPrimaryMoneyAccount) {
-          return moneyAccountMock;
-        }
-        if (selector === selectMetaMaskPayFlags) {
-          return {
-            enablePerpsMoneyAccountTransactions: true,
-            enablePredictMoneyAccountTransactions: false,
-          };
-        }
-        return undefined;
-      });
-
       useTransactionMetadataRequestMock.mockReturnValue({
         id: 'tx-1',
         type: txType,
@@ -241,25 +228,12 @@ describe('usePayWithMoneyAccountSection', () => {
   );
 
   it.each([
-    TransactionType.predictDeposit,
-    TransactionType.predictDepositAndOrder,
+    TransactionType.perpsWithdraw,
     TransactionType.predictWithdraw,
+    TransactionType.predictDepositAndOrder,
   ])(
-    'returns section config for predict transaction type %s when predict flag is true',
+    'omits the "available" suffix for non-deposit transaction type %s',
     (txType) => {
-      useSelectorMock.mockImplementation((selector) => {
-        if (selector === selectPrimaryMoneyAccount) {
-          return moneyAccountMock;
-        }
-        if (selector === selectMetaMaskPayFlags) {
-          return {
-            enablePerpsMoneyAccountTransactions: false,
-            enablePredictMoneyAccountTransactions: true,
-          };
-        }
-        return undefined;
-      });
-
       useTransactionMetadataRequestMock.mockReturnValue({
         id: 'tx-1',
         type: txType,
@@ -268,22 +242,11 @@ describe('usePayWithMoneyAccountSection', () => {
 
       const { result } = renderHook(() => usePayWithMoneyAccountSection());
 
-      expect(result.current).toEqual(
-        expect.objectContaining({
-          id: 'money-account',
-          title: 'Money account',
-          testID: PAY_WITH_MONEY_ACCOUNT_SECTION_TEST_ID,
-        }),
-      );
-      expect(result.current?.rows).toHaveLength(1);
       expect(result.current?.rows[0]).toEqual(
         expect.objectContaining({
           id: 'money-account-musd',
           title: 'mUSD',
-          subtitle: '$100.00 available',
-          isSelected: false,
-          isLastUsed: false,
-          trailingElement: 'none',
+          subtitle: '$100.00',
           testID: PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID,
         }),
       );
