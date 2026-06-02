@@ -660,7 +660,7 @@ export class PredictController extends BaseController<
       {
         method: 'listMarkets',
         trace: {
-          name: TraceName.PredictGetMarkets,
+          name: TraceName.PredictListMarkets,
           op: TraceOperation.PredictDataFetch,
           tags: {
             feature: PREDICT_CONSTANTS.FEATURE_NAME,

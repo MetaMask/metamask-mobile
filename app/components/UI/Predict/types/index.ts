@@ -572,6 +572,7 @@ export interface PredictMarketListParams {
   tags?: string[]; // tag IDs -> tag_id (multi). TODO: slug support later
   series?: string[]; // series IDs -> series_id (multi)
   order?: 'volume24hr' | 'liquidity' | 'ending_soon' | 'newest';
+  // 'resolved' maps to the same 'closed' params by design (no separate server-side filter).
   status?: 'open' | 'closed' | 'resolved';
   live?: boolean;
   // Free-text title filter. The provider maps this to Polymarket's

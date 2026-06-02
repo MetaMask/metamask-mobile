@@ -1410,7 +1410,7 @@ export const fetchEventsFromPolymarketApi = async (
  *
  * Mapping rules:
  * - `order`: `volume24hr`/`liquidity` -> descending; `ending_soon` -> `order=endDate&ascending=true`; `newest` -> `order=startDate&ascending=false`. Defaults to `volume24hr` (descending).
- * - `status`: `open` -> `active=true&archived=false&closed=false`; `closed`/`resolved` -> `closed=true`. TODO: "resolved" has no server-side filter — it is a client-side subset of `closed`.
+ * - `status`: `open` -> `active=true&archived=false&closed=false`; `closed`/`resolved` -> `closed=true`. `resolved` intentionally maps to the same `closed=true` params (no separate server-side filter).
  * - `tags` -> repeated `tag_id`; `series` -> repeated `series_id`.
  * - `live` -> `live=true`. `limit` defaults to 20. `afterCursor` -> `after_cursor`.
  * - `search` -> `title_search` (case-insensitive title filter). Composes with cursor pagination, so it stays on this endpoint (kept in the provider layer). Blank/whitespace is ignored (browse mode).
@@ -1436,7 +1436,7 @@ export const buildMarketListQueryParams = (
   switch (status) {
     case 'closed':
     case 'resolved':
-      // TODO: "resolved" is a client-side subset of closed (no server filter).
+      // 'resolved' intentionally maps to the same closed=true params (no separate server-side filter).
       queryParams.set('closed', 'true');
       break;
     case 'open':
