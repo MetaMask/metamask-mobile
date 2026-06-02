@@ -79,7 +79,7 @@ export const SecretRecoveryPhrase = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        gap={8}
+        gap={2}
       >
         {showSeedphraseBackReminder && (
           <TouchableOpacity onPress={handleBackupPressed}>

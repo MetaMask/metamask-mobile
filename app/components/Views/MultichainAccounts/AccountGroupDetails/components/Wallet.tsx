@@ -46,7 +46,7 @@ export const Wallet = ({ wallet }: WalletProps) => {
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        gap={8}
+        gap={2}
       >
         <Text
           style={styles.text}

@@ -52,7 +52,7 @@ export const RemoveAccount = ({ account }: RemoveAccountProps) => {
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        gap={8}
+        gap={2}
       >
         <Icon
           name={IconName.ArrowRight}

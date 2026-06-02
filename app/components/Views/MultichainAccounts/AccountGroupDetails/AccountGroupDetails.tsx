@@ -54,25 +54,14 @@ import {
 } from '../../../../util/trace';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
+import {
+  getAvatarAccountVariant,
+  type AccountAvatarVariant,
+} from '../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 
 interface AccountGroupDetailsRouteParams {
   accountGroup: AccountGroupObject;
 }
-
-const AVATAR_ACCOUNT_TYPE_TO_VARIANT: Record<string, AvatarAccountVariant> = {
-  JazzIcon: AvatarAccountVariant.Jazzicon,
-  Blockies: AvatarAccountVariant.Blockies,
-  Maskicon: AvatarAccountVariant.Maskicon,
-  jazzicon: AvatarAccountVariant.Jazzicon,
-  blockies: AvatarAccountVariant.Blockies,
-  maskicon: AvatarAccountVariant.Maskicon,
-};
-
-const getAvatarAccountVariant = (
-  avatarAccountType?: string,
-): AvatarAccountVariant =>
-  AVATAR_ACCOUNT_TYPE_TO_VARIANT[avatarAccountType ?? ''] ??
-  AvatarAccountVariant.Maskicon;
 
 export const AccountGroupDetails = () => {
   const route =
@@ -92,7 +81,7 @@ export const AccountGroupDetails = () => {
   const { styles } = useStyles(styleSheet, {});
   const accountAvatarType = useSelector(selectAvatarAccountType);
   const accountAvatarVariant = useMemo(
-    () => getAvatarAccountVariant(accountAvatarType),
+    () => getAvatarAccountVariant(accountAvatarType as AccountAvatarVariant),
     [accountAvatarType],
   );
   const selectIconSeedAddress = React.useMemo(
@@ -222,7 +211,7 @@ export const AccountGroupDetails = () => {
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            gap={8}
+            gap={2}
           >
             <Text
               style={styles.groupNameText}
@@ -251,7 +240,7 @@ export const AccountGroupDetails = () => {
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            gap={8}
+            gap={2}
           >
             <Text
               style={styles.text}
@@ -290,7 +279,7 @@ export const AccountGroupDetails = () => {
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              gap={8}
+              gap={2}
             >
               <Text
                 style={styles.text}
@@ -320,7 +309,7 @@ export const AccountGroupDetails = () => {
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            gap={8}
+            gap={2}
           >
             <Text
               style={styles.text}
