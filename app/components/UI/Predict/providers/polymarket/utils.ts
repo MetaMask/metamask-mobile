@@ -751,16 +751,18 @@ const sortByLiquidityAndVolume = (
   });
 
 const formatMarketGroupItemTitle = (market: PolymarketApiMarket): string => {
+  const groupItemTitle = market.groupItemTitle ?? market.question ?? '';
+
   if (isSpreadMarket(market)) {
     // Remove the dash before the spread number (e.g., "FC-Dallas -3.5" → "FC-Dallas 3.5")
     // Uses negative lookahead to target dash followed by digit, not dashes in team names
-    return market.groupItemTitle.replace(/-(?=\d)/, '');
+    return groupItemTitle.replace(/-(?=\d)/, '');
   }
 
   if (isMoneylineLikeMarket(market)) {
-    return market.groupItemTitle || market.question;
+    return groupItemTitle || market.question;
   }
-  return market.groupItemTitle;
+  return groupItemTitle;
 };
 
 const YES_NO_TO_OVER_UNDER: Record<string, string> = {
