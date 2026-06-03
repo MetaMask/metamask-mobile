@@ -35,6 +35,7 @@ const NftFullView = () => {
           size={ButtonIconSize.Md}
           iconName={IconName.ArrowLeft}
           onPress={handleBackPress}
+          testID="back-button"
         />
         <Box
           twClassName="absolute inset-0 items-center justify-center"
