@@ -47,40 +47,28 @@ const MoneyBalanceCard = () => {
     refetchBalance,
     vaultApyQuery,
   } = useMoneyAccountBalance();
-  const { isMoneyAccountFeatureEnabled, hasMoneyAccount } =
-    useMoneyAccountInfo();
+  const { hasMoneyAccount } = useMoneyAccountInfo();
   const { navigateToMoneyHome } = useMoneyNavigation();
   const hasSeenMoneyOnboarding = useSelector(selectMoneyOnboardingSeen);
   const hasOtherPrimaryCtaOnHome = useSelector(
     selectWalletHomeOnboardingFlowVisible,
   );
 
-  const isFeatureDisabled = !isMoneyAccountFeatureEnabled;
-  const isNoAccount = isMoneyAccountFeatureEnabled && !hasMoneyAccount;
   const isRetrying =
-    !isFeatureDisabled &&
-    !isNoAccount &&
-    isBalanceFetchError &&
-    isBalanceFetching;
-  const isError =
-    !isFeatureDisabled &&
-    !isNoAccount &&
-    isBalanceFetchError &&
-    !isBalanceFetching;
+    hasMoneyAccount && isBalanceFetchError && isBalanceFetching;
+  const isError = hasMoneyAccount && isBalanceFetchError && !isBalanceFetching;
 
   // Queries succeeded (no error, not loading) but a dependency required to
   // format the balance (e.g. musdFiatRate) is missing.
   const isUnavailable =
-    !isFeatureDisabled &&
-    !isNoAccount &&
+    hasMoneyAccount &&
     !isBalanceFetchError &&
     !isAggregatedBalanceLoading &&
     totalFiatFormatted === undefined;
 
   // Genuinely zero balance — distinct from unavailable.
   const isEmpty =
-    !isFeatureDisabled &&
-    !isNoAccount &&
+    hasMoneyAccount &&
     !isBalanceFetchError &&
     !isUnavailable &&
     totalFiatRaw === '0';
@@ -94,7 +82,7 @@ const MoneyBalanceCard = () => {
   let buttonTestId: string;
   let containerTestId: string;
 
-  if (isFeatureDisabled || isNoAccount || isError || isRetrying) {
+  if (!hasMoneyAccount || isError || isRetrying) {
     buttonVariant = ButtonVariant.Secondary;
     buttonLabel = strings('money.balance_card.add');
     buttonTestId = MoneyBalanceCardTestIds.ADD_BUTTON;
@@ -156,19 +144,7 @@ const MoneyBalanceCard = () => {
   }, [navigation]);
 
   const renderBalanceSlot = () => {
-    if (isFeatureDisabled) {
-      return (
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-          testID={MoneyBalanceCardTestIds.BALANCE_FEATURE_DISABLED}
-        >
-          {strings('money.balance_feature_disabled')}
-        </Text>
-      );
-    }
-    if (isNoAccount) {
+    if (!hasMoneyAccount) {
       return (
         <Text
           variant={TextVariant.BodySm}

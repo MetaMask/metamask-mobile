@@ -32,6 +32,7 @@ export const TEST_SRP = {
   SRP_1: process.env.TEST_SRP_1,
   SRP_2: process.env.TEST_SRP_2,
   SRP_3: process.env.TEST_SRP_3,
+  SRP_4: process.env.TEST_SRP_4,
 };
 
 function getRequiredLoginPassword() {

@@ -50,7 +50,7 @@ describe('QuickBuyAmountSection', () => {
     expect(screen.getByText('0.025 ETH')).toBeOnTheScreen();
   });
 
-  it('shows 0 crypto placeholder when estimatedReceiveAmount is undefined', () => {
+  it('shows 0 crypto placeholder when estimatedCryptoAmount is undefined', () => {
     render(
       <QuickBuyAmountSection
         {...defaultProps}
@@ -60,6 +60,17 @@ describe('QuickBuyAmountSection', () => {
       />,
     );
     expect(screen.getByText('0 ETH')).toBeOnTheScreen();
+  });
+
+  it('shows the estimated crypto amount with destSymbol as the secondary label', () => {
+    render(
+      <QuickBuyAmountSection
+        {...defaultProps}
+        estimatedReceiveAmount="123.45"
+        destSymbol="ETH"
+      />,
+    );
+    expect(screen.getByText('123.45 ETH')).toBeOnTheScreen();
   });
 
   it('replaces the secondary label with an ActivityIndicator when isQuoteLoading', () => {

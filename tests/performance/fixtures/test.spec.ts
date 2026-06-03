@@ -1,4 +1,4 @@
-import { test } from '../../framework/fixture/index';
+import { test } from '../../framework/fixtures/playwright';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
@@ -8,7 +8,6 @@ import {
   mockPerpsGeolocation,
   PERPS_ARBITRUM_MOCKS,
 } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
-import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import { LocalNodeType } from '../../framework';
 import { Hardfork } from '../../seeder/anvil-manager';
@@ -43,9 +42,7 @@ test.describe(Performance, () => {
         restartDevice: true,
         currentDeviceDetails,
         testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(mockServer, {
-            ...remoteFeatureFlagHomepageSectionsV1Enabled(),
-          });
+          await setupRemoteFeatureFlagsMock(mockServer, {});
           await PERPS_ARBITRUM_MOCKS(mockServer);
           await mockPerpsGeolocation(
             mockServer,

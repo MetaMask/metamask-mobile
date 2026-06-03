@@ -157,4 +157,46 @@ describe('useWhatsHappening', () => {
 
     await waitFor(() => expect(result.current.items).toHaveLength(2));
   });
+
+  it('returns items and no error when an asset is missing sourceAssetId and name', async () => {
+    const assetWithoutOptionalFields = {
+      symbol: 'ETH',
+      caip19: ['eip155:1/slip44:60'],
+      // sourceAssetId intentionally absent
+      // name intentionally absent
+    };
+    mockFetchMarketOverview.mockResolvedValue({
+      ...mockOverview,
+      trends: [
+        {
+          ...mockTrend,
+          relatedAssets: [assetWithoutOptionalFields],
+        },
+      ],
+    });
+
+    const { result } = renderHook(() => useWhatsHappening());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.items).toHaveLength(1);
+    expect(result.current.error).toBeNull();
+    expect(result.current.items[0].relatedAssets[0].symbol).toBe('ETH');
+    expect(
+      result.current.items[0].relatedAssets[0].sourceAssetId,
+    ).toBeUndefined();
+    expect(result.current.items[0].relatedAssets[0].name).toBeUndefined();
+  });
+
+  it('returns empty items and no error when API returns overview with empty trends', async () => {
+    mockFetchMarketOverview.mockResolvedValue({
+      ...mockOverview,
+      trends: [],
+    });
+
+    const { result } = renderHook(() => useWhatsHappening());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.items).toHaveLength(0);
+    expect(result.current.error).toBeNull();
+  });
 });

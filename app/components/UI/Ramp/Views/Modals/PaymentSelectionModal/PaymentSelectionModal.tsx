@@ -6,14 +6,14 @@ import { FlatList } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import {
   BottomSheet,
-  type BottomSheetRef,
   Box,
   BoxAlignItems,
   BoxJustifyContent,
   HeaderStandard,
   Text,
-  TextVariant,
   TextColor,
+  TextVariant,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { useStyles } from '../../../../../hooks/useStyles';
@@ -30,11 +30,14 @@ import PaymentSelectionAlert from './PaymentSelectionAlert';
 import { PAYMENT_SELECTION_MODAL_TEST_IDS } from './PaymentSelectionModal.testIds';
 import { useRampsController } from '../../../hooks/useRampsController';
 import { useRampsQuotes } from '../../../hooks/useRampsQuotes';
+import { useFormatters } from '../../../../../hooks/useFormatters';
+import { getProviderLimitMessage } from '../../../utils/getProviderLimitMessage';
 import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
 import { getRampCallbackBaseUrl } from '../../../utils/getRampCallbackBaseUrl';
 import { isCustomAction } from '../../../types';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 
 export interface PaymentSelectionModalParams {
   amount?: number;
@@ -110,6 +113,7 @@ function PaymentSelectionModal() {
 
   const { data: quotes, loading: quotesLoading } =
     useRampsQuotes(quoteFetchParams);
+  const surfaceClass = useElevatedSurface();
 
   const handleChangeProviderPress = useCallback(() => {
     trackEvent(
@@ -158,6 +162,7 @@ function PaymentSelectionModal() {
 
   const currency = userRegion?.country?.currency ?? 'USD';
   const tokenSymbol = selectedToken?.symbol ?? '';
+  const { formatCurrency } = useFormatters();
 
   const renderPaymentMethod = useCallback(
     ({ item: paymentMethod }: { item: PaymentMethod }) => {
@@ -178,7 +183,15 @@ function PaymentSelectionModal() {
           )?.error
         : undefined;
       const quoteErrorMessage = hasQuoteError
-        ? (providerErrorMessage ?? strings('fiat_on_ramp.quote_unavailable'))
+        ? (getProviderLimitMessage({
+            provider: selectedProvider,
+            fiatCurrency: currency,
+            paymentMethodId: paymentMethod.id,
+            amount,
+            currency,
+            formatCurrency,
+            backendError: providerErrorMessage,
+          }) ?? strings('fiat_on_ramp.quote_unavailable'))
         : undefined;
 
       return (
@@ -205,6 +218,7 @@ function PaymentSelectionModal() {
       quotesLoading,
       currency,
       tokenSymbol,
+      formatCurrency,
     ],
   );
 
@@ -256,7 +270,11 @@ function PaymentSelectionModal() {
   };
 
   return (
-    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
+    <BottomSheet
+      ref={sheetRef}
+      goBack={navigation.goBack}
+      twClassName={surfaceClass}
+    >
       <View style={styles.containerOuter}>
         <View style={styles.paymentPanelContent}>
           <HeaderStandard

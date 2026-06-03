@@ -325,6 +325,25 @@ describe('SecurityBadgeBottomSheet', () => {
       expect(getByText(bannerText)).toBeOnTheScreen();
     });
 
+    it('renders malicious banner with no_symbol fallback when tokenSymbol is empty', () => {
+      mockUseRouteImpl = jest.fn(() => ({
+        params: {
+          ...mockRouteParams,
+          severity: 'Malicious',
+          tokenSymbol: '',
+          description: 'This should not appear',
+        },
+      }));
+
+      const { getByText, queryByText } = render(<SecurityBadgeBottomSheet />);
+
+      const bannerText = strings(
+        'security_trust.malicious_token_banner_description_no_symbol',
+      );
+      expect(getByText(bannerText)).toBeOnTheScreen();
+      expect(queryByText('This should not appear')).not.toBeOnTheScreen();
+    });
+
     it('does not render malicious banner for Warning severity', () => {
       mockUseRouteImpl = jest.fn(() => ({
         params: {

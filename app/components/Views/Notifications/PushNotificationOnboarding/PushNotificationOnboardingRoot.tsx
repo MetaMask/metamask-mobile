@@ -6,7 +6,7 @@ import {
   usePushPrePromptVariant,
   type PushPrePromptVariant,
 } from '../../../../util/notifications/hooks/usePushPrePromptVariant';
-import { isE2E } from '../../../../util/test/utils';
+import { isTestEnvironment } from '../../../../util/test/utils';
 
 type VisibleVariant = Exclude<PushPrePromptVariant, null>;
 interface VisiblePrePrompt {
@@ -59,7 +59,7 @@ const PushNotificationOnboardingRootContent = () => {
 };
 
 const PushNotificationOnboardingRoot = () => {
-  if (isE2E) {
+  if (isTestEnvironment) {
     return null;
   }
 

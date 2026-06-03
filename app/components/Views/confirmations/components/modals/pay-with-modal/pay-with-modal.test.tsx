@@ -410,9 +410,9 @@ describe('PayWithModal', () => {
       } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
     });
 
-    it('shows "Select receive token" title for withdrawal transactions', () => {
+    it('shows "Select a token" title for withdrawal transactions', () => {
       const { getByText } = render();
-      expect(getByText('Select receive token')).toBeDefined();
+      expect(getByText('Select a token')).toBeDefined();
     });
 
     it('bypasses getAvailableTokens for withdrawal transactions', () => {
