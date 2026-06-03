@@ -3,19 +3,24 @@ import { CryptographicFunctions } from '@metamask/key-tree';
 import { encodeMnemonic } from '@metamask/keyring-sdk';
 import {
   KeyringControllerOptions,
-  KeyringTypes,
+  KeyringV2Builder,
 } from '@metamask/keyring-controller';
+import { KeyringType } from '@metamask/keyring-api/v2';
 import {
   QrKeyring,
   QrKeyringDeferredPromiseBridge,
 } from '@metamask/eth-qr-keyring';
+import { QrKeyring as QrKeyringV2 } from '@metamask/eth-qr-keyring/v2';
 import {
   LedgerKeyring,
   LedgerMobileBridge,
   LedgerTransportMiddleware,
 } from '@metamask/eth-ledger-bridge-keyring';
+import { LedgerKeyring as LedgerKeyringV2 } from '@metamask/eth-ledger-bridge-keyring/v2';
 import { HdKeyring } from '@metamask/eth-hd-keyring';
+import { HdKeyring as HdKeyringV2 } from '@metamask/eth-hd-keyring/v2';
 import { MoneyKeyring } from '@metamask/eth-money-keyring';
+import { MoneyKeyring as MoneyKeyringV2 } from '@metamask/eth-money-keyring/v2';
 import { hmacSha512 } from '@metamask/native-utils';
 import { pbkdf2 } from '../../Encryptor';
 import { snapKeyringBuilder } from '../../SnapKeyring';
@@ -84,13 +89,13 @@ export function getKeyringBuilders(
       cryptographicFunctions,
       getMnemonic: async (entropySource: string) =>
         messenger.call(
-          'KeyringController:withKeyringUnsafe',
+          'KeyringController:withKeyringV2Unsafe',
           {
             filter: (keyring, metadata) =>
-              keyring.type === KeyringTypes.hd && metadata.id === entropySource,
+              keyring.type === KeyringType.Hd && metadata.id === entropySource,
           },
           async ({ keyring }) => {
-            const hdKeyring = keyring as HdKeyring;
+            const hdKeyring = keyring as unknown as HdKeyringV2;
             if (!hdKeyring?.mnemonic) {
               throw new Error(
                 `Unable to get mnemonic to initialize MoneyKeyring`,
@@ -141,4 +146,60 @@ export function getKeyringBuilders(
 
   // @ts-expect-error: `addAccounts` is missing in `SnapKeyring` type.
   return keyrings;
+}
+
+/**
+ * Wrap a hardware-keyring V2 class as a `KeyringV2Builder` keyed by the
+ * matching legacy keyring's `type` string. The controller dispatches V2
+ * builders by matching against the inner keyring's `type`, so `legacyType`
+ * must equal `LegacyKeyring.type`.
+ *
+ * @param WrapperCtor - The V2 wrapper class to instantiate.
+ * @param legacyType - The legacy keyring's `type` string.
+ * @returns A `KeyringV2Builder`.
+ */
+function buildHardwareKeyringV2Builder<Wrapper, Legacy>(
+  WrapperCtor: new (options: {
+    legacyKeyring: Legacy;
+    entropySource: string;
+  }) => Wrapper,
+  legacyType: string,
+): KeyringV2Builder {
+  const builder = Object.assign(
+    (keyring: unknown, metadata: { id: string }) =>
+      new WrapperCtor({
+        legacyKeyring: keyring as Legacy,
+        entropySource: metadata.id,
+      }),
+    { type: legacyType },
+  );
+  return builder as unknown as KeyringV2Builder;
+}
+
+/**
+ * Wrap the MoneyKeyring V2 class as a `KeyringV2Builder`. The MoneyKeyring V2
+ * constructor differs from the hardware wrappers in that it takes the legacy
+ * keyring directly rather than an options object.
+ *
+ * @param WrapperCtor - The V2 wrapper class to instantiate.
+ * @param legacyType - The legacy keyring's `type` string.
+ * @returns A `KeyringV2Builder`.
+ */
+function buildMoneyKeyringV2Builder<Wrapper, Legacy>(
+  WrapperCtor: new (inner: Legacy) => Wrapper,
+  legacyType: string,
+): KeyringV2Builder {
+  const builder = Object.assign(
+    (keyring: unknown) => new WrapperCtor(keyring as Legacy),
+    { type: legacyType },
+  );
+  return builder as unknown as KeyringV2Builder;
+}
+
+export function getKeyringV2Builders(): KeyringControllerOptions['keyringV2Builders'] {
+  return [
+    buildHardwareKeyringV2Builder(LedgerKeyringV2, LedgerKeyring.type),
+    buildHardwareKeyringV2Builder(QrKeyringV2, QrKeyring.type),
+    buildMoneyKeyringV2Builder(MoneyKeyringV2, MoneyKeyring.type),
+  ];
 }
