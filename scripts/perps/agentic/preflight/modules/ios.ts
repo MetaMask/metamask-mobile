@@ -271,22 +271,33 @@ export async function runIos(ctx: Ctx, logger: Logger): Promise<void> {
 
     await podInstall(ctx, logger);
 
-    // pod install can mutate native inputs, shifting the fingerprint. Re-check the
-    // shared cache under the post-pod fingerprint before a full native build —
-    // another worktree may already hold an artifact for it.
-    if (useCache && !ctx.doRebuild) {
+    // pod install can materialize native files that change the fingerprint.
+    // Mirror the bash flow: release the pre-pod lock, recompute the fingerprint,
+    // re-acquire under it, and re-probe the shared cache before a ~20-min build.
+    // Re-probe even when the fp is unchanged — another worktree may have stored
+    // an artifact for it during the pod-install wait. `fp` (the pre-pod hash) is
+    // the source fp; the build is stored under it as an alias below.
+    const sourceFp = fp;
+    if (useCache && !installed) {
+      // Release the pre-pod lock first so a failed re-acquire can't strand a
+      // stale mutex on the old fingerprint (matches bash).
+      if (lock) {
+        await lock.release();
+        lock = null;
+      }
       const postFp = cache.fingerprint();
-      if (postFp && postFp !== fp) {
-        const postLock = await cache.acquireLock('ios', postFp);
-        if (postLock) {
-          // Swap to the post-pod lock; finally releases it (we store under this fp).
-          if (lock) await lock.release();
-          lock = postLock;
+      if (postFp) {
+        lock = await cache.acquireLock('ios', postFp);
+        if (lock) {
           if (cache.hasArtifact('ios', postFp)) {
-            logger.plain(`  Post-pod cache hit: fp=${postFp.slice(0, 12)} — installing from shared cache`);
+            logger.plain(`  Cache hit after pod install: fp=${postFp.slice(0, 12)} — installing from shared cache`);
             const art = cache.artifactPath('ios', postFp);
             if (tryInstall(ctx, art) && appInstalled(ctx)) {
-              cache.recordInstall('ios', postFp, ctx.simTarget);
+              // Release the materialized-fp lock before storing the source alias.
+              await lock.release();
+              lock = null;
+              await storeSourceAlias(cache, logger, sourceFp, postFp, art);
+              cache.recordInstall('ios', sourceFp && sourceFp !== postFp ? sourceFp : postFp, ctx.simTarget);
               logger.ok(`Installed from cache: ${art}`);
               return;
             }
@@ -294,12 +305,18 @@ export async function runIos(ctx: Ctx, logger: Logger): Promise<void> {
               logger.fail(`Mode 'fast': post-pod cache install failed for fp ${postFp.slice(0, 12)}`);
             }
             logger.warn('Post-pod cache install failed — falling through to native build');
-          } else if (ctx.mode === 'fast') {
-            logger.fail(`Mode 'fast': no cached build for post-pod fp ${postFp.slice(0, 12)}`);
+          } else {
+            logger.plain(`  Cache miss after pod install: fp=${postFp.slice(0, 12)} — native build required once`);
           }
         } else if (ctx.mode === 'fast') {
           logger.fail(`Mode 'fast': could not acquire build-cache lock for post-pod fp ${postFp.slice(0, 12)}`);
+        } else {
+          logger.warn(`Could not acquire post-pod build-cache lock for fp ${postFp.slice(0, 12)} — proceeding without lock`);
         }
+      } else if (ctx.mode === 'fast') {
+        logger.fail("Mode 'fast': could not compute post-pod fingerprint");
+      } else {
+        logger.warn('Could not compute post-pod fingerprint — proceeding with native build');
       }
     }
 
@@ -323,13 +340,16 @@ export async function runIos(ctx: Ctx, logger: Logger): Promise<void> {
     }
     logger.ok('App built and installed');
 
-    // Recompute fp post-build/pod (pods can change native fingerprint) and store.
+    // Store under the materialized (post-pod) fp, plus a source-fp alias so a
+    // worktree that still computes the pre-pod fp also hits the cache. Record the
+    // install under the source fp so the next run's pre-pod lookup matches.
     const storeFp = useCache ? cache.fingerprint() : null;
     if (storeFp) {
       if (cache.storeArtifact('ios', storeFp, app)) {
         cache.snapshot('ios', storeFp);
         logger.ok(`Stored build in shared cache: fp=${storeFp.slice(0, 12)}`);
-        cache.recordInstall('ios', storeFp, ctx.simTarget);
+        await storeSourceAlias(cache, logger, sourceFp, storeFp, app);
+        cache.recordInstall('ios', sourceFp && sourceFp !== storeFp ? sourceFp : storeFp, ctx.simTarget);
         cache.prune('ios');
       } else {
         logger.warn('Failed to store build in cache');
@@ -337,6 +357,35 @@ export async function runIos(ctx: Ctx, logger: Logger): Promise<void> {
     }
   } finally {
     if (lock) await lock.release();
+  }
+}
+
+// Store the .app under the pre-pod (source) fingerprint too, so a worktree that
+// still computes the source fp hits the cache instead of rebuilding. No-op when
+// the fp is unchanged, the artifact is gone, or an alias already exists. Uses its
+// own lock — the caller must not hold the source-fp lock.
+async function storeSourceAlias(
+  cache: BuildCache,
+  logger: Logger,
+  sourceFp: string | null,
+  materializedFp: string,
+  artifact: string,
+): Promise<void> {
+  if (!sourceFp || sourceFp === materializedFp) return;
+  if (!existsSync(artifact) || cache.hasArtifact('ios', sourceFp)) return;
+  const aliasLock = await cache.acquireLock('ios', sourceFp);
+  if (!aliasLock) {
+    logger.warn(`Could not store source-fingerprint cache alias ${sourceFp.slice(0, 12)} for ${materializedFp.slice(0, 12)}`);
+    return;
+  }
+  try {
+    if (cache.storeArtifact('ios', sourceFp, artifact)) {
+      logger.ok(`Stored build in shared cache: fp=${sourceFp.slice(0, 12)} (source alias for ${materializedFp.slice(0, 12)})`);
+    } else {
+      logger.warn(`Could not store source-fingerprint cache alias ${sourceFp.slice(0, 12)} for ${materializedFp.slice(0, 12)}`);
+    }
+  } finally {
+    await aliasLock.release();
   }
 }
 
