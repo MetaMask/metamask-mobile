@@ -160,6 +160,10 @@ enum EVENT_NAME {
   ONBOARDING_INTEREST_QUESTION_VIEWED = 'Onboarding Interest Question Viewed',
   ONBOARDING_INTEREST_QUESTION_SUBMITTED = 'Onboarding Interest Question Submitted',
 
+  // Onboarding questionnaires (generic; discriminated by question_type)
+  ONBOARDING_QUESTION_VIEWED = 'Onboarding Question Viewed',
+  ONBOARDING_QUESTION_SUBMITTED = 'Onboarding Question Submitted',
+
   // Onboarding
   ONBOARDING_WELCOME_MESSAGE_VIEWED = 'Welcome Message Viewed',
   ONBOARDING_WELCOME_SCREEN_ENGAGEMENT = 'Welcome Screen Engagement',
@@ -965,6 +969,12 @@ const events = {
   ),
   ONBOARDING_INTEREST_QUESTION_SUBMITTED: generateOpt(
     EVENT_NAME.ONBOARDING_INTEREST_QUESTION_SUBMITTED,
+  ),
+  ONBOARDING_QUESTION_VIEWED: generateOpt(
+    EVENT_NAME.ONBOARDING_QUESTION_VIEWED,
+  ),
+  ONBOARDING_QUESTION_SUBMITTED: generateOpt(
+    EVENT_NAME.ONBOARDING_QUESTION_SUBMITTED,
   ),
   ONBOARDING_WELCOME_MESSAGE_VIEWED: generateOpt(
     EVENT_NAME.ONBOARDING_WELCOME_MESSAGE_VIEWED,
