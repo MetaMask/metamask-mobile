@@ -345,7 +345,9 @@ class NetworkView {
   }
 
   async SearchNetworkName(networkName: string): Promise<void> {
-    await UnifiedGestures.typeText(this.networkSearchInput, networkName);
+    await UnifiedGestures.typeText(this.networkSearchInput, networkName, {
+      hideKeyboard: true,
+    });
   }
   async longPressToRemoveNetwork(networkName: string): Promise<void> {
     const network = await this.getnetworkName(networkName);
