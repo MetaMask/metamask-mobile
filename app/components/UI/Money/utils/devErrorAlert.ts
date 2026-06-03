@@ -4,7 +4,7 @@ import ClipboardManager from '../../../../core/ClipboardManager';
 const DEV_ENVIRONMENTS = new Set(['rc', 'exp', 'dev', 'test']);
 
 const SUPPRESSED_ERRORS = [
-  "MetaMask Tx Signature: User denied transaction signature.",
+  'MetaMask Tx Signature: User denied transaction signature.',
 ];
 
 /**

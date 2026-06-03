@@ -51,7 +51,7 @@ describe('showDevErrorAlert', () => {
   it('suppresses the user-denied-signature error', () => {
     process.env.METAMASK_ENVIRONMENT = 'dev';
     const error = new Error(
-      "MetaMask Tx Signature: User denied transaction signature.",
+      'MetaMask Tx Signature: User denied transaction signature.',
     );
 
     showDevErrorAlert('Test title', error);
@@ -65,7 +65,10 @@ describe('showDevErrorAlert', () => {
 
     showDevErrorAlert('Test title', error);
 
-    const buttons = alertSpy.mock.calls[0][2] as { text: string; onPress?: () => void }[];
+    const buttons = alertSpy.mock.calls[0][2] as {
+      text: string;
+      onPress?: () => void;
+    }[];
     const copyButton = buttons.find((b) => b.text === 'Copy');
     copyButton?.onPress?.();
 

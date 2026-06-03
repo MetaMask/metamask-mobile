@@ -137,7 +137,10 @@ export function useMoneyAccountDeposit() {
       } catch (error) {
         depositIntentByBatchId.delete(batchId.toLowerCase());
         Logger.error(error as Error, `${LOG_TAG} Deposit transaction failed`);
-        showDevErrorAlert(`${LOG_TAG} Deposit transaction failed`, error as Error);
+        showDevErrorAlert(
+          `${LOG_TAG} Deposit transaction failed`,
+          error as Error,
+        );
         // Rethrow so the caller can roll back navigation / surface a toast.
         throw error;
       }
@@ -205,7 +208,10 @@ export function useMoneyAccountWithdrawal() {
       });
     } catch (error) {
       Logger.error(error as Error, `${LOG_TAG} Withdrawal transaction failed`);
-      showDevErrorAlert(`${LOG_TAG} Withdrawal transaction failed`, error as Error);
+      showDevErrorAlert(
+        `${LOG_TAG} Withdrawal transaction failed`,
+        error as Error,
+      );
       // Rethrow so the caller can roll back navigation / surface a toast.
       throw error;
     }
