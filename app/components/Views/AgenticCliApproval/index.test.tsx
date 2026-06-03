@@ -17,7 +17,6 @@ jest.mock('../../../util/navigation/navUtils', () => ({
   useParams: () => ({
     approvalPageLink: 'https://developer.metamask.io/agentic/login',
     projectId: 'project-1',
-    notificationId: 'request-1',
     approvalId: 'approval-1',
     mimirSignature: 'signature-1',
     operationType: 'transaction_request',
@@ -40,6 +39,7 @@ jest.mock('./AgenticCliApprovalAuthService', () => ({
 jest.mock('../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const map: Record<string, string> = {
+      'agentic_cli_approval.title': 'Review request',
       'agentic_cli_approval.error.title': 'Something went wrong',
       'agentic_cli_approval.error.load_description':
         "We couldn't load this approval request. Check your connection and try again.",
@@ -142,6 +142,119 @@ describe('AgenticCliApproval', () => {
     jest.clearAllMocks();
     mockWebViewProps = {};
     mockGetAuthToken.mockResolvedValue('dashboard-token');
+  });
+
+  it('renders the localized header title after the WebView loads', async () => {
+    render(<AgenticCliApproval />);
+
+    await waitFor(() =>
+      expect(HeaderCompactStandard).toHaveBeenCalledWith(
+        expect.objectContaining({ title: 'Review request' }),
+        undefined,
+      ),
+    );
+  });
+
+  it('navigates back when the hosted page posts approved', async () => {
+    render(<AgenticCliApproval />);
+
+    await waitFor(() => expect(mockWebViewProps.onMessage).toBeDefined());
+
+    act(() => {
+      mockWebViewProps.onMessage?.({
+        nativeEvent: {
+          data: JSON.stringify({
+            source: 'mm-cli-mfa',
+            type: 'approved',
+            approvalId: 'approval-1',
+          }),
+        },
+      });
+    });
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('navigates back when the hosted page posts rejected', async () => {
+    render(<AgenticCliApproval />);
+
+    await waitFor(() => expect(mockWebViewProps.onMessage).toBeDefined());
+
+    act(() => {
+      mockWebViewProps.onMessage?.({
+        nativeEvent: {
+          data: JSON.stringify({
+            source: 'mm-cli-mfa',
+            type: 'rejected',
+            approvalId: 'approval-1',
+          }),
+        },
+      });
+    });
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('navigates back when the hosted page posts close', async () => {
+    render(<AgenticCliApproval />);
+
+    await waitFor(() => expect(mockWebViewProps.onMessage).toBeDefined());
+
+    act(() => {
+      mockWebViewProps.onMessage?.({
+        nativeEvent: {
+          data: JSON.stringify({
+            source: 'mm-cli-mfa',
+            type: 'close',
+            approvalId: 'approval-1',
+          }),
+        },
+      });
+    });
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores postMessage events when approvalId does not match route params', async () => {
+    render(<AgenticCliApproval />);
+
+    await waitFor(() => expect(mockWebViewProps.onMessage).toBeDefined());
+
+    act(() => {
+      mockWebViewProps.onMessage?.({
+        nativeEvent: {
+          data: JSON.stringify({
+            source: 'mm-cli-mfa',
+            type: 'approved',
+            approvalId: 'other-approval',
+          }),
+        },
+      });
+    });
+
+    expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('shows load error UI when auth token resolution fails', async () => {
+    mockGetAuthToken.mockRejectedValue(new Error('Token exchange failed'));
+
+    const { getByTestId } = render(<AgenticCliApproval />);
+
+    await waitFor(() =>
+      expect(
+        getByTestId('agentic-cli-approval-error-description').props.children,
+      ).toBe(
+        "We couldn't load this approval request. Check your connection and try again.",
+      ),
+    );
+
+    expect(
+      getByTestId('agentic-cli-approval-error-details').props.children,
+    ).toBe('Token exchange failed');
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.any(Error),
+      'AgenticCliApproval: failed to obtain auth token',
+    );
   });
 
   it('shows submit failures as secondary error details', async () => {

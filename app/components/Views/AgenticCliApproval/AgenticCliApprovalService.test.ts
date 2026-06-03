@@ -124,6 +124,14 @@ describe('AgenticCliApprovalService', () => {
       ).toBe(true);
     });
 
+    it('allows the Web3Auth dev dashboard approval page origin', () => {
+      expect(
+        AgenticCliApprovalService.shouldLoadInWebView(
+          'https://dev-dashboard.web3auth.io/agentic/login',
+        ),
+      ).toBe(true);
+    });
+
     it('allows the Web3Auth auth origin used by the dashboard login flow', () => {
       expect(
         AgenticCliApprovalService.shouldLoadInWebView(
