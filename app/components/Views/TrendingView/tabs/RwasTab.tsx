@@ -4,11 +4,8 @@ import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import type { ListRenderItem } from '@shopify/flash-list';
 import type { TrendingAsset } from '@metamask/assets-controllers';
-import {
-  MarketCategory,
-  type PerpsMarketData,
-  type SortOptionId,
-} from '@metamask/perps-controller';
+import type { PerpsMarketData, SortOptionId } from '@metamask/perps-controller';
+import { isEquityAsset } from '../../../UI/Perps/utils/marketHours';
 import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
@@ -18,7 +15,10 @@ import { strings } from '../../../../../locales/i18n';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
 import { TokenRowItem } from '../feeds/tokens/TokenRowItem';
 import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
-import { useStocksFeed } from '../feeds/stocks/useStocksFeed';
+import {
+  STOCKS_FEED_PREVIEW_PAGE_SIZE,
+  useStocksFeed,
+} from '../feeds/stocks/useStocksFeed';
 import { getCaipChainIdFromAssetId } from '../../../UI/Trending/components/TrendingTokenRowItem/utils';
 import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
 import PerpsSectionProvider from '../feeds/perps/PerpsSectionProvider';
@@ -53,13 +53,7 @@ const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
         .slice(0, 3)
         .map((d) => d.market);
     const stockLikeItems = perps.data
-      .filter(
-        (d) =>
-          d.market.marketType === MarketCategory.Stock ||
-          d.market.marketType === MarketCategory.PreIpo ||
-          d.market.marketType === MarketCategory.Index ||
-          d.market.marketType === MarketCategory.Etf,
-      )
+      .filter((d) => isEquityAsset(d.market.marketType))
       .slice(0, 3)
       .map((d) => d.market);
     return [
@@ -109,7 +103,10 @@ const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
 
   const politics = usePredictionsFeed({ variant: 'politics', refresh });
-  const stocks = useStocksFeed({ refresh });
+  const stocks = useStocksFeed({
+    refresh,
+    pageSize: STOCKS_FEED_PREVIEW_PAGE_SIZE,
+  });
 
   const renderStockItem: ListRenderItem<TrendingAsset> = useCallback(
     ({ item, index }) => (

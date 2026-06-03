@@ -287,7 +287,7 @@ export const getMarketHoursStatus = (
  * Stock-like market types that replaced the former 'equity' MarketType.
  * These assets follow traditional market hours.
  */
-const STOCK_LIKE_MARKET_TYPES: ReadonlySet<string> = new Set([
+export const STOCK_LIKE_MARKET_TYPES: ReadonlySet<string> = new Set([
   MarketCategory.Stock,
   MarketCategory.PreIpo,
   MarketCategory.Index,

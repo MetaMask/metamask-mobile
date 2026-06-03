@@ -39,6 +39,7 @@ const mockSelectorValues = ({
   tokenBalances = {},
   tokenMarketData = {},
   currencyRates = {},
+  currentCurrency = 'usd',
   solanaAccount,
   multichainBalances = {},
   multichainRates = {},
@@ -49,6 +50,7 @@ const mockSelectorValues = ({
   tokenBalances?: Record<string, unknown>;
   tokenMarketData?: Record<string, unknown>;
   currencyRates?: Record<string, unknown>;
+  currentCurrency?: string;
   solanaAccount?: { id: string; address: string };
   multichainBalances?: Record<string, unknown>;
   multichainRates?: Record<string, unknown>;
@@ -60,6 +62,7 @@ const mockSelectorValues = ({
     .mockReturnValueOnce(tokenBalances)
     .mockReturnValueOnce(tokenMarketData)
     .mockReturnValueOnce(currencyRates)
+    .mockReturnValueOnce(currentCurrency)
     .mockReturnValueOnce(solanaAccount)
     .mockReturnValueOnce(multichainBalances)
     .mockReturnValueOnce(multichainRates)

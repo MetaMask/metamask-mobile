@@ -502,6 +502,11 @@ describe('PerpsMarketListView', () => {
   >;
   const { useRoute } = jest.requireMock('@react-navigation/native');
   const mockUseRoute = useRoute as jest.MockedFunction<typeof useRoute>;
+  const { usePerpsMarketListView } = jest.requireMock('../../hooks');
+  const mockUsePerpsMarketListView =
+    usePerpsMarketListView as jest.MockedFunction<
+      typeof usePerpsMarketListView
+    >;
 
   const mockMarketData: PerpsMarketData[] = [
     {
@@ -625,6 +630,26 @@ describe('PerpsMarketListView', () => {
         expect(ethRows.length).toBeGreaterThan(0);
         expect(solRows.length).toBeGreaterThan(0);
       });
+    });
+
+    it('passes default sort params from route to market list hook', () => {
+      mockUseRoute.mockReturnValue({
+        key: 'PerpsMarketListView-123',
+        name: 'PerpsMarketListView',
+        params: {
+          defaultSortOptionId: 'priceChange',
+          defaultSortDirection: 'asc',
+        },
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      expect(mockUsePerpsMarketListView).toHaveBeenCalledWith(
+        expect.objectContaining({
+          defaultSortOptionId: 'priceChange',
+          defaultSortDirection: 'asc',
+        }),
+      );
     });
 
     it('renders interactive elements', async () => {
@@ -853,12 +878,10 @@ describe('PerpsMarketListView', () => {
 
   describe('Edge Cases', () => {
     it('filters markets with whitespace-only query', async () => {
-      const { usePerpsMarketListView } = jest.requireMock('../../hooks');
-
       mockSearchQuery = '   ';
 
       // Mock to return empty results when search query is whitespace
-      usePerpsMarketListView.mockReturnValue({
+      mockUsePerpsMarketListView.mockReturnValue({
         markets: mockMarketData, // Whitespace is trimmed, so all markets show
         searchState: {
           searchQuery: '   ',

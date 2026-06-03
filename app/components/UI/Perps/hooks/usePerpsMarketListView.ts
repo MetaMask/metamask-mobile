@@ -18,6 +18,7 @@ import {
   selectPerpsMarketFilterPreferences,
 } from '../selectors/perpsController';
 import Engine from '../../../../core/Engine';
+import { isEquityAsset } from '../utils/marketHours';
 
 interface UsePerpsMarketListViewParams {
   /**
@@ -41,9 +42,8 @@ interface UsePerpsMarketListViewParams {
    */
   defaultSortOptionId?: SortOptionId;
   /**
-   * Initial sort direction — overrides the derived direction when provided.
-   * Only meaningful when defaultSortOptionId is also provided.
-   * @default undefined (falls back to derived direction logic)
+   * Initial sort direction — overrides the persisted user preference when provided.
+   * @default undefined (falls back to saved user preference/default override behavior)
    */
   defaultSortDirection?: SortDirection;
   /**
@@ -99,9 +99,6 @@ interface UsePerpsMarketListViewReturn {
   marketCounts: {
     crypto: number;
     stocks: number;
-    preIpo: number;
-    indices: number;
-    etfs: number;
     commodity: number;
     forex: number;
     new: number;
@@ -199,25 +196,7 @@ export const usePerpsMarketListView = ({
 
     // HIP-3 categories - only show explicitly mapped markets
     if (marketTypeFilter === 'stocks') {
-      return searchedMarkets.filter(
-        (m) => m.marketType === MarketCategory.Stock,
-      );
-    }
-
-    if (marketTypeFilter === 'pre-ipo') {
-      return searchedMarkets.filter(
-        (m) => m.marketType === MarketCategory.PreIpo,
-      );
-    }
-
-    if (marketTypeFilter === 'indices') {
-      return searchedMarkets.filter(
-        (m) => m.marketType === MarketCategory.Index,
-      );
-    }
-
-    if (marketTypeFilter === 'etfs') {
-      return searchedMarkets.filter((m) => m.marketType === MarketCategory.Etf);
+      return searchedMarkets.filter((m) => isEquityAsset(m.marketType));
     }
 
     if (marketTypeFilter === 'commodities') {
@@ -238,9 +217,10 @@ export const usePerpsMarketListView = ({
 
   // Use sorting hook for sort state and sorting logic.
   // defaultSortOptionId (from navigation params) takes precedence over the saved user
-  // preference. When it overrides a *different* option, reset direction to the default
-  // so the market list opens sorted the same way the explore feed displayed it (always desc).
-  // When there is no override, or the override matches the saved option, carry the saved direction.
+  // preference. A route-provided direction also takes precedence so Explore can
+  // open the market list with the same ordering as the source section.
+  // Without an explicit direction, reset changed sort options to the default
+  // direction; otherwise carry the saved direction.
   const isOptionOverridden =
     defaultSortOptionId !== undefined &&
     defaultSortOptionId !== savedSortPreference.optionId;
@@ -295,9 +275,6 @@ export const usePerpsMarketListView = ({
     const counts = {
       crypto: 0,
       stocks: 0,
-      preIpo: 0,
-      indices: 0,
-      etfs: 0,
       commodity: 0,
       forex: 0,
       new: 0,
@@ -308,14 +285,8 @@ export const usePerpsMarketListView = ({
       }
       if (!market.isHip3) {
         counts.crypto++;
-      } else if (market.marketType === MarketCategory.Stock) {
+      } else if (isEquityAsset(market.marketType)) {
         counts.stocks++;
-      } else if (market.marketType === MarketCategory.PreIpo) {
-        counts.preIpo++;
-      } else if (market.marketType === MarketCategory.Index) {
-        counts.indices++;
-      } else if (market.marketType === MarketCategory.Etf) {
-        counts.etfs++;
       } else if (market.marketType === MarketCategory.Commodity) {
         counts.commodity++;
       } else if (market.marketType === MarketCategory.Forex) {

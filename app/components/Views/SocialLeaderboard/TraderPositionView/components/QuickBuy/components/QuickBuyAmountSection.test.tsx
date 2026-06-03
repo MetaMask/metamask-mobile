@@ -1,20 +1,17 @@
 import React, { createRef } from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { render, screen } from '@testing-library/react-native';
 import { TextInput } from 'react-native';
 import QuickBuyAmountSection from './QuickBuyAmountSection';
 
 const defaultProps = {
   amountDisplayMode: 'fiat' as const,
-  fiatCryptoToggleEnabled: false,
   usdAmount: '',
   destSymbol: 'ETH',
   estimatedReceiveAmount: undefined,
-  availableBalanceFiat: '$0.00',
   isQuoteLoading: false,
   hiddenInputRef: createRef<TextInput | null>(),
   onAmountAreaPress: jest.fn(),
   onAmountChange: jest.fn(),
-  onToggleAmountDisplay: jest.fn(),
 };
 
 describe('QuickBuyAmountSection', () => {
@@ -50,7 +47,7 @@ describe('QuickBuyAmountSection', () => {
     expect(screen.getByText('0.025 ETH')).toBeOnTheScreen();
   });
 
-  it('shows 0 crypto placeholder when estimatedReceiveAmount is undefined', () => {
+  it('shows 0 crypto placeholder when estimatedCryptoAmount is undefined', () => {
     render(
       <QuickBuyAmountSection
         {...defaultProps}
@@ -60,6 +57,17 @@ describe('QuickBuyAmountSection', () => {
       />,
     );
     expect(screen.getByText('0 ETH')).toBeOnTheScreen();
+  });
+
+  it('shows the estimated crypto amount with destSymbol as the secondary label', () => {
+    render(
+      <QuickBuyAmountSection
+        {...defaultProps}
+        estimatedReceiveAmount="123.45"
+        destSymbol="ETH"
+      />,
+    );
+    expect(screen.getByText('123.45 ETH')).toBeOnTheScreen();
   });
 
   it('replaces the secondary label with an ActivityIndicator when isQuoteLoading', () => {
@@ -76,65 +84,15 @@ describe('QuickBuyAmountSection', () => {
     expect(screen.getByText('0 ETH')).toBeOnTheScreen();
   });
 
-  it('shows the toggle button when fiatCryptoToggleEnabled', () => {
-    render(<QuickBuyAmountSection {...defaultProps} fiatCryptoToggleEnabled />);
-    expect(
-      screen.getByTestId('quick-buy-toggle-amount-display'),
-    ).toBeOnTheScreen();
-  });
-
-  it('hides the toggle button when fiatCryptoToggleEnabled is false', () => {
-    render(
-      <QuickBuyAmountSection
-        {...defaultProps}
-        fiatCryptoToggleEnabled={false}
-      />,
-    );
+  it('does not render a toggle button', () => {
+    render(<QuickBuyAmountSection {...defaultProps} />);
     expect(
       screen.queryByTestId('quick-buy-toggle-amount-display'),
     ).not.toBeOnTheScreen();
   });
 
-  it('calls onToggleAmountDisplay when toggle is pressed', () => {
-    const onToggleAmountDisplay = jest.fn();
-    render(
-      <QuickBuyAmountSection
-        {...defaultProps}
-        fiatCryptoToggleEnabled
-        onToggleAmountDisplay={onToggleAmountDisplay}
-      />,
-    );
-    fireEvent.press(screen.getByTestId('quick-buy-toggle-amount-display'));
-    expect(onToggleAmountDisplay).toHaveBeenCalledTimes(1);
-  });
-
-  it('calls onAmountAreaPress when the area is pressed', () => {
-    const onAmountAreaPress = jest.fn();
-    render(
-      <QuickBuyAmountSection
-        {...defaultProps}
-        onAmountAreaPress={onAmountAreaPress}
-      />,
-    );
-    fireEvent.press(screen.getByTestId('quick-buy-amount-area'));
-    expect(onAmountAreaPress).toHaveBeenCalledTimes(1);
-  });
-
-  it('shows available balance when provided', () => {
-    render(
-      <QuickBuyAmountSection
-        {...defaultProps}
-        availableBalanceFiat="$1,234.56"
-      />,
-    );
-    expect(screen.getByText(/\$1,234.56/)).toBeOnTheScreen();
-  });
-
-  it('shows locale-formatted zero available when balance is zero', () => {
-    render(
-      <QuickBuyAmountSection {...defaultProps} availableBalanceFiat="$0.00" />,
-    );
-    expect(screen.getByText(/\$0\.00/)).toBeOnTheScreen();
-    expect(screen.getByText(/available/)).toBeOnTheScreen();
+  it('does not render available balance text', () => {
+    render(<QuickBuyAmountSection {...defaultProps} />);
+    expect(screen.queryByText(/available/)).not.toBeOnTheScreen();
   });
 });

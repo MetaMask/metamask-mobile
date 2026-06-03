@@ -54,11 +54,14 @@ const RiveOnboardingStepper = ({
   onStepChange,
   onComplete,
   autoCompleteOnLastStep = false,
+  enableRiveAnimation = true,
 }: RiveOnboardingStepperProps) => {
   const tw = useTailwind();
   const riveRef = useRef<RiveRef>(null);
   const hasCompletedRef = useRef(false);
-  const [isRiveReady, setIsRiveReady] = useState(false);
+  // When Rive is disabled it never fires `onPlay`, so start ready to avoid the
+  // content staying hidden behind the `opacity-0` gate.
+  const [isRiveReady, setIsRiveReady] = useState(!enableRiveAnimation);
 
   const {
     currentStepIndex,
@@ -151,19 +154,21 @@ const RiveOnboardingStepper = ({
         </Box>
 
         {/* Rive animation fills remaining space — intentionally edge-to-edge, no horizontal padding */}
-        <Box twClassName="absolute inset-0">
-          <Rive
-            ref={riveRef}
-            style={riveStyle}
-            source={riveConfig.source}
-            stateMachineName={riveConfig.stateMachineName}
-            fit={riveConfig.fit ?? Fit.FitWidth}
-            alignment={riveConfig.alignment ?? Alignment.Center}
-            autoplay
-            testID={RiveOnboardingStepperTestIds.RIVE_ANIMATION}
-            onPlay={handleRivePlay}
-          />
-        </Box>
+        {enableRiveAnimation && (
+          <Box twClassName="absolute inset-0">
+            <Rive
+              ref={riveRef}
+              style={riveStyle}
+              source={riveConfig.source}
+              stateMachineName={riveConfig.stateMachineName}
+              fit={riveConfig.fit ?? Fit.FitWidth}
+              alignment={riveConfig.alignment ?? Alignment.Center}
+              autoplay
+              testID={RiveOnboardingStepperTestIds.RIVE_ANIMATION}
+              onPlay={handleRivePlay}
+            />
+          </Box>
+        )}
       </Box>
       <Box
         twClassName={`pb-4${!isRiveReady || !currentStep?.footerText ? ' opacity-0' : ''}`}

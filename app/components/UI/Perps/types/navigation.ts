@@ -5,6 +5,7 @@ import {
   type OrderType,
   type PerpsMarketData,
   type TPSLTrackingData,
+  type SortDirection,
   type SortOptionId,
   type SortDirection,
 } from '@metamask/perps-controller';

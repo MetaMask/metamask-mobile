@@ -24,18 +24,9 @@ import PerpsErrorState, {
 } from '../components/PerpsErrorState/PerpsErrorState';
 import PerpsLoadingSkeleton from '../components/PerpsLoadingSkeleton/PerpsLoadingSkeleton';
 import PerpsBadge from '../components/PerpsBadge/PerpsBadge';
+import type { BadgeType } from '../components/PerpsBadge/PerpsBadge.types';
 import PerpsFillTag from '../components/PerpsFillTag/PerpsFillTag';
 import { FillType, type PerpsTransaction } from '../types/transactionHistory';
-
-type BadgeType =
-  | 'experimental'
-  | 'stock'
-  | 'pre-ipo'
-  | 'index'
-  | 'etf'
-  | 'commodity'
-  | 'crypto'
-  | 'forex';
 
 const mockOnRetry = jest.fn();
 
@@ -271,9 +262,6 @@ describe('Errors, Recovery & Information Flow', () => {
     const badgeTypes: BadgeType[] = [
       'experimental',
       'stock',
-      'pre-ipo',
-      'index',
-      'etf',
       'commodity',
       'crypto',
       'forex',

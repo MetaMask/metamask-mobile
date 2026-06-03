@@ -15,9 +15,8 @@ export const styleSheet = (params: {
   // Background uses .muted variant, text uses .default variant from same color family
   // This ensures proper contrast while maintaining semantic color consistency
   // Pattern inspired by AvatarIcon component (primary.muted background + primary.default icon)
-  const badgeStyles: Record<
-    BadgeType,
-    { background: string; text: string; border?: string }
+  const badgeStyles: Partial<
+    Record<BadgeType, { background: string; text: string; border?: string }>
   > = {
     experimental: {
       background: theme.colors.primary.muted,
@@ -29,18 +28,6 @@ export const styleSheet = (params: {
       border: theme.colors.border.default,
     },
     stock: {
-      background: theme.colors.info.muted,
-      text: theme.colors.info.default,
-    },
-    'pre-ipo': {
-      background: theme.colors.info.muted,
-      text: theme.colors.info.default,
-    },
-    index: {
-      background: theme.colors.info.muted,
-      text: theme.colors.info.default,
-    },
-    etf: {
       background: theme.colors.info.muted,
       text: theme.colors.info.default,
     },

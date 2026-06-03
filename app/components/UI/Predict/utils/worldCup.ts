@@ -51,12 +51,12 @@ export const buildPredictWorldCupPropsQuery = ({
 };
 
 export const buildPredictWorldCupLiveQuery = ({
-  seriesId,
+  tagSlug,
   gamesTagId,
-}: Pick<PredictWorldCupConfig, 'seriesId' | 'gamesTagId'>): string => {
+}: Pick<PredictWorldCupConfig, 'tagSlug' | 'gamesTagId'>): string => {
   const params = new URLSearchParams();
   appendBaseWorldCupParams(params);
-  params.set('series_id', seriesId);
+  params.set('tag_slug', tagSlug);
   params.set('tag_id', gamesTagId);
   params.set('live', 'true');
   params.set('order', 'startDate');

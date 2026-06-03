@@ -18,9 +18,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.market.badge.experimental': 'Experimental',
       'perps.market.badge.crypto': 'Crypto',
       'perps.market.badge.stock': 'Stock',
-      'perps.market.badge.pre-ipo': 'Pre-IPO',
-      'perps.market.badge.index': 'Index',
-      'perps.market.badge.etf': 'ETF',
       'perps.market.badge.commodity': 'Commodity',
       'perps.market.badge.forex': 'Forex',
     };
@@ -34,9 +31,6 @@ describe('PerpsBadge', () => {
       'experimental',
       'crypto',
       'stock',
-      'pre-ipo',
-      'index',
-      'etf',
       'commodity',
       'forex',
     ];
@@ -44,9 +38,6 @@ describe('PerpsBadge', () => {
       'Experimental',
       'Crypto',
       'Stock',
-      'Pre-IPO',
-      'Index',
-      'ETF',
       'Commodity',
       'Forex',
     ];

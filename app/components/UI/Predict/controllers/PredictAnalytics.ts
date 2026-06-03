@@ -1,4 +1,7 @@
-import { MetaMetricsEvents } from '../../../../core/Analytics';
+import {
+  MetaMetricsEvents,
+  mergeAssetViewedProperties,
+} from '../../../../core/Analytics';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../../../util/analytics/analytics';
@@ -45,6 +48,8 @@ export interface MarketDetailsOpenedArgs {
   marketCategory?: string;
   marketTags?: string[];
   entryPoint: string;
+  predictFeedTab?: string;
+  predictScreen?: string;
   marketDetailsViewed: string;
   marketSlug?: string;
   gameId?: string;
@@ -109,6 +114,14 @@ export class PredictAnalytics {
         analyticsProperties.marketCategory,
       [PredictEventProperties.MARKET_TAGS]: analyticsProperties.marketTags,
       [PredictEventProperties.ENTRY_POINT]: analyticsProperties.entryPoint,
+      ...(analyticsProperties.predictFeedTab && {
+        [PredictEventProperties.PREDICT_FEED_TAB]:
+          analyticsProperties.predictFeedTab,
+      }),
+      ...(analyticsProperties.predictScreen && {
+        [PredictEventProperties.PREDICT_SCREEN]:
+          analyticsProperties.predictScreen,
+      }),
       [PredictEventProperties.TRANSACTION_TYPE]:
         analyticsProperties.transactionType,
       [PredictEventProperties.LIQUIDITY]: analyticsProperties.liquidity,
@@ -305,5 +318,18 @@ export class PredictAnalytics {
     }
 
     analytics.trackEvent(eventBuilder.build());
+
+    if (configKey === 'feedViewed' || configKey === 'marketDetailsOpened') {
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(MetaMetricsEvents.ASSET_VIEWED)
+          .addProperties(
+            mergeAssetViewedProperties(
+              'Predict',
+              analyticsProperties as Record<string, unknown>,
+            ),
+          )
+          .build(),
+      );
+    }
   }
 }
