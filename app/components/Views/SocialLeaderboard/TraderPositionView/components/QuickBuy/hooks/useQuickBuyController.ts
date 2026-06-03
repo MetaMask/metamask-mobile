@@ -277,11 +277,9 @@ export function useQuickBuyController(
   // wrapper for an EVM asset (e.g. `eip155:137/slip44:966` for native POL),
   // letting the same token through as a pay-with option.
   //
-  // While metadata is still resolving (priced ERC-20s only — natives resolve
-  // synchronously in `useQuickBuySetup`) we fall back to the raw `target`
-  // values. The selector's symbol fallback covers most cross-format mismatches
-  // in this brief window; once `positionTokenFromSetup` lands the effect re-
-  // runs with the normalised key.
+  // Falls back to raw `target` values while metadata resolves (ERC-20s only —
+  // natives resolve synchronously). The symbol fallback in
+  // `selectDefaultSourceToken` covers cross-format mismatches in that window.
   const destLookupKey = useMemo<
     Pick<BridgeToken, 'address' | 'chainId' | 'symbol'> | undefined
   >(() => {
