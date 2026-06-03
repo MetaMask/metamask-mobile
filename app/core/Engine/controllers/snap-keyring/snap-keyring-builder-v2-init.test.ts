@@ -41,8 +41,7 @@ describe('snapKeyringBuilderV2Init', () => {
     state: null,
     v1Builder,
     v2Builder,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } as any;
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -68,8 +67,7 @@ describe('snapKeyringBuilderV2Init', () => {
     const requestMock = getInitRequestMock();
     const initMessengerCallSpy = jest
       .spyOn(requestMock.initMessenger, 'call')
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .mockResolvedValue(undefined as any);
+      .mockResolvedValue(undefined);
 
     snapKeyringBuilderV2Init(requestMock);
 
