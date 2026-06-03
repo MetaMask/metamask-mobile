@@ -26,12 +26,15 @@ describe('useERC20Tokens', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseTokensData.mockReturnValue({
-      [ASSET_ID_MOCK]: {
-        assetId: ASSET_ID_MOCK,
-        name: TOKEN_NAME_MOCK,
-        symbol: TOKEN_SYMBOL_MOCK,
-        iconUrl: TOKEN_ICON_URL_MOCK,
+      tokens: {
+        [ASSET_ID_MOCK]: {
+          assetId: ASSET_ID_MOCK,
+          name: TOKEN_NAME_MOCK,
+          symbol: TOKEN_SYMBOL_MOCK,
+          iconUrl: TOKEN_ICON_URL_MOCK,
+        },
       },
+      isLoading: false,
     });
   });
 
@@ -85,7 +88,7 @@ describe('useERC20Tokens', () => {
   });
 
   it('returns name and image as undefined when token is not found', () => {
-    mockUseTokensData.mockReturnValue({});
+    mockUseTokensData.mockReturnValue({ tokens: {}, isLoading: false });
 
     const { result } = renderHook([
       {
