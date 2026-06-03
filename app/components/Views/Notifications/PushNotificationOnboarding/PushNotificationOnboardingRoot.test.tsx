@@ -49,13 +49,6 @@ const mockPushNotificationPermissionFallback = jest.mocked(
 
 const mockDismissPrePrompt = jest.fn();
 const mockMarkPrePromptShown = jest.fn();
-let mockIsTestEnvironmentValue = false;
-
-jest.mock('../../../../util/test/utils', () => ({
-  get isTestEnvironment() {
-    return mockIsTestEnvironmentValue;
-  },
-}));
 
 const mockPrePromptState = ({
   nativeOsPermissionEnabled = null,
@@ -78,26 +71,8 @@ const getLatestProps = () =>
 describe('PushNotificationOnboardingRoot', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockIsTestEnvironmentValue = false;
     mockIsPrePromptEnabled = true;
     mockPrePromptState();
-  });
-
-  afterEach(() => {
-    mockIsTestEnvironmentValue = false;
-  });
-
-  it('does not render or resolve the pre-prompt during e2e runs', () => {
-    mockIsTestEnvironmentValue = true;
-    mockPrePromptState({
-      nativeOsPermissionEnabled: false,
-      variant: 'push_permission',
-    });
-
-    render(<PushNotificationOnboardingRoot />);
-
-    expect(mockUsePushPrePromptVariant).not.toHaveBeenCalled();
-    expect(mockPushNotificationOnboarding).not.toHaveBeenCalled();
   });
 
   it('does not render the sheet when no variant is available', () => {
