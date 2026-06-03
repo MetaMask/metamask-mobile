@@ -409,9 +409,6 @@ describe('useTransakRouting', () => {
     });
 
     it('resolves the wallet address from the headless session assetId, not the async-seeded selectedToken (TRAM-3598)', async () => {
-      // Arrange — selectedToken default chain is eip155:1, but the headless
-      // session's asset is on Arbitrum. The session asset must win so the
-      // address resolves on the first attempt (before selectedToken propagates).
       const mockGetSession = jest.requireMock('../headless/sessionRegistry')
         .getSession as jest.Mock;
       mockGetSession.mockReturnValue({
@@ -442,7 +439,6 @@ describe('useTransakRouting', () => {
         'https://payment.example.com',
       );
 
-      // Act
       const { result } = renderHook(() =>
         useTransakRouting({
           baseRoute: 'RampHeadlessHost',
@@ -456,8 +452,6 @@ describe('useTransakRouting', () => {
         );
       });
 
-      // Assert — chain derived from the session asset (Arbitrum), and the
-      // resolved address (not an empty string) is passed to Transak.
       expect(mockUseRampAccountAddress).toHaveBeenCalledWith('eip155:42161');
       expect(mockGeneratePaymentWidgetUrl).toHaveBeenCalledWith(
         'test-ott',
@@ -468,15 +462,12 @@ describe('useTransakRouting', () => {
     });
 
     it('falls back to the selectedToken chain when there is no headless session', () => {
-      // Arrange — non-headless BuildQuote flow: no session, selectedToken is eip155:1.
       const mockGetSession = jest.requireMock('../headless/sessionRegistry')
         .getSession as jest.Mock;
       mockGetSession.mockReturnValue(undefined);
 
-      // Act
       renderHook(() => useTransakRouting());
 
-      // Assert
       expect(mockUseRampAccountAddress).toHaveBeenCalledWith('eip155:1');
     });
 

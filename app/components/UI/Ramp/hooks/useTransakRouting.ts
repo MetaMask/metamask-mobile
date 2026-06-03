@@ -168,9 +168,6 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
   const { selectedPaymentMethod } = useRampsPaymentMethods();
 
   const { selected: selectedToken } = useSelector(selectTokens);
-  // Headless seeds `selectedToken` async, so it can still be empty here — making
-  // Transak re-prompt for the wallet address (TRAM-3598). The session knows the
-  // assetId up front, so use it for the chain; fall back to selectedToken otherwise.
   const headlessAssetId = getSession(headlessSessionId)?.params?.assetId;
   const walletAddressChainId =
     (headlessAssetId ? getChainIdFromAssetId(headlessAssetId) : null) ??
