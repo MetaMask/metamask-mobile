@@ -41,7 +41,9 @@ const ISSUE_LINKAGE_LINE = /^\s*\**(?:Fixes|Closes|Refs)\**\s*:\s*(.*)$/im;
 const UNCHECKED_CHECKBOX = /^\s*-\s*\[\s\]\s+(.*)$/m;
 
 export function stripHtmlComments(text: string): string {
-  return text.replace(/<!--[\s\S]*?-->/g, '');
+  // Avoids [\s\S]*? backtracking: [^-] matches any non-dash char, -(?!->) a
+  // dash that is not the start of -->, so the alternation never backtracks.
+  return text.replace(/<!--(?:[^-]|-(?!->))*-->/g, '');
 }
 
 /**
@@ -125,7 +127,7 @@ export function hasScreenshotsOrNa(
     return {
       ok: false,
       reason:
-        '`Screenshots/Recordings` section is empty. Add an image/video for user-facing changes, or write `N/A` for non-user-facing changes.',
+        '`Screenshots/Recordings` section is empty. Add an image/video for user-facing changes, logs/console output for non-user-facing changes, or write `N/A` if no evidence is applicable.',
     };
   }
   return { ok: true };
