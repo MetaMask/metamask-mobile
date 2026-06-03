@@ -88,18 +88,15 @@ import { TabBarIconKey } from '../../../component-library/components/Navigation/
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import SDKSessionsManager from '../../Views/SDK/SDKSessionsManager/SDKSessionsManager';
-import PermissionsManager from '../../Views/Settings/PermissionsSettings/PermissionsManager';
 import { getDecimalChainId } from '../../../util/networks';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { useTheme } from '../../../util/theme';
 import DeprecatedNetworkDetails from '../../UI/DeprecatedNetworkModal';
 import ConfirmAddAsset from '../../Views/AddAsset/Views/ConfirmAddTokenView/ConfirmAddAsset';
 import { AesCryptoTestForm } from '../../Views/AesCryptoTestForm';
-import { isTest } from '../../../util/test/utils';
+import { isTestEnvironment } from '../../../util/test/utils';
 import NftDetails from '../../Views/NftDetails';
 import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
-import AccountPermissions from '../../../components/Views/AccountPermissions';
-import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
 import { AssetLoader } from '../../Views/AssetLoader';
 import { EarnScreenStack, EarnModalStack } from '../../UI/Earn/routes';
@@ -486,7 +483,6 @@ const SettingsFlow = () => {
         options={{ headerShown: false }}
       />
       <Stack.Screen name="SDKSessionsManager" component={SDKSessionsManager} />
-      <Stack.Screen name="PermissionsManager" component={PermissionsManager} />
       <Stack.Screen
         name="SecuritySettings"
         component={SecuritySettings}
@@ -515,7 +511,7 @@ const SettingsFlow = () => {
          *
          * If this is in production, it is a bug.
          */
-        isTest && (
+        isTestEnvironment && (
           <Stack.Screen
             name="AesCryptoTestForm"
             component={AesCryptoTestForm}
@@ -550,14 +546,6 @@ const SettingsFlow = () => {
         name="ContactForm"
         component={ContactForm}
         options={ContactForm.navigationOptions}
-      />
-      <Stack.Screen
-        name="AccountPermissionsAsFullScreen"
-        component={AccountPermissions}
-        options={{ headerShown: false }}
-        initialParams={{
-          initialScreen: AccountPermissionsScreens.PermissionsSummary,
-        }}
       />
       <Stack.Screen
         name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
@@ -1471,7 +1459,11 @@ const MainNavigator = () => {
       {
         ///: END:ONLY_INCLUDE_IF
       }
-      <Stack.Screen name={Routes.CARD.ROOT} component={CardRoutes} />
+      <Stack.Screen
+        name={Routes.CARD.ROOT}
+        component={CardRoutes}
+        options={{ presentation: 'modal' }}
+      />
       <Stack.Screen
         name={Routes.RAMP.MODALS.PROCESSING_INFO}
         component={ProcessingInfoModal}

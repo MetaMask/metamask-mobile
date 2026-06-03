@@ -38,7 +38,7 @@ import { useSelector } from 'react-redux';
 import { WalletActionsBottomSheetSelectorsIDs } from '../WalletActions/WalletActionsBottomSheet.testIds';
 import { strings } from '../../../../locales/i18n';
 import { AnimationDuration } from '../../../component-library/constants/animation.constants';
-import { BATCH_SELL_ENABLED } from '../../../constants/bridge';
+import { selectBatchSellEnabled } from '../../../selectors/featureFlagController/batchSell';
 import Routes from '../../../constants/navigation/Routes';
 import AppConstants from '../../../core/AppConstants';
 import { selectIsSwapsEnabled } from '../../../core/redux/slices/bridge';
@@ -119,8 +119,9 @@ function TradeWalletActions() {
   const isHardwareWallet = selectedAddress
     ? Boolean(isHardwareAccount(selectedAddress))
     : false;
+  const isBatchSellEnabled = useSelector(selectBatchSellEnabled);
   const shouldRenderBatchSell =
-    BATCH_SELL_ENABLED && AppConstants.SWAPS.ACTIVE && !isHardwareWallet;
+    isBatchSellEnabled && AppConstants.SWAPS.ACTIVE && !isHardwareWallet;
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
 

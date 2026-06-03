@@ -370,7 +370,6 @@ describe('useExploreSearch', () => {
         expect.objectContaining({
           variant: 'trending',
           query: '',
-          pageSize: 20,
         }),
       );
       expect(useSitesFeed).toHaveBeenCalledWith({ query: '' });

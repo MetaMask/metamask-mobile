@@ -67,7 +67,7 @@ export const PREDICT_WORLD_CUP_SCREEN_TEST_IDS = {
 
 type WorldCupConfigSubset = Pick<
   PredictWorldCupConfig,
-  'seriesId' | 'tagSlug' | 'gamesTagId' | 'stages'
+  'tagSlug' | 'gamesTagId' | 'stages'
 >;
 
 interface WorldCupTabContentProps {
@@ -196,10 +196,12 @@ const WorldCupTabContent = ({
         market={item}
         entryPoint={entryPoint}
         testID={`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.MARKET_CARD}-${index + 1}`}
+        predictFeedTab={activeTab}
+        predictScreen={PredictEventValues.PREDICT_SCREEN.WORLD_CUP}
         transactionActiveAbTests={transactionActiveAbTests}
       />
     ),
-    [entryPoint, transactionActiveAbTests],
+    [activeTab, entryPoint, transactionActiveAbTests],
   );
 
   const keyExtractor = useCallback((item: PredictMarketType) => item.id, []);

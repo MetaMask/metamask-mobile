@@ -117,7 +117,6 @@ import {
   getDelegationControllerMessenger,
 } from './delegation/delegation-controller-messenger';
 import { getRemoteFeatureFlagControllerMessenger } from './remote-feature-flag-controller-messenger';
-import { getStorageServiceMessenger } from './storage-service-messenger';
 import { getLoggingControllerMessenger } from './logging-controller-messenger';
 import {
   getRampsControllerMessenger,
@@ -260,10 +259,6 @@ export const MESSENGER_FACTORIES = {
   },
   SignatureController: {
     getMessenger: getSignatureControllerMessenger,
-    getInitMessenger: noop,
-  },
-  StorageService: {
-    getMessenger: getStorageServiceMessenger,
     getInitMessenger: noop,
   },
   DeFiPositionsController: {
