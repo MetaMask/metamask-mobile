@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
+import type { CaipChainId } from '@metamask/utils';
 import Engine from '../../../../../core/Engine';
 import createStyles from './AccountGroupBalance.styles';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -19,10 +20,11 @@ import { useWalletHomeOnboardingFundStepBalanceGate } from '../../../WalletHomeO
 import { selectEvmChainId } from '../../../../../selectors/networkController';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { TEST_NETWORK_IDS } from '../../../../../constants/network';
-import SensitiveText, {
+import {
+  SensitiveText,
   SensitiveTextLength,
-} from '../../../../../component-library/components/Texts/SensitiveText';
-import { TextVariant } from '../../../../../component-library/components/Texts/Text';
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useFormatters } from '../../../../hooks/useFormatters';
@@ -79,7 +81,7 @@ const AccountGroupBalance = ({
 
   // Stabilize chain IDs by content so selector identity doesn't change every render (avoids max depth / infinite loop).
   const popularChainIdsKey = (popularNetworks ?? []).join(',');
-  const chainIdsForBalance = useMemo(
+  const chainIdsForBalance = useMemo<CaipChainId[]>(
     () => [...(popularNetworks ?? [])],
     // popularChainIdsKey stabilizes by content; popularNetworks is a new array ref every render from the hook
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -177,7 +179,7 @@ const AccountGroupBalance = ({
             isHidden={privacyMode}
             length={SensitiveTextLength.Long}
             testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
-            variant={TextVariant.DisplayLG}
+            variant={TextVariant.DisplayLg}
           >
             {displayBalance}
           </SensitiveText>
