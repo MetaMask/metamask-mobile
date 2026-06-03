@@ -64,7 +64,7 @@ import { selectSourceWalletAddress } from '../../../../selectors/bridge';
 import { useHwBatchSignTracker } from '../../Bridge/hooks/useHwBatchSignTracker';
 import { useHardwareWallet } from '../../../../core/HardwareWallet';
 
-import { useHwConnectionMonitoring } from './hooks/useHwConnectionMonitoring';
+import { useHwConnectionMonitoring } from './useHwConnectionMonitoring';
 import { useHwQrState } from './hooks/useHwQrState';
 import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
 import { StepRow } from './StepRow';

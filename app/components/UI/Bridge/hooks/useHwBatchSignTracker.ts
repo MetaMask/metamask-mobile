@@ -37,13 +37,19 @@ const ALL_BATCH_TYPES: Set<TransactionType> = new Set([
   ...TRADE_TYPES,
 ]);
 
+function isBatchTransactionType(
+  txType: TransactionMeta['type'],
+): txType is TransactionType {
+  return Boolean(txType && ALL_BATCH_TYPES.has(txType));
+}
+
 function matchesTx(
   transactionMeta: TransactionMeta,
   targetFrom: string,
 ): boolean {
   const normalizedFrom = transactionMeta.txParams.from?.toLowerCase();
   if (normalizedFrom !== targetFrom) return false;
-  return ALL_BATCH_TYPES.has(transactionMeta.type as TransactionType);
+  return isBatchTransactionType(transactionMeta.type);
 }
 
 function getStepKind(txType: TransactionType): HardwareWalletsSwapsStepKind {
@@ -174,7 +180,7 @@ export function useHwBatchSignTracker({
           .filter((tx: TransactionMeta) => {
             if (tx.txParams.from?.toLowerCase() !== address) return false;
             if (!nonTerminalStatuses.has(tx.status)) return false;
-            if (!ALL_BATCH_TYPES.has(tx.type as TransactionType)) return false;
+            if (!isBatchTransactionType(tx.type)) return false;
             return true;
           })
           .map((tx: TransactionMeta) => tx.id)
@@ -223,8 +229,54 @@ export function useHwBatchSignTracker({
       trackTransactionCancelledEvent();
     }
 
+    // Wipe chains with rejected/failed bridge txs so their nonces don't block retry
+    // batches. We can't rely on txIds (already cleared by failure handler),
+    // so scan all TC transactions for failed/rejected bridge txs from this
+    // address. If we leave these metas in TC state holding nonces N and N+1,
+    // TC may assign nonces N+2 and N+3 to the retry batch, creating a nonce
+    // gap that STX's simulator rejects with would_revert.
+    //
+    // TransactionController only exposes a typed chain/address-scoped wipe
+    // action, not a single-transaction delete action. Skip missing chain IDs
+    // rather than widening to every chain for the address.
+    const allFailedBridgeTxs = address
+      ? Engine.context.TransactionController.state.transactions.filter(
+          (tx: TransactionMeta) => {
+            if (tx.txParams.from?.toLowerCase() !== address) return false;
+            if (
+              tx.status !== TransactionStatus.rejected &&
+              tx.status !== TransactionStatus.failed
+            )
+              return false;
+            return isBatchTransactionType(tx.type);
+          },
+        )
+      : [];
+
+    const failedBridgeTxChainIds = new Set(
+      allFailedBridgeTxs
+        .map((tx) => tx.chainId)
+        .filter((chainId): chainId is NonNullable<TransactionMeta['chainId']> =>
+          Boolean(chainId),
+        ),
+    );
+
+    for (const chainId of failedBridgeTxChainIds) {
+      try {
+        Engine.controllerMessenger.call(
+          'TransactionController:wipeTransactions',
+          { address, chainId },
+        );
+      } catch (error) {
+        Logger.log(
+          '[HW-BatchSign] cancelCurrentBatch — failed to wipe transactions:',
+          { address, chainId },
+          error,
+        );
+      }
+    }
+
     if (allTxIds.length === 0) {
-      isProcessingQueueRef.current = false;
       return;
     }
 
@@ -262,41 +314,6 @@ export function useHwBatchSignTracker({
         } catch {
           // intentionally ignored
         }
-      }
-    }
-
-    // Wipe rejected/failed bridge txs so their nonces don't block retry
-    // batches. We can't rely on txIds (already cleared by failure handler),
-    // so scan all TC transactions for failed/rejected bridge txs from this
-    // address. If we leave these metas in TC state holding nonces N and N+1,
-    // TC may assign nonces N+2 and N+3 to the retry batch, creating a nonce
-    // gap that STX's simulator rejects with would_revert.
-    const allFailedBridgeTxs = address
-      ? Engine.context.TransactionController.state.transactions.filter(
-          (tx: TransactionMeta) => {
-            if (tx.txParams.from?.toLowerCase() !== address) return false;
-            if (
-              tx.status !== TransactionStatus.rejected &&
-              tx.status !== TransactionStatus.failed
-            )
-              return false;
-            return ALL_BATCH_TYPES.has(tx.type as TransactionType);
-          },
-        )
-      : [];
-
-    for (const tx of allFailedBridgeTxs) {
-      try {
-        Engine.controllerMessenger.call(
-          'TransactionController:clearTransaction',
-          tx.id,
-        );
-      } catch (error) {
-        Logger.log(
-          '[HW-BatchSign] cancelCurrentBatch — failed to wipe tx:',
-          tx.id,
-          error,
-        );
       }
     }
 
@@ -358,7 +375,6 @@ export function useHwBatchSignTracker({
       ]);
     }
 
-    isProcessingQueueRef.current = false;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -390,7 +406,7 @@ export function useHwBatchSignTracker({
           let deviceConfirmedReady = false;
           let hasHandledRejection = false;
 
-          const handleApprovalRejection = (): void => {
+          const handleApprovalRejection = async (): Promise<void> => {
             if (hasHandledRejection) return;
             hasHandledRejection = true;
             if (batchGenerationRef.current !== myGeneration) {
@@ -420,7 +436,7 @@ export function useHwBatchSignTracker({
                 type: HardwareWalletsSwapsEventType.TransactionFailed,
               }),
             );
-            cancelCurrentBatch();
+            await cancelCurrentBatch();
           };
 
           try {
@@ -481,6 +497,9 @@ export function useHwBatchSignTracker({
               },
               onRejected: handleApprovalRejection,
             });
+            if (batchGenerationRef.current !== myGeneration) {
+              break;
+            }
             if (result) {
               acceptedApprovalIdsRef.current.delete(requestId);
             }
@@ -493,13 +512,13 @@ export function useHwBatchSignTracker({
                 'error while trying to send transaction (HW BatchSign)',
               );
             }
-            handleApprovalRejection();
+            await handleApprovalRejection();
           }
         }
       } finally {
         setProcessingQueue(false);
         if (approvalQueueRef.current.length > 0) {
-          processApprovalQueue();
+          Promise.resolve().then(processApprovalQueue);
         }
       }
     };
@@ -540,8 +559,10 @@ export function useHwBatchSignTracker({
 
       checkGeneration();
 
-      const { status, type } = transactionMeta;
-      const stepKind = getStepKind(type as TransactionType);
+      const { status } = transactionMeta;
+      const type = transactionMeta.type;
+      if (!isBatchTransactionType(type)) return;
+      const stepKind = getStepKind(type);
 
       if (status === TransactionStatus.approved) {
         if (transactionMeta.batchId) {
@@ -600,7 +621,9 @@ export function useHwBatchSignTracker({
         return;
       }
 
-      const stepKind = getStepKind(transactionMeta.type as TransactionType);
+      const type = transactionMeta.type;
+      if (!isBatchTransactionType(type)) return;
+      const stepKind = getStepKind(type);
       trackTransactionCancelledEvent();
       dispatchRef.current(
         updateHardwareWalletsSwaps({
