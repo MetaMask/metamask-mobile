@@ -137,8 +137,17 @@ describe('hasValidIssueLink', () => {
     ['bare Fixes with trailing whitespace', 'Fixes:   '],
     ['only HTML comments', '<!-- write something here -->'],
     ['no Fixes/Closes/Refs line at all', 'See PR description'],
+    ['all linkage lines are blank', 'Fixes:\nCloses:\nRefs:'],
   ])('fails for "%s"', (_label, content) => {
     expect(hasValidIssueLink(content).ok).toBe(false);
+  });
+
+  it('passes when a blank Fixes: is followed by a valid Refs: line', () => {
+    expect(hasValidIssueLink('Fixes:\nRefs: MCWP-603').ok).toBe(true);
+  });
+
+  it('passes when a blank Fixes: is followed by a valid Closes: line', () => {
+    expect(hasValidIssueLink('Fixes:\nCloses: MetaMask/metamask-mobile#42').ok).toBe(true);
   });
 });
 
@@ -254,6 +263,14 @@ describe('hasAllAuthorChecklistChecked', () => {
   it('ignores boxes inside HTML comments', () => {
     const checklist = `- [x] First\n<!-- - [ ] commented-out -->\n- [x] Second`;
     expect(hasAllAuthorChecklistChecked(checklist).ok).toBe(true);
+  });
+
+  it('fails when the section is empty (no checkboxes at all)', () => {
+    expect(hasAllAuthorChecklistChecked('').ok).toBe(false);
+  });
+
+  it('fails when all checklist rows were deleted (heading only, no boxes)', () => {
+    expect(hasAllAuthorChecklistChecked('\n\nSome plain text but no checkboxes\n').ok).toBe(false);
   });
 });
 

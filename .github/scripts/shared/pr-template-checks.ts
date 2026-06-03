@@ -36,9 +36,15 @@ const MANUAL_TESTING_TEMPLATE_MARKERS =
 // the colon, which we then trim and check for non-emptiness. Any non-empty
 // content counts as either a real reference or explicit rationale — we
 // deliberately do not regex-parse GitHub / Jira refs to avoid false negatives.
-const ISSUE_LINKAGE_LINE = /^\s*\**(?:Fixes|Closes|Refs)\**\s*:\s*(.*)$/im;
+// The `g` flag is required for `matchAll` so every line is checked, not just
+// the first — the template ships with a blank `Fixes:` that would otherwise
+// shadow a valid `Refs:` added on a subsequent line.
+// `[ \t]*` (not `\s*`) after the colon prevents the match from crossing a
+// line boundary and accidentally capturing the next line as the rationale.
+const ISSUE_LINKAGE_LINE = /^[ \t]*\**(?:Fixes|Closes|Refs)\**[ \t]*:[ \t]*(.*)$/gim;
 
 const UNCHECKED_CHECKBOX = /^\s*-\s*\[\s\]\s+(.*)$/m;
+const CHECKED_CHECKBOX = /^\s*-\s*\[x\]\s+/im;
 
 export function stripHtmlComments(text: string): string {
   // Index-based removal avoids regex on the `<!--` delimiter, which CodeQL
@@ -98,9 +104,13 @@ export function hasValidIssueLink(
   relatedIssuesSection: string,
 ): PrTemplateCheckResult {
   const sanitized = stripHtmlComments(relatedIssuesSection);
-  const match = sanitized.match(ISSUE_LINKAGE_LINE);
-  const rationale = match?.[1]?.trim() ?? '';
-  if (rationale.length === 0) {
+  // Check every Fixes/Closes/Refs line: at least one must carry a non-empty
+  // value. The template ships a blank `Fixes:` placeholder — using matchAll
+  // prevents that empty line from shadowing a valid `Refs:` added below it.
+  const hasValidLink = [...sanitized.matchAll(ISSUE_LINKAGE_LINE)].some(
+    (m) => (m[1]?.trim() ?? '').length > 0,
+  );
+  if (!hasValidLink) {
     return {
       ok: false,
       reason:
@@ -160,6 +170,15 @@ export function hasAllAuthorChecklistChecked(
     return {
       ok: false,
       reason: `\`Pre-merge author checklist\` has unchecked items (e.g. "${item}"). Every box must be consciously checked — see \`docs/readme/ready-for-review.md\`.`,
+    };
+  }
+  // Require at least one checked box so a section where all rows were deleted
+  // (leaving only the heading) does not silently pass.
+  if (!CHECKED_CHECKBOX.test(sanitized)) {
+    return {
+      ok: false,
+      reason:
+        '`Pre-merge author checklist` has no checked items. Complete every checklist item before marking the PR as ready for review.',
     };
   }
   return { ok: true };
