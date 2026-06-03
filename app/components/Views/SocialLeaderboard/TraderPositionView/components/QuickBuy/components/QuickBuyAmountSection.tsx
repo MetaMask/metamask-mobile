@@ -21,6 +21,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import type { QuickBuyAmountDisplayMode } from '../types';
+import { formatTokenAmount } from '../../../../utils/formatters';
 
 const styles = StyleSheet.create({
   amountText: { fontSize: 48, lineHeight: 52 },
@@ -56,7 +57,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
 }) => {
   const fiatAmountLabel = usdAmount ? `$${usdAmount}` : '$0';
   const cryptoAmountLabel = estimatedReceiveAmount
-    ? `${estimatedReceiveAmount} ${destSymbol}`
+    ? `${formatTokenAmount(parseFloat(estimatedReceiveAmount))} ${destSymbol}`
     : `0 ${destSymbol}`;
 
   const isCryptoPrimary = amountDisplayMode === 'crypto';

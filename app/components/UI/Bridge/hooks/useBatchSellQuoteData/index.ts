@@ -299,13 +299,14 @@ export function useBatchSellQuoteData({
   );
   const hasAnyQuote = availableRecommendedQuotes.length > 0;
   const totalNetworkFee = batchSellTrades.totalNetworkFee;
+  const isBatchSellTradesLoading = Boolean(batchSellTrades.isLoading);
+
   // Quote-level gasless params are not reliable for Batch Sell because gasless
   // behavior is only simulated when the controller calls obtainGaslessBatch.
   // Clients do not consume that API response directly; selectBatchSellTrades
   // exposes the controller-interpreted result, so derive gasless state from it.
   const isGasless =
     hasAnyQuote &&
-    batchSellTrades.isBatchSellTradeAvailable &&
     Boolean(
       totalNetworkFee?.asset && !isNativeAddress(totalNetworkFee.asset.address),
     );
@@ -349,7 +350,6 @@ export function useBatchSellQuoteData({
     () => getBatchSellTradesRequestKey(availableRecommendedQuotes),
     [availableRecommendedQuotes],
   );
-  const networkFeeIsLoading = !batchSellTrades.isBatchSellTradeAvailable;
   const totalReceivedAmount = canDisplayAggregatedQuoteData
     ? totalReceived.amount
     : undefined;
@@ -496,11 +496,13 @@ export function useBatchSellQuoteData({
     isLoading,
     isSummaryLoading,
     isGasless,
+    isBatchSellTradeAvailable: batchSellTrades.isBatchSellTradeAvailable,
+    isBatchSellTradesLoading,
     hasAnyQuote,
     hasPendingQuoteRows,
     needsNewQuote,
-    networkFeeIsLoading,
     networkFee: networkFeeData,
     quotePercentFee,
+    recommendedQuotes: availableRecommendedQuotes,
   };
 }
