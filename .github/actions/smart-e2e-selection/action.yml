@@ -40,6 +40,9 @@ outputs:
   ai_performance_test_tags:
     description: 'Performance test tags to run (JSON array format, empty [] means no performance tests)'
     value: ${{ steps.final-outputs.outputs.ai_performance_test_tags }}
+  ai_performance_test_reasoning:
+    description: 'Reasoning for the performance test selection'
+    value: ${{ steps.final-outputs.outputs.ai_performance_test_reasoning }}
 
 runs:
   using: 'composite'
@@ -171,6 +174,13 @@ runs:
         else
           echo 'ai_performance_test_tags=[]' >> "$GITHUB_OUTPUT"
         fi
+        # Performance test reasoning
+        PERF_REASONING='${{ steps.ai-analysis.outputs.ai_performance_test_reasoning }}'
+        if [[ -n "$PERF_REASONING" ]]; then
+          printf 'ai_performance_test_reasoning=%s\n' "$PERF_REASONING" >> "$GITHUB_OUTPUT"
+        else
+          echo 'ai_performance_test_reasoning=No reasoning available' >> "$GITHUB_OUTPUT"
+        fi
 
     - name: Display AI Analysis Outputs
       if: always()
@@ -181,6 +191,7 @@ runs:
         echo "ai_e2e_test_tags: ${{ steps.final-outputs.outputs.ai_e2e_test_tags }}"
         echo "ai_confidence: ${{ steps.final-outputs.outputs.ai_confidence }}"
         echo "ai_performance_test_tags: ${{ steps.final-outputs.outputs.ai_performance_test_tags }}"
+        echo "ai_performance_test_reasoning: ${{ steps.final-outputs.outputs.ai_performance_test_reasoning }}"
         echo "================================"
 
     - name: Delete previous comments

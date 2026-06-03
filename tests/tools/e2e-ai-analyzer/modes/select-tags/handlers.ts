@@ -610,6 +610,110 @@ export function detectDirectPerformanceChanges(
   };
 }
 
+interface AppCodePerfTagEntry {
+  patterns: RegExp[];
+  tags: string[];
+  description: string;
+}
+
+/**
+ * Maps app source paths to performance test tags.
+ * When changed files match a pattern, the listed tags are automatically triggered.
+ */
+const APP_CODE_TO_PERF_TAG_MAP: AppCodePerfTagEntry[] = [
+  {
+    patterns: [
+      /^app\/components\/UI\/Bridge\//,
+      /^app\/reducers\/swaps/,
+      /^app\/selectors\/swaps/,
+    ],
+    tags: ['@PerformanceSwaps'],
+    description: 'Swap/Bridge UI or state',
+  },
+  {
+    patterns: [
+      /^app\/components\/Views\/AccountSelector\//,
+      /^app\/component-library\/components-temp\/MultichainAccounts\/MultichainAccountSelectorList\//,
+    ],
+    tags: ['@PerformanceAccountList'],
+    description: 'Account selector or multichain account list',
+  },
+  {
+    patterns: [
+      /^app\/core\/Engine\/controllers\/assets-controller\//,
+      /^app\/core\/Engine\/controllers\/multichain-balances-controller\//,
+    ],
+    tags: ['@PerformanceAssetLoading'],
+    description: 'Asset or balance controller',
+  },
+  {
+    patterns: [
+      /^app\/components\/UI\/Perps\//,
+      /^app\/core\/Engine\/controllers\/perps-controller\//,
+    ],
+    tags: ['@PerformancePreps'],
+    description: 'Perps UI or controller',
+  },
+  {
+    patterns: [
+      /^app\/components\/UI\/Predict\//,
+      /^app\/core\/Engine\/controllers\/predict-controller\//,
+    ],
+    tags: ['@PerformancePredict'],
+    description: 'Predict UI or controller',
+  },
+  {
+    patterns: [/^app\/core\/LockManagerService\//],
+    tags: ['@PerformanceLogin', '@PerformanceLaunch'],
+    description: 'Lock manager / login-launch flow',
+  },
+];
+
+/**
+ * Deterministically maps changed app source files to performance test tags.
+ *
+ * This complements detectDirectPerformanceChanges — that function handles changes
+ * to test files themselves; this one handles changes to app/ source code that
+ * can regress specific performance scenarios.
+ *
+ * Returns null when no changed files match any mapped pattern.
+ */
+export function detectAppCodePerformanceChanges(
+  changedFiles: string[],
+): PerformanceTestSelection | null {
+  const selectedTags: string[] = [];
+  const reasons: string[] = [];
+
+  for (const entry of APP_CODE_TO_PERF_TAG_MAP) {
+    const matchingFiles = changedFiles.filter((f) =>
+      entry.patterns.some((p) => p.test(f)),
+    );
+    if (matchingFiles.length > 0) {
+      selectedTags.push(...entry.tags);
+      const shown = matchingFiles.slice(0, 2).map((f) => path.basename(f));
+      const extra =
+        matchingFiles.length > 2 ? ` (+${matchingFiles.length - 2} more)` : '';
+      reasons.push(
+        `${entry.description}: ${shown.join(', ')}${extra} → ${entry.tags.join(', ')}`,
+      );
+    }
+  }
+
+  const uniqueTags = [...new Set(selectedTags)];
+  if (uniqueTags.length === 0) {
+    return null;
+  }
+
+  console.log(`\n🗺️  App code → performance tag mapping:`);
+  reasons.forEach((r) => console.log(`   ${r}`));
+  console.log(`   Tags: ${uniqueTags.join(', ')}`);
+
+  return {
+    selectedTags: uniqueTags,
+    reasoning: `App code changes trigger performance tests: ${reasons.join('. ')}`,
+  };
+}
+
 /**
  * Outputs analysis results to both JSON file and console
  */

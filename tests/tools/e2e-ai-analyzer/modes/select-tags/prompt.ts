@@ -53,7 +53,15 @@ Performance tests measure app responsiveness and render times. Select performanc
 - Critical user flows (login, balance loading, swap flows, send flows)
 - App startup and initialization (Engine, background services, navigation)
 Be generous: when app code changes touch components or flows that performance tests exercise, select the relevant tags. Err on the side of running more performance tests rather than fewer — a missed regression is worse than an extra test run.
-Exception: if the ONLY changes are to tests/framework/ helper files (non-spec utilities, fixtures, page objects) with no app code changes, you do NOT need to select performance tests — the CI handles those separately. However, if any tests/performance/*.spec.ts files changed, always select the tags those specs test (check their imports from tags.performance to identify which tags apply).`;
+Exception: if the ONLY changes are to tests/framework/ helper files (non-spec utilities, fixtures, page objects) with no app code changes, you do NOT need to select performance tests — the CI handles those separately. However, if any tests/performance/*.spec.ts files changed, always select the tags those specs test (check their imports from tags.performance to identify which tags apply).
+
+PERFORMANCE FILE → TAG MAPPING (use this to guide your selection):
+- app/components/UI/Bridge/** or app/reducers/swaps** or app/selectors/swaps** → @PerformanceSwaps
+- app/components/Views/AccountSelector/** or app/component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/** → @PerformanceAccountList
+- app/core/Engine/controllers/assets-controller/** or app/core/Engine/controllers/multichain-balances-controller/** → @PerformanceAssetLoading
+- app/components/UI/Perps/** or app/core/Engine/controllers/perps-controller/** → @PerformancePreps
+- app/components/UI/Predict/** or app/core/Engine/controllers/predict-controller/** → @PerformancePredict
+- app/core/LockManagerService/** → @PerformanceLogin + @PerformanceLaunch`;
 
   const prompt = [
     role,

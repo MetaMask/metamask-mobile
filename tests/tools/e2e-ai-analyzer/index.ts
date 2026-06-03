@@ -34,7 +34,10 @@ import {
   fetchFeatureFlags,
   formatFeatureFlagSummary,
 } from './utils/feature-flags';
-import { detectDirectPerformanceChanges } from './modes/select-tags/handlers';
+import {
+  detectDirectPerformanceChanges,
+  detectAppCodePerformanceChanges,
+} from './modes/select-tags/handlers';
 
 /**
  * Validates provided files against actual git changes
@@ -772,29 +775,42 @@ async function main() {
       );
 
       // For select-tags mode: merge deterministic performance test detection on top
-      // of whatever the AI selected. This ensures changed spec files and shared
-      // performance infrastructure always trigger the appropriate tests, regardless
-      // of AI judgment.
+      // of whatever the AI selected. This ensures changed spec files, shared
+      // performance infrastructure, and mapped app source files always trigger the
+      // appropriate performance tests, regardless of AI judgment.
       if (mode === 'select-tags') {
         const selectTagsAnalysis = analysis as SelectTagsAnalysis;
+
         const directPerf = detectDirectPerformanceChanges(
           allChangedFiles,
           baseDir,
         );
-        if (directPerf && directPerf.selectedTags.length > 0) {
+        const appCodePerf = detectAppCodePerformanceChanges(allChangedFiles);
+
+        const deterministicTags = [
+          ...(directPerf?.selectedTags ?? []),
+          ...(appCodePerf?.selectedTags ?? []),
+        ];
+        const deterministicReasonParts = [
+          directPerf?.reasoning,
+          appCodePerf?.reasoning,
+        ].filter(Boolean) as string[];
+
+        if (deterministicTags.length > 0) {
           const merged = [
             ...new Set([
               ...selectTagsAnalysis.performanceTests.selectedTags,
-              ...directPerf.selectedTags,
+              ...deterministicTags,
             ]),
           ];
           const prevReasoning =
             selectTagsAnalysis.performanceTests.reasoning || '';
+          const deterministicReasoning = deterministicReasonParts.join('. ');
           selectTagsAnalysis.performanceTests = {
             selectedTags: merged,
             reasoning: prevReasoning
-              ? `${prevReasoning}. ${directPerf.reasoning}`
-              : directPerf.reasoning,
+              ? `${prevReasoning}. ${deterministicReasoning}`
+              : deterministicReasoning,
           };
         }
       }

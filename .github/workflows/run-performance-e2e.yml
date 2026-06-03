@@ -86,6 +86,11 @@ on:
         required: false
         type: string
         default: ''
+      performance_tags_reasoning:
+        description: 'Human-readable explanation of why performance tags were selected'
+        required: false
+        type: string
+        default: ''
 
 permissions:
   contents: write
@@ -223,12 +228,13 @@ jobs:
         id: map
         run: |
           TAGS='${{ inputs.performance_tags }}'
+          REASONING='${{ inputs.performance_tags_reasoning }}'
 
           # No input (blank) → schedule/dispatch: run all tests with no grep filter
           if [[ -z "$TAGS" ]]; then
             echo "run_tests=true" >> "$GITHUB_OUTPUT"
             echo "grep_pattern="  >> "$GITHUB_OUTPUT"
-            echo "No tag input - running all performance tests (schedule/dispatch mode)"
+            echo "▶️  Running all performance tests (schedule/dispatch mode — no tag filter)"
             exit 0
           fi
 
@@ -236,7 +242,10 @@ jobs:
           if [[ "$TAGS" == "[]" ]]; then
             echo "run_tests=false" >> "$GITHUB_OUTPUT"
             echo "grep_pattern="   >> "$GITHUB_OUTPUT"
-            echo "Empty tag array - skipping performance tests (no relevant PR changes)"
+            echo "⏭️  Skipping performance tests — no performance-relevant changes detected in this PR"
+            if [[ -n "$REASONING" ]]; then
+              echo "   Reasoning: $REASONING"
+            fi
             exit 0
           fi
 
@@ -248,8 +257,12 @@ jobs:
           echo "run_tests=true"      >> "$GITHUB_OUTPUT"
           echo "grep_pattern=$GREP"  >> "$GITHUB_OUTPUT"
 
-          echo "Test selection:"
-          echo "  grep_pattern: $GREP"
+          echo "⚡ Performance test selection:"
+          echo "   Tags: $TAGS"
+          echo "   Grep pattern: $GREP"
+          if [[ -n "$REASONING" ]]; then
+            echo "   Reasoning: $REASONING"
+          fi
 
   trigger-android-dual-versions:
     name: Trigger Android Dual Versions and Extract BrowserStack URLs
@@ -439,8 +452,9 @@ jobs:
         fetch-rn-playground-apk-upload-to-browserstack,
         set-build-names,
         determine-branch-name,
+        compute-test-selection,
       ]
-    if: always() && !cancelled() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet != '' || needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url != '')
+    if: always() && !cancelled() && needs.compute-test-selection.outputs.run_tests == 'true' && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_imported_wallet != '' || needs.trigger-android-dual-versions.outputs.with-srp-browserstack-url != '')
     with:
       platform: android
       build_type: mm-connect
@@ -452,6 +466,7 @@ jobs:
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.android_build_name }}
       browserstack_playground_url: ${{ needs.fetch-rn-playground-apk-upload-to-browserstack.outputs.browserstack-playground-url }}
+      grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
     secrets: inherit
 
   aggregate-results:

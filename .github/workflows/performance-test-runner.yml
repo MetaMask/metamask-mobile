@@ -267,9 +267,12 @@ jobs:
             BASE_CMD="yarn run-playwright:${{ inputs.platform }}-bs"
           fi
 
-          # Run with optional grep filter
+          # Run with optional grep filter.
+          # --pass-with-no-tests prevents Playwright from exiting with an error
+          # when the grep pattern matches zero tests in this project (e.g. onboarding
+          # project gets @PerformanceSwaps which only exists in login specs).
           if [ -n "$GREP_TAGS" ]; then
-            $BASE_CMD --grep "$GREP_TAGS"
+            $BASE_CMD --grep "$GREP_TAGS" --pass-with-no-tests
           else
             $BASE_CMD
           fi

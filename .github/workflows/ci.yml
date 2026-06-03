@@ -967,6 +967,7 @@ jobs:
       ai_e2e_test_tags: ${{ steps.e2e-selection.outputs.ai_e2e_test_tags }}
       ai_confidence: ${{ steps.e2e-selection.outputs.ai_confidence }}
       ai_performance_test_tags: ${{ steps.e2e-selection.outputs.ai_performance_test_tags }}
+      ai_performance_test_reasoning: ${{ steps.e2e-selection.outputs.ai_performance_test_reasoning }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -1018,6 +1019,7 @@ jobs:
     uses: ./.github/workflows/run-performance-e2e.yml
     with:
       performance_tags: ${{ needs.smart-e2e-selection.outputs.ai_performance_test_tags }}
+      performance_tags_reasoning: ${{ needs.smart-e2e-selection.outputs.ai_performance_test_reasoning }}
       build_variant: 'e2e'
       branch_name: ${{ github.head_ref }}
     secrets: inherit
