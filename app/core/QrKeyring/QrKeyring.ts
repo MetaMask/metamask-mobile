@@ -1,7 +1,26 @@
-import { QrKeyring } from '@metamask/eth-qr-keyring';
+import { QrKeyring as LegacyQrKeyring } from '@metamask/eth-qr-keyring';
+import { QrKeyring } from '@metamask/eth-qr-keyring/v2';
 import { KeyringMetadata } from '@metamask/keyring-controller';
+import { KeyringType } from '@metamask/keyring-api/v2';
 import Engine from '../Engine';
-import ExtendedKeyringTypes from '../../constants/keyringTypes';
+
+/**
+ * Ensure a QR keyring exists in the controller before invoking a V2 operation.
+ *
+ * `withKeyringV2` has no `createIfMissing` option, so callers that need
+ * on-demand creation perform the check + create dance here. The window
+ * between the check and the create is serialized by the calling UI flow
+ * (single button + spinner) so concurrent creations aren't reachable.
+ */
+async function ensureQrKeyringExists(): Promise<void> {
+  const keyringController = Engine.context.KeyringController;
+  const hasKeyring = keyringController.state.keyrings.some(
+    ({ type }) => type === LegacyQrKeyring.type,
+  );
+  if (!hasKeyring) {
+    await keyringController.addNewKeyring(LegacyQrKeyring.type);
+  }
+}
 
 /**
  * Perform an operation with the QR keyring.
@@ -20,20 +39,18 @@ export const withQrKeyring = async <CallbackResult = void>(
     keyring: QrKeyring;
     metadata: KeyringMetadata;
   }) => Promise<CallbackResult>,
-): Promise<CallbackResult> =>
-  await Engine.context.KeyringController.withKeyring(
-    { type: ExtendedKeyringTypes.qr },
-    ({ keyring, metadata }) => {
+): Promise<CallbackResult> => {
+  await ensureQrKeyringExists();
+  return await Engine.context.KeyringController.withKeyringV2(
+    { type: KeyringType.Qr },
+    async ({ keyring, metadata }) => {
       if (!(keyring instanceof QrKeyring)) {
         throw new Error('Expected QrKeyring');
       }
       return operation({ keyring, metadata });
     },
-    // TODO: Refactor this to stop creating the keyring on-demand
-    // Instead create it only in response to an explicit user action, and do
-    // not allow interactions with Qr Keyring until after that has been done.
-    { createIfMissing: true },
   );
+};
 
 /**
  * Forget the QR keyring device, removing all accounts and

@@ -230,10 +230,20 @@ const ConnectQRHardware = ({ navigation, route }: IConnectQRHardwareProps) => {
       try {
         const accountToSelect = await withQrKeyring(async ({ keyring }) => {
           let lastAccount: string | undefined;
+          const isAccountMode = keyring.getMode() === 'account';
           for (const index of accountIndexs) {
-            keyring.setAccountToUnlock(index);
-            const [newAccount] = await keyring.addAccounts(1);
-            lastAccount = newAccount;
+            const [newAccount] = isAccountMode
+              ? await keyring.createAccounts({
+                  type: 'custom',
+                  entropySource: keyring.entropySource,
+                  addressIndex: index,
+                })
+              : await keyring.createAccounts({
+                  type: 'bip44:derive-index',
+                  entropySource: keyring.entropySource,
+                  groupIndex: index,
+                });
+            lastAccount = newAccount?.address;
           }
           return lastAccount;
         });
@@ -290,9 +300,12 @@ const ConnectQRHardware = ({ navigation, route }: IConnectQRHardwareProps) => {
       // back into CAIP Account Id. Hex addresses are used in
       // `removeAccountsFromPermissions` because too many places in the UI still
       // operate on hex addresses rather than CAIP Account Id.
-      removeAccountsFromPermissions(existingQrAccounts.map(getChecksumAddress));
+      removeAccountsFromPermissions(
+        existingQrAccounts.map(({ address }) =>
+          getChecksumAddress(address as `0x${string}`),
+        ),
+      );
       await keyring.forgetDevice();
-      return existingQrAccounts;
     });
     navigation.dispatch(
       CommonActions.reset({
