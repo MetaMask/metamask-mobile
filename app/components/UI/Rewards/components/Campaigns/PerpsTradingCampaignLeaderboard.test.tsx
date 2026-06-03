@@ -36,6 +36,10 @@ jest.mock('../RewardsErrorBanner', () => {
 });
 
 jest.mock('../../../../../images/rewards/crown.svg', () => 'CrownIcon');
+jest.mock(
+  '../../../../../images/rewards/hypertracker.svg',
+  () => 'HyperTrackerLogo',
+);
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
