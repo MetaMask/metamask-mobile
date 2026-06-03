@@ -1,6 +1,12 @@
 import { act, waitFor } from '@testing-library/react-native';
 import { handleFetch } from '@metamask/controller-utils';
-import { useTokensData, MAX_BATCH_SIZE } from './useTokensData';
+import {
+  useTokensData,
+  isRwaChecked,
+  getCheckedRwaData,
+  MAX_BATCH_SIZE,
+  FetchTokensOptions,
+} from './useTokensData';
 import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
 
 jest.mock('@metamask/controller-utils', () => ({
@@ -30,8 +36,10 @@ function makeTokenResponse(assetId: string) {
   ];
 }
 
-function renderHook(assetIds: string[]) {
-  return renderHookWithProvider(() => useTokensData(assetIds), { state: {} });
+function renderHook(assetIds: string[], options?: FetchTokensOptions) {
+  return renderHookWithProvider(() => useTokensData(assetIds, options), {
+    state: {},
+  });
 }
 
 describe('useTokensData', () => {
@@ -39,23 +47,25 @@ describe('useTokensData', () => {
     jest.clearAllMocks();
   });
 
-  it('returns empty object initially before fetch resolves', () => {
+  it('returns empty tokens and isLoading true initially before fetch resolves', () => {
     const assetId = makeAssetId();
     mockHandleFetch.mockResolvedValue(makeTokenResponse(assetId));
 
     const { result } = renderHook([assetId]);
 
-    expect(result.current).toEqual({});
+    expect(result.current.tokens).toEqual({});
+    expect(result.current.isLoading).toBe(true);
   });
 
-  it('returns token data after fetch resolves', async () => {
+  it('returns token data and isLoading false after fetch resolves', async () => {
     const assetId = makeAssetId();
     mockHandleFetch.mockResolvedValue(makeTokenResponse(assetId));
 
     const { result } = renderHook([assetId]);
 
     await waitFor(() => {
-      expect(result.current[assetId]?.name).toBe(TOKEN_NAME_MOCK);
+      expect(result.current.tokens[assetId]?.name).toBe(TOKEN_NAME_MOCK);
+      expect(result.current.isLoading).toBe(false);
     });
   });
 
@@ -66,12 +76,12 @@ describe('useTokensData', () => {
     const { result } = renderHook([assetId]);
 
     await waitFor(() => {
-      expect(result.current[assetId]?.symbol).toBe(TOKEN_SYMBOL_MOCK);
-      expect(result.current[assetId]?.iconUrl).toBe(TOKEN_ICON_URL_MOCK);
+      expect(result.current.tokens[assetId]?.symbol).toBe(TOKEN_SYMBOL_MOCK);
+      expect(result.current.tokens[assetId]?.iconUrl).toBe(TOKEN_ICON_URL_MOCK);
     });
   });
 
-  it('returns empty object when fetch fails', async () => {
+  it('returns empty tokens and isLoading false when fetch fails', async () => {
     mockHandleFetch.mockRejectedValue(new Error('Network error'));
 
     const { result } = renderHook([makeAssetId()]);
@@ -80,13 +90,15 @@ describe('useTokensData', () => {
       await new Promise((r) => setTimeout(r, 50));
     });
 
-    expect(result.current).toEqual({});
+    expect(result.current.tokens).toEqual({});
+    expect(result.current.isLoading).toBe(false);
   });
 
-  it('returns empty object when assetIds is empty', () => {
+  it('returns empty tokens and isLoading false when assetIds is empty', () => {
     const { result } = renderHook([]);
 
-    expect(result.current).toEqual({});
+    expect(result.current.tokens).toEqual({});
+    expect(result.current.isLoading).toBe(false);
     expect(mockHandleFetch).not.toHaveBeenCalled();
   });
 
@@ -119,9 +131,9 @@ describe('useTokensData', () => {
     const { result: r3 } = renderHook([assetId]);
 
     await waitFor(() => {
-      expect(r1.current[assetId]?.name).toBe(TOKEN_NAME_MOCK);
-      expect(r2.current[assetId]?.name).toBe(TOKEN_NAME_MOCK);
-      expect(r3.current[assetId]?.name).toBe(TOKEN_NAME_MOCK);
+      expect(r1.current.tokens[assetId]?.name).toBe(TOKEN_NAME_MOCK);
+      expect(r2.current.tokens[assetId]?.name).toBe(TOKEN_NAME_MOCK);
+      expect(r3.current.tokens[assetId]?.name).toBe(TOKEN_NAME_MOCK);
     });
 
     expect(mockHandleFetch).toHaveBeenCalledTimes(1);
@@ -133,13 +145,14 @@ describe('useTokensData', () => {
 
     const { result: result1 } = renderHook([assetId]);
     await waitFor(() => {
-      expect(result1.current[assetId]?.name).toBe(TOKEN_NAME_MOCK);
+      expect(result1.current.tokens[assetId]?.name).toBe(TOKEN_NAME_MOCK);
     });
 
     mockHandleFetch.mockClear();
     const { result: result2 } = renderHook([assetId]);
 
-    expect(result2.current[assetId]?.name).toBe(TOKEN_NAME_MOCK);
+    expect(result2.current.tokens[assetId]?.name).toBe(TOKEN_NAME_MOCK);
+    expect(result2.current.isLoading).toBe(false);
     await act(async () => {
       await new Promise((r) => setTimeout(r, 50));
     });
@@ -166,7 +179,7 @@ describe('useTokensData', () => {
     const { result } = renderHook([lowercaseId]);
 
     await waitFor(() => {
-      expect(result.current[lowercaseId]?.name).toBe(TOKEN_NAME_MOCK);
+      expect(result.current.tokens[lowercaseId]?.name).toBe(TOKEN_NAME_MOCK);
     });
   });
 
@@ -190,7 +203,7 @@ describe('useTokensData', () => {
     const { result } = renderHook(assetIds);
 
     await waitFor(() => {
-      expect(Object.keys(result.current)).toHaveLength(assetIds.length);
+      expect(Object.keys(result.current.tokens)).toHaveLength(assetIds.length);
     });
 
     expect(mockHandleFetch).toHaveBeenCalledTimes(2);
@@ -208,5 +221,124 @@ describe('useTokensData', () => {
 
     expect(firstCallCount).toBe(MAX_BATCH_SIZE);
     expect(secondCallCount).toBe(1);
+  });
+
+  it('includes includeRwaData=true in the URL when option is set', async () => {
+    const assetId = makeAssetId();
+    mockHandleFetch.mockResolvedValue(makeTokenResponse(assetId));
+
+    renderHook([assetId], { includeRwaData: true });
+
+    await waitFor(() => {
+      expect(mockHandleFetch).toHaveBeenCalledTimes(1);
+    });
+
+    const calledUrl = mockHandleFetch.mock.calls[0][0] as string;
+    expect(calledUrl).toContain('includeRwaData=true');
+  });
+
+  it('does not include includeRwaData in the URL by default', async () => {
+    const assetId = makeAssetId();
+    mockHandleFetch.mockResolvedValue(makeTokenResponse(assetId));
+
+    renderHook([assetId]);
+
+    await waitFor(() => {
+      expect(mockHandleFetch).toHaveBeenCalledTimes(1);
+    });
+
+    const calledUrl = mockHandleFetch.mock.calls[0][0] as string;
+    expect(calledUrl).not.toContain('includeRwaData');
+  });
+
+  it('does not share cache between requests with and without includeRwaData', async () => {
+    const assetId = makeAssetId();
+    const rwaData = { instrumentType: 'stock' };
+    mockHandleFetch
+      .mockResolvedValueOnce(makeTokenResponse(assetId))
+      .mockResolvedValueOnce([{ ...makeTokenResponse(assetId)[0], rwaData }]);
+
+    const { result: r1 } = renderHook([assetId]);
+    await waitFor(() =>
+      expect(r1.current.tokens[assetId]?.name).toBe(TOKEN_NAME_MOCK),
+    );
+    expect(r1.current.tokens[assetId]?.rwaData).toBeUndefined();
+
+    mockHandleFetch.mockClear();
+    const { result: r2 } = renderHook([assetId], { includeRwaData: true });
+    await waitFor(() =>
+      expect(r2.current.tokens[assetId]?.rwaData).toEqual(rwaData),
+    );
+
+    expect(mockHandleFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('isRwaChecked returns true after fetching with includeRwaData', async () => {
+    const assetId = makeAssetId();
+    mockHandleFetch.mockResolvedValue(makeTokenResponse(assetId));
+
+    expect(isRwaChecked(assetId)).toBe(false);
+
+    const { result } = renderHook([assetId], { includeRwaData: true });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(isRwaChecked(assetId)).toBe(true);
+  });
+
+  it('isRwaChecked returns false for tokens fetched without includeRwaData', async () => {
+    const assetId = makeAssetId();
+    mockHandleFetch.mockResolvedValue(makeTokenResponse(assetId));
+
+    const { result } = renderHook([assetId]);
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(isRwaChecked(assetId)).toBe(false);
+  });
+
+  it('getCheckedRwaData returns cached rwaData after fetch with includeRwaData', async () => {
+    const assetId = makeAssetId();
+    const rwaData = { instrumentType: 'stock' };
+    mockHandleFetch.mockResolvedValue([
+      { ...makeTokenResponse(assetId)[0], rwaData },
+    ]);
+
+    expect(getCheckedRwaData(assetId)).toBeUndefined();
+
+    const { result } = renderHook([assetId], { includeRwaData: true });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(getCheckedRwaData(assetId)).toEqual(rwaData);
+  });
+
+  it('getCheckedRwaData returns undefined for a confirmed non-RWA token', async () => {
+    const assetId = makeAssetId();
+    mockHandleFetch.mockResolvedValue(makeTokenResponse(assetId));
+
+    const { result } = renderHook([assetId], { includeRwaData: true });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(isRwaChecked(assetId)).toBe(true);
+    expect(getCheckedRwaData(assetId)).toBeUndefined();
+  });
+
+  it('getCheckedRwaData resolves from cache even when the asset is not in the current request', async () => {
+    const assetId = makeAssetId();
+    const otherAssetId = makeAssetId();
+    const rwaData = { instrumentType: 'bond' };
+
+    // First request confirms the RWA and populates the module-level cache.
+    mockHandleFetch.mockResolvedValue([
+      { ...makeTokenResponse(assetId)[0], rwaData },
+    ]);
+    const { result: r1 } = renderHook([assetId], { includeRwaData: true });
+    await waitFor(() => expect(r1.current.isLoading).toBe(false));
+
+    // A later request for a different asset (simulating the confirmed asset
+    // being excluded from re-fetch) must not erase access to the cached rwaData.
+    mockHandleFetch.mockResolvedValue(makeTokenResponse(otherAssetId));
+    const { result: r2 } = renderHook([otherAssetId], { includeRwaData: true });
+    await waitFor(() => expect(r2.current.isLoading).toBe(false));
+
+    expect(getCheckedRwaData(assetId)).toEqual(rwaData);
   });
 });

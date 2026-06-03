@@ -11,7 +11,7 @@ export function useERC20Tokens(requests: UseDisplayNameRequest[]) {
       buildEvmCaip19AssetId(value as string, variation as Hex),
     );
 
-  const tokensByAssetId = useTokensData(assetIds);
+  const { tokens: tokensByAssetId } = useTokensData(assetIds);
 
   return requests.map(({ preferContractSymbol, type, value, variation }) => {
     if (type !== NameType.EthereumAddress || !value) {

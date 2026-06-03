@@ -75,7 +75,7 @@ export function useAccountTokens({
     [enrichTokenRequests],
   );
 
-  const tokensByAssetId = useTokensData(assetIds);
+  const { tokens: tokensByAssetId } = useTokensData(assetIds);
 
   return useMemo(() => {
     const flatAssets = Object.values(assets).flat();
