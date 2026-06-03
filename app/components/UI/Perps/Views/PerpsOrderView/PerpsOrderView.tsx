@@ -22,6 +22,9 @@ import {
   Button as DSButton,
   ButtonVariant,
   ButtonSize as ButtonSizeRNDesignSystem,
+  TextVariant,
+  TextColor,
+  Text,
 } from '@metamask/design-system-react-native';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { BigNumber } from 'bignumber.js';
@@ -40,10 +43,6 @@ import ListItemColumn, {
   WidthType,
 } from '../../../../../component-library/components/List/ListItemColumn';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
@@ -1491,8 +1490,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 <ListItemColumn widthType={WidthType.Fill}>
                   <View style={styles.detailLeft}>
                     <Text
-                      variant={TextVariant.BodyMD}
-                      color={TextColor.Alternative}
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
                     >
                       {strings('perps.order.leverage')}
                     </Text>
@@ -1510,7 +1509,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   </View>
                 </ListItemColumn>
                 <ListItemColumn widthType={WidthType.Auto}>
-                  <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextDefault}
+                  >
                     {isLoadingMarketData ? '...' : `${orderForm.leverage}x`}
                   </Text>
                 </ListItemColumn>
@@ -1531,16 +1533,16 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 <ListItem style={styles.detailItemWrapper}>
                   <ListItemColumn widthType={WidthType.Fill}>
                     <Text
-                      variant={TextVariant.BodyMD}
-                      color={TextColor.Alternative}
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
                     >
                       {strings('perps.order.limit_price')}
                     </Text>
                   </ListItemColumn>
                   <ListItemColumn widthType={WidthType.Auto}>
                     <Text
-                      variant={TextVariant.BodyMD}
-                      color={TextColor.Default}
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextDefault}
                     >
                       {orderForm.limitPrice !== undefined &&
                       orderForm.limitPrice !== null
@@ -1568,8 +1570,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   <ListItemColumn widthType={WidthType.Fill}>
                     <View style={styles.detailLeft}>
                       <Text
-                        variant={TextVariant.BodyMD}
-                        color={TextColor.Alternative}
+                        variant={TextVariant.BodyMd}
+                        color={TextColor.TextAlternative}
                       >
                         {strings('perps.order.tp_sl')}
                       </Text>
@@ -1588,8 +1590,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   </ListItemColumn>
                   <ListItemColumn widthType={WidthType.Auto}>
                     <Text
-                      variant={TextVariant.BodyMD}
-                      color={TextColor.Default}
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextDefault}
                     >
                       {tpSlDisplayText}
                     </Text>
@@ -1608,7 +1610,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             )}
             {hasInsufficientPayTokenBalance && (
               <View style={styles.insufficientPayTokenWarning}>
-                <Text variant={TextVariant.BodySM} color={TextColor.Warning}>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.ErrorDefault}
+                >
                   {strings(
                     'perps.order.validation.insufficient_funds_to_cover_trade',
                   )}
@@ -1617,7 +1622,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             )}
             {!hideTPSL && doesStopLossRiskLiquidation && (
               <View style={styles.stopLossLiquidationWarning}>
-                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.ErrorDefault}
+                >
                   {strings('perps.tpsl.stop_loss_order_view_warning', {
                     direction:
                       orderForm.direction === 'long'
@@ -1629,7 +1637,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             )}
             {!hideTPSL && isTakeProfitPriceInvalid && (
               <View style={styles.stopLossLiquidationWarning}>
-                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.ErrorDefault}
+                >
                   {strings('perps.tpsl.take_profit_wrong_side_warning', {
                     direction:
                       orderForm.direction === 'long'
@@ -1642,7 +1653,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             )}
             {!hideTPSL && isStopLossPriceInvalid && (
               <View style={styles.stopLossLiquidationWarning}>
-                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.ErrorDefault}
+                >
                   {strings('perps.tpsl.stop_loss_wrong_side_warning', {
                     direction:
                       orderForm.direction === 'long'
@@ -1671,7 +1685,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         >
           <View style={styles.infoRow}>
             <View style={styles.detailLeft}>
-              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
                 {strings('perps.order.margin')}
               </Text>
               <TouchableOpacity
@@ -1687,8 +1704,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               </TouchableOpacity>
             </View>
             <Text
-              variant={TextVariant.BodySM}
-              color={TextColor.Alternative}
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
               testID={PerpsOrderViewSelectorsIDs.MARGIN_VALUE}
             >
               {marginRequired !== undefined && marginRequired !== null
@@ -1701,7 +1718,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
           <View style={styles.infoRow}>
             <View style={styles.detailLeft}>
-              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
                 {strings('perps.order.liquidation_price')}
               </Text>
               <TouchableOpacity
@@ -1719,8 +1739,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               </TouchableOpacity>
             </View>
             <Text
-              variant={TextVariant.BodySM}
-              color={TextColor.Alternative}
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
               testID={PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_VALUE}
             >
               {hasValidAmount
@@ -1747,17 +1767,19 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             >
               <View style={styles.infoRow}>
                 <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
                 >
                   {strings('perps.slippage.slippage')}
                 </Text>
                 <View style={styles.slippageValueRow}>
                   <Text
                     testID={PerpsOrderViewSelectorsIDs.SLIPPAGE_VALUE}
-                    variant={TextVariant.BodySM}
+                    variant={TextVariant.BodySm}
                     color={
-                      exceedsMaxSlippage ? TextColor.Error : TextColor.Default
+                      exceedsMaxSlippage
+                        ? TextColor.ErrorDefault
+                        : TextColor.TextDefault
                     }
                   >
                     {estimatedSlippagePctDisplay === null
@@ -1780,7 +1802,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           )}
           <View style={styles.infoRow}>
             <View style={styles.detailLeft}>
-              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
                 {strings('perps.order.fees')}
               </Text>
               <TouchableOpacity
@@ -1806,7 +1831,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 }
                 placeholder={PERPS_CONSTANTS.FallbackDataDisplay}
                 testID={PerpsOrderViewSelectorsIDs.FEES_VALUE}
-                variant={TextVariant.BodySM}
+                variant={TextVariant.BodySm}
               />
             )}
           </View>
@@ -1820,8 +1845,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               <View style={styles.infoRow}>
                 <View style={styles.detailLeft}>
                   <Text
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Alternative}
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
                   >
                     {strings('perps.estimated_points')}
                   </Text>
@@ -1929,8 +1954,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 {filteredErrors.map((error) => (
                   <Text
                     key={error}
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Error}
+                    variant={TextVariant.BodySm}
+                    color={TextColor.ErrorDefault}
                   >
                     {error}
                   </Text>
@@ -1940,7 +1965,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
           {hasBlockingPayAlerts && !!blockingPayAlertMessage && (
             <View style={styles.validationContainer}>
-              <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+              <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
                 {blockingPayAlertMessage}
               </Text>
             </View>
