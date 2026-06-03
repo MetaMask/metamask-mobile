@@ -10,7 +10,9 @@ import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToke
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
-import { TouchableOpacity } from 'react-native';
+import { Image, TouchableOpacity } from 'react-native';
+// eslint-disable-next-line import-x/no-commonjs
+import MoneyIcon from '../../../../../../images/money.png';
 import { Box } from '../../../../../UI/Box/Box';
 import {
   AlignItems,
@@ -19,6 +21,10 @@ import {
 } from '../../../../../UI/Box/box.types';
 import {
   FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Skeleton,
   Text,
   TextColor,
@@ -31,11 +37,6 @@ import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { isHardwareAccount } from '../../../../../../util/address';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
 import PaymentMethodIcon from '../../../../../UI/Ramp/Aggregator/components/PaymentMethodIcon';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import {
@@ -46,7 +47,6 @@ import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmat
 import { type PaymentMethod } from '@metamask/ramps-controller';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { SetPayTokenRequest } from '../../../hooks/pay/useAutomaticTransactionPayToken';
-import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useTheme } from '../../../../../../util/theme';
 
@@ -270,7 +270,6 @@ function PayWithRowMoneyAccount() {
   const { styles } = useStyles(styleSheet, {});
   const { setConfirmationMetric } = useConfirmationMetricEvents();
   const { preferredPaymentToken } = useParams<PayWithRouteParams>({});
-  const { totalFiatFormatted } = useMoneyAccountBalance();
 
   const handleClick = useCallback(() => {
     setConfirmationMetric({
@@ -306,27 +305,14 @@ function PayWithRowMoneyAccount() {
           alignItems={AlignItems.center}
           gap={8}
         >
-          <TokenIcon
-            address={payToken.address}
-            chainId={payToken.chainId}
-            variant={TokenIconVariant.Row}
-          />
+          <Image source={MoneyIcon} style={styles.moneyIcon} />
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
             testID={TransactionPayComponentIDs.PAY_WITH_SYMBOL}
           >
-            {strings('confirm.pay_with_bottom_sheet.money_account')}
-            {totalFiatFormatted && (
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-                testID={TransactionPayComponentIDs.PAY_WITH_BALANCE}
-              >
-                {` (${totalFiatFormatted})`}
-              </Text>
-            )}
+            {strings('confirm.pay_with_bottom_sheet.money_balance')}
           </Text>
           <Icon
             name={IconName.ArrowDown}

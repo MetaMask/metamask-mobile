@@ -7305,7 +7305,7 @@
       "other_assets": "Other assets",
       "other_assets_description": "Select from your tokens",
       "other_assets_receive_description": "Select the token you want to receive",
-      "money_account": "Money account"
+      "money_balance": "Money balance"
     },
     "staking_footer": {
       "part1": "By continuing, you agree to our ",
