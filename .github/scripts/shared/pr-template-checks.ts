@@ -41,9 +41,23 @@ const ISSUE_LINKAGE_LINE = /^\s*\**(?:Fixes|Closes|Refs)\**\s*:\s*(.*)$/im;
 const UNCHECKED_CHECKBOX = /^\s*-\s*\[\s\]\s+(.*)$/m;
 
 export function stripHtmlComments(text: string): string {
-  // Avoids [\s\S]*? backtracking: [^-] matches any non-dash char, -(?!->) a
-  // dash that is not the start of -->, so the alternation never backtracks.
-  return text.replace(/<!--(?:[^-]|-(?!->))*-->/g, '');
+  // Index-based removal avoids regex on the `<!--` delimiter, which CodeQL
+  // flags as "incomplete multi-character sanitization". Walking forward by
+  // character index guarantees every opener is paired with the next closer,
+  // and unclosed openers are consumed rather than left in the output.
+  let result = '';
+  let cursor = 0;
+  while (cursor < text.length) {
+    const open = text.indexOf('<!--', cursor);
+    if (open === -1) {
+      result += text.slice(cursor);
+      break;
+    }
+    result += text.slice(cursor, open);
+    const close = text.indexOf('-->', open + 4);
+    cursor = close === -1 ? open + 4 : close + 3;
+  }
+  return result;
 }
 
 /**
