@@ -224,7 +224,11 @@ function findSpecFilesImporting(
       ?.replace(/\.(ts|tsx|js|jsx)$/, '') ?? '';
   if (!stem) return [];
 
-  const grepInDirs = (name: string, dirs: readonly string[]): string[] => {
+  // Prefix with '/' so we match import paths (e.g. from './TokenSelectors')
+  // rather than arbitrary occurrences of the stem in comments or variable names.
+  const importPattern = `/${stem}`;
+
+  const grepInDirs = (pattern: string, dirs: readonly string[]): string[] => {
     try {
       return execFileSync(
         'grep',
@@ -236,7 +240,7 @@ function findSpecFilesImporting(
           '--include=*.tsx',
           '--include=*.js',
           '--include=*.jsx',
-          name,
+          pattern,
           ...dirs,
         ],
         { encoding: 'utf-8', cwd: baseDir },
@@ -255,7 +259,7 @@ function findSpecFilesImporting(
     ...SPEC_PATH_PREFIXES,
     ...INTERMEDIATE_TEST_DIRS,
   ] as const;
-  const directImporters = grepInDirs(stem, allTestDirs);
+  const directImporters = grepInDirs(importPattern, allTestDirs);
   const specFiles = directImporters.filter(isSpecFile);
   const utilImporters = directImporters.filter((f) => !isSpecFile(f));
 
@@ -267,7 +271,7 @@ function findSpecFilesImporting(
         .pop()
         ?.replace(/\.(ts|tsx|js|jsx)$/, '') ?? '';
     if (!utilStem) continue;
-    const indirect = grepInDirs(utilStem, SPEC_PATH_PREFIXES).filter(
+    const indirect = grepInDirs(`/${utilStem}`, SPEC_PATH_PREFIXES).filter(
       isSpecFile,
     );
     specFiles.push(...indirect);
