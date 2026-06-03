@@ -23,7 +23,7 @@ import ReduxService from '../redux';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { VaultBackupResult } from './types';
-import { isE2E } from '../../util/test/utils';
+import { hasTestOverrides } from '../../util/test/utils';
 import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
 import { getAnalyticsId } from '../../util/analytics/analyticsId';
 import { INIT_BG_STATE_KEY, LOG_TAG, UPDATE_BG_STATE_KEY } from './constants';
@@ -153,7 +153,7 @@ export class EngineService {
     });
 
     const state =
-      (isE2E
+      (hasTestOverrides
         ? reduxState?.engine?.backgroundState
         : persistedState?.backgroundState) ?? {};
 

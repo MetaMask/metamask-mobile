@@ -10,7 +10,7 @@ import {
 } from '@metamask/design-system-react-native';
 import onboardingRiveFile from '../../../../animations/fox_loading.riv';
 import { getScreenDimensions } from '../../../../util/onboarding';
-import { isE2E } from '../../../../util/test/utils';
+import { hasTestOverrides } from '../../../../util/test/utils';
 
 interface FoxRiveLoaderAnimationProps {}
 
@@ -40,7 +40,7 @@ const FoxRiveLoaderAnimation: React.FC<FoxRiveLoaderAnimationProps> = () => {
   );
 
   useEffect(() => {
-    if (isE2E) return;
+    if (hasTestOverrides) return;
     const timeoutId = setTimeout(() => {
       if (riveRef.current) {
         riveRef.current.fireState('FoxRaiseUp', 'Loader2');

@@ -10,16 +10,20 @@ import type {
   QuickBuyAmountDisplayMode,
   QuickBuyAnalyticsContext,
   QuickBuyTarget,
+  QuickBuyTradeMode,
 } from '../types';
 import { useQuickBuyAnalytics } from './useQuickBuyAnalytics';
 import { formatExchangeRate } from '../utils/formatExchangeRate';
 import { getMetamaskFeePercent } from '../utils/getMetamaskFeePercent';
-import { snapToPercentageStep } from '../components/QuickBuyPercentageSlider';
 import type { Hex } from '@metamask/utils';
 import type { BridgeToken } from '../../../../../../UI/Bridge/types';
 import { selectDefaultSourceToken } from '../../../../utils/tokenSelection';
 import { useQuickBuySetup } from './useQuickBuySetup';
-import { useSourceTokenOptions } from './useSourceTokenOptions';
+import {
+  useSourceTokenOptions,
+  useSellDestTokenOptions,
+} from './useSourceTokenOptions';
+import { usePositionTokenBalance } from './usePositionTokenBalance';
 import {
   useQuickBuyQuotes,
   type EnrichedQuickBuyQuote,
@@ -96,6 +100,11 @@ const BUTTON_ERROR_LABELS: Record<QuickBuyButtonError, string> = {
 export interface UseQuickBuyControllerResult {
   // refs
   hiddenInputRef: React.RefObject<TextInput | null>;
+  // trade mode
+  tradeMode: QuickBuyTradeMode;
+  setTradeMode: React.Dispatch<React.SetStateAction<QuickBuyTradeMode>>;
+  /** True when the user holds a non-zero balance of the position token (sell is viable). */
+  hasSellableBalance: boolean;
   // active quote (for QuoteDetails sub-screen)
   activeQuote: EnrichedQuickBuyQuote | undefined;
   // setup
@@ -112,12 +121,24 @@ export interface UseQuickBuyControllerResult {
   setSelectedSourceToken: React.Dispatch<
     React.SetStateAction<BridgeToken | undefined>
   >;
+  // sell dest token (Sell mode "Receive with")
+  sellDestTokenOptions: BridgeToken[];
+  selectedDestStable: BridgeToken | undefined;
+  handleSelectDestStable: (token: BridgeToken) => void;
   currentCurrency: string;
   // amount
   amountDisplayMode: QuickBuyAmountDisplayMode;
   usdAmount: string;
+  /** Token-units amount entered in the unpriced sell path (otherwise ''). */
+  sourceAmountTokens: string;
+  /** Source token amount in token units (derived from USD for priced, or directly entered for unpriced). */
+  sourceTokenAmount: string | undefined;
+  /** True when the source token has a usable fiat exchange rate. */
+  hasSourcePrice: boolean;
   sliderPercent: number;
   maxSpendUsd: number;
+  /** True when neither USD nor token-balance gates allow slider interaction. */
+  isSliderDisabled: boolean;
   formattedExchangeRate: string | undefined;
   metamaskFeePercent: number;
   estimatedReceiveAmount: string | undefined;
@@ -158,6 +179,7 @@ export interface UseQuickBuyControllerResult {
   // handlers
   handleClose: () => void;
   handleSliderChange: (percent: number) => void;
+  handleSliderDragEnd: (percent: number) => void;
   handleAmountAreaPress: () => void;
   handleAmountChange: (text: string) => void;
   handleToggleAmountDisplay: () => void;
@@ -183,19 +205,29 @@ export function useQuickBuyController(
   const {
     refs: { lastInputMethodRef, lastTrackedAmountRef, submitStartedAtRef },
     trackAmountSelected,
+    trackTradeModeToggled,
     trackTradeSubmitted,
     trackTradeCompleted,
     markTradeSubmitted,
   } = useQuickBuyAnalytics(traderAddress, caip19, analyticsContext);
 
+  const [tradeMode, setTradeMode] = useState<QuickBuyTradeMode>('buy');
   const [usdAmount, setUsdAmount] = useState('');
+  const [sourceAmountTokens, setSourceAmountTokens] = useState('');
+  // Drives quote re-fetching. Updated only when the user commits a value
+  // (slider drag end, tap, or text input) — NOT on every drag tick. This
+  // prevents spamming quote requests while the thumb is moving.
+  const [quotedUsdAmount, setQuotedUsdAmount] = useState('');
   // Fiat-first: every input path (slider, hidden TextInput, amount-area press)
   // edits the USD amount, so the primary label must default to fiat as well.
   // The user can swap to crypto display via the toggle once a quote is available.
   const [amountDisplayMode, setAmountDisplayMode] =
     useState<QuickBuyAmountDisplayMode>('fiat');
   const [sliderPercent, setSliderPercent] = useState(0);
-  const lastSnappedSliderPercentRef = useRef(0);
+  const lastSliderPercentRef = useRef(0);
+  // Deduplicates consecutive handleSliderDragEnd calls with the same USD amount
+  // (can happen when Tap + Pan both fire onEnd for a pure tap gesture).
+  const lastCommittedUsdRef = useRef('');
   const [txPhase, setTxPhase] = useState<'idle' | 'success'>('idle');
   const [selectedQuoteRequestId, setSelectedQuoteRequestId] = useState<
     string | undefined
@@ -220,11 +252,12 @@ export function useQuickBuyController(
 
   const {
     chainId: destChainId,
-    destToken,
+    destToken: positionTokenFromSetup,
     isLoading: isSetupLoading,
     isUnsupportedChain,
   } = useQuickBuySetup(target);
 
+  // ─── Buy source token options ───────────────────────────────────────────
   const { options: sourceTokenOptions } = useSourceTokenOptions(destChainId);
   const [selectedSourceToken, setSelectedSourceToken] = useState<
     BridgeToken | undefined
@@ -240,7 +273,29 @@ export function useQuickBuyController(
     }
   }, [sourceTokenOptions, selectedSourceToken, destChainId]);
 
-  const sourceToken = selectedSourceToken;
+  // ─── Sell mode: position token (what the user is selling) ──────────────
+  const positionToken = usePositionTokenBalance(target, positionTokenFromSetup);
+
+  // ─── Sell dest stable options (Receive with) ───────────────────────────
+  const sellDestTokenOptions = useSellDestTokenOptions(
+    destChainId as string | undefined,
+  );
+  const [selectedDestStable, setSelectedDestStable] = useState<
+    BridgeToken | undefined
+  >(undefined);
+
+  // Auto-select default dest stable: prefer a token the user already holds on
+  // the position chain; fall back to the first candidate (USDC on position chain).
+  useEffect(() => {
+    if (sellDestTokenOptions.length > 0 && !selectedDestStable) {
+      setSelectedDestStable(sellDestTokenOptions[0]);
+    }
+  }, [sellDestTokenOptions, selectedDestStable]);
+
+  // ─── Source / dest resolution (mode-dependent) ─────────────────────────
+  const sourceToken = tradeMode === 'buy' ? selectedSourceToken : positionToken;
+  const destToken =
+    tradeMode === 'buy' ? positionTokenFromSetup : selectedDestStable;
   const sourceChainId = sourceToken?.chainId as Hex | undefined;
 
   // BridgeController.fetchQuotes does not start gas fee polling, so estimates
@@ -264,23 +319,39 @@ export function useQuickBuyController(
   useInitialSlippage();
 
   useEffect(() => {
-    if (selectedSourceToken && destToken) {
-      dispatch(setSourceToken(selectedSourceToken));
+    if (sourceToken && destToken) {
+      dispatch(setSourceToken(sourceToken));
       dispatch(setDestToken(destToken));
     }
-  }, [selectedSourceToken, destToken, dispatch]);
+  }, [sourceToken, destToken, dispatch]);
 
   const hasInitializedRecipient = useRef(false);
   useRecipientInitialization(hasInitializedRecipient);
 
+  const hasSourcePrice = Boolean(
+    sourceToken?.currencyExchangeRate && sourceToken.currencyExchangeRate > 0,
+  );
+
   const sourceTokenAmount = useMemo(() => {
-    if (!usdAmount || !sourceToken?.currencyExchangeRate) {
-      return undefined;
+    if (hasSourcePrice) {
+      if (!quotedUsdAmount || !sourceToken?.currencyExchangeRate) {
+        return undefined;
+      }
+      const usd = parseFloat(quotedUsdAmount);
+      if (isNaN(usd) || usd <= 0) return undefined;
+      return (usd / sourceToken.currencyExchangeRate).toString();
     }
-    const usd = parseFloat(usdAmount);
-    if (isNaN(usd) || usd <= 0) return undefined;
-    return (usd / sourceToken.currencyExchangeRate).toString();
-  }, [usdAmount, sourceToken?.currencyExchangeRate]);
+    // Unpriced path: source amount is entered directly in token units.
+    if (!sourceAmountTokens) return undefined;
+    const tokens = parseFloat(sourceAmountTokens);
+    if (!Number.isFinite(tokens) || tokens <= 0) return undefined;
+    return sourceAmountTokens;
+  }, [
+    hasSourcePrice,
+    quotedUsdAmount,
+    sourceAmountTokens,
+    sourceToken?.currencyExchangeRate,
+  ]);
 
   useEffect(() => {
     if (sourceTokenAmount) {
@@ -297,13 +368,24 @@ export function useQuickBuyController(
     balance: sourceToken?.balance,
   });
 
+  // Used for analytics passed to useQuickBuyQuotes. Must derive from
+  // quotedUsdAmount (not usdAmount) so that mid-drag display updates don't
+  // recreate quotesAnalyticsContext and trigger spurious quote re-fetches.
+  const quotedUsdAmountNumber = useMemo(() => {
+    const v = Number(quotedUsdAmount);
+    return Number.isFinite(v) ? v : 0;
+  }, [quotedUsdAmount]);
+  // Derives from usdAmount for handleConfirm (the confirm button is disabled
+  // when usdAmount !== quotedUsdAmount, so by the time confirm is pressed they
+  // are always equal — keeping separate avoids recreating handleConfirm on
+  // every drag tick).
   const usdAmountNumber = useMemo(() => {
     const v = Number(usdAmount);
     return Number.isFinite(v) ? v : 0;
   }, [usdAmount]);
   const quotesAnalyticsContext = useMemo(
-    () => ({ traderAddress, caip19, amountUsd: usdAmountNumber }),
-    [traderAddress, caip19, usdAmountNumber],
+    () => ({ traderAddress, caip19, amountUsd: quotedUsdAmountNumber }),
+    [traderAddress, caip19, quotedUsdAmountNumber],
   );
 
   const {
@@ -380,16 +462,20 @@ export function useQuickBuyController(
     destToken,
   );
 
+  // Derive both sides of the ratio from the same activeQuote so the rate is
+  // always internally consistent. Previously we mixed the live
+  // sourceTokenAmount (which jumps the moment the user commits a new slider
+  // value) with the stale estimatedReceiveAmount (still the previous quote's
+  // dest amount), producing nonsensical rates during the in-flight window
+  // between drag-end and the new quote arriving.
   const formattedRate = useMemo(() => {
-    if (
-      !sourceToken ||
-      !destToken ||
-      !sourceTokenAmount ||
-      !estimatedReceiveAmount
-    ) {
+    if (!sourceToken || !destToken || !activeQuote || !estimatedReceiveAmount) {
       return undefined;
     }
-    const sourceAmt = parseFloat(sourceTokenAmount);
+    const quoteSrcMinimal = activeQuote.quote.srcTokenAmount;
+    if (sourceToken.decimals == null || !quoteSrcMinimal) return undefined;
+    const sourceAmt =
+      parseFloat(quoteSrcMinimal) / Math.pow(10, sourceToken.decimals);
     const destAmt = parseFloat(estimatedReceiveAmount);
     if (!sourceAmt || !destAmt || isNaN(sourceAmt) || isNaN(destAmt))
       return undefined;
@@ -400,7 +486,7 @@ export function useQuickBuyController(
         : { minimumSignificantDigits: 2, maximumSignificantDigits: 3 }),
     });
     return `1 ${sourceToken.symbol} = ${formatter.format(rate)} ${destToken.symbol}`;
-  }, [sourceToken, destToken, sourceTokenAmount, estimatedReceiveAmount]);
+  }, [sourceToken, destToken, activeQuote, estimatedReceiveAmount]);
 
   const formattedPriceImpact = useMemo(() => {
     const priceImpact = activeQuote?.quote?.priceData?.priceImpact;
@@ -479,9 +565,26 @@ export function useQuickBuyController(
 
   const maxSpendUsd = sourceBalanceFiatUsd;
 
+  // Token-amount-based gate: used for sources we can't price. Mirrors how the
+  // Bridge / asset list keep unpriceable tokens usable as long as the user
+  // actually holds a positive balance.
+  const maxSpendTokens = useMemo(() => {
+    const raw = latestSourceBalance?.displayBalance;
+    if (!raw) return 0;
+    const parsed = parseFloat(raw);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+  }, [latestSourceBalance?.displayBalance]);
+
+  const isSliderDisabled = hasSourcePrice
+    ? maxSpendUsd <= 0
+    : maxSpendTokens <= 0;
+
   const formattedExchangeRate = useMemo(
-    () => formatExchangeRate(destToken, sourceToken),
-    [destToken, sourceToken],
+    () =>
+      tradeMode === 'sell'
+        ? formatExchangeRate(sourceToken, destToken)
+        : formatExchangeRate(destToken, sourceToken),
+    [destToken, sourceToken, tradeMode],
   );
 
   const metamaskFeePercent = useMemo(
@@ -493,59 +596,177 @@ export function useQuickBuyController(
     onClose();
   }, [onClose]);
 
+  // Updates the display state (thumb position + fiat label) on every 1% tick
+  // during a drag. Does NOT commit to quotedUsdAmount or fire analytics — that
+  // is deferred to handleSliderDragEnd so we only re-fetch quotes once per
+  // gesture, not on every pixel of movement.
   const handleSliderChange = useCallback(
     (percent: number) => {
-      const snapped = snapToPercentageStep(percent);
-      if (snapped === lastSnappedSliderPercentRef.current) {
+      const rounded = Math.round(percent);
+      if (rounded === lastSliderPercentRef.current) {
         return;
       }
 
-      lastSnappedSliderPercentRef.current = snapped;
-      setSliderPercent(snapped);
+      lastSliderPercentRef.current = rounded;
+      setSliderPercent(rounded);
+
+      // ── Unpriced path: drive token-amount state directly. ───────────────
+      if (!hasSourcePrice) {
+        if (maxSpendTokens <= 0) {
+          setSourceAmountTokens('');
+          return;
+        }
+        const nextTokens =
+          rounded === 0 ? '' : ((maxSpendTokens * rounded) / 100).toString();
+        setSourceAmountTokens(nextTokens);
+        return;
+      }
+
+      // ── Priced path: update display state only (quote commits on drag end). ──
       if (maxSpendUsd <= 0) {
         setUsdAmount('');
         return;
       }
       const nextUsd =
-        snapped === 0 ? '' : ((maxSpendUsd * snapped) / 100).toFixed(2);
+        rounded === 0 ? '' : ((maxSpendUsd * rounded) / 100).toFixed(2);
       setUsdAmount(nextUsd);
       lastInputMethodRef.current =
         SocialLeaderboardEventValues.AMOUNT_SELECTION_METHOD.SLIDER;
+    },
+    [hasSourcePrice, maxSpendTokens, maxSpendUsd, lastInputMethodRef],
+  );
+
+  // Called once when the user lifts their finger (pan end) or taps the track.
+  // Commits the final value to quotedUsdAmount (triggering a quote re-fetch)
+  // and fires analytics exactly once per interaction.
+  const handleSliderDragEnd = useCallback(
+    (percent: number) => {
+      const rounded = Math.round(percent);
+      const nextUsd =
+        rounded === 0 || maxSpendUsd <= 0
+          ? ''
+          : ((maxSpendUsd * rounded) / 100).toFixed(2);
+
+      // Deduplicate: Tap + Pan can both fire onEnd for a pure tap gesture.
+      if (nextUsd === lastCommittedUsdRef.current) {
+        return;
+      }
+      lastCommittedUsdRef.current = nextUsd;
+
+      // Guarantee display state matches the committed value. The last onUpdate
+      // tick during a Pan may have landed on a different % than where the
+      // finger actually lifted — if so, usdAmount would be stale relative to
+      // quotedUsdAmount, keeping isAmountUncommitted true and the Buy button
+      // permanently disabled. Syncing both states here is the authoritative fix.
+      setSliderPercent(rounded);
+      lastSliderPercentRef.current = rounded;
+      setUsdAmount(nextUsd);
+
+      setQuotedUsdAmount(nextUsd);
       const numericUsd = Number(nextUsd);
-      if (snapped > 0 && Number.isFinite(numericUsd) && numericUsd > 0) {
+      if (rounded > 0 && Number.isFinite(numericUsd) && numericUsd > 0) {
         trackAmountSelected(
           numericUsd,
           SocialLeaderboardEventValues.AMOUNT_SELECTION_METHOD.SLIDER,
-          sourceToken?.symbol,
-          snapped,
+          tradeMode === 'buy' ? sourceToken?.symbol : undefined,
+          rounded,
+          tradeMode === 'sell' ? destToken?.symbol : undefined,
         );
       }
     },
-    [maxSpendUsd, sourceToken?.symbol, trackAmountSelected, lastInputMethodRef],
+    [
+      maxSpendUsd,
+      sourceToken?.symbol,
+      destToken?.symbol,
+      tradeMode,
+      trackAmountSelected,
+    ],
   );
 
   const handleAmountAreaPress = useCallback(() => {
-    // Ensure the user always types in fiat so the keyboard digits match what
-    // they see. Crypto display mode is view-only; switch back on input focus.
-    setAmountDisplayMode('fiat');
+    // Priced flows are fiat-first, so typing in fiat keeps the keyboard digits
+    // aligned with the headline. Unpriced flows are crypto-first by necessity
+    // (we have no rate to convert), so we leave the display mode as 'crypto'.
+    if (hasSourcePrice) {
+      setAmountDisplayMode('fiat');
+    } else {
+      setAmountDisplayMode('crypto');
+    }
     hiddenInputRef.current?.focus();
-  }, []);
+  }, [hasSourcePrice]);
 
   const handleToggleAmountDisplay = useCallback(() => {
     setAmountDisplayMode((mode) => (mode === 'fiat' ? 'crypto' : 'fiat'));
   }, []);
 
+  const resetAmountState = useCallback(() => {
+    setUsdAmount('');
+    setQuotedUsdAmount('');
+    setSourceAmountTokens('');
+    setSliderPercent(0);
+    lastSliderPercentRef.current = 0;
+    lastCommittedUsdRef.current = '';
+    lastTrackedAmountRef.current = '';
+    lastInputMethodRef.current =
+      SocialLeaderboardEventValues.AMOUNT_SELECTION_METHOD.SLIDER;
+  }, [lastInputMethodRef, lastTrackedAmountRef]);
+
+  // Reset amount/slider when tradeMode flips and emit analytics.
+  const prevTradeModeRef = useRef<QuickBuyTradeMode>(tradeMode);
+  useEffect(() => {
+    if (prevTradeModeRef.current !== tradeMode) {
+      prevTradeModeRef.current = tradeMode;
+      resetAmountState();
+      // Default display mode follows pricing availability. Unpriced sources
+      // can only meaningfully show a crypto-first headline.
+      setAmountDisplayMode(hasSourcePrice ? 'fiat' : 'crypto');
+      trackTradeModeToggled(tradeMode);
+    }
+  }, [tradeMode, hasSourcePrice, resetAmountState, trackTradeModeToggled]);
+
+  // If the source token's price becomes available (or disappears) while the
+  // sheet is open — e.g. a new market-data fetch lands — re-align the display
+  // mode so the headline reflects what we can honestly show. If price arrives
+  // after the user already entered a token amount, convert it to USD so the
+  // amount is not lost.
+  const prevHasSourcePriceRef = useRef(hasSourcePrice);
+  useEffect(() => {
+    if (prevHasSourcePriceRef.current === hasSourcePrice) return;
+    const prev = prevHasSourcePriceRef.current;
+    prevHasSourcePriceRef.current = hasSourcePrice;
+    if (!hasSourcePrice) {
+      setAmountDisplayMode('crypto');
+    } else if (!prev) {
+      // Price just became available — migrate any entered token amount to USD.
+      setAmountDisplayMode('fiat');
+      const tokens = parseFloat(sourceAmountTokens);
+      if (
+        Number.isFinite(tokens) &&
+        tokens > 0 &&
+        sourceToken?.currencyExchangeRate
+      ) {
+        const usd = (tokens * sourceToken.currencyExchangeRate).toFixed(2);
+        setUsdAmount(usd);
+        setQuotedUsdAmount(usd);
+        lastCommittedUsdRef.current = usd;
+      }
+    }
+  }, [hasSourcePrice, sourceAmountTokens, sourceToken?.currencyExchangeRate]);
+
   const handleSelectSourceToken = useCallback(
     (token: BridgeToken) => {
       setSelectedSourceToken(token);
-      setUsdAmount('');
-      setSliderPercent(0);
-      lastSnappedSliderPercentRef.current = 0;
-      lastTrackedAmountRef.current = '';
-      lastInputMethodRef.current =
-        SocialLeaderboardEventValues.AMOUNT_SELECTION_METHOD.SLIDER;
+      resetAmountState();
     },
-    [lastInputMethodRef, lastTrackedAmountRef],
+    [resetAmountState],
+  );
+
+  const handleSelectDestStable = useCallback(
+    (token: BridgeToken) => {
+      setSelectedDestStable(token);
+      resetAmountState();
+    },
+    [resetAmountState],
   );
 
   const handleAmountChange = useCallback(
@@ -556,12 +777,23 @@ export function useQuickBuyController(
       const normalized = cleaned.startsWith('.') ? `0${cleaned}` : cleaned;
       const parts = normalized.split('.');
       if (parts.length > 2) return;
-      if (parts.length === 2 && parts[1].length > 2) return;
-      setUsdAmount(normalized);
-      lastSnappedSliderPercentRef.current = 0;
+      // Priced (fiat) input: cap to 2 decimals. Unpriced (token) input: allow
+      // up to the token's decimals so the user can spend small balances.
+      const maxFractionDigits = hasSourcePrice
+        ? 2
+        : (sourceToken?.decimals ?? 18);
+      if (parts.length === 2 && parts[1].length > maxFractionDigits) return;
+      if (hasSourcePrice) {
+        setUsdAmount(normalized);
+        setQuotedUsdAmount(normalized);
+        lastCommittedUsdRef.current = normalized;
+      } else {
+        setSourceAmountTokens(normalized);
+      }
+      lastSliderPercentRef.current = 0;
       setSliderPercent(0);
     },
-    [lastInputMethodRef],
+    [hasSourcePrice, sourceToken?.decimals, lastInputMethodRef],
   );
 
   // Debounced track for custom amount entries — fires once after the user
@@ -576,13 +808,17 @@ export function useQuickBuyController(
       trackAmountSelected(
         numeric,
         SocialLeaderboardEventValues.AMOUNT_SELECTION_METHOD.CUSTOM_INPUT,
-        sourceToken?.symbol,
+        tradeMode === 'buy' ? sourceToken?.symbol : undefined,
+        undefined,
+        tradeMode === 'sell' ? destToken?.symbol : undefined,
       );
     }, 500);
     return () => clearTimeout(handle);
   }, [
     usdAmount,
     sourceToken?.symbol,
+    destToken?.symbol,
+    tradeMode,
     trackAmountSelected,
     lastInputMethodRef,
     lastTrackedAmountRef,
@@ -591,7 +827,7 @@ export function useQuickBuyController(
   const handleConfirm = useCallback(async () => {
     if (!activeQuote || !walletAddress) return;
 
-    const amountUsd = usdAmountNumber;
+    const amountUsd = usdAmountNumber > 0 ? usdAmountNumber : undefined;
     const amountTokenRaw = activeQuote.toTokenAmount?.amount;
     const amountToken =
       amountTokenRaw != null && isNumberValue(amountTokenRaw)
@@ -599,8 +835,11 @@ export function useQuickBuyController(
         : undefined;
     const submittedTraderAddress = traderAddress;
     const submittedCaip19 = caip19;
-    const submittedAssetName = destToken?.symbol ?? target.tokenSymbol;
-    const submittedPayWith = sourceToken?.symbol;
+    const submittedAssetName = target.tokenSymbol;
+    const submittedPayWith =
+      tradeMode === 'buy' ? sourceToken?.symbol : undefined;
+    const submittedReceiveToken =
+      tradeMode === 'sell' ? destToken?.symbol : undefined;
 
     // Shared by the SUBMITTED + COMPLETED (success / failure) events. Built
     // once here so the success vs failure delta stays small at the call sites.
@@ -614,8 +853,22 @@ export function useQuickBuyController(
             : {}),
           [SocialLeaderboardEventProperties.CAIP19]: submittedCaip19,
           [SocialLeaderboardEventProperties.ASSET_NAME]: submittedAssetName,
-          [SocialLeaderboardEventProperties.AMOUNT_USD]: amountUsd,
-          [SocialLeaderboardEventProperties.PAY_WITH_TOKEN]: submittedPayWith,
+          ...(amountUsd !== undefined
+            ? { [SocialLeaderboardEventProperties.AMOUNT_USD]: amountUsd }
+            : {}),
+          [SocialLeaderboardEventProperties.TRADE_TYPE]: tradeMode,
+          ...(submittedPayWith
+            ? {
+                [SocialLeaderboardEventProperties.PAY_WITH_TOKEN]:
+                  submittedPayWith,
+              }
+            : {}),
+          ...(submittedReceiveToken
+            ? {
+                [SocialLeaderboardEventProperties.RECEIVE_TOKEN]:
+                  submittedReceiveToken,
+              }
+            : {}),
         }
       : null;
 
@@ -696,6 +949,7 @@ export function useQuickBuyController(
     usdAmountNumber,
     traderAddress,
     caip19,
+    tradeMode,
     destToken?.symbol,
     target.tokenSymbol,
     sourceToken?.symbol,
@@ -706,7 +960,12 @@ export function useQuickBuyController(
   ]);
 
   const hasError = Boolean(quoteFetchError || isNoQuotesAvailable);
-  const hasValidAmount = Boolean(usdAmount && Number(usdAmount) > 0);
+  const hasValidAmount = hasSourcePrice
+    ? Boolean(usdAmount && Number(usdAmount) > 0)
+    : Boolean(sourceAmountTokens && Number(sourceAmountTokens) > 0);
+  // True while the slider is mid-drag: the user has moved the thumb but has not
+  // yet committed (released).
+  const isAmountUncommitted = usdAmount !== quotedUsdAmount;
   const hasQuoteRequestableAmount = useMemo(() => {
     const hasNonZeroInputAmount = Boolean(
       sourceTokenAmount && Number(sourceTokenAmount) !== 0,
@@ -751,6 +1010,7 @@ export function useQuickBuyController(
 
   const isConfirmDisabled =
     !hasValidAmount ||
+    isAmountUncommitted ||
     isSetupLoading ||
     !sourceToken ||
     !destToken ||
@@ -789,16 +1049,18 @@ export function useQuickBuyController(
   }
 
   const getButtonLabel = useCallback(() => {
-    if (!hasValidAmount) {
-      return strings('social_leaderboard.trader_position.buy');
-    }
     if (buttonError) return strings(BUTTON_ERROR_LABELS[buttonError]);
     if (isSubmittingTx) return strings('bridge.submitting_transaction');
-    return strings('social_leaderboard.trader_position.buy');
-  }, [buttonError, hasValidAmount, isSubmittingTx]);
+    return tradeMode === 'sell'
+      ? strings('social_leaderboard.trader_position.sell')
+      : strings('social_leaderboard.trader_position.buy');
+  }, [buttonError, isSubmittingTx, tradeMode]);
 
   return {
     hiddenInputRef,
+    tradeMode,
+    setTradeMode,
+    hasSellableBalance: positionToken !== undefined,
     activeQuote,
     destToken,
     isSetupLoading,
@@ -810,11 +1072,17 @@ export function useQuickBuyController(
     isSourcePickerOpen,
     setIsSourcePickerOpen,
     setSelectedSourceToken,
+    sellDestTokenOptions,
+    selectedDestStable,
     currentCurrency,
     amountDisplayMode,
     usdAmount,
+    sourceAmountTokens,
+    sourceTokenAmount,
+    hasSourcePrice,
     sliderPercent,
     maxSpendUsd,
+    isSliderDisabled,
     formattedExchangeRate,
     metamaskFeePercent,
     estimatedReceiveAmount,
@@ -848,10 +1116,12 @@ export function useQuickBuyController(
     getButtonLabel,
     handleClose,
     handleSliderChange,
+    handleSliderDragEnd,
     handleAmountAreaPress,
     handleAmountChange,
     handleToggleAmountDisplay,
     handleSelectSourceToken,
+    handleSelectDestStable,
     handleConfirm,
   };
 }
