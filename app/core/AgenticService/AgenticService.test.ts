@@ -18,6 +18,7 @@ import type {
 } from '@react-navigation/native';
 
 const mockCreateWallet = jest.fn().mockResolvedValue(undefined);
+const mockCreateAccountGroups = jest.fn().mockResolvedValue([]);
 const mockImportAccount = jest.fn().mockResolvedValue(undefined);
 const mockIsUnlocked = jest.fn(() => true);
 const mockSubmitPassword = jest.fn().mockResolvedValue(undefined);
@@ -50,6 +51,8 @@ jest.mock('../Engine', () => ({
     MultichainAccountService: {
       createMultichainAccountWallet: (...args: unknown[]) =>
         mockCreateWallet(...args),
+      createMultichainAccountGroups: (...args: unknown[]) =>
+        mockCreateAccountGroups(...args),
       init: jest.fn().mockResolvedValue(undefined),
     },
     KeyringController: {
@@ -222,6 +225,17 @@ function installFiberHook(rootFiber: FiberNode) {
     renderers: new Map([[1, {}]]),
     getFiberRoots: () => new Set([{ current: rootFiber }]),
   };
+}
+
+function resetMockAccountState() {
+  Engine.context.AccountsController.state.internalAccounts.accounts = {
+    a1: {
+      id: 'a1',
+      address: '0xABC',
+      metadata: { name: 'Account 1' },
+    },
+  };
+  Engine.context.AccountTreeController.state.accountTree = { wallets: {} };
 }
 
 // ─── Fiber tree helper tests ────────────────────────────────────────────────
@@ -770,11 +784,17 @@ describe('AgenticService.install', () => {
   describe('setupWallet', () => {
     beforeEach(() => {
       mockCreateWallet.mockClear();
+      mockCreateAccountGroups.mockReset();
+      mockCreateAccountGroups.mockResolvedValue([]);
       mockImportAccount.mockClear();
       mockDispatch.mockClear();
       mockIsUnlocked.mockReset();
       mockIsUnlocked.mockReturnValue(true);
       mockSubmitPassword.mockClear();
+      (
+        Engine.context.AccountTreeController.setAccountGroupName as jest.Mock
+      ).mockClear();
+      resetMockAccountState();
     });
 
     it('dispatches all onboarding flags', async () => {
@@ -821,6 +841,81 @@ describe('AgenticService.install', () => {
       });
       expect(mockDispatch).toHaveBeenCalledWith({ type: 'SET_EXISTING_USER' });
       expect(mockDispatch).toHaveBeenCalledWith({ type: 'LOG_IN' });
+    });
+
+    it('creates missing fixture HD accounts with a batched account-group range', async () => {
+      const mnemonic =
+        'test test test test test test test test test test test junk';
+      Engine.context.AccountsController.state.internalAccounts.accounts = {
+        a1: {
+          id: 'a1',
+          address: '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',
+          metadata: { name: 'dev1' },
+        },
+      };
+      Engine.context.AccountTreeController.state.accountTree = {
+        wallets: {
+          wallet1: {
+            metadata: { entropy: { id: 'keyring-1' } },
+            groups: {
+              group0: {
+                accounts: ['a1'],
+                metadata: { entropy: { groupIndex: 0 } },
+              },
+            },
+          },
+        },
+      };
+      mockCreateAccountGroups.mockImplementationOnce(async () => {
+        Engine.context.AccountsController.state.internalAccounts.accounts = {
+          ...Engine.context.AccountsController.state.internalAccounts.accounts,
+          a2: {
+            id: 'a2',
+            address: '0x0000000000000000000000000000000000000002',
+            metadata: { name: 'dev2' },
+          },
+          a3: {
+            id: 'a3',
+            address: '0x0000000000000000000000000000000000000003',
+            metadata: { name: 'dev3' },
+          },
+        };
+        const wallet = Engine.context.AccountTreeController.state.accountTree
+          .wallets.wallet1 as {
+          groups: Record<string, unknown>;
+        };
+        wallet.groups.group1 = {
+          accounts: ['a2'],
+          metadata: { entropy: { groupIndex: 1 } },
+        };
+        wallet.groups.group2 = {
+          accounts: ['a3'],
+          metadata: { entropy: { groupIndex: 2 } },
+        };
+        return [];
+      });
+
+      const result = await bridge().setupWallet({
+        password: 'test123',
+        accounts: [
+          {
+            type: 'mnemonic',
+            value: mnemonic,
+            count: 3,
+            names: ['dev1', 'dev2', 'dev3'],
+          },
+        ],
+      });
+
+      expect(result.ok).toBe(true);
+      expect(mockCreateAccountGroups).toHaveBeenCalledWith({
+        fromGroupIndex: 1,
+        toGroupIndex: 2,
+        entropySource: 'keyring-1',
+      });
+      expect(
+        Engine.context.AccountTreeController.setAccountGroupName,
+      ).toHaveBeenCalledWith('group2', 'dev3');
     });
 
     it('opts out of metametrics when specified', async () => {

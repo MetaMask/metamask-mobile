@@ -98,12 +98,13 @@ function uninstallApp(ctx: Ctx): void {
   }
 }
 
-function installCachedArtifact(ctx: Ctx, logger: Logger, cache: BuildCache, fp: string): boolean {
+async function installCachedArtifact(ctx: Ctx, logger: Logger, cache: BuildCache, fp: string): Promise<boolean> {
   const art = cache.artifactPath('ios', fp);
   if (ctx.flags.walletSetup) {
     logger.plain('  Wiping app data (uninstall + reinstall from cache)...');
     uninstallApp(ctx);
   }
+  await ensureSigned(art, logger);
   if (tryInstall(ctx, art)) {
     cache.recordInstall('ios', fp, ctx.simTarget);
     logger.ok(`Installed from cache: ${art}`);
@@ -284,7 +285,7 @@ export async function runIos(ctx: Ctx, logger: Logger): Promise<void> {
             logger.ok(`Cache: installed app matches fingerprint ${fp.slice(0, 12)} on ${ctx.simTarget} — no native action needed`);
             return;
           }
-          if (cache.hasArtifact('ios', fp) && installCachedArtifact(ctx, logger, cache, fp)) {
+          if (cache.hasArtifact('ios', fp) && (await installCachedArtifact(ctx, logger, cache, fp))) {
             return;
           }
           logger.warn('Installed app matches fingerprint, but wallet setup requires a data wipe and no cached artifact is available — rebuilding');
@@ -297,7 +298,7 @@ export async function runIos(ctx: Ctx, logger: Logger): Promise<void> {
               logger.fail(`App not at fingerprint ${fp.slice(0, 12)} — cache hit available, but --check-only forbids install`);
             }
             logger.plain(`  Cache hit: fp=${fp.slice(0, 12)} — installing from shared cache`);
-            if (installCachedArtifact(ctx, logger, cache, fp)) {
+            if (await installCachedArtifact(ctx, logger, cache, fp)) {
               installed = true;
             } else if (ctx.mode === 'fast') {
               logger.fail(`Mode 'fast': cached artifact install failed for fp ${fp.slice(0, 12)}`);
@@ -354,7 +355,7 @@ export async function runIos(ctx: Ctx, logger: Logger): Promise<void> {
           if (cache.hasArtifact('ios', postFp)) {
             logger.plain(`  Cache hit after pod install: fp=${postFp.slice(0, 12)} — installing from shared cache`);
             const art = cache.artifactPath('ios', postFp);
-            if (installCachedArtifact(ctx, logger, cache, postFp) && appInstalled(ctx)) {
+            if ((await installCachedArtifact(ctx, logger, cache, postFp)) && appInstalled(ctx)) {
               // Release the materialized-fp lock before storing the source alias.
               await lock.release();
               lock = null;
@@ -373,7 +374,7 @@ export async function runIos(ctx: Ctx, logger: Logger): Promise<void> {
         } else if (ctx.mode === 'fast') {
           logger.fail(`Mode 'fast': could not acquire build-cache lock for post-pod fp ${postFp.slice(0, 12)}`);
         } else {
-          logger.warn(`Could not acquirØe post-pod build-cache lock for fp ${postFp.slice(0, 12)} — proceeding without lock`);
+          logger.warn(`Could not acquire post-pod build-cache lock for fp ${postFp.slice(0, 12)} — proceeding without lock`);
         }
       } else if (ctx.mode === 'fast') {
         logger.fail("Mode 'fast': could not compute post-pod fingerprint");
