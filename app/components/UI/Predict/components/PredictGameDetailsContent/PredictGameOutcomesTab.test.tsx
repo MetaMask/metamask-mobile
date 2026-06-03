@@ -1232,6 +1232,39 @@ describe('PredictGameOutcomesTab', () => {
       expect(mockCapturedCards[0].buttons[1].price).toBe(24);
     });
 
+    it('falls back to static token price when live best ask is zero', () => {
+      mockGetLivePrice.mockReturnValue({
+        tokenId: 'tok-a',
+        price: 0,
+        bestBid: 0,
+        bestAsk: 0,
+      });
+
+      const outcomes = [
+        createOutcome({
+          id: 'ml-a',
+          tokens: [createToken({ id: 'tok-a', shortTitle: 'TA', price: 0.45 })],
+        }),
+      ];
+      const subgroups: PredictOutcomeGroup[] = [
+        createGroup({ key: 'moneyline', outcomes }),
+      ];
+      const groups = [
+        createGroup({ key: 'game_lines', outcomes: [], subgroups }),
+      ];
+
+      render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards[0].buttons[0].price).toBe(45);
+    });
+
     it('calls onBuyPress with correct outcome and token for moneyline button', () => {
       const tokenA = createToken({ id: 'tok-a', shortTitle: 'TA', price: 0.6 });
       const tokenB = createToken({ id: 'tok-b', shortTitle: 'TB', price: 0.4 });

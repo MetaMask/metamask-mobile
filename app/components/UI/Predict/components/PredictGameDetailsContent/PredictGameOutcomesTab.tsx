@@ -12,6 +12,7 @@ import PredictSportOutcomeCard, {
   type PredictSportOutcomeButton,
 } from '../PredictSportOutcomeCard';
 import { formatVolume } from '../../utils/format';
+import { isValidPrice } from '../../utils/prices';
 import { isMoneylineLikeMarketType } from '../../constants/sports';
 import { strings } from '../../../../../../locales/i18n';
 import Logger from '../../../../../util/Logger';
@@ -289,7 +290,8 @@ const buildMoneylineButtons = (
 
   return sortedWithTokens.map((outcome, i) => {
     const yesToken = outcome.tokens[0];
-    const price = getPrice?.(yesToken.id)?.bestAsk ?? yesToken.price;
+    const liveBestAsk = getPrice?.(yesToken.id)?.bestAsk;
+    const price = isValidPrice(liveBestAsk) ? liveBestAsk : yesToken.price;
 
     return {
       label: yesToken.shortTitle ?? yesToken.title,
