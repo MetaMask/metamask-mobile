@@ -34,6 +34,7 @@ import {
   getSession,
 } from '../headless/sessionRegistry';
 import { dismissHeadlessFlow } from '../headless/headlessEntryNavigation';
+import { getChainIdFromAssetId } from '../headless';
 
 interface RampStackParamList {
   /** `baseRouteParams` (e.g. `headlessSessionId`) are merged onto this route in resets — see `navigateToVerifyIdentityCallback`. */
@@ -167,9 +168,14 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
   const { selectedPaymentMethod } = useRampsPaymentMethods();
 
   const { selected: selectedToken } = useSelector(selectTokens);
-  const walletAddress = useRampAccountAddress(
-    selectedToken?.chainId as CaipChainId,
-  );
+  // Headless seeds `selectedToken` async, so it can still be empty here — making
+  // Transak re-prompt for the wallet address (TRAM-3598). The session knows the
+  // assetId up front, so use it for the chain; fall back to selectedToken otherwise.
+  const headlessAssetId = getSession(headlessSessionId)?.params?.assetId;
+  const walletAddressChainId =
+    (headlessAssetId ? getChainIdFromAssetId(headlessAssetId) : null) ??
+    (selectedToken?.chainId as CaipChainId | undefined);
+  const walletAddress = useRampAccountAddress(walletAddressChainId);
 
   const fiatCurrency = userRegion?.country?.currency || '';
   const regionIsoCode = userRegion?.regionCode || '';
