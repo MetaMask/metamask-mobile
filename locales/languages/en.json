@@ -6818,13 +6818,13 @@
       "step_2": {
         "no_card_account": {
           "title": "Get your MetaMask Card",
-          "description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
+          "description": "Spend your balance and earn on purchases.",
           "cta_primary": "Get card",
           "cta_secondary": "Skip"
         },
         "unlinked_card_account": {
           "title": "Link your MetaMask Card",
-          "description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
+          "description": "Spend your balance and earn on purchases.",
           "cta_primary": "Link card",
           "cta_secondary": "Skip"
         }
@@ -6890,10 +6890,10 @@
       "cashback": "{{percentage}}% mUSD back",
       "get_now": "Get now",
       "link_title": "Link MetaMask Card",
-      "link_subtitle": "Spend your Money balance and earn on purchases. Plus, up to {{apy}}% APY (variable) on your balance.",
-      "link_subtitle_no_apy": "Spend your Money balance and earn on purchases.",
+      "link_subtitle": "Spend your balance and earn on purchases.",
+      "link_subtitle_no_apy": "Spend your balance and earn on purchases.",
       "link_bullet_cashback": "Get {{percentage}}% mUSD back",
-      "link_bullet_apy": "Earn up to {{apy}}% APY (variable)",
+      "link_bullet_apy": "Earn up to ~{{apy}}% APY (variable)",
       "link_card": "Link card",
       "link_pending_title": "Linking your card",
       "link_success_title": "Your card is ready to use",
