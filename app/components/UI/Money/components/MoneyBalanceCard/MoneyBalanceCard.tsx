@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef, useEffect } from 'react';
 import { Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -32,10 +32,18 @@ import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import styleSheet from './MoneyBalanceCard.styles';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
 import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
+import {
+  SCREEN_NAMES,
+  COMPONENT_NAMES,
+  SHEET_NAMES,
+  REDIRECT_TARGETS,
+} from '../../constants/moneyEvents';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 
 const MoneyBalanceCard = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
+  const hasSeenMoneyCardRef = useRef(false);
   const { styles } = useStyles(styleSheet, {});
   const {
     totalFiatRaw,
@@ -53,6 +61,12 @@ const MoneyBalanceCard = () => {
   const hasOtherPrimaryCtaOnHome = useSelector(
     selectWalletHomeOnboardingFlowVisible,
   );
+
+  const { trackButtonClicked, trackSurfaceClicked, trackSurfaceViewed } =
+    useMoneyAnalytics({
+      screen_name: SCREEN_NAMES.WALLET_HOME,
+      component_name: COMPONENT_NAMES.MONEY_BALANCE_CARD,
+    });
 
   const isRetrying =
     hasMoneyAccount && isBalanceFetchError && isBalanceFetching;
@@ -78,29 +92,32 @@ const MoneyBalanceCard = () => {
   const balanceText = totalFiatFormatted ?? '';
 
   let buttonVariant: ButtonVariant;
-  let buttonLabel: string;
+  let buttonLabelLocalized: string;
+  let buttonLabelEn: string;
   let buttonTestId: string;
   let containerTestId: string;
 
   if (!hasMoneyAccount || isError || isRetrying) {
     buttonVariant = ButtonVariant.Secondary;
-    buttonLabel = strings('money.balance_card.add');
+    buttonLabelLocalized = strings('money.balance_card.add');
+    buttonLabelEn = strings('money.balance_card.add', { locale: 'en' });
     buttonTestId = MoneyBalanceCardTestIds.ADD_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.ERROR_CONTAINER;
   } else if (isUnavailable) {
     buttonVariant = ButtonVariant.Secondary;
-    buttonLabel = strings('money.balance_card.add');
+    buttonLabelLocalized = strings('money.balance_card.add');
+    buttonLabelEn = strings('money.balance_card.add', { locale: 'en' });
     buttonTestId = MoneyBalanceCardTestIds.ADD_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.UNAVAILABLE_CONTAINER;
   } else if (isNewUser) {
     buttonVariant = hasOtherPrimaryCtaOnHome
       ? ButtonVariant.Secondary
       : ButtonVariant.Primary;
-    buttonLabel = strings(
-      hasOtherPrimaryCtaOnHome
-        ? 'homepage.sections.money_empty_state.get_started'
-        : 'homepage.sections.money_empty_state.earn',
-    );
+    const newUserLabelKey = hasOtherPrimaryCtaOnHome
+      ? 'homepage.sections.money_empty_state.get_started'
+      : 'homepage.sections.money_empty_state.earn';
+    buttonLabelLocalized = strings(newUserLabelKey);
+    buttonLabelEn = strings(newUserLabelKey, { locale: 'en' });
     buttonTestId = hasOtherPrimaryCtaOnHome
       ? MoneyBalanceCardTestIds.GET_STARTED_BUTTON
       : MoneyBalanceCardTestIds.EARN_BUTTON;
@@ -109,31 +126,68 @@ const MoneyBalanceCard = () => {
     buttonVariant = hasOtherPrimaryCtaOnHome
       ? ButtonVariant.Secondary
       : ButtonVariant.Primary;
-    buttonLabel = strings('homepage.sections.money_empty_state.earn');
+    buttonLabelLocalized = strings('homepage.sections.money_empty_state.earn');
+    buttonLabelEn = strings('homepage.sections.money_empty_state.earn', {
+      locale: 'en',
+    });
     buttonTestId = MoneyBalanceCardTestIds.EARN_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.EMPTY_CONTAINER;
   } else {
     buttonVariant = hasOtherPrimaryCtaOnHome
       ? ButtonVariant.Secondary
       : ButtonVariant.Primary;
-    buttonLabel = strings('money.balance_card.add');
+    buttonLabelLocalized = strings('money.balance_card.add');
+    buttonLabelEn = strings('money.balance_card.add', { locale: 'en' });
     buttonTestId = MoneyBalanceCardTestIds.ADD_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.FUNDED_CONTAINER;
   }
 
+  useEffect(() => {
+    if (hasSeenMoneyCardRef.current) {
+      return;
+    }
+    hasSeenMoneyCardRef.current = true;
+    // TODO: Add tests.
+    trackSurfaceViewed();
+  }, [trackSurfaceViewed]);
+
   const handleCardPress = useCallback(() => {
+    trackSurfaceClicked({
+      redirect_target_type: REDIRECT_TARGETS.SCREEN,
+      redirect_target: hasSeenMoneyOnboarding
+        ? SCREEN_NAMES.MONEY_HOME
+        : SCREEN_NAMES.MONEY_ONBOARDING,
+    });
     navigateToMoneyHome();
-  }, [navigateToMoneyHome]);
+  }, [hasSeenMoneyOnboarding, navigateToMoneyHome, trackSurfaceClicked]);
 
   const handleAddPress = useCallback(() => {
+    trackButtonClicked({
+      label_en: buttonLabelEn,
+      label_localized: buttonLabelLocalized,
+      redirect_target_type: REDIRECT_TARGETS.BOTTOM_SHEET,
+      redirect_target: SHEET_NAMES.MONEY_ADD_MONEY_SHEET,
+    });
+
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
     });
-  }, [navigation]);
+  }, [buttonLabelEn, buttonLabelLocalized, navigation, trackButtonClicked]);
 
   const handleGetStartedPress = useCallback(() => {
+    trackButtonClicked({
+      label_en: buttonLabelEn,
+      label_localized: buttonLabelLocalized,
+      redirect_target_type: REDIRECT_TARGETS.SCREEN,
+      redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
+    });
     navigateToMoneyHome();
-  }, [navigateToMoneyHome]);
+  }, [
+    buttonLabelEn,
+    buttonLabelLocalized,
+    navigateToMoneyHome,
+    trackButtonClicked,
+  ]);
 
   const handleButtonPress = isNewUser ? handleGetStartedPress : handleAddPress;
 
@@ -291,7 +345,7 @@ const MoneyBalanceCard = () => {
           size={ButtonSize.Md}
           onPress={handleButtonPress}
         >
-          {buttonLabel}
+          {buttonLabelLocalized}
         </Button>
       </Box>
     </Pressable>
