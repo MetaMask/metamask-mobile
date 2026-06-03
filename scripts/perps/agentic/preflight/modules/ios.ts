@@ -2,7 +2,7 @@
 // come from cache.ts; pod staleness from deps.ts.
 
 import { execFileSync, spawn } from 'child_process';
-import { appendFileSync, existsSync, statSync, writeFileSync } from 'fs';
+import { appendFileSync, existsSync, readFileSync, statSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { BuildCache, type CacheLock, reportDrift } from './cache';
 import { podsCleanStale, podsSaveMarker } from './deps';
@@ -101,15 +101,16 @@ async function buildApp(ctx: Ctx, logger: Logger): Promise<string> {
   logger.dim(`expo run:ios --port ${ctx.port} (bundler killed after build, start-metro.sh takes over)`);
   logger.plain();
 
-  let cmd = `yarn expo run:ios --no-install --port ${ctx.port} --configuration Debug --scheme MetaMask`;
-  if (ctx.env.IOS_SIMULATOR) cmd += ` --device ${ctx.env.IOS_SIMULATOR}`;
+  // Pass argv directly (no shell) so IOS_SIMULATOR can't be interpreted.
+  const buildArgs = ['expo', 'run:ios', '--no-install', '--port', String(ctx.port), '--configuration', 'Debug', '--scheme', 'MetaMask'];
+  if (ctx.env.IOS_SIMULATOR) buildArgs.push('--device', ctx.env.IOS_SIMULATOR);
 
   const buildLog = join(ctx.root, '.agent/ios-expo-build.log');
   writeFileSync(buildLog, '');
   logger.stageLog(buildLog);
   const buildStart = now();
 
-  const child = spawn('bash', ['-c', cmd], { cwd: ctx.root, stdio: ['ignore', 'pipe', 'pipe'] });
+  const child = spawn('yarn', buildArgs, { cwd: ctx.root, stdio: ['ignore', 'pipe', 'pipe'] });
   const onData = (b: Buffer): void => appendFileSync(buildLog, b);
   child.stdout.on('data', onData);
   child.stderr.on('data', onData);
@@ -143,7 +144,7 @@ async function buildApp(ctx: Ctx, logger: Logger): Promise<string> {
     return '';
   };
 
-  const log = (): string => execFileSync('cat', [buildLog], { encoding: 'utf8' });
+  const log = (): string => readFileSync(buildLog, 'utf8');
   while (true) {
     if (now() - buildStart >= ctx.iosBuildTimeout) {
       await killTree(child.pid ?? 0);
@@ -269,6 +270,34 @@ export async function runIos(ctx: Ctx, logger: Logger): Promise<void> {
   if (ctx.checkOnly) logger.fail('App not installed (run with --rebuild)');
 
   await podInstall(ctx, logger);
+
+  // pod install can mutate native inputs, shifting the fingerprint. Re-check the
+  // shared cache under the post-pod fingerprint before a full native build —
+  // another worktree may already hold an artifact for it.
+  if (useCache && !ctx.doRebuild) {
+    const postFp = cache.fingerprint();
+    if (postFp && postFp !== fp) {
+      const postLock = await cache.acquireLock('ios', postFp);
+      if (postLock) {
+        if (cache.hasArtifact('ios', postFp)) {
+          logger.plain(`  Post-pod cache hit: fp=${postFp.slice(0, 12)} — installing from shared cache`);
+          const art = cache.artifactPath('ios', postFp);
+          if (tryInstall(ctx, art) && appInstalled(ctx)) {
+            cache.recordInstall('ios', postFp, ctx.simTarget);
+            await postLock.release();
+            if (lock) await lock.release();
+            logger.ok(`Installed from cache: ${art}`);
+            return;
+          }
+          logger.warn('Post-pod cache install failed — falling through to native build');
+        }
+        // Hold the post-pod lock through the build; we store under this fp below.
+        if (lock) await lock.release();
+        lock = postLock;
+      }
+    }
+  }
+
   const app = await buildApp(ctx, logger);
   await waitPortReleased(ctx, logger);
 
@@ -281,9 +310,13 @@ export async function runIos(ctx: Ctx, logger: Logger): Promise<void> {
     }
   }
   logger.plain('  Installing app on simulator...');
-  if (!tryInstall(ctx, app) || !appInstalled(ctx)) {
+  if (!tryInstall(ctx, app)) {
     if (lock) await lock.release();
-    logger.fail('simctl install succeeded but app not found');
+    logger.fail(`simctl install failed for ${app}`);
+  }
+  if (!appInstalled(ctx)) {
+    if (lock) await lock.release();
+    logger.fail('simctl install reported success but the app is not on the simulator');
   }
   logger.ok('App built and installed');
 

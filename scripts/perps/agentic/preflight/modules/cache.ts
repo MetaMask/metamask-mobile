@@ -63,8 +63,12 @@ export class BuildCache {
     return this.run(['store', plat, fp, src]).status === 0;
   }
 
-  prune(plat: string, keep = 5): void {
-    this.run(['prune', plat, String(keep)]);
+  // Retention mirrors bc_prune's default of 5; BUILD_CACHE_RETAIN lets operators
+  // tune it without code changes (an explicit `keep` arg still wins).
+  prune(plat: string, keep?: number): void {
+    const fromEnv = Number(process.env.BUILD_CACHE_RETAIN);
+    const retain = keep ?? (Number.isFinite(fromEnv) && fromEnv >= 0 ? fromEnv : 5);
+    this.run(['prune', plat, String(retain)]);
   }
 
   // Persist the current fingerprint sources for `fp` so a later miss can explain

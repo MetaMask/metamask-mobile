@@ -1,7 +1,7 @@
 // Android device + app build/install + shared-cache reuse.
 
-import { execFileSync } from 'child_process';
-import { existsSync } from 'fs';
+import { execFileSync, spawn } from 'child_process';
+import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { BuildCache, type CacheLock, reportDrift } from './cache';
 import { initStageLog, type Logger } from './log';
@@ -45,10 +45,13 @@ async function ensureDevice(ctx: Ctx, logger: Logger): Promise<void> {
     if (ctx.checkOnly) logger.fail('No Android device/emulator connected');
     if (!ctx.env.ANDROID_DEVICE) logger.fail('No device connected and ANDROID_DEVICE not set in .js.env');
     logger.plain(`  Launching emulator: ${ctx.env.ANDROID_DEVICE}...`);
-    execFileSync('bash', ['-c', `emulator -avd "${ctx.env.ANDROID_DEVICE}" -no-snapshot-load -no-audio -no-window &`], {
+    // Launch detached via argv (no shell) so the device name can't be interpreted.
+    const emu = spawn('emulator', ['-avd', ctx.env.ANDROID_DEVICE, '-no-snapshot-load', '-no-audio', '-no-window'], {
       cwd: ctx.root,
       stdio: 'ignore',
+      detached: true,
     });
+    emu.unref();
     for (let i = 0; i < 60; i += 1) {
       ctx.adbTarget = resolveAdbTarget();
       if (ctx.adbTarget) break;
@@ -108,7 +111,7 @@ async function buildApk(ctx: Ctx, logger: Logger): Promise<string> {
   const cmd = 'cd android && SENTRY_DISABLE_AUTO_UPLOAD=true ./gradlew app:assembleProdDebug -PreactNativeArchitectures=arm64-v8a';
   const code = await logger.runWithLiveLog(buildLog, cmd, ctx.root);
 
-  const text = existsSync(buildLog) ? execFileSync('cat', [buildLog], { encoding: 'utf8' }) : '';
+  const text = existsSync(buildLog) ? readFileSync(buildLog, 'utf8') : '';
   if (/BUILD SUCCESSFUL/.test(text)) {
     logger.plain('  → BUILD SUCCESSFUL');
   } else if (code !== 0 || /BUILD FAILED|FAILURE|error:/.test(text)) {
