@@ -4,7 +4,7 @@ import {
   RouteProp,
   StackActions,
 } from '@react-navigation/native';
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { ScrollView, Switch, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -29,6 +29,8 @@ import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/noti
 import Routes from '../../../../constants/navigation/Routes';
 import { useWalletActivityAccountSelection } from './AccountsList.hooks';
 import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 
 type NotificationSettingsStyles = ReturnType<typeof styleSheet>;
 
@@ -37,6 +39,7 @@ interface SectionContentProps {
 }
 
 const WalletActivitySectionContent = ({ styles }: SectionContentProps) => {
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const {
     accountProps,
     notificationAccountListProps,
@@ -45,6 +48,18 @@ const WalletActivitySectionContent = ({ styles }: SectionContentProps) => {
     isUpdatingAllAccounts,
     toggleAllAccounts,
   } = useWalletActivityAccountSelection();
+
+  const handleToggleAllAccounts = useCallback(async () => {
+    await toggleAllAccounts();
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED)
+        .addProperties({
+          settings_type: 'wallet_activity',
+          enabled: !hasEnabledAccount,
+        })
+        .build(),
+    );
+  }, [toggleAllAccounts, trackEvent, createEventBuilder, hasEnabledAccount]);
 
   return (
     <>
@@ -60,7 +75,7 @@ const WalletActivitySectionContent = ({ styles }: SectionContentProps) => {
           </Text>
           {hasNotificationAccounts ? (
             <TouchableOpacity
-              onPress={toggleAllAccounts}
+              onPress={handleToggleAllAccounts}
               disabled={isUpdatingAllAccounts}
               accessibilityRole="button"
               style={styles.selectAllButton}
@@ -181,6 +196,7 @@ const NotificationSettingsSection = ({
         style={styles.container}
         contentContainerStyle={styles.contentContainer}
       >
+        <Text>TESTINGGGG</Text>
         <View style={styles.setting}>
           <Text color={TextColor.TextDefault} variant={TextVariant.HeadingLg}>
             {title}

@@ -533,6 +533,10 @@ enum EVENT_NAME {
   SEND_BUTTON_CLICKED = 'Send Button Clicked',
   ACTION_BUTTON_CLICKED = 'Action Button Clicked',
   EARN_BUTTON_CLICKED = 'Earn Button Clicked',
+
+  // Notifications Settings
+  NOTIFICATIONS_SETTINGS_UPDATED = 'Notifications Settings Updated',
+
   // Edit account name
   ACCOUNT_RENAMED = 'Account Renamed',
 
@@ -1350,6 +1354,9 @@ const events = {
   SRP_SCREENSHOT_ATTEMPTED: generateOpt(EVENT_NAME.SRP_SCREENSHOT_ATTEMPTED),
   USER_TERMS_SHOWN: generateOpt(EVENT_NAME.USER_TERMS_SHOWN),
   USER_TERMS_ACCEPTED: generateOpt(EVENT_NAME.USER_TERMS_ACCEPTED),
+  NOTIFICATIONS_SETTINGS_UPDATED: generateOpt(
+    EVENT_NAME.NOTIFICATIONS_SETTINGS_UPDATED,
+  ),
   SRP_REVEAL_QUIZ_PROMPT_SEEN: generateOpt(
     EVENT_NAME.SRP_REVEAL_QUIZ_PROMPT_SEEN,
   ),
