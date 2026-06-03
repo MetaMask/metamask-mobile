@@ -40,18 +40,22 @@ export const DEV_VAULT_CONFIG: MoneyAccountVaultConfig = {
   lensAddress: '0xA816ECd922de94c6879AD23B9A884dB257F20947',
 };
 
+export const getMoneyAccountVaultConfig = (
+  remoteFeatureFlags: Record<string, unknown> | undefined,
+): MoneyAccountVaultConfig | undefined => {
+  const remoteConfig =
+    remoteFeatureFlags?.moneyAccountVaultConfig as unknown as
+      | MoneyAccountVaultConfig
+      | undefined;
+  if (remoteConfig) {
+    return remoteConfig;
+  }
+  const devFallbackEnabled =
+    process.env.MM_MONEY_DEPOSIT_CONFIG_DEV_ENABLED === 'true';
+  return devFallbackEnabled ? DEV_VAULT_CONFIG : undefined;
+};
+
 export const selectMoneyAccountVaultConfig = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags): MoneyAccountVaultConfig | undefined => {
-    const remoteConfig =
-      remoteFeatureFlags?.moneyAccountVaultConfig as unknown as
-        | MoneyAccountVaultConfig
-        | undefined;
-    if (remoteConfig) {
-      return remoteConfig;
-    }
-    const devFallbackEnabled =
-      process.env.MM_MONEY_DEPOSIT_CONFIG_DEV_ENABLED === 'true';
-    return devFallbackEnabled ? DEV_VAULT_CONFIG : undefined;
-  },
+  getMoneyAccountVaultConfig,
 );

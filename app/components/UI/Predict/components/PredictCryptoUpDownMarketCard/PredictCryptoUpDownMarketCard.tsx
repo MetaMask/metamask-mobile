@@ -175,6 +175,8 @@ interface PredictCryptoUpDownMarketCardProps {
   onCardPress?: () => void;
   /** Called when the user taps a buy button (before betslip opens). */
   onBuyButtonPress?: (marketId: string) => void;
+  predictFeedTab?: string;
+  predictScreen?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
@@ -1047,6 +1049,8 @@ const PredictCryptoUpDownMarketCard: React.FC<
   entryPoint: propEntryPoint,
   onCardPress,
   onBuyButtonPress,
+  predictFeedTab,
+  predictScreen,
   transactionActiveAbTests,
 }) => {
   const tw = useTailwind();
@@ -1174,6 +1178,8 @@ const PredictCryptoUpDownMarketCard: React.FC<
         marketId: selectedMarket.id,
         series: selectedMarket.series,
         entryPoint: resolvedEntryPoint,
+        ...(predictFeedTab && { predictFeedTab }),
+        ...(predictScreen && { predictScreen }),
         title: cardTitle,
         image: imageUrl,
         ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
@@ -1185,6 +1191,8 @@ const PredictCryptoUpDownMarketCard: React.FC<
     imageUrl,
     navigateToMarketDetails,
     onCardPress,
+    predictFeedTab,
+    predictScreen,
     resolvedEntryPoint,
     selectedMarket.id,
     selectedMarket.series,
@@ -1209,6 +1217,8 @@ const PredictCryptoUpDownMarketCard: React.FC<
             outcome: selectedOutcome,
             outcomeToken: token,
             entryPoint: resolvedEntryPoint,
+            ...(predictFeedTab && { predictFeedTab }),
+            ...(predictScreen && { predictScreen }),
             ...(transactionActiveAbTests?.length && {
               transactionActiveAbTests,
             }),
@@ -1223,6 +1233,8 @@ const PredictCryptoUpDownMarketCard: React.FC<
       executeGuardedAction,
       onBuyButtonPress,
       openBuySheet,
+      predictFeedTab,
+      predictScreen,
       resolvedEntryPoint,
       selectedMarket,
       selectedOutcome,

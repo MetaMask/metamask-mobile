@@ -26,8 +26,20 @@ interface QuickBuyAmountSectionProps {
   amountDisplayMode: QuickBuyAmountDisplayMode;
   usdAmount: string;
   destSymbol: string;
+  /** Estimated amount received in the dest token from the quote. */
   estimatedReceiveAmount: string | undefined;
   isQuoteLoading: boolean;
+  /**
+   * When true, the user is acting on an unpriced source token (sell mode only).
+   * The headline switches to the entered source-token amount, the secondary
+   * line shows the estimated destination amount, and the fiat/crypto toggle is
+   * hidden because there's no fiat value to flip to.
+   */
+  isUnpricedSource?: boolean;
+  /** Source-token amount the user has entered (unpriced path). */
+  sourceCryptoAmount?: string;
+  /** Source token symbol (unpriced path), e.g. "CAKE". */
+  sourceSymbol?: string;
   hiddenInputRef: React.RefObject<TextInput | null>;
   onAmountAreaPress: () => void;
   onAmountChange: (text: string) => void;
@@ -39,6 +51,9 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   destSymbol,
   estimatedReceiveAmount,
   isQuoteLoading,
+  isUnpricedSource = false,
+  sourceCryptoAmount,
+  sourceSymbol,
   hiddenInputRef,
   onAmountAreaPress,
   onAmountChange,
@@ -48,9 +63,22 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
     ? `${formatTokenAmount(parseFloat(estimatedReceiveAmount))} ${destSymbol}`
     : `0 ${destSymbol}`;
 
-  const isCryptoPrimary = amountDisplayMode === 'crypto';
-  const primaryLabel = isCryptoPrimary ? cryptoAmountLabel : fiatAmountLabel;
-  const secondaryLabel = isCryptoPrimary ? fiatAmountLabel : cryptoAmountLabel;
+  let primaryLabel: string;
+  let secondaryLabel: string;
+
+  if (isUnpricedSource) {
+    // Source has no fiat rate: the headline must be the source token amount
+    // the user entered (slider or keyboard). The secondary line previews the
+    // estimated destination amount, which only appears once a quote lands.
+    const sourceLabel =
+      `${sourceCryptoAmount || '0'} ${sourceSymbol ?? ''}`.trim();
+    primaryLabel = sourceLabel;
+    secondaryLabel = `≈ ${cryptoAmountLabel}`;
+  } else {
+    const isCryptoPrimary = amountDisplayMode === 'crypto';
+    primaryLabel = isCryptoPrimary ? cryptoAmountLabel : fiatAmountLabel;
+    secondaryLabel = isCryptoPrimary ? fiatAmountLabel : cryptoAmountLabel;
+  }
 
   return (
     <TouchableOpacity
@@ -86,7 +114,7 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
 
         <TextInput
           ref={hiddenInputRef}
-          value={usdAmount}
+          value={isUnpricedSource ? (sourceCryptoAmount ?? '') : usdAmount}
           onChangeText={onAmountChange}
           keyboardType="decimal-pad"
           returnKeyType="done"

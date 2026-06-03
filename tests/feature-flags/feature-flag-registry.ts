@@ -246,6 +246,20 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  batchSell: {
+    name: 'batchSell',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      versions: {
+        '7.81.0': {
+          enabled: false,
+        },
+      },
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   bridgeConfig: {
     name: 'bridgeConfig',
     type: FeatureFlagType.Remote,
@@ -3294,17 +3308,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: false,
       minimumVersion: '0.0.0',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  homepageSectionsV1: {
-    name: 'homepageSectionsV1',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      minimumVersion: '7.70.0',
-      enabled: true,
     },
     status: FeatureFlagStatus.Active,
   },

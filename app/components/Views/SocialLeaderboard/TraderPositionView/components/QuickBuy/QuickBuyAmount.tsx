@@ -10,20 +10,42 @@ const QuickBuyAmount: React.FC = () => {
     amountDisplayMode,
     usdAmount,
     target,
+    tradeMode,
+    hasSourcePrice,
+    sourceAmountTokens,
+    sourceTokenAmount,
+    sourceToken,
     estimatedReceiveAmount,
+    destToken,
     isQuoteLoading,
     hiddenInputRef,
     handleAmountAreaPress,
     handleAmountChange,
   } = useQuickBuyContext();
 
+  const isUnpricedSource = tradeMode === 'sell' && !hasSourcePrice;
+
+  // In sell mode (priced), the secondary label should show how much of the
+  // source token the user is selling, not how much destination they'll receive.
+  // In buy mode (or unpriced sell) keep the existing dest-token display.
+  const isSellPriced = tradeMode === 'sell' && hasSourcePrice;
+  const cryptoSymbol = isSellPriced
+    ? (sourceToken?.symbol ?? target.tokenSymbol)
+    : (destToken?.symbol ?? target.tokenSymbol);
+  const displayedCryptoAmount = isSellPriced
+    ? sourceTokenAmount
+    : estimatedReceiveAmount;
+
   return (
     <QuickBuyAmountSection
       amountDisplayMode={amountDisplayMode}
       usdAmount={usdAmount}
-      destSymbol={target.tokenSymbol}
-      estimatedReceiveAmount={estimatedReceiveAmount}
+      destSymbol={cryptoSymbol}
+      estimatedReceiveAmount={displayedCryptoAmount}
       isQuoteLoading={isQuoteLoading}
+      isUnpricedSource={isUnpricedSource}
+      sourceCryptoAmount={sourceAmountTokens}
+      sourceSymbol={sourceToken?.symbol ?? target.tokenSymbol}
       hiddenInputRef={hiddenInputRef}
       onAmountAreaPress={handleAmountAreaPress}
       onAmountChange={handleAmountChange}

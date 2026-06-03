@@ -12,6 +12,7 @@ import {
   POLYMARKET_PROVIDER_ID,
 } from './constants';
 import {
+  buildMarketListQueryParams,
   buildOutcomeGroups,
   calculateConservativeBuyMarketFee,
   clearClobMarketInfoCache,
@@ -20,6 +21,7 @@ import {
   deriveApiKey,
   fetchChildEventsFromGammaApi,
   fetchEventsFromPolymarketApi,
+  fetchMarketsFromPolymarketApi,
   getAllowance,
   getClobMarketInfo,
   getClobMarketInfoSafe,
@@ -28,10 +30,15 @@ import {
   getOrderBook,
   getRawBalance,
   parsePolymarketEvents,
+  parsePolymarketActivity,
   previewOrder,
   searchEventsFromPolymarketApi,
 } from './utils';
-import type { PolymarketApiEvent, PolymarketApiTeam } from './types';
+import type {
+  PolymarketApiActivity,
+  PolymarketApiEvent,
+  PolymarketApiTeam,
+} from './types';
 
 const mockSignTypedMessage = jest.fn();
 
@@ -119,6 +126,43 @@ describe('polymarket utils', () => {
     } as ReturnType<
       typeof Engine.context.NetworkController.getNetworkClientById
     >);
+  });
+
+  const createRawActivity = (
+    overrides: Partial<PolymarketApiActivity> = {},
+  ): PolymarketApiActivity => ({
+    type: 'TRADE',
+    side: 'BUY',
+    price: 0.5,
+    usdcSize: 10,
+    timestamp: 100,
+    transactionHash: '0xtransaction',
+    conditionId: 'condition-1',
+    outcomeIndex: 0,
+    title: 'Market',
+    outcome: 'Yes',
+    icon: 'icon.png',
+    ...overrides,
+  });
+
+  it('parses activity with deterministic ids when transaction hash is missing', () => {
+    const rawActivity = createRawActivity({
+      transactionHash: undefined as unknown as string,
+    });
+
+    const firstParse = parsePolymarketActivity([rawActivity]);
+    const secondParse = parsePolymarketActivity([rawActivity]);
+
+    expect(firstParse[0].id).toBe(secondParse[0].id);
+  });
+
+  it('parses same-transaction activity rows with distinct ids', () => {
+    const parsedActivity = parsePolymarketActivity([
+      createRawActivity({ conditionId: 'condition-1', outcomeIndex: 0 }),
+      createRawActivity({ conditionId: 'condition-2', outcomeIndex: 1 }),
+    ]);
+
+    expect(parsedActivity[0].id).not.toBe(parsedActivity[1].id);
   });
 
   it('groups tennis first set markets separately from game lines', () => {
@@ -635,6 +679,164 @@ describe('polymarket utils', () => {
       );
       expect(url).not.toContain('active=true');
       expect(url).not.toContain('offset=');
+    });
+  });
+
+  describe('buildMarketListQueryParams', () => {
+    it('applies open + volume24hr + limit 20 defaults with no params', () => {
+      const params = buildMarketListQueryParams();
+
+      expect(params.get('limit')).toBe('20');
+      expect(params.get('active')).toBe('true');
+      expect(params.get('archived')).toBe('false');
+      expect(params.get('closed')).toBe('false');
+      expect(params.get('order')).toBe('volume24hr');
+      expect(params.get('ascending')).toBe('false');
+    });
+
+    it.each([
+      ['volume24hr', { order: 'volume24hr', ascending: 'false' }],
+      ['liquidity', { order: 'liquidity', ascending: 'false' }],
+      ['ending_soon', { order: 'endDate', ascending: 'true' }],
+      ['newest', { order: 'startDate', ascending: 'false' }],
+    ] as const)('maps order=%s correctly', (order, expected) => {
+      const params = buildMarketListQueryParams({ order });
+
+      expect(params.get('order')).toBe(expected.order);
+      expect(params.get('ascending')).toBe(expected.ascending);
+    });
+
+    it('maps status=open to active/archived/closed flags', () => {
+      const params = buildMarketListQueryParams({ status: 'open' });
+
+      expect(params.get('active')).toBe('true');
+      expect(params.get('archived')).toBe('false');
+      expect(params.get('closed')).toBe('false');
+    });
+
+    it.each(['closed', 'resolved'] as const)(
+      'maps status=%s to closed=true',
+      (status) => {
+        const params = buildMarketListQueryParams({ status });
+
+        expect(params.get('closed')).toBe('true');
+        expect(params.get('active')).toBeNull();
+        expect(params.get('archived')).toBeNull();
+      },
+    );
+
+    it('appends multiple tags as repeated tag_id params', () => {
+      const params = buildMarketListQueryParams({ tags: ['100', '200'] });
+
+      expect(params.getAll('tag_id')).toEqual(['100', '200']);
+    });
+
+    it('appends multiple series as repeated series_id params', () => {
+      const params = buildMarketListQueryParams({ series: ['10', '20'] });
+
+      expect(params.getAll('series_id')).toEqual(['10', '20']);
+    });
+
+    it('sets live=true only when live is requested', () => {
+      expect(buildMarketListQueryParams({ live: true }).get('live')).toBe(
+        'true',
+      );
+      expect(
+        buildMarketListQueryParams({ live: false }).get('live'),
+      ).toBeNull();
+      expect(buildMarketListQueryParams().get('live')).toBeNull();
+    });
+
+    it('maps afterCursor to after_cursor and respects custom limit', () => {
+      const params = buildMarketListQueryParams({
+        limit: 50,
+        afterCursor: 'cursor-1',
+      });
+
+      expect(params.get('limit')).toBe('50');
+      expect(params.get('after_cursor')).toBe('cursor-1');
+    });
+
+    it('maps search to the title_search param', () => {
+      const params = buildMarketListQueryParams({ search: 'bitcoin' });
+
+      expect(params.get('title_search')).toBe('bitcoin');
+    });
+
+    it('trims the search value before applying title_search', () => {
+      const params = buildMarketListQueryParams({ search: '  bitcoin  ' });
+
+      expect(params.get('title_search')).toBe('bitcoin');
+    });
+
+    it.each(['', '   '])(
+      'does not set title_search for blank search (%j)',
+      (search) => {
+        const params = buildMarketListQueryParams({ search });
+
+        expect(params.get('title_search')).toBeNull();
+      },
+    );
+
+    it('does not set title_search when search is omitted', () => {
+      const params = buildMarketListQueryParams();
+
+      expect(params.get('title_search')).toBeNull();
+    });
+  });
+
+  describe('fetchMarketsFromPolymarketApi', () => {
+    it('hits the keyset endpoint and normalizes next_cursor to nextCursor', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          events: [{ id: 'event-1' }],
+          next_cursor: 'next-cursor',
+        }),
+      });
+
+      await expect(
+        fetchMarketsFromPolymarketApi({ order: 'liquidity', limit: 5 }),
+      ).resolves.toEqual({
+        events: [{ id: 'event-1' }],
+        nextCursor: 'next-cursor',
+      });
+
+      const [url] = mockFetch.mock.calls[0];
+      expect(url).toContain('https://gamma-api.polymarket.com/events/keyset?');
+      expect(url).toContain('order=liquidity');
+      expect(url).toContain('limit=5');
+    });
+
+    it('defaults nextCursor to null when absent', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ events: [] }),
+      });
+
+      await expect(fetchMarketsFromPolymarketApi()).resolves.toEqual({
+        events: [],
+        nextCursor: null,
+      });
+    });
+
+    it('throws when the response is not ok', async () => {
+      mockFetch.mockResolvedValue({ ok: false });
+
+      await expect(fetchMarketsFromPolymarketApi()).rejects.toThrow(
+        'Failed to list markets',
+      );
+    });
+
+    it('throws when events are malformed', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ events: null }),
+      });
+
+      await expect(fetchMarketsFromPolymarketApi()).rejects.toThrow(
+        'Malformed keyset events response',
+      );
     });
   });
 

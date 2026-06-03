@@ -1099,7 +1099,8 @@
       "fallback_title": "Position not available",
       "fallback_subtitle": "We couldn't load this position right now.",
       "fallback_back_to_profile": "Back to profile",
-      "fallback_back_to_leaderboard": "Back to leaderboard"
+      "fallback_back_to_leaderboard": "Back to leaderboard",
+      "sell": "Sell"
     },
     "quick_buy": {
       "title": "Buy {{symbol}}",
@@ -1125,7 +1126,11 @@
       "toggle_amount_display": "Switch between token and dollar amount",
       "includes_mm_fee": "Includes {{fee}}% MM fee",
       "pay_with_no_tokens": "No tokens available to pay with",
-      "pay_with_filter_all": "All"
+      "receive_with_no_tokens": "No tokens available to receive",
+      "pay_with_filter_all": "All",
+      "buy_label": "Buy",
+      "sell_label": "Sell",
+      "receive": "Receive"
     }
   },
   "perps": {
@@ -2313,8 +2318,8 @@
         "group_stage": "Group Stage",
         "round_of_32": "Round of 32",
         "round_of_16": "Round of 16",
-        "quarterfinals": "Quarterfinals",
-        "semifinals": "Semifinals",
+        "quarterfinals": "Quarter-finals",
+        "semifinals": "Semi-finals",
         "third_place": "Third Place",
         "final": "Final",
         "group_a": "Group A",
@@ -2328,8 +2333,7 @@
         "group_i": "Group I",
         "group_j": "Group J",
         "group_k": "Group K",
-        "group_l": "Group L",
-        "third_place_match": "Third Place Match"
+        "group_l": "Group L"
       }
     },
     "prediction_markets": "Prediction markets",
@@ -6953,8 +6957,11 @@
       "deposit_success_title_add_musd": "Funds added",
       "deposit_success_body": "{{amount}} added to Money account.",
       "deposit_success_body_no_amount": "Added to Money account.",
-      "withdraw_success_body": "{{amount}} moved to {{destination}}.",
-      "withdraw_success_body_no_amount": "Moved to {{destination}}.",
+      "withdraw_in_progress_title": "Transfer in progress",
+      "withdraw_success_title": "Transfer complete",
+      "withdraw_success_body": "{{amount}} added to {{destination}}.",
+      "withdraw_success_body_no_amount": "Added to {{destination}}.",
+      "withdraw_fallback_destination": "your account",
       "deposit_failed_title_convert": "Conversion failed",
       "deposit_failed_title_add_musd": "Failed to add funds",
       "deposit_failed_body_convert": "Unable to convert. Try again.",
@@ -9200,6 +9207,7 @@
       "predict_withdraw": "Withdrawal",
       "money_account_deposit": "Deposit to Money Account",
       "money_account_withdraw": "Transfer from Money Account",
+      "money_account_sent": "Sent {{symbol}}",
       "money_account_received": "Received",
       "default": "Transaction details"
     },
@@ -9211,11 +9219,16 @@
       "receive_token": "Receive token",
       "retry_button": "Try again",
       "total": "Total",
+      "total_amount": "Total amount",
       "account": "Account",
       "received_total": "Received total",
       "from": "From",
+      "to": "To",
+      "network": "Network",
+      "you_sent": "You sent",
       "token_received": "Token received"
     },
+    "view_on_block_explorer": "View on block explorer",
     "summary_title": {
       "bridge_approval": "Approve {{approveSymbol}}",
       "bridge_approval_loading": "Approve",
