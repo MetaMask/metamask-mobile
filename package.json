@@ -25,8 +25,8 @@
     "coverage:analyze": "node scripts/coverage-analysis.js",
     "coverage:files": "node scripts/coverage-analysis.js --files",
     "setup": "yarn clean && node scripts/setup.mjs",
-    "skills": "tsx scripts/skills-sync.mts",
-    "postinstall": "tsx scripts/skills-postinstall.mts",
+    "skills": "metamask-skills sync",
+    "postinstall": "yarn skills:postinstall",
     "setup:ci": "yarn clean:ios && yarn clean:android && node scripts/setup.mjs",
     "setup:github-ci": "node scripts/setup.mjs --build-on-github-ci",
     "eas": "eas",
@@ -163,7 +163,8 @@
     "a:ios": "scripts/perps/agentic/preflight.sh --platform ios --mode fast --wallet-setup",
     "a:android": "scripts/perps/agentic/preflight.sh --platform android --mode fast --wallet-setup",
     "a:setup:ios": "scripts/perps/agentic/preflight.sh --platform ios --mode clean --wallet-setup",
-    "a:setup:android": "scripts/perps/agentic/preflight.sh --platform android --mode clean --wallet-setup"
+    "a:setup:android": "scripts/perps/agentic/preflight.sh --platform android --mode clean --wallet-setup",
+    "skills:postinstall": "metamask-skills postinstall"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -579,6 +580,7 @@
     "@metamask/mobile-provider": "^3.0.0",
     "@metamask/object-multiplex": "^1.1.0",
     "@metamask/providers": "^18.3.1",
+    "@metamask/skills": "^0.1.0",
     "@metamask/test-dapp": "9.5.0",
     "@metamask/test-dapp-multichain": "^0.17.1",
     "@metamask/test-dapp-solana": "^0.3.0",
