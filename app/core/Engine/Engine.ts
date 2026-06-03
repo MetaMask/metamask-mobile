@@ -367,14 +367,10 @@ export class Engine {
         AccountActivityService: accountActivityServiceInit,
         OHLCVService: ohlcvServiceInit,
         ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+        SnapAccountService: snapAccountServiceInit,
         MultichainAssetsController: multichainAssetsControllerInit,
         MultichainAssetsRatesController: multichainAssetsRatesControllerInit,
         MultichainBalancesController: multichainBalancesControllerInit,
-        // SnapAccountService must come before MultichainRoutingService and
-        // MultichainAccountService, which both rely on it (the former via
-        // `getMessengerClient`, the latter via the `SnapAccountService:ensureReady`
-        // action).
-        SnapAccountService: snapAccountServiceInit,
         MultichainRoutingService: multichainRoutingServiceInit,
         MultichainTransactionsController: multichainTransactionsControllerInit,
         MultichainAccountService: multichainAccountServiceInit,
