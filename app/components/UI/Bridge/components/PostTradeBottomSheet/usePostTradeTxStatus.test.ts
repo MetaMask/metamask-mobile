@@ -38,6 +38,9 @@ const statusOf = (
 describe('usePostTradeTxStatus', () => {
   it('maps transaction and bridge statuses', () => {
     expect(statusOf(TxStatus.confirmed)).toBe(Status.Success);
+    expect(statusOf(TxStatus.confirmed, BridgeStatus.UNKNOWN)).toBe(
+      Status.Success,
+    );
     expect(statusOf(TxStatus.confirmed, undefined, true)).toBe(
       Status.InProgress,
     );
