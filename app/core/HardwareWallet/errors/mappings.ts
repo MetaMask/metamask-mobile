@@ -101,7 +101,7 @@ export const MOBILE_ERROR_EXTENSIONS: Partial<
     getLocalizedMessage: () => strings('hardware_wallet.errors.app_not_open'),
   },
   [ErrorCode.DeviceStateBlindSignNotSupported]: {
-    recoveryAction: RecoveryAction.ACKNOWLEDGE,
+    recoveryAction: RecoveryAction.RETRY,
     icon: IconName.Eye,
     iconColor: IconColor.Default,
     getLocalizedTitle: () =>
