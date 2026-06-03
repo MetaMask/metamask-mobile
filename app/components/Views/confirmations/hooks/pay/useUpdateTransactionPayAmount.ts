@@ -71,6 +71,14 @@ export function useUpdateTransactionPayAmount() {
 
   const updateTransactionPayAmount = useCallback(
     async (amountHuman: string) => {
+      console.log('OGP useUpdateTransactionPayAmount: called', {
+        amountHuman,
+        transactionId: transactionMeta?.id,
+        transactionType: transactionMeta?.type,
+        nestedTypes: transactionMeta?.nestedTransactions?.map((t) => t.type),
+        requiredAssets: transactionMeta?.requiredAssets,
+      });
+
       if (!transactionMeta) {
         return;
       }
@@ -80,6 +88,11 @@ export function useUpdateTransactionPayAmount() {
           TransactionType.moneyAccountDeposit,
         ])
       ) {
+        console.log('OGP useUpdateTransactionPayAmount: moneyAccountDeposit detected, calling syncRequiredAssets + applyAmountUpdates', {
+          amountHuman,
+          decimals: requiredTokens?.[0]?.decimals,
+          transactionId: transactionMeta.id,
+        });
         syncMoneyAccountDepositRequiredAssets(
           transactionMeta,
           amountHuman,
@@ -90,6 +103,7 @@ export function useUpdateTransactionPayAmount() {
           updateMoneyAccountDepositTokenAmount,
           'Failed to prepare Money Account deposit amount update',
         );
+        console.log('OGP useUpdateTransactionPayAmount: moneyAccountDeposit updates applied');
         return;
       }
 
@@ -124,8 +138,18 @@ function syncMoneyAccountDepositRequiredAssets(
   amountHuman: string,
   decimals: number | undefined,
 ): void {
+  console.log('OGP syncMoneyAccountDepositRequiredAssets: called', {
+    transactionId: transactionMeta.id,
+    amountHuman,
+    decimals,
+    existingRequiredAssets: transactionMeta.requiredAssets,
+  });
+
   const existing = transactionMeta.requiredAssets;
-  if (!existing?.length || decimals === undefined) return;
+  if (!existing?.length || decimals === undefined) {
+    console.log('OGP syncMoneyAccountDepositRequiredAssets: early return', { hasExisting: Boolean(existing?.length), decimals });
+    return;
+  }
 
   try {
     const amount = toHex(
@@ -134,6 +158,13 @@ function syncMoneyAccountDepositRequiredAssets(
         .decimalPlaces(0, BigNumber.ROUND_UP)
         .toFixed(0),
     ) as Hex;
+
+    console.log('OGP syncMoneyAccountDepositRequiredAssets: computed amount', {
+      amount,
+      previousAmount: existing[0].amount,
+      willUpdate: existing[0].amount !== amount,
+    });
+
     if (existing[0].amount === amount) return;
 
     updateTransaction(
@@ -143,6 +174,7 @@ function syncMoneyAccountDepositRequiredAssets(
       },
       'Money Account deposit: sync requiredAssets amount',
     );
+    console.log('OGP syncMoneyAccountDepositRequiredAssets: requiredAssets updated');
   } catch (error) {
     Logger.error(
       error as Error,

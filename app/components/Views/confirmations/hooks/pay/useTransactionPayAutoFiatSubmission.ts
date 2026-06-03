@@ -29,11 +29,17 @@ export function useTransactionPayAutoFiatSubmission(): void {
       return;
     }
 
+    console.log('OGP useTransactionPayAutoFiatSubmission: auto-submitting', {
+      orderId,
+      selectedPaymentMethodId,
+    });
+
     submittedOrderCodesRef.current.add(orderId);
 
     onConfirm({
       existingOrderId: orderId,
     }).catch((error) => {
+      console.log('OGP useTransactionPayAutoFiatSubmission: auto-submit failed', error);
       submittedOrderCodesRef.current.delete(orderId);
       log('Failed to auto-submit fiat transaction', error);
     });

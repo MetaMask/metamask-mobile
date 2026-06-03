@@ -222,20 +222,38 @@ export async function updateMoneyAccountDepositTokenAmount(
   transactionMeta: TransactionMeta,
   amountHuman: string,
 ): Promise<UpdateTransactionPayAmountCall[]> {
+  console.log('OGP moneyAccountTransactions: updateMoneyAccountDepositTokenAmount called', {
+    transactionId: transactionMeta.id,
+    amountHuman,
+    chainId: transactionMeta.chainId,
+  });
+
   const vaultConfig = selectMoneyAccountVaultConfig(
     ReduxService.store.getState() as RootState,
   );
-  if (!vaultConfig) return [];
+  if (!vaultConfig) {
+    console.log('OGP moneyAccountTransactions: no vaultConfig, returning []');
+    return [];
+  }
 
   const chainIdHex = transactionMeta.chainId as Hex;
   const provider = getProviderByChainId(chainIdHex);
-  if (!provider) return [];
+  if (!provider) {
+    console.log('OGP moneyAccountTransactions: no provider, returning []');
+    return [];
+  }
 
   const amount = BigInt(
     calcTokenValue(amountHuman, MUSD_DECIMALS)
       .decimalPlaces(0, BigNumber.ROUND_UP)
       .toFixed(0),
   );
+
+  console.log('OGP moneyAccountTransactions: building deposit batch', {
+    amount: amount.toString(),
+    boringVault: vaultConfig.boringVault,
+    tellerAddress: vaultConfig.tellerAddress,
+  });
 
   const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
     amount,
@@ -245,6 +263,12 @@ export async function updateMoneyAccountDepositTokenAmount(
     accountantAddress: vaultConfig.accountantAddress,
     lensAddress: vaultConfig.lensAddress,
     provider,
+  });
+
+  console.log('OGP moneyAccountTransactions: deposit batch built', {
+    approveDataPrefix: approveTx.params.data.slice(0, 10),
+    depositDataPrefix: depositTx.params.data.slice(0, 10),
+    transactionId: transactionMeta.id,
   });
 
   return [

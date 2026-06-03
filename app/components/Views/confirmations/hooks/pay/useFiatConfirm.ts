@@ -50,6 +50,7 @@ export function useFiatConfirm() {
       },
       {
         onOrderCreated: (orderIdFromCallback) => {
+          console.log('OGP - startHeadlessBuy - onOrderCreated', orderIdFromCallback);
           if (!transactionMetadata?.id) {
             return;
           }
@@ -61,12 +62,14 @@ export function useFiatConfirm() {
           });
         },
         onError: (error: HeadlessBuyError) => {
+          console.log('OGP - startHeadlessBuy - onError', error);
           setIsHeadlessBuyInProgress(false);
           setHeadlessBuyError(
             error.message ?? strings('alert_system.headless_buy_error.message'),
           );
         },
         onClose: () => {
+          console.log('OGP - startHeadlessBuy - onClose');
           setIsHeadlessBuyInProgress(false);
           setHeadlessBuyError(undefined);
         },
