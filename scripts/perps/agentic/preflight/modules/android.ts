@@ -211,13 +211,21 @@ export async function runAndroid(ctx: Ctx, logger: Logger): Promise<void> {
 
     const storeFp = useCache ? cache.fingerprint() : null;
     if (storeFp) {
-      if (cache.storeArtifact('android', storeFp, apk)) {
-        cache.snapshot('android', storeFp);
-        logger.ok(`Stored build in shared cache: fp=${storeFp.slice(0, 12)}`);
-        cache.recordInstall('android', storeFp, deviceId);
-        cache.prune('android');
-      } else {
-        logger.warn('Failed to store build in cache');
+      // Acquire a lock for the store if we don't already hold one (the lockless
+      // build path), so concurrent worktrees can't corrupt the shared cache —
+      // matches bash bc_with_lock.
+      const ownLock = lock ? null : await cache.acquireLock('android', storeFp);
+      try {
+        if (cache.storeArtifact('android', storeFp, apk)) {
+          cache.snapshot('android', storeFp);
+          logger.ok(`Stored build in shared cache: fp=${storeFp.slice(0, 12)}`);
+          cache.recordInstall('android', storeFp, deviceId);
+          cache.prune('android');
+        } else {
+          logger.warn('Failed to store build in cache');
+        }
+      } finally {
+        if (ownLock) await ownLock.release();
       }
     }
   } finally {

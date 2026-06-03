@@ -345,14 +345,22 @@ export async function runIos(ctx: Ctx, logger: Logger): Promise<void> {
     // install under the source fp so the next run's pre-pod lookup matches.
     const storeFp = useCache ? cache.fingerprint() : null;
     if (storeFp) {
-      if (cache.storeArtifact('ios', storeFp, app)) {
-        cache.snapshot('ios', storeFp);
-        logger.ok(`Stored build in shared cache: fp=${storeFp.slice(0, 12)}`);
-        await storeSourceAlias(cache, logger, sourceFp, storeFp, app);
-        cache.recordInstall('ios', sourceFp && sourceFp !== storeFp ? sourceFp : storeFp, ctx.simTarget);
-        cache.prune('ios');
-      } else {
-        logger.warn('Failed to store build in cache');
+      // Acquire a lock for the store if we don't already hold one (the lockless
+      // build path), so concurrent worktrees can't corrupt the shared cache —
+      // matches bash bc_with_lock.
+      const ownLock = lock ? null : await cache.acquireLock('ios', storeFp);
+      try {
+        if (cache.storeArtifact('ios', storeFp, app)) {
+          cache.snapshot('ios', storeFp);
+          logger.ok(`Stored build in shared cache: fp=${storeFp.slice(0, 12)}`);
+          await storeSourceAlias(cache, logger, sourceFp, storeFp, app);
+          cache.recordInstall('ios', sourceFp && sourceFp !== storeFp ? sourceFp : storeFp, ctx.simTarget);
+          cache.prune('ios');
+        } else {
+          logger.warn('Failed to store build in cache');
+        }
+      } finally {
+        if (ownLock) await ownLock.release();
       }
     }
   } finally {

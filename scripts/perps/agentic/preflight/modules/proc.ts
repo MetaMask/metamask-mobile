@@ -48,6 +48,9 @@ const signal = (pid: number, sig: NodeJS.Signals): void => {
 // SIGTERM the whole tree, wait up to 2s, then SIGKILL survivors. Scoped strictly
 // to descendants of `root` — safe for parallel worktrees.
 export async function killTree(root: number): Promise<void> {
+  // A pid of 0 (or negative) makes process.kill signal the entire process group
+  // — including this orchestrator. A missing child pid must never reach here.
+  if (root <= 0) return;
   const pids = collectTree(root);
   for (const p of pids) signal(p, 'SIGTERM');
   for (let t = 0; t < 20; t += 1) {
