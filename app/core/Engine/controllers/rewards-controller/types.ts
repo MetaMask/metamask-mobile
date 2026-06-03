@@ -255,6 +255,7 @@ export interface ApplyBonusCodeDto {
 export enum CampaignType {
   ONDO_HOLDING = 'ONDO_HOLDING',
   PERPS_TRADING = 'PERPS_TRADING',
+  PREDICT_THE_PITCH = 'PREDICT_THE_PITCH',
   SEASON_1 = 'SEASON_1',
 }
 
@@ -312,7 +313,7 @@ export interface CampaignDto {
    * The details of the campaign
    * @example { howItWorks: { title: 'How it works', description: 'How it works', phases: [{ name: 'Phase 1', daysLabel: 'Days', sortOrder: 1, steps: [{ title: 'Step 1', description: 'Step 1', iconName: 'icon-name' }] }] } }
    */
-  details: CampaignDetails | null;
+  details: CampaignDetailsDto | null;
 
   /**
    * Whether this campaign is featured (shown prominently in the UI)
@@ -328,42 +329,42 @@ export interface CampaignDto {
 }
 
 /**
- * Serializable version of OndoCampaignStep for state storage.
+ * Serializable version of CampaignStep for state storage.
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type OndoCampaignStepState = {
+export type CampaignStepState = {
   title: string;
   description: Json | null;
   iconName: string;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type OndoCampaignTourActionsState = {
+export type CampaignTourActionsState = {
   next?: boolean;
   skip?: boolean;
 };
 
 /**
- * Serializable version of OndoCampaignTourStepDto for state storage.
+ * Serializable version of CampaignTourStepDto for state storage.
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type OndoCampaignTourStepDtoState = {
+export type CampaignTourStepDtoState = {
   title: string;
   description: string;
   image: ThemeImageState | null;
-  actions: OndoCampaignTourActionsState | null;
+  actions: CampaignTourActionsState | null;
 };
 
 /**
- * Serializable version of OndoCampaignHowItWorks for state storage.
+ * Serializable version of CampaignHowItWorks for state storage.
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type OndoCampaignHowItWorksState = {
+export type CampaignHowItWorksState = {
   title: string;
   description: string;
-  steps: OndoCampaignStepState[];
+  steps: CampaignStepState[];
   notes?: Json | null;
-  tour?: OndoCampaignTourStepDtoState[];
+  tour?: CampaignTourStepDtoState[];
 };
 
 /**
@@ -376,12 +377,11 @@ export type ThemeImageState = {
 };
 
 /**
- * Serializable version of CampaignDetails for state storage.
+ * Serializable base campaign details for state storage.
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CampaignDetailsState = {
-  howItWorks: OndoCampaignHowItWorksState;
-  tiers?: OndoCampaignTierState[];
+  howItWorks: CampaignHowItWorksState;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -389,6 +389,20 @@ export type OndoCampaignTierState = {
   name: string;
   minNetDeposit: number;
 };
+
+export type OndoHoldingDetailsState = CampaignDetailsState & {
+  tiers?: OndoCampaignTierState[];
+};
+
+export type PerpsTradingCampaignDetailsState = CampaignDetailsState;
+
+export type PredictThePitchCampaignDetailsState = CampaignDetailsState;
+
+export type CampaignDetailsDtoState =
+  | CampaignDetailsState
+  | OndoHoldingDetailsState
+  | PerpsTradingCampaignDetailsState
+  | PredictThePitchCampaignDetailsState;
 
 /**
  * Serializable version of CampaignDto for state storage.
@@ -405,7 +419,7 @@ export type CampaignDtoState = {
   excludedRegions: string[];
   statusLabel: string;
   image: ThemeImageState | null;
-  details: CampaignDetailsState | null;
+  details: CampaignDetailsDtoState | null;
   featured: boolean;
   showUpcomingDate: boolean;
 };
@@ -1052,30 +1066,30 @@ export type CampaignParticipantStatusState = {
   lastFetched: number;
 };
 
-export interface OndoCampaignStep {
+export interface CampaignStep {
   title: string;
   description: Json | null;
   iconName: string;
 }
 
-export interface OndoCampaignTourActions {
+export interface CampaignTourActions {
   next?: boolean;
   skip?: boolean;
 }
 
-export interface OndoCampaignTourStepDto {
+export interface CampaignTourStepDto {
   title: string;
   description: string;
   image: ThemeImage | null;
-  actions: OndoCampaignTourActions | null;
+  actions: CampaignTourActions | null;
 }
 
-export interface OndoCampaignHowItWorks {
+export interface CampaignHowItWorks {
   title: string;
   description: string;
-  steps: OndoCampaignStep[];
+  steps: CampaignStep[];
   notes?: Json | null;
-  tour?: OndoCampaignTourStepDto[];
+  tour?: CampaignTourStepDto[];
 }
 
 export interface OndoCampaignTier {
@@ -1083,12 +1097,210 @@ export interface OndoCampaignTier {
   minNetDeposit: number;
 }
 
-export interface OndoHoldingDetails {
-  howItWorks: OndoCampaignHowItWorks;
+export interface CampaignDetails {
+  howItWorks: CampaignHowItWorks;
+}
+
+export interface OndoHoldingDetails extends CampaignDetails {
   tiers?: OndoCampaignTier[];
 }
 
-export type CampaignDetails = OndoHoldingDetails;
+export type PerpsTradingCampaignDetails = CampaignDetails;
+
+// ─── Predict The Pitch Campaign ───────────────────────────────────────────
+
+export type PredictThePitchCampaignDetails = CampaignDetails;
+
+export type CampaignDetailsDto =
+  | CampaignDetails
+  | OndoHoldingDetails
+  | PerpsTradingCampaignDetails
+  | PredictThePitchCampaignDetails;
+
+export interface PredictThePitchEligibleMarketDto {
+  displayName: string;
+  navId: string | null;
+  conditionId: string;
+  marketSlug: string | null;
+  eventSlug: string | null;
+  iconUrl: string | null;
+  flags: string[];
+  bucket: 'games' | 'props' | string;
+}
+
+export interface PredictThePitchEligibleMarketsDto {
+  games: PredictThePitchEligibleMarketDto[];
+  props: PredictThePitchEligibleMarketDto[];
+}
+
+export interface PredictThePitchLeaderboardEntryDto {
+  rank: number;
+  referralCode: string;
+  roi: number;
+  pnl: number;
+  capitalDeployed: number;
+}
+
+export interface PredictThePitchLeaderboardDto {
+  campaignId: string;
+  computedAt: string;
+  updateIntervalMinutes: number;
+  entries: PredictThePitchLeaderboardEntryDto[];
+  totalParticipants: number;
+}
+
+export interface PredictThePitchLeaderboardPositionDto {
+  rank: number | null;
+  totalParticipants: number;
+  roi: number;
+  pnl: number;
+  capitalDeployed: number;
+  marketCount: number;
+  eligible: boolean;
+  neighbors: PredictThePitchLeaderboardEntryDto[];
+  computedAt: string;
+  updateIntervalMinutes: number;
+}
+
+export interface PredictThePitchPositionDto {
+  conditionId: string;
+  displayName: string;
+  navId: string | null;
+  marketSlug: string | null;
+  eventSlug: string | null;
+  iconUrl: string | null;
+  flags: string[];
+  moneySpent: number;
+  pnl: number;
+  roi: number;
+}
+
+export interface PredictThePitchPositionsDto {
+  positions: PredictThePitchPositionDto[];
+  computedAt: string | null;
+}
+
+export interface PredictThePitchCampaignParticipantOutcomeDto
+  extends BaseCampaignParticipantOutcomeDto {
+  rank?: number | null;
+}
+
+export interface PredictThePitchPrizeBreakdownEntryDto {
+  rank: number;
+  amountUsd: number;
+}
+
+export interface PredictThePitchPrizePoolDto {
+  totalVolumeUsd: number;
+  unlockedPoolUsd: number;
+  thresholdsUsd: number[];
+  poolScheduleUsd: number[];
+  breakdown: PredictThePitchPrizeBreakdownEntryDto[];
+  computedAt: string | null;
+}
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictThePitchEligibleMarketState = {
+  displayName: string;
+  navId: string | null;
+  conditionId: string;
+  marketSlug: string | null;
+  eventSlug: string | null;
+  iconUrl: string | null;
+  flags: string[];
+  bucket: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictThePitchEligibleMarketsState = {
+  games: PredictThePitchEligibleMarketState[];
+  props: PredictThePitchEligibleMarketState[];
+  lastFetched: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictThePitchLeaderboardEntryState = {
+  rank: number;
+  referralCode: string;
+  roi: number;
+  pnl: number;
+  capitalDeployed: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictThePitchLeaderboardState = {
+  campaignId: string;
+  computedAt: string;
+  updateIntervalMinutes: number;
+  entries: PredictThePitchLeaderboardEntryState[];
+  totalParticipants: number;
+  lastFetched: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictThePitchLeaderboardPositionFoundState = {
+  rank: number | null;
+  totalParticipants: number;
+  roi: number;
+  pnl: number;
+  capitalDeployed: number;
+  marketCount: number;
+  eligible: boolean;
+  neighbors: PredictThePitchLeaderboardEntryState[];
+  computedAt: string;
+  updateIntervalMinutes: number;
+  lastFetched: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictThePitchLeaderboardPositionNotFoundState = {
+  notFound: true;
+  lastFetched: number;
+};
+
+export type PredictThePitchLeaderboardPositionState =
+  | PredictThePitchLeaderboardPositionFoundState
+  | PredictThePitchLeaderboardPositionNotFoundState;
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictThePitchPositionState = {
+  conditionId: string;
+  displayName: string;
+  navId: string | null;
+  marketSlug: string | null;
+  eventSlug: string | null;
+  iconUrl: string | null;
+  flags: string[];
+  moneySpent: number;
+  pnl: number;
+  roi: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictThePitchPositionsState = {
+  positions: PredictThePitchPositionState[];
+  computedAt: string | null;
+  lastFetched: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictThePitchPrizeBreakdownEntryState = {
+  rank: number;
+  amountUsd: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictThePitchPrizePoolState = {
+  totalVolumeUsd: number;
+  unlockedPoolUsd: number;
+  thresholdsUsd: number[];
+  poolScheduleUsd: number[];
+  breakdown: PredictThePitchPrizeBreakdownEntryState[];
+  computedAt: string | null;
+  lastFetched: number;
+};
+
+// ─── End Predict The Pitch Campaign ───────────────────────────────────────
 
 /**
  * Campaign status derived from dates
@@ -2151,6 +2363,24 @@ export type RewardsControllerState = {
   /** Perps Trading Campaign volume keyed by campaignId (public endpoint). */
   perpsTradingCampaignVolume: {
     [campaignId: string]: PerpsTradingCampaignVolumeState;
+  };
+  /** Predict The Pitch eligible markets (public endpoint). */
+  predictThePitchEligibleMarkets: PredictThePitchEligibleMarketsState | null;
+  /** Predict The Pitch leaderboard keyed by campaignId (public endpoint). */
+  predictThePitchLeaderboard: {
+    [campaignId: string]: PredictThePitchLeaderboardState;
+  };
+  /** Predict The Pitch leaderboard position keyed by compositeId (subscriptionId:campaignId). */
+  predictThePitchLeaderboardPositions: {
+    [compositeId: string]: PredictThePitchLeaderboardPositionState;
+  };
+  /** Predict The Pitch positions keyed by compositeId (subscriptionId:campaignId). */
+  predictThePitchPositions: {
+    [compositeId: string]: PredictThePitchPositionsState;
+  };
+  /** Predict The Pitch prize pool keyed by campaignId (public endpoint). */
+  predictThePitchPrizePool: {
+    [campaignId: string]: PredictThePitchPrizePoolState;
   };
   /** Cached client version requirements for the public version guard endpoint. */
   clientVersionRequirements: ClientVersionRequirementState | null;

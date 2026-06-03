@@ -763,6 +763,36 @@ export type RewardsControllerInvalidateSubscriptionCacheAction = {
   handler: RewardsController['invalidateSubscriptionCache'];
 };
 
+export type RewardsControllerGetPredictThePitchEligibleMarketsAction = {
+  type: `RewardsController:getPredictThePitchEligibleMarkets`;
+  handler: RewardsController['getPredictThePitchEligibleMarkets'];
+};
+
+export type RewardsControllerGetPredictThePitchLeaderboardAction = {
+  type: `RewardsController:getPredictThePitchLeaderboard`;
+  handler: RewardsController['getPredictThePitchLeaderboard'];
+};
+
+export type RewardsControllerGetPredictThePitchLeaderboardPositionAction = {
+  type: `RewardsController:getPredictThePitchLeaderboardPosition`;
+  handler: RewardsController['getPredictThePitchLeaderboardPosition'];
+};
+
+export type RewardsControllerGetPredictThePitchPositionsAction = {
+  type: `RewardsController:getPredictThePitchPositions`;
+  handler: RewardsController['getPredictThePitchPositions'];
+};
+
+export type RewardsControllerGetPredictThePitchParticipantOutcomeAction = {
+  type: `RewardsController:getPredictThePitchParticipantOutcome`;
+  handler: RewardsController['getPredictThePitchParticipantOutcome'];
+};
+
+export type RewardsControllerGetPredictThePitchPrizePoolAction = {
+  type: `RewardsController:getPredictThePitchPrizePool`;
+  handler: RewardsController['getPredictThePitchPrizePool'];
+};
+
 /**
  * Get the perps trading campaign leaderboard.
  * This is a public endpoint - no authentication required.
@@ -880,6 +910,12 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetClientVersionRequirementsAction
   | RewardsControllerInvalidateReferralDetailsCacheAction
   | RewardsControllerInvalidateSubscriptionCacheAction
+  | RewardsControllerGetPredictThePitchEligibleMarketsAction
+  | RewardsControllerGetPredictThePitchLeaderboardAction
+  | RewardsControllerGetPredictThePitchLeaderboardPositionAction
+  | RewardsControllerGetPredictThePitchPositionsAction
+  | RewardsControllerGetPredictThePitchParticipantOutcomeAction
+  | RewardsControllerGetPredictThePitchPrizePoolAction
   | RewardsControllerGetPerpsTradingCampaignLeaderboardAction
   | RewardsControllerGetPerpsTradingCampaignLeaderboardPositionAction
   | RewardsControllerGetPerpsTradingCampaignVolumeAction;
