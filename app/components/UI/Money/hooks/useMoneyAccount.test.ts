@@ -188,6 +188,7 @@ describe('useMoneyAccountDeposit', () => {
     ).rejects.toThrow('No provider available');
 
     expect(mockBuildDepositBatch).not.toHaveBeenCalled();
+    expect(mockCancelInternalTransactionApprovals).not.toHaveBeenCalled();
   });
 
   it('builds deposit batch, navigates, and submits transaction', async () => {
@@ -346,6 +347,7 @@ describe('useMoneyAccountDeposit', () => {
 
     expect(mockBuildDepositBatch).not.toHaveBeenCalled();
     expect(getNavigateToConfirmation()).not.toHaveBeenCalled();
+    expect(mockCancelInternalTransactionApprovals).not.toHaveBeenCalled();
   });
 
   it('cancels stale internal transaction approvals before navigating or submitting the batch', async () => {
@@ -385,6 +387,21 @@ describe('useMoneyAccountDeposit', () => {
     ).rejects.toThrow('Missing vault config');
 
     expect(mockCancelInternalTransactionApprovals).not.toHaveBeenCalled();
+  });
+
+  it('does not cancel approvals when building the deposit batch fails', async () => {
+    mockBuildDepositBatch.mockRejectedValueOnce(new Error('build failed'));
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await expect(
+      act(async () => {
+        await result.current.initiateDeposit();
+      }),
+    ).rejects.toThrow('build failed');
+
+    expect(mockCancelInternalTransactionApprovals).not.toHaveBeenCalled();
+    expect(getNavigateToConfirmation()).not.toHaveBeenCalled();
   });
 });
 

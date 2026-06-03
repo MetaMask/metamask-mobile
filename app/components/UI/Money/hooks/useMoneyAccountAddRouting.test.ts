@@ -166,6 +166,21 @@ describe('useMoneyAccountAddRouting', () => {
         assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[MUSD_CONVERSION_DEFAULT_CHAIN_ID],
       });
     });
+
+    it('falls back to the default chain mUSD asset id when the resolved chain has no mapped asset id', () => {
+      mockGetChainIdForBuyFlow.mockReturnValue(CHAIN_IDS.ARBITRUM);
+      setupMocks();
+
+      const { result } = renderHook(() => useMoneyAccountAddRouting());
+
+      act(() => {
+        result.current.depositFunds();
+      });
+
+      expect(mockGoToBuy).toHaveBeenCalledWith({
+        assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[MUSD_CONVERSION_DEFAULT_CHAIN_ID],
+      });
+    });
   });
 
   describe('moveMusd', () => {

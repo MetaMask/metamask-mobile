@@ -46,7 +46,10 @@ export const useMoneyAccountAddRouting =
       const chainId = getChainIdForBuyFlow
         ? getChainIdForBuyFlow()
         : MUSD_CONVERSION_DEFAULT_CHAIN_ID;
-      goToBuy({ assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[chainId] });
+      const assetId =
+        MUSD_TOKEN_ASSET_ID_BY_CHAIN[chainId] ??
+        MUSD_TOKEN_ASSET_ID_BY_CHAIN[MUSD_CONVERSION_DEFAULT_CHAIN_ID];
+      goToBuy({ assetId });
     }, [getChainIdForBuyFlow, goToBuy]);
 
     const moveMusd = useCallback(() => {

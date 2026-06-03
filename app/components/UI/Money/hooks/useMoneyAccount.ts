@@ -74,8 +74,6 @@ export function useMoneyAccountDeposit() {
         throw new Error(`${LOG_TAG} Missing money account address`);
       }
 
-      cancelInternalTransactionApprovals();
-
       const {
         chainId,
         boringVault,
@@ -106,6 +104,8 @@ export function useMoneyAccountDeposit() {
         lensAddress,
         provider,
       });
+
+      cancelInternalTransactionApprovals();
 
       // Navigate early for better UX; recover on failure below.
       navigateToConfirmation({
