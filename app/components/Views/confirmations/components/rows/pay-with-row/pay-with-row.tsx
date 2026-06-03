@@ -189,7 +189,9 @@ function PayWithRowInteractive() {
             <Icon
               name={IconName.ArrowDown}
               size={IconSize.Sm}
-              color={isDisabled ? IconColor.Muted : IconColor.Alternative}
+              color={
+                isDisabled ? IconColor.IconMuted : IconColor.IconAlternative
+              }
             />
           )}
         </Box>
@@ -254,7 +256,7 @@ function PayWithFiatPaymentMethodRow({
             <Icon
               name={IconName.ArrowDown}
               size={IconSize.Sm}
-              color={disabled ? IconColor.Muted : IconColor.Alternative}
+              color={disabled ? IconColor.IconMuted : IconColor.IconAlternative}
             />
           )}
         </Box>
@@ -317,7 +319,7 @@ function PayWithRowMoneyAccount() {
           <Icon
             name={IconName.ArrowDown}
             size={IconSize.Sm}
-            color={IconColor.Alternative}
+            color={IconColor.IconAlternative}
           />
         </Box>
       </Box>
