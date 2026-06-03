@@ -68,18 +68,13 @@ describe('NewUserSheet', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders both preview notification cards', () => {
+  it('renders the preview notification card', () => {
     const { getByText } = renderWithProvider(
       <NewUserSheet {...defaultProps} />,
     );
     expect(
       getByText(
         strings('notifications.push_onboarding.new_user.preview_card_1.title'),
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      getByText(
-        strings('notifications.push_onboarding.new_user.preview_card_2.title'),
       ),
     ).toBeOnTheScreen();
   });
