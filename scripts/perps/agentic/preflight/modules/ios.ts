@@ -285,6 +285,9 @@ export async function runIos(ctx: Ctx, logger: Logger): Promise<void> {
             logger.ok(`Cache: installed app matches fingerprint ${fp.slice(0, 12)} on ${ctx.simTarget} — no native action needed`);
             return;
           }
+          if (ctx.checkOnly) {
+            logger.fail('Installed app matches fingerprint, but --wallet-setup requires a data wipe and --check-only forbids reinstall');
+          }
           if (cache.hasArtifact('ios', fp) && (await installCachedArtifact(ctx, logger, cache, fp))) {
             return;
           }
