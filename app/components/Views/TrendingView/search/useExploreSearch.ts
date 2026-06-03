@@ -17,7 +17,6 @@ export type SearchFeedId =
   | 'sites';
 
 const DEBOUNCE_MS = 200;
-const PREDICTIONS_SEARCH_PAGE_SIZE = 20;
 
 export interface SearchFeedSection<T = unknown> {
   feedId: SearchFeedId;
@@ -60,7 +59,6 @@ export const useExploreSearch = (
   const predictions = usePredictionsFeed({
     variant: 'trending',
     query: debouncedQuery,
-    pageSize: PREDICTIONS_SEARCH_PAGE_SIZE,
   });
   const sites = useSitesFeed({ query: debouncedQuery });
 
@@ -95,6 +93,12 @@ export const useExploreSearch = (
         title: strings('trending.search_tabs.stocks'),
         items: stocks.data,
         isLoading: isDebouncing || stocks.isLoading,
+        ...(exposePagination && {
+          fetchMore: stocks.loadMore,
+          isFetchingMore: stocks.isLoadingMore,
+          hasMore: stocks.hasMore,
+          total: stocks.totalCount,
+        }),
       },
       {
         feedId: 'predictions',
@@ -131,6 +135,10 @@ export const useExploreSearch = (
     perps.isLoading,
     stocks.data,
     stocks.isLoading,
+    stocks.loadMore,
+    stocks.isLoadingMore,
+    stocks.hasMore,
+    stocks.totalCount,
     predictions.data,
     predictions.isLoading,
     predictions.fetchMore,

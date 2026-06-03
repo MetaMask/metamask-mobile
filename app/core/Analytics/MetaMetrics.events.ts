@@ -86,7 +86,9 @@ enum EVENT_NAME {
   NFT_DETAILS_OPENED = 'NFT Details Opened',
   TOKEN_LIST_ITEM_CLICKED = 'Token List Item Clicked',
   TOKEN_DETAILS_OPENED = 'Token Details Opened',
+  TOKEN_DETAILS_CLOSED = 'Token Details Closed',
   TOKEN_DETAILS_CTA_CLICKED = 'Token Details CTA Clicked',
+  TOKEN_DETAILS_ACTION_CLICKED = 'Token Details Action Clicked',
   /**
    * Token overview advanced chart: zoom, pan, tooltip, timeframe change, chart type
    * toggle, or TradingView link (see `interaction_type` and optional properties).
@@ -157,6 +159,10 @@ enum EVENT_NAME {
   // Onboarding Interest Questionnaire
   ONBOARDING_INTEREST_QUESTION_VIEWED = 'Onboarding Interest Question Viewed',
   ONBOARDING_INTEREST_QUESTION_SUBMITTED = 'Onboarding Interest Question Submitted',
+
+  // Onboarding questionnaires (generic; discriminated by question_type)
+  ONBOARDING_QUESTION_VIEWED = 'Onboarding Question Viewed',
+  ONBOARDING_QUESTION_SUBMITTED = 'Onboarding Question Submitted',
 
   // Onboarding
   ONBOARDING_WELCOME_MESSAGE_VIEWED = 'Welcome Message Viewed',
@@ -414,6 +420,8 @@ enum EVENT_NAME {
   // Bridge
   BRIDGE_LINK_CLICKED = 'Bridge Linked Clicked',
   SWAP_PAGE_VIEWED = 'Unified SwapBridge Page Viewed',
+  /** Unified funnel: Predict / Perps / Swaps screen views (alongside legacy events). */
+  ASSET_VIEWED = 'Asset Viewed',
 
   // Earn
   EARN_EMPTY_STATE_CTA_CLICKED = 'Earn Empty State CTA Clicked',
@@ -749,6 +757,7 @@ enum EVENT_NAME {
   SOCIAL_QUICK_BUY_TRADE_SUBMITTED = 'Quick Buy Trade Submitted',
   SOCIAL_QUICK_BUY_TRADE_COMPLETED = 'Quick Buy Trade Completed',
   SOCIAL_QUICK_BUY_DISMISSED = 'Quick Buy Dismissed',
+  SOCIAL_QUICK_TRADE_MODE_TOGGLED = 'Quick Trade Mode Toggled',
   SOCIAL_FOLLOW_TRADING_NOTIFICATION_CLICKED = 'Follow Trading Notification Clicked',
   // Activity
   ACTIVITY_CLICKED = 'Activity Clicked',
@@ -960,6 +969,12 @@ const events = {
   ),
   ONBOARDING_INTEREST_QUESTION_SUBMITTED: generateOpt(
     EVENT_NAME.ONBOARDING_INTEREST_QUESTION_SUBMITTED,
+  ),
+  ONBOARDING_QUESTION_VIEWED: generateOpt(
+    EVENT_NAME.ONBOARDING_QUESTION_VIEWED,
+  ),
+  ONBOARDING_QUESTION_SUBMITTED: generateOpt(
+    EVENT_NAME.ONBOARDING_QUESTION_SUBMITTED,
   ),
   ONBOARDING_WELCOME_MESSAGE_VIEWED: generateOpt(
     EVENT_NAME.ONBOARDING_WELCOME_MESSAGE_VIEWED,
@@ -1644,7 +1659,11 @@ const events = {
     EVENT_NAME.EARN_TOKEN_LIST_ITEM_CLICKED,
   ),
   TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_DETAILS_OPENED),
+  TOKEN_DETAILS_CLOSED: generateOpt(EVENT_NAME.TOKEN_DETAILS_CLOSED),
   TOKEN_DETAILS_CTA_CLICKED: generateOpt(EVENT_NAME.TOKEN_DETAILS_CTA_CLICKED),
+  TOKEN_DETAILS_ACTION_CLICKED: generateOpt(
+    EVENT_NAME.TOKEN_DETAILS_ACTION_CLICKED,
+  ),
   CHART_INTERACTED: generateOpt(EVENT_NAME.CHART_INTERACTED),
   CHART_EMPTY_DISPLAYED: generateOpt(EVENT_NAME.CHART_EMPTY_DISPLAYED),
   SECURITY_TRUST_BOTTOM_SHEET_OPENED: generateOpt(
@@ -1665,6 +1684,7 @@ const events = {
 
   // Bridge
   SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED), // Temporary event until unified swap/bridge is done
+  ASSET_VIEWED: generateOpt(EVENT_NAME.ASSET_VIEWED),
 
   // RPC Failover
   RPC_SERVICE_UNAVAILABLE: generateOpt(EVENT_NAME.RPC_SERVICE_UNAVAILABLE),
@@ -1991,6 +2011,9 @@ const events = {
   ),
   SOCIAL_QUICK_BUY_DISMISSED: generateOpt(
     EVENT_NAME.SOCIAL_QUICK_BUY_DISMISSED,
+  ),
+  SOCIAL_QUICK_TRADE_MODE_TOGGLED: generateOpt(
+    EVENT_NAME.SOCIAL_QUICK_TRADE_MODE_TOGGLED,
   ),
   SOCIAL_FOLLOW_TRADING_NOTIFICATION_CLICKED: generateOpt(
     EVENT_NAME.SOCIAL_FOLLOW_TRADING_NOTIFICATION_CLICKED,

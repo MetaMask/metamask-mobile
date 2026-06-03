@@ -26,6 +26,7 @@
 // worktrees when those inputs match, which is the correct behaviour.
 
 const fp = require('@expo/fingerprint');
+const fs = require('fs');
 // Import the project's config so future additions to its extraSources
 // automatically flow into the agentic fingerprint. Using require here
 // (vs. literally copying the list) means a new entry in
@@ -75,13 +76,58 @@ const options = {
     'ios/Podfile.lock',
     'ios/Pods/**',
   ],
+  // package.json scripts (e.g. the agentic a:* entries) cannot affect the native
+  // binary, so editing one must not invalidate the build cache.
+  sourceSkips: fp.SourceSkips.PackageJsonScriptsAll,
 };
 
-fp.createFingerprintAsync(process.cwd(), options)
-  .then(({ hash }) => {
-    process.stdout.write(hash);
-  })
-  .catch((err) => {
-    process.stderr.write(`compute-cache-fp: ${err.message}\n`);
-    process.exit(1);
-  });
+// Diff two source lists by a stable key (file path, or id/reasons for non-file
+// sources), returning the inputs whose content changed since `prev`.
+function diffSources(prev, curr) {
+  const key = (s) => s.filePath || s.id || JSON.stringify(s.reasons || []);
+  const prevByKey = new Map(prev.map((s) => [key(s), s]));
+  const currByKey = new Map(curr.map((s) => [key(s), s]));
+  const changes = [];
+  for (const [k, s] of currByKey) {
+    const p = prevByKey.get(k);
+    if (!p) changes.push({ op: 'added', key: k, reasons: s.reasons || [] });
+    else if (p.hash !== s.hash) changes.push({ op: 'changed', key: k, reasons: s.reasons || [] });
+  }
+  for (const [k, s] of prevByKey) {
+    if (!currByKey.has(k)) changes.push({ op: 'removed', key: k, reasons: s.reasons || [] });
+  }
+  return changes;
+}
+
+async function main() {
+  const [mode, arg] = process.argv.slice(2);
+  const current = await fp.createFingerprintAsync(process.cwd(), options);
+
+  if (mode === '--json') {
+    // Full fingerprint (hash + sources), stored per build so a later cache miss
+    // can report what drifted.
+    process.stdout.write(JSON.stringify(current));
+    return;
+  }
+  if (mode === '--diff') {
+    // Inputs that changed vs a previously stored fingerprint JSON. Missing or
+    // unreadable snapshot → empty list (caller treats it as nothing to compare).
+    let prev = null;
+    try {
+      prev = JSON.parse(fs.readFileSync(arg, 'utf8'));
+    } catch {
+      prev = null;
+    }
+    process.stdout.write(
+      JSON.stringify(prev && prev.sources ? diffSources(prev.sources, current.sources) : []),
+    );
+    return;
+  }
+  // Default: the fingerprint hash — the cache key.
+  process.stdout.write(current.hash);
+}
+
+main().catch((err) => {
+  process.stderr.write(`compute-cache-fp: ${err.message}\n`);
+  process.exit(1);
+});

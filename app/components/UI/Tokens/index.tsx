@@ -35,7 +35,6 @@ import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/ass
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { SolScope } from '@metamask/keyring-api';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { selectHomepageSectionsV1Enabled } from '../../../selectors/featureFlagController/homepage';
 import { useRemoveToken } from './hooks/useRemoveToken';
 import { TokensEmptyState } from '../TokensEmptyState';
 import MusdConversionAssetListCta from '../Earn/components/Musd/MusdConversionAssetListCta';
@@ -44,6 +43,7 @@ import { isMusdToken } from '../Earn/constants/musd';
 import RemoveTokenBottomSheet from './TokenList/RemoveTokenBottomSheet';
 import { useMusdConversionEligibility } from '../Earn/hooks/useMusdConversionEligibility';
 import { strings } from '../../../../locales/i18n';
+import { selectMoneyHubEnabledFlag } from '../Money/selectors/featureFlags';
 
 interface TokensProps {
   /**
@@ -117,16 +117,12 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     const isMusdConversionFlowEnabled = useSelector(
       selectIsMusdConversionFlowEnabledFlag,
     );
+    const isMoneyHubEnabled = useSelector(selectMoneyHubEnabledFlag);
     const { isEligible: isGeoEligible } = useMusdConversionEligibility();
-    const isCashSectionEnabled = isMusdConversionFlowEnabled && isGeoEligible;
-    const isHomepageSectionsV1Enabled = useSelector(
-      selectHomepageSectionsV1Enabled,
-    );
-    // Only exclude mUSD from the main list when the Cash section is both enabled
-    // AND actually rendered (homepage sections redesign). Without this guard,
-    // the legacy wallet tab view would filter mUSD out with no Cash section to show it.
-    const shouldExcludeMusdFromMainList =
-      isCashSectionEnabled && isHomepageSectionsV1Enabled;
+    const isCashSectionEnabled =
+      isMusdConversionFlowEnabled && isMoneyHubEnabled && isGeoEligible;
+
+    const shouldExcludeMusdFromMainList = isCashSectionEnabled;
 
     const [hasInitialLoad, setHasInitialLoad] = useState(false);
     const hasTrackedScreenViewRef = useRef(false);
@@ -136,7 +132,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       selectSortedAssetsBySelectedAccountGroup,
     );
 
-    // When showOnlyMusd: only mUSD. When Cash section enabled + homepage sections on: exclude mUSD (shown in Cash section). Otherwise include all.
+    // When showOnlyMusd: only mUSD. When Cash section is enabled: exclude mUSD (shown in Cash section). Otherwise include all.
     const tokenKeysForList = useMemo(
       () =>
         showOnlyMusd

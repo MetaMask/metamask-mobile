@@ -72,6 +72,10 @@ jest.mock('./TokenList/TokenList', () => ({
   TokenList: jest.fn().mockImplementation(() => null),
 }));
 
+jest.mock('./TokenListControlBar/TokenListControlBar', () => ({
+  TokenListControlBar: jest.fn().mockImplementation(() => null),
+}));
+
 /**
  * For these unit tests, we do not need to test all the actual components, and can mock them.
  * If we do need to test the actual components in this test, we can use `mockReset` to get back the original component
@@ -491,7 +495,7 @@ describe('Tokens', () => {
       });
     });
 
-    it('includes mUSD when conversion flow is enabled but homepage sections are disabled (legacy wallet view)', async () => {
+    it('includes mUSD when conversion flow is enabled but Money Hub is disabled', async () => {
       const stateWithMusdEnabled = clone(initialRootState);
       (
         stateWithMusdEnabled as Record<string, unknown> &
@@ -532,7 +536,7 @@ describe('Tokens', () => {
       });
     });
 
-    it('excludes mUSD from token list when both conversion flow and homepage sections are enabled', async () => {
+    it('excludes mUSD from token list when conversion flow and Money Hub are enabled', async () => {
       const stateWithBothEnabled = clone(initialRootState);
       (
         stateWithBothEnabled as Record<string, unknown> &
@@ -545,7 +549,7 @@ describe('Tokens', () => {
             enabled: true,
             minimumVersion: '1.0.0',
           },
-          homepageSectionsV1: {
+          earnMoneyHubEnabled: {
             enabled: true,
             minimumVersion: '1.0.0',
           },

@@ -12,7 +12,6 @@ import { RampType } from '../../../reducers/fiatOrders/types';
 // Internal dependencies.
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
-import useRampNetwork from '../Ramp/Aggregator/hooks/useRampNetwork';
 import useDepositEnabled from '../Ramp/Deposit/hooks/useDepositEnabled';
 import useRampsUnifiedV1Enabled from '../Ramp/hooks/useRampsUnifiedV1Enabled';
 import { useRampNavigation } from '../Ramp/hooks/useRampNavigation';
@@ -28,7 +27,6 @@ jest.mock('react-redux', () => ({
   connect: jest.fn(() => (component: React.ComponentType) => component),
 }));
 jest.mock('../../hooks/useAnalytics/useAnalytics');
-jest.mock('../Ramp/Aggregator/hooks/useRampNetwork');
 jest.mock('../Ramp/Deposit/hooks/useDepositEnabled');
 jest.mock('../Ramp/hooks/useRampsUnifiedV1Enabled');
 jest.mock('../Ramp/hooks/useRampsUnifiedV2Enabled');
@@ -63,9 +61,6 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
 const mockUseRoute = useRoute as jest.MockedFunction<typeof useRoute>;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseAnalytics = jest.mocked(useAnalytics);
-const mockUseRampNetwork = useRampNetwork as jest.MockedFunction<
-  typeof useRampNetwork
->;
 const mockUseDepositEnabled = useDepositEnabled as jest.MockedFunction<
   typeof useDepositEnabled
 >;
@@ -108,7 +103,7 @@ describe('FundActionMenu', () => {
 
     mockUseSelector.mockImplementation((selector) => {
       const selectorString = selector.toString();
-      if (selectorString.includes('selectChainId')) return '0x1';
+      if (selectorString.includes('selectEvmChainId')) return '0x1';
       if (selectorString.includes('selectCanSignTransactions')) return true;
       return undefined;
     });
@@ -130,7 +125,6 @@ describe('FundActionMenu', () => {
       }),
     );
 
-    mockUseRampNetwork.mockReturnValue([true, true]);
     mockUseDepositEnabled.mockReturnValue({ isDepositEnabled: true });
     mockUseRampsUnifiedV1Enabled.mockReturnValue(false);
     mockUseRampNavigation.mockReturnValue({
@@ -176,7 +170,7 @@ describe('FundActionMenu', () => {
       ).toBeNull();
     });
 
-    it('renders buy button when ramp network is supported', () => {
+    it('renders buy button independently of the selected network', () => {
       const { getByTestId } = render(<FundActionMenu />);
 
       expect(
@@ -190,7 +184,7 @@ describe('FundActionMenu', () => {
       expect(buyButton).toHaveTextContent(/fund_actionmenu\.buy_description/);
     });
 
-    it('renders sell button when ramp network is supported', () => {
+    it('renders sell button independently of the selected network', () => {
       const { getByTestId } = render(<FundActionMenu />);
 
       expect(
@@ -204,20 +198,25 @@ describe('FundActionMenu', () => {
       expect(sellButton).toHaveTextContent(/fund_actionmenu\.sell_description/);
     });
 
-    it('does not render sell button when ramp network is not supported', () => {
-      mockUseRampNetwork.mockReturnValue([false, false]);
+    it('renders sell button when the selected network changes', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        const selectorString = selector.toString();
+        if (selectorString.includes('selectEvmChainId')) return '0x279f';
+        if (selectorString.includes('selectCanSignTransactions')) return true;
+        return undefined;
+      });
 
-      const { queryByTestId } = render(<FundActionMenu />);
+      const { getByTestId } = render(<FundActionMenu />);
 
       expect(
-        queryByTestId(WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON),
-      ).toBeNull();
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON),
+      ).toBeOnTheScreen();
     });
 
     it('renders sell button as disabled when user cannot sign transactions', () => {
       mockUseSelector.mockImplementation((selector) => {
         const selectorString = selector.toString();
-        if (selectorString.includes('selectChainId')) return '0x1';
+        if (selectorString.includes('selectEvmChainId')) return '0x1';
         if (selectorString.includes('selectCanSignTransactions')) return false;
         return undefined;
       });
@@ -294,7 +293,7 @@ describe('FundActionMenu', () => {
     it('does not trigger navigation when sell button is pressed but disabled', () => {
       mockUseSelector.mockImplementation((selector) => {
         const selectorString = selector.toString();
-        if (selectorString.includes('selectChainId')) return '0x1';
+        if (selectorString.includes('selectEvmChainId')) return '0x1';
         if (selectorString.includes('selectCanSignTransactions')) return false;
         return undefined;
       });
@@ -407,12 +406,11 @@ describe('FundActionMenu', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('shows buy button with custom onBuy even when ramp network is not supported', () => {
+    it('shows buy button with custom onBuy independently of the selected network', () => {
       const customOnBuy = jest.fn();
       mockUseRoute.mockReturnValue({
         params: { onBuy: customOnBuy },
       } as never);
-      mockUseRampNetwork.mockReturnValue([false, false]);
 
       const { getByTestId } = render(<FundActionMenu />);
 
@@ -608,7 +606,7 @@ describe('FundActionMenu', () => {
     it('handles different chain IDs correctly', () => {
       mockUseSelector.mockImplementation((selector) => {
         const selectorString = selector.toString();
-        if (selectorString.includes('selectChainId')) return '0x89';
+        if (selectorString.includes('selectEvmChainId')) return '0x89';
         if (selectorString.includes('selectCanSignTransactions')) return true;
         return undefined;
       });
@@ -658,7 +656,7 @@ describe('FundActionMenu', () => {
 
       mockUseSelector.mockImplementation((selector) => {
         const selectorString = selector.toString();
-        if (selectorString.includes('selectChainId')) return '0x1';
+        if (selectorString.includes('selectEvmChainId')) return '0x1';
         if (selectorString.includes('selectCanSignTransactions')) return false;
         return undefined;
       });
