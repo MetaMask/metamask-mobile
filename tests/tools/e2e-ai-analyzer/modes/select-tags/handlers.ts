@@ -649,6 +649,7 @@ const APP_CODE_TO_PERF_TAG_MAP: AppCodePerfTagEntry[] = [
   {
     patterns: [
       /^app\/components\/UI\/Perps\//,
+      /^app\/components\/Views\/Homepage\/Sections\/Perpetuals\//,
       /^app\/core\/Engine\/controllers\/perps-controller\//,
     ],
     tags: ['@PerformancePreps'],

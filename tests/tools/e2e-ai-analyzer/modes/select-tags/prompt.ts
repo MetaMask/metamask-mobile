@@ -59,7 +59,7 @@ PERFORMANCE FILE → TAG MAPPING (use this to guide your selection):
 - app/components/UI/Bridge/** or app/reducers/swaps** or app/selectors/swaps** → @PerformanceSwaps
 - app/components/Views/AccountSelector/** or app/component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/** → @PerformanceAccountList
 - app/core/Engine/controllers/assets-controller/** or app/core/Engine/controllers/multichain-balances-controller/** → @PerformanceAssetLoading
-- app/components/UI/Perps/** or app/core/Engine/controllers/perps-controller/** → @PerformancePreps
+- app/components/UI/Perps/** or app/components/Views/Homepage/Sections/Perpetuals/** or app/core/Engine/controllers/perps-controller/** → @PerformancePreps
 - app/components/UI/Predict/** or app/core/Engine/controllers/predict-controller/** → @PerformancePredict
 - app/core/LockManagerService/** → @PerformanceLogin + @PerformanceLaunch`;
 
