@@ -44,10 +44,12 @@ jest.mock('../../components/PredictPositionsHistoryList', () => {
 
   return function MockPredictPositionsHistoryList({
     claimPendingPositions,
+    onClaimPendingPositionsRefresh,
     isPrivacyMode,
     isVisible,
   }: {
     claimPendingPositions?: PredictPosition[];
+    onClaimPendingPositionsRefresh?: () => Promise<unknown> | void;
     isPrivacyMode?: boolean;
     isVisible: boolean;
   }) {
@@ -64,6 +66,11 @@ jest.mock('../../components/PredictPositionsHistoryList', () => {
         Text,
         null,
         `history-claim-pending-count:${claimPendingPositions?.length ?? 0}`,
+      ),
+      ReactLib.createElement(
+        Text,
+        null,
+        `history-refresh-present:${Boolean(onClaimPendingPositionsRefresh)}`,
       ),
       ReactLib.createElement(
         Text,
@@ -305,6 +312,7 @@ describe('PredictPositionsView', () => {
       screen.getByText('history-claim-pending-present:true'),
     ).toBeOnTheScreen();
     expect(screen.getByText('history-claim-pending-count:1')).toBeOnTheScreen();
+    expect(screen.getByText('history-refresh-present:true')).toBeOnTheScreen();
     expect(screen.getByText('history-privacy:true')).toBeOnTheScreen();
   });
 
@@ -343,6 +351,7 @@ describe('PredictPositionsView', () => {
       screen.getByText('history-claim-pending-present:false'),
     ).toBeOnTheScreen();
     expect(screen.getByText('history-claim-pending-count:0')).toBeOnTheScreen();
+    expect(screen.getByText('history-refresh-present:false')).toBeOnTheScreen();
   });
 
   it('navigates back when the back button is pressed and the stack can go back', () => {

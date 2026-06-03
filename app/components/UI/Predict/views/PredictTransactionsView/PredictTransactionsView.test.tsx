@@ -244,6 +244,7 @@ describe('PredictTransactionsView', () => {
 
   it('keeps claim pending positions visible with a retry path when initial activity request fails', async () => {
     const mockRefetch = jest.fn();
+    const mockRefreshClaimPendingPositions = jest.fn();
     (usePredictActivity as jest.Mock).mockReturnValueOnce(
       createUsePredictActivityValue({
         data: [],
@@ -255,6 +256,7 @@ describe('PredictTransactionsView', () => {
     render(
       <PredictTransactionsView
         claimPendingPositions={[createClaimPendingPosition()]}
+        onClaimPendingPositionsRefresh={mockRefreshClaimPendingPositions}
       />,
     );
 
@@ -275,6 +277,7 @@ describe('PredictTransactionsView', () => {
     });
 
     expect(mockRefetch).toHaveBeenCalledTimes(1);
+    expect(mockRefreshClaimPendingPositions).toHaveBeenCalledTimes(1);
   });
 
   it('displays loading feedback while retrying an initial activity error', () => {
@@ -733,8 +736,11 @@ describe('PredictTransactionsView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('passes refreshing state and triggers refresh handler on pull to refresh', async () => {
+  it('passes refreshing state and triggers activity and claim pending refresh handlers on pull to refresh', async () => {
     const mockRefetch = jest.fn().mockResolvedValue(undefined);
+    const mockRefreshClaimPendingPositions = jest
+      .fn()
+      .mockResolvedValue(undefined);
     const mockTimestamp = Math.floor(Date.now() / 1000);
     (usePredictActivity as jest.Mock).mockReturnValueOnce(
       createUsePredictActivityValue({
@@ -756,7 +762,11 @@ describe('PredictTransactionsView', () => {
       }),
     );
 
-    render(<PredictTransactionsView />);
+    render(
+      <PredictTransactionsView
+        onClaimPendingPositionsRefresh={mockRefreshClaimPendingPositions}
+      />,
+    );
 
     const sectionList = screen.UNSAFE_getByType(SectionList);
     expect(sectionList.props.refreshing).toBe(true);
@@ -766,6 +776,7 @@ describe('PredictTransactionsView', () => {
     });
 
     expect(mockRefetch).toHaveBeenCalledTimes(1);
+    expect(mockRefreshClaimPendingPositions).toHaveBeenCalledTimes(1);
   });
 
   it('fetches next activity page when the list end is reached', () => {
@@ -868,6 +879,7 @@ describe('PredictTransactionsView', () => {
   it('displays a footer retry state when a later activity page fails', () => {
     const mockFetchNextPage = jest.fn();
     const mockRefetch = jest.fn();
+    const mockRefreshClaimPendingPositions = jest.fn();
     const mockTimestamp = Math.floor(Date.now() / 1000);
     (usePredictActivity as jest.Mock).mockReturnValueOnce(
       createUsePredictActivityValue({
@@ -891,7 +903,11 @@ describe('PredictTransactionsView', () => {
       }),
     );
 
-    render(<PredictTransactionsView />);
+    render(
+      <PredictTransactionsView
+        onClaimPendingPositionsRefresh={mockRefreshClaimPendingPositions}
+      />,
+    );
 
     expect(
       screen.getByTestId(PREDICT_TRANSACTIONS_VIEW_TEST_IDS.FOOTER_ERROR_STATE),
@@ -904,6 +920,7 @@ describe('PredictTransactionsView', () => {
     );
 
     expect(mockRefetch).toHaveBeenCalledTimes(1);
+    expect(mockRefreshClaimPendingPositions).toHaveBeenCalledTimes(1);
     expect(mockFetchNextPage).not.toHaveBeenCalled();
   });
 

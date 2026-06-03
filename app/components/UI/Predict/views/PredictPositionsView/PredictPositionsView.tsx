@@ -195,6 +195,9 @@ const PredictPositionsView = () => {
                   ? portfolio.actionableClaimablePositions
                   : undefined
               }
+              onClaimPendingPositionsRefresh={
+                predictPortfolioEnabled ? portfolio.refetch : undefined
+              }
               isPrivacyMode={Boolean(privacyMode)}
               isVisible={isHistoryTabActive}
             />

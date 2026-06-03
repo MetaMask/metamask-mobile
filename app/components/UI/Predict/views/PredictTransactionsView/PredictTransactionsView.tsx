@@ -43,7 +43,13 @@ import type { PredictNavigationParamList } from '../../types/navigation';
 import Routes from '../../../../../constants/navigation/Routes';
 
 interface PredictTransactionsViewProps {
+  /**
+   * Actionable claimable winnings for the "Claim pending" section.
+   * Expected positions are won and have a positive current value; this view
+   * filters defensively so non-actionable positions cannot render here.
+   */
   claimPendingPositions?: PredictPosition[];
+  onClaimPendingPositionsRefresh?: () => Promise<unknown> | void;
   emptyState?: React.ReactNode;
   transactions?: unknown[];
   tabLabel?: string;
@@ -80,6 +86,19 @@ interface ClaimPendingPositionRowProps {
 const isActionableClaimPendingPosition = (position: PredictPosition) =>
   position.status === PredictPositionStatus.WON && position.currentValue > 0;
 
+const getClaimPendingPositionTitle = (
+  status: PredictPositionStatus,
+): string => {
+  switch (status) {
+    case PredictPositionStatus.LOST:
+      return strings('predict.transactions.prediction_lost_title');
+    case PredictPositionStatus.WON:
+      return strings('predict.transactions.prediction_won_title');
+    default:
+      return strings('predict.transactions.prediction_resolved_title');
+  }
+};
+
 const ClaimPendingPositionRow = ({
   containerStyle,
   isPrivacyMode,
@@ -95,7 +114,7 @@ const ClaimPendingPositionRow = ({
       entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
     });
   }, [navigation, position.marketId]);
-  const positionTitle = strings('predict.transactions.prediction_won_title');
+  const positionTitle = getClaimPendingPositionTitle(position.status);
   const formattedValue = formatPrice(position.currentValue, {
     minimumDecimals: 2,
     maximumDecimals: 2,
@@ -193,6 +212,7 @@ const getDateGroupLabel = (
 
 const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
   claimPendingPositions,
+  onClaimPendingPositionsRefresh,
   emptyState,
   isVisible,
   isPrivacyMode = false,
@@ -209,7 +229,7 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
     isFetchingNextPage,
     hasNextPage,
     fetchNextPage,
-    refetch,
+    refetch: refetchActivity,
   } = usePredictActivity();
 
   // Track screen load performance (activity data loaded)
@@ -471,9 +491,13 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
   const hasFooterError =
     Boolean(error) && hasContentSections && (!hasActivityItems || hasNextPage);
 
+  const handleRefresh = useCallback(async () => {
+    await Promise.all([refetchActivity(), onClaimPendingPositionsRefresh?.()]);
+  }, [onClaimPendingPositionsRefresh, refetchActivity]);
+
   const handleRetry = useCallback(() => {
-    void refetch();
-  }, [refetch]);
+    void handleRefresh();
+  }, [handleRefresh]);
 
   const renderFooter = useCallback(() => {
     if (
@@ -560,7 +584,7 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
       stickySectionHeadersEnabled
       refreshing={isRefetching}
       onRefresh={() => {
-        void refetch();
+        void handleRefresh();
       }}
       onEndReached={handleEndReached}
       onEndReachedThreshold={0.5}
