@@ -58,9 +58,9 @@ describe('CollapsibleSection', () => {
 
     fireEvent.press(section);
 
-    expect(getByText('Row 1')).toBeDefined();
-    expect(getByText('Foo')).toBeDefined();
-    expect(getByText('Row 2')).toBeDefined();
-    expect(getByText('Bar')).toBeDefined();
+    expect(getByText('Row 1')).toBeOnTheScreen();
+    expect(getByText('Foo')).toBeOnTheScreen();
+    expect(getByText('Row 2')).toBeOnTheScreen();
+    expect(getByText('Bar')).toBeOnTheScreen();
   });
 });
