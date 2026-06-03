@@ -193,11 +193,22 @@ function makeConservativeResult(
 }
 
 /**
+ * Intermediate test directories — page-objects, flows, selectors, locators.
+ * Changes here can chain through to spec files via one-hop imports.
+ */
+const INTERMEDIATE_TEST_DIRS = [
+  'tests/page-objects/',
+  'tests/flows/',
+  'tests/selectors/',
+  'tests/locators/',
+] as const;
+
+/**
  * Finds smoke/regression spec files that import a given file, resolving up to
- * one level of indirection through intermediate utility/flow files.
+ * one level of indirection through intermediate utility/flow/page-object files.
  *
  * Example: wallet.flow.ts → imported by 30 spec files (direct)
- * Example: ExperienceEnhancerBottomSheet.ts → imported by utils.ts → imported by seedless specs
+ * Example: TokenSelectors.ts → imported by TokenPage.ts → imported by token specs
  *
  * Uses execFileSync with an argument array (no shell) to avoid command injection.
  * Uses -F (fixed-string) so file stem is matched literally, not as a regex.
@@ -213,7 +224,7 @@ function findSpecFilesImporting(
       ?.replace(/\.(ts|tsx|js|jsx)$/, '') ?? '';
   if (!stem) return [];
 
-  const grepImporters = (name: string): string[] => {
+  const grepInDirs = (name: string, dirs: readonly string[]): string[] => {
     try {
       return execFileSync(
         'grep',
@@ -226,7 +237,7 @@ function findSpecFilesImporting(
           '--include=*.js',
           '--include=*.jsx',
           name,
-          ...SPEC_PATH_PREFIXES,
+          ...dirs,
         ],
         { encoding: 'utf-8', cwd: baseDir },
       )
@@ -239,12 +250,16 @@ function findSpecFilesImporting(
     }
   };
 
-  // Step 1: find direct importers within smoke/regression
-  const directImporters = grepImporters(stem);
+  // Step 1: find importers in spec dirs AND intermediate dirs (page-objects, flows, etc.)
+  const allTestDirs = [
+    ...SPEC_PATH_PREFIXES,
+    ...INTERMEDIATE_TEST_DIRS,
+  ] as const;
+  const directImporters = grepInDirs(stem, allTestDirs);
   const specFiles = directImporters.filter(isSpecFile);
   const utilImporters = directImporters.filter((f) => !isSpecFile(f));
 
-  // Step 2: one hop — find spec files that import the intermediate utility files
+  // Step 2: one hop — find spec files that import the intermediate files
   for (const util of utilImporters) {
     const utilStem =
       util
@@ -252,7 +267,9 @@ function findSpecFilesImporting(
         .pop()
         ?.replace(/\.(ts|tsx|js|jsx)$/, '') ?? '';
     if (!utilStem) continue;
-    const indirect = grepImporters(utilStem).filter(isSpecFile);
+    const indirect = grepInDirs(utilStem, SPEC_PATH_PREFIXES).filter(
+      isSpecFile,
+    );
     specFiles.push(...indirect);
   }
 
@@ -271,7 +288,7 @@ function extractTagsFromSpecFile(
   try {
     const content = readFileSync(join(baseDir, filePath), 'utf-8');
     const matches = content.matchAll(
-      /import\s*\{([^}]+)\}\s*from\s*['"][^'"]*\/tags['"]/g,
+      /import\s*\{([^}]+)\}\s*from\s*['"][^'"]*\/tags(?:\.js)?['"]/g,
     );
     const found: string[] = [];
     for (const match of matches) {
@@ -356,15 +373,24 @@ const HARD_RULES: HardRule[] = [
       if (hasNonTestChanges) return null;
 
       const validTags = new Set(SELECT_TAGS_CONFIG.map((c) => c.tag));
+
+      // Find spec files transitively affected by the infra changes
       const affectedSpecFiles = Array.from(
         new Set(
           infraFiles.flatMap((f) => findSpecFilesImporting(f, context.baseDir)),
         ),
       );
 
+      // Also include any spec files that were directly changed in the same PR
+      const directlyChangedSpecFiles = getChangedSpecFiles(changedFiles);
+
+      const allSpecFiles = Array.from(
+        new Set([...affectedSpecFiles, ...directlyChangedSpecFiles]),
+      );
+
       const selectedTags = Array.from(
         new Set(
-          affectedSpecFiles.flatMap((f) =>
+          allSpecFiles.flatMap((f) =>
             extractTagsFromSpecFile(f, context.baseDir, validTags),
           ),
         ),
@@ -377,18 +403,10 @@ const HARD_RULES: HardRule[] = [
 
       if (selectedTags.length === 0) {
         console.log(
-          '   No Detox spec files import these files — no tags needed.',
+          '   No Detox spec files import these files — falling through to next rule.',
         );
-        return {
-          selectedTags: [],
-          riskLevel: 'low',
-          confidence: 90,
-          reasoning: `Shared test infra changed (${infraFiles.join(', ')}) but no smoke/regression specs import them. No Detox tags needed.`,
-          performanceTests: {
-            selectedTags: [],
-            reasoning: 'No performance impact detected',
-          },
-        };
+        // Bug 4 fix: return null so test-spec-tag-extraction can handle directly-changed specs
+        return null;
       }
 
       console.log(`   Extracted tags: ${selectedTags.join(', ')}`);
