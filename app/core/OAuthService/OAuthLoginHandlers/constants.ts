@@ -44,7 +44,8 @@ const buildTypeMapping = (buildType: string, isDev: boolean) => {
   }
 };
 
-export const getBuildType = () => buildTypeMapping(
+export const getBuildType = () =>
+  buildTypeMapping(
     AppConstants.METAMASK_BUILD_TYPE || 'main',
     AppConstants.IS_DEV || process.env.METAMASK_ENVIRONMENT === 'dev',
   );
