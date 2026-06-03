@@ -1,12 +1,14 @@
 import { Messenger, MOCK_ANY_NAMESPACE } from '@metamask/messenger';
 import { getMnemonicSeed } from './utils';
-import { KeyringControllerWithKeyringAction } from '@metamask/keyring-controller';
-import { HdKeyring } from '@metamask/eth-hd-keyring';
+import { KeyringControllerWithKeyringV2Action } from '@metamask/keyring-controller';
+import { HdKeyring as LegacyHdKeyring } from '@metamask/eth-hd-keyring';
+import { HdKeyring } from '@metamask/eth-hd-keyring/v2';
+import { LedgerKeyring as LegacyLedgerKeyring } from '@metamask/eth-ledger-bridge-keyring';
+import { LedgerKeyring } from '@metamask/eth-ledger-bridge-keyring/v2';
 import { hexToBytes } from '@metamask/utils';
 import { mnemonicPhraseToBytes } from '@metamask/key-tree';
 import { mnemonicToSeed } from 'ethers/lib/utils';
-import { Keyring } from '@metamask/keyring-utils';
-import { LedgerKeyring } from '@metamask/eth-ledger-bridge-keyring';
+import type { Keyring } from '@metamask/keyring-api/v2';
 
 const TEST_MNEMONIC =
   'test test test test test test test test test test test ball';
@@ -14,35 +16,44 @@ const TEST_MNEMONIC_BYTES = mnemonicPhraseToBytes(TEST_MNEMONIC);
 const TEST_MNEMONIC_SEED = hexToBytes(mnemonicToSeed(TEST_MNEMONIC));
 
 /**
- * Setup the messenger and mock `KeyringController:withKeyring`.
+ * Setup the messenger and mock `KeyringController:withKeyringV2`.
  *
  * @param deserialize - Whether to deserialize the HD keyring state before returning.
  * @returns The messenger.
  */
 async function getMessenger(deserialize = true) {
-  const hdKeyring = new HdKeyring();
+  const legacyHdKeyring = new LegacyHdKeyring();
 
   if (deserialize) {
-    await hdKeyring.deserialize({
+    await legacyHdKeyring.deserialize({
       mnemonic: TEST_MNEMONIC,
     });
   }
 
+  const hdKeyring = new HdKeyring({
+    legacyKeyring: legacyHdKeyring,
+    entropySource: 'main',
+  });
+
   // @ts-expect-error Intentionally not passing in the bridge.
-  const ledgerKeyring = new LedgerKeyring({ bridge: {} });
+  const legacyLedgerKeyring = new LegacyLedgerKeyring({ bridge: {} });
+  const ledgerKeyring = new LedgerKeyring({
+    legacyKeyring: legacyLedgerKeyring,
+    entropySource: 'ledger',
+  });
 
   const keyrings: Record<string, Keyring> = {
-    main: hdKeyring,
-    ledger: ledgerKeyring,
+    main: hdKeyring as unknown as Keyring,
+    ledger: ledgerKeyring as unknown as Keyring,
   };
 
   const messenger = new Messenger<
     string,
-    KeyringControllerWithKeyringAction,
+    KeyringControllerWithKeyringV2Action,
     never
   >({ namespace: MOCK_ANY_NAMESPACE });
   messenger.registerActionHandler(
-    'KeyringController:withKeyring',
+    'KeyringController:withKeyringV2',
     (selector, operation) => {
       if ('type' in selector) {
         const [id, keyring] = Object.entries(keyrings).filter(
