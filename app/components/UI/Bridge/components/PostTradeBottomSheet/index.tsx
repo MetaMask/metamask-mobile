@@ -38,7 +38,6 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';
-import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
 import { formatAmountWithLocaleSeparators } from '../../utils/formatAmountWithLocaleSeparators';
 import { formatSecondaryTokenAmount } from '../../utils/sourceAmountInputMode';
 import { PostTradeBottomSheetTestIds } from './PostTradeBottomSheet.testIds';
@@ -124,7 +123,6 @@ export const PostTradeBottomSheet = () => {
   const hasRefreshedBalancesRef = useRef(false);
   const { styles } = useStyles(styleSheet, {});
   const params = useParams<PostTradeBottomSheetParams>();
-  const updateQuoteParams = useBridgeQuoteRequest();
   const isBridge =
     params.sourceToken?.chainId &&
     params.destToken?.chainId &&
@@ -185,10 +183,7 @@ export const PostTradeBottomSheet = () => {
 
     Engine.context.BridgeController?.resetState?.();
 
-    sheetRef.current?.onCloseBottomSheet(() => {
-      updateQuoteParams();
-      updateQuoteParams.flush();
-    });
+    sheetRef.current?.onCloseBottomSheet();
   };
 
   const footerButtonProps =
