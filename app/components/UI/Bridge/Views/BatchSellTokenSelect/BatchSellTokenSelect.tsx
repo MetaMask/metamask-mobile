@@ -37,7 +37,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import {
   resetBridgeState,
   selectBatchSellDestStablecoins,
-  selectBatchSellDestStablecoinsByChain,
   setBatchSellDestToken,
   setBatchSellSourceTokenAmounts,
   setBatchSellSourceTokens,
@@ -45,25 +44,20 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
 import { BridgeToken } from '../../types';
-import { useTokensWithBalance } from '../../hooks/useTokensWithBalance';
 import ButtonToggle from '../../../../../component-library/components-temp/Buttons/ButtonToggle';
 import { ButtonSize as ButtonToggleSize } from '../../../../../component-library/components/Buttons/Button';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import {
-  buildBatchSellEligibleChains,
-  removeStablecoinsFromSourceTokens,
-  removeRwaTokens,
   getBatchSellDestinationToken,
   MAX_BATCH_SELL_SOURCE_TOKENS,
   BatchSellTokenSortDirection,
-  sortBatchSellTokens,
-  SUPPORTED_BATCH_SELL_CHAIN_IDS,
 } from './BatchSellTokenSelect.utils';
 import { BatchSellTokenSelectSelectorsIDs } from './BatchSellTokenSelect.testIds';
 import { BatchSellTokenRow } from './BatchSellTokenRow';
 import { BatchSellEmptyState } from './BatchSellEmptyState';
 import { SkeletonItem } from '../../components/SkeletonItem';
 import { DEFAULT_BATCH_SELL_SLIPPAGE } from '../../components/SlippageModal/utils';
+import { useBatchSellTokens } from './useBatchSellTokens';
 
 const getTokenKey = (token: BridgeToken) =>
   `${formatChainIdToCaip(token.chainId)}:${token.address}`;
@@ -115,27 +109,10 @@ export function BatchSellTokenSelect() {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const tw = useTailwind();
-  const { tokens: allWalletTokens, isRwaDataLoading } = useTokensWithBalance(
-    {
-      chainIds: SUPPORTED_BATCH_SELL_CHAIN_IDS,
-    },
-    { shouldFetchTokenData: true },
-  );
-  const stablecoinsByChain = useSelector(selectBatchSellDestStablecoinsByChain);
   const [tokenSortDirection, setTokenSortDirection] =
     useState<BatchSellTokenSortDirection>('desc');
-  const eligibleSourceTokens = useMemo(() => {
-    const withoutStablecoins = removeStablecoinsFromSourceTokens({
-      tokens: allWalletTokens,
-      stablecoinsByChain,
-    });
-    const withoutRwas = removeRwaTokens(withoutStablecoins);
-    return sortBatchSellTokens(withoutRwas, tokenSortDirection);
-  }, [allWalletTokens, stablecoinsByChain, tokenSortDirection]);
-  const sortedEligibleChains = useMemo(
-    () => buildBatchSellEligibleChains(eligibleSourceTokens),
-    [eligibleSourceTokens],
-  );
+  const { eligibleSourceTokens, isRwaDataLoading, sortedEligibleChains } =
+    useBatchSellTokens(tokenSortDirection);
   const [selectedChainId, setSelectedChainId] = useState<
     CaipChainId | undefined
   >(() => sortedEligibleChains[0]?.chainId);
