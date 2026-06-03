@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Image, Linking, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
@@ -19,7 +19,6 @@ import { strings } from '../../../../locales/i18n';
 import { AgenticCliApprovalService } from './AgenticCliApprovalService';
 import type { AgenticCliApprovalParams } from './types';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
-import { AgenticCliApprovalAuthService } from './AgenticCliApprovalAuthService';
 import FOX from '../../../images/branding/fox.png';
 
 interface AgenticCliApprovalErrorState {
@@ -87,11 +86,10 @@ const getLoadErrorDetails = ({
  */
 
 const AgenticCliApproval: React.FC = () => {
-  const webViewRef = useRef<WebView>(null);
   const navigation = useNavigation();
   const tw = useTailwind();
   const {
-    approvalPageLink,
+    approvalPagePath,
     projectId,
     approvalId,
     mimirSignature,
@@ -102,19 +100,30 @@ const AgenticCliApproval: React.FC = () => {
   const [webViewUrl, setWebViewUrl] = useState<string | null>(null);
   const [retryKey, setRetryKey] = useState(0);
 
-  const requestType = operationType;
   const title = strings('agentic_cli_approval.title');
 
-  // Resolve the dashboard token once on mount.
+  const handleClose = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
+  const renderHeader = () => (
+    <HeaderCompactStandard
+      title={title}
+      onBack={handleClose}
+      includesTopInset
+      endButtonIconProps={[{ iconName: IconName.Close, onPress: handleClose }]}
+    />
+  );
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const token = await AgenticCliApprovalAuthService.getAuthToken();
+        const token = await AgenticCliApprovalService.getAuthToken();
         if (cancelled) return;
         const nextWebViewUrl = AgenticCliApprovalService.buildWebViewUrl(
           {
-            approvalPageLink,
+            approvalPagePath,
             projectId,
             approvalId,
             mimirSignature,
@@ -137,17 +146,13 @@ const AgenticCliApproval: React.FC = () => {
     };
   }, [
     approvalId,
-    approvalPageLink,
+    approvalPagePath,
     mimirSignature,
     projectId,
     operationType,
     retryKey,
     subjectId,
   ]);
-
-  const handleClose = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
 
   const handleMessage = useCallback(
     (messageEvent: WebViewMessageEvent) => {
@@ -215,14 +220,7 @@ const AgenticCliApproval: React.FC = () => {
   if (error) {
     return (
       <>
-        <HeaderCompactStandard
-          title={title}
-          onBack={handleClose}
-          includesTopInset
-          endButtonIconProps={[
-            { iconName: IconName.Close, onPress: handleClose },
-          ]}
-        />
+        {renderHeader()}
         <View
           style={tw.style(
             'flex-1 bg-default justify-center items-center px-6 gap-4',
@@ -288,23 +286,13 @@ const AgenticCliApproval: React.FC = () => {
   }
 
   if (!webViewUrl) {
-    // Brief blank state while we resolve the auth token; the WebView itself
-    // shows a loading spinner once it starts.
     return <View style={tw.style('flex-1 bg-default')} />;
   }
 
   return (
     <>
-      <HeaderCompactStandard
-        title={title}
-        onBack={handleClose}
-        includesTopInset
-        endButtonIconProps={[
-          { iconName: IconName.Close, onPress: handleClose },
-        ]}
-      />
+      {renderHeader()}
       <WebView
-        ref={webViewRef}
         source={{ uri: webViewUrl }}
         onMessage={handleMessage}
         onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}

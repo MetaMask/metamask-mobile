@@ -1,9 +1,9 @@
 import Routes from '../../../../../constants/navigation/Routes';
+import { DEFAULT_APPROVAL_PAGE_PATH } from '../../../../../components/Views/AgenticCliApproval/AgenticCliApprovalService';
 import { getBuildType } from '../../../../../core/OAuthService/OAuthLoginHandlers/constants';
 import Logger from '../../../../../util/Logger';
 import NavigationService from '../../../../NavigationService';
 import {
-  getDefaultApprovalPageLink,
   handleAgenticCliApproval,
   parseAgenticCliApprovalParams,
 } from '../handleAgenticCliApproval';
@@ -29,44 +29,6 @@ const mockGetBuildType = getBuildType as jest.MockedFunction<
   typeof getBuildType
 >;
 
-describe('getDefaultApprovalPageLink', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('returns the test dashboard login URL for development builds', () => {
-    mockGetBuildType.mockReturnValue('development');
-
-    expect(getDefaultApprovalPageLink()).toBe(
-      'https://test-dashboard.web3auth.io/agentic/login',
-    );
-  });
-
-  it('returns the dev dashboard login URL for UAT builds', () => {
-    mockGetBuildType.mockReturnValue('main_uat');
-
-    expect(getDefaultApprovalPageLink()).toBe(
-      'https://dev-dashboard.web3auth.io/agentic/login',
-    );
-  });
-
-  it('returns the developer dashboard login URL for production builds', () => {
-    mockGetBuildType.mockReturnValue('main_prod');
-
-    expect(getDefaultApprovalPageLink()).toBe(
-      'https://developer.metamask.io/agentic/login',
-    );
-  });
-
-  it('returns the test dashboard login URL for dev channel builds', () => {
-    mockGetBuildType.mockReturnValue('main_dev');
-
-    expect(getDefaultApprovalPageLink()).toBe(
-      'https://test-dashboard.web3auth.io/agentic/login',
-    );
-  });
-});
-
 describe('handleAgenticCliApproval', () => {
   const mockNavigate = NavigationService.navigation.navigate as jest.Mock;
 
@@ -80,7 +42,7 @@ describe('handleAgenticCliApproval', () => {
     jest.useRealTimers();
   });
 
-  it('uses the hosted dashboard login page when agentic-cli deeplink omits approvalPageLink', () => {
+  it('uses the default login path when agentic-cli deeplink omits approvalPagePath', () => {
     handleAgenticCliApproval({
       actionPath:
         '?projectId=project-1&approvalId=approval-1&mimir_signature=signature-1&operationType=wallet_mode_change&subjectId=0xabc',
@@ -91,7 +53,7 @@ describe('handleAgenticCliApproval', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.AGENTIC_CLI_APPROVAL.CONFIRM,
       {
-        approvalPageLink: getDefaultApprovalPageLink(),
+        approvalPagePath: DEFAULT_APPROVAL_PAGE_PATH,
         projectId: 'project-1',
         approvalId: 'approval-1',
         mimirSignature: 'signature-1',
@@ -101,14 +63,10 @@ describe('handleAgenticCliApproval', () => {
     );
   });
 
-  it('ignores deeplink approvalPageLink and navigates with the default hosted page', () => {
-    const customApprovalPageLink =
-      'https://agentic-mimir-service.dev-api.cx.metamask.io/approval';
-
+  it('forwards approvalPagePath from the deeplink when valid', () => {
     handleAgenticCliApproval({
-      actionPath: `?approvalPageLink=${encodeURIComponent(
-        customApprovalPageLink,
-      )}&projectId=project-1&approvalId=approval-1&operationType=transaction_request`,
+      actionPath:
+        '?approvalPagePath=%2Fagentic%2Fapproval&projectId=project-1&approvalId=approval-1&operationType=transaction_request',
     });
 
     jest.advanceTimersByTime(200);
@@ -116,7 +74,7 @@ describe('handleAgenticCliApproval', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.AGENTIC_CLI_APPROVAL.CONFIRM,
       {
-        approvalPageLink: getDefaultApprovalPageLink(),
+        approvalPagePath: '/agentic/approval',
         projectId: 'project-1',
         approvalId: 'approval-1',
         mimirSignature: undefined,
@@ -124,19 +82,29 @@ describe('handleAgenticCliApproval', () => {
         subjectId: undefined,
       },
     );
-    expect(mockNavigate).not.toHaveBeenCalledWith(
+  });
+
+  it('falls back to the default path when approvalPagePath is invalid', () => {
+    handleAgenticCliApproval({
+      actionPath: `?approvalPagePath=${encodeURIComponent(
+        'https://evil.com/agentic/approval',
+      )}&projectId=project-1&approvalId=approval-1`,
+    });
+
+    jest.advanceTimersByTime(200);
+
+    expect(mockNavigate).toHaveBeenCalledWith(
       Routes.AGENTIC_CLI_APPROVAL.CONFIRM,
       expect.objectContaining({
-        approvalPageLink: customApprovalPageLink,
+        approvalPagePath: DEFAULT_APPROVAL_PAGE_PATH,
       }),
     );
   });
 
   it('logs and skips navigation when approvalId is missing', () => {
     handleAgenticCliApproval({
-      actionPath: `?approvalPageLink=${encodeURIComponent(
-        'https://agentic-mimir-service.dev-api.cx.metamask.io/approval',
-      )}&projectId=project-1&notificationId=notification-1&operationType=transaction_request`,
+      actionPath:
+        '?approvalPagePath=%2Fagentic%2Fapproval&projectId=project-1&notificationId=notification-1&operationType=transaction_request',
     });
 
     jest.advanceTimersByTime(200);
@@ -152,9 +120,7 @@ describe('handleAgenticCliApproval', () => {
 
   it('logs and skips navigation when required hosted params are missing', () => {
     handleAgenticCliApproval({
-      actionPath: `?approvalPageLink=${encodeURIComponent(
-        'https://agentic-mimir-service.dev-api.cx.metamask.io/approval',
-      )}&projectId=project-1`,
+      actionPath: '?approvalPagePath=%2Fagentic%2Fapproval&projectId=project-1',
     });
 
     jest.advanceTimersByTime(200);
@@ -182,10 +148,10 @@ describe('handleAgenticCliApproval', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('navigates with the default hosted page when approvalId is present', () => {
+  it('navigates with the default path when approvalId is present', () => {
     handleAgenticCliApproval({
       actionPath:
-        '?approvalPageLink=%&approvalId=approval-1&projectId=project-1',
+        '?approvalPagePath=%&approvalId=approval-1&projectId=project-1',
     });
 
     jest.advanceTimersByTime(200);
@@ -193,7 +159,7 @@ describe('handleAgenticCliApproval', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.AGENTIC_CLI_APPROVAL.CONFIRM,
       {
-        approvalPageLink: getDefaultApprovalPageLink(),
+        approvalPagePath: DEFAULT_APPROVAL_PAGE_PATH,
         projectId: 'project-1',
         approvalId: 'approval-1',
         mimirSignature: undefined,
@@ -213,12 +179,12 @@ describe('handleAgenticCliApproval', () => {
 
     expect(Logger.error).toHaveBeenCalledWith(
       expect.any(Error),
-      'handleAgenticCliApproval: failed to decode param',
+      'AgenticCliApprovalService: failed to decode deeplink param',
     );
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.AGENTIC_CLI_APPROVAL.CONFIRM,
       {
-        approvalPageLink: getDefaultApprovalPageLink(),
+        approvalPagePath: DEFAULT_APPROVAL_PAGE_PATH,
         projectId: 'project-1',
         approvalId: 'approval-1',
         mimirSignature: undefined,
@@ -236,7 +202,7 @@ describe('parseAgenticCliApprovalParams', () => {
         '?projectId=project-1&approvalId=approval-1&operationType=wallet_mode_change&subjectId=0xabc',
       ),
     ).toEqual({
-      approvalPageLink: undefined,
+      approvalPagePath: undefined,
       projectId: 'project-1',
       approvalId: 'approval-1',
       mimirSignature: undefined,
@@ -251,7 +217,7 @@ describe('parseAgenticCliApprovalParams', () => {
         '?projectId=project-1&notificationId=request-1&operationType=transaction_request',
       ),
     ).toEqual({
-      approvalPageLink: undefined,
+      approvalPagePath: undefined,
       projectId: 'project-1',
       approvalId: undefined,
       mimirSignature: undefined,
@@ -266,7 +232,7 @@ describe('parseAgenticCliApprovalParams', () => {
         '?projectId=project-1&approvalId=approval-1&operationType=tx_approve',
       ),
     ).toEqual({
-      approvalPageLink: undefined,
+      approvalPagePath: undefined,
       projectId: 'project-1',
       approvalId: 'approval-1',
       mimirSignature: undefined,
@@ -281,7 +247,7 @@ describe('parseAgenticCliApprovalParams', () => {
         '?projectId=project-1&approvalId=approval-1',
       ),
     ).toEqual({
-      approvalPageLink: undefined,
+      approvalPagePath: undefined,
       projectId: 'project-1',
       approvalId: 'approval-1',
       mimirSignature: undefined,
@@ -290,13 +256,13 @@ describe('parseAgenticCliApprovalParams', () => {
     });
   });
 
-  it('forwards supported query params from the deeplink', () => {
+  it('forwards approvalPagePath from the deeplink', () => {
     expect(
       parseAgenticCliApprovalParams(
-        '?approvalPageLink=https%3A%2F%2Fdeveloper.metamask.io%2Fagentic%2Flogin&projectId=project-1&approvalId=approval-1&mimir_signature=signature-1&operationType=wallet_mode_change&subjectId=0xabc',
+        '?approvalPagePath=%2Fagentic%2Flogin&projectId=project-1&approvalId=approval-1&mimir_signature=signature-1&operationType=wallet_mode_change&subjectId=0xabc',
       ),
     ).toEqual({
-      approvalPageLink: 'https://developer.metamask.io/agentic/login',
+      approvalPagePath: '/agentic/login',
       projectId: 'project-1',
       approvalId: 'approval-1',
       mimirSignature: 'signature-1',

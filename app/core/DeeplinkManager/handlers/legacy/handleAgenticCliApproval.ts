@@ -1,121 +1,40 @@
 import Logger from '../../../../util/Logger';
 import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
-import type {
-  Intent,
-  AgenticCliApprovalParams,
-} from '../../../../components/Views/AgenticCliApproval/types';
-import { getBuildType } from '../../../../core/OAuthService/OAuthLoginHandlers/constants';
+import type { AgenticCliApprovalParams } from '../../../../components/Views/AgenticCliApproval/types';
+import { AgenticCliApprovalService } from '../../../../components/Views/AgenticCliApproval/AgenticCliApprovalService';
 
 /**
  * Handles `https://link.metamask.io/agentic-cli` deeplinks.
  *
  * Preferred query string:
- * `?approvalPageLink=<url>&projectId=<id>&approvalId=<approvalId>&mimir_signature=<sig>`
+ * `?approvalPagePath=/agentic/approval&projectId=<id>&approvalId=<approvalId>&mimir_signature=<sig>`
  *
- * `approvalPageLink` is optional for the production redirect flow. When it is
- * omitted, mobile falls back to the dashboard-hosted Agentic login page and
- * appends the bearer token as `#auth_token=...` once the user is unlocked.
+ * Dashboard host is always chosen on-device from build type. `approvalPagePath`
+ * may override only the path segment (default `/agentic/login`).
  *
  * The pending-deeplink saga (app/store/sagas/index.ts) gates this on
  * vault-unlocked + onboarding-complete, so by the time we run we know the
  * AuthenticationController can issue a bearer.
  */
-export interface AgenticCliApprovalDeeplinkParams {
-  approvalPageLink?: string;
-  projectId?: string;
-  approvalId?: string;
-  mimirSignature?: string;
-  operationType?: Intent | string;
-  subjectId?: string;
-}
 
-const AGENTIC_CLI_APPROVAL_HOST = {
-  dev: 'https://test-dashboard.web3auth.io',
-  uat: 'https://dev-dashboard.web3auth.io',
-  prod: 'https://developer.metamask.io',
-};
-
-const getApprovalHost = (): string => {
-  const buildType = getBuildType();
-
-  if (buildType === 'development') {
-    return AGENTIC_CLI_APPROVAL_HOST.dev;
-  }
-  if (buildType.includes('prod')) {
-    return AGENTIC_CLI_APPROVAL_HOST.prod;
-  }
-  if (buildType.includes('uat')) {
-    return AGENTIC_CLI_APPROVAL_HOST.uat;
-  }
-  if (buildType.includes('dev')) {
-    return AGENTIC_CLI_APPROVAL_HOST.dev;
-  }
-  return AGENTIC_CLI_APPROVAL_HOST.dev;
-};
-
-export const getDefaultApprovalPageLink = (): string =>
-  `${getApprovalHost()}/agentic/login`;
-
-const getQueryParam = (
-  searchParams: URLSearchParams,
-  key: string,
-): string | undefined => {
-  const value = searchParams.get(key);
-  return value && value.trim() !== '' ? value : undefined;
-};
-
-/**
- * Parse agentic-cli deeplink query parameters into typed handler params.
- *
- * @param agenticCliPath Query string portion of the deeplink (e.g. `?projectId=...`)
- */
-export const parseAgenticCliApprovalParams = (
-  agenticCliPath?: string,
-): AgenticCliApprovalDeeplinkParams => {
-  const path = agenticCliPath ?? '';
-  const searchParams = new URLSearchParams(
-    path.includes('?')
-      ? path.split('?')[1]
-      : path.startsWith('?')
-        ? path.slice(1)
-        : path,
-  );
-  const operationType = getQueryParam(searchParams, 'operationType');
-  return {
-    approvalPageLink: getQueryParam(searchParams, 'approvalPageLink'),
-    projectId: getQueryParam(searchParams, 'projectId'),
-    approvalId: getQueryParam(searchParams, 'approvalId'),
-    subjectId: getQueryParam(searchParams, 'subjectId'),
-    mimirSignature: getQueryParam(searchParams, 'mimir_signature'),
-    operationType,
-  };
-};
-
-const decodeParam = (value?: string): string | undefined => {
-  if (!value) return undefined;
-
-  try {
-    return decodeURIComponent(value);
-  } catch (err) {
-    Logger.error(
-      err as Error,
-      'handleAgenticCliApproval: failed to decode param',
-    );
-    return undefined;
-  }
-};
+export const parseAgenticCliApprovalParams =
+  AgenticCliApprovalService.parseDeeplinkQuery;
 
 export const handleAgenticCliApproval = (params: {
   actionPath: string;
 }): void => {
-  const { actionPath } = params;
-  const { projectId, approvalId, mimirSignature, operationType, subjectId } =
-    parseAgenticCliApprovalParams(actionPath);
-
-  const decodedMimirSignature = decodeParam(mimirSignature);
-
-  const hostedApprovalPageLink = getDefaultApprovalPageLink();
+  const parsed = AgenticCliApprovalService.parseDeeplinkQuery(
+    params.actionPath,
+  );
+  const {
+    projectId,
+    approvalId,
+    mimirSignature,
+    operationType,
+    subjectId,
+    approvalPagePath,
+  } = parsed;
 
   if (!projectId || !approvalId) {
     Logger.error(
@@ -126,21 +45,17 @@ export const handleAgenticCliApproval = (params: {
     return;
   }
 
-  if (!hostedApprovalPageLink) {
-    Logger.error(
-      new Error('handleAgenticCliApproval: missing approval page link'),
-    );
-    return;
-  }
-
   const navigationParams: AgenticCliApprovalParams = {
-    approvalPageLink: hostedApprovalPageLink,
+    approvalPagePath:
+      AgenticCliApprovalService.validateApprovalPagePath(approvalPagePath),
     projectId,
     approvalId,
-    mimirSignature: decodedMimirSignature,
+    mimirSignature:
+      AgenticCliApprovalService.decodeDeeplinkParam(mimirSignature),
     operationType,
     subjectId,
   };
+
   // The 200ms gap mirrors `handleDeeplinkSaga`'s setTimeout — gives any
   // ongoing navigation transition time to settle before we push our screen.
   setTimeout(() => {

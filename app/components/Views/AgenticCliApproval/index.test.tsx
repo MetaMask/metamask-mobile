@@ -3,7 +3,7 @@ import { Linking } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import Logger from '../../../util/Logger';
-import { AgenticCliApprovalAuthService } from './AgenticCliApprovalAuthService';
+import { AgenticCliApprovalService } from './AgenticCliApprovalService';
 import AgenticCliApproval from './index';
 
 const mockGoBack = jest.fn();
@@ -16,7 +16,7 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../../util/navigation/navUtils', () => ({
   useParams: () => ({
-    approvalPageLink: 'https://developer.metamask.io/agentic/login',
+    approvalPagePath: '/agentic/login',
     projectId: 'project-1',
     approvalId: 'approval-1',
     mimirSignature: 'signature-1',
@@ -31,11 +31,20 @@ jest.mock('../../../util/Logger', () => ({
   },
 }));
 
-jest.mock('./AgenticCliApprovalAuthService', () => ({
-  AgenticCliApprovalAuthService: {
-    getAuthToken: jest.fn(),
-  },
-}));
+jest.mock('./AgenticCliApprovalService', () => {
+  const actual = jest.requireActual('./AgenticCliApprovalService');
+  return {
+    ...actual,
+    AgenticCliApprovalService: {
+      ...actual.AgenticCliApprovalService,
+      getAuthToken: jest.fn(),
+      buildWebViewUrl: jest.fn(
+        () =>
+          'https://developer.metamask.io/agentic/login?projectId=project-1&approvalId=approval-1#auth_token=token',
+      ),
+    },
+  };
+});
 
 jest.mock('../../../../locales/i18n', () => ({
   strings: (key: string) => {
@@ -139,8 +148,7 @@ jest.mock(
   },
 );
 
-const mockGetAuthToken =
-  AgenticCliApprovalAuthService.getAuthToken as jest.Mock;
+const mockGetAuthToken = AgenticCliApprovalService.getAuthToken as jest.Mock;
 
 describe('AgenticCliApproval', () => {
   beforeEach(() => {

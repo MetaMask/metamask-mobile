@@ -16,7 +16,8 @@ export type WebviewToNative =
 
 /** Navigation params for the AgenticCliApproval screen. */
 export interface AgenticCliApprovalParams {
-  approvalPageLink?: string;
+  /** Path on the mobile-selected dashboard host (default `/agentic/login`). */
+  approvalPagePath?: string;
   projectId?: string;
   /** Compatibility alias accepted by the hosted page. */
   approvalId?: string;
