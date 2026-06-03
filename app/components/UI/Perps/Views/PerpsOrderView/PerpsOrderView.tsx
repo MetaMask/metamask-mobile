@@ -1664,9 +1664,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           style={[
             styles.infoSection,
             // eslint-disable-next-line react-native/no-inline-styles
-            { marginBottom: orderValidation.errors.length > 0 ? 16 : 8 },
+            { marginBottom: orderValidation.errors.length > 0 ? 8 : 0 },
             // eslint-disable-next-line react-native/no-inline-styles
-            { marginTop: isInputFocused ? 16 : 0 },
+            { marginTop: isInputFocused ? 8 : 0 },
           ]}
         >
           <View style={styles.infoRow}>
