@@ -128,6 +128,12 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
     // Trending tokens and their View All button are in the Crypto tab
     await navigateToCryptoTab(getByTestId);
 
+    await waitFor(() => {
+      expect(
+        getByTestId(TrendingViewSelectorsIDs.SECTION_HEADER_VIEW_ALL_TOKENS),
+      ).toBeOnTheScreen();
+    });
+
     const viewAllButton = getByTestId(
       TrendingViewSelectorsIDs.SECTION_HEADER_VIEW_ALL_TOKENS,
     );
@@ -246,9 +252,7 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
         getByTestId(TrendingViewSelectorsIDs.EXPLORE_RWAS_SCROLL_VIEW),
       ).toBeOnTheScreen();
       expect(getByText(strings('trending.stocks'))).toBeOnTheScreen();
-      expect(
-        getByText('Ondo US Dollar Yield (Ondo Tokenized)'),
-      ).toBeOnTheScreen();
+      expect(getByText('Ondo US Dollar Yield')).toBeOnTheScreen();
     });
 
     await navigateToExploreTab(EXPLORE_TAB_TEST_IDS.DAPPS, getByTestId);

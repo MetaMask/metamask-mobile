@@ -23,11 +23,11 @@ const mockPushNotificationOnboarding = jest.mocked(PushNotificationOnboarding);
 
 const mockDismissPrePrompt = jest.fn();
 const mockMarkPrePromptShown = jest.fn();
-let mockIsE2EValue = false;
+let mockIsTestEnvironmentValue = false;
 
 jest.mock('../../../../util/test/utils', () => ({
-  get isE2E() {
-    return mockIsE2EValue;
+  get isTestEnvironment() {
+    return mockIsTestEnvironmentValue;
   },
 }));
 
@@ -52,16 +52,16 @@ const getLatestProps = () =>
 describe('PushNotificationOnboardingRoot', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockIsE2EValue = false;
+    mockIsTestEnvironmentValue = false;
     mockPrePromptState();
   });
 
   afterEach(() => {
-    mockIsE2EValue = false;
+    mockIsTestEnvironmentValue = false;
   });
 
   it('does not render or resolve the pre-prompt during e2e runs', () => {
-    mockIsE2EValue = true;
+    mockIsTestEnvironmentValue = true;
     mockPrePromptState({
       nativeOsPermissionEnabled: false,
       variant: 'push_permission',

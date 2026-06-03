@@ -212,7 +212,7 @@ jest.mock('../../UI/FadeOutOverlay', () => () => null);
 
 jest.mock('../../../util/test/utils', () => ({
   ...jest.requireActual('../../../util/test/utils'),
-  isE2E: false,
+  hasTestOverrides: false,
 }));
 
 jest.mock('rive-react-native', () => ({

@@ -45,10 +45,7 @@ import Routes from '../../constants/navigation/Routes';
 import SecureKeychain from '../SecureKeychain';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import DevLogger from '../SDKConnect/utils/DevLogger';
-import {
-  addNewHdAccount,
-  importNewSecretRecoveryPhrase,
-} from '../../actions/multiSrp';
+import { importNewSecretRecoveryPhrase } from '../../actions/multiSrp';
 import { bufferToHex, privateToAddress } from 'ethereumjs-util';
 import Authentication from '../Authentication';
 import { Wallet as EthersWallet } from 'ethers';
@@ -101,6 +98,17 @@ interface ReactDevToolsHook {
 }
 
 /** Shape of the __DEV__-only agentic bridge on globalThis. */
+interface AgenticHudStep {
+  id: string;
+  status?: string;
+  intent: string;
+  progress?: { current?: number; total?: number };
+  detail?: string;
+  error?: string;
+  nodeId?: string;
+  debug?: { nodeId?: string; proofTarget?: unknown };
+}
+
 interface AgenticBridge {
   platform: string;
   replayHarnessPatch?: string;
@@ -193,7 +201,7 @@ interface AgenticBridge {
     error?: string;
     accounts?: { address: string; name: string }[];
   }>;
-  showStep: (step: { id: string; description: string }) => void;
+  showStep: (step: AgenticHudStep) => void;
   hideStep: () => void;
   refreshPerpsStreams: () => Promise<{ ok: boolean; positions: number }>;
   findFiberByTestId: (testId: string) => boolean;
@@ -487,13 +495,20 @@ async function ensureFixtureMnemonicAccounts(
     );
   }
 
+  if (wallet.accounts.length < count && !wallet.keyringId) {
+    throw new Error(
+      `Cannot add fixture accounts to legacy vault (no entropy source); fixture expects ${count} accounts but vault has ${wallet.accounts.length}`,
+    );
+  }
+  const { MultichainAccountService } = Engine.context;
   for (
     let accountIndex = wallet.accounts.length;
     accountIndex < count;
     accountIndex += 1
   ) {
-    await addNewHdAccount(wallet.keyringId, names[accountIndex]);
-    await initializeFixtureAccountTree(options);
+    await MultichainAccountService.createNextMultichainAccountGroup({
+      entropySource: wallet.keyringId as string,
+    });
     wallet = findWallet();
     if (!wallet) {
       throw new Error(
@@ -956,9 +971,7 @@ function getRowValue(
 
 // ─── Step HUD callback registry ─────────────────────────────────────────────
 
-type StepHudCallback =
-  | ((step: { id: string; description: string } | null) => void)
-  | null;
+type StepHudCallback = ((step: AgenticHudStep | null) => void) | null;
 let _stepHudCallback: StepHudCallback = null;
 
 export function registerStepHudCallback(fn: StepHudCallback) {
@@ -1201,7 +1214,7 @@ const AgenticService = {
         Engine.setSelectedAddress(target.address);
         return { switched: true, ...toAccountSummary(target) };
       },
-      showStep: (step: { id: string; description: string }) => {
+      showStep: (step: AgenticHudStep) => {
         _stepHudCallback?.(step);
       },
       hideStep: () => {
