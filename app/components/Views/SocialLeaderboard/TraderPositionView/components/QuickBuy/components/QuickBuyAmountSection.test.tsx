@@ -5,16 +5,13 @@ import QuickBuyAmountSection from './QuickBuyAmountSection';
 
 const defaultProps = {
   amountDisplayMode: 'fiat' as const,
-  fiatCryptoToggleEnabled: false,
   usdAmount: '',
   destSymbol: 'ETH',
   estimatedReceiveAmount: undefined,
-  availableBalanceFiat: '$0.00',
   isQuoteLoading: false,
   hiddenInputRef: createRef<TextInput | null>(),
   onAmountAreaPress: jest.fn(),
   onAmountChange: jest.fn(),
-  onToggleAmountDisplay: jest.fn(),
 };
 
 describe('QuickBuyAmountSection', () => {
@@ -87,36 +84,16 @@ describe('QuickBuyAmountSection', () => {
     expect(screen.getByText('0 ETH')).toBeOnTheScreen();
   });
 
-  it('shows the toggle button when fiatCryptoToggleEnabled', () => {
-    render(<QuickBuyAmountSection {...defaultProps} fiatCryptoToggleEnabled />);
-    expect(
-      screen.getByTestId('quick-buy-toggle-amount-display'),
-    ).toBeOnTheScreen();
-  });
-
-  it('hides the toggle button when fiatCryptoToggleEnabled is false', () => {
-    render(
-      <QuickBuyAmountSection
-        {...defaultProps}
-        fiatCryptoToggleEnabled={false}
-      />,
-    );
+  it('does not render a toggle button', () => {
+    render(<QuickBuyAmountSection {...defaultProps} />);
     expect(
       screen.queryByTestId('quick-buy-toggle-amount-display'),
     ).not.toBeOnTheScreen();
   });
 
-  it('calls onToggleAmountDisplay when toggle is pressed', () => {
-    const onToggleAmountDisplay = jest.fn();
-    render(
-      <QuickBuyAmountSection
-        {...defaultProps}
-        fiatCryptoToggleEnabled
-        onToggleAmountDisplay={onToggleAmountDisplay}
-      />,
-    );
-    fireEvent.press(screen.getByTestId('quick-buy-toggle-amount-display'));
-    expect(onToggleAmountDisplay).toHaveBeenCalledTimes(1);
+  it('does not render available balance text', () => {
+    render(<QuickBuyAmountSection {...defaultProps} />);
+    expect(screen.queryByText(/available/)).not.toBeOnTheScreen();
   });
 
   it('calls onAmountAreaPress when the area is pressed', () => {
@@ -129,23 +106,5 @@ describe('QuickBuyAmountSection', () => {
     );
     fireEvent.press(screen.getByTestId('quick-buy-amount-area'));
     expect(onAmountAreaPress).toHaveBeenCalledTimes(1);
-  });
-
-  it('shows available balance when provided', () => {
-    render(
-      <QuickBuyAmountSection
-        {...defaultProps}
-        availableBalanceFiat="$1,234.56"
-      />,
-    );
-    expect(screen.getByText(/\$1,234.56/)).toBeOnTheScreen();
-  });
-
-  it('shows locale-formatted zero available when balance is zero', () => {
-    render(
-      <QuickBuyAmountSection {...defaultProps} availableBalanceFiat="$0.00" />,
-    );
-    expect(screen.getByText(/\$0\.00/)).toBeOnTheScreen();
-    expect(screen.getByText(/available/)).toBeOnTheScreen();
   });
 });
