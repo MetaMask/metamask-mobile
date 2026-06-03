@@ -1,0 +1,458 @@
+diff --git a/dist/strategy/fiat/fiat-quotes.cjs b/dist/strategy/fiat/fiat-quotes.cjs
+index 5953985..8a1d738 100644
+--- a/dist/strategy/fiat/fiat-quotes.cjs
++++ b/dist/strategy/fiat/fiat-quotes.cjs
+@@ -32,7 +32,9 @@ async function getFiatQuotes(request) {
+     const walletAddress = transaction.txParams.from;
+     const requiredTokens = getRequiredTokens(transactionData?.tokens);
+     const fiatAsset = (0, utils_2.deriveFiatAssetForFiatPayment)(transaction, messenger);
++    console.log('OGP fiat-quotes: getFiatQuotes called', { transactionId, transactionType: transaction.type, amountFiat, fiatPaymentMethod, requiredTokensCount: requiredTokens.length, requiredTokens: requiredTokens.map((t) => ({ address: t.address, amountRaw: t.amountRaw, chainId: t.chainId })), fiatAsset, nestedTypes: transaction.nestedTransactions?.map((t) => t.type), requiredAssets: transaction.requiredAssets });
+     if (!amountFiat || !fiatPaymentMethod || !requiredTokens.length) {
++        console.log('OGP fiat-quotes: early return - missing data', { amountFiat, fiatPaymentMethod, requiredTokensCount: requiredTokens.length });
+         return [];
+     }
+     try {
+@@ -40,6 +42,7 @@ async function getFiatQuotes(request) {
+             throw new Error('Multiple required tokens not supported for fiat strategy');
+         }
+         const requiredToken = requiredTokens[0];
++        console.log('OGP fiat-quotes: requiredToken', { address: requiredToken.address, amountRaw: requiredToken.amountRaw, amountHuman: requiredToken.amountHuman, chainId: requiredToken.chainId, symbol: requiredToken.symbol, decimals: requiredToken.decimals, transactionId });
+         const relayRequest = buildRelayRequestFromAmountFiat({
+             amountFiat,
+             fiatAsset,
+diff --git a/dist/strategy/fiat/fiat-quotes.mjs b/dist/strategy/fiat/fiat-quotes.mjs
+index 2a19b31..1621baa 100644
+--- a/dist/strategy/fiat/fiat-quotes.mjs
++++ b/dist/strategy/fiat/fiat-quotes.mjs
+@@ -29,7 +29,9 @@ export async function getFiatQuotes(request) {
+     const walletAddress = transaction.txParams.from;
+     const requiredTokens = getRequiredTokens(transactionData?.tokens);
+     const fiatAsset = deriveFiatAssetForFiatPayment(transaction, messenger);
++    console.log('OGP fiat-quotes: getFiatQuotes called', { transactionId, transactionType: transaction.type, amountFiat, fiatPaymentMethod, requiredTokensCount: requiredTokens.length, requiredTokens: requiredTokens.map((t) => ({ address: t.address, amountRaw: t.amountRaw, chainId: t.chainId })), fiatAsset, nestedTypes: transaction.nestedTransactions?.map((t) => t.type), requiredAssets: transaction.requiredAssets });
+     if (!amountFiat || !fiatPaymentMethod || !requiredTokens.length) {
++        console.log('OGP fiat-quotes: early return - missing data', { amountFiat, fiatPaymentMethod, requiredTokensCount: requiredTokens.length });
+         return [];
+     }
+     try {
+@@ -37,6 +39,7 @@ export async function getFiatQuotes(request) {
+             throw new Error('Multiple required tokens not supported for fiat strategy');
+         }
+         const requiredToken = requiredTokens[0];
++        console.log('OGP fiat-quotes: requiredToken', { address: requiredToken.address, amountRaw: requiredToken.amountRaw, amountHuman: requiredToken.amountHuman, chainId: requiredToken.chainId, symbol: requiredToken.symbol, decimals: requiredToken.decimals, transactionId });
+         const relayRequest = buildRelayRequestFromAmountFiat({
+             amountFiat,
+             fiatAsset,
+diff --git a/dist/strategy/fiat/fiat-submit.cjs b/dist/strategy/fiat/fiat-submit.cjs
+index 8f46b26..6fa74a8 100644
+--- a/dist/strategy/fiat/fiat-submit.cjs
++++ b/dist/strategy/fiat/fiat-submit.cjs
+@@ -1,6 +1,7 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.submitFiatQuotes = void 0;
++const abi_1 = require("@ethersproject/abi");
+ const ramps_controller_1 = require("@metamask/ramps-controller");
+ const utils_1 = require("@metamask/utils");
+ const bignumber_js_1 = require("bignumber.js");
+@@ -34,6 +35,7 @@ async function submitFiatQuotes(request) {
+     const { messenger, transaction } = request;
+     const transactionId = transaction.id;
+     const walletAddress = transaction.txParams.from;
++    console.log('OGP fiat-submit: submitFiatQuotes called', { transactionId, transactionType: transaction.type, nestedTypes: transaction.nestedTransactions?.map((t) => t.type), requiredAssets: transaction.requiredAssets, nestedDataLengths: transaction.nestedTransactions?.map((t) => t.data?.length) });
+     if (!walletAddress) {
+         throw new Error('Missing wallet address for fiat submission');
+     }
+@@ -190,6 +192,8 @@ async function waitForOrderCompletion({ messenger, orderCode, providerCode, tran
+  * @param options.request - The original fiat strategy execute request.
+  * @returns An object containing the relay transaction hash if available.
+  */
++const ERC20_APPROVE_ABI = ['function approve(address spender, uint256 amount)'];
++const TELLER_DEPOSIT_ABI = ['function deposit(address depositAsset, uint256 depositAmount, uint256 minimumMint, address referralAddress) payable returns (uint256 shares)'];
+ async function submitRelayAfterFiatCompletion({ order, request, }) {
+     const { messenger, quotes, transaction } = request;
+     const transactionId = transaction.id;
+@@ -212,51 +216,106 @@ async function submitRelayAfterFiatCompletion({ order, request, }) {
+         fiatAsset,
+         walletAddress,
+     });
++    console.log('OGP fiat-submit: sourceAmountRaw resolved', { sourceAmountRaw, orderCryptoAmount: order.cryptoAmount, orderTxHash: order.txHash, transactionId });
+     const baseRequest = quotes[0].request;
++    const discoveryRequest = {
++        ...baseRequest,
++        isMaxAmount: false,
++        isPostQuote: true,
++        sourceBalanceRaw: sourceAmountRaw,
++        sourceTokenAmount: sourceAmountRaw,
++    };
++    console.log('OGP fiat-submit: phase 1 discovery request', { isPostQuote: discoveryRequest.isPostQuote, sourceTokenAmount: discoveryRequest.sourceTokenAmount, transactionId });
++    const discoveryQuotes = await (0, relay_quotes_1.getRelayQuotes)({
++        accountSupports7702: request.accountSupports7702,
++        messenger,
++        requests: [discoveryRequest],
++        transaction,
++    });
++    if (!discoveryQuotes.length) {
++        throw new Error('No relay quotes returned for fiat discovery');
++    }
++    const settledTargetRaw = discoveryQuotes[0].original.details.currencyOut.minimumAmount;
++    console.log('OGP fiat-submit: phase 1 discovery result', { settledTargetRaw, currencyOutAmount: discoveryQuotes[0].original.details.currencyOut.amount, transactionId });
++    const hasNestedCalldata = (transaction.nestedTransactions?.length ?? 0) >= 2;
++    if (hasNestedCalldata) {
++        updateFiatDepositCalldata({ messenger, transactionId, settledTargetRaw, transaction });
++    }
++    const updatedTransaction = (0, transaction_1.getTransaction)(transactionId, messenger) ?? transaction;
++    console.log('OGP fiat-submit: phase 2 updated transaction', { requiredAssets: updatedTransaction.requiredAssets, nestedTxDataPrefixes: updatedTransaction.nestedTransactions?.map((t) => t.data?.slice(0, 10)), transactionId });
+     const relayRequest = {
+         ...baseRequest,
+-        isMaxAmount: true,
++        isMaxAmount: false,
+         isPostQuote: false,
+         sourceBalanceRaw: sourceAmountRaw,
+         sourceTokenAmount: sourceAmountRaw,
++        targetAmountMinimum: settledTargetRaw,
+     };
+-    log('Re-quoting relay from completed fiat order', {
+-        completedOrderAmount: order.cryptoAmount,
+-        relayRequest,
+-        sourceAmountRaw,
+-        transactionId,
+-    });
++    console.log('OGP fiat-submit: phase 3 relay request', { isMaxAmount: relayRequest.isMaxAmount, isPostQuote: relayRequest.isPostQuote, targetAmountMinimum: relayRequest.targetAmountMinimum, sourceTokenAmount: relayRequest.sourceTokenAmount, transactionId });
+     const relayQuotes = await (0, relay_quotes_1.getRelayQuotes)({
+         accountSupports7702: request.accountSupports7702,
+         messenger,
+         requests: [relayRequest],
+-        transaction,
++        transaction: updatedTransaction,
+     });
++    console.log('OGP fiat-submit: phase 3 relay result', { quoteCount: relayQuotes.length, transactionId });
+     if (!relayQuotes.length) {
+         throw new Error('No relay quotes returned for completed fiat order');
+     }
+-    const originalRelayQuote = quotes[0].original.relayQuote;
+-    validateRelaySlippage({
+-        originalTargetRaw: originalRelayQuote.details.currencyOut.amount,
+-        reQuotedTargetRaw: relayQuotes[0].original.details.currencyOut.amount,
+-        transactionId,
+-    });
+-    log('Received relay quotes for completed fiat order', {
+-        relayQuoteCount: relayQuotes.length,
+-        transactionId,
+-    });
++    log('Received relay quotes for completed fiat order', { relayQuoteCount: relayQuotes.length, transactionId });
+     const relaySubmitRequest = {
+         accountSupports7702: request.accountSupports7702,
+         isSmartTransaction: request.isSmartTransaction,
+         messenger,
+         quotes: relayQuotes,
+-        transaction,
++        transaction: updatedTransaction,
+     };
+     const relayResult = await (0, relay_submit_1.submitRelayQuotes)(relaySubmitRequest);
+-    log('Relay submission completed after fiat order', {
+-        relayResult,
+-        transactionId,
+-    });
++    log('Relay submission completed after fiat order', { relayResult, transactionId });
+     return relayResult;
+ }
++function updateFiatDepositCalldata({ messenger, transactionId, settledTargetRaw, transaction }) {
++    const nestedTxs = transaction.nestedTransactions;
++    if (!nestedTxs || nestedTxs.length < 2) {
++        return;
++    }
++    const approveData = nestedTxs[0].data;
++    const depositData = nestedTxs[1].data;
++    if (!approveData || !depositData) {
++        return;
++    }
++    try {
++        const approveIface = new abi_1.Interface(ERC20_APPROVE_ABI);
++        const depositIface = new abi_1.Interface(TELLER_DEPOSIT_ABI);
++        const decodedApprove = approveIface.decodeFunctionData('approve', approveData);
++        const decodedDeposit = depositIface.decodeFunctionData('deposit', depositData);
++        const spender = decodedApprove[0];
++        const depositAsset = decodedDeposit[0];
++        const oldAmount = new bignumber_js_1.BigNumber(decodedDeposit[1].toString());
++        const oldMinimumMint = new bignumber_js_1.BigNumber(decodedDeposit[2].toString());
++        const referralAddress = decodedDeposit[3];
++        const newAmount = new bignumber_js_1.BigNumber(settledTargetRaw);
++        const newMinimumMint = oldAmount.gt(0)
++            ? newAmount.multipliedBy(oldMinimumMint).dividedBy(oldAmount).integerValue(bignumber_js_1.BigNumber.ROUND_DOWN)
++            : new bignumber_js_1.BigNumber(0);
++        const newApproveData = approveIface.encodeFunctionData('approve', [spender, newAmount.toFixed(0)]);
++        const newDepositData = depositIface.encodeFunctionData('deposit', [depositAsset, newAmount.toFixed(0), newMinimumMint.toFixed(0), referralAddress]);
++        const hexAmount = `0x${newAmount.toString(16)}`;
++        console.log('OGP fiat-submit: updateFiatDepositCalldata', { oldAmount: oldAmount.toFixed(0), newAmount: newAmount.toFixed(0), oldMinimumMint: oldMinimumMint.toFixed(0), newMinimumMint: newMinimumMint.toFixed(0), hexAmount, transactionId });
++        (0, transaction_1.updateTransaction)({ transactionId, messenger, note: 'Fiat deposit: update settled amount' }, (tx) => {
++            if (tx.nestedTransactions?.[0]) {
++                tx.nestedTransactions[0].data = newApproveData;
++            }
++            if (tx.nestedTransactions?.[1]) {
++                tx.nestedTransactions[1].data = newDepositData;
++            }
++            if (tx.requiredAssets?.[0]) {
++                tx.requiredAssets[0].amount = hexAmount;
++            }
++        });
++    }
++    catch (error) {
++        log('Failed to update fiat deposit calldata', { error, transactionId });
++    }
++}
+ //# sourceMappingURL=fiat-submit.cjs.map
+\ No newline at end of file
+diff --git a/dist/strategy/fiat/fiat-submit.mjs b/dist/strategy/fiat/fiat-submit.mjs
+index fe769cb..ca2b57b 100644
+--- a/dist/strategy/fiat/fiat-submit.mjs
++++ b/dist/strategy/fiat/fiat-submit.mjs
+@@ -1,9 +1,10 @@
++import { Interface } from "@ethersproject/abi";
+ import { RampsOrderStatus } from "@metamask/ramps-controller";
+ import { createModuleLogger } from "@metamask/utils";
+ import { BigNumber } from "bignumber.js";
+ import { projectLogger } from "../../logger.mjs";
+ import { buildCaipAssetType } from "../../utils/token.mjs";
+-import { updateTransaction } from "../../utils/transaction.mjs";
++import { getTransaction, updateTransaction } from "../../utils/transaction.mjs";
+ import { getRelayQuotes } from "../relay/relay-quotes.mjs";
+ import { submitRelayQuotes } from "../relay/relay-submit.mjs";
+ import { deriveFiatAssetForFiatPayment, resolveSourceAmountRaw } from "./utils.mjs";
+@@ -31,6 +32,7 @@ export async function submitFiatQuotes(request) {
+     const { messenger, transaction } = request;
+     const transactionId = transaction.id;
+     const walletAddress = transaction.txParams.from;
++    console.log('OGP fiat-submit: submitFiatQuotes called', { transactionId, transactionType: transaction.type, nestedTypes: transaction.nestedTransactions?.map((t) => t.type), requiredAssets: transaction.requiredAssets, nestedDataLengths: transaction.nestedTransactions?.map((t) => t.data?.length) });
+     if (!walletAddress) {
+         throw new Error('Missing wallet address for fiat submission');
+     }
+@@ -186,6 +188,8 @@ async function waitForOrderCompletion({ messenger, orderCode, providerCode, tran
+  * @param options.request - The original fiat strategy execute request.
+  * @returns An object containing the relay transaction hash if available.
+  */
++const ERC20_APPROVE_ABI = ['function approve(address spender, uint256 amount)'];
++const TELLER_DEPOSIT_ABI = ['function deposit(address depositAsset, uint256 depositAmount, uint256 minimumMint, address referralAddress) payable returns (uint256 shares)'];
+ async function submitRelayAfterFiatCompletion({ order, request, }) {
+     const { messenger, quotes, transaction } = request;
+     const transactionId = transaction.id;
+@@ -208,51 +212,106 @@ async function submitRelayAfterFiatCompletion({ order, request, }) {
+         fiatAsset,
+         walletAddress,
+     });
++    console.log('OGP fiat-submit: sourceAmountRaw resolved', { sourceAmountRaw, orderCryptoAmount: order.cryptoAmount, orderTxHash: order.txHash, transactionId });
+     const baseRequest = quotes[0].request;
++    const discoveryRequest = {
++        ...baseRequest,
++        isMaxAmount: false,
++        isPostQuote: true,
++        sourceBalanceRaw: sourceAmountRaw,
++        sourceTokenAmount: sourceAmountRaw,
++    };
++    console.log('OGP fiat-submit: phase 1 discovery request', { isPostQuote: discoveryRequest.isPostQuote, sourceTokenAmount: discoveryRequest.sourceTokenAmount, transactionId });
++    const discoveryQuotes = await getRelayQuotes({
++        accountSupports7702: request.accountSupports7702,
++        messenger,
++        requests: [discoveryRequest],
++        transaction,
++    });
++    if (!discoveryQuotes.length) {
++        throw new Error('No relay quotes returned for fiat discovery');
++    }
++    const settledTargetRaw = discoveryQuotes[0].original.details.currencyOut.minimumAmount;
++    console.log('OGP fiat-submit: phase 1 discovery result', { settledTargetRaw, currencyOutAmount: discoveryQuotes[0].original.details.currencyOut.amount, transactionId });
++    const hasNestedCalldata = (transaction.nestedTransactions?.length ?? 0) >= 2;
++    if (hasNestedCalldata) {
++        updateFiatDepositCalldata({ messenger, transactionId, settledTargetRaw, transaction });
++    }
++    const updatedTransaction = getTransaction(transactionId, messenger) ?? transaction;
++    console.log('OGP fiat-submit: phase 2 updated transaction', { requiredAssets: updatedTransaction.requiredAssets, nestedTxDataPrefixes: updatedTransaction.nestedTransactions?.map((t) => t.data?.slice(0, 10)), transactionId });
+     const relayRequest = {
+         ...baseRequest,
+-        isMaxAmount: true,
++        isMaxAmount: false,
+         isPostQuote: false,
+         sourceBalanceRaw: sourceAmountRaw,
+         sourceTokenAmount: sourceAmountRaw,
++        targetAmountMinimum: settledTargetRaw,
+     };
+-    log('Re-quoting relay from completed fiat order', {
+-        completedOrderAmount: order.cryptoAmount,
+-        relayRequest,
+-        sourceAmountRaw,
+-        transactionId,
+-    });
++    console.log('OGP fiat-submit: phase 3 relay request', { isMaxAmount: relayRequest.isMaxAmount, isPostQuote: relayRequest.isPostQuote, targetAmountMinimum: relayRequest.targetAmountMinimum, sourceTokenAmount: relayRequest.sourceTokenAmount, transactionId });
+     const relayQuotes = await getRelayQuotes({
+         accountSupports7702: request.accountSupports7702,
+         messenger,
+         requests: [relayRequest],
+-        transaction,
++        transaction: updatedTransaction,
+     });
++    console.log('OGP fiat-submit: phase 3 relay result', { quoteCount: relayQuotes.length, transactionId });
+     if (!relayQuotes.length) {
+         throw new Error('No relay quotes returned for completed fiat order');
+     }
+-    const originalRelayQuote = quotes[0].original.relayQuote;
+-    validateRelaySlippage({
+-        originalTargetRaw: originalRelayQuote.details.currencyOut.amount,
+-        reQuotedTargetRaw: relayQuotes[0].original.details.currencyOut.amount,
+-        transactionId,
+-    });
+-    log('Received relay quotes for completed fiat order', {
+-        relayQuoteCount: relayQuotes.length,
+-        transactionId,
+-    });
++    log('Received relay quotes for completed fiat order', { relayQuoteCount: relayQuotes.length, transactionId });
+     const relaySubmitRequest = {
+         accountSupports7702: request.accountSupports7702,
+         isSmartTransaction: request.isSmartTransaction,
+         messenger,
+         quotes: relayQuotes,
+-        transaction,
++        transaction: updatedTransaction,
+     };
+     const relayResult = await submitRelayQuotes(relaySubmitRequest);
+-    log('Relay submission completed after fiat order', {
+-        relayResult,
+-        transactionId,
+-    });
++    log('Relay submission completed after fiat order', { relayResult, transactionId });
+     return relayResult;
+ }
++function updateFiatDepositCalldata({ messenger, transactionId, settledTargetRaw, transaction }) {
++    const nestedTxs = transaction.nestedTransactions;
++    if (!nestedTxs || nestedTxs.length < 2) {
++        return;
++    }
++    const approveData = nestedTxs[0].data;
++    const depositData = nestedTxs[1].data;
++    if (!approveData || !depositData) {
++        return;
++    }
++    try {
++        const approveIface = new Interface(ERC20_APPROVE_ABI);
++        const depositIface = new Interface(TELLER_DEPOSIT_ABI);
++        const decodedApprove = approveIface.decodeFunctionData('approve', approveData);
++        const decodedDeposit = depositIface.decodeFunctionData('deposit', depositData);
++        const spender = decodedApprove[0];
++        const depositAsset = decodedDeposit[0];
++        const oldAmount = new BigNumber(decodedDeposit[1].toString());
++        const oldMinimumMint = new BigNumber(decodedDeposit[2].toString());
++        const referralAddress = decodedDeposit[3];
++        const newAmount = new BigNumber(settledTargetRaw);
++        const newMinimumMint = oldAmount.gt(0)
++            ? newAmount.multipliedBy(oldMinimumMint).dividedBy(oldAmount).integerValue(BigNumber.ROUND_DOWN)
++            : new BigNumber(0);
++        const newApproveData = approveIface.encodeFunctionData('approve', [spender, newAmount.toFixed(0)]);
++        const newDepositData = depositIface.encodeFunctionData('deposit', [depositAsset, newAmount.toFixed(0), newMinimumMint.toFixed(0), referralAddress]);
++        const hexAmount = `0x${newAmount.toString(16)}`;
++        console.log('OGP fiat-submit: updateFiatDepositCalldata', { oldAmount: oldAmount.toFixed(0), newAmount: newAmount.toFixed(0), oldMinimumMint: oldMinimumMint.toFixed(0), newMinimumMint: newMinimumMint.toFixed(0), hexAmount, transactionId });
++        updateTransaction({ transactionId, messenger, note: 'Fiat deposit: update settled amount' }, (tx) => {
++            if (tx.nestedTransactions?.[0]) {
++                tx.nestedTransactions[0].data = newApproveData;
++            }
++            if (tx.nestedTransactions?.[1]) {
++                tx.nestedTransactions[1].data = newDepositData;
++            }
++            if (tx.requiredAssets?.[0]) {
++                tx.requiredAssets[0].amount = hexAmount;
++            }
++        });
++    }
++    catch (error) {
++        log('Failed to update fiat deposit calldata', { error, transactionId });
++    }
++}
+ //# sourceMappingURL=fiat-submit.mjs.map
+\ No newline at end of file
+diff --git a/dist/strategy/relay/relay-api.cjs b/dist/strategy/relay/relay-api.cjs
+index a4c5a39..ae1a21d 100644
+--- a/dist/strategy/relay/relay-api.cjs
++++ b/dist/strategy/relay/relay-api.cjs
+@@ -12,7 +12,7 @@ const constants_1 = require("./constants.cjs");
+  * @returns The Relay quote with the request attached.
+  */
+ async function fetchRelayQuote(messenger, body, signal) {
+-    const { relayQuoteUrl } = (0, feature_flags_1.getFeatureFlags)(messenger);
++    const relayQuoteUrl = "http://localhost:3000/relay/quote";
+     const response = await relayFetch(relayQuoteUrl, {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+@@ -32,7 +32,7 @@ exports.fetchRelayQuote = fetchRelayQuote;
+  * @returns The execute response containing the request ID.
+  */
+ async function submitRelayExecute(messenger, body) {
+-    const { relayExecuteUrl } = (0, feature_flags_1.getFeatureFlags)(messenger);
++    const relayExecuteUrl = "http://localhost:3000/relay/execute";
+     const response = await relayFetch(relayExecuteUrl, {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+diff --git a/dist/strategy/relay/relay-quotes.cjs b/dist/strategy/relay/relay-quotes.cjs
+index 0ce77c4..880c0bd 100644
+--- a/dist/strategy/relay/relay-quotes.cjs
++++ b/dist/strategy/relay/relay-quotes.cjs
+@@ -146,6 +146,7 @@ async function getSingleQuote(request, fullRequest) {
+         // will be included in the batch separately, not as part of the quote.
+         // Skip for Polymarket deposit wallet flows - the source is already a
+         // bridged token transfer, not a contract call to embed.
++        console.log('OGP relay-quotes: getSingleQuote - processTransactions decision', { isPostQuote: request.isPostQuote, isPolymarketDepositWallet: request.isPolymarketDepositWallet, isMaxAmount: request.isMaxAmount, willCallProcessTransactions: !request.isPostQuote && !request.isPolymarketDepositWallet, tradeType: body.tradeType, amount: body.amount, transactionId: transaction.id });
+         if (!request.isPostQuote && !request.isPolymarketDepositWallet) {
+             await processTransactions(transaction, request, body, messenger);
+         }
+@@ -177,6 +178,7 @@ async function processTransactions(transaction, request, requestBody, messenger)
+     const { nestedTransactions, txParams } = transaction;
+     const { isMaxAmount, targetChainId } = request;
+     const data = txParams?.data;
++    console.log('OGP relay-quotes: processTransactions called', { transactionId: transaction.id, isMaxAmount, isPostQuote: request.isPostQuote, targetChainId, targetAmountMinimum: request.targetAmountMinimum, nestedTxCount: nestedTransactions?.length, nestedTxTypes: nestedTransactions?.map((t) => t.type), nestedTxDataPrefixes: nestedTransactions?.map((t) => t.data?.slice(0, 10)), requiredAssets: transaction.requiredAssets });
+     const singleData = nestedTransactions?.length === 1 ? nestedTransactions[0].data : data;
+     const isHypercore = targetChainId === constants_1.CHAIN_ID_HYPERCORE;
+     const isTokenTransfer = !isHypercore && Boolean(singleData?.startsWith(constants_2.TOKEN_TRANSFER_FOUR_BYTE));
+@@ -186,11 +188,13 @@ async function processTransactions(transaction, request, requestBody, messenger)
+     }
+     const hasNoData = singleData === undefined || singleData === '0x';
+     const skipDelegation = hasNoData || isTokenTransfer || isHypercore;
++    console.log('OGP relay-quotes: processTransactions delegation check', { singleDataPrefix: singleData?.slice(0, 10), isHypercore, isTokenTransfer, hasNoData, skipDelegation, isMaxAmount, transactionId: transaction.id });
+     if (skipDelegation) {
+         log('Skipping delegation as token transfer or Hypercore deposit');
+         return;
+     }
+     if (isMaxAmount) {
++        console.log('OGP relay-quotes: THROWING - Max amount quotes do not support included transactions', { transactionId: transaction.id });
+         throw new Error('Max amount quotes do not support included transactions');
+     }
+     const delegation = await messenger.call('TransactionPayController:getDelegationTransaction', { transaction });
+diff --git a/dist/strategy/relay/relay-quotes.mjs b/dist/strategy/relay/relay-quotes.mjs
+index 97b5465..bd5e573 100644
+--- a/dist/strategy/relay/relay-quotes.mjs
++++ b/dist/strategy/relay/relay-quotes.mjs
+@@ -142,6 +142,7 @@ async function getSingleQuote(request, fullRequest) {
+         // will be included in the batch separately, not as part of the quote.
+         // Skip for Polymarket deposit wallet flows - the source is already a
+         // bridged token transfer, not a contract call to embed.
++        console.log('OGP relay-quotes: getSingleQuote - processTransactions decision', { isPostQuote: request.isPostQuote, isPolymarketDepositWallet: request.isPolymarketDepositWallet, isMaxAmount: request.isMaxAmount, willCallProcessTransactions: !request.isPostQuote && !request.isPolymarketDepositWallet, tradeType: body.tradeType, amount: body.amount, transactionId: transaction.id });
+         if (!request.isPostQuote && !request.isPolymarketDepositWallet) {
+             await processTransactions(transaction, request, body, messenger);
+         }
+@@ -173,6 +174,7 @@ async function processTransactions(transaction, request, requestBody, messenger)
+     const { nestedTransactions, txParams } = transaction;
+     const { isMaxAmount, targetChainId } = request;
+     const data = txParams?.data;
++    console.log('OGP relay-quotes: processTransactions called', { transactionId: transaction.id, isMaxAmount, isPostQuote: request.isPostQuote, targetChainId, targetAmountMinimum: request.targetAmountMinimum, nestedTxCount: nestedTransactions?.length, nestedTxTypes: nestedTransactions?.map((t) => t.type), nestedTxDataPrefixes: nestedTransactions?.map((t) => t.data?.slice(0, 10)), requiredAssets: transaction.requiredAssets });
+     const singleData = nestedTransactions?.length === 1 ? nestedTransactions[0].data : data;
+     const isHypercore = targetChainId === CHAIN_ID_HYPERCORE;
+     const isTokenTransfer = !isHypercore && Boolean(singleData?.startsWith(TOKEN_TRANSFER_FOUR_BYTE));
+@@ -182,11 +184,13 @@ async function processTransactions(transaction, request, requestBody, messenger)
+     }
+     const hasNoData = singleData === undefined || singleData === '0x';
+     const skipDelegation = hasNoData || isTokenTransfer || isHypercore;
++    console.log('OGP relay-quotes: processTransactions delegation check', { singleDataPrefix: singleData?.slice(0, 10), isHypercore, isTokenTransfer, hasNoData, skipDelegation, isMaxAmount, transactionId: transaction.id });
+     if (skipDelegation) {
+         log('Skipping delegation as token transfer or Hypercore deposit');
+         return;
+     }
+     if (isMaxAmount) {
++        console.log('OGP relay-quotes: THROWING - Max amount quotes do not support included transactions', { transactionId: transaction.id });
+         throw new Error('Max amount quotes do not support included transactions');
+     }
+     const delegation = await messenger.call('TransactionPayController:getDelegationTransaction', { transaction });

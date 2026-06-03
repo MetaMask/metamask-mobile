@@ -199,6 +199,17 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     });
 
     const handleDone = useCallback(async () => {
+      // eslint-disable-next-line no-console
+      console.log('OGP custom-amount-info: handleDone', {
+        selectedFiatPaymentMethodId,
+        transactionId,
+        amountFiat,
+        amountHuman: amountHumanDebounced,
+        isMoneyAccountDeposit,
+        willSetFiatOnly: Boolean(selectedFiatPaymentMethodId && transactionId),
+        willCallUpdateTokenAmount:
+          !selectedFiatPaymentMethodId || isMoneyAccountDeposit,
+      });
       try {
         if (selectedFiatPaymentMethodId && transactionId) {
           Engine.context.TransactionPayController.updateFiatPayment({
@@ -207,6 +218,18 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               fp.amountFiat = amountFiat;
             },
           });
+
+          // For moneyAccountDeposit fiat payments, also update the token amount
+          // so nested calldata (approve + vault deposit) and requiredAssets are
+          // populated with approximate amounts. Without this the delegation
+          // batch would contain zero-amount calls that revert on-chain.
+          if (isMoneyAccountDeposit) {
+            // eslint-disable-next-line no-console
+            console.log(
+              'OGP custom-amount-info: FIAT + moneyAccountDeposit - also calling updateTokenAmount',
+            );
+            await updateTokenAmount();
+          }
         } else {
           await updateTokenAmount();
         }
@@ -222,6 +245,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       }
     }, [
       amountFiat,
+      amountHumanDebounced,
+      isMoneyAccountDeposit,
       onAmountSubmit,
       selectedFiatPaymentMethodId,
       transactionId,
