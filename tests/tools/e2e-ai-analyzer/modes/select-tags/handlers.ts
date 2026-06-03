@@ -518,80 +518,54 @@ function extractTagsFromSpecContent(content: string): string[] {
 }
 
 /**
- * Deterministically detects which performance tests should run based on directly
- * changed files — bypassing AI for two clear-cut cases:
- *
- * 1. A performance **spec file** changed → run that spec's specific tags.
- * 2. A performance **infrastructure file** changed (page-objects, flows, framework
- * helpers used by perf tests) → run all performance tags conservatively, because
- * shared utilities can affect every scenario.
- *
- * Returns null when no performance-test-related files are changed.
+ * Detects changed performance spec files and returns the specific tags they test.
+ * Returns null when no spec files changed.
  */
 export function detectDirectPerformanceChanges(
   changedFiles: string[],
   baseDir: string,
 ): PerformanceTestSelection | null {
   const changedSpecFiles = changedFiles.filter((f) => PERF_SPEC_REGEX.test(f));
-  const changedInfraFiles = changedFiles.filter(
-    (f) => !PERF_SPEC_REGEX.test(f) && PERF_INFRA_REGEX.test(f),
-  );
-
-  if (changedSpecFiles.length === 0 && changedInfraFiles.length === 0) {
+  if (changedSpecFiles.length === 0) {
     return null;
   }
 
   const allPerfTags = PERFORMANCE_TAGS_CONFIG.map((c) => c.tag);
   const selectedTags: string[] = [];
   const reasons: string[] = [];
+  const unreadableFiles: string[] = [];
 
-  // Case 1: spec file changes — extract their specific tags
-  if (changedSpecFiles.length > 0) {
-    const unreadableFiles: string[] = [];
-    for (const specFile of changedSpecFiles) {
-      try {
-        const content = readFileSync(path.join(baseDir, specFile), 'utf-8');
-        const fileTags = extractTagsFromSpecContent(content).filter((t) =>
-          allPerfTags.includes(t),
-        );
-        if (fileTags.length > 0) {
-          selectedTags.push(...fileTags);
-        } else {
-          // File readable but no tags found (e.g. deleted spec, or unusual format);
-          // run all perf tags to be safe
-          unreadableFiles.push(specFile);
-        }
-      } catch {
-        // File not accessible (e.g. deleted); run all perf tags conservatively
+  for (const specFile of changedSpecFiles) {
+    try {
+      const content = readFileSync(path.join(baseDir, specFile), 'utf-8');
+      const fileTags = extractTagsFromSpecContent(content).filter((t) =>
+        allPerfTags.includes(t),
+      );
+      if (fileTags.length > 0) {
+        selectedTags.push(...fileTags);
+      } else {
+        // File readable but no tags found (e.g. deleted spec, or unusual format)
         unreadableFiles.push(specFile);
       }
-    }
-    if (unreadableFiles.length > 0) {
-      selectedTags.push(...allPerfTags);
-      reasons.push(
-        `Changed spec files (unreadable/deleted, running all): ${unreadableFiles.map((f) => path.basename(f)).join(', ')}`,
-      );
-    }
-    const readableChanged = changedSpecFiles.filter(
-      (f) => !unreadableFiles.includes(f),
-    );
-    if (readableChanged.length > 0 && selectedTags.length > 0) {
-      reasons.push(
-        `Changed spec files: ${readableChanged.map((f) => path.basename(f)).join(', ')}`,
-      );
+    } catch {
+      // File not accessible (e.g. deleted)
+      unreadableFiles.push(specFile);
     }
   }
 
-  // Case 2: infrastructure changes — conservative: run all performance tags
-  if (changedInfraFiles.length > 0) {
+  if (unreadableFiles.length > 0) {
     selectedTags.push(...allPerfTags);
-    const shown = changedInfraFiles.slice(0, 3).map((f) => path.basename(f));
-    const extra =
-      changedInfraFiles.length > 3
-        ? ` (+${changedInfraFiles.length - 3} more)`
-        : '';
     reasons.push(
-      `Changed shared performance infrastructure: ${shown.join(', ')}${extra} — running all tags conservatively`,
+      `Changed spec files (unreadable/deleted, running all): ${unreadableFiles.map((f) => path.basename(f)).join(', ')}`,
+    );
+  }
+
+  const readableChanged = changedSpecFiles.filter(
+    (f) => !unreadableFiles.includes(f),
+  );
+  if (readableChanged.length > 0) {
+    reasons.push(
+      `Changed spec files: ${readableChanged.map((f) => path.basename(f)).join(', ')}`,
     );
   }
 
@@ -600,14 +574,26 @@ export function detectDirectPerformanceChanges(
     return null;
   }
 
-  console.log(`\n📌 Deterministic performance test detection:`);
-  reasons.forEach((r) => console.log(`   ${r}`));
-  console.log(`   Tags: ${uniqueTags.join(', ')}`);
-
   return {
     selectedTags: uniqueTags,
     reasoning: reasons.join('. '),
   };
+}
+
+/**
+ * Detects changed performance infrastructure files (fixtures, flows, framework helpers).
+ * Returns the list of changed infra file names, or null if none changed.
+ *
+ * The caller decides whether to expand to all tags based on whether any specific
+ * tags are already selected from spec or app code changes.
+ */
+export function detectInfraPerformanceChanges(
+  changedFiles: string[],
+): string[] | null {
+  const infraFiles = changedFiles.filter(
+    (f) => !PERF_SPEC_REGEX.test(f) && PERF_INFRA_REGEX.test(f),
+  );
+  return infraFiles.length > 0 ? infraFiles : null;
 }
 
 interface AppCodePerfTagEntry {

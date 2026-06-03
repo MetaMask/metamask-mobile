@@ -5,6 +5,7 @@
  * Supports multiple LLM providers with automatic fallback.
  */
 
+import path from 'node:path';
 import { ParsedArgs, AnalysisContext, SelectTagsAnalysis } from './types';
 import { APP_CONFIG, LLM_CONFIG } from './config';
 import {
@@ -37,6 +38,8 @@ import {
 import {
   detectDirectPerformanceChanges,
   detectAppCodePerformanceChanges,
+  detectInfraPerformanceChanges,
+  PERFORMANCE_TAGS_CONFIG,
 } from './modes/select-tags/handlers';
 
 /**
@@ -778,6 +781,11 @@ async function main() {
       // of whatever the AI selected. This ensures changed spec files, shared
       // performance infrastructure, and mapped app source files always trigger the
       // appropriate performance tests, regardless of AI judgment.
+      //
+      // Infra expansion rule: shared infrastructure changes (fixtures, framework
+      // helpers) conservatively expand to ALL tags — but ONLY when no specific tags
+      // are already identified from spec files or app code changes. If specific tests
+      // are already going to run, infra changes are implicitly covered.
       if (mode === 'select-tags') {
         const selectTagsAnalysis = analysis as SelectTagsAnalysis;
 
@@ -786,15 +794,37 @@ async function main() {
           baseDir,
         );
         const appCodePerf = detectAppCodePerformanceChanges(allChangedFiles);
+        const infraFiles = detectInfraPerformanceChanges(allChangedFiles);
 
-        const deterministicTags = [
+        // Collect specific tags from spec files and app code changes
+        const specificTags = [
           ...(directPerf?.selectedTags ?? []),
           ...(appCodePerf?.selectedTags ?? []),
         ];
+
         const deterministicReasonParts = [
           directPerf?.reasoning,
           appCodePerf?.reasoning,
         ].filter(Boolean) as string[];
+
+        // Apply infra expansion only when no specific tags exist
+        if (infraFiles) {
+          const shown = infraFiles.slice(0, 3).map((f) => path.basename(f));
+          const extra =
+            infraFiles.length > 3 ? ` (+${infraFiles.length - 3} more)` : '';
+          if (specificTags.length === 0) {
+            specificTags.push(...PERFORMANCE_TAGS_CONFIG.map((c) => c.tag));
+            deterministicReasonParts.push(
+              `Changed shared performance infrastructure: ${shown.join(', ')}${extra} — running all tags conservatively`,
+            );
+          } else {
+            deterministicReasonParts.push(
+              `Changed shared performance infrastructure: ${shown.join(', ')}${extra} — covered by specific tests already selected`,
+            );
+          }
+        }
+
+        const deterministicTags = [...new Set(specificTags)];
 
         if (deterministicTags.length > 0) {
           const merged = [
