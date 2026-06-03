@@ -16,6 +16,7 @@ import { IDENTITY_TEAM_SEED_PHRASE } from '../identity/utils/constants';
 import { remoteFeatureMultichainAccountsAccountDetailsV2 } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { completeGoogleNewUserOnboarding } from './utils';
+import { asDetoxElement } from '../../framework/EncapsulatedElement';
 
 const IMPORTED_ACCOUNT_NAME = 'Account 1';
 
@@ -77,7 +78,7 @@ describe(SmokeSeedlessOnboarding('Google Login - Add New SRP'), () => {
 
         // Verify the imported account is selected
         await Assertions.expectElementToHaveText(
-          WalletView.accountName,
+          asDetoxElement(WalletView.accountName),
           IMPORTED_ACCOUNT_NAME,
           {
             description: `Expect selected account to be ${IMPORTED_ACCOUNT_NAME}`,

@@ -11,6 +11,7 @@ import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { LocalNode } from '../../framework';
 import { AnvilManager } from '../../seeder/anvil-manager';
+import { asDetoxElement } from '../../framework/EncapsulatedElement';
 
 describe(RegressionAssets('Import custom token'), () => {
   beforeAll(async () => {
@@ -54,7 +55,7 @@ describe(RegressionAssets('Import custom token'), () => {
         await ImportTokensView.typeTokenAddress(hstAddress);
         await new Promise((resolve) => setTimeout(resolve, 20000));
         await Assertions.expectElementToHaveText(
-          ImportTokensView.symbolInput,
+          asDetoxElement(ImportTokensView.symbolInput),
           'TST',
           {
             timeout: 5000,

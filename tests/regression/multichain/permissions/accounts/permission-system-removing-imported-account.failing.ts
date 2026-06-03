@@ -18,6 +18,7 @@ import { navigateToBrowserView } from '../../../../flows/browser.flow';
 import AddAccountBottomSheet from '../../../../page-objects/wallet/AddAccountBottomSheet';
 import Assertions from '../../../../framework/Assertions';
 import SuccessImportAccountView from '../../../../page-objects/importAccount/SuccessImportAccountView';
+import { asDetoxElement } from '../../../../framework/EncapsulatedElement';
 
 const SEPOLIA = 'Sepolia';
 
@@ -40,7 +41,7 @@ describe(
     it('should navigate to browser', async () => {
       await TestHelpers.delay(2000);
       await navigateToBrowserView();
-      await Assertions.checkIfVisible(Browser.browserScreenID);
+      await Assertions.checkIfVisible(asDetoxElement(Browser.browserScreenID));
     });
 
     it('should trigger connect modal in the test dapp', async () => {

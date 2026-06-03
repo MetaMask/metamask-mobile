@@ -14,6 +14,7 @@ import { createUserStorageController } from '../utils/mocks';
 import ContactsView from '../../../page-objects/Settings/Contacts/ContactsView';
 import AddContactView from '../../../page-objects/Settings/Contacts/AddContactView';
 import CommonView from '../../../page-objects/CommonView';
+import { asDetoxElement } from '../../../framework/EncapsulatedElement';
 
 describe(SmokeIdentity('Contacts syncing - Settings'), () => {
   let sharedUserStorageController: UserStorageMockttpController;
@@ -99,11 +100,11 @@ describe(SmokeIdentity('Contacts syncing - Settings'), () => {
           BackupAndSyncView.backupAndSyncToggle,
         );
         await Assertions.expectToggleToBeOn(
-          BackupAndSyncView.contactSyncToggle,
+          asDetoxElement(BackupAndSyncView.contactSyncToggle),
         );
         await BackupAndSyncView.toggleContactSync();
         await Assertions.expectToggleToBeOff(
-          BackupAndSyncView.contactSyncToggle,
+          asDetoxElement(BackupAndSyncView.contactSyncToggle),
         );
 
         // BackupAndSync → Settings → AccountsMenu, then navigate to Contacts

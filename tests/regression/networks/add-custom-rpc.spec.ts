@@ -82,7 +82,7 @@ describe.skip(RegressionAssets('Custom RPC Tests'), () => {
         await Assertions.expectElementToBeVisible(WalletView.container);
 
         await Assertions.expectElementToHaveLabel(
-          WalletView.navbarNetworkPicker,
+          asDetoxElement(WalletView.navbarNetworkPicker),
           CustomNetworks.Gnosis.providerConfig.nickname,
         );
 
@@ -93,13 +93,15 @@ describe.skip(RegressionAssets('Custom RPC Tests'), () => {
         );
 
         await Assertions.expectElementToHaveLabel(
-          WalletView.navbarNetworkPicker,
+          asDetoxElement(WalletView.navbarNetworkPicker),
           CustomNetworks.Gnosis.providerConfig.nickname,
         );
 
         // Switch to Sepolia and back to Gnosis
         await NetworkListModal.scrollToBottomOfNetworkList();
-        await Assertions.expectToggleToBeOn(NetworkListModal.testNetToggle);
+        await Assertions.expectToggleToBeOn(
+          asDetoxElement(NetworkListModal.testNetToggle),
+        );
         await NetworkListModal.changeNetworkTo(
           CustomNetworks.Sepolia.providerConfig.nickname,
         );
@@ -114,7 +116,7 @@ describe.skip(RegressionAssets('Custom RPC Tests'), () => {
         await Assertions.expectElementToBeVisible(WalletView.container);
 
         await Assertions.expectElementToHaveLabel(
-          WalletView.navbarNetworkPicker,
+          asDetoxElement(WalletView.navbarNetworkPicker),
           CustomNetworks.Sepolia.providerConfig.nickname,
         );
         await WalletView.tapNetworksButtonOnNavBar();
@@ -123,7 +125,7 @@ describe.skip(RegressionAssets('Custom RPC Tests'), () => {
         await NetworkListModal.scrollToBottomOfNetworkList();
 
         await Assertions.expectElementToHaveLabel(
-          WalletView.navbarNetworkPicker,
+          asDetoxElement(WalletView.navbarNetworkPicker),
           CustomNetworks.Sepolia.providerConfig.nickname,
         );
 
@@ -138,7 +140,7 @@ describe.skip(RegressionAssets('Custom RPC Tests'), () => {
         await Assertions.expectElementToBeVisible(WalletView.container);
 
         await Assertions.expectElementToHaveLabel(
-          WalletView.navbarNetworkPicker,
+          asDetoxElement(WalletView.navbarNetworkPicker),
           CustomNetworks.Gnosis.providerConfig.nickname,
         );
 
@@ -168,7 +170,9 @@ describe.skip(RegressionAssets('Custom RPC Tests'), () => {
         await loginToApp();
         await WalletView.tapNetworksButtonOnNavBar();
         await NetworkListModal.scrollToBottomOfNetworkList();
-        await Assertions.expectToggleToBeOn(NetworkListModal.testNetToggle);
+        await Assertions.expectToggleToBeOn(
+          asDetoxElement(NetworkListModal.testNetToggle),
+        );
         await NetworkListModal.changeNetworkTo(
           CustomNetworks.Sepolia.providerConfig.nickname,
         );

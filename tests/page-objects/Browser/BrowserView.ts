@@ -16,6 +16,7 @@ import { Assertions, Matchers, Utilities } from '../../framework';
 import {
   encapsulated,
   EncapsulatedElementType,
+  asDetoxElement,
 } from '../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import UnifiedGestures from '../../framework/UnifiedGestures';
@@ -434,9 +435,13 @@ class Browser {
   }
 
   async expectUrlNotEqualTo(text: string, description?: string): Promise<void> {
-    await Assertions.expectElementToNotHaveText(this.urlInputBoxID, text, {
-      description: description ?? `URL input box text is not "${text}"`,
-    });
+    await Assertions.expectElementToNotHaveText(
+      asDetoxElement(this.urlInputBoxID),
+      text,
+      {
+        description: description ?? `URL input box text is not "${text}"`,
+      },
+    );
   }
 
   async navigateToURL(

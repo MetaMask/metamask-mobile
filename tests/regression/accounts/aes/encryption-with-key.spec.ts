@@ -7,6 +7,7 @@ import { loginToApp } from '../../../flows/wallet.flow';
 import AesCryptoTestForm from '../../../page-objects/Settings/AesCryptoTestForm';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import { asDetoxElement } from '../../../framework/EncapsulatedElement';
 
 describe(
   RegressionAccounts(
@@ -39,7 +40,7 @@ describe(
           await SettingsView.tapAesCryptoTestForm();
 
           await Assertions.expectElementToHaveText(
-            AesCryptoTestForm.accountAddress,
+            asDetoxElement(AesCryptoTestForm.accountAddress),
             ADDRESS,
             {
               description: `Account address should match ${ADDRESS}`,
@@ -57,7 +58,7 @@ describe(
           await AesCryptoTestForm.decryptWithKey(encryptionKey);
 
           await Assertions.expectElementToHaveLabel(
-            AesCryptoTestForm.decryptWithKeyResponse,
+            asDetoxElement(AesCryptoTestForm.decryptWithKeyResponse),
             DATA_TO_ENCRYPT_ONE,
             {
               description: `Decrypted data should match ${DATA_TO_ENCRYPT_ONE}`,
@@ -75,7 +76,7 @@ describe(
           );
           await AesCryptoTestForm.decryptWithKey(encryptionKey);
           await Assertions.expectElementToHaveLabel(
-            AesCryptoTestForm.decryptWithKeyResponse,
+            asDetoxElement(AesCryptoTestForm.decryptWithKeyResponse),
             DATA_TO_ENCRYPT_TWO,
             {
               description: `Decrypted data should match ${DATA_TO_ENCRYPT_TWO}`,

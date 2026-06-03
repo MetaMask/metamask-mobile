@@ -24,6 +24,7 @@ import { setupRemoteFeatureFlagsMock } from '../../../../api-mocking/helpers/rem
 import { confirmationFeatureFlags } from '../../../../api-mocking/mock-responses/feature-flags-mocks';
 import { LocalNode } from '../../../../framework/types';
 import { AnvilManager } from '../../../../seeder/anvil-manager';
+import { asDetoxElement } from '../../../../framework/EncapsulatedElement';
 
 describe(SmokeConfirmations('Token Approve - approve method'), () => {
   const ERC_20_CONTRACT = SMART_CONTRACTS.HST;
@@ -105,7 +106,7 @@ describe(SmokeConfirmations('Token Approve - approve method'), () => {
 
         // Check spending cap is visible and has the correct value
         await Assertions.expectElementToHaveText(
-          TokenApproveConfirmation.SpendingCapValue,
+          asDetoxElement(TokenApproveConfirmation.SpendingCapValue),
           '7',
         );
 
@@ -114,7 +115,7 @@ describe(SmokeConfirmations('Token Approve - approve method'), () => {
         await TokenApproveConfirmation.inputSpendingCap('10');
         await TokenApproveConfirmation.tapEditSpendingCapSaveButton();
         await Assertions.expectElementToHaveText(
-          TokenApproveConfirmation.SpendingCapValue,
+          asDetoxElement(TokenApproveConfirmation.SpendingCapValue),
           '10',
         );
 
@@ -189,7 +190,7 @@ describe(SmokeConfirmations('Token Approve - approve method'), () => {
         // Check spending cap is visible and has the correct value
         // #1 means the token id for ERC 721
         await Assertions.expectElementToHaveText(
-          TokenApproveConfirmation.SpendingCapValue,
+          asDetoxElement(TokenApproveConfirmation.SpendingCapValue),
           '#1',
         );
 

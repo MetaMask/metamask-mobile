@@ -24,6 +24,7 @@ import { confirmationFeatureFlags } from '../../../../api-mocking/mock-responses
 import { setupRemoteFeatureFlagsMock } from '../../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { LocalNode } from '../../../../framework/types';
 import { AnvilManager } from '../../../../seeder/anvil-manager';
+import { asDetoxElement } from '../../../../framework/EncapsulatedElement';
 
 describe(SmokeConfirmations('Token Approve - increaseAllowance method'), () => {
   const ERC_20_CONTRACT = SMART_CONTRACTS.HST;
@@ -104,7 +105,7 @@ describe(SmokeConfirmations('Token Approve - increaseAllowance method'), () => {
 
         // Check spending cap is visible and has the correct value
         await Assertions.expectElementToHaveText(
-          TokenApproveConfirmation.SpendingCapValue,
+          asDetoxElement(TokenApproveConfirmation.SpendingCapValue),
           '1',
         );
 
@@ -113,7 +114,7 @@ describe(SmokeConfirmations('Token Approve - increaseAllowance method'), () => {
         await TokenApproveConfirmation.inputSpendingCap('5');
         await TokenApproveConfirmation.tapEditSpendingCapSaveButton();
         await Assertions.expectElementToHaveText(
-          TokenApproveConfirmation.SpendingCapValue,
+          asDetoxElement(TokenApproveConfirmation.SpendingCapValue),
           '5',
         );
 

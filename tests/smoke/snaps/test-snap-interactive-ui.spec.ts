@@ -7,6 +7,7 @@ import TestSnaps from '../../page-objects/Browser/TestSnaps';
 import { Assertions } from '../../framework';
 import Matchers from '../../framework/Matchers';
 import { DateTime } from 'luxon';
+import { asDetoxElement } from '../../framework/EncapsulatedElement';
 
 jest.setTimeout(150_000);
 
@@ -102,9 +103,15 @@ describe(SmokeSnaps('Interactive UI Snap Tests'), () => {
           Matchers.getElementByID('snap-ui-renderer__selector'),
         );
 
-        await Assertions.checkIfDisabled(TestSnaps.dateTimePickerTouchable);
-        await Assertions.checkIfDisabled(TestSnaps.datePickerTouchable);
-        await Assertions.checkIfDisabled(TestSnaps.timePickerTouchable);
+        await Assertions.checkIfDisabled(
+          asDetoxElement(TestSnaps.dateTimePickerTouchable),
+        );
+        await Assertions.checkIfDisabled(
+          asDetoxElement(TestSnaps.datePickerTouchable),
+        );
+        await Assertions.checkIfDisabled(
+          asDetoxElement(TestSnaps.timePickerTouchable),
+        );
 
         await Assertions.checkIfDisabled(Matchers.getElementByText('Submit'));
 

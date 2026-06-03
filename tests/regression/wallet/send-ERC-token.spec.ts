@@ -19,6 +19,7 @@ import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../seeder/anvil-manager';
 import NetworkListModal from '../../page-objects/Network/NetworkListModal';
 import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions';
+import { asDetoxElement } from '../../framework/EncapsulatedElement';
 
 const SEND_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
@@ -72,7 +73,7 @@ describe(RegressionWalletPlatform('Send ERC Token'), () => {
         await WalletView.tapImportTokensButton(); // Disable sync to prevent test hang
         await ImportTokensView.typeTokenAddress(hstAddress);
         await Assertions.expectElementToHaveText(
-          ImportTokensView.symbolInput,
+          asDetoxElement(ImportTokensView.symbolInput),
           'TST',
           {
             timeout: 5000,

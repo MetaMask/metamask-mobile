@@ -16,6 +16,7 @@ import { CustomNetworks } from '../../resources/networks.e2e';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import type { AssetsControllerState } from '@metamask/assets-controller';
+import { asDetoxElement } from '../../framework/EncapsulatedElement';
 
 const POLYGON = CustomNetworks.Tenderly.Polygon.providerConfig.nickname;
 
@@ -371,7 +372,9 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
         // iOS UIAccessibility joins those with ", " (RN 0.81 behavior change).
         const expectedText = `Use your enabled networks, Requesting for ${POLYGON} Mainnet`;
         await Assertions.expectElementToHaveLabel(
-          ConnectedAccountsModal.navigateToEditNetworksPermissionsButton,
+          asDetoxElement(
+            ConnectedAccountsModal.navigateToEditNetworksPermissionsButton,
+          ),
           expectedText,
           {
             description: `edit networks permissions button should show "${expectedText}"`,

@@ -8,6 +8,7 @@ import { Assertions, logger } from '../../framework';
 import {
   encapsulated,
   EncapsulatedElementType,
+  asDetoxElement,
 } from '../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import UnifiedGestures from '../../framework/UnifiedGestures';
@@ -104,33 +105,53 @@ class TransactionDetailsModal {
   }
 
   async verifyNetworkFee(fee: string): Promise<void> {
-    await Assertions.expectElementToHaveText(this.networkFee, fee, {
-      description: 'Network fee should be correct',
-    });
+    await Assertions.expectElementToHaveText(
+      asDetoxElement(this.networkFee),
+      fee,
+      {
+        description: 'Network fee should be correct',
+      },
+    );
   }
 
   async verifyPaidWithSymbol(symbol: string): Promise<void> {
-    await Assertions.expectElementToHaveText(this.paidWithSymbol, symbol, {
-      description: 'Paid with symbol should be correct',
-    });
+    await Assertions.expectElementToHaveText(
+      asDetoxElement(this.paidWithSymbol),
+      symbol,
+      {
+        description: 'Paid with symbol should be correct',
+      },
+    );
   }
 
   async verifyStatus(status: string): Promise<void> {
-    await Assertions.expectElementToHaveText(this.status, status, {
-      description: 'Status should be correct',
-    });
+    await Assertions.expectElementToHaveText(
+      asDetoxElement(this.status),
+      status,
+      {
+        description: 'Status should be correct',
+      },
+    );
   }
 
   async verifyTotal(total: string): Promise<void> {
-    await Assertions.expectElementToHaveText(this.total, total, {
-      description: 'Total should be correct',
-    });
+    await Assertions.expectElementToHaveText(
+      asDetoxElement(this.total),
+      total,
+      {
+        description: 'Total should be correct',
+      },
+    );
   }
 
   async verifyTransactionFee(fee: string): Promise<void> {
-    await Assertions.expectElementToHaveText(this.transactionFee, fee, {
-      description: 'Transaction fee should be correct',
-    });
+    await Assertions.expectElementToHaveText(
+      asDetoxElement(this.transactionFee),
+      fee,
+      {
+        description: 'Transaction fee should be correct',
+      },
+    );
   }
 }
 

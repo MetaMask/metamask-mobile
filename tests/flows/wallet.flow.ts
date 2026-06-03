@@ -381,7 +381,9 @@ export const switchToSepoliaNetwork = async (): Promise<void> => {
   await NetworkListModal.scrollToBottomOfNetworkList();
   await NetworkListModal.tapTestNetworkSwitch();
   await NetworkListModal.scrollToBottomOfNetworkList();
-  await Assertions.expectToggleToBeOn(NetworkListModal.testNetToggle);
+  await Assertions.expectToggleToBeOn(
+    asDetoxElement(NetworkListModal.testNetToggle),
+  );
   await NetworkListModal.changeNetworkTo(
     CustomNetworks.Sepolia.providerConfig.nickname,
   );

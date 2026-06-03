@@ -7,6 +7,7 @@ import AccountDetails from '../../page-objects/MultichainAccounts/AccountDetails
 import AddressList from '../../page-objects/MultichainAccounts/AddressList.js';
 import { defaultGanacheOptions } from '../../framework/Constants.js';
 import { completeSrpQuiz } from '../../flows/accounts.flow.js';
+import { asDetoxElement } from '../../framework/EncapsulatedElement';
 
 // Quarantining, See open ticket here: https://github.com/MetaMask/metamask-mobile/issues/21429
 describe(SmokeAccounts('Create wallet accounts'), () => {
@@ -63,7 +64,7 @@ describe(SmokeAccounts('Create wallet accounts'), () => {
       });
 
       await Assertions.expectElementToHaveText(
-        WalletView.accountName,
+        asDetoxElement(WalletView.accountName),
         visibleAccounts[LAST],
         {
           description: `Expect selected account to be ${visibleAccounts[LAST]}`,

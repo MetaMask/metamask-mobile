@@ -16,6 +16,7 @@ import Accounts from '../../utils/Accounts';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import Assertions from '../../framework/Assertions';
 import { PopularNetworksList } from '../../resources/networks.e2e';
+import { asDetoxElement } from '../../framework/EncapsulatedElement';
 
 //const BINANCE_RPC_URL = 'https://bsc-dataseed1.binance.org';
 
@@ -56,9 +57,13 @@ describe(RegressionWalletPlatform('Deep linking Tests'), () => {
   });
 
   it('should enable remember me', async () => {
-    await Assertions.expectToggleToBeOn(SecurityAndPrivacy.rememberMeToggle);
+    await Assertions.expectToggleToBeOn(
+      asDetoxElement(SecurityAndPrivacy.rememberMeToggle),
+    );
     await SecurityAndPrivacy.tapTurnOnRememberMeToggle();
-    await Assertions.expectToggleToBeOff(SecurityAndPrivacy.rememberMeToggle);
+    await Assertions.expectToggleToBeOff(
+      asDetoxElement(SecurityAndPrivacy.rememberMeToggle),
+    );
   });
 
   it('should relaunch the app then enable remember me', async () => {
@@ -92,7 +97,7 @@ describe(RegressionWalletPlatform('Deep linking Tests'), () => {
       NetworkApprovalBottomSheet.container,
     );
     await Assertions.expectElementToHaveText(
-      NetworkApprovalBottomSheet.displayName,
+      asDetoxElement(NetworkApprovalBottomSheet.displayName),
       PopularNetworksList.BNB.providerConfig.nickname,
     );
     await NetworkApprovalBottomSheet.tapApproveButton();
@@ -113,7 +118,7 @@ describe(RegressionWalletPlatform('Deep linking Tests'), () => {
       NetworkApprovalBottomSheet.container,
     );
     await Assertions.expectElementToHaveText(
-      NetworkApprovalBottomSheet.displayName,
+      asDetoxElement(NetworkApprovalBottomSheet.displayName),
       PopularNetworksList.Polygon.providerConfig.nickname,
     );
 
@@ -127,7 +132,7 @@ describe(RegressionWalletPlatform('Deep linking Tests'), () => {
 
     await Assertions.expectElementToBeVisible(WalletView.container);
     await Assertions.expectElementToHaveText(
-      WalletView.navbarNetworkText,
+      asDetoxElement(WalletView.navbarNetworkText),
       PopularNetworksList.Polygon.providerConfig.nickname,
     );
   });

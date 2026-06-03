@@ -7,6 +7,7 @@ import Assertions from '../../framework/Assertions';
 import ImportSrpView from '../../page-objects/importSrp/ImportSrpView';
 import { goToImportSrp, inputSrp } from '../../flows/accounts.flow';
 import { IDENTITY_TEAM_SEED_PHRASE } from '../identity/utils/constants';
+import { asDetoxElement } from '../../framework/EncapsulatedElement';
 
 // We now have account indexes "per wallets", thus the new account for that new SRP (wallet), will
 // be: "Account 1".
@@ -27,7 +28,7 @@ describe(SmokeWalletPlatform('Multichain import SRP account'), () => {
         await inputSrp(IDENTITY_TEAM_SEED_PHRASE);
         await ImportSrpView.tapImportButton();
         await Assertions.expectElementToHaveText(
-          WalletView.accountName,
+          asDetoxElement(WalletView.accountName),
           IMPORTED_ACCOUNT_NAME,
           {
             description: `Expect selected account to be ${IMPORTED_ACCOUNT_NAME}`,

@@ -22,6 +22,7 @@ import CommonView from '../../../page-objects/CommonView';
 import enContent from '../../../../locales/languages/en.json';
 import WalletView from '../../../page-objects/wallet/WalletView';
 import { device } from 'detox';
+import { asDetoxElement } from '../../../framework/EncapsulatedElement';
 
 const MEMO = 'Test adding ENS';
 const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
@@ -143,7 +144,7 @@ describe.skip(RegressionWalletPlatform('Addressbook ENS Tests'), () => {
         await AddContactView.typeInAddress(INVALID_ADDRESS);
         await Assertions.expectElementToBeVisible(CommonView.errorMessage);
         await Assertions.expectElementToHaveText(
-          CommonView.errorMessage,
+          asDetoxElement(CommonView.errorMessage),
           enContent.transaction.invalid_address,
         );
         await AddContactView.clearAddressInputBox();

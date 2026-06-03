@@ -17,6 +17,7 @@ import { Assertions, Utilities } from '../../../framework';
 import { TestSpecificMock } from '../../../framework/types';
 import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
 import { ensResolutionMock } from '../../../api-mocking/mock-responses/ens-resolution-mocks';
+import { asDetoxElement } from '../../../framework/EncapsulatedElement';
 
 const INVALID_URL = 'https://quackquakc.easq';
 
@@ -162,7 +163,7 @@ describe(SmokeBrowser('Browser Navigation'), () => {
         await Browser.tapUrlInputBox();
         await Browser.navigateToURL(redirectUrl);
         await Assertions.expectElementToHaveText(
-          Browser.urlInputBoxID,
+          asDetoxElement(Browser.urlInputBoxID),
           getOriginFromURL(getDappUrl(0)),
           {
             description:
@@ -172,7 +173,7 @@ describe(SmokeBrowser('Browser Navigation'), () => {
 
         await RedirectWebsite.tapRedirectButton();
         await Assertions.expectElementToHaveText(
-          Browser.urlInputBoxID,
+          asDetoxElement(Browser.urlInputBoxID),
           getOriginFromURL(getDappUrl(1)),
           {
             description: 'URL bar shows the origin of the redirect target page',

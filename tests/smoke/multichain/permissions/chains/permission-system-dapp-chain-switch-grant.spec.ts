@@ -13,6 +13,7 @@ import NetworkConnectMultiSelector from '../../../../page-objects/Browser/Networ
 import NetworkNonPemittedBottomSheet from '../../../../page-objects/Network/NetworkNonPemittedBottomSheet';
 import { DappVariants } from '../../../../framework/Constants';
 import { CUSTOM_RPC_PROVIDER_MOCKS } from '../../../../api-mocking/mock-responses/custom-rpc-provider-mocks';
+import { asDetoxElement } from '../../../../framework/EncapsulatedElement';
 
 describe(SmokeNetworkAbstractions('Chain Permission System'), () => {
   beforeAll(async () => {
@@ -71,7 +72,10 @@ describe(SmokeNetworkAbstractions('Chain Permission System'), () => {
           // the network Badge letter ("E") into one a11y label. iOS's
           // UIAccessibility joins those with ", " (not a single space), so the
           // expected label is "l, E".
-          await Assertions.expectElementToHaveLabel(networkPicker, 'l, E');
+          await Assertions.expectElementToHaveLabel(
+            asDetoxElement(networkPicker),
+            'l, E',
+          );
         },
       );
     });

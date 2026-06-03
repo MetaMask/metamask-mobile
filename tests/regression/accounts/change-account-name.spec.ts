@@ -11,6 +11,7 @@ import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomS
 import AccountDetails from '../../page-objects/MultichainAccounts/AccountDetails';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../flows/wallet.flow';
+import { asDetoxElement } from '../../framework/EncapsulatedElement';
 
 const NEW_ACCOUNT_NAME = 'Edited Name';
 const NEW_IMPORTED_ACCOUNT_NAME = 'New Imported Account';
@@ -56,7 +57,7 @@ describe(RegressionAccounts('Change Account Name'), () => {
 
         // Verify updated name appears in wallet view
         await Assertions.expectElementToHaveText(
-          WalletView.accountName,
+          asDetoxElement(WalletView.accountName),
           NEW_ACCOUNT_NAME,
           {
             description: 'verify account name was updated in wallet view',
@@ -72,7 +73,7 @@ describe(RegressionAccounts('Change Account Name'), () => {
         // Unlock wallet and verify updated name persists
         await loginToApp();
         await Assertions.expectElementToHaveText(
-          WalletView.accountName,
+          asDetoxElement(WalletView.accountName),
           NEW_ACCOUNT_NAME,
         );
       },
@@ -120,7 +121,7 @@ describe(RegressionAccounts('Change Account Name'), () => {
 
         // Verify updated name
         await Assertions.expectElementToHaveText(
-          WalletView.accountName,
+          asDetoxElement(WalletView.accountName),
           NEW_IMPORTED_ACCOUNT_NAME,
           {
             description: 'verify account name was updated in wallet view',
@@ -136,7 +137,7 @@ describe(RegressionAccounts('Change Account Name'), () => {
         // Unlock wallet and verify updated name persists
         await loginToApp();
         await Assertions.expectElementToHaveText(
-          WalletView.accountName,
+          asDetoxElement(WalletView.accountName),
           NEW_IMPORTED_ACCOUNT_NAME,
         );
       },

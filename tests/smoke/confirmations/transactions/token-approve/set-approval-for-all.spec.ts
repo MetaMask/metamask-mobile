@@ -24,6 +24,7 @@ import { setupRemoteFeatureFlagsMock } from '../../../../api-mocking/helpers/rem
 import { confirmationFeatureFlags } from '../../../../api-mocking/mock-responses/feature-flags-mocks';
 import { LocalNode } from '../../../../framework/types';
 import { AnvilManager } from '../../../../seeder/anvil-manager';
+import { asDetoxElement } from '../../../../framework/EncapsulatedElement';
 
 describe(SmokeConfirmations('Token Approve - setApprovalForAll method'), () => {
   const ERC_721_CONTRACT = SMART_CONTRACTS.NFTS;
@@ -123,7 +124,7 @@ describe(SmokeConfirmations('Token Approve - setApprovalForAll method'), () => {
 
         // Check spending cap is visible and has the correct value
         await Assertions.expectElementToHaveText(
-          TokenApproveConfirmation.SpendingCapValue,
+          asDetoxElement(TokenApproveConfirmation.SpendingCapValue),
           'All',
           {
             description: 'Spending Cap Value',
@@ -200,7 +201,7 @@ describe(SmokeConfirmations('Token Approve - setApprovalForAll method'), () => {
 
         // Check spending cap is visible and has the correct value
         await Assertions.expectElementToHaveText(
-          TokenApproveConfirmation.SpendingCapValue,
+          asDetoxElement(TokenApproveConfirmation.SpendingCapValue),
           'All',
         );
 
@@ -276,7 +277,7 @@ describe(SmokeConfirmations('Token Approve - setApprovalForAll method'), () => {
           // Check spending cap is visible and has the correct value
           // All means, all token permissions revoked
           await Assertions.expectElementToHaveText(
-            TokenApproveConfirmation.SpendingCapValue,
+            asDetoxElement(TokenApproveConfirmation.SpendingCapValue),
             'All',
           );
 

@@ -32,6 +32,7 @@ import { RelayStatus } from '../../../../app/util/transactions/transaction-relay
 import TransactionConfirmView from '../../../page-objects/Send/TransactionConfirmView';
 import GasFeeTokenModal from '../../../page-objects/Confirmation/GasFeeTokenModal';
 import { AnvilPort } from '../../../framework/fixtures/FixtureUtils';
+import { asDetoxElement } from '../../../framework/EncapsulatedElement';
 
 const TRANSACTION_UUID_MOCK = '1234-5678';
 const SENDER_ADDRESS_MOCK = '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3';
@@ -322,7 +323,7 @@ describe.skip(
           );
 
           await Assertions.expectElementToHaveText(
-            RowComponents.NetworkFeeGasFeeTokenSymbol,
+            asDetoxElement(RowComponents.NetworkFeeGasFeeTokenSymbol),
             'USDC',
             {
               description: 'Gas fee token pill shows USDC',

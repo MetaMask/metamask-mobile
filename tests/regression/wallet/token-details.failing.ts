@@ -8,6 +8,7 @@ import {
 import Assertions from '../../framework/Assertions';
 import CommonView from '../../page-objects/CommonView';
 import TestHelpers from '../../helpers';
+import { asDetoxElement } from '../../framework/EncapsulatedElement';
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
 describe(RegressionTrade('Token Chart Tests'), () => {
@@ -22,7 +23,10 @@ describe(RegressionTrade('Token Chart Tests'), () => {
 
   it('should view the token chart', async () => {
     await WalletView.tapOnToken('Ethereum');
-    await Assertions.expectElementToNotHaveText(TokenOverview.tokenPrice, '$0');
+    await Assertions.expectElementToNotHaveText(
+      asDetoxElement(TokenOverview.tokenPrice),
+      '$0',
+    );
 
     await TokenOverview.tapChartPeriod1d();
     await Assertions.expectElementToBeVisible(TokenOverview.chartPeriod1d);
@@ -52,6 +56,9 @@ describe(RegressionTrade('Token Chart Tests'), () => {
     await Assertions.expectElementToBeVisible(TokenOverview.noChartData, {
       timeout: 60000,
     });
-    await Assertions.expectElementToHaveText(TokenOverview.tokenPrice, '$0');
+    await Assertions.expectElementToHaveText(
+      asDetoxElement(TokenOverview.tokenPrice),
+      '$0',
+    );
   });
 });

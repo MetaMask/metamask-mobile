@@ -23,6 +23,7 @@ import { ONRAMP_PERSONA } from '../../api-mocking/mock-responses/ramps/onramp-pe
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 import KYCScreen from '../../page-objects/Ramps/KYCScreen';
+import { asDetoxElement } from '../../framework/EncapsulatedElement';
 import {
   onrampNewUserDepositExpectations,
   onrampReturningUserBuyExpectations,
@@ -111,7 +112,7 @@ describe(SmokeMoney('Onramp Unified Buy'), () => {
           elemDescription: 'ramps order confirmation screen',
         });
         await Assertions.expectElementToHaveText(
-          OrderDetailsView.tokenAmount,
+          asDetoxElement(OrderDetailsView.tokenAmount),
           `${nativeDepositOrder.tokenAmount} ${nativeDepositOrder.token}`,
         );
 
@@ -171,7 +172,7 @@ describe(SmokeMoney('Onramp Unified Buy'), () => {
           elemDescription: 'ramps order confirmation screen',
         });
         await Assertions.expectElementToHaveText(
-          OrderDetailsView.tokenAmount,
+          asDetoxElement(OrderDetailsView.tokenAmount),
           `${aggregatorBuyOrder.tokenAmount} ${aggregatorBuyOrder.token}`,
         );
 

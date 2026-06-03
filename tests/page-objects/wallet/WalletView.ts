@@ -1643,7 +1643,7 @@ class WalletView {
 
   async verifyTokenNetworkFilterText(expectedText: string): Promise<void> {
     await Assertions.expectElementToHaveLabel(
-      this.tokenNetworkFilter,
+      asDetoxElement(this.tokenNetworkFilter),
       expectedText,
       {
         description: `token network filter should display "${expectedText}"`,

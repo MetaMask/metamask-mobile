@@ -22,6 +22,7 @@ import { MockApiEndpoint, TestSpecificMock } from '../../framework/types';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 import UnifiedTransactionsView from '../../page-objects/Transactions/UnifiedTransactionsView';
 import NetworkManager from '../../page-objects/wallet/NetworkManager';
+import { asDetoxElement } from '../../framework/EncapsulatedElement';
 
 // EVM-only account tree to prevent Solana snap from fetching live transactions
 const EVM_ONLY_ACCOUNT_TREE = {
@@ -346,7 +347,7 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
         await TabBarComponent.tapActivity();
         await UnifiedTransactionsView.swipeDown();
         await Assertions.expectElementToHaveText(
-          ToastModal.notificationTitle,
+          asDetoxElement(ToastModal.notificationTitle),
           'You received 1.23 ETH',
         );
       },

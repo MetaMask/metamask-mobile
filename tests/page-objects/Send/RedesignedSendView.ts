@@ -12,6 +12,7 @@ import { getNetworkFilterTestId } from '../../../app/components/Views/confirmati
 import {
   encapsulated,
   EncapsulatedElementType,
+  asDetoxElement,
 } from '../../framework/EncapsulatedElement';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 
@@ -356,7 +357,7 @@ class SendView {
 
   async checkInsufficientFundsError(): Promise<void> {
     await Assertions.expectElementToHaveText(
-      this.insufficientFundsError,
+      asDetoxElement(this.insufficientFundsError),
       SendActionViewSelectorsIDs.INSUFFICIENT_FUNDS_ERROR,
       {
         description: 'Insufficient funds error message',
