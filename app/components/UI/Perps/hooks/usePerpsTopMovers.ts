@@ -1,13 +1,15 @@
-import { useState, useEffect } from 'react';
-import Engine from '../../../../core/Engine';
+import { useMemo } from 'react';
 import {
   type PerpsMarketData,
   type SortDirection,
-  type GetMarketDataWithPricesParams,
+  sortMarkets,
 } from '@metamask/perps-controller';
-import { usePerpsConnection } from './usePerpsConnection';
+import { usePerpsMarkets } from './usePerpsMarkets';
+import { usePerpsLivePrices } from './stream';
+import { formatPercentage } from '../utils/formatUtils';
 
 const TOP_MOVERS_LIMIT = 8;
+const TOP_MOVERS_THROTTLE_MS = 3000;
 
 export interface UsePerpsTopMoversOptions {
   direction: SortDirection;
@@ -19,68 +21,64 @@ export interface UsePerpsTopMoversResult {
 }
 
 /**
- * Fetches the top-moving perps markets (gainers or losers) via the controller.
+ * Returns the top-moving perps markets (gainers or losers) sorted by
+ * 24-hour price-change percentage.
  *
- * Data is sourced from `PerpsController.getMarketDataWithPrices` with
- * `sortBy: 'priceChange'` and the caller-supplied `direction`, returning up
- * to 8 markets already sorted and sliced by the controller — no client-side
- * sort or slice is applied.
+ * Data is seeded from the marketData stream channel's synchronous snapshot
+ * and disk cache so the section renders without a skeleton on warm starts.
+ * Live WebSocket price ticks are merged in every 3 seconds so the ranking
+ * reflects real-time movements.
  *
- * Re-fetches automatically when `direction` changes or the connection
- * initialises. Errors fail silently: `data` resets to `[]` so the section
- * can hide itself.
+ * The hook keeps the same public API as the previous REST-based version so
+ * PerpsTopMoversSection needs no changes.
  *
- * Consumers must be rendered inside `PerpsConnectionProvider`.
+ * Consumers must be rendered inside `PerpsStreamProvider`.
  */
 export const usePerpsTopMovers = ({
   direction,
 }: UsePerpsTopMoversOptions): UsePerpsTopMoversResult => {
-  const [data, setData] = useState<PerpsMarketData[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const { isConnected, isInitialized, isConnecting } = usePerpsConnection();
+  const { markets, isLoading } = usePerpsMarkets();
 
-  useEffect(() => {
-    if (!isConnected || !isInitialized || isConnecting) {
-      setData([]);
-      return;
+  // Subscribe to live prices for every symbol so the ranking stays current.
+  // All symbols share a single allMids WebSocket subscription; no extra
+  // subscriptions are created here.
+  const symbols = useMemo(() => markets.map((m) => m.symbol), [markets]);
+  const livePrices = usePerpsLivePrices({
+    symbols,
+    throttleMs: TOP_MOVERS_THROTTLE_MS,
+  });
+
+  const data = useMemo(() => {
+    if (markets.length === 0) {
+      return [];
     }
 
-    let isMounted = true;
-
-    const fetchMovers = async () => {
-      const controller = Engine.context.PerpsController;
-      if (!controller?.getActiveProviderOrNull()) {
-        return;
+    // Merge live price ticks into the base market snapshot.
+    // Produces a shallow copy only when live data is available, otherwise
+    // returns the original object to preserve referential stability.
+    const merged = markets.map((market) => {
+      const livePrice = livePrices[market.symbol];
+      if (!livePrice?.percentChange24h) {
+        return market;
       }
 
-      setIsLoading(true);
-      try {
-        const params: GetMarketDataWithPricesParams = {
-          sortBy: 'priceChange',
-          direction,
-          limit: TOP_MOVERS_LIMIT,
-        };
-        const result = await controller.getMarketDataWithPrices(params);
-        if (isMounted) {
-          setData(result);
-        }
-      } catch {
-        if (isMounted) {
-          setData([]);
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
+      const changePercent = parseFloat(livePrice.percentChange24h);
+      if (Number.isNaN(changePercent)) {
+        return market;
       }
-    };
 
-    fetchMovers();
+      return {
+        ...market,
+        change24hPercent: formatPercentage(changePercent),
+      };
+    });
 
-    return () => {
-      isMounted = false;
-    };
-  }, [direction, isConnected, isInitialized, isConnecting]);
+    return sortMarkets({
+      markets: merged,
+      sortBy: 'priceChange',
+      direction,
+    }).slice(0, TOP_MOVERS_LIMIT);
+  }, [markets, livePrices, direction]);
 
   return { data, isLoading };
 };
