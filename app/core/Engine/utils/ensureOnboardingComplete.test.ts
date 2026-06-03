@@ -1,6 +1,7 @@
 import { store, runSaga } from '../../../store';
 import { selectCompletedOnboarding } from '../../../selectors/onboarding';
 import { createEnsureOnboardingCompleteCallback } from './ensureOnboardingComplete';
+import { Task } from 'redux-saga';
 
 jest.mock('../../../store', () => ({
   store: { getState: jest.fn() },
@@ -14,8 +15,8 @@ jest.mock('../../../selectors/onboarding', () => ({
 const mockRunSaga = jest.mocked(runSaga);
 const mockSelectCompletedOnboarding = jest.mocked(selectCompletedOnboarding);
 
-function makeSagaTask(promise: Promise<void>) {
-  return { toPromise: () => promise };
+function makeSagaTask(promise: Promise<void>): Task {
+  return { toPromise: () => promise } as Task;
 }
 
 describe('createEnsureOnboardingCompleteCallback', () => {
