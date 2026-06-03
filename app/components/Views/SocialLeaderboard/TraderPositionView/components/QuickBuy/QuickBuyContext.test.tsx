@@ -104,6 +104,7 @@ const buildController = (
   setTradeMode: jest.fn(),
   hasSellableBalance: false,
   sourceAmountTokens: '',
+  sourceTokenAmount: undefined,
   hasSourcePrice: true,
   isSliderDisabled: false,
   sellDestTokenOptions: [],
