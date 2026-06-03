@@ -48,6 +48,10 @@ export interface PredictMarketDetailsParams {
   seriesId?: string;
   seriesRecurrence?: string;
   entryPoint?: PredictEntryPoint;
+  /** Active feed tab key at the time the market card was tapped (e.g. "trending", "world-cup"). */
+  predictFeedTab?: string;
+  /** Screen context the trade originated from (e.g. "world_cup"). */
+  predictScreen?: string;
   title?: string;
   image?: string;
   isGame?: boolean;
@@ -85,6 +89,10 @@ export interface PredictBuyPreviewParams {
   outcome: PredictOutcome;
   outcomeToken: PredictOutcomeToken;
   entryPoint?: PredictEntryPoint;
+  /** Active feed tab key at the time the market card was tapped (e.g. "trending", "world-cup"). */
+  predictFeedTab?: string;
+  /** Screen context the trade originated from (e.g. "world_cup"). */
+  predictScreen?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   /**
    * When true, the beforeRemove listener in PredictBuyPreview will fire
