@@ -64,6 +64,7 @@ export interface LinkFlowOrigin {
 
 export interface UseMoneyAccountCardLinkageReturn {
   hasMoneyAccountRequirements: boolean;
+  isCardholder: boolean;
   isCardAuthenticated: boolean;
   isCardLinkedToMoneyAccount: boolean;
   primaryMoneyAccount: MoneyAccount | undefined;
@@ -412,6 +413,7 @@ export const useMoneyAccountCardLinkage =
     return {
       hasMoneyAccountRequirements: hasRequirements,
       isCardAuthenticated,
+      isCardholder,
       isCardLinkedToMoneyAccount: isAlreadyDelegated,
       primaryMoneyAccount,
       moneyAccountCardToken,
