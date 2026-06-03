@@ -27,7 +27,6 @@ jest.mock('../../../../../selectors/assets/balances', () => ({
 }));
 
 jest.mock('../../../../../selectors/featureFlagController/homepage', () => ({
-  selectHomepageSectionsV1Enabled: jest.fn(() => true),
   selectWalletHomeOnboardingStepsEnabled: jest.fn(() => true),
 }));
 

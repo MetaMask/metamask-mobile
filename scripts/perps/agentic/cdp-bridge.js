@@ -492,10 +492,26 @@ const COMMANDS = {
     };
   },
 
-  async 'show-step'(client, args) {
-    const stepId = args[0] || '';
-    const description = args.slice(1).join(' ');
-    const payload = JSON.stringify({ id: stepId, description });
+  async 'show-step-json'(client, args) {
+    const raw = args.join(' ');
+    let step;
+    try {
+      step = JSON.parse(raw);
+    } catch (error) {
+      throw new Error(`show-step-json requires a JSON step payload: ${error.message}`);
+    }
+    if (!step || typeof step !== 'object' || Array.isArray(step)) {
+      throw new Error('show-step-json requires a JSON object step payload');
+    }
+    if (typeof step.intent !== 'string' || !step.intent.trim()) {
+      throw new Error('show-step-json requires step.intent');
+    }
+    // HUD derives status/progress from step.id when status is omitted; a
+    // non-string id makes statusForStep throw during render. Reject at the boundary.
+    if (step.id !== undefined && typeof step.id !== 'string') {
+      throw new Error('show-step-json step.id must be a string when provided');
+    }
+    const payload = JSON.stringify(step);
     await cdpEval(client, `globalThis.__AGENTIC__?.showStep && globalThis.__AGENTIC__.showStep(${payload})`);
     return { ok: true };
   },

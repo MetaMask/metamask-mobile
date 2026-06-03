@@ -562,11 +562,18 @@ describe('AgenticService.install', () => {
       const callback = jest.fn();
       registerStepHudCallback(callback);
 
-      bridge().showStep({ id: 'step-1', description: 'Navigate to market' });
+      bridge().showStep({
+        id: 'run 1/2',
+        status: 'running',
+        intent: 'Navigate to market',
+        progress: { current: 1, total: 2 },
+      });
 
       expect(callback).toHaveBeenCalledWith({
-        id: 'step-1',
-        description: 'Navigate to market',
+        id: 'run 1/2',
+        status: 'running',
+        intent: 'Navigate to market',
+        progress: { current: 1, total: 2 },
       });
     });
 
@@ -581,9 +588,7 @@ describe('AgenticService.install', () => {
 
     it('showStep is a no-op when no callback is registered', () => {
       registerStepHudCallback(null);
-      expect(() =>
-        bridge().showStep({ id: 'x', description: 'y' }),
-      ).not.toThrow();
+      expect(() => bridge().showStep({ id: 'x', intent: 'y' })).not.toThrow();
     });
   });
 
