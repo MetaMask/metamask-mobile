@@ -156,10 +156,6 @@ enum EVENT_NAME {
   ANALYTICS_REQUEST_DATA_DELETION = 'Delete MetaMetrics Data Request Submitted',
   EXPERIMENT_VIEWED = 'Experiment Viewed',
 
-  // Onboarding Interest Questionnaire
-  ONBOARDING_INTEREST_QUESTION_VIEWED = 'Onboarding Interest Question Viewed',
-  ONBOARDING_INTEREST_QUESTION_SUBMITTED = 'Onboarding Interest Question Submitted',
-
   // Onboarding questionnaires (generic; discriminated by question_type)
   ONBOARDING_QUESTION_VIEWED = 'Onboarding Question Viewed',
   ONBOARDING_QUESTION_SUBMITTED = 'Onboarding Question Submitted',
@@ -964,12 +960,6 @@ const events = {
     EVENT_NAME.ANALYTICS_REQUEST_DATA_DELETION,
   ),
   EXPERIMENT_VIEWED: generateOpt(EVENT_NAME.EXPERIMENT_VIEWED),
-  ONBOARDING_INTEREST_QUESTION_VIEWED: generateOpt(
-    EVENT_NAME.ONBOARDING_INTEREST_QUESTION_VIEWED,
-  ),
-  ONBOARDING_INTEREST_QUESTION_SUBMITTED: generateOpt(
-    EVENT_NAME.ONBOARDING_INTEREST_QUESTION_SUBMITTED,
-  ),
   ONBOARDING_QUESTION_VIEWED: generateOpt(
     EVENT_NAME.ONBOARDING_QUESTION_VIEWED,
   ),
