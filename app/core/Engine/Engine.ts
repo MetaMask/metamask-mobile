@@ -96,7 +96,6 @@ import { multichainTransactionsControllerInit } from './controllers/multichain-t
 import { multichainAccountServiceInit } from './controllers/multichain-account-service/multichain-account-service-init';
 import { snapAccountServiceInit } from './controllers/snap-account-service/snap-account-service-init';
 import { snapKeyringBuilderInit } from './controllers/snap-keyring/snap-keyring-builder-init';
-import { snapKeyringBuilderV2Init } from './controllers/snap-keyring/snap-keyring-builder-v2-init';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
