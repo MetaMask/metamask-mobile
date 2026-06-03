@@ -65,12 +65,16 @@ export async function startMetro(ctx: Ctx, logger: Logger): Promise<void> {
   }
 
   const metroRespondingAfterFailure = await metroRespondsWithin(ctx.port, 3);
-  if (firstStartOk || !metroRespondingAfterFailure) {
+  if (metroRespondingAfterFailure) {
+    if (firstStartOk) {
+      logger.ok(`Metro running on port ${ctx.port}`);
+      return;
+    }
+    logger.warn('start-metro.sh failed after Metro became healthy — retrying launch/start once');
+  } else {
     logger.warn(`Metro on ${ctx.port} is bound but not answering /status — restarting`);
     logger.tail(ctx.logFile, 15);
     await freeMetroPort(ctx.port);
-  } else {
-    logger.warn('start-metro.sh failed after Metro became healthy — retrying launch/start once');
   }
 
   const secondStartOk = runStartMetro(ctx, ctx.doLaunch, logger);
