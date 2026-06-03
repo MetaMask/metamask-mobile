@@ -30,7 +30,6 @@ import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import Logger from '../../../../../util/Logger';
-import { showDevErrorAlert } from '../../utils/devErrorAlert';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import {
   getRampRoutingDecision,
@@ -83,7 +82,6 @@ const MoneyAddMoneySheet: React.FC = () => {
     closeAndNavigate(() => {
       initiateDeposit().catch((error: Error) => {
         Logger.error(error, '[Money Account] initiateDeposit failed');
-        showDevErrorAlert('[Money Account] initiateDeposit failed', error);
       });
     });
   }, [closeAndNavigate, initiateDeposit]);

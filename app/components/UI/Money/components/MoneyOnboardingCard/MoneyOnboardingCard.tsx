@@ -12,7 +12,6 @@ import StepperCard, {
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import Logger from '../../../../../util/Logger';
-import { showDevErrorAlert } from '../../utils/devErrorAlert';
 
 // REMINDER: Must be updated when the number of steps is changed.
 export const MONEY_ONBOARDING_TOTAL_STEPS = 2;
@@ -36,7 +35,6 @@ const MoneyOnboardingCard = () => {
   const handleRedirectToCryptoDeposit = useCallback(() => {
     initiateDeposit().catch((error: Error) => {
       Logger.error(error, '[Money Account] initiateDeposit failed');
-      showDevErrorAlert('[Money Account] initiateDeposit failed', error);
     });
   }, [initiateDeposit]);
 

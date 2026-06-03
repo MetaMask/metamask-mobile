@@ -19,7 +19,6 @@ import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
 import Logger from '../../../../../util/Logger';
-import { showDevErrorAlert } from '../../utils/devErrorAlert';
 import styleSheet from './MoneyTransferSheet.styles';
 import { MoneyTransferSheetTestIds } from './MoneyTransferSheet.testIds';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
@@ -54,10 +53,6 @@ const MoneyTransferSheet = () => {
         Logger.error(
           error,
           '[MoneyTransferSheet] Withdrawal initiation failed',
-        );
-        showDevErrorAlert(
-          '[MoneyTransferSheet] Withdrawal initiation failed',
-          error,
         );
       });
     });
