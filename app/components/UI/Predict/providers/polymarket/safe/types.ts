@@ -16,14 +16,6 @@ export interface SplitSignature {
   v: string;
 }
 
-export interface SafeFeeAuthorization {
-  type: 'safe-transaction';
-  authorization: {
-    tx: SafeTransaction; // Safe transaction
-    sig: string; // Signature of the Safe transaction
-  };
-}
-
 export interface Permit2FeeAuthorization {
   type: 'safe-permit2';
   authorization: {

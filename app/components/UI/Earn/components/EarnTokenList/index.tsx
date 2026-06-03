@@ -5,11 +5,11 @@ import React, {
   useReducer,
   useMemo,
 } from 'react';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { TextColor } from '../../../../../component-library/components/Texts/Text';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { View } from 'react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './EarnTokenList.styles';
@@ -380,7 +380,7 @@ const EarnTokenList = () => {
 
   return (
     <BottomSheet ref={bottomSheetRef}>
-      <HeaderCompactStandard
+      <HeaderStandard
         title={
           params?.onItemPressScreen === EARN_INPUT_VIEW_ACTIONS.WITHDRAW
             ? strings('stake.select_a_token_to_withdraw')

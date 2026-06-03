@@ -4,7 +4,7 @@ import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import type { AccountState, Position } from '@metamask/perps-controller';
 import { usePerpsTrading } from './usePerpsTrading';
 import { usePerpsNetwork } from './usePerpsNetwork';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 
 /**
@@ -89,9 +89,8 @@ export const usePerpsPositionForAsset = (
 ): UsePerpsPositionForAssetResult => {
   const { getPositions, getAccountState } = usePerpsTrading();
   const perpsNetwork = usePerpsNetwork();
-  const userAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
+  const evmAccount = useSelector(selectSelectedAccountGroupEvmInternalAccount);
+  const userAddress = evmAccount?.address;
 
   // Track if component is still mounted
   const isMountedRef = useRef(true);

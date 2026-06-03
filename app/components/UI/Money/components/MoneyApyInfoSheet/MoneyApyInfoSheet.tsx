@@ -1,22 +1,20 @@
 import React, { useCallback, useRef } from 'react';
-import { Linking, View } from 'react-native';
+import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
   BottomSheet,
-  BottomSheetFooter,
   BottomSheetHeader,
-  ButtonSize,
-  type BottomSheetRef,
   Text,
   TextColor,
   TextVariant,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
-import AppConstants from '../../../../../core/AppConstants';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import styleSheet from './MoneyApyInfoSheet.styles';
 import { MoneyApyInfoSheetTestIds } from './MoneyApyInfoSheet.testIds';
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 interface MoneyApyInfoSheetParams {
   apy: number;
@@ -27,6 +25,7 @@ const MoneyApyInfoSheet = () => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
   const { apy } = useParams<MoneyApyInfoSheetParams>();
+  const surfaceClass = useElevatedSurface();
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();
@@ -36,16 +35,13 @@ const MoneyApyInfoSheet = () => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
-  const handleLearnMorePress = useCallback(() => {
-    Linking.openURL(AppConstants.URLS.MUSD_LEARN_MORE);
-  }, []);
-
   return (
     <BottomSheet
       ref={sheetRef}
       goBack={handleGoBack}
       testID={MoneyApyInfoSheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
+      twClassName={surfaceClass}
     >
       <BottomSheetHeader onClose={handleClose}>
         <Text variant={TextVariant.HeadingSm}>
@@ -63,15 +59,6 @@ const MoneyApyInfoSheet = () => {
           {strings('money.apy_tooltip.paragraph_3')}
         </Text>
       </View>
-      <BottomSheetFooter
-        primaryButtonProps={{
-          size: ButtonSize.Lg,
-          children: strings('money.apy_tooltip.learn_more'),
-          onPress: handleLearnMorePress,
-          testID: MoneyApyInfoSheetTestIds.LEARN_MORE_BUTTON,
-        }}
-        twClassName="px-4 pt-6 pb-6"
-      />
     </BottomSheet>
   );
 };

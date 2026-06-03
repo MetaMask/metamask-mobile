@@ -45,6 +45,7 @@ import TagColored, {
 } from '../../../../../component-library/components-temp/TagColored';
 // import { renderShortAddress } from '../../../../../util/address';
 import { isHardwareAccount } from '../../../../../util/address';
+import { isTransactionMarkedAsGasFeeSponsored } from '../../../../Views/confirmations/utils/transaction';
 
 const styles = StyleSheet.create({
   detailRow: {
@@ -90,6 +91,10 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     gap: 2,
   },
+  paidByMetaMask: {
+    height: undefined,
+    paddingVertical: 2,
+  },
 });
 
 interface BridgeTransactionDetailsProps {
@@ -104,12 +109,12 @@ interface BridgeTransactionDetailsProps {
 const PaidByMetaMask = () => (
   <TagColored
     color={TagColor.Success}
+    style={styles.paidByMetaMask}
     labelProps={{
       variant: TextVariant.BodySM,
       style: {
         textTransform: 'none',
         textAlign: 'center',
-        bottom: 1,
         fontWeight: 'normal',
       },
       testID: 'paid-by-metamask',
@@ -401,7 +406,8 @@ export const BridgeTransactionDetails = (
           <Text variant={TextVariant.BodyMDMedium}>
             {strings('bridge_transaction_details.total_gas_fee')}
           </Text>
-          {evmTxMeta?.isGasFeeSponsored && !isHardwareWallet ? (
+          {isTransactionMarkedAsGasFeeSponsored(evmTxMeta) &&
+          !isHardwareWallet ? (
             <PaidByMetaMask />
           ) : (
             <>

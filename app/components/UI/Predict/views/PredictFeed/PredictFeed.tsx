@@ -20,10 +20,8 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  Icon,
-  IconColor,
+  HeaderStandard,
   IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -51,6 +49,7 @@ import {
   getPredictSearchSelector,
 } from '../../Predict.testIds';
 import { usePredictMarketData } from '../../hooks/usePredictMarketData';
+import { usePredictSearchMarketData } from '../../hooks/usePredictSearchMarketData';
 import { deduplicateSeriesMarkets } from '../../utils/feed';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { useFeedScrollManager } from '../../hooks/useFeedScrollManager';
@@ -68,8 +67,12 @@ import { PredictEventValues } from '../../constants/eventNames';
 import PredictMarket from '../../components/PredictMarket';
 import PredictMarketSkeleton from '../../components/PredictMarketSkeleton';
 import { PredictBalance } from '../../components/PredictBalance';
+import PredictWithdrawUnavailableSheet, {
+  type PredictWithdrawUnavailableSheetRef,
+} from '../../components/PredictWithdrawUnavailableSheet';
 import PredictOffline from '../../components/PredictOffline';
 import FeaturedCarousel from '../../components/FeaturedCarousel';
+import PredictWorldCupMainFeedBanner from '../../components/PredictWorldCupMainFeedBanner';
 import {
   selectPredictFeaturedCarouselEnabledFlag,
   selectPredictUpDownEnabledFlag,
@@ -84,10 +87,10 @@ import {
   TabItem,
   TabsBar,
 } from '../../../../../component-library/components-temp/Tabs';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import HeaderSearch, {
   HeaderSearchVariant,
 } from '../../../../../component-library/components-temp/HeaderSearch';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 type PredictFlashListRef = FlashListRef<PredictMarketType>;
 type PredictFlashListProps = FlashListProps<PredictMarketType> & {
@@ -98,9 +101,13 @@ const AnimatedFlashList = Animated.createAnimatedComponent(
   FlashList as unknown as React.ComponentType<PredictFlashListProps>,
 ) as unknown as React.ComponentType<PredictFlashListProps>;
 
-const PredictFeedHeader: React.FC = () => (
+const PredictFeedHeader: React.FC<{
+  onDepositWalletWithdrawPress?: () => void;
+}> = ({ onDepositWalletWithdrawPress }) => (
   <Box twClassName="py-4">
-    <PredictBalance />
+    <PredictBalance
+      onDepositWalletWithdrawPress={onDepositWalletWithdrawPress}
+    />
   </Box>
 );
 
@@ -138,13 +145,14 @@ const PredictFeedTabBar: React.FC<PredictFeedTabBarProps> = ({
 interface AnimatedHeaderProps {
   headerTranslateY: SharedValue<number>;
   headerHeight: number;
-  headerRef: React.RefObject<View>;
-  tabBarRef: React.RefObject<View>;
+  headerRef: React.RefObject<View | null>;
+  tabBarRef: React.RefObject<View | null>;
   tabs: FeedTab[];
   activeIndex: number;
   onTabPress: (index: number) => void;
   onHeaderLayout: (event: LayoutChangeEvent) => void;
   onTabBarLayout: (event: LayoutChangeEvent) => void;
+  onDepositWalletWithdrawPress?: () => void;
 }
 
 const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
@@ -157,6 +165,7 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
   onTabPress,
   onHeaderLayout,
   onTabBarLayout,
+  onDepositWalletWithdrawPress,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -189,18 +198,26 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
       ]}
     >
       <Animated.View
+        testID={PredictFeedSelectorsIDs.HEADER}
         ref={headerRef}
         style={animatedBalanceStyle}
         onLayout={onHeaderLayout}
       >
-        <PredictFeedHeader />
+        <PredictFeedHeader
+          onDepositWalletWithdrawPress={onDepositWalletWithdrawPress}
+        />
         {isFeaturedCarouselEnabled && (
           <Box twClassName="pb-3">
             <FeaturedCarousel />
           </Box>
         )}
+        <PredictWorldCupMainFeedBanner variant="compact" />
       </Animated.View>
-      <View ref={tabBarRef} onLayout={onTabBarLayout}>
+      <View
+        ref={tabBarRef}
+        onLayout={onTabBarLayout}
+        testID={PredictFeedSelectorsIDs.TAB_BAR_CONTAINER}
+      >
         <PredictFeedTabBar
           tabs={tabs}
           activeIndex={activeIndex}
@@ -215,32 +232,48 @@ interface PredictMarketListItemProps {
   market: PredictMarketType;
   entryPoint: PredictEntryPoint;
   testID?: string;
+  predictFeedTab?: string;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 const PredictMarketListItem: React.FC<PredictMarketListItemProps> = ({
   market,
   entryPoint,
   testID,
-}) => <PredictMarket market={market} entryPoint={entryPoint} testID={testID} />;
+  predictFeedTab,
+  transactionActiveAbTests,
+}) => (
+  <PredictMarket
+    market={market}
+    entryPoint={entryPoint}
+    testID={testID}
+    predictFeedTab={predictFeedTab}
+    transactionActiveAbTests={transactionActiveAbTests}
+  />
+);
 
 interface PredictTabContentProps {
   category: PredictCategory;
   isActive: boolean;
+  listEntryPoint: PredictEntryPoint;
   scrollHandler: ReturnType<typeof useAnimatedScrollHandler>;
   headerHeight: number;
   tabBarHeight: number;
   headerHidden: boolean;
   customQueryParams?: string;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 const PredictTabContent: React.FC<PredictTabContentProps> = ({
   category,
   isActive,
+  listEntryPoint,
   scrollHandler,
   headerHeight,
   tabBarHeight,
   headerHidden,
   customQueryParams,
+  transactionActiveAbTests,
 }) => {
   const tw = useTailwind();
   const listRef = useRef<PredictFlashListRef>(null);
@@ -289,14 +322,16 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
     (info: { item: PredictMarketType; index: number }) => (
       <PredictMarketListItem
         market={info.item}
-        entryPoint={PredictEventValues.ENTRY_POINT.PREDICT_FEED}
+        entryPoint={listEntryPoint}
         testID={getPredictMarketListSelector.marketCardByCategory(
           category,
           info.index + 1, // E2E tests use 1-based indexing
         )}
+        predictFeedTab={category}
+        transactionActiveAbTests={transactionActiveAbTests}
       />
     ),
-    [category],
+    [category, listEntryPoint, transactionActiveAbTests],
   );
 
   const keyExtractor = useCallback((item: PredictMarketType) => item.id, []);
@@ -419,24 +454,26 @@ interface PredictFeedTabsProps {
   tabs: FeedTab[];
   activeIndex: number;
   onPageChange: (index: number) => void;
+  listEntryPoint: PredictEntryPoint;
   scrollHandler: ReturnType<typeof useAnimatedScrollHandler>;
   headerHeight: number;
   tabBarHeight: number;
   headerHidden: boolean;
-  hotTabQueryParams?: string;
   initialPage: number;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
   tabs,
   activeIndex,
   onPageChange,
+  listEntryPoint,
   scrollHandler,
   headerHeight,
   tabBarHeight,
   headerHidden,
-  hotTabQueryParams,
   initialPage,
+  transactionActiveAbTests,
 }) => {
   const tw = useTailwind();
   const pagerRef = useRef<PagerView>(null);
@@ -470,13 +507,13 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
           <PredictTabContent
             category={tab.key}
             isActive={index === activeIndex}
+            listEntryPoint={listEntryPoint}
             scrollHandler={scrollHandler}
             headerHeight={headerHeight}
             tabBarHeight={tabBarHeight}
             headerHidden={headerHidden}
-            customQueryParams={
-              tab.key === 'hot' ? hotTabQueryParams : undefined
-            }
+            customQueryParams={tab.customQueryParams}
+            transactionActiveAbTests={transactionActiveAbTests}
           />
         </View>
       ))}
@@ -489,6 +526,7 @@ interface PredictSearchOverlayProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onClose: () => void;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 const SEARCH_DEBOUNCE_MS = 200;
@@ -498,6 +536,7 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
   searchQuery,
   onSearchChange,
   onClose,
+  transactionActiveAbTests,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -511,14 +550,17 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
   const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
   const refine = upDownEnabled ? deduplicateSeriesMarkets : undefined;
 
-  const { marketData, isFetching, error, refetch } = usePredictMarketData({
-    category: 'trending',
-    q: debouncedSearchQuery,
-    pageSize: 20,
-    refine,
-  });
+  const { marketData, isFetching, error, refetch } = usePredictSearchMarketData(
+    {
+      q: debouncedSearchQuery,
+      pageSize: 20,
+      refine,
+      enabled: isVisible,
+    },
+  );
 
   const isSearchLoading = isDebouncing || isFetching;
+  const hasSearchQuery = debouncedSearchQuery.trim().length > 0;
 
   const renderItem = useCallback(
     (info: { item: PredictMarketType; index: number }) => (
@@ -526,9 +568,10 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
         market={info.item}
         entryPoint={PredictEventValues.ENTRY_POINT.SEARCH}
         testID={getPredictSearchSelector.resultCard(info.index)}
+        transactionActiveAbTests={transactionActiveAbTests}
       />
     ),
-    [],
+    [transactionActiveAbTests],
   );
 
   const keyExtractor = useCallback((item: PredictMarketType) => item.id, []);
@@ -579,17 +622,21 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
               testID={getPredictFeedSelector.searchSkeleton(3)}
             />
           </Box>
-        ) : error ? (
+        ) : error && hasSearchQuery ? (
           <PredictOffline onRetry={refetch} />
         ) : !marketData || marketData.length === 0 ? (
-          <Box twClassName="flex-1 justify-center items-center p-8">
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.PrimaryAlternative}
-            >
-              {strings('predict.search_no_markets_found', { q: searchQuery })}
-            </Text>
-          </Box>
+          hasSearchQuery ? (
+            <Box twClassName="flex-1 justify-center items-center p-8">
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.PrimaryAlternative}
+              >
+                {strings('predict.search_no_markets_found', {
+                  q: searchQuery,
+                })}
+              </Text>
+            </Box>
+          ) : null
         ) : (
           <FlashList<PredictMarketType>
             data={marketData}
@@ -604,20 +651,32 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
   );
 };
 
-const PredictFeed: React.FC = () => {
-  const {
-    tabs,
-    activeIndex,
-    setActiveIndex,
-    initialTabKey,
-    hotTabQueryParams,
-  } = usePredictTabs();
+interface PredictFeedProps {
+  hideHeader?: boolean;
+  entryPoint?: PredictEntryPoint;
+  onHeaderHiddenChange?: (hidden: boolean) => void;
+  walletHeaderTranslateY?: SharedValue<number>;
+  walletHeaderHeight?: number;
+}
+
+const PredictFeed: React.FC<PredictFeedProps> = ({
+  hideHeader = false,
+  entryPoint: propEntryPoint,
+  onHeaderHiddenChange,
+  walletHeaderTranslateY,
+  walletHeaderHeight,
+}) => {
+  const { tabs, activeIndex, setActiveIndex, initialTabKey } = usePredictTabs();
 
   const tw = useTailwind();
   const { colors } = useTheme();
   const navigation = useNavigation();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictMarketList'>>();
+  const transactionActiveAbTests = route.params?.transactionActiveAbTests;
+  const feedEntryPoint = propEntryPoint ?? route.params?.entryPoint;
+  const listEntryPoint =
+    feedEntryPoint ?? PredictEventValues.ENTRY_POINT.PREDICT_FEED;
 
   const headerRef = useRef<View>(null);
   const tabBarRef = useRef<View>(null);
@@ -635,10 +694,7 @@ const PredictFeed: React.FC = () => {
       navigation.goBack();
     } else {
       navigation.navigate(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
+        screen: Routes.WALLET_VIEW,
       });
     }
   }, [navigation]);
@@ -649,20 +705,20 @@ const PredictFeed: React.FC = () => {
     traceName: TraceName.PredictFeedView,
     conditions: [!isSearchVisible],
     debugContext: {
-      entryPoint: route.params?.entryPoint,
+      entryPoint: feedEntryPoint,
       isSearchVisible,
     },
   });
 
   useEffect(() => {
     sessionManager.enableAppStateListener();
-    sessionManager.startSession(route.params?.entryPoint, initialTabKey);
+    sessionManager.startSession(feedEntryPoint, initialTabKey);
 
     return () => {
       sessionManager.endSession();
       sessionManager.disableAppStateListener();
     };
-  }, [route.params?.entryPoint, sessionManager, initialTabKey]);
+  }, [feedEntryPoint, sessionManager, initialTabKey]);
 
   useFocusEffect(
     useCallback(() => {
@@ -684,6 +740,9 @@ const PredictFeed: React.FC = () => {
     headerRef,
     tabBarRef,
     setActiveIndex,
+    onHeaderHiddenChange,
+    walletHeaderTranslateY,
+    walletHeaderHeight,
   });
 
   const handleTabPress = useCallback(
@@ -704,9 +763,15 @@ const PredictFeed: React.FC = () => {
     [onTabSwitch, sessionManager, tabs],
   );
 
+  const withdrawUnavailableSheetRef =
+    useRef<PredictWithdrawUnavailableSheetRef>(null);
+  const handleDepositWalletWithdrawPress = useCallback(() => {
+    withdrawUnavailableSheetRef.current?.onOpenBottomSheet();
+  }, []);
+
   return (
     <SafeAreaView
-      edges={{ bottom: 'additive' }}
+      edges={hideHeader ? [] : { bottom: 'additive' }}
       style={tw.style('flex-1 bg-default')}
     >
       <Box
@@ -714,29 +779,31 @@ const PredictFeed: React.FC = () => {
         twClassName="flex-1"
         style={{ backgroundColor: colors.background.default }}
       >
-        <Box
-          style={tw.style('z-20', {
-            backgroundColor: colors.background.default,
-          })}
-        >
-          <HeaderCompactStandard
-            includesTopInset
-            title={strings('wallet.predict')}
-            onBack={handleBackPress}
-            backButtonProps={{
-              testID: PredictMarketListSelectorsIDs.BACK_BUTTON,
-            }}
-            endButtonIconProps={[
-              {
-                iconName: IconName.Search,
-                onPress: showSearch,
-                testID: PredictSearchSelectorsIDs.SEARCH_BUTTON,
-              },
-            ]}
-          />
-        </Box>
+        {!hideHeader && (
+          <Box
+            style={tw.style('z-20', {
+              backgroundColor: colors.background.default,
+            })}
+          >
+            <HeaderStandard
+              includesTopInset
+              title={strings('wallet.predict')}
+              onBack={handleBackPress}
+              backButtonProps={{
+                testID: PredictMarketListSelectorsIDs.BACK_BUTTON,
+              }}
+              endButtonIconProps={[
+                {
+                  iconName: IconName.Search,
+                  onPress: showSearch,
+                  testID: PredictSearchSelectorsIDs.SEARCH_BUTTON,
+                },
+              ]}
+            />
+          </Box>
+        )}
 
-        <Box twClassName="flex-1 relative">
+        <Box twClassName="flex-1 relative overflow-hidden">
           <AnimatedHeader
             headerTranslateY={headerTranslateY}
             headerHeight={headerHeight}
@@ -747,6 +814,7 @@ const PredictFeed: React.FC = () => {
             onTabPress={handleTabPress}
             onHeaderLayout={onHeaderLayout}
             onTabBarLayout={onTabBarLayout}
+            onDepositWalletWithdrawPress={handleDepositWalletWithdrawPress}
           />
 
           {layoutReady && (
@@ -754,12 +822,13 @@ const PredictFeed: React.FC = () => {
               tabs={tabs}
               activeIndex={activeIndex}
               onPageChange={handlePageChange}
+              listEntryPoint={listEntryPoint}
               scrollHandler={scrollHandler}
               headerHeight={headerHeight}
               tabBarHeight={tabBarHeight + 6}
               headerHidden={headerHidden}
-              hotTabQueryParams={hotTabQueryParams}
               initialPage={activeIndex}
+              transactionActiveAbTests={transactionActiveAbTests}
             />
           )}
         </Box>
@@ -769,7 +838,11 @@ const PredictFeed: React.FC = () => {
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           onClose={clearSearchAndClose}
+          transactionActiveAbTests={transactionActiveAbTests}
         />
+      </Box>
+      <Box pointerEvents="box-none" twClassName="absolute inset-0 z-50">
+        <PredictWithdrawUnavailableSheet ref={withdrawUnavailableSheetRef} />
       </Box>
     </SafeAreaView>
   );

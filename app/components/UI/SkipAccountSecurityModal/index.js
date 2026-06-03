@@ -11,7 +11,6 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 import PropTypes from 'prop-types';
 import { useTheme } from '../../../util/theme';
-import generateTestId from '../../../../wdio/utils/generateTestId';
 import { SkipAccountSecurityModalSelectorsIDs } from './SkipAccountSecurityModal.testIds';
 import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
 import Checkbox from '../../../component-library/components/Checkbox';
@@ -102,7 +101,7 @@ const SkipAccountSecurityModal = ({ route }) => {
           name={IconName.Danger}
           size={IconSize.Lg}
           style={styles.imageWarning}
-          {...generateTestId(Platform, 'skip-backup-warning')}
+          testID="skip-backup-warning"
         />
 
         <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>

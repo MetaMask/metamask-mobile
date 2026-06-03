@@ -32,8 +32,11 @@ tests/
 ├── tags.performance.js              # Performance test tags for filtering
 ├── teams-config.js                  # Team/Slack mapping for notifications
 ├── framework/
-│   ├── fixture/
-│   │   └── index.ts                 # Custom Playwright fixture with performance tracking
+│   ├── fixtures/
+│   │   ├── FixtureBuilder.ts
+│   │   └── playwright/              # Playwright test.extend (performance tests)
+│   │       ├── index.ts             # import `test` from fixtures/playwright
+│   │       └── *.fixture.ts         # currentDeviceDetails, deviceProvider, driver, performanceTracker
 │   ├── quality-gates/
 │   │   ├── types.ts                 # Shared type definitions for quality gates
 │   │   ├── QualityGateError.ts      # Custom error class for threshold failures
@@ -218,7 +221,22 @@ npx playwright test --grep "@PerformanceLogin.*@PerformanceLaunch" --project and
 
 ## Test Tags
 
-Tests are tagged with area-specific tags defined in `tests/tags.performance.js`. These tags allow for selective test execution based on which areas of the app are affected by code changes.
+Tags are defined in `tests/tags.performance.js` and embedded in `test.describe()` names. They are runner-agnostic — any runner with `--grep` support can filter by them.
+
+### Test Type Tags
+
+These tags control which Playwright config picks up a test:
+
+| Tag            | Description                                                            | Config that filters for it                                                                 |
+| -------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `@Performance` | Test measures performance (uses `TimerHelper`, quality gates enforced) | `playwright.config.ts` (`grep: /@Performance/`)                                            |
+| `@System`      | Test verifies functionality (no quality gates or metrics)              | `playwright.system.config.ts` / `playwright.system-emulator.config.ts` (`grep: /@System/`) |
+
+Most existing tests are tagged with **both** `@Performance @System` — they measure perf and also serve as system smoke tests. A test can use just one tag if it should only run in one suite.
+
+### Area Tags
+
+These tags categorize tests by feature area and can be used with `--grep` for ad-hoc filtering:
 
 | Tag                        | Description                                                   |
 | -------------------------- | ------------------------------------------------------------- |
@@ -232,18 +250,41 @@ Tests are tagged with area-specific tags defined in `tests/tags.performance.js`.
 | `@PerformancePredict`      | Predict market performance (market list, details, deposits)   |
 | `@PerformancePreps`        | Perpetuals trading performance (positions, add funds, orders) |
 
-Tags are imported into test files from `tests/tags.performance.js`:
+### Tagging Convention
+
+Import type tags and area tags from `tests/tags.performance.js`:
 
 ```typescript
-import { PerformanceLogin, PerformanceSwaps } from '../../tags.performance.js';
+import {
+  Performance,
+  System,
+  PerformanceLogin,
+  PerformanceSwaps,
+} from '../../tags.performance.js';
 
-perfTest.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
-  perfTest(
-    'Swap flow performance',
-    async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
-      // test implementation
-    },
-  );
+// Both perf and system test (most common):
+perfTest.describe(
+  `${Performance} ${System} ${PerformanceLogin} ${PerformanceSwaps}`,
+  () => {
+    perfTest(
+      'Swap flow performance',
+      async (
+        { currentDeviceDetails, driver, performanceTracker },
+        testInfo,
+      ) => {
+        // test implementation with TimerHelper and thresholds
+      },
+    );
+  },
+);
+
+// System-only test (functional verification, no perf measurement):
+test.describe(`${System} ${PerformanceLogin}`, () => {
+  test('Verify wallet loads after login', async ({ driver }) => {
+    // No TimerHelper — pure functional check
+    await loginToAppPlaywright();
+    await WalletView.waitForAccountName('Account 1');
+  });
 });
 ```
 
@@ -370,7 +411,7 @@ The `PerformanceTracker` is provided as a fixture and handles:
 - BrowserStack video URL resolution
 
 ```typescript
-import { test as perfTest } from '../../framework/fixture';
+import { test as perfTest } from '../../framework/fixtures/playwright';
 
 perfTest(
   'My test',
@@ -585,6 +626,7 @@ BROWSERSTACK_IOS_CLEAN_APP_URL=bs://your-clean-ios-app-id
 TEST_SRP_1="your test recovery phrase 1"
 TEST_SRP_2="your test recovery phrase 2"
 TEST_SRP_3="your test recovery phrase 3"
+TEST_SRP_4='your test recovery phrase 4" // user for Perps
 BROWSERSTACK_USERNAME='YOUR_BS_USERNAME'
 BROWSERSTACK_ACCESS_KEY='YOUR_BS_ACCESS_KEY'
 E2E_PASSWORD='WALLET_PASSWORD' // 1Password
@@ -592,6 +634,13 @@ E2E_PASSWORD='WALLET_PASSWORD' // 1Password
 # Test Passwords (can be found in 1Password)
 TEST_PASSWORD_LOGIN="your test password"
 TEST_PASSWORD_ONBOARDING="your onboarding password"
+
+# Feature flags for performance tests (client-config API: rc | exp | test; not e2e)
+E2E_PERFORMANCE_BUILD_VARIANT=rc
+
+# CI note: scheduled/feature-branch performance workflows use build_variant=e2e
+# (GitHub environment build-e2e). E2E_PERFORMANCE_BUILD_VARIANT=rc is set separately
+# in performance-test-runner for the flags API. Release workflows use build_variant=rc.
 ```
 
 ### Sentry Performance Instrumentation (Optional)
@@ -683,7 +732,7 @@ The aggregated HTML report (`performance-report.html`) includes:
 1. **Import `test` from the framework fixture**:
 
    ```typescript
-   import { test as perfTest } from '../../framework/fixture';
+   import { test as perfTest } from '../../framework/fixtures/playwright';
    ```
 
 2. **Use `currentDeviceDetails.platform` as the `TimerHelper` third argument**:
@@ -736,7 +785,7 @@ The aggregated HTML report (`performance-report.html`) includes:
 ### Test Structure Example
 
 ```typescript
-import { test as perfTest } from '../../framework/fixture';
+import { test as perfTest } from '../../framework/fixtures/playwright';
 import TimerHelper from '../../framework/TimerHelper';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
 import { asPlaywrightElement, PlaywrightAssertions } from '../../framework';
@@ -840,7 +889,7 @@ perfTest.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => {
 ## Additional Resources
 
 - [MetaMask Mobile E2E Documentation](../../docs/readme/e2e-testing.md)
-- [Performance Test Fixtures](../framework/fixture/)
+- [Performance Test Fixtures](../framework/fixtures/playwright/)
 - [Page Objects](../page-objects/)
 - [Flow Utilities](../flows/wallet.flow.ts)
 

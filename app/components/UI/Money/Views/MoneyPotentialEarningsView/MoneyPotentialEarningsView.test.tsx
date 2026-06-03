@@ -1,11 +1,16 @@
 import React from 'react';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyPotentialEarningsView from './MoneyPotentialEarningsView';
 import { MoneyPotentialEarningsViewTestIds } from './MoneyPotentialEarningsView.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
+const mockInitiateDeposit = jest.fn();
+let mockTokens: unknown[] = [];
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -13,11 +18,12 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       goBack: mockGoBack,
+      navigate: mockNavigate,
     }),
   };
 });
 
-const mockConversionTokens = [
+const mockDepositTokens = [
   {
     name: 'USD Coin',
     symbol: 'USDC',
@@ -74,11 +80,13 @@ const mockConversionTokens = [
   },
 ];
 
-jest.mock('../../../Earn/hooks/useMusdConversionTokens', () => ({
-  useMusdConversionTokens: () => ({ tokens: mockConversionTokens }),
-  STABLECOIN_SYMBOLS: new Set(['USDC', 'USDT', 'DAI']),
-  tokenFiatValue: (token: { fiat?: { balance?: number } }) =>
-    token?.fiat?.balance ?? 0,
+jest.mock('../../hooks/useMoneyDepositTokens', () => ({
+  useMoneyDepositTokens: () => ({
+    tokens: mockTokens,
+    isNoFeeToken: jest.fn(() => false),
+    isEligibleToken: jest.fn(() => false),
+    filterAllowedTokens: jest.fn((t) => t),
+  }),
 }));
 
 jest.mock('../../hooks/useMoneyAccountBalance', () => ({
@@ -86,9 +94,9 @@ jest.mock('../../hooks/useMoneyAccountBalance', () => ({
   default: jest.fn(),
 }));
 
-jest.mock('../../../Earn/hooks/useMusdConversion', () => ({
-  useMusdConversion: () => ({
-    initiateCustomConversion: jest.fn(),
+jest.mock('../../hooks/useMoneyAccount', () => ({
+  useMoneyAccountDeposit: () => ({
+    initiateDeposit: mockInitiateDeposit,
   }),
 }));
 
@@ -123,6 +131,8 @@ const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
 describe('MoneyPotentialEarningsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockTokens = mockDepositTokens;
+    mockInitiateDeposit.mockResolvedValue(undefined);
     mockUseMoneyAccountBalance.mockReturnValue({
       apyPercent: 4,
       apyDecimal: 0.04,
@@ -141,9 +151,7 @@ describe('MoneyPotentialEarningsView', () => {
       },
       musdEquivalentBalanceQuery: {
         data: {
-          musdEquivalentValue: '0',
-          musdSHFvdBalance: '0',
-          exchangeRate: '1000000',
+          balanceOfInAssets: '0',
         },
         isLoading: false,
       },
@@ -176,9 +184,29 @@ describe('MoneyPotentialEarningsView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders the description text', () => {
-    const { getByText } = renderWithProvider(<MoneyPotentialEarningsView />);
+  it('renders the parameterized description with total and projected amounts when there are eligible tokens', () => {
+    const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
 
+    const description = getByTestId(
+      MoneyPotentialEarningsViewTestIds.DESCRIPTION,
+    );
+    expect(description).toBeOnTheScreen();
+    expect(description).toHaveTextContent(/Convert your/);
+    expect(description).toHaveTextContent(/in one year\./);
+    // green-highlighted projected amount renders inline with a "+" prefix
+    expect(description).toHaveTextContent(/\+\$/);
+  });
+
+  it('falls back to the generic description when there are no eligible tokens', () => {
+    mockTokens = [];
+
+    const { getByTestId, getByText } = renderWithProvider(
+      <MoneyPotentialEarningsView />,
+    );
+
+    expect(
+      getByTestId(MoneyPotentialEarningsViewTestIds.DESCRIPTION),
+    ).toBeOnTheScreen();
     expect(
       getByText(strings('money.potential_earnings.description')),
     ).toBeOnTheScreen();
@@ -201,5 +229,89 @@ describe('MoneyPotentialEarningsView', () => {
     expect(
       getByTestId(MoneyPotentialEarningsViewTestIds.CONTAINER),
     ).toBeOnTheScreen();
+  });
+
+  it('renders the top-right info button', () => {
+    const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
+
+    expect(
+      getByTestId(MoneyPotentialEarningsViewTestIds.INFO_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('opens the earn-crypto info sheet when the info button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
+
+    fireEvent.press(getByTestId(MoneyPotentialEarningsViewTestIds.INFO_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MONEY.MODALS.ROOT,
+      expect.objectContaining({
+        screen: Routes.MONEY.MODALS.EARN_CRYPTO_INFO_SHEET,
+      }),
+    );
+  });
+
+  it('renders the bottom Convert CTA with the correct label', () => {
+    const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
+
+    const ctaButton = getByTestId(MoneyPotentialEarningsViewTestIds.CTA_BUTTON);
+    expect(ctaButton).toBeOnTheScreen();
+    expect(ctaButton).toHaveTextContent(
+      strings('money.potential_earnings.convert_cta'),
+    );
+  });
+
+  it('triggers deposit when the bottom Convert CTA is pressed', async () => {
+    const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
+
+    fireEvent.press(getByTestId(MoneyPotentialEarningsViewTestIds.CTA_BUTTON));
+
+    await waitFor(() => expect(mockInitiateDeposit).toHaveBeenCalled());
+  });
+
+  it('disables the Convert CTA when there are no eligible tokens', () => {
+    mockTokens = [];
+    const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
+
+    expect(
+      getByTestId(MoneyPotentialEarningsViewTestIds.CTA_BUTTON).props
+        .accessibilityState.disabled,
+    ).toBe(true);
+  });
+
+  it('pressing the back button calls navigation.goBack', () => {
+    const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
+
+    fireEvent.press(getByTestId(MoneyPotentialEarningsViewTestIds.BACK_BUTTON));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('no-ops the Convert CTA when there are no eligible tokens', async () => {
+    mockTokens = [];
+    const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
+
+    fireEvent.press(getByTestId(MoneyPotentialEarningsViewTestIds.CTA_BUTTON));
+
+    await waitFor(() => expect(mockInitiateDeposit).not.toHaveBeenCalled());
+  });
+
+  it('calls initiateDeposit from the Convert CTA', async () => {
+    const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
+
+    fireEvent.press(getByTestId(MoneyPotentialEarningsViewTestIds.CTA_BUTTON));
+
+    await waitFor(() => expect(mockInitiateDeposit).toHaveBeenCalled());
+  });
+
+  it('triggers deposit when a token row is pressed', async () => {
+    const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
+
+    fireEvent.press(
+      getByTestId(MoneyPotentialEarningsViewTestIds.TOKEN_ROW(0)),
+    );
+
+    await waitFor(() => expect(mockInitiateDeposit).toHaveBeenCalled());
   });
 });

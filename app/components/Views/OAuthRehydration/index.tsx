@@ -25,8 +25,10 @@ import {
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { Dispatch } from 'redux';
 import Routes from '../../../constants/navigation/Routes';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { LoginViewSelectors } from '../Login/LoginView.testIds';
 import { downloadStateLogs } from '../../../util/logs';
 import {
@@ -44,6 +46,7 @@ import {
   WRONG_PASSWORD_ERROR,
   WRONG_PASSWORD_ERROR_ANDROID,
   WRONG_PASSWORD_ERROR_ANDROID_2,
+  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 } from '../Login/constants';
 import { isBiometricUnlockCancelledByUser } from '../../../core/Authentication/utils';
 import {
@@ -55,6 +58,7 @@ import {
   SeedlessOnboardingControllerErrorType,
 } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 import { useNetInfo } from '@react-native-community/netinfo';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { SuccessErrorSheetParams } from '../SuccessErrorSheet/interface';
 import { usePromptSeedlessRelogin } from '../../hooks/SeedlessHooks';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
@@ -679,10 +683,13 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       op: TraceOperation.Login,
     });
     track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {});
-    BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+    const backHandlerSubscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      handleBackPress,
+    );
 
     return () => {
-      BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
+      backHandlerSubscription.remove();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -747,16 +754,19 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   const renderPasswordField = () => (
     <TextField
       placeholder={strings('login.password_placeholder')}
-      testID={LoginViewSelectors.PASSWORD_INPUT}
-      returnKeyType={'done'}
-      autoCapitalize="none"
-      secureTextEntry
       onChangeText={handlePasswordChange}
       value={password}
-      onSubmitEditing={handleLogin}
-      keyboardAppearance={themeAppearance}
       isDisabled={disabledInput}
       isError={!!error}
+      inputProps={{
+        testID: LoginViewSelectors.PASSWORD_INPUT,
+        accessibilityLabel: LoginViewSelectors.PASSWORD_INPUT,
+        returnKeyType: 'done',
+        autoCapitalize: 'none',
+        secureTextEntry: true,
+        onSubmitEditing: handleLogin,
+        keyboardAppearance: themeAppearance,
+      }}
     />
   );
 

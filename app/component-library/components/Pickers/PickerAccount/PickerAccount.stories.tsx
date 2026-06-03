@@ -5,7 +5,7 @@ import React from 'react';
 // Internal dependencies.
 import { default as PickerAccountComponent } from './PickerAccount';
 import { SAMPLE_PICKERACCOUNT_PROPS } from './PickerAccount.constants';
-import { TouchableOpacityProps, View } from 'react-native';
+import { View } from 'react-native';
 import { PickerAccountProps } from './PickerAccount.types';
 
 const PickerAccountMeta = {
@@ -26,10 +26,6 @@ export const PickerAccount = {
   render: (
     args: React.JSX.IntrinsicAttributes &
       PickerAccountProps &
-      React.RefAttributes<
-        React.ForwardRefExoticComponent<
-          TouchableOpacityProps & React.RefAttributes<View>
-        >
-      >,
+      React.RefAttributes<View>,
   ) => <PickerAccountComponent {...args} />,
 };

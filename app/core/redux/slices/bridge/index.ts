@@ -4,6 +4,7 @@ import {
   Hex,
   CaipChainId,
   parseCaipChainId,
+  parseCaipAssetType,
   CaipAssetType,
 } from '@metamask/utils';
 import { createSelector } from 'reselect';
@@ -18,10 +19,13 @@ import {
   formatChainIdToCaip,
   isSolanaChainId,
   selectBridgeQuotes as selectBridgeQuotesBase,
+  selectBatchSellQuotes as selectBatchSellQuotesBase,
+  selectBatchSellTrades as selectBatchSellTradesBase,
   SortOrder,
   selectBridgeFeatureFlags as selectBridgeFeatureFlagsBase,
   DEFAULT_FEATURE_FLAG_CONFIG,
   isNonEvmChainId,
+  formatAddressToAssetId,
   formatChainIdToHex,
   type QuoteStreamCompleteData,
 } from '@metamask/bridge-controller';
@@ -29,6 +33,12 @@ import {
   BridgeToken,
   BridgeViewMode,
 } from '../../../../components/UI/Bridge/types';
+import {
+  HardwareWalletsSwapsEvent,
+  HardwareWalletsSwapsState,
+  hardwareWalletsSwapsReducer,
+  initialHardwareWalletsSwapsState,
+} from '../../../../components/UI/HardwareWallet/Swaps/HardwareWalletsSwaps.state';
 import { analytics } from '../../../../util/analytics/analytics';
 import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
 import { getTokenExchangeRate } from '../../../../components/UI/Bridge/utils/exchange-rates';
@@ -43,6 +53,9 @@ import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings'
 import { hasMinimumRequiredVersion } from './utils/hasMinimumRequiredVersion';
 import { Bip44TokensForDefaultPairs } from '../../../../components/UI/Bridge/constants/default-swap-dest-tokens';
 import { normalizeTokenAddress } from '../../../../components/UI/Bridge/utils/tokenUtils';
+import { isStockRwaBridgeToken } from '../../../../components/UI/Bridge/utils/isStockRwaBridgeToken';
+import { selectRWAEnabledFlag } from '../../../../selectors/featureFlagController/rwa';
+import { BridgeTokenMetadata } from '../../../../components/UI/Bridge/constants/tokens';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -88,6 +101,13 @@ export interface BridgeState {
    * When undefined, the recommended quote (best quote) is used.
    */
   selectedQuoteRequestId: string | undefined;
+  hardwareWalletsSwaps: HardwareWalletsSwapsState;
+  batchSellSourceTokens: BridgeToken[];
+  batchSellSourceTokenAmounts: Partial<
+    Record<CaipAssetType, string | undefined>
+  >;
+  batchSellDestToken: BridgeToken | undefined;
+  batchSellSlippages: Partial<Record<CaipAssetType, string | undefined>>;
 }
 
 export const initialState: BridgeState = {
@@ -111,6 +131,13 @@ export const initialState: BridgeState = {
   tokenSelectorNetworkFilter: undefined,
   visiblePillChainIds: undefined,
   selectedQuoteRequestId: undefined,
+  hardwareWalletsSwaps: initialHardwareWalletsSwapsState,
+
+  // Batch Sell
+  batchSellSourceTokens: [],
+  batchSellSourceTokenAmounts: {},
+  batchSellDestToken: undefined,
+  batchSellSlippages: {},
 };
 
 const name = 'bridge';
@@ -243,6 +270,59 @@ const slice = createSlice({
     ) => {
       state.selectedQuoteRequestId = action.payload;
     },
+    updateHardwareWalletsSwaps: (
+      state,
+      action: PayloadAction<HardwareWalletsSwapsEvent>,
+    ) => {
+      state.hardwareWalletsSwaps = hardwareWalletsSwapsReducer(
+        state.hardwareWalletsSwaps,
+        action.payload,
+      );
+    },
+    resetHardwareWalletsSwaps: (state) => {
+      state.hardwareWalletsSwaps = initialHardwareWalletsSwapsState;
+    },
+    setBatchSellSourceTokens: (state, action: PayloadAction<BridgeToken[]>) => {
+      state.batchSellSourceTokens = action.payload.map(normalizeBridgeToken);
+    },
+    setBatchSellSourceTokenAmount: (
+      state,
+      action: PayloadAction<{
+        assetId: CaipAssetType;
+        amount: string | undefined;
+      }>,
+    ) => {
+      state.batchSellSourceTokenAmounts[action.payload.assetId] =
+        action.payload.amount;
+    },
+    setBatchSellSourceTokenAmounts: (
+      state,
+      action: PayloadAction<BridgeState['batchSellSourceTokenAmounts']>,
+    ) => {
+      state.batchSellSourceTokenAmounts = action.payload;
+    },
+    setBatchSellDestToken: (
+      state,
+      action: PayloadAction<BridgeToken | undefined>,
+    ) => {
+      state.batchSellDestToken = normalizeBridgeToken(action.payload);
+    },
+    setBatchSellTokenSlippage: (
+      state,
+      action: PayloadAction<{
+        assetId: CaipAssetType;
+        slippage: string | undefined;
+      }>,
+    ) => {
+      state.batchSellSlippages[action.payload.assetId] =
+        action.payload.slippage;
+    },
+    setBatchSellTokenSlippages: (
+      state,
+      action: PayloadAction<BridgeState['batchSellSlippages']>,
+    ) => {
+      state.batchSellSlippages = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(setSourceTokenExchangeRate.pending, (state) => {
@@ -326,6 +406,110 @@ export const selectBridgeFeatureFlags = createSelector(
         bridgeConfig: DEFAULT_FEATURE_FLAG_CONFIG,
       },
     });
+  },
+);
+
+function formatBatchSellStablecoinAssetId(
+  assetId: CaipAssetType,
+): CaipAssetType | undefined {
+  try {
+    const { assetNamespace, assetReference, chainId } =
+      parseCaipAssetType(assetId);
+
+    if (chainId.startsWith('eip155:') && assetNamespace === 'erc20') {
+      return formatAddressToAssetId(assetReference, chainId);
+    }
+
+    return formatAddressToAssetId(assetId) ?? assetId;
+  } catch {
+    return undefined;
+  }
+}
+
+function getBridgeTokenMetadata(
+  assetId: CaipAssetType,
+): BridgeToken | undefined {
+  const formattedAssetId = formatBatchSellStablecoinAssetId(assetId);
+
+  if (!formattedAssetId) {
+    return undefined;
+  }
+
+  const metadataAssetIds = Object.keys(BridgeTokenMetadata) as CaipAssetType[];
+  const metadataAssetId = metadataAssetIds.find(
+    (bridgeTokenMetadataAssetId) =>
+      formatBatchSellStablecoinAssetId(bridgeTokenMetadataAssetId) ===
+      formattedAssetId,
+  );
+  const tokenMetadata = metadataAssetId
+    ? BridgeTokenMetadata[metadataAssetId]
+    : undefined;
+
+  if (!tokenMetadata) {
+    return undefined;
+  }
+
+  const { assetNamespace, assetReference, chainId } =
+    parseCaipAssetType(formattedAssetId);
+
+  if (chainId.startsWith('eip155:') && assetNamespace === 'erc20') {
+    return {
+      ...tokenMetadata,
+      address: assetReference,
+    };
+  }
+
+  return tokenMetadata;
+}
+
+function getBatchSellDestStablecoinMetadata(
+  stablecoinAssetIds: CaipAssetType[],
+): BridgeToken[] {
+  return stablecoinAssetIds.reduce<BridgeToken[]>(
+    (stablecoins, stablecoinAssetId) => {
+      const tokenMetadata = getBridgeTokenMetadata(stablecoinAssetId);
+
+      if (tokenMetadata) {
+        stablecoins.push(tokenMetadata);
+      }
+
+      return stablecoins;
+    },
+    [],
+  );
+}
+
+export const selectBatchSellDestStablecoinsByChain = createSelector(
+  selectBridgeFeatureFlags,
+  (bridgeFeatureFlags): Partial<Record<CaipChainId, BridgeToken[]>> =>
+    Object.entries(bridgeFeatureFlags.chains ?? {}).reduce<
+      Partial<Record<CaipChainId, BridgeToken[]>>
+    >((stablecoinsByChain, [chainId, chainConfig]) => {
+      const stablecoins = getBatchSellDestStablecoinMetadata(
+        chainConfig.batchSellDestStablecoins ?? [],
+      );
+
+      if (stablecoins.length > 0) {
+        stablecoinsByChain[chainId as CaipChainId] = stablecoins;
+      }
+
+      return stablecoinsByChain;
+    }, {}),
+);
+
+export const selectBatchSellDestStablecoins = createSelector(
+  selectBridgeFeatureFlags,
+  (_state: RootState, chainId?: BridgeToken['chainId']) =>
+    chainId ? formatChainIdToCaip(chainId) : undefined,
+  (bridgeFeatureFlags, chainId): BridgeToken[] => {
+    if (!chainId) {
+      return [];
+    }
+
+    const batchSellDestStablecoins =
+      bridgeFeatureFlags.chains?.[chainId]?.batchSellDestStablecoins ?? [];
+
+    return getBatchSellDestStablecoinMetadata(batchSellDestStablecoins);
   },
 );
 
@@ -460,6 +644,26 @@ export const selectSelectedQuoteRequestId = createSelector(
   (bridgeState) => bridgeState.selectedQuoteRequestId,
 );
 
+export const selectBatchSellSourceTokens = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.batchSellSourceTokens,
+);
+
+export const selectBatchSellSourceTokenAmounts = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.batchSellSourceTokenAmounts ?? {},
+);
+
+export const selectBatchSellDestToken = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.batchSellDestToken,
+);
+
+export const selectBatchSellSlippages = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.batchSellSlippages ?? {},
+);
+
 // Selectors for gas included STX/SendBundle support
 export const selectIsGasIncludedSTXSendBundleSupported = (state: RootState) =>
   state.bridge.isGasIncludedSTXSendBundleSupported;
@@ -524,6 +728,21 @@ export const selectBridgeQuotes = createSelector(
     // If not found, return default result
     return allQuotesResult;
   },
+);
+
+export const selectBatchSellQuotes = createSelector(
+  selectControllerFields,
+  (requiredControllerFields) =>
+    selectBatchSellQuotesBase(requiredControllerFields, {
+      sortOrder: SortOrder.COST_ASC,
+      requestCount: requiredControllerFields.quoteRequest.length,
+    }),
+);
+
+export const selectBatchSellTrades = createSelector(
+  selectControllerFields,
+  (requiredControllerFields) =>
+    selectBatchSellTradesBase(requiredControllerFields),
 );
 
 export const selectIsSolanaSourced = createSelector(
@@ -612,9 +831,29 @@ export const selectIsEvmSwap = createSelector(
   (isSwap, isSolanaSwap) => isSwap && !isSolanaSwap,
 );
 
+/**
+ * Same-chain EVM swap involving a stock RWA token while `selectRWAEnabledFlag` is true.
+ * Composes existing selectors; used for auto slippage (same idea as Solana same-chain).
+ */
+export const selectIsRwaSwap = createSelector(
+  selectIsEvmSwap,
+  selectSourceToken,
+  selectDestToken,
+  selectRWAEnabledFlag,
+  (isEvmSwap, sourceToken, destToken, isRwaEnabled) =>
+    isEvmSwap &&
+    (isStockRwaBridgeToken(sourceToken, isRwaEnabled) ||
+      isStockRwaBridgeToken(destToken, isRwaEnabled)),
+);
+
 export const selectIsSubmittingTx = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.isSubmittingTx,
+);
+
+export const selectHardwareWalletsSwaps = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.hardwareWalletsSwaps,
 );
 
 export const selectIsSelectingRecipient = createSelector(
@@ -733,4 +972,12 @@ export const {
   setTokenSelectorNetworkFilter,
   setVisiblePillChainIds,
   setSelectedQuoteRequestId,
+  updateHardwareWalletsSwaps,
+  resetHardwareWalletsSwaps,
+  setBatchSellSourceTokens,
+  setBatchSellSourceTokenAmount,
+  setBatchSellSourceTokenAmounts,
+  setBatchSellDestToken,
+  setBatchSellTokenSlippage,
+  setBatchSellTokenSlippages,
 } = actions;

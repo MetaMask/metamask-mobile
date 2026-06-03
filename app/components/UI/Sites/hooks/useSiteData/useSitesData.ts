@@ -61,12 +61,28 @@ const PORTFOLIO_SITE: SiteData = {
 };
 
 /**
- * Helper function to extract display URL from full URL
+ * Returns just the hostname (no www., no path) — used for curated site cards
+ * where a clean domain label is preferred.
  */
 export const extractDisplayUrl = (url: string): string => {
   try {
     const urlObj = new URL(url);
     return urlObj.hostname.replace('www.', '');
+  } catch {
+    return url;
+  }
+};
+
+/**
+ * Returns the full URL without the protocol (e.g. `uniswap.org/swap?chain=1`).
+ * Used for user-generated entries (recents, favorites) where the full path
+ * provides meaningful context.
+ */
+export const extractFullDisplayUrl = (url: string): string => {
+  try {
+    const urlObj = new URL(url);
+    const withoutProtocol = url.slice(urlObj.protocol.length + 2); // strip "scheme://"
+    return withoutProtocol.replace(/^www\./, '');
   } catch {
     return url;
   }

@@ -1,0 +1,29 @@
+diff --git a/node_modules/react-native/ReactAndroid/build.gradle.kts b/node_modules/react-native/ReactAndroid/build.gradle.kts
+index e593c2d..9b68b87 100644
+--- a/node_modules/react-native/ReactAndroid/build.gradle.kts
++++ b/node_modules/react-native/ReactAndroid/build.gradle.kts
+@@ -16,9 +16,9 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+ plugins {
+   id("maven-publish")
+   id("com.facebook.react")
+-  alias(libs.plugins.android.library)
++  id("com.android.library")
+   alias(libs.plugins.download)
+-  alias(libs.plugins.kotlin.android)
++  id("org.jetbrains.kotlin.android")
+ }
+ 
+ version = project.findProperty("VERSION_NAME")?.toString()!!
+diff --git a/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle.kts b/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle.kts
+index 69814d8..6b8715b 100644
+--- a/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle.kts
++++ b/node_modules/react-native/ReactAndroid/hermes-engine/build.gradle.kts
+@@ -12,7 +12,7 @@ import org.apache.tools.ant.taskdefs.condition.Os
+ plugins {
+   id("maven-publish")
+   id("signing")
+-  alias(libs.plugins.android.library)
++  id("com.android.library")
+   alias(libs.plugins.download)
+ }
+ 

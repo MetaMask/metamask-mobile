@@ -1,10 +1,13 @@
 import { useMemo } from 'react';
 import { usePredictPositions } from '../../../../../UI/Predict/hooks/usePredictPositions';
-import type { PredictPosition } from '../../../../../UI/Predict/types';
+import {
+  PredictPositionStatus,
+  type PredictPosition,
+} from '../../../../../UI/Predict/types';
 
 export interface UsePredictPositionsForHomepageResult {
   positions: PredictPosition[];
-  /** Sum of currentValue across all claimable positions (only meaningful when claimable: true) */
+  /** Sum of currentValue across won, positive-value claimable positions. */
   totalClaimableValue: number;
   isLoading: boolean;
   error: string | null;
@@ -32,6 +35,7 @@ export const usePredictPositionsForHomepage = (
   const { data, isLoading, error, refetch } = usePredictPositions({
     claimable,
     enabled,
+    livePriceUpdates: !claimable,
   });
 
   const allPositions = useMemo(() => data ?? [], [data]);
@@ -47,7 +51,14 @@ export const usePredictPositionsForHomepage = (
   const totalClaimableValue = useMemo(
     () =>
       claimable
-        ? allPositions.reduce((sum, p) => sum + (p.currentValue ?? 0), 0)
+        ? allPositions.reduce(
+            (sum, position) =>
+              position.status === PredictPositionStatus.WON &&
+              (position.currentValue ?? 0) > 0
+                ? sum + (position.currentValue ?? 0)
+                : sum,
+            0,
+          )
         : 0,
     [claimable, allPositions],
   );

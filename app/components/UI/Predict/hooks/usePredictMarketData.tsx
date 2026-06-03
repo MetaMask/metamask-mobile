@@ -13,9 +13,10 @@ import Logger from '../../../../util/Logger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { ensureError } from '../utils/predictErrorHandler';
 import { PredictCategory, PredictMarket } from '../types';
+import { filterStandaloneMarkets } from '../utils/feed';
+import { getVisiblePredictMarkets } from '../utils/marketStaleness';
 
 export interface UsePredictMarketDataOptions {
-  q?: string;
   category?: PredictCategory;
   pageSize?: number;
   customQueryParams?: string;
@@ -43,7 +44,6 @@ export const usePredictMarketData = (
 ): UsePredictMarketDataResult => {
   const {
     category = 'trending',
-    q,
     pageSize = 20,
     customQueryParams,
     refine,
@@ -54,10 +54,8 @@ export const usePredictMarketData = (
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
-  const [currentOffset, setCurrentOffset] = useState(0);
 
-  const currentCategoryRef = useRef(category);
-  const currentOffsetRef = useRef(currentOffset);
+  const nextCursorRef = useRef<string | null>(null);
   const prevEnabledRef = useRef(enabled);
 
   /**
@@ -70,14 +68,6 @@ export const usePredictMarketData = (
     }
     prevEnabledRef.current = enabled;
   }, [enabled]);
-
-  useEffect(() => {
-    currentCategoryRef.current = category;
-  }, [category]);
-
-  useEffect(() => {
-    currentOffsetRef.current = currentOffset;
-  }, [currentOffset]);
 
   const fetchMarketData = useCallback(
     async (isLoadMore = false) => {
@@ -94,20 +84,22 @@ export const usePredictMarketData = (
           setIsLoadingMore(true);
         } else {
           setIsLoading(true);
-          setCurrentOffset(0);
-          currentOffsetRef.current = 0;
+          nextCursorRef.current = null;
         }
         setError(null);
 
-        const offset = isLoadMore ? currentOffsetRef.current : 0;
+        const afterCursor = isLoadMore ? nextCursorRef.current : null;
+
+        if (isLoadMore && !afterCursor) {
+          setHasMore(false);
+          return;
+        }
 
         DevLogger.log(
           'Fetching market data for category:',
           category,
-          'search:',
-          q,
-          'offset:',
-          offset,
+          'hasAfterCursor:',
+          Boolean(afterCursor),
           'limit:',
           pageSize,
         );
@@ -127,44 +119,46 @@ export const usePredictMarketData = (
               throw new Error('Predict controller not available');
             }
 
-            const markets = await controller.getMarkets({
+            const { markets, nextCursor } = await controller.getMarkets({
               category,
-              q,
               limit: pageSize,
-              offset,
+              afterCursor,
               customQueryParams,
             });
-            DevLogger.log('Market data received:', markets);
-
             if (!markets || !Array.isArray(markets)) {
               if (isLoadMore) {
                 setHasMore(false);
               } else {
                 setMarketData([]);
               }
+              nextCursorRef.current = null;
               return;
             }
 
-            const hasMoreData = markets.length >= pageSize;
-            setHasMore(hasMoreData);
+            DevLogger.log('Market data received:', {
+              marketCount: markets.length,
+              hasNextCursor: Boolean(nextCursor),
+            });
+
+            nextCursorRef.current = nextCursor;
+            setHasMore(Boolean(nextCursor));
+            const visibleMarkets = getVisiblePredictMarkets(
+              filterStandaloneMarkets(markets),
+            );
 
             if (isLoadMore) {
               setMarketData((prevData) => {
                 // Use a Set to efficiently deduplicate by ID
                 const existingIds = new Set(prevData.map((event) => event.id));
-                const newEvents = markets.filter(
+                const newEvents = visibleMarkets.filter(
                   (event) => !existingIds.has(event.id),
                 );
                 const accumulated = [...prevData, ...newEvents];
                 return refine ? refine(accumulated) : accumulated;
               });
-              setCurrentOffset((prev) => prev + pageSize);
-              currentOffsetRef.current += pageSize;
             } else {
               // Replace data for initial load or refresh
-              setMarketData(refine ? refine(markets) : markets);
-              setCurrentOffset(pageSize);
-              currentOffsetRef.current = pageSize;
+              setMarketData(refine ? refine(visibleMarkets) : visibleMarkets);
             }
 
             // Success - break out of retry loop
@@ -205,7 +199,7 @@ export const usePredictMarketData = (
               action: 'market_data_load',
               operation: 'data_fetching',
               category,
-              hasSearchQuery: !!q,
+              hasAfterCursor: Boolean(nextCursorRef.current),
               pageSize,
               isLoadMore,
             },
@@ -220,7 +214,7 @@ export const usePredictMarketData = (
         setIsLoadingMore(false);
       }
     },
-    [category, q, pageSize, customQueryParams, refine, enabled],
+    [category, pageSize, customQueryParams, refine, enabled],
   );
 
   const loadMore = useCallback(async () => {
@@ -233,10 +227,9 @@ export const usePredictMarketData = (
     await fetchMarketData(false);
   }, [enabled, fetchMarketData]);
 
-  // Reset pagination when category or search changes
+  // Reset pagination when category or custom query params change
   useEffect(() => {
-    setCurrentOffset(0);
-    currentOffsetRef.current = 0;
+    nextCursorRef.current = null;
     setHasMore(true);
     setMarketData([]);
     if (!enabled) {
@@ -246,7 +239,7 @@ export const usePredictMarketData = (
       return;
     }
     fetchMarketData(false);
-  }, [category, q, customQueryParams, fetchMarketData, enabled]);
+  }, [category, customQueryParams, fetchMarketData, enabled]);
 
   return {
     marketData,

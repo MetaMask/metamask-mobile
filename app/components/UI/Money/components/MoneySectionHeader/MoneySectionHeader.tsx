@@ -32,6 +32,12 @@ interface MoneySectionHeaderProps {
    * Accessibility label for the info icon button
    */
   infoAccessibilityLabel?: string;
+  /**
+   * Optional override for the info icon button testID. When omitted the
+   * shared `MoneySectionHeaderTestIds.INFO_BUTTON` value is used so existing
+   * callers keep working unchanged.
+   */
+  infoTestID?: string;
 }
 
 const MoneySectionHeader = ({
@@ -39,6 +45,7 @@ const MoneySectionHeader = ({
   onPress,
   onInfoPress,
   infoAccessibilityLabel,
+  infoTestID,
 }: MoneySectionHeaderProps) => {
   const handlePress = useCallback(() => {
     onPress?.();
@@ -59,11 +66,11 @@ const MoneySectionHeader = ({
       {onInfoPress && (
         <ButtonIcon
           iconName={IconName.Info}
-          iconProps={{ color: IconColor.IconAlternative }}
+          iconProps={{ color: IconColor.IconAlternative, size: IconSize.Sm }}
           size={ButtonIconSize.Sm}
           onPress={onInfoPress}
           accessibilityLabel={infoAccessibilityLabel}
-          testID={MoneySectionHeaderTestIds.INFO_BUTTON}
+          testID={infoTestID ?? MoneySectionHeaderTestIds.INFO_BUTTON}
         />
       )}
       {onPress && (

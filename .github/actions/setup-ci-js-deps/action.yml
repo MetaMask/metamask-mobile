@@ -1,0 +1,60 @@
+name: 'Setup CI JS dependencies'
+description: >
+  Sets up node_modules and project build outputs for CI jobs.
+  On Namespace runners, mounts the shared cache volume then runs
+  yarn install --immutable to sync with the current yarn.lock.
+  On non-Namespace runners, skips install when node_modules is
+  already present from a same-run artifact; otherwise installs from scratch.
+
+inputs:
+  runner_provider:
+    description: 'Runner provider (`namespace` or any GitHub-hosted value).'
+    required: false
+    default: 'current'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Configure Namespace cache
+      if: ${{ inputs.runner_provider == 'namespace' }}
+      uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+      with:
+        path: |
+          ~/.cache/yarn
+          .metamask
+          node_modules
+          .yarn/cache
+
+    - uses: actions/setup-node@v6
+      with:
+        node-version-file: '.nvmrc'
+        cache: ${{ inputs.runner_provider != 'namespace' && 'yarn' || '' }}
+
+    # Namespace: always run install so the shared volume stays in sync with yarn.lock.
+    # Non-Namespace: skip install when node_modules was extracted from a same-run
+    # artifact; run install when starting from a clean workspace.
+    - name: Determine if install is needed
+      id: check-deps
+      shell: bash
+      run: |
+        if [ "${{ inputs.runner_provider }}" != "namespace" ] && \
+           [ -d node_modules ] && \
+           [ -f app/util/termsOfUse/termsOfUseContent.ts ]; then
+          echo "needs-install=false" >> "$GITHUB_OUTPUT"
+        else
+          echo "needs-install=true" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Install Yarn dependencies with retry
+      if: ${{ steps.check-deps.outputs.needs-install == 'true' }}
+      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
+      with:
+        timeout_minutes: 10
+        max_attempts: 3
+        retry_wait_seconds: 30
+        command: yarn install --immutable
+
+    - name: Run project setup
+      if: ${{ steps.check-deps.outputs.needs-install == 'true' }}
+      shell: bash
+      run: yarn setup:github-ci --node

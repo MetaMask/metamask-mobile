@@ -38,4 +38,5 @@ export const tooltipContentRegistry: ContentRegistry = {
   oracle_price: undefined,
   spread: undefined,
   pay_with: undefined,
+  slippage: undefined,
 };

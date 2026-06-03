@@ -12,6 +12,7 @@ export interface CardSliceState {
   hasViewedCardButton: boolean;
   onboarding: OnboardingState;
   isDaimoDemo: boolean;
+  pendingMoneyAccountCardLink: boolean;
 }
 
 export const initialState: CardSliceState = {
@@ -22,6 +23,7 @@ export const initialState: CardSliceState = {
     consentSetId: null,
   },
   isDaimoDemo: false,
+  pendingMoneyAccountCardLink: false,
 };
 
 const name = 'card';
@@ -52,6 +54,9 @@ const slice = createSlice({
         contactVerificationId: null,
         consentSetId: null,
       };
+    },
+    setPendingMoneyAccountCardLink: (state, action: PayloadAction<boolean>) => {
+      state.pendingMoneyAccountCardLink = action.payload;
     },
   },
 });
@@ -88,6 +93,11 @@ export const selectConsentSetId = createSelector(
   (card) => card.onboarding.consentSetId,
 );
 
+export const selectPendingMoneyAccountCardLink = createSelector(
+  selectCardState,
+  (card) => card.pendingMoneyAccountCardLink,
+);
+
 // Actions
 export const {
   resetCardState,
@@ -97,4 +107,5 @@ export const {
   setConsentSetId,
   resetOnboardingState,
   setIsDaimoDemo,
+  setPendingMoneyAccountCardLink,
 } = actions;

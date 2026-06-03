@@ -19,7 +19,7 @@ export const selectBridgeControllerState = (state: RootState) =>
 export const selectQuoteRequest = createSelector(
   selectBridgeControllerState,
   (bridgeControllerState: BridgeControllerState) =>
-    bridgeControllerState.quoteRequest,
+    bridgeControllerState.quoteRequest[0],
 );
 
 // Create the BridgeAppState selector following the same pattern as in bridge slice

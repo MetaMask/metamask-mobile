@@ -142,7 +142,8 @@ describe('usePerpsOrderForm', () => {
     mockUsePerpsNetwork.mockReturnValue('mainnet');
     mockUsePerpsLiveAccount.mockReturnValue({
       account: {
-        availableBalance: '1000',
+        spendableBalance: '1000',
+        withdrawableBalance: '1000',
         marginUsed: '0',
         unrealizedPnl: '0',
         returnOnEquity: '0',
@@ -172,7 +173,7 @@ describe('usePerpsOrderForm', () => {
   });
 
   describe('initialization', () => {
-    it('should initialize with default values', () => {
+    it('initializes with default values', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
         wrapper: createWrapper(),
       });
@@ -190,7 +191,7 @@ describe('usePerpsOrderForm', () => {
       });
     });
 
-    it('should prioritize existing position leverage over saved config', () => {
+    it('prioritizes existing position leverage over saved config', () => {
       // Mock existing position with 10x leverage
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [createMockPosition('BTC', 10)],
@@ -247,7 +248,7 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.orderForm.leverage).toBe(10);
     });
 
-    it('should use saved config when no existing position leverage', () => {
+    it('uses saved config when no existing position leverage', () => {
       // Create a wrapper with saved config for BTC at 5x leverage
       const mockStoreWithSavedConfig = configureStore({
         reducer: {
@@ -298,7 +299,7 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.orderForm.leverage).toBe(5);
     });
 
-    it('should prioritize navigation param over existing position leverage', () => {
+    it('prioritizes navigation param over existing position leverage', () => {
       // Mock existing position with 10x leverage
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [createMockPosition('BTC', 10)],
@@ -319,7 +320,7 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.orderForm.leverage).toBe(12);
     });
 
-    it('should update leverage when existing position loads asynchronously', async () => {
+    it('updates leverage when existing position loads asynchronously', async () => {
       // Initial render without existing position (positions haven't loaded via WebSocket yet)
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
@@ -352,7 +353,7 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.orderForm.leverage).toBe(10);
     });
 
-    it('should not update leverage if navigation param is provided even when position loads', () => {
+    it('does not update leverage when navigation param is provided even when position loads', () => {
       // Initial render with navigation param but no existing position
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
@@ -384,7 +385,7 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.orderForm.leverage).toBe(12);
     });
 
-    it('should initialize with provided values', () => {
+    it('initializes with provided values', () => {
       const { result } = renderHook(
         () =>
           usePerpsOrderForm({
@@ -410,7 +411,7 @@ describe('usePerpsOrderForm', () => {
       });
     });
 
-    it('should use testnet defaults when on testnet', () => {
+    it('uses testnet defaults when on testnet', () => {
       mockUsePerpsNetwork.mockReturnValue('testnet');
 
       const { result } = renderHook(() => usePerpsOrderForm(), {
@@ -422,11 +423,12 @@ describe('usePerpsOrderForm', () => {
       );
     });
 
-    it('should set amount to maxPossibleAmount when available balance times leverage is less than default amount', () => {
+    it('sets amount to maxPossibleAmount when available balance times leverage is less than default amount', () => {
       // Arrange - Set low available balance
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          availableBalance: '2', // $2 available balance
+          spendableBalance: '2', // $2 available balance
+          withdrawableBalance: '2', // $2 available balance
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -446,11 +448,12 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.orderForm.amount).toBe('5');
     });
 
-    it('should use default amount when available balance times leverage is greater than default amount', () => {
+    it('uses default amount when available balance times leverage is greater than default amount', () => {
       // Arrange - Set sufficient available balance
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          availableBalance: '5', // $5 available balance
+          spendableBalance: '5', // $5 available balance
+          withdrawableBalance: '5', // $5 available balance
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -473,11 +476,12 @@ describe('usePerpsOrderForm', () => {
   });
 
   describe('useMemo and useEffect behavior', () => {
-    it('should not overwrite user input when dependencies change', async () => {
+    it('does not overwrite user input when dependencies change', async () => {
       // Arrange - Start with balance high enough that max >= 999 after 0.5% buffer (e.g. 335 * 3x → floor(1005*0.995) = 999)
       const mockAccount = {
         account: {
-          availableBalance: '335',
+          spendableBalance: '335',
+          withdrawableBalance: '335',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -503,7 +507,7 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.orderForm.amount).toBe('999');
 
       // Act - Change the available balance so the new max is below user's amount
-      mockAccount.account.availableBalance = '1'; // $1 balance → max order size drops below 999
+      mockAccount.account.spendableBalance = '1'; // $1 balance → max order size drops below 999
       mockUsePerpsLiveAccount.mockReturnValue(mockAccount);
       rerender({});
 
@@ -514,14 +518,15 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.orderForm.amount).not.toBe('999');
     });
 
-    it('should use useMemo for initialAmountValue calculation', () => {
+    it('uses useMemo for initialAmountValue calculation', () => {
       // This test verifies that useMemo is working by testing different scenarios
       // that should produce different initialAmountValue calculations
 
       // Test 1: Low balance scenario
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          availableBalance: '2', // $2 balance, 3x leverage: max = floor(6 * 0.995) = 5 (less than $10 default)
+          spendableBalance: '2', // $2 balance, 3x leverage: max = floor(6 * 0.995) = 5 (less than $10 default)
+          withdrawableBalance: '2', // $2 balance, 3x leverage: max = floor(6 * 0.995) = 5 (less than $10 default)
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -539,7 +544,8 @@ describe('usePerpsOrderForm', () => {
       // Test 2: High balance scenario
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          availableBalance: '100', // $100 balance = $300 max with 3x leverage (more than $10 default)
+          spendableBalance: '100', // $100 balance = $300 max with 3x leverage (more than $10 default)
+          withdrawableBalance: '100', // $100 balance = $300 max with 3x leverage (more than $10 default)
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -559,7 +565,7 @@ describe('usePerpsOrderForm', () => {
   });
 
   describe('form updates', () => {
-    it('should update amount', () => {
+    it('updates amount', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
         wrapper: createWrapper(),
       });
@@ -571,7 +577,7 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.orderForm.amount).toBe('250');
     });
 
-    it('should update leverage', () => {
+    it('updates leverage', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
         wrapper: createWrapper(),
       });
@@ -583,7 +589,7 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.orderForm.leverage).toBe(15);
     });
 
-    it('should update direction', () => {
+    it('updates direction', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
         wrapper: createWrapper(),
       });
@@ -595,7 +601,7 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.orderForm.direction).toBe('short');
     });
 
-    it('should update asset', () => {
+    it('updates asset', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
         wrapper: createWrapper(),
       });
@@ -607,7 +613,7 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.orderForm.asset).toBe('SOL');
     });
 
-    it('should update take profit price', () => {
+    it('updates take profit price', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
         wrapper: createWrapper(),
       });
@@ -619,7 +625,7 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.orderForm.takeProfitPrice).toBe('55000');
     });
 
-    it('should update stop loss price', () => {
+    it('updates stop loss price', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
         wrapper: createWrapper(),
       });
@@ -631,7 +637,7 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.orderForm.stopLossPrice).toBe('45000');
     });
 
-    it('should update limit price', () => {
+    it('updates limit price', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
         wrapper: createWrapper(),
       });
@@ -643,7 +649,7 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.orderForm.limitPrice).toBe('50000');
     });
 
-    it('should update order type', () => {
+    it('updates order type', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
         wrapper: createWrapper(),
       });
@@ -655,7 +661,7 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.orderForm.type).toBe('limit');
     });
 
-    it('should update multiple fields at once', () => {
+    it('updates multiple fields at once', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
         wrapper: createWrapper(),
       });
@@ -675,7 +681,7 @@ describe('usePerpsOrderForm', () => {
   });
 
   describe('percentage handlers', () => {
-    it('should handle percentage amount', () => {
+    it('handles percentage amount', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
         wrapper: createWrapper(),
       });
@@ -687,7 +693,7 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.orderForm.amount).toBe('1500'); // 50% of 1000 * 3x leverage
     });
 
-    it('should handle max amount', () => {
+    it('handles max amount', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
         wrapper: createWrapper(),
       });
@@ -700,7 +706,7 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.orderForm.amount).toBe('2985');
     });
 
-    it('should handle min amount for mainnet', () => {
+    it('handles min amount for mainnet', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
         wrapper: createWrapper(),
       });
@@ -714,7 +720,7 @@ describe('usePerpsOrderForm', () => {
       );
     });
 
-    it('should handle min amount for testnet', () => {
+    it('handles min amount for testnet', () => {
       mockUsePerpsNetwork.mockReturnValue('testnet');
       const { result } = renderHook(() => usePerpsOrderForm(), {
         wrapper: createWrapper(),
@@ -729,7 +735,7 @@ describe('usePerpsOrderForm', () => {
       );
     });
 
-    it('should clamp near-100% amounts to maxPossibleAmount', () => {
+    it('clamps near-100% amounts to maxPossibleAmount', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
         wrapper: createWrapper(),
       });
@@ -750,10 +756,11 @@ describe('usePerpsOrderForm', () => {
       expect(at100).toBe(result.current.maxPossibleAmount);
     });
 
-    it('should not update amount when balance is 0', () => {
+    it('does not update amount when balance is 0', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          availableBalance: '0',
+          spendableBalance: '0',
+          withdrawableBalance: '0',
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -775,8 +782,155 @@ describe('usePerpsOrderForm', () => {
     });
   });
 
+  describe('limit order price adjustment', () => {
+    it('uses limit price for maxPossibleAmount when order type is limit', () => {
+      // Use low-precision asset where price difference causes rounding differences
+      mockUsePerpsMarketData.mockReturnValue({
+        marketData: {
+          szDecimals: 0, // Low precision makes rounding impact visible
+          name: 'BTC',
+          maxLeverage: 10,
+          marginTableId: 1,
+        },
+        refetch: jest.fn(),
+        isLoading: false,
+        error: null,
+      });
+
+      // Small balance so rounding matters
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          spendableBalance: '10',
+          withdrawableBalance: '10',
+          marginUsed: '0',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+          totalBalance: '10',
+        },
+        isInitialLoading: false,
+      });
+
+      // BTC at $50000 with szDecimals=0: position size rounding is per whole token
+      mockUsePerpsLivePrices.mockReturnValue({
+        BTC: { price: '50000', timestamp: Date.now(), symbol: 'BTC' },
+      });
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'BTC',
+            initialType: 'limit',
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      const marketMax = result.current.maxPossibleAmount;
+
+      // Set limit price much lower — at $1, same USD buys many more whole tokens
+      act(() => {
+        result.current.setLimitPrice('1');
+      });
+
+      const limitMax = result.current.maxPossibleAmount;
+
+      // With szDecimals=0 and price=$1 vs $50000, the rounding impact is drastically different
+      expect(limitMax).not.toBe(marketMax);
+    });
+
+    it('falls back to market price when limit price is empty', () => {
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'BTC',
+            initialType: 'limit',
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      const maxWithoutLimit = result.current.maxPossibleAmount;
+
+      act(() => {
+        result.current.setLimitPrice('');
+      });
+
+      expect(result.current.maxPossibleAmount).toBe(maxWithoutLimit);
+    });
+
+    it('recalculates maxPossibleAmount when limit price changes', () => {
+      // Use low-precision asset where price difference causes rounding differences
+      mockUsePerpsMarketData.mockReturnValue({
+        marketData: {
+          szDecimals: 0,
+          name: 'BTC',
+          maxLeverage: 10,
+          marginTableId: 1,
+        },
+        refetch: jest.fn(),
+        isLoading: false,
+        error: null,
+      });
+
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          spendableBalance: '10',
+          withdrawableBalance: '10',
+          marginUsed: '0',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+          totalBalance: '10',
+        },
+        isInitialLoading: false,
+      });
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'BTC',
+            initialType: 'limit',
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      // $1 per token → 30 tokens max → rounding at whole-token level
+      act(() => {
+        result.current.setLimitPrice('1');
+      });
+
+      const maxAt1 = result.current.maxPossibleAmount;
+
+      // $50000 per token → 0 tokens max at szDecimals=0
+      act(() => {
+        result.current.setLimitPrice('50000');
+      });
+
+      const maxAt50k = result.current.maxPossibleAmount;
+
+      expect(maxAt1).not.toBe(maxAt50k);
+    });
+
+    it('uses market price for maxPossibleAmount when order type is market', () => {
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'BTC',
+            initialType: 'market',
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      const marketMax = result.current.maxPossibleAmount;
+
+      // Setting limit price when order type is market should not affect max
+      act(() => {
+        result.current.setLimitPrice('100000');
+      });
+
+      expect(result.current.maxPossibleAmount).toBe(marketMax);
+    });
+  });
+
   describe('empty amount handling', () => {
-    it('should convert empty string to 0', () => {
+    it('converts empty string to 0', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
         wrapper: createWrapper(),
       });

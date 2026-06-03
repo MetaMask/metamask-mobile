@@ -4,9 +4,9 @@ import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import type { ListRenderItem } from '@shopify/flash-list';
 import type { TrendingAsset } from '@metamask/assets-controllers';
-import type { PerpsMarketData } from '@metamask/perps-controller';
+import type { PerpsMarketData, SortOptionId } from '@metamask/perps-controller';
+import { isEquityAsset } from '../../../UI/Perps/utils/marketHours';
 import type { PerpsNavigationParamList } from '../../../UI/Perps/types/navigation';
-import type { PredictMarket as PredictMarketType } from '../../../UI/Predict/types';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../../UI/Predict';
@@ -15,30 +15,29 @@ import { strings } from '../../../../../locales/i18n';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
 import { TokenRowItem } from '../feeds/tokens/TokenRowItem';
 import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
-import { useStocksFeed } from '../feeds/stocks/useStocksFeed';
+import {
+  STOCKS_FEED_PREVIEW_PAGE_SIZE,
+  useStocksFeed,
+} from '../feeds/stocks/useStocksFeed';
+import { getCaipChainIdFromAssetId } from '../../../UI/Trending/components/TrendingTokenRowItem/utils';
 import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
 import PerpsSectionProvider from '../feeds/perps/PerpsSectionProvider';
-import PerpsRowItem from '../feeds/perps/PerpsRowItem';
-import PerpsRowSkeleton from '../../../UI/Perps/components/PerpsRowSkeleton';
+import PerpsToggleBlock from '../feeds/perps/PerpsToggleBlock';
 import { navigateToPerpsMarketList } from '../feeds/perps/perpsNavigation';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
-import { PredictionCarouselRowItem } from '../feeds/predictions/PredictionRowItem';
-import PredictionsSkeleton from '../feeds/predictions/PredictionsSkeleton';
-import { navigateToPredictionsList } from '../feeds/predictions/predictionsNavigation';
+import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarouselSection';
+import { navigateToExplorePredictionsList } from '../feeds/predictions/predictionsNavigation';
 import CardList from '../components/CardList';
 import ExploreScroll from '../components/ExploreScroll';
-import HorizontalCarousel from '../components/HorizontalCarousel';
-import PillToggleCardList, {
-  type PillToggleCardListTab,
-} from '../components/PillToggleCardList';
+import type { PillToggleCardListTab } from '../components/PillToggleCardList';
 import SectionHeader from '../components/SectionHeader';
 import type { TabProps } from '../hooks/useExploreRefresh';
-
-const PerpsRowSingleSkeleton: React.FC = () => <PerpsRowSkeleton count={1} />;
+import { trackExploreInteracted } from '../search/analytics';
+import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
 
 interface RwaPerpsBlockProps {
   refresh: TabProps['refresh'];
-  onViewAll: () => void;
+  onViewAll: (filter: string, sortOptionId: SortOptionId) => void;
 }
 
 const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
@@ -53,6 +52,10 @@ const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
         .filter((d) => d.market.marketType === type)
         .slice(0, 3)
         .map((d) => d.market);
+    const stockLikeItems = perps.data
+      .filter((d) => isEquityAsset(d.market.marketType))
+      .slice(0, 3)
+      .map((d) => d.market);
     return [
       {
         key: 'commodities',
@@ -62,7 +65,7 @@ const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
       {
         key: 'stocks',
         name: strings('trending.rwa_pill_stocks'),
-        items: byType('equity'),
+        items: stockLikeItems,
       },
       {
         key: 'forex',
@@ -72,30 +75,23 @@ const RwaPerpsBlock: React.FC<RwaPerpsBlockProps> = ({
     ];
   }, [perps.data]);
 
-  const renderItem: ListRenderItem<PerpsMarketData> = useCallback(
-    ({ item }) => <PerpsRowItem market={item} />,
-    [],
-  );
-
   if (!perps.isLoading && perps.data.length === 0) return null;
 
   return (
-    <Box>
-      <SectionHeader
-        title={strings('trending.rwa_perps_section')}
-        onViewAll={onViewAll}
-        testID="section-header-view-all-rwa_perps"
-      />
-      <PillToggleCardList<PerpsMarketData>
-        tabs={tabs}
-        isLoading={perps.isLoading}
-        renderItem={renderItem}
-        Skeleton={PerpsRowSingleSkeleton}
-        idPrefix="rwa_perps"
-        testIdPrefix="rwa-perps-pills"
-        listTestId="rwa-perps-pill-toggled-list"
-      />
-    </Box>
+    <PerpsToggleBlock
+      title={strings('trending.rwa_perps_section')}
+      tabs={tabs}
+      isLoading={perps.isLoading}
+      defaultPillKey="commodities"
+      onViewAll={onViewAll}
+      sortOptionId={perps.defaultSortOptionId}
+      tabName="RWAs"
+      sectionName="perps_markets"
+      headerTestID="section-header-view-all-rwa_perps"
+      idPrefix="rwa_perps"
+      testIdPrefix="rwa-perps-pills"
+      listTestId="rwa-perps-pill-toggled-list"
+    />
   );
 };
 
@@ -107,17 +103,10 @@ const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
 
   const politics = usePredictionsFeed({ variant: 'politics', refresh });
-  const stocks = useStocksFeed({ refresh });
-
-  const renderPredictionItem: ListRenderItem<PredictMarketType> = useCallback(
-    ({ item }) => (
-      <PredictionCarouselRowItem
-        market={item}
-        testIdPrefix="predict-rwa-politics-market-row-item"
-      />
-    ),
-    [],
-  );
+  const stocks = useStocksFeed({
+    refresh,
+    pageSize: STOCKS_FEED_PREVIEW_PAGE_SIZE,
+  });
 
   const renderStockItem: ListRenderItem<TrendingAsset> = useCallback(
     ({ item, index }) => (
@@ -125,35 +114,43 @@ const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
         token={item}
         index={index}
         tokenDetailsSource={TokenDetailsSource.ExploreRwasStocks}
+        onCardPress={() =>
+          trackExploreInteracted({
+            interaction_type: 'section_item_tapped',
+            tab_name: 'RWAs',
+            section_name: 'stocks',
+            asset_type: 'stock',
+            position: index,
+            token_symbol: item.symbol,
+            chain_id: getCaipChainIdFromAssetId(item.assetId),
+            item_clicked: item.assetId,
+          })
+        }
       />
     ),
     [],
   );
 
-  const showPolitics =
-    isPredictEnabled && (politics.isLoading || politics.data.length > 0);
   const showStocks = stocks.isLoading || stocks.data.length > 0;
 
   return (
-    <ExploreScroll refreshing={refreshing} onRefresh={onRefresh}>
-      {showPolitics && (
-        <Box>
-          <SectionHeader
-            title={strings('trending.predictions')}
-            onViewAll={() =>
-              navigateToPredictionsList(appNavigation, 'politics')
-            }
-            testID="section-header-view-all-politics_predictions"
-          />
-          <HorizontalCarousel<PredictMarketType>
-            data={politics.data}
-            isLoading={politics.isLoading}
-            renderItem={renderPredictionItem}
-            Skeleton={PredictionsSkeleton}
-            idPrefix="politics_predictions"
-          />
-        </Box>
-      )}
+    <ExploreScroll
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      testID={TrendingViewSelectorsIDs.EXPLORE_RWAS_SCROLL_VIEW}
+    >
+      <PredictionsCarouselSection
+        feed={politics}
+        tabName="RWAs"
+        sectionName="predictions_politics"
+        title={strings('trending.predictions')}
+        testIdPrefix="predict-rwa-politics-market-row-item"
+        idPrefix="politics_predictions"
+        onViewAll={() =>
+          navigateToExplorePredictionsList(appNavigation, 'politics')
+        }
+        isEnabled={isPredictEnabled}
+      />
 
       {showStocks && (
         <Box>
@@ -163,6 +160,8 @@ const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
               appNavigation.navigate(Routes.WALLET.RWA_TOKENS_FULL_VIEW)
             }
             testID="section-header-view-all-stocks"
+            tabName="RWAs"
+            sectionName="stocks"
           />
           <CardList<TrendingAsset>
             data={stocks.data}
@@ -178,7 +177,9 @@ const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
         <PerpsSectionProvider>
           <RwaPerpsBlock
             refresh={refresh}
-            onViewAll={() => navigateToPerpsMarketList(perpsNavigation)}
+            onViewAll={(filter, sortOptionId) =>
+              navigateToPerpsMarketList(perpsNavigation, filter, sortOptionId)
+            }
           />
         </PerpsSectionProvider>
       )}

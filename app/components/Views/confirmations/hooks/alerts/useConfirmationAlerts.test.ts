@@ -25,7 +25,9 @@ import { useOriginTrustSignalAlerts } from './useOriginTrustSignalAlerts';
 import { useGasEstimateFailedAlert } from './useGasEstimateFailedAlert';
 import { useGasSponsorshipWarningAlert } from './useGasSponsorshipWarningAlert';
 import { useFirstTimeInteractionAlert } from './useFirstTimeInteractionAlert';
+import { useHeadlessBuyErrorAlert } from './useHeadlessBuyErrorAlert';
 import { useTokenContractAlert } from './useTokenContractAlert';
+import { useAddressPoisoningAlert } from './useAddressPoisoningAlert';
 
 jest.mock('./useBlockaidAlerts');
 jest.mock('./useGasEstimateFailedAlert');
@@ -46,7 +48,9 @@ jest.mock('./useTokenTrustSignalAlerts');
 jest.mock('./useAddressTrustSignalAlerts');
 jest.mock('./useOriginTrustSignalAlerts');
 jest.mock('./useFirstTimeInteractionAlert');
+jest.mock('./useHeadlessBuyErrorAlert');
 jest.mock('./useTokenContractAlert');
+jest.mock('./useAddressPoisoningAlert');
 
 describe('useConfirmationAlerts', () => {
   const ALERT_MESSAGE_MOCK = 'This is a test alert message.';
@@ -160,6 +164,15 @@ describe('useConfirmationAlerts', () => {
     },
   ];
 
+  const mockAddressPoisoningAlert: Alert[] = [
+    {
+      key: 'AddressPoisoningAlert',
+      title: 'Test Address Poisoning Alert',
+      message: ALERT_MESSAGE_MOCK,
+      severity: Severity.Danger,
+    },
+  ];
+
   const mockOriginTrustSignalAlerts: Alert[] = [
     {
       key: 'OriginTrustSignalAlert',
@@ -205,7 +218,9 @@ describe('useConfirmationAlerts', () => {
     (useAddressTrustSignalAlerts as jest.Mock).mockReturnValue([]);
     (useOriginTrustSignalAlerts as jest.Mock).mockReturnValue([]);
     (useFirstTimeInteractionAlert as jest.Mock).mockReturnValue([]);
+    (useHeadlessBuyErrorAlert as jest.Mock).mockReturnValue([]);
     (useTokenContractAlert as jest.Mock).mockReturnValue([]);
+    (useAddressPoisoningAlert as jest.Mock).mockReturnValue([]);
   });
 
   it('returns empty array if no alerts', () => {
@@ -274,6 +289,9 @@ describe('useConfirmationAlerts', () => {
     (useTokenTrustSignalAlerts as jest.Mock).mockReturnValue(
       mockTokenTrustSignalAlerts,
     );
+    (useAddressPoisoningAlert as jest.Mock).mockReturnValue(
+      mockAddressPoisoningAlert,
+    );
     (useAddressTrustSignalAlerts as jest.Mock).mockReturnValue(
       mockAddressTrustSignalAlerts,
     );
@@ -298,6 +316,7 @@ describe('useConfirmationAlerts', () => {
       ...mockInsufficientPredictBalanceAlert,
       ...mockBurnAddressAlert,
       ...mockTokenTrustSignalAlerts,
+      ...mockAddressPoisoningAlert,
       ...mockTokenContractAlert,
       ...mockUpgradeAccountAlert,
       ...mockOriginTrustSignalAlerts,

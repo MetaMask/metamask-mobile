@@ -222,6 +222,12 @@ export const selectSelectedInternalAccountAddress = createSelector(
   },
 );
 
+export const selectEvmAddress = createSelector(
+  selectSelectedInternalAccount,
+  (account) =>
+    account && isEvmAccountType(account.type) ? account.address : undefined,
+);
+
 /**
  * A memoized selector that returns whether the selected internal account can sign transactions
  */

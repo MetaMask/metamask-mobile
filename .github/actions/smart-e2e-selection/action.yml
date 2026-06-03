@@ -27,7 +27,7 @@ inputs:
     required: false
     default: 'false'
   base-ref:
-    description: 'PR base branch ref passed to the AI analysis script for diff comparison'
+    description: 'PR base branch ref passed to the AI analysis script for diff comparison. When release/* or stable, AI selection is skipped and the full E2E suite is selected.'
     required: false
     default: ''
 outputs:
@@ -57,21 +57,32 @@ runs:
           echo "⏭️ SKIP=true due to 'skip-smart-e2e-selection' label on PR"
         fi
 
+    - name: Check release or stable target branch (full E2E, no AI selection)
+      id: check-release-target
+      shell: bash
+      run: |
+        echo "SKIP=false" >> "$GITHUB_OUTPUT"
+        BASE='${{ inputs.base-ref }}'
+        if [[ -n "$BASE" && ( "$BASE" == release/* || "$BASE" == "stable" ) ]]; then
+          echo "SKIP=true" >> "$GITHUB_OUTPUT"
+          echo "⏭️ Base branch is release/* or stable — skipping AI E2E selection; full E2E suite will run"
+        fi
+
     - name: Checkout for PR analysis
-      if: steps.check-skip-label.outputs.SKIP != 'true'
+      if: steps.check-skip-label.outputs.SKIP != 'true' && steps.check-release-target.outputs.SKIP != 'true'
       uses: actions/checkout@v6
       with:
         fetch-depth: 1 # Shallow clone for speed; unshallowed below for diff comparison
 
     - name: Disable sparse checkout and restore all files
-      if: steps.check-skip-label.outputs.SKIP != 'true'
+      if: steps.check-skip-label.outputs.SKIP != 'true' && steps.check-release-target.outputs.SKIP != 'true'
       shell: bash
       run: |
         git sparse-checkout disable
         git checkout HEAD -- .
 
     - name: Fetch base branch for comparison
-      if: steps.check-skip-label.outputs.SKIP != 'true'
+      if: steps.check-skip-label.outputs.SKIP != 'true' && steps.check-release-target.outputs.SKIP != 'true'
       shell: bash
       run: |
         # Unshallow the repository first (if it's shallow)
@@ -80,13 +91,13 @@ runs:
         git fetch origin "${{ inputs.base-ref || 'main' }}" 2>/dev/null || true
 
     - name: Setup Node.js
-      if: steps.check-skip-label.outputs.SKIP != 'true'
+      if: steps.check-skip-label.outputs.SKIP != 'true' && steps.check-release-target.outputs.SKIP != 'true'
       uses: actions/setup-node@v6
       with:
         node-version-file: '.nvmrc'
 
     - name: Install minimal dependencies for AI analysis
-      if: steps.check-skip-label.outputs.SKIP != 'true'
+      if: steps.check-skip-label.outputs.SKIP != 'true' && steps.check-release-target.outputs.SKIP != 'true'
       shell: bash
       run: |
         echo "📦 Installing only required packages for AI analysis..."
@@ -98,7 +109,7 @@ runs:
         echo "✅ AI analysis dependencies installed in /tmp/ai-deps"
 
     - name: Copy AI dependencies to workspace
-      if: steps.check-skip-label.outputs.SKIP != 'true'
+      if: steps.check-skip-label.outputs.SKIP != 'true' && steps.check-release-target.outputs.SKIP != 'true'
       shell: bash
       run: |
         echo "📋 Copying AI dependencies to workspace..."
@@ -129,6 +140,11 @@ runs:
           echo "⏭️ Skipping AI analysis - skip-smart-e2e-selection label found"
           echo "SKIPPED=true" >> "$GITHUB_OUTPUT"
           echo "SKIP_REASON=skip-smart-e2e-selection label found" >> "$GITHUB_OUTPUT"
+          echo "ai_confidence=100" >> "$GITHUB_OUTPUT"
+        elif [[ "${{ steps.check-release-target.outputs.SKIP }}" == "true" ]]; then
+          echo "⏭️ Skipping AI analysis - PR targets a release or stable branch"
+          echo "SKIPPED=true" >> "$GITHUB_OUTPUT"
+          echo "SKIP_REASON=PR targets a release or stable branch (release/* or stable)" >> "$GITHUB_OUTPUT"
           echo "ai_confidence=100" >> "$GITHUB_OUTPUT"
         else
           echo "✅ Running AI analysis for PR #$PR_NUMBER"

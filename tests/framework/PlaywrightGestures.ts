@@ -1,4 +1,5 @@
-import { CurrentDeviceDetails } from './fixture';
+import { getWindowSize } from './DeviceInfoCache.ts';
+import { CurrentDeviceDetails } from './fixtures/playwright';
 import { PlatformDetector } from './PlatformLocator';
 import { PlaywrightElement } from './PlaywrightAdapter';
 import { boxedStep, getDriver } from './PlaywrightUtilities';
@@ -75,29 +76,113 @@ export default class PlaywrightGestures {
     }
   }
 
+  private static async isAndroidSession(): Promise<boolean> {
+    const drv = getDriver();
+    const platform = String(
+      (await drv.capabilities)?.platformName ?? '',
+    ).toLowerCase();
+    return platform.includes('android');
+  }
+
+  /**
+   * Android often reports isEnabled=true while the RN control is still disabled.
+   * Uses isEnabled plus native clickable/enabled attributes only — isClickable()
+   * is a Web/DOM API and is not implemented on Appium Android (always fails).
+   */
+  private static async isElementInteractive(
+    elem: PlaywrightElement,
+  ): Promise<boolean> {
+    if (!(await elem.isEnabled())) {
+      return false;
+    }
+
+    if (!(await this.isAndroidSession())) {
+      return true;
+    }
+
+    try {
+      const [clickableAttr, enabledAttr] = await Promise.all([
+        elem.getAttribute('clickable'),
+        elem.getAttribute('enabled'),
+      ]);
+      return clickableAttr !== 'false' && enabledAttr !== 'false';
+    } catch {
+      return true;
+    }
+  }
+
+  /**
+   * Polls until the element stays interactive for consecutive reads.
+   */
+  static async waitUntilInteractive(
+    elem: PlaywrightElement,
+    timeout: number,
+    options?: { requiredStableReads?: number; interval?: number },
+  ): Promise<void> {
+    const interval = options?.interval ?? 250;
+    const requiredStableReads = options?.requiredStableReads ?? 6;
+    const start = Date.now();
+    let consecutiveInteractive = 0;
+
+    while (Date.now() - start < timeout - interval) {
+      if (await this.isElementInteractive(elem)) {
+        consecutiveInteractive += 1;
+        if (consecutiveInteractive >= requiredStableReads) {
+          return;
+        }
+      } else {
+        consecutiveInteractive = 0;
+      }
+      await new Promise((resolve) => setTimeout(resolve, interval));
+    }
+
+    throw new Error(
+      `Element was not interactive for ${requiredStableReads} consecutive checks within ${timeout}ms`,
+    );
+  }
+
   @boxedStep
   static async waitAndTap(
     elem: PlaywrightElement,
     options?: {
       delay?: number;
+      timeout?: number;
       checkForDisplayed?: boolean;
       checkForEnabled?: boolean;
+      /** Stricter Android enabled polling (login unlock, etc.) */
+      waitForInteractive?: boolean;
       checkForStable?: boolean;
+      enabledStableReads?: number;
+      postEnabledSettleMs?: number;
     },
   ): Promise<void> {
     const {
+      timeout = 10000,
       delay = 500,
       checkForDisplayed = true,
       checkForEnabled = true,
+      waitForInteractive = false,
       checkForStable = false,
+      enabledStableReads = 3,
+      postEnabledSettleMs,
     } = options || {};
 
     if (checkForDisplayed) {
-      await elem.unwrap().waitForDisplayed({ timeout: 10000 });
+      await elem.unwrap().waitForDisplayed({ timeout });
     }
 
     if (checkForEnabled) {
-      await elem.unwrap().waitForEnabled({ timeout: 5000 });
+      if (waitForInteractive) {
+        await this.waitUntilInteractive(elem, timeout, {
+          requiredStableReads: enabledStableReads,
+        });
+        const settleMs = postEnabledSettleMs ?? 0;
+        if (settleMs > 0) {
+          await new Promise((resolve) => setTimeout(resolve, settleMs));
+        }
+      } else {
+        await elem.waitForEnabled({ timeout });
+      }
     }
 
     if (checkForStable) {
@@ -252,7 +337,7 @@ export default class PlaywrightGestures {
 
     const location = await elem.unwrap().getLocation();
     const size = await elem.unwrap().getSize();
-    const windowSize = await drv.getWindowSize();
+    const windowSize = getWindowSize();
     const elementBottom = location.y + size.height;
     const safeBottom = windowSize.height * 0.85;
 
@@ -294,11 +379,14 @@ export default class PlaywrightGestures {
     let retries = maxRetries;
 
     if (
-      (await PlatformDetector.isAndroid()) &&
+      currentDeviceDetails.platform === 'android' &&
       currentDeviceDetails.packageName
     ) {
       bundleId = currentDeviceDetails.packageName;
-    } else if ((await PlatformDetector.isIOS()) && currentDeviceDetails.appId) {
+    } else if (
+      currentDeviceDetails.platform === 'ios' &&
+      currentDeviceDetails.appId
+    ) {
       bundleId = currentDeviceDetails.appId;
     } else {
       throw new Error('Package name or app id is not available');
@@ -376,20 +464,17 @@ export default class PlaywrightGestures {
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
 
-    if (await PlatformDetector.isAndroid()) {
+    if (PlatformDetector.isAndroid()) {
       await drv.hideKeyboard();
     } else {
-      // iOS - try pressKey strategy first, fallback to tap outside
+      // iOS - tapOutside dismisses the keyboard by tapping outside the focused
+      // element, which works regardless of keyboard type (password, numeric, etc.)
       try {
         await drv.executeScript('mobile: hideKeyboard', [
-          {
-            strategy: 'pressKey',
-            key: keyName,
-          },
+          { strategy: 'pressKey', key: keyName },
         ]);
       } catch {
-        // Fallback: tap outside the keyboard area (top of screen)
-        await drv.tap({ x: 100, y: 150 });
+        // Keyboard may already be hidden
       }
     }
   }

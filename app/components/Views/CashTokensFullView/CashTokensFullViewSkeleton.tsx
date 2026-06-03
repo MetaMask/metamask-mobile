@@ -21,6 +21,7 @@ interface CashTokensFullViewSkeletonProps {
   numChainsWithMusdBalance: number;
   isMoneyHubEnabled: boolean;
   conversionTokenCount: number;
+  listHeaderComponent?: React.ReactElement;
 }
 
 /**
@@ -193,6 +194,7 @@ const CashTokensFullViewSkeleton = ({
   numChainsWithMusdBalance,
   isMoneyHubEnabled,
   conversionTokenCount,
+  listHeaderComponent,
 }: CashTokensFullViewSkeletonProps) => {
   const tw = useTailwind();
 
@@ -202,6 +204,7 @@ const CashTokensFullViewSkeleton = ({
       showsVerticalScrollIndicator={false}
       testID={CashTokensFullViewSkeletonTestIds.CONTAINER}
     >
+      {listHeaderComponent}
       {numChainsWithMusdBalance > 0 ? (
         <>
           {Array.from({ length: numChainsWithMusdBalance }, (_, index) => (

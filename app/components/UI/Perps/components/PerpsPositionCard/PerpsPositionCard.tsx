@@ -293,11 +293,9 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
       >
         <View style={styles.compactContent}>
           <View style={styles.compactLeft}>
-            <PerpsTokenLogo
-              symbol={position.symbol}
-              size={iconSize}
-              style={styles.compactIcon}
-            />
+            <View style={styles.compactIcon}>
+              <PerpsTokenLogo symbol={position.symbol} size={iconSize} />
+            </View>
             <View style={styles.compactInfo}>
               <View style={styles.compactNameRow}>
                 <Text
@@ -551,20 +549,18 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             );
           })()}
         </View>
-        <View>
-          {onAutoClosePress && (
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Sm}
-              onPress={handleAutoCloseButtonPress}
-              style={styles.autoCloseButton}
-            >
-              {hasTPSLConfigured
-                ? strings('perps.auto_close.edit_button')
-                : strings('perps.auto_close.set_button')}
-            </Button>
-          )}
-        </View>
+        {onAutoClosePress && (
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Sm}
+            onPress={handleAutoCloseButtonPress}
+            style={styles.autoCloseButton}
+          >
+            {hasTPSLConfigured
+              ? strings('perps.auto_close.edit_button')
+              : strings('perps.auto_close.set_button')}
+          </Button>
+        )}
       </TouchableOpacity>
 
       {/* Details Section - Always expanded */}
