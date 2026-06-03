@@ -197,6 +197,7 @@ class ContractApprovalBottomSheet {
   async clearInput(): Promise<void> {
     await UnifiedGestures.typeText(this.approveTokenAmount, '', {
       clearFirst: true,
+      hideKeyboard: false,
       elemDescription: 'Clear the input field',
     });
   }

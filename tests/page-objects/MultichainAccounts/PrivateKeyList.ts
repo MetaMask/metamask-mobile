@@ -66,6 +66,7 @@ class PrivateKeyList {
 
   async typePassword(password: string): Promise<void> {
     await UnifiedGestures.typeText(this.passwordInput, password, {
+      hideKeyboard: false,
       elemDescription: 'Password Input in Private Keys',
     });
   }

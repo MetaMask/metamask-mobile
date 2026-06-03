@@ -204,7 +204,7 @@ export class DetoxGestureStrategy implements GestureStrategy {
     await Gestures.typeText(asDetoxElement(elem), text, {
       timeout: opts?.timeout,
       elemDescription: opts?.description ?? opts?.elemDescription,
-      hideKeyboard: opts?.hideKeyboard ?? true,
+      hideKeyboard: opts?.hideKeyboard ?? false,
       clearFirst: opts?.clearFirst,
       checkStability: opts?.checkStability,
       checkVisibility: opts?.checkVisibility,
