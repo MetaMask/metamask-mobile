@@ -11,10 +11,8 @@ interface CliDashboardTokenResponse {
 
 const getPrimaryEntropySourceId = (): string | undefined => {
   const keyrings = Engine.context.KeyringController.state.keyrings;
-  return (
-    keyrings.find((keyring) => keyring.type === KeyringTypes.hd)?.metadata.id ??
-    keyrings[0]?.metadata.id
-  );
+  return keyrings.find((keyring) => keyring.type === KeyringTypes.hd)?.metadata
+    .id;
 };
 
 const getCliDashboardTokenUrl = (): string => {

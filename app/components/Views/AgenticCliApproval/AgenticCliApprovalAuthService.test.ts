@@ -87,23 +87,21 @@ describe('AgenticCliApprovalAuthService', () => {
     );
   });
 
-  it('falls back to the first keyring when no HD keyring exists', async () => {
+  it('passes undefined entropy source when no HD keyring exists', async () => {
     Engine.context.KeyringController.state.keyrings = [
       {
         type: 'Simple Key Pair',
         accounts: [],
-        metadata: { id: 'fallback-keyring', name: 'Fallback keyring' },
+        metadata: { id: 'imported-keyring', name: 'Imported account' },
       },
     ];
-    mockGetBearerToken.mockResolvedValue('hydra-token');
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: true,
-      json: jest.fn().mockResolvedValue({ access_token: 'dashboard-token' }),
-    });
+    mockGetBearerToken.mockResolvedValue(null);
 
-    await AgenticCliApprovalAuthService.getAuthToken();
+    await expect(AgenticCliApprovalAuthService.getAuthToken()).rejects.toThrow(
+      'No bearer token available — is the user signed in?',
+    );
 
-    expect(mockGetBearerToken).toHaveBeenCalledWith('fallback-keyring');
+    expect(mockGetBearerToken).toHaveBeenCalledWith(undefined);
   });
 
   it('includes the server response body when the exchange fails', async () => {
