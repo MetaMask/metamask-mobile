@@ -14,6 +14,35 @@ import type { Ctx } from './types';
 const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
 const now = (): number => Math.floor(Date.now() / 1000);
 
+function isSigned(app: string): boolean {
+  try {
+    execFileSync('codesign', ['--verify', '--no-strict', app], { stdio: 'ignore' });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// `expo run:ios` logs "Build Succeeded" and we grab the .app from DerivedData, but
+// xcodebuild's CodeSign phase can still be in flight — installing in that window
+// yields an UNSIGNED bundle. Recent simulator runtimes (iOS 26+) refuse to launch
+// unsigned apps ("denied by service delegate (SBMainWorkspace)" with no crash
+// report). Wait briefly for the build's signature to land, then ad-hoc sign as a
+// fallback so the install is always launchable.
+async function ensureSigned(app: string, logger: Logger): Promise<void> {
+  if (isSigned(app)) return;
+  for (let i = 0; i < 30; i += 1) {
+    await sleep(1000);
+    if (isSigned(app)) return;
+  }
+  try {
+    execFileSync('codesign', ['--force', '--deep', '--sign', '-', app], { stdio: 'ignore' });
+    logger.warn(`Build was unsigned at install time — ad-hoc signed ${app}`);
+  } catch {
+    logger.warn(`Could not ad-hoc sign ${app} — simulator launch may fail`);
+  }
+}
+
 function simBooted(label: string): boolean {
   try {
     const out = execFileSync('xcrun', ['simctl', 'list', 'devices'], { encoding: 'utf8' });
@@ -331,6 +360,8 @@ export async function runIos(ctx: Ctx, logger: Logger): Promise<void> {
         // not installed
       }
     }
+    // Guard the codesign race: never install a .app before its signature lands.
+    await ensureSigned(app, logger);
     logger.plain('  Installing app on simulator...');
     if (!tryInstall(ctx, app)) {
       logger.fail(`simctl install failed for ${app}`);
