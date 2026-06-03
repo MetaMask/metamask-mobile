@@ -115,6 +115,7 @@ export interface PortfolioTransactionInitiatedArgs
     PredictPortfolioAnalyticsContextArgs,
     'actionType' | 'predictScreen' | 'predictComponent' | 'feedTab'
   > {
+  predictScreen?: string;
   predictComponent?: string;
   transactionType: string;
 }

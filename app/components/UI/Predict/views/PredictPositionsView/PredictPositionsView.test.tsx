@@ -194,10 +194,19 @@ const expectedPositionsAnalyticsContext = (
   ...overrides,
 });
 
-const renderScreen = (params?: {
+interface PredictPositionsRouteParams {
   entryPoint?: string;
   initialTab?: 'positions' | 'history';
-}) => {
+}
+
+const renderScreen = (
+  paramsOrInitialTab?: PredictPositionsRouteParams | 'positions' | 'history',
+) => {
+  const params =
+    typeof paramsOrInitialTab === 'string'
+      ? { initialTab: paramsOrInitialTab }
+      : paramsOrInitialTab;
+
   mockUseRoute.mockReturnValue({
     params,
   });
