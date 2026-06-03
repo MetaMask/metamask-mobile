@@ -638,19 +638,16 @@ class Transactions extends PureComponent {
       }
 
       if (isQRHardwareAccount) {
-        this.closeSpeedUpCancelModal();
+        const transactionId = this.speedUpTxId;
         this.props.navigation.navigate(
           ...createQRSigningTransactionModalNavDetails({
-            transactionId: this.speedUpTxId,
+            transactionId,
             signMode: QRSignMode.SpeedUp,
             gasValues: params,
-            onConfirmationComplete: (confirmed) => {
-              if (confirmed) {
-                this.closeSpeedUpCancelModal();
-              }
-            },
+            onConfirmationComplete: () => undefined,
           }),
         );
+        this.closeSpeedUpCancelModal();
         return;
       }
 
@@ -776,19 +773,16 @@ class Transactions extends PureComponent {
       }
 
       if (isQRHardwareAccount) {
-        this.closeSpeedUpCancelModal();
+        const transactionId = this.cancelTxId;
         this.props.navigation.navigate(
           ...createQRSigningTransactionModalNavDetails({
-            transactionId: this.cancelTxId,
+            transactionId,
             signMode: QRSignMode.Cancel,
             gasValues: params,
-            onConfirmationComplete: (confirmed) => {
-              if (confirmed) {
-                this.closeSpeedUpCancelModal();
-              }
-            },
+            onConfirmationComplete: () => undefined,
           }),
         );
+        this.closeSpeedUpCancelModal();
         return;
       }
 

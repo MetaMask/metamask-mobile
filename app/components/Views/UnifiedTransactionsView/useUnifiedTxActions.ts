@@ -303,19 +303,16 @@ export function useUnifiedTxActions() {
       }
 
       if (isQRHardwareAccount) {
-        closeSpeedUpCancelModal();
+        const transactionId = speedUpTxId;
         navigation.navigate(
           ...createQRSigningTransactionModalNavDetails({
-            transactionId: speedUpTxId,
+            transactionId,
             signMode: QRSignMode.SpeedUp,
             gasValues,
-            onConfirmationComplete: (confirmed: boolean) => {
-              if (confirmed) {
-                onSpeedUpCancelCompleted();
-              }
-            },
+            onConfirmationComplete: () => undefined,
           }),
         );
+        onSpeedUpCancelCompleted();
         return;
       }
 
@@ -359,19 +356,16 @@ export function useUnifiedTxActions() {
       }
 
       if (isQRHardwareAccount) {
-        closeSpeedUpCancelModal();
+        const transactionId = cancelTxId;
         navigation.navigate(
           ...createQRSigningTransactionModalNavDetails({
-            transactionId: cancelTxId,
+            transactionId,
             signMode: QRSignMode.Cancel,
             gasValues,
-            onConfirmationComplete: (confirmed: boolean) => {
-              if (confirmed) {
-                onSpeedUpCancelCompleted();
-              }
-            },
+            onConfirmationComplete: () => undefined,
           }),
         );
+        onSpeedUpCancelCompleted();
         return;
       }
 
