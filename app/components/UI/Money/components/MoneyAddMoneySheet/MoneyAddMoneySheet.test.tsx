@@ -12,6 +12,7 @@ import {
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../Earn/constants/musd';
 import Logger from '../../../../../util/Logger';
+import { showDevErrorAlert } from '../../utils/devErrorAlert';
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockNavigate = jest.fn();
@@ -50,6 +51,10 @@ jest.mock('../../hooks/useMoneyAccount', () => ({
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
   default: { error: jest.fn(), log: jest.fn() },
+}));
+
+jest.mock('../../utils/devErrorAlert', () => ({
+  showDevErrorAlert: jest.fn(),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -264,6 +269,23 @@ describe('MoneyAddMoneySheet', () => {
     expect(Logger.error).toHaveBeenCalledWith(
       depositError,
       '[Money Account] initiateDeposit failed',
+    );
+  });
+
+  it('calls showDevErrorAlert when initiateDeposit rejects', async () => {
+    const depositError = new Error('deposit failed');
+    mockInitiateDeposit.mockRejectedValueOnce(depositError);
+
+    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+    fireEvent.press(
+      getByTestId(MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION),
+    );
+
+    await waitFor(() => expect(showDevErrorAlert).toHaveBeenCalled());
+
+    expect(showDevErrorAlert).toHaveBeenCalledWith(
+      '[Money Account] initiateDeposit failed',
+      depositError,
     );
   });
 

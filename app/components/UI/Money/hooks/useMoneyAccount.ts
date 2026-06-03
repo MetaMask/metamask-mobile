@@ -1,7 +1,8 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
-import { Hex } from '@metamask/utils';
+import { bytesToHex, Hex } from '@metamask/utils';
+import { v4 as uuidv4, parse as uuidParse } from 'uuid';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
@@ -20,6 +21,33 @@ import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConf
 
 const LOG_TAG = '[Money Account]';
 
+export type MoneyAccountDepositIntent = 'convert' | 'addMusd';
+
+const depositIntentByBatchId = new Map<string, MoneyAccountDepositIntent>();
+
+export function getMoneyAccountDepositIntent(
+  batchId: string | undefined,
+): MoneyAccountDepositIntent | undefined {
+  if (!batchId) return undefined;
+  return depositIntentByBatchId.get(batchId.toLowerCase());
+}
+
+export function clearMoneyAccountDepositIntent(
+  batchId: string | undefined,
+): void {
+  if (!batchId) return;
+  depositIntentByBatchId.delete(batchId.toLowerCase());
+}
+
+export interface InitiateDepositOptions {
+  preferredPaymentToken?: {
+    address: Hex;
+    chainId: Hex;
+  };
+  intent?: MoneyAccountDepositIntent;
+  autoSelectFiatPayment?: boolean;
+}
+
 function resolveNetworkClientId(chainId: Hex): string {
   const networkClientId =
     Engine.context.NetworkController.findNetworkClientIdByChainId(chainId);
@@ -34,38 +62,39 @@ export function useMoneyAccountDeposit() {
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
   const { navigateToConfirmation } = useConfirmNavigation();
 
-  const initiateDeposit = useCallback(async () => {
-    if (!vaultConfig) {
-      throw new Error(`${LOG_TAG} Missing vault config`);
-    }
-    if (!primaryMoneyAccount?.address) {
-      throw new Error(`${LOG_TAG} Missing money account address`);
-    }
+  const initiateDeposit = useCallback(
+    async (options?: InitiateDepositOptions) => {
+      const preferredPaymentToken = options?.preferredPaymentToken;
+      const intent: MoneyAccountDepositIntent = options?.intent ?? 'convert';
+      if (!vaultConfig) {
+        throw new Error(`${LOG_TAG} Missing vault config`);
+      }
+      if (!primaryMoneyAccount?.address) {
+        throw new Error(`${LOG_TAG} Missing money account address`);
+      }
 
-    const {
-      chainId,
-      boringVault,
-      tellerAddress,
-      accountantAddress,
-      lensAddress,
-    } = vaultConfig;
+      const {
+        chainId,
+        boringVault,
+        tellerAddress,
+        accountantAddress,
+        lensAddress,
+      } = vaultConfig;
 
-    const chainIdHex = chainId as Hex;
-    const provider = getProviderByChainId(chainIdHex);
-    if (!provider) {
-      throw new Error(`${LOG_TAG} No provider available for chain ${chainId}`);
-    }
+      const chainIdHex = chainId as Hex;
+      const provider = getProviderByChainId(chainIdHex);
+      if (!provider) {
+        throw new Error(
+          `${LOG_TAG} No provider available for chain ${chainId}`,
+        );
+      }
 
-    const networkClientId = resolveNetworkClientId(chainIdHex);
+      const networkClientId = resolveNetworkClientId(chainIdHex);
 
-    let approveTx: Awaited<
-      ReturnType<typeof buildMoneyAccountDepositBatch>
-    >['approveTx'];
-    let depositTx: Awaited<
-      ReturnType<typeof buildMoneyAccountDepositBatch>
-    >['depositTx'];
-    try {
-      ({ approveTx, depositTx } = await buildMoneyAccountDepositBatch({
+      const batchId = bytesToHex(new Uint8Array(uuidParse(uuidv4())));
+      depositIntentByBatchId.set(batchId.toLowerCase(), intent);
+
+      const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
         amount: BigInt(0),
         chainId: chainIdHex,
         boringVault,
@@ -73,53 +102,46 @@ export function useMoneyAccountDeposit() {
         accountantAddress,
         lensAddress,
         provider,
-      }));
-    } catch (error) {
-      Logger.error(error as Error, {
-        tags: {
-          feature: 'money-account',
-          context: 'initiateDeposit.build_batch_failed',
-        },
       });
-      throw error;
-    }
 
-    // Navigate early for better UX; recover on failure below.
-    navigateToConfirmation({
-      loader: ConfirmationLoader.CustomAmount,
-      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
-    });
+      // Navigate early for better UX; recover on failure below.
+      navigateToConfirmation({
+        loader: ConfirmationLoader.CustomAmount,
+        stack: Routes.MONEY.CONFIRMATIONS_ROOT,
+        preferredPaymentToken,
+        autoSelectFiatPayment: options?.autoSelectFiatPayment,
+      });
 
-    try {
-      // We only set the transaction from the money account perspective.
-      // MM Pay selects the user's account and moves funds to the money account,
-      // so `from` must be the money account and `networkClientId` its chain.
-      await addTransactionBatch({
-        from: primaryMoneyAccount.address as Hex,
-        networkClientId,
-        origin: ORIGIN_METAMASK,
-        disableHook: true,
-        disableSequential: true,
-        transactions: [approveTx, depositTx],
-        requiredAssets: [
-          {
-            address: getMoneyAccountDepositAssetAddress(chainIdHex),
-            amount: '0x0' as Hex,
-            standard: 'erc20',
-          },
-        ],
-      });
-    } catch (error) {
-      Logger.error(error as Error, {
-        tags: {
-          feature: 'money-account',
-          context: 'initiateDeposit.add_batch_failed',
-        },
-      });
-      // Rethrow so the caller can roll back navigation / surface a toast.
-      throw error;
-    }
-  }, [navigateToConfirmation, primaryMoneyAccount, vaultConfig]);
+      try {
+        // We only set the transaction from the money account perspective.
+        // MM Pay selects the user's account and moves funds to the money account,
+        // so `from` must be the money account and `networkClientId` its chain.
+        await addTransactionBatch({
+          batchId,
+          from: primaryMoneyAccount.address as Hex,
+          networkClientId,
+          origin: ORIGIN_METAMASK,
+          isInternal: true,
+          disableHook: true,
+          disableSequential: true,
+          transactions: [approveTx, depositTx],
+          requiredAssets: [
+            {
+              address: getMoneyAccountDepositAssetAddress(chainIdHex),
+              amount: '0x0' as Hex,
+              standard: 'erc20',
+            },
+          ],
+        });
+      } catch (error) {
+        depositIntentByBatchId.delete(batchId.toLowerCase());
+        Logger.error(error as Error, `${LOG_TAG} Deposit transaction failed`);
+        // Rethrow so the caller can roll back navigation / surface a toast.
+        throw error;
+      }
+    },
+    [navigateToConfirmation, primaryMoneyAccount, vaultConfig],
+  );
 
   return { initiateDeposit };
 }
@@ -153,31 +175,15 @@ export function useMoneyAccountWithdrawal() {
 
     // Placeholder amount — MM Pay re-encodes both calls via
     // `updateMoneyAccountWithdrawTokenAmount` once the user picks an amount.
-    let withdrawTx: Awaited<
-      ReturnType<typeof buildMoneyAccountWithdrawBatch>
-    >['withdrawTx'];
-    let transferTx: Awaited<
-      ReturnType<typeof buildMoneyAccountWithdrawBatch>
-    >['transferTx'];
-    try {
-      ({ withdrawTx, transferTx } = await buildMoneyAccountWithdrawBatch({
-        amount: BigInt(0),
-        chainId: chainIdHex,
-        tellerAddress: tellerAddress as Hex,
-        accountantAddress: accountantAddress as Hex,
-        moneyAccountAddress: primaryMoneyAccount.address as Hex,
-        recipient: recipient as Hex,
-        provider,
-      }));
-    } catch (error) {
-      Logger.error(error as Error, {
-        tags: {
-          feature: 'money-account',
-          context: 'initiateWithdrawal.build_batch_failed',
-        },
-      });
-      throw error;
-    }
+    const { withdrawTx, transferTx } = await buildMoneyAccountWithdrawBatch({
+      amount: BigInt(0),
+      chainId: chainIdHex,
+      tellerAddress: tellerAddress as Hex,
+      accountantAddress: accountantAddress as Hex,
+      moneyAccountAddress: primaryMoneyAccount.address as Hex,
+      recipient: recipient as Hex,
+      provider,
+    });
 
     // Navigate early for better UX; recover on failure below.
     navigateToConfirmation({
@@ -190,17 +196,13 @@ export function useMoneyAccountWithdrawal() {
         from: primaryMoneyAccount.address as Hex,
         networkClientId,
         origin: ORIGIN_METAMASK,
+        isInternal: true,
         disableHook: true,
         disableSequential: true,
         transactions: [withdrawTx, transferTx],
       });
     } catch (error) {
-      Logger.error(error as Error, {
-        tags: {
-          feature: 'money-account',
-          context: 'initiateWithdrawal.add_batch_failed',
-        },
-      });
+      Logger.error(error as Error, `${LOG_TAG} Withdrawal transaction failed`);
       // Rethrow so the caller can roll back navigation / surface a toast.
       throw error;
     }

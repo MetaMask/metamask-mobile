@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import BigNumber from 'bignumber.js';
 import MoneyOnboardingCard, {
   MONEY_ONBOARDING_TOTAL_STEPS,
@@ -193,7 +193,8 @@ describe('MoneyOnboardingCard', () => {
       const { getByTestId } = render(<MoneyOnboardingCard />);
       fireEvent.press(getByTestId('money-onboarding-card-cta-button'));
 
-      await Promise.resolve();
+      // Flush the rejected promise so the .catch handler runs.
+      await waitFor(() => expect(Logger.error).toHaveBeenCalled());
 
       expect(Logger.error).toHaveBeenCalledWith(
         depositError,

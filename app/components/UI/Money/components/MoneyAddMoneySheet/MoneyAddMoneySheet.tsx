@@ -28,6 +28,7 @@ import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import Logger from '../../../../../util/Logger';
+import { showDevErrorAlert } from '../../utils/devErrorAlert';
 import styleSheet from './MoneyAddMoneySheet.styles';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
 
@@ -68,6 +69,7 @@ const MoneyAddMoneySheet: React.FC = () => {
     closeAndNavigate(() => {
       initiateDeposit().catch((error: Error) => {
         Logger.error(error, '[Money Account] initiateDeposit failed');
+        showDevErrorAlert('[Money Account] initiateDeposit failed', error);
       });
     });
   }, [closeAndNavigate, initiateDeposit]);
