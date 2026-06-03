@@ -5,15 +5,16 @@ const styleSheet = (params: {
   theme: Theme;
   vars: {
     selected: boolean;
+    selectedColor?: string;
   };
 }) => {
   const {
     theme,
-    vars: { selected },
+    vars: { selected, selectedColor },
   } = params;
   const { colors } = theme;
   const finalBackgroundColor = selected
-    ? colors.background.muted
+    ? (selectedColor ?? colors.background.muted)
     : 'transparent';
   /** Matches {@link TimeRangeSelector} segment Pressables: `py-1`, `px-4`, `rounded-lg`, `flex-1`, `bg-muted` when selected. */
   return StyleSheet.create({

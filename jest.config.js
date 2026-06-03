@@ -1,5 +1,8 @@
 process.env.TZ = 'America/Toronto';
 
+// Unit tests need a test-like environment before Babel transforms app modules.
+process.env.METAMASK_ENVIRONMENT ??= 'test';
+
 process.env.SEGMENT_DELETE_API_SOURCE_ID = 'testSourceId';
 process.env.SEGMENT_REGULATIONS_ENDPOINT = 'TestRegulationsEndpoint';
 
@@ -83,8 +86,14 @@ const config = {
     '^@expo/vector-icons/(.*)': 'react-native-vector-icons/$1',
     '^@metamask/native-utils$':
       '<rootDir>/app/__mocks__/@metamask/native-utils.js',
-    '^@metamask/perps-controller$': '<rootDir>/app/controllers/perps',
-    '^@metamask/perps-controller(/.*)?$': '<rootDir>/app/controllers/perps$1',
+    '^@metamask/perps-controller$':
+      '<rootDir>/node_modules/@metamask/perps-controller/dist/index.cjs',
+    '^@metamask/perps-controller/(constants|types|utils)$':
+      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1/index.cjs',
+    '^@metamask/perps-controller/(constants|types|utils)/(.*)$':
+      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1/$2.cjs',
+    '^@metamask/perps-controller/(.*)$':
+      '<rootDir>/node_modules/@metamask/perps-controller/dist/$1.cjs',
     '^@nktkas/hyperliquid(/.*)?$': '<rootDir>/app/__mocks__/hyperliquidMock.js',
     '^@myx-trade/sdk(/.*)?$': '<rootDir>/app/__mocks__/@myx-trade/sdk.js',
     '^expo-auth-session(/.*)?$': '<rootDir>/app/__mocks__/expo-auth-session.js',

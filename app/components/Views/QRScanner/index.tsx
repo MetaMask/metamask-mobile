@@ -28,9 +28,12 @@ import { isMetaMaskUniversalLink } from '../../../core/DeeplinkManager/util/deep
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import Engine from '../../../core/Engine';
 import type { EngineContext } from '../../../core/Engine/types';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { InitSendLocation } from '../confirmations/constants/send';
 import { isValidAddressInputViaQRCode } from '../../../util/address';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { derivePredefinedRecipientParams } from '../confirmations/utils/address';
 import { getURLProtocol } from '../../../util/general';
 import {
@@ -39,8 +42,10 @@ import {
 } from '../../../util/validators';
 import createStyles from './styles';
 import { useTheme } from '../../../util/theme';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ScanSuccess, StartScan } from '../QRTabSwitcher';
 import SDKConnectV2 from '../../../core/SDKConnectV2';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ChainType } from '../confirmations/utils/send';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';

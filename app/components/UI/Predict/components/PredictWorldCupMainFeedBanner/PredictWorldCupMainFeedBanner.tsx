@@ -15,6 +15,7 @@ import {
   ButtonIconVariant,
   FontWeight,
   IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -28,11 +29,15 @@ import type { PredictWorldCupConfig } from '../../types/flags';
 import { PredictWorldCupMainFeedBannerSelectorsIDs } from './PredictWorldCupMainFeedBanner.testIds';
 
 import worldCupMainFeedBannerImage from '../../assets/world-cup-main-feed-banner.png';
+import worldCupMainFeedBannerCompactImage from '../../assets/world-cup-main-feed-banner-compact.png';
 
-const WORLD_CUP_BANNER_DEFAULT_IMAGE_ASPECT_RATIO = 2;
+const WORLD_CUP_BANNER_DEFAULT_IMAGE_ASPECT_RATIO = 360 / 177;
 const WORLD_CUP_BANNER_HORIZONTAL_MARGIN = 16;
 const WORLD_CUP_BANNER_HORIZONTAL_MARGIN_TOTAL =
   WORLD_CUP_BANNER_HORIZONTAL_MARGIN * 2;
+const WORLD_CUP_BANNER_COMPACT_IMAGE_SIZE = 80;
+
+type PredictWorldCupMainFeedBannerVariant = 'default' | 'compact';
 
 export const getPredictWorldCupBannerSource = (
   bannerImage?: PredictWorldCupConfig['bannerImage'],
@@ -59,6 +64,7 @@ export const getPredictWorldCupBannerImageAspectRatio = (
 
 interface PredictWorldCupMainFeedBannerProps {
   fallbackImageSource?: ImageSourcePropType | null;
+  variant?: PredictWorldCupMainFeedBannerVariant;
 }
 
 const shouldRenderBanner = ({
@@ -72,7 +78,7 @@ const shouldRenderBanner = ({
 
 const PredictWorldCupMainFeedBanner: React.FC<
   PredictWorldCupMainFeedBannerProps
-> = ({ fallbackImageSource }) => {
+> = ({ fallbackImageSource, variant = 'default' }) => {
   const tw = useTailwind();
   const { width: windowWidth } = useWindowDimensions();
   const navigation = useNavigation();
@@ -87,9 +93,13 @@ const PredictWorldCupMainFeedBanner: React.FC<
   );
   const bannerImageHeight = bannerWidth / bannerImageAspectRatio;
 
+  const defaultFallbackImageSource =
+    variant === 'compact'
+      ? worldCupMainFeedBannerCompactImage
+      : worldCupMainFeedBannerImage;
   const resolvedFallbackImageSource =
     fallbackImageSource === undefined
-      ? worldCupMainFeedBannerImage
+      ? defaultFallbackImageSource
       : (fallbackImageSource ?? undefined);
 
   const imageSource = useMemo(
@@ -132,6 +142,8 @@ const PredictWorldCupMainFeedBanner: React.FC<
     return null;
   }
 
+  const isCompactVariant = variant === 'compact';
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -139,14 +151,32 @@ const PredictWorldCupMainFeedBanner: React.FC<
       style={tw.style('mx-4 pb-3')}
       testID={PredictWorldCupMainFeedBannerSelectorsIDs.CONTAINER}
     >
-      <View style={tw.style('bg-muted rounded-xl overflow-hidden')}>
+      <View
+        style={tw.style(
+          'bg-muted rounded-xl overflow-hidden',
+          isCompactVariant && 'flex-row items-center',
+        )}
+      >
         <Image
           source={imageSource}
           resizeMode="cover"
           testID={PredictWorldCupMainFeedBannerSelectorsIDs.IMAGE}
-          style={tw.style('w-full rounded-t-xl', { height: bannerImageHeight })}
+          style={tw.style(
+            isCompactVariant ? 'rounded-l-xl' : 'w-full rounded-t-xl',
+            isCompactVariant
+              ? {
+                  height: WORLD_CUP_BANNER_COMPACT_IMAGE_SIZE,
+                  width: WORLD_CUP_BANNER_COMPACT_IMAGE_SIZE,
+                }
+              : { height: bannerImageHeight },
+          )}
         />
-        <View style={tw.style('flex-row items-center justify-between p-3')}>
+        <View
+          style={tw.style(
+            'flex-row items-center justify-between p-3',
+            isCompactVariant && 'flex-1',
+          )}
+        >
           <View style={tw.style('flex-shrink')}>
             <Text
               variant={TextVariant.BodyMd}
@@ -164,8 +194,9 @@ const PredictWorldCupMainFeedBanner: React.FC<
           </View>
           <ButtonIcon
             accessibilityLabel={strings('predict.world_cup.banner_title')}
-            iconName={IconName.ArrowRight}
             onPress={handlePress}
+            iconName={IconName.ArrowRight}
+            iconProps={{ size: IconSize.Md }}
             size={ButtonIconSize.Md}
             variant={ButtonIconVariant.Filled}
           />

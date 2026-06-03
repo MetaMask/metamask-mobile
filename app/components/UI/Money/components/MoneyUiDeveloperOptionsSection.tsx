@@ -2,7 +2,10 @@ import React, { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { useTheme } from '../../../../util/theme';
-import { setMoneyOnboardingSeen } from '../../../../actions/user';
+import {
+  setMoneyOnboardingSeen,
+  setOnboardingStepperStep,
+} from '../../../../actions/user';
 import { selectMoneyOnboardingSeen } from '../../../../reducers/user/selectors';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { useStyles } from '../../../../component-library/hooks';
@@ -17,6 +20,7 @@ import {
 } from '@metamask/design-system-react-native';
 import styleSheet from '../../../Views/Settings/DeveloperOptions/DeveloperOptions.styles';
 import ClipboardManager from '../../../../core/ClipboardManager';
+import { STEPPER_IDS } from '../hooks/useOnboardingStep';
 
 export const MoneyUiDeveloperOptionsSection = () => {
   const dispatch = useDispatch();
@@ -29,6 +33,10 @@ export const MoneyUiDeveloperOptionsSection = () => {
 
   const handleResetOnboardingSeenState = useCallback(() => {
     dispatch(setMoneyOnboardingSeen(false));
+  }, [dispatch]);
+
+  const handleResetOnboardingStepperStep = useCallback(() => {
+    dispatch(setOnboardingStepperStep(STEPPER_IDS.MONEY, 0));
   }, [dispatch]);
 
   const handleCopyAddress = useCallback(async () => {
@@ -77,6 +85,24 @@ export const MoneyUiDeveloperOptionsSection = () => {
           isFullWidth
         >
           {'Copy Money Account Address'}
+        </Button>
+      </Box>
+      <Box>
+        <Text
+          color={TextColor.TextAlternative}
+          variant={TextVariant.BodyMd}
+          style={styles.desc}
+        >
+          {'Reset Money home onboarding stepper'}
+        </Text>
+        <Button
+          variant={ButtonVariant.Secondary}
+          style={styles.accessory}
+          size={ButtonSize.Lg}
+          onPress={handleResetOnboardingStepperStep}
+          isFullWidth
+        >
+          {'Reset onboarding stepper'}
         </Button>
       </Box>
     </Box>

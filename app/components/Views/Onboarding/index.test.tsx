@@ -84,12 +84,12 @@ import { endTrace, TraceName } from '../../../util/trace';
 // Mock netinfo - using existing mock
 jest.mock('@react-native-community/netinfo');
 
-// Create a mutable mock for isE2E that can be controlled per test
-let mockIsE2E = false;
+// Create a mutable mock for hasTestOverrides that can be controlled per test
+let mockHasTestOverrides = false;
 jest.mock('../../../util/test/utils', () => ({
   ...jest.requireActual('../../../util/test/utils'),
-  get isE2E() {
-    return mockIsE2E;
+  get hasTestOverrides() {
+    return mockHasTestOverrides;
   },
 }));
 
@@ -1829,6 +1829,70 @@ describe('Onboarding', () => {
           }),
         }),
       );
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.SOCIAL_LOGIN_FAILED.category,
+          properties: expect.objectContaining({
+            account_type: AccountType.MetamaskGoogle,
+            is_rehydration: 'false',
+            failure_type: 'error',
+            error_category: 'provider_login',
+          }),
+        }),
+      );
+    });
+
+    it('tracks Social Login Failed when createLoginHandler rejects an invalid provider before OAuthService', async () => {
+      Platform.OS = 'ios';
+      (Device.isIos as jest.Mock).mockReturnValue(true);
+      (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
+      mockCreateLoginHandler.mockImplementation(() => {
+        throw new OAuthError(
+          'Invalid provider',
+          OAuthErrorType.InvalidProvider,
+        );
+      });
+      mockAnalytics.trackEvent.mockClear();
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      await act(async () => {
+        await navCall[1].params.onPressContinueWithGoogle(true);
+        await flushPromises();
+        await flushPromises();
+      });
+
+      expect(mockOAuthService.handleOAuthLogin).not.toHaveBeenCalled();
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.SOCIAL_LOGIN_FAILED.category,
+          properties: expect.objectContaining({
+            account_type: AccountType.MetamaskGoogle,
+            is_rehydration: 'false',
+            failure_type: 'error',
+            error_category: 'provider_login',
+          }),
+        }),
+      );
     });
 
     it('blocks Google login on iOS < 17.4 import flow with rehydration sheet when googleLoginIosUnsupportedBlockingEnabled is true', async () => {
@@ -2719,7 +2783,7 @@ describe('Onboarding', () => {
         success: false,
         vault: null,
       });
-      mockIsE2E = false;
+      mockHasTestOverrides = false;
     });
 
     it('returns early when route.params.delete is true', async () => {
@@ -2745,7 +2809,7 @@ describe('Onboarding', () => {
 
     it('skips vault backup check when running in E2E test environment', async () => {
       // Arrange
-      mockIsE2E = true;
+      mockHasTestOverrides = true;
       mockGetVaultFromBackup.mockClear();
 
       // Act
@@ -2765,7 +2829,7 @@ describe('Onboarding', () => {
       expect(mockGetVaultFromBackup).not.toHaveBeenCalled();
 
       // Cleanup
-      mockIsE2E = false;
+      mockHasTestOverrides = false;
     });
 
     it('checks migration error flag when not E2E and no delete param', async () => {

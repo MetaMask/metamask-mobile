@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import { Alert, TextInput, View, DimensionValue } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,6 +11,7 @@ import Device from '../../../util/device';
 import { useAppTheme } from '../../../util/theme';
 import { createStyles } from './styles';
 import { ImportAccountFromPrivateKeyIDs } from './ImportAccountFromPrivateKey.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import Routes from '../../../constants/navigation/Routes';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
@@ -23,7 +25,6 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import TitleStandard from '../../../component-library/components-temp/TitleStandard';
 import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
@@ -157,7 +158,7 @@ const ImportPrivateKey = () => {
         showsVerticalScrollIndicator={false}
       >
         <View testID={ImportAccountFromPrivateKeyIDs.CONTAINER}>
-          <HeaderCompactStandard
+          <HeaderStandard
             includesTopInset
             backButtonProps={{
               onPress: dismiss,

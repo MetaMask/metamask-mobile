@@ -3,6 +3,7 @@ import { ScrollView } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
 import SectionHeader from '../../../../../../component-library/components-temp/SectionHeader';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../../Wallet/WalletView.testIds';
 import type { PredictMarket } from '../../../../../UI/Predict/types';
 import type { TransactionActiveAbTestEntry } from '../../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
@@ -52,7 +53,7 @@ const HomepagePredictTrendingCarousel = ({
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={tw.style('px-4 gap-3')}
+        contentContainerStyle={tw.style('px-4 gap-3 py-3')}
       >
         {isLoadingMarkets ? (
           CAROUSEL_SKELETON_KEYS.map((key) => (

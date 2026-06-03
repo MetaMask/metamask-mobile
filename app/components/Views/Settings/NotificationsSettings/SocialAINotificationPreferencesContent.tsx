@@ -27,18 +27,23 @@ import {
 } from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
 import {
   DEFAULT_TX_AMOUNT_LIMIT,
   useFollowedTraders,
   useNotificationPreferences,
   type TxAmountThreshold,
+  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 } from '../../SocialLeaderboard/NotificationPreferences/hooks';
 import {
   PreferencesSkeleton,
   TradersFollowedSkeleton,
+  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 } from '../../SocialLeaderboard/NotificationPreferences/components/Skeletons';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ThresholdRadioList from '../../SocialLeaderboard/NotificationPreferences/components/ThresholdRadioList';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { NotificationPreferencesSelectorsIDs } from '../../SocialLeaderboard/NotificationPreferences/NotificationPreferences.testIds';
 
 const AVATAR_SIZE = 40;

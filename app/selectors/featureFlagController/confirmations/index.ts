@@ -12,6 +12,8 @@ export const PAY_FIAT_ENABLED_TRANSACTION_TYPES = [];
 export const PAY_FIAT_MAX_DELAY_MINUTES_FOR_PAYMENT_METHODS = 10;
 export const PAY_HARDWARE_ENABLED_DEFAULT = false;
 export const PAY_ENABLE_DEPOSIT_WALLET_WITHDRAW_DEFAULT = false;
+export const PAY_ENABLE_PERPS_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT = false;
+export const PAY_ENABLE_PREDICT_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT = false;
 export const SLIPPAGE_DEFAULT = 0.005;
 export const STX_DISABLED_DEFAULT = false;
 
@@ -52,6 +54,8 @@ export interface MetaMaskPayFlags {
 
 export interface MetaMaskPayExtendedFlags {
   enableDepositWalletWithdraw: boolean;
+  enablePerpsMoneyAccountTransactions: boolean;
+  enablePredictMoneyAccountTransactions: boolean;
 }
 
 export interface MetaMaskPayTokensFlags {
@@ -125,6 +129,16 @@ export const selectMetaMaskPayFlags = createSelector(
       (metaMaskPayExtendedFlags?.enableDepositWalletWithdraw as boolean) ??
       PAY_ENABLE_DEPOSIT_WALLET_WITHDRAW_DEFAULT;
 
+    const enablePerpsMoneyAccountTransactions =
+      process.env.MONEY_ACCOUNT_PERPS_PREDICT_ENABLED === 'true' &&
+      ((metaMaskPayExtendedFlags?.enablePerpsMoneyAccountTransactions as boolean) ??
+        PAY_ENABLE_PERPS_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT);
+
+    const enablePredictMoneyAccountTransactions =
+      process.env.MONEY_ACCOUNT_PERPS_PREDICT_ENABLED === 'true' &&
+      ((metaMaskPayExtendedFlags?.enablePredictMoneyAccountTransactions as boolean) ??
+        PAY_ENABLE_PREDICT_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT);
+
     return {
       attemptsMax,
       bufferInitial,
@@ -133,6 +147,8 @@ export const selectMetaMaskPayFlags = createSelector(
       slippage,
       stxDisabled,
       enableDepositWalletWithdraw,
+      enablePerpsMoneyAccountTransactions,
+      enablePredictMoneyAccountTransactions,
     };
   },
 );

@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import PredictChipList, { calculateChipScrollX } from './PredictChipList';
+import PredictChipList from './PredictChipList';
+import { calculateChipScrollX } from './calculateChipScrollX';
 import {
   PREDICT_CHIP_LIST_TEST_IDS,
   getPredictChipTestId,

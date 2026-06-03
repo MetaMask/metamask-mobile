@@ -98,6 +98,8 @@ export const PREDICT_ANALYTICS_EVENTS: Record<
       marketCategory,
       marketTags,
       entryPoint,
+      predictFeedTab,
+      predictScreen,
       marketDetailsViewed,
       marketSlug,
       gameId,
@@ -113,6 +115,12 @@ export const PREDICT_ANALYTICS_EVENTS: Record<
       [PredictEventProperties.MARKET_CATEGORY]: marketCategory,
       [PredictEventProperties.MARKET_TAGS]: marketTags,
       [PredictEventProperties.ENTRY_POINT]: entryPoint,
+      ...(predictFeedTab
+        ? { [PredictEventProperties.PREDICT_FEED_TAB]: predictFeedTab }
+        : {}),
+      ...(predictScreen
+        ? { [PredictEventProperties.PREDICT_SCREEN]: predictScreen }
+        : {}),
       [PredictEventProperties.MARKET_DETAILS_VIEWED]: marketDetailsViewed,
       ...(marketSlug
         ? { [PredictEventProperties.MARKET_SLUG]: marketSlug }

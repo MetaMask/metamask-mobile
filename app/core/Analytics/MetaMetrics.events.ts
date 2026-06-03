@@ -86,7 +86,9 @@ enum EVENT_NAME {
   NFT_DETAILS_OPENED = 'NFT Details Opened',
   TOKEN_LIST_ITEM_CLICKED = 'Token List Item Clicked',
   TOKEN_DETAILS_OPENED = 'Token Details Opened',
+  TOKEN_DETAILS_CLOSED = 'Token Details Closed',
   TOKEN_DETAILS_CTA_CLICKED = 'Token Details CTA Clicked',
+  TOKEN_DETAILS_ACTION_CLICKED = 'Token Details Action Clicked',
   /**
    * Token overview advanced chart: zoom, pan, tooltip, timeframe change, chart type
    * toggle, or TradingView link (see `interaction_type` and optional properties).
@@ -183,6 +185,7 @@ enum EVENT_NAME {
   WALLET_SETUP_COMPLETED = 'Wallet Setup Completed',
   SOCIAL_LOGIN_COMPLETED = 'Social Login Completed',
   SOCIAL_LOGIN_FAILED = 'Social Login Failed',
+  SOCIAL_LOGIN_AUTH_BROWSER_DISMISSED = 'Social Login Auth Browser Dismissed',
   SOCIAL_LOGIN_IOS_SUCCESS_VIEWED = 'Social Login iOS Success Viewed',
   SOCIAL_LOGIN_IOS_SUCCESS_CTA_CLICKED = 'Social Login iOS Success CTA Clicked',
   ACCOUNT_ALREADY_EXISTS_PAGE_VIEWED = 'Account Already Exists Page Viewed',
@@ -413,6 +416,8 @@ enum EVENT_NAME {
   // Bridge
   BRIDGE_LINK_CLICKED = 'Bridge Linked Clicked',
   SWAP_PAGE_VIEWED = 'Unified SwapBridge Page Viewed',
+  /** Unified funnel: Predict / Perps / Swaps screen views (alongside legacy events). */
+  ASSET_VIEWED = 'Asset Viewed',
 
   // Earn
   EARN_EMPTY_STATE_CTA_CLICKED = 'Earn Empty State CTA Clicked',
@@ -552,6 +557,9 @@ enum EVENT_NAME {
   NOTIFICATION_DETAIL_CLICKED = 'Notification Detail Clicked',
 
   // Push Notifications
+  PUSH_NOTIFICATION_PRE_PROMPT_VIEWED = 'Push Notification Pre-prompt Viewed',
+  PUSH_NOTIFICATION_PRE_PROMPT_BUTTON_CLICKED = 'Push Notification Pre-prompt Button Clicked',
+  OS_PUSH_NOTIFICATION_BUTTON_CLICKED = 'OS Push Notification Button Clicked',
   PUSH_NOTIFICATION_RECEIVED = 'Push Notification Received',
   PUSH_NOTIFICATION_CLICKED = 'Push Notification Clicked',
 
@@ -745,6 +753,7 @@ enum EVENT_NAME {
   SOCIAL_QUICK_BUY_TRADE_SUBMITTED = 'Quick Buy Trade Submitted',
   SOCIAL_QUICK_BUY_TRADE_COMPLETED = 'Quick Buy Trade Completed',
   SOCIAL_QUICK_BUY_DISMISSED = 'Quick Buy Dismissed',
+  SOCIAL_QUICK_TRADE_MODE_TOGGLED = 'Quick Trade Mode Toggled',
   SOCIAL_FOLLOW_TRADING_NOTIFICATION_CLICKED = 'Follow Trading Notification Clicked',
   // Activity
   ACTIVITY_CLICKED = 'Activity Clicked',
@@ -995,6 +1004,9 @@ const events = {
   WALLET_SETUP_COMPLETED: generateOpt(EVENT_NAME.WALLET_SETUP_COMPLETED),
   SOCIAL_LOGIN_COMPLETED: generateOpt(EVENT_NAME.SOCIAL_LOGIN_COMPLETED),
   SOCIAL_LOGIN_FAILED: generateOpt(EVENT_NAME.SOCIAL_LOGIN_FAILED),
+  SOCIAL_LOGIN_AUTH_BROWSER_DISMISSED: generateOpt(
+    EVENT_NAME.SOCIAL_LOGIN_AUTH_BROWSER_DISMISSED,
+  ),
   SOCIAL_LOGIN_IOS_SUCCESS_VIEWED: generateOpt(
     EVENT_NAME.SOCIAL_LOGIN_IOS_SUCCESS_VIEWED,
   ),
@@ -1461,6 +1473,15 @@ const events = {
   ),
 
   // Push Notifications Flow
+  PUSH_NOTIFICATION_PRE_PROMPT_VIEWED: generateOpt(
+    EVENT_NAME.PUSH_NOTIFICATION_PRE_PROMPT_VIEWED,
+  ),
+  PUSH_NOTIFICATION_PRE_PROMPT_BUTTON_CLICKED: generateOpt(
+    EVENT_NAME.PUSH_NOTIFICATION_PRE_PROMPT_BUTTON_CLICKED,
+  ),
+  OS_PUSH_NOTIFICATION_BUTTON_CLICKED: generateOpt(
+    EVENT_NAME.OS_PUSH_NOTIFICATION_BUTTON_CLICKED,
+  ),
   PUSH_NOTIFICATION_RECEIVED: generateOpt(
     EVENT_NAME.PUSH_NOTIFICATION_RECEIVED,
   ),
@@ -1628,7 +1649,11 @@ const events = {
     EVENT_NAME.EARN_TOKEN_LIST_ITEM_CLICKED,
   ),
   TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_DETAILS_OPENED),
+  TOKEN_DETAILS_CLOSED: generateOpt(EVENT_NAME.TOKEN_DETAILS_CLOSED),
   TOKEN_DETAILS_CTA_CLICKED: generateOpt(EVENT_NAME.TOKEN_DETAILS_CTA_CLICKED),
+  TOKEN_DETAILS_ACTION_CLICKED: generateOpt(
+    EVENT_NAME.TOKEN_DETAILS_ACTION_CLICKED,
+  ),
   CHART_INTERACTED: generateOpt(EVENT_NAME.CHART_INTERACTED),
   CHART_EMPTY_DISPLAYED: generateOpt(EVENT_NAME.CHART_EMPTY_DISPLAYED),
   SECURITY_TRUST_BOTTOM_SHEET_OPENED: generateOpt(
@@ -1649,6 +1674,7 @@ const events = {
 
   // Bridge
   SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED), // Temporary event until unified swap/bridge is done
+  ASSET_VIEWED: generateOpt(EVENT_NAME.ASSET_VIEWED),
 
   // RPC Failover
   RPC_SERVICE_UNAVAILABLE: generateOpt(EVENT_NAME.RPC_SERVICE_UNAVAILABLE),
@@ -1975,6 +2001,9 @@ const events = {
   ),
   SOCIAL_QUICK_BUY_DISMISSED: generateOpt(
     EVENT_NAME.SOCIAL_QUICK_BUY_DISMISSED,
+  ),
+  SOCIAL_QUICK_TRADE_MODE_TOGGLED: generateOpt(
+    EVENT_NAME.SOCIAL_QUICK_TRADE_MODE_TOGGLED,
   ),
   SOCIAL_FOLLOW_TRADING_NOTIFICATION_CLICKED: generateOpt(
     EVENT_NAME.SOCIAL_FOLLOW_TRADING_NOTIFICATION_CLICKED,

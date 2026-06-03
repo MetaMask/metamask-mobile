@@ -63,6 +63,18 @@ describe('PredictWorldCupMainFeedBanner', () => {
     ).toBeOnTheScreen();
   });
 
+  it('uses the compact image dimensions when compact', () => {
+    const { getByTestId } = render(
+      <PredictWorldCupMainFeedBanner variant="compact" />,
+    );
+    const image = getByTestId(PredictWorldCupMainFeedBannerSelectorsIDs.IMAGE);
+
+    expect(StyleSheet.flatten(image.props.style)).toMatchObject({
+      height: 80,
+      width: 80,
+    });
+  });
+
   it('uses the remote banner image URL and configured dimensions when configured', () => {
     const bannerImageUrl = 'https://example.com/world-cup-banner.png';
     mockUseSelector.mockReturnValue({
@@ -165,7 +177,7 @@ describe('getPredictWorldCupBannerImageAspectRatio', () => {
   });
 
   it('returns default image aspect ratio when dimensions are missing', () => {
-    expect(getPredictWorldCupBannerImageAspectRatio()).toBe(2);
+    expect(getPredictWorldCupBannerImageAspectRatio()).toBe(360 / 177);
   });
 
   it('returns default image aspect ratio when dimensions are invalid', () => {
@@ -175,7 +187,7 @@ describe('getPredictWorldCupBannerImageAspectRatio', () => {
         width: 0,
         height: -200,
       }),
-    ).toBe(2);
+    ).toBe(360 / 177);
   });
 });
 

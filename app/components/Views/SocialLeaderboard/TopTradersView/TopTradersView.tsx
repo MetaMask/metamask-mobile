@@ -50,13 +50,18 @@ import {
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { fontStyles } from '../../../../styles/common';
 import Logger from '../../../../util/Logger';
+import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
 import { useTheme } from '../../../../util/theme';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useNotificationStoragePreferences } from '../../Settings/NotificationsSettings/hooks/useNotificationStoragePreferences';
 import {
   TraderRow,
   TraderRowSkeleton,
+  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 } from '../../Homepage/Sections/TopTraders/components';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { TRADER_ROW_HEIGHT } from '../../Homepage/Sections/TopTraders/components/TraderRow';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useTopTraders } from '../../Homepage/Sections/TopTraders/hooks';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 
@@ -266,7 +271,16 @@ const TopTradersView = () => {
       );
       await Promise.all([refresh(), minDuration]);
     } catch (err) {
-      Logger.error(err as Error, 'TopTradersView: pull-to-refresh failed');
+      Logger.error(
+        err as Error,
+        buildSocialLoggerErrorOptions({
+          surface: 'top_traders',
+          operation: 'pull_to_refresh',
+          extraMessage: 'Top traders pull-to-refresh failed',
+          source: 'TopTradersView',
+          error: err,
+        }),
+      );
     } finally {
       setRefreshing(false);
     }

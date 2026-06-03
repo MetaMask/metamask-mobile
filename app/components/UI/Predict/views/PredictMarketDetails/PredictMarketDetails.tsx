@@ -68,7 +68,7 @@ interface PredictMarketDetailsProps {}
 const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const { openBuySheet } = usePredictPreviewSheet();
+  const { openBuySheet, isBuySheetOpen } = usePredictPreviewSheet();
   const { colors } = useTheme();
   const { claim, isClaimPending } = usePredictClaim();
   const route =
@@ -87,6 +87,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     seriesId,
     seriesRecurrence,
     entryPoint,
+    predictFeedTab,
+    predictScreen,
     title,
     image,
     transactionActiveAbTests,
@@ -226,8 +228,12 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     timeframes,
   } = useChartData({ market, hasAnyOutcomeToken });
 
+  const shouldRefreshOpenOutcomePrices =
+    market?.status === PredictMarketStatus.OPEN && !isBuySheetOpen;
+
   const { closedOutcomes, openOutcomes, yesPercentage } = useOpenOutcomes({
     market,
+    enabled: shouldRefreshOpenOutcomePrices,
   });
 
   const handleBackPress = () => {
@@ -266,6 +272,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           outcomeToken: token,
           entryPoint:
             entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+          ...(predictFeedTab && { predictFeedTab }),
+          ...(predictScreen && { predictScreen }),
           ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
         });
       },
@@ -333,6 +341,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         marketCategory: market.category,
         marketTags: market.tags,
         entryPoint: entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+        ...(predictFeedTab && { predictFeedTab }),
+        ...(predictScreen && { predictScreen }),
         marketDetailsViewed: tabKey,
         marketSlug: market.slug,
         gameId: market.game?.id,
@@ -344,7 +354,13 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         activeAbTests: transactionActiveAbTests,
       });
     },
-    [market, entryPoint, transactionActiveAbTests],
+    [
+      market,
+      entryPoint,
+      predictFeedTab,
+      predictScreen,
+      transactionActiveAbTests,
+    ],
   );
   const tabs = useMemo(() => {
     const result: { label: string; key: TabKey }[] = [];
@@ -575,11 +591,10 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       )}
       {isFeeExemption && (
         <Box
-          style={tw`absolute inset-x-0 bottom-4 pb-3`}
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="gap-1"
+          twClassName="gap-1 absolute inset-x-0 bottom-4 pb-3"
         >
           <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
             {strings('predict.market_details.fee_exemption')}

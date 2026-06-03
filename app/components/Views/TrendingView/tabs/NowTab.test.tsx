@@ -20,6 +20,22 @@ jest.mock('../feeds/tokens/useTokensFeed', () => ({
   useTokensFeed: jest.fn(() => ({ data: [], isLoading: false })),
 }));
 
+jest.mock('../feeds/tokens/CryptoMoversPillItem', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { createElement } = require('react');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { Text } = require('react-native');
+  return {
+    __esModule: true,
+    default: ({ token }: { token: { assetId: string; symbol: string } }) =>
+      createElement(
+        Text,
+        { testID: `section-pill-${token.assetId}` },
+        token.symbol,
+      ),
+  };
+});
+
 const mockUseABTest = jest.fn();
 jest.mock('../../../../hooks', () => ({
   useABTest: (...args: unknown[]) =>
@@ -34,8 +50,25 @@ const mockUsePerpsFeed = jest.fn(() => ({
 }));
 
 jest.mock('../feeds/perps/usePerpsFeed', () => ({
+  ...jest.requireActual('../feeds/perps/usePerpsFeed'),
   usePerpsFeed: () => mockUsePerpsFeed(),
 }));
+
+jest.mock('../feeds/perps/PerpsPillItem', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { createElement } = require('react');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { Text } = require('react-native');
+  return {
+    __esModule: true,
+    default: ({ item }: { item: { market: { symbol: string } } }) =>
+      createElement(
+        Text,
+        { testID: `perps-pill-${item.market.symbol}` },
+        item.market.symbol,
+      ),
+  };
+});
 
 const mockNavigateToPerpsMarketList = jest.fn();
 jest.mock('../feeds/perps/perpsNavigation', () => ({
@@ -43,7 +76,8 @@ jest.mock('../feeds/perps/perpsNavigation', () => ({
     nav: unknown,
     filter: unknown,
     sortOptionId: unknown,
-  ) => mockNavigateToPerpsMarketList(nav, filter, sortOptionId),
+    options: unknown,
+  ) => mockNavigateToPerpsMarketList(nav, filter, sortOptionId, options),
 }));
 
 interface MockPredictionMarket {
@@ -59,6 +93,18 @@ const mockUsePredictionsFeed = jest.fn<
 }));
 jest.mock('../feeds/predictions/usePredictionsFeed', () => ({
   usePredictionsFeed: () => mockUsePredictionsFeed(),
+}));
+
+const mockUseWorldCupPredictionsFeed = jest.fn<
+  { data: MockPredictionMarket[]; isLoading: boolean; isEnabled: boolean },
+  []
+>(() => ({
+  data: [],
+  isLoading: false,
+  isEnabled: false,
+}));
+jest.mock('../feeds/predictions/useWorldCupPredictionsFeed', () => ({
+  useWorldCupPredictionsFeed: () => mockUseWorldCupPredictionsFeed(),
 }));
 
 jest.mock('../feeds/predictions/PredictionRowItem', () => {
@@ -121,6 +167,9 @@ import { selectPredictEnabledFlag } from '../../../UI/Predict';
 import { selectWhatsHappeningEnabled } from '../../../../selectors/featureFlagController/whatsHappening';
 import NowTab from './NowTab';
 import type { RefreshConfig } from '../hooks/useExploreRefresh';
+import { useTokensFeed } from '../feeds/tokens/useTokensFeed';
+import Routes from '../../../../constants/navigation/Routes';
+import { PredictEventValues } from '../../../UI/Predict/constants/eventNames';
 
 const defaultRefresh: RefreshConfig = { trigger: 0, silentRefresh: true };
 const defaultTabProps = {
@@ -177,6 +226,10 @@ const mockControlAbTest = () =>
     isActive: true,
   });
 
+const mockUseTokensFeed = useTokensFeed as jest.MockedFunction<
+  typeof useTokensFeed
+>;
+
 const mockTreatmentAbTest = () =>
   mockUseABTest.mockReturnValue({
     variant: { whatsHappeningBeforePredict: true },
@@ -194,6 +247,11 @@ beforeEach(() => {
     defaultSortOptionId: 'priceChange' as const,
   });
   mockUsePredictionsFeed.mockReturnValue({ data: [], isLoading: false });
+  mockUseWorldCupPredictionsFeed.mockReturnValue({
+    data: [],
+    isLoading: false,
+    isEnabled: false,
+  });
   mockWhatsHappeningImpl.mockReturnValue(null);
 });
 
@@ -329,10 +387,10 @@ describe('NowTab — Perps Movers "View All" navigation', () => {
     mockWhatsHappeningImpl.mockReturnValue(null);
   });
 
-  it('calls navigateToPerpsMarketList with "all" filter and the defaultSortOptionId from usePerpsFeed', () => {
+  it('calls navigateToPerpsMarketList with "all" filter, price change sort, and gainers direction by default', () => {
     // Return one market so PerpsBlock does not bail out with an early null return.
     mockUsePerpsFeed.mockReturnValue({
-      data: [{ market: { symbol: 'BTC' } }] as never,
+      data: [{ market: { symbol: 'BTC', change24hPercent: '5' } }] as never,
       isLoading: false,
       refetch: jest.fn(),
       defaultSortOptionId: 'priceChange' as const,
@@ -347,6 +405,104 @@ describe('NowTab — Perps Movers "View All" navigation', () => {
       expect.anything(), // navigation object
       'all',
       'priceChange',
+      { sortDirection: 'desc' },
+    );
+  });
+
+  it('renders Gainers by default and filters out negative price changes', () => {
+    mockUsePerpsFeed.mockReturnValue({
+      data: [
+        { market: { symbol: 'BTC', change24hPercent: '5' } },
+        { market: { symbol: 'ETH', change24hPercent: '-3' } },
+      ] as never,
+      isLoading: false,
+      refetch: jest.fn(),
+      defaultSortOptionId: 'priceChange' as const,
+    });
+
+    renderNowTab();
+
+    expect(screen.getByTestId('perps-movers-pill-gainers')).toBeOnTheScreen();
+    expect(screen.getByTestId('perps-pill-BTC')).toBeOnTheScreen();
+    expect(screen.queryByTestId('perps-pill-ETH')).toBeNull();
+  });
+
+  it('renders pill skeletons while Perps Movers are loading', () => {
+    mockUsePerpsFeed.mockReturnValue({
+      data: [],
+      isLoading: true,
+      refetch: jest.fn(),
+      defaultSortOptionId: 'priceChange' as const,
+    });
+
+    renderNowTab();
+
+    expect(
+      screen.getAllByTestId('section-pills-skeleton').length,
+    ).toBeGreaterThan(0);
+  });
+
+  it('renders placeholder perps when price change data is unavailable after loading', () => {
+    mockUsePerpsFeed.mockReturnValue({
+      data: [
+        { market: { symbol: 'BTC', change24hPercent: '' } },
+        { market: { symbol: 'ETH', change24hPercent: undefined } },
+      ] as never,
+      isLoading: false,
+      refetch: jest.fn(),
+      defaultSortOptionId: 'priceChange' as const,
+    });
+
+    renderNowTab();
+
+    expect(screen.queryByTestId('section-pills-skeleton')).toBeNull();
+    expect(screen.getByTestId('perps-pill-BTC')).toBeOnTheScreen();
+    expect(screen.getByTestId('perps-pill-ETH')).toBeOnTheScreen();
+  });
+
+  it('does not render pill skeletons when price change data is valid but filtered out', () => {
+    mockUsePerpsFeed.mockReturnValue({
+      data: [
+        { market: { symbol: 'BTC', change24hPercent: '0%' } },
+        { market: { symbol: 'ETH', change24hPercent: '0.00%' } },
+      ] as never,
+      isLoading: false,
+      refetch: jest.fn(),
+      defaultSortOptionId: 'priceChange' as const,
+    });
+
+    renderNowTab();
+
+    expect(screen.queryByTestId('section-pills-skeleton')).toBeNull();
+  });
+
+  it('renders Losers sorted by biggest negative move and passes ascending sort direction to the market list', () => {
+    mockUsePerpsFeed.mockReturnValue({
+      data: [
+        { market: { symbol: 'BTC', change24hPercent: '5' } },
+        { market: { symbol: 'ETH', change24hPercent: '-3' } },
+        { market: { symbol: 'SOL', change24hPercent: '-8' } },
+      ] as never,
+      isLoading: false,
+      refetch: jest.fn(),
+      defaultSortOptionId: 'priceChange' as const,
+    });
+
+    renderNowTab();
+
+    fireEvent.press(screen.getByTestId('perps-movers-pill-losers'));
+
+    expect(screen.getByTestId('perps-pill-SOL')).toBeOnTheScreen();
+    expect(screen.getByTestId('perps-pill-ETH')).toBeOnTheScreen();
+    expect(screen.queryByTestId('perps-pill-BTC')).toBeNull();
+
+    fireEvent.press(screen.getByTestId('section-header-view-all-perps'));
+
+    expect(mockNavigateToPerpsMarketList).toHaveBeenCalledWith(
+      expect.anything(),
+      'all',
+      'priceChange',
+      { sortDirection: 'asc' },
     );
   });
 
@@ -360,5 +516,150 @@ describe('NowTab — Perps Movers "View All" navigation', () => {
     renderNowTab();
 
     expect(screen.queryByTestId('section-header-view-all-perps')).toBeNull();
+  });
+});
+
+describe('NowTab — Predictions navigation', () => {
+  const mockUseSelector = useSelector as jest.MockedFunction<
+    typeof useSelector
+  >;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectPerpsEnabledFlag) return false;
+      if (selector === selectPredictEnabledFlag) return true;
+      if (selector === selectWhatsHappeningEnabled) return false;
+      return undefined;
+    });
+    mockControlAbTest();
+    mockUsePredictionsFeed.mockReturnValue({
+      data: [{ id: 'market-1' }],
+      isLoading: false,
+    });
+  });
+
+  it('opens the Predict trending tab from the Predictions section title', () => {
+    renderNowTab();
+
+    fireEvent.press(screen.getByTestId(predictSectionTestId));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MARKET_LIST,
+      params: {
+        entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
+        tab: 'trending',
+      },
+    });
+  });
+
+  it('opens the World Cup screen from the Predictions section title when World Cup predictions are enabled', () => {
+    mockUseWorldCupPredictionsFeed.mockReturnValue({
+      data: [{ id: 'world-cup-market-1' }],
+      isLoading: false,
+      isEnabled: true,
+    });
+
+    renderNowTab();
+
+    expect(screen.getByText('World Cup predictions')).toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId(predictSectionTestId));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.WORLD_CUP,
+      params: {
+        entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
+        initialTab: 'all',
+      },
+    });
+  });
+});
+
+describe('NowTab — Crypto Movers', () => {
+  const mockUseSelector = useSelector as jest.MockedFunction<
+    typeof useSelector
+  >;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectPerpsEnabledFlag) return false;
+      if (selector === selectPredictEnabledFlag) return false;
+      if (selector === selectWhatsHappeningEnabled) return false;
+      return undefined;
+    });
+    mockControlAbTest();
+    mockUseTokensFeed.mockReturnValue({
+      data: [
+        {
+          assetId: 'eip155:1/erc20:0x1',
+          symbol: 'ONE',
+          priceChangePct: { h1: '1.23' },
+        },
+        {
+          assetId: 'eip155:1/erc20:0x2',
+          symbol: 'TWO',
+          priceChangePct: { h1: '2.34' },
+        },
+        {
+          assetId: 'eip155:1/erc20:0x3',
+          symbol: 'THREE',
+          priceChangePct: { h1: '3.45' },
+        },
+      ] as never,
+      isLoading: false,
+      refetch: jest.fn(),
+    });
+  });
+
+  it('requests and opens Crypto Movers with the 1h filter', () => {
+    renderNowTab();
+
+    expect(mockUseTokensFeed).toHaveBeenCalledWith({
+      refresh: defaultRefresh,
+      hideRiskyTokens: true,
+      timeOption: '1h',
+    });
+
+    fireEvent.press(
+      screen.getByTestId('section-header-view-all-crypto_movers'),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
+      { initialTimeOption: '1h' },
+    );
+  });
+
+  it('renders Crypto Movers across three rows', () => {
+    renderNowTab();
+
+    expect(
+      screen.getByTestId('explore-crypto_movers-pills-list-row-0'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('explore-crypto_movers-pills-list-row-1'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('explore-crypto_movers-pills-list-row-2'),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders up to 18 Crypto Movers pills', () => {
+    mockUseTokensFeed.mockReturnValue({
+      data: Array.from({ length: 19 }, (_, index) => ({
+        assetId: `eip155:1/erc20:0x${index}`,
+        symbol: `T${index}`,
+        priceChangePct: { h1: String(index) },
+      })) as never,
+      isLoading: false,
+      refetch: jest.fn(),
+    });
+
+    renderNowTab();
+
+    expect(screen.getByTestId('section-pill-eip155:1/erc20:0x17')).toBeTruthy();
+    expect(screen.queryByTestId('section-pill-eip155:1/erc20:0x18')).toBeNull();
   });
 });

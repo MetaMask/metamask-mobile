@@ -208,6 +208,27 @@ describe('AccountApproval', () => {
     expect(onConfirm).toHaveBeenCalled();
   });
 
+  it('forwards the full URL including path to the scanner', async () => {
+    renderWithProvider(
+      <AccountApproval
+        currentPageInformation={{
+          icon: '',
+          url: 'https://shared-host.example/view/test-path',
+          title: '',
+        }}
+      />,
+      { state: mockInitialState },
+    );
+
+    // The full URL (with path) must be forwarded to the scanner, not the hostname.
+    expect(mockGetPhishingTestResultAsync).toHaveBeenCalledWith(
+      'https://shared-host.example/view/test-path',
+    );
+    expect(mockGetPhishingTestResultAsync).not.toHaveBeenCalledWith(
+      'shared-host.example',
+    );
+  });
+
   it('renders warning banner when hostname is flagged as phishing', async () => {
     mockGetPhishingTestResultAsync.mockResolvedValueOnce({ result: true });
 

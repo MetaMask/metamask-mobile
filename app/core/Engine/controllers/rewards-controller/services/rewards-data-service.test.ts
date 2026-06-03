@@ -4418,7 +4418,7 @@ describe('RewardsDataService', () => {
       },
       pointsAllocation: {
         earned: 24400000,
-        max: 100000000,
+        threshold: 100000000,
         percent: 24.4,
       },
       tiers: [
@@ -4430,26 +4430,33 @@ describe('RewardsDataService', () => {
           revenueShareBps: 150,
           swapsBps: 15,
           perpsBps: 4,
-          equityRebateBps: 0,
           referralCarryoverBps: 2000,
           status: 'current',
         },
       ],
       localizedText: {
-        period: 'Mar 31 - Apr 30',
-        progressToNextTier: 'Subline',
+        periodTitle: 'Mar 31 - Apr 30',
         memberIdTitle: 'Member ID',
         swapsFeeTitle: 'Swaps fee',
         perpsFeeTitle: 'Perps fee',
         nextTierSwapsFeeDelta: '↓ 12 bps next tier',
         nextTierPerpsFeeDelta: '↓ 3 bps next tier',
         revenueShareTitle: 'Revenue share',
+        referralPointsTitle: 'Referral points',
         nextTierRevenueShareDelta: '↑ 2% next tier',
+        nextTierReferralPointsDelta: '↑ 20% next tier',
+        topTierDescription: 'Top tier reached',
         statsTitle: 'Volume',
-        statusMessage: 'On track',
         pointsTitle: 'Points',
-        pointsAllocationTitle: 'Earn VIP allocations',
-        pointsAllocationDescription: 'Body copy',
+        swapsVolumeTitle: 'Swaps Volume',
+        pointsFromReferralsTitle: 'Points from Referrals',
+        perpsVolumeTitle: 'Perps Volume',
+        vipReferralsTitle: 'VIP Referrals',
+        totalPointsTitle: 'Points',
+        equityLockedTitle: 'Earn VIP allocations',
+        equityLockedDescription: 'Body copy',
+        equityUnlockedTitle: 'VIP allocation unlocked',
+        equityUnlockedDescription: 'Unlocked body copy',
       },
     };
 
@@ -5257,6 +5264,7 @@ describe('RewardsDataService', () => {
       computedAt: '2025-08-15T12:00:00.000Z',
       entries: [],
       totalParticipants: 0,
+      minVolumeForEligibility: 25_000,
     };
 
     beforeEach(() => {
@@ -5292,9 +5300,11 @@ describe('RewardsDataService', () => {
     const mockToken = 'test-bearer-token';
     const mockPosition = {
       rank: 4,
+      totalParticipants: 50,
       pnl: 12.5,
-      notionalVolume: 8000,
-      qualified: true,
+      volume: 8000,
+      eligible: true,
+      minVolumeForEligibility: 25000,
       neighbors: [],
       computedAt: '2025-08-15T12:00:00.000Z',
     };
