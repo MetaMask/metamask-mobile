@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
-import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import {
   SetPayTokenRequest,
@@ -8,9 +7,7 @@ import {
 } from './useAutomaticTransactionPayToken';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { useTransactionPayToken } from './useTransactionPayToken';
-import { MUSD_TOKEN_ADDRESS } from '../../../../UI/Earn/constants/musd';
-import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { hasTransactionType } from '../../utils/transaction';
+import { isMatchingPayToken } from '../../utils/transaction-pay';
 
 export interface PayWithPreferredToken {
   address: Hex;
@@ -26,26 +23,12 @@ export interface UsePayWithPreferredTokenResult {
 }
 
 export function usePayWithPreferredToken({
-  preferredToken: preferredTokenOverride,
+  preferredToken,
 }: {
   preferredToken?: SetPayTokenRequest;
 } = {}): UsePayWithPreferredTokenResult {
-  const transactionMeta = useTransactionMetadataRequest();
-  const resolvedPreferredToken = useMemo(
-    () =>
-      preferredTokenOverride ??
-      (hasTransactionType(transactionMeta, [
-        TransactionType.moneyAccountWithdraw,
-      ])
-        ? {
-            address: MUSD_TOKEN_ADDRESS,
-            chainId: CHAIN_IDS.MAINNET,
-          }
-        : undefined),
-    [preferredTokenOverride, transactionMeta],
-  );
   const automaticToken = useAutomaticTransactionPayToken({
-    preferredToken: resolvedPreferredToken,
+    preferredToken,
   });
 
   const { payToken } = useTransactionPayToken();
@@ -58,7 +41,7 @@ export function usePayWithPreferredToken({
 
     const selectedToken = payToken;
 
-    if (selectedToken && isMatchingToken(selectedToken, automaticToken)) {
+    if (selectedToken && isMatchingPayToken(selectedToken, automaticToken)) {
       return {
         address: selectedToken.address,
         balanceUsd: selectedToken.balanceUsd,
@@ -68,7 +51,7 @@ export function usePayWithPreferredToken({
     }
 
     const availableToken = availableTokens.find((token) =>
-      isMatchingToken(token, automaticToken),
+      isMatchingPayToken(token, automaticToken),
     );
 
     if (!availableToken?.chainId) {
@@ -90,18 +73,5 @@ export function usePayWithPreferredToken({
       selectedToken: payToken,
     }),
     [hasTokens, payToken, preferredTokenCandidate],
-  );
-}
-
-function isMatchingToken(
-  token:
-    | { address?: string; chainId?: string }
-    | { address: string; chainId: string }
-    | undefined,
-  target: { address: string; chainId: string },
-) {
-  return (
-    token?.address?.toLowerCase() === target.address.toLowerCase() &&
-    token?.chainId?.toLowerCase() === target.chainId.toLowerCase()
   );
 }

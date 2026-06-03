@@ -8,6 +8,7 @@ import {
   NetworkControllerFindNetworkClientIdByChainIdAction,
   NetworkControllerGetEIP1559CompatibilityAction,
   NetworkControllerGetNetworkClientByIdAction,
+  NetworkControllerGetNetworkConfigurationByChainIdAction,
   NetworkControllerStateChangeEvent,
 } from '@metamask/network-controller';
 import {
@@ -43,11 +44,7 @@ import {
   AccountTrackerControllerGetStateAction,
   CurrencyRateControllerActions,
 } from '@metamask/assets-controllers';
-import {
-  TransactionPayControllerGetDelegationTransactionAction,
-  TransactionPayControllerGetStateAction,
-  TransactionPayControllerGetStrategyAction,
-} from '@metamask/transaction-pay-controller';
+import { TransactionPayControllerActions } from '@metamask/transaction-pay-controller';
 import { RootMessenger } from '../../types';
 import { AnalyticsControllerActions } from '@metamask/analytics-controller';
 import {
@@ -110,14 +107,13 @@ type InitMessengerActions =
   | KeyringControllerSignTypedMessageAction
   | NetworkControllerGetEIP1559CompatibilityAction
   | NetworkControllerGetNetworkClientByIdAction
+  | NetworkControllerGetNetworkConfigurationByChainIdAction
   | RemoteFeatureFlagControllerGetStateAction
   | TransactionControllerAddTransactionAction
   | TransactionControllerAddTransactionBatchAction
   | TransactionControllerGetStateAction
   | TransactionControllerUpdateTransactionAction
-  | TransactionPayControllerGetDelegationTransactionAction
-  | TransactionPayControllerGetStateAction
-  | TransactionPayControllerGetStrategyAction
+  | TransactionPayControllerActions
   | AnalyticsControllerActions
   | PredictControllerBeforePublishAction
   | PredictControllerPublishAction;
@@ -167,6 +163,7 @@ export function getTransactionControllerInitMessenger(
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getEIP1559Compatibility',
       'NetworkController:getNetworkClientById',
+      'NetworkController:getNetworkConfigurationByChainId',
       'KeyringController:getState',
       'KeyringController:signEip7702Authorization',
       'KeyringController:signTypedMessage',
@@ -176,11 +173,34 @@ export function getTransactionControllerInitMessenger(
       'TransactionController:getState',
       'TransactionController:updateTransaction',
       'TransactionPayController:getDelegationTransaction',
+      'TransactionPayController:getPaymentOverrideData',
       'TransactionPayController:getState',
       'TransactionPayController:getStrategy',
+      'TransactionPayController:polymarketGetDepositWalletAddress',
+      'TransactionPayController:polymarketSubmitDepositWalletBatch',
       'AnalyticsController:trackEvent',
       'PredictController:beforePublish',
       'PredictController:publish',
+      // Missing actions to use fiat payment hook from publish hook
+      // Actions below are provided by patched controllers not yet in upstream types
+      // @ts-expect-error See above
+      'AssetsController:getStateForTransactionPay',
+      // @ts-expect-error See above
+      'BridgeController:fetchQuotes',
+      // @ts-expect-error See above
+      'GasFeeController:getState',
+      // @ts-expect-error See above
+      'RampsController:getOrder',
+      // @ts-expect-error See above
+      'RampsController:getQuotes',
+      // @ts-expect-error See above
+      'RampsController:getState',
+      // @ts-expect-error See above
+      'TokenBalancesController:getState',
+      // @ts-expect-error See above
+      'TokenRatesController:getState',
+      // @ts-expect-error See above
+      'TokensController:getState',
     ],
     events: [
       'BridgeStatusController:stateChange',

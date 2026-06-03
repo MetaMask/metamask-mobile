@@ -14,6 +14,7 @@ import {
   serializeProtocolRelayerOrder,
   signProtocolOrder,
 } from './orderCodec';
+import { getMinAmountReceivedWithSlippage } from './slippage';
 
 const preview: OrderPreview = {
   marketId: 'market-1',
@@ -78,6 +79,7 @@ describe('polymarket protocol order codec', () => {
       '0x3333333333333333333333333333333333333333333333333333333333333333',
     );
     expect(order.signatureType).toBe(SignatureType.POLY_GNOSIS_SAFE);
+    expect(order).toHaveProperty('takerAmount', '18866500');
     expect(order).not.toHaveProperty('taker');
     expect(order).not.toHaveProperty('nonce');
     expect(order).not.toHaveProperty('feeRateBps');
@@ -289,5 +291,35 @@ describe('polymarket protocol order codec', () => {
         amount: 42n,
       }),
     ).toMatch(/^0x[0-9a-f]+$/u);
+  });
+
+  describe('getMinAmountReceivedWithSlippage', () => {
+    it('uses the slippage-adjusted amount for BUY orders when above the buy floor', () => {
+      expect(getMinAmountReceivedWithSlippage(preview)).toBeCloseTo(18.8665);
+    });
+
+    it('preserves the current BUY floor of maxAmountSpent plus tickSize', () => {
+      const flooredPreview: OrderPreview = {
+        ...preview,
+        maxAmountSpent: 10,
+        minAmountReceived: 9,
+        tickSize: 0.01,
+      };
+
+      expect(getMinAmountReceivedWithSlippage(flooredPreview)).toBe(10.01);
+    });
+
+    it('uses only the slippage-adjusted amount for SELL orders', () => {
+      const sellPreview: OrderPreview = {
+        ...preview,
+        side: Side.SELL,
+        maxAmountSpent: 10,
+        minAmountReceived: 9,
+        slippage: 0.05,
+        tickSize: 0.01,
+      };
+
+      expect(getMinAmountReceivedWithSlippage(sellPreview)).toBeCloseTo(8.55);
+    });
   });
 });

@@ -7,7 +7,6 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../hooks/useStyles';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { getOrderById } from '../../../../../reducers/fiatOrders';
 import { RootState } from '../../../../../reducers';
 import { strings } from '../../../../../../locales/i18n';
@@ -18,6 +17,7 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import Loader from '../../../../../component-library/components-temp/Loader/Loader';
 import { ORDER_PROCESSING_TEST_IDS } from './OrderProcessing.testIds';
@@ -77,7 +77,7 @@ const V2OrderProcessing = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <HeaderCompactStandard
+          <HeaderStandard
             title={headerTitle}
             onBack={handleHeaderBack}
             backButtonProps={{ testID: 'deposit-back-navbar-button' }}
@@ -92,7 +92,7 @@ const V2OrderProcessing = () => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <HeaderCompactStandard
+        <HeaderStandard
           title={headerTitle}
           onBack={handleHeaderBack}
           backButtonProps={{ testID: 'deposit-back-navbar-button' }}

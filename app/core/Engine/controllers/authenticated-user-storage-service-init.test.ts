@@ -51,27 +51,24 @@ describe('authenticatedUserStorageServiceInit', () => {
 });
 
 describe('getAuthenticatedUserStorageEnvironment', () => {
-  // The environment is pinned to `'prod'` to match `AuthenticationController`,
-  // which always mints PRD tokens on mobile. `METAMASK_ENVIRONMENT` therefore
-  // has no effect on this resolver — these cases document that contract so a
-  // future refactor doesn't silently reintroduce the token/env mismatch that
-  // caused 403 "invalid access token" responses.
-  const originalEnv = process.env.METAMASK_ENVIRONMENT;
-
+  // Tracks `MM_DEV_API_ENV` so it agrees with the env the auth controller
+  // mints JWTs for — a PRD token will 403 against dev user-storage and
+  // vice versa.
   afterEach(() => {
-    process.env.METAMASK_ENVIRONMENT = originalEnv;
+    delete process.env.MM_DEV_API_ENV;
   });
 
-  it.each(['production', 'beta', 'rc', 'dev', 'exp', 'test', 'e2e', 'unknown'])(
-    'returns prod regardless of METAMASK_ENVIRONMENT=%s',
-    (value) => {
-      process.env.METAMASK_ENVIRONMENT = value;
-      expect(getAuthenticatedUserStorageEnvironment()).toBe('prod');
-    },
-  );
+  it('returns prod when MM_DEV_API_ENV is unset', () => {
+    expect(getAuthenticatedUserStorageEnvironment()).toBe('prod');
+  });
 
-  it('returns prod when METAMASK_ENVIRONMENT is unset', () => {
-    delete process.env.METAMASK_ENVIRONMENT;
+  it.each(['dev', 'prod'] as const)('tracks MM_DEV_API_ENV=%s', (value) => {
+    process.env.MM_DEV_API_ENV = value;
+    expect(getAuthenticatedUserStorageEnvironment()).toBe(value);
+  });
+
+  it('falls back to prod for unrecognized MM_DEV_API_ENV values', () => {
+    process.env.MM_DEV_API_ENV = 'nonsense';
     expect(getAuthenticatedUserStorageEnvironment()).toBe('prod');
   });
 });

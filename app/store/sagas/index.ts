@@ -1,4 +1,15 @@
-import { fork, take, cancel, put, call, all, select } from 'redux-saga/effects';
+import {
+  fork,
+  take,
+  cancel,
+  put,
+  call,
+  all,
+  select,
+  race,
+  delay,
+  join,
+} from 'redux-saga/effects';
 import NavigationService from '../../core/NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import {
@@ -30,6 +41,7 @@ import SDKConnect from '../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../core/WalletConnect/WalletConnectV2';
 import { selectExistingUser } from '../../reducers/user';
 import UrlParser from 'url-parse';
+import { isSDKServiceDeeplink } from '../../core/DeeplinkManager/util/deeplinks';
 import { rewardsBulkLinkSaga } from './rewardsBulkLinkAccountGroups';
 import Authentication from '../../core/Authentication';
 import { AppState, AppStateStatus } from 'react-native';
@@ -41,6 +53,99 @@ import {
   watchMarketingAttributionOnClearOnboarding,
   watchMarketingAttributionOnConsentChange,
 } from './marketingAttribution';
+import { getDevAutoUnlockPassword } from '../../util/environment';
+
+/**
+ * Safety ceiling: if `MainNavigator` never mounts (e.g. the user stays on
+ * the onboarding stack), parse the deeplink anyway. A late deeplink is
+ * better than a silently dropped one.
+ */
+const MAIN_NAVIGATOR_READY_TIMEOUT_MS = 3000;
+
+let hasMainNavigatorMounted = false;
+let sdkServicesInitializationTask: Task<void> | undefined;
+
+export const __setMainNavigatorReadyForTesting = (isReady: boolean) => {
+  hasMainNavigatorMounted = isReady;
+};
+
+export const __resetSDKServicesInitializationForTesting = () => {
+  sdkServicesInitializationTask = undefined;
+};
+
+export function* startSDKServicesInitialization() {
+  // Keep a single task so normal deeplinks can warm services in the background
+  // and SDK/WC deeplinks can join that same work when they require it.
+  if (!sdkServicesInitializationTask) {
+    sdkServicesInitializationTask = yield fork(initializeSDKServices);
+  }
+
+  return sdkServicesInitializationTask;
+}
+
+export function* waitForSDKServicesInitialization() {
+  const task: Task<void> = yield call(startSDKServicesInitialization);
+  yield join(task);
+}
+
+/**
+ * Runtime-only latch for MainNavigator readiness.
+ *
+ * This deliberately lives in the saga module instead of Redux: the signal is
+ * only valid for the current JS session and should never be persisted or
+ * rehydrated. `parseDeeplinkAfterNavReady` still waits on the action itself,
+ * while this latch preserves the fast path for hot-start deeplinks after
+ * MainNavigator has already mounted once.
+ */
+export function* mainNavigatorReadyStateMachine() {
+  while (true) {
+    const action: {
+      type: NavigationActionType.MAIN_NAVIGATOR_READY | UserActionType.LOGOUT;
+    } = yield take([
+      NavigationActionType.MAIN_NAVIGATOR_READY,
+      UserActionType.LOGOUT,
+    ]);
+
+    hasMainNavigatorMounted =
+      action.type === NavigationActionType.MAIN_NAVIGATOR_READY;
+  }
+}
+
+/**
+ * Waits until `MainNavigator` has mounted, i.e. post-login screens like
+ * Wallet, RampTokenSelection, Swap, etc. are registered with React
+ * Navigation, then parses the deeplink. Prevents cold-start deeplinks
+ * from being silently dropped with "NAVIGATE was not handled by any
+ * navigator" when `handleDeeplinkSaga` runs before the main screen stack
+ * has rendered.
+ */
+export function* parseDeeplinkAfterNavReady(deeplink: string, origin: string) {
+  if (!hasMainNavigatorMounted) {
+    const { timedOut } = yield race({
+      ready: take(NavigationActionType.MAIN_NAVIGATOR_READY),
+      timedOut: delay(MAIN_NAVIGATOR_READY_TIMEOUT_MS),
+    });
+
+    if (timedOut) {
+      Logger.log(
+        'parseDeeplinkAfterNavReady: MainNavigator did not mount within timeout, parsing anyway',
+      );
+    } else {
+      hasMainNavigatorMounted = true;
+    }
+  }
+
+  try {
+    yield call([SharedDeeplinkManager, SharedDeeplinkManager.parse], deeplink, {
+      origin,
+    });
+  } catch (error) {
+    Logger.error(
+      error as Error,
+      'parseDeeplinkAfterNavReady: failed to parse deeplink',
+    );
+  }
+}
 
 /**
  * Creates a channel to listen to app state changes.
@@ -147,6 +252,17 @@ export function* appLockStateMachine() {
  */
 export function* requestAuthOnAppStart() {
   try {
+    const devAutoUnlockPassword = getDevAutoUnlockPassword();
+    if (devAutoUnlockPassword) {
+      const { KeyringController } = Engine.context;
+      if (!KeyringController.isUnlocked() && KeyringController.state?.vault) {
+        yield call(Authentication.unlockWallet, {
+          password: devAutoUnlockPassword,
+        });
+        return;
+      }
+    }
+
     yield call(tryBiometricUnlock);
   } catch (_) {
     // If authentication fails, navigate to login screen
@@ -193,22 +309,31 @@ export function* basicFunctionalityToggle() {
   }
 }
 
-export function* initializeSDKServices() {
+function* initializeWalletConnectService() {
   try {
-    // Initialize WalletConnect
     yield call(() => WC2Manager.init({}));
-    // Initialize SDKConnect
-    yield call(() => SDKConnect.init({ context: 'Nav/App' }));
   } catch (e) {
-    Logger.log('Failed to initialize services', e);
+    Logger.log('Failed to initialize WalletConnect V2', e);
   }
 }
 
-export function* handleDeeplinkSaga() {
-  // TODO: This is only needed because SDKConnect does some weird stuff when it's initialized.
-  // Once that's refactored and the singleton is simply initialized, we should be able to remove this.
-  let hasInitializedSDKServices = false;
+function* initializeSDKConnectService() {
+  try {
+    yield call(() => SDKConnect.init({ context: 'Nav/App' }));
+  } catch (e) {
+    Logger.log('Failed to initialize SDKConnect', e);
+  }
+}
 
+export function* initializeSDKServices() {
+  // Init WC2 and SDKConnect in parallel; they are independent and each takes ~1-3 s on cold start.
+  yield all([
+    call(initializeWalletConnectService),
+    call(initializeSDKConnectService),
+  ]);
+}
+
+export function* handleDeeplinkSaga() {
   while (true) {
     // Handle parsing deeplinks after login or when the lock manager is resolved
     const value = (yield take([
@@ -235,6 +360,7 @@ export function* handleDeeplinkSaga() {
         AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
       // try handle fast onboarding if mobile existingUser flag is false and 'onboarding' present in deeplink
       if (!existingUser && url.pathname === '/onboarding') {
+        // New-user onboarding lives outside MainNavigator, so do not wait for MAIN_NAVIGATOR_READY
         setTimeout(() => {
           SharedDeeplinkManager.parse(url.href, {
             origin: storedSource,
@@ -253,11 +379,8 @@ export function* handleDeeplinkSaga() {
       continue;
     }
 
-    // Initialize SDK services
-    if (!hasInitializedSDKServices) {
-      yield call(initializeSDKServices);
-      hasInitializedSDKServices = true;
-    }
+    // Start SDK services in the background
+    yield call(startSDKServicesInitialization);
 
     const deeplink = AppStateEventProcessor.pendingDeeplink;
     const deeplinkSource =
@@ -265,12 +388,13 @@ export function* handleDeeplinkSaga() {
       AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
 
     if (deeplink) {
-      // TODO: See if we can hook into a navigation finished event before parsing so that the modal doesn't conflict with ongoing navigation events
-      setTimeout(() => {
-        SharedDeeplinkManager.parse(deeplink, {
-          origin: deeplinkSource,
-        });
-      }, 200);
+      if (isSDKServiceDeeplink(deeplink)) {
+        yield call(waitForSDKServicesInitialization);
+      }
+
+      // Fork so the saga loop keeps listening for new deeplink events
+      // while parseDeeplinkAfterNavReady waits for navigation to settle.
+      yield fork(parseDeeplinkAfterNavReady, deeplink, deeplinkSource);
       AppStateEventProcessor.clearPendingDeeplink();
     }
   }
@@ -346,6 +470,7 @@ export function* rootSaga() {
   yield fork(startAppServices);
   yield fork(authStateMachine);
   yield fork(basicFunctionalityToggle);
+  yield fork(mainNavigatorReadyStateMachine);
   yield fork(handleDeeplinkSaga);
   yield fork(rewardsBulkLinkSaga);
 

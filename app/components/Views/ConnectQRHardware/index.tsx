@@ -6,10 +6,8 @@ import React, {
   useState,
 } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import {
-  type EdgeInsets,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
+import { CommonActions } from '@react-navigation/native';
 import Engine from '../../../core/Engine';
 import AnimatedQRScannerModal from '../../UI/QRHardware/AnimatedQRScanner';
 import AccountSelector from '../../UI/HardwareWallet/AccountSelector';
@@ -35,9 +33,11 @@ import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 import { withQrKeyring } from '../../../core/QrKeyring/QrKeyring';
 import { getChecksumAddress } from '@metamask/utils';
 import { getConnectedDevicesCount } from '../../../core/HardwareWallets/analytics';
+import { ConnectQRHardwareSelectorsIDs } from './ConnectQRHardware.testIds';
 import { useHardwareWallet } from '../../../core/HardwareWallet/contexts/HardwareWalletContext';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { useQrScanErrorForwarding } from '../../../core/HardwareWallet/hooks/useQrScanErrorForwarding';
+import Routes from '../../../constants/navigation/Routes';
 
 interface IConnectQRHardwareProps {
   // TODO: Replace "any" with type
@@ -48,7 +48,9 @@ interface IConnectQRHardwareProps {
   route?: any;
 }
 
-const createStyles = (colors: ThemeColors, insets: EdgeInsets) =>
+const SAFE_AREA_EDGES: Edge[] = ['top', 'left', 'right'];
+
+const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -56,7 +58,6 @@ const createStyles = (colors: ThemeColors, insets: EdgeInsets) =>
       alignItems: 'center',
     },
     header: {
-      marginTop: insets.top,
       flexDirection: 'row',
       width: '100%',
       paddingHorizontal: 32,
@@ -94,8 +95,7 @@ const ConnectQRHardware = ({ navigation, route }: IConnectQRHardwareProps) => {
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { setTargetWalletType, setQrScanRetryHandler } = useHardwareWallet();
-  const insets = useSafeAreaInsets();
-  const styles = createStyles(colors, insets);
+  const styles = createStyles(colors);
   const hideMarketingContent = route?.params?.hideMarketingContent ?? false;
 
   const [isScanning, setIsScanning] = useState(false);
@@ -112,6 +112,7 @@ const ConnectQRHardware = ({ navigation, route }: IConnectQRHardwareProps) => {
   }, []);
 
   const [existingAccounts, setExistingAccounts] = useState<string[]>([]);
+  const safeAreaEdges = SAFE_AREA_EDGES;
 
   useEffect(() => {
     setTargetWalletType(HardwareWalletType.Qr);
@@ -293,7 +294,12 @@ const ConnectQRHardware = ({ navigation, route }: IConnectQRHardwareProps) => {
       await keyring.forgetDevice();
       return existingQrAccounts;
     });
-    navigation.pop(2);
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+      }),
+    );
   }, [
     KeyringController.state.keyrings,
     createEventBuilder,
@@ -313,8 +319,15 @@ const ConnectQRHardware = ({ navigation, route }: IConnectQRHardwareProps) => {
 
   return (
     <Fragment>
-      <View style={styles.container}>
-        <View style={styles.header}>
+      <SafeAreaView
+        style={styles.container}
+        edges={safeAreaEdges}
+        testID={ConnectQRHardwareSelectorsIDs.CONTAINER}
+      >
+        <View
+          style={styles.header}
+          testID={ConnectQRHardwareSelectorsIDs.HEADER}
+        >
           <Icon
             name="qrcode"
             size={42}
@@ -347,7 +360,7 @@ const ConnectQRHardware = ({ navigation, route }: IConnectQRHardwareProps) => {
             title={strings('connect_qr_hardware.select_accounts')}
           />
         )}
-      </View>
+      </SafeAreaView>
       <AnimatedQRScannerModal
         visible={isScanning}
         purpose={QrScanRequestType.PAIR}

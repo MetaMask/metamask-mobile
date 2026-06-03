@@ -33,6 +33,7 @@ export const buildPredictWorldCupAllQuery = ({
   appendBaseWorldCupParams(params);
   params.set('tag_slug', tagSlug);
   params.set('order', 'volume24hr');
+  params.set('ascending', 'false');
   return buildQueryString(params);
 };
 
@@ -44,17 +45,18 @@ export const buildPredictWorldCupPropsQuery = ({
   appendBaseWorldCupParams(params);
   params.set('tag_slug', tagSlug);
   params.set('exclude_tag_id', gamesTagId);
-  params.set('order', 'volume24hr');
+  params.set('order', 'volume');
+  params.set('ascending', 'false');
   return buildQueryString(params);
 };
 
 export const buildPredictWorldCupLiveQuery = ({
-  seriesId,
+  tagSlug,
   gamesTagId,
-}: Pick<PredictWorldCupConfig, 'seriesId' | 'gamesTagId'>): string => {
+}: Pick<PredictWorldCupConfig, 'tagSlug' | 'gamesTagId'>): string => {
   const params = new URLSearchParams();
   appendBaseWorldCupParams(params);
-  params.set('series_id', seriesId);
+  params.set('tag_slug', tagSlug);
   params.set('tag_id', gamesTagId);
   params.set('live', 'true');
   params.set('order', 'startDate');

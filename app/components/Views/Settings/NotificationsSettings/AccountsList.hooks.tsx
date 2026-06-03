@@ -1,6 +1,9 @@
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { useFetchAccountNotifications } from '../../../../util/notifications/hooks/useSwitchNotifications';
+import {
+  useAccountNotificationsToggle,
+  useFetchAccountNotifications,
+} from '../../../../util/notifications/hooks/useSwitchNotifications';
 import { getValidNotificationAccounts } from '../../../../selectors/notifications';
 import { toFormattedAddress } from '../../../../util/address';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
@@ -118,5 +121,57 @@ export function useAccountProps() {
   return {
     accountWalletGroups,
     accountAvatarType,
+  };
+}
+
+export function useWalletActivityAccountSelection() {
+  const accountProps = useAccountProps();
+  const notificationAccountListProps = useNotificationAccountListProps();
+  const { onToggle, loading } = useAccountNotificationsToggle();
+
+  const accountAddresses = useMemo(
+    () =>
+      accountProps.accountWalletGroups.flatMap((walletGroup) =>
+        walletGroup.data
+          .map((accountGroup) =>
+            notificationAccountListProps.getEvmAddress(accountGroup.accounts),
+          )
+          .filter((address): address is string => Boolean(address)),
+      ),
+    [accountProps.accountWalletGroups, notificationAccountListProps],
+  );
+
+  const hasEnabledAccount = useMemo(
+    () =>
+      accountProps.accountWalletGroups.some((walletGroup) =>
+        walletGroup.data.some((accountGroup) =>
+          notificationAccountListProps.isAccountEnabled(accountGroup.accounts),
+        ),
+      ),
+    [accountProps.accountWalletGroups, notificationAccountListProps],
+  );
+
+  const toggleAllAccounts = useCallback(async () => {
+    if (accountAddresses.length === 0) {
+      return;
+    }
+
+    await onToggle(accountAddresses, !hasEnabledAccount);
+    await notificationAccountListProps.refetchAccountSettings();
+  }, [
+    accountAddresses,
+    hasEnabledAccount,
+    notificationAccountListProps,
+    onToggle,
+  ]);
+
+  return {
+    accountProps,
+    notificationAccountListProps,
+    hasEnabledAccount,
+    hasNotificationAccounts: accountAddresses.length > 0,
+    isUpdatingAllAccounts:
+      loading || notificationAccountListProps.shouldDisableSwitches,
+    toggleAllAccounts,
   };
 }

@@ -16,6 +16,7 @@ import {
   getBackendWebSocketServiceMessenger,
   getBackendWebSocketServiceInitMessenger,
   getAccountActivityServiceMessenger,
+  getOHLCVServiceMessenger,
 } from './core-backend';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import {
@@ -76,7 +77,6 @@ import {
 } from './permission-controller-messenger';
 import { getSubjectMetadataControllerMessenger } from './subject-metadata-controller-messenger';
 import { getPreferencesControllerMessenger } from './preferences-controller-messenger';
-import { getKeyringControllerMessenger } from './keyring-controller-messenger';
 import {
   getNetworkControllerInitMessenger,
   getNetworkControllerMessenger,
@@ -245,10 +245,6 @@ export const MESSENGER_FACTORIES = {
   },
   GasFeeController: {
     getMessenger: getGasFeeControllerMessenger,
-    getInitMessenger: noop,
-  },
-  KeyringController: {
-    getMessenger: getKeyringControllerMessenger,
     getInitMessenger: noop,
   },
   NetworkController: {
@@ -471,6 +467,10 @@ export const MESSENGER_FACTORIES = {
   },
   AccountActivityService: {
     getMessenger: getAccountActivityServiceMessenger,
+    getInitMessenger: noop,
+  },
+  OHLCVService: {
+    getMessenger: getOHLCVServiceMessenger,
     getInitMessenger: noop,
   },
   ProfileMetricsController: {

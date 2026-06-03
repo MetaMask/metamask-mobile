@@ -5,7 +5,7 @@ import React, {
   useRef,
   useEffect,
 } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../../core/Engine';
 import createStyles from './AccountGroupBalance.styles';
@@ -15,10 +15,7 @@ import {
   selectBalanceChangeBySelectedAccountGroup,
   selectAccountGroupBalanceForEmptyState,
 } from '../../../../../selectors/assets/balances';
-import {
-  selectHomepageSectionsV1Enabled,
-  selectWalletHomeOnboardingStepsEnabled,
-} from '../../../../../selectors/featureFlagController/homepage';
+import { selectWalletHomeOnboardingStepsEnabled } from '../../../../../selectors/featureFlagController/homepage';
 import {
   selectShouldShowWalletHomeOnboardingSteps,
   selectWalletHomeOnboardingSkipInitialBalanceWait,
@@ -37,6 +34,7 @@ import AccountGroupBalanceChange from '../../components/BalanceChange/AccountGro
 import BalanceEmptyState from '../../../BalanceEmptyState';
 import WalletHomeOnboardingSteps from '../../../WalletHomeOnboardingSteps';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
+import { useWalletHomeOnboardingChecklistFundPress } from '../../../WalletHomeOnboardingSteps/useWalletHomeOnboardingChecklistFundPress';
 
 /**
  * Timeout for account group balance fetch
@@ -69,9 +67,6 @@ const AccountGroupBalance = ({
   const { PreferencesController } = Engine.context;
   const styles = createStyles();
   const { formatCurrency } = useFormatters();
-  const isHomepageSectionsV1Enabled = useSelector(
-    selectHomepageSectionsV1Enabled,
-  );
   const isWalletHomeOnboardingStepsEnabled = useSelector(
     selectWalletHomeOnboardingStepsEnabled,
   );
@@ -82,17 +77,17 @@ const AccountGroupBalance = ({
     selectWalletHomeOnboardingSkipInitialBalanceWait,
   );
   const { goToBuy } = useRampNavigation();
+  const onFundPrimaryPressWithChecklistAnalytics =
+    useWalletHomeOnboardingChecklistFundPress(goToBuy);
   const { popularNetworks } = useNetworkEnablement();
 
   // Stabilize chain IDs by content so selector identity doesn't change every render (avoids max depth / infinite loop).
-  // FF on: balance for all popular networks; FF off: balance for enabled networks only (selector uses state when undefined).
   const popularChainIdsKey = (popularNetworks ?? []).join(',');
   const chainIdsForBalance = useMemo(
-    () =>
-      isHomepageSectionsV1Enabled ? [...(popularNetworks ?? [])] : undefined,
+    () => [...(popularNetworks ?? [])],
     // popularChainIdsKey stabilizes by content; popularNetworks is a new array ref every render from the hook
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [isHomepageSectionsV1Enabled, popularChainIdsKey],
+    [popularChainIdsKey],
   );
 
   const groupBalanceSelector = useMemo(
@@ -204,16 +199,12 @@ const AccountGroupBalance = ({
   // Check if current network is a testnet
   const isCurrentNetworkTestnet = TEST_NETWORK_IDS.includes(selectedChainId);
 
-  // Show empty state on accounts with an aggregated mainnet balance of zero (sections v1)
+  // Show empty state on accounts with an aggregated mainnet balance of zero
   const shouldShowEmptyState =
-    hasZeroAccountGroupBalance &&
-    isHomepageSectionsV1Enabled &&
-    !isCurrentNetworkTestnet;
+    hasZeroAccountGroupBalance && !isCurrentNetworkTestnet;
 
   const inWalletHomePostOnboardingFlow =
-    isHomepageSectionsV1Enabled &&
-    isWalletHomeOnboardingStepsEnabled &&
-    shouldShowWalletHomeOnboardingSteps;
+    isWalletHomeOnboardingStepsEnabled && shouldShowWalletHomeOnboardingSteps;
 
   /** While the flow is active, always use the checklist surface — never the balance row (avoids a flash before loading/empty state is known). */
   const showWalletHomeOnboardingStepsTile = inWalletHomePostOnboardingFlow;
@@ -266,7 +257,7 @@ const AccountGroupBalance = ({
           isAwaitingBalance={awaitBalanceForPostOnboardingSteps}
           onCoordinatedFlowExit={onCoordinatedFlowExit}
           suspendRiveForCurtain={suspendRiveForCurtain}
-          onFundPrimaryPress={goToBuy}
+          onFundPrimaryPress={onFundPrimaryPressWithChecklistAnalytics}
           canAdvanceFundStepAfterBalance={canAdvanceFundStepAfterBalance}
           onTradePrimaryPress={onTradePrimaryPress}
           onNotificationsPrimaryPress={onNotificationsPrimaryPress}

@@ -199,7 +199,7 @@ describe('usePerpsFlipPosition', () => {
     expect(mockOnError).toHaveBeenCalledWith('perps.errors.unknown');
   });
 
-  it('handles exceptions and logs via Logger.error', async () => {
+  it('surfaces exception via toast and onError without double-reporting to Sentry', async () => {
     const testError = new Error('Network error');
     mockFlipPosition.mockRejectedValue(testError);
     const mockOnError = jest.fn();
@@ -212,31 +212,13 @@ describe('usePerpsFlipPosition', () => {
       await result.current.handleFlipPosition(mockLongPosition);
     });
 
-    expect(Logger.error).toHaveBeenCalledWith(
-      testError,
-      expect.objectContaining({
-        tags: expect.objectContaining({
-          feature: 'perps',
-          component: 'usePerpsFlipPosition',
-          action: 'flip_position',
-          operation: 'position_management',
-        }),
-        context: expect.objectContaining({
-          name: 'usePerpsFlipPosition',
-          data: expect.objectContaining({
-            symbol: 'ETH',
-            size: '2.5',
-            currentDirection: 'long',
-            targetDirection: 'short',
-            positionSize: 2.5,
-          }),
-        }),
-      }),
-    );
+    // Sentry reporting is handled at the controller layer; the UI hook must not duplicate it
+    expect(Logger.error).not.toHaveBeenCalled();
+    expect(mockShowToast).toHaveBeenCalled();
     expect(mockOnError).toHaveBeenCalledWith('Network error');
   });
 
-  it('handles non-Error exceptions', async () => {
+  it('handles non-Error exceptions with fallback message without double-reporting to Sentry', async () => {
     mockFlipPosition.mockRejectedValue('String error');
     const mockOnError = jest.fn();
 
@@ -248,19 +230,9 @@ describe('usePerpsFlipPosition', () => {
       await result.current.handleFlipPosition(mockLongPosition);
     });
 
-    const [loggedError, loggerContext] = (Logger.error as jest.Mock).mock
-      .calls[0];
-    expect(loggedError).toBeInstanceOf(Error);
-    expect((loggedError as Error).message).toBe('String error');
-    expect(loggerContext).toEqual(
-      expect.objectContaining({
-        context: expect.objectContaining({
-          data: expect.objectContaining({
-            rawError: 'String error',
-          }),
-        }),
-      }),
-    );
+    // Sentry reporting is handled at the controller layer; the UI hook must not duplicate it
+    expect(Logger.error).not.toHaveBeenCalled();
+    expect(mockShowToast).toHaveBeenCalled();
     expect(mockOnError).toHaveBeenCalledWith('perps.errors.unknown');
   });
 

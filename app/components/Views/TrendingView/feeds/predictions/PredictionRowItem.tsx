@@ -1,8 +1,8 @@
 import React from 'react';
-import { Box } from '@metamask/design-system-react-native';
 import PredictMarket from '../../../../UI/Predict/components/PredictMarket';
 import PredictMarketRowItem from '../../../../UI/Predict/components/PredictMarketRowItem';
 import type { PredictMarket as PredictMarketType } from '../../../../UI/Predict/types';
+import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
 
 interface PredictionCarouselRowItemProps {
   market: PredictMarketType;
@@ -17,15 +17,14 @@ interface PredictionCarouselRowItemProps {
 export const PredictionCarouselRowItem: React.FC<
   PredictionCarouselRowItemProps
 > = ({ market, testIdPrefix, onCardPress, onBuyButtonPress }) => (
-  <Box twClassName="py-2">
-    <PredictMarket
-      market={market}
-      isCarousel
-      testID={testIdPrefix ? `${testIdPrefix}-${market.id}` : undefined}
-      onCardPress={onCardPress}
-      onBuyButtonPress={onBuyButtonPress}
-    />
-  </Box>
+  <PredictMarket
+    market={market}
+    isCarousel
+    entryPoint={PredictEventValues.ENTRY_POINT.EXPLORE}
+    testID={testIdPrefix ? `${testIdPrefix}-${market.id}` : undefined}
+    onCardPress={onCardPress}
+    onBuyButtonPress={onBuyButtonPress}
+  />
 );
 
 interface PredictionSearchRowItemProps {
@@ -35,4 +34,9 @@ interface PredictionSearchRowItemProps {
 /** Compact list row used inside the omni-search results. */
 export const PredictionSearchRowItem: React.FC<
   PredictionSearchRowItemProps
-> = ({ market }) => <PredictMarketRowItem market={market} />;
+> = ({ market }) => (
+  <PredictMarketRowItem
+    market={market}
+    entryPoint={PredictEventValues.ENTRY_POINT.EXPLORE}
+  />
+);

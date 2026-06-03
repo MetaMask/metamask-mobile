@@ -1,7 +1,6 @@
 import React from 'react';
 import { HeaderStandard } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
-import { KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
@@ -19,21 +18,14 @@ const MusdCalculatorView: React.FC = () => {
     <ErrorBoundary navigation={navigation} view="MusdCalculatorView">
       <SafeAreaView
         edges={{ top: 'additive' }}
-        style={tw.style('flex-1 bg-default')}
+        style={tw.style('flex-1 bg-default pb-4')}
       >
         <HeaderStandard
           title={strings('rewards.musd.page_title')}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'header-back-button' }}
         />
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-          style={tw.style('flex-1')}
-          testID="musd-calculator-keyboard-avoiding-view"
-        >
-          <MusdCalculatorTab />
-        </KeyboardAvoidingView>
+        <MusdCalculatorTab />
       </SafeAreaView>
     </ErrorBoundary>
   );

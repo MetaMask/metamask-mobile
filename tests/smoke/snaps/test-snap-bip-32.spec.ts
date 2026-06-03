@@ -15,6 +15,7 @@ describe(SmokeSnaps('BIP-32 Snap Tests'), () => {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await loginToApp();
@@ -31,6 +32,7 @@ describe(SmokeSnaps('BIP-32 Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.tapButton('getPublicKeyBip32Button');
@@ -47,6 +49,7 @@ describe(SmokeSnaps('BIP-32 Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.fillMessage('messageSecp256k1Input', 'foo bar');
@@ -66,6 +69,7 @@ describe(SmokeSnaps('BIP-32 Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.fillMessage('messageEd25519Input', 'foo bar');
@@ -85,6 +89,7 @@ describe(SmokeSnaps('BIP-32 Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.fillMessage('messageEd25519Bip32Input', 'foo bar');
@@ -104,6 +109,7 @@ describe(SmokeSnaps('BIP-32 Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.selectInDropdown('bip32EntropyDropDown', 'SRP 1');
@@ -124,6 +130,7 @@ describe(SmokeSnaps('BIP-32 Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.selectInDropdown('bip32EntropyDropDown', 'SRP 2');
@@ -144,6 +151,7 @@ describe(SmokeSnaps('BIP-32 Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         skipReactNativeReload: true,
+        disableSynchronization: true,
       },
       async () => {
         await TestSnaps.selectInDropdown('bip32EntropyDropDown', 'Invalid');

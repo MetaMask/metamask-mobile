@@ -25,14 +25,17 @@ import PredictMarket from '../../../UI/Predict/components/PredictMarket';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { strings } from '../../../../../locales/i18n';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
+import { useWorldCupPredictionsFeed } from '../feeds/predictions/useWorldCupPredictionsFeed';
 import {
   useSportsMarketsFeed,
   type UseSportsMarketsFeedResult,
 } from '../feeds/predictions/useSportsMarketsFeed';
-import { PredictionCarouselRowItem } from '../feeds/predictions/PredictionRowItem';
+import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarouselSection';
 import PredictionsSkeleton from '../feeds/predictions/PredictionsSkeleton';
-import { navigateToPredictionsList } from '../feeds/predictions/predictionsNavigation';
-import HorizontalCarousel from '../components/HorizontalCarousel';
+import {
+  navigateToExplorePredictionsList,
+  navigateToExploreWorldCupPredictions,
+} from '../feeds/predictions/predictionsNavigation';
 import PillRow from '../components/PillRow';
 import SectionHeader from '../components/SectionHeader';
 import type { TabProps } from '../hooks/useExploreRefresh';
@@ -40,6 +43,7 @@ import {
   trackExploreInteracted,
   type ExploreSectionName,
 } from '../search/analytics';
+import { PredictEventValues } from '../../../UI/Predict/constants/eventNames';
 
 const SPORT_KEY_TO_SECTION: Record<string, ExploreSectionName> = {
   soccer: 'predictions_football',
@@ -51,68 +55,45 @@ interface SportsListHeaderProps {
   showSportsPredictions: boolean;
   sportsPredictionsData: PredictMarketType[];
   sportsPredictionsLoading: boolean;
+  showWorldCupPredictions: boolean;
   sportsMarkets: UseSportsMarketsFeedResult;
   showAllSportsSkeleton: boolean;
   showAllSportsEmpty: boolean;
   navigation: AppNavigationProp;
 }
 
-const renderPredictionItem: ListRenderItem<PredictMarketType> = ({
-  item,
-  index,
-}) => (
-  <PredictionCarouselRowItem
-    market={item}
-    testIdPrefix="predict-sports-market-row-item"
-    onCardPress={() =>
-      trackExploreInteracted({
-        interaction_type: 'section_item_tapped',
-        tab_name: 'Sports',
-        section_name: 'predictions_sports',
-        asset_type: 'prediction',
-        position: index,
-        item_clicked: item.id,
-      })
-    }
-    onBuyButtonPress={(marketId) =>
-      trackExploreInteracted({
-        interaction_type: 'prediction_voted',
-        tab_name: 'Sports',
-        section_name: 'predictions_sports',
-        item_clicked: marketId,
-      })
-    }
-  />
-);
-
 const SportsListHeader: React.FC<SportsListHeaderProps> = ({
   showSportsPredictions,
   sportsPredictionsData,
   sportsPredictionsLoading,
+  showWorldCupPredictions,
   sportsMarkets,
   showAllSportsSkeleton,
   showAllSportsEmpty,
   navigation,
 }) => (
   <Box twClassName="pt-3">
-    {showSportsPredictions && (
-      <Box>
-        <SectionHeader
-          title={strings('trending.predictions')}
-          onViewAll={() => navigateToPredictionsList(navigation, 'sports')}
-          testID="section-header-view-all-sports_predictions"
-          tabName="Sports"
-          sectionName="predictions_sports"
-        />
-        <HorizontalCarousel<PredictMarketType>
-          data={sportsPredictionsData}
-          isLoading={sportsPredictionsLoading}
-          renderItem={renderPredictionItem}
-          Skeleton={PredictionsSkeleton}
-          idPrefix="sports_predictions"
-        />
-      </Box>
-    )}
+    <PredictionsCarouselSection
+      feed={{
+        data: sportsPredictionsData,
+        isLoading: sportsPredictionsLoading,
+      }}
+      tabName="Sports"
+      sectionName="predictions_sports"
+      title={
+        showWorldCupPredictions
+          ? strings('predict.world_cup.predictions_title')
+          : strings('trending.predictions')
+      }
+      testIdPrefix="predict-sports-market-row-item"
+      idPrefix="sports_predictions"
+      onViewAll={() =>
+        showWorldCupPredictions
+          ? navigateToExploreWorldCupPredictions(navigation)
+          : navigateToExplorePredictionsList(navigation, 'sports')
+      }
+      isEnabled={showSportsPredictions}
+    />
 
     <Box>
       <SectionHeader
@@ -158,7 +139,18 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const { colors } = useTheme();
 
-  const sportsPredictions = usePredictionsFeed({ variant: 'sports', refresh });
+  const worldCupPredictions = useWorldCupPredictionsFeed({
+    enabled: isPredictEnabled,
+    refresh,
+  });
+  const sportsPredictions = usePredictionsFeed({
+    variant: 'sports',
+    refresh,
+    enabled: !worldCupPredictions.isEnabled,
+  });
+  const displayedSportsPredictions = worldCupPredictions.isEnabled
+    ? worldCupPredictions
+    : sportsPredictions;
   const sportsMarkets = useSportsMarketsFeed({ refresh });
 
   const { active, activeKey } = sportsMarkets;
@@ -172,6 +164,7 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       return (
         <PredictMarket
           market={item}
+          entryPoint={PredictEventValues.ENTRY_POINT.EXPLORE}
           onCardPress={() =>
             trackExploreInteracted({
               interaction_type: 'section_item_tapped',
@@ -198,7 +191,8 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
 
   const showSportsPredictions =
     isPredictEnabled &&
-    (sportsPredictions.isLoading || sportsPredictions.data.length > 0);
+    (displayedSportsPredictions.isLoading ||
+      displayedSportsPredictions.data.length > 0);
   const showAllSportsSkeleton =
     active.isFetching && active.marketData.length === 0;
   const showAllSportsEmpty =
@@ -207,8 +201,9 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const listHeader = (
     <SportsListHeader
       showSportsPredictions={showSportsPredictions}
-      sportsPredictionsData={sportsPredictions.data}
-      sportsPredictionsLoading={sportsPredictions.isLoading}
+      sportsPredictionsData={displayedSportsPredictions.data}
+      sportsPredictionsLoading={displayedSportsPredictions.isLoading}
+      showWorldCupPredictions={worldCupPredictions.isEnabled}
       sportsMarkets={sportsMarkets}
       showAllSportsSkeleton={showAllSportsSkeleton}
       showAllSportsEmpty={showAllSportsEmpty}

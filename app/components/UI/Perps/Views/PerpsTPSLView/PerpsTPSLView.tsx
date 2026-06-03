@@ -1,12 +1,16 @@
 import React, { memo, useCallback, useRef, useState } from 'react';
 import {
   Keyboard,
+  Platform,
   ScrollView,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -75,6 +79,7 @@ const PerpsTPSLView: React.FC = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const { top: topInset } = useSafeAreaInsets();
 
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -86,6 +91,11 @@ const PerpsTPSLView: React.FC = () => {
   const takeProfitPercentageRef = useRef<TextInput>(null);
   const stopLossPriceRef = useRef<TextInput>(null);
   const stopLossPercentageRef = useRef<TextInput>(null);
+
+  // Guard: when we programmatically dismiss the native keyboard on iOS,
+  // the TextInput fires onBlur. This ref prevents that blur from hiding
+  // the custom keypad.
+  const isProgrammaticDismissRef = useRef(false);
 
   // Subscribe to real-time price only when we have an asset
   // Use throttle for TP/SL screen to reduce re-renders
@@ -284,6 +294,23 @@ const PerpsTPSLView: React.FC = () => {
     (inputType: string) => {
       setFocusedInput(inputType);
 
+      // showSoftInputOnFocus is Android-only; on iOS the native keyboard
+      // still appears when a TextInput is focused. Dismiss it so that only
+      // the custom keypad is visible and content stays within the viewport.
+      //
+      // This runs inside the callback (not a useEffect) so it fires on
+      // every focus event, even when the same input is re-focused and
+      // React deduplicates the setFocusedInput call.
+      if (Platform.OS === 'ios') {
+        isProgrammaticDismissRef.current = true;
+        requestAnimationFrame(() => {
+          Keyboard.dismiss();
+          setTimeout(() => {
+            isProgrammaticDismissRef.current = false;
+          }, 150);
+        });
+      }
+
       // Auto-scroll to keep input visible when keypad is active
       if (scrollViewRef.current) {
         let yOffset = 0;
@@ -331,7 +358,11 @@ const PerpsTPSLView: React.FC = () => {
   );
 
   const handleInputBlur = useCallback(() => {
-    // Call the appropriate original blur handler based on which input was focused
+    // When we programmatically dismiss the native keyboard on iOS the
+    // TextInput fires onBlur. Ignore that blur so the custom keypad
+    // stays visible.
+    if (isProgrammaticDismissRef.current) return;
+
     if (focusedInput === 'takeProfitPrice') {
       handleTakeProfitPriceBlur();
     } else if (focusedInput === 'takeProfitPercentage') {
@@ -447,11 +478,16 @@ const PerpsTPSLView: React.FC = () => {
   return (
     <SafeAreaView
       style={styles.container}
-      edges={['top', 'bottom']}
+      edges={['bottom']}
       testID={PerpsTPSLViewSelectorsIDs.BOTTOM_SHEET}
     >
       {/* Simple header with back button and title */}
-      <View style={styles.header}>
+      <View
+        style={[
+          styles.header,
+          topInset > 0 ? { paddingTop: 16 + topInset } : undefined,
+        ]}
+      >
         <View style={styles.headerBackButton}>
           <ButtonIcon
             iconName={IconName.ArrowLeft}
@@ -614,7 +650,9 @@ const PerpsTPSLView: React.FC = () => {
                     handleInputFocus('takeProfitPrice');
                   }}
                   onBlur={() => {
-                    handleTakeProfitPriceBlur();
+                    if (!isProgrammaticDismissRef.current) {
+                      handleTakeProfitPriceBlur();
+                    }
                     handleInputBlur();
                   }}
                   selectionColor={colors.primary.default}
@@ -646,7 +684,9 @@ const PerpsTPSLView: React.FC = () => {
                     handleInputFocus('takeProfitPercentage');
                   }}
                   onBlur={() => {
-                    handleTakeProfitPercentageBlur();
+                    if (!isProgrammaticDismissRef.current) {
+                      handleTakeProfitPercentageBlur();
+                    }
                     handleInputBlur();
                   }}
                   selectionColor={colors.primary.default}
@@ -785,7 +825,9 @@ const PerpsTPSLView: React.FC = () => {
                     handleInputFocus('stopLossPrice');
                   }}
                   onBlur={() => {
-                    handleStopLossPriceBlur();
+                    if (!isProgrammaticDismissRef.current) {
+                      handleStopLossPriceBlur();
+                    }
                     handleInputBlur();
                   }}
                   selectionColor={colors.primary.default}
@@ -817,7 +859,9 @@ const PerpsTPSLView: React.FC = () => {
                     handleInputFocus('stopLossPercentage');
                   }}
                   onBlur={() => {
-                    handleStopLossPercentageBlur();
+                    if (!isProgrammaticDismissRef.current) {
+                      handleStopLossPercentageBlur();
+                    }
                     handleInputBlur();
                   }}
                   selectionColor={colors.primary.default}

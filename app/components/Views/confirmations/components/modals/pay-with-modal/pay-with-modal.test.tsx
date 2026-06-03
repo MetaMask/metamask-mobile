@@ -24,13 +24,12 @@ import {
   useTransactionPayFiatPayment,
   useTransactionPayRequiredTokens,
 } from '../../../hooks/pay/useTransactionPayData';
-import { useFiatPaymentHighlightedActions } from '../../../hooks/pay/useFiatPaymentHighlightedActions';
+import { getAvailableTokens } from '../../../utils/transaction-pay';
+import { useWithdrawTokenFilter } from '../../../hooks/pay/useWithdrawTokenFilter';
 import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { EMPTY_ADDRESS } from '../../../../../../constants/transaction';
-import { getAvailableTokens } from '../../../utils/transaction-pay';
-import { useWithdrawTokenFilter } from '../../../hooks/pay/useWithdrawTokenFilter';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
 import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
@@ -56,10 +55,12 @@ jest.mock('../../../../../../core/Engine', () => ({
 jest.mock('../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/pay/useTransactionPayWithdraw');
-jest.mock('../../../hooks/pay/useFiatPaymentHighlightedActions');
 jest.mock('../../../hooks/pay/useWithdrawTokenFilter');
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
-jest.mock('../../../utils/transaction-pay');
+jest.mock('../../../utils/transaction-pay', () => ({
+  ...jest.requireActual('../../../utils/transaction-pay'),
+  getAvailableTokens: jest.fn(),
+}));
 jest.mock('../../../../../UI/Perps/hooks/usePerpsPaymentToken');
 jest.mock('../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter');
 jest.mock('../../../../../UI/Predict/hooks/usePredictPaymentToken');
@@ -236,7 +237,6 @@ describe('PayWithModal', () => {
     });
 
     jest.mocked(useTransactionPayFiatPayment).mockReturnValue(undefined);
-    jest.mocked(useFiatPaymentHighlightedActions).mockReturnValue([]);
 
     getAvailableTokensMock.mockReturnValue(TOKENS_MOCK);
     useWithdrawTokenFilterMock.mockReturnValue(
@@ -410,9 +410,9 @@ describe('PayWithModal', () => {
       } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
     });
 
-    it('shows "Select receive token" title for withdrawal transactions', () => {
+    it('shows "Select a token" title for withdrawal transactions', () => {
       const { getByText } = render();
-      expect(getByText('Select receive token')).toBeDefined();
+      expect(getByText('Select a token')).toBeDefined();
     });
 
     it('bypasses getAvailableTokens for withdrawal transactions', () => {
@@ -527,26 +527,6 @@ describe('PayWithModal', () => {
       expect(getAvailableTokensMock).toHaveBeenCalledWith(
         expect.objectContaining({ fiatPayment: fiatPaymentMock }),
       );
-    });
-
-    it('prepends fiat highlighted actions to token list', () => {
-      const fiatAction = {
-        position: 'outside_of_asset_list' as const,
-        icon: 'card-icon',
-        paymentType: 'debit-credit-card',
-        name: 'Credit Card',
-        name_description: '5-10 min',
-        action: jest.fn(),
-        isSelected: false,
-      };
-
-      jest
-        .mocked(useFiatPaymentHighlightedActions)
-        .mockReturnValue([fiatAction]);
-
-      const { getByText } = render();
-
-      expect(getByText('Credit Card')).toBeDefined();
     });
   });
 });

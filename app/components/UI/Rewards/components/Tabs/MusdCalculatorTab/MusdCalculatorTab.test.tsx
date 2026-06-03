@@ -9,13 +9,27 @@ import { amountToPercent } from '../../../utils/musdCalculatorSlider';
 const mockPanGestureHandlers: {
   onBegin?: (event: { x: number }) => void;
   onUpdate?: (event: { x: number }) => void;
+  onEnd?: (event: { x: number }) => void;
   onFinalize?: (event: { x: number }) => void;
+} = {};
+const mockTapGestureHandlers: {
+  onEnd?: (event: { x: number }) => void;
 } = {};
 
 jest.mock('react-native-gesture-handler', () => ({
   GestureHandlerRootView: jest.requireActual('react-native').View,
   GestureDetector: ({ children }: { children: React.ReactNode }) => children,
   Gesture: {
+    Simultaneous: jest.fn((...gestures: unknown[]) => gestures),
+    Tap: jest.fn(() => ({
+      onEnd: jest.fn(function (
+        this: unknown,
+        handler: (event: { x: number }) => void,
+      ) {
+        mockTapGestureHandlers.onEnd = handler;
+        return this;
+      }),
+    })),
     Pan: jest.fn(() => ({
       minDistance: jest.fn().mockReturnThis(),
       onBegin: jest.fn(function (
@@ -30,6 +44,13 @@ jest.mock('react-native-gesture-handler', () => ({
         handler: (event: { x: number }) => void,
       ) {
         mockPanGestureHandlers.onUpdate = handler;
+        return this;
+      }),
+      onEnd: jest.fn(function (
+        this: unknown,
+        handler: (event: { x: number }) => void,
+      ) {
+        mockPanGestureHandlers.onEnd = handler;
         return this;
       }),
       onFinalize: jest.fn(function (
@@ -60,12 +81,18 @@ jest.mock('../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
-jest.mock('../../../../SimulationDetails/FiatDisplay/useFiatFormatter', () =>
-  jest.fn(
-    () => (value: { toNumber: () => number }) =>
-      `$${value.toNumber().toLocaleString('en-US')}`,
-  ),
-);
+jest.mock('react-native-keyboard-aware-scroll-view', () => {
+  const ReactActual = jest.requireActual('react');
+  const { ScrollView } = jest.requireActual('react-native');
+  return {
+    KeyboardAwareScrollView: ({
+      children,
+      ...props
+    }: {
+      children?: React.ReactNode;
+    }) => ReactActual.createElement(ScrollView, props, children),
+  };
+});
 
 jest.mock('../../../../../../core/DeeplinkManager', () => ({
   handleDeeplink: jest.fn(),
@@ -90,7 +117,9 @@ describe('MusdCalculatorTab', () => {
     jest.clearAllMocks();
     mockPanGestureHandlers.onBegin = undefined;
     mockPanGestureHandlers.onUpdate = undefined;
+    mockPanGestureHandlers.onEnd = undefined;
     mockPanGestureHandlers.onFinalize = undefined;
+    mockTapGestureHandlers.onEnd = undefined;
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
         trackEvent: mockTrackEvent,
@@ -112,6 +141,20 @@ describe('MusdCalculatorTab', () => {
     expect(getByText('rewards.musd.buy_button')).toBeOnTheScreen();
     expect(getByText('rewards.musd.swap_button')).toBeOnTheScreen();
     expect(getByTestId('musd-slider-track')).toBeOnTheScreen();
+  });
+
+  it('uses a keyboard-aware scroll container for the amount input', () => {
+    const { getByTestId } = render(<MusdCalculatorTab />);
+    const scrollView = getByTestId(
+      'musd-calculator-keyboard-aware-scroll-view',
+    );
+
+    expect(scrollView).toHaveProp('keyboardShouldPersistTaps', 'handled');
+    expect(scrollView).toHaveProp('keyboardDismissMode', 'none');
+    expect(scrollView).toHaveProp('enableOnAndroid', true);
+    expect(scrollView).toHaveProp('enableAutomaticScroll', true);
+    expect(scrollView).toHaveProp('enableResetScrollToCoords', false);
+    expect(scrollView).toHaveProp('extraScrollHeight', 20);
   });
 
   it('calls handleDeeplink and tracks buy_musd event when Buy button is pressed', () => {
@@ -159,14 +202,14 @@ describe('MusdCalculatorTab', () => {
     });
 
     const locationX = (amountToPercent(5000) / 100) * 300;
-    fireEvent(track, 'pressIn', {
-      nativeEvent: { locationX },
+    await act(async () => {
+      mockTapGestureHandlers.onEnd?.({ x: locationX });
     });
 
     await waitFor(() => {
       expect(getByTestId('musd-slider-amount-display')).toHaveProp(
         'value',
-        '$5,000',
+        '5000',
       );
       expect(
         getByText(/rewards\.musd\.earnings_per_day_suffix/),
@@ -183,26 +226,18 @@ describe('MusdCalculatorTab', () => {
     const { getByTestId, getByText } = render(<MusdCalculatorTab />);
     const amountInput = getByTestId('musd-slider-amount-display');
 
-    fireEvent(amountInput, 'focus');
     fireEvent.changeText(amountInput, '5000');
 
     await waitFor(() => {
       expect(amountInput).toHaveProp('value', '5000');
       expect(getByText(/\$150/)).toBeOnTheScreen();
     });
-
-    fireEvent(amountInput, 'endEditing');
-
-    await waitFor(() => {
-      expect(amountInput).toHaveProp('value', '$5,000');
-    });
   });
 
-  it('accepts amounts over the slider maximum', async () => {
+  it('allows typed amounts above the slider maximum', async () => {
     const { getByTestId, getByText } = render(<MusdCalculatorTab />);
     const amountInput = getByTestId('musd-slider-amount-display');
 
-    fireEvent(amountInput, 'focus');
     fireEvent.changeText(amountInput, '12000');
 
     await waitFor(() => {
@@ -211,16 +246,76 @@ describe('MusdCalculatorTab', () => {
     });
   });
 
-  it('normalizes decorated decimal input while editing', async () => {
+  it('compacts yearly earnings when the input amount is at the compact threshold', async () => {
     const { getByTestId, getByText } = render(<MusdCalculatorTab />);
     const amountInput = getByTestId('musd-slider-amount-display');
 
-    fireEvent(amountInput, 'focus');
+    fireEvent.changeText(amountInput, '2552222');
+
+    await waitFor(() => {
+      expect(amountInput).toHaveProp('value', '2552222');
+      expect(getByText(/\$77K/)).toBeOnTheScreen();
+    });
+  });
+
+  it('caps typed amounts at the input maximum', async () => {
+    const { getByTestId, getByText } = render(<MusdCalculatorTab />);
+    const amountInput = getByTestId('musd-slider-amount-display');
+
+    fireEvent.changeText(amountInput, '12000000');
+
+    await waitFor(() => {
+      expect(amountInput).toHaveProp('value', '10000000');
+      expect(getByText(/\$300K/)).toBeOnTheScreen();
+    });
+  });
+
+  it('formats compact yearly earnings without decimals', async () => {
+    const { getByTestId, getByText } = render(<MusdCalculatorTab />);
+    const amountInput = getByTestId('musd-slider-amount-display');
+
+    fireEvent.changeText(amountInput, '4115200');
+
+    await waitFor(() => {
+      expect(amountInput).toHaveProp('value', '4115200');
+      expect(getByText(/\$123K/)).toBeOnTheScreen();
+    });
+  });
+
+  it('returns typed amounts above the slider maximum to the slider scale after touching the slider', async () => {
+    const { getByTestId, getByText } = render(<MusdCalculatorTab />);
+    const amountInput = getByTestId('musd-slider-amount-display');
+    const track = getByTestId('musd-slider-track');
+
+    fireEvent(track, 'layout', {
+      nativeEvent: { layout: { width: 300, height: 32, x: 0, y: 0 } },
+    });
+    fireEvent.changeText(amountInput, '12000');
+
+    await waitFor(() => {
+      expect(amountInput).toHaveProp('value', '12000');
+      expect(getByText(/\$360/)).toBeOnTheScreen();
+    });
+
+    await act(async () => {
+      mockTapGestureHandlers.onEnd?.({ x: 300 });
+    });
+
+    await waitFor(() => {
+      expect(amountInput).toHaveProp('value', '10000');
+      expect(getByText(/\$300/)).toBeOnTheScreen();
+    });
+  });
+
+  it('normalizes decorated decimal input to two decimal places while editing', async () => {
+    const { getByTestId, getByText } = render(<MusdCalculatorTab />);
+    const amountInput = getByTestId('musd-slider-amount-display');
+
     fireEvent.changeText(amountInput, '$1,234.56.78');
 
     await waitFor(() => {
-      expect(amountInput).toHaveProp('value', '1234.5678');
-      expect(getByText(/\$37\.037/)).toBeOnTheScreen();
+      expect(amountInput).toHaveProp('value', '1234.56');
+      expect(getByText(/\$37\.04/)).toBeOnTheScreen();
     });
   });
 
@@ -228,7 +323,6 @@ describe('MusdCalculatorTab', () => {
     const { getByTestId, getAllByText } = render(<MusdCalculatorTab />);
     const amountInput = getByTestId('musd-slider-amount-display');
 
-    fireEvent(amountInput, 'focus');
     fireEvent.changeText(amountInput, '.');
 
     await waitFor(() => {
@@ -240,13 +334,13 @@ describe('MusdCalculatorTab', () => {
   it('ignores slider presses before the track is measured', () => {
     const { getByTestId } = render(<MusdCalculatorTab />);
 
-    fireEvent(getByTestId('musd-slider-track'), 'pressIn', {
-      nativeEvent: { locationX: 200 },
+    act(() => {
+      mockTapGestureHandlers.onEnd?.({ x: 200 });
     });
 
     expect(getByTestId('musd-slider-amount-display')).toHaveProp(
       'value',
-      '$1,000',
+      '1000',
     );
   });
 
@@ -261,15 +355,77 @@ describe('MusdCalculatorTab', () => {
     act(() => {
       mockPanGestureHandlers.onBegin?.({ x: 150 });
       mockPanGestureHandlers.onUpdate?.({ x: 300 });
+      mockPanGestureHandlers.onEnd?.({ x: 300 });
       mockPanGestureHandlers.onFinalize?.({ x: 300 });
     });
 
     await waitFor(() => {
       expect(getByTestId('musd-slider-amount-display')).toHaveProp(
         'value',
-        '$10,000',
+        '10000',
       );
     });
+  });
+
+  it('does not reset the slider when a press finalizes without a pan', async () => {
+    const { getByTestId } = render(<MusdCalculatorTab />);
+    const track = getByTestId('musd-slider-track');
+
+    fireEvent(track, 'layout', {
+      nativeEvent: { layout: { width: 300, height: 32, x: 0, y: 0 } },
+    });
+
+    const locationX = (amountToPercent(5000) / 100) * 300;
+    await act(async () => {
+      mockTapGestureHandlers.onEnd?.({ x: locationX });
+    });
+
+    await waitFor(() => {
+      expect(getByTestId('musd-slider-amount-display')).toHaveProp(
+        'value',
+        '5000',
+      );
+    });
+
+    act(() => {
+      mockPanGestureHandlers.onFinalize?.({ x: 0 });
+    });
+
+    expect(getByTestId('musd-slider-amount-display')).toHaveProp(
+      'value',
+      '5000',
+    );
+  });
+
+  it('does not reset when tapping the same slider position twice', async () => {
+    const { getByTestId } = render(<MusdCalculatorTab />);
+    const track = getByTestId('musd-slider-track');
+
+    fireEvent(track, 'layout', {
+      nativeEvent: { layout: { width: 300, height: 32, x: 0, y: 0 } },
+    });
+
+    const locationX = (amountToPercent(5000) / 100) * 300;
+
+    await act(async () => {
+      mockTapGestureHandlers.onEnd?.({ x: locationX });
+    });
+
+    await waitFor(() => {
+      expect(getByTestId('musd-slider-amount-display')).toHaveProp(
+        'value',
+        '5000',
+      );
+    });
+
+    await act(async () => {
+      mockTapGestureHandlers.onEnd?.({ x: locationX });
+    });
+
+    expect(getByTestId('musd-slider-amount-display')).toHaveProp(
+      'value',
+      '5000',
+    );
   });
 
   it('ignores pan gesture handlers before the track is measured', () => {
@@ -282,7 +438,7 @@ describe('MusdCalculatorTab', () => {
 
     expect(getByTestId('musd-slider-amount-display')).toHaveProp(
       'value',
-      '$1,000',
+      '1000',
     );
   });
 });

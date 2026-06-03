@@ -5,10 +5,20 @@ import {
   selectWalletHomeOnboardingSteps,
   selectWalletHomeOnboardingStepsEligible,
   selectShouldShowWalletHomeOnboardingSteps,
+  selectWalletHomeOnboardingFlowVisible,
 } from '.';
 import { RootState } from '../../reducers';
 import { AccountType } from '../../constants/onboarding';
 import { WALLET_HOME_ONBOARDING_STEPS_INITIAL } from '../../constants/walletHomeOnboardingSteps';
+import { selectWalletHomeOnboardingStepsEnabled } from '../featureFlagController/homepage';
+
+jest.mock('../featureFlagController/homepage', () => ({
+  selectWalletHomeOnboardingStepsEnabled: jest.fn(),
+}));
+
+const mockSelectWalletHomeOnboardingStepsEnabled = jest.mocked(
+  selectWalletHomeOnboardingStepsEnabled,
+);
 
 describe('Onboarding selectors', () => {
   const mockState = {
@@ -86,6 +96,43 @@ describe('Onboarding selectors', () => {
           ...WALLET_HOME_ONBOARDING_STEPS_INITIAL,
           suppressedReason: 'flow_completed',
         }),
+      ).toBe(false);
+    });
+  });
+
+  describe('selectWalletHomeOnboardingFlowVisible', () => {
+    // shouldShow comes from selectShouldShowWalletHomeOnboardingSteps:
+    // eligible && steps.suppressedReason === null.
+    const stateWithShouldShow = (shouldShow: boolean) =>
+      ({
+        onboarding: {
+          walletHomeOnboardingStepsEligible: shouldShow,
+          walletHomeOnboardingSteps: WALLET_HOME_ONBOARDING_STEPS_INITIAL,
+        },
+      }) as RootState;
+
+    beforeEach(() => {
+      mockSelectWalletHomeOnboardingStepsEnabled.mockReset();
+    });
+
+    it('is true when both inputs are true', () => {
+      mockSelectWalletHomeOnboardingStepsEnabled.mockReturnValue(true);
+      expect(
+        selectWalletHomeOnboardingFlowVisible(stateWithShouldShow(true)),
+      ).toBe(true);
+    });
+
+    it('is false when stepsEnabled is false', () => {
+      mockSelectWalletHomeOnboardingStepsEnabled.mockReturnValue(false);
+      expect(
+        selectWalletHomeOnboardingFlowVisible(stateWithShouldShow(true)),
+      ).toBe(false);
+    });
+
+    it('is false when shouldShow is false', () => {
+      mockSelectWalletHomeOnboardingStepsEnabled.mockReturnValue(true);
+      expect(
+        selectWalletHomeOnboardingFlowVisible(stateWithShouldShow(false)),
       ).toBe(false);
     });
   });

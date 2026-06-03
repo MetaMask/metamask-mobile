@@ -67,6 +67,8 @@ export const WalletViewSelectorsIDs = {
   PROFILE_BUTTON_AVATAR_NETWORK_SUBTITLE_CONTAINER:
     'profile-button-avatar-network-subtitle-container',
   HOMEPAGE_CONTAINER: 'homepage-container',
+  HOMEPAGE_MORE_SECTION: 'homepage-more-section',
+  HOMEPAGE_MORE_CONTACT_SUPPORT_BUTTON: 'homepage-more-contact-support-button',
   CAROUSEL_CONTAINER: 'carousel-container',
   CAROUSEL_PROGRESS_DOTS: 'progress-dots',
   CAROUSEL_SLIDE: (id: string | number): string => `carousel-slide-${id}`,
@@ -98,6 +100,15 @@ export const WalletViewSelectorsIDs = {
   WALLET_SCROLL_VIEW: 'wallet-scroll-view',
   HOMEPAGE_SECTION_TITLE: (sectionName: string): string =>
     `homepage-section-title-${sectionName}`,
+  TOKENS_SECTION_CONTAINER: 'tokens-section-container',
+  ACTION_BUTTONS_CONTAINER: 'wallet-action-buttons',
+  WALLET_TABS: 'wallet-tabs',
+  TOKENS_TAB_ITEM: 'wallet-tab-tokens',
+  PERPS_TAB_ITEM: 'wallet-tab-perps',
+  PREDICT_TAB_ITEM: 'wallet-tab-predict',
+  DEFI_TAB_ITEM: 'wallet-tab-defi',
+  NFTS_TAB_ITEM: 'wallet-tab-nfts',
+  VIEW_ALL_TOKENS_BUTTON: 'view-all-tokens-button',
 } as const;
 
 export const WalletViewSelectorsText = {

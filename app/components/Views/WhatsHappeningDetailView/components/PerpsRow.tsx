@@ -6,13 +6,14 @@ import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import {
   WhatsHappeningInteractionType,
   type WhatsHappeningSourceValue,
-} from '../../Homepage/Sections/WhatsHappening/constants';
-import { getWhatsHappeningEventProps } from '../../Homepage/Sections/WhatsHappening/eventProperties';
-import type { WhatsHappeningItem } from '../../Homepage/Sections/WhatsHappening/types';
+} from '../../../UI/WhatsHappening/constants';
+import { getWhatsHappeningEventProps } from '../../../UI/WhatsHappening/eventProperties';
+import type { WhatsHappeningItem } from '../../../UI/WhatsHappening/types';
 import { formatAssetPrice } from '../utils/formatAssetPrice';
 import type { PerpsPriceEntry } from '../hooks/useWhatsHappeningAssetPrices';
 import AssetRow from './AssetRow';
 import useTradeNavigation from '../hooks/useTradeNavigation';
+import { playImpact, ImpactMoment } from '../../../../util/haptics';
 
 interface PerpsRowProps {
   asset: RelatedAsset;
@@ -53,6 +54,7 @@ const PerpsRow: React.FC<PerpsRowProps> = ({
     if (!perpsMarket) {
       return;
     }
+    playImpact(ImpactMoment.PrimaryCTA);
     trackEvent(
       createEventBuilder(MetaMetricsEvents.WHATS_HAPPENING_INTERACTED)
         .addProperties({

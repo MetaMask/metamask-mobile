@@ -6,11 +6,6 @@ import { CaipAccountId, CaipAssetType, type Json } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import type { RewardsControllerMethodActions } from './RewardsController-method-action-types';
 
-/**
- * Crockford's Base32 alphabet — excludes I, L, O, U to avoid ambiguity.
- */
-export const BASE32_REGEX = /^[0-9A-HJKMNP-TV-Z]+$/i;
-
 export interface LoginResponseDto {
   sessionId: string;
   subscription: SubscriptionDto;
@@ -61,9 +56,7 @@ export type VipTierRefDto = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type VipProgressDto = {
   percent: number;
-  remainingSwapsUsd: number;
-  remainingPerpsUsd: number;
-  estimatedDaysToNextTier: number;
+  remainingPointsToNextTier: number;
   status: string;
 };
 
@@ -71,20 +64,26 @@ export type VipProgressDto = {
 export type VipFeesDto = {
   swapsBps: number;
   perpsBps: number;
+  revenueShareBps: number;
   nextTierSwapsBps: number;
   nextTierPerpsBps: number;
+  nextTierRevenueShareBps: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type VipVolumeDto = {
   swapsUsd: number;
   perpsUsd: number;
+  points: number;
+  pointsFromReferrals: number;
+  referrals: number;
+  referralsCap: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type VipPointsAllocationDto = {
+export type VipEquityAllocation = {
   earned: number;
-  max: number;
+  threshold: number;
   percent: number;
 };
 
@@ -93,10 +92,11 @@ export type VipTierDto = {
   id: string;
   name: string;
   tier: number;
-  swapsRequirementUsd: number;
-  perpsRequirementUsd: number;
+  pointsRequirement: number;
   swapsBps: number;
   perpsBps: number;
+  revenueShareBps: number;
+  referralCarryoverBps: number;
   status: string;
 };
 
@@ -105,17 +105,31 @@ export type VipTierDto = {
 // on these strings without a local i18n fallback.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type VipLocalizedTextDto = {
-  period: string;
-  progressToNextTier: string;
+  periodTitle: string;
+  memberIdTitle: string;
   swapsFeeTitle: string;
   perpsFeeTitle: string;
+  revenueShareTitle: string;
+  referralPointsTitle: string;
+  statsTitle: string;
+  pointsTitle: string;
+  swapsVolumeTitle: string;
+  pointsFromReferralsTitle: string;
+  perpsVolumeTitle: string;
+  vipReferralsTitle: string;
+  totalPointsTitle: string;
+  equityLockedTitle: string;
+  equityLockedDescription: string;
+  equityUnlockedTitle: string;
+  equityUnlockedDescription: string;
+  topTierDescription: string;
+  // The `nextTier…Delta` strings below carry the next tier's absolute value
+  // text (e.g. "↓ 12 bps next tier"), not a delta against the current tier.
+  // Naming is kept for wire-contract compatibility with the rewards API.
   nextTierSwapsFeeDelta: string;
   nextTierPerpsFeeDelta: string;
-  volumeTitle: string;
-  statusMessage: string;
-  pointsTitle: string;
-  pointsAllocationTitle: string;
-  pointsAllocationDescription: string;
+  nextTierRevenueShareDelta: string;
+  nextTierReferralPointsDelta: string;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -127,7 +141,7 @@ export type VipDashboardDto = {
   progress: VipProgressDto;
   fees: VipFeesDto;
   volume: VipVolumeDto;
-  pointsAllocation: VipPointsAllocationDto;
+  pointsAllocation: VipEquityAllocation;
   tiers: VipTierDto[];
   localizedText: VipLocalizedTextDto;
 };
@@ -872,8 +886,8 @@ export interface PerpsTradingCampaignLeaderboardEntry {
   referralCode: string;
   /** Signed USD PnL for the campaign window */
   pnl: number;
-  /** true when notional volume ≥ $25k */
-  qualified: boolean;
+  /** Cumulative volume traded during the competition window (USD) */
+  volume: number;
 }
 
 /**
@@ -884,21 +898,30 @@ export interface PerpsTradingCampaignLeaderboardDto {
   /** ISO timestamp — display as "last updated" (refreshes ~every 15 min) */
   computedAt: string;
   entries: PerpsTradingCampaignLeaderboardEntry[];
+  /** Number of eligible participants in this campaign */
   totalParticipants: number;
+  /** Minimum cumulative volume (USD) required to appear on the leaderboard */
+  minVolumeForEligibility: number;
 }
 
 /**
  * Response DTO for GET /perps-trading/:campaignId/leaderboard/me (authenticated).
  */
 export interface PerpsTradingCampaignLeaderboardPositionDto {
-  rank: number;
+  /** Null when the participant has not yet met the volume threshold. */
+  rank: number | null;
+  /** Number of eligible participants in this campaign */
+  totalParticipants: number;
   /** Signed USD PnL */
   pnl: number;
-  /** Cumulative notional volume traded during the competition window (USD) */
-  notionalVolume: number;
-  qualified: boolean;
-  neighbors: PerpsTradingCampaignLeaderboardEntry[];
+  /** Cumulative volume traded during the competition window (USD) */
+  volume: number;
   computedAt: string;
+  neighbors: PerpsTradingCampaignLeaderboardEntry[];
+  /** Whether this participant has met the minimum volume threshold */
+  eligible: boolean;
+  /** Minimum cumulative volume (USD) required to become eligible */
+  minVolumeForEligibility: number;
 }
 
 /**
@@ -917,23 +940,26 @@ export type PerpsTradingCampaignLeaderboardState = {
     rank: number;
     referralCode: string;
     pnl: number;
-    qualified: boolean;
+    volume: number;
   }[];
   totalParticipants: number;
+  minVolumeForEligibility: number;
   lastFetched: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PerpsTradingCampaignLeaderboardPositionFoundState = {
-  rank: number;
+  rank: number | null;
+  totalParticipants: number;
   pnl: number;
-  notionalVolume: number;
-  qualified: boolean;
+  volume: number;
+  eligible: boolean;
+  minVolumeForEligibility: number;
   neighbors: {
     rank: number;
     referralCode: string;
     pnl: number;
-    qualified: boolean;
+    volume: number;
   }[];
   computedAt: string;
   lastFetched: number;
@@ -1534,11 +1560,10 @@ export interface SeasonStatusDto {
   currentTierId: string;
 }
 
-export interface SubscriptionSeasonReferralDetailsDto {
+export interface SubscriptionReferralDetailsDto {
   referralCode: string;
   totalReferees: number;
   referredByCode: string;
-  referralPoints: number;
 }
 
 export interface PointsBoostEnvelopeDto {
@@ -1610,11 +1635,10 @@ export interface ClaimRewardDto {
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type SubscriptionSeasonReferralDetailState = {
+export type SubscriptionReferralDetailState = {
   referralCode: string;
   totalReferees: number;
   referredByCode: string;
-  referralPoints: number;
   lastFetched?: number;
 };
 
@@ -2070,7 +2094,7 @@ export type RewardsControllerState = {
   subscriptions: { [subscriptionId: string]: SubscriptionDto };
   seasons: { [seasonId: string]: SeasonDtoState };
   subscriptionReferralDetails: {
-    [compositeId: string]: SubscriptionSeasonReferralDetailState;
+    [subscriptionId: string]: SubscriptionReferralDetailState;
   };
   subscriptionBenefits: {
     [subscriptionId: string]: SubscriptionBenefitsState;
@@ -2128,6 +2152,8 @@ export type RewardsControllerState = {
   perpsTradingCampaignVolume: {
     [campaignId: string]: PerpsTradingCampaignVolumeState;
   };
+  /** Cached client version requirements for the public version guard endpoint. */
+  clientVersionRequirements: ClientVersionRequirementState | null;
   /**
    * History of points estimates for Customer Support diagnostics.
    * Stores the last N successful estimates to verify user-reported discrepancies.
@@ -2276,6 +2302,13 @@ export interface ClientVersionRequirementDto {
   minimumMobileVersion?: string;
   minimumExtensionVersion?: string;
 }
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type ClientVersionRequirementState = {
+  minimumMobileVersion?: string;
+  minimumExtensionVersion?: string;
+  lastFetched: number;
+};
 
 /**
  * The action which can be used to retrieve the state of the RewardsController.

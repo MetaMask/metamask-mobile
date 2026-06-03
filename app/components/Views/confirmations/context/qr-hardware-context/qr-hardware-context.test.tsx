@@ -105,7 +105,7 @@ jest.mock('../../hooks/useIsConfirmationFromLedgerAccount', () => ({
 jest.mock(
   '../../../../../core/HardwareWallet/hooks/useIsConfirmationFromQrAccount',
   () => ({
-    useIsConfirmationFromQrAccount: jest.fn(() => true),
+    useIsConfirmationFromQrAccount: jest.fn(() => false),
   }),
 );
 
@@ -229,7 +229,7 @@ describe('QRHardwareContext', () => {
     expect(getByText('Scan with your hardware wallet')).toBeTruthy();
   });
 
-  it('passes correct value of scannerVisible to child components', async () => {
+  it('renders Confirm button when QR signing is in progress', async () => {
     createCameraSpy({ cameraError: undefined, hasCameraPermission: true });
     createQRHardwareAwarenessSpy({
       isSigningQRObject: true,
@@ -246,10 +246,7 @@ describe('QRHardwareContext', () => {
         state: personalSignatureConfirmationState,
       },
     );
-    await userEvent.press(getByText('Get signature'));
-    expect(
-      getByText('Scan your hardware wallet to confirm the transaction'),
-    ).toBeTruthy();
+    expect(getByText('Confirm')).toBeTruthy();
   });
 });
 

@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 # Upload IPA to TestFlight via Fastlane
-# This script can be used in both Bitrise and GitHub Actions workflows
 #
 # Usage:
 #   ./scripts/upload-to-testflight.sh <pipeline_name> <branch> [ipa_path] [testflight_group] [distribute_external]
@@ -11,7 +10,7 @@
 #   branch              - Git branch name (required)
 #   ipa_path            - Optional: Direct path to IPA file (if not provided, uses find-ipa-file.sh)
 #   testflight_group    - Optional: TestFlight external testing group name (default: MetaMask BETA & Release Candidates)
-#   distribute_external - Optional: Whether to distribute to external testers (default: true)
+#   distribute_external - Optional: Whether to distribute to external testers (default: false)
 #
 # Environment variables:
 #   IPA_PATH - IPA path (set by find-ipa-file.sh if not provided as argument)
@@ -28,7 +27,7 @@ PIPELINE_NAME="$1"
 BRANCH="$2"
 LOCAL_IPA_PATH="$3"
 TESTFLIGHT_GROUP="${4:-MetaMask BETA & Release Candidates}"
-DISTRIBUTE_EXTERNAL="${5:-true}"
+DISTRIBUTE_EXTERNAL="${5:-false}"
 
 # Get IPA path: use argument if provided, otherwise use find-ipa-file.sh
 if [ -n "$LOCAL_IPA_PATH" ]; then
@@ -53,7 +52,6 @@ echo "Group: $TESTFLIGHT_GROUP"
 
 # Extract environment from pipeline name for changelog
 # GitHub Actions passes "github_actions_<build_name>" (e.g. github_actions_main-exp); use segment after first "-" (e.g. exp).
-# Bitrise and others pass pipeline title; use first segment before underscore.
 if [[ "$PIPELINE_NAME" == github_actions_* ]]; then
   suffix="${PIPELINE_NAME#github_actions_}"
   ENVIRONMENT=$(echo "${suffix#*-}" | tr '[:lower:]' '[:upper:]')

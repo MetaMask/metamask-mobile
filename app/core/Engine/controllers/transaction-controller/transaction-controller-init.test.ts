@@ -235,6 +235,9 @@ describe('Transaction Controller Init', () => {
       bufferSubsequent: 0.05,
       slippage: 0.005,
       stxDisabled: false,
+      enableDepositWalletWithdraw: false,
+      enablePerpsMoneyAccountTransactions: false,
+      enablePredictMoneyAccountTransactions: false,
     });
 
     payHookClassMock.mockReturnValue({
@@ -454,6 +457,9 @@ describe('Transaction Controller Init', () => {
         bufferSubsequent: 0.05,
         slippage: 0.005,
         stxDisabled: true,
+        enableDepositWalletWithdraw: false,
+        enablePerpsMoneyAccountTransactions: false,
+        enablePredictMoneyAccountTransactions: false,
       });
 
       const hooks = testConstructorOption('hooks');
@@ -471,6 +477,9 @@ describe('Transaction Controller Init', () => {
         bufferSubsequent: 0.05,
         slippage: 0.005,
         stxDisabled: false,
+        enableDepositWalletWithdraw: false,
+        enablePerpsMoneyAccountTransactions: false,
+        enablePredictMoneyAccountTransactions: false,
       });
 
       const hooks = testConstructorOption('hooks');
@@ -677,6 +686,48 @@ describe('Transaction Controller Init', () => {
 
         expect(Delegation7702PublishHookMock).not.toHaveBeenCalled();
         expect(mockDelegation7702Hook).not.toHaveBeenCalled();
+      });
+
+      it('skips Delegation7702PublishHook for revoke delegation transactions', async () => {
+        selectShouldUseSmartTransactionMock.mockReturnValue(false);
+        isSendBundleSupportedMock.mockResolvedValue(false);
+
+        const hooks = testConstructorOption('hooks');
+        const result = await hooks?.publish?.({
+          ...MOCK_TRANSACTION_META,
+          chainId: '0x13',
+          type: TransactionType.revokeDelegation,
+          isGasFeeSponsored: true,
+        });
+
+        expect(Delegation7702PublishHookMock).not.toHaveBeenCalled();
+        expect(mockDelegation7702Hook).not.toHaveBeenCalled();
+        expect(result).toEqual({ transactionHash: undefined });
+      });
+
+      it('keeps Smart Transactions eligible for revoke delegation transactions', async () => {
+        submitSmartTransactionHookMock.mockResolvedValue({
+          transactionHash: '0xsmarthash',
+        });
+
+        const hooks = testConstructorOption('hooks');
+        const result = await hooks?.publish?.({
+          ...MOCK_TRANSACTION_META,
+          chainId: '0x13',
+          type: TransactionType.revokeDelegation,
+          isGasFeeSponsored: true,
+        });
+
+        expect(Delegation7702PublishHookMock).not.toHaveBeenCalled();
+        expect(mockDelegation7702Hook).not.toHaveBeenCalled();
+        expect(submitSmartTransactionHookMock).toHaveBeenCalledWith(
+          expect.objectContaining({
+            transactionMeta: expect.objectContaining({
+              type: TransactionType.revokeDelegation,
+            }),
+          }),
+        );
+        expect(result?.transactionHash).toBe('0xsmarthash');
       });
 
       it('falls back to Delegation7702PublishHook when smart transactions are disabled', async () => {

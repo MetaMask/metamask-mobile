@@ -15,6 +15,8 @@ export interface MarketInsightsEntryCardProps {
    * by the parent component (AssetOverviewContent in the token details flow).
    */
   caip19Id?: CaipAssetType;
+  /** Surface from which the Market Insights feature was accessed */
+  source: 'token_details' | 'perps' | 'unknown';
   /** Optional test ID */
   testID?: string;
 }

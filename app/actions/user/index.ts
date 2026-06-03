@@ -26,7 +26,9 @@ import {
   type SetMusdConversionEducationSeenAction,
   type SetMusdConversionAssetDetailCtaSeenAction,
   type ClearMusdConversionAssetDetailCtasSeenAction,
+  type SetMoneyOnboardingSeenAction,
   type SetTokenOverviewChartTypeAction,
+  type SetOnboardingStepperStepAction,
   UserActionType,
 } from './types';
 
@@ -227,6 +229,18 @@ export function clearMusdConversionAssetDetailCtasSeen(): ClearMusdConversionAss
 }
 
 /**
+ * Action to set Money onboarding as seen
+ */
+export function setMoneyOnboardingSeen(
+  seen: boolean,
+): SetMoneyOnboardingSeenAction {
+  return {
+    type: UserActionType.SET_MONEY_ONBOARDING_SEEN,
+    payload: { seen },
+  };
+}
+
+/**
  * Action to set token overview chart type preference
  */
 export function setTokenOverviewChartType(
@@ -235,5 +249,20 @@ export function setTokenOverviewChartType(
   return {
     type: UserActionType.SET_TOKEN_OVERVIEW_CHART_TYPE,
     payload: { chartType },
+  };
+}
+
+/**
+ * Action to set the current step for a named onboarding stepper.
+ * Keyed by stepperId to support multiple independent steppers without
+ * adding new Redux fields per product.
+ */
+export function setOnboardingStepperStep(
+  stepperId: string,
+  step: number,
+): SetOnboardingStepperStepAction {
+  return {
+    type: UserActionType.SET_ONBOARDING_STEPPER_STEP,
+    payload: { stepperId, step },
   };
 }

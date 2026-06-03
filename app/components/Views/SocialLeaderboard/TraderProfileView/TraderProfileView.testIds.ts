@@ -10,4 +10,5 @@ export const TraderProfileViewSelectorsIDs = {
   SORT_BUTTON: 'trader-profile-sort-button',
   ERROR_BANNER: 'trader-profile-error-banner',
   TWITTER_LINK: 'trader-profile-twitter-link',
+  REFRESH_CONTROL: 'trader-profile-refresh-control',
 };

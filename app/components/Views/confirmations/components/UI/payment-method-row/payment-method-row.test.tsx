@@ -44,6 +44,16 @@ describe('PaymentMethodRow', () => {
     ).toBeOnTheScreen();
   });
 
+  it('renders the Last used label inside the tag with the localised string', () => {
+    const { getByTestId } = render(
+      <PaymentMethodRow {...baseProps} isLastUsed />,
+    );
+
+    expect(
+      getByTestId('payment-method-row-usdc-last-used-tag'),
+    ).toHaveTextContent('confirm.pay_with_bottom_sheet.last_used');
+  });
+
   it('does not render Last used tag when isLastUsed is false', () => {
     const { queryByTestId } = render(<PaymentMethodRow {...baseProps} />);
 
@@ -124,5 +134,25 @@ describe('PaymentMethodRow', () => {
     const { getByTestId } = render(<PaymentMethodRow {...baseProps} />);
 
     expect(getByTestId('payment-method-row-usdc-icon-slot')).toBeOnTheScreen();
+  });
+
+  it('renders the icon slot with a different style when isSelected is true', () => {
+    const { getByTestId: getByTestIdUnselected } = render(
+      <PaymentMethodRow {...baseProps} />,
+    );
+    const { getByTestId: getByTestIdSelected } = render(
+      <PaymentMethodRow {...baseProps} isSelected />,
+    );
+
+    const unselectedStyle = getByTestIdUnselected(
+      'payment-method-row-usdc-icon-slot',
+    ).props.style;
+    const selectedStyle = getByTestIdSelected(
+      'payment-method-row-usdc-icon-slot',
+    ).props.style;
+
+    expect(JSON.stringify(selectedStyle)).not.toEqual(
+      JSON.stringify(unselectedStyle),
+    );
   });
 });

@@ -20,7 +20,7 @@ flowchart TD
     Android & iOS & Both --> LABEL{{PR label: skip-smart-e2e-selection ?}}
     LABEL -->|yes| AllTags[Run all E2E needed]
     LABEL -->|no| AI[🤖 AI selects test suites + confidence score]
-    AI --> CONF{{Confidence >= 80% ?}}
+    AI --> CONF{{Confidence >= 85% ?}}
     CONF -->|yes| SelectedTags[Run selected E2E suites]
     CONF -->|no| AllTagsFallback[Run all E2E needed]
 ```
@@ -56,7 +56,7 @@ Flakiness detection is applied to modified E2E test files in PRs:
 
 ## Release branches
 
-PRs to release branches (cherry-picked from main) are exempt from the following:
+PRs to release branches (cherry-picks from main to release/\* branches and PRs to stable branch) are exempt from the following:
 
 - Label `pr-not-ready-for-e2e` is not applied
 - Smart AI E2E selection is skipped - all E2E suites are run (if changes are not ignorable-only, e.g. only docs)

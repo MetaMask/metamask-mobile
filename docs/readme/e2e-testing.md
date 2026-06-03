@@ -475,34 +475,6 @@ yarn run-playwright:ios
 
 **Important**: If the test fail to start, double check the OS version your simulator/emulator is running and make sure the config has the correct version.
 
-### Bitrise Pipelines Overview
-
-Our CI/CD process is automated through various Bitrise pipelines, each designed to streamline and optimize different aspects of our E2E testing.
-
-#### **1. Release_e2e_Pipeline**
-
-- **Workflows**:
-  - **Build**: Creates iOS and Android artifacts.
-  - **Test**: Executes regression tests across both platforms.
-- **Manual Trigger**: Typically run on release branches but can be manually triggered in the Bitrise dashboard.
-
-#### **2. App Launch Times Pipeline**
-
-- **Function**: Measures and monitors app launch times on real devices using BrowserStack to ensure consistent performance over time.
-- **Nightly**: Automatically runs on the main branch.
-- **Manual Trigger**: Select the desired branch in the Bitrise dashboard and choose `app_upgrade_pipeline` from the pipeline dropdown menu.
-
-#### **3. App Upgrade Pipeline**
-
-- **Function**: Automates testing of app upgrades to verify smooth transitions between versions.
-- **Configuration**: Requires the `PRODUCTION_APP_URL` environment variable to be set with the current production build's BrowserStack URL.You would need to search and update `PRODUCTION_APP_URL` in the bitrise.yml with the production browserstack build URL.
-- **Manual Trigger**: Select the desired branch in the Bitrise dashboard and choose `app_upgrade_pipeline` from the pipeline dropdown menu.
-
-### Test Reports in Bitrise
-
-- **Detox Tests**: Test reports are displayed directly in the Bitrise UI, offering a visual representation of test results and execution details. Screenshots on test failures are also captured and stored in a zip file. You can download these screenshots from the `Artifacts` tab in Bitrise.
-- **API Spec and Appium Tests**: HTML reporters generate and display test results. Access these HTML reports through the Bitrise build artifacts section for detailed analysis.
-
 ### Debugging Failed Tests
 
 - **Example**:

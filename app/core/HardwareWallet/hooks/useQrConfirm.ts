@@ -40,7 +40,7 @@ export function useQrConfirm({
     showHardwareWalletError,
   } = useHardwareWallet();
 
-  const { isSigningQRObject, setScannerVisible } = useQRHardwareContext();
+  const { isSigningQRObject } = useQRHardwareContext();
 
   const { approvalRequest } = useApprovalRequest();
   const transactionMetadata = useTransactionMetadataRequest();
@@ -78,9 +78,16 @@ export function useQrConfirm({
       return;
     }
 
-    // If QR signing is already in progress, open the camera scanner
+    // If QR signing is already in progress, re-show the awaiting-confirmation
+    // bottom sheet (which displays the QR code and its own scanner) rather than
+    // opening the QRInfo scanner that skips the QR-code display step.
     if (isSigningQRObject) {
-      setScannerVisible(true);
+      showAwaitingConfirmation(
+        isTransactionReq ? 'transaction' : 'message',
+        () => {
+          rejectOnce();
+        },
+      );
       return;
     }
 
@@ -112,7 +119,6 @@ export function useQrConfirm({
     showAwaitingConfirmation,
     hideAwaitingConfirmation,
     showHardwareWalletError,
-    setScannerVisible,
   ]);
 
   return { onConfirm };

@@ -2,16 +2,70 @@ import {
   MoneyAccountUpgradeController,
   type MoneyAccountUpgradeControllerMessenger,
 } from '@metamask/money-account-upgrade-controller';
-import { type Hex, hexToNumber } from '@metamask/utils';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
+import type { Hex } from '@metamask/utils';
+import { RpcEndpointType } from '@metamask/network-controller';
+import { toHex } from '@metamask/controller-utils';
+import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import type { MessengerClientInitFunction } from '../types';
 import type { MoneyAccountUpgradeControllerInitMessenger } from '../messengers/money-account-upgrade-controller-messenger';
-import { getDeleGatorEnvironment } from '../../Delegation/environment';
+import Engine from '../../Engine';
+import ReduxService from '../../redux';
+import type { RootState } from '../../../reducers';
+import {
+  getMoneyAccountVaultConfig,
+  type MoneyAccountVaultConfig,
+} from '../../../selectors/featureFlagController/moneyAccount';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
+import { PopularList } from '../../../util/networks/customNetworks';
+import { isMoneyAccountEnabled } from '../../../lib/Money/feature-flags';
 import Logger from '../../../util/Logger';
 
-// TODO: source this from a feature flag (parallel to ChompApiConfig.baseUrl)
-// so we can add/swap MUSD chains without a code deploy.
-const MUSD_CHAIN_ID: Hex = CHAIN_IDS.ARBITRUM;
+/**
+ * Ensures the given chain exists in the user's NetworkController configuration.
+ * If missing, adds it from `PopularList`. The upgrade flow's
+ * `eip-7702-authorization` step calls
+ * `NetworkController:findNetworkClientIdByChainId`, which throws if the chain
+ * hasn't been configured, and Monad is not enabled by default
+ * so we need to  make sure it's there before init runs.
+ */
+const ensureChainConfigured = async (chainId: Hex): Promise<void> => {
+  const networkConfigurations = selectEvmNetworkConfigurationsByChainId(
+    ReduxService.store.getState() as RootState,
+  );
+  if (networkConfigurations[chainId]) {
+    return;
+  }
+
+  const popularEntry = PopularList.find(
+    (network) => toHex(network.chainId as string) === chainId,
+  );
+  if (!popularEntry) {
+    throw new Error(
+      `Money Account upgrade chain ${chainId} is not in PopularList; cannot auto-add to NetworkController`,
+    );
+  }
+
+  await Engine.context.NetworkController.addNetwork({
+    chainId,
+    blockExplorerUrls: popularEntry.rpcPrefs?.blockExplorerUrl
+      ? [popularEntry.rpcPrefs.blockExplorerUrl]
+      : [],
+    defaultRpcEndpointIndex: 0,
+    defaultBlockExplorerUrlIndex: popularEntry.rpcPrefs?.blockExplorerUrl
+      ? 0
+      : undefined,
+    name: popularEntry.nickname,
+    nativeCurrency: popularEntry.ticker,
+    rpcEndpoints: [
+      {
+        url: popularEntry.rpcUrl,
+        failoverUrls: popularEntry.failoverRpcUrls,
+        name: popularEntry.nickname,
+        type: RpcEndpointType.Custom,
+      },
+    ],
+  });
+};
 
 let bootstrapPromise: Promise<void> | null = null;
 
@@ -40,15 +94,19 @@ export const __resetMoneyAccountUpgradeBootstrapForTesting = () => {
 /**
  * Initialize the MoneyAccountUpgradeController.
  *
- * The upgrade controller needs a bearer token (via ChompApiService →
- * AuthenticationController) to fetch service details, which is only available
- * once the keyring is unlocked. We therefore defer bootstrapping until the
- * first unlock event (or run it immediately if the keyring is already
- * unlocked).
+ * Bootstrapping is controlled by two signals: the `moneyEnableMoneyAccount`
+ * remote feature flag being on and the keyring being unlocked.
+ *
+ * The flag value and vault config are sourced from the
+ * `RemoteFeatureFlagController` directly (via `getState` at startup and the
+ * `stateChange` event for later updates). We deliberately avoid reading
+ * vaultConfig from Redux at bootstrap time because Redux is updated via the
+ * `EngineService` batcher (a 250ms-debounced dispatch) and would be stale
+ * relative to the controller state we are reacting to.
  *
  * @param request - The request object.
  * @param request.controllerMessenger - The messenger to use for the controller.
- * @param request.initMessenger - The init messenger for unlock signals.
+ * @param request.initMessenger - The init messenger for unlock and feature-flag signals.
  * @returns The initialized controller.
  */
 export const moneyAccountUpgradeControllerInit: MessengerClientInitFunction<
@@ -60,54 +118,79 @@ export const moneyAccountUpgradeControllerInit: MessengerClientInitFunction<
     messenger: controllerMessenger,
   });
 
-  const bootstrap = async () => {
-    const serviceDetails = await controllerMessenger.call(
-      'ChompApiService:getServiceDetails',
-      [MUSD_CHAIN_ID],
-    );
+  const bootstrap = async (vaultConfig: MoneyAccountVaultConfig) => {
+    const chainId = vaultConfig.chainId as Hex;
 
-    if (!serviceDetails) {
-      throw new Error(
-        `Missing CHOMP service details for chain ${MUSD_CHAIN_ID}`,
-      );
-    }
+    await ensureChainConfigured(chainId);
 
-    const chain = serviceDetails.chains[MUSD_CHAIN_ID];
-    const musdTokenAddress =
-      chain?.protocol.vedaProtocol?.supportedTokens[0]?.tokenAddress;
-    if (!musdTokenAddress) {
-      throw new Error(
-        `Missing MUSD token address for chain ${MUSD_CHAIN_ID} in CHOMP service details`,
-      );
-    }
-
-    const environment = getDeleGatorEnvironment(hexToNumber(MUSD_CHAIN_ID));
-
-    await controller.init(MUSD_CHAIN_ID, {
-      musdTokenAddress,
-      delegatorImplAddress: environment.EIP7702StatelessDeleGatorImpl,
-      redeemerEnforcer: environment.caveatEnforcers.RedeemerEnforcer,
-      valueLteEnforcer: environment.caveatEnforcers.ValueLteEnforcer,
+    await controller.init({
+      chainId,
+      boringVaultAddress: vaultConfig.boringVault as Hex,
     });
   };
 
-  const runBootstrap = () => {
-    bootstrapPromise = bootstrap();
+  const runBootstrap = (vaultConfig: MoneyAccountVaultConfig) => {
+    bootstrapPromise = bootstrap(vaultConfig);
     bootstrapPromise.catch((error) => {
       Logger.error(error as Error, 'MoneyAccountUpgradeController bootstrap');
     });
   };
 
-  const keyringState = initMessenger.call('KeyringController:getState');
+  let bootstrapScheduled = false;
+  const scheduleBootstrap = (vaultConfig: MoneyAccountVaultConfig) => {
+    if (bootstrapScheduled) {
+      return;
+    }
+    bootstrapScheduled = true;
 
-  if (keyringState.isUnlocked) {
-    runBootstrap();
-  } else {
-    const onUnlock = () => {
-      initMessenger.unsubscribe('KeyringController:unlock', onUnlock);
-      runBootstrap();
-    };
-    initMessenger.subscribe('KeyringController:unlock', onUnlock);
+    const { isUnlocked } = initMessenger.call('KeyringController:getState');
+    if (isUnlocked) {
+      runBootstrap(vaultConfig);
+    } else {
+      const onUnlock = () => {
+        initMessenger.unsubscribe('KeyringController:unlock', onUnlock);
+        runBootstrap(vaultConfig);
+      };
+      initMessenger.subscribe('KeyringController:unlock', onUnlock);
+    }
+  };
+
+  const mergedFlags = (state: RemoteFeatureFlagControllerState) => ({
+    ...state.remoteFeatureFlags,
+    ...(state.localOverrides ?? {}),
+  });
+
+  const tryStart = (state: RemoteFeatureFlagControllerState): boolean => {
+    const flags = mergedFlags(state);
+    if (!isMoneyAccountEnabled(flags)) {
+      return false;
+    }
+    const vaultConfig = getMoneyAccountVaultConfig(flags);
+    if (!vaultConfig) {
+      Logger.error(
+        new Error('Missing Money Account vault config'),
+        'MoneyAccountUpgradeController bootstrap',
+      );
+      return false;
+    }
+    scheduleBootstrap(vaultConfig);
+    return true;
+  };
+
+  const onFlagChange = (state: RemoteFeatureFlagControllerState) => {
+    if (tryStart(state)) {
+      initMessenger.unsubscribe(
+        'RemoteFeatureFlagController:stateChange',
+        onFlagChange,
+      );
+    }
+  };
+
+  if (!tryStart(initMessenger.call('RemoteFeatureFlagController:getState'))) {
+    initMessenger.subscribe(
+      'RemoteFeatureFlagController:stateChange',
+      onFlagChange,
+    );
   }
 
   return { controller };

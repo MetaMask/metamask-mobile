@@ -22,6 +22,7 @@ describe(SmokeSnaps('Preinstalled Snap Tests'), () => {
         fixture: new FixtureBuilder().withMetaMetricsOptIn().build(),
         restartDevice: true,
         skipReactNativeReload: true,
+        disableSynchronization: true,
         analyticsExpectations: testSnapPreinstalledAnalyticsExpectations,
       },
       async () => {

@@ -28,16 +28,26 @@ interface RenderPredictFeedOptions {
  */
 function createWrappedPredictFeed(): React.ComponentType {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
+    defaultOptions: { queries: { retry: false, cacheTime: 0 } },
   });
 
-  return (props: Record<string, unknown>) => (
-    <QueryClientProvider client={queryClient}>
-      <PredictPreviewSheetProvider>
-        <PredictFeed {...(props as object)} />
-      </PredictPreviewSheetProvider>
-    </QueryClientProvider>
-  );
+  return function WrappedPredictFeed(props: Record<string, unknown>) {
+    React.useEffect(
+      () => () => {
+        queryClient.cancelQueries();
+        queryClient.clear();
+      },
+      [],
+    );
+
+    return (
+      <QueryClientProvider client={queryClient}>
+        <PredictPreviewSheetProvider>
+          <PredictFeed {...(props as object)} />
+        </PredictPreviewSheetProvider>
+      </QueryClientProvider>
+    );
+  };
 }
 
 function createNavigationContextValue() {

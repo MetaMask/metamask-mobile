@@ -55,6 +55,7 @@ jest.mock('../info/custom-amount-info', () => ({
 
 jest.mock('../../hooks/gas/useGasFeeToken');
 jest.mock('../../hooks/tokens/useTokenWithBalance');
+jest.mock('../../hooks/pay/useTransactionPayAutoFiatSubmission');
 
 jest.mock('../../../../hooks/useRefreshSmartTransactionsLiveness', () => ({
   useRefreshSmartTransactionsLiveness: jest.fn(),
@@ -173,9 +174,10 @@ describe('Info', () => {
     ).toBeDefined();
   });
 
-  it('renders QRInfo if user is signing using QR hardware', () => {
+  it('renders QRInfo if user is signing using QR hardware and has confirmed', () => {
     jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
       isSigningQRObject: true,
+      signingConfirmed: true,
     } as unknown as QRHardwareHook.QRHardwareContextType);
     const { getByTestId } = renderWithProvider(<Info />, {
       state: personalSignatureConfirmationState,

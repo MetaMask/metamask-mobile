@@ -4,12 +4,18 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import PerpsRow from './PerpsRow';
 import Routes from '../../../../constants/navigation/Routes';
 import type { RelatedAsset } from '@metamask/ai-controllers';
-import type { WhatsHappeningItem } from '../../Homepage/Sections/WhatsHappening/types';
+import type { WhatsHappeningItem } from '../../../UI/WhatsHappening/types';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 import type { PerpsPriceEntry } from '../hooks/useWhatsHappeningAssetPrices';
 
 const mockNavigate = jest.fn();
 const mockTrackEvent = jest.fn();
+const mockPlayImpact = jest.fn();
+
+jest.mock('../../../../util/haptics', () => ({
+  playImpact: (moment: string) => mockPlayImpact(moment),
+  ImpactMoment: { PrimaryCTA: 'primaryCta' },
+}));
 const mockCreateEventBuilder = jest.fn((eventName: string) => ({
   addProperties: jest.fn((properties: Record<string, unknown>) => ({
     build: jest.fn(() => ({ category: eventName, properties })),
@@ -178,6 +184,37 @@ describe('PerpsRow', () => {
         }),
       }),
     );
+  });
+
+  it('plays primary CTA haptic feedback on Trade press', () => {
+    renderWithProvider(
+      <PerpsRow
+        asset={perpsOnlyAsset}
+        item={mockItem}
+        cardIndex={0}
+        source="homepage"
+        perpsPriceBySymbol={emptyPriceMap}
+      />,
+    );
+    fireEvent.press(screen.getByText('Trade'));
+    expect(mockPlayImpact).toHaveBeenCalledWith('primaryCta');
+  });
+
+  it('does not play haptic feedback when perps market is missing', () => {
+    const assetNoPerps: RelatedAsset = {
+      ...perpsOnlyAsset,
+      hlPerpsMarket: [],
+    };
+    renderWithProvider(
+      <PerpsRow
+        asset={assetNoPerps}
+        item={mockItem}
+        cardIndex={0}
+        source="homepage"
+        perpsPriceBySymbol={emptyPriceMap}
+      />,
+    );
+    expect(mockPlayImpact).not.toHaveBeenCalled();
   });
 
   it('displays price and 24h change from perpsPriceBySymbol', () => {
