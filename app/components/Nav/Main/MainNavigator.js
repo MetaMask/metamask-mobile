@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  useCallback,
+} from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
 import {
   createStackNavigator,
@@ -161,6 +167,7 @@ import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
 import BenefitFullView from '../../UI/Rewards/Views/BenefitFullView';
 import BenefitsFullView from '../../UI/Rewards/Views/BenefitsFullView';
 import { getDeFiProtocolPositionDetailsNavbarOptions } from '../../UI/Navbar';
+import MoneyTabPressTracker from '../../UI/Money/components/MoneyTabPressTracker';
 
 const Stack = createStackNavigator();
 const NativeStack = createNativeStackNavigator();
@@ -592,6 +599,12 @@ const HomeTabs = () => {
 
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
 
+  const trackMoneyTabPressRef = useRef(null);
+
+  const registerMoneyTabPressTracker = useCallback((fn) => {
+    trackMoneyTabPressRef.current = fn;
+  }, []);
+
   const accountsLength = useSelector(selectAccountsLength);
 
   const chainId = useSelector((state) => {
@@ -653,6 +666,9 @@ const HomeTabs = () => {
     },
     money: {
       tabBarIconKey: TabBarIconKey.Money,
+      callback: () => {
+        trackMoneyTabPressRef.current?.();
+      },
       rootScreenName: Routes.MONEY.HOME,
     },
     rewards: {
@@ -779,6 +795,9 @@ const HomeTabs = () => {
      * Retry toasts so we don't double-fire when both are mounted.
      */
     <PredictPreviewSheetProvider>
+      {isMoneyAccountEnabled ? (
+        <MoneyTabPressTracker onRegister={registerMoneyTabPressTracker} />
+      ) : null}
       <Tab.Navigator
         initialRouteName={Routes.WALLET.HOME}
         tabBar={renderTabBar}

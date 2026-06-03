@@ -1,0 +1,42 @@
+import { useEffect } from 'react';
+import { COMPONENT_NAMES } from '../../constants/moneyEvents';
+import { LABEL_BY_TAB_BAR_ICON_KEY } from '../../../../../component-library/components/Navigation/TabBar/TabBar.constants';
+import { TabBarIconKey } from '../../../../../component-library/components/Navigation/TabBar/TabBar.types';
+import { strings } from '../../../../../../locales/i18n';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+
+/**
+ * Renders nothing — exists purely to host the Money analytics hook chain so it
+ * is only mounted when the Money account feature flag is enabled. It publishes
+ * `trackButtonClicked` to the provided ref so the Money tab's press callback
+ * (defined in HomeTabs) can fire the event without HomeTabs itself depending on
+ * `useMoneyAnalytics` for every user.
+ */
+
+interface MoneyTabPressTrackerProps {
+  onRegister: (fn: (() => void) | null) => void;
+}
+
+// TODO: Add tests
+const MoneyTabPressTracker = ({ onRegister }: MoneyTabPressTrackerProps) => {
+  const { trackButtonClicked } = useMoneyAnalytics({
+    component_name: COMPONENT_NAMES.HOME_TAB,
+  });
+
+  useEffect(() => {
+    onRegister(() => {
+      const labelKey = LABEL_BY_TAB_BAR_ICON_KEY[TabBarIconKey.Money];
+      trackButtonClicked({
+        label_en: strings(labelKey, { locale: 'en' }),
+        label_localized: strings(labelKey),
+      });
+    });
+    return () => {
+      onRegister(null);
+    };
+  }, [trackButtonClicked, onRegister]);
+
+  return null;
+};
+
+export default MoneyTabPressTracker;
