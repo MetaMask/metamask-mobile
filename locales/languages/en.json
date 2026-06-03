@@ -2507,6 +2507,21 @@
       "politics": "Politics",
       "hot": "Hot"
     },
+    "feed": {
+      "live": "Live",
+      "popular_today": "Popular today",
+      "tabs": {
+        "basketball": "Basketball",
+        "tennis": "Tennis",
+        "soccer": "Soccer",
+        "baseball": "Baseball",
+        "football": "Football"
+      },
+      "filters": {
+        "all": "All",
+        "live": "Live"
+      }
+    },
     "search_placeholder": "Search prediction markets",
     "search_cancel": "Cancel",
     "search_empty_state": "No {{category}} markets available",
