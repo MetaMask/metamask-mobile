@@ -323,6 +323,29 @@ describe('useContinueWithQuote', () => {
       );
     });
 
+    it('throws before fetching the quote when no payment method resolves', async () => {
+      mockUseRampsController.mockReturnValue(
+        buildController({
+          selectedProvider: NATIVE_PROVIDER,
+          selectedPaymentMethod: null,
+        }),
+      );
+      mockCheckExistingToken.mockResolvedValue(true);
+
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      const caught = await invoke(result, NATIVE_PROVIDER_QUOTE);
+
+      expect(caught).toBeInstanceOf(Error);
+      expect(mockCheckExistingToken).not.toHaveBeenCalled();
+      expect(mockGetBuyQuote).not.toHaveBeenCalled();
+      expect(mockReportRampsError).toHaveBeenCalledWith(
+        expect.any(Error),
+        { message: 'Missing payment method for native provider flow' },
+        'deposit.buildQuote.unexpectedError',
+      );
+    });
+
     it('throws when transakGetBuyQuote returns null', async () => {
       mockCheckExistingToken.mockResolvedValue(true);
       mockGetBuyQuote.mockResolvedValue(null);

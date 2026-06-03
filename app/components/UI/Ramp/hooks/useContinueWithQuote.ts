@@ -150,6 +150,19 @@ export function useContinueWithQuote(
       const effectiveChainId = ctx.chainId ?? selectedToken?.chainId ?? '';
       const effectivePaymentMethodId =
         ctx.paymentMethodId ?? selectedPaymentMethod?.id ?? '';
+      // The native Transak quote fetch requires a payment method. An empty
+      // value gets dropped from the request query and Transak rejects it with
+      // HTTP 400, so fail fast with a reported error instead of issuing a
+      // request that can never succeed.
+      if (!effectivePaymentMethodId) {
+        throw new Error(
+          reportRampsError(
+            new Error('Native provider flow requires a payment method'),
+            { message: 'Missing payment method for native provider flow' },
+            strings('deposit.buildQuote.unexpectedError'),
+          ),
+        );
+      }
       try {
         const hasToken = await transakCheckExistingToken();
 
