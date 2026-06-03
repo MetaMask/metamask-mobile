@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Image, TouchableOpacity, View, ViewStyle } from 'react-native';
+import { Image, TouchableOpacity } from 'react-native';
 import {
   Box,
   Button,
@@ -49,8 +49,6 @@ const StepperCard = ({
 
   const step = steps[currentStep];
 
-  const imageWrapperStyle: ViewStyle = { width: '100%', aspectRatio: 16 / 9 };
-
   return (
     <Box
       twClassName="rounded-2xl bg-muted overflow-hidden"
@@ -58,13 +56,13 @@ const StepperCard = ({
     >
       {/* Image */}
       <Box twClassName="p-4">
-        <View testID={getTestId('step-image')} style={imageWrapperStyle}>
+        <Box testID={getTestId('step-image')} twClassName="w-full aspect-video">
           <Image
             source={step.image}
             style={tw.style('w-full h-full')}
             resizeMode="contain"
           />
-        </View>
+        </Box>
       </Box>
 
       {/* Content */}

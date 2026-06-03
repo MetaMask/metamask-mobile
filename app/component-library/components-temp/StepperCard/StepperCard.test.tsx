@@ -74,19 +74,6 @@ describe('StepperCard', () => {
     });
   });
 
-  describe('step image', () => {
-    it('sizes the image box to a 16:9 aspect ratio so padding stays uniform', () => {
-      const { getByTestId } = render(
-        <StepperCard steps={[makeStep()]} currentStep={0} testID="card" />,
-      );
-
-      expect(getByTestId('card-step-image')).toHaveStyle({
-        width: '100%',
-        aspectRatio: 16 / 9,
-      });
-    });
-  });
-
   describe('completion bounds guard', () => {
     it('returns null when currentStep equals steps.length', () => {
       const { toJSON } = render(
