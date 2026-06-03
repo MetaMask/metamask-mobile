@@ -96,6 +96,24 @@ const getQueryParam = (
   return value && value.trim() !== '' ? value : undefined;
 };
 
+const escapeRegExp = (value: string): string =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
+ * Read a query param from the raw query string without applying
+ * application/x-www-form-urlencoded `+` → space conversion.
+ */
+const getRawQueryParam = (
+  queryString: string,
+  key: string,
+): string | undefined => {
+  const match = queryString.match(
+    new RegExp(`(?:^|&)${escapeRegExp(key)}=([^&]*)`),
+  );
+  const value = match?.[1];
+  return value && value.trim() !== '' ? value : undefined;
+};
+
 export const getApprovalHost = (): string => {
   const buildType = getBuildType();
 
@@ -167,20 +185,21 @@ export const AgenticCliApprovalService = {
    */
   parseDeeplinkQuery(agenticCliPath?: string): AgenticCliApprovalParams {
     const path = agenticCliPath ?? '';
-    const searchParams = new URLSearchParams(
-      path.includes('?')
-        ? path.split('?')[1]
-        : path.startsWith('?')
-          ? path.slice(1)
-          : path,
-    );
+    const queryString = path.includes('?')
+      ? path.split('?')[1]
+      : path.startsWith('?')
+        ? path.slice(1)
+        : path;
+    const searchParams = new URLSearchParams(queryString);
 
     return {
       approvalPagePath: getQueryParam(searchParams, 'approvalPagePath'),
       projectId: getQueryParam(searchParams, 'projectId'),
       approvalId: getQueryParam(searchParams, 'approvalId'),
       subjectId: getQueryParam(searchParams, 'subjectId'),
-      mimirSignature: getQueryParam(searchParams, 'mimir_signature'),
+      // Base64-style signatures may contain literal `+`; URLSearchParams would
+      // misread those as spaces, so read the raw value and decode separately.
+      mimirSignature: getRawQueryParam(queryString, 'mimir_signature'),
       operationType: getQueryParam(searchParams, 'operationType'),
     };
   },

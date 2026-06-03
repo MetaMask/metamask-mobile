@@ -193,6 +193,22 @@ describe('handleAgenticCliApproval', () => {
       },
     );
   });
+
+  it('preserves literal plus signs in mimir_signature when navigating', () => {
+    handleAgenticCliApproval({
+      actionPath:
+        '?projectId=project-1&approvalId=approval-1&mimir_signature=abc+def/ghi=',
+    });
+
+    jest.advanceTimersByTime(200);
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.AGENTIC_CLI_APPROVAL.CONFIRM,
+      expect.objectContaining({
+        mimirSignature: 'abc+def/ghi=',
+      }),
+    );
+  });
 });
 
 describe('parseAgenticCliApprovalParams', () => {

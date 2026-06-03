@@ -157,6 +157,24 @@ describe('AgenticCliApprovalService', () => {
         subjectId: '0xabc',
       });
     });
+
+    it('preserves literal plus signs in mimir_signature', () => {
+      expect(
+        AgenticCliApprovalService.parseDeeplinkQuery(
+          '?projectId=project-1&approvalId=approval-1&mimir_signature=abc+def/ghi=',
+        ).mimirSignature,
+      ).toBe('abc+def/ghi=');
+    });
+
+    it('still decodes percent-encoded mimir_signature values', () => {
+      expect(
+        AgenticCliApprovalService.decodeDeeplinkParam(
+          AgenticCliApprovalService.parseDeeplinkQuery(
+            '?projectId=project-1&approvalId=approval-1&mimir_signature=sig%2Fwith%2Bchars',
+          ).mimirSignature,
+        ),
+      ).toBe('sig/with+chars');
+    });
   });
 
   describe('getAuthToken', () => {
