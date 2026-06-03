@@ -8,7 +8,7 @@ import { AgenticCliApprovalService } from '../../../../components/Views/AgenticC
  * Handles `https://link.metamask.io/agentic-cli` deeplinks.
  *
  * Preferred query string:
- * `?approvalPagePath=/agentic/approval&projectId=<id>&approvalId=<approvalId>&mimir_signature=<sig>`
+ * `?approvalPagePath=/agentic/approval&projectId=<id>&approvalId=<approvalId>&mimirSignature=<sig>`
  *
  * Dashboard host is always chosen on-device from build type. `approvalPagePath`
  * may override only the path segment (default `/agentic/login`).

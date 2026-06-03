@@ -146,7 +146,7 @@ describe('AgenticCliApprovalService', () => {
     it('parses approvalPagePath and other query params', () => {
       expect(
         AgenticCliApprovalService.parseDeeplinkQuery(
-          '?approvalPagePath=%2Fagentic%2Fapproval&projectId=project-1&approvalId=approval-1&mimir_signature=signature-1&operationType=wallet_mode_change&subjectId=0xabc',
+          '?approvalPagePath=%2Fagentic%2Fapproval&projectId=project-1&approvalId=approval-1&mimirSignature=signature-1&operationType=wallet_mode_change&subjectId=0xabc',
         ),
       ).toEqual({
         approvalPagePath: '/agentic/approval',
@@ -158,19 +158,19 @@ describe('AgenticCliApprovalService', () => {
       });
     });
 
-    it('preserves literal plus signs in mimir_signature', () => {
+    it('preserves literal plus signs in mimirSignature', () => {
       expect(
         AgenticCliApprovalService.parseDeeplinkQuery(
-          '?projectId=project-1&approvalId=approval-1&mimir_signature=abc+def/ghi=',
+          '?projectId=project-1&approvalId=approval-1&mimirSignature=abc+def/ghi=',
         ).mimirSignature,
       ).toBe('abc+def/ghi=');
     });
 
-    it('still decodes percent-encoded mimir_signature values', () => {
+    it('still decodes percent-encoded mimirSignature values', () => {
       expect(
         AgenticCliApprovalService.decodeDeeplinkParam(
           AgenticCliApprovalService.parseDeeplinkQuery(
-            '?projectId=project-1&approvalId=approval-1&mimir_signature=sig%2Fwith%2Bchars',
+            '?projectId=project-1&approvalId=approval-1&mimirSignature=sig%2Fwith%2Bchars',
           ).mimirSignature,
         ),
       ).toBe('sig/with+chars');
@@ -265,7 +265,7 @@ describe('AgenticCliApprovalService', () => {
       );
 
       expect(url).toBe(
-        'https://developer.metamask.io/agentic/login?projectId=project-1&approvalId=approval-1&mimir_signature=signature-1&operationType=transaction_request&subjectId=subject-1#auth_token=bearer%20token',
+        'https://developer.metamask.io/agentic/login?projectId=project-1&approvalId=approval-1&mimirSignature=signature-1&operationType=transaction_request&subjectId=subject-1#auth_token=bearer%20token',
       );
     });
 
@@ -307,7 +307,7 @@ describe('AgenticCliApprovalService', () => {
         'token-1',
       );
 
-      expect(new URL(url).searchParams.get('mimir_signature')).toBe(
+      expect(new URL(url).searchParams.get('mimirSignature')).toBe(
         'sig/with+chars',
       );
       expect(new URL(url).host).toBe('test-dashboard.web3auth.io');

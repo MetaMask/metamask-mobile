@@ -45,7 +45,7 @@ describe('handleAgenticCliApproval', () => {
   it('uses the default login path when agentic-cli deeplink omits approvalPagePath', () => {
     handleAgenticCliApproval({
       actionPath:
-        '?projectId=project-1&approvalId=approval-1&mimir_signature=signature-1&operationType=wallet_mode_change&subjectId=0xabc',
+        '?projectId=project-1&approvalId=approval-1&mimirSignature=signature-1&operationType=wallet_mode_change&subjectId=0xabc',
     });
 
     jest.advanceTimersByTime(200);
@@ -169,10 +169,9 @@ describe('handleAgenticCliApproval', () => {
     );
   });
 
-  it('navigates with undefined mimirSignature when mimir_signature fails to decode', () => {
+  it('navigates with undefined mimirSignature when mimirSignature fails to decode', () => {
     handleAgenticCliApproval({
-      actionPath:
-        '?projectId=project-1&approvalId=approval-1&mimir_signature=%',
+      actionPath: '?projectId=project-1&approvalId=approval-1&mimirSignature=%',
     });
 
     jest.advanceTimersByTime(200);
@@ -194,10 +193,10 @@ describe('handleAgenticCliApproval', () => {
     );
   });
 
-  it('preserves literal plus signs in mimir_signature when navigating', () => {
+  it('preserves literal plus signs in mimirSignature when navigating', () => {
     handleAgenticCliApproval({
       actionPath:
-        '?projectId=project-1&approvalId=approval-1&mimir_signature=abc+def/ghi=',
+        '?projectId=project-1&approvalId=approval-1&mimirSignature=abc+def/ghi=',
     });
 
     jest.advanceTimersByTime(200);
@@ -275,7 +274,7 @@ describe('parseAgenticCliApprovalParams', () => {
   it('forwards approvalPagePath from the deeplink', () => {
     expect(
       parseAgenticCliApprovalParams(
-        '?approvalPagePath=%2Fagentic%2Flogin&projectId=project-1&approvalId=approval-1&mimir_signature=signature-1&operationType=wallet_mode_change&subjectId=0xabc',
+        '?approvalPagePath=%2Fagentic%2Flogin&projectId=project-1&approvalId=approval-1&mimirSignature=signature-1&operationType=wallet_mode_change&subjectId=0xabc',
       ),
     ).toEqual({
       approvalPagePath: '/agentic/login',

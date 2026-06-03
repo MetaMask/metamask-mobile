@@ -199,7 +199,7 @@ export const AgenticCliApprovalService = {
       subjectId: getQueryParam(searchParams, 'subjectId'),
       // Base64-style signatures may contain literal `+`; URLSearchParams would
       // misread those as spaces, so read the raw value and decode separately.
-      mimirSignature: getRawQueryParam(queryString, 'mimir_signature'),
+      mimirSignature: getRawQueryParam(queryString, 'mimirSignature'),
       operationType: getQueryParam(searchParams, 'operationType'),
     };
   },
@@ -248,7 +248,7 @@ export const AgenticCliApprovalService = {
     if (projectId) url.searchParams.set('projectId', projectId);
     if (approvalId) url.searchParams.set('approvalId', approvalId);
     if (mimirSignature) {
-      url.searchParams.set('mimir_signature', mimirSignature);
+      url.searchParams.set('mimirSignature', mimirSignature);
     }
     if (operationType) url.searchParams.set('operationType', operationType);
     if (subjectId) url.searchParams.set('subjectId', subjectId);
