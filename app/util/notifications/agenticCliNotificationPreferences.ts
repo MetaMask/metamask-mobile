@@ -27,15 +27,15 @@ export const DEFAULT_AGENTIC_CLI_PREFERENCE: AgenticCliPreference = {
 
 const readAgenticCliFromPreferences = (
   preferences: NotificationPreferences | null | undefined,
-): AgenticCliPreference | undefined => (preferences as NotificationStoragePreferencesWithAgenticCli | null)?.[
+): AgenticCliPreference | undefined =>
+  (preferences as NotificationStoragePreferencesWithAgenticCli | null)?.[
     AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION
   ];
 
 export const resolveAgenticCliPreference = (
   preferences: NotificationPreferences | null | undefined,
-): AgenticCliPreference => (
-    readAgenticCliFromPreferences(preferences) ?? DEFAULT_AGENTIC_CLI_PREFERENCE
-  );
+): AgenticCliPreference =>
+  readAgenticCliFromPreferences(preferences) ?? DEFAULT_AGENTIC_CLI_PREFERENCE;
 
 /**
  * Merges `agenticCli` from API data and optional React Query cache (same session).
