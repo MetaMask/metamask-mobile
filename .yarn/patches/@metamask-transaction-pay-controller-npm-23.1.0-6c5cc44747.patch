@@ -1,0 +1,440 @@
+diff --git a/dist/TransactionPayController.cjs b/dist/TransactionPayController.cjs
+index 62dc35f..fae8dee 100644
+--- a/dist/TransactionPayController.cjs
++++ b/dist/TransactionPayController.cjs
+@@ -26,6 +26,7 @@ const source_amounts_1 = require("./utils/source-amounts.cjs");
+ const token_1 = require("./utils/token.cjs");
+ const transaction_1 = require("./utils/transaction.cjs");
+ const MESSENGER_EXPOSED_METHODS = [
++    'getAmountData',
+     'getDelegationTransaction',
+     'getPaymentOverrideData',
+     'getStrategy',
+@@ -47,7 +48,7 @@ const getDefaultState = () => ({
+     transactionData: {},
+ });
+ class TransactionPayController extends base_controller_1.BaseController {
+-    constructor({ getDelegationTransaction, getPaymentOverrideData, getStrategy, getStrategies, messenger, polymarket, state, }) {
++    constructor({ getAmountData, getDelegationTransaction, getPaymentOverrideData, getStrategy, getStrategies, messenger, polymarket, state, }) {
+         super({
+             name: constants_1.CONTROLLER_NAME,
+             metadata: stateMetadata,
+@@ -55,11 +56,13 @@ class TransactionPayController extends base_controller_1.BaseController {
+             state: { ...getDefaultState(), ...state },
+         });
+         _TransactionPayController_instances.add(this);
++        _TransactionPayController_getAmountData.set(this, void 0);
+         _TransactionPayController_getDelegationTransaction.set(this, void 0);
+         _TransactionPayController_getPaymentOverrideData.set(this, void 0);
+         _TransactionPayController_getStrategy.set(this, void 0);
+         _TransactionPayController_getStrategies.set(this, void 0);
+         _TransactionPayController_polymarket.set(this, void 0);
++        __classPrivateFieldSet(this, _TransactionPayController_getAmountData, getAmountData, "f");
+         __classPrivateFieldSet(this, _TransactionPayController_getDelegationTransaction, getDelegationTransaction, "f");
+         __classPrivateFieldSet(this, _TransactionPayController_getPaymentOverrideData, getPaymentOverrideData, "f");
+         __classPrivateFieldSet(this, _TransactionPayController_getStrategy, getStrategy, "f");
+@@ -168,6 +171,9 @@ class TransactionPayController extends base_controller_1.BaseController {
+      * @param args - The arguments forwarded to the {@link GetPaymentOverrideDataCallback}.
+      * @returns A promise resolving to the additional transactions array.
+      */
++    getAmountData(...args) {
++        return (__classPrivateFieldGet(this, _TransactionPayController_getAmountData, "f")?.call(this, ...args) ?? Promise.resolve({ updates: [] }));
++    }
+     getPaymentOverrideData(...args) {
+         return (__classPrivateFieldGet(this, _TransactionPayController_getPaymentOverrideData, "f")?.call(this, ...args) ?? Promise.resolve({ calls: [] }));
+     }
+@@ -206,7 +212,7 @@ class TransactionPayController extends base_controller_1.BaseController {
+     }
+ }
+ exports.TransactionPayController = TransactionPayController;
+-_TransactionPayController_getDelegationTransaction = new WeakMap(), _TransactionPayController_getPaymentOverrideData = new WeakMap(), _TransactionPayController_getStrategy = new WeakMap(), _TransactionPayController_getStrategies = new WeakMap(), _TransactionPayController_polymarket = new WeakMap(), _TransactionPayController_instances = new WeakSet(), _TransactionPayController_requirePolymarket = function _TransactionPayController_requirePolymarket() {
++_TransactionPayController_getAmountData = new WeakMap(), _TransactionPayController_getDelegationTransaction = new WeakMap(), _TransactionPayController_getPaymentOverrideData = new WeakMap(), _TransactionPayController_getStrategy = new WeakMap(), _TransactionPayController_getStrategies = new WeakMap(), _TransactionPayController_polymarket = new WeakMap(), _TransactionPayController_instances = new WeakSet(), _TransactionPayController_requirePolymarket = function _TransactionPayController_requirePolymarket() {
+     if (!__classPrivateFieldGet(this, _TransactionPayController_polymarket, "f")) {
+         throw new Error('TransactionPayController: Polymarket callbacks missing');
+     }
+diff --git a/dist/TransactionPayController.mjs b/dist/TransactionPayController.mjs
+index b614699..47895aa 100644
+--- a/dist/TransactionPayController.mjs
++++ b/dist/TransactionPayController.mjs
+@@ -24,6 +24,7 @@ import { updateSourceAmounts } from "./utils/source-amounts.mjs";
+ import { buildCaipAssetType } from "./utils/token.mjs";
+ import { getTransaction, subscribeAssetChanges, subscribeTransactionChanges } from "./utils/transaction.mjs";
+ const MESSENGER_EXPOSED_METHODS = [
++    'getAmountData',
+     'getDelegationTransaction',
+     'getPaymentOverrideData',
+     'getStrategy',
+@@ -45,7 +46,7 @@ const getDefaultState = () => ({
+     transactionData: {},
+ });
+ export class TransactionPayController extends BaseController {
+-    constructor({ getDelegationTransaction, getPaymentOverrideData, getStrategy, getStrategies, messenger, polymarket, state, }) {
++    constructor({ getAmountData, getDelegationTransaction, getPaymentOverrideData, getStrategy, getStrategies, messenger, polymarket, state, }) {
+         super({
+             name: CONTROLLER_NAME,
+             metadata: stateMetadata,
+@@ -53,11 +54,13 @@ export class TransactionPayController extends BaseController {
+             state: { ...getDefaultState(), ...state },
+         });
+         _TransactionPayController_instances.add(this);
++        _TransactionPayController_getAmountData.set(this, void 0);
+         _TransactionPayController_getDelegationTransaction.set(this, void 0);
+         _TransactionPayController_getPaymentOverrideData.set(this, void 0);
+         _TransactionPayController_getStrategy.set(this, void 0);
+         _TransactionPayController_getStrategies.set(this, void 0);
+         _TransactionPayController_polymarket.set(this, void 0);
++        __classPrivateFieldSet(this, _TransactionPayController_getAmountData, getAmountData, "f");
+         __classPrivateFieldSet(this, _TransactionPayController_getDelegationTransaction, getDelegationTransaction, "f");
+         __classPrivateFieldSet(this, _TransactionPayController_getPaymentOverrideData, getPaymentOverrideData, "f");
+         __classPrivateFieldSet(this, _TransactionPayController_getStrategy, getStrategy, "f");
+@@ -166,6 +169,9 @@ export class TransactionPayController extends BaseController {
+      * @param args - The arguments forwarded to the {@link GetPaymentOverrideDataCallback}.
+      * @returns A promise resolving to the additional transactions array.
+      */
++    getAmountData(...args) {
++        return (__classPrivateFieldGet(this, _TransactionPayController_getAmountData, "f")?.call(this, ...args) ?? Promise.resolve({ updates: [] }));
++    }
+     getPaymentOverrideData(...args) {
+         return (__classPrivateFieldGet(this, _TransactionPayController_getPaymentOverrideData, "f")?.call(this, ...args) ?? Promise.resolve({ calls: [] }));
+     }
+@@ -203,7 +209,7 @@ export class TransactionPayController extends BaseController {
+         return __classPrivateFieldGet(this, _TransactionPayController_instances, "m", _TransactionPayController_requirePolymarket).call(this).submitDepositWalletBatch(...args);
+     }
+ }
+-_TransactionPayController_getDelegationTransaction = new WeakMap(), _TransactionPayController_getPaymentOverrideData = new WeakMap(), _TransactionPayController_getStrategy = new WeakMap(), _TransactionPayController_getStrategies = new WeakMap(), _TransactionPayController_polymarket = new WeakMap(), _TransactionPayController_instances = new WeakSet(), _TransactionPayController_requirePolymarket = function _TransactionPayController_requirePolymarket() {
++_TransactionPayController_getAmountData = new WeakMap(), _TransactionPayController_getDelegationTransaction = new WeakMap(), _TransactionPayController_getPaymentOverrideData = new WeakMap(), _TransactionPayController_getStrategy = new WeakMap(), _TransactionPayController_getStrategies = new WeakMap(), _TransactionPayController_polymarket = new WeakMap(), _TransactionPayController_instances = new WeakSet(), _TransactionPayController_requirePolymarket = function _TransactionPayController_requirePolymarket() {
+     if (!__classPrivateFieldGet(this, _TransactionPayController_polymarket, "f")) {
+         throw new Error('TransactionPayController: Polymarket callbacks missing');
+     }
+diff --git a/dist/strategy/fiat/fiat-submit.cjs b/dist/strategy/fiat/fiat-submit.cjs
+index 8f46b26..b838992 100644
+--- a/dist/strategy/fiat/fiat-submit.cjs
++++ b/dist/strategy/fiat/fiat-submit.cjs
+@@ -13,7 +13,7 @@ const utils_2 = require("./utils.cjs");
+ const log = (0, utils_1.createModuleLogger)(logger_1.projectLogger, 'fiat-submit');
+ const ORDER_POLL_INTERVAL_MS = 1000;
+ const ORDER_POLL_TIMEOUT_MS = 10 * 60 * 1000;
+-const MAX_SLIPPAGE_PERCENT = 5;
++const MAX_RATE_DRIFT_PERCENT = 10;
+ const TERMINAL_FAILURE_STATUSES = [
+     ramps_controller_1.RampsOrderStatus.Cancelled,
+     ramps_controller_1.RampsOrderStatus.Failed,
+@@ -110,36 +110,6 @@ function validateOrderAsset({ expectedAsset, orderCrypto, transactionId, }) {
+             `expected ${expectedChainId}, got ${orderChainId}`);
+     }
+ }
+-/**
+- * Validates that the re-quoted relay target output hasn't drifted beyond the
+- * acceptable slippage threshold compared to the original quote shown to the user.
+- *
+- * @param options - The validation options.
+- * @param options.originalTargetRaw - Raw target amount from the original relay quote.
+- * @param options.reQuotedTargetRaw - Raw target amount from the re-quoted relay.
+- * @param options.transactionId - Transaction ID for error reporting.
+- */
+-function validateRelaySlippage({ originalTargetRaw, reQuotedTargetRaw, transactionId, }) {
+-    const original = new bignumber_js_1.BigNumber(originalTargetRaw);
+-    const reQuoted = new bignumber_js_1.BigNumber(reQuotedTargetRaw);
+-    if (!original.gt(0) || !reQuoted.gt(0)) {
+-        return;
+-    }
+-    const slippagePercent = original
+-        .minus(reQuoted)
+-        .dividedBy(original)
+-        .multipliedBy(100);
+-    log('Relay slippage check', {
+-        originalTargetRaw,
+-        reQuotedTargetRaw,
+-        slippagePercent: slippagePercent.toFixed(2),
+-        transactionId,
+-    });
+-    if (slippagePercent.gt(MAX_SLIPPAGE_PERCENT)) {
+-        throw new Error(`Relay re-quote slippage too high for transaction ` +
+-            `${slippagePercent.toFixed(2)}% exceeds ${MAX_SLIPPAGE_PERCENT}% max`);
+-    }
+-}
+ /**
+  * Polls the on-ramp order until it reaches a terminal status.
+  *
+@@ -213,50 +183,87 @@ async function submitRelayAfterFiatCompletion({ order, request, }) {
+         walletAddress,
+     });
+     const baseRequest = quotes[0].request;
++    const discoveryRequest = {
++        ...baseRequest,
++        isMaxAmount: false,
++        isPostQuote: true,
++        sourceBalanceRaw: sourceAmountRaw,
++        sourceTokenAmount: sourceAmountRaw,
++    };
++    const discoveryQuotes = await (0, relay_quotes_1.getRelayQuotes)({
++        accountSupports7702: request.accountSupports7702,
++        messenger,
++        requests: [discoveryRequest],
++        transaction,
++    });
++    if (!discoveryQuotes.length) {
++        throw new Error('No relay quotes returned for fiat discovery');
++    }
++    const discoveryRelay = discoveryQuotes[0].original;
++    const settledTargetRaw = discoveryRelay.details.currencyOut.minimumAmount;
++    const originalRelayQuote = quotes[0].original.relayQuote;
++    validateRelayRateDrift({ originalQuote: originalRelayQuote, discoveryQuote: discoveryRelay, transactionId });
++    const { updates } = await messenger.call('TransactionPayController:getAmountData', { amount: settledTargetRaw, transaction });
++    const hasNestedCalldata = (transaction.nestedTransactions?.length ?? 0) >= 2;
++    if (hasNestedCalldata && !updates.length) {
++        throw new Error('getAmountData returned no updates for transaction with nested calldata');
++    }
++    if (updates.length) {
++        (0, transaction_1.updateTransaction)({ transactionId, messenger, note: 'Fiat deposit: update settled amount' }, (tx) => {
++            for (const { nestedTransactionIndex, data } of updates) {
++                if (tx.nestedTransactions?.[nestedTransactionIndex]) {
++                    tx.nestedTransactions[nestedTransactionIndex].data = data;
++                }
++            }
++            if (tx.requiredAssets?.[0]) {
++                tx.requiredAssets[0].amount = `0x${new bignumber_js_1.BigNumber(settledTargetRaw).toString(16)}`;
++            }
++        });
++    }
++    const updatedTransaction = (0, transaction_1.getTransaction)(transactionId, messenger) ?? transaction;
+     const relayRequest = {
+         ...baseRequest,
+-        isMaxAmount: true,
++        isMaxAmount: false,
+         isPostQuote: false,
+         sourceBalanceRaw: sourceAmountRaw,
+         sourceTokenAmount: sourceAmountRaw,
++        targetAmountMinimum: settledTargetRaw,
+     };
+-    log('Re-quoting relay from completed fiat order', {
+-        completedOrderAmount: order.cryptoAmount,
+-        relayRequest,
+-        sourceAmountRaw,
+-        transactionId,
+-    });
+     const relayQuotes = await (0, relay_quotes_1.getRelayQuotes)({
+         accountSupports7702: request.accountSupports7702,
+         messenger,
+         requests: [relayRequest],
+-        transaction,
++        transaction: updatedTransaction,
+     });
+     if (!relayQuotes.length) {
+         throw new Error('No relay quotes returned for completed fiat order');
+     }
+-    const originalRelayQuote = quotes[0].original.relayQuote;
+-    validateRelaySlippage({
+-        originalTargetRaw: originalRelayQuote.details.currencyOut.amount,
+-        reQuotedTargetRaw: relayQuotes[0].original.details.currencyOut.amount,
+-        transactionId,
+-    });
+-    log('Received relay quotes for completed fiat order', {
+-        relayQuoteCount: relayQuotes.length,
+-        transactionId,
+-    });
++    log('Received relay quotes for completed fiat order', { relayQuoteCount: relayQuotes.length, transactionId });
+     const relaySubmitRequest = {
+         accountSupports7702: request.accountSupports7702,
+         isSmartTransaction: request.isSmartTransaction,
+         messenger,
+         quotes: relayQuotes,
+-        transaction,
++        transaction: updatedTransaction,
+     };
+     const relayResult = await (0, relay_submit_1.submitRelayQuotes)(relaySubmitRequest);
+-    log('Relay submission completed after fiat order', {
+-        relayResult,
+-        transactionId,
+-    });
++    log('Relay submission completed after fiat order', { relayResult, transactionId });
+     return relayResult;
+ }
++function validateRelayRateDrift({ originalQuote, discoveryQuote, transactionId }) {
++    const originalIn = new bignumber_js_1.BigNumber(originalQuote.details.currencyIn.amountUsd);
++    const originalOut = new bignumber_js_1.BigNumber(originalQuote.details.currencyOut.amountUsd);
++    const discoveryIn = new bignumber_js_1.BigNumber(discoveryQuote.details.currencyIn.amountUsd);
++    const discoveryOut = new bignumber_js_1.BigNumber(discoveryQuote.details.currencyOut.amountUsd);
++    if (!originalIn.gt(0) || !originalOut.gt(0) || !discoveryIn.gt(0) || !discoveryOut.gt(0)) {
++        return;
++    }
++    const originalRate = originalOut.dividedBy(originalIn);
++    const discoveryRate = discoveryOut.dividedBy(discoveryIn);
++    const driftPercent = originalRate.minus(discoveryRate).dividedBy(originalRate).multipliedBy(100);
++    log('Relay rate drift check', { originalRate: originalRate.toFixed(6), discoveryRate: discoveryRate.toFixed(6), driftPercent: driftPercent.toFixed(2), transactionId });
++    if (driftPercent.abs().gt(MAX_RATE_DRIFT_PERCENT)) {
++        throw new Error(`Relay rate drift too high for transaction ${driftPercent.toFixed(2)}% exceeds ${MAX_RATE_DRIFT_PERCENT}% max`);
++    }
++}
+ //# sourceMappingURL=fiat-submit.cjs.map
+\ No newline at end of file
+diff --git a/dist/strategy/fiat/fiat-submit.mjs b/dist/strategy/fiat/fiat-submit.mjs
+index fe769cb..5946940 100644
+--- a/dist/strategy/fiat/fiat-submit.mjs
++++ b/dist/strategy/fiat/fiat-submit.mjs
+@@ -3,14 +3,14 @@ import { createModuleLogger } from "@metamask/utils";
+ import { BigNumber } from "bignumber.js";
+ import { projectLogger } from "../../logger.mjs";
+ import { buildCaipAssetType } from "../../utils/token.mjs";
+-import { updateTransaction } from "../../utils/transaction.mjs";
++import { getTransaction, updateTransaction } from "../../utils/transaction.mjs";
+ import { getRelayQuotes } from "../relay/relay-quotes.mjs";
+ import { submitRelayQuotes } from "../relay/relay-submit.mjs";
+ import { deriveFiatAssetForFiatPayment, resolveSourceAmountRaw } from "./utils.mjs";
+ const log = createModuleLogger(projectLogger, 'fiat-submit');
+ const ORDER_POLL_INTERVAL_MS = 1000;
+ const ORDER_POLL_TIMEOUT_MS = 10 * 60 * 1000;
+-const MAX_SLIPPAGE_PERCENT = 5;
++const MAX_RATE_DRIFT_PERCENT = 10;
+ const TERMINAL_FAILURE_STATUSES = [
+     RampsOrderStatus.Cancelled,
+     RampsOrderStatus.Failed,
+@@ -106,36 +106,6 @@ function validateOrderAsset({ expectedAsset, orderCrypto, transactionId, }) {
+             `expected ${expectedChainId}, got ${orderChainId}`);
+     }
+ }
+-/**
+- * Validates that the re-quoted relay target output hasn't drifted beyond the
+- * acceptable slippage threshold compared to the original quote shown to the user.
+- *
+- * @param options - The validation options.
+- * @param options.originalTargetRaw - Raw target amount from the original relay quote.
+- * @param options.reQuotedTargetRaw - Raw target amount from the re-quoted relay.
+- * @param options.transactionId - Transaction ID for error reporting.
+- */
+-function validateRelaySlippage({ originalTargetRaw, reQuotedTargetRaw, transactionId, }) {
+-    const original = new BigNumber(originalTargetRaw);
+-    const reQuoted = new BigNumber(reQuotedTargetRaw);
+-    if (!original.gt(0) || !reQuoted.gt(0)) {
+-        return;
+-    }
+-    const slippagePercent = original
+-        .minus(reQuoted)
+-        .dividedBy(original)
+-        .multipliedBy(100);
+-    log('Relay slippage check', {
+-        originalTargetRaw,
+-        reQuotedTargetRaw,
+-        slippagePercent: slippagePercent.toFixed(2),
+-        transactionId,
+-    });
+-    if (slippagePercent.gt(MAX_SLIPPAGE_PERCENT)) {
+-        throw new Error(`Relay re-quote slippage too high for transaction ` +
+-            `${slippagePercent.toFixed(2)}% exceeds ${MAX_SLIPPAGE_PERCENT}% max`);
+-    }
+-}
+ /**
+  * Polls the on-ramp order until it reaches a terminal status.
+  *
+@@ -209,50 +179,87 @@ async function submitRelayAfterFiatCompletion({ order, request, }) {
+         walletAddress,
+     });
+     const baseRequest = quotes[0].request;
++    const discoveryRequest = {
++        ...baseRequest,
++        isMaxAmount: false,
++        isPostQuote: true,
++        sourceBalanceRaw: sourceAmountRaw,
++        sourceTokenAmount: sourceAmountRaw,
++    };
++    const discoveryQuotes = await getRelayQuotes({
++        accountSupports7702: request.accountSupports7702,
++        messenger,
++        requests: [discoveryRequest],
++        transaction,
++    });
++    if (!discoveryQuotes.length) {
++        throw new Error('No relay quotes returned for fiat discovery');
++    }
++    const discoveryRelay = discoveryQuotes[0].original;
++    const settledTargetRaw = discoveryRelay.details.currencyOut.minimumAmount;
++    const originalRelayQuote = quotes[0].original.relayQuote;
++    validateRelayRateDrift({ originalQuote: originalRelayQuote, discoveryQuote: discoveryRelay, transactionId });
++    const { updates } = await messenger.call('TransactionPayController:getAmountData', { amount: settledTargetRaw, transaction });
++    const hasNestedCalldata = (transaction.nestedTransactions?.length ?? 0) >= 2;
++    if (hasNestedCalldata && !updates.length) {
++        throw new Error('getAmountData returned no updates for transaction with nested calldata');
++    }
++    if (updates.length) {
++        updateTransaction({ transactionId, messenger, note: 'Fiat deposit: update settled amount' }, (tx) => {
++            for (const { nestedTransactionIndex, data } of updates) {
++                if (tx.nestedTransactions?.[nestedTransactionIndex]) {
++                    tx.nestedTransactions[nestedTransactionIndex].data = data;
++                }
++            }
++            if (tx.requiredAssets?.[0]) {
++                tx.requiredAssets[0].amount = `0x${new BigNumber(settledTargetRaw).toString(16)}`;
++            }
++        });
++    }
++    const updatedTransaction = getTransaction(transactionId, messenger) ?? transaction;
+     const relayRequest = {
+         ...baseRequest,
+-        isMaxAmount: true,
++        isMaxAmount: false,
+         isPostQuote: false,
+         sourceBalanceRaw: sourceAmountRaw,
+         sourceTokenAmount: sourceAmountRaw,
++        targetAmountMinimum: settledTargetRaw,
+     };
+-    log('Re-quoting relay from completed fiat order', {
+-        completedOrderAmount: order.cryptoAmount,
+-        relayRequest,
+-        sourceAmountRaw,
+-        transactionId,
+-    });
+     const relayQuotes = await getRelayQuotes({
+         accountSupports7702: request.accountSupports7702,
+         messenger,
+         requests: [relayRequest],
+-        transaction,
++        transaction: updatedTransaction,
+     });
+     if (!relayQuotes.length) {
+         throw new Error('No relay quotes returned for completed fiat order');
+     }
+-    const originalRelayQuote = quotes[0].original.relayQuote;
+-    validateRelaySlippage({
+-        originalTargetRaw: originalRelayQuote.details.currencyOut.amount,
+-        reQuotedTargetRaw: relayQuotes[0].original.details.currencyOut.amount,
+-        transactionId,
+-    });
+-    log('Received relay quotes for completed fiat order', {
+-        relayQuoteCount: relayQuotes.length,
+-        transactionId,
+-    });
++    log('Received relay quotes for completed fiat order', { relayQuoteCount: relayQuotes.length, transactionId });
+     const relaySubmitRequest = {
+         accountSupports7702: request.accountSupports7702,
+         isSmartTransaction: request.isSmartTransaction,
+         messenger,
+         quotes: relayQuotes,
+-        transaction,
++        transaction: updatedTransaction,
+     };
+     const relayResult = await submitRelayQuotes(relaySubmitRequest);
+-    log('Relay submission completed after fiat order', {
+-        relayResult,
+-        transactionId,
+-    });
++    log('Relay submission completed after fiat order', { relayResult, transactionId });
+     return relayResult;
+ }
++function validateRelayRateDrift({ originalQuote, discoveryQuote, transactionId }) {
++    const originalIn = new BigNumber(originalQuote.details.currencyIn.amountUsd);
++    const originalOut = new BigNumber(originalQuote.details.currencyOut.amountUsd);
++    const discoveryIn = new BigNumber(discoveryQuote.details.currencyIn.amountUsd);
++    const discoveryOut = new BigNumber(discoveryQuote.details.currencyOut.amountUsd);
++    if (!originalIn.gt(0) || !originalOut.gt(0) || !discoveryIn.gt(0) || !discoveryOut.gt(0)) {
++        return;
++    }
++    const originalRate = originalOut.dividedBy(originalIn);
++    const discoveryRate = discoveryOut.dividedBy(discoveryIn);
++    const driftPercent = originalRate.minus(discoveryRate).dividedBy(originalRate).multipliedBy(100);
++    log('Relay rate drift check', { originalRate: originalRate.toFixed(6), discoveryRate: discoveryRate.toFixed(6), driftPercent: driftPercent.toFixed(2), transactionId });
++    if (driftPercent.abs().gt(MAX_RATE_DRIFT_PERCENT)) {
++        throw new Error(`Relay rate drift too high for transaction ${driftPercent.toFixed(2)}% exceeds ${MAX_RATE_DRIFT_PERCENT}% max`);
++    }
++}
+ //# sourceMappingURL=fiat-submit.mjs.map
+\ No newline at end of file
