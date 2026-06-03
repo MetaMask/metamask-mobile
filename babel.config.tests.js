@@ -34,8 +34,6 @@ const newOverrides = [
       'app/core/Engine/controllers/ramps-controller/ramps-controller-init.test.ts',
       'app/core/Engine/controllers/authenticated-user-storage-service-init.ts',
       'app/core/Engine/controllers/authenticated-user-storage-service-init.test.ts',
-      'app/components/UI/Ramp/hooks/useRampsUnifiedV1Enabled.ts',
-      'app/components/UI/Ramp/hooks/useRampsUnifiedV1Enabled.test.ts',
       'app/components/UI/Ramp/hooks/useRampsUnifiedV2Enabled.ts',
       'app/components/UI/Ramp/hooks/useRampsUnifiedV2Enabled.test.ts',
       'app/components/UI/Ramp/utils/isRampsUnifiedV2Enabled.ts',

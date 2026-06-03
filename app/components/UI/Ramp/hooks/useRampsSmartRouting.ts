@@ -12,7 +12,7 @@ import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
 } from '../../../../constants/on-ramp';
-import useRampsUnifiedV1Enabled from './useRampsUnifiedV1Enabled';
+import useRampsUnifiedV2Enabled from './useRampsUnifiedV2Enabled';
 
 /**
  * Checks if an aggregator order was placed through Transak provider.
@@ -61,13 +61,13 @@ export interface RampEligibilityAPIResponse {
 }
 
 export default function useRampsSmartRouting() {
-  const unifiedV1Enabled = useRampsUnifiedV1Enabled();
+  const unifiedV2Enabled = useRampsUnifiedV2Enabled();
   const dispatch = useDispatch();
   const orders = useSelector((state: RootState) => state.fiatOrders.orders);
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
 
   useEffect(() => {
-    if (!unifiedV1Enabled) {
+    if (!unifiedV2Enabled) {
       return;
     }
 
@@ -130,5 +130,5 @@ export default function useRampsSmartRouting() {
     };
 
     initializeRampRoutingDecision();
-  }, [rampGeodetectedRegion, orders, unifiedV1Enabled, dispatch]);
+  }, [rampGeodetectedRegion, orders, unifiedV2Enabled, dispatch]);
 }

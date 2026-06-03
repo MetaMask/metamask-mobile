@@ -7,7 +7,6 @@ import { createDepositNavigationDetails } from '../Deposit/routes/utils';
 import { createTokenSelectionNavDetails } from '../Views/TokenSelection/TokenSelection';
 import { createBuildQuoteNavDetails } from '../Views/BuildQuote';
 import { RampType as AggregatorRampType } from '../Aggregator/types';
-import useRampsUnifiedV1Enabled from './useRampsUnifiedV1Enabled';
 import useRampsUnifiedV2Enabled from './useRampsUnifiedV2Enabled';
 import {
   getRampRoutingDecision,
@@ -42,7 +41,6 @@ jest.mock('../Views/BuildQuote', () => {
     createBuildQuoteNavDetails: mockFn,
   };
 });
-jest.mock('./useRampsUnifiedV1Enabled');
 jest.mock('./useRampsUnifiedV2Enabled');
 jest.mock('../../../../reducers/fiatOrders', () => ({
   ...jest.requireActual('../../../../reducers/fiatOrders'),
@@ -63,10 +61,6 @@ const mockNavigate = jest.fn();
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;
-const mockUseRampsUnifiedV1Enabled =
-  useRampsUnifiedV1Enabled as jest.MockedFunction<
-    typeof useRampsUnifiedV1Enabled
-  >;
 const mockUseRampsUnifiedV2Enabled =
   useRampsUnifiedV2Enabled as jest.MockedFunction<
     typeof useRampsUnifiedV2Enabled
@@ -100,7 +94,6 @@ describe('useRampNavigation', () => {
       navigate: mockNavigate,
     } as unknown as ReturnType<typeof useNavigation>);
 
-    mockUseRampsUnifiedV1Enabled.mockReturnValue(false);
     mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
 
     mockRefreshGeolocation.mockResolvedValue('UNKNOWN');
@@ -191,8 +184,8 @@ describe('useRampNavigation', () => {
         });
       });
 
-      it('navigates to TokenSelection when no assetId and V1 is disabled (matches handleRampUrl deeplink)', () => {
-        // V2 on, V1 off (default in this describe): must go to TokenSelection like handleRampUrl, not legacy
+      it('navigates to TokenSelection when no assetId is provided (matches handleRampUrl deeplink)', () => {
+        // V2 on: must go to TokenSelection like handleRampUrl, not legacy
         const mockNavDetails = [
           Routes.RAMP.TOKEN_SELECTION,
           undefined,
@@ -212,26 +205,6 @@ describe('useRampNavigation', () => {
         expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
       });
 
-      it('navigates to TokenSelection when no assetId and V1 is also enabled', () => {
-        mockUseRampsUnifiedV1Enabled.mockReturnValue(true);
-        const mockNavDetails = [
-          Routes.RAMP.TOKEN_SELECTION,
-          undefined,
-        ] as const;
-        mockCreateTokenSelectionNavigationDetails.mockReturnValue(
-          mockNavDetails,
-        );
-
-        const { result } = renderHookWithProvider(() => useRampNavigation());
-
-        result.current.goToBuy();
-
-        expect(mockSetSelectedToken).not.toHaveBeenCalled();
-        expect(mockCreateBuildQuoteNavDetails).not.toHaveBeenCalled();
-        expect(mockCreateTokenSelectionNavigationDetails).toHaveBeenCalled();
-        expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
-      });
-
       it('does not navigate to BuildQuote when overrideUnifiedRouting is true', () => {
         const intent = { assetId: 'eip155:1/erc20:0x123' };
         const mockNavDetails = [Routes.RAMP.BUY] as const;
@@ -248,37 +221,6 @@ describe('useRampNavigation', () => {
           intent,
         );
         expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
-      });
-
-      it('takes precedence over V1 routing when V2 is enabled with assetId', () => {
-        mockUseRampsUnifiedV1Enabled.mockReturnValue(true);
-        mockGetRampRoutingDecision.mockReturnValue(
-          UnifiedRampRoutingType.DEPOSIT,
-        );
-        const intent = { assetId: 'eip155:1/erc20:0x123' };
-        const mockNavDetails = [
-          Routes.RAMP.TOKEN_SELECTION,
-          {
-            screen: Routes.RAMP.TOKEN_SELECTION,
-            params: {
-              screen: Routes.RAMP.AMOUNT_INPUT,
-              params: { assetId: intent.assetId },
-            },
-          },
-        ] as const;
-        mockCreateBuildQuoteNavDetails.mockReturnValue(mockNavDetails);
-
-        const { result } = renderHookWithProvider(() => useRampNavigation());
-
-        result.current.goToBuy(intent);
-
-        expect(mockSetSelectedToken).toHaveBeenCalledWith(intent.assetId);
-        expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
-          assetId: intent.assetId,
-          buyFlowOrigin: undefined,
-        });
-        expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
-        expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
       });
 
       describe('unsupported token routing', () => {
@@ -483,7 +425,7 @@ describe('useRampNavigation', () => {
       });
     });
 
-    describe('when unified V1 is disabled', () => {
+    describe('when unified V2 is disabled', () => {
       it('navigates to aggregator BUY without intent', () => {
         const mockNavDetails = [Routes.RAMP.BUY] as const;
         mockCreateRampNavigationDetails.mockReturnValue(mockNavDetails);
@@ -516,220 +458,11 @@ describe('useRampNavigation', () => {
       });
     });
 
-    describe('when unified V1 is enabled', () => {
-      beforeEach(() => {
-        mockUseRampsUnifiedV1Enabled.mockReturnValue(true);
-      });
-
-      describe('error and unsupported routing', () => {
-        it('navigates to eligibility failed modal when routing decision is ERROR and geolocation stays UNKNOWN', async () => {
-          mockGetRampRoutingDecision.mockReturnValue(
-            UnifiedRampRoutingType.ERROR,
-          );
-          mockRefreshGeolocation.mockResolvedValue('UNKNOWN');
-          const navDetails = createEligibilityFailedModalNavigationDetails();
-
-          const { result } = renderHookWithProvider(() => useRampNavigation());
-
-          await result.current.goToBuy();
-
-          expect(mockNavigate).toHaveBeenCalledWith(...navDetails);
-          expect(mockRefreshGeolocation).toHaveBeenCalledTimes(1);
-          expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
-          expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
-          expect(
-            mockCreateTokenSelectionNavigationDetails,
-          ).not.toHaveBeenCalled();
-        });
-
-        it('navigates to eligibility failed modal when routing decision is ERROR with intent and geolocation stays UNKNOWN', async () => {
-          mockGetRampRoutingDecision.mockReturnValue(
-            UnifiedRampRoutingType.ERROR,
-          );
-          mockRefreshGeolocation.mockResolvedValue('UNKNOWN');
-          const intent = { assetId: 'eip155:1/erc20:0x123' };
-          const navDetails = createEligibilityFailedModalNavigationDetails();
-
-          const { result } = renderHookWithProvider(() => useRampNavigation());
-
-          await result.current.goToBuy(intent);
-
-          expect(mockNavigate).toHaveBeenCalledWith(...navDetails);
-          expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
-          expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
-          expect(
-            mockCreateTokenSelectionNavigationDetails,
-          ).not.toHaveBeenCalled();
-        });
-
-        it('routes into the flow when routing decision is ERROR but geolocation recovers', async () => {
-          mockGetRampRoutingDecision.mockReturnValue(
-            UnifiedRampRoutingType.ERROR,
-          );
-          mockRefreshGeolocation.mockResolvedValue('us-ca');
-          const intent = { assetId: 'eip155:1/erc20:0x123' };
-          const tokenSelectionNavDetails = createTokenSelectionNavDetails();
-          const eligibilityNavDetails =
-            createEligibilityFailedModalNavigationDetails();
-
-          const { result } = renderHookWithProvider(() => useRampNavigation());
-
-          await result.current.goToBuy(intent);
-
-          expect(mockRefreshGeolocation).toHaveBeenCalledTimes(1);
-          expect(mockNavigate).toHaveBeenCalledWith(
-            ...tokenSelectionNavDetails,
-          );
-          expect(mockNavigate).not.toHaveBeenCalledWith(
-            ...eligibilityNavDetails,
-          );
-        });
-
-        it('navigates to unsupported modal when routing decision is UNSUPPORTED', () => {
-          mockGetRampRoutingDecision.mockReturnValue(
-            UnifiedRampRoutingType.UNSUPPORTED,
-          );
-          const navDetails = createRampUnsupportedModalNavigationDetails();
-
-          const { result } = renderHookWithProvider(() => useRampNavigation());
-
-          result.current.goToBuy();
-
-          expect(mockRefreshGeolocation).not.toHaveBeenCalled();
-
-          expect(mockNavigate).toHaveBeenCalledWith(...navDetails);
-          expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
-          expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
-          expect(
-            mockCreateTokenSelectionNavigationDetails,
-          ).not.toHaveBeenCalled();
-        });
-
-        it('navigates to unsupported modal when routing decision is UNSUPPORTED with intent', () => {
-          mockGetRampRoutingDecision.mockReturnValue(
-            UnifiedRampRoutingType.UNSUPPORTED,
-          );
-          const intent = { assetId: 'eip155:1/erc20:0x123' };
-          const navDetails = createRampUnsupportedModalNavigationDetails();
-
-          const { result } = renderHookWithProvider(() => useRampNavigation());
-
-          result.current.goToBuy(intent);
-
-          expect(mockNavigate).toHaveBeenCalledWith(...navDetails);
-          expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
-          expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
-          expect(
-            mockCreateTokenSelectionNavigationDetails,
-          ).not.toHaveBeenCalled();
-        });
-      });
-
-      describe('token selection routing', () => {
-        it('navigates to TokenSelection when no assetId is provided', () => {
-          const mockNavDetails = [
-            Routes.RAMP.TOKEN_SELECTION,
-            undefined,
-          ] as const;
-          mockCreateTokenSelectionNavigationDetails.mockReturnValue(
-            mockNavDetails,
-          );
-
-          const { result } = renderHookWithProvider(() => useRampNavigation());
-
-          result.current.goToBuy();
-
-          expect(mockCreateTokenSelectionNavigationDetails).toHaveBeenCalled();
-          expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
-          expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
-          expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
-        });
-
-        it('navigates to TokenSelection when intent is provided without assetId', () => {
-          const intent = { amount: '100', currency: 'USD' };
-          const mockNavDetails = [
-            Routes.RAMP.TOKEN_SELECTION,
-            undefined,
-          ] as const;
-          mockCreateTokenSelectionNavigationDetails.mockReturnValue(
-            mockNavDetails,
-          );
-
-          const { result } = renderHookWithProvider(() => useRampNavigation());
-
-          result.current.goToBuy(intent);
-
-          expect(mockCreateTokenSelectionNavigationDetails).toHaveBeenCalled();
-          expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
-        });
-      });
-
-      describe('smart routing based on routing decision', () => {
-        const intent = { assetId: 'eip155:1/erc20:0x123' };
-
-        it('navigates to TokenSelection when routing decision is null', () => {
-          mockGetRampRoutingDecision.mockReturnValue(null);
-          const mockNavDetails = [
-            Routes.RAMP.TOKEN_SELECTION,
-            undefined,
-          ] as const;
-          mockCreateTokenSelectionNavigationDetails.mockReturnValue(
-            mockNavDetails,
-          );
-
-          const { result } = renderHookWithProvider(() => useRampNavigation());
-
-          result.current.goToBuy(intent);
-
-          expect(mockCreateTokenSelectionNavigationDetails).toHaveBeenCalled();
-          expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
-          expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
-          expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
-        });
-
-        it('navigates to deposit when routing decision is DEPOSIT', () => {
-          mockGetRampRoutingDecision.mockReturnValue(
-            UnifiedRampRoutingType.DEPOSIT,
-          );
-          const mockNavDetails = [Routes.DEPOSIT.ID] as const;
-          mockCreateDepositNavigationDetails.mockReturnValue(mockNavDetails);
-
-          const { result } = renderHookWithProvider(() => useRampNavigation());
-
-          result.current.goToBuy(intent);
-
-          expect(mockCreateDepositNavigationDetails).toHaveBeenCalledWith(
-            intent,
-          );
-          expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
-          expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
-        });
-
-        it('navigates to aggregator when routing decision is AGGREGATOR', () => {
-          mockGetRampRoutingDecision.mockReturnValue(
-            UnifiedRampRoutingType.AGGREGATOR,
-          );
-          const mockNavDetails = [Routes.RAMP.BUY] as const;
-          mockCreateRampNavigationDetails.mockReturnValue(mockNavDetails);
-
-          const { result } = renderHookWithProvider(() => useRampNavigation());
-
-          result.current.goToBuy(intent);
-
-          expect(mockCreateRampNavigationDetails).toHaveBeenCalledWith(
-            AggregatorRampType.BUY,
-            intent,
-          );
-          expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
-          expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
-        });
-      });
-    });
   });
 
   describe('goToAggregator', () => {
     it('navigates to aggregator BUY flow (overrides unified routing)', () => {
-      mockUseRampsUnifiedV1Enabled.mockReturnValue(true);
+      mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
       mockGetRampRoutingDecision.mockReturnValue(
         UnifiedRampRoutingType.DEPOSIT,
       );
@@ -767,7 +500,7 @@ describe('useRampNavigation', () => {
 
   describe('goToSell', () => {
     it('navigates to aggregator SELL flow (overrides unified routing)', () => {
-      mockUseRampsUnifiedV1Enabled.mockReturnValue(true);
+      mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
       mockGetRampRoutingDecision.mockReturnValue(
         UnifiedRampRoutingType.DEPOSIT,
       );
@@ -804,7 +537,7 @@ describe('useRampNavigation', () => {
 
   describe('goToDeposit', () => {
     it('navigates to deposit flow (overrides unified routing)', () => {
-      mockUseRampsUnifiedV1Enabled.mockReturnValue(true);
+      mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
       mockGetRampRoutingDecision.mockReturnValue(
         UnifiedRampRoutingType.AGGREGATOR,
       );

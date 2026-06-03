@@ -150,10 +150,10 @@ jest.mock('../../Ramp/hooks/useRampNavigation', () => ({
   }),
 }));
 
-const mockRampsUnifiedV1Enabled = jest.fn(() => false);
-jest.mock('../../Ramp/hooks/useRampsUnifiedV1Enabled', () => ({
+const mockRampsUnifiedV2Enabled = jest.fn(() => false);
+jest.mock('../../Ramp/hooks/useRampsUnifiedV2Enabled', () => ({
   __esModule: true,
-  default: () => mockRampsUnifiedV1Enabled(),
+  default: () => mockRampsUnifiedV2Enabled(),
 }));
 
 const mockSendNonEvmAsset = jest.fn().mockResolvedValue(false);
@@ -284,7 +284,7 @@ beforeEach(() => {
     goToSwaps: mockGoToSwaps,
     networkModal: null,
   });
-  mockRampsUnifiedV1Enabled.mockReturnValue(false);
+  mockRampsUnifiedV2Enabled.mockReturnValue(false);
 });
 
 /**
@@ -565,14 +565,14 @@ describe('useTokenAtomicActions - useHandleOnBuy', () => {
     });
   });
 
-  it('switches ramp_type to UNIFIED_BUY when the unified-v1 flag is enabled', async () => {
-    mockRampsUnifiedV1Enabled.mockReturnValue(true);
+  it('switches ramp_type to UNIFIED_BUY_2 when the unified-v2 flag is enabled', async () => {
+    mockRampsUnifiedV2Enabled.mockReturnValue(true);
 
     const { result } = await renderOnBuy();
     result.current();
 
     assertAnalyticsEvent(MetaMetricsEvents.RAMPS_BUTTON_CLICKED, {
-      ramp_type: 'UNIFIED_BUY',
+      ramp_type: 'UNIFIED_BUY_2',
     });
   });
 

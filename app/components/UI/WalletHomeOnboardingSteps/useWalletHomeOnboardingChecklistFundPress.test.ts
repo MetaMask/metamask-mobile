@@ -30,12 +30,6 @@ jest.mock('../Ramp/hooks/useRampsButtonClickData', () => ({
   useRampsButtonClickData: () => mockUseRampsButtonClickData(),
 }));
 
-const mockUseRampsUnifiedV1Enabled = jest.fn();
-jest.mock('../Ramp/hooks/useRampsUnifiedV1Enabled', () => ({
-  __esModule: true,
-  default: () => mockUseRampsUnifiedV1Enabled(),
-}));
-
 const mockUseRampsUnifiedV2Enabled = jest.fn();
 jest.mock('../Ramp/hooks/useRampsUnifiedV2Enabled', () => ({
   __esModule: true,
@@ -69,7 +63,6 @@ describe('useWalletHomeOnboardingChecklistFundPress', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseRampsButtonClickData.mockReturnValue(defaultButtonClickData);
-    mockUseRampsUnifiedV1Enabled.mockReturnValue(false);
     mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
     mockUseWalletHomeOnboardingFundRampIntent.mockReturnValue({
       rampIntent: undefined,

@@ -15,7 +15,7 @@ import { RootState } from '../../../../reducers';
 const mockDispatch = jest.fn();
 const mockUseSelector = jest.fn();
 const mockFetch = jest.fn();
-const mockUseRampsUnifiedV1Enabled = jest.fn();
+const mockUseRampsUnifiedV2Enabled = jest.fn();
 
 globalThis.fetch = mockFetch;
 
@@ -28,9 +28,9 @@ jest.mock('react-redux', () => ({
     mockUseSelector(selector),
 }));
 
-jest.mock('./useRampsUnifiedV1Enabled', () => ({
+jest.mock('./useRampsUnifiedV2Enabled', () => ({
   __esModule: true,
-  default: () => mockUseRampsUnifiedV1Enabled(),
+  default: () => mockUseRampsUnifiedV2Enabled(),
 }));
 
 let mockOrders: FiatOrder[] = [];
@@ -102,7 +102,7 @@ describe('useRampsSmartRouting', () => {
       aggregator: false,
       global: true,
     });
-    mockUseRampsUnifiedV1Enabled.mockReturnValue(true);
+    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
 
     mockUseSelector.mockImplementation((selector) => {
       const state = {
@@ -126,8 +126,8 @@ describe('useRampsSmartRouting', () => {
   });
 
   describe('Feature flag check', () => {
-    it('does nothing when unifiedV1Enabled is false', async () => {
-      mockUseRampsUnifiedV1Enabled.mockReturnValue(false);
+    it('does nothing when unifiedV2Enabled is false', async () => {
+      mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
       mockApiResponse({
         deposit: true,
         aggregator: false,
@@ -143,8 +143,8 @@ describe('useRampsSmartRouting', () => {
       expect(mockFetch).not.toHaveBeenCalled();
     });
 
-    it('executes normally when unifiedV1Enabled is true', async () => {
-      mockUseRampsUnifiedV1Enabled.mockReturnValue(true);
+    it('executes normally when unifiedV2Enabled is true', async () => {
+      mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
       mockApiResponse({
         deposit: true,
         aggregator: false,
