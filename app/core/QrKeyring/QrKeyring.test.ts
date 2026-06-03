@@ -1,11 +1,20 @@
-import { QrKeyring, QrKeyringBridge } from '@metamask/eth-qr-keyring';
+import {
+  QrKeyring as LegacyQrKeyring,
+  QrKeyringBridge,
+} from '@metamask/eth-qr-keyring';
+import { QrKeyring } from '@metamask/eth-qr-keyring/v2';
+import type { Keyring } from '@metamask/keyring-api/v2';
 import { withQrKeyring, forgetQrDevice } from './QrKeyring';
 import Engine from '../Engine';
 
 jest.mock('../Engine', () => ({
   context: {
     KeyringController: {
-      withKeyring: jest.fn(),
+      state: {
+        keyrings: [{ type: 'QR Hardware Wallet Device', accounts: [] }],
+      },
+      addNewKeyring: jest.fn(),
+      withKeyringV2: jest.fn(),
     },
   },
 }));
@@ -16,15 +25,22 @@ const mockQrKeyringBridge: QrKeyringBridge = {
   requestScan: jest.fn(),
 };
 
-const qrKeyring = new QrKeyring({ bridge: mockQrKeyringBridge });
+const legacyQrKeyring = new LegacyQrKeyring({ bridge: mockQrKeyringBridge });
+const qrKeyring = new QrKeyring({
+  legacyKeyring: legacyQrKeyring,
+  entropySource: 'test-entropy-source',
+});
 
 describe('QrKeyring core', () => {
   beforeEach(() => {
     jest.resetAllMocks();
 
-    MockEngine.context.KeyringController.withKeyring.mockImplementation(
+    MockEngine.context.KeyringController.withKeyringV2.mockImplementation(
       (_selector, operation) =>
-        operation({ keyring: qrKeyring, metadata: { id: '1234', name: '' } }),
+        operation({
+          keyring: qrKeyring as unknown as Keyring,
+          metadata: { id: '1234', name: '' },
+        }),
     );
   });
 
@@ -41,12 +57,10 @@ describe('QrKeyring core', () => {
     });
 
     it('throws when the resolved keyring is not a QrKeyring instance', async () => {
-      MockEngine.context.KeyringController.withKeyring.mockImplementationOnce(
+      MockEngine.context.KeyringController.withKeyringV2.mockImplementationOnce(
         async (_selector, operation) =>
           operation({
-            // The withKeyring helper guards against the keyring controller
-            // resolving a non-QR keyring.
-            keyring: {} as unknown as QrKeyring,
+            keyring: {} as unknown as Keyring,
             metadata: { id: '1234', name: '' },
           }),
       );
@@ -61,13 +75,7 @@ describe('QrKeyring core', () => {
     it('calls keyring.forgetDevice', async () => {
       const forgetDeviceSpy = jest
         .spyOn(qrKeyring, 'forgetDevice')
-        .mockResolvedValue(
-          undefined as unknown as ReturnType<
-            QrKeyring['forgetDevice']
-          > extends Promise<infer R>
-            ? R
-            : never,
-        );
+        .mockResolvedValue();
 
       await forgetQrDevice();
 

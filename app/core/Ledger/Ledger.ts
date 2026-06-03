@@ -3,12 +3,14 @@ import {
   KeyringMetadata,
   SignTypedDataVersion,
 } from '@metamask/keyring-controller';
+import { KeyringType } from '@metamask/keyring-api/v2';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../Engine';
 import {
-  LedgerKeyring,
+  LedgerKeyring as LegacyLedgerKeyring,
   LedgerMobileBridge,
 } from '@metamask/eth-ledger-bridge-keyring';
+import { LedgerKeyring } from '@metamask/eth-ledger-bridge-keyring/v2';
 import {
   LEDGER_BIP44_PATH,
   LEDGER_LEGACY_PATH,
@@ -31,6 +33,24 @@ const throwIfLedgerOperationAborted = (abortSignal?: AbortSignal) => {
 };
 
 /**
+ * Ensure a Ledger keyring exists in the controller before invoking a V2 operation.
+ *
+ * `withKeyringV2` has no `createIfMissing` option, so callers that need
+ * on-demand creation perform the check + create dance here. The window
+ * between the check and the create is serialized by the calling UI flow
+ * (single button + spinner) so concurrent creations aren't reachable.
+ */
+async function ensureLedgerKeyringExists(): Promise<void> {
+  const keyringController = Engine.context.KeyringController;
+  const hasKeyring = keyringController.state.keyrings.some(
+    ({ type }) => type === LegacyLedgerKeyring.type,
+  );
+  if (!hasKeyring) {
+    await keyringController.addNewKeyring(LegacyLedgerKeyring.type);
+  }
+}
+
+/**
  * Perform an operation with the Ledger keyring.
  *
  * If no Ledger keyring is found, one is created.
@@ -47,19 +67,16 @@ export const withLedgerKeyring = async <CallbackResult = void>(
     metadata: KeyringMetadata;
   }) => Promise<CallbackResult>,
 ): Promise<CallbackResult> => {
+  await ensureLedgerKeyringExists();
   const keyringController = Engine.context.KeyringController;
-  return await keyringController.withKeyring(
-    { type: ExtendedKeyringTypes.ledger },
-    ({ keyring, metadata }) => {
+  return await keyringController.withKeyringV2(
+    { type: KeyringType.Ledger },
+    async ({ keyring, metadata }) => {
       if (!(keyring instanceof LedgerKeyring)) {
         throw new Error('Expected LedgerKeyring');
       }
       return operation({ keyring, metadata });
     },
-    // TODO: Refactor this to stop creating the keyring on-demand
-    // Instead create it only in response to an explicit user action, and do
-    // not allow Ledger interactions until after that has been done.
-    { createIfMissing: true },
   );
 };
 
@@ -125,8 +142,10 @@ export const forgetLedger = async (): Promise<void> => {
     // `removeAccountsFromPermissions` because too many places in the UI still
     // operate on hex addresses rather than CAIP Account Id.
     const accounts = await keyring.getAccounts();
-    removeAccountsFromPermissions(accounts);
-    keyring.forgetDevice();
+    removeAccountsFromPermissions(
+      accounts.map(({ address }) => address as `0x${string}`),
+    );
+    await keyring.forgetDevice();
   });
 };
 
@@ -183,7 +202,10 @@ export const getHDPath = async (): Promise<string> =>
  * @returns The Ledger Accounts
  */
 export const getLedgerAccounts = async (): Promise<string[]> =>
-  await withLedgerKeyring(async ({ keyring }) => keyring.getAccounts());
+  await withLedgerKeyring(async ({ keyring }) => {
+    const accounts = await keyring.getAccounts();
+    return accounts.map(({ address }) => address);
+  });
 
 /**
  * Unlock Ledger Accounts by page
@@ -293,10 +315,13 @@ export const unlockLedgerWalletAccount = async (index: number) => {
           );
         }
 
-        keyring.setAccountToUnlock(index);
-        const accounts = await keyring.addAccounts(1);
+        const accounts = await keyring.createAccounts({
+          type: 'bip44:derive-index',
+          entropySource: keyring.entropySource,
+          groupIndex: index,
+        });
         return {
-          unlockAccount: accounts[accounts.length - 1],
+          unlockAccount: accounts[accounts.length - 1].address,
           name: accountName,
         };
       },
