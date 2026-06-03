@@ -19,9 +19,8 @@ export const PRE_PUSH_PROMPT_FLAG_KEY = 'prePushPromptMinVersion' as const;
  */
 export const selectPrePushPromptEnabled = createSelector(
   selectRemoteFeatureFlags,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  (_remoteFeatureFlags): boolean => 
-    // TODO: remove hardcode before merging — temporarily forced true for local testing
-     true
-  ,
+  (remoteFeatureFlags): boolean => {
+    const remoteFlag = remoteFeatureFlags?.[PRE_PUSH_PROMPT_FLAG_KEY];
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
 );
