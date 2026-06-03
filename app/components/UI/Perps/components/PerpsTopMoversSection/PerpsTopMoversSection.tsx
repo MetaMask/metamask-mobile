@@ -75,27 +75,18 @@ export interface PerpsTopMoversSectionProps {
 }
 
 /**
- * "Top Movers" section for the Perps home screen.
- *
- * Renders a Gainers / Losers toggle and a 2×4 pill carousel of the top
- * price-change markets. Data is fetched from the controller with no
- * client-side sort or slice applied.
- *
- * Hides itself when the feature flag is disabled, or when not loading and
- * no market data is available.
+ * Inner component — only mounted when the feature flag is enabled.
+ * Keeps all stream-based hooks (usePerpsTopMovers, usePerpsMarkets,
+ * usePerpsLivePrices) out of the React tree entirely when the flag is off,
+ * so no subscriptions or sorting work runs unnecessarily.
  */
-const PerpsTopMoversSection: React.FC<PerpsTopMoversSectionProps> = ({
+const PerpsTopMoversSectionInner: React.FC<PerpsTopMoversSectionProps> = ({
   source,
 }) => {
   const tw = useTailwind();
-  const isEnabled = useSelector(selectPerpsTopMoversEnabledFlag);
   const perpsNavigation = usePerpsNavigation();
   const [direction, setDirection] = useState<SortDirection>('desc');
   const { data, isLoading } = usePerpsTopMovers({ direction });
-
-  if (!isEnabled) {
-    return null;
-  }
 
   if (!isLoading && data.length === 0) {
     return null;
@@ -160,6 +151,22 @@ const PerpsTopMoversSection: React.FC<PerpsTopMoversSectionProps> = ({
       />
     </Box>
   );
+};
+
+/**
+ * "Top Movers" section for the Perps home screen.
+ *
+ * Reads the feature flag first. When the flag is off the inner component is
+ * never mounted, so no stream subscriptions or sorting work runs at all.
+ * When enabled, renders a Gainers / Losers toggle and a 2×4 pill carousel of
+ * the top price-change markets with live WebSocket price updates.
+ */
+const PerpsTopMoversSection: React.FC<PerpsTopMoversSectionProps> = (props) => {
+  const isEnabled = useSelector(selectPerpsTopMoversEnabledFlag);
+  if (!isEnabled) {
+    return null;
+  }
+  return <PerpsTopMoversSectionInner {...props} />;
 };
 
 export default PerpsTopMoversSection;
