@@ -186,7 +186,8 @@ export function buildWhatsInRcSection(result: WhatsInRcResult, buildNumber?: str
   }
 
   // Use build number for unique anchors so Slack can link to the correct comment
-  const anchorSuffix = buildNumber ? `-${buildNumber}` : '';
+  const isValidBuildNumber = buildNumber && buildNumber !== 'Unknown' && buildNumber !== 'N/A';
+  const anchorSuffix = isValidBuildNumber ? `-${buildNumber}` : '';
 
   const lines: string[] = [
     `<a id="whats-in-this-rc${anchorSuffix}"></a>`,
