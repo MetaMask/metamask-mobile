@@ -1130,8 +1130,8 @@ describe('UnifiedTransactionsView - local incoming spam transactions', () => {
           transactions: [
             {
               id: 'incoming-scam',
-              hash: '0xscamhash',
-              chainId: '0x1',
+              hash: '0x3333333333333333333333333333333333333333333333333333333333333333',
+              chainId: '0x1' as const,
               time: Date.now(),
               status: TransactionStatus.confirmed,
               type: TransactionType.incoming,
