@@ -36,6 +36,12 @@ export interface GetPositionsParams {
   offset?: number;
 }
 
+export interface GetActivityParams {
+  address?: string;
+  limit?: number;
+  offset?: number;
+}
+
 export enum PredictMarketStatus {
   OPEN = 'open',
   CLOSED = 'closed',
@@ -568,6 +574,27 @@ export interface GetMarketsResult {
   nextCursor: string | null;
 }
 
+export interface PredictMarketListParams {
+  tags?: string[]; // tag IDs -> tag_id (multi). TODO: slug support later
+  series?: string[]; // series IDs -> series_id (multi)
+  order?: 'volume24hr' | 'liquidity' | 'ending_soon' | 'newest';
+  // 'resolved' maps to the same 'closed' params by design (no separate server-side filter).
+  status?: 'open' | 'closed' | 'resolved';
+  live?: boolean;
+  // Free-text title filter. The provider maps this to Polymarket's
+  // `title_search` query param, which composes with cursor pagination, so
+  // search stays on the same feed endpoint (handled in the provider layer, not
+  // the UI). Blank/whitespace is ignored (browse mode).
+  search?: string;
+  limit?: number;
+  afterCursor?: string | null;
+}
+
+export interface PredictMarketListResponse {
+  markets: PredictMarket[];
+  nextCursor?: string | null;
+}
+
 export interface SearchMarketsParams {
   q: string;
   limit?: number;
@@ -643,6 +670,8 @@ export interface PlaceOrderParams {
     marketCategory?: string;
     marketTags?: string[];
     entryPoint?: string;
+    predictFeedTab?: string;
+    predictScreen?: string;
     transactionType?: string;
     sharePrice?: number;
     liquidity?: number;

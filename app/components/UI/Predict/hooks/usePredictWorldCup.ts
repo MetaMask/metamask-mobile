@@ -21,7 +21,6 @@ import {
   resolvePredictWorldCupStageLabel,
 } from '../utils/worldCup';
 import {
-  fetchPredictWorldCupMarkets,
   fetchPredictWorldCupMarketsPage,
   PREDICT_WORLD_CUP_PAGE_SIZE,
 } from '../services/worldCup';
@@ -50,7 +49,7 @@ export interface PredictWorldCupAvailableTab {
 
 type PredictWorldCupDataConfig = Pick<
   PredictWorldCupConfig,
-  'seriesId' | 'tagSlug' | 'gamesTagId' | 'stages'
+  'tagSlug' | 'gamesTagId' | 'stages'
 >;
 
 interface WorldCupMarketDataConfig {
