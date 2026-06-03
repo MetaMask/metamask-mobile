@@ -400,7 +400,6 @@ import {
 // this dedicated import.
 import type { DelegationControllerState } from '@metamask/delegation-controller/types';
 import { SnapKeyringBuilder } from '../SnapKeyring/SnapKeyring';
-import type { SnapKeyringBuilderV2 } from '../SnapKeyring/SnapKeyringV2';
 import {
   ControllerGetStateAction,
   ControllerStateChangeEvent,
@@ -489,7 +488,6 @@ type RequiredControllers = Omit<
   | 'MultichainRoutingService'
   | 'RewardsDataService'
   | 'SnapKeyringBuilder'
-  | 'SnapKeyringBuilderV2'
   | 'StorageService'
   | 'ComplianceService'
   | 'ChompApiService'
@@ -504,7 +502,6 @@ type OptionalControllers = Pick<
   | 'MultichainRoutingService'
   | 'RewardsDataService'
   | 'SnapKeyringBuilder'
-  | 'SnapKeyringBuilderV2'
   | 'StorageService'
   | 'ComplianceService'
   | 'ChompApiService'
@@ -807,7 +804,6 @@ export type MessengerClients = {
   MultichainAccountService: MultichainAccountService;
   SnapAccountService: SnapAccountService;
   SnapKeyringBuilder: SnapKeyringBuilder;
-  SnapKeyringBuilderV2: SnapKeyringBuilderV2;
   ///: END:ONLY_INCLUDE_IF
   TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataController;
   MultichainNetworkController: MultichainNetworkController;
@@ -985,7 +981,6 @@ export type MessengerClientsToInitialize =
   | 'MultichainAccountService'
   | 'SnapAccountService'
   | 'SnapKeyringBuilder'
-  | 'SnapKeyringBuilderV2'
   ///: END:ONLY_INCLUDE_IF
   | 'EarnController'
   | 'MoneyAccountController'

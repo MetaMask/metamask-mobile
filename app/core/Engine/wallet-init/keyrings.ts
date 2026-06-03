@@ -145,33 +145,12 @@ export function getKeyringBuilders(
   keyrings.push(snapKeyringBuilder(snapKeyringMessenger));
   ///: END:ONLY_INCLUDE_IF
 
-  // The v2 Snap keyring is registered via `KeyringV1Adapter`, which owns the
-  // inner `SnapKeyring` (v2) instance and exposes a v1-compatible facade for
-  // KeyringController vault management. The same inner instance is retrieved
-  // via `unwrap()` for the v2 builder, so both entries share the same
-  // underlying object — enabling both `withKeyring` and `withKeyringV2`.
-  keyrings.push(snapKeyringBuilderV2(snapKeyringMessenger).v1Builder);
-  ///: END:ONLY_INCLUDE_IF
-
   // @ts-expect-error: `addAccounts` is missing in `SnapKeyring` type.
   return keyrings;
 }
 
 export function getKeyringV2Builders(
-  messenger: RootMessenger,
+  _messenger: RootMessenger,
 ): KeyringControllerOptions['keyringV2Builders'] {
-  const keyringsV2 = [];
-
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const snapKeyringMessenger = getSnapKeyringMessenger(messenger);
-
-  // The v2 Snap keyring is registered via `KeyringV1Adapter`, which owns the
-  // inner `SnapKeyring` (v2) instance and exposes a v1-compatible facade for
-  // KeyringController vault management. The same inner instance is retrieved
-  // via `unwrap()` for the v2 builder, so both entries share the same
-  // underlying object — enabling both `withKeyring` and `withKeyringV2`.
-  keyringsV2.push(snapKeyringBuilderV2(snapKeyringMessenger).v2Builder);
-  ///: END:ONLY_INCLUDE_IF
-
-  return keyringsV2;
+  return [];
 }
