@@ -11,7 +11,13 @@ const QuickBuyAmount: React.FC = () => {
     features,
     usdAmount,
     target,
+    tradeMode,
+    hasSourcePrice,
+    sourceAmountTokens,
+    sourceTokenAmount,
+    sourceToken,
     estimatedReceiveAmount,
+    destToken,
     sourceBalanceFiat,
     isQuoteLoading,
     hiddenInputRef,
@@ -20,15 +26,38 @@ const QuickBuyAmount: React.FC = () => {
     handleToggleAmountDisplay,
   } = useQuickBuyContext();
 
+  const isUnpricedSource = tradeMode === 'sell' && !hasSourcePrice;
+
+  // In sell mode (priced), the secondary label should show how much of the
+  // source token the user is selling, not how much destination they'll receive.
+  // In buy mode (or unpriced sell) keep the existing dest-token display.
+  const isSellPriced = tradeMode === 'sell' && hasSourcePrice;
+  const cryptoSymbol = isSellPriced
+    ? (sourceToken?.symbol ?? target.tokenSymbol)
+    : (destToken?.symbol ?? target.tokenSymbol);
+  const displayedCryptoAmount = isSellPriced
+    ? sourceTokenAmount
+    : estimatedReceiveAmount;
+
+  // For unpriced tokens we have no fiat rate, so the "X available" line should
+  // show the raw token balance rather than "$0.00".
+  const availableBalance =
+    isUnpricedSource && sourceToken?.balance
+      ? `${sourceToken.balance} ${sourceToken.symbol ?? ''}`
+      : sourceBalanceFiat;
+
   return (
     <QuickBuyAmountSection
       amountDisplayMode={amountDisplayMode}
       fiatCryptoToggleEnabled={features.fiatCryptoToggle}
       usdAmount={usdAmount}
-      destSymbol={target.tokenSymbol}
-      estimatedReceiveAmount={estimatedReceiveAmount}
-      availableBalanceFiat={sourceBalanceFiat}
+      destSymbol={cryptoSymbol}
+      estimatedReceiveAmount={displayedCryptoAmount}
+      availableBalanceFiat={availableBalance}
       isQuoteLoading={isQuoteLoading}
+      isUnpricedSource={isUnpricedSource}
+      sourceCryptoAmount={sourceAmountTokens}
+      sourceSymbol={sourceToken?.symbol ?? target.tokenSymbol}
       hiddenInputRef={hiddenInputRef}
       onAmountAreaPress={handleAmountAreaPress}
       onAmountChange={handleAmountChange}

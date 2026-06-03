@@ -9700,15 +9700,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:^14.0.0":
-  version: 14.0.0
-  resolution: "@metamask/ramps-controller@npm:14.0.0"
+"@metamask/ramps-controller@npm:^14.1.0":
+  version: 14.1.0
+  resolution: "@metamask/ramps-controller@npm:14.1.0"
   dependencies:
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/controller-utils": "npm:^12.1.0"
     "@metamask/messenger": "npm:^1.2.0"
-    "@metamask/profile-sync-controller": "npm:^28.1.0"
-  checksum: 10/b00541d2be062af2170a70004ee4b19b850abe271f77077057d26e9c019191202474ebedb15d0a3182ffd2957a1ae3e19ea103d080360e69c94d36e39f326866
+    "@metamask/profile-sync-controller": "npm:^28.1.1"
+  checksum: 10/248112e5dc9258b2cda77f89eb63ad9cc13d9632df9b8b5ac112f54951c3e8e8ae797ba7462a57f084fa22fc00a68eb13d9b78f534659ad833baffa49a0abfc7
   languageName: node
   linkType: hard
 
@@ -10431,9 +10431,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-pay-controller@npm:^23.0.0":
-  version: 23.0.0
-  resolution: "@metamask/transaction-pay-controller@npm:23.0.0"
+"@metamask/transaction-pay-controller@npm:^23.1.0":
+  version: 23.1.0
+  resolution: "@metamask/transaction-pay-controller@npm:23.1.0"
   dependencies:
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
@@ -10448,7 +10448,7 @@ __metadata:
     "@metamask/messenger": "npm:^1.2.0"
     "@metamask/metamask-eth-abis": "npm:^3.1.1"
     "@metamask/network-controller": "npm:^32.0.0"
-    "@metamask/ramps-controller": "npm:^14.0.0"
+    "@metamask/ramps-controller": "npm:^14.1.0"
     "@metamask/remote-feature-flag-controller": "npm:^4.2.1"
     "@metamask/transaction-controller": "npm:^66.0.0"
     "@metamask/utils": "npm:^11.9.0"
@@ -10456,7 +10456,7 @@ __metadata:
     bn.js: "npm:^5.2.1"
     immer: "npm:^9.0.6"
     lodash: "npm:^4.17.21"
-  checksum: 10/cba797aa3ad3891eaed96fe599ac44542457085d2ffaf9c2b5ceec7b3d65bdadce838cf418e9b8189c0f5b18a5e3b7faf3588dd644559baaa93c4dd69ffe8e7b
+  checksum: 10/67269d459f4c95bf7416a7ebf1e35d5b2195733e7b638f54a63deb3a907fcd528973a07cfc4cb79e4c5cd324d4ed92e4f01a74283af749f19ded652e3aab2e90
   languageName: node
   linkType: hard
 
@@ -35424,7 +35424,7 @@ __metadata:
     "@metamask/profile-metrics-controller": "npm:^3.1.0"
     "@metamask/profile-sync-controller": "npm:^28.1.0"
     "@metamask/providers": "npm:^18.3.1"
-    "@metamask/ramps-controller": "npm:^14.0.0"
+    "@metamask/ramps-controller": "npm:^14.1.0"
     "@metamask/react-data-query": "npm:^0.2.0"
     "@metamask/react-native-acm": "patch:@metamask/react-native-acm@npm%3A1.2.0#~/.yarn/patches/@metamask-react-native-acm-npm-1.2.0-944bf863eb.patch"
     "@metamask/react-native-actionsheet": "npm:2.4.2"
@@ -35458,7 +35458,7 @@ __metadata:
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
     "@metamask/transaction-controller": "npm:^66.0.0"
-    "@metamask/transaction-pay-controller": "npm:^23.0.0"
+    "@metamask/transaction-pay-controller": "npm:^23.1.0"
     "@metamask/tron-wallet-snap": "npm:^1.25.6"
     "@metamask/utils": "npm:^11.11.0"
     "@metamask/wallet": "npm:^2.0.0"
