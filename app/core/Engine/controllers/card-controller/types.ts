@@ -22,11 +22,9 @@ import type {
   TransactionControllerAddTransactionAction,
   TransactionControllerAddTransactionBatchAction,
   TransactionControllerGetStateAction,
-  TransactionControllerIsAtomicBatchSupportedAction,
   TransactionControllerTransactionConfirmedEvent,
   TransactionControllerTransactionFailedEvent,
 } from '@metamask/transaction-controller';
-import type { MoneyAccountUpgradeControllerUpgradeAccountAction } from '@metamask/money-account-upgrade-controller';
 
 export const CARD_CONTROLLER_NAME = 'CardController';
 
@@ -77,11 +75,9 @@ type CardControllerAllowedActions =
   | RemoteFeatureFlagControllerGetStateAction
   | KeyringControllerSignPersonalMessageAction
   | NetworkControllerFindNetworkClientIdByChainIdAction
-  | MoneyAccountUpgradeControllerUpgradeAccountAction
   | TransactionControllerAddTransactionAction
   | TransactionControllerAddTransactionBatchAction
-  | TransactionControllerGetStateAction
-  | TransactionControllerIsAtomicBatchSupportedAction;
+  | TransactionControllerGetStateAction;
 
 type CardControllerAllowedEvents =
   | AccountTreeControllerStateChangeEvent

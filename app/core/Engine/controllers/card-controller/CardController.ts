@@ -49,7 +49,6 @@ import {
   awaitTransactionConfirmed,
   type AwaitTransactionConfirmedMessenger,
 } from './utils/awaitTransactionConfirmed';
-import { ensureMoneyAccount7702Ready } from './utils/ensureMoneyAccount7702Ready';
 import { resolveMoneyAccountCardToken } from './utils/moneyAccountCardToken';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { toTokenMinimalUnit } from '../../../../util/number/bigint';
@@ -924,14 +923,14 @@ export class CardController extends BaseController<
    * and the money account doesn't pay MON gas — Sentinel sponsors the relayer
    * fee. This is the background linkage path UI hooks consume.
    *
-   * Pre-flight enforces two invariants before submission:
-   * 1. Monad gas sponsorship feature flag is enabled (the relay must accept
+   * Pre-flight enforces one invariant before submission: the Monad gas
+   * sponsorship feature flag must be enabled (the relay must accept
    * sponsorship for this chain).
-   * 2. The money account is EIP-7702-ready on the card token chain (so the
-   * relay can redeem the delegation without the account itself signing the tx).
-   * If the Money Account is not EIP-7702-ready on the card token chain yet,
-   * the full Money Account upgrade flow is completed before the approve is
-   * submitted.
+   *
+   * EIP-7702 upgrade is handled atomically by `Delegation7702PublishHook`:
+   * when the Money Account has no existing delegation, the hook auto-signs a
+   * 7702 authorization and bundles it in the same Sentinel relay request as
+   * the approve. No separate upgrade step is required here.
    *
    * Race-safe by construction: subscribes to
    * `TransactionController:transactionConfirmed` BEFORE submitting the
@@ -1055,12 +1054,6 @@ export class CardController extends BaseController<
         'Monad gas sponsorship unavailable',
       );
     }
-
-    await ensureMoneyAccount7702Ready({
-      messenger: this.messenger,
-      address: fromAddress as Hex,
-      chainId: hexChainId,
-    });
 
     const { delegationToken, nonce } = await provider.fetchDelegationChallenge(
       { network: 'monad', address: fromAddress },
