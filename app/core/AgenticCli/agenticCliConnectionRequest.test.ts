@@ -46,7 +46,7 @@ describe('isAgenticCliConnectionRequest', () => {
     const req = validAgenticRequest({
       connectionType: {
         name: 'agentic-cli',
-        dashboardUrl: 'https://dashboard.w3a.io',
+        dashboardUrl: 'https://developer.metamask.io',
         dashboardAuthUrl:
           'https://authentication.dev-api.cx.metamask.io/api/v2/mm-qr-login/token',
       },

@@ -9,10 +9,10 @@ export const ENGINE_READY_POLL_MS = 250;
 export const DASHBOARD_WEBVIEW_URL_BY_ENV: Record<string, string> = {
   main_dev: 'https://test-dashboard.web3auth.io/agentic/login',
   main_uat: 'https://dev-dashboard.web3auth.io/agentic/login',
-  main_prod: 'https://dashboard.w3a.io/agentic/login',
+  main_prod: 'https://developer.metamask.io/agentic/login',
   flask_dev: 'https://test-dashboard.web3auth.io/agentic/login',
   flask_uat: 'https://dev-dashboard.web3auth.io/agentic/login',
-  flask_prod: 'https://dashboard.w3a.io/agentic/login',
+  flask_prod: 'https://developer.metamask.io/agentic/login',
 };
 
 export const getDashboardWebviewUrl = (): string => {

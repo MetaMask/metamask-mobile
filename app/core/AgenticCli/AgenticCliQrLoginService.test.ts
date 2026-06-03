@@ -187,7 +187,7 @@ describe('AgenticCliQrLoginService', () => {
       expect.any(Object),
     );
     expect(AgenticCliDashboardWebviewService.open).toHaveBeenCalledWith({
-      dashboardUrl: 'https://dashboard.w3a.io/agentic/login',
+      dashboardUrl: 'https://developer.metamask.io/agentic/login',
       dashboardToken: 'dashboard-token',
     });
   });
@@ -217,7 +217,7 @@ describe('AgenticCliQrLoginService', () => {
       }),
     );
     expect(AgenticCliDashboardWebviewService.open).toHaveBeenCalledWith({
-      dashboardUrl: 'https://dashboard.w3a.io/agentic/login',
+      dashboardUrl: 'https://developer.metamask.io/agentic/login',
       dashboardToken: 'dashboard-token',
     });
     expect(conn.client.sendResponse).toHaveBeenCalledWith({

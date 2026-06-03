@@ -224,8 +224,18 @@ describe('AgenticCliDashboardWebviewService', () => {
         ),
       ).toBe(true);
       expect(
+        AgenticCliDashboardWebviewService.isOriginAllowed(
+          'https://developer.metamask.io',
+        ),
+      ).toBe(true);
+      expect(
         AgenticCliDashboardWebviewService.shouldLoadInWebView(
           'https://test-dashboard.web3auth.io/agentic/login#auth_token=token',
+        ),
+      ).toBe(true);
+      expect(
+        AgenticCliDashboardWebviewService.shouldLoadInWebView(
+          'https://dev-developer.metamask.io/agentic/login#auth_token=token',
         ),
       ).toBe(true);
       expect(
@@ -253,7 +263,17 @@ describe('AgenticCliDashboardWebviewService', () => {
 
       expect(
         AgenticCliDashboardWebviewService.isOriginAllowed(
+          'https://developer.metamask.io',
+        ),
+      ).toBe(true);
+      expect(
+        AgenticCliDashboardWebviewService.isOriginAllowed(
           'https://dashboard.web3auth.io',
+        ),
+      ).toBe(true);
+      expect(
+        AgenticCliDashboardWebviewService.shouldLoadInWebView(
+          'https://developer.metamask.io/agentic/login#auth_token=token',
         ),
       ).toBe(true);
       expect(
@@ -272,8 +292,18 @@ describe('AgenticCliDashboardWebviewService', () => {
         ),
       ).toBe(true);
       expect(
+        AgenticCliDashboardWebviewService.isOriginAllowed(
+          'https://uat-developer.metamask.io',
+        ),
+      ).toBe(true);
+      expect(
         AgenticCliDashboardWebviewService.shouldLoadInWebView(
           'https://dev-dashboard.web3auth.io/agentic/login#auth_token=token',
+        ),
+      ).toBe(true);
+      expect(
+        AgenticCliDashboardWebviewService.shouldLoadInWebView(
+          'https://uat-developer.metamask.io/agentic/login#auth_token=token',
         ),
       ).toBe(true);
       expect(
