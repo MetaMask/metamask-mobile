@@ -38,8 +38,28 @@ describe('selectAgenticCliNotificationsEnabled', () => {
   });
 
   it('returns true in dev when remote flag is absent and build flag is enabled', () => {
-    const result = selectAgenticCliNotificationsEnabled.resultFunc({});
+    const originalDev = global.__DEV__;
+    global.__DEV__ = true;
 
-    expect(result).toBe(true);
+    try {
+      const result = selectAgenticCliNotificationsEnabled.resultFunc({});
+
+      expect(result).toBe(true);
+    } finally {
+      global.__DEV__ = originalDev;
+    }
+  });
+
+  it('returns false outside dev when remote flag is absent and build flag is enabled', () => {
+    const originalDev = global.__DEV__;
+    global.__DEV__ = false;
+
+    try {
+      const result = selectAgenticCliNotificationsEnabled.resultFunc({});
+
+      expect(result).toBe(false);
+    } finally {
+      global.__DEV__ = originalDev;
+    }
   });
 });

@@ -3,6 +3,7 @@ import {
   DEFAULT_AGENTIC_CLI_PREFERENCE,
   mergeAgenticCliIntoPreferences,
   resolveAgenticCliPreference,
+  stripAgenticCliFromNotificationPreferences,
   type NotificationStoragePreferencesWithAgenticCli,
 } from './agenticCliNotificationPreferences';
 
@@ -39,6 +40,45 @@ describe('agenticCliNotificationPreferences', () => {
     ).toEqual(DEFAULT_AGENTIC_CLI_PREFERENCE);
   });
 
+  it('uses client agenticCli when API and cache omit the section', () => {
+    const basePreferences = {
+      walletActivity: {
+        inAppNotificationsEnabled: true,
+        pushNotificationsEnabled: true,
+        accounts: [],
+      },
+      marketing: {
+        inAppNotificationsEnabled: false,
+        pushNotificationsEnabled: false,
+      },
+      perps: {
+        inAppNotificationsEnabled: true,
+        pushNotificationsEnabled: true,
+      },
+      socialAI: {
+        inAppNotificationsEnabled: true,
+        pushNotificationsEnabled: true,
+        mutedTraderProfileIds: [],
+      },
+    };
+
+    const clientPreference = {
+      pushNotificationsEnabled: true,
+      inAppNotificationsEnabled: false,
+    };
+
+    expect(
+      mergeAgenticCliIntoPreferences(
+        basePreferences,
+        undefined,
+        clientPreference,
+      ),
+    ).toEqual({
+      ...basePreferences,
+      agenticCli: clientPreference,
+    });
+  });
+
   it('uses cached agenticCli when API response omits the section', () => {
     const basePreferences = {
       walletActivity: {
@@ -72,6 +112,40 @@ describe('agenticCliNotificationPreferences', () => {
     expect(mergeAgenticCliIntoPreferences(basePreferences, cached)).toEqual(
       cached,
     );
+  });
+
+  it('strips agenticCli from preferences written to the API-shaped cache', () => {
+    const preferencesWithAgenticCli = mergeAgenticCliIntoPreferences(
+      {
+        walletActivity: {
+          inAppNotificationsEnabled: true,
+          pushNotificationsEnabled: true,
+          accounts: [],
+        },
+        marketing: {
+          inAppNotificationsEnabled: false,
+          pushNotificationsEnabled: false,
+        },
+        perps: {
+          inAppNotificationsEnabled: true,
+          pushNotificationsEnabled: true,
+        },
+        socialAI: {
+          inAppNotificationsEnabled: true,
+          pushNotificationsEnabled: true,
+          mutedTraderProfileIds: [],
+        },
+      },
+      undefined,
+      {
+        pushNotificationsEnabled: true,
+        inAppNotificationsEnabled: false,
+      },
+    );
+
+    expect(
+      stripAgenticCliFromNotificationPreferences(preferencesWithAgenticCli),
+    ).not.toHaveProperty('agenticCli');
   });
 
   it('returns stored agenticCli preferences when present', () => {

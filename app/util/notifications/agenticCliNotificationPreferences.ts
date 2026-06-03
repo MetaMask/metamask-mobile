@@ -12,6 +12,11 @@ export interface AgenticCliPreference {
 export const AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION =
   'agenticCli' as const;
 
+export const AGENTIC_CLI_CLIENT_PREFERENCE_QUERY_KEY = [
+  'AuthenticatedUserStorageService:getNotificationPreferences',
+  'agenticCliClientPreference',
+] as const;
+
 export type AgenticCliNotificationPreferenceSection =
   typeof AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION;
 
@@ -25,7 +30,7 @@ export const DEFAULT_AGENTIC_CLI_PREFERENCE: AgenticCliPreference = {
   inAppNotificationsEnabled: false,
 };
 
-const readAgenticCliFromPreferences = (
+export const readAgenticCliFromPreferences = (
   preferences: NotificationPreferences | null | undefined,
 ): AgenticCliPreference | undefined =>
   (preferences as NotificationStoragePreferencesWithAgenticCli | null)?.[
@@ -41,13 +46,27 @@ export const resolveAgenticCliPreference = (
  * Merges `agenticCli` from API data and optional React Query cache (same session).
  * Does not use module-level state so values cannot leak across logout / account switch.
  */
+/** Strips client-only `agenticCli` before writing the main React Query cache (API-shaped). */
+export const stripAgenticCliFromNotificationPreferences = (
+  preferences: NotificationStoragePreferencesWithAgenticCli,
+): NotificationPreferences => {
+  const {
+    [AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION]: _agenticCli,
+    ...apiPreferences
+  } = preferences;
+
+  return apiPreferences;
+};
+
 export const mergeAgenticCliIntoPreferences = (
   preferences: NotificationPreferences,
   cachedPreferences?: NotificationPreferences | null,
+  clientAgenticCliPreference?: AgenticCliPreference | null,
 ): NotificationStoragePreferencesWithAgenticCli => {
   const agenticCli =
     readAgenticCliFromPreferences(preferences) ??
     readAgenticCliFromPreferences(cachedPreferences) ??
+    clientAgenticCliPreference ??
     DEFAULT_AGENTIC_CLI_PREFERENCE;
 
   return {
