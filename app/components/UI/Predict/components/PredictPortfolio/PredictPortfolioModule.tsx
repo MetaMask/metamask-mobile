@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { Box } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
@@ -28,7 +28,6 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
   const { enableDepositWalletWithdraw } = useSelector(selectMetaMaskPayFlags);
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const hasTrackedModuleViewedRef = useRef(false);
   const { executeGuardedAction } = usePredictActionGuard({ navigation });
   const {
     availableBalance,
@@ -58,18 +57,6 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
     }),
     [claimablePositionCount, hasClaimableWinnings, openPositionCount],
   );
-
-  useEffect(() => {
-    if (isLoading || hasTrackedModuleViewedRef.current) {
-      return;
-    }
-
-    Engine.context.PredictController.trackPortfolioModuleViewed({
-      ...portfolioAnalyticsProperties,
-      entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
-    });
-    hasTrackedModuleViewedRef.current = true;
-  }, [isLoading, portfolioAnalyticsProperties]);
 
   const trackPortfolioTransactionInitiated = useCallback(
     (transactionType: string, entryPoint: string) => {

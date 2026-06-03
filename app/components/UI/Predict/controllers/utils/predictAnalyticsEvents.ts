@@ -14,7 +14,6 @@ export type PredictAnalyticsEventKey =
   | 'activityViewed'
   | 'positionViewed'
   | 'feedViewed'
-  | 'portfolioModuleViewed'
   | 'shareAction'
   | 'geoBlockTriggered'
   | 'marketDetailsOpened'
@@ -102,25 +101,6 @@ export const PREDICT_ANALYTICS_EVENTS: Record<
       ...(entryPoint
         ? { [PredictEventProperties.ENTRY_POINT]: entryPoint }
         : {}),
-      ...mapPortfolioProperties(args),
-    }),
-  },
-  portfolioModuleViewed: {
-    event: MetaMetricsEvents.PREDICT_FEED_VIEWED,
-    logLabel: '📊 [Analytics] PREDICT_FEED_VIEWED',
-    mapProperties: ({
-      sessionId,
-      feedTab,
-      numPagesViewed,
-      sessionTime,
-      isSessionEnd,
-      ...args
-    }) => ({
-      [PredictEventProperties.SESSION_ID]: sessionId,
-      [PredictEventProperties.PREDICT_FEED_TAB]: feedTab,
-      [PredictEventProperties.NUM_FEED_PAGES_VIEWED_IN_SESSION]: numPagesViewed,
-      [PredictEventProperties.SESSION_TIME_IN_FEED]: sessionTime,
-      [PredictEventProperties.IS_SESSION_END]: isSessionEnd,
       ...mapPortfolioProperties(args),
     }),
   },

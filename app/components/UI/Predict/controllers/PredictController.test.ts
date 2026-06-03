@@ -8697,18 +8697,6 @@ describe('PredictController', () => {
       });
     });
 
-    it('calls analytics.trackEvent for trackPortfolioModuleViewed', () => {
-      withController(({ controller }) => {
-        controller.trackPortfolioModuleViewed({
-          entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
-          openPositionsCount: 2,
-          claimablePositionsCount: 1,
-          hasClaimableWinnings: true,
-        });
-        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
-      });
-    });
-
     it('calls analytics.trackEvent for trackPortfolioPositionsButtonTapped', () => {
       withController(({ controller }) => {
         controller.trackPortfolioPositionsButtonTapped({

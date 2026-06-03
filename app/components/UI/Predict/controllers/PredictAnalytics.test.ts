@@ -481,36 +481,6 @@ describe('PredictAnalytics', () => {
       });
     });
 
-    it('tracks portfolio module viewed with feed viewed event and non-sensitive context', () => {
-      predictAnalytics.trackPortfolioModuleViewed({
-        entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
-        openPositionsCount: 2,
-        claimablePositionsCount: 1,
-        hasClaimableWinnings: true,
-      });
-
-      const event = getTrackedEvent();
-
-      expect(event.name).toBe(MetaMetricsEvents.PREDICT_FEED_VIEWED.category);
-      expect(event.properties).toMatchObject({
-        session_id: expect.any(String),
-        predict_feed_tab: PredictEventValues.LOCATION.PREDICT_PORTFOLIO_MODULE,
-        num_feed_pages_viewed_in_session: 0,
-        session_time_in_feed: 0,
-        is_session_end: false,
-        action_type: PredictEventValues.ACTION_TYPE.VIEWED,
-        entry_point: PredictEventValues.ENTRY_POINT.HOME_SECTION,
-        open_positions_count: 2,
-        claimable_positions_count: 1,
-        has_claimable_winnings: true,
-        portfolio_module_enabled: true,
-        location: PredictEventValues.LOCATION.PREDICT_PORTFOLIO_MODULE,
-      });
-      expect(event.properties).not.toHaveProperty('amount_usd');
-      expect(event.properties).not.toHaveProperty('pnl');
-      expect(event.sensitiveProperties).toEqual({});
-    });
-
     it('tracks portfolio positions button tap with position viewed event', () => {
       predictAnalytics.trackPortfolioPositionsButtonTapped({
         entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
@@ -661,6 +631,8 @@ describe('PredictAnalytics', () => {
         numPagesViewed: 3,
         sessionTime: 98,
         entryPoint: 'carousel',
+        portfolioModuleEnabled: true,
+        location: PredictEventValues.LOCATION.PREDICT_PORTFOLIO_MODULE,
       });
 
       expect(getTrackEventMock()).toHaveBeenCalledTimes(2);
@@ -680,6 +652,8 @@ describe('PredictAnalytics', () => {
         session_time_in_feed: 98,
         is_session_end: false,
         entry_point: 'carousel',
+        portfolio_module_enabled: true,
+        location: PredictEventValues.LOCATION.PREDICT_PORTFOLIO_MODULE,
       });
 
       expect(assetViewedEvent.name).toBe(

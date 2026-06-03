@@ -89,11 +89,6 @@ export type PredictControllerTrackActivityViewedAction = {
   handler: PredictController['trackActivityViewed'];
 };
 
-export type PredictControllerTrackPortfolioModuleViewedAction = {
-  type: `PredictController:trackPortfolioModuleViewed`;
-  handler: PredictController['trackPortfolioModuleViewed'];
-};
-
 export type PredictControllerTrackPortfolioPositionsButtonTappedAction = {
   type: `PredictController:trackPortfolioPositionsButtonTapped`;
   handler: PredictController['trackPortfolioPositionsButtonTapped'];
@@ -341,7 +336,6 @@ export type PredictControllerMethodActions =
   | PredictControllerTrackMarketDetailsOpenedAction
   | PredictControllerTrackPositionViewedAction
   | PredictControllerTrackActivityViewedAction
-  | PredictControllerTrackPortfolioModuleViewedAction
   | PredictControllerTrackPortfolioPositionsButtonTappedAction
   | PredictControllerTrackPortfolioTransactionInitiatedAction
   | PredictControllerTrackPositionsScreenViewedAction

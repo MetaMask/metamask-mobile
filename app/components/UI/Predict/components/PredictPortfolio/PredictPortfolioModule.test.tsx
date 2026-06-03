@@ -12,7 +12,6 @@ const mockNavigate = jest.fn();
 const mockExecuteGuardedAction = jest.fn((action: () => void | Promise<void>) =>
   action(),
 );
-const mockTrackPortfolioModuleViewed = jest.fn();
 const mockTrackPortfolioPositionsButtonTapped = jest.fn();
 const mockTrackPortfolioTransactionInitiated = jest.fn();
 let mockPrivacyMode = false;
@@ -134,7 +133,6 @@ describe('PredictPortfolioModule', () => {
     mockEnableDepositWalletWithdraw = false;
     mockUsePredictPortfolio.mockReturnValue(createPortfolio());
     const predictController = {
-      trackPortfolioModuleViewed: mockTrackPortfolioModuleViewed,
       trackPortfolioPositionsButtonTapped:
         mockTrackPortfolioPositionsButtonTapped,
       trackPortfolioTransactionInitiated:
@@ -228,49 +226,6 @@ describe('PredictPortfolioModule', () => {
       screen.getByTestId(PREDICT_PORTFOLIO_TEST_IDS.PRIMARY_SKELETON),
     ).toBeOnTheScreen();
     expect(screen.getByText('Positions')).toBeOnTheScreen();
-  });
-
-  it('tracks portfolio module viewed with count context after loading completes', () => {
-    mockUsePredictPortfolio.mockReturnValue(
-      createPortfolio({
-        availableBalance: 250,
-        claimableAmount: 46.35,
-        claimablePositionCount: 1,
-        hasClaimableWinnings: true,
-        openPositionCount: 2,
-        portfolioValue: 4000,
-        totalUnrealizedPnlAmount: -18.47,
-      }),
-    );
-
-    renderWithProvider(<PredictPortfolioModule />);
-
-    expect(mockTrackPortfolioModuleViewed).toHaveBeenCalledWith(
-      expectedPortfolioContext({
-        entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
-        openPositionsCount: 2,
-        claimablePositionsCount: 1,
-        hasClaimableWinnings: true,
-      }),
-    );
-
-    const payload = mockTrackPortfolioModuleViewed.mock.calls[0][0];
-    expect(payload).not.toHaveProperty('availableBalance');
-    expect(payload).not.toHaveProperty('claimableAmount');
-    expect(payload).not.toHaveProperty('portfolioValue');
-    expect(payload).not.toHaveProperty('totalUnrealizedPnlAmount');
-  });
-
-  it('does not track portfolio module viewed while portfolio data is loading', () => {
-    mockUsePredictPortfolio.mockReturnValue(
-      createPortfolio({
-        isLoading: true,
-      }),
-    );
-
-    renderWithProvider(<PredictPortfolioModule />);
-
-    expect(mockTrackPortfolioModuleViewed).not.toHaveBeenCalled();
   });
 
   it('routes add funds press through the existing guarded flow', () => {

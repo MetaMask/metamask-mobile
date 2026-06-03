@@ -6,7 +6,6 @@ import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../../../util/analytics/analytics';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
-import { v4 as uuidv4 } from 'uuid';
 import {
   PredictDismissalMethodValue,
   PredictEventProperties,
@@ -101,15 +100,6 @@ export interface PositionViewedArgs
 export interface ActivityViewedArgs
   extends PredictPortfolioAnalyticsContextArgs {
   activityType: string;
-}
-
-export interface PortfolioModuleViewedArgs
-  extends Omit<
-    PredictPortfolioAnalyticsContextArgs,
-    'actionType' | 'location' | 'tab'
-  > {
-  portfolioModuleEnabled?: boolean;
-  location?: string;
 }
 
 export interface PortfolioPositionsButtonTappedArgs
@@ -337,24 +327,6 @@ export class PredictAnalytics {
 
   public trackActivityViewed(args: ActivityViewedArgs): void {
     this.trackConfiguredEvent('activityViewed', args);
-  }
-
-  public trackPortfolioModuleViewed({
-    portfolioModuleEnabled = true,
-    location = PredictEventValues.LOCATION.PREDICT_PORTFOLIO_MODULE,
-    ...args
-  }: PortfolioModuleViewedArgs): void {
-    this.trackConfiguredEvent('portfolioModuleViewed', {
-      sessionId: uuidv4(),
-      feedTab: PredictEventValues.LOCATION.PREDICT_PORTFOLIO_MODULE,
-      numPagesViewed: 0,
-      sessionTime: 0,
-      isSessionEnd: false,
-      ...args,
-      actionType: PredictEventValues.ACTION_TYPE.VIEWED,
-      portfolioModuleEnabled,
-      location,
-    });
   }
 
   public trackPortfolioPositionsButtonTapped({
