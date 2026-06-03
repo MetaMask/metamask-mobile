@@ -207,6 +207,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               fp.amountFiat = amountFiat;
             },
           });
+
+          if (isMoneyAccountDeposit) {
+            await updateTokenAmount();
+          }
         } else {
           await updateTokenAmount();
         }
@@ -222,6 +226,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       }
     }, [
       amountFiat,
+      isMoneyAccountDeposit,
       onAmountSubmit,
       selectedFiatPaymentMethodId,
       transactionId,
