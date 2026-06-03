@@ -226,9 +226,11 @@ jobs:
     steps:
       - name: Map performance tags to grep pattern
         id: map
+        env:
+          PERF_REASONING: ${{ inputs.performance_tags_reasoning }}
         run: |
           TAGS='${{ inputs.performance_tags }}'
-          REASONING='${{ inputs.performance_tags_reasoning }}'
+          REASONING="$PERF_REASONING"
 
           # No input (blank) → schedule/dispatch: run all tests with no grep filter
           if [[ -z "$TAGS" ]]; then

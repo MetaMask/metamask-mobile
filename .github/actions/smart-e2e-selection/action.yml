@@ -159,39 +159,43 @@ runs:
       id: final-outputs
       if: always()
       shell: bash
+      env:
+        AI_E2E_TAGS: ${{ steps.ai-analysis.outputs.ai_e2e_test_tags }}
+        AI_CONFIDENCE: ${{ steps.ai-analysis.outputs.ai_confidence }}
+        AI_PERF_TAGS: ${{ steps.ai-analysis.outputs.ai_performance_test_tags }}
+        AI_PERF_REASONING: ${{ steps.ai-analysis.outputs.ai_performance_test_reasoning }}
       run: |
-        TAGS='${{ steps.ai-analysis.outputs.ai_e2e_test_tags }}'
-        if [[ -n "$TAGS" ]]; then
-          printf 'ai_e2e_test_tags=%s\n' "$TAGS" >> "$GITHUB_OUTPUT"
+        if [[ -n "$AI_E2E_TAGS" ]]; then
+          printf 'ai_e2e_test_tags=%s\n' "$AI_E2E_TAGS" >> "$GITHUB_OUTPUT"
         else
           echo 'ai_e2e_test_tags=["ALL"]' >> "$GITHUB_OUTPUT"
         fi
-        echo "ai_confidence=${{ steps.ai-analysis.outputs.ai_confidence }}" >> "$GITHUB_OUTPUT"
+        printf 'ai_confidence=%s\n' "$AI_CONFIDENCE" >> "$GITHUB_OUTPUT"
         # Performance test tags (empty array means no performance tests)
-        PERF_TAGS='${{ steps.ai-analysis.outputs.ai_performance_test_tags }}'
-        if [[ -n "$PERF_TAGS" ]]; then
-          printf 'ai_performance_test_tags=%s\n' "$PERF_TAGS" >> "$GITHUB_OUTPUT"
+        if [[ -n "$AI_PERF_TAGS" ]]; then
+          printf 'ai_performance_test_tags=%s\n' "$AI_PERF_TAGS" >> "$GITHUB_OUTPUT"
         else
           echo 'ai_performance_test_tags=[]' >> "$GITHUB_OUTPUT"
         fi
-        # Performance test reasoning
-        PERF_REASONING='${{ steps.ai-analysis.outputs.ai_performance_test_reasoning }}'
-        if [[ -n "$PERF_REASONING" ]]; then
-          printf 'ai_performance_test_reasoning=%s\n' "$PERF_REASONING" >> "$GITHUB_OUTPUT"
-        else
-          echo 'ai_performance_test_reasoning=No reasoning available' >> "$GITHUB_OUTPUT"
-        fi
+        # Performance test reasoning (multi-line — must use heredoc format)
+        {
+          echo 'ai_performance_test_reasoning<<GHEOF'
+          echo "$AI_PERF_REASONING"
+          echo 'GHEOF'
+        } >> "$GITHUB_OUTPUT"
 
     - name: Display AI Analysis Outputs
       if: always()
       shell: bash
+      env:
+        PERF_REASONING: ${{ steps.final-outputs.outputs.ai_performance_test_reasoning }}
       run: |
         echo "📊 Final GitHub Action Outputs:"
         echo "================================"
         echo "ai_e2e_test_tags: ${{ steps.final-outputs.outputs.ai_e2e_test_tags }}"
         echo "ai_confidence: ${{ steps.final-outputs.outputs.ai_confidence }}"
         echo "ai_performance_test_tags: ${{ steps.final-outputs.outputs.ai_performance_test_tags }}"
-        echo "ai_performance_test_reasoning: ${{ steps.final-outputs.outputs.ai_performance_test_reasoning }}"
+        echo "ai_performance_test_reasoning: $PERF_REASONING"
         echo "================================"
 
     - name: Delete previous comments
