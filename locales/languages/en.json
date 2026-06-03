@@ -2559,6 +2559,11 @@
       "buy_title": "Predicted",
       "sell_title": "Cashed out",
       "claim_title": "Claimed winnings",
+      "claim_pending": "Claim pending",
+      "claim_pending_accessibility_label": "{{predictionStatus}}, {{marketTitle}}, opens market details",
+      "prediction_lost_title": "Prediction lost",
+      "prediction_resolved_title": "Prediction resolved",
+      "prediction_won_title": "Prediction won",
       "buy_detail": "Bought {{amountUsd}} on {{outcome}} · {{priceCents}} per share",
       "sell_detail": "Sold at {{priceCents}} per share",
       "claim_detail": "Claimed winnings",
@@ -3063,6 +3068,14 @@
     "option_predict_sports_events": "Predict sports and events",
     "option_crypto_as_money": "Use crypto as money",
     "option_connect_apps_sites": "Connect to apps or sites",
+    "continue": "Continue"
+  },
+  "onboarding_crypto_experience_questionnaire": {
+    "title": "What's your experience with crypto?",
+    "option_new": "New",
+    "option_beginner": "Beginner",
+    "option_intermediate": "Intermediate",
+    "option_advanced": "Advanced",
     "continue": "Continue"
   },
   "template_confirmation": {
