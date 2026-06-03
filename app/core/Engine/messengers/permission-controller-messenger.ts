@@ -18,6 +18,7 @@ import {
 import { NetworkControllerFindNetworkClientIdByChainIdAction } from '@metamask/network-controller';
 import { RootMessenger } from '../types.ts';
 import { PermissionControllerMessenger } from '@metamask/permission-controller';
+import { SnapAccountServiceHandleKeyringSnapMessageAction } from '@metamask/snap-account-service';
 
 /**
  * Get the messenger for the permission controller. This is scoped to the
@@ -61,7 +62,8 @@ type AllowedInitializationActions =
   | MultichainRoutingServiceIsSupportedScopeAction
   | MultichainRoutingServiceGetSupportedAccountsAction
   | NetworkControllerFindNetworkClientIdByChainIdAction
-  | SnapPermissionSpecificationsActions;
+  | SnapPermissionSpecificationsActions
+  | SnapAccountServiceHandleKeyringSnapMessageAction;
 
 type AllowedInitializationEvents = SnapPermissionSpecificationsEvents;
 
@@ -114,6 +116,7 @@ export function getPermissionControllerInitMessenger(
       'SnapInterfaceController:getInterface',
       'SnapInterfaceController:setInterfaceDisplayed',
       'SnapInterfaceController:updateInterface',
+      'SnapAccountService:handleKeyringSnapMessage',
     ],
     events: ['KeyringController:unlock'],
     messenger,
