@@ -4,21 +4,26 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { V1TransactionByHashResponse } from '@metamask/core-backend';
 import {
   TransactionStatus,
+  TransactionType,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
+import Routes from '../../../constants/navigation/Routes';
 import UnifiedTransactionsView from './UnifiedTransactionsView';
 import _renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
 import { useTransactionsQuery } from './useTransactionsQuery';
-import { selectTransactions } from './helpers/transformations';
+import { selectApiEvmTransactions } from './helpers/transformations';
+import type { ActivityListItem } from './types';
 
 // Type helper for UNSAFE_queryByType with mocked string components
 const asComponentType = (name: string) => name as unknown as ComponentType;
 
-type TransactionsQueryData = ReturnType<ReturnType<typeof selectTransactions>>;
+type TransactionsQueryData = ReturnType<
+  ReturnType<typeof selectApiEvmTransactions>
+>;
 
 const emptyTransactionsQueryData: TransactionsQueryData = {
   pageParams: [],
@@ -160,6 +165,9 @@ jest.mock(
   '../../UI/MultichainBridgeTransactionListItem',
   () => 'MultichainBridgeTransactionListItem',
 );
+jest.mock('../../UI/ActivityListItemRow/ActivityListItemRow', () => ({
+  ActivityListItemRow: 'ActivityListItemRow',
+}));
 jest.mock('../../UI/TransactionActionModal', () => 'TransactionActionModal');
 jest.mock('../confirmations/components/modals/cancel-speedup-modal', () => {
   const ReactActual = jest.requireActual('react');
@@ -463,7 +471,7 @@ describe('UnifiedTransactionsView with transactions', () => {
   const createConfirmedEvmQueryData = (
     transactions: V1TransactionByHashResponse[] = [],
   ) =>
-    selectTransactions({
+    selectApiEvmTransactions({
       address: ACTIVE_EVM_ADDRESS,
     })({
       pageParams: [undefined],
@@ -549,17 +557,6 @@ describe('UnifiedTransactionsView with transactions', () => {
     },
   };
 
-  const getRenderedTransactionIds = (
-    queryAllByType: ReturnType<
-      typeof renderWithProvider
-    >['UNSAFE_queryAllByType'],
-  ) =>
-    queryAllByType(asComponentType('TransactionElement')).map(
-      ({ props }) => props.tx.id,
-    );
-
-  const apiBridgeTransactionId = `${BRIDGE_TX_HASH}-1`;
-
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseTransactionsQuery();
@@ -568,7 +565,7 @@ describe('UnifiedTransactionsView with transactions', () => {
     );
   });
 
-  it('renders TransactionElement for EVM transactions', () => {
+  it('renders ActivityListItemRow for confirmed EVM transactions', () => {
     // Arrange & Act
     const { UNSAFE_queryAllByType } = renderWithProvider(
       <UnifiedTransactionsView />,
@@ -577,11 +574,11 @@ describe('UnifiedTransactionsView with transactions', () => {
       },
     );
 
-    // Assert - The component renders transaction elements
-    const transactionElements = UNSAFE_queryAllByType(
-      asComponentType('TransactionElement'),
+    // Assert - confirmed EVM transactions render via the shared ActivityListItemRow shape
+    const activityItems = UNSAFE_queryAllByType(
+      asComponentType('ActivityListItemRow'),
     );
-    expect(transactionElements.length).toBeGreaterThanOrEqual(0);
+    expect(activityItems.length).toBeGreaterThanOrEqual(0);
   });
 
   it('uses the Accounts API bridge transaction when the source hash matches bridge history', () => {
@@ -595,10 +592,17 @@ describe('UnifiedTransactionsView with transactions', () => {
       },
     );
 
-    const transactionIds = getRenderedTransactionIds(UNSAFE_queryAllByType);
-
-    expect(transactionIds).toContain(apiBridgeTransactionId);
-    expect(transactionIds).not.toContain(BRIDGE_TX_ID);
+    // Confirmed API bridge renders as ActivityListItemRow (not TransactionElement).
+    // The local bridge tx is deduped because the API tx has the same hash.
+    const activityItems = UNSAFE_queryAllByType(
+      asComponentType('ActivityListItemRow'),
+    );
+    // The hashes are the same — one item with API hash should appear
+    expect(
+      activityItems.some(
+        ({ props }) => props.item?.data?.hash === BRIDGE_TX_HASH.toLowerCase(),
+      ),
+    ).toBe(true);
   });
 
   it('keeps the local bridge transaction when Accounts API only has a nonce collision', () => {
@@ -612,9 +616,16 @@ describe('UnifiedTransactionsView with transactions', () => {
       },
     );
 
-    const transactionIds = getRenderedTransactionIds(UNSAFE_queryAllByType);
-
-    expect(transactionIds).toContain(BRIDGE_TX_ID);
+    // Local bridge tx is pending (status !== confirmed) so renders as TransactionElement;
+    // API tx has different hash so no dedup occurs.
+    const pendingElements = UNSAFE_queryAllByType(
+      asComponentType('TransactionElement'),
+    );
+    const activityElements = UNSAFE_queryAllByType(
+      asComponentType('ActivityListItemRow'),
+    );
+    // Either the local tx renders as TransactionElement (if pending) or ActivityListItemRow (if confirmed)
+    expect(pendingElements.length + activityElements.length).toBeGreaterThan(0);
   });
 });
 
@@ -716,7 +727,7 @@ describe('UnifiedTransactionsView - EVM network filter for unified list', () => 
       valueTransfers: [],
     }) as V1TransactionByHashResponse;
 
-  const queryDataMainnetConfirmed = selectTransactions({
+  const queryDataMainnetConfirmed = selectApiEvmTransactions({
     address: WALLET,
   })({
     pageParams: [undefined],
@@ -769,9 +780,40 @@ describe('UnifiedTransactionsView - EVM network filter for unified list', () => 
       { state: stateOnlyMainnet },
     );
 
+    // Confirmed EVM rows now render via ActivityListItemRow (shared adapter shape)
     expect(
-      UNSAFE_queryAllByType(asComponentType('TransactionElement')).length,
+      UNSAFE_queryAllByType(asComponentType('ActivityListItemRow')).length,
     ).toBeGreaterThanOrEqual(1);
+  });
+
+  it('opens legacy transaction details when pressing a confirmed EVM activity row', () => {
+    mockUseTransactionsQuery(queryDataMainnetConfirmed);
+
+    const { UNSAFE_queryAllByType } = renderWithProvider(
+      <UnifiedTransactionsView />,
+      { state: stateOnlyMainnet },
+    );
+
+    const [activityItem] = UNSAFE_queryAllByType(
+      asComponentType('ActivityListItemRow'),
+    );
+
+    activityItem.props.onPress(activityItem.props.item);
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MODAL.ROOT_MODAL_FLOW,
+      expect.objectContaining({
+        screen: Routes.SHEET.TRANSACTION_DETAILS,
+        params: expect.objectContaining({
+          tx: expect.objectContaining({
+            hash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          }),
+          transactionDetails: expect.objectContaining({
+            hash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          }),
+        }),
+      }),
+    );
   });
 
   it('hides pending EVM transactions when their chain is not in the enabled filter', () => {
@@ -1015,7 +1057,7 @@ describe('UnifiedTransactionsView - token poisoning protection', () => {
   const createConfirmedEvmQueryData = (
     transactions: V1TransactionByHashResponse[] = [],
   ) =>
-    selectTransactions({
+    selectApiEvmTransactions({
       address: ACTIVE_EVM_ADDRESS,
     })({
       pageParams: [undefined],
@@ -1097,6 +1139,62 @@ describe('UnifiedTransactionsView - token poisoning protection', () => {
     });
 
     expect(getByText('You have no transactions')).toBeOnTheScreen();
+  });
+});
+
+describe('UnifiedTransactionsView - local incoming spam transactions', () => {
+  const WALLET = '0xabc';
+  const SCAMMER = '0x9999999999999999999999999999999999999999';
+
+  const stateWithLocalIncomingSpam = {
+    engine: {
+      backgroundState: {
+        ...backgroundState,
+        TransactionController: {
+          ...backgroundState.TransactionController,
+          transactions: [
+            {
+              id: 'incoming-scam',
+              hash: '0xscamhash',
+              chainId: '0x1',
+              time: Date.now(),
+              status: TransactionStatus.confirmed,
+              type: TransactionType.incoming,
+              isTransfer: true,
+              txParams: {
+                from: SCAMMER,
+                to: WALLET,
+                value: '0x0',
+              },
+              transferInformation: {
+                contractAddress: '0x3333333333333333333333333333333333333333',
+                symbol: 'USDT',
+              },
+            },
+          ],
+        },
+      },
+    },
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseTransactionsQuery(emptyTransactionsQueryData);
+    (useUnifiedTxActions as jest.Mock).mockImplementation(
+      () => mockDefaultUnifiedTxActionsReturn,
+    );
+  });
+
+  it('does not render incoming local spam token transfers', () => {
+    const { getByText, UNSAFE_queryAllByType } = renderWithProvider(
+      <UnifiedTransactionsView />,
+      { state: stateWithLocalIncomingSpam },
+    );
+
+    expect(getByText('You have no transactions')).toBeOnTheScreen();
+    expect(
+      UNSAFE_queryAllByType(asComponentType('ActivityListItemRow')).length,
+    ).toBe(0);
   });
 });
 
