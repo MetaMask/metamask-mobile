@@ -1,13 +1,10 @@
 import { renderHook } from '@testing-library/react-native';
 import { StatusTypes as BridgeStatus } from '@metamask/bridge-controller';
-import {
-  TransactionStatus as TxStatus,
-  type TransactionMeta,
-} from '@metamask/transaction-controller';
+import { TransactionStatus as TxStatus } from '@metamask/transaction-controller';
 import { PostTradeStatus as Status } from './PostTradeBottomSheet.types';
 import { usePostTradeTxStatus } from './usePostTradeTxStatus';
 
-let mockTransactionMeta: TransactionMeta | undefined;
+let mockTransactionMeta: { status: TxStatus } | undefined;
 let mockBridgeHistory = {};
 
 jest.mock('react-redux', () => ({
@@ -20,32 +17,33 @@ jest.mock('../../../../../selectors/bridgeStatusController', () => ({
   selectBridgeHistoryForAccount: () => mockBridgeHistory,
 }));
 
-const renderStatus = (
+const statusOf = (
   txStatus?: TxStatus,
   bridgeStatus?: BridgeStatus,
-  initialStatus = Status.InProgress,
+  isBridge = false,
 ) => {
-  mockTransactionMeta = txStatus
-    ? ({ status: txStatus } as TransactionMeta)
-    : undefined;
+  mockTransactionMeta = txStatus ? { status: txStatus } : undefined;
   mockBridgeHistory = bridgeStatus
     ? { 'tx-id': { status: { status: bridgeStatus } } }
     : {};
 
-  return renderHook(() =>
-    usePostTradeTxStatus({ initialStatus, transactionMetaId: 'tx-id' }),
-  ).result.current;
+  const params = {
+    initialStatus: Status.InProgress,
+    isBridge,
+    transactionMetaId: 'tx-id',
+  };
+  return renderHook(() => usePostTradeTxStatus(params)).result.current;
 };
 
 describe('usePostTradeTxStatus', () => {
   it('maps transaction and bridge statuses', () => {
-    expect(renderStatus(undefined, undefined, Status.Failed)).toBe(
-      Status.Failed,
+    expect(statusOf(TxStatus.confirmed)).toBe(Status.Success);
+    expect(statusOf(TxStatus.confirmed, undefined, true)).toBe(
+      Status.InProgress,
     );
-    expect(renderStatus(TxStatus.submitted)).toBe(Status.InProgress);
-    expect(renderStatus(TxStatus.confirmed)).toBe(Status.Success);
-    expect(renderStatus(TxStatus.failed)).toBe(Status.Failed);
-    expect(renderStatus(undefined, BridgeStatus.COMPLETE)).toBe(Status.Success);
-    expect(renderStatus(undefined, BridgeStatus.FAILED)).toBe(Status.Failed);
+    expect(statusOf(TxStatus.failed)).toBe(Status.Failed);
+    expect(statusOf(undefined, BridgeStatus.COMPLETE)).toBe(Status.Success);
+    expect(statusOf(undefined, BridgeStatus.FAILED)).toBe(Status.Failed);
+    expect(statusOf(undefined, BridgeStatus.UNKNOWN)).toBe(Status.InProgress);
   });
 });

@@ -125,9 +125,14 @@ export const PostTradeBottomSheet = () => {
   const { styles } = useStyles(styleSheet, {});
   const params = useParams<PostTradeBottomSheetParams>();
   const updateQuoteParams = useBridgeQuoteRequest();
+  const isBridge =
+    params.sourceToken?.chainId &&
+    params.destToken?.chainId &&
+    params.sourceToken.chainId !== params.destToken.chainId;
 
   const status = usePostTradeTxStatus({
     initialStatus: params.status,
+    isBridge: Boolean(isBridge),
     transactionMetaId: params.transactionMetaId,
     transactionHash: params.transactionHash,
   });
@@ -156,12 +161,7 @@ export const PostTradeBottomSheet = () => {
     sourceToken: params.sourceToken,
     destToken: params.destToken,
   });
-  const titleType =
-    params.sourceToken?.chainId &&
-    params.destToken?.chainId &&
-    params.sourceToken.chainId !== params.destToken.chainId
-      ? 'bridge'
-      : 'swap';
+  const titleType = isBridge ? 'bridge' : 'swap';
 
   const handleClose = () => {
     sheetRef.current?.onCloseBottomSheet();

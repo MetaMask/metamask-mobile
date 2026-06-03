@@ -13,21 +13,10 @@ import { PostTradeStatus } from './PostTradeBottomSheet.types';
 
 interface UsePostTradeTxStatusParams {
   initialStatus: PostTradeStatus;
+  isBridge: boolean;
   transactionMetaId?: string;
   transactionHash?: string;
 }
-
-const FAILED_TRANSACTION_STATUSES = new Set<TransactionStatus>([
-  TransactionStatus.failed,
-  TransactionStatus.dropped,
-  TransactionStatus.rejected,
-  TransactionStatus.cancelled,
-]);
-
-const FAILED_BRIDGE_STATUSES = new Set<StatusTypes>([
-  StatusTypes.FAILED,
-  StatusTypes.UNKNOWN,
-]);
 
 const findBridgeHistoryItem = ({
   bridgeHistory,
@@ -53,6 +42,7 @@ const findBridgeHistoryItem = ({
 
 export const usePostTradeTxStatus = ({
   initialStatus,
+  isBridge,
   transactionMetaId,
   transactionHash,
 }: UsePostTradeTxStatusParams): PostTradeStatus => {
@@ -74,12 +64,17 @@ export const usePostTradeTxStatus = ({
   }
 
   const transactionStatus = transactionMeta?.status;
-  if (transactionStatus && FAILED_TRANSACTION_STATUSES.has(transactionStatus)) {
+  if (
+    transactionStatus === TransactionStatus.failed ||
+    transactionStatus === TransactionStatus.dropped ||
+    transactionStatus === TransactionStatus.rejected ||
+    transactionStatus === TransactionStatus.cancelled
+  ) {
     return PostTradeStatus.Failed;
   }
 
   const bridgeStatus = bridgeHistoryItem?.status?.status;
-  if (bridgeStatus && FAILED_BRIDGE_STATUSES.has(bridgeStatus)) {
+  if (bridgeStatus === StatusTypes.FAILED) {
     return PostTradeStatus.Failed;
   }
 
@@ -87,7 +82,9 @@ export const usePostTradeTxStatus = ({
     return PostTradeStatus.Success;
   }
 
-  if (!bridgeHistoryItem && transactionStatus === TransactionStatus.confirmed) {
+  const isTransactionConfirmed =
+    transactionStatus === TransactionStatus.confirmed;
+  if (!isBridge && !bridgeHistoryItem && isTransactionConfirmed) {
     return PostTradeStatus.Success;
   }
 
