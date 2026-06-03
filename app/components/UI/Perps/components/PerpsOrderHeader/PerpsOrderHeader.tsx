@@ -101,7 +101,7 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   const headerStyle = useMemo(
     () => [
       styles.header,
-      topInset > 0 ? { paddingTop: topInset + 16 } : undefined,
+      topInset > 0 ? { paddingTop: 16 + topInset } : undefined,
     ],
     [styles.header, topInset],
   );
