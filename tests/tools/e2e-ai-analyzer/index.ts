@@ -384,6 +384,17 @@ async function main() {
     console.log(`🔗 PR #${options.prNumber} - using gh CLI for diffs`);
   }
 
+  // Check hard rules before provider availability — hard rules are deterministic
+  // and require no AI, so we can skip all API calls if one fires.
+  const { checkHardRules } = MODES[mode];
+  if (checkHardRules) {
+    const hardRuleResult = checkHardRules(allChangedFiles, analysisContext);
+    if (hardRuleResult) {
+      (MODES[mode].outputAnalysis as (a: unknown) => void)(hardRuleResult);
+      return;
+    }
+  }
+
   // Get provider order (forced provider or priority from config)
   const providerOrder = getProviderOrder(forcedProvider);
   console.log(`📋 Provider failover order: ${providerOrder.join(' → ')}`);

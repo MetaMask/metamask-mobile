@@ -383,7 +383,7 @@ const HARD_RULES: HardRule[] = [
           selectedTags: [],
           riskLevel: 'low',
           confidence: 90,
-          reasoning: `Hard rule (test-shared-infra-impact): ${infraFiles.join(', ')} changed but no smoke/regression specs import them. No Detox tags needed.`,
+          reasoning: `Shared test infra changed (${infraFiles.join(', ')}) but no smoke/regression specs import them. No Detox tags needed.`,
           performanceTests: {
             selectedTags: [],
             reasoning: 'No performance impact detected',
@@ -396,7 +396,7 @@ const HARD_RULES: HardRule[] = [
         selectedTags,
         riskLevel: 'medium',
         confidence: 92,
-        reasoning: `Hard rule (test-shared-infra-impact): ${infraFiles.join(', ')} changed. Impacted specs: ${affectedSpecFiles.join(', ')}. Running tags: ${selectedTags.join(', ')}`,
+        reasoning: `Shared test infra changed (${infraFiles.join(', ')}). Found ${affectedSpecFiles.length} affected spec file(s). Running tags: ${selectedTags.join(', ')}`,
         performanceTests: {
           selectedTags: [],
           reasoning: 'No performance impact from shared test infra changes',
@@ -462,7 +462,6 @@ export function checkHardRules(
     const result = rule.check(changedFiles, context);
     if (result) {
       console.log(`🚨 Hard rule triggered: ${rule.name}`);
-      console.log(`   ${result.reasoning}`);
       return result;
     }
   }
