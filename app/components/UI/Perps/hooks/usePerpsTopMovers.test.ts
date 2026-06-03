@@ -1,10 +1,10 @@
 import { renderHook } from '@testing-library/react-native';
-import {
-  type PerpsMarketData,
-  type PriceUpdate,
-} from '@metamask/perps-controller';
+import { type PriceUpdate } from '@metamask/perps-controller';
 import { usePerpsTopMovers } from './usePerpsTopMovers';
-import { usePerpsMarkets } from './usePerpsMarkets';
+import {
+  usePerpsMarkets,
+  type PerpsMarketDataWithVolumeNumber,
+} from './usePerpsMarkets';
 import { usePerpsLivePrices } from './stream';
 
 jest.mock('./usePerpsMarkets', () => ({
@@ -25,8 +25,8 @@ const mockUsePerpsLivePrices = usePerpsLivePrices as jest.MockedFunction<
 const buildMarket = (
   symbol: string,
   change24hPercent: string,
-  overrides: Partial<PerpsMarketData> = {},
-): PerpsMarketData =>
+  overrides: Partial<PerpsMarketDataWithVolumeNumber> = {},
+): PerpsMarketDataWithVolumeNumber =>
   ({
     symbol,
     name: symbol,
@@ -35,8 +35,9 @@ const buildMarket = (
     change24h: `${change24hPercent}%`,
     change24hPercent,
     volume: '$1.0M',
+    volumeNumber: 1_000_000,
     ...overrides,
-  }) as PerpsMarketData;
+  }) as PerpsMarketDataWithVolumeNumber;
 
 const buildPrice = (
   symbol: string,
