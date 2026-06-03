@@ -7,15 +7,18 @@ export enum SCREEN_NAMES {
   WALLET_HOME = 'wallet_home',
   MONEY_HOME = 'money_home',
   MONEY_ONBOARDING = 'money_onboarding',
+  CARD_HOME = 'card_home',
 }
 
 export enum SHEET_NAMES {
   MONEY_ADD_MONEY_SHEET = 'money_add_money_sheet',
+  MONEY_TRANSFER_MONEY_SHEET = 'money_transfer_money_sheet',
 }
 
 export enum COMPONENT_NAMES {
   MONEY_BALANCE_CARD = 'money_balance_card',
   HOME_TAB = 'home_tab',
+  MONEY_ACTION_BUTTON_ROW = 'money_action_button_row',
 }
 
 export enum REDIRECT_TARGETS {
@@ -65,6 +68,10 @@ export type MoneyButtonEventProperties = Partial<MoneyLocationEventProperties> &
   Partial<MoneyRedirectEventProperties> & {
     label_en: string;
     label_localized: string;
+    /** 1-based index of the button position in a button row. */
+    button_position?: number;
+    /** Number of buttons in the button row. */
+    button_row_button_count?: number;
   };
 
 export enum MONEY_ONBOARDING_EVENT_TYPES {

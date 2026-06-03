@@ -53,6 +53,14 @@ import { Hex } from '@metamask/utils';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { MONEY_ONBOARDING_TOTAL_STEPS } from '../../components/MoneyOnboardingCard/MoneyOnboardingCard';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import {
+  COMPONENT_NAMES,
+  REDIRECT_TARGETS,
+  SCREEN_NAMES,
+  SHEET_NAMES,
+} from '../../constants/moneyEvents';
+import { strings } from '../../../../../../locales/i18n';
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 
 const MoneyHomeView = () => {
@@ -61,6 +69,10 @@ const MoneyHomeView = () => {
   const { styles } = useStyles(styleSheet, {});
   const currentCurrency = useSelector(selectCurrentCurrency);
   const { colors } = useTheme();
+
+  const { trackButtonClicked } = useMoneyAnalytics({
+    screen_name: SCREEN_NAMES.MONEY_HOME,
+  });
 
   const {
     totalFiatFormatted,
@@ -182,23 +194,53 @@ const MoneyHomeView = () => {
   }, [navigation]);
 
   const handleAddPress = useCallback(() => {
+    trackButtonClicked({
+      label_localized: strings('money.action.add'),
+      label_en: strings('money.action.add', { locale: 'en' }),
+      redirect_target_type: REDIRECT_TARGETS.BOTTOM_SHEET,
+      redirect_target: SHEET_NAMES.MONEY_ADD_MONEY_SHEET,
+      component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
+      button_position: 1,
+      button_row_button_count: 3,
+    });
+
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
     });
-  }, [navigation]);
+  }, [navigation, trackButtonClicked]);
 
   const handleTransferPress = useCallback(() => {
+    trackButtonClicked({
+      label_localized: strings('money.action.transfer'),
+      label_en: strings('money.action.transfer', { locale: 'en' }),
+      redirect_target_type: REDIRECT_TARGETS.BOTTOM_SHEET,
+      redirect_target: SHEET_NAMES.MONEY_TRANSFER_MONEY_SHEET,
+      component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
+      button_position: 2,
+      button_row_button_count: 3,
+    });
+
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET,
     });
-  }, [navigation]);
+  }, [navigation, trackButtonClicked]);
 
   const handleCardPress = useCallback(() => {
+    trackButtonClicked({
+      label_localized: strings('money.action.card'),
+      label_en: strings('money.action.card', { locale: 'en' }),
+      redirect_target_type: REDIRECT_TARGETS.SCREEN,
+      redirect_target: SCREEN_NAMES.CARD_HOME,
+      component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
+      button_position: 3,
+      button_row_button_count: 3,
+    });
+
     navigation.navigate(Routes.CARD.ROOT, {
       screen: Routes.CARD.HOME,
       params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
     });
-  }, [navigation]);
+  }, [navigation, trackButtonClicked]);
 
   const handleLinkCardPress = useCallback(() => {
     startLinkFlow(MONEY_HOME_CARD_ORIGIN);
