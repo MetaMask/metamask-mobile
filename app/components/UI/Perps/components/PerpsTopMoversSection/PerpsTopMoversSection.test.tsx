@@ -5,7 +5,9 @@ import {
   PERPS_EVENT_VALUE,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
-import PerpsTopMoversSection from './PerpsTopMoversSection';
+import PerpsTopMoversSection, {
+  type PerpsTopMoversSectionProps,
+} from './PerpsTopMoversSection';
 import { usePerpsTopMovers } from '../../hooks/usePerpsTopMovers';
 import { usePerpsNavigation } from '../../hooks';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
@@ -88,8 +90,9 @@ const DEFAULT_SOURCE = PERPS_EVENT_VALUE.SOURCE.PERPS_HOME;
 const buildMarket = (symbol: string): PerpsMarketData =>
   ({ symbol }) as PerpsMarketData;
 
-const renderSection = (source = DEFAULT_SOURCE) =>
-  render(<PerpsTopMoversSection source={source} />);
+const renderSection = (
+  source: PerpsTopMoversSectionProps['source'] = DEFAULT_SOURCE,
+) => render(<PerpsTopMoversSection source={source} />);
 
 describe('PerpsTopMoversSection', () => {
   beforeEach(() => {

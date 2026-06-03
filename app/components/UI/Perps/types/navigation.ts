@@ -7,7 +7,6 @@ import {
   type TPSLTrackingData,
   type SortDirection,
   type SortOptionId,
-  type SortDirection,
 } from '@metamask/perps-controller';
 import { PerpsTransaction } from './transactionHistory';
 import type { DataMonitorParams } from '../hooks/usePerpsDataMonitor';
