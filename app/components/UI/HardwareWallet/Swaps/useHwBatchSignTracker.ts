@@ -334,45 +334,61 @@ export function useHwBatchSignTracker({
       });
 
     if (stillPending(allTxIds)) {
-      await Promise.race([
-        new Promise<void>((resolve) => {
-          const remaining = new Set(allTxIds);
+      await new Promise<void>((resolve) => {
+        const remaining = new Set(allTxIds);
+        let isSubscribed = false;
+        let isResolved = false;
+        const timeoutRef: {
+          current?: ReturnType<typeof setTimeout>;
+        } = {};
 
-          const handler = ({
-            transactionMeta,
-          }: {
-            transactionMeta: { id: string; status: TransactionStatus };
-          }) => {
-            if (
-              remaining.has(transactionMeta.id) &&
-              terminalStatuses.has(transactionMeta.status)
-            ) {
-              remaining.delete(transactionMeta.id);
-              if (remaining.size === 0) {
-                Engine.controllerMessenger.unsubscribe(
-                  'TransactionController:transactionStatusUpdated',
-                  handler,
-                );
-                resolve();
-              }
+        const handler = ({
+          transactionMeta,
+        }: {
+          transactionMeta: { id: string; status: TransactionStatus };
+        }) => {
+          if (
+            remaining.has(transactionMeta.id) &&
+            terminalStatuses.has(transactionMeta.status)
+          ) {
+            remaining.delete(transactionMeta.id);
+            if (remaining.size === 0) {
+              finish();
             }
-          };
+          }
+        };
 
-          Engine.controllerMessenger.subscribe(
+        const cleanup = () => {
+          if (!isSubscribed) return;
+          Engine.controllerMessenger.unsubscribe(
             'TransactionController:transactionStatusUpdated',
             handler,
           );
+          isSubscribed = false;
+        };
 
-          if (!stillPending(allTxIds)) {
-            Engine.controllerMessenger.unsubscribe(
-              'TransactionController:transactionStatusUpdated',
-              handler,
-            );
-            resolve();
+        function finish() {
+          if (isResolved) return;
+          isResolved = true;
+          if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
           }
-        }),
-        new Promise<void>((resolve) => setTimeout(resolve, 5_000)),
-      ]);
+          cleanup();
+          resolve();
+        }
+
+        timeoutRef.current = setTimeout(finish, 5_000);
+
+        Engine.controllerMessenger.subscribe(
+          'TransactionController:transactionStatusUpdated',
+          handler,
+        );
+        isSubscribed = true;
+
+        if (!stillPending(allTxIds)) {
+          finish();
+        }
+      });
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -565,6 +581,9 @@ export function useHwBatchSignTracker({
       const stepKind = getStepKind(type);
 
       if (status === TransactionStatus.approved) {
+        if (!isFromCurrentBatch(transactionMeta)) {
+          return;
+        }
         if (transactionMeta.batchId) {
           seenBatchIdsRef.current.add(transactionMeta.batchId);
           if (

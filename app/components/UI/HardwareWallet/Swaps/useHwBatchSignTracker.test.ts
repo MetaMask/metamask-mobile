@@ -433,6 +433,79 @@ describe('useHwBatchSignTracker', () => {
       expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
     });
 
+    it('blocks late approved events from a stale batch after cancelCurrentBatch', async () => {
+      const { result } = renderEnabledHook();
+
+      const statusHandler = getSubscribeHandler(
+        'TransactionController:transactionStatusUpdated',
+      );
+
+      const txMeta = makeTransactionMeta(
+        TransactionType.bridgeApproval,
+        TransactionStatus.approved,
+        FROM_ADDRESS,
+        'batch-stale-approved',
+      );
+
+      act(() => {
+        statusHandler({ transactionMeta: txMeta });
+      });
+
+      (updateHardwareWalletsSwaps as unknown as jest.Mock).mockClear();
+
+      await act(async () => {
+        await result.current.cancelCurrentBatch();
+      });
+
+      act(() => {
+        statusHandler({
+          transactionMeta: {
+            ...txMeta,
+            id: 'tx-late-approved-001',
+          },
+        });
+      });
+
+      expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
+      expect(result.current.confirmationTxId).toBeUndefined();
+    });
+
+    it('blocks approved events from a different batch while a batch is active', () => {
+      const { result } = renderEnabledHook();
+
+      const statusHandler = getSubscribeHandler(
+        'TransactionController:transactionStatusUpdated',
+      );
+
+      const activeTxMeta = makeTransactionMeta(
+        TransactionType.bridgeApproval,
+        TransactionStatus.approved,
+        FROM_ADDRESS,
+        'batch-active-approved',
+      );
+
+      act(() => {
+        statusHandler({ transactionMeta: activeTxMeta });
+      });
+
+      expect(result.current.confirmationTxId).toBe(activeTxMeta.id);
+      (updateHardwareWalletsSwaps as unknown as jest.Mock).mockClear();
+
+      act(() => {
+        statusHandler({
+          transactionMeta: makeTransactionMeta(
+            TransactionType.bridgeApproval,
+            TransactionStatus.approved,
+            FROM_ADDRESS,
+            'batch-late-approved',
+          ),
+        });
+      });
+
+      expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
+      expect(result.current.confirmationTxId).toBe(activeTxMeta.id);
+    });
+
     it('calls abortTransactionSigning for tracked txs on cancelCurrentBatch', async () => {
       const { result } = renderEnabledHook();
 
@@ -456,6 +529,65 @@ describe('useHwBatchSignTracker', () => {
       });
 
       expect(mockAbortTransactionSigning).toHaveBeenCalledWith(txMeta.id);
+    });
+
+    it('unsubscribes the cancel waiter when the terminal-status timeout wins', async () => {
+      jest.useFakeTimers();
+
+      try {
+        const { result } = renderEnabledHook();
+        const trackedTxId = 'tx-timeout-waiter-001';
+        const txMeta = {
+          id: trackedTxId,
+          type: TransactionType.bridgeApproval,
+          status: TransactionStatus.approved,
+          txParams: { from: FROM_ADDRESS },
+          batchId: 'batch-timeout-waiter',
+        } satisfies MockTransactionMeta;
+
+        setMockTransactions([txMeta]);
+
+        const statusHandler = getSubscribeHandler(
+          'TransactionController:transactionStatusUpdated',
+        );
+
+        act(() => {
+          statusHandler({ transactionMeta: txMeta });
+        });
+
+        let cancelPromise = Promise.resolve();
+        act(() => {
+          cancelPromise = result.current.cancelCurrentBatch();
+        });
+
+        await act(async () => {
+          await Promise.resolve();
+          await Promise.resolve();
+          await Promise.resolve();
+        });
+
+        const statusSubscribeCalls = mockSubscribe.mock.calls.filter(
+          ([eventName]: [string]) =>
+            eventName === 'TransactionController:transactionStatusUpdated',
+        );
+        const cancelWaiterSubscribeCall = statusSubscribeCalls.at(-1);
+        const cancelWaiterHandler = cancelWaiterSubscribeCall?.[1];
+
+        expect(statusSubscribeCalls).toHaveLength(2);
+        expect(cancelWaiterHandler).toEqual(expect.any(Function));
+
+        await act(async () => {
+          jest.advanceTimersByTime(5_000);
+          await cancelPromise;
+        });
+
+        expect(mockUnsubscribe).toHaveBeenCalledWith(
+          'TransactionController:transactionStatusUpdated',
+          cancelWaiterHandler,
+        );
+      } finally {
+        jest.useRealTimers();
+      }
     });
 
     it('wipes failed bridge transactions through the typed messenger action on cancel', async () => {
