@@ -22,7 +22,10 @@ import { AppThemeKey } from '../../../../../util/theme/models';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
+  COMPONENT_NAMES,
   MONEY_ONBOARDING_EVENT_TYPES,
+  MONEY_ONBOARDING_STEP_ACTIONS,
+  REDIRECT_TARGETS,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 
@@ -61,6 +64,7 @@ const MoneyOnboardingView = () => {
 
   const { trackOnboardingEvent } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_ONBOARDING,
+    component_name: COMPONENT_NAMES.RIVE_ONBOARDING_STEPPER,
   });
 
   const { colors, themeAppearance } = useTheme();
@@ -151,10 +155,12 @@ const MoneyOnboardingView = () => {
   const handleClose = useCallback(
     (stepIndex: number) => {
       trackOnboardingEvent({
-        type: MONEY_ONBOARDING_EVENT_TYPES.EXITED,
         step: stepIndex + 1, // Use 1-based index for event tracking to match total_steps count.
         step_title: stepTitlesEnglish[stepIndex],
         total_steps: steps.length,
+        step_action: MONEY_ONBOARDING_STEP_ACTIONS.EXITED,
+        redirect_target_type: REDIRECT_TARGETS.SCREEN,
+        redirect_target: SCREEN_NAMES.MONEY_HOME,
       });
 
       dispatch(setMoneyOnboardingSeen(true));
@@ -175,10 +181,12 @@ const MoneyOnboardingView = () => {
   const handleStepViewed = useCallback(
     (stepIndex: number) => {
       trackOnboardingEvent({
-        type: MONEY_ONBOARDING_EVENT_TYPES.STEP_VIEWED,
         step: stepIndex + 1, // Use 1-based index for event tracking to match total_steps count.
         step_title: stepTitlesEnglish[stepIndex],
         total_steps: steps.length,
+        step_action: MONEY_ONBOARDING_STEP_ACTIONS.VIEWED,
+        redirect_target_type: REDIRECT_TARGETS.SCREEN,
+        redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
       });
     },
     [stepTitlesEnglish, steps.length, trackOnboardingEvent],
@@ -188,10 +196,12 @@ const MoneyOnboardingView = () => {
     (stepIndex: number) => {
       dispatch(setMoneyOnboardingSeen(true));
       trackOnboardingEvent({
-        type: MONEY_ONBOARDING_EVENT_TYPES.COMPLETED,
         step: stepIndex + 1, // Use 1-based index for event tracking to match total_steps count.
         step_title: stepTitlesEnglish[stepIndex],
         total_steps: steps.length,
+        step_action: MONEY_ONBOARDING_STEP_ACTIONS.COMPLETED,
+        redirect_target_type: REDIRECT_TARGETS.SCREEN,
+        redirect_target: SCREEN_NAMES.MONEY_HOME,
       });
 
       navigation.navigate(Routes.HOME_TABS, {
