@@ -196,7 +196,9 @@ export function buildCtx(root: string, argv: string[]): Ctx {
     cdpWaitTimeout: sanitizeInt(env.CDP_WAIT_TIMEOUT, 300),
     cdpStatusTimeoutMs: sanitizeInt(env.CDP_STATUS_TIMEOUT_MS, 5000),
     cdpDiscoveryRetries: sanitizeInt(env.CDP_DISCOVERY_RETRIES, 1),
-    iosBuildTimeout: sanitizeInt(env.IOS_BUILD_TIMEOUT, 1800),
+    // 0 = no build timeout (default). Overloaded machines build slowly; only
+    // enforce a ceiling when IOS_BUILD_TIMEOUT is set explicitly (e.g. farmslot).
+    iosBuildTimeout: sanitizeInt(env.IOS_BUILD_TIMEOUT, 0),
     bundleId: 'io.metamask.MetaMask',
     simTarget,
     simLabel,

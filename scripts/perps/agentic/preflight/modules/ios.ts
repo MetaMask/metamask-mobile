@@ -146,7 +146,7 @@ async function buildApp(ctx: Ctx, logger: Logger): Promise<string> {
 
   const log = (): string => readFileSync(buildLog, 'utf8');
   while (true) {
-    if (now() - buildStart >= ctx.iosBuildTimeout) {
+    if (ctx.iosBuildTimeout > 0 && now() - buildStart >= ctx.iosBuildTimeout) {
       await killTree(child.pid ?? 0);
       logger.plain();
       logger.plain('  Build log tail:');
@@ -213,126 +213,131 @@ export async function runIos(ctx: Ctx, logger: Logger): Promise<void> {
   const useCache = ctx.mode !== 'clean' && ctx.mode !== 'rebuild-native';
   let fp: string | null = null;
 
-  if (useCache) {
-    fp = cache.fingerprint();
-    if (fp) {
-      const installedFp = cache.installedFp('ios');
-      if (installed && installedFp === fp && cache.installedTarget('ios') === ctx.simTarget && !ctx.doRebuild) {
-        logger.ok(`Cache: installed app matches fingerprint ${fp.slice(0, 12)} on ${ctx.simTarget} — no native action needed`);
-        return;
-      }
-      lock = await cache.acquireLock('ios', fp);
-      if (lock) {
-        if (cache.hasArtifact('ios', fp)) {
-          if (ctx.checkOnly) {
-            await lock.release();
-            logger.fail(`App not at fingerprint ${fp.slice(0, 12)} — cache hit available, but --check-only forbids install`);
-          }
-          logger.plain(`  Cache hit: fp=${fp.slice(0, 12)} — installing from shared cache`);
-          const art = cache.artifactPath('ios', fp);
-          if (tryInstall(ctx, art)) {
-            cache.recordInstall('ios', fp, ctx.simTarget);
-            installed = true;
-            logger.ok(`Installed from cache: ${art}`);
+  // try/finally guarantees the per-fingerprint build lock is released on every
+  // exit path. logger.fail throws, so without this a failed build/install would
+  // leak the lock and block other worktrees on this fp until the stale timeout.
+  try {
+    if (useCache) {
+      fp = cache.fingerprint();
+      if (fp) {
+        const installedFp = cache.installedFp('ios');
+        if (installed && installedFp === fp && cache.installedTarget('ios') === ctx.simTarget && !ctx.doRebuild) {
+          logger.ok(`Cache: installed app matches fingerprint ${fp.slice(0, 12)} on ${ctx.simTarget} — no native action needed`);
+          return;
+        }
+        lock = await cache.acquireLock('ios', fp);
+        if (lock) {
+          if (cache.hasArtifact('ios', fp)) {
+            if (ctx.checkOnly) {
+              logger.fail(`App not at fingerprint ${fp.slice(0, 12)} — cache hit available, but --check-only forbids install`);
+            }
+            logger.plain(`  Cache hit: fp=${fp.slice(0, 12)} — installing from shared cache`);
+            const art = cache.artifactPath('ios', fp);
+            if (tryInstall(ctx, art)) {
+              cache.recordInstall('ios', fp, ctx.simTarget);
+              installed = true;
+              logger.ok(`Installed from cache: ${art}`);
+            } else if (ctx.mode === 'fast') {
+              logger.fail(`Mode 'fast': cached artifact install failed for fp ${fp.slice(0, 12)}`);
+            } else {
+              installed = false;
+              logger.warn('Cache install failed — falling through to native build');
+            }
           } else if (ctx.mode === 'fast') {
-            await lock.release();
-            logger.fail(`Mode 'fast': cached artifact install failed for fp ${fp.slice(0, 12)}`);
+            logger.fail(`Mode 'fast' but no cached build for fp ${fp.slice(0, 12)} and app not installed at this fingerprint`);
           } else {
+            logger.plain(`  Cache miss: fp=${fp.slice(0, 12)} — native build required once`);
+            reportDrift(cache, logger, 'ios', installedFp);
             installed = false;
-            logger.warn('Cache install failed — falling through to native build');
           }
         } else if (ctx.mode === 'fast') {
-          await lock.release();
-          logger.fail(`Mode 'fast' but no cached build for fp ${fp.slice(0, 12)} and app not installed at this fingerprint`);
+          logger.fail(`Mode 'fast': could not acquire build-cache lock for fp ${fp.slice(0, 12)}`);
         } else {
-          logger.plain(`  Cache miss: fp=${fp.slice(0, 12)} — native build required once`);
-          reportDrift(cache, logger, 'ios', installedFp);
+          logger.warn(`Could not acquire build-cache lock for fp ${fp.slice(0, 12)} — proceeding without lock`);
           installed = false;
         }
       } else if (ctx.mode === 'fast') {
-        logger.fail(`Mode 'fast': could not acquire build-cache lock for fp ${fp.slice(0, 12)}`);
+        logger.fail("Mode 'fast': could not compute fingerprint — cannot validate cache availability");
       } else {
-        logger.warn(`Could not acquire build-cache lock for fp ${fp.slice(0, 12)} — proceeding without lock`);
-        installed = false;
+        logger.warn('Could not compute fingerprint — falling back to legacy build path');
       }
-    } else if (ctx.mode === 'fast') {
-      logger.fail("Mode 'fast': could not compute fingerprint — cannot validate cache availability");
-    } else {
-      logger.warn('Could not compute fingerprint — falling back to legacy build path');
     }
-  }
 
-  if (installed && !ctx.doRebuild) {
-    if (lock) await lock.release();
-    logger.ok('App already installed');
-    return;
-  }
-  if (ctx.checkOnly) logger.fail('App not installed (run with --rebuild)');
+    if (installed && !ctx.doRebuild) {
+      logger.ok('App already installed');
+      return;
+    }
+    if (ctx.checkOnly) logger.fail('App not installed (run with --rebuild)');
 
-  await podInstall(ctx, logger);
+    await podInstall(ctx, logger);
 
-  // pod install can mutate native inputs, shifting the fingerprint. Re-check the
-  // shared cache under the post-pod fingerprint before a full native build —
-  // another worktree may already hold an artifact for it.
-  if (useCache && !ctx.doRebuild) {
-    const postFp = cache.fingerprint();
-    if (postFp && postFp !== fp) {
-      const postLock = await cache.acquireLock('ios', postFp);
-      if (postLock) {
-        if (cache.hasArtifact('ios', postFp)) {
-          logger.plain(`  Post-pod cache hit: fp=${postFp.slice(0, 12)} — installing from shared cache`);
-          const art = cache.artifactPath('ios', postFp);
-          if (tryInstall(ctx, art) && appInstalled(ctx)) {
-            cache.recordInstall('ios', postFp, ctx.simTarget);
-            await postLock.release();
-            if (lock) await lock.release();
-            logger.ok(`Installed from cache: ${art}`);
-            return;
+    // pod install can mutate native inputs, shifting the fingerprint. Re-check the
+    // shared cache under the post-pod fingerprint before a full native build —
+    // another worktree may already hold an artifact for it.
+    if (useCache && !ctx.doRebuild) {
+      const postFp = cache.fingerprint();
+      if (postFp && postFp !== fp) {
+        const postLock = await cache.acquireLock('ios', postFp);
+        if (postLock) {
+          // Swap to the post-pod lock; finally releases it (we store under this fp).
+          if (lock) await lock.release();
+          lock = postLock;
+          if (cache.hasArtifact('ios', postFp)) {
+            logger.plain(`  Post-pod cache hit: fp=${postFp.slice(0, 12)} — installing from shared cache`);
+            const art = cache.artifactPath('ios', postFp);
+            if (tryInstall(ctx, art) && appInstalled(ctx)) {
+              cache.recordInstall('ios', postFp, ctx.simTarget);
+              logger.ok(`Installed from cache: ${art}`);
+              return;
+            }
+            if (ctx.mode === 'fast') {
+              logger.fail(`Mode 'fast': post-pod cache install failed for fp ${postFp.slice(0, 12)}`);
+            }
+            logger.warn('Post-pod cache install failed — falling through to native build');
+          } else if (ctx.mode === 'fast') {
+            logger.fail(`Mode 'fast': no cached build for post-pod fp ${postFp.slice(0, 12)}`);
           }
-          logger.warn('Post-pod cache install failed — falling through to native build');
+        } else if (ctx.mode === 'fast') {
+          logger.fail(`Mode 'fast': could not acquire build-cache lock for post-pod fp ${postFp.slice(0, 12)}`);
         }
-        // Hold the post-pod lock through the build; we store under this fp below.
-        if (lock) await lock.release();
-        lock = postLock;
       }
     }
-  }
 
-  const app = await buildApp(ctx, logger);
-  await waitPortReleased(ctx, logger);
+    const app = await buildApp(ctx, logger);
+    await waitPortReleased(ctx, logger);
 
-  if (ctx.doClean || ctx.flags.walletSetup) {
-    logger.plain('  Wiping app data (uninstall + reinstall)...');
-    try {
-      execFileSync('xcrun', ['simctl', 'uninstall', ctx.simTarget, ctx.bundleId], { stdio: 'ignore' });
-    } catch {
-      // not installed
+    if (ctx.doClean || ctx.flags.walletSetup) {
+      logger.plain('  Wiping app data (uninstall + reinstall)...');
+      try {
+        execFileSync('xcrun', ['simctl', 'uninstall', ctx.simTarget, ctx.bundleId], { stdio: 'ignore' });
+      } catch {
+        // not installed
+      }
     }
-  }
-  logger.plain('  Installing app on simulator...');
-  if (!tryInstall(ctx, app)) {
-    if (lock) await lock.release();
-    logger.fail(`simctl install failed for ${app}`);
-  }
-  if (!appInstalled(ctx)) {
-    if (lock) await lock.release();
-    logger.fail('simctl install reported success but the app is not on the simulator');
-  }
-  logger.ok('App built and installed');
-
-  // Recompute fp post-build/pod (pods can change native fingerprint) and store.
-  const storeFp = useCache ? cache.fingerprint() : null;
-  if (storeFp) {
-    if (cache.storeArtifact('ios', storeFp, app)) {
-      cache.snapshot('ios', storeFp);
-      logger.ok(`Stored build in shared cache: fp=${storeFp.slice(0, 12)}`);
-      cache.recordInstall('ios', storeFp, ctx.simTarget);
-      cache.prune('ios');
-    } else {
-      logger.warn('Failed to store build in cache');
+    logger.plain('  Installing app on simulator...');
+    if (!tryInstall(ctx, app)) {
+      logger.fail(`simctl install failed for ${app}`);
     }
+    if (!appInstalled(ctx)) {
+      logger.fail('simctl install reported success but the app is not on the simulator');
+    }
+    logger.ok('App built and installed');
+
+    // Recompute fp post-build/pod (pods can change native fingerprint) and store.
+    const storeFp = useCache ? cache.fingerprint() : null;
+    if (storeFp) {
+      if (cache.storeArtifact('ios', storeFp, app)) {
+        cache.snapshot('ios', storeFp);
+        logger.ok(`Stored build in shared cache: fp=${storeFp.slice(0, 12)}`);
+        cache.recordInstall('ios', storeFp, ctx.simTarget);
+        cache.prune('ios');
+      } else {
+        logger.warn('Failed to store build in cache');
+      }
+    }
+  } finally {
+    if (lock) await lock.release();
   }
-  if (lock) await lock.release();
 }
 
 function tryInstall(ctx: Ctx, artifact: string): boolean {

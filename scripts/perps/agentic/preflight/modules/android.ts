@@ -136,90 +136,91 @@ export async function runAndroid(ctx: Ctx, logger: Logger): Promise<void> {
   const useCache = ctx.mode !== 'clean' && ctx.mode !== 'rebuild-native';
   const deviceId = ctx.adbTarget || 'default';
 
-  if (useCache) {
-    const fp = cache.fingerprint();
-    if (fp) {
-      const installedFp = cache.installedFp('android');
-      if (installed && installedFp === fp && cache.installedTarget('android') === deviceId && !ctx.doRebuild) {
-        logger.ok(`Cache: installed app matches fingerprint ${fp.slice(0, 12)} on ${deviceId} — no native action needed`);
-        return;
-      }
-      lock = await cache.acquireLock('android', fp);
-      if (lock) {
-        if (cache.hasArtifact('android', fp)) {
-          if (ctx.checkOnly) {
-            await lock.release();
-            logger.fail(`App not at fingerprint ${fp.slice(0, 12)} — cache hit available, but --check-only forbids install`);
-          }
-          logger.plain(`  Cache hit: fp=${fp.slice(0, 12)} — installing from shared cache`);
-          const art = cache.artifactPath('android', fp);
-          if (adbInstall(ctx, art)) {
-            cache.recordInstall('android', fp, deviceId);
-            installed = true;
-            logger.ok(`Installed from cache: ${art}`);
+  // try/finally guarantees the per-fingerprint build lock is released on every
+  // exit path. logger.fail throws, so without this a failed build/install would
+  // leak the lock and block other worktrees on this fp until the stale timeout.
+  try {
+    if (useCache) {
+      const fp = cache.fingerprint();
+      if (fp) {
+        const installedFp = cache.installedFp('android');
+        if (installed && installedFp === fp && cache.installedTarget('android') === deviceId && !ctx.doRebuild) {
+          logger.ok(`Cache: installed app matches fingerprint ${fp.slice(0, 12)} on ${deviceId} — no native action needed`);
+          return;
+        }
+        lock = await cache.acquireLock('android', fp);
+        if (lock) {
+          if (cache.hasArtifact('android', fp)) {
+            if (ctx.checkOnly) {
+              logger.fail(`App not at fingerprint ${fp.slice(0, 12)} — cache hit available, but --check-only forbids install`);
+            }
+            logger.plain(`  Cache hit: fp=${fp.slice(0, 12)} — installing from shared cache`);
+            const art = cache.artifactPath('android', fp);
+            if (adbInstall(ctx, art)) {
+              cache.recordInstall('android', fp, deviceId);
+              installed = true;
+              logger.ok(`Installed from cache: ${art}`);
+            } else if (ctx.mode === 'fast') {
+              logger.fail(`Mode 'fast': cached artifact install failed for fp ${fp.slice(0, 12)}`);
+            } else {
+              installed = false;
+              logger.warn('Cache install failed — falling through to native build');
+            }
           } else if (ctx.mode === 'fast') {
-            await lock.release();
-            logger.fail(`Mode 'fast': cached artifact install failed for fp ${fp.slice(0, 12)}`);
+            logger.fail(`Mode 'fast' but no cached build for fp ${fp.slice(0, 12)} and app not installed at this fingerprint`);
           } else {
+            logger.plain(`  Cache miss: fp=${fp.slice(0, 12)} — native build required once`);
+            reportDrift(cache, logger, 'android', installedFp);
             installed = false;
-            logger.warn('Cache install failed — falling through to native build');
           }
         } else if (ctx.mode === 'fast') {
-          await lock.release();
-          logger.fail(`Mode 'fast' but no cached build for fp ${fp.slice(0, 12)} and app not installed at this fingerprint`);
+          logger.fail(`Mode 'fast': could not acquire build-cache lock for fp ${fp.slice(0, 12)}`);
         } else {
-          logger.plain(`  Cache miss: fp=${fp.slice(0, 12)} — native build required once`);
-          reportDrift(cache, logger, 'android', installedFp);
+          logger.warn(`Could not acquire build-cache lock for fp ${fp.slice(0, 12)} — proceeding without lock`);
           installed = false;
         }
       } else if (ctx.mode === 'fast') {
-        logger.fail(`Mode 'fast': could not acquire build-cache lock for fp ${fp.slice(0, 12)}`);
+        logger.fail("Mode 'fast': could not compute fingerprint — cannot validate cache availability");
       } else {
-        logger.warn(`Could not acquire build-cache lock for fp ${fp.slice(0, 12)} — proceeding without lock`);
-        installed = false;
+        logger.warn('Could not compute fingerprint — falling back to legacy build path');
       }
-    } else if (ctx.mode === 'fast') {
-      logger.fail("Mode 'fast': could not compute fingerprint — cannot validate cache availability");
-    } else {
-      logger.warn('Could not compute fingerprint — falling back to legacy build path');
     }
-  }
 
-  if (installed && !ctx.doRebuild) {
+    if (installed && !ctx.doRebuild) {
+      logger.ok('App already installed');
+      return;
+    }
+    if (ctx.checkOnly) logger.fail('App not installed (run with --rebuild)');
+
+    if ((ctx.doClean || ctx.flags.walletSetup) && appInstalled(ctx)) {
+      logger.plain('  Uninstalling previous app...');
+      try {
+        adb(ctx, ['uninstall', ctx.packageId], { stdio: 'ignore' });
+      } catch {
+        // not installed
+      }
+    }
+
+    const apk = await buildApk(ctx, logger);
+    logger.plain(`  Installing ${apk}...`);
+    if (!adbInstall(ctx, apk)) logger.fail('APK install failed');
+    if (!appInstalled(ctx)) {
+      logger.fail('Build completed but app not found on device');
+    }
+    logger.ok('App built and installed');
+
+    const storeFp = useCache ? cache.fingerprint() : null;
+    if (storeFp) {
+      if (cache.storeArtifact('android', storeFp, apk)) {
+        cache.snapshot('android', storeFp);
+        logger.ok(`Stored build in shared cache: fp=${storeFp.slice(0, 12)}`);
+        cache.recordInstall('android', storeFp, deviceId);
+        cache.prune('android');
+      } else {
+        logger.warn('Failed to store build in cache');
+      }
+    }
+  } finally {
     if (lock) await lock.release();
-    logger.ok('App already installed');
-    return;
   }
-  if (ctx.checkOnly) logger.fail('App not installed (run with --rebuild)');
-
-  if ((ctx.doClean || ctx.flags.walletSetup) && appInstalled(ctx)) {
-    logger.plain('  Uninstalling previous app...');
-    try {
-      adb(ctx, ['uninstall', ctx.packageId], { stdio: 'ignore' });
-    } catch {
-      // not installed
-    }
-  }
-
-  const apk = await buildApk(ctx, logger);
-  logger.plain(`  Installing ${apk}...`);
-  if (!adbInstall(ctx, apk)) logger.fail('APK install failed');
-  if (!appInstalled(ctx)) {
-    if (lock) await lock.release();
-    logger.fail('Build completed but app not found on device');
-  }
-  logger.ok('App built and installed');
-
-  const storeFp = useCache ? cache.fingerprint() : null;
-  if (storeFp) {
-    if (cache.storeArtifact('android', storeFp, apk)) {
-      cache.snapshot('android', storeFp);
-      logger.ok(`Stored build in shared cache: fp=${storeFp.slice(0, 12)}`);
-      cache.recordInstall('android', storeFp, deviceId);
-      cache.prune('android');
-    } else {
-      logger.warn('Failed to store build in cache');
-    }
-  }
-  if (lock) await lock.release();
 }

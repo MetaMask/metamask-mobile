@@ -53,7 +53,7 @@ export interface Ctx {
   cdpWaitTimeout: number; // seconds
   cdpStatusTimeoutMs: number;
   cdpDiscoveryRetries: number;
-  iosBuildTimeout: number; // seconds
+  iosBuildTimeout: number; // seconds (0 = no timeout)
 
   // Platform-specific identity.
   bundleId: string; // ios
