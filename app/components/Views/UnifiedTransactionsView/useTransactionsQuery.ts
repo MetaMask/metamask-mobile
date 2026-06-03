@@ -6,7 +6,7 @@ import { apiClient } from '../../../core/apiClient';
 import { selectEvmAddress } from '../../../selectors/accountsController';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../selectors/multichainAccounts/accountTreeController';
 import { selectEvmEnabledCaipNetworks } from '../../../selectors/networkEnablementController';
-import { selectTransactions } from './helpers/transformations';
+import { selectApiEvmTransactions } from './helpers/transformations';
 import { MINUTE } from '../../../constants/time';
 import { selectRequiredTransactionHashes } from '../../../selectors/transactionController';
 
@@ -31,7 +31,7 @@ export const useTransactionsQuery = () => {
     });
 
   const selectFn = useMemo(
-    () => selectTransactions({ address: evmAddress, excludedTxHashes }),
+    () => selectApiEvmTransactions({ address: evmAddress, excludedTxHashes }),
     [evmAddress, excludedTxHashes],
   );
 

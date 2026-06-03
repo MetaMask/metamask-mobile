@@ -1,3 +1,8 @@
+/**
+ * Transformation helpers for the UnifiedTransactionsView.
+ * Produces ActivityListItem[] from API EVM and non-EVM transaction sources.
+ * Local EVM transactions are handled separately by useLocalActivityItems.
+ */
 import {
   type V1TransactionByHashResponse,
   type V4MultiAccountTransactionsResponse,
@@ -5,14 +10,16 @@ import {
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import type { Transaction as NonEvmTransaction } from '@metamask/keyring-api';
 import type { InfiniteData } from '@tanstack/react-query';
-import { normalizeTransaction } from './adapters';
 import {
-  EvmTransaction,
-  TransactionKind,
-  TransactionViewModel,
-  UnifiedItem,
-} from '../types';
+  mapApiEvmTransactions,
+  mapKeyringTransaction,
+  type ActivityListItem,
+  type ActivityAdapterEnvironment,
+} from '../../../../util/activity-adapters';
+import { mergeActivityItems } from '../../../../util/activity-adapters/adapters/dedup';
 import { equalsIgnoreCase } from '../../../../util/string';
+
+export type { ActivityListItem };
 
 const excludedTransactionTypes = ['SPAM_TOKEN_TRANSFER'];
 
@@ -21,12 +28,11 @@ const getOriginalTransactionId = (bridgeHistoryItem: BridgeHistoryItem) =>
     .originalTransactionId;
 
 export const isBridgeHistoryForEvmTransaction = (
-  tx: EvmTransaction & { actionId?: string; hash?: string },
+  tx: { id?: string; actionId?: string; hash?: string },
   bridgeHistoryValues: BridgeHistoryItem[],
 ) =>
   bridgeHistoryValues.some((bridgeHistoryItem) => {
     const originalTransactionId = getOriginalTransactionId(bridgeHistoryItem);
-
     return (
       bridgeHistoryItem.txMetaId === tx.id ||
       bridgeHistoryItem.txMetaId === tx.actionId ||
@@ -40,12 +46,13 @@ function isIncomingTokenTransfer(
   address: string,
   transaction: V1TransactionByHashResponse,
 ) {
+  const normalizedAddress = address.toLowerCase();
   return (
     transaction.valueTransfers?.some(
       (transfer) =>
         Boolean(transfer.contractAddress) &&
-        transfer.to?.toLowerCase() === address &&
-        transaction.from?.toLowerCase() !== address,
+        transfer.to?.toLowerCase() === normalizedAddress &&
+        transfer.from?.toLowerCase() !== normalizedAddress,
     ) ?? false
   );
 }
@@ -82,7 +89,7 @@ function isIncomingNativeTransfer(
   return hasIncomingNativeTransfer && !hasOutgoingTransfer;
 }
 
-function shouldSkipTransaction(
+export function shouldSkipTransaction(
   address: string,
   transaction: V1TransactionByHashResponse,
   excludedTxHashes?: Set<string>,
@@ -99,12 +106,10 @@ function shouldSkipTransaction(
     return true;
   }
 
-  // Filter out span token transfers
   if (excludedTransactionTypes.includes(transaction.transactionType ?? '')) {
     return true;
   }
 
-  // Filter out zero-value self-sends with no calldata and no transfers
   if (
     rawFrom === address &&
     rawTo === address &&
@@ -115,7 +120,6 @@ function shouldSkipTransaction(
     return true;
   }
 
-  // Filter out incoming native token transfers
   if (isIncomingTokenTransfer(address, transaction)) {
     return true;
   }
@@ -123,105 +127,66 @@ function shouldSkipTransaction(
   return rawFrom !== address && isIncomingNativeTransfer(address, transaction);
 }
 
-function transformTransactions(
+function transformApiTransactions(
   address: string,
   transactions: V1TransactionByHashResponse[],
   excludedTxHashes?: Set<string>,
-): TransactionViewModel[] {
-  const filteredTransactions = [];
+  environment?: ActivityAdapterEnvironment,
+): ActivityListItem[] {
+  const items: ActivityListItem[] = [];
+  const subjectAddress = address.toLowerCase();
 
   for (const tx of transactions) {
-    if (shouldSkipTransaction(address, tx, excludedTxHashes)) {
+    if (shouldSkipTransaction(subjectAddress, tx, excludedTxHashes)) {
       continue;
     }
-
-    filteredTransactions.push(tx);
+    items.push(
+      mapApiEvmTransactions({ subjectAddress, transaction: tx, environment }),
+    );
   }
 
-  return filteredTransactions.map((tx) => {
-    const transactionMeta = normalizeTransaction(address, tx);
-
-    return {
-      // Intent is to use the API response more directly
-      ...tx,
-      // But for now, we keep this until we can refactor the UI components
-      id: transactionMeta.id,
-      time: transactionMeta.time,
-      hexChainId: transactionMeta.chainId,
-      transactionMeta,
-    };
-  });
+  return items;
 }
 
-export function selectTransactions({
+export function selectApiEvmTransactions({
   address,
   excludedTxHashes,
+  environment,
 }: {
   address: string;
   excludedTxHashes?: Set<string>;
+  environment?: ActivityAdapterEnvironment;
 }) {
   return (data: InfiniteData<V4MultiAccountTransactionsResponse>) => ({
     ...data,
     pages: data.pages.map((page) => ({
       ...page,
-      data: transformTransactions(address, page.data, excludedTxHashes),
+      data: transformApiTransactions(
+        address,
+        page.data,
+        excludedTxHashes,
+        environment,
+      ),
     })),
   });
 }
 
-const getEvmTime = (tx: EvmTransaction) => tx.time ?? 0;
-const getNonEvmTime = (tx: NonEvmTransaction) => (tx.timestamp ?? 0) * 1000;
-const getEvmHash = (tx: EvmTransaction) =>
-  'hash' in tx && typeof tx.hash === 'string' ? tx.hash.toLowerCase() : '';
-
-// Merges local EVM, API-confirmed EVM and non-EVM transactions into one list
-// sorted by time (newest first), deduplicated by hash (API-confirmed wins).
-export function mergeTransactionsByTime(
-  evmLocalTransactions: EvmTransaction[],
-  evmConfirmedTransactions: TransactionViewModel[],
-  nonEvmTransactions: NonEvmTransaction[],
-) {
-  const seenHashes = new Set<string>();
-
-  const confirmedItems: UnifiedItem[] = [];
-  for (const tx of evmConfirmedTransactions) {
-    const hash = tx.hash?.toLowerCase();
-    if (hash) {
-      if (seenHashes.has(hash)) {
-        continue;
-      }
-      seenHashes.add(hash);
-    }
-    confirmedItems.push({
-      kind: TransactionKind.ConfirmedEvm,
-      tx,
-      time: tx.time ?? 0,
-    });
-  }
-
-  const localItems: UnifiedItem[] = [];
-  for (const tx of evmLocalTransactions) {
-    const hash = getEvmHash(tx);
-    if (hash) {
-      if (seenHashes.has(hash)) {
-        continue;
-      }
-      seenHashes.add(hash);
-    }
-    localItems.push({
-      kind: TransactionKind.Evm,
-      tx,
-      time: getEvmTime(tx),
-    });
-  }
-
-  const nonEvmItems: UnifiedItem[] = nonEvmTransactions.map((tx) => ({
-    kind: TransactionKind.NonEvm,
-    tx,
-    time: getNonEvmTime(tx),
-  }));
-
-  return [...localItems, ...confirmedItems, ...nonEvmItems].sort(
-    (a, b) => b.time - a.time,
+export function mapNonEvmTransactions(
+  transactions: NonEvmTransaction[],
+): ActivityListItem[] {
+  return transactions.map((transaction) =>
+    mapKeyringTransaction({ transaction }),
   );
+}
+
+/**
+ * Merges and sorts all three transaction sources into a single ActivityListItem list.
+ * API-confirmed EVM items win deduplication by hash over local items.
+ */
+export function mergeTransactionsByTime(
+  localItems: ActivityListItem[],
+  confirmedEvmItems: ActivityListItem[],
+  nonEvmItems: ActivityListItem[],
+): ActivityListItem[] {
+  return mergeActivityItems(localItems, confirmedEvmItems, nonEvmItems);
 }
