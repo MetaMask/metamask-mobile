@@ -1,5 +1,11 @@
 import React, { useMemo, useEffect, useCallback } from 'react';
-import { ActivityIndicator, SectionList } from 'react-native';
+import {
+  ActivityIndicator,
+  Pressable,
+  SectionList,
+  ViewStyle,
+  StyleProp,
+} from 'react-native';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import PredictActivity from '../../components/PredictActivity/PredictActivity';
@@ -12,11 +18,15 @@ import { PredictEventValues } from '../../constants/eventNames';
 import { TraceName } from '../../../../../util/trace';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
+import PredictOffline from '../../components/PredictOffline';
 import { PREDICT_TRANSACTIONS_VIEW_TEST_IDS } from './PredictTransactionsView.testIds';
 interface PredictTransactionsViewProps {
+  emptyState?: React.ReactNode;
   transactions?: unknown[];
   tabLabel?: string;
   isVisible?: boolean;
+  containerStyle?: string;
+  activityContainerStyle?: string;
 }
 
 interface ActivitySection {
@@ -60,13 +70,21 @@ const getDateGroupLabel = (
 };
 
 const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
+  emptyState,
   isVisible,
+  containerStyle,
+  activityContainerStyle,
 }) => {
   const tw = useTailwind();
   const {
-    data: activity = [],
+    activity,
+    error,
     isLoading,
+    isFetching,
     isRefetching,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
     refetch,
   } = usePredictActivity();
 
@@ -245,15 +263,70 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
   const renderItem = useCallback(
     ({ item }: { item: PredictActivityItem }) => (
       <Box twClassName="py-1">
-        <PredictActivity item={item} />
+        <PredictActivity item={item} containerStyle={activityContainerStyle} />
       </Box>
     ),
-    [],
+    [activityContainerStyle],
   );
 
   const keyExtractor = useCallback((item: PredictActivityItem) => item.id, []);
 
-  const shouldShowLoadingState = isLoading && sections.length === 0;
+  const handleEndReached = useCallback(() => {
+    if (!hasNextPage || isFetchingNextPage) {
+      return;
+    }
+
+    void fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  const hasFooterError = Boolean(error) && sections.length > 0 && hasNextPage;
+
+  const handleRetry = useCallback(() => {
+    void refetch();
+  }, [refetch]);
+
+  const renderFooter = useCallback(() => {
+    if (isFetchingNextPage || (hasFooterError && isRefetching)) {
+      return (
+        <Box twClassName="items-center justify-center py-4">
+          <ActivityIndicator
+            size="small"
+            testID={
+              PREDICT_TRANSACTIONS_VIEW_TEST_IDS.FOOTER_ACTIVITY_INDICATOR
+            }
+          />
+        </Box>
+      );
+    }
+
+    if (!hasFooterError) {
+      return null;
+    }
+
+    return (
+      <Box
+        twClassName="items-center justify-center gap-2 py-4"
+        testID={PREDICT_TRANSACTIONS_VIEW_TEST_IDS.FOOTER_ERROR_STATE}
+      >
+        <Text variant={TextVariant.BodySm} twClassName="text-alternative">
+          {strings('predict.error.description')}
+        </Text>
+        <Pressable
+          accessibilityRole="button"
+          onPress={handleRetry}
+          testID={PREDICT_TRANSACTIONS_VIEW_TEST_IDS.FOOTER_RETRY_BUTTON}
+        >
+          <Text variant={TextVariant.BodyMd} twClassName="text-primary-default">
+            {strings('predict.error.retry')}
+          </Text>
+        </Pressable>
+      </Box>
+    );
+  }, [handleRetry, hasFooterError, isFetchingNextPage, isRefetching]);
+
+  const shouldShowLoadingState =
+    (isLoading || (Boolean(error) && isFetching)) && sections.length === 0;
+  const shouldShowErrorState = Boolean(error) && sections.length === 0;
 
   const renderContent = shouldShowLoadingState ? (
     <Box twClassName="items-center justify-center h-full">
@@ -262,19 +335,26 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
         testID={PREDICT_TRANSACTIONS_VIEW_TEST_IDS.ACTIVITY_INDICATOR}
       />
     </Box>
+  ) : shouldShowErrorState ? (
+    <PredictOffline
+      onRetry={handleRetry}
+      testID={PREDICT_TRANSACTIONS_VIEW_TEST_IDS.ERROR_STATE}
+    />
   ) : sections.length === 0 ? (
-    <Box twClassName="items-center justify-center py-10">
-      <TabEmptyState
-        description={strings('predict.transactions.no_transactions')}
-      />
-    </Box>
+    (emptyState ?? (
+      <Box twClassName="items-center justify-center py-10">
+        <TabEmptyState
+          description={strings('predict.transactions.no_transactions')}
+        />
+      </Box>
+    ))
   ) : (
     <SectionList<PredictActivityItem, ActivitySection>
       sections={sections}
       keyExtractor={keyExtractor}
       renderItem={renderItem}
       renderSectionHeader={renderSectionHeader}
-      contentContainerStyle={tw.style('p-2')}
+      contentContainerStyle={tw.style('p-2', containerStyle)}
       showsVerticalScrollIndicator={false}
       style={tw.style('flex-1')}
       stickySectionHeadersEnabled
@@ -282,6 +362,9 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
       onRefresh={() => {
         void refetch();
       }}
+      onEndReached={handleEndReached}
+      onEndReachedThreshold={0.5}
+      ListFooterComponent={renderFooter}
       maxToRenderPerBatch={20}
       initialNumToRender={20}
       windowSize={12}

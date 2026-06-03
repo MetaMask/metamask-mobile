@@ -9,7 +9,7 @@ import React, {
 import { addBreadcrumb } from '@sentry/react-native';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 import { PERPS_CONNECTION_SOURCE } from '../constants/perpsConfig';
-import { isE2E } from '../../../../util/test/utils';
+import { hasTestOverrides } from '../../../../util/test/utils';
 import PerpsConnectionErrorView from '../components/PerpsConnectionErrorView';
 import {
   PERPS_CONSTANTS,
@@ -58,7 +58,7 @@ export const PerpsConnectionProvider: React.FC<
   // Poll connection state to sync with singleton
   useEffect(() => {
     // Skip polling in E2E mode to prevent timer interference
-    if (isE2E) {
+    if (hasTestOverrides) {
       // Set mock connected state for E2E
       setConnectionState({
         isConnected: true,
@@ -100,7 +100,7 @@ export const PerpsConnectionProvider: React.FC<
   }, []);
 
   useEffect(() => {
-    if (isE2E || suppressErrorView) {
+    if (hasTestOverrides || suppressErrorView) {
       return;
     }
 
