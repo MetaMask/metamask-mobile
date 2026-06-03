@@ -5,6 +5,7 @@ import PushNotificationOnboarding, {
   type PushPrePromptCompletionReason,
 } from '.';
 import { usePushPrePromptVariant } from '../../../../util/notifications/hooks/usePushPrePromptVariant';
+import PushNotificationPermissionFallback from './PushNotificationPermissionFallback';
 
 jest.mock(
   '../../../../util/notifications/hooks/usePushPrePromptVariant',
@@ -18,18 +19,36 @@ jest.mock('.', () => ({
   default: jest.fn(() => null),
 }));
 
+jest.mock('./PushNotificationPermissionFallback', () => ({
+  __esModule: true,
+  default: jest.fn(() => null),
+}));
+
+let mockIsPrePromptEnabled = true;
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn((selector) => {
+    const { selectPrePushPromptEnabled } = jest.requireMock(
+      '../../../../selectors/featureFlagController/engagement',
+    );
+    if (selector === selectPrePushPromptEnabled) return mockIsPrePromptEnabled;
+    return undefined;
+  }),
+}));
+
+jest.mock('../../../../selectors/featureFlagController/engagement', () => ({
+  selectPrePushPromptEnabled: jest.fn(),
+}));
+
 const mockUsePushPrePromptVariant = jest.mocked(usePushPrePromptVariant);
 const mockPushNotificationOnboarding = jest.mocked(PushNotificationOnboarding);
+const mockPushNotificationPermissionFallback = jest.mocked(
+  PushNotificationPermissionFallback,
+);
 
 const mockDismissPrePrompt = jest.fn();
 const mockMarkPrePromptShown = jest.fn();
-let mockIsTestEnvironmentValue = false;
-
-jest.mock('../../../../util/test/utils', () => ({
-  get isTestEnvironment() {
-    return mockIsTestEnvironmentValue;
-  },
-}));
 
 const mockPrePromptState = ({
   nativeOsPermissionEnabled = null,
@@ -52,25 +71,8 @@ const getLatestProps = () =>
 describe('PushNotificationOnboardingRoot', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockIsTestEnvironmentValue = false;
+    mockIsPrePromptEnabled = true;
     mockPrePromptState();
-  });
-
-  afterEach(() => {
-    mockIsTestEnvironmentValue = false;
-  });
-
-  it('does not render or resolve the pre-prompt during e2e runs', () => {
-    mockIsTestEnvironmentValue = true;
-    mockPrePromptState({
-      nativeOsPermissionEnabled: false,
-      variant: 'push_permission',
-    });
-
-    render(<PushNotificationOnboardingRoot />);
-
-    expect(mockUsePushPrePromptVariant).not.toHaveBeenCalled();
-    expect(mockPushNotificationOnboarding).not.toHaveBeenCalled();
   });
 
   it('does not render the sheet when no variant is available', () => {
@@ -147,5 +149,26 @@ describe('PushNotificationOnboardingRoot', () => {
         prePromptVariant: 'push_permission',
       }),
     );
+  });
+
+  describe('feature flag gate', () => {
+    it('renders the soft pre-prompt content when the flag is enabled', () => {
+      mockIsPrePromptEnabled = true;
+      mockPrePromptState({ variant: 'push_permission' });
+
+      render(<PushNotificationOnboardingRoot />);
+
+      expect(mockPushNotificationOnboarding).toHaveBeenCalled();
+      expect(mockPushNotificationPermissionFallback).not.toHaveBeenCalled();
+    });
+
+    it('renders the permission fallback when the flag is disabled', () => {
+      mockIsPrePromptEnabled = false;
+
+      render(<PushNotificationOnboardingRoot />);
+
+      expect(mockPushNotificationPermissionFallback).toHaveBeenCalled();
+      expect(mockPushNotificationOnboarding).not.toHaveBeenCalled();
+    });
   });
 });
