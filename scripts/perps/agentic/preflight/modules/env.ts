@@ -6,7 +6,9 @@ import { isAbsolute, join } from 'path';
 import type { Ctx, Flags, Mode, Platform } from './types';
 
 // Merge .js.env into a copy of process.env WITHOUT overriding anything the
-// caller already set (caller env wins).
+// caller already set (caller env wins). Keys introduced by .js.env are also
+// exported into process.env so spawned build subprocesses (expo, Gradle, the
+// google-services decode) inherit them — mirroring bash `set -a; source .js.env`.
 export function loadJsEnv(root: string): Record<string, string | undefined> {
   const env: Record<string, string | undefined> = { ...process.env };
   const file = join(root, '.js.env');
@@ -26,7 +28,10 @@ export function loadJsEnv(root: string): Record<string, string | undefined> {
     ) {
       val = val.slice(1, -1);
     }
-    if (env[key] === undefined) env[key] = val;
+    if (env[key] === undefined) {
+      env[key] = val;
+      process.env[key] = val;
+    }
   }
   return env;
 }
