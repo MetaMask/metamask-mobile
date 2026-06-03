@@ -14,7 +14,10 @@ import { strings } from '../../../../../locales/i18n';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
 import { TokenRowItem } from '../feeds/tokens/TokenRowItem';
 import TrendingTokensSkeleton from '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
-import { useStocksFeed } from '../feeds/stocks/useStocksFeed';
+import {
+  STOCKS_FEED_PREVIEW_PAGE_SIZE,
+  useStocksFeed,
+} from '../feeds/stocks/useStocksFeed';
 import { getCaipChainIdFromAssetId } from '../../../UI/Trending/components/TrendingTokenRowItem/utils';
 import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
 import PerpsSectionProvider from '../feeds/perps/PerpsSectionProvider';
@@ -22,13 +25,14 @@ import PerpsToggleBlock from '../feeds/perps/PerpsToggleBlock';
 import { navigateToPerpsMarketList } from '../feeds/perps/perpsNavigation';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
 import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarouselSection';
-import { navigateToPredictionsList } from '../feeds/predictions/predictionsNavigation';
+import { navigateToExplorePredictionsList } from '../feeds/predictions/predictionsNavigation';
 import CardList from '../components/CardList';
 import ExploreScroll from '../components/ExploreScroll';
 import type { PillToggleCardListTab } from '../components/PillToggleCardList';
 import SectionHeader from '../components/SectionHeader';
 import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
+import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
 
 interface RwaPerpsBlockProps {
   refresh: TabProps['refresh'];
@@ -94,7 +98,10 @@ const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
 
   const politics = usePredictionsFeed({ variant: 'politics', refresh });
-  const stocks = useStocksFeed({ refresh });
+  const stocks = useStocksFeed({
+    refresh,
+    pageSize: STOCKS_FEED_PREVIEW_PAGE_SIZE,
+  });
 
   const renderStockItem: ListRenderItem<TrendingAsset> = useCallback(
     ({ item, index }) => (
@@ -122,7 +129,11 @@ const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const showStocks = stocks.isLoading || stocks.data.length > 0;
 
   return (
-    <ExploreScroll refreshing={refreshing} onRefresh={onRefresh}>
+    <ExploreScroll
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      testID={TrendingViewSelectorsIDs.EXPLORE_RWAS_SCROLL_VIEW}
+    >
       <PredictionsCarouselSection
         feed={politics}
         tabName="RWAs"
@@ -130,7 +141,9 @@ const RwasTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
         title={strings('trending.predictions')}
         testIdPrefix="predict-rwa-politics-market-row-item"
         idPrefix="politics_predictions"
-        onViewAll={() => navigateToPredictionsList(appNavigation, 'politics')}
+        onViewAll={() =>
+          navigateToExplorePredictionsList(appNavigation, 'politics')
+        }
         isEnabled={isPredictEnabled}
       />
 

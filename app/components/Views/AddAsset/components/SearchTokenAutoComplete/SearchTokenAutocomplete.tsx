@@ -1,11 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import {
-  InteractionManager,
-  TextInput,
-  TouchableOpacity,
-  LayoutAnimation,
-  Platform,
-} from 'react-native';
+import { InteractionManager, LayoutAnimation, Platform } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -27,13 +21,8 @@ import {
   ButtonVariant,
   ButtonSize,
   Box,
-  BoxFlexDirection,
-  BoxAlignItems,
   Text,
-  Icon,
-  IconName,
-  IconSize,
-  IconColor,
+  TextFieldSearch,
 } from '@metamask/design-system-react-native';
 import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -484,42 +473,24 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
 
       <Box twClassName="flex-1">
         <Box twClassName="m-4">
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="bg-muted rounded-lg px-3"
-            style={tw.style('min-h-[44px]')}
-            testID={ImportTokenViewSelectorsIDs.ASSET_SEARCH_CONTAINER}
-          >
-            <Icon
-              name={IconName.Search}
-              size={IconSize.Md}
-              color={IconColor.IconMuted}
-              style={tw.style('mr-2')}
-            />
-            <TextInput
-              style={tw.style('flex-1 text-base text-default')}
+          <Box testID={ImportTokenViewSelectorsIDs.ASSET_SEARCH_CONTAINER}>
+            <TextFieldSearch
               value={searchQuery}
+              onChangeText={setSearchQuery}
+              onPressClearButton={() => setSearchQuery('')}
+              clearButtonProps={{
+                testID: ImportTokenViewSelectorsIDs.CLEAR_SEARCH_BAR,
+              }}
+              inputProps={{
+                autoCapitalize: 'none',
+                keyboardAppearance: themeAppearance,
+                testID: ImportTokenViewSelectorsIDs.SEARCH_BAR,
+              }}
               onFocus={() => setFocusState(true)}
               onBlur={() => setFocusState(false)}
+              autoFocus={false}
               placeholder={strings('token.search_tokens_placeholder')}
-              placeholderTextColor={colors.text.muted}
-              onChangeText={setSearchQuery}
-              testID={ImportTokenViewSelectorsIDs.SEARCH_BAR}
-              keyboardAppearance={themeAppearance}
             />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity
-                onPress={() => setSearchQuery('')}
-                testID={ImportTokenViewSelectorsIDs.CLEAR_SEARCH_BAR}
-              >
-                <Icon
-                  name={IconName.CircleX}
-                  size={IconSize.Md}
-                  color={IconColor.IconAlternative}
-                />
-              </TouchableOpacity>
-            )}
           </Box>
         </Box>
 
@@ -528,7 +499,6 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
           searchQuery={searchQuery}
           handleSelectAsset={handleSelectAsset}
           selectedAsset={selectedAssets}
-          chainId={selectedChainId ?? ''}
           networkName={networkName}
           alreadyAddedTokens={alreadyAddedTokens}
           isLoading={isLoading}

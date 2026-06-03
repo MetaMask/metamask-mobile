@@ -4442,8 +4442,16 @@ describe('RewardsDataService', () => {
         nextTierSwapsFeeDelta: '↓ 12 bps next tier',
         nextTierPerpsFeeDelta: '↓ 3 bps next tier',
         revenueShareTitle: 'Revenue share',
+        referralPointsTitle: 'Referral points',
         nextTierRevenueShareDelta: '↑ 2% next tier',
+        nextTierReferralPointsDelta: '↑ 20% next tier',
+        topTierDescription: 'Top tier reached',
         statsTitle: 'Volume',
+        pointsTitle: 'Points',
+        swapsVolumeTitle: 'Swaps Volume',
+        pointsFromReferralsTitle: 'Points from Referrals',
+        perpsVolumeTitle: 'Perps Volume',
+        vipReferralsTitle: 'VIP Referrals',
         totalPointsTitle: 'Points',
         equityLockedTitle: 'Earn VIP allocations',
         equityLockedDescription: 'Body copy',
@@ -5256,6 +5264,7 @@ describe('RewardsDataService', () => {
       computedAt: '2025-08-15T12:00:00.000Z',
       entries: [],
       totalParticipants: 0,
+      minVolumeForEligibility: 25_000,
     };
 
     beforeEach(() => {
@@ -5291,9 +5300,11 @@ describe('RewardsDataService', () => {
     const mockToken = 'test-bearer-token';
     const mockPosition = {
       rank: 4,
+      totalParticipants: 50,
       pnl: 12.5,
-      notionalVolume: 8000,
-      qualified: true,
+      volume: 8000,
+      eligible: true,
+      minVolumeForEligibility: 25000,
       neighbors: [],
       computedAt: '2025-08-15T12:00:00.000Z',
     };
