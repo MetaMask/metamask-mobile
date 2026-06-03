@@ -672,6 +672,19 @@ describe('MoneyHomeView', () => {
     });
   });
 
+  it('tracks the MetaMask Card impression once card data has settled (idle status)', () => {
+    renderWithProvider(<MoneyHomeView />);
+
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        screen: CardScreens.MONEY_HOME,
+        entrypoint: CardEntryPoint.MONEY_HOME_METAMASK_CARD,
+        mode: 'upsell',
+        card_state: 'non_cardholder',
+      }),
+    );
+  });
+
   it('opens the APY info sheet when the APY info button is pressed', () => {
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 

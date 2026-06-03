@@ -465,6 +465,86 @@ describe('MoneyMetaMaskCard', () => {
       });
     });
 
+    it('defers Card Viewed while analyticsReady is false', () => {
+      render(
+        <MoneyMetaMaskCard
+          onGetNowPress={jest.fn()}
+          {...analyticsProps}
+          analyticsReady={false}
+        />,
+      );
+
+      expect(
+        mockCreateEventBuilder.mock.calls.filter(
+          ([eventName]) => eventName === MetaMetricsEvents.CARD_VIEWED,
+        ),
+      ).toHaveLength(0);
+    });
+
+    it('tracks Card Viewed with settled properties once analyticsReady flips to true', () => {
+      const { rerender } = render(
+        <MoneyMetaMaskCard
+          mode="upsell"
+          onGetNowPress={jest.fn()}
+          {...analyticsProps}
+          analyticsCardState="non_cardholder"
+          analyticsReady={false}
+        />,
+      );
+
+      // Async cardholder/auth data settles: mode + card_state change and the
+      // gate opens. Only the post-load values should be recorded.
+      rerender(
+        <MoneyMetaMaskCard
+          mode="manage"
+          onGetNowPress={jest.fn()}
+          {...analyticsProps}
+          analyticsCardState="linked_card"
+          analyticsReady
+        />,
+      );
+
+      const cardViewedCalls = mockCreateEventBuilder.mock.calls.filter(
+        ([eventName]) => eventName === MetaMetricsEvents.CARD_VIEWED,
+      );
+      expect(cardViewedCalls).toHaveLength(1);
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        screen: CardScreens.MONEY_HOME,
+        entrypoint: CardEntryPoint.MONEY_HOME_METAMASK_CARD,
+        mode: 'manage',
+        card_type: 'virtual',
+        flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
+        card_state: 'linked_card',
+        action: undefined,
+      });
+    });
+
+    it('tracks Card Viewed only once even if properties keep changing after the gate opens', () => {
+      const { rerender } = render(
+        <MoneyMetaMaskCard
+          mode="link"
+          onGetNowPress={jest.fn()}
+          {...analyticsProps}
+          analyticsReady
+        />,
+      );
+
+      rerender(
+        <MoneyMetaMaskCard
+          mode="manage"
+          onGetNowPress={jest.fn()}
+          {...analyticsProps}
+          analyticsReady
+        />,
+      );
+
+      expect(
+        mockCreateEventBuilder.mock.calls.filter(
+          ([eventName]) => eventName === MetaMetricsEvents.CARD_VIEWED,
+        ),
+      ).toHaveLength(1);
+    });
+
     it('tracks Get now clicks before calling the handler', () => {
       const mockGetNow = jest.fn();
       const { getByText } = render(

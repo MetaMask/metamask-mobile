@@ -41,7 +41,10 @@ import { MUSD_MAINNET_ASSET_FOR_DETAILS } from '../../../../Views/Homepage/Secti
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import AppConstants from '../../../../../core/AppConstants';
 import NavigationService from '../../../../../core/NavigationService';
-import { selectIsCardholder } from '../../../../../selectors/cardController';
+import {
+  selectCardHomeDataStatus,
+  selectIsCardholder,
+} from '../../../../../selectors/cardController';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
@@ -116,6 +119,7 @@ const MoneyHomeView = () => {
     useMoneyAccountTransactions();
 
   const isCardholder = useSelector(selectIsCardholder);
+  const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
   const { startLinkFlow, isCardAuthenticated, isCardLinkedToMoneyAccount } =
     useMoneyAccountCardLinkage();
   const geolocation = useSelector(getDetectedGeolocation);
@@ -329,6 +333,7 @@ const MoneyHomeView = () => {
     isCardAuthenticated,
     isCardLinkedToMoneyAccount,
   });
+  const isCardAnalyticsReady = cardHomeDataStatus !== 'loading';
 
   return (
     <Box
@@ -430,6 +435,7 @@ const MoneyHomeView = () => {
           analyticsEntryPoint={CardEntryPoint.MONEY_HOME_METAMASK_CARD}
           analyticsFlow={CardFlow.MONEY_ACCOUNT_LINKAGE}
           analyticsCardState={cardState}
+          analyticsReady={isCardAnalyticsReady}
         />
         <Divider />
         {isMilestone && (

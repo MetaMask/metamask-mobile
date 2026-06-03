@@ -65,6 +65,7 @@ interface MoneyMetaMaskCardProps {
   analyticsEntryPoint?: CardEntryPoint;
   analyticsFlow?: string;
   analyticsCardState?: string;
+  analyticsReady?: boolean;
   /**
    * Link mode only: when true, the card image is omitted and the bullets are
    * stacked vertically. Used by Card Home where the card image is already
@@ -336,6 +337,7 @@ const MoneyMetaMaskCard = ({
   analyticsEntryPoint,
   analyticsFlow,
   analyticsCardState,
+  analyticsReady = true,
 }: MoneyMetaMaskCardProps) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const hasTrackedViewRef = useRef(false);
@@ -381,7 +383,12 @@ const MoneyMetaMaskCard = ({
   );
 
   useEffect(() => {
-    if (hasTrackedViewRef.current || !analyticsScreen || !analyticsEntryPoint) {
+    if (
+      hasTrackedViewRef.current ||
+      !analyticsReady ||
+      !analyticsScreen ||
+      !analyticsEntryPoint
+    ) {
       return;
     }
 
@@ -392,6 +399,7 @@ const MoneyMetaMaskCard = ({
         .build(),
     );
   }, [
+    analyticsReady,
     analyticsScreen,
     analyticsEntryPoint,
     trackEvent,
