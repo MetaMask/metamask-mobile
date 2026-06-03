@@ -2,19 +2,21 @@
 #
 # Hotfix Backport Alert
 #
-# When a new *minor* release branch is created (e.g. release/7.79.0), checks
-# whether the previous minor version (e.g. 7.78.0) had any hotfix releases
-# (7.78.1, 7.78.1-ota, …) whose commits have NOT been cherry-picked into the
-# new release branch.  If any are found, a warning is posted to the release
+# Fires whenever any release branch is created and checks whether commits from
+# the immediately preceding release were carried forward into the new one:
+#
+#   release/X.Y.0        → checks hotfixes on the X.(Y-1) line
+#                          e.g. release/7.79.0 checks v7.78.1, v7.78.1-ota, v7.78.2 …
+#
+#   release/X.Y.Z (Z>0)  → checks the previous patch on the same X.Y line
+#   release/X.Y.Z-ota      e.g. release/7.79.2[-ota] checks v7.79.1 / v7.79.1-ota
+#
+# If potentially missing commits are found, a warning is posted to the release
 # Slack channel and @release-owner-mobile is tagged so the Release Manager can
 # decide whether those fixes need to be carried forward.
 #
-# This alert is a WARNING ONLY — the missing fixes may not be needed for the
-# new release.  The team is pinged so they can make an informed decision.
-#
-# Trigger : branch creation event for release/X.Y.0 branches (new minors only).
-#           Hotfix branches (patch > 0) are ignored — they are checked at the
-#           point the *next* minor branch is created.
+# This alert is a WARNING ONLY — the fixes may not be needed. The team is
+# pinged so they can make an informed decision.
 #
 ##############################################################################################
 name: Hotfix Backport Alert
@@ -27,7 +29,7 @@ permissions:
 
 jobs:
   # ---------------------------------------------------------------------------
-  # Step 1 — gate: only run for new minor release branches (release/X.Y.0)
+  # Step 1 — gate: accept any release/X.Y.Z[-ota] branch; extract semver
   # ---------------------------------------------------------------------------
   check-branch:
     name: Check branch type
@@ -36,8 +38,9 @@ jobs:
     outputs:
       should_run: ${{ steps.gate.outputs.should_run }}
       new_semver: ${{ steps.gate.outputs.new_semver }}
+      is_ota: ${{ steps.gate.outputs.is_ota }}
     steps:
-      - name: Determine if this is a new minor release
+      - name: Extract semver and branch type
         id: gate
         shell: bash
         run: |
@@ -46,30 +49,24 @@ jobs:
           BRANCH="${GITHUB_REF#refs/heads/}"
           TAIL="${BRANCH#release/}"
 
-          # Reject -ota branches up-front (they are hotfixes, not new minors)
+          # Strip -ota suffix; remember it for branch name reconstruction later
+          IS_OTA="false"
           if [[ "$TAIL" == *-ota ]]; then
-            echo "OTA hotfix branch — skipping backport alert."
-            echo "should_run=false" >> "$GITHUB_OUTPUT"
-            exit 0
+            IS_OTA="true"
+            TAIL="${TAIL%-ota}"
           fi
 
           # Validate strict SemVer X.Y.Z
           if ! [[ "$TAIL" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
-            echo "Branch '$BRANCH' does not match release/X.Y.Z — skipping."
+            echo "Branch '$BRANCH' does not match release/X.Y.Z[-ota] — skipping."
             echo "should_run=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          PATCH="${TAIL##*.}"
-          if [[ "$PATCH" -ne 0 ]]; then
-            echo "Hotfix branch (patch=$PATCH > 0) — skipping backport alert."
-            echo "should_run=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          echo "New minor release branch detected: $BRANCH (semver $TAIL)"
-          echo "should_run=true" >> "$GITHUB_OUTPUT"
+          echo "Release branch detected: $BRANCH (semver $TAIL, ota=$IS_OTA)"
+          echo "should_run=true"  >> "$GITHUB_OUTPUT"
           echo "new_semver=${TAIL}" >> "$GITHUB_OUTPUT"
+          echo "is_ota=${IS_OTA}"  >> "$GITHUB_OUTPUT"
 
   # ---------------------------------------------------------------------------
   # Step 2 — run the backport check and post the Slack alert
@@ -94,6 +91,7 @@ jobs:
         run: node ./scripts/slack-hotfix-backport-alert.mjs
         env:
           NEW_SEMVER: ${{ needs.check-branch.outputs.new_semver }}
+          IS_OTA: ${{ needs.check-branch.outputs.is_ota }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           GITHUB_SERVER_URL: ${{ github.server_url }}
