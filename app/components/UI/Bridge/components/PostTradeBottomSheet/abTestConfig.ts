@@ -8,21 +8,10 @@ export enum PostTradeModalVariant {
   Treatment = 'treatment',
 }
 
-interface PostTradeModalVariantConfig {
-  showPostTradeModal: boolean;
-}
-
-export const POST_TRADE_MODAL_VARIANTS: Record<
-  PostTradeModalVariant,
-  PostTradeModalVariantConfig
-> = {
-  [PostTradeModalVariant.Control]: {
-    showPostTradeModal: false,
-  },
-  [PostTradeModalVariant.Treatment]: {
-    showPostTradeModal: true,
-  },
-};
+export const POST_TRADE_MODAL_VARIANTS = {
+  [PostTradeModalVariant.Control]: { showPostTradeModal: false },
+  [PostTradeModalVariant.Treatment]: { showPostTradeModal: true },
+} satisfies Record<PostTradeModalVariant, { showPostTradeModal: boolean }>;
 
 export const POST_TRADE_MODAL_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
   {
