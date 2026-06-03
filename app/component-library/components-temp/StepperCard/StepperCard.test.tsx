@@ -1,6 +1,8 @@
 // Third party dependencies.
 import React from 'react';
+import { Image } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 // Internal dependencies.
 import StepperCard from './StepperCard';
@@ -71,6 +73,38 @@ describe('StepperCard', () => {
         />,
       );
       expect(getByTestId('card-title')).toHaveTextContent('Step 2');
+    });
+  });
+
+  describe('step image', () => {
+    it('sizes the image to its intrinsic aspect ratio so padding stays uniform', () => {
+      const resolveSpy = jest
+        .spyOn(Image, 'resolveAssetSource')
+        .mockReturnValue({ width: 987, height: 555, scale: 1, uri: 'card' });
+      const tw = useTailwind();
+
+      render(
+        <StepperCard steps={[makeStep()]} currentStep={0} testID="card" />,
+      );
+
+      expect(tw.style).toHaveBeenCalledWith('w-full', {
+        aspectRatio: 987 / 555,
+      });
+      resolveSpy.mockRestore();
+    });
+
+    it('falls back to a fixed height when the image has no intrinsic size', () => {
+      const resolveSpy = jest
+        .spyOn(Image, 'resolveAssetSource')
+        .mockReturnValue({ width: 0, height: 0, scale: 1, uri: 'card' });
+      const tw = useTailwind();
+
+      render(
+        <StepperCard steps={[makeStep()]} currentStep={0} testID="card" />,
+      );
+
+      expect(tw.style).toHaveBeenCalledWith('w-full', { height: 215 });
+      resolveSpy.mockRestore();
     });
   });
 

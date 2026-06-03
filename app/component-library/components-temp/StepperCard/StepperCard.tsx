@@ -50,6 +50,12 @@ const StepperCard = ({
 
   const step = steps[currentStep];
 
+  const resolvedImage = Image.resolveAssetSource(step.image);
+  const imageAspectRatio =
+    resolvedImage?.width && resolvedImage?.height
+      ? resolvedImage.width / resolvedImage.height
+      : undefined;
+
   return (
     <Box
       twClassName="rounded-2xl bg-muted overflow-hidden"
@@ -59,11 +65,16 @@ const StepperCard = ({
       <Box
         alignItems={BoxAlignItems.Center}
         testID={getTestId('step-image')}
-        twClassName="px-4 pt-4 h-[215px]"
+        twClassName="p-4"
       >
         <Image
           source={step.image}
-          style={tw.style('w-full h-full')}
+          style={tw.style(
+            'w-full',
+            imageAspectRatio
+              ? { aspectRatio: imageAspectRatio }
+              : { height: 215 },
+          )}
           resizeMode="contain"
         />
       </Box>
