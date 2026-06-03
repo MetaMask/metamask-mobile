@@ -3,8 +3,8 @@ import {
   processNotification,
   type UnprocessedRawNotification,
   toRawAPINotification,
-  OnChainRawNotification,
 } from '@metamask/notification-services-controller/notification-services';
+import { toPushAnalyticsPayload } from '@metamask/notification-services-controller/push-services';
 import messaging, {
   type FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging';
@@ -13,7 +13,7 @@ import Logger from '../../../util/Logger';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { analytics } from '../../analytics/analytics';
 import { AnalyticsEventBuilder } from '../../analytics/AnalyticsEventBuilder';
-import type { JsonValue } from '../../../core/Analytics/MetaMetrics.types';
+import { toFcmDataStringRecord } from '../utils/fcm-data';
 
 async function getInitialNotification() {
   // Tried many different approaches, but @react-native-firebase setup is unable to hold and track the initial open intent from a push notification
@@ -34,58 +34,18 @@ function analyticsTrackPushClickEvent(
   remoteMessage?: FirebaseMessagingTypes.RemoteMessage | null,
 ) {
   try {
-    const extractData = () => {
-      try {
-        // On Chain Raw Notification Shape
-        if (remoteMessage?.data?.data) {
-          const rawData: OnChainRawNotification | null = JSON.parse(
-            remoteMessage.data.data?.toString() ?? null,
-          );
-          return {
-            kind: [
-              rawData?.payload.data.kind,
-              rawData?.type,
-              rawData?.notification_type,
-              'on-chain',
-            ].find((kind) => Boolean(kind)),
-            rawData,
-          };
-        }
+    const data = toFcmDataStringRecord(remoteMessage?.data);
+    const payload = toPushAnalyticsPayload(data);
 
-        // Generic Platform Notification
-        if (remoteMessage?.data?.metadata) {
-          interface PlatformNotificationMetadata {
-            kind?: string;
-            [otherProps: string]: JsonValue;
-          }
-          const rawData: PlatformNotificationMetadata | null = JSON.parse(
-            remoteMessage.data.metadata?.toString() ?? null,
-          );
-
-          return {
-            kind: [rawData?.kind, rawData?.type, 'platform']
-              .filter((x): x is string => typeof x === 'string')
-              .find((kind) => Boolean(kind)),
-            rawData,
-          };
-        }
-      } catch {
-        return null;
-      }
-    };
-
-    const remoteMessageParsedData = extractData();
-
-    // Always send a push notification click event, but properties are optional
     analytics.trackEvent(
       AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.PUSH_NOTIFICATION_CLICKED,
       )
-        .addProperties({
-          deeplink: remoteMessage?.data?.deeplink?.toString(),
-          notification_type: remoteMessageParsedData?.kind,
-          data: remoteMessageParsedData?.rawData,
-        })
+        .addProperties(
+          payload ?? {
+            ...(data?.deeplink && { deeplink: data.deeplink }),
+          },
+        )
         .build(),
     );
   } catch {
@@ -266,8 +226,7 @@ class FCMService {
     try {
       const remoteMessage = await getInitialNotification();
       analyticsTrackPushClickEvent(remoteMessage);
-      const deeplink = remoteMessage?.data?.deeplink?.toString();
-      return deeplink;
+      return toFcmDataStringRecord(remoteMessage?.data)?.deeplink ?? null;
     } catch {
       return null;
     }
@@ -280,8 +239,9 @@ class FCMService {
       messaging().onNotificationOpenedApp((remoteMessage) => {
         try {
           analyticsTrackPushClickEvent(remoteMessage);
-          const deeplink = remoteMessage?.data?.deeplink?.toString();
-          deeplinkCallback(deeplink);
+          deeplinkCallback(
+            toFcmDataStringRecord(remoteMessage?.data)?.deeplink,
+          );
         } catch {
           // Do nothing
         }
