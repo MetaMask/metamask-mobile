@@ -7,8 +7,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { WalletViewSelectorsIDs } from '../../../Views/Wallet/WalletView.testIds';
 import BaseControlBar from '../../shared/BaseControlBar/BaseControlBar';
-import { useStyles } from '../../../hooks/useStyles';
-import createControlBarStyles from '../../shared/ControlBarStyles';
 
 interface TokenListControlBarProps {
   goToAddToken: () => void;
@@ -30,8 +28,6 @@ export const TokenListControlBar = ({
   showAddToken = true,
   hideSort = false,
 }: TokenListControlBarProps) => {
-  const { styles } = useStyles(createControlBarStyles, undefined);
-
   const additionalButtons = showAddToken ? (
     <ButtonIcon
       testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}

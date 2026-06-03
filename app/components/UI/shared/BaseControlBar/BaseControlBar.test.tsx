@@ -9,9 +9,9 @@ import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
 import {
   AvatarNetwork,
+  ButtonIcon,
   SelectButton,
 } from '@metamask/design-system-react-native';
-import ButtonIcon from '../../../../component-library/components/Buttons/ButtonIcon';
 
 // Mock dependencies
 jest.mock('../../../../util/networks', () => ({
