@@ -176,15 +176,16 @@ const AgenticCliApproval: React.FC = () => {
 
   const handleShouldStartLoadWithRequest = useCallback(
     (request: ShouldStartLoadRequest) => {
-      if (request.isTopFrame === false) return true;
       if (AgenticCliApprovalService.shouldLoadInWebView(request.url))
         return true;
-      Linking.openURL(request.url).catch((err) =>
-        Logger.error(
-          err as Error,
-          'AgenticCliApproval: failed to open external URL',
-        ),
-      );
+      if (request.isTopFrame !== false) {
+        Linking.openURL(request.url).catch((err) =>
+          Logger.error(
+            err as Error,
+            'AgenticCliApproval: failed to open external URL',
+          ),
+        );
+      }
       return false;
     },
     [],

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Linking } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import Logger from '../../../util/Logger';
@@ -96,6 +97,10 @@ interface MockWebViewProps {
   onError?: (event: {
     nativeEvent: { description: string; statusCode: number; url: string };
   }) => void;
+  onShouldStartLoadWithRequest?: (request: {
+    url: string;
+    isTopFrame?: boolean;
+  }) => boolean;
   testID?: string;
 }
 
@@ -299,6 +304,64 @@ describe('AgenticCliApproval', () => {
       expect.any(Error),
       'AgenticCliApproval: hosted approval page reported an error',
     );
+  });
+
+  describe('onShouldStartLoadWithRequest', () => {
+    beforeEach(() => {
+      jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('allows allowlisted origins in subframes', async () => {
+      render(<AgenticCliApproval />);
+
+      await waitFor(() =>
+        expect(mockWebViewProps.onShouldStartLoadWithRequest).toBeDefined(),
+      );
+
+      expect(
+        mockWebViewProps.onShouldStartLoadWithRequest?.({
+          url: 'https://js.stripe.com/v3/controller-with-preconnect.html',
+          isTopFrame: false,
+        }),
+      ).toBe(true);
+      expect(Linking.openURL).not.toHaveBeenCalled();
+    });
+
+    it('blocks disallowed origins in subframes without opening externally', async () => {
+      render(<AgenticCliApproval />);
+
+      await waitFor(() =>
+        expect(mockWebViewProps.onShouldStartLoadWithRequest).toBeDefined(),
+      );
+
+      expect(
+        mockWebViewProps.onShouldStartLoadWithRequest?.({
+          url: 'https://example.com/phishing',
+          isTopFrame: false,
+        }),
+      ).toBe(false);
+      expect(Linking.openURL).not.toHaveBeenCalled();
+    });
+
+    it('opens disallowed top-frame navigations externally', async () => {
+      render(<AgenticCliApproval />);
+
+      await waitFor(() =>
+        expect(mockWebViewProps.onShouldStartLoadWithRequest).toBeDefined(),
+      );
+
+      expect(
+        mockWebViewProps.onShouldStartLoadWithRequest?.({
+          url: 'https://example.com/help',
+          isTopFrame: true,
+        }),
+      ).toBe(false);
+      expect(Linking.openURL).toHaveBeenCalledWith('https://example.com/help');
+    });
   });
 
   it('lets the user retry WebView load errors', async () => {
