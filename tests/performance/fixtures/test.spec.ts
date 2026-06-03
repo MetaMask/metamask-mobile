@@ -1,4 +1,4 @@
-import { test } from '../../framework/fixture/index';
+import { test } from '../../framework/fixtures/playwright';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';

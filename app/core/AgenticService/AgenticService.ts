@@ -45,10 +45,7 @@ import Routes from '../../constants/navigation/Routes';
 import SecureKeychain from '../SecureKeychain';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import DevLogger from '../SDKConnect/utils/DevLogger';
-import {
-  addNewHdAccount,
-  importNewSecretRecoveryPhrase,
-} from '../../actions/multiSrp';
+import { importNewSecretRecoveryPhrase } from '../../actions/multiSrp';
 import { bufferToHex, privateToAddress } from 'ethereumjs-util';
 import Authentication from '../Authentication';
 import { Wallet as EthersWallet } from 'ethers';
@@ -487,13 +484,20 @@ async function ensureFixtureMnemonicAccounts(
     );
   }
 
+  if (wallet.accounts.length < count && !wallet.keyringId) {
+    throw new Error(
+      `Cannot add fixture accounts to legacy vault (no entropy source); fixture expects ${count} accounts but vault has ${wallet.accounts.length}`,
+    );
+  }
+  const { MultichainAccountService } = Engine.context;
   for (
     let accountIndex = wallet.accounts.length;
     accountIndex < count;
     accountIndex += 1
   ) {
-    await addNewHdAccount(wallet.keyringId, names[accountIndex]);
-    await initializeFixtureAccountTree(options);
+    await MultichainAccountService.createNextMultichainAccountGroup({
+      entropySource: wallet.keyringId as string,
+    });
     wallet = findWallet();
     if (!wallet) {
       throw new Error(
