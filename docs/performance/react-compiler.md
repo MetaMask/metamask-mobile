@@ -29,10 +29,11 @@
 
 ## Opting a feature in
 
-1. **Health-check first** — it reports Rules-of-React violations that would make the compiler silently skip a component:
+1. **Check Rules-of-React first** — the compiler silently skips components that violate them. Use the already-installed ESLint plugin:
    ```bash
-   npx react-compiler-healthcheck@latest
+   yarn eslint <path>   # react-compiler/react-compiler warnings = what the compiler would skip
    ```
+   (The standalone `react-compiler-healthcheck` CLI gives a repo-wide count but isn't installed.)
 2. **Add the path** to `pathsToInclude` in `babel.config.js`.
 3. **Clear Metro's cache** — it caches compiled output aggressively:
    ```bash
