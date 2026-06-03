@@ -317,10 +317,6 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
   });
 
   it('should preserve existing enabled networks when adding a network via dapp', async () => {
-    // This test uses navigateToBrowserView() which relies on the old tab bar
-    // structure. The homepageSectionsV1 flag changes the tab bar, so it must
-    // be disabled here. This test is about dapp network preservation, not
-    // homepage sections UI.
     const dappTestMock = async (mockServer: Mockttp) => {
       await setupRemoteFeatureFlagsMock(mockServer, {
         carouselBanners: false,

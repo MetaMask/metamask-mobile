@@ -16,6 +16,14 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    PreferencesController: {
+      setTokenSortConfig: jest.fn(),
+    },
+  },
+}));
+
 jest.mock('../../UI/DeFiPositions/DeFiPositionsList', () => {
   const React = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');

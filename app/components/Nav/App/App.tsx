@@ -20,6 +20,7 @@ import DeleteWalletModal from '../../../components/UI/DeleteWalletModal';
 import Main from '../Main';
 import OptinMetrics from '../../UI/OptinMetrics';
 import OnboardingInterestQuestionnaire from '../../Views/OnboardingInterestQuestionnaire';
+import OnboardingCryptoExperienceQuestionnaire from '../../Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire';
 import SimpleWebview from '../../Views/SimpleWebview';
 import Logger from '../../../util/Logger';
 import { useSelector } from 'react-redux';
@@ -265,7 +266,11 @@ const OnboardingNav = () => {
         component={SocialLoginSuccessNewUser}
         options={{ headerShown: false }}
       />
-      <Stack.Screen name="ChoosePassword" component={ChoosePassword} />
+      <Stack.Screen
+        name="ChoosePassword"
+        component={ChoosePassword}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen
         name="AccountBackupStep1"
         component={AccountBackupStep1}
@@ -274,6 +279,7 @@ const OnboardingNav = () => {
       <Stack.Screen
         name="AccountBackupStep1B"
         component={AccountBackupStep1B}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name={Routes.ONBOARDING.SUCCESS_FLOW}
@@ -292,9 +298,21 @@ const OnboardingNav = () => {
           headerStyle: { backgroundColor: colors.background.default },
         }}
       />
-      <Stack.Screen name="ManualBackupStep1" component={ManualBackupStep1} />
-      <Stack.Screen name="ManualBackupStep2" component={ManualBackupStep2} />
-      <Stack.Screen name="ManualBackupStep3" component={ManualBackupStep3} />
+      <Stack.Screen
+        name="ManualBackupStep1"
+        component={ManualBackupStep1}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ManualBackupStep2"
+        component={ManualBackupStep2}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ManualBackupStep3"
+        component={ManualBackupStep3}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen
         name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}
         component={ImportFromSecretRecoveryPhrase}
@@ -307,6 +325,11 @@ const OnboardingNav = () => {
       <Stack.Screen
         name={Routes.ONBOARDING.INTEREST_QUESTIONNAIRE}
         component={OnboardingInterestQuestionnaire}
+        options={{ headerShown: false, gestureEnabled: false }}
+      />
+      <Stack.Screen
+        name={Routes.ONBOARDING.CRYPTO_EXPERIENCE_QUESTIONNAIRE}
+        component={OnboardingCryptoExperienceQuestionnaire}
         options={{ headerShown: false, gestureEnabled: false }}
       />
       <Stack.Screen

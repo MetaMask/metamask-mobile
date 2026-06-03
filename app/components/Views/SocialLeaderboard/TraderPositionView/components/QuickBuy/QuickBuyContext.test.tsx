@@ -1,6 +1,6 @@
-import React, { useContext } from 'react';
-import { act, render } from '@testing-library/react-native';
 import { TextColor } from '@metamask/design-system-react-native';
+import { act, render } from '@testing-library/react-native';
+import React, { useContext } from 'react';
 import {
   QuickBuyContext,
   QuickBuyProvider,
@@ -20,7 +20,7 @@ const mockTarget: QuickBuyTarget = {
   tokenAddress: '0x1234567890123456789012345678901234567890',
   tokenSymbol: 'PEPE',
   tokenName: 'Pepe',
-  chain: 'base',
+  chain: 'eip155:8453',
 };
 
 const featuresWithModal: QuickBuyFeatures = {
@@ -95,10 +95,21 @@ const buildController = (
   getButtonLabel: () => 'Buy',
   handleClose: jest.fn(),
   handleSliderChange: jest.fn(),
+  handleSliderDragEnd: jest.fn(),
   handleAmountAreaPress: jest.fn(),
   handleAmountChange: jest.fn(),
   handleToggleAmountDisplay: jest.fn(),
   handleSelectSourceToken: jest.fn(),
+  tradeMode: 'buy' as const,
+  setTradeMode: jest.fn(),
+  hasSellableBalance: false,
+  sourceAmountTokens: '',
+  sourceTokenAmount: undefined,
+  hasSourcePrice: true,
+  isSliderDisabled: false,
+  sellDestTokenOptions: [],
+  selectedDestStable: undefined,
+  handleSelectDestStable: jest.fn(),
   handleConfirm: jest.fn().mockResolvedValue(undefined),
   ...overrides,
 });

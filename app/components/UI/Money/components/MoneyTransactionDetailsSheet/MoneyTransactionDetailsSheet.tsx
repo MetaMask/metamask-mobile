@@ -14,14 +14,19 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { TransactionDetails } from '../../../../Views/confirmations/components/activity/transaction-details/transaction-details';
 import { useTransactionDetails } from '../../../../Views/confirmations/hooks/activity/useTransactionDetails';
+import { hasTransactionType } from '../../../../Views/confirmations/utils/transaction';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
+import { resolveMusdTransferMeta } from '../../constants/activityStyles';
 import { MoneyReceivedDetails } from './MoneyReceivedDetails';
+import { MoneySentDetails } from './MoneySentDetails';
 
 const RECEIVED_TYPES: TransactionType[] = [
   TransactionType.incoming,
   TransactionType.tokenMethodTransfer,
   TransactionType.tokenMethodTransferFrom,
 ];
+
+const SENT_TYPES: TransactionType[] = [TransactionType.moneyAccountWithdraw];
 
 const TITLE_KEYS: Partial<Record<TransactionType, string>> = {
   [TransactionType.moneyAccountDeposit]:
@@ -50,6 +55,12 @@ function getTitle(tx: TransactionMeta | undefined): string {
       ? ((tx.nestedTransactions?.find((n) => n.type && n.type in TITLE_KEYS)
           ?.type as TransactionType | undefined) ?? tx.type)
       : tx?.type;
+  // Sent transactions are titled "Sent {symbol}" (e.g. "Sent mUSD").
+  if (tx && hasTransactionType(tx, SENT_TYPES)) {
+    return strings('transaction_details.title.money_account_sent', {
+      symbol: resolveMusdTransferMeta(tx)?.symbol ?? 'mUSD',
+    });
+  }
   return strings(
     (type && TITLE_KEYS[type]) ?? 'transaction_details.title.default',
   );
@@ -61,9 +72,15 @@ const MoneyTransactionDetailsSheet = () => {
   const { transactionMeta } = useTransactionDetails();
   const surfaceClass = useElevatedSurface();
   const title = getTitle(transactionMeta);
+  // `isReceived` checks the top-level type only: a sent withdrawal is an
+  // EIP-7702 batch that *contains* a nested tokenMethodTransfer, so a
+  // nested-aware check would misclassify it as received. `isSent` is
+  // nested-aware because the withdrawal's `moneyAccountWithdraw` lives in the
+  // batch's nested transactions.
   const isReceived = Boolean(
     transactionMeta?.type && RECEIVED_TYPES.includes(transactionMeta.type),
   );
+  const isSent = hasTransactionType(transactionMeta, SENT_TYPES);
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -80,7 +97,13 @@ const MoneyTransactionDetailsSheet = () => {
       <BottomSheetHeader onClose={handleClose}>
         <Text variant={TextVariant.HeadingMd}>{title}</Text>
       </BottomSheetHeader>
-      {isReceived ? <MoneyReceivedDetails /> : <TransactionDetails />}
+      {isReceived ? (
+        <MoneyReceivedDetails />
+      ) : isSent ? (
+        <MoneySentDetails />
+      ) : (
+        <TransactionDetails />
+      )}
     </BottomSheet>
   );
 };

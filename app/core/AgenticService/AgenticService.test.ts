@@ -16,9 +16,60 @@ import type {
   NavigationContainerRef,
   ParamListBase,
 } from '@react-navigation/native';
+import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
 
 const mockCreateWallet = jest.fn().mockResolvedValue(undefined);
+const mockCreateAccountGroups = jest.fn().mockResolvedValue([]);
 const mockImportAccount = jest.fn().mockResolvedValue(undefined);
+const mockIsUnlocked = jest.fn(() => true);
+const mockSubmitPassword = jest.fn().mockResolvedValue(undefined);
+const FIXTURE_WALLET_ID = 'entropy:keyring-1' as const;
+
+function mockEvmAccount(id: string, address: string, name: string) {
+  return {
+    id,
+    address,
+    type: 'eip155:eoa' as const,
+    options: {},
+    scopes: ['eip155:1' as const],
+    methods: [],
+    metadata: {
+      name,
+      importTime: 0,
+      keyring: { type: 'HD Key Tree' },
+    },
+  };
+}
+
+function mockEntropyGroup(
+  groupIndex: number,
+  accountIds: [string, ...string[]],
+  name: string,
+): {
+  type: AccountGroupType.MultichainAccount;
+  id: `${typeof FIXTURE_WALLET_ID}/${number}`;
+  accounts: [string, ...string[]];
+  metadata: {
+    name: string;
+    pinned: boolean;
+    hidden: boolean;
+    lastSelected: number;
+    entropy: { groupIndex: number };
+  };
+} {
+  return {
+    type: AccountGroupType.MultichainAccount,
+    id: `${FIXTURE_WALLET_ID}/${groupIndex}` as const,
+    accounts: accountIds,
+    metadata: {
+      name,
+      pinned: false,
+      hidden: false,
+      lastSelected: 0,
+      entropy: { groupIndex },
+    },
+  };
+}
 
 jest.mock('../Engine', () => ({
   context: {
@@ -48,9 +99,13 @@ jest.mock('../Engine', () => ({
     MultichainAccountService: {
       createMultichainAccountWallet: (...args: unknown[]) =>
         mockCreateWallet(...args),
+      createMultichainAccountGroups: (...args: unknown[]) =>
+        mockCreateAccountGroups(...args),
       init: jest.fn().mockResolvedValue(undefined),
     },
     KeyringController: {
+      isUnlocked: () => mockIsUnlocked(),
+      submitPassword: (password: string) => mockSubmitPassword(password),
       importAccountWithStrategy: (...args: unknown[]) =>
         mockImportAccount(...(args as [string, string[]])),
     },
@@ -218,6 +273,13 @@ function installFiberHook(rootFiber: FiberNode) {
     renderers: new Map([[1, {}]]),
     getFiberRoots: () => new Set([{ current: rootFiber }]),
   };
+}
+
+function resetMockAccountState() {
+  Engine.context.AccountsController.state.internalAccounts.accounts = {
+    a1: mockEvmAccount('a1', '0xABC', 'Account 1'),
+  };
+  Engine.context.AccountTreeController.state.accountTree = { wallets: {} };
 }
 
 // ─── Fiber tree helper tests ────────────────────────────────────────────────
@@ -562,11 +624,18 @@ describe('AgenticService.install', () => {
       const callback = jest.fn();
       registerStepHudCallback(callback);
 
-      bridge().showStep({ id: 'step-1', description: 'Navigate to market' });
+      bridge().showStep({
+        id: 'run 1/2',
+        status: 'running',
+        intent: 'Navigate to market',
+        progress: { current: 1, total: 2 },
+      });
 
       expect(callback).toHaveBeenCalledWith({
-        id: 'step-1',
-        description: 'Navigate to market',
+        id: 'run 1/2',
+        status: 'running',
+        intent: 'Navigate to market',
+        progress: { current: 1, total: 2 },
       });
     });
 
@@ -581,9 +650,7 @@ describe('AgenticService.install', () => {
 
     it('showStep is a no-op when no callback is registered', () => {
       registerStepHudCallback(null);
-      expect(() =>
-        bridge().showStep({ id: 'x', description: 'y' }),
-      ).not.toThrow();
+      expect(() => bridge().showStep({ id: 'x', intent: 'y' })).not.toThrow();
     });
   });
 
@@ -761,8 +828,17 @@ describe('AgenticService.install', () => {
   describe('setupWallet', () => {
     beforeEach(() => {
       mockCreateWallet.mockClear();
+      mockCreateAccountGroups.mockReset();
+      mockCreateAccountGroups.mockResolvedValue([]);
       mockImportAccount.mockClear();
       mockDispatch.mockClear();
+      mockIsUnlocked.mockReset();
+      mockIsUnlocked.mockReturnValue(true);
+      mockSubmitPassword.mockClear();
+      (
+        Engine.context.AccountTreeController.setAccountGroupName as jest.Mock
+      ).mockClear();
+      resetMockAccountState();
     });
 
     it('dispatches all onboarding flags', async () => {
@@ -785,6 +861,108 @@ describe('AgenticService.install', () => {
       });
       expect(result.ok).toBe(false);
       expect(result.error).toBe('boom');
+    });
+
+    it('recovers an existing fixture vault when auth leaves the keyring locked', async () => {
+      mockIsUnlocked
+        .mockReturnValueOnce(false)
+        .mockReturnValueOnce(false)
+        .mockReturnValue(true);
+
+      const result = await bridge().applyWalletFixture({
+        password: 'test123',
+        accounts: [],
+      });
+
+      expect(result.ok).toBe(true);
+      expect(mockSubmitPassword).toHaveBeenCalledWith('test123');
+      expect(mockDispatch).toHaveBeenCalledWith({ type: 'PASSWORD_SET' });
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'SEED_PHRASE_BACKED_UP',
+      });
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'SET_COMPLETED_ONBOARDING',
+      });
+      expect(mockDispatch).toHaveBeenCalledWith({ type: 'SET_EXISTING_USER' });
+      expect(mockDispatch).toHaveBeenCalledWith({ type: 'LOG_IN' });
+    });
+
+    it('creates missing fixture HD accounts with a batched account-group range', async () => {
+      const mnemonic =
+        'test test test test test test test test test test test junk';
+      const group0Id = `${FIXTURE_WALLET_ID}/0` as const;
+      Engine.context.AccountsController.state.internalAccounts.accounts = {
+        a1: mockEvmAccount(
+          'a1',
+          '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',
+          'dev1',
+        ),
+      };
+      Engine.context.AccountTreeController.state.accountTree = {
+        wallets: {
+          [FIXTURE_WALLET_ID]: {
+            type: AccountWalletType.Entropy,
+            id: FIXTURE_WALLET_ID,
+            status: 'ready',
+            metadata: { name: 'Fixture Wallet', entropy: { id: 'keyring-1' } },
+            groups: {
+              [group0Id]: mockEntropyGroup(0, ['a1'], 'dev1'),
+            },
+          },
+        },
+      };
+      mockCreateAccountGroups.mockImplementationOnce(async () => {
+        Engine.context.AccountsController.state.internalAccounts.accounts = {
+          ...Engine.context.AccountsController.state.internalAccounts.accounts,
+          a2: mockEvmAccount(
+            'a2',
+            '0x0000000000000000000000000000000000000002',
+            'dev2',
+          ),
+          a3: mockEvmAccount(
+            'a3',
+            '0x0000000000000000000000000000000000000003',
+            'dev3',
+          ),
+        };
+        const wallet = Engine.context.AccountTreeController.state.accountTree
+          .wallets[FIXTURE_WALLET_ID] as {
+          groups: Record<string, unknown>;
+        };
+        wallet.groups[`${FIXTURE_WALLET_ID}/1`] = mockEntropyGroup(
+          1,
+          ['a2'],
+          'dev2',
+        );
+        wallet.groups[`${FIXTURE_WALLET_ID}/2`] = mockEntropyGroup(
+          2,
+          ['a3'],
+          'dev3',
+        );
+        return [];
+      });
+
+      const result = await bridge().setupWallet({
+        password: 'test123',
+        accounts: [
+          {
+            type: 'mnemonic',
+            value: mnemonic,
+            count: 3,
+            names: ['dev1', 'dev2', 'dev3'],
+          },
+        ],
+      });
+
+      expect(result.ok).toBe(true);
+      expect(mockCreateAccountGroups).toHaveBeenCalledWith({
+        fromGroupIndex: 1,
+        toGroupIndex: 2,
+        entropySource: 'keyring-1',
+      });
+      expect(
+        Engine.context.AccountTreeController.setAccountGroupName,
+      ).toHaveBeenCalledWith(`${FIXTURE_WALLET_ID}/2`, 'dev3');
     });
 
     it('opts out of metametrics when specified', async () => {
