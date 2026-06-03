@@ -13,7 +13,14 @@ import { toHex } from '@metamask/controller-utils';
 import Engine from '../../../core/Engine';
 import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import { selectChainId } from '../../../selectors/networkController';
+import {
+  selectChainId,
+  selectNetworkConfigurations,
+} from '../../../selectors/networkController';
+
+// Stable empty fallback so the popular-network arrays keep a constant identity
+// when the controller returns nothing.
+const EMPTY_ARRAY: never[] = [];
 
 /**
  * Manages network enablement state across namespaces (EVM, Bitcoin, etc).
@@ -61,12 +68,31 @@ export const useNetworkEnablement = () => {
     [],
   );
 
-  const popularEvmNetworksList =
-    networkEnablementController?.listPopularEvmNetworks?.() ?? [];
-  const popularMultichainNetworksList =
-    networkEnablementController?.listPopularMultichainNetworks?.() ?? [];
-  const popularNetworksList =
-    networkEnablementController?.listPopularNetworks?.() ?? [];
+  // The popular-network lists are derived from the configured networks (the
+  // controller filters POPULAR_NETWORKS by NetworkController /
+  // MultichainNetworkController state), so key them on the network
+  // configurations as well as the controller instance — this avoids both a
+  // fresh array on every render and serving a stale list when configs change.
+  // `selectNetworkConfigurations` is a deep-equal selector covering both EVM
+  // and non-EVM configs, so it only changes when the configs actually change.
+  const networkConfigurations = useSelector(selectNetworkConfigurations);
+
+  const [
+    popularEvmNetworksList,
+    popularMultichainNetworksList,
+    popularNetworksList,
+  ] = useMemo(
+    () => [
+      networkEnablementController?.listPopularEvmNetworks?.() ?? EMPTY_ARRAY,
+      networkEnablementController?.listPopularMultichainNetworks?.() ??
+        EMPTY_ARRAY,
+      networkEnablementController?.listPopularNetworks?.() ?? EMPTY_ARRAY,
+    ],
+    // `networkConfigurations` is not referenced directly, but the controller
+    // methods above read that state internally, so it must invalidate the memo.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [networkEnablementController, networkConfigurations],
+  );
 
   const enabledNetworksForCurrentNamespace = useMemo(
     () => enabledNetworksByNamespace?.[namespace] || {},
@@ -141,20 +167,40 @@ export const useNetworkEnablement = () => {
     [isNetworkEnabled, enableNetwork],
   );
 
-  return {
-    namespace,
-    enabledNetworksByNamespace,
-    enabledNetworksForCurrentNamespace,
-    enabledNetworksForAllNamespaces,
-    networkEnablementController,
-    enableNetwork,
-    disableNetwork,
-    enableAllPopularNetworks,
-    popularEvmNetworks: popularEvmNetworksList,
-    popularMultichainNetworks: popularMultichainNetworksList,
-    popularNetworks: popularNetworksList,
-    isNetworkEnabled,
-    hasOneEnabledNetwork,
-    tryEnableEvmNetwork,
-  };
+  // Memoize the returned object so consumers (this hook is used in ~22 files,
+  // many feeding it into useMemo/useEffect deps) get a stable identity.
+  return useMemo(
+    () => ({
+      namespace,
+      enabledNetworksByNamespace,
+      enabledNetworksForCurrentNamespace,
+      enabledNetworksForAllNamespaces,
+      networkEnablementController,
+      enableNetwork,
+      disableNetwork,
+      enableAllPopularNetworks,
+      popularEvmNetworks: popularEvmNetworksList,
+      popularMultichainNetworks: popularMultichainNetworksList,
+      popularNetworks: popularNetworksList,
+      isNetworkEnabled,
+      hasOneEnabledNetwork,
+      tryEnableEvmNetwork,
+    }),
+    [
+      namespace,
+      enabledNetworksByNamespace,
+      enabledNetworksForCurrentNamespace,
+      enabledNetworksForAllNamespaces,
+      networkEnablementController,
+      enableNetwork,
+      disableNetwork,
+      enableAllPopularNetworks,
+      popularEvmNetworksList,
+      popularMultichainNetworksList,
+      popularNetworksList,
+      isNetworkEnabled,
+      hasOneEnabledNetwork,
+      tryEnableEvmNetwork,
+    ],
+  );
 };
