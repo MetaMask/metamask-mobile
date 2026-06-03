@@ -76,6 +76,9 @@ const options = {
     'ios/Podfile.lock',
     'ios/Pods/**',
   ],
+  // package.json scripts (e.g. the agentic a:* entries) cannot affect the native
+  // binary, so editing one must not invalidate the build cache.
+  sourceSkips: fp.SourceSkips.PackageJsonScriptsAll,
 };
 
 // Diff two source lists by a stable key (file path, or id/reasons for non-file
