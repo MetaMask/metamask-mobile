@@ -26,6 +26,7 @@ import { selectPerpsTopMoversEnabledFlag } from '../../selectors/featureFlags';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
 import type { PerpsFeedItem } from '../../types/perpsFeedTypes';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 const TOP_MOVERS_ROW_COUNT = 2;
 const TOP_MOVERS_MAX_PILLS = 8;
@@ -72,6 +73,8 @@ type PerpsTopMoversSource =
 export interface PerpsTopMoversSectionProps {
   /** Source attributed to navigation and market-details events triggered from this section. */
   source: PerpsTopMoversSource;
+  /** Bound onto market-list and market-details route params for downstream transaction A/B attribution. */
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 /**
@@ -82,6 +85,7 @@ export interface PerpsTopMoversSectionProps {
  */
 const PerpsTopMoversSectionInner: React.FC<PerpsTopMoversSectionProps> = ({
   source,
+  transactionActiveAbTests,
 }) => {
   const tw = useTailwind();
   const perpsNavigation = usePerpsNavigation();
@@ -97,12 +101,19 @@ const PerpsTopMoversSectionInner: React.FC<PerpsTopMoversSectionProps> = ({
       defaultSortOptionId: 'priceChange',
       defaultSortDirection: direction,
       source,
+      ...(transactionActiveAbTests?.length ? { transactionActiveAbTests } : {}),
     });
   };
 
   const renderPill = (item: PerpsMarketData) => {
     const feedItem: PerpsFeedItem = { market: item, isWatchlisted: false };
-    return <PerpsPillItem item={feedItem} marketDetailsSource={source} />;
+    return (
+      <PerpsPillItem
+        item={feedItem}
+        marketDetailsSource={source}
+        transactionActiveAbTests={transactionActiveAbTests}
+      />
+    );
   };
 
   return (

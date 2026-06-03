@@ -63,9 +63,11 @@ jest.mock('../PerpsPillItem', () => ({
   PerpsPillItem: ({
     item,
     marketDetailsSource,
+    transactionActiveAbTests,
   }: {
     item: { market: { symbol: string } };
     marketDetailsSource: string;
+    transactionActiveAbTests?: unknown[];
   }) => {
     const ReactModule = jest.requireActual('react');
     const { View, Text } = jest.requireActual('react-native');
@@ -76,6 +78,11 @@ jest.mock('../PerpsPillItem', () => ({
         Text,
         { testID: `mock-pill-source-${item.market.symbol}` },
         marketDetailsSource,
+      ),
+      ReactModule.createElement(
+        Text,
+        { testID: `mock-pill-ab-tests-${item.market.symbol}` },
+        JSON.stringify(transactionActiveAbTests ?? null),
       ),
     );
   },
@@ -90,9 +97,8 @@ const DEFAULT_SOURCE = PERPS_EVENT_VALUE.SOURCE.PERPS_HOME;
 const buildMarket = (symbol: string): PerpsMarketData =>
   ({ symbol }) as PerpsMarketData;
 
-const renderSection = (
-  source: PerpsTopMoversSectionProps['source'] = DEFAULT_SOURCE,
-) => render(<PerpsTopMoversSection source={source} />);
+const renderSection = (props: Partial<PerpsTopMoversSectionProps> = {}) =>
+  render(<PerpsTopMoversSection source={DEFAULT_SOURCE} {...props} />);
 
 describe('PerpsTopMoversSection', () => {
   beforeEach(() => {
@@ -222,7 +228,7 @@ describe('PerpsTopMoversSection', () => {
   });
 
   it('passes the section source to each rendered pill', () => {
-    renderSection(PERPS_EVENT_VALUE.SOURCE.EXPLORE);
+    renderSection({ source: PERPS_EVENT_VALUE.SOURCE.EXPLORE });
 
     expect(screen.getByTestId('mock-pill-source-ETH')).toHaveTextContent(
       PERPS_EVENT_VALUE.SOURCE.EXPLORE,
@@ -230,5 +236,49 @@ describe('PerpsTopMoversSection', () => {
     expect(screen.getByTestId('mock-pill-source-BTC')).toHaveTextContent(
       PERPS_EVENT_VALUE.SOURCE.EXPLORE,
     );
+  });
+
+  it('forwards transactionActiveAbTests to each pill', () => {
+    const abTests = [{ testName: 'perps_fee_discount', variant: 'control' }];
+
+    renderSection({ transactionActiveAbTests: abTests as never });
+
+    expect(screen.getByTestId('mock-pill-ab-tests-ETH')).toHaveTextContent(
+      JSON.stringify(abTests),
+    );
+    expect(screen.getByTestId('mock-pill-ab-tests-BTC')).toHaveTextContent(
+      JSON.stringify(abTests),
+    );
+  });
+
+  it('forwards transactionActiveAbTests to navigateToMarketList when View All is pressed', () => {
+    const abTests = [{ testName: 'perps_fee_discount', variant: 'control' }];
+
+    renderSection({ transactionActiveAbTests: abTests as never });
+
+    fireEvent.press(
+      screen.getByTestId(PerpsHomeViewSelectorsIDs.TOP_MOVERS_HEADER),
+    );
+
+    expect(mockNavigateToMarketList).toHaveBeenCalledWith({
+      defaultSortOptionId: 'priceChange',
+      defaultSortDirection: 'desc',
+      source: DEFAULT_SOURCE,
+      transactionActiveAbTests: abTests,
+    });
+  });
+
+  it('does not include transactionActiveAbTests in navigateToMarketList when not provided', () => {
+    renderSection();
+
+    fireEvent.press(
+      screen.getByTestId(PerpsHomeViewSelectorsIDs.TOP_MOVERS_HEADER),
+    );
+
+    expect(mockNavigateToMarketList).toHaveBeenCalledWith({
+      defaultSortOptionId: 'priceChange',
+      defaultSortDirection: 'desc',
+      source: DEFAULT_SOURCE,
+    });
   });
 });
