@@ -4,25 +4,16 @@ import {
   type CaipChainId,
   KnownCaipNamespace,
 } from '@metamask/utils';
-import {
-  Caip25CaveatType,
-  type Caip25CaveatValue,
-  Caip25EndowmentPermissionName,
-  getCaipAccountIdsFromCaip25CaveatValue,
-} from '@metamask/chain-agnostic-permission';
-import { PermissionDoesNotExistError } from '@metamask/permission-controller';
+import { type Caip25CaveatValue } from '@metamask/chain-agnostic-permission';
 
-import Engine from '../../../Engine';
-import { getPermittedCaipChainIds } from '../../../Permissions';
-import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import {
+  buildAdapterScopedPermissions,
   caipAccountIdDecimalToHex,
   caipAccountIdHexToDecimal,
   caipChainIdDecimalToHex,
   caipChainIdHexToDecimal,
-  collectRequestedChainsForNamespace,
   doesProposalOrSessionIncludeNamespace,
-  prioritizeSelectedCaipAccountIds,
+  enrichCaveatValueForNamespace,
 } from '../utils';
 import type {
   AdapterHandleRequestArgs,
@@ -114,54 +105,14 @@ export async function getScopedPermissions({
 }: {
   channelId: string;
 }): Promise<NamespaceConfig | undefined> {
-  const permittedChains = await getPermittedCaipChainIds(channelId);
-  const tronChains = permittedChains.filter((chain) =>
-    chain.startsWith(`${KnownCaipNamespace.Tron}:`),
-  );
-
-  if (tronChains.length === 0) {
-    return undefined;
-  }
-
-  let permittedTronAccounts: CaipAccountId[] = [];
-  try {
-    const permissionCaveat = Engine.context.PermissionController?.getCaveat(
-      channelId,
-      Caip25EndowmentPermissionName,
-      Caip25CaveatType,
-    );
-    if (permissionCaveat) {
-      permittedTronAccounts = getCaipAccountIdsFromCaip25CaveatValue(
-        permissionCaveat.value as Parameters<
-          typeof getCaipAccountIdsFromCaip25CaveatValue
-        >[0],
-      ).filter((account) => account.startsWith(`${KnownCaipNamespace.Tron}:`));
-    }
-  } catch (error) {
-    if (!(error instanceof PermissionDoesNotExistError)) {
-      DevLogger.log(
-        '[wc][multichain/tron] failed to read permission caveat',
-        error,
-      );
-    }
-  }
-
-  if (permittedTronAccounts.length === 0) {
-    return undefined;
-  }
-
-  const sortedPermittedTronAccounts = prioritizeSelectedCaipAccountIds(
-    permittedTronAccounts,
-  );
-
-  return {
-    chains: tronChains.map((chain) => normalizeCaipChainIdOutbound(chain)),
-    methods: [...TRON_METHODS],
-    events: [...TRON_EVENTS],
-    accounts: sortedPermittedTronAccounts.map((account) =>
-      normalizeTronAccountIdOutbound(account),
-    ),
-  };
+  return buildAdapterScopedPermissions({
+    channelId,
+    namespace: KnownCaipNamespace.Tron,
+    methods: TRON_METHODS,
+    events: TRON_EVENTS,
+    normalizeChainIdOutbound: normalizeCaipChainIdOutbound,
+    normalizeAccountIdOutbound: normalizeTronAccountIdOutbound,
+  });
 }
 
 /**
@@ -202,33 +153,14 @@ export function enrichCaveatValue({
   proposal: ProposalParamsLight;
   caveatValue: Caip25CaveatValue;
 }): Caip25CaveatValue {
-  const requestedTronChains = collectRequestedChainsForNamespace({
+  return enrichCaveatValueForNamespace({
     proposal,
+    caveatValue,
     namespace: KnownCaipNamespace.Tron,
+    supportedScopes: SUPPORTED_TRON_SCOPES,
+    fallbackScope: TrxScope.Mainnet as CaipChainId,
+    normalizeChainIdInbound: normalizeCaipChainIdInbound,
   });
-
-  if (requestedTronChains.length === 0) {
-    return caveatValue;
-  }
-
-  const normalizedScopes = requestedTronChains
-    .map((chain) => normalizeCaipChainIdInbound(chain))
-    .filter((chain) => SUPPORTED_TRON_SCOPES.has(chain));
-
-  const scopesToAdd =
-    normalizedScopes.length > 0 ? normalizedScopes : [TrxScope.Mainnet];
-
-  const extraOptionalScopes = Object.fromEntries(
-    scopesToAdd.map((scope) => [scope, { accounts: [] }]),
-  );
-
-  return {
-    ...caveatValue,
-    optionalScopes: {
-      ...caveatValue.optionalScopes,
-      ...extraOptionalScopes,
-    },
-  };
 }
 
 /**

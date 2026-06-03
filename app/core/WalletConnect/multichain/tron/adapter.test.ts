@@ -287,5 +287,32 @@ describe('multichain/tron', () => {
         signature: ['0xsig'],
       });
     });
+
+    it('passes the dapp origin to the Snap routing service when provided', async () => {
+      mockedCallMultichainRoutingService.mockResolvedValue({
+        signature: '0xsig',
+      });
+
+      await tronAdapter.handleRequest({
+        origin: 'https://tron.example.com',
+        connectedAddresses: ['tron:0x2b6653dc:TTestAddress' as CaipAccountId],
+        scope: 'tron:728126428' as CaipChainId,
+        requestId: 1,
+        method: 'tron_signMessage',
+        params: {
+          address: 'TTestAddress',
+          message: 'hello',
+        },
+      });
+
+      expect(mockedCallMultichainRoutingService).toHaveBeenCalledWith(
+        expect.objectContaining({
+          origin: 'https://tron.example.com',
+          connectedAddresses: ['tron:728126428:TTestAddress'],
+          scope: 'tron:728126428',
+          requestId: 1,
+        }),
+      );
+    });
   });
 });
