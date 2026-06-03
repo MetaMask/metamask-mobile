@@ -161,8 +161,15 @@ describe('QRSigningTransactionModal', () => {
     jest
       .spyOn(InteractionManager, 'runAfterInteractions')
       .mockImplementation((task) => {
-        task();
-        return { cancel: jest.fn() };
+        if (typeof task === 'function') {
+          task();
+        }
+        return {
+          then: (onfulfilled?: () => void) => Promise.resolve(onfulfilled?.()),
+          done: (onfulfilled?: () => void, onrejected?: () => void) =>
+            Promise.resolve().then(onfulfilled, onrejected),
+          cancel: jest.fn(),
+        };
       });
   });
 
