@@ -164,7 +164,14 @@ else
   # -- Call AgenticService.setupWallet() on fresh app only --
   echo "Calling __AGENTIC__.setupWallet()..."
 
+  set +e
   SETUP_RESULT=$(cdp_eval_async "(function(){ var fixture = JSON.parse($ESCAPED_FIXTURE); if (!globalThis.__AGENTIC__ || typeof globalThis.__AGENTIC__.setupWallet !== 'function') { return JSON.stringify({ok:false, error:'__AGENTIC__.setupWallet is not installed'}); } return globalThis.__AGENTIC__.setupWallet(fixture).then(function(r){ return JSON.stringify(r); }).catch(function(e){ return JSON.stringify({ok:false, error: e.message || String(e)}); }); })()")
+  SETUP_RC=$?
+  set -e
+  if [ "$SETUP_RC" -ne 0 ] || [ -z "$SETUP_RESULT" ]; then
+    echo "ERROR: setupWallet eval failed or timed out (rc=$SETUP_RC) — raise CDP_TIMEOUT for large fixtures (current ${CDP_TIMEOUT}ms)."
+    exit 1
+  fi
 
   SETUP_OK=$(echo "$SETUP_RESULT" | jq -r '.ok')
   if [ "$SETUP_OK" != "true" ]; then

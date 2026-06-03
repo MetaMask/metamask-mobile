@@ -1,8 +1,8 @@
 // Metro start, CDP connect, wallet setup — shells out to start-metro.sh /
 // cdp-bridge.js / setup-wallet.sh; owns the sequencing, Metro health, and CDP wait.
 
-import { execFileSync, spawnSync } from 'child_process';
-import { existsSync } from 'fs';
+import { execFileSync, spawn, spawnSync } from 'child_process';
+import { appendFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import { initStageLog, type Logger } from './log';
 import { killTree } from './proc';
@@ -29,10 +29,16 @@ async function metroRespondsWithin(port: number, seconds: number): Promise<boole
   return false;
 }
 
-function runStartMetro(ctx: Ctx, launch: boolean): void {
+function runStartMetro(ctx: Ctx, launch: boolean, logger: Logger): void {
   const args = [join(ctx.scripts, 'start-metro.sh'), '--platform', ctx.plat];
   if (launch) args.push('--launch');
-  spawnSync('bash', args, { cwd: ctx.root, stdio: 'inherit' });
+  const r = spawnSync('bash', args, { cwd: ctx.root, stdio: 'inherit' });
+  if (r.error) {
+    logger.fail(`start-metro.sh failed: ${r.error.message}`);
+  }
+  if (r.status !== 0) {
+    logger.fail(`start-metro.sh failed with exit code ${r.status ?? 'unknown'}`);
+  }
 }
 
 // Kill whatever holds the Metro port so a hung instance can be replaced.
@@ -54,7 +60,7 @@ async function freeMetroPort(port: number): Promise<void> {
 export async function startMetro(ctx: Ctx, logger: Logger): Promise<void> {
   logger.step('Starting Metro', `Bundler on port ${ctx.port} → logs at ${ctx.logFile}`);
   logger.stageLog(ctx.logFile);
-  runStartMetro(ctx, ctx.doLaunch);
+  runStartMetro(ctx, ctx.doLaunch, logger);
   if (await metroRespondsWithin(ctx.port, 10)) {
     logger.ok(`Metro running on port ${ctx.port}`);
     return;
@@ -62,7 +68,7 @@ export async function startMetro(ctx: Ctx, logger: Logger): Promise<void> {
   logger.warn(`Metro on ${ctx.port} is bound but not answering /status — restarting`);
   logger.tail(ctx.logFile, 15);
   await freeMetroPort(ctx.port);
-  runStartMetro(ctx, ctx.doLaunch);
+  runStartMetro(ctx, ctx.doLaunch, logger);
   if (!(await metroRespondsWithin(ctx.port, 15))) {
     logger.tail(ctx.logFile, 25);
     logger.fail(`Metro on ${ctx.port} not responding after restart — see ${ctx.logFile}`);
@@ -119,7 +125,7 @@ export async function connectCdp(ctx: Ctx, logger: Logger): Promise<void> {
       logger.warn('Metro stopped responding while the app loaded its bundle — restarting + relaunching');
       logger.tail(ctx.logFile, 15);
       await freeMetroPort(ctx.port);
-      runStartMetro(ctx, true);
+      runStartMetro(ctx, true, logger);
       metroRestarts += 1;
       start = Date.now();
       retry = 0;
@@ -159,22 +165,51 @@ export async function connectCdp(ctx: Ctx, logger: Logger): Promise<void> {
   await sleep(2000);
 }
 
-export function setupWallet(ctx: Ctx, logger: Logger): void {
+async function runWalletSetup(ctx: Ctx, args: string[]): Promise<number> {
+  const child = spawn('bash', [join(ctx.scripts, 'setup-wallet.sh'), ...args], {
+    cwd: ctx.root,
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  const onData = (buf: Buffer, stream: NodeJS.WriteStream): void => {
+    appendFileSync(ctx.walletLog, buf);
+    stream.write(buf);
+  };
+  child.stdout.on('data', (buf: Buffer) => onData(buf, process.stdout));
+  child.stderr.on('data', (buf: Buffer) => onData(buf, process.stderr));
+
+  return await new Promise<number>((resolve) => {
+    child.on('close', (code) => resolve(code ?? 1));
+    child.on('error', (error) => {
+      const message = `setup-wallet.sh spawn failed: ${error.message}\n`;
+      appendFileSync(ctx.walletLog, message);
+      process.stderr.write(message);
+      resolve(1);
+    });
+  });
+}
+
+export async function setupWallet(ctx: Ctx, logger: Logger): Promise<void> {
   if (ctx.flags.walletSetup) {
     logger.step('Setting up wallet', `Configuring from ${ctx.flags.walletFixture}`);
+    logger.stageLog(ctx.walletLog);
     const fixtureFlag =
       ctx.flags.walletFixture !== '.agent/wallet-fixture.json'
         ? ['--fixture', ctx.flags.walletFixture]
         : [];
     if (existsSync(join(ctx.root, ctx.flags.walletFixture)) || fixtureFlag.length) {
-      const r = spawnSync('bash', [join(ctx.scripts, 'setup-wallet.sh'), ...fixtureFlag], {
-        cwd: ctx.root,
-        stdio: 'inherit',
-      });
-      if (r.status === 0) logger.ok('Wallet configured');
-      else logger.warn('Wallet setup failed');
+      initStageLog(
+        ctx.walletLog,
+        `$ bash ${ctx.scripts}/setup-wallet.sh ${fixtureFlag.join(' ')}`.trim(),
+      );
+      const status = await runWalletSetup(ctx, fixtureFlag);
+      if (status === 0) {
+        logger.ok('Wallet configured');
+      } else {
+        logger.tail(ctx.walletLog, 30);
+        logger.fail(`Wallet setup failed — see ${ctx.walletLog}`);
+      }
     } else {
-      logger.warn(`No fixture at ${ctx.flags.walletFixture}`);
+      logger.fail(`No fixture at ${ctx.flags.walletFixture}`);
     }
   } else if (ctx.flags.walletPw) {
     logger.step('Unlocking wallet', 'Using provided password');

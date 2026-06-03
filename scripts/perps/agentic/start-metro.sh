@@ -34,6 +34,8 @@ fi
 PORT="${WATCHER_PORT:-8081}"
 LOGFILE=".agent/metro.log"
 PIDFILE=".agent/metro.pid"
+APP_LAUNCH_LOG=".agent/ios-app-launch.log"
+APP_LAUNCH_PIDFILE=".agent/ios-app-launch.pid"
 TIMEOUT=60
 LAUNCH_APP=false
 
@@ -94,23 +96,110 @@ suppress_expo_dev_menu_android() {
   $ADB_CMD shell "mkdir -p $PREFS_DIR && echo '<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\" ?><map><boolean name=\"isOnboardingFinished\" value=\"true\" /></map>' > $PREFS_DIR/$PREFS_FILE" 2>/dev/null || true
 }
 
+ios_app_running() {
+  xcrun simctl spawn "$SIM_TARGET" launchctl list 2>/dev/null | grep -q "$BUNDLE_ID"
+}
+
+open_dev_client_ios() {
+  local output
+  if output=$(xcrun simctl openurl "$SIM_TARGET" "$DEV_CLIENT_URL" 2>&1); then
+    return 0
+  fi
+  echo "WARN: simctl openurl failed: ${output:-no output}"
+  return 1
+}
+
+launch_direct_ios() {
+  local output
+  if output=$(xcrun simctl launch "$SIM_TARGET" "$BUNDLE_ID" 2>&1); then
+    [ -n "$output" ] && echo "$output"
+    return 0
+  fi
+  echo "WARN: simctl launch failed: ${output:-no output}"
+  return 1
+}
+
+launch_console_ios() {
+  local pid
+  pid=$(node - "$SIM_TARGET" "$BUNDLE_ID" "$APP_LAUNCH_LOG" "$APP_LAUNCH_PIDFILE" <<'NODE'
+const { spawn } = require('child_process');
+const fs = require('fs');
+
+const [, , simTarget, bundleId, logFile, pidFile] = process.argv;
+const logFd = fs.openSync(logFile, 'a');
+const child = spawn('xcrun', ['simctl', 'launch', '--console', simTarget, bundleId], {
+  detached: true,
+  stdio: ['ignore', logFd, logFd],
+});
+fs.writeFileSync(pidFile, String(child.pid));
+child.unref();
+process.stdout.write(String(child.pid));
+NODE
+)
+  echo "simctl launch --console PID: $pid, logging to $APP_LAUNCH_LOG"
+}
+
+stop_previous_ios_console() {
+  if [ -f "$APP_LAUNCH_PIDFILE" ]; then
+    local old_pid
+    old_pid=$(cat "$APP_LAUNCH_PIDFILE" 2>/dev/null || true)
+    if [ -n "$old_pid" ]; then
+      kill "$old_pid" 2>/dev/null || true
+    fi
+    rm -f "$APP_LAUNCH_PIDFILE"
+  fi
+}
+
 launch_app_ios() {
+  stop_previous_ios_console
   suppress_expo_dev_menu_ios
   xcrun simctl terminate "$SIM_TARGET" "$BUNDLE_ID" 2>/dev/null || true
   sleep 1
 
   ENCODED_URL=$(python3 -c "import urllib.parse; print(urllib.parse.quote('http://localhost:${PORT}?disableOnboarding=1', safe=''))")
   DEV_CLIENT_URL="expo-metamask://expo-development-client/?url=${ENCODED_URL}"
-  xcrun simctl openurl "$SIM_TARGET" "$DEV_CLIENT_URL" 2>/dev/null || \
-    echo "WARN: Could not launch app — is it installed on this simulator?"
 
-  # First launch after a rebuild sometimes crashes — retry once
-  sleep 5
-  if ! xcrun simctl spawn "$SIM_TARGET" launchctl list 2>/dev/null | grep -q "$BUNDLE_ID"; then
-    echo "App exited after launch — retrying..."
-    sleep 2
-    xcrun simctl openurl "$SIM_TARGET" "$DEV_CLIENT_URL" 2>/dev/null || true
+  echo "Launching iOS app with console log capture..."
+  > "$APP_LAUNCH_LOG"
+  launch_console_ios
+  sleep 15
+  if ios_app_running; then
+    echo "Opening iOS dev-client URL..."
+    open_dev_client_ios || true
+    sleep 5
   fi
+  if ios_app_running; then
+    echo "iOS app running: $BUNDLE_ID"
+    return 0
+  fi
+
+  echo "iOS app is not running after console launch/dev-client URL; trying direct launch."
+  launch_direct_ios || true
+  sleep 8
+  if ios_app_running; then
+    echo "iOS app running: $BUNDLE_ID"
+    return 0
+  fi
+
+  echo "iOS app is not running after direct launch; trying dev-client URL."
+  for attempt in 1 2; do
+    echo "Opening iOS dev client (attempt ${attempt})..."
+    open_dev_client_ios || true
+    sleep 5
+    if ios_app_running; then
+      echo "iOS app running: $BUNDLE_ID"
+      return 0
+    fi
+
+    echo "iOS app is not running after openurl."
+  done
+
+  echo "ERROR: iOS app did not stay running after launch."
+  echo "       Simulator: $SIM_TARGET"
+  echo "       Bundle ID: $BUNDLE_ID"
+  echo "       Last 20 lines of $APP_LAUNCH_LOG:"
+  tail -20 "$APP_LAUNCH_LOG" 2>/dev/null || true
+  return 1
 }
 
 launch_app_android() {
@@ -142,8 +231,12 @@ launch_app() {
 
 mkdir -p .agent
 
+metro_responds() {
+  curl -sf --max-time 3 "http://localhost:${PORT}/status" 2>/dev/null | grep -q 'packager-status:running'
+}
+
 # --- Detect a running Metro via HTTP probe ---
-if curl -sf "http://localhost:${PORT}/status" >/dev/null 2>&1; then
+if metro_responds; then
   echo "Metro already running on port $PORT."
   echo ""
   echo "To follow live logs:  tail -f $LOGFILE"
@@ -186,15 +279,29 @@ else
 fi
 
 echo "Starting Metro on port $PORT..."
-EXPO_NO_TYPESCRIPT_SETUP=1 yarn expo start --port "$PORT" >> "$LOGFILE" 2>&1 &
-METRO_PID=$!
-echo "$METRO_PID" > "$PIDFILE"
+METRO_PID=$(node - "$LOGFILE" "$PIDFILE" "$PORT" <<'NODE'
+const { spawn } = require('child_process');
+const fs = require('fs');
+
+const [, , logFile, pidFile, port] = process.argv;
+const logFd = fs.openSync(logFile, 'a');
+const child = spawn('yarn', ['expo', 'start', '--port', port], {
+  cwd: process.cwd(),
+  detached: true,
+  env: { ...process.env, EXPO_NO_TYPESCRIPT_SETUP: '1' },
+  stdio: ['ignore', logFd, logFd],
+});
+fs.writeFileSync(pidFile, String(child.pid));
+child.unref();
+process.stdout.write(String(child.pid));
+NODE
+)
 echo "Metro PID: $METRO_PID, logging to $LOGFILE"
 
 # Wait for ready signal
 ELAPSED=0
 while [ $ELAPSED -lt $TIMEOUT ]; do
-  if grep -q "Waiting on http://localhost:${PORT}" "$LOGFILE" 2>/dev/null; then
+  if metro_responds; then
     echo "Metro ready after ${ELAPSED}s."
     echo ""
     echo "To follow live logs:  tail -f $LOGFILE"

@@ -1,7 +1,7 @@
 // Orchestrator. Prepares a ready-to-code worktree: deps reconciled, app
 // built/installed, Metro + CDP up, wallet configured. See ./README.md.
 
-import { existsSync, mkdirSync, readFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { dirname, resolve } from 'path';
 import { buildCtx, modeLine, resolvePath } from './modules/env';
 import { decideDeps, reconcile, runCleanSetup } from './modules/deps';
@@ -43,15 +43,26 @@ async function main(): Promise<void> {
   const root = resolve(dirname(process.argv[1] ?? ''), '../../../..');
   const ctx = buildCtx(root, process.argv.slice(2));
   const logger = new Logger();
+  const rootTsconfigPath = resolvePath(ctx.root, 'tsconfig.json');
+  const rootTsconfigBefore = existsSync(rootTsconfigPath)
+    ? readFileSync(rootTsconfigPath, 'utf8')
+    : null;
 
   // Restore setup-noise on every exit — success, thrown failure, or Ctrl-C.
-  // `expo run:ios` rewrites tsconfig.json ("extends": "expo/tsconfig.base") and
-  // pod install bumps Podfile.lock; neither should be committed. Critically, a
-  // polluted tsconfig.json bricks the NEXT ts-node run (TS5098), so a run that
-  // failed before this point (e.g. CDP timeout) used to leave the tool unable to
-  // start. No-op off main. Idempotent. See modules/git.ts.
-  const restoreNoise = (): void =>
-    restoreMainNoise(ctx.root, ['tsconfig.json', 'ios/Podfile.lock'], logger);
+  // `expo run:ios` rewrites root tsconfig.json ("extends":
+  // "expo/tsconfig.base"). Restore the exact startup contents, not HEAD, so
+  // intentional local tsconfig edits are preserved while Expo noise is removed.
+  const restoreNoise = (): void => {
+    if (
+      rootTsconfigBefore !== null &&
+      existsSync(rootTsconfigPath) &&
+      readFileSync(rootTsconfigPath, 'utf8') !== rootTsconfigBefore
+    ) {
+      writeFileSync(rootTsconfigPath, rootTsconfigBefore);
+      logger.ok('Restored root tsconfig.json (preflight setup noise)');
+    }
+    restoreMainNoise(ctx.root, ['ios/Podfile.lock'], logger);
+  };
   const onSignal = (sig: NodeJS.Signals): void => {
     restoreNoise();
     process.exit(sig === 'SIGINT' ? 130 : 143);
@@ -96,7 +107,7 @@ async function main(): Promise<void> {
 
     await startMetro(ctx, logger);
     await connectCdp(ctx, logger);
-    setupWallet(ctx, logger);
+    await setupWallet(ctx, logger);
 
     logger.plain();
     logger.plain('=== Preflight complete ===');

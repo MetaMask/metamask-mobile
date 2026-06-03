@@ -19,6 +19,8 @@ import type {
 
 const mockCreateWallet = jest.fn().mockResolvedValue(undefined);
 const mockImportAccount = jest.fn().mockResolvedValue(undefined);
+const mockIsUnlocked = jest.fn(() => true);
+const mockSubmitPassword = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('../Engine', () => ({
   context: {
@@ -51,6 +53,8 @@ jest.mock('../Engine', () => ({
       init: jest.fn().mockResolvedValue(undefined),
     },
     KeyringController: {
+      isUnlocked: (...args: unknown[]) => mockIsUnlocked(...args),
+      submitPassword: (...args: unknown[]) => mockSubmitPassword(...args),
       importAccountWithStrategy: (...args: unknown[]) =>
         mockImportAccount(...(args as [string, string[]])),
     },
@@ -768,6 +772,9 @@ describe('AgenticService.install', () => {
       mockCreateWallet.mockClear();
       mockImportAccount.mockClear();
       mockDispatch.mockClear();
+      mockIsUnlocked.mockReset();
+      mockIsUnlocked.mockReturnValue(true);
+      mockSubmitPassword.mockClear();
     });
 
     it('dispatches all onboarding flags', async () => {
@@ -790,6 +797,30 @@ describe('AgenticService.install', () => {
       });
       expect(result.ok).toBe(false);
       expect(result.error).toBe('boom');
+    });
+
+    it('recovers an existing fixture vault when auth leaves the keyring locked', async () => {
+      mockIsUnlocked
+        .mockReturnValueOnce(false)
+        .mockReturnValueOnce(false)
+        .mockReturnValue(true);
+
+      const result = await bridge().applyWalletFixture({
+        password: 'test123',
+        accounts: [],
+      });
+
+      expect(result.ok).toBe(true);
+      expect(mockSubmitPassword).toHaveBeenCalledWith('test123');
+      expect(mockDispatch).toHaveBeenCalledWith({ type: 'PASSWORD_SET' });
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'SEED_PHRASE_BACKED_UP',
+      });
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'SET_COMPLETED_ONBOARDING',
+      });
+      expect(mockDispatch).toHaveBeenCalledWith({ type: 'SET_EXISTING_USER' });
+      expect(mockDispatch).toHaveBeenCalledWith({ type: 'LOG_IN' });
     });
 
     it('opts out of metametrics when specified', async () => {

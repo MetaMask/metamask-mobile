@@ -224,6 +224,95 @@ interface AgenticBridge {
 
 type WalletFixture = Parameters<AgenticBridge['setupWallet']>[0];
 
+interface FixtureKeyringController {
+  isUnlocked: () => boolean;
+  submitPassword: (password: string) => Promise<void>;
+}
+
+function logFixtureStep(step: string, detail?: Record<string, unknown>) {
+  DevLogger.log(`[AgenticService] fixture ${step}`, detail);
+}
+
+async function withFixtureTimeout<T>(
+  label: string,
+  work: Promise<T>,
+  timeoutMs = 30_000,
+): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      work,
+      new Promise<never>((_resolve, reject) => {
+        timer = setTimeout(
+          () => reject(new Error(`Fixture step timed out: ${label}`)),
+          timeoutMs,
+        );
+      }),
+    ]);
+  } finally {
+    if (timer) {
+      clearTimeout(timer);
+    }
+  }
+}
+
+const sleep = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms));
+
+async function waitForFixtureCondition(
+  label: string,
+  condition: () => boolean,
+  timeoutMs = 90_000,
+  intervalMs = 500,
+): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (condition()) {
+      return;
+    }
+    await sleep(intervalMs);
+  }
+  throw new Error(`Fixture step timed out: ${label}`);
+}
+
+async function createFixtureHdAccount(
+  label: string,
+  createAccount: () => Promise<unknown>,
+  accountExists: () => boolean,
+): Promise<void> {
+  const createResult = createAccount().then(
+    () => ({ ok: true as const }),
+    (error: unknown) => ({ ok: false as const, error }),
+  );
+  const observedResult = waitForFixtureCondition(label, accountExists).then(
+    () => ({ observed: true as const }),
+    (error: unknown) => ({ observed: false as const, error }),
+  );
+
+  const firstResult = await Promise.race([createResult, observedResult]);
+  if ('ok' in firstResult) {
+    if (!firstResult.ok) {
+      throw firstResult.error;
+    }
+    await waitForFixtureCondition(label, accountExists, 30_000);
+    return;
+  }
+
+  if (!firstResult.observed) {
+    throw firstResult.error;
+  }
+
+  void createResult.then((result) => {
+    if (!result.ok) {
+      Logger.log(
+        `[AgenticService] Fixture HD account promise failed after account appeared: ${String(
+          (result.error as Error).message || result.error,
+        )}`,
+      );
+    }
+  });
+}
+
 declare global {
   // eslint-disable-next-line no-var
   var __AGENTIC__: AgenticBridge | undefined;
@@ -392,6 +481,39 @@ async function initializeFixtureAccountTree(
   }
 }
 
+async function unlockFixtureVault(
+  fixture: WalletFixture,
+  keyringController: FixtureKeyringController,
+) {
+  if (keyringController.isUnlocked()) {
+    return;
+  }
+
+  logFixtureStep('unlock-via-authentication');
+  await Authentication.unlockWallet({ password: fixture.password });
+  if (keyringController.isUnlocked()) {
+    return;
+  }
+
+  // A previous interrupted fixture setup can leave a vault present while Redux
+  // still marks the user as new. Authentication.unlockWallet then navigates to
+  // onboarding without submitting the password. Recover that dev-only partial
+  // state before materializing accounts.
+  logFixtureStep('unlock-via-keyring-fallback');
+  await keyringController.submitPassword(fixture.password);
+  if (!keyringController.isUnlocked()) {
+    throw new Error('Fixture vault remained locked after password submit');
+  }
+
+  const store = ReduxService.store;
+  store.dispatch(passwordSet());
+  store.dispatch(seedphraseBackedUp());
+  store.dispatch(setCompletedOnboarding(true));
+  store.dispatch(setExistingUser(true));
+  store.dispatch(logIn());
+  store.dispatch(setMultichainAccountsIntroModalSeen(true));
+}
+
 function getMnemonicFirstAddress(value: string) {
   return EthersWallet.fromMnemonic(
     value,
@@ -482,6 +604,7 @@ async function ensureFixtureMnemonicAccounts(
 
   let wallet = findWallet();
   if (!wallet) {
+    logFixtureStep('import-mnemonic', { mnemonicIndex });
     await importNewSecretRecoveryPhrase(mnemonicAccount.value, {
       shouldSelectAccount: false,
     });
@@ -501,18 +624,32 @@ async function ensureFixtureMnemonicAccounts(
     );
   }
   const { MultichainAccountService } = Engine.context;
-  for (
-    let accountIndex = wallet.accounts.length;
-    accountIndex < count;
-    accountIndex += 1
-  ) {
-    await MultichainAccountService.createNextMultichainAccountGroup({
-      entropySource: wallet.keyringId as string,
+  if (wallet.accounts.length < count) {
+    const fromGroupIndex = wallet.accounts.length;
+    const toGroupIndex = count - 1;
+    const entropySource = wallet.keyringId as string;
+    logFixtureStep('create-hd-accounts', {
+      mnemonicIndex,
+      fromGroupIndex,
+      toGroupIndex,
+      count,
     });
+    await createFixtureHdAccount(
+      `create HD accounts ${fromGroupIndex + 1}-${count} for mnemonic ${
+        mnemonicIndex + 1
+      }`,
+      () =>
+        MultichainAccountService.createMultichainAccountGroups({
+          fromGroupIndex,
+          toGroupIndex,
+          entropySource,
+        }),
+      () => (findWallet()?.accounts.length ?? 0) >= count,
+    );
     wallet = findWallet();
     if (!wallet) {
       throw new Error(
-        `No HD wallet found after adding fixture account ${accountIndex + 1}`,
+        `No HD wallet found after adding fixture accounts ${fromGroupIndex + 1}-${count}`,
       );
     }
   }
@@ -617,9 +754,13 @@ async function materializeFixtureAccounts(
     ).find((evmAccount) => evmAccount.address.toLowerCase() === address);
 
     if (!imported) {
-      await KeyringController.importAccountWithStrategy(
-        AccountImportStrategy.privateKey,
-        [`0x${normalizePrivateKey(account.value)}`],
+      logFixtureStep('import-private-key', { address });
+      await withFixtureTimeout(
+        `import private key ${address}`,
+        KeyringController.importAccountWithStrategy(
+          AccountImportStrategy.privateKey,
+          [`0x${normalizePrivateKey(account.value)}`],
+        ),
       );
       imported = findEvmAccounts(
         AccountsController.state.internalAccounts.accounts,
@@ -1248,6 +1389,7 @@ const AgenticService = {
       applyWalletFixture: async (fixture) => {
         try {
           const {
+            MultichainAccountService,
             KeyringController,
             AccountsController,
             AccountTreeController,
@@ -1260,9 +1402,7 @@ const AgenticService = {
           // post-login) rather than a bare KeyringController.submitPassword, so
           // multichain services and Redux/auth state are consistent before we
           // mutate accounts.
-          if (!KeyringController.isUnlocked()) {
-            await Authentication.unlockWallet({ password: fixture.password });
-          }
+          await unlockFixtureVault(fixture, KeyringController);
           // Existing replay vaults can have the same historical multichain
           // account-tree init gap as fresh legacy setup. Only the known legacy
           // init errors are tolerated by this option; unexpected errors still
@@ -1271,6 +1411,20 @@ const AgenticService = {
             allowLegacyAccountTreeInitFailure: true,
           };
           await initializeFixtureAccountTree(legacyAccountTreeInitOptions);
+          try {
+            await withFixtureTimeout(
+              'initialize multichain account service',
+              MultichainAccountService.init(),
+              60_000,
+            );
+          } catch (error) {
+            if (!isExpectedLegacyAccountTreeInitError(error)) {
+              throw error;
+            }
+            Logger.log(
+              '[AgenticService] Skipping multichain account service initialization for historical replay fixture apply',
+            );
+          }
           await materializeFixtureAccounts(
             fixture,
             {
@@ -1315,11 +1469,16 @@ const AgenticService = {
           if (mnemonicAccount) {
             const mnemonic = mnemonicPhraseToBytes(mnemonicAccount.value);
             try {
-              await MultichainAccountService.createMultichainAccountWallet({
-                type: 'restore',
-                password: fixture.password,
-                mnemonic,
-              });
+              logFixtureStep('create-wallet-restore');
+              await withFixtureTimeout(
+                'create multichain wallet from fixture mnemonic',
+                MultichainAccountService.createMultichainAccountWallet({
+                  type: 'restore',
+                  password: fixture.password,
+                  mnemonic,
+                }),
+                60_000,
+              );
             } catch (error) {
               if (!isExpectedLegacyAccountTreeInitError(error)) {
                 throw error;
@@ -1335,10 +1494,15 @@ const AgenticService = {
             }
           } else {
             try {
-              await MultichainAccountService.createMultichainAccountWallet({
-                type: 'create',
-                password: fixture.password,
-              });
+              logFixtureStep('create-wallet-empty');
+              await withFixtureTimeout(
+                'create multichain wallet',
+                MultichainAccountService.createMultichainAccountWallet({
+                  type: 'create',
+                  password: fixture.password,
+                }),
+                60_000,
+              );
             } catch (error) {
               if (!isExpectedLegacyAccountTreeInitError(error)) {
                 throw error;
@@ -1488,8 +1652,11 @@ const AgenticService = {
     try {
       (globalThis as { store?: unknown }).store = ReduxService.store;
       (globalThis as { persistor?: unknown }).persistor = persistor;
-    } catch {
-      // ReduxService.store may not be initialized yet; skip.
+    } catch (error) {
+      Logger.log(
+        String((error as Error).message || error),
+        'AgenticService.install.exposeReduxGlobals',
+      );
     }
     (globalThis as { Engine?: unknown }).Engine = Engine;
   },
