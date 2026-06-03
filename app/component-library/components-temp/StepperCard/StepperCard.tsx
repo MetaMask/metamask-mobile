@@ -49,14 +49,7 @@ const StepperCard = ({
 
   const step = steps[currentStep];
 
-  const resolvedImage = Image.resolveAssetSource(step.image);
-  const imageAspectRatio =
-    resolvedImage?.width && resolvedImage?.height
-      ? resolvedImage.width / resolvedImage.height
-      : undefined;
-  const imageWrapperStyle: ViewStyle = imageAspectRatio
-    ? { width: '100%', aspectRatio: imageAspectRatio }
-    : { width: '100%', height: 215 };
+  const imageWrapperStyle: ViewStyle = { width: '100%', aspectRatio: 16 / 9 };
 
   return (
     <Box
