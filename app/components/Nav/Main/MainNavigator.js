@@ -231,7 +231,6 @@ const AssetStackFlow = (props) => (
     <Stack.Screen
       name={Routes.TRANSACTION_DETAILS}
       component={TransactionDetails}
-      options={{ headerShown: true }}
     />
   </Stack.Navigator>
 );
