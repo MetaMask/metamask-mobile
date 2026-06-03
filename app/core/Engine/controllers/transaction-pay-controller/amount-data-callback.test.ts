@@ -132,7 +132,9 @@ describe('getAmountData', () => {
   });
 
   it('returns empty updates when provider is unavailable', async () => {
-    getProviderMock.mockReturnValue(undefined);
+    getProviderMock.mockReturnValue(
+      undefined as unknown as ReturnType<typeof getProviderByChainId>,
+    );
 
     const result = await getAmountData({
       amount: '5000000',
