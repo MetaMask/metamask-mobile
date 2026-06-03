@@ -56,7 +56,7 @@ import { getNetworkImageSource } from '../../../../../util/networks';
 import { type BridgeToken, TokenSelectorType } from '../../types';
 import { usePopularTokens } from '../../hooks/usePopularTokens';
 import { useSearchTokens } from '../../hooks/useSearchTokens';
-import { useTokensWithBalances } from '../../hooks/useTokensWithBalances';
+import { useMergeApiTokensWithBalances } from '../../hooks/useMergeApiTokensWithBalances';
 import { useTokenSelection } from '../../hooks/useTokenSelection';
 import { createStyles } from './BridgeTokenSelector.styles';
 import Engine from '../../../../../core/Engine';
@@ -214,11 +214,11 @@ export const BridgeTokenSelector: React.FC = () => {
   }, [selectedChainId, debouncedSearch, resetSearch, isValidSearch]);
 
   // Use custom hook for merging balances
-  const popularTokensWithBalance = useTokensWithBalances(
+  const popularTokensWithBalance = useMergeApiTokensWithBalances(
     popularTokens,
     balancesByAssetId,
   );
-  const searchResultsWithBalance = useTokensWithBalances(
+  const searchResultsWithBalance = useMergeApiTokensWithBalances(
     searchResults,
     balancesByAssetId,
   );

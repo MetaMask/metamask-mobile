@@ -2,14 +2,14 @@ import { renderHook } from '@testing-library/react-native';
 import { CaipAssetType } from '@metamask/utils';
 import { constants } from 'ethers';
 import { BtcAccountType } from '@metamask/keyring-api';
-import { useTokensWithBalances } from './useTokensWithBalances';
+import { useMergeApiTokensWithBalances } from './useMergeApiTokensWithBalances';
 import {
   createMockPopularToken,
   createMockBalanceData,
 } from '../testUtils/fixtures';
 import { BalancesByAssetId } from './useBalancesByAssetId';
 
-describe('useTokensWithBalances', () => {
+describe('useMergeApiTokensWithBalances', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -52,7 +52,7 @@ describe('useTokensWithBalances', () => {
       'converts %s with correct address and chainId',
       (_, mockToken, expected) => {
         const { result } = renderHook(() =>
-          useTokensWithBalances([mockToken], {}),
+          useMergeApiTokensWithBalances([mockToken], {}),
         );
 
         expect(result.current[0]).toMatchObject(expected);
@@ -73,7 +73,9 @@ describe('useTokensWithBalances', () => {
         }),
       ];
 
-      const { result } = renderHook(() => useTokensWithBalances(tokens, {}));
+      const { result } = renderHook(() =>
+        useMergeApiTokensWithBalances(tokens, {}),
+      );
 
       expect(result.current[0].chainId).toBe('0x89');
       expect(result.current[1].chainId).toBe('0xa');
@@ -94,7 +96,7 @@ describe('useTokensWithBalances', () => {
       const balancesByAssetId: BalancesByAssetId = { [assetId]: balanceData };
 
       const { result } = renderHook(() =>
-        useTokensWithBalances([mockToken], balancesByAssetId),
+        useMergeApiTokensWithBalances([mockToken], balancesByAssetId),
       );
 
       expect(result.current[0]).toMatchObject({
@@ -113,7 +115,7 @@ describe('useTokensWithBalances', () => {
       });
 
       const { result } = renderHook(() =>
-        useTokensWithBalances([mockToken], {}),
+        useMergeApiTokensWithBalances([mockToken], {}),
       );
 
       expect(result.current[0]).toMatchObject({
@@ -125,13 +127,17 @@ describe('useTokensWithBalances', () => {
     });
 
     it('handles empty token array', () => {
-      const { result } = renderHook(() => useTokensWithBalances([], {}));
+      const { result } = renderHook(() =>
+        useMergeApiTokensWithBalances([], {}),
+      );
 
       expect(result.current).toEqual([]);
     });
 
     it('handles undefined token arrays', () => {
-      const { result } = renderHook(() => useTokensWithBalances(undefined, {}));
+      const { result } = renderHook(() =>
+        useMergeApiTokensWithBalances(undefined, {}),
+      );
 
       expect(result.current).toEqual([]);
     });
@@ -152,7 +158,7 @@ describe('useTokensWithBalances', () => {
       };
 
       const { result } = renderHook(() =>
-        useTokensWithBalances(tokens, balancesByAssetId),
+        useMergeApiTokensWithBalances(tokens, balancesByAssetId),
       );
 
       expect(result.current[0].balance).toBe('100.0');
@@ -167,7 +173,7 @@ describe('useTokensWithBalances', () => {
       });
 
       const { result } = renderHook(() =>
-        useTokensWithBalances([mockToken], {}),
+        useMergeApiTokensWithBalances([mockToken], {}),
       );
 
       expect(result.current[0].noFee).toEqual({
@@ -182,7 +188,7 @@ describe('useTokensWithBalances', () => {
       });
 
       const { result } = renderHook(() =>
-        useTokensWithBalances([mockToken], {}),
+        useMergeApiTokensWithBalances([mockToken], {}),
       );
 
       expect(result.current[0].isVerified).toBe(true);
@@ -202,7 +208,7 @@ describe('useTokensWithBalances', () => {
       const balancesByAssetId: BalancesByAssetId = { [assetId]: balanceData };
 
       const { result } = renderHook(() =>
-        useTokensWithBalances([mockToken], balancesByAssetId),
+        useMergeApiTokensWithBalances([mockToken], balancesByAssetId),
       );
 
       expect(result.current[0].accountType).toBe(BtcAccountType.P2wpkh);
@@ -219,7 +225,7 @@ describe('useTokensWithBalances', () => {
       const balancesByAssetId: BalancesByAssetId = { [assetId]: balanceData };
 
       const { result } = renderHook(() =>
-        useTokensWithBalances([mockToken], balancesByAssetId),
+        useMergeApiTokensWithBalances([mockToken], balancesByAssetId),
       );
 
       expect(result.current[0].accountType).toBeUndefined();
@@ -231,7 +237,7 @@ describe('useTokensWithBalances', () => {
       });
 
       const { result } = renderHook(() =>
-        useTokensWithBalances([mockToken], {}),
+        useMergeApiTokensWithBalances([mockToken], {}),
       );
 
       expect(result.current[0].accountType).toBeUndefined();

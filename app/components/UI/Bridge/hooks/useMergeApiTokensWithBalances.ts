@@ -55,7 +55,7 @@ const convertAPITokensToBridgeTokens = (
  * @param balancesByAssetId - Balance data indexed by assetId
  * @returns Tokens with merged balance information
  */
-export const useTokensWithBalances = (
+export const useMergeApiTokensWithBalances = (
   apiTokens: (PopularToken | IncludeAsset)[] | null | undefined,
   balancesByAssetId: BalancesByAssetId,
 ): BridgeToken[] =>

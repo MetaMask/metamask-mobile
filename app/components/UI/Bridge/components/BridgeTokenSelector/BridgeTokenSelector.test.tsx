@@ -214,8 +214,8 @@ jest.mock('../../hooks/useBalancesByAssetId', () => ({
   useBalancesByAssetId: (params: unknown) => mockUseBalancesByAssetId(params),
 }));
 
-jest.mock('../../hooks/useTokensWithBalances', () => ({
-  useTokensWithBalances: (tokens: Record<string, unknown>[]) =>
+jest.mock('../../hooks/useMergeApiTokensWithBalances', () => ({
+  useMergeApiTokensWithBalances: (tokens: Record<string, unknown>[]) =>
     tokens.map((token) => {
       const { iconUrl, ...tokenWithoutIconUrl } = token as { iconUrl?: string };
       return {
