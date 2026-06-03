@@ -1441,7 +1441,8 @@
         "liquidation_warning": "You will be liquidated if price {{direction}} by {{percentage}}",
         "drops": "drops",
         "rises": "rises",
-        "set_leverage": "Set {{leverage}}x"
+        "set_leverage": "Set {{leverage}}x",
+        "price_unavailable": "Price information unavailable"
       },
       "type": {
         "title": "Order type",
