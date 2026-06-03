@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { TransactionType } from '@metamask/transaction-controller';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
+import type { Hex } from '@metamask/utils';
 import { strings } from '../../../../../../../locales/i18n';
 import Engine from '../../../../../../core/Engine';
 import { RootState } from '../../../../../../reducers';
@@ -23,9 +24,12 @@ export const PAY_WITH_MONEY_ACCOUNT_SECTION_TEST_ID =
   'pay-with-section-money-account';
 export const PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID = 'pay-with-money-account-row';
 
-const SUPPORTED_TRANSACTION_TYPES = [
+const PERPS_TRANSACTION_TYPES = [
   TransactionType.perpsDeposit,
   TransactionType.perpsWithdraw,
+] as const;
+
+const PREDICT_TRANSACTION_TYPES = [
   TransactionType.predictDeposit,
   TransactionType.predictDepositAndOrder,
   TransactionType.predictWithdraw,
@@ -36,9 +40,10 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
   const transactionMeta = useTransactionMetadataRequest();
   const transactionId = transactionMeta?.id ?? '';
   const moneyAccount = useSelector(selectPrimaryMoneyAccount);
-  const { enablePerpsMoneyAccountTransactions } = useSelector(
-    selectMetaMaskPayFlags,
-  );
+  const {
+    enablePerpsMoneyAccountTransactions,
+    enablePredictMoneyAccountTransactions,
+  } = useSelector(selectMetaMaskPayFlags);
   const { totalFiatFormatted } = useMoneyAccountBalance();
 
   const paymentOverride = useSelector((state: RootState) =>
@@ -47,10 +52,22 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
   const isMoneyAccountSelected =
     paymentOverride === PaymentOverride.MoneyAccount;
 
-  const isSupported = hasTransactionType(
+  const isPerps = hasTransactionType(
     transactionMeta,
-    SUPPORTED_TRANSACTION_TYPES as unknown as TransactionType[],
+    PERPS_TRANSACTION_TYPES as unknown as TransactionType[],
   );
+  const isPredict = hasTransactionType(
+    transactionMeta,
+    PREDICT_TRANSACTION_TYPES as unknown as TransactionType[],
+  );
+  const isEnabled =
+    (isPerps && enablePerpsMoneyAccountTransactions) ||
+    (isPredict && enablePredictMoneyAccountTransactions);
+
+  const isDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.perpsDeposit,
+    TransactionType.predictDeposit,
+  ]);
 
   const handlePress = useCallback(() => {
     if (transactionId) {
@@ -59,21 +76,26 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
         (config) => {
           (config as Record<string, unknown>).paymentOverride =
             PaymentOverride.MoneyAccount;
+          if (moneyAccount?.address) {
+            config.refundTo = moneyAccount.address as Hex;
+          }
         },
       );
     }
     navigation.goBack();
-  }, [navigation, transactionId]);
+  }, [moneyAccount?.address, navigation, transactionId]);
 
   return useMemo(() => {
-    if (!enablePerpsMoneyAccountTransactions || !isSupported || !moneyAccount) {
+    if (!isEnabled || !moneyAccount) {
       return null;
     }
 
     const subtitle = totalFiatFormatted
-      ? strings('confirm.pay_with_bottom_sheet.available_balance', {
-          balance: totalFiatFormatted,
-        })
+      ? isDeposit
+        ? strings('confirm.pay_with_bottom_sheet.available_balance', {
+            balance: totalFiatFormatted,
+          })
+        : totalFiatFormatted
       : undefined;
 
     const row: PayWithRowConfig = {
@@ -98,10 +120,10 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
       rows: [row],
     };
   }, [
-    enablePerpsMoneyAccountTransactions,
+    isEnabled,
     handlePress,
+    isDeposit,
     isMoneyAccountSelected,
-    isSupported,
     moneyAccount,
     totalFiatFormatted,
   ]);
