@@ -17,7 +17,6 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import { PerpsOrderViewSelectorsIDs } from '../../Perps.testIds';
-
 import {
   Button as DSButton,
   ButtonVariant,
@@ -25,6 +24,10 @@ import {
   TextVariant,
   TextColor,
   Text,
+  Icon,
+  IconName,
+  IconSize,
+  IconColor,
 } from '@metamask/design-system-react-native';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { BigNumber } from 'bignumber.js';
@@ -33,11 +36,6 @@ import { strings } from '../../../../../../locales/i18n';
 import ButtonSemantic, {
   ButtonSemanticSeverity,
 } from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
 import ListItem from '../../../../../component-library/components/List/ListItem';
 import ListItemColumn, {
   WidthType,
@@ -1502,7 +1500,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                       <Icon
                         name={IconName.Info}
                         size={IconSize.Sm}
-                        color={IconColor.Alternative}
+                        color={IconColor.IconAlternative}
                         testID={PerpsOrderViewSelectorsIDs.LEVERAGE_INFO_ICON}
                       />
                     </TouchableOpacity>
@@ -1582,7 +1580,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                         <Icon
                           name={IconName.Info}
                           size={IconSize.Sm}
-                          color={IconColor.Alternative}
+                          color={IconColor.IconAlternative}
                           testID={PerpsOrderViewSelectorsIDs.TP_SL_INFO_ICON}
                         />
                       </TouchableOpacity>
@@ -1698,7 +1696,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 <Icon
                   name={IconName.Info}
                   size={IconSize.Sm}
-                  color={IconColor.Alternative}
+                  color={IconColor.IconAlternative}
                   testID={PerpsOrderViewSelectorsIDs.MARGIN_INFO_ICON}
                 />
               </TouchableOpacity>
@@ -1731,7 +1729,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 <Icon
                   name={IconName.Info}
                   size={IconSize.Sm}
-                  color={IconColor.Alternative}
+                  color={IconColor.IconAlternative}
                   testID={
                     PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_INFO_ICON
                   }
@@ -1794,7 +1792,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   <Icon
                     name={IconName.Edit}
                     size={IconSize.Sm}
-                    color={IconColor.Alternative}
+                    color={IconColor.IconAlternative}
                   />
                 </View>
               </View>
@@ -1815,7 +1813,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 <Icon
                   name={IconName.Info}
                   size={IconSize.Sm}
-                  color={IconColor.Alternative}
+                  color={IconColor.IconAlternative}
                   testID={PerpsOrderViewSelectorsIDs.FEES_INFO_ICON}
                 />
               </TouchableOpacity>
@@ -1857,7 +1855,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                     <Icon
                       name={IconName.Info}
                       size={IconSize.Sm}
-                      color={IconColor.Alternative}
+                      color={IconColor.IconAlternative}
                     />
                   </TouchableOpacity>
                 </View>
