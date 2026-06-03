@@ -94,7 +94,7 @@ import { useTheme } from '../../../util/theme';
 import DeprecatedNetworkDetails from '../../UI/DeprecatedNetworkModal';
 import ConfirmAddAsset from '../../Views/AddAsset/Views/ConfirmAddTokenView/ConfirmAddAsset';
 import { AesCryptoTestForm } from '../../Views/AesCryptoTestForm';
-import { isTest } from '../../../util/test/utils';
+import { isTestEnvironment } from '../../../util/test/utils';
 import NftDetails from '../../Views/NftDetails';
 import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
@@ -511,7 +511,7 @@ const SettingsFlow = () => {
          *
          * If this is in production, it is a bug.
          */
-        isTest && (
+        isTestEnvironment && (
           <Stack.Screen
             name="AesCryptoTestForm"
             component={AesCryptoTestForm}

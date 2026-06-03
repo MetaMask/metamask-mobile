@@ -5,7 +5,11 @@ import { useQuickBuyController } from './hooks/useQuickBuyController';
 import { positionToQuickBuyTarget } from './types';
 import { selectDefaultSourceToken } from '../../../utils/tokenSelection';
 import { useQuickBuySetup } from './hooks/useQuickBuySetup';
-import { useSourceTokenOptions } from './hooks/useSourceTokenOptions';
+import {
+  useSourceTokenOptions,
+  useSellDestTokenOptions,
+} from './hooks/useSourceTokenOptions';
+import { usePositionTokenBalance } from './hooks/usePositionTokenBalance';
 import {
   useQuickBuyQuotes,
   type EnrichedQuickBuyQuote,
@@ -64,6 +68,7 @@ jest.mock('./hooks/useQuickBuyAnalytics', () => ({
       submitStartedAtRef: { current: null },
     },
     trackAmountSelected: mockTrackAmountSelected,
+    trackTradeModeToggled: jest.fn(),
     trackTradeSubmitted: mockTrackTradeSubmitted,
     trackTradeCompleted: mockTrackTradeCompleted,
     markTradeSubmitted: jest.fn(),
@@ -76,6 +81,11 @@ jest.mock('./hooks/useQuickBuySetup', () => ({
 
 jest.mock('./hooks/useSourceTokenOptions', () => ({
   useSourceTokenOptions: jest.fn(),
+  useSellDestTokenOptions: jest.fn().mockReturnValue([]),
+}));
+
+jest.mock('./hooks/usePositionTokenBalance', () => ({
+  usePositionTokenBalance: jest.fn().mockReturnValue(undefined),
 }));
 
 jest.mock('./hooks/useQuickBuyQuotes', () => ({
@@ -301,6 +311,8 @@ const setupDefaultMocks = () => {
     isUnsupportedChain: false,
   });
 
+  (useSellDestTokenOptions as jest.Mock).mockReturnValue([]);
+  (usePositionTokenBalance as jest.Mock).mockReturnValue(undefined);
   (useSourceTokenOptions as jest.Mock).mockReturnValue({
     options: [createSourceToken()],
     isLoading: false,
