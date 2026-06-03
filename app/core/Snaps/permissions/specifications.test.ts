@@ -6,7 +6,7 @@ import {
 import { buildSnapRestrictedMethodSpecifications } from '@metamask/snaps-rpc-methods';
 import type { SnapMessage } from '@metamask/eth-snap-keyring';
 import type { SnapId } from '@metamask/snaps-sdk';
-import type {
+import {
   SnapPermissionSpecificationsActions,
   SnapPermissionSpecificationsEvents,
   getSnapPermissionSpecifications,
