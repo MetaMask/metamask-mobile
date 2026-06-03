@@ -81,7 +81,10 @@ import { SnapSettings } from '../../Views/Snaps/SnapSettings';
 import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../constants/snaps';
 ///: END:ONLY_INCLUDE_IF
 import Routes from '../../../constants/navigation/Routes';
-import { clearStackNavigatorOptionsWithTransitionAnimation } from '../../../constants/navigation/clearStackNavigatorOptions';
+import {
+  clearStackNavigatorOptionsWithTransitionAnimation,
+  transparentModalScreenOptions,
+} from '../../../constants/navigation/clearStackNavigatorOptions';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { TabBarIconKey } from '../../../component-library/components/Navigation/TabBar/TabBar.types';
 import { selectProviderConfig } from '../../../selectors/networkController';
@@ -321,56 +324,48 @@ const TransactionsHome = () => {
 
 const RewardsHome = () => {
   const { colors } = useTheme();
+  const rewardsModalScreenOptions = {
+    ...transparentModalScreenOptions,
+    contentStyle: { backgroundColor: 'transparent' },
+  };
   return (
-    <Stack.Navigator
+    <NativeStack.Navigator
       screenOptions={{
-        ...clearStackNavigatorOptionsWithTransitionAnimation,
-        cardStyle: { backgroundColor: colors.background.default },
+        headerShown: false,
+        animation: 'none',
+        contentStyle: { backgroundColor: colors.background.default },
       }}
     >
-      <Stack.Screen name={Routes.REWARDS_VIEW} component={RewardsNavigator} />
-      <Stack.Screen
+      <NativeStack.Screen
+        name={Routes.REWARDS_VIEW}
+        component={RewardsNavigator}
+      />
+      <NativeStack.Screen
         name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
         component={RewardsBottomSheetModal}
-        options={{
-          presentation: 'transparentModal',
-          cardStyle: { backgroundColor: 'transparent' },
-        }}
+        options={rewardsModalScreenOptions}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
         component={RewardsClaimBottomSheetModal}
-        options={{
-          presentation: 'transparentModal',
-          cardStyle: { backgroundColor: 'transparent' },
-        }}
+        options={rewardsModalScreenOptions}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL}
         component={RewardOptInAccountGroupModal}
-        options={{
-          headerShown: false,
-          presentation: 'transparentModal',
-          cardStyle: { backgroundColor: 'transparent' },
-        }}
+        options={rewardsModalScreenOptions}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET}
         component={EndOfSeasonClaimBottomSheet}
-        options={{
-          presentation: 'transparentModal',
-          cardStyle: { backgroundColor: 'transparent' },
-        }}
+        options={rewardsModalScreenOptions}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.MODAL.REWARDS_SELECT_SHEET}
         component={RewardsSelectSheet}
-        options={{
-          presentation: 'transparentModal',
-          cardStyle: { backgroundColor: 'transparent' },
-        }}
+        options={rewardsModalScreenOptions}
       />
-    </Stack.Navigator>
+    </NativeStack.Navigator>
   );
 };
 
