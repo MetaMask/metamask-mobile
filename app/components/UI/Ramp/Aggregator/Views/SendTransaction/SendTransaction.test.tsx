@@ -338,7 +338,7 @@ describe('SendTransaction View', () => {
     };
   });
 
-  it('does not crash when order data has no cryptoCurrency', async () => {
+  it('shows header with back navigation when order data has no cryptoCurrency', async () => {
     const orderWithoutCrypto = {
       ...mockOrder,
       id: 'test-id-no-crypto',
@@ -350,7 +350,18 @@ describe('SendTransaction View', () => {
 
     mockUseParamsValues = { orderId: 'test-id-no-crypto' };
     render(SendTransaction, [orderWithoutCrypto]);
+    expect(screen.getByText('Sell crypto')).toBeOnTheScreen();
     expect(screen.queryByText('Next')).not.toBeOnTheScreen();
+    fireEvent.press(screen.getByTestId('send-transaction-back-button'));
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows header with back navigation when order is missing', async () => {
+    mockUseParamsValues = { orderId: 'invalid-order-id' };
+    render(SendTransaction);
+    expect(screen.getByText('Sell crypto')).toBeOnTheScreen();
+    fireEvent.press(screen.getByTestId('send-transaction-back-button'));
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
   it('navigates back when header back button is pressed', async () => {

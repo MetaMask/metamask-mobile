@@ -212,13 +212,23 @@ export const BridgeTransactionDetails = (
 
   const [isStepListExpanded, setIsStepListExpanded] = useState(false);
 
+  const headerTitle = strings('bridge_transaction_details.transaction_details');
+
   const handleHeaderBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
+  const bridgeTransactionDetailsHeader = (
+    <HeaderStandard
+      title={headerTitle}
+      onBack={handleHeaderBack}
+      backButtonProps={{ testID: 'bridge-transaction-details-back-button' }}
+      includesTopInset
+    />
+  );
+
   if (!bridgeTxHistoryItem) {
-    // TODO: display error page
-    return null;
+    return <ScreenView>{bridgeTransactionDetailsHeader}</ScreenView>;
   }
 
   const { quote, status: bridgeStatus, startTime } = bridgeTxHistoryItem;
@@ -313,12 +323,7 @@ export const BridgeTransactionDetails = (
 
   return (
     <ScreenView>
-      <HeaderStandard
-        title={strings('bridge_transaction_details.transaction_details')}
-        onBack={handleHeaderBack}
-        backButtonProps={{ testID: 'bridge-transaction-details-back-button' }}
-        includesTopInset
-      />
+      {bridgeTransactionDetailsHeader}
       <Box style={styles.transactionContainer}>
         <Box style={styles.transactionAssetsContainer}>
           <TransactionAsset

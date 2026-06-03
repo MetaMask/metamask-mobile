@@ -228,7 +228,16 @@ function SendTransaction() {
   ]);
 
   if (!order || !orderData?.cryptoCurrency) {
-    return null;
+    return (
+      <ScreenLayout>
+        <HeaderStandard
+          title={headerTitle}
+          onBack={handleHeaderBack}
+          backButtonProps={{ testID: 'send-transaction-back-button' }}
+          includesTopInset
+        />
+      </ScreenLayout>
+    );
   }
 
   let tokenIcon: ImageSourcePropType;

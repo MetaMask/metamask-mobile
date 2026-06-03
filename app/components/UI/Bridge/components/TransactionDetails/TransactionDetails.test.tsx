@@ -77,6 +77,28 @@ describe('BridgeTransactionDetails', () => {
     jest.clearAllMocks();
   });
 
+  it('shows header with back navigation when bridge history is missing', () => {
+    const { getByTestId, getByText } = renderScreen(
+      () => (
+        <BridgeTransactionDetails
+          route={{
+            params: {
+              evmTxMeta: { ...mockEVMTx, id: 'missing-bridge-history-id' },
+            },
+          }}
+        />
+      ),
+      {
+        name: Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS,
+      },
+      { state: mockState },
+    );
+
+    expect(getByText('Transaction details')).toBeTruthy();
+    fireEvent.press(getByTestId('bridge-transaction-details-back-button'));
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
   it('navigates back when header back button is pressed', () => {
     const { getByTestId } = renderScreen(
       () => (
