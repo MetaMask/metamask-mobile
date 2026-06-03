@@ -84,4 +84,5 @@ jobs:
           ANDROID_PUBLIC_URL: ${{ secrets.ANDROID_PUBLIC_BUCKET_URL }}
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           PR_NUMBER: ${{ inputs.pr_number }}
-          ANDROID_PLAY_STORE_CHECK_MRKDWN_FILE: ${{ github.workspace }}/android-play-store-check-out/android-play-store-check-slack.md
+          # Disable android check msg for now
+          #ANDROID_PLAY_STORE_CHECK_MRKDWN_FILE: ${{ github.workspace }}/android-play-store-check-out/android-play-store-check-slack.md

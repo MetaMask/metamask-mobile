@@ -111,6 +111,7 @@ const PerpsHomeView = ({
   const navigation = useNavigation();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
+  const transactionActiveAbTests = route.params?.transactionActiveAbTests;
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   // Feature flags
@@ -321,8 +322,14 @@ const PerpsHomeView = ({
       fromHome: true,
       button_clicked: PERPS_EVENT_VALUE.BUTTON_CLICKED.MAGNIFYING_GLASS,
       button_location: PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
+      ...(transactionActiveAbTests?.length ? { transactionActiveAbTests } : {}),
     });
-  }, [perpsNavigation, trackEvent, createEventBuilder]);
+  }, [
+    perpsNavigation,
+    trackEvent,
+    createEventBuilder,
+    transactionActiveAbTests,
+  ]);
 
   const navigtateToTutorial = useCallback(() => {
     // Track tutorial button click
@@ -580,6 +587,7 @@ const PerpsHomeView = ({
           positions={positions}
           orders={orders}
           source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+          transactionActiveAbTests={transactionActiveAbTests}
         />
 
         {/* Crypto Markets List */}
@@ -591,6 +599,7 @@ const PerpsHomeView = ({
             sortBy={sortBy}
             isLoading={isLoading.markets}
             source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+            transactionActiveAbTests={transactionActiveAbTests}
           />
         </View>
 
@@ -602,6 +611,7 @@ const PerpsHomeView = ({
           sortBy={sortBy}
           isLoading={isLoading.markets}
           source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+          transactionActiveAbTests={transactionActiveAbTests}
         />
 
         {/* What's Happening Section */}
@@ -620,6 +630,7 @@ const PerpsHomeView = ({
             sortBy={sortBy}
             isLoading={isLoading.markets}
             source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+            transactionActiveAbTests={transactionActiveAbTests}
           />
         </View>
 
@@ -630,6 +641,7 @@ const PerpsHomeView = ({
           marketType="forex"
           isLoading={isLoading.markets}
           source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+          transactionActiveAbTests={transactionActiveAbTests}
         />
 
         {/* Recent Activity List */}
@@ -670,29 +682,25 @@ const PerpsHomeView = ({
         !showCancelAllSheet &&
         !HOME_SCREEN_CONFIG.ShowHeaderActionButtons && (
           <View style={fixedFooterStyle}>
-            <View style={styles.footerButtonsContainer}>
-              <View style={styles.footerButton}>
-                <Button
-                  variant={ButtonVariant.Secondary}
-                  size={ButtonSize.Lg}
-                  onPress={handleWithdraw}
-                  isFullWidth
-                  testID={PerpsHomeViewSelectorsIDs.WITHDRAW_BUTTON}
-                >
-                  {strings('perps.withdraw')}
-                </Button>
-              </View>
-              <View style={styles.footerButton}>
-                <Button
-                  variant={ButtonVariant.Primary}
-                  size={ButtonSize.Lg}
-                  onPress={handleAddFunds}
-                  isFullWidth
-                  testID={PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON}
-                >
-                  {strings('perps.add_funds')}
-                </Button>
-              </View>
+            <View style={styles.footerButtonsContainer} accessible={false}>
+              <Button
+                variant={ButtonVariant.Secondary}
+                size={ButtonSize.Lg}
+                onPress={handleWithdraw}
+                style={styles.footerButton}
+                testID={PerpsHomeViewSelectorsIDs.WITHDRAW_BUTTON}
+              >
+                {strings('perps.withdraw')}
+              </Button>
+              <Button
+                variant={ButtonVariant.Primary}
+                size={ButtonSize.Lg}
+                onPress={handleAddFunds}
+                style={styles.footerButton}
+                testID={PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON}
+              >
+                {strings('perps.add_funds')}
+              </Button>
             </View>
           </View>
         )}

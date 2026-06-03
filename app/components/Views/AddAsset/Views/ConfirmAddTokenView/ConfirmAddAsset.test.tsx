@@ -4,7 +4,12 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
-import { userEvent } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  userEvent,
+  waitFor,
+} from '@testing-library/react-native';
 import { RootState } from '../../../../../reducers';
 import { mockNetworkState } from '../../../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -14,6 +19,7 @@ import {
   TESTID_BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT,
 } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.constants';
 import Routes from '../../../../../constants/navigation/Routes';
+import Logger from '../../../../../util/Logger';
 
 const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
@@ -37,6 +43,15 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
   useRoute: jest.fn(),
   createNavigationDetails: jest.fn(),
 }));
+
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+  },
+}));
+
+const mockLoggerError = Logger.error as jest.Mock;
 
 const DEFAULT_ASSET = {
   address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
@@ -139,6 +154,78 @@ describe('ConfirmAddAsset', () => {
 
     expect(mockAddTokenList).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
+      screen: Routes.WALLET.TAB_STACK_FLOW,
+      params: {
+        screen: Routes.WALLET_VIEW,
+      },
+    });
+  });
+
+  it('shows loading feedback and prevents duplicate import presses', async () => {
+    let resolveImport: () => void = jest.fn();
+    const pendingImport = new Promise<void>((resolve) => {
+      resolveImport = resolve;
+    });
+    const addTokenList = jest.fn(() => pendingImport);
+    setupParams({ addTokenList });
+
+    const { getByTestId } = renderWithProvider(<ConfirmAddAsset />, {
+      state: mockInitialState,
+    });
+
+    fireEvent.press(getByTestId(TESTID_BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT));
+
+    expect(addTokenList).toHaveBeenCalledTimes(1);
+
+    await waitFor(() => {
+      expect(
+        getByTestId(TESTID_BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT),
+      ).toBeDisabled();
+      expect(getByTestId(TESTID_BOTTOMSHEETFOOTER_BUTTON)).toBeDisabled();
+    });
+
+    fireEvent.press(getByTestId(TESTID_BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT));
+    expect(addTokenList).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveImport();
+      await pendingImport;
+    });
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
+        screen: Routes.WALLET.TAB_STACK_FLOW,
+        params: {
+          screen: Routes.WALLET_VIEW,
+        },
+      });
+    });
+  });
+
+  it('resets loading state and logs when import fails', async () => {
+    const addTokenList = jest
+      .fn()
+      .mockRejectedValue(new Error('Import failed'));
+    setupParams({ addTokenList });
+
+    const { getByTestId } = renderWithProvider(<ConfirmAddAsset />, {
+      state: mockInitialState,
+    });
+
+    fireEvent.press(getByTestId(TESTID_BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT));
+
+    await waitFor(() => {
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        expect.any(Error),
+        'ConfirmAddAsset: failed to import tokens',
+      );
+    });
+
+    expect(
+      getByTestId(TESTID_BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT),
+    ).toBeEnabled();
+    expect(getByTestId(TESTID_BOTTOMSHEETFOOTER_BUTTON)).toBeEnabled();
+    expect(mockNavigate).not.toHaveBeenCalledWith(Routes.WALLET.HOME, {
       screen: Routes.WALLET.TAB_STACK_FLOW,
       params: {
         screen: Routes.WALLET_VIEW,

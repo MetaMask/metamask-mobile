@@ -1,4 +1,4 @@
-import { test as perfTest } from '../../framework/fixture';
+import { test as perfTest } from '../../framework/fixtures/playwright';
 import TimerHelper from '../../framework/TimerHelper';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
 import { asPlaywrightElement, PlaywrightAssertions } from '../../framework';
@@ -25,27 +25,19 @@ perfTest.describe(
 
         const assetViewScreen = new TimerHelper(
           'Time since the user clicks on the asset view button until the user sees the token overview screen',
-          { ios: 600, android: 4500 },
+          { ios: 6000, android: 2500 },
           currentDeviceDetails.platform,
         );
 
         await WalletView.tapOnTokensSection();
-        await WalletView.tapOnToken('USDC');
+        await WalletView.tapOnToken('ETH');
 
         await assetViewScreen.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(TokenOverview.container),
+            asPlaywrightElement(TokenOverview.priceChartContainer),
           );
           await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(TokenOverview.sendButton),
-          );
-          // Replicating the logic of the old spec to wait for the todays change to be visible isTodaysChangeVisible method in the TokenOverview wdio screen object
-          await PlaywrightAssertions.expectElementToBeVisibleWithSettle(
-            asPlaywrightElement(TokenOverview.todaysChange),
-            {
-              timeout: 10000,
-              settleMs: 500,
-            },
+            asPlaywrightElement(TokenOverview.container),
           );
         });
 

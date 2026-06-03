@@ -19,10 +19,10 @@ on:
         type: string
         default: 'MetaMask BETA & Release Candidates'
       distribute_external:
-        description: 'Whether to distribute to external testers. (default: false)'
+        description: 'Whether to distribute to external testers. (default: true)'
         required: false
         type: boolean
-        default: false
+        default: true
       runner_provider:
         description: Runner provider forwarded from the caller
         required: false
@@ -54,10 +54,10 @@ on:
           - 'MM Card Team'
           - 'Ramp Provider Testing'
       distribute_external:
-        description: 'Whether to distribute to external testers (default: false)'
+        description: 'Whether to distribute to external testers (default: true)'
         required: false
         type: boolean
-        default: false
+        default: true
       runner_provider:
         description: Runner provider for this manual trial run
         required: false

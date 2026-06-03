@@ -41,9 +41,9 @@ import {
 } from '../../types/navigation';
 import { formatPercentage, formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketMultiple.styles';
-import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import { PredictEventValues } from '../../constants/eventNames';
-import { usePredictEntryPoint, usePredictPreviewSheet } from '../../contexts';
+import { usePredictPreviewSheet } from '../../contexts';
+import { useResolvedPredictEntryPoint } from '../../hooks/useResolvedPredictEntryPoint';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 interface PredictMarketMultipleProps {
@@ -55,6 +55,8 @@ interface PredictMarketMultipleProps {
   onCardPress?: () => void;
   /** Called when the user taps a buy button (before betslip opens). */
   onBuyButtonPress?: (marketId: string) => void;
+  predictFeedTab?: string;
+  predictScreen?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
@@ -65,18 +67,11 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
   isCarousel = false,
   onCardPress,
   onBuyButtonPress,
+  predictFeedTab,
+  predictScreen,
   transactionActiveAbTests,
 }) => {
-  const contextEntryPoint = usePredictEntryPoint();
-  const baseEntryPoint =
-    contextEntryPoint ??
-    propEntryPoint ??
-    PredictEventValues.ENTRY_POINT.PREDICT_FEED;
-
-  const resolvedEntryPoint = TrendingFeedSessionManager.getInstance()
-    .isFromTrending
-    ? PredictEventValues.ENTRY_POINT.TRENDING
-    : baseEntryPoint;
+  const resolvedEntryPoint = useResolvedPredictEntryPoint(propEntryPoint);
 
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
@@ -151,6 +146,8 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
           outcome,
           outcomeToken,
           entryPoint: resolvedEntryPoint,
+          ...(predictFeedTab && { predictFeedTab }),
+          ...(predictScreen && { predictScreen }),
           ...(transactionActiveAbTests?.length && {
             transactionActiveAbTests,
           }),
@@ -177,6 +174,8 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
           params: {
             marketId: market.id,
             entryPoint: resolvedEntryPoint,
+            ...(predictFeedTab && { predictFeedTab }),
+            ...(predictScreen && { predictScreen }),
             title: market.title,
             image: market.image,
             ...(transactionActiveAbTests?.length && {

@@ -2268,8 +2268,7 @@
         "group_i": "Όμιλος Ι",
         "group_j": "Όμιλος Θ",
         "group_k": "Όμιλος Κ",
-        "group_l": "Όμιλος Λ",
-        "third_place_match": "Αγώνας για την 3η θέση"
+        "group_l": "Όμιλος Λ"
       }
     },
     "prediction_markets": "Αγορές προβλέψεων",
@@ -8348,8 +8347,6 @@
     "report_submitted": "H αναφορά σφάλματος υποβλήθηκε."
   },
   "pay_with_modal": {
-    "title": "Επιλέξτε μέθοδο πληρωμής",
-    "title_receive": "Επιλέξτε το token που θα λάβετε",
     "no_gas": "Δεν υπάρχει διαθέσιμο υπόλοιπο για τα τέλη συναλλαγών",
     "not_supported": "Δεν υποστηρίζεται",
     "crypto": "Κρύπτο"
@@ -8457,13 +8454,14 @@
     "main_title": "Ανταμοιβές",
     "vip": {
       "bps_unit": "bps",
+      "badge_label": "VIP Fox {{tier}}",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
       "error_title": "We couldn’t load your VIP dashboard",
       "error_description": "Check your connection and try again.",
       "retry_button": "Retry",
       "tiers_title": "Tiers",
-      "tier_thresholds": "{{points}} total",
+      "tier_thresholds": "{{points}} points",
       "bps_value": "{{bps}} bps",
       "equity_rebate_label": "Equity rebate",
       "equity_rebate_header": "Equity rebate: {{value}}%",
@@ -8900,7 +8898,7 @@
       "stats_notional_volume_threshold": "Απαιτούνται ${{amount}}",
       "stats_qualified_title": "Πληροίτε τις προϋποθέσεις",
       "stats_qualified_description": "Συνεχίστε να κάνετε συναλλαγές για να βελτιώσετε τα Κέρδη & Ζημιές σας και να ανεβείτε στην κατάταξη πριν λήξει ο διαγωνισμός.",
-      "stats_qualify_for_rank_title": "Πληροίτε τα κριτήρια για αυτή την κατηγορία",
+      "stats_qualify_for_rank_title": "Προκριθείτε για τον πίνακα κατάταξης",
       "stats_qualify_for_rank_description": "Κάντε συναλλαγές επιπλέον {{notionalRemaining}} σε ονομαστικό όγκο για να πληροίτε τα κριτήρια.",
       "stats_error_title": "Δεν ήταν δυνατή η φόρτωση των στατιστικών",
       "stats_error_description": "Παρουσιάστηκε πρόβλημα κατά τη φόρτωση των στατιστικών σας. Προσπαθήστε ξανά.",

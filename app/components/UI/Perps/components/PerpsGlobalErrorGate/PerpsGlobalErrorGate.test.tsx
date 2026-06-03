@@ -21,7 +21,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../../../../../util/test/utils', () => ({
-  isE2E: false,
+  hasTestOverrides: false,
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
