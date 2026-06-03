@@ -1,3 +1,111 @@
+diff --git a/dist/TransactionPayController.cjs b/dist/TransactionPayController.cjs
+index 62dc35f..4c478ff 100644
+--- a/dist/TransactionPayController.cjs
++++ b/dist/TransactionPayController.cjs
+@@ -27,6 +27,7 @@ const token_1 = require("./utils/token.cjs");
+ const transaction_1 = require("./utils/transaction.cjs");
+ const MESSENGER_EXPOSED_METHODS = [
+     'getDelegationTransaction',
++    'getAmountData',
+     'getPaymentOverrideData',
+     'getStrategy',
+     'polymarketGetDepositWalletAddress',
+@@ -47,7 +48,7 @@ const getDefaultState = () => ({
+     transactionData: {},
+ });
+ class TransactionPayController extends base_controller_1.BaseController {
+-    constructor({ getDelegationTransaction, getPaymentOverrideData, getStrategy, getStrategies, messenger, polymarket, state, }) {
++    constructor({ getAmountData, getDelegationTransaction, getPaymentOverrideData, getStrategy, getStrategies, messenger, polymarket, state, }) {
+         super({
+             name: constants_1.CONTROLLER_NAME,
+             metadata: stateMetadata,
+@@ -55,11 +56,13 @@ class TransactionPayController extends base_controller_1.BaseController {
+             state: { ...getDefaultState(), ...state },
+         });
+         _TransactionPayController_instances.add(this);
++        _TransactionPayController_getAmountData.set(this, void 0);
+         _TransactionPayController_getDelegationTransaction.set(this, void 0);
+         _TransactionPayController_getPaymentOverrideData.set(this, void 0);
+         _TransactionPayController_getStrategy.set(this, void 0);
+         _TransactionPayController_getStrategies.set(this, void 0);
+         _TransactionPayController_polymarket.set(this, void 0);
++        __classPrivateFieldSet(this, _TransactionPayController_getAmountData, getAmountData, "f");
+         __classPrivateFieldSet(this, _TransactionPayController_getDelegationTransaction, getDelegationTransaction, "f");
+         __classPrivateFieldSet(this, _TransactionPayController_getPaymentOverrideData, getPaymentOverrideData, "f");
+         __classPrivateFieldSet(this, _TransactionPayController_getStrategy, getStrategy, "f");
+@@ -168,6 +171,9 @@ class TransactionPayController extends base_controller_1.BaseController {
+      * @param args - The arguments forwarded to the {@link GetPaymentOverrideDataCallback}.
+      * @returns A promise resolving to the additional transactions array.
+      */
++    getAmountData(...args) {
++        return (__classPrivateFieldGet(this, _TransactionPayController_getAmountData, "f")?.call(this, ...args) ?? Promise.resolve({ updates: [] }));
++    }
+     getPaymentOverrideData(...args) {
+         return (__classPrivateFieldGet(this, _TransactionPayController_getPaymentOverrideData, "f")?.call(this, ...args) ?? Promise.resolve({ calls: [] }));
+     }
+@@ -206,7 +212,7 @@ class TransactionPayController extends base_controller_1.BaseController {
+     }
+ }
+ exports.TransactionPayController = TransactionPayController;
+-_TransactionPayController_getDelegationTransaction = new WeakMap(), _TransactionPayController_getPaymentOverrideData = new WeakMap(), _TransactionPayController_getStrategy = new WeakMap(), _TransactionPayController_getStrategies = new WeakMap(), _TransactionPayController_polymarket = new WeakMap(), _TransactionPayController_instances = new WeakSet(), _TransactionPayController_requirePolymarket = function _TransactionPayController_requirePolymarket() {
++_TransactionPayController_getAmountData = new WeakMap(), _TransactionPayController_getDelegationTransaction = new WeakMap(), _TransactionPayController_getPaymentOverrideData = new WeakMap(), _TransactionPayController_getStrategy = new WeakMap(), _TransactionPayController_getStrategies = new WeakMap(), _TransactionPayController_polymarket = new WeakMap(), _TransactionPayController_instances = new WeakSet(), _TransactionPayController_requirePolymarket = function _TransactionPayController_requirePolymarket() {
+     if (!__classPrivateFieldGet(this, _TransactionPayController_polymarket, "f")) {
+         throw new Error('TransactionPayController: Polymarket callbacks missing');
+     }
+diff --git a/dist/TransactionPayController.mjs b/dist/TransactionPayController.mjs
+index b614699..47895aa 100644
+--- a/dist/TransactionPayController.mjs
++++ b/dist/TransactionPayController.mjs
+@@ -24,6 +24,7 @@ import { updateSourceAmounts } from "./utils/source-amounts.mjs";
+ import { buildCaipAssetType } from "./utils/token.mjs";
+ import { getTransaction, subscribeAssetChanges, subscribeTransactionChanges } from "./utils/transaction.mjs";
+ const MESSENGER_EXPOSED_METHODS = [
++    'getAmountData',
+     'getDelegationTransaction',
+     'getPaymentOverrideData',
+     'getStrategy',
+@@ -45,7 +46,7 @@ const getDefaultState = () => ({
+     transactionData: {},
+ });
+ export class TransactionPayController extends BaseController {
+-    constructor({ getDelegationTransaction, getPaymentOverrideData, getStrategy, getStrategies, messenger, polymarket, state, }) {
++    constructor({ getAmountData, getDelegationTransaction, getPaymentOverrideData, getStrategy, getStrategies, messenger, polymarket, state, }) {
+         super({
+             name: CONTROLLER_NAME,
+             metadata: stateMetadata,
+@@ -53,11 +54,13 @@ export class TransactionPayController extends BaseController {
+             state: { ...getDefaultState(), ...state },
+         });
+         _TransactionPayController_instances.add(this);
++        _TransactionPayController_getAmountData.set(this, void 0);
+         _TransactionPayController_getDelegationTransaction.set(this, void 0);
+         _TransactionPayController_getPaymentOverrideData.set(this, void 0);
+         _TransactionPayController_getStrategy.set(this, void 0);
+         _TransactionPayController_getStrategies.set(this, void 0);
+         _TransactionPayController_polymarket.set(this, void 0);
++        __classPrivateFieldSet(this, _TransactionPayController_getAmountData, getAmountData, "f");
+         __classPrivateFieldSet(this, _TransactionPayController_getDelegationTransaction, getDelegationTransaction, "f");
+         __classPrivateFieldSet(this, _TransactionPayController_getPaymentOverrideData, getPaymentOverrideData, "f");
+         __classPrivateFieldSet(this, _TransactionPayController_getStrategy, getStrategy, "f");
+@@ -166,6 +169,9 @@ export class TransactionPayController extends BaseController {
+      * @param args - The arguments forwarded to the {@link GetPaymentOverrideDataCallback}.
+      * @returns A promise resolving to the additional transactions array.
+      */
++    getAmountData(...args) {
++        return (__classPrivateFieldGet(this, _TransactionPayController_getAmountData, "f")?.call(this, ...args) ?? Promise.resolve({ updates: [] }));
++    }
+     getPaymentOverrideData(...args) {
+         return (__classPrivateFieldGet(this, _TransactionPayController_getPaymentOverrideData, "f")?.call(this, ...args) ?? Promise.resolve({ calls: [] }));
+     }
+@@ -203,7 +209,7 @@ export class TransactionPayController extends BaseController {
+         return __classPrivateFieldGet(this, _TransactionPayController_instances, "m", _TransactionPayController_requirePolymarket).call(this).submitDepositWalletBatch(...args);
+     }
+ }
+-_TransactionPayController_getDelegationTransaction = new WeakMap(), _TransactionPayController_getPaymentOverrideData = new WeakMap(), _TransactionPayController_getStrategy = new WeakMap(), _TransactionPayController_getStrategies = new WeakMap(), _TransactionPayController_polymarket = new WeakMap(), _TransactionPayController_instances = new WeakSet(), _TransactionPayController_requirePolymarket = function _TransactionPayController_requirePolymarket() {
++_TransactionPayController_getAmountData = new WeakMap(), _TransactionPayController_getDelegationTransaction = new WeakMap(), _TransactionPayController_getPaymentOverrideData = new WeakMap(), _TransactionPayController_getStrategy = new WeakMap(), _TransactionPayController_getStrategies = new WeakMap(), _TransactionPayController_polymarket = new WeakMap(), _TransactionPayController_instances = new WeakSet(), _TransactionPayController_requirePolymarket = function _TransactionPayController_requirePolymarket() {
+     if (!__classPrivateFieldGet(this, _TransactionPayController_polymarket, "f")) {
+         throw new Error('TransactionPayController: Polymarket callbacks missing');
+     }
 diff --git a/dist/strategy/fiat/fiat-quotes.cjs b/dist/strategy/fiat/fiat-quotes.cjs
 index 5953985..8a1d738 100644
 --- a/dist/strategy/fiat/fiat-quotes.cjs
@@ -43,18 +151,10 @@ index 2a19b31..1621baa 100644
              amountFiat,
              fiatAsset,
 diff --git a/dist/strategy/fiat/fiat-submit.cjs b/dist/strategy/fiat/fiat-submit.cjs
-index 8f46b26..6fa74a8 100644
+index 8f46b26..6edd1f7 100644
 --- a/dist/strategy/fiat/fiat-submit.cjs
 +++ b/dist/strategy/fiat/fiat-submit.cjs
-@@ -1,6 +1,7 @@
- "use strict";
- Object.defineProperty(exports, "__esModule", { value: true });
- exports.submitFiatQuotes = void 0;
-+const abi_1 = require("@ethersproject/abi");
- const ramps_controller_1 = require("@metamask/ramps-controller");
- const utils_1 = require("@metamask/utils");
- const bignumber_js_1 = require("bignumber.js");
-@@ -34,6 +35,7 @@ async function submitFiatQuotes(request) {
+@@ -34,6 +34,7 @@ async function submitFiatQuotes(request) {
      const { messenger, transaction } = request;
      const transactionId = transaction.id;
      const walletAddress = transaction.txParams.from;
@@ -62,16 +162,7 @@ index 8f46b26..6fa74a8 100644
      if (!walletAddress) {
          throw new Error('Missing wallet address for fiat submission');
      }
-@@ -190,6 +192,8 @@ async function waitForOrderCompletion({ messenger, orderCode, providerCode, tran
-  * @param options.request - The original fiat strategy execute request.
-  * @returns An object containing the relay transaction hash if available.
-  */
-+const ERC20_APPROVE_ABI = ['function approve(address spender, uint256 amount)'];
-+const TELLER_DEPOSIT_ABI = ['function deposit(address depositAsset, uint256 depositAmount, uint256 minimumMint, address referralAddress) payable returns (uint256 shares)'];
- async function submitRelayAfterFiatCompletion({ order, request, }) {
-     const { messenger, quotes, transaction } = request;
-     const transactionId = transaction.id;
-@@ -212,51 +216,106 @@ async function submitRelayAfterFiatCompletion({ order, request, }) {
+@@ -212,51 +213,71 @@ async function submitRelayAfterFiatCompletion({ order, request, }) {
          fiatAsset,
          walletAddress,
      });
@@ -96,9 +187,18 @@ index 8f46b26..6fa74a8 100644
 +    }
 +    const settledTargetRaw = discoveryQuotes[0].original.details.currencyOut.minimumAmount;
 +    console.log('OGP fiat-submit: phase 1 discovery result', { settledTargetRaw, currencyOutAmount: discoveryQuotes[0].original.details.currencyOut.amount, transactionId });
-+    const hasNestedCalldata = (transaction.nestedTransactions?.length ?? 0) >= 2;
-+    if (hasNestedCalldata) {
-+        updateFiatDepositCalldata({ messenger, transactionId, settledTargetRaw, transaction });
++    const { updates } = await messenger.call('TransactionPayController:getAmountData', { amount: settledTargetRaw, transaction });
++    if (updates.length) {
++        (0, transaction_1.updateTransaction)({ transactionId, messenger, note: 'Fiat deposit: update settled amount' }, (tx) => {
++            for (const { nestedTransactionIndex, data } of updates) {
++                if (tx.nestedTransactions?.[nestedTransactionIndex]) {
++                    tx.nestedTransactions[nestedTransactionIndex].data = data;
++                }
++            }
++            if (tx.requiredAssets?.[0]) {
++                tx.requiredAssets[0].amount = `0x${new bignumber_js_1.BigNumber(settledTargetRaw).toString(16)}`;
++            }
++        });
 +    }
 +    const updatedTransaction = (0, transaction_1.getTransaction)(transactionId, messenger) ?? transaction;
 +    console.log('OGP fiat-submit: phase 2 updated transaction', { requiredAssets: updatedTransaction.requiredAssets, nestedTxDataPrefixes: updatedTransaction.nestedTransactions?.map((t) => t.data?.slice(0, 10)), transactionId });
@@ -156,60 +256,13 @@ index 8f46b26..6fa74a8 100644
 +    log('Relay submission completed after fiat order', { relayResult, transactionId });
      return relayResult;
  }
-+function updateFiatDepositCalldata({ messenger, transactionId, settledTargetRaw, transaction }) {
-+    const nestedTxs = transaction.nestedTransactions;
-+    if (!nestedTxs || nestedTxs.length < 2) {
-+        return;
-+    }
-+    const approveData = nestedTxs[0].data;
-+    const depositData = nestedTxs[1].data;
-+    if (!approveData || !depositData) {
-+        return;
-+    }
-+    try {
-+        const approveIface = new abi_1.Interface(ERC20_APPROVE_ABI);
-+        const depositIface = new abi_1.Interface(TELLER_DEPOSIT_ABI);
-+        const decodedApprove = approveIface.decodeFunctionData('approve', approveData);
-+        const decodedDeposit = depositIface.decodeFunctionData('deposit', depositData);
-+        const spender = decodedApprove[0];
-+        const depositAsset = decodedDeposit[0];
-+        const oldAmount = new bignumber_js_1.BigNumber(decodedDeposit[1].toString());
-+        const oldMinimumMint = new bignumber_js_1.BigNumber(decodedDeposit[2].toString());
-+        const referralAddress = decodedDeposit[3];
-+        const newAmount = new bignumber_js_1.BigNumber(settledTargetRaw);
-+        const newMinimumMint = oldAmount.gt(0)
-+            ? newAmount.multipliedBy(oldMinimumMint).dividedBy(oldAmount).integerValue(bignumber_js_1.BigNumber.ROUND_DOWN)
-+            : new bignumber_js_1.BigNumber(0);
-+        const newApproveData = approveIface.encodeFunctionData('approve', [spender, newAmount.toFixed(0)]);
-+        const newDepositData = depositIface.encodeFunctionData('deposit', [depositAsset, newAmount.toFixed(0), newMinimumMint.toFixed(0), referralAddress]);
-+        const hexAmount = `0x${newAmount.toString(16)}`;
-+        console.log('OGP fiat-submit: updateFiatDepositCalldata', { oldAmount: oldAmount.toFixed(0), newAmount: newAmount.toFixed(0), oldMinimumMint: oldMinimumMint.toFixed(0), newMinimumMint: newMinimumMint.toFixed(0), hexAmount, transactionId });
-+        (0, transaction_1.updateTransaction)({ transactionId, messenger, note: 'Fiat deposit: update settled amount' }, (tx) => {
-+            if (tx.nestedTransactions?.[0]) {
-+                tx.nestedTransactions[0].data = newApproveData;
-+            }
-+            if (tx.nestedTransactions?.[1]) {
-+                tx.nestedTransactions[1].data = newDepositData;
-+            }
-+            if (tx.requiredAssets?.[0]) {
-+                tx.requiredAssets[0].amount = hexAmount;
-+            }
-+        });
-+    }
-+    catch (error) {
-+        log('Failed to update fiat deposit calldata', { error, transactionId });
-+    }
-+}
  //# sourceMappingURL=fiat-submit.cjs.map
 \ No newline at end of file
 diff --git a/dist/strategy/fiat/fiat-submit.mjs b/dist/strategy/fiat/fiat-submit.mjs
-index fe769cb..ca2b57b 100644
+index fe769cb..a469690 100644
 --- a/dist/strategy/fiat/fiat-submit.mjs
 +++ b/dist/strategy/fiat/fiat-submit.mjs
-@@ -1,9 +1,10 @@
-+import { Interface } from "@ethersproject/abi";
- import { RampsOrderStatus } from "@metamask/ramps-controller";
- import { createModuleLogger } from "@metamask/utils";
+@@ -3,7 +3,7 @@ import { createModuleLogger } from "@metamask/utils";
  import { BigNumber } from "bignumber.js";
  import { projectLogger } from "../../logger.mjs";
  import { buildCaipAssetType } from "../../utils/token.mjs";
@@ -218,7 +271,7 @@ index fe769cb..ca2b57b 100644
  import { getRelayQuotes } from "../relay/relay-quotes.mjs";
  import { submitRelayQuotes } from "../relay/relay-submit.mjs";
  import { deriveFiatAssetForFiatPayment, resolveSourceAmountRaw } from "./utils.mjs";
-@@ -31,6 +32,7 @@ export async function submitFiatQuotes(request) {
+@@ -31,6 +31,7 @@ export async function submitFiatQuotes(request) {
      const { messenger, transaction } = request;
      const transactionId = transaction.id;
      const walletAddress = transaction.txParams.from;
@@ -226,16 +279,7 @@ index fe769cb..ca2b57b 100644
      if (!walletAddress) {
          throw new Error('Missing wallet address for fiat submission');
      }
-@@ -186,6 +188,8 @@ async function waitForOrderCompletion({ messenger, orderCode, providerCode, tran
-  * @param options.request - The original fiat strategy execute request.
-  * @returns An object containing the relay transaction hash if available.
-  */
-+const ERC20_APPROVE_ABI = ['function approve(address spender, uint256 amount)'];
-+const TELLER_DEPOSIT_ABI = ['function deposit(address depositAsset, uint256 depositAmount, uint256 minimumMint, address referralAddress) payable returns (uint256 shares)'];
- async function submitRelayAfterFiatCompletion({ order, request, }) {
-     const { messenger, quotes, transaction } = request;
-     const transactionId = transaction.id;
-@@ -208,51 +212,106 @@ async function submitRelayAfterFiatCompletion({ order, request, }) {
+@@ -208,51 +209,71 @@ async function submitRelayAfterFiatCompletion({ order, request, }) {
          fiatAsset,
          walletAddress,
      });
@@ -260,9 +304,18 @@ index fe769cb..ca2b57b 100644
 +    }
 +    const settledTargetRaw = discoveryQuotes[0].original.details.currencyOut.minimumAmount;
 +    console.log('OGP fiat-submit: phase 1 discovery result', { settledTargetRaw, currencyOutAmount: discoveryQuotes[0].original.details.currencyOut.amount, transactionId });
-+    const hasNestedCalldata = (transaction.nestedTransactions?.length ?? 0) >= 2;
-+    if (hasNestedCalldata) {
-+        updateFiatDepositCalldata({ messenger, transactionId, settledTargetRaw, transaction });
++    const { updates } = await messenger.call('TransactionPayController:getAmountData', { amount: settledTargetRaw, transaction });
++    if (updates.length) {
++        updateTransaction({ transactionId, messenger, note: 'Fiat deposit: update settled amount' }, (tx) => {
++            for (const { nestedTransactionIndex, data } of updates) {
++                if (tx.nestedTransactions?.[nestedTransactionIndex]) {
++                    tx.nestedTransactions[nestedTransactionIndex].data = data;
++                }
++            }
++            if (tx.requiredAssets?.[0]) {
++                tx.requiredAssets[0].amount = `0x${new BigNumber(settledTargetRaw).toString(16)}`;
++            }
++        });
 +    }
 +    const updatedTransaction = getTransaction(transactionId, messenger) ?? transaction;
 +    console.log('OGP fiat-submit: phase 2 updated transaction', { requiredAssets: updatedTransaction.requiredAssets, nestedTxDataPrefixes: updatedTransaction.nestedTransactions?.map((t) => t.data?.slice(0, 10)), transactionId });
@@ -320,50 +373,6 @@ index fe769cb..ca2b57b 100644
 +    log('Relay submission completed after fiat order', { relayResult, transactionId });
      return relayResult;
  }
-+function updateFiatDepositCalldata({ messenger, transactionId, settledTargetRaw, transaction }) {
-+    const nestedTxs = transaction.nestedTransactions;
-+    if (!nestedTxs || nestedTxs.length < 2) {
-+        return;
-+    }
-+    const approveData = nestedTxs[0].data;
-+    const depositData = nestedTxs[1].data;
-+    if (!approveData || !depositData) {
-+        return;
-+    }
-+    try {
-+        const approveIface = new Interface(ERC20_APPROVE_ABI);
-+        const depositIface = new Interface(TELLER_DEPOSIT_ABI);
-+        const decodedApprove = approveIface.decodeFunctionData('approve', approveData);
-+        const decodedDeposit = depositIface.decodeFunctionData('deposit', depositData);
-+        const spender = decodedApprove[0];
-+        const depositAsset = decodedDeposit[0];
-+        const oldAmount = new BigNumber(decodedDeposit[1].toString());
-+        const oldMinimumMint = new BigNumber(decodedDeposit[2].toString());
-+        const referralAddress = decodedDeposit[3];
-+        const newAmount = new BigNumber(settledTargetRaw);
-+        const newMinimumMint = oldAmount.gt(0)
-+            ? newAmount.multipliedBy(oldMinimumMint).dividedBy(oldAmount).integerValue(BigNumber.ROUND_DOWN)
-+            : new BigNumber(0);
-+        const newApproveData = approveIface.encodeFunctionData('approve', [spender, newAmount.toFixed(0)]);
-+        const newDepositData = depositIface.encodeFunctionData('deposit', [depositAsset, newAmount.toFixed(0), newMinimumMint.toFixed(0), referralAddress]);
-+        const hexAmount = `0x${newAmount.toString(16)}`;
-+        console.log('OGP fiat-submit: updateFiatDepositCalldata', { oldAmount: oldAmount.toFixed(0), newAmount: newAmount.toFixed(0), oldMinimumMint: oldMinimumMint.toFixed(0), newMinimumMint: newMinimumMint.toFixed(0), hexAmount, transactionId });
-+        updateTransaction({ transactionId, messenger, note: 'Fiat deposit: update settled amount' }, (tx) => {
-+            if (tx.nestedTransactions?.[0]) {
-+                tx.nestedTransactions[0].data = newApproveData;
-+            }
-+            if (tx.nestedTransactions?.[1]) {
-+                tx.nestedTransactions[1].data = newDepositData;
-+            }
-+            if (tx.requiredAssets?.[0]) {
-+                tx.requiredAssets[0].amount = hexAmount;
-+            }
-+        });
-+    }
-+    catch (error) {
-+        log('Failed to update fiat deposit calldata', { error, transactionId });
-+    }
-+}
  //# sourceMappingURL=fiat-submit.mjs.map
 \ No newline at end of file
 diff --git a/dist/strategy/relay/relay-api.cjs b/dist/strategy/relay/relay-api.cjs
