@@ -1023,6 +1023,7 @@ jobs:
       performance_tags_reasoning: ${{ needs.smart-e2e-selection.outputs.ai_performance_test_reasoning }}
       build_variant: 'e2e'
       branch_name: ${{ github.head_ref }}
+      pr_number: ${{ github.event.pull_request.number }}
     secrets: inherit
 
   build-android-apks:

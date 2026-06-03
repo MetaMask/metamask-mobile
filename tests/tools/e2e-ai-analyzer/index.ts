@@ -397,6 +397,48 @@ async function main() {
   if (checkHardRules) {
     const hardRuleResult = checkHardRules(allChangedFiles, analysisContext);
     if (hardRuleResult) {
+      // For select-tags mode: E2E tags come from the hard rule (correct — infra
+      // changes warrant full E2E coverage), but performance test selection runs
+      // independently via the deterministic mapping so that test-infrastructure-only
+      // changes (e.g. a console.log removal in a fixture file) do not
+      // unnecessarily trigger all performance tests.
+      if (mode === 'select-tags') {
+        const selectTagsResult = hardRuleResult as SelectTagsAnalysis;
+
+        const directPerf = detectDirectPerformanceChanges(
+          allChangedFiles,
+          baseDir,
+        );
+        const appCodePerf = detectAppCodePerformanceChanges(allChangedFiles);
+
+        const specificTags = [
+          ...new Set([
+            ...(directPerf?.selectedTags ?? []),
+            ...(appCodePerf?.selectedTags ?? []),
+          ]),
+        ];
+
+        const perfReasonParts = [
+          directPerf?.reasoning,
+          appCodePerf?.reasoning,
+        ].filter(Boolean) as string[];
+
+        // Performance tests only run when app code or performance spec files
+        // explicitly match — test infrastructure changes alone don't count.
+        if (specificTags.length > 0) {
+          selectTagsResult.performanceTests = {
+            selectedTags: specificTags,
+            reasoning: perfReasonParts.join('. '),
+          };
+        } else {
+          selectTagsResult.performanceTests = {
+            selectedTags: [],
+            reasoning:
+              'E2E hard rule fired (test infrastructure change) but no performance-sensitive app code or spec files changed — skipping performance tests.',
+          };
+        }
+      }
+
       (MODES[mode].outputAnalysis as (a: unknown) => void)(hardRuleResult);
       return;
     }

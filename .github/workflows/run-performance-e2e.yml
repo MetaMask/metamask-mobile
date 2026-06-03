@@ -91,11 +91,17 @@ on:
         required: false
         type: string
         default: ''
+      pr_number:
+        description: 'Pull request number for posting results as a PR comment (workflow_call only)'
+        required: false
+        type: string
+        default: ''
 
 permissions:
   contents: write
   id-token: write
   actions: write
+  pull-requests: write
 
 concurrency:
   # Include build_variant so e2e, experimental (exp), and release/direct (rc) don't share the same
@@ -514,6 +520,57 @@ jobs:
             tests/aggregated-reports/
           if-no-files-found: ignore
           retention-days: 30
+
+  post-pr-comment:
+    name: Post Performance Results to PR
+    runs-on: ubuntu-latest
+    needs: [aggregate-results, determine-branch-name]
+    # Only runs when triggered from a PR via workflow_call with a pr_number
+    if: always() && !cancelled() && inputs.pr_number != ''
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Aggregated Results
+        uses: actions/download-artifact@v4
+        with:
+          name: aggregated-reports
+          path: ./aggregated-reports
+        continue-on-error: true
+
+      - name: Generate PR comment markdown
+        env:
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          node tests/scripts/generate-performance-pr-comment.mjs \
+            aggregated-reports/summary.json \
+            performance-pr-comment.md
+
+      - name: Delete previous performance results comments
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ALL_COMMENT_IDS=$(gh api "repos/${{ github.repository }}/issues/${{ inputs.pr_number }}/comments" \
+            --jq '.[] | select(.body | contains("<!-- perf-test-results -->")) | .id')
+
+          if [ -n "$ALL_COMMENT_IDS" ]; then
+            echo "$ALL_COMMENT_IDS" | while read -r COMMENT_ID; do
+              [ -n "$COMMENT_ID" ] && gh api "repos/${{ github.repository }}/issues/comments/$COMMENT_ID" \
+                --method DELETE > /dev/null 2>&1 || true
+            done
+            echo "Deleted previous performance results comments"
+          fi
+
+      - name: Post PR comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          MARKER="<!-- perf-test-results -->"
+          COMMENT=$(cat performance-pr-comment.md 2>/dev/null || echo "⚠️ Performance test results are not available.")
+          FULL_COMMENT="${COMMENT}"$'\n'"${MARKER}"
+          gh pr comment "${{ inputs.pr_number }}" --repo "${{ github.repository }}" --body "$FULL_COMMENT"
+          echo "Performance results posted to PR #${{ inputs.pr_number }}"
 
   slack-notification:
     name: Send Slack Notification

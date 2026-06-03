@@ -45,6 +45,15 @@ Balance thoroughness with efficiency, and be conservative in your risk assessmen
 Do not exceed the maximum number of analysis iterations which is ${LLM_CONFIG.maxIterations}, i.e. try to decide before the maximum number of iterations is reached.
 SmokeSnaps is for MetaMask Snaps functionality. Select this tag when changes affect tests/smoke/snaps/ directory, snap-related app code (snap permissions, snap state, snap UI, browser), or Flask build configuration.`;
 
+  const cosmeticChangesSection = `COSMETIC CHANGES — IGNORE FOR TEST SELECTION:
+The following types of changes have zero functional impact and must NOT trigger any additional test selection on their own. When you inspect a diff with get_git_diff and find that a file's changes are entirely cosmetic, treat that file as if it were not changed at all:
+- Adding or removing console.log / console.error / console.warn / console.debug / console.info calls
+- Adding or removing debugger statements
+- Whitespace-only changes (indentation, blank lines, trailing spaces)
+- Comment-only changes (adding, removing, or modifying code comments)
+- Import reordering with no net change in imported symbols
+If a PR only contains cosmetic changes across all files, select zero E2E tags and zero performance tags.`;
+
   const performanceGuidanceSection = `PERFORMANCE TEST GUIDANCE:
 Performance tests measure app responsiveness and render times. Select performance tests when changes could impact:
 - UI rendering performance (component changes, list rendering, animations)
@@ -54,6 +63,7 @@ Performance tests measure app responsiveness and render times. Select performanc
 - App startup and initialization (Engine, background services, navigation)
 Be generous: when app code changes touch components or flows that performance tests exercise, select the relevant tags. Err on the side of running more performance tests rather than fewer — a missed regression is worse than an extra test run.
 Exception: if the ONLY changes are to tests/framework/ helper files (non-spec utilities, fixtures, page objects) with no app code changes, you do NOT need to select performance tests — the CI handles those separately. However, if any tests/performance/*.spec.ts files changed, always select the tags those specs test (check their imports from tags.performance to identify which tags apply).
+Exception: apply the COSMETIC CHANGES rule above before selecting performance tags — a console.log removal in a framework file is not a performance-sensitive change.
 
 PERFORMANCE FILE → TAG MAPPING (use this to guide your selection):
 - app/components/UI/Bridge/** or app/reducers/swaps** or app/selectors/swaps** → @PerformanceSwaps
@@ -73,6 +83,7 @@ PERFORMANCE FILE → TAG MAPPING (use this to guide your selection):
     buildCriticalPatternsSection(),
     buildRiskAssessmentSection(),
     guidanceSection,
+    cosmeticChangesSection,
     performanceGuidanceSection,
   ]
     .filter((section) => section) // Remove empty sections
