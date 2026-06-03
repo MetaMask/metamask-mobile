@@ -46,6 +46,9 @@ export function useFiatConfirm() {
     setIsHeadlessBuyInProgress(true);
     setHeadlessBuyError(undefined);
 
+    // Subtract the on-ramp provider fee from the total so the Ramps order
+    // amount covers exactly the Relay leg of the intent (fees + deposit).
+    // The on-ramp provider adds its own fee on top of what we request.
     const totalAmountToBuy = new BigNumber(totals?.total?.usd ?? 0)
       .minus(new BigNumber(totals?.fees.providerFiat?.usd ?? 0))
       .toNumber();
