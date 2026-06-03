@@ -40,6 +40,11 @@ import {
 } from '@metamask/bridge-controller';
 import { isTradableToken } from '../../utils/isTradableToken';
 import { normalizeTokenAddress } from '../../utils/tokenUtils';
+import {
+  useTokensData,
+  isRwaChecked,
+  getCheckedRwaData,
+} from '../../../../hooks/useTokensData/useTokensData';
 
 interface CalculateFiatBalancesParams {
   assets: TokenI[];
@@ -151,13 +156,21 @@ export const calculateEvmBalances = ({
  * TODO refactor to use selectAssetsBySelectedAccountGroup or selectSortedAssetsBySelectedAccountGroup (BIP44 only and it does pretty much everything for you, fiat value, etc) and also use Asset type
  * @param {Object} params - The parameters object
  * @param {Hex[]} params.chainIds - Array of chain IDs to filter by
- * @returns {BridgeToken[]} Array of tokens (native and non-native) with sortable fiat balances
+ * @param {Object} options - Optional hook configuration
+ * @param {boolean} options.shouldFetchTokenData - Whether to fetch and merge token metadata
+ * @returns tokens with sortable fiat balances and RWA loading state.
  */
-export const useTokensWithBalance: ({
-  chainIds,
-}: {
-  chainIds: (Hex | CaipChainId)[] | undefined;
-}) => BridgeToken[] = ({ chainIds }) => {
+export const useTokensWithBalance = (
+  {
+    chainIds,
+  }: {
+    chainIds: (Hex | CaipChainId)[] | undefined;
+  },
+  options: {
+    shouldFetchTokenData?: boolean;
+  } = {},
+): { tokens: BridgeToken[]; isRwaDataLoading: boolean } => {
+  const { shouldFetchTokenData = false } = options;
   const tokenSortConfig = useSelector(selectTokenSortConfig);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const networkConfigurationsByChainId = useSelector(
@@ -302,5 +315,77 @@ export const useTokensWithBalance: ({
     nonEvmTokens,
   ]);
 
-  return sortedTokens;
+  // Tokens without rwaData from Redux that haven't been confirmed via the API
+  // cache yet. isRwaChecked reads the module-level tokenCache, so confirmed
+  // tokens are excluded on each recomputation when sortedTokens changes.
+  //
+  // Deps are intentionally [sortedTokens] only (not apiTokenData). apiTokenData
+  // is a forward reference here, and depending on it would create a cycle.
+  // It is not needed: isRwaChecked reads the cache directly, so confirmed IDs
+  // drop out on the next sortedTokens change. The list may not shrink to []
+  // within a stable sortedTokens, but that is harmless — the excluded IDs are
+  // cache hits and never trigger a re-fetch.
+  const missingRwaAssetIds = useMemo(
+    () =>
+      shouldFetchTokenData
+        ? sortedTokens
+            .filter((token) => !token.rwaData)
+            .map((token) => {
+              try {
+                const assetId = formatAddressToAssetId(
+                  token.address,
+                  token.chainId,
+                );
+                return assetId ? assetId.toLowerCase() : null;
+              } catch {
+                return null;
+              }
+            })
+            .filter(
+              (assetId): assetId is string =>
+                assetId !== null && !isRwaChecked(assetId),
+            )
+        : [],
+    [shouldFetchTokenData, sortedTokens],
+  );
+
+  // apiTokenData is consumed only as a memo trigger: it changes identity when a
+  // fetch resolves, forcing the merge below to re-run. rwaData itself is read
+  // from the persistent module-level cache (getCheckedRwaData), not from this
+  // per-instance map — otherwise confirmed RWAs excluded from the fetch would
+  // lose their rwaData on remount.
+  // TODO: Migrate away from calling the token API directly once the Assets team
+  // persists rwaData in controller state.
+  const { tokens: apiTokenData, isLoading: isRwaDataLoading } = useTokensData(
+    missingRwaAssetIds,
+    { includeRwaData: true },
+  );
+
+  return useMemo(
+    () => ({
+      tokens: shouldFetchTokenData
+        ? sortedTokens.map((token) => {
+            if (token.rwaData) return token;
+            try {
+              const assetId = formatAddressToAssetId(
+                token.address,
+                token.chainId,
+              );
+              const normalizedAssetId = assetId?.toLowerCase();
+              const cachedRwaData = normalizedAssetId
+                ? (apiTokenData[normalizedAssetId]?.rwaData ??
+                  getCheckedRwaData(normalizedAssetId))
+                : undefined;
+              return cachedRwaData
+                ? { ...token, rwaData: cachedRwaData }
+                : token;
+            } catch {
+              return token;
+            }
+          })
+        : sortedTokens,
+      isRwaDataLoading: shouldFetchTokenData ? isRwaDataLoading : false,
+    }),
+    [shouldFetchTokenData, sortedTokens, apiTokenData, isRwaDataLoading],
+  );
 };

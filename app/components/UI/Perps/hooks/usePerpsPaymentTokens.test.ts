@@ -96,9 +96,10 @@ describe('usePerpsPaymentTokens', () => {
     // Set up mock return values
     mockUseSelector.mockReturnValueOnce(mockNetworkConfigurations); // selectNetworkConfigurations
 
-    mockUseTokensWithBalance.useTokensWithBalance.mockReturnValue(
-      mockTokensWithBalance,
-    );
+    mockUseTokensWithBalance.useTokensWithBalance.mockReturnValue({
+      tokens: mockTokensWithBalance,
+      isRwaDataLoading: false,
+    });
     mockUsePerpsLiveAccount.mockReturnValue({
       account: mockAccountState,
       isInitialLoading: false,
@@ -199,9 +200,10 @@ describe('usePerpsPaymentTokens', () => {
         },
       ];
 
-      mockUseTokensWithBalance.useTokensWithBalance.mockReturnValue(
-        tokensWithHyperliquid,
-      );
+      mockUseTokensWithBalance.useTokensWithBalance.mockReturnValue({
+        tokens: tokensWithHyperliquid,
+        isRwaDataLoading: false,
+      });
 
       const { result } = renderHook(() => usePerpsPaymentTokens());
 
@@ -239,9 +241,10 @@ describe('usePerpsPaymentTokens', () => {
         },
       ];
 
-      mockUseTokensWithBalance.useTokensWithBalance.mockReturnValue(
-        extraTokens,
-      );
+      mockUseTokensWithBalance.useTokensWithBalance.mockReturnValue({
+        tokens: extraTokens,
+        isRwaDataLoading: false,
+      });
 
       const { result } = renderHook(() => usePerpsPaymentTokens());
 
@@ -331,7 +334,10 @@ describe('usePerpsPaymentTokens', () => {
     });
 
     it('handles empty tokens with balance', () => {
-      mockUseTokensWithBalance.useTokensWithBalance.mockReturnValue([]);
+      mockUseTokensWithBalance.useTokensWithBalance.mockReturnValue({
+        tokens: [],
+        isRwaDataLoading: false,
+      });
 
       const { result } = renderHook(() => usePerpsPaymentTokens());
 
@@ -351,9 +357,10 @@ describe('usePerpsPaymentTokens', () => {
         },
       ];
 
-      mockUseTokensWithBalance.useTokensWithBalance.mockReturnValue(
-        tokensWithMalformedFiat,
-      );
+      mockUseTokensWithBalance.useTokensWithBalance.mockReturnValue({
+        tokens: tokensWithMalformedFiat,
+        isRwaDataLoading: false,
+      });
 
       const { result } = renderHook(() => usePerpsPaymentTokens());
 
@@ -407,9 +414,10 @@ describe('usePerpsPaymentTokens', () => {
         },
       ];
 
-      mockUseTokensWithBalance.useTokensWithBalance.mockReturnValue(
-        tokensWithMissingFields as BridgeToken[],
-      );
+      mockUseTokensWithBalance.useTokensWithBalance.mockReturnValue({
+        tokens: tokensWithMissingFields as BridgeToken[],
+        isRwaDataLoading: false,
+      });
 
       const { result } = renderHook(() => usePerpsPaymentTokens());
 

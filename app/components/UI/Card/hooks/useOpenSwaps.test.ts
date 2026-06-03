@@ -121,7 +121,10 @@ describe('useOpenSwaps', () => {
     (selectSelectedSourceChainIds as unknown as jest.Mock).mockReturnValue(
       mockChainIds,
     );
-    (useTokensWithBalance as jest.Mock).mockReturnValue(mockTokensWithBalance);
+    (useTokensWithBalance as jest.Mock).mockReturnValue({
+      tokens: mockTokensWithBalance,
+      isRwaDataLoading: false,
+    });
 
     (useSelector as jest.Mock).mockImplementation((selector) => selector());
 

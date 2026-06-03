@@ -143,7 +143,7 @@ describe('useAccountTokens', () => {
     mockGetIntlNumberFormatter.mockReturnValue(mockFormatter as any);
     mockFormatter.format.mockReturnValue('$100.50');
     mockIsTestNet.mockReturnValue(false);
-    mockUseTokensData.mockReturnValue({});
+    mockUseTokensData.mockReturnValue({ tokens: {}, isLoading: false });
     mockBuildEvmCaip19AssetId.mockImplementation(
       (address: string, chainId: Hex) =>
         `eip155:${chainId}/erc20:${address.toLowerCase()}`,
@@ -690,13 +690,16 @@ describe('useAccountTokens', () => {
       const requests = [{ chainId: '0x1' as Hex, address: '0xusdc' }];
 
       mockUseTokensData.mockReturnValue({
-        'eip155:0x1/erc20:0xusdc': {
-          assetId: 'eip155:0x1/erc20:0xusdc',
-          name: 'USD Coin',
-          symbol: 'USDC',
-          decimals: 6,
-          iconUrl: 'https://example.com/usdc.png',
+        tokens: {
+          'eip155:0x1/erc20:0xusdc': {
+            assetId: 'eip155:0x1/erc20:0xusdc',
+            name: 'USD Coin',
+            symbol: 'USDC',
+            decimals: 6,
+            iconUrl: 'https://example.com/usdc.png',
+          },
         },
+        isLoading: false,
       });
 
       const { result } = renderHook(() =>
@@ -741,13 +744,16 @@ describe('useAccountTokens', () => {
       const requests = [{ chainId: '0x1' as Hex, address: '0xusdc' }];
 
       mockUseTokensData.mockReturnValue({
-        'eip155:0x1/erc20:0xusdc': {
-          assetId: 'eip155:0x1/erc20:0xusdc',
-          name: 'USD Coin',
-          symbol: 'USDC',
-          decimals: 6,
-          iconUrl: 'https://example.com/usdc.png',
+        tokens: {
+          'eip155:0x1/erc20:0xusdc': {
+            assetId: 'eip155:0x1/erc20:0xusdc',
+            name: 'USD Coin',
+            symbol: 'USDC',
+            decimals: 6,
+            iconUrl: 'https://example.com/usdc.png',
+          },
         },
+        isLoading: false,
       });
 
       const { result } = renderHook(() =>
@@ -773,7 +779,7 @@ describe('useAccountTokens', () => {
 
       const requests = [{ chainId: '0x1' as Hex, address: '0xunknown' }];
 
-      mockUseTokensData.mockReturnValue({});
+      mockUseTokensData.mockReturnValue({ tokens: {}, isLoading: false });
 
       const { result } = renderHook(() =>
         useAccountTokens({ enrichTokenRequests: requests }),

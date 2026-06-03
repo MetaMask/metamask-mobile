@@ -76,6 +76,7 @@ export const useMergeApiTokensWithBalances = (
           tokenFiatAmount: balanceData.tokenFiatAmount,
           currencyExchangeRate: balanceData.currencyExchangeRate,
           accountType: balanceData.accountType,
+          rwaData: token.rwaData ?? balanceData.rwaData,
         };
       }
       return token;

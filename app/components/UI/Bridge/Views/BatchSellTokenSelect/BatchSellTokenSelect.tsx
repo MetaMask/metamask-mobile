@@ -52,6 +52,7 @@ import { getNetworkImageSource } from '../../../../../util/networks';
 import {
   buildBatchSellEligibleChains,
   removeStablecoinsFromSourceTokens,
+  removeRwaTokens,
   getBatchSellDestinationToken,
   MAX_BATCH_SELL_SOURCE_TOKENS,
   BatchSellTokenSortDirection,
@@ -61,10 +62,14 @@ import {
 import { BatchSellTokenSelectSelectorsIDs } from './BatchSellTokenSelect.testIds';
 import { BatchSellTokenRow } from './BatchSellTokenRow';
 import { BatchSellEmptyState } from './BatchSellEmptyState';
+import { SkeletonItem } from '../../components/SkeletonItem';
 import { DEFAULT_BATCH_SELL_SLIPPAGE } from '../../components/SlippageModal/utils';
 
 const getTokenKey = (token: BridgeToken) =>
   `${formatChainIdToCaip(token.chainId)}:${token.address}`;
+
+// Number of skeleton rows shown while RWA status is being resolved.
+const BATCH_SELL_LOADING_SKELETON_COUNT = 6;
 
 function getBatchSellSourceTokenAmount(token: BridgeToken, percent: number) {
   if (percent <= 0) return '0';
@@ -110,19 +115,22 @@ export function BatchSellTokenSelect() {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const tw = useTailwind();
-  const allWalletTokens = useTokensWithBalance({
-    chainIds: SUPPORTED_BATCH_SELL_CHAIN_IDS,
-  });
+  const { tokens: allWalletTokens, isRwaDataLoading } = useTokensWithBalance(
+    {
+      chainIds: SUPPORTED_BATCH_SELL_CHAIN_IDS,
+    },
+    { shouldFetchTokenData: true },
+  );
   const stablecoinsByChain = useSelector(selectBatchSellDestStablecoinsByChain);
   const [tokenSortDirection, setTokenSortDirection] =
     useState<BatchSellTokenSortDirection>('desc');
   const eligibleSourceTokens = useMemo(() => {
-    const sourceTokens = removeStablecoinsFromSourceTokens({
+    const withoutStablecoins = removeStablecoinsFromSourceTokens({
       tokens: allWalletTokens,
       stablecoinsByChain,
     });
-
-    return sortBatchSellTokens(sourceTokens, tokenSortDirection);
+    const withoutRwas = removeRwaTokens(withoutStablecoins);
+    return sortBatchSellTokens(withoutRwas, tokenSortDirection);
   }, [allWalletTokens, stablecoinsByChain, tokenSortDirection]);
   const sortedEligibleChains = useMemo(
     () => buildBatchSellEligibleChains(eligibleSourceTokens),
@@ -170,6 +178,13 @@ export function BatchSellTokenSelect() {
           )
         : eligibleSourceTokens,
     [activeChainId, eligibleSourceTokens],
+  );
+  const tokenListData = useMemo(
+    () =>
+      isRwaDataLoading
+        ? Array.from({ length: BATCH_SELL_LOADING_SKELETON_COUNT }, () => null)
+        : selectedChainTokens,
+    [isRwaDataLoading, selectedChainTokens],
   );
   const selectedTokenKeys = useMemo(
     () => new Set(selectedTokens.map(getTokenKey)),
@@ -342,7 +357,9 @@ export function BatchSellTokenSelect() {
   );
 
   const renderToken = useCallback(
-    ({ item: token }: ListRenderItemInfo<BridgeToken>) => {
+    ({ item: token }: ListRenderItemInfo<BridgeToken | null>) => {
+      if (!token) return <SkeletonItem />;
+
       const tokenKey = getTokenKey(token);
       const isSelected = selectedTokenKeys.has(tokenKey);
 
@@ -366,6 +383,12 @@ export function BatchSellTokenSelect() {
       );
     },
     [handleTokenPress, selectedTokenKeys, sortedEligibleChains],
+  );
+
+  const getTokenListKey = useCallback(
+    (token: BridgeToken | null, index: number) =>
+      token ? getTokenKey(token) : `batch-sell-skeleton-${index}`,
+    [],
   );
 
   return (
@@ -448,9 +471,9 @@ export function BatchSellTokenSelect() {
             </Box>
             <FlatList
               testID={BatchSellTokenSelectSelectorsIDs.TOKEN_LIST}
-              data={selectedChainTokens}
+              data={tokenListData}
               renderItem={renderToken}
-              keyExtractor={getTokenKey}
+              keyExtractor={getTokenListKey}
               showsVerticalScrollIndicator={false}
               contentContainerStyle={tw.style('pb-4')}
             />

@@ -56,7 +56,9 @@ export function usePerpsPaymentTokens(): PerpsToken[] {
   }, [networkConfigurations, currentNetwork]);
 
   // Get all tokens with balances across networks
-  const tokensWithBalance = useTokensWithBalance({ chainIds: allChainIds });
+  const { tokens: tokensWithBalance } = useTokensWithBalance({
+    chainIds: allChainIds,
+  });
 
   // Filter and enhance tokens
   const paymentTokens = useMemo(() => {

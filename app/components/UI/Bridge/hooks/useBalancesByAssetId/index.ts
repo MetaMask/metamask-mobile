@@ -16,6 +16,7 @@ export interface BalanceData {
   tokenFiatAmount?: number;
   currencyExchangeRate?: number;
   accountType?: BridgeToken['accountType'];
+  rwaData?: BridgeToken['rwaData'];
 }
 
 /**
@@ -34,10 +35,10 @@ export const useBalancesByAssetId = ({
 }: {
   chainIds: (Hex | CaipChainId)[] | undefined;
 }): {
-  tokensWithBalance: ReturnType<typeof useTokensWithBalance>;
+  tokensWithBalance: ReturnType<typeof useTokensWithBalance>['tokens'];
   balancesByAssetId: BalancesByAssetId;
 } => {
-  const tokensWithBalance = useTokensWithBalance({ chainIds });
+  const { tokens: tokensWithBalance } = useTokensWithBalance({ chainIds });
 
   const balancesByAssetId = useMemo(() => {
     const balancesMap: BalancesByAssetId = {};
@@ -51,6 +52,7 @@ export const useBalancesByAssetId = ({
           tokenFiatAmount: token.tokenFiatAmount,
           currencyExchangeRate: token.currencyExchangeRate,
           accountType: token.accountType,
+          ...(token.rwaData ? { rwaData: token.rwaData } : {}),
         };
 
         // Store the canonical bridge-controller key for checksummed lookups for EVM.

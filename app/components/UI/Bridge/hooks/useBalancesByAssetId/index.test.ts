@@ -21,7 +21,10 @@ describe('useBalancesByAssetId', () => {
 
   describe('basic functionality', () => {
     it('returns empty balancesByAssetId when no tokens have balances', () => {
-      mockUseTokensWithBalance.mockReturnValue([]);
+      mockUseTokensWithBalance.mockReturnValue({
+        tokens: [],
+        isRwaDataLoading: false,
+      });
 
       const { result } = renderHook(() =>
         useBalancesByAssetId({
@@ -48,7 +51,10 @@ describe('useBalancesByAssetId', () => {
           tokenFiatAmount: 100,
         }),
       ];
-      mockUseTokensWithBalance.mockReturnValue(mockTokens);
+      mockUseTokensWithBalance.mockReturnValue({
+        tokens: mockTokens,
+        isRwaDataLoading: false,
+      });
 
       const { result } = renderHook(() =>
         useBalancesByAssetId({
@@ -72,6 +78,33 @@ describe('useBalancesByAssetId', () => {
       });
     });
 
+    it('preserves rwaData in the balance lookup map', () => {
+      const rwaData = { instrumentType: 'stock' };
+      const mockTokens = [
+        createMockTokenWithBalance({
+          address: '0x1111111111111111111111111111111111111111',
+          balance: '50.0',
+          rwaData,
+        }),
+      ];
+      mockUseTokensWithBalance.mockReturnValue({
+        tokens: mockTokens,
+        isRwaDataLoading: false,
+      });
+
+      const { result } = renderHook(() =>
+        useBalancesByAssetId({
+          chainIds: [MOCK_CHAIN_IDS_HEX.ethereum as Hex],
+        }),
+      );
+
+      expect(
+        result.current.balancesByAssetId[
+          'eip155:1/erc20:0x1111111111111111111111111111111111111111' as CaipAssetType
+        ]?.rwaData,
+      ).toEqual(rwaData);
+    });
+
     it('maps EVM token balances to canonical and lowercase assetId keys', () => {
       const mockTokens = [
         createMockTokenWithBalance({
@@ -80,7 +113,10 @@ describe('useBalancesByAssetId', () => {
           balanceFiat: '$50',
         }),
       ];
-      mockUseTokensWithBalance.mockReturnValue(mockTokens);
+      mockUseTokensWithBalance.mockReturnValue({
+        tokens: mockTokens,
+        isRwaDataLoading: false,
+      });
 
       const { result } = renderHook(() =>
         useBalancesByAssetId({
@@ -119,7 +155,10 @@ describe('useBalancesByAssetId', () => {
           balanceFiat: '$50',
         }),
       ];
-      mockUseTokensWithBalance.mockReturnValue(mockTokens);
+      mockUseTokensWithBalance.mockReturnValue({
+        tokens: mockTokens,
+        isRwaDataLoading: false,
+      });
 
       const { result } = renderHook(() =>
         useBalancesByAssetId({
@@ -145,7 +184,10 @@ describe('useBalancesByAssetId', () => {
         createMockTokenWithBalance({ address: '0xtoken1' }),
         createMockTokenWithBalance({ address: '0xtoken2' }),
       ];
-      mockUseTokensWithBalance.mockReturnValue(mockTokens);
+      mockUseTokensWithBalance.mockReturnValue({
+        tokens: mockTokens,
+        isRwaDataLoading: false,
+      });
 
       const { result } = renderHook(() =>
         useBalancesByAssetId({
@@ -169,7 +211,10 @@ describe('useBalancesByAssetId', () => {
           balance: undefined,
         }),
       ];
-      mockUseTokensWithBalance.mockReturnValue(mockTokens);
+      mockUseTokensWithBalance.mockReturnValue({
+        tokens: mockTokens,
+        isRwaDataLoading: false,
+      });
 
       const { result } = renderHook(() =>
         useBalancesByAssetId({
@@ -205,7 +250,10 @@ describe('useBalancesByAssetId', () => {
           balance: '20.0',
         }),
       ];
-      mockUseTokensWithBalance.mockReturnValue(mockTokens);
+      mockUseTokensWithBalance.mockReturnValue({
+        tokens: mockTokens,
+        isRwaDataLoading: false,
+      });
 
       const { result } = renderHook(() =>
         useBalancesByAssetId({
@@ -233,7 +281,10 @@ describe('useBalancesByAssetId', () => {
           balance: '100.0',
         }),
       ];
-      mockUseTokensWithBalance.mockReturnValue(mockTokens);
+      mockUseTokensWithBalance.mockReturnValue({
+        tokens: mockTokens,
+        isRwaDataLoading: false,
+      });
 
       const { result } = renderHook(() =>
         useBalancesByAssetId({ chainIds: ['eip155:1' as CaipChainId] }),
@@ -249,7 +300,10 @@ describe('useBalancesByAssetId', () => {
 
   describe('parameter handling', () => {
     it('passes chainIds to useTokensWithBalance', () => {
-      mockUseTokensWithBalance.mockReturnValue([]);
+      mockUseTokensWithBalance.mockReturnValue({
+        tokens: [],
+        isRwaDataLoading: false,
+      });
       const chainIds = [MOCK_CHAIN_IDS_HEX.ethereum as Hex, '0xa' as Hex];
 
       renderHook(() => useBalancesByAssetId({ chainIds }));
@@ -258,7 +312,10 @@ describe('useBalancesByAssetId', () => {
     });
 
     it('handles undefined chainIds', () => {
-      mockUseTokensWithBalance.mockReturnValue([]);
+      mockUseTokensWithBalance.mockReturnValue({
+        tokens: [],
+        isRwaDataLoading: false,
+      });
 
       const { result } = renderHook(() =>
         useBalancesByAssetId({ chainIds: undefined }),
@@ -280,7 +337,10 @@ describe('useBalancesByAssetId', () => {
           currencyExchangeRate: undefined,
         }),
       ];
-      mockUseTokensWithBalance.mockReturnValue(mockTokens);
+      mockUseTokensWithBalance.mockReturnValue({
+        tokens: mockTokens,
+        isRwaDataLoading: false,
+      });
 
       const { result } = renderHook(() =>
         useBalancesByAssetId({
@@ -311,7 +371,10 @@ describe('useBalancesByAssetId', () => {
           accountType: BtcAccountType.P2wpkh,
         }),
       ];
-      mockUseTokensWithBalance.mockReturnValue(mockTokens);
+      mockUseTokensWithBalance.mockReturnValue({
+        tokens: mockTokens,
+        isRwaDataLoading: false,
+      });
 
       const { result } = renderHook(() =>
         useBalancesByAssetId({

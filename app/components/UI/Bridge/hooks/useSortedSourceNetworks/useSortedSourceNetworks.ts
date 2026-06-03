@@ -52,7 +52,7 @@ export const useSortedSourceNetworks = () => {
   );
 
   // Calculate total fiat value for Solana (native + tokens)
-  const solTokensWithBalance = useTokensWithBalance({
+  const { tokens: solTokensWithBalance } = useTokensWithBalance({
     chainIds: [SolScope.Mainnet],
   });
   const solFiatTotal = solTokensWithBalance.reduce(
@@ -60,7 +60,7 @@ export const useSortedSourceNetworks = () => {
     0,
   );
 
-  const btcTokensWithBalance = useTokensWithBalance({
+  const { tokens: btcTokensWithBalance } = useTokensWithBalance({
     chainIds: [BtcScope.Mainnet],
   });
   const btcFiatTotal = btcTokensWithBalance.reduce(
@@ -69,7 +69,7 @@ export const useSortedSourceNetworks = () => {
   );
 
   // Calculate total fiat value for Tron (native + tokens)
-  const trxTokensWithBalance = useTokensWithBalance({
+  const { tokens: trxTokensWithBalance } = useTokensWithBalance({
     chainIds: [TrxScope.Mainnet],
   });
   const trxFiatTotal = trxTokensWithBalance.reduce(

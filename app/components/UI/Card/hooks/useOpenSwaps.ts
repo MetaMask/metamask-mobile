@@ -36,7 +36,7 @@ export const useOpenSwaps = ({
 }: UseOpenSwapsOptions = {}) => {
   const dispatch = useDispatch();
   const chainIds = useSelector(selectSelectedSourceChainIds);
-  const tokensWithBalance = useTokensWithBalance({
+  const { tokens: tokensWithBalance } = useTokensWithBalance({
     chainIds,
   });
   const { trackEvent, createEventBuilder } = useAnalytics();

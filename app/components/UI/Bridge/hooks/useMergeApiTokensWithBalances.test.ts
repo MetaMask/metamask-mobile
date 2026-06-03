@@ -107,6 +107,48 @@ describe('useMergeApiTokensWithBalances', () => {
       });
     });
 
+    it('merges rwaData from balance data when API token does not include it', () => {
+      const assetId =
+        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
+      const mockToken = createMockPopularToken({ assetId });
+      const rwaData = { instrumentType: 'stock' };
+      const balancesByAssetId: BalancesByAssetId = {
+        [assetId]: createMockBalanceData({
+          balance: '500.0',
+          rwaData,
+        }),
+      };
+
+      const { result } = renderHook(() =>
+        useMergeApiTokensWithBalances([mockToken], balancesByAssetId),
+      );
+
+      expect(result.current[0].rwaData).toEqual(rwaData);
+    });
+
+    it('preserves API token rwaData over balance data rwaData', () => {
+      const assetId =
+        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
+      const apiRwaData = { instrumentType: 'bond' };
+      const balanceRwaData = { instrumentType: 'stock' };
+      const mockToken = {
+        ...createMockPopularToken({ assetId }),
+        rwaData: apiRwaData,
+      };
+      const balancesByAssetId: BalancesByAssetId = {
+        [assetId]: createMockBalanceData({
+          balance: '500.0',
+          rwaData: balanceRwaData,
+        }),
+      };
+
+      const { result } = renderHook(() =>
+        useMergeApiTokensWithBalances([mockToken], balancesByAssetId),
+      );
+
+      expect(result.current[0].rwaData).toEqual(apiRwaData);
+    });
+
     it('preserves token properties when no balance data exists', () => {
       const mockToken = createMockPopularToken({
         name: 'Preserved Token',

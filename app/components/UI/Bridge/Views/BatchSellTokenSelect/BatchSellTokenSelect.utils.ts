@@ -81,6 +81,10 @@ export function removeStablecoinsFromSourceTokens({
   });
 }
 
+export function removeRwaTokens(tokens: BridgeToken[]): BridgeToken[] {
+  return tokens.filter((token) => !token.rwaData);
+}
+
 export function sortBatchSellTokens(
   tokens: BridgeToken[],
   sortDirection: BatchSellTokenSortDirection = 'desc',

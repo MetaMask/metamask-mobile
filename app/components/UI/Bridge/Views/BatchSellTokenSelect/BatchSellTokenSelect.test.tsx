@@ -10,6 +10,7 @@ import {
   buildBatchSellEligibleChains,
   getBatchSellDestinationToken,
   removeStablecoinsFromSourceTokens,
+  removeRwaTokens,
   MAX_BATCH_SELL_SOURCE_TOKENS,
   SUPPORTED_BATCH_SELL_CHAIN_IDS,
   sortBatchSellTokens,
@@ -84,8 +85,10 @@ jest.mock('@metamask/design-system-react-native', () => {
 });
 
 jest.mock('../../hooks/useTokensWithBalance', () => ({
-  useTokensWithBalance: (options?: { chainIds?: CaipChainId[] }) =>
-    mockUseTokensWithBalance(options),
+  useTokensWithBalance: (
+    params?: { chainIds?: CaipChainId[] },
+    options?: { shouldFetchTokenData?: boolean },
+  ) => mockUseTokensWithBalance(params, options),
 }));
 
 jest.mock('../../../Tokens/hooks/useTokenPricePercentageChange', () => ({
@@ -227,6 +230,48 @@ describe('filterBatchSellDestinationStablecoins', () => {
     });
 
     expect(result.map((token) => token.symbol)).toEqual(['LOW', 'HIGH']);
+  });
+});
+
+describe('removeRwaTokens', () => {
+  it('filters out tokens that have rwaData', () => {
+    const normalToken = createToken({
+      symbol: 'ETH',
+      address: '0x1111111111111111111111111111111111111111',
+    });
+    const stockRwa = createToken({
+      symbol: 'AAPL',
+      address: '0x2222222222222222222222222222222222222222',
+      rwaData: { instrumentType: 'stock' } as BridgeToken['rwaData'],
+    });
+    const bondRwa = createToken({
+      symbol: 'TBOND',
+      address: '0x3333333333333333333333333333333333333333',
+      rwaData: { instrumentType: 'bond' } as BridgeToken['rwaData'],
+    });
+
+    const result = removeRwaTokens([normalToken, stockRwa, bondRwa]);
+
+    expect(result.map((t) => t.symbol)).toEqual(['ETH']);
+  });
+
+  it('keeps tokens without rwaData', () => {
+    const tokenA = createToken({
+      symbol: 'ETH',
+      address: '0x1111111111111111111111111111111111111111',
+    });
+    const tokenB = createToken({
+      symbol: 'LINK',
+      address: '0x2222222222222222222222222222222222222222',
+    });
+
+    const result = removeRwaTokens([tokenA, tokenB]);
+
+    expect(result.map((t) => t.symbol)).toEqual(['ETH', 'LINK']);
+  });
+
+  it('returns an empty array when given an empty array', () => {
+    expect(removeRwaTokens([])).toEqual([]);
   });
 });
 
@@ -380,16 +425,15 @@ describe('BatchSellTokenSelect', () => {
       createToken({ symbol: 'ETHA', name: 'Ethereum A', tokenFiatAmount: 10 }),
     ];
     mockUseTokensWithBalance.mockImplementation(
-      (options?: { chainIds?: CaipChainId[] }) => {
-        if (!options?.chainIds) {
-          return mockWalletTokens;
-        }
-
-        return mockWalletTokens.filter((token) =>
-          options.chainIds?.includes(
-            formatChainIdToCaip(token.chainId) as CaipChainId,
-          ),
-        );
+      (params?: { chainIds?: CaipChainId[] }) => {
+        const tokens = !params?.chainIds
+          ? mockWalletTokens
+          : mockWalletTokens.filter((token) =>
+              params.chainIds?.includes(
+                formatChainIdToCaip(token.chainId) as CaipChainId,
+              ),
+            );
+        return { tokens, isRwaDataLoading: false };
       },
     );
   });
@@ -486,9 +530,12 @@ describe('BatchSellTokenSelect', () => {
       <BatchSellTokenSelect />,
     );
 
-    expect(mockUseTokensWithBalance).toHaveBeenCalledWith({
-      chainIds: SUPPORTED_BATCH_SELL_CHAIN_IDS,
-    });
+    expect(mockUseTokensWithBalance).toHaveBeenCalledWith(
+      {
+        chainIds: SUPPORTED_BATCH_SELL_CHAIN_IDS,
+      },
+      { shouldFetchTokenData: true },
+    );
     expect(
       getByTestId(getNetworkPillTestId('eip155:1' as CaipChainId)),
     ).toBeOnTheScreen();
@@ -682,6 +729,26 @@ describe('BatchSellTokenSelect', () => {
     ).toBeOnTheScreen();
     expect(
       queryByTestId(BatchSellTokenSelectSelectorsIDs.NEXT_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows loading skeletons and not the empty state while RWA data loads', () => {
+    mockUseTokensWithBalance.mockReturnValue({
+      tokens: mockWalletTokens,
+      isRwaDataLoading: true,
+    });
+
+    const { getByTestId, queryByTestId } = render(<BatchSellTokenSelect />);
+
+    expect(
+      getByTestId(BatchSellTokenSelectSelectorsIDs.TOKEN_LIST),
+    ).toBeOnTheScreen();
+    // The empty state must not flash while RWA status is still unknown.
+    expect(
+      queryByTestId(BatchSellTokenSelectSelectorsIDs.EMPTY_STATE),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(`${BatchSellTokenSelectSelectorsIDs.TOKEN_ROW}-ETHA`),
     ).not.toBeOnTheScreen();
   });
 

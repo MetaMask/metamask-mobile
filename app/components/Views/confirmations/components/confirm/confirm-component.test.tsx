@@ -142,7 +142,11 @@ jest.mock('react-native-gzip', () => ({
 }));
 
 jest.mock('../../../../UI/Bridge/hooks/useTokensWithBalance', () => ({
-  useTokensWithBalance: () => [] as ReturnType<typeof useTokensWithBalance>,
+  useTokensWithBalance: () =>
+    ({
+      tokens: [],
+      isRwaDataLoading: false,
+    }) as ReturnType<typeof useTokensWithBalance>,
 }));
 
 jest.mock('../../../../../core/redux/slices/bridge', () => ({

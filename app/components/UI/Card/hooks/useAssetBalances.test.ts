@@ -25,7 +25,10 @@ jest.mock('../../../../selectors/assets/assets-list', () => ({
   selectAsset: jest.fn(),
 }));
 jest.mock('../../Bridge/hooks/useTokensWithBalance', () => ({
-  useTokensWithBalance: jest.fn(() => []),
+  useTokensWithBalance: jest.fn(() => ({
+    tokens: [],
+    isRwaDataLoading: false,
+  })),
 }));
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -163,7 +166,10 @@ describe('useAssetBalances', () => {
     });
 
     mockSelectAsset.mockReturnValue(undefined);
-    mockUseTokensWithBalance.mockReturnValue([]);
+    mockUseTokensWithBalance.mockReturnValue({
+      tokens: [],
+      isRwaDataLoading: false,
+    });
     mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
       balanceFiat: '$1,000.00',
       balanceValueFormatted: '1.0 USDC',
@@ -333,16 +339,19 @@ describe('useAssetBalances', () => {
           },
       };
 
-      mockUseTokensWithBalance.mockReturnValue([
-        {
-          address: mockNotEnabledToken.address?.toLowerCase() || '',
-          chainId: mockNotEnabledToken.caipChainId,
-          balance: '100.0',
-          balanceFiat: '$100.00',
-          symbol: 'DAI',
-          decimals: 18,
-        } as any,
-      ]);
+      mockUseTokensWithBalance.mockReturnValue({
+        tokens: [
+          {
+            address: mockNotEnabledToken.address?.toLowerCase() || '',
+            chainId: mockNotEnabledToken.caipChainId,
+            balance: '100.0',
+            balanceFiat: '$100.00',
+            symbol: 'DAI',
+            decimals: 18,
+          } as any,
+        ],
+        isRwaDataLoading: false,
+      });
 
       const { result } = renderHook(() => useAssetBalances(tokens));
 
@@ -397,16 +406,19 @@ describe('useAssetBalances', () => {
         spendableBalance: '',
       };
 
-      mockUseTokensWithBalance.mockReturnValue([
-        {
-          address: mockEvmToken.address?.toLowerCase() || '',
-          chainId: '0xe708', // Use hex format, not CAIP format
-          balance: '250.75',
-          balanceFiat: '$250.75',
-          symbol: 'USDC',
-          decimals: 18,
-        } as any,
-      ]);
+      mockUseTokensWithBalance.mockReturnValue({
+        tokens: [
+          {
+            address: mockEvmToken.address?.toLowerCase() || '',
+            chainId: '0xe708', // Use hex format, not CAIP format
+            balance: '250.75',
+            balanceFiat: '$250.75',
+            symbol: 'USDC',
+            decimals: 18,
+          } as any,
+        ],
+        isRwaDataLoading: false,
+      });
 
       const { result } = renderHook(() => useAssetBalances([enabledToken]));
 
@@ -423,7 +435,10 @@ describe('useAssetBalances', () => {
         spendableBalance: '',
       };
 
-      mockUseTokensWithBalance.mockReturnValue([]);
+      mockUseTokensWithBalance.mockReturnValue({
+        tokens: [],
+        isRwaDataLoading: false,
+      });
 
       const walletAsset = {
         address: mockEvmToken.address,
@@ -485,7 +500,10 @@ describe('useAssetBalances', () => {
         spendableBalance: '',
       };
 
-      mockUseTokensWithBalance.mockReturnValue([]);
+      mockUseTokensWithBalance.mockReturnValue({
+        tokens: [],
+        isRwaDataLoading: false,
+      });
       mockSelectAsset.mockReturnValue(undefined);
 
       const { result } = renderHook(() => useAssetBalances([enabledToken]));
@@ -497,16 +515,19 @@ describe('useAssetBalances', () => {
     });
 
     it('uses filteredToken balance for non-enabled tokens', () => {
-      mockUseTokensWithBalance.mockReturnValue([
-        {
-          address: mockNotEnabledToken.address?.toLowerCase() || '',
-          chainId: '0xe708', // Use hex format, not CAIP format
-          balance: '200.75',
-          balanceFiat: '$200.75',
-          symbol: 'DAI',
-          decimals: 18,
-        } as any,
-      ]);
+      mockUseTokensWithBalance.mockReturnValue({
+        tokens: [
+          {
+            address: mockNotEnabledToken.address?.toLowerCase() || '',
+            chainId: '0xe708', // Use hex format, not CAIP format
+            balance: '200.75',
+            balanceFiat: '$200.75',
+            symbol: 'DAI',
+            decimals: 18,
+          } as any,
+        ],
+        isRwaDataLoading: false,
+      });
 
       const { result } = renderHook(() =>
         useAssetBalances([mockNotEnabledToken]),
@@ -519,7 +540,10 @@ describe('useAssetBalances', () => {
     });
 
     it('uses walletAsset balance when non-enabled token has no filteredToken', () => {
-      mockUseTokensWithBalance.mockReturnValue([]);
+      mockUseTokensWithBalance.mockReturnValue({
+        tokens: [],
+        isRwaDataLoading: false,
+      });
 
       const walletAsset = {
         address: mockNotEnabledToken.address,
@@ -603,7 +627,10 @@ describe('useAssetBalances', () => {
         spendableBalance: '',
       };
 
-      mockUseTokensWithBalance.mockReturnValue([]);
+      mockUseTokensWithBalance.mockReturnValue({
+        tokens: [],
+        isRwaDataLoading: false,
+      });
       mockSelectAsset.mockReturnValue(undefined);
 
       const { result } = renderHook(() =>
@@ -640,16 +667,19 @@ describe('useAssetBalances', () => {
         spendableBalance: '',
       };
 
-      mockUseTokensWithBalance.mockReturnValue([
-        {
-          address: mockEvmToken.address?.toLowerCase() || '',
-          chainId: '0xe708', // Use hex format, not CAIP format
-          balance: '125.50',
-          balanceFiat: '$125.50',
-          symbol: 'USDC',
-          decimals: 18,
-        } as any,
-      ]);
+      mockUseTokensWithBalance.mockReturnValue({
+        tokens: [
+          {
+            address: mockEvmToken.address?.toLowerCase() || '',
+            chainId: '0xe708', // Use hex format, not CAIP format
+            balance: '125.50',
+            balanceFiat: '$125.50',
+            symbol: 'USDC',
+            decimals: 18,
+          } as any,
+        ],
+        isRwaDataLoading: false,
+      });
 
       const { result } = renderHook(() => useAssetBalances([limitedToken]));
 
@@ -666,7 +696,10 @@ describe('useAssetBalances', () => {
         spendableBalance: '',
       };
 
-      mockUseTokensWithBalance.mockReturnValue([]);
+      mockUseTokensWithBalance.mockReturnValue({
+        tokens: [],
+        isRwaDataLoading: false,
+      });
 
       const walletAsset = {
         address: mockEvmToken.address,
@@ -728,7 +761,10 @@ describe('useAssetBalances', () => {
         spendableBalance: '',
       };
 
-      mockUseTokensWithBalance.mockReturnValue([]);
+      mockUseTokensWithBalance.mockReturnValue({
+        tokens: [],
+        isRwaDataLoading: false,
+      });
       mockSelectAsset.mockReturnValue(undefined);
 
       const { result } = renderHook(() => useAssetBalances([limitedToken]));
@@ -1602,16 +1638,19 @@ describe('useAssetBalances', () => {
           spendableBalance: '',
         };
 
-        mockUseTokensWithBalance.mockReturnValue([
-          {
-            address: notEnabledToken.address?.toLowerCase() || '',
-            chainId: '0xe708',
-            balance: '0',
-            balanceFiat: 'tokenRateUndefined',
-            symbol: 'USDC',
-            decimals: 18,
-          } as any,
-        ]);
+        mockUseTokensWithBalance.mockReturnValue({
+          tokens: [
+            {
+              address: notEnabledToken.address?.toLowerCase() || '',
+              chainId: '0xe708',
+              balance: '0',
+              balanceFiat: 'tokenRateUndefined',
+              symbol: 'USDC',
+              decimals: 18,
+            } as any,
+          ],
+          isRwaDataLoading: false,
+        });
 
         mockFormatWithThreshold.mockReturnValue('$0.00');
 
@@ -1633,16 +1672,19 @@ describe('useAssetBalances', () => {
           spendableBalance: '',
         };
 
-        mockUseTokensWithBalance.mockReturnValue([
-          {
-            address: notEnabledToken.address?.toLowerCase() || '',
-            chainId: '0xe708',
-            balance: '100.5',
-            balanceFiat: 'tokenRateUndefined',
-            symbol: 'USDC',
-            decimals: 18,
-          } as any,
-        ]);
+        mockUseTokensWithBalance.mockReturnValue({
+          tokens: [
+            {
+              address: notEnabledToken.address?.toLowerCase() || '',
+              chainId: '0xe708',
+              balance: '100.5',
+              balanceFiat: 'tokenRateUndefined',
+              symbol: 'USDC',
+              decimals: 18,
+            } as any,
+          ],
+          isRwaDataLoading: false,
+        });
 
         const { result } = renderHook(() =>
           useAssetBalances([notEnabledToken]),
@@ -1664,16 +1706,19 @@ describe('useAssetBalances', () => {
           spendableBalance: '',
         };
 
-        mockUseTokensWithBalance.mockReturnValue([
-          {
-            address: notEnabledToken.address?.toLowerCase() || '',
-            chainId: '0xe708',
-            balance: '0',
-            balanceFiat: 'tokenBalanceLoading',
-            symbol: 'USDC',
-            decimals: 18,
-          } as any,
-        ]);
+        mockUseTokensWithBalance.mockReturnValue({
+          tokens: [
+            {
+              address: notEnabledToken.address?.toLowerCase() || '',
+              chainId: '0xe708',
+              balance: '0',
+              balanceFiat: 'tokenBalanceLoading',
+              symbol: 'USDC',
+              decimals: 18,
+            } as any,
+          ],
+          isRwaDataLoading: false,
+        });
 
         mockFormatWithThreshold.mockReturnValue('$0.00');
 
@@ -1695,16 +1740,19 @@ describe('useAssetBalances', () => {
           spendableBalance: '',
         };
 
-        mockUseTokensWithBalance.mockReturnValue([
-          {
-            address: notEnabledToken.address?.toLowerCase() || '',
-            chainId: '0xe708',
-            balance: '250.75',
-            balanceFiat: 'tokenBalanceLoading',
-            symbol: 'USDC',
-            decimals: 18,
-          } as any,
-        ]);
+        mockUseTokensWithBalance.mockReturnValue({
+          tokens: [
+            {
+              address: notEnabledToken.address?.toLowerCase() || '',
+              chainId: '0xe708',
+              balance: '250.75',
+              balanceFiat: 'tokenBalanceLoading',
+              symbol: 'USDC',
+              decimals: 18,
+            } as any,
+          ],
+          isRwaDataLoading: false,
+        });
 
         const { result } = renderHook(() =>
           useAssetBalances([notEnabledToken]),
@@ -1726,16 +1774,19 @@ describe('useAssetBalances', () => {
           spendableBalance: '',
         };
 
-        mockUseTokensWithBalance.mockReturnValue([
-          {
-            address: notEnabledToken.address?.toLowerCase() || '',
-            chainId: '0xe708',
-            balance: '100.5',
-            balanceFiat: '55.61632 usd',
-            symbol: 'USDC',
-            decimals: 18,
-          } as any,
-        ]);
+        mockUseTokensWithBalance.mockReturnValue({
+          tokens: [
+            {
+              address: notEnabledToken.address?.toLowerCase() || '',
+              chainId: '0xe708',
+              balance: '100.5',
+              balanceFiat: '55.61632 usd',
+              symbol: 'USDC',
+              decimals: 18,
+            } as any,
+          ],
+          isRwaDataLoading: false,
+        });
 
         mockFormatWithThreshold.mockReturnValue('$55.62');
 
@@ -1766,16 +1817,19 @@ describe('useAssetBalances', () => {
           spendableBalance: '',
         };
 
-        mockUseTokensWithBalance.mockReturnValue([
-          {
-            address: notEnabledToken.address?.toLowerCase() || '',
-            chainId: '0xe708',
-            balance: '1000',
-            balanceFiat: '1,234.56 usd',
-            symbol: 'USDC',
-            decimals: 18,
-          } as any,
-        ]);
+        mockUseTokensWithBalance.mockReturnValue({
+          tokens: [
+            {
+              address: notEnabledToken.address?.toLowerCase() || '',
+              chainId: '0xe708',
+              balance: '1000',
+              balanceFiat: '1,234.56 usd',
+              symbol: 'USDC',
+              decimals: 18,
+            } as any,
+          ],
+          isRwaDataLoading: false,
+        });
 
         mockFormatWithThreshold.mockReturnValue('$1,234.56');
 
@@ -1797,16 +1851,19 @@ describe('useAssetBalances', () => {
           spendableBalance: '',
         };
 
-        mockUseTokensWithBalance.mockReturnValue([
-          {
-            address: notEnabledToken.address?.toLowerCase() || '',
-            chainId: '0xe708',
-            balance: '100.5',
-            balanceFiat: '55.61632 brl',
-            symbol: 'USDC',
-            decimals: 18,
-          } as any,
-        ]);
+        mockUseTokensWithBalance.mockReturnValue({
+          tokens: [
+            {
+              address: notEnabledToken.address?.toLowerCase() || '',
+              chainId: '0xe708',
+              balance: '100.5',
+              balanceFiat: '55.61632 brl',
+              symbol: 'USDC',
+              decimals: 18,
+            } as any,
+          ],
+          isRwaDataLoading: false,
+        });
 
         mockFormatWithThreshold.mockReturnValue('R$ 55,62');
 
@@ -1884,7 +1941,10 @@ describe('useAssetBalances', () => {
           return 'USD';
         });
 
-        mockUseTokensWithBalance.mockReturnValue([]);
+        mockUseTokensWithBalance.mockReturnValue({
+          tokens: [],
+          isRwaDataLoading: false,
+        });
         mockFormatWithThreshold.mockReturnValue('$0.00');
 
         const { result } = renderHook(() =>
@@ -1950,7 +2010,10 @@ describe('useAssetBalances', () => {
           return 'USD';
         });
 
-        mockUseTokensWithBalance.mockReturnValue([]);
+        mockUseTokensWithBalance.mockReturnValue({
+          tokens: [],
+          isRwaDataLoading: false,
+        });
 
         const { result } = renderHook(() =>
           useAssetBalances([notEnabledToken]),
@@ -2017,7 +2080,10 @@ describe('useAssetBalances', () => {
           return 'USD';
         });
 
-        mockUseTokensWithBalance.mockReturnValue([]);
+        mockUseTokensWithBalance.mockReturnValue({
+          tokens: [],
+          isRwaDataLoading: false,
+        });
         mockFormatWithThreshold.mockReturnValue('$15.62');
 
         const { result } = renderHook(() =>
@@ -2083,7 +2149,10 @@ describe('useAssetBalances', () => {
           return 'USD';
         });
 
-        mockUseTokensWithBalance.mockReturnValue([]);
+        mockUseTokensWithBalance.mockReturnValue({
+          tokens: [],
+          isRwaDataLoading: false,
+        });
         mockFormatWithThreshold.mockReturnValue('R$ 15,62');
 
         const { result } = renderHook(() =>

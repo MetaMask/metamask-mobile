@@ -226,7 +226,7 @@ const useSpendingLimit = ({
   // Using this (instead of useAssetBalances) ensures sorting reflects the active
   // account's real wallet balance — not the card's availableBalance or another
   // account's cached data — so account switches are reflected immediately.
-  const walletTokens = useTokensWithBalance({
+  const { tokens: walletTokens } = useTokensWithBalance({
     chainIds: CARD_CHAIN_IDS,
   });
 
@@ -243,7 +243,9 @@ const useSpendingLimit = ({
       ] as (Hex | CaipChainId)[],
     [evmNetworkConfigs],
   );
-  const allWalletTokens = useTokensWithBalance({ chainIds: allWalletChainIds });
+  const { tokens: allWalletTokens } = useTokensWithBalance({
+    chainIds: allWalletChainIds,
+  });
 
   const applySelectedToken = useCallback((token: CardFundingToken) => {
     const nextLimitState = deriveLimitStateFromToken(token);

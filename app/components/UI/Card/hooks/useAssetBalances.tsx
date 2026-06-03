@@ -89,7 +89,7 @@ export interface AssetBalanceInfo {
 export const useAssetBalances = (
   tokens: CardFundingToken[],
 ): Map<string, AssetBalanceInfo> => {
-  const tokensWithBalance = useTokensWithBalance({
+  const { tokens: tokensWithBalance } = useTokensWithBalance({
     chainIds: CARD_CHAIN_IDS,
   });
 

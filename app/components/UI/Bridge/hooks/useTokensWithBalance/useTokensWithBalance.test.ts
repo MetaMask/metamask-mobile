@@ -3,6 +3,7 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import { useTokensWithBalance } from '.';
 import { constants } from 'ethers';
 import { waitFor } from '@testing-library/react-native';
+import { handleFetch } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';
 
@@ -10,6 +11,13 @@ jest.mock('../../../Tokens/util', () => ({
   ...jest.requireActual('../../../Tokens/util'),
   sortAssets: jest.fn().mockImplementation((assets) => assets),
 }));
+
+jest.mock('@metamask/controller-utils', () => ({
+  ...jest.requireActual('@metamask/controller-utils'),
+  handleFetch: jest.fn().mockResolvedValue([]),
+}));
+
+const mockHandleFetch = handleFetch as jest.Mock;
 
 describe('useTokensWithBalance', () => {
   const mockAddress = '0x1234567890123456789012345678901234567890' as Hex;
@@ -22,6 +30,7 @@ describe('useTokensWithBalance', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockHandleFetch.mockResolvedValue([]);
   });
 
   it('should include native token with correct properties', async () => {
@@ -36,7 +45,7 @@ describe('useTokensWithBalance', () => {
     );
 
     await waitFor(() => {
-      const nativeToken = result.current.find(
+      const nativeToken = result.current.tokens.find(
         (token) =>
           token.address === constants.AddressZero &&
           token.chainId === mockChainId,
@@ -54,6 +63,25 @@ describe('useTokensWithBalance', () => {
     });
   });
 
+  it('does not fetch RWA data by default', async () => {
+    const { result } = renderHookWithProvider(
+      () =>
+        useTokensWithBalance({
+          chainIds: [mockChainId],
+        }),
+      {
+        state: initialState,
+      },
+    );
+
+    await waitFor(() => {
+      expect(result.current.tokens.length).toBeGreaterThan(0);
+    });
+
+    expect(result.current.isRwaDataLoading).toBe(false);
+    expect(mockHandleFetch).not.toHaveBeenCalled();
+  });
+
   it('should show correct balances and fiat values for tokens', async () => {
     const { result } = renderHookWithProvider(
       () =>
@@ -67,10 +95,10 @@ describe('useTokensWithBalance', () => {
 
     await waitFor(() => {
       // Ethereum chain tokens
-      const token1 = result.current.find(
+      const token1 = result.current.tokens.find(
         (t) => t.address === token1Address && t.chainId === mockChainId,
       );
-      const token2 = result.current.find(
+      const token2 = result.current.tokens.find(
         (t) => t.address === token2Address && t.chainId === mockChainId,
       );
 
@@ -87,7 +115,7 @@ describe('useTokensWithBalance', () => {
       });
 
       // Optimism chain tokens
-      const optimismNative = result.current.find(
+      const optimismNative = result.current.tokens.find(
         (token) =>
           token.address === constants.AddressZero &&
           token.chainId === optimismChainId,
@@ -101,7 +129,9 @@ describe('useTokensWithBalance', () => {
         tokenFiatAmount: 40000,
       });
 
-      const token3 = result.current.find((t) => t.address === token3Address);
+      const token3 = result.current.tokens.find(
+        (t) => t.address === token3Address,
+      );
       expect(token3).toMatchObject({
         address: token3Address,
         symbol: 'FOO',
@@ -127,31 +157,37 @@ describe('useTokensWithBalance', () => {
 
     await waitFor(() => {
       // Ethereum tokens should be present
-      const ethereumNative = result.current.find(
+      const ethereumNative = result.current.tokens.find(
         (token) =>
           token.address === constants.AddressZero &&
           token.chainId === mockChainId,
       );
-      const token1 = result.current.find((t) => t.address === token1Address);
-      const token2 = result.current.find((t) => t.address === token2Address);
+      const token1 = result.current.tokens.find(
+        (t) => t.address === token1Address,
+      );
+      const token2 = result.current.tokens.find(
+        (t) => t.address === token2Address,
+      );
 
       expect(ethereumNative).toBeTruthy();
       expect(token1).toBeTruthy();
       expect(token2).toBeTruthy();
 
       // Optimism tokens should not be present
-      const optimismNative = result.current.find(
+      const optimismNative = result.current.tokens.find(
         (token) =>
           token.address === constants.AddressZero &&
           token.chainId === optimismChainId,
       );
-      const token3 = result.current.find((t) => t.address === token3Address);
+      const token3 = result.current.tokens.find(
+        (t) => t.address === token3Address,
+      );
 
       expect(optimismNative).toBeUndefined();
       expect(token3).toBeUndefined();
 
       // Verify the total number of tokens is correct (should only have Ethereum tokens)
-      expect(result.current.length).toBe(3); // ETH native + TOKEN1 + TOKEN2
+      expect(result.current.tokens.length).toBe(3); // ETH native + TOKEN1 + TOKEN2
     });
   });
 
@@ -198,20 +234,24 @@ describe('useTokensWithBalance', () => {
     );
 
     await waitFor(() => {
-      const ethereumNative = result.current.find(
+      const ethereumNative = result.current.tokens.find(
         (token) =>
           token.address === constants.AddressZero &&
           token.chainId === mockChainId,
       );
-      const token1 = result.current.find((t) => t.address === token1Address);
-      const token2 = result.current.find((t) => t.address === token2Address);
+      const token1 = result.current.tokens.find(
+        (t) => t.address === token1Address,
+      );
+      const token2 = result.current.tokens.find(
+        (t) => t.address === token2Address,
+      );
 
       expect(ethereumNative).toBeUndefined();
       expect(token1).toMatchObject({
         balance: '1.0',
       });
       expect(token2).toBeUndefined();
-      expect(result.current.length).toBe(1);
+      expect(result.current.tokens.length).toBe(1);
     });
   });
 
@@ -249,11 +289,106 @@ describe('useTokensWithBalance', () => {
     );
 
     await waitFor(() => {
-      const token1 = result.current.find((t) => t.address === token1Address);
+      const token1 = result.current.tokens.find(
+        (t) => t.address === token1Address,
+      );
       expect(token1?.balanceFiat).toBe('$0.00');
 
-      const token3 = result.current.find((t) => t.address === token3Address);
+      const token3 = result.current.tokens.find(
+        (t) => t.address === token3Address,
+      );
       expect(token3?.balanceFiat).toBe('$0.00');
+    });
+  });
+
+  describe('rwaData enrichment', () => {
+    // token1 on Ethereum, lowercased CAIP-19 asset ID as built by the hook.
+    const token1AssetId = `eip155:1/erc20:${token1Address}`.toLowerCase();
+    const rwaData = { instrumentType: 'stock' };
+
+    it('enriches tokens with rwaData fetched from the API', async () => {
+      mockHandleFetch.mockResolvedValue([
+        {
+          assetId: token1AssetId,
+          name: 'Token 1',
+          symbol: 'T1',
+          iconUrl: '',
+          rwaData,
+        },
+      ]);
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useTokensWithBalance(
+            {
+              chainIds: [mockChainId],
+            },
+            { shouldFetchTokenData: true },
+          ),
+        { state: initialState },
+      );
+
+      await waitFor(() => {
+        const token1 = result.current.tokens.find(
+          (t) => t.address === token1Address,
+        );
+        expect(token1?.rwaData).toEqual(rwaData);
+      });
+    });
+
+    it('keeps rwaData on remount when the asset is excluded from re-fetch', async () => {
+      // First mount confirms token1 as an RWA and populates the module-level cache.
+      mockHandleFetch.mockResolvedValue([
+        {
+          assetId: token1AssetId,
+          name: 'Token 1',
+          symbol: 'T1',
+          iconUrl: '',
+          rwaData,
+        },
+      ]);
+
+      const first = renderHookWithProvider(
+        () =>
+          useTokensWithBalance(
+            {
+              chainIds: [mockChainId],
+            },
+            { shouldFetchTokenData: true },
+          ),
+        { state: initialState },
+      );
+
+      await waitFor(() => {
+        const token1 = first.result.current.tokens.find(
+          (t) => t.address === token1Address,
+        );
+        expect(token1?.rwaData).toEqual(rwaData);
+      });
+
+      first.unmount();
+
+      // On remount token1 is cache-confirmed, so it is excluded from the fetch
+      // (which now returns nothing). rwaData must still resolve from the cache.
+      mockHandleFetch.mockResolvedValue([]);
+
+      const second = renderHookWithProvider(
+        () =>
+          useTokensWithBalance(
+            {
+              chainIds: [mockChainId],
+            },
+            { shouldFetchTokenData: true },
+          ),
+        { state: initialState },
+      );
+
+      await waitFor(() => {
+        const token1 = second.result.current.tokens.find(
+          (t) => t.address === token1Address,
+        );
+        expect(token1?.rwaData).toEqual(rwaData);
+      });
     });
   });
 });
