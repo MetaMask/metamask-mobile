@@ -76,7 +76,7 @@ const NewUserSheet: React.FC<NewUserSheetProps> = ({
         <Box twClassName="px-4">
           <Text
             variant={TextVariant.HeadingLg}
-            twClassName="mb-3 text-center"
+            twClassName="mb-2 text-center"
             testID={NewUserSheetSelectorsIDs.TITLE}
           >
             {strings('notifications.push_onboarding.new_user.title')}
