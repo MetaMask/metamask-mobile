@@ -1,15 +1,11 @@
 import React, { useRef, useCallback } from 'react';
-import { Image } from 'react-native';
-import MaskedView from '@react-native-masked-view/masked-view';
-import LinearGradient from 'react-native-linear-gradient';
-import {
-  Theme,
-  useTailwind,
-  useTheme,
-} from '@metamask/design-system-twrnc-preset';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../component-library/components/Buttons/ButtonIcon';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import {
   Box,
   Button,
@@ -17,11 +13,10 @@ import {
   ButtonSize,
   Text,
   TextVariant,
-  FontWeight,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { NewUserSheetSelectorsIDs } from './NewUserSheet.testIds';
-import FoxImage from '../../../../../images/branding/fox.png';
+import NotifCard from '../NotifCard';
 
 export interface NewUserSheetProps {
   isVisible: boolean;
@@ -29,75 +24,6 @@ export interface NewUserSheetProps {
   onYes?: () => void;
   onNotNow?: () => void;
   testID?: string;
-}
-
-interface NotifCardProps {
-  eyebrow: string;
-  timestamp: string;
-  title: string;
-  message: string;
-  faded?: boolean;
-}
-
-function NotifCard({
-  eyebrow,
-  timestamp,
-  title,
-  message,
-  faded,
-}: NotifCardProps) {
-  const tw = useTailwind();
-  const theme = useTheme();
-  const cardBackgroundClass =
-    theme === Theme.Light ? 'bg-section' : 'bg-subsection';
-
-  const card = (
-    <Box
-      twClassName={`flex-row items-start gap-3 rounded-[14px] border border-muted ${cardBackgroundClass} px-[14px] py-3`}
-    >
-      <Box twClassName="h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white">
-        <Image
-          source={FoxImage}
-          style={tw.style('h-[22px] w-[22px]')}
-          resizeMode="contain"
-        />
-      </Box>
-      <Box twClassName="min-w-0 flex-1">
-        <Box twClassName="mb-0.5 flex-row justify-between">
-          <Text variant={TextVariant.BodyXs} twClassName="text-alternative">
-            {eyebrow}
-          </Text>
-          <Text variant={TextVariant.BodyXs} twClassName="text-alternative">
-            {timestamp}
-          </Text>
-        </Box>
-        <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Bold}>
-          {title}
-        </Text>
-        <Text variant={TextVariant.BodySm} twClassName="mt-0.5 text-default">
-          {message}
-        </Text>
-      </Box>
-    </Box>
-  );
-
-  if (!faded) {
-    return card;
-  }
-
-  return (
-    <MaskedView
-      maskElement={
-        <LinearGradient
-          colors={['black', 'black', 'transparent']}
-          locations={[0, 0.33, 1]}
-          style={tw.style('flex-1')}
-        />
-      }
-    >
-      {card}
-    </MaskedView>
-  );
 }
 
 const NewUserSheet: React.FC<NewUserSheetProps> = ({
@@ -136,36 +62,15 @@ const NewUserSheet: React.FC<NewUserSheetProps> = ({
       testID={testID ?? NewUserSheetSelectorsIDs.CONTAINER}
     >
       <Box twClassName="px-6 pb-8 pt-6">
-        <Box twClassName="mb-6 gap-2">
-          <NotifCard
-            eyebrow={strings(
-              'notifications.push_onboarding.new_user.preview_card_1.eyebrow',
-            )}
-            timestamp={strings(
-              'notifications.push_onboarding.new_user.preview_card_1.time',
-            )}
-            title={strings(
-              'notifications.push_onboarding.new_user.preview_card_1.title',
-            )}
-            message={strings(
-              'notifications.push_onboarding.new_user.preview_card_1.message',
-            )}
+        <Box twClassName="mb-2 items-end">
+          <ButtonIcon
+            iconName={IconName.Close}
+            size={ButtonIconSizes.Sm}
+            onPress={() => bottomSheetRef.current?.onCloseBottomSheet()}
           />
-          <NotifCard
-            eyebrow={strings(
-              'notifications.push_onboarding.new_user.preview_card_2.eyebrow',
-            )}
-            timestamp={strings(
-              'notifications.push_onboarding.new_user.preview_card_2.time',
-            )}
-            title={strings(
-              'notifications.push_onboarding.new_user.preview_card_2.title',
-            )}
-            message={strings(
-              'notifications.push_onboarding.new_user.preview_card_2.message',
-            )}
-            faded
-          />
+        </Box>
+        <Box twClassName="mb-6">
+          <NotifCard />
         </Box>
 
         <Text
@@ -196,11 +101,10 @@ const NewUserSheet: React.FC<NewUserSheetProps> = ({
             {strings('notifications.push_onboarding.new_user.button_yes')}
           </Button>
           <Button
-            variant={ButtonVariant.Secondary}
+            variant={ButtonVariant.Tertiary}
             size={ButtonSize.Lg}
             isFullWidth
             onPress={handleNotNow}
-            twClassName="rounded-xl"
             testID={NewUserSheetSelectorsIDs.BUTTON_NOT_NOW}
           >
             {strings('notifications.push_onboarding.new_user.button_not_now')}

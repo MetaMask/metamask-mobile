@@ -2,6 +2,10 @@ import React, { useRef, useCallback } from 'react';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../component-library/components/Buttons/ButtonIcon';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import {
   Box,
   Button,
@@ -9,10 +13,10 @@ import {
   ButtonSize,
   Text,
   TextVariant,
-  FontWeight,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { ExistingUserSheetSelectorsIDs } from './ExistingUserSheet.testIds';
+import NotifCard from '../NotifCard';
 
 export interface ExistingUserSheetProps {
   isVisible: boolean;
@@ -58,6 +62,17 @@ const ExistingUserSheet: React.FC<ExistingUserSheetProps> = ({
       testID={testID ?? ExistingUserSheetSelectorsIDs.CONTAINER}
     >
       <Box twClassName="px-6 pb-8 pt-6">
+        <Box twClassName="mb-2 items-end">
+          <ButtonIcon
+            iconName={IconName.Close}
+            size={ButtonIconSizes.Sm}
+            onPress={() => bottomSheetRef.current?.onCloseBottomSheet()}
+          />
+        </Box>
+        <Box twClassName="mb-6">
+          <NotifCard />
+        </Box>
+
         <Text
           variant={TextVariant.HeadingMd}
           twClassName="mb-3 text-center"
@@ -74,24 +89,6 @@ const ExistingUserSheet: React.FC<ExistingUserSheetProps> = ({
           {strings('notifications.push_onboarding.existing_user.body')}
         </Text>
 
-        <Box
-          twClassName="mb-6 rounded-xl bg-section p-4"
-          testID={ExistingUserSheetSelectorsIDs.CONSENT_CARD}
-        >
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Bold}
-            twClassName="mb-2"
-          >
-            {strings('notifications.push_onboarding.existing_user.card_title')}
-          </Text>
-          <Text variant={TextVariant.BodySm} twClassName="text-alternative">
-            {strings(
-              'notifications.push_onboarding.existing_user.card_description',
-            )}
-          </Text>
-        </Box>
-
         <Box twClassName="gap-3">
           <Button
             variant={ButtonVariant.Primary}
@@ -106,7 +103,7 @@ const ExistingUserSheet: React.FC<ExistingUserSheetProps> = ({
             )}
           </Button>
           <Button
-            variant={ButtonVariant.Secondary}
+            variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             isFullWidth
             onPress={handleNotNow}
