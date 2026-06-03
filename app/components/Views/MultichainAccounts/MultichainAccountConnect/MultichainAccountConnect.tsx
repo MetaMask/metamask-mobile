@@ -51,13 +51,12 @@ import {
   AccountConnectProps,
   AccountConnectScreens,
   NetworkAvatarProps,
-  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-} from '../../AccountConnect/AccountConnect.types.ts';
+} from '../../MultichainAccounts/shared/AccountConnect.types.ts';
+import { getNetworkImageSource } from '../../../../util/networks/index.js';
 import {
   AvatarSize,
   AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar';
-import { getNetworkImageSource } from '../../../../util/networks/index.js';
 import {
   EvmAndMultichainNetworkConfigurationsWithCaipChainId,
   getSelectedMultichainNetwork,
@@ -69,8 +68,7 @@ import {
   getCaip25PermissionsResponse,
   getRequestedCaip25CaveatValue,
   mergeCaip25Values,
-  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-} from '../../AccountConnect/utils.ts';
+} from '../../MultichainAccounts/shared/utils.ts';
 import { getPhishingTestResultAsync } from '../../../../util/phishingDetection.ts';
 import {
   CaipAccountId,
@@ -95,8 +93,7 @@ import { AccountGroupId } from '@metamask/account-api';
 import MultichainPermissionsSummary, {
   MultichainPermissionsSummaryProps,
 } from '../MultichainPermissionsSummary/MultichainPermissionsSummary.tsx';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import AccountConnectMaliciousWarning from '../../AccountConnect/AccountConnectMaliciousWarning/AccountConnectMaliciousWarning';
+import AccountConnectMaliciousWarning from '../../MultichainAccounts/shared/AccountConnectMaliciousWarning/AccountConnectMaliciousWarning';
 import MultichainAccountConnectMultiSelector from './MultichainAccountConnectMultiSelector/MultichainAccountConnectMultiSelector.tsx';
 import { getPermissions } from '../../../../selectors/snaps/index.ts';
 import { useSDKV2Connection } from '../../../hooks/useSDKV2Connection';
