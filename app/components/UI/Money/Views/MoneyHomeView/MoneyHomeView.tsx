@@ -309,18 +309,22 @@ const MoneyHomeView = () => {
         />
         <MoneyOnboardingCard />
         {isOnboardingCardVisible && <Divider />}
-        {/* Only show earnings if balance is available */}
-        {displayState.kind === 'balance' && (
-          <>
-            <MoneyEarnings
-              monthlyEarnings={monthlyEarnings}
-              yearlyEarnings={yearlyEarnings}
-              isLoading={vaultApyQuery.isLoading || isAggregatedBalanceLoading}
-              onInfoPress={handleEarningsInfoPress}
-            />
-            <Divider />
-          </>
-        )}
+        {/* Only show earnings if balance is available and non-zero */}
+        {displayState.kind === 'balance' &&
+          totalFiatRaw &&
+          !new BigNumber(totalFiatRaw).isZero() && (
+            <>
+              <MoneyEarnings
+                monthlyEarnings={monthlyEarnings}
+                yearlyEarnings={yearlyEarnings}
+                isLoading={
+                  vaultApyQuery.isLoading || isAggregatedBalanceLoading
+                }
+                onInfoPress={handleEarningsInfoPress}
+              />
+              <Divider />
+            </>
+          )}
         {!isMilestone && (
           <>
             <MoneyHowItWorks
@@ -341,11 +345,7 @@ const MoneyHomeView = () => {
             <MoneyActivityList
               transactions={allTransactions}
               moneyAddress={moneyAddress}
-              onViewAllPress={
-                allTransactions.length < 5
-                  ? undefined
-                  : handleViewAllActivityPress
-              }
+              onViewAllPress={handleViewAllActivityPress}
               onHeaderPress={handleActivityHeaderPress}
               onItemPress={
                 mockDataEnabled ? undefined : handleActivityItemPress
@@ -390,13 +390,10 @@ const MoneyHomeView = () => {
           </>
         )}
         {!isMilestone && (
-          <>
-            <MoneyWhatYouGet
-              apy={apyPercent}
-              onLearnMorePress={handleLearnMorePress}
-            />
-            <Divider />
-          </>
+          <MoneyWhatYouGet
+            apy={apyPercent}
+            onLearnMorePress={handleLearnMorePress}
+          />
         )}
         <MoneyFooter onAddMoneyPress={handleAddPress} />
       </ScrollView>
