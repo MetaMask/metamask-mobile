@@ -63,6 +63,10 @@ jest.mock('../../UI/QRHardware/QRSigningTransactionModal', () => ({
   createQRSigningTransactionModalNavDetails: jest
     .fn()
     .mockReturnValue(['QRSigningModal', {}]),
+  QRSignMode: {
+    SpeedUp: 'speedup',
+    Cancel: 'cancel',
+  },
 }));
 
 jest.mock('@metamask/rpc-errors', () => ({

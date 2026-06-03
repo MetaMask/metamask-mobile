@@ -60,7 +60,10 @@ import {
   normalizeReplacementGasFeeParams,
 } from '../../../util/confirmation/gas';
 import { validateTransactionActionBalance } from '../../../util/transactions';
-import { createQRSigningTransactionModalNavDetails } from '../../UI/QRHardware/QRSigningTransactionModal';
+import {
+  createQRSigningTransactionModalNavDetails,
+  QRSignMode,
+} from '../../UI/QRHardware/QRSigningTransactionModal';
 import { CancelSpeedupModal } from '../../Views/confirmations/components/modals/cancel-speedup-modal';
 import PriceChartContext, {
   PriceChartProvider,
@@ -607,6 +610,11 @@ class Transactions extends PureComponent {
         ExtendedKeyringTypes.ledger,
       ]);
 
+      const isQRHardwareAccount = isHardwareAccount(
+        this.props.selectedAddress,
+        [ExtendedKeyringTypes.qr],
+      );
+
       const rawParams = this.getParamsToSend(transactionObject);
       const params = getGasValuesForReplacement(
         rawParams,
@@ -626,6 +634,23 @@ class Transactions extends PureComponent {
         });
         // The shared hardware-wallet flow closes the modal itself on success
         // or rejection.
+        return;
+      }
+
+      if (isQRHardwareAccount) {
+        this.closeSpeedUpCancelModal();
+        this.props.navigation.navigate(
+          ...createQRSigningTransactionModalNavDetails({
+            transactionId: this.speedUpTxId,
+            signMode: QRSignMode.SpeedUp,
+            gasValues: params,
+            onConfirmationComplete: (confirmed) => {
+              if (confirmed) {
+                this.closeSpeedUpCancelModal();
+              }
+            },
+          }),
+        );
         return;
       }
 
@@ -723,6 +748,11 @@ class Transactions extends PureComponent {
         ExtendedKeyringTypes.ledger,
       ]);
 
+      const isQRHardwareAccount = isHardwareAccount(
+        this.props.selectedAddress,
+        [ExtendedKeyringTypes.qr],
+      );
+
       const rawParams = this.getParamsToSend(transactionObject);
       const params = getGasValuesForReplacement(
         rawParams,
@@ -742,6 +772,23 @@ class Transactions extends PureComponent {
         });
         // The shared hardware-wallet flow closes the modal itself on success
         // or rejection.
+        return;
+      }
+
+      if (isQRHardwareAccount) {
+        this.closeSpeedUpCancelModal();
+        this.props.navigation.navigate(
+          ...createQRSigningTransactionModalNavDetails({
+            transactionId: this.cancelTxId,
+            signMode: QRSignMode.Cancel,
+            gasValues: params,
+            onConfirmationComplete: (confirmed) => {
+              if (confirmed) {
+                this.closeSpeedUpCancelModal();
+              }
+            },
+          }),
+        );
         return;
       }
 

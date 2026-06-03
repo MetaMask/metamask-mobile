@@ -28,7 +28,10 @@ import {
 import { validateTransactionActionBalance } from '../../../util/transactions';
 import { LedgerReplacementTxTypes } from '../../UI/LedgerModals/LedgerTransactionModal';
 import { type ReplacementTxParams } from '../../../core/HardwareWallet/transactionReplacementParams';
-import { createQRSigningTransactionModalNavDetails } from '../../UI/QRHardware/QRSigningTransactionModal';
+import {
+  createQRSigningTransactionModalNavDetails,
+  QRSignMode,
+} from '../../UI/QRHardware/QRSigningTransactionModal';
 import {
   useHardwareWallet,
   executeHardwareWalletOperation,
@@ -99,6 +102,10 @@ export function useUnifiedTxActions() {
 
   const isLedgerAccount = isHardwareAccount(selectedAddress ?? '', [
     ExtendedKeyringTypes.ledger,
+  ]);
+
+  const isQRHardwareAccount = isHardwareAccount(selectedAddress ?? '', [
+    ExtendedKeyringTypes.qr,
   ]);
 
   const showTransactionUpdateErrorToast = useCallback(
@@ -295,6 +302,23 @@ export function useUnifiedTxActions() {
         return;
       }
 
+      if (isQRHardwareAccount) {
+        closeSpeedUpCancelModal();
+        navigation.navigate(
+          ...createQRSigningTransactionModalNavDetails({
+            transactionId: speedUpTxId,
+            signMode: QRSignMode.SpeedUp,
+            gasValues,
+            onConfirmationComplete: (confirmed: boolean) => {
+              if (confirmed) {
+                onSpeedUpCancelCompleted();
+              }
+            },
+          }),
+        );
+        return;
+      }
+
       await speedUpTx(speedUpTxId, gasValues);
       onSpeedUpCancelCompleted();
     } catch (error: unknown) {
@@ -331,6 +355,23 @@ export function useUnifiedTxActions() {
               : { legacyGasFee: gasValues }),
           },
         });
+        return;
+      }
+
+      if (isQRHardwareAccount) {
+        closeSpeedUpCancelModal();
+        navigation.navigate(
+          ...createQRSigningTransactionModalNavDetails({
+            transactionId: cancelTxId,
+            signMode: QRSignMode.Cancel,
+            gasValues,
+            onConfirmationComplete: (confirmed: boolean) => {
+              if (confirmed) {
+                onSpeedUpCancelCompleted();
+              }
+            },
+          }),
+        );
         return;
       }
 
