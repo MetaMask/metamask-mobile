@@ -14,6 +14,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { analytics } from '../../analytics/analytics';
 import { AnalyticsEventBuilder } from '../../analytics/AnalyticsEventBuilder';
 import { toFcmDataStringRecord } from '../utils/fcm-data';
+import { getSessionProfileId } from '../utils/get-session-profile-id';
 
 async function getInitialNotification() {
   // Tried many different approaches, but @react-native-firebase setup is unable to hold and track the initial open intent from a push notification
@@ -30,22 +31,25 @@ async function getInitialNotification() {
   return remoteMessage;
 }
 
-function analyticsTrackPushClickEvent(
+async function analyticsTrackPushClickEvent(
   remoteMessage?: FirebaseMessagingTypes.RemoteMessage | null,
 ) {
   try {
     const data = toFcmDataStringRecord(remoteMessage?.data);
     const payload = toPushAnalyticsPayload(data);
 
+    const properties = payload
+      ? {
+          ...payload,
+          profile_id: (await getSessionProfileId()) ?? payload.profile_id,
+        }
+      : { ...(data?.deeplink && { deeplink: data.deeplink }) };
+
     analytics.trackEvent(
       AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.PUSH_NOTIFICATION_CLICKED,
       )
-        .addProperties(
-          payload ?? {
-            ...(data?.deeplink && { deeplink: data.deeplink }),
-          },
-        )
+        .addProperties(properties)
         .build(),
     );
   } catch {
@@ -225,7 +229,7 @@ class FCMService {
   onClickPushNotificationWhenAppClosed = async () => {
     try {
       const remoteMessage = await getInitialNotification();
-      analyticsTrackPushClickEvent(remoteMessage);
+      await analyticsTrackPushClickEvent(remoteMessage);
       return toFcmDataStringRecord(remoteMessage?.data)?.deeplink ?? null;
     } catch {
       return null;
@@ -236,9 +240,9 @@ class FCMService {
     deeplinkCallback: (deeplink?: string) => void,
   ) => {
     try {
-      messaging().onNotificationOpenedApp((remoteMessage) => {
+      messaging().onNotificationOpenedApp(async (remoteMessage) => {
         try {
-          analyticsTrackPushClickEvent(remoteMessage);
+          await analyticsTrackPushClickEvent(remoteMessage);
           deeplinkCallback(
             toFcmDataStringRecord(remoteMessage?.data)?.deeplink,
           );
