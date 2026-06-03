@@ -296,6 +296,38 @@ describe('PredictPositionsView', () => {
     expect(payload).not.toHaveProperty('totalUnrealizedPnlAmount');
   });
 
+  it('waits for portfolio data before tracking Positions screen viewed', () => {
+    mockUsePredictPortfolio
+      .mockReturnValueOnce(
+        createPortfolio({
+          isLoading: true,
+        }),
+      )
+      .mockReturnValue(
+        createPortfolio({
+          claimablePositionCount: 3,
+          hasClaimableWinnings: true,
+          isLoading: false,
+          openPositionCount: 6,
+        }),
+      );
+
+    const { rerender } = renderScreen();
+
+    expect(mockTrackPositionsScreenViewed).not.toHaveBeenCalled();
+
+    rerender(<PredictPositionsView />);
+
+    expect(mockTrackPositionsScreenViewed).toHaveBeenCalledTimes(1);
+    expect(mockTrackPositionsScreenViewed).toHaveBeenCalledWith(
+      expectedPositionsAnalyticsContext({
+        claimablePositionsCount: 3,
+        hasClaimableWinnings: true,
+        openPositionsCount: 6,
+      }),
+    );
+  });
+
   it('tracks Active positions tab when the selected tab is pressed again', () => {
     renderScreen();
 

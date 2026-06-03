@@ -148,7 +148,7 @@ const PredictPositionsView = () => {
   }, [route.params?.initialTab]);
 
   useEffect(() => {
-    if (hasTrackedScreenViewedRef.current) {
+    if (portfolio.isLoading || hasTrackedScreenViewedRef.current) {
       return;
     }
 
@@ -156,7 +156,7 @@ const PredictPositionsView = () => {
       analyticsProperties,
     );
     hasTrackedScreenViewedRef.current = true;
-  }, [analyticsProperties]);
+  }, [analyticsProperties, portfolio.isLoading]);
 
   const trackTabViewed = useCallback(
     (tab: PredictPositionsTabKey) => {
