@@ -8,6 +8,7 @@ import type { JsonMap } from '../../../../../core/Analytics/MetaMetrics.types';
 import { SUPPORTED_UR_TYPE } from '../../../../../constants/qr';
 import { HardwareDeviceTypes } from '../../../../../constants/keyringTypes';
 import { QRHardwareScanErrorType } from '../../../../../core/HardwareWallet/errors';
+import type { UR } from '@ngraveio/bc-ur';
 
 import {
   getCapturedCallbacks,
@@ -91,7 +92,7 @@ function setupSuccessfulDecoder(urType = SUPPORTED_UR_TYPE.CRYPTO_HDKEY) {
 }
 
 describe('useAnimatedQrScanner', () => {
-  const mockOnScanSuccess = jest.fn(() => true);
+  const mockOnScanSuccess = jest.fn((_ur: UR) => true);
 
   beforeEach(() => {
     jest.clearAllMocks();

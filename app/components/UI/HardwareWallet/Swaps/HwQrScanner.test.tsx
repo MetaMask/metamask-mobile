@@ -1,6 +1,6 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { render, fireEvent, act } from '@testing-library/react-native';
+import { render, fireEvent, act, waitFor } from '@testing-library/react-native';
 import { HwQrScanner } from './HwQrScanner';
 import { HwQrScannerSelectorsIDs } from './HwQrScanner.testIds';
 import { useHardwareWallet } from '../../../../core/HardwareWallet';
@@ -66,6 +66,7 @@ const mockUseRoute = jest.fn();
 const mockResolvePendingScan = jest.fn();
 const mockRejectPendingScan = jest.fn();
 const mockSetRequestCompleted = jest.fn();
+const mockCancelQRScanRequestIfPresent = jest.fn();
 const mockUseAnimatedQrScanner = jest.fn();
 const mockReset = jest.fn();
 const mockOnError = jest.fn();
@@ -105,7 +106,7 @@ jest.mock('../../../../core/HardwareWallet', () => ({
         },
       },
       isSigningQRObject: true,
-      cancelQRScanRequestIfPresent: jest.fn(),
+      cancelQRScanRequestIfPresent: mockCancelQRScanRequestIfPresent,
       setRequestCompleted: mockSetRequestCompleted,
       isRequestCompleted: false,
     },
@@ -170,7 +171,7 @@ describe('HwQrScanner', () => {
           },
         },
         isSigningQRObject: true,
-        cancelQRScanRequestIfPresent: jest.fn(),
+        cancelQRScanRequestIfPresent: mockCancelQRScanRequestIfPresent,
         setRequestCompleted: mockSetRequestCompleted,
         isRequestCompleted: false,
       },
@@ -228,14 +229,15 @@ describe('HwQrScanner', () => {
   });
 
   describe('cancel', () => {
-    it('rejects pending scan and navigates back on cancel press', () => {
+    it('cancels pending QR scan through hardware wallet state and navigates back on cancel press', async () => {
       const { getByTestId } = render(<HwQrScanner />);
 
       fireEvent.press(getByTestId(HwQrScannerSelectorsIDs.CANCEL_BUTTON));
 
-      expect(mockRejectPendingScan).toHaveBeenCalledTimes(1);
-      expect(mockRejectPendingScan).toHaveBeenCalledWith(expect.any(Error));
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockCancelQRScanRequestIfPresent).toHaveBeenCalledTimes(1);
+      expect(mockRejectPendingScan).not.toHaveBeenCalled();
+      expect(mockSetRequestCompleted).not.toHaveBeenCalled();
+      await waitFor(() => expect(mockGoBack).toHaveBeenCalledTimes(1));
     });
   });
 
@@ -437,7 +439,7 @@ describe('HwQrScanner', () => {
         qr: {
           pendingScanRequest: undefined,
           isSigningQRObject: true,
-          cancelQRScanRequestIfPresent: jest.fn(),
+          cancelQRScanRequestIfPresent: mockCancelQRScanRequestIfPresent,
           setRequestCompleted: mockSetRequestCompleted,
           isRequestCompleted: false,
         },

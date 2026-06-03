@@ -161,7 +161,11 @@ export function HwQrScanner() {
   const route = useRoute();
   const isFocused = useIsFocused();
   const { qr } = useHardwareWallet();
-  const { pendingScanRequest, setRequestCompleted } = qr;
+  const {
+    pendingScanRequest,
+    setRequestCompleted,
+    cancelQRScanRequestIfPresent,
+  } = qr;
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [requestIdMismatchError, setRequestIdMismatchError] = useState<
     string | null
@@ -226,10 +230,15 @@ export function HwQrScanner() {
     onScanSuccess,
   });
 
-  const handleCancel = useCallback(() => {
-    Engine.getQrKeyringScanner().rejectPendingScan(new Error('Scan cancelled'));
-    navigation.goBack();
-  }, [navigation]);
+  const handleCancel = useCallback(async () => {
+    try {
+      await cancelQRScanRequestIfPresent();
+    } catch {
+      // Keep navigation responsive even if QR cleanup has already been handled.
+    } finally {
+      navigation.goBack();
+    }
+  }, [cancelQRScanRequestIfPresent, navigation]);
 
   const handleLearnMore = useCallback(
     () => Linking.openURL(QR_HARDWARE_LEARN_MORE_URL),
