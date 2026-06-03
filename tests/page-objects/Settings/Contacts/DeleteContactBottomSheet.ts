@@ -1,12 +1,24 @@
 import Matchers from '../../../framework/Matchers';
-import Gestures from '../../../framework/Gestures';
 import { DeleteContactBottomSheetSelectorsText } from '../../../selectors/Settings/Contacts/DeleteContactBottomSheet.selectors';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../../framework/UnifiedGestures';
 
 class DeleteContactBottomSheet {
-  get title(): DetoxElement {
-    return Matchers.getElementByText(
-      DeleteContactBottomSheetSelectorsText.MODAL_TITLE,
-    );
+  get title(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          DeleteContactBottomSheetSelectorsText.MODAL_TITLE,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          DeleteContactBottomSheetSelectorsText.MODAL_TITLE,
+        ),
+    });
   }
 
   get deleteButton(): DetoxElement {
@@ -21,7 +33,7 @@ class DeleteContactBottomSheet {
   }
 
   async tapDeleteButton(): Promise<void> {
-    await Gestures.waitAndTap(this.deleteButton, {
+    await UnifiedGestures.waitAndTap(this.deleteButton, {
       elemDescription: 'Delete Button in Delete Contact Bottom Sheet',
     });
   }

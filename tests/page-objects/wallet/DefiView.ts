@@ -1,7 +1,12 @@
 import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/WalletView.testIds';
-import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import { Assertions } from '../../framework';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 /**
  * Page Object for the DeFi full view screen.
@@ -10,21 +15,35 @@ import { Assertions } from '../../framework';
  */
 class DefiView {
   /** Main container wrapping the DeFi positions list and control bar */
-  get container(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER,
-    );
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER,
+        ),
+    });
   }
 
   /** Network filter button ("Popular networks" with chevron) */
-  get networkFilter(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER,
-    );
+  get networkFilter(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER,
+        ),
+    });
   }
 
   async tapNetworkFilter(): Promise<void> {
-    await Gestures.waitAndTap(this.networkFilter, {
+    await UnifiedGestures.waitAndTap(this.networkFilter, {
       elemDescription: 'DeFi networks filter',
     });
   }
@@ -44,7 +63,7 @@ class DefiView {
     for (const index of [0, 1]) {
       try {
         const elem = Matchers.getElementByID(testID, index);
-        await Gestures.waitAndTap(elem, {
+        await UnifiedGestures.waitAndTap(elem, {
           checkVisibility: false,
           elemDescription: `DeFi position: ${positionName}`,
         });

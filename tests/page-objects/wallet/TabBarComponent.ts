@@ -1,5 +1,4 @@
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 import { TabBarSelectorIDs } from '../../../app/components/Nav/Main/TabBar.testIds';
 import { Assertions, Utilities } from '../../framework';
@@ -148,7 +147,7 @@ class TabBarComponent {
 
   async tapHome(): Promise<void> {
     const homeButton = Matchers.getElementByText('Home');
-    await Gestures.waitAndTap(homeButton);
+    await UnifiedGestures.waitAndTap(homeButton);
   }
 
   async tapWallet(): Promise<void> {
@@ -193,7 +192,7 @@ class TabBarComponent {
       async () => {
         await UnifiedGestures.waitAndTap(this.tabBarWalletButton);
         await Assertions.expectElementToBeVisible(WalletView.container);
-        await Gestures.waitAndTap(WalletView.hamburgerMenuButton);
+        await UnifiedGestures.waitAndTap(WalletView.hamburgerMenuButton);
         await Assertions.expectElementToBeVisible(AccountMenu.container);
       },
       {

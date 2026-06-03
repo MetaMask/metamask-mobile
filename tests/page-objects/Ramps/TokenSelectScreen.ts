@@ -1,21 +1,33 @@
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
 import { selectTokenSelectors } from '../../../app/components/UI/Ramp/Aggregator/components/TokenSelectModal/SelectToken.testIds';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class TokenSelectScreen {
-  get tokenSearchInput(): DetoxElement {
-    return Matchers.getElementByID(
-      selectTokenSelectors.TOKEN_SELECT_MODAL_SEARCH_INPUT,
-    );
+  get tokenSearchInput(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          selectTokenSelectors.TOKEN_SELECT_MODAL_SEARCH_INPUT,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          selectTokenSelectors.TOKEN_SELECT_MODAL_SEARCH_INPUT,
+        ),
+    });
   }
 
   async tapTokenByName(token: string) {
-    await Gestures.typeText(this.tokenSearchInput, token, {
+    await UnifiedGestures.typeText(this.tokenSearchInput, token, {
       elemDescription: 'Token Search Input',
       hideKeyboard: true,
     });
     const tokenName = Matchers.getElementByText(token, 1);
-    await Gestures.waitAndTap(tokenName, {
+    await UnifiedGestures.waitAndTap(tokenName, {
       elemDescription: `Token "${token}" in Token Select Screen`,
     });
   }

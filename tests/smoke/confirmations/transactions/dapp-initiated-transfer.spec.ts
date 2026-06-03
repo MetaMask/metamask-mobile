@@ -21,7 +21,7 @@ import {
   setupMockRequest,
   setupMockPostRequest,
 } from '../../../api-mocking/helpers/mockHelpers';
-import Gestures from '../../../framework/Gestures';
+import UnifiedGestures from '../../../framework/UnifiedGestures';
 import {
   SECURITY_ALERTS_BENIGN_RESPONSE,
   SECURITY_ALERTS_REQUEST_BODY,
@@ -144,13 +144,13 @@ describe(SmokeConfirmations('DApp Initiated Transfer'), () => {
         );
 
         if (device.getPlatform() === 'android') {
-          await Gestures.swipe(RowComponents.SimulationDetails, 'up');
+          await UnifiedGestures.swipe(RowComponents.SimulationDetails, 'up');
         }
 
         await Assertions.expectElementToBeVisible(RowComponents.GasFeesDetails);
 
         if (device.getPlatform() === 'android') {
-          await Gestures.swipe(
+          await UnifiedGestures.swipe(
             ConfirmationUITypes.ModalConfirmationContainer,
             'up',
             {

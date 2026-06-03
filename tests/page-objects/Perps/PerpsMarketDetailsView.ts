@@ -5,7 +5,6 @@ import {
   PerpsOpenOrderCardSelectorsIDs,
   PerpsClosePositionViewSelectorsIDs,
 } from '../../../app/components/UI/Perps/Perps.testIds';
-import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Utilities from '../../framework/Utilities';
 import Assertions from '../../framework/Assertions';
@@ -133,10 +132,15 @@ class PerpsMarketDetailsView {
   }
 
   // Scroll view
-  get scrollView(): DetoxElement {
-    return Matchers.getElementByID(
-      PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
-    );
+  get scrollView(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
+        ),
+    });
   }
 
   get closeButton(): EncapsulatedElementType {
@@ -234,7 +238,7 @@ class PerpsMarketDetailsView {
 
   // Actions
   async tapBackButton() {
-    await Gestures.waitAndTap(this.backButton);
+    await UnifiedGestures.waitAndTap(this.backButton);
   }
 
   async tapLongButton() {
@@ -243,7 +247,7 @@ class PerpsMarketDetailsView {
         await Utilities.waitForElementToBeEnabled(
           this.longButton as DetoxElement,
         );
-        await Gestures.waitAndTap(this.longButton, {
+        await UnifiedGestures.waitAndTap(this.longButton, {
           elemDescription: 'Perps Long button',
         });
       },
@@ -264,7 +268,7 @@ class PerpsMarketDetailsView {
   async tapShortButton() {
     await encapsulatedAction({
       detox: async () => {
-        await Gestures.waitAndTap(this.shortButton);
+        await UnifiedGestures.waitAndTap(this.shortButton);
       },
       appium: async () => {
         await PlaywrightGestures.waitAndTap(
@@ -280,23 +284,23 @@ class PerpsMarketDetailsView {
   }
 
   async tapMoreButton() {
-    await Gestures.waitAndTap(this.moreButton);
+    await UnifiedGestures.waitAndTap(this.moreButton);
   }
 
   async tapOpenInterestInfoIcon() {
-    await Gestures.waitAndTap(this.openInterestInfoIcon);
+    await UnifiedGestures.waitAndTap(this.openInterestInfoIcon);
   }
 
   async tapFundingRateInfoIcon() {
-    await Gestures.waitAndTap(this.fundingRateInfoIcon);
+    await UnifiedGestures.waitAndTap(this.fundingRateInfoIcon);
   }
 
   async waitForMarketDetailsToLoad() {
-    await Gestures.waitAndTap(this.container);
+    await UnifiedGestures.waitAndTap(this.container);
   }
 
   async waitForChartToLoad() {
-    await Gestures.waitAndTap(this.candlestickChart);
+    await UnifiedGestures.waitAndTap(this.candlestickChart);
   }
 
   // Ensures the screen is ready (scroll view exists and UI is stable) before scrolling
@@ -308,7 +312,7 @@ class PerpsMarketDetailsView {
   }
 
   async scrollToBottom() {
-    await Gestures.swipe(this.scrollView, 'up', {
+    await UnifiedGestures.swipe(this.scrollView, 'up', {
       speed: 'fast',
       percentage: 0.7,
       elemDescription: 'Perps market details scroll down',
@@ -327,7 +331,7 @@ class PerpsMarketDetailsView {
       if (visible) {
         break;
       }
-      await Gestures.swipe(this.scrollView, 'up', {
+      await UnifiedGestures.swipe(this.scrollView, 'up', {
         speed: 'fast',
         percentage: 0.6,
         elemDescription: 'Scroll market details to reveal order card',
@@ -360,7 +364,7 @@ class PerpsMarketDetailsView {
       if (visible) {
         break;
       }
-      await Gestures.swipe(this.scrollView, 'up', {
+      await UnifiedGestures.swipe(this.scrollView, 'up', {
         speed: 'fast',
         percentage: 0.7,
         elemDescription: 'Scroll to reveal Close position button',

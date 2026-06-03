@@ -7,13 +7,18 @@ import {
   PerpsMarketDetailsViewSelectorsIDs,
   getPerpsTPSLViewSelector,
 } from '../../../app/components/UI/Perps/Perps.testIds';
-import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
 import Utilities from '../../framework/Utilities';
 import { waitForStableEnabledIOS } from './waitForStableEnabledIOS';
 import PerpsHomeView from './PerpsHomeView';
 import PerpsMarketListView from './PerpsMarketListView';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 /** Portfolio: limit order primary (`formatOrderLabel`) + position primary (`{symbol} {n}x {side}`). */
 export interface PerpsPortfolioLimitFlowExpectOptions {
@@ -67,14 +72,24 @@ class PerpsView {
   }
 
   // "Edit TP/SL" button visible on position details
-  get editTpslButton(): DetoxElement {
-    return Matchers.getElementByText('Edit TP/SL');
+  get editTpslButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText('Edit TP/SL'),
+      appium: () => PlaywrightMatchers.getElementByText('Edit TP/SL'),
+    });
   }
 
-  get closePositionBottomSheetButton(): DetoxElement {
-    return Matchers.getElementByID(
-      PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
-    );
+  get closePositionBottomSheetButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        ),
+    });
   }
 
   get closePositionBottomSheet() {
@@ -105,18 +120,28 @@ class PerpsView {
     return Matchers.getElementByText('Dismiss');
   }
 
-  get anchor(): DetoxElement {
-    return Matchers.getElementByID('perps-tab-scroll-view');
+  /** PerpsTabView main scroll (embedded tab). Not mounted on Perps home (homepage redesign). */
+  get anchor(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID('perps-tab-scroll-view'),
+      appium: () => PlaywrightMatchers.getElementById('perps-tab-scroll-view'),
+    });
   }
 
   /** Perps home header — use as swipe target when {@link anchor} is absent. */
-  get perpsHomeHeader(): DetoxElement {
-    return Matchers.getElementByID('perps-home');
+  get perpsHomeHeader(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID('perps-home'),
+      appium: () => PlaywrightMatchers.getElementById('perps-home'),
+    });
   }
 
   // Orders section on the Perps main tab
-  get ordersSectionTitle(): DetoxElement {
-    return Matchers.getElementByText('Orders');
+  get ordersSectionTitle(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText('Orders'),
+      appium: () => PlaywrightMatchers.getElementByText('Orders'),
+    });
   }
 
   get anyOrderCardOnTab(): DetoxElement {
@@ -232,7 +257,7 @@ class PerpsView {
     index = 0,
   ) {
     const el = this.getPositionItem(symbol, leverageX, direction, index);
-    await Gestures.waitAndTap(el, {
+    await UnifiedGestures.waitAndTap(el, {
       elemDescription: `Tap Perps tab position: ${symbol} ${leverageX}x ${direction} at index ${index}`,
     });
   }
@@ -248,7 +273,7 @@ class PerpsView {
         1000,
       );
       const swipeTarget = tabScrollVisible ? this.anchor : this.perpsHomeHeader;
-      await Gestures.swipe(swipeTarget, 'up', {
+      await UnifiedGestures.swipe(swipeTarget, 'up', {
         speed: 'fast',
         percentage: 0.7,
         elemDescription: tabScrollVisible
@@ -282,13 +307,13 @@ class PerpsView {
   }
 
   async tapEditTpslButton() {
-    await Gestures.waitAndTap(this.editTpslButton, {
+    await UnifiedGestures.waitAndTap(this.editTpslButton, {
       elemDescription: 'Tap Edit TP/SL button',
     });
   }
 
   async tapClosePositionButton() {
-    await Gestures.waitAndTap(this.closePositionButton, {
+    await UnifiedGestures.waitAndTap(this.closePositionButton, {
       elemDescription: 'Close position button',
       checkStability: true,
       timeout: 15000,
@@ -296,23 +321,23 @@ class PerpsView {
   }
 
   async tapConfirmClosePositionButton() {
-    await Gestures.waitAndTap(this.closePositionButton, {
+    await UnifiedGestures.waitAndTap(this.closePositionButton, {
       elemDescription: 'Confirm close position button',
     });
   }
 
   async tapTakeProfitPercentageButton(percentage: number) {
     const button = this.getTakeProfitPercentageButton(percentage);
-    await Gestures.waitAndTap(button);
+    await UnifiedGestures.waitAndTap(button);
   }
 
   async tapStopLossPercentageButton(percentage: number) {
     const button = this.getStopLossPercentageButton(percentage);
-    await Gestures.waitAndTap(button);
+    await UnifiedGestures.waitAndTap(button);
   }
 
   async tapSetTpslButton() {
-    await Gestures.waitAndTap(this.setTpslButton);
+    await UnifiedGestures.waitAndTap(this.setTpslButton);
   }
 
   async tapPlaceOrderButton() {
@@ -327,14 +352,14 @@ class PerpsView {
       pollIntervalMs: 120,
       consecutiveSuccess: 5,
     });
-    await Gestures.waitAndTap(el, {
+    await UnifiedGestures.waitAndTap(el, {
       timeout: 35000,
       elemDescription: 'Place order button',
     });
   }
 
   async tapOrderSuccessToastDismissButton() {
-    await Gestures.waitAndTap(this.orderSuccessToastDismissButton);
+    await UnifiedGestures.waitAndTap(this.orderSuccessToastDismissButton);
   }
 
   async dismissToast(): Promise<void> {
@@ -343,7 +368,7 @@ class PerpsView {
       description: 'Toast Dismiss button visible',
       timeout: 3000,
     });
-    await Gestures.waitAndTap(button, {
+    await UnifiedGestures.waitAndTap(button, {
       elemDescription: 'Tap toast close',
       delay: 100,
     });
@@ -359,7 +384,7 @@ class PerpsView {
         ),
       { interval: 200, timeout: 7000 },
     );
-    await Gestures.waitAndTap(this.closePositionBottomSheetButton, {
+    await UnifiedGestures.waitAndTap(this.closePositionBottomSheetButton, {
       elemDescription: 'Close position bottom sheet button',
       checkStability: true,
       timeout: 10000,
@@ -372,7 +397,7 @@ class PerpsView {
   }
 
   async tapBackButtonPositionSheet() {
-    await Gestures.waitAndTap(this.backButtonPositionSheet, {
+    await UnifiedGestures.waitAndTap(this.backButtonPositionSheet, {
       elemDescription: 'Back button position sheet',
     });
   }

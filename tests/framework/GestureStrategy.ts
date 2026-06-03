@@ -18,6 +18,12 @@ export interface UnifiedGestureOptions {
   timeout?: number;
   /** Human-readable description for logging and error messages */
   description?: string;
+  /**
+   * @deprecated Use `description` instead.
+   * Retained for backwards-compatibility with Detox page objects that pass
+   * `elemDescription` directly.
+   */
+  elemDescription?: string;
   /** Swipe speed — Detox only; Appium ignores this */
   speed?: 'fast' | 'slow';
   /** Swipe percentage (0–1) — Detox only; Appium ignores this */
@@ -38,6 +44,27 @@ export interface UnifiedGestureOptions {
   enabledStableReads?: number;
   /** Extra wait (ms) after enabled/interactive, before click — Appium only */
   postEnabledSettleMs?: number;
+  // ── Detox-passthrough options ────────────────────────────────────────────
+  /** Dismiss the keyboard after typing — Detox only */
+  hideKeyboard?: boolean;
+  /** Clear the field before typing — Detox only */
+  clearFirst?: boolean;
+  /** Wait for element stability before interacting — Detox only */
+  checkStability?: boolean;
+  /** Assert element is visible before interacting — Detox only */
+  checkVisibility?: boolean;
+  /** Assert element is enabled before interacting — Detox only */
+  checkEnabled?: boolean;
+  /** Wait for element to disappear after tap — Detox only */
+  waitForElementToDisappear?: boolean;
+  /** Swipe/scroll start X position — Detox only */
+  startPositionX?: number;
+  /** Swipe/scroll start Y position — Detox only */
+  startPositionY?: number;
+  /** Swipe start offset as a fraction of element size — Detox only */
+  startOffsetPercentage?: { x: number; y: number };
+  /** Long-press duration in ms — Detox only */
+  duration?: number;
 }
 
 /**
@@ -132,7 +159,12 @@ export class DetoxGestureStrategy implements GestureStrategy {
   ): Promise<void> {
     await Gestures.tap(asDetoxElement(elem), {
       timeout: opts?.timeout,
-      elemDescription: opts?.description,
+      elemDescription: opts?.description ?? opts?.elemDescription,
+      checkStability: opts?.checkStability,
+      checkVisibility: opts?.checkVisibility,
+      checkEnabled: opts?.checkEnabled,
+      waitForElementToDisappear: opts?.waitForElementToDisappear,
+      delay: opts?.delay,
     });
   }
 
@@ -148,7 +180,12 @@ export class DetoxGestureStrategy implements GestureStrategy {
   ): Promise<void> {
     await Gestures.waitAndTap(asDetoxElement(elem), {
       timeout: opts?.timeout,
-      elemDescription: opts?.description,
+      elemDescription: opts?.description ?? opts?.elemDescription,
+      checkStability: opts?.checkStability,
+      checkVisibility: opts?.checkVisibility,
+      checkEnabled: opts?.checkEnabled,
+      waitForElementToDisappear: opts?.waitForElementToDisappear,
+      delay: opts?.delay,
     });
   }
 
@@ -165,9 +202,14 @@ export class DetoxGestureStrategy implements GestureStrategy {
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
     await Gestures.typeText(asDetoxElement(elem), text, {
-      hideKeyboard: true,
       timeout: opts?.timeout,
-      elemDescription: opts?.description,
+      elemDescription: opts?.description ?? opts?.elemDescription,
+      hideKeyboard: opts?.hideKeyboard ?? true,
+      clearFirst: opts?.clearFirst,
+      checkStability: opts?.checkStability,
+      checkVisibility: opts?.checkVisibility,
+      checkEnabled: opts?.checkEnabled,
+      delay: opts?.delay,
     });
   }
 
@@ -185,7 +227,10 @@ export class DetoxGestureStrategy implements GestureStrategy {
   ): Promise<void> {
     await Gestures.replaceText(asDetoxElement(elem), text, {
       timeout: opts?.timeout,
-      elemDescription: opts?.description,
+      elemDescription: opts?.description ?? opts?.elemDescription,
+      checkStability: opts?.checkStability,
+      checkVisibility: opts?.checkVisibility,
+      checkEnabled: opts?.checkEnabled,
     });
   }
 
@@ -203,9 +248,13 @@ export class DetoxGestureStrategy implements GestureStrategy {
   ): Promise<void> {
     await Gestures.swipe(asDetoxElement(elem), direction, {
       timeout: opts?.timeout,
-      elemDescription: opts?.description,
+      elemDescription: opts?.description ?? opts?.elemDescription,
       speed: opts?.speed,
       percentage: opts?.percentage,
+      checkStability: opts?.checkStability,
+      checkVisibility: opts?.checkVisibility,
+      checkEnabled: opts?.checkEnabled,
+      startOffsetPercentage: opts?.startOffsetPercentage,
     });
   }
 
@@ -235,9 +284,12 @@ export class DetoxGestureStrategy implements GestureStrategy {
       Promise.resolve(resolvedScrollView),
       {
         timeout: opts?.timeout,
-        elemDescription: opts?.description,
+        elemDescription: opts?.description ?? opts?.elemDescription,
         direction: opts?.direction,
         scrollAmount: opts?.scrollAmount,
+        startPositionX: opts?.startPositionX,
+        startPositionY: opts?.startPositionY,
+        delay: opts?.delay,
       },
     );
   }
@@ -263,7 +315,11 @@ export class DetoxGestureStrategy implements GestureStrategy {
   ): Promise<void> {
     await Gestures.longPress(asDetoxElement(elem), {
       timeout: opts?.timeout,
-      elemDescription: opts?.description,
+      elemDescription: opts?.description ?? opts?.elemDescription,
+      duration: opts?.duration,
+      checkStability: opts?.checkStability,
+      checkVisibility: opts?.checkVisibility,
+      checkEnabled: opts?.checkEnabled,
     });
   }
 
@@ -279,7 +335,10 @@ export class DetoxGestureStrategy implements GestureStrategy {
   ): Promise<void> {
     await Gestures.dblTap(asDetoxElement(elem), {
       timeout: opts?.timeout,
-      elemDescription: opts?.description,
+      elemDescription: opts?.description ?? opts?.elemDescription,
+      checkStability: opts?.checkStability,
+      checkVisibility: opts?.checkVisibility,
+      checkEnabled: opts?.checkEnabled,
     });
   }
 
@@ -297,7 +356,10 @@ export class DetoxGestureStrategy implements GestureStrategy {
   ): Promise<void> {
     await Gestures.tapAtPoint(asDetoxElement(elem), point, {
       timeout: opts?.timeout,
-      elemDescription: opts?.description,
+      elemDescription: opts?.description ?? opts?.elemDescription,
+      checkStability: opts?.checkStability,
+      checkVisibility: opts?.checkVisibility,
+      checkEnabled: opts?.checkEnabled,
     });
   }
 
@@ -315,7 +377,8 @@ export class DetoxGestureStrategy implements GestureStrategy {
   ): Promise<void> {
     await Gestures.tapAtIndex(asDetoxElement(elem), index, {
       timeout: opts?.timeout,
-      elemDescription: opts?.description,
+      elemDescription: opts?.description ?? opts?.elemDescription,
+      delay: opts?.delay,
     });
   }
 }

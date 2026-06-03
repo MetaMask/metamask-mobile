@@ -1,14 +1,26 @@
 import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/WalletView.testIds';
 import { SECONDARY_BALANCE_BUTTON_TEST_ID } from '../../../app/components/UI/AssetElement/index.constants';
 import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
-import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Utilities from '../../framework/Utilities';
 import NetworkManager from './NetworkManager';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class TokensView {
-  get networkFilter(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER);
+  get networkFilter(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER,
+        ),
+    });
   }
 
   earnCtaForToken(tokenSymbol: string): DetoxElement {
@@ -19,7 +31,7 @@ class TokensView {
   }
 
   async tapNetworkFilter(): Promise<void> {
-    await Gestures.waitAndTap(this.networkFilter, {
+    await UnifiedGestures.waitAndTap(this.networkFilter, {
       elemDescription: 'Token Network Filter',
     });
   }
@@ -29,7 +41,7 @@ class TokensView {
   }
 
   async tapEarnCta(): Promise<void> {
-    await Gestures.waitAndTap(this.earnCtaForToken('USDC'), {
+    await UnifiedGestures.waitAndTap(this.earnCtaForToken('USDC'), {
       checkStability: true,
       elemDescription: 'Earn CTA on USDC token row',
     });
@@ -58,7 +70,7 @@ class TokensView {
       interval: 500,
       stableCount: 6,
     });
-    await Gestures.waitAndTap(elem, {
+    await UnifiedGestures.waitAndTap(elem, {
       elemDescription: `${tokenSymbol} token row`,
     });
   }

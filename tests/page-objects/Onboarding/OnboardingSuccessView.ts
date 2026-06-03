@@ -9,8 +9,15 @@ import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class OnboardingSuccessView {
-  get container(): DetoxElement {
-    return Matchers.getElementByID(OnboardingSuccessSelectorIDs.CONTAINER_ID);
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(OnboardingSuccessSelectorIDs.CONTAINER_ID),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          OnboardingSuccessSelectorIDs.CONTAINER_ID,
+        ),
+    });
   }
 
   get doneButton(): EncapsulatedElementType {

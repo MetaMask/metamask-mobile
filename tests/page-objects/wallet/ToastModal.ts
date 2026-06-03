@@ -3,7 +3,6 @@ import {
   ToastSelectorsText,
 } from '../../../app/component-library/components/Toast/ToastModal.testIds';
 import Assertions from '../../framework/Assertions';
-import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import { PlaywrightAssertions } from '../../framework';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
@@ -15,14 +14,19 @@ import {
 } from '../../framework/EncapsulatedElement';
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import { PlaywrightElement } from '../../framework/PlaywrightAdapter';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 const DEFAULT_TOAST_DISMISS_TIMEOUT_MS = 15_000;
 const DEFAULT_TOAST_APPEAR_TIMEOUT_MS = 5_000;
 const TOAST_POLL_INTERVAL_MS = 250;
 
 class ToastModal {
-  get container(): DetoxElement {
-    return Matchers.getElementByID(ToastSelectorsIDs.CONTAINER);
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(ToastSelectorsIDs.CONTAINER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(ToastSelectorsIDs.CONTAINER),
+    });
   }
 
   get containerElement(): EncapsulatedElementType {
@@ -35,16 +39,25 @@ class ToastModal {
     });
   }
 
-  get notificationTitle(): DetoxElement {
-    return Matchers.getElementByID(ToastSelectorsIDs.NOTIFICATION_TITLE);
+  get notificationTitle(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(ToastSelectorsIDs.NOTIFICATION_TITLE),
+      appium: () =>
+        PlaywrightMatchers.getElementById(ToastSelectorsIDs.NOTIFICATION_TITLE),
+    });
   }
 
-  get toastCloseButton(): DetoxElement {
-    return Matchers.getElementByText(ToastSelectorsText.CLOSE_BUTTON);
+  get toastCloseButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(ToastSelectorsText.CLOSE_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(ToastSelectorsText.CLOSE_BUTTON),
+    });
   }
 
   async tapToastCloseButton(): Promise<void> {
-    await Gestures.waitAndTap(this.toastCloseButton, {
+    await UnifiedGestures.waitAndTap(this.toastCloseButton, {
       elemDescription: 'Toast Modal Close Button',
     });
   }

@@ -1,16 +1,28 @@
 import { FiatOnTestnetsBottomSheetSelectorsIDs } from '../../../../app/components/Views/Settings/AdvancedSettings/FiatOnTestnetsFriction/FiatOnTestnetsBottomSheet.testIds';
-import Gestures from '../../../framework/Gestures';
 import Matchers from '../../../framework/Matchers';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../../framework/UnifiedGestures';
 
 class FiatOnTestnetsBottomSheet {
-  get continueButton(): DetoxElement {
-    return Matchers.getElementByID(
-      FiatOnTestnetsBottomSheetSelectorsIDs.CONTINUE_BUTTON,
-    );
+  get continueButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          FiatOnTestnetsBottomSheetSelectorsIDs.CONTINUE_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          FiatOnTestnetsBottomSheetSelectorsIDs.CONTINUE_BUTTON,
+        ),
+    });
   }
 
   async tapContinueButton(): Promise<void> {
-    await Gestures.waitAndTap(this.continueButton, {
+    await UnifiedGestures.waitAndTap(this.continueButton, {
       elemDescription: 'Continue Button in Fiat On Testnets Bottom Sheet',
     });
   }

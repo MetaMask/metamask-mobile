@@ -2,7 +2,6 @@ import { ChoosePasswordSelectorsIDs } from '../../../app/components/Views/Choose
 import { ImportFromSeedSelectorsIDs } from '../../../app/components/Views/ImportFromSecretRecoveryPhrase/ImportFromSeed.testIds';
 import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
 import {
   asDetoxElement,
   asPlaywrightElement,
@@ -17,8 +16,15 @@ import UnifiedGestures from '../../framework/UnifiedGestures';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
 
 class ImportWalletView {
-  get container(): DetoxElement {
-    return Matchers.getElementByID(ImportFromSeedSelectorsIDs.CONTAINER_ID);
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(ImportFromSeedSelectorsIDs.CONTAINER_ID),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ImportFromSeedSelectorsIDs.CONTAINER_ID,
+        ),
+    });
   }
 
   get title(): EncapsulatedElementType {
@@ -35,16 +41,30 @@ class ImportWalletView {
     });
   }
 
-  get newPasswordInput(): DetoxElement {
-    return Matchers.getElementByID(
-      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-    );
+  get newPasswordInput(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+        ),
+    });
   }
 
-  get confirmPasswordInput(): DetoxElement {
-    return Matchers.getElementByID(
-      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-    );
+  get confirmPasswordInput(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+        ),
+    });
   }
 
   getAppiumIosSeedPhraseXPath(index: number, onboarding = true): string {
@@ -104,13 +124,13 @@ class ImportWalletView {
   }
 
   async enterPassword(password: string): Promise<void> {
-    await Gestures.typeText(this.newPasswordInput, password, {
+    await UnifiedGestures.typeText(this.newPasswordInput, password, {
       hideKeyboard: true,
     });
   }
 
   async reEnterPassword(password: string): Promise<void> {
-    await Gestures.typeText(this.confirmPasswordInput, password, {
+    await UnifiedGestures.typeText(this.confirmPasswordInput, password, {
       hideKeyboard: true,
     });
   }
@@ -132,7 +152,7 @@ class ImportWalletView {
       detox: async () => {
         if (device.getPlatform() === 'ios') {
           for (const [i, word] of srpArray.entries()) {
-            await Gestures.typeText(
+            await UnifiedGestures.typeText(
               asDetoxElement(this.seedPhraseInput(i, onboarding)),
               `${word} `,
               {
@@ -146,7 +166,7 @@ class ImportWalletView {
           return;
         }
 
-        await Gestures.replaceText(
+        await UnifiedGestures.replaceText(
           asDetoxElement(this.seedPhraseInput(0, onboarding)),
           secretRecoveryPhrase,
           {
@@ -193,7 +213,7 @@ class ImportWalletView {
 
     await encapsulatedAction({
       detox: async () => {
-        await Gestures.tap(asDetoxElement(this.continueButton), {
+        await UnifiedGestures.tap(asDetoxElement(this.continueButton), {
           elemDescription: 'Import Wallet Continue Button',
         });
       },

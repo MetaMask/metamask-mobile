@@ -1,41 +1,66 @@
 import { StakeViewSelectors } from '../../selectors/Stake/StakeView.selectors.js';
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
 import Utilities from '../../framework/Utilities';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class StakeView {
-  get stakeContainer(): DetoxElement {
-    return Matchers.getElementByText(StakeViewSelectors.STAKE_CONTAINER);
+  get stakeContainer(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(StakeViewSelectors.STAKE_CONTAINER),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(StakeViewSelectors.STAKE_CONTAINER),
+    });
   }
 
-  get unstakeContainer(): DetoxElement {
-    return Matchers.getElementByText(StakeViewSelectors.UNSTAKE_CONTAINER);
+  get unstakeContainer(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(StakeViewSelectors.UNSTAKE_CONTAINER),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          StakeViewSelectors.UNSTAKE_CONTAINER,
+        ),
+    });
   }
 
-  get reviewButton(): DetoxElement {
-    return Matchers.getElementByText(StakeViewSelectors.REVIEW_BUTTON);
+  get reviewButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(StakeViewSelectors.REVIEW_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(StakeViewSelectors.REVIEW_BUTTON),
+    });
   }
 
-  get confirmButton(): DetoxElement {
-    return Matchers.getElementByText(StakeViewSelectors.CONFIRM);
+  get confirmButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(StakeViewSelectors.CONFIRM),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(StakeViewSelectors.CONFIRM),
+    });
   }
 
   async selectAmount(amount: string): Promise<void> {
     const amountButton = Matchers.getElementByText(amount);
-    await Gestures.waitAndTap(amountButton);
+    await UnifiedGestures.waitAndTap(amountButton);
   }
 
   async enterAmount(amount: string): Promise<void> {
     for (const digit of amount) {
       const button = Matchers.getElementByText(digit);
-      await Gestures.waitAndTap(button, {
+      await UnifiedGestures.waitAndTap(button, {
         elemDescription: `Digit ${digit} in Stake Amount`,
       });
     }
   }
 
   async tapReview(timeout?: number): Promise<void> {
-    await Gestures.waitAndTap(this.reviewButton, {
+    await UnifiedGestures.waitAndTap(this.reviewButton, {
       timeout,
       elemDescription: 'Review Button in Stake View',
     });
@@ -50,7 +75,7 @@ class StakeView {
           2000,
         );
         if (!onConfirmScreen) {
-          await Gestures.waitAndTap(this.reviewButton, {
+          await UnifiedGestures.waitAndTap(this.reviewButton, {
             timeout: 5000,
             elemDescription: 'Review Button in Stake View',
           });
@@ -66,7 +91,7 @@ class StakeView {
   }
 
   async tapConfirm(timeout?: number): Promise<void> {
-    await Gestures.waitAndTap(this.confirmButton, {
+    await UnifiedGestures.waitAndTap(this.confirmButton, {
       timeout,
       elemDescription: 'Confirm Button in Stake View',
     });

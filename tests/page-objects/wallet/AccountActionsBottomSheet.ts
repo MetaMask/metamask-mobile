@@ -1,79 +1,126 @@
 import { AccountActionsBottomSheetSelectorsIDs } from '../../../app/components/Views/AccountActions/AccountActionsBottomSheet.testIds';
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
 import Utilities from '../../framework/Utilities';
 import EditAccountNameView from './EditAccountNameView';
 import MultichainAccountDetails from '../MultichainAccounts/AccountDetails';
 import MultichainEditAccountName from '../MultichainAccounts/EditAccountName';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 class AccountActionsBottomSheet {
-  get editAccount(): DetoxElement {
-    return Matchers.getElementByID(
-      AccountActionsBottomSheetSelectorsIDs.EDIT_ACCOUNT,
-    );
+  get editAccount(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          AccountActionsBottomSheetSelectorsIDs.EDIT_ACCOUNT,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          AccountActionsBottomSheetSelectorsIDs.EDIT_ACCOUNT,
+        ),
+    });
   }
 
-  get showPrivateKey(): DetoxElement {
-    return Matchers.getElementByID(
-      AccountActionsBottomSheetSelectorsIDs.SHOW_PRIVATE_KEY,
-    );
+  get showPrivateKey(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          AccountActionsBottomSheetSelectorsIDs.SHOW_PRIVATE_KEY,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          AccountActionsBottomSheetSelectorsIDs.SHOW_PRIVATE_KEY,
+        ),
+    });
   }
 
-  get switchToSmartAccount(): DetoxElement {
-    return Matchers.getElementByID(
-      AccountActionsBottomSheetSelectorsIDs.SWITCH_TO_SMART_ACCOUNT,
-    );
+  get switchToSmartAccount(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          AccountActionsBottomSheetSelectorsIDs.SWITCH_TO_SMART_ACCOUNT,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          AccountActionsBottomSheetSelectorsIDs.SWITCH_TO_SMART_ACCOUNT,
+        ),
+    });
   }
 
-  get showSrp(): DetoxElement {
-    return Matchers.getElementByID(
-      AccountActionsBottomSheetSelectorsIDs.SHOW_SECRET_RECOVERY_PHRASE,
-    );
+  get showSrp(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          AccountActionsBottomSheetSelectorsIDs.SHOW_SECRET_RECOVERY_PHRASE,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          AccountActionsBottomSheetSelectorsIDs.SHOW_SECRET_RECOVERY_PHRASE,
+        ),
+    });
   }
 
-  get multichainEditName(): DetoxElement {
-    return Matchers.getElementByID(
-      AccountActionsBottomSheetSelectorsIDs.MULTICHAIN_EDIT_NAME,
-    );
+  get multichainEditName(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          AccountActionsBottomSheetSelectorsIDs.MULTICHAIN_EDIT_NAME,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          AccountActionsBottomSheetSelectorsIDs.MULTICHAIN_EDIT_NAME,
+        ),
+    });
   }
 
-  get multichainAccountDetails(): DetoxElement {
-    return Matchers.getElementByID(
-      AccountActionsBottomSheetSelectorsIDs.MULTICHAIN_ACCOUNT_DETAILS,
-    );
+  get multichainAccountDetails(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          AccountActionsBottomSheetSelectorsIDs.MULTICHAIN_ACCOUNT_DETAILS,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          AccountActionsBottomSheetSelectorsIDs.MULTICHAIN_ACCOUNT_DETAILS,
+        ),
+    });
   }
 
   async tapEditAccount(): Promise<void> {
-    await Gestures.waitAndTap(this.editAccount, {
+    await UnifiedGestures.waitAndTap(this.editAccount, {
       elemDescription: 'Edit account button',
     });
   }
 
   async tapShowPrivateKey(): Promise<void> {
-    await Gestures.waitAndTap(this.showPrivateKey, {
+    await UnifiedGestures.waitAndTap(this.showPrivateKey, {
       elemDescription: 'Show private key button',
     });
   }
 
   async tapSwitchToSmartAccount(): Promise<void> {
-    await Gestures.waitAndTap(this.switchToSmartAccount, {
+    await UnifiedGestures.waitAndTap(this.switchToSmartAccount, {
       elemDescription: 'Switch to smart account button',
     });
   }
 
   async tapShowSRP(): Promise<void> {
-    await Gestures.waitAndTap(this.showSrp, {
+    await UnifiedGestures.waitAndTap(this.showSrp, {
       elemDescription: 'Show secret recovery phrase button',
     });
   }
 
   async tapRenameAccount(): Promise<void> {
-    await Gestures.waitAndTap(this.multichainEditName, {
+    await UnifiedGestures.waitAndTap(this.multichainEditName, {
       elemDescription: 'Edit Account Name button in V2 account actions modal',
     });
   }
 
   async tapAccountDetails(): Promise<void> {
-    await Gestures.waitAndTap(this.multichainAccountDetails, {
+    await UnifiedGestures.waitAndTap(this.multichainAccountDetails, {
       elemDescription: 'Account Details button in V2 account actions modal',
     });
   }
@@ -136,10 +183,14 @@ class AccountActionsBottomSheet {
    * Handles the legacy rename flow
    */
   private async handleLegacyRename(newName: string): Promise<void> {
-    await Gestures.typeText(EditAccountNameView.accountNameInput, newName, {
-      hideKeyboard: true,
-      clearFirst: true,
-    });
+    await UnifiedGestures.typeText(
+      EditAccountNameView.accountNameInput,
+      newName,
+      {
+        hideKeyboard: true,
+        clearFirst: true,
+      },
+    );
     await EditAccountNameView.tapSave();
   }
 

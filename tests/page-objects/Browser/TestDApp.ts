@@ -7,6 +7,12 @@ import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTa
 import { TestDappSelectorsWebIDs } from '../../selectors/Browser/TestDapp.selectors';
 import Browser from './BrowserView';
 import { Assertions, TapOptions, Utilities } from '../../framework';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 const CONFIRM_BUTTON_TEXT = enContent.confirmation_modal.confirm_cta;
 const APPROVE_BUTTON_TEXT = enContent.transactions.tx_review_approve;
@@ -18,12 +24,18 @@ interface ContractNavigationParams {
 }
 
 class TestDApp {
-  get confirmButtonText(): DetoxElement {
-    return Matchers.getElementByText(CONFIRM_BUTTON_TEXT);
+  get confirmButtonText(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(CONFIRM_BUTTON_TEXT),
+      appium: () => PlaywrightMatchers.getElementByText(CONFIRM_BUTTON_TEXT),
+    });
   }
 
-  get approveButtonText(): DetoxElement {
-    return Matchers.getElementByText(APPROVE_BUTTON_TEXT);
+  get approveButtonText(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(APPROVE_BUTTON_TEXT),
+      appium: () => PlaywrightMatchers.getElementByText(APPROVE_BUTTON_TEXT),
+    });
   }
 
   get DappConnectButton(): WebElement {
@@ -359,146 +371,146 @@ class TestDApp {
   }
 
   async connect(): Promise<void> {
-    await Gestures.waitAndTap(this.DappConnectButton, {
+    await UnifiedGestures.waitAndTap(this.DappConnectButton, {
       elemDescription: 'Dapp connect button',
     });
   }
 
   async tapApproveERC20TokensButton(): Promise<void> {
-    await Gestures.waitAndTap(this.ApproveERC20TokensButton, {
+    await UnifiedGestures.waitAndTap(this.ApproveERC20TokensButton, {
       elemDescription: 'Approve ERC20 tokens button',
     });
   }
 
   async tapApproveERC721TokenButton(): Promise<void> {
-    await Gestures.waitAndTap(this.ApproveERC721TokenButton, {
+    await UnifiedGestures.waitAndTap(this.ApproveERC721TokenButton, {
       elemDescription: 'Approve ERC721 token button',
     });
   }
 
   async tapInvalidSigButton(): Promise<void> {
-    await Gestures.waitAndTap(this.invalidSignature, {
+    await UnifiedGestures.waitAndTap(this.invalidSignature, {
       elemDescription: 'Invalid signature button',
     });
   }
 
   async tapIncreaseAllowanceButton(): Promise<void> {
-    await Gestures.waitAndTap(this.increaseAllowanceButton, {
+    await UnifiedGestures.waitAndTap(this.increaseAllowanceButton, {
       elemDescription: 'Increase allowance button',
     });
   }
 
   async tapAddERC20TokenToWalletButton(): Promise<void> {
-    await Gestures.waitAndTap(this.addTokensToWalletButton, {
+    await UnifiedGestures.waitAndTap(this.addTokensToWalletButton, {
       elemDescription: 'Add ERC20 token to wallet button',
     });
   }
 
   async tapPersonalSignButton(): Promise<void> {
-    await Gestures.waitAndTap(this.personalSignButton, {
+    await UnifiedGestures.waitAndTap(this.personalSignButton, {
       elemDescription: 'Personal sign button',
     });
   }
 
   async tapTypedSignButton(): Promise<void> {
-    await Gestures.waitAndTap(this.signTypedDataButton, {
+    await UnifiedGestures.waitAndTap(this.signTypedDataButton, {
       elemDescription: 'Typed sign button',
     });
   }
 
   async tapTypedV3SignButton(): Promise<void> {
-    await Gestures.waitAndTap(this.signTypedDataV3Button, {
+    await UnifiedGestures.waitAndTap(this.signTypedDataV3Button, {
       elemDescription: 'Typed V3 sign button',
     });
   }
 
   async tapTypedV4SignButton(): Promise<void> {
-    await Gestures.waitAndTap(this.signTypedDataV4Button, {
+    await UnifiedGestures.waitAndTap(this.signTypedDataV4Button, {
       elemDescription: 'Typed V4 sign button',
     });
   }
 
   async tapEthereumSignButton(): Promise<void> {
-    await Gestures.waitAndTap(this.ethereumSignButton, {
+    await UnifiedGestures.waitAndTap(this.ethereumSignButton, {
       elemDescription: 'Ethereum sign button',
     });
   }
 
   async tapPermitSignButton(): Promise<void> {
-    await Gestures.waitAndTap(this.permitSignButton, {
+    await UnifiedGestures.waitAndTap(this.permitSignButton, {
       elemDescription: 'Permit sign button',
     });
   }
 
   async tapSIWEBadDomainButton(): Promise<void> {
-    await Gestures.waitAndTap(this.siweBadDomainButton, {
+    await UnifiedGestures.waitAndTap(this.siweBadDomainButton, {
       elemDescription: 'SIWE bad domain button',
     });
   }
 
   async tapERC20TransferButton(): Promise<void> {
-    await Gestures.waitAndTap(this.erc20TransferTokensButton, {
+    await UnifiedGestures.waitAndTap(this.erc20TransferTokensButton, {
       elemDescription: 'ERC20 transfer button',
     });
   }
 
   async tapNFTTransferButton(): Promise<void> {
-    await Gestures.waitAndTap(this.nftTransferFromTokensButton, {
+    await UnifiedGestures.waitAndTap(this.nftTransferFromTokensButton, {
       elemDescription: 'NFT transfer button',
     });
   }
 
   async tapERC721MintButton(): Promise<void> {
-    await Gestures.waitAndTap(this.erc721MintButton, {
+    await UnifiedGestures.waitAndTap(this.erc721MintButton, {
       elemDescription: 'ERC721 mint button',
     });
   }
 
   async tapNFTSetApprovalForAllButton(): Promise<void> {
-    await Gestures.waitAndTap(this.nftSetApprovalForAllButton, {
+    await UnifiedGestures.waitAndTap(this.nftSetApprovalForAllButton, {
       elemDescription: 'NFT set approval for all button',
     });
   }
 
   async tapERC1155SetApprovalForAllButton(): Promise<void> {
-    await Gestures.waitAndTap(this.erc1155SetApprovalForAllButton, {
+    await UnifiedGestures.waitAndTap(this.erc1155SetApprovalForAllButton, {
       elemDescription: 'ERC1155 set approval for all button',
     });
   }
 
   async tapConfirmButton(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmButtonText, {
+    await UnifiedGestures.waitAndTap(this.confirmButtonText, {
       elemDescription: 'Confirm Button',
     });
   }
 
   async tapConfirmButtonToDisappear(): Promise<void> {
-    await Gestures.tap(this.confirmButtonText, {
+    await UnifiedGestures.tap(this.confirmButtonText, {
       elemDescription: 'Confirm Button',
       waitForElementToDisappear: true,
     });
   }
 
   async tapConnectButton(): Promise<void> {
-    await Gestures.waitAndTap(this.connectButtonText, {
+    await UnifiedGestures.waitAndTap(this.connectButtonText, {
       elemDescription: 'Connect Button',
     });
   }
 
   async tapApproveButton(): Promise<void> {
-    await Gestures.waitAndTap(this.approveButtonText, {
+    await UnifiedGestures.waitAndTap(this.approveButtonText, {
       elemDescription: 'Approve Button',
     });
   }
 
   async tapSendFailingTransactionButton(): Promise<void> {
-    await Gestures.waitAndTap(this.sendFailingTransactionButton, {
+    await UnifiedGestures.waitAndTap(this.sendFailingTransactionButton, {
       elemDescription: 'Send failing transaction button',
     });
   }
 
   async tapERC1155BatchTransferButton(): Promise<void> {
-    await Gestures.waitAndTap(this.erc1155BatchTransferButton, {
+    await UnifiedGestures.waitAndTap(this.erc1155BatchTransferButton, {
       elemDescription: 'ERC1155 batch transfer button',
     });
   }
@@ -508,7 +520,7 @@ class TestDApp {
     options: TapOptions = {},
   ): Promise<void> {
     await Gestures.scrollToWebViewPort(elementId);
-    await Gestures.tap(elementId, options);
+    await UnifiedGestures.tap(elementId, options);
   }
 
   async navigateToTestDappWithContract({
@@ -582,7 +594,7 @@ class TestDApp {
         networkItem as unknown as WebElement,
         { timeout: 2000, description: 'network item by label' },
       );
-      await Gestures.waitAndTap(networkItem as unknown as WebElement, {
+      await UnifiedGestures.waitAndTap(networkItem as unknown as WebElement, {
         elemDescription: `tap ${networkName} network`,
       });
       return;

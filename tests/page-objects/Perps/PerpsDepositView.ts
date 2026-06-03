@@ -1,5 +1,4 @@
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
 import {
   asPlaywrightElement,
@@ -14,6 +13,7 @@ import {
   PlaywrightElement,
   PlaywrightGestures,
 } from '../../framework';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 const TIMEOUT = {
   KEYPAD_DIGIT: 10000,
@@ -21,8 +21,11 @@ const TIMEOUT = {
 
 class PerpsDepositView {
   // Custom deposit keypad container
-  get keypad(): DetoxElement {
-    return Matchers.getElementByID('deposit-keyboard');
+  get keypad(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID('deposit-keyboard'),
+      appium: () => PlaywrightMatchers.getElementById('deposit-keyboard'),
+    });
   }
 
   /** Amount input - wdio PerpsDepositScreen uses 'custom-amount-input' for isAmountInputVisible */
@@ -63,8 +66,11 @@ class PerpsDepositView {
   // Add funds (confirm) button on review screen. Uses testID for reliability:
   // the confirmation screen shows at most one "Add funds" (ConfirmButton);
   // index 1 was failing when no second "Add funds" existed in the hierarchy.
-  get confirmButton(): DetoxElement {
-    return Matchers.getElementByID('confirm-button');
+  get confirmButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID('confirm-button'),
+      appium: () => PlaywrightMatchers.getElementById('confirm-button'),
+    });
   }
 
   get infoRow(): EncapsulatedElementType {
@@ -84,8 +90,11 @@ class PerpsDepositView {
     });
   }
 
-  get usdcOption(): DetoxElement {
-    return Matchers.getElementByText('USDC');
+  get usdcOption(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText('USDC'),
+      appium: () => PlaywrightMatchers.getElementByText('USDC'),
+    });
   }
 
   async expectLoaded(): Promise<void> {
@@ -96,10 +105,10 @@ class PerpsDepositView {
   }
 
   async selectUSDC(): Promise<void> {
-    await Gestures.waitAndTap(this.payWithRow, {
+    await UnifiedGestures.waitAndTap(this.payWithRow, {
       elemDescription: 'Open Pay with selector',
     });
-    await Gestures.waitAndTap(this.usdcOption, {
+    await UnifiedGestures.waitAndTap(this.usdcOption, {
       elemDescription: 'Select USDC in Pay with',
     });
   }
@@ -109,7 +118,7 @@ class PerpsDepositView {
     await Assertions.expectElementToBeVisible(this.keypad, {
       description: 'Deposit keyboard is visible before typing amount',
     });
-    await Gestures.waitAndTap(this.keypad, {
+    await UnifiedGestures.waitAndTap(this.keypad, {
       elemDescription: 'Focus amount via deposit keyboard container',
       checkEnabled: false,
       checkVisibility: false,
@@ -122,7 +131,7 @@ class PerpsDepositView {
         // Types digits using the on-screen keypad (buttons 0-9 and '.')
         for (const ch of amount) {
           const key = Matchers.getElementByText(ch) as DetoxElement;
-          await Gestures.waitAndTap(key, {
+          await UnifiedGestures.waitAndTap(key, {
             elemDescription: `Keypad ${ch}`,
             checkEnabled: false,
             checkVisibility: false,
@@ -156,7 +165,7 @@ class PerpsDepositView {
   async tapContinue(): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
-        await Gestures.waitAndTap(this.continueButtonByText, {
+        await UnifiedGestures.waitAndTap(this.continueButtonByText, {
           elemDescription: 'Continue (by text) deposit confirmation',
           checkEnabled: false,
           checkVisibility: false,
@@ -176,7 +185,7 @@ class PerpsDepositView {
   }
 
   async tapAddFunds(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmButton, {
+    await UnifiedGestures.waitAndTap(this.confirmButton, {
       elemDescription: 'Add funds (confirm)',
     });
   }

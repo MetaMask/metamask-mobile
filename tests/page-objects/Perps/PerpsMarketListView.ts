@@ -4,7 +4,6 @@ import {
   PerpsTokenSelectorSelectorsIDs,
   getPerpsMarketRowItemSelector,
 } from '../../../app/components/UI/Perps/Perps.testIds';
-import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import {
   asPlaywrightElement,
@@ -13,6 +12,7 @@ import {
 } from '../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import { encapsulatedAction, PlaywrightGestures } from '../../framework';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class PerpsMarketListView {
   // Main container
@@ -34,14 +34,21 @@ class PerpsMarketListView {
    * HeaderCompactStandard back on explore market list (see PerpsMarketListView.tsx).
    * Navigates from the market list back to Perps portfolio home.
    */
-  get headerBackButton(): DetoxElement {
-    return Matchers.getElementByID(
-      `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-back-button`,
-    );
+  get headerBackButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-back-button`,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-back-button`,
+        ),
+    });
   }
 
   async tapHeaderBackToPortfolioHome(): Promise<void> {
-    await Gestures.waitAndTap(this.headerBackButton, {
+    await UnifiedGestures.waitAndTap(this.headerBackButton, {
       elemDescription: 'Market list header back (to Perps portfolio home)',
       timeout: 15000,
     });
@@ -140,7 +147,7 @@ class PerpsMarketListView {
   }
 
   async tapFirstMarketRowItem() {
-    await Gestures.scrollToElement(
+    await UnifiedGestures.scrollToElement(
       this.firstMarketRowItem,
       this.scrollableContainer,
       {
@@ -149,22 +156,22 @@ class PerpsMarketListView {
         elemDescription: 'Perps First Market Row',
       },
     );
-    await Gestures.waitAndTap(this.firstMarketRowItem, {
+    await UnifiedGestures.waitAndTap(this.firstMarketRowItem, {
       elemDescription: 'Perps First Market Row',
       checkStability: true,
     });
   }
 
   async tapSearchClearButton() {
-    await Gestures.waitAndTap(this.searchClearButton);
+    await UnifiedGestures.waitAndTap(this.searchClearButton);
   }
 
   async tapCloseTokenSelector() {
-    await Gestures.waitAndTap(this.closeTokenSelector);
+    await UnifiedGestures.waitAndTap(this.closeTokenSelector);
   }
 
   async waitForMarketListToLoad() {
-    await Gestures.waitAndTap(this.container);
+    await UnifiedGestures.waitAndTap(this.container);
   }
 
   async selectMarket(marketName: string) {
@@ -173,7 +180,7 @@ class PerpsMarketListView {
         const marketElement = Matchers.getElementByID(
           `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${marketName}`,
         );
-        await Gestures.waitAndTap(marketElement);
+        await UnifiedGestures.waitAndTap(marketElement);
       },
       appium: async () => {
         const marketSelector = `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${marketName}`;

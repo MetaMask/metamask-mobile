@@ -1,5 +1,4 @@
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 import {
   TokenOverviewSelectorsIDs,
@@ -33,8 +32,15 @@ class TokenOverview {
     });
   }
 
-  get tokenPrice(): DetoxElement {
-    return Matchers.getElementByID(TokenOverviewSelectorsIDs.TOKEN_PRICE);
+  get tokenPrice(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(TokenOverviewSelectorsIDs.TOKEN_PRICE),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          TokenOverviewSelectorsIDs.TOKEN_PRICE,
+        ),
+    });
   }
 
   get sendButton(): EncapsulatedElementType {
@@ -91,74 +97,173 @@ class TokenOverview {
     });
   }
 
-  get unstakeButton(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.UNSTAKE_BUTTON);
+  get unstakeButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.UNSTAKE_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.UNSTAKE_BUTTON,
+        ),
+    });
   }
 
-  get stakeMoreButton(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.STAKE_MORE_BUTTON);
+  get stakeMoreButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.STAKE_MORE_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.STAKE_MORE_BUTTON,
+        ),
+    });
   }
 
-  get stakedBalance(): DetoxElement {
-    return Matchers.getElementByID(TokenOverviewSelectorsText.STAKED_BALANCE);
+  get stakedBalance(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(TokenOverviewSelectorsText.STAKED_BALANCE),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          TokenOverviewSelectorsText.STAKED_BALANCE,
+        ),
+    });
   }
 
-  get actionSheetSendButton(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON,
-    );
+  get actionSheetSendButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON,
+        ),
+    });
   }
 
-  get swapButton(): DetoxElement {
-    return Matchers.getElementByID(TokenOverviewSelectorsIDs.SWAP_BUTTON);
+  get swapButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(TokenOverviewSelectorsIDs.SWAP_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          TokenOverviewSelectorsIDs.SWAP_BUTTON,
+        ),
+    });
   }
 
-  get bridgeButton(): DetoxElement {
-    return Matchers.getElementByID(TokenOverviewSelectorsIDs.BRIDGE_BUTTON);
+  get bridgeButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(TokenOverviewSelectorsIDs.BRIDGE_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          TokenOverviewSelectorsIDs.BRIDGE_BUTTON,
+        ),
+    });
   }
 
-  get claimButton(): DetoxElement {
-    return Matchers.getElementByID(TokenOverviewSelectorsIDs.CLAIM_BUTTON);
+  get claimButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(TokenOverviewSelectorsIDs.CLAIM_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          TokenOverviewSelectorsIDs.CLAIM_BUTTON,
+        ),
+    });
   }
 
-  get receiveButton(): DetoxElement {
-    return Matchers.getElementByID(TokenOverviewSelectorsIDs.RECEIVE_BUTTON);
+  get receiveButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(TokenOverviewSelectorsIDs.RECEIVE_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          TokenOverviewSelectorsIDs.RECEIVE_BUTTON,
+        ),
+    });
   }
 
-  get noChartData(): DetoxElement {
-    return Matchers.getElementByText(TokenOverviewSelectorsText.NO_CHART_DATA);
+  get noChartData(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(TokenOverviewSelectorsText.NO_CHART_DATA),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          TokenOverviewSelectorsText.NO_CHART_DATA,
+        ),
+    });
   }
 
-  get closeButton(): DetoxElement {
-    return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON);
+  get closeButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(CommonSelectorsIDs.BACK_ARROW_BUTTON),
+    });
   }
 
-  get unstakingBanner(): DetoxElement {
-    return Matchers.getElementByID(TokenOverviewSelectorsIDs.UNSTAKING_BANNER);
+  get unstakingBanner(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(TokenOverviewSelectorsIDs.UNSTAKING_BANNER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          TokenOverviewSelectorsIDs.UNSTAKING_BANNER,
+        ),
+    });
   }
 
-  get chartPeriod1d(): DetoxElement {
-    return Matchers.getElementByText(TokenOverviewSelectorsText['1d']);
+  get chartPeriod1d(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(TokenOverviewSelectorsText['1d']),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(TokenOverviewSelectorsText['1d']),
+    });
   }
 
-  get chartPeriod1w(): DetoxElement {
-    return Matchers.getElementByText(TokenOverviewSelectorsText['1w']);
+  get chartPeriod1w(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(TokenOverviewSelectorsText['1w']),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(TokenOverviewSelectorsText['1w']),
+    });
   }
 
-  get chartPeriod1m(): DetoxElement {
-    return Matchers.getElementByText(TokenOverviewSelectorsText['1m']);
+  get chartPeriod1m(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(TokenOverviewSelectorsText['1m']),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(TokenOverviewSelectorsText['1m']),
+    });
   }
 
-  get chartPeriod3m(): DetoxElement {
-    return Matchers.getElementByText(TokenOverviewSelectorsText['3m']);
+  get chartPeriod3m(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(TokenOverviewSelectorsText['3m']),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(TokenOverviewSelectorsText['3m']),
+    });
   }
 
-  get chartPeriod1y(): DetoxElement {
-    return Matchers.getElementByText(TokenOverviewSelectorsText['1y']);
+  get chartPeriod1y(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(TokenOverviewSelectorsText['1y']),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(TokenOverviewSelectorsText['1y']),
+    });
   }
 
-  get chartPeriod3y(): DetoxElement {
-    return Matchers.getElementByText(TokenOverviewSelectorsText['3y']);
+  get chartPeriod3y(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(TokenOverviewSelectorsText['3y']),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(TokenOverviewSelectorsText['3y']),
+    });
   }
 
   async tapSendButton(): Promise<void> {
@@ -168,35 +273,35 @@ class TokenOverview {
   }
 
   async tapActionSheetSendButton(): Promise<void> {
-    await Gestures.waitAndTap(this.actionSheetSendButton);
+    await UnifiedGestures.waitAndTap(this.actionSheetSendButton);
   }
 
   async tapBridgeButton(): Promise<void> {
-    await Gestures.waitAndTap(this.bridgeButton);
+    await UnifiedGestures.waitAndTap(this.bridgeButton);
   }
 
   async tapSwapButton(): Promise<void> {
-    await Gestures.waitAndTap(this.swapButton);
+    await UnifiedGestures.waitAndTap(this.swapButton);
   }
 
   async tapStakeMoreButton(): Promise<void> {
-    await Gestures.waitAndTap(this.stakeMoreButton);
+    await UnifiedGestures.waitAndTap(this.stakeMoreButton);
   }
 
   async tapUnstakeButton(): Promise<void> {
-    await Gestures.waitAndTap(this.unstakeButton);
+    await UnifiedGestures.waitAndTap(this.unstakeButton);
   }
 
   async tapBackButton(): Promise<void> {
-    await Gestures.waitAndTap(this.closeButton);
+    await UnifiedGestures.waitAndTap(this.closeButton);
   }
 
   async tapClaimButton(): Promise<void> {
-    await Gestures.waitAndTap(this.claimButton);
+    await UnifiedGestures.waitAndTap(this.claimButton);
   }
 
   async scrollOnScreen(): Promise<void> {
-    await Gestures.swipe(this.tokenPrice, 'up', {
+    await UnifiedGestures.swipe(this.tokenPrice, 'up', {
       elemDescription: 'Scroll on Token Overview Screen',
       percentage: 0.6,
       speed: 'fast',
@@ -204,37 +309,37 @@ class TokenOverview {
   }
 
   async tapChartPeriod1d(): Promise<void> {
-    await Gestures.waitAndTap(this.chartPeriod1d, {
+    await UnifiedGestures.waitAndTap(this.chartPeriod1d, {
       elemDescription: 'Chart Period 1d',
     });
   }
 
   async tapChartPeriod1w(): Promise<void> {
-    await Gestures.waitAndTap(this.chartPeriod1w, {
+    await UnifiedGestures.waitAndTap(this.chartPeriod1w, {
       elemDescription: 'Chart Period 1w',
     });
   }
 
   async tapChartPeriod1m(): Promise<void> {
-    await Gestures.waitAndTap(this.chartPeriod1m, {
+    await UnifiedGestures.waitAndTap(this.chartPeriod1m, {
       elemDescription: 'Chart Period 1m',
     });
   }
 
   async tapChartPeriod3m(): Promise<void> {
-    await Gestures.waitAndTap(this.chartPeriod3m, {
+    await UnifiedGestures.waitAndTap(this.chartPeriod3m, {
       elemDescription: 'Chart Period 3m',
     });
   }
 
   async tapChartPeriod1y(): Promise<void> {
-    await Gestures.waitAndTap(this.chartPeriod1y, {
+    await UnifiedGestures.waitAndTap(this.chartPeriod1y, {
       elemDescription: 'Chart Period 1y',
     });
   }
 
   async tapChartPeriod3y(): Promise<void> {
-    await Gestures.waitAndTap(this.chartPeriod3y, {
+    await UnifiedGestures.waitAndTap(this.chartPeriod3y, {
       elemDescription: 'Chart Period 3y',
     });
   }

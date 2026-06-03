@@ -1,97 +1,158 @@
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
 import {
   NetworkNonPemittedBottomSheetSelectorsIDs,
   NetworkNonPemittedBottomSheetSelectorsText,
 } from '../../../app/components/Views/NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class NetworkNonPemittedBottomSheet {
-  get addThisNetworkTitle(): DetoxElement {
-    return Matchers.getElementByText(
-      NetworkNonPemittedBottomSheetSelectorsText.ADD_THIS_NETWORK_TITLE,
-    );
+  get addThisNetworkTitle(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          NetworkNonPemittedBottomSheetSelectorsText.ADD_THIS_NETWORK_TITLE,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          NetworkNonPemittedBottomSheetSelectorsText.ADD_THIS_NETWORK_TITLE,
+        ),
+    });
   }
 
-  get sepoliaNetworkName(): DetoxElement {
-    return Matchers.getElementByText(
-      NetworkNonPemittedBottomSheetSelectorsText.SEPOLIA_NETWORK_NAME,
-    );
+  get sepoliaNetworkName(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          NetworkNonPemittedBottomSheetSelectorsText.SEPOLIA_NETWORK_NAME,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          NetworkNonPemittedBottomSheetSelectorsText.SEPOLIA_NETWORK_NAME,
+        ),
+    });
   }
 
-  get ethereumMainNetNetworkName(): DetoxElement {
-    return Matchers.getElementByText(
-      NetworkNonPemittedBottomSheetSelectorsText.ETHEREUM_MAIN_NET_NETWORK_NAME,
-    );
+  get ethereumMainNetNetworkName(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          NetworkNonPemittedBottomSheetSelectorsText.ETHEREUM_MAIN_NET_NETWORK_NAME,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          NetworkNonPemittedBottomSheetSelectorsText.ETHEREUM_MAIN_NET_NETWORK_NAME,
+        ),
+    });
   }
 
-  get addThisNetworkButton(): DetoxElement {
-    return Matchers.getElementByID(
-      NetworkNonPemittedBottomSheetSelectorsIDs.ADD_THIS_NETWORK_BUTTON,
-    );
+  get addThisNetworkButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          NetworkNonPemittedBottomSheetSelectorsIDs.ADD_THIS_NETWORK_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          NetworkNonPemittedBottomSheetSelectorsIDs.ADD_THIS_NETWORK_BUTTON,
+        ),
+    });
   }
 
-  get lineaSepoliaNetworkName(): DetoxElement {
-    return Matchers.getElementByText(
-      NetworkNonPemittedBottomSheetSelectorsText.LINEA_SEPOLIA_NETWORK_NAME,
-    );
+  get lineaSepoliaNetworkName(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          NetworkNonPemittedBottomSheetSelectorsText.LINEA_SEPOLIA_NETWORK_NAME,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          NetworkNonPemittedBottomSheetSelectorsText.LINEA_SEPOLIA_NETWORK_NAME,
+        ),
+    });
   }
 
-  get elysiumTestnetNetworkName(): DetoxElement {
-    return Matchers.getElementByText(
-      NetworkNonPemittedBottomSheetSelectorsText.ELYSIUM_TESTNET_NETWORK_NAME,
-    );
+  get elysiumTestnetNetworkName(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          NetworkNonPemittedBottomSheetSelectorsText.ELYSIUM_TESTNET_NETWORK_NAME,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          NetworkNonPemittedBottomSheetSelectorsText.ELYSIUM_TESTNET_NETWORK_NAME,
+        ),
+    });
   }
 
-  get chooseFromPermittedNetworksButton(): DetoxElement {
-    return Matchers.getElementByID(
-      NetworkNonPemittedBottomSheetSelectorsIDs.CHOOSE_FROM_PERMITTED_NETWORKS_BUTTON,
-    );
+  get chooseFromPermittedNetworksButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          NetworkNonPemittedBottomSheetSelectorsIDs.CHOOSE_FROM_PERMITTED_NETWORKS_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          NetworkNonPemittedBottomSheetSelectorsIDs.CHOOSE_FROM_PERMITTED_NETWORKS_BUTTON,
+        ),
+    });
   }
 
-  get editPermissionsButton(): DetoxElement {
-    return Matchers.getElementByID(
-      NetworkNonPemittedBottomSheetSelectorsIDs.EDIT_PERMISSIONS_BUTTON,
-    );
+  get editPermissionsButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          NetworkNonPemittedBottomSheetSelectorsIDs.EDIT_PERMISSIONS_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          NetworkNonPemittedBottomSheetSelectorsIDs.EDIT_PERMISSIONS_BUTTON,
+        ),
+    });
   }
 
   async tapAddThisNetworkButton(): Promise<void> {
-    await Gestures.waitAndTap(this.addThisNetworkButton, {
+    await UnifiedGestures.waitAndTap(this.addThisNetworkButton, {
       elemDescription: 'Add this network button',
     });
   }
 
   async tapSepoliaNetworkName(): Promise<void> {
-    await Gestures.waitAndTap(this.sepoliaNetworkName, {
+    await UnifiedGestures.waitAndTap(this.sepoliaNetworkName, {
       elemDescription: 'Sepolia network name',
     });
   }
 
   async tapEthereumMainNetNetworkName(): Promise<void> {
-    await Gestures.waitAndTap(this.ethereumMainNetNetworkName, {
+    await UnifiedGestures.waitAndTap(this.ethereumMainNetNetworkName, {
       elemDescription: 'Ethereum main net network name',
     });
   }
 
   async tapLineaSepoliaNetworkName(): Promise<void> {
-    await Gestures.waitAndTap(this.lineaSepoliaNetworkName, {
+    await UnifiedGestures.waitAndTap(this.lineaSepoliaNetworkName, {
       elemDescription: 'Linea Sepolia network name',
     });
   }
 
   async tapElysiumTestnetNetworkName(): Promise<void> {
-    await Gestures.waitAndTap(this.elysiumTestnetNetworkName, {
+    await UnifiedGestures.waitAndTap(this.elysiumTestnetNetworkName, {
       elemDescription: 'Elysium testnet network name',
     });
   }
 
   async tapChooseFromPermittedNetworksButton(): Promise<void> {
-    await Gestures.waitAndTap(this.chooseFromPermittedNetworksButton, {
+    await UnifiedGestures.waitAndTap(this.chooseFromPermittedNetworksButton, {
       elemDescription: 'Choose from permitted networks button',
     });
   }
 
   async tapEditPermissionsButton(): Promise<void> {
-    await Gestures.waitAndTap(this.editPermissionsButton, {
+    await UnifiedGestures.waitAndTap(this.editPermissionsButton, {
       elemDescription: 'Edit permissions button',
     });
   }

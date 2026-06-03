@@ -8,7 +8,12 @@
 //   ContractApprovalBottomSheetSelectorsText,
 // } from '../../../app/components/Views/confirmations/legacy/components/ContractApprovalBottomSheet.testIds';
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 // Temporary placeholders to prevent TypeScript errors
 const ContractApprovalBottomSheetSelectorsIDs = {
@@ -27,107 +32,170 @@ const ContractApprovalBottomSheetSelectorsText = {
 };
 
 class ContractApprovalBottomSheet {
-  get container(): DetoxElement {
-    return Matchers.getElementByID(
-      ContractApprovalBottomSheetSelectorsIDs.CONTAINER,
-    );
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          ContractApprovalBottomSheetSelectorsIDs.CONTAINER,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ContractApprovalBottomSheetSelectorsIDs.CONTAINER,
+        ),
+    });
   }
 
-  get addNickName(): DetoxElement {
-    return Matchers.getElementByText(
-      ContractApprovalBottomSheetSelectorsText.ADD_NICKNAME,
-    );
+  get addNickName(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          ContractApprovalBottomSheetSelectorsText.ADD_NICKNAME,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          ContractApprovalBottomSheetSelectorsText.ADD_NICKNAME,
+        ),
+    });
   }
 
-  get editNickName(): DetoxElement {
-    return Matchers.getElementByText(
-      ContractApprovalBottomSheetSelectorsText.EDIT_NICKNAME,
-    );
+  get editNickName(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          ContractApprovalBottomSheetSelectorsText.EDIT_NICKNAME,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          ContractApprovalBottomSheetSelectorsText.EDIT_NICKNAME,
+        ),
+    });
   }
 
-  get rejectButton(): DetoxElement {
-    return Matchers.getElementByText(
-      ContractApprovalBottomSheetSelectorsText.REJECT,
-    );
+  get rejectButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          ContractApprovalBottomSheetSelectorsText.REJECT,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          ContractApprovalBottomSheetSelectorsText.REJECT,
+        ),
+    });
   }
 
-  get approveButton(): DetoxElement {
-    return Matchers.getElementByText(
-      ContractApprovalBottomSheetSelectorsText.APPROVE,
-    );
+  get approveButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          ContractApprovalBottomSheetSelectorsText.APPROVE,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          ContractApprovalBottomSheetSelectorsText.APPROVE,
+        ),
+    });
   }
 
-  get contractAddress(): DetoxElement {
-    return Matchers.getElementByID(
-      ContractApprovalBottomSheetSelectorsIDs.CONTRACT_ADDRESS,
-    );
+  get contractAddress(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          ContractApprovalBottomSheetSelectorsIDs.CONTRACT_ADDRESS,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ContractApprovalBottomSheetSelectorsIDs.CONTRACT_ADDRESS,
+        ),
+    });
   }
 
-  get nextButton(): DetoxElement {
-    return Matchers.getElementByText(
-      ContractApprovalBottomSheetSelectorsText.NEXT,
-    );
+  get nextButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          ContractApprovalBottomSheetSelectorsText.NEXT,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          ContractApprovalBottomSheetSelectorsText.NEXT,
+        ),
+    });
   }
 
-  get approveTokenAmount(): DetoxElement {
-    return Matchers.getElementByID(
-      ContractApprovalBottomSheetSelectorsIDs.APPROVE_TOKEN_AMOUNT,
-    );
+  get approveTokenAmount(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          ContractApprovalBottomSheetSelectorsIDs.APPROVE_TOKEN_AMOUNT,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ContractApprovalBottomSheetSelectorsIDs.APPROVE_TOKEN_AMOUNT,
+        ),
+    });
   }
 
-  get confirmButton(): DetoxElement {
-    return Matchers.getElementByText(
-      ContractApprovalBottomSheetSelectorsText.CONFIRM,
-    );
+  get confirmButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          ContractApprovalBottomSheetSelectorsText.CONFIRM,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          ContractApprovalBottomSheetSelectorsText.CONFIRM,
+        ),
+    });
   }
 
   async tapAddNickName(): Promise<void> {
-    await Gestures.waitAndTap(this.addNickName, {
+    await UnifiedGestures.waitAndTap(this.addNickName, {
       elemDescription: 'Tap on the add nickname button',
     });
   }
   async tapEditNickName(): Promise<void> {
-    await Gestures.waitAndTap(this.editNickName, {
+    await UnifiedGestures.waitAndTap(this.editNickName, {
       elemDescription: 'Tap on the edit nickname button',
     });
   }
 
   async tapRejectButton(): Promise<void> {
-    await Gestures.waitAndTap(this.rejectButton, {
+    await UnifiedGestures.waitAndTap(this.rejectButton, {
       elemDescription: 'Tap on the reject button',
     });
   }
 
   async tapApproveButton(): Promise<void> {
-    await Gestures.waitAndTap(this.approveButton, {
+    await UnifiedGestures.waitAndTap(this.approveButton, {
       elemDescription: 'Tap on the approve button',
     });
   }
 
   async tapConfirmButton(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmButton, {
+    await UnifiedGestures.waitAndTap(this.confirmButton, {
       elemDescription: 'Tap on the confirm button',
     });
   }
 
   async tapToCopyContractAddress(): Promise<void> {
-    await Gestures.waitAndTap(this.contractAddress, {
+    await UnifiedGestures.waitAndTap(this.contractAddress, {
       elemDescription: 'Tap on the contract address',
     });
   }
 
   async tapNextButton(): Promise<void> {
-    await Gestures.waitAndTap(this.nextButton, {
+    await UnifiedGestures.waitAndTap(this.nextButton, {
       elemDescription: 'Tap on the next button',
     });
   }
 
   async inputCustomAmount(amount: string): Promise<void> {
-    await Gestures.typeTextAndHideKeyboard(this.approveTokenAmount, amount);
+    await UnifiedGestures.typeText(this.approveTokenAmount, amount);
   }
 
   async clearInput(): Promise<void> {
-    await Gestures.typeText(this.approveTokenAmount, '', {
+    await UnifiedGestures.typeText(this.approveTokenAmount, '', {
       clearFirst: true,
       elemDescription: 'Clear the input field',
     });

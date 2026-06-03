@@ -7,6 +7,7 @@ import { waitFor } from 'detox';
 import { SolanaTestDappSelectorsWebIDs } from '../../selectors/Browser/SolanaTestDapp.selectors';
 import { getDappUrl } from '../../framework/fixtures/FixtureUtils';
 import { Utilities } from '../../framework';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 /**
  * Get a test element by data-testid
@@ -92,7 +93,7 @@ class SolanaTestDApp {
    */
   async tapButton(webElement: WebElement): Promise<void> {
     await Gestures.scrollToWebViewPort(webElement);
-    await Gestures.waitAndTap(webElement);
+    await UnifiedGestures.waitAndTap(webElement);
   }
 
   getHeader() {
@@ -177,15 +178,15 @@ class SolanaTestDApp {
   }
 
   async confirmTransaction(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmTransactionButtonSelector);
+    await UnifiedGestures.waitAndTap(this.confirmTransactionButtonSelector);
   }
 
   async confirmSignMessage(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmSignMessageButtonSelector);
+    await UnifiedGestures.waitAndTap(this.confirmSignMessageButtonSelector);
   }
 
   async tapCancelButton(): Promise<void> {
-    await Gestures.waitAndTap(this.cancelButtonSelector);
+    await UnifiedGestures.waitAndTap(this.cancelButtonSelector);
   }
 }
 

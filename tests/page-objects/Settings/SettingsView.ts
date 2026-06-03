@@ -1,61 +1,124 @@
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
 import {
   SettingsViewSelectorsIDs,
   SettingsViewSelectorsText,
 } from '../../../app/components/Views/Settings/SettingsView.testIds';
 import { CommonSelectorsText } from '../../../app/util/Common.testIds';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class SettingsView {
-  get title(): DetoxElement {
-    return Matchers.getElementByText(SettingsViewSelectorsText.TITLE);
+  get title(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(SettingsViewSelectorsText.TITLE),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(SettingsViewSelectorsText.TITLE),
+    });
   }
 
-  get generalSettingsButton(): DetoxElement {
-    return Matchers.getElementByID(SettingsViewSelectorsIDs.GENERAL);
+  get generalSettingsButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(SettingsViewSelectorsIDs.GENERAL),
+      appium: () =>
+        PlaywrightMatchers.getElementById(SettingsViewSelectorsIDs.GENERAL),
+    });
   }
 
-  get advancedButton(): DetoxElement {
-    return Matchers.getElementByID(SettingsViewSelectorsIDs.ADVANCED);
+  get advancedButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(SettingsViewSelectorsIDs.ADVANCED),
+      appium: () =>
+        PlaywrightMatchers.getElementById(SettingsViewSelectorsIDs.ADVANCED),
+    });
   }
 
-  get contactsSettingsButton(): DetoxElement {
-    return Matchers.getElementByID(SettingsViewSelectorsIDs.CONTACTS);
+  get contactsSettingsButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(SettingsViewSelectorsIDs.CONTACTS),
+      appium: () =>
+        PlaywrightMatchers.getElementById(SettingsViewSelectorsIDs.CONTACTS),
+    });
   }
 
-  get securityAndPrivacyButton(): DetoxElement {
-    return Matchers.getElementByID(SettingsViewSelectorsIDs.SECURITY);
+  get securityAndPrivacyButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(SettingsViewSelectorsIDs.SECURITY),
+      appium: () =>
+        PlaywrightMatchers.getElementById(SettingsViewSelectorsIDs.SECURITY),
+    });
   }
 
-  get notificationsButton(): DetoxElement {
-    return Matchers.getElementByID(SettingsViewSelectorsIDs.NOTIFICATIONS);
+  get notificationsButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(SettingsViewSelectorsIDs.NOTIFICATIONS),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          SettingsViewSelectorsIDs.NOTIFICATIONS,
+        ),
+    });
   }
 
-  get aesCryptoTestForm(): DetoxElement {
-    return Matchers.getElementByID(
-      SettingsViewSelectorsIDs.AES_CRYPTO_TEST_FORM,
-    );
+  get aesCryptoTestForm(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(SettingsViewSelectorsIDs.AES_CRYPTO_TEST_FORM),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          SettingsViewSelectorsIDs.AES_CRYPTO_TEST_FORM,
+        ),
+    });
   }
 
-  get lockSettingsButton(): DetoxElement {
-    return Matchers.getElementByID(SettingsViewSelectorsIDs.LOCK);
+  get lockSettingsButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(SettingsViewSelectorsIDs.LOCK),
+      appium: () =>
+        PlaywrightMatchers.getElementById(SettingsViewSelectorsIDs.LOCK),
+    });
   }
-  get contactSupportButton(): DetoxElement {
-    return Matchers.getElementByID(SettingsViewSelectorsIDs.CONTACT);
-  }
-
-  get contactSupportSectionTitle(): DetoxElement {
-    return Matchers.getElementByText(
-      SettingsViewSelectorsText.CONTACT_SUPPORT_TITLE,
-    );
-  }
-
-  get backupAndSyncSectionButton(): DetoxElement {
-    return Matchers.getElementByID(SettingsViewSelectorsIDs.BACKUP_AND_SYNC);
+  get contactSupportButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(SettingsViewSelectorsIDs.CONTACT),
+      appium: () =>
+        PlaywrightMatchers.getElementById(SettingsViewSelectorsIDs.CONTACT),
+    });
   }
 
-  get snapsSectionButton(): DetoxElement {
-    return Matchers.getElementByID(SettingsViewSelectorsIDs.SNAPS);
+  get contactSupportSectionTitle(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          SettingsViewSelectorsText.CONTACT_SUPPORT_TITLE,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          SettingsViewSelectorsText.CONTACT_SUPPORT_TITLE,
+        ),
+    });
+  }
+
+  get backupAndSyncSectionButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(SettingsViewSelectorsIDs.BACKUP_AND_SYNC),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          SettingsViewSelectorsIDs.BACKUP_AND_SYNC,
+        ),
+    });
+  }
+
+  get snapsSectionButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(SettingsViewSelectorsIDs.SNAPS),
+      appium: () =>
+        PlaywrightMatchers.getElementById(SettingsViewSelectorsIDs.SNAPS),
+    });
   }
 
   get alertButton(): DetoxElement {
@@ -69,7 +132,7 @@ class SettingsView {
   }
 
   async scrollToLockButton(): Promise<void> {
-    await Gestures.scrollToElement(
+    await UnifiedGestures.scrollToElement(
       this.lockSettingsButton,
       this.scrollViewIdentifier,
       {
@@ -79,7 +142,7 @@ class SettingsView {
   }
 
   async scrollToContactSupportButton(): Promise<void> {
-    await Gestures.scrollToElement(
+    await UnifiedGestures.scrollToElement(
       this.contactSupportButton,
       this.scrollViewIdentifier,
       {
@@ -89,7 +152,7 @@ class SettingsView {
   }
 
   async scrollToAesCryptoButton(): Promise<void> {
-    await Gestures.scrollToElement(
+    await UnifiedGestures.scrollToElement(
       this.aesCryptoTestForm,
       this.scrollViewIdentifier,
       {
@@ -99,68 +162,68 @@ class SettingsView {
   }
 
   async tapGeneralSettings(): Promise<void> {
-    await Gestures.waitAndTap(this.generalSettingsButton, {
+    await UnifiedGestures.waitAndTap(this.generalSettingsButton, {
       elemDescription: 'Settings - General Settings Button',
     });
   }
 
   async tapAdvancedTitle(): Promise<void> {
-    await Gestures.waitAndTap(this.advancedButton, {
+    await UnifiedGestures.waitAndTap(this.advancedButton, {
       elemDescription: 'Settings - Advanced Settings Button',
     });
   }
 
   async tapContactsSettings(): Promise<void> {
-    await Gestures.waitAndTap(this.contactsSettingsButton, {
+    await UnifiedGestures.waitAndTap(this.contactsSettingsButton, {
       elemDescription: 'Settings - Contacts Settings Button',
     });
   }
 
   async tapSecurityAndPrivacy(): Promise<void> {
-    await Gestures.waitAndTap(this.securityAndPrivacyButton, {
+    await UnifiedGestures.waitAndTap(this.securityAndPrivacyButton, {
       elemDescription: 'Settings - Security and Privacy Button',
     });
   }
 
   async tapNotifications(): Promise<void> {
-    await Gestures.waitAndTap(this.notificationsButton, {
+    await UnifiedGestures.waitAndTap(this.notificationsButton, {
       elemDescription: 'Settings - Notifications Button',
     });
   }
 
   async tapContacts(): Promise<void> {
-    await Gestures.waitAndTap(this.contactsSettingsButton, {
+    await UnifiedGestures.waitAndTap(this.contactsSettingsButton, {
       elemDescription: 'Settings - Contacts Settings Button',
     });
   }
 
   async tapAesCryptoTestForm(): Promise<void> {
-    await Gestures.waitAndTap(this.aesCryptoTestForm, {
+    await UnifiedGestures.waitAndTap(this.aesCryptoTestForm, {
       elemDescription: 'Settings - AES Crypto Test Form Button',
     });
   }
 
   async tapLock(): Promise<void> {
     await this.scrollToLockButton();
-    await Gestures.waitAndTap(this.lockSettingsButton, {
+    await UnifiedGestures.waitAndTap(this.lockSettingsButton, {
       elemDescription: 'Settings - Lock Settings Button',
     });
   }
   async tapContactSupport(): Promise<void> {
     await this.scrollToLockButton();
-    await Gestures.waitAndTap(this.contactSupportButton, {
+    await UnifiedGestures.waitAndTap(this.contactSupportButton, {
       elemDescription: 'Settings - Contact Support Button',
     });
   }
 
   async tapYesAlertButton(): Promise<void> {
-    await Gestures.tap(this.alertButton, {
+    await UnifiedGestures.tap(this.alertButton, {
       elemDescription: 'Settings - Alert Yes Button',
     });
   }
 
   async tapBackupAndSync(): Promise<void> {
-    await Gestures.tap(this.backupAndSyncSectionButton, {
+    await UnifiedGestures.tap(this.backupAndSyncSectionButton, {
       elemDescription: 'Settings - Backup and Sync Section Button',
     });
   }
@@ -170,18 +233,18 @@ class SettingsView {
   }
 
   async scrollToDeveloperOptions() {
-    await Gestures.scrollToElement(
+    await UnifiedGestures.scrollToElement(
       this.developerOptionsButton,
       this.scrollViewIdentifier,
     );
   }
 
   async tapDeveloperOptions() {
-    await Gestures.waitAndTap(this.developerOptionsButton);
+    await UnifiedGestures.waitAndTap(this.developerOptionsButton);
   }
 
   async tapSnaps(): Promise<void> {
-    await Gestures.scrollToElement(
+    await UnifiedGestures.scrollToElement(
       this.snapsSectionButton,
       this.scrollViewIdentifier,
       {
@@ -189,17 +252,22 @@ class SettingsView {
       },
     );
 
-    await Gestures.tap(this.snapsSectionButton, {
+    await UnifiedGestures.tap(this.snapsSectionButton, {
       elemDescription: 'Settings - Snaps Button',
     });
   }
 
-  get backButton(): DetoxElement {
-    return Matchers.getElementByID(SettingsViewSelectorsIDs.BACK_BUTTON);
+  get backButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(SettingsViewSelectorsIDs.BACK_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(SettingsViewSelectorsIDs.BACK_BUTTON),
+    });
   }
 
   async tapBackButton(): Promise<void> {
-    await Gestures.tap(this.backButton, {
+    await UnifiedGestures.tap(this.backButton, {
       elemDescription: 'Settings - Back Button',
     });
   }

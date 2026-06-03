@@ -1,6 +1,5 @@
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../app/components/Views/WalletActions/WalletActionsBottomSheet.testIds';
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 import {
   encapsulated,
@@ -11,40 +10,82 @@ import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 
 class WalletActionsBottomSheet {
-  get sendButton(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON,
-    );
+  get sendButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON,
+        ),
+    });
   }
 
-  get receiveButton(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletActionsBottomSheetSelectorsIDs.RECEIVE_BUTTON,
-    );
+  get receiveButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          WalletActionsBottomSheetSelectorsIDs.RECEIVE_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletActionsBottomSheetSelectorsIDs.RECEIVE_BUTTON,
+        ),
+    });
   }
 
-  get swapButton(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON,
-    );
+  get swapButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON,
+        ),
+    });
   }
 
-  get bridgeButton(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON,
-    );
+  get bridgeButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON,
+        ),
+    });
   }
 
-  get buyButton(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON,
-    );
+  get buyButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON,
+        ),
+    });
   }
 
-  get sellButton(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON,
-    );
+  get sellButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON,
+        ),
+    });
   }
 
   get perpsButton(): EncapsulatedElementType {
@@ -88,31 +129,31 @@ class WalletActionsBottomSheet {
   }
 
   async tapSendButton(): Promise<void> {
-    await Gestures.waitAndTap(this.sendButton);
+    await UnifiedGestures.waitAndTap(this.sendButton);
   }
 
   async tapReceiveButton(): Promise<void> {
-    await Gestures.waitAndTap(this.receiveButton);
+    await UnifiedGestures.waitAndTap(this.receiveButton);
   }
 
   async tapSwapButton(): Promise<void> {
-    await Gestures.waitAndTap(this.swapButton, {
+    await UnifiedGestures.waitAndTap(this.swapButton, {
       delay: 1000,
     });
   }
 
   async tapBridgeButton(): Promise<void> {
-    await Gestures.waitAndTap(this.bridgeButton, {
+    await UnifiedGestures.waitAndTap(this.bridgeButton, {
       delay: 1000,
     });
   }
 
   async tapBuyButton(): Promise<void> {
-    await Gestures.waitAndTap(this.buyButton);
+    await UnifiedGestures.waitAndTap(this.buyButton);
   }
 
   async tapSellButton() {
-    await Gestures.waitAndTap(this.sellButton);
+    await UnifiedGestures.waitAndTap(this.sellButton);
   }
 
   async tapPerpsButton(): Promise<void> {
@@ -137,7 +178,7 @@ class WalletActionsBottomSheet {
   }
 
   async swipeDownActionsBottomSheet(): Promise<void> {
-    await Gestures.swipe(this.sendButton, 'down', {
+    await UnifiedGestures.swipe(this.sendButton, 'down', {
       speed: 'fast',
     });
   }

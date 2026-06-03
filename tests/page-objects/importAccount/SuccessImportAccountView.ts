@@ -1,16 +1,30 @@
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
 import { SuccessImportAccountIDs } from '../../../app/components/Views/ImportPrivateKeySuccess/SuccessImportAccount.testIds';
 import WalletView from '../wallet/WalletView';
 import { asDetoxElement, Utilities } from '../../framework';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class SuccessImportAccountView {
-  get container(): DetoxElement {
-    return Matchers.getElementByID(SuccessImportAccountIDs.CONTAINER);
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(SuccessImportAccountIDs.CONTAINER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(SuccessImportAccountIDs.CONTAINER),
+    });
   }
 
-  get closeButton(): DetoxElement {
-    return Matchers.getElementByID(SuccessImportAccountIDs.CLOSE_BUTTON);
+  get closeButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(SuccessImportAccountIDs.CLOSE_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(SuccessImportAccountIDs.CLOSE_BUTTON),
+    });
   }
 
   /**
@@ -24,7 +38,7 @@ class SuccessImportAccountView {
    */
   async tapCloseButton(): Promise<void> {
     if (device.getPlatform() === 'ios') {
-      await Gestures.waitAndTap(this.closeButton, {
+      await UnifiedGestures.waitAndTap(this.closeButton, {
         elemDescription: 'Close button',
         waitForElementToDisappear: true,
       });

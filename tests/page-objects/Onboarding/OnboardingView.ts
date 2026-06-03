@@ -8,15 +8,15 @@ import {
 } from '../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import UnifiedGestures from '../../framework/UnifiedGestures';
-import {
-  encapsulatedAction,
-  Gestures,
-  PlaywrightGestures,
-} from '../../framework';
+import { encapsulatedAction, PlaywrightGestures } from '../../framework';
 
 class OnboardingView {
-  get container(): DetoxElement {
-    return Matchers.getElementByID(OnboardingSelectorIDs.CONTAINER_ID);
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(OnboardingSelectorIDs.CONTAINER_ID),
+      appium: () =>
+        PlaywrightMatchers.getElementById(OnboardingSelectorIDs.CONTAINER_ID),
+    });
   }
 
   get existingWalletButton(): EncapsulatedElementType {
@@ -50,7 +50,7 @@ class OnboardingView {
   async tapCreateWallet(): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
-        await Gestures.tap(asDetoxElement(this.newWalletButton), {
+        await UnifiedGestures.tap(asDetoxElement(this.newWalletButton), {
           elemDescription: 'Onboarding Create New Wallet Button',
         });
       },
@@ -72,7 +72,7 @@ class OnboardingView {
   async tapHaveAnExistingWallet() {
     await encapsulatedAction({
       detox: async () => {
-        await Gestures.tap(asDetoxElement(this.existingWalletButton), {
+        await UnifiedGestures.tap(asDetoxElement(this.existingWalletButton), {
           elemDescription: 'Onboarding Have an Existing Wallet Button',
         });
       },

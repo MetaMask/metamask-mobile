@@ -1,113 +1,176 @@
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
 import { AccountDetailsIds } from '../../../app/components/Views/MultichainAccounts/AccountDetails.testIds';
 import { ExportCredentialsIds } from '../../../app/components/Views/MultichainAccounts/AccountDetails/ExportCredentials.testIds';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class AccountDetails {
-  get container(): DetoxElement {
-    return Matchers.getElementByID(AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER);
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER,
+        ),
+    });
   }
 
-  get shareAddress(): DetoxElement {
-    return Matchers.getElementByID(AccountDetailsIds.ACCOUNT_ADDRESS_LINK);
+  get shareAddress(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(AccountDetailsIds.ACCOUNT_ADDRESS_LINK),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          AccountDetailsIds.ACCOUNT_ADDRESS_LINK,
+        ),
+    });
   }
 
-  get editAccountName(): DetoxElement {
-    return Matchers.getElementByID(AccountDetailsIds.ACCOUNT_NAME_LINK);
+  get editAccountName(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(AccountDetailsIds.ACCOUNT_NAME_LINK),
+      appium: () =>
+        PlaywrightMatchers.getElementById(AccountDetailsIds.ACCOUNT_NAME_LINK),
+    });
   }
 
-  get editWalletName(): DetoxElement {
-    return Matchers.getElementByID(AccountDetailsIds.WALLET_NAME_LINK);
+  get editWalletName(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(AccountDetailsIds.WALLET_NAME_LINK),
+      appium: () =>
+        PlaywrightMatchers.getElementById(AccountDetailsIds.WALLET_NAME_LINK),
+    });
   }
 
-  get networksLink(): DetoxElement {
-    return Matchers.getElementByID(AccountDetailsIds.NETWORKS_LINK);
+  get networksLink(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(AccountDetailsIds.NETWORKS_LINK),
+      appium: () =>
+        PlaywrightMatchers.getElementById(AccountDetailsIds.NETWORKS_LINK),
+    });
   }
 
-  get backButton(): DetoxElement {
-    return Matchers.getElementByID(AccountDetailsIds.BACK_BUTTON);
+  get backButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(AccountDetailsIds.BACK_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(AccountDetailsIds.BACK_BUTTON),
+    });
   }
 
-  get deleteAccountLink(): DetoxElement {
-    return Matchers.getElementByID(AccountDetailsIds.REMOVE_ACCOUNT_BUTTON);
+  get deleteAccountLink(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(AccountDetailsIds.REMOVE_ACCOUNT_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          AccountDetailsIds.REMOVE_ACCOUNT_BUTTON,
+        ),
+    });
   }
 
-  get accountSrpLink(): DetoxElement {
-    return Matchers.getElementByID(
-      AccountDetailsIds.SECRET_RECOVERY_PHRASE_LINK,
-    );
+  get accountSrpLink(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(AccountDetailsIds.SECRET_RECOVERY_PHRASE_LINK),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          AccountDetailsIds.SECRET_RECOVERY_PHRASE_LINK,
+        ),
+    });
   }
 
-  get exportPrivateKeyButton(): DetoxElement {
-    return Matchers.getElementByID(
-      ExportCredentialsIds.EXPORT_PRIVATE_KEY_BUTTON,
-    );
+  get exportPrivateKeyButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(ExportCredentialsIds.EXPORT_PRIVATE_KEY_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ExportCredentialsIds.EXPORT_PRIVATE_KEY_BUTTON,
+        ),
+    });
   }
 
-  get privateKeysLink(): DetoxElement {
-    return Matchers.getElementByID(AccountDetailsIds.PRIVATE_KEYS_LINK);
+  get privateKeysLink(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(AccountDetailsIds.PRIVATE_KEYS_LINK),
+      appium: () =>
+        PlaywrightMatchers.getElementById(AccountDetailsIds.PRIVATE_KEYS_LINK),
+    });
   }
 
-  get exportSrpButton(): DetoxElement {
-    return Matchers.getElementByID(ExportCredentialsIds.EXPORT_SRP_BUTTON);
+  get exportSrpButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(ExportCredentialsIds.EXPORT_SRP_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ExportCredentialsIds.EXPORT_SRP_BUTTON,
+        ),
+    });
   }
 
   async tapShareAddress(): Promise<void> {
-    await Gestures.waitAndTap(this.shareAddress, {
+    await UnifiedGestures.waitAndTap(this.shareAddress, {
       elemDescription: 'Share Address Link in Account Details',
     });
   }
 
   async tapEditAccountName(): Promise<void> {
-    await Gestures.waitAndTap(this.editAccountName, {
+    await UnifiedGestures.waitAndTap(this.editAccountName, {
       elemDescription: 'Edit Account Name Link in Account Details',
     });
   }
 
   async tapEditWalletName(): Promise<void> {
-    await Gestures.waitAndTap(this.editWalletName, {
+    await UnifiedGestures.waitAndTap(this.editWalletName, {
       elemDescription: 'Edit Wallet Name Link in Account Details',
     });
   }
 
   async tapBackButton(): Promise<void> {
-    await Gestures.waitAndTap(this.backButton, {
+    await UnifiedGestures.waitAndTap(this.backButton, {
       elemDescription: 'Back Button in Account Details',
     });
   }
 
   async tapDeleteAccountLink(): Promise<void> {
-    await Gestures.waitAndTap(this.deleteAccountLink, {
+    await UnifiedGestures.waitAndTap(this.deleteAccountLink, {
       elemDescription: 'Delete Account Link in Account Details',
     });
   }
 
   async tapNetworksLink(): Promise<void> {
-    await Gestures.waitAndTap(this.networksLink, {
+    await UnifiedGestures.waitAndTap(this.networksLink, {
       elemDescription: 'Networks Link in Account Details',
     });
   }
 
   async tapPrivateKeyLink(): Promise<void> {
-    await Gestures.waitAndTap(this.privateKeysLink, {
+    await UnifiedGestures.waitAndTap(this.privateKeysLink, {
       elemDescription: 'Unlock to reveal Private Keys in Account Details',
     });
   }
 
   async tapExportPrivateKeyButton(): Promise<void> {
-    await Gestures.waitAndTap(this.exportPrivateKeyButton, {
+    await UnifiedGestures.waitAndTap(this.exportPrivateKeyButton, {
       elemDescription: 'Export Private Key Button in Account Details',
     });
   }
 
   async tapExportSrpButton(): Promise<void> {
-    await Gestures.waitAndTap(this.exportSrpButton, {
+    await UnifiedGestures.waitAndTap(this.exportSrpButton, {
       elemDescription: 'Export SRP Button in Account Details',
     });
   }
 
   async tapAccountSrpLink(): Promise<void> {
-    await Gestures.waitAndTap(this.accountSrpLink, {
+    await UnifiedGestures.waitAndTap(this.accountSrpLink, {
       elemDescription: 'View Account SRP in Account Details',
     });
   }

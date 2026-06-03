@@ -3,104 +3,203 @@ import {
   ForgotPasswordModalSelectorsText,
 } from '../../../app/util/ForgotPasswordModal.testIds';
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
 import { OnboardingSelectorText } from '../../../app/components/Views/Onboarding/Onboarding.testIds';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class ForgotPasswordModalView {
-  get container(): DetoxElement {
-    return Matchers.getElementByID(ForgotPasswordModalSelectorsIDs.CONTAINER);
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(ForgotPasswordModalSelectorsIDs.CONTAINER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ForgotPasswordModalSelectorsIDs.CONTAINER,
+        ),
+    });
   }
 
-  get title(): DetoxElement {
-    return Matchers.getElementByID(ForgotPasswordModalSelectorsIDs.TITLE);
+  get title(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(ForgotPasswordModalSelectorsIDs.TITLE),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ForgotPasswordModalSelectorsIDs.TITLE,
+        ),
+    });
   }
 
-  get description(): DetoxElement {
-    return Matchers.getElementByID(ForgotPasswordModalSelectorsIDs.DESCRIPTION);
+  get description(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(ForgotPasswordModalSelectorsIDs.DESCRIPTION),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ForgotPasswordModalSelectorsIDs.DESCRIPTION,
+        ),
+    });
   }
 
-  get resetWalletButton(): DetoxElement {
-    return Matchers.getElementByID(
-      ForgotPasswordModalSelectorsIDs.RESET_WALLET_BUTTON,
-    );
+  get resetWalletButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          ForgotPasswordModalSelectorsIDs.RESET_WALLET_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ForgotPasswordModalSelectorsIDs.RESET_WALLET_BUTTON,
+        ),
+    });
   }
 
-  get yesResetWalletButton(): DetoxElement {
-    return Matchers.getElementByID(
-      ForgotPasswordModalSelectorsIDs.YES_RESET_WALLET_BUTTON,
-    );
+  get yesResetWalletButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          ForgotPasswordModalSelectorsIDs.YES_RESET_WALLET_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ForgotPasswordModalSelectorsIDs.YES_RESET_WALLET_BUTTON,
+        ),
+    });
   }
 
-  get cancelButton(): DetoxElement {
-    return Matchers.getElementByID(
-      ForgotPasswordModalSelectorsIDs.CANCEL_BUTTON,
-    );
+  get cancelButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(ForgotPasswordModalSelectorsIDs.CANCEL_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ForgotPasswordModalSelectorsIDs.CANCEL_BUTTON,
+        ),
+    });
   }
 
-  get warningText(): DetoxElement {
-    return Matchers.getElementByID(
-      ForgotPasswordModalSelectorsIDs.WARNING_TEXT,
-    );
+  get warningText(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(ForgotPasswordModalSelectorsIDs.WARNING_TEXT),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ForgotPasswordModalSelectorsIDs.WARNING_TEXT,
+        ),
+    });
   }
 
-  get titleText(): DetoxElement {
-    return Matchers.getElementByText(ForgotPasswordModalSelectorsText.TITLE);
+  get titleText(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(ForgotPasswordModalSelectorsText.TITLE),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          ForgotPasswordModalSelectorsText.TITLE,
+        ),
+    });
   }
 
-  get descriptionText(): DetoxElement {
-    return Matchers.getElementByText(
-      ForgotPasswordModalSelectorsText.DESCRIPTION,
-    );
+  get descriptionText(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(ForgotPasswordModalSelectorsText.DESCRIPTION),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          ForgotPasswordModalSelectorsText.DESCRIPTION,
+        ),
+    });
   }
 
-  get resetWalletText(): DetoxElement {
-    return Matchers.getElementByText(
-      ForgotPasswordModalSelectorsText.RESET_WALLET,
-    );
+  get resetWalletText(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          ForgotPasswordModalSelectorsText.RESET_WALLET,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          ForgotPasswordModalSelectorsText.RESET_WALLET,
+        ),
+    });
   }
 
-  get yesResetWalletText(): DetoxElement {
-    return Matchers.getElementByText(
-      ForgotPasswordModalSelectorsText.YES_RESET_WALLET,
-    );
+  get yesResetWalletText(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          ForgotPasswordModalSelectorsText.YES_RESET_WALLET,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          ForgotPasswordModalSelectorsText.YES_RESET_WALLET,
+        ),
+    });
   }
 
-  get cancelText(): DetoxElement {
-    return Matchers.getElementByText(ForgotPasswordModalSelectorsText.CANCEL);
+  get cancelText(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(ForgotPasswordModalSelectorsText.CANCEL),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          ForgotPasswordModalSelectorsText.CANCEL,
+        ),
+    });
   }
 
-  get warningTextContent(): DetoxElement {
-    return Matchers.getElementByText(ForgotPasswordModalSelectorsText.WARNING);
+  get warningTextContent(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(ForgotPasswordModalSelectorsText.WARNING),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          ForgotPasswordModalSelectorsText.WARNING,
+        ),
+    });
   }
 
-  get successBottomNotification(): DetoxElement {
-    return Matchers.getElementByText(
-      OnboardingSelectorText.SUCCESSFUL_WALLET_RESET,
-    );
+  get successBottomNotification(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          OnboardingSelectorText.SUCCESSFUL_WALLET_RESET,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          OnboardingSelectorText.SUCCESSFUL_WALLET_RESET,
+        ),
+    });
   }
 
   async tapResetWalletButton(): Promise<void> {
-    await Gestures.waitAndTap(this.resetWalletButton, { timeout: 25000 });
+    await UnifiedGestures.waitAndTap(this.resetWalletButton, {
+      timeout: 25000,
+    });
   }
 
   async tapYesResetWalletButton(): Promise<void> {
-    await Gestures.waitAndTap(this.yesResetWalletButton);
+    await UnifiedGestures.waitAndTap(this.yesResetWalletButton);
   }
 
   async tapCancelButton(): Promise<void> {
-    await Gestures.waitAndTap(this.cancelButton);
+    await UnifiedGestures.waitAndTap(this.cancelButton);
   }
 
   async tapResetWalletByText(): Promise<void> {
-    await Gestures.waitAndTap(this.resetWalletText);
+    await UnifiedGestures.waitAndTap(this.resetWalletText);
   }
 
   async tapYesResetWalletByText(): Promise<void> {
-    await Gestures.waitAndTap(this.yesResetWalletText);
+    await UnifiedGestures.waitAndTap(this.yesResetWalletText);
   }
 
   async tapCancelByText(): Promise<void> {
-    await Gestures.waitAndTap(this.cancelText);
+    await UnifiedGestures.waitAndTap(this.cancelText);
   }
 }
 

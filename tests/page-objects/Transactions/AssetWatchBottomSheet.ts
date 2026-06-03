@@ -1,26 +1,49 @@
 import { AssetWatcherSelectorsIDs } from '../../../app/components/Views/confirmations/legacy/components/WatchAssetRequest/AssetWatcher.testIds';
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class AssetWatchBottomSheet {
-  get container(): DetoxElement {
-    return Matchers.getElementByID(AssetWatcherSelectorsIDs.CONTAINER);
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(AssetWatcherSelectorsIDs.CONTAINER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(AssetWatcherSelectorsIDs.CONTAINER),
+    });
   }
 
-  get cancelButton(): DetoxElement {
-    return Matchers.getElementByID(AssetWatcherSelectorsIDs.CANCEL_BUTTON);
+  get cancelButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(AssetWatcherSelectorsIDs.CANCEL_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          AssetWatcherSelectorsIDs.CANCEL_BUTTON,
+        ),
+    });
   }
-  get confirmButton(): DetoxElement {
-    return Matchers.getElementByID(AssetWatcherSelectorsIDs.CONFIRM_BUTTON);
+  get confirmButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(AssetWatcherSelectorsIDs.CONFIRM_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          AssetWatcherSelectorsIDs.CONFIRM_BUTTON,
+        ),
+    });
   }
 
   async tapCancelButton(): Promise<void> {
-    await Gestures.waitAndTap(this.cancelButton, {
+    await UnifiedGestures.waitAndTap(this.cancelButton, {
       elemDescription: 'Cancel Button in Asset Watch Bottom Sheet',
     });
   }
   async tapAddTokenButton(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmButton, {
+    await UnifiedGestures.waitAndTap(this.confirmButton, {
       elemDescription: 'Confirm Button in Asset Watch Bottom Sheet',
     });
   }

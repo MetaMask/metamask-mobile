@@ -4,62 +4,111 @@ import {
 } from '../../../app/components/Views/NetworkSelector/NetworkListModal.testIds';
 import { NetworksViewSelectorsIDs } from '../../../app/components/Views/Settings/NetworksSettings/NetworksView.testIds';
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class NetworkListModal {
-  get networkScroll(): DetoxElement {
-    return Matchers.getElementByID(NetworkListModalSelectorsIDs.SCROLL);
+  get networkScroll(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(NetworkListModalSelectorsIDs.SCROLL),
+      appium: () =>
+        PlaywrightMatchers.getElementById(NetworkListModalSelectorsIDs.SCROLL),
+    });
   }
 
-  get closeIcon(): DetoxElement {
-    return Matchers.getElementByID(NetworksViewSelectorsIDs.CLOSE_ICON);
+  get closeIcon(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(NetworksViewSelectorsIDs.CLOSE_ICON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(NetworksViewSelectorsIDs.CLOSE_ICON),
+    });
   }
 
-  get deleteNetworkButton(): DetoxElement {
-    return Matchers.getElementByText(
-      NetworkListModalSelectorsText.DELETE_NETWORK,
-    );
+  get deleteNetworkButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(NetworkListModalSelectorsText.DELETE_NETWORK),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          NetworkListModalSelectorsText.DELETE_NETWORK,
+        ),
+    });
   }
 
-  get addPopularNetworkButton(): DetoxElement {
-    return Matchers.getElementByText(
-      NetworkListModalSelectorsText.ADD_POPULAR_NETWORK_BUTTON,
-    );
+  get addPopularNetworkButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          NetworkListModalSelectorsText.ADD_POPULAR_NETWORK_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          NetworkListModalSelectorsText.ADD_POPULAR_NETWORK_BUTTON,
+        ),
+    });
   }
 
-  get networkSearchInput(): DetoxElement {
-    return Matchers.getElementByID(
-      NetworksViewSelectorsIDs.SEARCH_NETWORK_INPUT_BOX_ID,
-    );
+  get networkSearchInput(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          NetworksViewSelectorsIDs.SEARCH_NETWORK_INPUT_BOX_ID,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          NetworksViewSelectorsIDs.SEARCH_NETWORK_INPUT_BOX_ID,
+        ),
+    });
   }
 
-  get selectNetwork(): DetoxElement {
-    return Matchers.getElementByText(
-      NetworkListModalSelectorsText.SELECT_NETWORK,
-    );
+  get selectNetwork(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(NetworkListModalSelectorsText.SELECT_NETWORK),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          NetworkListModalSelectorsText.SELECT_NETWORK,
+        ),
+    });
   }
 
-  get testNetToggle(): DetoxElement {
-    return Matchers.getElementByID(
-      NetworkListModalSelectorsIDs.TEST_NET_TOGGLE,
-    );
+  get testNetToggle(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(NetworkListModalSelectorsIDs.TEST_NET_TOGGLE),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          NetworkListModalSelectorsIDs.TEST_NET_TOGGLE,
+        ),
+    });
   }
 
-  get deleteButton(): DetoxElement {
-    return Matchers.getElementByID('delete-network-button');
+  get deleteButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID('delete-network-button'),
+      appium: () => PlaywrightMatchers.getElementById('delete-network-button'),
+    });
   }
 
-  get popularNetworksContainer(): DetoxElement {
-    return Matchers.getElementByID(
-      NETWORK_MULTI_SELECTOR_TEST_IDS.POPULAR_NETWORKS_CONTAINER,
-    );
+  get popularNetworksContainer(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          NETWORK_MULTI_SELECTOR_TEST_IDS.POPULAR_NETWORKS_CONTAINER,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          NETWORK_MULTI_SELECTOR_TEST_IDS.POPULAR_NETWORKS_CONTAINER,
+        ),
+    });
   }
 
-  async getCustomNetwork(
-    network: string,
-    custom = false,
-  ): Promise<DetoxElement> {
+  getCustomNetwork(network: string, custom = false): EncapsulatedElementType {
     if (device.getPlatform() === 'android' || !custom) {
       return Matchers.getElementByText(network);
     }
@@ -70,18 +119,18 @@ class NetworkListModal {
   }
 
   async tapDeleteButton(): Promise<void> {
-    await Gestures.waitAndTap(this.deleteNetworkButton);
+    await UnifiedGestures.waitAndTap(this.deleteNetworkButton);
   }
 
   async scrollToTopOfNetworkList(): Promise<void> {
-    await Gestures.swipe(this.networkScroll, 'down', {
+    await UnifiedGestures.swipe(this.networkScroll, 'down', {
       speed: 'fast',
     });
   }
 
   async changeNetworkTo(networkName: string, custom = false): Promise<void> {
     const elem = this.getCustomNetwork(networkName, custom);
-    await Gestures.waitAndTap(elem);
+    await UnifiedGestures.waitAndTap(elem);
   }
 
   /**
@@ -97,25 +146,25 @@ class NetworkListModal {
           by.id(NETWORK_MULTI_SELECTOR_TEST_IDS.CUSTOM_NETWORKS_CONTAINER),
         ),
     ) as unknown as DetoxElement;
-    await Gestures.waitAndTap(elem);
+    await UnifiedGestures.waitAndTap(elem);
   }
 
   async scrollToBottomOfNetworkList(): Promise<void> {
-    await Gestures.swipe(this.networkScroll, 'up', {
+    await UnifiedGestures.swipe(this.networkScroll, 'up', {
       speed: 'fast',
       checkStability: true,
     });
   }
 
   async swipeToDismissModal(): Promise<void> {
-    await Gestures.swipe(this.selectNetwork, 'down', {
+    await UnifiedGestures.swipe(this.selectNetwork, 'down', {
       speed: 'slow',
       percentage: 0.9,
     });
   }
 
   async tapTestNetworkSwitch(): Promise<void> {
-    await Gestures.tap(this.testNetToggle, {
+    await UnifiedGestures.tap(this.testNetToggle, {
       elemDescription: 'Test Network Switch',
       delay: 1500, // 1.5 seconds to ensure the network list is stable
     });
@@ -123,28 +172,28 @@ class NetworkListModal {
 
   async longPressOnNetwork(networkName: string): Promise<void> {
     const network = Matchers.getElementByText(networkName);
-    await Gestures.longPress(network);
+    await UnifiedGestures.longPress(network);
   }
 
   async SearchNetworkName(networkName: string): Promise<void> {
-    await Gestures.typeText(this.networkSearchInput, networkName, {
+    await UnifiedGestures.typeText(this.networkSearchInput, networkName, {
       hideKeyboard: true,
     });
   }
 
   async tapClearSearch(): Promise<void> {
-    await Gestures.waitAndTap(this.closeIcon);
+    await UnifiedGestures.waitAndTap(this.closeIcon);
   }
 
   async tapAddNetworkButton(): Promise<void> {
-    await Gestures.waitAndTap(this.addPopularNetworkButton);
+    await UnifiedGestures.waitAndTap(this.addPopularNetworkButton);
   }
   async deleteNetwork(): Promise<void> {
-    await Gestures.waitAndTap(this.deleteButton);
+    await UnifiedGestures.waitAndTap(this.deleteButton);
   }
 
   async scrollToBottomOfNetworkMultiSelector(): Promise<void> {
-    await Gestures.swipe(this.popularNetworksContainer, 'up', {
+    await UnifiedGestures.swipe(this.popularNetworksContainer, 'up', {
       speed: 'fast',
       startOffsetPercentage: { x: 0.5, y: 0.25 },
     });
@@ -152,7 +201,7 @@ class NetworkListModal {
 
   async tapNetworkMenuButton(networkName: string): Promise<void> {
     const networkCell = Matchers.getElementByText(networkName);
-    await Gestures.waitAndTap(networkCell, {
+    await UnifiedGestures.waitAndTap(networkCell, {
       elemDescription: `Network ${networkName}`,
       checkVisibility: false,
       checkEnabled: false,
@@ -161,11 +210,11 @@ class NetworkListModal {
 
   async tapOnCustomTab(): Promise<void> {
     const networkCell = Matchers.getElementByLabel('Custom');
-    await Gestures.waitAndTap(networkCell);
+    await UnifiedGestures.waitAndTap(networkCell);
   }
 
   async swipeToDismissNetworkMultiSelectorModal(): Promise<void> {
-    await Gestures.swipe(Matchers.getElementByLabel('Custom'), 'down', {
+    await UnifiedGestures.swipe(Matchers.getElementByLabel('Custom'), 'down', {
       speed: 'fast',
       percentage: 0.3,
       startOffsetPercentage: { x: 0.5, y: 0.05 },

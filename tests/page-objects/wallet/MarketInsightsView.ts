@@ -1,7 +1,7 @@
 import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
-import Gestures from '../../framework/Gestures';
 import { MarketInsightsSelectorsIDs } from '../../../app/components/UI/MarketInsights/MarketInsights.testIds';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class MarketInsightsView {
   get container() {
@@ -49,31 +49,35 @@ class MarketInsightsView {
   }
 
   async tapSwapButton(): Promise<void> {
-    await Gestures.tap(this.swapButton, {
+    await UnifiedGestures.tap(this.swapButton, {
       elemDescription: 'Tap Market Insights Swap button',
     });
   }
 
   async tapBuyButton(): Promise<void> {
-    await Gestures.tap(this.buyButton, {
+    await UnifiedGestures.tap(this.buyButton, {
       elemDescription: 'Tap Market Insights Buy button',
     });
   }
 
   async tapTrendItem(index: number): Promise<void> {
-    await Gestures.tap(this.trendItem(index), {
+    await UnifiedGestures.tap(this.trendItem(index), {
       elemDescription: `Tap Market Insights trend item ${index}`,
     });
   }
 
   async scrollToThumbsUp(): Promise<void> {
-    await Gestures.scrollToElement(this.thumbsUpButton, this.scrollView, {
-      elemDescription: 'Scroll to Market Insights thumbs up button',
-    });
+    await UnifiedGestures.scrollToElement(
+      this.thumbsUpButton,
+      this.scrollView,
+      {
+        elemDescription: 'Scroll to Market Insights thumbs up button',
+      },
+    );
   }
 
   async tapThumbsUpButton(): Promise<void> {
-    await Gestures.tap(this.thumbsUpButton, {
+    await UnifiedGestures.tap(this.thumbsUpButton, {
       elemDescription: 'Tap Market Insights thumbs up button',
     });
   }

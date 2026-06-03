@@ -12,76 +12,162 @@ import {
   getDappUrl,
 } from '../../framework/fixtures/FixtureUtils';
 import { DEFAULT_TAB_ID } from '../../framework/Constants';
-import { Assertions, Gestures, Matchers, Utilities } from '../../framework';
+import { Assertions, Matchers, Utilities } from '../../framework';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 interface TransactionParams {
   [key: string]: string | number | boolean;
 }
 
 class Browser {
-  get reloadButton(): DetoxElement {
-    return Matchers.getElementByID(BrowserViewSelectorsIDs.RELOAD_BUTTON);
+  get reloadButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(BrowserViewSelectorsIDs.RELOAD_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          BrowserViewSelectorsIDs.RELOAD_BUTTON,
+        ),
+    });
   }
 
-  get bookmarkButton(): DetoxElement {
-    return Matchers.getElementByID(BrowserViewSelectorsIDs.BOOKMARK_BUTTON);
+  get bookmarkButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(BrowserViewSelectorsIDs.BOOKMARK_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          BrowserViewSelectorsIDs.BOOKMARK_BUTTON,
+        ),
+    });
   }
 
-  get newTabButton(): DetoxElement {
-    return Matchers.getElementByID(BrowserViewSelectorsIDs.NEW_TAB_BUTTON);
+  get newTabButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(BrowserViewSelectorsIDs.NEW_TAB_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          BrowserViewSelectorsIDs.NEW_TAB_BUTTON,
+        ),
+    });
   }
 
-  get closeBrowserButton(): DetoxElement {
-    return Matchers.getElementByID(
-      BrowserViewSelectorsIDs.BROWSER_CLOSE_BUTTON,
-    );
+  get closeBrowserButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_CLOSE_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          BrowserViewSelectorsIDs.BROWSER_CLOSE_BUTTON,
+        ),
+    });
   }
 
   // Legacy getters for backward compatibility with existing tests
-  get homeButton(): DetoxElement {
+  get homeButton(): EncapsulatedElementType {
     // Home button removed, but kept for backward compatibility
     // Tests using this should be updated
     return this.newTabButton;
   }
 
-  get browserScreenID(): DetoxElement {
-    return Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_SCREEN_ID);
+  get browserScreenID(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_SCREEN_ID),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          BrowserViewSelectorsIDs.BROWSER_SCREEN_ID,
+        ),
+    });
   }
 
-  get androidBrowserWebViewID(): DetoxElement {
-    return Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID);
+  get androidBrowserWebViewID(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+        ),
+    });
   }
 
-  get addressBar(): DetoxElement {
-    return Matchers.getElementByID(BrowserViewSelectorsIDs.URL_INPUT);
+  get addressBar(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(BrowserViewSelectorsIDs.URL_INPUT),
+      appium: () =>
+        PlaywrightMatchers.getElementById(BrowserViewSelectorsIDs.URL_INPUT),
+    });
   }
 
-  get urlInputBoxID(): DetoxElement {
-    return Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_INPUT);
+  get urlInputBoxID(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_INPUT),
+      appium: () =>
+        PlaywrightMatchers.getElementById(BrowserURLBarSelectorsIDs.URL_INPUT),
+    });
   }
 
-  get clearURLButton(): DetoxElement {
-    return Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_CLEAR_ICON);
+  get clearURLButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_CLEAR_ICON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          BrowserURLBarSelectorsIDs.URL_CLEAR_ICON,
+        ),
+    });
   }
 
-  get cancelUrlInputButton(): DetoxElement {
-    return Matchers.getElementByID(
-      BrowserURLBarSelectorsIDs.CANCEL_BUTTON_ON_BROWSER_ID,
-    );
+  get cancelUrlInputButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          BrowserURLBarSelectorsIDs.CANCEL_BUTTON_ON_BROWSER_ID,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          BrowserURLBarSelectorsIDs.CANCEL_BUTTON_ON_BROWSER_ID,
+        ),
+    });
   }
 
-  get backToSafetyButton(): DetoxElement {
-    return Matchers.getElementByText(
-      BrowserViewSelectorsText.BACK_TO_SAFETY_BUTTON,
-    );
+  get backToSafetyButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          BrowserViewSelectorsText.BACK_TO_SAFETY_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          BrowserViewSelectorsText.BACK_TO_SAFETY_BUTTON,
+        ),
+    });
   }
 
-  get returnHomeButton(): DetoxElement {
-    return Matchers.getElementByText(BrowserViewSelectorsText.RETURN_HOME);
+  get returnHomeButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(BrowserViewSelectorsText.RETURN_HOME),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          BrowserViewSelectorsText.RETURN_HOME,
+        ),
+    });
   }
 
-  get addFavouritesButton(): DetoxElement {
-    return Matchers.getElementByID(BrowserViewSelectorsIDs.ADD_NEW_TAB);
+  get addFavouritesButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(BrowserViewSelectorsIDs.ADD_NEW_TAB),
+      appium: () =>
+        PlaywrightMatchers.getElementById(BrowserViewSelectorsIDs.ADD_NEW_TAB),
+    });
   }
 
   get homePageFavouritesTab(): WebElement {
@@ -103,16 +189,30 @@ class Browser {
         );
   }
 
-  get multiTabButton(): DetoxElement {
-    return Matchers.getElementByID(BrowserViewSelectorsIDs.ADD_NEW_TAB);
+  get multiTabButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(BrowserViewSelectorsIDs.ADD_NEW_TAB),
+      appium: () =>
+        PlaywrightMatchers.getElementById(BrowserViewSelectorsIDs.ADD_NEW_TAB),
+    });
   }
 
-  get DefaultAvatarImageForLocalHost(): DetoxElement {
-    return Matchers.getElementByLabel('L');
+  get DefaultAvatarImageForLocalHost(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByLabel('L'),
+      appium: () => PlaywrightMatchers.getElementByAccessibilityId('L'),
+    });
   }
 
-  get networkAvatarOrAccountButton(): DetoxElement {
-    return Matchers.getElementByID(AccountOverviewSelectorsIDs.ACCOUNT_BUTTON);
+  get networkAvatarOrAccountButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(AccountOverviewSelectorsIDs.ACCOUNT_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          AccountOverviewSelectorsIDs.ACCOUNT_BUTTON,
+        ),
+    });
   }
 
   get addBookmarkButton(): DetoxElement {
@@ -121,16 +221,34 @@ class Browser {
       : Matchers.getElementByLabel(AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON);
   }
 
-  get tabsNumber(): DetoxElement {
-    return Matchers.getElementByID(BrowserViewSelectorsIDs.TABS_NUMBER);
+  get tabsNumber(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(BrowserViewSelectorsIDs.TABS_NUMBER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(BrowserViewSelectorsIDs.TABS_NUMBER),
+    });
   }
 
-  get closeAllTabsButton(): DetoxElement {
-    return Matchers.getElementByID(BrowserViewSelectorsIDs.CLOSE_ALL_TABS);
+  get closeAllTabsButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(BrowserViewSelectorsIDs.CLOSE_ALL_TABS),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          BrowserViewSelectorsIDs.CLOSE_ALL_TABS,
+        ),
+    });
   }
 
-  get noTabsMessage(): DetoxElement {
-    return Matchers.getElementByID(BrowserViewSelectorsIDs.NO_TABS_MESSAGE);
+  get noTabsMessage(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(BrowserViewSelectorsIDs.NO_TABS_MESSAGE),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          BrowserViewSelectorsIDs.NO_TABS_MESSAGE,
+        ),
+    });
   }
 
   async getFavoritesURL(url: string): Promise<SystemElement> {
@@ -141,31 +259,31 @@ class Browser {
   }
 
   async tapUrlInputBox(): Promise<void> {
-    await Gestures.waitAndTap(this.urlInputBoxID, {
+    await UnifiedGestures.waitAndTap(this.urlInputBoxID, {
       elemDescription: 'URL input box',
     });
   }
 
   async tapLocalHostDefaultAvatar(): Promise<void> {
-    await Gestures.waitAndTap(this.DefaultAvatarImageForLocalHost, {
+    await UnifiedGestures.waitAndTap(this.DefaultAvatarImageForLocalHost, {
       elemDescription: 'Local host default avatar',
     });
   }
 
   async tapReloadButton(): Promise<void> {
-    await Gestures.waitAndTap(this.reloadButton, {
+    await UnifiedGestures.waitAndTap(this.reloadButton, {
       elemDescription: 'Reload button',
     });
   }
 
   async tapBookmarkButton(): Promise<void> {
-    await Gestures.waitAndTap(this.bookmarkButton, {
+    await UnifiedGestures.waitAndTap(this.bookmarkButton, {
       elemDescription: 'Bookmark button',
     });
   }
 
   async tapNewTabButtonBottomBar(): Promise<void> {
-    await Gestures.waitAndTap(this.newTabButton, {
+    await UnifiedGestures.waitAndTap(this.newTabButton, {
       elemDescription: 'New tab button in bottom bar',
     });
   }
@@ -178,7 +296,7 @@ class Browser {
     // be restored under RN 0.81 / React 19, leaving the close button missing.
     // Defensively dismiss the URL editor if the Cancel button is visible.
     await this.dismissUrlEditorIfOpen();
-    await Gestures.waitAndTap(this.closeBrowserButton, {
+    await UnifiedGestures.waitAndTap(this.closeBrowserButton, {
       elemDescription: 'Close browser button',
     });
   }
@@ -191,7 +309,7 @@ class Browser {
    */
   async dismissUrlEditorIfOpen(): Promise<void> {
     if (await Utilities.isElementVisible(this.cancelUrlInputButton, 1000)) {
-      await Gestures.waitAndTap(this.cancelUrlInputButton, {
+      await UnifiedGestures.waitAndTap(this.cancelUrlInputButton, {
         elemDescription: 'Cancel URL input (dismiss URL editor)',
       });
     }
@@ -213,7 +331,7 @@ class Browser {
     const tabsButton = Matchers.getElementByID(
       BrowserViewSelectorsIDs.TABS_BUTTON,
     );
-    await Gestures.waitAndTap(tabsButton, {
+    await UnifiedGestures.waitAndTap(tabsButton, {
       elemDescription: 'Tabs button in URL bar',
       delay,
     });
@@ -231,7 +349,7 @@ class Browser {
     // the interger value is the tabID.
     // This value comes from the `browser` object in fixture builder
     const secondTab = Matchers.getElementByID(`browser-tab-${secondTabId}`);
-    await Gestures.waitAndTap(secondTab, {
+    await UnifiedGestures.waitAndTap(secondTab, {
       elemDescription: 'Second tab button',
     });
   }
@@ -240,13 +358,13 @@ class Browser {
     // the interger value is the tabID.
     // This value comes from the `browser` object in fixture builder
     const secondTab = Matchers.getElementByID('browser-tab-1692550481062');
-    await Gestures.waitAndTap(secondTab, {
+    await UnifiedGestures.waitAndTap(secondTab, {
       elemDescription: 'First tab button',
     });
   }
 
   async tapCloseTabsButton(): Promise<void> {
-    await Gestures.waitAndTap(this.closeAllTabsButton, {
+    await UnifiedGestures.waitAndTap(this.closeAllTabsButton, {
       elemDescription: 'Close all tabs button',
     });
   }
@@ -259,57 +377,57 @@ class Browser {
     const secondTab = Matchers.getElementByID(
       `tab-close-button-${secondTabId}`,
     );
-    await Gestures.waitAndTap(secondTab, {
+    await UnifiedGestures.waitAndTap(secondTab, {
       elemDescription: 'Close second tab button',
     });
   }
 
   async tapOpenNewTabButton(): Promise<void> {
-    await Gestures.waitAndTap(this.multiTabButton, {
+    await UnifiedGestures.waitAndTap(this.multiTabButton, {
       elemDescription: 'Open new tab button',
     });
   }
 
   async tapNetworkAvatarOrAccountButtonOnBrowser(): Promise<void> {
-    await Gestures.waitAndTap(this.networkAvatarOrAccountButton, {
+    await UnifiedGestures.waitAndTap(this.networkAvatarOrAccountButton, {
       elemDescription: 'Network avatar or account button',
     });
   }
 
   async tapAddToFavoritesButton(): Promise<void> {
-    await Gestures.waitAndTap(this.addFavouritesButton, {
+    await UnifiedGestures.waitAndTap(this.addFavouritesButton, {
       elemDescription: 'Add to favorites button',
     });
   }
 
   async tapAddBookmarksButton(): Promise<void> {
-    await Gestures.waitAndTap(this.addBookmarkButton, {
+    await UnifiedGestures.waitAndTap(this.addBookmarkButton, {
       elemDescription: 'Add bookmarks button',
     });
   }
 
   async tapBackToSafetyButton(): Promise<void> {
-    await Gestures.waitAndTap(this.backToSafetyButton, {
+    await UnifiedGestures.waitAndTap(this.backToSafetyButton, {
       elemDescription: 'Back to safety button',
     });
   }
 
   async tapReturnHomeButton(): Promise<void> {
-    await Gestures.waitAndTap(this.returnHomeButton, {
+    await UnifiedGestures.waitAndTap(this.returnHomeButton, {
       elemDescription: 'Return home button',
     });
   }
 
   async tapDappInFavorites(): Promise<void> {
     if (device.getPlatform() === 'ios') {
-      await Gestures.tap(this.testDappURLInFavouritesTab, {
+      await UnifiedGestures.tap(this.testDappURLInFavouritesTab, {
         elemDescription: 'Test dapp URL in favorites tab',
       });
     } else {
-      await Gestures.tap(this.homePageFavouritesTab, {
+      await UnifiedGestures.tap(this.homePageFavouritesTab, {
         elemDescription: 'Home page favorites tab',
       });
-      await Gestures.tap(this.testDappURLInFavouritesTab, {
+      await UnifiedGestures.tap(this.testDappURLInFavouritesTab, {
         elemDescription: 'Test dapp URL in favorites tab',
       });
     }
@@ -325,7 +443,7 @@ class Browser {
     url: string,
     options: { skipUrlEditorDismissal?: boolean } = {},
   ): Promise<void> {
-    await Gestures.typeText(this.urlInputBoxID, url, {
+    await UnifiedGestures.typeText(this.urlInputBoxID, url, {
       hideKeyboard: true,
       elemDescription: 'URL input box',
     });
@@ -344,7 +462,7 @@ class Browser {
     // `AsyncStorageIdlingResource` if dismissal taps land on top of them.
     if (!options.skipUrlEditorDismissal) {
       if (await Utilities.isElementVisible(this.cancelUrlInputButton, 1000)) {
-        await Gestures.waitAndTap(this.cancelUrlInputButton, {
+        await UnifiedGestures.waitAndTap(this.cancelUrlInputButton, {
           elemDescription: 'Cancel URL input (dismiss URL editor)',
         });
       }

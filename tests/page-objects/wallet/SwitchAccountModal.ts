@@ -1,6 +1,6 @@
-import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import { SwitchAccountModalSelectorIDs } from '../../../app/components/Views/confirmations/components/modals/switch-account-type-modal/SwitchAccountModal.testIds';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 class SwitchAccountModal {
   get smartAccountLink() {
     return Matchers.getElementByText('Smart account');
@@ -19,20 +19,20 @@ class SwitchAccountModal {
   }
 
   async tapSwitchAccountButton(): Promise<void> {
-    await Gestures.waitAndTap(this.switchAccountButton, {
+    await UnifiedGestures.waitAndTap(this.switchAccountButton, {
       checkEnabled: false,
       elemDescription: 'Switch Account button',
     });
   }
 
   async tapSmartAccountLink(): Promise<void> {
-    await Gestures.waitAndTap(this.smartAccountLink, {
+    await UnifiedGestures.waitAndTap(this.smartAccountLink, {
       elemDescription: 'Smart Account link',
     });
   }
 
   async tapSmartAccountBackButton(): Promise<void> {
-    await Gestures.waitAndTap(this.smartAccountBackButton, {
+    await UnifiedGestures.waitAndTap(this.smartAccountBackButton, {
       elemDescription: 'Smart Account back button',
     });
   }

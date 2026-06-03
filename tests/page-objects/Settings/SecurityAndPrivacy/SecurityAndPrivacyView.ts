@@ -3,30 +3,63 @@ import {
   SecurityPrivacyViewSelectorsText,
 } from '../../../../app/components/Views/Settings/SecuritySettings/SecurityPrivacyView.testIds';
 import Matchers from '../../../framework/Matchers';
-import Gestures from '../../../framework/Gestures';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../../framework/UnifiedGestures';
 
 class SecurityAndPrivacy {
-  get changePasswordButton(): DetoxElement {
-    return Matchers.getElementByID(
-      SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_BUTTON,
-    );
+  get changePasswordButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_BUTTON,
+        ),
+    });
   }
 
-  get revealSecretRecoveryPhraseButton(): DetoxElement {
-    return Matchers.getElementByID(
-      SecurityPrivacyViewSelectorsIDs.REVEAL_SEED_BUTTON,
-    );
+  get revealSecretRecoveryPhraseButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          SecurityPrivacyViewSelectorsIDs.REVEAL_SEED_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          SecurityPrivacyViewSelectorsIDs.REVEAL_SEED_BUTTON,
+        ),
+    });
   }
-  get clearPrivacyDataButton(): DetoxElement {
-    return Matchers.getElementByID(
-      SecurityPrivacyViewSelectorsIDs.CLEAR_PRIVACY_DATA_BUTTON,
-    );
+  get clearPrivacyDataButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          SecurityPrivacyViewSelectorsIDs.CLEAR_PRIVACY_DATA_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          SecurityPrivacyViewSelectorsIDs.CLEAR_PRIVACY_DATA_BUTTON,
+        ),
+    });
   }
 
-  get securityAndPrivacyHeading(): DetoxElement {
-    return Matchers.getElementByText(
-      SecurityPrivacyViewSelectorsText.SECURITY_AND_PRIVACY_HEADING,
-    );
+  get securityAndPrivacyHeading(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          SecurityPrivacyViewSelectorsText.SECURITY_AND_PRIVACY_HEADING,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          SecurityPrivacyViewSelectorsText.SECURITY_AND_PRIVACY_HEADING,
+        ),
+    });
   }
 
   get deleteWalletButton(): DetoxElement {
@@ -39,10 +72,17 @@ class SecurityAndPrivacy {
         );
   }
 
-  get metaMetricsToggle(): DetoxElement {
-    return Matchers.getElementByID(
-      SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH,
-    );
+  get metaMetricsToggle(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH,
+        ),
+    });
   }
   get scrollViewIdentifier(): Promise<DetoxMatcher> {
     return Matchers.getIdentifier(
@@ -50,85 +90,153 @@ class SecurityAndPrivacy {
     );
   }
 
-  get autoLockSection(): DetoxElement {
-    return Matchers.getElementByID(
-      SecurityPrivacyViewSelectorsIDs.AUTO_LOCK_SECTION,
-    );
+  get autoLockSection(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          SecurityPrivacyViewSelectorsIDs.AUTO_LOCK_SECTION,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          SecurityPrivacyViewSelectorsIDs.AUTO_LOCK_SECTION,
+        ),
+    });
   }
 
-  get autoLockDefault30Seconds(): DetoxElement {
-    return Matchers.getElementByText(
-      SecurityPrivacyViewSelectorsText.AUTO_LOCK_30_SECONDS,
-    );
+  get autoLockDefault30Seconds(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          SecurityPrivacyViewSelectorsText.AUTO_LOCK_30_SECONDS,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          SecurityPrivacyViewSelectorsText.AUTO_LOCK_30_SECONDS,
+        ),
+    });
   }
 
-  get rememberMeToggle(): DetoxElement {
-    return Matchers.getElementByID(
-      SecurityPrivacyViewSelectorsIDs.REMEMBER_ME_TOGGLE,
-    );
+  get rememberMeToggle(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          SecurityPrivacyViewSelectorsIDs.REMEMBER_ME_TOGGLE,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          SecurityPrivacyViewSelectorsIDs.REMEMBER_ME_TOGGLE,
+        ),
+    });
   }
 
-  get changePasswordSection(): DetoxElement {
-    return Matchers.getElementByID(
-      SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_CONTAINER,
-    );
+  get changePasswordSection(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_CONTAINER,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_CONTAINER,
+        ),
+    });
   }
 
-  get securitySettingsScroll(): DetoxElement {
-    return Matchers.getElementByID(
-      SecurityPrivacyViewSelectorsIDs.SECURITY_SETTINGS_SCROLL,
-    );
+  get securitySettingsScroll(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          SecurityPrivacyViewSelectorsIDs.SECURITY_SETTINGS_SCROLL,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          SecurityPrivacyViewSelectorsIDs.SECURITY_SETTINGS_SCROLL,
+        ),
+    });
   }
-  get showPrivateKey(): DetoxElement {
-    return Matchers.getElementByText(
-      SecurityPrivacyViewSelectorsText.SHOW_PRIVATE_KEY,
-    );
-  }
-
-  get showPrivateKeyButton(): DetoxElement {
-    return Matchers.getElementByText(
-      SecurityPrivacyViewSelectorsText.SHOW_PRIVATE_KEY,
-    );
-  }
-
-  get backUpNow(): DetoxElement {
-    return Matchers.getElementByText(
-      SecurityPrivacyViewSelectorsText.BACK_UP_NOW,
-    );
-  }
-
-  get privacyHeader(): DetoxElement {
-    return Matchers.getElementByText(
-      SecurityPrivacyViewSelectorsText.PRIVACY_HEADING,
-    );
+  get showPrivateKey(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          SecurityPrivacyViewSelectorsText.SHOW_PRIVATE_KEY,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          SecurityPrivacyViewSelectorsText.SHOW_PRIVATE_KEY,
+        ),
+    });
   }
 
-  get clearBrowserCookiesButton(): DetoxElement {
-    return Matchers.getElementByText(
-      SecurityPrivacyViewSelectorsText.CLEAR_BROWSER_COOKIES,
-    );
+  get showPrivateKeyButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          SecurityPrivacyViewSelectorsText.SHOW_PRIVATE_KEY,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          SecurityPrivacyViewSelectorsText.SHOW_PRIVATE_KEY,
+        ),
+    });
+  }
+
+  get backUpNow(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(SecurityPrivacyViewSelectorsText.BACK_UP_NOW),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          SecurityPrivacyViewSelectorsText.BACK_UP_NOW,
+        ),
+    });
+  }
+
+  get privacyHeader(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          SecurityPrivacyViewSelectorsText.PRIVACY_HEADING,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          SecurityPrivacyViewSelectorsText.PRIVACY_HEADING,
+        ),
+    });
+  }
+
+  get clearBrowserCookiesButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          SecurityPrivacyViewSelectorsText.CLEAR_BROWSER_COOKIES,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          SecurityPrivacyViewSelectorsText.CLEAR_BROWSER_COOKIES,
+        ),
+    });
   }
 
   async tapRevealSecretRecoveryPhraseButton(): Promise<void> {
-    await Gestures.waitAndTap(this.revealSecretRecoveryPhraseButton, {
+    await UnifiedGestures.waitAndTap(this.revealSecretRecoveryPhraseButton, {
       elemDescription: 'Reveal secret recovery phrase button',
     });
   }
 
   async tapChangePasswordButton(): Promise<void> {
-    await Gestures.waitAndTap(this.changePasswordButton, {
+    await UnifiedGestures.waitAndTap(this.changePasswordButton, {
       elemDescription: 'Change password button',
     });
   }
 
   async tapDeleteWalletButton(): Promise<void> {
-    await Gestures.waitAndTap(this.deleteWalletButton, {
+    await UnifiedGestures.waitAndTap(this.deleteWalletButton, {
       elemDescription: 'Delete wallet button',
     });
   }
 
   async scrollToChangePasswordView(): Promise<void> {
-    await Gestures.scrollToElement(
+    await UnifiedGestures.scrollToElement(
       this.changePasswordButton,
       this.scrollViewIdentifier,
       {
@@ -138,7 +246,7 @@ class SecurityAndPrivacy {
   }
 
   async scrollToDeleteWalletButton(): Promise<void> {
-    await Gestures.scrollToElement(
+    await UnifiedGestures.scrollToElement(
       this.deleteWalletButton,
       this.scrollViewIdentifier,
       {
@@ -148,7 +256,7 @@ class SecurityAndPrivacy {
   }
 
   async scrollToTurnOnRememberMe(): Promise<void> {
-    await Gestures.scrollToElement(
+    await UnifiedGestures.scrollToElement(
       this.rememberMeToggle,
       this.scrollViewIdentifier,
       {
@@ -158,7 +266,7 @@ class SecurityAndPrivacy {
   }
 
   async scrollToClearPrivacyData(): Promise<void> {
-    await Gestures.scrollToElement(
+    await UnifiedGestures.scrollToElement(
       this.clearPrivacyDataButton,
       this.scrollViewIdentifier,
       {
@@ -168,7 +276,7 @@ class SecurityAndPrivacy {
   }
 
   async scrollToMetaMetrics(): Promise<void> {
-    await Gestures.scrollToElement(
+    await UnifiedGestures.scrollToElement(
       this.metaMetricsToggle,
       this.scrollViewIdentifier,
       {
@@ -178,7 +286,7 @@ class SecurityAndPrivacy {
   }
 
   async scrollToAutoLockSection(): Promise<void> {
-    await Gestures.scrollToElement(
+    await UnifiedGestures.scrollToElement(
       this.autoLockSection,
       this.scrollViewIdentifier,
       {
@@ -188,7 +296,7 @@ class SecurityAndPrivacy {
   }
 
   async scrollToChangePassword(): Promise<void> {
-    await Gestures.scrollToElement(
+    await UnifiedGestures.scrollToElement(
       this.changePasswordButton,
       this.scrollViewIdentifier,
       {
@@ -198,36 +306,36 @@ class SecurityAndPrivacy {
   }
 
   async tapChangePassword(): Promise<void> {
-    await Gestures.waitAndTap(this.changePasswordButton, {
+    await UnifiedGestures.waitAndTap(this.changePasswordButton, {
       elemDescription: 'Change password button',
     });
   }
 
   async tapAutoLock30Seconds(): Promise<void> {
-    await Gestures.waitAndTap(this.autoLockDefault30Seconds, {
+    await UnifiedGestures.waitAndTap(this.autoLockDefault30Seconds, {
       elemDescription: 'Auto lock 30 seconds',
     });
   }
 
   async tapMetaMetricsToggle(): Promise<void> {
-    await Gestures.waitAndTap(this.metaMetricsToggle, {
+    await UnifiedGestures.waitAndTap(this.metaMetricsToggle, {
       elemDescription: 'Meta metrics toggle',
     });
   }
   async tapClearPrivacyData(): Promise<void> {
-    await Gestures.waitAndTap(this.clearPrivacyDataButton, {
+    await UnifiedGestures.waitAndTap(this.clearPrivacyDataButton, {
       elemDescription: 'Clear privacy data button',
     });
   }
 
   async tapTurnOnRememberMeToggle(): Promise<void> {
-    await Gestures.waitAndTap(this.rememberMeToggle, {
+    await UnifiedGestures.waitAndTap(this.rememberMeToggle, {
       elemDescription: 'Remember me toggle',
     });
   }
 
   async tapShowPrivateKeyButton(): Promise<void> {
-    await Gestures.waitAndTap(this.showPrivateKey, {
+    await UnifiedGestures.waitAndTap(this.showPrivateKey, {
       elemDescription: 'Show private key button',
     });
   }

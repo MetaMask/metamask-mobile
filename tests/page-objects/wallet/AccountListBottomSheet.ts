@@ -8,7 +8,6 @@ import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/Wal
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../app/components/Views/MultichainAccounts/shared/ConnectAccountBottomSheet.testIds';
 import { AccountCellIds } from '../../../app/component-library/components-temp/MultichainAccounts/AccountCell/AccountCell.testIds';
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 import {
@@ -44,25 +43,48 @@ class AccountListBottomSheet {
     });
   }
 
-  get accountTypeLabel(): DetoxElement {
-    return Matchers.getElementByID(
-      AccountListBottomSheetSelectorsIDs.ACCOUNT_TYPE_LABEL,
-    );
+  get accountTypeLabel(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          AccountListBottomSheetSelectorsIDs.ACCOUNT_TYPE_LABEL,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          AccountListBottomSheetSelectorsIDs.ACCOUNT_TYPE_LABEL,
+        ),
+    });
   }
 
-  get accountTagLabel(): DetoxElement {
-    return Matchers.getElementByID(CellComponentSelectorsIDs.TAG_LABEL);
+  get accountTagLabel(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(CellComponentSelectorsIDs.TAG_LABEL),
+      appium: () =>
+        PlaywrightMatchers.getElementById(CellComponentSelectorsIDs.TAG_LABEL),
+    });
   }
 
-  get title(): DetoxElement {
-    return Matchers.getElementByText(
-      AccountListBottomSheetSelectorsText.ACCOUNTS_LIST_TITLE,
-    );
+  get title(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          AccountListBottomSheetSelectorsText.ACCOUNTS_LIST_TITLE,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          AccountListBottomSheetSelectorsText.ACCOUNTS_LIST_TITLE,
+        ),
+    });
   }
 
   /** Header back control (same testID as CommonView.backButton / AccountSelector HeaderCompactStandard). */
-  get backButton(): DetoxElement {
-    return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON);
+  get backButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(CommonSelectorsIDs.BACK_ARROW_BUTTON),
+    });
   }
 
   /** Add wallet/account button - wdio tapOnAddWalletButton uses 'account-list-add-account-button' */
@@ -80,22 +102,43 @@ class AccountListBottomSheet {
     });
   }
 
-  get addEthereumAccountButton(): DetoxElement {
-    return Matchers.getElementByText(
-      AccountListBottomSheetSelectorsText.ADD_ETHEREUM_ACCOUNT,
-    );
+  get addEthereumAccountButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          AccountListBottomSheetSelectorsText.ADD_ETHEREUM_ACCOUNT,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          AccountListBottomSheetSelectorsText.ADD_ETHEREUM_ACCOUNT,
+        ),
+    });
   }
 
-  get removeAccountAlertText(): DetoxElement {
-    return Matchers.getElementByText(
-      AccountListBottomSheetSelectorsText.REMOVE_IMPORTED_ACCOUNT,
-    );
+  get removeAccountAlertText(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          AccountListBottomSheetSelectorsText.REMOVE_IMPORTED_ACCOUNT,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          AccountListBottomSheetSelectorsText.REMOVE_IMPORTED_ACCOUNT,
+        ),
+    });
   }
 
-  get connectAccountsButton(): DetoxElement {
-    return Matchers.getElementByID(
-      ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
-    );
+  get connectAccountsButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
+        ),
+    });
   }
 
   createAccountLink(index: number): EncapsulatedElementType {
@@ -130,7 +173,7 @@ class AccountListBottomSheet {
     return Matchers.getElementByID(CellComponentSelectorsIDs.SELECT, index);
   }
 
-  async getMultiselectElement(index: number): Promise<DetoxElement> {
+  getMultiselectElement(index: number): EncapsulatedElementType {
     return Matchers.getElementByID(
       CellComponentSelectorsIDs.MULTISELECT,
       index,
@@ -150,7 +193,7 @@ class AccountListBottomSheet {
   }
 
   async tapEditAccountActionsAtIndex(index: number): Promise<void> {
-    await Gestures.tapAtIndex(
+    await UnifiedGestures.tapAtIndex(
       Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ACTIONS),
       index,
     );
@@ -164,19 +207,19 @@ class AccountListBottomSheet {
   }
 
   async tapAccountIndex(index: number): Promise<void> {
-    await Gestures.waitAndTap(this.getMultiselectElement(index), {
+    await UnifiedGestures.waitAndTap(this.getMultiselectElement(index), {
       elemDescription: `Account at index ${index}`,
     });
   }
 
   async tapToSelectActiveAccountAtIndex(index: number): Promise<void> {
-    await Gestures.waitAndTap(this.getSelectWithMenuElementName(index), {
+    await UnifiedGestures.waitAndTap(this.getSelectWithMenuElementName(index), {
       elemDescription: `Account at index ${index}`,
     });
   }
 
   async longPressAccountAtIndex(index: number): Promise<void> {
-    await Gestures.longPress(this.getSelectWithMenuElementName(index), {
+    await UnifiedGestures.longPress(this.getSelectWithMenuElementName(index), {
       elemDescription: 'Account name',
     });
   }
@@ -188,7 +231,7 @@ class AccountListBottomSheet {
   }
 
   async tapBackButton(): Promise<void> {
-    await Gestures.waitAndTap(this.backButton, {
+    await UnifiedGestures.waitAndTap(this.backButton, {
       elemDescription: 'Account list header back button',
     });
   }
@@ -207,14 +250,14 @@ class AccountListBottomSheet {
       timeout: 30000,
     });
 
-    await Gestures.waitAndTap(button, {
+    await UnifiedGestures.waitAndTap(button, {
       elemDescription: 'Add Account button in V2 multichain accounts',
       delay: options?.shouldWait ? 5000 : 0,
     });
   }
 
   async tapAddEthereumAccountButton(): Promise<void> {
-    await Gestures.waitAndTap(this.addEthereumAccountButton, {
+    await UnifiedGestures.waitAndTap(this.addEthereumAccountButton, {
       elemDescription: 'Add Ethereum Account button',
     });
   }
@@ -223,7 +266,7 @@ class AccountListBottomSheet {
     await encapsulatedAction({
       detox: async () => {
         const link = this.createAccountLink(index);
-        await Gestures.waitAndTap(link, {
+        await UnifiedGestures.waitAndTap(link, {
           elemDescription: 'Create account link',
         });
       },
@@ -240,26 +283,26 @@ class AccountListBottomSheet {
   }
 
   async longPressImportedAccount(): Promise<void> {
-    await Gestures.longPress(this.getSelectElement(1), {
+    await UnifiedGestures.longPress(this.getSelectElement(1), {
       elemDescription: 'Imported account',
     });
   }
 
   async swipeToDismissAccountsModal(): Promise<void> {
-    await Gestures.swipe(this.title, 'down', {
+    await UnifiedGestures.swipe(this.title, 'down', {
       speed: 'fast',
       percentage: 0.6,
     });
   }
 
   async tapYesToRemoveImportedAccountAlertButton(): Promise<void> {
-    await Gestures.waitAndTap(this.removeAccountAlertText, {
+    await UnifiedGestures.waitAndTap(this.removeAccountAlertText, {
       elemDescription: 'Yes to remove imported account alert button',
     });
   }
 
   async tapConnectAccountsButton(): Promise<void> {
-    await Gestures.waitAndTap(this.connectAccountsButton, {
+    await UnifiedGestures.waitAndTap(this.connectAccountsButton, {
       elemDescription: 'Connect accounts button',
     });
   }
@@ -268,7 +311,7 @@ class AccountListBottomSheet {
     await encapsulatedAction({
       detox: async () => {
         const name = Matchers.getElementByText(accountName);
-        await Gestures.waitAndTap(name);
+        await UnifiedGestures.waitAndTap(name);
       },
       appium: async () => {
         const name = await PlaywrightMatchers.getElementByText(accountName);
@@ -285,7 +328,7 @@ class AccountListBottomSheet {
     await encapsulatedAction({
       detox: async () => {
         const accountEl = this.getAccountElementByAccountNameV2(accountName);
-        await Gestures.waitAndTap(accountEl, {
+        await UnifiedGestures.waitAndTap(accountEl, {
           elemDescription: `Tap on account with name: ${accountName}`,
         });
       },
@@ -301,7 +344,7 @@ class AccountListBottomSheet {
   }
 
   async scrollToAccount(index: number): Promise<void> {
-    await Gestures.scrollToElement(
+    await UnifiedGestures.scrollToElement(
       Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ACTIONS, index),
       Matchers.getIdentifier(
         AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
@@ -317,8 +360,11 @@ class AccountListBottomSheet {
   }
 
   // V2 Multichain Accounts Methods
-  get ellipsisMenuButton(): DetoxElement {
-    return Matchers.getElementByID(AccountCellIds.MENU);
+  get ellipsisMenuButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(AccountCellIds.MENU),
+      appium: () => PlaywrightMatchers.getElementById(AccountCellIds.MENU),
+    });
   }
 
   /**
@@ -341,7 +387,7 @@ class AccountListBottomSheet {
     accountIndex: number,
     { shouldWait = false }: { shouldWait: boolean } = { shouldWait: false },
   ): Promise<void> {
-    await Gestures.tapAtIndex(this.ellipsisMenuButton, accountIndex, {
+    await UnifiedGestures.tapAtIndex(this.ellipsisMenuButton, accountIndex, {
       elemDescription: `V2 ellipsis menu button for account at index ${accountIndex}`,
       delay: shouldWait ? 1500 : 0,
     });

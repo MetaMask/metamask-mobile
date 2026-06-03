@@ -1,22 +1,42 @@
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
 import { ImportSRPIDs } from '../../../app/components/Views/ImportNewSecretRecoveryPhrase/SRPImport.testIds';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class ImportSrpView {
-  get container(): DetoxElement {
-    return Matchers.getElementByID(ImportSRPIDs.CONTAINER);
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(ImportSRPIDs.CONTAINER),
+      appium: () => PlaywrightMatchers.getElementById(ImportSRPIDs.CONTAINER),
+    });
   }
 
-  get title(): DetoxElement {
-    return Matchers.getElementByID(ImportSRPIDs.SCREEN_TITLE_ID);
+  get title(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(ImportSRPIDs.SCREEN_TITLE_ID),
+      appium: () =>
+        PlaywrightMatchers.getElementById(ImportSRPIDs.SCREEN_TITLE_ID),
+    });
   }
 
-  get importButton(): DetoxElement {
-    return Matchers.getElementByID(ImportSRPIDs.IMPORT_BUTTON);
+  get importButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(ImportSRPIDs.IMPORT_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(ImportSRPIDs.IMPORT_BUTTON),
+    });
   }
 
-  get textareaInput(): DetoxElement {
-    return Matchers.getElementByID(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
+  get textareaInput(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(ImportSRPIDs.SEED_PHRASE_INPUT_ID),
+      appium: () =>
+        PlaywrightMatchers.getElementById(ImportSRPIDs.SEED_PHRASE_INPUT_ID),
+    });
   }
 
   seedPhraseInput(index: number): DetoxElement {
@@ -29,13 +49,13 @@ class ImportSrpView {
   }
 
   async tapTitle() {
-    await Gestures.tap(this.title, {
+    await UnifiedGestures.tap(this.title, {
       elemDescription: 'Import SRP screen title',
     });
   }
 
   async tapImportButton() {
-    await Gestures.waitAndTap(this.importButton, {
+    await UnifiedGestures.waitAndTap(this.importButton, {
       elemDescription: 'Import button',
     });
   }
@@ -44,14 +64,14 @@ class ImportSrpView {
     if (device.getPlatform() === 'ios') {
       const srpArray = mnemonic.split(' ');
       for (const [i, word] of srpArray.entries()) {
-        await Gestures.typeText(this.seedPhraseInput(i), `${word} `, {
+        await UnifiedGestures.typeText(this.seedPhraseInput(i), `${word} `, {
           elemDescription: 'Import SRP Secret Recovery Phrase Input Box',
           hideKeyboard: i === srpArray.length - 1,
         });
       }
       await this.tapTitle();
     } else {
-      await Gestures.replaceText(this.textareaInput, mnemonic, {
+      await UnifiedGestures.replaceText(this.textareaInput, mnemonic, {
         elemDescription: 'SRP textarea input',
         checkVisibility: false,
       });

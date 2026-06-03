@@ -1,7 +1,7 @@
 import { AddNewAccountIds } from '../../../../../app/components/Views/AddNewAccount/AddHdAccount.testIds';
 import Matchers from '../../../../framework/Matchers';
-import Gestures from '../../../../framework/Gestures';
 import { IndexableNativeElement } from 'detox/detox';
+import UnifiedGestures from '../../../../framework/UnifiedGestures';
 
 class AddNewHdAccountComponent {
   get container() {
@@ -25,21 +25,21 @@ class AddNewHdAccountComponent {
   }
 
   async tapSrpSelector() {
-    await Gestures.waitAndTap(this.srpSelector);
+    await UnifiedGestures.waitAndTap(this.srpSelector);
   }
 
   async tapCancel() {
-    await Gestures.waitAndTap(this.cancelButton);
+    await UnifiedGestures.waitAndTap(this.cancelButton);
   }
 
   async tapConfirm() {
-    await Gestures.waitAndTap(this.confirmButton, {
+    await UnifiedGestures.waitAndTap(this.confirmButton, {
       elemDescription: 'Confirm button on Add New HD Account screen',
     });
   }
 
   async enterName(accountName: string) {
-    await Gestures.typeText(
+    await UnifiedGestures.typeText(
       this.nameInput as Promise<IndexableNativeElement>,
       accountName,
       {

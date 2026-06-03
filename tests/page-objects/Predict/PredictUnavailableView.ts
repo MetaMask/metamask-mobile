@@ -1,23 +1,47 @@
 import Assertions from '../../framework/Assertions';
-import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import { PredictUnavailableSelectorsIDs } from '../../../app/components/UI/Predict/Predict.testIds';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class PredictUnavailableView {
-  get title(): DetoxElement {
-    return Matchers.getElementByText(PredictUnavailableSelectorsIDs.TITLE_TEXT);
+  get title(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(PredictUnavailableSelectorsIDs.TITLE_TEXT),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          PredictUnavailableSelectorsIDs.TITLE_TEXT,
+        ),
+    });
   }
 
-  get description(): DetoxElement {
-    return Matchers.getElementByText(
-      PredictUnavailableSelectorsIDs.DESCRIPTION_TEXT,
-    );
+  get description(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          PredictUnavailableSelectorsIDs.DESCRIPTION_TEXT,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          PredictUnavailableSelectorsIDs.DESCRIPTION_TEXT,
+        ),
+    });
   }
 
-  get gotItButton(): DetoxElement {
-    return Matchers.getElementByText(
-      PredictUnavailableSelectorsIDs.BUTTON_TEXT,
-    );
+  get gotItButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(PredictUnavailableSelectorsIDs.BUTTON_TEXT),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          PredictUnavailableSelectorsIDs.BUTTON_TEXT,
+        ),
+    });
   }
 
   async expectVisible(): Promise<void> {
@@ -30,7 +54,7 @@ class PredictUnavailableView {
   }
 
   async tapGotIt(): Promise<void> {
-    await Gestures.waitAndTap(this.gotItButton, {
+    await UnifiedGestures.waitAndTap(this.gotItButton, {
       elemDescription: 'Tap Got it on Predict Unavailable',
     });
   }

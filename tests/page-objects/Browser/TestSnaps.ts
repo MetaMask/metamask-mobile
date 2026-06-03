@@ -24,71 +24,144 @@ import { RetryOptions } from '../../framework';
 import { Json } from '@metamask/utils';
 import ToastModal from '../wallet/ToastModal';
 import SolanaTestDApp from './SolanaTestDApp';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 export const TEST_SNAPS_URL =
   'https://metamask.github.io/snaps/test-snaps/3.4.2/';
 
 class TestSnaps {
-  get getConnectSnapButton(): DetoxElement {
-    return Matchers.getElementByID(SNAP_INSTALL_CONNECT);
+  get getConnectSnapButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(SNAP_INSTALL_CONNECT),
+      appium: () => PlaywrightMatchers.getElementById(SNAP_INSTALL_CONNECT),
+    });
   }
 
-  get getApproveSnapPermissionsRequestButton(): DetoxElement {
-    return Matchers.getElementByID(SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE);
+  get getApproveSnapPermissionsRequestButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE,
+        ),
+    });
   }
 
-  get getConnectSnapInstallOkButton(): DetoxElement {
-    return Matchers.getElementByID(SNAP_INSTALL_OK);
+  get getConnectSnapInstallOkButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(SNAP_INSTALL_OK),
+      appium: () => PlaywrightMatchers.getElementById(SNAP_INSTALL_OK),
+    });
   }
 
-  get getApproveSignRequestButton(): DetoxElement {
-    return Matchers.getElementByID(
-      TestSnapBottomSheetSelectorWebIDS.BOTTOMSHEET_FOOTER_BUTTON_ID,
-    );
+  get getApproveSignRequestButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          TestSnapBottomSheetSelectorWebIDS.BOTTOMSHEET_FOOTER_BUTTON_ID,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          TestSnapBottomSheetSelectorWebIDS.BOTTOMSHEET_FOOTER_BUTTON_ID,
+        ),
+    });
   }
 
-  get confirmSignatureButton(): DetoxElement {
-    return Matchers.getElementByID(
-      ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
-    );
+  get confirmSignatureButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
+        ),
+    });
   }
 
-  get solanaConfirmButton(): DetoxElement {
-    return Matchers.getElementByID(
-      'confirm-sign-message-confirm-snap-footer-button',
-    );
+  get solanaConfirmButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          'confirm-sign-message-confirm-snap-footer-button',
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          'confirm-sign-message-confirm-snap-footer-button',
+        ),
+    });
   }
 
-  get footerButton(): DetoxElement {
-    return Matchers.getElementByID(
-      TestSnapBottomSheetSelectorWebIDS.DEFAULT_FOOTER_BUTTON_ID,
-    );
+  get footerButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          TestSnapBottomSheetSelectorWebIDS.DEFAULT_FOOTER_BUTTON_ID,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          TestSnapBottomSheetSelectorWebIDS.DEFAULT_FOOTER_BUTTON_ID,
+        ),
+    });
   }
 
-  get checkboxElement(): DetoxElement {
-    return Matchers.getElementByID('snap-ui-renderer__checkbox');
+  get checkboxElement(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID('snap-ui-renderer__checkbox'),
+      appium: () =>
+        PlaywrightMatchers.getElementById('snap-ui-renderer__checkbox'),
+    });
   }
 
-  get dateTimePickerTouchable(): DetoxElement {
-    return Matchers.getElementByID(
-      'snap-ui-renderer__date-time-picker--datetime-touchable',
-    );
+  get dateTimePickerTouchable(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          'snap-ui-renderer__date-time-picker--datetime-touchable',
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          'snap-ui-renderer__date-time-picker--datetime-touchable',
+        ),
+    });
   }
 
-  get datePickerTouchable(): DetoxElement {
-    return Matchers.getElementByID(
-      'snap-ui-renderer__date-time-picker--date-touchable',
-    );
+  get datePickerTouchable(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          'snap-ui-renderer__date-time-picker--date-touchable',
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          'snap-ui-renderer__date-time-picker--date-touchable',
+        ),
+    });
   }
 
-  get timePickerTouchable(): DetoxElement {
-    return Matchers.getElementByID(
-      'snap-ui-renderer__date-time-picker--time-touchable',
-    );
+  get timePickerTouchable(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          'snap-ui-renderer__date-time-picker--time-touchable',
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          'snap-ui-renderer__date-time-picker--time-touchable',
+        ),
+    });
   }
 
-  get dateTimePickerOkButton(): DetoxElement {
-    return Matchers.getElementByText('OK');
+  get dateTimePickerOkButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText('OK'),
+      appium: () => PlaywrightMatchers.getElementByText('OK'),
+    });
   }
 
   get snapUIRendererScrollView(): Promise<Detox.NativeMatcher> {
@@ -247,38 +320,38 @@ class TestSnaps {
       TestSnapViewSelectorWebIDS[buttonLocator],
     );
     await Gestures.scrollToWebViewPort(webElement);
-    await Gestures.tap(webElement, {
+    await UnifiedGestures.tap(webElement, {
       elemDescription: `tapButton:: ${buttonLocator}`,
     });
   }
 
   async tapOkButton() {
     const button = Matchers.getElementByText('OK');
-    await Gestures.waitAndTap(button);
+    await UnifiedGestures.waitAndTap(button);
   }
 
   async tapApproveButton() {
     const button = Matchers.getElementByText('Approve');
-    await Gestures.waitAndTap(button);
+    await UnifiedGestures.waitAndTap(button);
   }
 
   async tapConfirmButton() {
     const button = Matchers.getElementByText('Confirm');
-    await Gestures.waitAndTap(button);
+    await UnifiedGestures.waitAndTap(button);
   }
 
   async tapCancelButton() {
     const button = Matchers.getElementByText('Cancel');
-    await Gestures.waitAndTap(button);
+    await UnifiedGestures.waitAndTap(button);
   }
 
   async tapFooterButton() {
-    await Gestures.waitAndTap(this.footerButton);
+    await UnifiedGestures.waitAndTap(this.footerButton);
   }
 
   async tapSubmitButton() {
     const button = Matchers.getElementByText('Submit');
-    await Gestures.waitAndTap(button);
+    await UnifiedGestures.waitAndTap(button);
   }
 
   async dismissAlert() {
@@ -286,7 +359,7 @@ class TestSnaps {
     const button = Matchers.getElementByText(
       device.getPlatform() === 'ios' ? 'Ok' : 'OK',
     );
-    await Gestures.tap(button);
+    await UnifiedGestures.tap(button);
   }
 
   async getOptionValueByText(
@@ -328,7 +401,7 @@ class TestSnaps {
   async fillInput(name: string, text: string) {
     const input = Matchers.getElementByID(`${name}-snap-ui-input`);
 
-    await Gestures.typeText(input, text, { hideKeyboard: true });
+    await UnifiedGestures.typeText(input, text, { hideKeyboard: true });
   }
 
   async selectInNativeDropdown(
@@ -339,27 +412,27 @@ class TestSnaps {
       NativeDropdownSelectorWebIDS[selector],
     );
 
-    await Gestures.tap(dropdown);
+    await UnifiedGestures.tap(dropdown);
 
     const selectorItem = element(
       by.text(text).withAncestor(by.id('snap-ui-renderer__selector-item')),
     ) as unknown as DetoxElement;
-    await Gestures.tap(selectorItem);
+    await UnifiedGestures.tap(selectorItem);
   }
 
   async selectRadioButton(text: string) {
     const radioButton = element(
       by.text(text).withAncestor(by.id('snap-ui-renderer__radio-button')),
     ) as unknown as DetoxElement;
-    await Gestures.tap(radioButton);
+    await UnifiedGestures.tap(radioButton);
   }
 
   async tapCheckbox() {
-    await Gestures.tap(this.checkboxElement);
+    await UnifiedGestures.tap(this.checkboxElement);
   }
 
   async selectDateInDateTimePicker() {
-    await Gestures.scrollToElement(
+    await UnifiedGestures.scrollToElement(
       this.timePickerTouchable,
       this.snapUIRendererScrollView,
       {
@@ -368,39 +441,42 @@ class TestSnaps {
       },
     );
 
-    await Gestures.waitAndTap(this.dateTimePickerTouchable, {
+    await UnifiedGestures.waitAndTap(this.dateTimePickerTouchable, {
       checkStability: true,
       elemDescription: 'open date-time picker',
     });
 
-    await Gestures.waitAndTap(this.dateTimePickerOkButton, {
+    await UnifiedGestures.waitAndTap(this.dateTimePickerOkButton, {
+      checkStability: true,
       elemDescription: 'date-time picker OK',
     });
 
     // Android date and time picker is a two-step process, so we need to tap OK again
     if (device.getPlatform() === 'android') {
-      await Gestures.waitAndTap(this.dateTimePickerOkButton);
+      await UnifiedGestures.waitAndTap(this.dateTimePickerOkButton);
     }
   }
 
   async selectDateInDatePicker() {
-    await Gestures.waitAndTap(this.datePickerTouchable, {
+    await UnifiedGestures.waitAndTap(this.datePickerTouchable, {
       checkStability: true,
       elemDescription: 'open date picker',
     });
 
-    await Gestures.waitAndTap(this.dateTimePickerOkButton, {
+    await UnifiedGestures.waitAndTap(this.dateTimePickerOkButton, {
+      checkStability: true,
       elemDescription: 'date picker OK',
     });
   }
 
   async selectTimeInTimePicker() {
-    await Gestures.waitAndTap(this.timePickerTouchable, {
+    await UnifiedGestures.waitAndTap(this.timePickerTouchable, {
       checkStability: true,
       elemDescription: 'open time picker',
     });
 
-    await Gestures.waitAndTap(this.dateTimePickerOkButton, {
+    await UnifiedGestures.waitAndTap(this.dateTimePickerOkButton, {
+      checkStability: true,
       elemDescription: 'time picker OK',
     });
   }
@@ -410,17 +486,17 @@ class TestSnaps {
   ): Promise<void> {
     await this.tapButton(buttonLocator);
 
-    await Gestures.tap(this.getConnectSnapButton, {
+    await UnifiedGestures.tap(this.getConnectSnapButton, {
       elemDescription: 'Connect Snap button',
       waitForElementToDisappear: true,
     });
 
-    await Gestures.tap(this.getApproveSnapPermissionsRequestButton, {
+    await UnifiedGestures.tap(this.getApproveSnapPermissionsRequestButton, {
       elemDescription: 'Approve permission for Snap button',
       waitForElementToDisappear: true,
     });
 
-    await Gestures.tap(this.getConnectSnapInstallOkButton, {
+    await UnifiedGestures.tap(this.getConnectSnapInstallOkButton, {
       elemDescription: 'OK button',
       waitForElementToDisappear: true,
     });
@@ -439,7 +515,7 @@ class TestSnaps {
   }
 
   async approveSignRequest() {
-    await Gestures.tap(this.getApproveSignRequestButton);
+    await UnifiedGestures.tap(this.getApproveSignRequestButton);
   }
 
   /**
@@ -468,7 +544,7 @@ class TestSnaps {
       timeout: 15_000,
     });
     await this.blurActiveWebViewInput();
-    await Gestures.tap(this.confirmSignatureButton, {
+    await UnifiedGestures.tap(this.confirmSignatureButton, {
       elemDescription: 'confirm snap signature',
       checkStability: true,
     });

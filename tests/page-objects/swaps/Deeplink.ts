@@ -1,17 +1,28 @@
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class DeeplinkModal {
-  get continueButton(): DetoxElement {
-    return Matchers.getElementByText('Continue');
+  get continueButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText('Continue'),
+      appium: () => PlaywrightMatchers.getElementByText('Continue'),
+    });
   }
 
-  get proceedWithCaution(): DetoxElement {
-    return Matchers.getElementByText('Proceed with caution');
+  get proceedWithCaution(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText('Proceed with caution'),
+      appium: () => PlaywrightMatchers.getElementByText('Proceed with caution'),
+    });
   }
 
   async tapContinue(): Promise<void> {
-    await Gestures.waitAndTap(this.continueButton, {
+    await UnifiedGestures.waitAndTap(this.continueButton, {
       elemDescription: 'Deeplink Modal Continue Button',
     });
   }

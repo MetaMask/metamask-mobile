@@ -2,8 +2,13 @@ import {
   AdvancedViewSelectorsIDs,
   AdvancedViewSelectorsText,
 } from '../../../app/components/Views/Settings/AdvancedSettings/AdvancedView.testIds';
-import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class AdvancedSettingsView {
   get scrollViewIdentifier(): Promise<Detox.NativeMatcher> {
@@ -12,43 +17,66 @@ class AdvancedSettingsView {
     );
   }
 
-  get showFiatOnTestnetsToggle(): DetoxElement {
-    return Matchers.getElementByID(
-      AdvancedViewSelectorsIDs.SHOW_FIAT_ON_TESTNETS,
-    );
+  get showFiatOnTestnetsToggle(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(AdvancedViewSelectorsIDs.SHOW_FIAT_ON_TESTNETS),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          AdvancedViewSelectorsIDs.SHOW_FIAT_ON_TESTNETS,
+        ),
+    });
   }
 
-  get smartTransactionsToggle(): DetoxElement {
-    return Matchers.getElementByID(AdvancedViewSelectorsIDs.STX_OPT_IN_SWITCH);
+  get smartTransactionsToggle(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(AdvancedViewSelectorsIDs.STX_OPT_IN_SWITCH),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          AdvancedViewSelectorsIDs.STX_OPT_IN_SWITCH,
+        ),
+    });
   }
 
-  get resetAccountButton(): DetoxElement {
-    return Matchers.getElementByText(
-      AdvancedViewSelectorsText.RESET_ACCOUNT,
-      1,
-    );
+  get resetAccountButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(AdvancedViewSelectorsText.RESET_ACCOUNT, 1),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          AdvancedViewSelectorsText.RESET_ACCOUNT,
+        ),
+    });
   }
 
-  get resetConfirmButton(): DetoxElement {
-    return Matchers.getElementByID(
-      AdvancedViewSelectorsIDs.RESET_ACCOUNT_CONFIRM_BUTTON,
-    );
+  get resetConfirmButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          AdvancedViewSelectorsIDs.RESET_ACCOUNT_CONFIRM_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          AdvancedViewSelectorsIDs.RESET_ACCOUNT_CONFIRM_BUTTON,
+        ),
+    });
   }
 
   async tapShowFiatOnTestnetsSwitch(): Promise<void> {
-    await Gestures.waitAndTap(this.showFiatOnTestnetsToggle, {
+    await UnifiedGestures.waitAndTap(this.showFiatOnTestnetsToggle, {
       elemDescription: 'Show Fiat on Testnets Toggle in Advanced Settings',
     });
   }
 
   async tapSmartTransactionSwitch(): Promise<void> {
-    await Gestures.waitAndTap(this.smartTransactionsToggle, {
+    await UnifiedGestures.waitAndTap(this.smartTransactionsToggle, {
       elemDescription: 'Smart Transactions Toggle in Advanced Settings',
     });
   }
 
   async scrollToShowFiatOnTestnetsToggle(): Promise<void> {
-    await Gestures.scrollToElement(
+    await UnifiedGestures.scrollToElement(
       this.showFiatOnTestnetsToggle,
       this.scrollViewIdentifier,
       {
@@ -58,13 +86,13 @@ class AdvancedSettingsView {
   }
 
   async tapResetAccountButton(): Promise<void> {
-    await Gestures.waitAndTap(this.resetAccountButton, {
+    await UnifiedGestures.waitAndTap(this.resetAccountButton, {
       elemDescription: 'Smart Transactions Reset Account Button',
     });
   }
 
   async tapConfirmResetButton(): Promise<void> {
-    await Gestures.waitAndTap(this.resetConfirmButton, {
+    await UnifiedGestures.waitAndTap(this.resetConfirmButton, {
       elemDescription: 'Smart Transactions Confirm Reset Button',
     });
   }

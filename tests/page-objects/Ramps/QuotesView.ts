@@ -1,26 +1,56 @@
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
 import { QuoteSelectors } from '../../../app/components/UI/Ramp/Aggregator/Views/Quotes/Quotes.testIds';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class QuotesView {
-  get selectAQuoteLabel(): DetoxElement {
-    return Matchers.getElementByText(QuoteSelectors.RECOMMENDED_QUOTE);
+  get selectAQuoteLabel(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(QuoteSelectors.RECOMMENDED_QUOTE),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(QuoteSelectors.RECOMMENDED_QUOTE),
+    });
   }
 
-  get quoteAmountLabel(): DetoxElement {
-    return Matchers.getElementByID(QuoteSelectors.QUOTE_AMOUNT_LABEL);
+  get quoteAmountLabel(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(QuoteSelectors.QUOTE_AMOUNT_LABEL),
+      appium: () =>
+        PlaywrightMatchers.getElementById(QuoteSelectors.QUOTE_AMOUNT_LABEL),
+    });
   }
 
-  get quotes(): DetoxElement {
-    return Matchers.getElementByID(QuoteSelectors.QUOTES);
+  get quotes(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(QuoteSelectors.QUOTES),
+      appium: () => PlaywrightMatchers.getElementById(QuoteSelectors.QUOTES),
+    });
   }
 
-  get exploreMoreOptions(): DetoxElement {
-    return Matchers.getElementByText(QuoteSelectors.EXPLORE_MORE_OPTIONS);
+  get exploreMoreOptions(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(QuoteSelectors.EXPLORE_MORE_OPTIONS),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          QuoteSelectors.EXPLORE_MORE_OPTIONS,
+        ),
+    });
   }
 
-  get expandedQuotesSection(): DetoxElement {
-    return Matchers.getElementByID(QuoteSelectors.EXPANDED_QUOTES_SECTION);
+  get expandedQuotesSection(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(QuoteSelectors.EXPANDED_QUOTES_SECTION),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          QuoteSelectors.EXPANDED_QUOTES_SECTION,
+        ),
+    });
   }
 
   get continueWithProvider(): DetoxElement {
@@ -32,15 +62,15 @@ class QuotesView {
   }
 
   async tapContinueWithProvider() {
-    await Gestures.tap(this.continueWithProvider);
+    await UnifiedGestures.tap(this.continueWithProvider);
   }
 
   async tapExploreMoreOptions() {
-    await Gestures.tap(this.exploreMoreOptions);
+    await UnifiedGestures.tap(this.exploreMoreOptions);
   }
 
   async closeQuotesSection() {
-    await Gestures.swipe(this.selectAQuoteLabel, 'down', {
+    await UnifiedGestures.swipe(this.selectAQuoteLabel, 'down', {
       elemDescription: 'Close Quotes Section',
       speed: 'fast',
       percentage: 0.7,

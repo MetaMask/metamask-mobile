@@ -3,47 +3,87 @@ import {
   ImportTokenViewSelectorsText,
 } from '../../../../app/components/Views/AddAsset/ImportAssetView.testIds';
 import Matchers from '../../../framework/Matchers';
-import Gestures from '../../../framework/Gestures';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../../framework/UnifiedGestures';
 
 class ConfirmAddAssetView {
-  get container(): DetoxElement {
-    return Matchers.getElementByID(
-      ImportTokenViewSelectorsIDs.ADD_CONFIRM_CUSTOM_ASSET,
-    );
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          ImportTokenViewSelectorsIDs.ADD_CONFIRM_CUSTOM_ASSET,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ImportTokenViewSelectorsIDs.ADD_CONFIRM_CUSTOM_ASSET,
+        ),
+    });
   }
 
-  get cancelButton(): DetoxElement {
-    return Matchers.getElementByText(
-      ImportTokenViewSelectorsText.CANCEL_IMPORT_TOKEN,
-    );
+  get cancelButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          ImportTokenViewSelectorsText.CANCEL_IMPORT_TOKEN,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          ImportTokenViewSelectorsText.CANCEL_IMPORT_TOKEN,
+        ),
+    });
   }
 
-  get confirmButton(): DetoxElement {
-    return Matchers.getElementByID(
-      ImportTokenViewSelectorsIDs.BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT,
-    );
+  get confirmButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          ImportTokenViewSelectorsIDs.BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ImportTokenViewSelectorsIDs.BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT,
+        ),
+    });
   }
 
-  get cancelModal(): DetoxElement {
-    return Matchers.getElementByID(
-      ImportTokenViewSelectorsIDs.ADD_CANCEL_ADD_CUSTOM_ASSET_MODAL,
-    );
+  get cancelModal(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          ImportTokenViewSelectorsIDs.ADD_CANCEL_ADD_CUSTOM_ASSET_MODAL,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ImportTokenViewSelectorsIDs.ADD_CANCEL_ADD_CUSTOM_ASSET_MODAL,
+        ),
+    });
   }
 
-  get confirmButtonModal(): DetoxElement {
-    return Matchers.getElementByText(
-      ImportTokenViewSelectorsText.CONFIRM_CANCEL_IMPORT_TOKEN,
-    );
+  get confirmButtonModal(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          ImportTokenViewSelectorsText.CONFIRM_CANCEL_IMPORT_TOKEN,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          ImportTokenViewSelectorsText.CONFIRM_CANCEL_IMPORT_TOKEN,
+        ),
+    });
   }
 
   async tapOnCancelButton(): Promise<void> {
-    await Gestures.waitAndTap(this.cancelButton, {
+    await UnifiedGestures.waitAndTap(this.cancelButton, {
       elemDescription: 'Cancel Add Asset Button',
     });
   }
 
   async tapOnConfirmButton(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmButton, {
+    await UnifiedGestures.waitAndTap(this.confirmButton, {
       elemDescription: 'Confirm Add Asset Button',
       waitForElementToDisappear: true,
       timeout: 15000,
@@ -51,7 +91,7 @@ class ConfirmAddAssetView {
   }
 
   async tapOnConfirmModalButton(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmButtonModal, {
+    await UnifiedGestures.waitAndTap(this.confirmButtonModal, {
       elemDescription: 'Confirm Add Asset Modal Button',
     });
   }

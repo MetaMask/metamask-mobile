@@ -54,10 +54,15 @@ class NetworkEducationModal {
     });
   }
 
-  get addToken(): DetoxElement {
-    return Matchers.getElementByText(
-      NetworkEducationModalSelectorsText.ADD_TOKEN,
-    );
+  get addToken(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(NetworkEducationModalSelectorsText.ADD_TOKEN),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          NetworkEducationModalSelectorsText.ADD_TOKEN,
+        ),
+    });
   }
 
   /** Network name - wdio uses networkEducationNetworkName */

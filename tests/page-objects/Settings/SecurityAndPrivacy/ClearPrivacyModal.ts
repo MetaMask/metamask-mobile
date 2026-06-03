@@ -3,26 +3,48 @@ import {
   ClearPrivacyModalSelectorsText,
 } from '../../../../app/components/Views/Settings/SecuritySettings/Sections/ClearPrivacy/ClearPrivacyModal.testIds';
 import Matchers from '../../../framework/Matchers';
-import Gestures from '../../../framework/Gestures';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../../framework/UnifiedGestures';
 
 class ClearPrivacyModal {
-  get container(): DetoxElement {
-    return Matchers.getElementByID(ClearPrivacyModalSelectorsIDs.CONTAINER);
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(ClearPrivacyModalSelectorsIDs.CONTAINER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ClearPrivacyModalSelectorsIDs.CONTAINER,
+        ),
+    });
   }
 
-  get clearButton(): DetoxElement {
-    return Matchers.getElementByText(
-      ClearPrivacyModalSelectorsText.CLEAR_BUTTON,
-    );
+  get clearButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(ClearPrivacyModalSelectorsText.CLEAR_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          ClearPrivacyModalSelectorsText.CLEAR_BUTTON,
+        ),
+    });
   }
-  get cancelButton(): DetoxElement {
-    return Matchers.getElementByText(
-      ClearPrivacyModalSelectorsText.CANCEL_BUTTON,
-    );
+  get cancelButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(ClearPrivacyModalSelectorsText.CANCEL_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          ClearPrivacyModalSelectorsText.CANCEL_BUTTON,
+        ),
+    });
   }
 
   async tapClearButton(): Promise<void> {
-    await Gestures.waitAndTap(this.clearButton, {
+    await UnifiedGestures.waitAndTap(this.clearButton, {
       elemDescription: 'Clear Button in Clear Privacy Modal',
     });
   }

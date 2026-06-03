@@ -1,7 +1,6 @@
 import { ChoosePasswordSelectorsIDs } from '../../../app/components/Views/ChoosePassword/ChoosePassword.testIds';
 import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
 import enContent from '../../../locales/languages/en.json';
 import {
   asDetoxElement,
@@ -17,8 +16,15 @@ import { PlatformDetector } from '../../framework/PlatformLocator';
 import { ImportFromSeedSelectorsIDs } from '../../../app/components/Views/ImportFromSecretRecoveryPhrase/ImportFromSeed.testIds';
 
 class CreatePasswordView {
-  get container(): DetoxElement {
-    return Matchers.getElementByID(ChoosePasswordSelectorsIDs.CONTAINER_ID);
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(ChoosePasswordSelectorsIDs.CONTAINER_ID),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ChoosePasswordSelectorsIDs.CONTAINER_ID,
+        ),
+    });
   }
 
   get newPasswordInput(): EncapsulatedElementType {
@@ -140,10 +146,17 @@ class CreatePasswordView {
     });
   }
 
-  get iUnderstandCheckboxNewWallet(): DetoxElement {
-    return Matchers.getElementByID(
-      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
-    );
+  get iUnderstandCheckboxNewWallet(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+        ),
+    });
   }
 
   get submitButton(): EncapsulatedElementType {
@@ -166,27 +179,38 @@ class CreatePasswordView {
     });
   }
 
-  get passwordError(): DetoxElement {
-    return Matchers.getElementByText(enContent.import_from_seed.password_error);
+  get passwordError(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(enContent.import_from_seed.password_error),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          enContent.import_from_seed.password_error,
+        ),
+    });
   }
 
   async resetPasswordInputs(): Promise<void> {
-    await Gestures.typeText(asDetoxElement(this.newPasswordInput), '', {
+    await UnifiedGestures.typeText(asDetoxElement(this.newPasswordInput), '', {
       hideKeyboard: true,
       clearFirst: true,
       checkVisibility: false,
     });
-    await Gestures.typeText(asDetoxElement(this.confirmPasswordInput), '', {
-      hideKeyboard: true,
-      clearFirst: true,
-      checkVisibility: false,
-    });
+    await UnifiedGestures.typeText(
+      asDetoxElement(this.confirmPasswordInput),
+      '',
+      {
+        hideKeyboard: true,
+        clearFirst: true,
+        checkVisibility: false,
+      },
+    );
   }
 
   async enterPassword(password: string): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
-        await Gestures.typeText(
+        await UnifiedGestures.typeText(
           asDetoxElement(this.newPasswordInput),
           password,
           {
@@ -214,7 +238,7 @@ class CreatePasswordView {
   async reEnterPassword(password: string): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
-        await Gestures.typeText(
+        await UnifiedGestures.typeText(
           asDetoxElement(this.confirmPasswordInput),
           password,
           {
@@ -241,7 +265,7 @@ class CreatePasswordView {
   async tapIUnderstandCheckBox(): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
-        await Gestures.tap(asDetoxElement(this.iUnderstandCheckbox), {
+        await UnifiedGestures.tap(asDetoxElement(this.iUnderstandCheckbox), {
           elemDescription: 'Create Password - I Understand Checkbox',
           checkVisibility: false,
         });
@@ -257,7 +281,7 @@ class CreatePasswordView {
   async tapCreatePasswordButton(): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
-        await Gestures.waitAndTap(asDetoxElement(this.submitButton), {
+        await UnifiedGestures.waitAndTap(asDetoxElement(this.submitButton), {
           elemDescription: 'Create Password Submit Button',
           checkVisibility: false,
         });
@@ -272,7 +296,7 @@ class CreatePasswordView {
   async tapPasswordVisibilityIcon(): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
-        await Gestures.tap(asDetoxElement(this.passwordVisibilityIcon), {
+        await UnifiedGestures.tap(asDetoxElement(this.passwordVisibilityIcon), {
           elemDescription: 'Create Password Password Visibility Icon',
         });
       },
@@ -287,9 +311,12 @@ class CreatePasswordView {
   async tapConfirmPasswordVisibilityIcon(): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
-        await Gestures.tap(asDetoxElement(this.confirmPasswordVisibilityIcon), {
-          elemDescription: 'Create Password Confirm Password Visibility Icon',
-        });
+        await UnifiedGestures.tap(
+          asDetoxElement(this.confirmPasswordVisibilityIcon),
+          {
+            elemDescription: 'Create Password Confirm Password Visibility Icon',
+          },
+        );
       },
       appium: async () => {
         await UnifiedGestures.waitAndTap(this.confirmPasswordVisibilityIcon, {
@@ -332,7 +359,7 @@ class CreatePasswordView {
   async inputConfirmPasswordField(password: string): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
-        await Gestures.typeText(
+        await UnifiedGestures.typeText(
           asDetoxElement(this.newWalletConfirmPasswordInput),
           password,
           {

@@ -1,27 +1,44 @@
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
 import { EditAccountNameSelectorIDs } from '../../../app/components/Views/EditAccountName/EditAccountName.testIds';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class EditAccountNameView {
-  get saveButton(): DetoxElement {
-    return Matchers.getElementByID(
-      EditAccountNameSelectorIDs.EDIT_ACCOUNT_NAME_SAVE,
-    );
+  get saveButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          EditAccountNameSelectorIDs.EDIT_ACCOUNT_NAME_SAVE,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          EditAccountNameSelectorIDs.EDIT_ACCOUNT_NAME_SAVE,
+        ),
+    });
   }
-  get accountNameInput(): DetoxElement {
-    return Matchers.getElementByID(
-      EditAccountNameSelectorIDs.ACCOUNT_NAME_INPUT,
-    );
+  get accountNameInput(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(EditAccountNameSelectorIDs.ACCOUNT_NAME_INPUT),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          EditAccountNameSelectorIDs.ACCOUNT_NAME_INPUT,
+        ),
+    });
   }
 
   async tapSave(): Promise<void> {
-    await Gestures.waitAndTap(this.saveButton, {
+    await UnifiedGestures.waitAndTap(this.saveButton, {
       elemDescription: 'Save button',
     });
   }
 
   async updateAccountName(accountName: string): Promise<void> {
-    await Gestures.typeText(this.accountNameInput, accountName, {
+    await UnifiedGestures.typeText(this.accountNameInput, accountName, {
       hideKeyboard: true,
       clearFirst: true,
       elemDescription: 'Account name input',

@@ -1,5 +1,6 @@
-import { Matchers, Gestures } from '../../../framework';
+import { Matchers } from '../../../framework';
 import { DeveloperOptionsSelectorsText } from '../../../selectors/Settings/DeveloperOptions.selectors';
+import UnifiedGestures from '../../../framework/UnifiedGestures';
 
 class DeveloperOptionsView {
   get sampleFeatureButton() {
@@ -9,7 +10,7 @@ class DeveloperOptionsView {
   }
 
   async tapSampleFeature(): Promise<void> {
-    await Gestures.waitAndTap(this.sampleFeatureButton);
+    await UnifiedGestures.waitAndTap(this.sampleFeatureButton);
   }
 }
 

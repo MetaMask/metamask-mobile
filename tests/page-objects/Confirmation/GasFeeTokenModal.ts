@@ -1,6 +1,7 @@
-import { Assertions, Gestures, Matchers } from '../../framework';
+import { Assertions, Matchers } from '../../framework';
 
 import { GasFeeTokenModalSelectorsText } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class GasFeeTokenModal {
   getTokenItem(symbol: string): DetoxElement {
@@ -10,7 +11,7 @@ class GasFeeTokenModal {
   }
 
   async tapToken(symbol: string): Promise<void> {
-    await Gestures.waitAndTap(this.getTokenItem(symbol), {
+    await UnifiedGestures.waitAndTap(this.getTokenItem(symbol), {
       elemDescription: `Use gas fee token ${symbol}`,
     });
   }

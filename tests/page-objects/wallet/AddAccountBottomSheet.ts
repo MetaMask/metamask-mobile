@@ -1,5 +1,4 @@
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 import {
   encapsulated,
@@ -13,10 +12,17 @@ const AddAccountBottomSheetSelectorsIDs = {
 };
 
 class AddAccountBottomSheet {
-  get importAccountButton(): DetoxElement {
-    return Matchers.getElementByID(
-      AddAccountBottomSheetSelectorsIDs.IMPORT_ACCOUNT_BUTTON,
-    );
+  get importAccountButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          AddAccountBottomSheetSelectorsIDs.IMPORT_ACCOUNT_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          AddAccountBottomSheetSelectorsIDs.IMPORT_ACCOUNT_BUTTON,
+        ),
+    });
   }
 
   get importSrpButton(): EncapsulatedElementType {
@@ -34,7 +40,7 @@ class AddAccountBottomSheet {
   }
 
   async tapImportAccount(): Promise<void> {
-    await Gestures.waitAndTap(this.importAccountButton, {
+    await UnifiedGestures.waitAndTap(this.importAccountButton, {
       elemDescription: 'Import Account button',
     });
   }

@@ -1,6 +1,7 @@
-import { Assertions, Gestures, Matchers } from '../../framework';
+import { Assertions, Matchers } from '../../framework';
 import { BridgeViewSelectorsIDs } from '../../../app/components/UI/Bridge/Views/BridgeView/BridgeView.testIds';
 import { BridgeTrendingTokensSectionTestIds } from '../../../app/components/UI/Bridge/components/BridgeTrendingTokensSection/BridgeTrendingTokensSection.testIds';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 const SwapTrendingTokensViewTestIds = {
   PRICE_BOTTOM_SHEET: 'trending-token-price-change-bottom-sheet',
@@ -113,7 +114,7 @@ class SwapTrendingTokensView {
   }
 
   async scrollToFilters(): Promise<void> {
-    await Gestures.scrollToElement(
+    await UnifiedGestures.scrollToElement(
       this.priceFilter,
       Matchers.getIdentifier(BridgeViewSelectorsIDs.BRIDGE_VIEW_SCROLL),
       {
@@ -125,43 +126,43 @@ class SwapTrendingTokensView {
   }
 
   async openPriceFilter(): Promise<void> {
-    await Gestures.waitAndTap(this.priceFilter, {
+    await UnifiedGestures.waitAndTap(this.priceFilter, {
       elemDescription: 'Tap trending price filter',
     });
   }
 
   async openTimeFilter(): Promise<void> {
-    await Gestures.waitAndTap(this.timeFilter, {
+    await UnifiedGestures.waitAndTap(this.timeFilter, {
       elemDescription: 'Tap trending time filter',
     });
   }
 
   async openNetworkFilter(): Promise<void> {
-    await Gestures.waitAndTap(this.networkFilter, {
+    await UnifiedGestures.waitAndTap(this.networkFilter, {
       elemDescription: 'Tap trending network filter',
     });
   }
 
   async closeBottomSheet(): Promise<void> {
-    await Gestures.waitAndTap(this.closeButton, {
+    await UnifiedGestures.waitAndTap(this.closeButton, {
       elemDescription: 'Close trending bottom sheet',
     });
   }
 
   async selectTimeSixHours(): Promise<void> {
-    await Gestures.waitAndTap(this.timeSelectSixHours, {
+    await UnifiedGestures.waitAndTap(this.timeSelectSixHours, {
       elemDescription: 'Select 6h time filter',
     });
   }
 
   async selectNetworkByName(networkName: string): Promise<void> {
-    await Gestures.waitAndTap(Matchers.getElementByText(networkName), {
+    await UnifiedGestures.waitAndTap(Matchers.getElementByText(networkName), {
       elemDescription: `Select trending network ${networkName}`,
     });
   }
 
   async tapTokenRow(assetId: string): Promise<void> {
-    await Gestures.waitAndTap(this.tokenRow(assetId), {
+    await UnifiedGestures.waitAndTap(this.tokenRow(assetId), {
       elemDescription: `Tap trending token row ${assetId}`,
     });
   }

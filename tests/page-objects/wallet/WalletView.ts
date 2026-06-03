@@ -9,8 +9,8 @@ import {
   PredictPositionsHeaderSelectorsIDs,
   PredictPositionSelectorsIDs,
   PredictClaimConfirmationSelectorsIDs,
+  PredictHomeSelectorsIDs,
 } from '../../../app/components/UI/Predict/Predict.testIds';
-import Gestures from '../../framework/Gestures';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 import Matchers from '../../framework/Matchers';
 import TestHelpers from '../../helpers.js';
@@ -58,8 +58,15 @@ class WalletView {
   }
 
   /** Wallet ScrollView as element (for gestures like swipe). */
-  get walletScrollView(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW);
+  get walletScrollView(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.WALLET_SCROLL_VIEW,
+        ),
+    });
   }
 
   /**
@@ -70,7 +77,7 @@ class WalletView {
    * from the tab bar (e.g. direction 'up' = one more scroll down = section moves higher on screen).
    */
   private async scrollAndTapSection(
-    target: DetoxElement,
+    target: EncapsulatedElementType,
     description: string,
     direction: 'up' | 'down' = 'down',
     options: {
@@ -79,47 +86,84 @@ class WalletView {
     } = {},
   ): Promise<void> {
     const { scrollAmount = 200, overshootSwipe } = options;
-    await Gestures.scrollToElement(target, this.walletScrollViewIdentifier, {
-      direction,
-      scrollAmount,
-      elemDescription: `Scroll to ${description}`,
-    });
+    await UnifiedGestures.scrollToElement(
+      target,
+      this.walletScrollViewIdentifier,
+      {
+        direction,
+        scrollAmount,
+        elemDescription: `Scroll to ${description}`,
+      },
+    );
     if (overshootSwipe) {
-      await Gestures.swipe(this.walletScrollView, overshootSwipe.direction, {
-        percentage: overshootSwipe.percentage ?? 0.15,
-        speed: 'slow',
-        elemDescription: `Overshoot swipe for ${description}`,
-      });
+      await UnifiedGestures.swipe(
+        this.walletScrollView,
+        overshootSwipe.direction,
+        {
+          percentage: overshootSwipe.percentage ?? 0.15,
+          speed: 'slow',
+          elemDescription: `Overshoot swipe for ${description}`,
+        },
+      );
     }
-    await Gestures.waitAndTap(target, {
+    await UnifiedGestures.waitAndTap(target, {
       elemDescription: description,
     });
   }
 
-  get earnButton(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.STAKE_BUTTON);
+  get earnButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(WalletViewSelectorsIDs.STAKE_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(WalletViewSelectorsIDs.STAKE_BUTTON),
+    });
   }
 
   /**
    * The "Earn" CTA on the USDC token row's secondary balance area.
    * Index 2 = USDC (third token: ETH → mUSD → USDC) in the standard lending fixture.
    */
-  get lendingEarnCta(): DetoxElement {
-    return Matchers.getElementByID(SECONDARY_BALANCE_BUTTON_TEST_ID, 2);
+  get lendingEarnCta(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(SECONDARY_BALANCE_BUTTON_TEST_ID, 2),
+      appium: () =>
+        PlaywrightMatchers.getElementById(SECONDARY_BALANCE_BUTTON_TEST_ID),
+    });
   }
 
-  get stakedEthereumLabel(): DetoxElement {
-    return Matchers.getElementByText(WalletViewSelectorsText.STAKED_ETHEREUM);
+  get stakedEthereumLabel(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(WalletViewSelectorsText.STAKED_ETHEREUM),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          WalletViewSelectorsText.STAKED_ETHEREUM,
+        ),
+    });
   }
 
-  get stakeMoreButton(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.STAKE_MORE_BUTTON);
+  get stakeMoreButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.STAKE_MORE_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.STAKE_MORE_BUTTON,
+        ),
+    });
   }
 
-  get tokenDetectionLinkButton(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.WALLET_TOKEN_DETECTION_LINK_BUTTON,
-    );
+  get tokenDetectionLinkButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          WalletViewSelectorsIDs.WALLET_TOKEN_DETECTION_LINK_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.WALLET_TOKEN_DETECTION_LINK_BUTTON,
+        ),
+    });
   }
 
   get accountIcon(): EncapsulatedElementType {
@@ -138,14 +182,28 @@ class WalletView {
     });
   }
 
-  get eyeSlashIcon(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.EYE_SLASH_ICON);
+  get eyeSlashIcon(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.EYE_SLASH_ICON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.EYE_SLASH_ICON,
+        ),
+    });
   }
 
-  get notificationBellIcon(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON,
-    );
+  get notificationBellIcon(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON,
+        ),
+    });
   }
 
   get hamburgerMenuButton(): EncapsulatedElementType {
@@ -162,8 +220,15 @@ class WalletView {
     });
   }
 
-  get navbarNetworkText(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.NAVBAR_NETWORK_TEXT);
+  get navbarNetworkText(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.NAVBAR_NETWORK_TEXT),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.NAVBAR_NETWORK_TEXT,
+        ),
+    });
   }
 
   get navbarNetworkButton(): EncapsulatedElementType {
@@ -178,34 +243,72 @@ class WalletView {
     });
   }
 
-  get navbarNetworkPicker(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.NAVBAR_NETWORK_PICKER,
-    );
+  get navbarNetworkPicker(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.NAVBAR_NETWORK_PICKER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.NAVBAR_NETWORK_PICKER,
+        ),
+    });
   }
 
-  get navbarCardButton(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.CARD_BUTTON);
+  get navbarCardButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(WalletViewSelectorsIDs.CARD_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(WalletViewSelectorsIDs.CARD_BUTTON),
+    });
   }
 
-  get nftTab(): DetoxElement {
-    return Matchers.getElementByText(WalletViewSelectorsText.NFTS_TAB);
+  get nftTab(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(WalletViewSelectorsText.NFTS_TAB),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(WalletViewSelectorsText.NFTS_TAB),
+    });
   }
 
-  get nftTabContainer(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.NFT_TAB_CONTAINER);
+  get nftTabContainer(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.NFT_TAB_CONTAINER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.NFT_TAB_CONTAINER,
+        ),
+    });
   }
 
-  get importNFTButton(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.IMPORT_NFT_BUTTON);
+  get importNFTButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.IMPORT_NFT_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.IMPORT_NFT_BUTTON,
+        ),
+    });
   }
 
-  get importTokensButton(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON);
+  get importTokensButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON,
+        ),
+    });
   }
 
-  get networkName(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.NETWORK_NAME);
+  get networkName(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(WalletViewSelectorsIDs.NETWORK_NAME),
+      appium: () =>
+        PlaywrightMatchers.getElementById(WalletViewSelectorsIDs.NETWORK_NAME),
+    });
   }
 
   get totalBalance(): EncapsulatedElementType {
@@ -231,10 +334,15 @@ class WalletView {
     });
   }
 
-  get accountName(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT,
-    );
+  get accountName(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT,
+        ),
+    });
   }
 
   async checkActiveAccount(
@@ -262,61 +370,128 @@ class WalletView {
     });
   }
 
-  get hideTokensLabel(): DetoxElement {
-    return Matchers.getElementByText(WalletViewSelectorsText.HIDE_TOKENS);
+  get hideTokensLabel(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(WalletViewSelectorsText.HIDE_TOKENS),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          WalletViewSelectorsText.HIDE_TOKENS,
+        ),
+    });
   }
 
-  get currentMainWalletAccountActions(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT,
-    );
+  get currentMainWalletAccountActions(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT,
+        ),
+    });
   }
 
-  get tokenNetworkFilter(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER);
+  get tokenNetworkFilter(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER,
+        ),
+    });
   }
 
-  get sortButton(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.SORT_BUTTON);
+  get sortButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(WalletViewSelectorsIDs.SORT_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(WalletViewSelectorsIDs.SORT_BUTTON),
+    });
   }
 
-  get sortBy(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.SORT_BY);
+  get sortBy(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(WalletViewSelectorsIDs.SORT_BY),
+      appium: () =>
+        PlaywrightMatchers.getElementById(WalletViewSelectorsIDs.SORT_BY),
+    });
   }
 
-  get tokenNetworkFilterAll(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER_ALL,
-    );
+  get tokenNetworkFilterAll(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER_ALL,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER_ALL,
+        ),
+    });
   }
 
-  get tokenNetworkFilterCurrent(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER_CURRENT,
-    );
+  get tokenNetworkFilterCurrent(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER_CURRENT,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER_CURRENT,
+        ),
+    });
   }
 
-  get cancelButton(): DetoxElement {
-    return Matchers.getElementByText('Cancel');
+  get cancelButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText('Cancel'),
+      appium: () => PlaywrightMatchers.getElementByText('Cancel'),
+    });
   }
 
-  get carouselContainer(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.CAROUSEL_CONTAINER);
+  get carouselContainer(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.CAROUSEL_CONTAINER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.CAROUSEL_CONTAINER,
+        ),
+    });
   }
 
-  get carouselProgressDots(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.CAROUSEL_PROGRESS_DOTS,
-    );
+  get carouselProgressDots(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.CAROUSEL_PROGRESS_DOTS),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.CAROUSEL_PROGRESS_DOTS,
+        ),
+    });
   }
-  get testCollectible(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.TEST_COLLECTIBLE, 1);
+  get testCollectible(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.TEST_COLLECTIBLE, 1),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.TEST_COLLECTIBLE,
+        ),
+    });
   }
-  get testCollectibleFallback(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.COLLECTIBLE_FALLBACK,
-      1,
-    );
+  get testCollectibleFallback(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.COLLECTIBLE_FALLBACK, 1),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.COLLECTIBLE_FALLBACK,
+        ),
+    });
   }
   // Wallet-specific action buttons (from AssetDetailsActions in Wallet view)
   get walletBuyButton(): EncapsulatedElementType {
@@ -349,8 +524,15 @@ class WalletView {
     });
   }
 
-  get walletBridgeButton(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_BRIDGE_BUTTON);
+  get walletBridgeButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_BRIDGE_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.WALLET_BRIDGE_BUTTON,
+        ),
+    });
   }
 
   get walletSendButton(): EncapsulatedElementType {
@@ -372,51 +554,99 @@ class WalletView {
   }
 
   // mUSD conversion (Earn) - asset list CTA, education screen, token list CTA, asset overview CTA
-  get musdConversionCta(): DetoxElement {
-    return Matchers.getElementByID(
-      EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA,
-    );
+  get musdConversionCta(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA,
+        ),
+    });
   }
 
-  get cashGetMusdContainer(): DetoxElement {
-    return Matchers.getElementByID(CashGetMusdEmptyStateSelectors.CONTAINER);
+  get cashGetMusdContainer(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(CashGetMusdEmptyStateSelectors.CONTAINER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          CashGetMusdEmptyStateSelectors.CONTAINER,
+        ),
+    });
   }
 
-  get getMusdButton(): DetoxElement {
-    return Matchers.getElementByText('Get mUSD');
+  get getMusdButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText('Get mUSD'),
+      appium: () => PlaywrightMatchers.getElementByText('Get mUSD'),
+    });
   }
 
-  get getStartedButton(): DetoxElement {
-    return Matchers.getElementByText('Get Started');
+  get getStartedButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText('Get Started'),
+      appium: () => PlaywrightMatchers.getElementByText('Get Started'),
+    });
   }
 
   /** Token list item CTA: "Get 3% mUSD bonus" on USDC row. Use testID + index (1 = USDC after ETH) to avoid regex/text flakiness. */
-  get tokenListItemConvertToMusdCta(): DetoxElement {
-    return Matchers.getElementByID(SECONDARY_BALANCE_BUTTON_TEST_ID, 1);
+  get tokenListItemConvertToMusdCta(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(SECONDARY_BALANCE_BUTTON_TEST_ID, 1),
+      appium: () =>
+        PlaywrightMatchers.getElementById(SECONDARY_BALANCE_BUTTON_TEST_ID),
+    });
   }
 
-  get assetOverviewMusdCta(): DetoxElement {
-    return Matchers.getElementByID(
-      EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA,
-    );
+  get assetOverviewMusdCta(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA,
+        ),
+    });
   }
 
-  get walletReceiveButton(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON,
-    );
+  get walletReceiveButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON,
+        ),
+    });
   }
   // Balance Empty State - displayed when account group has zero balance across all networks
-  get balanceEmptyStateContainer(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER,
-    );
+  get balanceEmptyStateContainer(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER,
+        ),
+    });
   }
 
-  get balanceEmptyStateActionButton(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_ACTION_BUTTON,
-    );
+  get balanceEmptyStateActionButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_ACTION_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_ACTION_BUTTON,
+        ),
+    });
   }
   getPredictCurrentPositionCardByIndex(index: number = 0): DetoxElement {
     return Matchers.getElementByID(
@@ -449,7 +679,7 @@ class WalletView {
   }
 
   async tapCurrentMainWalletAccountActions(): Promise<void> {
-    await Gestures.waitAndTap(this.currentMainWalletAccountActions, {
+    await UnifiedGestures.waitAndTap(this.currentMainWalletAccountActions, {
       elemDescription: 'Current Main Wallet Account Actions',
     });
   }
@@ -508,7 +738,7 @@ class WalletView {
           interval: 500,
           stableCount: 6,
         });
-        await Gestures.waitAndTap(elem, {
+        await UnifiedGestures.waitAndTap(elem, {
           elemDescription: 'Token',
         });
       },
@@ -523,7 +753,7 @@ class WalletView {
   async tapIdenticon(): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
-        await Gestures.waitAndTap(this.accountIcon, {
+        await UnifiedGestures.waitAndTap(this.accountIcon, {
           elemDescription: 'Top Account Icon',
         });
       },
@@ -536,13 +766,13 @@ class WalletView {
   }
 
   async tapBellIcon(): Promise<void> {
-    await Gestures.waitAndTap(this.notificationBellIcon, {
+    await UnifiedGestures.waitAndTap(this.notificationBellIcon, {
       elemDescription: 'Notification Bell Icon',
     });
   }
 
   async tapHamburgerMenu(): Promise<void> {
-    await Gestures.waitAndTap(this.hamburgerMenuButton, {
+    await UnifiedGestures.waitAndTap(this.hamburgerMenuButton, {
       elemDescription: 'Hamburger Menu Button',
     });
   }
@@ -552,17 +782,17 @@ class WalletView {
   }
 
   async tapNavbarCardButton(): Promise<void> {
-    await Gestures.waitAndTap(this.navbarCardButton, {
+    await UnifiedGestures.waitAndTap(this.navbarCardButton, {
       elemDescription: 'Card Button on Navbar',
     });
   }
 
   async tapNftTab(): Promise<void> {
-    await Gestures.waitAndTap(this.nftTab);
+    await UnifiedGestures.waitAndTap(this.nftTab);
   }
 
   async scrollDownOnNFTsTab(): Promise<void> {
-    await Gestures.swipe(this.nftTabContainer, 'up', {
+    await UnifiedGestures.swipe(this.nftTabContainer, 'up', {
       speed: 'slow',
       percentage: 0.4,
     });
@@ -571,26 +801,34 @@ class WalletView {
   async scrollToBottomOfTokensList(): Promise<void> {
     const tokensContainer = await this.getTokensInWallet();
     for (let i = 0; i < WalletView.MAX_SCROLL_ITERATIONS; i++) {
-      await Gestures.swipe(tokensContainer as unknown as DetoxElement, 'up', {
-        speed: 'fast',
-        percentage: 0.7,
-      });
+      await UnifiedGestures.swipe(
+        tokensContainer as unknown as DetoxElement,
+        'up',
+        {
+          speed: 'fast',
+          percentage: 0.7,
+        },
+      );
     }
   }
 
   async scrollToTopOfTokensList(): Promise<void> {
     const tokensContainer = await this.getTokensInWallet();
-    await Gestures.swipe(tokensContainer as unknown as DetoxElement, 'down', {
-      speed: 'fast',
-      percentage: 0.7,
-    });
+    await UnifiedGestures.swipe(
+      tokensContainer as unknown as DetoxElement,
+      'down',
+      {
+        speed: 'fast',
+        percentage: 0.7,
+      },
+    );
   }
 
   async scrollToToken(
     tokenName: string,
     direction: 'up' | 'down' = 'down',
   ): Promise<void> {
-    await Gestures.scrollToElement(
+    await UnifiedGestures.scrollToElement(
       this.tokenInWallet(tokenName) as unknown as DetoxElement,
       Matchers.getIdentifier(WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST),
       {
@@ -601,121 +839,121 @@ class WalletView {
   }
 
   async scrollUpOnNFTsTab(): Promise<void> {
-    await Gestures.swipe(this.nftTabContainer, 'down', {
+    await UnifiedGestures.swipe(this.nftTabContainer, 'down', {
       speed: 'slow',
       percentage: 0.4,
     });
   }
 
   async tapImportNFTButton(): Promise<void> {
-    await Gestures.waitAndTap(this.importNFTButton, {
+    await UnifiedGestures.waitAndTap(this.importNFTButton, {
       elemDescription: 'Import NFT Button',
     });
   }
 
   async tapOnNftName(): Promise<void> {
     try {
-      await Gestures.waitAndTap(this.testCollectible, {
+      await UnifiedGestures.waitAndTap(this.testCollectible, {
         elemDescription: 'NFT Name',
       });
     } catch {
-      await Gestures.waitAndTap(this.testCollectibleFallback, {
+      await UnifiedGestures.waitAndTap(this.testCollectibleFallback, {
         elemDescription: 'NFT Name Fallback',
       });
     }
   }
 
   async tapImportTokensButton(): Promise<void> {
-    await Gestures.waitAndTap(this.importTokensButton, {
+    await UnifiedGestures.waitAndTap(this.importTokensButton, {
       elemDescription: 'Import Tokens Button',
     });
   }
 
   async tapOnNFTInWallet(nftName: string): Promise<void> {
     const elem = Matchers.getElementByText(nftName);
-    await Gestures.waitAndTap(elem, {
+    await UnifiedGestures.waitAndTap(elem, {
       elemDescription: 'NFT Name',
     });
   }
 
   async removeTokenFromWallet(token: string): Promise<void> {
     const elem = Matchers.getElementByText(token);
-    await Gestures.longPress(elem, {
+    await UnifiedGestures.longPress(elem, {
       elemDescription: 'Long Pressing Token',
     });
-    await Gestures.waitAndTap(this.hideTokensLabel, {
+    await UnifiedGestures.waitAndTap(this.hideTokensLabel, {
       elemDescription: 'Hide Tokens Label',
     });
   }
 
-  async tokenInWallet(tokenName: string): Promise<DetoxElement> {
+  async tokenInWallet(tokenName: string): Promise<EncapsulatedElementType> {
     return Matchers.getElementByText(tokenName);
   }
 
-  async getTokensInWallet(): Promise<DetoxElement> {
+  async getTokensInWallet(): Promise<EncapsulatedElementType> {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST,
     );
   }
 
-  async nftIDInWallet(nftId: string): Promise<DetoxElement> {
+  async nftIDInWallet(nftId: string): Promise<EncapsulatedElementType> {
     return Matchers.getElementByID(nftId);
   }
 
-  async nftInWallet(nftName: string): Promise<DetoxElement> {
+  async nftInWallet(nftName: string): Promise<EncapsulatedElementType> {
     return Matchers.getElementByText(nftName);
   }
 
   async tapNewTokensFound(): Promise<void> {
-    await Gestures.waitAndTap(this.tokenDetectionLinkButton, {
+    await UnifiedGestures.waitAndTap(this.tokenDetectionLinkButton, {
       elemDescription: 'New Tokens Found Button',
     });
   }
 
   async tapTokenNetworkFilter(): Promise<void> {
-    await Gestures.waitAndTap(this.tokenNetworkFilter, {
+    await UnifiedGestures.waitAndTap(this.tokenNetworkFilter, {
       elemDescription: 'Token Network Filter',
     });
   }
 
   async tapSortBy(): Promise<void> {
-    await Gestures.waitAndTap(this.sortButton, {
+    await UnifiedGestures.waitAndTap(this.sortButton, {
       elemDescription: 'Sort By',
     });
   }
 
   async tapTokenNetworkFilterAll(): Promise<void> {
-    await Gestures.waitAndTap(this.tokenNetworkFilterAll, {
+    await UnifiedGestures.waitAndTap(this.tokenNetworkFilterAll, {
       elemDescription: 'Token Network Filter All',
     });
   }
 
   async tapTokenNetworkFilterCurrent(): Promise<void> {
-    await Gestures.waitAndTap(this.tokenNetworkFilterCurrent, {
+    await UnifiedGestures.waitAndTap(this.tokenNetworkFilterCurrent, {
       elemDescription: 'Token Network Filter Current',
     });
   }
 
   async tapOnEarnButton(): Promise<void> {
-    await Gestures.waitAndTap(this.earnButton, {
+    await UnifiedGestures.waitAndTap(this.earnButton, {
       elemDescription: 'Earn Button',
     });
   }
 
   async tapOnStakedEthereum(): Promise<void> {
-    await Gestures.waitAndTap(this.stakedEthereumLabel, {
+    await UnifiedGestures.waitAndTap(this.stakedEthereumLabel, {
       elemDescription: 'Staked Ethereum Label',
     });
   }
 
   async tapOnStakeMore(): Promise<void> {
-    await Gestures.waitAndTap(this.stakeMoreButton, {
+    await UnifiedGestures.waitAndTap(this.stakeMoreButton, {
       elemDescription: 'Stake More Button',
     });
   }
 
   async tapCancelButton(): Promise<void> {
-    await Gestures.waitAndTap(this.cancelButton, {
+    await UnifiedGestures.waitAndTap(this.cancelButton, {
       elemDescription: 'Cancel Button',
     });
   }
@@ -725,7 +963,7 @@ class WalletView {
    * @param {'left' | 'right'} direction - The direction to swipe ('left' or 'right').
    */
   async swipeCarousel(direction: 'left' | 'right'): Promise<void> {
-    await Gestures.swipe(this.carouselContainer, direction, {
+    await UnifiedGestures.swipe(this.carouselContainer, direction, {
       speed: 'slow',
       percentage: 0.7,
       elemDescription: 'Swipe Carousel',
@@ -739,7 +977,7 @@ class WalletView {
    * @returns {Promise<void>} A promise that resolves when the slide has been closed.
    */
   async closeCarouselSlide(id: string): Promise<void> {
-    await Gestures.tap(this.getCarouselSlideCloseButton(id), {
+    await UnifiedGestures.tap(this.getCarouselSlideCloseButton(id), {
       elemDescription: 'Close Carousel Slide',
     });
   }
@@ -751,71 +989,165 @@ class WalletView {
    * @returns {Promise<void>} Resolves when the tap action is complete.
    */
   async tapCarouselSlide(id: string): Promise<void> {
-    await Gestures.tap(this.getCarouselSlide(id), {
+    await UnifiedGestures.tap(this.getCarouselSlide(id), {
       elemDescription: `tap carousel slide ${id}`,
     });
   }
 
-  get defiTab(): DetoxElement {
-    return Matchers.getElementByText(WalletViewSelectorsText.DEFI_TAB);
+  get defiTab(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(WalletViewSelectorsText.DEFI_TAB),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(WalletViewSelectorsText.DEFI_TAB),
+    });
   }
 
-  get defiNetworkFilter(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER,
-    );
+  get defiNetworkFilter(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER,
+        ),
+    });
   }
 
-  get defiTabContainer(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER,
-    );
+  get defiTabContainer(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER,
+        ),
+    });
   }
-  get claimButton(): DetoxElement {
-    return Matchers.getElementByID(
-      PredictPositionsHeaderSelectorsIDs.CLAIM_BUTTON,
-    );
+  get claimButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          PredictPositionsHeaderSelectorsIDs.CLAIM_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          PredictPositionsHeaderSelectorsIDs.CLAIM_BUTTON,
+        ),
+    });
   }
-  get predictClaimConfirmButton(): DetoxElement {
-    return Matchers.getElementByID(
-      PredictClaimConfirmationSelectorsIDs.CLAIM_CONFIRM_BUTTON,
-    );
+  get predictClaimConfirmButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          PredictClaimConfirmationSelectorsIDs.CLAIM_CONFIRM_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          PredictClaimConfirmationSelectorsIDs.CLAIM_CONFIRM_BUTTON,
+        ),
+    });
   }
-  get defiPositionDetailsContainer(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.DEFI_POSITIONS_DETAILS_CONTAINER,
-    );
+  get predictScrollViewIdentifier() {
+    return Matchers.getIdentifier(PredictHomeSelectorsIDs.SCROLL_VIEW);
   }
 
-  get predictionsTab(): DetoxElement {
-    return Matchers.getElementByLabel(WalletViewSelectorsText.PREDICTIONS_TAB);
+  get defiPositionDetailsContainer(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          WalletViewSelectorsIDs.DEFI_POSITIONS_DETAILS_CONTAINER,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.DEFI_POSITIONS_DETAILS_CONTAINER,
+        ),
+    });
   }
 
-  get availableBalanceLabel(): DetoxElement {
-    return Matchers.getElementByText(WalletViewSelectorsText.AVAILABLE_BALANCE);
+  get predictionsTab(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByLabel(WalletViewSelectorsText.PREDICTIONS_TAB),
+      appium: () =>
+        PlaywrightMatchers.getElementByAccessibilityId(
+          WalletViewSelectorsText.PREDICTIONS_TAB,
+        ),
+    });
   }
 
-  get defiPositionsNew(): DetoxElement {
-    return Matchers.getElementByText(WalletViewSelectorsText.DEFI_SECTION);
+  get PredictionsTabContainer(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(PredictHomeSelectorsIDs.SCROLL_VIEW),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          PredictHomeSelectorsIDs.SCROLL_VIEW,
+        ),
+    });
+  }
+
+  get availableBalanceLabel(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(WalletViewSelectorsText.AVAILABLE_BALANCE),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          WalletViewSelectorsText.AVAILABLE_BALANCE,
+        ),
+    });
+  }
+
+  get defiPositionsNew(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(WalletViewSelectorsText.DEFI_SECTION),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          WalletViewSelectorsText.DEFI_SECTION,
+        ),
+    });
   }
 
   /** Perpetuals section title button on the homepage. */
-  get perpsSectionHeader(): DetoxElement {
-    return Matchers.getElementByLabel(
-      WalletViewSelectorsText.PERPETUALS_SECTION,
-    );
+  get perpsSectionHeader(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByLabel(WalletViewSelectorsText.PERPETUALS_SECTION),
+      appium: () =>
+        PlaywrightMatchers.getElementByAccessibilityId(
+          WalletViewSelectorsText.PERPETUALS_SECTION,
+        ),
+    });
   }
 
   /** Predictions section title button on the homepage. */
-  get predictionsSectionHeader(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('predictions'),
-    );
+  get predictionsSectionHeader(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('predictions'),
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('predictions'),
+        ),
+    });
   }
 
   /** Tokens section header on the homepage. */
-  get tokensSectionHeader(): DetoxElement {
-    return Matchers.getElementByText(WalletViewSelectorsText.TOKENS_SECTION);
+  get tokensSectionHeader(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(WalletViewSelectorsText.TOKENS_SECTION),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          WalletViewSelectorsText.TOKENS_SECTION,
+        ),
+    });
   }
 
   get tokensSection(): EncapsulatedElementType {
@@ -838,12 +1170,19 @@ class WalletView {
   }
 
   /** NFTs section header on the homepage. */
-  get nftsSectionHeader(): DetoxElement {
-    return Matchers.getElementByText(WalletViewSelectorsText.NFTS_SECTION);
+  get nftsSectionHeader(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(WalletViewSelectorsText.NFTS_SECTION),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          WalletViewSelectorsText.NFTS_SECTION,
+        ),
+    });
   }
 
   async tapOnNewTokensSection(): Promise<void> {
-    await Gestures.waitAndTap(this.tokensSectionHeader, {
+    await UnifiedGestures.waitAndTap(this.tokensSectionHeader, {
       checkStability: true,
       elemDescription: 'New Tokens Section',
     });
@@ -852,7 +1191,7 @@ class WalletView {
   async tapOnTokensSection(): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
-        await Gestures.waitAndTap(this.tokensSectionHeader, {
+        await UnifiedGestures.waitAndTap(this.tokensSectionHeader, {
           checkStability: true,
           elemDescription: 'Tokens Section',
         });
@@ -869,26 +1208,26 @@ class WalletView {
   }
 
   async tapOnDeFiTab(): Promise<void> {
-    await Gestures.waitAndTap(this.defiTab, {
+    await UnifiedGestures.waitAndTap(this.defiTab, {
       elemDescription: 'DeFi Tab',
     });
   }
 
   async tapOnDeFiNetworksFilter(): Promise<void> {
-    await Gestures.waitAndTap(this.defiNetworkFilter, {
+    await UnifiedGestures.waitAndTap(this.defiNetworkFilter, {
       elemDescription: 'DeFi Networks Filter',
     });
   }
 
   async tapOnDeFiPosition(positionName: string): Promise<void> {
     const elem = Matchers.getElementByText(positionName);
-    await Gestures.waitAndTap(elem, {
+    await UnifiedGestures.waitAndTap(elem, {
       elemDescription: 'DeFi Position',
     });
   }
 
   async tapOnPredictionsTab(): Promise<void> {
-    await Gestures.waitAndTap(this.predictionsTab, {
+    await UnifiedGestures.waitAndTap(this.predictionsTab, {
       elemDescription: 'Predictions Tab',
     });
   }
@@ -900,6 +1239,35 @@ class WalletView {
       `Predictions Position: ${positionName}`,
     );
   }
+
+  async scrollDownOnPredictionsTab(): Promise<void> {
+    await UnifiedGestures.swipe(this.PredictionsTabContainer, 'up', {
+      speed: 'slow',
+      percentage: 0.4,
+    });
+  }
+
+  async scrollUpOnPredictionsTab(): Promise<void> {
+    await UnifiedGestures.swipe(this.PredictionsTabContainer, 'down', {
+      speed: 'slow',
+      percentage: 0.4,
+    });
+  }
+
+  async scrollToPosition(
+    positionName: string,
+    direction: 'up' | 'down' = 'down',
+  ): Promise<void> {
+    const positionElement = (await Matchers.getElementByText(
+      positionName,
+    )) as unknown as DetoxElement;
+    await UnifiedGestures.scrollToElement(
+      positionElement,
+      this.predictScrollViewIdentifier,
+      { direction },
+    );
+  }
+
 
   async scrollAndTapDefiSection(): Promise<void> {
     await this.scrollAndTapSection(this.defiPositionsNew, 'DeFi section');
@@ -951,22 +1319,30 @@ class WalletView {
   async scrollAndTapPredictionsPosition(positionName: string): Promise<void> {
     const target = Matchers.getElementByText(positionName);
     try {
-      await Gestures.scrollToElement(target, this.walletScrollViewIdentifier, {
-        direction: 'down',
-        scrollAmount: 220,
-        timeout: 12000,
-        elemDescription: `Scroll to prediction position: ${positionName}`,
-      });
+      await UnifiedGestures.scrollToElement(
+        target,
+        this.walletScrollViewIdentifier,
+        {
+          direction: 'down',
+          scrollAmount: 220,
+          timeout: 12000,
+          elemDescription: `Scroll to prediction position: ${positionName}`,
+        },
+      );
     } catch {
-      await Gestures.scrollToElement(target, this.walletScrollViewIdentifier, {
-        direction: 'up',
-        scrollAmount: 220,
-        timeout: 12000,
-        elemDescription: `Scroll up fallback to prediction position: ${positionName}`,
-      });
+      await UnifiedGestures.scrollToElement(
+        target,
+        this.walletScrollViewIdentifier,
+        {
+          direction: 'up',
+          scrollAmount: 220,
+          timeout: 12000,
+          elemDescription: `Scroll up fallback to prediction position: ${positionName}`,
+        },
+      );
     }
 
-    await Gestures.waitAndTap(target, {
+    await UnifiedGestures.waitAndTap(target, {
       checkStability: true,
       elemDescription: `Predictions Position: ${positionName}`,
     });
@@ -977,13 +1353,13 @@ class WalletView {
   }
 
   async tapOnAvailableBalance(): Promise<void> {
-    await Gestures.waitAndTap(this.availableBalanceLabel, {
+    await UnifiedGestures.waitAndTap(this.availableBalanceLabel, {
       elemDescription: 'tap available balance to expand balance card',
     });
   }
 
   async tapClaimButton(): Promise<void> {
-    await Gestures.scrollToElement(
+    await UnifiedGestures.scrollToElement(
       this.claimButton,
       this.walletScrollViewIdentifier,
       {
@@ -992,13 +1368,13 @@ class WalletView {
         elemDescription: 'Scroll to Claim Button',
       },
     );
-    await Gestures.waitAndTap(this.claimButton, {
+    await UnifiedGestures.waitAndTap(this.claimButton, {
       elemDescription: 'Claim Button',
     });
   }
 
   async tapClaimConfirmButton(): Promise<void> {
-    await Gestures.waitAndTap(this.predictClaimConfirmButton, {
+    await UnifiedGestures.waitAndTap(this.predictClaimConfirmButton, {
       elemDescription: 'Claim confirm button',
     });
   }
@@ -1112,7 +1488,7 @@ class WalletView {
    * @returns {Promise<void>} A promise that resolves when the balance visibility is toggled.
    */
   async toggleBalanceVisibility(): Promise<void> {
-    await Gestures.waitAndTap(this.eyeSlashIcon, {
+    await UnifiedGestures.waitAndTap(this.eyeSlashIcon, {
       elemDescription: 'Eye Slash Icon',
     });
   }
@@ -1148,7 +1524,7 @@ class WalletView {
   }
 
   async tapWalletBuyButton(): Promise<void> {
-    await Gestures.waitAndTap(this.walletBuyButton, {
+    await UnifiedGestures.waitAndTap(this.walletBuyButton, {
       elemDescription: 'Wallet Buy Button',
     });
   }
@@ -1180,7 +1556,7 @@ class WalletView {
   }
 
   async tapWalletBridgeButton(): Promise<void> {
-    await Gestures.waitAndTap(this.walletBridgeButton, {
+    await UnifiedGestures.waitAndTap(this.walletBridgeButton, {
       elemDescription: 'Wallet Bridge Button',
     });
   }
@@ -1192,20 +1568,20 @@ class WalletView {
   }
 
   async tapGetMusdButton(): Promise<void> {
-    await Gestures.waitAndTap(this.getMusdButton, {
+    await UnifiedGestures.waitAndTap(this.getMusdButton, {
       elemDescription: 'Get mUSD button',
     });
   }
 
   async tapGetStartedButton(): Promise<void> {
-    await Gestures.waitAndTap(this.getStartedButton, {
+    await UnifiedGestures.waitAndTap(this.getStartedButton, {
       elemDescription: 'Get Started button on education screen',
     });
   }
 
   /** Tap the "Get X% mUSD bonus" CTA on a token list row (visible when user has mUSD balance). Uses checkStability + delay so list is fully loaded before tap. */
   async tapTokenListItemConvertToMusdCta(): Promise<void> {
-    await Gestures.waitAndTap(this.tokenListItemConvertToMusdCta, {
+    await UnifiedGestures.waitAndTap(this.tokenListItemConvertToMusdCta, {
       checkStability: true,
       delay: 1000,
       elemDescription: 'Token list item mUSD conversion CTA',
@@ -1221,7 +1597,7 @@ class WalletView {
     const assetOverviewScrollContainer = Matchers.getIdentifier(
       'transactions-container',
     );
-    await Gestures.scrollToElement(
+    await UnifiedGestures.scrollToElement(
       this.assetOverviewMusdCta as unknown as DetoxElement,
       assetOverviewScrollContainer,
       {
@@ -1238,7 +1614,7 @@ class WalletView {
   }
 
   async tapAssetOverviewMusdCta(): Promise<void> {
-    await Gestures.waitAndTap(this.assetOverviewMusdCta, {
+    await UnifiedGestures.waitAndTap(this.assetOverviewMusdCta, {
       checkStability: true,
       delay: 800,
       elemDescription: 'Asset Overview mUSD CTA',
@@ -1246,17 +1622,21 @@ class WalletView {
   }
 
   async tapWalletReceiveButton(): Promise<void> {
-    await Gestures.waitAndTap(this.walletReceiveButton, {
+    await UnifiedGestures.waitAndTap(this.walletReceiveButton, {
       elemDescription: 'Wallet Receive Button',
     });
   }
 
-  get perpsTab(): DetoxElement {
-    return Matchers.getElementByText(WalletViewSelectorsText.PERPS_TAB);
+  get perpsTab(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(WalletViewSelectorsText.PERPS_TAB),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(WalletViewSelectorsText.PERPS_TAB),
+    });
   }
 
   async tapOnPerpsTab(): Promise<void> {
-    await Gestures.waitAndTap(this.perpsTab, {
+    await UnifiedGestures.waitAndTap(this.perpsTab, {
       elemDescription: 'Perps Tab Button',
     });
   }
@@ -1272,7 +1652,7 @@ class WalletView {
   }
 
   async tapBalanceEmptyStateActionButton(): Promise<void> {
-    await Gestures.waitAndTap(this.balanceEmptyStateActionButton, {
+    await UnifiedGestures.waitAndTap(this.balanceEmptyStateActionButton, {
       elemDescription: 'Balance Empty State Action Button',
     });
   }
@@ -1280,7 +1660,7 @@ class WalletView {
   async tapPredictPosition(positionName: string): Promise<void> {
     const position = Matchers.getElementByText(positionName);
 
-    await Gestures.waitAndTap(position, {
+    await UnifiedGestures.waitAndTap(position, {
       elemDescription: `Tapping Prediction position ${positionName}`,
     });
   }

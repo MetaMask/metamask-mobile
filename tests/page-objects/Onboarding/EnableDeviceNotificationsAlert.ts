@@ -1,7 +1,7 @@
-import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 
 import { EnableDeviceNotificationsAlertSelectorText } from '../../selectors/Onboarding/EnableDeviceNotificationsAlert.selectors';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class EnableDeviceNotificationsAlert {
   get stepOneContainer(): DetoxElement {
@@ -17,7 +17,7 @@ class EnableDeviceNotificationsAlert {
   }
 
   async tapOnEnableDeviceNotificationsButton(): Promise<void> {
-    await Gestures.waitAndTap(this.getEnableDeviceNotificationsButton, {
+    await UnifiedGestures.waitAndTap(this.getEnableDeviceNotificationsButton, {
       elemDescription: 'Enable Device Notifications Button',
     });
   }

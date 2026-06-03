@@ -1,22 +1,39 @@
 import { ManualBackUpStepsSelectorsIDs } from '../../../app/components/Views/ManualBackupStep1/ManualBackUpSteps.testIds';
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class ManualBackupStep1View {
-  get container(): DetoxElement {
-    return Matchers.getElementByID(
-      ManualBackUpStepsSelectorsIDs.STEP_1_CONTAINER,
-    );
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(ManualBackUpStepsSelectorsIDs.STEP_1_CONTAINER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ManualBackUpStepsSelectorsIDs.STEP_1_CONTAINER,
+        ),
+    });
   }
 
-  get remindMeLaterButton(): DetoxElement {
-    return Matchers.getElementByID(
-      ManualBackUpStepsSelectorsIDs.REMIND_ME_LATER_BUTTON,
-    );
+  get remindMeLaterButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          ManualBackUpStepsSelectorsIDs.REMIND_ME_LATER_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ManualBackUpStepsSelectorsIDs.REMIND_ME_LATER_BUTTON,
+        ),
+    });
   }
 
   async tapOnRemindMeLaterButton(): Promise<void> {
-    await Gestures.waitAndTap(this.remindMeLaterButton);
+    await UnifiedGestures.waitAndTap(this.remindMeLaterButton);
   }
 }
 

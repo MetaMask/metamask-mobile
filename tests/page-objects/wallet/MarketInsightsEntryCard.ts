@@ -1,7 +1,7 @@
 import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
-import Gestures from '../../framework/Gestures';
 import { MarketInsightsSelectorsIDs } from '../../../app/components/UI/MarketInsights/MarketInsights.testIds';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class MarketInsightsEntryCard {
   get entryCard() {
@@ -34,7 +34,7 @@ class MarketInsightsEntryCard {
   }
 
   async tapEntryCard(): Promise<void> {
-    await Gestures.tap(this.entryCard, {
+    await UnifiedGestures.tap(this.entryCard, {
       elemDescription: 'Tap on Market Insights entry card',
     });
   }

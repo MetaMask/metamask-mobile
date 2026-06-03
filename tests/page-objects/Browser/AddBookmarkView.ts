@@ -1,10 +1,22 @@
 import { AddBookmarkViewSelectorsIDs } from '../../../app/components/Views/AddBookmark/AddBookmarkView.testIds';
-import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class AddFavoritesView {
-  get container(): DetoxElement {
-    return Matchers.getElementByID(AddBookmarkViewSelectorsIDs.CONTAINER);
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(AddBookmarkViewSelectorsIDs.CONTAINER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          AddBookmarkViewSelectorsIDs.CONTAINER,
+        ),
+    });
   }
 
   get addBookmarkButton(): DetoxElement {
@@ -14,7 +26,7 @@ class AddFavoritesView {
   }
 
   async tapAddBookmarksButton(): Promise<void> {
-    await Gestures.waitAndTap(this.addBookmarkButton, {
+    await UnifiedGestures.waitAndTap(this.addBookmarkButton, {
       elemDescription: 'Tap on the add bookmark button',
     });
   }

@@ -1,6 +1,5 @@
 import {
   Assertions,
-  Gestures,
   Matchers,
   PlaywrightAssertions,
   PlaywrightGestures,
@@ -73,9 +72,12 @@ class SocialLoginView {
   async tapIosNewUserSetPinButton(): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
-        await Gestures.waitAndTap(asDetoxElement(this.iosNewUserButton), {
-          elemDescription: 'Set MetaMask PIN button on iOS new user screen',
-        });
+        await UnifiedGestures.waitAndTap(
+          asDetoxElement(this.iosNewUserButton),
+          {
+            elemDescription: 'Set MetaMask PIN button on iOS new user screen',
+          },
+        );
       },
       appium: async () => {
         await UnifiedGestures.waitAndTap(this.iosNewUserButton, {
@@ -144,10 +146,13 @@ class SocialLoginView {
   async tapIosExistingUserSecureWalletButton(): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
-        await Gestures.waitAndTap(asDetoxElement(this.iosExistingUserButton), {
-          elemDescription:
-            'Secure your wallet button on iOS existing user screen',
-        });
+        await UnifiedGestures.waitAndTap(
+          asDetoxElement(this.iosExistingUserButton),
+          {
+            elemDescription:
+              'Secure your wallet button on iOS existing user screen',
+          },
+        );
       },
       appium: async () => {
         await UnifiedGestures.waitAndTap(this.iosExistingUserButton, {
@@ -244,7 +249,7 @@ class SocialLoginView {
   async tapLoginButton(): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
-        await Gestures.waitAndTap(
+        await UnifiedGestures.waitAndTap(
           asDetoxElement(this.accountFoundLoginButton),
           {
             elemDescription: 'Login button on Account Already Exists screen',
@@ -336,7 +341,7 @@ class SocialLoginView {
   async tapCreateNewWalletButton(): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
-        await Gestures.waitAndTap(
+        await UnifiedGestures.waitAndTap(
           asDetoxElement(this.accountNotFoundCreateButton),
           {
             elemDescription:
@@ -371,7 +376,7 @@ class SocialLoginView {
             asDetoxElement(this.updateModalContinueButton),
             { timeout: 3000, description: 'iOS update modal' },
           );
-          await Gestures.waitAndTap(
+          await UnifiedGestures.waitAndTap(
             asDetoxElement(this.updateModalContinueButton),
             { elemDescription: 'Continue button on iOS update modal' },
           );

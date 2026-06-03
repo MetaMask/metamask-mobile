@@ -1,4 +1,4 @@
-import { Assertions, Gestures, Matchers } from '../../framework';
+import { Assertions, Matchers } from '../../framework';
 import {
   WalletAssetSelectorsIDs,
   WalletAssetSelectorsRegex,
@@ -8,20 +8,37 @@ import {
   WalletViewSelectorsIDs,
   WalletViewSelectorsText,
 } from '../../../app/components/Views/Wallet/WalletView.testIds';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class TokensFullView {
   /**
    * Back button in the tokens full view header
    */
-  get backButton(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.BACK_BUTTON);
+  get backButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(WalletViewSelectorsIDs.BACK_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(WalletViewSelectorsIDs.BACK_BUTTON),
+    });
   }
 
   /**
    * Network filter button in the tokens full view control bar
    */
-  get networkFilterButton(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER);
+  get networkFilterButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER,
+        ),
+    });
   }
 
   get stakedEthereumAssetRow(): DetoxElement {
@@ -52,7 +69,7 @@ class TokensFullView {
    * Tap the back button to return to the homepage
    */
   async tapBackButton(): Promise<void> {
-    await Gestures.waitAndTap(this.backButton, {
+    await UnifiedGestures.waitAndTap(this.backButton, {
       elemDescription: 'Tokens Full View back button',
     });
   }

@@ -1,6 +1,6 @@
 import { SRPListItemSelectorsIDs } from '../../../../../app/components/UI/SRPListItem/SRPListItem.testIds';
 import Matchers from '../../../../framework/Matchers';
-import Gestures from '../../../../framework/Gestures';
+import UnifiedGestures from '../../../../framework/UnifiedGestures';
 
 class SRPListItemComponent {
   get listItem() {
@@ -20,14 +20,14 @@ class SRPListItemComponent {
   }
 
   async tapToggle() {
-    await Gestures.waitAndTap(this.accountToggle);
+    await UnifiedGestures.waitAndTap(this.accountToggle);
   }
 
   async tapListItem(srpId: string) {
     const srpSelector = Matchers.getElementByID(
       `${SRPListItemSelectorsIDs.SRP_LIST_ITEM}-${srpId}`,
     );
-    await Gestures.waitAndTap(srpSelector);
+    await UnifiedGestures.waitAndTap(srpSelector);
   }
 
   async tapListItemByIndex(index: number) {
@@ -35,7 +35,7 @@ class SRPListItemComponent {
       new RegExp(`^${SRPListItemSelectorsIDs.SRP_LIST_ITEM}-\\w+$`),
       index,
     );
-    await Gestures.waitAndTap(srpSelector, {
+    await UnifiedGestures.waitAndTap(srpSelector, {
       elemDescription: `SRP List Item at index ${index}`,
     });
   }

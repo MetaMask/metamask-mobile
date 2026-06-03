@@ -3,11 +3,21 @@ import {
   AddContactViewSelectorsIDs,
   AddContactViewSelectorsText,
 } from '../../../../app/components/Views/Settings/Contacts/AddContactView.testIds';
-import Gestures from '../../../framework/Gestures';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../../framework/UnifiedGestures';
 
 class AddContactView {
-  get container(): DetoxElement {
-    return Matchers.getElementByID(AddContactViewSelectorsIDs.CONTAINER);
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(AddContactViewSelectorsIDs.CONTAINER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(AddContactViewSelectorsIDs.CONTAINER),
+    });
   }
 
   get addButton(): DetoxElement {
@@ -22,8 +32,15 @@ class AddContactView {
       : Matchers.getElementByLabel(AddContactViewSelectorsText.EDIT_BUTTON);
   }
 
-  get editContact(): DetoxElement {
-    return Matchers.getElementByText(AddContactViewSelectorsText.EDIT_CONTACT);
+  get editContact(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(AddContactViewSelectorsText.EDIT_CONTACT),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          AddContactViewSelectorsText.EDIT_CONTACT,
+        ),
+    });
   }
 
   get deleteButton(): DetoxElement {
@@ -32,75 +49,100 @@ class AddContactView {
       : Matchers.getElementByLabel(AddContactViewSelectorsIDs.DELETE_BUTTON);
   }
 
-  get nameInput(): DetoxElement {
-    return Matchers.getElementByID(AddContactViewSelectorsIDs.NAME_INPUT);
+  get nameInput(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(AddContactViewSelectorsIDs.NAME_INPUT),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          AddContactViewSelectorsIDs.NAME_INPUT,
+        ),
+    });
   }
 
-  get memoLabel(): DetoxElement {
-    return Matchers.getElementByText(AddContactViewSelectorsText.MEMO);
+  get memoLabel(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(AddContactViewSelectorsText.MEMO),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(AddContactViewSelectorsText.MEMO),
+    });
   }
 
-  get memoInput(): DetoxElement {
-    return Matchers.getElementByID(AddContactViewSelectorsIDs.MEMO_INPUT);
+  get memoInput(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(AddContactViewSelectorsIDs.MEMO_INPUT),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          AddContactViewSelectorsIDs.MEMO_INPUT,
+        ),
+    });
   }
 
-  get addressInput(): DetoxElement {
-    return Matchers.getElementByID(AddContactViewSelectorsIDs.ADDRESS_INPUT);
+  get addressInput(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(AddContactViewSelectorsIDs.ADDRESS_INPUT),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          AddContactViewSelectorsIDs.ADDRESS_INPUT,
+        ),
+    });
   }
 
   async tapAddContactButton(): Promise<void> {
-    await Gestures.waitAndTap(this.addButton, {
+    await UnifiedGestures.waitAndTap(this.addButton, {
       elemDescription: 'Add Contact Button',
     });
   }
 
   async tapEditButton(): Promise<void> {
-    await Gestures.waitAndTap(this.editButton, {
+    await UnifiedGestures.waitAndTap(this.editButton, {
       elemDescription: 'Edit Button',
     });
   }
 
   async tapEditContactCTA(): Promise<void> {
-    await Gestures.waitAndTap(this.editContact, {
+    await UnifiedGestures.waitAndTap(this.editContact, {
       elemDescription: 'Edit Contact CTA',
     });
   }
 
   async tapDeleteContactCTA(): Promise<void> {
-    await Gestures.waitAndTap(this.deleteButton, {
+    await UnifiedGestures.waitAndTap(this.deleteButton, {
       elemDescription: 'Delete Contact CTA',
     });
   }
 
   async typeInName(name: string): Promise<void> {
-    await Gestures.replaceText(this.nameInput, name, {
+    await UnifiedGestures.replaceText(this.nameInput, name, {
       elemDescription: 'Name Input',
     });
-    await Gestures.waitAndTap(this.memoLabel, {
+    await UnifiedGestures.waitAndTap(this.memoLabel, {
       elemDescription: 'Memo Label',
     }); // tap somewhere to dismiss keyboard
   }
 
   async typeInMemo(memo: string): Promise<void> {
-    await Gestures.replaceText(this.memoInput, memo, {
+    await UnifiedGestures.replaceText(this.memoInput, memo, {
       elemDescription: 'Memo Input',
     });
-    await Gestures.waitAndTap(this.memoLabel, {
+    await UnifiedGestures.waitAndTap(this.memoLabel, {
       elemDescription: 'Memo Label',
     }); // tap somewhere to dismiss keyboard
   }
 
   async typeInAddress(address: string): Promise<void> {
-    await Gestures.replaceText(this.addressInput, address, {
+    await UnifiedGestures.replaceText(this.addressInput, address, {
       elemDescription: 'Address Input',
     });
-    await Gestures.waitAndTap(this.memoLabel, {
+    await UnifiedGestures.waitAndTap(this.memoLabel, {
       elemDescription: 'Memo Label',
     }); // tap somewhere to dismiss keyboard
   }
 
   async clearAddressInputBox(): Promise<void> {
-    await Gestures.typeText(this.addressInput, '', {
+    await UnifiedGestures.typeText(this.addressInput, '', {
       elemDescription: 'Address Input',
     });
   }
@@ -109,11 +151,11 @@ class AddContactView {
     const networkSelector = Matchers.getElementByID(
       AddContactViewSelectorsIDs.NETWORK_INPUT,
     );
-    await Gestures.waitAndTap(networkSelector, {
+    await UnifiedGestures.waitAndTap(networkSelector, {
       elemDescription: 'Network Selector',
     });
     const networkOption = Matchers.getElementByText(networkName);
-    await Gestures.waitAndTap(networkOption, {
+    await UnifiedGestures.waitAndTap(networkOption, {
       elemDescription: `Network Option: ${networkName}`,
     });
   }

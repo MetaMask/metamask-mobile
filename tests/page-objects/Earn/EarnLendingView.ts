@@ -1,78 +1,165 @@
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
 import Utilities from '../../framework/Utilities';
 import {
   EarnLendingViewSelectorsIDs,
   EarnLendingViewSelectorsText,
 } from '../../selectors/Earn/EarnLendingView.selectors';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class EarnLendingView {
-  get withdrawButton(): DetoxElement {
-    return Matchers.getElementByID(EarnLendingViewSelectorsIDs.WITHDRAW_BUTTON);
+  get withdrawButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(EarnLendingViewSelectorsIDs.WITHDRAW_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          EarnLendingViewSelectorsIDs.WITHDRAW_BUTTON,
+        ),
+    });
   }
 
-  get depositButton(): DetoxElement {
-    return Matchers.getElementByID(EarnLendingViewSelectorsIDs.DEPOSIT_BUTTON);
+  get depositButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(EarnLendingViewSelectorsIDs.DEPOSIT_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          EarnLendingViewSelectorsIDs.DEPOSIT_BUTTON,
+        ),
+    });
   }
 
-  get confirmationFooter(): DetoxElement {
-    return Matchers.getElementByID(
-      EarnLendingViewSelectorsIDs.CONFIRMATION_FOOTER,
-    );
+  get confirmationFooter(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          EarnLendingViewSelectorsIDs.CONFIRMATION_FOOTER,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          EarnLendingViewSelectorsIDs.CONFIRMATION_FOOTER,
+        ),
+    });
   }
 
-  get confirmButton(): DetoxElement {
-    return Matchers.getElementByID(EarnLendingViewSelectorsIDs.CONFIRM_BUTTON);
+  get confirmButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(EarnLendingViewSelectorsIDs.CONFIRM_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          EarnLendingViewSelectorsIDs.CONFIRM_BUTTON,
+        ),
+    });
   }
 
-  get cancelButton(): DetoxElement {
-    return Matchers.getElementByID(EarnLendingViewSelectorsIDs.CANCEL_BUTTON);
+  get cancelButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(EarnLendingViewSelectorsIDs.CANCEL_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          EarnLendingViewSelectorsIDs.CANCEL_BUTTON,
+        ),
+    });
   }
 
-  get depositInfoSection(): DetoxElement {
-    return Matchers.getElementByID(
-      EarnLendingViewSelectorsIDs.DEPOSIT_INFO_SECTION,
-    );
+  get depositInfoSection(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          EarnLendingViewSelectorsIDs.DEPOSIT_INFO_SECTION,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          EarnLendingViewSelectorsIDs.DEPOSIT_INFO_SECTION,
+        ),
+    });
   }
 
-  get depositReceiveSection(): DetoxElement {
-    return Matchers.getElementByID(
-      EarnLendingViewSelectorsIDs.DEPOSIT_RECEIVE_SECTION,
-    );
+  get depositReceiveSection(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          EarnLendingViewSelectorsIDs.DEPOSIT_RECEIVE_SECTION,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          EarnLendingViewSelectorsIDs.DEPOSIT_RECEIVE_SECTION,
+        ),
+    });
   }
 
-  get progressBar(): DetoxElement {
-    return Matchers.getElementByID(EarnLendingViewSelectorsIDs.PROGRESS_BAR);
+  get progressBar(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(EarnLendingViewSelectorsIDs.PROGRESS_BAR),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          EarnLendingViewSelectorsIDs.PROGRESS_BAR,
+        ),
+    });
   }
 
-  get supplyTitle(): DetoxElement {
-    return Matchers.getElementByText(EarnLendingViewSelectorsText.SUPPLY);
+  get supplyTitle(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(EarnLendingViewSelectorsText.SUPPLY),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          EarnLendingViewSelectorsText.SUPPLY,
+        ),
+    });
   }
 
-  get reviewButton(): DetoxElement {
-    return Matchers.getElementByID(EarnLendingViewSelectorsIDs.REVIEW_BUTTON);
+  get reviewButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(EarnLendingViewSelectorsIDs.REVIEW_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          EarnLendingViewSelectorsIDs.REVIEW_BUTTON,
+        ),
+    });
   }
 
-  get withdrawalTimeLabel(): DetoxElement {
-    return Matchers.getElementByText(
-      EarnLendingViewSelectorsText.WITHDRAWAL_TIME,
-    );
+  get withdrawalTimeLabel(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(EarnLendingViewSelectorsText.WITHDRAWAL_TIME),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          EarnLendingViewSelectorsText.WITHDRAWAL_TIME,
+        ),
+    });
   }
 
-  get confirmButtonByLabel(): DetoxElement {
-    return Matchers.getElementByText(EarnLendingViewSelectorsText.CONFIRM);
+  get confirmButtonByLabel(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(EarnLendingViewSelectorsText.CONFIRM),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          EarnLendingViewSelectorsText.CONFIRM,
+        ),
+    });
   }
 
   async tapConfirmByLabel(timeout?: number): Promise<void> {
-    await Gestures.waitAndTap(this.confirmButtonByLabel, {
+    await UnifiedGestures.waitAndTap(this.confirmButtonByLabel, {
       timeout,
       elemDescription: 'Confirm button (by label) on lending confirmation',
     });
   }
 
   async tapReviewButton(timeout?: number): Promise<void> {
-    await Gestures.waitAndTap(this.reviewButton, {
+    await UnifiedGestures.waitAndTap(this.reviewButton, {
       timeout,
       elemDescription: 'Review button on withdraw input',
     });
@@ -80,14 +167,14 @@ class EarnLendingView {
 
   async tapWithdraw(timeout?: number): Promise<void> {
     await this.scrollToWithdrawButton();
-    await Gestures.waitAndTap(this.withdrawButton, {
+    await UnifiedGestures.waitAndTap(this.withdrawButton, {
       timeout,
       elemDescription: 'Withdraw button on lending balance',
     });
   }
 
   async scrollToWithdrawButton(): Promise<void> {
-    await Gestures.scrollToElement(
+    await UnifiedGestures.scrollToElement(
       this.withdrawButton,
       Matchers.getIdentifier('transactions-container'),
       {
@@ -99,21 +186,21 @@ class EarnLendingView {
   }
 
   async tapDeposit(timeout?: number): Promise<void> {
-    await Gestures.waitAndTap(this.depositButton, {
+    await UnifiedGestures.waitAndTap(this.depositButton, {
       timeout,
       elemDescription: 'Deposit button on lending balance',
     });
   }
 
   async tapConfirm(timeout?: number): Promise<void> {
-    await Gestures.waitAndTap(this.confirmButton, {
+    await UnifiedGestures.waitAndTap(this.confirmButton, {
       timeout,
       elemDescription: 'Confirm button on lending confirmation',
     });
   }
 
   async tapCancel(): Promise<void> {
-    await Gestures.waitAndTap(this.cancelButton, {
+    await UnifiedGestures.waitAndTap(this.cancelButton, {
       elemDescription: 'Cancel button on lending confirmation',
     });
   }
@@ -126,7 +213,7 @@ class EarnLendingView {
           2000,
         ));
         if (!alreadyGone) {
-          await Gestures.waitAndTap(this.confirmButton, {
+          await UnifiedGestures.waitAndTap(this.confirmButton, {
             timeout: 5000,
             elemDescription: 'Confirm button (retry loop)',
           });

@@ -1,11 +1,20 @@
 import { ContactsViewSelectorIDs } from '../../../../app/components/Views/Settings/Contacts/ContactsView.testIds';
 import Matchers from '../../../framework/Matchers';
-import Gestures from '../../../framework/Gestures';
 import Assertions from '../../../framework/Assertions';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../../framework/UnifiedGestures';
 
 class ContactsView {
-  get container(): DetoxElement {
-    return Matchers.getElementByID(ContactsViewSelectorIDs.CONTAINER);
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(ContactsViewSelectorIDs.CONTAINER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(ContactsViewSelectorIDs.CONTAINER),
+    });
   }
 
   get addButton(): DetoxElement {
@@ -16,13 +25,13 @@ class ContactsView {
 
   async tapOnAlias(alias: string): Promise<void> {
     const contactAlias = Matchers.getElementByText(alias);
-    await Gestures.waitAndTap(contactAlias, {
+    await UnifiedGestures.waitAndTap(contactAlias, {
       elemDescription: `Contact Alias: ${alias}`,
     });
   }
 
   async tapAddContactButton(): Promise<void> {
-    await Gestures.waitAndTap(this.addButton, {
+    await UnifiedGestures.waitAndTap(this.addButton, {
       elemDescription: 'Add Contact Button',
     });
   }

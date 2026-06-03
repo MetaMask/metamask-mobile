@@ -1,28 +1,50 @@
 import { PredictActivityDetailsSelectorsIDs } from '../../../app/components/UI/Predict/Predict.testIds';
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class PredictActivityDetails {
-  get container(): DetoxElement {
-    return Matchers.getElementByID(
-      PredictActivityDetailsSelectorsIDs.CONTAINER,
-    );
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(PredictActivityDetailsSelectorsIDs.CONTAINER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          PredictActivityDetailsSelectorsIDs.CONTAINER,
+        ),
+    });
   }
 
-  get backButton(): DetoxElement {
-    return Matchers.getElementByID(
-      PredictActivityDetailsSelectorsIDs.BACK_BUTTON,
-    );
+  get backButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(PredictActivityDetailsSelectorsIDs.BACK_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          PredictActivityDetailsSelectorsIDs.BACK_BUTTON,
+        ),
+    });
   }
 
-  get amountDisplay(): DetoxElement {
-    return Matchers.getElementByID(
-      PredictActivityDetailsSelectorsIDs.AMOUNT_DISPLAY,
-    );
+  get amountDisplay(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          PredictActivityDetailsSelectorsIDs.AMOUNT_DISPLAY,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          PredictActivityDetailsSelectorsIDs.AMOUNT_DISPLAY,
+        ),
+    });
   }
 
   async tapBackButton(): Promise<void> {
-    await Gestures.waitAndTap(this.backButton);
+    await UnifiedGestures.waitAndTap(this.backButton);
   }
 }
 

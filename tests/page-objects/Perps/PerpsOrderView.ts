@@ -1,4 +1,3 @@
-import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 import Assertions from '../../framework/Assertions';
@@ -77,8 +76,11 @@ class PerpsOrderView {
   }
 
   // Modal title to ensure the leverage bottom sheet is visible
-  get leverageModalTitle(): DetoxElement {
-    return Matchers.getElementByText('Set Leverage');
+  get leverageModalTitle(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText('Set Leverage'),
+      appium: () => PlaywrightMatchers.getElementByText('Set Leverage'),
+    });
   }
 
   async tapPlaceOrderButton(): Promise<void> {
@@ -95,7 +97,7 @@ class PerpsOrderView {
           pollIntervalMs: 120,
           consecutiveSuccess: 5,
         });
-        await Gestures.waitAndTap(el, {
+        await UnifiedGestures.waitAndTap(el, {
           timeout: 35000,
           elemDescription: 'Place order button',
         });
@@ -113,7 +115,7 @@ class PerpsOrderView {
   }
 
   async tapTakeProfitButton() {
-    await Gestures.scrollToElement(
+    await UnifiedGestures.scrollToElement(
       this.takeProfitButton,
       Matchers.getIdentifier(PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW),
       {
@@ -122,14 +124,14 @@ class PerpsOrderView {
         elemDescription: 'Scroll Perps market details to TP/SL row',
       },
     );
-    await Gestures.waitAndTap(this.takeProfitButton, {
+    await UnifiedGestures.waitAndTap(this.takeProfitButton, {
       elemDescription: 'Open TP/SL sheet from order form',
       checkStability: true,
     });
   }
 
   async tapTurnOnNotificationsButton() {
-    await Gestures.waitAndTap(this.turnNotificationsOnButton, {
+    await UnifiedGestures.waitAndTap(this.turnNotificationsOnButton, {
       elemDescription: 'Turn on Notifications Button',
     });
   }
@@ -166,7 +168,7 @@ class PerpsOrderView {
 
     // Tap the detected option index
     const option = this.leverageOption(leverageX, chosenIdx);
-    await Gestures.waitAndTap(option, {
+    await UnifiedGestures.waitAndTap(option, {
       elemDescription: `Select leverage ${label} at index ${chosenIdx}`,
     });
 
@@ -174,7 +176,7 @@ class PerpsOrderView {
     const confirm = Matchers.getElementByText(
       `Set ${leverageX}x`,
     ) as DetoxElement;
-    await Gestures.waitAndTap(confirm, {
+    await UnifiedGestures.waitAndTap(confirm, {
       elemDescription: `Confirm leverage ${leverageX}x`,
     });
   }
@@ -230,21 +232,24 @@ class PerpsOrderView {
             description: 'Amount value is visible',
           },
         );
-        await Gestures.waitAndTap(asDetoxElement(this.amountValue), {
+        await UnifiedGestures.waitAndTap(asDetoxElement(this.amountValue), {
           elemDescription: 'Open amount keypad by tapping amount label',
           checkEnabled: false,
           checkVisibility: false,
         });
         // Type each character using the native keypad (buttons 0-9 and '.')
         for (const ch of amount) {
-          await Gestures.waitAndTap(asDetoxElement(this.getKeypadKey(ch)), {
-            elemDescription: `Keypad: ${ch}`,
-            checkEnabled: false,
-            checkVisibility: false,
-          });
+          await UnifiedGestures.waitAndTap(
+            asDetoxElement(this.getKeypadKey(ch)),
+            {
+              elemDescription: `Keypad: ${ch}`,
+              checkEnabled: false,
+              checkVisibility: false,
+            },
+          );
         }
         // Close the keypad using the Done button
-        await Gestures.waitAndTap(asDetoxElement(this.getDoneButton()), {
+        await UnifiedGestures.waitAndTap(asDetoxElement(this.getDoneButton()), {
           elemDescription: 'Tap Done (by text) to close keypad',
           checkEnabled: false,
           checkVisibility: false,
@@ -293,19 +298,19 @@ class PerpsOrderView {
   }
 
   async openOrderTypeSelector(): Promise<void> {
-    await Gestures.waitAndTap(this.orderTypeSelector, {
+    await UnifiedGestures.waitAndTap(this.orderTypeSelector, {
       elemDescription: 'Open order type selector',
     });
   }
 
   async selectLimitOrderType() {
-    await Gestures.waitAndTap(this.orderTypeLimit, {
+    await UnifiedGestures.waitAndTap(this.orderTypeLimit, {
       elemDescription: 'Select Limit order type',
     });
   }
 
   async selectMarketOrderType() {
-    await Gestures.waitAndTap(this.orderTypeMarket, {
+    await UnifiedGestures.waitAndTap(this.orderTypeMarket, {
       elemDescription: 'Select Market order type',
     });
   }
@@ -329,7 +334,7 @@ class PerpsOrderView {
     );
 
     const input = Matchers.getElementByID(inputTestId) as DetoxElement;
-    await Gestures.waitAndTap(input, {
+    await UnifiedGestures.waitAndTap(input, {
       elemDescription: focusInputElemDescription,
       checkEnabled: false,
     });
@@ -337,7 +342,7 @@ class PerpsOrderView {
     for (const ch of price) {
       const keypadTestId = ch === '.' ? 'keypad-key-dot' : `keypad-key-${ch}`;
       const key = Matchers.getElementByID(keypadTestId) as DetoxElement;
-      await Gestures.waitAndTap(key, {
+      await UnifiedGestures.waitAndTap(key, {
         elemDescription: `TPSL keypad key ${ch}`,
         checkEnabled: false,
         checkVisibility: false,
@@ -345,7 +350,7 @@ class PerpsOrderView {
     }
 
     const doneButton = Matchers.getElementByText('Done') as DetoxElement;
-    await Gestures.waitAndTap(doneButton, {
+    await UnifiedGestures.waitAndTap(doneButton, {
       elemDescription: 'Dismiss TPSL keypad (Done)',
       checkEnabled: false,
       checkVisibility: false,
@@ -354,7 +359,7 @@ class PerpsOrderView {
     const setButton = Matchers.getElementByID(
       PerpsTPSLViewSelectorsIDs.SET_BUTTON,
     ) as DetoxElement;
-    await Gestures.waitAndTap(setButton, {
+    await UnifiedGestures.waitAndTap(setButton, {
       elemDescription: 'Confirm TP/SL (Set)',
     });
   }
@@ -390,7 +395,7 @@ class PerpsOrderView {
             PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_MID,
           ) as DetoxElement)
         : (Matchers.getElementByText(preset) as DetoxElement);
-    await Gestures.waitAndTap(presetButton, {
+    await UnifiedGestures.waitAndTap(presetButton, {
       elemDescription: `Select limit price preset ${preset}`,
     });
   }
@@ -399,7 +404,7 @@ class PerpsOrderView {
     const setButton = Matchers.getElementByID(
       PerpsLimitPriceBottomSheetSelectorsIDs.CONFIRM_BUTTON,
     ) as DetoxElement;
-    await Gestures.waitAndTap(setButton, {
+    await UnifiedGestures.waitAndTap(setButton, {
       elemDescription: 'Confirm limit price',
     });
   }

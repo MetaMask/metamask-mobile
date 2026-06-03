@@ -2,8 +2,8 @@ import {
   NotificationMenuViewSelectorsIDs,
   NotificationMenuViewSelectorsText,
 } from '../../../app/components/Views/Notifications/NotificationMenuView.testIds';
-import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class NotificationMenuView {
   get title() {
@@ -35,18 +35,18 @@ class NotificationMenuView {
   }
 
   async tapOnWalletTab() {
-    await Gestures.waitAndTap(this.wallet_tab);
+    await UnifiedGestures.waitAndTap(this.wallet_tab);
   }
   async tapOnAnnouncementsTab() {
-    await Gestures.waitAndTap(this.announcements_tab);
+    await UnifiedGestures.waitAndTap(this.announcements_tab);
   }
   async tapOnNotificationItem(id: string) {
-    await Gestures.waitAndTap(this.selectNotificationItem(id), {
+    await UnifiedGestures.waitAndTap(this.selectNotificationItem(id), {
       elemDescription: `Notification Menu - Notification Item with ID: ${id}`,
     });
   }
   async scrollToNotificationItem(id: string) {
-    await Gestures.scrollToElement(
+    await UnifiedGestures.scrollToElement(
       this.selectNotificationItem(id),
       this.scrollViewIdentifier,
     );

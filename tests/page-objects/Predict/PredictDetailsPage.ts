@@ -1,6 +1,5 @@
 import {
   Assertions,
-  Gestures,
   Matchers,
   PlaywrightMatchers,
   UnifiedGestures,
@@ -314,7 +313,7 @@ class PredictDetailsPage {
   async tapOpenPosition(): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
-        await Gestures.waitAndTap(this.placeBetButton as DetoxElement, {
+        await UnifiedGestures.waitAndTap(this.placeBetButton as DetoxElement, {
           elemDescription: 'Place bet button',
           delay: 1000,
         });
@@ -330,7 +329,7 @@ class PredictDetailsPage {
   async tapClaimWinningsButton(): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
-        await Gestures.waitAndTap(this.claimButton as DetoxElement, {
+        await UnifiedGestures.waitAndTap(this.claimButton as DetoxElement, {
           elemDescription: 'Tap claim winnings button on market details page',
           delay: 3000,
         });

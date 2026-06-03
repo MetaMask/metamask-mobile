@@ -14,46 +14,102 @@ import {
 import { PredictMarketListSelectorsIDs } from '../../../app/components/UI/Predict/Predict.testIds';
 import TabBarComponent from '../wallet/TabBarComponent';
 import BrowserView from '../Browser/BrowserView';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class TrendingView {
   private activeScrollViewID: string = TrendingViewSelectorsIDs.NOW_SCROLL_VIEW;
 
-  get searchButton(): DetoxElement {
-    return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_BUTTON);
+  get searchButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          TrendingViewSelectorsIDs.SEARCH_BUTTON,
+        ),
+    });
   }
 
-  get browserButton(): DetoxElement {
-    return Matchers.getElementByID(TrendingViewSelectorsIDs.BROWSER_BUTTON);
+  get browserButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(TrendingViewSelectorsIDs.BROWSER_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          TrendingViewSelectorsIDs.BROWSER_BUTTON,
+        ),
+    });
   }
 
-  get searchInputContainer(): DetoxElement {
-    return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_INPUT);
+  get searchInputContainer(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_INPUT),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          TrendingViewSelectorsIDs.SEARCH_INPUT,
+        ),
+    });
   }
 
-  get searchInput(): DetoxElement {
-    return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_TEXT_INPUT);
+  get searchInput(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_TEXT_INPUT),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          TrendingViewSelectorsIDs.SEARCH_TEXT_INPUT,
+        ),
+    });
   }
 
-  get searchCancelButton(): DetoxElement {
-    return Matchers.getElementByID(
-      TrendingViewSelectorsIDs.SEARCH_CANCEL_BUTTON,
-    );
+  get searchCancelButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_CANCEL_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          TrendingViewSelectorsIDs.SEARCH_CANCEL_BUTTON,
+        ),
+    });
   }
 
-  get searchAllPill(): DetoxElement {
-    return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_PILL_ALL);
+  get searchAllPill(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_PILL_ALL),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          TrendingViewSelectorsIDs.SEARCH_PILL_ALL,
+        ),
+    });
   }
 
-  get searchCryptosPill(): DetoxElement {
-    return Matchers.getElementByID(
-      TrendingViewSelectorsIDs.SEARCH_PILL_CRYPTOS,
-    );
+  get searchCryptosPill(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_PILL_CRYPTOS),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          TrendingViewSelectorsIDs.SEARCH_PILL_CRYPTOS,
+        ),
+    });
   }
 
-  get searchResultsList(): DetoxElement {
-    return Matchers.getElementByID(
-      TrendingViewSelectorsIDs.SEARCH_RESULTS_LIST,
-    );
+  get searchResultsList(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_RESULTS_LIST),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          TrendingViewSelectorsIDs.SEARCH_RESULTS_LIST,
+        ),
+    });
   }
 
   getTokenRow(assetId: string): DetoxElement {
@@ -109,7 +165,7 @@ class TrendingView {
   }
 
   async tapTab(tabTestID: string): Promise<void> {
-    await Gestures.tap(Matchers.getElementByID(`${tabTestID}-label`), {
+    await UnifiedGestures.tap(Matchers.getElementByID(`${tabTestID}-label`), {
       elemDescription: `Tap tab ${tabTestID}`,
       checkVisibility: false,
     });
@@ -137,26 +193,26 @@ class TrendingView {
   }
 
   async tapSearchButton(): Promise<void> {
-    await Gestures.tap(this.searchButton, {
+    await UnifiedGestures.tap(this.searchButton, {
       elemDescription: 'Tap Search button',
     });
   }
 
   async tapBrowserButton(): Promise<void> {
-    await Gestures.tap(this.browserButton, {
+    await UnifiedGestures.tap(this.browserButton, {
       elemDescription: 'Tap Browser button',
     });
   }
 
   async typeSearchQuery(query: string): Promise<void> {
-    await Gestures.typeText(this.searchInput, query, {
+    await UnifiedGestures.typeText(this.searchInput, query, {
       elemDescription: 'Type search query',
       hideKeyboard: true,
     });
   }
 
   async tapSearchCancelButton(): Promise<void> {
-    await Gestures.tap(this.searchCancelButton, {
+    await UnifiedGestures.tap(this.searchCancelButton, {
       elemDescription: 'Tap Search Cancel button',
     });
   }
@@ -171,7 +227,7 @@ class TrendingView {
     direction: 'up' | 'down' = 'down',
     options: Partial<ScrollOptions> = {},
   ): Promise<void> {
-    await Gestures.scrollToElement(
+    await UnifiedGestures.scrollToElement(
       targetElement,
       Matchers.getIdentifier(this.activeScrollViewID),
       {
@@ -217,7 +273,7 @@ class TrendingView {
       );
     }
 
-    await Gestures.tap(viewAllButton, {
+    await UnifiedGestures.tap(viewAllButton, {
       elemDescription: `Tap View All for ${sectionTitle}`,
       checkStability: true,
     });
@@ -231,7 +287,7 @@ class TrendingView {
 
     const backButton = this.getBackButton(backButtonID);
 
-    await Gestures.tap(backButton, {
+    await UnifiedGestures.tap(backButton, {
       elemDescription: `Tap Back Button from ${sectionTitle} Full View`,
       checkVisibility: false,
     });
@@ -249,7 +305,7 @@ class TrendingView {
       throw new Error(`Unknown back button for item type: ${itemType}`);
     }
 
-    await Gestures.tap(this.getBackButton(backButtonID), {
+    await UnifiedGestures.tap(this.getBackButton(backButtonID), {
       elemDescription: `Tap Back from ${itemType.charAt(0).toUpperCase() + itemType.slice(1)} Details`,
     });
   }
@@ -325,7 +381,7 @@ class TrendingView {
       scrollOptions,
     );
 
-    await Gestures.tap(targetElement, {
+    await UnifiedGestures.tap(targetElement, {
       elemDescription: `Tap ${itemType} row ${identifier}`,
     });
   }

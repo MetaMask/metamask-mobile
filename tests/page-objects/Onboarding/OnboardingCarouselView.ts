@@ -3,55 +3,112 @@ import {
   OnboardingCarouselSelectorText,
 } from '../../selectors/Onboarding/OnboardingCarousel.selectors';
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class OnboardingCarouselView {
-  get container(): DetoxElement {
-    return Matchers.getElementByID(
-      OnboardingCarouselSelectorIDs.CAROUSEL_CONTAINER_ID,
-    );
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          OnboardingCarouselSelectorIDs.CAROUSEL_CONTAINER_ID,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          OnboardingCarouselSelectorIDs.CAROUSEL_CONTAINER_ID,
+        ),
+    });
   }
 
-  get getStartedButton(): DetoxElement {
-    return Matchers.getElementByID(
-      OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID,
-    );
+  get getStartedButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID,
+        ),
+    });
   }
 
-  get titleOne(): DetoxElement {
-    return Matchers.getElementByText(OnboardingCarouselSelectorText.TITLE_ONE);
+  get titleOne(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(OnboardingCarouselSelectorText.TITLE_ONE),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          OnboardingCarouselSelectorText.TITLE_ONE,
+        ),
+    });
   }
 
-  get imageOne(): DetoxElement {
-    return Matchers.getElementByID(OnboardingCarouselSelectorIDs.ONE_IMAGE_ID);
+  get imageOne(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(OnboardingCarouselSelectorIDs.ONE_IMAGE_ID),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          OnboardingCarouselSelectorIDs.ONE_IMAGE_ID,
+        ),
+    });
   }
 
-  get titleTwo(): DetoxElement {
-    return Matchers.getElementByText(OnboardingCarouselSelectorText.TITLE_TWO);
+  get titleTwo(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(OnboardingCarouselSelectorText.TITLE_TWO),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          OnboardingCarouselSelectorText.TITLE_TWO,
+        ),
+    });
   }
 
-  get imageTwo(): DetoxElement {
-    return Matchers.getElementByID(OnboardingCarouselSelectorIDs.TWO_IMAGE_ID);
+  get imageTwo(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(OnboardingCarouselSelectorIDs.TWO_IMAGE_ID),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          OnboardingCarouselSelectorIDs.TWO_IMAGE_ID,
+        ),
+    });
   }
 
-  get titleThree(): DetoxElement {
-    return Matchers.getElementByText(
-      OnboardingCarouselSelectorText.TITLE_THREE,
-    );
+  get titleThree(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(OnboardingCarouselSelectorText.TITLE_THREE),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          OnboardingCarouselSelectorText.TITLE_THREE,
+        ),
+    });
   }
 
-  get imageThree(): DetoxElement {
-    return Matchers.getElementByID(
-      OnboardingCarouselSelectorIDs.THREE_IMAGE_ID,
-    );
+  get imageThree(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(OnboardingCarouselSelectorIDs.THREE_IMAGE_ID),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          OnboardingCarouselSelectorIDs.THREE_IMAGE_ID,
+        ),
+    });
   }
 
   async swipeCarousel(): Promise<void> {
-    await Gestures.swipe(this.container, 'left');
+    await UnifiedGestures.swipe(this.container, 'left');
   }
 
   async tapOnGetStartedButton(): Promise<void> {
-    await Gestures.waitAndTap(this.getStartedButton, {
+    await UnifiedGestures.waitAndTap(this.getStartedButton, {
       elemDescription: 'Onboarding Carousel Get Started Button',
     });
   }

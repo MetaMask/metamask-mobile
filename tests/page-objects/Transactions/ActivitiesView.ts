@@ -9,84 +9,177 @@ import {
   type RampsOrderTypeSlug,
 } from '../../../app/components/UI/Ramp/Aggregator/Views/OrdersList/OrdersList.testIds';
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class ActivitiesView {
-  get title(): DetoxElement {
-    return Matchers.getElementByText(ActivitiesViewSelectorsText.TITLE);
+  get title(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(ActivitiesViewSelectorsText.TITLE),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(ActivitiesViewSelectorsText.TITLE),
+    });
   }
-  get predictionsTab(): DetoxElement {
-    return Matchers.getElementByLabel(
-      ActivitiesViewSelectorsText.PREDICTIONS_TAB,
-    );
+  get predictionsTab(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByLabel(ActivitiesViewSelectorsText.PREDICTIONS_TAB),
+      appium: () =>
+        PlaywrightMatchers.getElementByAccessibilityId(
+          ActivitiesViewSelectorsText.PREDICTIONS_TAB,
+        ),
+    });
   }
-  get transferTab(): DetoxElement {
-    return Matchers.getElementByID(ActivitiesViewSelectorsIDs.TRANSFER_TAB);
-  }
-
-  get tabsBar(): DetoxElement {
-    return Matchers.getElementByID(
-      `${ActivitiesViewSelectorsIDs.TABS_CONTAINER}-bar`,
-    );
-  }
-
-  get container(): DetoxElement {
-    return Matchers.getElementByID(ActivitiesViewSelectorsIDs.CONTAINER);
-  }
-
-  get confirmedLabel(): DetoxElement {
-    return Matchers.getElementByText(ActivitiesViewSelectorsText.CONFIRM_TEXT);
-  }
-
-  get stakeDepositedLabel(): DetoxElement {
-    return Matchers.getElementByText(ActivitiesViewSelectorsText.STAKE_DEPOSIT);
+  get transferTab(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(ActivitiesViewSelectorsIDs.TRANSFER_TAB),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ActivitiesViewSelectorsIDs.TRANSFER_TAB,
+        ),
+    });
   }
 
-  get stakeMoreDepositedLabel(): DetoxElement {
-    return Matchers.getElementByText(
-      ActivitiesViewSelectorsText.STAKE_DEPOSIT,
-      0,
-    );
+  get tabsBar(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          `${ActivitiesViewSelectorsIDs.TABS_CONTAINER}-bar`,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          `${ActivitiesViewSelectorsIDs.TABS_CONTAINER}-bar`,
+        ),
+    });
   }
 
-  get unstakeLabel(): DetoxElement {
-    return Matchers.getElementByText(ActivitiesViewSelectorsText.UNSTAKE);
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(ActivitiesViewSelectorsIDs.CONTAINER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(ActivitiesViewSelectorsIDs.CONTAINER),
+    });
   }
 
-  get stackingClaimLabel(): DetoxElement {
-    return Matchers.getElementByText(ActivitiesViewSelectorsText.STAKING_CLAIM);
+  get confirmedLabel(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(ActivitiesViewSelectorsText.CONFIRM_TEXT),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          ActivitiesViewSelectorsText.CONFIRM_TEXT,
+        ),
+    });
   }
 
-  get approveActivity(): DetoxElement {
-    return Matchers.getElementByText(ActivitiesViewSelectorsText.APPROVE);
+  get stakeDepositedLabel(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(ActivitiesViewSelectorsText.STAKE_DEPOSIT),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          ActivitiesViewSelectorsText.STAKE_DEPOSIT,
+        ),
+    });
   }
 
-  get lendingDepositActivity(): DetoxElement {
-    return Matchers.getElementByText(
-      ActivitiesViewSelectorsText.LENDING_DEPOSIT,
-    );
+  get stakeMoreDepositedLabel(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(ActivitiesViewSelectorsText.STAKE_DEPOSIT, 0),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          ActivitiesViewSelectorsText.STAKE_DEPOSIT,
+        ),
+    });
   }
 
-  get lendingWithdrawalActivity(): DetoxElement {
-    return Matchers.getElementByText(
-      ActivitiesViewSelectorsText.LENDING_WITHDRAWAL,
-    );
+  get unstakeLabel(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(ActivitiesViewSelectorsText.UNSTAKE),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          ActivitiesViewSelectorsText.UNSTAKE,
+        ),
+    });
   }
 
-  get predictDeposit(): DetoxElement {
-    return Matchers.getElementByText(
-      ActivitiesViewSelectorsText.PREDICT_DEPOSIT,
-    );
+  get stackingClaimLabel(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(ActivitiesViewSelectorsText.STAKING_CLAIM),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          ActivitiesViewSelectorsText.STAKING_CLAIM,
+        ),
+    });
   }
 
-  get predictWithdraw(): DetoxElement {
-    return Matchers.getElementByText(
-      ActivitiesViewSelectorsText.PREDICT_WITHDRAW,
-    );
+  get approveActivity(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(ActivitiesViewSelectorsText.APPROVE),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          ActivitiesViewSelectorsText.APPROVE,
+        ),
+    });
+  }
+
+  get lendingDepositActivity(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(ActivitiesViewSelectorsText.LENDING_DEPOSIT),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          ActivitiesViewSelectorsText.LENDING_DEPOSIT,
+        ),
+    });
+  }
+
+  get lendingWithdrawalActivity(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          ActivitiesViewSelectorsText.LENDING_WITHDRAWAL,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          ActivitiesViewSelectorsText.LENDING_WITHDRAWAL,
+        ),
+    });
+  }
+
+  get predictDeposit(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(ActivitiesViewSelectorsText.PREDICT_DEPOSIT),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          ActivitiesViewSelectorsText.PREDICT_DEPOSIT,
+        ),
+    });
+  }
+
+  get predictWithdraw(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(ActivitiesViewSelectorsText.PREDICT_WITHDRAW),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          ActivitiesViewSelectorsText.PREDICT_WITHDRAW,
+        ),
+    });
   }
 
   transactionStatus(row: number): DetoxElement {
@@ -137,46 +230,46 @@ class ActivitiesView {
     destinationToken: string,
   ): Promise<void> {
     const el = this.swapActivityTitle(sourceToken, destinationToken);
-    await Gestures.waitAndTap(el);
+    await UnifiedGestures.waitAndTap(el);
   }
 
   async tapConfirmedTransaction(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmedLabel);
+    await UnifiedGestures.waitAndTap(this.confirmedLabel);
   }
 
   async swipeDown(): Promise<void> {
-    await Gestures.swipe(this.container, 'down', {
+    await UnifiedGestures.swipe(this.container, 'down', {
       speed: 'slow',
       percentage: 0.5,
     });
   }
 
   async tapOnTransactionItem(row: number): Promise<void> {
-    await Gestures.waitAndTap(this.transactionItem(row));
+    await UnifiedGestures.waitAndTap(this.transactionItem(row));
   }
 
   async tapOnPredictionsTab(): Promise<void> {
     // Swipe left on the tabs bar to reveal the Predictions tab (it may be off-screen)
-    await Gestures.swipe(this.tabsBar, 'left', {
+    await UnifiedGestures.swipe(this.tabsBar, 'left', {
       percentage: 0.5,
       speed: 'slow',
       elemDescription: 'Activity View Tabs Bar',
     });
-    await Gestures.waitAndTap(this.predictionsTab, {
+    await UnifiedGestures.waitAndTap(this.predictionsTab, {
       elemDescription: 'Predictions Tab in Activity View',
       timeout: 3500,
     });
   }
 
   async tapOnTransfersTab(): Promise<void> {
-    await Gestures.waitAndTap(this.transferTab, {
+    await UnifiedGestures.waitAndTap(this.transferTab, {
       elemDescription: 'Transfer Tab in Activity View',
     });
   }
 
   async tapPredictPosition(positionName: string): Promise<void> {
     const el = Matchers.getElementByText(positionName);
-    await Gestures.waitAndTap(el, {
+    await UnifiedGestures.waitAndTap(el, {
       elemDescription: `Tapping Predict Position: ${positionName}`,
     });
   }
@@ -206,7 +299,7 @@ class ActivitiesView {
     const order = Matchers.getElementByID(
       getOrderRowTestId(orderType, rowIndex),
     );
-    await Gestures.waitAndTap(order, {
+    await UnifiedGestures.waitAndTap(order, {
       elemDescription: `Tapping Ramps Order: ${orderType} ${rowIndex}`,
     });
   }

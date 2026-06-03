@@ -1,6 +1,5 @@
 import { ExperienceEnhancerBottomSheetSelectorsIDs } from '../../../app/components/Views/ExperienceEnhancerModal/ExperienceEnhancerModal.testIds';
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
 import {
   asDetoxElement,
@@ -11,12 +10,20 @@ import {
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class ExperienceEnhancerBottomSheet {
-  get container(): DetoxElement {
-    return Matchers.getElementByID(
-      ExperienceEnhancerBottomSheetSelectorsIDs.BOTTOM_SHEET,
-    );
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          ExperienceEnhancerBottomSheetSelectorsIDs.BOTTOM_SHEET,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ExperienceEnhancerBottomSheetSelectorsIDs.BOTTOM_SHEET,
+        ),
+    });
   }
 
   get noThanksButton(): EncapsulatedElementType {
@@ -59,10 +66,13 @@ class ExperienceEnhancerBottomSheet {
             description: 'experience enhancer modal',
             timeout: 5_000,
           });
-          await Gestures.waitAndTap(asDetoxElement(this.noThanksButton), {
-            elemDescription:
-              'No Thanks Button in Experience Enhancer Bottom Sheet',
-          });
+          await UnifiedGestures.waitAndTap(
+            asDetoxElement(this.noThanksButton),
+            {
+              elemDescription:
+                'No Thanks Button in Experience Enhancer Bottom Sheet',
+            },
+          );
         } catch {
           // Modal not shown
         }
@@ -87,7 +97,7 @@ class ExperienceEnhancerBottomSheet {
   async tapNoThanks(): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
-        await Gestures.waitAndTap(asDetoxElement(this.noThanksButton), {
+        await UnifiedGestures.waitAndTap(asDetoxElement(this.noThanksButton), {
           elemDescription:
             'No Thanks Button in Experience Enhancer Bottom Sheet',
         });
@@ -108,7 +118,7 @@ class ExperienceEnhancerBottomSheet {
   async tapIAgree(): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
-        await Gestures.waitAndTap(asDetoxElement(this.iAgreeButton), {
+        await UnifiedGestures.waitAndTap(asDetoxElement(this.iAgreeButton), {
           elemDescription: 'I Agree Button in Experience Enhancer Bottom Sheet',
         });
       },

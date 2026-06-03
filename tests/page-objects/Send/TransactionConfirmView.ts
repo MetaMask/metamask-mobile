@@ -3,7 +3,6 @@
 // This e2e page object needs to be updated to use redesigned confirmation testIds
 // or deleted if the functionality is no longer tested.
 
-import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import { ConfirmationTopSheetSelectorsIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import {
@@ -15,6 +14,12 @@ import {
 //   TransactionConfirmViewSelectorsText,
 // } from '../../../app/components/Views/confirmations/legacy/components/Confirm/TransactionConfirmView.testIds';
 import RowComponents from '../Browser/Confirmations/RowComponents';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 // Temporary placeholders to prevent TypeScript errors
 const TransactionConfirmViewSelectorsIDs = {
@@ -39,134 +44,224 @@ class TransactionConfirmationView {
         );
   }
 
-  get cancelButton(): DetoxElement {
-    return Matchers.getElementByText(
-      TransactionConfirmViewSelectorsText.CANCEL_BUTTON,
-    );
+  get cancelButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          TransactionConfirmViewSelectorsText.CANCEL_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          TransactionConfirmViewSelectorsText.CANCEL_BUTTON,
+        ),
+    });
   }
 
-  get maxGasFee(): DetoxElement {
-    return Matchers.getElementByID(
-      EditGasViewSelectorsIDs.MAX_PRIORITY_FEE_INPUT_TEST_ID,
-    );
+  get maxGasFee(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          EditGasViewSelectorsIDs.MAX_PRIORITY_FEE_INPUT_TEST_ID,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          EditGasViewSelectorsIDs.MAX_PRIORITY_FEE_INPUT_TEST_ID,
+        ),
+    });
   }
 
-  get editPriorityFeeSheetContainer(): DetoxElement {
-    return Matchers.getElementByID(
-      EditGasViewSelectorsIDs.EDIT_PRIORITY_SCREEN_TEST_ID,
-    );
+  get editPriorityFeeSheetContainer(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          EditGasViewSelectorsIDs.EDIT_PRIORITY_SCREEN_TEST_ID,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          EditGasViewSelectorsIDs.EDIT_PRIORITY_SCREEN_TEST_ID,
+        ),
+    });
   }
 
-  get transactionAmount(): DetoxElement {
-    return Matchers.getElementByID(
-      TransactionConfirmViewSelectorsIDs.CONFIRM_TXN_AMOUNT,
-    );
+  get transactionAmount(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          TransactionConfirmViewSelectorsIDs.CONFIRM_TXN_AMOUNT,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          TransactionConfirmViewSelectorsIDs.CONFIRM_TXN_AMOUNT,
+        ),
+    });
   }
 
-  get estimatedGasLink(): DetoxElement {
-    return Matchers.getElementByID(
-      EditGasViewSelectorsIDs.ESTIMATED_FEE_TEST_ID,
-    );
+  get estimatedGasLink(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(EditGasViewSelectorsIDs.ESTIMATED_FEE_TEST_ID),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          EditGasViewSelectorsIDs.ESTIMATED_FEE_TEST_ID,
+        ),
+    });
   }
 
-  get transactionViewContainer(): DetoxElement {
-    return Matchers.getElementByID(
-      TransactionConfirmViewSelectorsIDs.TRANSACTION_VIEW_CONTAINER_ID,
-    );
+  get transactionViewContainer(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          TransactionConfirmViewSelectorsIDs.TRANSACTION_VIEW_CONTAINER_ID,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          TransactionConfirmViewSelectorsIDs.TRANSACTION_VIEW_CONTAINER_ID,
+        ),
+    });
   }
-  get LowPriorityText(): DetoxElement {
-    return Matchers.getElementByText(EditGasViewSelectorsText.LOW);
+  get LowPriorityText(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(EditGasViewSelectorsText.LOW),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(EditGasViewSelectorsText.LOW),
+    });
   }
-  get MarketPriorityText(): DetoxElement {
-    return Matchers.getElementByText(EditGasViewSelectorsText.MARKET);
+  get MarketPriorityText(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(EditGasViewSelectorsText.MARKET),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(EditGasViewSelectorsText.MARKET),
+    });
   }
-  get AggressivePriorityText(): DetoxElement {
-    return Matchers.getElementByText(EditGasViewSelectorsText.AGGRESSIVE);
+  get AggressivePriorityText(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(EditGasViewSelectorsText.AGGRESSIVE),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          EditGasViewSelectorsText.AGGRESSIVE,
+        ),
+    });
   }
-  get EditPrioritySaveButtonText(): DetoxElement {
-    return Matchers.getElementByText(EditGasViewSelectorsText.SAVE_BUTTON);
+  get EditPrioritySaveButtonText(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(EditGasViewSelectorsText.SAVE_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          EditGasViewSelectorsText.SAVE_BUTTON,
+        ),
+    });
   }
-  get EditPriorityAdvancedOptionsText(): DetoxElement {
-    return Matchers.getElementByText(EditGasViewSelectorsText.ADVANCE_OPTIONS);
+  get EditPriorityAdvancedOptionsText(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(EditGasViewSelectorsText.ADVANCE_OPTIONS),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          EditGasViewSelectorsText.ADVANCE_OPTIONS,
+        ),
+    });
   }
 
-  get editPriorityLegacyModal(): DetoxElement {
-    return Matchers.getElementByID(EditGasViewSelectorsIDs.LEGACY_CONTAINER);
+  get editPriorityLegacyModal(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(EditGasViewSelectorsIDs.LEGACY_CONTAINER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          EditGasViewSelectorsIDs.LEGACY_CONTAINER,
+        ),
+    });
   }
 
-  get securityAlertBanner(): DetoxElement {
-    return Matchers.getElementByID(
-      ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_BANNER,
-    );
+  get securityAlertBanner(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_BANNER,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_BANNER,
+        ),
+    });
   }
 
-  get securityAlertResponseFailedBanner(): DetoxElement {
-    return Matchers.getElementByID(
-      ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_RESPONSE_FAILED_BANNER,
-    );
+  get securityAlertResponseFailedBanner(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_RESPONSE_FAILED_BANNER,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_RESPONSE_FAILED_BANNER,
+        ),
+    });
   }
 
   async tapConfirmButton(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmButton, {
+    await UnifiedGestures.waitAndTap(this.confirmButton, {
       elemDescription: 'Confirm Button in Transaction Confirmation View',
     });
   }
 
   async tapCancelButton(): Promise<void> {
-    await Gestures.waitAndTap(this.cancelButton, {
+    await UnifiedGestures.waitAndTap(this.cancelButton, {
       elemDescription: 'Cancel Button in Transaction Confirmation View',
     });
   }
 
   async tapEstimatedGasLink(): Promise<void> {
-    await Gestures.swipe(this.transactionAmount, 'up', {
+    await UnifiedGestures.swipe(this.transactionAmount, 'up', {
       speed: 'fast',
     });
-    await Gestures.tap(this.estimatedGasLink, {
+    await UnifiedGestures.tap(this.estimatedGasLink, {
       elemDescription: 'Estimated Gas Link in Transaction Confirmation View',
       checkStability: true,
     });
   }
 
   async tapLowPriorityGasOption(): Promise<void> {
-    await Gestures.waitAndTap(this.LowPriorityText, {
+    await UnifiedGestures.waitAndTap(this.LowPriorityText, {
       elemDescription:
         'Low Priority Gas Option in Transaction Confirmation View',
     });
   }
   async tapMarketPriorityGasOption(): Promise<void> {
-    await Gestures.waitAndTap(this.MarketPriorityText, {
+    await UnifiedGestures.waitAndTap(this.MarketPriorityText, {
       elemDescription:
         'Market Priority Gas Option in Transaction Confirmation View',
     });
   }
   async tapAggressivePriorityGasOption(): Promise<void> {
-    await Gestures.waitAndTap(this.AggressivePriorityText, {
+    await UnifiedGestures.waitAndTap(this.AggressivePriorityText, {
       elemDescription:
         'Aggressive Priority Gas Option in Transaction Confirmation View',
     });
   }
 
   async tapMaxPriorityFeeSaveButton(): Promise<void> {
-    await Gestures.waitAndTap(this.EditPrioritySaveButtonText, {
+    await UnifiedGestures.waitAndTap(this.EditPrioritySaveButtonText, {
       elemDescription:
         'Edit Priority Save Button in Transaction Confirmation View',
     });
   }
   async tapAdvancedOptionsPriorityGasOption(): Promise<void> {
-    await Gestures.waitAndTap(this.EditPriorityAdvancedOptionsText, {
+    await UnifiedGestures.waitAndTap(this.EditPriorityAdvancedOptionsText, {
       elemDescription: 'Advanced Options Priority Gas Option',
     });
   }
 
   async tapGasFeeTokenPill(): Promise<void> {
-    await Gestures.waitAndTap(RowComponents.NetworkFeeGasFeeTokenPill, {
+    await UnifiedGestures.waitAndTap(RowComponents.NetworkFeeGasFeeTokenPill, {
       elemDescription: 'Gas Fee Token Pill in Confirmation View',
     });
   }
 
   async tapAdvancedDetails(): Promise<void> {
-    await Gestures.waitAndTap(RowComponents.AdvancedDetails, {
+    await UnifiedGestures.waitAndTap(RowComponents.AdvancedDetails, {
       elemDescription: 'Advanced details in Confirmation View',
     });
   }

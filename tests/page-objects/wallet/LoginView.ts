@@ -1,6 +1,5 @@
 import { LoginViewSelectors } from '../../../app/components/Views/Login/LoginView.testIds';
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
 import { PlaywrightAssertions } from '../../framework';
 import {
   encapsulated,
@@ -44,12 +43,23 @@ class LoginView {
     });
   }
 
-  get forgotPasswordButton(): DetoxElement {
-    return Matchers.getElementByID(LoginViewSelectors.RESET_WALLET);
+  get forgotPasswordButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(LoginViewSelectors.RESET_WALLET),
+      appium: () =>
+        PlaywrightMatchers.getElementById(LoginViewSelectors.RESET_WALLET),
+    });
   }
 
-  get rememberMeSwitch(): DetoxElement {
-    return Matchers.getElementByID(LoginViewSelectors.REMEMBER_ME_SWITCH);
+  get rememberMeSwitch(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(LoginViewSelectors.REMEMBER_ME_SWITCH),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          LoginViewSelectors.REMEMBER_ME_SWITCH,
+        ),
+    });
   }
 
   get loginButton(): EncapsulatedElementType {
@@ -89,13 +99,13 @@ class LoginView {
   }
 
   async tapForgotPassword(): Promise<void> {
-    await Gestures.waitAndTap(this.forgotPasswordButton, {
+    await UnifiedGestures.waitAndTap(this.forgotPasswordButton, {
       elemDescription: 'Forgot Password Button',
     });
   }
 
   async toggleRememberMeSwitch(): Promise<void> {
-    await Gestures.waitAndTap(this.rememberMeSwitch, {
+    await UnifiedGestures.waitAndTap(this.rememberMeSwitch, {
       elemDescription: 'Remember Me Switch',
     });
   }

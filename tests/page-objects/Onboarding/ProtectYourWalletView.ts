@@ -1,6 +1,5 @@
 import { ManualBackUpStepsSelectorsIDs } from '../../../app/components/Views/ManualBackupStep1/ManualBackUpSteps.testIds';
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
 import {
   asDetoxElement,
   asPlaywrightElement,
@@ -11,12 +10,20 @@ import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import { PlatformDetector } from '../../framework/PlatformLocator';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class ProtectYourWalletView {
-  get container(): DetoxElement {
-    return Matchers.getElementByID(
-      ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER,
-    );
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER,
+        ),
+    });
   }
 
   get remindMeLaterButton(): EncapsulatedElementType {
@@ -36,9 +43,12 @@ class ProtectYourWalletView {
   async tapOnRemindMeLaterButton(): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
-        await Gestures.waitAndTap(asDetoxElement(this.remindMeLaterButton), {
-          elemDescription: 'Protect Your Wallet Remind Me Later Button',
-        });
+        await UnifiedGestures.waitAndTap(
+          asDetoxElement(this.remindMeLaterButton),
+          {
+            elemDescription: 'Protect Your Wallet Remind Me Later Button',
+          },
+        );
       },
       appium: async () => {
         if (await PlatformDetector.isIOS()) {

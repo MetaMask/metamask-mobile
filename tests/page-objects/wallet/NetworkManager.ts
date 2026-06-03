@@ -1,6 +1,5 @@
 import { CaipChainId } from '@metamask/utils';
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
 import Utilities from '../../framework/Utilities';
 import {
@@ -12,76 +11,138 @@ import {
   WalletViewSelectorsIDs,
   WalletViewSelectorsText,
 } from '../../../app/components/Views/Wallet/WalletView.testIds';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class NetworkManager {
   /**
    * Button to open the network manager
    */
-  get openNetworkManagerButton(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER);
+  get openNetworkManagerButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER,
+        ),
+    });
   }
 
   /**
    * Select the bottom sheet of the network manager
    */
-  get networkManagerBottomSheet(): DetoxElement {
-    return Matchers.getElementByID(
-      NetworkManagerSelectorIDs.NETWORK_MANAGER_BOTTOM_SHEET,
-    );
+  get networkManagerBottomSheet(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          NetworkManagerSelectorIDs.NETWORK_MANAGER_BOTTOM_SHEET,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          NetworkManagerSelectorIDs.NETWORK_MANAGER_BOTTOM_SHEET,
+        ),
+    });
   }
 
   /**
    * Select the tab of the popular networks
    */
-  get popularNetworksTab(): DetoxElement {
-    return Matchers.getElementByText(
-      NetworkManagerSelectorText.POPULAR_NETWORKS_TAB,
-    );
+  get popularNetworksTab(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          NetworkManagerSelectorText.POPULAR_NETWORKS_TAB,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          NetworkManagerSelectorText.POPULAR_NETWORKS_TAB,
+        ),
+    });
   }
 
   /**
    * Select the tab of the custom networks
    */
-  get customNetworksTab(): DetoxElement {
-    return Matchers.getElementByText(
-      NetworkManagerSelectorText.CUSTOM_NETWORKS_TAB,
-    );
+  get customNetworksTab(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          NetworkManagerSelectorText.CUSTOM_NETWORKS_TAB,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          NetworkManagerSelectorText.CUSTOM_NETWORKS_TAB,
+        ),
+    });
   }
 
   /**
    * Select the container of the popular networks tab
    */
-  get popularNetworksContainer(): DetoxElement {
-    return Matchers.getElementByID(
-      NetworkManagerSelectorIDs.POPULAR_NETWORKS_CONTAINER,
-    );
+  get popularNetworksContainer(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          NetworkManagerSelectorIDs.POPULAR_NETWORKS_CONTAINER,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          NetworkManagerSelectorIDs.POPULAR_NETWORKS_CONTAINER,
+        ),
+    });
   }
 
   /**
    * Select the container of the custom networks tab
    */
-  get customNetworksContainer(): DetoxElement {
-    return Matchers.getElementByID(
-      NetworkManagerSelectorIDs.CUSTOM_NETWORKS_CONTAINER,
-    );
+  get customNetworksContainer(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          NetworkManagerSelectorIDs.CUSTOM_NETWORKS_CONTAINER,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          NetworkManagerSelectorIDs.CUSTOM_NETWORKS_CONTAINER,
+        ),
+    });
   }
 
   /**
    * Select the button to select all popular networks
    */
-  get selectAllPopularNetworksSelected(): DetoxElement {
-    return Matchers.getElementByID(
-      NetworkManagerSelectorIDs.SELECT_ALL_POPULAR_NETWORKS_SELECTED,
-    );
+  get selectAllPopularNetworksSelected(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          NetworkManagerSelectorIDs.SELECT_ALL_POPULAR_NETWORKS_SELECTED,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          NetworkManagerSelectorIDs.SELECT_ALL_POPULAR_NETWORKS_SELECTED,
+        ),
+    });
   }
 
   /**
    * Select the button to select all popular networks
    */
-  get selectAllPopularNetworksNotSelected(): DetoxElement {
-    return Matchers.getElementByID(
-      NetworkManagerSelectorIDs.SELECT_ALL_POPULAR_NETWORKS_NOT_SELECTED,
-    );
+  get selectAllPopularNetworksNotSelected(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          NetworkManagerSelectorIDs.SELECT_ALL_POPULAR_NETWORKS_NOT_SELECTED,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          NetworkManagerSelectorIDs.SELECT_ALL_POPULAR_NETWORKS_NOT_SELECTED,
+        ),
+    });
   }
 
   /**
@@ -160,7 +221,7 @@ class NetworkManager {
    */
   async tapNetwork(caipChainId: CaipChainId) {
     const elem = this.getNetworkByCaipChainId(caipChainId);
-    await Gestures.waitAndTap(elem, {
+    await UnifiedGestures.waitAndTap(elem, {
       elemDescription: `NetworkManager - tapping network: ${caipChainId}`,
     });
   }
@@ -189,7 +250,7 @@ class NetworkManager {
    * Open the network manager
    */
   async openNetworkManager(): Promise<void> {
-    await Gestures.waitAndTap(this.openNetworkManagerButton, {
+    await UnifiedGestures.waitAndTap(this.openNetworkManagerButton, {
       elemDescription: 'Open Network Manager Button',
     });
     await this.waitForNetworkManagerToLoad();
@@ -203,7 +264,7 @@ class NetworkManager {
     const tokensSectionHeader = Matchers.getElementByText(
       WalletViewSelectorsText.TOKENS_SECTION,
     );
-    await Gestures.waitAndTap(tokensSectionHeader, {
+    await UnifiedGestures.waitAndTap(tokensSectionHeader, {
       checkStability: true,
       elemDescription: 'Tokens Section Header (navigate to full view)',
     });
@@ -216,7 +277,7 @@ class NetworkManager {
     const backButton = Matchers.getElementByID(
       WalletViewSelectorsIDs.BACK_BUTTON,
     );
-    await Gestures.waitAndTap(backButton, {
+    await UnifiedGestures.waitAndTap(backButton, {
       elemDescription: 'Back button (return from TokensFullView)',
     });
   }
@@ -228,7 +289,7 @@ class NetworkManager {
    */
   async openNetworkManagerFromHomepage(): Promise<void> {
     await this.navigateToTokensFullView();
-    await Gestures.waitAndTap(this.openNetworkManagerButton, {
+    await UnifiedGestures.waitAndTap(this.openNetworkManagerButton, {
       elemDescription: 'Open Network Manager Button (from TokensFullView)',
     });
     await this.waitForNetworkManagerToLoad();
@@ -252,7 +313,7 @@ class NetworkManager {
     }
 
     // swipe down on the bottom sheet
-    await Gestures.swipe(this.networkManagerBottomSheet, 'down', {
+    await UnifiedGestures.swipe(this.networkManagerBottomSheet, 'down', {
       speed: 'fast',
     });
     // wait for the bottom sheet to be closed
@@ -290,14 +351,14 @@ class NetworkManager {
     );
 
     if (isNotSelectedVisible) {
-      await Gestures.waitAndTap(notSelected, {
+      await UnifiedGestures.waitAndTap(notSelected, {
         elemDescription: 'Select All Popular Networks (not selected)',
       });
       return;
     }
 
     const selected = this.selectAllPopularNetworksSelected;
-    await Gestures.waitAndTap(selected, {
+    await UnifiedGestures.waitAndTap(selected, {
       elemDescription: 'Select All Popular Networks (selected)',
     });
   }
@@ -306,7 +367,7 @@ class NetworkManager {
    * Tap the custom networks tab
    */
   async tapCustomNetworksTab() {
-    await Gestures.waitAndTap(this.customNetworksTab, {
+    await UnifiedGestures.waitAndTap(this.customNetworksTab, {
       elemDescription: 'Custom Networks Tab',
     });
   }
@@ -467,7 +528,7 @@ class NetworkManager {
    * Tap popular networks tab
    */
   async tapPopularNetworksTab() {
-    await Gestures.waitAndTap(this.popularNetworksTab, {
+    await UnifiedGestures.waitAndTap(this.popularNetworksTab, {
       elemDescription: 'Popular Networks Tab',
     });
   }

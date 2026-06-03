@@ -4,42 +4,85 @@ import {
   TransactionDetailsSelectorIDs,
 } from '../../../app/components/Views/confirmations/components/activity/TransactionDetailsModal.testIds';
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
 import { Assertions, logger } from '../../framework';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class TransactionDetailsModal {
-  get closeIcon(): DetoxElement {
-    return Matchers.getElementByID(
-      TransactionDetailsModalSelectorsIDs.CLOSE_ICON,
-    );
+  get closeIcon(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(TransactionDetailsModalSelectorsIDs.CLOSE_ICON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          TransactionDetailsModalSelectorsIDs.CLOSE_ICON,
+        ),
+    });
   }
 
-  get networkFee(): DetoxElement {
-    return Matchers.getElementByID(TransactionDetailsSelectorIDs.NETWORK_FEE);
+  get networkFee(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(TransactionDetailsSelectorIDs.NETWORK_FEE),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          TransactionDetailsSelectorIDs.NETWORK_FEE,
+        ),
+    });
   }
 
-  get paidWithSymbol(): DetoxElement {
-    return Matchers.getElementByID(
-      TransactionDetailsSelectorIDs.PAID_WITH_SYMBOL,
-    );
+  get paidWithSymbol(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(TransactionDetailsSelectorIDs.PAID_WITH_SYMBOL),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          TransactionDetailsSelectorIDs.PAID_WITH_SYMBOL,
+        ),
+    });
   }
 
-  get status(): DetoxElement {
-    return Matchers.getElementByID(TransactionDetailsSelectorIDs.STATUS);
+  get status(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(TransactionDetailsSelectorIDs.STATUS),
+      appium: () =>
+        PlaywrightMatchers.getElementById(TransactionDetailsSelectorIDs.STATUS),
+    });
   }
 
-  get title(): DetoxElement {
-    return Matchers.getElementByID(TransactionDetailsModalSelectorsIDs.TITLE);
+  get title(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(TransactionDetailsModalSelectorsIDs.TITLE),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          TransactionDetailsModalSelectorsIDs.TITLE,
+        ),
+    });
   }
 
-  get total(): DetoxElement {
-    return Matchers.getElementByID(TransactionDetailsSelectorIDs.TOTAL);
+  get total(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(TransactionDetailsSelectorIDs.TOTAL),
+      appium: () =>
+        PlaywrightMatchers.getElementById(TransactionDetailsSelectorIDs.TOTAL),
+    });
   }
 
-  get transactionFee(): DetoxElement {
-    return Matchers.getElementByID(
-      TransactionDetailsSelectorIDs.TRANSACTION_FEE,
-    );
+  get transactionFee(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(TransactionDetailsSelectorIDs.TRANSACTION_FEE),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          TransactionDetailsSelectorIDs.TRANSACTION_FEE,
+        ),
+    });
   }
 
   generateExpectedTitle(sourceToken: string, destinationToken: string): string {
@@ -51,7 +94,7 @@ class TransactionDetailsModal {
 
   async tapOnCloseIcon(): Promise<void> {
     try {
-      await Gestures.waitAndTap(this.closeIcon);
+      await UnifiedGestures.waitAndTap(this.closeIcon);
     } catch {
       // Handle error
       logger.warn(

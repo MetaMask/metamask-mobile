@@ -17,6 +17,7 @@ import Assertions from '../../framework/Assertions';
 import { isCaipChainId } from '@metamask/utils';
 import { createLogger } from '../../framework/logger';
 import { navigateToBrowserView } from '../../flows/browser.flow';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 const logger = createLogger({
   name: 'MultichainTestDApp',
@@ -166,7 +167,7 @@ class MultichainTestDApp {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async tapButton(elementId: any): Promise<void> {
     await Gestures.scrollToWebViewPort(elementId);
-    await Gestures.tap(elementId);
+    await UnifiedGestures.tap(elementId);
   }
 
   /**

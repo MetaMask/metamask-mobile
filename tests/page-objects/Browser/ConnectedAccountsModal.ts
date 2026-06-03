@@ -4,207 +4,336 @@ import {
 } from '../../../app/components/Views/MultichainAccounts/shared/ConnectedAccountModal.testIds';
 import { WalletViewSelectorsText } from '../../../app/components/Views/Wallet/WalletView.testIds';
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
 import { waitFor } from 'detox';
 import type {
   IndexableNativeElement,
   NativeElement,
   IndexableSystemElement,
 } from 'detox/detox';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 type DetoxElement = Promise<
   IndexableNativeElement | NativeElement | IndexableSystemElement
 >;
 
 class ConnectedAccountsModal {
-  get container(): DetoxElement {
-    return Matchers.getElementByID(ConnectedAccountsSelectorsIDs.CONTAINER);
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(ConnectedAccountsSelectorsIDs.CONTAINER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ConnectedAccountsSelectorsIDs.CONTAINER,
+        ),
+    });
   }
 
-  get permissionsButton(): DetoxElement {
-    return Matchers.getElementByText(
-      ConnectedAccountModalSelectorsText.PERMISSION_LINK,
-    );
+  get permissionsButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          ConnectedAccountModalSelectorsText.PERMISSION_LINK,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          ConnectedAccountModalSelectorsText.PERMISSION_LINK,
+        ),
+    });
   }
 
-  get networkPicker(): DetoxElement {
-    return Matchers.getElementByID(
-      ConnectedAccountsSelectorsIDs.NETWORK_PICKER,
-    );
+  get networkPicker(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(ConnectedAccountsSelectorsIDs.NETWORK_PICKER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ConnectedAccountsSelectorsIDs.NETWORK_PICKER,
+        ),
+    });
   }
 
-  get disconnectAllButton(): DetoxElement {
-    return Matchers.getElementByText(
-      ConnectedAccountModalSelectorsText.DISCONNECT_ALL,
-    );
+  get disconnectAllButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          ConnectedAccountModalSelectorsText.DISCONNECT_ALL,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          ConnectedAccountModalSelectorsText.DISCONNECT_ALL,
+        ),
+    });
   }
 
-  get disconnectButton(): DetoxElement {
-    return Matchers.getElementByID(ConnectedAccountsSelectorsIDs.DISCONNECT);
+  get disconnectButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(ConnectedAccountsSelectorsIDs.DISCONNECT),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ConnectedAccountsSelectorsIDs.DISCONNECT,
+        ),
+    });
   }
 
-  get disconnectAllAccountsAndNetworksButton(): DetoxElement {
-    return Matchers.getElementByID(
-      ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_ACCOUNTS_NETWORKS,
-    );
+  get disconnectAllAccountsAndNetworksButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_ACCOUNTS_NETWORKS,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_ACCOUNTS_NETWORKS,
+        ),
+    });
   }
 
-  get navigateToEditAccountsPermissionsButton(): DetoxElement {
-    return Matchers.getElementByID(
-      ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_ACCOUNTS_PERMISSIONS_BUTTON,
-    );
+  get navigateToEditAccountsPermissionsButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_ACCOUNTS_PERMISSIONS_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_ACCOUNTS_PERMISSIONS_BUTTON,
+        ),
+    });
   }
 
-  get navigateToEditNetworksPermissionsButton(): DetoxElement {
-    return Matchers.getElementByID(
-      ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON,
-    );
+  get navigateToEditNetworksPermissionsButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON,
+        ),
+    });
   }
 
-  get connectAccountsButton(): DetoxElement {
-    return Matchers.getElementByID(
-      ConnectedAccountsSelectorsIDs.CONNECT_ACCOUNTS_BUTTON,
-    );
+  get connectAccountsButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          ConnectedAccountsSelectorsIDs.CONNECT_ACCOUNTS_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ConnectedAccountsSelectorsIDs.CONNECT_ACCOUNTS_BUTTON,
+        ),
+    });
   }
 
-  get managePermissionsButton(): DetoxElement {
-    return Matchers.getElementByID(
-      ConnectedAccountsSelectorsIDs.MANAGE_PERMISSIONS,
-    );
+  get managePermissionsButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          ConnectedAccountsSelectorsIDs.MANAGE_PERMISSIONS,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ConnectedAccountsSelectorsIDs.MANAGE_PERMISSIONS,
+        ),
+    });
   }
 
-  get permissionsSummaryTab(): DetoxElement {
-    return Matchers.getElementByText(
-      WalletViewSelectorsText.PERMISSIONS_SUMMARY_TAB,
-    );
+  get permissionsSummaryTab(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          WalletViewSelectorsText.PERMISSIONS_SUMMARY_TAB,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          WalletViewSelectorsText.PERMISSIONS_SUMMARY_TAB,
+        ),
+    });
   }
 
-  get accountsSummaryTab(): DetoxElement {
-    return Matchers.getElementByText(
-      WalletViewSelectorsText.ACCOUNTS_SUMMARY_TAB,
-    );
+  get accountsSummaryTab(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(WalletViewSelectorsText.ACCOUNTS_SUMMARY_TAB),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          WalletViewSelectorsText.ACCOUNTS_SUMMARY_TAB,
+        ),
+    });
   }
 
-  get accountListBottomSheet(): DetoxElement {
-    return Matchers.getElementByID(
-      ConnectedAccountsSelectorsIDs.ACCOUNT_LIST_BOTTOM_SHEET,
-    );
+  get accountListBottomSheet(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          ConnectedAccountsSelectorsIDs.ACCOUNT_LIST_BOTTOM_SHEET,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ConnectedAccountsSelectorsIDs.ACCOUNT_LIST_BOTTOM_SHEET,
+        ),
+    });
   }
 
-  get title(): DetoxElement {
-    return Matchers.getElementByText(ConnectedAccountModalSelectorsText.TITLE);
+  get title(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(ConnectedAccountModalSelectorsText.TITLE),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          ConnectedAccountModalSelectorsText.TITLE,
+        ),
+    });
   }
 
-  get selectAllNetworksButton(): DetoxElement {
-    return Matchers.getElementByText(
-      ConnectedAccountModalSelectorsText.SELECT_ALL,
-    );
+  get selectAllNetworksButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          ConnectedAccountModalSelectorsText.SELECT_ALL,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          ConnectedAccountModalSelectorsText.SELECT_ALL,
+        ),
+    });
   }
 
-  get disconnectNetworksButton(): DetoxElement {
-    return Matchers.getElementByID(
-      ConnectedAccountsSelectorsIDs.DISCONNECT_NETWORKS_BUTTON,
-    );
+  get disconnectNetworksButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          ConnectedAccountsSelectorsIDs.DISCONNECT_NETWORKS_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ConnectedAccountsSelectorsIDs.DISCONNECT_NETWORKS_BUTTON,
+        ),
+    });
   }
 
-  get confirmDisconnectNetworksButton(): DetoxElement {
-    return Matchers.getElementByID(
-      ConnectedAccountsSelectorsIDs.CONFIRM_DISCONNECT_NETWORKS_BUTTON,
-    );
+  get confirmDisconnectNetworksButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          ConnectedAccountsSelectorsIDs.CONFIRM_DISCONNECT_NETWORKS_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ConnectedAccountsSelectorsIDs.CONFIRM_DISCONNECT_NETWORKS_BUTTON,
+        ),
+    });
   }
 
   async tapPermissionsButton(): Promise<void> {
-    await Gestures.waitAndTap(this.permissionsButton, {
+    await UnifiedGestures.waitAndTap(this.permissionsButton, {
       elemDescription: 'Permissions button',
     });
   }
 
   async tapNetworksPicker(): Promise<void> {
-    await Gestures.waitAndTap(this.networkPicker, {
+    await UnifiedGestures.waitAndTap(this.networkPicker, {
       elemDescription: 'Network picker',
     });
   }
 
   async tapDisconnectAllButton(): Promise<void> {
-    await Gestures.waitAndTap(this.disconnectAllButton, {
+    await UnifiedGestures.waitAndTap(this.disconnectAllButton, {
       elemDescription: 'Disconnect all button',
     });
   }
 
   async tapManagePermissionsButton(): Promise<void> {
-    await Gestures.waitAndTap(this.managePermissionsButton, {
+    await UnifiedGestures.waitAndTap(this.managePermissionsButton, {
       elemDescription: 'Manage permissions button',
       waitForElementToDisappear: true,
     });
   }
 
   async tapPermissionsSummaryTab(): Promise<void> {
-    await Gestures.waitAndTap(this.permissionsSummaryTab, {
+    await UnifiedGestures.waitAndTap(this.permissionsSummaryTab, {
       elemDescription: 'Permissions summary tab',
     });
   }
 
   async tapAccountsSummaryTab(): Promise<void> {
-    await Gestures.waitAndTap(this.accountsSummaryTab, {
+    await UnifiedGestures.waitAndTap(this.accountsSummaryTab, {
       elemDescription: 'Accounts summary tab',
     });
   }
 
   async tapAccountListBottomSheet(): Promise<void> {
-    await Gestures.waitAndTap(this.accountListBottomSheet, {
+    await UnifiedGestures.waitAndTap(this.accountListBottomSheet, {
       elemDescription: 'Account list bottom sheet',
     });
   }
 
   async tapDisconnectButton(): Promise<void> {
-    await Gestures.waitAndTap(this.disconnectButton, {
+    await UnifiedGestures.waitAndTap(this.disconnectButton, {
       elemDescription: 'Disconnect button',
     });
   }
 
   async tapDisconnectAllAccountsAndNetworksButton(): Promise<void> {
-    await Gestures.waitAndTap(this.disconnectAllAccountsAndNetworksButton, {
-      elemDescription: 'Disconnect all accounts and networks button',
-    });
+    await UnifiedGestures.waitAndTap(
+      this.disconnectAllAccountsAndNetworksButton,
+      {
+        elemDescription: 'Disconnect all accounts and networks button',
+      },
+    );
   }
 
   async tapNavigateToEditAccountsPermissionsButton(): Promise<void> {
-    await Gestures.waitAndTap(this.navigateToEditAccountsPermissionsButton, {
-      elemDescription: 'Navigate to edit accounts permissions button',
-    });
+    await UnifiedGestures.waitAndTap(
+      this.navigateToEditAccountsPermissionsButton,
+      {
+        elemDescription: 'Navigate to edit accounts permissions button',
+      },
+    );
   }
 
   async tapNavigateToEditNetworksPermissionsButton(): Promise<void> {
-    await Gestures.waitAndTap(this.navigateToEditNetworksPermissionsButton, {
-      elemDescription: 'Navigate to edit networks permissions button',
-    });
+    await UnifiedGestures.waitAndTap(
+      this.navigateToEditNetworksPermissionsButton,
+      {
+        elemDescription: 'Navigate to edit networks permissions button',
+      },
+    );
   }
 
   async tapSelectAllNetworksButton(): Promise<void> {
-    await Gestures.waitAndTap(this.selectAllNetworksButton, {
+    await UnifiedGestures.waitAndTap(this.selectAllNetworksButton, {
       elemDescription: 'Select all networks button',
     });
   }
 
   async tapDeselectAllNetworksButton(): Promise<void> {
-    await Gestures.waitAndTap(this.selectAllNetworksButton, {
+    await UnifiedGestures.waitAndTap(this.selectAllNetworksButton, {
       elemDescription: 'Deselect all networks button',
     });
   }
 
   async tapDisconnectNetworksButton(): Promise<void> {
-    await Gestures.waitAndTap(this.disconnectNetworksButton, {
+    await UnifiedGestures.waitAndTap(this.disconnectNetworksButton, {
       elemDescription: 'Disconnect networks button',
     });
   }
 
   async tapConfirmDisconnectNetworksButton(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmDisconnectNetworksButton, {
+    await UnifiedGestures.waitAndTap(this.confirmDisconnectNetworksButton, {
       elemDescription: 'Confirm disconnect networks button',
     });
   }
 
   async scrollToBottomOfModal(): Promise<void> {
-    await Gestures.swipe(
+    await UnifiedGestures.swipe(
       this.title as Promise<IndexableNativeElement>,
       'down',
       {
@@ -215,7 +344,7 @@ class ConnectedAccountsModal {
   }
 
   async tapConnectMoreAccountsButton(): Promise<void> {
-    await Gestures.waitAndTap(this.connectAccountsButton, {
+    await UnifiedGestures.waitAndTap(this.connectAccountsButton, {
       elemDescription: 'Connect more accounts button',
     });
   }

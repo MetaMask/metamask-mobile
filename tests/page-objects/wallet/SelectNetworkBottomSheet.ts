@@ -1,16 +1,28 @@
 import { PermissionSummaryBottomSheetSelectorsText } from '../../../app/components/Views/MultichainAccounts/shared/PermissionSummaryBottomSheet.testIds';
-import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class SelectNetworksBottomSheet {
-  get connectedAccountsText(): DetoxElement {
-    return Matchers.getElementByText(
-      PermissionSummaryBottomSheetSelectorsText.CONNECTED_ACCOUNTS_TEXT,
-    );
+  get connectedAccountsText(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          PermissionSummaryBottomSheetSelectorsText.CONNECTED_ACCOUNTS_TEXT,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          PermissionSummaryBottomSheetSelectorsText.CONNECTED_ACCOUNTS_TEXT,
+        ),
+    });
   }
 
   async swipeToDismiss(): Promise<void> {
-    await Gestures.swipe(this.connectedAccountsText, 'down', {
+    await UnifiedGestures.swipe(this.connectedAccountsText, 'down', {
       elemDescription: 'Networks Bottom Sheet',
       speed: 'fast',
       percentage: 0.6,
@@ -19,7 +31,7 @@ class SelectNetworksBottomSheet {
 
   async longPressOnNetwork(networkName: string): Promise<void> {
     const networkElement = Matchers.getElementByText(networkName);
-    await Gestures.longPress(networkElement, {
+    await UnifiedGestures.longPress(networkElement, {
       elemDescription: `Network: ${networkName}`,
     });
   }

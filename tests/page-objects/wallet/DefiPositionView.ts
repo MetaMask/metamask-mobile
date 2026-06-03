@@ -2,6 +2,11 @@ import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/Wal
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
 import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 
 /**
  * Page Object for the DeFi position details screen (e.g. "Aave V3").
@@ -9,15 +14,27 @@ import Matchers from '../../framework/Matchers';
  */
 class DefiPositionView {
   /** Main container of the position details screen */
-  get container(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.DEFI_POSITIONS_DETAILS_CONTAINER,
-    );
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          WalletViewSelectorsIDs.DEFI_POSITIONS_DETAILS_CONTAINER,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.DEFI_POSITIONS_DETAILS_CONTAINER,
+        ),
+    });
   }
 
   /** Back arrow button in the navbar (navigates to DeFi list) */
-  get backButton(): DetoxElement {
-    return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON);
+  get backButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(CommonSelectorsIDs.BACK_ARROW_BUTTON),
+    });
   }
 
   /**

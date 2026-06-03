@@ -1,19 +1,38 @@
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../../../app/components/Views/NetworkConnect/NetworkConnectMultiSelector.testIds';
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
 import { Assertions } from '../../framework';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class NetworkConnectMultiSelector {
-  get updateButton(): DetoxElement {
-    return Matchers.getElementByID(
-      NetworkConnectMultiSelectorSelectorsIDs.UPDATE_CHAIN_PERMISSIONS,
-    );
+  get updateButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          NetworkConnectMultiSelectorSelectorsIDs.UPDATE_CHAIN_PERMISSIONS,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          NetworkConnectMultiSelectorSelectorsIDs.UPDATE_CHAIN_PERMISSIONS,
+        ),
+    });
   }
 
-  get backButton(): DetoxElement {
-    return Matchers.getElementByID(
-      NetworkConnectMultiSelectorSelectorsIDs.BACK_BUTTON,
-    );
+  get backButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          NetworkConnectMultiSelectorSelectorsIDs.BACK_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          NetworkConnectMultiSelectorSelectorsIDs.BACK_BUTTON,
+        ),
+    });
   }
 
   getMultiselectElement(label: string): DetoxElement {
@@ -21,13 +40,13 @@ class NetworkConnectMultiSelector {
   }
 
   async tapUpdateButton(): Promise<void> {
-    await Gestures.waitAndTap(this.updateButton, {
+    await UnifiedGestures.waitAndTap(this.updateButton, {
       elemDescription: 'Tap on the update button',
     });
   }
 
   async tapBackButton(): Promise<void> {
-    await Gestures.waitAndTap(this.backButton, {
+    await UnifiedGestures.waitAndTap(this.backButton, {
       elemDescription: 'Tap on the back button',
     });
   }
@@ -52,7 +71,7 @@ class NetworkConnectMultiSelector {
 
   async selectNetworkChainPermission(chainName: string): Promise<void> {
     const el = this.getMultiselectElement(chainName);
-    await Gestures.waitAndTap(el, {
+    await UnifiedGestures.waitAndTap(el, {
       elemDescription: `Tap on the network chain permission ${chainName}`,
     });
   }

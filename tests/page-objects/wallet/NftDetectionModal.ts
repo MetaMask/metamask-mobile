@@ -1,28 +1,54 @@
 import { NftDetectionModalSelectorsIDs } from '../../../app/components/Views/NFTAutoDetectionModal/NftDetectionModal.testIds';
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class NftDetectionModal {
-  get container(): DetoxElement {
-    return Matchers.getElementByID(NftDetectionModalSelectorsIDs.CONTAINER);
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(NftDetectionModalSelectorsIDs.CONTAINER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          NftDetectionModalSelectorsIDs.CONTAINER,
+        ),
+    });
   }
 
-  get cancelButton(): DetoxElement {
-    return Matchers.getElementByID(NftDetectionModalSelectorsIDs.CANCEL_BUTTON);
+  get cancelButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(NftDetectionModalSelectorsIDs.CANCEL_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          NftDetectionModalSelectorsIDs.CANCEL_BUTTON,
+        ),
+    });
   }
 
-  get allowButton(): DetoxElement {
-    return Matchers.getElementByID(NftDetectionModalSelectorsIDs.ALLOW_BUTTON);
+  get allowButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(NftDetectionModalSelectorsIDs.ALLOW_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          NftDetectionModalSelectorsIDs.ALLOW_BUTTON,
+        ),
+    });
   }
 
   async tapCancelButton(): Promise<void> {
-    await Gestures.waitAndTap(this.cancelButton, {
+    await UnifiedGestures.waitAndTap(this.cancelButton, {
       elemDescription: 'Cancel Button in NFT Detection Modal',
     });
   }
 
   async tapAllowButton(): Promise<void> {
-    await Gestures.waitAndTap(this.allowButton, {
+    await UnifiedGestures.waitAndTap(this.allowButton, {
       elemDescription: 'Allow Button in NFT Detection Modal',
     });
   }

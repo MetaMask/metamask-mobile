@@ -1,16 +1,26 @@
 import Matchers from '../../framework/Matchers';
 import { UnifiedTransactionsViewSelectorsIDs } from '../../../app/components/Views/UnifiedTransactionsView/UnifiedTransactionsView.testIds';
-import Gestures from '../../framework/Gestures';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class UnifiedTransactionsView {
-  get container(): DetoxElement {
-    return Matchers.getElementByID(
-      UnifiedTransactionsViewSelectorsIDs.CONTAINER,
-    );
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(UnifiedTransactionsViewSelectorsIDs.CONTAINER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          UnifiedTransactionsViewSelectorsIDs.CONTAINER,
+        ),
+    });
   }
 
   async swipeDown(): Promise<void> {
-    await Gestures.swipe(this.container, 'down', {
+    await UnifiedGestures.swipe(this.container, 'down', {
       speed: 'slow',
       percentage: 0.5,
     });

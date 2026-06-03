@@ -1,6 +1,6 @@
 import { NotificationDetailsViewSelectorsIDs } from '../../../app/components/Views/Notifications/Details/NotificationDetailsView.testIds';
-import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class NotificationsDetailView {
   get title() {
@@ -13,7 +13,7 @@ class NotificationsDetailView {
   }
 
   async tapOnBackButton() {
-    await Gestures.waitAndTap(this.backButton, {
+    await UnifiedGestures.waitAndTap(this.backButton, {
       elemDescription: 'Notification Details - Back Button',
     });
   }

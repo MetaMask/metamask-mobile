@@ -1,16 +1,28 @@
 import Matchers from '../../../framework/Matchers';
-import Gestures from '../../../framework/Gestures';
 import { AutoLockModalSelectorsText } from '../../../selectors/Settings/SecurityAndPrivacy/AutoLockModal.selectors';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../../framework/UnifiedGestures';
 
 class AutoLockModal {
-  get autoLockImmediate(): DetoxElement {
-    return Matchers.getElementByText(
-      AutoLockModalSelectorsText.AUTO_LOCK_IMMEDIATE,
-    );
+  get autoLockImmediate(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          AutoLockModalSelectorsText.AUTO_LOCK_IMMEDIATE,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          AutoLockModalSelectorsText.AUTO_LOCK_IMMEDIATE,
+        ),
+    });
   }
 
   async tapAutoLockImmediately(): Promise<void> {
-    await Gestures.waitAndTap(this.autoLockImmediate, {
+    await UnifiedGestures.waitAndTap(this.autoLockImmediate, {
       elemDescription: 'Auto lock immediate',
     });
   }

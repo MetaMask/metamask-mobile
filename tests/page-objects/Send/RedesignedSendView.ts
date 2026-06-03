@@ -1,4 +1,3 @@
-import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import { RedesignedSendViewSelectorsIDs } from '../../../app/components/Views/confirmations/components/send/RedesignedSendView.testIds';
 import { Utilities, Assertions } from '../../framework';
@@ -10,80 +9,147 @@ import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import { PlaywrightElement } from '../../framework/PlaywrightAdapter';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { getNetworkFilterTestId } from '../../../app/components/Views/confirmations/components/network-filter/network-filter.testIds';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class SendView {
-  get ethereumTokenButton(): DetoxElement {
-    return Matchers.getElementByText('Ethereum');
+  get ethereumTokenButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText('Ethereum'),
+      appium: () => PlaywrightMatchers.getElementByText('Ethereum'),
+    });
   }
 
-  get erc20TokenButton(): DetoxElement {
-    return Matchers.getElementByText('USD Coin');
+  get erc20TokenButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText('USD Coin'),
+      appium: () => PlaywrightMatchers.getElementByText('USD Coin'),
+    });
   }
 
-  get zeroButton(): DetoxElement {
-    return Matchers.getElementByText('0', 1);
+  get zeroButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText('0', 1),
+      appium: () => PlaywrightMatchers.getElementByText('0'),
+    });
   }
 
-  get amountFiveButton(): DetoxElement {
-    return Matchers.getElementByText('5');
+  get amountFiveButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText('5'),
+      appium: () => PlaywrightMatchers.getElementByText('5'),
+    });
   }
 
-  get fiftyPercentButton(): DetoxElement {
-    return Matchers.getElementByID('percentage-button-50');
+  get fiftyPercentButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID('percentage-button-50'),
+      appium: () => PlaywrightMatchers.getElementById('percentage-button-50'),
+    });
   }
 
-  get maxButton(): DetoxElement {
-    return Matchers.getElementByID('percentage-button-100');
+  get maxButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID('percentage-button-100'),
+      appium: () => PlaywrightMatchers.getElementById('percentage-button-100'),
+    });
   }
 
-  get continueButton(): DetoxElement {
-    return Matchers.getElementByText('Continue');
+  get continueButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText('Continue'),
+      appium: () => PlaywrightMatchers.getElementByText('Continue'),
+    });
   }
 
-  get recipientAddressInput(): DetoxElement {
-    return Matchers.getElementByID(
-      RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
-    );
+  get recipientAddressInput(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
+        ),
+    });
   }
 
-  get reviewButton(): DetoxElement {
-    return Matchers.getElementByID(
-      RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
-    );
+  get reviewButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(RedesignedSendViewSelectorsIDs.REVIEW_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
+        ),
+    });
   }
 
-  get amountInputField(): DetoxElement {
-    return Matchers.getElementByID('txn-amount-input');
+  get amountInputField(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID('txn-amount-input'),
+      appium: () => PlaywrightMatchers.getElementById('txn-amount-input'),
+    });
   }
 
-  get nextButton(): DetoxElement {
-    return Matchers.getElementByID('txn-amount-next-button');
+  get nextButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID('txn-amount-next-button'),
+      appium: () => PlaywrightMatchers.getElementById('txn-amount-next-button'),
+    });
   }
 
-  get currencySwitch(): DetoxElement {
-    return Matchers.getElementByID('amount-screen-currency-switch');
+  get currencySwitch(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID('amount-screen-currency-switch'),
+      appium: () =>
+        PlaywrightMatchers.getElementById('amount-screen-currency-switch'),
+    });
   }
 
-  get backButton(): DetoxElement {
-    return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON);
+  get backButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(CommonSelectorsIDs.BACK_ARROW_BUTTON),
+    });
   }
 
-  get insufficientBalanceToCoverFeesError(): DetoxElement {
-    return Matchers.getElementByText(
-      SendActionViewSelectorsIDs.INSUFFICIENT_BALANCE_TO_COVER_FEES_ERROR,
-    );
+  get insufficientBalanceToCoverFeesError(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          SendActionViewSelectorsIDs.INSUFFICIENT_BALANCE_TO_COVER_FEES_ERROR,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          SendActionViewSelectorsIDs.INSUFFICIENT_BALANCE_TO_COVER_FEES_ERROR,
+        ),
+    });
   }
 
-  get insufficientFundsError(): DetoxElement {
-    return Matchers.getElementByText(
-      SendActionViewSelectorsIDs.INSUFFICIENT_FUNDS_ERROR,
-    );
+  get insufficientFundsError(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          SendActionViewSelectorsIDs.INSUFFICIENT_FUNDS_ERROR,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          SendActionViewSelectorsIDs.INSUFFICIENT_FUNDS_ERROR,
+        ),
+    });
   }
 
   async selectEthereumToken(): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
-        await Gestures.waitAndTap(this.ethereumTokenButton, {
+        await UnifiedGestures.waitAndTap(this.ethereumTokenButton, {
           elemDescription: 'Select ethereum token',
         });
       },
@@ -102,31 +168,31 @@ class SendView {
   }
 
   async selectERC20Token(): Promise<void> {
-    await Gestures.waitAndTap(this.erc20TokenButton, {
+    await UnifiedGestures.waitAndTap(this.erc20TokenButton, {
       elemDescription: 'Select ERC20 token',
     });
   }
 
   async enterZeroAmount(): Promise<void> {
-    await Gestures.waitAndTap(this.zeroButton, {
+    await UnifiedGestures.waitAndTap(this.zeroButton, {
       elemDescription: '0 button',
     });
   }
 
   async pressAmountFiveButton(): Promise<void> {
-    await Gestures.waitAndTap(this.amountFiveButton, {
+    await UnifiedGestures.waitAndTap(this.amountFiveButton, {
       elemDescription: 'Amount 5',
     });
   }
 
   async pressFiftyPercentButton(): Promise<void> {
-    await Gestures.waitAndTap(this.fiftyPercentButton, {
+    await UnifiedGestures.waitAndTap(this.fiftyPercentButton, {
       elemDescription: 'Amount 50%',
     });
   }
 
   async pressAmountMaxButton(): Promise<void> {
-    await Gestures.waitAndTap(this.maxButton, {
+    await UnifiedGestures.waitAndTap(this.maxButton, {
       elemDescription: 'Amount Max',
     });
   }
@@ -134,7 +200,7 @@ class SendView {
   async pressContinueButton(): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
-        await Gestures.waitAndTap(this.continueButton, {
+        await UnifiedGestures.waitAndTap(this.continueButton, {
           elemDescription: 'Continue button',
         });
       },
@@ -148,7 +214,7 @@ class SendView {
   async inputRecipientAddress(address: string): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
-        await Gestures.typeText(this.recipientAddressInput, address, {
+        await UnifiedGestures.typeText(this.recipientAddressInput, address, {
           elemDescription: 'Enter recipient address',
           hideKeyboard: true,
         });
@@ -180,7 +246,7 @@ class SendView {
           interval: 250,
           stableCount: 3,
         });
-        await Gestures.waitAndTap(this.reviewButton, {
+        await UnifiedGestures.waitAndTap(this.reviewButton, {
           elemDescription: 'Review button',
           checkStability: false,
           timeout: 20000,
@@ -196,7 +262,7 @@ class SendView {
   }
 
   async typeInTransactionAmount(amount: string): Promise<void> {
-    await Gestures.replaceText(this.amountInputField, amount, {
+    await UnifiedGestures.replaceText(this.amountInputField, amount, {
       elemDescription: 'Amount Input Field',
     });
   }
@@ -215,7 +281,7 @@ class SendView {
             digit === '0'
               ? Matchers.getElementByText('0', 1)
               : Matchers.getElementByText(digit);
-          await Gestures.waitAndTap(el, {
+          await UnifiedGestures.waitAndTap(el, {
             elemDescription: `Numpad digit ${digit}`,
           });
         }
@@ -248,7 +314,7 @@ class SendView {
     await encapsulatedAction({
       detox: async () => {
         const el = Matchers.getElementByText(accountName);
-        await Gestures.waitAndTap(el, {
+        await UnifiedGestures.waitAndTap(el, {
           elemDescription: `Select recipient account: ${accountName}`,
         });
       },
@@ -260,13 +326,13 @@ class SendView {
   }
 
   async tapNextButton(): Promise<void> {
-    await Gestures.waitAndTap(this.nextButton, {
+    await UnifiedGestures.waitAndTap(this.nextButton, {
       elemDescription: 'Next Button on Amount Screen',
     });
   }
 
   async tapCurrencySwitch(): Promise<void> {
-    await Gestures.waitAndTap(this.currencySwitch, {
+    await UnifiedGestures.waitAndTap(this.currencySwitch, {
       elemDescription: 'Currency Switch',
     });
   }
@@ -276,7 +342,7 @@ class SendView {
   }
 
   async tapBackButton(): Promise<void> {
-    await Gestures.waitAndTap(this.backButton, {
+    await UnifiedGestures.waitAndTap(this.backButton, {
       elemDescription: 'Back Button',
     });
   }

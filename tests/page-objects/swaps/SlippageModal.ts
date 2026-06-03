@@ -1,36 +1,64 @@
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
 import {
   SlippageModalSelectorIDs,
   SlippageModalSelectorText,
 } from '../../selectors/Bridge/SlippageModal.selectors';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class SlippageModal {
-  get editSlippageButton(): DetoxElement {
-    return Matchers.getElementByID(
-      SlippageModalSelectorIDs.EDIT_SLIPPAGE_BUTTON,
-    );
+  get editSlippageButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(SlippageModalSelectorIDs.EDIT_SLIPPAGE_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          SlippageModalSelectorIDs.EDIT_SLIPPAGE_BUTTON,
+        ),
+    });
   }
 
-  get customButton(): DetoxElement {
-    return Matchers.getElementByText(SlippageModalSelectorText.CUSTOM);
+  get customButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(SlippageModalSelectorText.CUSTOM),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(SlippageModalSelectorText.CUSTOM),
+    });
   }
 
-  get confirmButton(): DetoxElement {
-    return Matchers.getElementByText(SlippageModalSelectorText.CONFIRM);
+  get confirmButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(SlippageModalSelectorText.CONFIRM),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(SlippageModalSelectorText.CONFIRM),
+    });
   }
 
-  get inputStepperInput(): DetoxElement {
-    return Matchers.getElementByID(
-      SlippageModalSelectorIDs.INPUT_STEPPER_INPUT,
-    );
+  get inputStepperInput(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(SlippageModalSelectorIDs.INPUT_STEPPER_INPUT),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          SlippageModalSelectorIDs.INPUT_STEPPER_INPUT,
+        ),
+    });
   }
 
-  get keypadDeleteButton(): DetoxElement {
-    return Matchers.getElementByID(
-      SlippageModalSelectorIDs.KEYPAD_DELETE_BUTTON,
-    );
+  get keypadDeleteButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(SlippageModalSelectorIDs.KEYPAD_DELETE_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          SlippageModalSelectorIDs.KEYPAD_DELETE_BUTTON,
+        ),
+    });
   }
 
   /**
@@ -41,7 +69,7 @@ class SlippageModal {
       timeout: 30000,
       description: 'Edit slippage button should be visible',
     });
-    await Gestures.waitAndTap(this.editSlippageButton, {
+    await UnifiedGestures.waitAndTap(this.editSlippageButton, {
       elemDescription: 'Tap edit slippage button',
     });
   }
@@ -53,7 +81,7 @@ class SlippageModal {
     await Assertions.expectElementToBeVisible(this.customButton, {
       description: 'Custom slippage option should be visible',
     });
-    await Gestures.waitAndTap(this.customButton, {
+    await UnifiedGestures.waitAndTap(this.customButton, {
       elemDescription: 'Tap custom slippage option',
     });
   }
@@ -69,7 +97,7 @@ class SlippageModal {
     });
 
     // Clear the existing value first by long pressing delete
-    await Gestures.longPress(this.keypadDeleteButton, {
+    await UnifiedGestures.longPress(this.keypadDeleteButton, {
       duration: 1000,
       elemDescription: 'Long press delete to clear slippage input',
     });
@@ -77,7 +105,7 @@ class SlippageModal {
     // Enter each character of the value using the keypad
     for (const char of value) {
       const button = Matchers.getElementByText(char);
-      await Gestures.waitAndTap(button, {
+      await UnifiedGestures.waitAndTap(button, {
         elemDescription: `Tap keypad button ${char}`,
       });
     }
@@ -87,7 +115,7 @@ class SlippageModal {
    * Confirms the custom slippage selection
    */
   async confirmCustomSlippage(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmButton, {
+    await UnifiedGestures.waitAndTap(this.confirmButton, {
       elemDescription: 'Confirm custom slippage',
     });
   }

@@ -1,7 +1,6 @@
 import { waitFor } from 'detox';
 import {
   Assertions,
-  Gestures,
   Matchers,
   PlaywrightAssertions,
   PlaywrightMatchers,
@@ -32,20 +31,42 @@ const TIMEOUT = {
 } as const;
 
 class QuoteView {
-  get selectAmountLabel(): DetoxElement {
-    return Matchers.getElementByText(QuoteViewSelectorText.SELECT_AMOUNT);
+  get selectAmountLabel(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(QuoteViewSelectorText.SELECT_AMOUNT),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          QuoteViewSelectorText.SELECT_AMOUNT,
+        ),
+    });
   }
 
-  get confirmBridge(): DetoxElement {
-    return Matchers.getElementByID(QuoteViewSelectorIDs.CONFIRM_BUTTON);
+  get confirmBridge(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(QuoteViewSelectorIDs.CONFIRM_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(QuoteViewSelectorIDs.CONFIRM_BUTTON),
+    });
   }
 
-  get confirmSwap(): DetoxElement {
-    return Matchers.getElementByID(QuoteViewSelectorIDs.CONFIRM_BUTTON);
+  get confirmSwap(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(QuoteViewSelectorIDs.CONFIRM_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(QuoteViewSelectorIDs.CONFIRM_BUTTON),
+    });
   }
 
-  get sourceTokenArea(): DetoxElement {
-    return Matchers.getElementByID(QuoteViewSelectorIDs.SOURCE_TOKEN_AREA);
+  get sourceTokenArea(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(QuoteViewSelectorIDs.SOURCE_TOKEN_AREA),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          QuoteViewSelectorIDs.SOURCE_TOKEN_AREA,
+        ),
+    });
   }
 
   get amountInput(): EncapsulatedElementType {
@@ -96,16 +117,28 @@ class QuoteView {
     });
   }
 
-  get seeAllButton(): DetoxElement {
-    return Matchers.getElementByText(QuoteViewSelectorText.SELECT_ALL);
+  get seeAllButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(QuoteViewSelectorText.SELECT_ALL),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(QuoteViewSelectorText.SELECT_ALL),
+    });
   }
 
-  get backButton(): DetoxElement {
-    return Matchers.getElementByID(QuoteViewSelectorIDs.BACK_BUTTON);
+  get backButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(QuoteViewSelectorIDs.BACK_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(QuoteViewSelectorIDs.BACK_BUTTON),
+    });
   }
 
-  get networkFeeLabel(): DetoxElement {
-    return Matchers.getElementByText(QuoteViewSelectorText.NETWORK_FEE);
+  get networkFeeLabel(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(QuoteViewSelectorText.NETWORK_FEE),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(QuoteViewSelectorText.NETWORK_FEE),
+    });
   }
 
   get bridgeViewScroll(): EncapsulatedElementType {
@@ -149,16 +182,28 @@ class QuoteView {
     });
   }
 
-  get maxLink(): DetoxElement {
-    return Matchers.getElementByText(QuoteViewSelectorText.MAX);
+  get maxLink(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(QuoteViewSelectorText.MAX),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(QuoteViewSelectorText.MAX),
+    });
   }
 
-  get includedLabel(): DetoxElement {
-    return Matchers.getElementByText(QuoteViewSelectorText.INCLUDED);
+  get includedLabel(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(QuoteViewSelectorText.INCLUDED),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(QuoteViewSelectorText.INCLUDED),
+    });
   }
 
-  get rateLabel(): DetoxElement {
-    return Matchers.getElementByText(QuoteViewSelectorText.RATE);
+  get rateLabel(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(QuoteViewSelectorText.RATE),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(QuoteViewSelectorText.RATE),
+    });
   }
 
   /** Token selector testID - matches TokenSelectorItem's getAssetTestId(chainId-symbol). */
@@ -173,7 +218,7 @@ class QuoteView {
   async enterAmount(amount: string): Promise<void> {
     for (const digit of amount) {
       const button = Matchers.getElementByText(digit);
-      await Gestures.waitAndTap(button, {
+      await UnifiedGestures.waitAndTap(button, {
         elemDescription: `Tapping on keyboard digit ${digit}`,
       });
     }
@@ -182,7 +227,7 @@ class QuoteView {
   async tapSearchToken(): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
-        await Gestures.waitAndTap(asDetoxElement(this.searchToken), {
+        await UnifiedGestures.waitAndTap(asDetoxElement(this.searchToken), {
           elemDescription: 'Tap on token search input element',
         });
       },
@@ -205,7 +250,7 @@ class QuoteView {
         await waitFor(tokenElement)
           .toExist()
           .withTimeout(TIMEOUT.TOKEN_EXISTS_BEFORE_SCROLL);
-        await Gestures.scrollToElement(
+        await UnifiedGestures.scrollToElement(
           tokenElement as unknown as DetoxElement,
           Matchers.getIdentifier(QuoteViewSelectorIDs.TOKEN_LIST),
           {
@@ -214,10 +259,13 @@ class QuoteView {
             elemDescription: `Scroll to token symbol ${symbol}`,
           },
         );
-        await Gestures.waitAndTap(tokenElement as unknown as DetoxElement, {
-          delay: 1000,
-          elemDescription: `Select token symbol ${symbol}`,
-        });
+        await UnifiedGestures.waitAndTap(
+          tokenElement as unknown as DetoxElement,
+          {
+            delay: 1000,
+            elemDescription: `Select token symbol ${symbol}`,
+          },
+        );
       },
       appium: async () => {
         const testId = this.getTokenElementId(chainId, symbol);
@@ -247,9 +295,13 @@ class QuoteView {
   async typeSearchToken(symbol: string): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
-        await Gestures.typeText(asDetoxElement(this.searchToken), symbol, {
-          elemDescription: `Search Token with symbol ${symbol}`,
-        });
+        await UnifiedGestures.typeText(
+          asDetoxElement(this.searchToken),
+          symbol,
+          {
+            elemDescription: `Search Token with symbol ${symbol}`,
+          },
+        );
       },
       appium: async () => {
         const searchField = await asPlaywrightElement(this.searchToken);
@@ -260,13 +312,13 @@ class QuoteView {
 
   async selectToken(symbol: string, index: number = 1): Promise<void> {
     const token = Matchers.getElementByText(symbol, index);
-    await Gestures.waitAndTap(token, {
+    await UnifiedGestures.waitAndTap(token, {
       elemDescription: `Token with symbol ${symbol} at index ${index}`,
     });
   }
 
   async tapSourceToken(): Promise<void> {
-    await Gestures.waitAndTap(this.sourceTokenArea, {
+    await UnifiedGestures.waitAndTap(this.sourceTokenArea, {
       elemDescription: 'Tap source asset picker',
     });
   }
@@ -278,7 +330,7 @@ class QuoteView {
   async tapSourceAmountInput(): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
-        await Gestures.waitAndTap(this.amountInput, {
+        await UnifiedGestures.waitAndTap(this.amountInput, {
           elemDescription: 'Tap source amount input to open keypad',
         });
       },
@@ -298,7 +350,7 @@ class QuoteView {
   async dismissKeypad(): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
-        await Gestures.waitAndTap(this.rateLabel, {
+        await UnifiedGestures.waitAndTap(this.rateLabel, {
           elemDescription: 'Tap rate label to dismiss keypad',
         });
       },
@@ -322,21 +374,24 @@ class QuoteView {
   }
 
   async tapSeeAll(): Promise<void> {
-    await Gestures.waitAndTap(this.seeAllButton, {
+    await UnifiedGestures.waitAndTap(this.seeAllButton, {
       elemDescription: 'Tap on See all button',
     });
   }
 
   async swipeNetwork(network: string, percentage: number): Promise<void> {
     const networkElement = Matchers.getElementByText(network);
-    await Gestures.swipe(networkElement, 'left', { speed: 'slow', percentage });
+    await UnifiedGestures.swipe(networkElement, 'left', {
+      speed: 'slow',
+      percentage,
+    });
   }
 
   async selectNetwork(network: string): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
         const networkElement = Matchers.getElementByText(network);
-        await Gestures.waitAndTap(networkElement, {
+        await UnifiedGestures.waitAndTap(networkElement, {
           delay: 1000,
           elemDescription: `Select network ${network}`,
         });
@@ -358,26 +413,26 @@ class QuoteView {
   }
 
   async tapConfirmBridge(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmBridge, {
+    await UnifiedGestures.waitAndTap(this.confirmBridge, {
       elemDescription: 'Confirm bridge',
     });
   }
 
   async tapConfirmSwap(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmSwap, {
+    await UnifiedGestures.waitAndTap(this.confirmSwap, {
       delay: 1300,
       elemDescription: 'Confirm swap',
     });
   }
 
   async tapOnBackButton(): Promise<void> {
-    await Gestures.waitAndTap(this.backButton, {
+    await UnifiedGestures.waitAndTap(this.backButton, {
       elemDescription: 'Back button on Quote View',
     });
   }
 
   async tapMax(): Promise<void> {
-    await Gestures.waitAndTap(this.maxLink, {
+    await UnifiedGestures.waitAndTap(this.maxLink, {
       elemDescription: 'Tap Max link to use maximum balance',
     });
   }

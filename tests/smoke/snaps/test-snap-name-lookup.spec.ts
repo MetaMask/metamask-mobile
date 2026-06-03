@@ -7,7 +7,8 @@ import TestSnaps from '../../page-objects/Browser/TestSnaps';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import WalletView from '../../page-objects/wallet/WalletView';
 import RedesignedSendView from '../../page-objects/Send/RedesignedSendView';
-import { Assertions, Gestures, Matchers } from '../../framework';
+import { Assertions, Matchers } from '../../framework';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 import BrowserView from '../../page-objects/Browser/BrowserView';
 import TransactionConfirmView from '../../page-objects/Send/TransactionConfirmView';
 import TokenOverview from '../../page-objects/wallet/TokenOverview';
@@ -89,7 +90,7 @@ describe(SmokeSnaps('Name Lookup Snap Tests'), () => {
 
         // Manually replacing the test to avoid flakiness from the '\n' input
         // added to the end of the text to hide the keyboard
-        await Gestures.replaceText(
+        await UnifiedGestures.replaceText(
           RedesignedSendView.recipientAddressInput,
           domain,
           {
@@ -100,7 +101,7 @@ describe(SmokeSnaps('Name Lookup Snap Tests'), () => {
         await RedesignedSendView.pressReviewButton();
         await TransactionConfirmView.tapAdvancedDetails();
 
-        await Gestures.waitAndTap(
+        await UnifiedGestures.waitAndTap(
           Matchers.getElementByText(
             domain,
             device.getPlatform() === 'ios' ? 1 : 0,

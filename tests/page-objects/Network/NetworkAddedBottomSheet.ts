@@ -3,35 +3,61 @@ import {
   NetworkAddedBottomSheetSelectorsText,
 } from '../../../app/components/UI/NetworkModal/NetworkAddedBottomSheet.testIds';
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class NetworkAddedBottomSheet {
-  get switchNetwork(): DetoxElement {
-    return Matchers.getElementByText(
-      NetworkAddedBottomSheetSelectorsText.SWITCH_NETWORK,
-    );
+  get switchNetwork(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          NetworkAddedBottomSheetSelectorsText.SWITCH_NETWORK,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          NetworkAddedBottomSheetSelectorsText.SWITCH_NETWORK,
+        ),
+    });
   }
 
-  get switchNetworkButton(): DetoxElement {
-    return Matchers.getElementByID(
-      NetworkAddedBottomSheetSelectorsIDs.SWITCH_NETWORK_BUTTON,
-    );
+  get switchNetworkButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          NetworkAddedBottomSheetSelectorsIDs.SWITCH_NETWORK_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          NetworkAddedBottomSheetSelectorsIDs.SWITCH_NETWORK_BUTTON,
+        ),
+    });
   }
 
-  get closeNetworkButton(): DetoxElement {
-    return Matchers.getElementByID(
-      NetworkAddedBottomSheetSelectorsIDs.CLOSE_NETWORK_BUTTON,
-    );
+  get closeNetworkButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          NetworkAddedBottomSheetSelectorsIDs.CLOSE_NETWORK_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          NetworkAddedBottomSheetSelectorsIDs.CLOSE_NETWORK_BUTTON,
+        ),
+    });
   }
 
   async tapSwitchToNetwork(): Promise<void> {
-    await Gestures.waitAndTap(this.switchNetworkButton, {
+    await UnifiedGestures.waitAndTap(this.switchNetworkButton, {
       elemDescription: 'Switch Network Button in Network Added Bottom Sheet',
     });
   }
 
   async tapCloseButton(): Promise<void> {
-    await Gestures.waitAndTap(this.closeNetworkButton, {
+    await UnifiedGestures.waitAndTap(this.closeNetworkButton, {
       elemDescription: 'Close Network Button in Network Added Bottom Sheet',
     });
   }

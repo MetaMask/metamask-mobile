@@ -1,6 +1,6 @@
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
 import { AddNewAccountIds } from '../../../app/components/Views/AddNewAccount/AddHdAccount.testIds';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class AddNewAccountSheet {
   get confirmButton() {
@@ -8,7 +8,7 @@ class AddNewAccountSheet {
   }
 
   async tapConfirmButton() {
-    await Gestures.waitAndTap(this.confirmButton);
+    await UnifiedGestures.waitAndTap(this.confirmButton);
   }
 }
 

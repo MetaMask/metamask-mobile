@@ -1,18 +1,34 @@
 import { WhatsNewModalSelectorsIDs } from '../../../app/components/UI/WhatsNewModal/WhatsNewModal.testIds';
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class WhatsNewModal {
-  get container(): DetoxElement {
-    return Matchers.getElementByID(WhatsNewModalSelectorsIDs.CONTAINER);
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(WhatsNewModalSelectorsIDs.CONTAINER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(WhatsNewModalSelectorsIDs.CONTAINER),
+    });
   }
 
-  get closeButton(): DetoxElement {
-    return Matchers.getElementByID(WhatsNewModalSelectorsIDs.CLOSE_BUTTON);
+  get closeButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WhatsNewModalSelectorsIDs.CLOSE_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WhatsNewModalSelectorsIDs.CLOSE_BUTTON,
+        ),
+    });
   }
 
   async tapCloseButton(): Promise<void> {
-    await Gestures.waitAndTap(this.closeButton, {
+    await UnifiedGestures.waitAndTap(this.closeButton, {
       elemDescription: 'Close Button in Whats New Modal',
     });
   }

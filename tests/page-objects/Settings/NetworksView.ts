@@ -3,70 +3,158 @@ import {
   NetworkViewSelectorsText,
 } from '../../../app/components/Views/Settings/NetworksSettings/NetworksView.testIds';
 import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
 import { NetworkListModalSelectorsIDs } from '../../../app/components/Views/NetworkSelector/NetworkListModal.testIds';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+} from '../../framework/EncapsulatedElement';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class NetworkView {
-  get networkContainer(): DetoxElement {
-    return Matchers.getElementByID(NetworksViewSelectorsIDs.NETWORK_CONTAINER);
+  get networkContainer(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(NetworksViewSelectorsIDs.NETWORK_CONTAINER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          NetworksViewSelectorsIDs.NETWORK_CONTAINER,
+        ),
+    });
   }
 
-  get networkFormContainer(): DetoxElement {
-    return Matchers.getElementByID(NetworksViewSelectorsIDs.CONTAINER);
+  get networkFormContainer(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(NetworksViewSelectorsIDs.CONTAINER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(NetworksViewSelectorsIDs.CONTAINER),
+    });
   }
 
-  get rpcContainer(): DetoxElement {
-    return Matchers.getElementByID(NetworksViewSelectorsIDs.RPC_CONTAINER);
+  get rpcContainer(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(NetworksViewSelectorsIDs.RPC_CONTAINER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          NetworksViewSelectorsIDs.RPC_CONTAINER,
+        ),
+    });
   }
 
-  get addNetworkButtonForm(): DetoxElement {
-    return Matchers.getElementByID(NetworkListModalSelectorsIDs.ADD_BUTTON);
+  get addNetworkButtonForm(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(NetworkListModalSelectorsIDs.ADD_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          NetworkListModalSelectorsIDs.ADD_BUTTON,
+        ),
+    });
   }
 
-  get addRpcDropDownButton(): DetoxElement {
-    return Matchers.getElementByID(NetworksViewSelectorsIDs.ICON_BUTTON_RPC);
+  get addRpcDropDownButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(NetworksViewSelectorsIDs.ICON_BUTTON_RPC),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          NetworksViewSelectorsIDs.ICON_BUTTON_RPC,
+        ),
+    });
   }
 
-  get addBlockExplorerDropDownButton(): DetoxElement {
-    return Matchers.getElementByID(
-      NetworksViewSelectorsIDs.ICON_BUTTON_BLOCK_EXPLORER,
-    );
+  get addBlockExplorerDropDownButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          NetworksViewSelectorsIDs.ICON_BUTTON_BLOCK_EXPLORER,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          NetworksViewSelectorsIDs.ICON_BUTTON_BLOCK_EXPLORER,
+        ),
+    });
   }
 
-  get addBlockExplorerButton(): DetoxElement {
-    return Matchers.getElementByID(NetworksViewSelectorsIDs.ADD_BLOCK_EXPLORER);
+  get addBlockExplorerButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(NetworksViewSelectorsIDs.ADD_BLOCK_EXPLORER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          NetworksViewSelectorsIDs.ADD_BLOCK_EXPLORER,
+        ),
+    });
   }
 
-  get addRpcButton(): DetoxElement {
-    return Matchers.getElementByID(NetworksViewSelectorsIDs.ADD_RPC_BUTTON);
+  get addRpcButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(NetworksViewSelectorsIDs.ADD_RPC_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          NetworksViewSelectorsIDs.ADD_RPC_BUTTON,
+        ),
+    });
   }
 
-  get noMatchingText(): DetoxElement {
-    return Matchers.getElementByText(
-      NetworkViewSelectorsText.NO_MATCHING_SEARCH_RESULTS,
-    );
+  get noMatchingText(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          NetworkViewSelectorsText.NO_MATCHING_SEARCH_RESULTS,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          NetworkViewSelectorsText.NO_MATCHING_SEARCH_RESULTS,
+        ),
+    });
   }
 
-  get emptyPopularNetworksText(): DetoxElement {
-    return Matchers.getElementByText(
-      NetworkViewSelectorsText.EMPTY_POPULAR_NETWORKS,
-    );
+  get emptyPopularNetworksText(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(
+          NetworkViewSelectorsText.EMPTY_POPULAR_NETWORKS,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          NetworkViewSelectorsText.EMPTY_POPULAR_NETWORKS,
+        ),
+    });
   }
 
-  get closeIcon(): DetoxElement {
-    return Matchers.getElementByID(NetworksViewSelectorsIDs.CLOSE_ICON);
+  get closeIcon(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(NetworksViewSelectorsIDs.CLOSE_ICON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(NetworksViewSelectorsIDs.CLOSE_ICON),
+    });
   }
 
-  get deleteNetworkButton(): DetoxElement {
-    return Matchers.getElementByID(
-      NetworksViewSelectorsIDs.REMOVE_NETWORK_BUTTON,
-    );
+  get deleteNetworkButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(NetworksViewSelectorsIDs.REMOVE_NETWORK_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          NetworksViewSelectorsIDs.REMOVE_NETWORK_BUTTON,
+        ),
+    });
   }
 
-  get networkSearchInput(): DetoxElement {
-    return Matchers.getElementByID(
-      NetworksViewSelectorsIDs.SEARCH_NETWORK_INPUT_BOX_ID,
-    );
+  get networkSearchInput(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          NetworksViewSelectorsIDs.SEARCH_NETWORK_INPUT_BOX_ID,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          NetworksViewSelectorsIDs.SEARCH_NETWORK_INPUT_BOX_ID,
+        ),
+    });
   }
 
   get addNetworkButton(): DetoxElement {
@@ -77,149 +165,227 @@ class NetworkView {
         );
   }
 
-  get customNetworkTab(): DetoxElement {
-    return Matchers.getElementByText(
-      NetworkViewSelectorsText.CUSTOM_NETWORK_TAB,
-    );
+  get customNetworkTab(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(NetworkViewSelectorsText.CUSTOM_NETWORK_TAB),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          NetworkViewSelectorsText.CUSTOM_NETWORK_TAB,
+        ),
+    });
   }
 
-  get networkNameInput(): DetoxElement {
-    return Matchers.getElementByID(NetworksViewSelectorsIDs.NETWORK_NAME_INPUT);
+  get networkNameInput(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(NetworksViewSelectorsIDs.NETWORK_NAME_INPUT),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          NetworksViewSelectorsIDs.NETWORK_NAME_INPUT,
+        ),
+    });
   }
 
-  get rpcURLInput(): DetoxElement {
-    return Matchers.getElementByID(NetworksViewSelectorsIDs.RPC_URL_INPUT);
+  get rpcURLInput(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(NetworksViewSelectorsIDs.RPC_URL_INPUT),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          NetworksViewSelectorsIDs.RPC_URL_INPUT,
+        ),
+    });
   }
 
-  get chainIDInput(): DetoxElement {
-    return Matchers.getElementByID(NetworksViewSelectorsIDs.CHAIN_INPUT);
+  get chainIDInput(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(NetworksViewSelectorsIDs.CHAIN_INPUT),
+      appium: () =>
+        PlaywrightMatchers.getElementById(NetworksViewSelectorsIDs.CHAIN_INPUT),
+    });
   }
 
-  get networkSymbolInput(): DetoxElement {
-    return Matchers.getElementByID(
-      NetworksViewSelectorsIDs.NETWORKS_SYMBOL_INPUT,
-    );
+  get networkSymbolInput(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(NetworksViewSelectorsIDs.NETWORKS_SYMBOL_INPUT),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          NetworksViewSelectorsIDs.NETWORKS_SYMBOL_INPUT,
+        ),
+    });
   }
 
-  get networkBlockExplorerInput(): DetoxElement {
-    return Matchers.getElementByID(
-      NetworksViewSelectorsIDs.BLOCK_EXPLORER_INPUT,
-    );
+  get networkBlockExplorerInput(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(NetworksViewSelectorsIDs.BLOCK_EXPLORER_INPUT),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          NetworksViewSelectorsIDs.BLOCK_EXPLORER_INPUT,
+        ),
+    });
   }
 
-  get rpcAddButton(): DetoxElement {
-    return Matchers.getElementByID(
-      NetworksViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON,
-    );
+  get rpcAddButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          NetworksViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          NetworksViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON,
+        ),
+    });
   }
 
-  get blockExplorer(): DetoxElement {
-    return Matchers.getElementByLabel(NetworkViewSelectorsText.BLOCK_EXPLORER);
+  get blockExplorer(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByLabel(NetworkViewSelectorsText.BLOCK_EXPLORER),
+      appium: () =>
+        PlaywrightMatchers.getElementByAccessibilityId(
+          NetworkViewSelectorsText.BLOCK_EXPLORER,
+        ),
+    });
   }
 
-  get chainIdLabel(): DetoxElement {
-    return Matchers.getElementByLabel(NetworkViewSelectorsText.CHAIN_ID_LABEL);
+  get chainIdLabel(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByLabel(NetworkViewSelectorsText.CHAIN_ID_LABEL),
+      appium: () =>
+        PlaywrightMatchers.getElementByAccessibilityId(
+          NetworkViewSelectorsText.CHAIN_ID_LABEL,
+        ),
+    });
   }
 
-  get rpcWarningBanner(): DetoxElement {
-    return Matchers.getElementByID(NetworksViewSelectorsIDs.RPC_WARNING_BANNER);
+  get rpcWarningBanner(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(NetworksViewSelectorsIDs.RPC_WARNING_BANNER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          NetworksViewSelectorsIDs.RPC_WARNING_BANNER,
+        ),
+    });
   }
 
-  get customNetworkList(): DetoxElement {
-    return Matchers.getElementByID(
-      NetworksViewSelectorsIDs.CUSTOM_NETWORK_LIST,
-    );
+  get customNetworkList(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(NetworksViewSelectorsIDs.CUSTOM_NETWORK_LIST),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          NetworksViewSelectorsIDs.CUSTOM_NETWORK_LIST,
+        ),
+    });
   }
 
-  get removeNetwork(): DetoxElement {
-    return Matchers.getElementByText(NetworkViewSelectorsText.REMOVE_NETWORK);
+  get removeNetwork(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(NetworkViewSelectorsText.REMOVE_NETWORK),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          NetworkViewSelectorsText.REMOVE_NETWORK,
+        ),
+    });
   }
 
-  get saveButton(): DetoxElement {
-    return Matchers.getElementByText(NetworkViewSelectorsText.SAVE_BUTTON);
+  get saveButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByText(NetworkViewSelectorsText.SAVE_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementByText(
+          NetworkViewSelectorsText.SAVE_BUTTON,
+        ),
+    });
   }
 
-  async getnetworkName(networkName: string): Promise<DetoxElement> {
+  async getnetworkName(networkName: string): Promise<EncapsulatedElementType> {
     return Matchers.getElementByText(networkName);
   }
   async tapAddNetworkButton(): Promise<void> {
-    await Gestures.waitAndTap(this.addNetworkButton);
+    await UnifiedGestures.waitAndTap(this.addNetworkButton);
   }
 
   async tapAddNetworkFormButton(): Promise<void> {
-    await Gestures.waitAndTap(this.addNetworkButtonForm);
+    await UnifiedGestures.waitAndTap(this.addNetworkButtonForm);
   }
 
   async tapRpcDropDownButton(): Promise<void> {
-    await Gestures.waitAndTap(this.addRpcDropDownButton);
+    await UnifiedGestures.waitAndTap(this.addRpcDropDownButton);
   }
 
   async tapBlockExplorerDownButton(): Promise<void> {
-    await Gestures.waitAndTap(this.addBlockExplorerDropDownButton);
+    await UnifiedGestures.waitAndTap(this.addBlockExplorerDropDownButton);
   }
 
   async tapBlockExplorerButton(): Promise<void> {
-    await Gestures.waitAndTap(this.addBlockExplorerButton);
+    await UnifiedGestures.waitAndTap(this.addBlockExplorerButton);
   }
 
   async tapAddRpcButton(): Promise<void> {
-    await Gestures.waitAndTap(this.addRpcButton);
+    await UnifiedGestures.waitAndTap(this.addRpcButton);
   }
 
   async switchToCustomNetworks(): Promise<void> {
-    await Gestures.waitAndTap(this.customNetworkTab);
+    await UnifiedGestures.waitAndTap(this.customNetworkTab);
   }
 
   async tapNetworkByName(networkName: string): Promise<void> {
     const network = await this.getnetworkName(networkName);
-    await Gestures.waitAndTap(network as unknown as DetoxElement);
+    await UnifiedGestures.waitAndTap(network as unknown as DetoxElement);
   }
 
   async SearchNetworkName(networkName: string): Promise<void> {
-    await Gestures.typeTextAndHideKeyboard(
-      this.networkSearchInput,
-      networkName,
-    );
+    await UnifiedGestures.typeText(this.networkSearchInput, networkName);
   }
   async longPressToRemoveNetwork(networkName: string): Promise<void> {
     const network = await this.getnetworkName(networkName);
-    await Gestures.tapAndLongPress(network as unknown as DetoxElement);
-    await Gestures.waitAndTap(this.removeNetwork);
+    await UnifiedGestures.longPress(network as unknown as DetoxElement);
+    await UnifiedGestures.waitAndTap(this.removeNetwork);
   }
 
   async tapDeleteButton(): Promise<void> {
-    await Gestures.waitAndTap(this.deleteNetworkButton);
+    await UnifiedGestures.waitAndTap(this.deleteNetworkButton);
   }
 
   async tapClearSearch(): Promise<void> {
-    await Gestures.waitAndTap(this.closeIcon);
+    await UnifiedGestures.waitAndTap(this.closeIcon);
   }
   async closePopularNetwork(): Promise<void> {
-    await Gestures.waitAndTap(this.closeIcon);
+    await UnifiedGestures.waitAndTap(this.closeIcon);
   }
 
   // CUSTOM NETWORK SCREEN
   async typeInNetworkName(networkName: string): Promise<void> {
-    await Gestures.typeText(this.networkNameInput, networkName, {
+    await UnifiedGestures.typeText(this.networkNameInput, networkName, {
       hideKeyboard: true,
       elemDescription: 'Network Name Input',
     });
   }
   async typeInRpcUrl(rPCUrl: string): Promise<void> {
-    await Gestures.typeText(this.rpcURLInput, rPCUrl, {
+    await UnifiedGestures.typeText(this.rpcURLInput, rPCUrl, {
       hideKeyboard: true,
       elemDescription: 'RPC URL Input',
     });
   }
   async typeInChainId(chainID: string): Promise<void> {
-    await Gestures.typeText(this.chainIDInput, chainID, {
+    await UnifiedGestures.typeText(this.chainIDInput, chainID, {
       hideKeyboard: true,
       elemDescription: 'Chain ID Input',
     });
   }
 
   async typeInNetworkSymbol(networkSymbol: string): Promise<void> {
-    await Gestures.typeText(this.networkSymbolInput, networkSymbol, {
+    await UnifiedGestures.typeText(this.networkSymbolInput, networkSymbol, {
       hideKeyboard: true,
       elemDescription: 'Network Symbol Input',
     });
@@ -228,7 +394,7 @@ class NetworkView {
   async typeInNetworkBlockExplorer(
     networkBlockExplorer: string,
   ): Promise<void> {
-    await Gestures.typeText(
+    await UnifiedGestures.typeText(
       this.networkBlockExplorerInput,
       networkBlockExplorer,
       {
@@ -239,21 +405,21 @@ class NetworkView {
   }
 
   async clearRpcInputBox(): Promise<void> {
-    await Gestures.typeText(this.rpcURLInput, '', {
+    await UnifiedGestures.typeText(this.rpcURLInput, '', {
       clearFirst: true,
       elemDescription: 'RPC URL Input',
     });
   }
 
   async tapRpcNetworkAddButton(): Promise<void> {
-    await Gestures.waitAndTap(this.rpcAddButton, {
+    await UnifiedGestures.waitAndTap(this.rpcAddButton, {
       elemDescription: 'RPC Network Add Button',
     });
   }
 
   async tapChainIDLabel(): Promise<void> {
     // Because on CI the keyboard is blocking the "Add" CTA
-    await Gestures.waitAndTap(this.chainIdLabel, {
+    await UnifiedGestures.waitAndTap(this.chainIdLabel, {
       elemDescription: 'Chain ID Label',
     });
   }
@@ -262,14 +428,14 @@ class NetworkView {
     device.getPlatform() === 'ios'
       ? await (async () => {
           //swipe to dismiss iOS keypad
-          await Gestures.swipe(this.chainIDInput, 'up', {
+          await UnifiedGestures.swipe(this.chainIDInput, 'up', {
             speed: 'fast',
           });
-          await Gestures.dblTap(this.saveButton, {
+          await UnifiedGestures.dblTap(this.saveButton, {
             elemDescription: 'Double Tap Save Button',
           });
         })()
-      : await Gestures.waitAndTap(this.saveButton, {
+      : await UnifiedGestures.waitAndTap(this.saveButton, {
           elemDescription: 'Save Button',
         });
   }

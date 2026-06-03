@@ -89,8 +89,9 @@ describe(RegressionWalletUX('Carousel Tests'), () => {
         await device.disableSynchronization();
 
         // Find and dismiss any available slide
-        const firstSlide = await WalletView.carouselContainer;
-        await firstSlide.tap();
+        await (
+          (await WalletView.carouselContainer) as Detox.IndexableNativeElement
+        ).tap();
 
         await Assertions.expectElementToBeVisible(
           WalletView.carouselContainer,
