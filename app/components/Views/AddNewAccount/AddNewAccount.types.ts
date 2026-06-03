@@ -6,8 +6,8 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
  * AddNewAccountProps props.
  */
 export interface AddNewAccountProps {
-  scope?: CaipChainId;
-  clientType?: WalletClientType;
+  scope: CaipChainId;
+  clientType: WalletClientType;
   onActionComplete?: (account: InternalAccount) => void;
   onBack?: () => void;
 }
