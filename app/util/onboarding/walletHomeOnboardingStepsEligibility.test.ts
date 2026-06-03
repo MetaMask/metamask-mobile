@@ -6,6 +6,7 @@ describe('shouldMarkWalletHomeOnboardingStepsEligible', () => {
     ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
     ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
     ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
+    ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
   ])('returns true for first-time onboarding flow %s', (flow) => {
     expect(shouldMarkWalletHomeOnboardingStepsEligible(flow)).toBe(true);
   });

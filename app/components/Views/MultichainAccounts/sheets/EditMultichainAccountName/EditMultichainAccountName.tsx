@@ -1,11 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  StatusBar,
-  TextInput,
-} from 'react-native';
+import { KeyboardAvoidingView, Platform, StatusBar } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import {
@@ -26,6 +21,7 @@ import {
   IconName,
   Text,
   TextColor,
+  TextField,
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
@@ -50,7 +46,7 @@ type EditMultichainAccountNameRouteProp = RouteProp<
 
 export const EditMultichainAccountName = () => {
   const tw = useTailwind();
-  const { colors, themeAppearance } = useTheme();
+  const { themeAppearance } = useTheme();
   const route = useRoute<EditMultichainAccountNameRouteProp>();
   const { accountGroup: initialAccountGroup } = route.params;
   const navigation = useNavigation();
@@ -73,11 +69,6 @@ export const EditMultichainAccountName = () => {
     Platform.OS === 'android' && StatusBar.currentHeight
       ? { paddingTop: StatusBar.currentHeight }
       : undefined,
-  );
-
-  const inputStyle = tw.style(
-    'h-10 w-full rounded-lg border-2 border-default p-2.5',
-    { color: colors.text.default },
   );
 
   const handleAccountNameChange = useCallback(() => {
@@ -134,24 +125,23 @@ export const EditMultichainAccountName = () => {
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {strings('multichain_accounts.edit_account_name.account_name')}
           </Text>
-          <TextInput
-            testID={EditAccountNameIds.ACCOUNT_NAME_INPUT}
-            style={inputStyle}
+          <TextField
             value={accountName}
             onChangeText={(newName: string) => {
               setAccountName(newName);
-              // Clear error when user starts typing
               if (error) {
                 setError(null);
               }
             }}
             placeholder={initialName}
-            placeholderTextColor={colors.text.muted}
-            spellCheck={false}
-            keyboardAppearance={themeAppearance}
-            autoCapitalize="none"
+            isError={Boolean(error)}
             autoFocus
-            editable
+            inputProps={{
+              testID: EditAccountNameIds.ACCOUNT_NAME_INPUT,
+              spellCheck: false,
+              keyboardAppearance: themeAppearance,
+              autoCapitalize: 'none',
+            }}
           />
           {error ? <Text color={TextColor.ErrorDefault}>{error}</Text> : null}
         </Box>

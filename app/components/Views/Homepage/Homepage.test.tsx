@@ -107,11 +107,20 @@ jest.mock('../../UI/Perps', () => ({
 }));
 
 jest.mock('../../UI/Perps/providers/PerpsConnectionProvider', () => {
-  const actual = jest.requireActual(
-    '../../UI/Perps/providers/PerpsConnectionProvider',
-  );
+  const ReactLib = jest.requireActual<typeof import('react')>('react');
+  const PerpsConnectionContext = ReactLib.createContext({
+    isConnected: true,
+    isConnecting: false,
+    isInitialized: true,
+    error: null,
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+    resetError: jest.fn(),
+    reconnectWithNewContext: jest.fn().mockResolvedValue(undefined),
+  });
+
   return {
-    ...actual,
+    PerpsConnectionContext,
     PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
       children,
   };
@@ -190,6 +199,46 @@ jest.mock('../../UI/NftGrid/NftGridItemBottomSheet', () => () => null);
 
 jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
   selectPredictEnabledFlag: jest.fn(() => true),
+  selectPredictWorldCupConfig: jest.fn(() => ({
+    enabled: false,
+    minimumVersion: '',
+    showMainFeedBanner: false,
+    showMainFeedTab: false,
+    showWorldCupScreen: false,
+    seriesId: '10218',
+    tagSlug: 'fifa-world-cup',
+    gamesTagId: '100639',
+    stages: [],
+  })),
+  selectPredictWorldCupScreenEnabledFlag: jest.fn(() => false),
+  selectPredictHomepageDiscoveryNbaChampionEnabledFlag: jest.fn(() => false),
+}));
+
+jest.mock('../../UI/Predict/hooks/usePredictWorldCup', () => ({
+  usePredictWorldCupMarkets: () => ({
+    marketData: [],
+    isFetching: false,
+    isFetchingMore: false,
+    error: null,
+    hasMore: false,
+    refetch: jest.fn().mockResolvedValue(undefined),
+    fetchMore: jest.fn().mockResolvedValue(undefined),
+  }),
+  usePredictWorldCupAvailability: () => ({
+    availability: { live: false, props: false, stages: {} },
+    isFetching: false,
+    isLoading: false,
+    errors: [],
+    refetch: jest.fn(),
+  }),
+  usePredictWorldCupAvailableTabs: () => ({
+    availability: { live: false, props: false, stages: {} },
+    tabs: [],
+    isFetching: false,
+    isLoading: false,
+    errors: [],
+    refetch: jest.fn(),
+  }),
 }));
 
 jest.mock('@tanstack/react-query', () => {
@@ -313,6 +362,8 @@ jest.mock('../../UI/Earn/hooks/useMusdConversionTokens', () => ({
 }));
 
 const mockEnableAllPopularNetworks = jest.fn();
+let mockPopularNetworks: string[] = [];
+const mockIsNetworkEnabled = jest.fn(() => true);
 jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
   useNetworkEnablement: () => ({
     namespace: 'eip155',
@@ -325,8 +376,8 @@ jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
     enableAllPopularNetworks: mockEnableAllPopularNetworks,
     popularEvmNetworks: [],
     popularMultichainNetworks: [],
-    popularNetworks: [],
-    isNetworkEnabled: jest.fn(),
+    popularNetworks: mockPopularNetworks,
+    isNetworkEnabled: mockIsNetworkEnabled,
     hasOneEnabledNetwork: false,
     tryEnableEvmNetwork: jest.fn(),
   }),
@@ -376,12 +427,26 @@ describe('Homepage', () => {
     mockUseMusdConversionEligibility.mockReturnValue({ isEligible: false });
     mockUseABTest.mockImplementation(defaultUseABTestImplementation);
     mockUseOwnedNfts.mockReturnValue([]);
+    mockPopularNetworks = [];
+    mockIsNetworkEnabled.mockReturnValue(true);
   });
 
-  it('calls enableAllPopularNetworks when Homepage is focused (useFocusEffect)', () => {
+  it('calls enableAllPopularNetworks when Homepage is focused and a popular network is disabled', () => {
+    mockPopularNetworks = ['eip155:1'];
+    mockIsNetworkEnabled.mockReturnValue(false);
+
     renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
     expect(mockEnableAllPopularNetworks).toHaveBeenCalled();
+  });
+
+  it('does not call enableAllPopularNetworks when all popular networks are already enabled', () => {
+    mockPopularNetworks = ['eip155:1'];
+    mockIsNetworkEnabled.mockReturnValue(true);
+
+    renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+    expect(mockEnableAllPopularNetworks).not.toHaveBeenCalled();
   });
 
   it('triggers NFT detection when Homepage is focused', () => {

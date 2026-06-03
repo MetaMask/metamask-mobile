@@ -55,6 +55,8 @@ interface PredictMarketMultipleProps {
   onCardPress?: () => void;
   /** Called when the user taps a buy button (before betslip opens). */
   onBuyButtonPress?: (marketId: string) => void;
+  predictFeedTab?: string;
+  predictScreen?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
@@ -65,6 +67,8 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
   isCarousel = false,
   onCardPress,
   onBuyButtonPress,
+  predictFeedTab,
+  predictScreen,
   transactionActiveAbTests,
 }) => {
   const resolvedEntryPoint = useResolvedPredictEntryPoint(propEntryPoint);
@@ -142,6 +146,8 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
           outcome,
           outcomeToken,
           entryPoint: resolvedEntryPoint,
+          ...(predictFeedTab && { predictFeedTab }),
+          ...(predictScreen && { predictScreen }),
           ...(transactionActiveAbTests?.length && {
             transactionActiveAbTests,
           }),
@@ -168,6 +174,8 @@ const PredictMarketMultiple: React.FC<PredictMarketMultipleProps> = ({
           params: {
             marketId: market.id,
             entryPoint: resolvedEntryPoint,
+            ...(predictFeedTab && { predictFeedTab }),
+            ...(predictScreen && { predictScreen }),
             title: market.title,
             image: market.image,
             ...(transactionActiveAbTests?.length && {

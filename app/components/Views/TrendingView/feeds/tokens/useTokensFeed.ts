@@ -4,6 +4,12 @@ import { useTrendingSearch } from '../../../../UI/Trending/hooks/useTrendingSear
 import { useFeedRefresh } from '../../hooks/useFeedRefresh';
 import type { RefreshConfig } from '../../hooks/useExploreRefresh';
 import { fuseSearch, TOKEN_FUSE_OPTIONS } from '../search-utils';
+import {
+  mapTimeOptionToSortBy,
+  PriceChangeOption,
+  SortDirection,
+  TimeOption,
+} from '../../../../UI/Trending/components/TrendingTokensBottomSheet';
 
 interface UseTokensFeedOptions {
   /** Search query; when present, results are sorted by market cap descending. */
@@ -14,6 +20,8 @@ interface UseTokensFeedOptions {
    * Use for surfaces that don't display a security badge.
    */
   hideRiskyTokens?: boolean;
+  /** Time option used for request and local price-change sorting. */
+  timeOption?: TimeOption;
 }
 
 export interface UseTokensFeedResult {
@@ -31,7 +39,10 @@ export const useTokensFeed = ({
   query,
   refresh,
   hideRiskyTokens = false,
+  timeOption,
 }: UseTokensFeedOptions = {}): UseTokensFeedResult => {
+  const sortBy = timeOption ? mapTimeOptionToSortBy(timeOption) : undefined;
+
   const {
     data,
     isLoading,
@@ -43,6 +54,15 @@ export const useTokensFeed = ({
   } = useTrendingSearch({
     searchQuery: query,
     enableDebounce: false,
+    sortBy,
+    filterLowQuality: true,
+    sortTrendingTokensOptions: timeOption
+      ? {
+          option: PriceChangeOption.PriceChange,
+          direction: SortDirection.Descending,
+          timeOption,
+        }
+      : undefined,
   });
 
   useFeedRefresh(refresh, refetch);

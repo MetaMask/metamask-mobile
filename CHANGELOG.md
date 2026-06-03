@@ -7,9 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Uncategorized
+## [7.78.1]
 
-- chore(deps): bump the `@metamask/tron-wallet-snap` to `^1.25.6` (#30200)
+### Fixed
+
+- Fixed a crash caused by CloseEvent dispatch on WebSocket failing instanceof validation (#30612)
 
 ## [7.78.0]
 
@@ -293,6 +295,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a gas-fee-sponsored message on the transaction activity tab (#28822)
 - Added a Benefits summary on the Rewards page with a full list view, benefit detail view, and a claim button that opens the partner site in the in-app browser (#27515)
 - Added a Leaderboard profile page (#28583)
+- Added multichain routing and namespace approval on WalletConnect for the first non-EVM chain (Tron) (#30519)
 
 ### Changed
 
@@ -11561,7 +11564,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.78.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.78.1...HEAD
+[7.78.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.78.0...v7.78.1
 [7.78.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.77.2...v7.78.0
 [7.77.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.77.1...v7.77.2
 [7.77.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.77.0...v7.77.1

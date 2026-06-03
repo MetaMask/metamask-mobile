@@ -343,6 +343,48 @@ describe('PredictMarketSingle', () => {
     });
   });
 
+  it('forwards predictFeedTab and predictScreen to market details navigation', () => {
+    const { getByText } = renderWithProvider(
+      <PredictMarketSingle
+        market={mockMarket}
+        predictFeedTab="world-cup"
+        predictScreen="world_cup"
+      />,
+      { state: initialState },
+    );
+
+    fireEvent.press(getByText('Will Bitcoin reach $150,000 by end of year?'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MARKET_DETAILS,
+      params: {
+        marketId: mockMarket.id,
+        entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+        predictFeedTab: 'world-cup',
+        predictScreen: 'world_cup',
+        title: mockMarket.title,
+        image: mockMarket.image,
+      },
+    });
+  });
+
+  it('forwards predictFeedTab and predictScreen to the buy sheet', () => {
+    const { getByText } = renderWithProvider(
+      <PredictMarketSingle market={mockMarket} predictFeedTab="trending" />,
+      { state: initialState },
+    );
+
+    fireEvent.press(getByText('Yes'));
+
+    expect(mockOpenBuySheet).toHaveBeenCalledWith({
+      market: mockMarket,
+      outcome: mockOutcome,
+      outcomeToken: mockOutcome.tokens[0],
+      entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+      predictFeedTab: 'trending',
+    });
+  });
+
   it('display correct button text using i18n strings', () => {
     const { getByText } = renderWithProvider(
       <PredictMarketSingle market={mockMarket} />,
