@@ -65,7 +65,10 @@ export function getFrameworkInfraChanges(changedFiles: string[]): string[] {
  * Spec file path prefixes for Detox smoke and regression tests.
  * Changes to these files are directly runnable by extracting their embedded tags.
  */
-const SPEC_PATH_PREFIXES = ['tests/smoke/', 'tests/regression/'] as const;
+export const SPEC_PATH_PREFIXES = [
+  'tests/smoke/',
+  'tests/regression/',
+] as const;
 
 const SPEC_FILE_PATTERN = /\.spec\./;
 
@@ -80,4 +83,42 @@ export function getChangedSpecFiles(changedFiles: string[]): string[] {
         SPEC_PATH_PREFIXES.some((prefix) => f.startsWith(prefix)) &&
         SPEC_FILE_PATTERN.test(f),
     );
+}
+
+/**
+ * Shared test infrastructure whose changes can affect any smoke/regression spec
+ * that imports them — directly or through one intermediate utility file.
+ *
+ * Unlike tests/framework/ (hard "run all"), these files have targeted impact:
+ * only specs that actually import the changed file need to run.
+ */
+const SHARED_TEST_INFRA_PREFIXES = [
+  'tests/flows/',
+  'tests/page-objects/',
+  'tests/selectors/',
+  'tests/locators/',
+] as const;
+
+/**
+ * Returns changed files that are shared test infrastructure (flows, page objects,
+ * selectors, locators) — but not spec files themselves.
+ */
+export function getChangedSharedInfraFiles(changedFiles: string[]): string[] {
+  return changedFiles
+    .map(normalizeChangedFilePath)
+    .filter(
+      (f) =>
+        SHARED_TEST_INFRA_PREFIXES.some((prefix) => f.startsWith(prefix)) &&
+        !SPEC_FILE_PATTERN.test(f),
+    );
+}
+
+/**
+ * Returns true if the file is a Detox spec file.
+ */
+export function isSpecFile(file: string): boolean {
+  return (
+    SPEC_PATH_PREFIXES.some((prefix) => file.startsWith(prefix)) &&
+    SPEC_FILE_PATTERN.test(file)
+  );
 }
