@@ -16,12 +16,60 @@ import type {
   NavigationContainerRef,
   ParamListBase,
 } from '@react-navigation/native';
+import { AccountGroupType, AccountWalletType } from '@metamask/account-api';
 
 const mockCreateWallet = jest.fn().mockResolvedValue(undefined);
 const mockCreateAccountGroups = jest.fn().mockResolvedValue([]);
 const mockImportAccount = jest.fn().mockResolvedValue(undefined);
 const mockIsUnlocked = jest.fn(() => true);
 const mockSubmitPassword = jest.fn().mockResolvedValue(undefined);
+const FIXTURE_WALLET_ID = 'entropy:keyring-1' as const;
+
+function mockEvmAccount(id: string, address: string, name: string) {
+  return {
+    id,
+    address,
+    type: 'eip155:eoa' as const,
+    options: {},
+    scopes: ['eip155:1' as const],
+    methods: [],
+    metadata: {
+      name,
+      importTime: 0,
+      keyring: { type: 'HD Key Tree' },
+    },
+  };
+}
+
+function mockEntropyGroup(
+  groupIndex: number,
+  accountIds: [string, ...string[]],
+  name: string,
+): {
+  type: AccountGroupType.MultichainAccount;
+  id: `${typeof FIXTURE_WALLET_ID}/${number}`;
+  accounts: [string, ...string[]];
+  metadata: {
+    name: string;
+    pinned: boolean;
+    hidden: boolean;
+    lastSelected: number;
+    entropy: { groupIndex: number };
+  };
+} {
+  return {
+    type: AccountGroupType.MultichainAccount,
+    id: `${FIXTURE_WALLET_ID}/${groupIndex}` as const,
+    accounts: accountIds,
+    metadata: {
+      name,
+      pinned: false,
+      hidden: false,
+      lastSelected: 0,
+      entropy: { groupIndex },
+    },
+  };
+}
 
 jest.mock('../Engine', () => ({
   context: {
@@ -56,8 +104,8 @@ jest.mock('../Engine', () => ({
       init: jest.fn().mockResolvedValue(undefined),
     },
     KeyringController: {
-      isUnlocked: (...args: unknown[]) => mockIsUnlocked(...args),
-      submitPassword: (...args: unknown[]) => mockSubmitPassword(...args),
+      isUnlocked: () => mockIsUnlocked(),
+      submitPassword: (password: string) => mockSubmitPassword(password),
       importAccountWithStrategy: (...args: unknown[]) =>
         mockImportAccount(...(args as [string, string[]])),
     },
@@ -229,11 +277,7 @@ function installFiberHook(rootFiber: FiberNode) {
 
 function resetMockAccountState() {
   Engine.context.AccountsController.state.internalAccounts.accounts = {
-    a1: {
-      id: 'a1',
-      address: '0xABC',
-      metadata: { name: 'Account 1' },
-    },
+    a1: mockEvmAccount('a1', '0xABC', 'Account 1'),
   };
   Engine.context.AccountTreeController.state.accountTree = { wallets: {} };
 }
@@ -846,22 +890,23 @@ describe('AgenticService.install', () => {
     it('creates missing fixture HD accounts with a batched account-group range', async () => {
       const mnemonic =
         'test test test test test test test test test test test junk';
+      const group0Id = `${FIXTURE_WALLET_ID}/0` as const;
       Engine.context.AccountsController.state.internalAccounts.accounts = {
-        a1: {
-          id: 'a1',
-          address: '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',
-          metadata: { name: 'dev1' },
-        },
+        a1: mockEvmAccount(
+          'a1',
+          '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',
+          'dev1',
+        ),
       };
       Engine.context.AccountTreeController.state.accountTree = {
         wallets: {
-          wallet1: {
-            metadata: { entropy: { id: 'keyring-1' } },
+          [FIXTURE_WALLET_ID]: {
+            type: AccountWalletType.Entropy,
+            id: FIXTURE_WALLET_ID,
+            status: 'ready',
+            metadata: { name: 'Fixture Wallet', entropy: { id: 'keyring-1' } },
             groups: {
-              group0: {
-                accounts: ['a1'],
-                metadata: { entropy: { groupIndex: 0 } },
-              },
+              [group0Id]: mockEntropyGroup(0, ['a1'], 'dev1'),
             },
           },
         },
@@ -869,29 +914,31 @@ describe('AgenticService.install', () => {
       mockCreateAccountGroups.mockImplementationOnce(async () => {
         Engine.context.AccountsController.state.internalAccounts.accounts = {
           ...Engine.context.AccountsController.state.internalAccounts.accounts,
-          a2: {
-            id: 'a2',
-            address: '0x0000000000000000000000000000000000000002',
-            metadata: { name: 'dev2' },
-          },
-          a3: {
-            id: 'a3',
-            address: '0x0000000000000000000000000000000000000003',
-            metadata: { name: 'dev3' },
-          },
+          a2: mockEvmAccount(
+            'a2',
+            '0x0000000000000000000000000000000000000002',
+            'dev2',
+          ),
+          a3: mockEvmAccount(
+            'a3',
+            '0x0000000000000000000000000000000000000003',
+            'dev3',
+          ),
         };
         const wallet = Engine.context.AccountTreeController.state.accountTree
-          .wallets.wallet1 as {
+          .wallets[FIXTURE_WALLET_ID] as {
           groups: Record<string, unknown>;
         };
-        wallet.groups.group1 = {
-          accounts: ['a2'],
-          metadata: { entropy: { groupIndex: 1 } },
-        };
-        wallet.groups.group2 = {
-          accounts: ['a3'],
-          metadata: { entropy: { groupIndex: 2 } },
-        };
+        wallet.groups[`${FIXTURE_WALLET_ID}/1`] = mockEntropyGroup(
+          1,
+          ['a2'],
+          'dev2',
+        );
+        wallet.groups[`${FIXTURE_WALLET_ID}/2`] = mockEntropyGroup(
+          2,
+          ['a3'],
+          'dev3',
+        );
         return [];
       });
 
@@ -915,7 +962,7 @@ describe('AgenticService.install', () => {
       });
       expect(
         Engine.context.AccountTreeController.setAccountGroupName,
-      ).toHaveBeenCalledWith('group2', 'dev3');
+      ).toHaveBeenCalledWith(`${FIXTURE_WALLET_ID}/2`, 'dev3');
     });
 
     it('opts out of metametrics when specified', async () => {
