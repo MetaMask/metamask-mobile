@@ -109,6 +109,18 @@ describe('NotificationSettingsSection', () => {
     expect(mockDispatch).not.toHaveBeenCalled();
   });
 
+  it('renders agentic CLI channel toggles when agenticCli is absent from storage', () => {
+    renderSection({
+      type: 'agenticCli',
+      title: 'Agentic CLI',
+      description: 'Updates from your Agentic CLI sessions and tools',
+    });
+
+    expect(screen.getByText('Agentic CLI')).toBeOnTheScreen();
+    expect(screen.getByText('Push')).toBeOnTheScreen();
+    expect(screen.getByText('In-app')).toBeOnTheScreen();
+  });
+
   it('renders the marketing disclaimer for marketing preferences', () => {
     renderSection({
       type: 'marketing',

@@ -1,7 +1,13 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useQuery } from '@metamask/react-data-query';
 import { useQueryClient } from '@tanstack/react-query';
 import type { AuthenticatedUserStorageServiceGetNotificationPreferencesAction } from '@metamask/authenticated-user-storage';
+import {
+  AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION,
+  resolveAgenticCliPreference,
+  setClientAgenticCliPreferenceOverride,
+  type NotificationStoragePreferencesWithAgenticCli,
+} from '../../../../../util/notifications/agenticCliNotificationPreferences';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 
@@ -17,12 +23,26 @@ type NotificationStoragePreferencesResult = Awaited<
   >
 >;
 export type NotificationStoragePreferences =
-  NonNullable<NotificationStoragePreferencesResult>;
+  NotificationStoragePreferencesWithAgenticCli;
 export type NotificationStoragePreferenceSection =
   keyof NotificationStoragePreferences;
 export type NotificationStoragePreferenceChannelKey =
   | 'pushNotificationsEnabled'
   | 'inAppNotificationsEnabled';
+
+const withResolvedAgenticCliPreferences = (
+  preferences: NotificationStoragePreferencesResult | undefined,
+): NotificationStoragePreferencesResult | undefined => {
+  if (!preferences) {
+    return preferences;
+  }
+
+  return {
+    ...preferences,
+    [AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION]:
+      resolveAgenticCliPreference(preferences),
+  };
+};
 
 export const useNotificationStoragePreferences = () => {
   const { data, isLoading, error, refetch } =
@@ -30,6 +50,11 @@ export const useNotificationStoragePreferences = () => {
       queryKey: [GET_ACTION],
     });
   const queryClient = useQueryClient();
+
+  const preferences = useMemo(
+    () => withResolvedAgenticCliPreferences(data),
+    [data],
+  );
 
   const enqueuePersist = useCallback(
     async <
@@ -83,18 +108,25 @@ export const useNotificationStoragePreferences = () => {
         [type]: nextSectionPreferences,
       } as NotificationStoragePreferences;
 
+      if (type === AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION) {
+        setClientAgenticCliPreferenceOverride(nextSectionPreferences);
+      }
+
       queryClient.setQueryData<NotificationStoragePreferencesResult>(
         [GET_ACTION],
         (previousPreferences) =>
-          ({
+          withResolvedAgenticCliPreferences({
             ...(previousPreferences ?? nextPreferences),
             [type]: nextSectionPreferences,
-          }) as NotificationStoragePreferences,
+          } as NotificationStoragePreferences) as NotificationStoragePreferences,
       );
 
       try {
         await enqueuePersist(nextPreferences, type);
       } catch (err) {
+        if (type === AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION) {
+          setClientAgenticCliPreferenceOverride(null);
+        }
         refetch();
         throw err;
       }
@@ -117,8 +149,13 @@ export const useNotificationStoragePreferences = () => {
         return;
       }
 
+      const currentSectionPreferences =
+        type === AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION
+          ? resolveAgenticCliPreference(data)
+          : data[type];
+
       await updatePreferencesSection(type, {
-        ...data[type],
+        ...currentSectionPreferences,
         [key]: value,
       });
     },
@@ -126,8 +163,9 @@ export const useNotificationStoragePreferences = () => {
   );
 
   return {
-    preferences: data,
-    hasNotificationPreferences: data !== null && data !== undefined,
+    preferences,
+    hasNotificationPreferences:
+      preferences !== null && preferences !== undefined,
     isLoading,
     error,
     updatePreference,

@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import type { NotificationPreferences } from '@metamask/authenticated-user-storage';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
+import { setClientAgenticCliPreferenceOverride } from '../../../../../util/notifications/agenticCliNotificationPreferences';
 import { useNotificationStoragePreferences } from './useNotificationStoragePreferences';
 
 jest.mock('@metamask/react-data-query');
@@ -84,6 +85,7 @@ const makeQueryResult = (
 
 describe('useNotificationStoragePreferences', () => {
   beforeEach(() => {
+    setClientAgenticCliPreferenceOverride(null);
     jest.clearAllMocks();
     mockUseQuery.mockReturnValue(makeQueryResult());
     mockUseQueryClient.mockReturnValue({
@@ -165,6 +167,71 @@ describe('useNotificationStoragePreferences', () => {
       },
       CLIENT_TYPE,
     );
+  });
+
+  it('persists agenticCli preferences when the section is missing from cache', async () => {
+    const cachedPreferences = buildPreferences();
+    const latestPreferences = buildPreferences();
+    mockUseQuery.mockReturnValue(makeQueryResult({ data: cachedPreferences }));
+    mockCall.mockImplementation(async (action: string) => {
+      if (action === GET_ACTION) {
+        return latestPreferences;
+      }
+      return undefined;
+    });
+
+    const { result } = renderHook(() => useNotificationStoragePreferences());
+
+    await act(async () => {
+      await result.current.updatePreference(
+        'agenticCli',
+        'pushNotificationsEnabled',
+        true,
+      );
+    });
+
+    expect(mockCall).toHaveBeenCalledWith(
+      PUT_ACTION,
+      {
+        ...latestPreferences,
+        agenticCli: {
+          pushNotificationsEnabled: true,
+          inAppNotificationsEnabled: false,
+        },
+      },
+      CLIENT_TYPE,
+    );
+  });
+
+  it('keeps agenticCli preferences in hook state when API omits the section', async () => {
+    const cachedPreferences = buildPreferences();
+    mockUseQuery.mockReturnValue(makeQueryResult({ data: cachedPreferences }));
+    mockCall.mockImplementation(async (action: string) => {
+      if (action === GET_ACTION) {
+        return cachedPreferences;
+      }
+      return undefined;
+    });
+
+    const { result, rerender } = renderHook(() =>
+      useNotificationStoragePreferences(),
+    );
+
+    await act(async () => {
+      await result.current.updatePreference(
+        'agenticCli',
+        'pushNotificationsEnabled',
+        true,
+      );
+    });
+
+    mockUseQuery.mockReturnValue(makeQueryResult({ data: cachedPreferences }));
+    rerender({});
+
+    expect(result.current.preferences?.agenticCli).toEqual({
+      pushNotificationsEnabled: true,
+      inAppNotificationsEnabled: false,
+    });
   });
 
   it('refetches and rethrows when persistence fails', async () => {

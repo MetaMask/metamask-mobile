@@ -3391,6 +3391,8 @@
       "perps_desc": "Perps position changes, liquidations, funding rates, and margin updates",
       "social_ai_title": "Trading Signals",
       "social_ai_desc": "Updates from traders and assets you follow, plus currated market news",
+      "agentic_cli_title": "Agentic CLI",
+      "agentic_cli_desc": "Updates from your Agentic CLI sessions and tools",
       "marketing_title": "Updates and Rewards",
       "marketing_desc": "Product updates, feature announcements, and new releases",
       "marketing_disclaimer": "By turning this on, you agree to receive product news and marketing updates from MetaMask.",

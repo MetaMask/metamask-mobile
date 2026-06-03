@@ -186,6 +186,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  agenticCliNotificationsEnabled: {
+    name: 'agenticCliNotificationsEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
   assetsUnifyState: {
     name: 'assetsUnifyState',
     type: FeatureFlagType.Remote,

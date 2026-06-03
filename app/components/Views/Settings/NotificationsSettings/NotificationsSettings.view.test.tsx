@@ -33,6 +33,10 @@ const MOCK_NOTIFICATION_PREFERENCES = {
     inAppNotificationsEnabled: false,
     pushNotificationsEnabled: false,
   },
+  agenticCli: {
+    inAppNotificationsEnabled: true,
+    pushNotificationsEnabled: false,
+  },
 };
 
 /**
@@ -49,6 +53,7 @@ const SECTION_TITLES = {
   walletActivity: 'Wallet Activity',
   perps: 'Trading Activity',
   socialAI: 'Trading Signals',
+  agenticCli: 'Agentic CLI',
   marketing: 'Updates and Rewards',
 };
 
@@ -81,6 +86,18 @@ function renderSettingsWithSectionRoute(
 }
 
 describeForPlatforms('Notifications settings (toggles + visibility)', () => {
+  const originalAgenticCliBuildFlag =
+    process.env.MM_AGENTIC_CLI_NOTIFICATIONS_UI_ENABLED;
+
+  beforeAll(() => {
+    process.env.MM_AGENTIC_CLI_NOTIFICATIONS_UI_ENABLED = 'true';
+  });
+
+  afterAll(() => {
+    process.env.MM_AGENTIC_CLI_NOTIFICATIONS_UI_ENABLED =
+      originalAgenticCliBuildFlag;
+  });
+
   beforeEach(() => {
     const controllerMessengerCall = Engine.controllerMessenger.call.bind(
       Engine.controllerMessenger,
@@ -120,6 +137,25 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
     expect(getByText(SECTION_TITLES.marketing)).toBeOnTheScreen();
     expect(await findAllByText('Push, In app')).toHaveLength(3);
     expect(getByText('Off')).toBeOnTheScreen();
+  });
+
+  it('renders agentic CLI section when agentic CLI notifications flag is enabled', async () => {
+    const { getByText, findByText } = renderSettings({
+      agenticCliNotificationsEnabled: true,
+    });
+
+    expect(await findByText(SECTION_TITLES.walletActivity)).toBeOnTheScreen();
+    expect(getByText(SECTION_TITLES.agenticCli)).toBeOnTheScreen();
+    expect(getByText('Push')).toBeOnTheScreen();
+  });
+
+  it('hides agentic CLI section when agentic CLI notifications flag is disabled', async () => {
+    const { queryByText, findByText } = renderSettings({
+      agenticCliNotificationsEnabled: false,
+    });
+
+    expect(await findByText(SECTION_TITLES.walletActivity)).toBeOnTheScreen();
+    expect(queryByText(SECTION_TITLES.agenticCli)).toBeNull();
   });
 
   it('hides social AI section when social leaderboard feature flag is disabled', async () => {
