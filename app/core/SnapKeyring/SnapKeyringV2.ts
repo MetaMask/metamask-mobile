@@ -8,10 +8,7 @@ import type {
 } from '@metamask/keyring-controller';
 import type { Keyring } from '@metamask/keyring-utils';
 import { assert } from '@metamask/utils';
-import {
-  SnapKeyringImpl,
-  type SnapKeyringHelpers,
-} from './SnapKeyring';
+import { SnapKeyringImpl } from './SnapKeyring';
 import type { SnapKeyringBuilderMessenger } from './types';
 import { isE2E } from '../../util/test/utils';
 
@@ -25,11 +22,6 @@ export interface SnapKeyringBuilderV2 {
   v1Builder: KeyringBuilder;
   v2Builder: KeyringV2Builder;
 }
-
-/**
- * Helpers for the v2 Snap keyring implementation.
- */
-export type SnapKeyringV2Helpers = SnapKeyringHelpers;
 
 /**
  * The v2 messenger has the same scope as the v1 messenger, so we reuse the
@@ -55,12 +47,11 @@ export class SnapKeyringV2Impl extends SnapKeyringImpl {
  */
 export function snapKeyringBuilderV2(
   messenger: SnapKeyringBuilderV2Messenger,
-  helpers: SnapKeyringV2Helpers,
 ): SnapKeyringBuilderV2 {
   const SnapKeyringBuilderV2AdapterV1 = () => {
     const v2 = new SnapKeyringV2({
       messenger,
-      callbacks: new SnapKeyringV2Impl(messenger, helpers),
+      callbacks: new SnapKeyringV2Impl(messenger),
       // Enables generic account creation for new chain integration. We keep
       // it on under e2e to match the v1 keyring's behaviour in this codebase.
       isAnyAccountTypeAllowed: isE2E,
