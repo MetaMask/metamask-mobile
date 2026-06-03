@@ -5,7 +5,6 @@ import type { AccountGroupObject } from '@metamask/account-tree-controller';
  */
 export enum AccountSelectorScreens {
   AccountSelector = 'AccountSelector',
-  AddAccountActions = 'AddAccountActions',
   MultichainAddWalletActions = 'MultichainAddWalletActions',
 }
 
@@ -41,9 +40,7 @@ export interface AccountSelectorParams {
   /**
    * Optional navigation screen to open add-account actions when the account selector loads.
    */
-  navigateToAddAccountActions?:
-    | AccountSelectorScreens.AddAccountActions
-    | AccountSelectorScreens.MultichainAddWalletActions;
+  navigateToAddAccountActions?: AccountSelectorScreens.MultichainAddWalletActions;
   /**
    * Only show EVM accounts.
    */

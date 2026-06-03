@@ -305,15 +305,21 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     }, [forwardEnabled]);
 
     /**
-     * Check if an origin is allowed
+     * Check if a URL is allowed.
+     *
+     * The full URL (including its path) is forwarded to the dapp-scanning
+     * check rather than just the origin, since the scanner performs path-aware
+     * evaluation for certain shared-host domains and requires the complete URL.
+     * The whitelist remains origin-based.
      */
-    const isAllowedOrigin = useCallback(
-      async (urlOrigin: string): Promise<boolean> => {
+    const isAllowedUrl = useCallback(
+      async (urlToCheck: string): Promise<boolean> => {
+        const { origin: urlOrigin } = new URLParse(urlToCheck);
         if (whitelist?.includes(urlOrigin)) {
           return true;
         }
 
-        const testResult = await getPhishingTestResultAsync(urlOrigin);
+        const testResult = await getPhishingTestResultAsync(urlToCheck);
         return !testResult?.result;
       },
       [whitelist],
@@ -930,14 +936,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       async (iframeUrls: string[]) => {
         for (const iframeUrl of iframeUrls) {
           const { origin: iframeOrigin } = new URLParse(iframeUrl);
-          const isAllowed = await isAllowedOrigin(iframeOrigin);
+          const isAllowed = await isAllowedUrl(iframeUrl);
           if (!isAllowed) {
             handleNotAllowedUrl(iframeOrigin);
             return;
           }
         }
       },
-      [isAllowedOrigin, handleNotAllowedUrl],
+      [isAllowedUrl, handleNotAllowedUrl],
     );
 
     /**
@@ -1025,8 +1031,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           };
         }
 
-        // Cancel loading the page if we detect its a phishing page
-        const isAllowed = await isAllowedOrigin(urlOrigin);
+        // Cancel loading the page if we detect its a phishing page.
+        // Pass the full URL (including path) so the scanner can evaluate it,
+        // not just the origin.
+        const isAllowed = await isAllowedUrl(nativeEvent.url);
         if (!isAllowed) {
           handleNotAllowedUrl(urlOrigin);
           return false;
@@ -1038,7 +1046,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         // has committed, in `handleSuccessfulPageResolution`.
         iconRef.current = undefined;
       },
-      [isAllowedOrigin, handleNotAllowedUrl],
+      [isAllowedUrl, handleNotAllowedUrl],
     );
 
     /**
