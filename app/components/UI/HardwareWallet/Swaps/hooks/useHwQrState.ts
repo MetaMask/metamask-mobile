@@ -1,18 +1,29 @@
 import { useCallback, useState, useEffect, useMemo, useRef } from 'react';
 import { useDispatch } from 'react-redux';
-import { useHardwareWallet } from '../../../../core/HardwareWallet';
+import { useHardwareWallet } from '../../../../../core/HardwareWallet';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
-import { updateHardwareWalletsSwaps } from '../../../../core/redux/slices/bridge';
+import { updateHardwareWalletsSwaps } from '../../../../../core/redux/slices/bridge';
 import {
   HardwareWalletsSwapsStatus,
   HardwareWalletsSwapsEventType,
-} from './HardwareWalletsSwaps.state';
+} from '../HardwareWalletsSwaps.state';
 
+/**
+ * Options for {@link useHwQrState}.
+ *
+ * @property isEnabled - Whether hardware wallet swaps are enabled for the current flow.
+ * @property currentStatus - The current status of the hardware wallet swap flow.
+ */
 interface UseHwQrStateOptions {
   isEnabled: boolean;
   currentStatus: HardwareWalletsSwapsStatus;
 }
 
+/**
+ * Terminal states that indicate the swap flow has ended.
+ * When transitioning to any of these from an active state,
+ * any pending QR scan request should be cancelled.
+ */
 const TERMINAL_STATUSES: Set<HardwareWalletsSwapsStatus> = new Set([
   HardwareWalletsSwapsStatus.Failed,
   HardwareWalletsSwapsStatus.Rejected,
@@ -20,6 +31,19 @@ const TERMINAL_STATUSES: Set<HardwareWalletsSwapsStatus> = new Set([
   HardwareWalletsSwapsStatus.Disconnected,
 ]);
 
+/**
+ * Hook that manages QR hardware wallet state during a swap flow.
+ *
+ * Responsibilities:
+ * - Detects whether the connected wallet is a QR-based hardware wallet.
+ * - Determines when to show the inline QR signing UI.
+ * - Auto-cancels pending QR scan requests when the swap transitions to a
+ * terminal state `Failed`, `Rejected`, `Cancelled`, `Disconnected`.
+ * - Provides a cancel handler that rejects the scan and updates the swap state.
+ *
+ * @param options - See {@link UseHwQrStateOptions}.
+ * @returns QR-related state and callbacks for the swap UI.
+ */
 export function useHwQrState({
   isEnabled,
   currentStatus,
@@ -28,17 +52,27 @@ export function useHwQrState({
   const { walletType, qr } = useHardwareWallet();
 
   const isQrHardwareWallet = walletType === HardwareWalletType.Qr;
-  const pendingScanRequest = qr.pendingScanRequest;
+  const { pendingScanRequest, cancelQRScanRequestIfPresent } = qr;
 
   const [isReadingQrSignature, setIsReadingQrSignature] = useState(false);
 
+  // Track whether we were previously in an active (Waiting) state so
+  // we only cancel on a genuine transition, not on initial render.
   const wasActiveRef = useRef(false);
+  // Track whether we already cancelled for the current terminal transition
+  // to prevent duplicate cancellations.
   const hasCancelledForTerminalRef = useRef(false);
 
   useEffect(() => {
     setIsReadingQrSignature(false);
   }, [pendingScanRequest]);
 
+  /**
+   * Auto-cancel pending QR scan when transitioning from an active state
+   * to a terminal state (Failed, Rejected, Cancelled, Disconnected).
+   * This handles the case where the swap fails instantly (e.g., STX not
+   * supported) but a QR scan request was already created by the keyring.
+   */
   useEffect(() => {
     const isActive =
       currentStatus === HardwareWalletsSwapsStatus.Waiting ||
@@ -58,9 +92,14 @@ export function useHwQrState({
       isQrHardwareWallet
     ) {
       hasCancelledForTerminalRef.current = true;
-      qr.cancelQRScanRequestIfPresent();
+      cancelQRScanRequestIfPresent();
     }
-  }, [currentStatus, isEnabled, isQrHardwareWallet, qr]);
+  }, [
+    currentStatus,
+    isEnabled,
+    isQrHardwareWallet,
+    cancelQRScanRequestIfPresent,
+  ]);
 
   const showInlineQrSigning = useMemo(
     () =>
@@ -72,13 +111,13 @@ export function useHwQrState({
   );
 
   const handleQrSignatureCancel = useCallback(() => {
-    qr.cancelQRScanRequestIfPresent();
+    cancelQRScanRequestIfPresent();
     dispatch(
       updateHardwareWalletsSwaps({
         type: HardwareWalletsSwapsEventType.Rejected,
       }),
     );
-  }, [qr, dispatch]);
+  }, [cancelQRScanRequestIfPresent, dispatch]);
 
   return {
     isReadingQrSignature,
