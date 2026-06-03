@@ -891,7 +891,8 @@ describe('handleUnifiedSwapsTxHistoryItemClick', () => {
       counter: MAX_ATTEMPTS,
       lastAttemptTime: Date.now(),
     };
-    bridgeTxHistoryItem.quote.destChainId = bridgeTxHistoryItem.quote.srcChainId;
+    bridgeTxHistoryItem.quote.destChainId =
+      bridgeTxHistoryItem.quote.srcChainId;
 
     // Act
     handleUnifiedSwapsTxHistoryItemClick({
