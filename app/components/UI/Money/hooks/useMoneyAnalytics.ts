@@ -9,11 +9,15 @@ import {
   MoneyButtonEventProperties,
   MoneyRedirectEventProperties,
   MoneyOnboardingEventProperties,
+  MoneyTooltipEventProperties,
+  MONEY_SURFACE_TYPES,
+  MoneySurfaceClickedEventProperties,
 } from '../constants/moneyEvents';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 
 export const useMoneyAnalytics = ({
   screen_name,
+  bottom_sheet_name,
   component_name,
 }: Partial<MoneyLocationEventProperties> = {}) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -26,6 +30,7 @@ export const useMoneyAnalytics = ({
     (): MoneyBaseEventProperties => ({
       ...(screen_name ? { screen_name } : {}),
       ...(component_name ? { component_name } : {}),
+      ...(bottom_sheet_name ? { bottom_sheet_name } : {}),
       is_card_linked_to_money_account: isCardLinkedToMoneyAccount,
       /**
        * Note from Card team:
@@ -42,6 +47,7 @@ export const useMoneyAnalytics = ({
       isCardAuthenticated,
       isCardLinkedToMoneyAccount,
       screen_name,
+      bottom_sheet_name,
       totalFiatRaw,
     ],
   );
@@ -64,10 +70,10 @@ export const useMoneyAnalytics = ({
   );
 
   /**
-   * Used to track when a surface is clicked that isn't a button (e.g. MoneyBalanceCard)
+   * Used to track when a surface is clicked that isn't a button (e.g. View)
    */
   const trackSurfaceClicked = useCallback(
-    (properties: MoneyRedirectEventProperties) => {
+    (properties: MoneySurfaceClickedEventProperties) => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.MONEY_SURFACE_CLICKED)
           .addProperties({
@@ -80,18 +86,36 @@ export const useMoneyAnalytics = ({
     [createEventBuilder, getBaseProperties, trackEvent],
   );
 
-  /**
-   * Used to track when a screen or component is viewed.
-   */
-  const trackSurfaceViewed = useCallback(() => {
+  const trackTooltipClicked = useCallback(
+    (properties: MoneyTooltipEventProperties) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.MONEY_TOOLTIP_CLICKED)
+          .addProperties({
+            ...getBaseProperties(),
+            ...properties,
+          })
+          .build(),
+      );
+    },
+    [createEventBuilder, getBaseProperties, trackEvent],
+  );
+
+  const trackSurfaceViewed = (surfaceType: MONEY_SURFACE_TYPES) => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.MONEY_SURFACE_VIEWED)
         .addProperties({
           ...getBaseProperties(),
+          surface_type: surfaceType,
         })
         .build(),
     );
-  }, [createEventBuilder, getBaseProperties, trackEvent]);
+  };
+
+  const trackComponentViewed = () =>
+    trackSurfaceViewed(MONEY_SURFACE_TYPES.COMPONENT);
+
+  const trackBottomSheetViewed = () =>
+    trackSurfaceViewed(MONEY_SURFACE_TYPES.BOTTOM_SHEET);
 
   const trackOnboardingEvent = useCallback(
     (properties: MoneyOnboardingEventProperties) => {
@@ -108,9 +132,16 @@ export const useMoneyAnalytics = ({
   );
 
   return {
+    // Click events
     trackButtonClicked,
     trackSurfaceClicked,
-    trackSurfaceViewed,
+    trackTooltipClicked,
+
+    // View events
+    trackBottomSheetViewed,
+    trackComponentViewed,
+
+    // Onboarding events
     trackOnboardingEvent,
   };
 };

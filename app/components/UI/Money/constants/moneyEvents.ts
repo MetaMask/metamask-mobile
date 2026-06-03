@@ -9,22 +9,34 @@ export enum SCREEN_NAMES {
   MONEY_ONBOARDING = 'money_onboarding',
   CARD_HOME = 'card_home',
   MONEY_DEPOSIT = 'money_deposit',
+  MONEY_HOW_IT_WORKS = 'money_how_it_works',
+  MONEY_ACTIVITY = 'money_activity',
+  MONEY_POTENTIAL_EARNINGS = 'money_potential_earnings',
 }
 
-export enum SHEET_NAMES {
+export enum BOTTOM_SHEET_NAMES {
   MONEY_ADD_MONEY_SHEET = 'money_add_money_sheet',
   MONEY_TRANSFER_MONEY_SHEET = 'money_transfer_money_sheet',
   CARD_AUTH_SHEET = 'card_auth_sheet',
   CARD_LINK_SHEET = 'card_link_sheet',
+  MONEY_APY_INFO_SHEET = 'money_apy_info_sheet',
+  MONEY_EARNINGS_INFO_SHEET = 'money_earnings_info_sheet',
 }
 
 export enum COMPONENT_NAMES {
   MONEY_BALANCE_CARD = 'money_balance_card',
+  MONEY_BALANCE_SUMMARY = 'money_balance_summary',
   HOME_TAB = 'home_tab',
   MONEY_ACTION_BUTTON_ROW = 'money_action_button_row',
   RIVE_ONBOARDING_STEPPER = 'rive_onboarding_stepper',
   /** The Stepper Card component on Money Home screen (add funds, get/link card). */
   MONEY_ONBOARDING_CARD = 'money_onboarding_card',
+  MONEY_ESTIMATED_EARNINGS = 'money_estimated_earnings',
+  MONEY_METAMASK_CARD = 'money_metamask_card',
+  MONEY_POTENTIAL_EARNINGS_HEADER = 'money_potential_earnings_header',
+  MONEY_ACTIVITY_HEADER = 'money_activity_header',
+  MONEY_HOW_IT_WORKS_HEADER = 'money_how_it_works_header',
+  MONEY_CARD_SECTION_HEADER = 'money_card_section_header',
 }
 
 export enum REDIRECT_TARGETS {
@@ -32,15 +44,18 @@ export enum REDIRECT_TARGETS {
   BOTTOM_SHEET = 'bottom_sheet',
 }
 
-// TODO: Breakout
-// TODO: Add js doc comments for types below.
+// TODO: Breakout types
 /**
  * Properties for tracking location-based events.
  * screen_name: The name of the screen the event occurred on.
  * component_name: The name of the component the event occurred on.
+ * bottom_sheet_name: The name of the bottom sheet the event occurred on.
  */
+// TODO: Try to simplify the need for bottom_sheet_name and component_name.
+// Maybe just use surface_name and surface_type?
 export type MoneyLocationEventProperties = {
   screen_name: SCREEN_NAMES;
+  bottom_sheet_name: BOTTOM_SHEET_NAMES;
   component_name: COMPONENT_NAMES;
 };
 
@@ -55,8 +70,11 @@ type MoneyFundedEventProperties = {
 
 export type MoneyRedirectEventProperties = {
   redirect_target_type: REDIRECT_TARGETS;
-  redirect_target: SCREEN_NAMES | SHEET_NAMES;
+  redirect_target: SCREEN_NAMES | BOTTOM_SHEET_NAMES;
 };
+
+export type MoneySurfaceClickedEventProperties = MoneyRedirectEventProperties &
+  Partial<MoneyLocationEventProperties>;
 
 /**
  * Base properties for all Money events.
@@ -70,6 +88,7 @@ type XOR<A, B> =
   | (A & { [K in keyof B]?: never })
   | (B & { [K in keyof A]?: never });
 
+// TODO: Reminder to rename this to MoneyButtonClickedEventProperties. Do the same for all event types in this file.
 export type MoneyButtonEventProperties = Partial<
   Pick<MoneyLocationEventProperties, 'component_name'>
 > &
@@ -111,3 +130,24 @@ export type MoneyOnboardingEventProperties =
     step_action?: MONEY_ONBOARDING_STEP_ACTIONS;
     total_steps: number;
   };
+
+export enum MONEY_TOOLTIP_NAMES {
+  ESTIMATED_EARNINGS = 'estimated_earnings',
+  APY = 'apy',
+}
+
+export enum MONEY_TOOLTIP_TYPES {
+  INFO = 'info',
+}
+
+export type MoneyTooltipEventProperties =
+  Partial<MoneyLocationEventProperties> & {
+    tooltip_name: MONEY_TOOLTIP_NAMES;
+    tooltip_type: MONEY_TOOLTIP_TYPES;
+  };
+
+export enum MONEY_SURFACE_TYPES {
+  SCREEN = 'screen',
+  BOTTOM_SHEET = 'bottom_sheet',
+  COMPONENT = 'component',
+}

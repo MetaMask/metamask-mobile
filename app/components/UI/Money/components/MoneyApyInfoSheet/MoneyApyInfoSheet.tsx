@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -15,6 +15,11 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import styleSheet from './MoneyApyInfoSheet.styles';
 import { MoneyApyInfoSheetTestIds } from './MoneyApyInfoSheet.testIds';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import {
+  BOTTOM_SHEET_NAMES,
+  MONEY_SURFACE_TYPES,
+} from '../../constants/moneyEvents';
 
 interface MoneyApyInfoSheetParams {
   apy: number;
@@ -22,10 +27,15 @@ interface MoneyApyInfoSheetParams {
 
 const MoneyApyInfoSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
+  const didMountRef = useRef(false);
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
   const { apy } = useParams<MoneyApyInfoSheetParams>();
   const surfaceClass = useElevatedSurface();
+
+  const { trackBottomSheetViewed } = useMoneyAnalytics({
+    bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_APY_INFO_SHEET,
+  });
 
   const handleGoBack = useCallback(() => {
     navigation.goBack();
@@ -34,6 +44,12 @@ const MoneyApyInfoSheet = () => {
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
+
+  useEffect(() => {
+    if (didMountRef.current) return;
+    didMountRef.current = true;
+    trackBottomSheetViewed();
+  }, [trackBottomSheetViewed]);
 
   return (
     <BottomSheet

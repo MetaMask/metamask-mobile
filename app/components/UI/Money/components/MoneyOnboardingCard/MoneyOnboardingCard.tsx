@@ -18,7 +18,7 @@ import {
   MONEY_ONBOARDING_STEP_ACTIONS,
   REDIRECT_TARGETS,
   SCREEN_NAMES,
-  SHEET_NAMES,
+  BOTTOM_SHEET_NAMES,
 } from '../../constants/moneyEvents';
 
 // REMINDER: Must be updated when the number of steps is changed.
@@ -66,14 +66,14 @@ const MoneyOnboardingCard = () => {
           ...baseProperties,
           step_action: MONEY_ONBOARDING_STEP_ACTIONS.LINK_CARD,
           redirect_target_type: REDIRECT_TARGETS.BOTTOM_SHEET,
-          redirect_target: SHEET_NAMES.CARD_LINK_SHEET,
+          redirect_target: BOTTOM_SHEET_NAMES.CARD_LINK_SHEET,
         });
       } else {
         trackOnboardingEvent({
           ...baseProperties,
           step_action: MONEY_ONBOARDING_STEP_ACTIONS.GET_CARD,
           redirect_target_type: REDIRECT_TARGETS.BOTTOM_SHEET,
-          redirect_target: SHEET_NAMES.CARD_AUTH_SHEET,
+          redirect_target: BOTTOM_SHEET_NAMES.CARD_AUTH_SHEET,
         });
       }
 

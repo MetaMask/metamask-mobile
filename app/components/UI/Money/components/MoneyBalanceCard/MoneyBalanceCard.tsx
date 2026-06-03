@@ -35,8 +35,9 @@ import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
 import {
   SCREEN_NAMES,
   COMPONENT_NAMES,
-  SHEET_NAMES,
+  BOTTOM_SHEET_NAMES,
   REDIRECT_TARGETS,
+  MONEY_SURFACE_TYPES,
 } from '../../constants/moneyEvents';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 
@@ -62,7 +63,7 @@ const MoneyBalanceCard = () => {
     selectWalletHomeOnboardingFlowVisible,
   );
 
-  const { trackButtonClicked, trackSurfaceClicked, trackSurfaceViewed } =
+  const { trackButtonClicked, trackSurfaceClicked, trackComponentViewed } =
     useMoneyAnalytics({
       screen_name: SCREEN_NAMES.WALLET_HOME,
       component_name: COMPONENT_NAMES.MONEY_BALANCE_CARD,
@@ -147,9 +148,8 @@ const MoneyBalanceCard = () => {
       return;
     }
     hasSeenMoneyCardRef.current = true;
-    // TODO: Add tests.
-    trackSurfaceViewed();
-  }, [trackSurfaceViewed]);
+    trackComponentViewed();
+  }, [trackComponentViewed]);
 
   const handleCardPress = useCallback(() => {
     trackSurfaceClicked({
@@ -166,7 +166,7 @@ const MoneyBalanceCard = () => {
       label_en: buttonLabelEn,
       label_localized: buttonLabelLocalized,
       redirect_target_type: REDIRECT_TARGETS.BOTTOM_SHEET,
-      redirect_target: SHEET_NAMES.MONEY_ADD_MONEY_SHEET,
+      redirect_target: BOTTOM_SHEET_NAMES.MONEY_ADD_MONEY_SHEET,
     });
 
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
