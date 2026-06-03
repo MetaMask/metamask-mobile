@@ -12,7 +12,7 @@ interface UsePerpsTabExploreDataOptions {
 }
 
 interface UsePerpsTabExploreDataResult {
-  /** Top 8 crypto + equity markets by volume */
+  /** Top 8 markets by volume (all types) */
   exploreMarkets: PerpsMarketData[];
   /** Markets in user's watchlist */
   watchlistMarkets: PerpsMarketData[];
@@ -27,7 +27,7 @@ interface UsePerpsTabExploreDataResult {
  * Used when user has no open positions or orders.
  *
  * Provides:
- * - Top 8 markets by volume (crypto + equity)
+ * - Top 8 markets by volume (all types)
  * - Watchlist markets
  */
 export const usePerpsTabExploreData = ({

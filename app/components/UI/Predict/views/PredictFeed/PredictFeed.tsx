@@ -232,6 +232,7 @@ interface PredictMarketListItemProps {
   market: PredictMarketType;
   entryPoint: PredictEntryPoint;
   testID?: string;
+  predictFeedTab?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
@@ -239,12 +240,14 @@ const PredictMarketListItem: React.FC<PredictMarketListItemProps> = ({
   market,
   entryPoint,
   testID,
+  predictFeedTab,
   transactionActiveAbTests,
 }) => (
   <PredictMarket
     market={market}
     entryPoint={entryPoint}
     testID={testID}
+    predictFeedTab={predictFeedTab}
     transactionActiveAbTests={transactionActiveAbTests}
   />
 );
@@ -324,6 +327,7 @@ const PredictTabContent: React.FC<PredictTabContentProps> = ({
           category,
           info.index + 1, // E2E tests use 1-based indexing
         )}
+        predictFeedTab={category}
         transactionActiveAbTests={transactionActiveAbTests}
       />
     ),
