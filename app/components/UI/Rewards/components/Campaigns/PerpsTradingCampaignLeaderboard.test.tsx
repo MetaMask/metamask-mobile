@@ -145,11 +145,11 @@ describe('PerpsTradingCampaignLeaderboard', () => {
         referralCode: 'NEXT',
       }),
     ];
-    const { UNSAFE_queryAllByType } = render(
+    const { UNSAFE_queryAllByProps } = render(
       <PerpsTradingCampaignLeaderboard {...defaultProps} entries={entries} />,
     );
 
-    expect(UNSAFE_queryAllByType(CrownIcon)).toHaveLength(1);
+    expect(UNSAFE_queryAllByProps({ name: 'crown' })).toHaveLength(1);
   });
 
   it('hides crown in preview mode for perps winner ranks', () => {
@@ -157,7 +157,7 @@ describe('PerpsTradingCampaignLeaderboard', () => {
       createPerpsEntry({ rank: 1, referralCode: 'AAA111' }),
       createPerpsEntry({ rank: 2, referralCode: 'BBB222' }),
     ];
-    const { UNSAFE_queryAllByType } = render(
+    const { UNSAFE_queryAllByProps } = render(
       <PerpsTradingCampaignLeaderboard
         {...defaultProps}
         entries={entries}
@@ -165,7 +165,7 @@ describe('PerpsTradingCampaignLeaderboard', () => {
       />,
     );
 
-    expect(UNSAFE_queryAllByType(CrownIcon)).toHaveLength(0);
+    expect(UNSAFE_queryAllByProps({ name: 'crown' })).toHaveLength(0);
   });
 
   describe('split view top count (preview vs full, ranks 21–22 vs other)', () => {
