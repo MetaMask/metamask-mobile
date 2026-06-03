@@ -1,21 +1,6 @@
 import enContent from '../../../../locales/languages/en.json';
 
 // ========================================
-// PREDICT TAB VIEW SELECTORS
-// ========================================
-
-export const PredictTabViewSelectorsIDs = {
-  // Main container
-  CONTAINER: 'predict-tab-view-container',
-
-  // Scroll view
-  SCROLL_VIEW: 'predict-tab-view-scroll-view',
-
-  // FlashList
-  FLASH_LIST: 'predict-tab-view-flash-list',
-} as const;
-
-// ========================================
 // PREDICT MARKET LIST SELECTORS
 // ========================================
 
