@@ -1001,14 +1001,15 @@ jobs:
 
   run-performance-tests-pr:
     name: 'Run Performance Tests (PR)'
-    # Only run on pull_request events when smart selection has identified performance-relevant changes.
-    # ai_performance_test_tags == '[]' means "no relevant changes"; empty string means "not yet computed / skipped".
+    # Only run on pull_request events unless AI explicitly found no relevant changes.
+    # ai_performance_test_tags == '[]'  → AI ran and found no perf-relevant changes: skip.
+    # ai_performance_test_tags == ''    → conservative fallback (AI failed): run all tests.
+    # ai_performance_test_tags == '[…]' → specific tags selected: run those tests.
     if: >-
       ${{
         github.event_name == 'pull_request' &&
         !cancelled() &&
         needs.smart-e2e-selection.result != 'skipped' &&
-        needs.smart-e2e-selection.outputs.ai_performance_test_tags != '' &&
         needs.smart-e2e-selection.outputs.ai_performance_test_tags != '[]'
       }}
     needs: [smart-e2e-selection]
