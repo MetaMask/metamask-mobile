@@ -309,6 +309,8 @@ const Routes = {
     BATCH_SELL_TOKEN_SELECT: 'BatchSellTokenSelect',
     BATCH_SELL_REVIEW: 'BatchSellReview',
     QUOTE_SELECTOR_VIEW: 'QuoteSelectorView',
+    HARDWARE_WALLETS_SWAPS: 'HardwareWalletsSwaps',
+    HW_QR_SCANNER: 'HwQrScanner',
     MODALS: {
       ROOT: 'BridgeModals',
       SWAP_DEFAULT_SLIPPAGE_MODAL: 'SwapDefaultSlippageModal',

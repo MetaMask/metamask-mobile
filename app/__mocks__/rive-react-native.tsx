@@ -20,6 +20,7 @@ interface MockedMethods {
   play?: jest.Mock;
   pause?: jest.Mock;
   stop?: jest.Mock;
+  onError?: (error: { message: string; type: string }) => void;
 }
 
 type MockRiveProps = ViewProps & {
@@ -31,6 +32,7 @@ type MockRiveProps = ViewProps & {
   autoplay?: boolean;
   stateMachineName?: string;
   onPlay?: () => void;
+  onError?: (error: { message: string; type: string }) => void;
 };
 
 const DEFAULT_TEST_ID = 'mock-rive-animation';
@@ -52,9 +54,9 @@ const updateLastMockedMethods = (methods: RiveRef) => {
 };
 
 const RiveMock = forwardRef<RiveRef, MockRiveProps>(
-  ({ testID = DEFAULT_TEST_ID, mockedMethods, onPlay, ...viewProps }, ref) => {
+  ({ testID = DEFAULT_TEST_ID, mockedMethods, onPlay, onError, ...viewProps }, ref) => {
     const methods = createMockedMethods(mockedMethods);
-    updateLastMockedMethods(methods);
+    updateLastMockedMethods({ ...methods, onError });
 
     useImperativeHandle(ref, () => methods, [methods]);
 

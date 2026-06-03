@@ -37,6 +37,12 @@ interface ExecuteHardwareWalletOperationOptions {
    * is skipped for that error.
    */
   onError?: (error: unknown) => boolean | Promise<boolean>;
+  /**
+   * Whether to show the "awaiting confirmation on device" bottom-sheet UI after the device
+   * is confirmed ready. Set to `false` for flows that manage their own inline confirmation
+   * UI (e.g. QR wallet swaps in the bridge). Defaults to `true`.
+   */
+  showConfirmation?: boolean;
   /** Performs the hardware-backed sign or related async work after the device is ready. */
   execute: () => Promise<void>;
   /**
@@ -62,6 +68,7 @@ export async function executeHardwareWalletOperation({
   hideAwaitingConfirmation,
   showHardwareWalletError,
   onError,
+  showConfirmation = true,
   execute,
   onRejected,
 }: ExecuteHardwareWalletOperationOptions): Promise<boolean> {
@@ -88,13 +95,18 @@ export async function executeHardwareWalletOperation({
       return false;
     }
 
-    hasShownConfirmation = true;
-    showAwaitingConfirmation(operationType, () => {
-      rejectOnce().catch(() => undefined);
-    });
+    if (showConfirmation) {
+      hasShownConfirmation = true;
+      showAwaitingConfirmation(operationType, () => {
+        rejectOnce().catch(() => undefined);
+      });
+    }
 
     await execute();
-    hideAwaitingConfirmation();
+
+    if (hasShownConfirmation) {
+      hideAwaitingConfirmation();
+    }
     return true;
   } catch (error) {
     if (hasShownConfirmation) {

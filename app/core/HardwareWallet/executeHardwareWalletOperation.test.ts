@@ -235,4 +235,73 @@ describe('executeHardwareWalletOperation', () => {
     expect(setPendingOperationAddress).toHaveBeenNthCalledWith(1, '0x123');
     expect(setPendingOperationAddress).toHaveBeenLastCalledWith(null);
   });
+
+  describe('showConfirmation option', () => {
+    it('defaults showConfirmation to true and shows/hides the awaiting-confirmation UI', async () => {
+      await expect(executeHardwareWalletOperation(baseOptions)).resolves.toBe(
+        true,
+      );
+
+      expect(showAwaitingConfirmation).toHaveBeenCalledTimes(1);
+      expect(hideAwaitingConfirmation).toHaveBeenCalledTimes(1);
+      expect(execute).toHaveBeenCalledTimes(1);
+    });
+
+    it('skips showAwaitingConfirmation when showConfirmation is false', async () => {
+      await expect(
+        executeHardwareWalletOperation({
+          ...baseOptions,
+          showConfirmation: false,
+        }),
+      ).resolves.toBe(true);
+
+      expect(showAwaitingConfirmation).not.toHaveBeenCalled();
+      expect(hideAwaitingConfirmation).not.toHaveBeenCalled();
+      expect(execute).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call showAwaitingConfirmation when ensureDeviceReady fails and showConfirmation is false', async () => {
+      ensureDeviceReady.mockResolvedValue(false);
+
+      await expect(
+        executeHardwareWalletOperation({
+          ...baseOptions,
+          showConfirmation: false,
+        }),
+      ).resolves.toBe(false);
+
+      expect(showAwaitingConfirmation).not.toHaveBeenCalled();
+      expect(hideAwaitingConfirmation).not.toHaveBeenCalled();
+      expect(execute).not.toHaveBeenCalled();
+    });
+
+    it('does not call showAwaitingConfirmation when getDeviceIdForAddress fails and showConfirmation is false', async () => {
+      mockGetDeviceIdForAddress.mockRejectedValueOnce(
+        new Error('lookup failed'),
+      );
+
+      await expect(
+        executeHardwareWalletOperation({
+          ...baseOptions,
+          showConfirmation: false,
+        }),
+      ).resolves.toBe(false);
+
+      expect(showAwaitingConfirmation).not.toHaveBeenCalled();
+      expect(hideAwaitingConfirmation).not.toHaveBeenCalled();
+      expect(execute).not.toHaveBeenCalled();
+    });
+
+    it('calls hideAwaitingConfirmation only once on error when showConfirmation is true', async () => {
+      execute.mockRejectedValueOnce(new Error('fail'));
+
+      await expect(executeHardwareWalletOperation(baseOptions)).resolves.toBe(
+        false,
+      );
+
+      expect(showAwaitingConfirmation).toHaveBeenCalledTimes(1);
+      // Once in the success path (via catch), not twice
+      expect(hideAwaitingConfirmation).toHaveBeenCalledTimes(1);
+    });
+  });
 });

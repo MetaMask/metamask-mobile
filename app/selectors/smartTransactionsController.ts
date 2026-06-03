@@ -1,6 +1,6 @@
 import { selectSmartTransactionsOptInStatus } from './preferencesController';
 import { RootState } from '../reducers';
-import { areAddressesEqual, isHardwareAccount } from '../util/address';
+import { areAddressesEqual } from '../util/address';
 import { selectEvmChainId, selectRpcUrlByChainId } from './networkController';
 import {
   SmartTransaction,
@@ -66,7 +66,6 @@ export const isSmartTransactionEnabledWithNetworkFeatureFlag = (
 
 export const selectSmartTransactionsEnabled = createDeepEqualSelector(
   [
-    selectSelectedInternalAccountFormattedAddress,
     selectEvmChainId,
     (_state: RootState, chainId?: Hex) => chainId,
     (state: RootState, chainId?: Hex) =>
@@ -80,7 +79,6 @@ export const selectSmartTransactionsEnabled = createDeepEqualSelector(
         .smartTransactionsState?.livenessByChainId,
   ],
   (
-    selectedAddress,
     globalChainId,
     transactionChainId,
     providerConfigRpcUrl,
@@ -88,9 +86,6 @@ export const selectSmartTransactionsEnabled = createDeepEqualSelector(
     smartTransactionsLivenessByChainId,
   ) => {
     const effectiveChainId = transactionChainId || globalChainId;
-    const addressIsHardwareAccount = selectedAddress
-      ? isHardwareAccount(selectedAddress)
-      : false;
     const isAllowedNetwork =
       getAllowedSmartTransactionsChainIds().includes(effectiveChainId);
     const isSmartTransactionEnabledOnNetworkWithFeatureFlags =
@@ -100,7 +95,6 @@ export const selectSmartTransactionsEnabled = createDeepEqualSelector(
 
     return Boolean(
       isAllowedNetwork &&
-        !addressIsHardwareAccount &&
         getIsAllowedRpcUrlForSmartTransactions(providerConfigRpcUrl) &&
         isSmartTransactionEnabledOnNetworkWithFeatureFlags &&
         smartTransactionsLivenessByChainId?.[effectiveChainId],

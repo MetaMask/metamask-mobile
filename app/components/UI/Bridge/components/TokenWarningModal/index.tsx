@@ -115,7 +115,7 @@ export const TokenWarningModal = () => {
     latestSourceAtomicBalance: tokenBalance?.atomicBalance,
   });
 
-  const confirmBridge = useBridgeConfirm({
+  const { handleConfirm: confirmBridge } = useBridgeConfirm({
     activeQuote,
     location,
   });

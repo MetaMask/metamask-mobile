@@ -5,6 +5,8 @@ import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import Routes from '../../../../../constants/navigation/Routes';
+import { isHardwareAccount } from '../../../../../util/address';
+import { HardwareWalletsSwapsStatus } from '../../HardwareWallet/Swaps/HardwareWalletsSwaps.state';
 
 const WALLET_ADDRESS = '0x1234567890123456789012345678901234567890';
 
@@ -13,27 +15,28 @@ const defaultParams = {
   location: MetaMetricsSwapsEventSource.MainView,
 };
 
-// Navigation
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
-// selectSourceWalletAddress
 jest.mock('../../../../../selectors/bridge', () => ({
   ...jest.requireActual('../../../../../selectors/bridge'),
   selectSourceWalletAddress: jest.fn(),
 }));
 
-// useSubmitBridgeTx
+jest.mock('../../../../../util/address', () => ({
+  ...jest.requireActual('../../../../../util/address'),
+  isHardwareAccount: jest.fn(),
+}));
+
 const mockSubmitBridgeTx = jest.fn();
 jest.mock('../../../../../util/bridge/hooks/useSubmitBridgeTx', () => ({
   __esModule: true,
   default: () => ({ submitBridgeTx: mockSubmitBridgeTx }),
 }));
 
-// Engine (required by store / other transitive deps)
 jest.mock('../../../../../core/Engine', () => ({
   controllerMessenger: {
     call: jest.fn(),
@@ -57,6 +60,24 @@ jest.mock(
 
 jest.mock('../../../../../selectors/confirmTransaction');
 
+jest.mock('../../HardwareWallet/Swaps/hooks/useHwConnectionMonitoring', () => ({
+  useHwConnectionMonitoring: jest.fn(() => ({
+    isDisconnectedRef: { current: false },
+    resetHandledError: jest.fn(),
+  })),
+}));
+
+jest.mock('../../HardwareWallet/Swaps/hooks/useHwQrState', () => ({
+  useHwQrState: jest.fn(() => ({
+    isReadingQrSignature: false,
+    setIsReadingQrSignature: jest.fn(),
+    isQrHardwareWallet: false,
+    showInlineQrSigning: false,
+    handleQrSignatureCancel: jest.fn(),
+    pendingScanRequest: undefined,
+  })),
+}));
+
 function renderHook(
   params: Parameters<typeof useBridgeConfirm>[0] = defaultParams,
 ) {
@@ -67,13 +88,14 @@ describe('useBridgeConfirm', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(selectSourceWalletAddress).mockReturnValue(WALLET_ADDRESS);
+    jest.mocked(isHardwareAccount).mockReturnValue(false);
     mockSubmitBridgeTx.mockResolvedValue({ success: true });
   });
 
-  it('returns a function', () => {
+  it('returns an object with handleConfirm', () => {
     const { result } = renderHook();
 
-    expect(typeof result.current).toBe('function');
+    expect(typeof result.current.handleConfirm).toBe('function');
   });
 
   describe('successful submission', () => {
@@ -81,7 +103,7 @@ describe('useBridgeConfirm', () => {
       const { result } = renderHook();
 
       await act(async () => {
-        await result.current();
+        await result.current.handleConfirm();
       });
 
       expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
@@ -97,7 +119,7 @@ describe('useBridgeConfirm', () => {
       });
 
       await act(async () => {
-        await result.current();
+        await result.current.handleConfirm();
       });
 
       expect(mockSubmitBridgeTx).toHaveBeenCalledWith(
@@ -111,7 +133,7 @@ describe('useBridgeConfirm', () => {
       const { result } = renderHook();
 
       await act(async () => {
-        await result.current();
+        await result.current.handleConfirm();
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
@@ -121,7 +143,7 @@ describe('useBridgeConfirm', () => {
       const { result, store } = renderHook();
 
       await act(async () => {
-        await result.current();
+        await result.current.handleConfirm();
       });
 
       await waitFor(() => {
@@ -133,25 +155,111 @@ describe('useBridgeConfirm', () => {
     });
   });
 
+  describe('hardware wallet submissions', () => {
+    it('navigates to hardware wallets progress view without calling submitBridgeTx', async () => {
+      jest.mocked(isHardwareAccount).mockReturnValue(true);
+      const { result } = renderHook({
+        ...defaultParams,
+        activeQuote: {
+          ...mockQuoteWithMetadata,
+          approval: {},
+        },
+      });
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT, {
+        screen: Routes.BRIDGE.HARDWARE_WALLETS_SWAPS,
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
+    });
+
+    it('sets Waiting status for hardware wallet submissions', async () => {
+      jest.mocked(isHardwareAccount).mockReturnValue(true);
+      const { result, store } = renderHook();
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      expect(
+        (
+          store.getState() as {
+            bridge: {
+              hardwareWalletsSwaps: { status: string };
+            };
+          }
+        ).bridge.hardwareWalletsSwaps.status,
+      ).toBe(HardwareWalletsSwapsStatus.Waiting);
+    });
+
+    it('starts two-step progress for hardware wallet submissions with approval', async () => {
+      jest.mocked(isHardwareAccount).mockReturnValue(true);
+      const { result, store } = renderHook({
+        ...defaultParams,
+        activeQuote: {
+          ...mockQuoteWithMetadata,
+          approval: {},
+        },
+      });
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      expect(
+        (
+          store.getState() as {
+            bridge: {
+              hardwareWalletsSwaps: { totalSteps: number };
+            };
+          }
+        ).bridge.hardwareWalletsSwaps.totalSteps,
+      ).toBe(2);
+    });
+
+    it('starts one-step progress for hardware wallet submissions without approval', async () => {
+      jest.mocked(isHardwareAccount).mockReturnValue(true);
+      const { result, store } = renderHook();
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      expect(
+        (
+          store.getState() as {
+            bridge: {
+              hardwareWalletsSwaps: { totalSteps: number };
+            };
+          }
+        ).bridge.hardwareWalletsSwaps.totalSteps,
+      ).toBe(1);
+    });
+  });
+
   describe('when activeQuote is null', () => {
     it('does not call submitBridgeTx', async () => {
       const { result } = renderHook({ ...defaultParams, activeQuote: null });
 
       await act(async () => {
-        await result.current();
+        await result.current.handleConfirm();
       });
 
       expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
     });
 
-    it('still navigates to TRANSACTIONS_VIEW', async () => {
+    it('does not navigate', async () => {
       const { result } = renderHook({ ...defaultParams, activeQuote: null });
 
       await act(async () => {
-        await result.current();
+        await result.current.handleConfirm();
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 
@@ -164,20 +272,20 @@ describe('useBridgeConfirm', () => {
       const { result } = renderHook();
 
       await act(async () => {
-        await result.current();
+        await result.current.handleConfirm();
       });
 
       expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
     });
 
-    it('still navigates to TRANSACTIONS_VIEW', async () => {
+    it('does not navigate', async () => {
       const { result } = renderHook();
 
       await act(async () => {
-        await result.current();
+        await result.current.handleConfirm();
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 
@@ -191,7 +299,7 @@ describe('useBridgeConfirm', () => {
       const { result } = renderHook();
 
       await act(async () => {
-        await result.current();
+        await result.current.handleConfirm();
       });
 
       expect(consoleSpy).toHaveBeenCalledWith(
@@ -207,7 +315,7 @@ describe('useBridgeConfirm', () => {
       const { result } = renderHook();
 
       await act(async () => {
-        await result.current();
+        await result.current.handleConfirm();
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
@@ -218,7 +326,7 @@ describe('useBridgeConfirm', () => {
       const { result, store } = renderHook();
 
       await act(async () => {
-        await result.current();
+        await result.current.handleConfirm();
       });
 
       await waitFor(() => {

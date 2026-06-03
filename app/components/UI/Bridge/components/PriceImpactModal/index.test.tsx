@@ -208,7 +208,9 @@ describe('PriceImpactModal', () => {
     mockUseSelector.mockReturnValue(undefined);
     mockUseParams.mockReturnValue(defaultParams);
     mockUseLatestBalance.mockReturnValue(undefined);
-    mockUseBridgeConfirm.mockReturnValue(mockConfirmBridge);
+    mockUseBridgeConfirm.mockReturnValue({
+      handleConfirm: mockConfirmBridge,
+    });
     mockUseBridgeQuoteData.mockReturnValue({
       formattedQuoteData: undefined,
     } as ReturnType<typeof useBridgeQuoteData>);

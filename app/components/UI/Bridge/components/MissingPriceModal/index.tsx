@@ -48,7 +48,7 @@ export const MissingPriceModal = () => {
     latestSourceAtomicBalance: tokenBalance?.atomicBalance,
   });
 
-  const confirmBridge = useBridgeConfirm({
+  const { handleConfirm: confirmBridge } = useBridgeConfirm({
     activeQuote,
     location,
   });
