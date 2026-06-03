@@ -347,6 +347,21 @@ describe('AgenticCliApproval', () => {
       expect(Linking.openURL).not.toHaveBeenCalled();
     });
 
+    it('blocks disallowed origins when isTopFrame is omitted', async () => {
+      render(<AgenticCliApproval />);
+
+      await waitFor(() =>
+        expect(mockWebViewProps.onShouldStartLoadWithRequest).toBeDefined(),
+      );
+
+      expect(
+        mockWebViewProps.onShouldStartLoadWithRequest?.({
+          url: 'https://example.com/phishing',
+        }),
+      ).toBe(false);
+      expect(Linking.openURL).not.toHaveBeenCalled();
+    });
+
     it('opens disallowed top-frame navigations externally', async () => {
       render(<AgenticCliApproval />);
 

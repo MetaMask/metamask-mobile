@@ -178,7 +178,7 @@ const AgenticCliApproval: React.FC = () => {
     (request: ShouldStartLoadRequest) => {
       if (AgenticCliApprovalService.shouldLoadInWebView(request.url))
         return true;
-      if (request.isTopFrame !== false) {
+      if (request.isTopFrame === true) {
         Linking.openURL(request.url).catch((err) =>
           Logger.error(
             err as Error,
