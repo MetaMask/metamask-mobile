@@ -7,6 +7,17 @@ import {
   DEV_VAULT_CONFIG,
 } from './index';
 
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('99.0.0'),
+}));
+
+jest.mock(
+  '../../../core/Engine/controllers/remote-feature-flag-controller',
+  () => ({
+    isRemoteFeatureFlagOverrideActivated: false,
+  }),
+);
+
 describe('Money Account feature flag selectors', () => {
   describe('selectMoneyAccountDepositEnabledFlag', () => {
     it('returns true when moneyAccountDepositEnabled is true', () => {
@@ -83,17 +94,40 @@ describe('Money Account feature flag selectors', () => {
   });
 
   describe('selectMoneyOnboardingStepperAnimationEnabled', () => {
-    it('returns true when the flag is enabled', () => {
+    it('exposes the client-config flag key for registry alignment', () => {
+      expect(MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY).toBe(
+        'moneyEnableOnboardingStepperAnimation',
+      );
+    });
+
+    it('returns true when enabled and the minimum version passes', () => {
       const result = selectMoneyOnboardingStepperAnimationEnabled.resultFunc({
-        [MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY]: true,
+        [MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY]: {
+          enabled: true,
+          minimumVersion: '0.0.0',
+        },
       });
 
       expect(result).toBe(true);
     });
 
-    it('returns false when the flag is disabled', () => {
+    it('returns false when enabled is false', () => {
       const result = selectMoneyOnboardingStepperAnimationEnabled.resultFunc({
-        [MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY]: false,
+        [MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY]: {
+          enabled: false,
+          minimumVersion: '0.0.0',
+        },
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the minimum version requirement fails', () => {
+      const result = selectMoneyOnboardingStepperAnimationEnabled.resultFunc({
+        [MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY]: {
+          enabled: true,
+          minimumVersion: '999.0.0',
+        },
       });
 
       expect(result).toBe(false);
