@@ -189,14 +189,15 @@ const accountSelectorTransitionOptions: StackNavigationOptions = {
 const isAccountSelectorRootModalRoute = (params: object | undefined) =>
   Boolean(
     params &&
-      'screen' in params &&
-      params.screen === Routes.SHEET.ACCOUNT_SELECTOR,
+    'screen' in params &&
+    params.screen === Routes.SHEET.ACCOUNT_SELECTOR,
   );
 
 // Type helper for screen components that use v5 pattern of requiring route props
 // In React Navigation v6, screen components should ideally use useRoute() hook,
 // but for migration compatibility, we cast these components to satisfy the type checker.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+// more comments
 type ScreenComponent = React.ComponentType<any>;
 
 const SocialLoginSuccessNewUser = () => <SocialLoginIosUser type="new" />;
