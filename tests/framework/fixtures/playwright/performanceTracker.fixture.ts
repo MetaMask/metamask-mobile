@@ -29,16 +29,18 @@ export const performanceTrackerFixture = {
     const isSystemTestMode = process.env.SYSTEM_TEST_MODE === 'true';
     const testId = getTestId(testInfo);
 
-    // Skip retries when the previous attempt failed due to quality gates.
+    // Abort retry if previous attempt failed due to quality gates.
     // Quality gate failures should NOT be retried - the measurement was valid,
-    // only the threshold was exceeded. Skipping (not failing) keeps the output
-    // clean: the original failure already contains the full violation details.
+    // only the threshold was exceeded. We throw (not skip) so Playwright counts
+    // all attempts as failed and reports the test as "failed" rather than "flaky".
     if (
       !isSystemTestMode &&
       testInfo.retry > 0 &&
       hasQualityGateFailure(testId)
     ) {
-      testInfo.skip(true, 'Quality gate failure on previous attempt — not retrying');
+      throw new QualityGateError(
+        `Quality Gates failed on a previous attempt for "${testInfo.title}". Retries are not allowed for quality gate failures.`,
+      );
     }
 
     const performanceTracker = new PerformanceTracker();
