@@ -9199,6 +9199,7 @@
       "predict_withdraw": "Withdrawal",
       "money_account_deposit": "Deposit to Money Account",
       "money_account_withdraw": "Transfer from Money Account",
+      "money_account_sent": "Sent {{symbol}}",
       "money_account_received": "Received",
       "default": "Transaction details"
     },
@@ -9210,11 +9211,16 @@
       "receive_token": "Receive token",
       "retry_button": "Try again",
       "total": "Total",
+      "total_amount": "Total amount",
       "account": "Account",
       "received_total": "Received total",
       "from": "From",
+      "to": "To",
+      "network": "Network",
+      "you_sent": "You sent",
       "token_received": "Token received"
     },
+    "view_on_block_explorer": "View on block explorer",
     "summary_title": {
       "bridge_approval": "Approve {{approveSymbol}}",
       "bridge_approval_loading": "Approve",
