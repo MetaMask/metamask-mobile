@@ -5367,8 +5367,8 @@
     "push_onboarding": {
       "new_user": {
         "title": "Never miss a move",
-        "body": "Get real-time alerts when prices hit your targets, your trades confirm, and your portfolio moves. Plus product updates and rewards along the way. We'll share updates based on your interactions with MetaMask.",
-        "button_yes": "Yes",
+        "body": "Get real-time alerts on price moves, trade confirmations, portfolio activity, and rewards based on how you use MetaMask.",
+        "button_yes": "Enable notifications",
         "button_not_now": "Not now",
         "preview_card_1": {
           "time": "now",
@@ -5393,7 +5393,7 @@
       },
       "existing_user": {
         "title": "Introducing personalized alerts",
-        "body": "Get notifications that match how you trade. Update anytime.",
+        "body": "Get notifications that match how you trade, based on how you use MetaMask.",
         "card_title": "What you'll get",
         "card_description": "Personalized alerts and updates tailored to your trading activity.",
         "button_confirm": "Confirm",
