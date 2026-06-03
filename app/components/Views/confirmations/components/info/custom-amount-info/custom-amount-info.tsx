@@ -208,6 +208,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             },
           });
 
+          // Fiat deposits need nested calldata (approve + deposit) populated
+          // with approximate amounts now so the transaction is valid at submit
+          // time. Core will re-encode with exact amounts after settlement.
           if (isMoneyAccountDeposit) {
             await updateTokenAmount();
           }
