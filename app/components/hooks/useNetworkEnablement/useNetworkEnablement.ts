@@ -18,8 +18,10 @@ import {
   selectNetworkConfigurations,
 } from '../../../selectors/networkController';
 
-// Stable empty fallback so the popular-network arrays keep a constant identity
-// when the controller returns nothing.
+// Stable empty-array fallback shared by all three popular-network lists, so an
+// empty result keeps a constant identity across renders. Typed `never[]`
+// (the bottom array type) so it's assignable to each list's element type
+// without widening the consumer-visible array types.
 const EMPTY_ARRAY: never[] = [];
 
 /**
