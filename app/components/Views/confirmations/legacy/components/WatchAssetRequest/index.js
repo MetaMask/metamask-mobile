@@ -17,7 +17,6 @@ import NotificationManager from '../../../../../../core/NotificationManager';
 import { selectEvmChainId } from '../../../../../../selectors/networkController';
 import ApproveTransactionHeader from '../ApproveTransactionHeader';
 import { getActiveTabUrl } from '../../../../../../util/transactions';
-import { isEqual } from 'lodash';
 import { AssetWatcherSelectorsIDs } from './AssetWatcher.testIds';
 import { getDecimalChainId } from '../../../../../../util/networks';
 import { useAnalytics } from '../../../../../../components/hooks/useAnalytics/useAnalytics';
@@ -120,7 +119,9 @@ const WatchAssetRequest = ({
     ? strings('transaction.failed')
     : `${renderFromTokenMinimalUnit(balance, asset.decimals)} ${asset.symbol}`;
 
-  const activeTabUrl = useSelector(getActiveTabUrl, isEqual);
+  // getActiveTabUrl returns a string, so the default referential (===)
+  // equality already compares it correctly; lodash.isEqual was needless work.
+  const activeTabUrl = useSelector(getActiveTabUrl);
 
   const getTokenAddedAnalyticsParams = () => {
     try {
