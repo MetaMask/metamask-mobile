@@ -1,7 +1,7 @@
 /**
  * Manual mock for @metamask/compliance-controller.
  *
- * Reflects the v2.1.0 public API surface: the bulk-fetch blocklist pattern.
+ * Reflects the public API surface: the bulk-fetch blocklist pattern.
  * Compliance status is populated exclusively via per-address checks.
  */
 
