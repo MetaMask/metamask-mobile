@@ -214,7 +214,9 @@ describe('AgenticCliApprovalService', () => {
           metadata: { id: 'imported-keyring', name: 'Imported account' },
         },
       ];
-      mockGetBearerToken.mockResolvedValue(null);
+      mockGetBearerToken.mockRejectedValue(
+        new Error('No bearer token available — is the user signed in?'),
+      );
 
       await expect(AgenticCliApprovalService.getAuthToken()).rejects.toThrow(
         'No bearer token available — is the user signed in?',
