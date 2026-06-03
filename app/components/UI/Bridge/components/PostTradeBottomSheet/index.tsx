@@ -40,7 +40,6 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';
 import { formatAmountWithLocaleSeparators } from '../../utils/formatAmountWithLocaleSeparators';
 import { formatSecondaryTokenAmount } from '../../utils/sourceAmountInputMode';
-import { PostTradeBottomSheetTestIds } from './PostTradeBottomSheet.testIds';
 import {
   PostTradeBottomSheetParams,
   PostTradeStatus,
@@ -96,16 +95,12 @@ const StatusIcon = ({
           isSuccess ? AvatarIconSeverity.Success : AvatarIconSeverity.Error
         }
         size={AvatarIconSize.Xl}
-        testID={PostTradeBottomSheetTestIds.STATUS_ICON}
       />
     );
   }
 
   return (
-    <View
-      style={loadingIconContainerStyle}
-      testID={PostTradeBottomSheetTestIds.STATUS_ICON}
-    >
+    <View style={loadingIconContainerStyle}>
       <Spinner
         color={DSIconColor.PrimaryDefault}
         spinnerIconProps={{
@@ -194,27 +189,23 @@ export const PostTradeBottomSheet = () => {
             variant: ButtonVariants.Secondary,
             size: ButtonSize.Lg,
             onPress: handleViewActivity,
-            testID: PostTradeBottomSheetTestIds.VIEW_ACTIVITY_BUTTON,
+            testID: 'post-trade-bottom-sheet-view-activity-button',
           },
           {
             label: strings('bridge.post_trade_modal.try_again'),
             variant: ButtonVariants.Primary,
             size: ButtonSize.Lg,
             onPress: handleTryAgain,
-            testID: PostTradeBottomSheetTestIds.TRY_AGAIN_BUTTON,
+            testID: 'post-trade-bottom-sheet-try-again-button',
           },
         ]
       : undefined;
 
   return (
-    <BottomSheet
-      ref={sheetRef}
-      style={styles.sheet}
-      testID={PostTradeBottomSheetTestIds.SHEET}
-    >
+    <BottomSheet ref={sheetRef} style={styles.sheet}>
       <BottomSheetHeader
         onClose={handleClose}
-        closeButtonProps={{ testID: PostTradeBottomSheetTestIds.CLOSE_BUTTON }}
+        closeButtonProps={{ testID: 'post-trade-bottom-sheet-close-button' }}
       >
         <StatusIcon
           status={status}
@@ -222,11 +213,7 @@ export const PostTradeBottomSheet = () => {
         />
       </BottomSheetHeader>
       <View style={styles.content}>
-        <Text
-          variant={TextVariant.HeadingLG}
-          style={styles.title}
-          testID={PostTradeBottomSheetTestIds.TITLE}
-        >
+        <Text variant={TextVariant.HeadingLG} style={styles.title}>
           {strings(`bridge.post_trade_modal.${titleType}_${status}`)}
         </Text>
         {subtitle ? (
@@ -234,7 +221,6 @@ export const PostTradeBottomSheet = () => {
             variant={TextVariant.BodyMD}
             color={TextColor.Alternative}
             style={styles.subtitle}
-            testID={PostTradeBottomSheetTestIds.SUBTITLE}
           >
             {subtitle}
           </Text>

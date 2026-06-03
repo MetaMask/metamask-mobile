@@ -82,9 +82,7 @@ export const usePostTradeTxStatus = ({
     return PostTradeStatus.Success;
   }
 
-  const isTransactionConfirmed =
-    transactionStatus === TransactionStatus.confirmed;
-  if (!isBridge && isTransactionConfirmed) {
+  if (!isBridge && transactionStatus === TransactionStatus.confirmed) {
     return PostTradeStatus.Success;
   }
 
