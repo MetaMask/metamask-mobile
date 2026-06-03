@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import {
   filterMarketsByQuery,
   type PerpsMarketData,
+  type SortDirection,
   type SortOptionId,
 } from '@metamask/perps-controller';
 import { usePerpsMarkets } from '../../../../UI/Perps/hooks';
@@ -15,28 +16,27 @@ import { useFeedRefresh } from '../../hooks/useFeedRefresh';
 import type { RefreshConfig } from '../../hooks/useExploreRefresh';
 import { TILE_CAROUSEL_DEFAULT_MAX_TILES } from '../../components/TileCarousel';
 import { fuseSearch, PERPS_FUSE_OPTIONS } from '../search-utils';
+import type { PerpsFeedItem } from '../../../../UI/Perps/types/perpsFeedTypes';
+
+export type { PerpsFeedItem } from '../../../../UI/Perps/types/perpsFeedTypes';
 
 const EMPTY_WATCHLIST_SYMBOLS: string[] = [];
 
 export type PerpsVariant = 'all' | 'crypto' | 'rwa' | 'macro';
+export type PerpsPriceChangeDirection = 'gainers' | 'losers';
 
 interface UsePerpsFeedOptions {
   /** @default 'all' */
   variant?: PerpsVariant;
   query?: string;
   refresh?: RefreshConfig;
+  /** Skips the underlying market fetch until this feed is actually needed. */
+  skipInitialFetch?: boolean;
   /**
    * When true, fetch sparklines + watchlist flags and attach them to each item
    * (tile rendering needs this; row rendering does not).
    */
   withTileExtras?: boolean;
-}
-
-/** Per-item enrichment merged in when `withTileExtras` is true. */
-export interface PerpsFeedItem {
-  market: PerpsMarketData;
-  sparkline?: number[];
-  isWatchlisted: boolean;
 }
 
 export interface UsePerpsFeedResult {
@@ -59,6 +59,14 @@ export const PERPS_VARIANT_SORT_OPTION: Record<PerpsVariant, SortOptionId> = {
   macro: 'volume',
 };
 
+export const PERPS_PRICE_CHANGE_SORT_DIRECTION: Record<
+  PerpsPriceChangeDirection,
+  SortDirection
+> = {
+  gainers: 'desc',
+  losers: 'asc',
+};
+
 const sortByVolumeDesc = (a: PerpsMarketData, b: PerpsMarketData) => {
   const av = (a as PerpsMarketDataWithVolumeNumber).volumeNumber ?? 0;
   const bv = (b as PerpsMarketDataWithVolumeNumber).volumeNumber ?? 0;
@@ -67,6 +75,9 @@ const sortByVolumeDesc = (a: PerpsMarketData, b: PerpsMarketData) => {
 
 const sortByChange24hDesc = (a: PerpsMarketData, b: PerpsMarketData) =>
   (parseFloat(b.change24hPercent) || 0) - (parseFloat(a.change24hPercent) || 0);
+
+const sortByChange24hAsc = (a: PerpsMarketData, b: PerpsMarketData) =>
+  (parseFloat(a.change24hPercent) || 0) - (parseFloat(b.change24hPercent) || 0);
 
 /** Maps each SortOptionId to the comparator used inside the feed. */
 const SORT_FNS: Record<
@@ -103,6 +114,22 @@ const filterByVariant = (
   }
 };
 
+export const filterAndSortByPriceChangeDirection = (
+  markets: PerpsMarketData[],
+  priceChangeDirection: PerpsPriceChangeDirection,
+) => {
+  switch (priceChangeDirection) {
+    case 'gainers':
+      return markets
+        .filter((market) => parseFloat(market.change24hPercent) > 0)
+        .sort(sortByChange24hDesc);
+    case 'losers':
+      return markets
+        .filter((market) => parseFloat(market.change24hPercent) < 0)
+        .sort(sortByChange24hAsc);
+  }
+};
+
 /**
  * Perps markets feed. Returns enriched items (market + optional sparkline +
  * watchlist flag) so consumers don't have to stitch data themselves.
@@ -114,6 +141,7 @@ export const usePerpsFeed = ({
   variant = 'all',
   query,
   refresh,
+  skipInitialFetch = false,
   withTileExtras = false,
 }: UsePerpsFeedOptions = {}): UsePerpsFeedResult => {
   const connectionContext = useContext(PerpsConnectionContext);
@@ -122,7 +150,7 @@ export const usePerpsFeed = ({
     isLoading,
     refresh: refetch,
     isRefreshing,
-  } = usePerpsMarkets();
+  } = usePerpsMarkets({ skipInitialFetch });
 
   useFeedRefresh(refresh, refetch);
 

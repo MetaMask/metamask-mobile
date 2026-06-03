@@ -5,7 +5,7 @@
 #   Tier 1 (shared, one per host):  $MM_BUILD_CACHE_DIR (default ~/Library/Caches/mm-mobile-builds)
 #   Tier 2 (per-worktree sidecar):  .agent/build-cache/<plat>/installed.json
 #
-# All functions are pure shell so preflight.sh can source this file directly.
+# All functions are pure shell so callers can source this file directly.
 # Callers must `set -euo pipefail` themselves; this file does not.
 
 # Source-time sanitization: drop any inherited claim on the private memo
@@ -189,6 +189,27 @@ bc_store_artifact() {
     '{fingerprint:$fp, builtAt:$builtAt, builderWorktree:$builderWorktree}' > "$meta"
 }
 
+# Store the full fingerprint (hash + sources) for (plat, fp) so a later cache
+# miss can report which inputs changed.
+bc_snapshot() {
+  local plat="$1" fp="$2"
+  bc_init_dirs "$plat"
+  node scripts/perps/agentic/lib/compute-cache-fp.js --json > "$(bc_plat_dir "$plat")/$fp.sources.json"
+}
+
+# Print the inputs that changed vs the stored snapshot for (plat, fp) as a JSON
+# array; "[]" when no snapshot exists.
+bc_drift() {
+  local plat="$1" fp="$2"
+  local src
+  src="$(bc_plat_dir "$plat")/$fp.sources.json"
+  if [ -f "$src" ]; then
+    node scripts/perps/agentic/lib/compute-cache-fp.js --diff "$src"
+  else
+    echo "[]"
+  fi
+}
+
 # Portable mtime extraction. macOS BSD stat uses -f; GNU stat uses -c.
 # Echoes "<mtime-epoch> <path>" per line. Silent on stat errors.
 bc__stat_mtime() {
@@ -220,8 +241,35 @@ bc_prune() {
     i=$((i + 1))
     [ "$i" -le "$keep" ] && continue
     local base="${path%.*}"
-    rm -rf "$path" "${base}.meta.json"
+    rm -rf "$path" "${base}.meta.json" "${base}.sources.json"
   done <<< "$entries"
+}
+
+# Return true when a mkdir lock is clearly stale. New lock dirs record the
+# owning shell PID; if that process is gone, a crashed/timeout-killed preflight
+# must not block every retry until BUILD_CACHE_LOCK_TIMEOUT elapses.
+bc__mkdir_lock_stale() {
+  local lockdir="$1"
+  local stale_after="${BUILD_CACHE_STALE_LOCK_SECONDS:-1800}"
+  local owner_file="$lockdir/owner.pid"
+  if [ -f "$owner_file" ]; then
+    local owner_pid
+    owner_pid=$(cat "$owner_file" 2>/dev/null || true)
+    case "$owner_pid" in
+      ''|*[!0-9]*) ;;
+      *)
+        if kill -0 "$owner_pid" 2>/dev/null; then
+          return 1
+        fi
+        return 0
+        ;;
+    esac
+  fi
+
+  local now mtime
+  now=$(date +%s)
+  mtime=$(stat -f %m "$lockdir" 2>/dev/null || stat -c %Y "$lockdir" 2>/dev/null || echo "$now")
+  [ $((now - mtime)) -gt "$stale_after" ]
 }
 
 # Persistent-fd lock helpers. Use these when the locked region is too large to
@@ -257,6 +305,17 @@ bc_lock_acquire() {
   local lockdir="${lock}.d"
   local waited=0
   while ! mkdir "$lockdir" 2>/dev/null; do
+    if bc__mkdir_lock_stale "$lockdir"; then
+      echo "build-cache: removing stale lock $lockdir" >&2
+      rm -rf "$lockdir"
+      sleep 1
+      waited=$((waited + 1))
+      if [ "$waited" -ge "$timeout" ]; then
+        echo "build-cache: timed out waiting for $lockdir" >&2
+        return 1
+      fi
+      continue
+    fi
     if [ "$waited" -ge "$timeout" ]; then
       echo "build-cache: timed out waiting for $lockdir" >&2
       return 1
@@ -264,6 +323,7 @@ bc_lock_acquire() {
     sleep 1
     waited=$((waited + 1))
   done
+  printf '%s\n' "$$" > "$lockdir/owner.pid" 2>/dev/null || true
   BUILD_CACHE_LOCK_KIND="mkdir"
   BUILD_CACHE_LOCK_PATH="$lockdir"
   return 0
@@ -275,7 +335,7 @@ bc_lock_release() {
       exec 9>&- 2>/dev/null || true
       ;;
     mkdir)
-      [ -n "${BUILD_CACHE_LOCK_PATH:-}" ] && rmdir "$BUILD_CACHE_LOCK_PATH" 2>/dev/null || true
+      [ -n "${BUILD_CACHE_LOCK_PATH:-}" ] && rm -rf "$BUILD_CACHE_LOCK_PATH" 2>/dev/null || true
       ;;
   esac
   unset BUILD_CACHE_LOCK_KIND BUILD_CACHE_LOCK_PATH
