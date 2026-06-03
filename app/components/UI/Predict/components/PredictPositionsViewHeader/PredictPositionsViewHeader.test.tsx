@@ -182,7 +182,7 @@ describe('PredictPositionsViewHeader', () => {
       openPositionsCount: 2,
       claimablePositionsCount: 1,
       hasClaimableWinnings: true,
-      location: PredictEventValues.LOCATION.PREDICT_POSITIONS_SCREEN,
+      predictScreen: PredictEventValues.PREDICT_SCREEN.PREDICT_POSITIONS_SCREEN,
       transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_CLAIM,
     });
     const payload = mockTrackPortfolioTransactionInitiated.mock.calls[0][0];

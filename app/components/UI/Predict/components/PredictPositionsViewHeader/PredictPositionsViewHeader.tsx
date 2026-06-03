@@ -82,7 +82,7 @@ const PredictPositionsViewHeader = ({
       openPositionsCount: portfolio.openPositionCount,
       claimablePositionsCount: portfolio.claimablePositionCount,
       hasClaimableWinnings: portfolio.hasClaimableWinnings,
-      location: PredictEventValues.LOCATION.PREDICT_POSITIONS_SCREEN,
+      predictScreen: PredictEventValues.PREDICT_SCREEN.PREDICT_POSITIONS_SCREEN,
       transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_CLAIM,
     });
 

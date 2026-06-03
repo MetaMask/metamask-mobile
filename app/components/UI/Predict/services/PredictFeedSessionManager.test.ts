@@ -125,7 +125,8 @@ describe('PredictFeedSessionManager', () => {
         entryPoint,
         isSessionEnd: false,
         portfolioModuleEnabled: true,
-        location: PredictEventValues.LOCATION.PREDICT_PORTFOLIO_MODULE,
+        predictComponent:
+          PredictEventValues.PREDICT_COMPONENT.PREDICT_PORTFOLIO_MODULE,
       });
     });
 
@@ -429,7 +430,8 @@ describe('PredictFeedSessionManager', () => {
           entryPoint: PredictEventValues.ENTRY_POINT.BACKGROUND,
           isSessionEnd: false,
           portfolioModuleEnabled: true,
-          location: PredictEventValues.LOCATION.PREDICT_PORTFOLIO_MODULE,
+          predictComponent:
+            PredictEventValues.PREDICT_COMPONENT.PREDICT_PORTFOLIO_MODULE,
         }),
       );
 

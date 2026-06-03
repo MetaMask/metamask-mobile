@@ -500,7 +500,8 @@ describe('PredictAnalytics', () => {
         open_positions_count: 2,
         claimable_positions_count: 1,
         has_claimable_winnings: true,
-        location: PredictEventValues.LOCATION.PREDICT_PORTFOLIO_MODULE,
+        predict_component:
+          PredictEventValues.PREDICT_COMPONENT.PREDICT_PORTFOLIO_MODULE,
       });
       expect(event.properties).not.toHaveProperty('amount_usd');
       expect(event.properties).not.toHaveProperty('pnl');
@@ -529,7 +530,8 @@ describe('PredictAnalytics', () => {
         open_positions_count: 2,
         claimable_positions_count: 1,
         has_claimable_winnings: true,
-        location: PredictEventValues.LOCATION.PREDICT_PORTFOLIO_MODULE,
+        predict_component:
+          PredictEventValues.PREDICT_COMPONENT.PREDICT_PORTFOLIO_MODULE,
       });
       expect(event.properties).not.toHaveProperty('amount_usd');
       expect(event.properties).not.toHaveProperty('pnl');
@@ -555,13 +557,14 @@ describe('PredictAnalytics', () => {
         open_positions_count: 3,
         claimable_positions_count: 1,
         has_claimable_winnings: true,
-        location: PredictEventValues.LOCATION.PREDICT_POSITIONS_SCREEN,
+        predict_screen:
+          PredictEventValues.PREDICT_SCREEN.PREDICT_POSITIONS_SCREEN,
       });
     });
 
     it('tracks positions tab viewed with position viewed event', () => {
       predictAnalytics.trackPositionsTabViewed({
-        tab: PredictEventValues.TAB.POSITIONS,
+        feedTab: PredictEventValues.PREDICT_FEED_TAB.POSITIONS,
         openPositionsCount: 3,
         claimablePositionsCount: 1,
         hasClaimableWinnings: true,
@@ -577,14 +580,15 @@ describe('PredictAnalytics', () => {
         open_positions_count: 3,
         claimable_positions_count: 1,
         has_claimable_winnings: true,
-        location: PredictEventValues.LOCATION.PREDICT_POSITIONS_SCREEN,
-        tab: PredictEventValues.TAB.POSITIONS,
+        predict_screen:
+          PredictEventValues.PREDICT_SCREEN.PREDICT_POSITIONS_SCREEN,
+        predict_feed_tab: PredictEventValues.PREDICT_FEED_TAB.POSITIONS,
       });
     });
 
     it('tracks history tab viewed with activity viewed event', () => {
       predictAnalytics.trackPositionsTabViewed({
-        tab: PredictEventValues.TAB.HISTORY,
+        feedTab: PredictEventValues.PREDICT_FEED_TAB.HISTORY,
         openPositionsCount: 3,
         claimablePositionsCount: 1,
         hasClaimableWinnings: true,
@@ -601,8 +605,9 @@ describe('PredictAnalytics', () => {
         open_positions_count: 3,
         claimable_positions_count: 1,
         has_claimable_winnings: true,
-        location: PredictEventValues.LOCATION.PREDICT_POSITIONS_SCREEN,
-        tab: PredictEventValues.TAB.HISTORY,
+        predict_screen:
+          PredictEventValues.PREDICT_SCREEN.PREDICT_POSITIONS_SCREEN,
+        predict_feed_tab: PredictEventValues.PREDICT_FEED_TAB.HISTORY,
       });
     });
 
@@ -627,12 +632,12 @@ describe('PredictAnalytics', () => {
       predictAnalytics.trackFeedViewed({
         sessionId: 's1',
         feedTab: 'trending',
-        predictScreen: 'world_cup',
+        predictComponent:
+          PredictEventValues.PREDICT_COMPONENT.PREDICT_PORTFOLIO_MODULE,
         numPagesViewed: 3,
         sessionTime: 98,
         entryPoint: 'carousel',
         portfolioModuleEnabled: true,
-        location: PredictEventValues.LOCATION.PREDICT_PORTFOLIO_MODULE,
       });
 
       expect(getTrackEventMock()).toHaveBeenCalledTimes(2);
@@ -647,13 +652,13 @@ describe('PredictAnalytics', () => {
       expect(feedEvent.properties).toMatchObject({
         session_id: 's1',
         predict_feed_tab: 'trending',
-        predict_screen: 'world_cup',
+        predict_component:
+          PredictEventValues.PREDICT_COMPONENT.PREDICT_PORTFOLIO_MODULE,
         num_feed_pages_viewed_in_session: 3,
         session_time_in_feed: 98,
         is_session_end: false,
         entry_point: 'carousel',
         portfolio_module_enabled: true,
-        location: PredictEventValues.LOCATION.PREDICT_PORTFOLIO_MODULE,
       });
 
       expect(assetViewedEvent.name).toBe(

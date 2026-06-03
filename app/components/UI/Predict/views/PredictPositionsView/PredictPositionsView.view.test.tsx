@@ -205,8 +205,9 @@ describe('PredictPositionsView component view', () => {
         openPositionsCount: 1,
         claimablePositionsCount: 0,
         hasClaimableWinnings: false,
-        location: PredictEventValues.LOCATION.PREDICT_POSITIONS_SCREEN,
-        tab: PredictEventValues.TAB.HISTORY,
+        predictScreen:
+          PredictEventValues.PREDICT_SCREEN.PREDICT_POSITIONS_SCREEN,
+        feedTab: PredictEventValues.PREDICT_FEED_TAB.HISTORY,
       });
     });
   });

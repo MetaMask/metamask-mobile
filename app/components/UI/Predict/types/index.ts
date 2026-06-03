@@ -650,7 +650,8 @@ export interface PlaceOrderParams {
     marketTags?: string[];
     actionType?: string;
     entryPoint?: string;
-    location?: string;
+    predictScreen?: string;
+    predictComponent?: string;
     transactionType?: string;
     sharePrice?: number;
     liquidity?: number;
@@ -659,7 +660,7 @@ export interface PlaceOrderParams {
     claimablePositionsCount?: number;
     hasClaimableWinnings?: boolean;
     portfolioModuleEnabled?: boolean;
-    tab?: string;
+    feedTab?: string;
     marketType?: string;
     outcome?: string;
     marketSlug?: string;

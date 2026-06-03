@@ -185,7 +185,8 @@ class PredictFeedSessionManager {
       isSessionEnd,
       ...(this.portfolioModuleEnabled && {
         portfolioModuleEnabled: true,
-        location: PredictEventValues.LOCATION.PREDICT_PORTFOLIO_MODULE,
+        predictComponent:
+          PredictEventValues.PREDICT_COMPONENT.PREDICT_PORTFOLIO_MODULE,
       }),
     });
   }

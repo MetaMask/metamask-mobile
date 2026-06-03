@@ -190,7 +190,7 @@ const expectedPositionsAnalyticsContext = (
   openPositionsCount: 0,
   claimablePositionsCount: 0,
   hasClaimableWinnings: false,
-  location: PredictEventValues.LOCATION.PREDICT_POSITIONS_SCREEN,
+  predictScreen: PredictEventValues.PREDICT_SCREEN.PREDICT_POSITIONS_SCREEN,
   ...overrides,
 });
 
@@ -340,7 +340,7 @@ describe('PredictPositionsView', () => {
     expect(mockTrackPositionsTabViewed).toHaveBeenCalledTimes(1);
     expect(mockTrackPositionsTabViewed).toHaveBeenCalledWith(
       expectedPositionsAnalyticsContext({
-        tab: PredictEventValues.TAB.POSITIONS,
+        feedTab: PredictEventValues.PREDICT_FEED_TAB.POSITIONS,
       }),
     );
   });
@@ -395,13 +395,13 @@ describe('PredictPositionsView', () => {
     expect(mockTrackPositionsTabViewed).toHaveBeenNthCalledWith(
       1,
       expectedPositionsAnalyticsContext({
-        tab: PredictEventValues.TAB.HISTORY,
+        feedTab: PredictEventValues.PREDICT_FEED_TAB.HISTORY,
       }),
     );
     expect(mockTrackPositionsTabViewed).toHaveBeenNthCalledWith(
       2,
       expectedPositionsAnalyticsContext({
-        tab: PredictEventValues.TAB.POSITIONS,
+        feedTab: PredictEventValues.PREDICT_FEED_TAB.POSITIONS,
       }),
     );
     expect(mockTrackPositionsTabViewed).toHaveBeenCalledTimes(2);

@@ -8732,7 +8732,7 @@ describe('PredictController', () => {
     it('calls analytics.trackEvent for trackPositionsTabViewed', () => {
       withController(({ controller }) => {
         controller.trackPositionsTabViewed({
-          tab: PredictEventValues.TAB.HISTORY,
+          feedTab: PredictEventValues.PREDICT_FEED_TAB.HISTORY,
           openPositionsCount: 2,
           claimablePositionsCount: 1,
           hasClaimableWinnings: true,

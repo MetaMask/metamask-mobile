@@ -53,7 +53,8 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
       openPositionsCount: openPositionCount,
       claimablePositionsCount: claimablePositionCount,
       hasClaimableWinnings,
-      location: PredictEventValues.LOCATION.PREDICT_PORTFOLIO_MODULE,
+      predictComponent:
+        PredictEventValues.PREDICT_COMPONENT.PREDICT_PORTFOLIO_MODULE,
     }),
     [claimablePositionCount, hasClaimableWinnings, openPositionCount],
   );
@@ -97,7 +98,8 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
         deposit({
           analyticsProperties: {
             entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
-            location: PredictEventValues.LOCATION.PREDICT_PORTFOLIO_MODULE,
+            predictComponent:
+              PredictEventValues.PREDICT_COMPONENT.PREDICT_PORTFOLIO_MODULE,
           },
         }),
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.DEPOSIT },

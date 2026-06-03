@@ -26,8 +26,9 @@ const mapPortfolioProperties = ({
   claimablePositionsCount,
   hasClaimableWinnings,
   portfolioModuleEnabled,
-  location,
-  tab,
+  predictScreen,
+  predictComponent,
+  feedTab,
 }: Record<string, unknown>) => ({
   ...(actionType ? { [PredictEventProperties.ACTION_TYPE]: actionType } : {}),
   ...(entryPoint ? { [PredictEventProperties.ENTRY_POINT]: entryPoint } : {}),
@@ -51,8 +52,13 @@ const mapPortfolioProperties = ({
           portfolioModuleEnabled,
       }
     : {}),
-  ...(location ? { [PredictEventProperties.LOCATION]: location } : {}),
-  ...(tab ? { [PredictEventProperties.TAB]: tab } : {}),
+  ...(predictScreen
+    ? { [PredictEventProperties.PREDICT_SCREEN]: predictScreen }
+    : {}),
+  ...(predictComponent
+    ? { [PredictEventProperties.PREDICT_COMPONENT]: predictComponent }
+    : {}),
+  ...(feedTab ? { [PredictEventProperties.PREDICT_FEED_TAB]: feedTab } : {}),
 });
 
 export const PREDICT_ANALYTICS_EVENTS: Record<
@@ -88,12 +94,16 @@ export const PREDICT_ANALYTICS_EVENTS: Record<
       isSessionEnd,
       entryPoint,
       predictScreen,
+      predictComponent,
       ...args
     }) => ({
       [PredictEventProperties.SESSION_ID]: sessionId,
       [PredictEventProperties.PREDICT_FEED_TAB]: feedTab,
       ...(predictScreen
         ? { [PredictEventProperties.PREDICT_SCREEN]: predictScreen }
+        : {}),
+      ...(predictComponent
+        ? { [PredictEventProperties.PREDICT_COMPONENT]: predictComponent }
         : {}),
       [PredictEventProperties.NUM_FEED_PAGES_VIEWED_IN_SESSION]: numPagesViewed,
       [PredictEventProperties.SESSION_TIME_IN_FEED]: sessionTime,

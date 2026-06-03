@@ -108,7 +108,8 @@ const expectedPortfolioContext = (overrides: Record<string, unknown> = {}) => ({
   openPositionsCount: 0,
   claimablePositionsCount: 0,
   hasClaimableWinnings: false,
-  location: PredictEventValues.LOCATION.PREDICT_PORTFOLIO_MODULE,
+  predictComponent:
+    PredictEventValues.PREDICT_COMPONENT.PREDICT_PORTFOLIO_MODULE,
   ...overrides,
 });
 
@@ -237,7 +238,8 @@ describe('PredictPortfolioModule', () => {
     expect(mockDeposit).toHaveBeenCalledWith({
       analyticsProperties: {
         entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_BALANCE,
-        location: PredictEventValues.LOCATION.PREDICT_PORTFOLIO_MODULE,
+        predictComponent:
+          PredictEventValues.PREDICT_COMPONENT.PREDICT_PORTFOLIO_MODULE,
       },
     });
     expectPortfolioTransactionInitiated(

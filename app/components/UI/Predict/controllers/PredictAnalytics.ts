@@ -65,6 +65,7 @@ export interface FeedViewedArgs {
   sessionId: string;
   feedTab: string;
   predictScreen?: string;
+  predictComponent?: string;
   numPagesViewed: number;
   sessionTime: number;
   entryPoint?: string;
@@ -73,8 +74,6 @@ export interface FeedViewedArgs {
   claimablePositionsCount?: number;
   hasClaimableWinnings?: boolean;
   portfolioModuleEnabled?: boolean;
-  location?: string;
-  tab?: string;
 }
 
 export interface BannerArgs {
@@ -88,8 +87,9 @@ export interface PredictPortfolioAnalyticsContextArgs {
   openPositionsCount?: number;
   claimablePositionsCount?: number;
   hasClaimableWinnings?: boolean;
-  location?: string;
-  tab?: string;
+  predictScreen?: string;
+  predictComponent?: string;
+  feedTab?: string;
 }
 
 export interface PositionViewedArgs
@@ -105,35 +105,35 @@ export interface ActivityViewedArgs
 export interface PortfolioPositionsButtonTappedArgs
   extends Omit<
     PredictPortfolioAnalyticsContextArgs,
-    'actionType' | 'location' | 'tab'
+    'actionType' | 'predictScreen' | 'predictComponent' | 'feedTab'
   > {
-  location?: string;
+  predictComponent?: string;
 }
 
 export interface PortfolioTransactionInitiatedArgs
   extends Omit<
     PredictPortfolioAnalyticsContextArgs,
-    'actionType' | 'location' | 'tab'
+    'actionType' | 'predictScreen' | 'predictComponent' | 'feedTab'
   > {
-  location?: string;
+  predictComponent?: string;
   transactionType: string;
 }
 
 export interface PositionsScreenViewedArgs
   extends Omit<
     PredictPortfolioAnalyticsContextArgs,
-    'actionType' | 'location' | 'tab'
+    'actionType' | 'predictScreen' | 'predictComponent' | 'feedTab'
   > {
-  location?: string;
+  predictScreen?: string;
 }
 
 export interface PositionsTabViewedArgs
   extends Omit<
     PredictPortfolioAnalyticsContextArgs,
-    'actionType' | 'location' | 'tab'
+    'actionType' | 'predictScreen' | 'predictComponent' | 'feedTab'
   > {
-  location?: string;
-  tab: string;
+  predictScreen?: string;
+  feedTab: string;
 }
 
 export interface ShareActionArgs {
@@ -141,6 +141,9 @@ export interface ShareActionArgs {
   marketId?: string;
   marketSlug?: string;
 }
+
+const PREDICT_PORTFOLIO_MODULE_COMPONENT =
+  PredictEventValues.PREDICT_COMPONENT.PREDICT_PORTFOLIO_MODULE;
 
 export class PredictAnalytics {
   private readonly context: PredictAnalyticsContext;
@@ -182,8 +185,13 @@ export class PredictAnalytics {
       ...(analyticsProperties.actionType && {
         [PredictEventProperties.ACTION_TYPE]: analyticsProperties.actionType,
       }),
-      ...(analyticsProperties.location && {
-        [PredictEventProperties.LOCATION]: analyticsProperties.location,
+      ...(analyticsProperties.predictScreen && {
+        [PredictEventProperties.PREDICT_SCREEN]:
+          analyticsProperties.predictScreen,
+      }),
+      ...(analyticsProperties.predictComponent && {
+        [PredictEventProperties.PREDICT_COMPONENT]:
+          analyticsProperties.predictComponent,
       }),
       ...(analyticsProperties.openPositionsCount !== undefined && {
         [PredictEventProperties.OPEN_POSITIONS_COUNT]:
@@ -201,8 +209,8 @@ export class PredictAnalytics {
         [PredictEventProperties.PORTFOLIO_MODULE_ENABLED]:
           analyticsProperties.portfolioModuleEnabled,
       }),
-      ...(analyticsProperties.tab && {
-        [PredictEventProperties.TAB]: analyticsProperties.tab,
+      ...(analyticsProperties.feedTab && {
+        [PredictEventProperties.PREDICT_FEED_TAB]: analyticsProperties.feedTab,
       }),
       ...(analyticsProperties.marketType && {
         [PredictEventProperties.MARKET_TYPE]: analyticsProperties.marketType,
@@ -330,18 +338,18 @@ export class PredictAnalytics {
   }
 
   public trackPortfolioPositionsButtonTapped({
-    location = PredictEventValues.LOCATION.PREDICT_PORTFOLIO_MODULE,
+    predictComponent = PREDICT_PORTFOLIO_MODULE_COMPONENT,
     ...args
   }: PortfolioPositionsButtonTappedArgs): void {
     this.trackPositionViewed({
       ...args,
       actionType: PredictEventValues.ACTION_TYPE.CLICKED,
-      location,
+      predictComponent,
     });
   }
 
   public trackPortfolioTransactionInitiated({
-    location = PredictEventValues.LOCATION.PREDICT_PORTFOLIO_MODULE,
+    predictComponent = PREDICT_PORTFOLIO_MODULE_COMPONENT,
     transactionType,
     ...args
   }: PortfolioTransactionInitiatedArgs): void {
@@ -349,35 +357,35 @@ export class PredictAnalytics {
       status: PredictTradeStatus.INITIATED,
       analyticsProperties: {
         ...args,
-        location,
+        predictComponent,
         transactionType,
       },
     });
   }
 
   public trackPositionsScreenViewed({
-    location = PredictEventValues.LOCATION.PREDICT_POSITIONS_SCREEN,
+    predictScreen = PredictEventValues.PREDICT_SCREEN.PREDICT_POSITIONS_SCREEN,
     ...args
   }: PositionsScreenViewedArgs): void {
     this.trackPositionViewed({
       ...args,
       actionType: PredictEventValues.ACTION_TYPE.VIEWED,
-      location,
+      predictScreen,
     });
   }
 
   public trackPositionsTabViewed({
-    location = PredictEventValues.LOCATION.PREDICT_POSITIONS_SCREEN,
-    tab,
+    predictScreen = PredictEventValues.PREDICT_SCREEN.PREDICT_POSITIONS_SCREEN,
+    feedTab,
     ...args
   }: PositionsTabViewedArgs): void {
-    if (tab === PredictEventValues.TAB.HISTORY) {
+    if (feedTab === PredictEventValues.PREDICT_FEED_TAB.HISTORY) {
       this.trackActivityViewed({
         ...args,
         actionType: PredictEventValues.ACTION_TYPE.VIEWED,
         activityType: PredictEventValues.ACTIVITY_TYPE.ACTIVITY_LIST,
-        location,
-        tab,
+        predictScreen,
+        feedTab,
       });
       return;
     }
@@ -385,8 +393,8 @@ export class PredictAnalytics {
     this.trackPositionViewed({
       ...args,
       actionType: PredictEventValues.ACTION_TYPE.VIEWED,
-      location,
-      tab,
+      predictScreen,
+      feedTab,
     });
   }
 
@@ -407,6 +415,7 @@ export class PredictAnalytics {
     sessionId,
     feedTab,
     predictScreen,
+    predictComponent,
     numPagesViewed,
     sessionTime,
     entryPoint,
@@ -415,13 +424,12 @@ export class PredictAnalytics {
     claimablePositionsCount,
     hasClaimableWinnings,
     portfolioModuleEnabled,
-    location,
-    tab,
   }: FeedViewedArgs): void {
     this.trackConfiguredEvent('feedViewed', {
       sessionId,
       feedTab,
       predictScreen,
+      predictComponent,
       numPagesViewed,
       sessionTime,
       entryPoint,
@@ -430,8 +438,6 @@ export class PredictAnalytics {
       claimablePositionsCount,
       hasClaimableWinnings,
       portfolioModuleEnabled,
-      location,
-      tab,
     });
   }
 

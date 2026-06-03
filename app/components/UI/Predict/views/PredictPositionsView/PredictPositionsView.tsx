@@ -117,7 +117,7 @@ const PredictPositionsView = () => {
       openPositionsCount: portfolio.openPositionCount,
       claimablePositionsCount: portfolio.claimablePositionCount,
       hasClaimableWinnings: portfolio.hasClaimableWinnings,
-      location: PredictEventValues.LOCATION.PREDICT_POSITIONS_SCREEN,
+      predictScreen: PredictEventValues.PREDICT_SCREEN.PREDICT_POSITIONS_SCREEN,
     }),
     [
       entryPoint,
@@ -162,7 +162,7 @@ const PredictPositionsView = () => {
     (tab: PredictPositionsTabKey) => {
       Engine.context.PredictController.trackPositionsTabViewed({
         ...analyticsProperties,
-        tab,
+        feedTab: tab,
       });
     },
     [analyticsProperties],
