@@ -267,35 +267,63 @@ export function useQuickBuyController(
   // the auto-select effect is allowed to correct a stale selection.
   const isManualSelectionRef = useRef(false);
 
-  // Synchronous dest-token lookup key — built from `target` + `destChainId` so it
-  // is available on the very first render, before useAssetMetadata resolves
-  // `destToken`. We pass it to `selectDefaultSourceToken` so the destination is
-  // filtered out of source candidates from the start, eliminating any same-token
-  // flash on Asset Details. The selector handles both EVM (address-based match)
-  // and non-EVM (symbol fallback for CAIP-form variation across SDKs).
+  // Dest-token lookup key passed to `selectDefaultSourceToken` so the
+  // destination is filtered out of source candidates and not preselected as
+  // pay-with. Reads from `positionTokenFromSetup` once available because
+  // `useQuickBuySetup` normalises `address` to match what `sourceTokenOptions`
+  // contains — bare hex for EVM (zero address for native, mint hex for
+  // ERC-20) and CAIP-19 for non-EVM. Comparing against the raw
+  // `target.tokenAddress` would miss when the social feed sends a CAIP-19
+  // wrapper for an EVM asset (e.g. `eip155:137/slip44:966` for native POL),
+  // letting the same token through as a pay-with option.
+  //
+  // While metadata is still resolving (priced ERC-20s only — natives resolve
+  // synchronously in `useQuickBuySetup`) we fall back to the raw `target`
+  // values. The selector's symbol fallback covers most cross-format mismatches
+  // in this brief window; once `positionTokenFromSetup` lands the effect re-
+  // runs with the normalised key.
   const destLookupKey = useMemo<
     Pick<BridgeToken, 'address' | 'chainId' | 'symbol'> | undefined
   >(() => {
     if (!destChainId) return undefined;
     return {
       chainId: destChainId,
-      address: target.tokenAddress,
-      symbol: target.tokenSymbol,
+      address: positionTokenFromSetup?.address ?? target.tokenAddress,
+      symbol: positionTokenFromSetup?.symbol ?? target.tokenSymbol,
     };
-  }, [destChainId, target.tokenAddress, target.tokenSymbol]);
+  }, [
+    destChainId,
+    positionTokenFromSetup?.address,
+    positionTokenFromSetup?.symbol,
+    target.tokenAddress,
+    target.tokenSymbol,
+  ]);
 
   // Auto-select default source token using smart priority rules (see
-  // selectDefaultSourceToken). destLookupKey is passed so the destination is
-  // deprioritized and not preselected when the user has other holdings to pay
-  // with. Manual picker selections are preserved via isManualSelectionRef.
+  // `selectDefaultSourceToken`). `destLookupKey` is passed so the destination
+  // is deprioritized and not preselected when the user has other holdings.
+  // Manual picker selections are preserved via `isManualSelectionRef`.
+  //
+  // We wait for `!isSetupLoading` before the first pick so `destLookupKey`
+  // reflects the normalised dest address (otherwise an ERC-20 destination
+  // with a CAIP-19-wrapped `target.tokenAddress` could leak through the
+  // address filter while metadata is in flight, and the `selectedSourceToken`
+  // guard would prevent self-correction once metadata lands).
   useEffect(() => {
+    if (isSetupLoading) return;
     if (sourceTokenOptions.length === 0) return;
     if (selectedSourceToken) return;
     if (isManualSelectionRef.current) return;
     setSelectedSourceToken(
       selectDefaultSourceToken(sourceTokenOptions, destChainId, destLookupKey),
     );
-  }, [sourceTokenOptions, selectedSourceToken, destChainId, destLookupKey]);
+  }, [
+    isSetupLoading,
+    sourceTokenOptions,
+    selectedSourceToken,
+    destChainId,
+    destLookupKey,
+  ]);
 
   // ─── Sell mode: position token (what the user is selling) ──────────────
   const positionToken = usePositionTokenBalance(target, positionTokenFromSetup);

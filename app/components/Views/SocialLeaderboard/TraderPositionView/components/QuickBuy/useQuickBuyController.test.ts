@@ -995,7 +995,7 @@ describe('useQuickBuyController', () => {
       expect(result.current.sourceToken?.symbol).toBe('ETH');
     });
 
-    it('does not preselect the destination token (EVM) on the very first render — no flash, even before destToken metadata resolves', () => {
+    it('defers source preselection until setup resolves so the normalised dest address is used', () => {
       const destAddress = '0x0000000000000000000000000000000000000000';
       const destChainId = '0x1';
 
@@ -1012,8 +1012,11 @@ describe('useQuickBuyController', () => {
         tokenFiatAmount: 1000,
       });
 
-      // destToken NOT yet available (metadata still loading) — but the synchronous
-      // lookup key is built from target.tokenAddress, so the first render is correct.
+      // While setup is loading, the auto-select effect must NOT run — picking
+      // against the raw `target.tokenAddress` could let a CAIP-19-wrapped EVM
+      // dest (e.g. `eip155:137/slip44:966`) leak through the address filter,
+      // and the `selectedSourceToken` guard would prevent self-correction
+      // once setup lands.
       (useQuickBuySetup as jest.Mock).mockReturnValue({
         chainId: destChainId,
         destToken: undefined,
@@ -1026,29 +1029,46 @@ describe('useQuickBuyController', () => {
         isLoading: false,
       });
 
-      const { result } = renderHook(() =>
+      const { result, rerender } = renderHook(() =>
         useQuickBuyController(
           createTarget({ tokenAddress: destAddress }),
           jest.fn(),
         ),
       );
 
-      // First render skips ETH (matches synchronous dest lookup key) and picks USDC.
+      // No selection while setup is loading.
+      expect(result.current.sourceToken).toBeUndefined();
+
+      // Setup resolves with the normalised dest token; selection now picks
+      // USDC, never ETH (which matches the dest).
+      (useQuickBuySetup as jest.Mock).mockReturnValue({
+        chainId: destChainId,
+        destToken: {
+          address: destAddress,
+          chainId: destChainId,
+          symbol: 'ETH',
+          name: 'Ether',
+          decimals: 18,
+          image: '',
+        },
+        isLoading: false,
+        isUnsupportedChain: false,
+      });
+      rerender(undefined);
+
       expect(result.current.sourceToken?.symbol).toBe('USDC');
     });
 
-    it('does not preselect the destination token (non-EVM) on first render even when source/dest CAIP forms differ', () => {
-      // Source candidate uses canonical native form `…/slip44:501` from
-      // getNativeSourceToken, while the position's tokenAddress comes from the
-      // social API in a different form (e.g. wrapped SOL mint or empty). The
-      // synchronous symbol fallback in selectDefaultSourceToken should still
-      // detect this as the dest token.
+    it('does not preselect the destination token (non-EVM) once setup resolves with the normalised dest address', () => {
+      // For non-EVM natives, `useQuickBuySetup` resolves synchronously via
+      // `getNativeSourceToken`, so the lookup key matches source candidates
+      // exactly (both share the canonical `…/slip44:NNN` form). The selector
+      // filters SOL by address and the next-best option (USDC) is preselected.
       const solChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
-      const sourceSolAddress = `${solChainId}/slip44:501`;
-      const positionSolAddress = 'So11111111111111111111111111111111111111112';
+      const canonicalSolAddress = `${solChainId}/slip44:501`;
 
       const solNative = createSourceToken({
-        address: sourceSolAddress,
+        address: canonicalSolAddress,
         chainId: solChainId as BridgeToken['chainId'],
         symbol: 'SOL',
         tokenFiatAmount: 2,
@@ -1062,8 +1082,15 @@ describe('useQuickBuyController', () => {
 
       (useQuickBuySetup as jest.Mock).mockReturnValue({
         chainId: solChainId,
-        destToken: undefined,
-        isLoading: true,
+        destToken: {
+          address: canonicalSolAddress,
+          chainId: solChainId as BridgeToken['chainId'],
+          symbol: 'SOL',
+          name: 'Solana',
+          decimals: 9,
+          image: '',
+        },
+        isLoading: false,
         isUnsupportedChain: false,
       });
 
@@ -1076,14 +1103,13 @@ describe('useQuickBuyController', () => {
         useQuickBuyController(
           createTarget({
             chain: 'solana',
-            tokenAddress: positionSolAddress,
+            tokenAddress: 'So11111111111111111111111111111111111111112',
             tokenSymbol: 'SOL',
           }),
           jest.fn(),
         ),
       );
 
-      // SOL is filtered via symbol fallback (addresses differ); USDC is picked.
       expect(result.current.sourceToken?.symbol).toBe('USDC');
     });
   });
