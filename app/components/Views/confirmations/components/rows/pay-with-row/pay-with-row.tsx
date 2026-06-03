@@ -11,7 +11,6 @@ import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayW
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
 import { Image, TouchableOpacity } from 'react-native';
-// eslint-disable-next-line import-x/no-commonjs
 import MoneyIcon from '../../../../../../images/money.png';
 import { Box } from '../../../../../UI/Box/Box';
 import {

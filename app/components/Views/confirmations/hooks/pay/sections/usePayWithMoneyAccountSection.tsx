@@ -7,7 +7,6 @@ import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import type { Hex } from '@metamask/utils';
 import { strings } from '../../../../../../../locales/i18n';
 import Engine from '../../../../../../core/Engine';
-// eslint-disable-next-line import-x/no-commonjs
 import MoneyIcon from '../../../../../../images/money.png';
 import { RootState } from '../../../../../../reducers';
 import { selectPrimaryMoneyAccount } from '../../../../../../selectors/moneyAccountController';
