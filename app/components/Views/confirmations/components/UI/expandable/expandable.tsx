@@ -1,8 +1,8 @@
 import React, { ReactNode, useState } from 'react';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { TouchableOpacity, View } from 'react-native';
 
 import { useStyles } from '../../../../../../component-library/hooks';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import BottomModal from '../bottom-modal';
 import CopyButton from '../copy-button';
 import styleSheet from './expandable.styles';
@@ -48,7 +48,7 @@ const Expandable = ({
       {expanded && (
         <BottomModal onClose={() => setExpanded(false)}>
           <View style={styles.modalContent}>
-            <HeaderCompactStandard
+            <HeaderStandard
               title={expandedContentTitle}
               onClose={() => setExpanded(false)}
               closeButtonProps={{

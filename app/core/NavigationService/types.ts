@@ -42,7 +42,7 @@ import type { TooltipModalRouteParams } from '../../components/Views/TooltipModa
 import type { ChoosePasswordRouteParams } from '../../components/Views/ChoosePassword/ChoosePassword.types';
 import type { AccountSelectorParams } from '../../components/Views/AccountSelector/AccountSelector.types';
 import type { AddressSelectorParams } from '../../components/Views/AddressSelector/AddressSelector.types';
-import type { AccountConnectParams } from '../../components/Views/AccountConnect/AccountConnect.types';
+import type { AccountConnectParams } from '../../components/Views/MultichainAccounts/shared/AccountConnect.types';
 import type { ShowTokenIdSheetParams } from '../../components/Views/ShowTokenIdSheet/ShowTokenIdSheet.types';
 import type { ShowIpfsGatewaySheetParams } from '../../components/Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet.types';
 import type { SuccessErrorSheetParams } from '../../components/Views/SuccessErrorSheet/interface';
@@ -55,6 +55,7 @@ import type { OnboardingInterestQuestionnaireRouteParams } from '../../component
 
 // Perps navigation params
 import type { PerpsNavigationParamList } from '../../components/UI/Perps/types/navigation';
+import type { TrendingTokensFullViewParams } from '../../components/UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
 
 // QR Scanner params
 import type { QRScannerParams } from '../../components/Views/QRScanner/QRScanner.types';
@@ -511,7 +512,7 @@ export interface RootStackParamList extends ParamListBase {
   TokensFullView: undefined;
   CashTokensFullView: undefined;
   MoneyScreens: undefined;
-  TrendingTokensFullView: undefined;
+  TrendingTokensFullView: TrendingTokensFullViewParams | undefined;
   RWATokensFullView: undefined;
 
   // Vault recovery routes
