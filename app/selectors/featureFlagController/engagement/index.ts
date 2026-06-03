@@ -5,7 +5,7 @@ import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFla
 /**
  * Registry / client-config key for the pre-push prompt version-gated flag.
  */
-export const PRE_PUSH_PROMPT_FLAG_KEY = 'prePushPromptMinVersion' as const;
+export const PRE_PUSH_PROMPT_FLAG_KEY = 'prePushPromptEnabled' as const;
 
 /**
  * Whether the startup pre-push prompt (push permission / marketing consent nudge)

@@ -30,7 +30,7 @@ describe('selectPrePushPromptEnabled', () => {
   });
 
   it('exposes the client-config flag key for registry alignment', () => {
-    expect(PRE_PUSH_PROMPT_FLAG_KEY).toBe('prePushPromptMinVersion');
+    expect(PRE_PUSH_PROMPT_FLAG_KEY).toBe('prePushPromptEnabled');
   });
 
   it('returns true when enabled is true and minimum version passes', () => {

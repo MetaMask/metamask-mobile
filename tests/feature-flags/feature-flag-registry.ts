@@ -4836,8 +4836,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  prePushPromptMinVersion: {
-    name: 'prePushPromptMinVersion',
+  prePushPromptEnabled: {
+    name: 'prePushPromptEnabled',
     type: FeatureFlagType.Remote,
     inProd: false,
     productionDefault: {
