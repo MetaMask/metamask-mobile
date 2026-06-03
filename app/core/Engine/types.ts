@@ -399,7 +399,6 @@ import {
 // (or we move to Node16/NodeNext module resolution), drop both the alias and
 // this dedicated import.
 import type { DelegationControllerState } from '@metamask/delegation-controller/types';
-import { SnapKeyringBuilder } from '../SnapKeyring/SnapKeyring';
 import {
   ControllerGetStateAction,
   ControllerStateChangeEvent,
@@ -487,7 +486,6 @@ type RequiredControllers = Omit<
   | 'GeolocationApiService'
   | 'MultichainRoutingService'
   | 'RewardsDataService'
-  | 'SnapKeyringBuilder'
   | 'StorageService'
   | 'ComplianceService'
   | 'ChompApiService'
@@ -501,7 +499,6 @@ type OptionalControllers = Pick<
   | 'GeolocationApiService'
   | 'MultichainRoutingService'
   | 'RewardsDataService'
-  | 'SnapKeyringBuilder'
   | 'StorageService'
   | 'ComplianceService'
   | 'ChompApiService'
@@ -803,7 +800,6 @@ export type MessengerClients = {
   MultichainTransactionsController: MultichainTransactionsController;
   MultichainAccountService: MultichainAccountService;
   SnapAccountService: SnapAccountService;
-  SnapKeyringBuilder: SnapKeyringBuilder;
   ///: END:ONLY_INCLUDE_IF
   TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataController;
   MultichainNetworkController: MultichainNetworkController;
@@ -980,7 +976,6 @@ export type MessengerClientsToInitialize =
   | 'MultichainTransactionsController'
   | 'MultichainAccountService'
   | 'SnapAccountService'
-  | 'SnapKeyringBuilder'
   ///: END:ONLY_INCLUDE_IF
   | 'EarnController'
   | 'MoneyAccountController'
