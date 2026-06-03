@@ -15,7 +15,8 @@ interface Step {
 }
 
 function statusForStep(step: Step) {
-  return String(step.status ?? step.id.split(/\s+/)[0] ?? '').toLowerCase();
+  const id = typeof step.id === 'string' ? step.id : '';
+  return String(step.status ?? id.split(/\s+/)[0] ?? '').toLowerCase();
 }
 
 function progressForStep(step: Step) {
@@ -26,7 +27,8 @@ function progressForStep(step: Step) {
     return `${step.progress.current}/${step.progress.total}`;
   }
   const progressPattern = /\b\d+\s*\/\s*\d+\b/;
-  const match = progressPattern.exec(step.id);
+  const id = typeof step.id === 'string' ? step.id : '';
+  const match = progressPattern.exec(id);
   return match ? match[0].replace(/\s+/g, '') : null;
 }
 
