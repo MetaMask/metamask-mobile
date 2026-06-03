@@ -25,7 +25,6 @@ import { formatTokenAmount } from '../../../../utils/formatters';
 
 const styles = StyleSheet.create({
   amountText: { fontSize: 48, lineHeight: 52 },
-  hiddenInput: { position: 'absolute', opacity: 0, height: 0 },
 });
 
 interface QuickBuyAmountSectionProps {
@@ -36,9 +35,12 @@ interface QuickBuyAmountSectionProps {
   estimatedReceiveAmount: string | undefined;
   availableBalanceFiat: string;
   isQuoteLoading: boolean;
-  hiddenInputRef: React.RefObject<TextInput | null>;
-  onAmountAreaPress: () => void;
-  onAmountChange: (text: string) => void;
+  // Custom-amount input is temporarily disabled (numpad removed). The slider is
+  // the only input path for now, but these props remain on the interface so the
+  // controller wiring is preserved for when the keyboard path is restored.
+  hiddenInputRef?: React.RefObject<TextInput | null>;
+  onAmountAreaPress?: () => void;
+  onAmountChange?: (text: string) => void;
   onToggleAmountDisplay: () => void;
 }
 
@@ -50,9 +52,6 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   estimatedReceiveAmount,
   availableBalanceFiat,
   isQuoteLoading,
-  hiddenInputRef,
-  onAmountAreaPress,
-  onAmountChange,
   onToggleAmountDisplay,
 }) => {
   const fiatAmountLabel = usdAmount ? `$${usdAmount}` : '$0';
@@ -65,77 +64,62 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   const secondaryLabel = isCryptoPrimary ? fiatAmountLabel : cryptoAmountLabel;
 
   return (
-    <TouchableOpacity
-      onPress={onAmountAreaPress}
-      activeOpacity={1}
+    <Box
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Center}
+      gap={2}
+      twClassName="px-4 pt-6 pb-4"
       testID="quick-buy-amount-area"
     >
-      <Box
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-        gap={2}
-        twClassName="px-4 pt-6 pb-4"
+      <Text
+        style={styles.amountText}
+        fontWeight={FontWeight.Bold}
+        color={TextColor.TextDefault}
       >
-        <Text
-          style={styles.amountText}
-          fontWeight={FontWeight.Bold}
-          color={TextColor.TextDefault}
+        {primaryLabel}
+      </Text>
+
+      {isQuoteLoading ? (
+        <ActivityIndicator size="small" />
+      ) : (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={2}
         >
-          {primaryLabel}
-        </Text>
-
-        {isQuoteLoading ? (
-          <ActivityIndicator size="small" />
-        ) : (
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={2}
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
           >
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
+            {secondaryLabel}
+          </Text>
+          {fiatCryptoToggleEnabled ? (
+            <TouchableOpacity
+              onPress={onToggleAmountDisplay}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityRole="button"
+              accessibilityLabel={strings(
+                'social_leaderboard.quick_buy.toggle_amount_display',
+              )}
+              testID="quick-buy-toggle-amount-display"
             >
-              {secondaryLabel}
-            </Text>
-            {fiatCryptoToggleEnabled ? (
-              <TouchableOpacity
-                onPress={onToggleAmountDisplay}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                accessibilityRole="button"
-                accessibilityLabel={strings(
-                  'social_leaderboard.quick_buy.toggle_amount_display',
-                )}
-                testID="quick-buy-toggle-amount-display"
-              >
-                <Icon
-                  name={IconName.SwapVertical}
-                  size={IconSize.Sm}
-                  color={IconColor.IconAlternative}
-                />
-              </TouchableOpacity>
-            ) : null}
-          </Box>
-        )}
+              <Icon
+                name={IconName.SwapVertical}
+                size={IconSize.Sm}
+                color={IconColor.IconAlternative}
+              />
+            </TouchableOpacity>
+          ) : null}
+        </Box>
+      )}
 
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {strings('social_leaderboard.quick_buy.available_balance', {
-            amount: availableBalanceFiat,
-          })}
-        </Text>
-
-        <TextInput
-          ref={hiddenInputRef}
-          value={usdAmount}
-          onChangeText={onAmountChange}
-          keyboardType="decimal-pad"
-          returnKeyType="done"
-          style={styles.hiddenInput}
-          testID="quick-buy-amount-input"
-        />
-      </Box>
-    </TouchableOpacity>
+      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+        {strings('social_leaderboard.quick_buy.available_balance', {
+          amount: availableBalanceFiat,
+        })}
+      </Text>
+    </Box>
   );
 };
 

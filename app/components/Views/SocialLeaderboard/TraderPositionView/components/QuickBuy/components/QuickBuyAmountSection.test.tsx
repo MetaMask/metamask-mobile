@@ -108,18 +108,6 @@ describe('QuickBuyAmountSection', () => {
     expect(onToggleAmountDisplay).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onAmountAreaPress when the area is pressed', () => {
-    const onAmountAreaPress = jest.fn();
-    render(
-      <QuickBuyAmountSection
-        {...defaultProps}
-        onAmountAreaPress={onAmountAreaPress}
-      />,
-    );
-    fireEvent.press(screen.getByTestId('quick-buy-amount-area'));
-    expect(onAmountAreaPress).toHaveBeenCalledTimes(1);
-  });
-
   it('shows available balance when provided', () => {
     render(
       <QuickBuyAmountSection
