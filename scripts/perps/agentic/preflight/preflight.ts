@@ -1,7 +1,16 @@
 // Orchestrator. Prepares a ready-to-code worktree: deps reconciled, app
 // built/installed, Metro + CDP up, wallet configured. See ./README.md.
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import {
+  closeSync,
+  existsSync,
+  fstatSync,
+  ftruncateSync,
+  mkdirSync,
+  openSync,
+  readFileSync,
+  writeSync,
+} from 'fs';
 import { dirname, resolve } from 'path';
 import { buildCtx, modeLine, resolvePath } from './modules/env';
 import { decideDeps, reconcile, runCleanSetup } from './modules/deps';
@@ -12,6 +21,52 @@ import { runIos } from './modules/ios';
 import { runAndroid } from './modules/android';
 import { connectCdp, setupWallet, startMetro } from './modules/runtime';
 import type { Ctx } from './modules/types';
+
+interface FileSnapshot {
+  contents: string;
+  dev: number;
+  ino: number;
+}
+
+function readSnapshot(path: string): FileSnapshot | null {
+  let fd: number | undefined;
+  try {
+    fd = openSync(path, 'r');
+    const stat = fstatSync(fd);
+    if (!stat.isFile()) return null;
+    return {
+      contents: readFileSync(fd, 'utf8'),
+      dev: stat.dev,
+      ino: stat.ino,
+    };
+  } catch {
+    return null;
+  } finally {
+    if (fd !== undefined) closeSync(fd);
+  }
+}
+
+function restoreSnapshot(path: string, snapshot: FileSnapshot): boolean {
+  let fd: number | undefined;
+  try {
+    fd = openSync(path, 'r+');
+    const stat = fstatSync(fd);
+    if (!stat.isFile() || stat.dev !== snapshot.dev || stat.ino !== snapshot.ino) {
+      return false;
+    }
+    const current = readFileSync(fd, 'utf8');
+    if (current === snapshot.contents) {
+      return false;
+    }
+    ftruncateSync(fd, 0);
+    writeSync(fd, snapshot.contents, 0, 'utf8');
+    return true;
+  } catch {
+    return false;
+  } finally {
+    if (fd !== undefined) closeSync(fd);
+  }
+}
 
 function validateFixture(ctx: Ctx, logger: Logger): void {
   const path = resolvePath(ctx.root, ctx.flags.walletFixture);
@@ -44,21 +99,14 @@ async function main(): Promise<void> {
   const ctx = buildCtx(root, process.argv.slice(2));
   const logger = new Logger();
   const rootTsconfigPath = resolvePath(ctx.root, 'tsconfig.json');
-  const rootTsconfigBefore = existsSync(rootTsconfigPath)
-    ? readFileSync(rootTsconfigPath, 'utf8')
-    : null;
+  const rootTsconfigBefore = readSnapshot(rootTsconfigPath);
 
   // Restore setup-noise on every exit — success, thrown failure, or Ctrl-C.
   // `expo run:ios` rewrites root tsconfig.json ("extends":
   // "expo/tsconfig.base"). Restore the exact startup contents, not HEAD, so
   // intentional local tsconfig edits are preserved while Expo noise is removed.
   const restoreNoise = (): void => {
-    if (
-      rootTsconfigBefore !== null &&
-      existsSync(rootTsconfigPath) &&
-      readFileSync(rootTsconfigPath, 'utf8') !== rootTsconfigBefore
-    ) {
-      writeFileSync(rootTsconfigPath, rootTsconfigBefore);
+    if (rootTsconfigBefore && restoreSnapshot(rootTsconfigPath, rootTsconfigBefore)) {
       logger.ok('Restored root tsconfig.json (preflight setup noise)');
     }
     if (!ctx.checkOnly) {
