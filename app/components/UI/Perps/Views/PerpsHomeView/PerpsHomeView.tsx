@@ -581,6 +581,13 @@ const PerpsHomeView = ({
           </View>
         </PerpsHomeSection>
 
+        {/* What's Happening Section */}
+        {isWhatsHappeningEnabled && (
+          <View style={styles.whatsHappeningSection}>
+            <WhatsHappeningSection source={WhatsHappeningSource.Perps} />
+          </View>
+        )}
+
         {/* Watchlist Section */}
         <PerpsWatchlistMarkets
           markets={watchlistMarkets}
@@ -590,6 +597,9 @@ const PerpsHomeView = ({
           source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
           transactionActiveAbTests={transactionActiveAbTests}
         />
+
+        {/* Top Movers Section */}
+        <PerpsTopMoversSection source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME} />
 
         {/* Crypto Markets List */}
         <View onLayout={handleSectionLayout('explore_crypto')}>
@@ -614,13 +624,6 @@ const PerpsHomeView = ({
           source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
           transactionActiveAbTests={transactionActiveAbTests}
         />
-
-        {/* What's Happening Section */}
-        {isWhatsHappeningEnabled && (
-          <View style={styles.whatsHappeningSection}>
-            <WhatsHappeningSection source={WhatsHappeningSource.Perps} />
-          </View>
-        )}
 
         {/* Stocks Markets List */}
         <View onLayout={handleSectionLayout('explore_stocks')}>
@@ -652,9 +655,6 @@ const PerpsHomeView = ({
             isLoading={isLoading.activity}
           />
         </View>
-
-        {/* Top Movers Section */}
-        <PerpsTopMoversSection source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME} />
 
         <View style={styles.sectionContent}>
           <PerpsNavigationCard items={navigationItems} />
