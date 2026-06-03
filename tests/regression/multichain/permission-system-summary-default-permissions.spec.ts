@@ -8,7 +8,7 @@ import { navigateToBrowserView } from '../../flows/browser.flow';
 import Assertions from '../../framework/Assertions';
 import PermissionSummaryBottomSheet from '../../page-objects/Browser/PermissionSummaryBottomSheet';
 import { DappVariants } from '../../framework/Constants';
-import { PermissionSummaryBottomSheetSelectorsText } from '../../../app/components/Views/AccountConnect/PermissionSummaryBottomSheet.testIds';
+import { PermissionSummaryBottomSheetSelectorsText } from '../../../app/components/Views/MultichainAccounts/shared/PermissionSummaryBottomSheet.testIds';
 
 describe(
   RegressionNetworkAbstractions('Permission System - Default Permissions'),

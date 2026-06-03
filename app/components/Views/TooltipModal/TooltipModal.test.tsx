@@ -19,6 +19,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
   const ReactActual = jest.requireActual('react');
   const {
     View: ReactNativeView,
@@ -27,6 +28,7 @@ jest.mock('@metamask/design-system-react-native', () => {
   } = jest.requireActual('react-native');
 
   return {
+    ...actual,
     Box: ReactNativeView,
     Text: ReactNativeText,
     TextVariant: { BodyMd: 'BodyMd', BodySm: 'BodySm' },
@@ -64,30 +66,6 @@ jest.mock('@metamask/design-system-react-native', () => {
 jest.mock('../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
 }));
-
-jest.mock(
-  '../../../component-library/components-temp/HeaderCompactStandard',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const {
-      View: ReactNativeView,
-      Text: ReactNativeText,
-      Pressable: ReactNativePressable,
-    } = jest.requireActual('react-native');
-
-    return (props: { title: string; onClose: () => void }) =>
-      ReactActual.createElement(
-        ReactNativeView,
-        { testID: 'tooltip-modal-header' },
-        ReactActual.createElement(ReactNativeText, {}, props.title),
-        ReactActual.createElement(
-          ReactNativePressable,
-          { testID: 'tooltip-modal-close', onPress: props.onClose },
-          ReactActual.createElement(ReactNativeText, {}, 'close'),
-        ),
-      );
-  },
-);
 
 jest.mock(
   '../../../component-library/components/BottomSheets/BottomSheet',

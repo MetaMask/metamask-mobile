@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { StyleSheet, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,6 +12,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { Colors } from '../../../util/theme/models';
 import { SettingsViewSelectorsIDs } from './SettingsView.testIds';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createSnapsSettingsListNavDetails } from '../Snaps/SnapsSettingsList/SnapsSettingsList';
 import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../constants/snaps';
 ///: END:ONLY_INCLUDE_IF
@@ -18,8 +20,6 @@ import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytic
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { isTest } from '../../../util/test/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
-
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
     wrapper: {
@@ -115,7 +115,7 @@ const Settings = () => {
   const oauthFlow = useSelector(selectSeedlessOnboardingLoginFlow);
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('app_settings.title')}
         onBack={handleBack}
         backButtonProps={{ testID: SettingsViewSelectorsIDs.BACK_BUTTON }}

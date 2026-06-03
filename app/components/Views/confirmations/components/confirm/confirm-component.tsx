@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 
 import { ConfirmationUIType } from '../../ConfirmationView.testIds';
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -27,6 +28,7 @@ import Title from '../title';
 import { Footer, FooterSkeleton } from '../footer';
 import styleSheet from './confirm-component.styles';
 import { TransactionType } from '@metamask/transaction-controller';
+import { Hex } from '@metamask/utils';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
 import { CustomAmountInfoSkeleton } from '../info/custom-amount-info';
@@ -56,9 +58,14 @@ export enum ConfirmationLoader {
 }
 
 export interface ConfirmationParams {
+  autoSelectFiatPayment?: boolean;
   loader?: ConfirmationLoader;
   maxValueMode?: boolean;
   forceBottomSheet?: boolean;
+  preferredPaymentToken?: {
+    address: Hex;
+    chainId: Hex;
+  };
 }
 
 const ConfirmWrapped = ({
@@ -122,16 +129,13 @@ export const Confirm = ({
   });
 
   useEffect(() => {
-    const options = {
-      headerShown: false,
-      // If there is an approvalRequest, we need to allow the user to swipe to reject the confirmation.
+    const options: NativeStackNavigationOptions = {
       // If not, keep the loading state in place until there is a request that can be rejected.
       gestureEnabled: Boolean(approvalRequest),
     };
 
-    if (approvalRequest && isFullScreenConfirmation) {
-      // If the confirmation is full screen, we need to show the header
-      options.headerShown = true;
+    if (approvalRequest) {
+      options.headerShown = Boolean(isFullScreenConfirmation);
     }
 
     navigation.setOptions(options);

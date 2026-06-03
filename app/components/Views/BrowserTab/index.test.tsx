@@ -6,6 +6,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import BrowserTab from './BrowserTab';
 import Routes from '../../../constants/navigation/Routes';
+import { getPhishingTestResultAsync } from '../../../util/phishingDetection';
 
 const mockInjectJavaScript = jest.fn();
 
@@ -296,6 +297,39 @@ describe('BrowserTab', () => {
           url: 'javascript://example.com',
         }),
       ).toBe(false);
+    });
+  });
+
+  describe('WebView onLoadStart dapp scanning', () => {
+    it('forwards the full URL including path to the scanner', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      const fullUrl = 'https://shared-host.example/view/test-path';
+
+      // Flag the URL so onLoadStart cancels the load (early return).
+      (getPhishingTestResultAsync as jest.Mock).mockResolvedValueOnce({
+        result: true,
+        name: '',
+      });
+
+      const result = await webView.props.onLoadStart({
+        nativeEvent: { url: fullUrl },
+      });
+
+      // The full URL (with path) must be forwarded to the scanner, not the origin.
+      expect(getPhishingTestResultAsync).toHaveBeenCalledWith(fullUrl);
+      expect(getPhishingTestResultAsync).not.toHaveBeenCalledWith(
+        'https://shared-host.example',
+      );
+      // Loading the flagged page is cancelled.
+      expect(result).toBe(false);
     });
   });
 

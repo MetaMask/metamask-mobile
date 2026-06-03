@@ -1,9 +1,9 @@
 import { AccountGroupObject } from '@metamask/account-tree-controller';
-import { AvatarAccountType } from '../../../../components/Avatars/Avatar/variants/AvatarAccount';
+import type { AccountAvatarVariant } from '../../avatarAccountVariant';
 
 export interface AccountListCellProps {
   accountGroup: AccountGroupObject;
-  avatarAccountType: AvatarAccountType;
+  avatarAccountType: AccountAvatarVariant;
   isSelected: boolean;
   onSelectAccount: (accountGroup: AccountGroupObject) => void;
   showCheckbox?: boolean;

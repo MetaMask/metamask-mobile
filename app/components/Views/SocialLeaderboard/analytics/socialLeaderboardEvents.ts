@@ -46,6 +46,7 @@ export const SocialLeaderboardEventValues = {
   AMOUNT_SELECTION_METHOD: {
     PRESET: 'preset',
     CUSTOM_INPUT: 'custom_input',
+    SLIDER: 'slider',
   },
   DISMISS_STAGE: {
     TOKEN_DETAIL: 'token_detail',
@@ -80,7 +81,8 @@ export type SocialLeaderboardSource =
   | 'home_carousel'
   | 'leaderboard'
   | 'trader_profile'
-  | 'profile_position';
+  | 'profile_position'
+  | 'asset_details';
 
 export type LeaderboardScreenViewedSource = Extract<
   SocialLeaderboardSource,
@@ -109,5 +111,5 @@ export type FollowTradingTokenSource = Extract<
 
 export type QuickBuySheetSource = Extract<
   SocialLeaderboardSource,
-  'notification' | 'profile_position' | 'leaderboard'
+  'notification' | 'profile_position' | 'leaderboard' | 'asset_details'
 >;
