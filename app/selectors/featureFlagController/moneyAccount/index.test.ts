@@ -2,6 +2,8 @@ import {
   selectMoneyAccountDepositEnabledFlag,
   selectMoneyAccountWithdrawEnabledFlag,
   selectMoneyAccountVaultConfig,
+  selectMoneyOnboardingStepperAnimationEnabled,
+  MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY,
   DEV_VAULT_CONFIG,
 } from './index';
 
@@ -75,6 +77,32 @@ describe('Money Account feature flag selectors', () => {
       const result = selectMoneyAccountWithdrawEnabledFlag.resultFunc({
         moneyAccount: {},
       });
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('selectMoneyOnboardingStepperAnimationEnabled', () => {
+    it('returns true when the flag is enabled', () => {
+      const result = selectMoneyOnboardingStepperAnimationEnabled.resultFunc({
+        [MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY]: true,
+      });
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when the flag is disabled', () => {
+      const result = selectMoneyOnboardingStepperAnimationEnabled.resultFunc({
+        [MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY]: false,
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the flag is absent (safe default)', () => {
+      const result = selectMoneyOnboardingStepperAnimationEnabled.resultFunc(
+        {},
+      );
 
       expect(result).toBe(false);
     });

@@ -24,6 +24,17 @@ export const selectMoneyAccountWithdrawEnabledFlag = createSelector(
   },
 );
 
+export const MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY =
+  'money-enable-onboarding-stepper-animation' as const;
+
+export const selectMoneyOnboardingStepperAnimationEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): boolean =>
+    Boolean(
+      remoteFeatureFlags?.[MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY],
+    ),
+);
+
 export interface MoneyAccountVaultConfig {
   chainId: string;
   boringVault: string;
