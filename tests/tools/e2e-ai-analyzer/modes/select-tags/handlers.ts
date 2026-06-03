@@ -2,7 +2,8 @@
  * Mode-specific logic for processing analysis results and creating fallbacks
  */
 
-import { writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import {
   SelectTagsAnalysis,
   PerformanceTestSelection,
@@ -13,6 +14,10 @@ import { getFileDiff, getPRFileDiff } from '../../utils/git-utils';
 import { smokeTags, flaskTags } from '../../../../tags';
 import { performanceTags } from '../../../../tags.performance';
 import { getGlobalInfrastructureHardRuleReason } from './global-infrastructure-paths';
+import {
+  getFrameworkInfraChanges,
+  getChangedSpecFiles,
+} from './test-infrastructure-paths';
 
 /**
  * Derive AI config from smokeTags and flaskTags
@@ -168,6 +173,50 @@ function getPackageJsonDiffLines(
  *
  * To add a new hard rule, append an entry to this array.
  */
+/**
+ * Wraps a reason string into a conservative (run-all) SelectTagsAnalysis.
+ */
+function makeConservativeResult(
+  ruleName: string,
+  reason: string,
+): SelectTagsAnalysis {
+  const result = createConservativeResult();
+  const fullReason = `Hard rule (${ruleName}): ${reason}. Running all tests.`;
+  result.reasoning = fullReason;
+  result.confidence = 100;
+  result.performanceTests.reasoning = fullReason;
+  return result;
+}
+
+/**
+ * Extracts Detox tag names imported in a spec file.
+ * Tags are imported as named exports from the tags module.
+ */
+function extractTagsFromSpecFile(
+  filePath: string,
+  baseDir: string,
+  validTags: Set<string>,
+): string[] {
+  try {
+    const content = readFileSync(join(baseDir, filePath), 'utf-8');
+    const matches = content.matchAll(
+      /import\s*\{([^}]+)\}\s*from\s*['"][^'"]*\/tags['"]/g,
+    );
+    const found: string[] = [];
+    for (const match of matches) {
+      const names = match[1].split(',').map((n) => n.trim());
+      for (const name of names) {
+        if (validTags.has(name)) {
+          found.push(name);
+        }
+      }
+    }
+    return found;
+  } catch {
+    return [];
+  }
+}
+
 const HARD_RULES: HardRule[] = [
   {
     name: 'controller-version-update',
@@ -195,38 +244,91 @@ const HARD_RULES: HardRule[] = [
       console.log(`   Updated controllers (${updatedControllers.length}):`);
       updatedControllers.forEach((pkg) => console.log(`     - ${pkg}`));
 
-      return `@metamask controller package version updated in package.json: ${updatedControllers.join(', ')}`;
+      const reason = `@metamask controller package version updated in package.json: ${updatedControllers.join(', ')}`;
+      return makeConservativeResult('controller-version-update', reason);
     },
   },
   {
     name: 'global-infrastructure-change',
     description:
       'Changes to globally-mounted hooks, contexts, Redux store, or Engine wiring',
-    check: (changedFiles) =>
-      getGlobalInfrastructureHardRuleReason(changedFiles),
+    check: (changedFiles) => {
+      const reason = getGlobalInfrastructureHardRuleReason(changedFiles);
+      return reason
+        ? makeConservativeResult('global-infrastructure-change', reason)
+        : null;
+    },
+  },
+  {
+    name: 'test-framework-infra-change',
+    description:
+      'Changes to tests/framework/ shared utilities (Assertions, Gestures, Matchers, etc.) used by virtually all specs',
+    check: (changedFiles) => {
+      const infraFiles = getFrameworkInfraChanges(changedFiles);
+      if (infraFiles.length === 0) return null;
+      const reason = `Test framework infrastructure changed: ${infraFiles.join(', ')}`;
+      return makeConservativeResult('test-framework-infra-change', reason);
+    },
+  },
+  {
+    name: 'test-spec-tag-extraction',
+    description:
+      'Spec files in tests/smoke/ or tests/regression/ changed — extract their tags and run directly',
+    check: (changedFiles, context) => {
+      const specFiles = getChangedSpecFiles(changedFiles);
+      if (specFiles.length === 0) return null;
+
+      // If any non-test files changed, let AI handle the full picture
+      const hasNonTestChanges = changedFiles.some(
+        (f) => !f.startsWith('tests/'),
+      );
+      if (hasNonTestChanges) return null;
+
+      const validTags = new Set(SELECT_TAGS_CONFIG.map((c) => c.tag));
+      const selectedTags = Array.from(
+        new Set(
+          specFiles.flatMap((f) =>
+            extractTagsFromSpecFile(f, context.baseDir, validTags),
+          ),
+        ),
+      );
+
+      if (selectedTags.length === 0) {
+        // Tags couldn't be extracted — fall through to AI
+        return null;
+      }
+
+      console.log(`   Changed spec files (${specFiles.length}):`);
+      specFiles.forEach((f) => console.log(`     - ${f}`));
+      console.log(`   Extracted tags: ${selectedTags.join(', ')}`);
+
+      return {
+        selectedTags,
+        riskLevel: 'medium',
+        confidence: 95,
+        reasoning: `Hard rule (test-spec-tag-extraction): Spec files changed directly. Running their associated tags: ${selectedTags.join(', ')}`,
+        performanceTests: {
+          selectedTags: [],
+          reasoning: 'No performance impact from spec-only changes',
+        },
+      };
+    },
   },
 ];
 
 /**
  * Evaluates all hard rules for the select-tags mode.
- * Returns a conservative result (all tests) on the first triggered rule, or null to proceed with AI.
+ * Returns the first non-null result, skipping AI analysis entirely.
  */
 export function checkHardRules(
   changedFiles: string[],
   context: AnalysisContext,
 ): SelectTagsAnalysis | null {
   for (const rule of HARD_RULES) {
-    const reason = rule.check(changedFiles, context);
-    if (reason) {
+    const result = rule.check(changedFiles, context);
+    if (result) {
       console.log(`🚨 Hard rule triggered: ${rule.name}`);
-      console.log(`   ${reason}`);
-      console.log('   Running all tests.');
-
-      const result = createConservativeResult();
-      const hardRuleReason = `Hard rule (${rule.name}): ${reason}. Running all tests.`;
-      result.reasoning = hardRuleReason;
-      result.confidence = 100;
-      result.performanceTests.reasoning = hardRuleReason;
+      console.log(`   ${result.reasoning}`);
       return result;
     }
   }
