@@ -13,9 +13,11 @@ import type {
 import {
   encapsulated,
   EncapsulatedElementType,
+  asPlaywrightElement,
 } from '../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import UnifiedGestures from '../../framework/UnifiedGestures';
+import { FrameworkDetector } from '../../framework/FrameworkDetector';
 type DetoxElement = Promise<
   IndexableNativeElement | NativeElement | IndexableSystemElement
 >;
@@ -350,9 +352,13 @@ class ConnectedAccountsModal {
   }
 
   async getNetworkName(): Promise<string> {
-    const networkNameElement = this.navigateToEditNetworksPermissionsButton;
-    const elem = await networkNameElement;
-    // Type assertion to access label property which exists on Detox elements
+    if (FrameworkDetector.isAppium()) {
+      const el = await asPlaywrightElement(
+        this.navigateToEditNetworksPermissionsButton,
+      );
+      return el.textContent();
+    }
+    const elem = await this.navigateToEditNetworksPermissionsButton;
     const attributes = await (elem as IndexableNativeElement).getAttributes();
     return (attributes as { label: string }).label;
   }

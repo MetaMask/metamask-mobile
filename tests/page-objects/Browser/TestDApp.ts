@@ -520,7 +520,7 @@ class TestDApp {
     options: TapOptions = {},
   ): Promise<void> {
     await Gestures.scrollToWebViewPort(elementId);
-    await UnifiedGestures.tap(elementId, options);
+    await Gestures.tap(elementId, options);
   }
 
   async navigateToTestDappWithContract({

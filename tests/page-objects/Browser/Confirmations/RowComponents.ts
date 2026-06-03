@@ -6,8 +6,10 @@ import Matchers from '../../../framework/Matchers';
 import {
   encapsulated,
   EncapsulatedElementType,
+  asPlaywrightElement,
 } from '../../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../../framework/PlaywrightMatchers';
+import { FrameworkDetector } from '../../../framework/FrameworkDetector';
 
 class RowComponents {
   get AccountNetwork(): EncapsulatedElementType {
@@ -173,6 +175,10 @@ class RowComponents {
   }
 
   async getNetworkFeeGasFeeTokenSymbolText(): Promise<string> {
+    if (FrameworkDetector.isAppium()) {
+      const el = await asPlaywrightElement(this.NetworkFeeGasFeeTokenSymbol);
+      return el.textContent();
+    }
     const symbolElement = (await this
       .NetworkFeeGasFeeTokenSymbol) as IndexableNativeElement;
     const symbolElementAttributes = await symbolElement.getAttributes();

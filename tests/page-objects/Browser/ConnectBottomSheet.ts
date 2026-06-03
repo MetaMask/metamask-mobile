@@ -24,10 +24,15 @@ class ConnectBottomSheet {
         ),
     });
   }
-  get connectButton(): DetoxElement {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByLabel(CommonSelectorsIDs.CONNECT_BUTTON)
-      : Matchers.getElementByID(CommonSelectorsIDs.CONNECT_BUTTON);
+  get connectButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        device.getPlatform() === 'android'
+          ? Matchers.getElementByLabel(CommonSelectorsIDs.CONNECT_BUTTON)
+          : Matchers.getElementByID(CommonSelectorsIDs.CONNECT_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(CommonSelectorsIDs.CONNECT_BUTTON),
+    });
   }
 
   get connectAccountsButton(): EncapsulatedElementType {

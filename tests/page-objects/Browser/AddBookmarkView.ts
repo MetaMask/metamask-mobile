@@ -19,10 +19,19 @@ class AddFavoritesView {
     });
   }
 
-  get addBookmarkButton(): DetoxElement {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON)
-      : Matchers.getElementByLabel(AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON);
+  get addBookmarkButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        device.getPlatform() === 'ios'
+          ? Matchers.getElementByID(AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON)
+          : Matchers.getElementByLabel(
+              AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON,
+            ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON,
+        ),
+    });
   }
 
   async tapAddBookmarksButton(): Promise<void> {

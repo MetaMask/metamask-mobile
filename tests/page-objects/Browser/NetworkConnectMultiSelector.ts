@@ -35,8 +35,11 @@ class NetworkConnectMultiSelector {
     });
   }
 
-  getMultiselectElement(label: string): DetoxElement {
-    return Matchers.getElementByLabel(label);
+  getMultiselectElement(label: string): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByLabel(label),
+      appium: () => PlaywrightMatchers.getElementByAccessibilityId(label),
+    });
   }
 
   async tapUpdateButton(): Promise<void> {

@@ -20,6 +20,7 @@ import {
 } from '../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import UnifiedGestures from '../../framework/UnifiedGestures';
+import { PlatformDetector } from '../../framework/PlatformLocator';
 
 interface TransactionParams {
   [key: string]: string | number | boolean;
@@ -216,10 +217,19 @@ class Browser {
     });
   }
 
-  get addBookmarkButton(): DetoxElement {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON)
-      : Matchers.getElementByLabel(AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON);
+  get addBookmarkButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        device.getPlatform() === 'ios'
+          ? Matchers.getElementByID(AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON)
+          : Matchers.getElementByLabel(
+              AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON,
+            ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON,
+        ),
+    });
   }
 
   get tabsNumber(): EncapsulatedElementType {
@@ -420,7 +430,7 @@ class Browser {
   }
 
   async tapDappInFavorites(): Promise<void> {
-    if (device.getPlatform() === 'ios') {
+    if (PlatformDetector.getPlatform() === 'ios') {
       await UnifiedGestures.tap(this.testDappURLInFavouritesTab, {
         elemDescription: 'Test dapp URL in favorites tab',
       });

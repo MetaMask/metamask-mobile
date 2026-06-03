@@ -427,9 +427,17 @@ export class AppiumGestureStrategy implements GestureStrategy {
    * @param text - The text to type
    * @returns A promise that resolves when the type text is complete
    */
-  async typeText(elem: EncapsulatedElementType, text: string): Promise<void> {
+  async typeText(
+    elem: EncapsulatedElementType,
+    text: string,
+    opts?: UnifiedGestureOptions,
+  ): Promise<void> {
     const el = await asPlaywrightElement(elem);
-    await el.fill(text);
+    if (opts?.clearFirst) {
+      await el.clear();
+    }
+    const textToType = opts?.hideKeyboard ? text + '\n' : text;
+    await el.fill(textToType);
   }
 
   /**
