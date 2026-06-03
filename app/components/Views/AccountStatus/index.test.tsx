@@ -3,7 +3,7 @@ import { fireEvent } from '@testing-library/react-native';
 import { StackActions } from '@react-navigation/native';
 import AccountStatus from '.';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { strings } from '../../../../locales/i18n';
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -58,8 +58,8 @@ jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding', () =>
   jest.fn(),
 );
 
-jest.mock('../../../core/Analytics/MetricsEventBuilder', () => ({
-  MetricsEventBuilder: {
+jest.mock('../../../util/analytics/AnalyticsEventBuilder', () => ({
+  AnalyticsEventBuilder: {
     createEventBuilder: jest.fn(() => ({
       addProperties: jest.fn().mockReturnThis(),
       build: jest.fn(),
@@ -74,10 +74,16 @@ const getMockEventBuilder = () => {
     addProperties: mockAddProperties,
     build: mockBuild,
   }));
-  (MetricsEventBuilder.createEventBuilder as jest.Mock).mockImplementation(
+  jest
+    .mocked(AnalyticsEventBuilder.createEventBuilder)
+    .mockImplementation(
+      mockCreateEventBuilder as unknown as typeof AnalyticsEventBuilder.createEventBuilder,
+    );
+  return {
+    mockBuild,
+    mockAddProperties,
     mockCreateEventBuilder,
-  );
-  return { mockBuild, mockAddProperties, mockCreateEventBuilder };
+  };
 };
 
 describe('AccountStatus', () => {
