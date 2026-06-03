@@ -61,59 +61,61 @@ const ExistingUserSheet: React.FC<ExistingUserSheetProps> = ({
       onClose={onClose}
       testID={testID ?? ExistingUserSheetSelectorsIDs.CONTAINER}
     >
-      <Box twClassName="px-6 pb-8 pt-6">
-        <Box twClassName="mb-2 items-end">
+      <Box twClassName="pb-8 pt-2">
+        <Box twClassName="mb-1 items-end pr-4">
           <ButtonIcon
             iconName={IconName.Close}
-            size={ButtonIconSizes.Sm}
+            size={ButtonIconSizes.Lg}
             onPress={() => bottomSheetRef.current?.onCloseBottomSheet()}
           />
         </Box>
-        <Box twClassName="mb-6">
+        <Box twClassName="mb-6 px-6">
           <NotifCard />
         </Box>
 
-        <Text
-          variant={TextVariant.HeadingMd}
-          twClassName="mb-3 text-center"
-          testID={ExistingUserSheetSelectorsIDs.TITLE}
-        >
-          {strings('notifications.push_onboarding.existing_user.title')}
-        </Text>
-
-        <Text
-          variant={TextVariant.BodyMd}
-          twClassName="mb-6 text-center text-alternative"
-          testID={ExistingUserSheetSelectorsIDs.BODY}
-        >
-          {strings('notifications.push_onboarding.existing_user.body')}
-        </Text>
-
-        <Box twClassName="gap-3">
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            onPress={handleConfirm}
-            twClassName="rounded-xl"
-            testID={ExistingUserSheetSelectorsIDs.BUTTON_CONFIRM}
+        <Box twClassName="px-4">
+          <Text
+            variant={TextVariant.HeadingLg}
+            twClassName="mb-3 text-center"
+            testID={ExistingUserSheetSelectorsIDs.TITLE}
           >
-            {strings(
-              'notifications.push_onboarding.existing_user.button_confirm',
-            )}
-          </Button>
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            onPress={handleNotNow}
-            twClassName="rounded-xl"
-            testID={ExistingUserSheetSelectorsIDs.BUTTON_NOT_NOW}
+            {strings('notifications.push_onboarding.existing_user.title')}
+          </Text>
+
+          <Text
+            variant={TextVariant.BodyMd}
+            twClassName="mb-6 text-center text-alternative"
+            testID={ExistingUserSheetSelectorsIDs.BODY}
           >
-            {strings(
-              'notifications.push_onboarding.existing_user.button_not_now',
-            )}
-          </Button>
+            {strings('notifications.push_onboarding.existing_user.body')}
+          </Text>
+
+          <Box twClassName="gap-3">
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              onPress={handleConfirm}
+              twClassName="rounded-xl"
+              testID={ExistingUserSheetSelectorsIDs.BUTTON_CONFIRM}
+            >
+              {strings(
+                'notifications.push_onboarding.existing_user.button_confirm',
+              )}
+            </Button>
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              onPress={handleNotNow}
+              twClassName="rounded-xl"
+              testID={ExistingUserSheetSelectorsIDs.BUTTON_NOT_NOW}
+            >
+              {strings(
+                'notifications.push_onboarding.existing_user.button_not_now',
+              )}
+            </Button>
+          </Box>
         </Box>
       </Box>
     </BottomSheet>

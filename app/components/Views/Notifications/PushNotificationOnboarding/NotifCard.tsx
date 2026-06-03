@@ -1,5 +1,6 @@
 import React from 'react';
-import { Image, View } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
+import MaskedView from '@react-native-masked-view/masked-view';
 import LinearGradient from 'react-native-linear-gradient';
 import {
   Theme,
@@ -21,6 +22,22 @@ export interface NotifCardProps {
   message?: string;
 }
 
+const styles = StyleSheet.create({
+  container: {
+    position: 'relative',
+  },
+  flex: {
+    flex: 1,
+  },
+  border: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    borderWidth: 4,
+  },
+});
+
 const NotifCard = ({
   timestamp = strings(
     'notifications.push_onboarding.new_user.preview_card_1.time',
@@ -36,46 +53,65 @@ const NotifCard = ({
   const theme = useTheme();
   const cardBackgroundClass =
     theme === Theme.Light ? 'bg-section' : 'bg-subsection';
+  // Extract the muted border colour from the design token so we can apply it
+  // to the absolutely-positioned border overlay without hardcoding a hex value.
+  const { borderColor: mutedBorderColor } = StyleSheet.flatten(
+    tw.style('border-muted'),
+  ) as { borderColor: string };
 
   return (
-    // Gradient border: LinearGradient provides the border colour that fades to
-    // transparent at the bottom; the inner View clips to the same radius.
-    <LinearGradient
-      colors={['rgba(255,255,255,0.15)', 'rgba(255,255,255,0)']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 0, y: 1 }}
-      style={tw.style('rounded-2xl p-px')}
-    >
-      <View style={tw.style('rounded-2xl bg-default p-3')}>
+    <Box style={styles.container}>
+      {/* Content — always fully opaque */}
+      <Box twClassName="rounded-[24px] bg-default p-5">
         <Box
-          twClassName={`flex-row items-start gap-3 rounded-[14px] border border-muted ${cardBackgroundClass} px-[14px] py-3`}
+          twClassName={`flex-row items-center gap-3 rounded-2xl ${cardBackgroundClass} px-3 py-3`}
         >
-          <Box twClassName="h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white">
+          <Box twClassName="h-9 w-9 shrink-0 self-center items-center justify-center rounded-xl bg-muted">
             <Image
               source={FoxImage}
-              style={tw.style('h-[22px] w-[22px]')}
+              style={tw.style('h-6 w-6')}
               resizeMode="contain"
             />
           </Box>
           <Box twClassName="min-w-0 flex-1">
-            <Box twClassName="mb-0.5 flex-row justify-end">
-              <Text variant={TextVariant.BodyXs} twClassName="text-alternative">
+            <Box twClassName="mb-0.5 flex-row items-center justify-between">
+              <Text variant={TextVariant.BodyXs} fontWeight={FontWeight.Bold}>
+                {title}
+              </Text>
+              <Text
+                variant={TextVariant.BodyXs}
+                twClassName="ml-2 shrink-0 text-alternative"
+              >
                 {timestamp}
               </Text>
             </Box>
-            <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Bold}>
-              {title}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              twClassName="mt-0.5 text-default"
-            >
+            <Text variant={TextVariant.BodyXs} twClassName="text-alternative">
               {message}
             </Text>
           </Box>
         </Box>
-      </View>
-    </LinearGradient>
+      </Box>
+
+      {/* Border overlay — MaskedView fades the border top-to-transparent */}
+      <MaskedView
+        style={StyleSheet.absoluteFillObject}
+        maskElement={
+          <LinearGradient
+            colors={['black', 'black', 'transparent']}
+            locations={[0, 0.2, 0.75]}
+            style={styles.flex}
+          />
+        }
+      >
+        <View
+          style={[
+            StyleSheet.absoluteFillObject,
+            styles.border,
+            { borderColor: mutedBorderColor },
+          ]}
+        />
+      </MaskedView>
+    </Box>
   );
 };
 

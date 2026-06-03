@@ -61,54 +61,56 @@ const NewUserSheet: React.FC<NewUserSheetProps> = ({
       onClose={onClose}
       testID={testID ?? NewUserSheetSelectorsIDs.CONTAINER}
     >
-      <Box twClassName="px-6 pb-8 pt-6">
-        <Box twClassName="mb-2 items-end">
+      <Box twClassName="pb-8 pt-2">
+        <Box twClassName="mb-1 items-end pr-4">
           <ButtonIcon
             iconName={IconName.Close}
-            size={ButtonIconSizes.Sm}
+            size={ButtonIconSizes.Lg}
             onPress={() => bottomSheetRef.current?.onCloseBottomSheet()}
           />
         </Box>
-        <Box twClassName="mb-6">
+        <Box twClassName="mb-6 px-6">
           <NotifCard />
         </Box>
 
-        <Text
-          variant={TextVariant.HeadingMd}
-          twClassName="mb-3 text-center"
-          testID={NewUserSheetSelectorsIDs.TITLE}
-        >
-          {strings('notifications.push_onboarding.new_user.title')}
-        </Text>
-
-        <Text
-          variant={TextVariant.BodyMd}
-          twClassName="mb-6 text-center text-alternative"
-          testID={NewUserSheetSelectorsIDs.BODY}
-        >
-          {strings('notifications.push_onboarding.new_user.body')}
-        </Text>
-
-        <Box twClassName="gap-3">
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            onPress={handleYes}
-            twClassName="rounded-xl"
-            testID={NewUserSheetSelectorsIDs.BUTTON_YES}
+        <Box twClassName="px-4">
+          <Text
+            variant={TextVariant.HeadingLg}
+            twClassName="mb-3 text-center"
+            testID={NewUserSheetSelectorsIDs.TITLE}
           >
-            {strings('notifications.push_onboarding.new_user.button_yes')}
-          </Button>
-          <Button
-            variant={ButtonVariant.Tertiary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            onPress={handleNotNow}
-            testID={NewUserSheetSelectorsIDs.BUTTON_NOT_NOW}
+            {strings('notifications.push_onboarding.new_user.title')}
+          </Text>
+
+          <Text
+            variant={TextVariant.BodyMd}
+            twClassName="mb-6 text-center text-alternative"
+            testID={NewUserSheetSelectorsIDs.BODY}
           >
-            {strings('notifications.push_onboarding.new_user.button_not_now')}
-          </Button>
+            {strings('notifications.push_onboarding.new_user.body')}
+          </Text>
+
+          <Box twClassName="gap-3">
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              onPress={handleYes}
+              twClassName="rounded-xl"
+              testID={NewUserSheetSelectorsIDs.BUTTON_YES}
+            >
+              {strings('notifications.push_onboarding.new_user.button_yes')}
+            </Button>
+            <Button
+              variant={ButtonVariant.Tertiary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              onPress={handleNotNow}
+              testID={NewUserSheetSelectorsIDs.BUTTON_NOT_NOW}
+            >
+              {strings('notifications.push_onboarding.new_user.button_not_now')}
+            </Button>
+          </Box>
         </Box>
       </Box>
     </BottomSheet>
