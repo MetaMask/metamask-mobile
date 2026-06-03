@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyAddMoneySheet from './MoneyAddMoneySheet';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
@@ -259,7 +259,7 @@ describe('MoneyAddMoneySheet', () => {
     );
 
     // Flush the rejected promise so the .catch handler runs.
-    await Promise.resolve();
+    await waitFor(() => expect(Logger.error).toHaveBeenCalled());
 
     expect(Logger.error).toHaveBeenCalledWith(
       depositError,
