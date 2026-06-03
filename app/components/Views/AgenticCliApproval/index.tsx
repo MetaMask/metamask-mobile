@@ -103,12 +103,7 @@ const AgenticCliApproval: React.FC = () => {
   const [retryKey, setRetryKey] = useState(0);
 
   const requestType = operationType;
-  const title =
-    requestType === 'login'
-      ? 'Sign in'
-      : requestType === 'tx_approve' || requestType === 'transaction_request'
-        ? 'Approve transaction'
-        : 'Review request';
+  const title = strings('agentic_cli_approval.title');
 
   // Resolve the dashboard token once on mount.
   useEffect(() => {

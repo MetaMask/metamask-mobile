@@ -22,7 +22,6 @@ import { getBuildType } from '../../../../core/OAuthService/OAuthLoginHandlers/c
  * AuthenticationController can issue a bearer.
  */
 export interface AgenticCliApprovalDeeplinkParams {
-  intent: Intent;
   approvalPageLink?: string;
   projectId?: string;
   approvalId?: string;
@@ -34,7 +33,7 @@ export interface AgenticCliApprovalDeeplinkParams {
 const AGENTIC_CLI_APPROVAL_HOST = {
   dev: 'https://test-dashboard.web3auth.io',
   uat: 'https://dev-dashboard.web3auth.io',
-  prod: 'https://dashboard.web3auth.io',
+  prod: 'https://developer.metamask.io',
 };
 
 const getApprovalHost = (): string => {
@@ -58,14 +57,6 @@ const getApprovalHost = (): string => {
 export const getDefaultApprovalPageLink = (): string =>
   `${getApprovalHost()}/agentic/login`;
 
-/** @deprecated Use {@link getDefaultApprovalPageLink} so the host matches the current build type. */
-export const DEFAULT_APPROVAL_PAGE_LINK = getDefaultApprovalPageLink();
-
-const TX_APPROVE_OPERATION_TYPES = new Set([
-  'transaction_request',
-  'tx_approve',
-]);
-
 const getQueryParam = (
   searchParams: URLSearchParams,
   key: string,
@@ -73,11 +64,6 @@ const getQueryParam = (
   const value = searchParams.get(key);
   return value && value.trim() !== '' ? value : undefined;
 };
-
-const resolveIntent = (operationType?: string): Intent =>
-  operationType && TX_APPROVE_OPERATION_TYPES.has(operationType)
-    ? 'tx_approve'
-    : 'login';
 
 /**
  * Parse agentic-cli deeplink query parameters into typed handler params.
@@ -97,7 +83,6 @@ export const parseAgenticCliApprovalParams = (
   );
   const operationType = getQueryParam(searchParams, 'operationType');
   return {
-    intent: resolveIntent(operationType),
     approvalPageLink: getQueryParam(searchParams, 'approvalPageLink'),
     projectId: getQueryParam(searchParams, 'projectId'),
     approvalId: getQueryParam(searchParams, 'approvalId'),
@@ -135,7 +120,7 @@ export const handleAgenticCliApproval = (params: {
   if (!projectId || !approvalId) {
     Logger.error(
       new Error(
-        'handleAgenticCliApproval: missing projectId or notification/request id param',
+        'handleAgenticCliApproval: missing projectId or approvalId param',
       ),
     );
     return;
