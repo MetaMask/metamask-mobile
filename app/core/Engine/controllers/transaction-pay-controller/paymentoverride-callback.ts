@@ -2,6 +2,7 @@ import {
   CHAIN_IDS,
   TransactionMeta,
   TransactionStatus,
+  type AuthorizationList,
   type BatchTransactionParams,
 } from '@metamask/transaction-controller';
 import {
@@ -105,7 +106,11 @@ async function getMoneyAccountDepositPaymentOverrideData<
 >(
   messenger: T,
   amountHuman: string,
-): Promise<{ calls: BatchTransactionParams[]; recipient?: Hex }> {
+): Promise<{
+  calls: BatchTransactionParams[];
+  recipient?: Hex;
+  authorizationList?: AuthorizationList;
+}> {
   const state = ReduxService.store.getState() as RootState;
   const primaryMoneyAccount = selectPrimaryMoneyAccount(state);
   const vaultConfig = selectMoneyAccountVaultConfig(state);

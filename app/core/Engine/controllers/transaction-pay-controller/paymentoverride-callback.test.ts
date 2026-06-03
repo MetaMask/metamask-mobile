@@ -1,6 +1,7 @@
 import {
   CHAIN_IDS,
   TransactionStatus,
+  type AuthorizationList,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import {
@@ -162,7 +163,7 @@ describe('getPaymentOverrideData', () => {
       MOCK_DEPOSIT_BATCH as never,
     );
     getDelegationTransactionMock.mockResolvedValue({
-      authorizationList: MOCK_AUTHORIZATION_LIST,
+      authorizationList: MOCK_AUTHORIZATION_LIST as AuthorizationList,
       data: DELEGATION_DATA as Hex,
       to: DELEGATION_MANAGER as Hex,
       value: '0x0' as Hex,
