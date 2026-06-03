@@ -8372,11 +8372,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@npm:^0.26.0":
-  version: 0.26.0
-  resolution: "@metamask/design-system-react-native@npm:0.26.0"
+"@metamask/design-system-react-native@npm:^0.27.0":
+  version: 0.27.0
+  resolution: "@metamask/design-system-react-native@npm:0.27.0"
   dependencies:
-    "@metamask/design-system-shared": "npm:^0.19.0"
+    "@metamask/design-system-shared": "npm:^0.20.0"
     fast-text-encoding: "npm:^1.0.6"
     react-native-jazzicon: "npm:^0.1.2"
   peerDependencies:
@@ -8389,18 +8389,18 @@ __metadata:
     react-native-gesture-handler: ">=2.25.0"
     react-native-reanimated: ">=3.17.0"
     react-native-safe-area-context: ">=5.0.0"
-  checksum: 10/6decfe0d4414c1ee325a87eae3444e7e29c6247da8d10969d56ffeb1bad4701cd9c6f955bb75d6a747bc9976bf8bf20f247240384e471360fac1b2de8b3bd244
+  checksum: 10/fc74755b3448bb0e6282c00f83293be3281cd92f62d89e1cbc1ecfca1a92c00f93bdb930c58d738e33989217f816a87ce6812889433d99e4a4d421b19e3275b6
   languageName: node
   linkType: hard
 
-"@metamask/design-system-shared@npm:^0.19.0":
-  version: 0.19.0
-  resolution: "@metamask/design-system-shared@npm:0.19.0"
+"@metamask/design-system-shared@npm:^0.20.0":
+  version: 0.20.0
+  resolution: "@metamask/design-system-shared@npm:0.20.0"
   dependencies:
     "@metamask/utils": "npm:^11.11.0"
   peerDependencies:
     react: ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10/72b178fb72250db0f39b3d83686cefb2ec7ac46b75acb8ca5c903f84175f329897a4a728d739b0cba198b205efd11614fc69eea4a924023712cfa1c49b7c96dc
+  checksum: 10/1c66a9b98f014ca631dcb6b579dbd1b5c83d759ac05e0afe8f522a0c11d37d77ca87a6b8d3cc40fbbc9d6bbf731f24b10e2fc4a2476aef82cfcbb4e102401397
   languageName: node
   linkType: hard
 
@@ -35359,7 +35359,7 @@ __metadata:
     "@metamask/core-backend": "npm:^6.3.0"
     "@metamask/delegation-controller": "npm:^2.0.2"
     "@metamask/delegation-deployments": "npm:^1.0.0"
-    "@metamask/design-system-react-native": "npm:^0.26.0"
+    "@metamask/design-system-react-native": "npm:^0.27.0"
     "@metamask/design-system-twrnc-preset": "npm:^0.4.2"
     "@metamask/design-tokens": "npm:^8.4.0"
     "@metamask/earn-controller": "npm:^12.1.0"
