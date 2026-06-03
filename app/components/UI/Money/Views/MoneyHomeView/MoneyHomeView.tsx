@@ -305,10 +305,15 @@ const MoneyHomeView = () => {
   }, [navigation, trackTooltipClicked]);
 
   const handleEarnCryptoInfoPress = useCallback(() => {
+    trackTooltipClicked({
+      tooltip_name: MONEY_TOOLTIP_NAMES.EARN_ON_YOUR_CRYPTO,
+      tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
+    });
+
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.EARN_CRYPTO_INFO_SHEET,
     });
-  }, [navigation]);
+  }, [navigation, trackTooltipClicked]);
 
   const handleMusdRowPress = useCallback(() => {
     NavigationService.navigation.navigate('Asset', {

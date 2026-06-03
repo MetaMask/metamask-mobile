@@ -21,6 +21,7 @@ export enum BOTTOM_SHEET_NAMES {
   CARD_LINK_SHEET = 'card_link_sheet',
   MONEY_APY_INFO_SHEET = 'money_apy_info_sheet',
   MONEY_EARNINGS_INFO_SHEET = 'money_earnings_info_sheet',
+  MONEY_EARN_CRYPTO_INFO_SHEET = 'money_earn_crypto_info_sheet',
 }
 
 export enum COMPONENT_NAMES {
@@ -133,6 +134,7 @@ export type MoneyOnboardingEventProperties =
 
 export enum MONEY_TOOLTIP_NAMES {
   ESTIMATED_EARNINGS = 'estimated_earnings',
+  EARN_ON_YOUR_CRYPTO = 'earn_on_your_crypto',
   APY = 'apy',
 }
 
