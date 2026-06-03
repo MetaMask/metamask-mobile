@@ -11,7 +11,6 @@ import StepperCard, {
 } from '../../../../../component-library/components-temp/StepperCard';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
-import Logger from '../../../../../util/Logger';
 
 // REMINDER: Must be updated when the number of steps is changed.
 export const MONEY_ONBOARDING_TOTAL_STEPS = 2;
@@ -32,10 +31,8 @@ const MoneyOnboardingCard = () => {
   const { startLinkFlow, isCardAuthenticated, isCardLinkedToMoneyAccount } =
     useMoneyAccountCardLinkage();
 
-  const handleRedirectToCryptoDeposit = useCallback(() => {
-    initiateDeposit().catch((error: Error) => {
-      Logger.error(error, '[Money Account] initiateDeposit failed');
-    });
+  const handleRedirectToCryptoDeposit = useCallback(async () => {
+    await initiateDeposit().catch(() => undefined);
   }, [initiateDeposit]);
 
   const handleCardCtaPress = useCallback(() => {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import { TransactionType, CHAIN_IDS } from '@metamask/transaction-controller';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyAddMoneySheet from './MoneyAddMoneySheet';
@@ -16,7 +16,6 @@ import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
 } from '../../../Earn/constants/musd';
-import Logger from '../../../../../util/Logger';
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockNavigate = jest.fn();
@@ -41,12 +40,6 @@ jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
 jest.mock('../../hooks/useMoneyAccount', () => ({
   useMoneyAccountDeposit: jest.fn(),
 }));
-
-jest.mock('../../../../../util/Logger', () => ({
-  __esModule: true,
-  default: { error: jest.fn(), log: jest.fn() },
-}));
-
 
 jest.mock(
   '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig',
@@ -330,24 +323,6 @@ describe('MoneyAddMoneySheet', () => {
     expect(mockInitiateDeposit).toHaveBeenCalledWith();
   });
 
-  it('logs via Logger.error when initiateDeposit rejects', async () => {
-    const depositError = new Error('mUSD not deployed on chain 0xa4b1');
-    mockInitiateDeposit.mockRejectedValueOnce(depositError);
-
-    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
-    fireEvent.press(
-      getByTestId(MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION),
-    );
-
-    // Flush the rejected promise so the .catch handler runs.
-    await waitFor(() => expect(Logger.error).toHaveBeenCalled());
-
-    expect(Logger.error).toHaveBeenCalledWith(
-      depositError,
-      '[Money Account] initiateDeposit failed',
-    );
-  });
-
   it('hides the Deposit funds option when the ramp routing decision is UNSUPPORTED', () => {
     (getRampRoutingDecision as jest.Mock).mockReturnValue(
       UnifiedRampRoutingType.UNSUPPORTED,
@@ -417,6 +392,7 @@ describe('MoneyAddMoneySheet', () => {
         [CHAIN_IDS.LINEA_MAINNET]: '1000.00',
       },
     });
+
     const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
 
     fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION));

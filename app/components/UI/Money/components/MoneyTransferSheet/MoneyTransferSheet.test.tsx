@@ -1,11 +1,10 @@
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyTransferSheet from './MoneyTransferSheet';
 import { MoneyTransferSheetTestIds } from './MoneyTransferSheet.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
-import Logger from '../../../../../util/Logger';
 
 const mockInitiateWithdrawal = jest.fn().mockResolvedValue(undefined);
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
@@ -15,12 +14,6 @@ jest.mock('../../hooks/useMoneyAccount', () => ({
   useMoneyAccountWithdrawal: jest.fn(),
   useMoneyAccountDeposit: jest.fn(),
 }));
-
-jest.mock('../../../../../util/Logger', () => ({
-  __esModule: true,
-  default: { error: jest.fn(), log: jest.fn() },
-}));
-
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -114,23 +107,6 @@ describe('MoneyTransferSheet', () => {
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     expect(mockInitiateWithdrawal).toHaveBeenCalledTimes(1);
     expect(global.alert).not.toHaveBeenCalled();
-  });
-
-  it('logs via Logger.error when initiateWithdrawal rejects', async () => {
-    const withdrawalError = new Error('withdrawal failed');
-    mockInitiateWithdrawal.mockRejectedValueOnce(withdrawalError);
-
-    const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
-    fireEvent.press(
-      getByTestId(MoneyTransferSheetTestIds.BETWEEN_ACCOUNTS_OPTION),
-    );
-
-    await waitFor(() => expect(Logger.error).toHaveBeenCalled());
-
-    expect(Logger.error).toHaveBeenCalledWith(
-      withdrawalError,
-      '[MoneyTransferSheet] Withdrawal initiation failed',
-    );
   });
 
   it('fires an alert when "Perps account" is pressed', () => {

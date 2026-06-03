@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import BigNumber from 'bignumber.js';
 import MoneyOnboardingCard, {
   MONEY_ONBOARDING_TOTAL_STEPS,
@@ -10,7 +10,6 @@ import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountC
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
-import Logger from '../../../../../util/Logger';
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const tw = (..._args: unknown[]) => ({});
@@ -25,11 +24,6 @@ jest.mock('../../hooks/useOnboardingStep', () => ({
 
 jest.mock('../../hooks/useMoneyAccount', () => ({
   useMoneyAccountDeposit: jest.fn(),
-}));
-
-jest.mock('../../../../../util/Logger', () => ({
-  __esModule: true,
-  default: { error: jest.fn(), log: jest.fn() },
 }));
 
 jest.mock('../../hooks/useMoneyAccountBalance', () => ({
@@ -184,24 +178,6 @@ describe('MoneyOnboardingCard', () => {
 
       expect(mockInitiateDeposit).toHaveBeenCalledTimes(1);
     });
-
-    it('logs via Logger.error when initiateDeposit rejects', async () => {
-      const depositError = new Error('mUSD not deployed on chain 0xa4b1');
-      mockInitiateDeposit.mockRejectedValueOnce(depositError);
-      setupDefaultMocks({ currentStep: 0 });
-
-      const { getByTestId } = render(<MoneyOnboardingCard />);
-      fireEvent.press(getByTestId('money-onboarding-card-cta-button'));
-
-      // Flush the rejected promise so the .catch handler runs.
-      await waitFor(() => expect(Logger.error).toHaveBeenCalled());
-
-      expect(Logger.error).toHaveBeenCalledWith(
-        depositError,
-        '[Money Account] initiateDeposit failed',
-      );
-    });
-
   });
 
   describe('step 2 — no card yet', () => {

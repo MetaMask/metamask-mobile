@@ -29,7 +29,6 @@ import { Hex } from '@metamask/utils';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
-import Logger from '../../../../../util/Logger';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import {
   getRampRoutingDecision,
@@ -80,9 +79,7 @@ const MoneyAddMoneySheet: React.FC = () => {
 
   const handleConvertCrypto = useCallback(() => {
     closeAndNavigate(() => {
-      initiateDeposit().catch((error: Error) => {
-        Logger.error(error, '[Money Account] initiateDeposit failed');
-      });
+      initiateDeposit().catch(() => undefined);
     });
   }, [closeAndNavigate, initiateDeposit]);
 
