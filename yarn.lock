@@ -10485,7 +10485,7 @@ __metadata:
 
 "@metamask/transaction-pay-controller@patch:@metamask/transaction-pay-controller@npm%3A23.1.0#~/.yarn/patches/@metamask-transaction-pay-controller-npm-23.1.0-6c5cc44747.patch":
   version: 23.1.0
-  resolution: "@metamask/transaction-pay-controller@patch:@metamask/transaction-pay-controller@npm%3A23.1.0#~/.yarn/patches/@metamask-transaction-pay-controller-npm-23.1.0-6c5cc44747.patch::version=23.1.0&hash=1b7048"
+  resolution: "@metamask/transaction-pay-controller@patch:@metamask/transaction-pay-controller@npm%3A23.1.0#~/.yarn/patches/@metamask-transaction-pay-controller-npm-23.1.0-6c5cc44747.patch::version=23.1.0&hash=335d6c"
   dependencies:
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
@@ -10508,7 +10508,7 @@ __metadata:
     bn.js: "npm:^5.2.1"
     immer: "npm:^9.0.6"
     lodash: "npm:^4.17.21"
-  checksum: 10/07ed0025b531de196fd72f4bee1806ab4bf55c9547c1e04a14b497e2c6bee1e38243d5bb3f40c7d27fee8cffc94a754d7dbeaa21a267f08eda4530cffe0acb8a
+  checksum: 10/3c83a1fa4b23a8c3f3744b87983597c6c82a29090f291916824ba08f5c2c2fa26b3ed4c2c17197eaceada92e2d088bd17ccc27143b78b0c8d53e6cde3a0d0e03
   languageName: node
   linkType: hard
 
