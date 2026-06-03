@@ -135,12 +135,13 @@ echo "Vault state: hasVault=$HAS_VAULT, isUnlocked=$IS_UNLOCKED"
 if [ "$HAS_VAULT" = "true" ]; then
   # Do NOT unlock here with a bare KeyringController.submitPassword(): that
   # bypasses the real auth flow (multichain init + dispatchLogin/password state)
-  # and can leave Redux/auth state stale. applyWalletFixture unlocks via
-  # Authentication.unlockWallet() when the vault is locked.
+  # and can leave Redux/auth state stale. applyWalletFixture tries the real
+  # Authentication.unlockWallet() path first, then recovers interrupted fixture
+  # state with a keyring fallback inside AgenticService.
   if [ "$IS_UNLOCKED" = "true" ]; then
     echo "Vault already unlocked."
   else
-    echo "Vault locked — applyWalletFixture will unlock via Authentication.unlockWallet() (real post-login flow)."
+    echo "Vault locked — applyWalletFixture will unlock via auth flow with fixture recovery fallback."
   fi
 
   echo "Applying fixture accounts/names to existing vault..."

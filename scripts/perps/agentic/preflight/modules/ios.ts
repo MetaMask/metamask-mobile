@@ -6,7 +6,6 @@ import { appendFileSync, existsSync, readFileSync, statSync, writeFileSync } fro
 import { join } from 'path';
 import { BuildCache, type CacheLock, reportDrift } from './cache';
 import { podsCleanStale, podsSaveMarker } from './deps';
-import { restoreMainNoise } from './git';
 import { initStageLog, type Logger } from './log';
 import { holderCmd, isMetroLikeProcess, killTree, listenHolderPid, metroAlive } from './proc';
 import type { Ctx } from './types';

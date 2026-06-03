@@ -61,7 +61,9 @@ async function main(): Promise<void> {
       writeFileSync(rootTsconfigPath, rootTsconfigBefore);
       logger.ok('Restored root tsconfig.json (preflight setup noise)');
     }
-    restoreMainNoise(ctx.root, ['ios/Podfile.lock'], logger);
+    if (!ctx.checkOnly) {
+      restoreMainNoise(ctx.root, ['ios/Podfile.lock'], logger);
+    }
   };
   const onSignal = (sig: NodeJS.Signals): void => {
     restoreNoise();
