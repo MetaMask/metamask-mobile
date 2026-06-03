@@ -2268,8 +2268,7 @@
         "group_i": "Grup I",
         "group_j": "Grup J",
         "group_k": "Grup K",
-        "group_l": "Grup L",
-        "third_place_match": "Pertandingan Perebutan Posisi Ketiga"
+        "group_l": "Grup L"
       }
     },
     "prediction_markets": "Pasar prediksi",
@@ -8348,8 +8347,6 @@
     "report_submitted": "Laporan kesalahan telah dikirimkan."
   },
   "pay_with_modal": {
-    "title": "Pilih metode pembayaran",
-    "title_receive": "Pilih terima token",
     "no_gas": "Tidak ada saldo asli untuk gas",
     "not_supported": "Tidak didukung",
     "crypto": "Kripto"

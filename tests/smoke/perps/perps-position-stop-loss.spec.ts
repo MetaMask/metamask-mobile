@@ -21,7 +21,6 @@ import {
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 const logger = createLogger({
   name: 'PerpsPositionStopLossSpec',
@@ -56,9 +55,7 @@ describe(SmokePerps('Perps Position Stop Loss'), () => {
           .build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(mockServer, {
-            ...remoteFeatureFlagHomepageSectionsV1Enabled(),
-          });
+          await setupRemoteFeatureFlagsMock(mockServer, {});
           await PERPS_ARBITRUM_MOCKS(mockServer);
           await mockPerpsGeolocation(
             mockServer,

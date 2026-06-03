@@ -2268,8 +2268,7 @@
         "group_i": "I조",
         "group_j": "J조",
         "group_k": "K조",
-        "group_l": "L조",
-        "third_place_match": "3위 결정전"
+        "group_l": "L조"
       }
     },
     "prediction_markets": "예측 시장",
@@ -8348,8 +8347,6 @@
     "report_submitted": "오류 보고서가 제출되었습니다."
   },
   "pay_with_modal": {
-    "title": "결제 방법 선택",
-    "title_receive": "토큰 받기 선택",
     "no_gas": "가스비로 사용할 네이티브 토큰 잔액 없음",
     "not_supported": "지원되지 않음",
     "crypto": "암호화폐"

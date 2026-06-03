@@ -2268,8 +2268,7 @@
         "group_i": "Grupo I",
         "group_j": "Grupo J",
         "group_k": "Grupo K",
-        "group_l": "Grupo L",
-        "third_place_match": "Laban sa Ikatlong Pwesto"
+        "group_l": "Grupo L"
       }
     },
     "prediction_markets": "Mga market ng prediksyon",
@@ -8348,8 +8347,6 @@
     "report_submitted": "Naipadala na ang ulat sa error."
   },
   "pay_with_modal": {
-    "title": "Pumili ng paraan ng pagbabayad",
-    "title_receive": "Piliin ang tatanggaping token",
     "no_gas": "Walang native na balanse para sa gas",
     "not_supported": "Hindi suportado",
     "crypto": "Crypto"

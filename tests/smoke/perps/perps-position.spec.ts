@@ -16,7 +16,6 @@ import PerpsView from '../../page-objects/Perps/PerpsView';
 import { createLogger, LogLevel } from '../../framework';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 // E2E environment setup - mocks auto-configure via isE2E flag
 
@@ -53,9 +52,7 @@ describe(SmokePerps('Perps Position'), () => {
           .build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(mockServer, {
-            ...remoteFeatureFlagHomepageSectionsV1Enabled(),
-          });
+          await setupRemoteFeatureFlagsMock(mockServer, {});
           await PERPS_ARBITRUM_MOCKS(mockServer);
           await mockPerpsGeolocation(
             mockServer,

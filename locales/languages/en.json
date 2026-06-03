@@ -2313,8 +2313,8 @@
         "group_stage": "Group Stage",
         "round_of_32": "Round of 32",
         "round_of_16": "Round of 16",
-        "quarterfinals": "Quarterfinals",
-        "semifinals": "Semifinals",
+        "quarterfinals": "Quarter-finals",
+        "semifinals": "Semi-finals",
         "third_place": "Third Place",
         "final": "Final",
         "group_a": "Group A",
@@ -2328,8 +2328,7 @@
         "group_i": "Group I",
         "group_j": "Group J",
         "group_k": "Group K",
-        "group_l": "Group L",
-        "third_place_match": "Third Place Match"
+        "group_l": "Group L"
       }
     },
     "prediction_markets": "Prediction markets",
@@ -2425,6 +2424,9 @@
       "points": "Points",
       "assists": "Assists",
       "rebounds": "Rebounds",
+      "basketball_total_points": "Totals",
+      "basketball_odd_even": "Odd/Even Score",
+      "basketball_team_to_score_first": "Team to Score First",
       "goalscorers": "Goalscorers",
       "exact_score": "Exact Score",
       "halftime_result": "Halftime Result",
@@ -2439,6 +2441,7 @@
       "soccer_halftime_result": "Halftime Result",
       "total_corners": "Corners",
       "tennis_set_totals": "Total Sets",
+      "tennis_set_handicap": "Set Handicap",
       "tennis_match_totals": "Total Games",
       "tennis_first_set_totals": "1st Set Total Games",
       "tennis_first_set_winner": "1st Set Winner",
@@ -6920,6 +6923,7 @@
       "deposit_funds": "Deposit funds",
       "deposit_funds_description": "From debit card or bank",
       "move_musd": "Add your {{amount}} mUSD",
+      "add_musd": "Add mUSD",
       "move_musd_description": "From your balance",
       "receive_external": "Receive from external wallet",
       "coming_soon": "Coming soon"
@@ -7288,7 +7292,7 @@
     "confirm": "Confirm",
     "pay_with_bottom_sheet": {
       "title": "Pay with",
-      "withdraw_title": "Withdraw as",
+      "receive_title": "Receive",
       "last_used": "Last used",
       "bank_and_card": "Bank and card",
       "crypto": "Crypto",
@@ -7300,7 +7304,7 @@
       "available_balance": "{{balance}} available",
       "other_assets": "Other assets",
       "other_assets_description": "Select from your tokens",
-      "other_assets_withdraw_description": "Select the token you want to withdraw",
+      "other_assets_receive_description": "Select the token you want to receive",
       "money_account": "Money account"
     },
     "staking_footer": {
@@ -8537,8 +8541,7 @@
     "report_submitted": "Error report has been submitted."
   },
   "pay_with_modal": {
-    "title": "Select payment method",
-    "title_receive": "Select receive token",
+    "modal_title": "Select a token",
     "no_gas": "No native balance for gas",
     "not_supported": "Not supported",
     "crypto": "Crypto"
@@ -9196,6 +9199,7 @@
       "predict_withdraw": "Withdrawal",
       "money_account_deposit": "Deposit to Money Account",
       "money_account_withdraw": "Transfer from Money Account",
+      "money_account_sent": "Sent {{symbol}}",
       "money_account_received": "Received",
       "default": "Transaction details"
     },
@@ -9207,11 +9211,16 @@
       "receive_token": "Receive token",
       "retry_button": "Try again",
       "total": "Total",
+      "total_amount": "Total amount",
       "account": "Account",
       "received_total": "Received total",
       "from": "From",
+      "to": "To",
+      "network": "Network",
+      "you_sent": "You sent",
       "token_received": "Token received"
     },
+    "view_on_block_explorer": "View on block explorer",
     "summary_title": {
       "bridge_approval": "Approve {{approveSymbol}}",
       "bridge_approval_loading": "Approve",

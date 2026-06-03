@@ -2268,8 +2268,7 @@
         "group_i": "Bảng I",
         "group_j": "Bảng J",
         "group_k": "Bảng K",
-        "group_l": "Bảng L",
-        "third_place_match": "Trận tranh hạng ba"
+        "group_l": "Bảng L"
       }
     },
     "prediction_markets": "Thị trường dự đoán",
@@ -8348,8 +8347,6 @@
     "report_submitted": "Báo cáo lỗi đã được gửi."
   },
   "pay_with_modal": {
-    "title": "Chọn phương thức thanh toán",
-    "title_receive": "Chọn token nhận được",
     "no_gas": "Không có số dư token gốc để trả phí gas",
     "not_supported": "Không được hỗ trợ",
     "crypto": "Crypto"
