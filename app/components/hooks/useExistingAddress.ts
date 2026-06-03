@@ -17,11 +17,11 @@ const useExistingAddress = (address?: string): AccountInfo | undefined => {
 
   const filteredAddressBook = useMemo(
     () =>
+      // Flatten the per-network address book into a single map. Mutating one
+      // accumulator with Object.assign is O(n); spreading `...acc` on every
+      // iteration was O(n^2) in the total number of entries.
       Object.values(addressBook).reduce(
-        (acc, networkAddressBook) => ({
-          ...acc,
-          ...networkAddressBook,
-        }),
+        (acc, networkAddressBook) => Object.assign(acc, networkAddressBook),
         {},
       ),
     [addressBook],
