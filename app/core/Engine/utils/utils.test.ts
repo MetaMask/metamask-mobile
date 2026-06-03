@@ -1,13 +1,13 @@
 import {
-  AccountsController,
-  AccountsControllerMessenger,
-} from '@metamask/accounts-controller';
+  NetworkController,
+  NetworkControllerMessenger,
+} from '@metamask/network-controller';
 import { ApprovalController } from '@metamask/approval-controller';
 import { CodefiTokenPricesServiceV2 } from '@metamask/assets-controllers';
 import { merge } from 'lodash';
 
 import { ExtendedMessenger } from '../../ExtendedMessenger';
-import { accountsControllerInit } from '../controllers/accounts-controller';
+import { networkControllerInit } from '../controllers/network-controller-init';
 import { ApprovalControllerInit } from '../controllers/approval-controller';
 import { createMockMessengerClientInitFunction } from './test-utils';
 import { getMessengerClientOrThrow, initMessengerClients } from './utils';
@@ -22,13 +22,13 @@ import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { Wallet } from '@metamask/wallet';
 
-jest.mock('../controllers/accounts-controller');
+jest.mock('../controllers/network-controller-init');
 jest.mock('../controllers/approval-controller');
 jest.mock('../controllers/permission-controller-init');
 jest.mock('../controllers/delegation/delegation-controller-init');
 
 describe('initMessengerClients', () => {
-  const mockAccountsControllerInit = jest.mocked(accountsControllerInit);
+  const mockNetworkControllerInit = jest.mocked(networkControllerInit);
   const mockApprovalControllerInit = jest.mocked(ApprovalControllerInit);
   const mockPermissionControllerInit = jest.mocked(permissionControllerInit);
 
@@ -39,7 +39,7 @@ describe('initMessengerClients', () => {
       {
         wallet: { getInstance: jest.fn() } as unknown as Wallet,
         initFunctions: {
-          AccountsController: mockAccountsControllerInit,
+          NetworkController: mockNetworkControllerInit,
           ApprovalController: mockApprovalControllerInit,
           PermissionController: mockPermissionControllerInit,
         },
@@ -66,8 +66,8 @@ describe('initMessengerClients', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockAccountsControllerInit.mockReturnValue({
-      controller: {} as unknown as AccountsController,
+    mockNetworkControllerInit.mockReturnValue({
+      controller: {} as unknown as NetworkController,
     });
     mockApprovalControllerInit.mockReturnValue({
       controller: {} as unknown as ApprovalController,
@@ -84,7 +84,7 @@ describe('initMessengerClients', () => {
     const request = buildModularizedControllerRequest();
     const controllers = initMessengerClients(request);
 
-    expect(controllers.messengerClientsByName.AccountsController).toBeDefined();
+    expect(controllers.messengerClientsByName.NetworkController).toBeDefined();
     expect(controllers.messengerClientsByName.ApprovalController).toBeDefined();
     expect(
       controllers.messengerClientsByName.PermissionController,
@@ -104,15 +104,15 @@ describe('initMessengerClients', () => {
   it('throws when controller is not found', async () => {
     const request = buildModularizedControllerRequest({
       initFunctions: {
-        AccountsController: createMockMessengerClientInitFunction<
-          AccountsController,
-          AccountsControllerMessenger
-        >('NetworkController'),
+        NetworkController: createMockMessengerClientInitFunction<
+          NetworkController,
+          NetworkControllerMessenger
+        >('PreferencesController'),
       },
     });
 
     expect(() => initMessengerClients(request)).toThrow(
-      'Messenger client requested before it was initialized: NetworkController',
+      'Messenger client requested before it was initialized: PreferencesController',
     );
   });
 });
