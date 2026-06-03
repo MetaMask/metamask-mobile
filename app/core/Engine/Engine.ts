@@ -33,10 +33,6 @@ import {
   SubjectMetadataController,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
-import {
-  QrKeyring,
-  QrKeyringDeferredPromiseBridge,
-} from '@metamask/eth-qr-keyring';
 import { isTestNet } from '../../util/networks';
 import { deprecatedGetNetworkId } from '../../util/networks/engineNetworkUtils';
 import AppConstants from '../AppConstants';
@@ -95,7 +91,6 @@ import { multichainAssetsRatesControllerInit } from './controllers/multichain-as
 import { multichainTransactionsControllerInit } from './controllers/multichain-transactions-controller/multichain-transactions-controller-init';
 import { multichainAccountServiceInit } from './controllers/multichain-account-service/multichain-account-service-init';
 import { snapAccountServiceInit } from './controllers/snap-account-service/snap-account-service-init';
-import { snapKeyringBuilderInit } from './controllers/snap-keyring/snap-keyring-builder-init';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -1114,7 +1109,7 @@ export class Engine {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   getSnapKeyring = async (): Promise<SnapKeyring> => {
     const { SnapAccountService } = this.context;
-    return (await SnapAccountService.getLegacySnapKeyring()) as SnapKeyring;
+    return await SnapAccountService.getLegacySnapKeyring();
   };
 
   /**
