@@ -1,6 +1,7 @@
 import React from 'react';
 import { DeepPartial } from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
+import { initialState as initialSecurityState } from '../../../reducers/security';
 import App from '.';
 import { cleanup, render, waitFor } from '@testing-library/react-native';
 import { RootState } from '../../../reducers';
@@ -37,6 +38,7 @@ const initialState: DeepPartial<RootState> = {
   settings: {
     basicFunctionalityEnabled: true,
   },
+  security: initialSecurityState,
   engine: {
     backgroundState,
   },
@@ -126,6 +128,12 @@ jest.mock('../../UI/OptinMetrics', () => () => (
 jest.mock('../../Views/OnboardingInterestQuestionnaire', () => () => (
   <MockView testID="mock-onboarding-interest-questionnaire" />
 ));
+jest.mock(
+  '../../Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire',
+  () => () => (
+    <MockView testID="mock-onboarding-crypto-experience-questionnaire" />
+  ),
+);
 jest.mock('../../Views/AccountStatus', () => () => (
   <MockView testID="mock-account-status" />
 ));
@@ -155,12 +163,6 @@ jest.mock('../../Views/LedgerSelectAccount', () => () => (
 ));
 jest.mock('../../Views/ConnectHardware/SelectHardware', () => () => (
   <MockView testID="mock-select-hw" />
-));
-jest.mock('../../Views/DetectedTokens', () => () => (
-  <MockView testID="mock-detected-tokens" />
-));
-jest.mock('../../Views/DetectedTokensConfirmation', () => () => (
-  <MockView testID="mock-detected-confirm" />
 ));
 jest.mock('../../Views/WalletActions', () => () => (
   <MockView testID="mock-wallet-actions" />
@@ -1771,6 +1773,42 @@ describe('App', () => {
       });
     });
 
+    it('renders OnboardingCryptoExperienceQuestionnaire when it is the active OnboardingNav route', async () => {
+      const routeState = {
+        index: 0,
+        routes: [
+          {
+            name: 'OnboardingRootNav',
+            state: {
+              index: 0,
+              routes: [
+                {
+                  name: 'OnboardingNav',
+                  state: {
+                    index: 0,
+                    routes: [
+                      {
+                        name: Routes.ONBOARDING.CRYPTO_EXPERIENCE_QUESTIONNAIRE,
+                        params: { onComplete: jest.fn() },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      };
+
+      const { getByTestId } = renderAppAtRoute(routeState);
+
+      await waitFor(() => {
+        expect(
+          getByTestId('mock-onboarding-crypto-experience-questionnaire'),
+        ).toBeOnTheScreen();
+      });
+    });
+
     it('renders VaultRecoveryFlow', async () => {
       const routeState = {
         index: 0,
@@ -2273,14 +2311,6 @@ describe('App', () => {
 
       await waitFor(() => {
         expect(getByTestId('mock-trade-actions')).toBeTruthy();
-      });
-    });
-
-    it('renders DetectedTokens flow', async () => {
-      const { getByTestId } = renderAppWithModal('DetectedTokens');
-
-      await waitFor(() => {
-        expect(getByTestId('mock-detected-tokens')).toBeTruthy();
       });
     });
   });

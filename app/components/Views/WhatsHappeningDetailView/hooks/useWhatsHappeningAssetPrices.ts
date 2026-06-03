@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { WhatsHappeningItem } from '../../../UI/WhatsHappening/types';
+import type { RelatedAsset } from '@metamask/ai-controllers';
 import { usePerpsLivePrices } from '../../../UI/Perps/hooks/stream';
 
 export interface PerpsPriceEntry {
@@ -13,21 +13,18 @@ export interface UseWhatsHappeningAssetPricesResult {
 }
 
 /**
- * Returns live price data for every perps market referenced by a "What's
- * Happening" card item. Prices come from the WebSocket stream via
+ * Returns live price data for every perps market referenced by the given
+ * related assets. Prices come from the WebSocket stream via
  * `usePerpsLivePrices` and are throttled to 3 s to limit re-renders.
  *
- * All related assets are expected to have an `hlPerpsMarket` entry; assets
- * without one are ignored.
+ * Assets without an `hlPerpsMarket` entry are ignored.
  */
 export function useWhatsHappeningAssetPrices(
-  item: WhatsHappeningItem,
+  assets: RelatedAsset[],
 ): UseWhatsHappeningAssetPricesResult {
   const perpsSymbols = useMemo(
-    () => [
-      ...new Set(item.relatedAssets.flatMap((a) => a.hlPerpsMarket ?? [])),
-    ],
-    [item.relatedAssets],
+    () => [...new Set(assets.flatMap((a) => a.hlPerpsMarket ?? []))],
+    [assets],
   );
 
   const livePerpsPrices = usePerpsLivePrices({

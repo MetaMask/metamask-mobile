@@ -9,11 +9,16 @@ import {
   predictFeaturedCarouselOptions,
 } from './featuredCarousel';
 import { predictMarketKeys, predictMarketOptions } from './market';
+import { predictMarketListKeys, predictMarketListOptions } from './marketList';
 import {
   predictOrderPreviewKeys,
   predictOrderPreviewOptions,
 } from './orderPreview';
 import { predictPositionsKeys, predictPositionsOptions } from './positions';
+import {
+  predictCryptoPriceHistoryKeys,
+  predictCryptoPriceHistoryOptions,
+} from './cryptoPriceHistory';
 import {
   predictPriceHistoryKeys,
   predictPriceHistoryOptions,
@@ -54,6 +59,10 @@ export const predictQueries = {
     keys: predictMarketKeys,
     options: predictMarketOptions,
   },
+  marketList: {
+    keys: predictMarketListKeys,
+    options: predictMarketListOptions,
+  },
   orderPreview: {
     keys: predictOrderPreviewKeys,
     options: predictOrderPreviewOptions,
@@ -61,6 +70,10 @@ export const predictQueries = {
   positions: {
     keys: predictPositionsKeys,
     options: predictPositionsOptions,
+  },
+  cryptoPriceHistory: {
+    keys: predictCryptoPriceHistoryKeys,
+    options: predictCryptoPriceHistoryOptions,
   },
   priceHistory: {
     keys: predictPriceHistoryKeys,

@@ -8,11 +8,6 @@ const createStyles = (_colors: Theme['colors']) =>
       alignItems: 'center',
       gap: 8,
     },
-    feeDiscountContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-    },
   });
 
 export { createStyles };

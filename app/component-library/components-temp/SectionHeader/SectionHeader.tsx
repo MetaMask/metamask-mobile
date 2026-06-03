@@ -77,7 +77,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
         <Icon
           testID="section-header-arrow-icon"
           name={endIconName}
-          size={IconSize.Sm}
+          size={IconSize.Md}
           color={endIconColor}
           style={tw.style('ml-1')}
         />

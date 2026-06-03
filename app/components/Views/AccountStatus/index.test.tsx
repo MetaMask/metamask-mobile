@@ -11,6 +11,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import Routes from '../../../constants/navigation/Routes';
 import { PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { AccountStatusSelectorIDs } from './AccountStatus.testIds';
+import { AccountType } from '../../../constants/onboarding';
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -60,10 +61,24 @@ jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding', () =>
 jest.mock('../../../core/Analytics/MetricsEventBuilder', () => ({
   MetricsEventBuilder: {
     createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn().mockReturnThis(),
       build: jest.fn(),
     })),
   },
 }));
+
+const getMockEventBuilder = () => {
+  const mockBuild = jest.fn();
+  const mockAddProperties = jest.fn().mockReturnThis();
+  const mockCreateEventBuilder = jest.fn(() => ({
+    addProperties: mockAddProperties,
+    build: mockBuild,
+  }));
+  (MetricsEventBuilder.createEventBuilder as jest.Mock).mockImplementation(
+    mockCreateEventBuilder,
+  );
+  return { mockBuild, mockAddProperties, mockCreateEventBuilder };
+};
 
 describe('AccountStatus', () => {
   beforeEach(() => {
@@ -154,14 +169,41 @@ describe('AccountStatus', () => {
     });
 
     describe('Analytics tracking', () => {
-      it('tracks WALLET_IMPORT_STARTED event when type="found"', () => {
-        const mockBuild = jest.fn();
-        const mockCreateEventBuilder = jest.fn(() => ({ build: mockBuild }));
-        (
-          MetricsEventBuilder.createEventBuilder as jest.Mock
-        ).mockImplementation(mockCreateEventBuilder);
+      it('tracks ACCOUNT_ALREADY_EXISTS_PAGE_VIEWED with account_type on mount when type="found"', () => {
+        const { mockAddProperties, mockCreateEventBuilder } =
+          getMockEventBuilder();
 
-        mockRouteParams = { type: 'found' };
+        mockRouteParams = { type: 'found', provider: 'google' };
+        renderWithProvider(<AccountStatus />);
+
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.ACCOUNT_ALREADY_EXISTS_PAGE_VIEWED,
+        );
+        expect(mockAddProperties).toHaveBeenCalledWith({
+          account_type: AccountType.ImportedGoogle,
+        });
+      });
+
+      it('tracks ACCOUNT_NOT_FOUND_PAGE_VIEWED with account_type on mount when type="not_exist"', () => {
+        const { mockAddProperties, mockCreateEventBuilder } =
+          getMockEventBuilder();
+
+        mockRouteParams = { type: 'not_exist', provider: 'google' };
+        renderWithProvider(<AccountStatus />);
+
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.ACCOUNT_NOT_FOUND_PAGE_VIEWED,
+        );
+        expect(mockAddProperties).toHaveBeenCalledWith({
+          account_type: AccountType.MetamaskGoogle,
+        });
+      });
+
+      it('tracks WALLET_IMPORT_STARTED event with account_type when type="found"', () => {
+        const { mockBuild, mockAddProperties, mockCreateEventBuilder } =
+          getMockEventBuilder();
+
+        mockRouteParams = { type: 'found', provider: 'google' };
         const { getByTestId } = renderWithProvider(<AccountStatus />);
         const primaryButton = getByTestId(
           AccountStatusSelectorIDs.ACCOUNT_FOUND_LOGIN_BUTTON,
@@ -172,18 +214,18 @@ describe('AccountStatus', () => {
         expect(mockCreateEventBuilder).toHaveBeenCalledWith(
           MetaMetricsEvents.WALLET_IMPORT_STARTED,
         );
+        expect(mockAddProperties).toHaveBeenCalledWith({
+          account_type: AccountType.ImportedGoogle,
+        });
         expect(mockBuild).toHaveBeenCalled();
         expect(trackOnboarding).toHaveBeenCalled();
       });
 
-      it('tracks WALLET_SETUP_STARTED event when type="not_exist"', () => {
-        const mockBuild = jest.fn();
-        const mockCreateEventBuilder = jest.fn(() => ({ build: mockBuild }));
-        (
-          MetricsEventBuilder.createEventBuilder as jest.Mock
-        ).mockImplementation(mockCreateEventBuilder);
+      it('tracks WALLET_SETUP_STARTED event with account_type when type="not_exist"', () => {
+        const { mockBuild, mockAddProperties, mockCreateEventBuilder } =
+          getMockEventBuilder();
 
-        mockRouteParams = { type: 'not_exist' };
+        mockRouteParams = { type: 'not_exist', provider: 'google' };
         const { getByText } = renderWithProvider(<AccountStatus />);
         const primaryButton = getByText('Create a new wallet');
 
@@ -192,6 +234,9 @@ describe('AccountStatus', () => {
         expect(mockCreateEventBuilder).toHaveBeenCalledWith(
           MetaMetricsEvents.WALLET_SETUP_STARTED,
         );
+        expect(mockAddProperties).toHaveBeenCalledWith({
+          account_type: AccountType.MetamaskGoogle,
+        });
         expect(mockBuild).toHaveBeenCalled();
         expect(trackOnboarding).toHaveBeenCalled();
       });
@@ -253,6 +298,39 @@ describe('AccountStatus', () => {
       const { getByTestId } = renderWithProvider(<AccountStatus />);
       expect(
         getByTestId(AccountStatusSelectorIDs.ACCOUNT_FOUND_LOGIN_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows Telegram-specific copy when provider is telegram', () => {
+      mockRouteParams = {
+        type: 'found',
+        accountName: 'Telegram 649341211',
+        provider: 'telegram',
+      };
+      const { getByText } = renderWithProvider(<AccountStatus />);
+
+      expect(
+        getByText(
+          strings('account_status.account_already_exists_telegram_description'),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows Telegram-specific copy on wallet not found when provider is telegram', () => {
+      mockRouteParams = {
+        type: 'not_exist',
+        accountName: 'Telegram 649341211',
+        provider: 'telegram',
+      };
+      const { getByText } = renderWithProvider(<AccountStatus />);
+
+      expect(
+        getByText(
+          strings('account_status.account_not_found_telegram_description'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('account_status.create_new_wallet')),
       ).toBeOnTheScreen();
     });
   });

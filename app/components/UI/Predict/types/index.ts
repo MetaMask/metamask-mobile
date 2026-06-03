@@ -36,11 +36,19 @@ export interface GetPositionsParams {
   offset?: number;
 }
 
+export interface GetActivityParams {
+  address?: string;
+  limit?: number;
+  offset?: number;
+}
+
 export enum PredictMarketStatus {
   OPEN = 'open',
   CLOSED = 'closed',
   RESOLVED = 'resolved',
 }
+
+export const OPEN_PREDICT_OUTCOME_STATUS: PredictOutcome['status'] = 'open';
 
 export enum Recurrence {
   NONE = 'none',
@@ -107,6 +115,7 @@ export type PredictMarket = {
   endDate?: string;
   image: string;
   status: 'open' | 'closed' | 'resolved';
+  active?: boolean;
   recurrence: Recurrence;
   category: PredictCategory;
   tags: string[];
@@ -118,6 +127,8 @@ export type PredictMarket = {
   series?: PredictSeries;
   parentMarketId?: string | number | null;
   childMarketIds?: string[];
+  isHighlighted?: boolean;
+  priceToBeat?: number;
 };
 
 export type PredictSeries = {
@@ -148,6 +159,9 @@ export type PredictCategory =
 export type PredictSportsLeague =
   | 'nfl'
   | 'nba'
+  | 'wnba'
+  | 'mlb'
+  | 'nhl'
   | 'ucl'
   | 'fif'
   | 'lal'
@@ -186,7 +200,10 @@ export type PredictSportsLeague =
   | 'itc'
   | 'dfb'
   | 'cde'
-  | 'fifwc';
+  | 'fifwc'
+  | 'atp'
+  | 'wta'
+  | 'itf';
 
 // Game status
 export type PredictGameStatus = 'scheduled' | 'ongoing' | 'ended';
@@ -265,6 +282,18 @@ export interface CryptoPriceUpdate {
   timestamp: number;
 }
 
+export interface OrderbookLevel {
+  price: number;
+  size: number;
+}
+
+export interface OrderbookSnapshot {
+  tokenId: string;
+  bids: OrderbookLevel[];
+  asks: OrderbookLevel[];
+  timestamp: number;
+}
+
 export type PredictOutcomeGroup = {
   key: string;
   outcomes: PredictOutcome[];
@@ -279,6 +308,8 @@ export type PredictOutcome = {
   description: string;
   image: string;
   status: 'open' | 'closed' | 'resolved';
+  active?: boolean;
+  acceptingOrders?: boolean;
   tokens: PredictOutcomeToken[];
   volume: number;
   liquidity?: number;
@@ -382,6 +413,30 @@ export interface GetCryptoTargetPriceParams {
   eventStartTime: string;
   variant: string;
   endDate: string;
+}
+
+/**
+ * Parameters for fetching crypto asset price history from Polymarket.
+ */
+export interface GetCryptoPriceHistoryParams {
+  /** Crypto symbol (e.g., 'BTC', 'ETH') */
+  symbol: string;
+  /** Event start time as ISO 8601 string or Unix timestamp */
+  eventStartTime: string;
+  /** Time variant: 'fiveminute' | 'fifteen' | 'hourly' | 'fourhour' | 'daily' */
+  variant: string;
+  /** Optional end date as ISO 8601 string (omit for live/current data) */
+  endDate?: string;
+}
+
+/**
+ * A single point from the crypto price history source.
+ */
+export interface CryptoPriceHistoryPoint {
+  /** Unix timestamp in seconds */
+  timestamp: number;
+  /** Price value */
+  value: number;
 }
 
 /**
@@ -508,15 +563,42 @@ export interface PredictCarouselMetadata {
 }
 
 export interface GetMarketsParams {
-  q?: string;
-  status?: 'open' | 'closed' | 'resolved';
   category?: PredictCategory;
-
-  sortBy?: 'volume24h' | 'date';
-  sortDirection?: 'asc' | 'desc';
-  offset?: number;
+  afterCursor?: string | null;
   limit?: number;
   customQueryParams?: string;
+}
+
+export interface GetMarketsResult {
+  markets: PredictMarket[];
+  nextCursor: string | null;
+}
+
+export interface PredictMarketListParams {
+  tags?: string[]; // tag IDs -> tag_id (multi). TODO: slug support later
+  series?: string[]; // series IDs -> series_id (multi)
+  order?: 'volume24hr' | 'liquidity' | 'ending_soon' | 'newest';
+  // 'resolved' maps to the same 'closed' params by design (no separate server-side filter).
+  status?: 'open' | 'closed' | 'resolved';
+  live?: boolean;
+  // Free-text title filter. The provider maps this to Polymarket's
+  // `title_search` query param, which composes with cursor pagination, so
+  // search stays on the same feed endpoint (handled in the provider layer, not
+  // the UI). Blank/whitespace is ignored (browse mode).
+  search?: string;
+  limit?: number;
+  afterCursor?: string | null;
+}
+
+export interface PredictMarketListResponse {
+  markets: PredictMarket[];
+  nextCursor?: string | null;
+}
+
+export interface SearchMarketsParams {
+  q: string;
+  limit?: number;
+  page?: number;
 }
 
 export interface GetBalanceParams {
@@ -588,6 +670,8 @@ export interface PlaceOrderParams {
     marketCategory?: string;
     marketTags?: string[];
     entryPoint?: string;
+    predictFeedTab?: string;
+    predictScreen?: string;
     transactionType?: string;
     sharePrice?: number;
     liquidity?: number;
@@ -637,6 +721,7 @@ export interface ConnectionStatus {
 export type GameUpdateCallback = (update: GameUpdate) => void;
 export type PriceUpdateCallback = (updates: PriceUpdate[]) => void;
 export type CryptoPriceUpdateCallback = (update: CryptoPriceUpdate) => void;
+export type OrderbookCallback = (snapshot: OrderbookSnapshot) => void;
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface PrepareDepositParams {}

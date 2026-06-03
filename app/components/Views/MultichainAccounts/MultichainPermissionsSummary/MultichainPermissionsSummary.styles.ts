@@ -92,7 +92,7 @@ const createStyles = (params: { theme: Theme }) => {
     },
     permissionRequestNetworkName: {
       marginRight: 4,
-      maxWidth: '75%',
+      maxWidth: '60%',
     },
     avatarGroup: {
       marginLeft: 2,

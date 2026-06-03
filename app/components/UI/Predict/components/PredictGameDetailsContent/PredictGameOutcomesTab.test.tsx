@@ -12,6 +12,7 @@ import type {
 import type { PredictSportOutcomeButton } from '../PredictSportOutcomeCard';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
 import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
+import Logger from '../../../../../util/Logger';
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -20,9 +21,36 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'predict.sports_market_types.spreads': 'Spreads',
       'predict.sports_market_types.totals': 'Totals',
       'predict.sports_market_types.points': 'Points',
+      'predict.sports_market_types.basketball_total_points': 'Totals',
+      'predict.sports_market_types.basketball_odd_even': 'Odd/Even Score',
+      'predict.sports_market_types.basketball_team_to_score_first':
+        'Team to Score First',
+      'predict.sports_market_types.tennis_set_totals': 'Total Sets',
+      'predict.sports_market_types.tennis_set_handicap': 'Set Handicap',
+      'predict.sports_market_types.tennis_match_totals': 'Total Games',
+      'predict.sports_market_types.tennis_first_set_totals':
+        '1st Set Total Games',
+      'predict.sports_market_types.tennis_first_set_winner': '1st Set Winner',
+      'predict.sports_market_types.tennis_completed_match': 'Completed Match',
     };
+    if (key.startsWith('predict.sports_market_types.basketball_')) {
+      return translations[key] ?? `[missing "${key}" translation]`;
+    }
     return translations[key] ?? key;
   }),
+}));
+
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { error: jest.fn() },
+}));
+
+const mockGetLivePrice = jest.fn();
+
+jest.mock('../../hooks/useLiveMarketPrices', () => ({
+  useLiveMarketPrices: jest.fn(() => ({
+    getPrice: mockGetLivePrice,
+  })),
 }));
 
 const mockOnBuyPress = jest.fn();
@@ -186,6 +214,7 @@ const mockGame: PredictMarketGame = {
 describe('PredictGameOutcomesTab', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetLivePrice.mockReturnValue(undefined);
     mockCapturedCards = [];
   });
 
@@ -194,8 +223,63 @@ describe('PredictGameOutcomesTab', () => {
       expect(getSportsMarketTypeLabel('moneyline')).toBe('Moneyline');
     });
 
+    it('returns translated label for basketball market types', () => {
+      expect(getSportsMarketTypeLabel('basketball_odd_even')).toBe(
+        'Odd/Even Score',
+      );
+      expect(getSportsMarketTypeLabel('basketball_team_to_score_first')).toBe(
+        'Team to Score First',
+      );
+    });
+
+    it('returns translated label for tennis market types', () => {
+      expect(getSportsMarketTypeLabel('tennis_match_totals')).toBe(
+        'Total Games',
+      );
+      expect(getSportsMarketTypeLabel('tennis_set_handicap')).toBe(
+        'Set Handicap',
+      );
+      expect(getSportsMarketTypeLabel('tennis_first_set_winner')).toBe(
+        '1st Set Winner',
+      );
+    });
+
     it('returns title-cased fallback for unknown type', () => {
       expect(getSportsMarketTypeLabel('unknown_type')).toBe('Unknown Type');
+    });
+
+    it('returns provided fallback when translation is missing', () => {
+      expect(
+        getSportsMarketTypeLabel('basketball_unknown_market', 'Fallback Title'),
+      ).toBe('Fallback Title');
+    });
+
+    it('logs missing translations only once per key', () => {
+      const mockLoggerError = jest.mocked(Logger.error);
+      const type = 'basketball_logged_once_market';
+      const key = `predict.sports_market_types.${type}`;
+      const message = `Missing Predict sports market type translation: ${key}`;
+
+      expect(getSportsMarketTypeLabel(type, 'Fallback Title')).toBe(
+        'Fallback Title',
+      );
+      expect(getSportsMarketTypeLabel(type, 'Fallback Title')).toBe(
+        'Fallback Title',
+      );
+
+      expect(mockLoggerError).toHaveBeenCalledTimes(1);
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message,
+        }),
+        {
+          message,
+          context: {
+            key,
+            type,
+          },
+        },
+      );
     });
   });
 
@@ -434,6 +518,79 @@ describe('PredictGameOutcomesTab', () => {
       expect(mockCapturedCards[0].lines).toEqual([3.5, 7.5]);
       expect(mockCapturedCards[0].selectedLine).toBe(3.5);
     });
+
+    it('uses outcome title when subgroup market type translation is missing', () => {
+      const subgroups: PredictOutcomeGroup[] = [
+        createGroup({
+          key: 'basketball_unknown_market',
+          outcomes: [
+            createOutcome({
+              id: 'odd-even',
+              groupItemTitle: 'Odd/Even',
+              title: 'Odd/Even',
+            }),
+          ],
+        }),
+      ];
+      const groups = [
+        createGroup({ key: 'game_lines', outcomes: [], subgroups }),
+      ];
+
+      render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards[0].title).toBe('Odd/Even');
+    });
+
+    it('uses selected line title when line market type translation is missing', () => {
+      const subgroups: PredictOutcomeGroup[] = [
+        createGroup({
+          key: 'basketball_unknown_line_market',
+          outcomes: [
+            createOutcome({
+              id: 'total-198',
+              line: 198.5,
+              groupItemTitle: 'Total Points 198.5',
+              title: 'Total Points 198.5',
+            }),
+            createOutcome({
+              id: 'total-199',
+              line: 199.5,
+              groupItemTitle: 'Total Points 199.5',
+              title: 'Total Points 199.5',
+            }),
+          ],
+        }),
+      ];
+      const groups = [
+        createGroup({ key: 'game_lines', outcomes: [], subgroups }),
+      ];
+
+      const { getByTestId } = render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards[0].title).toBe('Total Points 198.5');
+
+      mockCapturedCards = [];
+      fireEvent(
+        getByTestId('game_lines-basketball_unknown_line_market-0-line-1-199.5'),
+        'touchEnd',
+      );
+
+      expect(mockCapturedCards[0].title).toBe('Total Points 199.5');
+    });
   });
 
   describe('button building', () => {
@@ -623,6 +780,67 @@ describe('PredictGameOutcomesTab', () => {
       expect(mockCapturedCards[0].buttons[0].variant).toBe('yes');
       expect(mockCapturedCards[0].buttons[0].teamColor).toBe(
         TEST_HEX_COLORS.PURE_RED,
+      );
+    });
+
+    it('assigns tennis first set winner team colors from normalized token labels', () => {
+      const tennisGame: PredictMarketGame = {
+        ...mockGame,
+        league: 'atp',
+        homeTeam: {
+          ...mockGame.homeTeam,
+          name: 'Ilya Ivashka',
+          abbreviation: 'ivashka',
+          alias: 'I. Ivashka',
+          color: TEST_HEX_COLORS.PURE_RED,
+        },
+        awayTeam: {
+          ...mockGame.awayTeam,
+          name: 'Hamish Stewart',
+          abbreviation: 'stewart',
+          alias: 'H. Stewart',
+          color: TEST_HEX_COLORS.PURE_BLUE,
+        },
+      };
+      const outcome = createOutcome({
+        sportsMarketType: 'tennis_first_set_winner',
+        tokens: [
+          createToken({ shortTitle: 'IVASHKA' }),
+          createToken({ shortTitle: 'STEWART' }),
+        ],
+      });
+      const subgroups: PredictOutcomeGroup[] = [
+        createGroup({
+          key: 'tennis_first_set_winner',
+          outcomes: [outcome],
+        }),
+      ];
+      const groups = [
+        createGroup({ key: 'first_set', outcomes: [], subgroups }),
+      ];
+
+      render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={tennisGame}
+          activeChipKey="first_set"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards[0].buttons[0]).toEqual(
+        expect.objectContaining({
+          label: 'IVASHKA',
+          variant: 'yes',
+          teamColor: TEST_HEX_COLORS.PURE_RED,
+        }),
+      );
+      expect(mockCapturedCards[0].buttons[1]).toEqual(
+        expect.objectContaining({
+          label: 'STEWART',
+          variant: 'no',
+          teamColor: TEST_HEX_COLORS.PURE_BLUE,
+        }),
       );
     });
 
@@ -850,7 +1068,7 @@ describe('PredictGameOutcomesTab', () => {
   });
 
   describe('moneyline subgroup rendering', () => {
-    it('renders stacked card for moneyline subgroup with multiple outcomes sorted by threshold', () => {
+    it('renders inline-spaced card for moneyline subgroup with multiple outcomes sorted by threshold', () => {
       const outcomes = [
         createOutcome({
           id: 'ml-2',
@@ -891,7 +1109,7 @@ describe('PredictGameOutcomesTab', () => {
       );
 
       expect(mockCapturedCards).toHaveLength(1);
-      expect(mockCapturedCards[0].buttonLayout).toBe('stacked');
+      expect(mockCapturedCards[0].buttonLayout).toBe('inlineNoSeparator');
       expect(mockCapturedCards[0].buttons[0].label).toBe('HOM');
       expect(mockCapturedCards[0].buttons[1].label).toBe('Draw');
       expect(mockCapturedCards[0].buttons[2].label).toBe('AWY');
@@ -974,6 +1192,77 @@ describe('PredictGameOutcomesTab', () => {
       expect(mockCapturedCards[0].buttons[1].variant).toBe('draw');
       expect(mockCapturedCards[0].buttons[2].price).toBe(25);
       expect(mockCapturedCards[0].buttons[2].variant).toBe('no');
+    });
+
+    it('uses live best ask prices for moneyline buttons', () => {
+      mockGetLivePrice.mockImplementation((tokenId: string) => ({
+        tokenId,
+        price: 0,
+        bestBid: 0,
+        bestAsk: tokenId === 'tok-a' ? 0.76 : 0.24,
+      }));
+
+      const outcomes = [
+        createOutcome({
+          id: 'ml-a',
+          tokens: [createToken({ id: 'tok-a', shortTitle: 'TA', price: 0.45 })],
+        }),
+        createOutcome({
+          id: 'ml-b',
+          tokens: [createToken({ id: 'tok-b', shortTitle: 'TB', price: 0.55 })],
+        }),
+      ];
+      const subgroups: PredictOutcomeGroup[] = [
+        createGroup({ key: 'moneyline', outcomes }),
+      ];
+      const groups = [
+        createGroup({ key: 'game_lines', outcomes: [], subgroups }),
+      ];
+
+      render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards[0].buttons[0].price).toBe(76);
+      expect(mockCapturedCards[0].buttons[1].price).toBe(24);
+    });
+
+    it('falls back to static token price when live best ask is zero', () => {
+      mockGetLivePrice.mockReturnValue({
+        tokenId: 'tok-a',
+        price: 0,
+        bestBid: 0,
+        bestAsk: 0,
+      });
+
+      const outcomes = [
+        createOutcome({
+          id: 'ml-a',
+          tokens: [createToken({ id: 'tok-a', shortTitle: 'TA', price: 0.45 })],
+        }),
+      ];
+      const subgroups: PredictOutcomeGroup[] = [
+        createGroup({ key: 'moneyline', outcomes }),
+      ];
+      const groups = [
+        createGroup({ key: 'game_lines', outcomes: [], subgroups }),
+      ];
+
+      render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards[0].buttons[0].price).toBe(45);
     });
 
     it('calls onBuyPress with correct outcome and token for moneyline button', () => {
@@ -1177,7 +1466,7 @@ describe('PredictGameOutcomesTab', () => {
   });
 
   describe('flat outcomes moneyline rendering', () => {
-    it('renders single stacked card for moneyline-like group without subgroups', () => {
+    it('renders single inline-spaced card for moneyline-like group without subgroups', () => {
       const outcomes = [
         createOutcome({
           id: 'hr-1',
@@ -1213,7 +1502,7 @@ describe('PredictGameOutcomesTab', () => {
       );
 
       expect(mockCapturedCards).toHaveLength(1);
-      expect(mockCapturedCards[0].buttonLayout).toBe('stacked');
+      expect(mockCapturedCards[0].buttonLayout).toBe('inlineNoSeparator');
       expect(mockCapturedCards[0].testID).toBe('halftime-moneyline');
       expect(mockCapturedCards[0].subtitle).toBe('$15k Vol');
     });

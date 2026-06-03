@@ -29,9 +29,10 @@ import {
   IconSize,
   IconColor,
   Checkbox,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import StorageWrapper from '../../../store/storage-wrapper';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import {
   passwordSet as passwordSetAction,
@@ -43,7 +44,6 @@ import Engine from '../../../core/Engine';
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { passcodeType } from '../../../util/authentication';
 import { strings } from '../../../../locales/i18n';
-import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
@@ -60,6 +60,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   AccountType,
   getSocialAccountType,
+  ONBOARDING_SUCCESS_FLOW,
 } from '../../../constants/onboarding';
 import type {
   IMetaMetricsEvent,
@@ -86,9 +87,11 @@ import {
 } from '../../../util/trace';
 import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
-import { isE2E } from '../../../util/test/utils';
+import { hasTestOverrides } from '../../../util/test/utils';
 import { AccountImportStrategy } from '@metamask/keyring-controller';
 import { setDataCollectionForMarketing } from '../../../actions/security';
+import { selectAttributionRecord } from '../../../selectors/attribution';
+import { getWalletSetupCompletedAttributionAnalyticsProps } from '../../../util/analytics/walletSetupCompletedAttribution';
 import { ChoosePasswordRouteParams } from './ChoosePassword.types';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
@@ -117,7 +120,7 @@ interface ExtendedKeyringController {
 }
 
 const ChoosePassword = () => {
-  const { colors, themeAppearance } = useContext(ThemeContext);
+  const { themeAppearance } = useContext(ThemeContext);
   const tw = useTailwind();
 
   const navigation = useNavigation();
@@ -125,6 +128,7 @@ const ChoosePassword = () => {
     useRoute<RouteProp<{ params: ChoosePasswordRouteParams }, 'params'>>();
 
   const dispatch = useDispatch();
+  const attributionRecord = useSelector(selectAttributionRecord);
   const metrics = useAnalytics();
 
   const [isSelected, setIsSelected] = useState(false);
@@ -245,6 +249,10 @@ const ChoosePassword = () => {
     const canSubmit = getOauth2LoginSuccess()
       ? passwordsMatch
       : passwordsMatch && isSelected;
+    const oauthProvider = route.params?.provider;
+    const socialAccountType = oauthProvider
+      ? getSocialAccountType(oauthProvider, false)
+      : undefined;
 
     if (loading) return { valid: false, shouldTrack: false };
 
@@ -258,6 +266,7 @@ const ChoosePassword = () => {
         track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
           wallet_setup_type: 'import',
           error_type: strings('choose_password.password_dont_match'),
+          ...(socialAccountType && { account_type: socialAccountType }),
         });
       }
       return { valid: false, shouldTrack: false };
@@ -267,6 +276,7 @@ const ChoosePassword = () => {
       track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
         wallet_setup_type: 'import',
         error_type: strings('choose_password.password_length_error'),
+        ...(socialAccountType && { account_type: socialAccountType }),
       });
       return { valid: false, shouldTrack: false };
     }
@@ -278,6 +288,7 @@ const ChoosePassword = () => {
     loading,
     isSelected,
     getOauth2LoginSuccess,
+    route.params?.provider,
     track,
   ]);
 
@@ -339,7 +350,7 @@ const ChoosePassword = () => {
               .build(),
           );
 
-          await metrics.addTraitsToUser({
+          await metrics.identify({
             ...generateDeviceAnalyticsMetaData(),
             ...generateUserSettingsAnalyticsMetaData(),
           });
@@ -352,7 +363,9 @@ const ChoosePassword = () => {
           routes: [
             {
               name: Routes.ONBOARDING.SUCCESS,
-              params: { showPasswordHint: true },
+              params: {
+                successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
+              },
             },
           ],
         });
@@ -394,9 +407,15 @@ const ChoosePassword = () => {
       dispatch(setLockTimeAction(-1));
       setLoading(false);
 
+      const oauthProvider = route.params?.provider;
+      const socialAccountType = oauthProvider
+        ? getSocialAccountType(oauthProvider, false)
+        : undefined;
+
       track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
         wallet_setup_type: 'new',
         error_type: caughtError.toString(),
+        ...(socialAccountType && { account_type: socialAccountType }),
       });
 
       const onboardingTraceCtx = route.params?.onboardingTraceCtx;
@@ -427,6 +446,7 @@ const ChoosePassword = () => {
             params: {
               metricsEnabled,
               error: caughtError,
+              ...(socialAccountType && { accountType: socialAccountType }),
             },
           },
         ],
@@ -487,6 +507,10 @@ const ChoosePassword = () => {
         wallet_setup_type: 'new',
         new_wallet: true,
         account_type: accountType,
+        ...getWalletSetupCompletedAttributionAnalyticsProps(
+          attributionRecord,
+          isSelected,
+        ),
       });
       endTrace({ name: TraceName.OnboardingSRPAccountCreationTime });
     } catch (err) {
@@ -503,6 +527,8 @@ const ChoosePassword = () => {
     handlePostWalletCreation,
     handleWalletCreationError,
     metrics,
+    attributionRecord,
+    isSelected,
   ]);
 
   const onPasswordChange = useCallback(
@@ -553,36 +579,6 @@ const ChoosePassword = () => {
     [password, confirmPassword],
   );
 
-  const HeaderLeft = useCallback(() => {
-    const marginLeft = 16;
-    return (
-      <TouchableOpacity onPress={() => navigation.goBack()} disabled={loading}>
-        <Icon
-          name={IconName.ArrowLeft}
-          size={IconSize.Lg}
-          color={IconColor.IconDefault}
-          style={{ marginLeft }}
-        />
-      </TouchableOpacity>
-    );
-  }, [navigation, loading]);
-
-  const EmptyHeaderLeft = useCallback(() => <Box />, []);
-
-  const updateNavBar = useCallback(() => {
-    navigation.setOptions(
-      getOnboardingNavbarOptions(
-        route,
-        {
-          headerLeft: loading ? EmptyHeaderLeft : HeaderLeft,
-          headerRight: () => null,
-        },
-        colors,
-        false,
-      ),
-    );
-  }, [navigation, loading, colors, route, HeaderLeft, EmptyHeaderLeft]);
-
   useEffect(() => {
     const initBiometrics = async () => {
       const onboardingTraceCtx = route.params?.onboardingTraceCtx;
@@ -620,19 +616,6 @@ const ChoosePassword = () => {
     [],
   );
 
-  useEffect(() => {
-    updateNavBar();
-  }, [updateNavBar]);
-
-  useEffect(() => {
-    if (loading) {
-      // update navigationOptions
-      navigation.setParams({
-        headerLeft: EmptyHeaderLeft,
-      });
-    }
-  }, [loading, navigation, EmptyHeaderLeft]);
-
   const renderContent = () => {
     const passwordsMatch = password !== '' && password === confirmPassword;
     const isPasswordTooShort =
@@ -652,6 +635,13 @@ const ChoosePassword = () => {
         edges={{ bottom: 'additive' }}
         style={tw.style('flex-1 bg-background-default')}
       >
+        <HeaderStandard
+          includesTopInset
+          onBack={loading ? undefined : () => navigation.goBack()}
+          backButtonProps={{
+            testID: ChoosePasswordSelectorsIDs.BACK_BUTTON_ID,
+          }}
+        />
         {loading ? (
           <Box
             alignItems={BoxAlignItems.Center}
@@ -659,7 +649,7 @@ const ChoosePassword = () => {
             twClassName="flex-1 px-4"
             gap={6}
           >
-            {!isE2E && <FoxRiveLoaderAnimation />}
+            {!hasTestOverrides && <FoxRiveLoaderAnimation />}
           </Box>
         ) : (
           <KeyboardAwareScrollView

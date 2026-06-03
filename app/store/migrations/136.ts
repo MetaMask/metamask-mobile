@@ -1,6 +1,6 @@
 import { captureException } from '@sentry/react-native';
 import { hasProperty, isObject } from '@metamask/utils';
-import { createMMKV } from 'react-native-mmkv';
+import { MMKV } from 'react-native-mmkv';
 import type {
   AttributionRecord,
   AttributionState,
@@ -56,7 +56,7 @@ const migration = (state: unknown): unknown => {
       : null;
 
   try {
-    const legacy = createMMKV({ id: LEGACY_ATTRIBUTION_MMKV_ID });
+    const legacy = new MMKV({ id: LEGACY_ATTRIBUTION_MMKV_ID });
     const raw = legacy.getString(LEGACY_PERSIST_KEY);
 
     if (!raw) {
@@ -66,7 +66,7 @@ const migration = (state: unknown): unknown => {
     const fromLegacy = parseLegacyAttributionState(raw);
 
     if (!fromLegacy) {
-      legacy.remove(LEGACY_PERSIST_KEY);
+      legacy.delete(LEGACY_PERSIST_KEY);
       return state;
     }
 
@@ -74,7 +74,7 @@ const migration = (state: unknown): unknown => {
       root.attribution = fromLegacy;
     }
 
-    legacy.remove(LEGACY_PERSIST_KEY);
+    legacy.delete(LEGACY_PERSIST_KEY);
   } catch (error) {
     captureException(
       new Error(

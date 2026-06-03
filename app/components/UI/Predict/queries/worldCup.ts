@@ -18,24 +18,17 @@ import type {
 
 export interface PredictWorldCupPageOptions {
   limit?: number;
-  offset?: number;
 }
 
 export const predictWorldCupKeys = {
   all: () => ['predict', 'worldCup'] as const,
-  markets: (
-    tabKey: string,
-    queryParams: string,
-    limit: number,
-    offset: number,
-  ) =>
+  markets: (tabKey: string, queryParams: string, limit: number) =>
     [
       ...predictWorldCupKeys.all(),
       'markets',
       tabKey,
       queryParams,
       limit,
-      offset,
     ] as const,
   infiniteMarkets: (tabKey: string, queryParams: string, limit: number) =>
     [
@@ -64,7 +57,7 @@ export const predictWorldCupQueryParams = {
     buildPredictWorldCupAllQuery(config),
   props: (config: Pick<PredictWorldCupConfig, 'tagSlug' | 'gamesTagId'>) =>
     buildPredictWorldCupPropsQuery(config),
-  live: (config: Pick<PredictWorldCupConfig, 'seriesId' | 'gamesTagId'>) =>
+  live: (config: Pick<PredictWorldCupConfig, 'tagSlug' | 'gamesTagId'>) =>
     buildPredictWorldCupLiveQuery(config),
   stage: (stage: Pick<PredictWorldCupStageConfig, 'eventIds'>) =>
     buildPredictWorldCupStageEventsQuery(stage),
@@ -72,29 +65,25 @@ export const predictWorldCupQueryParams = {
 
 const getPageOptions = ({
   limit = PREDICT_WORLD_CUP_PAGE_SIZE,
-  offset = 0,
-}: PredictWorldCupPageOptions = {}) => ({ limit, offset });
+}: PredictWorldCupPageOptions = {}) => ({ limit });
 
 const buildMarketsOptions = ({
   tabKey,
   queryParams,
   limit,
-  offset,
   sortByStartTime = false,
 }: {
   tabKey: string;
   queryParams: string;
   limit: number;
-  offset: number;
   sortByStartTime?: boolean;
 }) =>
   queryOptions<PredictMarket[], Error>({
-    queryKey: predictWorldCupKeys.markets(tabKey, queryParams, limit, offset),
+    queryKey: predictWorldCupKeys.markets(tabKey, queryParams, limit),
     queryFn: () =>
       fetchPredictWorldCupMarkets({
         queryParams,
         limit,
-        offset,
         sortByStartTime,
       }),
     staleTime: 10_000,
@@ -118,36 +107,33 @@ export const predictWorldCupOptions = {
     config: Pick<PredictWorldCupConfig, 'tagSlug'>,
     pageOptions?: PredictWorldCupPageOptions,
   ) => {
-    const { limit, offset } = getPageOptions(pageOptions);
+    const { limit } = getPageOptions(pageOptions);
     return buildMarketsOptions({
       tabKey: 'all',
       queryParams: predictWorldCupQueryParams.all(config),
       limit,
-      offset,
     });
   },
   props: (
     config: Pick<PredictWorldCupConfig, 'tagSlug' | 'gamesTagId'>,
     pageOptions?: PredictWorldCupPageOptions,
   ) => {
-    const { limit, offset } = getPageOptions(pageOptions);
+    const { limit } = getPageOptions(pageOptions);
     return buildMarketsOptions({
       tabKey: 'props',
       queryParams: predictWorldCupQueryParams.props(config),
       limit,
-      offset,
     });
   },
   live: (
-    config: Pick<PredictWorldCupConfig, 'seriesId' | 'gamesTagId'>,
+    config: Pick<PredictWorldCupConfig, 'tagSlug' | 'gamesTagId'>,
     pageOptions?: PredictWorldCupPageOptions,
   ) => {
-    const { limit, offset } = getPageOptions(pageOptions);
+    const { limit } = getPageOptions(pageOptions);
     return buildMarketsOptions({
       tabKey: 'live',
       queryParams: predictWorldCupQueryParams.live(config),
       limit,
-      offset,
     });
   },
   stage: (stage: Pick<PredictWorldCupStageConfig, 'key' | 'eventIds'>) => {
@@ -162,13 +148,12 @@ export const predictWorldCupOptions = {
           : fetchPredictWorldCupMarkets({
               queryParams,
               limit,
-              sortByStartTime: true,
             }),
       staleTime: 10_000,
     });
   },
   availability: {
-    live: (config: Pick<PredictWorldCupConfig, 'seriesId' | 'gamesTagId'>) =>
+    live: (config: Pick<PredictWorldCupConfig, 'tagSlug' | 'gamesTagId'>) =>
       buildAvailabilityOptions({
         tabKey: 'live',
         queryParams: predictWorldCupQueryParams.live(config),

@@ -18,7 +18,7 @@ import {
 
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { analytics } from '../../../../util/analytics/analytics';
-import { endTrace, trace } from '../../../../util/trace';
+import { endTrace, trace, TraceName } from '../../../../util/trace';
 import {
   addTransaction,
   addTransactionBatch,
@@ -30,9 +30,12 @@ import {
   type PlaceOrderParams,
   PredictBalance,
   PredictClaimStatus,
+  type PredictMarket,
+  PredictMarketStatus,
   PredictPosition,
   PredictPositionStatus,
   PredictWithdrawStatus,
+  Recurrence,
   Side,
 } from '../types';
 import {
@@ -243,6 +246,53 @@ describe('PredictController', () => {
     };
   }
 
+  function createMockMarket(overrides?: Partial<PredictMarket>): PredictMarket {
+    return {
+      id: 'market-1',
+      providerId: POLYMARKET_PROVIDER_ID,
+      slug: 'test-market',
+      title: 'Test Market',
+      description: 'Test market description',
+      image: 'https://example.com/market.png',
+      status: PredictMarketStatus.OPEN,
+      active: true,
+      recurrence: Recurrence.NONE,
+      category: 'hot',
+      tags: [],
+      outcomes: [
+        {
+          id: 'outcome-1',
+          providerId: POLYMARKET_PROVIDER_ID,
+          marketId: 'market-1',
+          title: 'Yes',
+          description: 'Yes outcome',
+          image: 'https://example.com/outcome.png',
+          status: PredictMarketStatus.OPEN,
+          active: true,
+          acceptingOrders: true,
+          tokens: [
+            {
+              id: 'token-1',
+              title: 'Yes',
+              price: 0.5,
+            },
+            {
+              id: 'token-2',
+              title: 'No',
+              price: 0.5,
+            },
+          ],
+          volume: 100,
+          liquidity: 100,
+          groupItemTitle: 'Yes',
+        },
+      ],
+      liquidity: 100,
+      volume: 100,
+      ...overrides,
+    };
+  }
+
   function createMockPredictBalance(
     overrides?: Partial<PredictBalance>,
   ): PredictBalance {
@@ -259,11 +309,14 @@ describe('PredictController', () => {
     // Create mock PolymarketProvider with required methods
     mockPolymarketProvider = {
       getMarkets: jest.fn(),
+      listMarkets: jest.fn(),
+      searchMarkets: jest.fn(),
       getCarouselMarkets: jest.fn(),
       getMarketsByIds: jest.fn(),
       getPositions: jest.fn(),
       getMarketDetails: jest.fn(),
       getActivity: jest.fn(),
+      getCryptoPriceHistory: jest.fn(),
       placeOrder: jest.fn(),
       calculateBetAmounts: jest.fn(),
       calculateCashOutAmounts: jest.fn(),
@@ -302,6 +355,9 @@ describe('PredictController', () => {
     mockPolymarketProvider.publishClaim?.mockResolvedValue({
       transactionHash: undefined,
     });
+    mockPolymarketProvider.getMarketDetails.mockResolvedValue(
+      createMockMarket(),
+    );
 
     // Default safe mocks for async fire-and-forget methods
     // (prevents unhandled rejections when payWithAnyTokenConfirmation is
@@ -595,11 +651,17 @@ describe('PredictController', () => {
       ];
 
       await withController(async ({ controller }) => {
-        mockPolymarketProvider.getMarkets.mockResolvedValue(mockMarkets as any);
+        mockPolymarketProvider.getMarkets.mockResolvedValue({
+          markets: mockMarkets as any,
+          nextCursor: null,
+        });
 
         const result = await controller.getMarkets({});
 
-        expect(result).toEqual(mockMarkets as any);
+        expect(result).toEqual({
+          markets: mockMarkets as any,
+          nextCursor: null,
+        });
         expect(controller.state.lastError).toBeNull();
         expect(mockPolymarketProvider.getMarkets).toHaveBeenCalled();
       });
@@ -614,6 +676,82 @@ describe('PredictController', () => {
 
         await expect(controller.getMarkets({})).rejects.toThrow(errorMessage);
         expect(controller.state.lastError).toBe(errorMessage);
+      });
+    });
+
+    it('lists markets by delegating to the provider', async () => {
+      const mockMarkets = [
+        {
+          id: 'm1',
+          question: 'Will it rain tomorrow?',
+          outcomes: ['YES', 'NO'],
+        },
+      ];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.listMarkets.mockResolvedValue({
+          markets: mockMarkets as any,
+          nextCursor: 'cursor-2',
+        });
+
+        const result = await controller.listMarkets({ order: 'liquidity' });
+
+        expect(result).toEqual({
+          markets: mockMarkets as any,
+          nextCursor: 'cursor-2',
+        });
+        expect(mockPolymarketProvider.listMarkets).toHaveBeenCalledWith({
+          order: 'liquidity',
+        });
+      });
+    });
+
+    it('handles errors when listing markets', async () => {
+      await withController(async ({ controller }) => {
+        const errorMessage = 'Network error';
+        mockPolymarketProvider.listMarkets.mockRejectedValue(
+          new Error(errorMessage),
+        );
+
+        await expect(controller.listMarkets({})).rejects.toThrow(errorMessage);
+        expect(controller.state.lastError).toBe(errorMessage);
+      });
+    });
+
+    it('searches markets successfully', async () => {
+      const mockMarkets = [
+        {
+          id: 'm1',
+          question: 'Will it rain tomorrow?',
+          outcomes: ['YES', 'NO'],
+        },
+      ];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.searchMarkets.mockResolvedValue({
+          markets: mockMarkets,
+          totalResults: mockMarkets.length,
+        } as any);
+
+        const result = await controller.searchMarkets({ q: ' rain ' });
+
+        expect(result).toEqual({
+          markets: mockMarkets,
+          totalResults: mockMarkets.length,
+        });
+        expect(mockPolymarketProvider.searchMarkets).toHaveBeenCalledWith({
+          q: 'rain',
+        });
+      });
+    });
+
+    it('returns empty search results for an empty search query', async () => {
+      await withController(async ({ controller }) => {
+        await expect(controller.searchMarkets({ q: '   ' })).resolves.toEqual({
+          markets: [],
+          totalResults: 0,
+        });
+        expect(mockPolymarketProvider.searchMarkets).not.toHaveBeenCalled();
       });
     });
 
@@ -908,6 +1046,115 @@ describe('PredictController', () => {
     });
   });
 
+  describe('getCryptoPriceHistory', () => {
+    const mockCryptoPriceHistory = [
+      { timestamp: 1234567890, value: 65000 },
+      { timestamp: 1234567900, value: 65100 },
+    ];
+
+    it('delegates to provider.getCryptoPriceHistory', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getCryptoPriceHistory = jest
+          .fn()
+          .mockResolvedValue(mockCryptoPriceHistory);
+
+        const params = {
+          symbol: 'BTC',
+          eventStartTime: '2025-01-01T00:00:00Z',
+          variant: 'hourly',
+        };
+
+        const result = await controller.getCryptoPriceHistory(params);
+
+        expect(result).toEqual(mockCryptoPriceHistory);
+        expect(
+          mockPolymarketProvider.getCryptoPriceHistory,
+        ).toHaveBeenCalledWith(params);
+        expect(trace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: TraceName.PredictGetCryptoPriceHistory,
+            tags: expect.objectContaining({
+              symbol: 'BTC',
+              variant: 'hourly',
+            }),
+          }),
+        );
+      });
+    });
+
+    it('returns empty array when provider method is undefined', async () => {
+      await withController(async ({ controller }) => {
+        (
+          mockPolymarketProvider as unknown as {
+            getCryptoPriceHistory?: (params: {
+              symbol: string;
+              eventStartTime: string;
+              variant: string;
+              endDate?: string;
+            }) => Promise<unknown[]>;
+          }
+        ).getCryptoPriceHistory = undefined;
+
+        const result = await controller.getCryptoPriceHistory({
+          symbol: 'ETH',
+          eventStartTime: '2025-01-01T00:00:00Z',
+          variant: 'daily',
+        });
+
+        expect(result).toEqual([]);
+      });
+    });
+
+    it('sets lastError and ends trace when getCryptoPriceHistory throws', async () => {
+      await withController(async ({ controller }) => {
+        const errorMessage = 'Failed to fetch crypto price history';
+        mockPolymarketProvider.getCryptoPriceHistory = jest
+          .fn()
+          .mockRejectedValue(new Error(errorMessage));
+
+        await expect(
+          controller.getCryptoPriceHistory({
+            symbol: 'BTC',
+            eventStartTime: '2025-01-01T00:00:00Z',
+            variant: 'hourly',
+          }),
+        ).rejects.toThrow(errorMessage);
+
+        expect(controller.state.lastError).toBe(errorMessage);
+        expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+        expect(endTrace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: TraceName.PredictGetCryptoPriceHistory,
+            data: expect.objectContaining({
+              success: false,
+              error: errorMessage,
+            }),
+          }),
+        );
+      });
+    });
+
+    it('uses crypto price history error code for non-Error failures', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getCryptoPriceHistory = jest
+          .fn()
+          .mockRejectedValue('String error');
+
+        await expect(
+          controller.getCryptoPriceHistory({
+            symbol: 'BTC',
+            eventStartTime: '2025-01-01T00:00:00Z',
+            variant: 'hourly',
+          }),
+        ).rejects.toBe('String error');
+
+        expect(controller.state.lastError).toBe(
+          PREDICT_ERROR_CODES.CRYPTO_PRICE_HISTORY_FAILED,
+        );
+      });
+    });
+  });
+
   describe('getCryptoTargetPrice', () => {
     it('returns price from provider when available', async () => {
       await withController(async ({ controller }) => {
@@ -930,7 +1177,32 @@ describe('PredictController', () => {
       });
     });
 
-    it('falls back to groupItemThreshold when provider returns null', async () => {
+    it('falls back to event price to beat when provider returns null', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getCryptoTargetPrice = jest
+          .fn()
+          .mockResolvedValue(null);
+        mockPolymarketProvider.getMarketDetails = jest.fn().mockResolvedValue({
+          priceToBeat: 75749.02,
+          outcomes: [{ groupItemThreshold: 41500 }],
+        });
+
+        const result = await controller.getCryptoTargetPrice({
+          eventId: 'event-123',
+          symbol: 'BTC',
+          eventStartTime: '2025-01-01T00:00:00Z',
+          variant: 'up',
+          endDate: '2025-01-02',
+        });
+
+        expect(result).toBe(75749.02);
+        expect(mockPolymarketProvider.getMarketDetails).toHaveBeenCalledWith({
+          marketId: 'event-123',
+        });
+      });
+    });
+
+    it('falls back to groupItemThreshold when provider and event price to beat are unavailable', async () => {
       await withController(async ({ controller }) => {
         mockPolymarketProvider.getCryptoTargetPrice = jest
           .fn()
@@ -1251,9 +1523,217 @@ describe('PredictController', () => {
             }),
           }),
         );
+        expect(mockPolymarketProvider.getMarketDetails).toHaveBeenCalledWith({
+          marketId: 'market-1',
+        });
 
         expect(result).toEqual(mockResult);
       });
+    });
+
+    it.each([
+      ['proposed_resolution', PREDICT_ERROR_CODES.MARKET_PENDING_RESOLUTION],
+      ['in_dispute', PREDICT_ERROR_CODES.MARKET_PENDING_RESOLUTION],
+      ['finalized_resolution', PREDICT_ERROR_CODES.MARKET_NOT_ACCEPTING_BETS],
+      ['closed', PREDICT_ERROR_CODES.MARKET_NOT_ACCEPTING_BETS],
+    ])(
+      'blocks orders before provider submission when live outcome status is %s',
+      async (resolutionStatus, errorCode) => {
+        await withController(async ({ controller }) => {
+          const market = createMockMarket();
+          mockPolymarketProvider.getMarketDetails.mockResolvedValue({
+            ...market,
+            outcomes: [
+              {
+                ...market.outcomes[0],
+                resolutionStatus,
+              },
+            ],
+          });
+
+          await expect(
+            controller.placeOrder({
+              preview: createMockOrderPreview(),
+            }),
+          ).rejects.toThrow(errorCode);
+
+          expect(mockPolymarketProvider.placeOrder).not.toHaveBeenCalled();
+          expect(controller.state.lastError).toBe(errorCode);
+          expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
+        });
+      },
+    );
+
+    it('blocks sell orders when the live outcome is not accepting orders', async () => {
+      await withController(async ({ controller }) => {
+        const market = createMockMarket();
+        mockPolymarketProvider.getMarketDetails.mockResolvedValue({
+          ...market,
+          outcomes: [
+            {
+              ...market.outcomes[0],
+              acceptingOrders: false,
+            },
+          ],
+        });
+
+        await expect(
+          controller.placeOrder({
+            preview: createMockOrderPreview({ side: Side.SELL }),
+          }),
+        ).rejects.toThrow(PREDICT_ERROR_CODES.MARKET_NOT_ACCEPTING_BETS);
+
+        expect(mockPolymarketProvider.placeOrder).not.toHaveBeenCalled();
+        expect(controller.state.lastError).toBe(
+          PREDICT_ERROR_CODES.MARKET_NOT_ACCEPTING_BETS,
+        );
+      });
+    });
+
+    it('blocks orders when the live market is inactive', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarketDetails.mockResolvedValue(
+          createMockMarket({
+            active: false,
+          }),
+        );
+
+        await expect(
+          controller.placeOrder({
+            preview: createMockOrderPreview(),
+          }),
+        ).rejects.toThrow(PREDICT_ERROR_CODES.MARKET_NOT_ACCEPTING_BETS);
+
+        expect(mockPolymarketProvider.placeOrder).not.toHaveBeenCalled();
+      });
+    });
+
+    it('fails closed when the live market does not include the preview outcome', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarketDetails.mockResolvedValue({
+          ...createMockMarket(),
+          outcomes: [],
+        });
+
+        await expect(
+          controller.placeOrder({
+            preview: createMockOrderPreview(),
+          }),
+        ).rejects.toThrow(PREDICT_ERROR_CODES.MARKET_BETTABLE_CHECK_FAILED);
+
+        expect(mockPolymarketProvider.placeOrder).not.toHaveBeenCalled();
+        expect(controller.state.lastError).toBe(
+          PREDICT_ERROR_CODES.MARKET_BETTABLE_CHECK_FAILED,
+        );
+      });
+    });
+
+    it('fails closed when the live market status check fails', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getMarketDetails.mockRejectedValue(
+          new Error('Network error'),
+        );
+
+        await expect(
+          controller.placeOrder({
+            preview: createMockOrderPreview(),
+          }),
+        ).rejects.toThrow(PREDICT_ERROR_CODES.MARKET_BETTABLE_CHECK_FAILED);
+
+        expect(mockPolymarketProvider.placeOrder).not.toHaveBeenCalled();
+        expect(controller.state.lastError).toBe(
+          PREDICT_ERROR_CODES.MARKET_BETTABLE_CHECK_FAILED,
+        );
+      });
+    });
+
+    it('preserves selectedPaymentToken when the pay-with-any-token market status check fails', async () => {
+      await withController(
+        async ({ controller }) => {
+          const selectedPaymentToken = {
+            address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+            chainId: '0x89',
+            symbol: 'USDC',
+          };
+
+          setActiveOrderForTest(controller, {
+            state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+          });
+          controller.setSelectedPaymentToken(selectedPaymentToken);
+          mockPolymarketProvider.getMarketDetails.mockRejectedValue(
+            new Error('Network error'),
+          );
+
+          await expect(
+            controller.placeOrder({
+              preview: createMockOrderPreview({ side: Side.BUY }),
+              transactionId: 'tx-1',
+            }),
+          ).rejects.toThrow(PREDICT_ERROR_CODES.MARKET_BETTABLE_CHECK_FAILED);
+
+          expect(controller.state.selectedPaymentToken).toEqual(
+            selectedPaymentToken,
+          );
+          expect(controller.state.activeBuyOrders[MOCK_ADDRESS]).toEqual({
+            state: ActiveOrderState.PREVIEW,
+            error: PREDICT_ERROR_CODES.MARKET_BETTABLE_CHECK_FAILED,
+          });
+          expect(mockPolymarketProvider.placeOrder).not.toHaveBeenCalled();
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
+    });
+
+    it('blocks pay-with-any-token buys before deposit side effects', async () => {
+      await withController(
+        async ({ controller }) => {
+          setActiveOrderForTest(controller, {
+            state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+          });
+          const market = createMockMarket();
+          mockPolymarketProvider.getMarketDetails.mockResolvedValue({
+            ...market,
+            outcomes: [
+              {
+                ...market.outcomes[0],
+                resolutionStatus: 'proposed_resolution',
+              },
+            ],
+          });
+
+          await expect(
+            controller.placeOrder({
+              preview: createMockOrderPreview({ side: Side.BUY }),
+              transactionId: 'tx-1',
+            }),
+          ).rejects.toThrow(PREDICT_ERROR_CODES.MARKET_PENDING_RESOLUTION);
+
+          expect(
+            mockPolymarketProvider.createOptimisticPositionFromPreview,
+          ).not.toHaveBeenCalled();
+          expect(
+            mockPolymarketProvider.clearOptimisticPosition,
+          ).not.toHaveBeenCalled();
+          expect(mockPolymarketProvider.placeOrder).not.toHaveBeenCalled();
+          expect(controller.state.activeBuyOrders[MOCK_ADDRESS]).toEqual({
+            state: ActiveOrderState.PREVIEW,
+            error: PREDICT_ERROR_CODES.MARKET_PENDING_RESOLUTION,
+          });
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
     });
 
     it('does not invalidate queries directly on successful buy order when predictWithAnyToken is enabled', async () => {
@@ -2020,7 +2500,7 @@ describe('PredictController', () => {
       cacheTimestamp: Date.now(),
     });
 
-    it('prepends highlighted markets when flag is enabled and offset is 0', async () => {
+    it('prepends highlighted markets when flag is enabled and no afterCursor', async () => {
       const regularMarkets = [
         createMockMarket('regular-1'),
         createMockMarket('regular-2'),
@@ -2032,23 +2512,27 @@ describe('PredictController', () => {
 
       await withController(
         async ({ controller }) => {
-          mockPolymarketProvider.getMarkets.mockResolvedValue(
-            regularMarkets as any,
-          );
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: regularMarkets as any,
+            nextCursor: 'next-cursor',
+          });
           mockPolymarketProvider.getMarketsByIds.mockResolvedValue(
             highlightedMarkets as any,
           );
 
           const result = await controller.getMarkets({
             category: 'trending',
-            offset: 0,
           });
 
-          expect(result).toHaveLength(4);
-          expect(result[0].id).toBe('highlight-1');
-          expect(result[1].id).toBe('highlight-2');
-          expect(result[2].id).toBe('regular-1');
-          expect(result[3].id).toBe('regular-2');
+          expect(result.markets).toHaveLength(4);
+          expect(result.markets[0].id).toBe('highlight-1');
+          expect(result.markets[1].id).toBe('highlight-2');
+          expect(result.markets[2].id).toBe('regular-1');
+          expect(result.markets[3].id).toBe('regular-2');
+          expect(result.markets[0].isHighlighted).toBe(true);
+          expect(result.markets[1].isHighlighted).toBe(true);
+          expect(result.markets[2].isHighlighted).toBeUndefined();
+          expect(result.nextCursor).toBe('next-cursor');
           expect(mockPolymarketProvider.getMarketsByIds).toHaveBeenCalledWith([
             'highlight-1',
             'highlight-2',
@@ -2072,22 +2556,23 @@ describe('PredictController', () => {
       );
     });
 
-    it('skips highlights when offset is greater than 0', async () => {
+    it('skips highlights when afterCursor is provided', async () => {
       const regularMarkets = [createMockMarket('regular-1')];
 
       await withController(
         async ({ controller }) => {
-          mockPolymarketProvider.getMarkets.mockResolvedValue(
-            regularMarkets as any,
-          );
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: regularMarkets as any,
+            nextCursor: null,
+          });
 
           const result = await controller.getMarkets({
             category: 'trending',
-            offset: 10,
+            afterCursor: 'cursor-1',
           });
 
-          expect(result).toHaveLength(1);
-          expect(result[0].id).toBe('regular-1');
+          expect(result.markets).toHaveLength(1);
+          expect(result.markets[0].id).toBe('regular-1');
           expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
         },
         {
@@ -2110,17 +2595,17 @@ describe('PredictController', () => {
 
       await withController(
         async ({ controller }) => {
-          mockPolymarketProvider.getMarkets.mockResolvedValue(
-            regularMarkets as any,
-          );
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: regularMarkets as any,
+            nextCursor: null,
+          });
 
           const result = await controller.getMarkets({
             category: 'trending',
-            offset: 0,
           });
 
-          expect(result).toHaveLength(1);
-          expect(result[0].id).toBe('regular-1');
+          expect(result.markets).toHaveLength(1);
+          expect(result.markets[0].id).toBe('regular-1');
           expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
         },
         {
@@ -2143,13 +2628,14 @@ describe('PredictController', () => {
 
       await withController(
         async ({ controller }) => {
-          mockPolymarketProvider.getMarkets.mockResolvedValue(
-            regularMarkets as any,
-          );
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: regularMarkets as any,
+            nextCursor: null,
+          });
 
           const result = await controller.getMarkets({});
 
-          expect(result).toHaveLength(1);
+          expect(result.markets).toHaveLength(1);
           expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
         },
         {
@@ -2172,16 +2658,16 @@ describe('PredictController', () => {
 
       await withController(
         async ({ controller }) => {
-          mockPolymarketProvider.getMarkets.mockResolvedValue(
-            regularMarkets as any,
-          );
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: regularMarkets as any,
+            nextCursor: null,
+          });
 
           const result = await controller.getMarkets({
             category: 'trending',
-            offset: 0,
           });
 
-          expect(result).toHaveLength(1);
+          expect(result.markets).toHaveLength(1);
           expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
         },
         {
@@ -2207,22 +2693,23 @@ describe('PredictController', () => {
 
       await withController(
         async ({ controller }) => {
-          mockPolymarketProvider.getMarkets.mockResolvedValue(
-            regularMarkets as any,
-          );
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: regularMarkets as any,
+            nextCursor: null,
+          });
           mockPolymarketProvider.getMarketsByIds.mockResolvedValue(
             highlightedMarkets as any,
           );
 
           const result = await controller.getMarkets({
             category: 'trending',
-            offset: 0,
           });
 
-          expect(result).toHaveLength(3);
-          expect(result[0].id).toBe('duplicate-market');
-          expect(result[1].id).toBe('regular-1');
-          expect(result[2].id).toBe('regular-2');
+          expect(result.markets).toHaveLength(3);
+          expect(result.markets[0].id).toBe('duplicate-market');
+          expect(result.markets[1].id).toBe('regular-1');
+          expect(result.markets[2].id).toBe('regular-2');
+          expect(result.markets[0].isHighlighted).toBe(true);
         },
         {
           mocks: {
@@ -2244,17 +2731,17 @@ describe('PredictController', () => {
 
       await withController(
         async ({ controller }) => {
-          mockPolymarketProvider.getMarkets.mockResolvedValue(
-            regularMarkets as any,
-          );
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: regularMarkets as any,
+            nextCursor: null,
+          });
 
           const result = await controller.getMarkets({
             category: 'trending',
-            offset: 0,
           });
 
-          expect(result).toHaveLength(1);
-          expect(result[0].id).toBe('regular-1');
+          expect(result.markets).toHaveLength(1);
+          expect(result.markets[0].id).toBe('regular-1');
           expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
         },
         {
@@ -2275,18 +2762,18 @@ describe('PredictController', () => {
 
       await withController(
         async ({ controller }) => {
-          mockPolymarketProvider.getMarkets.mockResolvedValue(
-            regularMarkets as any,
-          );
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: regularMarkets as any,
+            nextCursor: null,
+          });
           mockPolymarketProvider.getMarketsByIds.mockResolvedValue([]);
 
           const result = await controller.getMarkets({
             category: 'trending',
-            offset: 0,
           });
 
-          expect(result).toHaveLength(1);
-          expect(result[0].id).toBe('regular-1');
+          expect(result.markets).toHaveLength(1);
+          expect(result.markets[0].id).toBe('regular-1');
         },
         {
           mocks: {
@@ -2308,16 +2795,16 @@ describe('PredictController', () => {
 
       await withController(
         async ({ controller }) => {
-          mockPolymarketProvider.getMarkets.mockResolvedValue(
-            regularMarkets as any,
-          );
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: regularMarkets as any,
+            nextCursor: null,
+          });
 
           const result = await controller.getMarkets({
             category: 'trending',
-            offset: 0,
           });
 
-          expect(result).toHaveLength(1);
+          expect(result.markets).toHaveLength(1);
           expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
         },
         {
@@ -2339,15 +2826,16 @@ describe('PredictController', () => {
       );
     });
 
-    it('fetches highlights for first page when offset is undefined', async () => {
+    it('fetches highlights for first page when afterCursor is undefined', async () => {
       const regularMarkets = [createMockMarket('regular-1')];
       const highlightedMarkets = [createMockMarket('highlight-1')];
 
       await withController(
         async ({ controller }) => {
-          mockPolymarketProvider.getMarkets.mockResolvedValue(
-            regularMarkets as any,
-          );
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: regularMarkets as any,
+            nextCursor: null,
+          });
           mockPolymarketProvider.getMarketsByIds.mockResolvedValue(
             highlightedMarkets as any,
           );
@@ -2356,9 +2844,9 @@ describe('PredictController', () => {
             category: 'trending',
           });
 
-          expect(result).toHaveLength(2);
-          expect(result[0].id).toBe('highlight-1');
-          expect(result[1].id).toBe('regular-1');
+          expect(result.markets).toHaveLength(2);
+          expect(result.markets[0].id).toBe('highlight-1');
+          expect(result.markets[1].id).toBe('regular-1');
           expect(mockPolymarketProvider.getMarketsByIds).toHaveBeenCalled();
         },
         {
@@ -2386,21 +2874,21 @@ describe('PredictController', () => {
 
       await withController(
         async ({ controller }) => {
-          mockPolymarketProvider.getMarkets.mockResolvedValue(
-            regularMarkets as any,
-          );
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: regularMarkets as any,
+            nextCursor: null,
+          });
           mockPolymarketProvider.getMarketsByIds.mockResolvedValue(
             highlightedMarkets as any,
           );
 
           const result = await controller.getMarkets({
             category: 'trending',
-            offset: 0,
           });
 
-          expect(result[0].id).toBe('third');
-          expect(result[1].id).toBe('first');
-          expect(result[2].id).toBe('second');
+          expect(result.markets[0].id).toBe('third');
+          expect(result.markets[1].id).toBe('first');
+          expect(result.markets[2].id).toBe('second');
         },
         {
           mocks: {
@@ -2425,17 +2913,17 @@ describe('PredictController', () => {
 
       await withController(
         async ({ controller }) => {
-          mockPolymarketProvider.getMarkets.mockResolvedValue(
-            regularMarkets as any,
-          );
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: regularMarkets as any,
+            nextCursor: null,
+          });
 
           const result = await controller.getMarkets({
             category: 'trending',
-            offset: 0,
           });
 
-          expect(result).toHaveLength(1);
-          expect(result[0].id).toBe('regular-1');
+          expect(result.markets).toHaveLength(1);
+          expect(result.markets[0].id).toBe('regular-1');
           expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
         },
         {
@@ -2473,22 +2961,24 @@ describe('PredictController', () => {
 
       await withController(
         async ({ controller }) => {
-          mockPolymarketProvider.getMarkets.mockResolvedValue(
-            regularMarketsIncludingFailedHighlight as any,
-          );
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: regularMarketsIncludingFailedHighlight as any,
+            nextCursor: null,
+          });
           mockPolymarketProvider.getMarketsByIds.mockResolvedValue(
             onlySuccessfullyFetchedHighlights as any,
           );
 
           const result = await controller.getMarkets({
             category: 'trending',
-            offset: 0,
           });
 
-          expect(result).toHaveLength(3);
-          expect(result[0].id).toBe('highlight-2');
-          expect(result[1].id).toBe('highlight-1');
-          expect(result[2].id).toBe('regular-1');
+          expect(result.markets).toHaveLength(3);
+          expect(result.markets[0].id).toBe('highlight-2');
+          expect(result.markets[1].id).toBe('highlight-1');
+          expect(result.markets[2].id).toBe('regular-1');
+          expect(result.markets[0].isHighlighted).toBe(true);
+          expect(result.markets[1].isHighlighted).toBeUndefined();
         },
         {
           mocks: {
@@ -2521,9 +3011,10 @@ describe('PredictController', () => {
 
       await withController(
         async ({ controller }) => {
-          mockPolymarketProvider.getMarkets.mockResolvedValue(
-            regularMarkets as any,
-          );
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: regularMarkets as any,
+            nextCursor: null,
+          });
           mockPolymarketProvider.getMarketsByIds.mockResolvedValue([
             closedHighlightedMarket,
             openHighlightedMarket,
@@ -2531,13 +3022,15 @@ describe('PredictController', () => {
 
           const result = await controller.getMarkets({
             category: 'trending',
-            offset: 0,
           });
 
-          expect(result).toHaveLength(2);
-          expect(result[0].id).toBe('highlight-2');
-          expect(result[1].id).toBe('regular-1');
-          expect(result.find((m) => m.id === 'highlight-1')).toBeUndefined();
+          expect(result.markets).toHaveLength(2);
+          expect(result.markets[0].id).toBe('highlight-2');
+          expect(result.markets[1].id).toBe('regular-1');
+          expect(result.markets[0].isHighlighted).toBe(true);
+          expect(
+            result.markets.find((m) => m.id === 'highlight-1'),
+          ).toBeUndefined();
         },
         {
           mocks: {
@@ -2566,20 +3059,20 @@ describe('PredictController', () => {
 
       await withController(
         async ({ controller }) => {
-          mockPolymarketProvider.getMarkets.mockResolvedValue(
-            regularMarkets as any,
-          );
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: regularMarkets as any,
+            nextCursor: null,
+          });
           mockPolymarketProvider.getMarketsByIds.mockResolvedValue([
             resolvedHighlightedMarket,
           ] as any);
 
           const result = await controller.getMarkets({
             category: 'trending',
-            offset: 0,
           });
 
-          expect(result).toHaveLength(1);
-          expect(result[0].id).toBe('regular-1');
+          expect(result.markets).toHaveLength(1);
+          expect(result.markets[0].id).toBe('regular-1');
         },
         {
           mocks: {
@@ -2604,17 +3097,17 @@ describe('PredictController', () => {
 
       await withController(
         async ({ controller }) => {
-          mockPolymarketProvider.getMarkets.mockResolvedValue(
-            regularMarkets as any,
-          );
+          mockPolymarketProvider.getMarkets.mockResolvedValue({
+            markets: regularMarkets as any,
+            nextCursor: null,
+          });
 
           const result = await controller.getMarkets({
             category: 'trending',
-            offset: 0,
           });
 
-          expect(result).toHaveLength(1);
-          expect(result[0].id).toBe('regular-1');
+          expect(result.markets).toHaveLength(1);
+          expect(result.markets[0].id).toBe('regular-1');
           expect(mockPolymarketProvider.getMarketsByIds).not.toHaveBeenCalled();
         },
         {
@@ -3554,6 +4047,7 @@ describe('PredictController', () => {
         expect(addTransactionBatch).toHaveBeenCalledWith({
           from: '0x1234567890123456789012345678901234567890',
           origin: 'metamask',
+          isInternal: true,
           networkClientId: 'polygon-mainnet',
           disableHook: true,
           disableSequential: true,
@@ -4034,6 +4528,39 @@ describe('PredictController', () => {
         // Verify deposit transaction remains undefined
         const address = '0x1234567890123456789012345678901234567890';
         expect(controller.state.pendingDeposits[address]).toBe(undefined);
+      });
+    });
+  });
+
+  describe('clearPendingClaim', () => {
+    it('clears pending claim from state', () => {
+      withController(({ controller }) => {
+        const address = '0x1234567890123456789012345678901234567890';
+
+        controller.updateStateForTesting((state) => {
+          state.pendingClaims = {
+            [address]: 'batch-id-123',
+          };
+        });
+
+        expect(controller.state.pendingClaims[address]).toBe('batch-id-123');
+
+        controller.clearPendingClaim();
+
+        expect(controller.state.pendingClaims[address]).toBe(undefined);
+      });
+    });
+
+    it('handles clearing empty pending claim state', () => {
+      withController(({ controller }) => {
+        controller.updateStateForTesting((state) => {
+          state.pendingClaims = {};
+        });
+
+        expect(() => controller.clearPendingClaim()).not.toThrow();
+
+        const address = '0x1234567890123456789012345678901234567890';
+        expect(controller.state.pendingClaims[address]).toBe(undefined);
       });
     });
   });
@@ -7886,6 +8413,43 @@ describe('PredictController', () => {
       });
     });
 
+    describe('subscribeToOrderbook', () => {
+      it('delegates to provider and returns unsubscribe function', () => {
+        withController(({ controller }) => {
+          const mockUnsubscribe = jest.fn();
+          const mockCallback = jest.fn();
+          mockPolymarketProvider.subscribeToOrderbook = jest
+            .fn()
+            .mockReturnValue(mockUnsubscribe);
+
+          const unsubscribe = controller.subscribeToOrderbook(
+            'token1',
+            mockCallback,
+          );
+
+          expect(
+            mockPolymarketProvider.subscribeToOrderbook,
+          ).toHaveBeenCalledWith('token1', mockCallback);
+          expect(unsubscribe).toBe(mockUnsubscribe);
+        });
+      });
+
+      it('returns no-op function when provider lacks method', () => {
+        withController(({ controller }) => {
+          delete (mockPolymarketProvider as { subscribeToOrderbook?: unknown })
+            .subscribeToOrderbook;
+
+          const unsubscribe = controller.subscribeToOrderbook(
+            'token1',
+            jest.fn(),
+          );
+
+          expect(unsubscribe).toBeDefined();
+          expect(unsubscribe()).toBeUndefined();
+        });
+      });
+    });
+
     describe('subscribeToCryptoPrices', () => {
       it('delegates to provider and returns unsubscribe function', () => {
         withController(({ controller }) => {
@@ -8154,7 +8718,7 @@ describe('PredictController', () => {
           entryPoint: 'test',
           marketDetailsViewed: 'test',
         });
-        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(2);
       });
     });
 
@@ -8186,8 +8750,19 @@ describe('PredictController', () => {
         controller.trackFeedViewed({
           sessionId: 'test',
           feedTab: 'test',
+          predictScreen: 'world_cup',
           numPagesViewed: 1,
           sessionTime: 1000,
+        });
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(2);
+      });
+    });
+
+    it('calls analytics.trackEvent for trackBannerAction', () => {
+      withController(({ controller }) => {
+        controller.trackBannerAction({
+          actionType: 'viewed',
+          bannerType: 'world_cup',
         });
         expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
       });

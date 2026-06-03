@@ -4,6 +4,7 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyMoreSheet from './MoneyMoreSheet';
 import { MoneyMoreSheetTestIds } from './MoneyMoreSheet.testIds';
+import { IconName } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import AppConstants from '../../../../../core/AppConstants';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -45,10 +46,14 @@ jest.mock('@metamask/design-system-react-native', () => {
   }: {
     children: React.ReactNode;
   }) => <View>{children}</View>;
+  const MockIcon = ({ name }: { name: string }) => (
+    <View testID={`icon-${name}`} />
+  );
   return {
     ...actual,
     BottomSheet: MockBottomSheet,
     BottomSheetHeader: MockBottomSheetHeader,
+    Icon: MockIcon,
   };
 });
 
@@ -70,6 +75,18 @@ describe('MoneyMoreSheet', () => {
     expect(
       getByTestId(MoneyMoreSheetTestIds.CONTACT_SUPPORT_OPTION),
     ).toBeOnTheScreen();
+  });
+
+  it('renders the "How it works" row with the book icon', () => {
+    const { getByTestId } = renderWithProvider(<MoneyMoreSheet />);
+
+    expect(getByTestId(`icon-${IconName.Book}`)).toBeOnTheScreen();
+  });
+
+  it('does not render the info icon for the "How it works" row', () => {
+    const { queryByTestId } = renderWithProvider(<MoneyMoreSheet />);
+
+    expect(queryByTestId(`icon-${IconName.Info}`)).not.toBeOnTheScreen();
   });
 
   it('renders the sheet title', () => {

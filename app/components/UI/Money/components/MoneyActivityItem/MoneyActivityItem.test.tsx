@@ -2,13 +2,13 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import {
   type TransactionMeta,
+  TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
 import { IconName } from '@metamask/design-system-react-native';
 import type { Hex } from '@metamask/utils';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { useMoneyTransactionDisplayInfo } from '../../hooks/useMoneyTransactionDisplayInfo';
-import { MUSD_TOKEN_ADDRESS } from '../../../Earn/constants/musd';
 import MoneyActivityItem from './MoneyActivityItem';
 import { MoneyActivityItemTestIds } from './MoneyActivityItem.testIds';
 
@@ -18,12 +18,6 @@ const baseTx = {
   id: 'tx-row-1',
   chainId: MOCK_CHAIN,
   type: TransactionType.incoming,
-  transferInformation: {
-    amount: '1000000000',
-    symbol: 'mUSD',
-    decimals: 6,
-    contractAddress: MUSD_TOKEN_ADDRESS,
-  },
 } as unknown as TransactionMeta;
 
 jest.mock('../../hooks/useMoneyTransactionDisplayInfo');
@@ -109,6 +103,14 @@ describe('MoneyActivityItem', () => {
     ).toBeOnTheScreen();
   });
 
+  it('renders the avatar icon', () => {
+    const { getByTestId } = renderWithProvider(
+      <MoneyActivityItem tx={baseTx} moneyAddress="0x1" />,
+    );
+
+    expect(getByTestId(MoneyActivityItemTestIds.ICON)).toBeOnTheScreen();
+  });
+
   it('omits description when hook returns undefined description', () => {
     mockUseMoneyTransactionDisplayInfo.mockReturnValue({
       label: 'Label',
@@ -126,7 +128,7 @@ describe('MoneyActivityItem', () => {
     expect(queryByText('Description')).toBeNull();
   });
 
-  it('invokes onPress when the row is pressed', () => {
+  it('invokes onPress with transaction id when the row is pressed', () => {
     const onPress = jest.fn();
     const { getByTestId } = renderWithProvider(
       <MoneyActivityItem tx={baseTx} moneyAddress="0x1" onPress={onPress} />,
@@ -135,6 +137,22 @@ describe('MoneyActivityItem', () => {
     fireEvent.press(getByTestId(`${MoneyActivityItemTestIds.ROW}-tx-row-1`));
 
     expect(onPress).toHaveBeenCalledTimes(1);
+    expect(onPress).toHaveBeenCalledWith('tx-row-1');
+  });
+
+  it('shows "Failed" in the description slot for a failed transaction', () => {
+    const failedTx = {
+      ...baseTx,
+      status: TransactionStatus.failed,
+    } as unknown as TransactionMeta;
+
+    const { getByText, queryByText } = renderWithProvider(
+      <MoneyActivityItem tx={failedTx} moneyAddress="0x1" />,
+    );
+
+    expect(getByText('Failed')).toBeOnTheScreen();
+    // Normal description should not appear for failed rows
+    expect(queryByText('Description')).toBeNull();
   });
 
   it('renders network badge subtree when showNetworkBadge is true', () => {
@@ -144,6 +162,7 @@ describe('MoneyActivityItem', () => {
 
     expect(getByTestId('mock-badge-wrapper')).toBeOnTheScreen();
     expect(getByTestId('mock-network-badge')).toBeOnTheScreen();
+    expect(getByTestId(MoneyActivityItemTestIds.ICON)).toBeOnTheScreen();
   });
 
   it('renders the AvatarIcon and no longer renders the token avatar', () => {
@@ -153,14 +172,6 @@ describe('MoneyActivityItem', () => {
 
     expect(getByTestId(MoneyActivityItemTestIds.ICON)).toBeOnTheScreen();
     expect(queryByTestId('mock-avatar-token')).toBeNull();
-  });
-
-  it('renders the AvatarIcon inside the network badge subtree', () => {
-    const { getByTestId } = renderWithProvider(
-      <MoneyActivityItem tx={baseTx} moneyAddress="0x1" showNetworkBadge />,
-    );
-
-    expect(getByTestId(MoneyActivityItemTestIds.ICON)).toBeOnTheScreen();
   });
 
   it('forwards the icon name from useMoneyTransactionDisplayInfo', () => {

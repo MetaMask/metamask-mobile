@@ -167,14 +167,22 @@ loadBuildConfig() {
 	local build_type="$1"
 	local environment="$2"
 
-	# Normalize environment name (production -> prod for build name)
-	local normalized_env="$environment"
-	case "$environment" in
-		production) normalized_env="prod" ;;
-	esac
-
-	# Construct build name (e.g., main-prod, flask-dev)
-	local build_name="${build_type}-${normalized_env}"
+	# GitHub Actions passes the concrete builds.yml key (e.g. main-e2e-bs-with-srp).
+	# Without this, `main e2e` always resolves to generic `main-e2e` (simulator-only),
+	# while CI steps still expect BrowserStack/device artifacts — IPAs never export.
+	local build_name
+	if [ -n "${BUILD_CONFIG_NAME:-}" ]; then
+		build_name="$BUILD_CONFIG_NAME"
+		echo ""
+		echo "📦 Using BUILD_CONFIG_NAME from environment: '${build_name}'"
+	else
+		# Normalize environment name (production -> prod for build name)
+		local normalized_env="$environment"
+		case "$environment" in
+			production) normalized_env="prod" ;;
+		esac
+		build_name="${build_type}-${normalized_env}"
+	fi
 
 	echo ""
 	echo "📦 Loading configuration from builds.yml for '${build_name}'..."
@@ -448,7 +456,7 @@ generateIosBinary() {
 		xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration -sdk iphonesimulator -derivedDataPath build
 	fi
 	
-	if [ "$IS_DEVICE_BUILD" = "true" ] || [ -z "$IS_SIM_BUILD" ]; then
+	if [ "$IS_DEVICE_BUILD" = "true" ] || [ "$IS_SIM_BUILD" != "true" ]; then
 		echo "Binary build type: Device"
 
 		# When PROFILE=development, override the signing settings so a Release
@@ -934,18 +942,7 @@ if [ "$PLATFORM" != "expo-update" ]; then
 fi
 
 if [ "$METAMASK_ENVIRONMENT" == "e2e" ]; then
-	if [ "${IS_BROWSERSTACK_BUILD:-false}" != "true" ]; then
-		# Build for simulator (local/CI emulator). BrowserStack builds target real devices, so skip this.
-		export IS_SIM_BUILD="true"
-	fi
-	# Ignore Boxlogs for E2E builds
 	export IGNORE_BOXLOGS_DEVELOPMENT="true"
-fi
-
-# BrowserStack builds target real devices: override IS_SIM_BUILD=true that loadBuildConfig may
-# have set from the generic main-e2e config (which uses IS_SIM_BUILD=true for emulators).
-if [ "${IS_BROWSERSTACK_BUILD:-false}" = "true" ]; then
-	export IS_SIM_BUILD="false"
 fi
 
 if [ "$METAMASK_ENVIRONMENT" == "production" ]; then
