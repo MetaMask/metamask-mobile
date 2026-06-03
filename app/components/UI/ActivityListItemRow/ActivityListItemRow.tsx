@@ -10,12 +10,7 @@ import { getTransactionIcon } from '../../../util/transaction-icons';
 import { getNetworkImageSource } from '../../../util/networks';
 import { RootState } from '../../../reducers';
 import { AppThemeKey } from '../../../util/theme/models';
-import { strings } from '../../../../locales/i18n';
-import type {
-  ActivityKind,
-  ActivityListItem,
-  TokenAmount,
-} from '../../../util/activity-adapters';
+import type { ActivityKind } from '../../../util/activity-adapters';
 import { createStyles } from './ActivityListItemRow.styles';
 import { ActivityListItemRowIcon } from './ActivityListItemRowIcon';
 import { ActivityListItemRowLayout } from './ActivityListItemRowLayout';
@@ -74,47 +69,6 @@ function resolveIconType(type: ActivityKind): string {
     case 'stopMarketCloseShort':
     case 'marketCloseShort':
       return 'interaction';
-  }
-}
-
-function resolveTitleToken(item: ActivityListItem): TokenAmount | undefined {
-  const { data } = item;
-  if ('token' in data) return data.token;
-  if ('destinationToken' in data) return data.destinationToken;
-  if ('sourceToken' in data) return data.sourceToken;
-  return undefined;
-}
-
-export function resolveActivityListItemTitle(
-  item: ActivityListItem,
-  titleOverride?: string,
-): string {
-  if (titleOverride) return titleOverride;
-
-  const token = resolveTitleToken(item);
-  const symbol = token?.symbol;
-
-  switch (item.type) {
-    case 'send':
-      return symbol ? `Sent ${symbol}` : strings('transactions.sent');
-    case 'receive':
-      return symbol ? `Received ${symbol}` : strings('transactions.received');
-    case 'swap':
-      return 'Swapped';
-    case 'swapIncomplete':
-      return 'Swapped';
-    case 'bridge':
-      return symbol ? `Bridged ${symbol}` : 'Bridged';
-    case 'buy':
-      return symbol ? `Bought ${symbol}` : 'Bought';
-    case 'sell':
-      return symbol ? `Sold ${symbol}` : 'Sold';
-    case 'claim':
-      return symbol ? `Claimed ${symbol}` : 'Claimed';
-    case 'deposit':
-      return symbol ? `Deposited ${symbol}` : 'Deposited';
-    default:
-      return strings('transactions.interaction');
   }
 }
 

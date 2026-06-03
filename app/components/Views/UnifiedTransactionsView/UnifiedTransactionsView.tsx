@@ -1,11 +1,6 @@
-import { Transaction as NonEvmTransaction } from '@metamask/keyring-api';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
-import { SmartTransaction } from '@metamask/smart-transactions-controller';
-import {
-  TransactionMeta,
-  TransactionType,
-} from '@metamask/transaction-controller';
+import { TransactionType } from '@metamask/transaction-controller';
 import { numberToHex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -33,12 +28,9 @@ import {
   selectEVMEnabledNetworks,
   selectNonEVMEnabledNetworks,
 } from '../../../selectors/networkEnablementController';
-import {
-  selectLocalTransactions,
-  selectRelatedChainIdsByTransactionId,
-} from '../../../selectors/transactionController';
+import { selectRelatedChainIdsByTransactionId } from '../../../selectors/transactionController';
 import { baseStyles } from '../../../styles/common';
-import { areAddressesEqual, isHardwareAccount } from '../../../util/address';
+import { isHardwareAccount } from '../../../util/address';
 import { getBlockExplorerAddressUrl } from '../../../util/networks';
 import { useTheme } from '../../../util/theme';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
@@ -52,7 +44,6 @@ import {
   handleUnifiedSwapsTxHistoryItemClick,
 } from '../../UI/Bridge/utils/transaction-history';
 import MultichainBridgeTransactionListItem from '../../UI/MultichainBridgeTransactionListItem';
-import MultichainTransactionListItem from '../../UI/MultichainTransactionListItem';
 import TransactionElement from '../../UI/TransactionElement';
 import TransactionsFooter from '../../UI/Transactions/TransactionsFooter';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -71,22 +62,14 @@ import { UnifiedTransactionsViewSelectorsIDs } from './UnifiedTransactionsView.t
 import { useMultichainActivityMaliciousTokenKeys } from '../../hooks/useMultichainActivityMaliciousTokenKeys/useMultichainActivityMaliciousTokenKeys';
 import { filterMultichainTransactionsExcludingMaliciousTokenActivity } from '../../../util/multichain/multichainTransactionTokenScan';
 import { useTransactionsQuery } from './useTransactionsQuery';
-import {
-  type EvmTransaction,
-  TransactionKind,
-  type TransactionViewModel,
-  type UnifiedItem,
-} from './types';
+import { type ActivityListItem } from './types';
 import {
   isBridgeHistoryForEvmTransaction,
   mergeTransactionsByTime,
+  mapNonEvmTransactions,
 } from './helpers/transformations';
 import { normalizeTransaction } from './helpers/adapters';
-import {
-  mapApiEvmTransactions,
-  mapKeyringTransaction,
-  type ActivityListItem,
-} from '../../../util/activity-adapters';
+import { useLocalActivityItems } from './hooks/useLocalActivityItems';
 import {
   ActivityListItemRow,
   resolveActivityListItemTitle,
@@ -95,14 +78,13 @@ import {
 const confirmedEvmOverscan = 5;
 const visibilityConfig = { itemVisiblePercentThreshold: 1 };
 
-const getTransactionId = (tx: EvmTransaction) => tx.id;
-const isTransactionMetaLike = (
-  tx: TransactionMeta | SmartTransaction,
-): tx is EvmTransaction => 'id' in tx && typeof tx.id === 'string';
-
-const getEvmTransactionTime = (tx: EvmTransaction) => tx.time ?? 0;
-
-const getEvmChainId = (tx: EvmTransaction) => tx.chainId;
+const generateKey = (item: ActivityListItem): string => {
+  const hash = item.data.hash;
+  if (hash) {
+    return `${item.chainId}:${hash}`;
+  }
+  return `${item.chainId}:${item.timestamp}:${item.type}`;
+};
 
 const noop = () => undefined;
 
@@ -134,31 +116,17 @@ const getActivityFromTo = (item: ActivityListItem) => {
   };
 };
 
-const generateKey = (item: UnifiedItem) => {
-  if (item.kind === TransactionKind.Evm) {
-    return getTransactionId(item.tx);
-  }
-
-  if (item.kind === TransactionKind.ConfirmedEvm) {
-    return getTransactionId(item.tx.transactionMeta);
-  }
-
-  return String(item.tx.id ?? `${item.tx.chain}-${item.tx.timestamp ?? '0'}`);
-};
-
 interface UnifiedTransactionsViewProps {
   header?: React.ReactElement;
   tabLabel?: string;
   chainId?: string; // used by non-EVM list items for explorer links
   location?: TransactionDetailLocation;
-  renderActivityListItemRow?: boolean;
 }
 
 const UnifiedTransactionsView = ({
   header,
   chainId,
   location,
-  renderActivityListItemRow = false,
 }: UnifiedTransactionsViewProps) => {
   const navigation = useNavigation();
   const { colors } = useTheme();
@@ -193,12 +161,13 @@ const UnifiedTransactionsView = ({
     refetch,
   } = useTransactionsQuery();
 
-  const allConfirmedFiltered = useMemo<TransactionViewModel[]>(
+  const allConfirmedFiltered = useMemo<ActivityListItem[]>(
     () => evmTransactions?.pages.flatMap((page) => page.data) ?? [],
     [evmTransactions],
   );
 
-  const submittedTxs = useSelector(selectLocalTransactions);
+  // Local EVM transactions mapped through the shared adapter
+  const localActivityItems = useLocalActivityItems();
 
   const nonEvmState = useSelector(
     selectNonEvmTransactionsForSelectedAccountGroup,
@@ -210,7 +179,6 @@ const UnifiedTransactionsView = ({
 
   const currentCurrency = useSelector(selectCurrentCurrency);
 
-  // Inputs required to reproduce EVM filtering pipeline
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
   const selectedAccountGroupInternalAccounts = useSelector(
     selectSelectedAccountGroupInternalAccounts,
@@ -245,18 +213,20 @@ const UnifiedTransactionsView = ({
     selectRelatedChainIdsByTransactionId,
   );
 
-  /** Drop confirmed rows not on currently enabled EVM chains (guards stale query pages). */
-  const allConfirmedForEnabledChains = useMemo<TransactionViewModel[]>(() => {
+  const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
+
+  /** Drop confirmed EVM rows not on currently enabled chains (guards stale query pages). */
+  const allConfirmedForEnabledChains = useMemo<ActivityListItem[]>(() => {
     const chains = enabledEVMChainIds ?? [];
-    if (chains.length === 0) {
-      return [];
-    }
+    if (chains.length === 0) return [];
     const allowed = new Set(chains.map((c) => c.toLowerCase()));
-    return allConfirmedFiltered.filter(
-      (tx) =>
-        typeof tx.hexChainId === 'string' &&
-        allowed.has(tx.hexChainId.toLowerCase()),
-    );
+    return allConfirmedFiltered.filter((item) => {
+      // chainId is a CaipChainId like eip155:1 — extract hex part
+      const hexChainId = item.chainId.split(':')[1];
+      if (!hexChainId) return false;
+      const hexFormatted = `0x${parseInt(hexChainId, 10).toString(16)}`;
+      return allowed.has(hexFormatted.toLowerCase());
+    });
   }, [allConfirmedFiltered, enabledEVMChainIds]);
 
   const { maliciousTokenKeys } =
@@ -267,82 +237,82 @@ const UnifiedTransactionsView = ({
     selectEvmNetworkConfigurationsByChainId,
   );
 
-  const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
-
   const unifiedTransactionSource = useMemo<{
-    evmPendingTxs: EvmTransaction[];
-    evmConfirmedTxs: TransactionViewModel[];
-    chainFilteredNonEvmTransactionsForSelectedChain: NonEvmTransaction[];
+    localItems: ActivityListItem[];
+    confirmedEvmItems: ActivityListItem[];
+    nonEvmItems: ActivityListItem[];
   }>(() => {
     const bridgeHistoryValues = Object.values(bridgeHistory ?? {});
     const enabledEvmSet = new Set(
       (enabledEVMChainIds ?? []).map((id) => id.toLowerCase()),
     );
-    const submittedTxsFiltered = submittedTxs.filter(
-      (tx): tx is EvmTransaction => {
-        if (!isTransactionMetaLike(tx)) {
-          return false;
-        }
 
-        const { chainId: _chainId, txParams } = tx;
-
-        if (!enabledEvmSet.size) {
-          return false;
-        }
-
-        const relatedChainIds = relatedChainIdsByTransactionId.get(tx.id) ?? [
-          String(_chainId ?? '').toLowerCase(),
-        ];
-        if (!relatedChainIds.some((id) => enabledEvmSet.has(id))) {
-          return false;
-        }
-
-        const isBridgeTransaction = isBridgeHistoryForEvmTransaction(
-          tx,
-          bridgeHistoryValues,
-        );
-        const hash = 'hash' in tx ? tx.hash : undefined;
-        const { from, nonce } = txParams || {};
-        const hasNonce = nonce !== undefined && nonce !== null;
-
-        const matchingConfirmedByHash = allConfirmedForEnabledChains.some(
-          (confirmedTx) =>
-            typeof hash === 'string' &&
-            confirmedTx.hash.toLowerCase() === hash.toLowerCase() &&
-            confirmedTx.hexChainId?.toLowerCase() === _chainId?.toLowerCase(),
-        );
-        const matchingConfirmedByNonce = allConfirmedForEnabledChains.some(
-          (confirmedTx) =>
-            hasNonce &&
-            confirmedTx.nonce === nonce &&
-            confirmedTx.hexChainId?.toLowerCase() === _chainId?.toLowerCase() &&
-            Boolean(from) &&
-            areAddressesEqual(confirmedTx.from, from),
-        );
-
-        if (
-          matchingConfirmedByHash ||
-          (!isBridgeTransaction && matchingConfirmedByNonce)
-        ) {
-          return false;
-        }
-
-        return true;
-      },
+    // Filter local items to enabled EVM chains only, also deduplicate against confirmed
+    const confirmedHashes = new Set(
+      allConfirmedForEnabledChains
+        .map((item) => item.data.hash?.toLowerCase())
+        .filter(Boolean) as string[],
     );
 
-    // EVM: pending/submitted first (desc), then confirmed (dedup outgoing)
-    const evmPendingFirst = [...submittedTxsFiltered].sort(
-      (a, b) => getEvmTransactionTime(b) - getEvmTransactionTime(a),
-    );
+    // localActivityItems are already mapped from TransactionMeta via the adapter;
+    // here we apply the same chain-filter and EVM-confirmed dedup that existed before.
+    const filteredLocalItems = localActivityItems.filter((item) => {
+      const raw = item.raw;
+      if (raw?.type !== 'localTransaction') return true;
+      const tx = raw.data.primaryTransaction;
 
-    // Non-EVM: filter by enabled chains, also include bridge txs
-    // whose destination chain is enabled (e.g. Solana→Optimism bridge
-    // should appear when viewing Optimism activity)
-    const chainFilteredNonEvmTransactionsForSelectedChain = nonEvmTransactions
+      const txChainId = tx.chainId?.toLowerCase() ?? '';
+      const relatedChainIds = relatedChainIdsByTransactionId.get(tx.id) ?? [
+        txChainId,
+      ];
+
+      if (!relatedChainIds.some((id) => enabledEvmSet.has(id))) {
+        return false;
+      }
+
+      // Dedup against confirmed by hash — bridge txns are exempt from nonce dedup
+      const hash = tx.hash?.toLowerCase();
+      if (hash && confirmedHashes.has(hash)) return false;
+
+      // Nonce dedup: skip local if a confirmed tx has the same nonce+from+chain
+      // (bridge txns exempt, as they may have same nonce as their approval)
+      const isBridgeTx = isBridgeHistoryForEvmTransaction(
+        tx,
+        bridgeHistoryValues,
+      );
+      if (!isBridgeTx) {
+        const nonce = tx.txParams?.nonce;
+        const from = tx.txParams?.from?.toLowerCase();
+        if (nonce !== undefined && nonce !== null && from) {
+          const matchedByNonce = allConfirmedForEnabledChains.some(
+            (confirmed) => {
+              // parse nonce from confirmed item if available
+              const confirmedRaw = confirmed.raw;
+              if (confirmedRaw?.type !== 'apiEvmTransaction') return false;
+              const confirmedApiTx = confirmedRaw.data;
+              // hexChainId from caip: eip155:1 → 0x1
+              const hexChainId = confirmed.chainId.split(':')[1]
+                ? `0x${parseInt(confirmed.chainId.split(':')[1], 10).toString(16)}`
+                : '';
+              return (
+                confirmedApiTx.nonce === parseInt(String(nonce), 16) &&
+                hexChainId.toLowerCase() === txChainId &&
+                confirmedApiTx.from?.toLowerCase() === from
+              );
+            },
+          );
+          if (matchedByNonce) return false;
+        }
+      }
+
+      return true;
+    });
+
+    // Non-EVM: filter by enabled chains, include bridge txns whose dest chain is enabled
+    const filteredNonEvmTransactions = nonEvmTransactions
       .filter((tx) => {
         if (enabledNonEVMChainIds.includes(tx.chain)) return true;
-        const bridge = bridgeHistoryValues.find(
+        const bridge = Object.values(bridgeHistory ?? {}).find(
           (item) => item.status?.srcChain?.txHash === tx.id,
         );
         return (
@@ -350,54 +320,39 @@ const UnifiedTransactionsView = ({
           enabledEVMChainIds.includes(numberToHex(bridge.quote.destChainId))
         );
       })
-      // deduplicate by id
       .filter(
         (tx, index, self) => index === self.findIndex((t) => t.id === tx.id),
       );
 
+    const filteredNonEvmForMalicious =
+      filterMultichainTransactionsExcludingMaliciousTokenActivity(
+        filteredNonEvmTransactions,
+        maliciousTokenKeys,
+      );
+
+    const nonEvmItems = mapNonEvmTransactions(filteredNonEvmForMalicious);
+
     return {
-      evmPendingTxs: evmPendingFirst,
-      evmConfirmedTxs: allConfirmedForEnabledChains,
-      chainFilteredNonEvmTransactionsForSelectedChain,
+      localItems: filteredLocalItems,
+      confirmedEvmItems: allConfirmedForEnabledChains,
+      nonEvmItems,
     };
   }, [
     allConfirmedForEnabledChains,
-    submittedTxs,
+    localActivityItems,
     nonEvmTransactions,
     enabledEVMChainIds,
     enabledNonEVMChainIds,
     bridgeHistory,
     relatedChainIdsByTransactionId,
+    maliciousTokenKeys,
   ]);
 
-  const { data, nonEvmTransactionsForSelectedChain } = useMemo<{
-    data: UnifiedItem[];
-    nonEvmTransactionsForSelectedChain: NonEvmTransaction[];
-  }>(() => {
-    const {
-      evmPendingTxs,
-      evmConfirmedTxs,
-      chainFilteredNonEvmTransactionsForSelectedChain,
-    } = unifiedTransactionSource;
-
-    const filteredNonEvmTransactionsForSelectedChain =
-      filterMultichainTransactionsExcludingMaliciousTokenActivity(
-        chainFilteredNonEvmTransactionsForSelectedChain,
-        maliciousTokenKeys,
-      );
-
-    const mergedData = mergeTransactionsByTime(
-      evmPendingTxs,
-      evmConfirmedTxs,
-      filteredNonEvmTransactionsForSelectedChain,
-    );
-
-    return {
-      data: mergedData,
-      nonEvmTransactionsForSelectedChain:
-        filteredNonEvmTransactionsForSelectedChain,
-    };
-  }, [unifiedTransactionSource, maliciousTokenKeys]);
+  const data = useMemo<ActivityListItem[]>(() => {
+    const { localItems, confirmedEvmItems, nonEvmItems } =
+      unifiedTransactionSource;
+    return mergeTransactionsByTime(localItems, confirmedEvmItems, nonEvmItems);
+  }, [unifiedTransactionSource]);
 
   const hasEvmChainsEnabled = enabledEVMChainIds.length > 0;
   const popularListBlockExplorer = useBlockExplorer(
@@ -405,8 +360,6 @@ const UnifiedTransactionsView = ({
   );
 
   const configBlockExplorerUrl = useMemo(() => {
-    // When using the per-dapp/multiselect network selector, only return a block
-    // explorer if exactly one EVM chain is selected. Otherwise, undefined.
     if (!enabledEVMChainIds?.length || enabledEVMChainIds.length !== 1) {
       return undefined;
     }
@@ -418,8 +371,6 @@ const UnifiedTransactionsView = ({
   }, [enabledEVMChainIds, evmNetworkConfigurationsByChainId]);
 
   const blockExplorerUrl = useMemo(() => {
-    // configBlockExplorerUrl contains block explorer urls only for networks added by default after fresh install
-    // other networks should use PopularList, which is used by useBlockExplorer hook
     if (configBlockExplorerUrl) {
       return configBlockExplorerUrl;
     }
@@ -455,10 +406,7 @@ const UnifiedTransactionsView = ({
       );
       url = result.url;
       title = result.title;
-
-      if (!url) {
-        return;
-      }
+      if (!url) return;
     } else {
       url = blockExplorerUrl;
       title = hasEvmChainsEnabled
@@ -468,10 +416,7 @@ const UnifiedTransactionsView = ({
 
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
-      params: {
-        url,
-        title,
-      },
+      params: { url, title },
     });
   }, [
     navigation,
@@ -492,19 +437,13 @@ const UnifiedTransactionsView = ({
   );
 
   const nonEvmExplorerChainId = useMemo(() => {
-    if (enabledNonEVMChainIds.length) {
-      return enabledNonEVMChainIds[0];
-    }
-    if (chainId?.includes(':')) {
-      return chainId;
-    }
+    if (enabledNonEVMChainIds.length) return enabledNonEVMChainIds[0];
+    if (chainId?.includes(':')) return chainId;
     return undefined;
   }, [enabledNonEVMChainIds, chainId]);
 
   const nonEvmExplorerUrl = useMemo(() => {
-    if (!selectedAccountGroupSolanaAddress || !nonEvmExplorerChainId) {
-      return '';
-    }
+    if (!selectedAccountGroupSolanaAddress || !nonEvmExplorerChainId) return '';
     return getAddressUrl(
       selectedAccountGroupSolanaAddress,
       nonEvmExplorerChainId as SupportedCaipChainId,
@@ -515,15 +454,10 @@ const UnifiedTransactionsView = ({
     showNonEvmFooter && allNonEvmChainsAreSolana && Boolean(nonEvmExplorerUrl);
 
   const onViewNonEvmExplorer = useCallback(() => {
-    if (!nonEvmExplorerUrl) {
-      return;
-    }
-
+    if (!nonEvmExplorerUrl) return;
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
-      params: {
-        url: nonEvmExplorerUrl,
-      },
+      params: { url: nonEvmExplorerUrl },
     });
   }, [navigation, nonEvmExplorerUrl]);
 
@@ -552,7 +486,7 @@ const UnifiedTransactionsView = ({
         <MultichainTransactionsFooter
           url={nonEvmExplorerUrl}
           hasTransactions={
-            (nonEvmTransactionsForSelectedChain?.length ?? 0) > 0
+            (unifiedTransactionSource.nonEvmItems?.length ?? 0) > 0
           }
           showDisclaimer
           showExplorerLink={showNonEvmExplorerLink}
@@ -564,7 +498,7 @@ const UnifiedTransactionsView = ({
     return null;
   }, [
     enabledEVMChainIds,
-    nonEvmTransactionsForSelectedChain?.length,
+    unifiedTransactionSource.nonEvmItems?.length,
     onViewBlockExplorer,
     onViewNonEvmExplorer,
     providerType,
@@ -593,6 +527,7 @@ const UnifiedTransactionsView = ({
     signLedgerTransaction,
     cancelUnsignedQRTransaction,
   } = useUnifiedTxActions();
+
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
@@ -707,13 +642,14 @@ const UnifiedTransactionsView = ({
     ],
   );
 
+  // Index of the last API-confirmed EVM item — used to trigger pagination.
   const lastConfirmedEvmIndex = useMemo(() => {
     for (let index = data.length - 1; index >= 0; index -= 1) {
-      if (data[index].kind === TransactionKind.ConfirmedEvm) {
+      const item = data[index];
+      if (item.raw?.type === 'apiEvmTransaction') {
         return index;
       }
     }
-
     return -1;
   }, [data]);
 
@@ -723,7 +659,7 @@ const UnifiedTransactionsView = ({
       : undefined;
 
   const onViewableItemsChanged = useCallback(
-    ({ viewableItems }: { viewableItems: ViewToken<UnifiedItem>[] }) => {
+    ({ viewableItems }: { viewableItems: ViewToken<ActivityListItem>[] }) => {
       if (
         !hasNextPage ||
         isFetchingNextPage ||
@@ -741,10 +677,7 @@ const UnifiedTransactionsView = ({
         ({ index }) => typeof index === 'number' && index >= prefetchIndex,
       );
 
-      if (!isNearPrefetchThreshold) {
-        return;
-      }
-
+      if (!isNearPrefetchThreshold) return;
       fetchNextPage();
     },
     [
@@ -755,11 +688,11 @@ const UnifiedTransactionsView = ({
       lastConfirmedEvmKey,
     ],
   );
-  const listRef = useRef<FlashListRef<UnifiedItem>>(null);
 
-  // Auto-scroll to top when new transactions are added
+  const listRef = useRef<FlashListRef<ActivityListItem>>(null);
+
   const { handleScroll } = useTransactionAutoScroll(data, listRef, {
-    keyExtractor: generateKey,
+    keyExtractor: (item: ActivityListItem) => generateKey(item),
   });
 
   const renderEmptyList = () => (
@@ -781,17 +714,20 @@ const UnifiedTransactionsView = ({
     item,
     index,
   }: {
-    item: UnifiedItem;
+    item: ActivityListItem;
     index: number;
   }) => {
-    if (item.kind === TransactionKind.Evm) {
-      // Reuse existing EVM TransactionElement via the Transactions list item renderer
+    const raw = item.raw;
+
+    // Pending local EVM transactions: route to TransactionElement for speed-up/cancel UI.
+    if (raw?.type === 'localTransaction' && item.status === 'pending') {
+      const tx = raw.data.primaryTransaction;
       return (
         <TransactionElement
-          tx={item.tx}
+          tx={tx}
           i={index}
           navigation={navigation}
-          txChainId={getEvmChainId(item.tx)}
+          txChainId={tx.chainId}
           selectedAddress={
             selectedAccountGroupEvmAddress || selectedInternalAccount?.address
           }
@@ -815,88 +751,40 @@ const UnifiedTransactionsView = ({
       );
     }
 
-    if (item.kind === TransactionKind.ConfirmedEvm) {
-      if (renderActivityListItemRow) {
-        const selectedEvmAddress =
-          selectedAccountGroupEvmAddress ||
-          selectedInternalAccount?.address ||
-          '';
-        const activityItem = mapApiEvmTransactions({
-          subjectAddress: selectedEvmAddress.toLowerCase(),
-          transaction: item.tx,
-        });
-        const bridgeHistoryItem = getBridgeHistoryItemByHash(
-          activityItem.data.hash,
-        );
-        const title = bridgeHistoryItem
-          ? getSwapBridgeTxActivityTitle(bridgeHistoryItem)
-          : undefined;
-
+    // Non-EVM bridge transactions: route to MultichainBridgeTransactionListItem.
+    if (raw?.type === 'keyringTransaction') {
+      const srcTxHash = raw.data.id;
+      const bridgeHistoryItem = bridgeHistoryItemsBySrcTxHash[srcTxHash];
+      if (bridgeHistoryItem) {
         return (
-          <ActivityListItemRow
-            item={activityItem}
+          <MultichainBridgeTransactionListItem
+            transaction={raw.data}
+            bridgeHistoryItem={bridgeHistoryItem}
+            navigation={navigation}
             index={index}
-            onPress={handleActivityItemPress}
-            title={title}
+            location={location}
+            showDestinationPerspective={
+              !enabledNonEVMChainIds.includes(raw.data.chain)
+            }
           />
         );
       }
-
-      return (
-        <TransactionElement
-          tx={item.tx.transactionMeta}
-          i={index}
-          navigation={navigation}
-          txChainId={item.tx.hexChainId}
-          selectedAddress={
-            selectedAccountGroupEvmAddress || selectedInternalAccount?.address
-          }
-          currentCurrency={currentCurrency}
-          showBottomBorder
-          location={location}
-        />
-      );
     }
 
-    // Render non-EVM transactions
-    const srcTxHash = item.tx.id; // id is unique for multichain tx
-    const bridgeHistoryItem = getBridgeHistoryItemByHash(srcTxHash);
+    // All other items (API EVM confirmed, completed local EVM, non-EVM non-bridge):
+    // render from the shared ActivityListItem shape.
+    const bridgeHistoryItem = getBridgeHistoryItemByHash(item.data.hash);
+    const title = bridgeHistoryItem
+      ? getSwapBridgeTxActivityTitle(bridgeHistoryItem)
+      : undefined;
 
-    if (renderActivityListItemRow) {
-      const activityItem = mapKeyringTransaction({ transaction: item.tx });
-      const title = bridgeHistoryItem
-        ? getSwapBridgeTxActivityTitle(bridgeHistoryItem)
-        : undefined;
-
-      return (
-        <ActivityListItemRow
-          item={activityItem}
-          index={index}
-          onPress={handleActivityItemPress}
-          title={title}
-        />
-      );
-    }
-
-    return bridgeHistoryItem ? (
-      <MultichainBridgeTransactionListItem
-        transaction={item.tx}
+    return (
+      <ActivityListItemRow
+        item={item}
+        index={index}
+        onPress={handleActivityItemPress}
+        title={title}
         bridgeHistoryItem={bridgeHistoryItem}
-        navigation={navigation}
-        index={index}
-        location={location}
-        showDestinationPerspective={
-          !enabledNonEVMChainIds.includes(item.tx.chain)
-        }
-      />
-    ) : (
-      <MultichainTransactionListItem
-        transaction={item.tx}
-        navigation={navigation}
-        index={index}
-        // Use the transaction's chain property for non-EVM transactions (contains CAIP chainId)
-        chainId={item.tx.chain as unknown as SupportedCaipChainId}
-        location={location}
       />
     );
   };
@@ -934,7 +822,7 @@ const UnifiedTransactionsView = ({
             />
           )}
         </PriceChartContext.Consumer>
-        {/* Speed up / Cancel modals*/}
+        {/* Speed up / Cancel modals */}
         <CancelSpeedupModal
           isVisible={speedUpIsOpen || cancelIsOpen}
           isCancel={cancelIsOpen}
