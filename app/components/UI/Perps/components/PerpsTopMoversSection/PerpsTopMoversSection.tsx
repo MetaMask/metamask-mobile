@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Pressable } from 'react-native';
+import { useSelector } from 'react-redux';
 import {
   Box,
   BoxFlexDirection,
@@ -20,6 +21,8 @@ import { PillScrollList } from '../../../Trending/components/PillScrollList';
 import { SectionPillsSkeleton } from '../../../Trending/components/SectionPillsSkeleton';
 import { PerpsPillItem } from '../PerpsPillItem';
 import { usePerpsTopMovers } from '../../hooks/usePerpsTopMovers';
+import { usePerpsNavigation } from '../../hooks';
+import { selectPerpsTopMoversEnabledFlag } from '../../selectors/featureFlags';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
 import type { PerpsFeedItem } from '../../types/perpsFeedTypes';
@@ -63,10 +66,12 @@ const TogglePill: React.FC<TogglePillProps> = ({
   );
 };
 
+type PerpsTopMoversSource =
+  (typeof PERPS_EVENT_VALUE.SOURCE)[keyof typeof PERPS_EVENT_VALUE.SOURCE];
+
 export interface PerpsTopMoversSectionProps {
-  /** Called when the "Top movers >" header is tapped — should navigate to Market List.
-   * Receives the currently active sort direction so the caller can pre-sort accordingly. */
-  onViewAll: (direction: SortDirection) => void;
+  /** Source attributed to navigation and market-details events triggered from this section. */
+  source: PerpsTopMoversSource;
 }
 
 /**
@@ -76,27 +81,37 @@ export interface PerpsTopMoversSectionProps {
  * price-change markets. Data is fetched from the controller with no
  * client-side sort or slice applied.
  *
- * Hides itself entirely when not loading and no market data is available.
+ * Hides itself when the feature flag is disabled, or when not loading and
+ * no market data is available.
  */
 const PerpsTopMoversSection: React.FC<PerpsTopMoversSectionProps> = ({
-  onViewAll,
+  source,
 }) => {
   const tw = useTailwind();
+  const isEnabled = useSelector(selectPerpsTopMoversEnabledFlag);
+  const perpsNavigation = usePerpsNavigation();
   const [direction, setDirection] = useState<SortDirection>('desc');
   const { data, isLoading } = usePerpsTopMovers({ direction });
+
+  if (!isEnabled) {
+    return null;
+  }
 
   if (!isLoading && data.length === 0) {
     return null;
   }
 
+  const handleViewAll = () => {
+    perpsNavigation.navigateToMarketList({
+      defaultSortOptionId: 'priceChange',
+      defaultSortDirection: direction,
+      source,
+    });
+  };
+
   const renderPill = (item: PerpsMarketData) => {
     const feedItem: PerpsFeedItem = { market: item, isWatchlisted: false };
-    return (
-      <PerpsPillItem
-        item={feedItem}
-        marketDetailsSource={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
-      />
-    );
+    return <PerpsPillItem item={feedItem} marketDetailsSource={source} />;
   };
 
   return (
@@ -107,7 +122,7 @@ const PerpsTopMoversSection: React.FC<PerpsTopMoversSectionProps> = ({
     >
       <SectionHeader
         title={strings('perps.home.top_movers')}
-        onPress={() => onViewAll(direction)}
+        onPress={handleViewAll}
         testID={PerpsHomeViewSelectorsIDs.TOP_MOVERS_HEADER}
         twClassName="mb-3"
       />

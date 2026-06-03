@@ -47,7 +47,6 @@ import {
 import {
   selectPerpsFeedbackEnabledFlag,
   selectPerpsServiceInterruptionBannerEnabledFlag,
-  selectPerpsTopMoversEnabledFlag,
 } from '../../selectors/featureFlags';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
@@ -71,7 +70,6 @@ import { TraceName } from '../../../../../util/trace';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-  type SortDirection,
 } from '@metamask/perps-controller';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
@@ -122,24 +120,12 @@ const PerpsHomeView = ({
   const isServiceInterruptionBannerEnabled = useSelector(
     selectPerpsServiceInterruptionBannerEnabledFlag,
   );
-  const isTopMoversEnabled = useSelector(selectPerpsTopMoversEnabledFlag);
   const privacyMode = useSelector(selectPrivacyMode);
   const isWhatsHappeningEnabled = useSelector(selectWhatsHappeningEnabled);
 
   // Use centralized navigation hook
   const perpsNavigation = usePerpsNavigation();
   const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
-
-  const handleTopMoversViewAll = useCallback(
-    (direction: SortDirection) => {
-      perpsNavigation.navigateToMarketList({
-        defaultSortOptionId: 'priceChange',
-        defaultSortDirection: direction,
-        source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
-      });
-    },
-    [perpsNavigation],
-  );
 
   // Ensure Arbitrum network exists when user lands on the main perps screen (not on button click)
   useFocusEffect(
@@ -668,9 +654,7 @@ const PerpsHomeView = ({
         </View>
 
         {/* Top Movers Section */}
-        {isTopMoversEnabled && (
-          <PerpsTopMoversSection onViewAll={handleTopMoversViewAll} />
-        )}
+        <PerpsTopMoversSection source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME} />
 
         <View style={styles.sectionContent}>
           <PerpsNavigationCard items={navigationItems} />
