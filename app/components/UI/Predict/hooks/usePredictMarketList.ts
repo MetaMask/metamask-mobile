@@ -58,19 +58,31 @@ export const usePredictMarketList = (
   });
 
   const markets = useMemo(() => {
-    const flattened =
-      queryResult.data?.pages.flatMap((page) => page.markets) ?? [];
+    const pages = queryResult.data?.pages ?? [];
 
+    // Rank visibility/staleness PER PAGE, then append, so loading more pages
+    // never re-orders markets already on screen. `getVisiblePredictMarkets`
+    // scores by `(list.length - index) * penalty`, so ranking the full
+    // cross-page list would let a growing length flip the order of earlier
+    // items. Matches `usePredictMarketData`'s per-page append behavior.
     const seenIds = new Set<string>();
-    const deduped = filterStandaloneMarkets(flattened).filter((market) => {
-      if (seenIds.has(market.id)) {
-        return false;
-      }
-      seenIds.add(market.id);
-      return true;
-    });
+    const accumulated: PredictMarket[] = [];
 
-    return getVisiblePredictMarkets(deduped);
+    for (const page of pages) {
+      const visible = getVisiblePredictMarkets(
+        filterStandaloneMarkets(page.markets),
+      );
+
+      for (const market of visible) {
+        if (seenIds.has(market.id)) {
+          continue;
+        }
+        seenIds.add(market.id);
+        accumulated.push(market);
+      }
+    }
+
+    return accumulated;
   }, [queryResult.data]);
 
   useEffect(() => {
