@@ -180,7 +180,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName={compact ? 'w-full gap-2' : 'w-full gap-3'}
+        twClassName="w-full"
       >
         {renderTeamLogo(leftTeam, leftLogoTestID)}
 
@@ -189,7 +189,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
             variant={TextVariant.DisplayMd}
             color={TextColor.TextDefault}
             fontWeight={FontWeight.Bold}
-            twClassName={scoreWidthClass}
+            twClassName={`${scoreWidthClass} ${compact ? 'pl-2' : 'pl-3'}`}
             numberOfLines={1}
           >
             {leftScore}
@@ -267,7 +267,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
             variant={TextVariant.DisplayMd}
             color={TextColor.TextDefault}
             fontWeight={FontWeight.Bold}
-            twClassName={`${scoreWidthClass} text-right`}
+            twClassName={`${scoreWidthClass} ${compact ? 'pr-2' : 'pr-3'} text-right`}
             numberOfLines={1}
           >
             {rightScore}
