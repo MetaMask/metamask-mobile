@@ -260,8 +260,8 @@ export const handleUnifiedSwapsTxHistoryItemClick = ({
 
   // Reset attempts if the bridge transaction has reached the max attempts and user has clicked on the transaction
   if (bridgeTxHistoryItem) {
-    const { quote, attempts } = bridgeTxHistoryItem;
-    const isBridge = quote.srcAsset.chainId !== quote.destAsset.chainId;
+    const { attempts } = bridgeTxHistoryItem;
+    const isBridge = isBridgeTxHistoryItemBridge(bridgeTxHistoryItem);
 
     if (isBridge && attempts && attempts.counter >= MAX_ATTEMPTS) {
       Engine.context.BridgeStatusController.restartPollingForFailedAttempts({
