@@ -827,7 +827,7 @@ export function useQuickBuyController(
   const handleConfirm = useCallback(async () => {
     if (!activeQuote || !walletAddress) return;
 
-    const amountUsd = usdAmountNumber;
+    const amountUsd = usdAmountNumber > 0 ? usdAmountNumber : undefined;
     const amountTokenRaw = activeQuote.toTokenAmount?.amount;
     const amountToken =
       amountTokenRaw != null && isNumberValue(amountTokenRaw)
@@ -853,7 +853,9 @@ export function useQuickBuyController(
             : {}),
           [SocialLeaderboardEventProperties.CAIP19]: submittedCaip19,
           [SocialLeaderboardEventProperties.ASSET_NAME]: submittedAssetName,
-          [SocialLeaderboardEventProperties.AMOUNT_USD]: amountUsd,
+          ...(amountUsd !== undefined
+            ? { [SocialLeaderboardEventProperties.AMOUNT_USD]: amountUsd }
+            : {}),
           [SocialLeaderboardEventProperties.TRADE_TYPE]: tradeMode,
           ...(submittedPayWith
             ? {
