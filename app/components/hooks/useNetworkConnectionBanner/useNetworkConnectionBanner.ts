@@ -120,7 +120,7 @@ const useNetworkConnectionBanner = (): {
 
       // Collect every enabled EVM network whose default RPC endpoint is
       // currently failing (status !== Available). We need the full list to
-      // decide whether to show the banner per the WPC-1014 rules below.
+      // decide whether to show the banner per the rules below.
       const failedNetworks: {
         chainId: Hex;
         networkName: string;
@@ -203,7 +203,7 @@ const useNetworkConnectionBanner = (): {
       const areAllEnabledNetworksFailed =
         failedNetworks.length > 0 && failedNetworks.length === totalEnabled;
 
-      // Show the banner if (WPC-1014):
+      // Show the banner if:
       // - The first failing network is a custom network (users always want to
       //   be informed about errors with RPC endpoints they've chosen), or
       // - There are failures across more than one registrable domain (likely

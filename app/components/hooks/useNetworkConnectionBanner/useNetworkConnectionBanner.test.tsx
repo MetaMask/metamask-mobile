@@ -460,7 +460,7 @@ describe('useNetworkConnectionBanner', () => {
       });
     });
 
-    it('does not show the banner when only one Infura-backed network is failing while others are available (WPC-1014)', () => {
+    it('does not show the banner when only one Infura-backed network is failing while others are available', () => {
       jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
         visible: false,
       });
@@ -539,7 +539,7 @@ describe('useNetworkConnectionBanner', () => {
       });
     });
 
-    it('hides the banner when the previously failing custom network recovers and only one Infura network is now failing (WPC-1014)', () => {
+    it('hides the banner when the previously failing custom network recovers and only one Infura network is now failing', () => {
       // Start with banner visible for 0x89 (custom RPC) — the previous code
       // path that fired the custom-override rule.
       jest.mocked(selectNetworkConnectionBannerState).mockReturnValue({
@@ -551,9 +551,9 @@ describe('useNetworkConnectionBanner', () => {
         isInfuraEndpoint: false,
       });
 
-      // 0x89 recovers, only 0x1 (Infura) is now failing. Under WPC-1014 this
-      // is a single-provider blip (one registrable domain, not all enabled
-      // networks down, no custom) so the banner should be suppressed.
+      // 0x89 recovers, only 0x1 (Infura) is now failing. This is a single-
+      // provider blip (one registrable domain, not all enabled networks down,
+      // no custom) so the banner should be suppressed.
       const updatedNetworkMetadata = {
         [NETWORK_CLIENT_ID_1]: { status: NetworkStatus.Unavailable },
         [NETWORK_CLIENT_ID_89]: { status: NetworkStatus.Available },
