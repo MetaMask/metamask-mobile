@@ -280,37 +280,8 @@ async function createFixtureHdAccount(
   createAccount: () => Promise<unknown>,
   accountExists: () => boolean,
 ): Promise<void> {
-  const createResult = createAccount().then(
-    () => ({ ok: true as const }),
-    (error: unknown) => ({ ok: false as const, error }),
-  );
-  const observedResult = waitForFixtureCondition(label, accountExists).then(
-    () => ({ observed: true as const }),
-    (error: unknown) => ({ observed: false as const, error }),
-  );
-
-  const firstResult = await Promise.race([createResult, observedResult]);
-  if ('ok' in firstResult) {
-    if (!firstResult.ok) {
-      throw firstResult.error;
-    }
-    await waitForFixtureCondition(label, accountExists, 30_000);
-    return;
-  }
-
-  if (!firstResult.observed) {
-    throw firstResult.error;
-  }
-
-  void createResult.then((result) => {
-    if (!result.ok) {
-      Logger.log(
-        `[AgenticService] Fixture HD account promise failed after account appeared: ${String(
-          (result.error as Error).message || result.error,
-        )}`,
-      );
-    }
-  });
+  await withFixtureTimeout(label, createAccount(), 90_000);
+  await waitForFixtureCondition(label, accountExists, 30_000);
 }
 
 declare global {

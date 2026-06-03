@@ -42,6 +42,11 @@ FAILED=0
 pass() { printf "  \033[32mPASS\033[0m %s\n" "$1"; }
 fail() { printf "  \033[31mFAIL\033[0m %s\n" "$1"; FAILED=1; }
 hdr()  { printf "\n\033[1m== %s ==\033[0m\n" "$1"; }
+PREFLIGHT_TS=(
+  yarn ts-node --transpile-only
+  --project scripts/perps/agentic/preflight/tsconfig.json
+  scripts/perps/agentic/preflight/preflight.ts
+)
 
 # Portable bounded capture: runs the command and captures combined stdout+stderr,
 # killing it if it exceeds $1 seconds. Avoids the GNU `timeout` binary which is
@@ -165,24 +170,24 @@ done
 
 # ─── 10. Preflight --mode plumbing ──────────────────────────────────
 hdr "preflight --mode arg parsing"
-out=$(yarn ts-node --transpile-only scripts/perps/agentic/preflight/preflight.ts --mode invalid --check-only 2>&1 || true)
+out=$("${PREFLIGHT_TS[@]}" --mode invalid --check-only 2>&1 || true)
 echo "$out" | grep -q "unknown --mode 'invalid'" && pass "unknown --mode rejected" || fail "unknown mode not rejected: $out"
 
-out=$(_capture_for 10 yarn ts-node --transpile-only scripts/perps/agentic/preflight/preflight.ts --mode fast --check-only 2>&1 | head -20 || true)
+out=$(_capture_for 10 "${PREFLIGHT_TS[@]}" --mode fast --check-only 2>&1 | head -20 || true)
 echo "$out" | grep -qE "Mode:.*fast.*no build" && pass "fast mode header rendered" || fail "fast mode header missing"
 
-out=$(_capture_for 10 yarn ts-node --transpile-only scripts/perps/agentic/preflight/preflight.ts --mode auto --check-only 2>&1 | head -20 || true)
+out=$(_capture_for 10 "${PREFLIGHT_TS[@]}" --mode auto --check-only 2>&1 | head -20 || true)
 echo "$out" | grep -qE "Mode:.*auto.*fingerprint-gated" && pass "auto mode header rendered" || fail "auto mode header missing"
 
-out=$(_capture_for 10 yarn ts-node --transpile-only scripts/perps/agentic/preflight/preflight.ts --mode rebuild-native --check-only 2>&1 | head -20 || true)
+out=$(_capture_for 10 "${PREFLIGHT_TS[@]}" --mode rebuild-native --check-only 2>&1 | head -20 || true)
 echo "$out" | grep -qE "Mode:.*rebuild-native" && pass "rebuild-native mode header rendered" || fail "rebuild-native mode header missing"
 
-out=$(_capture_for 10 yarn ts-node --transpile-only scripts/perps/agentic/preflight/preflight.ts --mode clean --check-only 2>&1 | head -20 || true)
-echo "$out" | grep -qE "Mode:.*clean.*yarn setup" && pass "clean mode header rendered" || fail "clean mode header missing"
+out=$(_capture_for 10 "${PREFLIGHT_TS[@]}" --mode clean --check-only 2>&1 | head -20 || true)
+echo "$out" | grep -q -- "--check-only conflicts with --clean / --mode clean" && pass "clean mode check-only conflict rejected" || fail "clean mode conflict missing"
 
 # Legacy --clean still maps to clean mode (back-compat)
-out=$(_capture_for 10 yarn ts-node --transpile-only scripts/perps/agentic/preflight/preflight.ts --clean --check-only 2>&1 | head -20 || true)
-echo "$out" | grep -qE "Mode:.*clean.*yarn setup" && pass "legacy --clean still maps to clean" || fail "legacy --clean broken"
+out=$(_capture_for 10 "${PREFLIGHT_TS[@]}" --clean --check-only 2>&1 | head -20 || true)
+echo "$out" | grep -q -- "--check-only conflicts with --clean / --mode clean" && pass "legacy --clean check-only conflict rejected" || fail "legacy --clean conflict missing"
 
 # ─── 10b. Agentic fp respects the safe/unsafe ignorePath boundary ──
 # compute-cache-fp.js ignores per-worktree build outputs but MUST keep
