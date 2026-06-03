@@ -400,7 +400,7 @@ MetaMetricsTestUtils.cleanup();
 The module respects the following environment configurations:
 
 - `__DEV__` - Development mode logging
-- `isE2E` - End-to-end testing mode
+- `hasTestOverrides` - End-to-end testing mode
 - Segment configuration from app settings
 
 ### Storage Keys
@@ -444,7 +444,7 @@ The module uses the following storage keys:
 ### Common Issues
 
 1. **Events Not Tracking**: Check if analytics is enabled with `isEnabled()` from the `useMetrics` hook (though `trackEvent()` is safe to call regardless)
-2. **Events Not Appearing in Analytics**: If `IS_TEST=true` environment variable is set, the Segment client is replaced with a mock that does nothing - check your environment variables
+2. **Events Not Appearing in Analytics**: If `HAS_TEST_OVERRIDES=true` environment variable is set, the Segment client is replaced with a mock that does nothing - check your environment variables
 3. **Anonymous Events**: Verify sensitive properties are set correctly using `addSensitiveProperties()`
 4. **Event Builder Errors**: Always use `createEventBuilder()` and call `.build()` to finalize events
 

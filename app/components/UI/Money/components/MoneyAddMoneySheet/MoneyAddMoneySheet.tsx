@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useRef } from 'react';
 import { TouchableOpacity, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import BigNumber from 'bignumber.js';
 import { TransactionType } from '@metamask/transaction-controller';
@@ -28,6 +29,11 @@ import { Hex } from '@metamask/utils';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
+import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
+import {
+  getRampRoutingDecision,
+  UnifiedRampRoutingType,
+} from '../../../../../reducers/fiatOrders';
 import styleSheet from './MoneyAddMoneySheet.styles';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
 
@@ -38,6 +44,7 @@ interface Option {
   icon: IconName;
   onPress: () => void;
   testID: string;
+  disabled?: boolean;
 }
 
 const MoneyAddMoneySheet: React.FC = () => {
@@ -55,6 +62,8 @@ const MoneyAddMoneySheet: React.FC = () => {
   } = useMusdBalance();
   const { initiateDeposit } = useMoneyAccountDeposit();
   const { enabledTransactionTypes } = useMMPayFiatConfig();
+  const hasAnyCryptoBalance = useSelector(selectHasAnyNonZeroTokenBalance);
+  const rampRoutingDecision = useSelector(getRampRoutingDecision);
   const isFiatDepositEnabled = useMemo(
     () => enabledTransactionTypes.includes(TransactionType.moneyAccountDeposit),
     [enabledTransactionTypes],
@@ -114,7 +123,7 @@ const MoneyAddMoneySheet: React.FC = () => {
     : new BigNumber(tokenBalanceAggregated).toFixed(2);
   const moveMusdLabel = hasMusdBalance
     ? strings('money.add_money_sheet.move_musd', { amount: moveMusdAmount })
-    : '';
+    : strings('money.add_money_sheet.add_musd');
 
   const baseOptions: Option[] = [
     {
@@ -124,8 +133,10 @@ const MoneyAddMoneySheet: React.FC = () => {
       icon: IconName.Refresh,
       onPress: handleConvertCrypto,
       testID: MoneyAddMoneySheetTestIds.CONVERT_CRYPTO_OPTION,
+      disabled: !hasAnyCryptoBalance,
     },
-    ...(isFiatDepositEnabled
+    ...(isFiatDepositEnabled &&
+    rampRoutingDecision !== UnifiedRampRoutingType.UNSUPPORTED
       ? [
           {
             label: strings('money.add_money_sheet.deposit_funds'),
@@ -142,19 +153,18 @@ const MoneyAddMoneySheet: React.FC = () => {
       : []),
   ];
 
-  const options: Option[] = hasMusdBalance
-    ? [
-        ...baseOptions,
-        {
-          label: moveMusdLabel,
-          description: strings('money.add_money_sheet.move_musd_description'),
-          descriptionTestID: MoneyAddMoneySheetTestIds.MOVE_MUSD_DESCRIPTION,
-          icon: IconName.Add,
-          onPress: handleMoveMusd,
-          testID: MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
-        },
-      ]
-    : baseOptions;
+  const options: Option[] = [
+    ...baseOptions,
+    {
+      label: moveMusdLabel,
+      description: strings('money.add_money_sheet.move_musd_description'),
+      descriptionTestID: MoneyAddMoneySheetTestIds.MOVE_MUSD_DESCRIPTION,
+      icon: IconName.Add,
+      onPress: handleMoveMusd,
+      testID: MoneyAddMoneySheetTestIds.MOVE_MUSD_OPTION,
+      disabled: !hasMusdBalance,
+    },
+  ];
 
   return (
     <BottomSheet
@@ -173,17 +183,24 @@ const MoneyAddMoneySheet: React.FC = () => {
         {options.map((item) => (
           <TouchableOpacity
             key={item.testID}
-            onPress={item.onPress}
+            disabled={item.disabled}
+            onPress={item.disabled ? undefined : item.onPress}
             style={styles.row}
             testID={item.testID}
           >
             <Icon
               name={item.icon}
               size={IconSize.Lg}
-              color={IconColor.IconDefault}
+              color={
+                item.disabled ? IconColor.IconMuted : IconColor.IconDefault
+              }
             />
             <View style={styles.rowLabelContainer}>
-              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={item.disabled ? TextColor.TextAlternative : undefined}
+              >
                 {item.label}
               </Text>
               {item.description ? (

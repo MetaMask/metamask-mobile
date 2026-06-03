@@ -11,7 +11,10 @@ import {
   selectMoneyDepositMinBalance,
   MoneyTokensSortMode,
 } from '../selectors/featureFlags';
-import { AssetType } from '../../../Views/confirmations/types/token';
+import {
+  AssetType,
+  TokenStandard,
+} from '../../../Views/confirmations/types/token';
 import { TokenI } from '../../Tokens/types';
 import { safeFormatChainIdToHex } from '../../Card/util/safeFormatChainIdToHex';
 
@@ -45,6 +48,11 @@ export const useMoneyDepositTokens = ({
   const sortMode: MoneyTokensSortMode = sortModeOverride ?? remoteSortMode;
 
   const allTokens = useAccountTokens({ includeNoBalance: false });
+
+  const isEvmToken = useCallback(
+    (token: AssetType) => Boolean(token.accountType?.includes('eip155')),
+    [],
+  );
 
   const isMMPayBlocked = useCallback(
     (token: AssetType) => isTokenBlocked(token, mmPayBlockedTokens),
@@ -83,11 +91,13 @@ export const useMoneyDepositTokens = ({
     (tokens: AssetType[]): AssetType[] =>
       tokens.filter(
         (token) =>
+          // Must run before isMMPayBlocked since MM Pay only supports EVM tokens.
+          isEvmToken(token) &&
           !isMMPayBlocked(token) &&
           !isMoneyBlocklisted(token) &&
           meetsMinBalance(token),
       ),
-    [isMMPayBlocked, isMoneyBlocklisted, meetsMinBalance],
+    [isEvmToken, isMMPayBlocked, isMoneyBlocklisted, meetsMinBalance],
   );
 
   const byFiatDesc = useCallback(

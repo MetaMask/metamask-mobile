@@ -78,7 +78,7 @@ const PredictionsCarouselSection: React.FC<PredictionsCarouselSectionProps> = ({
         sectionName={sectionName}
       />
       <HorizontalCarousel<PredictMarketType>
-        data={feed.data}
+        data={feed.data.slice(0, 6)}
         isLoading={feed.isLoading}
         renderItem={renderItem}
         Skeleton={PredictionsSkeleton}
