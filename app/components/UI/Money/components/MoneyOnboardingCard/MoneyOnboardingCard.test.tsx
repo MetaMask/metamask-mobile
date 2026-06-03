@@ -11,6 +11,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import Logger from '../../../../../util/Logger';
+import { showDevErrorAlert } from '../../utils/devErrorAlert';
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const tw = (..._args: unknown[]) => ({});
@@ -30,6 +31,10 @@ jest.mock('../../hooks/useMoneyAccount', () => ({
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
   default: { error: jest.fn(), log: jest.fn() },
+}));
+
+jest.mock('../../utils/devErrorAlert', () => ({
+  showDevErrorAlert: jest.fn(),
 }));
 
 jest.mock('../../hooks/useMoneyAccountBalance', () => ({
@@ -199,6 +204,22 @@ describe('MoneyOnboardingCard', () => {
       expect(Logger.error).toHaveBeenCalledWith(
         depositError,
         '[Money Account] initiateDeposit failed',
+      );
+    });
+
+    it('calls showDevErrorAlert when initiateDeposit rejects', async () => {
+      const depositError = new Error('deposit failed');
+      mockInitiateDeposit.mockRejectedValueOnce(depositError);
+      setupDefaultMocks({ currentStep: 0 });
+
+      const { getByTestId } = render(<MoneyOnboardingCard />);
+      fireEvent.press(getByTestId('money-onboarding-card-cta-button'));
+
+      await waitFor(() => expect(showDevErrorAlert).toHaveBeenCalled());
+
+      expect(showDevErrorAlert).toHaveBeenCalledWith(
+        '[Money Account] initiateDeposit failed',
+        depositError,
       );
     });
   });
