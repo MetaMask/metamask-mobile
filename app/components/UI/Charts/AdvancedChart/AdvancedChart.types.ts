@@ -182,9 +182,13 @@ export type RNToWebViewMessageType =
 export type WebViewToRNMessageType =
   | 'CHART_READY'
   | 'CHART_LAYOUT_SETTLED'
+  | 'CHART_RANGE_APPLIED'
+  | 'CHART_RANGE_APPLY_FAILED'
   | 'INDICATOR_ADDED'
   | 'INDICATOR_REMOVED'
   | 'CROSSHAIR_MOVE'
+  | 'CHART_INTERACTED'
+  | 'CHART_TRADINGVIEW_CLICKED'
   | 'ERROR'
   | 'DEBUG';
 
@@ -197,6 +201,8 @@ export interface OHLCVPaginationConfig {
 
 export interface SetOHLCVDataPayload {
   data: OHLCVBar[];
+  /** Monotonic id used to ignore stale WebView async callbacks after rapid range changes. */
+  seriesGeneration?: number;
   /** When provided, the WebView fetches older pages directly instead of round-tripping via RN. */
   pagination?: OHLCVPaginationConfig;
   /**
@@ -273,6 +279,20 @@ export interface ChartInteractedPayload {
   interaction_type: ChartInteractionType;
 }
 
+export interface ChartRangeSettlePayload {
+  seriesGeneration: number;
+  requestedFromMs?: number;
+  requestedToMs?: number;
+  actualFromSec?: number;
+  actualToSec?: number;
+  lastBarSec?: number;
+  latestBarVisible?: boolean;
+  rangeStatus?: 'applied' | 'failed' | 'fallback';
+  rangeApplyRetryCount?: number;
+  webViewRemounted?: boolean;
+  reason?: string;
+}
+
 export interface ErrorPayload {
   message: string;
   code?: string;
@@ -280,7 +300,9 @@ export interface ErrorPayload {
 
 export type WebViewToRNMessage =
   | { type: 'CHART_READY' }
-  | { type: 'CHART_LAYOUT_SETTLED' }
+  | { type: 'CHART_LAYOUT_SETTLED'; payload?: ChartRangeSettlePayload }
+  | { type: 'CHART_RANGE_APPLIED'; payload: ChartRangeSettlePayload }
+  | { type: 'CHART_RANGE_APPLY_FAILED'; payload: ChartRangeSettlePayload }
   | { type: 'INDICATOR_ADDED'; payload: IndicatorAddedPayload }
   | { type: 'INDICATOR_REMOVED'; payload: IndicatorRemovedPayload }
   | { type: 'CROSSHAIR_MOVE'; payload: CrosshairMovePayload }
@@ -295,6 +317,62 @@ export type WebViewToRNMessage =
 
 function isIndicatorType(value: unknown): value is IndicatorType {
   return typeof value === 'string' && value.length > 0;
+}
+
+function getOptionalNumber(
+  obj: Record<string, unknown>,
+  key: string,
+): number | undefined {
+  const value = obj[key];
+  return typeof value === 'number' && Number.isFinite(value)
+    ? value
+    : undefined;
+}
+
+function parseChartRangeSettlePayload(
+  obj: Record<string, unknown>,
+): ChartRangeSettlePayload | null {
+  const seriesGeneration = getOptionalNumber(obj, 'seriesGeneration');
+  if (seriesGeneration === undefined) {
+    return null;
+  }
+
+  const rangeStatus =
+    obj.rangeStatus === 'applied' ||
+    obj.rangeStatus === 'failed' ||
+    obj.rangeStatus === 'fallback'
+      ? obj.rangeStatus
+      : undefined;
+
+  return {
+    seriesGeneration,
+    ...(getOptionalNumber(obj, 'requestedFromMs') !== undefined
+      ? { requestedFromMs: getOptionalNumber(obj, 'requestedFromMs') }
+      : {}),
+    ...(getOptionalNumber(obj, 'requestedToMs') !== undefined
+      ? { requestedToMs: getOptionalNumber(obj, 'requestedToMs') }
+      : {}),
+    ...(getOptionalNumber(obj, 'actualFromSec') !== undefined
+      ? { actualFromSec: getOptionalNumber(obj, 'actualFromSec') }
+      : {}),
+    ...(getOptionalNumber(obj, 'actualToSec') !== undefined
+      ? { actualToSec: getOptionalNumber(obj, 'actualToSec') }
+      : {}),
+    ...(getOptionalNumber(obj, 'lastBarSec') !== undefined
+      ? { lastBarSec: getOptionalNumber(obj, 'lastBarSec') }
+      : {}),
+    ...(typeof obj.latestBarVisible === 'boolean'
+      ? { latestBarVisible: obj.latestBarVisible }
+      : {}),
+    ...(rangeStatus ? { rangeStatus } : {}),
+    ...(getOptionalNumber(obj, 'rangeApplyRetryCount') !== undefined
+      ? { rangeApplyRetryCount: getOptionalNumber(obj, 'rangeApplyRetryCount') }
+      : {}),
+    ...(typeof obj.webViewRemounted === 'boolean'
+      ? { webViewRemounted: obj.webViewRemounted }
+      : {}),
+    ...(typeof obj.reason === 'string' ? { reason: obj.reason } : {}),
+  };
 }
 
 /**
@@ -315,8 +393,26 @@ export function parseWebViewMessage(raw: unknown): WebViewToRNMessage | null {
     case 'CHART_READY':
       return { type };
 
-    case 'CHART_LAYOUT_SETTLED':
-      return { type };
+    case 'CHART_LAYOUT_SETTLED': {
+      const parsedPayload = parseChartRangeSettlePayload(obj);
+      return parsedPayload ? { type, payload: parsedPayload } : { type };
+    }
+
+    case 'CHART_RANGE_APPLIED': {
+      const parsedPayload = parseChartRangeSettlePayload(obj);
+      if (parsedPayload) {
+        return { type, payload: parsedPayload };
+      }
+      return null;
+    }
+
+    case 'CHART_RANGE_APPLY_FAILED': {
+      const parsedPayload = parseChartRangeSettlePayload(obj);
+      if (parsedPayload) {
+        return { type, payload: parsedPayload };
+      }
+      return null;
+    }
 
     case 'DEBUG':
       return {
@@ -456,7 +552,7 @@ export interface AdvancedChartProps {
    * Fires once when the native skeleton overlay is removed (chart ready, layout settled,
    * and parent `isLoading` false). Resets when `ohlcvSeriesKey` or chart HTML reloads.
    */
-  onSkeletonHidden?: () => void;
+  onSkeletonHidden?: (payload?: ChartRangeSettlePayload) => void;
   /** Callback when an error occurs */
   onError?: (error: string) => void;
   /** Crosshair OHLC data callback (for overlay legend) */
