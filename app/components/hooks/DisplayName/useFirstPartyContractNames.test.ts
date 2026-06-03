@@ -1,6 +1,9 @@
+import { renderHook } from '@testing-library/react-native';
+
 import { NETWORKS_CHAIN_ID } from '../../../constants/network';
 import { useFirstPartyContractNames } from './useFirstPartyContractNames';
 import { NameType } from '../../UI/Name/Name.types';
+import { UseDisplayNameRequest } from './useDisplayName';
 
 const BRIDGE_NAME_MOCK = 'Bridge';
 const BRIDGE_MAINNET_ADDRESS_MOCK =
@@ -9,38 +12,63 @@ const UNKNOWN_ADDRESS_MOCK = '0xabc123';
 
 describe('useFirstPartyContractNames', () => {
   it('returns null if no name found', () => {
-    const name = useFirstPartyContractNames([
-      {
-        type: NameType.EthereumAddress,
-        value: UNKNOWN_ADDRESS_MOCK,
-        variation: NETWORKS_CHAIN_ID.MAINNET,
-      },
-    ])[0];
+    const { result } = renderHook(() =>
+      useFirstPartyContractNames([
+        {
+          type: NameType.EthereumAddress,
+          value: UNKNOWN_ADDRESS_MOCK,
+          variation: NETWORKS_CHAIN_ID.MAINNET,
+        },
+      ]),
+    );
 
-    expect(name).toBe(null);
+    expect(result.current[0]).toBe(null);
   });
 
   it('returns name if found', () => {
-    const name = useFirstPartyContractNames([
+    const { result } = renderHook(() =>
+      useFirstPartyContractNames([
+        {
+          type: NameType.EthereumAddress,
+          value: BRIDGE_MAINNET_ADDRESS_MOCK,
+          variation: NETWORKS_CHAIN_ID.MAINNET,
+        },
+      ]),
+    );
+
+    expect(result.current[0]).toBe(BRIDGE_NAME_MOCK);
+  });
+
+  it('normalizes addresses to lowercase', () => {
+    const { result } = renderHook(() =>
+      useFirstPartyContractNames([
+        {
+          type: NameType.EthereumAddress,
+          value: BRIDGE_MAINNET_ADDRESS_MOCK.toUpperCase(),
+          variation: NETWORKS_CHAIN_ID.MAINNET,
+        },
+      ]),
+    );
+
+    expect(result.current[0]).toBe(BRIDGE_NAME_MOCK);
+  });
+
+  it('returns a stable reference across re-renders with identical input', () => {
+    const requests: UseDisplayNameRequest[] = [
       {
         type: NameType.EthereumAddress,
         value: BRIDGE_MAINNET_ADDRESS_MOCK,
         variation: NETWORKS_CHAIN_ID.MAINNET,
       },
-    ])[0];
+    ];
 
-    expect(name).toBe(BRIDGE_NAME_MOCK);
-  });
+    const { result, rerender } = renderHook(() =>
+      useFirstPartyContractNames(requests),
+    );
+    const first = result.current;
 
-  it('normalizes addresses to lowercase', () => {
-    const name = useFirstPartyContractNames([
-      {
-        type: NameType.EthereumAddress,
-        value: BRIDGE_MAINNET_ADDRESS_MOCK.toUpperCase(),
-        variation: NETWORKS_CHAIN_ID.MAINNET,
-      },
-    ])[0];
+    rerender({});
 
-    expect(name).toBe(BRIDGE_NAME_MOCK);
+    expect(result.current).toBe(first);
   });
 });

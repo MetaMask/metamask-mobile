@@ -299,4 +299,36 @@ describe('useAccountWalletNames', () => {
 
     expect(result.current).toEqual(['Wallet 1', undefined, 'Wallet 2']);
   });
+
+  it('returns a stable reference across re-renders with identical inputs', () => {
+    const requests: UseDisplayNameRequest[] = [
+      {
+        type: NameType.EthereumAddress,
+        value: '0x1234567890123456789012345678901234567890',
+        variation: 'normal',
+      },
+    ];
+
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectInternalAccountsById) {
+        return mockInternalAccountsById;
+      }
+      if (selector === selectAccountToWalletMap) {
+        return mockAccountToWalletMap;
+      }
+      if (selector === selectWalletsMap) {
+        return mockWalletsMap;
+      }
+      return undefined;
+    });
+
+    const { result, rerender } = renderHook(() =>
+      useAccountWalletNames(requests),
+    );
+    const first = result.current;
+
+    rerender();
+
+    expect(result.current).toBe(first);
+  });
 });
