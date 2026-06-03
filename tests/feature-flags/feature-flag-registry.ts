@@ -3594,6 +3594,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  perpsRelatedMarkets: {
+    name: 'perpsRelatedMarkets',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
   perpsTradeWithAnyTokenIsEnabled: {
     name: 'perpsTradeWithAnyTokenIsEnabled',
     type: FeatureFlagType.Remote,
