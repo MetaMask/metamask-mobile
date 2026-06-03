@@ -154,7 +154,7 @@ function findImporters(
     const pattern = `from ['\\\"].*${fileNameSafe}`; // from ['\"].*fileName
 
     const importers = execSync(
-      `grep -r -l --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" -E "${pattern}" app/ 2>/dev/null | grep -v "${filePath}" | head -${maxResults} || true`,
+      `grep -r -l --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" -E "${pattern}" app/ tests/ 2>/dev/null | grep -v "${filePath}" | head -${maxResults} || true`,
       { encoding: 'utf-8', cwd: baseDir },
     )
       .trim()

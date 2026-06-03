@@ -135,4 +135,24 @@ describe('PaymentMethodRow', () => {
 
     expect(getByTestId('payment-method-row-usdc-icon-slot')).toBeOnTheScreen();
   });
+
+  it('renders the icon slot with a different style when isSelected is true', () => {
+    const { getByTestId: getByTestIdUnselected } = render(
+      <PaymentMethodRow {...baseProps} />,
+    );
+    const { getByTestId: getByTestIdSelected } = render(
+      <PaymentMethodRow {...baseProps} isSelected />,
+    );
+
+    const unselectedStyle = getByTestIdUnselected(
+      'payment-method-row-usdc-icon-slot',
+    ).props.style;
+    const selectedStyle = getByTestIdSelected(
+      'payment-method-row-usdc-icon-slot',
+    ).props.style;
+
+    expect(JSON.stringify(selectedStyle)).not.toEqual(
+      JSON.stringify(unselectedStyle),
+    );
+  });
 });

@@ -101,6 +101,7 @@ describe('useTokensFeed', () => {
     expect(mockUseTrendingSearch).toHaveBeenCalledWith({
       searchQuery: 'sol',
       enableDebounce: false,
+      filterLowQuality: true,
       sortBy: undefined,
       sortTrendingTokensOptions: undefined,
     });
@@ -116,6 +117,7 @@ describe('useTokensFeed', () => {
     expect(mockUseTrendingSearch).toHaveBeenCalledWith({
       searchQuery: undefined,
       enableDebounce: false,
+      filterLowQuality: true,
       sortBy: 'h1_trending',
       sortTrendingTokensOptions: {
         option: 'price_change',

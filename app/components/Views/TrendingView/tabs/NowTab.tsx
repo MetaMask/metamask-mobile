@@ -41,7 +41,10 @@ import {
   navigateToExploreWorldCupPredictions,
 } from '../feeds/predictions/predictionsNavigation';
 import { useWorldCupPredictionsFeed } from '../feeds/predictions/useWorldCupPredictionsFeed';
-import { useStocksFeed } from '../feeds/stocks/useStocksFeed';
+import {
+  STOCKS_FEED_PREVIEW_PAGE_SIZE,
+  useStocksFeed,
+} from '../feeds/stocks/useStocksFeed';
 import { getCaipChainIdFromAssetId } from '../../../UI/Trending/components/TrendingTokenRowItem/utils';
 import CardList from '../components/CardList';
 import ExploreScroll from '../components/ExploreScroll';
@@ -205,7 +208,10 @@ const NowTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
     hideRiskyTokens: true,
     timeOption: CRYPTO_MOVERS_TIME_OPTION,
   });
-  const stocks = useStocksFeed({ refresh });
+  const stocks = useStocksFeed({
+    refresh,
+    pageSize: STOCKS_FEED_PREVIEW_PAGE_SIZE,
+  });
 
   const renderTokenItem: ListRenderItem<TrendingAsset> = useCallback(
     ({ item, index }) => (

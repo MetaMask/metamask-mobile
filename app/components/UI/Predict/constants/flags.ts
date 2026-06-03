@@ -45,7 +45,6 @@ export const DEFAULT_HOT_TAB_FLAG: PredictHotTabFlag = {
   minimumVersion: '7.64.0',
 };
 
-export const PREDICT_WORLD_CUP_DEFAULT_SERIES_ID = '11433';
 export const PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG = 'fifa-world-cup';
 export const PREDICT_WORLD_CUP_DEFAULT_GAMES_TAG_ID = '100639';
 
@@ -55,7 +54,6 @@ export const DEFAULT_PREDICT_WORLD_CUP_FLAG: PredictWorldCupConfig = {
   showMainFeedBanner: false,
   showMainFeedTab: false,
   showWorldCupScreen: false,
-  seriesId: PREDICT_WORLD_CUP_DEFAULT_SERIES_ID,
   tagSlug: PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG,
   gamesTagId: PREDICT_WORLD_CUP_DEFAULT_GAMES_TAG_ID,
   stages: [],
