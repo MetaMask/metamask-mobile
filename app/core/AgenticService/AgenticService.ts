@@ -101,7 +101,7 @@ interface ReactDevToolsHook {
 interface AgenticHudStep {
   id: string;
   status?: string;
-  intent?: string;
+  intent: string;
   progress?: { current?: number; total?: number };
   detail?: string;
   error?: string;
