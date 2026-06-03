@@ -18,7 +18,7 @@ import { HdKeyring } from '@metamask/eth-hd-keyring';
 import { MoneyKeyring } from '@metamask/eth-money-keyring';
 import { hmacSha512 } from '@metamask/native-utils';
 import { pbkdf2 } from '../../Encryptor';
-import { snapKeyringBuilder, snapKeyringBuilderV2 } from '../../SnapKeyring';
+import { snapKeyringBuilder } from '../../SnapKeyring';
 import { SnapKeyringBuilderMessenger } from '../../SnapKeyring/types';
 import { Messenger } from '@metamask/messenger';
 import { store } from '../../../store';

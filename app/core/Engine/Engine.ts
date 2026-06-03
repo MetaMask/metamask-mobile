@@ -313,10 +313,6 @@ export class Engine {
         RemoteFeatureFlagController: remoteFeatureFlagControllerInit,
         NetworkController: networkControllerInit,
         AccountsController: accountsControllerInit,
-        ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-        SnapKeyringBuilder: snapKeyringBuilderInit,
-        SnapKeyringBuilderV2: snapKeyringBuilderV2Init,
-        ///: END:ONLY_INCLUDE_IF
         PermissionController: permissionControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(snaps)
         SubjectMetadataController: subjectMetadataControllerInit,
@@ -560,15 +556,6 @@ export class Engine {
     cronjobController.init();
     // Notification Setup
     notificationServicesController.init();
-    ///: END:ONLY_INCLUDE_IF
-
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    // The Snap account service drives Snap-account lifecycle (initialization
-    // happens lazily — `init` seeds the runnable Snap set and starts the
-    // platform watcher).
-    snapAccountService.init().catch((error) => {
-      captureException(error);
-    });
     ///: END:ONLY_INCLUDE_IF
 
     this.context = {
