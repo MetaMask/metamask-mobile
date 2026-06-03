@@ -1,0 +1,101 @@
+##############################################################################################
+#
+# Hotfix Backport Alert
+#
+# When a new *minor* release branch is created (e.g. release/7.79.0), checks
+# whether the previous minor version (e.g. 7.78.0) had any hotfix releases
+# (7.78.1, 7.78.1-ota, …) whose commits have NOT been cherry-picked into the
+# new release branch.  If any are found, a warning is posted to the release
+# Slack channel and @release-owner-mobile is tagged so the Release Manager can
+# decide whether those fixes need to be carried forward.
+#
+# This alert is a WARNING ONLY — the missing fixes may not be needed for the
+# new release.  The team is pinged so they can make an informed decision.
+#
+# Trigger : branch creation event for release/X.Y.0 branches (new minors only).
+#           Hotfix branches (patch > 0) are ignored — they are checked at the
+#           point the *next* minor branch is created.
+#
+##############################################################################################
+name: Hotfix Backport Alert
+
+on:
+  create:
+
+permissions:
+  contents: read
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Step 1 — gate: only run for new minor release branches (release/X.Y.0)
+  # ---------------------------------------------------------------------------
+  check-branch:
+    name: Check branch type
+    if: ${{ github.ref_type == 'branch' && startsWith(github.ref, 'refs/heads/release/') }}
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.gate.outputs.should_run }}
+      new_semver: ${{ steps.gate.outputs.new_semver }}
+    steps:
+      - name: Determine if this is a new minor release
+        id: gate
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          BRANCH="${GITHUB_REF#refs/heads/}"
+          TAIL="${BRANCH#release/}"
+
+          # Reject -ota branches up-front (they are hotfixes, not new minors)
+          if [[ "$TAIL" == *-ota ]]; then
+            echo "OTA hotfix branch — skipping backport alert."
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Validate strict SemVer X.Y.Z
+          if ! [[ "$TAIL" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "Branch '$BRANCH' does not match release/X.Y.Z — skipping."
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          PATCH="${TAIL##*.}"
+          if [[ "$PATCH" -ne 0 ]]; then
+            echo "Hotfix branch (patch=$PATCH > 0) — skipping backport alert."
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "New minor release branch detected: $BRANCH (semver $TAIL)"
+          echo "should_run=true" >> "$GITHUB_OUTPUT"
+          echo "new_semver=${TAIL}" >> "$GITHUB_OUTPUT"
+
+  # ---------------------------------------------------------------------------
+  # Step 2 — run the backport check and post the Slack alert
+  # ---------------------------------------------------------------------------
+  hotfix-backport-alert:
+    name: Check hotfix backports and alert
+    needs: check-branch
+    if: needs.check-branch.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Run hotfix backport alert
+        run: node ./scripts/slack-hotfix-backport-alert.mjs
+        env:
+          NEW_SEMVER: ${{ needs.check-branch.outputs.new_semver }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
