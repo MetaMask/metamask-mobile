@@ -51,6 +51,9 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 const DELEGATION_MANAGER = '0xdb9b1e94b5b69df7e401ddbede43491141047db3';
 const DELEGATION_DATA = '0xdelegation-calldata';
+const MOCK_AUTHORIZATION_LIST = [
+  { chainId: '0x1' as Hex, nonce: '0x2' as Hex, yParity: '0x1' as Hex },
+];
 
 const MOCK_VAULT_CONFIG = {
   tellerAddress: '0xTeller',
@@ -159,6 +162,7 @@ describe('getPaymentOverrideData', () => {
       MOCK_DEPOSIT_BATCH as never,
     );
     getDelegationTransactionMock.mockResolvedValue({
+      authorizationList: MOCK_AUTHORIZATION_LIST,
       data: DELEGATION_DATA as Hex,
       to: DELEGATION_MANAGER as Hex,
       value: '0x0' as Hex,
@@ -319,6 +323,7 @@ describe('getPaymentOverrideData', () => {
 
       expect(result).toStrictEqual({
         recipient: MONEY_ACCOUNT_ADDRESS,
+        authorizationList: MOCK_AUTHORIZATION_LIST,
         calls: [
           {
             to: DELEGATION_MANAGER,

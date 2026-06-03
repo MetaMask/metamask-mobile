@@ -164,6 +164,7 @@ async function getMoneyAccountDepositPaymentOverrideData<
 
   return {
     recipient: moneyAccountAddress,
+    authorizationList: delegation.authorizationList,
     calls: [
       {
         to: delegation.to,
