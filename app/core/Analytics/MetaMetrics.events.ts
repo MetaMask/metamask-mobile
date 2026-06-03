@@ -560,7 +560,6 @@ enum EVENT_NAME {
   PUSH_NOTIFICATION_PRE_PROMPT_VIEWED = 'Push Notification Pre-prompt Viewed',
   PUSH_NOTIFICATION_PRE_PROMPT_BUTTON_CLICKED = 'Push Notification Pre-prompt Button Clicked',
   OS_PUSH_NOTIFICATION_BUTTON_CLICKED = 'OS Push Notification Button Clicked',
-  PUSH_NOTIFICATION_RECEIVED = 'Push Notification Received',
   PUSH_NOTIFICATION_CLICKED = 'Push Notification Clicked',
 
   // Smart transactions
@@ -1481,9 +1480,6 @@ const events = {
   ),
   OS_PUSH_NOTIFICATION_BUTTON_CLICKED: generateOpt(
     EVENT_NAME.OS_PUSH_NOTIFICATION_BUTTON_CLICKED,
-  ),
-  PUSH_NOTIFICATION_RECEIVED: generateOpt(
-    EVENT_NAME.PUSH_NOTIFICATION_RECEIVED,
   ),
   PUSH_NOTIFICATION_CLICKED: generateOpt(EVENT_NAME.PUSH_NOTIFICATION_CLICKED),
 
