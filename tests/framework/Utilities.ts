@@ -3,6 +3,8 @@ import { blacklistURLs } from '../resources/blacklistURLs.json';
 import { RetryOptions, StabilityOptions } from './types.ts';
 import { createLogger } from './logger.ts';
 import { type EncapsulatedElementType } from './EncapsulatedElement.ts';
+import { FrameworkDetector } from './FrameworkDetector.ts';
+import { type PlaywrightElement } from './PlaywrightAdapter.ts';
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { setTimeout as asyncSetTimeout } from 'node:timers/promises';
 
@@ -310,16 +312,23 @@ export default class Utilities {
     detoxElement: DetoxElement | DetoxMatcher | EncapsulatedElementType,
     timeout: number = 2000,
   ): Promise<void> {
-    const el = (await detoxElement) as Detox.IndexableNativeElement;
-    const isWebElement = this.isWebElement(el);
+    const el = await detoxElement;
+
+    if (FrameworkDetector.isAppium()) {
+      await (el as PlaywrightElement).waitForDisplayed({ timeout });
+      return;
+    }
+
+    const detoxEl = el as Detox.IndexableNativeElement;
+    const isWebElement = this.isWebElement(detoxEl);
 
     if (isWebElement) {
       // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
-      await (expect(el) as any).toExist();
+      await (expect(detoxEl) as any).toExist();
     } else if (device.getPlatform() === 'ios') {
-      await waitFor(el).toExist().withTimeout(timeout);
+      await waitFor(detoxEl).toExist().withTimeout(timeout);
     } else {
-      await waitFor(el).toBeVisible().withTimeout(timeout);
+      await waitFor(detoxEl).toBeVisible().withTimeout(timeout);
     }
   }
 
