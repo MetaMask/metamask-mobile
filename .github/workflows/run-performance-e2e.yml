@@ -556,8 +556,10 @@ jobs:
 
           if [ -n "$ALL_COMMENT_IDS" ]; then
             echo "$ALL_COMMENT_IDS" | while read -r COMMENT_ID; do
-              [ -n "$COMMENT_ID" ] && gh api "repos/${{ github.repository }}/issues/comments/$COMMENT_ID" \
-                --method DELETE > /dev/null 2>&1 || true
+              if [ -n "$COMMENT_ID" ]; then
+                gh api "repos/${{ github.repository }}/issues/comments/$COMMENT_ID" \
+                  --method DELETE > /dev/null 2>&1 || true
+              fi
             done
             echo "Deleted previous performance results comments"
           fi
