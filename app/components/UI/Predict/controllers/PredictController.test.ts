@@ -309,6 +309,7 @@ describe('PredictController', () => {
     // Create mock PolymarketProvider with required methods
     mockPolymarketProvider = {
       getMarkets: jest.fn(),
+      listMarkets: jest.fn(),
       searchMarkets: jest.fn(),
       getCarouselMarkets: jest.fn(),
       getMarketsByIds: jest.fn(),
@@ -674,6 +675,45 @@ describe('PredictController', () => {
         );
 
         await expect(controller.getMarkets({})).rejects.toThrow(errorMessage);
+        expect(controller.state.lastError).toBe(errorMessage);
+      });
+    });
+
+    it('lists markets by delegating to the provider', async () => {
+      const mockMarkets = [
+        {
+          id: 'm1',
+          question: 'Will it rain tomorrow?',
+          outcomes: ['YES', 'NO'],
+        },
+      ];
+
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.listMarkets.mockResolvedValue({
+          markets: mockMarkets as any,
+          nextCursor: 'cursor-2',
+        });
+
+        const result = await controller.listMarkets({ order: 'liquidity' });
+
+        expect(result).toEqual({
+          markets: mockMarkets as any,
+          nextCursor: 'cursor-2',
+        });
+        expect(mockPolymarketProvider.listMarkets).toHaveBeenCalledWith({
+          order: 'liquidity',
+        });
+      });
+    });
+
+    it('handles errors when listing markets', async () => {
+      await withController(async ({ controller }) => {
+        const errorMessage = 'Network error';
+        mockPolymarketProvider.listMarkets.mockRejectedValue(
+          new Error(errorMessage),
+        );
+
+        await expect(controller.listMarkets({})).rejects.toThrow(errorMessage);
         expect(controller.state.lastError).toBe(errorMessage);
       });
     });
@@ -4007,6 +4047,7 @@ describe('PredictController', () => {
         expect(addTransactionBatch).toHaveBeenCalledWith({
           from: '0x1234567890123456789012345678901234567890',
           origin: 'metamask',
+          isInternal: true,
           networkClientId: 'polygon-mainnet',
           disableHook: true,
           disableSequential: true,
@@ -4487,6 +4528,39 @@ describe('PredictController', () => {
         // Verify deposit transaction remains undefined
         const address = '0x1234567890123456789012345678901234567890';
         expect(controller.state.pendingDeposits[address]).toBe(undefined);
+      });
+    });
+  });
+
+  describe('clearPendingClaim', () => {
+    it('clears pending claim from state', () => {
+      withController(({ controller }) => {
+        const address = '0x1234567890123456789012345678901234567890';
+
+        controller.updateStateForTesting((state) => {
+          state.pendingClaims = {
+            [address]: 'batch-id-123',
+          };
+        });
+
+        expect(controller.state.pendingClaims[address]).toBe('batch-id-123');
+
+        controller.clearPendingClaim();
+
+        expect(controller.state.pendingClaims[address]).toBe(undefined);
+      });
+    });
+
+    it('handles clearing empty pending claim state', () => {
+      withController(({ controller }) => {
+        controller.updateStateForTesting((state) => {
+          state.pendingClaims = {};
+        });
+
+        expect(() => controller.clearPendingClaim()).not.toThrow();
+
+        const address = '0x1234567890123456789012345678901234567890';
+        expect(controller.state.pendingClaims[address]).toBe(undefined);
       });
     });
   });
@@ -8644,7 +8718,7 @@ describe('PredictController', () => {
           entryPoint: 'test',
           marketDetailsViewed: 'test',
         });
-        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(2);
       });
     });
 
@@ -8680,7 +8754,7 @@ describe('PredictController', () => {
           numPagesViewed: 1,
           sessionTime: 1000,
         });
-        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+        expect(analytics.trackEvent).toHaveBeenCalledTimes(2);
       });
     });
 

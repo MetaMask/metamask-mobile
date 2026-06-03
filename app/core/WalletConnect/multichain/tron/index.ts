@@ -1,0 +1,1 @@
+export { tronAdapter } from './adapter';

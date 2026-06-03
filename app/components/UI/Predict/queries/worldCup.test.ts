@@ -77,7 +77,7 @@ describe('worldCup queries', () => {
     });
   });
 
-  it('fetches Live markets with series, games tag, and live filters', async () => {
+  it('fetches Live markets with tag slug, games tag, and live filters', async () => {
     mockGetMarkets.mockResolvedValue({
       markets: [createMarket()],
       nextCursor: null,
@@ -94,7 +94,7 @@ describe('worldCup queries', () => {
     expect(mockGetMarkets).toHaveBeenCalledWith({
       category: 'hot',
       customQueryParams:
-        'active=true&archived=false&closed=false&series_id=11433&tag_id=100639&live=true&order=startDate',
+        'active=true&archived=false&closed=false&tag_slug=fifa-world-cup&tag_id=100639&live=true&order=startDate',
       limit: 5,
     });
   });

@@ -4,7 +4,6 @@ import { SmokePredictions } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
 import { Assertions } from '../../framework';
 import {
-  remoteFeatureFlagHomepageSectionsV1Enabled,
   remoteFeatureFlagPredictEnabled,
   confirmationFeatureFlags,
 } from '../../api-mocking/mock-responses/feature-flags-mocks';
@@ -34,7 +33,6 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await POLYMARKET_POLYGON_RELAY_POLLING_MOCKS(mockServer);
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagPredictEnabled(true),
-    ...remoteFeatureFlagHomepageSectionsV1Enabled(),
     ...Object.assign({}, ...confirmationFeatureFlags),
     carouselBanners: false,
   }); // we need to mock the confirmations redesign Feature flag

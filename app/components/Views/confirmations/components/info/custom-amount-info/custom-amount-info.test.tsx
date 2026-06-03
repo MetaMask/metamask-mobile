@@ -44,6 +44,7 @@ import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayW
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
+import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
 jest.mock('../../../hooks/tokens/useTokenFiatRates');
@@ -80,6 +81,9 @@ jest.mock('../../../../../../core/Engine', () => ({
   context: {
     TransactionPayController: {
       updateFiatPayment: jest.fn(),
+    },
+    PredictController: {
+      clearPendingDeposit: jest.fn(),
     },
   },
 }));
@@ -219,6 +223,10 @@ describe('CustomAmountInfo', () => {
   const useTransactionAccountOverrideMock = jest.mocked(
     useTransactionAccountOverride,
   );
+  const useClearConfirmationOnBackSwipeMock = jest.mocked(
+    useClearConfirmationOnBackSwipe,
+  );
+  const setIsConfirmationSubmittingMock = jest.fn();
 
   const useRouteMock = jest.mocked(useRoute);
 
@@ -265,7 +273,19 @@ describe('CustomAmountInfo', () => {
     });
 
     useConfirmationContextMock.mockReturnValue({
+      headlessBuyError: undefined,
+      isFooterVisible: true,
+      isConfirmationSubmitting: false,
+      isConfirmationSubmittingRef: { current: false },
+      setIsConfirmationSubmitting: setIsConfirmationSubmittingMock,
+      isHeadlessBuyInProgress: false,
+      isTransactionDataUpdating: false,
+      isTransactionValueUpdating: false,
+      setHeadlessBuyError: noop,
       setIsFooterVisible: noop,
+      setIsHeadlessBuyInProgress: noop,
+      setIsTransactionDataUpdating: noop,
+      setIsTransactionValueUpdating: noop,
     } as ReturnType<typeof useConfirmationContext>);
 
     useAlertsMock.mockReturnValue({
@@ -308,6 +328,52 @@ describe('CustomAmountInfo', () => {
   it('renders payment token', () => {
     const { getByText } = render();
     expect(getByText('0 TST')).toBeDefined();
+  });
+
+  it('rejects predict deposit confirmations on beforeRemove', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.batch,
+      nestedTransactions: [{ type: TransactionType.predictDeposit }],
+      txParams: { from: '0x123' },
+    } as never);
+
+    render();
+
+    expect(useClearConfirmationOnBackSwipeMock).toHaveBeenCalledWith({
+      rejectOnBeforeRemove: true,
+      rejectOnBeforeRemoveWithoutGesture: true,
+      skipNavigationOnGestureEnd: true,
+      onBeforeReject: expect.any(Function),
+    });
+  });
+
+  it('clears pending predict deposit before rejecting the confirmation', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.batch,
+      nestedTransactions: [{ type: TransactionType.predictDeposit }],
+      txParams: { from: '0x123' },
+    } as never);
+
+    render();
+
+    const options = useClearConfirmationOnBackSwipeMock.mock.calls[0]?.[0];
+
+    options?.onBeforeReject?.();
+
+    expect(
+      Engine.context.PredictController.clearPendingDeposit,
+    ).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not reject non-predict deposit confirmations on beforeRemove', () => {
+    render();
+
+    expect(useClearConfirmationOnBackSwipeMock).toHaveBeenCalledWith({
+      rejectOnBeforeRemove: false,
+      rejectOnBeforeRemoveWithoutGesture: false,
+      skipNavigationOnGestureEnd: false,
+      onBeforeReject: undefined,
+    });
   });
 
   it('does not render payment token if disablePay', () => {
@@ -503,6 +569,27 @@ describe('CustomAmountInfo', () => {
     });
 
     expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('marks the confirmation as submitting when the confirm button is pressed', async () => {
+    const onConfirmMock = jest.fn();
+    useConfirmActionsMock.mockReturnValue({
+      onConfirm: onConfirmMock,
+      onReject: jest.fn(),
+    });
+
+    const { getByText } = render();
+
+    await act(async () => {
+      fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText(strings('confirm.deposit_edit_amount_done')));
+    });
+
+    expect(setIsConfirmationSubmittingMock).toHaveBeenCalledWith(true);
+    expect(onConfirmMock).toHaveBeenCalledTimes(1);
   });
 
   it('still runs UI cleanup and logs the error when updateTokenAmount rejects on Done', async () => {

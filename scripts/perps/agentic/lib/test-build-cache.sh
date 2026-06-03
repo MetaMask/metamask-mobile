@@ -165,23 +165,23 @@ done
 
 # ─── 10. Preflight --mode plumbing ──────────────────────────────────
 hdr "preflight --mode arg parsing"
-out=$(bash scripts/perps/agentic/preflight.sh --mode invalid --check-only 2>&1 || true)
+out=$(yarn ts-node --transpile-only scripts/perps/agentic/preflight/preflight.ts --mode invalid --check-only 2>&1 || true)
 echo "$out" | grep -q "unknown --mode 'invalid'" && pass "unknown --mode rejected" || fail "unknown mode not rejected: $out"
 
-out=$(_capture_for 10 bash scripts/perps/agentic/preflight.sh --mode fast --check-only 2>&1 | head -20 || true)
+out=$(_capture_for 10 yarn ts-node --transpile-only scripts/perps/agentic/preflight/preflight.ts --mode fast --check-only 2>&1 | head -20 || true)
 echo "$out" | grep -qE "Mode:.*fast.*no build" && pass "fast mode header rendered" || fail "fast mode header missing"
 
-out=$(_capture_for 10 bash scripts/perps/agentic/preflight.sh --mode auto --check-only 2>&1 | head -20 || true)
+out=$(_capture_for 10 yarn ts-node --transpile-only scripts/perps/agentic/preflight/preflight.ts --mode auto --check-only 2>&1 | head -20 || true)
 echo "$out" | grep -qE "Mode:.*auto.*fingerprint-gated" && pass "auto mode header rendered" || fail "auto mode header missing"
 
-out=$(_capture_for 10 bash scripts/perps/agentic/preflight.sh --mode rebuild-native --check-only 2>&1 | head -20 || true)
+out=$(_capture_for 10 yarn ts-node --transpile-only scripts/perps/agentic/preflight/preflight.ts --mode rebuild-native --check-only 2>&1 | head -20 || true)
 echo "$out" | grep -qE "Mode:.*rebuild-native" && pass "rebuild-native mode header rendered" || fail "rebuild-native mode header missing"
 
-out=$(_capture_for 10 bash scripts/perps/agentic/preflight.sh --mode clean --check-only 2>&1 | head -20 || true)
+out=$(_capture_for 10 yarn ts-node --transpile-only scripts/perps/agentic/preflight/preflight.ts --mode clean --check-only 2>&1 | head -20 || true)
 echo "$out" | grep -qE "Mode:.*clean.*yarn setup" && pass "clean mode header rendered" || fail "clean mode header missing"
 
 # Legacy --clean still maps to clean mode (back-compat)
-out=$(_capture_for 10 bash scripts/perps/agentic/preflight.sh --clean --check-only 2>&1 | head -20 || true)
+out=$(_capture_for 10 yarn ts-node --transpile-only scripts/perps/agentic/preflight/preflight.ts --clean --check-only 2>&1 | head -20 || true)
 echo "$out" | grep -qE "Mode:.*clean.*yarn setup" && pass "legacy --clean still maps to clean" || fail "legacy --clean broken"
 
 # ─── 10b. Agentic fp respects the safe/unsafe ignorePath boundary ──
@@ -296,7 +296,7 @@ trap '
   restore_fp
 ' EXIT
 
-out=$(_capture_for 20 bash scripts/perps/agentic/preflight.sh --mode fast --platform ios --no-launch 2>&1 || true)
+out=$(_capture_for 20 yarn ts-node --transpile-only scripts/perps/agentic/preflight/preflight.ts --mode fast --platform ios --no-launch 2>&1 || true)
 restore_fp
 echo "$out" | grep -q "Mode 'fast': could not compute fingerprint" \
   && pass "--mode fast fails loud when fingerprint cannot be computed" \
