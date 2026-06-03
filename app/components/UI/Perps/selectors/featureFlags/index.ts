@@ -304,12 +304,10 @@ export const selectPerpsCompetitionBannerEnabledFlag = createSelector(
 export const selectPerpsTopMoversEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    const localFlag = process.env.MM_PERPS_TOP_MOVERS_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.perpsTopMoversEnabled as unknown as VersionGatedFeatureFlag;
 
-    // return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
-    return true;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
 );
 
