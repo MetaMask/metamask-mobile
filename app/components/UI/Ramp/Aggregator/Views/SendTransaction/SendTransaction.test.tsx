@@ -273,7 +273,6 @@ function render(Component: React.ComponentType, orders = mockedOrders) {
   );
 }
 
-const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockReset = jest.fn();
@@ -287,9 +286,6 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       navigate: mockNavigate,
-      setOptions: mockSetOptions.mockImplementation(
-        actualReactNavigation.useNavigation().setOptions,
-      ),
       goBack: mockGoBack,
       reset: mockReset,
       getParent: () => ({
@@ -329,7 +325,6 @@ describe('SendTransaction View', () => {
   afterEach(() => {
     mockNavigate.mockClear();
     mockGoBack.mockClear();
-    mockSetOptions.mockClear();
     mockReset.mockClear();
     mockPop.mockClear();
     mockDispatch.mockClear();
@@ -358,9 +353,10 @@ describe('SendTransaction View', () => {
     expect(screen.queryByText('Next')).not.toBeOnTheScreen();
   });
 
-  it('calls setOptions when rendering', async () => {
+  it('navigates back when header back button is pressed', async () => {
     render(SendTransaction);
-    expect(mockSetOptions).toBeCalledTimes(1);
+    fireEvent.press(screen.getByTestId('send-transaction-back-button'));
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
   it('renders correctly', async () => {

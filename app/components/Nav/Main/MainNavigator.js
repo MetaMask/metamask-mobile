@@ -256,69 +256,71 @@ const AssetNavigator = (props) => (
 const WalletTabStackFlow = () => {
   const { colors } = useTheme();
   return (
-    <Stack.Navigator
+    <NativeStack.Navigator
       initialRouteName={'WalletView'}
       screenOptions={{
-        cardStyle: { backgroundColor: colors.background.default },
+        contentStyle: { backgroundColor: colors.background.default },
       }}
     >
-      <Stack.Screen
+      <NativeStack.Screen
         name="WalletView"
         component={Wallet}
         options={{
           headerShown: false,
-          animationEnabled: false,
+          animation: 'none',
         }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
         component={RevealPrivateCredential}
         options={{ headerShown: false }}
       />
-    </Stack.Navigator>
+    </NativeStack.Navigator>
   );
 };
 
 const TransactionsHome = () => {
   const { colors } = useTheme();
   return (
-    <Stack.Navigator
+    <NativeStack.Navigator
       screenOptions={{
-        cardStyle: { backgroundColor: colors.background.default },
+        headerShown: false,
+        contentStyle: { backgroundColor: colors.background.default },
       }}
     >
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.TRANSACTIONS_VIEW}
         component={ActivityView}
-        options={{ headerShown: false }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.TRANSACTION_DETAILS}
         component={TransactionDetails}
       />
-      <Stack.Screen name={Routes.RAMP.ORDER_DETAILS} component={OrderDetails} />
-      <Stack.Screen
+      <NativeStack.Screen
+        name={Routes.RAMP.ORDER_DETAILS}
+        component={OrderDetails}
+      />
+      <NativeStack.Screen
         name={Routes.RAMP.RAMPS_ORDER_DETAILS}
         component={RampsOrderDetails}
-        options={{ headerShown: false }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.DEPOSIT.ORDER_DETAILS}
         component={DepositOrderDetails}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.RAMP.BANK_DETAILS_STANDALONE}
         component={V2BankDetails}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.RAMP.SEND_TRANSACTION}
         component={SendTransaction}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS}
         component={BridgeTransactionDetails}
       />
-    </Stack.Navigator>
+    </NativeStack.Navigator>
   );
 };
 

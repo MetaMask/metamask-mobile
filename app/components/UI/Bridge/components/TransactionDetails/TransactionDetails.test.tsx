@@ -13,13 +13,14 @@ import { Transaction } from '@metamask/keyring-api';
 import { isHardwareAccount } from '../../../../../util/address';
 
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
     ...actualNav,
     useNavigation: () => ({
       navigate: mockNavigate,
-      setOptions: jest.fn(),
+      goBack: mockGoBack,
     }),
   };
 });
@@ -74,6 +75,23 @@ describe('BridgeTransactionDetails', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('navigates back when header back button is pressed', () => {
+    const { getByTestId } = renderScreen(
+      () => (
+        <BridgeTransactionDetails
+          route={{ params: { evmTxMeta: mockEVMTx } }}
+        />
+      ),
+      {
+        name: Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS,
+      },
+      { state: mockState },
+    );
+
+    fireEvent.press(getByTestId('bridge-transaction-details-back-button'));
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
   it('renders without crashing', () => {

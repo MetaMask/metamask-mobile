@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { HeaderStandard , Button, ButtonVariant } from '@metamask/design-system-react-native';
 import Text, {
   TextColor,
   TextVariant,
@@ -7,7 +8,6 @@ import Text, {
 import ScreenView from '../../../../Base/ScreenView';
 import { Box } from '../../../Box/Box';
 import { FlexDirection, AlignItems } from '../../../Box/box.types';
-import { getBridgeTransactionDetailsNavbar } from '../../../Navbar';
 import { useBridgeTxHistoryData } from '../../../../../util/bridge/hooks/useBridgeTxHistoryData';
 import {
   TransactionMeta,
@@ -25,7 +25,6 @@ import { StyleSheet, TouchableOpacity } from 'react-native';
 import { calcHexGasTotal } from '../../utils/transactionGas';
 import { strings } from '../../../../../../locales/i18n';
 import BridgeStepList from './BridgeStepList';
-import { Button, ButtonVariant } from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { BridgeToken } from '../../types';
 import {
@@ -205,8 +204,8 @@ export const BridgeTransactionDetails = (
 
   const [isStepListExpanded, setIsStepListExpanded] = useState(false);
 
-  useEffect(() => {
-    navigation.setOptions(getBridgeTransactionDetailsNavbar(navigation));
+  const handleHeaderBack = useCallback(() => {
+    navigation.goBack();
   }, [navigation]);
 
   if (!bridgeTxHistoryItem) {
@@ -306,6 +305,12 @@ export const BridgeTransactionDetails = (
 
   return (
     <ScreenView>
+      <HeaderStandard
+        title={strings('bridge_transaction_details.transaction_details')}
+        onBack={handleHeaderBack}
+        backButtonProps={{ testID: 'bridge-transaction-details-back-button' }}
+        includesTopInset
+      />
       <Box style={styles.transactionContainer}>
         <Box style={styles.transactionAssetsContainer}>
           <TransactionAsset
