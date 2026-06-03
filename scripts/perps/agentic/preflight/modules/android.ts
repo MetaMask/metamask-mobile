@@ -92,6 +92,34 @@ function adbInstall(ctx: Ctx, apk: string): boolean {
   }
 }
 
+function uninstallApp(ctx: Ctx): void {
+  try {
+    adb(ctx, ['uninstall', ctx.packageId], { stdio: 'ignore' });
+  } catch {
+    // not installed
+  }
+}
+
+function installCachedArtifact(
+  ctx: Ctx,
+  logger: Logger,
+  cache: BuildCache,
+  fp: string,
+  deviceId: string,
+): boolean {
+  const art = cache.artifactPath('android', fp);
+  if (ctx.flags.walletSetup) {
+    logger.plain('  Wiping app data (uninstall + reinstall from cache)...');
+    uninstallApp(ctx);
+  }
+  if (adbInstall(ctx, art)) {
+    cache.recordInstall('android', fp, deviceId);
+    logger.ok(`Installed from cache: ${art}`);
+    return true;
+  }
+  return false;
+}
+
 async function buildApk(ctx: Ctx, logger: Logger): Promise<string> {
   logger.plain();
   logger.plain('  Building + installing app');
@@ -145,8 +173,18 @@ export async function runAndroid(ctx: Ctx, logger: Logger): Promise<void> {
       if (fp) {
         const installedFp = cache.installedFp('android');
         if (installed && installedFp === fp && cache.installedTarget('android') === deviceId && !ctx.doRebuild) {
-          logger.ok(`Cache: installed app matches fingerprint ${fp.slice(0, 12)} on ${deviceId} — no native action needed`);
-          return;
+          if (!ctx.flags.walletSetup) {
+            logger.ok(`Cache: installed app matches fingerprint ${fp.slice(0, 12)} on ${deviceId} — no native action needed`);
+            return;
+          }
+          if (ctx.checkOnly) {
+            logger.fail('Installed app matches fingerprint, but --wallet-setup requires a data wipe and --check-only forbids reinstall');
+          }
+          if (cache.hasArtifact('android', fp) && installCachedArtifact(ctx, logger, cache, fp, deviceId)) {
+            return;
+          }
+          logger.warn('Installed app matches fingerprint, but wallet setup requires a data wipe and no cached artifact is available — rebuilding');
+          installed = false;
         }
         lock = await cache.acquireLock('android', fp);
         if (lock) {
@@ -155,11 +193,8 @@ export async function runAndroid(ctx: Ctx, logger: Logger): Promise<void> {
               logger.fail(`App not at fingerprint ${fp.slice(0, 12)} — cache hit available, but --check-only forbids install`);
             }
             logger.plain(`  Cache hit: fp=${fp.slice(0, 12)} — installing from shared cache`);
-            const art = cache.artifactPath('android', fp);
-            if (adbInstall(ctx, art)) {
-              cache.recordInstall('android', fp, deviceId);
+            if (installCachedArtifact(ctx, logger, cache, fp, deviceId)) {
               installed = true;
-              logger.ok(`Installed from cache: ${art}`);
             } else if (ctx.mode === 'fast') {
               logger.fail(`Mode 'fast': cached artifact install failed for fp ${fp.slice(0, 12)}`);
             } else {
@@ -194,11 +229,7 @@ export async function runAndroid(ctx: Ctx, logger: Logger): Promise<void> {
 
     if ((ctx.doClean || ctx.flags.walletSetup) && appInstalled(ctx)) {
       logger.plain('  Uninstalling previous app...');
-      try {
-        adb(ctx, ['uninstall', ctx.packageId], { stdio: 'ignore' });
-      } catch {
-        // not installed
-      }
+      uninstallApp(ctx);
     }
 
     const apk = await buildApk(ctx, logger);

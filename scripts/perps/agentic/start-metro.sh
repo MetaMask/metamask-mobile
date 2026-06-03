@@ -187,7 +187,7 @@ if metro_responds; then
   echo "To stop Metro:        ./scripts/perps/agentic/stop-metro.sh"
   if $LAUNCH_APP; then
     echo "Launching app..."
-    launch_app
+    launch_app || exit 1
   fi
   exit 0
 fi
@@ -252,7 +252,7 @@ while [ $ELAPSED -lt $TIMEOUT ]; do
     echo "To stop Metro:        ./scripts/perps/agentic/stop-metro.sh"
     if $LAUNCH_APP; then
       echo "Launching app..."
-      launch_app
+      launch_app || exit 1
     fi
     exit 0
   fi
