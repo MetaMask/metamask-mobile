@@ -33,7 +33,10 @@ export interface SnapMappedRequest<Param = unknown> {
  * Arguments passed to a chain adapter's `handleRequest` method.
  */
 export interface AdapterHandleRequestArgs {
-  channelId: string;
+  /**
+   * URL-like dapp origin used by Snaps for confirmation UI.
+   */
+  origin: string;
   connectedAddresses: CaipAccountId[];
   scope: CaipChainId;
   requestId: number;

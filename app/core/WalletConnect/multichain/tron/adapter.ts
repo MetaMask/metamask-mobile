@@ -237,7 +237,7 @@ export function enrichCaveatValue({
  * WalletConnect format for the dapp.
  */
 export async function handleRequest({
-  channelId,
+  origin,
   connectedAddresses,
   scope,
   requestId,
@@ -251,7 +251,7 @@ export async function handleRequest({
   // `TronWalletConnectMethod` from here on.
   const mappedRequest = mapRequestInbound({ method, params });
   const result = await callMultichainRoutingService({
-    channelId,
+    origin,
     connectedAddresses: normalizedConnectedAddresses,
     scope,
     requestId,
