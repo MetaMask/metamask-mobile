@@ -10,26 +10,18 @@ import ClipboardManager from '../../../../core/ClipboardManager';
 
 describe('showDevErrorAlert', () => {
   let alertSpy: jest.SpyInstance;
-  let originalEnv: string | undefined;
 
   beforeEach(() => {
     jest.clearAllMocks();
     alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
-    originalEnv = process.env.METAMASK_ENVIRONMENT;
-  });
-
-  afterEach(() => {
-    process.env.METAMASK_ENVIRONMENT = originalEnv;
-    alertSpy.mockRestore();
   });
 
   it.each(['rc', 'exp', 'dev', 'test'])(
     'shows an alert with the stack trace in %s environment',
     (env) => {
-      process.env.METAMASK_ENVIRONMENT = env;
       const error = new Error('something went wrong');
 
-      showDevErrorAlert('Test title', error);
+      showDevErrorAlert('Test title', error, env);
 
       expect(alertSpy).toHaveBeenCalledWith(
         'Test title',
@@ -43,27 +35,28 @@ describe('showDevErrorAlert', () => {
   );
 
   it('does not show an alert in production', () => {
-    process.env.METAMASK_ENVIRONMENT = 'production';
-    showDevErrorAlert('Test title', new Error('something went wrong'));
+    showDevErrorAlert(
+      'Test title',
+      new Error('something went wrong'),
+      'production',
+    );
     expect(alertSpy).not.toHaveBeenCalled();
   });
 
   it('suppresses the user-denied-signature error', () => {
-    process.env.METAMASK_ENVIRONMENT = 'dev';
     const error = new Error(
       'MetaMask Tx Signature: User denied transaction signature.',
     );
 
-    showDevErrorAlert('Test title', error);
+    showDevErrorAlert('Test title', error, 'dev');
 
     expect(alertSpy).not.toHaveBeenCalled();
   });
 
   it('copies the stack trace when the Copy button is pressed', () => {
-    process.env.METAMASK_ENVIRONMENT = 'dev';
     const error = new Error('something went wrong');
 
-    showDevErrorAlert('Test title', error);
+    showDevErrorAlert('Test title', error, 'dev');
 
     const buttons = alertSpy.mock.calls[0][2] as {
       text: string;
