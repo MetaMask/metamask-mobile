@@ -23,12 +23,43 @@ The more agents in flight, the larger the saving.
 | Machine-global, shared by every slot | `<os-user-cache>/mm-mobile-builds/<plat>/<fp>.{app,apk}` — resolved automatically from the per-user OS cache directory; set `MM_BUILD_CACHE_DIR` to override | Built native artifacts, keyed by fingerprint |
 | Per-worktree, gitignored | `<slot>/.agent/build-cache/` | `installed.json` (which fp is on which target) + pod and setup-artifact markers |
 
-The fingerprint (`lib/compute-cache-fp.js`) excludes per-worktree build output and
-live-served JS, so the same commit + env yields the same key in every slot — that
-is what makes the global cache hit across slots. Markers stay local because each
-clone has its own `node_modules`, pods, and generated artifacts. A per-fingerprint
-lock lets slots build the same fingerprint concurrently without corrupting the
-shared artifact.
+Markers stay local because each clone has its own `node_modules`, pods, and
+generated artifacts. A per-fingerprint lock lets slots build the same fingerprint
+concurrently without corrupting the shared artifact.
+
+## Fingerprint
+
+The cache key is a content fingerprint of **native-affecting inputs only**
+(`lib/compute-cache-fp.js`, extending `fingerprint.config.js`). The intent: the
+commit/branch is irrelevant — two worktrees with no native change must produce the
+same fingerprint and share the cached build. It excludes per-worktree dev/build
+output and live-served JS (`app/**`, `ios/build`, `scripts/perps/agentic/**`, …).
+
+On a cache miss the orchestrator prints a **drift report** (`compute-cache-fp.js
+--diff` against the installed build's stored sources) naming exactly which inputs
+diverged — use it to tell a real native change from churn.
+
+**Known fingerprint impurities** — pre-existing `@expo/fingerprint` behaviour, not
+specific to this preflight, surfaced by the drift report:
+
+- **`package.json` scripts** are hashed, so editing an unrelated script (e.g. the
+  `a:*` entries) shifts the fingerprint and forces a one-time rebuild — even though
+  scripts can't affect the binary.
+- **`pod install` and Android codegen mutate native config inside `node_modules`**
+  in place (a podspec gains `s.dependency "RCTDeprecation"`, an
+  `AndroidManifest.xml` is rewritten) — and the mutations **persist across
+  `yarn install`**. So a worktree's fingerprint shifts the first time it runs
+  `pod install` / a native build, and then diverges from any worktree in a
+  different build state. **Verified:** worktrees on the same commit produced
+  different fingerprints, differing only by pod-install-mutated package config.
+
+So today **cross-worktree cache sharing does not reliably hold** — the fingerprint
+tracks build history, not just native source. Making it share requires hardening
+the fingerprint to be purely native (ignore `package.json` scripts; ignore or
+normalise the tool-mutated `node_modules` native config), which is a deliberate
+follow-up with real trade-offs, separate from the orchestrator. Note the cache
+mechanism itself (key → artifact → install) is sound and unchanged from the old
+bash preflight; this is a pre-existing `@expo/fingerprint` property.
 
 ## Modes
 
