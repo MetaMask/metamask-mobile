@@ -35,7 +35,7 @@ export interface SnapKeyringBuilder {
   type: typeof SnapKeyring.type;
 }
 
-export class SnapKeyringImpl implements SnapKeyringCallbacks {
+class SnapKeyringImpl implements SnapKeyringCallbacks {
   readonly #messenger: SnapKeyringBuilderMessenger;
 
   constructor(messenger: SnapKeyringBuilderMessenger) {

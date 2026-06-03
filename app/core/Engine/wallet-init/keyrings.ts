@@ -40,42 +40,6 @@ export const qrKeyringBridge = new QrKeyringDeferredPromiseBridge({
   },
 });
 
-function getSnapKeyringMessenger(
-  messenger: RootMessenger,
-): SnapKeyringBuilderMessenger {
-  const snapKeyringMessenger: SnapKeyringBuilderMessenger = new Messenger({
-    namespace: 'SnapKeyring',
-    parent: messenger,
-  });
-
-  messenger.delegate({
-    messenger: snapKeyringMessenger,
-    actions: [
-      'ApprovalController:addRequest',
-      'ApprovalController:acceptRequest',
-      'ApprovalController:rejectRequest',
-      'ApprovalController:startFlow',
-      'ApprovalController:endFlow',
-      'ApprovalController:showSuccess',
-      'ApprovalController:showError',
-      'PhishingController:testOrigin',
-      'PhishingController:maybeUpdateState',
-      'KeyringController:getAccounts',
-      'KeyringController:persistAllKeyrings',
-      'KeyringController:removeAccount',
-      'AccountsController:setSelectedAccount',
-      'AccountsController:getAccountByAddress',
-      'AccountsController:setAccountName',
-      'AccountsController:listMultichainAccounts',
-      'SnapController:handleRequest',
-      'SnapController:getSnap',
-      'SnapController:isMinimumPlatformVersion',
-    ],
-  });
-
-  return snapKeyringMessenger;
-}
-
 export function getKeyringBuilders(
   messenger: RootMessenger,
 ): KeyringControllerOptions['keyringBuilders'] {
@@ -141,16 +105,40 @@ export function getKeyringBuilders(
   keyrings.push(moneyKeyringBuilder);
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const snapKeyringMessenger = getSnapKeyringMessenger(messenger);
+
+  const snapKeyringMessenger: SnapKeyringBuilderMessenger = new Messenger({
+    namespace: 'SnapKeyring',
+    parent: messenger,
+  });
+
+  messenger.delegate({
+    messenger: snapKeyringMessenger,
+    actions: [
+      'ApprovalController:addRequest',
+      'ApprovalController:acceptRequest',
+      'ApprovalController:rejectRequest',
+      'ApprovalController:startFlow',
+      'ApprovalController:endFlow',
+      'ApprovalController:showSuccess',
+      'ApprovalController:showError',
+      'PhishingController:testOrigin',
+      'PhishingController:maybeUpdateState',
+      'KeyringController:getAccounts',
+      'KeyringController:persistAllKeyrings',
+      'KeyringController:removeAccount',
+      'AccountsController:setSelectedAccount',
+      'AccountsController:getAccountByAddress',
+      'AccountsController:setAccountName',
+      'AccountsController:listMultichainAccounts',
+      'SnapController:handleRequest',
+      'SnapController:getSnap',
+      'SnapController:isMinimumPlatformVersion',
+    ],
+  });
+
   keyrings.push(snapKeyringBuilder(snapKeyringMessenger));
   ///: END:ONLY_INCLUDE_IF
 
   // @ts-expect-error: `addAccounts` is missing in `SnapKeyring` type.
   return keyrings;
-}
-
-export function getKeyringV2Builders(
-  _messenger: RootMessenger,
-): KeyringControllerOptions['keyringV2Builders'] {
-  return [];
 }
