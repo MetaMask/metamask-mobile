@@ -407,19 +407,28 @@ async function main() {
   }[] = [];
 
   for (const providerType of providerOrder) {
-    const provider = createProvider(providerType);
-    console.log(`   Checking ${provider.displayName}...`);
+    try {
+      const provider = createProvider(providerType);
+      console.log(`   Checking ${provider.displayName}...`);
 
-    if (await provider.isAvailable()) {
-      console.log(`   ✅ ${provider.displayName} is available`);
-      availableProviders.push({ type: providerType, provider });
-    } else {
-      const envKey = LLM_CONFIG.providers[providerType].envKey;
-      const hasKey = !!process.env[envKey];
-      const reason = hasKey
-        ? 'API call failed (see warning above)'
-        : `missing ${envKey}`;
-      console.log(`   ❌ ${provider.displayName} is not available — ${reason}`);
+      if (await provider.isAvailable()) {
+        console.log(`   ✅ ${provider.displayName} is available`);
+        availableProviders.push({ type: providerType, provider });
+      } else {
+        const envKey = LLM_CONFIG.providers[providerType].envKey;
+        const hasKey = !!process.env[envKey];
+        const reason = hasKey
+          ? 'API call failed (see warning above)'
+          : `missing ${envKey}`;
+        console.log(
+          `   ❌ ${provider.displayName} is not available — ${reason}`,
+        );
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn(
+        `   ⚠️  Skipping ${providerType} — unexpected error during availability check: ${message}`,
+      );
     }
   }
 
