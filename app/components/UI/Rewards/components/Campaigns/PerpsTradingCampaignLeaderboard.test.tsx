@@ -56,7 +56,6 @@ jest.mock('../../../../../constants/navigation/Routes', () => ({
 }));
 
 const TEST_IDS = PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS;
-const CrownIcon = 'CrownIcon' as unknown as React.ComponentType;
 
 const createPerpsEntry = (
   overrides: Partial<PerpsTradingCampaignLeaderboardEntry> = {},
