@@ -14,6 +14,7 @@ const QuickBuyAmount: React.FC = () => {
     tradeMode,
     hasSourcePrice,
     sourceAmountTokens,
+    sourceTokenAmount,
     sourceToken,
     estimatedReceiveAmount,
     destToken,
@@ -25,9 +26,18 @@ const QuickBuyAmount: React.FC = () => {
     handleToggleAmountDisplay,
   } = useQuickBuyContext();
 
-  const cryptoSymbol = destToken?.symbol ?? target.tokenSymbol;
-
   const isUnpricedSource = tradeMode === 'sell' && !hasSourcePrice;
+
+  // In sell mode (priced), the secondary label should show how much of the
+  // source token the user is selling, not how much destination they'll receive.
+  // In buy mode (or unpriced sell) keep the existing dest-token display.
+  const isSellPriced = tradeMode === 'sell' && hasSourcePrice;
+  const cryptoSymbol = isSellPriced
+    ? (sourceToken?.symbol ?? target.tokenSymbol)
+    : (destToken?.symbol ?? target.tokenSymbol);
+  const displayedCryptoAmount = isSellPriced
+    ? sourceTokenAmount
+    : estimatedReceiveAmount;
 
   // For unpriced tokens we have no fiat rate, so the "X available" line should
   // show the raw token balance rather than "$0.00".
@@ -42,7 +52,7 @@ const QuickBuyAmount: React.FC = () => {
       fiatCryptoToggleEnabled={features.fiatCryptoToggle}
       usdAmount={usdAmount}
       destSymbol={cryptoSymbol}
-      estimatedReceiveAmount={estimatedReceiveAmount}
+      estimatedReceiveAmount={displayedCryptoAmount}
       availableBalanceFiat={availableBalance}
       isQuoteLoading={isQuoteLoading}
       isUnpricedSource={isUnpricedSource}

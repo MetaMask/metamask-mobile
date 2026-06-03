@@ -131,6 +131,8 @@ export interface UseQuickBuyControllerResult {
   usdAmount: string;
   /** Token-units amount entered in the unpriced sell path (otherwise ''). */
   sourceAmountTokens: string;
+  /** Source token amount in token units (derived from USD for priced, or directly entered for unpriced). */
+  sourceTokenAmount: string | undefined;
   /** True when the source token has a usable fiat exchange rate. */
   hasSourcePrice: boolean;
   sliderPercent: number;
@@ -1074,6 +1076,7 @@ export function useQuickBuyController(
     amountDisplayMode,
     usdAmount,
     sourceAmountTokens,
+    sourceTokenAmount,
     hasSourcePrice,
     sliderPercent,
     maxSpendUsd,
