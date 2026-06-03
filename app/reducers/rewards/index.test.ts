@@ -52,6 +52,17 @@ import rewardsReducer, {
   setPerpsTradingCampaignVolume,
   setPerpsTradingCampaignVolumeLoading,
   setPerpsTradingCampaignVolumeError,
+  setPredictThePitchEligibleMarkets,
+  setPredictThePitchEligibleMarketsLoading,
+  setPredictThePitchEligibleMarketsError,
+  setPredictThePitchLeaderboard,
+  setPredictThePitchLeaderboardLoading,
+  setPredictThePitchLeaderboardError,
+  setPredictThePitchLeaderboardPosition,
+  setPredictThePitchPositions,
+  setPredictThePitchPrizePool,
+  setPredictThePitchPrizePoolLoading,
+  setPredictThePitchPrizePoolError,
   bulkLinkStarted,
   bulkLinkAccountResult,
   bulkLinkCompleted,
@@ -79,6 +90,11 @@ import {
   OndoGmActivityEntryDto,
   PerpsTradingCampaignLeaderboardDto,
   PerpsTradingCampaignLeaderboardPositionDto,
+  PredictThePitchEligibleMarketsDto,
+  PredictThePitchLeaderboardDto,
+  PredictThePitchLeaderboardPositionDto,
+  PredictThePitchPositionsDto,
+  PredictThePitchPrizePoolDto,
   VipDashboardState,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { AccountGroupId } from '@metamask/account-api';
@@ -2099,6 +2115,17 @@ describe('rewardsReducer', () => {
         perpsTradingCampaignVolume: null,
         perpsTradingCampaignVolumeLoading: false,
         perpsTradingCampaignVolumeError: false,
+        predictThePitchEligibleMarkets: null,
+        predictThePitchEligibleMarketsLoading: false,
+        predictThePitchEligibleMarketsError: false,
+        predictThePitchLeaderboard: null,
+        predictThePitchLeaderboardLoading: false,
+        predictThePitchLeaderboardError: false,
+        predictThePitchLeaderboardPositions: {},
+        predictThePitchPositions: {},
+        predictThePitchPrizePool: null,
+        predictThePitchPrizePoolLoading: false,
+        predictThePitchPrizePoolError: false,
         pendingDeeplink: null,
         dismissedCampaignOutcomeToasts: {},
       };
@@ -2231,6 +2258,17 @@ describe('rewardsReducer', () => {
         perpsTradingCampaignVolume: null,
         perpsTradingCampaignVolumeLoading: false,
         perpsTradingCampaignVolumeError: false,
+        predictThePitchEligibleMarkets: null,
+        predictThePitchEligibleMarketsLoading: false,
+        predictThePitchEligibleMarketsError: false,
+        predictThePitchLeaderboard: null,
+        predictThePitchLeaderboardLoading: false,
+        predictThePitchLeaderboardError: false,
+        predictThePitchLeaderboardPositions: {},
+        predictThePitchPositions: {},
+        predictThePitchPrizePool: null,
+        predictThePitchPrizePoolLoading: false,
+        predictThePitchPrizePoolError: false,
         pendingDeeplink: null,
         dismissedCampaignOutcomeToasts: {},
       };
@@ -6012,6 +6050,211 @@ describe('perps trading campaign volume', () => {
 
     const off = rewardsReducer(on, setPerpsTradingCampaignVolumeError(false));
     expect(off.perpsTradingCampaignVolumeError).toBe(false);
+  });
+});
+
+const mockPredictEligibleMarkets: PredictThePitchEligibleMarketsDto = {
+  games: [
+    {
+      displayName: 'Brazil vs Argentina',
+      navId: '0xnav',
+      conditionId: '0xcondition',
+      marketSlug: 'brazil-vs-argentina',
+      eventSlug: 'world-cup',
+      iconUrl: null,
+      flags: [],
+      bucket: 'games',
+    },
+  ],
+  props: [],
+};
+
+const mockPredictLeaderboard: PredictThePitchLeaderboardDto = {
+  campaignId: 'predict-c-1',
+  computedAt: '2026-06-30T12:00:00.000Z',
+  updateIntervalMinutes: 15,
+  entries: [],
+  totalParticipants: 10,
+};
+
+const mockPredictPosition: PredictThePitchLeaderboardPositionDto = {
+  rank: 1,
+  totalParticipants: 10,
+  roi: 0.25,
+  pnl: 50,
+  capitalDeployed: 200,
+  marketCount: 2,
+  eligible: true,
+  neighbors: [],
+  computedAt: '2026-06-30T12:00:00.000Z',
+  updateIntervalMinutes: 15,
+};
+
+const mockPredictPositions: PredictThePitchPositionsDto = {
+  positions: [
+    {
+      conditionId: '0xcondition',
+      displayName: 'Brazil vs Argentina',
+      navId: '0xnav',
+      marketSlug: 'brazil-vs-argentina',
+      eventSlug: 'world-cup',
+      iconUrl: null,
+      flags: [],
+      moneySpent: 200,
+      pnl: 50,
+      roi: 0.25,
+    },
+  ],
+  computedAt: '2026-06-30T12:00:00.000Z',
+};
+
+const mockPredictPrizePool: PredictThePitchPrizePoolDto = {
+  totalVolumeUsd: 1000,
+  unlockedPoolUsd: 500,
+  thresholdsUsd: [0, 1000],
+  poolScheduleUsd: [250, 500],
+  breakdown: [{ rank: 1, amountUsd: 500 }],
+  computedAt: null,
+};
+
+describe('predict the pitch reducers', () => {
+  it('sets eligible markets and clears error', () => {
+    const state = rewardsReducer(
+      { ...initialState, predictThePitchEligibleMarketsError: true },
+      setPredictThePitchEligibleMarkets(mockPredictEligibleMarkets),
+    );
+
+    expect(state.predictThePitchEligibleMarkets).toEqual(
+      mockPredictEligibleMarkets,
+    );
+    expect(state.predictThePitchEligibleMarketsError).toBe(false);
+  });
+
+  it('skips eligible market loading when data is cached and toggles errors', () => {
+    const withData = rewardsReducer(
+      {
+        ...initialState,
+        predictThePitchEligibleMarkets: mockPredictEligibleMarkets,
+      },
+      setPredictThePitchEligibleMarketsLoading(true),
+    );
+    expect(withData.predictThePitchEligibleMarketsLoading).toBe(false);
+
+    const withError = rewardsReducer(
+      initialState,
+      setPredictThePitchEligibleMarketsError(true),
+    );
+    expect(withError.predictThePitchEligibleMarketsError).toBe(true);
+  });
+
+  it('sets and removes leaderboard data', () => {
+    let state = rewardsReducer(
+      { ...initialState, predictThePitchLeaderboardError: true },
+      setPredictThePitchLeaderboard(mockPredictLeaderboard),
+    );
+
+    expect(state.predictThePitchLeaderboard).toEqual(mockPredictLeaderboard);
+    expect(state.predictThePitchLeaderboardError).toBe(false);
+
+    state = rewardsReducer(state, setPredictThePitchLeaderboard(null));
+
+    expect(state.predictThePitchLeaderboard).toBeNull();
+  });
+
+  it('skips leaderboard loading when leaderboard is cached and toggles errors', () => {
+    const withData = rewardsReducer(
+      {
+        ...initialState,
+        predictThePitchLeaderboard: mockPredictLeaderboard,
+      },
+      setPredictThePitchLeaderboardLoading(true),
+    );
+    expect(withData.predictThePitchLeaderboardLoading).toBe(false);
+
+    const withError = rewardsReducer(
+      initialState,
+      setPredictThePitchLeaderboardError(true),
+    );
+    expect(withError.predictThePitchLeaderboardError).toBe(true);
+  });
+
+  it('sets and removes leaderboard positions and positions by subscription/campaign key', () => {
+    let state = rewardsReducer(
+      initialState,
+      setPredictThePitchLeaderboardPosition({
+        subscriptionId: 'sub-1',
+        campaignId: 'predict-c-1',
+        position: mockPredictPosition,
+      }),
+    );
+    state = rewardsReducer(
+      state,
+      setPredictThePitchPositions({
+        subscriptionId: 'sub-1',
+        campaignId: 'predict-c-1',
+        positions: mockPredictPositions,
+      }),
+    );
+
+    expect(
+      state.predictThePitchLeaderboardPositions['sub-1:predict-c-1'],
+    ).toEqual(mockPredictPosition);
+    expect(state.predictThePitchPositions['sub-1:predict-c-1']).toEqual(
+      mockPredictPositions,
+    );
+
+    state = rewardsReducer(
+      state,
+      setPredictThePitchLeaderboardPosition({
+        subscriptionId: 'sub-1',
+        campaignId: 'predict-c-1',
+        position: null,
+      }),
+    );
+    state = rewardsReducer(
+      state,
+      setPredictThePitchPositions({
+        subscriptionId: 'sub-1',
+        campaignId: 'predict-c-1',
+        positions: null,
+      }),
+    );
+
+    expect(
+      state.predictThePitchLeaderboardPositions['sub-1:predict-c-1'],
+    ).toBeUndefined();
+    expect(state.predictThePitchPositions['sub-1:predict-c-1']).toBeUndefined();
+  });
+
+  it('sets and removes prize-pool data', () => {
+    let state = rewardsReducer(
+      { ...initialState, predictThePitchPrizePoolError: true },
+      setPredictThePitchPrizePool(mockPredictPrizePool),
+    );
+
+    expect(state.predictThePitchPrizePool).toEqual(mockPredictPrizePool);
+    expect(state.predictThePitchPrizePoolError).toBe(false);
+
+    state = rewardsReducer(state, setPredictThePitchPrizePool(null));
+
+    expect(state.predictThePitchPrizePool).toBeNull();
+  });
+
+  it('skips prize-pool loading when data is cached and toggles errors', () => {
+    const withData = rewardsReducer(
+      {
+        ...initialState,
+        predictThePitchPrizePool: mockPredictPrizePool,
+      },
+      setPredictThePitchPrizePoolLoading(true),
+    );
+    expect(withData.predictThePitchPrizePoolLoading).toBe(false);
+
+    const withError = rewardsReducer(
+      initialState,
+      setPredictThePitchPrizePoolError(true),
+    );
+    expect(withError.predictThePitchPrizePoolError).toBe(true);
   });
 });
 

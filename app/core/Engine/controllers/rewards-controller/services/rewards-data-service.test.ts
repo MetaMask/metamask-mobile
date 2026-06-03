@@ -5395,4 +5395,202 @@ describe('RewardsDataService', () => {
       ).rejects.toThrow('Get perps trading campaign volume failed: 500');
     });
   });
+
+  describe('Predict The Pitch endpoints', () => {
+    const mockCampaignId = 'predict-campaign-1';
+    const mockSubscriptionId = 'sub-predict-1';
+    const mockToken = 'predict-token';
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+    });
+
+    it('gets eligible markets from the public endpoint', async () => {
+      const eligibleMarkets = { games: [], props: [] };
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(eligibleMarkets),
+      } as unknown as Response);
+
+      const result = await service.getPredictThePitchEligibleMarkets();
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://uat.rewards.test/predict-the-pitch/eligible-markets',
+        expect.objectContaining({ method: 'GET' }),
+      );
+      expect(result).toEqual(eligibleMarkets);
+    });
+
+    it('gets the public leaderboard endpoint', async () => {
+      const leaderboard = {
+        campaignId: mockCampaignId,
+        computedAt: '2026-06-30T12:00:00.000Z',
+        updateIntervalMinutes: 15,
+        entries: [],
+        totalParticipants: 0,
+      };
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(leaderboard),
+      } as unknown as Response);
+
+      const result =
+        await service.getPredictThePitchLeaderboard(mockCampaignId);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/predict-the-pitch/${mockCampaignId}/leaderboard`,
+        expect.objectContaining({ method: 'GET' }),
+      );
+      expect(result).toEqual(leaderboard);
+    });
+
+    it('gets authenticated leaderboard position and returns null on 404', async () => {
+      const position = {
+        rank: 1,
+        totalParticipants: 10,
+        roi: 0.5,
+        pnl: 100,
+        capitalDeployed: 200,
+        marketCount: 2,
+        eligible: true,
+        neighbors: [],
+        computedAt: '2026-06-30T12:00:00.000Z',
+        updateIntervalMinutes: 15,
+      };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(position),
+      } as unknown as Response);
+
+      const result = await service.getPredictThePitchLeaderboardPosition(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/predict-the-pitch/${mockCampaignId}/leaderboard/me`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(position);
+
+      mockFetch.mockResolvedValueOnce({ ok: false, status: 404 } as Response);
+
+      await expect(
+        service.getPredictThePitchLeaderboardPosition(
+          mockCampaignId,
+          mockSubscriptionId,
+        ),
+      ).resolves.toBeNull();
+    });
+
+    it('gets authenticated positions and throws on failures', async () => {
+      const positions = {
+        positions: [],
+        computedAt: null,
+      };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(positions),
+      } as unknown as Response);
+
+      const result = await service.getPredictThePitchPositions(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/predict-the-pitch/${mockCampaignId}/positions/me`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(positions);
+
+      mockFetch.mockResolvedValueOnce({ ok: false, status: 404 } as Response);
+
+      await expect(
+        service.getPredictThePitchPositions(mockCampaignId, mockSubscriptionId),
+      ).rejects.toThrow('Get Predict The Pitch positions failed: 404');
+    });
+
+    it('gets authenticated participant outcome and throws on failures', async () => {
+      const outcome = {
+        subscriptionId: mockSubscriptionId,
+        outcomeStatus: 'pending' as const,
+        winnerVerificationCode: 'ABC123',
+        rank: 2,
+      };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(outcome),
+      } as unknown as Response);
+
+      const result = await service.getPredictThePitchParticipantOutcome(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/predict-the-pitch/${mockCampaignId}/outcome/me`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(outcome);
+
+      mockFetch.mockResolvedValueOnce({ ok: false, status: 500 } as Response);
+
+      await expect(
+        service.getPredictThePitchParticipantOutcome(
+          mockCampaignId,
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow(
+        'Get Predict The Pitch participant outcome failed: 500',
+      );
+    });
+
+    it('gets public prize-pool stats and throws on failures', async () => {
+      const prizePool = {
+        totalVolumeUsd: 1000,
+        unlockedPoolUsd: 500,
+        thresholdsUsd: [0, 1000],
+        poolScheduleUsd: [250, 500],
+        breakdown: [{ rank: 1, amountUsd: 500 }],
+        computedAt: null,
+      };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(prizePool),
+      } as unknown as Response);
+
+      const result = await service.getPredictThePitchPrizePool(mockCampaignId);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/predict-the-pitch/${mockCampaignId}/stats/prize-pool`,
+        expect.objectContaining({ method: 'GET' }),
+      );
+      expect(result).toEqual(prizePool);
+
+      mockFetch.mockResolvedValueOnce({ ok: false, status: 503 } as Response);
+
+      await expect(
+        service.getPredictThePitchPrizePool(mockCampaignId),
+      ).rejects.toThrow('Get Predict The Pitch prize pool failed: 503');
+    });
+  });
 });

@@ -19,6 +19,12 @@ export type {
   RewardsDataServiceClaimRewardAction,
   RewardsDataServiceGetVIPDashboardAction,
   RewardsDataServiceGetVipFeesAction,
+  RewardsDataServiceGetPredictThePitchEligibleMarketsAction,
+  RewardsDataServiceGetPredictThePitchLeaderboardAction,
+  RewardsDataServiceGetPredictThePitchLeaderboardPositionAction,
+  RewardsDataServiceGetPredictThePitchPositionsAction,
+  RewardsDataServiceGetPredictThePitchParticipantOutcomeAction,
+  RewardsDataServiceGetPredictThePitchPrizePoolAction,
 } from './rewards-data-service';
 
 export { RewardsDataService } from './rewards-data-service';

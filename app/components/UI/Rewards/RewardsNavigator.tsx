@@ -26,6 +26,8 @@ import CampaignTourStepView from './Views/CampaignTourStepView';
 import PerpsTradingCampaignDetailsView from './Views/PerpsTradingCampaignDetailsView';
 import PerpsTradingCampaignLeaderboardView from './Views/PerpsTradingCampaignLeaderboardView';
 import PerpsTradingCampaignStatsView from './Views/PerpsTradingCampaignStatsView';
+import PredictThePitchCampaignDetailsView from './Views/PredictThePitchCampaignDetailsView';
+import PredictThePitchCampaignWinningView from './Views/PredictThePitchCampaignWinningView';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import {
@@ -113,7 +115,10 @@ const RewardsNavigator: React.FC = () => {
       activeRewardsRoute === Routes.REWARDS_CAMPAIGNS_VIEW ||
       activeRewardsRoute === Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW ||
       activeRewardsRoute === Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW ||
-      activeRewardsRoute === Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW;
+      activeRewardsRoute ===
+        Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW ||
+      activeRewardsRoute ===
+        Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW;
 
     if (!isOnCampaignRoute) {
       // Explicitly close the nudge when navigating away — don't rely solely on
@@ -179,6 +184,10 @@ const RewardsNavigator: React.FC = () => {
         navigation.navigate(Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW);
       } else if (pendingDeeplink?.campaign === 'perps-comp') {
         navigation.navigate(Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW);
+      } else if (pendingDeeplink?.campaign === 'predict-the-pitch') {
+        navigation.navigate(
+          Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW,
+        );
       } else if (pendingDeeplink?.page === 'musd') {
         navigation.navigate(Routes.REWARDS_MUSD_CALCULATOR_VIEW);
       } else if (pendingDeeplink?.page === 'benefits') {
@@ -332,6 +341,16 @@ const RewardsNavigator: React.FC = () => {
           <Stack.Screen
             name={Routes.REWARDS_PERPS_TRADING_CAMPAIGN_WINNING_VIEW}
             component={PerpsTradingCampaignWinningView}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW}
+            component={PredictThePitchCampaignDetailsView}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_WINNING_VIEW}
+            component={PredictThePitchCampaignWinningView}
             options={{ headerShown: false }}
           />
         </>
