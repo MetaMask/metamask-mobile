@@ -64,9 +64,9 @@ const NotifCard = ({
       {/* Content — always fully opaque */}
       <Box twClassName="rounded-[24px] bg-default p-5">
         <Box
-          twClassName={`flex-row items-center gap-3 rounded-2xl ${cardBackgroundClass} px-3 py-3`}
+          twClassName={`flex-row items-start gap-3 rounded-2xl ${cardBackgroundClass} px-3 py-3`}
         >
-          <Box twClassName="h-9 w-9 shrink-0 self-center items-center justify-center rounded-xl bg-muted">
+          <Box twClassName="h-9 w-9 shrink-0 self-start items-center justify-center rounded-xl bg-muted">
             <Image
               source={FoxImage}
               style={tw.style('h-6 w-6')}
