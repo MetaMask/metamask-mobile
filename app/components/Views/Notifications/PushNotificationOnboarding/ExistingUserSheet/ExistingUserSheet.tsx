@@ -61,15 +61,15 @@ const ExistingUserSheet: React.FC<ExistingUserSheetProps> = ({
       onClose={onClose}
       testID={testID ?? ExistingUserSheetSelectorsIDs.CONTAINER}
     >
-      <Box twClassName="pb-8 pt-2">
-        <Box twClassName="mb-1 items-end pr-4">
+      <Box twClassName="pb-5 pt-0">
+        <Box twClassName="mb-1 items-end pr-2">
           <ButtonIcon
             iconName={IconName.Close}
             size={ButtonIconSizes.Lg}
             onPress={() => bottomSheetRef.current?.onCloseBottomSheet()}
           />
         </Box>
-        <Box twClassName="mb-6 px-6">
+        <Box twClassName="mb-2 px-6">
           <NotifCard />
         </Box>
 
@@ -84,7 +84,7 @@ const ExistingUserSheet: React.FC<ExistingUserSheetProps> = ({
 
           <Text
             variant={TextVariant.BodyMd}
-            twClassName="mb-6 text-center text-alternative"
+            twClassName="mb-7 text-center text-alternative"
             testID={ExistingUserSheetSelectorsIDs.BODY}
           >
             {strings('notifications.push_onboarding.existing_user.body')}
