@@ -951,6 +951,39 @@ describe('PriceAdvanced', () => {
       );
     });
 
+    it('ends trace with chart range metadata when the WebView proves the latest bar is visible', () => {
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+      const advancedChart = getByTestId('mock-advanced-chart');
+
+      mockEndTrace.mockClear();
+
+      act(() => {
+        advancedChart.props.onSkeletonHidden?.({
+          seriesGeneration: 2,
+          requestedFromMs: 1000,
+          requestedToMs: 2000,
+          actualFromSec: 1,
+          actualToSec: 2,
+          lastBarSec: 2,
+          latestBarVisible: true,
+          rangeStatus: 'applied',
+          rangeApplyRetryCount: 0,
+          webViewRemounted: false,
+        });
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            seriesGeneration: 2,
+            latestBarVisible: true,
+            rangeStatus: 'applied',
+            webViewRemounted: false,
+          }),
+        }),
+      );
+    });
+
     it('ends trace with error data when onError is called', () => {
       const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
       const advancedChart = getByTestId('mock-advanced-chart');
