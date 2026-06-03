@@ -3,7 +3,6 @@ import Utilities, { BASE_DEFAULTS } from './Utilities.ts';
 import { AssertionOptions } from './types.ts';
 import Matchers from './Matchers.ts';
 import { Json } from '@metamask/utils';
-import { type EncapsulatedElementType } from './EncapsulatedElement.ts';
 
 /**
  * Assertions with auto-retry and better error messages
@@ -83,7 +82,7 @@ export default class Assertions {
    * Assert element has specific text with auto-retry
    */
   static async expectElementToHaveText(
-    detoxElement: DetoxElement | EncapsulatedElementType,
+    detoxElement: DetoxElement,
     text: string,
     options: AssertionOptions = {},
   ): Promise<void> {
@@ -143,7 +142,7 @@ export default class Assertions {
    * Assert element does not have specific text with auto-retry
    */
   static async expectElementToNotHaveText(
-    detoxElement: DetoxElement | EncapsulatedElementType,
+    detoxElement: DetoxElement,
     text: string,
     options: AssertionOptions = {},
   ): Promise<void> {
@@ -168,7 +167,7 @@ export default class Assertions {
    * Assert element has specific label with auto-retry
    */
   static async expectElementToHaveLabel(
-    detoxElement: DetoxElement | EncapsulatedElementType,
+    detoxElement: DetoxElement,
     label: string,
     options: AssertionOptions = {},
   ): Promise<void> {
@@ -247,7 +246,7 @@ export default class Assertions {
    * Assert element is enabled with auto-retry
    */
   static async expectToggleToBeOn(
-    detoxElement: DetoxElement | EncapsulatedElementType,
+    detoxElement: DetoxElement,
     options: AssertionOptions = {},
   ): Promise<void> {
     const {
@@ -285,7 +284,7 @@ export default class Assertions {
    * Assert element is disabled with auto-retry
    */
   static async expectToggleToBeOff(
-    detoxElement: DetoxElement | EncapsulatedElementType,
+    detoxElement: DetoxElement,
     options: AssertionOptions = {},
   ): Promise<void> {
     const {
@@ -542,7 +541,7 @@ export default class Assertions {
    * @deprecated Use expectElementToBeVisible() instead for better error handling and retry mechanisms
    */
   static async checkIfVisible(
-    detoxElement: DetoxElement | EncapsulatedElementType,
+    detoxElement: DetoxElement,
     timeout = 15000,
   ): Promise<void> {
     return this.expectElementToBeVisible(detoxElement, { timeout });
@@ -699,9 +698,7 @@ export default class Assertions {
    * Legacy method: Check if element is enabled
    * @deprecated Use Utilities.waitForElementToBeEnabled() instead for better retry handling
    */
-  static async checkIfEnabled(
-    detoxElement: DetoxElement | EncapsulatedElementType,
-  ): Promise<boolean> {
+  static async checkIfEnabled(detoxElement: DetoxElement): Promise<boolean> {
     const el = (await detoxElement) as Detox.IndexableNativeElement;
     const attributes = await el.getAttributes();
     return 'enabled' in attributes ? !!attributes.enabled : false;
@@ -711,9 +708,7 @@ export default class Assertions {
    * Legacy method: Check if element is disabled
    * @deprecated Use Utilities.waitForElementToBeEnabled() with negated logic instead
    */
-  static async checkIfDisabled(
-    detoxElement: DetoxElement | EncapsulatedElementType,
-  ): Promise<boolean> {
+  static async checkIfDisabled(detoxElement: DetoxElement): Promise<boolean> {
     const el = (await detoxElement) as Detox.IndexableNativeElement;
     const attributes = await el.getAttributes();
     return 'enabled' in attributes ? !attributes.enabled : true;
