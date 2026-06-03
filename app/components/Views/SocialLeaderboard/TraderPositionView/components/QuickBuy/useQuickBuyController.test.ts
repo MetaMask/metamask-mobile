@@ -982,6 +982,50 @@ describe('useQuickBuyController', () => {
       // and ETH (zero address, chainId '0x1') is native on that chain → priority 1.
       expect(result.current.sourceToken?.symbol).toBe('ETH');
     });
+
+    it('does not preselect the destination token when a better source option exists', () => {
+      const destAddress = '0x0000000000000000000000000000000000000000';
+      const destChainId = '0x1';
+
+      // destToken matches ETH on mainnet — the user also holds USDC on mainnet
+      (useQuickBuySetup as jest.Mock).mockReturnValue({
+        chainId: destChainId,
+        destToken: {
+          address: destAddress,
+          chainId: destChainId,
+          decimals: 18,
+          symbol: 'ETH',
+          name: 'Ethereum',
+        },
+        isLoading: false,
+        isUnsupportedChain: false,
+      });
+
+      const ethOnMainnet = createSourceToken({
+        address: destAddress,
+        chainId: destChainId,
+        symbol: 'ETH',
+        tokenFiatAmount: 2000,
+      });
+      const usdcOnMainnet = createSourceToken({
+        address: '0xTokenUSDC',
+        chainId: destChainId,
+        symbol: 'USDC',
+        tokenFiatAmount: 1000,
+      });
+
+      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+        options: [ethOnMainnet, usdcOnMainnet],
+        isLoading: false,
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      // ETH is the dest token; USDC is the next-best holding and should be selected
+      expect(result.current.sourceToken?.symbol).toBe('USDC');
+    });
   });
 
   describe('selectDefaultSourceToken', () => {
@@ -1092,6 +1136,149 @@ describe('useQuickBuyController', () => {
       );
 
       expect(result?.symbol).toBe('ETH');
+    });
+
+    // ── destToken deprioritization ────────────────────────────────────────────
+
+    it('deprioritizes the destination token: skips SOL when buying SOL and picks USDC instead', () => {
+      const solChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+      const solAddress = `${solChainId}/slip44:501`;
+
+      const solNative: BridgeToken = createSourceToken({
+        address: solAddress,
+        chainId: solChainId,
+        symbol: 'SOL',
+        tokenFiatAmount: 5000,
+      });
+      const usdcOnSolana: BridgeToken = createSourceToken({
+        address: `${solChainId}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
+        chainId: solChainId,
+        symbol: 'USDC',
+        tokenFiatAmount: 1000,
+      });
+
+      const destToken: Pick<BridgeToken, 'address' | 'chainId'> = {
+        address: solAddress,
+        chainId: solChainId as BridgeToken['chainId'],
+      };
+      const result = selectDefaultSourceToken(
+        [solNative, usdcOnSolana],
+        solChainId,
+        destToken,
+      );
+
+      expect(result?.symbol).toBe('USDC');
+      expect(result?.chainId).toBe(solChainId);
+    });
+
+    it('deprioritizes destination token on EVM: skips ETH on mainnet when buying ETH on mainnet', () => {
+      const ethOnMainnet = native('0x1', 2000);
+      const ethOnBase = native('0x2105', 1500);
+      const destToken: Pick<BridgeToken, 'address' | 'chainId'> = {
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: '0x1' as BridgeToken['chainId'],
+      };
+
+      const result = selectDefaultSourceToken(
+        [ethOnMainnet, ethOnBase],
+        '0x1',
+        destToken,
+      );
+
+      // ETH on mainnet is the dest token; ETH on Base (native on non-dest chain) is tier 3
+      expect(result?.symbol).toBe('ETH');
+      expect(result?.chainId).toBe('0x2105');
+    });
+
+    it('treats cross-chain same-symbol as a different token: USDC on Base is NOT filtered when buying USDC on Ethereum', () => {
+      const usdcOnBase = createSourceToken({
+        address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'.toLowerCase(),
+        chainId: '0x2105',
+        symbol: 'USDC',
+        tokenFiatAmount: 3000,
+      });
+      const destToken: Pick<BridgeToken, 'address' | 'chainId'> = {
+        address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        chainId: '0x1' as BridgeToken['chainId'],
+      };
+
+      const result = selectDefaultSourceToken([usdcOnBase], '0x1', destToken);
+
+      // usdcOnBase is on a different chain → not the dest token → should be selected
+      expect(result?.symbol).toBe('USDC');
+      expect(result?.chainId).toBe('0x2105');
+    });
+
+    it('last-resort fallback: returns destination token when it is the only holding', () => {
+      const solChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+      const solAddress = `${solChainId}/slip44:501`;
+
+      const solNative: BridgeToken = createSourceToken({
+        address: solAddress,
+        chainId: solChainId,
+        symbol: 'SOL',
+        tokenFiatAmount: 5000,
+      });
+
+      const destToken: Pick<BridgeToken, 'address' | 'chainId'> = {
+        address: solAddress,
+        chainId: solChainId as BridgeToken['chainId'],
+      };
+      const result = selectDefaultSourceToken(
+        [solNative],
+        solChainId,
+        destToken,
+      );
+
+      // Only holding is the dest token — fall back rather than returning undefined
+      expect(result?.symbol).toBe('SOL');
+    });
+
+    it('address comparison is case-insensitive: filters dest token when source address is lowercase and dest address is checksum', () => {
+      const checksumAddress = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+      const lowercaseAddress = checksumAddress.toLowerCase();
+
+      const usdcOnMainnet = createSourceToken({
+        address: lowercaseAddress,
+        chainId: '0x1',
+        symbol: 'USDC',
+        tokenFiatAmount: 3000,
+      });
+      const usdtOnMainnet = createSourceToken({
+        address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+        chainId: '0x1',
+        symbol: 'USDT',
+        tokenFiatAmount: 1000,
+      });
+
+      // destToken uses checksum address; source candidate uses lowercase
+      const destToken: Pick<BridgeToken, 'address' | 'chainId'> = {
+        address: checksumAddress,
+        chainId: '0x1' as BridgeToken['chainId'],
+      };
+      const result = selectDefaultSourceToken(
+        [usdcOnMainnet, usdtOnMainnet],
+        '0x1',
+        destToken,
+      );
+
+      // USDC (matching dest) is filtered; USDT is selected
+      expect(result?.symbol).toBe('USDT');
+    });
+
+    it('ignores destToken parameter when it is undefined (backward-compatible)', () => {
+      const ethOnBase = native('0x2105', 500);
+      const usdcOnBase = erc20('0x2105', 'USDC', 3000);
+
+      const result = selectDefaultSourceToken(
+        [usdcOnBase, ethOnBase],
+        '0x2105',
+        undefined,
+      );
+
+      // No filtering — priority 1 native on dest chain is selected
+      expect(result?.symbol).toBe('ETH');
+      expect(result?.chainId).toBe('0x2105');
     });
   });
 

@@ -13,22 +13,41 @@ export const isNativeToken = (token: BridgeToken): boolean =>
  * 2. Any token on the destination chain with the highest balance
  * 3. Native token on any other chain with the highest balance
  * 4. Fallback: first option (highest overall fiat balance)
+ *
+ * The destination token itself is deprioritized — it is excluded from all
+ * four tiers and only selected as a last resort when the user holds no other
+ * tokens. This prevents the "buy SOL with SOL" same-token preselection.
+ * Cross-chain same-symbol (e.g. USDC on Base while buying USDC on Ethereum)
+ * is treated as a different token because both chainId and address are compared.
  */
 export const selectDefaultSourceToken = (
   options: BridgeToken[],
   destChainId: Hex | CaipChainId | undefined,
+  destToken?: Pick<BridgeToken, 'address' | 'chainId'>,
 ): BridgeToken | undefined => {
   if (options.length === 0) return undefined;
 
+  const isDest = (t: BridgeToken): boolean =>
+    !!destToken &&
+    t.chainId === destToken.chainId &&
+    t.address.toLowerCase() === destToken.address.toLowerCase();
+
+  const eligible = options.filter((t) => !isDest(t));
+
   if (destChainId) {
-    const nativeOnDest = options.find(
+    const nativeOnDest = eligible.find(
       (t) => t.chainId === destChainId && isNativeToken(t),
     );
     if (nativeOnDest) return nativeOnDest;
 
-    const tokenOnDest = options.find((t) => t.chainId === destChainId);
+    const tokenOnDest = eligible.find((t) => t.chainId === destChainId);
     if (tokenOnDest) return tokenOnDest;
   }
 
-  return options.find(isNativeToken) ?? options[0];
+  const fallback = eligible.find(isNativeToken) ?? eligible[0];
+  if (fallback) return fallback;
+
+  // Last resort: user only holds the destination token. The Buy CTA will stay
+  // disabled because no valid same-token quote exists.
+  return options[0];
 };

@@ -238,14 +238,16 @@ export function useQuickBuyController(
   >(undefined);
   const [isSourcePickerOpen, setIsSourcePickerOpen] = useState(false);
 
-  // Auto-select default source token using smart priority rules (see selectDefaultSourceToken)
+  // Auto-select default source token using smart priority rules (see selectDefaultSourceToken).
+  // destToken is passed so the destination is deprioritized and not preselected
+  // when the user has other holdings to pay with.
   useEffect(() => {
     if (sourceTokenOptions.length > 0 && !selectedSourceToken) {
       setSelectedSourceToken(
-        selectDefaultSourceToken(sourceTokenOptions, destChainId),
+        selectDefaultSourceToken(sourceTokenOptions, destChainId, destToken),
       );
     }
-  }, [sourceTokenOptions, selectedSourceToken, destChainId]);
+  }, [sourceTokenOptions, selectedSourceToken, destChainId, destToken]);
 
   const sourceToken = selectedSourceToken;
   const sourceChainId = sourceToken?.chainId as Hex | undefined;
