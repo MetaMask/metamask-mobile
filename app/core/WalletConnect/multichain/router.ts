@@ -6,13 +6,13 @@ import type { SnapMappedRequest } from './types';
  * Route a non-EVM request through the MultichainRoutingService.
  */
 export async function callMultichainRoutingService({
-  channelId,
+  origin,
   connectedAddresses,
   scope,
   requestId,
   mappedRequest,
 }: {
-  channelId: string;
+  origin: string;
   connectedAddresses: CaipAccountId[];
   scope: CaipChainId;
   requestId: number;
@@ -22,7 +22,7 @@ export async function callMultichainRoutingService({
     'MultichainRoutingService:handleRequest',
     {
       connectedAddresses,
-      origin: channelId,
+      origin,
       scope,
       request: {
         jsonrpc: '2.0' as const,

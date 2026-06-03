@@ -250,7 +250,7 @@ describe('multichain/tron', () => {
       });
 
       const result = await tronAdapter.handleRequest({
-        channelId: 'metamask',
+        origin: 'https://tron.example.com',
         connectedAddresses: ['tron:0x2b6653dc:TTestAddress' as CaipAccountId],
         scope: 'tron:728126428' as CaipChainId,
         requestId: 1,
@@ -267,7 +267,7 @@ describe('multichain/tron', () => {
       });
 
       expect(mockedCallMultichainRoutingService).toHaveBeenCalledWith({
-        channelId: 'metamask',
+        origin: 'https://tron.example.com',
         connectedAddresses: ['tron:728126428:TTestAddress'],
         scope: 'tron:728126428',
         requestId: 1,
