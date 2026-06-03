@@ -237,17 +237,39 @@ export function useQuickBuyController(
     BridgeToken | undefined
   >(undefined);
   const [isSourcePickerOpen, setIsSourcePickerOpen] = useState(false);
+  // True once the user explicitly picks a token from the picker. While false,
+  // the auto-select effect is allowed to correct a stale selection.
+  const isManualSelectionRef = useRef(false);
 
-  // Auto-select default source token using smart priority rules (see selectDefaultSourceToken).
-  // destToken is passed so the destination is deprioritized and not preselected
-  // when the user has other holdings to pay with.
+  // Synchronous dest-token lookup key — built from `target` + `destChainId` so it
+  // is available on the very first render, before useAssetMetadata resolves
+  // `destToken`. We pass it to `selectDefaultSourceToken` so the destination is
+  // filtered out of source candidates from the start, eliminating any same-token
+  // flash on Asset Details. The selector handles both EVM (address-based match)
+  // and non-EVM (symbol fallback for CAIP-form variation across SDKs).
+  const destLookupKey = useMemo<
+    Pick<BridgeToken, 'address' | 'chainId' | 'symbol'> | undefined
+  >(() => {
+    if (!destChainId) return undefined;
+    return {
+      chainId: destChainId,
+      address: target.tokenAddress,
+      symbol: target.tokenSymbol,
+    };
+  }, [destChainId, target.tokenAddress, target.tokenSymbol]);
+
+  // Auto-select default source token using smart priority rules (see
+  // selectDefaultSourceToken). destLookupKey is passed so the destination is
+  // deprioritized and not preselected when the user has other holdings to pay
+  // with. Manual picker selections are preserved via isManualSelectionRef.
   useEffect(() => {
-    if (sourceTokenOptions.length > 0 && !selectedSourceToken) {
-      setSelectedSourceToken(
-        selectDefaultSourceToken(sourceTokenOptions, destChainId, destToken),
-      );
-    }
-  }, [sourceTokenOptions, selectedSourceToken, destChainId, destToken]);
+    if (sourceTokenOptions.length === 0) return;
+    if (selectedSourceToken) return;
+    if (isManualSelectionRef.current) return;
+    setSelectedSourceToken(
+      selectDefaultSourceToken(sourceTokenOptions, destChainId, destLookupKey),
+    );
+  }, [sourceTokenOptions, selectedSourceToken, destChainId, destLookupKey]);
 
   const sourceToken = selectedSourceToken;
   const sourceChainId = sourceToken?.chainId as Hex | undefined;
@@ -596,6 +618,7 @@ export function useQuickBuyController(
 
   const handleSelectSourceToken = useCallback(
     (token: BridgeToken) => {
+      isManualSelectionRef.current = true;
       setSelectedSourceToken(token);
       setUsdAmount('');
       setQuotedUsdAmount('');

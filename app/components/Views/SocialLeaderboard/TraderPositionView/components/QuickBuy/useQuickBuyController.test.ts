@@ -983,23 +983,9 @@ describe('useQuickBuyController', () => {
       expect(result.current.sourceToken?.symbol).toBe('ETH');
     });
 
-    it('does not preselect the destination token when a better source option exists', () => {
+    it('does not preselect the destination token (EVM) on the very first render — no flash, even before destToken metadata resolves', () => {
       const destAddress = '0x0000000000000000000000000000000000000000';
       const destChainId = '0x1';
-
-      // destToken matches ETH on mainnet — the user also holds USDC on mainnet
-      (useQuickBuySetup as jest.Mock).mockReturnValue({
-        chainId: destChainId,
-        destToken: {
-          address: destAddress,
-          chainId: destChainId,
-          decimals: 18,
-          symbol: 'ETH',
-          name: 'Ethereum',
-        },
-        isLoading: false,
-        isUnsupportedChain: false,
-      });
 
       const ethOnMainnet = createSourceToken({
         address: destAddress,
@@ -1014,16 +1000,78 @@ describe('useQuickBuyController', () => {
         tokenFiatAmount: 1000,
       });
 
+      // destToken NOT yet available (metadata still loading) — but the synchronous
+      // lookup key is built from target.tokenAddress, so the first render is correct.
+      (useQuickBuySetup as jest.Mock).mockReturnValue({
+        chainId: destChainId,
+        destToken: undefined,
+        isLoading: true,
+        isUnsupportedChain: false,
+      });
+
       (useSourceTokenOptions as jest.Mock).mockReturnValue({
         options: [ethOnMainnet, usdcOnMainnet],
         isLoading: false,
       });
 
       const { result } = renderHook(() =>
-        useQuickBuyController(createTarget(), jest.fn()),
+        useQuickBuyController(
+          createTarget({ tokenAddress: destAddress }),
+          jest.fn(),
+        ),
       );
 
-      // ETH is the dest token; USDC is the next-best holding and should be selected
+      // First render skips ETH (matches synchronous dest lookup key) and picks USDC.
+      expect(result.current.sourceToken?.symbol).toBe('USDC');
+    });
+
+    it('does not preselect the destination token (non-EVM) on first render even when source/dest CAIP forms differ', () => {
+      // Source candidate uses canonical native form `…/slip44:501` from
+      // getNativeSourceToken, while the position's tokenAddress comes from the
+      // social API in a different form (e.g. wrapped SOL mint or empty). The
+      // synchronous symbol fallback in selectDefaultSourceToken should still
+      // detect this as the dest token.
+      const solChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+      const sourceSolAddress = `${solChainId}/slip44:501`;
+      const positionSolAddress = 'So11111111111111111111111111111111111111112';
+
+      const solNative = createSourceToken({
+        address: sourceSolAddress,
+        chainId: solChainId as BridgeToken['chainId'],
+        symbol: 'SOL',
+        tokenFiatAmount: 2,
+      });
+      const usdcOnSolana = createSourceToken({
+        address: `${solChainId}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
+        chainId: solChainId as BridgeToken['chainId'],
+        symbol: 'USDC',
+        tokenFiatAmount: 50,
+      });
+
+      (useQuickBuySetup as jest.Mock).mockReturnValue({
+        chainId: solChainId,
+        destToken: undefined,
+        isLoading: true,
+        isUnsupportedChain: false,
+      });
+
+      (useSourceTokenOptions as jest.Mock).mockReturnValue({
+        options: [usdcOnSolana, solNative],
+        isLoading: false,
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(
+          createTarget({
+            chain: 'solana',
+            tokenAddress: positionSolAddress,
+            tokenSymbol: 'SOL',
+          }),
+          jest.fn(),
+        ),
+      );
+
+      // SOL is filtered via symbol fallback (addresses differ); USDC is picked.
       expect(result.current.sourceToken?.symbol).toBe('USDC');
     });
   });
@@ -1264,6 +1312,73 @@ describe('useQuickBuyController', () => {
 
       // USDC (matching dest) is filtered; USDT is selected
       expect(result?.symbol).toBe('USDT');
+    });
+
+    it('non-EVM symbol fallback: filters dest token when source/dest CAIP forms differ but symbol matches on the same non-EVM chain', () => {
+      const solChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+
+      // Source uses canonical native CAIP form
+      const solNative: BridgeToken = createSourceToken({
+        address: `${solChainId}/slip44:501`,
+        chainId: solChainId as BridgeToken['chainId'],
+        symbol: 'SOL',
+        tokenFiatAmount: 5000,
+      });
+      const usdcOnSolana: BridgeToken = createSourceToken({
+        address: `${solChainId}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
+        chainId: solChainId as BridgeToken['chainId'],
+        symbol: 'USDC',
+        tokenFiatAmount: 1000,
+      });
+
+      // Dest uses a different form (e.g. wrapped SOL mint from the position payload)
+      const destToken: Pick<BridgeToken, 'address' | 'chainId' | 'symbol'> = {
+        address: 'So11111111111111111111111111111111111111112',
+        chainId: solChainId as BridgeToken['chainId'],
+        symbol: 'SOL',
+      };
+
+      const result = selectDefaultSourceToken(
+        [solNative, usdcOnSolana],
+        solChainId,
+        destToken,
+      );
+
+      // Address comparison fails, but non-EVM symbol fallback filters SOL → USDC picked.
+      expect(result?.symbol).toBe('USDC');
+    });
+
+    it('does NOT use symbol fallback on EVM chains (protects against fake-token symbol collisions)', () => {
+      const realUsdc = createSourceToken({
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        chainId: '0x1' as BridgeToken['chainId'],
+        symbol: 'USDC',
+        tokenFiatAmount: 5000,
+      });
+      const fakeUsdc = createSourceToken({
+        address: '0xfakefakefakefakefakefakefakefakefakefake',
+        chainId: '0x1' as BridgeToken['chainId'],
+        symbol: 'USDC', // hijacked symbol
+        tokenFiatAmount: 1000,
+      });
+
+      const destToken: Pick<BridgeToken, 'address' | 'chainId' | 'symbol'> = {
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        chainId: '0x1' as BridgeToken['chainId'],
+        symbol: 'USDC',
+      };
+
+      const result = selectDefaultSourceToken(
+        [realUsdc, fakeUsdc],
+        '0x1',
+        destToken,
+      );
+
+      // Real USDC matches by address (filtered). Fake USDC matches only by symbol —
+      // on EVM that is NOT considered the dest, so it gets selected.
+      expect(result?.address).toBe(
+        '0xfakefakefakefakefakefakefakefakefakefake',
+      );
     });
 
     it('ignores destToken parameter when it is undefined (backward-compatible)', () => {
