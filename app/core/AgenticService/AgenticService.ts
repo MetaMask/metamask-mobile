@@ -100,7 +100,6 @@ interface ReactDevToolsHook {
 /** Shape of the __DEV__-only agentic bridge on globalThis. */
 interface AgenticHudStep {
   id: string;
-  description?: string;
   status?: string;
   intent?: string;
   progress?: { current?: number; total?: number };

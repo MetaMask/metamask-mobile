@@ -5,9 +5,8 @@ import { registerStepHudCallback } from './AgenticService';
 
 interface Step {
   id: string;
-  description?: string;
+  intent: string;
   status?: string;
-  intent?: string;
   progress?: { current?: number; total?: number };
   detail?: string;
   error?: string;
@@ -49,35 +48,11 @@ function statusToneForStep(step: Step) {
   return 'running';
 }
 
-function legacyDescriptionParts(description?: string) {
-  return String(description ?? '')
-    .split('\n')
-    .map((part) => part.trim())
-    .filter(Boolean)
-    .filter((part, index, parts) => parts.indexOf(part) === index);
-}
-
-function legacySecondaryDisplayText(part: string) {
-  const errorPrefix = 'error:';
-  const detailPrefix = 'detail:';
-  const debugPrefix = 'debug ';
-  const normalized = part.toLowerCase();
-
-  if (normalized.startsWith(errorPrefix)) return part;
-  if (normalized.startsWith(detailPrefix)) {
-    return part.slice(detailPrefix.length).trim();
-  }
-  if (normalized.startsWith(debugPrefix)) return null;
-  return null;
-}
-
 function displayStateForStep(step: Step) {
-  const legacyParts = legacyDescriptionParts(step.description);
-  const intent = String(step.intent ?? legacyParts[0] ?? '').trim();
+  const intent = step.intent.trim();
   const secondary = [
     step.error ? `error: ${step.error}` : null,
     step.detail && step.detail !== intent ? step.detail : null,
-    ...legacyParts.slice(1).map(legacySecondaryDisplayText),
   ].filter((part): part is string => Boolean(part));
   return {
     intent,

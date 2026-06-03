@@ -492,14 +492,6 @@ const COMMANDS = {
     };
   },
 
-  async 'show-step'(client, args) {
-    const stepId = args[0] || '';
-    const description = args.slice(1).join(' ');
-    const payload = JSON.stringify({ id: stepId, description });
-    await cdpEval(client, `globalThis.__AGENTIC__?.showStep && globalThis.__AGENTIC__.showStep(${payload})`);
-    return { ok: true };
-  },
-
   async 'show-step-json'(client, args) {
     const raw = args.join(' ');
     let step;
@@ -510,6 +502,9 @@ const COMMANDS = {
     }
     if (!step || typeof step !== 'object' || Array.isArray(step)) {
       throw new Error('show-step-json requires a JSON object step payload');
+    }
+    if (typeof step.intent !== 'string' || !step.intent.trim()) {
+      throw new Error('show-step-json requires step.intent');
     }
     const payload = JSON.stringify(step);
     await cdpEval(client, `globalThis.__AGENTIC__?.showStep && globalThis.__AGENTIC__.showStep(${payload})`);

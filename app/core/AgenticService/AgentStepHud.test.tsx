@@ -12,9 +12,8 @@ const mockRegister = jest.mocked(registerStepHudCallback);
 type StepCallback = (
   step: {
     id: string;
-    description?: string;
+    intent: string;
     status?: string;
-    intent?: string;
     progress?: { current?: number; total?: number };
     detail?: string;
     error?: string;
@@ -57,7 +56,7 @@ describe('AgentStepHud', () => {
     expect(mockRegister).toHaveBeenCalledWith(null);
   });
 
-  it('displays canonical status, progress, and intent when callback fires', () => {
+  it('displays status, progress, and intent when callback fires', () => {
     const { getByText } = render(<AgentStepHud />);
     const callback = getLatestCallback();
 
@@ -68,18 +67,6 @@ describe('AgentStepHud', () => {
         progress: { current: 2, total: 10 },
         intent: 'Open BTC position',
       });
-    });
-
-    expect(getByText('RUN 2/10')).toBeOnTheScreen();
-    expect(getByText(/Open BTC position/)).toBeOnTheScreen();
-  });
-
-  it('keeps legacy id/description support for older bridges', () => {
-    const { getByText } = render(<AgentStepHud />);
-    const callback = getLatestCallback();
-
-    act(() => {
-      callback({ id: 'run 2/10', description: 'Open BTC position' });
     });
 
     expect(getByText('RUN 2/10')).toBeOnTheScreen();
@@ -101,23 +88,23 @@ describe('AgentStepHud', () => {
     expect(getByText('FAIL')).toHaveStyle({ color: '#FF4D4F' });
   });
 
-  it('shows one intent line and hides unmarked metadata lines', () => {
+  it('shows one intent line and hides node metadata', () => {
     const { getAllByText, queryByText } = render(<AgentStepHud />);
     const callback = getLatestCallback();
 
     act(() => {
       callback({
         id: 'run 1/2',
-        description: 'Prepare clean state\nPrepare clean state\nperps setup',
+        intent: 'Prepare clean state',
       });
     });
 
     expect(getAllByText(/Prepare clean state/)).toHaveLength(1);
-    expect(queryByText('perps setup')).toBeNull();
+    expect(queryByText('run 1/2')).toBeNull();
   });
 
   it('shows error and explicit detail lines only', () => {
-    const { getByText, queryByText } = render(<AgentStepHud />);
+    const { getByText } = render(<AgentStepHud />);
     const callback = getLatestCallback();
 
     act(() => {
@@ -126,7 +113,6 @@ describe('AgentStepHud', () => {
         intent: 'Complete the validation checkpoint',
         detail: 'Prepare scenario',
         error: 'Timed out waiting for checkpoint',
-        description: 'Duplicate metadata line should stay hidden',
       });
     });
 
@@ -135,9 +121,6 @@ describe('AgentStepHud', () => {
     expect(
       getByText('error: Timed out waiting for checkpoint'),
     ).toBeOnTheScreen();
-    expect(
-      queryByText('Duplicate metadata line should stay hidden'),
-    ).toBeNull();
   });
 
   it('hides overlay when callback fires with null', () => {
