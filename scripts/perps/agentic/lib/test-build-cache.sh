@@ -301,7 +301,7 @@ trap '
   restore_fp
 ' EXIT
 
-out=$(_capture_for 20 yarn ts-node --transpile-only scripts/perps/agentic/preflight/preflight.ts --mode fast --platform ios --no-launch 2>&1 || true)
+out=$(_capture_for 20 "${PREFLIGHT_TS[@]}" --mode fast --platform ios --no-launch 2>&1 || true)
 restore_fp
 echo "$out" | grep -q "Mode 'fast': could not compute fingerprint" \
   && pass "--mode fast fails loud when fingerprint cannot be computed" \

@@ -29,16 +29,14 @@ async function metroRespondsWithin(port: number, seconds: number): Promise<boole
   return false;
 }
 
-function runStartMetro(ctx: Ctx, launch: boolean, logger: Logger): void {
+function runStartMetro(ctx: Ctx, launch: boolean, logger: Logger): boolean {
   const args = [join(ctx.scripts, 'start-metro.sh'), '--platform', ctx.plat];
   if (launch) args.push('--launch');
   const r = spawnSync('bash', args, { cwd: ctx.root, stdio: 'inherit' });
   if (r.error) {
     logger.fail(`start-metro.sh failed: ${r.error.message}`);
   }
-  if (r.status !== 0) {
-    logger.fail(`start-metro.sh failed with exit code ${r.status ?? 'unknown'}`);
-  }
+  return r.status === 0;
 }
 
 // Kill whatever holds the Metro port so a hung instance can be replaced.
@@ -60,15 +58,26 @@ async function freeMetroPort(port: number): Promise<void> {
 export async function startMetro(ctx: Ctx, logger: Logger): Promise<void> {
   logger.step('Starting Metro', `Bundler on port ${ctx.port} → logs at ${ctx.logFile}`);
   logger.stageLog(ctx.logFile);
-  runStartMetro(ctx, ctx.doLaunch, logger);
-  if (await metroRespondsWithin(ctx.port, 10)) {
+  const firstStartOk = runStartMetro(ctx, ctx.doLaunch, logger);
+  if (firstStartOk && (await metroRespondsWithin(ctx.port, 10))) {
     logger.ok(`Metro running on port ${ctx.port}`);
     return;
   }
-  logger.warn(`Metro on ${ctx.port} is bound but not answering /status — restarting`);
-  logger.tail(ctx.logFile, 15);
-  await freeMetroPort(ctx.port);
-  runStartMetro(ctx, ctx.doLaunch, logger);
+
+  const metroRespondingAfterFailure = await metroRespondsWithin(ctx.port, 3);
+  if (firstStartOk || !metroRespondingAfterFailure) {
+    logger.warn(`Metro on ${ctx.port} is bound but not answering /status — restarting`);
+    logger.tail(ctx.logFile, 15);
+    await freeMetroPort(ctx.port);
+  } else {
+    logger.warn('start-metro.sh failed after Metro became healthy — retrying launch/start once');
+  }
+
+  const secondStartOk = runStartMetro(ctx, ctx.doLaunch, logger);
+  if (!secondStartOk) {
+    logger.tail(ctx.logFile, 25);
+    logger.fail('start-metro.sh failed after retry');
+  }
   if (!(await metroRespondsWithin(ctx.port, 15))) {
     logger.tail(ctx.logFile, 25);
     logger.fail(`Metro on ${ctx.port} not responding after restart — see ${ctx.logFile}`);
