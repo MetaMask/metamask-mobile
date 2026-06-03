@@ -31,7 +31,7 @@ const PerpsMarketSortDropdowns: React.FC<PerpsMarketSortDropdownsProps> = ({
 
   return (
     <SelectButton
-      variant={SelectButtonVariant.Secondary}
+      variant={SelectButtonVariant.Tertiary}
       value={sortLabel}
       placeholder={strings('perps.sort.volume')}
       onPress={onSortPress}
