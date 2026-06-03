@@ -30,12 +30,12 @@ import {
  *
  * @property isActive - Whether the scanner should actively process QR codes.
  * @property purpose - The type of QR scan being performed (e.g. `SIGN` or `PAIR`).
- * @property onScanSuccess - Callback invoked with the decoded {@link UR} once a complete, valid QR is read.
+ * @property onScanSuccess - Callback with the decoded {@link UR}. Return `true` to accept and ignore further frames, or `false` to reject and keep scanning.
  */
 interface UseAnimatedQrScannerOptions {
   isActive: boolean;
   purpose: QrScanRequestType;
-  onScanSuccess: (ur: UR) => void;
+  onScanSuccess: (ur: UR) => boolean;
 }
 
 /**
@@ -154,9 +154,11 @@ export function useAnimatedQrScanner({
   const handleScanSuccess = useCallback(
     (ur: UR) => {
       scanSuccessActiveRef.current = true;
-      lastForwardedScanErrorRef.current = null;
-      onScanSuccess(ur);
-      resetDecoder();
+      const accepted = onScanSuccess(ur);
+      if (accepted) {
+        lastForwardedScanErrorRef.current = null;
+        resetDecoder();
+      }
     },
     [onScanSuccess, resetDecoder],
   );
