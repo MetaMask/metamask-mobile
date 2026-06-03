@@ -22,6 +22,14 @@ jest.mock('../../hooks/AssetPolling/AssetPollingProvider', () => ({
   AssetPollingProvider: () => null,
 }));
 
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    PreferencesController: {
+      setTokenSortConfig: jest.fn(),
+    },
+  },
+}));
+
 // Mock Tokens component to avoid complex Redux state setup
 jest.mock('../../UI/Tokens', () => {
   const React = jest.requireActual('react');

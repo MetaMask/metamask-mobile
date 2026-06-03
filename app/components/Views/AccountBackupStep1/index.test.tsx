@@ -185,6 +185,13 @@ describe('AccountBackupStep1', () => {
     expect(reminderButton).toBeOnTheScreen();
   });
 
+  it('does not render a navigation header', () => {
+    const { wrapper } = setupTest();
+
+    expect(mockSetOptions).not.toHaveBeenCalled();
+    expect(wrapper.queryByTestId('back-button')).toBeNull();
+  });
+
   it('renders title and explanation text', () => {
     (Engine.hasFunds as jest.Mock).mockReturnValue(true);
     const { wrapper } = setupTest();

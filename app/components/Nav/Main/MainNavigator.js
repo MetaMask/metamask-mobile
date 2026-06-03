@@ -88,18 +88,15 @@ import { TabBarIconKey } from '../../../component-library/components/Navigation/
 import { selectProviderConfig } from '../../../selectors/networkController';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import SDKSessionsManager from '../../Views/SDK/SDKSessionsManager/SDKSessionsManager';
-import PermissionsManager from '../../Views/Settings/PermissionsSettings/PermissionsManager';
 import { getDecimalChainId } from '../../../util/networks';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { useTheme } from '../../../util/theme';
 import DeprecatedNetworkDetails from '../../UI/DeprecatedNetworkModal';
 import ConfirmAddAsset from '../../Views/AddAsset/Views/ConfirmAddTokenView/ConfirmAddAsset';
 import { AesCryptoTestForm } from '../../Views/AesCryptoTestForm';
-import { isTest } from '../../../util/test/utils';
+import { isTestEnvironment } from '../../../util/test/utils';
 import NftDetails from '../../Views/NftDetails';
 import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
-import AccountPermissions from '../../../components/Views/AccountPermissions';
-import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
 import { AssetLoader } from '../../Views/AssetLoader';
 import { EarnScreenStack, EarnModalStack } from '../../UI/Earn/routes';
@@ -381,51 +378,48 @@ const RewardsHome = () => {
 const BrowserFlow = (props) => {
   const { colors } = useTheme();
   return (
-    <Stack.Navigator
+    <NativeStack.Navigator
       initialRouteName={Routes.BROWSER.VIEW}
       screenOptions={{
-        cardStyle: { backgroundColor: colors.background.default },
+        contentStyle: { backgroundColor: colors.background.default },
       }}
     >
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.BROWSER.VIEW}
         component={Browser}
         options={{ headerShown: false }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.BROWSER.ASSET_LOADER}
         component={AssetLoader}
         options={{
           headerShown: false,
-          animationEnabled: false,
+          animation: 'none',
           presentation: 'modal',
         }}
       />
-      <Stack.Screen
+      <NativeStack.Screen
         name={Routes.BROWSER.ASSET_VIEW}
         component={TokenDetails}
         initialParams={props.route.params}
         options={{ presentation: 'modal' }}
       />
-    </Stack.Navigator>
+    </NativeStack.Navigator>
   );
 };
 
 const ExploreHome = () => {
   const { colors } = useTheme();
   return (
-    <Stack.Navigator
+    <NativeStack.Navigator
       initialRouteName={Routes.TRENDING_FEED}
       screenOptions={{
-        cardStyle: { backgroundColor: colors.background.default },
+        contentStyle: { backgroundColor: colors.background.default },
+        headerShown: false,
       }}
     >
-      <Stack.Screen
-        name={Routes.TRENDING_FEED}
-        component={ExploreFeed}
-        options={{ headerShown: false }}
-      />
-    </Stack.Navigator>
+      <NativeStack.Screen name={Routes.TRENDING_FEED} component={ExploreFeed} />
+    </NativeStack.Navigator>
   );
 };
 
@@ -486,7 +480,6 @@ const SettingsFlow = () => {
         options={{ headerShown: false }}
       />
       <Stack.Screen name="SDKSessionsManager" component={SDKSessionsManager} />
-      <Stack.Screen name="PermissionsManager" component={PermissionsManager} />
       <Stack.Screen
         name="SecuritySettings"
         component={SecuritySettings}
@@ -515,7 +508,7 @@ const SettingsFlow = () => {
          *
          * If this is in production, it is a bug.
          */
-        isTest && (
+        isTestEnvironment && (
           <Stack.Screen
             name="AesCryptoTestForm"
             component={AesCryptoTestForm}
@@ -549,15 +542,7 @@ const SettingsFlow = () => {
       <Stack.Screen
         name="ContactForm"
         component={ContactForm}
-        options={ContactForm.navigationOptions}
-      />
-      <Stack.Screen
-        name="AccountPermissionsAsFullScreen"
-        component={AccountPermissions}
         options={{ headerShown: false }}
-        initialParams={{
-          initialScreen: AccountPermissionsScreens.PermissionsSummary,
-        }}
       />
       <Stack.Screen
         name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
@@ -582,22 +567,22 @@ const SettingsFlow = () => {
       <Stack.Screen
         name="AccountBackupStep1B"
         component={AccountBackupStep1B}
-        options={AccountBackupStep1B.navigationOptions}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="ManualBackupStep1"
         component={ManualBackupStep1}
-        options={ManualBackupStep1.navigationOptions}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="ManualBackupStep2"
         component={ManualBackupStep2}
-        options={ManualBackupStep2.navigationOptions}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="ManualBackupStep3"
         component={ManualBackupStep3}
-        options={ManualBackupStep3.navigationOptions}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="EnterPasswordSimple"
@@ -959,73 +944,53 @@ const OfflineModeView = () => (
 
 /* eslint-disable react/prop-types */
 const NotificationsModeView = (props) => (
-  <Stack.Navigator screenOptions={{ headerShown: true }}>
-    <Stack.Screen
+  <NativeStack.Navigator screenOptions={{ headerShown: false }}>
+    <NativeStack.Screen
       name={Routes.NOTIFICATIONS.VIEW}
       component={NotificationsView}
-      options={{ headerShown: false }}
     />
-    <Stack.Screen
+    <NativeStack.Screen
       name={Routes.SETTINGS.NOTIFICATIONS}
       component={NotificationsSettings}
-      options={{ headerShown: false }}
     />
-    <Stack.Screen
+    <NativeStack.Screen
       name={Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION}
       component={NotificationSettingsSection}
-      options={{ headerShown: false }}
     />
-    <Stack.Screen
+    <NativeStack.Screen
       name={Routes.NOTIFICATIONS.DETAILS}
       component={NotificationsDetails}
-      options={NotificationsDetails.navigationOptions}
     />
-    <Stack.Screen
-      name="ContactForm"
-      component={ContactForm}
-      options={ContactForm.navigationOptions}
-    />
-  </Stack.Navigator>
+    <NativeStack.Screen name="ContactForm" component={ContactForm} />
+  </NativeStack.Navigator>
 );
 
 const SetPasswordFlow = () => (
-  <Stack.Navigator>
-    <Stack.Screen
-      name="ChoosePassword"
-      component={ChoosePassword}
-      options={ChoosePassword.navigationOptions}
-    />
-    <Stack.Screen
+  <NativeStack.Navigator screenOptions={{ headerShown: false }}>
+    <NativeStack.Screen name="ChoosePassword" component={ChoosePassword} />
+    <NativeStack.Screen
       name="AccountBackupStep1"
       component={AccountBackupStep1}
-      options={{ headerShown: false, gestureEnabled: false }}
+      options={{ gestureEnabled: false }}
     />
-    <Stack.Screen
+    <NativeStack.Screen
       name="AccountBackupStep1B"
       component={AccountBackupStep1B}
-      options={AccountBackupStep1B.navigationOptions}
     />
-    <Stack.Screen
+    <NativeStack.Screen
       name="ManualBackupStep1"
       component={ManualBackupStep1}
-      options={ManualBackupStep1.navigationOptions}
     />
-    <Stack.Screen
+    <NativeStack.Screen
       name="ManualBackupStep2"
       component={ManualBackupStep2}
-      options={ManualBackupStep2.navigationOptions}
     />
-    <Stack.Screen
+    <NativeStack.Screen
       name="ManualBackupStep3"
       component={ManualBackupStep3}
-      options={ManualBackupStep3.navigationOptions}
     />
-    <Stack.Screen
-      name="OptinMetrics"
-      component={OptinMetrics}
-      options={OptinMetrics.navigationOptions}
-    />
-  </Stack.Navigator>
+    <NativeStack.Screen name="OptinMetrics" component={OptinMetrics} />
+  </NativeStack.Navigator>
 );
 
 ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -1471,7 +1436,11 @@ const MainNavigator = () => {
       {
         ///: END:ONLY_INCLUDE_IF
       }
-      <Stack.Screen name={Routes.CARD.ROOT} component={CardRoutes} />
+      <Stack.Screen
+        name={Routes.CARD.ROOT}
+        component={CardRoutes}
+        options={{ presentation: 'modal' }}
+      />
       <Stack.Screen
         name={Routes.RAMP.MODALS.PROCESSING_INFO}
         component={ProcessingInfoModal}

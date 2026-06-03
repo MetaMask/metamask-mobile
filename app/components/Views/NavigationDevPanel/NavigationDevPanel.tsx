@@ -20,6 +20,7 @@ import {
   MOCK_NFT_DETAILS_PARAMS,
   MOCK_NFT_FULL_IMAGE_PARAMS,
   MOCK_OFFLINE_MODE_PARAMS,
+  MOCK_SET_PASSWORD_FLOW_PARAMS,
   MOCK_WEBVIEW_PARAMS,
 } from './NavigationDevPanel.mockParams';
 
@@ -48,10 +49,9 @@ interface RouteGroup {
   routes: RouteEntry[];
 }
 
-// NOTE: Scoped to the PR1+PR2 work only — the trivial single-screen wrapper
-// navigators being migrated to native-stack first. All other route groups are
-// commented out below and will be re-enabled as each subsequent PR lands so the
-// panel always reflects exactly what's currently being migrated.
+// NOTE: Scoped to in-progress native-stack migration PRs. PR2 = single-screen
+// wrappers; PR3 = multi-screen leaf flows. Uncomment groups below as each
+// subsequent PR lands so the panel reflects what is currently being migrated.
 const ROUTE_GROUPS: RouteGroup[] = [
   {
     title: 'PR2 — Single-screen wrappers',
@@ -82,6 +82,55 @@ const ROUTE_GROUPS: RouteGroup[] = [
       ///: END:ONLY_INCLUDE_IF
     ],
   },
+  {
+    title: 'PR3 — Multi-screen leaf flows',
+    routes: [
+      { name: Routes.NOTIFICATIONS.VIEW, label: 'Notifications' },
+      { name: 'SetPasswordFlow', label: 'Set Password Flow' },
+      { name: Routes.TRENDING_VIEW, label: 'Explore Home' },
+      { name: Routes.BROWSER.HOME, label: 'Browser Flow' },
+    ],
+  },
+  {
+    title: 'PR3 — Set Password Flow (inner screens)',
+    routes: [
+      {
+        name: 'SetPasswordFlow',
+        label: 'Choose Password (step 1 of 3)',
+        params: MOCK_SET_PASSWORD_FLOW_PARAMS.CHOOSE_PASSWORD,
+      },
+      {
+        name: 'SetPasswordFlow',
+        label: 'Account Backup Step 1 (step 2 of 3)',
+        params: MOCK_SET_PASSWORD_FLOW_PARAMS.ACCOUNT_BACKUP_STEP_1,
+      },
+      {
+        name: 'SetPasswordFlow',
+        label: 'Account Backup Step 1B',
+        params: MOCK_SET_PASSWORD_FLOW_PARAMS.ACCOUNT_BACKUP_STEP_1B,
+      },
+      {
+        name: 'SetPasswordFlow',
+        label: 'Manual Backup Step 1',
+        params: MOCK_SET_PASSWORD_FLOW_PARAMS.MANUAL_BACKUP_STEP_1,
+      },
+      {
+        name: 'SetPasswordFlow',
+        label: 'Manual Backup Step 2',
+        params: MOCK_SET_PASSWORD_FLOW_PARAMS.MANUAL_BACKUP_STEP_2,
+      },
+      {
+        name: 'SetPasswordFlow',
+        label: 'Manual Backup Step 3',
+        params: MOCK_SET_PASSWORD_FLOW_PARAMS.MANUAL_BACKUP_STEP_3,
+      },
+      {
+        name: 'SetPasswordFlow',
+        label: 'Optin Metrics',
+        params: MOCK_SET_PASSWORD_FLOW_PARAMS.OPTIN_METRICS,
+      },
+    ],
+  },
   // --- Routes below are out of scope for the current PR. Uncomment a group
   // --- when its migration PR begins. ---
   // {
@@ -89,10 +138,8 @@ const ROUTE_GROUPS: RouteGroup[] = [
   //   routes: [
   //     { name: Routes.HOME_TABS, label: 'Home (Tabs)' },
   //     { name: Routes.SETTINGS_VIEW, label: 'Settings Flow' },
-  //     { name: Routes.NOTIFICATIONS.VIEW, label: 'Notifications' },
   //     { name: Routes.QR_TAB_SWITCHER, label: 'QR Tab Switcher' },
   //     { name: 'GeneralSettings' },
-  //     { name: 'SetPasswordFlow' },
   //   ],
   // },
   // {
@@ -119,12 +166,11 @@ const ROUTE_GROUPS: RouteGroup[] = [
   //   ],
   // },
   // {
-  //   title: 'Explore & Browser',
+  //   title: 'Explore & Browser (nested screens)',
   //   routes: [
   //     { name: Routes.EXPLORE_SEARCH, label: 'Explore Search' },
   //     { name: Routes.SITES_FULL_VIEW, label: 'Sites Full View' },
   //     { name: Routes.WHATS_HAPPENING_DETAIL, label: "What's Happening Detail" },
-  //     { name: Routes.BROWSER.HOME, label: 'Browser' },
   //   ],
   // },
   // {
@@ -303,7 +349,7 @@ const NavigationDevPanel = () => {
             </Text>
             {group.routes.map((route) => (
               <TouchableOpacity
-                key={route.name}
+                key={`${route.name}-${route.label ?? ''}`}
                 onPress={() => handleNavigate(route)}
                 activeOpacity={0.6}
               >

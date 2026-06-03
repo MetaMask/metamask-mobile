@@ -47,3 +47,50 @@ export const MOCK_NFT_DETAILS_PARAMS = {
 export const MOCK_NFT_FULL_IMAGE_PARAMS = {
   collectible: MOCK_NFT_COLLECTIBLE,
 };
+
+/**
+ * Valid 12-word BIP39 mnemonic (the canonical "abandon … about" test vector)
+ * so the ManualBackup steps render their word grid without crashing.
+ */
+export const MOCK_SEED_PHRASE_WORDS = [
+  'abandon',
+  'abandon',
+  'abandon',
+  'abandon',
+  'abandon',
+  'abandon',
+  'abandon',
+  'abandon',
+  'abandon',
+  'abandon',
+  'abandon',
+  'about',
+];
+
+/**
+ * SetPasswordFlow is a multi-screen native-stack navigator. To land on an inner
+ * screen from the dev panel we navigate to the flow with a nested target
+ * (`{ screen, params }`). Screens that read route params get dev mocks here.
+ */
+export const MOCK_SET_PASSWORD_FLOW_PARAMS = {
+  CHOOSE_PASSWORD: { screen: 'ChoosePassword' },
+  ACCOUNT_BACKUP_STEP_1: { screen: 'AccountBackupStep1' },
+  ACCOUNT_BACKUP_STEP_1B: { screen: 'AccountBackupStep1B' },
+  MANUAL_BACKUP_STEP_1: {
+    screen: 'ManualBackupStep1',
+    params: {
+      seedPhrase: MOCK_SEED_PHRASE_WORDS,
+      backupFlow: true,
+      settingsBackup: false,
+    },
+  },
+  MANUAL_BACKUP_STEP_2: {
+    screen: 'ManualBackupStep2',
+    params: { words: MOCK_SEED_PHRASE_WORDS },
+  },
+  MANUAL_BACKUP_STEP_3: {
+    screen: 'ManualBackupStep3',
+    params: { words: MOCK_SEED_PHRASE_WORDS },
+  },
+  OPTIN_METRICS: { screen: 'OptinMetrics' },
+};

@@ -2,8 +2,11 @@ import WalletView from '../page-objects/wallet/WalletView';
 import NetworkView from '../page-objects/Settings/NetworksView';
 import {
   createLogger,
+  encapsulated,
+  Matchers,
   PlaywrightAssertions,
   PlaywrightGestures,
+  PlaywrightMatchers,
   PortManager,
   ResourceType,
   sleep,
@@ -42,7 +45,9 @@ import MetaMetricsOptInView from '../page-objects/Onboarding/MetaMetricsOptInVie
 import PredictModalView from '../page-objects/Predict/PredictModalView';
 import OnboardingCryptoExperienceQuestionnaireView from '../page-objects/Onboarding/OnboardingCryptoExperienceQuestionnaireView';
 import OnboardingInterestQuestionnaireView from '../page-objects/Onboarding/OnboardingInterestQuestionnaireView';
+import ExperienceEnhancerBottomSheet from '../page-objects/Onboarding/ExperienceEnhancerBottomSheet';
 import { fetchProductionFeatureFlags } from '../performance/feature-flag-helper';
+import { ExistingUserSheetSelectorsIDs } from '../../app/components/Views/Notifications/PushNotificationOnboarding/ExistingUserSheet/ExistingUserSheet.testIds';
 const logger = createLogger({
   name: 'WalletFlow',
 });
@@ -448,6 +453,45 @@ export const loginToApp = async (password?: string): Promise<void> => {
 // Playwright (appium specific functions)
 // -----------------------------------------
 /**
+ * Dismisses the push notification opt-in sheet for existing users, if it appears.
+ * This sheet may appear after login and block navigation. It is safe to call
+ * even when the sheet is not present — the function will silently no-op.
+ */
+export const dismissPushNotificationExistingUserSheet =
+  async (): Promise<void> => {
+    try {
+      const btn = await asPlaywrightElement(
+        encapsulated({
+          detox: () =>
+            Matchers.getElementByID(
+              ExistingUserSheetSelectorsIDs.BUTTON_CONFIRM,
+            ),
+          appium: () =>
+            PlaywrightMatchers.getElementById(
+              ExistingUserSheetSelectorsIDs.BUTTON_CONFIRM,
+              { exact: true },
+            ),
+        }),
+      );
+      const isDisplayed = await btn.unwrap().isDisplayed();
+      if (isDisplayed) {
+        await PlaywrightGestures.waitAndTap(btn, { timeout: 5_000 });
+        logger.debug('Dismissed push notification existing user sheet');
+      }
+    } catch {
+      // Sheet not present — no-op
+    }
+  };
+
+/**
+ * Dismisses the marketing consent (Experience Enhancer) modal if it appears
+ * after login. Safe to call when the modal is not shown.
+ */
+export const dismissExperienceEnhancerModal = async (): Promise<void> => {
+  await ExperienceEnhancerBottomSheet.dismissIfPresent();
+};
+
+/**
  * Logs into the application using the provided password or a default password.
  *
  * @async
@@ -464,6 +508,8 @@ export const loginToAppPlaywright = async (
   await LoginView.tapLoginButton();
 
   await PlaywrightUtilities.wait(5000);
+  await dismissPushNotificationExistingUserSheet();
+  await dismissExperienceEnhancerModal();
 };
 
 /**
@@ -596,12 +642,7 @@ export const dismisspredictionsModalPlaywright = async (
         checkForDisplayed: true,
         checkForEnabled: true,
       });
-      const dismissedCheck = await asPlaywrightElement(
-        PredictModalView.notNowButton,
-      );
-      await dismissedCheck
-        .unwrap()
-        .waitForDisplayed({ reverse: true, timeout: 10_000 });
+      await btn.unwrap().waitForDisplayed({ reverse: true, timeout: 10_000 });
       return;
     } catch {
       if (attempt === maxRetries) {
@@ -661,6 +702,8 @@ export const onboardingFlowImportSRPPlaywright = async (
     'main',
     testEnvironment,
   );
+
+  await dismissPushNotificationExistingUserSheet();
 
   const predictGtmOnboardingModalEnabled =
     await resolvePredictGtmOnboardingModalEnabled(productionFeatureFlags);

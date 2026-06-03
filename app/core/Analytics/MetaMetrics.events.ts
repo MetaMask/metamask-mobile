@@ -160,6 +160,10 @@ enum EVENT_NAME {
   ONBOARDING_QUESTION_VIEWED = 'Onboarding Question Viewed',
   ONBOARDING_QUESTION_SUBMITTED = 'Onboarding Question Submitted',
 
+  // Onboarding questionnaires (generic; discriminated by question_type)
+  ONBOARDING_QUESTION_VIEWED = 'Onboarding Question Viewed',
+  ONBOARDING_QUESTION_SUBMITTED = 'Onboarding Question Submitted',
+
   // Onboarding
   ONBOARDING_WELCOME_MESSAGE_VIEWED = 'Welcome Message Viewed',
   ONBOARDING_WELCOME_SCREEN_ENGAGEMENT = 'Welcome Screen Engagement',
@@ -753,6 +757,7 @@ enum EVENT_NAME {
   SOCIAL_QUICK_BUY_TRADE_SUBMITTED = 'Quick Buy Trade Submitted',
   SOCIAL_QUICK_BUY_TRADE_COMPLETED = 'Quick Buy Trade Completed',
   SOCIAL_QUICK_BUY_DISMISSED = 'Quick Buy Dismissed',
+  SOCIAL_QUICK_TRADE_MODE_TOGGLED = 'Quick Trade Mode Toggled',
   SOCIAL_FOLLOW_TRADING_NOTIFICATION_CLICKED = 'Follow Trading Notification Clicked',
   // Activity
   ACTIVITY_CLICKED = 'Activity Clicked',
@@ -959,6 +964,12 @@ const events = {
     EVENT_NAME.ANALYTICS_REQUEST_DATA_DELETION,
   ),
   EXPERIMENT_VIEWED: generateOpt(EVENT_NAME.EXPERIMENT_VIEWED),
+  ONBOARDING_QUESTION_VIEWED: generateOpt(
+    EVENT_NAME.ONBOARDING_QUESTION_VIEWED,
+  ),
+  ONBOARDING_QUESTION_SUBMITTED: generateOpt(
+    EVENT_NAME.ONBOARDING_QUESTION_SUBMITTED,
+  ),
   ONBOARDING_QUESTION_VIEWED: generateOpt(
     EVENT_NAME.ONBOARDING_QUESTION_VIEWED,
   ),
@@ -2000,6 +2011,9 @@ const events = {
   ),
   SOCIAL_QUICK_BUY_DISMISSED: generateOpt(
     EVENT_NAME.SOCIAL_QUICK_BUY_DISMISSED,
+  ),
+  SOCIAL_QUICK_TRADE_MODE_TOGGLED: generateOpt(
+    EVENT_NAME.SOCIAL_QUICK_TRADE_MODE_TOGGLED,
   ),
   SOCIAL_FOLLOW_TRADING_NOTIFICATION_CLICKED: generateOpt(
     EVENT_NAME.SOCIAL_FOLLOW_TRADING_NOTIFICATION_CLICKED,

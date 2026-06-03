@@ -2,15 +2,18 @@ import React, { useCallback } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { AccountWalletObject } from '@metamask/account-tree-controller';
-import { Box } from '../../../../UI/Box/Box';
-import { AlignItems, FlexDirection } from '../../../../UI/Box/box.types';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import Icon, {
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  FontWeight,
+  Icon,
+  IconColor,
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { AccountDetailsIds } from '../../AccountDetails.testIds';
@@ -22,8 +25,7 @@ export interface WalletProps {
 }
 
 export const Wallet = ({ wallet }: WalletProps) => {
-  const { styles, theme } = useStyles(styleSheet, {});
-  const { colors } = theme;
+  const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
 
   const handleWalletClick = useCallback(() => {
@@ -38,21 +40,25 @@ export const Wallet = ({ wallet }: WalletProps) => {
       testID={AccountDetailsIds.WALLET_NAME_LINK}
       onPress={handleWalletClick}
     >
-      <Text variant={TextVariant.BodyMDMedium}>
+      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
         {strings('multichain_accounts.account_details.wallet')}
       </Text>
       <Box
-        flexDirection={FlexDirection.Row}
-        alignItems={AlignItems.center}
-        gap={8}
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={2}
       >
-        <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
+        <Text
+          style={styles.text}
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+        >
           {wallet?.metadata.name}
         </Text>
         <Icon
           name={IconName.ArrowRight}
           size={IconSize.Md}
-          color={colors.text.alternative}
+          color={IconColor.IconAlternative}
         />
       </Box>
     </TouchableOpacity>
