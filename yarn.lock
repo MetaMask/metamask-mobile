@@ -10483,10 +10483,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/tron-wallet-snap@npm:^1.25.6":
-  version: 1.25.8
-  resolution: "@metamask/tron-wallet-snap@npm:1.25.8"
-  checksum: 10/c533b566360b1587865b2e8f74125a301c348e6baa5a721e5629080b03fc47067b0275bec26183863ab5575a812bac8946c4fa1ac5c3daa645faec16b7ab3368
+"@metamask/tron-wallet-snap@npm:@metamask-previews/tron-wallet-snap@1.25.8-preview-22642ef":
+  version: 1.25.8-preview-22642ef
+  resolution: "@metamask-previews/tron-wallet-snap@npm:1.25.8-preview-22642ef"
+  checksum: 10/93c3d4fcd01af7d3a15a09f739a509625f3d0809f085b98b4d6ee3cc02d05e0491f84df348a58535885ce75d773f3a3e5f6cbdcfb35b731782419a48ea073f1f
   languageName: node
   linkType: hard
 
@@ -35481,7 +35481,7 @@ __metadata:
     "@metamask/test-dapp-solana": "npm:^0.3.0"
     "@metamask/transaction-controller": "npm:^66.0.0"
     "@metamask/transaction-pay-controller": "npm:^23.0.0"
-    "@metamask/tron-wallet-snap": "npm:^1.25.6"
+    "@metamask/tron-wallet-snap": "npm:@metamask-previews/tron-wallet-snap@1.25.8-preview-22642ef"
     "@metamask/utils": "npm:^11.11.0"
     "@metamask/wallet": "npm:^1.0.0"
     "@myx-trade/sdk": "npm:^0.1.265"
