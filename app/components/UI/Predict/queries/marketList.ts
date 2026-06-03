@@ -26,8 +26,12 @@ export const normalizeMarketListParams = (
   const search = params.search?.trim();
 
   return {
-    tags: params.tags?.length ? [...params.tags].sort() : undefined,
-    series: params.series?.length ? [...params.series].sort() : undefined,
+    tags: params.tags?.length
+      ? [...params.tags].sort((a, b) => a.localeCompare(b))
+      : undefined,
+    series: params.series?.length
+      ? [...params.series].sort((a, b) => a.localeCompare(b))
+      : undefined,
     order: params.order,
     status: params.status,
     live: params.live === true ? true : undefined,
