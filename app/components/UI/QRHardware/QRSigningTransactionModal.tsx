@@ -1,5 +1,10 @@
 import React, { useCallback, useRef, useEffect, useState } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import {
+  View,
+  ActivityIndicator,
+  StyleSheet,
+  InteractionManager,
+} from 'react-native';
 import Engine from '../../../core/Engine';
 import QRSigningDetails from './QRSigningDetails';
 import BottomSheet, {
@@ -19,6 +24,8 @@ import {
   type GasPriceValue,
 } from '@metamask/transaction-controller';
 import { speedUpTransaction as speedUpTx } from '../../../util/transaction-controller';
+import ToastService from '../../../core/ToastService/ToastService';
+import { getTransactionUpdateErrorToastOptions } from '../../../util/confirmation/transactions';
 
 export const QRSignMode = {
   SpeedUp: 'speedup',
@@ -88,6 +95,13 @@ const QRSigningTransactionModal = () => {
         onConfirmationComplete(true);
         dismissModal();
       } catch (error) {
+        if (signMode === QRSignMode.SpeedUp || signMode === QRSignMode.Cancel) {
+          InteractionManager.runAfterInteractions(() => {
+            ToastService.showToast(
+              getTransactionUpdateErrorToastOptions(error),
+            );
+          });
+        }
         onConfirmationComplete(false);
         dismissModal();
       }
