@@ -736,7 +736,7 @@ enum EVENT_NAME {
   MONEY_BUTTON_CLICKED = 'Money Button Clicked',
   MONEY_SURFACE_CLICKED = 'Money Surface Clicked',
   MONEY_SURFACE_VIEWED = 'Money Surface Viewed',
-
+  MONEY_ONBOARDING_EVENT = 'Money Onboarding Event',
   // Assets
   ASSETS_FIRST_INIT_FETCH_COMPLETED = 'Assets First Init Fetch Completed',
 
@@ -1961,6 +1961,7 @@ const events = {
   MONEY_BUTTON_CLICKED: generateOpt(EVENT_NAME.MONEY_BUTTON_CLICKED),
   MONEY_SURFACE_CLICKED: generateOpt(EVENT_NAME.MONEY_SURFACE_CLICKED),
   MONEY_SURFACE_VIEWED: generateOpt(EVENT_NAME.MONEY_SURFACE_VIEWED),
+  MONEY_ONBOARDING_EVENT: generateOpt(EVENT_NAME.MONEY_ONBOARDING_EVENT),
 
   // Social Leaderboard (follow trading)
   SOCIAL_TRADER_LEADERBOARD_SCREEN_VIEWED: generateOpt(

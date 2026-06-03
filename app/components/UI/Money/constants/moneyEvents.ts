@@ -56,8 +56,26 @@ export type MoneyBaseEventProperties = Partial<MoneyLocationEventProperties> &
   MoneyCardEventProperties &
   MoneyFundedEventProperties;
 
+// TODO: Breakout into a utility types file if needed. Remove if not needed before opening PR.
+type XOR<A, B> =
+  | (A & { [K in keyof B]?: never })
+  | (B & { [K in keyof A]?: never });
+
 export type MoneyButtonEventProperties = Partial<MoneyLocationEventProperties> &
   Partial<MoneyRedirectEventProperties> & {
     label_en: string;
     label_localized: string;
   };
+
+export enum MONEY_ONBOARDING_EVENT_TYPES {
+  STEP_VIEWED = 'step_viewed',
+  COMPLETED = 'completed',
+  EXITED = 'exited',
+}
+
+export type MoneyOnboardingEventProperties = {
+  type: MONEY_ONBOARDING_EVENT_TYPES;
+  step: number;
+  step_title: string;
+  total_steps: number;
+};

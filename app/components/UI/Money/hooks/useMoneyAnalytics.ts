@@ -8,6 +8,7 @@ import {
   MoneyBaseEventProperties,
   MoneyButtonEventProperties,
   MoneyRedirectEventProperties,
+  MoneyOnboardingEventProperties,
 } from '../constants/moneyEvents';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 
@@ -85,9 +86,24 @@ export const useMoneyAnalytics = ({
     );
   }, [createEventBuilder, getBaseProperties, trackEvent]);
 
+  const trackOnboardingEvent = useCallback(
+    (properties: MoneyOnboardingEventProperties) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.MONEY_ONBOARDING_EVENT)
+          .addProperties({
+            ...getBaseProperties(),
+            ...properties,
+          })
+          .build(),
+      );
+    },
+    [createEventBuilder, getBaseProperties, trackEvent],
+  );
+
   return {
     trackButtonClicked,
     trackSurfaceClicked,
     trackSurfaceViewed,
+    trackOnboardingEvent,
   };
 };
