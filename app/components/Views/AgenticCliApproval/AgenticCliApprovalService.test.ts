@@ -10,7 +10,6 @@ describe('AgenticCliApprovalService', () => {
         {
           approvalPageLink: 'https://developer.metamask.io/agentic/login',
           projectId: 'project-1',
-          notificationId: 'request-1',
           approvalId: 'approval-1',
           mimirSignature: 'signature-1',
           operationType: 'transaction_request',
@@ -20,21 +19,21 @@ describe('AgenticCliApprovalService', () => {
       );
 
       expect(url).toBe(
-        'https://developer.metamask.io/agentic/login?projectId=project-1&notificationId=request-1&approvalId=approval-1&mimir_signature=signature-1&operationType=transaction_request&subjectId=subject-1#auth_token=bearer%20token',
+        'https://developer.metamask.io/agentic/login?projectId=project-1&approvalId=approval-1&mimir_signature=signature-1&operationType=transaction_request&subjectId=subject-1#auth_token=bearer%20token',
       );
     });
 
-    it('uses requestId as the canonical notificationId compatibility alias', () => {
+    it('forwards approvalId to the hosted approval page query string', () => {
       const url = AgenticCliApprovalService.buildWebViewUrl(
         {
           approvalPageLink: 'https://developer.metamask.io/agentic/approval',
           projectId: 'project-1',
-          requestId: 'request-1',
+          approvalId: 'approval-1',
         },
         'token-1',
       );
 
-      expect(new URL(url).searchParams.get('notificationId')).toBe('request-1');
+      expect(new URL(url).searchParams.get('approvalId')).toBe('approval-1');
     });
 
     it('keeps approvalId-only links compatible with the hosted approval page', () => {
@@ -79,7 +78,7 @@ describe('AgenticCliApprovalService', () => {
         AgenticCliApprovalService.buildWebViewUrl(
           {
             projectId: 'project-1',
-            notificationId: 'request-1',
+            approvalId: 'approval-1',
           },
           'token-1',
         ),
@@ -92,7 +91,7 @@ describe('AgenticCliApprovalService', () => {
           {
             approvalPageLink: 'https://example.com/approval',
             projectId: 'project-1',
-            notificationId: 'request-1',
+            approvalId: 'approval-1',
           },
           'token-1',
         ),
@@ -101,12 +100,12 @@ describe('AgenticCliApprovalService', () => {
   });
 
   describe('shouldLoadInWebView', () => {
-    it('allows the hosted approval page origin', () => {
+    it('blocks unknown cloudfront origins until explicitly allowlisted', () => {
       expect(
         AgenticCliApprovalService.shouldLoadInWebView(
           'https://dauh7948dneg6.cloudfront.net/approval',
         ),
-      ).toBe(true);
+      ).toBe(false);
     });
 
     it('allows the developer-dashboard approval page origin', () => {
