@@ -137,7 +137,9 @@ runs:
       run: |
         echo "ai_e2e_test_tags=[\"ALL\"]" >> "$GITHUB_OUTPUT"
         echo "ai_confidence=0" >> "$GITHUB_OUTPUT"
-        echo "ai_performance_test_tags=[]" >> "$GITHUB_OUTPUT"
+        # Empty string = run all performance tests (conservative fallback).
+        # '[]' is reserved for "AI ran successfully and found no relevant changes".
+        echo "ai_performance_test_tags=" >> "$GITHUB_OUTPUT"
 
         if [[ "${{ steps.check-skip-label.outputs.SKIP }}" == "true" ]]; then
           echo "⏭️ Skipping AI analysis - skip-smart-e2e-selection label found"
@@ -171,12 +173,8 @@ runs:
           echo 'ai_e2e_test_tags=["ALL"]' >> "$GITHUB_OUTPUT"
         fi
         printf 'ai_confidence=%s\n' "$AI_CONFIDENCE" >> "$GITHUB_OUTPUT"
-        # Performance test tags (empty array means no performance tests)
-        if [[ -n "$AI_PERF_TAGS" ]]; then
-          printf 'ai_performance_test_tags=%s\n' "$AI_PERF_TAGS" >> "$GITHUB_OUTPUT"
-        else
-          echo 'ai_performance_test_tags=[]' >> "$GITHUB_OUTPUT"
-        fi
+        # Performance test tags: empty string = run all (fallback); '[]' = skip (AI found no changes)
+        printf 'ai_performance_test_tags=%s\n' "$AI_PERF_TAGS" >> "$GITHUB_OUTPUT"
         # Performance test reasoning (multi-line — must use heredoc format)
         {
           echo 'ai_performance_test_reasoning<<GHEOF'
