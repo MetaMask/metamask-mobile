@@ -9,7 +9,6 @@ import {
   SUPPRESS_WALLET_HOME_ONBOARDING_STEPS,
   setWalletHomeOnboardingStepsStep,
 } from '../../../../../actions/onboarding';
-import { useBalanceRefresh } from '../../../../Views/Wallet/hooks/useBalanceRefresh';
 
 jest.mock('../../../BalanceEmptyState', () => {
   const { View: V } = jest.requireActual('react-native');
@@ -72,6 +71,14 @@ jest.mock('../../../../Views/Wallet/hooks/useBalanceRefresh', () => ({
   useBalanceRefresh: jest.fn(() => ({ refreshBalance: jest.fn() })),
 }));
 
+jest.mock('./useAccountGroupBalanceFetchState', () => ({
+  useAccountGroupBalanceFetchState: jest.fn(() => true),
+}));
+
+jest.mock('./useWalletHomeOnboardingBalanceRefreshEffect', () => ({
+  useWalletHomeOnboardingBalanceRefreshEffect: jest.fn(),
+}));
+
 const onboardingEligibleEmptyBalance = {
   ...initialOnboardingState,
   completedOnboarding: true,
@@ -97,15 +104,8 @@ const testState = {
 };
 
 describe('AccountGroupBalance / wallet home onboarding', () => {
-  const mockRefreshBalance = jest.fn();
-
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.mocked(useBalanceRefresh).mockReturnValue({
-      refreshBalance: mockRefreshBalance,
-      handleRefresh: jest.fn(),
-      refreshing: false,
-    });
     const {
       selectBalanceBySelectedAccountGroup,
       selectAccountGroupBalanceForEmptyState,
@@ -232,13 +232,5 @@ describe('AccountGroupBalance / wallet home onboarding', () => {
       (call) => call[0]?.type === SUPPRESS_WALLET_HOME_ONBOARDING_STEPS,
     );
     expect(suppressCalls).toHaveLength(0);
-  });
-
-  it('requests a balance refresh once when skipInitialBalanceWait is true on fund step', () => {
-    renderWithProvider(<AccountGroupBalance />, {
-      state: testState,
-    });
-
-    expect(mockRefreshBalance).toHaveBeenCalledTimes(1);
   });
 });

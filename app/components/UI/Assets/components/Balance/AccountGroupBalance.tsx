@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useMemo,
-  useState,
-  useRef,
-  useEffect,
-} from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../../core/Engine';
@@ -21,7 +15,6 @@ import {
   selectWalletHomeOnboardingSkipInitialBalanceWait,
   selectWalletHomeOnboardingSteps,
 } from '../../../../../selectors/onboarding';
-import { useBalanceRefresh } from '../../../../Views/Wallet/hooks/useBalanceRefresh';
 import { useWalletHomeOnboardingFundStepBalanceGate } from '../../../WalletHomeOnboardingSteps/useWalletHomeOnboardingFundStepBalanceGate';
 import { selectEvmChainId } from '../../../../../selectors/networkController';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
@@ -38,13 +31,8 @@ import BalanceEmptyState from '../../../BalanceEmptyState';
 import WalletHomeOnboardingSteps from '../../../WalletHomeOnboardingSteps';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import { useWalletHomeOnboardingChecklistFundPress } from '../../../WalletHomeOnboardingSteps/useWalletHomeOnboardingChecklistFundPress';
-
-/**
- * Timeout for account group balance fetch
- * This is to prevent a flash of empty state when the balance is not yet fetched
- * !TODO: This is a temporary fix for an artificial loading state and should be refactored after Account API v4 integration
- */
-const ACCOUNT_GROUP_BALANCE_FETCH_TIMEOUT = 3000;
+import { useAccountGroupBalanceFetchState } from './useAccountGroupBalanceFetchState';
+import { useWalletHomeOnboardingBalanceRefreshEffect } from './useWalletHomeOnboardingBalanceRefreshEffect';
 
 export interface AccountGroupBalanceProps {
   /**
@@ -84,7 +72,6 @@ const AccountGroupBalance = ({
   );
   const walletHomeOnboardingStepIndex =
     walletHomeOnboardingStepsState.stepIndex ?? 0;
-  const { refreshBalance } = useBalanceRefresh();
   const { goToBuy } = useRampNavigation();
   const onFundPrimaryPressWithChecklistAnalytics =
     useWalletHomeOnboardingChecklistFundPress(goToBuy);
@@ -120,83 +107,10 @@ const AccountGroupBalance = ({
   const balanceChange1d = useSelector(balanceChange1dSelector);
   const selectedChainId = useSelector(selectEvmChainId);
 
-  // Track if balance has been fetched to prevent flash of empty state
-  const [hasBalanceFetched, setHasBalanceFetched] = useState(false);
-  const initialBalanceRef = useRef<number | null>(null);
-  const initialAccountGroupBalanceRef = useRef<number | null>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
-  const currentGroupIdRef = useRef<string | null>(null);
-  const fundStepBalanceRefreshRequestedRef = useRef(false);
-
-  useEffect(() => {
-    const groupId = groupBalance?.groupId ?? null;
-
-    // Check if groupId has changed (account switch)
-    if (currentGroupIdRef.current !== groupId) {
-      // Reset all tracking state for new account
-      setHasBalanceFetched(false);
-      initialBalanceRef.current = null;
-      initialAccountGroupBalanceRef.current = null;
-      currentGroupIdRef.current = groupId;
-
-      // Clear existing timeout
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-
-      // Start new timeout for this account (3 seconds)
-      timeoutRef.current = setTimeout(() => {
-        setHasBalanceFetched(true);
-      }, ACCOUNT_GROUP_BALANCE_FETCH_TIMEOUT);
-    }
-
-    // Store initial balance when it first appears
-    if (initialBalanceRef.current === null && groupBalance) {
-      initialBalanceRef.current = groupBalance.totalBalanceInUserCurrency;
-    }
-
-    if (initialAccountGroupBalanceRef.current === null && accountGroupBalance) {
-      initialAccountGroupBalanceRef.current =
-        accountGroupBalance.totalBalanceInUserCurrency;
-    }
-
-    // Track balance changes - if EITHER balance updates from initial value, mark as fetched
-    // We track both groupBalance AND accountGroupBalance since empty state uses accountGroupBalance
-    if (groupBalance && initialBalanceRef.current !== null) {
-      const currentBalance = groupBalance.totalBalanceInUserCurrency;
-      const accountGroupCurrentBalance =
-        accountGroupBalance?.totalBalanceInUserCurrency ?? null;
-
-      // Mark as fetched if either balance has changed from initial 0, or if both exist and are non-zero
-      const hasChanged = currentBalance !== initialBalanceRef.current;
-      const bothExistAndNonZero =
-        currentBalance > 0 &&
-        accountGroupCurrentBalance !== null &&
-        accountGroupCurrentBalance > 0;
-      const accountGroupBecamePositive =
-        accountGroupCurrentBalance !== null &&
-        accountGroupCurrentBalance > 0 &&
-        (initialAccountGroupBalanceRef.current === null ||
-          initialAccountGroupBalanceRef.current === 0);
-
-      if (hasChanged || bothExistAndNonZero || accountGroupBecamePositive) {
-        setHasBalanceFetched(true);
-        if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current);
-        }
-      }
-    }
-  }, [groupBalance, accountGroupBalance]);
-
-  // Cleanup timeout on unmount
-  useEffect(
-    () => () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    },
-    [],
-  );
+  const hasBalanceFetched = useAccountGroupBalanceFetchState({
+    groupBalance,
+    accountGroupBalance,
+  });
 
   const togglePrivacy = useCallback(
     (value: boolean) => {
@@ -241,22 +155,11 @@ const AccountGroupBalance = ({
       groupId: groupBalance?.groupId ?? null,
     });
 
-  useEffect(() => {
-    if (
-      !isWalletHomeOnboardingFundStep ||
-      !walletHomeOnboardingSkipInitialBalanceWait ||
-      fundStepBalanceRefreshRequestedRef.current
-    ) {
-      return;
-    }
-
-    fundStepBalanceRefreshRequestedRef.current = true;
-    void refreshBalance();
-  }, [
-    isWalletHomeOnboardingFundStep,
-    refreshBalance,
-    walletHomeOnboardingSkipInitialBalanceWait,
-  ]);
+  useWalletHomeOnboardingBalanceRefreshEffect({
+    enabled:
+      isWalletHomeOnboardingFundStep &&
+      walletHomeOnboardingSkipInitialBalanceWait,
+  });
 
   const renderBalanceOrEmpty = () =>
     !isLoading && shouldShowEmptyState ? (
