@@ -5,6 +5,7 @@ import type {
   Intent,
   AgenticCliApprovalParams,
 } from '../../../../components/Views/AgenticCliApproval/types';
+import { getBuildType } from '../../../../core/OAuthService/OAuthLoginHandlers/constants';
 
 /**
  * Handles `https://link.metamask.io/agentic-cli` deeplinks.
@@ -30,8 +31,35 @@ export interface AgenticCliApprovalDeeplinkParams {
   subjectId?: string;
 }
 
-export const DEFAULT_APPROVAL_PAGE_LINK =
-  'https://test-dashboard.web3auth.io/agentic/login';
+const AGENTIC_CLI_APPROVAL_HOST = {
+  dev: 'https://test-dashboard.web3auth.io',
+  uat: 'https://dev-dashboard.web3auth.io',
+  prod: 'https://dashboard.web3auth.io',
+};
+
+const getApprovalHost = (): string => {
+  const buildType = getBuildType();
+
+  if (buildType === 'development') {
+    return AGENTIC_CLI_APPROVAL_HOST.dev;
+  }
+  if (buildType.includes('prod')) {
+    return AGENTIC_CLI_APPROVAL_HOST.prod;
+  }
+  if (buildType.includes('uat')) {
+    return AGENTIC_CLI_APPROVAL_HOST.uat;
+  }
+  if (buildType.includes('dev')) {
+    return AGENTIC_CLI_APPROVAL_HOST.dev;
+  }
+  return AGENTIC_CLI_APPROVAL_HOST.dev;
+};
+
+export const getDefaultApprovalPageLink = (): string =>
+  `${getApprovalHost()}/agentic/login`;
+
+/** @deprecated Use {@link getDefaultApprovalPageLink} so the host matches the current build type. */
+export const DEFAULT_APPROVAL_PAGE_LINK = getDefaultApprovalPageLink();
 
 const TX_APPROVE_OPERATION_TYPES = new Set([
   'transaction_request',
@@ -57,13 +85,17 @@ const resolveIntent = (operationType?: string): Intent =>
  * @param agenticCliPath Query string portion of the deeplink (e.g. `?projectId=...`)
  */
 export const parseAgenticCliApprovalParams = (
-  agenticCliPath: string,
+  agenticCliPath?: string,
 ): AgenticCliApprovalDeeplinkParams => {
+  const path = agenticCliPath ?? '';
   const searchParams = new URLSearchParams(
-    agenticCliPath.includes('?') ? agenticCliPath.split('?')[1] : '',
+    path.includes('?')
+      ? path.split('?')[1]
+      : path.startsWith('?')
+        ? path.slice(1)
+        : path,
   );
   const operationType = getQueryParam(searchParams, 'operationType');
-
   return {
     intent: resolveIntent(operationType),
     approvalPageLink: getQueryParam(searchParams, 'approvalPageLink'),
@@ -93,22 +125,14 @@ export const handleAgenticCliApproval = (params: {
   actionPath: string;
 }): void => {
   const { actionPath } = params;
-  const {
-    approvalPageLink,
-    projectId,
-    approvalId,
-    mimirSignature,
-    operationType,
-    subjectId,
-  } = parseAgenticCliApprovalParams(actionPath);
+  const { projectId, approvalId, mimirSignature, operationType, subjectId } =
+    parseAgenticCliApprovalParams(actionPath);
 
-  const decodedApprovalPageLink = decodeParam(approvalPageLink);
   const decodedMimirSignature = decodeParam(mimirSignature);
-  const hostedApprovalPageLink =
-    decodedApprovalPageLink ??
-    (projectId && approvalId ? DEFAULT_APPROVAL_PAGE_LINK : undefined);
 
-  if (hostedApprovalPageLink && (!projectId || !approvalId)) {
+  const hostedApprovalPageLink = getDefaultApprovalPageLink();
+
+  if (!projectId || !approvalId) {
     Logger.error(
       new Error(
         'handleAgenticCliApproval: missing projectId or notification/request id param',
