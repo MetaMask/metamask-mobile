@@ -284,12 +284,34 @@ describe('PredictPositionsView', () => {
     expect(getMountedHistoryVisibilityText(false)).toBeTruthy();
   });
 
-  it('passes won and lost claimable positions and privacy mode to History', () => {
+  it('passes only actionable claimable positions and privacy mode to History', () => {
     mockPrivacyMode = true;
+    const wonPosition = createClaimablePosition({ id: 'won-position' });
+    const lostPosition = createClaimablePosition({
+      currentValue: 0,
+      id: 'lost-position',
+      status: PredictPositionStatus.LOST,
+    });
+    mockUsePredictPortfolio.mockReturnValue(
+      createPortfolio({
+        actionableClaimablePositions: [wonPosition],
+        claimablePositions: [wonPosition, lostPosition],
+      }),
+    );
+
+    renderScreen('history');
+
+    expect(
+      screen.getByText('history-claim-pending-present:true'),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('history-claim-pending-count:1')).toBeOnTheScreen();
+    expect(screen.getByText('history-privacy:true')).toBeOnTheScreen();
+  });
+
+  it('passes no claim pending positions to History when only lost positions exist', () => {
     mockUsePredictPortfolio.mockReturnValue(
       createPortfolio({
         claimablePositions: [
-          createClaimablePosition({ id: 'won-position' }),
           createClaimablePosition({
             currentValue: 0,
             id: 'lost-position',
@@ -304,8 +326,7 @@ describe('PredictPositionsView', () => {
     expect(
       screen.getByText('history-claim-pending-present:true'),
     ).toBeOnTheScreen();
-    expect(screen.getByText('history-claim-pending-count:2')).toBeOnTheScreen();
-    expect(screen.getByText('history-privacy:true')).toBeOnTheScreen();
+    expect(screen.getByText('history-claim-pending-count:0')).toBeOnTheScreen();
   });
 
   it('does not pass claim pending positions to History when portfolio flag is disabled', () => {

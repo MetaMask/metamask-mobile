@@ -77,18 +77,8 @@ interface ClaimPendingPositionRowProps {
   position: PredictPosition;
 }
 
-const getClaimPendingPositionTitle = (
-  status: PredictPositionStatus,
-): string => {
-  switch (status) {
-    case PredictPositionStatus.LOST:
-      return strings('predict.transactions.prediction_lost_title');
-    case PredictPositionStatus.WON:
-      return strings('predict.transactions.prediction_won_title');
-    default:
-      return strings('predict.transactions.prediction_resolved_title');
-  }
-};
+const isActionableClaimPendingPosition = (position: PredictPosition) =>
+  position.status === PredictPositionStatus.WON && position.currentValue > 0;
 
 const ClaimPendingPositionRow = ({
   containerStyle,
@@ -105,7 +95,7 @@ const ClaimPendingPositionRow = ({
       entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
     });
   }, [navigation, position.marketId]);
-  const positionTitle = getClaimPendingPositionTitle(position.status);
+  const positionTitle = strings('predict.transactions.prediction_won_title');
   const formattedValue = formatPrice(position.currentValue, {
     minimumDecimals: 2,
     maximumDecimals: 2,
@@ -244,10 +234,12 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
 
   const sections: ActivitySection[] = useMemo(() => {
     const sortedClaimPendingPositions = claimPendingPositions
-      ? [...claimPendingPositions].sort(
-          (a, b) =>
-            new Date(b.endDate).getTime() - new Date(a.endDate).getTime(),
-        )
+      ? claimPendingPositions
+          .filter(isActionableClaimPendingPosition)
+          .sort(
+            (a, b) =>
+              new Date(b.endDate).getTime() - new Date(a.endDate).getTime(),
+          )
       : [];
 
     const claimPendingSections: ActivitySection[] =
