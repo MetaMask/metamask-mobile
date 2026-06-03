@@ -2,7 +2,6 @@
 import React from 'react';
 import { Image } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 // Internal dependencies.
 import StepperCard from './StepperCard';
@@ -77,17 +76,17 @@ describe('StepperCard', () => {
   });
 
   describe('step image', () => {
-    it('sizes the image to its intrinsic aspect ratio so padding stays uniform', () => {
+    it('sizes the image box to its intrinsic aspect ratio so padding stays uniform', () => {
       const resolveSpy = jest
         .spyOn(Image, 'resolveAssetSource')
         .mockReturnValue({ width: 987, height: 555, scale: 1, uri: 'card' });
-      const tw = useTailwind();
 
-      render(
+      const { getByTestId } = render(
         <StepperCard steps={[makeStep()]} currentStep={0} testID="card" />,
       );
 
-      expect(tw.style).toHaveBeenCalledWith('w-full', {
+      expect(getByTestId('card-step-image')).toHaveStyle({
+        width: '100%',
         aspectRatio: 987 / 555,
       });
       resolveSpy.mockRestore();
@@ -97,13 +96,15 @@ describe('StepperCard', () => {
       const resolveSpy = jest
         .spyOn(Image, 'resolveAssetSource')
         .mockReturnValue({ width: 0, height: 0, scale: 1, uri: 'card' });
-      const tw = useTailwind();
 
-      render(
+      const { getByTestId } = render(
         <StepperCard steps={[makeStep()]} currentStep={0} testID="card" />,
       );
 
-      expect(tw.style).toHaveBeenCalledWith('w-full', { height: 215 });
+      expect(getByTestId('card-step-image')).toHaveStyle({
+        width: '100%',
+        height: 215,
+      });
       resolveSpy.mockRestore();
     });
   });

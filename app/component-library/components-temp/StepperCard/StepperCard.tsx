@@ -1,8 +1,7 @@
 import React, { useEffect, useRef } from 'react';
-import { Image, TouchableOpacity } from 'react-native';
+import { Image, TouchableOpacity, View, ViewStyle } from 'react-native';
 import {
   Box,
-  BoxAlignItems,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -55,6 +54,9 @@ const StepperCard = ({
     resolvedImage?.width && resolvedImage?.height
       ? resolvedImage.width / resolvedImage.height
       : undefined;
+  const imageWrapperStyle: ViewStyle = imageAspectRatio
+    ? { width: '100%', aspectRatio: imageAspectRatio }
+    : { width: '100%', height: 215 };
 
   return (
     <Box
@@ -62,21 +64,14 @@ const StepperCard = ({
       testID={getTestId('container')}
     >
       {/* Image */}
-      <Box
-        alignItems={BoxAlignItems.Center}
-        testID={getTestId('step-image')}
-        twClassName="p-4"
-      >
-        <Image
-          source={step.image}
-          style={tw.style(
-            'w-full',
-            imageAspectRatio
-              ? { aspectRatio: imageAspectRatio }
-              : { height: 215 },
-          )}
-          resizeMode="contain"
-        />
+      <Box twClassName="p-4">
+        <View testID={getTestId('step-image')} style={imageWrapperStyle}>
+          <Image
+            source={step.image}
+            style={tw.style('w-full h-full')}
+            resizeMode="contain"
+          />
+        </View>
       </Box>
 
       {/* Content */}
