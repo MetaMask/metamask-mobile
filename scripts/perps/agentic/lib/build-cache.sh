@@ -5,7 +5,7 @@
 #   Tier 1 (shared, one per host):  $MM_BUILD_CACHE_DIR (default ~/Library/Caches/mm-mobile-builds)
 #   Tier 2 (per-worktree sidecar):  .agent/build-cache/<plat>/installed.json
 #
-# All functions are pure shell so callers can source this file directly.
+# All functions are pure shell so preflight.sh can source this file directly.
 # Callers must `set -euo pipefail` themselves; this file does not.
 
 # Source-time sanitization: drop any inherited claim on the private memo
@@ -189,27 +189,6 @@ bc_store_artifact() {
     '{fingerprint:$fp, builtAt:$builtAt, builderWorktree:$builderWorktree}' > "$meta"
 }
 
-# Store the full fingerprint (hash + sources) for (plat, fp) so a later cache
-# miss can report which inputs changed.
-bc_snapshot() {
-  local plat="$1" fp="$2"
-  bc_init_dirs "$plat"
-  node scripts/perps/agentic/lib/compute-cache-fp.js --json > "$(bc_plat_dir "$plat")/$fp.sources.json"
-}
-
-# Print the inputs that changed vs the stored snapshot for (plat, fp) as a JSON
-# array; "[]" when no snapshot exists.
-bc_drift() {
-  local plat="$1" fp="$2"
-  local src
-  src="$(bc_plat_dir "$plat")/$fp.sources.json"
-  if [ -f "$src" ]; then
-    node scripts/perps/agentic/lib/compute-cache-fp.js --diff "$src"
-  else
-    echo "[]"
-  fi
-}
-
 # Portable mtime extraction. macOS BSD stat uses -f; GNU stat uses -c.
 # Echoes "<mtime-epoch> <path>" per line. Silent on stat errors.
 bc__stat_mtime() {
@@ -241,7 +220,7 @@ bc_prune() {
     i=$((i + 1))
     [ "$i" -le "$keep" ] && continue
     local base="${path%.*}"
-    rm -rf "$path" "${base}.meta.json" "${base}.sources.json"
+    rm -rf "$path" "${base}.meta.json"
   done <<< "$entries"
 }
 

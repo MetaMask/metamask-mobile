@@ -2,7 +2,7 @@
 # Setup wallet from a JSON fixture via CDP + AgenticService.setupWallet().
 #
 # Expects a FRESH app (no existing vault). For a clean environment, run:
-#   yarn a:setup:ios   # full clean setup + wallet
+#   preflight.sh --clean --wallet-setup
 #
 # Usage:
 #   setup-wallet.sh [--fixture path/to/fixture.json]
@@ -32,10 +32,7 @@ load_js_env
 PORT="${WATCHER_PORT:-8081}"
 [[ "$PORT" =~ ^[0-9]+$ ]] || { echo "ERROR: WATCHER_PORT must be numeric (got: $PORT)" >&2; exit 1; }
 SCRIPTS="$SCRIPT_DIR"
-# Account derivation (applyWalletFixture / setupWallet) is far slower than a
-# normal eval — a 10+ account fixture easily exceeds 30s. The value is a cap, not
-# a delay, so a high default is harmless for the fast evals. Override via env.
-export CDP_TIMEOUT="${CDP_TIMEOUT:-120000}"
+export CDP_TIMEOUT="${CDP_TIMEOUT:-30000}"
 export CDP_DISCOVERY_RETRIES="${CDP_DISCOVERY_RETRIES:-3}"
 CDP="node $SCRIPTS/cdp-bridge.js"
 FIXTURE_PATH=""
@@ -144,14 +141,7 @@ if [ "$HAS_VAULT" = "true" ]; then
   fi
 
   echo "Applying fixture accounts/names to existing vault..."
-  set +e
   APPLY_RESULT=$(cdp_eval_async "(function(){ var fixture = JSON.parse($ESCAPED_FIXTURE); if (!globalThis.__AGENTIC__ || typeof globalThis.__AGENTIC__.applyWalletFixture !== 'function') { return JSON.stringify({ok:false, error:'__AGENTIC__.applyWalletFixture is not installed; reload the app from Metro'}); } return globalThis.__AGENTIC__.applyWalletFixture(fixture).then(function(r){ return JSON.stringify(r); }).catch(function(e){ return JSON.stringify({ok:false, error: e.message || String(e)}); }); })()")
-  APPLY_RC=$?
-  set -e
-  if [ "$APPLY_RC" -ne 0 ] || [ -z "$APPLY_RESULT" ]; then
-    echo "ERROR: applyWalletFixture eval failed or timed out (rc=$APPLY_RC) — raise CDP_TIMEOUT for large fixtures (current ${CDP_TIMEOUT}ms)."
-    exit 1
-  fi
   APPLY_OK=$(echo "$APPLY_RESULT" | jq -r '.ok')
   if [ "$APPLY_OK" != "true" ]; then
     APPLY_ERR=$(echo "$APPLY_RESULT" | jq -r '.error // "unknown error"')

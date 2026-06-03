@@ -78,7 +78,7 @@ set +e
 # Run preflight in the background; watchdog below kills it after 45s OR as
 # soon as the cache-decision marker appears. Avoids the GNU `timeout` binary
 # which is not in base macOS.
-yarn ts-node --transpile-only scripts/perps/agentic/preflight/preflight.ts --mode auto --platform ios --no-launch > "$LOG" 2>&1 &
+bash scripts/perps/agentic/preflight.sh --mode auto --platform ios --no-launch > "$LOG" 2>&1 &
 PID=$!
 ( sleep 45 && kill "$PID" 2>/dev/null ) &
 WATCHDOG=$!
