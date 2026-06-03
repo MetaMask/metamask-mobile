@@ -9,7 +9,17 @@ jest.mock('./AgenticService', () => ({
 
 const mockRegister = jest.mocked(registerStepHudCallback);
 
-type StepCallback = (step: { id: string; description: string } | null) => void;
+type StepCallback = (
+  step: {
+    id: string;
+    description?: string;
+    status?: string;
+    intent?: string;
+    progress?: { current?: number; total?: number };
+    detail?: string;
+    error?: string;
+  } | null,
+) => void;
 
 function getLatestCallback(): StepCallback {
   const calls = mockRegister.mock.calls;
@@ -47,7 +57,24 @@ describe('AgentStepHud', () => {
     expect(mockRegister).toHaveBeenCalledWith(null);
   });
 
-  it('displays step id and description when callback fires', () => {
+  it('displays canonical status, progress, and intent when callback fires', () => {
+    const { getByText } = render(<AgentStepHud />);
+    const callback = getLatestCallback();
+
+    act(() => {
+      callback({
+        id: 'validate/open-market',
+        status: 'running',
+        progress: { current: 2, total: 10 },
+        intent: 'Open BTC position',
+      });
+    });
+
+    expect(getByText('RUN 2/10')).toBeOnTheScreen();
+    expect(getByText(/Open BTC position/)).toBeOnTheScreen();
+  });
+
+  it('keeps legacy id/description support for older bridges', () => {
     const { getByText } = render(<AgentStepHud />);
     const callback = getLatestCallback();
 
@@ -64,10 +91,14 @@ describe('AgentStepHud', () => {
     const callback = getLatestCallback();
 
     act(() => {
-      callback({ id: 'fail 9/19', description: 'Close position failed' });
+      callback({
+        id: 'validate/close',
+        status: 'fail',
+        intent: 'Close failed',
+      });
     });
 
-    expect(getByText('FAIL 9/19')).toHaveStyle({ color: '#FF4D4F' });
+    expect(getByText('FAIL')).toHaveStyle({ color: '#FF4D4F' });
   });
 
   it('shows one intent line and hides unmarked metadata lines', () => {
@@ -85,15 +116,17 @@ describe('AgentStepHud', () => {
     expect(queryByText('perps setup')).toBeNull();
   });
 
-  it('shows explicit subflow and error lines only', () => {
+  it('shows error and explicit detail lines only', () => {
     const { getByText, queryByText } = render(<AgentStepHud />);
     const callback = getLatestCallback();
 
     act(() => {
       callback({
         id: 'fail 1/2',
-        description:
-          'Complete the validation checkpoint\nDuplicate metadata line should stay hidden\nsubflow: Prepare scenario\nerror: Timed out waiting for checkpoint',
+        intent: 'Complete the validation checkpoint',
+        detail: 'Prepare scenario',
+        error: 'Timed out waiting for checkpoint',
+        description: 'Duplicate metadata line should stay hidden',
       });
     });
 
@@ -112,7 +145,7 @@ describe('AgentStepHud', () => {
     const callback = getLatestCallback();
 
     act(() => {
-      callback({ id: 'step-1', description: 'test' });
+      callback({ id: 'step-1', intent: 'test' });
     });
 
     act(() => {

@@ -5,8 +5,14 @@ import { registerStepHudCallback } from './AgenticService';
 
 interface Step {
   id: string;
-  description: string;
+  description?: string;
   status?: string;
+  intent?: string;
+  progress?: { current?: number; total?: number };
+  detail?: string;
+  error?: string;
+  nodeId?: string;
+  debug?: { nodeId?: string; proofTarget?: unknown };
 }
 
 function statusForStep(step: Step) {
@@ -14,13 +20,20 @@ function statusForStep(step: Step) {
 }
 
 function progressForStep(step: Step) {
+  if (
+    typeof step.progress?.current === 'number' &&
+    typeof step.progress?.total === 'number'
+  ) {
+    return `${step.progress.current}/${step.progress.total}`;
+  }
   const progressPattern = /\b\d+\s*\/\s*\d+\b/;
   const match = progressPattern.exec(step.id);
   return match ? match[0].replace(/\s+/g, '') : null;
 }
 
 function badgeTextForStep(step: Step) {
-  const status = statusForStep(step);
+  const rawStatus = statusForStep(step);
+  const status = rawStatus === 'running' ? 'run' : rawStatus;
   const progress = progressForStep(step);
   return [status || 'run', progress].filter(Boolean).join(' ').toUpperCase();
 }
@@ -36,35 +49,42 @@ function statusToneForStep(step: Step) {
   return 'running';
 }
 
-function secondaryDisplayText(part: string) {
+function legacyDescriptionParts(description?: string) {
+  return String(description ?? '')
+    .split('\n')
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .filter((part, index, parts) => parts.indexOf(part) === index);
+}
+
+function legacySecondaryDisplayText(part: string) {
   const errorPrefix = 'error:';
-  const subflowPrefix = 'subflow:';
   const detailPrefix = 'detail:';
+  const debugPrefix = 'debug ';
   const normalized = part.toLowerCase();
 
-  if (normalized.startsWith(errorPrefix)) {
-    return part;
-  }
-  if (normalized.startsWith(subflowPrefix)) {
-    return part.slice(subflowPrefix.length).trim();
-  }
+  if (normalized.startsWith(errorPrefix)) return part;
   if (normalized.startsWith(detailPrefix)) {
     return part.slice(detailPrefix.length).trim();
   }
+  if (normalized.startsWith(debugPrefix)) return null;
   return null;
 }
 
-function parseDescription(description: string) {
-  const parts = description
-    .split('\n')
-    .map((part) => part.trim())
-    .filter(Boolean);
-  const deduped = parts.filter((part, index) => parts.indexOf(part) === index);
-  const [intent = '', ...secondaryCandidates] = deduped;
-  const secondary = secondaryCandidates
-    .map(secondaryDisplayText)
-    .filter((part): part is string => Boolean(part));
-  return { intent, secondary };
+function displayStateForStep(step: Step) {
+  const legacyParts = legacyDescriptionParts(step.description);
+  const intent = String(step.intent ?? legacyParts[0] ?? '').trim();
+  const secondary = [
+    step.error ? `error: ${step.error}` : null,
+    step.detail && step.detail !== intent ? step.detail : null,
+    ...legacyParts.slice(1).map(legacySecondaryDisplayText),
+  ].filter((part): part is string => Boolean(part));
+  return {
+    intent,
+    secondary: secondary.filter(
+      (part, index) => secondary.indexOf(part) === index,
+    ),
+  };
 }
 
 // Debug-only overlay — intentionally uses hardcoded colors for guaranteed
@@ -134,7 +154,7 @@ const AgentStepHudInner = () => {
 
   if (!step) return null;
 
-  const { intent, secondary } = parseDescription(step.description);
+  const { intent, secondary } = displayStateForStep(step);
   const badge = badgeTextForStep(step);
   const tone = statusToneForStep(step);
   const badgeTextStyle =

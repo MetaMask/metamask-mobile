@@ -500,6 +500,22 @@ const COMMANDS = {
     return { ok: true };
   },
 
+  async 'show-step-json'(client, args) {
+    const raw = args.join(' ');
+    let step;
+    try {
+      step = JSON.parse(raw);
+    } catch (error) {
+      throw new Error(`show-step-json requires a JSON step payload: ${error.message}`);
+    }
+    if (!step || typeof step !== 'object' || Array.isArray(step)) {
+      throw new Error('show-step-json requires a JSON object step payload');
+    }
+    const payload = JSON.stringify(step);
+    await cdpEval(client, `globalThis.__AGENTIC__?.showStep && globalThis.__AGENTIC__.showStep(${payload})`);
+    return { ok: true };
+  },
+
   async 'hide-step'(client) {
     await cdpEval(client, `globalThis.__AGENTIC__?.hideStep && globalThis.__AGENTIC__.hideStep()`);
     return { ok: true };
