@@ -53,8 +53,8 @@ describe('CollapsibleSection', () => {
 
     const section = getByText('My Section');
 
-    expect(queryByText('Row 1')).toBeNull();
-    expect(queryByText('Foo')).toBeNull();
+    expect(queryByText('Row 1')).not.toBeOnTheScreen();
+    expect(queryByText('Foo')).not.toBeOnTheScreen();
 
     fireEvent.press(section);
 
