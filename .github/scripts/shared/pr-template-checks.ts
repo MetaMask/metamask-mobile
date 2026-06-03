@@ -55,7 +55,10 @@ export function stripHtmlComments(text: string): string {
     }
     result += text.slice(cursor, open);
     const close = text.indexOf('-->', open + 4);
-    cursor = close === -1 ? open + 4 : close + 3;
+    if (close === -1) {
+      break; // unclosed comment — drop everything from the opener to end of string
+    }
+    cursor = close + 3;
   }
   return result;
 }

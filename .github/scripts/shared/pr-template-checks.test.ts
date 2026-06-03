@@ -71,6 +71,10 @@ describe('stripHtmlComments', () => {
   it('leaves non-comment content untouched', () => {
     expect(stripHtmlComments('no comments here')).toBe('no comments here');
   });
+
+  it('consumes everything from an unclosed opener to end of string', () => {
+    expect(stripHtmlComments('a <!-- unclosed')).toBe('a ');
+  });
 });
 
 describe('extractSection', () => {
