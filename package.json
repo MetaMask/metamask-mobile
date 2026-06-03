@@ -160,10 +160,10 @@
     "a:status": "scripts/perps/agentic/app-state.sh status",
     "a:reload": "scripts/perps/agentic/reload-metro.sh",
     "a:navigate": "scripts/perps/agentic/app-navigate.sh",
-    "a:ios": "scripts/perps/agentic/preflight.sh --platform ios --mode fast --wallet-setup",
-    "a:android": "scripts/perps/agentic/preflight.sh --platform android --mode fast --wallet-setup",
-    "a:setup:ios": "scripts/perps/agentic/preflight.sh --platform ios --mode clean --wallet-setup",
-    "a:setup:android": "scripts/perps/agentic/preflight.sh --platform android --mode clean --wallet-setup"
+    "a:ios": "yarn ts-node --transpile-only scripts/perps/agentic/preflight/preflight.ts --platform ios --mode auto --wallet-setup",
+    "a:android": "yarn ts-node --transpile-only scripts/perps/agentic/preflight/preflight.ts --platform android --mode auto --wallet-setup",
+    "a:setup:ios": "yarn ts-node --transpile-only scripts/perps/agentic/preflight/preflight.ts --platform ios --mode clean --wallet-setup",
+    "a:setup:android": "yarn ts-node --transpile-only scripts/perps/agentic/preflight/preflight.ts --platform android --mode clean --wallet-setup"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
