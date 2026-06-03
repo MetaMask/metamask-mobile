@@ -89,14 +89,10 @@ describe('PerpsTradingCampaignLeaderboard', () => {
   });
 
   it('navigates to in-app browser with HyperTracker attribution URL when brand is pressed', () => {
-    const { getByText } = render(
+    const { getByTestId } = render(
       <PerpsTradingCampaignLeaderboard {...defaultProps} />,
     );
-    fireEvent.press(
-      getByText(
-        'rewards.perps_trading_campaign.leaderboard_hypertracker_brand',
-      ),
-    );
+    fireEvent.press(getByTestId(TEST_IDS.HYPERTRACKER_LOGO));
 
     expect(mockNavigate).toHaveBeenCalledWith(
       'BrowserHome',
