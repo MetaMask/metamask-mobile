@@ -7,10 +7,7 @@ import React, {
 } from 'react';
 import { View, Modal, NativeScrollEvent } from 'react-native';
 import { useSelector } from 'react-redux';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   useNavigation,
   useRoute,
@@ -490,12 +487,18 @@ const PerpsHomeView = ({
   // Footer: paddingTop(16) + button(48) + paddingBottom(16 + insets.bottom)
   const footerHeight = 80 + insets.bottom;
 
+  const showsFixedFooter =
+    !isBalanceEmpty &&
+    !showCloseAllSheet &&
+    !showCancelAllSheet &&
+    !HOME_SCREEN_CONFIG.ShowHeaderActionButtons;
+
   const bottomSpacerStyle = useMemo(
     () => ({
-      // When footer is visible, add space for it. Otherwise minimal spacing for tab bar.
-      height: isBalanceEmpty ? 16 : footerHeight + 16,
+      // Reserve space for the fixed footer only when it is rendered.
+      height: showsFixedFooter ? footerHeight + 16 : 16,
     }),
-    [isBalanceEmpty, footerHeight],
+    [showsFixedFooter, footerHeight],
   );
 
   // Add safe area inset to footer for Android navigation bar
@@ -504,14 +507,24 @@ const PerpsHomeView = ({
     [styles.fixedFooter, insets.bottom],
   );
 
+  const scrollContentContainerStyle = useMemo(
+    () => [
+      styles.scrollViewContent,
+      topInset > 0 ? { paddingTop: topInset } : null,
+      !hideHeader ? { paddingBottom: insets.bottom } : null,
+    ],
+    [styles.scrollViewContent, topInset, hideHeader, insets.bottom],
+  );
+
   // Always navigate to wallet home to avoid navigation loops (tutorial/onboarding flow)
   const handleBackPress = perpsNavigation.navigateToWallet;
 
   return (
-    <SafeAreaView style={styles.container} edges={hideHeader ? [] : undefined}>
+    <View style={styles.container}>
       {/* Header */}
       {!hideHeader && (
         <HeaderStandardAnimated
+          includesTopInset
           scrollY={headerScrollY}
           titleSectionHeight={titleSectionHeightSv}
           title={perpsScreenTitle}
@@ -535,10 +548,7 @@ const PerpsHomeView = ({
       {/* Main Content - ScrollView with all carousels */}
       <Reanimated.ScrollView
         style={styles.scrollView}
-        contentContainerStyle={[
-          styles.scrollViewContent,
-          topInset > 0 ? { paddingTop: topInset } : null,
-        ]}
+        contentContainerStyle={scrollContentContainerStyle}
         showsVerticalScrollIndicator={false}
         onScroll={perpsScrollHandler}
         scrollEventThrottle={16}
@@ -708,33 +718,30 @@ const PerpsHomeView = ({
       )}
 
       {/* Fixed Footer with Action Buttons - Only show when balance is not empty and no sheets are open */}
-      {!isBalanceEmpty &&
-        !showCloseAllSheet &&
-        !showCancelAllSheet &&
-        !HOME_SCREEN_CONFIG.ShowHeaderActionButtons && (
-          <View style={fixedFooterStyle}>
-            <View style={styles.footerButtonsContainer} accessible={false}>
-              <Button
-                variant={ButtonVariant.Secondary}
-                size={ButtonSize.Lg}
-                onPress={handleWithdraw}
-                style={styles.footerButton}
-                testID={PerpsHomeViewSelectorsIDs.WITHDRAW_BUTTON}
-              >
-                {strings('perps.withdraw')}
-              </Button>
-              <Button
-                variant={ButtonVariant.Primary}
-                size={ButtonSize.Lg}
-                onPress={handleAddFunds}
-                style={styles.footerButton}
-                testID={PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON}
-              >
-                {strings('perps.add_funds')}
-              </Button>
-            </View>
+      {showsFixedFooter && (
+        <View style={fixedFooterStyle}>
+          <View style={styles.footerButtonsContainer} accessible={false}>
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Lg}
+              onPress={handleWithdraw}
+              style={styles.footerButton}
+              testID={PerpsHomeViewSelectorsIDs.WITHDRAW_BUTTON}
+            >
+              {strings('perps.withdraw')}
+            </Button>
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              onPress={handleAddFunds}
+              style={styles.footerButton}
+              testID={PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON}
+            >
+              {strings('perps.add_funds')}
+            </Button>
           </View>
-        )}
+        </View>
+      )}
 
       {/* Eligibility Modal */}
       {isEligibilityModalVisible && (
@@ -764,7 +771,7 @@ const PerpsHomeView = ({
           </Modal>
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 
