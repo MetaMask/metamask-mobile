@@ -15,7 +15,8 @@ const SUPPRESSED_ERRORS = [
  * not spammed by intentional flows.
  */
 export function showDevErrorAlert(title: string, error: Error): void {
-  if (!DEV_ENVIRONMENTS.has(process.env.METAMASK_ENVIRONMENT ?? '')) {
+  // eslint-disable-next-line dot-notation
+  if (!DEV_ENVIRONMENTS.has(process.env['METAMASK_ENVIRONMENT'] ?? '')) {
     return;
   }
 
