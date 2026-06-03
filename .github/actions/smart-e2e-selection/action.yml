@@ -38,7 +38,7 @@ outputs:
     description: 'AI confidence score (0-100)'
     value: ${{ steps.final-outputs.outputs.ai_confidence }}
   ai_performance_test_tags:
-    description: 'Performance test tags to run (JSON array format, empty [] means no performance tests)'
+    description: "Performance test tags to run. Empty string '' = run all (conservative fallback). Literal '[]' = skip (AI found no relevant changes). '[\"@Tag\",...]' = run specific tags."
     value: ${{ steps.final-outputs.outputs.ai_performance_test_tags }}
   ai_performance_test_reasoning:
     description: 'Reasoning for the performance test selection'

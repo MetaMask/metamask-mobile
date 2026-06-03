@@ -496,23 +496,37 @@ const PERF_SPEC_REGEX = /^tests\/performance\/.+\.spec\.ts$/;
 const PERF_INFRA_REGEX = /^tests\/(performance|framework)\//;
 
 /**
- * Parses a spec file's content and returns the @Performance* area tags it imports.
- * E.g. `import { PerformanceSwaps } from '../../tags.performance.js'` → ['@PerformanceSwaps']
+ * Parses a spec file's content and returns the @Performance* area tags it uses.
+ *
+ * Two complementary strategies are combined:
+ * 1. Import-name derivation — finds `import { PerformanceSwaps } from '...tags.performance...'`
+ * and maps the identifier `PerformanceSwaps` → `@PerformanceSwaps`. Works as long as the
+ * identifier name matches the exported string value (convention in this repo).
+ * 2. Inline string scan — searches the full file for `@Performance\w+` occurrences. This
+ * catches tags that appear directly in `test.describe(` title strings or `{ tag: '...' }`
+ * objects, and is immune to any naming-convention drift between the import identifier and
+ * the runtime value. The two strategies are unioned so either source is sufficient.
  */
 function extractTagsFromSpecContent(content: string): string[] {
-  const importPattern =
-    /import\s*\{([^}]+)\}\s*from\s*['"][^'"]*tags\.performance[^'"]*['"]/g;
   const tags: string[] = [];
 
+  // Strategy 1: derive from import identifier names
+  const importPattern =
+    /import\s*\{([^}]+)\}\s*from\s*['"][^'"]*tags\.performance[^'"]*['"]/g;
   let match;
   while ((match = importPattern.exec(content)) !== null) {
     const names = match[1]
       .split(',')
       .map((n) => n.trim())
-      // Only keep area tags like PerformanceSwaps, not the base Performance or System tags
+      // Only keep area tags like PerformanceSwaps, not base Performance or System
       .filter((n) => /^Performance[A-Z]/.test(n));
     tags.push(...names.map((n) => `@${n}`));
   }
+
+  // Strategy 2: scan for @Performance* string literals anywhere in the file
+  // (covers describe titles, { tag: '@PerformanceSwaps' } objects, etc.)
+  const inlineMatches = content.match(/@Performance[A-Z]\w*/g) ?? [];
+  tags.push(...inlineMatches);
 
   return [...new Set(tags)];
 }
