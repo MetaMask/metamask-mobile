@@ -21,6 +21,7 @@ import {
 import {
   useNotificationStoragePreferences,
   type NotificationStoragePreferenceSection,
+  type NotificationStoragePreferences,
 } from './hooks/useNotificationStoragePreferences';
 import { AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION } from '../../../../util/notifications/agenticCliNotificationPreferences';
 import { AccountsList } from './AccountsList';
@@ -169,7 +170,7 @@ const NotificationSettingsSection = ({
     return null;
   }
 
-  const sectionPrefs =
+  const sectionPrefs: NotificationStoragePreferences[typeof type] =
     type === AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION
       ? preferences[AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION]
       : preferences[type];

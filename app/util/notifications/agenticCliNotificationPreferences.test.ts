@@ -1,14 +1,12 @@
 import {
   AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION,
   DEFAULT_AGENTIC_CLI_PREFERENCE,
+  mergeAgenticCliIntoPreferences,
   resolveAgenticCliPreference,
-  setClientAgenticCliPreferenceOverride,
+  type NotificationStoragePreferencesWithAgenticCli,
 } from './agenticCliNotificationPreferences';
 
 describe('agenticCliNotificationPreferences', () => {
-  afterEach(() => {
-    setClientAgenticCliPreferenceOverride(null);
-  });
   it('uses agenticCli as the preference section key', () => {
     expect(AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION).toBe('agenticCli');
   });
@@ -41,16 +39,39 @@ describe('agenticCliNotificationPreferences', () => {
     ).toEqual(DEFAULT_AGENTIC_CLI_PREFERENCE);
   });
 
-  it('returns client override when agenticCli is missing from preferences', () => {
-    setClientAgenticCliPreferenceOverride({
-      pushNotificationsEnabled: true,
-      inAppNotificationsEnabled: false,
-    });
+  it('uses cached agenticCli when API response omits the section', () => {
+    const basePreferences = {
+      walletActivity: {
+        inAppNotificationsEnabled: true,
+        pushNotificationsEnabled: true,
+        accounts: [],
+      },
+      marketing: {
+        inAppNotificationsEnabled: false,
+        pushNotificationsEnabled: false,
+      },
+      perps: {
+        inAppNotificationsEnabled: true,
+        pushNotificationsEnabled: true,
+      },
+      socialAI: {
+        inAppNotificationsEnabled: true,
+        pushNotificationsEnabled: true,
+        mutedTraderProfileIds: [],
+      },
+    };
 
-    expect(resolveAgenticCliPreference(null)).toEqual({
-      pushNotificationsEnabled: true,
-      inAppNotificationsEnabled: false,
-    });
+    const cached = {
+      ...basePreferences,
+      agenticCli: {
+        pushNotificationsEnabled: true,
+        inAppNotificationsEnabled: false,
+      },
+    };
+
+    expect(mergeAgenticCliIntoPreferences(basePreferences, cached)).toEqual(
+      cached,
+    );
   });
 
   it('returns stored agenticCli preferences when present', () => {
@@ -59,28 +80,30 @@ describe('agenticCliNotificationPreferences', () => {
       inAppNotificationsEnabled: false,
     };
 
-    expect(
-      resolveAgenticCliPreference({
-        walletActivity: {
-          inAppNotificationsEnabled: true,
-          pushNotificationsEnabled: true,
-          accounts: [],
-        },
-        marketing: {
-          inAppNotificationsEnabled: false,
-          pushNotificationsEnabled: false,
-        },
-        perps: {
-          inAppNotificationsEnabled: true,
-          pushNotificationsEnabled: true,
-        },
-        socialAI: {
-          inAppNotificationsEnabled: true,
-          pushNotificationsEnabled: true,
-          mutedTraderProfileIds: [],
-        },
-        agenticCli,
-      }),
-    ).toEqual(agenticCli);
+    const preferencesWithAgenticCli = mergeAgenticCliIntoPreferences({
+      walletActivity: {
+        inAppNotificationsEnabled: true,
+        pushNotificationsEnabled: true,
+        accounts: [],
+      },
+      marketing: {
+        inAppNotificationsEnabled: false,
+        pushNotificationsEnabled: false,
+      },
+      perps: {
+        inAppNotificationsEnabled: true,
+        pushNotificationsEnabled: true,
+      },
+      socialAI: {
+        inAppNotificationsEnabled: true,
+        pushNotificationsEnabled: true,
+        mutedTraderProfileIds: [],
+      },
+      [AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION]: agenticCli,
+    } as NotificationStoragePreferencesWithAgenticCli);
+
+    expect(resolveAgenticCliPreference(preferencesWithAgenticCli)).toEqual(
+      agenticCli,
+    );
   });
 });

@@ -1,11 +1,13 @@
 import { createSelector } from 'reselect';
-import { isE2E } from '../../../util/test/utils';
 import { selectRemoteFeatureFlags } from '..';
+
+const isAgenticCliNotificationsEnabledInTest =
+  process.env.IS_TEST === 'true' || process.env.METAMASK_ENVIRONMENT === 'e2e';
 
 export const selectAgenticCliNotificationsEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    if (isE2E) {
+    if (isAgenticCliNotificationsEnabledInTest) {
       return true;
     }
 

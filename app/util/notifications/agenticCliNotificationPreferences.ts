@@ -25,29 +25,33 @@ export const DEFAULT_AGENTIC_CLI_PREFERENCE: AgenticCliPreference = {
   inAppNotificationsEnabled: false,
 };
 
-/**
- * Client-side cache for `agenticCli` while user-storage API responses omit the
- * section (pre-core#8933). Shared across notification settings screens.
- */
-let clientAgenticCliPreferenceOverride: AgenticCliPreference | null = null;
-
-export const setClientAgenticCliPreferenceOverride = (
-  preference: AgenticCliPreference | null,
-) => {
-  clientAgenticCliPreferenceOverride = preference;
-};
+const readAgenticCliFromPreferences = (
+  preferences: NotificationPreferences | null | undefined,
+): AgenticCliPreference | undefined => (preferences as NotificationStoragePreferencesWithAgenticCli | null)?.[
+    AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION
+  ];
 
 export const resolveAgenticCliPreference = (
   preferences: NotificationPreferences | null | undefined,
-): AgenticCliPreference => {
-  const agenticCli = (
-    preferences as NotificationStoragePreferencesWithAgenticCli | null
-  )?.[AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION];
+): AgenticCliPreference => (
+    readAgenticCliFromPreferences(preferences) ?? DEFAULT_AGENTIC_CLI_PREFERENCE
+  );
 
-  if (agenticCli) {
-    clientAgenticCliPreferenceOverride = agenticCli;
-    return agenticCli;
-  }
+/**
+ * Merges `agenticCli` from API data and optional React Query cache (same session).
+ * Does not use module-level state so values cannot leak across logout / account switch.
+ */
+export const mergeAgenticCliIntoPreferences = (
+  preferences: NotificationPreferences,
+  cachedPreferences?: NotificationPreferences | null,
+): NotificationStoragePreferencesWithAgenticCli => {
+  const agenticCli =
+    readAgenticCliFromPreferences(preferences) ??
+    readAgenticCliFromPreferences(cachedPreferences) ??
+    DEFAULT_AGENTIC_CLI_PREFERENCE;
 
-  return clientAgenticCliPreferenceOverride ?? DEFAULT_AGENTIC_CLI_PREFERENCE;
+  return {
+    ...preferences,
+    [AGENTIC_CLI_NOTIFICATION_PREFERENCE_SECTION]: agenticCli,
+  };
 };
