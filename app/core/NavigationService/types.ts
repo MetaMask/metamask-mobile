@@ -19,8 +19,6 @@ import type { BrowserParams } from '../../components/Views/Browser/Browser.types
 // Bridge params
 import type { BridgeRouteParams } from '../../components/UI/Bridge/hooks/useSwapBridgeNavigation';
 import type { BridgeTokenSelectorRouteParams } from '../../components/UI/Bridge/components/BridgeTokenSelector/BridgeTokenSelector';
-import type { BatchSellQuoteDetailsModalParams } from '../../components/UI/Bridge/components/BatchSellQuoteDetailsModal/BatchSellQuoteDetailsModal.types';
-import type { BatchSellFinalReviewModalParams } from '../../components/UI/Bridge/components/BatchSellFinalReviewModal/BatchSellFinalReviewModal.types';
 import type { BatchSellNetworkFeeInfoModalParams } from '../../components/UI/Bridge/components/BatchSellNetworkFeeInfoModal/BatchSellNetworkFeeInfoModal.types';
 import type { BatchSellMinimumReceivedInfoModalParams } from '../../components/UI/Bridge/components/BatchSellMinimumReceivedInfoModal/BatchSellMinimumReceivedInfoModal.types';
 import type {
@@ -44,7 +42,7 @@ import type { TooltipModalRouteParams } from '../../components/Views/TooltipModa
 import type { ChoosePasswordRouteParams } from '../../components/Views/ChoosePassword/ChoosePassword.types';
 import type { AccountSelectorParams } from '../../components/Views/AccountSelector/AccountSelector.types';
 import type { AddressSelectorParams } from '../../components/Views/AddressSelector/AddressSelector.types';
-import type { AccountConnectParams } from '../../components/Views/AccountConnect/AccountConnect.types';
+import type { AccountConnectParams } from '../../components/Views/MultichainAccounts/shared/AccountConnect.types';
 import type { ShowTokenIdSheetParams } from '../../components/Views/ShowTokenIdSheet/ShowTokenIdSheet.types';
 import type { ShowIpfsGatewaySheetParams } from '../../components/Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet.types';
 import type { SuccessErrorSheetParams } from '../../components/Views/SuccessErrorSheet/interface';
@@ -57,6 +55,7 @@ import type { OnboardingInterestQuestionnaireRouteParams } from '../../component
 
 // Perps navigation params
 import type { PerpsNavigationParamList } from '../../components/UI/Perps/types/navigation';
+import type { TrendingTokensFullViewParams } from '../../components/UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
 
 // QR Scanner params
 import type { QRScannerParams } from '../../components/Views/QRScanner/QRScanner.types';
@@ -229,8 +228,6 @@ export interface NestedNavigationParams {
   [key: string]: unknown;
 }
 
-import type { SearchFeedId } from '../../components/Views/TrendingView/search/useExploreSearch';
-
 type TraderPositionViewParams =
   | {
       traderId: string;
@@ -368,12 +365,6 @@ export interface RootStackParamList extends ParamListBase {
     | undefined;
   SitesFullView: { mode?: 'favorites' } | undefined;
   ExploreSearch: undefined;
-  ExploreSectionResultsFullView: {
-    feedId: SearchFeedId;
-    title: string;
-    searchQuery: string;
-    data: unknown[];
-  };
   RewardsOnboardingFlow: undefined;
   RewardsOnboardingIntro: undefined;
   BenefitFullView: BenefitFullViewRouteParams;
@@ -521,7 +512,7 @@ export interface RootStackParamList extends ParamListBase {
   TokensFullView: undefined;
   CashTokensFullView: undefined;
   MoneyScreens: undefined;
-  TrendingTokensFullView: undefined;
+  TrendingTokensFullView: TrendingTokensFullViewParams | undefined;
   RWATokensFullView: undefined;
 
   // Vault recovery routes
@@ -550,8 +541,8 @@ export interface RootStackParamList extends ParamListBase {
   BlockaidModal: BlockaidModalParams;
   RecipientSelectorModal: undefined;
   BatchSellDestinationTokenSelectorModal: undefined;
-  BatchSellQuoteDetailsModal: BatchSellQuoteDetailsModalParams;
-  BatchSellFinalReviewModal: BatchSellFinalReviewModalParams;
+  BatchSellQuoteDetailsModal: undefined;
+  BatchSellFinalReviewModal: undefined;
   BatchSellNetworkFeeInfoModal: BatchSellNetworkFeeInfoModalParams | undefined;
   BatchSellMinimumReceivedInfoModal:
     | BatchSellMinimumReceivedInfoModalParams
