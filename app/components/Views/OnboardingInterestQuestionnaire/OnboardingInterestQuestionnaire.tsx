@@ -117,8 +117,9 @@ const OnboardingInterestQuestionnaire = () => {
     if (hasTrackedView.current) return;
     hasTrackedView.current = true;
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.ONBOARDING_INTEREST_QUESTION_VIEWED)
+      createEventBuilder(MetaMetricsEvents.ONBOARDING_QUESTION_VIEWED)
         .addProperties({
+          question_type: 'interest',
           ...(accountType && { account_type: accountType }),
         })
         .build(),
@@ -159,10 +160,9 @@ const OnboardingInterestQuestionnaire = () => {
     const skipped = selectedInterests.length === 0;
 
     trackEvent(
-      createEventBuilder(
-        MetaMetricsEvents.ONBOARDING_INTEREST_QUESTION_SUBMITTED,
-      )
+      createEventBuilder(MetaMetricsEvents.ONBOARDING_QUESTION_SUBMITTED)
         .addProperties({
+          question_type: 'interest',
           selected_interests: selectedInterests,
           item_count: selectedInterests.length,
           skipped,
