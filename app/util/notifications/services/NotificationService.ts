@@ -14,7 +14,7 @@ import {
   ChannelId,
   notificationChannels,
 } from '../../../util/notifications/androidChannels';
-import { isE2E } from '../../test/utils';
+import { hasTestOverrides } from '../../test/utils';
 import { withTimeout } from '../methods';
 import { mmStorage } from '../settings';
 import { STORAGE_IDS } from '../settings/storage/constants';
@@ -79,7 +79,7 @@ class NotificationsService {
     );
 
     // E2E tests do not play well with OS push permissions
-    if (isE2E) {
+    if (hasTestOverrides) {
       return { permission: 'authorized' };
     }
 

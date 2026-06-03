@@ -971,7 +971,6 @@ export type MessengerClientsToInitialize =
   | 'EarnController'
   | 'MoneyAccountController'
   | 'MoneyAccountBalanceService'
-  | 'StorageService'
   | 'LoggingController'
   | 'NetworkController'
   | 'AccountTreeController'

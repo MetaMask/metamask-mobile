@@ -70,6 +70,7 @@ function buildSlackMessage(options) {
   const {
     version,
     buildNumber,
+    androidBuildNumber,
     androidUrl,
     iosUrl,
     pipelineUrl,
@@ -126,8 +127,11 @@ function buildSlackMessage(options) {
   ];
 
   // Add link to cherry-picks section in PR comment
+  // Note: GitHub prefixes user-provided anchor IDs with 'user-content-'
+  // We use build number in anchor to link to the correct comment (not older builds)
   if (prNumber) {
-    const cherryPicksLink = `<${REPO_URL}/pull/${prNumber}#cherry-picks|View cherry-picks>`;
+    const anchorSuffix = androidBuildNumber && androidBuildNumber !== 'N/A' ? `-${androidBuildNumber}` : '';
+    const cherryPicksLink = `<${REPO_URL}/pull/${prNumber}#user-content-cherry-picks${anchorSuffix}|View cherry-picks>`;
     blocks.push(
       {
         type: 'divider',
@@ -292,6 +296,7 @@ async function main() {
   const payload = buildSlackMessage({
     version,
     buildNumber,
+    androidBuildNumber,
     androidUrl,
     iosUrl,
     pipelineUrl,

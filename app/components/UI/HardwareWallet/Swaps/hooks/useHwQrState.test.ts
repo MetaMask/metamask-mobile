@@ -2,29 +2,27 @@ import { renderHook, act } from '@testing-library/react-native';
 import { ConnectionStatus, HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 import { useHwQrState } from './useHwQrState';
-import { updateHardwareWalletsSwaps } from '../../../../core/redux/slices/bridge';
+import { updateHardwareWalletsSwaps } from '../../../../../core/redux/slices/bridge';
 import {
   HardwareWalletsSwapsStatus,
   HardwareWalletsSwapsEventType,
-} from './HardwareWalletsSwaps.state';
-import type { HardwareWalletContextValue } from '../../../../core/HardwareWallet/contexts';
+} from '../HardwareWalletsSwaps.state';
+import type { HardwareWalletContextValue } from '../../../../../core/HardwareWallet/contexts';
 
-jest.mock('../../../../core/HardwareWallet', () => ({
+jest.mock('../../../../../core/HardwareWallet', () => ({
   useHardwareWallet: jest.fn(),
 }));
 
-jest.mock('../../../../core/redux/slices/bridge', () => ({
+jest.mock('../../../../../core/redux/slices/bridge', () => ({
   updateHardwareWalletsSwaps: jest.fn((action) => action),
 }));
 
-const mockDispatch = jest.fn((action: unknown) => action);
-
 jest.mock('react-redux', () => ({
-  useDispatch: () => mockDispatch,
+  useDispatch: () => jest.fn((action) => action),
   useSelector: jest.fn(),
 }));
 
-import { useHardwareWallet } from '../../../../core/HardwareWallet';
+import { useHardwareWallet } from '../../../../../core/HardwareWallet';
 
 const mockUseHardwareWallet = useHardwareWallet as jest.MockedFunction<
   typeof useHardwareWallet

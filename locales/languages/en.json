@@ -1099,7 +1099,8 @@
       "fallback_title": "Position not available",
       "fallback_subtitle": "We couldn't load this position right now.",
       "fallback_back_to_profile": "Back to profile",
-      "fallback_back_to_leaderboard": "Back to leaderboard"
+      "fallback_back_to_leaderboard": "Back to leaderboard",
+      "sell": "Sell"
     },
     "quick_buy": {
       "title": "Buy {{symbol}}",
@@ -1125,7 +1126,11 @@
       "toggle_amount_display": "Switch between token and dollar amount",
       "includes_mm_fee": "Includes {{fee}}% MM fee",
       "pay_with_no_tokens": "No tokens available to pay with",
-      "pay_with_filter_all": "All"
+      "receive_with_no_tokens": "No tokens available to receive",
+      "pay_with_filter_all": "All",
+      "buy_label": "Buy",
+      "sell_label": "Sell",
+      "receive": "Receive"
     }
   },
   "perps": {
