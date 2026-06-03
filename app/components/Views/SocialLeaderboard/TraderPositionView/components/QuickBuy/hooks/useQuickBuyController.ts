@@ -603,12 +603,25 @@ export function useQuickBuyController(
     ? maxSpendUsd <= 0
     : maxSpendTokens <= 0;
 
+  // For the toolbar rate pill in buy mode the dest token from `useQuickBuySetup`
+  // carries no price data, so we enrich a local copy with the rate already
+  // resolved by `usePositionTokenBalance`. We deliberately do NOT propagate this
+  // into `destToken` itself — the BridgeToken passed to quote fetching and
+  // redux must stay reference-stable, otherwise EVM→non-EVM (e.g. USDC/Base →
+  // SOL/Solana) flows lose their quote requests when market data ticks.
+  const destTokenForRate = useMemo<BridgeToken | undefined>(() => {
+    if (tradeMode !== 'buy' || !destToken) return destToken;
+    const rate = positionToken?.currencyExchangeRate;
+    if (rate === undefined) return destToken;
+    return { ...destToken, currencyExchangeRate: rate };
+  }, [tradeMode, destToken, positionToken?.currencyExchangeRate]);
+
   const formattedExchangeRate = useMemo(
     () =>
       tradeMode === 'sell'
         ? formatExchangeRate(sourceToken, destToken)
-        : formatExchangeRate(destToken, sourceToken),
-    [destToken, sourceToken, tradeMode],
+        : formatExchangeRate(destTokenForRate, sourceToken),
+    [destToken, destTokenForRate, sourceToken, tradeMode],
   );
 
   const metamaskFeePercent = useMemo(

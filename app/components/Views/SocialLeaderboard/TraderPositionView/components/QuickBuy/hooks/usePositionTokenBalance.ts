@@ -87,6 +87,15 @@ export const usePositionTokenBalance = (
     >[1];
     const zeroFiat = addCurrencySymbol('0.00', fiatCurrency);
 
+    // ─── Non-EVM, non-Solana (e.g. BTC, Tron) ──────────────────────────
+    // We don't have a balance/rate pipeline wired up for these yet, so treat
+    // the user as not holding the token. Without this guard the EVM branch's
+    // `formatChainIdToHex` call throws "Invalid cross-chain swaps chainId"
+    // and crashes the QuickBuy sheet.
+    if (isNonEvmChainId(caipChainId) && !isSolanaChainId(caipChainId)) {
+      return undefined;
+    }
+
     // ─── Solana branch ─────────────────────────────────────────────────
     if (isNonEvmChainId(caipChainId) && isSolanaChainId(caipChainId)) {
       if (!solanaAccount) return undefined;
