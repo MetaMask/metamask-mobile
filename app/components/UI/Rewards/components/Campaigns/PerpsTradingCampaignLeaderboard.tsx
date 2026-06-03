@@ -37,6 +37,7 @@ export const PERPS_CAMPAIGN_LEADERBOARD_TEST_IDS = {
   NOT_YET_COMPUTED: 'perps-campaign-leaderboard-not-yet-computed',
   TOTAL_PARTICIPANTS: 'perps-campaign-leaderboard-total-participants',
   POWERED_BY: 'perps-campaign-leaderboard-powered-by',
+  HYPERTRACKER_LOGO: 'perps-campaign-leaderboard-hypertracker-logo',
 } as const;
 
 const MAX_ENTRIES_LIMIT = 20;
