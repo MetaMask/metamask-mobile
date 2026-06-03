@@ -1,6 +1,11 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { CaipChainId, Hex } from '@metamask/utils';
+import {
+  CaipChainId,
+  Hex,
+  isCaipAssetType,
+  parseCaipAssetType,
+} from '@metamask/utils';
 import {
   formatAddressToAssetId,
   formatChainIdToHex,
@@ -13,22 +18,17 @@ import { getNativeSourceToken } from '../../../../../../UI/Bridge/utils/tokenUti
 import { selectIsBridgeEnabledSourceFactory } from '../../../../../../../core/redux/slices/bridge';
 
 /**
- * Splits a CAIP-19 asset id (`<chainId>/<namespace>:<reference>`) into its
- * namespace and reference. Returns `undefined` for bare addresses that aren't
- * CAIP-wrapped, so callers can fall back to the legacy path.
+ * Splits a CAIP-19 asset type (`<chainId>/<namespace>:<reference>`) into its
+ * asset namespace and reference using `@metamask/utils`. Returns `undefined`
+ * for bare addresses that aren't CAIP-wrapped, so callers can fall back to
+ * the legacy path.
  */
-const parseCaipAssetId = (
+const parseAssetType = (
   caipAssetId: string,
 ): { namespace: string; reference: string } | undefined => {
-  const slash = caipAssetId.lastIndexOf('/');
-  if (slash === -1) return undefined;
-  const tail = caipAssetId.slice(slash + 1);
-  const colon = tail.indexOf(':');
-  if (colon === -1) return undefined;
-  return {
-    namespace: tail.slice(0, colon),
-    reference: tail.slice(colon + 1),
-  };
+  if (!isCaipAssetType(caipAssetId)) return undefined;
+  const { assetNamespace, assetReference } = parseCaipAssetType(caipAssetId);
+  return { namespace: assetNamespace, reference: assetReference };
 };
 
 export interface QuickBuySetupResult {
@@ -80,7 +80,7 @@ export const useQuickBuySetup = (
     if (!position?.tokenAddress) {
       return { ...fallback, metadataQuery: '' };
     }
-    const parsed = parseCaipAssetId(position.tokenAddress);
+    const parsed = parseAssetType(position.tokenAddress);
     if (!parsed) {
       return fallback;
     }
