@@ -26,6 +26,7 @@ const FILE_SOURCES: Array<{ key: string; file: string; exportName: string }> = [
   { key: 'TOKEN_DETAILS_OHLCV_WS_INTEGRATION_FLAG_KEY', file: sel('tokenDetailsOhlcvWsIntegration'), exportName: 'TOKEN_DETAILS_OHLCV_WS_INTEGRATION_FLAG_KEY' },
   { key: 'SOCIAL_AI_ASSET_DETAILS_QUICK_BUY_FLAG_KEY', file: sel('socialAiAssetDetailsQuickBuy'), exportName: 'SOCIAL_AI_ASSET_DETAILS_QUICK_BUY_FLAG_KEY' },
   { key: 'SMART_TRANSACTIONS_ALLOWED_RPC_HOSTS_FLAG', file: sel('smartTransactions'), exportName: 'SMART_TRANSACTIONS_ALLOWED_RPC_HOSTS_FLAG' },
+  { key: 'AGENTIC_CLI_NOTIFICATIONS_FLAG_KEY', file: sel('agenticCliNotifications'), exportName: 'AGENTIC_CLI_NOTIFICATIONS_FLAG_KEY' },
 ];
 
 function resolveConstantFromFile(filePath: string, constantName: string): string | undefined {

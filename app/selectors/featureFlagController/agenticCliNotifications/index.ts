@@ -1,6 +1,12 @@
 import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
 
+/**
+ * LaunchDarkly / remote feature flag key for Agentic CLI notification settings UI.
+ */
+export const AGENTIC_CLI_NOTIFICATIONS_FLAG_KEY =
+  'agentic_cli_notifications_enabled' as const;
+
 const isAgenticCliNotificationsEnabledInTest =
   process.env.IS_TEST === 'true' || process.env.METAMASK_ENVIRONMENT === 'e2e';
 
@@ -18,10 +24,9 @@ export const selectAgenticCliNotificationsEnabled = createSelector(
       return false;
     }
 
-    const remoteValue = remoteFeatureFlags?.agenticCliNotificationsEnabled;
+    const remoteValue =
+      remoteFeatureFlags?.[AGENTIC_CLI_NOTIFICATIONS_FLAG_KEY];
 
-    // Build flag gates compilation; all environments (dev, exp/UAT, prod) default ON
-    // when LaunchDarkly is missing. Honor explicit remote false to disable.
-    return remoteValue !== false;
+    return Boolean(remoteValue);
   },
 );

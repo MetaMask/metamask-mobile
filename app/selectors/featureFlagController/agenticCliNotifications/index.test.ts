@@ -1,4 +1,7 @@
-import { selectAgenticCliNotificationsEnabled } from '.';
+import {
+  AGENTIC_CLI_NOTIFICATIONS_FLAG_KEY,
+  selectAgenticCliNotificationsEnabled,
+} from '.';
 
 describe('selectAgenticCliNotificationsEnabled', () => {
   const originalBuildFlag = process.env.MM_AGENTIC_CLI_NOTIFICATIONS_UI_ENABLED;
@@ -11,9 +14,15 @@ describe('selectAgenticCliNotificationsEnabled', () => {
     process.env.MM_AGENTIC_CLI_NOTIFICATIONS_UI_ENABLED = originalBuildFlag;
   });
 
+  it('uses the snake_case LaunchDarkly key', () => {
+    expect(AGENTIC_CLI_NOTIFICATIONS_FLAG_KEY).toBe(
+      'agentic_cli_notifications_enabled',
+    );
+  });
+
   it('returns true when build and remote flags are enabled', () => {
     const result = selectAgenticCliNotificationsEnabled.resultFunc({
-      agenticCliNotificationsEnabled: true,
+      [AGENTIC_CLI_NOTIFICATIONS_FLAG_KEY]: true,
     });
 
     expect(result).toBe(true);
@@ -21,7 +30,7 @@ describe('selectAgenticCliNotificationsEnabled', () => {
 
   it('returns false when remote flag is disabled', () => {
     const result = selectAgenticCliNotificationsEnabled.resultFunc({
-      agenticCliNotificationsEnabled: false,
+      [AGENTIC_CLI_NOTIFICATIONS_FLAG_KEY]: false,
     });
 
     expect(result).toBe(false);
@@ -31,23 +40,15 @@ describe('selectAgenticCliNotificationsEnabled', () => {
     process.env.MM_AGENTIC_CLI_NOTIFICATIONS_UI_ENABLED = 'false';
 
     const result = selectAgenticCliNotificationsEnabled.resultFunc({
-      agenticCliNotificationsEnabled: true,
+      [AGENTIC_CLI_NOTIFICATIONS_FLAG_KEY]: true,
     });
 
     expect(result).toBe(false);
   });
 
-  it('returns true when remote flag is absent and build flag is enabled', () => {
+  it('returns false when remote flag is absent and build flag is enabled', () => {
     const result = selectAgenticCliNotificationsEnabled.resultFunc({});
 
-    expect(result).toBe(true);
-  });
-
-  it('returns true when remote flag is undefined and build flag is enabled', () => {
-    const result = selectAgenticCliNotificationsEnabled.resultFunc({
-      agenticCliNotificationsEnabled: undefined,
-    });
-
-    expect(result).toBe(true);
+    expect(result).toBe(false);
   });
 });

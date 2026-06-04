@@ -141,7 +141,7 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
 
   it('renders agentic CLI section when agentic CLI notifications flag is enabled', async () => {
     const { getByText, findByText } = renderSettings({
-      agenticCliNotificationsEnabled: true,
+      agentic_cli_notifications_enabled: true,
     });
 
     expect(await findByText(SECTION_TITLES.walletActivity)).toBeOnTheScreen();
@@ -152,7 +152,7 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
 
   it('hides agentic CLI section when agentic CLI notifications flag is disabled', async () => {
     const { queryByText, findByText } = renderSettings({
-      agenticCliNotificationsEnabled: false,
+      agentic_cli_notifications_enabled: false,
     });
 
     expect(await findByText(SECTION_TITLES.walletActivity)).toBeOnTheScreen();
