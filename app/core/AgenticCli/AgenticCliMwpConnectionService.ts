@@ -222,6 +222,7 @@ export async function handleAgenticCliConnectDeeplink(
   } finally {
     if (connInfo) {
       hideAgenticCliConnectionLoading(connInfo);
+      hideAgenticCliOtpCode(connInfo);
     }
   }
 }

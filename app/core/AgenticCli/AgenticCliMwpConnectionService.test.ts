@@ -15,6 +15,10 @@ import {
   hideAgenticCliConnectionLoading,
   showAgenticCliConnectionLoading,
 } from './agenticCliLoading';
+import {
+  hideAgenticCliOtpCode,
+  showAgenticCliOtpCode,
+} from './agenticCliOtpUi';
 import Engine from '../Engine';
 
 jest.mock('../SDKConnectV2/adapters/host-application-adapter');
@@ -23,6 +27,10 @@ jest.mock('../SDKConnectV2/services/connection');
 jest.mock('./agenticCliLoading', () => ({
   showAgenticCliConnectionLoading: jest.fn(),
   hideAgenticCliConnectionLoading: jest.fn(),
+}));
+jest.mock('./agenticCliOtpUi', () => ({
+  showAgenticCliOtpCode: jest.fn(),
+  hideAgenticCliOtpCode: jest.fn(),
 }));
 jest.mock('./AgenticCliQrLoginService', () => ({
   waitForKeyringUnlock: jest.fn().mockResolvedValue(undefined),
@@ -206,6 +214,79 @@ describe('AgenticCliMwpConnectionService', () => {
         id: mockConnectionInfo.id,
       }),
     );
+  });
+
+  it('hides the OTP sheet when connect fails after display_otp', async () => {
+    const clientHandlers: Record<string, (...args: unknown[]) => void> = {};
+    const on = jest.fn(
+      (event: string, handler: (...args: unknown[]) => void) => {
+        clientHandlers[event] = handler;
+      },
+    );
+    mockConnection.client = {
+      ...mockConnection.client,
+      on,
+      sendResponse: jest.fn().mockResolvedValue(undefined),
+    } as unknown as Connection['client'];
+    mockConnection.connect.mockImplementation(async () => {
+      clientHandlers.display_otp?.('4892AKJ7', Date.now() + 60_000);
+      throw new Error('MWP connect failed');
+    });
+
+    await handleAgenticCliConnectDeeplink(agenticCliDeeplink, {
+      relayURL: RELAY_URL,
+      keymanager: mockKeyManager,
+      hostapp: mockHostApp,
+      hasConnection: () => false,
+      cleanupConnection: jest.fn().mockResolvedValue(undefined),
+    });
+
+    expect(showAgenticCliOtpCode).toHaveBeenCalledWith(
+      mockConnectionInfo,
+      '4892AKJ7',
+      expect.any(Number),
+    );
+    expect(hideAgenticCliOtpCode).toHaveBeenCalledWith(
+      expect.objectContaining({ id: mockConnectionInfo.id }),
+    );
+    expect(hideAgenticCliConnectionLoading).toHaveBeenCalledWith(
+      expect.objectContaining({ id: mockConnectionInfo.id }),
+    );
+    expect(mockHostApp.showConnectionError).toHaveBeenCalled();
+  });
+
+  it('hides the OTP sheet when QR login fails after display_otp', async () => {
+    const clientHandlers: Record<string, (...args: unknown[]) => void> = {};
+    const on = jest.fn(
+      (event: string, handler: (...args: unknown[]) => void) => {
+        clientHandlers[event] = handler;
+      },
+    );
+    mockConnection.client = {
+      ...mockConnection.client,
+      on,
+      sendResponse: jest.fn().mockResolvedValue(undefined),
+    } as unknown as Connection['client'];
+    mockConnection.connect.mockImplementation(async () => {
+      clientHandlers.display_otp?.('4892AKJ7', Date.now() + 60_000);
+    });
+    mockHandleAgenticCliQrLogin.mockRejectedValueOnce(
+      new Error('QR login failed'),
+    );
+
+    await handleAgenticCliConnectDeeplink(agenticCliDeeplink, {
+      relayURL: RELAY_URL,
+      keymanager: mockKeyManager,
+      hostapp: mockHostApp,
+      hasConnection: () => false,
+      cleanupConnection: jest.fn().mockResolvedValue(undefined),
+    });
+
+    expect(showAgenticCliOtpCode).toHaveBeenCalled();
+    expect(hideAgenticCliOtpCode).toHaveBeenCalledWith(
+      expect.objectContaining({ id: mockConnectionInfo.id }),
+    );
+    expect(mockHostApp.showConnectionError).toHaveBeenCalled();
   });
 
   it('hides the loading toast after a successful agentic QR handshake', async () => {
