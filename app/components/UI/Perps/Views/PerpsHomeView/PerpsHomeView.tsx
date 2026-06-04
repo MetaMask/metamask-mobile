@@ -82,6 +82,7 @@ import PerpsNavigationCard, {
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
 import PerpsProducts from '../../components/PerpsProducts';
+import PerpsTopMoversSection from '../../components/PerpsTopMoversSection';
 
 interface PerpsHomeViewProps {
   hideHeader?: boolean;
@@ -582,12 +583,31 @@ const PerpsHomeView = ({
           </View>
         </PerpsHomeSection>
 
+        {/* What's Happening Section */}
+        {isWhatsHappeningEnabled && (
+          <View style={styles.whatsHappeningSection}>
+            <WhatsHappeningSection source={WhatsHappeningSource.Perps} />
+          </View>
+        )}
+
         {/* Watchlist Section */}
         <PerpsWatchlistMarkets
           markets={watchlistMarkets}
           isLoading={isLoading.markets}
           positions={positions}
           orders={orders}
+          source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+          transactionActiveAbTests={transactionActiveAbTests}
+        />
+
+        {/* Products Section - Category pills grid */}
+        <PerpsProducts
+          marketCounts={categoryMarketCounts}
+          testID="perps-products"
+        />
+
+        {/* Top Movers Section */}
+        <PerpsTopMoversSection
           source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
           transactionActiveAbTests={transactionActiveAbTests}
         />
@@ -616,13 +636,6 @@ const PerpsHomeView = ({
           transactionActiveAbTests={transactionActiveAbTests}
         />
 
-        {/* What's Happening Section */}
-        {isWhatsHappeningEnabled && (
-          <View style={styles.whatsHappeningSection}>
-            <WhatsHappeningSection source={WhatsHappeningSource.Perps} />
-          </View>
-        )}
-
         {/* Stocks Markets List */}
         <View onLayout={handleSectionLayout('explore_stocks')}>
           <PerpsMarketTypeSection
@@ -644,12 +657,6 @@ const PerpsHomeView = ({
           isLoading={isLoading.markets}
           source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
           transactionActiveAbTests={transactionActiveAbTests}
-        />
-
-        {/* Products Section - Category pills grid */}
-        <PerpsProducts
-          marketCounts={categoryMarketCounts}
-          testID="perps-products"
         />
 
         {/* Recent Activity List */}
