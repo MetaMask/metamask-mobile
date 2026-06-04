@@ -23,7 +23,12 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
 });
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => key,
+  strings: jest.fn((key: string, vars?: Record<string, string | number>) => {
+    if (key === 'predict.position_info' && vars) {
+      return `${vars.initialValue} on ${vars.outcome} to win ${vars.shares}`;
+    }
+    return key;
+  }),
 }));
 
 jest.mock('../RewardsErrorBanner', () => {
@@ -46,18 +51,14 @@ jest.mock('../RewardsInfoBanner', () => {
   };
 });
 
-jest.mock('../../utils/formatUtils', () => ({
-  formatPercentChange: (value: number) =>
-    `${value >= 0 ? '+' : ''}${(value * 100).toFixed(2)}%`,
-  formatUsd: (value: number) => `$${value.toFixed(2)}`,
-}));
-
 const TEST_IDS = PREDICT_THE_PITCH_PORTFOLIO_TEST_IDS;
 
 const positions: PredictThePitchPositionsDto = {
   computedAt: '2025-01-01T00:00:00.000Z',
   positions: [
     {
+      outcomeAssetId: 'token-1',
+      outcomeAsset: 'Yes',
       conditionId: 'condition-1',
       conditionName: 'Match winner',
       conditionSlug: 'match-winner',
@@ -67,8 +68,16 @@ const positions: PredictThePitchPositionsDto = {
       capitalDeployed: 12,
       pnl: 3,
       roi: 0.25,
+      status: 'open',
+      fillShares: 10,
+      fillSharesBought: 10,
+      fillSharesSold: 0,
+      fillPrice: 0.5,
+      fillDate: '2025-01-01T00:00:00.000Z',
     },
     {
+      outcomeAssetId: 'token-2',
+      outcomeAsset: 'No',
       conditionId: 'condition-2',
       conditionName: 'Total goals',
       conditionSlug: 'total-goals',
@@ -78,6 +87,12 @@ const positions: PredictThePitchPositionsDto = {
       capitalDeployed: 20,
       pnl: -2,
       roi: -0.1,
+      status: 'open',
+      fillShares: 8,
+      fillSharesBought: 8,
+      fillSharesSold: 0,
+      fillPrice: 0.4,
+      fillDate: '2025-01-02T00:00:00.000Z',
     },
   ],
 };
@@ -95,9 +110,9 @@ describe('PredictThePitchPortfolio', () => {
 
     expect(getByTestId(TEST_IDS.CONTAINER)).toBeDefined();
     expect(getByText('Match winner')).toBeDefined();
-    expect(getByText('event-a')).toBeDefined();
-    expect(getByText('$12.00')).toBeDefined();
-    expect(getByText('+25.00%')).toBeDefined();
+    expect(getByText('$12 on Yes to win $10')).toBeDefined();
+    expect(getByText('$15')).toBeDefined();
+    expect(getByText('25%')).toBeDefined();
   });
 
   it('limits rows when maxEntries is provided', () => {

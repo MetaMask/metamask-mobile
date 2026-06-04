@@ -6063,6 +6063,8 @@ const mockPredictPosition: PredictThePitchLeaderboardPositionDto = {
 const mockPredictPositions: PredictThePitchPositionsDto = {
   positions: [
     {
+      outcomeAssetId: 'token-1',
+      outcomeAsset: 'Yes',
       conditionId: '0xcondition',
       conditionName: 'Brazil vs Argentina',
       conditionSlug: 'brazil-vs-argentina',
@@ -6072,6 +6074,12 @@ const mockPredictPositions: PredictThePitchPositionsDto = {
       capitalDeployed: 200,
       pnl: 50,
       roi: 0.25,
+      status: 'open',
+      fillShares: 100,
+      fillSharesBought: 100,
+      fillSharesSold: 0,
+      fillPrice: 2,
+      fillDate: '2026-06-30T12:00:00.000Z',
     },
   ],
   computedAt: '2026-06-30T12:00:00.000Z',
