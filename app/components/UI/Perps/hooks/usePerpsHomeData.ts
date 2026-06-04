@@ -8,6 +8,7 @@ import {
 import { usePerpsMarkets } from './usePerpsMarkets';
 import {
   MARKET_SORTING_CONFIG,
+  MARKET_CATEGORIES,
   MarketCategory,
   sortMarkets,
   type Position,
@@ -15,6 +16,7 @@ import {
   type PerpsMarketData,
   type OrderFill,
   type SortField,
+  type MarketTypeFilter,
 } from '@metamask/perps-controller';
 import { isEquityAsset } from '../utils/marketHours';
 import type { PerpsTransaction } from '../types/transactionHistory';
@@ -46,6 +48,11 @@ interface UsePerpsHomeDataReturn {
   forexMarkets: PerpsMarketData[]; // Forex markets
   recentActivity: PerpsTransaction[];
   sortBy: SortField;
+  /**
+   * Per-category market counts for the Products section.
+   * Keys are MARKET_CATEGORIES values; crypto counts non-HIP3 markets.
+   */
+  categoryMarketCounts: Partial<Record<MarketTypeFilter, number>>;
   isLoading: {
     positions: boolean;
     orders: boolean;
@@ -357,6 +364,42 @@ export const usePerpsHomeData = ({
     );
   }, [searchQuery, forexMarkets, filteredData.markets]);
 
+  // Per-category market counts for the Products pills section.
+  // "crypto" counts non-HIP3 markets; other categories match on marketType.
+  const categoryMarketCounts = useMemo(() => {
+    const counts: Partial<Record<MarketTypeFilter, number>> = {};
+    for (const cat of MARKET_CATEGORIES) {
+      if (cat === 'crypto') {
+        counts.crypto = allMarkets.filter((m) => !m.isHip3).length;
+      } else if (cat === 'stocks') {
+        counts.stocks = allMarkets.filter(
+          (m) => m.marketType === MarketCategory.Stock,
+        ).length;
+      } else if (cat === 'commodities') {
+        counts.commodities = allMarkets.filter(
+          (m) => m.marketType === MarketCategory.Commodity,
+        ).length;
+      } else if (cat === 'forex') {
+        counts.forex = allMarkets.filter(
+          (m) => m.marketType === MarketCategory.Forex,
+        ).length;
+      } else if (cat === 'pre-ipo') {
+        counts['pre-ipo'] = allMarkets.filter(
+          (m) => m.marketType === MarketCategory.PreIpo,
+        ).length;
+      } else if (cat === 'indices') {
+        counts.indices = allMarkets.filter(
+          (m) => m.marketType === MarketCategory.Index,
+        ).length;
+      } else if (cat === 'etfs') {
+        counts.etfs = allMarkets.filter(
+          (m) => m.marketType === MarketCategory.Etf,
+        ).length;
+      }
+    }
+    return counts;
+  }, [allMarkets]);
+
   return {
     positions: limitedPositions,
     orders: limitedOrders,
@@ -368,6 +411,7 @@ export const usePerpsHomeData = ({
     forexMarkets: searchedForexMarkets,
     recentActivity: limitedActivity,
     sortBy,
+    categoryMarketCounts,
     // Hooks handle reconnection internally: clearCache() sends null →
     // callback sets isInitialLoading=true. No need to override with
     // isConnecting, which would defeat disk-cache instant display on

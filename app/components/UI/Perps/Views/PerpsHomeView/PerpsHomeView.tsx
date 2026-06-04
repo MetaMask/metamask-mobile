@@ -81,6 +81,7 @@ import PerpsNavigationCard, {
 } from '../../components/PerpsNavigationCard/PerpsNavigationCard';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
+import PerpsProducts from '../../components/PerpsProducts';
 
 interface PerpsHomeViewProps {
   hideHeader?: boolean;
@@ -214,6 +215,7 @@ const PerpsHomeView = ({
     forexMarkets,
     recentActivity,
     sortBy,
+    categoryMarketCounts,
     isLoading,
   } = usePerpsHomeData({});
 
@@ -642,6 +644,13 @@ const PerpsHomeView = ({
           isLoading={isLoading.markets}
           source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
           transactionActiveAbTests={transactionActiveAbTests}
+        />
+
+        {/* Products Section - Category pills grid */}
+        <PerpsProducts
+          marketCounts={categoryMarketCounts}
+          source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+          testID="perps-products"
         />
 
         {/* Recent Activity List */}
