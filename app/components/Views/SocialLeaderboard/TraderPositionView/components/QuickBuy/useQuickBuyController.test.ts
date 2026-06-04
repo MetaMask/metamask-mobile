@@ -37,6 +37,14 @@ import { TextColor } from '@metamask/design-system-react-native';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import { ChainId } from '@metamask/bridge-controller';
 import Logger from '../../../../../../util/Logger';
+import { trackQuickBuyTrade } from './quickBuyTradeTracker';
+import { buildQuickBuyToastOptions } from './quickBuyToastOptions';
+import { resolveQuickBuyTerminalToast } from './resolveQuickBuyTerminalToast';
+import {
+  playImpact,
+  playErrorNotification,
+  ImpactMoment,
+} from '../../../../../../util/haptics';
 
 jest.mock('../../../../../../util/Logger', () => ({
   __esModule: true,
@@ -201,6 +209,45 @@ jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
+const mockShowToast = jest.fn();
+jest.mock('../../../../../../component-library/components/Toast', () => {
+  const actualReact = jest.requireActual('react');
+  return {
+    __esModule: true,
+    ToastContext: actualReact.createContext({
+      // Defer to mockShowToast lazily: this object is built at mock-factory
+      // eval time, before the `mockShowToast` const is initialised.
+      toastRef: {
+        current: {
+          showToast: (...args: unknown[]) => mockShowToast(...args),
+        },
+      },
+    }),
+    ToastVariants: { Plain: 'Plain', Icon: 'Icon' },
+  };
+});
+
+jest.mock('./quickBuyTradeTracker', () => ({
+  trackQuickBuyTrade: jest.fn(),
+  getTrackedQuickBuyTrade: jest.fn(),
+  getTrackedQuickBuyTradeIds: jest.fn(() => []),
+  untrackQuickBuyTrade: jest.fn(),
+}));
+
+jest.mock('./quickBuyToastOptions', () => ({
+  buildQuickBuyToastOptions: jest.fn((kind: string) => ({ kind })),
+}));
+
+jest.mock('./resolveQuickBuyTerminalToast', () => ({
+  resolveQuickBuyTerminalToast: jest.fn(),
+}));
+
+jest.mock('../../../../../../util/haptics', () => ({
+  playImpact: jest.fn(),
+  playErrorNotification: jest.fn(),
+  ImpactMoment: { PrimaryCTA: 'primaryCta' },
+}));
+
 const mockTrack = jest.fn();
 jest.mock('../../../analytics', () => {
   const actual = jest.requireActual('../../../analytics');
@@ -348,6 +395,9 @@ const setupDefaultMocks = () => {
   (
     Engine.context.BridgeStatusController.submitTx as jest.Mock
   ).mockResolvedValue(undefined);
+  (buildQuickBuyToastOptions as jest.Mock).mockImplementation(
+    (kind: string) => ({ kind }),
+  );
 };
 
 describe('useQuickBuyController', () => {
@@ -1842,6 +1892,160 @@ describe('useQuickBuyController', () => {
         expect(mockTrackTradeSubmitted).toHaveBeenCalledWith(
           expect.objectContaining({ trader_address: '0xTRADER' }),
         );
+      });
+    });
+
+    describe('stay-on-screen swap toasts', () => {
+      const mockUsableQuote = () => {
+        (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+          activeQuote: createActiveQuote(),
+          destTokenAmount: '1',
+          isQuoteLoading: false,
+          isNoQuotesAvailable: false,
+          quoteFetchError: null,
+          isActiveQuoteForCurrentTokenPair: true,
+          isQuoteRequestStale: false,
+          sortedQuotes: [],
+          quoteCount: 0,
+          quotesLastFetchedAt: null,
+          refreshCount: 0,
+          quoteRefreshRateMs: 30000,
+          maxRefreshCount: 5,
+          refetchQuotes: jest.fn(),
+        });
+      };
+
+      it('closes the sheet immediately on confirm', async () => {
+        mockUsableQuote();
+        (
+          Engine.context.BridgeStatusController.submitTx as jest.Mock
+        ).mockResolvedValue({ id: 'tx-1', hash: '0xabc' });
+        const onClose = jest.fn();
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), onClose),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(onClose).toHaveBeenCalledTimes(1);
+      });
+
+      it('shows the pending toast immediately on close, before submit resolves', async () => {
+        mockUsableQuote();
+        let resolveSubmit: (value: unknown) => void = () => undefined;
+        (
+          Engine.context.BridgeStatusController.submitTx as jest.Mock
+        ).mockReturnValue(
+          new Promise((resolve) => {
+            resolveSubmit = resolve;
+          }),
+        );
+        const onClose = jest.fn();
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), onClose),
+        );
+
+        let confirmPromise: Promise<void> | undefined;
+        act(() => {
+          confirmPromise = result.current.handleConfirm();
+        });
+
+        expect(onClose).toHaveBeenCalledTimes(1);
+        expect(buildQuickBuyToastOptions).toHaveBeenCalledWith('pending', {
+          trade: expect.objectContaining({
+            tokenSymbol: 'TEST',
+            tradeMode: 'buy',
+          }),
+          theme: expect.any(Object),
+        });
+        expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+        expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+
+        await act(async () => {
+          resolveSubmit({ id: 'tx-1', hash: '0xabc' });
+          await confirmPromise;
+        });
+      });
+
+      it('tracks the trade and shows a pending toast on successful submit', async () => {
+        mockUsableQuote();
+        (
+          Engine.context.BridgeStatusController.submitTx as jest.Mock
+        ).mockResolvedValue({ id: 'tx-1', hash: '0xabc' });
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(trackQuickBuyTrade).toHaveBeenCalledWith(
+          'tx-1',
+          expect.objectContaining({ tokenSymbol: 'TEST', tradeMode: 'buy' }),
+        );
+        expect(buildQuickBuyToastOptions).toHaveBeenCalledWith('pending', {
+          trade: expect.objectContaining({
+            tokenSymbol: 'TEST',
+            tradeMode: 'buy',
+          }),
+          theme: expect.any(Object),
+        });
+        expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+      });
+
+      it('reconciles against the current bridge status right after tracking', async () => {
+        mockUsableQuote();
+        (
+          Engine.context.BridgeStatusController.submitTx as jest.Mock
+        ).mockResolvedValue({ id: 'tx-1', hash: '0xabc' });
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), jest.fn()),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(resolveQuickBuyTerminalToast).toHaveBeenCalledWith(
+          'tx-1',
+          expect.any(Function),
+          expect.any(Object),
+        );
+      });
+
+      it('shows a failed toast and does not track the trade when submit throws', async () => {
+        mockUsableQuote();
+        (
+          Engine.context.BridgeStatusController.submitTx as jest.Mock
+        ).mockRejectedValue(new Error('user rejected'));
+        const onClose = jest.fn();
+
+        const { result } = renderHook(() =>
+          useQuickBuyController(createTarget(), onClose),
+        );
+
+        await act(async () => {
+          await result.current.handleConfirm();
+        });
+
+        expect(onClose).toHaveBeenCalledTimes(1);
+        expect(buildQuickBuyToastOptions).toHaveBeenCalledWith('failed', {
+          trade: expect.objectContaining({
+            tokenSymbol: 'TEST',
+            tradeMode: 'buy',
+          }),
+          theme: expect.any(Object),
+        });
+        expect(mockShowToast).toHaveBeenCalledWith({ kind: 'failed' });
+        expect(playErrorNotification).toHaveBeenCalledTimes(1);
+        expect(trackQuickBuyTrade).not.toHaveBeenCalled();
       });
     });
   });
