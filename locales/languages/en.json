@@ -2033,6 +2033,9 @@
       "tabs": {
         "crypto": "Crypto",
         "stocks": "Stocks",
+        "pre_ipo": "Pre-IPO",
+        "indices": "Indices",
+        "etfs": "ETFs",
         "commodities": "Commodities",
         "forex": "Forex",
         "new": "New",

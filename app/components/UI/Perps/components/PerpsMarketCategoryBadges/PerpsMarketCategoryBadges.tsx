@@ -20,6 +20,9 @@ const ANIMATION_DURATION = 250;
 const DEFAULT_CATEGORIES: CategoryBadgeConfig[] = [
   { category: 'crypto', labelKey: 'perps.home.tabs.crypto' },
   { category: 'stocks', labelKey: 'perps.home.tabs.stocks' },
+  { category: 'pre-ipo', labelKey: 'perps.home.tabs.pre_ipo' },
+  { category: 'indices', labelKey: 'perps.home.tabs.indices' },
+  { category: 'etfs', labelKey: 'perps.home.tabs.etfs' },
   { category: 'commodities', labelKey: 'perps.home.tabs.commodities' },
   { category: 'forex', labelKey: 'perps.home.tabs.forex' },
   { category: 'new', labelKey: 'perps.home.tabs.new' },

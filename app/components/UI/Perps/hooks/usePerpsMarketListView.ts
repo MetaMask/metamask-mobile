@@ -18,7 +18,6 @@ import {
   selectPerpsMarketFilterPreferences,
 } from '../selectors/perpsController';
 import Engine from '../../../../core/Engine';
-import { isEquityAsset } from '../utils/marketHours';
 
 interface UsePerpsMarketListViewParams {
   /**
@@ -94,11 +93,14 @@ interface UsePerpsMarketListViewReturn {
     setMarketTypeFilter: (filter: MarketTypeFilter) => void;
   };
   /**
-   * Market counts by type (for hiding empty tabs)
+   * Market counts by type (for hiding empty tabs/pills)
    */
   marketCounts: {
     crypto: number;
     stocks: number;
+    'pre-ipo': number;
+    indices: number;
+    etfs: number;
     commodity: number;
     forex: number;
     new: number;
@@ -194,21 +196,19 @@ export const usePerpsMarketListView = ({
       return searchedMarkets.filter((m) => m.isNewMarket);
     }
 
-    // HIP-3 categories - only show explicitly mapped markets
-    if (marketTypeFilter === 'stocks') {
-      return searchedMarkets.filter((m) => isEquityAsset(m.marketType));
-    }
+    // Per-category filters — each category matches its own MarketCategory value
+    const categoryMap: Partial<Record<MarketTypeFilter, string>> = {
+      stocks: MarketCategory.Stock,
+      'pre-ipo': MarketCategory.PreIpo,
+      indices: MarketCategory.Index,
+      etfs: MarketCategory.Etf,
+      commodities: MarketCategory.Commodity,
+      forex: MarketCategory.Forex,
+    };
 
-    if (marketTypeFilter === 'commodities') {
-      return searchedMarkets.filter(
-        (m) => m.marketType === MarketCategory.Commodity,
-      );
-    }
-
-    if (marketTypeFilter === 'forex') {
-      return searchedMarkets.filter(
-        (m) => m.marketType === MarketCategory.Forex,
-      );
+    const targetType = categoryMap[marketTypeFilter];
+    if (targetType) {
+      return searchedMarkets.filter((m) => m.marketType === targetType);
     }
 
     // Fallback: return all markets for unknown filter values
@@ -270,11 +270,14 @@ export const usePerpsMarketListView = ({
     [favoritesFilteredMarkets, sortingHook.sortBy, sortingHook.direction],
   );
 
-  // Calculate market counts by type (for hiding empty tabs)
+  // Calculate market counts per category (for hiding empty pills/tabs)
   const marketCounts = useMemo(() => {
     const counts = {
       crypto: 0,
       stocks: 0,
+      'pre-ipo': 0,
+      indices: 0,
+      etfs: 0,
       commodity: 0,
       forex: 0,
       new: 0,
@@ -285,12 +288,29 @@ export const usePerpsMarketListView = ({
       }
       if (!market.isHip3) {
         counts.crypto++;
-      } else if (isEquityAsset(market.marketType)) {
-        counts.stocks++;
-      } else if (market.marketType === MarketCategory.Commodity) {
-        counts.commodity++;
-      } else if (market.marketType === MarketCategory.Forex) {
-        counts.forex++;
+      } else {
+        switch (market.marketType) {
+          case MarketCategory.Stock:
+            counts.stocks++;
+            break;
+          case MarketCategory.PreIpo:
+            counts['pre-ipo']++;
+            break;
+          case MarketCategory.Index:
+            counts.indices++;
+            break;
+          case MarketCategory.Etf:
+            counts.etfs++;
+            break;
+          case MarketCategory.Commodity:
+            counts.commodity++;
+            break;
+          case MarketCategory.Forex:
+            counts.forex++;
+            break;
+          default:
+            break;
+        }
       }
     });
     return counts;

@@ -121,13 +121,22 @@ const PerpsMarketListView = ({
 
   // Compute available categories based on market counts (hide empty categories).
   const availableCategories = useMemo(() => {
-    const categories: Exclude<MarketTypeFilter, 'all'>[] = [];
-    if (marketCounts.crypto > 0) categories.push('crypto');
-    if (marketCounts.stocks > 0) categories.push('stocks');
-    if (marketCounts.commodity > 0) categories.push('commodities');
-    if (marketCounts.forex > 0) categories.push('forex');
-    if (marketCounts.new > 0) categories.push('new');
-    return categories;
+    const mapping: {
+      key: keyof typeof marketCounts;
+      category: Exclude<MarketTypeFilter, 'all'>;
+    }[] = [
+      { key: 'crypto', category: 'crypto' },
+      { key: 'stocks', category: 'stocks' },
+      { key: 'pre-ipo', category: 'pre-ipo' },
+      { key: 'indices', category: 'indices' },
+      { key: 'etfs', category: 'etfs' },
+      { key: 'commodity', category: 'commodities' },
+      { key: 'forex', category: 'forex' },
+      { key: 'new', category: 'new' },
+    ];
+    return mapping
+      .filter(({ key }) => marketCounts[key] > 0)
+      .map(({ category }) => category);
   }, [marketCounts]);
 
   const { track } = usePerpsEventTracking();
@@ -139,6 +148,9 @@ const PerpsMarketListView = ({
       const categoryMap: Record<string, string | null> = {
         crypto: PERPS_EVENT_VALUE.BUTTON_CLICKED.CRYPTO,
         stocks: PERPS_EVENT_VALUE.BUTTON_CLICKED.STOCKS,
+        'pre-ipo': 'pre-ipo',
+        indices: 'indices',
+        etfs: 'etfs',
         commodities: PERPS_EVENT_VALUE.BUTTON_CLICKED.COMMODITIES,
         forex: PERPS_EVENT_VALUE.BUTTON_CLICKED.FOREX,
         new: PERPS_EVENT_VALUE.BUTTON_CLICKED.NEW,
