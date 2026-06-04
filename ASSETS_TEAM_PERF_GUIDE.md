@@ -53,8 +53,6 @@ This function internally creates `new Intl.NumberFormat(...)` on every call (tha
 - `PriceAdvanced` re-renders 28 times over 115s (driven by WebSocket bar updates, crosshair, state changes)
 - On Home: 5 `TokenListItem` rows × frequent market-data dispatches
 
-### Complexity: Trivial
-
 ---
 
 ## Issue 2: `createStyles(colors)` recreated every render in TokenListItem
@@ -75,8 +73,6 @@ This creates a **new `StyleSheet` object on every render**. `TokenListItem` is a
 
 - `[GC Young Gen]` = **784 samples, ~8,256ms, 9.8% of total CPU** — continuous object allocation is a contributor
 - `TokenListItem` renders frequently due to market-data selector subscriptions (see Issue 4)
-
-### Complexity: Trivial
 
 ---
 
@@ -100,8 +96,6 @@ This creates a **new `StyleSheet` object on every render**. `TokenListItem` is a
 - `TokenDetails` = **29 render samples, ~305ms over 104s**
 - `AssetOverviewContent` = **16 samples, ~168ms**
 - Every re-render of `TokenDetails` forces a full `AssetOverviewContent` + `ActivityHeader` reconciliation
-
-### Complexity: Medium
 
 ---
 
@@ -132,8 +126,6 @@ This is a classic N×M selector problem: N rows subscribing to a single global m
 - `dispatch` = **901 samples, ~9,488ms, 11.2% of CPU**
 - `checkForUpdates` = **639 samples, ~6,729ms** — Redux checking every subscriber
 - `useSelector` = **159 samples, ~1,674ms**
-
-### Complexity: Medium-Hard
 
 ---
 
@@ -169,8 +161,6 @@ Also: `assetToToken` calls `formatWithThreshold` (lines 603–612, 614–622) wh
 - Part of the `checkForUpdates` / `useSelector` overhead (~8% CPU)
 - `selectAsset` is called per row × every Redux dispatch that touches asset state
 
-### Complexity: Hard
-
 ---
 
 ## Issue 6: `toFormattedAddress` called without memoization in useTokenBalance
@@ -195,8 +185,6 @@ const processedAsset = useSelector((state: RootState) =>
 
 Additionally, the inline selector function `(state) => selectAsset(state, { ... })` creates a **new function reference on every render**, which means React-Redux can't skip the selector call even when nothing changed.
 
-### Complexity: Trivial
-
 ---
 
 ## Cross-Team Dependencies
@@ -214,13 +202,13 @@ These issues affect Assets-owned screens but the root fix lives in another team'
 
 ## Priority Summary
 
-| Priority | Issue                                                                   | Complexity         | Est. Impact                                            |
-| -------- | ----------------------------------------------------------------------- | ------------------ | ------------------------------------------------------ |
-| **P1**   | #1 — `useMemo` for formatted price in `PriceAdvanced` + `TokenListItem` | Trivial            | Medium — skips redundant formatting on unchanged price |
-| **P1**   | #2 — `useMemo` for `createStyles` in `TokenListItem`                    | Trivial            | Low — reduces GC                                       |
-| **P1**   | #6 — Memoize `toFormattedAddress` in `useTokenBalance`                  | Trivial            | Low-Medium — eliminates keccak256 per render           |
-| **P2**   | #3 — Memoize `renderHeader` in `TokenDetails`                           | Medium             | ~hundreds ms class                                     |
-| **P3**   | #4 — Narrow `TokenListItem` selectors                                   | Medium-Hard        | ~3% Redux overhead                                     |
-| **P3**   | #5 — Fix `selectAsset` / `assetToToken` new references                  | Hard               | Defeats `React.memo` on all rows                       |
-| —        | Cross-team: `Intl.NumberFormat` cache in Predict's `format.ts`          | Trivial (for them) | **~1,232ms — single biggest win**                      |
-| —        | Cross-team: `BadgeWrapper` `React.memo`                                 | Trivial (for them) | Part of ~7% home re-render fix                         |
+| Priority | Issue                                                                   | Est. Impact                                            |
+| -------- | ----------------------------------------------------------------------- | ------------------------------------------------------ |
+| **P1**   | #1 — `useMemo` for formatted price in `PriceAdvanced` + `TokenListItem` | Medium — skips redundant formatting on unchanged price |
+| **P1**   | #2 — `useMemo` for `createStyles` in `TokenListItem`                    | Low — reduces GC                                       |
+| **P1**   | #6 — Memoize `toFormattedAddress` in `useTokenBalance`                  | Low-Medium — eliminates keccak256 per render           |
+| **P2**   | #3 — Memoize `renderHeader` in `TokenDetails`                           | ~hundreds ms class                                     |
+| **P3**   | #4 — Narrow `TokenListItem` selectors                                   | ~3% Redux overhead                                     |
+| **P3**   | #5 — Fix `selectAsset` / `assetToToken` new references                  | Defeats `React.memo` on all rows                       |
+| —        | Cross-team: `Intl.NumberFormat` cache in Predict's `format.ts`          | **~1,232ms — single biggest win**                      |
+| —        | Cross-team: `BadgeWrapper` `React.memo`                                 | Part of ~7% home re-render fix                         |
