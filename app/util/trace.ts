@@ -203,6 +203,7 @@ export enum TraceName {
   // Predict Data Fetches
   PredictGetMarkets = 'Predict Get Markets',
   PredictListMarkets = 'Predict List Markets',
+  PredictListFilterOptions = 'Predict List Filter Options',
   PredictGetMarket = 'Predict Get Market',
   PredictGetPositions = 'Predict Get Positions',
   PredictGetActivity = 'Predict Get Activity',
