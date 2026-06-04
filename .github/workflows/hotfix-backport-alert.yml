@@ -2,85 +2,61 @@
 #
 # Hotfix Backport Alert
 #
-# Fires whenever any release branch is created and checks whether commits from
-# the immediately preceding release were carried forward into the new one:
+# Runs every Thursday at 09:00 UTC (weekly release deadline) and checks whether
+# commits from hotfixes on the previous release line were carried forward into
+# the current release branch:
 #
 #   release/X.Y.0        → checks hotfixes on the X.(Y-1) line
-#                          e.g. release/7.79.0 checks v7.78.1, v7.78.1-ota, v7.78.2 …
+#                          e.g. release/7.79.0 checks v7.78.1, v7.78.2 …
 #
-#   release/X.Y.Z (Z>0)  → checks the previous patch on the same X.Y line
+#   release/X.Y.Z (Z>0)  → checks the previous patches on the same X.Y line
 #   release/X.Y.Z-ota      e.g. release/7.79.2[-ota] checks v7.79.1 / v7.79.1-ota
 #
-# If potentially missing commits are found, a warning is posted to the release
-# Slack channel and @release-owner-mobile is tagged so the Release Manager can
-# decide whether those fixes need to be carried forward.
+# The latest release branch is auto-detected from the repo unless overridden via
+# workflow_dispatch. If potentially missing commits are found, a warning is posted
+# to the release Slack channel and @release-owner-mobile is tagged.
 #
 # This alert is a WARNING ONLY — the fixes may not be needed. The team is
 # pinged so they can make an informed decision.
+#
+# NOTE: Scheduled workflows always run from the default branch (main). This
+# workflow must be merged to main before the cron will fire.
 #
 ##############################################################################################
 name: Hotfix Backport Alert
 
 on:
-  create:
+  schedule:
+    - cron: '0 9 * * 4'   # Thursday 09:00 UTC (weekly release deadline)
+  workflow_dispatch:
+    inputs:
+      semver:
+        description: 'Release semver to check (e.g. 7.79.0). Empty = auto-detect latest release branch.'
+        required: false
+        type: string
+      is_ota:
+        description: 'Treat the release as an OTA hotfix (release/X.Y.Z-ota)'
+        required: false
+        type: boolean
+        default: false
+      dry_run:
+        description: 'Print the Slack payload without posting (for local/CI testing)'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 jobs:
-  # ---------------------------------------------------------------------------
-  # Step 1 — gate: accept any release/X.Y.Z[-ota] branch; extract semver
-  # ---------------------------------------------------------------------------
-  check-branch:
-    name: Check branch type
-    if: ${{ github.ref_type == 'branch' && startsWith(github.ref, 'refs/heads/release/') }}
-    runs-on: ubuntu-latest
-    outputs:
-      should_run: ${{ steps.gate.outputs.should_run }}
-      new_semver: ${{ steps.gate.outputs.new_semver }}
-      is_ota: ${{ steps.gate.outputs.is_ota }}
-    steps:
-      - name: Extract semver and branch type
-        id: gate
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          BRANCH="${GITHUB_REF#refs/heads/}"
-          TAIL="${BRANCH#release/}"
-
-          # Strip -ota suffix; remember it for branch name reconstruction later
-          IS_OTA="false"
-          if [[ "$TAIL" == *-ota ]]; then
-            IS_OTA="true"
-            TAIL="${TAIL%-ota}"
-          fi
-
-          # Validate strict SemVer X.Y.Z
-          if ! [[ "$TAIL" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
-            echo "Branch '$BRANCH' does not match release/X.Y.Z[-ota] — skipping."
-            echo "should_run=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          echo "Release branch detected: $BRANCH (semver $TAIL, ota=$IS_OTA)"
-          echo "should_run=true"  >> "$GITHUB_OUTPUT"
-          echo "new_semver=${TAIL}" >> "$GITHUB_OUTPUT"
-          echo "is_ota=${IS_OTA}"  >> "$GITHUB_OUTPUT"
-
-  # ---------------------------------------------------------------------------
-  # Step 2 — run the backport check and post the Slack alert
-  # ---------------------------------------------------------------------------
   hotfix-backport-alert:
     name: Check hotfix backports and alert
-    needs: check-branch
-    if: needs.check-branch.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -90,8 +66,9 @@ jobs:
       - name: Run hotfix backport alert
         run: node ./scripts/slack-hotfix-backport-alert.mjs
         env:
-          NEW_SEMVER: ${{ needs.check-branch.outputs.new_semver }}
-          IS_OTA: ${{ needs.check-branch.outputs.is_ota }}
+          NEW_SEMVER: ${{ inputs.semver || '' }}
+          IS_OTA: ${{ inputs.is_ota || 'false' }}
+          DRY_RUN: ${{ inputs.dry_run || 'false' }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           GITHUB_SERVER_URL: ${{ github.server_url }}

@@ -9,21 +9,22 @@
  *
  *   Minor release  (patch === 0, e.g. "7.79.0")
  *     Looks for hotfix tags/branches on the previous minor line (e.g. v7.78.1,
- *     v7.78.1-ota, v7.78.2 …) and checks whether their commits exist in the
- *     new release branch (release/7.79.0).
+ *     v7.78.2 …) and checks whether their commits exist in the new release
+ *     branch (release/7.79.0).
  *
  *   Hotfix release (patch > 0, e.g. "7.79.2" or "7.79.2-ota")
- *     Looks for the previous patch on the same minor line (e.g. v7.79.1,
- *     v7.79.1-ota) and checks whether its commits exist in the new hotfix
- *     branch (release/7.79.2 or release/7.79.2-ota).
+ *     Looks for the previous patches on the same minor line (e.g. v7.79.1)
+ *     and checks whether their commits exist in the new hotfix branch
+ *     (release/7.79.2 or release/7.79.2-ota).
  *
  * Required env:
- *   NEW_SEMVER         — bare semver of the new release, e.g. "7.79.0" or "7.79.2"
  *   GITHUB_TOKEN       — token with repo:read access
  *   SLACK_BOT_TOKEN    — Slack bot OAuth token
  *
  * Optional env:
- *   IS_OTA             — "true" if the new branch is an OTA hotfix (release/X.Y.Z-ota)
+ *   NEW_SEMVER         — bare semver of the release to check, e.g. "7.79.0"
+ *                        If empty, the latest release branch is auto-detected.
+ *   IS_OTA             — "true" if the release is an OTA hotfix (release/X.Y.Z-ota)
  *   GITHUB_REPOSITORY  — defaults to "MetaMask/metamask-mobile"
  *   SLACK_CHANNEL      — overrides the derived release channel
  *   DRY_RUN            — set to "1" or "true" to print payload without posting
@@ -94,6 +95,18 @@ function parseSemver(version) {
 }
 
 /**
+ * Compare two { major, minor, patch } objects. Returns positive if a > b.
+ * @param {{ major: number, minor: number, patch: number }} a
+ * @param {{ major: number, minor: number, patch: number }} b
+ * @returns {number}
+ */
+function compareSemver(a, b) {
+  if (a.major !== b.major) return a.major - b.major;
+  if (a.minor !== b.minor) return a.minor - b.minor;
+  return a.patch - b.patch;
+}
+
+/**
  * Given a new minor version (patch === 0), derive the previous minor.
  * e.g. 7.79.0 → { major: 7, minor: 78 }
  * @param {{ major: number, minor: number }} v
@@ -102,6 +115,44 @@ function parseSemver(version) {
 function previousMinor(v) {
   if (v.minor > 0) return { major: v.major, minor: v.minor - 1 };
   return { major: v.major - 1, minor: null };
+}
+
+// ---------------------------------------------------------------------------
+// Auto-detect latest release branch
+// ---------------------------------------------------------------------------
+
+/**
+ * Finds the latest release branch in the repo by listing all release/* refs
+ * and picking the highest semver. Strips -ota when comparing so an OTA branch
+ * doesn't count as a higher version than its native counterpart.
+ *
+ * Returns { semver, isOta } where semver is bare X.Y.Z (no -ota suffix).
+ *
+ * @param {string} token
+ * @returns {Promise<{ semver: string; isOta: boolean } | null>}
+ */
+async function findLatestReleaseBranch(token) {
+  const refs = /** @type {{ ref: string }[]} */ (
+    await ghFetchAll('/git/matching-refs/heads/release/', token)
+  );
+
+  /** @type {{ parsed: { major: number, minor: number, patch: number }, semver: string, isOta: boolean } | null} */
+  let best = null;
+
+  for (const r of refs) {
+    const name = r.ref.replace('refs/heads/', '');
+    const tail = name.replace(/^release\//, '');
+    const isOta = tail.endsWith('-ota');
+    const bare = isOta ? tail.slice(0, -4) : tail;
+    const parsed = parseSemver(bare);
+    if (!parsed) continue;
+    if (!best || compareSemver(parsed, best.parsed) > 0) {
+      best = { parsed, semver: bare, isOta };
+    }
+  }
+
+  if (!best) return null;
+  return { semver: best.semver, isOta: best.isOta };
 }
 
 // ---------------------------------------------------------------------------
@@ -124,12 +175,13 @@ async function findHotfixVersions(major, minor, token, opts = {}) {
   const versions = new Set();
 
   // From tags: v7.78.1, v7.78.1-ota
+  // NOTE: git/matching-refs returns objects with a `ref` field (not `name`).
   const tagPrefix = `v${major}.${minor}.`;
-  const tags = /** @type {{ name: string }[]} */ (
+  const tags = /** @type {{ ref: string }[]} */ (
     await ghFetchAll(`/git/matching-refs/tags/${tagPrefix}`, token)
   );
   for (const tag of tags) {
-    const name = tag.name.replace('refs/tags/', '');
+    const name = tag.ref.replace('refs/tags/', '');
     const bare = name.replace(/^v/, '').replace(/-ota$/, '');
     const parsed = parseSemver(bare);
     if (parsed && parsed.patch > 0) versions.add(bare);
@@ -173,8 +225,8 @@ function normaliseTitle(title) {
 }
 
 /**
- * Get commits that are in `head` but not in `base` using the GitHub compare API.
- * Returns up to 250 commits (GitHub limit).
+ * Get commits that are in `head` but not in `base` using the GitHub compare API,
+ * paginating to retrieve all commits beyond the default 250-commit cap.
  * @param {string} base - tag, branch, or SHA
  * @param {string} head - tag, branch, or SHA
  * @param {string} token
@@ -182,14 +234,28 @@ function normaliseTitle(title) {
  */
 async function getNewCommits(base, head, token) {
   try {
-    const data = /** @type {{ commits: { sha: string; commit: { message: string }; html_url: string }[] }} */ (
-      await ghFetch(`/compare/${encodeURIComponent(base)}...${encodeURIComponent(head)}`, token)
-    );
-    return (data.commits ?? []).map((c) => {
-      const message = c.commit.message ?? '';
-      const title = message.split('\n')[0].trim();
-      return { sha: c.sha.slice(0, 7), message, title, url: c.html_url };
-    });
+    const basehead = `${encodeURIComponent(base)}...${encodeURIComponent(head)}`;
+    const allCommits = [];
+    let page = 1;
+
+    while (true) {
+      const data = /** @type {{ total_commits: number; commits: { sha: string; commit: { message: string }; html_url: string }[] }} */ (
+        await ghFetch(`/compare/${basehead}?per_page=100&page=${page}`, token)
+      );
+
+      const commits = data.commits ?? [];
+      for (const c of commits) {
+        const message = c.commit.message ?? '';
+        const title = message.split('\n')[0].trim();
+        allCommits.push({ sha: c.sha.slice(0, 7), message, title, url: c.html_url });
+      }
+
+      // Stop when we've collected all commits or the page returned nothing new.
+      if (commits.length === 0 || allCommits.length >= (data.total_commits ?? 0)) break;
+      page++;
+    }
+
+    return allCommits;
   } catch (err) {
     console.warn(`  ⚠️  Could not compare ${base}...${head}: ${err.message}`);
     return [];
@@ -198,15 +264,54 @@ async function getNewCommits(base, head, token) {
 
 /**
  * Returns the set of normalised commit titles in the new release branch that
- * are ahead of the previous base version tag.
- * @param {string} prevBaseTag - e.g. "v7.78.0"
+ * are ahead of the previous base version ref.
+ * @param {string} baseRef - e.g. "v7.78.0" or "release/7.78.0"
  * @param {string} newBranch   - e.g. "release/7.79.0"
  * @param {string} token
  * @returns {Promise<Set<string>>}
  */
-async function getNewReleaseTitles(prevBaseTag, newBranch, token) {
-  const commits = await getNewCommits(prevBaseTag, newBranch, token);
+async function getNewReleaseTitles(baseRef, newBranch, token) {
+  const commits = await getNewCommits(baseRef, newBranch, token);
   return new Set(commits.map((c) => normaliseTitle(c.title)));
+}
+
+// ---------------------------------------------------------------------------
+// Base-ref resolution
+// ---------------------------------------------------------------------------
+
+/**
+ * Check whether a ref (tag or branch name) exists in the repo.
+ * Uses GET /commits/{ref} which resolves tags, branches, and SHAs.
+ * @param {string} ref - e.g. "v7.78.0" or "release/7.78.0"
+ * @param {string} token
+ * @returns {Promise<boolean>}
+ */
+async function refExists(ref, token) {
+  try {
+    await ghFetch(`/commits/${encodeURIComponent(ref)}`, token);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Resolve the base ref for a given major.minor.0 release, preferring the tag
+ * (vX.Y.0) and falling back to the release branch (release/X.Y.0).
+ * Returns null if neither exists.
+ * @param {number} major
+ * @param {number} minor
+ * @param {string} token
+ * @returns {Promise<string | null>}
+ */
+async function resolveBaseRef(major, minor, token) {
+  const tag = `v${major}.${minor}.0`;
+  if (await refExists(tag, token)) return tag;
+
+  const branch = `release/${major}.${minor}.0`;
+  if (await refExists(branch, token)) return branch;
+
+  return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -214,8 +319,8 @@ async function getNewReleaseTitles(prevBaseTag, newBranch, token) {
 // ---------------------------------------------------------------------------
 
 /**
- * @param {string} newSemver - e.g. "7.79.0"
- * @returns {string} e.g. "#release-mobile-7-79-0"
+ * @param {string} newSemver - e.g. "7.79.0" or "7.79.1-ota"
+ * @returns {string} e.g. "#release-mobile-7-79-0" or "#release-mobile-7-79-1-ota"
  */
 function deriveSlackChannel(newSemver) {
   return `#release-mobile-${newSemver.replace(/\./g, '-')}`;
@@ -252,7 +357,7 @@ function buildAlertPayload({ newSemver, prevSemver, hotfixVersions, missingByHot
         type: 'mrkdwn',
         text: [
           `A new release branch *<${REPO_URL}/tree/release/${newSemver}|release/${newSemver}>* was created.`,
-          `The previous minor release *v${prevSemver}* had ${hotfixVersions.length} hotfix${hotfixVersions.length !== 1 ? 'es' : ''}: ${hotfixVersions.map((v) => `\`v${v}\``).join(', ')}.`,
+          `The previous release *v${prevSemver}* had ${hotfixVersions.length} hotfix${hotfixVersions.length !== 1 ? 'es' : ''}: ${hotfixVersions.map((v) => `\`v${v}\``).join(', ')}.`,
           hasMissing
             ? `*${totalMissing} commit${totalMissing !== 1 ? 's' : ''} from those hotfixes could not be found in the new release branch.* <!subteam^release-owner-mobile>, please review and cherry-pick if needed.`
             : `All hotfix commits appear to be included in the new release. No action required.`,
@@ -368,10 +473,7 @@ async function postToSlack(token, channel, payload) {
 async function main() {
   const isDryRun =
     process.env.DRY_RUN === '1' || String(process.env.DRY_RUN).toLowerCase() === 'true';
-  const isOta =
-    process.env.IS_OTA === 'true';
 
-  const newSemver = process.env.NEW_SEMVER?.trim();
   const ghToken = process.env.GITHUB_TOKEN?.trim();
   const slackToken = process.env.SLACK_BOT_TOKEN?.trim();
   const workflowUrl =
@@ -380,9 +482,8 @@ async function main() {
       ? `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`
       : REPO_URL);
 
-  // --- Validate inputs -------------------------------------------------------
+  // --- Validate required env -----------------------------------------------
   const missingRequired = [];
-  if (!newSemver) missingRequired.push('NEW_SEMVER');
   if (!ghToken) missingRequired.push('GITHUB_TOKEN');
   if (!isDryRun && !slackToken) missingRequired.push('SLACK_BOT_TOKEN');
   if (missingRequired.length > 0) {
@@ -391,19 +492,38 @@ async function main() {
     process.exit(0);
   }
 
+  // --- Resolve semver: use override or auto-detect latest release branch ----
+  let newSemver = process.env.NEW_SEMVER?.trim() || '';
+  let isOta = process.env.IS_OTA === 'true';
+
+  if (!newSemver) {
+    console.log('ℹ️ NEW_SEMVER not set — auto-detecting latest release branch…');
+    const latest = await findLatestReleaseBranch(ghToken);
+    if (!latest) {
+      console.warn('⚠️ No release/* branches found. Nothing to check.');
+      process.exit(0);
+    }
+    newSemver = latest.semver;
+    isOta = latest.isOta;
+    console.log(`   Detected: release/${newSemver}${isOta ? '-ota' : ''}`);
+  }
+
   const newParsed = parseSemver(newSemver);
   if (!newParsed) {
-    console.error(`❌ Invalid NEW_SEMVER: "${newSemver}" — expected X.Y.Z`);
+    console.error(`❌ Invalid semver: "${newSemver}" — expected X.Y.Z`);
     process.exit(1);
   }
 
-  // The actual branch name to compare against (strips -ota in semver, but we
-  // need the real branch name for the GitHub compare API).
+  // The label used for Slack channel derivation includes the -ota suffix.
+  const newSemverLabel = isOta ? `${newSemver}-ota` : newSemver;
+  // The branch name for compare operations.
   const newBranch = isOta ? `release/${newSemver}-ota` : `release/${newSemver}`;
+
+  if (isDryRun) console.log('🧪 DRY RUN — will not post to Slack');
 
   // -------------------------------------------------------------------------
   // MODE A — new minor release (patch === 0)
-  //   Check hotfixes on the previous minor line: 7.78.1, 7.78.1-ota, 7.78.2 …
+  //   Check hotfixes on the previous minor line: 7.78.1, 7.78.2 …
   // -------------------------------------------------------------------------
   if (newParsed.patch === 0) {
     const prev = previousMinor(newParsed);
@@ -411,13 +531,21 @@ async function main() {
       console.log(`ℹ️ ${newSemver} is the first release of major ${newParsed.major}. No previous minor to check.`);
       process.exit(0);
     }
+
     const prevBaseSemver = `${prev.major}.${prev.minor}.0`;
-    const prevBaseTag = `v${prevBaseSemver}`;
 
     console.log(`\n🔍 Hotfix backport check — minor release mode`);
     console.log(`   New release : v${newSemver} (branch ${newBranch})`);
     console.log(`   Checking    : hotfixes on the v${prevBaseSemver} line`);
-    if (isDryRun) console.log('🧪 DRY RUN — will not post to Slack');
+
+    // Resolve the base ref — skip rather than fire false alarms if missing.
+    console.log(`\n🔗 Resolving base ref for v${prevBaseSemver}…`);
+    const prevBaseRef = await resolveBaseRef(prev.major, prev.minor, ghToken);
+    if (!prevBaseRef) {
+      console.warn(`⚠️ Neither tag v${prevBaseSemver} nor branch release/${prevBaseSemver} exists. Skipping to avoid false alarms.`);
+      process.exit(0);
+    }
+    console.log(`   Using base: ${prevBaseRef}`);
 
     console.log(`\n📋 Looking for hotfixes on the v${prevBaseSemver} line…`);
     const hotfixVersions = await findHotfixVersions(prev.major, prev.minor, ghToken);
@@ -428,18 +556,23 @@ async function main() {
     }
     console.log(`   Found ${hotfixVersions.length} hotfix(es): ${hotfixVersions.map((v) => `v${v}`).join(', ')}`);
 
-    console.log(`\n📦 Fetching commits in ${newBranch} ahead of ${prevBaseTag}…`);
-    const newReleaseTitles = await getNewReleaseTitles(prevBaseTag, newBranch, ghToken);
+    console.log(`\n📦 Fetching commits in ${newBranch} ahead of ${prevBaseRef}…`);
+    const newReleaseTitles = await getNewReleaseTitles(prevBaseRef, newBranch, ghToken);
     console.log(`   Found ${newReleaseTitles.size} distinct commit title(s) in the new release.`);
 
     /** @type {Map<string, { sha: string; title: string; url: string }[]>} */
     const missingByHotfix = new Map();
-    await checkHotfixCommits(hotfixVersions, prevBaseTag, newReleaseTitles, newBranch, ghToken, missingByHotfix);
+    await checkHotfixCommits(hotfixVersions, prevBaseRef, newReleaseTitles, newBranch, ghToken, missingByHotfix);
 
     await postAlert({
-      newSemver, prevSemver: prevBaseSemver, hotfixVersions, missingByHotfix,
-      workflowUrl, channel: process.env.SLACK_CHANNEL || deriveSlackChannel(newSemver),
-      slackToken, isDryRun,
+      newSemver: newSemverLabel,
+      prevSemver: prevBaseSemver,
+      hotfixVersions,
+      missingByHotfix,
+      workflowUrl,
+      channel: process.env.SLACK_CHANNEL || deriveSlackChannel(newSemverLabel),
+      slackToken,
+      isDryRun,
     });
     return;
   }
@@ -447,16 +580,23 @@ async function main() {
   // -------------------------------------------------------------------------
   // MODE B — new hotfix / OTA release (patch > 0)
   //   Check the immediately preceding patch(es) on the same minor line.
-  //   e.g. release/7.79.2 → check v7.79.1, v7.79.1-ota
+  //   e.g. release/7.79.2 → check v7.79.1
   //        release/7.79.2-ota → same
   // -------------------------------------------------------------------------
   const minorBaseSemver = `${newParsed.major}.${newParsed.minor}.0`;
-  const minorBaseTag = `v${minorBaseSemver}`;
 
   console.log(`\n🔍 Hotfix backport check — hotfix mode`);
-  console.log(`   New hotfix  : v${newSemver}${isOta ? '-ota' : ''} (branch ${newBranch})`);
+  console.log(`   New hotfix  : v${newSemverLabel} (branch ${newBranch})`);
   console.log(`   Checking    : previous patches on the v${minorBaseSemver} line`);
-  if (isDryRun) console.log('🧪 DRY RUN — will not post to Slack');
+
+  // Resolve the base ref for this minor line.
+  console.log(`\n🔗 Resolving base ref for v${minorBaseSemver}…`);
+  const minorBaseRef = await resolveBaseRef(newParsed.major, newParsed.minor, ghToken);
+  if (!minorBaseRef) {
+    console.warn(`⚠️ Neither tag v${minorBaseSemver} nor branch release/${minorBaseSemver} exists. Skipping to avoid false alarms.`);
+    process.exit(0);
+  }
+  console.log(`   Using base: ${minorBaseRef}`);
 
   // Find all patches strictly below the new patch on the same minor line.
   console.log(`\n📋 Looking for previous patches on the v${minorBaseSemver} line (patch < ${newParsed.patch})…`);
@@ -472,24 +612,24 @@ async function main() {
   console.log(`   Found ${prevPatches.length} previous patch(es): ${prevPatches.map((v) => `v${v}`).join(', ')}`);
 
   // Compare against the minor base so we capture commits added by each patch.
-  console.log(`\n📦 Fetching commits in ${newBranch} ahead of ${minorBaseTag}…`);
-  const newReleaseTitles = await getNewReleaseTitles(minorBaseTag, newBranch, ghToken);
+  console.log(`\n📦 Fetching commits in ${newBranch} ahead of ${minorBaseRef}…`);
+  const newReleaseTitles = await getNewReleaseTitles(minorBaseRef, newBranch, ghToken);
   console.log(`   Found ${newReleaseTitles.size} distinct commit title(s) in the new hotfix branch.`);
 
   /** @type {Map<string, { sha: string; title: string; url: string }[]>} */
   const missingByHotfix = new Map();
-  await checkHotfixCommits(prevPatches, minorBaseTag, newReleaseTitles, newBranch, ghToken, missingByHotfix);
+  await checkHotfixCommits(prevPatches, minorBaseRef, newReleaseTitles, newBranch, ghToken, missingByHotfix);
 
-  // For the Slack message, the "previous" anchor is the immediately preceding patch.
+  // For the Slack message label, use the immediately preceding patch.
   const prevSemverLabel = prevPatches[prevPatches.length - 1];
 
   await postAlert({
-    newSemver: isOta ? `${newSemver}-ota` : newSemver,
+    newSemver: newSemverLabel,
     prevSemver: prevSemverLabel,
     hotfixVersions: prevPatches,
     missingByHotfix,
     workflowUrl,
-    channel: process.env.SLACK_CHANNEL || deriveSlackChannel(newSemver),
+    channel: process.env.SLACK_CHANNEL || deriveSlackChannel(newSemverLabel),
     slackToken,
     isDryRun,
   });
@@ -503,29 +643,34 @@ async function main() {
  * For each hotfix version, get its commits (vs the shared base), then record
  * which ones are absent from the new release's commit-title set.
  *
+ * Ref candidates tried in order:
+ *   1. Tag vX.Y.Z  (authoritative; OTA hotfixes share the same tag)
+ *   2. Release branch release/X.Y.Z
+ *   3. OTA release branch release/X.Y.Z-ota
+ *
  * @param {string[]} hotfixVersions
- * @param {string} baseTag
+ * @param {string} baseRef
  * @param {Set<string>} newReleaseTitles
  * @param {string} newBranch
  * @param {string} token
  * @param {Map<string, { sha: string; title: string; url: string }[]>} missingByHotfix
  */
-async function checkHotfixCommits(hotfixVersions, baseTag, newReleaseTitles, newBranch, token, missingByHotfix) {
+async function checkHotfixCommits(hotfixVersions, baseRef, newReleaseTitles, newBranch, token, missingByHotfix) {
   for (const hotfixVersion of hotfixVersions) {
-    // Try native tag, then OTA tag, then native branch, then OTA branch.
+    // Prefer the tag (authoritative, covers OTA commits too).
+    // Fall back to the release branch if the tag hasn't been cut yet.
     const candidates = [
       `v${hotfixVersion}`,
-      `v${hotfixVersion}-ota`,
       `release/${hotfixVersion}`,
       `release/${hotfixVersion}-ota`,
     ];
 
     let hotfixCommits = [];
     for (const ref of candidates) {
-      const commits = await getNewCommits(baseTag, ref, token);
+      const commits = await getNewCommits(baseRef, ref, token);
       if (commits.length > 0) {
         const icon = ref.startsWith('v') ? '🏷️ ' : '🌿';
-        console.log(`\n  ${icon} ${ref}: ${commits.length} commit(s) compared to ${baseTag}`);
+        console.log(`\n  ${icon} ${ref}: ${commits.length} commit(s) compared to ${baseRef}`);
         hotfixCommits = commits;
         break;
       }
