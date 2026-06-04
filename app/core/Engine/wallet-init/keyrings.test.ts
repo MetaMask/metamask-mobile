@@ -96,7 +96,7 @@ describe('wallet-init/keyrings', () => {
         if ('filter' in selector) {
           selector.filter(hdKeyring, { id: 'entropy-1', name: 'main' });
           selector.filter(hdKeyring, { id: 'other', name: 'other' });
-          filterCalls.push({ type: hdKeyring.type, id: 'entropy-1' });
+          filterCalls.push({ type: LegacyHdKeyring.type, id: 'entropy-1' });
         }
         // Drive the closure body all the way through `encodeMnemonic`. The
         // returned value is fed back into MoneyKeyring's internals which can
@@ -127,7 +127,9 @@ describe('wallet-init/keyrings', () => {
       await moneyKeyring.addAccounts(1).catch(() => undefined);
 
       expect(handler).toHaveBeenCalled();
-      expect(filterCalls).toEqual([{ type: hdKeyring.type, id: 'entropy-1' }]);
+      expect(filterCalls).toEqual([
+        { type: LegacyHdKeyring.type, id: 'entropy-1' },
+      ]);
     });
 
     it('MoneyKeyring getMnemonic closure throws if the HD keyring has no mnemonic', async () => {
