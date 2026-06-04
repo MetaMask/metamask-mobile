@@ -2038,10 +2038,7 @@
         "etfs": "ETFs",
         "commodities": "Commodities",
         "forex": "Forex",
-        "new": "New",
-        "pre_ipo": "Pre-IPO",
-        "indices": "Indices",
-        "etfs": "ETFs"
+        "new": "New"
       },
       "filter_by": "Filter by",
       "forex": "Forex",
