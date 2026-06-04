@@ -17,8 +17,8 @@ const cardPaymentRow = {
       to: SETTLEMENT_ADDRESS.toLowerCase(),
       amount: '5381986',
       decimal: 6,
-      contractAddress: '0x754704bc059f8c67012fed69bc8a327a5aafb603',
-      symbol: 'USDC',
+      contractAddress: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+      symbol: 'mUSD',
     },
   ],
 };
@@ -58,8 +58,8 @@ describe('parseCardTransactions', () => {
         time: Date.parse('2026-06-04T11:53:51.000Z'),
         chainId: '0x8f',
         token: {
-          address: '0x754704bc059f8c67012fed69bc8a327a5aafb603',
-          symbol: 'USDC',
+          address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+          symbol: 'mUSD',
           decimals: 6,
         },
         amount: '5381986',
@@ -94,7 +94,7 @@ describe('parseCardTransactions', () => {
 
     // Assert
     expect(card.amount).toBe('5381986');
-    expect(card.token.symbol).toBe('USDC');
+    expect(card.token.symbol).toBe('mUSD');
   });
 
   it('drops malformed rows (missing transfer or bad timestamp) without throwing', () => {

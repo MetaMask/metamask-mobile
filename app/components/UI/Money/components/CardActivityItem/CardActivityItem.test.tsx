@@ -34,8 +34,8 @@ const card: CardTransaction = {
   time: 1780574031000,
   chainId: '0x8f',
   token: {
-    address: '0x754704bc059f8c67012fed69bc8a327a5aafb603' as Hex,
-    symbol: 'USDC',
+    address: '0xaca92e438df0b2401ff60da7e4337b687a2435da' as Hex,
+    symbol: 'mUSD',
     decimals: 6,
   },
   amount: '5381986',
@@ -64,7 +64,7 @@ describe('CardActivityItem', () => {
     expect(props.isFailed).toBe(false);
     expect(props.chainId).toBe('0x8f');
     expect(props.display.icon).toBe(IconName.Card);
-    expect(props.display.primaryAmount).toBe('-5.38 USDC');
+    expect(props.display.primaryAmount).toBe('-5.38 mUSD');
     expect(props.display.fiatAmount).toContain('5.38');
   });
 
