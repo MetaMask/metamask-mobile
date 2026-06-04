@@ -15,6 +15,7 @@ import stylesheet from './SnapsSettingsList.styles';
 import { Snap } from '@metamask/snaps-utils';
 import { selectSnaps } from '../../../../selectors/snaps/snapController';
 import {
+  SNAPS_HEADER_TITLE_PROPS,
   SNAPS_SETTINGS_LIST_BACK_BUTTON,
   SNAPS_SETTINGS_LIST_HEADER,
 } from './SnapsSettingsList.constants';
@@ -36,6 +37,7 @@ const SnapsSettingsList = () => {
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.container}>
       <HeaderStandard
         title={strings('app_settings.snaps.title')}
+        titleProps={SNAPS_HEADER_TITLE_PROPS}
         onBack={handleBack}
         includesTopInset
         testID={SNAPS_SETTINGS_LIST_HEADER}

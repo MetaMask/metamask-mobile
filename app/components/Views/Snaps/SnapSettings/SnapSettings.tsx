@@ -33,6 +33,7 @@ import {
   SNAP_SETTINGS_REMOVE_BUTTON,
   SNAP_SETTINGS_SCROLLVIEW,
 } from './SnapSettings.constants';
+import { SNAPS_HEADER_TITLE_PROPS } from '../SnapsSettingsList/SnapsSettingsList.constants';
 import { selectPermissionControllerState } from '../../../../selectors/snaps/permissionController';
 import KeyringSnapRemovalWarning from '../KeyringSnapRemovalWarning/KeyringSnapRemovalWarning';
 import { getAccountsBySnapId } from '../../../../core/SnapKeyring/utils/getAccountsBySnapId';
@@ -157,6 +158,7 @@ const SnapSettings = () => {
       >
         <HeaderStandard
           title={snap.manifest.proposedName}
+          titleProps={SNAPS_HEADER_TITLE_PROPS}
           onBack={handleBack}
           includesTopInset
           testID={SNAP_SETTINGS_HEADER}
