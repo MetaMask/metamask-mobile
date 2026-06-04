@@ -30,6 +30,12 @@ import styleSheet from '../../../Deposit/Views/Modals/RegionSelectorModal/Region
 
 const MAX_COUNTRY_RESULTS = 20;
 
+function getCountrySearchResultItem(
+  result: Country | { item?: Country },
+): Country {
+  return 'item' in result && result.item ? result.item : (result as Country);
+}
+
 export interface PhoneCountrySelectorModalParams {
   countries: Country[];
   selectedCountry?: Country | null;
@@ -79,7 +85,7 @@ function PhoneCountrySelectorModal() {
       return fuseData
         .search(searchString)
         .slice(0, MAX_COUNTRY_RESULTS)
-        .map((result) => result.item);
+        .map(getCountrySearchResultItem);
     }
 
     return [...countriesWithPhoneData].sort((a, b) => {
