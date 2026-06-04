@@ -1,5 +1,6 @@
 // Export individual hooks with proper naming convention
 export { usePerpsLivePrices } from './usePerpsLivePrices';
+export { usePerpsLiveMarket } from './usePerpsLiveMarket';
 export { usePerpsLiveOrders } from './usePerpsLiveOrders';
 export {
   usePerpsLivePositions,

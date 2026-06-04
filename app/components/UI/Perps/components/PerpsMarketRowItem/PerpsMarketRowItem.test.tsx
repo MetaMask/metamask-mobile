@@ -19,12 +19,13 @@ jest.mock('../PerpsTokenLogo', () => {
 });
 
 jest.mock('../../hooks/stream', () => ({
-  usePerpsLivePrices: jest.fn(() => ({})), // Return empty object - no live prices in tests
+  usePerpsLivePrices: jest.fn(() => ({})),
+  usePerpsLiveMarket: jest.fn((market) => market), // Return market as-is — no live prices in tests
 }));
 
-const { usePerpsLivePrices } = jest.requireMock('../../hooks/stream');
-const mockUsePerpsLivePrices = usePerpsLivePrices as jest.MockedFunction<
-  typeof usePerpsLivePrices
+const { usePerpsLiveMarket } = jest.requireMock('../../hooks/stream');
+const mockUsePerpsLiveMarket = usePerpsLiveMarket as jest.MockedFunction<
+  typeof usePerpsLiveMarket
 >;
 
 // Mock react-redux for AvatarToken component
@@ -281,60 +282,49 @@ describe('PerpsMarketRowItem', () => {
 
   describe('Live Price Updates', () => {
     beforeEach(() => {
-      // Reset the mock to default empty object
-      mockUsePerpsLivePrices.mockReturnValue({});
+      // Default: hook returns the market unchanged (no live data)
+      mockUsePerpsLiveMarket.mockImplementation((m: PerpsMarketData) => m);
     });
 
-    it('subscribes to live prices with correct parameters', () => {
+    it('delegates to usePerpsLiveMarket with the market prop', () => {
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
-      expect(mockUsePerpsLivePrices).toHaveBeenCalledWith({
-        symbols: ['BTC'],
-        throttleMs: 3000,
-      });
+      expect(mockUsePerpsLiveMarket).toHaveBeenCalledWith(mockMarketData);
     });
 
-    it('updates price when live price is available', () => {
-      mockUsePerpsLivePrices.mockReturnValue({
-        BTC: {
-          price: '55000.00',
-          percentChange24h: '5.77',
-          volume24h: 3000000000,
-        },
-      });
+    it('renders merged market data returned by usePerpsLiveMarket', () => {
+      const mergedMarket: PerpsMarketData = {
+        ...mockMarketData,
+        price: '$55,000',
+        change24hPercent: '+5.77%',
+        volume: '$3.00B',
+      };
+      mockUsePerpsLiveMarket.mockReturnValue(mergedMarket);
 
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
-      // Should show the new live price
       expect(screen.getByText('$55,000')).toBeOnTheScreen();
-      // Should show updated volume (2 decimals with formatVolume)
       expect(screen.getByText('$3.00B Vol')).toBeOnTheScreen();
     });
 
-    it('does not update when live price matches current price', () => {
-      mockUsePerpsLivePrices.mockReturnValue({
-        BTC: {
-          price: '52000.00', // Same as mockMarketData.price
-          percentChange24h: '4.00',
-          volume24h: 2500000000,
-        },
-      });
+    it('keeps original data when usePerpsLiveMarket returns the original market', () => {
+      mockUsePerpsLiveMarket.mockImplementation((m: PerpsMarketData) => m);
 
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
-      // Should keep original data when price is the same
       expect(screen.getByText('$52,000')).toBeOnTheScreen();
       expect(screen.getByText('+4.00%')).toBeOnTheScreen();
     });
 
     it('handles negative price changes correctly', () => {
-      mockUsePerpsLivePrices.mockReturnValue({
-        BTC: {
-          price: '48000.00',
-          percentChange24h: '-7.84',
-          volume24h: 2000000000,
-        },
-      });
+      const mergedMarket: PerpsMarketData = {
+        ...mockMarketData,
+        price: '$48,000',
+        change24h: '-$4,000',
+        change24hPercent: '-7.84%',
+        volume: '$2.00B',
+      };
+      mockUsePerpsLiveMarket.mockReturnValue(mergedMarket);
 
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
@@ -342,13 +332,13 @@ describe('PerpsMarketRowItem', () => {
     });
 
     it('handles zero percent change correctly', () => {
-      mockUsePerpsLivePrices.mockReturnValue({
-        BTC: {
-          price: '50000.00',
-          percentChange24h: '0',
-          volume24h: 1500000000,
-        },
-      });
+      const mergedMarket: PerpsMarketData = {
+        ...mockMarketData,
+        price: '$50,000',
+        change24hPercent: '0.00%',
+        volume: '$1.50B',
+      };
+      mockUsePerpsLiveMarket.mockReturnValue(mergedMarket);
 
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
@@ -356,69 +346,66 @@ describe('PerpsMarketRowItem', () => {
     });
 
     it('handles -100% change correctly', () => {
-      mockUsePerpsLivePrices.mockReturnValue({
-        BTC: {
-          price: '0.00',
-          percentChange24h: '-100',
-          volume24h: 0,
-        },
-      });
+      const mergedMarket: PerpsMarketData = {
+        ...mockMarketData,
+        price: '$0',
+        change24hPercent: '-100.00%',
+        volume: '$0.00',
+      };
+      mockUsePerpsLiveMarket.mockReturnValue(mergedMarket);
 
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
-      // Price shows $0, volume shows $0.00 Vol
       expect(screen.getByText('$0')).toBeOnTheScreen();
       expect(screen.getByText('$0.00 Vol')).toBeOnTheScreen();
     });
 
-    it('formats different volume ranges correctly', () => {
-      // Test billions (2 decimals with formatVolume)
-      mockUsePerpsLivePrices.mockReturnValue({
-        BTC: { price: '50000', volume24h: 5500000000 },
-      });
+    it('renders different volume ranges from merged market data', () => {
       const { rerender } = render(
         <PerpsMarketRowItem market={mockMarketData} />,
       );
-      expect(screen.getByText('$5.50B Vol')).toBeOnTheScreen(); // B shows 2 decimals
 
-      // Test millions (2 decimals with formatVolume)
-      mockUsePerpsLivePrices.mockReturnValue({
-        BTC: { price: '50000', volume24h: 750000000 },
+      mockUsePerpsLiveMarket.mockReturnValue({
+        ...mockMarketData,
+        price: '$50,000',
+        volume: '$5.50B',
       });
       rerender(<PerpsMarketRowItem market={{ ...mockMarketData }} />);
-      expect(screen.getByText('$750.00M Vol')).toBeOnTheScreen(); // M shows 2 decimals
+      expect(screen.getByText('$5.50B Vol')).toBeOnTheScreen();
 
-      // Test thousands (0 decimals with formatVolume)
-      mockUsePerpsLivePrices.mockReturnValue({
-        BTC: { price: '50000', volume24h: 50000 },
+      mockUsePerpsLiveMarket.mockReturnValue({
+        ...mockMarketData,
+        price: '$50,000',
+        volume: '$750.00M',
       });
       rerender(<PerpsMarketRowItem market={{ ...mockMarketData }} />);
-      expect(screen.getByText('$50K Vol')).toBeOnTheScreen(); // K shows no decimals
+      expect(screen.getByText('$750.00M Vol')).toBeOnTheScreen();
 
-      // Test small values (2 decimals with formatVolume)
-      mockUsePerpsLivePrices.mockReturnValue({
-        BTC: { price: '50000', volume24h: 123.45 },
+      mockUsePerpsLiveMarket.mockReturnValue({
+        ...mockMarketData,
+        price: '$50,000',
+        volume: '$50K',
       });
       rerender(<PerpsMarketRowItem market={{ ...mockMarketData }} />);
-      expect(screen.getByText('$123.45 Vol')).toBeOnTheScreen(); // Shows 2 decimals
+      expect(screen.getByText('$50K Vol')).toBeOnTheScreen();
     });
 
-    it('handles missing live price fields gracefully', () => {
-      // Only price provided
-      mockUsePerpsLivePrices.mockReturnValue({
-        BTC: { price: '53000.00' },
-      });
+    it('handles missing live price fields gracefully via hook pass-through', () => {
+      const mergedMarket: PerpsMarketData = {
+        ...mockMarketData,
+        price: '$53,000',
+        // change and volume unchanged — hook kept originals
+      };
+      mockUsePerpsLiveMarket.mockReturnValue(mergedMarket);
 
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
       expect(screen.getByText('$53,000')).toBeOnTheScreen();
-      // Should keep original change data when percentChange24h is missing
       expect(screen.getByText('+4.00%')).toBeOnTheScreen();
-      // Should keep original volume when volume24h is missing
       expect(screen.getByText('$2.5B Vol')).toBeOnTheScreen();
     });
 
-    it('handles live prices for multiple symbols independently', () => {
+    it('handles live prices for different symbols independently', () => {
       const ethMarket: PerpsMarketData = {
         symbol: 'ETH',
         name: 'Ethereum',
@@ -429,35 +416,29 @@ describe('PerpsMarketRowItem', () => {
         volume: '$1.2B',
       };
 
-      // Mock live prices for both BTC and ETH
-      mockUsePerpsLivePrices.mockReturnValue({
-        BTC: { price: '55000.00' },
-        ETH: { price: '3200.00' },
-      });
+      const mergedEthMarket: PerpsMarketData = {
+        ...ethMarket,
+        price: '$3,200',
+      };
+      mockUsePerpsLiveMarket.mockImplementation((m: PerpsMarketData) =>
+        m.symbol === 'ETH' ? mergedEthMarket : m,
+      );
 
-      // Render ETH market
       render(<PerpsMarketRowItem market={ethMarket} />);
 
-      // Should only subscribe to ETH
-      expect(mockUsePerpsLivePrices).toHaveBeenCalledWith({
-        symbols: ['ETH'],
-        throttleMs: 3000,
-      });
-
-      // Should show ETH's live price, not BTC's
+      expect(mockUsePerpsLiveMarket).toHaveBeenCalledWith(ethMarket);
       expect(screen.getByText('$3,200')).toBeOnTheScreen();
     });
 
-    it('passes updated market data to onPress callback', async () => {
+    it('passes merged market data returned by hook to onPress callback', async () => {
       const mockOnPress = jest.fn();
-
-      mockUsePerpsLivePrices.mockReturnValue({
-        BTC: {
-          price: '55000.00',
-          percentChange24h: '5.77',
-          volume24h: 3000000000,
-        },
-      });
+      const mergedMarket: PerpsMarketData = {
+        ...mockMarketData,
+        price: '$55,000',
+        change24hPercent: '+5.77%',
+        volume: '$3.00B',
+      };
+      mockUsePerpsLiveMarket.mockReturnValue(mergedMarket);
 
       render(
         <PerpsMarketRowItem market={mockMarketData} onPress={mockOnPress} />,
@@ -468,39 +449,36 @@ describe('PerpsMarketRowItem', () => {
       );
       fireEvent.press(rowItem);
 
-      // Should pass the updated market data with live prices
       expect(mockOnPress).toHaveBeenCalledTimes(1);
-      // Verify it was called with an object containing the symbol
       expect(mockOnPress.mock.calls[0][0].symbol).toBe('BTC');
+      expect(mockOnPress.mock.calls[0][0].price).toBe('$55,000');
     });
 
-    it('handles very small price values', () => {
-      mockUsePerpsLivePrices.mockReturnValue({
-        BTC: {
-          price: '0.000123',
-          percentChange24h: '15.5',
-          volume24h: 1000,
-        },
-      });
+    it('handles very small price values from merged market', () => {
+      const mergedMarket: PerpsMarketData = {
+        ...mockMarketData,
+        price: '$0.000123',
+        change24hPercent: '+15.50%',
+        volume: '$1K',
+      };
+      mockUsePerpsLiveMarket.mockReturnValue(mergedMarket);
 
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
-      // With PRICE_RANGES_UNIVERSAL, small prices use appropriate precision
       expect(screen.getByText('$0.000123')).toBeOnTheScreen();
     });
 
-    it('handles very large price values', () => {
-      mockUsePerpsLivePrices.mockReturnValue({
-        BTC: {
-          price: '99999999.99',
-          percentChange24h: '2.5',
-          volume24h: 10000000000,
-        },
-      });
+    it('handles very large price values from merged market', () => {
+      const mergedMarket: PerpsMarketData = {
+        ...mockMarketData,
+        price: '$100,000,000',
+        change24hPercent: '+2.50%',
+        volume: '$10.00B',
+      };
+      mockUsePerpsLiveMarket.mockReturnValue(mergedMarket);
 
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
-      // With 5 significant digits, this rounds to $100,000,000 (trailing zeros removed)
       expect(screen.getByText('$100,000,000')).toBeOnTheScreen();
       expect(screen.getByText('+2.50%')).toBeOnTheScreen();
       expect(screen.getByText('$10.00B Vol')).toBeOnTheScreen();
@@ -550,8 +528,7 @@ describe('PerpsMarketRowItem', () => {
 
   describe('Funding Rate Display', () => {
     beforeEach(() => {
-      // Reset mock to return no live prices for these tests
-      mockUsePerpsLivePrices.mockReturnValue({});
+      mockUsePerpsLiveMarket.mockImplementation((m: PerpsMarketData) => m);
     });
 
     it('displays funding rate when displayMetric is fundingRate', () => {
@@ -639,19 +616,16 @@ describe('PerpsMarketRowItem', () => {
       expect(screen.getByText('0.0000% Funding')).toBeOnTheScreen();
     });
 
-    it('updates funding rate from live WebSocket data', () => {
+    it('updates funding rate from live data via usePerpsLiveMarket', () => {
       const marketWithInitialFundingRate: PerpsMarketData = {
         ...mockMarketData,
-        fundingRate: 0.0001, // Initial: 0.01%
+        fundingRate: 0.0001,
       };
-
-      // Mock live funding rate update
-      mockUsePerpsLivePrices.mockReturnValue({
-        BTC: {
-          price: '52000.00', // Same price to test funding rate update without price change
-          funding: 0.0005, // Updated: 0.05%
-        },
-      });
+      const mergedMarket: PerpsMarketData = {
+        ...marketWithInitialFundingRate,
+        fundingRate: 0.0005, // Updated by hook
+      };
+      mockUsePerpsLiveMarket.mockReturnValue(mergedMarket);
 
       render(
         <PerpsMarketRowItem
@@ -660,7 +634,6 @@ describe('PerpsMarketRowItem', () => {
         />,
       );
 
-      // Should display the updated live funding rate
       expect(screen.getByText('0.0500% Funding')).toBeOnTheScreen();
     });
 
@@ -668,16 +641,13 @@ describe('PerpsMarketRowItem', () => {
       const marketWithInitialFundingRate: PerpsMarketData = {
         ...mockMarketData,
         price: '$52,000',
-        fundingRate: 0.0001, // Initial: 0.01%
+        fundingRate: 0.0001,
       };
-
-      // Mock live data with same price but different funding rate
-      mockUsePerpsLivePrices.mockReturnValue({
-        BTC: {
-          price: '52000.00', // Same as market.price when formatted
-          funding: 0.0012, // Updated: 0.12%
-        },
-      });
+      const mergedMarket: PerpsMarketData = {
+        ...marketWithInitialFundingRate,
+        fundingRate: 0.0012, // Updated by hook
+      };
+      mockUsePerpsLiveMarket.mockReturnValue(mergedMarket);
 
       render(
         <PerpsMarketRowItem
@@ -686,9 +656,7 @@ describe('PerpsMarketRowItem', () => {
         />,
       );
 
-      // Should display the updated funding rate even though price didn't change
       expect(screen.getByText('0.1200% Funding')).toBeOnTheScreen();
-      // Price should remain the same
       expect(screen.getByText('$52,000')).toBeOnTheScreen();
     });
 
@@ -696,16 +664,10 @@ describe('PerpsMarketRowItem', () => {
       const marketWithFundingRate: PerpsMarketData = {
         ...mockMarketData,
         price: '$52,000',
-        fundingRate: 0.0005, // 0.05%
+        fundingRate: 0.0005,
       };
-
-      // Mock live data with same price and same funding rate
-      mockUsePerpsLivePrices.mockReturnValue({
-        BTC: {
-          price: '52000.00', // Same price
-          funding: 0.0005, // Same funding rate
-        },
-      });
+      // Hook returns same object — no change
+      mockUsePerpsLiveMarket.mockImplementation((m: PerpsMarketData) => m);
 
       render(
         <PerpsMarketRowItem
@@ -714,12 +676,10 @@ describe('PerpsMarketRowItem', () => {
         />,
       );
 
-      // Should display the original funding rate
       expect(screen.getByText('0.0500% Funding')).toBeOnTheScreen();
     });
 
     it('handles very small funding rates correctly', () => {
-      mockUsePerpsLivePrices.mockReturnValue({});
       const marketWithSmallFundingRate: PerpsMarketData = {
         ...mockMarketData,
         fundingRate: 0.000001, // 0.0001% when formatted
@@ -737,7 +697,6 @@ describe('PerpsMarketRowItem', () => {
     });
 
     it('handles large funding rates correctly', () => {
-      mockUsePerpsLivePrices.mockReturnValue({});
       const marketWithLargeFundingRate: PerpsMarketData = {
         ...mockMarketData,
         fundingRate: 0.1575, // 15.75% when formatted
@@ -755,7 +714,6 @@ describe('PerpsMarketRowItem', () => {
     });
 
     it('uses formatFundingRate utility for consistent formatting', () => {
-      mockUsePerpsLivePrices.mockReturnValue({});
       const marketWithFundingRate: PerpsMarketData = {
         ...mockMarketData,
         fundingRate: 0.0125, // 1.25% when formatted
@@ -779,14 +737,11 @@ describe('PerpsMarketRowItem', () => {
         ...mockMarketData,
         fundingRate: 0.0001,
       };
-
-      // Mock live funding rate update
-      mockUsePerpsLivePrices.mockReturnValue({
-        BTC: {
-          price: '52000.00',
-          funding: 0.0005, // Updated funding rate
-        },
-      });
+      const mergedMarket: PerpsMarketData = {
+        ...marketWithInitialFundingRate,
+        fundingRate: 0.0005, // Updated by hook
+      };
+      mockUsePerpsLiveMarket.mockReturnValue(mergedMarket);
 
       render(
         <PerpsMarketRowItem
@@ -801,7 +756,6 @@ describe('PerpsMarketRowItem', () => {
       );
       fireEvent.press(rowItem);
 
-      // Should pass the updated market data with live funding rate
       expect(mockOnPress).toHaveBeenCalledTimes(1);
       expect(mockOnPress.mock.calls[0][0].fundingRate).toBe(0.0005);
     });
@@ -809,16 +763,10 @@ describe('PerpsMarketRowItem', () => {
     it('handles funding rate update when live data funding is undefined', () => {
       const marketWithFundingRate: PerpsMarketData = {
         ...mockMarketData,
-        fundingRate: 0.0005, // Initial: 0.05%
+        fundingRate: 0.0005,
       };
-
-      // Mock live data without funding rate
-      mockUsePerpsLivePrices.mockReturnValue({
-        BTC: {
-          price: '52000.00',
-          // funding is undefined
-        },
-      });
+      // Hook returns market unchanged when no funding update
+      mockUsePerpsLiveMarket.mockImplementation((m: PerpsMarketData) => m);
 
       render(
         <PerpsMarketRowItem
@@ -827,7 +775,6 @@ describe('PerpsMarketRowItem', () => {
         />,
       );
 
-      // Should keep the original funding rate when live data doesn't have funding
       expect(screen.getByText('0.0500% Funding')).toBeOnTheScreen();
     });
   });
