@@ -151,6 +151,63 @@ describe('buildAssetsBalanceUpdateFromPush', () => {
     expect(result).toBeNull();
   });
 
+  it('skips an entry with null decimals while keeping valid entries in the same push', () => {
+    const payload = createPayload([
+      {
+        asset: {
+          type: ETH_BASE,
+          unit: 'ETH',
+          decimals: null as unknown as number,
+        },
+        postBalance: { amount: '0xde0b6b3a7640000' },
+      },
+      {
+        asset: { type: USDC_BASE, unit: 'USDC', decimals: 6 },
+        postBalance: { amount: '2552549' },
+      },
+    ]);
+
+    const result = buildAssetsBalanceUpdateFromPush(payload, ACCOUNT_ID);
+
+    expect(result?.assetsBalance[ACCOUNT_ID]).toEqual({
+      [USDC_BASE]: { amount: '2.552549' },
+    });
+    expect(result?.assetsInfo).not.toHaveProperty(ETH_BASE);
+  });
+
+  it('skips an entry whose amount cannot be converted while keeping valid entries', () => {
+    const payload = createPayload([
+      {
+        asset: { type: ETH_BASE, unit: 'ETH', decimals: 18 },
+        postBalance: { amount: 'not-a-number' },
+      },
+      {
+        asset: { type: USDC_BASE, unit: 'USDC', decimals: 6 },
+        postBalance: { amount: '1000000' },
+      },
+    ]);
+
+    const result = buildAssetsBalanceUpdateFromPush(payload, ACCOUNT_ID);
+
+    expect(result?.assetsBalance[ACCOUNT_ID]).toEqual({
+      [USDC_BASE]: { amount: '1' },
+    });
+    expect(result?.assetsInfo).not.toHaveProperty(ETH_BASE);
+  });
+
+  it('skips entries with a non-string amount', () => {
+    const payload = createPayload([
+      {
+        asset: { type: USDC_BASE, unit: 'USDC', decimals: 6 },
+        postBalance: { amount: 1000000 as unknown as string },
+      },
+    ]);
+
+    const result = buildAssetsBalanceUpdateFromPush(payload, ACCOUNT_ID);
+
+    expect(result).toBeNull();
+  });
+
   it('returns null when updates is not an array', () => {
     const payload = {
       address: '0xabc',

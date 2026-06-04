@@ -66,12 +66,29 @@ export function buildAssetsBalanceUpdateFromPush(
     const assetId = update.asset?.type;
     const decimals = update.asset?.decimals;
     const rawAmount = update.postBalance?.amount;
-    if (!assetId || decimals === undefined || rawAmount === undefined) {
+    // Strict guards: the payload is untyped at runtime, so `null`, `NaN`,
+    // negative or fractional decimals, and non-string amounts can all reach
+    // here despite the declared types.
+    if (
+      !assetId ||
+      typeof decimals !== 'number' ||
+      !Number.isInteger(decimals) ||
+      decimals < 0 ||
+      typeof rawAmount !== 'string'
+    ) {
       continue;
     }
-    assetsBalance[accountId][assetId] = {
-      amount: fromTokenMinimalUnitString(rawAmount, decimals),
-    };
+
+    let amount: string;
+    try {
+      amount = fromTokenMinimalUnitString(rawAmount, decimals);
+    } catch {
+      // A single malformed amount must not abort the whole push; skip this
+      // row so the remaining valid balances still merge.
+      continue;
+    }
+
+    assetsBalance[accountId][assetId] = { amount };
     const isNative = assetId.includes('/slip44:');
     const unit = update.asset?.unit ?? '';
     assetsInfo[assetId] = {
