@@ -599,7 +599,10 @@ const PerpsHomeView = ({
         />
 
         {/* Top Movers Section */}
-        <PerpsTopMoversSection source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME} />
+        <PerpsTopMoversSection
+          source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+          transactionActiveAbTests={transactionActiveAbTests}
+        />
 
         {/* Crypto Markets List */}
         <View onLayout={handleSectionLayout('explore_crypto')}>
