@@ -4,11 +4,12 @@ import KycWebview from './KycWebview';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 
 const mockRouteAfterAuthentication = jest.fn().mockResolvedValue(undefined);
+const mockUseTransakRouting = jest.fn((_config: unknown) => ({
+  routeAfterAuthentication: mockRouteAfterAuthentication,
+}));
 
 jest.mock('../../hooks/useTransakRouting', () => ({
-  useTransakRouting: () => ({
-    routeAfterAuthentication: mockRouteAfterAuthentication,
-  }),
+  useTransakRouting: (config: unknown) => mockUseTransakRouting(config),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -28,18 +29,20 @@ jest.mock('../../../../../util/Logger', () => ({
 }));
 
 const mockQuote = { id: 'quote-123' };
+let mockParams = {
+  url: 'https://kyc.example.com',
+  providerName: 'Transak',
+  workFlowRunId: 'wf-test-456',
+  quote: mockQuote,
+  amount: 100,
+  headlessSessionId: undefined as string | undefined,
+};
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   createNavigationDetails:
     (..._args: unknown[]) =>
     (params: unknown) => ['MockRoute', params],
-  useParams: () => ({
-    url: 'https://kyc.example.com',
-    providerName: 'Transak',
-    workFlowRunId: 'wf-test-456',
-    quote: mockQuote,
-    amount: 100,
-  }),
+  useParams: () => mockParams,
 }));
 
 let mockIdProofStatus: 'SUBMITTED' | 'NOT_SUBMITTED' | null = null;
@@ -82,6 +85,14 @@ describe('KycWebview', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIdProofStatus = null;
+    mockParams = {
+      url: 'https://kyc.example.com',
+      providerName: 'Transak',
+      workFlowRunId: 'wf-test-456',
+      quote: mockQuote,
+      amount: 100,
+      headlessSessionId: undefined,
+    };
   });
 
   it('renders Checkout component', () => {
@@ -96,6 +107,29 @@ describe('KycWebview', () => {
 
     expect(mockRouteAfterAuthentication).toHaveBeenCalledTimes(1);
     expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(mockQuote, 100);
+  });
+
+  it('configures Transak routing with the headless host when a headless session is present', () => {
+    mockParams = {
+      ...mockParams,
+      headlessSessionId: 'headless-buy-abc',
+    };
+
+    renderWithTheme(<KycWebview />);
+
+    expect(mockUseTransakRouting).toHaveBeenCalledWith({
+      baseRoute: 'RampHeadlessHost',
+      baseRouteParams: { headlessSessionId: 'headless-buy-abc' },
+      screenLocation: 'KycWebview Screen',
+    });
+  });
+
+  it('uses regular Transak routing when no headless session is present', () => {
+    renderWithTheme(<KycWebview />);
+
+    expect(mockUseTransakRouting).toHaveBeenCalledWith({
+      screenLocation: 'KycWebview Screen',
+    });
   });
 
   it('does not call routeAfterAuthentication when status is not SUBMITTED', () => {

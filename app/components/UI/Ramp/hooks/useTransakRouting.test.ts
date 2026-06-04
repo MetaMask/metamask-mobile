@@ -201,15 +201,17 @@ jest.mock('../Views/NativeFlow/KycWebview', () => ({
       workFlowRunId,
       quote,
       amount,
+      headlessSessionId,
     }: {
       url: string;
       providerName: string;
       workFlowRunId: string;
       quote: unknown;
       amount?: number;
+      headlessSessionId?: string;
     }) => [
       'RampKycWebview',
-      { url, providerName, workFlowRunId, quote, amount },
+      { url, providerName, workFlowRunId, quote, amount, headlessSessionId },
     ],
   ),
 }));
@@ -698,6 +700,61 @@ describe('useTransakRouting', () => {
                 kycUrl: 'https://kyc.example.com',
                 workFlowRunId: 'wf-123',
                 amount: 25,
+              }),
+            }),
+          ],
+        }),
+      );
+    });
+
+    it('passes headlessSessionId to ID proof WebView when routing from the headless host', async () => {
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'ADDITIONAL_FORMS_REQUIRED',
+        kycType: 'STANDARD',
+      });
+      mockGetAdditionalRequirements.mockResolvedValue({
+        formsRequired: [
+          {
+            type: 'IDPROOF',
+            metadata: {
+              kycUrl: 'https://kyc.example.com',
+              workFlowRunId: 'wf-headless',
+            },
+          },
+        ],
+      });
+
+      const { result } = renderHook(() =>
+        useTransakRouting({
+          baseRoute: 'RampHeadlessHost',
+          baseRouteParams: { headlessSessionId: 'headless-buy-idproof' },
+        }),
+      );
+
+      await act(async () => {
+        await result.current.routeAfterAuthentication(mockQuote as never, 25);
+      });
+
+      expect(mockReset).toHaveBeenCalledWith(
+        expect.objectContaining({
+          index: 1,
+          routes: [
+            expect.objectContaining({
+              name: 'RampHeadlessHost',
+              params: { headlessSessionId: 'headless-buy-idproof' },
+            }),
+            expect.objectContaining({
+              name: 'RampAdditionalVerification',
+              params: expect.objectContaining({
+                quote: mockQuote,
+                kycUrl: 'https://kyc.example.com',
+                workFlowRunId: 'wf-headless',
+                amount: 25,
+                headlessSessionId: 'headless-buy-idproof',
               }),
             }),
           ],

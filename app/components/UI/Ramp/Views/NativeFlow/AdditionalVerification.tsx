@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { Image } from 'react-native';
 import {
   Text,
@@ -18,12 +18,15 @@ import { strings } from '../../../../../../locales/i18n';
 import { type TransakBuyQuote } from '@metamask/ramps-controller';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
 import { useParams } from '../../../../../util/navigation/navUtils';
+import Routes from '../../../../../constants/navigation/Routes';
 interface V2AdditionalVerificationParams {
   quote: TransakBuyQuote;
   kycUrl: string;
   workFlowRunId: string;
   /** From BuildQuote route; keeps stack amount in sync when opening KYC webview. */
   amount?: number;
+  /** Preserves headless routing when ID proof continues through KycWebview. */
+  headlessSessionId?: string;
 }
 
 const V2AdditionalVerification = () => {
@@ -33,13 +36,23 @@ const V2AdditionalVerification = () => {
     kycUrl,
     workFlowRunId,
     amount: userEnteredAmount,
+    headlessSessionId,
   } = useParams<V2AdditionalVerificationParams>();
 
   const { styles } = useStyles(styleSheet, {});
 
-  const { navigateToKycWebview } = useTransakRouting({
-    screenLocation: 'V2 AdditionalVerification Screen',
-  });
+  const transakRoutingConfig = useMemo(
+    () =>
+      headlessSessionId
+        ? {
+            baseRoute: Routes.RAMP.HEADLESS_HOST,
+            baseRouteParams: { headlessSessionId },
+            screenLocation: 'V2 AdditionalVerification Screen',
+          }
+        : { screenLocation: 'V2 AdditionalVerification Screen' },
+    [headlessSessionId],
+  );
+  const { navigateToKycWebview } = useTransakRouting(transakRoutingConfig);
 
   const handleHeaderBack = useCallback(() => {
     navigation.goBack();
