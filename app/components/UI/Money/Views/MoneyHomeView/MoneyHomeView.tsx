@@ -66,6 +66,15 @@ import {
   MONEY_BUTTON_TYPES,
 } from '../../constants/moneyEvents';
 import { strings } from '../../../../../../locales/i18n';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
+import {
+  getMMPayChainIds,
+  isMoneyDepositTx,
+  isMoneyWithdrawTx,
+} from '../../utils/moneyTransactionGuards';
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 
 const MoneyHomeView = () => {
@@ -81,6 +90,7 @@ const MoneyHomeView = () => {
     trackSurfaceClicked,
     trackTokenButtonClicked,
     trackTokenSurfaceClicked,
+    trackActivitySurfaceClicked,
   } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_HOME,
   });
@@ -554,13 +564,31 @@ const MoneyHomeView = () => {
   }, [navigation, trackButtonClicked]);
 
   const handleActivityItemPress = useCallback(
-    (transactionId: string) => {
+    (transaction: TransactionMeta) => {
+      const { sourceChainId, destinationChainId } =
+        getMMPayChainIds(transaction);
+
+      const nestedTxType = isMoneyDepositTx(transaction)
+        ? TransactionType.moneyAccountDeposit
+        : isMoneyWithdrawTx(transaction)
+          ? TransactionType.moneyAccountWithdraw
+          : transaction.type;
+
+      trackActivitySurfaceClicked({
+        transaction_type: nestedTxType,
+        transaction_status: transaction.status,
+        chain_id_source: sourceChainId,
+        chain_id_destination: destinationChainId,
+        redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
+        redirect_target: SCREEN_NAMES.MONEY_ACTIVITY_DETAILS,
+      });
+
       navigation.navigate(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.TRANSACTION_DETAILS_SHEET,
-        params: { transactionId },
+        params: { transactionId: transaction.id },
       });
     },
-    [navigation],
+    [navigation, trackActivitySurfaceClicked],
   );
 
   let metamaskCardMode: 'upsell' | 'link' | 'manage';

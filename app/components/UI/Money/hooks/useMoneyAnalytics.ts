@@ -15,8 +15,10 @@ import {
   MoneyButtonClickedEventProperties,
   MoneyTokenRowButtonClickedEventProperties,
   MoneyTokenSurfaceClickedEventProperties,
+  MoneyActivitySurfaceClickedEventProperties,
 } from '../constants/moneyEvents';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
+import { MonetizedPrimitive } from '../../../../core/Analytics/MetaMetrics.types';
 
 export const useMoneyAnalytics = ({
   screen_name,
@@ -117,6 +119,21 @@ export const useMoneyAnalytics = ({
     [createEventBuilder, getBaseProperties, trackEvent],
   );
 
+  const trackActivitySurfaceClicked = useCallback(
+    (properties: MoneyActivitySurfaceClickedEventProperties) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.MONEY_SURFACE_CLICKED)
+          .addProperties({
+            ...getBaseProperties(),
+            ...properties,
+            monetized_primitive: MonetizedPrimitive.MoneyAccount,
+          })
+          .build(),
+      );
+    },
+    [createEventBuilder, getBaseProperties, trackEvent],
+  );
+
   const trackTooltipClicked = useCallback(
     (properties: MoneyTooltipEventProperties) => {
       trackEvent(
@@ -169,6 +186,7 @@ export const useMoneyAnalytics = ({
     trackTooltipClicked,
     trackTokenButtonClicked,
     trackTokenSurfaceClicked,
+    trackActivitySurfaceClicked,
 
     // View events
     trackBottomSheetViewed,

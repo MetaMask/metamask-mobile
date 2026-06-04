@@ -9,7 +9,7 @@ import ActivityRowView from './ActivityRowView';
 export interface MoneyActivityItemProps {
   tx: TransactionMeta;
   moneyAddress: string | undefined;
-  onPress?: (transactionId: string) => void;
+  onPress?: (transaction: TransactionMeta) => void;
   /** When true, shows the chain network badge on the icon avatar. Defaults to false. */
   showNetworkBadge?: boolean;
 }

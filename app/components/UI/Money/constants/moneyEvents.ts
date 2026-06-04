@@ -1,5 +1,9 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 
+import {
+  TransactionStatus,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { METAMASK_SUPPORT_URL } from '../../../../constants/urls';
 import AppConstants from '../../../../core/AppConstants';
 
@@ -16,6 +20,7 @@ export enum SCREEN_NAMES {
   MONEY_TRANSFER = 'money_transfer',
   MONEY_HOW_IT_WORKS = 'money_how_it_works',
   MONEY_ACTIVITY = 'money_activity',
+  MONEY_ACTIVITY_DETAILS = 'money_activity_details',
   MONEY_POTENTIAL_EARNINGS = 'money_potential_earnings',
   ASSET_OVERVIEW = 'asset_overview',
 }
@@ -118,6 +123,16 @@ export type MoneySurfaceClickedEventProperties = MoneyRedirectEventProperties &
 
 export type MoneyTokenSurfaceClickedEventProperties =
   MoneySurfaceClickedEventProperties & TokenRowEventProperties;
+
+type MoneyTransactionEventProperties = {
+  transaction_type: TransactionType | undefined;
+  transaction_status: TransactionStatus;
+  chain_id_source: string | undefined;
+  chain_id_destination: string | undefined;
+};
+
+export type MoneyActivitySurfaceClickedEventProperties =
+  MoneySurfaceClickedEventProperties & MoneyTransactionEventProperties;
 
 /**
  * Base properties for all Money events.
