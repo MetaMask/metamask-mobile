@@ -75,6 +75,7 @@ describe('parseDeeplink', () => {
       browserCallBack: browserCallBackMock,
       url,
       source: 'testOrigin',
+      mode: 'execute',
     });
   });
 
@@ -100,6 +101,7 @@ describe('parseDeeplink', () => {
       browserCallBack: browserCallBackMock,
       url,
       source: 'testOrigin',
+      mode: 'execute',
     });
   });
 
@@ -179,6 +181,7 @@ describe('parseDeeplink', () => {
       browserCallBack: mockBrowserCallBack,
       url: expectedMappedUrl,
       source: 'testOrigin',
+      mode: 'execute',
     });
   });
 
