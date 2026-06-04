@@ -4,7 +4,6 @@
 import React, {
   forwardRef,
   useCallback,
-  useEffect,
   useMemo,
   useRef,
   useImperativeHandle,
@@ -217,7 +216,10 @@ const BottomSheetDialog = forwardRef<
         {...props}
       >
         <GestureDetector gesture={panGesture}>
-          <Animated.View onLayout={updateSheetHeight} style={combinedSheetStyle}>
+          <Animated.View
+            onLayout={updateSheetHeight}
+            style={combinedSheetStyle}
+          >
             {isInteractable && (
               <View style={styles.notchWrapper}>
                 <View style={styles.notch} />

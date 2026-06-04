@@ -1,6 +1,6 @@
 // Third party dependencies
 import React, { useRef, useEffect } from 'react';
-import { render, act, waitFor } from '@testing-library/react-native';
+import { render, waitFor } from '@testing-library/react-native';
 
 // External dependencies.
 import Text from '../../../../Texts/Text';
@@ -93,57 +93,6 @@ describe('BottomSheetDialog', () => {
 
     await waitFor(() => {
       expect(onCloseMock).toHaveBeenCalled();
-    });
-  });
-  it('calls onClose only once when onCloseDialog is invoked twice rapidly', async () => {
-    const onCloseMock = jest.fn();
-    const TestComponent = () => {
-      const ref = useRef<BottomSheetDialogRef>(null);
-
-      useEffect(() => {
-        if (ref.current) {
-          ref.current?.onCloseDialog();
-          ref.current?.onCloseDialog();
-        }
-      }, []);
-
-      return (
-        <BottomSheetDialog ref={ref} onClose={onCloseMock}>
-          <Text>Test Child</Text>
-        </BottomSheetDialog>
-      );
-    };
-
-    render(<TestComponent />);
-    await waitFor(() => {
-      expect(onCloseMock).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  it('allows closing again after re-opening', async () => {
-    const onCloseMock = jest.fn();
-    const onOpenMock = jest.fn();
-    const TestComponent = () => {
-      const ref = useRef<BottomSheetDialogRef>(null);
-
-      useEffect(() => {
-        if (ref.current) {
-          ref.current?.onCloseDialog();
-          ref.current?.onOpenDialog();
-          ref.current?.onCloseDialog();
-        }
-      }, []);
-
-      return (
-        <BottomSheetDialog ref={ref} onClose={onCloseMock} onOpen={onOpenMock}>
-          <Text>Test Child</Text>
-        </BottomSheetDialog>
-      );
-    };
-
-    render(<TestComponent />);
-    await waitFor(() => {
-      expect(onCloseMock).toHaveBeenCalledTimes(2);
     });
   });
   it('calls onClose only once when onCloseDialog is invoked twice rapidly', async () => {
