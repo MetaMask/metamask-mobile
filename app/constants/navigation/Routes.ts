@@ -129,6 +129,12 @@ const Routes = {
     'RewardsPredictThePitchCampaignDetails',
   REWARDS_PREDICT_THE_PITCH_CAMPAIGN_WINNING_VIEW:
     'RewardsPredictThePitchCampaignWinning',
+  REWARDS_PREDICT_THE_PITCH_CAMPAIGN_LEADERBOARD:
+    'RewardsPredictThePitchCampaignLeaderboard',
+  REWARDS_PREDICT_THE_PITCH_CAMPAIGN_PORTFOLIO_VIEW:
+    'RewardsPredictThePitchCampaignPortfolioView',
+  REWARDS_PREDICT_THE_PITCH_ELIGIBLE_MARKETS_VIEW:
+    'RewardsPredictThePitchEligibleMarketsView',
   REWARDS_PERPS_TRADING_CAMPAIGN_LEADERBOARD:
     'RewardsPerpsTradingCampaignLeaderboard',
   REWARDS_PERPS_TRADING_CAMPAIGN_STATS: 'RewardsPerpsTradingCampaignStats',
