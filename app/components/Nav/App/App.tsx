@@ -161,6 +161,7 @@ import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails
 import TradeWalletActions from '../../Views/TradeWalletActions';
 import { MultichainAccountPermissions } from '../../Views/MultichainAccounts/MultichainAccountPermissions/MultichainAccountPermissions';
 import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
+import AgenticCliApproval from '../../Views/AgenticCliApproval';
 import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 import MultichainTransactionDetailsSheet from '../../UI/MultichainTransactionDetailsModal/MultichainTransactionDetailsSheet';
 import TransactionDetailsSheet from '../../UI/TransactionElement/TransactionDetailsSheet';
@@ -1225,6 +1226,19 @@ const AppFlow = () => {
       <Stack.Screen
         name={Routes.CONFIRMATION_PAY_WITH_MODAL}
         component={PayWithModal}
+      />
+      <Stack.Screen
+        name={Routes.AGENTIC_CLI_APPROVAL.CONFIRM}
+        component={AgenticCliApproval}
+        options={{
+          // Header is wired from inside AgenticCliApproval via navigation.setOptions
+          // (mirrors SimpleWebview's pattern for title + back button).
+          // Overrides clearStackNavigatorOptions defaults from the parent stack.
+          headerShown: false,
+          gestureEnabled: true,
+          presentation: 'modal',
+          cardStyle: { backgroundColor: importedColors.white },
+        }}
       />
       <Stack.Screen
         name={Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET}
