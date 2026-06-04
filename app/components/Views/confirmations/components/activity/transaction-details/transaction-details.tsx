@@ -1,7 +1,5 @@
 import React, { useEffect } from 'react';
-import { Box } from '../../../../../UI/Box/Box';
-import { useStyles } from '../../../../../hooks/useStyles';
-import styleSheet from './transaction-details.styles';
+import { Box } from '@metamask/design-system-react-native';
 import { TransactionDetailDivider } from '../transaction-detail-divider/transaction-detail-divider';
 import { TransactionDetailsDateRow } from '../transaction-details-date-row';
 import { TransactionDetailsStatusRow } from '../transaction-details-status-row';
@@ -36,7 +34,6 @@ export const SUMMARY_SECTION_TYPES = [
 ];
 
 export function TransactionDetails() {
-  const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const theme = useTheme();
   const { transactionMeta } = useTransactionDetails();
@@ -58,7 +55,7 @@ export function TransactionDetails() {
 
   return (
     <ScrollView>
-      <Box style={styles.container} gap={12}>
+      <Box twClassName="px-4" gap={3}>
         <TransactionDetailsHero />
         <TransactionDetailsStatusRow />
         <TransactionDetailsDateRow />

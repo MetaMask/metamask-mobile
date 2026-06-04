@@ -1,3 +1,8 @@
+/**
+ * @deprecated Use `Box` from `@metamask/design-system-react-native` instead.
+ * @see https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/Box/README.md MMDS README
+ * @see https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/MIGRATION.md#box-component Migration Guide
+ */
 import React from 'react';
 import { View, StyleSheet, ViewProps } from 'react-native';
 import { TextColor } from '../../../component-library/components/Texts/Text';
