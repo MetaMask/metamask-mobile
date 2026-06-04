@@ -9,6 +9,7 @@ import {
 import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
 import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { strings } from '../../../../../../locales/i18n';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 
 export interface BalanceProjectionProps {
   amountFiat: string;
@@ -41,7 +42,15 @@ export function BalanceProjection({
     );
   }, [amountFiat, apyDecimal, projectedYears]);
 
-  if (vaultApyQuery.isLoading || projected === null) {
+  if (vaultApyQuery.isLoading) {
+    return (
+      <View testID="balance-projection-skeleton">
+        <Skeleton height={20} width={160} />
+      </View>
+    );
+  }
+
+  if (projected === null) {
     return null;
   }
 

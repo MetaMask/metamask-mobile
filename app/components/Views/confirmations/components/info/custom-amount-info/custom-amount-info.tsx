@@ -125,15 +125,24 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const isPredictDeposit = hasTransactionType(transactionMeta, [
       TransactionType.predictDeposit,
     ]);
+    const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+      TransactionType.moneyAccountDeposit,
+    ]);
+    const isMoneyAccountTransfer =
+      isMoneyAccountDeposit ||
+      hasTransactionType(transactionMeta, [
+        TransactionType.moneyAccountWithdraw,
+      ]);
+    const shouldRejectOnBackSwipe = isPredictDeposit || isMoneyAccountTransfer;
 
     const clearPendingPredictDeposit = useCallback(() => {
       Engine.context.PredictController.clearPendingDeposit();
     }, []);
 
     useClearConfirmationOnBackSwipe({
-      rejectOnBeforeRemove: isPredictDeposit,
-      rejectOnBeforeRemoveWithoutGesture: isPredictDeposit,
-      skipNavigationOnGestureEnd: isPredictDeposit,
+      rejectOnBeforeRemove: shouldRejectOnBackSwipe,
+      rejectOnBeforeRemoveWithoutGesture: shouldRejectOnBackSwipe,
+      skipNavigationOnGestureEnd: shouldRejectOnBackSwipe,
       onBeforeReject: isPredictDeposit ? clearPendingPredictDeposit : undefined,
     });
 
@@ -165,9 +174,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const transactionId = transactionMeta?.id;
     const accountOverride = useTransactionAccountOverride();
     const isWithdraw = isTransactionPayWithdraw(transactionMeta);
-    const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
-      TransactionType.moneyAccountDeposit,
-    ]);
     const isResultReady = useIsResultReady({ isKeyboardVisible });
     const quotes = useTransactionPayQuotes();
     const isQuotesLoading = useIsTransactionPayLoading();
