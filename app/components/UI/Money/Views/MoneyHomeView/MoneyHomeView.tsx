@@ -287,61 +287,16 @@ const MoneyHomeView = () => {
     });
   }, [navigation, trackSurfaceClicked]);
 
-  const handleCardPress = useCallback(
-    ({
-      buttonIntent,
-      componentName,
-      labelLocalized,
-      labelEn,
-      buttonPosition,
-      buttonRowButtonCount,
-    }: {
-      buttonIntent: MONEY_BUTTON_INTENTS;
-      componentName: COMPONENT_NAMES;
-      labelLocalized: string;
-      labelEn: string;
-      buttonPosition?: number;
-      buttonRowButtonCount?: number;
-    }) => {
-      trackButtonClicked({
-        button_type: MONEY_BUTTON_TYPES.TEXT,
-        button_intent: buttonIntent,
-        label_localized: labelLocalized,
-        label_en: labelEn,
-        redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
-        redirect_target: SCREEN_NAMES.CARD_HOME,
-        component_name: componentName,
-        ...(buttonPosition && { button_position: buttonPosition }),
-        ...(buttonRowButtonCount && {
-          button_row_button_count: buttonRowButtonCount,
-        }),
-      });
-
-      navigation.navigate(Routes.CARD.ROOT, {
-        screen: Routes.CARD.HOME,
-        params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
-      });
-    },
-    [navigation, trackButtonClicked],
-  );
+  const handleCardPress = useCallback(() => {
+    navigation.navigate(Routes.CARD.ROOT, {
+      screen: Routes.CARD.HOME,
+      params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+    });
+  }, [navigation]);
 
   const handleLinkCardPress = useCallback(() => {
-    trackButtonClicked({
-      button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: isLinking
-        ? MONEY_BUTTON_INTENTS.LINK_CARD
-        : MONEY_BUTTON_INTENTS.CARD_AUTH,
-      label_localized: strings('money.metamask_card.link_card'),
-      label_en: strings('money.metamask_card.link_card', { locale: 'en' }),
-      component_name: COMPONENT_NAMES.MONEY_METAMASK_CARD_SECTION,
-      redirect_target_type: REDIRECT_TARGETS_TYPES.BOTTOM_SHEET,
-      redirect_target: isLinking
-        ? BOTTOM_SHEET_NAMES.CARD_LINK_SHEET
-        : BOTTOM_SHEET_NAMES.CARD_AUTH_SHEET,
-    });
-
     startLinkFlow(MONEY_HOME_CARD_ORIGIN);
-  }, [isLinking, startLinkFlow, trackButtonClicked]);
+  }, [startLinkFlow]);
 
   const handleApyInfoPress = useCallback(() => {
     trackTooltipClicked({
@@ -616,18 +571,7 @@ const MoneyHomeView = () => {
             })
           }
           onTransferPress={handleTransferPress}
-          onCardPress={() =>
-            handleCardPress({
-              buttonIntent: !isCardLinkedToMoneyAccount
-                ? MONEY_BUTTON_INTENTS.LINK_CARD
-                : MONEY_BUTTON_INTENTS.GET_CARD,
-              componentName: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
-              labelLocalized: strings('money.action.card'),
-              labelEn: strings('money.action.card', { locale: 'en' }),
-              buttonPosition: 3,
-              buttonRowButtonCount: 3,
-            })
-          }
+          onCardPress={handleCardPress}
         />
         <MoneyOnboardingCard />
         {isOnboardingCardVisible && <Divider />}
@@ -713,26 +657,10 @@ const MoneyHomeView = () => {
         )}
         <MoneyMetaMaskCard
           mode={metamaskCardMode}
-          onGetNowPress={() =>
-            handleCardPress({
-              buttonIntent: MONEY_BUTTON_INTENTS.GET_CARD,
-              componentName: COMPONENT_NAMES.MONEY_METAMASK_CARD_SECTION,
-              labelLocalized: strings('money.metamask_card.get_now'),
-              labelEn: strings('money.metamask_card.get_now', { locale: 'en' }),
-            })
-          }
+          onGetNowPress={handleCardPress}
           onHeaderPress={handleCardHeaderPress}
           onLinkPress={handleLinkCardPress}
-          onManagePress={() =>
-            handleCardPress({
-              buttonIntent: MONEY_BUTTON_INTENTS.MANAGE_CARD,
-              componentName: COMPONENT_NAMES.MONEY_METAMASK_CARD,
-              labelLocalized: strings('money.metamask_card.manage_card'),
-              labelEn: strings('money.metamask_card.manage_card', {
-                locale: 'en',
-              }),
-            })
-          }
+          onManagePress={handleCardPress}
           showMetalCard={hasMetalCard}
           isLinkDisabled={isLinking}
           cardBalance={cardBalance}

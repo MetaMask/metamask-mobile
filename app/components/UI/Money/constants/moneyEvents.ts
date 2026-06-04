@@ -53,7 +53,6 @@ export enum COMPONENT_NAMES {
   /** The Stepper Card component on Money Home screen (add funds, get/link card). */
   MONEY_ONBOARDING_CARD = 'money_onboarding_card',
   MONEY_ESTIMATED_EARNINGS_SECTION = 'money_estimated_earnings_section',
-  MONEY_METAMASK_CARD_SECTION = 'money_metamask_card_section',
 
   MONEY_POTENTIAL_EARNINGS_SECTION_HEADER = 'money_potential_earnings_section_header',
   MONEY_ACTIVITY_SECTION_HEADER = 'money_activity_section_header',
@@ -155,10 +154,6 @@ export enum MONEY_BUTTON_INTENTS {
   GET_STARTED = 'get_started',
   GO_TO_MONEY_HOME = 'go_to_money_home',
   TRANSFER_MONEY = 'transfer_money',
-  LINK_CARD = 'link_card',
-  GET_CARD = 'get_card',
-  MANAGE_CARD = 'manage_card',
-  CARD_AUTH = 'card_auth',
   LEARN_MORE = 'learn_more',
   OPEN_MORE_MENU = 'open_more_menu',
   VIEW_ALL = 'view_all',
