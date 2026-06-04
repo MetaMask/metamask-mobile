@@ -153,6 +153,12 @@ export interface UseQuickBuyControllerResult {
   totalAmountUsd: string;
   // quote state
   isQuoteLoading: boolean;
+  /**
+   * True only when a quote load should block the UI (first load or an input
+   * change with no usable quote yet). False during benign background refreshes,
+   * so the CTA stays enabled and the receive estimate stays visible.
+   */
+  isBlockingQuoteLoad: boolean;
   isSubmittingTx: boolean;
   isTotalLoading: boolean;
   // all quotes for the select-quote screen
@@ -446,6 +452,7 @@ export function useQuickBuyController(
     isNoQuotesAvailable,
     quoteFetchError,
     isActiveQuoteForCurrentTokenPair,
+    isQuoteRequestStale,
     quotesLastFetchedAt,
     refreshCount,
     quoteRefreshRateMs,
@@ -1072,6 +1079,25 @@ export function useQuickBuyController(
   const hasQuoteMismatch =
     Boolean(activeQuote) && !isActiveQuoteForCurrentTokenPair;
 
+  // A usable quote for exactly what's displayed: present, for the current token
+  // pair, for the current (committed) amount, not mid-drag, and for the current
+  // request-only inputs (slippage, destination address, gas settings). When this
+  // holds, an in-flight fetch is a benign background refresh — the displayed
+  // quote stays valid and submittable and is swapped in place when the new one
+  // lands. When a request input changes, the displayed quote no longer matches
+  // the request being fetched, so it is not usable until the new quote arrives.
+  const hasUsableQuoteOnScreen =
+    Boolean(activeQuote) &&
+    isActiveQuoteForCurrentTokenPair &&
+    !isPendingQuoteRefresh &&
+    !isAmountUncommitted &&
+    !isQuoteRequestStale;
+
+  // Loading that should block the UI: first load or an input change with no
+  // usable quote yet. A plain background refresh is excluded so the CTA and the
+  // receive estimate are not blanked every refresh tick.
+  const isBlockingQuoteLoad = isQuoteLoading && !hasUsableQuoteOnScreen;
+
   const isConfirmDisabled =
     !hasValidAmount ||
     isAmountUncommitted ||
@@ -1082,7 +1108,8 @@ export function useQuickBuyController(
     !activeQuote ||
     hasQuoteMismatch ||
     isPendingQuoteRefresh ||
-    isQuoteLoading ||
+    isQuoteRequestStale ||
+    isBlockingQuoteLoad ||
     hasInsufficientBalance ||
     isNetworkFeeUnavailable ||
     hasInsufficientGas ||
@@ -1092,7 +1119,8 @@ export function useQuickBuyController(
     !walletAddress;
 
   const isTotalLoading =
-    hasValidAmount && (isQuoteLoading || isPendingQuoteRefresh);
+    hasValidAmount &&
+    (isBlockingQuoteLoad || isPendingQuoteRefresh || isQuoteRequestStale);
 
   const isConfirmLoading = isSubmittingTx;
 
@@ -1160,6 +1188,7 @@ export function useQuickBuyController(
     formattedRate,
     totalAmountUsd,
     isQuoteLoading,
+    isBlockingQuoteLoad,
     isSubmittingTx,
     isTotalLoading,
     sortedQuotes,
