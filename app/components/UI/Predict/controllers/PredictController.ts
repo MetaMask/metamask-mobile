@@ -523,6 +523,11 @@ export class PredictController extends BaseController<
    */
   private getSigner(address?: string): Signer {
     const selectedAddress = address ?? this.getEvmAccountAddress();
+
+    if (!selectedAddress) {
+      throw new Error('EVM account address is required');
+    }
+
     return {
       address: selectedAddress,
       signTypedMessage: (
@@ -546,14 +551,14 @@ export class PredictController extends BaseController<
     return resolvePredictFeatureFlags(remoteFeatureFlagState);
   }
 
-  private getEvmAccountAddress(): string {
+  private getEvmAccountAddress(): string | undefined {
     const accounts = this.messenger.call(
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
     );
     const evmAccount = accounts.find(
       (account) => account && isEvmAccountType(account.type),
     );
-    return evmAccount?.address ?? '0x0';
+    return evmAccount?.address;
   }
 
   private async invalidateQueryCache(chainId: number) {
