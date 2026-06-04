@@ -73,8 +73,20 @@ jest.mock('@metamask/design-system-react-native', () => {
         <Text>{children}</Text>
       </View>
     ),
+    ButtonAnimated: ({
+      testID,
+      onPress,
+      children,
+      ...rest
+    }: Record<string, unknown>) => (
+      <View testID={testID} onPress={onPress} {...rest}>
+        {children as React.ReactNode}
+      </View>
+    ),
   };
 });
+
+jest.mock('./assets/flash-filled.svg', () => 'FlashFilledIcon');
 
 const mockOnBuy = jest.fn();
 const mockOnSwap = jest.fn();
@@ -509,6 +521,67 @@ describe('TokenDetailsStickyFooter', () => {
     });
   });
 
+  describe('security interception - token.symbol fallback to token.name', () => {
+    it('passes token.name as tokenSymbol when symbol is missing', () => {
+      const tokenWithoutSymbol = {
+        ...mockToken,
+        symbol: '',
+        name: 'FakeToken',
+      } as unknown as TokenDetailsRouteParams;
+
+      const maliciousSecurityData = {
+        resultType: 'Malicious',
+        features: [],
+      } as unknown as TokenSecurityData;
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          token={tokenWithoutSymbol}
+          securityData={maliciousSecurityData}
+        />,
+      );
+
+      fireEvent.press(getByText('Buy'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          params: expect.objectContaining({
+            tokenSymbol: 'FakeToken',
+            description: expect.any(String),
+          }),
+        }),
+      );
+    });
+
+    it('passes token.symbol as tokenSymbol when symbol is present', () => {
+      const warningSecurityData = {
+        resultType: 'Warning',
+        features: [],
+      } as unknown as TokenSecurityData;
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          securityData={warningSecurityData}
+        />,
+      );
+
+      fireEvent.press(getByText('Buy'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          params: expect.objectContaining({
+            tokenSymbol: 'ETH',
+            description: expect.any(String),
+          }),
+        }),
+      );
+    });
+  });
+
   describe('RWA geo-restriction', () => {
     it('blocks the buy action when token is a geo-restricted stock', () => {
       mockIsStockToken.mockReturnValue(true);
@@ -560,6 +633,229 @@ describe('TokenDetailsStickyFooter', () => {
       fireEvent.press(getByText('Buy'));
 
       expect(mockOnBuy).toHaveBeenCalled();
+    });
+  });
+
+  describe('onSwapPress and onBuyPress callback timing', () => {
+    it('calls onSwapPress only when navigation occurs (not geo-restricted)', () => {
+      const onSwapPress = jest.fn();
+      mockIsStockToken.mockReturnValue(false);
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          onSwapPress={onSwapPress}
+        />,
+      );
+
+      fireEvent.press(getByText('Swap'));
+
+      expect(onSwapPress).toHaveBeenCalled();
+      expect(mockOnSwap).toHaveBeenCalled();
+    });
+
+    it('does not call onSwapPress when geo-restricted', () => {
+      const onSwapPress = jest.fn();
+      mockIsStockToken.mockReturnValue(true);
+      (useSelector as jest.Mock).mockReturnValue('US');
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          onSwapPress={onSwapPress}
+        />,
+      );
+
+      fireEvent.press(getByText('Swap'));
+
+      expect(onSwapPress).not.toHaveBeenCalled();
+      expect(mockOnSwap).not.toHaveBeenCalled();
+    });
+
+    it('calls onBuyPress only when navigation occurs (not geo-restricted)', () => {
+      const onBuyPress = jest.fn();
+      mockIsStockToken.mockReturnValue(false);
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter {...defaultProps} onBuyPress={onBuyPress} />,
+      );
+
+      fireEvent.press(getByText('Buy'));
+
+      expect(onBuyPress).toHaveBeenCalled();
+      expect(mockOnBuy).toHaveBeenCalled();
+    });
+
+    it('does not call onBuyPress when geo-restricted', () => {
+      const onBuyPress = jest.fn();
+      mockIsStockToken.mockReturnValue(true);
+      (useSelector as jest.Mock).mockReturnValue('GB');
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter {...defaultProps} onBuyPress={onBuyPress} />,
+      );
+
+      fireEvent.press(getByText('Buy'));
+
+      expect(onBuyPress).not.toHaveBeenCalled();
+      expect(mockOnBuy).not.toHaveBeenCalled();
+    });
+
+    it('defers onSwapPress until onProceed for security warning modal', () => {
+      const onSwapPress = jest.fn();
+      mockIsStockToken.mockReturnValue(false);
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          onSwapPress={onSwapPress}
+          securityData={
+            {
+              resultType: 'Warning',
+              features: {},
+            } as TokenSecurityData
+          }
+        />,
+      );
+
+      fireEvent.press(getByText('Swap'));
+
+      // Neither callback fires when the warning modal is shown
+      expect(onSwapPress).not.toHaveBeenCalled();
+      expect(mockOnSwap).not.toHaveBeenCalled();
+
+      // Simulate user tapping "Proceed" inside the modal
+      const navigateCall = mockNavigate.mock.calls[0];
+      const onProceed = navigateCall[1].params.onProceed;
+      onProceed();
+
+      expect(onSwapPress).toHaveBeenCalled();
+      expect(mockOnSwap).toHaveBeenCalled();
+    });
+
+    it('defers onBuyPress until onProceed for security warning modal', () => {
+      const onBuyPress = jest.fn();
+      mockIsStockToken.mockReturnValue(false);
+
+      const { getByText } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          onBuyPress={onBuyPress}
+          securityData={
+            {
+              resultType: 'Spam',
+              features: {},
+            } as TokenSecurityData
+          }
+        />,
+      );
+
+      fireEvent.press(getByText('Buy'));
+
+      // Neither callback fires when the warning modal is shown
+      expect(onBuyPress).not.toHaveBeenCalled();
+      expect(mockOnBuy).not.toHaveBeenCalled();
+
+      // Simulate user tapping "Proceed" inside the modal
+      const navigateCall = mockNavigate.mock.calls[0];
+      const onProceed = navigateCall[1].params.onProceed;
+      onProceed();
+
+      expect(onBuyPress).toHaveBeenCalled();
+      expect(mockOnBuy).toHaveBeenCalled();
+    });
+  });
+
+  describe('quick buy button', () => {
+    const quickBuyTestID = 'quick-buy-btn';
+
+    it('does not render the quick buy button when onQuickBuyPress is not provided', () => {
+      const { queryByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          quickBuyTestID={quickBuyTestID}
+        />,
+      );
+      expect(queryByTestId(quickBuyTestID)).toBeNull();
+    });
+
+    it('renders the quick buy button when onQuickBuyPress is provided', () => {
+      const onQuickBuyPress = jest.fn();
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          onQuickBuyPress={onQuickBuyPress}
+          quickBuyTestID={quickBuyTestID}
+        />,
+      );
+      expect(getByTestId(quickBuyTestID)).toBeOnTheScreen();
+    });
+
+    it('invokes onQuickBuyPress on press', () => {
+      const onQuickBuyPress = jest.fn();
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          onQuickBuyPress={onQuickBuyPress}
+          quickBuyTestID={quickBuyTestID}
+        />,
+      );
+
+      fireEvent.press(getByTestId(quickBuyTestID));
+
+      expect(onQuickBuyPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('tracks "quick_buy" cta type on press', () => {
+      const onQuickBuyPress = jest.fn();
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          onQuickBuyPress={onQuickBuyPress}
+          quickBuyTestID={quickBuyTestID}
+          balanceFiatUsd={50}
+        />,
+      );
+
+      fireEvent.press(getByTestId(quickBuyTestID));
+
+      expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith({
+        ctaType: 'quick_buy',
+        balanceFiatUsd: 50,
+        tokenAddress: '0x123',
+        chainId: '0x1',
+      });
+    });
+
+    it('blocks quick buy when token is a geo-restricted stock', () => {
+      mockIsStockToken.mockReturnValue(true);
+      (useSelector as jest.Mock).mockReturnValue('US');
+      const onQuickBuyPress = jest.fn();
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          onQuickBuyPress={onQuickBuyPress}
+          quickBuyTestID={quickBuyTestID}
+        />,
+      );
+
+      fireEvent.press(getByTestId(quickBuyTestID));
+
+      expect(onQuickBuyPress).not.toHaveBeenCalled();
+    });
+
+    it('hides the quick buy button when the account has no eligible swap source', () => {
+      mockHasEligibleSwapTokens = false;
+      const onQuickBuyPress = jest.fn();
+      const { queryByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...defaultProps}
+          onQuickBuyPress={onQuickBuyPress}
+          quickBuyTestID={quickBuyTestID}
+        />,
+      );
+
+      expect(queryByTestId(quickBuyTestID)).toBeNull();
     });
   });
 });

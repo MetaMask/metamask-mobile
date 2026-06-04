@@ -23,13 +23,14 @@ import PerpsMarketTileCardSkeleton from '../../Homepage/Sections/Perpetuals/comp
 import { navigateToPerpsMarketList } from '../feeds/perps/perpsNavigation';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
 import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarouselSection';
-import { navigateToPredictionsList } from '../feeds/predictions/predictionsNavigation';
+import { navigateToExplorePredictionsList } from '../feeds/predictions/predictionsNavigation';
 import CardList from '../components/CardList';
 import ExploreScroll from '../components/ExploreScroll';
 import SectionHeader from '../components/SectionHeader';
 import TileCarousel from '../components/TileCarousel';
 import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
+import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
 
 interface CryptoPerpsBlockProps {
   refresh: TabProps['refresh'];
@@ -124,7 +125,11 @@ const CryptoTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const showTokens = tokens.isLoading || tokens.data.length > 0;
 
   return (
-    <ExploreScroll refreshing={refreshing} onRefresh={onRefresh}>
+    <ExploreScroll
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      testID={TrendingViewSelectorsIDs.EXPLORE_CRYPTO_SCROLL_VIEW}
+    >
       {showTokens && (
         <Box>
           <SectionHeader
@@ -164,7 +169,7 @@ const CryptoTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
         title={strings('trending.predictions')}
         testIdPrefix="predict-crypto-market-row-item"
         idPrefix="crypto_predictions"
-        onViewAll={() => navigateToPredictionsList(navigation, 'crypto')}
+        onViewAll={() => navigateToExplorePredictionsList(navigation, 'crypto')}
       />
     </ExploreScroll>
   );

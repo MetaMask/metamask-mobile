@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View } from 'react-native';
+import { View, Platform } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { strings } from '../../../../../locales/i18n';
@@ -54,7 +54,6 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { selectTokenOverviewChartType } from '../../../../reducers/user/selectors';
 import { setTokenOverviewChartType } from '../../../../actions/user';
-import { usePriceChart } from '../PriceChart/PriceChart.context';
 import type {
   TimePeriod,
   TokenPrice,
@@ -160,20 +159,10 @@ const PriceAdvanced = ({
   const [crosshairData, setCrosshairData] = useState<CrosshairData | null>(
     null,
   );
-  const { setIsChartBeingTouched } = usePriceChart();
-
   const handleCrosshairMove = useCallback(
     (data: CrosshairData | null) => setCrosshairData(data),
     [],
   );
-
-  const handleTouchStart = useCallback(() => {
-    setIsChartBeingTouched(true);
-  }, [setIsChartBeingTouched]);
-
-  const handleTouchEnd = useCallback(() => {
-    setIsChartBeingTouched(false);
-  }, [setIsChartBeingTouched]);
 
   const handleChartInteracted = useCallback(
     (payload: ChartInteractedPayload) => {
@@ -181,11 +170,13 @@ const PriceAdvanced = ({
         createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
           .addProperties({
             interaction_type: payload.interaction_type,
+            chart_type:
+              chartType === ChartType.Candles ? 'candlestick' : 'line',
           })
           .build(),
       );
     },
-    [createEventBuilder, trackEvent],
+    [createEventBuilder, trackEvent, chartType],
   );
 
   const handleChartTradingViewClicked = useCallback(() => {
@@ -193,10 +184,11 @@ const PriceAdvanced = ({
       createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
         .addProperties({
           interaction_type: 'tradingview_clicked',
+          chart_type: chartType === ChartType.Candles ? 'candlestick' : 'line',
         })
         .build(),
     );
-  }, [createEventBuilder, trackEvent]);
+  }, [createEventBuilder, trackEvent, chartType]);
 
   const toggleChartType = useCallback(() => {
     const next =
@@ -227,12 +219,14 @@ const PriceAdvanced = ({
           .addProperties({
             interaction_type: 'timeframe_changed',
             chart_timeframe: range,
+            chart_type:
+              chartType === ChartType.Candles ? 'candlestick' : 'line',
           })
           .build(),
       );
       setTimeRange(range);
     },
-    [createEventBuilder, timeRange, trackEvent],
+    [createEventBuilder, timeRange, trackEvent, chartType],
   );
 
   const assetId = useMemo(() => {
@@ -401,17 +395,25 @@ const PriceAdvanced = ({
   // Use last bar's close price for consistent percentage calculation with chart data
   const lastBarClose = ohlcvData[ohlcvData.length - 1]?.close;
   const realtimeClose = wsEnabled ? latestBar?.close : undefined;
+
+  // Hold the last WS price during time-range transitions to avoid stale API flicker
+  const lastRealtimeRef = useRef<number | undefined>(undefined);
+  if (realtimeClose !== undefined) {
+    lastRealtimeRef.current = realtimeClose;
+  }
+  const stablePrice = realtimeClose ?? lastRealtimeRef.current;
+
   const displayPrice =
-    crosshairData?.close ?? realtimeClose ?? lastBarClose ?? currentPrice;
+    crosshairData?.close ?? stablePrice ?? lastBarClose ?? currentPrice;
   const displayDiff = useMemo(() => {
     if (dynamicComparePrice === null) return null;
     return (
-      (crosshairData?.close ?? realtimeClose ?? lastBarClose ?? currentPrice) -
+      (crosshairData?.close ?? stablePrice ?? lastBarClose ?? currentPrice) -
       dynamicComparePrice
     );
   }, [
     crosshairData,
-    realtimeClose,
+    stablePrice,
     lastBarClose,
     currentPrice,
     dynamicComparePrice,
@@ -648,10 +650,10 @@ const PriceAdvanced = ({
         <View
           testID="advanced-chart-touch-container"
           style={[styles.chartContainer, { height: CHART_HEIGHT }]}
-          onTouchStart={handleTouchStart}
-          onTouchEnd={handleTouchEnd}
-          onTouchCancel={handleTouchEnd}
         >
+          {Platform.OS === 'ios' && (
+            <View style={styles.edgeOverlay} pointerEvents="box-only" />
+          )}
           {useAmbientColor && initialAmbientColor === undefined ? (
             <Skeleton height={CHART_HEIGHT} width="100%" />
           ) : (

@@ -53,16 +53,21 @@ const PerpsTradingCampaignStatsHeader: React.FC<
 }) => {
   const tw = useTailwind();
 
-  const isPending = position != null && !position.qualified;
-  const isQualified = position != null && position.qualified;
+  const isPending = position != null && !position.eligible;
+  const isQualified = position != null && position.eligible;
+  const rank =
+    position != null && Number.isFinite(position.rank) ? position.rank : null;
+  const pnl =
+    position != null && Number.isFinite(position.pnl) ? position.pnl : null;
 
-  const rankValue = position ? String(position.rank).padStart(2, '0') : '—';
-  const pnlValue = position ? formatSignedUsd(position.pnl) : '—';
-  const pnlColor = position
-    ? position.pnl >= 0
-      ? TextColor.SuccessDefault
-      : TextColor.ErrorDefault
-    : TextColor.TextDefault;
+  const rankValue = rank != null ? String(rank).padStart(2, '0') : '—';
+  const pnlValue = pnl != null ? formatSignedUsd(pnl) : '—';
+  const pnlColor =
+    pnl != null
+      ? pnl >= 0
+        ? TextColor.SuccessDefault
+        : TextColor.ErrorDefault
+      : TextColor.TextDefault;
 
   const computedAtLabel = position?.computedAt
     ? strings('rewards.perps_trading_campaign.last_updated', {

@@ -4,6 +4,9 @@ import { defineConfig } from './framework/config';
 export default defineConfig({
   testDir: './',
   fullyParallel: false,
+  workers: process.env.PLAYWRIGHT_WORKERS
+    ? parseInt(process.env.PLAYWRIGHT_WORKERS, 10)
+    : 3,
   timeout: 7 * 60 * 1000, //7 minutes until we introduce fixtures
   grep: /@Performance/,
   reporter: [
@@ -63,6 +66,7 @@ export default defineConfig({
           provider: ProviderName.SIMULATOR,
           osVersion: '26.2',
           name: 'iPhone 16 Pro',
+          udid: '',
         },
         app: {
           appId: 'io.metamask.MetaMask',

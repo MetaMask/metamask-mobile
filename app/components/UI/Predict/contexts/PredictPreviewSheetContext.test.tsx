@@ -195,10 +195,12 @@ const sellParams: PredictSellPreviewParams = {
 };
 
 const TestConsumer: React.FC = () => {
-  const { openBuySheet, openSellSheet } = usePredictPreviewSheet();
+  const { openBuySheet, openSellSheet, isBuySheetOpen } =
+    usePredictPreviewSheet();
 
   return (
     <View>
+      <Text testID="buy-sheet-open">{String(isBuySheetOpen)}</Text>
       <TouchableOpacity
         testID="open-buy"
         onPress={() => openBuySheet(buyParams)}
@@ -258,6 +260,24 @@ describe('PredictPreviewSheetContext', () => {
 
     expect(screen.getByTestId('predict-buy-preview-sheet')).toBeOnTheScreen();
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('exposes buy sheet open state while sheet is mounted', () => {
+    render(
+      <PredictPreviewSheetProvider>
+        <TestConsumer />
+      </PredictPreviewSheetProvider>,
+    );
+
+    expect(screen.getByTestId('buy-sheet-open')).toHaveTextContent('false');
+
+    fireEvent.press(screen.getByTestId('open-buy'));
+
+    expect(screen.getByTestId('buy-sheet-open')).toHaveTextContent('true');
+
+    fireEvent.press(screen.getByTestId('dismiss-sheet'));
+
+    expect(screen.getByTestId('buy-sheet-open')).toHaveTextContent('false');
   });
 
   it('renders sell preview sheet when openSellSheet is called and flag is ON', () => {

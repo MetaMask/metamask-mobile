@@ -6,6 +6,7 @@ import { selectPerpsFeedbackEnabledFlag } from '../../selectors/featureFlags';
 import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFlagController/whatsHappening';
 import { mockTheme } from '../../../../../util/theme';
 import { useDiscoveryScrollManager } from '../../../Predict/hooks/useDiscoveryScrollManager';
+import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 
 // Mock useDiscoveryScrollManager
 const mockPerpsOnTabEnter = jest.fn();
@@ -29,6 +30,9 @@ jest.mock('react-native-reanimated', () => {
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn(() => true);
+let mockRouteParams: Record<string, unknown> = {
+  source: 'main_action_button',
+};
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -37,9 +41,7 @@ jest.mock('@react-navigation/native', () => ({
     canGoBack: mockCanGoBack,
   }),
   useRoute: () => ({
-    params: {
-      source: 'main_action_button', // PERPS_EVENT_VALUE.SOURCE.MAIN_ACTION_BUTTON
-    },
+    params: mockRouteParams,
   }),
   useFocusEffect: (callback: () => void) => {
     // Call the callback immediately in tests
@@ -51,6 +53,7 @@ jest.mock('@react-navigation/native', () => ({
 const mockUseSelector = jest.fn<boolean, [unknown]>(() => false);
 jest.mock('react-redux', () => ({
   useSelector: (selector: unknown) => mockUseSelector(selector),
+  useDispatch: () => jest.fn(),
 }));
 
 // Mock components to prevent complex module initialization chains
@@ -65,6 +68,10 @@ jest.mock(
 jest.mock(
   '../../components/PerpsRecentActivityList/PerpsRecentActivityList',
   () => 'PerpsRecentActivityList',
+);
+jest.mock(
+  '../../components/PerpsTopMoversSection',
+  () => 'PerpsTopMoversSection',
 );
 
 // Mock hooks (consolidated to avoid conflicts)
@@ -570,6 +577,7 @@ describe('PerpsHomeView', () => {
     mockNavigateBack.mockClear();
     mockNavigateToWallet.mockClear();
     mockNavigateToMarketList.mockClear();
+    mockRouteParams = { source: 'main_action_button' };
     mockUsePerpsHomeData.mockReturnValue(mockDefaultData);
   });
 
@@ -618,6 +626,32 @@ describe('PerpsHomeView', () => {
     });
     // Search bar should still not be visible in HomeView (navigation happens, component doesn't toggle search)
     expect(queryByTestId('perps-home-search-bar')).toBeNull();
+  });
+
+  it('carries route transactionActiveAbTests when search opens market list', () => {
+    const transactionActiveAbTests = [
+      createActiveABTestAssignment(
+        'homeTMCU725AbtestHomepagePerpsPillsEmptyState',
+        'treatment',
+      ),
+    ];
+    mockRouteParams = {
+      source: 'home_section',
+      transactionActiveAbTests,
+    };
+
+    const { getByTestId } = render(<PerpsHomeView />);
+
+    fireEvent.press(getByTestId('perps-home-search-toggle'));
+
+    expect(mockNavigateToMarketList).toHaveBeenCalledWith({
+      defaultMarketTypeFilter: 'all',
+      source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+      fromHome: true,
+      button_clicked: 'magnifying_glass',
+      button_location: 'perps_home',
+      transactionActiveAbTests,
+    });
   });
 
   it('shows positions section when positions exist', () => {

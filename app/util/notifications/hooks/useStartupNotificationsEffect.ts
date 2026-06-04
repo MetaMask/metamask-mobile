@@ -2,10 +2,7 @@ import { useCallback, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { selectIsSignedIn } from '../../../selectors/identity';
 import { selectIsUnlocked } from '../../../selectors/keyringController';
-import {
-  selectHomepageSectionsV1Enabled,
-  selectWalletHomeOnboardingStepsEnabled,
-} from '../../../selectors/featureFlagController/homepage';
+import { selectWalletHomeOnboardingStepsEnabled } from '../../../selectors/featureFlagController/homepage';
 import {
   getIsNotificationEnabledByDefaultFeatureFlag,
   selectIsMetamaskNotificationsEnabled,
@@ -24,10 +21,10 @@ import {
 } from '../constants/notification-storage-keys';
 import { hasNotificationPreferences } from '../../../actions/notification/helpers';
 
-const showPushNush = { nudgeEnablePush: true };
+const silentPushCheck = { nudgeEnablePush: false };
 
 const useEnableAndRefresh = () => {
-  const { enableNotifications } = useEnableNotifications(showPushNush);
+  const { enableNotifications } = useEnableNotifications(silentPushCheck);
   const { listNotifications } = useListNotifications();
   return useCallback(
     async (shouldEnable = true) => {
@@ -120,9 +117,6 @@ export function useEnableNotificationsByDefaultEffect() {
   const isNotificationsEnabledByDefaultFeatureFlag = useSelector(
     getIsNotificationEnabledByDefaultFeatureFlag,
   );
-  const homepageSectionsV1Enabled = useSelector(
-    selectHomepageSectionsV1Enabled,
-  );
   const walletHomeOnboardingStepsRemoteEnabled = useSelector(
     selectWalletHomeOnboardingStepsEnabled,
   );
@@ -136,7 +130,6 @@ export function useEnableNotificationsByDefaultEffect() {
     const run = async () => {
       try {
         const isWalletHomePostOnboardingChecklistActive =
-          homepageSectionsV1Enabled &&
           walletHomeOnboardingStepsRemoteEnabled &&
           shouldShowWalletHomeOnboardingSteps;
 
@@ -164,7 +157,6 @@ export function useEnableNotificationsByDefaultEffect() {
     run();
   }, [
     enableAndRefresh,
-    homepageSectionsV1Enabled,
     isBasicFunctionalityEnabled,
     isNotificationsEnabledByDefaultFeatureFlag,
     isUnlocked,

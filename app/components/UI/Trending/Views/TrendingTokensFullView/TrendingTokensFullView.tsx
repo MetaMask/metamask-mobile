@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { View, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, RefreshControl } from 'react-native';
+import { useRoute, type RouteProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import TrendingTokensList, {
@@ -11,16 +12,8 @@ import {
   type TrendingAsset,
 } from '@metamask/assets-controllers';
 import {
-  Icon,
-  IconName,
-  IconColor,
-  IconSize,
-  Text,
-  TextVariant,
-  FontWeight,
-} from '@metamask/design-system-react-native';
-import {
   TrendingTokenTimeBottomSheet,
+  mapTimeOptionToSortBy,
   PriceChangeOption,
   TimeOption,
 } from '../../components/TrendingTokensBottomSheet';
@@ -31,9 +24,14 @@ import EmptyErrorTrendingState from '../../../../Views/TrendingView/components/E
 import EmptySearchResultState from '../../../../Views/TrendingView/components/EmptyErrorState/EmptySearchResultState';
 import TrendingFeedSessionManager from '../../services/TrendingFeedSessionManager';
 import { useSearchTracking } from '../../hooks/useSearchTracking/useSearchTracking';
+import { FilterButton } from '../../components/FilterBar/FilterBar';
 import TokenListPageLayout from '../../components/TokenListPageLayout/TokenListPageLayout';
 import { TRENDING_NETWORKS_LIST } from '../../utils/trendingNetworksList';
 import type { Theme } from '../../../../../util/theme/models';
+
+export interface TrendingTokensFullViewParams {
+  initialTimeOption?: TimeOption;
+}
 
 export interface TrendingTokensDataProps {
   isLoading: boolean;
@@ -111,11 +109,17 @@ export const TrendingTokensData = (props: TrendingTokensDataProps) => {
 };
 
 const TrendingTokensFullView = () => {
-  const tw = useTailwind();
   const sessionManager = TrendingFeedSessionManager.getInstance();
-  const filters = useTokenListFilters();
+  const { params } =
+    useRoute<
+      RouteProp<{ TrendingTokensFullView: TrendingTokensFullViewParams }>
+    >();
+  const initialTimeOption = params?.initialTimeOption;
+  const filters = useTokenListFilters({ timeOption: initialTimeOption });
 
-  const [sortBy, setSortBy] = useState<SortTrendingBy | undefined>(undefined);
+  const [sortBy, setSortBy] = useState<SortTrendingBy | undefined>(
+    initialTimeOption ? mapTimeOptionToSortBy(initialTimeOption) : undefined,
+  );
   const [showTimeBottomSheet, setShowTimeBottomSheet] = useState(false);
 
   const {
@@ -128,6 +132,7 @@ const TrendingTokensFullView = () => {
     searchQuery: filters.searchQuery || undefined,
     sortBy,
     chainIds: filters.selectedNetwork,
+    filterLowQuality: true,
   });
 
   const trendingTokens = useMemo(() => {
@@ -225,31 +230,12 @@ const TrendingTokensFullView = () => {
   }, [refetchTokensSection, setRefreshing]);
 
   const timeFilterButton = (
-    <TouchableOpacity
+    <FilterButton
       testID="24h-button"
       onPress={handle24hPress}
-      style={tw.style(
-        'shrink-0 items-center rounded-xl bg-muted py-2 px-3',
-        filters.searchQuery?.trim() && 'opacity-50',
-      )}
-      activeOpacity={0.2}
+      label={filters.selectedTimeOption}
       disabled={!!filters.searchQuery?.trim()}
-    >
-      <View style={tw`flex-row items-center justify-center gap-1`}>
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          twClassName="min-w-0 shrink"
-        >
-          {filters.selectedTimeOption}
-        </Text>
-        <Icon
-          name={IconName.ArrowDown}
-          color={IconColor.IconAlternative}
-          size={IconSize.Xs}
-        />
-      </View>
-    </TouchableOpacity>
+    />
   );
 
   return (

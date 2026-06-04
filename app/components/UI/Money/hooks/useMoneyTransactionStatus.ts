@@ -17,8 +17,13 @@ import {
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
+import { getMemoizedInternalAccountByAddress } from '../../../../selectors/accountsController';
+import { selectAccountToGroupMap } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
-import { toChecksumAddress } from '../../../../util/address';
+import {
+  renderShortAddress,
+  toChecksumAddress,
+} from '../../../../util/address';
 import {
   MUSD_DECIMALS,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
@@ -26,9 +31,59 @@ import {
 } from '../../Earn/constants/musd';
 import { moneyFormatFiat } from '../utils/moneyFormatFiat';
 import { TELLER_ABI } from '../utils/moneyAccountTransactions';
+import {
+  isMoneyAccountTx,
+  isMoneyDepositTx,
+  nestedTxWithType,
+} from '../utils/moneyTransactionGuards';
 import useMoneyToasts from './useMoneyToasts';
+import {
+  clearMoneyAccountDepositIntent,
+  getMoneyAccountDepositIntent,
+} from './useMoneyAccount';
 
 const TELLER_INTERFACE = new ethers.utils.Interface(TELLER_ABI);
+const ERC20_TRANSFER_INTERFACE = new ethers.utils.Interface([
+  'function transfer(address to, uint256 amount)',
+]);
+
+function decodeErc20TransferRecipient(
+  data: string | undefined,
+): string | undefined {
+  if (!data) return undefined;
+  try {
+    const [to] = ERC20_TRANSFER_INTERFACE.decodeFunctionData('transfer', data);
+    return to as string;
+  } catch (error) {
+    Logger.error(
+      error as Error,
+      'useMoneyTransactionStatus: failed to decode erc20 transfer calldata',
+    );
+    return undefined;
+  }
+}
+
+function resolveWithdrawDestination(
+  transactionMeta: TransactionMeta,
+): string | undefined {
+  const transferNested = nestedTxWithType(
+    transactionMeta,
+    TransactionType.tokenMethodTransfer,
+  );
+  const recipient = decodeErc20TransferRecipient(transferNested?.data);
+  if (!recipient) return undefined;
+  const state = store.getState();
+  const account = getMemoizedInternalAccountByAddress(state, recipient);
+  if (!account) return renderShortAddress(recipient);
+  const groupName =
+    selectAccountToGroupMap(state)[account.id]?.metadata?.name?.trim();
+  const accountName = account.metadata?.name?.trim();
+  return (
+    groupName ||
+    accountName ||
+    strings('money.toasts.withdraw_fallback_destination')
+  );
+}
 
 function decodeTellerAmount(
   type: TransactionType,
@@ -126,29 +181,6 @@ export const useMoneyTransactionStatus = () => {
       pendingCleanups.add(timeoutId);
     };
 
-    const nestedTxWithType = (
-      transactionMeta: TransactionMeta,
-      targetType: TransactionType,
-    ) =>
-      transactionMeta.nestedTransactions?.find(
-        (nested) => nested.type === targetType,
-      );
-
-    const isMoneyDepositTx = (transactionMeta: TransactionMeta) =>
-      transactionMeta.type === TransactionType.moneyAccountDeposit ||
-      Boolean(
-        nestedTxWithType(transactionMeta, TransactionType.moneyAccountDeposit),
-      );
-
-    const isMoneyWithdrawTx = (transactionMeta: TransactionMeta) =>
-      transactionMeta.type === TransactionType.moneyAccountWithdraw ||
-      Boolean(
-        nestedTxWithType(transactionMeta, TransactionType.moneyAccountWithdraw),
-      );
-
-    const isMoneyAccountTx = (transactionMeta: TransactionMeta) =>
-      isMoneyDepositTx(transactionMeta) || isMoneyWithdrawTx(transactionMeta);
-
     const reserveToastKey = (transactionId: string, key: string) => {
       const toastKey = `${transactionId}-${key}`;
       if (shownToastsRef.current.has(toastKey)) return undefined;
@@ -163,7 +195,8 @@ export const useMoneyTransactionStatus = () => {
       const timeoutId = setTimeout(() => {
         pendingInProgress.delete(transactionMeta.id);
         if (isMoneyDepositTx(transactionMeta)) {
-          showToast(MoneyToastOptions.deposit.inProgress());
+          const intent = getMoneyAccountDepositIntent(transactionMeta.batchId);
+          showToast(MoneyToastOptions.deposit.inProgress({ intent }));
         } else {
           showToast(MoneyToastOptions.withdraw.inProgress());
         }
@@ -176,7 +209,9 @@ export const useMoneyTransactionStatus = () => {
       cancelPendingInProgress(transactionMeta.id);
       if (!reserveToastKey(transactionMeta.id, FAILED_KEY)) return;
       if (isMoneyDepositTx(transactionMeta)) {
-        showToast(MoneyToastOptions.deposit.failed());
+        const intent = getMoneyAccountDepositIntent(transactionMeta.batchId);
+        showToast(MoneyToastOptions.deposit.failed({ intent }));
+        clearMoneyAccountDepositIntent(transactionMeta.batchId);
       } else {
         showToast(MoneyToastOptions.withdraw.failed());
       }
@@ -210,14 +245,15 @@ export const useMoneyTransactionStatus = () => {
           : undefined;
 
       if (isMoneyDepositTx(transactionMeta)) {
-        showToast(MoneyToastOptions.deposit.success({ amountFiat }));
+        const intent = getMoneyAccountDepositIntent(transactionMeta.batchId);
+        showToast(MoneyToastOptions.deposit.success({ amountFiat, intent }));
+        clearMoneyAccountDepositIntent(transactionMeta.batchId);
       } else {
-        // TODO: derive destination from tx metadata once Perps/Predict transfers ship.
+        const destination =
+          resolveWithdrawDestination(transactionMeta) ??
+          strings('money.toasts.withdraw_fallback_destination');
         showToast(
-          MoneyToastOptions.withdraw.success({
-            amountFiat,
-            destination: strings('money.transfer_sheet.between_accounts'),
-          }),
+          MoneyToastOptions.withdraw.success({ amountFiat, destination }),
         );
       }
       scheduleCleanup(transactionMeta.id, CONFIRMED_KEY);
@@ -239,6 +275,9 @@ export const useMoneyTransactionStatus = () => {
           break;
         case TransactionStatus.rejected:
           cancelPendingInProgress(transactionMeta.id);
+          if (isMoneyDepositTx(transactionMeta)) {
+            clearMoneyAccountDepositIntent(transactionMeta.batchId);
+          }
           break;
         default:
           break;

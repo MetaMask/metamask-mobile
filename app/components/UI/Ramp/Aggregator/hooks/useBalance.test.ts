@@ -29,6 +29,11 @@ const MOCK_ADDRESS_1 = '0x0';
 
 const MOCK_ACCOUNTS_CONTROLLER_STATE =
   createMockAccountsControllerStateWithSnap([MOCK_ADDRESS_1]);
+const MOCK_ACCOUNT_ID_1 =
+  MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.selectedAccount;
+const MAINNET_NATIVE_ASSET_ID = 'eip155:1/slip44:60';
+const USDC_ASSET_ID =
+  'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
 
 const mockSelectSelectedInternalAccountByScope =
   selectSelectedInternalAccountByScope as jest.MockedFunction<
@@ -56,6 +61,12 @@ const initialState = {
               balance: toHex('223456789098765432100'),
             },
           },
+          // BNB Smart Chain native balance: 2 BNB
+          '0x38': {
+            [MOCK_ADDRESS_1]: {
+              balance: toHex('2000000000000000000'),
+            },
+          },
         },
       },
       TokenRatesController: {
@@ -65,6 +76,12 @@ const initialState = {
               price: 0.0005,
             },
           },
+          // Same token address priced differently on Polygon
+          '0x89': {
+            '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48': {
+              price: 0.002,
+            },
+          },
         },
       },
       TokenBalancesController: {
@@ -72,6 +89,10 @@ const initialState = {
         tokenBalances: {
           [MOCK_ADDRESS_1]: {
             '0x1': {
+              '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48':
+                hexToBN('0x14fb180'),
+            },
+            '0x89': {
               '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48':
                 hexToBN('0x14fb180'),
             },
@@ -98,6 +119,49 @@ const initialState = {
         currencyRates: {
           ETH: {
             conversionRate: 2000,
+          },
+          BNB: {
+            conversionRate: 600,
+          },
+          POL: {
+            conversionRate: 10,
+          },
+        },
+      },
+      AssetsController: {
+        selectedCurrency: 'usd' as const,
+        assetsInfo: {
+          [MAINNET_NATIVE_ASSET_ID]: {
+            type: 'native' as const,
+            symbol: 'ETH',
+            name: 'Ethereum',
+            decimals: 18,
+          },
+          [USDC_ASSET_ID]: {
+            type: 'erc20' as const,
+            symbol: 'USDC',
+            name: 'USD Coin',
+            decimals: 6,
+          },
+        },
+        assetsBalance: {
+          [MOCK_ACCOUNT_ID_1]: {
+            [MAINNET_NATIVE_ASSET_ID]: { amount: '12.345' },
+            [USDC_ASSET_ID]: { amount: '22' },
+          },
+        },
+        assetsPrice: {
+          [MAINNET_NATIVE_ASSET_ID]: {
+            assetPriceType: 'fungible' as const,
+            price: 2000,
+            usdPrice: 2000,
+            lastUpdated: 1717334400000,
+          },
+          [USDC_ASSET_ID]: {
+            assetPriceType: 'fungible' as const,
+            price: 1,
+            usdPrice: 1,
+            lastUpdated: 1717334400000,
           },
         },
       },
@@ -152,6 +216,52 @@ describe('useBalance', () => {
     expect(result.current.balance).toBe('22');
     expect(result.current.balanceFiat).toBe('$22.00');
     expect(result.current.balanceBN).toStrictEqual(hexToBN(toHex('22000000')));
+  });
+
+  it('uses the asset chain native rate, not the globally selected network rate', async () => {
+    // Regression test for TRAM-3464: selling a token on a chain other than the
+    // globally selected network (mainnet/ETH @ 2000) must convert the balance
+    // with the asset chain's native rate (BNB @ 600), not the global ETH rate.
+    const { result } = renderHookWithProvider(
+      () =>
+        useBalance({
+          address: NATIVE_ADDRESS,
+          decimals: 18,
+          chainId: '0x38',
+        }),
+      {
+        state: initialState,
+      },
+    );
+
+    // 2 BNB * 600 = $1200 (the bug would have produced 2 * 2000 = $4000)
+    expect(result.current.balance).toBe('2');
+    expect(result.current.balanceFiat).toBe('$1200.00');
+    expect(result.current.balanceBN).toStrictEqual(
+      hexToBN(toHex('2000000000000000000')),
+    );
+  });
+
+  it('uses the asset chain token exchange rate for ERC20 balances', async () => {
+    // Regression test for TRAM-3464: the token exchange rate and native
+    // conversion rate must both be read from the asset's chain (Polygon),
+    // not from the globally selected network.
+    const { result } = renderHookWithProvider(
+      () =>
+        useBalance({
+          address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+          decimals: 6,
+          chainId: '0x89',
+        }),
+      {
+        state: initialState,
+      },
+    );
+
+    // 22 tokens * POL rate 10 * exchange rate 0.002 = $0.44
+    // (the bug would have used ETH 2000 * mainnet price 0.0005 = $22)
+    expect(result.current.balance).toBe('22');
+    expect(result.current.balanceFiat).toBe('$0.44');
   });
 
   it('returns non-evm token balances', async () => {
