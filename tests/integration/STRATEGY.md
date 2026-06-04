@@ -19,7 +19,7 @@ The point of Integration is _not_ "find bugs CV missed." It's "every flow a user
 
 Read top-to-bottom on the left for the architecture stack, left-to-right on the top for the test type. A blue cell means "this test type runs real code here"; an empty cell means "out of scope or mocked." The four layers stack so that anything reachable in jest stays in jest, and E2E only owns the bottom row (native runtime).
 
-Integration now has three perps harness shapes. Shape A drives the provider directly, Shape B renders hooks through the Engine shim, and Shape C renders real perps components with app providers while reusing Shape B's real TradingService/provider chain. Shape C is intentionally reserved for flows where the rendered button press is part of the bug surface; CV still owns pure UI variants.
+Integration now has three perps harness shapes. Shape A drives the provider directly, Shape B renders hooks through the Engine shim, and Shape C renders real perps components with app providers while reusing Shape B's real TradingService/provider chain. Shape B/C are allowed to mock documented app-shell glue inside the harness only; tests still do not add one-off mocks. Shape C is intentionally reserved for flows where the rendered button press is part of the bug surface; CV still owns pure UI variants.
 
 ### Perps integration harness shapes
 
@@ -48,6 +48,8 @@ The harness shapes are additive. Each one exists for a different failure class, 
 Shape C's boundary is deliberately narrow: real rendered perps UI, real perps hooks, real `TradingService`, real provider, mocked SDK/native runtime, and mocked confirmation/pay app-shell plumbing unless the test is explicitly about pay-with-token behaviour. Confirmation/pay should have its own integration harness where its providers, selectors, transaction confirmation paths, quote alerts, and token-selection behaviour are real with only their I/O boundary mocked.
 
 The maintenance risk in Shape C is not rendering itself; it is letting the harness become "whatever mocks are needed to mount a large screen." To keep it healthy, use Shape C only when the rendered interaction must prove it reaches real perps trading code. Keep pure visual states in CV tests, keep provider/service behaviour in Shape A/B, and add a future Shape D only when the target bug is in `PerpsController` orchestration, messenger integration, or app state glue that the current Engine shim intentionally bypasses.
+
+During the PoC, side-by-side Shape A/B/C tests may intentionally cover a similar flow to demonstrate what each shape catches. In the long-term rollout, the use-case matrix should assign one primary owner per use case and keep secondary tests only when they prove a unique concern at another boundary.
 
 ## Layer responsibilities — what each one uniquely covers
 
@@ -124,7 +126,7 @@ The functional areas come from [`perps-use-cases.md`](perps-use-cases.md). Order
 
 Use cases: open long/short (market + limit), edit limit, cancel single, cancel multi, close full/partial/limit, flip.
 
-- **Integration** (~12 tests). Extend `tests/integration/harnesses/perps.ts` to support `TradingService` + full `PerpsController`. Helpers like `setupOpenPosition()`, `setupTradingReady()`. Write the order-lifecycle integration tests from the matrix.
+- **Integration** (~12 tests). Use Shape A for provider actions, Shape B for the `TradingService`/hook seam, and Shape C only where a rendered press must reach real trading code. Add helpers like `setupOpenPosition()` and `setupTradingReady()` to the harnesses as repeated setup appears. Reserve future Shape D for real `PerpsController` orchestration, messenger integration, or app state glue.
 - **CV** (audit + add). Inventory existing `PerpsOrderView` and `PerpsClosePositionView` view tests against the matrix. Add missing variants — empty, loading, error, edge layouts.
 - **E2E** (1 test). One "open a market long on testnet" smoke test for native-runtime concerns. Identify existing perps E2E order tests that are now covered by integration; mark them for the phase 6 audit.
 - **Unit**. `orderCalculations.ts` utilities used by the order-lifecycle flows. Most likely already covered; fill gaps as encountered.

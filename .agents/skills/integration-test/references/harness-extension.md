@@ -114,10 +114,13 @@ The line between REAL and MOCKED is the **I/O boundary**. Real: anything that's 
 | Wallet / keyring service                         | MOCKED          | Native module I/O                                         |
 | WebSocket subscription service                   | MOCKED          | Network + timing I/O                                      |
 | Module-level caches that hit storage             | MOCKED          | Disk I/O                                                  |
-| Stream managers / orchestrators                  | MOCKED          | UI subscription — different concern                       |
+| Stream managers / orchestrators                  | MOCKED          | UI subscription/runtime plumbing — different concern      |
 | Validation utility functions in separate files   | MOCKED          | Existing pattern in codebase; class methods stay real     |
+| App-shell glue for hook/rendered harnesses        | MOCKED in B/C   | Engine/navigation/runtime plumbing, documented in harness |
 
 When in doubt, ask: **does this code talk to the outside world (network, disk, keyring, native module, websocket)?** If yes, mock it. If no, leave it real.
+
+For Shape B/C, also ask: **is this app-shell glue required only to mount the hook/screen while the real controller/service/provider chain still runs?** If yes, the harness may mock it, but the header must list the mock and explain which real chain remains covered.
 
 ---
 

@@ -49,7 +49,7 @@ Do not read the full reference files until the decision tree or workflow sends y
 
 Integration tests are **controller-app integration** tests that exercise real controller / provider / service code with the I/O boundary mocked. They live alongside the code as `<feature>.integration.test.ts` and use a dedicated framework in `tests/integration/`.
 
-Key constraint: **only the I/O boundary may be mocked** (SDK clients, wallet, subscription services, native modules, keyring). The controller, its services, validation logic, and state transitions all run for real. The harness for each domain owns the standard `jest.mock(...)` declarations; tests don't add their own.
+Key constraint: **only the I/O boundary may be mocked** (SDK clients, wallet, subscription services, native modules, keyring). Shape B/C harnesses may also mock documented app-shell glue when the real target chain still runs. The controller, its services, validation logic, and state transitions all run for real at the chosen boundary. The harness for each domain owns the standard `jest.mock(...)` declarations; tests don't add their own.
 
 For the full strategy (why this layer exists, how it relates to CV / Unit / E2E, the perps rollout plan), see [`tests/integration/STRATEGY.md`](../../tests/integration/STRATEGY.md). For the framework rules, see [`tests/integration/AGENTS.md`](../../tests/integration/AGENTS.md).
 
@@ -65,8 +65,9 @@ tests/integration/
 ├── coverage-and-tracking.md   ← coverage targets + bug-tracking mechanisms
 ├── perps-use-cases.md         ← every perps use case → primary test layer
 └── harnesses/
-    └── perps.ts               ← jest.mock + buildPerpsIntegrationHarness
-                                  (one file per domain)
+    ├── perps.ts               ← Shape A: provider-level harness
+    ├── perps-flow.ts          ← Shape B: hook-flow harness
+    └── perps-component.tsx    ← Shape C: rendered-component harness
 ```
 
 Tests live next to the code they test, named `<feature>.integration.test.ts`. They run via `yarn jest -c jest.config.integration.js`.
@@ -75,7 +76,7 @@ Tests live next to the code they test, named `<feature>.integration.test.ts`. Th
 
 ## Workflow (summary)
 
-- **Write new test**: Read controller / service and existing tests → list use cases (or pull from per-domain use-case file) and map to test patterns → check coverage and deduplicate → call `build<Domain>IntegrationHarness()` from the right harness → write test (call real action, assert on state / selector output / return value). Every test must call at least one real method on the real instance returned by the harness — no harness-only setup. Run tests, then run the self-review checklist in `references/reference.md`.
+- **Write new test**: Read controller / service and existing tests → list use cases (or pull from per-domain use-case file) and map to test patterns → check coverage and deduplicate → choose Shape A/B/C based on the boundary under test → call the matching harness factory → write test (call real action, assert on state / selector output / return value). Every test must call at least one real method on the real instance returned by the harness — no harness-only setup. Run tests, then run the self-review checklist in `references/reference.md`.
 - **Fix failing test**: Run with `jest.config.integration.js` → identify error type from the table in `references/reference.md` (Diagnosing Failures) → apply the fix (extend harness, override mock for one test, await async settlement, reset module-level singleton state, etc.) → re-run.
 - **Update after change**: Same as write — review existing tests, update the harness if shape changed, update tests, run and self-review.
 - **Add or extend a harness**: Open `references/harness-extension.md` → identify whether you're adding a new domain or extending an existing one → follow the structure (jest.mock + factory + REAL/MOCKED header) → update `tests/integration/AGENTS.md` if it's a new domain.
@@ -116,7 +117,7 @@ For run-by-name, watch mode, or other options, see `references/reference.md` (Ru
 
 ## Golden Rules (Enforced)
 
-1. **Only the harness mocks the I/O boundary** — no arbitrary `jest.mock()` in `*.integration.test.ts` files. The harness file (`tests/integration/harnesses/<domain>.ts`) owns the full set; tests just import it. If you find yourself wanting a new mock, extend the harness instead.
+1. **Only the harness mocks the I/O boundary** — no arbitrary `jest.mock()` in `*.integration.test.ts` files. The harness file (`tests/integration/harnesses/<domain>.ts`) owns the full set; tests just import it. Shape B/C may also mock documented app-shell glue inside the harness when the real target chain still runs. If you find yourself wanting a new mock, extend the harness instead.
 
 2. **Drive behaviour through real method calls on the real instance** — call `provider.placeOrder(...)`, `controller.flipPosition(...)`, etc. The harness returns the real instance; the test exercises it. No simulating state transitions by reaching inside the controller's internals.
 

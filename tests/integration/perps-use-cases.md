@@ -98,7 +98,7 @@ These don't have user-facing flows; they're consumed by the layers above. Unit i
 | **E2E**         |    ~5 | Cold launch, real signing, network re-init, testnet toggle  |
 | **Total**       |   ~89 |                                                             |
 
-The shape: one CV test per UI variant, one integration test per public controller action (happy path + main rejection paths), one E2E per native-runtime concern, unit tests for everything pure. No use case is covered redundantly across layers; every use case is covered exactly where it's cheapest to detect a regression.
+The shape: one CV test per UI variant, one integration test per public controller action (happy path + main rejection paths), one E2E per native-runtime concern, unit tests for everything pure. No use case is covered redundantly across layers; every use case is covered exactly where it's cheapest to detect a regression. PoC branches may keep side-by-side Shape A/B/C examples to compare harness boundaries, but the rollout matrix should assign one primary integration shape per use case before the suite hardens.
 
 ---
 
@@ -117,5 +117,5 @@ Where a use case fits multiple rules, pick the one with the **cheapest sufficien
 ## What's deliberately not in the matrix
 
 - **Snapshot tests** — out of scope; team killed them previously for reasons that still apply.
-- **Hook-level integration tests** — not currently planned. If a particular flow proves hard to cover via the controller-level integration harness, we'd add one as an exception, not as a default.
+- **Hook-level integration as a default** — Shape B exists, but it is not the default for every flow. Use it when hook wiring or the `TradingService` -> provider seam is part of the risk; use Shape A when a direct provider/service call is sufficient.
 - **Visual regression / Storybook** — orthogonal; if it gets adopted, it owns "did the rendered pixels change?" and CV continues to own "did the structure render correctly?"

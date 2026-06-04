@@ -49,11 +49,23 @@ Ask: "What can a user **do** that touches this controller?" — open / close / e
 
 Drop anything that only exercises the harness defaults — every test must call at least one real method on the real instance.
 
-### 4. Deduplicate against existing tests
+### 4. Pick the narrowest harness shape
+
+Use the lightest harness that proves the use case:
+
+| Shape | Harness | Use when |
+| ----- | ------- | -------- |
+| A | `buildPerpsIntegrationHarness` | Direct provider/service behavior is enough: validation, order placement, close/cancel branches, mocked SDK side effects. |
+| B | `buildPerpsFlowHarness` | The risk includes hook wiring or the `TradingService` -> provider seam, but rendering UI is not part of the behavior. |
+| C | `buildPerpsComponentHarness` | A rendered user interaction must prove it reaches real perps trading code. Do not use for pure UI variants. |
+
+Shape B/C may mock app-shell glue in the harness (Engine shim, network hook, native runtime providers, confirmation/pay plumbing). Those mocks must stay harness-owned and documented in the REAL/MOCKED header; test files still never add `jest.mock(...)`.
+
+### 5. Deduplicate against existing tests
 
 Read the existing `*.integration.test.ts` for the area (if any) and remove candidates already covered. Look at the test bodies, not just titles, since one `it` might cover several rows of the matrix.
 
-### 5. Run coverage on the file you're exercising and prioritise
+### 6. Run coverage on the file you're exercising and prioritise
 
 ```bash
 yarn jest -c jest.config.integration.js <test-path> \

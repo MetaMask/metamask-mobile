@@ -7,7 +7,8 @@
  * Use this when the user-facing interaction itself matters: a rendered button
  * press should flow through component → hook → Engine shim → real
  * TradingService → real provider → mocked SDK, then back into visible UI/toast
- * state. Tests still mock only the I/O boundary and native runtime.
+ * state. Tests still mock only the I/O boundary, native runtime, and
+ * harness-documented app-shell plumbing.
  *
  * REAL:
  *   - Rendered perps React components and their hooks

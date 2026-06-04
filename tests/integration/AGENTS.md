@@ -6,7 +6,7 @@ Agent index for **integration tests** (`app/**/*.integration.test.ts`). Jest tes
 
 ## Scope
 
-- **integration tests** — `app/**/*.integration.test.ts`. Tests that instantiate real controllers / providers / services and only mock the I/O boundary (SDK clients, network, native modules, keyring, websocket subscriptions). Targeted at the bug class that today only e2e catches: bugs at the seam between controller behaviour and the app, where each piece works in isolation. Consume the [framework](#framework) (per-domain harnesses, dedicated jest config).
+- **integration tests** — `app/**/*.integration.test.ts`. Tests that instantiate real controllers / providers / services and only mock the I/O boundary (SDK clients, network, native modules, keyring, websocket subscriptions). Shape B/C harnesses may also mock explicitly documented app-shell glue (Engine shim, navigation/runtime providers) when the real target chain still runs. Targeted at the bug class that today only e2e catches: bugs at the seam between controller behaviour and the app, where each piece works in isolation. Consume the [framework](#framework) (per-domain harnesses, dedicated jest config).
 
 ---
 
@@ -43,7 +43,7 @@ The integration test framework is the code and conventions in `tests/integration
 - **Convention** — test files import the harness; the import side effect triggers the jest.mock hoisting; the named import is the factory. No setup boilerplate per test.
 - **Dedicated jest config** — `jest.config.integration.js` runs the suite. Tests are matched by `*.integration.test.ts?(x)`.
 
-Tests **must** follow the rules below: real controller code is exercised; only the I/O boundary is mocked; tests assert on observable outcomes (state, selector output, return values) and not on mock calls except where verifying a side effect is the point of the test.
+Tests **must** follow the rules below: real controller code is exercised; only the I/O boundary is mocked; tests assert on observable outcomes (state, selector output, return values) and not on mock calls except where verifying a side effect is the point of the test. The only allowed extra mocks are harness-owned, documented app-shell shims in Shape B/C; test files still never add their own `jest.mock(...)`.
 
 ### Framework structure {#framework-structure}
 
@@ -75,7 +75,9 @@ When the harness pattern doesn't fit a particular flow, that's a signal to **ext
 
 ### Mocks {#framework-mocks}
 
-The harness mocks the I/O boundary. For perps that means `HyperLiquidClientService`, `HyperLiquidWalletService`, `HyperLiquidSubscriptionService`, `TradingReadinessCache`, `PerpsStreamManager`, and the `hyperLiquidValidation` utility module. The class methods on `HyperLiquidProvider` itself (including `validateOrder`) are NOT mocked — that's where production bugs live.
+The harness mocks the I/O boundary. For perps Shape A that means `HyperLiquidClientService`, `HyperLiquidWalletService`, `HyperLiquidSubscriptionService`, `TradingReadinessCache`, the injected `streamManager` platform dependency, and the `hyperLiquidValidation` utility module. The class methods on `HyperLiquidProvider` itself (including `validateOrder`) are NOT mocked — that's where production bugs live.
+
+Shape B/C add harness-owned app-shell mocks so hooks and rendered components can mount: an `Engine.context.PerpsController` shim, network-management hook shim, native runtime shims, and confirmation/pay plumbing that is outside the perps trading chain. These mocks must stay in the harness and must be listed in the harness REAL/MOCKED header.
 
 No `jest.mock` calls beyond what the harness declares are allowed in `*.integration.test.ts` files. If a test seems to need one, the right move is to extend the harness, not bypass it.
 
@@ -86,7 +88,7 @@ No `jest.mock` calls beyond what the harness declares are allowed in `*.integrat
 ### Perps — [`harnesses/perps.ts`](harnesses/perps.ts)
 
 - **Real:** `HyperLiquidProvider` (mobile), all of its order / close / validation logic, asset-map lookups, in-memory state transitions
-- **Mocked:** `HyperLiquidClientService`, `HyperLiquidWalletService`, `HyperLiquidSubscriptionService`, `TradingReadinessCache`, `PerpsStreamManager`, `hyperLiquidValidation` utility module
+- **Mocked:** `HyperLiquidClientService`, `HyperLiquidWalletService`, `HyperLiquidSubscriptionService`, `TradingReadinessCache`, injected `streamManager` platform dependency, `hyperLiquidValidation` utility module
 - **Factory:** `buildPerpsIntegrationHarness({ isTestnet?, assetMapping?, cachedPrices? })`
 - **Returns:** `{ provider, setCachedPrice, mocks: { client, wallet, subscription } }`
 - **Use cases the harness covers:** see [`perps-use-cases.md`](perps-use-cases.md) for the full enumeration

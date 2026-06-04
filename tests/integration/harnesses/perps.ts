@@ -16,7 +16,8 @@
  *   - HyperLiquidWalletService     — keyring/wallet
  *   - HyperLiquidSubscriptionService — websocket subscriptions + caches
  *   - TradingReadinessCache        — module-level signing cache
- *   - PerpsStreamManager            — UI subscription orchestrator
+ *   - streamManager platform dep   — UI subscription orchestrator mock
+ *     provided through createMockInfrastructure(), not a module mock
  *   - hyperLiquidValidation utils  — basic-shape validators (separate file
  *     from the class method `validateOrder`, which IS real)
  * ─────────────────────────────────────────────────────────────────────────
