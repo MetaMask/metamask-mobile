@@ -409,6 +409,7 @@ describe('PredictController', () => {
         getSelectedAccount?: jest.MockedFunction<() => InternalAccount>;
         getNetworkState?: jest.MockedFunction<() => NetworkState>;
         getRemoteFeatureFlagState?: jest.MockedFunction<() => any>;
+        getAccountsFromSelectedAccountGroup?: jest.MockedFunction<() => any[]>;
         estimateGas?: jest.MockedFunction<
           (
             txParams: TransactionMeta['txParams'],
@@ -439,15 +440,16 @@ describe('PredictController', () => {
 
     rootMessenger.registerActionHandler(
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
-      jest.fn().mockReturnValue([
-        {
-          id: 'mock-account-id',
-          address: '0x1234567890123456789012345678901234567890',
-          type: 'eip155:eoa',
-          name: 'Test Account',
-          metadata: { lastSelected: 0 },
-        },
-      ]),
+      mocks.getAccountsFromSelectedAccountGroup ??
+        jest.fn().mockReturnValue([
+          {
+            id: 'mock-account-id',
+            address: '0x1234567890123456789012345678901234567890',
+            type: 'eip155:eoa',
+            name: 'Test Account',
+            metadata: { lastSelected: 0 },
+          },
+        ]),
     );
 
     rootMessenger.registerActionHandler(
@@ -5364,6 +5366,41 @@ describe('PredictController', () => {
         ],
       }) as any;
 
+    it('does not publish transaction status when no sender address can be resolved', () => {
+      withController(
+        ({ messenger }) => {
+          const transactionStatusChangedHandler = jest.fn();
+          const transactionMeta = {
+            ...createPredictTransactionMeta({
+              nestedType: TransactionType.predictClaim,
+              status: TransactionStatus.confirmed,
+            }),
+            txParams: {
+              to: '0x0000000000000000000000000000000000000001',
+              value: '0x0',
+              data: '0x',
+            },
+          } as any;
+
+          messenger.subscribe(
+            'PredictController:transactionStatusChanged',
+            transactionStatusChangedHandler,
+          );
+
+          messenger.publish('TransactionController:transactionStatusUpdated', {
+            transactionMeta,
+          } as any);
+
+          expect(transactionStatusChangedHandler).not.toHaveBeenCalled();
+        },
+        {
+          mocks: {
+            getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([]),
+          },
+        },
+      );
+    });
+
     it('publishes event for predict deposit transaction with approved status', () => {
       withController(({ controller, messenger }) => {
         const transactionStatusChangedHandler = jest.fn();
@@ -8820,6 +8857,23 @@ describe('PredictController', () => {
   });
 
   describe('onPlaceOrderSuccess', () => {
+    it('does not write activeBuyOrders under undefined when no EVM account is selected', () => {
+      withController(
+        ({ controller }) => {
+          controller.onPlaceOrderSuccess();
+
+          expect(controller.state.activeBuyOrders).not.toHaveProperty(
+            'undefined',
+          );
+        },
+        {
+          mocks: {
+            getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([]),
+          },
+        },
+      );
+    });
+
     it('resets activeBuyOrder to PREVIEW and clears selectedPaymentToken', () => {
       withController(({ controller }) => {
         setActiveOrderForTest(controller, {

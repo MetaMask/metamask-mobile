@@ -525,11 +525,7 @@ export class PredictController extends BaseController<
    * @private
    */
   private getSigner(address?: string): Signer {
-    const selectedAddress = address ?? this.getEvmAccountAddress();
-
-    if (!selectedAddress) {
-      throw new Error('EVM account address is required');
-    }
+    const selectedAddress = address ?? this.requireEvmAccountAddress();
 
     return {
       address: selectedAddress,
@@ -562,6 +558,16 @@ export class PredictController extends BaseController<
       (account) => account && isEvmAccountType(account.type),
     );
     return evmAccount?.address;
+  }
+
+  private requireEvmAccountAddress(): string {
+    const address = this.getEvmAccountAddress();
+
+    if (!address) {
+      throw new Error('EVM account address is required');
+    }
+
+    return address;
   }
 
   private async invalidateQueryCache(chainId: number) {
@@ -1192,7 +1198,8 @@ export class PredictController extends BaseController<
   }
 
   async placeOrder(params: PlaceOrderParams): Promise<Result> {
-    const activeOrderAddress = params.address ?? this.getEvmAccountAddress();
+    const activeOrderAddress =
+      params.address ?? this.requireEvmAccountAddress();
     const { predictWithAnyTokenEnabled } = this.resolveFeatureFlags();
     const isBuyWithAnyToken =
       predictWithAnyTokenEnabled && params.preview.side === Side.BUY;
@@ -1958,6 +1965,11 @@ export class PredictController extends BaseController<
 
   public clearOrderError(): void {
     const address = this.getEvmAccountAddress();
+
+    if (!address) {
+      return;
+    }
+
     this.update((state) => {
       if (state.activeBuyOrders[address]) {
         delete state.activeBuyOrders[address].error;
@@ -1967,6 +1979,11 @@ export class PredictController extends BaseController<
 
   public onPlaceOrderSuccess(): void {
     const address = this.getEvmAccountAddress();
+
+    if (!address) {
+      return;
+    }
+
     this.update((state) => {
       state.activeBuyOrders[address] = {
         state: ActiveOrderState.PREVIEW,
@@ -1977,6 +1994,11 @@ export class PredictController extends BaseController<
 
   public clearActiveOrderTransactionId(): void {
     const address = this.getEvmAccountAddress();
+
+    if (!address) {
+      return;
+    }
+
     this.update((state) => {
       if (state.activeBuyOrders[address]?.transactionId) {
         state.activeBuyOrders[address].transactionId = undefined;
@@ -1999,6 +2021,10 @@ export class PredictController extends BaseController<
     );
 
     const address = this.getEvmAccountAddress();
+    if (!address) {
+      return;
+    }
+
     const activeOrder = this.state.activeBuyOrders[address];
     if (!activeOrder) {
       return;
@@ -2033,6 +2059,11 @@ export class PredictController extends BaseController<
 
   public clearActiveOrder(): void {
     const address = this.getEvmAccountAddress();
+
+    if (!address) {
+      return;
+    }
+
     this.update((state) => {
       delete state.activeBuyOrders[address];
     });
@@ -2180,7 +2211,7 @@ export class PredictController extends BaseController<
    */
   public async initPayWithAnyToken(): Promise<Result<{ batchId: string }>> {
     const provider = this.provider;
-    const address = this.getEvmAccountAddress();
+    const address = this.requireEvmAccountAddress();
 
     if (!this.state.activeBuyOrders[address]) {
       this.update((state) => {
@@ -2372,10 +2403,24 @@ export class PredictController extends BaseController<
       return;
     }
 
+    const fallbackAddress = this.getEvmAccountAddress()?.toLowerCase();
     const address =
       (transactionMeta.txParams.from as string | undefined)?.toLowerCase() ??
-      this.getEvmAccountAddress().toLowerCase();
+      fallbackAddress;
     const transactionId = transactionMeta.id;
+
+    if (!address) {
+      Logger.error(
+        new Error('EVM account address is required'),
+        this.getErrorContext('handleTransactionStatusUpdate', {
+          operation: 'resolve_sender_address',
+          type,
+          status,
+          transactionId,
+        }),
+      );
+      return;
+    }
     const amount = this.getTransactionAmount({
       type,
       status,
