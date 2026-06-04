@@ -213,8 +213,7 @@ describe('Notification Services Controller', () => {
   });
 
   it('omits OS metadata when running on a non-mobile platform', () => {
-    // @ts-expect-error — testing unsupported Platform.OS value
-    Platform.OS = 'web';
+    Platform.OS = 'web'; // valid RN platform, but not android/ios
 
     const { messenger, assertGetConstructorCall } = arrange();
     createNotificationServicesPushController({ messenger });
