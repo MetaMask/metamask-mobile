@@ -200,7 +200,7 @@ describe('BottomSheetDialog', () => {
   //   Note: Add Gesture tests when react-native-gesture-handler gets updated
 
   describe('panGestureHandlerProps', () => {
-    it('passes props to the PanGestureHandler via panGestureHandlerProps', () => {
+    it('passes testID to the sheet via panGestureHandlerProps', () => {
       const { getByTestId } = render(
         <BottomSheetDialog
           panGestureHandlerProps={{ testID: 'pan-gesture-handler' }}
