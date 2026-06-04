@@ -1612,7 +1612,17 @@ export const normalizeRelatedTagsToFilterOptions = (
   const seen = new Set<string>(existingIds ?? []);
   const options: PredictFilterOption[] = [];
 
+  // A filter option is a reusable filter definition, not a paginated request, so
+  // never carry a page cursor over from a (possibly reused) feed `baseParams`.
+  const filterBaseParams: PredictMarketListParams = { ...baseParams };
+  delete filterBaseParams.afterCursor;
+
   for (const tag of tags) {
+    // Check the cap before adding so `limit: 0` yields an empty list.
+    if (limit !== undefined && options.length >= limit) {
+      break;
+    }
+
     const slug = tag?.slug?.trim();
     if (!slug || seen.has(slug)) {
       continue;
@@ -1628,14 +1638,10 @@ export const normalizeRelatedTagsToFilterOptions = (
       params: {
         order: 'volume24hr',
         status: 'open',
-        ...baseParams,
+        ...filterBaseParams,
         tagSlugs: [slug],
       },
     });
-
-    if (limit !== undefined && options.length >= limit) {
-      break;
-    }
   }
 
   return options;

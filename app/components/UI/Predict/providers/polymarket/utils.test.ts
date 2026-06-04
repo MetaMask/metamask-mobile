@@ -965,6 +965,24 @@ describe('polymarket utils', () => {
       });
     });
 
+    it('never leaks a pagination cursor (afterCursor) from baseParams into option params', () => {
+      const [option] = normalizeRelatedTagsToFilterOptions(
+        [{ id: '1', label: 'NBA', slug: 'nba' }],
+        {
+          source: 'hot-tags',
+          baseParams: { live: true, afterCursor: 'cursor-123' },
+        },
+      );
+
+      expect(option.params).not.toHaveProperty('afterCursor');
+      expect(option.params).toEqual({
+        order: 'volume24hr',
+        status: 'open',
+        live: true,
+        tagSlugs: ['nba'],
+      });
+    });
+
     it('lets baseParams override the default order/status, but never tagSlugs', () => {
       const [option] = normalizeRelatedTagsToFilterOptions(
         [{ id: '1', label: 'NBA', slug: 'nba' }],
@@ -1042,6 +1060,18 @@ describe('polymarket utils', () => {
       );
 
       expect(result.map((o) => o.id)).toEqual(['nba', 'nfl']);
+    });
+
+    it('returns an empty list when limit is 0', () => {
+      expect(
+        normalizeRelatedTagsToFilterOptions(
+          [
+            { id: '1', label: 'NBA', slug: 'nba' },
+            { id: '2', label: 'NFL', slug: 'nfl' },
+          ],
+          { source: 'hot-tags', limit: 0 },
+        ),
+      ).toEqual([]);
     });
 
     it('returns an empty list for empty input', () => {
