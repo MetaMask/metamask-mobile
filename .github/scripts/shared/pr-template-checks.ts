@@ -6,6 +6,8 @@
 // Source of truth for what "ready for review" requires:
 // docs/readme/ready-for-review.md (DoRFR).
 
+import { tokenize, sectionTokens } from './markdown-tokenizer';
+
 export type PrTemplateCheckResult =
   | { ok: true }
   | { ok: false; reason: string };
@@ -43,14 +45,61 @@ const MANUAL_TESTING_TEMPLATE_MARKERS =
 // line boundary and accidentally capturing the next line as the rationale.
 const ISSUE_LINKAGE_LINE = /^[ \t]*\**(?:Fixes|Closes|Refs)\**[ \t]*:[ \t]*(.*)$/gim;
 
-const UNCHECKED_CHECKBOX = /^\s*-\s*\[\s\]\s+(.*)$/m;
-const CHECKED_CHECKBOX = /^\s*-\s*\[x\]\s+/im;
+
+/**
+ * Identify character ranges occupied by fenced code blocks (``` or ~~~).
+ * `<!--` delimiters inside these ranges are literal text and must not be
+ * treated as HTML comment openers — otherwise a single unclosed `<!--` in a
+ * code example drops everything that follows it, producing false "section
+ * empty" failures on a valid PR body.
+ */
+function computeFencedRanges(text: string): Array<[number, number]> {
+  const ranges: Array<[number, number]> = [];
+  const lines = text.split('\n');
+  let offset = 0;
+  let fenceStart = -1;
+  let fenceChar = '';
+  let fenceLen = 0;
+
+  for (const rawLine of lines) {
+    const line = rawLine.replace(/\r$/, ''); // normalise Windows line endings
+    const lineEnd = offset + rawLine.length + 1; // +1 for the \n removed by split
+
+    const match = /^[ \t]*(`{3,}|~{3,})/.exec(line);
+    if (match) {
+      const char = match[1][0];
+      const len = match[1].length;
+      if (fenceStart === -1) {
+        fenceStart = offset;
+        fenceChar = char;
+        fenceLen = len;
+      } else if (char === fenceChar && len >= fenceLen) {
+        ranges.push([fenceStart, lineEnd]);
+        fenceStart = -1;
+        fenceChar = '';
+        fenceLen = 0;
+      }
+    }
+
+    offset = lineEnd;
+  }
+
+  return ranges;
+}
 
 export function stripHtmlComments(text: string): string {
+  // Pre-compute fenced code block ranges so that `<!--` inside a code example
+  // is treated as literal text, not a comment opener.
+  //
   // Index-based removal avoids regex on the `<!--` delimiter, which CodeQL
   // flags as "incomplete multi-character sanitization". Walking forward by
   // character index guarantees every opener is paired with the next closer,
-  // and unclosed openers are consumed rather than left in the output.
+  // and unclosed openers outside code fences are consumed rather than left in
+  // the output.
+  const fencedRanges = computeFencedRanges(text);
+  const inFence = (idx: number): boolean =>
+    fencedRanges.some(([s, e]) => idx >= s && idx < e);
+
   let result = '';
   let cursor = 0;
   while (cursor < text.length) {
@@ -59,10 +108,16 @@ export function stripHtmlComments(text: string): string {
       result += text.slice(cursor);
       break;
     }
+    if (inFence(open)) {
+      // Literal code — copy the opener as-is and keep scanning.
+      result += text.slice(cursor, open + 4);
+      cursor = open + 4;
+      continue;
+    }
     result += text.slice(cursor, open);
     const close = text.indexOf('-->', open + 4);
     if (close === -1) {
-      break; // unclosed comment — drop everything from the opener to end of string
+      break; // unclosed comment outside a code fence — drop the rest
     }
     cursor = close + 3;
   }
@@ -71,21 +126,24 @@ export function stripHtmlComments(text: string): string {
 
 /**
  * Slice the body between `title` (a section heading from the PR template) and
- * the next `## **...**` heading. Returns `null` when the title is missing so
- * the caller can distinguish "section absent" (structural mismatch handled
- * elsewhere) from "section present but empty".
+ * the next heading of the same or higher level. Returns `null` when the title
+ * is missing so the caller can distinguish "section absent" (structural
+ * mismatch handled elsewhere) from "section present but empty".
+ *
+ * Uses the tokenizer so that a heading inside a fenced code block is never
+ * mistaken for a real section boundary or the section title itself.
  */
 export function extractSection(body: string, title: string): string | null {
-  const sanitized = stripHtmlComments(body);
-  const startIdx = sanitized.indexOf(title);
-  if (startIdx === -1) {
-    return null;
-  }
-  const afterTitle = sanitized.slice(startIdx + title.length);
-  const nextHeadingMatch = afterTitle.match(/\n##\s+\*\*/);
-  return nextHeadingMatch
-    ? afterTitle.slice(0, nextHeadingMatch.index)
-    : afterTitle;
+  const section = sectionTokens(tokenize(body), title);
+  if (section === null) return null;
+  // Reconstruct as a plain string, excluding HTML comments (they are
+  // placeholder instructions, not author content). Fenced code block content
+  // is preserved (raw, with fence markers) so that validators such as
+  // hasRealManualTesting can inspect Gherkin examples.
+  return section
+    .filter((t) => t.kind !== 'html_comment')
+    .map((t) => t.raw)
+    .join('\n');
 }
 
 export function hasNonEmptyDescription(
@@ -103,11 +161,16 @@ export function hasNonEmptyDescription(
 export function hasValidIssueLink(
   relatedIssuesSection: string,
 ): PrTemplateCheckResult {
-  const sanitized = stripHtmlComments(relatedIssuesSection);
-  // Check every Fixes/Closes/Refs line: at least one must carry a non-empty
-  // value. The template ships a blank `Fixes:` placeholder — using matchAll
-  // prevents that empty line from shadowing a valid `Refs:` added below it.
-  const hasValidLink = [...sanitized.matchAll(ISSUE_LINKAGE_LINE)].some(
+  // Search only in plain text tokens — a Fixes/Closes/Refs line inside a
+  // fenced code block (e.g. a doc example) must not count as the real link.
+  const textOutsideFences = tokenize(relatedIssuesSection)
+    .filter((t) => t.kind === 'text')
+    .map((t) => t.content)
+    .join('\n');
+  // Check every line: at least one must carry a non-empty value. The template
+  // ships a blank `Fixes:` placeholder — matchAll prevents that from shadowing
+  // a valid `Refs:` added on a subsequent line.
+  const hasValidLink = [...textOutsideFences.matchAll(ISSUE_LINKAGE_LINE)].some(
     (m) => (m[1]?.trim() ?? '').length > 0,
   );
   if (!hasValidLink) {
@@ -163,24 +226,30 @@ export function hasScreenshotsOrNa(
 export function hasAllAuthorChecklistChecked(
   checklistSection: string,
 ): PrTemplateCheckResult {
-  const sanitized = stripHtmlComments(checklistSection);
-  const firstUnchecked = sanitized.match(UNCHECKED_CHECKBOX);
-  if (firstUnchecked) {
-    const item = firstUnchecked[1].trim();
-    return {
-      ok: false,
-      reason: `\`Pre-merge author checklist\` has unchecked items (e.g. "${item}"). Every box must be consciously checked — see \`docs/readme/ready-for-review.md\`.`,
-    };
-  }
-  // Require at least one checked box so a section where all rows were deleted
-  // (leaving only the heading) does not silently pass.
-  if (!CHECKED_CHECKBOX.test(sanitized)) {
+  // Use only checkbox tokens — checkboxes that appear inside fenced code
+  // blocks are examples or docs, not real checklist items.
+  const checkboxes = tokenize(checklistSection).filter(
+    (t) => t.kind === 'checkbox',
+  );
+
+  // A section where all rows were deleted (or only the heading remains) has
+  // no checkbox tokens at all.
+  if (checkboxes.length === 0) {
     return {
       ok: false,
       reason:
         '`Pre-merge author checklist` has no checked items. Complete every checklist item before marking the PR as ready for review.',
     };
   }
+
+  const firstUnchecked = checkboxes.find((t) => !t.checked);
+  if (firstUnchecked) {
+    return {
+      ok: false,
+      reason: `\`Pre-merge author checklist\` has unchecked items (e.g. "${firstUnchecked.content}"). Every box must be consciously checked — see \`docs/readme/ready-for-review.md\`.`,
+    };
+  }
+
   return { ok: true };
 }
 
@@ -198,10 +267,12 @@ export function hasChangelogEntry(
   if (hasNoChangelogLabel) {
     return { ok: true };
   }
-  const lines = stripHtmlComments(body).split(/\r?\n/);
-  const changelogLine = lines.find((line) =>
-    line.trim().startsWith('CHANGELOG entry:'),
-  );
+  // Search only in plain text tokens — a CHANGELOG entry inside a fenced code
+  // block is a doc example, not the real entry the CI check requires.
+  const changelogLine = tokenize(body)
+    .filter((t) => t.kind === 'text')
+    .map((t) => t.content)
+    .find((line) => line.trim().startsWith('CHANGELOG entry:'));
   if (!changelogLine) {
     return {
       ok: false,

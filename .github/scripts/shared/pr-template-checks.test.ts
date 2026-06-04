@@ -75,6 +75,26 @@ describe('stripHtmlComments', () => {
   it('consumes everything from an unclosed opener to end of string', () => {
     expect(stripHtmlComments('a <!-- unclosed')).toBe('a ');
   });
+
+  it('preserves content after a fenced block whose interior contains an unclosed <!--', () => {
+    const body =
+      '## **Description**\n\nSome text\n\n```html\n<!-- unclosed\n```\n\n## **Changelog**\n\nCHANGELOG entry: fix';
+    expect(stripHtmlComments(body)).toContain('CHANGELOG entry: fix');
+  });
+
+  it('does not strip content that looks like an HTML comment inside a fenced block', () => {
+    const body = 'before\n```html\n<!-- comment -->\n```\nafter';
+    expect(stripHtmlComments(body)).toContain('<!-- comment -->');
+    expect(stripHtmlComments(body)).toContain('after');
+  });
+
+  it('still strips real HTML comments that appear outside fenced blocks', () => {
+    const body = 'before\n<!-- strip this -->\nafter\n```html\n<!-- keep this -->\n```\nend';
+    const result = stripHtmlComments(body);
+    expect(result).not.toContain('strip this');
+    expect(result).toContain('<!-- keep this -->');
+    expect(result).toContain('end');
+  });
 });
 
 describe('extractSection', () => {
@@ -271,6 +291,72 @@ describe('hasAllAuthorChecklistChecked', () => {
 
   it('fails when all checklist rows were deleted (heading only, no boxes)', () => {
     expect(hasAllAuthorChecklistChecked('\n\nSome plain text but no checkboxes\n').ok).toBe(false);
+  });
+});
+
+describe('fenced-block injection resistance', () => {
+  it('extractSection: a fake section heading inside a code block does not end the section early', () => {
+    const body = [
+      '## **Description**',
+      '',
+      '```',
+      '## **Changelog**',
+      '```',
+      '',
+      'Real description.',
+      '',
+      '## **Changelog**',
+      '',
+      'CHANGELOG entry: real',
+    ].join('\n');
+
+    const section = extractSection(body, '## **Description**');
+    // The fake ## **Changelog** inside the code block must not terminate the
+    // Description section — "Real description." must still be inside it.
+    expect(section).toContain('Real description');
+    // The real ## **Changelog** IS the boundary, so its content must not
+    // appear in the Description section.
+    expect(section).not.toContain('CHANGELOG entry: real');
+  });
+
+  it('hasChangelogEntry: a CHANGELOG entry inside a fenced block does not satisfy the check', () => {
+    const body = [
+      '## **Changelog**',
+      '',
+      '```',
+      'CHANGELOG entry: sneaky fake entry',
+      '```',
+      '',
+      'CHANGELOG entry:',
+    ].join('\n');
+
+    expect(hasChangelogEntry(body, false).ok).toBe(false);
+  });
+
+  it('hasValidIssueLink: a Fixes line inside a fenced block does not satisfy the check', () => {
+    const section = [
+      '```',
+      'Fixes: #123',
+      '```',
+      '',
+      'Fixes:',
+    ].join('\n');
+
+    expect(hasValidIssueLink(section).ok).toBe(false);
+  });
+
+  it('hasAllAuthorChecklistChecked: checkboxes inside a fenced block are ignored', () => {
+    const section = [
+      '```',
+      '- [x] Fake checked item',
+      '```',
+      '',
+      '- [ ] Real unchecked item',
+    ].join('\n');
+
+    const result = hasAllAuthorChecklistChecked(section);
+    expect(result.ok).toBe(false);
+    expect(result.ok === false && result.reason).toMatch(/Real unchecked item/);
   });
 });
 
