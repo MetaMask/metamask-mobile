@@ -13,11 +13,7 @@ import type {
   PredictThePitchLeaderboardPositionDto,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  formatPercentChange,
-  formatSignedUsd,
-  formatUsd,
-} from '../../utils/formatUtils';
+import { formatPercentChange, formatUsd } from '../../utils/formatUtils';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import { CampaignOutcomeBanner } from './CampaignOutcomeBanners';
 import { PendingTag, StatCell } from './OndoCampaignStatsSummary';
@@ -76,10 +72,6 @@ const PredictThePitchStatsSummary: React.FC<
     leaderboardPosition != null && Number.isFinite(leaderboardPosition.roi)
       ? leaderboardPosition.roi
       : null;
-  const pnl =
-    leaderboardPosition != null && Number.isFinite(leaderboardPosition.pnl)
-      ? leaderboardPosition.pnl
-      : null;
   const capitalDeployed =
     leaderboardPosition != null &&
     Number.isFinite(leaderboardPosition.capitalDeployed)
@@ -93,7 +85,6 @@ const PredictThePitchStatsSummary: React.FC<
 
   const rankDisplay = rank != null ? String(rank).padStart(2, '0') : '-';
   const roiDisplay = roi != null ? formatPercentChange(roi) : '-';
-  const pnlDisplay = pnl != null ? formatSignedUsd(pnl) : '-';
   const capitalDeployedDisplay =
     capitalDeployed != null ? formatUsd(capitalDeployed) : '-';
 
@@ -155,13 +146,6 @@ const PredictThePitchStatsSummary: React.FC<
           value={capitalDeployedDisplay}
           isLoading={showSkeleton}
           testID={PREDICT_THE_PITCH_STATS_SUMMARY_TEST_IDS.TOTAL_VOLUME}
-        />
-        <StatCell
-          label={strings('rewards.predict_the_pitch_campaign.label_pnl')}
-          value={pnlDisplay}
-          isLoading={showSkeleton}
-          valueColor={getMetricColor(pnl)}
-          testID={PREDICT_THE_PITCH_STATS_SUMMARY_TEST_IDS.PNL}
         />
       </Box>
 

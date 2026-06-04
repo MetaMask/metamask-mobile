@@ -71,7 +71,7 @@ jest.mock('../../utils/formatUtils', () => ({
 const TEST_IDS = PREDICT_THE_PITCH_PRIZE_POOL_TEST_IDS;
 
 const prizePool: PredictThePitchPrizePoolDto = {
-  totalVolumeUsd: 150,
+  totalCapitalDeployedUsd: 150,
   unlockedPoolUsd: 20,
   thresholdsUsd: [0, 100, 200],
   poolScheduleUsd: [10, 20, 30],
@@ -103,7 +103,11 @@ describe('PredictThePitchPrizePool', () => {
   it('renders max state when all prize milestones are unlocked', () => {
     const { getByText, getByTestId, queryByText } = render(
       <PredictThePitchPrizePool
-        prizePool={{ ...prizePool, totalVolumeUsd: 250, unlockedPoolUsd: 30 }}
+        prizePool={{
+          ...prizePool,
+          totalCapitalDeployedUsd: 250,
+          unlockedPoolUsd: 30,
+        }}
         isLoading={false}
         hasError={false}
         refetch={jest.fn()}

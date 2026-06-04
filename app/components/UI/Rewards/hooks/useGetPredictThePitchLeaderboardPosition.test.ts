@@ -64,13 +64,10 @@ const MOCK_POSITION: PredictThePitchLeaderboardPositionDto = {
   rank: 1,
   totalParticipants: 10,
   roi: 0.25,
-  pnl: 50,
   capitalDeployed: 200,
-  marketCount: 2,
   eligible: true,
   neighbors: [],
   computedAt: '2026-06-30T12:00:00.000Z',
-  updateIntervalMinutes: 15,
 };
 
 async function flushHookEffects() {

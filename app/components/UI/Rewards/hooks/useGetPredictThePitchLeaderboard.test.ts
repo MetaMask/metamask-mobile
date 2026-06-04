@@ -53,7 +53,6 @@ const CAMPAIGN_ID = 'predict-campaign-1';
 const MOCK_LEADERBOARD: PredictThePitchLeaderboardDto = {
   campaignId: CAMPAIGN_ID,
   computedAt: '2026-06-30T12:00:00.000Z',
-  updateIntervalMinutes: 15,
   entries: [],
   totalParticipants: 10,
 };

@@ -48,7 +48,7 @@ const PredictThePitchPrizePool: React.FC<PredictThePitchPrizePoolProps> = ({
   return (
     <CampaignPrizePool
       milestones={milestones}
-      currentVolume={prizePool?.totalVolumeUsd ?? null}
+      currentVolume={prizePool?.totalCapitalDeployedUsd ?? null}
       isLoading={isLoading}
       hasError={hasError}
       refetch={refetch}

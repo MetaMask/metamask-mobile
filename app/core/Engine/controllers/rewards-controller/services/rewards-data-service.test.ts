@@ -5412,7 +5412,6 @@ describe('RewardsDataService', () => {
       const leaderboard = {
         campaignId: mockCampaignId,
         computedAt: '2026-06-30T12:00:00.000Z',
-        updateIntervalMinutes: 15,
         entries: [],
         totalParticipants: 0,
       };
@@ -5436,13 +5435,10 @@ describe('RewardsDataService', () => {
         rank: 1,
         totalParticipants: 10,
         roi: 0.5,
-        pnl: 100,
         capitalDeployed: 200,
-        marketCount: 2,
         eligible: true,
         neighbors: [],
         computedAt: '2026-06-30T12:00:00.000Z',
-        updateIntervalMinutes: 15,
       };
       mockFetch.mockResolvedValueOnce({
         ok: true,
@@ -5550,7 +5546,7 @@ describe('RewardsDataService', () => {
 
     it('gets public prize-pool stats and throws on failures', async () => {
       const prizePool = {
-        totalVolumeUsd: 1000,
+        totalCapitalDeployedUsd: 1000,
         unlockedPoolUsd: 500,
         thresholdsUsd: [0, 1000],
         poolScheduleUsd: [250, 500],

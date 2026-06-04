@@ -23,7 +23,7 @@ jest.mock('../hooks/useGetPredictThePitchLeaderboardPosition');
 
 jest.mock('../utils/formatUtils', () => ({
   formatOrdinalRank: (rank: number) => `${rank}-rank`,
-  formatSignedUsd: (value: number) => `signed-${value}`,
+  formatPercentChange: (value: number) => `percent-${value}`,
 }));
 
 jest.mock('./CampaignWinningView', () => {
@@ -65,13 +65,10 @@ describe('PredictThePitchCampaignWinningView', () => {
         rank: 3,
         totalParticipants: 10,
         roi: 0.2,
-        pnl: 15,
         capitalDeployed: 100,
-        marketCount: 2,
         eligible: true,
         neighbors: [],
         computedAt: '2025-01-01T00:00:00.000Z',
-        updateIntervalMinutes: 5,
       },
       isLoading: false,
       hasError: false,
@@ -90,7 +87,7 @@ describe('PredictThePitchCampaignWinningView', () => {
       analyticsPageType: 'predict_the_pitch_campaign_winning',
       winningCode: 'winner-code',
       rankDisplay: '2-rank',
-      resultDisplay: 'signed-15',
+      resultDisplay: 'percent-0.2',
       fallbackRoute: {
         route: Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW,
         params: { campaignId: 'predict-campaign-1' },

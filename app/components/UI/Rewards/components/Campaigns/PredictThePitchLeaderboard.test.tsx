@@ -43,8 +43,6 @@ const createEntry = (
   rank: 1,
   referralCode: 'AAA111',
   roi: 0.1,
-  pnl: 20,
-  capitalDeployed: 100,
   ...overrides,
 });
 

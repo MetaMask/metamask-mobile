@@ -244,13 +244,12 @@ const campaign: CampaignDto = {
 const leaderboard: PredictThePitchLeaderboardDto = {
   campaignId: 'predict-campaign-1',
   computedAt: '2025-01-01T00:00:00.000Z',
-  updateIntervalMinutes: 5,
   totalParticipants: 10,
   entries: [],
 };
 
 const prizePool: PredictThePitchPrizePoolDto = {
-  totalVolumeUsd: 100,
+  totalCapitalDeployedUsd: 100,
   unlockedPoolUsd: 10,
   thresholdsUsd: [0, 100],
   poolScheduleUsd: [10, 20],
@@ -288,13 +287,12 @@ const renderDetails = ({
       computedAt: null,
       positions: Array.from({ length: positionCount }, (_, index) => ({
         conditionId: `condition-${index}`,
-        displayName: `Position ${index}`,
-        navId: null,
-        marketSlug: null,
+        conditionName: `Position ${index}`,
+        conditionSlug: null,
+        eventId: null,
         eventSlug: null,
         iconUrl: null,
-        flags: [],
-        moneySpent: 10,
+        capitalDeployed: 10,
         pnl: 1,
         roi: 0.1,
       })),

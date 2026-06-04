@@ -1121,14 +1121,11 @@ export interface PredictThePitchLeaderboardEntryDto {
   rank: number;
   referralCode: string;
   roi: number;
-  pnl: number;
-  capitalDeployed: number;
 }
 
 export interface PredictThePitchLeaderboardDto {
   campaignId: string;
   computedAt: string;
-  updateIntervalMinutes: number;
   entries: PredictThePitchLeaderboardEntryDto[];
   totalParticipants: number;
 }
@@ -1137,24 +1134,20 @@ export interface PredictThePitchLeaderboardPositionDto {
   rank: number | null;
   totalParticipants: number;
   roi: number;
-  pnl: number;
   capitalDeployed: number;
-  marketCount: number;
   eligible: boolean;
   neighbors: PredictThePitchLeaderboardEntryDto[];
   computedAt: string;
-  updateIntervalMinutes: number;
 }
 
 export interface PredictThePitchPositionDto {
   conditionId: string;
-  displayName: string;
-  navId: string | null;
-  marketSlug: string | null;
+  conditionName: string;
+  conditionSlug: string | null;
+  eventId: string | null;
   eventSlug: string | null;
   iconUrl: string | null;
-  flags: string[];
-  moneySpent: number;
+  capitalDeployed: number;
   pnl: number;
   roi: number;
 }
@@ -1175,7 +1168,7 @@ export interface PredictThePitchPrizeBreakdownEntryDto {
 }
 
 export interface PredictThePitchPrizePoolDto {
-  totalVolumeUsd: number;
+  totalCapitalDeployedUsd: number;
   unlockedPoolUsd: number;
   thresholdsUsd: number[];
   poolScheduleUsd: number[];
@@ -1188,15 +1181,12 @@ export type PredictThePitchLeaderboardEntryState = {
   rank: number;
   referralCode: string;
   roi: number;
-  pnl: number;
-  capitalDeployed: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictThePitchLeaderboardState = {
   campaignId: string;
   computedAt: string;
-  updateIntervalMinutes: number;
   entries: PredictThePitchLeaderboardEntryState[];
   totalParticipants: number;
   lastFetched: number;
@@ -1207,13 +1197,10 @@ export type PredictThePitchLeaderboardPositionFoundState = {
   rank: number | null;
   totalParticipants: number;
   roi: number;
-  pnl: number;
   capitalDeployed: number;
-  marketCount: number;
   eligible: boolean;
   neighbors: PredictThePitchLeaderboardEntryState[];
   computedAt: string;
-  updateIntervalMinutes: number;
   lastFetched: number;
 };
 
@@ -1230,13 +1217,12 @@ export type PredictThePitchLeaderboardPositionState =
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictThePitchPositionState = {
   conditionId: string;
-  displayName: string;
-  navId: string | null;
-  marketSlug: string | null;
+  conditionName: string;
+  conditionSlug: string | null;
+  eventId: string | null;
   eventSlug: string | null;
   iconUrl: string | null;
-  flags: string[];
-  moneySpent: number;
+  capitalDeployed: number;
   pnl: number;
   roi: number;
 };
@@ -1256,7 +1242,7 @@ export type PredictThePitchPrizeBreakdownEntryState = {
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictThePitchPrizePoolState = {
-  totalVolumeUsd: number;
+  totalCapitalDeployedUsd: number;
   unlockedPoolUsd: number;
   thresholdsUsd: number[];
   poolScheduleUsd: number[];

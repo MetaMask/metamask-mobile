@@ -55,17 +55,14 @@ const basePosition: PredictThePitchLeaderboardPositionDto = {
   rank: 3,
   totalParticipants: 50,
   roi: 0.125,
-  pnl: 25,
   capitalDeployed: 100,
-  marketCount: 4,
   eligible: true,
   neighbors: [],
   computedAt: '2025-01-01T00:00:00.000Z',
-  updateIntervalMinutes: 5,
 };
 
 describe('PredictThePitchStatsSummary', () => {
-  it('renders rank, ROI, total volume, and PnL', () => {
+  it('renders rank, ROI, and total volume', () => {
     const { getByTestId, getByText } = render(
       <PredictThePitchStatsSummary
         leaderboardPosition={basePosition}
@@ -79,7 +76,6 @@ describe('PredictThePitchStatsSummary', () => {
     expect(getByText('03')).toBeDefined();
     expect(getByText('+12.50%')).toBeDefined();
     expect(getByText('$100.00')).toBeDefined();
-    expect(getByText('+$25.00')).toBeDefined();
   });
 
   it('shows dash for invalid rank', () => {
@@ -95,10 +91,10 @@ describe('PredictThePitchStatsSummary', () => {
     expect(getByTestId(TEST_IDS.RANK).props.children).toBe('-');
   });
 
-  it('uses profit and loss colors for ROI and PnL', () => {
+  it('uses profit and loss colors for ROI', () => {
     const { getByTestId } = render(
       <PredictThePitchStatsSummary
-        leaderboardPosition={{ ...basePosition, roi: -0.1, pnl: -5 }}
+        leaderboardPosition={{ ...basePosition, roi: -0.1 }}
         isLoading={false}
         hasError={false}
         refetch={jest.fn()}
@@ -106,7 +102,6 @@ describe('PredictThePitchStatsSummary', () => {
     );
 
     expect(getByTestId(TEST_IDS.ROI).props.color).toBe(TextColor.ErrorDefault);
-    expect(getByTestId(TEST_IDS.PNL).props.color).toBe(TextColor.ErrorDefault);
   });
 
   it('renders an error banner when no stats are available', () => {

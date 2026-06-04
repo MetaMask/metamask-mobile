@@ -21311,7 +21311,6 @@ describe('RewardsController', () => {
     const mockLeaderboard = {
       campaignId: mockCampaignId,
       computedAt: '2026-06-30T12:00:00.000Z',
-      updateIntervalMinutes: 15,
       entries: [],
       totalParticipants: 0,
     };
@@ -21319,25 +21318,21 @@ describe('RewardsController', () => {
       rank: 1,
       totalParticipants: 10,
       roi: 0.5,
-      pnl: 100,
       capitalDeployed: 200,
-      marketCount: 2,
       eligible: true,
       neighbors: [],
       computedAt: '2026-06-30T12:00:00.000Z',
-      updateIntervalMinutes: 15,
     };
     const mockPositions = {
       positions: [
         {
           conditionId: '0xcondition',
-          displayName: 'Brazil vs Argentina',
-          navId: '0xnav',
-          marketSlug: 'brazil-vs-argentina',
+          conditionName: 'Brazil vs Argentina',
+          conditionSlug: 'brazil-vs-argentina',
+          eventId: '0xnav',
           eventSlug: 'world-cup',
           iconUrl: null,
-          flags: [],
-          moneySpent: 100,
+          capitalDeployed: 100,
           pnl: 25,
           roi: 0.25,
         },
@@ -21351,7 +21346,7 @@ describe('RewardsController', () => {
       rank: 1,
     };
     const mockPrizePool = {
-      totalVolumeUsd: 1000,
+      totalCapitalDeployedUsd: 1000,
       unlockedPoolUsd: 500,
       thresholdsUsd: [0, 1000],
       poolScheduleUsd: [250, 500],

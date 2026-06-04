@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { useGetPredictThePitchOutcome } from '../hooks/useGetPredictThePitchOutcome';
 import { useGetPredictThePitchLeaderboardPosition } from '../hooks/useGetPredictThePitchLeaderboardPosition';
-import { formatOrdinalRank, formatSignedUsd } from '../utils/formatUtils';
+import { formatOrdinalRank, formatPercentChange } from '../utils/formatUtils';
 import CampaignWinningView from './CampaignWinningView';
 import Routes from '../../../../constants/navigation/Routes';
 
@@ -45,7 +45,7 @@ const PredictThePitchCampaignWinningView: React.FC = () => {
 
   const resultDisplay = useMemo(() => {
     if (!position) return null;
-    return formatSignedUsd(position.pnl);
+    return formatPercentChange(position.roi);
   }, [position]);
 
   const fallbackRoute = useMemo(

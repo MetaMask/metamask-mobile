@@ -4078,7 +4078,6 @@ describe('Rewards selectors', () => {
     const mockLeaderboard = {
       campaignId: 'predict-c-1',
       computedAt: '2026-06-30T12:00:00.000Z',
-      updateIntervalMinutes: 15,
       entries: [],
       totalParticipants: 10,
     };
@@ -4086,20 +4085,17 @@ describe('Rewards selectors', () => {
       rank: 1,
       totalParticipants: 10,
       roi: 0.25,
-      pnl: 50,
       capitalDeployed: 200,
-      marketCount: 2,
       eligible: true,
       neighbors: [],
       computedAt: '2026-06-30T12:00:00.000Z',
-      updateIntervalMinutes: 15,
     };
     const mockPositions = {
       positions: [],
       computedAt: null,
     };
     const mockPrizePool = {
-      totalVolumeUsd: 1000,
+      totalCapitalDeployedUsd: 1000,
       unlockedPoolUsd: 500,
       thresholdsUsd: [0, 1000],
       poolScheduleUsd: [250, 500],

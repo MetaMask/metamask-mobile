@@ -4824,7 +4824,6 @@ export class RewardsController extends BaseController<
       return {
         campaignId,
         computedAt: '',
-        updateIntervalMinutes: 0,
         entries: [],
         totalParticipants: 0,
       };
@@ -4840,7 +4839,6 @@ export class RewardsController extends BaseController<
           payload: {
             campaignId: cached.campaignId,
             computedAt: cached.computedAt,
-            updateIntervalMinutes: cached.updateIntervalMinutes,
             entries: cached.entries,
             totalParticipants: cached.totalParticipants,
           },
@@ -4893,13 +4891,10 @@ export class RewardsController extends BaseController<
             rank: cached.rank,
             totalParticipants: cached.totalParticipants,
             roi: cached.roi,
-            pnl: cached.pnl,
             capitalDeployed: cached.capitalDeployed,
-            marketCount: cached.marketCount,
             eligible: cached.eligible,
             neighbors: cached.neighbors,
             computedAt: cached.computedAt,
-            updateIntervalMinutes: cached.updateIntervalMinutes,
           },
           lastFetched: cached.lastFetched,
         };
@@ -5038,7 +5033,7 @@ export class RewardsController extends BaseController<
   ): Promise<PredictThePitchPrizePoolDto> {
     if (!this.isRewardsFeatureEnabled()) {
       return {
-        totalVolumeUsd: 0,
+        totalCapitalDeployedUsd: 0,
         unlockedPoolUsd: 0,
         thresholdsUsd: [],
         poolScheduleUsd: [],
@@ -5055,7 +5050,7 @@ export class RewardsController extends BaseController<
         if (!cached) return undefined;
         return {
           payload: {
-            totalVolumeUsd: cached.totalVolumeUsd,
+            totalCapitalDeployedUsd: cached.totalCapitalDeployedUsd,
             unlockedPoolUsd: cached.unlockedPoolUsd,
             thresholdsUsd: cached.thresholdsUsd,
             poolScheduleUsd: cached.poolScheduleUsd,
