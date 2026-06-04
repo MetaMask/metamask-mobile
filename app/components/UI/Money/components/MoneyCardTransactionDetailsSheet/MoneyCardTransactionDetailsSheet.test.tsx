@@ -19,9 +19,11 @@ const card: CardTransaction = {
 };
 
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
+let mockRouteParams: { card?: CardTransaction } | undefined;
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ navigate: mockNavigate, goBack: jest.fn() }),
-  useRoute: () => ({ params: { card } }),
+  useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack }),
+  useRoute: () => ({ params: mockRouteParams }),
 }));
 
 jest.mock('react-redux', () => ({
@@ -114,7 +116,10 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 describe('MoneyCardTransactionDetailsSheet', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockRouteParams = { card };
+  });
 
   it('renders the outgoing card amount', () => {
     const { getByTestId } = render(<MoneyCardTransactionDetailsSheet />);
@@ -145,5 +150,19 @@ describe('MoneyCardTransactionDetailsSheet', () => {
         },
       }),
     );
+  });
+
+  it('pops back and renders nothing when reached without a card param', () => {
+    // Arrange — e.g. navigation-state restoration with no params.
+    mockRouteParams = undefined;
+
+    // Act
+    const { queryByTestId } = render(<MoneyCardTransactionDetailsSheet />);
+
+    // Assert
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(
+      queryByTestId(MoneyCardTransactionDetailsSheetTestIds.CONTAINER),
+    ).toBeNull();
   });
 });

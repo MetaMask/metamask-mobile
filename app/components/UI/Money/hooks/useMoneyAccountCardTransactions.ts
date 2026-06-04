@@ -4,6 +4,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectIsMoneyAccountDelegatedForCard } from '../../../../selectors/cardController';
+import { selectCardFeatureFlag } from '../../../../selectors/featureFlagController/card';
 import { MUSD_MONEY_ACCOUNT_CHAIN_IDS } from '../../Earn/constants/musd';
 import Logger from '../../../../util/Logger';
 import type { CardTransaction } from '../types/moneyActivity';
@@ -31,13 +32,17 @@ const EMPTY: CardTransaction[] = [];
  * (off-device settlement — see {@link CardTransaction}). Gated on the account
  * being a linked card funding source; otherwise returns nothing without a fetch.
  *
- * MVP behaviour (per MUSD-817): no pagination (latest page only), and refetch
- * on screen focus rather than polling.
+ * Fetches the latest page only (no pagination) and refetches on screen focus
+ * rather than polling.
  */
 export function useMoneyAccountCardTransactions(): UseMoneyAccountCardTransactionsResult {
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
   const isLinked = useSelector(selectIsMoneyAccountDelegatedForCard);
+  const cardFeatureFlag = useSelector(selectCardFeatureFlag);
   const rawAddress = primaryMoneyAccount?.address;
+  // Same source `CardController` uses; falls back to the client default when the
+  // flag doesn't carry one.
+  const accountsApiUrl = cardFeatureFlag?.constants?.accountsApiUrl;
 
   const [cardTransactions, setCardTransactions] =
     useState<CardTransaction[]>(EMPTY);
@@ -66,6 +71,7 @@ export function useMoneyAccountCardTransactions(): UseMoneyAccountCardTransactio
       const response = await fetchAccountTransactions({
         address: moneyAddress,
         chainIds: MUSD_MONEY_ACCOUNT_CHAIN_IDS,
+        baseUrl: accountsApiUrl,
         signal: controller.signal,
       });
       if (current !== requestId.current) return;
@@ -79,7 +85,7 @@ export function useMoneyAccountCardTransactions(): UseMoneyAccountCardTransactio
     } finally {
       if (current === requestId.current) setHasLoaded(true);
     }
-  }, [isLinked, rawAddress]);
+  }, [isLinked, rawAddress, accountsApiUrl]);
 
   useFocusEffect(
     useCallback(() => {

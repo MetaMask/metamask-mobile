@@ -5,6 +5,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useMoneyAccountCardTransactions } from './useMoneyAccountCardTransactions';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectIsMoneyAccountDelegatedForCard } from '../../../../selectors/cardController';
+import { selectCardFeatureFlag } from '../../../../selectors/featureFlagController/card';
 import {
   fetchAccountTransactions,
   parseCardTransactions,
@@ -29,6 +30,9 @@ jest.mock('../../../../selectors/moneyAccountController', () => ({
 jest.mock('../../../../selectors/cardController', () => ({
   selectIsMoneyAccountDelegatedForCard: jest.fn(),
 }));
+jest.mock('../../../../selectors/featureFlagController/card', () => ({
+  selectCardFeatureFlag: jest.fn(),
+}));
 jest.mock('../utils/accountsApi', () => ({
   fetchAccountTransactions: jest.fn(),
   parseCardTransactions: jest.fn(),
@@ -46,6 +50,7 @@ const mockLoggerError = jest.mocked(Logger.error);
 
 const ADDR_A = '0xbF4bC559f929cE3994Ba12D71d564737357bC8C2';
 const ADDR_B = '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B';
+const FLAG_URL = 'https://accounts.api.staging.test';
 
 const CARD: CardTransaction = {
   hash: '0xabc',
@@ -87,6 +92,9 @@ beforeEach(() => {
     if (selector === selectPrimaryMoneyAccount) {
       return account;
     }
+    if (selector === selectCardFeatureFlag) {
+      return { constants: { accountsApiUrl: FLAG_URL } };
+    }
     return undefined;
   });
 
@@ -119,6 +127,20 @@ describe('useMoneyAccountCardTransactions', () => {
     );
     expect(result.current.cardTransactions).toEqual([CARD]);
     expect(result.current.error).toBe(false);
+  });
+
+  it('fetches against the card feature flag accountsApiUrl', async () => {
+    // Arrange
+    mockFetch.mockResolvedValue({ cards: [] } as never);
+
+    // Act
+    const { result } = renderHook(() => useMoneyAccountCardTransactions());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    // Assert
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.objectContaining({ baseUrl: FLAG_URL }),
+    );
   });
 
   it('does not fetch for an unlinked account and never reports loading', async () => {

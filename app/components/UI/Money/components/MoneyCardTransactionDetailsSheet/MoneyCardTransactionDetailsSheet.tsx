@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
@@ -51,7 +51,7 @@ import type { CardTransaction } from '../../types/moneyActivity';
 import { MoneyCardTransactionDetailsSheetTestIds } from './MoneyCardTransactionDetailsSheet.testIds';
 
 type CardDetailsRoute = RouteProp<
-  { params: { card: CardTransaction } },
+  { params?: { card?: CardTransaction } },
   'params'
 >;
 
@@ -66,10 +66,9 @@ const styles = StyleSheet.create({
  * serializable data). Shows the public on-chain facts plus a block-explorer
  * link; vendor / merchant data is out of scope.
  */
-const MoneyCardTransactionDetailsSheet = () => {
+const CardTransactionDetails = ({ card }: { card: CardTransaction }) => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
-  const { card } = useRoute<CardDetailsRoute>().params;
   const surfaceClass = useElevatedSurface();
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
@@ -213,6 +212,29 @@ const MoneyCardTransactionDetailsSheet = () => {
       </ScrollView>
     </BottomSheet>
   );
+};
+
+/**
+ * Route entry for the card detail sheet. Guards against being reached without
+ * its `card` param (e.g. navigation-state restoration) — the card object is the
+ * sheet's only data source — by popping back rather than rendering a broken
+ * sheet.
+ */
+const MoneyCardTransactionDetailsSheet = () => {
+  const navigation = useNavigation();
+  const card = useRoute<CardDetailsRoute>().params?.card;
+
+  useEffect(() => {
+    if (!card) {
+      navigation.goBack();
+    }
+  }, [card, navigation]);
+
+  if (!card) {
+    return null;
+  }
+
+  return <CardTransactionDetails card={card} />;
 };
 
 export default MoneyCardTransactionDetailsSheet;

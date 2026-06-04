@@ -12,12 +12,12 @@ import type { CardTransaction } from '../types/moneyActivity';
  * index, so we call the REST endpoint directly here. We model only the response
  * fields Money activity consumes.
  *
- * NOTE: the base URL is hard-coded to match the transaction-controller's own
- * client. Production should prefer the card feature flag's `accountsApiUrl`
- * (the same value `CardController` already reads) so it can be pointed at
- * staging — left out of this example for brevity.
+ * The base URL is supplied by the caller (the hook reads the card feature
+ * flag's `accountsApiUrl` — the same value `CardController` uses — so it can be
+ * pointed at staging). {@link DEFAULT_ACCOUNTS_API_BASE_URL} is only a fallback
+ * for when the flag doesn't carry one.
  */
-const ACCOUNTS_API_BASE_URL = 'https://accounts.api.cx.metamask.io';
+const DEFAULT_ACCOUNTS_API_BASE_URL = 'https://accounts.api.cx.metamask.io';
 const CLIENT_HEADER = 'x-metamask-clientproduct';
 const CLIENT_ID = 'metamask-mobile-money';
 
@@ -68,22 +68,32 @@ interface AccountsApiTransactionsResponse {
 /**
  * Fetch raw account transactions for `address` on the given `chainIds`.
  *
- * MVP intentionally does not paginate: it requests the most recent page only.
- * `pageInfo.cursor` is available on the wire if that ever changes.
+ * Requests the most recent page only; pagination is not implemented.
+ * `pageInfo.cursor` is available on the wire if it's needed later.
  */
 export async function fetchAccountTransactions(args: {
   address: string;
   chainIds: Hex[];
+  /** Accounts API root, e.g. the card feature flag's `accountsApiUrl`. */
+  baseUrl?: string;
   sortDirection?: 'ASC' | 'DESC';
   /** Aborts the request when the caller cancels (e.g. the screen blurs). */
   signal?: AbortSignal;
 }): Promise<AccountsApiTransactionsResponse> {
-  const { address, chainIds, sortDirection = 'DESC', signal } = args;
+  const {
+    address,
+    chainIds,
+    baseUrl = DEFAULT_ACCOUNTS_API_BASE_URL,
+    sortDirection = 'DESC',
+    signal,
+  } = args;
   const params = new URLSearchParams({
     networks: chainIds.join(','),
     sortDirection,
   });
-  const url = `${ACCOUNTS_API_BASE_URL}/v1/accounts/${encodeURIComponent(
+  // Tolerate a trailing slash on the configured base URL.
+  const root = baseUrl.replace(/\/+$/u, '');
+  const url = `${root}/v1/accounts/${encodeURIComponent(
     address,
   )}/transactions?${params}`;
 

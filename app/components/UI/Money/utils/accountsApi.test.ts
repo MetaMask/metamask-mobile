@@ -221,6 +221,20 @@ describe('fetchAccountTransactions', () => {
     expect(options.signal).toBeInstanceOf(AbortSignal);
   });
 
+  it('uses a provided base URL, tolerating a trailing slash', async () => {
+    // Act
+    await fetchAccountTransactions({
+      address: MONEY_ADDRESS,
+      chainIds: ['0x8f'],
+      baseUrl: 'https://accounts.api.staging.test/',
+    });
+
+    // Assert — single slash between host and path.
+    expect(fetchSpy.mock.calls[0][0]).toBe(
+      `https://accounts.api.staging.test/v1/accounts/${MONEY_ADDRESS}/transactions?networks=0x8f&sortDirection=DESC`,
+    );
+  });
+
   it('throws when the response is not ok', async () => {
     // Arrange
     fetchSpy.mockResolvedValue({ ok: false, status: 503 } as Response);

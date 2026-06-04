@@ -11,6 +11,7 @@ import {
 import { MoneyActivityLoadingTestIds } from '../../components/MoneyActivityLoading/MoneyActivityLoading.testIds';
 import MoneyActivityView from './MoneyActivityView';
 import { MoneyActivityViewTestIds } from './MoneyActivityView.testIds';
+import type { CardTransaction } from '../../types/moneyActivity';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -59,6 +60,18 @@ jest.mock('../../components/MoneyActivityItem/MoneyActivityItem', () => {
   };
 });
 
+jest.mock('../../components/CardActivityItem/CardActivityItem', () => {
+  const { Text, Pressable: RNPressable } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ card }: { card: { hash: string } }) => (
+      <RNPressable testID={`activity-mock-card-${card.hash}`}>
+        <Text>{card.hash}</Text>
+      </RNPressable>
+    ),
+  };
+});
+
 jest.mock('../../../../../../locales/i18n', () => ({
   __esModule: true,
   default: { locale: 'en-US' },
@@ -83,6 +96,20 @@ const mockUseMoneyAccountCardTransactions = jest.mocked(
 
 const MOCK_DEPOSITS = MOCK_MONEY_TRANSACTIONS.filter(isMoneyActivityDeposit);
 const MOCK_TRANSFERS = MOCK_MONEY_TRANSACTIONS.filter(isMoneyActivityTransfer);
+
+const CARD_TX: CardTransaction = {
+  hash: '0xcard1',
+  time: 1780574031000,
+  chainId: '0x8f',
+  token: {
+    address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+    symbol: 'mUSD',
+    decimals: 6,
+  },
+  amount: '5381986',
+  to: '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e',
+};
+const CARD_ROW_TEST_ID = `activity-mock-card-${CARD_TX.hash}`;
 
 describe('MoneyActivityView', () => {
   beforeEach(() => {
@@ -205,5 +232,63 @@ describe('MoneyActivityView', () => {
     fireEvent.press(getByTestId('activity-mock-tx-money-tx-1'));
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders card payment rows merged into the list', () => {
+    mockUseMoneyAccountCardTransactions.mockReturnValue({
+      cardTransactions: [CARD_TX],
+      isLoading: false,
+      error: false,
+      refetch: jest.fn(),
+    });
+
+    const { getByTestId } = renderWithProvider(<MoneyActivityView />);
+
+    expect(getByTestId(CARD_ROW_TEST_ID)).toBeOnTheScreen();
+  });
+
+  it('buckets card payments into Transfers and All, but not Deposits', () => {
+    mockUseMoneyAccountCardTransactions.mockReturnValue({
+      cardTransactions: [CARD_TX],
+      isLoading: false,
+      error: false,
+      refetch: jest.fn(),
+    });
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <MoneyActivityView />,
+    );
+
+    // All (default): present.
+    expect(getByTestId(CARD_ROW_TEST_ID)).toBeOnTheScreen();
+
+    // Deposits: absent (card spends are outgoing).
+    fireEvent.press(getByTestId(MoneyActivityViewTestIds.FILTER_DEPOSITS));
+    expect(queryByTestId(CARD_ROW_TEST_ID)).toBeNull();
+
+    // Transfers: present.
+    fireEvent.press(getByTestId(MoneyActivityViewTestIds.FILTER_TRANSFERS));
+    expect(getByTestId(CARD_ROW_TEST_ID)).toBeOnTheScreen();
+  });
+
+  it('does not render card rows in mock-data mode', () => {
+    mockUseMoneyAccountTransactions.mockReturnValue({
+      allTransactions: MOCK_MONEY_TRANSACTIONS,
+      deposits: MOCK_DEPOSITS,
+      transfers: MOCK_TRANSFERS,
+      submittedTransactions: [],
+      moneyAddress: '0x0000000000000000000000000000000000000001',
+      mockDataEnabled: true,
+    });
+    mockUseMoneyAccountCardTransactions.mockReturnValue({
+      cardTransactions: [CARD_TX],
+      isLoading: false,
+      error: false,
+      refetch: jest.fn(),
+    });
+
+    const { queryByTestId } = renderWithProvider(<MoneyActivityView />);
+
+    expect(queryByTestId(CARD_ROW_TEST_ID)).toBeNull();
   });
 });

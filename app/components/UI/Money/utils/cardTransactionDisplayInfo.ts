@@ -24,7 +24,7 @@ export function cardTransactionDisplayInfo(
 
   return {
     label: strings('money.transaction.card_transaction'),
-    description: undefined, // Left as a placeholder for future enrichment
+    description: undefined, // No merchant/vendor data on-chain
     primaryAmount,
     fiatAmount,
     isIncoming: false,
