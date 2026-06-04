@@ -8,6 +8,7 @@ export const styleSheet = (params: { theme: Theme }) => {
     container: {
       paddingHorizontal: 16,
       paddingTop: 8,
+      paddingBottom: 24,
     },
     grid: {
       flexDirection: 'row',
