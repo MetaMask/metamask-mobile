@@ -39,6 +39,11 @@ import { ChainId } from '@metamask/bridge-controller';
 import Logger from '../../../../../../util/Logger';
 import { trackQuickBuyTrade } from './quickBuyTradeTracker';
 import { buildQuickBuyToastOptions } from './quickBuyToastOptions';
+import {
+  playImpact,
+  playErrorNotification,
+  ImpactMoment,
+} from '../../../../../../util/haptics';
 
 jest.mock('../../../../../../util/Logger', () => ({
   __esModule: true,
@@ -230,6 +235,12 @@ jest.mock('./quickBuyTradeTracker', () => ({
 
 jest.mock('./quickBuyToastOptions', () => ({
   buildQuickBuyToastOptions: jest.fn((kind: string) => ({ kind })),
+}));
+
+jest.mock('../../../../../../util/haptics', () => ({
+  playImpact: jest.fn(),
+  playErrorNotification: jest.fn(),
+  ImpactMoment: { PrimaryCTA: 'primaryCta' },
 }));
 
 const mockTrack = jest.fn();
@@ -1947,6 +1958,7 @@ describe('useQuickBuyController', () => {
           theme: expect.any(Object),
         });
         expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+        expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
 
         await act(async () => {
           resolveSubmit({ id: 'tx-1', hash: '0xabc' });
@@ -2006,6 +2018,7 @@ describe('useQuickBuyController', () => {
           theme: expect.any(Object),
         });
         expect(mockShowToast).toHaveBeenCalledWith({ kind: 'failed' });
+        expect(playErrorNotification).toHaveBeenCalledTimes(1);
         expect(trackQuickBuyTrade).not.toHaveBeenCalled();
       });
     });

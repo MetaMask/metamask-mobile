@@ -6,7 +6,11 @@ import {
   useRef,
   useState,
 } from 'react';
-import { playErrorNotification } from '../../../../../../../util/haptics';
+import {
+  playErrorNotification,
+  playImpact,
+  ImpactMoment,
+} from '../../../../../../../util/haptics';
 import { TextInput } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import type {
@@ -973,6 +977,10 @@ export function useQuickBuyController(
     toastRef?.current?.showToast(
       buildQuickBuyToastOptions('pending', { trade: tradeToastInfo, theme }),
     );
+    // Medium impact acknowledging the Buy commit (catalog `PrimaryCTA`);
+    // success/error feedback is deferred to the terminal complete/failed
+    // states once the swap settles.
+    playImpact(ImpactMoment.PrimaryCTA);
 
     const elapsedMs = () =>
       submitStartedAtRef.current ? Date.now() - submitStartedAtRef.current : 0;

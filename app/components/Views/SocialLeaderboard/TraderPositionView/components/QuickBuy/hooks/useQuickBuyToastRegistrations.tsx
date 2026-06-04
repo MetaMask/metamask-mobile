@@ -10,6 +10,10 @@ import {
   untrackQuickBuyTrade,
 } from '../quickBuyTradeTracker';
 import { buildQuickBuyToastOptions } from '../quickBuyToastOptions';
+import {
+  playSuccessNotification,
+  playErrorNotification,
+} from '../../../../../../../util/haptics';
 
 /**
  * App-root registration that surfaces QuickBuy swap outcomes as toasts.
@@ -54,12 +58,20 @@ export const useQuickBuyToastRegistrations = (): ToastRegistration[] => {
         }
         processedRef.current.add(dedupeKey);
 
+        const isComplete = status === StatusTypes.COMPLETE;
         showToast(
-          buildQuickBuyToastOptions(
-            status === StatusTypes.COMPLETE ? 'complete' : 'failed',
-            { trade, theme },
-          ),
+          buildQuickBuyToastOptions(isComplete ? 'complete' : 'failed', {
+            trade,
+            theme,
+          }),
         );
+        // Terminal feedback pairs with the toast: success buzz on settlement,
+        // error buzz on failure — fires even if the user navigated away.
+        if (isComplete) {
+          playSuccessNotification();
+        } else {
+          playErrorNotification();
+        }
         untrackQuickBuyTrade(txMetaId);
       });
     },

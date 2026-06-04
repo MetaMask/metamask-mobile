@@ -9,9 +9,18 @@ import {
 } from '../quickBuyTradeTracker';
 import { buildQuickBuyToastOptions } from '../quickBuyToastOptions';
 import Engine from '../../../../../../../core/Engine';
+import {
+  playSuccessNotification,
+  playErrorNotification,
+} from '../../../../../../../util/haptics';
 
 jest.mock('../quickBuyToastOptions', () => ({
   buildQuickBuyToastOptions: jest.fn((kind: string) => ({ kind })),
+}));
+
+jest.mock('../../../../../../../util/haptics', () => ({
+  playSuccessNotification: jest.fn(),
+  playErrorNotification: jest.fn(),
 }));
 
 jest.mock('../../../../../../../util/theme', () => ({
@@ -87,6 +96,8 @@ describe('useQuickBuyToastRegistrations', () => {
       theme: expect.any(Object),
     });
     expect(showToast).toHaveBeenCalledWith({ kind: 'complete' });
+    expect(playSuccessNotification).toHaveBeenCalledTimes(1);
+    expect(playErrorNotification).not.toHaveBeenCalled();
     expect(getTrackedQuickBuyTradeIds()).toEqual([]);
   });
 
@@ -104,6 +115,8 @@ describe('useQuickBuyToastRegistrations', () => {
       theme: expect.any(Object),
     });
     expect(showToast).toHaveBeenCalledWith({ kind: 'failed' });
+    expect(playErrorNotification).toHaveBeenCalledTimes(1);
+    expect(playSuccessNotification).not.toHaveBeenCalled();
     expect(getTrackedQuickBuyTradeIds()).toEqual([]);
   });
 
