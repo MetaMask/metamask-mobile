@@ -975,6 +975,91 @@ describe('useQuickBuyController', () => {
       // QuickBuyContext.handleBuy which routes to priceImpactConfirm instead.
       expect(result.current.isConfirmDisabled).toBe(false);
     });
+
+    it('keeps the CTA enabled during a background refresh of a usable quote', () => {
+      const quoteState: UseQuickBuyQuotesResult = {
+        activeQuote: undefined,
+        destTokenAmount: undefined,
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+        sortedQuotes: [],
+        quoteCount: 0,
+        quotesLastFetchedAt: null,
+        refreshCount: 0,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
+      };
+      (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
+
+      const props = {
+        target: createTarget(),
+        onClose: jest.fn(),
+      };
+      const { result, rerender } = renderHook(
+        ({ target, onClose }) => useQuickBuyController(target, onClose),
+        { initialProps: props },
+      );
+
+      act(() => {
+        result.current.handleAmountChange('20');
+      });
+      quoteState.isQuoteLoading = true;
+      rerender(props);
+      quoteState.isQuoteLoading = false;
+      quoteState.activeQuote = createActiveQuote();
+      rerender(props);
+      rerender(props);
+
+      expect(result.current.isConfirmDisabled).toBe(false);
+
+      quoteState.isQuoteLoading = true;
+      rerender(props);
+
+      expect(result.current.isBlockingQuoteLoad).toBe(false);
+      expect(result.current.isConfirmDisabled).toBe(false);
+      expect(result.current.isTotalLoading).toBe(false);
+    });
+
+    it('blocks the CTA on the initial load when no usable quote exists yet', () => {
+      const quoteState: UseQuickBuyQuotesResult = {
+        activeQuote: undefined,
+        destTokenAmount: undefined,
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+        sortedQuotes: [],
+        quoteCount: 0,
+        quotesLastFetchedAt: null,
+        refreshCount: 0,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
+      };
+      (useQuickBuyQuotes as jest.Mock).mockImplementation(() => quoteState);
+
+      const props = {
+        target: createTarget(),
+        onClose: jest.fn(),
+      };
+      const { result, rerender } = renderHook(
+        ({ target, onClose }) => useQuickBuyController(target, onClose),
+        { initialProps: props },
+      );
+
+      act(() => {
+        result.current.handleAmountChange('20');
+      });
+      quoteState.isQuoteLoading = true;
+      rerender(props);
+
+      expect(result.current.isBlockingQuoteLoad).toBe(true);
+      expect(result.current.isConfirmDisabled).toBe(true);
+      expect(result.current.isTotalLoading).toBe(true);
+    });
   });
 
   describe('source token auto-selection', () => {
