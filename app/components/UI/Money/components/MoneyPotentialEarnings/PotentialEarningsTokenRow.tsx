@@ -42,14 +42,16 @@ const PotentialEarningsTokenRow = ({
   token,
   hasSubsidizedFee,
   apyPercent,
-  onPress,
+  onCardPress,
+  onButtonPress,
   testID,
 }: {
   token: AssetType;
   hasSubsidizedFee: boolean;
   /** APY as a percentage (e.g. 4 for 4%). */
   apyPercent: number;
-  onPress: () => void;
+  onCardPress: () => void;
+  onButtonPress: () => void;
   testID?: string;
 }) => {
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -80,7 +82,11 @@ const PotentialEarningsTokenRow = ({
       alignItems={BoxAlignItems.Center}
       twClassName="px-4 py-3 gap-4"
     >
-      <Pressable onPress={onPress} style={styles.rowPressable} testID={testID}>
+      <Pressable
+        onPress={onCardPress}
+        style={styles.rowPressable}
+        testID={testID}
+      >
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -146,7 +152,7 @@ const PotentialEarningsTokenRow = ({
       <Button
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Md}
-        onPress={onPress}
+        onPress={onButtonPress}
       >
         {strings('money.potential_earnings.add')}
       </Button>

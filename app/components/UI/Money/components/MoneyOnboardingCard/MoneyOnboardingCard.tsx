@@ -16,7 +16,7 @@ import {
   COMPONENT_NAMES,
   MONEY_ONBOARDING_EVENT_TYPES,
   MONEY_ONBOARDING_STEP_ACTIONS,
-  REDIRECT_TARGETS,
+  REDIRECT_TARGETS_TYPES,
   SCREEN_NAMES,
   BOTTOM_SHEET_NAMES,
 } from '../../constants/moneyEvents';
@@ -65,14 +65,14 @@ const MoneyOnboardingCard = () => {
         trackOnboardingEvent({
           ...baseProperties,
           step_action: MONEY_ONBOARDING_STEP_ACTIONS.LINK_CARD,
-          redirect_target_type: REDIRECT_TARGETS.BOTTOM_SHEET,
+          redirect_target_type: REDIRECT_TARGETS_TYPES.BOTTOM_SHEET,
           redirect_target: BOTTOM_SHEET_NAMES.CARD_LINK_SHEET,
         });
       } else {
         trackOnboardingEvent({
           ...baseProperties,
           step_action: MONEY_ONBOARDING_STEP_ACTIONS.GET_CARD,
-          redirect_target_type: REDIRECT_TARGETS.BOTTOM_SHEET,
+          redirect_target_type: REDIRECT_TARGETS_TYPES.BOTTOM_SHEET,
           redirect_target: BOTTOM_SHEET_NAMES.CARD_AUTH_SHEET,
         });
       }
@@ -146,7 +146,7 @@ const MoneyOnboardingCard = () => {
       step_title: strings('money.onboarding.step_1.title', { locale: 'en' }),
       total_steps: MONEY_ONBOARDING_TOTAL_STEPS,
       step_action: MONEY_ONBOARDING_STEP_ACTIONS.DEPOSIT_INITIATED,
-      redirect_target_type: REDIRECT_TARGETS.SCREEN,
+      redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
       redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
     });
     handleRedirectToCryptoDeposit();

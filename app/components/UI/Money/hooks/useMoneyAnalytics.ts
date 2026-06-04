@@ -6,12 +6,15 @@ import useMoneyAccountBalance from '../hooks/useMoneyAccountBalance';
 import {
   MoneyLocationEventProperties,
   MoneyBaseEventProperties,
-  MoneyButtonEventProperties,
+  MoneyTextButtonEventProperties,
   MoneyRedirectEventProperties,
   MoneyOnboardingEventProperties,
   MoneyTooltipEventProperties,
   MONEY_SURFACE_TYPES,
   MoneySurfaceClickedEventProperties,
+  MoneyButtonClickedEventProperties,
+  MoneyTokenRowButtonClickedEventProperties,
+  MoneyTokenSurfaceClickedEventProperties,
 } from '../constants/moneyEvents';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 
@@ -56,7 +59,21 @@ export const useMoneyAnalytics = ({
    * Used to track when a button is clicked.
    */
   const trackButtonClicked = useCallback(
-    (properties: MoneyButtonEventProperties) => {
+    (properties: MoneyButtonClickedEventProperties) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.MONEY_BUTTON_CLICKED)
+          .addProperties({
+            ...getBaseProperties(),
+            ...properties,
+          })
+          .build(),
+      );
+    },
+    [createEventBuilder, getBaseProperties, trackEvent],
+  );
+
+  const trackTokenButtonClicked = useCallback(
+    (properties: MoneyTokenRowButtonClickedEventProperties) => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.MONEY_BUTTON_CLICKED)
           .addProperties({
@@ -74,6 +91,20 @@ export const useMoneyAnalytics = ({
    */
   const trackSurfaceClicked = useCallback(
     (properties: MoneySurfaceClickedEventProperties) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.MONEY_SURFACE_CLICKED)
+          .addProperties({
+            ...getBaseProperties(),
+            ...properties,
+          })
+          .build(),
+      );
+    },
+    [createEventBuilder, getBaseProperties, trackEvent],
+  );
+
+  const trackTokenSurfaceClicked = useCallback(
+    (properties: MoneyTokenSurfaceClickedEventProperties) => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.MONEY_SURFACE_CLICKED)
           .addProperties({
@@ -136,6 +167,8 @@ export const useMoneyAnalytics = ({
     trackButtonClicked,
     trackSurfaceClicked,
     trackTooltipClicked,
+    trackTokenButtonClicked,
+    trackTokenSurfaceClicked,
 
     // View events
     trackBottomSheetViewed,

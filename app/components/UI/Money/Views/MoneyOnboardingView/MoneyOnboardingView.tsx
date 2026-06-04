@@ -25,7 +25,7 @@ import {
   COMPONENT_NAMES,
   MONEY_ONBOARDING_EVENT_TYPES,
   MONEY_ONBOARDING_STEP_ACTIONS,
-  REDIRECT_TARGETS,
+  REDIRECT_TARGETS_TYPES,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 
@@ -159,7 +159,7 @@ const MoneyOnboardingView = () => {
         step_title: stepTitlesEnglish[stepIndex],
         total_steps: steps.length,
         step_action: MONEY_ONBOARDING_STEP_ACTIONS.EXITED,
-        redirect_target_type: REDIRECT_TARGETS.SCREEN,
+        redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
         redirect_target: SCREEN_NAMES.MONEY_HOME,
       });
 
@@ -185,7 +185,7 @@ const MoneyOnboardingView = () => {
         step_title: stepTitlesEnglish[stepIndex],
         total_steps: steps.length,
         step_action: MONEY_ONBOARDING_STEP_ACTIONS.VIEWED,
-        redirect_target_type: REDIRECT_TARGETS.SCREEN,
+        redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
         redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
       });
     },
@@ -200,7 +200,7 @@ const MoneyOnboardingView = () => {
         step_title: stepTitlesEnglish[stepIndex],
         total_steps: steps.length,
         step_action: MONEY_ONBOARDING_STEP_ACTIONS.COMPLETED,
-        redirect_target_type: REDIRECT_TARGETS.SCREEN,
+        redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
         redirect_target: SCREEN_NAMES.MONEY_HOME,
       });
 

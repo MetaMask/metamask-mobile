@@ -58,9 +58,12 @@ import {
   COMPONENT_NAMES,
   MONEY_TOOLTIP_NAMES,
   MONEY_TOOLTIP_TYPES,
-  REDIRECT_TARGETS,
+  REDIRECT_TARGETS_TYPES,
   SCREEN_NAMES,
   BOTTOM_SHEET_NAMES,
+  MONEY_BUTTON_INTENTS,
+  MONEY_URLS,
+  MONEY_BUTTON_TYPES,
 } from '../../constants/moneyEvents';
 import { strings } from '../../../../../../locales/i18n';
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
@@ -72,10 +75,15 @@ const MoneyHomeView = () => {
   const currentCurrency = useSelector(selectCurrentCurrency);
   const { colors } = useTheme();
 
-  const { trackButtonClicked, trackTooltipClicked, trackSurfaceClicked } =
-    useMoneyAnalytics({
-      screen_name: SCREEN_NAMES.MONEY_HOME,
-    });
+  const {
+    trackButtonClicked,
+    trackTooltipClicked,
+    trackSurfaceClicked,
+    trackTokenButtonClicked,
+    trackTokenSurfaceClicked,
+  } = useMoneyAnalytics({
+    screen_name: SCREEN_NAMES.MONEY_HOME,
+  });
 
   const {
     totalFiatFormatted,
@@ -191,32 +199,63 @@ const MoneyHomeView = () => {
   }, [totalFiatRaw, apyPercent, currentCurrency, formattedZero]);
 
   const handleMenuPress = useCallback(() => {
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.ICON,
+      button_intent: MONEY_BUTTON_INTENTS.OPEN_MORE_MENU,
+      component_name: COMPONENT_NAMES.MONEY_MORE,
+      redirect_target_type: REDIRECT_TARGETS_TYPES.BOTTOM_SHEET,
+      redirect_target: BOTTOM_SHEET_NAMES.MONEY_MORE_SHEET,
+    });
+
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.MORE_SHEET,
     });
-  }, [navigation]);
-
-  const handleAddPress = useCallback(() => {
-    trackButtonClicked({
-      label_localized: strings('money.action.add'),
-      label_en: strings('money.action.add', { locale: 'en' }),
-      redirect_target_type: REDIRECT_TARGETS.BOTTOM_SHEET,
-      redirect_target: BOTTOM_SHEET_NAMES.MONEY_ADD_MONEY_SHEET,
-      component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
-      button_position: 1,
-      button_row_button_count: 3,
-    });
-
-    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
-    });
   }, [navigation, trackButtonClicked]);
+
+  const handleAddPress = useCallback(
+    ({
+      buttonIntent,
+      labelLocalized,
+      labelEn,
+      componentName,
+      buttonPosition,
+      buttonRowButtonCount,
+    }: {
+      buttonIntent: MONEY_BUTTON_INTENTS;
+      labelLocalized: string;
+      labelEn: string;
+      componentName: COMPONENT_NAMES;
+      buttonPosition?: number;
+      buttonRowButtonCount?: number;
+    }) => {
+      trackButtonClicked({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: buttonIntent,
+        label_localized: labelLocalized,
+        label_en: labelEn,
+        component_name: componentName,
+        redirect_target_type: REDIRECT_TARGETS_TYPES.BOTTOM_SHEET,
+        redirect_target: BOTTOM_SHEET_NAMES.MONEY_ADD_MONEY_SHEET,
+        ...(buttonPosition && { button_position: buttonPosition }),
+        ...(buttonRowButtonCount && {
+          button_row_button_count: buttonRowButtonCount,
+        }),
+      });
+
+      navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+      });
+    },
+    [navigation, trackButtonClicked],
+  );
 
   const handleTransferPress = useCallback(() => {
     trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.TRANSFER_MONEY,
       label_localized: strings('money.action.transfer'),
       label_en: strings('money.action.transfer', { locale: 'en' }),
-      redirect_target_type: REDIRECT_TARGETS.BOTTOM_SHEET,
+      redirect_target_type: REDIRECT_TARGETS_TYPES.BOTTOM_SHEET,
       redirect_target: BOTTOM_SHEET_NAMES.MONEY_TRANSFER_MONEY_SHEET,
       component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
       button_position: 2,
@@ -230,9 +269,9 @@ const MoneyHomeView = () => {
 
   const handleCardHeaderPress = useCallback(() => {
     trackSurfaceClicked({
-      redirect_target_type: REDIRECT_TARGETS.SCREEN,
-      redirect_target: SCREEN_NAMES.CARD_HOME,
       component_name: COMPONENT_NAMES.MONEY_CARD_SECTION_HEADER,
+      redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
+      redirect_target: SCREEN_NAMES.CARD_HOME,
     });
 
     navigation.navigate(Routes.CARD.ROOT, {
@@ -243,12 +282,14 @@ const MoneyHomeView = () => {
 
   const handleCardPress = useCallback(
     ({
+      buttonIntent,
       componentName,
       labelLocalized,
       labelEn,
       buttonPosition,
       buttonRowButtonCount,
     }: {
+      buttonIntent: MONEY_BUTTON_INTENTS;
       componentName: COMPONENT_NAMES;
       labelLocalized: string;
       labelEn: string;
@@ -256,9 +297,11 @@ const MoneyHomeView = () => {
       buttonRowButtonCount?: number;
     }) => {
       trackButtonClicked({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: buttonIntent,
         label_localized: labelLocalized,
         label_en: labelEn,
-        redirect_target_type: REDIRECT_TARGETS.SCREEN,
+        redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
         redirect_target: SCREEN_NAMES.CARD_HOME,
         component_name: componentName,
         ...(buttonPosition && { button_position: buttonPosition }),
@@ -276,8 +319,22 @@ const MoneyHomeView = () => {
   );
 
   const handleLinkCardPress = useCallback(() => {
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: isLinking
+        ? MONEY_BUTTON_INTENTS.LINK_CARD
+        : MONEY_BUTTON_INTENTS.CARD_AUTH,
+      label_localized: strings('money.metamask_card.link_card'),
+      label_en: strings('money.metamask_card.link_card', { locale: 'en' }),
+      component_name: COMPONENT_NAMES.MONEY_METAMASK_CARD,
+      redirect_target_type: REDIRECT_TARGETS_TYPES.BOTTOM_SHEET,
+      redirect_target: isLinking
+        ? BOTTOM_SHEET_NAMES.CARD_LINK_SHEET
+        : BOTTOM_SHEET_NAMES.CARD_AUTH_SHEET,
+    });
+
     startLinkFlow(MONEY_HOME_CARD_ORIGIN);
-  }, [startLinkFlow]);
+  }, [isLinking, startLinkFlow, trackButtonClicked]);
 
   const handleApyInfoPress = useCallback(() => {
     trackTooltipClicked({
@@ -315,16 +372,46 @@ const MoneyHomeView = () => {
     });
   }, [navigation, trackTooltipClicked]);
 
-  const handleMusdRowPress = useCallback(() => {
-    NavigationService.navigation.navigate('Asset', {
-      ...MUSD_MAINNET_ASSET_FOR_DETAILS,
-      source: TokenDetailsSource.MobileTokenListPage,
-    });
-  }, []);
+  const handleMusdRowPress = useCallback(
+    ({ componentName }: { componentName: COMPONENT_NAMES }) => {
+      trackSurfaceClicked({
+        component_name: componentName,
+        redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
+        redirect_target: SCREEN_NAMES.ASSET_OVERVIEW,
+      });
 
-  const handleTokenDepositPress = useCallback(
-    async (token: AssetType) => {
+      NavigationService.navigation.navigate('Asset', {
+        ...MUSD_MAINNET_ASSET_FOR_DETAILS,
+        source: TokenDetailsSource.MobileTokenListPage,
+      });
+    },
+    [trackSurfaceClicked],
+  );
+
+  const handleTokenButtonPress = useCallback(
+    async (
+      token: AssetType,
+      // zero-based index of selected token
+      tokenIndex: number,
+      tokenCount: number,
+    ) => {
       try {
+        trackTokenButtonClicked({
+          button_type: MONEY_BUTTON_TYPES.TEXT,
+          button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+          component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_TOKEN_ROW,
+          label_localized: strings('money.potential_earnings.add'),
+          label_en: strings('money.potential_earnings.add', {
+            locale: 'en',
+          }),
+          redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
+          redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+          token_symbol: token.symbol,
+          token_index: tokenIndex,
+          token_chain_id: token.chainId ?? '',
+          token_count: tokenCount,
+        });
+
         await initiateDeposit({
           preferredPaymentToken: {
             address: token.address as Hex,
@@ -334,45 +421,118 @@ const MoneyHomeView = () => {
       } catch (error) {
         Logger.error(error as Error, {
           message:
-            '[MoneyHomeView] Failed to initiate conversion from potential earnings',
+            '[MoneyHomeView] Failed to initiate deposit from potential earnings',
         });
       }
     },
-    [initiateDeposit],
+    [initiateDeposit, trackTokenButtonClicked],
   );
+
+  const handleTokenCardPress = useCallback(
+    async (
+      token: AssetType,
+      // zero-based index of selected token
+      tokenIndex: number,
+      tokenCount: number,
+    ) => {
+      try {
+        trackTokenSurfaceClicked({
+          component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_TOKEN_ROW,
+          redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
+          redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+          token_symbol: token.symbol,
+          token_index: tokenIndex,
+          token_chain_id: token.chainId ?? '',
+          token_count: tokenCount,
+        });
+
+        await initiateDeposit({
+          preferredPaymentToken: {
+            address: token.address as Hex,
+            chainId: token.chainId as Hex,
+          },
+        });
+      } catch (error) {
+        Logger.error(error as Error, {
+          message:
+            '[MoneyHomeView] Failed to initiate deposit from potential earnings',
+        });
+      }
+    },
+    [initiateDeposit, trackTokenSurfaceClicked],
+  );
+
   const handlePotentialEarningsHeaderPress = useCallback(() => {
     trackSurfaceClicked({
-      redirect_target_type: REDIRECT_TARGETS.SCREEN,
-      redirect_target: SCREEN_NAMES.MONEY_POTENTIAL_EARNINGS,
       component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_HEADER,
+      redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
+      redirect_target: SCREEN_NAMES.MONEY_POTENTIAL_EARNINGS,
     });
 
     navigation.navigate(Routes.MONEY.POTENTIAL_EARNINGS as never);
   }, [navigation, trackSurfaceClicked]);
 
-  const handleEarnCryptoPress = useCallback(() => {
+  const handleMoneyPotentialEarningsViewAllPressed = useCallback(() => {
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+
+      button_intent: MONEY_BUTTON_INTENTS.VIEW_ALL,
+      component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS,
+      label_localized: strings('money.potential_earnings.view_all'),
+      label_en: strings('money.potential_earnings.view_all', {
+        locale: 'en',
+      }),
+      redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
+      redirect_target: SCREEN_NAMES.MONEY_POTENTIAL_EARNINGS,
+    });
+
     navigation.navigate(Routes.MONEY.POTENTIAL_EARNINGS as never);
-  }, [navigation]);
+  }, [navigation, trackButtonClicked]);
+
+  const handleWhatYouGetPress = useCallback(() => {
+    trackSurfaceClicked({
+      component_name: COMPONENT_NAMES.MONEY_CONDENSED_INFO_CARDS_WHAT_YOU_GET,
+      redirect_target_type: REDIRECT_TARGETS_TYPES.EXTERNAL_BROWSER,
+      redirect_target: MONEY_URLS.MUSD_LEARN_MORE,
+    });
+
+    Linking.openURL(AppConstants.URLS.MUSD_LEARN_MORE);
+  }, [trackSurfaceClicked]);
 
   const handleLearnMorePress = useCallback(() => {
-    Linking.openURL(AppConstants.URLS.MUSD_LEARN_MORE);
-  }, []);
-
-  const handleHowItWorksHeaderPress = useCallback(() => {
-    trackSurfaceClicked({
-      redirect_target_type: REDIRECT_TARGETS.SCREEN,
-      redirect_target: SCREEN_NAMES.MONEY_HOW_IT_WORKS,
-      component_name: COMPONENT_NAMES.MONEY_HOW_IT_WORKS_HEADER,
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.LEARN_MORE,
+      component_name: COMPONENT_NAMES.MONEY_WHAT_YOU_GET,
+      label_localized: strings('money.what_you_get.learn_more'),
+      label_en: strings('money.what_you_get.learn_more', {
+        locale: 'en',
+      }),
+      redirect_target_type: REDIRECT_TARGETS_TYPES.EXTERNAL_BROWSER,
+      redirect_target: MONEY_URLS.MUSD_LEARN_MORE,
     });
 
-    navigation.navigate(Routes.MONEY.HOW_IT_WORKS as never);
-  }, [navigation, trackSurfaceClicked]);
+    Linking.openURL(AppConstants.URLS.MUSD_LEARN_MORE);
+  }, [trackButtonClicked]);
+
+  const handleHowItWorksPress = useCallback(
+    ({ componentName }: { componentName: COMPONENT_NAMES }) => {
+      trackSurfaceClicked({
+        component_name: componentName,
+        redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
+        redirect_target: SCREEN_NAMES.MONEY_HOW_IT_WORKS,
+      });
+
+      navigation.navigate(Routes.MONEY.HOW_IT_WORKS as never);
+    },
+    [navigation, trackSurfaceClicked],
+  );
 
   const handleActivityHeaderPress = useCallback(() => {
     trackSurfaceClicked({
-      redirect_target_type: REDIRECT_TARGETS.SCREEN,
-      redirect_target: SCREEN_NAMES.MONEY_ACTIVITY,
       component_name: COMPONENT_NAMES.MONEY_ACTIVITY_HEADER,
+      redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
+      redirect_target: SCREEN_NAMES.MONEY_ACTIVITY,
     });
 
     navigation.navigate(Routes.MONEY.ACTIVITY as never);
@@ -430,10 +590,22 @@ const MoneyHomeView = () => {
           onApyInfoPress={handleApyInfoPress}
         />
         <MoneyActionButtonRow
-          onAddPress={handleAddPress}
+          onAddPress={() =>
+            handleAddPress({
+              buttonIntent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+              labelLocalized: strings('money.action.add'),
+              labelEn: strings('money.action.add', { locale: 'en' }),
+              componentName: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
+              buttonPosition: 1,
+              buttonRowButtonCount: 3,
+            })
+          }
           onTransferPress={handleTransferPress}
           onCardPress={() =>
             handleCardPress({
+              buttonIntent: !isCardLinkedToMoneyAccount
+                ? MONEY_BUTTON_INTENTS.LINK_CARD
+                : MONEY_BUTTON_INTENTS.GET_CARD,
               componentName: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
               labelLocalized: strings('money.action.card'),
               labelEn: strings('money.action.card', { locale: 'en' }),
@@ -464,12 +636,27 @@ const MoneyHomeView = () => {
           <>
             <MoneyHowItWorks
               apy={apyPercent}
-              onHeaderPress={handleHowItWorksHeaderPress}
+              onHeaderPress={() =>
+                handleHowItWorksPress({
+                  componentName: COMPONENT_NAMES.MONEY_HOW_IT_WORKS_HEADER,
+                })
+              }
               isLoading={vaultApyQuery.isLoading}
             />
             <MoneyMusdTokenRow
-              onPress={handleMusdRowPress}
-              onAddPress={handleAddPress}
+              onPress={() =>
+                handleMusdRowPress({
+                  componentName: COMPONENT_NAMES.MONEY_MUSD_TOKEN_ROW,
+                })
+              }
+              onAddPress={() =>
+                handleAddPress({
+                  buttonIntent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+                  labelLocalized: strings('money.musd_row.add'),
+                  labelEn: strings('money.musd_row.add', { locale: 'en' }),
+                  componentName: COMPONENT_NAMES.MONEY_MUSD_TOKEN_ROW,
+                })
+              }
               balance={musdFiatFormatted}
             />
             <Divider />
@@ -499,8 +686,9 @@ const MoneyHomeView = () => {
               tokens={depositTokens}
               apy={apyPercent}
               isNoFeeToken={isNoFeeToken}
-              onTokenPress={handleTokenDepositPress}
-              onViewAllPress={handleEarnCryptoPress}
+              onTokenCardPress={handleTokenCardPress}
+              onTokenButtonPress={handleTokenButtonPress}
+              onViewAllPress={handleMoneyPotentialEarningsViewAllPressed}
               onHeaderPress={handlePotentialEarningsHeaderPress}
               onInfoPress={handleEarnCryptoInfoPress}
             />
@@ -511,6 +699,7 @@ const MoneyHomeView = () => {
           mode={metamaskCardMode}
           onGetNowPress={() =>
             handleCardPress({
+              buttonIntent: MONEY_BUTTON_INTENTS.GET_CARD,
               componentName: COMPONENT_NAMES.MONEY_METAMASK_CARD,
               labelLocalized: strings('money.metamask_card.get_now'),
               labelEn: strings('money.metamask_card.get_now', { locale: 'en' }),
@@ -518,7 +707,16 @@ const MoneyHomeView = () => {
           }
           onHeaderPress={handleCardHeaderPress}
           onLinkPress={handleLinkCardPress}
-          onManagePress={handleCardPress}
+          onManagePress={() =>
+            handleCardPress({
+              buttonIntent: MONEY_BUTTON_INTENTS.MANAGE_CARD,
+              componentName: COMPONENT_NAMES.MONEY_METAMASK_CARD,
+              labelLocalized: strings('money.metamask_card.manage_card'),
+              labelEn: strings('money.metamask_card.manage_card', {
+                locale: 'en',
+              }),
+            })
+          }
           showMetalCard={hasMetalCard}
           isLinkDisabled={isLinking}
           cardBalance={cardBalance}
@@ -528,9 +726,19 @@ const MoneyHomeView = () => {
         {isFunded && (
           <>
             <MoneyCondensedInfoCards
-              onHowItWorksPress={handleHowItWorksHeaderPress}
-              onMusdPress={handleMusdRowPress}
-              onWhatYouGetPress={handleLearnMorePress}
+              onHowItWorksPress={() =>
+                handleHowItWorksPress({
+                  componentName:
+                    COMPONENT_NAMES.MONEY_CONDENSED_INFO_CARDS_HOW_IT_WORKS,
+                })
+              }
+              onMusdPress={() =>
+                handleMusdRowPress({
+                  componentName:
+                    COMPONENT_NAMES.MONEY_CONDENSED_INFO_CARDS_MUSD,
+                })
+              }
+              onWhatYouGetPress={handleWhatYouGetPress}
             />
             <Divider />
           </>
@@ -541,7 +749,16 @@ const MoneyHomeView = () => {
             onLearnMorePress={handleLearnMorePress}
           />
         )}
-        <MoneyFooter onAddMoneyPress={handleAddPress} />
+        <MoneyFooter
+          onAddMoneyPress={() =>
+            handleAddPress({
+              buttonIntent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+              labelLocalized: strings('money.footer.add_money'),
+              labelEn: strings('money.footer.add_money', { locale: 'en' }),
+              componentName: COMPONENT_NAMES.MONEY_FOOTER,
+            })
+          }
+        />
       </ScrollView>
     </Box>
   );

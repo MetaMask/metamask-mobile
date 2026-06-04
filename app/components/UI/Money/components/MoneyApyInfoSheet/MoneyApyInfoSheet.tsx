@@ -37,6 +37,12 @@ const MoneyApyInfoSheet = () => {
     bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_APY_INFO_SHEET,
   });
 
+  useEffect(() => {
+    if (didMountRef.current) return;
+    didMountRef.current = true;
+    trackBottomSheetViewed();
+  }, [trackBottomSheetViewed]);
+
   const handleGoBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
@@ -44,12 +50,6 @@ const MoneyApyInfoSheet = () => {
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
-
-  useEffect(() => {
-    if (didMountRef.current) return;
-    didMountRef.current = true;
-    trackBottomSheetViewed();
-  }, [trackBottomSheetViewed]);
 
   return (
     <BottomSheet
