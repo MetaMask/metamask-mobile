@@ -90,6 +90,7 @@ const PredictHome: React.FC = () => {
           onScroll={onScroll}
           scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}
+          style={tw.style('flex-1')}
           contentContainerStyle={tw.style('px-4 pb-8')}
         >
           <Box
