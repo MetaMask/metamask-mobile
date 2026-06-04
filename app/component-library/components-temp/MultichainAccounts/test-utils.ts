@@ -136,6 +136,36 @@ export const createMockEntropyWallet = (
 };
 
 /**
+ * Creates a mock hardware wallet for testing
+ */
+export const createMockHardwareWallet = (
+  id: string,
+  name: string,
+  groups: AccountGroupObject[],
+  keyringType: string = ExtendedKeyringTypes.ledger,
+): AccountWalletObject => {
+  const wallet = {
+    id: id as AccountWalletObject['id'],
+    type: AccountWalletType.Keyring,
+    metadata: {
+      name,
+      keyring: {
+        type: keyringType,
+      },
+    },
+    groups: groups.reduce(
+      (acc, group) => {
+        acc[group.id] = group;
+        return acc;
+      },
+      {} as Record<string, AccountGroupObject>,
+    ),
+  };
+
+  return wallet as unknown as AccountWalletObject;
+};
+
+/**
  * Creates mock state with accounts and internal accounts
  */
 export const createMockState = (
