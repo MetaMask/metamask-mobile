@@ -59,6 +59,63 @@ describe('useSortedQuotes', () => {
     ]);
   });
 
+  it('filters blocked providers from quotes, custom actions, and sorted metadata', () => {
+    (useQuotes as jest.Mock).mockReturnValue({
+      quotes: [
+        { id: 'quote-1', provider: { id: '/providers/transak' } },
+        {
+          id: 'quote-2',
+          provider: { id: '/providers/blockchain-com', name: 'Blockchain.com' },
+        },
+      ],
+      sorted: [
+        {
+          sortBy: QuoteSortBy.price,
+          ids: ['/providers/blockchain-com', '/providers/transak'],
+        },
+      ],
+      customActions: [
+        {
+          button: { light: {}, dark: {} },
+          buy: { providerId: '/providers/blockchain-com' },
+          buyButton: { light: {}, dark: {} },
+          paymentMethodId: '/payments/blockchain-com',
+          sellButton: { light: {}, dark: {} },
+          supportedPaymentMethodIds: ['/payments/blockchain-com'],
+        },
+        {
+          button: { light: {}, dark: {} },
+          buy: { providerId: '/providers/paypal' },
+          buyButton: { light: {}, dark: {} },
+          paymentMethodId: '/payments/paypal',
+          sellButton: { light: {}, dark: {} },
+          supportedPaymentMethodIds: ['/payments/paypal'],
+        },
+      ],
+      error: null,
+      isFetching: false,
+    });
+
+    const { result } = renderHookWithProvider(() => useSortedQuotes(100));
+
+    expect(result.current.quotes).toEqual([
+      { id: 'quote-1', provider: { id: '/providers/transak' } },
+    ]);
+    expect(result.current.sorted).toEqual([
+      { sortBy: QuoteSortBy.price, ids: ['/providers/transak'] },
+    ]);
+    expect(result.current.customActions).toEqual([
+      {
+        button: { light: {}, dark: {} },
+        buy: { providerId: '/providers/paypal' },
+        buyButton: { light: {}, dark: {} },
+        paymentMethodId: '/payments/paypal',
+        sellButton: { light: {}, dark: {} },
+        supportedPaymentMethodIds: ['/payments/paypal'],
+      },
+    ]);
+  });
+
   it('returns the custom actions', () => {
     (useQuotes as jest.Mock).mockReturnValue({
       quotes: [],

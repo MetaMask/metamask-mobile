@@ -5,6 +5,10 @@ import type { Quote } from '../types';
 import Engine from '../../../../core/Engine';
 import { rampsQueries } from '../queries';
 import type { RampsQueryStatus } from './useRampsPaymentMethods';
+import {
+  filterBlockedRampProviderIds,
+  filterBlockedRampProvidersFromQuotesResponse,
+} from '../utils/blockedRampProviders';
 
 export interface GetQuotesOptions {
   region?: string;
@@ -33,7 +37,13 @@ export function useRampsQuotes(
   options?: GetQuotesOptions | null,
 ): UseRampsQuotesResult {
   const getQuotes = useCallback(
-    (opts: GetQuotesOptions) => Engine.context.RampsController.getQuotes(opts),
+    async (opts: GetQuotesOptions) =>
+      filterBlockedRampProvidersFromQuotesResponse(
+        await Engine.context.RampsController.getQuotes({
+          ...opts,
+          providers: filterBlockedRampProviderIds(opts.providers),
+        }),
+      ),
     [],
   );
 

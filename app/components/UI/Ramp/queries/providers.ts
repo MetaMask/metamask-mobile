@@ -1,6 +1,7 @@
 import { queryOptions } from '@tanstack/react-query';
 import type { Provider } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
+import { filterBlockedRampProviders } from '../utils/blockedRampProviders';
 
 interface ProvidersQueryParams {
   regionCode: string;
@@ -20,7 +21,7 @@ export const rampsProvidersOptions = (params: ProvidersQueryParams) =>
         params.regionCode,
       );
 
-      return response.providers;
+      return filterBlockedRampProviders(response.providers);
     },
     staleTime: 15 * 60 * 1000, // 15 minutes
   });

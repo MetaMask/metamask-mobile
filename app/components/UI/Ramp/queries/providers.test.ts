@@ -33,7 +33,10 @@ describe('rampsProvidersOptions', () => {
   });
 
   it('queryFn calls getProviders with regionCode', async () => {
-    const mockProviders = [{ id: 'provider-1', name: 'Provider 1' }];
+    const mockProviders = [
+      { id: 'provider-1', name: 'Provider 1' },
+      { id: '/providers/blockchain-com', name: 'Blockchain.com' },
+    ];
     (
       Engine.context.RampsController.getProviders as jest.Mock
     ).mockResolvedValue({ providers: mockProviders });
@@ -47,6 +50,6 @@ describe('rampsProvidersOptions', () => {
     expect(Engine.context.RampsController.getProviders).toHaveBeenCalledWith(
       'us-tx',
     );
-    expect(result).toEqual(mockProviders);
+    expect(result).toEqual([{ id: 'provider-1', name: 'Provider 1' }]);
   });
 });

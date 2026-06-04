@@ -17,6 +17,10 @@ import {
 import { parseUserFacingError } from '../utils/parseUserFacingError';
 import { getOrders } from '../../../../reducers/fiatOrders';
 import { rampsQueries } from '../queries';
+import {
+  filterBlockedRampProviders,
+  isBlockedRampProvider,
+} from '../utils/blockedRampProviders';
 
 /**
  * Result returned by the useRampsProviders hook.
@@ -70,10 +74,13 @@ export function useRampsProviders(options?: {
   const providersState = useSelector(selectProviders);
   const {
     data: providersStateData,
-    selected: selectedProvider,
+    selected: rawSelectedProvider,
     isLoading: providersStateIsLoading,
     error: providersStateError,
   } = providersState;
+  const selectedProvider = isBlockedRampProvider(rawSelectedProvider)
+    ? null
+    : rawSelectedProvider;
 
   const userRegion = useSelector(selectUserRegion);
   const regionCode = userRegion?.regionCode ?? '';
@@ -109,7 +116,10 @@ export function useRampsProviders(options?: {
   // React Query is authoritative when present; fallback to controller state
   // keeps initial renders and test mocks resilient.
   const providers = useMemo(
-    () => providersQuery?.data ?? providersStateData ?? [],
+    () =>
+      filterBlockedRampProviders(
+        providersQuery?.data ?? providersStateData ?? [],
+      ),
     [providersQuery?.data, providersStateData],
   );
 
@@ -129,7 +139,7 @@ export function useRampsProviders(options?: {
   const setSelectedProvider = useCallback(
     (provider: Provider | null, setOptions?: { autoSelected?: boolean }) =>
       Engine.context.RampsController.setSelectedProvider(
-        provider?.id ?? null,
+        !provider || isBlockedRampProvider(provider) ? null : provider.id,
         setOptions,
       ),
     [],

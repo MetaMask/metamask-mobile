@@ -2,6 +2,15 @@ import {
   rampsPaymentMethodsKeys,
   rampsPaymentMethodsOptions,
 } from './paymentMethods';
+import Engine from '../../../../core/Engine';
+
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    RampsController: {
+      getPaymentMethods: jest.fn(),
+    },
+  },
+}));
 
 describe('rampsPaymentMethodsOptions', () => {
   it('creates a stable normalized query key from regionCode and providerId only', () => {
@@ -29,5 +38,24 @@ describe('rampsPaymentMethodsOptions', () => {
     ]);
     expect(typeof opts.queryFn).toBe('function');
     expect(opts.staleTime).toBe(5 * 60 * 1000);
+  });
+
+  it('queryFn returns no payment methods for blocked provider ids', async () => {
+    const opts = rampsPaymentMethodsOptions({
+      regionCode: 'us',
+      fiat: 'usd',
+      assetId: 'eip155:1/slip44:60',
+      providerId: '/providers/blockchain-com',
+    });
+    if (!opts.queryFn) {
+      throw new Error('Expected queryFn to be defined');
+    }
+
+    const result = await opts.queryFn({} as never);
+
+    expect(result).toEqual([]);
+    expect(
+      Engine.context.RampsController.getPaymentMethods,
+    ).not.toHaveBeenCalled();
   });
 });

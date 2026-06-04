@@ -143,6 +143,35 @@ describe('useRampsPaymentMethods', () => {
     ).not.toHaveBeenCalled();
   });
 
+  it('returns idle when the selected provider is blocked', () => {
+    const store = createMockStore({
+      providers: {
+        ...baseRampsState.providers,
+        selected: {
+          id: '/providers/blockchain-com',
+          name: 'Blockchain.com',
+        },
+      },
+    });
+    const { Wrapper } = createWrapper(store);
+
+    const { result } = renderHook(() => useRampsPaymentMethods(), {
+      wrapper: Wrapper,
+    });
+
+    expect(result.current).toMatchObject({
+      paymentMethods: [],
+      selectedPaymentMethod: null,
+      isLoading: false,
+      status: 'idle',
+      isSuccess: false,
+      error: null,
+    });
+    expect(
+      Engine.context.RampsController.getPaymentMethods,
+    ).not.toHaveBeenCalled();
+  });
+
   it('returns loading while the query is in flight', () => {
     const store = createMockStore();
     const { Wrapper } = createWrapper(store);
