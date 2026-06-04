@@ -7,7 +7,6 @@ import {
   filterBlockedRampProviderSortedMetadata,
   isBlockedRampProvider,
 } from './blockedRampProviders';
-import type { QuotesResponse } from '@metamask/ramps-controller';
 
 describe('blockedRampProviders', () => {
   it.each([
@@ -100,11 +99,7 @@ describe('blockedRampProviders', () => {
       ],
     };
 
-    expect(
-      filterBlockedRampProvidersFromQuotesResponse(
-        response as unknown as QuotesResponse,
-      ),
-    ).toEqual({
+    expect(filterBlockedRampProvidersFromQuotesResponse(response)).toEqual({
       success: [{ provider: '/providers/transak' }],
       error: [{ provider: '/providers/moonpay', error: 'unavailable' }],
       customActions: [{ buy: { providerId: '/providers/paypal' } }],

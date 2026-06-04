@@ -15,8 +15,6 @@ import {
   filterBlockedRampProviderSortedMetadata,
 } from '../../utils/blockedRampProviders';
 
-type AggregatorQuote = QuoteResponse | QuoteError | SellQuoteResponse;
-
 function useSortedQuotes(amount: number | string) {
   const ordersProviders = useSelector(getOrdersProviders);
   const {
@@ -27,11 +25,8 @@ function useSortedQuotes(amount: number | string) {
     error,
     query,
   } = useQuotes(amount);
-  const quotes = useMemo<AggregatorQuote[] | undefined>(
-    () =>
-      filterBlockedRampProviderItems(
-        rawQuotes ? ([...rawQuotes] as AggregatorQuote[]) : undefined,
-      ),
+  const quotes = useMemo(
+    () => filterBlockedRampProviderItems(rawQuotes),
     [rawQuotes],
   );
   const customActions = useMemo(
