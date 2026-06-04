@@ -33,7 +33,6 @@ import {
   type PerpsTradingCampaignVolumeDto,
   type PaginatedOndoGmActivityDto,
   type PerpsTradingCampaignParticipantOutcomeDto,
-  type PredictThePitchEligibleMarketsDto,
   type PredictThePitchLeaderboardDto,
   type PredictThePitchLeaderboardPositionDto,
   type PredictThePitchPositionsDto,
@@ -180,7 +179,6 @@ const PERPS_TRADING_CAMPAIGN_VOLUME_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 min
 const PERPS_TRADING_PARTICIPANT_OUTCOME_CACHE_THRESHOLD_MS = 1000 * 60 * 10; // 10 minutes
 
 // Predict The Pitch cache thresholds
-const PREDICT_THE_PITCH_ELIGIBLE_MARKETS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 const PREDICT_THE_PITCH_LEADERBOARD_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 const PREDICT_THE_PITCH_LEADERBOARD_POSITION_CACHE_THRESHOLD_MS = 0;
 const PREDICT_THE_PITCH_POSITIONS_CACHE_THRESHOLD_MS = 0;
@@ -315,12 +313,6 @@ const metadata: StateMetadata<RewardsControllerState> = {
     usedInUi: true,
   },
   perpsTradingCampaignVolume: {
-    includeInStateLogs: true,
-    persist: true,
-    includeInDebugSnapshot: false,
-    usedInUi: true,
-  },
-  predictThePitchEligibleMarkets: {
     includeInStateLogs: true,
     persist: true,
     includeInDebugSnapshot: false,
@@ -535,7 +527,6 @@ const MESSENGER_EXPOSED_METHODS = [
   'getPerpsTradingCampaignVolume',
   'getOptInStatus',
   'getPerpsTradingCampaignParticipantOutcome',
-  'getPredictThePitchEligibleMarkets',
   'getPredictThePitchLeaderboard',
   'getPredictThePitchLeaderboardPosition',
   'getPredictThePitchPositions',
@@ -4824,42 +4815,6 @@ export class RewardsController extends BaseController<
       seasonId: seasonId ?? 'all seasons',
       campaignId: campaignId ?? 'all campaigns',
     });
-  }
-
-  async getPredictThePitchEligibleMarkets(): Promise<PredictThePitchEligibleMarketsDto> {
-    if (!this.isRewardsFeatureEnabled()) {
-      return { games: [], props: [] };
-    }
-
-    const cached = this.state.predictThePitchEligibleMarkets;
-    const isStale =
-      !cached?.lastFetched ||
-      Date.now() - cached.lastFetched >
-        PREDICT_THE_PITCH_ELIGIBLE_MARKETS_CACHE_THRESHOLD_MS;
-
-    if (cached && !isStale) {
-      return {
-        games: cached.games,
-        props: cached.props,
-      };
-    }
-
-    Logger.log(
-      'RewardsController: Fetching fresh Predict The Pitch eligible markets via API call',
-    );
-    const eligibleMarkets = (await this.messenger.call(
-      'RewardsDataService:getPredictThePitchEligibleMarkets',
-    )) as PredictThePitchEligibleMarketsDto;
-
-    this.update((state) => {
-      state.predictThePitchEligibleMarkets = {
-        games: eligibleMarkets.games,
-        props: eligibleMarkets.props,
-        lastFetched: Date.now(),
-      };
-    });
-
-    return eligibleMarkets;
   }
 
   async getPredictThePitchLeaderboard(

@@ -83,11 +83,10 @@ describe('PredictThePitchCampaignCTA', () => {
     jest.useRealTimers();
   });
 
-  it('navigates to eligible markets when the active campaign participant is opted in', () => {
+  it('navigates to Predict markets when the active campaign participant is opted in', () => {
     const { getByTestId, getByText } = render(
       <PredictThePitchCampaignCTA
         campaign={buildCampaign()}
-        campaignId="predict-campaign-1"
         participantStatus={{
           status: { optedIn: true, participantCount: 1 },
           isLoading: false,
@@ -98,17 +97,15 @@ describe('PredictThePitchCampaignCTA', () => {
     expect(getByText('Predict now')).toBeOnTheScreen();
     fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.REWARDS_PREDICT_THE_PITCH_ELIGIBLE_MARKETS_VIEW,
-      { campaignId: 'predict-campaign-1' },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MARKET_LIST,
+    });
   });
 
   it('uses the generic opt-in CTA before the participant is opted in', () => {
     const { getByTestId, getByText, queryByTestId } = render(
       <PredictThePitchCampaignCTA
         campaign={buildCampaign()}
-        campaignId="predict-campaign-1"
         participantStatus={{
           status: { optedIn: false, participantCount: 0 },
           isLoading: false,
@@ -132,7 +129,6 @@ describe('PredictThePitchCampaignCTA', () => {
           startDate: '2024-01-01T00:00:00.000Z',
           endDate: '2025-01-01T00:00:00.000Z',
         })}
-        campaignId="predict-campaign-1"
         participantStatus={{
           status: { optedIn: true, participantCount: 1 },
           isLoading: false,

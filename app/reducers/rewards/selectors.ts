@@ -385,16 +385,6 @@ export const selectPerpsTradingCampaignVolumeLoading = (state: RootState) =>
 export const selectPerpsTradingCampaignVolumeError = (state: RootState) =>
   state.rewards.perpsTradingCampaignVolumeError;
 
-// Predict The Pitch eligible markets selectors
-export const selectPredictThePitchEligibleMarkets = (state: RootState) =>
-  state.rewards.predictThePitchEligibleMarkets;
-
-export const selectPredictThePitchEligibleMarketsLoading = (state: RootState) =>
-  state.rewards.predictThePitchEligibleMarketsLoading;
-
-export const selectPredictThePitchEligibleMarketsError = (state: RootState) =>
-  state.rewards.predictThePitchEligibleMarketsError;
-
 // Predict The Pitch leaderboard selectors
 export const selectPredictThePitchLeaderboard = (state: RootState) =>
   state.rewards.predictThePitchLeaderboard;

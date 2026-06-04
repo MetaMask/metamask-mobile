@@ -37,7 +37,6 @@ import type {
   PerpsTradingCampaignLeaderboardPositionDto,
   PerpsTradingCampaignVolumeDto,
   PerpsTradingCampaignParticipantOutcomeDto,
-  PredictThePitchEligibleMarketsDto,
   PredictThePitchLeaderboardDto,
   PredictThePitchLeaderboardPositionDto,
   PredictThePitchPositionsDto,
@@ -287,11 +286,6 @@ export interface RewardsDataServiceGetPerpsTradingCampaignParticipantOutcomeActi
   handler: RewardsDataService['getPerpsTradingCampaignParticipantOutcome'];
 }
 
-export interface RewardsDataServiceGetPredictThePitchEligibleMarketsAction {
-  type: `${typeof SERVICE_NAME}:getPredictThePitchEligibleMarkets`;
-  handler: RewardsDataService['getPredictThePitchEligibleMarkets'];
-}
-
 export interface RewardsDataServiceGetPredictThePitchLeaderboardAction {
   type: `${typeof SERVICE_NAME}:getPredictThePitchLeaderboard`;
   handler: RewardsDataService['getPredictThePitchLeaderboard'];
@@ -404,7 +398,6 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetPerpsTradingCampaignLeaderboardPositionAction
   | RewardsDataServiceGetPerpsTradingCampaignVolumeAction
   | RewardsDataServiceGetPerpsTradingCampaignParticipantOutcomeAction
-  | RewardsDataServiceGetPredictThePitchEligibleMarketsAction
   | RewardsDataServiceGetPredictThePitchLeaderboardAction
   | RewardsDataServiceGetPredictThePitchLeaderboardPositionAction
   | RewardsDataServiceGetPredictThePitchPositionsAction
@@ -595,10 +588,6 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getPerpsTradingCampaignParticipantOutcome`,
       this.getPerpsTradingCampaignParticipantOutcome.bind(this),
-    );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:getPredictThePitchEligibleMarkets`,
-      this.getPredictThePitchEligibleMarkets.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getPredictThePitchLeaderboard`,
@@ -1928,23 +1917,6 @@ export class RewardsDataService {
     return (await response.json()) as PerpsTradingCampaignParticipantOutcomeDto;
   }
 
-  async getPredictThePitchEligibleMarkets(): Promise<PredictThePitchEligibleMarketsDto> {
-    const response = await this.makeRequest(
-      '/predict-the-pitch/eligible-markets',
-      {
-        method: 'GET',
-      },
-    );
-
-    if (!response.ok) {
-      throw new Error(
-        `Get Predict The Pitch eligible markets failed: ${response.status}`,
-      );
-    }
-
-    return (await response.json()) as PredictThePitchEligibleMarketsDto;
-  }
-
   async getPredictThePitchLeaderboard(
     campaignId: string,
   ): Promise<PredictThePitchLeaderboardDto> {
@@ -2027,7 +1999,7 @@ export class RewardsDataService {
     campaignId: string,
   ): Promise<PredictThePitchPrizePoolDto> {
     const response = await this.makeRequest(
-      `/predict-the-pitch/${campaignId}/stats/prize-pool`,
+      `/predict-the-pitch/${campaignId}/prize-pool`,
       { method: 'GET' },
     );
 

@@ -20,7 +20,6 @@ import {
   PerpsTradingCampaignLeaderboardDto,
   PerpsTradingCampaignLeaderboardPositionDto,
   PerpsTradingCampaignVolumeDto,
-  PredictThePitchEligibleMarketsDto,
   PredictThePitchLeaderboardDto,
   PredictThePitchLeaderboardPositionDto,
   PredictThePitchPositionsDto,
@@ -195,11 +194,6 @@ export interface RewardsState {
   perpsTradingCampaignVolumeLoading: boolean;
   perpsTradingCampaignVolumeError: boolean;
 
-  // Predict The Pitch eligible markets
-  predictThePitchEligibleMarkets: PredictThePitchEligibleMarketsDto | null;
-  predictThePitchEligibleMarketsLoading: boolean;
-  predictThePitchEligibleMarketsError: boolean;
-
   // Predict The Pitch leaderboard
   predictThePitchLeaderboard: PredictThePitchLeaderboardDto | null;
   predictThePitchLeaderboardLoading: boolean;
@@ -345,9 +339,6 @@ export const initialState: RewardsState = {
   perpsTradingCampaignVolume: null,
   perpsTradingCampaignVolumeLoading: false,
   perpsTradingCampaignVolumeError: false,
-  predictThePitchEligibleMarkets: null,
-  predictThePitchEligibleMarketsLoading: false,
-  predictThePitchEligibleMarketsError: false,
   predictThePitchLeaderboard: null,
   predictThePitchLeaderboardLoading: false,
   predictThePitchLeaderboardError: false,
@@ -473,9 +464,6 @@ const rewardsSlice = createSlice({
       state.vipDashboardLoading = false;
       state.vipDashboardError = false;
       state.vipSplashAccepted = {};
-      state.predictThePitchEligibleMarkets = null;
-      state.predictThePitchEligibleMarketsLoading = false;
-      state.predictThePitchEligibleMarketsError = false;
       state.predictThePitchLeaderboard = null;
       state.predictThePitchLeaderboardLoading = false;
       state.predictThePitchLeaderboardError = false;
@@ -890,30 +878,6 @@ const rewardsSlice = createSlice({
       state.perpsTradingCampaignVolumeError = action.payload;
     },
 
-    // Predict The Pitch eligible markets reducers
-    setPredictThePitchEligibleMarkets: (
-      state,
-      action: PayloadAction<PredictThePitchEligibleMarketsDto | null>,
-    ) => {
-      state.predictThePitchEligibleMarkets = action.payload;
-      state.predictThePitchEligibleMarketsError = false;
-    },
-    setPredictThePitchEligibleMarketsLoading: (
-      state,
-      action: PayloadAction<boolean>,
-    ) => {
-      if (action.payload && state.predictThePitchEligibleMarkets) {
-        return;
-      }
-      state.predictThePitchEligibleMarketsLoading = action.payload;
-    },
-    setPredictThePitchEligibleMarketsError: (
-      state,
-      action: PayloadAction<boolean>,
-    ) => {
-      state.predictThePitchEligibleMarketsError = action.payload;
-    },
-
     // Predict The Pitch leaderboard reducers
     setPredictThePitchLeaderboard: (
       state,
@@ -1123,8 +1087,6 @@ const rewardsSlice = createSlice({
                 action.payload.rewards.ondoCampaignPortfolio ?? {},
               ondoCampaignActivity:
                 action.payload.rewards.ondoCampaignActivity ?? {},
-              predictThePitchEligibleMarkets:
-                action.payload.rewards.predictThePitchEligibleMarkets ?? null,
               predictThePitchLeaderboard:
                 action.payload.rewards.predictThePitchLeaderboard ?? null,
               predictThePitchLeaderboardPositions:
@@ -1228,9 +1190,6 @@ export const {
   setPerpsTradingCampaignVolume,
   setPerpsTradingCampaignVolumeLoading,
   setPerpsTradingCampaignVolumeError,
-  setPredictThePitchEligibleMarkets,
-  setPredictThePitchEligibleMarketsLoading,
-  setPredictThePitchEligibleMarketsError,
   setPredictThePitchLeaderboard,
   setPredictThePitchLeaderboardLoading,
   setPredictThePitchLeaderboardError,

@@ -9214,14 +9214,7 @@
       "leaderboard_not_yet_computed": "Leaderboard hasn't been computed yet. Check back soon.",
       "stats_error_title": "Unable to load stats",
       "stats_error_description": "We had a problem loading your stats. Please try again.",
-      "stats_retry": "Retry",
-      "eligible_markets_title": "Eligible markets",
-      "eligible_games": "Games",
-      "eligible_props": "Props",
-      "eligible_markets_error": "Failed to load eligible markets",
-      "eligible_markets_error_description": "Something went wrong while loading eligible markets. Please try again.",
-      "eligible_markets_empty": "No eligible markets",
-      "eligible_markets_empty_description": "Eligible markets will appear here when they are available."
+      "stats_retry": "Retry"
     },
     "campaigns_preview": {
       "title": "Campaigns",

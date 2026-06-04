@@ -52,9 +52,6 @@ import rewardsReducer, {
   setPerpsTradingCampaignVolume,
   setPerpsTradingCampaignVolumeLoading,
   setPerpsTradingCampaignVolumeError,
-  setPredictThePitchEligibleMarkets,
-  setPredictThePitchEligibleMarketsLoading,
-  setPredictThePitchEligibleMarketsError,
   setPredictThePitchLeaderboard,
   setPredictThePitchLeaderboardLoading,
   setPredictThePitchLeaderboardError,
@@ -90,7 +87,6 @@ import {
   OndoGmActivityEntryDto,
   PerpsTradingCampaignLeaderboardDto,
   PerpsTradingCampaignLeaderboardPositionDto,
-  PredictThePitchEligibleMarketsDto,
   PredictThePitchLeaderboardDto,
   PredictThePitchLeaderboardPositionDto,
   PredictThePitchPositionsDto,
@@ -2115,9 +2111,6 @@ describe('rewardsReducer', () => {
         perpsTradingCampaignVolume: null,
         perpsTradingCampaignVolumeLoading: false,
         perpsTradingCampaignVolumeError: false,
-        predictThePitchEligibleMarkets: null,
-        predictThePitchEligibleMarketsLoading: false,
-        predictThePitchEligibleMarketsError: false,
         predictThePitchLeaderboard: null,
         predictThePitchLeaderboardLoading: false,
         predictThePitchLeaderboardError: false,
@@ -2258,9 +2251,6 @@ describe('rewardsReducer', () => {
         perpsTradingCampaignVolume: null,
         perpsTradingCampaignVolumeLoading: false,
         perpsTradingCampaignVolumeError: false,
-        predictThePitchEligibleMarkets: null,
-        predictThePitchEligibleMarketsLoading: false,
-        predictThePitchEligibleMarketsError: false,
         predictThePitchLeaderboard: null,
         predictThePitchLeaderboardLoading: false,
         predictThePitchLeaderboardError: false,
@@ -6053,22 +6043,6 @@ describe('perps trading campaign volume', () => {
   });
 });
 
-const mockPredictEligibleMarkets: PredictThePitchEligibleMarketsDto = {
-  games: [
-    {
-      displayName: 'Brazil vs Argentina',
-      navId: '0xnav',
-      conditionId: '0xcondition',
-      marketSlug: 'brazil-vs-argentina',
-      eventSlug: 'world-cup',
-      iconUrl: null,
-      flags: [],
-      bucket: 'games',
-    },
-  ],
-  props: [],
-};
-
 const mockPredictLeaderboard: PredictThePitchLeaderboardDto = {
   campaignId: 'predict-c-1',
   computedAt: '2026-06-30T12:00:00.000Z',
@@ -6118,35 +6092,6 @@ const mockPredictPrizePool: PredictThePitchPrizePoolDto = {
 };
 
 describe('predict the pitch reducers', () => {
-  it('sets eligible markets and clears error', () => {
-    const state = rewardsReducer(
-      { ...initialState, predictThePitchEligibleMarketsError: true },
-      setPredictThePitchEligibleMarkets(mockPredictEligibleMarkets),
-    );
-
-    expect(state.predictThePitchEligibleMarkets).toEqual(
-      mockPredictEligibleMarkets,
-    );
-    expect(state.predictThePitchEligibleMarketsError).toBe(false);
-  });
-
-  it('skips eligible market loading when data is cached and toggles errors', () => {
-    const withData = rewardsReducer(
-      {
-        ...initialState,
-        predictThePitchEligibleMarkets: mockPredictEligibleMarkets,
-      },
-      setPredictThePitchEligibleMarketsLoading(true),
-    );
-    expect(withData.predictThePitchEligibleMarketsLoading).toBe(false);
-
-    const withError = rewardsReducer(
-      initialState,
-      setPredictThePitchEligibleMarketsError(true),
-    );
-    expect(withError.predictThePitchEligibleMarketsError).toBe(true);
-  });
-
   it('sets and removes leaderboard data', () => {
     let state = rewardsReducer(
       { ...initialState, predictThePitchLeaderboardError: true },

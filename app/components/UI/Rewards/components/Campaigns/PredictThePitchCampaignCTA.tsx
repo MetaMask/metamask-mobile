@@ -19,13 +19,11 @@ interface PredictThePitchCampaignCTAProps {
     UseGetCampaignParticipantStatusResult,
     'status' | 'isLoading'
   >;
-  campaignId: string;
 }
 
 const PredictThePitchCampaignCTA: React.FC<PredictThePitchCampaignCTAProps> = ({
   campaign,
   participantStatus,
-  campaignId,
 }) => {
   const navigation = useNavigation();
 
@@ -33,14 +31,11 @@ const PredictThePitchCampaignCTA: React.FC<PredictThePitchCampaignCTAProps> = ({
   const isLoading = participantStatus.isLoading;
   const isOptedIn = participantStatus.status?.optedIn === true;
 
-  const navigateToEligibleMarkets = useCallback(() => {
-    navigation.navigate(
-      Routes.REWARDS_PREDICT_THE_PITCH_ELIGIBLE_MARKETS_VIEW,
-      {
-        campaignId,
-      },
-    );
-  }, [campaignId, navigation]);
+  const navigateToPredictMarkets = useCallback(() => {
+    navigation.navigate(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MARKET_LIST,
+    });
+  }, [navigation]);
 
   if (!isLoading && campaignStatus === 'active' && isOptedIn) {
     return (
@@ -49,7 +44,7 @@ const PredictThePitchCampaignCTA: React.FC<PredictThePitchCampaignCTAProps> = ({
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
-          onPress={navigateToEligibleMarkets}
+          onPress={navigateToPredictMarkets}
           testID={CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON}
         >
           {strings('rewards.predict_the_pitch_campaign.predict_now_cta')}

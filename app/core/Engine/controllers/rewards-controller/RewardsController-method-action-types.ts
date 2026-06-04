@@ -763,11 +763,6 @@ export type RewardsControllerInvalidateSubscriptionCacheAction = {
   handler: RewardsController['invalidateSubscriptionCache'];
 };
 
-export type RewardsControllerGetPredictThePitchEligibleMarketsAction = {
-  type: `RewardsController:getPredictThePitchEligibleMarkets`;
-  handler: RewardsController['getPredictThePitchEligibleMarkets'];
-};
-
 export type RewardsControllerGetPredictThePitchLeaderboardAction = {
   type: `RewardsController:getPredictThePitchLeaderboard`;
   handler: RewardsController['getPredictThePitchLeaderboard'];
@@ -910,7 +905,6 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetClientVersionRequirementsAction
   | RewardsControllerInvalidateReferralDetailsCacheAction
   | RewardsControllerInvalidateSubscriptionCacheAction
-  | RewardsControllerGetPredictThePitchEligibleMarketsAction
   | RewardsControllerGetPredictThePitchLeaderboardAction
   | RewardsControllerGetPredictThePitchLeaderboardPositionAction
   | RewardsControllerGetPredictThePitchPositionsAction
