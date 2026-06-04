@@ -6,7 +6,6 @@ import {
   PREVIOUS_SCREEN,
   PROTECT,
 } from '../../../constants/navigation';
-import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import Routes from '../../../constants/navigation/Routes';
 import { Provider } from 'react-redux';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -55,6 +54,7 @@ jest.mock('@metamask/key-tree', () => ({
 
 import ChoosePassword from './index.tsx';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import { AccountType } from '../../../constants/onboarding';
 import {
   TraceName,
   TraceOperation,
@@ -700,9 +700,7 @@ describe('ChoosePassword', () => {
           routes: [
             {
               name: 'OnboardingSuccess',
-              params: {
-                successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
-              },
+              params: { showPasswordHint: true },
             },
           ],
         });
@@ -1125,6 +1123,7 @@ describe('ChoosePassword', () => {
         ...mockRoute.params,
         [PREVIOUS_SCREEN]: ONBOARDING,
         oauthLoginSuccess: true,
+        provider: 'google',
       };
 
       const component = renderWithProviders(<ChoosePassword />);
@@ -1149,6 +1148,7 @@ describe('ChoosePassword', () => {
             params: expect.objectContaining({
               metricsEnabled: true,
               error: walletError,
+              accountType: AccountType.MetamaskGoogle,
             }),
           },
         ],

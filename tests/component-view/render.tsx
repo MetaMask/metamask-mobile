@@ -114,7 +114,7 @@ export function renderScreenWithRoutes(
   options: { name: string },
   extraRoutes: {
     name: string;
-    Component?: React.ComponentType<unknown>;
+    Component?: React.ComponentType<object>;
   }[],
   providerValues?: ProviderValues,
   initialParams?: Record<string, unknown>,

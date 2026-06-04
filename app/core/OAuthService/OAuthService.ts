@@ -25,7 +25,11 @@ import {
   GoogleWebGID,
 } from './OAuthLoginHandlers/constants';
 import { QAMockOAuthService } from './QAMockOAuthService';
-import { OAuthError, OAuthErrorType } from './error';
+import {
+  OAuthError,
+  OAuthErrorType,
+  isSocialLoginAuthSessionDismissed,
+} from './error';
 import { BaseLoginHandler } from './OAuthLoginHandlers/baseHandler';
 import { Platform } from 'react-native';
 import { signOut as acmSignOut } from '@metamask/react-native-acm';
@@ -36,6 +40,7 @@ import {
 import { analytics } from '../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
 import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
+import { trackSocialLoginFailed } from './socialLoginAnalytics';
 import ReduxService from '../redux';
 import { setSeedlessOnboarding } from '../../actions/onboarding';
 import Device from '../../util/device';
@@ -287,8 +292,9 @@ export class OAuthService {
             name: TraceName.OnboardingOAuthBYOAServerGetAuthTokensError,
           });
 
-          this.#trackSocialLoginFailure({
+          trackSocialLoginFailed({
             authConnection,
+            isRehydration: this.localState.userClickedRehydration,
             errorCategory: 'get_auth_tokens',
             error,
           });
@@ -333,8 +339,9 @@ export class OAuthService {
             name: TraceName.OnboardingOAuthSeedlessAuthenticateError,
           });
 
-          this.#trackSocialLoginFailure({
+          trackSocialLoginFailed({
             authConnection,
+            isRehydration: this.localState.userClickedRehydration,
             errorCategory: 'seedless_auth',
             error,
           });
@@ -378,46 +385,26 @@ export class OAuthService {
     }
   };
 
-  #trackSocialLoginFailure = ({
+  #trackSocialLoginAuthBrowserDismissed = ({
     authConnection,
-    errorCategory,
-    error,
+    elapsedMs,
   }: {
     authConnection: AuthConnection;
-    errorCategory: 'provider_login' | 'get_auth_tokens' | 'seedless_auth';
-    error: unknown;
+    elapsedMs: number;
   }) => {
-    const isUserCancelled =
-      error instanceof OAuthError &&
-      (error.code === OAuthErrorType.UserCancelled ||
-        error.code === OAuthErrorType.UserDismissed);
-
-    let userClickedRehydration: 'true' | 'false' | 'unknown' = 'unknown';
-    if (this.localState.userClickedRehydration !== undefined) {
-      userClickedRehydration = this.localState.userClickedRehydration
-        ? 'true'
-        : 'false';
-    }
-
-    const oauthErrorCode =
-      error instanceof OAuthError ? String(error.code) : undefined;
+    const isRehydration = this.localState.userClickedRehydration === true;
+    const properties = {
+      auth_connection: authConnection,
+      account_type: getSocialAccountType(authConnection, isRehydration),
+      surface: isRehydration ? 'rehydration' : 'onboarding',
+      elapsed_ms: elapsedMs,
+    };
 
     analytics.trackEvent(
       AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.SOCIAL_LOGIN_FAILED,
+        MetaMetricsEvents.SOCIAL_LOGIN_AUTH_BROWSER_DISMISSED,
       )
-        .addProperties({
-          account_type: getSocialAccountType(
-            authConnection,
-            this.localState.userClickedRehydration === true,
-          ),
-          is_rehydration: userClickedRehydration,
-          failure_type: isUserCancelled ? 'user_cancelled' : 'error',
-          error_category: errorCategory,
-          ...(oauthErrorCode !== undefined && {
-            oauth_error_code: oauthErrorCode,
-          }),
-        })
+        .addProperties(properties)
         .build(),
     );
   };
@@ -426,6 +413,7 @@ export class OAuthService {
     loginHandler: BaseLoginHandler,
   ): Promise<LoginHandlerResult> => {
     let providerLoginSuccess = false;
+    const providerLoginStartedAt = Date.now();
     try {
       trace({
         name: TraceName.OnboardingOAuthProviderLogin,
@@ -459,11 +447,19 @@ export class OAuthService {
         endTrace({ name: TraceName.OnboardingOAuthProviderLoginError });
       }
 
-      this.#trackSocialLoginFailure({
-        authConnection: loginHandler.authConnection,
-        errorCategory: 'provider_login',
-        error,
-      });
+      if (isSocialLoginAuthSessionDismissed(error)) {
+        this.#trackSocialLoginAuthBrowserDismissed({
+          authConnection: loginHandler.authConnection,
+          elapsedMs: Date.now() - providerLoginStartedAt,
+        });
+      } else {
+        trackSocialLoginFailed({
+          authConnection: loginHandler.authConnection,
+          isRehydration: this.localState.userClickedRehydration,
+          errorCategory: 'provider_login',
+          error,
+        });
+      }
 
       throw error;
     } finally {

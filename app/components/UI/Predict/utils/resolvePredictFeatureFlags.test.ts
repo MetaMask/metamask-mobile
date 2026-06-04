@@ -32,6 +32,7 @@ describe('resolvePredictFeatureFlags', () => {
       fakOrdersEnabled: false,
       predictWithAnyTokenEnabled: false,
       predictUpDownEnabled: false,
+      predictPortfolioEnabled: false,
       predictHomepageDiscoveryNbaChampionEnabled: true,
       predictWorldCup: DEFAULT_PREDICT_WORLD_CUP_FLAG,
     });
@@ -232,7 +233,7 @@ describe('resolvePredictFeatureFlags', () => {
 
     it('falls back to default disabled config when version gate fails', () => {
       mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
-        if (flag && typeof flag === 'object' && 'seriesId' in flag) {
+        if (flag && typeof flag === 'object' && 'tagSlug' in flag) {
           return false;
         }
         return undefined;
@@ -256,7 +257,7 @@ describe('resolvePredictFeatureFlags', () => {
 
     it('parses config with defaults when version gate passes', () => {
       mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
-        if (flag && typeof flag === 'object' && 'seriesId' in flag) {
+        if (flag && typeof flag === 'object' && 'tagSlug' in flag) {
           return true;
         }
         return undefined;
@@ -320,6 +321,134 @@ describe('resolvePredictFeatureFlags', () => {
       });
 
       expect(result.predictWorldCup).toEqual(DEFAULT_PREDICT_WORLD_CUP_FLAG);
+    });
+  });
+
+  describe('predictPortfolioEnabled', () => {
+    it('returns false when flag is missing', () => {
+      const result = resolvePredictFeatureFlags({});
+
+      expect(result.predictPortfolioEnabled).toBe(false);
+    });
+
+    it('returns true when enabled and version gate passes', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'minimumVersion' in flag &&
+          !('leagues' in flag) &&
+          !('tagSlug' in flag)
+        ) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictPortfolio: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.predictPortfolioEnabled).toBe(true);
+    });
+
+    it('returns false when flag is disabled', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'minimumVersion' in flag &&
+          !('leagues' in flag) &&
+          !('tagSlug' in flag)
+        ) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictPortfolio: {
+            enabled: false,
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.predictPortfolioEnabled).toBe(false);
+    });
+
+    it('returns false when flag is malformed', () => {
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictPortfolio: {
+            enabled: 'true',
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.predictPortfolioEnabled).toBe(false);
+    });
+
+    it('returns false when version gate fails', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'minimumVersion' in flag &&
+          !('leagues' in flag) &&
+          !('tagSlug' in flag)
+        ) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictPortfolio: {
+            enabled: true,
+            minimumVersion: '99.0.0',
+          },
+        },
+      });
+
+      expect(result.predictPortfolioEnabled).toBe(false);
+    });
+
+    it('unwraps progressive rollout shape', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'minimumVersion' in flag &&
+          !('leagues' in flag) &&
+          !('tagSlug' in flag)
+        ) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictPortfolio: {
+            name: 'group-a',
+            value: {
+              enabled: true,
+              minimumVersion: '1.0.0',
+            },
+          },
+        },
+      });
+
+      expect(result.predictPortfolioEnabled).toBe(true);
     });
   });
 

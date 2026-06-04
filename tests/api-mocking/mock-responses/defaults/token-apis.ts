@@ -18,6 +18,9 @@ const tokenAssetsRegex =
 const tokenV3AssetsRegex =
   /^https:\/\/tokens\.api\.cx\.metamask\.io\/v3\/assets\?.*$/;
 
+const tokenV2SupportedNetworksRegex =
+  /^https:\/\/tokens\.api\.cx\.metamask\.io\/v2\/supportedNetworks(\?.*)?$/;
+
 // OHLCV advanced chart (useOHLCVChart) — path includes CAIP asset id, e.g.
 // https://price.api.cx.metamask.io/v3/ohlcv-chart/eip155:8453/erc20:0x...?timePeriod=1d&vsCurrency=usd
 const ohlcvChartRegex =
@@ -53,6 +56,24 @@ export const TOKEN_API_MOCKS: MockEventsObject = {
       urlEndpoint: tokenV3AssetsRegex,
       responseCode: 200,
       response: [],
+    },
+    {
+      urlEndpoint: tokenV2SupportedNetworksRegex,
+      responseCode: 200,
+      response: {
+        fullSupport: [
+          'eip155:1',
+          'eip155:137',
+          'eip155:56',
+          'eip155:59144',
+          'eip155:8453',
+          'eip155:10',
+          'eip155:42161',
+          'eip155:534352',
+          'eip155:1329',
+        ],
+        partialSupport: [],
+      },
     },
     {
       urlEndpoint: ohlcvChartRegex,

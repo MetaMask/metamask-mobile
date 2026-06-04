@@ -8,6 +8,7 @@ import {
   NetworkControllerFindNetworkClientIdByChainIdAction,
   NetworkControllerGetEIP1559CompatibilityAction,
   NetworkControllerGetNetworkClientByIdAction,
+  NetworkControllerGetNetworkConfigurationByChainIdAction,
   NetworkControllerStateChangeEvent,
 } from '@metamask/network-controller';
 import {
@@ -112,6 +113,7 @@ type InitMessengerActions =
   | KeyringControllerSignTypedMessageAction
   | NetworkControllerGetEIP1559CompatibilityAction
   | NetworkControllerGetNetworkClientByIdAction
+  | NetworkControllerGetNetworkConfigurationByChainIdAction
   | RemoteFeatureFlagControllerGetStateAction
   | TransactionControllerAddTransactionAction
   | TransactionControllerAddTransactionBatchAction
@@ -171,6 +173,7 @@ export function getTransactionControllerInitMessenger(
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getEIP1559Compatibility',
       'NetworkController:getNetworkClientById',
+      'NetworkController:getNetworkConfigurationByChainId',
       'KeyringController:getState',
       'KeyringController:signEip7702Authorization',
       'KeyringController:signTypedMessage',

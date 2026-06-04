@@ -37,8 +37,6 @@ export interface ExploreSearchResult {
 export interface UseExploreSearchOptions {
   /** Limit each section to TOP_ITEMS_WITHOUT_QUERY when there is no query. */
   truncateWithoutQuery?: boolean;
-  /** Page size passed to usePredictionsFeed. Defaults to 20. */
-  predictionsPageSize?: number;
   /** Forward fetchMore / hasMore / total on sections that support it. */
   exposePagination?: boolean;
   /** 'v1' uses trending.* keys; 'v2' uses trending.search_tabs.* keys. */
@@ -50,7 +48,6 @@ export const useExploreSearch = (
 ): ExploreSearchResult => {
   const {
     truncateWithoutQuery = false,
-    predictionsPageSize = 20,
     exposePagination = false,
     titleVariant = 'v2',
   } = options;
@@ -71,7 +68,6 @@ export const useExploreSearch = (
   const predictions = usePredictionsFeed({
     variant: 'trending',
     query: debouncedQuery,
-    pageSize: predictionsPageSize,
   });
   const sites = useSitesFeed({ query: debouncedQuery });
 

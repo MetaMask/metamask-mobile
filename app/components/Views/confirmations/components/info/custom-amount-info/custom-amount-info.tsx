@@ -2,7 +2,7 @@ import React, { ReactNode, memo, useCallback, useState } from 'react';
 import { toCaipAssetType } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
-import { ProjectedFiveYearBalance } from '../../projected-five-year-balance';
+import { BalanceProjection } from '../../balance-projection';
 import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
 import { BridgeFeeRow } from '../../rows/bridge-fee-row';
 import { BridgeTimeRow } from '../../rows/bridge-time-row';
@@ -222,7 +222,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           {!hidePayTokenAmount &&
             disablePay !== true &&
             (isMoneyAccountDeposit ? (
-              <ProjectedFiveYearBalance amountFiat={amountFiat} />
+              <BalanceProjection amountFiat={amountFiat} projectedYears={1} />
             ) : (
               <PayTokenAmount
                 amountHuman={amountHuman}
@@ -239,7 +239,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           <AlertMessage alertMessage={alertMessage ?? headlessBuyError} />
           {!isResultReady && (
             <>
-              {supportAccountSelection && (
+              {supportAccountSelection && !selectedFiatPaymentMethodId && (
                 <PayAccountSelector style={styles.separator} />
               )}
               {disablePay !== true && hasTokens && <PayWithRow />}
@@ -247,7 +247,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           )}
           {isResultReady && (
             <Box>
-              {supportAccountSelection && <PayAccountSelector />}
+              {supportAccountSelection && !selectedFiatPaymentMethodId && (
+                <PayAccountSelector />
+              )}
               {disablePay !== true && hasTokens && <PayWithRow />}
               {showPaymentDetails && (
                 <>
