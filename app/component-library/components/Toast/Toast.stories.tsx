@@ -45,6 +45,76 @@ export default {
   },
 } as Meta;
 
+export const ExclusiveLock = {
+  render: function Render() {
+    const { toastRef } = useContext(ToastContext);
+    const tw = useTailwind();
+
+    const showExclusive = () => {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Plain,
+        labelOptions: [
+          { label: 'Transaction pending...', isBold: true },
+          { label: ' This toast cannot be replaced.' },
+        ],
+        hasNoTimeout: true,
+        exclusive: true,
+      });
+    };
+
+    const showNormal = () => {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'Normal toast — will be blocked.' }],
+        hasNoTimeout: false,
+      });
+    };
+
+    const showForceOverride = () => {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Plain,
+        labelOptions: [
+          { label: 'Transaction confirmed!', isBold: true },
+          { label: ' Forced through the lock.' },
+        ],
+        hasNoTimeout: true,
+        exclusive: true,
+        force: true,
+      });
+    };
+
+    const dismiss = () => {
+      toastRef?.current?.closeToast();
+    };
+
+    return (
+      <View style={tw.style('min-h-[300px] relative gap-y-2')}>
+        <Button
+          variant={ButtonVariants.Primary}
+          label="1. Show Exclusive Toast"
+          onPress={showExclusive}
+        />
+        <Button
+          variant={ButtonVariants.Secondary}
+          label="2. Try Normal Toast (blocked)"
+          onPress={showNormal}
+        />
+        <Button
+          variant={ButtonVariants.Secondary}
+          label="3. Force Override (exclusive → exclusive)"
+          onPress={showForceOverride}
+        />
+        <Button
+          variant={ButtonVariants.Secondary}
+          label="4. Dismiss Toast (release lock)"
+          onPress={dismiss}
+        />
+        <ToastComponent ref={toastRef} />
+      </View>
+    );
+  },
+};
+
 export const Default = {
   args: {
     variant: ToastVariants.Plain,
