@@ -1316,7 +1316,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
         style={tw.style('h-full rounded-xl bg-muted overflow-hidden')}
       >
         <Box twClassName="flex-1 p-4 items-center justify-between">
-          <Box twClassName="items-center gap-2">
+          <Box twClassName="items-center">
             <LiveStatus
               compact
               endDate={selectedMarket.endDate}
@@ -1336,7 +1336,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
             </Text>
           </Box>
 
-          <Box twClassName="w-full items-center gap-3">
+          <Box twClassName="w-full items-center gap-2">
             <OutcomeButtons
               compact
               upToken={upToken}
