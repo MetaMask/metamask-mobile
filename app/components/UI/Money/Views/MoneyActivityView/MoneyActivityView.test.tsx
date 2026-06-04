@@ -32,6 +32,15 @@ jest.mock('../../hooks/useMoneyAccountTransactions', () => ({
   useMoneyAccountTransactions: jest.fn(),
 }));
 
+jest.mock('../../hooks/useMoneyAccountCardTransactions', () => ({
+  useMoneyAccountCardTransactions: () => ({
+    cardTransactions: [],
+    isLoading: false,
+    error: false,
+    refetch: jest.fn(),
+  }),
+}));
+
 jest.mock('../../components/MoneyActivityItem/MoneyActivityItem', () => {
   const {
     View,

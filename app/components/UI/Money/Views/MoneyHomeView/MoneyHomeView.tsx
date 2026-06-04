@@ -25,6 +25,8 @@ import styleSheet from './MoneyHomeView.styles';
 import { useMoneyDepositTokens } from '../../hooks/useMoneyDepositTokens';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
+import { useMoneyAccountCardTransactions } from '../../hooks/useMoneyAccountCardTransactions';
+import { mergeMoneyActivity } from '../../hooks/useMoneyActivityItems';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { useOnboardingStep, STEPPER_IDS } from '../../hooks/useOnboardingStep';
@@ -96,6 +98,11 @@ const MoneyHomeView = () => {
   const { initiateDeposit } = useMoneyAccountDeposit();
   const { allTransactions, moneyAddress, mockDataEnabled } =
     useMoneyAccountTransactions();
+  const { cardTransactions } = useMoneyAccountCardTransactions();
+  const activityItems = useMemo(
+    () => mergeMoneyActivity(allTransactions, cardTransactions),
+    [allTransactions, cardTransactions],
+  );
 
   const isCardholder = useSelector(selectIsCardholder);
   const { startLinkFlow } = useMoneyAccountCardLinkage();
@@ -107,7 +114,7 @@ const MoneyHomeView = () => {
     totalSteps: MONEY_ONBOARDING_TOTAL_STEPS,
   });
 
-  const homeState = getMoneyHomeState(allTransactions.length);
+  const homeState = getMoneyHomeState(activityItems.length);
   const isMilestone = homeState === 'milestone' || homeState === 'filled';
   const isCardholderWithMilestone = isMilestone && isCardholder;
 
@@ -340,10 +347,10 @@ const MoneyHomeView = () => {
             <Divider />
           </>
         )}
-        {allTransactions.length >= 1 && (
+        {activityItems.length >= 1 && (
           <>
             <MoneyActivityList
-              transactions={allTransactions}
+              items={activityItems}
               moneyAddress={moneyAddress}
               onViewAllPress={handleViewAllActivityPress}
               onHeaderPress={handleActivityHeaderPress}
