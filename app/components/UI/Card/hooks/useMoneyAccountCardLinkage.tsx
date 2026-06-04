@@ -48,7 +48,6 @@ import { CardLinkageInProgressError } from '../../../../core/Engine/controllers/
 import { BAANX_MAX_LIMIT } from '../constants';
 import { CardFundingToken } from '../types';
 import { UserCancelledError } from './useCardDelegation';
-import { useIsMoneyAccount7702Ready } from './useIsMoneyAccount7702Ready';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import {
   IMetaMetricsEvent,
