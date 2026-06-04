@@ -30,6 +30,11 @@ interface ExecuteHardwareWalletOperationOptions {
   ) => void;
   /** Hides the awaiting-confirmation UI. */
   hideAwaitingConfirmation: () => void;
+  /**
+   * When `false`, skips the Ledger-style awaiting-confirmation bottom sheet while still
+   * running {@link ensureDeviceReady} and {@link execute}. Defaults to `true`.
+   */
+  showConfirmation?: boolean;
   /** Presents a generic error when the operation fails and the error is not user-cancelled. */
   showHardwareWalletError: (error: unknown) => void;
   /**
@@ -60,6 +65,7 @@ export async function executeHardwareWalletOperation({
   setPendingOperationAddress,
   showAwaitingConfirmation,
   hideAwaitingConfirmation,
+  showConfirmation = true,
   showHardwareWalletError,
   onError,
   execute,
@@ -88,13 +94,17 @@ export async function executeHardwareWalletOperation({
       return false;
     }
 
-    hasShownConfirmation = true;
-    showAwaitingConfirmation(operationType, () => {
-      rejectOnce().catch(() => undefined);
-    });
+    if (showConfirmation) {
+      hasShownConfirmation = true;
+      showAwaitingConfirmation(operationType, () => {
+        rejectOnce().catch(() => undefined);
+      });
+    }
 
     await execute();
-    hideAwaitingConfirmation();
+    if (hasShownConfirmation) {
+      hideAwaitingConfirmation();
+    }
     return true;
   } catch (error) {
     if (hasShownConfirmation) {

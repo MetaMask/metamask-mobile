@@ -71,6 +71,35 @@ describe('executeHardwareWalletOperation', () => {
     expect(onRejected).not.toHaveBeenCalled();
   });
 
+  it('skips awaiting confirmation UI when showConfirmation is false', async () => {
+    await expect(
+      executeHardwareWalletOperation({
+        ...baseOptions,
+        showConfirmation: false,
+      }),
+    ).resolves.toBe(true);
+
+    expect(showAwaitingConfirmation).not.toHaveBeenCalled();
+    expect(execute).toHaveBeenCalledTimes(1);
+    expect(hideAwaitingConfirmation).not.toHaveBeenCalled();
+    expect(onRejected).not.toHaveBeenCalled();
+  });
+
+  it('does not hide awaiting confirmation on error when showConfirmation is false', async () => {
+    execute.mockRejectedValueOnce(new Error('signing failed'));
+
+    await expect(
+      executeHardwareWalletOperation({
+        ...baseOptions,
+        showConfirmation: false,
+      }),
+    ).resolves.toBe(false);
+
+    expect(showAwaitingConfirmation).not.toHaveBeenCalled();
+    expect(hideAwaitingConfirmation).not.toHaveBeenCalled();
+    expect(onRejected).toHaveBeenCalledTimes(1);
+  });
+
   it('rejects when the device is not ready', async () => {
     ensureDeviceReady.mockResolvedValue(false);
 
