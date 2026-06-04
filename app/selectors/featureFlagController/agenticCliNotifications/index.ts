@@ -20,11 +20,8 @@ export const selectAgenticCliNotificationsEnabled = createSelector(
 
     const remoteValue = remoteFeatureFlags?.agenticCliNotificationsEnabled;
 
-    // Local dev: default ON when LaunchDarkly flag is missing; honor explicit false.
-    if (__DEV__) {
-      return remoteValue !== false;
-    }
-
-    return Boolean(remoteValue);
+    // Build flag gates compilation; all environments (dev, exp/UAT, prod) default ON
+    // when LaunchDarkly is missing. Honor explicit remote false to disable.
+    return remoteValue !== false;
   },
 );
