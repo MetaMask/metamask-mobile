@@ -26,8 +26,9 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 
-interface TransitionEndNavigation {
+interface StatusBarNavigation {
   addListener: (type: 'transitionEnd', callback: () => void) => () => void;
+  getParent: () => StatusBarNavigation | undefined;
 }
 
 const CardWelcome = () => {
@@ -50,24 +51,25 @@ const CardWelcome = () => {
     );
   }, [trackEvent, createEventBuilder]);
 
-  // The welcome screen always renders on a dark purple background, so the
-  // status bar must use light content to stay legible regardless of theme.
-  // We apply it on focus and again on transitionEnd, because the global
-  // ThemeProvider re-applies the theme's status bar style during the initial
-  // navigation transition, which would otherwise override us on first open.
-  // The theme-appropriate style is restored when the screen loses focus.
   useFocusEffect(
     useCallback(() => {
       const applyLightStatusBar = () =>
         StatusBar.setBarStyle('light-content', true);
 
       applyLightStatusBar();
-      const unsubscribeTransitionEnd = (
-        navigation as unknown as TransitionEndNavigation
-      ).addListener('transitionEnd', applyLightStatusBar);
+
+      const unsubscribers: (() => void)[] = [];
+      let current: StatusBarNavigation | undefined =
+        navigation as unknown as StatusBarNavigation;
+      while (current) {
+        unsubscribers.push(
+          current.addListener('transitionEnd', applyLightStatusBar),
+        );
+        current = current.getParent?.();
+      }
 
       return () => {
-        unsubscribeTransitionEnd();
+        unsubscribers.forEach((unsubscribe) => unsubscribe());
         StatusBar.setBarStyle(
           theme.themeAppearance === AppThemeKey.dark
             ? 'light-content'

@@ -23,6 +23,7 @@ jest.mock('../../hooks/useCardPostAuthRedirect', () => ({
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockAddListener = jest.fn(() => jest.fn());
+const mockGetParent = jest.fn(() => undefined);
 const mockTrackEvent = jest.fn();
 const mockBuild = jest.fn();
 const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
@@ -40,6 +41,7 @@ jest.mock('@react-navigation/native', () => {
       navigate: mockNavigate,
       goBack: mockGoBack,
       addListener: mockAddListener,
+      getParent: mockGetParent,
     }),
     useFocusEffect: (callback: () => void | (() => void)) => {
       ReactActual.useEffect(() => {
@@ -106,6 +108,7 @@ describe('CardWelcome', () => {
     mockNavigate.mockClear();
     mockGoBack.mockClear();
     mockAddListener.mockClear();
+    mockGetParent.mockClear();
     mockTrackEvent.mockClear();
     mockCreateEventBuilder.mockClear();
   });
