@@ -157,6 +157,32 @@ describe('DiscoveryFlow.machine — transition()', () => {
       ).toBe(DiscoveryStep.TransportConnectionFailed);
     });
 
+    it('maps SCAN_ERROR when bluetooth is off to transport-unavailable', () => {
+      expect(
+        transition(
+          DiscoveryStep.Searching,
+          {
+            type: HardwareWalletDiscoveryEventType.ScanError,
+            error: new Error('Bluetooth is off'),
+          },
+          mockConfig,
+        ),
+      ).toBe(DiscoveryStep.TransportUnavailable);
+    });
+
+    it('maps SCAN_ERROR when bluetooth is not authorized to nearby-devices-denied', () => {
+      expect(
+        transition(
+          DiscoveryStep.Searching,
+          {
+            type: HardwareWalletDiscoveryEventType.ScanError,
+            error: new Error('Not authorized to use Bluetooth'),
+          },
+          mockConfig,
+        ),
+      ).toBe(DiscoveryStep.NearbyDevicesDenied);
+    });
+
     it('moves to transport-unavailable on TRANSPORT_UNAVAILABLE', () => {
       expect(
         transition(

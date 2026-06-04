@@ -1,10 +1,10 @@
-import { ErrorCode } from '@metamask/hw-wallet-sdk';
 import {
   DiscoveryStep,
   HardwareWalletDiscoveryEventType,
   type MachineEvent,
 } from './DiscoveryFlow.machine.types';
 import type { DeviceUIConfig } from './DiscoveryFlow.types';
+import { parseErrorByType } from '../../../../core/HardwareWallet/errors';
 
 /**
  * Pure state-machine reducer for the hardware wallet discovery flow.
@@ -122,19 +122,6 @@ function resolveScanErrorStep(
   error: Error,
   config: DeviceUIConfig,
 ): DiscoveryStep {
-  const name = error.name?.toLowerCase() ?? '';
-  const message = error.message?.toLowerCase() ?? '';
-
-  if (
-    name === 'bleerror' ||
-    message.includes('bleerror') ||
-    message.includes('bluetooth')
-  ) {
-    return (
-      config.errorToStepMap[ErrorCode.BluetoothConnectionFailed] ??
-      DiscoveryStep.TransportConnectionFailed
-    );
-  }
-
-  return DiscoveryStep.NotFound;
+  const { code } = parseErrorByType(error, config.walletType);
+  return config.errorToStepMap[code] ?? DiscoveryStep.NotFound;
 }
