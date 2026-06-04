@@ -8898,7 +8898,7 @@
       "stats_notional_volume_threshold": "{{amount}}$ gereklidir",
       "stats_qualified_title": "Uygunsunuz",
       "stats_qualified_description": "Yarışma sona ermeden Kazanç/Zarar durumunuzu iyileştirmek ve liderlik tablosunda yükselmek için işlem yapmaya devam edin.",
-      "stats_qualify_for_rank_title": "Bu sıralama için uygunluk kazanın",
+      "stats_qualify_for_rank_title": "Liderlik tablosu için uygunluk kazanın",
       "stats_qualify_for_rank_description": "Uygunluk kazanmak için {{notionalRemaining}} daha nominal hacimli işlem yapın.",
       "stats_error_title": "İstatistikler yüklenemiyor",
       "stats_error_description": "İstatistikleriniz yüklenirken bir problem yaşadık. Lütfen tekrar deneyin.",

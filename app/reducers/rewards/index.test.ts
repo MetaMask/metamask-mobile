@@ -5802,13 +5802,16 @@ const mockPerpsLeaderboard: PerpsTradingCampaignLeaderboardDto = {
   computedAt: '2025-08-15T12:00:00.000Z',
   entries: [],
   totalParticipants: 42,
+  minVolumeForEligibility: 25_000,
 };
 
 const mockPerpsPosition: PerpsTradingCampaignLeaderboardPositionDto = {
   rank: 2,
+  totalParticipants: 42,
   pnl: 100,
-  notionalVolume: 5000,
-  qualified: true,
+  volume: 5000,
+  eligible: true,
+  minVolumeForEligibility: 25000,
   neighbors: [],
   computedAt: '2025-08-15T12:00:00.000Z',
 };
