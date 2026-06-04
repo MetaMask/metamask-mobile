@@ -92,16 +92,19 @@ describe('wallet-init/keyrings', () => {
       });
 
       const filterCalls: { type: string; id: string }[] = [];
-      const handler = jest.fn((selector, _operation) => {
+      const handler = jest.fn(async (selector, operation) => {
         if ('filter' in selector) {
           selector.filter(hdKeyring, { id: 'entropy-1', name: 'main' });
           selector.filter(hdKeyring, { id: 'other', name: 'other' });
           filterCalls.push({ type: hdKeyring.type, id: 'entropy-1' });
         }
-        // Skip invoking operation here so we don't run into HdKeyring's
-        // seed-length expectations; the closure body that calls
-        // `encodeMnemonic` is covered by the success path elsewhere.
-        return Promise.resolve([]);
+        // Drive the closure body all the way through `encodeMnemonic`. The
+        // returned value is fed back into MoneyKeyring's internals which can
+        // throw downstream; the test only cares that the closure ran.
+        return operation({
+          keyring: hdKeyring as unknown as Keyring,
+          metadata: { id: 'entropy-1', name: 'main' },
+        });
       });
       messenger.registerActionHandler(
         'KeyringController:withKeyringV2Unsafe',
