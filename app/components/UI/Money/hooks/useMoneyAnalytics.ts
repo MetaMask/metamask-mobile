@@ -169,26 +169,35 @@ export const useMoneyAnalytics = ({
     [createEventBuilder, getBaseProperties, trackEvent],
   );
 
-  const trackSurfaceViewed = (surfaceType: MONEY_SURFACE_TYPES) => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.MONEY_SURFACE_VIEWED)
-        .addProperties({
-          ...getBaseProperties(),
-          surface_type: surfaceType,
-        })
-        .build(),
-    );
-  };
+  const trackSurfaceViewed = useCallback(
+    (surfaceType: MONEY_SURFACE_TYPES) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.MONEY_SURFACE_VIEWED)
+          .addProperties({
+            ...getBaseProperties(),
+            surface_type: surfaceType,
+          })
+          .build(),
+      );
+    },
+    [createEventBuilder, getBaseProperties, trackEvent],
+  );
 
-  const trackScreenViewed = () =>
-    trackSurfaceViewed(MONEY_SURFACE_TYPES.SCREEN);
+  const trackScreenViewed = useCallback(
+    () => trackSurfaceViewed(MONEY_SURFACE_TYPES.SCREEN),
+    [trackSurfaceViewed],
+  );
 
   /** For components that exist within a screen */
-  const trackComponentViewed = () =>
-    trackSurfaceViewed(MONEY_SURFACE_TYPES.COMPONENT);
+  const trackComponentViewed = useCallback(
+    () => trackSurfaceViewed(MONEY_SURFACE_TYPES.COMPONENT),
+    [trackSurfaceViewed],
+  );
 
-  const trackBottomSheetViewed = () =>
-    trackSurfaceViewed(MONEY_SURFACE_TYPES.BOTTOM_SHEET);
+  const trackBottomSheetViewed = useCallback(
+    () => trackSurfaceViewed(MONEY_SURFACE_TYPES.BOTTOM_SHEET),
+    [trackSurfaceViewed],
+  );
 
   const trackOnboardingEvent = useCallback(
     (properties: MoneyOnboardingEventProperties) => {
