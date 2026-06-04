@@ -182,7 +182,7 @@ async function main(): Promise<void> {
       failures.push({
         ok: false,
         reason:
-          'PR body does not match `pull-request-template.md` (one or more section titles are missing). See https://github.com/MetaMask/metamask-mobile/blob/main/.github/scripts/shared/template.ts#L40-L47.',
+          'PR body does not match `pull-request-template.md` (one or more section titles are missing). See https://github.com/MetaMask/metamask-mobile/blob/main/.github/scripts/shared/pr-template-checks.ts#L15-L23.',
       });
     } else {
       failures.push(...runAllChecks(labelable.body, Boolean(hasNoChangelogLabel)));
