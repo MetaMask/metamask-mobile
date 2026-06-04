@@ -452,6 +452,7 @@ export function useQuickBuyController(
     isNoQuotesAvailable,
     quoteFetchError,
     isActiveQuoteForCurrentTokenPair,
+    isQuoteRequestStale,
     quotesLastFetchedAt,
     refreshCount,
     quoteRefreshRateMs,
@@ -1079,14 +1080,18 @@ export function useQuickBuyController(
     Boolean(activeQuote) && !isActiveQuoteForCurrentTokenPair;
 
   // A usable quote for exactly what's displayed: present, for the current token
-  // pair, for the current (committed) amount, and not mid-drag. When this holds,
-  // an in-flight fetch is a benign background refresh — the displayed quote stays
-  // valid and submittable and is swapped in place when the new one lands.
+  // pair, for the current (committed) amount, not mid-drag, and for the current
+  // request-only inputs (slippage, destination address, gas settings). When this
+  // holds, an in-flight fetch is a benign background refresh — the displayed
+  // quote stays valid and submittable and is swapped in place when the new one
+  // lands. When a request input changes, the displayed quote no longer matches
+  // the request being fetched, so it is not usable until the new quote arrives.
   const hasUsableQuoteOnScreen =
     Boolean(activeQuote) &&
     isActiveQuoteForCurrentTokenPair &&
     !isPendingQuoteRefresh &&
-    !isAmountUncommitted;
+    !isAmountUncommitted &&
+    !isQuoteRequestStale;
 
   // Loading that should block the UI: first load or an input change with no
   // usable quote yet. A plain background refresh is excluded so the CTA and the
@@ -1103,6 +1108,7 @@ export function useQuickBuyController(
     !activeQuote ||
     hasQuoteMismatch ||
     isPendingQuoteRefresh ||
+    isQuoteRequestStale ||
     isBlockingQuoteLoad ||
     hasInsufficientBalance ||
     isNetworkFeeUnavailable ||
@@ -1113,7 +1119,8 @@ export function useQuickBuyController(
     !walletAddress;
 
   const isTotalLoading =
-    hasValidAmount && (isBlockingQuoteLoad || isPendingQuoteRefresh);
+    hasValidAmount &&
+    (isBlockingQuoteLoad || isPendingQuoteRefresh || isQuoteRequestStale);
 
   const isConfirmLoading = isSubmittingTx;
 

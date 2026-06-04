@@ -520,4 +520,56 @@ describe('useQuickBuyQuotes', () => {
     const lastCallFields = mockSelectBridgeQuotesBase.mock.calls.at(-1)?.[0];
     expect(lastCallFields.quotes).toEqual([fetched]);
   });
+
+  it('flags isQuoteRequestStale when slippage changes after quotes settle, then clears once refetched', async () => {
+    fetchQuotesMock.mockResolvedValue([createFetchedQuote()]);
+
+    const { result, rerender } = renderHook(() =>
+      useQuickBuyQuotes({
+        sourceToken: createSourceToken(),
+        destToken: createDestToken(),
+        sourceTokenAmount: '0.001',
+      }),
+    );
+
+    await act(async () => {
+      jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+    });
+    await waitFor(() => expect(fetchQuotesMock).toHaveBeenCalledTimes(1));
+    expect(result.current.isQuoteRequestStale).toBe(false);
+
+    (selectSlippage as unknown as jest.Mock).mockReturnValue('1');
+    rerender({});
+
+    expect(result.current.isQuoteRequestStale).toBe(true);
+
+    await act(async () => {
+      jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+    });
+
+    await waitFor(() => expect(result.current.isQuoteRequestStale).toBe(false));
+  });
+
+  it('flags isQuoteRequestStale when the destination address changes', async () => {
+    fetchQuotesMock.mockResolvedValue([createFetchedQuote()]);
+
+    const { result, rerender } = renderHook(() =>
+      useQuickBuyQuotes({
+        sourceToken: createSourceToken(),
+        destToken: createDestToken(),
+        sourceTokenAmount: '0.001',
+      }),
+    );
+
+    await act(async () => {
+      jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+    });
+    await waitFor(() => expect(fetchQuotesMock).toHaveBeenCalledTimes(1));
+    expect(result.current.isQuoteRequestStale).toBe(false);
+
+    (selectDestAddress as unknown as jest.Mock).mockReturnValue('0xRECIPIENT');
+    rerender({});
+
+    expect(result.current.isQuoteRequestStale).toBe(true);
+  });
 });
