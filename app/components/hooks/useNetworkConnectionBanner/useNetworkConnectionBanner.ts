@@ -21,7 +21,7 @@ import {
   getIsMetaMaskInfuraEndpointUrl,
 } from '../../../core/Engine/controllers/network-controller/utils';
 import onlyKeepHost from '../../../util/onlyKeepHost';
-import getDomain from '../../../util/getDomain';
+import { getDomain } from '../../../util/url-utils';
 import { INFURA_PROJECT_ID } from '../../../constants/network';
 import {
   ToastContext,
