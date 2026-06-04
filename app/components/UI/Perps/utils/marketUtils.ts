@@ -9,22 +9,35 @@
 import {
   HYPERLIQUID_ASSET_ICONS_BASE_URL,
   METAMASK_PERPS_ICONS_BASE_URL,
+  MarketCategory,
   type PerpsMarketData,
   type MarketTypeFilter,
 } from '@metamask/perps-controller';
 import type { BadgeType } from '../components/PerpsBadge/PerpsBadge.types';
+import { isEquityAsset } from './marketHours';
 
-const MARKET_TYPE_TO_FILTER: Record<string, MarketTypeFilter> = {
-  equity: 'stocks',
-  commodity: 'commodities',
-  forex: 'forex',
-};
-
+/**
+ * Resolve the category filter to pre-select in the market list for a given market.
+ *
+ * Maps the controller's `MarketCategory` data model onto the UI `MarketTypeFilter`
+ * pills. Stock-like categories (stock, pre-ipo, index, etf) collapse to the single
+ * 'stocks' pill, mirroring the filtering in `usePerpsMarketListView` so the
+ * magnifying glass always lands on a pill that actually contains the market.
+ *
+ * @param market - Market data (only needs marketType and isNewMarket)
+ * @returns The market type filter to apply
+ */
 export const getMarketTypeFilter = (
   market: Pick<PerpsMarketData, 'marketType' | 'isNewMarket'>,
 ): MarketTypeFilter => {
-  if (market.marketType && MARKET_TYPE_TO_FILTER[market.marketType]) {
-    return MARKET_TYPE_TO_FILTER[market.marketType];
+  if (isEquityAsset(market.marketType)) {
+    return 'stocks';
+  }
+  if (market.marketType === MarketCategory.Commodity) {
+    return 'commodities';
+  }
+  if (market.marketType === MarketCategory.Forex) {
+    return 'forex';
   }
   if (market.isNewMarket) {
     return 'all';

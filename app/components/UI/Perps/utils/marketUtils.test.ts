@@ -30,11 +30,20 @@ jest.mock('@metamask/perps-controller', () => {
 
 describe('marketUtils', () => {
   describe('getMarketTypeFilter', () => {
-    it('returns stocks for equity marketType', () => {
+    it('returns stocks for stock marketType', () => {
       expect(
-        getMarketTypeFilter({ marketType: 'equity', isNewMarket: false }),
+        getMarketTypeFilter({ marketType: 'stock', isNewMarket: false }),
       ).toBe('stocks');
     });
+
+    it.each(['pre-ipo', 'index', 'etf'] as const)(
+      'returns stocks for stock-like %s marketType',
+      (marketType) => {
+        expect(getMarketTypeFilter({ marketType, isNewMarket: false })).toBe(
+          'stocks',
+        );
+      },
+    );
 
     it('returns commodities for commodity marketType', () => {
       expect(
@@ -62,7 +71,7 @@ describe('marketUtils', () => {
 
     it('prioritizes marketType over isNewMarket', () => {
       expect(
-        getMarketTypeFilter({ marketType: 'equity', isNewMarket: true }),
+        getMarketTypeFilter({ marketType: 'stock', isNewMarket: true }),
       ).toBe('stocks');
     });
 
