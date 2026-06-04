@@ -35415,7 +35415,6 @@ __metadata:
     "@metamask/keyring-internal-api": "npm:^11.0.1"
     "@metamask/keyring-sdk": "npm:^2.0.2"
     "@metamask/keyring-snap-client": "npm:^9.0.2"
-    "@metamask/keyring-utils": "npm:^3.2.0"
     "@metamask/logging-controller": "npm:^8.0.0"
     "@metamask/message-signing-snap": "npm:^1.1.2"
     "@metamask/messenger": "npm:^1.2.0"
