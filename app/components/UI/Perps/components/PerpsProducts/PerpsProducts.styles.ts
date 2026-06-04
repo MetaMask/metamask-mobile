@@ -22,7 +22,9 @@ export const styleSheet = (params: { theme: Theme }) => {
       paddingHorizontal: 12,
       paddingVertical: 10,
       borderRadius: 12,
-      backgroundColor: theme.colors.background.muted,
+      backgroundColor: theme.colors.background.default,
+      borderWidth: 1,
+      borderColor: theme.colors.border.muted,
       gap: 6,
     },
     pillPressed: {

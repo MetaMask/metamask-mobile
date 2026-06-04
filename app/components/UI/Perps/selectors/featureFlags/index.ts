@@ -288,10 +288,13 @@ export const selectPerpsMYXProviderEnabledFlag = createSelector(
 export const selectPerpsProductsEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
+    // TODO: Remove hardcoded true once LaunchDarkly flag is configured
+    const localOverride = true;
+
     const remoteFlag =
       remoteFeatureFlags?.perpsProductsEnabled as unknown as VersionGatedFeatureFlag;
 
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localOverride;
   },
 );
 
