@@ -128,12 +128,6 @@ const CRYPTO_ACCENT_DEFAULT = 'rgb(245, 158, 11)';
 const CRYPTO_ACCENT_BY_SYMBOL: Record<string, string> = {
   BTC: 'rgb(247, 147, 26)',
 };
-
-const FULL_CARD_HEIGHT = 319;
-const FULL_PROGRESS_LOGO_TOP = 112;
-const FULL_LIVE_BADGE_TOP = 171;
-const FULL_TITLE_TOP = 197;
-const FULL_OUTCOME_BUTTONS_TOP = 235;
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 const AnimatedLine = Animated.createAnimatedComponent(SvgLine);
 const CLOCK_UPDATE_OFFSET_MS = 50;
@@ -875,17 +869,6 @@ const ProgressLogo = React.memo(
 );
 ProgressLogo.displayName = 'ProgressLogo';
 
-type LiveStatusProps = {
-  endDate?: string;
-  durationMs: number;
-  imageUrl?: string;
-  accentColor: string;
-  trackColor: string;
-} & (
-  | { compact: true; progressLogoTop?: never; liveBadgeTop?: never }
-  | { compact?: false; progressLogoTop: number; liveBadgeTop: number }
-);
-
 const LiveStatus = React.memo(
   ({
     endDate,
@@ -894,9 +877,14 @@ const LiveStatus = React.memo(
     accentColor,
     trackColor,
     compact,
-    progressLogoTop,
-    liveBadgeTop,
-  }: LiveStatusProps) => {
+  }: {
+    endDate?: string;
+    durationMs: number;
+    imageUrl?: string;
+    accentColor: string;
+    trackColor: string;
+    compact?: boolean;
+  }) => {
     const tw = useTailwind();
     const nowMs = useSharedNowMs();
     const countdown = formatSeriesMarketCountdown(endDate, nowMs);
@@ -947,16 +935,10 @@ const LiveStatus = React.memo(
 
     return (
       <>
-        <Box
-          twClassName="absolute left-0 right-0 items-center px-4"
-          style={tw.style({ top: progressLogoTop })}
-        >
+        <Box twClassName="absolute left-0 right-0 top-[112px] items-center px-4">
           {logo}
         </Box>
-        <Box
-          twClassName="absolute left-0 right-0 items-center"
-          style={tw.style({ top: liveBadgeTop })}
-        >
+        <Box twClassName="absolute left-0 right-0 top-[171px] items-center">
           {badge}
         </Box>
       </>
@@ -964,15 +946,6 @@ const LiveStatus = React.memo(
   },
 );
 LiveStatus.displayName = 'LiveStatus';
-
-type OutcomeButtonsProps = {
-  upToken?: PredictOutcomeToken;
-  downToken?: PredictOutcomeToken;
-  marketId?: string;
-  outcomeId?: string;
-  marketStatus: PredictMarketStatus;
-  onBuyPress: (token?: PredictOutcomeToken) => void;
-} & ({ compact: true; top?: never } | { compact?: false; top: number });
 
 const OutcomeButtons = React.memo(
   ({
@@ -983,9 +956,15 @@ const OutcomeButtons = React.memo(
     marketStatus,
     onBuyPress,
     compact,
-    top,
-  }: OutcomeButtonsProps) => {
-    const tw = useTailwind();
+  }: {
+    upToken?: PredictOutcomeToken;
+    downToken?: PredictOutcomeToken;
+    marketId?: string;
+    outcomeId?: string;
+    marketStatus: PredictMarketStatus;
+    onBuyPress: (token?: PredictOutcomeToken) => void;
+    compact?: boolean;
+  }) => {
     const tokenIds = useMemo(
       () =>
         [upToken?.id, downToken?.id].filter((id): id is string => Boolean(id)),
@@ -1065,8 +1044,7 @@ const OutcomeButtons = React.memo(
     return (
       <Box
         flexDirection={BoxFlexDirection.Row}
-        twClassName="absolute left-4 right-4 z-10 gap-2"
-        style={tw.style({ top })}
+        twClassName="absolute left-4 right-4 top-[235px] z-10 gap-2"
       >
         {buttons}
       </Box>
@@ -1381,10 +1359,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
   }
 
   return (
-    <Box
-      twClassName="my-2 rounded-xl bg-muted overflow-hidden"
-      style={tw.style({ height: FULL_CARD_HEIGHT })}
-    >
+    <Box twClassName="my-2 h-[319px] rounded-xl bg-muted overflow-hidden">
       <Pressable
         testID={testID ?? PredictCryptoUpDownMarketCardSelectorsIDs.CARD}
         onPress={handleCardPress}
@@ -1455,8 +1430,6 @@ const PredictCryptoUpDownMarketCard: React.FC<
           imageUrl={imageUrl}
           accentColor={accentColor}
           trackColor={colors.border.muted}
-          progressLogoTop={FULL_PROGRESS_LOGO_TOP}
-          liveBadgeTop={FULL_LIVE_BADGE_TOP}
         />
 
         <Text
@@ -1464,8 +1437,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
           fontWeight={FontWeight.Medium}
           color={TextColor.TextDefault}
           numberOfLines={1}
-          twClassName="absolute left-4 right-4 text-center"
-          style={tw.style({ top: FULL_TITLE_TOP })}
+          twClassName="absolute left-4 right-4 top-[197px] text-center"
         >
           {cardTitle}
         </Text>
@@ -1478,7 +1450,6 @@ const PredictCryptoUpDownMarketCard: React.FC<
         outcomeId={selectedOutcome?.id}
         marketStatus={selectedMarket.status as PredictMarketStatus}
         onBuyPress={handleBuyPress}
-        top={FULL_OUTCOME_BUTTONS_TOP}
       />
       <Box
         flexDirection={BoxFlexDirection.Row}
