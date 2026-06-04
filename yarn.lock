@@ -8211,17 +8211,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/compliance-controller@npm:2.0.0":
-  version: 2.0.0
-  resolution: "@metamask/compliance-controller@npm:2.0.0"
+"@metamask/compliance-controller@npm:2.1.0":
+  version: 2.1.0
+  resolution: "@metamask/compliance-controller@npm:2.1.0"
   dependencies:
-    "@metamask/base-controller": "npm:^9.0.1"
-    "@metamask/controller-utils": "npm:^11.20.0"
-    "@metamask/messenger": "npm:^1.1.0"
+    "@metamask/base-controller": "npm:^9.1.0"
+    "@metamask/controller-utils": "npm:^12.1.0"
+    "@metamask/messenger": "npm:^1.2.0"
     "@metamask/superstruct": "npm:^3.1.0"
     "@metamask/utils": "npm:^11.9.0"
     reselect: "npm:^5.1.1"
-  checksum: 10/a5052dac7860eb4cdd247ebccdb6d091092ea8564a3e8d986f0d38e0a3107ee35844c45eb2873ea7f388129603ad2a0bd9f788adc0b96a14d0987e8bedfa80bf
+  checksum: 10/b2a5d5f7e89e0adcd25503f9e6f5e58596df614a3a322a320536a82165e60fa34e54b2a1bf4402142a79ab2a85821319ecc7f188e82fc79a6f79e8ca57262152
   languageName: node
   linkType: hard
 
@@ -8372,11 +8372,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@npm:^0.26.0":
-  version: 0.26.0
-  resolution: "@metamask/design-system-react-native@npm:0.26.0"
+"@metamask/design-system-react-native@npm:^0.27.0":
+  version: 0.27.0
+  resolution: "@metamask/design-system-react-native@npm:0.27.0"
   dependencies:
-    "@metamask/design-system-shared": "npm:^0.19.0"
+    "@metamask/design-system-shared": "npm:^0.20.0"
     fast-text-encoding: "npm:^1.0.6"
     react-native-jazzicon: "npm:^0.1.2"
   peerDependencies:
@@ -8389,18 +8389,18 @@ __metadata:
     react-native-gesture-handler: ">=2.25.0"
     react-native-reanimated: ">=3.17.0"
     react-native-safe-area-context: ">=5.0.0"
-  checksum: 10/6decfe0d4414c1ee325a87eae3444e7e29c6247da8d10969d56ffeb1bad4701cd9c6f955bb75d6a747bc9976bf8bf20f247240384e471360fac1b2de8b3bd244
+  checksum: 10/fc74755b3448bb0e6282c00f83293be3281cd92f62d89e1cbc1ecfca1a92c00f93bdb930c58d738e33989217f816a87ce6812889433d99e4a4d421b19e3275b6
   languageName: node
   linkType: hard
 
-"@metamask/design-system-shared@npm:^0.19.0":
-  version: 0.19.0
-  resolution: "@metamask/design-system-shared@npm:0.19.0"
+"@metamask/design-system-shared@npm:^0.20.0":
+  version: 0.20.0
+  resolution: "@metamask/design-system-shared@npm:0.20.0"
   dependencies:
     "@metamask/utils": "npm:^11.11.0"
   peerDependencies:
     react: ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10/72b178fb72250db0f39b3d83686cefb2ec7ac46b75acb8ca5c903f84175f329897a4a728d739b0cba198b205efd11614fc69eea4a924023712cfa1c49b7c96dc
+  checksum: 10/1c66a9b98f014ca631dcb6b579dbd1b5c83d759ac05e0afe8f522a0c11d37d77ca87a6b8d3cc40fbbc9d6bbf731f24b10e2fc4a2476aef82cfcbb4e102401397
   languageName: node
   linkType: hard
 
@@ -9365,11 +9365,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/multichain-network-controller@npm:^3.1.0, @metamask/multichain-network-controller@npm:^3.1.2":
-  version: 3.1.2
-  resolution: "@metamask/multichain-network-controller@npm:3.1.2"
+"@metamask/multichain-network-controller@npm:^3.1.0, @metamask/multichain-network-controller@npm:^3.1.2, @metamask/multichain-network-controller@npm:^3.1.3":
+  version: 3.1.3
+  resolution: "@metamask/multichain-network-controller@npm:3.1.3"
   dependencies:
-    "@metamask/accounts-controller": "npm:^38.1.1"
+    "@metamask/accounts-controller": "npm:^39.0.0"
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/controller-utils": "npm:^12.1.0"
     "@metamask/keyring-api": "npm:^23.1.0"
@@ -9380,7 +9380,7 @@ __metadata:
     "@metamask/utils": "npm:^11.9.0"
     "@solana/addresses": "npm:^2.0.0"
     lodash: "npm:^4.17.21"
-  checksum: 10/8c9e97d4be3367da76f17c44a80a25e54ec48fb1fcc9c086ae05e500a19524813b5ceec105ce2b4565fa24a8e6a1dba5f305341202ea8afa10def5d8d16106da
+  checksum: 10/4cc44c693a986a58032efe38100e0880de1ed5010249104ffdbb890bc2c59ef5f6290e8be9a9336f50f949878be2b8472b9bfe6af8be318f0bf5465f07993e46
   languageName: node
   linkType: hard
 
@@ -9445,21 +9445,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/network-enablement-controller@npm:^5.1.0, @metamask/network-enablement-controller@npm:^5.2.0":
-  version: 5.2.0
-  resolution: "@metamask/network-enablement-controller@npm:5.2.0"
+"@metamask/network-enablement-controller@npm:^5.2.0, @metamask/network-enablement-controller@npm:^5.3.0":
+  version: 5.3.0
+  resolution: "@metamask/network-enablement-controller@npm:5.3.0"
   dependencies:
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/controller-utils": "npm:^12.1.0"
     "@metamask/keyring-api": "npm:^23.1.0"
     "@metamask/messenger": "npm:^1.2.0"
-    "@metamask/multichain-network-controller": "npm:^3.1.2"
+    "@metamask/multichain-network-controller": "npm:^3.1.3"
     "@metamask/network-controller": "npm:^32.0.0"
     "@metamask/slip44": "npm:^4.3.0"
-    "@metamask/transaction-controller": "npm:^65.4.0"
+    "@metamask/transaction-controller": "npm:^66.0.1"
     "@metamask/utils": "npm:^11.9.0"
     reselect: "npm:^5.1.1"
-  checksum: 10/e8565cd74d21c43aa0c80f23e82eed4b8d7151ee5f708894abf285243dc4e8f8c0b03e43250ea6c87c3d4feb677e168c348a9329944bfde4d4a1a29e4b712153
+  checksum: 10/144dc5d717fa63569bc5636c4ed31e369e629aea929716845ff7ad21cd1086f61db8d450c1a3315633aca2c73b984b28f1a0f55e265898792493e757bd026988
   languageName: node
   linkType: hard
 
@@ -35361,7 +35361,7 @@ __metadata:
     "@metamask/app-metadata-controller": "npm:^2.0.0"
     "@metamask/approval-controller": "npm:^9.0.0"
     "@metamask/assets-controller": "npm:^8.3.1"
-    "@metamask/assets-controllers": "npm:^108.3.0"
+    "@metamask/assets-controllers": "npm:^108.4.0"
     "@metamask/authenticated-user-storage": "npm:^2.0.0"
     "@metamask/auto-changelog": "npm:^5.3.0"
     "@metamask/base-controller": "npm:^9.0.1"
@@ -35374,13 +35374,13 @@ __metadata:
     "@metamask/chain-agnostic-permission": "npm:^1.5.0"
     "@metamask/chomp-api-service": "npm:^3.1.0"
     "@metamask/client-controller": "npm:^1.0.1"
-    "@metamask/compliance-controller": "npm:2.0.0"
+    "@metamask/compliance-controller": "npm:2.1.0"
     "@metamask/connectivity-controller": "npm:^0.1.0"
     "@metamask/controller-utils": "npm:^12.0.0"
     "@metamask/core-backend": "npm:^6.3.0"
     "@metamask/delegation-controller": "npm:^2.0.2"
     "@metamask/delegation-deployments": "npm:^1.0.0"
-    "@metamask/design-system-react-native": "npm:^0.26.0"
+    "@metamask/design-system-react-native": "npm:^0.27.0"
     "@metamask/design-system-twrnc-preset": "npm:^0.4.2"
     "@metamask/design-tokens": "npm:^8.4.0"
     "@metamask/earn-controller": "npm:^12.1.0"
@@ -35432,7 +35432,7 @@ __metadata:
     "@metamask/multichain-transactions-controller": "npm:^7.1.0"
     "@metamask/native-utils": "npm:^0.8.0"
     "@metamask/network-controller": "npm:^31.0.0"
-    "@metamask/network-enablement-controller": "npm:^5.1.0"
+    "@metamask/network-enablement-controller": "npm:^5.3.0"
     "@metamask/notification-services-controller": "npm:24.1.1"
     "@metamask/object-multiplex": "npm:^1.1.0"
     "@metamask/permission-controller": "npm:^13.1.1"
