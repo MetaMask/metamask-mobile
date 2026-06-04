@@ -2,14 +2,14 @@ import { renderHook, act } from '@testing-library/react-native';
 
 const mockConnect = jest.fn();
 const mockDisconnect = jest.fn();
-const mockDestroy = jest.fn();
+const mockReset = jest.fn();
 const mockIsConnected = jest.fn();
 
 jest.mock('../adapters/factory', () => ({
   createAdapter: jest.fn(() => ({
     connect: mockConnect,
     disconnect: mockDisconnect,
-    destroy: mockDestroy,
+    reset: mockReset,
     isConnected: mockIsConnected,
   })),
 }));
@@ -94,10 +94,10 @@ describe('useSilentLedgerConnection', () => {
       await result.current.checkConnection();
     });
 
-    expect(mockDestroy).toHaveBeenCalled();
+    expect(mockReset).toHaveBeenCalled();
   });
 
-  it('destroys adapter even when connection fails', async () => {
+  it('resets adapter even when connection fails', async () => {
     mockConnect.mockRejectedValue(new Error('Connection failed'));
 
     const { result } = renderHook(() => useSilentLedgerConnection());
@@ -106,6 +106,6 @@ describe('useSilentLedgerConnection', () => {
       await result.current.checkConnection();
     });
 
-    expect(mockDestroy).toHaveBeenCalled();
+    expect(mockReset).toHaveBeenCalled();
   });
 });

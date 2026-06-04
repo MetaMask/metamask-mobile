@@ -59,7 +59,7 @@ export function useSilentLedgerConnection() {
         } catch {
           // Ignore disconnect errors during cleanup
         }
-        adapter.destroy();
+        adapter.reset();
       }
     }, []);
 
