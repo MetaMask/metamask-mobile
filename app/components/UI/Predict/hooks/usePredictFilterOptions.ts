@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Logger from '../../../../util/Logger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
@@ -38,6 +38,10 @@ export const usePredictFilterOptions = (
     enabled,
   });
 
+  // Stable empty-list reference when there is no data yet, so consumers using
+  // `filterOptions` in dependency arrays don't re-run on every render.
+  const filterOptions = useMemo(() => query.data ?? [], [query.data]);
+
   useEffect(() => {
     if (!query.error) {
       return;
@@ -61,7 +65,7 @@ export const usePredictFilterOptions = (
   }, [params.source, query.error]);
 
   return {
-    filterOptions: query.data ?? [],
+    filterOptions,
     // isInitialLoading (not isLoading) so a disabled query (enabled: false)
     // reports false instead of being stuck "loading": React Query v4 keeps a
     // never-fetched query in `status: 'loading'`.

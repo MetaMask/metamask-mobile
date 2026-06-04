@@ -3,6 +3,7 @@ import {
   predictFilterOptionsKeys,
   predictFilterOptionsOptions,
 } from './filterOptions';
+import Engine from '../../../../core/Engine';
 import type { PredictFilterOption } from '../types';
 
 const mockListFilterOptions = jest.fn();
@@ -124,6 +125,22 @@ describe('filterOptions query', () => {
         source: 'hot-tags',
         baseTagSlug: 'all',
       });
+    });
+
+    it('throws when the PredictController is unavailable', async () => {
+      const original = Engine.context.PredictController;
+      // @ts-expect-error - intentionally clearing for the guard path
+      Engine.context.PredictController = undefined;
+
+      try {
+        const options = predictFilterOptionsOptions({ source: 'hot-tags' });
+        await expect(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (options.queryFn as any)(),
+        ).rejects.toThrow('PredictController not available');
+      } finally {
+        Engine.context.PredictController = original;
+      }
     });
   });
 });

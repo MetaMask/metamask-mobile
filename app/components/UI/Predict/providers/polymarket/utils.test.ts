@@ -965,6 +965,26 @@ describe('polymarket utils', () => {
       });
     });
 
+    it('lets baseParams override the default order/status, but never tagSlugs', () => {
+      const [option] = normalizeRelatedTagsToFilterOptions(
+        [{ id: '1', label: 'NBA', slug: 'nba' }],
+        {
+          source: 'hot-tags',
+          baseParams: {
+            order: 'newest',
+            status: 'closed',
+            tagSlugs: ['sports'],
+          },
+        },
+      );
+
+      expect(option.params).toEqual({
+        order: 'newest',
+        status: 'closed',
+        tagSlugs: ['nba'],
+      });
+    });
+
     it('falls back to the slug when label is missing/blank', () => {
       const [option] = normalizeRelatedTagsToFilterOptions(
         [{ id: '1', label: '  ', slug: 'nba' }],

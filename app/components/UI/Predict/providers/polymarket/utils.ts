@@ -1623,11 +1623,13 @@ export const normalizeRelatedTagsToFilterOptions = (
       id: slug,
       label: tag.label?.trim() || slug,
       source,
+      // Defaults first so a feed's `baseParams` can override sort/status, but the
+      // option's own tag always wins (it defines this filter).
       params: {
-        ...baseParams,
-        tagSlugs: [slug],
         order: 'volume24hr',
         status: 'open',
+        ...baseParams,
+        tagSlugs: [slug],
       },
     });
 
