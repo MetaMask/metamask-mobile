@@ -498,7 +498,6 @@ const PredictThePitchCampaignDetailsView: React.FC = () => {
               status: participantStatusData,
               isLoading: isParticipantStatusLoading,
             }}
-            campaignId={effectiveCampaignId}
           />
         )}
       </SafeAreaView>

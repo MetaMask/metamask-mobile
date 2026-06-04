@@ -5408,22 +5408,6 @@ describe('RewardsDataService', () => {
       });
     });
 
-    it('gets eligible markets from the public endpoint', async () => {
-      const eligibleMarkets = { games: [], props: [] };
-      mockFetch.mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue(eligibleMarkets),
-      } as unknown as Response);
-
-      const result = await service.getPredictThePitchEligibleMarkets();
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://uat.rewards.test/predict-the-pitch/eligible-markets',
-        expect.objectContaining({ method: 'GET' }),
-      );
-      expect(result).toEqual(eligibleMarkets);
-    });
-
     it('gets the public leaderboard endpoint', async () => {
       const leaderboard = {
         campaignId: mockCampaignId,
@@ -5581,7 +5565,7 @@ describe('RewardsDataService', () => {
       const result = await service.getPredictThePitchPrizePool(mockCampaignId);
 
       expect(mockFetch).toHaveBeenCalledWith(
-        `https://uat.rewards.test/predict-the-pitch/${mockCampaignId}/stats/prize-pool`,
+        `https://uat.rewards.test/predict-the-pitch/${mockCampaignId}/prize-pool`,
         expect.objectContaining({ method: 'GET' }),
       );
       expect(result).toEqual(prizePool);

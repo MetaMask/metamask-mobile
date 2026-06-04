@@ -73,7 +73,6 @@ import {
   RewardsDataServiceGetPerpsTradingCampaignLeaderboardPositionAction,
   RewardsDataServiceGetPerpsTradingCampaignVolumeAction,
   RewardsDataServiceGetPerpsTradingCampaignParticipantOutcomeAction,
-  RewardsDataServiceGetPredictThePitchEligibleMarketsAction,
   RewardsDataServiceGetPredictThePitchLeaderboardAction,
   RewardsDataServiceGetPredictThePitchLeaderboardPositionAction,
   RewardsDataServiceGetPredictThePitchPositionsAction,
@@ -137,7 +136,6 @@ type AllowedActions =
   | RewardsDataServiceGetVIPDashboardAction
   | RewardsDataServiceGetVipFeesAction
   | RewardsDataServiceGetPerpsTradingCampaignParticipantOutcomeAction
-  | RewardsDataServiceGetPredictThePitchEligibleMarketsAction
   | RewardsDataServiceGetPredictThePitchLeaderboardAction
   | RewardsDataServiceGetPredictThePitchLeaderboardPositionAction
   | RewardsDataServiceGetPredictThePitchPositionsAction
@@ -235,7 +233,6 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getPerpsTradingCampaignLeaderboardPosition',
       'RewardsDataService:getPerpsTradingCampaignVolume',
       'RewardsDataService:getPerpsTradingCampaignParticipantOutcome',
-      'RewardsDataService:getPredictThePitchEligibleMarkets',
       'RewardsDataService:getPredictThePitchLeaderboard',
       'RewardsDataService:getPredictThePitchLeaderboardPosition',
       'RewardsDataService:getPredictThePitchPositions',

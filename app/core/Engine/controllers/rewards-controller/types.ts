@@ -1117,22 +1117,6 @@ export type CampaignDetailsDto =
   | PerpsTradingCampaignDetails
   | PredictThePitchCampaignDetails;
 
-export interface PredictThePitchEligibleMarketDto {
-  displayName: string;
-  navId: string | null;
-  conditionId: string;
-  marketSlug: string | null;
-  eventSlug: string | null;
-  iconUrl: string | null;
-  flags: string[];
-  bucket: 'games' | 'props' | string;
-}
-
-export interface PredictThePitchEligibleMarketsDto {
-  games: PredictThePitchEligibleMarketDto[];
-  props: PredictThePitchEligibleMarketDto[];
-}
-
 export interface PredictThePitchLeaderboardEntryDto {
   rank: number;
   referralCode: string;
@@ -1198,25 +1182,6 @@ export interface PredictThePitchPrizePoolDto {
   breakdown: PredictThePitchPrizeBreakdownEntryDto[];
   computedAt: string | null;
 }
-
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type PredictThePitchEligibleMarketState = {
-  displayName: string;
-  navId: string | null;
-  conditionId: string;
-  marketSlug: string | null;
-  eventSlug: string | null;
-  iconUrl: string | null;
-  flags: string[];
-  bucket: string;
-};
-
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type PredictThePitchEligibleMarketsState = {
-  games: PredictThePitchEligibleMarketState[];
-  props: PredictThePitchEligibleMarketState[];
-  lastFetched: number;
-};
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictThePitchLeaderboardEntryState = {
@@ -2364,8 +2329,6 @@ export type RewardsControllerState = {
   perpsTradingCampaignVolume: {
     [campaignId: string]: PerpsTradingCampaignVolumeState;
   };
-  /** Predict The Pitch eligible markets (public endpoint). */
-  predictThePitchEligibleMarkets: PredictThePitchEligibleMarketsState | null;
   /** Predict The Pitch leaderboard keyed by campaignId (public endpoint). */
   predictThePitchLeaderboard: {
     [campaignId: string]: PredictThePitchLeaderboardState;

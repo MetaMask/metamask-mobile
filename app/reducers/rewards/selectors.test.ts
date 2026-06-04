@@ -75,9 +75,6 @@ import {
   selectOndoCampaignPortfolio,
   selectOndoCampaignPortfolioById,
   selectOndoCampaignActivityById,
-  selectPredictThePitchEligibleMarkets,
-  selectPredictThePitchEligibleMarketsLoading,
-  selectPredictThePitchEligibleMarketsError,
   selectPredictThePitchLeaderboard,
   selectPredictThePitchLeaderboardLoading,
   selectPredictThePitchLeaderboardError,
@@ -4078,10 +4075,6 @@ describe('Rewards selectors', () => {
   });
 
   describe('Predict The Pitch selectors', () => {
-    const mockEligibleMarkets = {
-      games: [],
-      props: [],
-    };
     const mockLeaderboard = {
       campaignId: 'predict-c-1',
       computedAt: '2026-06-30T12:00:00.000Z',
@@ -4113,20 +4106,6 @@ describe('Rewards selectors', () => {
       breakdown: [],
       computedAt: null,
     };
-
-    it('selects eligible markets and status flags', () => {
-      const state = createMockRootState({
-        predictThePitchEligibleMarkets: mockEligibleMarkets,
-        predictThePitchEligibleMarketsLoading: true,
-        predictThePitchEligibleMarketsError: true,
-      });
-
-      expect(selectPredictThePitchEligibleMarkets(state)).toEqual(
-        mockEligibleMarkets,
-      );
-      expect(selectPredictThePitchEligibleMarketsLoading(state)).toBe(true);
-      expect(selectPredictThePitchEligibleMarketsError(state)).toBe(true);
-    });
 
     it('selects leaderboard and status flags', () => {
       const state = createMockRootState({

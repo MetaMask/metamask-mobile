@@ -30,7 +30,6 @@ import PredictThePitchCampaignDetailsView from './Views/PredictThePitchCampaignD
 import PredictThePitchCampaignWinningView from './Views/PredictThePitchCampaignWinningView';
 import PredictThePitchCampaignLeaderboardView from './Views/PredictThePitchCampaignLeaderboardView';
 import PredictThePitchCampaignPortfolioView from './Views/PredictThePitchCampaignPortfolioView';
-import PredictThePitchEligibleMarketsView from './Views/PredictThePitchEligibleMarketsView';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import {
@@ -359,11 +358,6 @@ const RewardsNavigator: React.FC = () => {
           <Stack.Screen
             name={Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_PORTFOLIO_VIEW}
             component={PredictThePitchCampaignPortfolioView}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name={Routes.REWARDS_PREDICT_THE_PITCH_ELIGIBLE_MARKETS_VIEW}
-            component={PredictThePitchEligibleMarketsView}
             options={{ headerShown: false }}
           />
           <Stack.Screen

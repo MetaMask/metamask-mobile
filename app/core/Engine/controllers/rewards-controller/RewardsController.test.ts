@@ -16433,7 +16433,6 @@ describe('RewardsController', () => {
       perpsTradingCampaignLeaderboard: {},
       perpsTradingCampaignLeaderboardPositions: {},
       perpsTradingCampaignVolume: {},
-      predictThePitchEligibleMarkets: null,
       predictThePitchLeaderboard: {},
       predictThePitchLeaderboardPositions: {},
       predictThePitchPositions: {},
@@ -16470,7 +16469,6 @@ describe('RewardsController', () => {
       perpsTradingCampaignLeaderboard: {},
       perpsTradingCampaignLeaderboardPositions: {},
       perpsTradingCampaignVolume: {},
-      predictThePitchEligibleMarkets: null,
       predictThePitchLeaderboard: {},
       predictThePitchLeaderboardPositions: {},
       predictThePitchPositions: {},
@@ -16512,7 +16510,6 @@ describe('RewardsController', () => {
       perpsTradingCampaignLeaderboard: {},
       perpsTradingCampaignLeaderboardPositions: {},
       perpsTradingCampaignVolume: {},
-      predictThePitchEligibleMarkets: null,
       predictThePitchLeaderboard: {},
       predictThePitchLeaderboardPositions: {},
       predictThePitchPositions: {},
@@ -21311,7 +21308,6 @@ describe('RewardsController', () => {
     const mockCampaignId = 'predict-campaign-1';
     const mockSubscriptionId = 'sub-predict-1';
     const compositeKey = `${mockSubscriptionId}:${mockCampaignId}`;
-    const mockEligibleMarkets = { games: [], props: [] };
     const mockLeaderboard = {
       campaignId: mockCampaignId,
       computedAt: '2026-06-30T12:00:00.000Z',
@@ -21377,20 +21373,16 @@ describe('RewardsController', () => {
       } as unknown as jest.Mocked<RewardsControllerMessenger>;
     });
 
-    it('caches public eligible markets, leaderboard, and prize pool in state', async () => {
+    it('caches public leaderboard and prize pool in state', async () => {
       const ctrl = new RewardsController({
         messenger: predictMessenger,
         state: getRewardsControllerDefaultState(),
       });
 
       predictMessenger.call
-        .mockResolvedValueOnce(mockEligibleMarkets)
         .mockResolvedValueOnce(mockLeaderboard)
         .mockResolvedValueOnce(mockPrizePool);
 
-      await expect(ctrl.getPredictThePitchEligibleMarkets()).resolves.toEqual(
-        mockEligibleMarkets,
-      );
       await expect(
         ctrl.getPredictThePitchLeaderboard(mockCampaignId),
       ).resolves.toEqual(mockLeaderboard);
@@ -21398,9 +21390,6 @@ describe('RewardsController', () => {
         ctrl.getPredictThePitchPrizePool(mockCampaignId),
       ).resolves.toEqual(mockPrizePool);
 
-      expect(ctrl.state.predictThePitchEligibleMarkets).toMatchObject(
-        mockEligibleMarkets,
-      );
       expect(
         ctrl.state.predictThePitchLeaderboard[mockCampaignId],
       ).toMatchObject(mockLeaderboard);
@@ -21410,7 +21399,6 @@ describe('RewardsController', () => {
 
       predictMessenger.call.mockClear();
 
-      await ctrl.getPredictThePitchEligibleMarkets();
       await ctrl.getPredictThePitchLeaderboard(mockCampaignId);
       await ctrl.getPredictThePitchPrizePool(mockCampaignId);
 
@@ -21525,12 +21513,10 @@ describe('RewardsController', () => {
       });
 
       predictMessenger.call
-        .mockResolvedValueOnce(mockEligibleMarkets)
         .mockResolvedValueOnce(mockLeaderboard)
         .mockResolvedValueOnce(mockPrizePool)
         .mockResolvedValueOnce(mockOutcome);
 
-      await ctrl.getPredictThePitchEligibleMarkets();
       await ctrl.getPredictThePitchLeaderboard(mockCampaignId);
       await ctrl.getPredictThePitchPrizePool(mockCampaignId);
       await ctrl.getPredictThePitchParticipantOutcome(
@@ -21540,7 +21526,6 @@ describe('RewardsController', () => {
 
       ctrl.resetState();
 
-      expect(ctrl.state.predictThePitchEligibleMarkets).toBeNull();
       expect(ctrl.state.predictThePitchLeaderboard).toEqual({});
       expect(ctrl.state.predictThePitchPrizePool).toEqual({});
 
