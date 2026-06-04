@@ -64,13 +64,12 @@ const MOCK_POSITIONS: PredictThePitchPositionsDto = {
   positions: [
     {
       conditionId: '0xcondition',
-      displayName: 'Brazil vs Argentina',
-      navId: '0xnav',
-      marketSlug: 'brazil-vs-argentina',
+      conditionName: 'Brazil vs Argentina',
+      conditionSlug: 'brazil-vs-argentina',
+      eventId: '0xnav',
       eventSlug: 'world-cup',
       iconUrl: null,
-      flags: [],
-      moneySpent: 200,
+      capitalDeployed: 200,
       pnl: 50,
       roi: 0.25,
     },

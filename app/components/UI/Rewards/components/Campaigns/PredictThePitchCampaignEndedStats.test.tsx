@@ -48,28 +48,23 @@ jest.mock('../../utils/formatUtils', () => ({
 const leaderboard: PredictThePitchLeaderboardDto = {
   campaignId: 'predict-campaign-1',
   computedAt: '2025-01-01T00:00:00.000Z',
-  updateIntervalMinutes: 5,
   totalParticipants: 1234,
   entries: [
     {
       rank: 1,
       referralCode: 'AAA',
       roi: 0.45,
-      pnl: 25,
-      capitalDeployed: 100,
     },
     {
       rank: 2,
       referralCode: 'BBB',
       roi: 0.2,
-      pnl: 12,
-      capitalDeployed: 50,
     },
   ],
 };
 
 const prizePool: PredictThePitchPrizePoolDto = {
-  totalVolumeUsd: 5000000,
+  totalCapitalDeployedUsd: 5000000,
   unlockedPoolUsd: 10000,
   thresholdsUsd: [1000000, 5000000],
   poolScheduleUsd: [5000, 10000],

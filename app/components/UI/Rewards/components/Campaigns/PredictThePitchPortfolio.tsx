@@ -86,7 +86,7 @@ const PredictThePitchPositionRow: React.FC<{
     <PredictThePitchPositionIcon position={position} />
     <Box twClassName="flex-1 min-w-0">
       <Text variant={TextVariant.BodyMd} numberOfLines={1}>
-        {position.displayName}
+        {position.conditionName}
       </Text>
       <Text
         variant={TextVariant.BodySm}
@@ -97,7 +97,9 @@ const PredictThePitchPositionRow: React.FC<{
       </Text>
     </Box>
     <Box alignItems={BoxAlignItems.End}>
-      <Text variant={TextVariant.BodyMd}>{formatUsd(position.moneySpent)}</Text>
+      <Text variant={TextVariant.BodyMd}>
+        {formatUsd(position.capitalDeployed)}
+      </Text>
       <Text
         variant={TextVariant.BodySm}
         color={getRoiColor(position.roi)}

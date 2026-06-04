@@ -47,7 +47,7 @@ const PredictThePitchCampaignEndedStats: React.FC<
 
   const hasStats = stats != null;
   const hasPrizePool = prizePool != null;
-  const hasTotalVolume = prizePool?.totalVolumeUsd != null;
+  const hasTotalVolume = prizePool?.totalCapitalDeployedUsd != null;
   const isStatsLoading = isLeaderboardLoading && !hasStats;
   const isPrizePoolStatsLoading = isPrizePoolLoading && !hasPrizePool;
   const isTotalVolumeLoading = isPrizePoolLoading && !hasTotalVolume;
@@ -74,8 +74,8 @@ const PredictThePitchCampaignEndedStats: React.FC<
       totalVolume={{
         label: strings('rewards.campaign_ended_stats.total_volume'),
         value:
-          prizePool?.totalVolumeUsd != null
-            ? formatCompactUsd(prizePool.totalVolumeUsd)
+          prizePool?.totalCapitalDeployedUsd != null
+            ? formatCompactUsd(prizePool.totalCapitalDeployedUsd)
             : '-',
         isLoading: isTotalVolumeLoading,
       }}

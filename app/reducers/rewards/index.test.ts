@@ -6046,7 +6046,6 @@ describe('perps trading campaign volume', () => {
 const mockPredictLeaderboard: PredictThePitchLeaderboardDto = {
   campaignId: 'predict-c-1',
   computedAt: '2026-06-30T12:00:00.000Z',
-  updateIntervalMinutes: 15,
   entries: [],
   totalParticipants: 10,
 };
@@ -6055,26 +6054,22 @@ const mockPredictPosition: PredictThePitchLeaderboardPositionDto = {
   rank: 1,
   totalParticipants: 10,
   roi: 0.25,
-  pnl: 50,
   capitalDeployed: 200,
-  marketCount: 2,
   eligible: true,
   neighbors: [],
   computedAt: '2026-06-30T12:00:00.000Z',
-  updateIntervalMinutes: 15,
 };
 
 const mockPredictPositions: PredictThePitchPositionsDto = {
   positions: [
     {
       conditionId: '0xcondition',
-      displayName: 'Brazil vs Argentina',
-      navId: '0xnav',
-      marketSlug: 'brazil-vs-argentina',
+      conditionName: 'Brazil vs Argentina',
+      conditionSlug: 'brazil-vs-argentina',
+      eventId: '0xnav',
       eventSlug: 'world-cup',
       iconUrl: null,
-      flags: [],
-      moneySpent: 200,
+      capitalDeployed: 200,
       pnl: 50,
       roi: 0.25,
     },
@@ -6083,7 +6078,7 @@ const mockPredictPositions: PredictThePitchPositionsDto = {
 };
 
 const mockPredictPrizePool: PredictThePitchPrizePoolDto = {
-  totalVolumeUsd: 1000,
+  totalCapitalDeployedUsd: 1000,
   unlockedPoolUsd: 500,
   thresholdsUsd: [0, 1000],
   poolScheduleUsd: [250, 500],
