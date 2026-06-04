@@ -83,10 +83,7 @@ export function* parseDeeplink(deeplink: string, origin: string) {
       origin,
     });
   } catch (error) {
-    Logger.error(
-      error as Error,
-      'parseDeeplink: failed to parse deeplink',
-    );
+    Logger.error(error as Error, 'parseDeeplink: failed to parse deeplink');
   }
 }
 
