@@ -134,50 +134,6 @@ describe('useBridgeTxHistoryData', () => {
     });
   });
 
-  it('finds API transaction bridge history through matching local transaction hash', async () => {
-    const localTxId = 'local-bridge-tx-id';
-    const apiTxHash = '0xabcdef';
-    const state = {
-      ...initialState,
-      engine: {
-        ...initialState.engine,
-        backgroundState: {
-          ...initialState.engine.backgroundState,
-          TransactionController: {
-            ...initialState.engine.backgroundState.TransactionController,
-            transactions: [
-              { id: localTxId, hash: apiTxHash } as TransactionMeta,
-            ],
-          },
-          BridgeStatusController: {
-            txHistory: {
-              [localTxId]: {
-                ...initialState.engine.backgroundState.BridgeStatusController
-                  .txHistory[mockTxId],
-                txMetaId: localTxId,
-              },
-            },
-          },
-        },
-      },
-    };
-
-    const { result } = renderHookWithProvider(
-      () =>
-        useBridgeTxHistoryData({
-          evmTxMeta: {
-            id: `${apiTxHash}-1`,
-            hash: apiTxHash,
-          } as TransactionMeta,
-        }),
-      { state },
-    );
-
-    await waitFor(() =>
-      expect(result.current.bridgeTxHistoryItem?.txMetaId).toBe(localTxId),
-    );
-  });
-
   it('should find bridge history item by multi-chain transaction hash', async () => {
     const multiChainTx: Transaction = {
       id: mockTxHash,

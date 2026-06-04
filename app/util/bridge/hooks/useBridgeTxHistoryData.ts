@@ -4,7 +4,6 @@ import {
   TransactionStatus,
 } from '@metamask/transaction-controller';
 import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
-import { selectTransactionsByHash } from '../../../selectors/transactionController';
 import { Transaction } from '@metamask/keyring-api';
 import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { equalsIgnoreCase } from '../../string';
@@ -34,10 +33,6 @@ export function useBridgeTxHistoryData({
   multiChainTx,
 }: UseBridgeTxHistoryDataProps) {
   const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
-  const transactionsByHash = useSelector(selectTransactionsByHash);
-  const matchingLocalTransaction = evmTxMeta?.hash
-    ? transactionsByHash.get(evmTxMeta.hash.toLowerCase())
-    : undefined;
 
   let bridgeHistoryItem: BridgeHistoryItem | undefined;
   if (evmTxMeta) {
@@ -57,29 +52,6 @@ export function useBridgeTxHistoryData({
             .originalTransactionId === srcTxMetaId,
       );
       bridgeHistoryItem = matchingEntry ? matchingEntry[1] : undefined;
-    }
-
-    // Accounts API rows use synthetic ids like `${hash}-${chainId}`. Recover
-    // the local transaction by hash so bridge history can resolve via the
-    // original txMetaId/actionId before falling back to source-chain hash.
-    if (!bridgeHistoryItem && matchingLocalTransaction) {
-      const localTxMetaId = matchingLocalTransaction.id;
-      bridgeHistoryItem = localTxMetaId
-        ? bridgeHistory[localTxMetaId]
-        : undefined;
-
-      if (!bridgeHistoryItem && matchingLocalTransaction.actionId) {
-        bridgeHistoryItem = bridgeHistory[matchingLocalTransaction.actionId];
-      }
-
-      if (!bridgeHistoryItem && localTxMetaId) {
-        const matchingEntry = Object.entries(bridgeHistory).find(
-          ([, historyItem]) =>
-            (historyItem as { originalTransactionId?: string })
-              .originalTransactionId === localTxMetaId,
-        );
-        bridgeHistoryItem = matchingEntry ? matchingEntry[1] : undefined;
-      }
     }
 
     // Fallback for API-normalized transactions whose id differs from txMetaId
