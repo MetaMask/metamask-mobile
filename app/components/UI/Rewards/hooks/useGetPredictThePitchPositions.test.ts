@@ -63,6 +63,8 @@ const SUBSCRIPTION_ID = 'sub-predict-1';
 const MOCK_POSITIONS: PredictThePitchPositionsDto = {
   positions: [
     {
+      outcomeAssetId: 'token-1',
+      outcomeAsset: 'Yes',
       conditionId: '0xcondition',
       conditionName: 'Brazil vs Argentina',
       conditionSlug: 'brazil-vs-argentina',
@@ -72,6 +74,12 @@ const MOCK_POSITIONS: PredictThePitchPositionsDto = {
       capitalDeployed: 200,
       pnl: 50,
       roi: 0.25,
+      status: 'open',
+      fillShares: 100,
+      fillSharesBought: 100,
+      fillSharesSold: 0,
+      fillPrice: 2,
+      fillDate: '2026-06-30T12:00:00.000Z',
     },
   ],
   computedAt: '2026-06-30T12:00:00.000Z',

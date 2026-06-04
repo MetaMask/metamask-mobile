@@ -21326,6 +21326,8 @@ describe('RewardsController', () => {
     const mockPositions = {
       positions: [
         {
+          outcomeAssetId: 'token-1',
+          outcomeAsset: 'Yes',
           conditionId: '0xcondition',
           conditionName: 'Brazil vs Argentina',
           conditionSlug: 'brazil-vs-argentina',
@@ -21335,6 +21337,12 @@ describe('RewardsController', () => {
           capitalDeployed: 100,
           pnl: 25,
           roi: 0.25,
+          status: 'open',
+          fillShares: 50,
+          fillSharesBought: 50,
+          fillSharesSold: 0,
+          fillPrice: 2,
+          fillDate: '2026-06-30T12:00:00.000Z',
         },
       ],
       computedAt: '2026-06-30T12:00:00.000Z',

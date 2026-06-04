@@ -1140,16 +1140,26 @@ export interface PredictThePitchLeaderboardPositionDto {
   computedAt: string;
 }
 
+export type PredictThePitchPositionStatus = 'open' | 'sold' | 'resolved';
+
 export interface PredictThePitchPositionDto {
+  outcomeAssetId: string;
+  outcomeAsset: string | null;
   conditionId: string;
-  conditionName: string;
   conditionSlug: string | null;
+  conditionName: string;
   eventId: string | null;
   eventSlug: string | null;
   iconUrl: string | null;
   capitalDeployed: number;
   pnl: number;
   roi: number;
+  status: PredictThePitchPositionStatus;
+  fillShares: number;
+  fillSharesBought: number;
+  fillSharesSold: number;
+  fillPrice: number;
+  fillDate: string;
 }
 
 export interface PredictThePitchPositionsDto {
@@ -1215,17 +1225,7 @@ export type PredictThePitchLeaderboardPositionState =
   | PredictThePitchLeaderboardPositionNotFoundState;
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type PredictThePitchPositionState = {
-  conditionId: string;
-  conditionName: string;
-  conditionSlug: string | null;
-  eventId: string | null;
-  eventSlug: string | null;
-  iconUrl: string | null;
-  capitalDeployed: number;
-  pnl: number;
-  roi: number;
-};
+export type PredictThePitchPositionState = PredictThePitchPositionDto;
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictThePitchPositionsState = {
