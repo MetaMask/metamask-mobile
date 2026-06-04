@@ -816,7 +816,7 @@ describe('selectMetaMaskPayFlags extended flags', () => {
       state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
         {
           confirmations_pay_extended: {
-            enableMoneyHomePagePredictTransaction: true,
+            enablePredictMoneyAccountTransactions: true,
           },
         };
 
@@ -842,7 +842,7 @@ describe('selectMetaMaskPayFlags extended flags', () => {
       state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
         {
           confirmations_pay_extended: {
-            enableMoneyHomePagePredictTransaction: true,
+            enablePredictMoneyAccountTransactions: true,
           },
         };
 
@@ -858,7 +858,7 @@ describe('selectMetaMaskPayFlags extended flags', () => {
       state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
         {
           confirmations_pay_extended: {
-            enableMoneyHomePagePredictTransaction: true,
+            enablePredictMoneyAccountTransactions: true,
           },
         };
 
