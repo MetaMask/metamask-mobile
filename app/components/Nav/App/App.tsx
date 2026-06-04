@@ -22,6 +22,7 @@ import OptinMetrics from '../../UI/OptinMetrics';
 import OnboardingInterestQuestionnaire from '../../Views/OnboardingInterestQuestionnaire';
 import OnboardingCryptoExperienceQuestionnaire from '../../Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire';
 import SimpleWebview from '../../Views/SimpleWebview';
+import AgenticCliDashboardWebview from '../../Views/AgenticCliDashboardWebview';
 import Logger from '../../../util/Logger';
 import { useSelector } from 'react-redux';
 import {
@@ -69,6 +70,7 @@ import WalletRestored from '../../Views/RestoreWallet/WalletRestored';
 import WalletResetNeeded from '../../Views/RestoreWallet/WalletResetNeeded';
 import SDKLoadingModal from '../../Views/SDK/SDKLoadingModal/SDKLoadingModal';
 import SDKFeedbackModal from '../../Views/SDK/SDKFeedbackModal/SDKFeedbackModal';
+import SDKConnectV2OtpModal from '../../Views/SDK/SDKConnectV2OtpModal';
 import LedgerMessageSignModal from '../../UI/LedgerModals/LedgerMessageSignModal';
 import LedgerTransactionModal from '../../UI/LedgerModals/LedgerTransactionModal';
 import QRSigningTransactionModal from '../../UI/QRHardware/QRSigningTransactionModal';
@@ -533,6 +535,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.SHEET.SDK_FEEDBACK}
       component={SDKFeedbackModal}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.SDK_CONNECT_V2_OTP}
+      component={SDKConnectV2OtpModal}
     />
     <Stack.Screen
       name={Routes.SHEET.SDK_MANAGE_CONNECTIONS}
@@ -1243,6 +1249,16 @@ const AppFlow = () => {
       <Stack.Screen
         name={Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET}
         component={PayWithBottomSheet}
+      />
+      <Stack.Screen
+        name={Routes.AGENTIC_CLI_DASHBOARD_WEBVIEW.CONFIRM}
+        component={AgenticCliDashboardWebview}
+        options={{
+          headerShown: true,
+          gestureEnabled: true,
+          presentation: 'modal',
+          cardStyle: { backgroundColor: importedColors.white },
+        }}
       />
     </Stack.Navigator>
   );
