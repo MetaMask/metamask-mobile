@@ -30,10 +30,6 @@ jest.mock('react-native-gesture-handler', () => ({
   },
 }));
 
-jest.mock('react-native-reanimated', () => ({
-  runOnJS: jest.fn((fn) => fn),
-}));
-
 const makeTabs = (
   count: number,
   overrides: Partial<BaseTabItem>[] = [],

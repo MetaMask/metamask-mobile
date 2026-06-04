@@ -13,12 +13,8 @@ import { currentNotificationSelector } from '../../../reducers/notification';
 
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import usePrevious from '../../hooks/usePrevious';
-import {
-  useSharedValue,
-  withTiming,
-  Easing,
-  runOnJS,
-} from 'react-native-reanimated';
+import { useSharedValue, withTiming, Easing } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 
 const { TRANSACTION, SIMPLE } = NotificationTypes;
 
@@ -39,7 +35,7 @@ function Notification({
     animatedRef.value = withTiming(
       toValue,
       { duration: 500, easing: Easing.linear },
-      () => callback && runOnJS(callback)(),
+      () => callback && scheduleOnRN(callback),
     );
   }, []);
 

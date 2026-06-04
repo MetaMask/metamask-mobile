@@ -16,8 +16,8 @@ import {
   KeyboardAvoidingView,
 } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { scheduleOnRN } from 'react-native-worklets';
 import Animated, {
-  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -97,7 +97,7 @@ const BottomSheetDialog = forwardRef<
       currentYOffset.value = withTiming(
         bottomOfDialogYValue.value,
         { duration: DEFAULT_BOTTOMSHEETDIALOG_DISPLAY_DURATION },
-        () => runOnJS(onCloseCB)(),
+        () => scheduleOnRN(onCloseCB),
       );
       // Ref values do not affect deps.
       /* eslint-disable-next-line */
@@ -150,7 +150,7 @@ const BottomSheetDialog = forwardRef<
             const isDismissed = finalYOffset === bottomOfDialogYValue.value;
 
             if (isDismissed) {
-              runOnJS(onCloseDialog)();
+              scheduleOnRN(onCloseDialog);
             } else {
               currentYOffset.value = withTiming(finalYOffset, {
                 duration: DEFAULT_BOTTOMSHEETDIALOG_DISPLAY_DURATION,
@@ -173,7 +173,7 @@ const BottomSheetDialog = forwardRef<
         {
           duration: DEFAULT_BOTTOMSHEETDIALOG_DISPLAY_DURATION,
         },
-        () => runOnJS(onOpenCB)(),
+        () => scheduleOnRN(onOpenCB),
       );
     };
 

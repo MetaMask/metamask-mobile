@@ -9,11 +9,9 @@ import {
   type ViewStyle,
   useWindowDimensions,
 } from 'react-native';
-import Animated, {
-  FadeInDown,
-  FadeOutDown,
-  runOnJS,
-} from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
+
 import Overlay from '../../../component-library/components/Overlay';
 import { useParams } from '../../../util/navigation/navUtils';
 import { Box } from '../../UI/Box/Box';
@@ -255,7 +253,7 @@ function TradeWalletActions() {
   const exitingAnimationWithCallback = useCallback(
     (callback: () => void) =>
       FadeOutDown.duration(animationDuration).withCallback(
-        (finished) => finished && runOnJS(callback)(),
+        (finished) => finished && scheduleOnRN(callback),
       ),
     [],
   );

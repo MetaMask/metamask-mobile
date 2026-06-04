@@ -12,9 +12,9 @@ import React, {
 } from 'react';
 import { TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { scheduleOnRN } from 'react-native-worklets';
 import Animated, {
   interpolate,
-  runOnJS,
   useAnimatedStyle,
   useDerivedValue,
   useSharedValue,
@@ -136,7 +136,11 @@ const ReusableModal = forwardRef<ReusableModalRef, ReusableModalProps>(
             currentYOffset.value = withTiming(
               finalOffset,
               { duration: SWIPE_TRIGGERED_ANIMATION_DURATION },
-              () => isDismissed && runOnJS(onHidden)(),
+              () => {
+                if (isDismissed) {
+                  scheduleOnRN(onHidden);
+                }
+              },
             );
           }),
       // Shared values are stable refs; worklets read .value at runtime.
@@ -159,7 +163,7 @@ const ReusableModal = forwardRef<ReusableModalRef, ReusableModalProps>(
       currentYOffset.value = withTiming(
         sheetHeight.value,
         { duration: TAP_TRIGGERED_ANIMATION_DURATION },
-        () => runOnJS(onHidden)(),
+        () => scheduleOnRN(onHidden),
       );
       // Ref values do not affect deps.
       /* eslint-disable-next-line */

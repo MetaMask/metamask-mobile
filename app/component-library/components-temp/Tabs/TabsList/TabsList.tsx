@@ -10,7 +10,8 @@ import React, {
 
 import { Box } from '@metamask/design-system-react-native';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
-import { runOnJS } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
+
 import { InteractionManager } from 'react-native';
 
 import TabsBar from '../TabsBar';
@@ -212,9 +213,9 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
             // Match ScrollView paging behavior with lower thresholds for natural feel
             if (Math.abs(translationX) > 50 || Math.abs(velocityX) > 500) {
               if (translationX > 0) {
-                runOnJS(goToPreviousTab)();
+                scheduleOnRN(goToPreviousTab);
               } else if (translationX < 0) {
-                runOnJS(goToNextTab)();
+                scheduleOnRN(goToNextTab);
               }
             }
           }),

@@ -9,11 +9,8 @@ import {
   GestureDetector,
   GestureHandlerRootView,
 } from 'react-native-gesture-handler';
-import Animated, {
-  runOnJS,
-  useAnimatedStyle,
-  useSharedValue,
-} from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './BatchSellPercentageSlider.styles';
 
@@ -126,15 +123,15 @@ export function BatchSellPercentageSlider({
 
   const gesture = Gesture.Simultaneous(
     Gesture.Tap().onEnd((event) => {
-      runOnJS(updateValueFromPosition)(event.x, sliderWidth.value);
-      runOnJS(commitFromPosition)(event.x, sliderWidth.value);
+      scheduleOnRN(updateValueFromPosition, event.x, sliderWidth.value);
+      scheduleOnRN(commitFromPosition, event.x, sliderWidth.value);
     }),
     Gesture.Pan()
       .onUpdate((event) => {
-        runOnJS(updateValueFromPosition)(event.x, sliderWidth.value);
+        scheduleOnRN(updateValueFromPosition, event.x, sliderWidth.value);
       })
       .onEnd((event) => {
-        runOnJS(commitFromPosition)(event.x, sliderWidth.value);
+        scheduleOnRN(commitFromPosition, event.x, sliderWidth.value);
       }),
   );
 

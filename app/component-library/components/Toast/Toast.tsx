@@ -17,12 +17,13 @@ import {
 } from 'react-native';
 import Animated, {
   cancelAnimation,
-  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withDelay,
   withTiming,
 } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
+
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // External dependencies.
@@ -105,7 +106,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
       screenHeight,
       { duration: animationDuration },
       () => {
-        runOnJS(resetState)();
+        scheduleOnRN(resetState);
       },
     );
   };
@@ -133,10 +134,8 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
           () => {
             translateYProgress.value = withDelay(
               visibilityDuration,
-              withTiming(
-                height,
-                { duration: animationDuration },
-                runOnJS(resetState),
+              withTiming(height, { duration: animationDuration }, () =>
+                scheduleOnRN(resetState),
               ),
             );
           },

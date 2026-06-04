@@ -8,10 +8,8 @@ import {
 
 const mockSharedValues: { value: unknown }[] = [];
 
-const mockRunOnJS = jest.fn(
-  (fn: (...args: unknown[]) => void) =>
-    (...args: unknown[]) =>
-      fn(...args),
+const mockScheduleOnRN = jest.fn(
+  (fn: (...args: unknown[]) => void, ...args: unknown[]) => fn(...args),
 );
 
 const mockWithTiming = jest.fn((toValue: unknown) => toValue);
@@ -31,7 +29,6 @@ jest.mock('react-native-reanimated', () => ({
     out: jest.fn((easing: unknown) => easing),
     cubic: jest.fn(),
   },
-  runOnJS: mockRunOnJS,
 }));
 
 describe('useFeedScrollManager', () => {
@@ -367,7 +364,8 @@ describe('useFeedScrollManager', () => {
       // so we patch the mock module at runtime.
       const reanimated = jest.requireMock('react-native-reanimated');
       reanimated.withTiming = mockWithTiming;
-      reanimated.runOnJS = mockRunOnJS;
+      const worklets = jest.requireMock('react-native-worklets');
+      worklets.scheduleOnRN = mockScheduleOnRN;
 
       const props = createDefaultProps();
 
@@ -444,7 +442,8 @@ describe('useFeedScrollManager', () => {
     const patchReanimatedMock = () => {
       const reanimated = jest.requireMock('react-native-reanimated');
       reanimated.withTiming = mockWithTiming;
-      reanimated.runOnJS = mockRunOnJS;
+      const worklets = jest.requireMock('react-native-worklets');
+      worklets.scheduleOnRN = mockScheduleOnRN;
     };
 
     it('accepts walletHeaderTranslateY and walletHeaderHeight without error', () => {

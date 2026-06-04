@@ -10,10 +10,8 @@ const mockWithTiming = jest.fn((toValue: unknown) => toValue);
 const mockWithDelay = jest.fn(
   (_delay: unknown, animation: unknown) => animation,
 );
-const mockRunOnJS = jest.fn(
-  (fn: (...args: unknown[]) => void) =>
-    (...args: unknown[]) =>
-      fn(...args),
+const mockScheduleOnRN = jest.fn(
+  (fn: (...args: unknown[]) => void, ...args: unknown[]) => fn(...args),
 );
 
 jest.mock('react-native-reanimated', () => {
@@ -35,7 +33,6 @@ jest.mock('react-native-reanimated', () => {
       out: jest.fn((easing: unknown) => easing),
       cubic: jest.fn(),
     },
-    runOnJS: mockRunOnJS,
   };
 });
 
@@ -77,7 +74,8 @@ describe('useDiscoveryScrollManager', () => {
     const reanimated = jest.requireMock('react-native-reanimated');
     reanimated.withTiming = mockWithTiming;
     reanimated.withDelay = mockWithDelay;
-    reanimated.runOnJS = mockRunOnJS;
+    const worklets = jest.requireMock('react-native-worklets');
+    worklets.scheduleOnRN = mockScheduleOnRN;
     mockWithTiming.mockImplementation((toValue: unknown) => toValue);
     mockWithDelay.mockImplementation(
       (_delay: unknown, animation: unknown) => animation,

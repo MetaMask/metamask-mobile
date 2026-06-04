@@ -1,4 +1,3 @@
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback, useEffect, useRef } from 'react';
 import {
   AccessibilityActionEvent,
@@ -7,11 +6,12 @@ import {
 } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
-  runOnJS,
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
-import { ImpactMoment, playImpact } from '../../../../../../../util/haptics';
+import { scheduleOnRN } from 'react-native-worklets';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { playImpact, ImpactMoment } from '../../../../../../../util/haptics';
 
 const HANDLE_SIZE = 24;
 const MARKER_SIZE = 4;
@@ -153,23 +153,21 @@ export function QuickBuyPercentageSlider({
 
   const gesture = Gesture.Simultaneous(
     Gesture.Tap().onEnd((event) => {
-      // Tap: update display position + immediately commit (no drag phase).
-      runOnJS(updateValueFromPosition)(event.x, sliderWidth.value);
-      runOnJS(commitFromPosition)(event.x, sliderWidth.value);
+      scheduleOnRN(updateValueFromPosition, event.x, sliderWidth.value);
     }),
     Gesture.Pan()
       .onStart(() => {
         // Pick up — fire the grip haptic the moment the drag is recognized.
-        runOnJS(handleGrip)();
+        scheduleOnRN(handleGrip);
       })
       .onUpdate((event) => {
-        runOnJS(updateValueFromPosition)(event.x, sliderWidth.value);
+        scheduleOnRN(updateValueFromPosition, event.x, sliderWidth.value);
       })
       .onEnd((event) => {
         // Commit the final position when the user lifts their finger.
-        runOnJS(commitFromPosition)(event.x, sliderWidth.value);
+        scheduleOnRN(commitFromPosition, event.x, sliderWidth.value);
         // Drop — fire the grip haptic again on release.
-        runOnJS(handleGrip)();
+        scheduleOnRN(handleGrip);
       }),
   );
 

@@ -8,10 +8,11 @@ import {
 import Animated, {
   configureReanimatedLogger,
   ReanimatedLogLevel,
-  runOnJS,
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
+
 import {
   playImpact,
   ImpactMoment,
@@ -157,7 +158,7 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
           (prevPercentage < threshold && newPercentage >= threshold) ||
           (prevPercentage > threshold && newPercentage <= threshold)
         ) {
-          runOnJS(triggerHapticFeedback)(ImpactMoment.SliderTick);
+          scheduleOnRN(triggerHapticFeedback, ImpactMoment.SliderTick);
           break;
         }
       }
@@ -172,22 +173,22 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
     .enabled(!disabled)
     .onBegin(() => {
       isPressed.value = true;
-      runOnJS(triggerHapticFeedback)(ImpactMoment.SliderGrip);
+      scheduleOnRN(triggerHapticFeedback, ImpactMoment.SliderGrip);
     })
     .onUpdate((event) => {
       const newPosition = Math.max(0, Math.min(event.x, sliderWidth.value));
       translateX.value = newPosition;
       // Real-time value update during drag
       const currentValue = positionToValue(newPosition, sliderWidth.value);
-      runOnJS(updateValue)(currentValue);
-      runOnJS(checkThresholdCrossing)(currentValue);
+      scheduleOnRN(updateValue, currentValue);
+      scheduleOnRN(checkThresholdCrossing, currentValue);
     })
     .onEnd(() => {
       isPressed.value = false;
       thumbScale.value = 1; // Direct assignment, no spring
       const currentValue = positionToValue(translateX.value, sliderWidth.value);
-      runOnJS(updateValue)(currentValue);
-      runOnJS(triggerHapticFeedback)(ImpactMoment.SliderGrip);
+      scheduleOnRN(updateValue, currentValue);
+      scheduleOnRN(triggerHapticFeedback, ImpactMoment.SliderGrip);
     })
     .onFinalize(() => {
       isPressed.value = false;
@@ -201,8 +202,8 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
       const newPosition = Math.max(0, Math.min(event.x, sliderWidth.value));
       translateX.value = newPosition; // Direct assignment for instant response
       const newValue = positionToValue(newPosition, sliderWidth.value);
-      runOnJS(updateValue)(newValue);
-      runOnJS(checkThresholdCrossing)(newValue);
+      scheduleOnRN(updateValue, newValue);
+      scheduleOnRN(checkThresholdCrossing, newValue);
     });
 
   // Combined gesture

@@ -21,10 +21,11 @@ import {
 } from 'react-native-gesture-handler';
 import LinearGradient from 'react-native-linear-gradient';
 import Animated, {
-  runOnJS,
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
+
 import { strings } from '../../../../../../locales/i18n';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { useTheme } from '../../../../../util/theme';
@@ -198,7 +199,7 @@ const LeverageSlider: React.FC<{
           (prevValue < threshold && newValue >= threshold) ||
           (prevValue > threshold && newValue <= threshold)
         ) {
-          runOnJS(triggerHapticFeedback)(ImpactMoment.SliderTick);
+          scheduleOnRN(triggerHapticFeedback, ImpactMoment.SliderTick);
           break;
         }
       }
@@ -211,24 +212,24 @@ const LeverageSlider: React.FC<{
   const panGesture = Gesture.Pan()
     .onBegin(() => {
       isPressed.value = true;
-      runOnJS(triggerHapticFeedback)(ImpactMoment.SliderGrip);
-      runOnJS(onDragStart)();
+      scheduleOnRN(triggerHapticFeedback, ImpactMoment.SliderGrip);
+      scheduleOnRN(onDragStart);
     })
     .onUpdate((event) => {
       const newPosition = Math.max(0, Math.min(event.x, sliderWidth.value));
       translateX.value = newPosition;
       // Real-time value update during drag
       const currentValue = positionToValue(newPosition, sliderWidth.value);
-      runOnJS(updateValue)(currentValue);
-      runOnJS(checkThresholdCrossing)(currentValue);
+      scheduleOnRN(updateValue, currentValue);
+      scheduleOnRN(checkThresholdCrossing, currentValue);
     })
     .onEnd(() => {
       isPressed.value = false;
       thumbScale.value = 1; // Direct assignment, no spring
       const currentValue = positionToValue(translateX.value, sliderWidth.value);
-      runOnJS(updateValue)(currentValue);
-      runOnJS(triggerHapticFeedback)(ImpactMoment.SliderGrip);
-      runOnJS(onDragEnd)(currentValue);
+      scheduleOnRN(updateValue, currentValue);
+      scheduleOnRN(triggerHapticFeedback, ImpactMoment.SliderGrip);
+      scheduleOnRN(onDragEnd, currentValue);
     })
     .onFinalize(() => {
       isPressed.value = false;
@@ -239,10 +240,10 @@ const LeverageSlider: React.FC<{
     const newPosition = Math.max(0, Math.min(event.x, sliderWidth.value));
     translateX.value = newPosition; // Direct assignment for instant response
     const newValue = positionToValue(newPosition, sliderWidth.value);
-    runOnJS(updateValue)(newValue);
-    runOnJS(checkThresholdCrossing)(newValue);
-    runOnJS(triggerHapticFeedback)(ImpactMoment.SliderTick);
-    runOnJS(onDragEnd)(newValue);
+    scheduleOnRN(updateValue, newValue);
+    scheduleOnRN(checkThresholdCrossing, newValue);
+    scheduleOnRN(triggerHapticFeedback, ImpactMoment.SliderTick);
+    scheduleOnRN(onDragEnd, newValue);
   };
 
   const tapGesture = Gesture.Tap().onEnd(handleHoldEnd);

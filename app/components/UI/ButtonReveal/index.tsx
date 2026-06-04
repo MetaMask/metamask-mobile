@@ -10,13 +10,13 @@ import Animated, {
   useSharedValue,
   useAnimatedProps,
   withTiming,
-  runOnJS,
   useAnimatedStyle,
   useAnimatedReaction,
   interpolate,
   Extrapolate,
-  runOnUI,
 } from 'react-native-reanimated';
+import { scheduleOnRN, scheduleOnUI } from 'react-native-worklets';
+
 import { useTheme } from '../../../util/theme';
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -131,7 +131,7 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
   // Reset button to original state
   const resetButton = () =>
     setTimeout(() => {
-      runOnUI(resetAnimatedValues)();
+      scheduleOnUI(resetAnimatedValues);
     }, 1500);
 
   // Post animation from long press
@@ -157,8 +157,8 @@ const ButtonReveal = ({ onLongPress, label }: Props) => {
     (val) => {
       if (val === 1) {
         // Trigger long press action
-        runOnJS(onLongPress)();
-        runOnJS(resetButton)();
+        scheduleOnRN(onLongPress);
+        scheduleOnRN(resetButton);
       }
     },
   );
