@@ -13,11 +13,11 @@ import { usePredictStackedHeader } from '../../hooks/usePredictStackedHeader';
 import { PredictNavigationParamList } from '../../types/navigation';
 import PredictHeaderStacked from '../../components/PredictHeaderStacked';
 import PredictSearchOverlay from '../../components/PredictSearchOverlay';
-import PredictPortfolioModule from '../../components/PredictPortfolioModule';
-import PredictLiveNowSection from '../../components/PredictLiveNowSection';
-import PredictCategoriesSection from '../../components/PredictCategoriesSection';
-import PredictPopularTodaySection from '../../components/PredictPopularTodaySection';
-import PredictTrendingSection from '../../components/PredictTrendingSection';
+import PredictPortfolioModule from './components/PredictPortfolioModule';
+import PredictLiveNowSection from './components/PredictLiveNowSection';
+import PredictCategoriesSection from './components/PredictCategoriesSection';
+import PredictPopularTodaySection from './components/PredictPopularTodaySection';
+import PredictTrendingSection from './components/PredictTrendingSection';
 import { PredictHomeSelectorsIDs } from '../../Predict.testIds';
 
 /**

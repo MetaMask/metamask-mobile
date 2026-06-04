@@ -5,8 +5,8 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../locales/i18n';
-import { PredictHomeSelectorsIDs } from '../../Predict.testIds';
+import { strings } from '../../../../../../../../locales/i18n';
+import { PredictHomeSelectorsIDs } from '../../../../Predict.testIds';
 
 interface PredictPopularTodaySectionProps {
   testID?: string;
