@@ -208,9 +208,11 @@ const useNetworkConnectionBanner = (): {
       //   be informed about errors with RPC endpoints they've chosen), or
       // - There are failures across more than one registrable domain (likely
       //   client-side issue), or
-      // - All enabled networks are failing (likely client-side issue).
-      // A single Infura blip that takes down many *.infura.io networks at once
-      // collapses to one domain and is suppressed.
+      // - All enabled networks are failing (escape hatch for single-network
+      //   users so they still get a signal).
+      // A wide single-provider outage on a multi-network setup (e.g. every
+      // *.infura.io network goes down at once) collapses to one domain and
+      // is suppressed unless that user's entire enabled set is on it.
       const shouldShowBanner = Boolean(
         firstCustomFailed || distinctDomains > 1 || areAllEnabledNetworksFailed,
       );
