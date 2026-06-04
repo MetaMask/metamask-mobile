@@ -20,6 +20,7 @@ import DeleteWalletModal from '../../../components/UI/DeleteWalletModal';
 import Main from '../Main';
 import OptinMetrics from '../../UI/OptinMetrics';
 import OnboardingInterestQuestionnaire from '../../Views/OnboardingInterestQuestionnaire';
+import OnboardingCryptoExperienceQuestionnaire from '../../Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire';
 import SimpleWebview from '../../Views/SimpleWebview';
 import Logger from '../../../util/Logger';
 import { useSelector } from 'react-redux';
@@ -36,13 +37,13 @@ import ModalConfirmation from '../../../component-library/components/Modals/Moda
 import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
-import AgentStepHud from '../../../core/AgenticService/AgentStepHud';
 import PerpsWebSocketHealthToast, {
   WebSocketHealthToastProvider,
 } from '../../UI/Perps/components/PerpsWebSocketHealthToast';
 import { ControllerEventToastBridge } from './ControllerEventToastBridge';
 import { usePredictToastRegistrations } from '../../UI/Predict/hooks/usePredictToastRegistrations';
 import { usePerpsWithdrawToastRegistrations } from '../../UI/Perps/hooks/usePerpsWithdrawToastRegistrations';
+import { useQuickBuyToastRegistrations } from '../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/hooks/useQuickBuyToastRegistrations';
 import AccountSelector from '../../../components/Views/AccountSelector';
 import AddressSelector from '../../../components/Views/AddressSelector';
 import AddWallet from '../../../components/Views/AddWallet';
@@ -160,6 +161,7 @@ import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails
 import TradeWalletActions from '../../Views/TradeWalletActions';
 import { MultichainAccountPermissions } from '../../Views/MultichainAccounts/MultichainAccountPermissions/MultichainAccountPermissions';
 import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
+import AgenticCliApproval from '../../Views/AgenticCliApproval';
 import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 import MultichainTransactionDetailsSheet from '../../UI/MultichainTransactionDetailsModal/MultichainTransactionDetailsSheet';
 import TransactionDetailsSheet from '../../UI/TransactionElement/TransactionDetailsSheet';
@@ -264,7 +266,11 @@ const OnboardingNav = () => {
         component={SocialLoginSuccessNewUser}
         options={{ headerShown: false }}
       />
-      <Stack.Screen name="ChoosePassword" component={ChoosePassword} />
+      <Stack.Screen
+        name="ChoosePassword"
+        component={ChoosePassword}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen
         name="AccountBackupStep1"
         component={AccountBackupStep1}
@@ -273,6 +279,7 @@ const OnboardingNav = () => {
       <Stack.Screen
         name="AccountBackupStep1B"
         component={AccountBackupStep1B}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name={Routes.ONBOARDING.SUCCESS_FLOW}
@@ -291,9 +298,21 @@ const OnboardingNav = () => {
           headerStyle: { backgroundColor: colors.background.default },
         }}
       />
-      <Stack.Screen name="ManualBackupStep1" component={ManualBackupStep1} />
-      <Stack.Screen name="ManualBackupStep2" component={ManualBackupStep2} />
-      <Stack.Screen name="ManualBackupStep3" component={ManualBackupStep3} />
+      <Stack.Screen
+        name="ManualBackupStep1"
+        component={ManualBackupStep1}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ManualBackupStep2"
+        component={ManualBackupStep2}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ManualBackupStep3"
+        component={ManualBackupStep3}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen
         name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}
         component={ImportFromSecretRecoveryPhrase}
@@ -306,6 +325,11 @@ const OnboardingNav = () => {
       <Stack.Screen
         name={Routes.ONBOARDING.INTEREST_QUESTIONNAIRE}
         component={OnboardingInterestQuestionnaire}
+        options={{ headerShown: false, gestureEnabled: false }}
+      />
+      <Stack.Screen
+        name={Routes.ONBOARDING.CRYPTO_EXPERIENCE_QUESTIONNAIRE}
+        component={OnboardingCryptoExperienceQuestionnaire}
         options={{ headerShown: false, gestureEnabled: false }}
       />
       <Stack.Screen
@@ -1204,6 +1228,19 @@ const AppFlow = () => {
         component={PayWithModal}
       />
       <Stack.Screen
+        name={Routes.AGENTIC_CLI_APPROVAL.CONFIRM}
+        component={AgenticCliApproval}
+        options={{
+          // Header is wired from inside AgenticCliApproval via navigation.setOptions
+          // (mirrors SimpleWebview's pattern for title + back button).
+          // Overrides clearStackNavigatorOptions defaults from the parent stack.
+          headerShown: false,
+          gestureEnabled: true,
+          presentation: 'modal',
+          cardStyle: { backgroundColor: importedColors.white },
+        }}
+      />
+      <Stack.Screen
         name={Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET}
         component={PayWithBottomSheet}
       />
@@ -1221,9 +1258,14 @@ const App: React.FC = () => {
   useOTAUpdates();
   const predictRegistrations = usePredictToastRegistrations();
   const perpsWithdrawRegistrations = usePerpsWithdrawToastRegistrations();
+  const quickBuyRegistrations = useQuickBuyToastRegistrations();
   const toastRegistrations = useMemo(
-    () => [...predictRegistrations, ...perpsWithdrawRegistrations],
-    [predictRegistrations, perpsWithdrawRegistrations],
+    () => [
+      ...predictRegistrations,
+      ...perpsWithdrawRegistrations,
+      ...quickBuyRegistrations,
+    ],
+    [predictRegistrations, perpsWithdrawRegistrations, quickBuyRegistrations],
   );
 
   if (isFirstRender.current) {
@@ -1303,7 +1345,6 @@ const App: React.FC = () => {
         <AppFlow />
         <Toast ref={toastRef} />
         <PerpsWebSocketHealthToast />
-        {__DEV__ && <AgentStepHud />}
         <ControllerEventToastBridge registrations={toastRegistrations} />
         <ProfilerManager />
       </WebSocketHealthToastProvider>

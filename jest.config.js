@@ -1,5 +1,8 @@
 process.env.TZ = 'America/Toronto';
 
+// Unit tests need a test-like environment before Babel transforms app modules.
+process.env.METAMASK_ENVIRONMENT ??= 'test';
+
 process.env.SEGMENT_DELETE_API_SOURCE_ID = 'testSourceId';
 process.env.SEGMENT_REGULATIONS_ENDPOINT = 'TestRegulationsEndpoint';
 
@@ -29,7 +32,7 @@ const config = {
   setupFilesAfterEnv: ['<rootDir>/app/util/test/testSetup.js'],
   testEnvironment: 'jest-environment-node',
   transformIgnorePatterns: [
-    'node_modules/(?!((@metamask/)?(@react-native|react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|d3-shape|d3-path|d3-scale|d3-array|d3-time|d3-format|d3-interpolate|d3-selection|d3-axis|d3-transition|internmap|react-native-wagmi-charts|react-native-nitro-modules|@notifee|expo-file-system|expo-modules-core|expo(nent)?|@expo(nent)?/.*)|@noble/.*|@nktkas/hyperliquid|@metamask/design-system-twrnc-preset|@metamask/design-system-react-native|@metamask/native-utils|@metamask/smart-transactions-controller|@tommasini/react-native-scrollable-tab-view|@veriff/react-native-sdk|@braze/react-native-sdk|uuid))',
+    'node_modules/(?!((@metamask/)?(@react-native|react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|d3-shape|d3-path|d3-scale|d3-array|d3-time|d3-format|d3-interpolate|d3-selection|d3-axis|d3-transition|internmap|react-native-wagmi-charts|react-native-nitro-modules|@notifee|expo-file-system|expo-modules-core|expo(nent)?|@expo(nent)?/.*)|@noble/.*|@nktkas/hyperliquid|@metamask/design-system-twrnc-preset|@metamask/design-system-react-native|@metamask/native-utils|@metamask/smart-transactions-controller|@tommasini/react-native-scrollable-tab-view|@veriff/react-native-sdk|@braze/react-native-sdk|uuid|ip-regex))',
   ],
   transform: {
     '^.+\\.[jt]sx?$': ['babel-jest', { configFile: './babel.config.tests.js' }],
