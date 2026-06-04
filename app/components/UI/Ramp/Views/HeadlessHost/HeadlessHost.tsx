@@ -24,6 +24,7 @@ import {
   setStatus,
 } from '../../headless/sessionRegistry';
 import { setHeadlessEntryCardTouchThrough } from '../../headless/headlessEntryNavigation';
+import { useHeadlessSessionFocusDismissal } from '../../headless/useHeadlessSessionFocusDismissal';
 import { useHeadlessSessionDismissal } from '../../headless/useHeadlessSessionDismissal';
 import { getChainIdFromAssetId } from '../../headless/useHeadlessBuy';
 import useContinueWithQuote, {
@@ -75,6 +76,9 @@ function HeadlessHost() {
   }, [navigation, isFocused]);
 
   useHeadlessSessionDismissal(headlessSessionId);
+  useHeadlessSessionFocusDismissal(headlessSessionId, isFocused, {
+    disabled: Boolean(nativeFlowError),
+  });
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
