@@ -68,6 +68,11 @@ echo "Current fingerprint: ${FP:0:16}..."
 FAILED=0
 pass() { printf "  \033[32mPASS\033[0m %s\n" "$1"; }
 fail() { printf "  \033[31mFAIL\033[0m %s\n" "$1"; FAILED=1; }
+PREFLIGHT_TS=(
+  yarn ts-node --transpile-only
+  --project scripts/perps/agentic/preflight/tsconfig.json
+  scripts/perps/agentic/preflight/preflight.ts
+)
 
 printf "\n\033[1m== Path 1: installed.json matches current fingerprint ==\033[0m\n"
 mkdir -p .agent/build-cache/ios
@@ -78,7 +83,7 @@ set +e
 # Run preflight in the background; watchdog below kills it after 45s OR as
 # soon as the cache-decision marker appears. Avoids the GNU `timeout` binary
 # which is not in base macOS.
-yarn ts-node --transpile-only scripts/perps/agentic/preflight/preflight.ts --mode auto --platform ios --no-launch > "$LOG" 2>&1 &
+"${PREFLIGHT_TS[@]}" --mode auto --platform ios --no-launch > "$LOG" 2>&1 &
 PID=$!
 ( sleep 45 && kill "$PID" 2>/dev/null ) &
 WATCHDOG=$!
@@ -115,9 +120,53 @@ else
 fi
 rm -f "$LOG"
 
+printf "\n\033[1m== Path 2: wallet setup cache hit wipes warm app data ==\033[0m\n"
+APP_BUNDLE=$(xcrun simctl get_app_container "$BOOTED_UDID" io.metamask.MetaMask app 2>/dev/null || true)
+if [ -z "$APP_BUNDLE" ] || [ ! -d "$APP_BUNDLE" ]; then
+  fail "could not locate installed MetaMask .app bundle for cache artifact"
+else
+  rm -rf .agent/build-cache "$MM_BUILD_CACHE_DIR"
+  mkdir -p .agent/build-cache/ios "$MM_BUILD_CACHE_DIR"
+  bc_store_artifact ios "$FP" "$APP_BUNDLE"
+  bc_record_install ios "$FP" "$BOOTED_UDID"
+  FIXTURE="/tmp/mm-bc-e2e-fixture-$$.json"
+  cat > "$FIXTURE" <<'JSON'
+{"password":"test123","accounts":[]}
+JSON
+  LOG="/tmp/mm-bc-e2e-wallet-log-$$"
+  set +e
+  "${PREFLIGHT_TS[@]}" --mode auto --platform ios --wallet-setup --wallet-fixture "$FIXTURE" --no-launch > "$LOG" 2>&1 &
+  PID=$!
+  ( sleep 60 && kill "$PID" 2>/dev/null ) &
+  WATCHDOG=$!
+  for _ in $(seq 1 60); do
+    if grep -q "Wiping app data (uninstall + reinstall from cache)" "$LOG" 2>/dev/null; then break; fi
+    if ! kill -0 "$PID" 2>/dev/null; then break; fi
+    sleep 1
+  done
+  kill "$PID" 2>/dev/null || true
+  wait "$PID" 2>/dev/null || true
+  kill "$WATCHDOG" 2>/dev/null || true
+  wait "$WATCHDOG" 2>/dev/null || true
+  set -e
+
+  if grep -q "Wiping app data (uninstall + reinstall from cache)" "$LOG"; then
+    pass "wallet-setup cache hit wiped app data via cached reinstall"
+  else
+    fail "expected wallet-setup cache reinstall marker in log:"
+    tail -50 "$LOG" | sed 's/^/      /'
+  fi
+  if grep -qE "Cache: installed app matches fingerprint .* no native action needed" "$LOG"; then
+    fail "wallet-setup cache hit incorrectly returned early without wiping"
+  else
+    pass "wallet-setup did not take the no-op cache-hit branch"
+  fi
+  rm -f "$LOG" "$FIXTURE"
+fi
+
 echo ""
 if [ "$FAILED" -eq 0 ]; then
-  printf "\033[1;32m=== E2E PATH 1 TEST PASSED ===\033[0m\n"
+  printf "\033[1;32m=== E2E CACHE TEST PASSED ===\033[0m\n"
   exit 0
 else
   printf "\033[1;31m=== E2E TEST FAILED ===\033[0m\n"

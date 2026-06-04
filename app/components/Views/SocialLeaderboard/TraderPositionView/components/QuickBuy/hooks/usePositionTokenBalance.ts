@@ -87,6 +87,15 @@ export const usePositionTokenBalance = (
     >[1];
     const zeroFiat = addCurrencySymbol('0.00', fiatCurrency);
 
+    // ─── Non-EVM, non-Solana (BTC, Tron) ──────────────────────────
+    // The multichain selectors above (`selectMultichainBalances`,
+    // `selectMultichainAssetsRates`) are chain-agnostic. We early-return here
+    // so the EVM branch's `formatChainIdToHex` doesn't throw "Invalid
+    // cross-chain swaps chainId" and crash the QuickBuy sheet.
+    if (isNonEvmChainId(caipChainId) && !isSolanaChainId(caipChainId)) {
+      return undefined;
+    }
+
     // ─── Solana branch ─────────────────────────────────────────────────
     if (isNonEvmChainId(caipChainId) && isSolanaChainId(caipChainId)) {
       if (!solanaAccount) return undefined;
