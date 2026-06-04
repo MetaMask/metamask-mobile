@@ -257,13 +257,9 @@ export class WebSocketManager {
       };
 
       this.sportsWs.onerror = () => {
-        DevLogger.log('WebSocketManager: sports WebSocket onerror fired');
-        Logger.error(
-          new Error('WebSocketManager: sports WebSocket onerror'),
-          this.getErrorContext('onerror', 'sports', {
-            reconnectAttempts: this.sportsReconnectAttempts,
-          }),
-        );
+        DevLogger.log('WebSocketManager: sports WebSocket onerror fired', {
+          reconnectAttempts: this.sportsReconnectAttempts,
+        });
       };
 
       this.sportsWs.onmessage = this.handleSportsMessage;

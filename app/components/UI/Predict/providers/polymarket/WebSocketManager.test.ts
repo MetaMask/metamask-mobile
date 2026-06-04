@@ -2376,18 +2376,14 @@ describe('WebSocketManager', () => {
       });
     });
 
-    it('logs to Logger.error when sports WebSocket onerror fires', () => {
+    it('does not report transient sports WebSocket onerror events', () => {
       const manager = WebSocketManager.getInstance();
       manager.subscribeToGame('123', jest.fn());
       mockedLoggerError.mockClear();
 
       mockWebSocketInstances[0].simulateError();
 
-      expect(mockedLoggerError).toHaveBeenCalledTimes(1);
-      expect(mockedLoggerError.mock.calls[0][1]).toMatchObject({
-        tags: { channel: 'sports' },
-        context: { data: { method: 'onerror' } },
-      });
+      expect(mockedLoggerError).not.toHaveBeenCalled();
     });
 
     it('logs to Logger.error when RTDS WebSocket onerror fires', () => {
