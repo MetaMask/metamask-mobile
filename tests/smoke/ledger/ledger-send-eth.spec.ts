@@ -4,7 +4,6 @@ import FixtureBuilder, {
 } from '../../framework/fixtures/FixtureBuilder';
 import {
   withSpeculosFixtures,
-  importLedgerAccount,
   type SpeculosTestSuiteParams,
   LEDGER_ACCOUNT_ADDRESS,
 } from '../../framework/fixtures/SpeculosFixtureHelper';
@@ -17,9 +16,6 @@ import { LOCAL_NODE_RPC_URL } from '../../framework/Constants';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 import { Mockttp } from 'mockttp';
 import TestHelpers from '../../helpers';
-import { createLogger } from '../../framework/logger';
-
-const logger = createLogger({ name: 'SendEthTest' });
 
 jest.setTimeout(600000);
 
@@ -30,6 +26,7 @@ const describeIf = process.env.LEDGER_E2E === '1' ? describe : describe.skip;
 function buildSendEthFixture() {
   return new FixtureBuilder()
     .withDefaultFixture()
+    .withLedgerAccount(LEDGER_ACCOUNT_ADDRESS)
     .withNetworkController({
       chainId: '0x539',
       rpcUrl: LOCAL_NODE_RPC_URL,
@@ -85,16 +82,19 @@ describeIf(SmokeLedger('Send ETH from Ledger account'), () => {
         testSpecificMock: setupLedgerBalanceMock,
       },
       async ({ speculos }: SpeculosTestSuiteParams) => {
-        // ── Phase 1: Import Ledger account (with restart) ──
-        await importLedgerAccount();
+        // Ledger account is pre-seeded in the fixture and selected.
+        // Anvil is funded with the Speculos seed so the Ledger address has ETH.
 
+        // ── Phase 1: Login ──
+        await TestHelpers.delay(5000);
+        const { loginToApp } = await import('../../flows/wallet.flow');
+        await loginToApp();
+        await TestHelpers.delay(5000);
         await device.disableSynchronization();
-        await TestHelpers.delay(10000);
 
         // ── Phase 2: Send flow ──
         await WalletView.tapWalletSendButton();
         await TestHelpers.delay(3000);
-        await device.takeScreenshot('send-asset-screen');
         await SendView.selectEthereumToken();
         await SendView.pressAmountMaxButton();
         await SendView.pressContinueButton();
@@ -102,10 +102,8 @@ describeIf(SmokeLedger('Send ETH from Ledger account'), () => {
         await SendView.pressReviewButton();
 
         // ── Phase 3: Ledger signing via Speculos ──
-        // The correct flow is:
-        // 1. Tap Confirm in MetaMask → triggers BLE transaction to Ledger
-        // 2. Ledger shows transaction review screens
-        // 3. Press buttons on Ledger to approve
+        await TestHelpers.delay(5000);
+
         const approvePromise = (async () => {
           await TestHelpers.delay(10000);
           await speculos.approveTransaction();

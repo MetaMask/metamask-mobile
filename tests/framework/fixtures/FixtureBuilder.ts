@@ -1109,6 +1109,63 @@ class FixtureBuilder {
     return this;
   }
 
+  /**
+   * Adds a Ledger hardware wallet account to the fixture and selects it.
+   * The vault is unchanged (Ledger has no private keys).
+   * Use this with Anvil started via the Speculos seed so the Ledger address is funded.
+   *
+   * @param address - The Ledger account address (lowercase).
+   * @returns The FixtureBuilder instance for method chaining.
+   */
+  withLedgerAccount(address: string) {
+    const ledgerAccountId = 'ledger-account-fixture-id';
+    const ledgerAddress = address.toLowerCase();
+
+    merge(this.fixture.state.engine.backgroundState.KeyringController, {
+      keyrings: [
+        {
+          accounts: [DEFAULT_FIXTURE_ACCOUNT],
+          type: 'HD Key Tree',
+        },
+        {
+          type: 'Ledger Hardware',
+          accounts: [ledgerAddress],
+        },
+      ],
+    });
+
+    merge(this.fixture.state.engine.backgroundState.AccountsController, {
+      internalAccounts: {
+        accounts: {
+          [ledgerAccountId]: {
+            address: ledgerAddress,
+            id: ledgerAccountId,
+            metadata: {
+              name: 'Ledger 1',
+              importTime: 1684232000456,
+              keyring: {
+                type: 'Ledger Hardware',
+              },
+            },
+            options: {},
+            methods: [
+              'personal_sign',
+              'eth_signTransaction',
+              'eth_signTypedData_v1',
+              'eth_signTypedData_v3',
+              'eth_signTypedData_v4',
+            ],
+            type: 'eip155:eoa',
+            scopes: ['eip155:1'],
+          },
+        },
+        selectedAccount: ledgerAccountId,
+      },
+    });
+
+    return this;
+  }
+
   withImportedAccountKeyringController() {
     merge(this.fixture.state.engine.backgroundState.KeyringController, {
       keyrings: [
