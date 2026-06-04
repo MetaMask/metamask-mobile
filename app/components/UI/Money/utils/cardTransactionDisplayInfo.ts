@@ -5,21 +5,6 @@ import type { CardTransaction } from '../types/moneyActivity';
 import type { MoneyTransactionDisplayInfo } from '../hooks/useMoneyTransactionDisplayInfo';
 import { moneyFormatFiat } from './moneyFormatFiat';
 
-/**
- * Display strings for a {@link CardTransaction} row, producing the same shape as
- * {@link MoneyTransactionDisplayInfo} so the row component can branch on `kind`
- * without two render paths.
- *
- * Card spends are always outgoing (`isIncoming: false`) and the settlement token
- * is USD-pegged (USDC today, mUSD later), so the on-chain token amount is also
- * the historic USD value — no price lookup needed. The fiat line converts that
- * USD value into the user's currency via `usdToCurrentCurrencyRate`; when no rate
- * is available it's left blank rather than shown as a misleading figure (mirrors
- * the on-chain path).
- *
- * Vendor / merchant is out of MVP scope, so `description` is intentionally
- * undefined until the Baanx enrichment seam is wired.
- */
 export function cardTransactionDisplayInfo(
   card: CardTransaction,
   opts: { currentCurrency: string; usdToCurrentCurrencyRate?: number },
@@ -39,7 +24,7 @@ export function cardTransactionDisplayInfo(
 
   return {
     label: strings('money.transaction.card_transaction'),
-    description: undefined,
+    description: undefined, // Left as a placeholder for future enrichment
     primaryAmount,
     fiatAmount,
     isIncoming: false,

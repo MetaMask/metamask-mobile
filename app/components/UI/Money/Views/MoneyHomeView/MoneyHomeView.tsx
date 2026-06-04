@@ -101,8 +101,8 @@ const MoneyHomeView = () => {
     useMoneyAccountTransactions();
   const { cardTransactions, isLoading: isCardActivityLoading } =
     useMoneyAccountCardTransactions();
-  // Mock mode shows curated demo data only — never merge real card spends (or
-  // their loading state) into it.
+  // Mock mode shows curated demo data only — so we don’t want to
+  // merge real card spends or their loading state into it.
   const showCardActivityLoading = isCardActivityLoading && !mockDataEnabled;
   const activityItems = useMemo(
     () =>

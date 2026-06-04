@@ -12,6 +12,7 @@ const cardTx = (hash: Hex, time: number): CardTransaction => ({
   chainId: '0x8f',
   token: { address: '0xusdc' as Hex, symbol: 'USDC', decimals: 6 },
   amount: '1000000',
+  to: '0xsettlement' as Hex,
 });
 
 describe('mergeMoneyActivity', () => {

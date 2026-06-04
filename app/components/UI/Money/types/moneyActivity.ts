@@ -5,13 +5,11 @@ import type { Hex } from '@metamask/utils';
  * A MetaMask Card payment surfaced in Money activity.
  *
  * Card spends settle as an on-chain ERC-20 transfer OUT of the money account
- * (Baanx pulling the delegated funds). They are not composed on this device, so
- * they never reach the local `TransactionController` — they come from the
- * MetaMask Accounts API instead (see {@link fetchAccountTransactions}). The
- * fields here are the public on-chain movement only; vendor / merchant /
- * category data is intentionally absent (out of scope) and reserved for the
- * `enrichment` seam so a future Baanx integration can layer it on without
- * reshaping the union.
+ * Because they aren’t created in this client, they never reach the local
+ * `TransactionController` — they come from the MetaMask Accounts API instead.
+ *
+ * This only includes on chain data. Later we’ll enrich these with merchant
+ * data etc, but this will require the Baanx API
  */
 export interface CardTransaction {
   /** On-chain tx hash. Stable identity for the activity row. */
@@ -29,8 +27,6 @@ export interface CardTransaction {
   amount: string;
   /** Settlement recipient (Baanx). Shown as "Paid to" in the detail sheet. */
   to: Hex;
-  /** Future Baanx enrichment (vendor / category). Always absent in the MVP. */
-  enrichment?: never;
 }
 
 /**
