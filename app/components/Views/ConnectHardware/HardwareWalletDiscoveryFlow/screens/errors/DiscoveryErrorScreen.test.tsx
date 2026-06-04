@@ -1,279 +1,108 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { render, screen, fireEvent } from '@testing-library/react-native';
+import { screen, fireEvent } from '@testing-library/react-native';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
+import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import DiscoveryErrorScreen from './DiscoveryErrorScreen';
 import { DiscoveryStep } from '../../DiscoveryFlow.machine.types';
+import {
+  DISCOVERY_ERROR_SCREEN_CONFIGS,
+  type DiscoveryErrorScreenConfig,
+  type DiscoveryErrorScreenVariant,
+} from './discoveryErrorScreenConfigs';
+import { strings } from '../../../../../../../locales/i18n';
 
-jest.mock('../../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string, params?: Record<string, string>) =>
-    params ? `${key}:${JSON.stringify(params)}` : key,
-  ),
-}));
+const CONFIG = DISCOVERY_ERROR_SCREEN_CONFIGS;
+const GENERIC_VARIANT: DiscoveryErrorScreenVariant = 'something-went-wrong';
 
-jest.mock('./DiscoveryErrorScreenLayout', () => {
-  const ReactActual = jest.requireActual('react');
-  const { Text, TouchableOpacity } = jest.requireActual('react-native');
+const getButtonTestID = (
+  config: DiscoveryErrorScreenConfig,
+  button: 'primaryButton' | 'secondaryButton',
+): string => {
+  const testID = config[button]?.testID;
+  if (!testID) {
+    throw new Error(`${button} testID not found in config`);
+  }
+  return testID;
+};
 
-  const MockLayout = ({
-    title,
-    subtitle,
-    primaryButton,
-    secondaryButton,
-    testID,
-    imageSource,
-    artboardName,
-    stateMachineName,
-    stateTrigger,
-  }: {
-    title: string;
-    subtitle: string;
-    primaryButton?: { label: string; onPress: () => void; testID?: string };
-    secondaryButton?: { label: string; onPress: () => void; testID?: string };
-    testID?: string;
-    imageSource?: unknown;
-    artboardName?: string;
-    stateMachineName?: string;
-    stateTrigger?: string;
-  }) =>
-    ReactActual.createElement(
-      Text,
-      { testID: testID ?? 'discovery-error-layout' },
-      title,
-      ' | ',
-      subtitle,
-      primaryButton
-        ? ReactActual.createElement(
-            TouchableOpacity,
-            {
-              testID: primaryButton.testID ?? 'primary-button',
-              onPress: primaryButton.onPress,
-            },
-            ReactActual.createElement(Text, null, primaryButton.label),
-          )
-        : null,
-      secondaryButton
-        ? ReactActual.createElement(
-            TouchableOpacity,
-            {
-              testID: secondaryButton.testID ?? 'secondary-button',
-              onPress: secondaryButton.onPress,
-            },
-            ReactActual.createElement(Text, null, secondaryButton.label),
-          )
-        : null,
-    );
-
-  MockLayout.displayName = 'DiscoveryErrorScreenLayout';
-  return MockLayout;
-});
+const renderScreen = (ui: React.ReactElement) =>
+  renderWithProvider(ui, { includeNavigationContainer: false });
 
 describe('DiscoveryErrorScreen', () => {
   describe('variant rendering', () => {
-    it('renders DeviceUnresponsive variant with rive props', () => {
-      render(
+    it('renders DeviceUnresponsive variant with title and subtitle', () => {
+      const config = CONFIG[DiscoveryStep.DeviceUnresponsive];
+      renderScreen(
         <DiscoveryErrorScreen variant={DiscoveryStep.DeviceUnresponsive} />,
       );
 
-      expect(
-        screen.getByText('ledger.unresponsive | ledger.unresponsive_message'),
-      ).toBeOnTheScreen();
+      expect(screen.getByText(strings(config.titleKey))).toBeOnTheScreen();
+      expect(screen.getByText(strings(config.subtitleKey))).toBeOnTheScreen();
     });
 
-    it('renders DeviceLocked variant with retry button', () => {
-      const onRetry = jest.fn();
-      render(
-        <DiscoveryErrorScreen
-          variant={DiscoveryStep.DeviceLocked}
-          onRetry={onRetry}
-        />,
+    it.each([
+      {
+        variant: DiscoveryStep.DeviceUnresponsive,
+        getTestID: () =>
+          getButtonTestID(
+            CONFIG[DiscoveryStep.DeviceUnresponsive],
+            'primaryButton',
+          ),
+      },
+      {
+        variant: DiscoveryStep.DeviceLocked,
+        getTestID: () =>
+          getButtonTestID(
+            CONFIG[DiscoveryStep.DeviceLocked],
+            'secondaryButton',
+          ),
+      },
+      {
+        variant: DiscoveryStep.AppNotOpen,
+        getTestID: () =>
+          getButtonTestID(CONFIG[DiscoveryStep.AppNotOpen], 'primaryButton'),
+      },
+      {
+        variant: DiscoveryStep.TransportConnectionFailed,
+        getTestID: () =>
+          getButtonTestID(
+            CONFIG[DiscoveryStep.TransportConnectionFailed],
+            'primaryButton',
+          ),
+      },
+    ])(
+      'renders $variant with working retry button',
+      ({ variant, getTestID }) => {
+        const onRetry = jest.fn();
+        renderScreen(
+          <DiscoveryErrorScreen variant={variant} onRetry={onRetry} />,
+        );
+
+        fireEvent.press(screen.getByTestId(getTestID()));
+        expect(onRetry).toHaveBeenCalledTimes(1);
+      },
+    );
+
+    it.each([
+      DiscoveryStep.BluetoothAccessDenied,
+      DiscoveryStep.LocationAccessDenied,
+      DiscoveryStep.NearbyDevicesDenied,
+      DiscoveryStep.TransportUnavailable,
+    ])('renders %s with open-settings button', (variant) => {
+      renderScreen(
+        <DiscoveryErrorScreen variant={variant} onNotNow={jest.fn()} />,
       );
-
       expect(
-        screen.getByTestId('ledger-locked-retry-button'),
+        screen.getByTestId(getButtonTestID(CONFIG[variant], 'primaryButton')),
       ).toBeOnTheScreen();
-      fireEvent.press(screen.getByTestId('ledger-locked-retry-button'));
-      expect(onRetry).toHaveBeenCalledTimes(1);
-    });
-
-    it('renders AppNotOpen variant with retry button', () => {
-      const onRetry = jest.fn();
-      render(
-        <DiscoveryErrorScreen
-          variant={DiscoveryStep.AppNotOpen}
-          onRetry={onRetry}
-        />,
-      );
-
-      expect(
-        screen.getByTestId('ledger-eth-closed-retry-button'),
-      ).toBeOnTheScreen();
-      fireEvent.press(screen.getByTestId('ledger-eth-closed-retry-button'));
-      expect(onRetry).toHaveBeenCalledTimes(1);
-    });
-
-    it('renders BluetoothAccessDenied variant with open-settings button', () => {
-      render(
-        <DiscoveryErrorScreen
-          variant={DiscoveryStep.BluetoothAccessDenied}
-          onNotNow={jest.fn()}
-        />,
-      );
-
-      expect(
-        screen.getByTestId('ledger-bt-access-denied-settings-button'),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders LocationAccessDenied variant', () => {
-      render(
-        <DiscoveryErrorScreen
-          variant={DiscoveryStep.LocationAccessDenied}
-          onNotNow={jest.fn()}
-        />,
-      );
-
-      expect(
-        screen.getByTestId('ledger-location-denied-settings-button'),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders NearbyDevicesDenied variant', () => {
-      render(
-        <DiscoveryErrorScreen
-          variant={DiscoveryStep.NearbyDevicesDenied}
-          onNotNow={jest.fn()}
-        />,
-      );
-
-      expect(
-        screen.getByTestId('ledger-nearby-denied-settings-button'),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders TransportUnavailable variant', () => {
-      render(
-        <DiscoveryErrorScreen
-          variant={DiscoveryStep.TransportUnavailable}
-          onNotNow={jest.fn()}
-        />,
-      );
-
-      expect(
-        screen.getByTestId('ledger-bt-off-settings-button'),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders TransportConnectionFailed variant with retry button', () => {
-      const onRetry = jest.fn();
-      render(
-        <DiscoveryErrorScreen
-          variant={DiscoveryStep.TransportConnectionFailed}
-          onRetry={onRetry}
-        />,
-      );
-
-      expect(
-        screen.getByTestId('ledger-bt-failed-retry-button'),
-      ).toBeOnTheScreen();
-      fireEvent.press(screen.getByTestId('ledger-bt-failed-retry-button'));
-      expect(onRetry).toHaveBeenCalledTimes(1);
     });
   });
 
-  describe('something-went-wrong variant', () => {
-    it('renders with continue and retry buttons', () => {
-      const onContinue = jest.fn();
-      const onRetry = jest.fn();
-
-      render(
-        <DiscoveryErrorScreen
-          variant="something-went-wrong"
-          onContinue={onContinue}
-          onRetry={onRetry}
-        />,
-      );
-
-      expect(
-        screen.getByTestId('discovery-generic-error-continue-button'),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId('discovery-generic-error-retry-button'),
-      ).toBeOnTheScreen();
-    });
-
-    it('passes subtitle params with Ledger device name for Ledger wallet', () => {
-      render(
-        <DiscoveryErrorScreen
-          variant="something-went-wrong"
-          walletType={HardwareWalletType.Ledger}
-          onRetry={jest.fn()}
-          onContinue={jest.fn()}
-        />,
-      );
-
-      expect(
-        screen.getByText(
-          'hardware_wallet.errors.unknown_error:{"device":"Ledger"}',
-        ),
-      ).toBeOnTheScreen();
-    });
-
-    it('passes subtitle params with generic device name for non-Ledger wallet', () => {
-      render(
-        <DiscoveryErrorScreen
-          variant="something-went-wrong"
-          walletType={'keystone' as HardwareWalletType}
-          onRetry={jest.fn()}
-          onContinue={jest.fn()}
-        />,
-      );
-
-      expect(
-        screen.getByText(
-          'hardware_wallet.errors.unknown_error:{"device":"device"}',
-        ),
-      ).toBeOnTheScreen();
-    });
-
-    it('calls onContinue when continue button is pressed', () => {
-      const onContinue = jest.fn();
-
-      render(
-        <DiscoveryErrorScreen
-          variant="something-went-wrong"
-          onContinue={onContinue}
-        />,
-      );
-
-      fireEvent.press(
-        screen.getByTestId('discovery-generic-error-continue-button'),
-      );
-      expect(onContinue).toHaveBeenCalledTimes(1);
-    });
-
-    it('calls onRetry when retry button is pressed', () => {
-      const onRetry = jest.fn();
-
-      render(
-        <DiscoveryErrorScreen
-          variant="something-went-wrong"
-          onRetry={onRetry}
-        />,
-      );
-
-      fireEvent.press(
-        screen.getByTestId('discovery-generic-error-retry-button'),
-      );
-      expect(onRetry).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('open-settings button', () => {
-    it('calls Linking.openSettings when pressed', () => {
+  describe('button actions', () => {
+    it('calls Linking.openSettings when open-settings button is pressed', () => {
       jest.spyOn(Linking, 'openSettings').mockImplementation(jest.fn());
-
-      render(
+      renderScreen(
         <DiscoveryErrorScreen
           variant={DiscoveryStep.BluetoothAccessDenied}
           onNotNow={jest.fn()}
@@ -281,17 +110,19 @@ describe('DiscoveryErrorScreen', () => {
       );
 
       fireEvent.press(
-        screen.getByTestId('ledger-bt-access-denied-settings-button'),
+        screen.getByTestId(
+          getButtonTestID(
+            CONFIG[DiscoveryStep.BluetoothAccessDenied],
+            'primaryButton',
+          ),
+        ),
       );
       expect(Linking.openSettings).toHaveBeenCalledTimes(1);
     });
-  });
 
-  describe('not-now button', () => {
-    it('calls onNotNow when pressed', () => {
+    it('calls onNotNow when not-now button is pressed', () => {
       const onNotNow = jest.fn();
-
-      render(
+      renderScreen(
         <DiscoveryErrorScreen
           variant={DiscoveryStep.BluetoothAccessDenied}
           onNotNow={onNotNow}
@@ -299,53 +130,131 @@ describe('DiscoveryErrorScreen', () => {
       );
 
       fireEvent.press(
-        screen.getByTestId('ledger-bt-access-denied-not-now-button'),
+        screen.getByTestId(
+          getButtonTestID(
+            CONFIG[DiscoveryStep.BluetoothAccessDenied],
+            'secondaryButton',
+          ),
+        ),
       );
       expect(onNotNow).toHaveBeenCalledTimes(1);
     });
   });
 
-  describe('missing action handlers', () => {
-    it('does not render retry button when onRetry is not provided', () => {
-      render(<DiscoveryErrorScreen variant={DiscoveryStep.AppNotOpen} />);
+  describe(`${GENERIC_VARIANT} variant`, () => {
+    const genericConfig = CONFIG[GENERIC_VARIANT];
 
-      expect(screen.queryByTestId('ledger-eth-closed-retry-button')).toBeNull();
-    });
-
-    it('does not render not-now button when onNotNow is not provided', () => {
-      render(
-        <DiscoveryErrorScreen variant={DiscoveryStep.BluetoothAccessDenied} />,
-      );
-
-      expect(
-        screen.queryByTestId('ledger-bt-access-denied-not-now-button'),
-      ).toBeNull();
-    });
-
-    it('does not render continue button when onContinue is not provided', () => {
-      render(<DiscoveryErrorScreen variant="something-went-wrong" />);
-
-      expect(
-        screen.queryByTestId('discovery-generic-error-continue-button'),
-      ).toBeNull();
-    });
-  });
-
-  describe('walletType default', () => {
-    it('defaults walletType to Ledger when not provided', () => {
-      render(
+    it('renders continue and retry buttons', () => {
+      renderScreen(
         <DiscoveryErrorScreen
-          variant="something-went-wrong"
+          variant={GENERIC_VARIANT}
           onContinue={jest.fn()}
           onRetry={jest.fn()}
         />,
       );
 
       expect(
-        screen.getByText(
-          'hardware_wallet.errors.unknown_error:{"device":"Ledger"}',
-        ),
+        screen.getByTestId(getButtonTestID(genericConfig, 'primaryButton')),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(getButtonTestID(genericConfig, 'secondaryButton')),
       ).toBeOnTheScreen();
     });
+
+    it('calls onContinue when continue button is pressed', () => {
+      const onContinue = jest.fn();
+      renderScreen(
+        <DiscoveryErrorScreen
+          variant={GENERIC_VARIANT}
+          onContinue={onContinue}
+        />,
+      );
+
+      fireEvent.press(
+        screen.getByTestId(getButtonTestID(genericConfig, 'primaryButton')),
+      );
+      expect(onContinue).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls onRetry when retry button is pressed', () => {
+      const onRetry = jest.fn();
+      renderScreen(
+        <DiscoveryErrorScreen variant={GENERIC_VARIANT} onRetry={onRetry} />,
+      );
+
+      fireEvent.press(
+        screen.getByTestId(getButtonTestID(genericConfig, 'secondaryButton')),
+      );
+      expect(onRetry).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([
+      { walletType: HardwareWalletType.Ledger, expected: 'Ledger' },
+      { walletType: 'keystone' as HardwareWalletType, expected: 'device' },
+    ])(
+      'passes subtitle params with $expected for $walletType wallet',
+      ({ walletType, expected }) => {
+        const params = genericConfig.getSubtitleParams?.(walletType);
+        const subtitle = strings(genericConfig.subtitleKey, params);
+
+        renderScreen(
+          <DiscoveryErrorScreen
+            variant={GENERIC_VARIANT}
+            walletType={walletType}
+            onRetry={jest.fn()}
+            onContinue={jest.fn()}
+          />,
+        );
+
+        expect(screen.getByText(subtitle)).toBeOnTheScreen();
+      },
+    );
+
+    it('defaults walletType to Ledger when not provided', () => {
+      const params = genericConfig.getSubtitleParams?.(
+        HardwareWalletType.Ledger,
+      );
+      const subtitle = strings(genericConfig.subtitleKey, params);
+
+      renderScreen(
+        <DiscoveryErrorScreen
+          variant={GENERIC_VARIANT}
+          onContinue={jest.fn()}
+          onRetry={jest.fn()}
+        />,
+      );
+
+      expect(screen.getByText(subtitle)).toBeOnTheScreen();
+    });
+  });
+
+  describe('missing action handlers', () => {
+    it.each([
+      {
+        variant: DiscoveryStep.AppNotOpen as DiscoveryErrorScreenVariant,
+        getTestID: () =>
+          getButtonTestID(CONFIG[DiscoveryStep.AppNotOpen], 'primaryButton'),
+      },
+      {
+        variant:
+          DiscoveryStep.BluetoothAccessDenied as DiscoveryErrorScreenVariant,
+        getTestID: () =>
+          getButtonTestID(
+            CONFIG[DiscoveryStep.BluetoothAccessDenied],
+            'secondaryButton',
+          ),
+      },
+      {
+        variant: GENERIC_VARIANT,
+        getTestID: () =>
+          getButtonTestID(CONFIG[GENERIC_VARIANT], 'primaryButton'),
+      },
+    ])(
+      'does not render button when handler is not provided for $variant',
+      ({ variant, getTestID }) => {
+        renderScreen(<DiscoveryErrorScreen variant={variant} />);
+        expect(screen.queryByTestId(getTestID())).toBeNull();
+      },
+    );
   });
 });

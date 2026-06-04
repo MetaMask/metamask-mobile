@@ -82,6 +82,10 @@ export const DISCOVERY_ERROR_SCREEN_CONFIGS: Record<
     subtitleKey: 'ledger.unresponsive_message',
     testID: 'ledger-unresponsive-animation',
     rive: { ...LEDGER_RIVE, stateTrigger: 'error' },
+    primaryButton: {
+      role: 'retry',
+      testID: 'ledger-unresponsive-retry-button',
+    },
   },
   'device-locked': {
     titleKey: 'ledger.ledger_is_locked',
