@@ -19,6 +19,7 @@ import {
 import PAGINATION_OPERATIONS from '../../constants/pagination';
 import { strings } from '../../../locales/i18n';
 import { keyringTypeToName } from '@metamask/accounts-controller';
+import { getChecksumAddress } from '@metamask/utils';
 import { removeAccountsFromPermissions } from '../Permissions';
 import { isEthAppNotOpenError, isDisconnectError } from './ledgerErrors';
 
@@ -143,7 +144,9 @@ export const forgetLedger = async (): Promise<void> => {
     // operate on hex addresses rather than CAIP Account Id.
     const accounts = await keyring.getAccounts();
     removeAccountsFromPermissions(
-      accounts.map(({ address }) => address as `0x${string}`),
+      accounts.map(({ address }) =>
+        getChecksumAddress(address as `0x${string}`),
+      ),
     );
     await keyring.forgetDevice();
   });

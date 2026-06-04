@@ -330,7 +330,7 @@ describe('Ledger core', () => {
       await forgetLedger();
       expect(MockRemoveAccountsFromPermissions).toHaveBeenCalledWith([
         '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
-        '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB3',
+        '0x49b6Ffd1bD9d1c64EEF400a64A1E4bBC33E2Cab3',
       ]);
     });
 
