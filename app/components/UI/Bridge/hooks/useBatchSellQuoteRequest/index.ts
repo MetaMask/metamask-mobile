@@ -84,15 +84,15 @@ export function hasValidBatchSellSourceAmounts(
 
   return sourceTokens.some((token) => {
     const assetId = formatAddressToAssetId(token.address, token.chainId);
-    const sourceAmount = assetId
-      ? batchSellSourceTokenAmounts[assetId]
-      : undefined;
 
-    if (!sourceAmount) return false;
+    if (!assetId) return false;
 
-    const numericAmount = Number(sourceAmount);
-
-    return Number.isFinite(numericAmount) && numericAmount > 0;
+    return (
+      getBatchSellAtomicSourceAmount(
+        token,
+        batchSellSourceTokenAmounts[assetId],
+      ) !== undefined
+    );
   });
 }
 

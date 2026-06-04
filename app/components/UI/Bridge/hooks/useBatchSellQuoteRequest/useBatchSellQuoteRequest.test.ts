@@ -155,6 +155,26 @@ describe('useBatchSellQuoteRequest', () => {
     ).toBe(false);
   });
 
+  it('returns false from hasValidBatchSellSourceAmounts when decimal amount is below one atomic unit', () => {
+    expect(
+      hasValidBatchSellSourceAmounts(
+        [ethToken],
+        { [ethAssetId]: '1e-19' },
+        usdcToken,
+      ),
+    ).toBe(false);
+    expect(
+      buildBatchSellQuoteRequestData({
+        batchSellSlippages: {},
+        batchSellSourceTokenAmounts: { [ethAssetId]: '1e-19' },
+        destToken: usdcToken,
+        smartTransactionsEnabled: false,
+        sourceTokens: [ethToken],
+        walletAddress: mockWalletAddress,
+      }),
+    ).toEqual([]);
+  });
+
   it('builds quote request data for non-zero Batch Sell source token amounts', () => {
     const quoteRequestData = buildBatchSellQuoteRequestData({
       batchSellSlippages: {
