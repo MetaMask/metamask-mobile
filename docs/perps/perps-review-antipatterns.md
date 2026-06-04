@@ -2,19 +2,9 @@
 
 > Patterns to watch for when reviewing perps-related code. Generic code quality is handled by standard review.
 
-## Controller Portability (Core Sync)
-
-The controller at `app/controllers/perps/` is published as `@metamask/perps-controller` and synced to `core` monorepo via `scripts/perps/validate-core-sync.sh`. It must remain platform-agnostic — no mobile-specific imports.
-
-- **Mobile import in controller** — `react-native`, `Engine`, `Sentry`, `DevLogger` imported directly in `app/controllers/perps/`. All platform services must flow through `PerpsPlatformDependencies` (DI). The sync script checks for these but a PR could introduce them.
-- **Direct controller import from app code** — app files importing `from '../../controllers/perps/...'` instead of `from '@metamask/perps-controller'`. ESLint rule exists but may be suppressed.
-- **`__DEV__` in controller code** — must not appear in controller files. Core replaces it with `false` during sync. If new code adds `__DEV__` checks, sync breaks.
-- **New dependency not in DI interface** — controller code reaching outside its boundary (e.g., importing a hook, React context, or mobile utility). Everything the controller needs must come through `infrastructure: PerpsPlatformDependencies` constructor param.
-- **Breaking the publisher contract** — changing PerpsController's public API (state shape, method signatures, event names) without considering extension consumers. Controller is a publisher — mobile and extension both consume it.
-
 ## Magic Strings, Magic Numbers & Placeholder Values
 
-Constants live in `app/controllers/perps/constants/perpsConfig.ts` (controller-portable) and `app/components/UI/Perps/constants/perpsConfig.ts` (UI-only). PRs must use these — not inline literals.
+Use the exported perps constants instead of inline literals; UI-only constants live under `app/components/UI/Perps/constants/`.
 
 - **Defaulting to `0` when data is unavailable** — the most common mistake. When price/percentage/data hasn't loaded yet, use the placeholder constants, NOT `0`, `$0`, or `0%`:
   - `PERPS_CONSTANTS.FallbackPriceDisplay` (`'$---'`) — price not yet loaded
