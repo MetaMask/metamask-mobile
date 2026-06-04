@@ -336,6 +336,16 @@ function shouldRejectPendingApprovalOnCancel(
   return false;
 }
 
+function hasMatchingBatchTransaction(
+  batchId: string,
+  targetFrom: string,
+): boolean {
+  return Engine.context.TransactionController.state.transactions.some(
+    (tx: TransactionMeta) =>
+      tx.batchId === batchId && matchesTx(tx, targetFrom),
+  );
+}
+
 interface UseHwBatchSignTrackerOptions {
   fromAddress: string | undefined;
   isEnabled: boolean;
@@ -475,17 +485,22 @@ export function useHwBatchSignTracker({
     });
   }, []);
 
-  const isFromCurrentBatch = useCallback(
-    (transactionMeta: TransactionMeta): boolean => {
+  const isBatchIdFromCurrentBatch = useCallback(
+    (batchId: string | undefined): boolean => {
       const { currentBatchId, staleBatchIds } = trackerStateRef.current;
       if (currentBatchId === undefined) return true;
       if (currentBatchId === null) {
-        const batchId = transactionMeta.batchId;
         return batchId ? !staleBatchIds.has(batchId) : true;
       }
-      return transactionMeta.batchId === currentBatchId;
+      return batchId === currentBatchId;
     },
     [],
+  );
+
+  const isFromCurrentBatch = useCallback(
+    (transactionMeta: TransactionMeta): boolean =>
+      isBatchIdFromCurrentBatch(transactionMeta.batchId),
+    [isBatchIdFromCurrentBatch],
   );
 
   const isCancelledError = useCallback((error: unknown): boolean => {
@@ -718,7 +733,11 @@ export function useHwBatchSignTracker({
             trackerState.acceptedApprovalIds.add(requestId);
             trackerState.approvalQueue.push(requestId);
           }
-        } else if (request.type === 'transaction_batch') {
+        } else if (
+          request.type === 'transaction_batch' &&
+          isBatchIdFromCurrentBatch(requestId) &&
+          hasMatchingBatchTransaction(requestId, targetFrom)
+        ) {
           trackerState.acceptedApprovalIds.add(requestId);
           trackerState.approvalQueue.push(requestId);
         }
@@ -786,6 +805,7 @@ export function useHwBatchSignTracker({
           type: HardwareWalletsSwapsEventType.Signing,
           payload: { stepKind },
         });
+        enqueuePendingApprovals();
       } else if (status === TransactionStatus.signed) {
         if (!isFromCurrentBatch(transactionMeta)) {
           return;
@@ -848,6 +868,7 @@ export function useHwBatchSignTracker({
       'ApprovalController:stateChange',
       enqueuePendingApprovals,
     );
+    enqueuePendingApprovals();
 
     return () => {
       Engine.controllerMessenger.unsubscribe(
@@ -871,6 +892,7 @@ export function useHwBatchSignTracker({
     cancelCurrentBatch,
     checkGeneration,
     fromAddress,
+    isBatchIdFromCurrentBatch,
     isCancelledError,
     isEnabled,
     isFromCurrentBatch,

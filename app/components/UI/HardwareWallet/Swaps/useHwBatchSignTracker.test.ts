@@ -203,6 +203,19 @@ function txMeta(
   };
 }
 
+function matchingBatchTx(
+  batchId: string,
+  overrides: Partial<MockTransactionMeta> = {},
+): MockTransactionMeta {
+  return txMeta({
+    id: `tx-${batchId}`,
+    type: TransactionType.bridgeApproval,
+    status: TransactionStatus.approved,
+    batchId,
+    ...overrides,
+  });
+}
+
 // ---------- Hook render helpers ----------
 
 function renderEnabledHook(
@@ -796,6 +809,29 @@ describe('useHwBatchSignTracker', () => {
   });
 
   describe('approval acceptance', () => {
+    it('drains existing pending approvals when enabled', async () => {
+      const batchId = 'batch-existing-on-enable-001';
+      setMockTransactions([matchingBatchTx(batchId)]);
+      setMockPendingApprovals({
+        [batchId]: { id: batchId, type: 'transaction_batch' },
+      });
+
+      renderEnabledHook();
+
+      await waitFor(() => {
+        expect(mockExecuteHardwareWalletOperation).toHaveBeenCalledWith(
+          expect.objectContaining({
+            address: FROM_ADDRESS,
+            operationType: 'transaction',
+            execute: expect.any(Function),
+          }),
+        );
+      });
+      expect(mockAcceptRequest).toHaveBeenCalledWith(batchId, undefined, {
+        waitForResult: true,
+      });
+    });
+
     it('accepts pending approval requests for matching bridge transactions', async () => {
       const txId = 'tx-approval-001';
       setMockTransactions([
@@ -856,6 +892,7 @@ describe('useHwBatchSignTracker', () => {
 
     it('accepts pending transaction_batch approval requests through the hardware wallet operation flow', async () => {
       const batchId = 'batch-approval-001';
+      setMockTransactions([matchingBatchTx(batchId)]);
 
       await processBatchApproval(batchId);
 
@@ -871,6 +908,112 @@ describe('useHwBatchSignTracker', () => {
       });
     });
 
+    it('does not accept unrelated transaction_batch approval requests', async () => {
+      const batchId = 'batch-unrelated-approval-001';
+      setMockTransactions([
+        txMeta({
+          id: 'tx-unrelated-batch-approval-001',
+          type: TransactionType.bridgeApproval,
+          status: TransactionStatus.approved,
+          batchId,
+          txParams: {
+            from: '0xdifferentAddress0000000000000000000000000',
+          },
+        }),
+      ]);
+      setMockPendingApprovals({
+        [batchId]: { id: batchId, type: 'transaction_batch' },
+      });
+
+      renderEnabledHook();
+
+      await act(async () => {
+        await getApprovalHandler()();
+      });
+
+      expect(mockExecuteHardwareWalletOperation).not.toHaveBeenCalled();
+      expect(mockAcceptRequest).not.toHaveBeenCalled();
+    });
+
+    it('does not accept transaction_batch approval requests from a different active batch', async () => {
+      const activeBatchId = 'batch-active-approval-001';
+      const otherBatchId = 'batch-other-approval-001';
+      const activeTx = matchingBatchTx(activeBatchId);
+      const otherTx = matchingBatchTx(otherBatchId);
+
+      setMockTransactions([activeTx]);
+      renderEnabledHook();
+      fireTxEvent(activeTx);
+
+      setMockTransactions([activeTx, otherTx]);
+      setMockPendingApprovals({
+        [otherBatchId]: { id: otherBatchId, type: 'transaction_batch' },
+      });
+
+      await act(async () => {
+        await getApprovalHandler()();
+      });
+
+      expect(mockExecuteHardwareWalletOperation).not.toHaveBeenCalled();
+      expect(mockAcceptRequest).not.toHaveBeenCalled();
+    });
+
+    it('does not accept transaction_batch approval requests for stale batches', async () => {
+      const retryGenerationRef = { current: 0 };
+      const staleBatchId = 'batch-stale-approval-001';
+      const staleTx = matchingBatchTx(staleBatchId);
+
+      setMockTransactions([staleTx]);
+      renderHook(() =>
+        useHwBatchSignTracker({
+          fromAddress: FROM_ADDRESS,
+          isEnabled: true,
+          retryGenerationRef,
+        }),
+      );
+      fireTxEvent(staleTx);
+
+      retryGenerationRef.current = 1;
+      setMockPendingApprovals({
+        [staleBatchId]: { id: staleBatchId, type: 'transaction_batch' },
+      });
+
+      await act(async () => {
+        await getApprovalHandler()();
+      });
+
+      expect(mockExecuteHardwareWalletOperation).not.toHaveBeenCalled();
+      expect(mockAcceptRequest).not.toHaveBeenCalled();
+    });
+
+    it('accepts pending transaction_batch approvals when matching transactions arrive later', async () => {
+      const batchId = 'batch-delayed-transaction-001';
+      const matchingTx = matchingBatchTx(batchId);
+      setMockPendingApprovals({
+        [batchId]: { id: batchId, type: 'transaction_batch' },
+      });
+
+      renderEnabledHook();
+
+      expect(mockExecuteHardwareWalletOperation).not.toHaveBeenCalled();
+
+      setMockTransactions([matchingTx]);
+      fireTxEvent(matchingTx);
+
+      await waitFor(() => {
+        expect(mockExecuteHardwareWalletOperation).toHaveBeenCalledWith(
+          expect.objectContaining({
+            address: FROM_ADDRESS,
+            operationType: 'transaction',
+            execute: expect.any(Function),
+          }),
+        );
+      });
+      expect(mockAcceptRequest).toHaveBeenCalledWith(batchId, undefined, {
+        waitForResult: true,
+      });
+    });
+
     it('clears transaction_batch dedupe and dispatches failed when hardware operation rejects', async () => {
       const batchId = 'batch-approval-rejected-001';
       mockHwOpOnce(async ({ execute, onRejected }) => {
@@ -879,6 +1022,7 @@ describe('useHwBatchSignTracker', () => {
         return false;
       });
 
+      setMockTransactions([matchingBatchTx(batchId)]);
       setMockPendingApprovals({
         [batchId]: { id: batchId, type: 'transaction_batch' },
       });
@@ -1008,6 +1152,7 @@ describe('useHwBatchSignTracker', () => {
         batchId,
       });
       const signedMeta = { ...approvedMeta, status: TransactionStatus.signed };
+      setMockTransactions([approvedMeta]);
 
       await act(async () => {
         statusHandler({ transactionMeta: approvedMeta });
@@ -1026,6 +1171,7 @@ describe('useHwBatchSignTracker', () => {
 
     it('processes only one approval when stateChange fires concurrently', async () => {
       const batchId = 'batch-concurrent-001';
+      setMockTransactions([matchingBatchTx(batchId)]);
       setMockPendingApprovals({
         [batchId]: { id: batchId, type: 'transaction_batch' },
       });
@@ -1062,6 +1208,10 @@ describe('useHwBatchSignTracker', () => {
           return true;
         });
 
+      setMockTransactions([
+        matchingBatchTx(batchId1),
+        matchingBatchTx(batchId2),
+      ]);
       setMockPendingApprovals({
         [batchId1]: { id: batchId1, type: 'transaction_batch' },
         [batchId2]: { id: batchId2, type: 'transaction_batch' },
@@ -1102,6 +1252,7 @@ describe('useHwBatchSignTracker', () => {
         return true;
       });
 
+      setMockTransactions([matchingBatchTx(staleBatchId1)]);
       setMockPendingApprovals({
         [staleBatchId1]: { id: staleBatchId1, type: 'transaction_batch' },
       });
@@ -1119,6 +1270,10 @@ describe('useHwBatchSignTracker', () => {
       });
 
       await act(async () => {
+        setMockTransactions([
+          matchingBatchTx(staleBatchId1),
+          matchingBatchTx(staleBatchId2),
+        ]);
         setMockPendingApprovals({
           [staleBatchId1]: { id: staleBatchId1, type: 'transaction_batch' },
           [staleBatchId2]: { id: staleBatchId2, type: 'transaction_batch' },
@@ -1153,6 +1308,7 @@ describe('useHwBatchSignTracker', () => {
       const retryGenerationRef = { current: 0 };
       const batchId = 'batch-re-dedupe-001';
 
+      setMockTransactions([matchingBatchTx(batchId)]);
       setMockPendingApprovals({
         [batchId]: { id: batchId, type: 'transaction_batch' },
       });
