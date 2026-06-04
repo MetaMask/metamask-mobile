@@ -659,6 +659,7 @@ export function useHwBatchSignTracker({
           let deviceConfirmedReady = false;
           let hasHandledRejection = false;
           let didDispatchCancellationRejection = false;
+          let didHandleStxSubmissionFailure = false;
 
           const handleApprovalRejection = async (): Promise<void> => {
             if (hasHandledRejection) return;
@@ -667,14 +668,25 @@ export function useHwBatchSignTracker({
               return;
             }
 
+            if (didHandleStxSubmissionFailure) {
+              return;
+            }
+
             if (!deviceConfirmedReady) {
               trackerState.approvalQueue.unshift(requestId);
               return;
             }
 
-            const isLateSignedBatchRejection =
-              trackerState.currentBatchId != null &&
-              trackerState.signedBatchIds.has(trackerState.currentBatchId);
+            const signedBatchIdCandidates = [
+              trackerState.currentBatchId,
+              requestId,
+              getTransactionById(requestId)?.batchId,
+            ];
+            const isLateSignedBatchRejection = signedBatchIdCandidates.some(
+              (batchId) =>
+                typeof batchId === 'string' &&
+                trackerState.signedBatchIds.has(batchId),
+            );
             if (isLateSignedBatchRejection) {
               return;
             }
@@ -732,6 +744,7 @@ export function useHwBatchSignTracker({
                 // list.
                 const isStxSubmissionFailure = message === STX_NO_HASH_ERROR;
                 if (isStxSubmissionFailure) {
+                  didHandleStxSubmissionFailure = true;
                   latestValuesRef.current.dispatch(
                     updateHardwareWalletsSwaps({
                       type: HardwareWalletsSwapsEventType.TransactionFailed,

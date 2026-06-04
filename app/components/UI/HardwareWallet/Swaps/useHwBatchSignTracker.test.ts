@@ -1427,6 +1427,49 @@ describe('useHwBatchSignTracker', () => {
       expect(mockUpdateSwaps).not.toHaveBeenCalledWith(EXPECT_TX_FAILED);
     });
 
+    it('does not cancel the batch when STX submission failure is followed by hardware rejection', async () => {
+      const batchId = 'batch-stx-no-hash-001';
+      const tx = matchingBatchTx(batchId);
+      let isSuppressed = false;
+      mockHwOpOnce(async ({ execute, onError, onRejected }) => {
+        try {
+          await execute();
+        } catch (error) {
+          isSuppressed = onError?.(error) ?? false;
+          await onRejected?.();
+        }
+        return false;
+      });
+
+      mockAcceptRequest.mockRejectedValueOnce(new Error(STX_NO_HASH_ERROR));
+      setMockTransactions([tx]);
+      setMockPendingApprovals({
+        [batchId]: { id: batchId, type: 'transaction_batch' },
+      });
+      renderEnabledHook();
+
+      await act(async () => {
+        await getApprovalHandler()();
+      });
+
+      expect(isSuppressed).toBe(true);
+      expect(mockUpdateSwaps).toHaveBeenCalledWith(EXPECT_TX_FAILED);
+      expect(Engine.rejectPendingApproval).not.toHaveBeenCalledWith(
+        batchId,
+        expect.any(Error),
+        expect.anything(),
+      );
+      expect(mockAbortTransactionSigning).not.toHaveBeenCalledWith(tx.id);
+      expect(mockControllerMessengerCall).not.toHaveBeenCalledWith(
+        'TransactionController:updateTransaction',
+        expect.objectContaining({
+          id: tx.id,
+          status: TransactionStatus.dropped,
+        }),
+        expect.any(String),
+      );
+    });
+
     it('does not suppress prefixed cancellation-like error messages', async () => {
       const batchId = 'batch-prefixed-error-001';
       const prefixedStxError = `${STX_NO_HASH_ERROR} with unrelated suffix`;
@@ -1580,6 +1623,84 @@ describe('useHwBatchSignTracker', () => {
 
       expect(Engine.rejectPendingApproval).not.toHaveBeenCalled();
       expect(mockUpdateSwaps).not.toHaveBeenCalledWith(EXPECT_TX_FAILED);
+    });
+
+    it('ignores late transaction_batch rejection after a signed batch is cancelled', async () => {
+      const batchId = 'batch-late-rejection-cancel-001';
+      const txId = 'tx-late-rejection-cancel-001';
+      let rejectHardwareOperation: (() => void | Promise<void>) | undefined;
+      let releaseHardwareOperation: (() => void) | undefined;
+
+      mockHwOpOnce(async ({ execute, onRejected }) => {
+        rejectHardwareOperation = onRejected;
+        await execute();
+        await new Promise<void>((resolve) => {
+          releaseHardwareOperation = resolve;
+        });
+        return false;
+      });
+
+      setMockPendingApprovals({
+        [batchId]: { id: batchId, type: 'transaction_batch' },
+      });
+
+      const { result } = renderEnabledHook();
+
+      const approvalHandler = getApprovalHandler();
+      const statusHandler = getStatusHandler();
+
+      const approvedMeta = txMeta({
+        id: txId,
+        type: TransactionType.bridgeApproval,
+        status: TransactionStatus.approved,
+        batchId,
+      });
+      const signedMeta = { ...approvedMeta, status: TransactionStatus.signed };
+      setMockTransactions([approvedMeta]);
+
+      act(() => {
+        statusHandler({ transactionMeta: approvedMeta });
+      });
+      const processingPromise = approvalHandler();
+      await waitFor(() => {
+        expect(rejectHardwareOperation).toBeDefined();
+      });
+
+      act(() => {
+        setMockTransactions([signedMeta]);
+        statusHandler({ transactionMeta: signedMeta });
+      });
+      mockUpdateSwaps.mockClear();
+
+      let cancelPromise = Promise.resolve();
+      act(() => {
+        cancelPromise = result.current.cancelCurrentBatch();
+      });
+      await waitFor(() => {
+        expect(Engine.rejectPendingApproval).toHaveBeenCalledWith(
+          batchId,
+          expect.any(Error),
+          { ignoreMissing: true, logErrors: false },
+        );
+      });
+      (Engine.rejectPendingApproval as jest.Mock).mockClear();
+      mockUpdateSwaps.mockClear();
+
+      await act(async () => {
+        await rejectHardwareOperation?.();
+      });
+
+      expect(Engine.rejectPendingApproval).not.toHaveBeenCalledWith(
+        batchId,
+        expect.any(Error),
+        expect.anything(),
+      );
+      expect(mockUpdateSwaps).not.toHaveBeenCalledWith(EXPECT_TX_FAILED);
+
+      broadcastTxEvent({ ...signedMeta, status: TransactionStatus.dropped });
+      await cancelPromise;
+      releaseHardwareOperation?.();
+      await processingPromise;
     });
 
     it('processes only one approval when stateChange fires concurrently', async () => {
