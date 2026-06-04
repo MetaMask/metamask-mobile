@@ -1,35 +1,27 @@
 import {
   MarketCategory,
-  MARKET_CATEGORIES,
   type MarketType,
   type MarketTypeFilter,
 } from '@metamask/perps-controller';
 
 /**
- * Reverse lookup from MarketCategory enum value to the corresponding
- * MARKET_CATEGORIES entry (which is also the MarketTypeFilter value).
+ * Explicit mapping from MarketTypeFilter → MarketCategory enum value.
  *
- * Built once from the MarketCategory enum so that adding a new category
- * in @metamask/perps-controller automatically propagates here without
- * requiring a manual mapping update.
+ * 'crypto' is excluded because crypto markets are identified by `!isHip3`,
+ * not by a MarketCategory value. 'all' and 'new' are UI-only sentinels.
  */
-const MARKET_TYPE_TO_FILTER = new Map<string, MarketTypeFilter>(
-  Object.values(MarketCategory).map((enumValue, index) => [
-    enumValue,
-    MARKET_CATEGORIES[index],
-  ]),
-);
+const FILTER_TO_MARKET_TYPE = new Map<MarketTypeFilter, MarketType>([
+  ['stocks', MarketCategory.Stock],
+  ['pre-ipo', MarketCategory.PreIpo],
+  ['indices', MarketCategory.Index],
+  ['etfs', MarketCategory.Etf],
+  ['commodities', MarketCategory.Commodity],
+  ['forex', MarketCategory.Forex],
+]);
 
-/**
- * Forward lookup from MarketTypeFilter to MarketType (MarketCategory value).
- * Excludes 'crypto' (identified by `!isHip3`), 'all', and 'new' (UI-only sentinels).
- */
-const categoryValues = Object.values(MarketCategory);
-const FILTER_TO_MARKET_TYPE = new Map<MarketTypeFilter, MarketType>(
-  MARKET_CATEGORIES.filter((f) => f !== 'crypto').map((filter) => {
-    const idx = MARKET_CATEGORIES.indexOf(filter);
-    return [filter, categoryValues[idx]];
-  }),
+/** Reverse lookup: MarketCategory enum value → MarketTypeFilter. */
+const MARKET_TYPE_TO_FILTER = new Map<string, MarketTypeFilter>(
+  [...FILTER_TO_MARKET_TYPE.entries()].map(([filter, type]) => [type, filter]),
 );
 
 /**

@@ -58,7 +58,7 @@ const CATEGORY_ICON_MAP: Record<string, IconName> = {
 const PILL_CONFIGS: CategoryPillConfig[] = MARKET_CATEGORIES.map(
   (category) => ({
     category,
-    labelKey: `perps.home.tabs.${category.replace('-', '_')}`,
+    labelKey: `perps.home.tabs.${category.replace(/-/g, '_')}`,
   }),
 );
 
@@ -72,6 +72,7 @@ const PILL_CONFIGS: CategoryPillConfig[] = MARKET_CATEGORIES.map(
  */
 const PerpsProducts: React.FC<PerpsProductsProps> = ({
   marketCounts,
+  transactionActiveAbTests,
   testID,
 }) => {
   const isEnabled = useSelector(selectPerpsProductsEnabledFlag);
@@ -106,10 +107,13 @@ const PerpsProducts: React.FC<PerpsProductsProps> = ({
         params: {
           defaultMarketTypeFilter: category,
           source: PRODUCTS_ANALYTICS.SOURCE,
+          ...(transactionActiveAbTests?.length
+            ? { transactionActiveAbTests }
+            : {}),
         },
       });
     },
-    [navigation, trackEvent, createEventBuilder],
+    [navigation, trackEvent, createEventBuilder, transactionActiveAbTests],
   );
 
   if (!isEnabled || visiblePills.length === 0) {

@@ -8,6 +8,7 @@ import {
   PERPS_CONSTANTS,
   sortMarkets,
   type PerpsMarketData,
+  type MarketTypeFilter,
   type SortField,
   type SortDirection,
 } from '@metamask/perps-controller';
@@ -930,6 +931,31 @@ describe('usePerpsMarketListView', () => {
       expect(
         typeof result.current.marketTypeFilterState.setMarketTypeFilter,
       ).toBe('function');
+    });
+
+    it('syncs filter when defaultMarketTypeFilter changes on rerender', () => {
+      const { result, rerender } = renderHook(
+        ({
+          defaultMarketTypeFilter,
+        }: {
+          defaultMarketTypeFilter: MarketTypeFilter;
+        }) => usePerpsMarketListView({ defaultMarketTypeFilter }),
+        {
+          initialProps: {
+            defaultMarketTypeFilter: 'crypto' as MarketTypeFilter,
+          },
+        },
+      );
+
+      expect(result.current.marketTypeFilterState.marketTypeFilter).toBe(
+        'crypto',
+      );
+
+      rerender({ defaultMarketTypeFilter: 'stocks' });
+
+      expect(result.current.marketTypeFilterState.marketTypeFilter).toBe(
+        'stocks',
+      );
     });
   });
 });

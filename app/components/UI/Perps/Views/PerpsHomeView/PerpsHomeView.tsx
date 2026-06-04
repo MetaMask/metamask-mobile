@@ -601,10 +601,13 @@ const PerpsHomeView = ({
         />
 
         {/* Products Section - Category pills grid */}
-        <PerpsProducts
-          marketCounts={categoryMarketCounts}
-          testID="perps-products"
-        />
+        <View onLayout={handleSectionLayout('products')}>
+          <PerpsProducts
+            marketCounts={categoryMarketCounts}
+            transactionActiveAbTests={transactionActiveAbTests}
+            testID="perps-products"
+          />
+        </View>
 
         {/* Top Movers Section */}
         <PerpsTopMoversSection

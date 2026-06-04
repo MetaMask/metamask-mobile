@@ -23,7 +23,7 @@ const ANIMATION_DURATION = 250;
 const DEFAULT_CATEGORIES: CategoryBadgeConfig[] = [
   ...MARKET_CATEGORIES.map((category) => ({
     category,
-    labelKey: `perps.home.tabs.${category.replace('-', '_')}`,
+    labelKey: `perps.home.tabs.${category.replace(/-/g, '_')}`,
   })),
   { category: 'new', labelKey: 'perps.home.tabs.new' },
 ];

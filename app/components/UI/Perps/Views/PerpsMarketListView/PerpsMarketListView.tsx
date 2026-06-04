@@ -191,7 +191,7 @@ const PerpsMarketListView = ({
       [PERPS_EVENT_PROPERTY.HAS_PERP_BALANCE]: hasPerpBalance,
       [PERPS_EVENT_PROPERTY.MARKET_CATEGORY]: marketTypeFilter,
       ...(marketTypeFilter !== 'all' && {
-        product_filter: marketTypeFilter.replace('-', '_'),
+        product_filter: marketTypeFilter.replace(/-/g, '_'),
       }),
       ...(buttonClicked && {
         [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: buttonClicked,
