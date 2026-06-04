@@ -367,6 +367,7 @@ describe('Ramp Route Constants', () => {
     expect(Routes.RAMP.MODALS.ERROR_DETAILS).toBeDefined();
     expect(Routes.RAMP.MODALS.PROCESSING_INFO).toBeDefined();
     expect(Routes.RAMP.MODALS.SSN_INFO).toBeDefined();
+    expect(Routes.RAMP.MODALS.REGION_SELECTOR).toBeDefined();
   });
 });
 
