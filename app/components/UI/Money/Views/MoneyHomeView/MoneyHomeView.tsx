@@ -326,7 +326,7 @@ const MoneyHomeView = () => {
         : MONEY_BUTTON_INTENTS.CARD_AUTH,
       label_localized: strings('money.metamask_card.link_card'),
       label_en: strings('money.metamask_card.link_card', { locale: 'en' }),
-      component_name: COMPONENT_NAMES.MONEY_METAMASK_CARD,
+      component_name: COMPONENT_NAMES.MONEY_METAMASK_CARD_SECTION,
       redirect_target_type: REDIRECT_TARGETS_TYPES.BOTTOM_SHEET,
       redirect_target: isLinking
         ? BOTTOM_SHEET_NAMES.CARD_LINK_SHEET
@@ -353,7 +353,7 @@ const MoneyHomeView = () => {
     trackTooltipClicked({
       tooltip_name: MONEY_TOOLTIP_NAMES.ESTIMATED_EARNINGS,
       tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
-      component_name: COMPONENT_NAMES.MONEY_ESTIMATED_EARNINGS,
+      component_name: COMPONENT_NAMES.MONEY_ESTIMATED_EARNINGS_SECTION,
     });
 
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
@@ -399,7 +399,8 @@ const MoneyHomeView = () => {
         trackTokenButtonClicked({
           button_type: MONEY_BUTTON_TYPES.TEXT,
           button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
-          component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_TOKEN_ROW,
+          component_name:
+            COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION_TOKEN_ROW,
           label_localized: strings('money.potential_earnings.add'),
           label_en: strings('money.potential_earnings.add', {
             locale: 'en',
@@ -437,7 +438,8 @@ const MoneyHomeView = () => {
     ) => {
       try {
         trackTokenSurfaceClicked({
-          component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_TOKEN_ROW,
+          component_name:
+            COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION_TOKEN_ROW,
           redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
           redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
           token_symbol: token.symbol,
@@ -464,7 +466,7 @@ const MoneyHomeView = () => {
 
   const handlePotentialEarningsHeaderPress = useCallback(() => {
     trackSurfaceClicked({
-      component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_HEADER,
+      component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION_HEADER,
       redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
       redirect_target: SCREEN_NAMES.MONEY_POTENTIAL_EARNINGS,
     });
@@ -475,9 +477,8 @@ const MoneyHomeView = () => {
   const handleMoneyPotentialEarningsViewAllPressed = useCallback(() => {
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
-
       button_intent: MONEY_BUTTON_INTENTS.VIEW_ALL,
-      component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS,
+      component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION,
       label_localized: strings('money.potential_earnings.view_all'),
       label_en: strings('money.potential_earnings.view_all', {
         locale: 'en',
@@ -503,7 +504,7 @@ const MoneyHomeView = () => {
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: MONEY_BUTTON_INTENTS.LEARN_MORE,
-      component_name: COMPONENT_NAMES.MONEY_WHAT_YOU_GET,
+      component_name: COMPONENT_NAMES.MONEY_WHAT_YOU_GET_SECTION,
       label_localized: strings('money.what_you_get.learn_more'),
       label_en: strings('money.what_you_get.learn_more', {
         locale: 'en',
@@ -530,7 +531,7 @@ const MoneyHomeView = () => {
 
   const handleActivityHeaderPress = useCallback(() => {
     trackSurfaceClicked({
-      component_name: COMPONENT_NAMES.MONEY_ACTIVITY_HEADER,
+      component_name: COMPONENT_NAMES.MONEY_ACTIVITY_SECTION_HEADER,
       redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
       redirect_target: SCREEN_NAMES.MONEY_ACTIVITY,
     });
@@ -539,8 +540,18 @@ const MoneyHomeView = () => {
   }, [navigation, trackSurfaceClicked]);
 
   const handleViewAllActivityPress = useCallback(() => {
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.VIEW_ALL,
+      component_name: COMPONENT_NAMES.MONEY_ACTIVITY_SECTION,
+      label_localized: strings('money.activity.view_all'),
+      label_en: strings('money.activity.view_all', { locale: 'en' }),
+      redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
+      redirect_target: SCREEN_NAMES.MONEY_ACTIVITY,
+    });
+
     navigation.navigate(Routes.MONEY.ACTIVITY as never);
-  }, [navigation]);
+  }, [navigation, trackButtonClicked]);
 
   const handleActivityItemPress = useCallback(
     (transactionId: string) => {
@@ -638,7 +649,8 @@ const MoneyHomeView = () => {
               apy={apyPercent}
               onHeaderPress={() =>
                 handleHowItWorksPress({
-                  componentName: COMPONENT_NAMES.MONEY_HOW_IT_WORKS_HEADER,
+                  componentName:
+                    COMPONENT_NAMES.MONEY_HOW_IT_WORKS_SECTION_HEADER,
                 })
               }
               isLoading={vaultApyQuery.isLoading}
@@ -646,7 +658,7 @@ const MoneyHomeView = () => {
             <MoneyMusdTokenRow
               onPress={() =>
                 handleMusdRowPress({
-                  componentName: COMPONENT_NAMES.MONEY_MUSD_TOKEN_ROW,
+                  componentName: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
                 })
               }
               onAddPress={() =>
@@ -654,7 +666,7 @@ const MoneyHomeView = () => {
                   buttonIntent: MONEY_BUTTON_INTENTS.ADD_MONEY,
                   labelLocalized: strings('money.musd_row.add'),
                   labelEn: strings('money.musd_row.add', { locale: 'en' }),
-                  componentName: COMPONENT_NAMES.MONEY_MUSD_TOKEN_ROW,
+                  componentName: COMPONENT_NAMES.MONEY_MUSD_TOKEN_SECTION,
                 })
               }
               balance={musdFiatFormatted}
@@ -700,7 +712,7 @@ const MoneyHomeView = () => {
           onGetNowPress={() =>
             handleCardPress({
               buttonIntent: MONEY_BUTTON_INTENTS.GET_CARD,
-              componentName: COMPONENT_NAMES.MONEY_METAMASK_CARD,
+              componentName: COMPONENT_NAMES.MONEY_METAMASK_CARD_SECTION,
               labelLocalized: strings('money.metamask_card.get_now'),
               labelEn: strings('money.metamask_card.get_now', { locale: 'en' }),
             })
