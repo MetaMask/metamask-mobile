@@ -165,6 +165,7 @@ const buildHookResult = (
   formattedRate: undefined,
   totalAmountUsd: '$0',
   isQuoteLoading: false,
+  isBlockingQuoteLoad: false,
   isSubmittingTx: false,
   isTotalLoading: false,
   sortedQuotes: [],
