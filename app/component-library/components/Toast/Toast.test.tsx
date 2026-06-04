@@ -166,6 +166,145 @@ describe('Toast', () => {
     expect(screen.getByText('Success')).toBeOnTheScreen();
   });
 
+  describe('exclusive toast lock', () => {
+    const exclusiveOptions: ToastOptions = {
+      variant: ToastVariants.Plain,
+      labelOptions: [{ label: 'Exclusive Toast' }],
+      hasNoTimeout: true,
+      exclusive: true,
+    };
+
+    const normalOptions: ToastOptions = {
+      variant: ToastVariants.Plain,
+      labelOptions: [{ label: 'Normal Toast' }],
+      hasNoTimeout: false,
+    };
+
+    const forcedOptions: ToastOptions = {
+      variant: ToastVariants.Plain,
+      labelOptions: [{ label: 'Forced Toast' }],
+      hasNoTimeout: true,
+      force: true,
+    };
+
+    it('blocks non-force toasts while exclusive toast is active', async () => {
+      render(<Toast ref={toastRef} />);
+
+      await act(async () => {
+        toastRef.current?.showToast(exclusiveOptions);
+        jest.runAllTimers();
+      });
+
+      expect(screen.getByText('Exclusive Toast')).toBeOnTheScreen();
+
+      await act(async () => {
+        toastRef.current?.showToast(normalOptions);
+        jest.runAllTimers();
+      });
+
+      expect(screen.getByText('Exclusive Toast')).toBeOnTheScreen();
+      expect(screen.queryByText('Normal Toast')).toBeNull();
+    });
+
+    it('allows force toast to override exclusive toast', async () => {
+      render(<Toast ref={toastRef} />);
+
+      await act(async () => {
+        toastRef.current?.showToast(exclusiveOptions);
+        jest.runAllTimers();
+      });
+
+      expect(screen.getByText('Exclusive Toast')).toBeOnTheScreen();
+
+      await act(async () => {
+        toastRef.current?.showToast(forcedOptions);
+        jest.runAllTimers();
+      });
+
+      expect(screen.queryByText('Exclusive Toast')).toBeNull();
+      expect(screen.getByText('Forced Toast')).toBeOnTheScreen();
+    });
+
+    it('releases lock when closeToast is called', async () => {
+      render(<Toast ref={toastRef} />);
+
+      await act(async () => {
+        toastRef.current?.showToast(exclusiveOptions);
+        jest.runAllTimers();
+      });
+
+      await act(async () => {
+        toastRef.current?.closeToast();
+        jest.runAllTimers();
+      });
+
+      await act(async () => {
+        toastRef.current?.showToast(normalOptions);
+        jest.runAllTimers();
+      });
+
+      expect(screen.getByText('Normal Toast')).toBeOnTheScreen();
+    });
+
+    it('supports back-to-back exclusive toasts with force', async () => {
+      const secondExclusive: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'Second Exclusive' }],
+        hasNoTimeout: true,
+        exclusive: true,
+        force: true,
+      };
+
+      render(<Toast ref={toastRef} />);
+
+      await act(async () => {
+        toastRef.current?.showToast(exclusiveOptions);
+        jest.runAllTimers();
+      });
+
+      expect(screen.getByText('Exclusive Toast')).toBeOnTheScreen();
+
+      await act(async () => {
+        toastRef.current?.showToast(secondExclusive);
+        jest.runAllTimers();
+      });
+
+      expect(screen.queryByText('Exclusive Toast')).toBeNull();
+      expect(screen.getByText('Second Exclusive')).toBeOnTheScreen();
+
+      await act(async () => {
+        toastRef.current?.showToast(normalOptions);
+        jest.runAllTimers();
+      });
+
+      expect(screen.getByText('Second Exclusive')).toBeOnTheScreen();
+      expect(screen.queryByText('Normal Toast')).toBeNull();
+    });
+
+    it('does not lock when exclusive is not set', async () => {
+      render(<Toast ref={toastRef} />);
+
+      const firstOptions: ToastOptions = {
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'First' }],
+        hasNoTimeout: true,
+      };
+
+      await act(async () => {
+        toastRef.current?.showToast(firstOptions);
+        jest.runAllTimers();
+      });
+
+      await act(async () => {
+        toastRef.current?.showToast(normalOptions);
+        jest.runAllTimers();
+      });
+
+      expect(screen.queryByText('First')).toBeNull();
+      expect(screen.getByText('Normal Toast')).toBeOnTheScreen();
+    });
+  });
+
   it('uses flex-start justifyContent on labels container by default', async () => {
     const toastOptions: ToastOptions = {
       variant: ToastVariants.Plain,
