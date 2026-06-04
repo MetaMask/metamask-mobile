@@ -135,6 +135,7 @@ jobs:
             .metamask
             .yarn/cache
             ~/Library/Detox
+            node_modules
 
       - name: Restore .metamask folder
         if: ${{ inputs.runner_provider != 'namespace' }}
@@ -146,7 +147,9 @@ jobs:
       - name: Set up E2E environment
         # Namespace iOS smoke runs many matrix jobs in parallel; CocoaPods + yarn need more
         # headroom than the composite default (see INFRA-3596 / run 25755790077 timeouts).
-        timeout-minutes: ${{ inputs.runner_provider == 'namespace' && inputs.platform == 'ios' && 45 || 25 }}
+        # pod-install is skipped for iOS test-runner jobs: the app is pre-built and Detox
+        # does not require the Pods directory to run tests.
+        timeout-minutes: ${{ inputs.runner_provider == 'namespace' && inputs.platform == 'ios' && 20 || 25 }}
         uses: ./.github/actions/setup-e2e-env
         with:
           platform: ${{ inputs.platform }}
@@ -157,12 +160,19 @@ jobs:
           runner_provider: ${{ inputs.runner_provider }}
           js-retry-timeout-minutes: ${{ inputs.runner_provider == 'namespace' && '20' || '15' }}
           pod-install-timeout-minutes: ${{ inputs.runner_provider == 'namespace' && inputs.platform == 'ios' && '22' || '15' }}
+          skip-pod-install: ${{ inputs.platform == 'ios' && 'true' || 'false' }}
+
+      - name: Restore Detox framework cache
+        if: ${{ inputs.platform == 'ios' && inputs.runner_provider != 'namespace' }}
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Detox
+          key: detox-framework-${{ runner.os }}-${{ hashFiles('node_modules/detox/package.json') }}
 
       - name: Build Detox framework cache (iOS)
         if: ${{ inputs.platform == 'ios' }}
         run: |
           echo "Building Detox framework cache for iOS..."
-          yarn detox clean-framework-cache
           yarn detox build-framework-cache
 
       - name: Determine android target paths and Artifact Names
