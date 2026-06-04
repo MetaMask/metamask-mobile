@@ -94,23 +94,55 @@ suppress_expo_dev_menu_android() {
   $ADB_CMD shell "mkdir -p $PREFS_DIR && echo '<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\" ?><map><boolean name=\"isOnboardingFinished\" value=\"true\" /></map>' > $PREFS_DIR/$PREFS_FILE" 2>/dev/null || true
 }
 
+ios_app_running() {
+  xcrun simctl spawn "$SIM_TARGET" launchctl list 2>/dev/null | grep -q "$BUNDLE_ID"
+}
+
+wait_ios_app_running() {
+  local elapsed=0
+  local timeout="${1:-30}"
+  while [ "$elapsed" -lt "$timeout" ]; do
+    if ios_app_running; then
+      return 0
+    fi
+    sleep 1
+    elapsed=$((elapsed + 1))
+  done
+  return 1
+}
+
+open_dev_client_ios() {
+  local output
+  if output=$(xcrun simctl openurl "$SIM_TARGET" "$DEV_CLIENT_URL" 2>&1); then
+    return 0
+  fi
+  echo "WARN: simctl openurl failed: ${output:-no output}"
+  return 1
+}
+
 launch_app_ios() {
   suppress_expo_dev_menu_ios
-  xcrun simctl terminate "$SIM_TARGET" "$BUNDLE_ID" 2>/dev/null || true
-  sleep 1
 
   ENCODED_URL=$(python3 -c "import urllib.parse; print(urllib.parse.quote('http://localhost:${PORT}?disableOnboarding=1', safe=''))")
   DEV_CLIENT_URL="expo-metamask://expo-development-client/?url=${ENCODED_URL}"
-  xcrun simctl openurl "$SIM_TARGET" "$DEV_CLIENT_URL" 2>/dev/null || \
-    echo "WARN: Could not launch app — is it installed on this simulator?"
 
-  # First launch after a rebuild sometimes crashes — retry once
-  sleep 5
-  if ! xcrun simctl spawn "$SIM_TARGET" launchctl list 2>/dev/null | grep -q "$BUNDLE_ID"; then
-    echo "App exited after launch — retrying..."
-    sleep 2
-    xcrun simctl openurl "$SIM_TARGET" "$DEV_CLIENT_URL" 2>/dev/null || true
-  fi
+  for attempt in 1 2; do
+    xcrun simctl terminate "$SIM_TARGET" "$BUNDLE_ID" 2>/dev/null || true
+    sleep 1
+    echo "Opening iOS dev client (attempt ${attempt})..."
+    open_dev_client_ios || true
+    if wait_ios_app_running 30; then
+      echo "iOS app running: $BUNDLE_ID"
+      return 0
+    fi
+
+    echo "iOS app is not running after openurl."
+  done
+
+  echo "ERROR: iOS app did not stay running after launch."
+  echo "       Simulator: $SIM_TARGET"
+  echo "       Bundle ID: $BUNDLE_ID"
+  return 1
 }
 
 launch_app_android() {
@@ -142,8 +174,12 @@ launch_app() {
 
 mkdir -p .agent
 
+metro_responds() {
+  curl -sf --max-time 3 "http://localhost:${PORT}/status" 2>/dev/null | grep -q 'packager-status:running'
+}
+
 # --- Detect a running Metro via HTTP probe ---
-if curl -sf "http://localhost:${PORT}/status" >/dev/null 2>&1; then
+if metro_responds; then
   echo "Metro already running on port $PORT."
   echo ""
   echo "To follow live logs:  tail -f $LOGFILE"
@@ -151,7 +187,7 @@ if curl -sf "http://localhost:${PORT}/status" >/dev/null 2>&1; then
   echo "To stop Metro:        ./scripts/perps/agentic/stop-metro.sh"
   if $LAUNCH_APP; then
     echo "Launching app..."
-    launch_app
+    launch_app || exit 1
   fi
   exit 0
 fi
@@ -159,22 +195,56 @@ fi
 # --- No Metro detected — start fresh ---
 > "$LOGFILE"
 
-# Clear Metro + Babel transpilation caches to ensure env vars are freshly inlined.
-# babel-plugin-transform-inline-environment-variables caches compiled values in
-# $TMPDIR/metro-cache. Without clearing, switching METAMASK_ENVIRONMENT between
-# 'e2e' and 'dev' may serve bundles with stale inlined values.
-rm -rf "${TMPDIR:-/tmp}/metro-cache" "${TMPDIR:-/tmp}/haste-map-"* 2>/dev/null || true
+# Clear Metro + Babel transpilation caches only when the inline environment
+# changes. Deleting them on every prepare defeats Metro's transform cache, makes
+# idempotent prepares rebundle the whole app, and can make CDP readiness time out
+# while the app is still compiling JS. Keep an explicit escape hatch for manual
+# debugging or env churn.
+METRO_CACHE_KEY_FILE=".agent/metro-cache-key"
+METRO_CACHE_KEY="$(
+  {
+    printf 'platform=%s\nport=%s\n' "$PLAT" "$PORT"
+    env | grep -E '^(METAMASK_|MM_|NODE_ENV=|EXPO_PUBLIC_|FEATURE_|SEGMENT_|SENTRY_)' | grep -v '^MM_CLEAR_METRO_CACHE=' | sort || true
+    [ -f .js.env ] && shasum .js.env
+    [ -f babel.config.js ] && shasum babel.config.js
+    [ -f metro.config.js ] && shasum metro.config.js
+  } | shasum | awk '{print $1}'
+)"
+if [ "${MM_CLEAR_METRO_CACHE:-0}" = "1" ] \
+   || [ ! -f "$METRO_CACHE_KEY_FILE" ] \
+   || [ "$(cat "$METRO_CACHE_KEY_FILE" 2>/dev/null || true)" != "$METRO_CACHE_KEY" ]; then
+  echo "Metro inline env changed — clearing transform cache..."
+  rm -rf "${TMPDIR:-/tmp}/metro-cache" "${TMPDIR:-/tmp}/haste-map-"* 2>/dev/null || true
+  mkdir -p "$(dirname "$METRO_CACHE_KEY_FILE")"
+  printf '%s\n' "$METRO_CACHE_KEY" > "$METRO_CACHE_KEY_FILE"
+else
+  echo "Reusing Metro transform cache."
+fi
 
 echo "Starting Metro on port $PORT..."
-EXPO_NO_TYPESCRIPT_SETUP=1 yarn expo start --port "$PORT" >> "$LOGFILE" 2>&1 &
-METRO_PID=$!
-echo "$METRO_PID" > "$PIDFILE"
+METRO_PID=$(node - "$LOGFILE" "$PIDFILE" "$PORT" <<'NODE'
+const { spawn } = require('child_process');
+const fs = require('fs');
+
+const [, , logFile, pidFile, port] = process.argv;
+const logFd = fs.openSync(logFile, 'a');
+const child = spawn('yarn', ['expo', 'start', '--port', port], {
+  cwd: process.cwd(),
+  detached: true,
+  env: { ...process.env, EXPO_NO_TYPESCRIPT_SETUP: '1' },
+  stdio: ['ignore', logFd, logFd],
+});
+fs.writeFileSync(pidFile, String(child.pid));
+child.unref();
+process.stdout.write(String(child.pid));
+NODE
+)
 echo "Metro PID: $METRO_PID, logging to $LOGFILE"
 
 # Wait for ready signal
 ELAPSED=0
 while [ $ELAPSED -lt $TIMEOUT ]; do
-  if grep -q "Waiting on http://localhost:${PORT}" "$LOGFILE" 2>/dev/null; then
+  if metro_responds; then
     echo "Metro ready after ${ELAPSED}s."
     echo ""
     echo "To follow live logs:  tail -f $LOGFILE"
@@ -182,7 +252,7 @@ while [ $ELAPSED -lt $TIMEOUT ]; do
     echo "To stop Metro:        ./scripts/perps/agentic/stop-metro.sh"
     if $LAUNCH_APP; then
       echo "Launching app..."
-      launch_app
+      launch_app || exit 1
     fi
     exit 0
   fi

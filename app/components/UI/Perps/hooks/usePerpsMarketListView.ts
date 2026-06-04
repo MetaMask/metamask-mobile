@@ -5,6 +5,7 @@ import { usePerpsSearch } from './usePerpsSearch';
 import { usePerpsSorting } from './usePerpsSorting';
 import {
   MARKET_SORTING_CONFIG,
+  MarketCategory,
   sortMarkets,
   type PerpsMarketData,
   type MarketTypeFilter,
@@ -17,6 +18,7 @@ import {
   selectPerpsMarketFilterPreferences,
 } from '../selectors/perpsController';
 import Engine from '../../../../core/Engine';
+import { isEquityAsset } from '../utils/marketHours';
 
 interface UsePerpsMarketListViewParams {
   /**
@@ -39,6 +41,11 @@ interface UsePerpsMarketListViewParams {
    * @default undefined (falls back to saved user preference)
    */
   defaultSortOptionId?: SortOptionId;
+  /**
+   * Initial sort direction — overrides the persisted user preference when provided.
+   * @default undefined (falls back to saved user preference/default override behavior)
+   */
+  defaultSortDirection?: SortDirection;
   /**
    * Show markets with $0.00 volume
    * @default false
@@ -91,7 +98,7 @@ interface UsePerpsMarketListViewReturn {
    */
   marketCounts: {
     crypto: number;
-    equity: number;
+    stocks: number;
     commodity: number;
     forex: number;
     new: number;
@@ -140,6 +147,7 @@ export const usePerpsMarketListView = ({
   showWatchlistOnly = false,
   defaultMarketTypeFilter = 'all',
   defaultSortOptionId,
+  defaultSortDirection,
   showZeroVolume = false,
 }: UsePerpsMarketListViewParams = {}): UsePerpsMarketListViewReturn => {
   // Fetch markets data
@@ -188,15 +196,19 @@ export const usePerpsMarketListView = ({
 
     // HIP-3 categories - only show explicitly mapped markets
     if (marketTypeFilter === 'stocks') {
-      return searchedMarkets.filter((m) => m.marketType === 'equity');
+      return searchedMarkets.filter((m) => isEquityAsset(m.marketType));
     }
 
     if (marketTypeFilter === 'commodities') {
-      return searchedMarkets.filter((m) => m.marketType === 'commodity');
+      return searchedMarkets.filter(
+        (m) => m.marketType === MarketCategory.Commodity,
+      );
     }
 
     if (marketTypeFilter === 'forex') {
-      return searchedMarkets.filter((m) => m.marketType === 'forex');
+      return searchedMarkets.filter(
+        (m) => m.marketType === MarketCategory.Forex,
+      );
     }
 
     // Fallback: return all markets for unknown filter values
@@ -205,18 +217,21 @@ export const usePerpsMarketListView = ({
 
   // Use sorting hook for sort state and sorting logic.
   // defaultSortOptionId (from navigation params) takes precedence over the saved user
-  // preference. When it overrides a *different* option, reset direction to the default
-  // so the market list opens sorted the same way the explore feed displayed it (always desc).
-  // When there is no override, or the override matches the saved option, carry the saved direction.
+  // preference. A route-provided direction also takes precedence so Explore can
+  // open the market list with the same ordering as the source section.
+  // Without an explicit direction, reset changed sort options to the default
+  // direction; otherwise carry the saved direction.
   const isOptionOverridden =
     defaultSortOptionId !== undefined &&
     defaultSortOptionId !== savedSortPreference.optionId;
   const sortingHook = usePerpsSorting({
     initialOptionId: (defaultSortOptionId ??
       savedSortPreference.optionId) as SortOptionId,
-    initialDirection: isOptionOverridden
-      ? MARKET_SORTING_CONFIG.DefaultDirection
-      : savedSortPreference.direction,
+    initialDirection:
+      defaultSortDirection ??
+      (isOptionOverridden
+        ? MARKET_SORTING_CONFIG.DefaultDirection
+        : savedSortPreference.direction),
   });
 
   // Wrap handleOptionChange to save preference to PerpsController
@@ -257,25 +272,26 @@ export const usePerpsMarketListView = ({
 
   // Calculate market counts by type (for hiding empty tabs)
   const marketCounts = useMemo(() => {
-    const counts = { crypto: 0, equity: 0, commodity: 0, forex: 0, new: 0 };
+    const counts = {
+      crypto: 0,
+      stocks: 0,
+      commodity: 0,
+      forex: 0,
+      new: 0,
+    };
     allMarkets.forEach((market) => {
-      // Count new markets (uncategorized HIP-3)
       if (market.isNewMarket) {
         counts.new++;
       }
-      // Crypto = non-HIP3 markets (no DEX prefix)
       if (!market.isHip3) {
         counts.crypto++;
-      } else if (market.marketType === 'equity') {
-        // HIP-3 markets with explicit equity type
-        counts.equity++;
-      } else if (market.marketType === 'commodity') {
+      } else if (isEquityAsset(market.marketType)) {
+        counts.stocks++;
+      } else if (market.marketType === MarketCategory.Commodity) {
         counts.commodity++;
-      } else if (market.marketType === 'forex') {
+      } else if (market.marketType === MarketCategory.Forex) {
         counts.forex++;
       }
-      // Note: uncategorized HIP-3 default to 'equity' marketType,
-      // so they're counted in equity AND in new
     });
     return counts;
   }, [allMarkets]);

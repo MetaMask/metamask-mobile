@@ -170,11 +170,13 @@ const PriceAdvanced = ({
         createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
           .addProperties({
             interaction_type: payload.interaction_type,
+            chart_type:
+              chartType === ChartType.Candles ? 'candlestick' : 'line',
           })
           .build(),
       );
     },
-    [createEventBuilder, trackEvent],
+    [createEventBuilder, trackEvent, chartType],
   );
 
   const handleChartTradingViewClicked = useCallback(() => {
@@ -182,10 +184,11 @@ const PriceAdvanced = ({
       createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
         .addProperties({
           interaction_type: 'tradingview_clicked',
+          chart_type: chartType === ChartType.Candles ? 'candlestick' : 'line',
         })
         .build(),
     );
-  }, [createEventBuilder, trackEvent]);
+  }, [createEventBuilder, trackEvent, chartType]);
 
   const toggleChartType = useCallback(() => {
     const next =
@@ -216,12 +219,14 @@ const PriceAdvanced = ({
           .addProperties({
             interaction_type: 'timeframe_changed',
             chart_timeframe: range,
+            chart_type:
+              chartType === ChartType.Candles ? 'candlestick' : 'line',
           })
           .build(),
       );
       setTimeRange(range);
     },
-    [createEventBuilder, timeRange, trackEvent],
+    [createEventBuilder, timeRange, trackEvent, chartType],
   );
 
   const assetId = useMemo(() => {

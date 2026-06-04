@@ -68,7 +68,6 @@ import { Alert, Linking } from 'react-native';
 import { useSelector } from 'react-redux';
 import React from 'react';
 import CardHome from './CardHome';
-import { cardDefaultNavigationOptions } from '../../routes';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { withCardSDK } from '../../sdk';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -619,13 +618,12 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'money.metamask_card.link_title': 'Link MetaMask Card',
       'money.metamask_card.link_card': 'Link card',
       'money.metamask_card.link_subtitle_no_apy':
-        'Spend your Money balance and earn on purchases.',
+        'Spend your balance and earn on purchases.',
     };
     const value = strings[key];
     if (value) return value;
     if (key === 'money.metamask_card.link_subtitle') {
-      const apy = (params as { apy?: number | string } | undefined)?.apy;
-      return `Spend your Money balance and earn on purchases. Plus, up to ${apy}% APY on your balance.`;
+      return 'Spend your balance and earn on purchases.';
     }
     if (key === 'money.metamask_card.link_bullet_cashback') {
       const percentage = (
@@ -635,7 +633,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
     }
     if (key === 'money.metamask_card.link_bullet_apy') {
       const apy = (params as { apy?: number | string } | undefined)?.apy;
-      return `Earn up to ${apy}% APY`;
+      return `Earn up to ~${apy}% APY`;
     }
     return key;
   },
@@ -1546,26 +1544,6 @@ describe('CardHome Component', () => {
         'card.card_home.manage_card_options.manage_spending_limit_description_restricted',
       ),
     ).toBeTruthy();
-  });
-
-  it('sets navigation options correctly', () => {
-    // Given: navigation object
-    const mockNavigation = {
-      navigate: mockNavigate,
-      goBack: mockGoBack,
-      setOptions: mockSetNavigationOptions,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-
-    // When: getting navigation options
-    const navigationOptions = cardDefaultNavigationOptions({
-      navigation: mockNavigation,
-    });
-
-    // Then: should include all required header components
-    expect(navigationOptions).toHaveProperty('headerLeft');
-    expect(navigationOptions).toHaveProperty('headerTitle');
-    expect(navigationOptions).toHaveProperty('headerRight');
   });
 
   it('dispatches bridge tokens when opening swaps with non-supported token', async () => {
@@ -6486,7 +6464,7 @@ describe('CardHome Component', () => {
           strings('money.metamask_card.link_subtitle', { apy: 4 }),
         ),
       ).toBeOnTheScreen();
-      expect(screen.getByText('Earn up to 4% APY')).toBeOnTheScreen();
+      expect(screen.getByText('Earn up to ~4% APY')).toBeOnTheScreen();
     });
   });
 });

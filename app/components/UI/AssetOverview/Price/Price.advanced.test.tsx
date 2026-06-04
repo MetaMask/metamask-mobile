@@ -310,6 +310,7 @@ describe('PriceAdvanced', () => {
         properties: expect.objectContaining({
           interaction_type: 'timeframe_changed',
           chart_timeframe: '1W',
+          chart_type: expect.stringMatching(/^(candlestick|line)$/),
         }),
       }),
     );
