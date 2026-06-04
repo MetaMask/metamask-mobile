@@ -78,7 +78,7 @@ describe('useTokensWithBalance', () => {
       expect(result.current.tokens.length).toBeGreaterThan(0);
     });
 
-    expect(result.current.isRwaDataLoading).toBe(false);
+    expect(result.current.isExtraTokenDataLoading).toBe(false);
     expect(mockHandleFetch).not.toHaveBeenCalled();
   });
 
@@ -323,7 +323,7 @@ describe('useTokensWithBalance', () => {
             {
               chainIds: [mockChainId],
             },
-            { shouldFetchTokenData: true },
+            { shouldFetchExtraTokenData: true },
           ),
         { state: initialState },
       );
@@ -354,7 +354,7 @@ describe('useTokensWithBalance', () => {
             {
               chainIds: [mockChainId],
             },
-            { shouldFetchTokenData: true },
+            { shouldFetchExtraTokenData: true },
           ),
         { state: initialState },
       );
@@ -378,7 +378,7 @@ describe('useTokensWithBalance', () => {
             {
               chainIds: [mockChainId],
             },
-            { shouldFetchTokenData: true },
+            { shouldFetchExtraTokenData: true },
           ),
         { state: initialState },
       );

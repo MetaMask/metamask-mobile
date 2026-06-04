@@ -157,8 +157,8 @@ export const calculateEvmBalances = ({
  * @param {Object} params - The parameters object
  * @param {Hex[]} params.chainIds - Array of chain IDs to filter by
  * @param {Object} options - Optional hook configuration
- * @param {boolean} options.shouldFetchTokenData - Whether to fetch and merge token metadata
- * @returns tokens with sortable fiat balances and RWA loading state.
+ * @param {boolean} options.shouldFetchExtraTokenData - Whether to fetch and merge token metadata
+ * @returns tokens with sortable fiat balances and extra token data loading state.
  */
 export const useTokensWithBalance = (
   {
@@ -167,10 +167,10 @@ export const useTokensWithBalance = (
     chainIds: (Hex | CaipChainId)[] | undefined;
   },
   options: {
-    shouldFetchTokenData?: boolean;
+    shouldFetchExtraTokenData?: boolean;
   } = {},
-): { tokens: BridgeToken[]; isRwaDataLoading: boolean } => {
-  const { shouldFetchTokenData = false } = options;
+): { tokens: BridgeToken[]; isExtraTokenDataLoading: boolean } => {
+  const { shouldFetchExtraTokenData = false } = options;
   const tokenSortConfig = useSelector(selectTokenSortConfig);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const networkConfigurationsByChainId = useSelector(
@@ -327,7 +327,7 @@ export const useTokensWithBalance = (
   // cache hits and never trigger a re-fetch.
   const missingRwaAssetIds = useMemo(
     () =>
-      shouldFetchTokenData
+      shouldFetchExtraTokenData
         ? sortedTokens
             .filter((token) => !token.rwaData)
             .map((token) => {
@@ -346,7 +346,7 @@ export const useTokensWithBalance = (
                 assetId !== null && !isRwaChecked(assetId),
             )
         : [],
-    [shouldFetchTokenData, sortedTokens],
+    [shouldFetchExtraTokenData, sortedTokens],
   );
 
   // apiTokenData is consumed only as a memo trigger: it changes identity when a
@@ -356,14 +356,12 @@ export const useTokensWithBalance = (
   // lose their rwaData on remount.
   // TODO: Migrate away from calling the token API directly once the Assets team
   // persists rwaData in controller state.
-  const { tokens: apiTokenData, isLoading: isRwaDataLoading } = useTokensData(
-    missingRwaAssetIds,
-    { includeRwaData: true },
-  );
+  const { tokens: apiTokenData, isLoading: isExtraTokenDataLoading } =
+    useTokensData(missingRwaAssetIds, { includeRwaData: true });
 
   return useMemo(
     () => ({
-      tokens: shouldFetchTokenData
+      tokens: shouldFetchExtraTokenData
         ? sortedTokens.map((token) => {
             if (token.rwaData) return token;
             try {
@@ -384,8 +382,15 @@ export const useTokensWithBalance = (
             }
           })
         : sortedTokens,
-      isRwaDataLoading: shouldFetchTokenData ? isRwaDataLoading : false,
+      isExtraTokenDataLoading: shouldFetchExtraTokenData
+        ? isExtraTokenDataLoading
+        : false,
     }),
-    [shouldFetchTokenData, sortedTokens, apiTokenData, isRwaDataLoading],
+    [
+      shouldFetchExtraTokenData,
+      sortedTokens,
+      apiTokenData,
+      isExtraTokenDataLoading,
+    ],
   );
 };

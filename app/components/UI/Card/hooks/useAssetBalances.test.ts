@@ -27,7 +27,7 @@ jest.mock('../../../../selectors/assets/assets-list', () => ({
 jest.mock('../../Bridge/hooks/useTokensWithBalance', () => ({
   useTokensWithBalance: jest.fn(() => ({
     tokens: [],
-    isRwaDataLoading: false,
+    isExtraTokenDataLoading: false,
   })),
 }));
 jest.mock('../../../../../locales/i18n', () => ({
@@ -168,7 +168,7 @@ describe('useAssetBalances', () => {
     mockSelectAsset.mockReturnValue(undefined);
     mockUseTokensWithBalance.mockReturnValue({
       tokens: [],
-      isRwaDataLoading: false,
+      isExtraTokenDataLoading: false,
     });
     mockDeriveBalanceFromAssetMarketDetails.mockReturnValue({
       balanceFiat: '$1,000.00',
@@ -350,7 +350,7 @@ describe('useAssetBalances', () => {
             decimals: 18,
           } as any,
         ],
-        isRwaDataLoading: false,
+        isExtraTokenDataLoading: false,
       });
 
       const { result } = renderHook(() => useAssetBalances(tokens));
@@ -417,7 +417,7 @@ describe('useAssetBalances', () => {
             decimals: 18,
           } as any,
         ],
-        isRwaDataLoading: false,
+        isExtraTokenDataLoading: false,
       });
 
       const { result } = renderHook(() => useAssetBalances([enabledToken]));
@@ -437,7 +437,7 @@ describe('useAssetBalances', () => {
 
       mockUseTokensWithBalance.mockReturnValue({
         tokens: [],
-        isRwaDataLoading: false,
+        isExtraTokenDataLoading: false,
       });
 
       const walletAsset = {
@@ -502,7 +502,7 @@ describe('useAssetBalances', () => {
 
       mockUseTokensWithBalance.mockReturnValue({
         tokens: [],
-        isRwaDataLoading: false,
+        isExtraTokenDataLoading: false,
       });
       mockSelectAsset.mockReturnValue(undefined);
 
@@ -526,7 +526,7 @@ describe('useAssetBalances', () => {
             decimals: 18,
           } as any,
         ],
-        isRwaDataLoading: false,
+        isExtraTokenDataLoading: false,
       });
 
       const { result } = renderHook(() =>
@@ -542,7 +542,7 @@ describe('useAssetBalances', () => {
     it('uses walletAsset balance when non-enabled token has no filteredToken', () => {
       mockUseTokensWithBalance.mockReturnValue({
         tokens: [],
-        isRwaDataLoading: false,
+        isExtraTokenDataLoading: false,
       });
 
       const walletAsset = {
@@ -629,7 +629,7 @@ describe('useAssetBalances', () => {
 
       mockUseTokensWithBalance.mockReturnValue({
         tokens: [],
-        isRwaDataLoading: false,
+        isExtraTokenDataLoading: false,
       });
       mockSelectAsset.mockReturnValue(undefined);
 
@@ -678,7 +678,7 @@ describe('useAssetBalances', () => {
             decimals: 18,
           } as any,
         ],
-        isRwaDataLoading: false,
+        isExtraTokenDataLoading: false,
       });
 
       const { result } = renderHook(() => useAssetBalances([limitedToken]));
@@ -698,7 +698,7 @@ describe('useAssetBalances', () => {
 
       mockUseTokensWithBalance.mockReturnValue({
         tokens: [],
-        isRwaDataLoading: false,
+        isExtraTokenDataLoading: false,
       });
 
       const walletAsset = {
@@ -763,7 +763,7 @@ describe('useAssetBalances', () => {
 
       mockUseTokensWithBalance.mockReturnValue({
         tokens: [],
-        isRwaDataLoading: false,
+        isExtraTokenDataLoading: false,
       });
       mockSelectAsset.mockReturnValue(undefined);
 
@@ -1649,7 +1649,7 @@ describe('useAssetBalances', () => {
               decimals: 18,
             } as any,
           ],
-          isRwaDataLoading: false,
+          isExtraTokenDataLoading: false,
         });
 
         mockFormatWithThreshold.mockReturnValue('$0.00');
@@ -1683,7 +1683,7 @@ describe('useAssetBalances', () => {
               decimals: 18,
             } as any,
           ],
-          isRwaDataLoading: false,
+          isExtraTokenDataLoading: false,
         });
 
         const { result } = renderHook(() =>
@@ -1717,7 +1717,7 @@ describe('useAssetBalances', () => {
               decimals: 18,
             } as any,
           ],
-          isRwaDataLoading: false,
+          isExtraTokenDataLoading: false,
         });
 
         mockFormatWithThreshold.mockReturnValue('$0.00');
@@ -1751,7 +1751,7 @@ describe('useAssetBalances', () => {
               decimals: 18,
             } as any,
           ],
-          isRwaDataLoading: false,
+          isExtraTokenDataLoading: false,
         });
 
         const { result } = renderHook(() =>
@@ -1785,7 +1785,7 @@ describe('useAssetBalances', () => {
               decimals: 18,
             } as any,
           ],
-          isRwaDataLoading: false,
+          isExtraTokenDataLoading: false,
         });
 
         mockFormatWithThreshold.mockReturnValue('$55.62');
@@ -1828,7 +1828,7 @@ describe('useAssetBalances', () => {
               decimals: 18,
             } as any,
           ],
-          isRwaDataLoading: false,
+          isExtraTokenDataLoading: false,
         });
 
         mockFormatWithThreshold.mockReturnValue('$1,234.56');
@@ -1862,7 +1862,7 @@ describe('useAssetBalances', () => {
               decimals: 18,
             } as any,
           ],
-          isRwaDataLoading: false,
+          isExtraTokenDataLoading: false,
         });
 
         mockFormatWithThreshold.mockReturnValue('R$ 55,62');
@@ -1943,7 +1943,7 @@ describe('useAssetBalances', () => {
 
         mockUseTokensWithBalance.mockReturnValue({
           tokens: [],
-          isRwaDataLoading: false,
+          isExtraTokenDataLoading: false,
         });
         mockFormatWithThreshold.mockReturnValue('$0.00');
 
@@ -2012,7 +2012,7 @@ describe('useAssetBalances', () => {
 
         mockUseTokensWithBalance.mockReturnValue({
           tokens: [],
-          isRwaDataLoading: false,
+          isExtraTokenDataLoading: false,
         });
 
         const { result } = renderHook(() =>
@@ -2082,7 +2082,7 @@ describe('useAssetBalances', () => {
 
         mockUseTokensWithBalance.mockReturnValue({
           tokens: [],
-          isRwaDataLoading: false,
+          isExtraTokenDataLoading: false,
         });
         mockFormatWithThreshold.mockReturnValue('$15.62');
 
@@ -2151,7 +2151,7 @@ describe('useAssetBalances', () => {
 
         mockUseTokensWithBalance.mockReturnValue({
           tokens: [],
-          isRwaDataLoading: false,
+          isExtraTokenDataLoading: false,
         });
         mockFormatWithThreshold.mockReturnValue('R$ 15,62');
 

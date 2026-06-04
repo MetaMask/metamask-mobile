@@ -111,8 +111,11 @@ export function BatchSellTokenSelect() {
   const tw = useTailwind();
   const [tokenSortDirection, setTokenSortDirection] =
     useState<BatchSellTokenSortDirection>('desc');
-  const { eligibleSourceTokens, isRwaDataLoading, sortedEligibleChains } =
-    useBatchSellTokens(tokenSortDirection);
+  const {
+    eligibleSourceTokens,
+    isExtraTokenDataLoading,
+    sortedEligibleChains,
+  } = useBatchSellTokens(tokenSortDirection);
   const [selectedChainId, setSelectedChainId] = useState<
     CaipChainId | undefined
   >(() => sortedEligibleChains[0]?.chainId);
@@ -158,10 +161,10 @@ export function BatchSellTokenSelect() {
   );
   const tokenListData = useMemo(
     () =>
-      isRwaDataLoading
+      isExtraTokenDataLoading
         ? Array.from({ length: BATCH_SELL_LOADING_SKELETON_COUNT }, () => null)
         : selectedChainTokens,
-    [isRwaDataLoading, selectedChainTokens],
+    [isExtraTokenDataLoading, selectedChainTokens],
   );
   const selectedTokenKeys = useMemo(
     () => new Set(selectedTokens.map(getTokenKey)),
@@ -375,7 +378,7 @@ export function BatchSellTokenSelect() {
     >
       <Box twClassName="flex-1">
         <HeaderStandard title="" onBack={handleBackPress} includesTopInset />
-        {sortedEligibleChains.length === 0 ? (
+        {!isExtraTokenDataLoading && sortedEligibleChains.length === 0 ? (
           <BatchSellEmptyState
             onExploreTokensPress={handleExploreTokensPress}
           />

@@ -65,7 +65,7 @@ describe('useBatchSellTokens', () => {
     });
     mockUseTokensWithBalance.mockReturnValue({
       tokens: [],
-      isRwaDataLoading: false,
+      isExtraTokenDataLoading: false,
     });
     mockIsRwaChecked.mockReturnValue(true);
   });
@@ -77,7 +77,7 @@ describe('useBatchSellTokens', () => {
       {
         chainIds: SUPPORTED_BATCH_SELL_CHAIN_IDS,
       },
-      { shouldFetchTokenData: true },
+      { shouldFetchExtraTokenData: true },
     );
   });
 
@@ -109,7 +109,7 @@ describe('useBatchSellTokens', () => {
     };
     mockUseTokensWithBalance.mockReturnValue({
       tokens: [stablecoin, stockRwa, lowValueToken, highValueToken],
-      isRwaDataLoading: false,
+      isExtraTokenDataLoading: false,
     });
 
     const { result } = renderUseBatchSellTokens();
@@ -135,7 +135,7 @@ describe('useBatchSellTokens', () => {
     );
     mockUseTokensWithBalance.mockReturnValue({
       tokens: [checkedToken, uncheckedToken],
-      isRwaDataLoading: false,
+      isExtraTokenDataLoading: false,
     });
 
     const { result } = renderUseBatchSellTokens();
@@ -159,7 +159,7 @@ describe('useBatchSellTokens', () => {
           tokenFiatAmount: 10,
         }),
       ],
-      isRwaDataLoading: false,
+      isExtraTokenDataLoading: false,
     });
 
     const { result } = renderUseBatchSellTokens('asc');
@@ -185,7 +185,7 @@ describe('useBatchSellTokens', () => {
           tokenFiatAmount: 25,
         }),
       ],
-      isRwaDataLoading: false,
+      isExtraTokenDataLoading: false,
     });
 
     const { result } = renderUseBatchSellTokens();
@@ -198,11 +198,11 @@ describe('useBatchSellTokens', () => {
   it('passes through the RWA data loading state', () => {
     mockUseTokensWithBalance.mockReturnValue({
       tokens: [createToken({ symbol: 'ETHA' })],
-      isRwaDataLoading: true,
+      isExtraTokenDataLoading: true,
     });
 
     const { result } = renderUseBatchSellTokens();
 
-    expect(result.current.isRwaDataLoading).toBe(true);
+    expect(result.current.isExtraTokenDataLoading).toBe(true);
   });
 });

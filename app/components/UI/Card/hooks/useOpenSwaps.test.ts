@@ -123,7 +123,7 @@ describe('useOpenSwaps', () => {
     );
     (useTokensWithBalance as jest.Mock).mockReturnValue({
       tokens: mockTokensWithBalance,
-      isRwaDataLoading: false,
+      isExtraTokenDataLoading: false,
     });
 
     (useSelector as jest.Mock).mockImplementation((selector) => selector());

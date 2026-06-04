@@ -341,7 +341,7 @@ describe('useSpendingLimit', () => {
     // Default: no balances (triggers fallback to mUSD + USDC)
     (useTokensWithBalance as jest.Mock).mockReturnValue({
       tokens: [],
-      isRwaDataLoading: false,
+      isExtraTokenDataLoading: false,
     });
 
     // Setup account selector navigation details mock
@@ -501,7 +501,7 @@ describe('useSpendingLimit', () => {
           { address: '0xmusd', chainId: '0xe708', tokenFiatAmount: 100 },
           { address: '0xdai', chainId: '0xe708', tokenFiatAmount: 9999 }, // Enabled — excluded
         ],
-        isRwaDataLoading: false,
+        isExtraTokenDataLoading: false,
       });
 
       const { result } = renderHook(() =>
@@ -532,7 +532,7 @@ describe('useSpendingLimit', () => {
           { address: '0xusdc', chainId: '0xe708', tokenFiatAmount: 9999 },
           { address: '0xmusd', chainId: '0xe708', tokenFiatAmount: 10 },
         ],
-        isRwaDataLoading: false,
+        isExtraTokenDataLoading: false,
       });
 
       const { result } = renderHook(() =>
@@ -559,7 +559,7 @@ describe('useSpendingLimit', () => {
 
       (useTokensWithBalance as jest.Mock).mockReturnValue({
         tokens: [],
-        isRwaDataLoading: false,
+        isExtraTokenDataLoading: false,
       });
 
       const { result } = renderHook(() =>
@@ -580,7 +580,7 @@ describe('useSpendingLimit', () => {
 
       (useTokensWithBalance as jest.Mock).mockReturnValue({
         tokens: [],
-        isRwaDataLoading: false,
+        isExtraTokenDataLoading: false,
       });
 
       const { result } = renderHook(() =>
@@ -783,7 +783,7 @@ describe('useSpendingLimit', () => {
           { address: '0xusdc', chainId: '0xe708', tokenFiatAmount: 200 },
           { address: '0xmusd', chainId: '0xe708', tokenFiatAmount: 50 },
         ],
-        isRwaDataLoading: false,
+        isExtraTokenDataLoading: false,
       });
 
       const { result } = renderHook(() =>
@@ -1136,8 +1136,11 @@ describe('useSpendingLimit', () => {
         tokenFiatAmount: 450,
       };
       (useTokensWithBalance as jest.Mock)
-        .mockReturnValueOnce({ tokens: [musdToken], isRwaDataLoading: false }) // walletTokens (card)
-        .mockReturnValueOnce({ tokens: [], isRwaDataLoading: false }); // allWalletTokens
+        .mockReturnValueOnce({
+          tokens: [musdToken],
+          isExtraTokenDataLoading: false,
+        }) // walletTokens (card)
+        .mockReturnValueOnce({ tokens: [], isExtraTokenDataLoading: false }); // allWalletTokens
 
       renderHook(() => useSpendingLimit(createDefaultParams()));
 
@@ -1148,8 +1151,8 @@ describe('useSpendingLimit', () => {
 
     it('emits musd_linea_balance of 0 when mUSD not in wallet', () => {
       (useTokensWithBalance as jest.Mock)
-        .mockReturnValueOnce({ tokens: [], isRwaDataLoading: false }) // walletTokens — no mUSD
-        .mockReturnValueOnce({ tokens: [], isRwaDataLoading: false });
+        .mockReturnValueOnce({ tokens: [], isExtraTokenDataLoading: false }) // walletTokens — no mUSD
+        .mockReturnValueOnce({ tokens: [], isExtraTokenDataLoading: false });
 
       renderHook(() => useSpendingLimit(createDefaultParams()));
 
@@ -1179,9 +1182,9 @@ describe('useSpendingLimit', () => {
       (useTokensWithBalance as jest.Mock)
         .mockReturnValueOnce({
           tokens: [lowToken, highToken],
-          isRwaDataLoading: false,
+          isExtraTokenDataLoading: false,
         }) // walletTokens (card)
-        .mockReturnValueOnce({ tokens: [], isRwaDataLoading: false });
+        .mockReturnValueOnce({ tokens: [], isExtraTokenDataLoading: false });
 
       renderHook(() => useSpendingLimit(createDefaultParams({ allTokens })));
 
@@ -1193,8 +1196,8 @@ describe('useSpendingLimit', () => {
 
     it('emits null for top_card_chain_asset when no card tokens have balance', () => {
       (useTokensWithBalance as jest.Mock)
-        .mockReturnValueOnce({ tokens: [], isRwaDataLoading: false }) // walletTokens — empty
-        .mockReturnValueOnce({ tokens: [], isRwaDataLoading: false });
+        .mockReturnValueOnce({ tokens: [], isExtraTokenDataLoading: false }) // walletTokens — empty
+        .mockReturnValueOnce({ tokens: [], isExtraTokenDataLoading: false });
 
       renderHook(() => useSpendingLimit(createDefaultParams()));
 
@@ -1214,8 +1217,14 @@ describe('useSpendingLimit', () => {
         tokenFiatAmount: 1200,
       };
       (useTokensWithBalance as jest.Mock)
-        .mockReturnValueOnce({ tokens: [nativeSol], isRwaDataLoading: false }) // walletTokens
-        .mockReturnValueOnce({ tokens: [nativeSol], isRwaDataLoading: false });
+        .mockReturnValueOnce({
+          tokens: [nativeSol],
+          isExtraTokenDataLoading: false,
+        }) // walletTokens
+        .mockReturnValueOnce({
+          tokens: [nativeSol],
+          isExtraTokenDataLoading: false,
+        });
 
       // allTokens has a card-supported token (USDC on Linea) but NOT nativeSol
       renderHook(() => useSpendingLimit(createDefaultParams()));
@@ -1239,10 +1248,13 @@ describe('useSpendingLimit', () => {
         tokenFiatAmount: 9000,
       };
       (useTokensWithBalance as jest.Mock)
-        .mockReturnValueOnce({ tokens: [cardToken], isRwaDataLoading: false }) // walletTokens (card)
+        .mockReturnValueOnce({
+          tokens: [cardToken],
+          isExtraTokenDataLoading: false,
+        }) // walletTokens (card)
         .mockReturnValueOnce({
           tokens: [walletToken],
-          isRwaDataLoading: false,
+          isExtraTokenDataLoading: false,
         }); // allWalletTokens
 
       renderHook(() => useSpendingLimit(createDefaultParams()));

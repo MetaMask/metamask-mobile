@@ -18,6 +18,7 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import { BridgeTokenMetadata } from '../../constants/tokens';
 import { DEFAULT_BATCH_SELL_SLIPPAGE } from '../../components/SlippageModal/utils';
+import { isRwaChecked } from '../../../../hooks/useTokensData/useTokensData';
 import {
   TextColor as ComponentLibraryTextColor,
   TextVariant as ComponentLibraryTextVariant,
@@ -26,6 +27,7 @@ import {
 const mockDispatch = jest.fn();
 const mockNavigate = jest.fn();
 const mockUseTokensWithBalance = jest.fn();
+const mockIsRwaChecked = isRwaChecked as jest.Mock;
 let mockDestinationStablecoins: BridgeToken[] = [];
 let mockDestinationStablecoinsByChain: Partial<
   Record<CaipChainId, BridgeToken[]>
@@ -87,8 +89,12 @@ jest.mock('@metamask/design-system-react-native', () => {
 jest.mock('../../hooks/useTokensWithBalance', () => ({
   useTokensWithBalance: (
     params?: { chainIds?: CaipChainId[] },
-    options?: { shouldFetchTokenData?: boolean },
+    options?: { shouldFetchExtraTokenData?: boolean },
   ) => mockUseTokensWithBalance(params, options),
+}));
+
+jest.mock('../../../../hooks/useTokensData/useTokensData', () => ({
+  isRwaChecked: jest.fn(),
 }));
 
 jest.mock('../../../Tokens/hooks/useTokenPricePercentageChange', () => ({
@@ -424,6 +430,7 @@ describe('BatchSellTokenSelect', () => {
     mockWalletTokens = [
       createToken({ symbol: 'ETHA', name: 'Ethereum A', tokenFiatAmount: 10 }),
     ];
+    mockIsRwaChecked.mockReturnValue(true);
     mockUseTokensWithBalance.mockImplementation(
       (params?: { chainIds?: CaipChainId[] }) => {
         const tokens = !params?.chainIds
@@ -433,7 +440,7 @@ describe('BatchSellTokenSelect', () => {
                 formatChainIdToCaip(token.chainId) as CaipChainId,
               ),
             );
-        return { tokens, isRwaDataLoading: false };
+        return { tokens, isExtraTokenDataLoading: false };
       },
     );
   });
@@ -534,7 +541,7 @@ describe('BatchSellTokenSelect', () => {
       {
         chainIds: SUPPORTED_BATCH_SELL_CHAIN_IDS,
       },
-      { shouldFetchTokenData: true },
+      { shouldFetchExtraTokenData: true },
     );
     expect(
       getByTestId(getNetworkPillTestId('eip155:1' as CaipChainId)),
@@ -733,9 +740,10 @@ describe('BatchSellTokenSelect', () => {
   });
 
   it('shows loading skeletons and not the empty state while RWA data loads', () => {
+    mockIsRwaChecked.mockReturnValue(false);
     mockUseTokensWithBalance.mockReturnValue({
       tokens: mockWalletTokens,
-      isRwaDataLoading: true,
+      isExtraTokenDataLoading: true,
     });
 
     const { getByTestId, queryByTestId } = render(<BatchSellTokenSelect />);

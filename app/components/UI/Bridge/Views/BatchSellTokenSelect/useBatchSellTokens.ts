@@ -17,12 +17,13 @@ import {
 export function useBatchSellTokens(
   tokenSortDirection: BatchSellTokenSortDirection,
 ) {
-  const { tokens: allWalletTokens, isRwaDataLoading } = useTokensWithBalance(
-    {
-      chainIds: SUPPORTED_BATCH_SELL_CHAIN_IDS,
-    },
-    { shouldFetchTokenData: true },
-  );
+  const { tokens: allWalletTokens, isExtraTokenDataLoading } =
+    useTokensWithBalance(
+      {
+        chainIds: SUPPORTED_BATCH_SELL_CHAIN_IDS,
+      },
+      { shouldFetchExtraTokenData: true },
+    );
   const stablecoinsByChain = useSelector(selectBatchSellDestStablecoinsByChain);
 
   const eligibleSourceTokens = useMemo(() => {
@@ -49,7 +50,7 @@ export function useBatchSellTokens(
 
   return {
     eligibleSourceTokens,
-    isRwaDataLoading,
+    isExtraTokenDataLoading,
     sortedEligibleChains,
   };
 }
