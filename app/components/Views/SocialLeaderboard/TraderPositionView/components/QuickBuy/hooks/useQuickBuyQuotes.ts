@@ -63,6 +63,13 @@ interface UseQuickBuyQuotesParams {
   analyticsContext?: QuickBuyQuotesAnalyticsContext;
   /** When set, overrides the recommended quote with the quote matching this requestId. */
   selectedQuoteRequestId?: string;
+  /**
+   * Monotonic nonce bumped by the consumer when the amount change is a
+   * committed value (e.g. a slider release) rather than rapidly-changing input
+   * (e.g. typing). When it increments, the pending debounce is flushed so the
+   * quote fetch fires immediately instead of waiting out the typing debounce.
+   */
+  immediateFetchToken?: number;
 }
 
 export interface UseQuickBuyQuotesResult {
@@ -164,6 +171,7 @@ export function useQuickBuyQuotes({
   sourceTokenAmount,
   analyticsContext,
   selectedQuoteRequestId,
+  immediateFetchToken,
 }: UseQuickBuyQuotesParams): UseQuickBuyQuotesResult {
   const slippage = useSelector(selectSlippage);
   const destAddress = useSelector(selectDestAddress);
@@ -379,6 +387,21 @@ export function useQuickBuyQuotes({
       debouncedFetchQuotes.cancel();
     };
   }, [debouncedFetchQuotes]);
+
+  // Committed-value paths (e.g. slider release) bump `immediateFetchToken`.
+  // The reactive effect above has already scheduled the debounced fetch for the
+  // new amount in this same commit; cancelling it and invoking `fetchQuotes`
+  // directly fetches immediately with the current value, skipping the typing
+  // debounce. The initial render is a no-op (token unchanged from its initial).
+  const prevImmediateFetchTokenRef = useRef(immediateFetchToken);
+  useEffect(() => {
+    if (prevImmediateFetchTokenRef.current === immediateFetchToken) {
+      return;
+    }
+    prevImmediateFetchTokenRef.current = immediateFetchToken;
+    debouncedFetchQuotes.cancel();
+    fetchQuotes();
+  }, [immediateFetchToken, debouncedFetchQuotes, fetchQuotes]);
 
   // Auto-refresh quotes on a fixed interval indefinitely.
   // `refreshCount` starts at 0 and increments on each successful fetch, so
