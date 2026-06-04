@@ -242,16 +242,22 @@ jest.mock('../../../../../component-library/components/Texts/Text', () => {
   };
 });
 
-jest.mock('../../../../../component-library/components/Icons/Icon', () => {
+jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
+  __esModule: true,
+  default: () => null,
+  IconName: { ArrowRight: 'ArrowRight' },
+  IconSize: { Md: 'Md' },
+  IconColor: { Default: 'Default' },
+}));
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
   const ReactModule = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {
-    __esModule: true,
-    default: ({ name }: { name: string }) =>
+    ...actual,
+    Icon: ({ name }: { name: string }) =>
       ReactModule.createElement(View, { accessibilityLabel: name }),
-    IconName: { ArrowRight: 'ArrowRight' },
-    IconSize: { Md: 'Md' },
-    IconColor: { Default: 'Default' },
   };
 });
 

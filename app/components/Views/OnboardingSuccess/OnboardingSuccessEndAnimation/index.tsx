@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import Rive, { Fit, Alignment, RiveRef } from 'rive-react-native';
 import { useTheme } from '../../../../util/theme';
 import { getScreenDimensions } from '../../../../util/onboarding';
-import { isE2E } from '../../../../util/test/utils';
+import { hasTestOverrides } from '../../../../util/test/utils';
 import {
   Box,
   BoxAlignItems,
@@ -26,12 +26,13 @@ const OnboardingSuccessEndAnimation: React.FC<
   const { themeAppearance } = useTheme();
   const isDarkMode = themeAppearance === 'dark';
   const tw = useTailwind();
-  const [shouldStartAnimation, setShouldStartAnimation] = useState(isE2E);
+  const [shouldStartAnimation, setShouldStartAnimation] =
+    useState(hasTestOverrides);
 
   const { screenWidth, screenHeight, animationHeight } = getScreenDimensions();
 
   useEffect(() => {
-    if (isE2E) return;
+    if (hasTestOverrides) return;
 
     const startTimeoutId = setTimeout(() => {
       setShouldStartAnimation(true);
@@ -41,7 +42,7 @@ const OnboardingSuccessEndAnimation: React.FC<
   }, []);
 
   useEffect(() => {
-    if (isE2E || !shouldStartAnimation) return;
+    if (hasTestOverrides || !shouldStartAnimation) return;
 
     const timeoutId = setTimeout(() => {
       if (riveRef.current) {
@@ -73,7 +74,7 @@ const OnboardingSuccessEndAnimation: React.FC<
         justifyContent={BoxJustifyContent.Center}
         twClassName="flex-1"
       >
-        {!isE2E && shouldStartAnimation && (
+        {!hasTestOverrides && shouldStartAnimation && (
           <Rive
             ref={riveRef}
             source={onboardingLoaderEndAnimation}

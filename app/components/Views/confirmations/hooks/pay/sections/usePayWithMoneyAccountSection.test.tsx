@@ -73,7 +73,10 @@ describe('usePayWithMoneyAccountSection', () => {
         return moneyAccountMock;
       }
       if (selector === selectMetaMaskPayFlags) {
-        return { enablePerpsMoneyAccountTransactions: true };
+        return {
+          enablePerpsMoneyAccountTransactions: true,
+          enablePredictMoneyAccountTransactions: true,
+        };
       }
       return undefined;
     });
@@ -83,16 +86,69 @@ describe('usePayWithMoneyAccountSection', () => {
     } as never);
   });
 
-  it('returns null when enablePerpsMoneyAccountTransactions is false', () => {
+  it('returns null when both money account flags are false', () => {
     useSelectorMock.mockImplementation((selector) => {
       if (selector === selectPrimaryMoneyAccount) {
         return moneyAccountMock;
       }
       if (selector === selectMetaMaskPayFlags) {
-        return { enablePerpsMoneyAccountTransactions: false };
+        return {
+          enablePerpsMoneyAccountTransactions: false,
+          enablePredictMoneyAccountTransactions: false,
+        };
       }
       return undefined;
     });
+
+    const { result } = renderHook(() => usePayWithMoneyAccountSection());
+
+    expect(result.current).toBeNull();
+  });
+
+  it('returns null for predict transaction when only perps flag is true', () => {
+    useSelectorMock.mockImplementation((selector) => {
+      if (selector === selectPrimaryMoneyAccount) {
+        return moneyAccountMock;
+      }
+      if (selector === selectMetaMaskPayFlags) {
+        return {
+          enablePerpsMoneyAccountTransactions: true,
+          enablePredictMoneyAccountTransactions: false,
+        };
+      }
+      return undefined;
+    });
+
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: 'tx-1',
+      type: TransactionType.predictDeposit,
+      txParams: {},
+    } as never);
+
+    const { result } = renderHook(() => usePayWithMoneyAccountSection());
+
+    expect(result.current).toBeNull();
+  });
+
+  it('returns null for perps transaction when only predict flag is true', () => {
+    useSelectorMock.mockImplementation((selector) => {
+      if (selector === selectPrimaryMoneyAccount) {
+        return moneyAccountMock;
+      }
+      if (selector === selectMetaMaskPayFlags) {
+        return {
+          enablePerpsMoneyAccountTransactions: false,
+          enablePredictMoneyAccountTransactions: true,
+        };
+      }
+      return undefined;
+    });
+
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: 'tx-1',
+      type: TransactionType.perpsDeposit,
+      txParams: {},
+    } as never);
 
     const { result } = renderHook(() => usePayWithMoneyAccountSection());
 
@@ -117,7 +173,10 @@ describe('usePayWithMoneyAccountSection', () => {
         return null;
       }
       if (selector === selectMetaMaskPayFlags) {
-        return { enablePerpsMoneyAccountTransactions: true };
+        return {
+          enablePerpsMoneyAccountTransactions: true,
+          enablePredictMoneyAccountTransactions: true,
+        };
       }
       return undefined;
     });

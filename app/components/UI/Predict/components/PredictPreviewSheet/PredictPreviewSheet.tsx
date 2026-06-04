@@ -76,7 +76,7 @@ const PredictPreviewSheet = forwardRef<
         <BottomSheetHeader
           onClose={closeSheet}
           variant={BottomSheetHeaderVariant.Display}
-          twClassName="px-6 py-4"
+          twClassName="px-4 py-4"
         >
           {renderHeader ? (
             renderHeader()

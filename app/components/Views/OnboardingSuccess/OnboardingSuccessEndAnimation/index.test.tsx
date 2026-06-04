@@ -34,10 +34,10 @@ jest.mock('../../../../util/theme', () => {
 });
 
 // Mock E2E utils
-let mockIsE2EValue = false;
+let mockHasTestOverridesValue = false;
 jest.mock('../../../../util/test/utils', () => ({
-  get isE2E() {
-    return mockIsE2EValue;
+  get hasTestOverrides() {
+    return mockHasTestOverridesValue;
   },
 }));
 
@@ -70,14 +70,14 @@ describe('OnboardingSuccessEndAnimation', () => {
 
   beforeEach(() => {
     jest.useFakeTimers();
-    mockIsE2EValue = false;
+    mockHasTestOverridesValue = false;
     // Reset mock Rive ref
     mockRiveRef = null;
   });
 
   afterEach(() => {
     jest.useRealTimers();
-    mockIsE2EValue = false;
+    mockHasTestOverridesValue = false;
     mockRiveRef = null;
   });
 
@@ -98,7 +98,7 @@ describe('OnboardingSuccessEndAnimation', () => {
 
   it('handles E2E mode correctly', () => {
     // Arrange
-    mockIsE2EValue = true;
+    mockHasTestOverridesValue = true;
     const mockOnAnimationComplete = jest.fn();
 
     // Act
@@ -114,7 +114,7 @@ describe('OnboardingSuccessEndAnimation', () => {
 
   it('skips animation setup in E2E mode', () => {
     // Arrange
-    mockIsE2EValue = true;
+    mockHasTestOverridesValue = true;
     const mockSetInputState = jest.fn();
     const mockFireState = jest.fn();
 
@@ -140,7 +140,7 @@ describe('OnboardingSuccessEndAnimation', () => {
 
   it('handles early return when riveRef is null in non-E2E mode', () => {
     // Arrange
-    mockIsE2EValue = false;
+    mockHasTestOverridesValue = false;
     mockRiveRef = null;
     const mockOnAnimationComplete = jest.fn();
 
@@ -160,7 +160,7 @@ describe('OnboardingSuccessEndAnimation', () => {
 
   it('clears existing timeout before setting new one', () => {
     // Arrange
-    mockIsE2EValue = false;
+    mockHasTestOverridesValue = false;
     const mockSetInputState = jest.fn();
     const mockFireState = jest.fn();
 
