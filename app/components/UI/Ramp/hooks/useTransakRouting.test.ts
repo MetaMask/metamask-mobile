@@ -22,13 +22,6 @@ jest.mock('../headless/sessionRegistry', () => ({
   failSession: jest.fn(),
 }));
 
-jest.mock('../headless', () => ({
-  getChainIdFromAssetId: (assetId: string) => {
-    const slashIndex = assetId.indexOf('/');
-    return slashIndex <= 0 ? null : assetId.slice(0, slashIndex);
-  },
-}));
-
 const MOCK_WALLET_ADDRESS = '0xabcdef1234567890';
 
 jest.mock('react-redux', () => ({
@@ -40,13 +33,9 @@ jest.mock('react-redux', () => ({
   })),
 }));
 
-const mockUseRampAccountAddress = jest.fn(
-  (_chainId?: unknown): string | null => MOCK_WALLET_ADDRESS,
-);
-
 jest.mock('./useRampAccountAddress', () => ({
   __esModule: true,
-  default: (chainId: unknown) => mockUseRampAccountAddress(chainId),
+  default: () => MOCK_WALLET_ADDRESS,
 }));
 
 jest.mock('../../../../util/theme', () => {
@@ -406,69 +395,6 @@ describe('useTransakRouting', () => {
           ],
         }),
       );
-    });
-
-    it('resolves the wallet address from the headless session assetId, not the async-seeded selectedToken (TRAM-3598)', async () => {
-      const mockGetSession = jest.requireMock('../headless/sessionRegistry')
-        .getSession as jest.Mock;
-      mockGetSession.mockReturnValue({
-        id: 'hs-1',
-        params: { assetId: 'eip155:42161/slip44:60' },
-        callbacks: {
-          onOrderCreated: jest.fn(),
-          onClose: jest.fn(),
-          onError: jest.fn(),
-        },
-      });
-      mockGetUserDetails.mockResolvedValue({
-        firstName: 'John',
-        lastName: 'Doe',
-        mobileNumber: '+1',
-        dob: '1990-01-01',
-        address: {},
-      });
-      mockGetKycRequirement.mockResolvedValue({
-        status: 'APPROVED',
-        kycType: 'SIMPLE',
-      });
-      mockGetUserLimits.mockResolvedValue({
-        remaining: { '1': 10000, '30': 50000, '365': 200000 },
-      });
-      mockRequestOtt.mockResolvedValue({ ott: 'test-ott' });
-      mockGeneratePaymentWidgetUrl.mockReturnValue(
-        'https://payment.example.com',
-      );
-
-      const { result } = renderHook(() =>
-        useTransakRouting({
-          baseRoute: 'RampHeadlessHost',
-          baseRouteParams: { headlessSessionId: 'hs-1' },
-        }),
-      );
-      await act(async () => {
-        await result.current.routeAfterAuthentication(
-          mockQuote as never,
-          mockQuote.fiatAmount,
-        );
-      });
-
-      expect(mockUseRampAccountAddress).toHaveBeenCalledWith('eip155:42161');
-      expect(mockGeneratePaymentWidgetUrl).toHaveBeenCalledWith(
-        'test-ott',
-        mockQuote,
-        MOCK_WALLET_ADDRESS,
-        { theme: 'light' },
-      );
-    });
-
-    it('falls back to the selectedToken chain when there is no headless session', () => {
-      const mockGetSession = jest.requireMock('../headless/sessionRegistry')
-        .getSession as jest.Mock;
-      mockGetSession.mockReturnValue(undefined);
-
-      renderHook(() => useTransakRouting());
-
-      expect(mockUseRampAccountAddress).toHaveBeenCalledWith('eip155:1');
     });
 
     it('navigates to bank details for manual bank transfer when KYC is APPROVED', async () => {
