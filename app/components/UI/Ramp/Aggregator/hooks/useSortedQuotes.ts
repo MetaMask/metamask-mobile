@@ -9,34 +9,11 @@ import {
   QuoteResponse,
   SellQuoteResponse,
 } from '@consensys/on-ramp-sdk';
-import {
-  filterBlockedRampProviderCustomActions,
-  filterBlockedRampProviderItems,
-  filterBlockedRampProviderSortedMetadata,
-} from '../../utils/blockedRampProviders';
 
 function useSortedQuotes(amount: number | string) {
   const ordersProviders = useSelector(getOrdersProviders);
-  const {
-    quotes: rawQuotes,
-    customActions: rawCustomActions,
-    sorted: rawSorted,
-    isFetching,
-    error,
-    query,
-  } = useQuotes(amount);
-  const quotes = useMemo(
-    () => filterBlockedRampProviderItems(rawQuotes),
-    [rawQuotes],
-  );
-  const customActions = useMemo(
-    () => filterBlockedRampProviderCustomActions(rawCustomActions),
-    [rawCustomActions],
-  );
-  const sorted = useMemo(
-    () => filterBlockedRampProviderSortedMetadata(rawSorted),
-    [rawSorted],
-  );
+  const { quotes, customActions, sorted, isFetching, error, query } =
+    useQuotes(amount);
 
   const quotesWithoutError: (QuoteResponse | SellQuoteResponse)[] = useMemo(
     () =>

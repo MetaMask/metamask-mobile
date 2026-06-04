@@ -4,7 +4,6 @@ import type {
   PaymentMethodsResponse,
 } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
-import { isBlockedRampProvider } from '../utils/blockedRampProviders';
 
 interface PaymentMethodsQueryParams {
   regionCode: string;
@@ -30,10 +29,6 @@ export const rampsPaymentMethodsOptions = (params: PaymentMethodsQueryParams) =>
   queryOptions({
     queryKey: rampsPaymentMethodsKeys.detail(params),
     queryFn: async (): Promise<PaymentMethod[]> => {
-      if (isBlockedRampProvider(params.providerId)) {
-        return [];
-      }
-
       const response: PaymentMethodsResponse =
         await Engine.context.RampsController.getPaymentMethods(
           params.regionCode,

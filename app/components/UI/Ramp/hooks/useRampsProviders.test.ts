@@ -87,21 +87,6 @@ const mockProviders: RampProvider[] = [
   },
 ];
 
-const blockedProvider = {
-  id: '/providers/blockchain-com',
-  name: 'Blockchain.com',
-  environmentType: 'PRODUCTION',
-  description: 'Blocked Provider Description',
-  hqAddress: '789 Blocked Provider St, City, ST 12345',
-  links: [],
-  logos: {
-    light: 'https://example.com/blocked-light.png',
-    dark: 'https://example.com/blocked-dark.png',
-    height: 24,
-    width: 79,
-  },
-} as RampProvider;
-
 const createMockStore = (
   providersState = {},
   userRegion = { regionCode: 'us', country: { currency: 'USD' } },
@@ -191,16 +176,6 @@ describe('useRampsProviders', () => {
       expect(result.current.providers).toEqual(mockProviders);
     });
 
-    it('filters blocked providers from state', () => {
-      const store = createMockStore({
-        data: [mockProviders[0], blockedProvider],
-      });
-      const { result } = renderHook(() => useRampsProviders(), {
-        wrapper: wrapper(store),
-      });
-      expect(result.current.providers).toEqual([mockProviders[0]]);
-    });
-
     it('returns empty array when providers are not available', () => {
       const store = createMockStore();
       const { result } = renderHook(() => useRampsProviders(), {
@@ -281,14 +256,6 @@ describe('useRampsProviders', () => {
       });
       expect(result.current.selectedProvider).toBeNull();
     });
-
-    it('returns null when selectedProvider is blocked', () => {
-      const store = createMockStore({ selected: blockedProvider });
-      const { result } = renderHook(() => useRampsProviders(), {
-        wrapper: wrapper(store),
-      });
-      expect(result.current.selectedProvider).toBeNull();
-    });
   });
 
   describe('setSelectedProvider', () => {
@@ -337,21 +304,6 @@ describe('useRampsProviders', () => {
       expect(
         Engine.context.RampsController.setSelectedProvider,
       ).toHaveBeenCalledWith(mockProviders[0].id, { autoSelected: true });
-    });
-
-    it('clears selected provider when the provider is blocked', () => {
-      const store = createMockStore();
-      const { result } = renderHook(() => useRampsProviders(), {
-        wrapper: wrapper(store),
-      });
-
-      act(() => {
-        result.current.setSelectedProvider(blockedProvider);
-      });
-
-      expect(
-        Engine.context.RampsController.setSelectedProvider,
-      ).toHaveBeenCalledWith(null, undefined);
     });
   });
 

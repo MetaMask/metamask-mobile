@@ -117,50 +117,8 @@ describe('useRampsQuotes', () => {
     });
 
     expect(Engine.context.RampsController.getQuotes).toHaveBeenCalledWith(
-      expect.objectContaining(options),
+      options,
     );
-  });
-
-  it('filters blocked providers from imperative getQuotes params and response', async () => {
-    const store = createMockStore();
-    const { Wrapper } = createWrapper(store);
-    const { result } = renderHook(() => useRampsQuotes(), {
-      wrapper: Wrapper,
-    });
-
-    (Engine.context.RampsController.getQuotes as jest.Mock).mockResolvedValue({
-      success: [
-        { provider: '/providers/transak' },
-        { provider: '/providers/blockchain-com' },
-      ],
-      sorted: [
-        {
-          sortBy: 'price',
-          ids: ['/providers/blockchain-com', '/providers/transak'],
-        },
-      ],
-      error: [],
-      customActions: [],
-    });
-
-    const response = await result.current.getQuotes({
-      amount: 100,
-      walletAddress: '0x123',
-      assetId: 'eip155:1/slip44:60',
-      providers: ['/providers/blockchain-com', '/providers/transak'],
-    });
-
-    expect(Engine.context.RampsController.getQuotes).toHaveBeenCalledWith(
-      expect.objectContaining({
-        providers: ['/providers/transak'],
-      }),
-    );
-    expect(response).toEqual({
-      success: [{ provider: '/providers/transak' }],
-      sorted: [{ sortBy: 'price', ids: ['/providers/transak'] }],
-      error: [],
-      customActions: [],
-    });
   });
 
   describe('getBuyWidgetData', () => {

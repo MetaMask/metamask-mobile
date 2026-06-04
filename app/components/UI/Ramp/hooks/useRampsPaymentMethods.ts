@@ -13,7 +13,6 @@ import Engine from '../../../../core/Engine';
 import { rampsQueries } from '../queries';
 import { parseUserFacingError } from '../utils/parseUserFacingError';
 import { normalizeAssetIdForApi } from '../utils/normalizeAssetIdForApi';
-import { isBlockedRampProvider } from '../utils/blockedRampProviders';
 
 export type RampsQueryStatus = 'idle' | 'loading' | 'success' | 'error';
 
@@ -67,10 +66,7 @@ export interface UseRampsPaymentMethodsResult {
  */
 export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
   const { selected: selectedPaymentMethod } = useSelector(selectPaymentMethods);
-  const { selected: rawSelectedProvider } = useSelector(selectProviders);
-  const selectedProvider = isBlockedRampProvider(rawSelectedProvider)
-    ? null
-    : rawSelectedProvider;
+  const { selected: selectedProvider } = useSelector(selectProviders);
   const { selected: selectedToken } = useSelector(selectTokens);
   const userRegion = useSelector(selectUserRegion);
 
