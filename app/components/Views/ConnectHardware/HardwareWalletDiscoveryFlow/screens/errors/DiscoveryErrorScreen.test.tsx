@@ -27,7 +27,7 @@ const getButtonTestID = (
 };
 
 const renderScreen = (ui: React.ReactElement) =>
-  renderWithProvider(ui, { includeNavigationContainer: false });
+  renderWithProvider(ui, undefined, false);
 
 describe('DiscoveryErrorScreen', () => {
   describe('variant rendering', () => {
@@ -76,7 +76,10 @@ describe('DiscoveryErrorScreen', () => {
       ({ variant, getTestID }) => {
         const onRetry = jest.fn();
         renderScreen(
-          <DiscoveryErrorScreen variant={variant} onRetry={onRetry} />,
+          <DiscoveryErrorScreen
+            variant={variant as DiscoveryErrorScreenVariant}
+            onRetry={onRetry}
+          />,
         );
 
         fireEvent.press(screen.getByTestId(getTestID()));
@@ -91,10 +94,18 @@ describe('DiscoveryErrorScreen', () => {
       DiscoveryStep.TransportUnavailable,
     ])('renders %s with open-settings button', (variant) => {
       renderScreen(
-        <DiscoveryErrorScreen variant={variant} onNotNow={jest.fn()} />,
+        <DiscoveryErrorScreen
+          variant={variant as DiscoveryErrorScreenVariant}
+          onNotNow={jest.fn()}
+        />,
       );
       expect(
-        screen.getByTestId(getButtonTestID(CONFIG[variant], 'primaryButton')),
+        screen.getByTestId(
+          getButtonTestID(
+            CONFIG[variant as DiscoveryErrorScreenVariant],
+            'primaryButton',
+          ),
+        ),
       ).toBeOnTheScreen();
     });
   });

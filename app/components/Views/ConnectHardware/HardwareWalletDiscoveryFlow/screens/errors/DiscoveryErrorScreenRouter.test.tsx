@@ -33,7 +33,7 @@ const NON_ERROR_STEPS: DiscoveryStep[] = [
 ];
 
 const renderScreen = (ui: React.ReactElement) =>
-  renderWithProvider(ui, { includeNavigationContainer: false });
+  renderWithProvider(ui, undefined, false);
 
 describe('DiscoveryErrorScreenRouter', () => {
   it.each(ERROR_STEP_CASES)(

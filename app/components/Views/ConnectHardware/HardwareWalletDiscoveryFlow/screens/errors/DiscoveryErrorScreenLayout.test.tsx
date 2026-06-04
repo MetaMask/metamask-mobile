@@ -17,9 +17,11 @@ const DEFAULT_IMAGE_TEST_ID = 'discovery-error-image';
 const DEFAULT_RIVE_TEST_ID = 'discovery-error-animation';
 
 const renderLayout = (props: DiscoveryErrorScreenLayoutProps) =>
-  renderWithProvider(<DiscoveryErrorScreenLayout {...props} />, {
-    includeNavigationContainer: false,
-  });
+  renderWithProvider(
+    <DiscoveryErrorScreenLayout {...props} />,
+    undefined,
+    false,
+  );
 
 const BASE_PROPS: DiscoveryErrorScreenLayoutProps = {
   title: 'Title',
