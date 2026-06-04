@@ -1020,18 +1020,39 @@ describe('MoneyHomeView', () => {
       expect(getByTestId(MoneyWhatYouGetTestIds.CONTAINER)).toBeOnTheScreen();
     });
 
-    it.each([['mUSD row Add', MoneyMusdTokenRowTestIds.ADD_BUTTON]])(
-      'opens the Add money sheet from the %s button',
-      (_label, testId) => {
-        const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+    it('initiates a mUSD deposit with the highest-volume crypto preselected from the mUSD row Add button', async () => {
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
-        fireEvent.press(getByTestId(testId));
+      fireEvent.press(getByTestId(MoneyMusdTokenRowTestIds.ADD_BUTTON));
 
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-          screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
-        });
-      },
-    );
+      expect(mockInitiateDeposit).toHaveBeenCalledWith({
+        intent: 'addMusd',
+        preferredPaymentToken: {
+          address: mockDepositTokens[0].address,
+          chainId: mockDepositTokens[0].chainId,
+        },
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+      });
+    });
+
+    it('initiates a fiat mUSD deposit from the mUSD row Add button when there is no crypto balance', async () => {
+      mockUseMoneyDepositTokens.mockReturnValueOnce({
+        tokens: [],
+        isNoFeeToken: jest.fn(() => false),
+        isEligibleToken: jest.fn(() => false),
+        filterAllowedTokens: jest.fn((t) => t),
+      });
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyMusdTokenRowTestIds.ADD_BUTTON));
+
+      expect(mockInitiateDeposit).toHaveBeenCalledWith({
+        intent: 'addMusd',
+        autoSelectFiatPayment: true,
+      });
+    });
 
     it('navigates to Asset details when the mUSD token row is pressed', () => {
       const NavigationService = jest.requireMock(

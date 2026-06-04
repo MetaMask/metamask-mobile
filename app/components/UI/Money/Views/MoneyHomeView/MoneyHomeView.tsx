@@ -45,7 +45,10 @@ import { MoneyBalanceDisplayState } from '../../types';
 import { Hex } from '@metamask/utils';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 import { MONEY_ONBOARDING_TOTAL_STEPS } from '../../components/MoneyOnboardingCard/MoneyOnboardingCard';
-import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
+import {
+  useMoneyAccountDeposit,
+  type InitiateDepositOptions,
+} from '../../hooks/useMoneyAccount';
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 
 type MoneyHomeState = 'empty' | 'milestone' | 'filled';
@@ -170,6 +173,27 @@ const MoneyHomeView = () => {
       screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
     });
   }, [navigation]);
+
+  const handleMusdAddPress = useCallback(async () => {
+    const [topDepositToken] = depositTokens;
+    const options: InitiateDepositOptions = topDepositToken
+      ? {
+          intent: 'addMusd',
+          preferredPaymentToken: {
+            address: topDepositToken.address as Hex,
+            chainId: topDepositToken.chainId as Hex,
+          },
+        }
+      : { intent: 'addMusd', autoSelectFiatPayment: true };
+
+    try {
+      await initiateDeposit(options);
+    } catch (error) {
+      Logger.error(error as Error, {
+        message: '[MoneyHomeView] Failed to initiate mUSD deposit',
+      });
+    }
+  }, [depositTokens, initiateDeposit]);
 
   const handleTransferPress = useCallback(() => {
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
@@ -334,7 +358,7 @@ const MoneyHomeView = () => {
             />
             <MoneyMusdTokenRow
               onPress={handleMusdRowPress}
-              onAddPress={handleAddPress}
+              onAddPress={handleMusdAddPress}
               balance={musdFiatFormatted}
             />
             <Divider />
