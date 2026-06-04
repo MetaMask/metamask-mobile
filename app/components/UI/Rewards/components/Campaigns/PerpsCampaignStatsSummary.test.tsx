@@ -118,6 +118,41 @@ describe('PerpsCampaignStatsSummary', () => {
     expect(pnlCell.props.color).toBe(TextColor.ErrorDefault);
   });
 
+  it('uses default color and near-zero label for a tiny positive pnl', () => {
+    const { getByTestId, getByText } = render(
+      <PerpsCampaignStatsSummary
+        leaderboardPosition={{ ...basePosition, pnl: 0.003 }}
+        leaderboard={mockLeaderboard}
+      />,
+    );
+    const pnlCell = getByTestId(TEST_IDS.PNL);
+    expect(pnlCell.props.color).toBe(TextColor.TextDefault);
+    expect(getByText('< $0.01')).toBeDefined();
+  });
+
+  it('uses default color and near-zero label for a tiny negative pnl', () => {
+    const { getByTestId, getByText } = render(
+      <PerpsCampaignStatsSummary
+        leaderboardPosition={{ ...basePosition, pnl: -0.003 }}
+        leaderboard={mockLeaderboard}
+      />,
+    );
+    const pnlCell = getByTestId(TEST_IDS.PNL);
+    expect(pnlCell.props.color).toBe(TextColor.TextDefault);
+    expect(getByText('> -$0.01')).toBeDefined();
+  });
+
+  it('uses default color for exactly zero pnl', () => {
+    const { getByTestId } = render(
+      <PerpsCampaignStatsSummary
+        leaderboardPosition={{ ...basePosition, pnl: 0 }}
+        leaderboard={mockLeaderboard}
+      />,
+    );
+    const pnlCell = getByTestId(TEST_IDS.PNL);
+    expect(pnlCell.props.color).toBe(TextColor.TextDefault);
+  });
+
   it('renders em dashes when position is null', () => {
     const { getAllByText } = render(
       <PerpsCampaignStatsSummary

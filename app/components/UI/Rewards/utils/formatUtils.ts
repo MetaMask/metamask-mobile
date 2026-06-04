@@ -416,6 +416,33 @@ export const formatSignedUsd = (value: string | number | null): string => {
   return `${sign}${formatUsd(value)}`;
 };
 
+// Values whose absolute amount is below this threshold round to $0.00 at 2dp.
+const PNL_NEAR_ZERO_THRESHOLD = 0.005;
+
+/**
+ * Returns true when a PnL value is too small to display as a non-zero dollar
+ * amount at 2 decimal places (i.e. |pnl| < $0.005).
+ */
+export const isPnlNearZero = (pnl: number): boolean =>
+  Math.abs(pnl) < PNL_NEAR_ZERO_THRESHOLD;
+
+/**
+ * Formats a PnL number for display.  Very small non-zero values that would
+ * round to "$0.00" are shown as "< $0.01" / "> -$0.01" instead of misleading
+ * zeroes.  Exactly-zero values are formatted normally via formatSignedUsd.
+ *
+ * @example formatPnlDisplay(0.003)   // '< $0.01'
+ * @example formatPnlDisplay(-0.003)  // '> -$0.01'
+ * @example formatPnlDisplay(0)       // '$0.00'
+ * @example formatPnlDisplay(5000)    // '+$5,000.00'
+ */
+export const formatPnlDisplay = (pnl: number): string => {
+  if (pnl !== 0 && isPnlNearZero(pnl)) {
+    return pnl > 0 ? '< $0.01' : '> -$0.01';
+  }
+  return formatSignedUsd(pnl);
+};
+
 // ── Percent / rate formatting ───────────────────────────────────────────
 
 /**

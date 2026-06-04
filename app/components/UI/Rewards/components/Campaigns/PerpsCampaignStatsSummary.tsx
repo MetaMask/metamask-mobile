@@ -18,7 +18,11 @@ import type {
   PerpsTradingCampaignLeaderboardPositionDto,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../../locales/i18n';
-import { formatSignedUsd, formatUsd } from '../../utils/formatUtils';
+import {
+  formatPnlDisplay,
+  formatUsd,
+  isPnlNearZero,
+} from '../../utils/formatUtils';
 import { PERPS_QUALIFICATION_NOTIONAL_USD } from '../../utils/perpsCampaignConstants';
 import { PendingTag, StatCell } from './OndoCampaignStatsSummary';
 import { CampaignOutcomeBanner } from './CampaignOutcomeBanners';
@@ -72,11 +76,11 @@ const PerpsCampaignStatsSummary: React.FC<PerpsCampaignStatsSummaryProps> = ({
 
   const rankDisplay = rank != null ? String(rank).padStart(2, '0') : '—';
 
-  const pnlDisplay = pnl != null ? formatSignedUsd(pnl) : '—';
+  const pnlDisplay = pnl != null ? formatPnlDisplay(pnl) : '—';
 
   const pnlColor =
-    pnl != null
-      ? pnl >= 0
+    pnl != null && !isPnlNearZero(pnl)
+      ? pnl > 0
         ? TextColor.SuccessDefault
         : TextColor.ErrorDefault
       : TextColor.TextDefault;

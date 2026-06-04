@@ -10,7 +10,7 @@ import {
 import type { PerpsTradingCampaignLeaderboardEntry } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../../locales/i18n';
 import RewardsErrorBanner from '../RewardsErrorBanner';
-import { formatSignedUsd } from '../../utils/formatUtils';
+import { formatPnlDisplay, isPnlNearZero } from '../../utils/formatUtils';
 import {
   CampaignLeaderboardEntryRow,
   CampaignLeaderboardNeighborSeparator,
@@ -201,8 +201,10 @@ const PerpsTradingCampaignLeaderboard: React.FC<
             isCurrentUser={isCurrentUser(entry)}
             showCrown={!isPreview && entry.rank <= PERPS_TRADING_MAX_WINNERS}
             isCampaignComplete={isCampaignComplete}
-            formatPrimaryMetric={(e) => formatSignedUsd(e.pnl)}
-            isPositivePrimaryMetric={(e) => e.pnl >= 0}
+            formatPrimaryMetric={(e) => formatPnlDisplay(e.pnl)}
+            isPositivePrimaryMetric={(e) =>
+              isPnlNearZero(e.pnl) ? null : e.pnl > 0
+            }
           />
         ))}
         {showSplitView && userPosition && (
@@ -217,8 +219,10 @@ const PerpsTradingCampaignLeaderboard: React.FC<
                   !isPreview && entry.rank <= PERPS_TRADING_MAX_WINNERS
                 }
                 isCampaignComplete={isCampaignComplete}
-                formatPrimaryMetric={(e) => formatSignedUsd(e.pnl)}
-                isPositivePrimaryMetric={(e) => e.pnl >= 0}
+                formatPrimaryMetric={(e) => formatPnlDisplay(e.pnl)}
+                isPositivePrimaryMetric={(e) =>
+                  isPnlNearZero(e.pnl) ? null : e.pnl > 0
+                }
               />
             ))}
           </>

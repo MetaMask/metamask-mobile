@@ -23,7 +23,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 jest.mock('../../utils/formatUtils', () => ({
-  formatSignedUsd: (value: number) => `$${value.toFixed(2)}`,
+  formatPnlDisplay: (value: number) => `$${value.toFixed(2)}`,
+  isPnlNearZero: (value: number) => Math.abs(value) < 0.005,
 }));
 
 jest.mock('../RewardsErrorBanner', () => {

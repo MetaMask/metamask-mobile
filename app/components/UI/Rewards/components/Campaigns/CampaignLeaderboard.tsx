@@ -38,7 +38,8 @@ export interface CampaignLeaderboardEntryRowProps<
   /** When true, hides the pending tag for the current user’s row (campaign ended). */
   isCampaignComplete?: boolean;
   formatPrimaryMetric: (entry: T) => string;
-  isPositivePrimaryMetric: (entry: T) => boolean;
+  /** Return true for positive, false for negative, null for neutral (no colour). */
+  isPositivePrimaryMetric: (entry: T) => boolean | null;
 }
 
 export function CampaignLeaderboardEntryRow<
@@ -53,17 +54,21 @@ export function CampaignLeaderboardEntryRow<
 }: CampaignLeaderboardEntryRowProps<T>) {
   const isPositive = isPositivePrimaryMetric(entry);
   const textColor = isCurrentUser
-    ? isPositive
+    ? isPositive === true
       ? TextColor.SuccessDefault
-      : TextColor.ErrorDefault
+      : isPositive === false
+        ? TextColor.ErrorDefault
+        : TextColor.TextDefault
     : TextColor.TextDefault;
   const isPending = !entry.qualified;
   const rowBg = isCurrentUser
     ? isPending
       ? 'bg-muted'
-      : isPositive
+      : isPositive === true
         ? 'bg-success-muted'
-        : 'bg-error-muted'
+        : isPositive === false
+          ? 'bg-error-muted'
+          : 'bg-muted'
     : '';
 
   const showPendingTag = isCurrentUser && isPending && !isCampaignComplete;
