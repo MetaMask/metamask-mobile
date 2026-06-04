@@ -8,6 +8,7 @@ import { mockTheme } from '../../../../../util/theme';
 import { useDiscoveryScrollManager } from '../../../Predict/hooks/useDiscoveryScrollManager';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
+import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
 
 // Mock useDiscoveryScrollManager
 const mockPerpsOnTabEnter = jest.fn();
@@ -480,6 +481,9 @@ jest.mock(
 const mockUsePerpsHomeData = jest.requireMock('../../hooks')
   .usePerpsHomeData as jest.Mock;
 
+const mockUsePerpsLiveAccount = jest.requireMock('../../hooks/stream')
+  .usePerpsLiveAccount as jest.Mock;
+
 describe('PerpsHomeView', () => {
   const mockDefaultData = {
     positions: [],
@@ -505,6 +509,16 @@ describe('PerpsHomeView', () => {
     mockNavigateToMarketList.mockClear();
     mockRouteParams = { source: 'main_action_button' };
     mockUsePerpsHomeData.mockReturnValue(mockDefaultData);
+    mockUsePerpsLiveAccount.mockReturnValue({
+      account: {
+        totalBalance: '0',
+        spendableBalance: '0',
+        withdrawableBalance: '0',
+        unrealizedPnl: '0',
+        returnOnEquity: '0',
+      },
+      isInitialLoading: false,
+    });
   });
 
   it('renders without crashing', () => {
@@ -873,6 +887,66 @@ describe('PerpsHomeView', () => {
           title: 'perps.feedback.title',
         },
       });
+    });
+  });
+
+  describe('fixed footer', () => {
+    let originalShowHeaderActionButtons: boolean;
+
+    beforeEach(() => {
+      originalShowHeaderActionButtons =
+        HOME_SCREEN_CONFIG.ShowHeaderActionButtons;
+      Object.assign(HOME_SCREEN_CONFIG, { ShowHeaderActionButtons: false });
+    });
+
+    afterEach(() => {
+      Object.assign(HOME_SCREEN_CONFIG, {
+        ShowHeaderActionButtons: originalShowHeaderActionButtons,
+      });
+    });
+
+    it('hides fixed footer when balance is a loading sentinel', () => {
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          totalBalance: '--',
+          spendableBalance: '--',
+          withdrawableBalance: '--',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+        },
+        isInitialLoading: false,
+      });
+
+      const { queryByTestId } = render(<PerpsHomeView />);
+
+      expect(
+        queryByTestId(PerpsHomeViewSelectorsIDs.WITHDRAW_BUTTON),
+      ).toBeNull();
+      expect(
+        queryByTestId(PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON),
+      ).toBeNull();
+    });
+
+    it('shows fixed footer when balance is funded', () => {
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          totalBalance: '100',
+          spendableBalance: '100',
+          withdrawableBalance: '100',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+        },
+        isInitialLoading: false,
+      });
+
+      const { getByTestId } = render(<PerpsHomeView />);
+
+      expect(
+        getByTestId(PerpsHomeViewSelectorsIDs.WITHDRAW_BUTTON),
+      ).toBeTruthy();
+      expect(
+        getByTestId(PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON),
+      ).toBeTruthy();
     });
   });
 
