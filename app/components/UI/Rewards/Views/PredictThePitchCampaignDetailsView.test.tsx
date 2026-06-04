@@ -286,6 +286,8 @@ const renderDetails = ({
     positions: {
       computedAt: null,
       positions: Array.from({ length: positionCount }, (_, index) => ({
+        outcomeAssetId: `token-${index}`,
+        outcomeAsset: 'Yes',
         conditionId: `condition-${index}`,
         conditionName: `Position ${index}`,
         conditionSlug: null,
@@ -295,6 +297,12 @@ const renderDetails = ({
         capitalDeployed: 10,
         pnl: 1,
         roi: 0.1,
+        status: 'open' as const,
+        fillShares: 5,
+        fillSharesBought: 5,
+        fillSharesSold: 0,
+        fillPrice: 2,
+        fillDate: '2025-01-01T00:00:00.000Z',
       })),
     },
     isLoading: false,

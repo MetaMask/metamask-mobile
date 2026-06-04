@@ -1224,9 +1224,33 @@ export type PredictThePitchLeaderboardPositionState =
   | PredictThePitchLeaderboardPositionFoundState
   | PredictThePitchLeaderboardPositionNotFoundState;
 
+/**
+ * Single cached position (mirrors {@link PredictThePitchPositionDto}; explicit plain-object shape for cache / Json).
+ */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type PredictThePitchPositionState = PredictThePitchPositionDto;
+export type PredictThePitchPositionState = {
+  outcomeAssetId: string;
+  outcomeAsset: string | null;
+  conditionId: string;
+  conditionSlug: string | null;
+  conditionName: string;
+  eventId: string | null;
+  eventSlug: string | null;
+  iconUrl: string | null;
+  capitalDeployed: number;
+  pnl: number;
+  roi: number;
+  status: 'open' | 'sold' | 'resolved';
+  fillShares: number;
+  fillSharesBought: number;
+  fillSharesSold: number;
+  fillPrice: number;
+  fillDate: string;
+};
 
+/**
+ * Cached positions payload (explicit shape for Json / StateConstraint compatibility).
+ */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictThePitchPositionsState = {
   positions: PredictThePitchPositionState[];
