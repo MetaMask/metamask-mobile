@@ -7879,16 +7879,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controller@npm:^8.1.0, @metamask/assets-controller@npm:^8.2.0":
-  version: 8.2.0
-  resolution: "@metamask/assets-controller@npm:8.2.0"
+"@metamask/assets-controller@npm:^8.1.0, @metamask/assets-controller@npm:^8.2.0, @metamask/assets-controller@npm:^8.3.1":
+  version: 8.3.1
+  resolution: "@metamask/assets-controller@npm:8.3.1"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/providers": "npm:^5.7.0"
     "@metamask/account-tree-controller": "npm:^7.5.0"
     "@metamask/accounts-controller": "npm:^38.1.2"
-    "@metamask/assets-controllers": "npm:^108.3.0"
+    "@metamask/assets-controllers": "npm:^108.4.0"
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/client-controller": "npm:^1.0.1"
     "@metamask/controller-utils": "npm:^12.1.0"
@@ -7912,13 +7912,13 @@ __metadata:
     bignumber.js: "npm:^9.1.2"
     lodash: "npm:^4.17.21"
     p-limit: "npm:^3.1.0"
-  checksum: 10/f10efa10eb986321fc291f679a6fd2458054c317be9c3a23574121c0a84ca36fd9945417b545743a1f9cb693893f713c429f322c226883c3d156b42a7e4a1004
+  checksum: 10/c2f327294320bb73260b1e9f64c2860bff6d549c17dc92e35f036f555f65ae10bcb6bbdcc08fd84cb8a69e503a2f15b4c4ca865bcc6fce4d909c94a82b18199f
   languageName: node
   linkType: hard
 
-"@metamask/assets-controllers@npm:^108.2.0, @metamask/assets-controllers@npm:^108.3.0":
-  version: 108.3.0
-  resolution: "@metamask/assets-controllers@npm:108.3.0"
+"@metamask/assets-controllers@npm:^108.2.0, @metamask/assets-controllers@npm:^108.3.0, @metamask/assets-controllers@npm:^108.4.0":
+  version: 108.4.0
+  resolution: "@metamask/assets-controllers@npm:108.4.0"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
     "@ethersproject/abi": "npm:^5.7.0"
@@ -7969,7 +7969,7 @@ __metadata:
   peerDependencies:
     "@metamask/providers": ^22.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/13bbd5c023577b4f5c4f587fcafc8a2d42f49c204a10bd85444ae5de2d1015d409042195f4d576c6c37d443b67c7268ec553337cda5c475571e0def4b81486d1
+  checksum: 10/d43d8690c1aca32270d749d687f44aa97cc92c509f62ed387e065852d21a2fe4eea33dd3a2c0029a9776619316511e055d285e9d0d8f33cea3f3a4cb06440538
   languageName: node
   linkType: hard
 
@@ -32118,6 +32118,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ip-regex@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "ip-regex@npm:5.0.0"
+  checksum: 10/4098b2df89c015f1484a5946e733ec126af8c1828719d90e09f04af23ce487e1a852670e4d3f51b0dc6dfbaf7d8bfab23fd7893ca60e69833da99b7b1ee3623b
+  languageName: node
+  linkType: hard
+
 "ipaddr.js@npm:1.9.1":
   version: 1.9.1
   resolution: "ipaddr.js@npm:1.9.1"
@@ -35339,7 +35346,7 @@ __metadata:
     "@metamask/analytics-controller": "npm:^1.0.0"
     "@metamask/app-metadata-controller": "npm:^2.0.0"
     "@metamask/approval-controller": "npm:^9.0.0"
-    "@metamask/assets-controller": "npm:^8.2.0"
+    "@metamask/assets-controller": "npm:^8.3.1"
     "@metamask/assets-controllers": "npm:^108.3.0"
     "@metamask/authenticated-user-storage": "npm:^2.0.0"
     "@metamask/auto-changelog": "npm:^5.3.0"
@@ -35642,6 +35649,7 @@ __metadata:
     https-browserify: "npm:0.0.1"
     humanize-duration: "npm:^3.27.2"
     husky: "npm:^9.1.7"
+    ip-regex: "npm:^5.0.0"
     is-url: "npm:^1.2.4"
     jest: "npm:^29.7.0"
     jest-junit: "npm:^15.0.0"
@@ -35672,6 +35680,7 @@ __metadata:
     prettier-2: "npm:prettier@^2.8.8"
     prompts: "npm:^2.4.2"
     prop-types: "npm:15.7.2"
+    psl: "npm:^1.15.0"
     pump: "npm:3.0.0"
     punycode: "npm:^2.1.1"
     qs: "npm:6.15.2"
@@ -39574,6 +39583,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"psl@npm:^1.15.0":
+  version: 1.15.0
+  resolution: "psl@npm:1.15.0"
+  dependencies:
+    punycode: "npm:^2.3.1"
+  checksum: 10/5e7467eb5196eb7900d156783d12907d445c0122f76c73203ce96b148a6ccf8c5450cc805887ffada38ff92d634afcf33720c24053cb01d5b6598d1c913c5caf
+  languageName: node
+  linkType: hard
+
 "public-encrypt@npm:^4.0.0, public-encrypt@npm:^4.0.3":
   version: 4.0.3
   resolution: "public-encrypt@npm:4.0.3"
@@ -39619,7 +39637,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"punycode@npm:^2.1.0, punycode@npm:^2.1.1":
+"punycode@npm:^2.1.0, punycode@npm:^2.1.1, punycode@npm:^2.3.1":
   version: 2.3.1
   resolution: "punycode@npm:2.3.1"
   checksum: 10/febdc4362bead22f9e2608ff0171713230b57aff9dddc1c273aa2a651fbd366f94b7d6a71d78342a7c0819906750351ca7f2edd26ea41b626d87d6a13d1bd059

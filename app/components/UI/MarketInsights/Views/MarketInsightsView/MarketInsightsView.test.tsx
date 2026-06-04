@@ -242,23 +242,50 @@ jest.mock('../../../TokenDetails/components/TokenDetailsStickyFooter', () => {
     default: ({
       onSwapPress,
       onBuyPress,
+      onQuickBuyPress,
       swapTestID,
       buyTestID,
+      quickBuyTestID,
     }: {
       onSwapPress?: () => void;
       onBuyPress?: () => void;
+      onQuickBuyPress?: () => void;
       swapTestID?: string;
       buyTestID?: string;
+      quickBuyTestID?: string;
     }) => (
       <MockView testID="token-details-sticky-footer">
         {swapTestID && (
           <MockPressable testID={swapTestID} onPress={onSwapPress} />
         )}
         {buyTestID && <MockPressable testID={buyTestID} onPress={onBuyPress} />}
+        {onQuickBuyPress && quickBuyTestID && (
+          <MockPressable testID={quickBuyTestID} onPress={onQuickBuyPress} />
+        )}
       </MockView>
     ),
   };
 });
+
+const mockAssetDetailsQuickBuy = jest.fn((_props: unknown) => null);
+jest.mock('../../../TokenDetails/components/AssetDetailsQuickBuy', () => ({
+  __esModule: true,
+  default: (props: unknown) => mockAssetDetailsQuickBuy(props),
+}));
+
+let mockIsQuickBuyEnabled = false;
+jest.mock(
+  '../../../../../selectors/featureFlagController/socialAiAssetDetailsQuickBuy',
+  () => ({
+    selectSocialAiAssetDetailsQuickBuyEnabled: () => mockIsQuickBuyEnabled,
+  }),
+);
+
+const mockPlayImpact = jest.fn();
+jest.mock('../../../../../util/haptics', () => ({
+  playImpact: (...args: unknown[]) => mockPlayImpact(...args),
+  ImpactMoment: { PrimaryCTA: 'PrimaryCTA' },
+}));
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -292,6 +319,7 @@ describe('MarketInsightsView', () => {
     jest.clearAllMocks();
     resetFeedbackCache();
     mockIsEligible = true;
+    mockIsQuickBuyEnabled = false;
     mockRouteParams = {
       assetSymbol: 'ETH',
       assetIdentifier: 'eip155:1/erc20:0x123',
@@ -898,6 +926,76 @@ describe('MarketInsightsView', () => {
     expect(queryByTestId(MarketInsightsSelectorsIDs.LONG_BUTTON)).toBeNull();
     expect(queryByTestId(MarketInsightsSelectorsIDs.SHORT_BUTTON)).toBeNull();
     expect(getByTestId('token-details-sticky-footer')).toBeOnTheScreen();
+  });
+
+  it('does not render the quick buy button or mount AssetDetailsQuickBuy when the flag is disabled', () => {
+    mockIsQuickBuyEnabled = false;
+    mockUseMarketInsights.mockReturnValue({
+      report: buildMockReport(),
+      isLoading: false,
+      error: null,
+      timeAgo: '1m ago',
+    });
+
+    const { queryByTestId } = renderWithProvider(<MarketInsightsView />);
+
+    expect(
+      queryByTestId(MarketInsightsSelectorsIDs.QUICK_BUY_BUTTON),
+    ).toBeNull();
+    expect(mockAssetDetailsQuickBuy).not.toHaveBeenCalled();
+  });
+
+  it('renders the quick buy button and mounts AssetDetailsQuickBuy hidden when the flag is enabled', () => {
+    mockIsQuickBuyEnabled = true;
+    mockUseMarketInsights.mockReturnValue({
+      report: buildMockReport(),
+      isLoading: false,
+      error: null,
+      timeAgo: '1m ago',
+    });
+
+    const { getByTestId } = renderWithProvider(<MarketInsightsView />);
+
+    expect(
+      getByTestId(MarketInsightsSelectorsIDs.QUICK_BUY_BUTTON),
+    ).toBeOnTheScreen();
+    expect(mockAssetDetailsQuickBuy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isVisible: false,
+        source: 'market_insights',
+        token: expect.objectContaining({ address: '0x123', symbol: 'ETH' }),
+      }),
+    );
+  });
+
+  it('opens AssetDetailsQuickBuy and tracks a quick_buy interaction when the quick buy button is pressed', async () => {
+    mockIsQuickBuyEnabled = true;
+    mockUseMarketInsights.mockReturnValue({
+      report: buildMockReport({ digestId: 'digest-123' }),
+      isLoading: false,
+      error: null,
+      timeAgo: '1m ago',
+    });
+
+    const { getByTestId } = renderWithProvider(<MarketInsightsView />);
+
+    await act(async () => {
+      fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.QUICK_BUY_BUTTON));
+    });
+
+    expect(mockPlayImpact).toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
+        properties: expect.objectContaining({
+          interaction_type: 'quick_buy',
+          source: 'unknown',
+        }),
+      }),
+    );
+    expect(mockAssetDetailsQuickBuy).toHaveBeenLastCalledWith(
+      expect.objectContaining({ isVisible: true, source: 'market_insights' }),
+    );
   });
 
   it('sends perps_market analytics property (not caip19) in perps context', async () => {

@@ -139,6 +139,9 @@ const PerpsMarketListView = ({
       const categoryMap: Record<string, string | null> = {
         crypto: PERPS_EVENT_VALUE.BUTTON_CLICKED.CRYPTO,
         stocks: PERPS_EVENT_VALUE.BUTTON_CLICKED.STOCKS,
+        'pre-ipo': 'pre-ipo',
+        indices: 'indices',
+        etfs: 'etfs',
         commodities: PERPS_EVENT_VALUE.BUTTON_CLICKED.COMMODITIES,
         forex: PERPS_EVENT_VALUE.BUTTON_CLICKED.FOREX,
         new: PERPS_EVENT_VALUE.BUTTON_CLICKED.NEW,
