@@ -11,6 +11,11 @@ jest.mock('react-redux', () => ({
   useSelector: (selector: () => unknown) => selector(),
 }));
 
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
+
 jest.mock('../../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: () => 'usd',
   selectCurrencyRates: () => ({
@@ -34,7 +39,16 @@ const card: CardTransaction = {
     decimals: 6,
   },
   amount: '5381986',
+  to: '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e' as Hex,
 };
+
+interface CapturedRowProps {
+  id: string;
+  isFailed: boolean;
+  chainId: string;
+  onPress?: (id: string) => void;
+  display: { icon: IconName; primaryAmount: string; fiatAmount: string };
+}
 
 describe('CardActivityItem', () => {
   beforeEach(() => jest.clearAllMocks());
@@ -45,17 +59,27 @@ describe('CardActivityItem', () => {
 
     // Assert
     expect(mockRowView).toHaveBeenCalledTimes(1);
-    const props = mockRowView.mock.calls[0][0] as unknown as {
-      id: string;
-      isFailed: boolean;
-      chainId: string;
-      display: { icon: IconName; primaryAmount: string; fiatAmount: string };
-    };
+    const props = mockRowView.mock.calls[0][0] as unknown as CapturedRowProps;
     expect(props.id).toBe(card.hash);
     expect(props.isFailed).toBe(false);
     expect(props.chainId).toBe('0x8f');
     expect(props.display.icon).toBe(IconName.Card);
     expect(props.display.primaryAmount).toBe('-5.38 USDC');
     expect(props.display.fiatAmount).toContain('5.38');
+  });
+
+  it('navigates to the card details sheet with the card param on press', () => {
+    // Arrange
+    render(<CardActivityItem card={card} />);
+    const props = mockRowView.mock.calls[0][0] as unknown as CapturedRowProps;
+
+    // Act
+    props.onPress?.(card.hash);
+
+    // Assert
+    expect(mockNavigate).toHaveBeenCalledWith('MoneyModals', {
+      screen: 'MoneyCardTransactionDetailsSheet',
+      params: { card },
+    });
   });
 });

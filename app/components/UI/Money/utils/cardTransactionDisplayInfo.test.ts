@@ -13,6 +13,7 @@ const card: CardTransaction = {
     decimals: 6,
   },
   amount: '5381986', // 5.381986 USDC
+  to: '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e' as Hex,
 };
 
 describe('cardTransactionDisplayInfo', () => {

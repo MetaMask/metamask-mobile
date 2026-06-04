@@ -36,6 +36,7 @@ const card: CardTransaction = {
   chainId: '0x8f',
   token: { address: '0x0' as Hex, symbol: 'USDC', decimals: 6 },
   amount: '1000000',
+  to: '0xbaanx' as Hex,
 };
 
 describe('MoneyActivityRow', () => {

@@ -27,6 +27,8 @@ export interface CardTransaction {
   };
   /** Raw, minimal-unit amount of the settlement transfer. */
   amount: string;
+  /** Settlement recipient (Baanx). Shown as "Paid to" in the detail sheet. */
+  to: Hex;
   /** Future Baanx enrichment (vendor / category). Always absent in the MVP. */
   enrichment?: never;
 }

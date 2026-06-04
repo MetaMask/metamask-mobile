@@ -123,6 +123,7 @@ export function parseCardTransactions(
             decimals: transfer.decimal,
           },
           amount: transfer.amount,
+          to: transfer.to as Hex,
         },
       ];
     });

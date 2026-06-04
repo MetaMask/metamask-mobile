@@ -63,6 +63,7 @@ describe('parseCardTransactions', () => {
           decimals: 6,
         },
         amount: '5381986',
+        to: SETTLEMENT_ADDRESS.toLowerCase(),
       },
     ]);
   });
