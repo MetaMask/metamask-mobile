@@ -22,6 +22,7 @@ jest.mock('../../hooks/useCardPostAuthRedirect', () => ({
 // Mocks
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockAddListener = jest.fn(() => jest.fn());
 const mockTrackEvent = jest.fn();
 const mockBuild = jest.fn();
 const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
@@ -31,12 +32,21 @@ const mockCreateEventBuilder = jest.fn(() => ({
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const ReactActual = require('react');
   return {
     ...actual,
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
+      addListener: mockAddListener,
     }),
+    useFocusEffect: (callback: () => void | (() => void)) => {
+      ReactActual.useEffect(() => {
+        const cleanup = callback();
+        return typeof cleanup === 'function' ? cleanup : undefined;
+      }, [callback]);
+    },
   };
 });
 
@@ -95,6 +105,7 @@ describe('CardWelcome', () => {
     mockUseCardPostAuthRedirect.mockReturnValue(undefined);
     mockNavigate.mockClear();
     mockGoBack.mockClear();
+    mockAddListener.mockClear();
     mockTrackEvent.mockClear();
     mockCreateEventBuilder.mockClear();
   });
