@@ -67,6 +67,7 @@ const NOOP = () => undefined;
 const DEFAULT_CRYPTO_ACCENT_COLOR = 'rgb(245, 158, 11)';
 const CRYPTO_SYMBOL_TO_ACCENT_COLOR: Record<string, string> = {
   BTC: 'rgb(247, 147, 26)',
+  ETH: 'rgb(94, 109, 183)', // #5E6DB7
 };
 
 const splitCurrency = (
