@@ -17,7 +17,7 @@ import {
 import Routes from '../../../../../app/constants/navigation/Routes';
 import { selectPerformanceMetrics } from '../../../../core/redux/slices/performance';
 import { useDispatch, useSelector } from 'react-redux';
-import { isTest } from '../../../../util/test/utils';
+import { isTestEnvironment } from '../../../../util/test/utils';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import Share from 'react-native-share';
 import {
@@ -197,7 +197,7 @@ const ExperimentalSettings = ({ navigation }: Props) => {
       <ScrollView style={styles.content}>
         {renderWalletConnectSettings()}
         {canShowDaimoDemoToggle && renderDaimoDemoSettings()}
-        {isTest && renderPerformanceSettings()}
+        {isTestEnvironment && renderPerformanceSettings()}
       </ScrollView>
     </SafeAreaView>
   );

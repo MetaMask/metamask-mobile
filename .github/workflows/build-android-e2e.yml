@@ -489,7 +489,7 @@ jobs:
           PLATFORM: android
           METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
           METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
-          IS_TEST: true
+          HAS_TEST_OVERRIDES: true
           E2E: 'true'
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: 'true'
@@ -559,7 +559,7 @@ jobs:
           PLATFORM: android
           METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
           METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
-          IS_TEST: true
+          HAS_TEST_OVERRIDES: true
           E2E: 'true'
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: 'true'

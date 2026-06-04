@@ -12,7 +12,6 @@ import type { UsePredictionsFeedResult } from './usePredictionsFeed';
 interface UseWorldCupPredictionsFeedOptions {
   enabled?: boolean;
   refresh?: RefreshConfig;
-  pageSize?: number;
 }
 
 export interface UseWorldCupPredictionsFeedResult
@@ -23,7 +22,6 @@ export interface UseWorldCupPredictionsFeedResult
 export const useWorldCupPredictionsFeed = ({
   enabled = true,
   refresh,
-  pageSize = 6,
 }: UseWorldCupPredictionsFeedOptions = {}): UseWorldCupPredictionsFeedResult => {
   const config = useSelector(selectPredictWorldCupConfig);
   const isScreenEnabled = useSelector(selectPredictWorldCupScreenEnabledFlag);
@@ -33,7 +31,6 @@ export const useWorldCupPredictionsFeed = ({
     tabKey: PREDICT_WORLD_CUP_TAB_KEYS.ALL,
     config,
     enabled: isEnabled,
-    pageSize,
   });
 
   useFeedRefresh(isEnabled ? refresh : undefined, worldCupMarkets.refetch);

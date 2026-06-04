@@ -128,7 +128,6 @@ export const useMoneyAccountCardLinkage =
     const isMonadSponsorshipEnabled = useSelector(
       getGasFeesSponsoredNetworkEnabled,
     )(vaultConfig?.chainId ?? '');
-    const is7702Ready = useIsMoneyAccount7702Ready();
 
     const [status, setStatus] = useState<LinkageStatus>('idle');
     const [error, setError] = useState<Error | null>(null);
@@ -148,8 +147,7 @@ export const useMoneyAccountCardLinkage =
       hasRequirements &&
         isCardAuthenticated &&
         moneyAccountCardToken &&
-        isMonadSponsorshipEnabled &&
-        is7702Ready === true,
+        isMonadSponsorshipEnabled,
     );
     const canLink = Boolean(canSubmitDelegation && !isAlreadyDelegated);
 
