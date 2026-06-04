@@ -72,7 +72,7 @@ export const ShareAddressQR = () => {
   }, [address, toBlockExplorer]);
 
   return (
-    <BottomSheet ref={sheetRef}>
+    <BottomSheet ref={sheetRef} goBack={handleOnBack}>
       <BottomSheetHeader
         onClose={handleOnBack}
         closeButtonProps={{ testID: ShareAddressQRIds.GO_BACK }}
