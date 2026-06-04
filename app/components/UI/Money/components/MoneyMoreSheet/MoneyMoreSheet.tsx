@@ -27,7 +27,6 @@ import {
   BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
   MONEY_URLS,
-  REDIRECT_TARGETS_TYPES,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 
@@ -62,7 +61,6 @@ const MoneyMoreSheet = () => {
     trackSurfaceClicked({
       component_name: COMPONENT_NAMES.MONEY_MORE_SHEET_HOW_IT_WORKS,
       redirect_target: SCREEN_NAMES.MONEY_HOW_IT_WORKS,
-      redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
     });
 
     closeAndNavigate(() => {
@@ -73,7 +71,6 @@ const MoneyMoreSheet = () => {
   const handleWhatYouGet = useCallback(() => {
     trackSurfaceClicked({
       component_name: COMPONENT_NAMES.MONEY_MORE_SHEET_WHAT_YOU_GET,
-      redirect_target_type: REDIRECT_TARGETS_TYPES.EXTERNAL_BROWSER,
       redirect_target: MONEY_URLS.MUSD_LEARN_MORE,
     });
 
@@ -85,7 +82,6 @@ const MoneyMoreSheet = () => {
   const handleContactSupport = useCallback(() => {
     trackSurfaceClicked({
       component_name: COMPONENT_NAMES.MONEY_MORE_SHEET_CONTACT_SUPPORT,
-      redirect_target_type: REDIRECT_TARGETS_TYPES.EXTERNAL_BROWSER,
       redirect_target: MONEY_URLS.METAMASK_SUPPORT,
     });
 

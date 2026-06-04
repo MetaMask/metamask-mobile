@@ -59,7 +59,6 @@ import {
   COMPONENT_NAMES,
   MONEY_TOOLTIP_NAMES,
   MONEY_TOOLTIP_TYPES,
-  REDIRECT_TARGETS_TYPES,
   SCREEN_NAMES,
   BOTTOM_SHEET_NAMES,
   MONEY_BUTTON_INTENTS,
@@ -210,7 +209,6 @@ const MoneyHomeView = () => {
       button_type: MONEY_BUTTON_TYPES.ICON,
       button_intent: MONEY_BUTTON_INTENTS.OPEN_MORE_MENU,
       component_name: COMPONENT_NAMES.MONEY_MORE,
-      redirect_target_type: REDIRECT_TARGETS_TYPES.BOTTOM_SHEET,
       redirect_target: BOTTOM_SHEET_NAMES.MONEY_MORE_SHEET,
     });
 
@@ -241,7 +239,6 @@ const MoneyHomeView = () => {
         label_localized: labelLocalized,
         label_en: labelEn,
         component_name: componentName,
-        redirect_target_type: REDIRECT_TARGETS_TYPES.BOTTOM_SHEET,
         redirect_target: BOTTOM_SHEET_NAMES.MONEY_ADD_MONEY_SHEET,
         ...(buttonPosition && { button_position: buttonPosition }),
         ...(buttonRowButtonCount && {
@@ -262,7 +259,6 @@ const MoneyHomeView = () => {
       button_intent: MONEY_BUTTON_INTENTS.TRANSFER_MONEY,
       label_localized: strings('money.action.transfer'),
       label_en: strings('money.action.transfer', { locale: 'en' }),
-      redirect_target_type: REDIRECT_TARGETS_TYPES.BOTTOM_SHEET,
       redirect_target: BOTTOM_SHEET_NAMES.MONEY_TRANSFER_MONEY_SHEET,
       component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
       button_position: 2,
@@ -277,7 +273,6 @@ const MoneyHomeView = () => {
   const handleCardHeaderPress = useCallback(() => {
     trackSurfaceClicked({
       component_name: COMPONENT_NAMES.MONEY_CARD_SECTION_HEADER,
-      redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
       redirect_target: SCREEN_NAMES.CARD_HOME,
     });
 
@@ -338,7 +333,6 @@ const MoneyHomeView = () => {
     ({ componentName }: { componentName: COMPONENT_NAMES }) => {
       trackSurfaceClicked({
         component_name: componentName,
-        redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
         redirect_target: SCREEN_NAMES.ASSET_OVERVIEW,
       });
 
@@ -362,7 +356,6 @@ const MoneyHomeView = () => {
           label_en: strings('money.potential_earnings.add', {
             locale: 'en',
           }),
-          redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
           redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
           token_symbol: token.symbol,
           token_position_in_list: tokenIndex + 1,
@@ -392,7 +385,6 @@ const MoneyHomeView = () => {
         trackTokenSurfaceClicked({
           component_name:
             COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION_TOKEN_ROW,
-          redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
           redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
           token_symbol: token.symbol,
           token_position_in_list: tokenIndex + 1,
@@ -419,7 +411,6 @@ const MoneyHomeView = () => {
   const handlePotentialEarningsHeaderPress = useCallback(() => {
     trackSurfaceClicked({
       component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_SECTION_HEADER,
-      redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
       redirect_target: SCREEN_NAMES.MONEY_POTENTIAL_EARNINGS,
     });
 
@@ -435,7 +426,6 @@ const MoneyHomeView = () => {
       label_en: strings('money.potential_earnings.view_all', {
         locale: 'en',
       }),
-      redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
       redirect_target: SCREEN_NAMES.MONEY_POTENTIAL_EARNINGS,
     });
 
@@ -445,7 +435,6 @@ const MoneyHomeView = () => {
   const handleWhatYouGetPress = useCallback(() => {
     trackSurfaceClicked({
       component_name: COMPONENT_NAMES.MONEY_CONDENSED_INFO_CARDS_WHAT_YOU_GET,
-      redirect_target_type: REDIRECT_TARGETS_TYPES.EXTERNAL_BROWSER,
       redirect_target: MONEY_URLS.MUSD_LEARN_MORE,
     });
 
@@ -461,7 +450,6 @@ const MoneyHomeView = () => {
       label_en: strings('money.what_you_get.learn_more', {
         locale: 'en',
       }),
-      redirect_target_type: REDIRECT_TARGETS_TYPES.EXTERNAL_BROWSER,
       redirect_target: MONEY_URLS.MUSD_LEARN_MORE,
     });
 
@@ -472,7 +460,6 @@ const MoneyHomeView = () => {
     ({ componentName }: { componentName: COMPONENT_NAMES }) => {
       trackSurfaceClicked({
         component_name: componentName,
-        redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
         redirect_target: SCREEN_NAMES.MONEY_HOW_IT_WORKS,
       });
 
@@ -484,7 +471,6 @@ const MoneyHomeView = () => {
   const handleActivityHeaderPress = useCallback(() => {
     trackSurfaceClicked({
       component_name: COMPONENT_NAMES.MONEY_ACTIVITY_SECTION_HEADER,
-      redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
       redirect_target: SCREEN_NAMES.MONEY_ACTIVITY,
     });
 
@@ -498,7 +484,6 @@ const MoneyHomeView = () => {
       component_name: COMPONENT_NAMES.MONEY_ACTIVITY_SECTION,
       label_localized: strings('money.activity.view_all'),
       label_en: strings('money.activity.view_all', { locale: 'en' }),
-      redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
       redirect_target: SCREEN_NAMES.MONEY_ACTIVITY,
     });
 
@@ -509,7 +494,6 @@ const MoneyHomeView = () => {
     (transaction: TransactionMeta) => {
       trackActivitySurfaceClicked({
         transaction,
-        redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
         redirect_target: SCREEN_NAMES.MONEY_ACTIVITY_DETAILS,
         component_name: COMPONENT_NAMES.MONEY_ACTIVITY_LIST_ITEM,
       });

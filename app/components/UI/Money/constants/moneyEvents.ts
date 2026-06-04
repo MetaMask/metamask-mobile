@@ -1,9 +1,6 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 
-import {
-  TransactionMeta,
-  TransactionStatus,
-} from '@metamask/transaction-controller';
+import { TransactionMeta } from '@metamask/transaction-controller';
 import { METAMASK_SUPPORT_URL } from '../../../../constants/urls';
 import AppConstants from '../../../../core/AppConstants';
 
@@ -62,7 +59,6 @@ export enum COMPONENT_NAMES {
 
   MONEY_MUSD_TOKEN_SECTION = 'money_musd_token_row_section',
   MONEY_FOOTER = 'money_footer',
-  MONEY_CONDENSED_INFO_CARDS = 'money_condensed_info_cards',
   MONEY_CONDENSED_INFO_CARDS_HOW_IT_WORKS = 'money_condensed_info_cards_how_it_works',
   MONEY_CONDENSED_INFO_CARDS_MUSD = 'money_condensed_info_cards_musd',
   MONEY_CONDENSED_INFO_CARDS_WHAT_YOU_GET = 'money_condensed_info_cards_what_you_get',
@@ -71,7 +67,6 @@ export enum COMPONENT_NAMES {
   MONEY_MORE_SHEET_HOW_IT_WORKS = 'money_more_sheet_how_it_works',
   MONEY_MORE_SHEET_WHAT_YOU_GET = 'money_more_sheet_what_you_get',
   MONEY_MORE_SHEET_CONTACT_SUPPORT = 'money_more_sheet_contact_support',
-  MONEY_POTENTIAL_EARNINGS = 'money_potential_earnings',
   MONEY_POTENTIAL_EARNINGS_SECTION = 'money_potential_earnings_section',
   MONEY_POTENTIAL_EARNINGS_SECTION_TOKEN_ROW = 'money_potential_earnings_section_token_row',
   MONEY_POTENTIAL_EARNINGS_TOKEN_ROW = 'money_potential_earnings_token_row',
@@ -90,6 +85,32 @@ export enum REDIRECT_TARGETS_TYPES {
   BOTTOM_SHEET = 'bottom_sheet',
   EXTERNAL_BROWSER = 'external_browser',
 }
+
+const SCREEN_TARGETS = new Set<string>(Object.values(SCREEN_NAMES));
+const BOTTOM_SHEET_TARGETS = new Set<string>(Object.values(BOTTOM_SHEET_NAMES));
+const URL_TARGETS = new Set<string>(Object.values(MONEY_URLS));
+
+/**
+ * Resolves a redirect target's type from the target itself. A target's type is
+ * a fact about the target, not something callers should restate, so this is the
+ * single source of truth. Fails loud if a target has no category.
+ *
+ * Resolution is precedence-ordered, so a value duplicated across SCREEN_NAMES,
+ * BOTTOM_SHEET_NAMES, or MONEY_URLS would be silently misclassified. Keep these
+ * groups disjoint when adding targets (enforced by moneyEvents.test.ts).
+ */
+export const resolveRedirectTargetType = (
+  target: SCREEN_NAMES | BOTTOM_SHEET_NAMES | MONEY_URLS,
+): REDIRECT_TARGETS_TYPES => {
+  if (SCREEN_TARGETS.has(target)) return REDIRECT_TARGETS_TYPES.SCREEN;
+  if (BOTTOM_SHEET_TARGETS.has(target)) {
+    return REDIRECT_TARGETS_TYPES.BOTTOM_SHEET;
+  }
+  if (URL_TARGETS.has(target)) return REDIRECT_TARGETS_TYPES.EXTERNAL_BROWSER;
+  throw new Error(
+    `[moneyAnalytics] No redirect_target_type for target: ${target}`,
+  );
+};
 
 // TODO: Breakout types
 /**
@@ -116,7 +137,6 @@ type MoneyFundedEventProperties = {
 };
 
 export type MoneyRedirectEventProperties = {
-  redirect_target_type: REDIRECT_TARGETS_TYPES;
   redirect_target: SCREEN_NAMES | BOTTOM_SHEET_NAMES | MONEY_URLS;
 };
 
@@ -124,14 +144,7 @@ export type MoneySurfaceClickedEventProperties = MoneyRedirectEventProperties &
   Partial<MoneyLocationEventProperties>;
 
 export type MoneyTokenSurfaceClickedEventProperties =
-  MoneySurfaceClickedEventProperties & TokenRowEventProperties;
-
-type MoneyTransactionEventProperties = {
-  transaction_type: string | undefined;
-  transaction_status: TransactionStatus;
-  chain_id_source: string | undefined;
-  chain_id_destination: string | undefined;
-};
+  MoneySurfaceClickedEventProperties & MoneyTokenRowEventProperties;
 
 export type MoneyActivitySurfaceClickedEventProperties =
   MoneySurfaceClickedEventProperties & {
@@ -164,7 +177,7 @@ export enum MONEY_BUTTON_TYPES {
   ICON = 'icon',
 }
 
-type TokenRowEventProperties = {
+type MoneyTokenRowEventProperties = {
   token_symbol: string;
   token_position_in_list: number;
   token_chain_id: string;
@@ -172,16 +185,17 @@ type TokenRowEventProperties = {
 };
 
 export type MoneyTokenRowButtonClickedEventProperties =
-  MoneyButtonClickedEventProperties & TokenRowEventProperties;
+  MoneyButtonClickedEventProperties & MoneyTokenRowEventProperties;
 
 export type MoneyButtonClickedEventProperties =
-  | ({ button_type: MONEY_BUTTON_TYPES.TEXT } & MoneyTextButtonEventProperties)
+  | ({
+      button_type: MONEY_BUTTON_TYPES.TEXT;
+    } & MoneyTextButtonClickedEventProperties)
   | ({
       button_type: MONEY_BUTTON_TYPES.ICON;
     } & MoneyIconButtonClickedEventProperties);
 
-// TODO: Reminder to rename this to MoneyButtonClickedEventProperties. Do the same for all event types in this file.
-export type MoneyTextButtonEventProperties = Partial<
+export type MoneyTextButtonClickedEventProperties = Partial<
   Pick<MoneyLocationEventProperties, 'component_name'>
 > &
   Partial<MoneyRedirectEventProperties> & {
@@ -194,7 +208,7 @@ export type MoneyTextButtonEventProperties = Partial<
     button_row_button_count?: number;
   };
 
-export type MoneyIconButtonClickedEventProperties = Partial<
+type MoneyIconButtonClickedEventProperties = Partial<
   Pick<MoneyLocationEventProperties, 'component_name'>
 > &
   Partial<MoneyRedirectEventProperties> & {
@@ -208,7 +222,6 @@ export type MoneyIconButtonClickedEventProperties = Partial<
 export enum MONEY_ONBOARDING_STEP_ACTIONS {
   // Generic actions
   VIEWED = 'viewed',
-  CONTINUED = 'continued',
   SKIPPED = 'skipped',
   EXITED = 'exited',
   COMPLETED = 'completed',
@@ -239,7 +252,7 @@ export enum MONEY_TOOLTIP_TYPES {
   INFO = 'info',
 }
 
-export type MoneyTooltipEventProperties =
+export type MoneyTooltipClickedEventProperties =
   Partial<MoneyLocationEventProperties> & {
     tooltip_name: MONEY_TOOLTIP_NAMES;
     tooltip_type: MONEY_TOOLTIP_TYPES;

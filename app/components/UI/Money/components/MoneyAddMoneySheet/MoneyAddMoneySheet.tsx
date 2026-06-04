@@ -42,7 +42,6 @@ import useMountEffect from '../../hooks/useMountEffect';
 import {
   BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
-  REDIRECT_TARGETS_TYPES,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 
@@ -98,7 +97,6 @@ const MoneyAddMoneySheet: React.FC = () => {
     trackSurfaceClicked({
       component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_CONVERT_CRYPTO,
       redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
-      redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
     });
 
     closeAndNavigate(() => {
@@ -110,7 +108,6 @@ const MoneyAddMoneySheet: React.FC = () => {
     trackSurfaceClicked({
       component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_DEPOSIT_FUNDS,
       redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
-      redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
     });
 
     closeAndNavigate(() => {
@@ -134,7 +131,6 @@ const MoneyAddMoneySheet: React.FC = () => {
     trackSurfaceClicked({
       component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_MOVE_MUSD,
       redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
-      redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
     });
 
     closeAndNavigate(() => {

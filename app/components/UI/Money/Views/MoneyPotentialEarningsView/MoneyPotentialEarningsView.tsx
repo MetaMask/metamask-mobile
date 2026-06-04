@@ -44,7 +44,6 @@ import {
   MONEY_BUTTON_TYPES,
   MONEY_TOOLTIP_NAMES,
   MONEY_TOOLTIP_TYPES,
-  REDIRECT_TARGETS_TYPES,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 
@@ -103,7 +102,6 @@ const MoneyPotentialEarningsView = () => {
       label_en: strings('money.potential_earnings.convert_cta', {
         locale: 'en',
       }),
-      redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
       redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
       component_name: COMPONENT_NAMES.MONEY_CONVERT_CRYPTO_BUTTON,
       token_symbol: defaultToken.symbol,
@@ -138,7 +136,6 @@ const MoneyPotentialEarningsView = () => {
           label_en: strings('money.potential_earnings.add', {
             locale: 'en',
           }),
-          redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
           redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
           token_symbol: token.symbol,
           token_position_in_list: tokenIndex + 1,
@@ -166,7 +163,6 @@ const MoneyPotentialEarningsView = () => {
       try {
         trackTokenSurfaceClicked({
           component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_TOKEN_ROW,
-          redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
           redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
           token_symbol: token.symbol,
           token_position_in_list: tokenIndex + 1,

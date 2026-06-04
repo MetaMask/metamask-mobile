@@ -31,11 +31,7 @@ import { MoneyActivityFilter } from '../../constants/mockActivityData';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyActivityViewTestIds } from './MoneyActivityView.testIds';
 import useMountEffect from '../../hooks/useMountEffect';
-import {
-  COMPONENT_NAMES,
-  REDIRECT_TARGETS_TYPES,
-  SCREEN_NAMES,
-} from '../../constants/moneyEvents';
+import { COMPONENT_NAMES, SCREEN_NAMES } from '../../constants/moneyEvents';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 
 const styles = StyleSheet.create({
@@ -128,7 +124,6 @@ const MoneyActivityView = () => {
     (transaction: TransactionMeta) => {
       trackActivitySurfaceClicked({
         transaction,
-        redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
         redirect_target: SCREEN_NAMES.MONEY_ACTIVITY_DETAILS,
         component_name: COMPONENT_NAMES.MONEY_ACTIVITY_LIST_ITEM,
       });

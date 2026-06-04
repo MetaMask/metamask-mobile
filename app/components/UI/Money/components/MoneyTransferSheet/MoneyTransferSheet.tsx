@@ -27,7 +27,6 @@ import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import {
   BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
-  REDIRECT_TARGETS_TYPES,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
@@ -72,7 +71,6 @@ const MoneyTransferSheet = () => {
       component_name:
         COMPONENT_NAMES.MONEY_TRANSFER_MONEY_SHEET_BETWEEN_ACCOUNTS,
       redirect_target: SCREEN_NAMES.MONEY_TRANSFER,
-      redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
     });
 
     sheetRef.current?.onCloseBottomSheet(() => {
@@ -93,7 +91,6 @@ const MoneyTransferSheet = () => {
     trackSurfaceClicked({
       component_name: COMPONENT_NAMES.MONEY_TRANSFER_MONEY_SHEET_PERPS_ACCOUNT,
       redirect_target: SCREEN_NAMES.MONEY_TRANSFER,
-      redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
     });
 
     sheetRef.current?.onCloseBottomSheet(() => {
@@ -110,7 +107,6 @@ const MoneyTransferSheet = () => {
       component_name:
         COMPONENT_NAMES.MONEY_TRANSFER_MONEY_SHEET_PREDICTIONS_ACCOUNT,
       redirect_target: SCREEN_NAMES.MONEY_TRANSFER,
-      redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
     });
 
     sheetRef.current?.onCloseBottomSheet(() => {

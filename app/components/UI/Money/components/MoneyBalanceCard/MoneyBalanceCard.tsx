@@ -36,8 +36,6 @@ import {
   SCREEN_NAMES,
   COMPONENT_NAMES,
   BOTTOM_SHEET_NAMES,
-  REDIRECT_TARGETS_TYPES,
-  MONEY_SURFACE_TYPES,
   MONEY_BUTTON_INTENTS,
   MONEY_BUTTON_TYPES,
 } from '../../constants/moneyEvents';
@@ -156,7 +154,6 @@ const MoneyBalanceCard = () => {
   const handleCardPress = useCallback(() => {
     trackSurfaceClicked({
       component_name: COMPONENT_NAMES.MONEY_BALANCE_CARD,
-      redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
       redirect_target: hasSeenMoneyOnboarding
         ? SCREEN_NAMES.MONEY_HOME
         : SCREEN_NAMES.MONEY_ONBOARDING,
@@ -170,7 +167,6 @@ const MoneyBalanceCard = () => {
       button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
       label_en: buttonLabelEn,
       label_localized: buttonLabelLocalized,
-      redirect_target_type: REDIRECT_TARGETS_TYPES.BOTTOM_SHEET,
       redirect_target: BOTTOM_SHEET_NAMES.MONEY_ADD_MONEY_SHEET,
     });
 
@@ -185,7 +181,6 @@ const MoneyBalanceCard = () => {
       button_intent: MONEY_BUTTON_INTENTS.GET_STARTED,
       label_en: buttonLabelEn,
       label_localized: buttonLabelLocalized,
-      redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
       redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
     });
 

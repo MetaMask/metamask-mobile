@@ -6,16 +6,16 @@ import useMoneyAccountBalance from '../hooks/useMoneyAccountBalance';
 import {
   MoneyLocationEventProperties,
   MoneyBaseEventProperties,
-  MoneyTextButtonEventProperties,
   MoneyRedirectEventProperties,
   MoneyOnboardingEventProperties,
-  MoneyTooltipEventProperties,
+  MoneyTooltipClickedEventProperties,
   MONEY_SURFACE_TYPES,
   MoneySurfaceClickedEventProperties,
   MoneyButtonClickedEventProperties,
   MoneyTokenRowButtonClickedEventProperties,
   MoneyTokenSurfaceClickedEventProperties,
   MoneyActivitySurfaceClickedEventProperties,
+  resolveRedirectTargetType,
 } from '../constants/moneyEvents';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 import { MonetizedPrimitive } from '../../../../core/Analytics/MetaMetrics.types';
@@ -26,6 +26,25 @@ import {
 } from '../utils/moneyTransactionGuards';
 import { TransactionType } from '@metamask/transaction-controller';
 import { snakeCase } from 'lodash';
+
+/**
+ * Derives `redirect_target_type` from `redirect_target` so callers only state
+ * the target once and the two can never contradict. No-op when no target is
+ * present (e.g. tooltip clicks).
+ */
+const withRedirectType = <
+  T extends {
+    redirect_target?: MoneyRedirectEventProperties['redirect_target'];
+  },
+>(
+  props: T,
+) =>
+  props.redirect_target
+    ? {
+        ...props,
+        redirect_target_type: resolveRedirectTargetType(props.redirect_target),
+      }
+    : props;
 
 export const useMoneyAnalytics = ({
   screen_name,
@@ -73,7 +92,7 @@ export const useMoneyAnalytics = ({
         createEventBuilder(MetaMetricsEvents.MONEY_BUTTON_CLICKED)
           .addProperties({
             ...getBaseProperties(),
-            ...properties,
+            ...withRedirectType(properties),
           })
           .build(),
       );
@@ -87,7 +106,7 @@ export const useMoneyAnalytics = ({
         createEventBuilder(MetaMetricsEvents.MONEY_BUTTON_CLICKED)
           .addProperties({
             ...getBaseProperties(),
-            ...properties,
+            ...withRedirectType(properties),
           })
           .build(),
       );
@@ -104,7 +123,7 @@ export const useMoneyAnalytics = ({
         createEventBuilder(MetaMetricsEvents.MONEY_SURFACE_CLICKED)
           .addProperties({
             ...getBaseProperties(),
-            ...properties,
+            ...withRedirectType(properties),
           })
           .build(),
       );
@@ -118,7 +137,7 @@ export const useMoneyAnalytics = ({
         createEventBuilder(MetaMetricsEvents.MONEY_SURFACE_CLICKED)
           .addProperties({
             ...getBaseProperties(),
-            ...properties,
+            ...withRedirectType(properties),
           })
           .build(),
       );
@@ -142,7 +161,7 @@ export const useMoneyAnalytics = ({
         createEventBuilder(MetaMetricsEvents.MONEY_SURFACE_CLICKED)
           .addProperties({
             ...getBaseProperties(),
-            ...rest,
+            ...withRedirectType(rest),
             transaction_type: snakeCase(nestedTxType),
             transaction_status: transaction.status,
             chain_id_source: sourceChainId,
@@ -156,7 +175,7 @@ export const useMoneyAnalytics = ({
   );
 
   const trackTooltipClicked = useCallback(
-    (properties: MoneyTooltipEventProperties) => {
+    (properties: MoneyTooltipClickedEventProperties) => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.MONEY_TOOLTIP_CLICKED)
           .addProperties({
@@ -205,7 +224,7 @@ export const useMoneyAnalytics = ({
         createEventBuilder(MetaMetricsEvents.MONEY_ONBOARDING_EVENT)
           .addProperties({
             ...getBaseProperties(),
-            ...properties,
+            ...withRedirectType(properties),
           })
           .build(),
       );
