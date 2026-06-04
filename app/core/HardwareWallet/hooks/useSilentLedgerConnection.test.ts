@@ -5,7 +5,7 @@ const mockDisconnect = jest.fn();
 const mockDestroy = jest.fn();
 const mockIsConnected = jest.fn();
 
-jest.mock('../../../../../core/HardwareWallet/adapters/factory', () => ({
+jest.mock('../adapters/factory', () => ({
   createAdapter: jest.fn(() => ({
     connect: mockConnect,
     disconnect: mockDisconnect,
@@ -16,7 +16,7 @@ jest.mock('../../../../../core/HardwareWallet/adapters/factory', () => ({
 
 const mockGetDeviceId = jest.fn();
 
-jest.mock('../../../../../core/Ledger/Ledger', () => ({
+jest.mock('../../Ledger/Ledger', () => ({
   getDeviceId: () => mockGetDeviceId(),
 }));
 

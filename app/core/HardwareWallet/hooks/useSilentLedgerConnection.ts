@@ -1,7 +1,7 @@
 import { useCallback, useRef } from 'react';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
-import { createAdapter } from '../../../../../core/HardwareWallet/adapters/factory';
-import { getDeviceId } from '../../../../../core/Ledger/Ledger';
+import { createAdapter } from '../adapters/factory';
+import { getDeviceId } from '../../Ledger/Ledger';
 
 const SILENT_CONNECTION_TIMEOUT_MS = 5000;
 

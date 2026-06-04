@@ -40,6 +40,8 @@ import Engine from '../../../core/Engine';
 import { store } from '../../../store';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { strings } from '../../../../locales/i18n';
+import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
+import { useSilentLedgerConnection } from '../../../core/HardwareWallet/hooks/useSilentLedgerConnection';
 import { useAccounts } from '../../hooks/useAccounts';
 import { AccountListBottomSheetSelectorsIDs } from './AccountListBottomSheet.testIds';
 import { CommonSelectorsIDs } from '../../../util/Common.testIds';
@@ -92,6 +94,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   } = useAccountsOperationsLoadingStates();
 
   useSyncSRPs();
+
+  const { checkConnection } = useSilentLedgerConnection();
 
   const buttonLabel = useMemo(() => {
     if (isAccountSyncingInProgress) {
@@ -201,6 +205,29 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     navigation.navigate(Routes.SHEET.ADD_WALLET);
   }, [navigation]);
 
+  const handleAddHardwareAccount = useCallback(
+    async (walletType: HardwareWalletType) => {
+      // Dismiss the account selector sheet first
+      handleClose();
+
+      if (walletType === HardwareWalletType.Ledger) {
+        // Silent BLE check for Ledger
+        const result = await checkConnection();
+        navigation.navigate(Routes.HW.HARDWARE_WALLET_DISCOVERY, {
+          walletType: HardwareWalletType.Ledger,
+          initialStep: result === 'connected' ? 'accounts' : 'searching',
+        });
+      } else {
+        // QR wallets go directly to account selection
+        navigation.navigate(Routes.HW.HARDWARE_WALLET_DISCOVERY, {
+          walletType: HardwareWalletType.Qr,
+          initialStep: 'accounts',
+        });
+      }
+    },
+    [handleClose, checkConnection, navigation],
+  );
+
   const handleBackToSelector = useCallback(() => {
     setScreen(AccountSelectorScreens.AccountSelector);
   }, []);
@@ -215,6 +242,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
             testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
             setKeyboardAvoidingViewEnabled={setKeyboardAvoidingViewEnabled}
             showFooter={!disableAddAccountButton}
+            onAddHardwareAccount={handleAddHardwareAccount}
           />
         ) : null}
         {!disableAddAccountButton && (
@@ -258,6 +286,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       _onSelectMultichainAccount,
       disableAddAccountButton,
       handleAddAccount,
+      handleAddHardwareAccount,
       buttonLabel,
       isAccountSyncingInProgress,
     ],
