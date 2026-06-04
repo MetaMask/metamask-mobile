@@ -10,6 +10,7 @@ import type { CampaignDto } from '../../../../../core/Engine/controllers/rewards
 import type { UseGetCampaignParticipantStatusResult } from '../../hooks/useGetCampaignParticipantStatus';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
+import { PredictEventValues } from '../../../Predict/constants/eventNames';
 import CampaignOptInCta, { CAMPAIGN_CTA_TEST_IDS } from './CampaignOptInCta';
 import { getCampaignStatus } from './CampaignTile.utils';
 
@@ -31,9 +32,12 @@ const PredictThePitchCampaignCTA: React.FC<PredictThePitchCampaignCTAProps> = ({
   const isLoading = participantStatus.isLoading;
   const isOptedIn = participantStatus.status?.optedIn === true;
 
-  const navigateToPredictMarkets = useCallback(() => {
+  const navigateToPredictWorldCup = useCallback(() => {
     navigation.navigate(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_LIST,
+      screen: Routes.PREDICT.WORLD_CUP,
+      params: {
+        entryPoint: PredictEventValues.ENTRY_POINT.REWARDS,
+      },
     });
   }, [navigation]);
 
@@ -44,7 +48,7 @@ const PredictThePitchCampaignCTA: React.FC<PredictThePitchCampaignCTAProps> = ({
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
-          onPress={navigateToPredictMarkets}
+          onPress={navigateToPredictWorldCup}
           testID={CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON}
         >
           {strings('rewards.predict_the_pitch_campaign.predict_now_cta')}

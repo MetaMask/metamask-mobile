@@ -70,6 +70,11 @@ const PredictThePitchCampaignLeaderboardView: React.FC = () => {
       isOptedIn ? campaignId : undefined,
     );
 
+  const hasPosition =
+    position != null &&
+    Number.isFinite(position.capitalDeployed) &&
+    position.capitalDeployed > 0;
+
   const {
     leaderboard,
     isLoading: isLeaderboardLoading,
@@ -123,7 +128,7 @@ const PredictThePitchCampaignLeaderboardView: React.FC = () => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={tw.style('pb-4')}
         >
-          {isOptedIn && position && (
+          {isOptedIn && hasPosition && (
             <>
               <Box twClassName="p-4">
                 <PredictThePitchStatsHeader

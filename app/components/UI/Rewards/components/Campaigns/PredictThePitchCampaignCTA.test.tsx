@@ -7,6 +7,7 @@ import {
   CampaignType,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import Routes from '../../../../../constants/navigation/Routes';
+import { PredictEventValues } from '../../../Predict/constants/eventNames';
 
 const mockNavigate = jest.fn();
 
@@ -83,7 +84,7 @@ describe('PredictThePitchCampaignCTA', () => {
     jest.useRealTimers();
   });
 
-  it('navigates to Predict markets when the active campaign participant is opted in', () => {
+  it('navigates to Predict World Cup when the active campaign participant is opted in', () => {
     const { getByTestId, getByText } = render(
       <PredictThePitchCampaignCTA
         campaign={buildCampaign()}
@@ -98,7 +99,10 @@ describe('PredictThePitchCampaignCTA', () => {
     fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_LIST,
+      screen: Routes.PREDICT.WORLD_CUP,
+      params: {
+        entryPoint: PredictEventValues.ENTRY_POINT.REWARDS,
+      },
     });
   });
 

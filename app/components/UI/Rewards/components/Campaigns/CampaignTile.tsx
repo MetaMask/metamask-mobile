@@ -63,7 +63,8 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
     useGetCampaignParticipantStatus(
       campaignStatus === 'active' &&
         (campaign.type === CampaignType.ONDO_HOLDING ||
-          campaign.type === CampaignType.PERPS_TRADING)
+          campaign.type === CampaignType.PERPS_TRADING ||
+          campaign.type === CampaignType.PREDICT_THE_PITCH)
         ? campaign.id
         : undefined,
     );

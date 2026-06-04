@@ -28,7 +28,7 @@ import {
   formatTierDisplayName,
 } from './OndoLeaderboard.utils';
 import { ONDO_GM_TIER_MAX_WINNERS } from '../../utils/ondoCampaignConstants';
-import { useCampaignLeaderboardEntries } from './useCampaignLeaderboardEntries';
+import { useCampaignLeaderboardEntries } from '../../hooks/useCampaignLeaderboardEntries';
 
 export const CAMPAIGN_LEADERBOARD_TEST_IDS = {
   CONTAINER: 'campaign-leaderboard-container',

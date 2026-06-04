@@ -15,7 +15,7 @@ import {
   CampaignLeaderboardSkeleton,
   CAMPAIGN_LEADERBOARD_SHARED_TEST_IDS,
 } from './CampaignLeaderboard';
-import { useCampaignLeaderboardEntries } from './useCampaignLeaderboardEntries';
+import { useCampaignLeaderboardEntries } from '../../hooks/useCampaignLeaderboardEntries';
 
 export const PREDICT_THE_PITCH_LEADERBOARD_TEST_IDS = {
   CONTAINER: 'predict-the-pitch-leaderboard-container',
