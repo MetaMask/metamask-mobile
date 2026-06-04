@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { View, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import {
   Text,
   TextVariant,
@@ -22,6 +23,7 @@ import SectionHeader from '../../../../../component-library/components-temp/Sect
 import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { selectPerpsProductsEnabledFlag } from '../../selectors/featureFlags';
 import { styleSheet } from './PerpsProducts.styles';
 import type {
   PerpsProductsProps,
@@ -62,6 +64,7 @@ const PerpsProducts: React.FC<PerpsProductsProps> = ({
   source,
   testID,
 }) => {
+  const isEnabled = useSelector(selectPerpsProductsEnabledFlag);
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -98,7 +101,7 @@ const PerpsProducts: React.FC<PerpsProductsProps> = ({
     [navigation, trackEvent, createEventBuilder],
   );
 
-  if (visiblePills.length === 0) {
+  if (!isEnabled || visiblePills.length === 0) {
     return null;
   }
 

@@ -2,10 +2,16 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import PerpsProducts from './PerpsProducts';
 import Routes from '../../../../../constants/navigation/Routes';
+import { selectPerpsProductsEnabledFlag } from '../../selectors/featureFlags';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
+}));
+
+const mockUseSelector = jest.fn();
+jest.mock('react-redux', () => ({
+  useSelector: (selector: unknown) => mockUseSelector(selector),
 }));
 
 jest.mock('../../../../../component-library/hooks', () => ({
@@ -100,6 +106,26 @@ jest.mock('../../../../../core/Analytics', () => ({
 describe('PerpsProducts', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectPerpsProductsEnabledFlag) return true;
+      return undefined;
+    });
+  });
+
+  it('renders nothing when feature flag is disabled', () => {
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectPerpsProductsEnabledFlag) return false;
+      return undefined;
+    });
+
+    const { toJSON } = render(
+      <PerpsProducts
+        marketCounts={{ crypto: 10, stocks: 5 }}
+        testID="perps-products"
+      />,
+    );
+
+    expect(toJSON()).toBeNull();
   });
 
   it('renders nothing when all market counts are zero', () => {

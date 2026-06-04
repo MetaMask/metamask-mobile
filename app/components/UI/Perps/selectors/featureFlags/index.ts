@@ -280,6 +280,22 @@ export const selectPerpsMYXProviderEnabledFlag = createSelector(
 );
 
 /**
+ * Selector for Perps Products section feature flag
+ * Controls visibility of the category pills grid on Perps home screen
+ *
+ * @returns boolean - true if Products section should be shown, false otherwise
+ */
+export const selectPerpsProductsEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.perpsProductsEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
  * Selector for Perps Competition Banner feature flag
  * Controls visibility of the competition promotion banner on Perps home screen
  *
