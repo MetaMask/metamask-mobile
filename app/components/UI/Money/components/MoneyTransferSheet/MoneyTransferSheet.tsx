@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -24,6 +24,13 @@ import Logger from '../../../../../util/Logger';
 import styleSheet from './MoneyTransferSheet.styles';
 import { MoneyTransferSheetTestIds } from './MoneyTransferSheet.testIds';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
+import {
+  BOTTOM_SHEET_NAMES,
+  COMPONENT_NAMES,
+  REDIRECT_TARGETS_TYPES,
+  SCREEN_NAMES,
+} from '../../constants/moneyEvents';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 
 interface ActiveOption {
   label: string;
@@ -41,6 +48,7 @@ interface DisabledOption {
 const MoneyTransferSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
+  const didMountRef = useRef(false);
   const { styles } = useStyles(styleSheet, {});
   const { initiateWithdrawal } = useMoneyAccountWithdrawal();
   const surfaceClass = useElevatedSurface();
@@ -49,11 +57,28 @@ const MoneyTransferSheet = () => {
   const { isEnabled: isPredictEnabled, initiatePredictDeposit } =
     useMoneyPredictDeposit();
 
+  const { trackBottomSheetViewed, trackSurfaceClicked } = useMoneyAnalytics({
+    bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_TRANSFER_MONEY_SHEET,
+  });
+
+  useEffect(() => {
+    if (didMountRef.current) return;
+    didMountRef.current = true;
+    trackBottomSheetViewed();
+  }, [trackBottomSheetViewed]);
+
   const handleGoBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
   const handleBetweenAccounts = useCallback(() => {
+    trackSurfaceClicked({
+      component_name:
+        COMPONENT_NAMES.MONEY_TRANSFER_MONEY_SHEET_BETWEEN_ACCOUNTS,
+      redirect_target: SCREEN_NAMES.MONEY_TRANSFER,
+      redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
+    });
+
     sheetRef.current?.onCloseBottomSheet(() => {
       initiateWithdrawal().catch((error: Error) => {
         Logger.error(
@@ -62,27 +87,40 @@ const MoneyTransferSheet = () => {
         );
       });
     });
-  }, [initiateWithdrawal]);
+  }, [initiateWithdrawal, trackSurfaceClicked]);
 
   const handlePerpsAccount = useCallback(() => {
     if (!isPerpsEnabled) {
       return;
     }
 
+    trackSurfaceClicked({
+      component_name: COMPONENT_NAMES.MONEY_TRANSFER_MONEY_SHEET_PERPS_ACCOUNT,
+      redirect_target: SCREEN_NAMES.MONEY_TRANSFER,
+      redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
+    });
+
     sheetRef.current?.onCloseBottomSheet(() => {
       initiatePerpsDeposit();
     });
-  }, [isPerpsEnabled, initiatePerpsDeposit]);
+  }, [isPerpsEnabled, initiatePerpsDeposit, trackSurfaceClicked]);
 
   const handlePredictionsAccount = useCallback(() => {
     if (!isPredictEnabled) {
       return;
     }
 
+    trackSurfaceClicked({
+      component_name:
+        COMPONENT_NAMES.MONEY_TRANSFER_MONEY_SHEET_PREDICTIONS_ACCOUNT,
+      redirect_target: SCREEN_NAMES.MONEY_TRANSFER,
+      redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
+    });
+
     sheetRef.current?.onCloseBottomSheet(() => {
       initiatePredictDeposit();
     });
-  }, [isPredictEnabled, initiatePredictDeposit]);
+  }, [isPredictEnabled, initiatePredictDeposit, trackSurfaceClicked]);
 
   const activeOptions: ActiveOption[] = [
     {

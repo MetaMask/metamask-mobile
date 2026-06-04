@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -37,6 +37,13 @@ import {
 } from '../../../../../reducers/fiatOrders';
 import styleSheet from './MoneyAddMoneySheet.styles';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import {
+  BOTTOM_SHEET_NAMES,
+  COMPONENT_NAMES,
+  REDIRECT_TARGETS_TYPES,
+  SCREEN_NAMES,
+} from '../../constants/moneyEvents';
 
 interface Option {
   label: string;
@@ -51,6 +58,7 @@ interface Option {
 
 const MoneyAddMoneySheet: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
+  const didMountRef = useRef(false);
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
   const surfaceClass = useElevatedSurface();
@@ -72,6 +80,16 @@ const MoneyAddMoneySheet: React.FC = () => {
     [enabledTransactionTypes],
   );
 
+  const { trackBottomSheetViewed, trackSurfaceClicked } = useMoneyAnalytics({
+    bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_ADD_MONEY_SHEET,
+  });
+
+  useEffect(() => {
+    if (didMountRef.current) return;
+    didMountRef.current = true;
+    trackBottomSheetViewed();
+  }, [trackBottomSheetViewed]);
+
   const closeAndNavigate = useCallback((navigateFn: () => void) => {
     sheetRef.current?.onCloseBottomSheet(navigateFn);
   }, []);
@@ -81,16 +99,28 @@ const MoneyAddMoneySheet: React.FC = () => {
   }, [navigation]);
 
   const handleConvertCrypto = useCallback(() => {
+    trackSurfaceClicked({
+      component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_CONVERT_CRYPTO,
+      redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+      redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
+    });
+
     closeAndNavigate(() => {
       initiateDeposit().catch(() => undefined);
     });
-  }, [closeAndNavigate, initiateDeposit]);
+  }, [closeAndNavigate, initiateDeposit, trackSurfaceClicked]);
 
   const handleDepositFunds = useCallback(() => {
+    trackSurfaceClicked({
+      component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_DEPOSIT_FUNDS,
+      redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+      redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
+    });
+
     closeAndNavigate(() => {
       initiateDeposit({ autoSelectFiatPayment: true }).catch(() => undefined);
     });
-  }, [closeAndNavigate, initiateDeposit]);
+  }, [closeAndNavigate, initiateDeposit, trackSurfaceClicked]);
 
   const handleMoveMusd = useCallback(() => {
     let sourceChainId: Hex = MUSD_CONVERSION_DEFAULT_CHAIN_ID;
@@ -105,6 +135,12 @@ const MoneyAddMoneySheet: React.FC = () => {
       }
     }
 
+    trackSurfaceClicked({
+      component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_MOVE_MUSD,
+      redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+      redirect_target_type: REDIRECT_TARGETS_TYPES.SCREEN,
+    });
+
     closeAndNavigate(() => {
       initiateDeposit({
         intent: 'addMusd',
@@ -114,7 +150,12 @@ const MoneyAddMoneySheet: React.FC = () => {
         },
       }).catch(() => undefined);
     });
-  }, [closeAndNavigate, initiateDeposit, tokenBalanceByChain]);
+  }, [
+    closeAndNavigate,
+    initiateDeposit,
+    tokenBalanceByChain,
+    trackSurfaceClicked,
+  ]);
 
   const parsedMusdFiat = Number(fiatBalanceAggregated);
   const hasParsedFiatBalance =

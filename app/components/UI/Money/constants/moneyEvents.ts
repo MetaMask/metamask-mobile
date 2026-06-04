@@ -12,6 +12,8 @@ export enum SCREEN_NAMES {
   MONEY_ONBOARDING = 'money_onboarding',
   CARD_HOME = 'card_home',
   MONEY_DEPOSIT = 'money_deposit',
+  // Used for Money account withdrawals
+  MONEY_TRANSFER = 'money_transfer',
   MONEY_HOW_IT_WORKS = 'money_how_it_works',
   MONEY_ACTIVITY = 'money_activity',
   MONEY_POTENTIAL_EARNINGS = 'money_potential_earnings',
@@ -66,6 +68,12 @@ export enum COMPONENT_NAMES {
   MONEY_MORE_SHEET_CONTACT_SUPPORT = 'money_more_sheet_contact_support',
   MONEY_POTENTIAL_EARNINGS = 'money_potential_earnings',
   MONEY_POTENTIAL_EARNINGS_TOKEN_ROW = 'money_potential_earnings_token_row',
+  MONEY_ADD_MONEY_SHEET_CONVERT_CRYPTO = 'money_add_money_sheet_convert_crypto',
+  MONEY_ADD_MONEY_SHEET_DEPOSIT_FUNDS = 'money_add_money_sheet_deposit_funds',
+  MONEY_ADD_MONEY_SHEET_MOVE_MUSD = 'money_add_money_sheet_move_musd',
+  MONEY_TRANSFER_MONEY_SHEET_BETWEEN_ACCOUNTS = 'money_transfer_money_sheet_between_accounts',
+  MONEY_TRANSFER_MONEY_SHEET_PERPS_ACCOUNT = 'money_transfer_money_sheet_perps_account',
+  MONEY_TRANSFER_MONEY_SHEET_PREDICTIONS_ACCOUNT = 'money_transfer_money_sheet_predictions_account',
 }
 
 export enum REDIRECT_TARGETS_TYPES {
