@@ -68,6 +68,7 @@ yalc.lock
 !.yarn/plugins
 !.yarn/releases
 !.yarn/sdks
+!.yarn/dummies
 !.yarn/versions
 
 # buck

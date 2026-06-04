@@ -7525,6 +7525,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ledgerhq/devices@npm:^7.0.0":
+  version: 7.0.7
+  resolution: "@ledgerhq/devices@npm:7.0.7"
+  dependencies:
+    "@ledgerhq/errors": "npm:^6.12.3"
+    "@ledgerhq/logs": "npm:^6.10.1"
+    rxjs: "npm:6"
+    semver: "npm:^7.3.5"
+  checksum: 10/b243a2d1dd41a6d3dba7427866bebb2be8351348df765c12354cb46f0b24ce278cae3724f5c591e96b3804c1bf2ed5512e75f07f0a210c9856e906b808e8b907
+  languageName: node
+  linkType: hard
+
 "@ledgerhq/domain-service@npm:^1.2.15":
   version: 1.2.15
   resolution: "@ledgerhq/domain-service@npm:1.2.15"
@@ -7540,7 +7552,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ledgerhq/errors@npm:^6.19.1, @ledgerhq/errors@npm:^6.21.0, @ledgerhq/errors@npm:^6.29.0, @ledgerhq/errors@npm:^6.34.1":
+"@ledgerhq/errors@npm:^6.12.3, @ledgerhq/errors@npm:^6.19.1, @ledgerhq/errors@npm:^6.21.0, @ledgerhq/errors@npm:^6.29.0, @ledgerhq/errors@npm:^6.34.1":
   version: 6.35.0
   resolution: "@ledgerhq/errors@npm:6.35.0"
   checksum: 10/1bbc4a314d22aca480a5433c9d4b5aded9907c86073ac8678c3f6bb50b6627973f12a5f93040993bf313aed8e8db72ce67758f5ae7b51b5302d8a05cf8055a15
@@ -7640,7 +7652,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ledgerhq/logs@npm:^6.12.0, @ledgerhq/logs@npm:^6.13.0, @ledgerhq/logs@npm:^6.14.0, @ledgerhq/logs@npm:^6.17.0":
+"@ledgerhq/logs@npm:^6.10.1, @ledgerhq/logs@npm:^6.12.0, @ledgerhq/logs@npm:^6.13.0, @ledgerhq/logs@npm:^6.14.0, @ledgerhq/logs@npm:^6.17.0":
   version: 6.17.0
   resolution: "@ledgerhq/logs@npm:6.17.0"
   checksum: 10/81332b4db29e1e76ee24f8d741d30152b5c0676e58feedebfde93c7ef4bd641813596d9402d734af779fe3cb6e28599b91b6e6f57ac0017d1231f7d2dad49404
@@ -7721,6 +7733,20 @@ __metadata:
   dependencies:
     source-map: "npm:^0.7.3"
   checksum: 10/7dca976fdb8d473123f6e4a24ad4fc44840101fba0e0c4992a1f246a26a3890c38c5d99f85f87301287e75dcee9db4d7dcf287cd899612b98b275fd2e827450b
+  languageName: node
+  linkType: hard
+
+"@metamask-previews/hw-emulator@npm:0.1.0-de887b2":
+  version: 0.1.0-de887b2
+  resolution: "@metamask-previews/hw-emulator@npm:0.1.0-de887b2"
+  dependencies:
+    "@ledgerhq/devices": "npm:^7.0.0"
+    "@metamask/speculos-up": "npm:0.1.0"
+    ws: "npm:^8.18.0"
+  peerDependenciesMeta:
+    "@metamask/speculos-up":
+      optional: true
+  checksum: 10/40b7cd38fbf5bfc7ed90f6e2c46ea48ff0e1423e44d97eee282967a9a5956b1b56d5c413cac249f014b6475c4456bce01faa0413433b3b18a347c08387f02ac3
   languageName: node
   linkType: hard
 
@@ -10271,6 +10297,12 @@ __metadata:
   checksum: 10/5a04227ed51ce27ffd24d691ba4f4136f07a77c04a79eed1f6eb883c9b98e3be7cdf5527833a8af1e1530936b581f74bb7dd6ba18019346939c77498f3c70ff4
   languageName: node
   linkType: hard
+
+"@metamask/speculos-up@link:.yarn/dummies/speculos-up::locator=metamask%40workspace%3A.":
+  version: 0.0.0-use.local
+  resolution: "@metamask/speculos-up@link:.yarn/dummies/speculos-up::locator=metamask%40workspace%3A."
+  languageName: node
+  linkType: soft
 
 "@metamask/stake-sdk@npm:^3.2.1, @metamask/stake-sdk@npm:^3.4.0":
   version: 3.4.0
@@ -35337,6 +35369,7 @@ __metadata:
     "@lavamoat/react-native-lockdown": "npm:^0.0.2"
     "@ledgerhq/hw-app-eth": "npm:^6.42.0"
     "@ledgerhq/react-native-hw-transport-ble": "npm:^6.37.0"
+    "@metamask-previews/hw-emulator": "npm:0.1.0-de887b2"
     "@metamask/abi-utils": "npm:^3.0.0"
     "@metamask/account-api": "npm:^1.0.4"
     "@metamask/account-tree-controller": "npm:^7.2.0"
@@ -42310,21 +42343,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"rxjs@npm:6, rxjs@npm:^6.6.3, rxjs@npm:^6.6.7":
+  version: 6.6.7
+  resolution: "rxjs@npm:6.6.7"
+  dependencies:
+    tslib: "npm:^1.9.0"
+  checksum: 10/c8263ebb20da80dd7a91c452b9e96a178331f402344bbb40bc772b56340fcd48d13d1f545a1e3d8e464893008c5e306cc42a1552afe0d562b1a6d4e1e6262b03
+  languageName: node
+  linkType: hard
+
 "rxjs@npm:7.8.2, rxjs@npm:>= 6, rxjs@npm:^7.8.1, rxjs@npm:^7.8.2":
   version: 7.8.2
   resolution: "rxjs@npm:7.8.2"
   dependencies:
     tslib: "npm:^2.1.0"
   checksum: 10/03dff09191356b2b87d94fbc1e97c4e9eb3c09d4452399dddd451b09c2f1ba8d56925a40af114282d7bc0c6fe7514a2236ca09f903cf70e4bbf156650dddb49d
-  languageName: node
-  linkType: hard
-
-"rxjs@npm:^6.6.3, rxjs@npm:^6.6.7":
-  version: 6.6.7
-  resolution: "rxjs@npm:6.6.7"
-  dependencies:
-    tslib: "npm:^1.9.0"
-  checksum: 10/c8263ebb20da80dd7a91c452b9e96a178331f402344bbb40bc772b56340fcd48d13d1f545a1e3d8e464893008c5e306cc42a1552afe0d562b1a6d4e1e6262b03
   languageName: node
   linkType: hard
 

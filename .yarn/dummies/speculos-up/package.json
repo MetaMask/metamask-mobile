@@ -1,0 +1,7 @@
+{
+  "name": "@metamask/speculos-up",
+  "version": "0.1.0",
+  "description": "Stub for @metamask/speculos-up (not used on macOS/Docker mode)",
+  "main": "index.js",
+  "type": "module"
+}

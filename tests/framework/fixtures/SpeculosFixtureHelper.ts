@@ -1,8 +1,12 @@
 /* eslint-disable import-x/no-nodejs-modules */
 import { execSync, spawn, type ChildProcess } from 'child_process';
-import { resolve, join, dirname, basename } from 'path';
+import { resolve, join } from 'path';
 import { withFixtures } from './FixtureHelper';
-import type { WithFixturesOptions, LocalNode } from '../types';
+import {
+  type WithFixturesOptions,
+  type LocalNode,
+  LocalNodeType,
+} from '../types';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../flows/wallet.flow';
 import { waitForAppReady } from '../../flows/general.flow';
@@ -15,17 +19,19 @@ import type ContractAddressRegistry from '../../../app/util/test/contract-addres
 import type { Mockttp } from 'mockttp';
 import type CommandQueueServer from './CommandQueueServer';
 import {
-  SpeculosManager,
-  type SpeculosManagerOptions,
-} from '../../seeder/speculos-manager';
+  DockerManager,
+  SPECULOS_SEED as HW_EMULATOR_SEED,
+  SPECULOS_LEDGER_ADDRESS as HW_EMULATOR_LEDGER_ADDRESS,
+} from '@metamask-previews/hw-emulator';
 
 const logger = createLogger({ name: 'SpeculosFixtureHelper' });
 
 const SPECULOS_BLE_DIR = resolve(__dirname, '../../../packages/speculos-ble');
 
-const PROJECT_ROOT = resolve(__dirname, '../../..');
-
-const SPECULOS_ELF_DIR = resolve(PROJECT_ROOT, '.speculos-cache/apps');
+const HW_EMULATOR_DIR = resolve(
+  __dirname,
+  '../../../node_modules/@metamask-previews/hw-emulator',
+);
 
 export interface SpeculosConfig {
   speculosHost: string;
@@ -33,21 +39,32 @@ export interface SpeculosConfig {
   speculosApduPort: number;
   controlApiPort: number;
   deviceName: string;
+  device: string;
+  elfFilename: string;
 }
 
 const DEFAULT_SPECULOS_CONFIG: SpeculosConfig = {
   speculosHost: '127.0.0.1',
-  speculosApiPort: 5100,
-  speculosApduPort: 10099,
+  speculosApiPort: 5001,
+  speculosApduPort: 9998,
   controlApiPort: 5002,
   deviceName: 'Ledger Nano X',
+  device: 'nanox',
+  elfFilename: 'ethereum-nanox.elf',
 };
+
+export const SPECULOS_MNEMONIC = HW_EMULATOR_SEED;
+
+export const LEDGER_ACCOUNT_ADDRESS = HW_EMULATOR_LEDGER_ADDRESS;
 
 export interface WithSpeculosFixturesOptions {
   speculos?: Partial<SpeculosConfig>;
-  startSpeculos?: boolean | SpeculosManagerOptions;
-  fixture?: Record<string, unknown>;
+  startSpeculos?: boolean;
+  fixture?: WithFixturesOptions['fixture'];
   contractRegistry?: ContractAddressRegistry;
+  testSpecificMock?: (mockServer: Mockttp) => Promise<void>;
+  dapps?: import('../types').DappOptions[];
+  enableLocalNode?: boolean;
 }
 
 export interface SpeculosTestSuiteParams {
@@ -60,9 +77,14 @@ export interface SpeculosTestSuiteParams {
 
 export class SpeculosHelper {
   private config: SpeculosConfig;
+  private dockerManager: DockerManager | undefined;
 
-  constructor(config: Partial<SpeculosConfig> = {}) {
+  constructor(
+    config: Partial<SpeculosConfig> = {},
+    dockerManager?: DockerManager,
+  ) {
     this.config = { ...DEFAULT_SPECULOS_CONFIG, ...config };
+    this.dockerManager = dockerManager;
   }
 
   get host(): string {
@@ -144,17 +166,6 @@ export class SpeculosHelper {
     button: 'left' | 'right' | 'both',
     count = 1,
   ): Promise<void> {
-    if (await this.isControlApiReady()) {
-      await this.pressButtonViaControlApi(button, count);
-    } else {
-      await this.pressButtonViaSpeculosApi(button, count);
-    }
-  }
-
-  async pressButtonViaSpeculosApi(
-    button: 'left' | 'right' | 'both',
-    count = 1,
-  ): Promise<void> {
     for (let i = 0; i < count; i++) {
       const resp = await fetch(
         `http://${this.config.speculosHost}:${this.config.speculosApiPort}/button/${button}`,
@@ -166,42 +177,6 @@ export class SpeculosHelper {
       );
       if (!resp.ok) {
         throw new Error(`Speculos button press failed: HTTP ${resp.status}`);
-      }
-    }
-  }
-
-  async pressButtonViaControlApi(
-    button: 'left' | 'right' | 'both',
-    count = 1,
-  ): Promise<void> {
-    const maxRetries = 3;
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        const resp = await fetch(
-          `http://${this.config.speculosHost}:${this.config.controlApiPort}/button/press`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ button, count }),
-          },
-        );
-        if (!resp.ok) {
-          const body = await resp.text();
-          if (attempt < maxRetries) {
-            await new Promise((r) => setTimeout(r, 1000));
-            continue;
-          }
-          throw new Error(
-            `Control API button press failed: HTTP ${resp.status} - ${body}`,
-          );
-        }
-        return;
-      } catch (e) {
-        if (attempt < maxRetries) {
-          await new Promise((r) => setTimeout(r, 1000));
-          continue;
-        }
-        throw e;
       }
     }
   }
@@ -228,42 +203,61 @@ export class SpeculosHelper {
     }
   }
 
-  async autoApprove(): Promise<void> {
-    for (let i = 0; i < 4; i++) {
-      await this.pressButton('right', 1);
-      await new Promise((r) => setTimeout(r, 300));
+  async approveTransaction(): Promise<void> {
+    for (let i = 0; i < 6; i++) {
+      await this.pressButton('right');
+      await new Promise((r) => setTimeout(r, 500));
     }
+    await this.pressButton('both');
     await new Promise((r) => setTimeout(r, 500));
-    await this.pressButton('both', 1);
+  }
+
+  async approveSigning(): Promise<void> {
+    for (let i = 0; i < 2; i++) {
+      await this.pressButton('right');
+      await new Promise((r) => setTimeout(r, 500));
+    }
+    await this.pressButton('both');
+    await new Promise((r) => setTimeout(r, 500));
+  }
+
+  async rejectTransaction(): Promise<void> {
+    await this.pressButton('right');
+    await new Promise((r) => setTimeout(r, 300));
+    await this.pressButton('both');
   }
 
   async enableBlindSigning(): Promise<void> {
-    const url = `http://${this.host}:${this.controlApiPort}/blind-signing/enable`;
-    const response = await fetch(url, { method: 'POST' });
-    if (!response.ok) {
-      throw new Error(`Failed to enable blind signing: ${response.status}`);
+    await this.pressButton('both');
+    await new Promise((r) => setTimeout(r, 800));
+    await this.pressButton('right');
+    await new Promise((r) => setTimeout(r, 400));
+    await this.pressButton('both');
+    await new Promise((r) => setTimeout(r, 800));
+    await this.pressButton('both');
+    await new Promise((r) => setTimeout(r, 800));
+    for (let i = 0; i < 6; i++) {
+      await this.pressButton('right');
+      await new Promise((r) => setTimeout(r, 200));
     }
+    await this.pressButton('both');
+    await new Promise((r) => setTimeout(r, 500));
+    await this.pressButton('left');
+    await new Promise((r) => setTimeout(r, 400));
   }
 
   async autoApproveSigning(
     presses?: { button: string; count: number }[],
   ): Promise<void> {
-    const url = `http://${this.host}:${this.controlApiPort}/signing/auto-approve`;
-    const body = presses
-      ? { presses }
-      : {
-          presses: [
-            { button: 'right', count: 4 },
-            { button: 'both', count: 1 },
-          ],
-        };
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-    if (!response.ok) {
-      throw new Error(`Failed to auto-approve signing: ${response.status}`);
+    if (presses) {
+      for (const { button, count } of presses) {
+        await this.pressButton(button as 'left' | 'right' | 'both', count);
+        await new Promise((r) => setTimeout(r, 500));
+      }
+    } else {
+      await this.pressButton('right', 4);
+      await new Promise((r) => setTimeout(r, 500));
+      await this.pressButton('both');
     }
   }
 
@@ -274,11 +268,27 @@ export class SpeculosHelper {
       // Best effort
     }
   }
+
+  async restartDocker(): Promise<void> {
+    if (this.dockerManager) {
+      logger.debug('Restarting Speculos via DockerManager...');
+      await this.dockerManager.stop();
+      await this.dockerManager.start();
+    } else {
+      const containerName = 'metamask-speculos';
+      try {
+        execSync(`docker restart ${containerName}`, { stdio: 'pipe' });
+        logger.debug('Speculos Docker container restarted');
+      } catch (e) {
+        logger.debug(`Failed to restart Docker: ${(e as Error).message}`);
+      }
+    }
+    await this.waitForSpeculos();
+  }
 }
 
 function startSpeculosBleService(config: SpeculosConfig): ChildProcess {
   const venvPython = join(SPECULOS_BLE_DIR, '.venv', 'bin', 'python');
-  const venvBin = join(SPECULOS_BLE_DIR, '.venv', 'bin', 'speculos-ble');
 
   const args = [
     '-m',
@@ -328,53 +338,20 @@ function startSpeculosBleService(config: SpeculosConfig): ChildProcess {
   return child;
 }
 
-async function ensureSpeculosDocker(config: SpeculosConfig): Promise<void> {
-  const containerName = 'speculos-ledger';
+function createDockerManager(config: SpeculosConfig): DockerManager {
+  const composeFile = join(HW_EMULATOR_DIR, 'docker-compose.yml');
+  const elfPath = join(HW_EMULATOR_DIR, 'apps', config.elfFilename);
 
-  if (
-    execSync(`docker ps --filter name=${containerName} -q`, {
-      encoding: 'utf-8',
-    }).trim()
-  ) {
-    logger.debug('Speculos Docker already running');
-    return;
-  }
-
-  const existingContainer = execSync(
-    `docker ps -a --filter name=${containerName} -q`,
-    { encoding: 'utf-8' },
-  ).trim();
-  if (existingContainer) {
-    execSync(`docker rm -f ${containerName}`, { stdio: 'ignore' });
-  }
-
-  const elfPath = join(SPECULOS_ELF_DIR, 'ethereum-nanox.elf');
-  const elfDir = dirname(elfPath);
-  const elfName = basename(elfPath);
-
-  logger.debug(
-    `Starting Speculos Docker on API:${config.speculosApiPort} APDU:${config.speculosApduPort}...`,
-  );
-  execSync(
-    `docker run -d --name ${containerName} ` +
-      `-p ${config.speculosApduPort}:9998 ` +
-      `-p ${config.speculosApiPort}:5000 ` +
-      `-v ${elfDir}:/apps:ro ` +
-      `ghcr.io/ledgerhq/speculos ` +
-      `--model nanox --display headless ` +
-      `--apdu-port 9998 ` +
-      `/apps/${elfName}`,
-    { stdio: 'pipe' },
-  );
-}
-
-async function killSpeculosDocker(): Promise<void> {
-  try {
-    execSync('docker stop speculos-ledger', { stdio: 'ignore' });
-    execSync('docker rm speculos-ledger', { stdio: 'ignore' });
-  } catch {
-    // Best effort
-  }
+  return new DockerManager({
+    composeFile,
+    apduPort: config.speculosApduPort,
+    apiPort: config.speculosApiPort,
+    app: elfPath,
+    model: config.device,
+    seed: SPECULOS_MNEMONIC,
+    display: 'headless',
+    loadNvram: true,
+  });
 }
 
 export async function withSpeculosFixtures(
@@ -386,23 +363,21 @@ export async function withSpeculosFixtures(
     ...options.speculos,
   };
 
-  const speculosManager =
-    options.startSpeculos !== undefined && options.startSpeculos !== false
-      ? new SpeculosManager(
-          typeof options.startSpeculos === 'object'
-            ? options.startSpeculos
-            : {},
-        )
-      : undefined;
+  const shouldStartDocker =
+    options.startSpeculos !== undefined && options.startSpeculos !== false;
 
+  let dockerManager: DockerManager | undefined;
   let bleProcess: ChildProcess | undefined;
 
   try {
-    if (speculosManager) {
-      await ensureSpeculosDocker(speculosConfig);
+    if (shouldStartDocker) {
+      dockerManager = createDockerManager(speculosConfig);
+      logger.debug('Starting Speculos Docker via hw-emulator DockerManager...');
+      await dockerManager.start();
+      logger.debug('DockerManager reports container healthy');
     }
 
-    const speculos = new SpeculosHelper(speculosConfig);
+    const speculos = new SpeculosHelper(speculosConfig, dockerManager);
     await speculos.waitForSpeculos();
 
     logger.debug('Starting speculos-ble with android-netsim transport...');
@@ -413,20 +388,34 @@ export async function withSpeculosFixtures(
       'speculos-ble Control API ready — virtual BLE device advertising',
     );
 
-    await withFixtures(
-      {
-        fixture: options.fixture as WithFixturesOptions['fixture'],
-        restartDevice: true,
-        disableSynchronization: true,
-        disableLocalNodes: true,
-      },
-      async (params) => {
-        await testSuite({
-          ...params,
-          speculos,
-        });
-      },
-    );
+    const withFixturesOptions: WithFixturesOptions = {
+      fixture: options.fixture as WithFixturesOptions['fixture'],
+      restartDevice: true,
+      disableSynchronization: true,
+      disableLocalNodes: !options.enableLocalNode,
+      testSpecificMock: options.testSpecificMock,
+      dapps: options.dapps,
+    };
+
+    if (options.enableLocalNode) {
+      withFixturesOptions.localNodeOptions = [
+        {
+          type: LocalNodeType.anvil,
+          options: {
+            mnemonic: SPECULOS_MNEMONIC,
+            balance: 1000,
+            chainId: 1337,
+          },
+        },
+      ];
+    }
+
+    await withFixtures(withFixturesOptions, async (params) => {
+      await testSuite({
+        ...params,
+        speculos,
+      });
+    });
   } finally {
     if (bleProcess) {
       logger.debug('Stopping speculos-ble process...');
@@ -444,9 +433,9 @@ export async function withSpeculosFixtures(
         // Best effort
       }
     }
-    if (speculosManager) {
-      await killSpeculosDocker();
-      await speculosManager.stop();
+    if (dockerManager) {
+      logger.debug('Stopping Speculos Docker via DockerManager...');
+      await dockerManager.stop();
     }
   }
 }
@@ -475,6 +464,36 @@ export async function importLedgerAccount(): Promise<void> {
     { timeout: 60000 },
   );
   await LedgerConnectView.tapNextAccountsButton();
+  await TestHelpers.delay(8000);
+
+  // The LedgerSelectAccount.onUnlock() calls pop(2) which only pops
+  // within the nested LedgerConnectFlow stack. This leaves multiple screens
+  // still on the AppFlow root stack. Press back to dismiss them.
+  // We press back up to 3 times to clear:
+  //   [1] LedgerConnectFlow (if not auto-popped)
+  //   [2] ConnectHardwareWalletFlow (SelectHardware)
+  //   [3] RootModalFlow (AccountSelector → AddWallet)
+  for (let i = 0; i < 3; i++) {
+    await device.pressBack();
+    await TestHelpers.delay(1000);
+  }
+
+  // After the Ledger import flow, the React Navigation tab state can become
+  // stuck even though all screens are dismissed and no overlays are visible.
+  // The only reliable fix is to restart the app. The imported Ledger account
+  // is persisted in Redux/async-storage and survives the restart.
+  // After restart, we need to re-login and the account will be there.
+  // We use TestHelpers.launchApp (not device.launchApp directly) so that
+  // the speculos config's launchAppWithRecovery path is used (handles adb
+  // reverse port conflicts).
+  await TestHelpers.launchApp({ newInstance: true });
   await TestHelpers.delay(5000);
-  await Assertions.expectElementToBeVisible(WalletView.container);
+  await waitForAppReady(300000);
+  await loginToApp();
+  await TestHelpers.delay(5000);
+
+  // Now wait for the wallet view to be visible
+  await Assertions.expectElementToBeVisible(WalletView.container, {
+    timeout: 15000,
+  });
 }
