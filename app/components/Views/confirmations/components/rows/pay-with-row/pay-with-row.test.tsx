@@ -1,6 +1,7 @@
 import React from 'react';
 import { type PaymentMethod } from '@metamask/ramps-controller';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
+import { TransactionType } from '@metamask/transaction-controller';
 import { useNavigation } from '@react-navigation/native';
 import { act, fireEvent } from '@testing-library/react-native';
 import { merge } from 'lodash';
@@ -357,6 +358,18 @@ describe('PayWithRow', () => {
       const { getByTestId } = renderMoneyAccount({ isResultReady: true });
 
       expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money balance');
+    });
+
+    it('renders nothing for perps deposit from money account', () => {
+      jest.mocked(useTransactionMetadataRequest).mockReturnValue({
+        id: TRANSACTION_ID_MOCK,
+        type: TransactionType.perpsDeposit,
+      } as never);
+
+      const { queryByTestId } = renderMoneyAccount();
+
+      expect(queryByTestId('pay-with')).toBeNull();
+      expect(queryByTestId('pay-with-row-skeleton')).toBeNull();
     });
   });
 

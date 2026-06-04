@@ -834,3 +834,10 @@ export const PerpsFlipPositionConfirmSheetSelectorsIDs = {
   EST_SIZE_VALUE: 'perps-flip-position-est-size-value',
   FEES_VALUE: 'perps-flip-position-fees-value',
 } as const;
+
+export const PerpsAccountPickerSelectorsIDs = {
+  ROW: 'perps-account-picker-row',
+  SHEET: 'perps-account-picker-sheet',
+  SEARCH_INPUT: 'perps-account-picker-search',
+  ACCOUNT_ITEM: 'perps-account-picker-item',
+} as const;

@@ -29,6 +29,8 @@ import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupported
 import { useMusdConfirmNavigation } from '../../../../UI/Earn/hooks/useMusdConfirmNavigation';
 import { isHardwareAccount } from '../../../../../util/address';
 import { useFiatConfirm } from '../pay/useFiatConfirm';
+import { useParams } from '../../../../../util/navigation/navUtils';
+import { PayWithOption } from '../../components/confirm/confirm-component';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -48,6 +50,7 @@ jest.mock('../gas/useGaslessSupportedSmartTransactions');
 jest.mock('../../../../UI/Earn/hooks/useMusdConfirmNavigation');
 jest.mock('../../../../../util/address');
 jest.mock('../pay/useFiatConfirm');
+jest.mock('../../../../../util/navigation/navUtils');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -91,9 +94,12 @@ describe('useTransactionConfirm', () => {
   const isHardwareAccountMock = jest.mocked(isHardwareAccount);
 
   const onFiatConfirmMock = jest.fn();
+  const useParamsMock = jest.mocked(useParams);
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    useParamsMock.mockReturnValue({});
 
     jest.mocked(useFiatConfirm).mockReturnValue({
       onFiatConfirm: onFiatConfirmMock,
@@ -327,6 +333,28 @@ describe('useTransactionConfirm', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
+      });
+    });
+
+    it('money home if perps deposit with MoneyAccount payWithOption', async () => {
+      useParamsMock.mockReturnValue({
+        payWithOption: PayWithOption.MoneyAccount,
+      });
+
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        type: TransactionType.perpsDeposit,
+      } as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
       });
     });
 
