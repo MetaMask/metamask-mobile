@@ -43,6 +43,11 @@ const NON_TERMINAL_CANCEL_STATUSES: ReadonlySet<TransactionStatus> = new Set([
   TransactionStatus.submitted,
 ]);
 
+// Submitted txs are included above for cancel bookkeeping, but must not be
+// locally aborted or dropped because they may still be pending on-chain.
+const LOCALLY_DROPPABLE_CANCEL_STATUSES: ReadonlySet<TransactionStatus> =
+  new Set([TransactionStatus.approved, TransactionStatus.signed]);
+
 const TERMINAL_CANCEL_STATUSES: ReadonlySet<TransactionStatus> = new Set([
   TransactionStatus.failed,
   TransactionStatus.rejected,
@@ -58,6 +63,7 @@ const FAILED_OR_REJECTED_STATUSES: ReadonlySet<TransactionStatus> = new Set([
 
 const TX_STATUS_UPDATED_EVENT =
   'TransactionController:transactionStatusUpdated';
+const CANCEL_TERMINAL_WAIT_TIMEOUT_MS = 30_000;
 
 function isBatchTransactionType(
   txType: TransactionMeta['type'],
@@ -171,11 +177,13 @@ function rejectPendingBatchApprovals({
 
 function getFailedBatchTxChainIds(
   address: string | undefined,
+  relatedBatchIds: ReadonlySet<string>,
 ): Set<NonNullable<TransactionMeta['chainId']>> {
   const failedBatchTxs = address
     ? getTransactions().filter(
         (tx: TransactionMeta) =>
           tx.txParams.from?.toLowerCase() === address &&
+          Boolean(tx.batchId && relatedBatchIds.has(tx.batchId)) &&
           FAILED_OR_REJECTED_STATUSES.has(tx.status) &&
           isBatchTransactionType(tx.type),
       )
@@ -190,10 +198,14 @@ function getFailedBatchTxChainIds(
   );
 }
 
-function wipeFailedBatchTransactions(address: string | undefined): void {
+function wipeFailedBatchTransactions(
+  address: string | undefined,
+  relatedBatchIds: ReadonlySet<string>,
+): void {
   if (!address) return;
+  if (relatedBatchIds.size === 0) return;
 
-  for (const chainId of getFailedBatchTxChainIds(address)) {
+  for (const chainId of getFailedBatchTxChainIds(address, relatedBatchIds)) {
     try {
       Engine.controllerMessenger.call(
         'TransactionController:wipeTransactions',
@@ -214,6 +226,11 @@ function abortTransactionSignings(
   pendingAbortTxIds: Set<string>,
 ): void {
   for (const txId of txIds) {
+    const tx = getTransactionById(txId);
+    if (tx && !LOCALLY_DROPPABLE_CANCEL_STATUSES.has(tx.status)) {
+      continue;
+    }
+
     try {
       Engine.context.TransactionController.abortTransactionSigning(txId);
     } catch {
@@ -225,7 +242,7 @@ function abortTransactionSignings(
 function dropAbortableTransactions(txIds: string[]): void {
   for (const txId of txIds) {
     const tx = getTransactionById(txId);
-    if (!tx || !NON_TERMINAL_CANCEL_STATUSES.has(tx.status)) {
+    if (!tx || !LOCALLY_DROPPABLE_CANCEL_STATUSES.has(tx.status)) {
       continue;
     }
 
@@ -241,11 +258,17 @@ function dropAbortableTransactions(txIds: string[]): void {
   }
 }
 
+function getPendingTransactionIds(txIds: string[]): Set<string> {
+  return new Set(
+    txIds.filter((id) => {
+      const tx = getTransactionById(id);
+      return tx && !TERMINAL_CANCEL_STATUSES.has(tx.status);
+    }),
+  );
+}
+
 function hasPendingTransactions(txIds: string[]): boolean {
-  return txIds.some((id) => {
-    const tx = getTransactionById(id);
-    return tx && !TERMINAL_CANCEL_STATUSES.has(tx.status);
-  });
+  return getPendingTransactionIds(txIds).size > 0;
 }
 
 function waitForTerminalTransactions(txIds: string[]): Promise<void> {
@@ -254,7 +277,7 @@ function waitForTerminalTransactions(txIds: string[]): Promise<void> {
   }
 
   return new Promise<void>((resolve) => {
-    const remaining = new Set(txIds);
+    const remaining = getPendingTransactionIds(txIds);
     let isSubscribed = false;
     let isResolved = false;
     const timeoutRef: {
@@ -293,7 +316,7 @@ function waitForTerminalTransactions(txIds: string[]): Promise<void> {
       resolve();
     }
 
-    timeoutRef.current = setTimeout(finish, 5_000);
+    timeoutRef.current = setTimeout(finish, CANCEL_TERMINAL_WAIT_TIMEOUT_MS);
 
     Engine.controllerMessenger.subscribe(TX_STATUS_UPDATED_EVENT, handler);
     isSubscribed = true;
@@ -362,6 +385,7 @@ interface HwBatchSignTrackerState {
   acceptedApprovalIds: Set<string>;
   approvalQueue: string[];
   isProcessingQueue: boolean;
+  isCancellingBatch: boolean;
   batchGeneration: number;
   lastSeenGeneration: number;
 }
@@ -399,6 +423,7 @@ function createInitialBatchSignTrackerState(
     acceptedApprovalIds: new Set(),
     approvalQueue: [],
     isProcessingQueue: false,
+    isCancellingBatch: false,
     batchGeneration: 0,
     lastSeenGeneration: retryGeneration,
   };
@@ -443,6 +468,10 @@ export function useHwBatchSignTracker({
   const trackerStateRef = useRef(
     createInitialBatchSignTrackerState(retryGenerationRef?.current),
   );
+  const processApprovalQueueRef = useRef<(() => void) | undefined>(undefined);
+  const trackerLifecycleKeyRef = useRef<string | undefined>(
+    fromAddress && isEnabled ? fromAddress.toLowerCase() : undefined,
+  );
   const [confirmationTxId, setConfirmationTxId] = useState<
     string | undefined
   >();
@@ -461,7 +490,7 @@ export function useHwBatchSignTracker({
     setConfirmationTxId(undefined);
   }, []);
 
-  const checkGeneration = useCallback(() => {
+  const checkGeneration = useCallback((): boolean => {
     const trackerState = trackerStateRef.current;
     if (
       retryGenerationRef &&
@@ -469,7 +498,9 @@ export function useHwBatchSignTracker({
     ) {
       trackerState.lastSeenGeneration = retryGenerationRef.current;
       invalidateBatchStateForRetry();
+      return true;
     }
+    return false;
   }, [retryGenerationRef, invalidateBatchStateForRetry]);
 
   const syncConfirmationTxId = useCallback(() => {
@@ -506,10 +537,7 @@ export function useHwBatchSignTracker({
   const isCancelledError = useCallback((error: unknown): boolean => {
     const message =
       error instanceof Error ? error.message : String(error ?? '');
-    return (
-      message.startsWith(KEYSTONE_TX_CANCELED) ||
-      message.startsWith(STX_NO_HASH_ERROR)
-    );
+    return message === KEYSTONE_TX_CANCELED || message === STX_NO_HASH_ERROR;
   }, []);
 
   const trackTransactionCancelledEvent = useCallback(() => {
@@ -522,6 +550,11 @@ export function useHwBatchSignTracker({
 
   const cancelCurrentBatch = useCallback(async () => {
     const trackerState = trackerStateRef.current;
+    if (trackerState.isCancellingBatch) {
+      return;
+    }
+
+    const lifecycleKey = trackerLifecycleKeyRef.current;
     const address = latestValuesRef.current.fromAddress?.toLowerCase();
     const allTxIds = getCancellableBatchTxIds(
       address,
@@ -562,33 +595,57 @@ export function useHwBatchSignTracker({
     // TransactionController only exposes a typed chain/address-scoped wipe
     // action, not a single-transaction delete action. Skip missing chain IDs
     // rather than widening to every chain for the address.
-    wipeFailedBatchTransactions(address);
+    wipeFailedBatchTransactions(address, relatedBatchIds);
 
     if (allTxIds.length === 0) {
       return;
     }
 
     trackerState.pendingAbortTxIds = new Set(allTxIds);
+    trackerState.isCancellingBatch = true;
 
     abortTransactionSignings(allTxIds, trackerState.pendingAbortTxIds);
 
-    // abortTransactionSigning may not work on signed txs — fail them explicitly
+    // Only pre-broadcast txs are safe to local-drop; submitted txs may still
+    // be pending on-chain and must remain visible in activity.
     dropAbortableTransactions(allTxIds);
-    await waitForTerminalTransactions(allTxIds);
+    try {
+      await waitForTerminalTransactions(allTxIds);
+    } finally {
+      trackerState.pendingAbortTxIds = new Set();
+      trackerState.isCancellingBatch = false;
+      if (trackerLifecycleKeyRef.current === lifecycleKey) {
+        Promise.resolve().then(() => processApprovalQueueRef.current?.());
+      }
+    }
   }, [invalidateBatchStateForRetry, trackTransactionCancelledEvent]);
 
   useEffect(() => {
-    if (!fromAddress || !isEnabled) {
+    const trackerLifecycleKey =
+      fromAddress && isEnabled ? fromAddress.toLowerCase() : undefined;
+    if (trackerLifecycleKeyRef.current !== trackerLifecycleKey) {
+      trackerLifecycleKeyRef.current = trackerLifecycleKey;
+      trackerStateRef.current = createInitialBatchSignTrackerState(
+        retryGenerationRef?.current,
+      );
+      setConfirmationTxId(undefined);
+    }
+
+    if (!trackerLifecycleKey) {
       return undefined;
     }
 
-    const targetFrom = fromAddress.toLowerCase();
+    const targetFrom = trackerLifecycleKey;
     const handledTxIds = new Set<string>();
 
     const processApprovalQueue = async () => {
-      checkGeneration();
+      if (checkGeneration()) {
+        return;
+      }
       const trackerState = trackerStateRef.current;
-      if (trackerState.isProcessingQueue) return;
+      if (trackerState.isProcessingQueue || trackerState.isCancellingBatch) {
+        return;
+      }
       trackerState.isProcessingQueue = true;
 
       try {
@@ -601,6 +658,7 @@ export function useHwBatchSignTracker({
           const requestId = maybeRequestId;
           let deviceConfirmedReady = false;
           let hasHandledRejection = false;
+          let didDispatchCancellationRejection = false;
 
           const handleApprovalRejection = async (): Promise<void> => {
             if (hasHandledRejection) return;
@@ -627,18 +685,20 @@ export function useHwBatchSignTracker({
               { ignoreMissing: true, logErrors: false },
             );
             trackTransactionCancelledEvent();
-            latestValuesRef.current.dispatch(
-              updateHardwareWalletsSwaps({
-                type: HardwareWalletsSwapsEventType.TransactionFailed,
-              }),
-            );
+            if (!didDispatchCancellationRejection) {
+              latestValuesRef.current.dispatch(
+                updateHardwareWalletsSwaps({
+                  type: HardwareWalletsSwapsEventType.TransactionFailed,
+                }),
+              );
+            }
             await cancelCurrentBatch();
           };
 
           try {
             const latestValues = latestValuesRef.current;
             const result = await executeHardwareWalletOperation({
-              address: fromAddress,
+              address: latestValues.fromAddress ?? targetFrom,
               operationType: 'transaction',
               ensureDeviceReady: latestValues.ensureDeviceReady,
               setPendingOperationAddress:
@@ -661,6 +721,7 @@ export function useHwBatchSignTracker({
                 // sheet from flipping to an Error state — the swaps modal
                 // surfaces these errors itself.
                 if (!(error instanceof Error)) return false;
+                const { message } = error;
 
                 // STX submission failures arrive AFTER signing has succeeded.
                 // handleApprovalRejection (onRejected) would skip them via its
@@ -669,8 +730,7 @@ export function useHwBatchSignTracker({
                 // are already in their terminal failed state from the STX
                 // backend; dropping them would hide them from the activity
                 // list.
-                const isStxSubmissionFailure =
-                  error.message.startsWith(STX_NO_HASH_ERROR);
+                const isStxSubmissionFailure = message === STX_NO_HASH_ERROR;
                 if (isStxSubmissionFailure) {
                   latestValuesRef.current.dispatch(
                     updateHardwareWalletsSwaps({
@@ -678,11 +738,20 @@ export function useHwBatchSignTracker({
                     }),
                   );
                 }
+                const isKeystoneCancel = message === KEYSTONE_TX_CANCELED;
+                if (isKeystoneCancel) {
+                  didDispatchCancellationRejection = true;
+                  latestValuesRef.current.dispatch(
+                    updateHardwareWalletsSwaps({
+                      type: HardwareWalletsSwapsEventType.Rejected,
+                    }),
+                  );
+                }
 
                 return (
                   isStxSubmissionFailure ||
-                  error.message.startsWith(KEYSTONE_TX_CANCELED) ||
-                  error.message === 'Batch cancelled'
+                  isKeystoneCancel ||
+                  message === 'Batch cancelled'
                 );
               },
               onRejected: handleApprovalRejection,
@@ -745,6 +814,7 @@ export function useHwBatchSignTracker({
 
       processApprovalQueue();
     };
+    processApprovalQueueRef.current = processApprovalQueue;
 
     const dispatchSwapEvent = (event: HardwareWalletsSwapsEvent) => {
       latestValuesRef.current.dispatch(updateHardwareWalletsSwaps(event));
@@ -759,7 +829,7 @@ export function useHwBatchSignTracker({
     const shouldIgnoreTerminalTx = (transactionMeta: TransactionMeta) => {
       if (!matchesTx(transactionMeta, targetFrom)) return true;
 
-      checkGeneration();
+      if (checkGeneration()) return true;
 
       if (handledTxIds.has(transactionMeta.id)) return true;
       if (!isFromCurrentBatch(transactionMeta)) return true;
@@ -778,7 +848,13 @@ export function useHwBatchSignTracker({
     }) => {
       if (!matchesTx(transactionMeta, targetFrom)) return;
 
-      checkGeneration();
+      if (
+        checkGeneration() &&
+        transactionMeta.batchId &&
+        trackerStateRef.current.staleBatchIds.has(transactionMeta.batchId)
+      ) {
+        return;
+      }
 
       const { status } = transactionMeta;
       const type = transactionMeta.type;
@@ -815,6 +891,21 @@ export function useHwBatchSignTracker({
         }
         dispatchSwapEvent({
           type: HardwareWalletsSwapsEventType.Signed,
+          payload: { stepKind },
+        });
+        completeTrackedTx(transactionMeta.id);
+      } else if (status === TransactionStatus.confirmed) {
+        if (shouldIgnoreTerminalTx(transactionMeta)) {
+          return;
+        }
+        completeTrackedTx(transactionMeta.id);
+      } else if (status === TransactionStatus.dropped) {
+        if (shouldIgnoreTerminalTx(transactionMeta)) {
+          return;
+        }
+        trackTransactionCancelledEvent();
+        dispatchSwapEvent({
+          type: HardwareWalletsSwapsEventType.Rejected,
           payload: { stepKind },
         });
         completeTrackedTx(transactionMeta.id);
@@ -871,6 +962,7 @@ export function useHwBatchSignTracker({
     enqueuePendingApprovals();
 
     return () => {
+      processApprovalQueueRef.current = undefined;
       Engine.controllerMessenger.unsubscribe(
         TX_STATUS_UPDATED_EVENT,
         handleStatusUpdated,
@@ -896,6 +988,7 @@ export function useHwBatchSignTracker({
     isCancelledError,
     isEnabled,
     isFromCurrentBatch,
+    retryGenerationRef,
     syncConfirmationTxId,
     trackTransactionCancelledEvent,
   ]);

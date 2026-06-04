@@ -10,6 +10,8 @@ import {
   HardwareWalletsSwapsEventType,
   type HardwareWalletsSwapsEvent,
 } from './HardwareWalletsSwaps.state';
+import { KEYSTONE_TX_CANCELED } from '../../../../constants/error';
+import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-publish-hook';
 
 jest.mock('../../../../core/Engine', () => ({
   rejectPendingApproval: jest.fn(),
@@ -106,6 +108,10 @@ const EXPECT_REJECTED_APPROVAL: HardwareWalletsSwapsEvent = {
   type: HardwareWalletsSwapsEventType.Rejected,
   payload: { stepKind: HardwareWalletsSwapsStepKind.Approval },
 };
+const EXPECT_REJECTED_TX: HardwareWalletsSwapsEvent = {
+  type: HardwareWalletsSwapsEventType.Rejected,
+  payload: { stepKind: HardwareWalletsSwapsStepKind.Transaction },
+};
 const EXPECT_TX_FAILED: HardwareWalletsSwapsEvent = {
   type: HardwareWalletsSwapsEventType.TransactionFailed,
 };
@@ -154,6 +160,15 @@ function getSubscribeHandler(eventName: string): StatusHandler {
     ([event]: [string]) => event === eventName,
   );
   const handler = call?.[1];
+  if (!handler) throw new Error(`No handler found for ${eventName}`);
+  return handler as StatusHandler;
+}
+
+function getLatestSubscribeHandler(eventName: string): StatusHandler {
+  const calls = mockSubscribe.mock.calls.filter(
+    ([event]: [string]) => event === eventName,
+  );
+  const handler = calls.at(-1)?.[1];
   if (!handler) throw new Error(`No handler found for ${eventName}`);
   return handler as StatusHandler;
 }
@@ -245,6 +260,7 @@ async function processBatchApproval(batchId: string) {
 
 interface HwOpMockOpts {
   execute: () => Promise<void>;
+  onError?: (error: unknown) => boolean;
   onRejected?: () => void | Promise<void>;
 }
 
@@ -313,6 +329,50 @@ describe('useHwBatchSignTracker', () => {
 
     expect(mockSubscribe).toHaveBeenCalledTimes(4);
     expect(mockUnsubscribe).not.toHaveBeenCalled();
+  });
+
+  it('resets tracker state when switching fromAddress', () => {
+    const nextAddress = '0x0000000000000000000000000000000000000002';
+    const { rerender } = renderHook(
+      ({
+        fromAddress,
+        isEnabled,
+      }: {
+        fromAddress: string;
+        isEnabled: boolean;
+      }) => useHwBatchSignTracker({ fromAddress, isEnabled }),
+      {
+        initialProps: { fromAddress: FROM_ADDRESS, isEnabled: true },
+      },
+    );
+
+    fireTxEvent(
+      txMeta({
+        id: 'tx-first-account-001',
+        type: TransactionType.bridgeApproval,
+        status: TransactionStatus.approved,
+        batchId: 'batch-first-account',
+      }),
+    );
+
+    rerender({ fromAddress: nextAddress, isEnabled: true });
+    mockUpdateSwaps.mockClear();
+
+    const nextAccountTx = txMeta({
+      id: 'tx-second-account-001',
+      type: TransactionType.bridgeApproval,
+      status: TransactionStatus.approved,
+      batchId: 'batch-second-account',
+      txParams: { from: nextAddress },
+    });
+
+    act(() => {
+      getLatestSubscribeHandler(EVENT.status)({
+        transactionMeta: nextAccountTx,
+      });
+    });
+
+    expect(mockUpdateSwaps).toHaveBeenCalledWith(EXPECT_SIGNING_APPROVAL);
   });
 
   it.each([
@@ -449,20 +509,23 @@ describe('useHwBatchSignTracker', () => {
 
     it('blocks events after cancelCurrentBatch sets batch ID to null', async () => {
       const { result } = renderEnabledHook();
+      const meta = txMeta({
+        type: TransactionType.bridgeApproval,
+        status: TransactionStatus.approved,
+        batchId: 'batch-old',
+      });
 
-      fireTxEvent(
-        txMeta({
-          type: TransactionType.bridgeApproval,
-          status: TransactionStatus.approved,
-          batchId: 'batch-old',
-        }),
-      );
+      fireTxEvent(meta);
 
       mockUpdateSwaps.mockClear();
 
-      await act(async () => {
-        await result.current.cancelCurrentBatch();
+      let cancelPromise = Promise.resolve();
+      act(() => {
+        cancelPromise = result.current.cancelCurrentBatch();
       });
+
+      broadcastTxEvent({ ...meta, status: TransactionStatus.dropped });
+      await cancelPromise;
 
       fireTxEvent(
         txMeta({
@@ -488,11 +551,47 @@ describe('useHwBatchSignTracker', () => {
       fireTxEvent(originalMeta);
       mockUpdateSwaps.mockClear();
 
-      await act(async () => {
-        await result.current.cancelCurrentBatch();
+      let cancelPromise = Promise.resolve();
+      act(() => {
+        cancelPromise = result.current.cancelCurrentBatch();
       });
 
+      broadcastTxEvent({
+        ...originalMeta,
+        status: TransactionStatus.dropped,
+      });
+      await cancelPromise;
+
       fireTxEvent({ ...originalMeta, id: 'tx-late-approved-001' });
+
+      expect(mockUpdateSwaps).not.toHaveBeenCalled();
+      expect(result.current.confirmationTxId).toBeUndefined();
+    });
+
+    it('blocks approved events from the prior generation after retry starts', () => {
+      const retryGenerationRef = { current: 0 };
+      const staleBatchId = 'batch-stale-generation-approved';
+      const { result } = renderEnabledHook({ retryGenerationRef });
+
+      fireTxEvent(
+        txMeta({
+          id: 'tx-prior-generation-approved',
+          type: TransactionType.bridgeApproval,
+          status: TransactionStatus.approved,
+          batchId: staleBatchId,
+        }),
+      );
+      retryGenerationRef.current = 1;
+      mockUpdateSwaps.mockClear();
+
+      fireTxEvent(
+        txMeta({
+          id: 'tx-late-prior-generation-approved',
+          type: TransactionType.bridgeApproval,
+          status: TransactionStatus.approved,
+          batchId: staleBatchId,
+        }),
+      );
 
       expect(mockUpdateSwaps).not.toHaveBeenCalled();
       expect(result.current.confirmationTxId).toBeUndefined();
@@ -534,11 +633,95 @@ describe('useHwBatchSignTracker', () => {
 
       fireTxEvent(meta);
 
+      let cancelPromise = Promise.resolve();
+      act(() => {
+        cancelPromise = result.current.cancelCurrentBatch();
+      });
+
+      broadcastTxEvent({ ...meta, status: TransactionStatus.dropped });
+      await cancelPromise;
+
+      expect(mockAbortTransactionSigning).toHaveBeenCalledWith(meta.id);
+    });
+
+    it('does not locally abort or drop submitted batch transactions on cancelCurrentBatch', async () => {
+      const { result } = renderEnabledHook();
+      const approvedTx = txMeta({
+        id: 'tx-approved-batch-001',
+        type: TransactionType.bridgeApproval,
+        status: TransactionStatus.approved,
+        batchId: 'batch-submitted-001',
+      });
+      const submittedTx = txMeta({
+        id: 'tx-submitted-batch-001',
+        type: TransactionType.bridge,
+        status: TransactionStatus.submitted,
+        batchId: 'batch-submitted-001',
+      });
+
+      setMockTransactions([approvedTx, submittedTx]);
+
+      let cancelPromise = Promise.resolve();
+      act(() => {
+        cancelPromise = result.current.cancelCurrentBatch();
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(mockAbortTransactionSigning).toHaveBeenCalledWith(approvedTx.id);
+      expect(mockAbortTransactionSigning).not.toHaveBeenCalledWith(
+        submittedTx.id,
+      );
+      expect(mockControllerMessengerCall).toHaveBeenCalledWith(
+        'TransactionController:updateTransaction',
+        expect.objectContaining({
+          id: approvedTx.id,
+          status: TransactionStatus.dropped,
+        }),
+        expect.any(String),
+      );
+      expect(mockControllerMessengerCall).not.toHaveBeenCalledWith(
+        'TransactionController:updateTransaction',
+        expect.objectContaining({
+          id: submittedTx.id,
+          status: TransactionStatus.dropped,
+        }),
+        expect.any(String),
+      );
+
+      broadcastTxEvent({ ...approvedTx, status: TransactionStatus.dropped });
+      await cancelPromise;
+    });
+
+    it('resolves cancelCurrentBatch without events for submitted-only batches', async () => {
+      const { result } = renderEnabledHook();
+      const submittedTx = txMeta({
+        id: 'tx-submitted-only-batch-001',
+        type: TransactionType.bridge,
+        status: TransactionStatus.submitted,
+        batchId: 'batch-submitted-only-001',
+      });
+
+      setMockTransactions([submittedTx]);
+
       await act(async () => {
         await result.current.cancelCurrentBatch();
       });
 
-      expect(mockAbortTransactionSigning).toHaveBeenCalledWith(meta.id);
+      expect(mockAbortTransactionSigning).not.toHaveBeenCalledWith(
+        submittedTx.id,
+      );
+      expect(mockControllerMessengerCall).not.toHaveBeenCalledWith(
+        'TransactionController:updateTransaction',
+        expect.objectContaining({
+          id: submittedTx.id,
+          status: TransactionStatus.dropped,
+        }),
+        expect.any(String),
+      );
     });
 
     it('rejects only bridge/swap pending approvals for the tracked address on cancel', async () => {
@@ -570,8 +753,9 @@ describe('useHwBatchSignTracker', () => {
 
       fireTxEvent(bridgeTx);
 
+      let cancelPromise = Promise.resolve();
       act(() => {
-        result.current.cancelCurrentBatch().catch(() => undefined);
+        cancelPromise = result.current.cancelCurrentBatch();
       });
 
       const expectRejected = (id: string) =>
@@ -591,9 +775,52 @@ describe('useHwBatchSignTracker', () => {
       expectRejected(bridgeTxId);
       expectNotRejected(unrelatedTxId);
       expectNotRejected(unrelatedBatchId);
+
+      broadcastTxEvent({ ...bridgeTx, status: TransactionStatus.dropped });
+      await cancelPromise;
     });
 
-    it('unsubscribes the cancel waiter when the terminal-status timeout wins', async () => {
+    it('unsubscribes the cancel waiter when tracked txs become terminal', async () => {
+      const { result } = renderEnabledHook();
+      const meta = txMeta({
+        id: 'tx-terminal-waiter-001',
+        type: TransactionType.bridgeApproval,
+        status: TransactionStatus.approved,
+        batchId: 'batch-terminal-waiter',
+      });
+
+      setMockTransactions([meta]);
+
+      fireTxEvent(meta);
+
+      let cancelPromise = Promise.resolve();
+      act(() => {
+        cancelPromise = result.current.cancelCurrentBatch();
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      // The most recent status handler is the cancel-waiter.
+      const statusHandlers = getAllStatusHandlers();
+      const cancelWaiterHandler = statusHandlers.at(-1);
+
+      expect(statusHandlers).toHaveLength(2);
+      expect(cancelWaiterHandler).toEqual(expect.any(Function));
+
+      broadcastTxEvent({ ...meta, status: TransactionStatus.dropped });
+      await cancelPromise;
+
+      expect(mockUnsubscribe).toHaveBeenCalledWith(
+        EVENT.status,
+        cancelWaiterHandler,
+      );
+    });
+
+    it('unsubscribes the cancel waiter when the terminal-status timeout elapses', async () => {
       jest.useFakeTimers();
 
       try {
@@ -604,10 +831,62 @@ describe('useHwBatchSignTracker', () => {
           status: TransactionStatus.approved,
           batchId: 'batch-timeout-waiter',
         });
+        let didResolve = false;
 
         setMockTransactions([meta]);
-
         fireTxEvent(meta);
+
+        let cancelPromise = Promise.resolve();
+        act(() => {
+          cancelPromise = result.current.cancelCurrentBatch().then(() => {
+            didResolve = true;
+          });
+        });
+
+        await act(async () => {
+          await Promise.resolve();
+          await Promise.resolve();
+        });
+
+        const cancelWaiterHandler = getAllStatusHandlers().at(-1);
+
+        act(() => {
+          jest.advanceTimersByTime(30_000);
+        });
+        await act(async () => {
+          await Promise.resolve();
+          await Promise.resolve();
+        });
+
+        expect(didResolve).toBe(true);
+        await act(async () => {
+          await cancelPromise;
+        });
+        expect(mockUnsubscribe).toHaveBeenCalledWith(
+          EVENT.status,
+          cancelWaiterHandler,
+        );
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('does not accept a retry batch while prior cancellation txs remain non-terminal', async () => {
+      jest.useFakeTimers();
+
+      try {
+        const { result } = renderEnabledHook();
+        const oldTx = txMeta({
+          id: 'tx-prior-batch-approved-001',
+          type: TransactionType.bridgeApproval,
+          status: TransactionStatus.approved,
+          batchId: 'batch-prior-cancel-001',
+        });
+        const retryBatchId = 'batch-retry-after-cancel-001';
+        const retryTx = matchingBatchTx(retryBatchId);
+
+        setMockTransactions([oldTx]);
+        fireTxEvent(oldTx);
 
         let cancelPromise = Promise.resolve();
         act(() => {
@@ -616,26 +895,43 @@ describe('useHwBatchSignTracker', () => {
 
         await act(async () => {
           await Promise.resolve();
-          await Promise.resolve();
-          await Promise.resolve();
         });
 
-        // The most recent status handler is the cancel-waiter.
-        const statusHandlers = getAllStatusHandlers();
-        const cancelWaiterHandler = statusHandlers.at(-1);
+        setMockTransactions([oldTx, retryTx]);
+        setMockPendingApprovals({
+          [retryBatchId]: { id: retryBatchId, type: 'transaction_batch' },
+        });
 
-        expect(statusHandlers).toHaveLength(2);
-        expect(cancelWaiterHandler).toEqual(expect.any(Function));
-
-        await act(async () => {
+        act(() => {
+          getApprovalHandler()();
+        });
+        act(() => {
           jest.advanceTimersByTime(5_000);
-          await cancelPromise;
+        });
+        await act(async () => {
+          await Promise.resolve();
+          await Promise.resolve();
         });
 
-        expect(mockUnsubscribe).toHaveBeenCalledWith(
-          EVENT.status,
-          cancelWaiterHandler,
+        expect(mockExecuteHardwareWalletOperation).not.toHaveBeenCalled();
+
+        broadcastTxEvent({ ...oldTx, status: TransactionStatus.dropped });
+
+        await waitFor(() => {
+          expect(mockExecuteHardwareWalletOperation).toHaveBeenCalledWith(
+            expect.objectContaining({
+              address: FROM_ADDRESS,
+              operationType: 'transaction',
+              execute: expect.any(Function),
+            }),
+          );
+        });
+        expect(mockAcceptRequest).toHaveBeenCalledWith(
+          retryBatchId,
+          undefined,
+          { waitForResult: true },
         );
+        await cancelPromise;
       } finally {
         jest.useRealTimers();
       }
@@ -658,7 +954,7 @@ describe('useHwBatchSignTracker', () => {
         id: failedTxId,
         type: TransactionType.bridge,
         status: TransactionStatus.failed,
-        batchId: 'batch-failed',
+        batchId: 'batch-active',
         chainId,
       });
 
@@ -683,7 +979,7 @@ describe('useHwBatchSignTracker', () => {
       await cancelPromise;
     });
 
-    it('wipes failed bridge transactions even when no active txs remain', async () => {
+    it('does not wipe failed bridge transactions without related batch ids', async () => {
       const { result } = renderEnabledHook();
       const chainId = '0x1';
 
@@ -701,7 +997,7 @@ describe('useHwBatchSignTracker', () => {
         await result.current.cancelCurrentBatch();
       });
 
-      expect(mockControllerMessengerCall).toHaveBeenCalledWith(
+      expect(mockControllerMessengerCall).not.toHaveBeenCalledWith(
         'TransactionController:wipeTransactions',
         { address: FROM_ADDRESS.toLowerCase(), chainId },
       );
@@ -735,6 +1031,60 @@ describe('useHwBatchSignTracker', () => {
       );
 
       expect(result.current.confirmationTxId).toBeUndefined();
+    });
+
+    it('clears confirmationTxId when a tracked transaction confirms', () => {
+      const { result } = renderEnabledHook();
+      const txId = 'tx-confirmed-clears';
+      const batchId = 'batch-confirmed-clears';
+
+      fireTxEvent(
+        txMeta({
+          id: txId,
+          type: TransactionType.bridge,
+          status: TransactionStatus.approved,
+          batchId,
+        }),
+      );
+      expect(result.current.confirmationTxId).toBe(txId);
+
+      fireTxEvent(
+        txMeta({
+          id: txId,
+          type: TransactionType.bridge,
+          status: TransactionStatus.confirmed,
+          batchId,
+        }),
+      );
+
+      expect(result.current.confirmationTxId).toBeUndefined();
+    });
+
+    it('dispatches rejected when a tracked transaction is dropped outside local cancellation', () => {
+      renderEnabledHook();
+      const txId = 'tx-external-drop';
+      const batchId = 'batch-external-drop';
+
+      fireTxEvent(
+        txMeta({
+          id: txId,
+          type: TransactionType.bridge,
+          status: TransactionStatus.approved,
+          batchId,
+        }),
+      );
+      mockUpdateSwaps.mockClear();
+
+      fireTxEvent(
+        txMeta({
+          id: txId,
+          type: TransactionType.bridge,
+          status: TransactionStatus.dropped,
+          batchId,
+        }),
+      );
+
+      expect(mockUpdateSwaps).toHaveBeenCalledWith(EXPECT_REJECTED_TX);
     });
 
     it('advances confirmationTxId to the next tracked tx when the current one signs', () => {
@@ -787,14 +1137,13 @@ describe('useHwBatchSignTracker', () => {
 
     it('clears confirmationTxId on cancelCurrentBatch', async () => {
       const { result } = renderEnabledHook();
+      const meta = txMeta({
+        type: TransactionType.bridgeApproval,
+        status: TransactionStatus.approved,
+        batchId: 'batch-cancel',
+      });
 
-      fireTxEvent(
-        txMeta({
-          type: TransactionType.bridgeApproval,
-          status: TransactionStatus.approved,
-          batchId: 'batch-cancel',
-        }),
-      );
+      fireTxEvent(meta);
 
       expect(result.current.confirmationTxId).toBeDefined();
 
@@ -804,6 +1153,7 @@ describe('useHwBatchSignTracker', () => {
       });
 
       expect(result.current.confirmationTxId).toBeUndefined();
+      broadcastTxEvent({ ...meta, status: TransactionStatus.dropped });
       await cancelPromise;
     });
   });
@@ -1016,13 +1366,14 @@ describe('useHwBatchSignTracker', () => {
 
     it('clears transaction_batch dedupe and dispatches failed when hardware operation rejects', async () => {
       const batchId = 'batch-approval-rejected-001';
+      const tx = matchingBatchTx(batchId);
       mockHwOpOnce(async ({ execute, onRejected }) => {
         await execute();
         await onRejected?.();
         return false;
       });
 
-      setMockTransactions([matchingBatchTx(batchId)]);
+      setMockTransactions([tx]);
       setMockPendingApprovals({
         [batchId]: { id: batchId, type: 'transaction_batch' },
       });
@@ -1036,6 +1387,68 @@ describe('useHwBatchSignTracker', () => {
         expect(mockUpdateSwaps).toHaveBeenCalledWith(EXPECT_TX_FAILED);
         expect(mockExecuteHardwareWalletOperation).toHaveBeenCalledTimes(1);
       });
+      await waitFor(() => {
+        expect(mockAbortTransactionSigning).toHaveBeenCalledWith(tx.id);
+      });
+      await waitFor(() => {
+        expect(getAllStatusHandlers()).toHaveLength(2);
+      });
+      broadcastTxEvent({ ...tx, status: TransactionStatus.dropped });
+    });
+
+    it('dispatches rejected when Keystone cancellation is reported through onError', async () => {
+      const batchId = 'batch-keystone-cancel-001';
+      const tx = matchingBatchTx(batchId);
+      mockHwOpOnce(async ({ execute, onError, onRejected }) => {
+        await execute();
+        onError?.(new Error(KEYSTONE_TX_CANCELED));
+        const rejectionPromise = onRejected?.();
+        await waitFor(() => {
+          expect(getAllStatusHandlers()).toHaveLength(2);
+        });
+        broadcastTxEvent({ ...tx, status: TransactionStatus.dropped });
+        await rejectionPromise;
+        return false;
+      });
+
+      setMockTransactions([tx]);
+      setMockPendingApprovals({
+        [batchId]: { id: batchId, type: 'transaction_batch' },
+      });
+      renderEnabledHook();
+
+      await act(async () => {
+        await getApprovalHandler()();
+      });
+
+      expect(mockUpdateSwaps).toHaveBeenCalledWith({
+        type: HardwareWalletsSwapsEventType.Rejected,
+      });
+      expect(mockUpdateSwaps).not.toHaveBeenCalledWith(EXPECT_TX_FAILED);
+    });
+
+    it('does not suppress prefixed cancellation-like error messages', async () => {
+      const batchId = 'batch-prefixed-error-001';
+      const prefixedStxError = `${STX_NO_HASH_ERROR} with unrelated suffix`;
+      let isSuppressed = true;
+      mockHwOpOnce(async ({ execute, onError }) => {
+        await execute();
+        isSuppressed = onError?.(new Error(prefixedStxError)) ?? false;
+        return false;
+      });
+
+      setMockTransactions([matchingBatchTx(batchId)]);
+      setMockPendingApprovals({
+        [batchId]: { id: batchId, type: 'transaction_batch' },
+      });
+      renderEnabledHook();
+
+      await act(async () => {
+        await getApprovalHandler()();
+      });
+
+      expect(isSuppressed).toBe(false);
+      expect(mockUpdateSwaps).not.toHaveBeenCalledWith(EXPECT_TX_FAILED);
     });
 
     it('awaits batch cancellation before completing a rejected hardware operation', async () => {
@@ -1237,6 +1650,33 @@ describe('useHwBatchSignTracker', () => {
         }),
       );
     }
+
+    it('accepts the first approved event for a new batch after retryGenerationRef advances', () => {
+      const retryGenerationRef = { current: 0 };
+      const staleBatchId = 'batch-stale-before-retry';
+      const nextBatchId = 'batch-new-after-retry';
+
+      renderWithRetry(retryGenerationRef);
+      fireTxEvent(
+        txMeta({
+          type: TransactionType.bridgeApproval,
+          status: TransactionStatus.approved,
+          batchId: staleBatchId,
+        }),
+      );
+      mockUpdateSwaps.mockClear();
+
+      retryGenerationRef.current = 1;
+      fireTxEvent(
+        txMeta({
+          type: TransactionType.bridgeApproval,
+          status: TransactionStatus.approved,
+          batchId: nextBatchId,
+        }),
+      );
+
+      expect(mockUpdateSwaps).toHaveBeenCalledWith(EXPECT_SIGNING_APPROVAL);
+    });
 
     it('stops queued batch approvals when retryGenerationRef advances', async () => {
       const retryGenerationRef = { current: 0 };
