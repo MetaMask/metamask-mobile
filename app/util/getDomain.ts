@@ -1,6 +1,5 @@
 import psl from 'psl';
-
-const IPV4_REGEX = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/u;
+import isLocalhostOrIPAddress from './isLocalhostOrIPAddress';
 
 /**
  * Registrable domain (eTLD+1) for a URL, computed via the Public Suffix List
@@ -23,20 +22,13 @@ function getDomain(urlString: string): string | null {
     return null;
   }
 
-  // URL.hostname wraps IPv6 in brackets and lowercases the host.
-  const hostnameWithoutBrackets = url.hostname.replace(/^\[|\]$/gu, '');
+  const { hostname } = url;
 
-  if (
-    !hostnameWithoutBrackets.includes('.') ||
-    hostnameWithoutBrackets === 'localhost' ||
-    IPV4_REGEX.test(hostnameWithoutBrackets) ||
-    // IPv6 contains colons, never appears in eTLD+1
-    hostnameWithoutBrackets.includes(':')
-  ) {
-    return url.hostname;
+  if (!hostname.includes('.') || isLocalhostOrIPAddress(hostname)) {
+    return hostname;
   }
 
-  return psl.get(url.hostname) ?? url.hostname;
+  return psl.get(hostname) ?? hostname;
 }
 
 export default getDomain;

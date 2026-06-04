@@ -453,6 +453,7 @@
     "he": "^1.2.0",
     "https-browserify": "0.0.1",
     "humanize-duration": "^3.27.2",
+    "ip-regex": "^5.0.0",
     "is-url": "^1.2.4",
     "js-sha3": "0.9.3",
     "lodash": "4.18.1",
