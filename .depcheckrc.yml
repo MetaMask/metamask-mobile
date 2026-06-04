@@ -136,7 +136,9 @@ ignores:
   - '@types/react-test-renderer'
   # runtime for dependecies using Nitro Modules (@metamask/native-utils)
   - 'react-native-nitro-modules'
-  # Jest `jest.mock('react-native-worklets', …, { virtual: true })` in testSetup only; not a root dependency
+  # Required by react-native-reanimated v4: consumed via the
+  # `react-native-worklets/plugin` Babel plugin and the Reanimated native
+  # runtime rather than a direct JS import, so depcheck can't detect usage.
   - 'react-native-worklets'
 
   # Used in Yarn plugin for preview builds
